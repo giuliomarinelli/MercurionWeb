@@ -340,6 +340,18 @@ requireMatch(
   'coordinator must prevent same-session capability-pause reselection loops',
 );
 requireMatch(
+  paths.agents.coordinator,
+  coordinator.content,
+  /SESSION_BRANCH_COLLISION_PAUSE[\s\S]*branch-collision exclusion set[\s\S]*continue with the next independent `READY` task/,
+  'coordinator must isolate a branch collision and continue independent work',
+);
+requireMatch(
+  paths.agents.coordinator,
+  coordinator.content,
+  /SESSION_RECOVERY_PENDING[\s\S]*retry[\s\S]*soft deadline/,
+  'coordinator must recover from infrastructure failures without early finalization',
+);
+requireMatch(
   paths.agents.worker,
   worker.content,
   /do not read repository files, invoke tools, run commands, inspect or modify Git/,
@@ -612,7 +624,7 @@ for (const [pattern, message] of [
   [/no\s+profile-persistence or pre-authenticated-state probe is a launch prerequisite/i, 'prepared launch must not depend on persisted profile authentication'],
   [/workload\.tasks` list is empty[\s\S]{0,120}complete Series is in\s*scope/i, 'prepared launch must select the complete Series'],
   [/there is no autonomous allowlist/i, 'prepared launch must explicitly disable workload restriction'],
-  [/expected first READY task[\s\S]{0,20}(?:is\s*)?0043/i, 'prepared launch must state the current expected first ready task'],
+  [/expected first READY task[\s\S]{0,20}(?:is\s*)?0087/i, 'prepared launch must state the current expected first ready task'],
   [/Task `0041` \(`FE-019`\) is already integrated as `DONE`[\s\S]*must not attempt or re-enable it/i, 'prepared launch must retain completed FE-019'],
   [/env\/\.env\.development[\s\S]{0,260}ordinary login[\s\S]{0,260}server/i, 'prepared launch must require a fresh server-accepted real-account login'],
   [/Do[\s\S]{0,10}not bundle tasks/, 'prepared launch must prohibit multi-task bundles'],
@@ -848,15 +860,15 @@ for (const [pattern, message] of [
   [/browser_and_allowlist_hardening_pull_request:\s*31/, 'prepared session must record PR #31 provenance'],
   [/name:\s*mercurion-code-red-0001-overweek-full-series-2026-09-20-v6/, 'prepared session must use a fresh session identity'],
   [/expected_task_count:\s*220/, 'prepared workload must contain 220 tasks'],
-  [/expected_current_done:\s*53/, 'prepared workload must record 53 DONE tasks'],
-  [/expected_current_blocked:\s*4/, 'prepared workload must record four retained blockers'],
-  [/expected_current_skipped_dependency:\s*26/, 'prepared workload must record 26 terminal skips'],
-  [/expected_current_pending:\s*137/, 'prepared workload must record 137 pending tasks'],
-  [/expected_first_ready_task:\s*"0043"/, 'prepared workload must start from task 0043'],
-  [/expected_planner_ready:\s*17/, 'prepared workload must record 17 ready tasks'],
-  [/expected_planner_waiting_dependency:\s*120/, 'prepared workload must record 120 waiting tasks'],
+  [/expected_current_done:\s*57/, 'prepared workload must record 57 DONE tasks'],
+  [/expected_current_blocked:\s*6/, 'prepared workload must record six retained blockers'],
+  [/expected_current_skipped_dependency:\s*44/, 'prepared workload must record 44 terminal skips'],
+  [/expected_current_pending:\s*113/, 'prepared workload must record 113 pending tasks'],
+  [/expected_first_ready_task:\s*"0087"/, 'prepared workload must start from task 0087'],
+  [/expected_planner_ready:\s*14/, 'prepared workload must record 14 ready tasks'],
+  [/expected_planner_waiting_dependency:\s*99/, 'prepared workload must record 99 waiting tasks'],
   [/tasks:\s*\[\]/, 'prepared workload must select the complete Series'],
-  [/expected_autonomous_pending:\s*137/, 'prepared workload must record all 137 pending tasks in scope'],
+  [/expected_autonomous_pending:\s*113/, 'prepared workload must record all 113 pending tasks in scope'],
   [/expected_human_led_pending:\s*0/, 'prepared workload must not exclude pending tasks'],
   [/autonomous_execution_scope:\s*complete-series/, 'prepared workload must declare complete-Series execution'],
   [/dependency_planner:[\s\S]*output:\s*versioned-json/, 'prepared session must use deterministic planner output'],
@@ -880,6 +892,16 @@ for (const [pattern, message] of [
   [/required_once_before_enabling_unattended_reuse:\s*false/, 'prepared session must not gate launch on profile persistence'],
   [/fe_019_completed:[\s\S]*task:\s*"0041"[\s\S]*source:\s*FE-019[\s\S]*outcome:\s*DONE[\s\S]*select_again:\s*false/, 'prepared session must retain completed FE-019 without re-enabling it'],
   [/preserve_existing_frozen_branches:\s*true/, 'prepared session must preserve frozen blocked branches'],
+  [/stop_and_report_exact_denial:\s*false/, 'prepared session must not stop on a denied prerequisite'],
+  [/enter_session_recovery_pending:\s*true/, 'prepared session must recover from denied prerequisites'],
+  [/SESSION_BRANCH_COLLISION_PAUSE/, 'prepared session must declare branch collision as transient'],
+  [/SESSION_RECOVERY_PENDING/, 'prepared session must declare coordinator recovery as transient'],
+  [/stop_when_no_unpaused_ready_tasks:\s*false/, 'prepared session must remain active while pending tasks are temporarily excluded'],
+  [/branch_collision_excludes_only_colliding_task:\s*true/, 'prepared session must isolate only the colliding task'],
+  [/error_before_deadline_completes_session:\s*false/, 'prepared session must forbid error-driven early completion'],
+  [/stop_session_if_revert_not_green:\s*false/, 'prepared session must recover rather than stop on revert verification failure'],
+  [/session_fatal_blocker_completes_coordinator_objective:\s*false/, 'prepared session must disable fatal-blocker completion'],
+  [/task_complete_before_deadline_on_error:\s*false/, 'prepared session must forbid task_complete on pre-deadline errors'],
 ]) {
   requireMatch(paths.preparedSession, preparedSession, pattern, message);
 }

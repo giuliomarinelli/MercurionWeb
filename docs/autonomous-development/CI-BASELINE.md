@@ -6,7 +6,9 @@ before an autonomous Development Session may create a task branch.
 The baseline is intentionally separate from the numbered task workload. A
 repository-wide cleanup, dependency-topology repair, or CI bootstrap is not
 charged to task `0001` or to any later recipe. A session that cannot prove this
-baseline stops before assigning a task outcome.
+baseline suspends task dispatch in `SESSION_RECOVERY_PENDING` before assigning
+any task outcome, then retries safe verification/restoration until green or the
+soft deadline.
 
 ## Current package topology
 

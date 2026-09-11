@@ -22,6 +22,8 @@ A **Development Session** is a bounded period in which a session coordinator exe
 - **Runtime**: the local processes/infrastructure required for runtime/browser validation.
 - **Persistent browser profile**: the dedicated, non-production Chrome DevTools MCP user-data directory reused by serial workers and separate from task-scoped application processes.
 - **SESSION_CAPABILITY_PAUSE**: a transient task-scheduling deferral before task changes when mandatory runtime or browser authentication is unavailable; it is not a recipe outcome, creates no dependency skips, and does not by itself stop the session.
+- **SESSION_BRANCH_COLLISION_PAUSE**: a transient exclusion for one task whose exact feature branch already exists; preserve the branch and continue other independent work.
+- **SESSION_RECOVERY_PENDING**: a transient coordinator state for unsafe shared-state, tooling, network, CI-observation, configuration, or baseline failures. It suspends unsafe dispatch but never completes the session before the soft deadline.
 - **BROWSER_PROFILE_RECOVERY_REQUIRED**: a post-validation session stop requested when a task deliberately changed browser authentication/storage and could not restore the canonical non-production profile; the active task finishes its safe lifecycle, but no next task starts.
 - **Report**: the final session summary.
 - **CI mode**: the exact-SHA validation path selected by the permanent workflow: `duplicate`, `metadata`, or `full`.
@@ -81,7 +83,11 @@ Before recipe implementation or task-branch creation, the coordinator:
 
 A dry run, skipped install, cache-only substitute, broad temporary-directory cleanup, leftover probe directory, or simulated worker response is a startup failure. The worker capability handshake is session-level and does not count as the exactly-one implementation invocation for a recipe. Every autonomous commit-producing command also passes `--no-gpg-sign`: ordinary commits use `git commit --no-gpg-sign`, integrations use `git merge --no-ff --no-gpg-sign`, and rollback commits use `git revert --no-gpg-sign`.
 
-If any install, network, filesystem, cleanup, GitHub, subagent (`task`), MCP, signing, or `task_complete` prerequisite is denied or asks for additional approval despite the launch permissions, the coordinator stops and reports the exact denial. It never substitutes a weaker check.
+If any install, network, filesystem, cleanup, GitHub, subagent (`task`), MCP,
+signing, or `task_complete` prerequisite is denied or asks for additional
+approval despite the launch permissions, the coordinator reports the exact
+denial and enters `SESSION_RECOVERY_PENDING`. It never substitutes a weaker
+check and retries with bounded backoff until restored or the soft deadline.
 
 ## Green-baseline session invariant
 
@@ -200,7 +206,11 @@ Before task scope starts, the runner:
 5. creates `feature/<Source>` from that exact commit;
 6. pushes the new feature branch to `origin`.
 
-A pre-existing local or remote `feature/<Source>` is not overwritten automatically. It indicates a previous/incomplete attempt and requires explicit resume policy or human handling.
+A pre-existing local or remote `feature/<Source>` is not overwritten
+automatically. Record `SESSION_BRANCH_COLLISION_PAUSE`, preserve the ref
+unchanged, exclude only that task for the current scheduling pass, and continue
+with the next independent `READY` task. Periodically recheck the collision while
+the session remains active; it never becomes a session-wide fatal condition.
 
 No task develops directly on `develop`. Autonomous tasks never touch `master`.
 
@@ -277,8 +287,8 @@ planner snapshot, and continues with the next independent `READY` task outside
 that set. It MUST NOT retry the paused task in the same session, mark it
 `BLOCKED`, propagate `SKIPPED_DEPENDENCY`, or treat an expired login as a task
 defect. If no configured `READY` task remains outside the set, the coordinator
-finalizes with capability exhaustion rather than treating the pause as a
-session-fatal incident.
+remains active in recovery rather than treating the pause as a completion
+condition.
 
 The persistent profile is leased to one worker at a time, but authentication is
 not leased across workers. Every worker requiring protected state performs a
@@ -297,8 +307,8 @@ Immediately after `feature/<Source>` is created and before actual task implement
 2. confirm the exact base SHA already has the required green Actions run and
    execute only focused local checks relevant to the recipe;
 3. if usable, record the result and begin the task;
-4. if red before task changes exist, stop the session as a baseline invariant
-   failure rather than assigning the debt to this task;
+4. if red before task changes exist, enter `SESSION_RECOVERY_PENDING` as a
+   baseline invariant failure rather than assigning the debt to this task;
 5. do not implement, create a task outcome, or use the feature branch to repair
    unrelated baseline debt.
 
@@ -365,7 +375,9 @@ If the exact merge commit's CI succeeds:
 - verify `develop` remains the active clean integration branch;
 - only then continue to the next task.
 
-A missing remote branch is already clean and is not an error. Other branch-deletion failures are retried within configured limits and then stop the session for manual cleanup without changing the already successful task to `BLOCKED`.
+A missing remote branch is already clean and is not an error. Other branch-
+deletion failures are recorded for retry and do not change the already
+successful task to `BLOCKED` or stop unrelated safe task selection.
 
 ## Post-merge CI non-success and REVERTED
 
@@ -390,8 +402,9 @@ configured observation limit, treat the integration as unverified and fail
 closed through the same revert-and-`REVERTED` path. Because the permanent
 workflow predates every task and the pre-merge parent was proven green, the
 revert retains CI coverage. A revert tree mismatch or a revert/status commit
-that cannot be observed green is a session-fatal **baseline/upstream
-incident**, not permission to blame or start the next task.
+that cannot be observed green enters `SESSION_RECOVERY_PENDING` as a
+**baseline/upstream incident**. Suspend new task dispatch and retry safe
+restoration/verification; do not blame or start the next task on an unsafe base.
 
 Once revert plus `REVERTED` metadata are green, the task is terminal for this session. The coordinator resumes lazy filename-order dependency evaluation and may continue to a later independent task only when `policy.continue_after_terminal_non_done_task` is true and its resolved hard dependencies are all `DONE`.
 
@@ -467,9 +480,9 @@ For the whole aggregate operation:
 7. use the CI metadata path only when the workflow classifier proves both an
    already-green exact base SHA and an allowlisted task/report-only diff.
 
-A skip-metadata CI failure is a session-fatal integration-health incident; it
-is not attributed to any unattempted task. Independent `READY` tasks remain
-eligible after the aggregate commit is green. A later human-assisted recovery
+A skip-metadata CI failure enters `SESSION_RECOVERY_PENDING` as an integration-
+health incident; it is not attributed to any unattempted task. Independent
+`READY` tasks remain eligible after the aggregate commit is green. A later human-assisted recovery
 may re-enable an affected terminal closure only through an explicit,
 human-reviewed administrative change in a new/restarted session. A deliberately
 retained blocker and its descendants remain terminal.
@@ -570,7 +583,16 @@ caused by task changes after implementation still follows the task's ordinary
 
 ## Workload resolution
 
-The runner may resolve an explicit task list, a selected series range, or the global pending queue. It builds the dependency snapshot first, then selects the lexicographically earliest `READY` recipe by four-digit prefix that is not in the session-local capability-pause exclusion set. A pending/active prerequisite produces transient `WAITING_DEPENDENCY`; a terminal non-`DONE` prerequisite enters the next batched `SKIPPED_DEPENDENCY` closure. Advisory references do not constrain readiness and never create dependency cycles. If pending recipes remain but none is `READY` outside the exclusion set and no new terminal closure exists, the coordinator reports either capability exhaustion (when otherwise-READY tasks are excluded) or the unresolved/cyclic graph and finalizes rather than idling, immediately retrying a paused task, or fabricating progress.
+The runner may resolve an explicit task list, a selected series range, or the
+global pending queue. It builds the dependency snapshot first, then selects the
+lexicographically earliest `READY` recipe by four-digit prefix that is not in a
+session-local capability or branch-collision exclusion set. A pending/active
+prerequisite produces transient `WAITING_DEPENDENCY`; a terminal non-`DONE`
+prerequisite enters the next batched `SKIPPED_DEPENDENCY` closure. Advisory
+references do not constrain readiness and never create dependency cycles. If
+pending recipes remain but none is currently runnable, the coordinator remains
+active in `SESSION_RECOVERY_PENDING`, periodically rebuilds the planner and
+rechecks exclusions until work is safe or the soft deadline arrives.
 
 ## Deadline semantics
 
@@ -582,10 +604,10 @@ When configured, `hard_stop` is an absolute session guardrail, but it MUST NOT i
 
 ## Workload exhaustion
 
-If no pending runnable task remains outside the session-local capability-pause
-exclusion set, the session ends immediately; it does not idle until the
-configured end time. Tasks deferred by `SESSION_CAPABILITY_PAUSE` remain
-pending and are listed separately in the report.
+The session ends for workload exhaustion only when no configured pending task
+remains. If pending tasks exist but are temporarily excluded or unsafe, the
+session stays alive in `SESSION_RECOVERY_PENDING` until they become runnable or
+the soft deadline arrives.
 
 ## Session finalization and report
 
@@ -615,4 +637,8 @@ The coordinator writes the report from a clean `develop` after the active task l
 
 After final repository health is recorded, the coordinator emits the concise final summary and report path, then calls `task_complete` as the final Autopilot action. It performs no further prose or tool calls after `task_complete`.
 
-Reaching a session-fatal blocker is successful completion of the coordinator objective even when pending workload remains. After restoring the safest possible repository state, the coordinator finalizes the report, emits the concise final summary and report path, calls `task_complete` as the final Autopilot action, and stops; it produces no further prose/tool calls, never reopens a terminal task, and never starts pending work to avoid reporting the blocker.
+No error or blocker is a successful completion condition while pending workload
+remains before the soft deadline. The coordinator preserves safe repository
+state, enters recovery or task-local exclusion, and continues/retries. It emits
+the final report and calls `task_complete` only at genuine workload exhaustion
+or deadline finalization.

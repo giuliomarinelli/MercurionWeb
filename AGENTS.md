@@ -77,8 +77,9 @@ Every recipe has four mutually exclusive persistent outcomes:
 - `SKIPPED_DEPENDENCY`: never attempted because a hard prerequisite is terminal non-`DONE`; never create a feature branch.
 
 All four unchecked means pending. At most one may be checked. `CI_PENDING`,
-`WAITING_DEPENDENCY`, and `SESSION_CAPABILITY_PAUSE` are transient coordinator
-states and do not receive checkboxes. A capability pause occurs before
+`WAITING_DEPENDENCY`, `SESSION_CAPABILITY_PAUSE`,
+`SESSION_BRANCH_COLLISION_PAUSE`, and `SESSION_RECOVERY_PENDING` are transient
+coordinator states and do not receive checkboxes. A capability pause occurs before
 implementation when required local runtime or non-production browser
 authentication is unavailable; it defers only that task for the remainder of
 the active session without changing the recipe or propagating dependency
@@ -93,15 +94,22 @@ Autonomous eligibility is orthogonal to these outcomes. A non-empty
 
 All four persistent outcomes are terminal within the active session. The coordinator MUST NOT reopen or resume a terminal task because a later probe or Autopilot continuation changes its opinion. Only a new direct human instruction in a new or restarted session may authorize re-enablement; an Autopilot continuation is not human authorization.
 
-Reaching a session-fatal blocker is successful completion of the coordinator objective even if pending workload remains. The coordinator finalizes the report, emits its concise final summary and report path, calls `task_complete` as the final Autopilot action, and stops.
+No error, denial, branch collision, unavailable dependency, CI observation
+failure, or baseline incident is an early completion condition before
+the configured soft deadline. Task-local problems are isolated to that task;
+branch collisions enter `SESSION_BRANCH_COLLISION_PAUSE`; unsafe shared-state
+problems enter `SESSION_RECOVERY_PENDING`. The coordinator continues other safe
+independent work or retries recovery with bounded backoff. It calls
+`task_complete` only at the soft deadline or genuine workload exhaustion after
+all pending work has become terminal.
 
 ## Session startup capabilities
 
 Before recipe work, the coordinator MUST perform the real isolated npm capability probe defined in `PROTOCOL.md`: actual `npm init -y`, actual pinned `npm install --ignore-scripts --no-save is-number@7.0.0`, the Node.js assertion, exact temporary-directory cleanup, and identical clean repository status before and after. A dry run is forbidden.
 
-Before creating a task branch, the coordinator MUST also make exactly one session-level, non-mutating synchronous `task` handshake using `agent_type: development-task-worker`, `capability_probe: true`, and a fresh nonce. The worker returns exactly `TASK_CAPABILITY_OK <nonce>` without invoking tools or touching the repository. Empty, denied, malformed, or mismatched delegation stops the session before Git state is changed.
+Before creating a task branch, the coordinator MUST also make exactly one session-level, non-mutating synchronous `task` handshake using `agent_type: development-task-worker`, `capability_probe: true`, and a fresh nonce. The worker returns exactly `TASK_CAPABILITY_OK <nonce>` without invoking tools or touching the repository. Empty, denied, malformed, or mismatched delegation prevents task dispatch, enters `SESSION_RECOVERY_PENDING`, and is retried with bounded backoff until restored or the soft deadline.
 
-The coordinator MUST also verify the effective repository-local `commit.gpgSign=false`. Every autonomous commit-producing command uses `--no-gpg-sign`, including ordinary commits, no-fast-forward merges, and reverts. A denied install, network, filesystem, cleanup, GitHub, `task`, MCP, signing, or `task_complete` prerequisite is reported exactly and stops the session.
+The coordinator MUST also verify the effective repository-local `commit.gpgSign=false`. Every autonomous commit-producing command uses `--no-gpg-sign`, including ordinary commits, no-fast-forward merges, and reverts. A denied install, network, filesystem, cleanup, GitHub, `task`, MCP, signing, or `task_complete` prerequisite is reported exactly, enters `SESSION_RECOVERY_PENDING`, and is retried without weakening the prerequisite or finalizing early.
 
 ## Remote CI baseline and local validation policy
 
@@ -122,9 +130,10 @@ resolution, or import probes to declare that tree unusable. For runtime work,
 only the canonical start commands and their actual output decide usability.
 
 There is no task `0001` bootstrap exception. Missing CI, a red exact-SHA run,
-or a red local baseline is a session-level startup failure. Stop before branch
-creation or task outcome mutation and request a separate human-authorized
-baseline repair.
+or a red local baseline prevents branch creation and task outcome mutation.
+Enter `SESSION_RECOVERY_PENDING` and keep retrying safe baseline verification
+or restoration until green or until the soft deadline; never charge the
+incident to a numbered task.
 
 The preflight must cover every repository-controlled gate that can fail the canonical CI pipeline, including at minimum:
 
@@ -159,9 +168,11 @@ A missing or red root baseline gate is a session failure that requires a
 separate human-authorized repair; no numbered task or task branch may bootstrap
 or repair it.
 
-If preflight fails before the task has changed code, stop the session as a
+If preflight fails before the task has changed code, remove only an empty
+unpublished attempt branch when safe and enter `SESSION_RECOVERY_PENDING` as a
 baseline invariant failure. Do not assign the pre-existing defect to the task,
-mark the recipe `BLOCKED`, or use its branch for global remediation.
+mark the recipe `BLOCKED`, or use its branch for global remediation. Retry the
+baseline and resume task selection when it is green.
 
 ## Git lifecycle for one task
 
@@ -226,7 +237,13 @@ individual commit/push. Wait for the aggregate commit's exact adaptive
 `Required gate`, then select the earliest filename-ordered recipe whose hard
 dependencies are all `DONE`.
 
-The runner may continue only when active session policy permits it, `develop` is clean/exact-SHA green, and the next task's hard dependencies are all `DONE`. Because every task integrates from a proven-green `develop`, a revert that does not restore the pre-merge tree and exact-SHA green CI is a session-fatal baseline/upstream incident. Stop the entire session, report it separately from the task outcome, and do not use a later task to repair or conceal it.
+The runner may dispatch implementation only when `develop` is clean/exact-SHA
+green and the next task's hard dependencies are all `DONE`. A revert that does
+not restore the pre-merge tree and exact-SHA green CI enters
+`SESSION_RECOVERY_PENDING`: suspend new task dispatch, preserve all branches,
+and retry safe restoration/verification until green or the soft deadline. Do
+not use a later numbered task to repair or conceal it, and do not finalize the
+session merely because recovery is pending.
 
 ## Git safety constraints
 
