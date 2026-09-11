@@ -1,6 +1,6 @@
 # 0089 - Decompose add-molecules-to-collection into reusable flow units
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -82,37 +82,66 @@ Mark `BLOCKED` if current selection identity or submit semantics cannot be deter
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/NG-003` from `9805498a961ba9fb04809d5bb688a099d7bb647c`.
 
 ### Preflight
-_Not started._
+* Exact base SHA `9805498a961ba9fb04809d5bb688a099d7bb647c` matched the local
+  `feature/NG-003` HEAD and the successful GitHub Actions `CI` run
+  `34594114323`.
+* The working tree was clean before implementation and no workspace-consuming
+  process was active.
+* Browser capability preflight passed through the canonical edge after starting
+  Tox21, Nest, and Angular in that order. Both `/health` and `/` returned 200
+  in two consecutive readiness rounds. A fresh ordinary login through
+  `/login` succeeded and the protected dashboard/profile state was visible.
 
 ### Preflight remediation
-_None._
+None.
 
 ### Summary
-Not attempted because the required canonical search/card/pagination/action
-primitives from the UI tasks are terminally unavailable.
+Added feature-local flow units without introducing the later shared picker:
+`AddMoleculesSelectionController` owns identity-stable selection/chips and
+select-all exclusions, `AddMoleculesSearchController` owns debounced
+switch-mapped ChEMBL query state, and `AddMoleculesSubmitController` owns
+existing-molecule and ChEMBL payload construction/command dispatch. The action
+component now composes these units and exposes an explicit pagination port while
+retaining the existing paginator inheritance for compatibility with task 0102.
 
 ### Task-specific validation performed
-Not applicable; no feature branch or implementation worker was created.
+* `MercurionWebNg`: `npm run typecheck` passed.
+* Focused ESLint for the add-molecules feature passed with only pre-existing
+  unused-parameter/style warnings and no errors.
+* `npm run test:ci` passed (Angular Karma run; the package's CLI does not honor
+  the attempted `--include` option, so the focused flow specs were included in
+  the normal suite).
+* Browser evidence through `http://localhost:8888`: opened the protected
+  collection detail flow, opened “Aggiungi nuove molecole”, searched ChEMBL for
+  `caffeine`, observed result and empty/selected-chip states, selected
+  `CAFFEINA`, submitted successfully, and observed the resulting molecule in
+  the collection after redirect. No console/runtime failure was observed.
+  The post-validation Tox21, Nest, and Angular sessions were stopped.
 
 ### Full pre-merge CI-parity validation
-Not applicable; dependency-skip metadata only.
+Local `npm ci` and `npm run ci:check` were intentionally not run. Exact
+feature-SHA GitHub Actions evidence is required after publication.
 
 ### Browser validation performed
-Not applicable; the task was not attempted.
+Passed on the dedicated persistent Chrome DevTools profile through the
+canonical origin. Protected server acceptance was proved by the authenticated
+dashboard and collection APIs/UI. The add-molecules flow search, selection,
+submit, loading, empty, and result states were exercised safely.
 
 ### Commits
-Pending metadata commit on `develop`.
+Implementation commit pending final feature SHA.
 
 ### Merge / CI
-No feature branch or merge. Exact-SHA CI is required for the metadata commit.
+Feature branch will be pushed only after the task-specific implementation
+commit exists; coordinator owns merge and post-merge CI.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-Required UI primitives include tasks in the UI-001 through UI-016 chain,
-which are `SKIPPED_DEPENDENCY` because FE-030 is `BLOCKED`. FE-030 requires
-filesystem-write capability for a fresh, human-authorized worker session.
+None. Existing selection identity and submit contracts were established from
+the current component and service signatures; no stop-condition ambiguity
+remained.

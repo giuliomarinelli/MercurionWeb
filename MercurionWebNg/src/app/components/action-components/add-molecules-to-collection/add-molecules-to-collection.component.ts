@@ -28,19 +28,21 @@ import { SearchInputComponent } from '../../search-overlay/search-input/search-i
 import { MoleculeSearchResult } from '../../../Models/graphql/molecule-search/molecule-search-result.interface';
 import { SearchResultSkeletonLoaderComponent } from '../../search-overlay/search-result-skeleton-loader/search-result-skeleton-loader.component';
 import { SearchResultComponent } from '../../search-overlay/search-result/search-result.component';
-import { AddManyChEMBLItemDTO } from '../../../Models/graphql/add-many-chembl-item.dto';
 import { AddMoleculesToCollectionContextService } from '../../../services/context/action-context/add-molecules-to-collection-context.service';
 import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
-import { CloseButtonComponent } from '../../common/close-button/close-button.component';
 import { MoleculeCollectionService } from '../../../services/graphql/molecule-collection.service';
 import { ToastService } from '../../../services/toast.service';
 import { Router } from '@angular/router';
 import { MoleculeSearchService } from '../../../services/graphql/molecule-search.service';
-
-export type ChipItem = {
-  id: string;
-  name: string;
-};
+import {
+  AddMoleculesSearchController,
+  AddMoleculesPaginationPort,
+  AddMoleculesSelectionController,
+  AddMoleculesSubmitController,
+  type ChipItem
+} from './add-molecules-to-collection.flow';
+import { AbstractMultiselectItem } from '../../../Models/abstract.models';
+export type { ChipItem } from './add-molecules-to-collection.flow';
 
 @Component({
   selector: 'm-add-molecules-to-collection',
@@ -681,6 +683,20 @@ export class AddMoleculesToCollectionComponent
   private readonly router = inject(Router);
   private readonly moleculeSearchService = inject(MoleculeSearchService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly selection = new AddMoleculesSelectionController();
+  private readonly submitController = new AddMoleculesSubmitController();
+  private readonly chemblSearch = new AddMoleculesSearchController(query => {
+    const collectionId = this.addContext.collectionId();
+    return collectionId
+      ? this.moleculeCollectionItemService.searchChemblMolecules_excludeAlreadyAdded(query, collectionId, 100)
+      : this.moleculeSearchService.searchMolecule(query, 100);
+  });
+  readonly pagination: AddMoleculesPaginationPort = {
+    loadMore: () => this.loadMore(),
+    reset: () => this.resetPagination(),
+    query: query => this.query(query),
+    clear: () => this.clear()
+  };
 
   private ctrlSub?: Subscription;
   private suSub1?: Subscription;
@@ -705,9 +721,9 @@ export class AddMoleculesToCollectionComponent
         queueMicrotask(() => {
           this.step.set(1);
           this.clearChips();
-          this.resetPagination();
+          this.pagination.reset();
           this.startObserver();
-          this.loadMore();
+          this.pagination.loadMore();
           this.cdr.markForCheck();
         });
       } else if (this.method() === 'chembl') {
@@ -757,7 +773,7 @@ export class AddMoleculesToCollectionComponent
             this.toast.trigger('Si è verificato un errore. Se si ripete, contatta il supporto', 'error', 3000);
           })
       });
-      this.loadMore();
+      this.pagination.loadMore();
     });
   }
 
@@ -772,14 +788,31 @@ export class AddMoleculesToCollectionComponent
     this.observer?.disconnect();
     this.colSub?.unsubscribe();
     this.metCtrlSub?.unsubscribe();
+    this.chemblSearch.destroy();
+    this.selection.reset();
+  }
+
+  protected override toggleOne(visibleItem: AbstractMultiselectItem<MoleculeCardItemModel>): void {
+    super.toggleOne(visibleItem);
+    this.selection.toggle(visibleItem.item.id, visibleItem.isChecked());
+  }
+
+  protected override onSelectAllChange(checked: boolean): void {
+    if (checked) {
+      this.selection.selectAll();
+    } else {
+      this.selection.clearVisibleSelection();
+    }
+    super.onSelectAllChange(checked);
+  }
+
+  protected override clearSelections(): void {
+    super.clearSelections();
+    this.selection.reset();
   }
 
   protected override fetch$(
-    page?: number,
-    size?: number,
-    q?: string,
-    excludeJoinedToCollection?: boolean,
-    collectionId?: boolean
+
   ): Observable<PageModel<MoleculeCardItemModel>> {
     return this.moleculeCollectionItemService
       .getAllPaginatedItems(this.page, 20, this.searchTerm(), true, this.addContext.collectionId())
@@ -812,17 +845,13 @@ export class AddMoleculesToCollectionComponent
 
       this.step_12_loading.set(true);
 
-      let itemIds: string[] = [];
-      if (this.isSelectedAll()) {
-        itemIds = this.multiselectItems()
-          .filter(w => !w.isChecked())
-          .map(w => w.item.id);
-      } else {
-        itemIds = Array.from(this.selectedIdSet());
-      }
-
-      this.suSub1 = this.moleculeCollectionItemService
-        .addManyMoleculesToCollection(this.addContext.collectionId()!, itemIds, this.isSelectedAll())
+      this.suSub1 = this.submitController
+        .submitExisting(
+          this.moleculeCollectionItemService,
+          this.addContext.collectionId()!,
+          this.selection,
+          this.multiselectItems().map(w => w.item.id)
+        )
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
           next: ok => {
@@ -854,16 +883,18 @@ export class AddMoleculesToCollectionComponent
 
   // ============= ChEMBL search selection
 
-  chemblQuery = signal<string>('');
-  chemblLoading = signal<boolean>(false);
-  chemblResults = signal<MoleculeSearchResult[]>([]);
-  chemblError = signal<unknown | null>(null);
-  chemblEmpty = signal<boolean>(true);
+  chemblQuery = this.chemblSearch.query;
+  chemblLoading = this.chemblSearch.loading;
+  chemblResults = this.chemblSearch.results;
+  chemblError = this.chemblSearch.error;
+  chemblEmpty = this.chemblSearch.empty;
 
-  selectedMolecules: ChipItem[] = [];
+  get selectedMolecules(): ChipItem[] {
+    return this.selection.chips();
+  }
 
   get selectedIds(): string[] {
-    return this.selectedMolecules.map(c => c.id);
+    return this.selection.selectedChemblIds;
   }
 
   // TODO: Medium priority - Safari/iOS quirks can break keyboard overlay layout and suppress realtime search.
@@ -873,82 +904,44 @@ export class AddMoleculesToCollectionComponent
   }
 
   addChip(chip: ChipItem) {
-    if (!chip?.id) return;
-    if (this.selectedMolecules.some(c => c.id === chip.id)) return;
-    this.selectedMolecules = [...this.selectedMolecules, chip];
+    this.selection.addChip(chip);
   }
 
   onChemblQuery(raw: string) {
-    this.chemblQuery.set(raw ?? '');
-    const trimmed = this.chemblQuery().trim();
-    if (trimmed.length < 2) {
-      this.chemblResults.set([]);
-      this.chemblEmpty.set(true);
-      this.chemblError.set(null);
-      return;
-    }
-    this.chemblEmpty.set(false);
-    this.chemblError.set(null);
-    this.chemblLoading.set(true);
-
-    const collectionId = this.addContext.collectionId();
-    const obs = collectionId
-      ? this.moleculeCollectionItemService.searchChemblMolecules_excludeAlreadyAdded(trimmed, collectionId, 100)
-      : this.moleculeSearchService.searchMolecule(trimmed, 100);
-
-    obs.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (res: MoleculeSearchResult[]) => {
-        this.chemblResults.set(res ?? []);
-        this.chemblLoading.set(false);
-      },
-      error: (err: unknown) => {
-        this.chemblError.set(err);
-        this.chemblResults.set([]);
-        this.chemblLoading.set(false);
-      }
-    });
+    this.chemblSearch.setQuery(raw);
   }
 
   removeChip(id: string) {
-    this.selectedMolecules = this.selectedMolecules.filter(c => c.id !== id);
+    this.selection.removeChip(id);
   }
 
   clearChips() {
-    this.selectedMolecules = [];
+    this.selection.clearChips();
   }
 
   onEmpty(): void {
-    this.chemblEmpty.set(true);
-    this.chemblQuery.set('');
-    this.chemblResults.set([]);
+    this.chemblSearch.clear();
   }
 
   handleResults(results: MoleculeSearchResult[] | PageModel<MoleculeCardItemModel>): void {
-    this.chemblEmpty.set(false);
-    this.chemblError.set(null);
     if (Array.isArray(results)) {
-      this.chemblResults.set(results);
+      this.chemblSearch.setResults(results);
       return;
     }
-    this.chemblResults.set([]);
+    this.chemblSearch.setResults([]);
   }
 
   handleError(err: unknown): void {
-    this.chemblEmpty.set(false);
-    this.chemblError.set(err);
-    this.chemblResults.set([]);
+    this.chemblSearch.setError(err);
   }
 
   private doSubmitChembl(): void {
-    const dtos: AddManyChEMBLItemDTO[] = this.selectedMolecules.map(chip => {
-      const dto: AddManyChEMBLItemDTO = {
-        chemblMolregno: Number(chip.id),
-        name: chip.name
-      };
-      return dto;
-    });
-    this.suSub2 = this.moleculeCollectionItemService
-      .addManyChEMBLItemsToCollection(this.addContext.collectionId()!, dtos)
+    this.suSub2 = this.submitController
+      .submitChembl(
+        this.moleculeCollectionItemService,
+        this.addContext.collectionId()!,
+        this.selection
+      )
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: ok => {
@@ -984,5 +977,3 @@ export class AddMoleculesToCollectionComponent
     }
   }
 }
-
-
