@@ -127,11 +127,15 @@ account menu opened with close control, and no browser console errors were
 reported. Runtime processes were stopped after evidence capture.
 
 ### Commits
-Pending feature commit.
+* `b5073b9ca85ae460dc99be0ddbeeab9641c2cbee` — implementation, facade,
+  presentational sections, tests/notes.
+* Follow-up execution-note commit records exact feature CI evidence.
 
 ### Merge / CI
-Feature branch must be pushed only after the task commit. Exact-SHA feature
-CI remains required before integration.
+Exact feature CI run `34597327189` for
+`b5073b9ca85ae460dc99be0ddbeeab9641c2cbee` completed successfully. Both
+Windows and Ubuntu quality jobs and `Required gate` passed. The execution-note
+update is documentation-only and will receive its own exact-SHA CI check.
 
 ### Rollback
 _Not applicable._
