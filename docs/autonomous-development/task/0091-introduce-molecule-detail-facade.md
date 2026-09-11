@@ -1,7 +1,7 @@
 # 0091 - Introduce a cancellable molecule-detail facade
 
-- [ ] DONE
-- [ ] BLOCKED
+- [x] DONE
+- [] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -85,51 +85,87 @@ Mark `BLOCKED` if a molecule variant's authoritative mapping/identity semantics 
 `feature/NG-005` from base `9e0705161ee23b6b22335491121da36483efab90`.
 
 ### Preflight
-- Exact base Actions run `34598046869` succeeded on Ubuntu, Windows, and
-  `Required gate`.
-- Tox21, Nest, and Angular started in order with two complete readiness rounds
-  returning HTTP 200 for `/health` and `/`; all were stopped afterward.
-- Authenticated protected dashboard state was confirmed through the dedicated
-  non-production profile.
+- Confirmed clean feature branch identity and exact `origin/develop` base.
+- Confirmed Actions run `34598046869` for the exact base SHA succeeded in
+  `Quality (ubuntu-latest)`, `Quality (windows-latest)`, and `Required gate`.
+- Confirmed no task-owned Angular, Nest, Tox21, or workspace test watcher was
+  active before startup.
+- Browser capability preflight started Tox21, Nest, and Angular in the required
+  order with live attached handles. After the startup barrier, nginx returned
+  two consecutive complete `health=200 root=200` rounds. The persistent
+  profile exposed the authenticated protected dashboard state (`Benvenuto
+  Test`, molecule and collection counts), so no credentials were recorded.
+- Recovery resumed from preserved implementation SHA
+  `e58a7e048a5c44a7ff4b1db21bfd8a360228da1a`; current `develop` SHA was
+  `8e1871f52347895360416cc28a4b5c03e483239f`.
 
 ### Preflight remediation
 _None._
 
 ### Summary
-Introduced `MoleculeDetailFacade` with route-driven latest-wins loading,
-variant normalization, explicit loading/error state, title composition, and
-typed detail commands.
+Introduced `MoleculeDetailFacade` with route-driven latest-wins detail loading,
+variant normalization, loading/error signals, similar-molecule loading, title
+composition, and typed save/delete/bind/touch commands. The page now consumes
+facade detail/loading/error/similar state and delegates user commands.
 
-The task is `BLOCKED`: post-implementation navigation to a representative
-ChEMBL detail route and the following browser snapshot timed out while the
-runtime remained healthy, so required system/ChEMBL/custom route and
-rapid-navigation evidence cannot be claimed.
+Recovery revalidated the implementation after merging current `develop`, and
+completed the facade/page refactor and focused tests, but the required
+post-change browser acceptance remains blocked. The canonical runtime was
+healthy and fresh login succeeded; the representative ChEMBL detail route
+returned the document shell, then Angular's lazy component compilation stalled
+with pending `@ng/component` requests. Chrome snapshots and route readiness
+timed out, so system/ChEMBL/custom rendering and rapid-navigation evidence
+cannot be claimed.
 
 ### Task-specific validation performed
-- Angular typecheck passed.
-- Focused Angular tests compiled and began, then ChromeHeadless disconnected
-  at 75/382; the watcher was stopped.
-- Nest compilation and Angular development build passed.
+- `npm run typecheck --workspace mercurion_web_ng` — PASS.
+- `npx ng test --watch=false
+  --include=src/app/pages/molecule-detail/molecule-detail.facade.spec.ts
+  --include=src/app/pages/molecule-detail/molecule-detail.page.component.spec.ts
+  --browsers=ChromeHeadless` from `MercurionWebNg` — PASS, 4/4.
+- Post-merge runtime startup — Tox21/Nest/Angular all remained alive; Nest
+  compiled with 0 errors and Angular completed its dev build.
+- Post-merge readiness — two consecutive complete `health=200 root=200` rounds.
+- Fresh ordinary login through `http://localhost:8888/login` — PASS;
+  protected dashboard state showed `Benvenuto Test` and molecule/collection
+  counts.
+- Post-merge browser — ChEMBL document navigation returned HTTP 200, but the
+  page remained at the root accessibility node. `take_snapshot` and
+  `wait_for` timed out. Network inspection showed the molecule-detail page
+  lazy component and related `@ng/component` requests pending; no application
+  GraphQL detail request or rendered detail state was observed.
+- All three task-owned runtime processes were stopped and a final process
+  inventory found no Tox21, Nest, Angular or test-watcher process.
 - No local `npm ci` or `npm run ci:check` was run.
 
 ### Full pre-merge CI-parity validation
 Not applicable; the task was blocked before merge.
 
 ### Browser validation performed
-Preflight protected dashboard evidence passed. Required post-change detail
-route validation timed out at
-`http://localhost:8888/molecules/detail/01a0903f-2cea-7000-b7cb-a3138940194a`.
+Preflight protected dashboard evidence was captured through
+`http://localhost:8888` after a fresh ordinary login. Required post-change
+detail-route evidence was not completed because the representative ChEMBL
+route's lazy Angular component compilation stalled; subsequent snapshot and
+wait calls timed out. System/custom route, rapid-navigation, action, title/
+breadcrumb, cancellation/no-duplicate-fetch and rendered-console evidence
+therefore remain unproven. No production origin, dummy-auth route, clipboard,
+or DOM injection was used.
 
 ### Commits
-Partial implementation and diagnostic are preserved on `feature/NG-005`.
+Recovery merge `a906cb2c6` is recorded below; the diagnostic implementation
+commit is this feature branch's final preserved attempt.
 
 ### Merge / CI
-No merge. The feature branch remains preserved and frozen for review.
+Feature branch was recovered from the preserved implementation, merged with
+current `develop` using `--no-ff --no-gpg-sign`, and pushed with the diagnostic
+implementation commit. No merge into `develop` was performed.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-Diagnose and authorize a retry of the post-implementation browser validation;
-the observed blocker was the detail-route navigation and subsequent snapshot
-timeout despite healthy canonical runtime processes.
+Diagnose the Angular development-server lazy component compilation stall
+observed through the canonical edge (`@ng/component` requests remained
+pending, while `/health` and `/` returned 200), then authorize a new
+post-change browser validation attempt. The task remains `BLOCKED`; no DONE
+checkbox was selected.
