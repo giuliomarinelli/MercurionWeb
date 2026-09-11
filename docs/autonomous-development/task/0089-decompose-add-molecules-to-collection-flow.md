@@ -125,7 +125,9 @@ retaining the existing paginator inheritance for compatibility with task 0102.
 Local `npm ci` and `npm run ci:check` were intentionally not run. Exact
 feature-SHA GitHub Actions run `34594751940` for
 `59c540a5c711c5f7ab6c242b4f2ab78f1fa07093` passed on Linux and Windows,
-including the stable `Required gate`.
+including the stable `Required gate`. The final notes-only feature SHA
+`8d63d3d7cffea5443f88ef58b0e0ebfe34a555af` also passed run `34595354366`
+with the stable `Required gate`.
 
 ### Browser validation performed
 Passed on the dedicated persistent Chrome DevTools profile through the
@@ -136,6 +138,7 @@ submit, loading, empty, and result states were exercised safely.
 ### Commits
 `b336d5e3` — `refactor: decompose add molecules collection flow`
 `59c540a5` — `docs: record NG-003 implementation commit`
+`8d63d3d7` — `docs: record NG-003 feature CI evidence`
 
 ### Merge / CI
 Feature branch publication follows the task-specific implementation commit;
