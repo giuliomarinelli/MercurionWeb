@@ -194,11 +194,17 @@ commit and push the narrow correction, and retry exact-SHA CI up to three
 times. Do not mark BLOCKED on the first actionable CI failure.
 
 The session configuration contains direct human authorization to resume tasks
-0087/NG-001, 0091/NG-005 and 0109/NG-023 from their exact preserved feature
+0059/UI-001, 0087/NG-001, 0091/NG-005 and 0109/NG-023 from their exact preserved feature
 branches. For each, verify the configured local and remote SHA, dispatch the
 worker with `recovery_resume: true`, merge current green develop into the
 feature branch without rebase/history rewriting, preserve coherent prior work
-and finish the original recipe. The reset dependency skips 0088, 0106, 0110,
+and finish the original recipe. For 0059, preserve and integrate the coherent
+implementation from the configured archived attempt without rewriting either
+history. The owner resolves its prior design-policy blocker: derive a minimal
+semantic variant/size matrix, permit consumer-local layout/position/width
+classes, centralize interactive visual and native button semantics, and leave
+icon-only/close controls to 0060; inventory diversity alone is not a blocker.
+The reset dependency skips 0060-0075, 0077-0088, 0106, 0110,
 0111 and 0112 are pending again; let normal planner dependencies make them
 READY after their recovered prerequisites become DONE.
 

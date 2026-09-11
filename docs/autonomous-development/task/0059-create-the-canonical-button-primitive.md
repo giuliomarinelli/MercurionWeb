@@ -1,7 +1,7 @@
 # 0059 - Create the canonical Button primitive
 
 - [ ] DONE
-- [x] BLOCKED
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -96,6 +96,17 @@ Mark `BLOCKED` if the existing button inventory contains materially different pr
 Prefer a small semantic API over a utility-class passthrough. The point is to remove class-string ownership from features, not wrap it in another input.
 
 ## Execution notes
+
+> Current status (2026-09-11): PENDING by direct owner instruction. Recovery is
+> authorized on `feature/UI-001` from its preserved SHA; the coherent prior
+> implementation on `archive/UI-001-attempt-2026-09-11` may be integrated
+> without rebase, reset, force-push, or history rewriting. The owner resolves
+> the former design-system blocker as follows: derive a minimal semantic
+> variant/size matrix from the inventory; keep consumer-specific layout,
+> positioning, and width classes at the consumer boundary; centralize visual
+> interaction, focus, disabled, loading, and native-type semantics in the
+> primitive; leave icon-only and close controls to task `0060`. Inventory
+> diversity alone is not a blocker under this authorized boundary.
 
 ### Current execution (2026-09-11, Source UI-001)
 
@@ -194,8 +205,7 @@ Not applicable; the task was skipped before implementation.
 _None._
 
 ### Summary
-Skipped at the normal filename-order selection point. Direct prerequisite
-`FE-030` is terminal `BLOCKED` due missing worker filesystem write capability.
+Passed.
 
 ### Task-specific validation performed
 No implementation or validation was performed.

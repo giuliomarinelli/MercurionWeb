@@ -297,7 +297,11 @@ authorized_recovery:
   authority: direct-human-instruction-2026-09-11
   resume_existing_feature_branches: true
   reconcile_with_current_develop: merge-no-ff-no-gpg-sign
-  tasks: ["0087", "0091", "0109"]
+  tasks: ["0059", "0087", "0091", "0109"]
+  source_0059: UI-001
+  preserved_sha_0059: a1122f4d9c6564983d931c38c09facf682650bef
+  prior_attempt_branch_0059: archive/UI-001-attempt-2026-09-11
+  prior_attempt_sha_0059: 909df90c0b1d8f8b2a20734d12f9fa5348f8c79f
   source_0087: NG-001
   preserved_sha_0087: bb210295929e45ba739207361f40f1c1bbbb719b
   source_0091: NG-005
@@ -305,6 +309,32 @@ authorized_recovery:
   source_0109: NG-023
   preserved_sha_0109: a321fc44678f9f6298ddd460a35b2ddc9034d7f1
   reset_stale_skipped_dependency:
+    - "0060"
+    - "0061"
+    - "0062"
+    - "0063"
+    - "0064"
+    - "0065"
+    - "0066"
+    - "0067"
+    - "0068"
+    - "0069"
+    - "0070"
+    - "0071"
+    - "0072"
+    - "0073"
+    - "0074"
+    - "0075"
+    - "0077"
+    - "0078"
+    - "0079"
+    - "0080"
+    - "0081"
+    - "0082"
+    - "0083"
+    - "0084"
+    - "0085"
+    - "0086"
     - "0088"
     - "0106"
     - "0110"
