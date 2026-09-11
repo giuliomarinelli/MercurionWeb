@@ -178,3 +178,5 @@ Validation:
 - `npm --prefix MercurionWebNg run typecheck` — passed.
 - `npm run ci:angular:storage-registry` — passed.
 - No task-owned runtime or watcher was started.
+
+Repair commit: `50636033` (`fix: repair auth external state convergence`).
