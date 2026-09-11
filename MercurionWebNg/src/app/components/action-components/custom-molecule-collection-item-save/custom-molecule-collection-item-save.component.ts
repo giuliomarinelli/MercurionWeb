@@ -13,11 +13,12 @@ import { FormsModule } from '@angular/forms';
 import { MoleculeProperties } from '../../../Models/graphql/molecule-properties.model';
 import { SaveOverlayFormItem } from '../../../Models/action/action-overlay.models';
 import { IconButtonComponent } from '../../common/icon-button/icon-button.component';
+import { TextareaComponent } from '../../common/textarea/textarea.component';
 
 @Component({
   selector: 'm-custom-molecule-collection-item-save',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgClass, ComboSelectComponent, FormsModule, IconButtonComponent],
+  imports: [NgClass, ComboSelectComponent, FormsModule, IconButtonComponent, TextareaComponent],
   template: `
 
     <div class="flex justify-center items-start md:items-center min-h-screen px-2 sm:px-4 pt-1 md:pt-6 m-overlay-screen">
@@ -139,30 +140,14 @@ import { IconButtonComponent } from '../../common/icon-button/icon-button.compon
             </div>
 
             <!-- NOTE -->
-            <div class="relative">
-              <textarea
-                #notes
-                id="notes"
-                class="block py-4 px-4 w-full text-sm bg-light-surface-secondary dark:bg-dark-surface-secondary border border-slate-400 dark:border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-light-accent-primary focus:border-light-accent-primary dark:focus:ring-dark-accent-primary-btn-hc dark:focus:border-dark-accent-primary-btn-hc peer text-light-on-surface-main dark:text-dark-on-surface-main"
-                placeholder=" "
-                name="notes"
-                [(ngModel)]="notesModel"
-                rows="2"
-                (blur)="onBlur('notes')"
-                (focus)="onFocus('notes')"
-              ></textarea>
-              <label
-                (click)="onFocus('notes')"
-                for="notes"
-                class="peer-focus:font-medium absolute transition-all duration-300 bg-light-surface-secondary dark:bg-dark-surface-secondary px-1 top-[13px] left-4 origin-[0] cursor-text"
-                [ngClass]="{
-                  'text-light-accent-secondary dark:text-dark-accent-secondary-hc scale-110 -translate-y-6 text-sm': notesFocus() || notesModel,
-                  'text-light-on-surface-secondary dark:text-dark-on-surface-secondary text-lg scale-100 translate-y-0': !notesFocus() && !notesModel
-                }"
-              >
-                Note (facoltative)
-              </label>
-            </div>
+            <m-textarea
+              id="notes"
+              name="notes"
+              label="Note (facoltative)"
+              [(ngModel)]="notesModel"
+              [rows]="2"
+              resizeMode="vertical"
+            />
 
             <!-- Proprietà calcolate -->
             <div
@@ -239,8 +224,6 @@ export class CustomMoleculeCollectionItemSaveComponent implements OnInit {
 
   private readonly labelRef = viewChild.required<ElementRef<HTMLInputElement>>('label');
 
-  private readonly notesRef = viewChild.required<ElementRef<HTMLTextAreaElement>>('notes');
-
   protected readonly overlayCtx = inject(ActionOverlayContextService);
   private readonly sessionId = this.overlayCtx.session('MoleculeCollectionItemSave')?.id ?? -1;
   protected readonly saveCtx = inject(CustomMoleculeCollectionItemSaveContextService);
@@ -252,8 +235,6 @@ export class CustomMoleculeCollectionItemSaveComponent implements OnInit {
 
   nameFocus = signal<boolean>(false);
   labelFocus = signal<boolean>(false);
-  notesFocus = signal<boolean>(false);
-
   collections = signal<MoleculeCollection[]>([]);
   hasMore = signal(true);
   loading = signal(false);
@@ -264,7 +245,6 @@ export class CustomMoleculeCollectionItemSaveComponent implements OnInit {
   labelModel: string = '';
   labelTouched: boolean = false;
   notesModel: string = '';
-  notesTouched: boolean = false;
   properties = signal<MoleculeProperties | null>(null);
 
   ngOnInit() {
@@ -337,7 +317,6 @@ export class CustomMoleculeCollectionItemSaveComponent implements OnInit {
   onFocus(item: SaveOverlayFormItem): void {
     const labelRef = this.labelRef();
     const nameRef = this.nameRef();
-    const notesRef = this.notesRef();
     switch (item) {
       case 'label':
         document.activeElement !== labelRef.nativeElement && labelRef.nativeElement.focus();
@@ -347,9 +326,6 @@ export class CustomMoleculeCollectionItemSaveComponent implements OnInit {
         document.activeElement !== nameRef.nativeElement && nameRef.nativeElement.focus();
         this.nameFocus.set(true);
         break;
-      case 'notes':
-        document.activeElement !== notesRef.nativeElement && notesRef.nativeElement.focus();
-        this.notesFocus.set(true);
     }
   }
 
@@ -363,9 +339,6 @@ export class CustomMoleculeCollectionItemSaveComponent implements OnInit {
         this.nameFocus.set(false);
         this.nameTouched = true;
         break;
-      case 'notes':
-        this.notesTouched = true;
-        this.notesFocus.set(false);
     }
   }
 
