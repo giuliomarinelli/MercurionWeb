@@ -1,6 +1,6 @@
 # 0061 - Create the canonical ActionFooter primitive
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -90,44 +90,94 @@ Prefer content projection or a narrow typed action contract. Do not make `Action
 
 ## Execution notes
 
-> Current status (2026-09-11): PENDING by direct owner instruction because this
-> activity was not completed. Historical attempt/skip evidence remains below
-> for traceability and is not a terminal outcome.
+> Current status (2026-09-11): DONE on `feature/UI-003`, pending exact
+> feature-SHA GitHub Actions validation and coordinator integration.
 
 ### Feature branch
-No task branch or worker was created because hard prerequisite
-`0059-create-the-canonical-button-primitive.md` (`UI-001`) is
-`SKIPPED_DEPENDENCY`.
+`feature/UI-003`, based on `8ce5f198ce131ac9fbe8335693947850a0119e3d`.
 
 ### Preflight
-Not applicable; the task was skipped before implementation.
+- Verified clean `feature/UI-003` at the supplied base SHA before edits.
+- Verified exact base CI run `34637950040` for
+  `8ce5f198ce131ac9fbe8335693947850a0119e3d`: Classify validation, Ubuntu
+  quality, Windows quality, and Required gate all succeeded.
+- Confirmed no task-owned Angular, Nest, Tox21, or test watcher was active.
+- Focused baseline checks: `npm run typecheck --workspace mercurion_web_ng`
+  passed; the existing Angular suite completed `402 SUCCESS`.
+- No local `npm ci` or `npm run ci:check` was run.
 
 ### Preflight remediation
-_None._
+The runtime preflight used the required direct startup order and separate live
+handles: Tox21 from `../MercurionTox21` with `.venv\Scripts\python.exe -m
+main`, Nest with `APP_ENV=development LOCAL_DUMMY_AUTH=false npm run
+start:dev --workspace mercurion_web_node`, then Angular from `MercurionWebNg`
+with `npm run start:dev`. After all three handles existed, nginx readiness
+returned two consecutive complete `health=200 root=200` rounds. The first
+Angular invocation was corrected to its declared `MercurionWebNg` working
+directory before any HTTP request. All preflight processes were stopped and
+verified absent before implementation.
 
 ### Summary
-Skipped at the normal filename-order selection point. `UI-001` is terminal
-`SKIPPED_DEPENDENCY`, with direct blocked root cause
-`0052-standardize-modern-angular-component-apis.md` (`FE-030`).
+Added stateless `ActionFooterComponent` with projected secondary and primary
+slots. Desktop layout keeps secondary actions on the left and primary actions
+on the right; mobile layout stacks secondary before primary for consistent
+keyboard order and wrapping. Migrated the repeated footer patterns in Create
+Collection, Add Molecules, Bind Collections, Select Collection, Essential
+Profile Registry Edit, and Sensitive Data Change. All migrated actions now use
+the canonical `ButtonComponent` for neutral/primary styling, disabled state,
+and loading state. Removed the superseded global `.action-card-footer` helper.
 
 ### Task-specific validation performed
-No implementation or validation was performed.
+- `npm run typecheck --workspace mercurion_web_ng` passed.
+- Focused Angular tests for ActionFooter and representative migrated flows:
+  `10 SUCCESS` (ActionFooter, Create Collection, Add Molecules, Bind
+  Collections, Select Collection, Essential Profile Registry Edit, and
+  Sensitive Data Change).
+- `npm run lint --workspace mercurion_web_ng` passed with `0 errors` (existing
+  warnings only).
+- `npm run build --workspace mercurion_web_ng` passed; existing bundle-budget,
+  CommonJS, and unused-import warnings remained non-fatal.
+- `git diff --check` passed and no obsolete `action-card-footer` consumer
+  remains under `MercurionWebNg/src`.
 
 ### Full pre-merge CI-parity validation
-Not applicable; no feature branch was created.
+The complete clean-install/aggregate gate was not run locally, per repository
+policy. Exact base-SHA CI was green as recorded above; exact feature-SHA CI is
+owned by the coordinator after the feature commit is pushed.
 
 ### Browser validation performed
-Not applicable; the task was skipped before implementation.
+Using the canonical persistent Chrome profile and only `http://localhost:8888`,
+performed a fresh ordinary login after the final runtime restart and verified
+the protected Dashboard welcome marker. With final Tox21, Nest, and Angular
+processes alive and two readiness rounds complete:
+
+- Add Molecules to Collection: at mobile viewport (`526x844` effective
+  viewport), `Annulla` and disabled `Aggiungi` stacked at separate y positions;
+  at desktop (`1280x900`), secondary was left and primary right on one row.
+- Select Collection then Route: at mobile, `Annulla` preceded disabled
+  `Continua` in the stacked footer; at desktop both were on one row with
+  primary on the right. The live dialog showed the loading/disabled state
+  during collection loading.
+- Create Collection: at mobile, `Annulla` and disabled `Crea` stacked; at
+  desktop they were aligned in the canonical secondary/primary order.
+
+Accessibility snapshots and DOM focus-order inspection confirmed dialog close/
+form controls precede the footer, with secondary action before primary action.
+No data-changing action was submitted. All final runtime processes were
+stopped by specific process ID and verified absent afterward.
 
 ### Commits
-Only this task metadata was updated on `develop`.
+- `9ac71db6bc05dbfa68cf96d4aaa6e47d86c91e25` — scoped ActionFooter
+  implementation and migrations, with Copilot coauthor trailer.
+- A follow-up task-note/status commit records this execution evidence and the
+  single `DONE` terminal outcome.
 
 ### Merge / CI
-No feature merge; skip metadata CI is required before continuing.
+No merge was performed. The feature branch must be pushed and its exact SHA
+validated by the coordinator before no-FF integration.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-No implementation blocker. Re-enable only after FE-030 and UI-001 are
-deliberately resolved in a new authorized session.
+None.

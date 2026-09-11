@@ -20,12 +20,14 @@ import { ToastService } from '../../../services/toast.service';
 import { CreateCollectionContextService } from '../../../services/context/action-context/create-collection-context.service';
 import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
 import { IconButtonComponent } from '../../common/icon-button/icon-button.component';
+import { ActionFooterComponent } from '../../common/action-footer/action-footer.component';
+import { ButtonComponent } from '../../common/button/button.component';
 
 
 @Component({
   selector: 'm-create-collection',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, IconButtonComponent],
+  imports: [ReactiveFormsModule, IconButtonComponent, ActionFooterComponent, ButtonComponent],
   styles: [
     `
     /* Scrollbar sottile per i contenitori scrollabili */
@@ -240,44 +242,24 @@ import { IconButtonComponent } from '../../common/icon-button/icon-button.compon
       </div>
 
       <!-- FOOTER -->
-      <div class="action-card-footer">
-        <button
-          type="button"
-          class="px-4 py-2 rounded-lg bg-light-surface-secondary text-light-on-surface-main
-                 dark:bg-slate-200 dark:text-light-on-surface-main
-                 hover:bg-white dark:hover:bg-slate-300/80
-                 border border-light-border dark:border-dark-border/80
-                 shadow-sm
-                 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary
-                 focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary
-                 dark:focus-visible:ring-offset-dark-surface-secondary
-                 transition-colors duration-200"
+      <m-action-footer>
+        <m-button
+          action-footer-secondary
+          variant="neutral"
           (click)="close()"
         >
           Annulla
-        </button>
+        </m-button>
 
-        <button
-          type="button"
-          class="px-4 py-2 rounded-lg
-                 bg-light-accent-primary text-white font-semibold shadow-md
-                 hover:bg-light-accent-primary-hc
-                 dark:bg-dark-accent-primary-btn dark:hover:bg-dark-accent-primary
-                 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary
-                 focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary
-                 dark:focus-visible:ring-offset-dark-surface-secondary
-                 disabled:bg-light-accent-primary/50 disabled:cursor-not-allowed
-                 transition-colors duration-200 dark:shadow-btn-dark disabled:hover:bg-light-accent-primary-hc/50
-                 min-w-10"
+        <m-button
+          action-footer-primary
           [disabled]="selectedChips.length === 0"
           (click)="doSubmit()"
-          [attr.aria-disabled]="selectedChips.length === 0"
-          aria-live="polite"
           aria-label="Crea le collezioni"
         >
           Crea
-        </button>
-      </div>
+        </m-button>
+      </m-action-footer>
     </div>
   </div>
   `

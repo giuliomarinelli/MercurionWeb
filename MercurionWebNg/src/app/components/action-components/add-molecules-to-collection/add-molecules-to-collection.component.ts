@@ -43,6 +43,8 @@ import {
 } from './add-molecules-to-collection.flow';
 import { AbstractMultiselectItem } from '../../../Models/abstract.models';
 import { IconButtonComponent } from '../../common/icon-button/icon-button.component';
+import { ActionFooterComponent } from '../../common/action-footer/action-footer.component';
+import { ButtonComponent } from '../../common/button/button.component';
 export type { ChipItem } from './add-molecules-to-collection.flow';
 
 @Component({
@@ -57,7 +59,9 @@ export type { ChipItem } from './add-molecules-to-collection.flow';
     SearchInputComponent,
     SearchResultSkeletonLoaderComponent,
     SearchResultComponent,
-    IconButtonComponent
+    IconButtonComponent,
+    ActionFooterComponent,
+    ButtonComponent
   ],
   styles: [
     `
@@ -605,60 +609,31 @@ export type { ChipItem } from './add-molecules-to-collection.flow';
     </div>
 
     <!-- FOOTER -->
-    <div class="action-card-footer shrink-0">
+    <m-action-footer>
       @if (step() === 1) {
-        <button
-          type="button"
-          class="px-4 py-2 rounded-lg bg-light-surface-secondary text-light-on-surface-main
-                 dark:bg-slate-200 dark:text-light-on-surface-main
-                 hover:bg-white dark:hover:bg-slate-300/80
-                 border border-light-border dark:border-dark-border/80
-                 shadow-sm
-                 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary
-                 focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary
-                 dark:focus-visible:ring-offset-dark-surface-secondary
-                 transition-colors duration-200"
+        <m-button
+          action-footer-secondary
+          variant="neutral"
           (click)="close()"
         >
           Annulla
-        </button>
+        </m-button>
       }
 
-      <button
-        type="button"
-        class="relative inline-flex items-center justify-center px-4 py-2 rounded-lg
-               bg-light-accent-primary text-white font-semibold shadow-md
-               hover:bg-light-accent-primary-hc
-               dark:bg-dark-accent-primary-btn dark:hover:bg-dark-accent-primary
-               focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq
-               focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary
-               dark:focus-visible:ring-offset-dark-surface-secondary
-               disabled:bg-light-accent-primary/50 disabled:cursor-not-allowed
-               transition-colors duration-200 dark:shadow-btn-dark disabled:hover:bg-light-accent-primary-hc/50"
+      <m-button
+        action-footer-primary
         [disabled]="(isSelectedNothing() && this.method() === 'my') || (this.selectedIds.length === 0 && this.method() === 'chembl' || step_12_loading())"
+        [loading]="step_12_loading()"
         (click)="step() === 1 ? dispatchSubmit() : close()"
-        [attr.aria-busy]="step_12_loading()"
-        [attr.aria-disabled]="(isSelectedNothing() && this.method() === 'my') || (this.selectedIds.length === 0 && this.method() === 'chembl' || step_12_loading())"
-        [attr.aria-live]="step_12_loading() ? 'assertive' : 'polite'"
         [attr.aria-label]="step() === 1 ? 'Aggiungi molecole' : 'Chiudi conferma'"
       >
-        <span [class.invisible]="step_12_loading()">
-          @if (step() === 1) {
-            <span>Aggiungi</span>
-          } @else if (step() === 2) {
-            <span>Ok</span>
-          }
-        </span>
-
-        <span
-          aria-hidden="true"
-          class="absolute inset-0 flex items-center justify-center"
-          [class.hidden]="!step_12_loading()"
-        >
-          <m-classic-spinner [size]="24"></m-classic-spinner>
-        </span>
-      </button>
-    </div>
+        @if (step() === 1) {
+          Aggiungi
+        } @else if (step() === 2) {
+          Ok
+        }
+      </m-button>
+    </m-action-footer>
   </div>
 </div>
 `
