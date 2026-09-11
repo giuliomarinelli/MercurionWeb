@@ -154,7 +154,9 @@ GitHub Actions. Exact feature-SHA CI remains coordinator-owned.
   Tox21/Nest/Angular/Karma workspace process remained.
 
 ### Commits
-Implementation and task metadata commits are recorded below after commit.
+- `c0a5e2f2ddf4b06f1f94ce84111d31d97ddfe973` — implementation, regression
+  guard, focused tests, and task execution notes.
+- A final metadata-only commit will record the pushed feature SHA.
 
 ### Merge / CI
 Feature branch publication and exact feature-SHA CI are coordinator-owned.
