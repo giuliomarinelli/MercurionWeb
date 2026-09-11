@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -101,7 +101,7 @@ The current service is already the natural starting owner; refactor it rather th
 ### Feature branch
 No task branch or worker was created because hard prerequisite
 `0054-establish-a-versioned-browser-storage-registry.md` (`FE-032`) is
-`SKIPPED_DEPENDENCY`.
+`BLOCKED`.
 
 ### Preflight
 Not applicable; the task was skipped before implementation.
@@ -110,9 +110,8 @@ Not applicable; the task was skipped before implementation.
 _None._
 
 ### Summary
-Skipped at the normal filename-order selection point. `FE-032` is terminal
-`SKIPPED_DEPENDENCY` and transitively depends on blocked canonical auth-store
-task `0026` (`FE-004`) and session protocol task `0010` (`SYS-010`).
+Skipped at the normal filename-order selection point. Direct terminal
+prerequisite `0054` (`FE-032`) is `BLOCKED`.
 
 ### Task-specific validation performed
 No implementation or validation was performed.
@@ -124,7 +123,8 @@ Not applicable; no feature branch was created.
 Not applicable; the task was skipped before implementation.
 
 ### Commits
-Only this task metadata was updated on `develop`.
+This task metadata was updated in the aggregate dependency-skip commit on
+`develop`.
 
 ### Merge / CI
 No feature merge; skip metadata CI is required before continuing.
