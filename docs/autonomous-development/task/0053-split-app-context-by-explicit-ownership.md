@@ -154,7 +154,8 @@ the shared shell/scroll owner. Chrome reported no console errors. All three
 post-validation runtime processes were stopped.
 
 ### Commits
-Pending until the feature commit is created and pushed.
+Implementation commit: `6003cb68` (`FE-031 split app context ownership`).
+Execution-note/status update will be included in the final feature SHA.
 
 ### Merge / CI
 No merge performed. The coordinator owns integration after exact feature-SHA
