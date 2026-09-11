@@ -14,6 +14,13 @@ const paths = {
     coordinator: '.github/agents/development-session-coordinator.agent.md',
     worker: '.github/agents/development-task-worker.agent.md',
   },
+  skills: {
+    chrome: '.github/skills/chrome-devtools/SKILL.md',
+    runtime: '.github/skills/mercurion-browser-runtime/SKILL.md',
+    ci: '.github/skills/mercurion-ci-lifecycle/SKILL.md',
+    outcome: '.github/skills/mercurion-outcome-classification/SKILL.md',
+    task: '.github/skills/mercurion-task-execution/SKILL.md',
+  },
   mcp: '.github/mcp.json',
   mcpLauncher: '.github/scripts/start-chrome-devtools-mcp.ps1',
   vscodeMcp: '.vscode/mcp.json',
@@ -37,15 +44,16 @@ const paths = {
 
 const expectedAgentTools = {
   coordinator:
-    'tools: ["execute", "read", "edit", "search", "web", "todo", "task", "task_complete"]',
+    'tools: ["execute", "read", "edit", "search", "web", "todo", "skill", "task", "task_complete"]',
   worker:
-    'tools: ["execute", "read", "edit", "search", "web", "todo", "chrome-devtools/*"]',
+    'tools: ["execute", "read", "edit", "search", "web", "todo", "skill", "chrome-devtools/*"]',
 };
 
 const controlPlaneFiles = [
   'AGENTS.md',
   paths.agents.coordinator,
   paths.agents.worker,
+  ...Object.values(paths.skills),
   'docs/autonomous-development/README.md',
   'docs/autonomous-development/CI-BASELINE.md',
   'docs/autonomous-development/PROTOCOL.md',
@@ -237,6 +245,34 @@ for (const [role, profile] of Object.entries({ coordinator, worker })) {
     fail(target, 'contains unsupported or pinned frontmatter metadata');
   }
 }
+
+const expectedSkills = {
+  chrome: 'chrome-devtools',
+  runtime: 'mercurion-browser-runtime',
+  ci: 'mercurion-ci-lifecycle',
+  outcome: 'mercurion-outcome-classification',
+  task: 'mercurion-task-execution',
+};
+for (const [key, expectedName] of Object.entries(expectedSkills)) {
+  const target = paths.skills[key];
+  const profile = frontmatter(target);
+  validateYamlStructure(`${target} frontmatter`, profile.yaml);
+  requireMatch(target, profile.yaml, new RegExp(`^name:\\s*${expectedName}\\s*$`, 'm'), 'skill frontmatter has the wrong name');
+  requireMatch(target, profile.yaml, /^description:\s*\S.+$/m, 'skill frontmatter requires description');
+  requireMatch(target, profile.yaml, /^user-invocable:\s*false\s*$/m, 'workflow skill must not be directly user-invocable');
+}
+requireMatch(paths.skills.chrome, read(paths.skills.chrome), /chrome-devtools-mcp-v1\.8\.0/, 'Chrome skill must retain pinned upstream provenance');
+requireMatch(paths.skills.chrome, read(paths.skills.chrome), /`evaluate_script`[\s\S]*must never read, inject, transfer, or expose credentials/, 'Chrome skill must forbid script-based credential handling');
+requireMatch(paths.skills.runtime, read(paths.skills.runtime), /Tox21[\s\S]*Nest[\s\S]*Angular/, 'runtime skill must retain canonical startup order');
+requireMatch(paths.skills.runtime, read(paths.skills.runtime), /two complete consecutive readiness rounds/i, 'runtime skill must require stable readiness');
+requireMatch(paths.skills.ci, read(paths.skills.ci), /final feature SHA[\s\S]*exact merge SHA/i, 'CI skill must retain exact-SHA lifecycle');
+requireMatch(paths.skills.outcome, read(paths.skills.outcome), /SESSION_RECOVERY_PENDING[\s\S]*BLOCKED[\s\S]*REVERTED/, 'outcome skill must distinguish transient and terminal states');
+requireMatch(paths.skills.task, read(paths.skills.task), /Never select another recipe/i, 'task skill must remain single-recipe scoped');
+
+requireMatch(paths.agents.coordinator, coordinator.content, /invoke the project skills `mercurion-ci-lifecycle` and `mercurion-outcome-classification`/, 'coordinator must invoke its project skills');
+requireMatch(paths.agents.worker, worker.content, /invoke the project skills `mercurion-task-execution` and `mercurion-outcome-classification`/, 'worker must invoke its core project skills');
+requireMatch(paths.agents.worker, worker.content, /also invoke `mercurion-browser-runtime` and `chrome-devtools`/, 'worker must invoke browser skills conditionally');
+requireMatch(paths.agents.worker, worker.content, /Capability probe mode[\s\S]*do not read repository files, invoke tools/i, 'capability probe must remain skill-free');
 
 requireMatch(
   paths.agents.coordinator,
@@ -560,7 +596,7 @@ requireMatch(
 if (/--allow-all-paths/.test(launch)) {
   fail('docs/autonomous-development/LAUNCH.md', 'must not disable all path verification');
 }
-for (const command of ['/model', '/permissions show', '/mcp list', '/keep-alive on']) {
+for (const command of ['/model', '/permissions show', '/mcp list', '/skills list', '/keep-alive on']) {
   requireMatch(
     'docs/autonomous-development/LAUNCH.md',
     launch,
@@ -650,7 +686,7 @@ const preparedSessionReference =
 if (preparedLaunch.split(preparedSessionReference).length - 1 !== 2) {
   fail(paths.preparedLaunch, 'must reference the active session exactly twice');
 }
-for (const command of ['/model', '/permissions show', '/mcp list', '/keep-alive on']) {
+for (const command of ['/model', '/permissions show', '/mcp list', '/skills list', '/keep-alive on']) {
   requireMatch(
     paths.preparedLaunch,
     preparedLaunch,

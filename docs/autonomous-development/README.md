@@ -88,6 +88,13 @@ The agent profiles do not pin a model or reasoning level. The coordinator and wo
 
 - `Development Session Coordinator` persists across the bounded run, parses the active YAML, owns time/task selection/Git integration/CI/reporting, and never implements two tasks concurrently.
 - `Development Task Worker` (`development-task-worker` programmatically) is one fresh stateless synchronous CLI `task` invocation for one prepared `feature/<Source>` branch. It owns preflight, implementation, local validation, task notes and feature-branch commits only. Its only non-implementation mode is the startup `capability_probe`, which echoes a nonce without tool use or repository access.
+
+Both profiles use repository project skills from `.github/skills/`. The
+coordinator explicitly invokes the CI-lifecycle and outcome-classification
+skills; workers invoke task-execution and outcome-classification, adding the
+runtime and Chrome DevTools skills only for browser-observable work. The skills
+encode repeatable operating procedures while `AGENTS.md`, the protocol, runtime
+policy, session YAML, and active recipe remain authoritative.
 - The coordinator independently verifies each worker result before merging and remains active through exact-SHA CI, cleanup/revert, the deadline and final report.
 
 The coordinator is manually selectable but cannot be inferred automatically. The worker is neither user-invocable nor inferable and is reached only by the coordinator's explicit `task` call.

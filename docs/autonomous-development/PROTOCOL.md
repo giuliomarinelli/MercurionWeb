@@ -19,6 +19,9 @@ A **Development Session** is a bounded period in which a session coordinator exe
 - **Soft deadline**: after this time no new task may start; the task already in progress may finish its complete branch/CI lifecycle.
 - **Hard deadline**: optional absolute session guardrail; do not start or interrupt an unsafe merge/revert sequence merely to beat the clock.
 - **Capability**: an external tool available to the coding agent, such as Chrome DevTools MCP.
+- **Project skill**: a repository-owned procedural module in `.github/skills/`
+  loaded explicitly through the Copilot CLI `skill` tool by a normal
+  coordinator or worker invocation.
 - **Runtime**: the local processes/infrastructure required for runtime/browser validation.
 - **Persistent browser profile**: the dedicated, non-production Chrome DevTools MCP user-data directory reused by serial workers and separate from task-scoped application processes.
 - **SESSION_CAPABILITY_PAUSE**: a transient task-scheduling deferral before task changes when mandatory runtime or browser authentication is unavailable; it is not a recipe outcome, creates no dependency skips, and does not by itself stop the session.
@@ -37,6 +40,14 @@ Session timing, workload selection, host/context behavior, budgets, runtime conf
 Series identity, Trello binding, task-range binding, repository/baseline context and optional baseline metadata are defined by each series document's YAML frontmatter.
 
 GitHub Copilot CLI agent profiles are committed in `.github/agents/`, and MCP servers used by autonomous sessions are committed in `.github/mcp.json`. VS Code workspace configuration remains separate and applies only to ordinary interactive VS Code use.
+
+The committed agent profiles expose the `skill` tool and explicitly load the
+repository project skills required by their role. The coordinator loads
+`mercurion-ci-lifecycle` and `mercurion-outcome-classification`; a normal worker
+loads `mercurion-task-execution` and `mercurion-outcome-classification`, adding
+`mercurion-browser-runtime` and `chrome-devtools` for browser/runtime work.
+Skills are procedural aids, not independent policy authorities. The startup
+nonce probe is intentionally tool-free and therefore never loads a skill.
 
 The canonical local runtime topology is defined by `docs/autonomous-development/RUNTIME.md`.
 

@@ -88,12 +88,16 @@ Prima di incollare il prompt esegui:
 /model
 /permissions show
 /mcp list
+/skills list
 /keep-alive on
 ```
 
 Conferma coordinator attivo, Auto attivo, permessi repository/rete disponibili,
 Chrome DevTools MCP elencato e keep-alive abilitato. Il browser deve usare solo
 il profilo dedicato non-production, mai Incognito, Guest o il profilo personale.
+Conferma anche la discovery delle cinque skill di progetto `chrome-devtools`,
+`mercurion-browser-runtime`, `mercurion-ci-lifecycle`,
+`mercurion-outcome-classification` e `mercurion-task-execution`.
 Per i task che richiedono l'area riservata, ogni worker deve leggere le
 credenziali condivise dal file git-ignored
 `MercurionWebNode/env/.env.development`, eseguire un login ordinario da
@@ -111,6 +115,14 @@ Read the complete active configuration, AGENTS.md,
 docs/autonomous-development/PROTOCOL.md,
 docs/autonomous-development/RUNTIME.md, and
 docs/autonomous-development/CI-BASELINE.md before any repository write.
+
+Invoke the repository project skills required by the agent profiles. The
+coordinator must invoke `mercurion-ci-lifecycle` and
+`mercurion-outcome-classification` before the first startup mutation. Every
+normal worker must invoke `mercurion-task-execution` and
+`mercurion-outcome-classification`, adding `mercurion-browser-runtime` and
+`chrome-devtools` whenever browser/runtime evidence is required. The nonce
+capability probe remains tool-free.
 
 Never run `npm ci` or `npm run ci:check` locally. Use the required exact-SHA
 GitHub Actions runs for clean-install and complete-gate evidence, and run only
