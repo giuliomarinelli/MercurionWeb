@@ -156,7 +156,9 @@ GitHub Actions. Exact feature-SHA CI remains coordinator-owned.
 ### Commits
 - `c0a5e2f2ddf4b06f1f94ce84111d31d97ddfe973` — implementation, regression
   guard, focused tests, and task execution notes.
-- A final metadata-only commit will record the pushed feature SHA.
+- `051f35c0` — execution-note correction and initial feature publication.
+- Final feature tip before this metadata-only update:
+  `051f35c0a8e0c3dbd772e7d0709060a9ba18f114`.
 
 ### Merge / CI
 Feature branch publication and exact feature-SHA CI are coordinator-owned.
