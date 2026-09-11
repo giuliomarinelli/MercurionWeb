@@ -22,7 +22,7 @@ import { PmSearchInputComponent } from '../../common/pm-search-input/pm-search-i
 import { CollectionSelectCardComponent } from '../../molecule-detail/collection-select-card/collection-select-card.component';
 import { SkeletonCollectionCardComponent } from '../../common/skeleton-card-loader/skeleton-card-loader.component';
 import { Router } from '@angular/router';
-import { CloseButtonComponent } from '../../common/close-button/close-button.component';
+import { IconButtonComponent } from '../../common/icon-button/icon-button.component';
 import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
 
 @Component({
@@ -33,7 +33,7 @@ import { DomainInvalidationService } from '../../../services/domain-invalidation
     PmSearchInputComponent,
     CollectionSelectCardComponent,
     SkeletonCollectionCardComponent,
-    CloseButtonComponent
+    IconButtonComponent
   ],
   styles: [
     `
@@ -90,7 +90,12 @@ import { DomainInvalidationService } from '../../../services/domain-invalidation
         Collega molecola a nuove collezioni
       </h2>
 
-      <m-close-button [action]="close.bind(this)" ariaLabel="Chiudi pannello collega collezioni" />
+      <m-icon-button
+        size="sm"
+        icon="close"
+        ariaLabel="Chiudi pannello collega collezioni"
+        (pressed)="close()"
+      />
     </div>
 
       <!-- BODY -->
@@ -361,4 +366,3 @@ export class BindCollectionsToMoleculeComponent
     }
   }
 }
-

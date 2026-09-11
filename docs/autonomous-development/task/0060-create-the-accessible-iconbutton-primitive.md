@@ -1,6 +1,6 @@
 # 0060 - Create the accessible IconButton primitive
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -93,44 +93,88 @@ Avoid dynamic Tailwind class construction that the build cannot statically disco
 
 ## Execution notes
 
-> Current status (2026-09-11): PENDING by direct owner instruction because this
-> activity was not completed. Historical attempt/skip evidence remains below
-> for traceability and is not a terminal outcome.
-
 ### Feature branch
-No task branch or worker was created because hard prerequisite
-`0059-create-the-canonical-button-primitive.md` (`UI-001`) is
-`SKIPPED_DEPENDENCY`.
+`feature/UI-002` at base `1cd457e19da03397040a3ee7356f5c91774fa7eb`.
 
 ### Preflight
-Not applicable; the task was skipped before implementation.
-
-### Preflight remediation
-_None._
+- Verified clean local branch identity and exact supplied base SHA.
+- Confirmed local `develop`, `origin/develop`, and `feature/UI-002` all pointed
+  to `1cd457e19da03397040a3ee7356f5c91774fa7eb` before implementation.
+- Confirmed exact SHA GitHub Actions run `34632142838` succeeded with
+  `Quality (ubuntu-latest)`, `Quality (windows-latest)`, and `Required gate`
+  all green.
+- Confirmed repository-local `commit.gpgSign=false`.
+- Confirmed no task-owned Angular, Nest, Tox21, or test watcher was active.
+- Focused baseline checks passed: `npm run typecheck --workspace
+  mercurion_web_ng`, `npm run lint --workspace mercurion_web_ng` (existing
+  warnings only), and `git diff --check`.
+- Did not run `npm ci` or `npm run ci:check` locally.
 
 ### Summary
-Skipped at the normal filename-order selection point. `UI-001` is terminal
-`SKIPPED_DEPENDENCY`, with direct blocked root cause
-`0052-standardize-modern-angular-component-apis.md` (`FE-030`).
+Implemented one stateless, typed `m-icon-button` primitive with required
+`ariaLabel`, optional labelled-by/described-by relationships, finite
+compile-time icon/variant/size mappings, native disabled behavior, projected
+custom icons, and a centralized close icon. Migrated close actions and other
+icon-only actions in overlays, header/search UI, settings, account activation,
+MFA flows, ticket UI, and editable molecule details. Removed the superseded
+close-button component and `action-card-close-btn` CSS helper.
 
 ### Task-specific validation performed
-No implementation or validation was performed.
-
-### Full pre-merge CI-parity validation
-Not applicable; no feature branch was created.
+- `npx ng test --watch=false --karma-config=karma.conf.js
+  --include=src/app/components/common/icon-button/icon-button.component.spec.ts`
+  passed: 4 tests.
+- `npm run typecheck --workspace mercurion_web_ng` passed.
+- Focused ESLint for the primitive, its tests, and all changed Angular
+  consumers passed with zero errors (pre-existing warnings only).
+- `npm run build --workspace mercurion_web_ng` passed after reducing the
+  primitive to the existing Tailwind token language; only existing bundle
+  budget/CommonJS warnings remained.
+- Static regression checks passed: no `m-close-button`,
+  `CloseButtonComponent`, `action-card-close-btn`, or duplicated close path
+  remains outside `icon-button.component.ts`; icon-only native-control scan
+  found no unnamed controls.
 
 ### Browser validation performed
-Not applicable; the task was skipped before implementation.
+- Started the canonical Tox21, Nest, and Angular processes in the required
+  order, kept all three execution handles, and obtained two consecutive
+  complete readiness rounds through `http://localhost:8888/` and
+  `http://localhost:8888/health`.
+- Through the canonical origin, the login shell exposed named native
+  `IconButton` controls in the accessibility tree. Keyboard navigation opened
+  the public ChEMBL search overlay; the dialog exposed
+  `button "Chiudi ricerca molecolare"` and its textbox. Shift+Tab focused the
+  close button and Space closed the overlay without duplicate activation.
+- Switched the canonical theme selector to light and dark through keyboard
+  controls; both rendered states remained available and the named icon
+  controls remained focusable.
+- A protected `/dashboard` navigation correctly redirected to `/login`; no
+  authenticated state was required for the public search-overlay acceptance
+  probe, and no credentials were read or recorded.
+- Stopped every runtime process started for validation and verified no
+  task-owned Tox21/Nest/Angular process remained.
+
+### Decisions
+The primitive owns only control semantics and the centralized close icon;
+feature components continue to own their action methods. Custom projected SVGs
+are wrapped with `aria-hidden="true"` so projected artwork cannot become the
+accessible name. Existing `aria-describedby` behavior on the add-molecules
+overlay was preserved.
 
 ### Commits
-Only this task metadata was updated on `develop`.
+Pending final feature commit; task metadata and implementation will be
+committed together with `git commit --no-gpg-sign` and the required Copilot
+co-author trailer.
+
+### Full pre-merge CI-parity validation
+Reserved for GitHub Actions on the exact pushed feature SHA. No forbidden
+local aggregate command was run.
 
 ### Merge / CI
-No feature merge; skip metadata CI is required before continuing.
+No merge performed. The feature branch will be pushed only after the
+task-specific commit exists.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-No implementation blocker. Re-enable only after FE-030 and UI-001 are
-deliberately resolved in a new authorized session.
+None.

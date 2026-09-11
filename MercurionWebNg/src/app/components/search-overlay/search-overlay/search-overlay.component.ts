@@ -16,7 +16,7 @@ import { SearchInputComponent } from '../search-input/search-input.component'
 import { SearchResultComponent } from '../search-result/search-result.component'
 import { SearchResultSkeletonLoaderComponent } from '../search-result-skeleton-loader/search-result-skeleton-loader.component'
 import { SearchTypeSelectorComponent } from '../search-type-selector/search-type-selector.component'
-import { CloseButtonComponent } from '../../common/close-button/close-button.component'
+import { IconButtonComponent } from '../../common/icon-button/icon-button.component'
 import { UserContextService } from '../../../services/context/user-context.service'
 import { MoleculeSearchResult } from '../../../Models/graphql/molecule-search/molecule-search-result.interface'
 import { PageModel } from '../../../Models/graphql/page.models'
@@ -37,7 +37,7 @@ import { map } from 'rxjs/operators'
     SearchInputComponent,
     SearchResultComponent,
     SearchTypeSelectorComponent,
-    CloseButtonComponent,
+    IconButtonComponent,
     SearchResultSkeletonLoaderComponent,
     SkeletonMoleculeCardComponent,
     MoleculeCollectionItemCardComponent
@@ -61,7 +61,13 @@ import { map } from 'rxjs/operators'
           <!-- HEADER -->
           <div class="flex justify-between items-center mb-3 relative md:-top-2 lg:-top-4">
             <h2 class="text-2xl font-medium tracking-wide">Ricerca molecolare</h2>
-            <m-close-button [size]="6" [action]="close.bind(this)" variant="input" />
+            <m-icon-button
+              size="sm"
+              icon="close"
+              ariaLabel="Chiudi ricerca molecolare"
+              (pressed)="close()"
+            >
+            </m-icon-button>
           </div>
 
           <m-molecule-search-input

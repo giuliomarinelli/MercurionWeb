@@ -26,6 +26,7 @@ import { HeaderNavigationComponent } from './header-navigation.component';
 import { HeaderAccountMenuComponent } from './header-account-menu.component';
 import { HeaderResponsiveMenuComponent } from './header-responsive-menu.component';
 import { HeaderSessionIndicatorComponent } from './header-session-indicator.component';
+import { IconButtonComponent } from '../icon-button/icon-button.component';
 
 @Component({
   selector: 'm-header',
@@ -41,7 +42,8 @@ import { HeaderSessionIndicatorComponent } from './header-session-indicator.comp
     HeaderNavigationComponent,
     HeaderAccountMenuComponent,
     HeaderResponsiveMenuComponent,
-    HeaderSessionIndicatorComponent
+    HeaderSessionIndicatorComponent,
+    IconButtonComponent
   ],
   providers: [HeaderFacade],
   template: `
@@ -140,15 +142,16 @@ import { HeaderSessionIndicatorComponent } from './header-session-indicator.comp
       }
       <div class="hidden sm:block" [ngClass]="{
           'lg:hidden': userContext.isLoggedIn() || isLoginPath() || isWelcomePath() }">
-        <button
-          (click)="openSearchOverlay()"
-          class="inline-flex items-center justify-center size-10 rounded-full relative left-0.5 text-slate-700 dark:text-gray-200 hover:bg-slate-200/80 dark:hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-light-accent-primary-hq transition-colors">
+        <m-icon-button
+          size="sm"
+          ariaLabel="Cerca molecola ChEMBL"
+          (pressed)="openSearchOverlay()">
           <svg class="w-5 h-5 fill-current text-slate-700 dark:text-gray-200" xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 512 512">
             <path
               d="M505 442.7L405.3 343c28.4-34.9 45.5-79 45.5-127.3C450.8 103.5 347.3 0 225.4 0S0 103.5 0 215.6s103.5 215.6 225.4 215.6c48.3 0 92.4-17.1 127.3-45.5l99.7 99.7c4.6 4.6 10.6 7 16.7 7s12.1-2.3 16.7-7c9.3-9.2 9.3-24.4 0-33.7zM225.4 367c-83.5 0-151.4-67.9-151.4-151.4s67.9-151.4 151.4-151.4 151.4 67.9 151.4 151.4-67.9 151.4-151.4 151.4z" />
           </svg>
-        </button>
+        </m-icon-button>
       </div>
 
       <button class="flex items-center justify-center size-10 rounded-full theme-toggle-button mr-0 xs:mr-1 lg:mr-2 transition-all duration-500 hover:bg-slate-200/80 dark:hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-light-accent-primary-hq" [ngClass]="{
@@ -401,16 +404,12 @@ import { HeaderSessionIndicatorComponent } from './header-session-indicator.comp
       </a>
       <span class="text-lg">Mercurion</span>
     </div>
-    <button
-      class="inline-flex items-center justify-center size-8 rounded-md text-slate-700 dark:text-slate-200 hover:text-light-accent-primary-hc hover:bg-slate-100 kark dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-light-accent-primary-hq focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-transparent transition"
-      (click)="closeOffCanvasMenu()">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 640 640"
-        class="fill-current w-5 h-auto">
-          <path d="M182.9 137.4L160.3 114.7L115 160L137.6 182.6L275 320L137.6 457.4L115 480L160.3 525.3L182.9 502.6L320.3 365.3L457.6 502.6L480.3 525.3L525.5 480L502.9 457.4L365.5 320L502.9 182.6L525.5 160L480.3 114.7L457.6 137.4L320.3 274.7L182.9 137.4z" />
-      </svg>
-    </button>
+    <m-icon-button
+      size="sm"
+      icon="close"
+      ariaLabel="Chiudi menu laterale"
+      (pressed)="closeOffCanvasMenu()">
+    </m-icon-button>
   </div>
 
   <!-- Menu items -->
@@ -422,6 +421,7 @@ import { HeaderSessionIndicatorComponent } from './header-session-indicator.comp
     class="sticky bottom-0 border-t py-3 px-5 bg-slate-100 dark:bg-neutral-800 border-slate-400 dark:border-dark-border flex gap-3 items-center">
     <button (click)="toggleAvatarMobileMenu()" [innerHTML]="userContext.initials()"
       class="avatar-toggle-button inline-flex items-center justify-center size-10 rounded-full cursor-pointer bg-emerald-500 text-slate-100 dark:bg-dark-accent-primary-btn hover:bg-emerald-900/60 hover:text-slate-100 dark:hover:bg-blue-400/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-light-accent-primary-hq text-sm font-semibold transition-colors duration-300"
+      [attr.aria-label]="avatarMobileMenuOpen() ? 'Chiudi il menù utente' : 'Apri il menu utente'"
       [attr.title]="avatarMobileMenuOpen() ? 'Chiudi il menù utente' : 'Apri il menu utente'">
     </button>
     <button (click)="toggleAvatarMobileMenu()"

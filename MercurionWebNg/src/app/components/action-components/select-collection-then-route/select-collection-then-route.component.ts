@@ -5,13 +5,15 @@ import { ComboSelectComponent } from '../../common/combo-select/combo-select.com
 import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
 import { MoleculeCollectionService } from '../../../services/graphql/molecule-collection.service';
 import { Subscription } from 'rxjs';
+import { IconButtonComponent } from '../../common/icon-button/icon-button.component';
 
 @Component({
   selector: 'm-select-collection-then-route',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ClassicSpinnerComponent,
-    ComboSelectComponent
+    ComboSelectComponent,
+    IconButtonComponent
   ],
   template: `
 
@@ -60,18 +62,12 @@ import { Subscription } from 'rxjs';
         }
       </div>
 
-      <button
-        type="button"
-        class="action-card-close-btn"
-        (click)="close()"
-        aria-label="Chiudi selezione collezione"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-5 h-auto">
-          <path
-            d="M182.9 137.4L160.3 114.7L115 160L137.6 182.6L275 320L137.6 457.4L115 480L160.3 525.3L182.9 502.6L320.3 365.3L457.6 502.6L480.3 525.3L525.5 480L502.9 457.4L365.5 320L502.9 182.6L525.5 160L480.3 114.7L457.6 137.4L320.3 274.7L182.9 137.4z"
-          />
-        </svg>
-      </button>
+      <m-icon-button
+        size="sm"
+        icon="close"
+        ariaLabel="Chiudi selezione collezione"
+        (pressed)="close()"
+      />
     </div>
 
     <!-- BODY -->

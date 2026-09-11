@@ -8,10 +8,11 @@ import { UserContextService } from '../../services/context/user-context.service'
 import { ToastService } from '../../services/toast.service';
 import { CopyUiService } from '../../services/copy-ui.service';
 import { DesignService } from '../../services/design.service';
+import { IconButtonComponent } from '../../components/common/icon-button/icon-button.component';
 
 @Component({
   selector: 'm-account-activate.page',
-  imports: [ClassicSpinnerComponent, RouterLink],
+  imports: [ClassicSpinnerComponent, RouterLink, IconButtonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
 
@@ -44,11 +45,10 @@ import { DesignService } from '../../services/design.service';
             <p><span>Questo è il codice per recuperare l'account nel caso non riuscissi più ad accedere. Lo puoi visualizzare solo in questo momento. <br />Salvalo in un posto sicuro, come un Password Manager oppure stampalo e custodiscilo in un luogo inaccessibile ad altri:</span>.</p>
             <div class="flex items-center gap-2">
               <p class="text-light-warning dark:text-dark-warning font-semibold" aria-live="assertive">{{recoveryCode()}}</p>
-              <button
-                type="button"
-                class="relative p-1.5 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary dark:focus-visible:ring-offset-dark-surface-secondary transition-colors duration-150"
-                title="Copia."
-                (click)="copy()"
+              <m-icon-button
+                size="sm"
+                ariaLabel="Copia il codice di recupero"
+                (pressed)="copy()"
               >
                 <svg
                   class="shrink-0 size-5 text-slate-600 dark:text-slate-300"
@@ -61,7 +61,7 @@ import { DesignService } from '../../services/design.service';
                     <path
                       d="M8 6a2 2 0 0 1 2-2h5a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-5a2 2 0 0 1-2-2V6z" />
                 </svg>
-              </button>
+              </m-icon-button>
             </div>
             <p><a class="a-hc" routerLink="/login">Vai al login</a></p>
           </div>
