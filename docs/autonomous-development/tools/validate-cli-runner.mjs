@@ -896,6 +896,7 @@ for (const [pattern, message] of [
   [/enter_session_recovery_pending:\s*true/, 'prepared session must recover from denied prerequisites'],
   [/SESSION_BRANCH_COLLISION_PAUSE/, 'prepared session must declare branch collision as transient'],
   [/SESSION_RECOVERY_PENDING/, 'prepared session must declare coordinator recovery as transient'],
+  [/preferred_tool:\s*fill_form[\s\S]*fallback_tool:\s*fill[\s\S]*clipboard_denial_is_capability_failure:\s*false/, 'prepared session must use supported browser form filling and reject clipboard-denial pauses'],
   [/stop_when_no_unpaused_ready_tasks:\s*false/, 'prepared session must remain active while pending tasks are temporarily excluded'],
   [/branch_collision_excludes_only_colliding_task:\s*true/, 'prepared session must isolate only the colliding task'],
   [/error_before_deadline_completes_session:\s*false/, 'prepared session must forbid error-driven early completion'],

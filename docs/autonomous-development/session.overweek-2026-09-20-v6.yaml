@@ -118,6 +118,18 @@ capabilities:
       required_credential_variables:
         - LOCAL_TEST_ACCOUNT_EMAIL
         - LOCAL_TEST_ACCOUNT_PASSWORD
+      credential_entry:
+        snapshot_before_fill: true
+        preferred_tool: fill_form
+        fallback_tool: fill
+        forbidden_methods:
+          - navigator.clipboard
+          - clipboard.readText
+          - evaluate_script
+          - dom-injection
+          - os-clipboard
+        clipboard_denial_is_capability_failure: false
+        retry_supported_fill_in_same_worker: true
       require_server_accepted_protected_session: true
       failure_result: SESSION_CAPABILITY_PAUSE
       mutate_task_outcome: false
