@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -95,9 +95,8 @@ _Not started._
 _None._
 
 ### Summary
-Not attempted. The required route/auth/session/UI foundation through task 0086
-is terminally non-`DONE`. The reference to task 0087 is advisory and was not
-treated as a hard prerequisite.
+Not attempted because hard prerequisite task `0087` (`NG-001`) is `BLOCKED`;
+this task is part of the resulting dependency-skip closure.
 
 ### Task-specific validation performed
 Not applicable; no feature branch or implementation worker was created.
@@ -118,8 +117,7 @@ No feature branch or merge. Exact-SHA CI is required for the metadata commit.
 _Not applicable._
 
 ### Blocker / human decision required
-The required foundation includes FE-004 (BLOCKED because mandatory
-authenticated browser validation was unavailable), FE-030 (BLOCKED because
-worker filesystem-write capability was unavailable), and UI-018 (BLOCKED
-because the local Nest runtime was unavailable for mandatory browser
-validation). Their dependent foundation tasks are `SKIPPED_DEPENDENCY`.
+Direct terminal prerequisite: task `0087` (`NG-001`), `BLOCKED`.
+Transitive dependency chain: `0088` -> `0087` (`NG-001` BLOCKED). The blocked
+task requires independently testable sensitive-data workflow implementations
+and focused lifecycle tests.
