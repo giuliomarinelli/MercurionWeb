@@ -23,7 +23,6 @@ export type ButtonIconPosition = 'leading' | 'trailing';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <button
-      class="m-button__control"
       [class]="classes()"
       [attr.type]="type()"
       [disabled]="disabled() || loading()"
@@ -33,12 +32,10 @@ export type ButtonIconPosition = 'leading' | 'trailing';
     >
       @if (loading()) {
         <span class="m-button__spinner" aria-hidden="true"></span>
-        <span class="m-button__loading-label">
-          <ng-content></ng-content>
-        </span>
-      } @else {
-        <ng-content></ng-content>
       }
+      <span class="m-button__content" [class.m-button__content--loading]="loading()">
+        <ng-content></ng-content>
+      </span>
     </button>
   `,
   styles: `
@@ -57,6 +54,7 @@ export type ButtonIconPosition = 'leading' | 'trailing';
       gap: 0.5rem;
       justify-content: center;
       min-height: 2.5rem;
+      position: relative;
       transition: background-color 150ms ease, border-color 150ms ease,
         color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
     }
@@ -166,16 +164,26 @@ export type ButtonIconPosition = 'leading' | 'trailing';
       border-right-color: transparent;
       border-radius: 9999px;
       height: 1em;
+      left: 50%;
+      position: absolute;
+      top: 50%;
+      transform: translate(-50%, -50%);
       width: 1em;
     }
 
-    .m-button__loading-label {
-      visibility: visible;
+    .m-button__content {
+      align-items: center;
+      display: inline-flex;
+      gap: inherit;
+    }
+
+    .m-button__content--loading {
+      visibility: hidden;
     }
 
     @keyframes m-button-spin {
       to {
-        transform: rotate(360deg);
+        transform: translate(-50%, -50%) rotate(360deg);
       }
     }
   `,
@@ -191,7 +199,7 @@ export class ButtonComponent {
 
   protected readonly classes = computed(
     () =>
-      `m-button__control--${this.variant()} m-button__control--${this.size()} m-button__control--icon-${this.iconPosition()}`,
+      `m-button__control m-button__control--${this.variant()} m-button__control--${this.size()} m-button__control--icon-${this.iconPosition()}`,
   );
 
   protected onClick(event: MouseEvent): void {
