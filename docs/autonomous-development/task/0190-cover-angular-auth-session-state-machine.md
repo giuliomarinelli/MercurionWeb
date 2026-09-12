@@ -1,6 +1,6 @@
 # 0190 - Cover the Angular auth/session state machine
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -92,21 +92,37 @@ Model races by controlling Promise/Observable completion order, not by making ti
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/QA-004` at `827f7321979412e6c6855c184041043431ec2774` before
+implementation; final commit recorded below.
 ### Preflight
-_Not started._
+Clean branch identity verified against the supplied base SHA. FE prerequisites
+0026-0040 and runner prerequisite 0187 were all `[x] DONE`. No Angular/Nest/
+Tox21/test-watcher workspace process was active. No browser/runtime validation
+was required by this recipe. The supplied base was left unchanged before edits;
+local `npm ci` and `npm run ci:check` were not run.
 ### Preflight remediation
 _None._
 ### Summary
-_Not started._
+Added a deterministic Angular auth/session state-machine harness with controlled
+clock, deferred completion, storage-event, and realtime transport fakes. The
+spec drives the production auth store, persistence codec, cross-tab classifier,
+MFA/pre-auth transitions, refresh/session-generation guards, logout races,
+reconnect generation cancellation, expiry, malformed/expired records, and
+teardown ownership without wall-clock sleeps or browser runtime.
 ### Task-specific validation performed
-_Not started._
+`Push-Location MercurionWebNg; npx ng test --watch=false
+--karma-config=karma.conf.js
+--include=src/app/services/auth-session-state-machine.spec.ts` — 11 specs passed.
+Repeated focused execution twice to check order dependence — passed.
+`npm run lint --workspace mercurion_web_ng` — passed.
+`npm run typecheck --workspace mercurion_web_ng` — passed.
+`npm run test:ci --workspace mercurion_web_ng` — complete Angular suite passed.
 ### Full pre-merge CI-parity validation
-_Not started._
+Reserved for GitHub Actions exact feature SHA; forbidden locally per protocol.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-_Not recorded._
+Pending task commit; this note is included in that commit.
 ### Merge / CI
 _Not started._
 ### Rollback
