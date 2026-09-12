@@ -113,6 +113,16 @@ contract they use. The old service and passthrough spec were removed.
   `npx ng test --watch=false --include ...` — 10 specs passed.
 - `npm run lint --workspace mercurion_web_ng -- --no-warn-ignored` — passed
   with existing warnings only.
+- CI repair for run `34674533699` / feature SHA
+  `021016767910f12dbedd6a994945c0f63a7adcc2`: regenerated only
+  `docs/architecture/rest-route-ownership.json` with
+  `node scripts/check-rest-route-ownership.mjs --write`. The reviewed drift
+  updates ownership references for the Auth-service consumers of logout,
+  maintenance, WebSocket refresh, logout-from-session/all-sessions,
+  registration, email availability, and login step routes.
+- `node scripts/check-rest-route-ownership.mjs` — passed:
+  72 routes classified and inventory current.
+- `node scripts/test-rest-route-ownership-policy-negative.mjs` — passed.
 
 ### Full pre-merge CI-parity validation
 Not applicable; dependency-skip metadata only.
@@ -129,7 +139,8 @@ is covered by focused unit tests. All task-owned runtime processes were
 stopped and their absence verified.
 
 ### Commits
-Pending feature commit.
+- `CI repair commit pending` — refresh generated REST route ownership
+  references after the Auth service split.
 
 ### Merge / CI
 Feature SHA requires exact-SHA Actions `Required gate` before integration.

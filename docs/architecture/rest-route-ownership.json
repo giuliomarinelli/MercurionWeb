@@ -44,11 +44,7 @@
       ],
       "references": [
         {
-          "file": "MercurionWebNg/src/app/services/auth.service.spec.ts",
-          "kind": "angular-source"
-        },
-        {
-          "file": "MercurionWebNg/src/app/services/auth.service.ts",
+          "file": "MercurionWebNg/src/app/services/auth-transport.service.ts",
           "kind": "angular-source"
         },
         {
@@ -363,7 +359,7 @@
       ],
       "references": [
         {
-          "file": "MercurionWebNg/src/app/services/auth.service.ts",
+          "file": "MercurionWebNg/src/app/services/auth-transport.service.ts",
           "kind": "angular-source"
         }
       ]
@@ -381,7 +377,7 @@
       ],
       "references": [
         {
-          "file": "MercurionWebNg/src/app/services/auth.service.ts",
+          "file": "MercurionWebNg/src/app/services/auth-transport.service.ts",
           "kind": "angular-source"
         },
         {
@@ -980,7 +976,7 @@
       ],
       "references": [
         {
-          "file": "MercurionWebNg/src/app/services/auth.service.ts",
+          "file": "MercurionWebNg/src/app/services/auth-transport.service.ts",
           "kind": "angular-source"
         }
       ]
@@ -998,7 +994,7 @@
       ],
       "references": [
         {
-          "file": "MercurionWebNg/src/app/services/auth.service.ts",
+          "file": "MercurionWebNg/src/app/services/auth-transport.service.ts",
           "kind": "angular-source"
         }
       ]
@@ -1056,7 +1052,7 @@
       ],
       "references": [
         {
-          "file": "MercurionWebNg/src/app/services/auth.service.ts",
+          "file": "MercurionWebNg/src/app/services/auth-transport.service.ts",
           "kind": "angular-source"
         },
         {
@@ -1114,7 +1110,7 @@
       ],
       "references": [
         {
-          "file": "MercurionWebNg/src/app/services/auth.service.ts",
+          "file": "MercurionWebNg/src/app/services/auth-transport.service.ts",
           "kind": "angular-source"
         },
         {
@@ -1154,7 +1150,7 @@
       ],
       "references": [
         {
-          "file": "MercurionWebNg/src/app/services/auth.service.ts",
+          "file": "MercurionWebNg/src/app/services/auth-transport.service.ts",
           "kind": "angular-source"
         }
       ]
@@ -1172,11 +1168,11 @@
       ],
       "references": [
         {
-          "file": "MercurionWebNg/src/app/services/auth.service.spec.ts",
+          "file": "MercurionWebNg/src/app/services/auth-transport.service.spec.ts",
           "kind": "angular-source"
         },
         {
-          "file": "MercurionWebNg/src/app/services/auth.service.ts",
+          "file": "MercurionWebNg/src/app/services/auth-transport.service.ts",
           "kind": "angular-source"
         },
         {
