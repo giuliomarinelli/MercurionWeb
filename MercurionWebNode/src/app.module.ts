@@ -45,10 +45,7 @@ const appEnv = resolveAppEnv()
       load: [...configurations],      
       expandVariables: true,            
       cache: false,
-      validate: (config) => {
-        validateEnvOrKillProcess(config as NodeJS.ProcessEnv)
-        return config
-      }
+      validate: (config) => validateEnvOrKillProcess(config as NodeJS.ProcessEnv)
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],

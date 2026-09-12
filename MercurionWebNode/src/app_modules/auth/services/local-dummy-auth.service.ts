@@ -1,4 +1,5 @@
 import { Injectable, type OnApplicationBootstrap } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import { InjectRepository } from '@nestjs/typeorm'
 import {
   LOCAL_DUMMY_AUTH,
@@ -13,6 +14,8 @@ import { TokenType } from 'src/app_modules/auth/Models/enums/token-type.enum'
 import { AuthProvider } from 'src/app_modules/sso/Models/enums/auth-provider.enum'
 import { User } from 'src/app_modules/user/Models/entities/user.entity'
 import { UserGender } from 'src/app_modules/user/Models/enums/user-gender.enum'
+import { Environment } from 'src/config/config.schema'
+import type { AppConfiguration } from 'src/config/config.types'
 
 import { JwtToolsService } from './jwt-tools.service'
 import { ScopeService } from './scope.service'
@@ -26,7 +29,8 @@ export class LocalDummyAuthService implements OnApplicationBootstrap {
     private readonly userRepo: Repository<User>,
     private readonly scopeService: ScopeService,
     private readonly sessionService: SessionService,
-    private readonly jwtTools: JwtToolsService
+    private readonly jwtTools: JwtToolsService,
+    private readonly configService: ConfigService
   ) {}
 
   async onApplicationBootstrap(): Promise<void> {
@@ -78,8 +82,10 @@ export class LocalDummyAuthService implements OnApplicationBootstrap {
   }
 
   isEnabled(): boolean {
-    return process.env.APP_ENV === 'development' &&
-      process.env.LOCAL_DUMMY_AUTH?.trim().toLowerCase() === 'true'
+    const appConfiguration =
+      this.configService.getOrThrow<AppConfiguration>('App')
+    return appConfiguration.env === Environment.Development &&
+      appConfiguration.localDummyAuth
   }
 
   acceptsActivationRequest(request: Pick<FastifyRequest, 'headers'>): boolean {

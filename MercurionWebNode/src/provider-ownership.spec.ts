@@ -1,5 +1,5 @@
 jest.mock('./config/env-validation', () => ({
-  validateEnvOrKillProcess: jest.fn(),
+  validateEnvOrKillProcess: jest.fn((config) => config),
 }));
 
 import { Global, Inject, Injectable, Module } from '@nestjs/common';
