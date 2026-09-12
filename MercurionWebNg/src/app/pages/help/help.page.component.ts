@@ -13,7 +13,7 @@ import {
 } from '@angular/core'
 import { ActivatedRoute, Router } from '@angular/router'
 import { Observable, Subscription, firstValueFrom, map, of, switchMap, take, tap } from 'rxjs'
-import { AuthService } from '../../services/auth.service'
+import { AuthSessionRepository } from '../../services/auth-session-repository.service'
 import { HelpService } from '../../services/graphql/help.service'
 import { TypeGuardsService } from '../../services/type-guards.service'
 import { AbstractPaginationComponent } from '../../abstract/abstract-pagination-component'
@@ -118,7 +118,7 @@ import {
 })
 export class HelpPageComponent extends AbstractPaginationComponent<TicketViewModel> implements OnInit, OnDestroy, AfterViewInit {
 
-  private readonly authService = inject(AuthService)
+  private readonly authService = inject(AuthSessionRepository)
   private readonly helpService = inject(HelpService)
   protected readonly typeGuards = inject(TypeGuardsService)
   private readonly invalidations = inject(DomainInvalidationService)

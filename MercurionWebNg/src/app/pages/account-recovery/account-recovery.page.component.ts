@@ -10,7 +10,7 @@ import { PublicPipe } from '../../pipes/public.pipe';
 import { ThemeManagerService } from '../../services/context/theme-manager.service';
 import { environment } from '../../../environments/environment';
 import { emailAvailabilityValidator, matchPassword } from '../../custom-validators';
-import { AuthService } from '../../services/auth.service';
+import { AuthTransportService } from '../../services/auth-transport.service';
 import { Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 
@@ -232,7 +232,7 @@ export class AccountRecoveryPageComponent implements OnInit, OnDestroy {
   private readonly turnstileComponent = viewChild(TurnstileComponent);
 
   private readonly recoveryService = inject(RecoveryService)
-  private readonly authService = inject(AuthService)
+  private readonly authService = inject(AuthTransportService)
   private readonly themeManager = inject(ThemeManagerService)
   private readonly fb = inject(NonNullableFormBuilder)
   private readonly router = inject(Router)

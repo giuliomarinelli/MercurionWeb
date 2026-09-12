@@ -1,4 +1,4 @@
-import { AuthService } from './../../services/auth.service';
+import { AuthUseCasesService } from './../../services/auth-use-cases.service';
 import { AfterViewInit, Component, effect, ElementRef, inject, OnDestroy, OnInit, signal, ChangeDetectionStrategy, viewChild, viewChildren } from '@angular/core'
 import { CdkAccordion, CdkAccordionItem, CdkAccordionModule } from '@angular/cdk/accordion'
 import { EMPTY, map, of, startWith, Subscription, switchMap } from 'rxjs'
@@ -616,7 +616,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly toast = inject(ToastService)
   private readonly router = inject(Router)
   private readonly route = inject(ActivatedRoute)
-  private readonly authService = inject(AuthService)
+  private readonly authService = inject(AuthUseCasesService)
   private readonly actionContext = inject(ActionOverlayContextService)
   private readonly invalidations = inject(DomainInvalidationService)
   private readonly scrollContext = inject(ScrollContextService)

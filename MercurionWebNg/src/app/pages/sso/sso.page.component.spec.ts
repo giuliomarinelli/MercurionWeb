@@ -7,7 +7,7 @@ import { SsoPageComponent } from './sso.page.component';
 import { ActivatedRoute } from '@angular/router';
 import { TypeGuardsService } from '../../services/type-guards.service';
 import { FingerprintService } from '../../services/fingerprint.service';
-import { AuthService } from '../../services/auth.service';
+import { AuthTransportService } from '../../services/auth-transport.service';
 import { SessionSyncService } from '../../services/session-sync.service';
 
 class ActivatedRouteStub {
@@ -27,7 +27,7 @@ class FingerprintServiceStub {
 }
 
 class AuthServiceStub {
-  sso_authorizeFlow() {
+  ssoAuthorizeFlow() {
     return of({ accessToken: 'token', ws_accessToken: 'ws', initials: 'U' });
   }
   setAccessToken(): void { /* no-op */ }
@@ -49,7 +49,7 @@ describe('SsoPageComponent', () => {
         { provide: ActivatedRoute, useClass: ActivatedRouteStub },
         { provide: TypeGuardsService, useClass: TypeGuardsStub },
         { provide: FingerprintService, useClass: FingerprintServiceStub },
-        { provide: AuthService, useClass: AuthServiceStub },
+        { provide: AuthTransportService, useClass: AuthServiceStub },
         { provide: SessionSyncService, useClass: SessionSyncServiceStub }
       ]
     })

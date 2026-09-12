@@ -19,7 +19,8 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ToastService } from '../../../services/toast.service';
 import { FormControl, FormGroup, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { emailAvailabilityValidator, matchPassword } from '../../../custom-validators';
-import { AuthService } from '../../../services/auth.service';
+import { AuthTransportService } from '../../../services/auth-transport.service';
+import { AuthMfaCatalogService } from '../../../services/auth-mfa-catalog.service';
 import { PhonePrefixWithEmojiUrlDTO } from '../../../Models/country.models';
 import { CountryService } from '../../../services/country.service';
 import { MfaStrategyCardComponent } from '../../common/mfa-strategy-card/mfa-strategy-card.component';
@@ -918,7 +919,8 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
   private readonly accountService = inject(SensitiveDataChangeFacade)
   private readonly toast = inject(ToastService)
   private readonly fb = inject(NonNullableFormBuilder)
-  private readonly authService = inject(AuthService)
+  private readonly authService = inject(AuthTransportService)
+  private readonly mfaCatalog = inject(AuthMfaCatalogService)
   private readonly countryService = inject(CountryService)
   private readonly router = inject(Router)
   private readonly copyUiService = inject(CopyUiService)
@@ -992,7 +994,7 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.fetchSub = this.fluxStarter$.pipe(
       tap(() => {
-        this.mfaStrategiesDescrMap = this.authService.getMfaStrategiesDescrMap()
+        this.mfaStrategiesDescrMap = this.mfaCatalog.getStrategiesDescriptionMap()
         this.emailCtrl = this.fb.control('', {
           validators: [Validators.required, Validators.email, Validators.pattern(EMAIL_PATTERN)],
           asyncValidators: [emailAvailabilityValidator(this.authService)]

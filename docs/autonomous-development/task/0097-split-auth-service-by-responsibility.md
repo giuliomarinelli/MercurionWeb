@@ -1,6 +1,6 @@
 # 0097 - Split AuthService into transport, session repository and orchestration
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -84,39 +84,58 @@ Mark `BLOCKED` if a current `AuthService` method has ambiguous security ownershi
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/NG-011`, based on `15d0087f70a16e915e41f2f312d30a783ea5bbdd`.
 
 ### Preflight
-_Not started._
+- Confirmed clean `feature/NG-011` at the supplied base SHA; exact base Actions
+  run `34673377438` completed successfully for the NG-010 merge SHA.
+- No local `npm ci` or `npm run ci:check` was run.
+- Canonical runtime preflight started Tox21, Nest and Angular in the required
+  order. Nest and Angular compiled with zero errors; nginx readiness completed
+  two consecutive rounds at `/health` and `/`.
 
 ### Preflight remediation
 _None._
 
 ### Summary
-Not attempted because required canonical FE auth/session architecture through
-task 0038 and tasks 0093 (NG-007) and 0094 (NG-008) are terminally
-non-`DONE`.
+Replaced the monolithic `AuthService` with responsibility-specific
+`AuthTransportService`, `AuthSessionRepository`, `AuthUseCasesService` and
+`AuthMfaCatalogService`. Raw HTTP mapping is isolated in the transport,
+session/token/cache/refresh-lock ownership is atomic in the repository, and
+logout, session revocation and WebSocket refresh orchestration are explicit
+use-case commands. Facade, interceptor, MFA, SSO, settings, header, recovery,
+registration, help, realtime and admin consumers now depend on the narrow
+contract they use. The old service and passthrough spec were removed.
 
 ### Task-specific validation performed
-Not applicable; no feature branch or implementation worker was created.
+- `npm run typecheck --workspace mercurion_web_ng` — passed.
+- Focused Angular specs for transport, use cases, MFA strategy and SSO:
+  `npx ng test --watch=false --include ...` — 10 specs passed.
+- `npm run lint --workspace mercurion_web_ng -- --no-warn-ignored` — passed
+  with existing warnings only.
 
 ### Full pre-merge CI-parity validation
 Not applicable; dependency-skip metadata only.
 
 ### Browser validation performed
-Not applicable; the task was not attempted.
+Through `http://localhost:8888`, canonical Tox21/Nest/Angular runtime reached
+two complete readiness rounds (`/health` and `/`). Persistent Chrome showed
+the authenticated protected dashboard (`Benvenuto Test`, workspace data) and
+the authenticated redirect behavior for `/account-recovery`; no task-related
+console error was observed in the captured snapshot. A pre-existing session
+prevented opening the public login form for a second credential entry, so no
+MFA/SSO handoff was exercised interactively; transport and use-case behavior
+is covered by focused unit tests. All task-owned runtime processes were
+stopped and their absence verified.
 
 ### Commits
-Pending metadata commit on `develop`.
+Pending feature commit.
 
 ### Merge / CI
-No feature branch or merge. Exact-SHA CI is required for the metadata commit.
+Feature SHA requires exact-SHA Actions `Required gate` before integration.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-The required FE auth foundation includes FE-004 (BLOCKED because mandatory
-authenticated browser validation was unavailable) and its terminal dependent
-tasks. FE-004 requires a test-safe canonical local auth/backend runtime and
-approved deterministic test state in a new session.
+None.

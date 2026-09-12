@@ -5,7 +5,7 @@ import type {
   ConfirmWithTotpMetaDTO,
   MfaStrategy
 } from '@mercurion/rest-contracts'
-import { AuthService } from '../../../services/auth.service'
+import { AuthTransportService } from '../../../services/auth-transport.service'
 import { MfaStrategyRegistry, reduceMfaFlowState, type MfaStrategyContext } from './mfa-flow.strategy'
 
 const context: MfaStrategyContext = {
@@ -24,16 +24,16 @@ const context: MfaStrategyContext = {
 
 describe('MfaStrategyRegistry', () => {
   let registry: MfaStrategyRegistry
-  let auth: jasmine.SpyObj<AuthService>
+  let auth: jasmine.SpyObj<AuthTransportService>
 
   beforeEach(() => {
-    auth = jasmine.createSpyObj<AuthService>('AuthService', ['login_secondStep', 'login_thirdStep'])
-    auth.login_secondStep.and.returnValue(of({} as ConfirmWithTotpMetaDTO))
-    auth.login_thirdStep.and.returnValue(NEVER)
+    auth = jasmine.createSpyObj<AuthTransportService>('AuthTransportService', ['loginSecondStep', 'loginThirdStep'])
+    auth.loginSecondStep.and.returnValue(of({} as ConfirmWithTotpMetaDTO))
+    auth.loginThirdStep.and.returnValue(NEVER)
     TestBed.configureTestingModule({
       providers: [
         MfaStrategyRegistry,
-        { provide: AuthService, useValue: auth }
+        { provide: AuthTransportService, useValue: auth }
       ]
     })
     registry = TestBed.inject(MfaStrategyRegistry)
@@ -48,15 +48,15 @@ describe('MfaStrategyRegistry', () => {
 
   it('keeps method-specific challenge initialization inside the strategy', () => {
     registry.create('EMAIL_OTP', context)!.initialize().subscribe()
-    expect(auth.login_secondStep).toHaveBeenCalledWith('EMAIL_OTP', 'pre-auth', false)
+    expect(auth.loginSecondStep).toHaveBeenCalledWith('EMAIL_OTP', 'pre-auth', false)
 
     registry.create('APP_TOTP', context)!.initialize().subscribe()
-    expect(auth.login_secondStep).toHaveBeenCalledTimes(1)
+    expect(auth.loginSecondStep).toHaveBeenCalledTimes(1)
   })
 
   it('prevents duplicate submissions until the pending command settles', () => {
     const pending = new Subject<ConfirmWithAccessTokenAndInitialsDTO>()
-    auth.login_thirdStep.and.returnValue(pending)
+    auth.loginThirdStep.and.returnValue(pending)
     const strategy = registry.create('APP_TOTP', context)!
     const first = strategy.submit({ totp: '123456' })
     first.subscribe()
@@ -64,7 +64,7 @@ describe('MfaStrategyRegistry', () => {
     let secondError: unknown
     second.subscribe({ error: error => { secondError = error } })
 
-    expect(auth.login_thirdStep).toHaveBeenCalledTimes(1)
+    expect(auth.loginThirdStep).toHaveBeenCalledTimes(1)
     expect((secondError as Error).message).toBe('MfaCommandPending')
     pending.complete()
     expect(strategy.submit({ totp: '123456' })).toBeTruthy()
@@ -72,7 +72,7 @@ describe('MfaStrategyRegistry', () => {
 
   it('cancels strategy-local work', () => {
     const pending = new Subject<ConfirmWithAccessTokenAndInitialsDTO>()
-    auth.login_thirdStep.and.returnValue(pending)
+    auth.loginThirdStep.and.returnValue(pending)
     const strategy = registry.create('APP_TOTP', context)!
     let completed = false
     strategy.submit({ totp: '123456' }).subscribe({ complete: () => { completed = true } })
