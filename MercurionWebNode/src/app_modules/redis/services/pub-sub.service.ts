@@ -14,6 +14,7 @@ import {
   type SocketSessionExpiredPayload,
 } from '@mercurion/socket-contracts';
 import { SessionInvalidationCause } from '@mercurion/rest-contracts';
+import { redisDurations, redisKeys } from '../contracts/redis-contracts';
 
 type ApplicationServer = Server<ClientToServerEvents, ServerToClientEvents>
 
@@ -97,8 +98,12 @@ export class PubSubService implements OnModuleDestroy, OnModuleInit {
     const userId = userIdParts.length > 0 ? (userIdParts.join(':') as UUID) : undefined
 
     // anti-thrashing lock (30s)
-    const lockKey = `oauth2:refresh_lock:${provider}:${userId ?? '__global__'}`
-    const ok = await this.redisService.getClient().set(lockKey, '1', 'EX', 30, 'NX')
+    const lockKey = redisKeys.oauth.refreshLock(provider, userId)
+    const ok = await this.redisService.setIfNotExists(
+      lockKey,
+      '1',
+      redisDurations.seconds(30)
+    )
     if (!ok) {
       this.logger.debug?.(`Skip refresh (locked) for provider=${provider} userId=${userId ?? '[none]'}`)
       return
@@ -110,7 +115,7 @@ export class PubSubService implements OnModuleDestroy, OnModuleInit {
     } catch (err) {
       this.logger.error(`Error refreshing access token for provider=${provider} userId=${userId ?? '[none]'}: ${err?.message || err}`)
     } finally {
-      await this.redisService.getClient().del(lockKey)
+      await this.redisService.del(lockKey)
     }
   }
 

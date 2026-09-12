@@ -1,6 +1,6 @@
 # 0137 - Introduce typed Redis key and TTL contracts
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -83,21 +83,67 @@ Mark `BLOCKED` if two active domains intentionally share a Redis key namespace/d
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/BE-023`, based on `e1ab0477b994cba7f484ed26eb8094348e8243e9`.
+Clean identity verified before editing; HEAD initially matched the supplied
+base and the working tree was clean.
 ### Preflight
-_Not started._
+Confirmed `develop`/feature identity and local `commit.gpgSign=false`. The
+exact supplied base SHA has a successful GitHub Actions CI run
+(`34706111241`, `2026-09-12T16:43:41Z` to `16:44:16Z`). Dependency recipes
+0124 and 0130 are both `DONE`. No task-owned Angular, Nest, Tox21, Jest
+watcher, or workspace-consuming process was active. Browser validation is not
+applicable.
 ### Preflight remediation
-_None._
+None. No ownership ambiguity was found: session/token/trust, authentication,
+MFA, account, feedback, OAuth, and SSO namespaces have distinct owners and
+data shapes. DATA-030 session indexing/atomicity and DATA-037 record
+serialization remain untouched.
 ### Summary
-_Not started._
+Added owner-specific typed Redis key builders for all governed production
+namespaces and a branded `RedisTtlSeconds` contract with seconds/minutes/
+hours/days conversion helpers. Migrated session, token/trust, auth/MFA/account
+lock/counter, feedback, OAuth, and SSO callers while preserving effective
+expiry values. Redis adapter key and TTL APIs now require the contract types;
+counter, TTL, set-membership, unlink, and NX-set operations no longer require
+callers to access the raw client. Added namespace collision/format and expiry
+tests plus a CI static guard against new governed raw key templates and typed
+adapter bypasses.
 ### Task-specific validation performed
-_Not started._
+- `npm run typecheck --workspace mercurion_web_node` — passed.
+- `npm run lint --workspace mercurion_web_node` — passed with 48 pre-existing
+  warnings and zero errors.
+- `npm run ci:redis:architecture` — passed.
+- Focused Jest Redis/session contract tests — 15 passed.
+- Focused Redis contract/auth/MFA/account/feedback tests — 6 passed.
+- Focused OAuth/SSO/pub-sub tests — 4 passed.
+- `npm run build --workspace mercurion_web_node` — passed.
+- `git diff --check` — passed.
+- CI repair focused reproducer:
+  `npm test --workspace mercurion_web_node -- --runInBand --runTestsByPath
+  src/app_modules/auth/application/credential-authentication.handlers.spec.ts`
+  initially reproduced the exact `AUTHENTICATION_INVALID_CREDENTIALS` failure.
+  The BE-023 production change migrated `CredentialLoginHandler` from
+  `redisService.getClient().incr(...)` to the typed adapter
+  `redisService.incr(...)`; the test double still exposed only `getClient()`,
+  so the mock threw before the explicit application error could be observed.
+  The test double was updated to model the new adapter contract, without
+  changing production behavior.
+- Focused reproducer after repair — passed, 1 suite/6 tests.
+- `npm run ci:redis:architecture` — passed.
+- `npm test --workspace mercurion_web_node -- --runInBand --testPathPattern=app_modules/auth`
+  — passed; Jest 30 ignored the deprecated path option and ran the complete
+  Nest unit suite, 146 suites/422 tests passed.
 ### Full pre-merge CI-parity validation
-_Not started._
+Not run locally because `npm ci` and `npm run ci:check` are prohibited in
+autonomous sessions. Exact feature-SHA GitHub Actions validation is owned by
+the coordinator after push.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-_Not recorded._
+- `acd24a15` — `feat(redis): introduce typed key and TTL contracts`.
+- `7edce4c4` — `docs(task): record BE-023 commit`.
+- CI repair commit records the auth test-double contract correction; final
+  feature SHA and push are recorded by the worker result.
 ### Merge / CI
 _Not started._
 ### Rollback
