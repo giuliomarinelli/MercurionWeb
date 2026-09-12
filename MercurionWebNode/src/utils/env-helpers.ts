@@ -2,6 +2,10 @@ import {
     Environment,
     environmentProperty
 } from 'src/config/config.schema'
+import {
+    ConfigurationError,
+    toConfigurationDiagnostic
+} from 'src/config/env-validation'
 
 export function parseAppEnv(raw: unknown): Environment {
     const property = environmentProperty('APP_ENV')
@@ -12,9 +16,10 @@ export function parseAppEnv(raw: unknown): Environment {
     if (raw === undefined) return fallback
     try {
         return property.parser.parse(raw, property.source)
-    } catch {
-        // Task BE-018 owns changing this pre-bootstrap compatibility fallback.
-        return fallback
+    } catch (error) {
+        throw new ConfigurationError([
+            toConfigurationDiagnostic(property.source, error)
+        ])
     }
 }
 

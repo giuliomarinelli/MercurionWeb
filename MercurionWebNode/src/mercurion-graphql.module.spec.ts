@@ -25,7 +25,7 @@ describe('Mercurion GraphQL contract versioning', () => {
   ) => unknown
 
   const createConfig = () => createMercurionGraphQLConfig({
-    get: jest.fn().mockReturnValue(Environment.Development)
+    getOrThrow: jest.fn().mockReturnValue(Environment.Development)
   } as unknown as ConfigService)
 
   const createRequestReply = (major?: string) => {

@@ -40,7 +40,7 @@ export class JwtKeysProvider {
     }
 
     getAccessKeyPair(): JwtKeyPair {
-        const env = this.config.get<Environment>('App.env') ?? Environment.Development
+        const env = this.config.getOrThrow<Environment>('App.env')
 
         if (this.isProdLike(env)) {
             const privateKey = this.readKey('JWT_RS256_PRIVATE_KEY')
@@ -69,7 +69,7 @@ export class JwtKeysProvider {
     }
 
     getWsKeyPair(): JwtKeyPair {
-        const env = this.config.get<Environment>('App.env') ?? Environment.Development
+        const env = this.config.getOrThrow<Environment>('App.env')
 
         if (this.isProdLike(env)) {
             const privateKey = this.readKey('JWT_WS_RS256_PRIVATE_KEY')

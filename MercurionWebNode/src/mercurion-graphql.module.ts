@@ -48,7 +48,7 @@ export function createContractVersionGraphQLError(
 }
 
 export function createMercurionGraphQLConfig(config: ConfigService): MercuriusDriverConfig {
-    const env = config.get<Environment>('App.env')!
+    const env = config.getOrThrow<Environment>('App.env')
     const isNotDev = env !== Environment.Development
 
     return {
