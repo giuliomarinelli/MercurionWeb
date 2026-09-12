@@ -127,7 +127,7 @@ protocol.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-To be recorded after the task commit.
+`06e188c6f71da15258a5bfdd1a5d0269f569fa0a`
 ### Merge / CI
 _Not started._
 ### Rollback
