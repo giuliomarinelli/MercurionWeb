@@ -138,11 +138,17 @@ The primitive may expose a typed stale/revalidating variant only if existing rep
 `141caa1cbfe8f0470742f19de62bd6babb50e4e6` —
 `feat(ui): add canonical page state primitive`, committed with
 `--no-gpg-sign` and a Copilot co-author trailer.
+`e46f7c4f55040ad1a38b21c53de5df7dcf6eb96e` —
+`docs(ui): record UI-012 validation`, also committed with `--no-gpg-sign`
+and a Copilot co-author trailer.
 
 ### Feature CI
 Exact feature SHA `141caa1cbfe8f0470742f19de62bd6babb50e4e6` passed CI run
 `34663788104`: Ubuntu quality, Windows quality, and `Required gate` all
-successful.
+successful. The final feature SHA
+`e46f7c4f55040ad1a38b21c53de5df7dcf6eb96e` passed exact-SHA CI run
+`34664160735` with `Required gate` successful (metadata path; the preceding
+source SHA supplied the full two-platform quality evidence).
 
 > Current status (2026-09-11): PENDING by direct owner instruction because this
 > activity was not completed. Historical attempt/skip evidence remains below
