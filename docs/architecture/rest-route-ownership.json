@@ -581,7 +581,12 @@
         "MercurionWebNode/src/test.controller.spec.ts",
         "MercurionWebNode/src/test.controller.ts"
       ],
-      "references": []
+      "references": [
+        {
+          "file": "MercurionWebNode/test/app.e2e-spec.ts",
+          "kind": "test"
+        }
+      ]
     },
     {
       "method": "GET",

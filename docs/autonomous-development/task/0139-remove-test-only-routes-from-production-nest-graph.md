@@ -112,9 +112,26 @@ Not applicable; this is a Nest graph/static architecture task.
 ### Commits
 * `4b1ec6846e9cfd851898cd2e2521df342776eb8c` — implementation, tests,
   architecture check, and task notes.
+* `620c95be61a32fc1fb8c2f01aff11295f022feec` — recorded the implementation
+  commit and initial feature validation.
+* _Pending_ — CI repair refreshes the generated REST route ownership
+  references for the intentionally retained test-graph `/api/test` route.
 ### Merge / CI
-Feature publication follows the task-specific commit. No merge or branch
-deletion performed.
+Feature run `34709711155` failed on Windows and Ubuntu registered static
+checks because the generated REST route ownership inventory had stale
+references for `GET /api/test`. The production route remains absent; the
+route is retained only in the explicit test application graph, and its E2E
+test reference is now reflected in the generated inventory. No merge or
+branch deletion performed.
+### CI repair validation
+* `node scripts/check-rest-route-ownership.mjs --write` — regenerated the
+  inventory; reviewed the sole change, adding the explicit test-graph E2E
+  reference to `GET /api/test`.
+* `node scripts/check-rest-route-ownership.mjs` — passed: 72 routes current.
+* `node scripts/test-rest-route-ownership-policy-negative.mjs` — passed.
+* `npm run ci:nest:architecture` — passed, including the test-only route
+  composition policy.
+* `git diff --check` — passed.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
