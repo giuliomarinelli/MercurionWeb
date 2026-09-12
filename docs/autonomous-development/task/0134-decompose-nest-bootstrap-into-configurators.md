@@ -119,7 +119,7 @@ Not required for this structural bootstrap refactor; focused bootstrap tests,
 typecheck, build, and lint establish the declared acceptance locally.
 ### Commits
 * `66850b149f2929e3032ac906f843b1c9be1fce7e` — original implementation.
-* CI repair commit recorded below.
+* `839e7659392575dc4196a2f478797a8d6c58985a` — CI repair.
 
 ### CI repair
 Exact feature CI run `34703550473` failed on Windows and Ubuntu in the
