@@ -1,6 +1,6 @@
 # 0202 - Complete the canonical GitHub Actions CI pipeline
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -100,24 +100,67 @@ Keep business logic in repository scripts, not YAML. The workflow should orchest
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/QA-016`, based on `7b8e06d5a29552177852ef9871af482f4efd250d`.
+The branch was clean and exactly matched the supplied `develop` SHA before
+implementation. No remote feature ref existed before the task commit.
+
 ### Preflight
-_Not started._
+Passed unchanged preflight. Exact base SHA
+`7b8e06d5a29552177852ef9871af482f4efd250d` had successful GitHub Actions run
+34723183369 with Ubuntu, Windows and `Required gate` green. Hard dependency
+0008 and applicable completed QA gates 0187-0190 and 0199-0201 were DONE;
+0191 and 0193-0198 were SKIPPED_DEPENDENCY and therefore did not register
+service/browser/coverage gates for this pipeline. Task 0192 remained pending
+and has no registered executable gate used by this recipe. No workspace
+Angular/Nest/test watcher process was active. Local `npm ci` and
+`npm run ci:check` were not run.
+
 ### Preflight remediation
-_None._
+None.
+
 ### Summary
-_Not started._
+Completed `.github/workflows/ci.yml` with exact-SHA classifier preservation,
+full-by-default manual dispatch, PR/develop/feature triggers, PR-only
+supersession cancellation, pinned Node 22.16.0/npm 10.9.2 setup-node caching,
+cross-platform prerequisite/static jobs, dependency-gated Angular/Nest unit
+and E2E jobs, isolated build artifacts, bounded diagnostics, and the stable
+`Required gate`. No unavailable PostgreSQL/Redis/NATS/browser/system
+infrastructure was invented for dependency tasks that are not DONE.
+
 ### Task-specific validation performed
-_Not started._
+Passed:
+- workflow YAML parsed with the available `yaml` parser;
+- `npm run ci:validate:autonomous`;
+- `git diff --check`;
+- `npm run ci:lint`;
+- `npm run ci:typecheck`;
+- `npm run ci:graphql`;
+- `npm run ci:static`;
+- `npm run ci:test:angular`;
+- `npm run ci:test:nest` (148 suites, 455 tests);
+- `npm run ci:test:nest:e2e` (3 tests);
+- `npm run ci:build:angular`;
+- `npm run ci:build:nest`.
+
 ### Full pre-merge CI-parity validation
-_Not started._
+Not run locally by policy: `npm ci` and `npm run ci:check` are reserved for
+GitHub Actions exact-SHA validation. The workflow invokes the same root
+canonical granular scripts and keeps the aggregate `Required gate`.
+
 ### Browser validation performed
-_Not applicable directly._
+Not applicable directly; this recipe changes workflow orchestration only.
+Playwright/system jobs remain deferred until their prerequisite recipes
+register canonical scripts and reproducible runner topology.
+
 ### Commits
-_Not recorded._
+Pending task commit.
+
 ### Merge / CI
-_Not started._
+Feature SHA must receive exact-SHA GitHub Actions `Required gate` before
+integration; no merge or post-merge action was performed by this worker.
+
 ### Rollback
-_Not applicable._
+Not applicable.
+
 ### Blocker / human decision required
-_None._
+None.
