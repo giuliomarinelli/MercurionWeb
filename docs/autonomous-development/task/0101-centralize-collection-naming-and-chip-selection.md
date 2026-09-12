@@ -106,9 +106,14 @@ collection component and collection-picker facade to use them. Server
 uniqueness and conflict handling remain authoritative.
 
 ### Task-specific validation performed
-Focused pure helper and picker/create caller tests were added and run with
-the Angular test target. Runtime/browser validation after implementation is
-recorded below.
+`Set-Location MercurionWebNg; npm run typecheck` passed.
+`Set-Location MercurionWebNg; npx ng test --watch=false
+--karma-config=karma.conf.js
+--include=src/app/components/action-components/collection-picker/collection-rules.spec.ts
+--include=src/app/components/action-components/collection-picker/collection-picker.facade.spec.ts`
+passed with 8/8 specs.
+`Set-Location MercurionWebNg; npm run lint -- --no-warn-ignored` passed with
+pre-existing warnings outside this task.
 
 ### Full pre-merge CI-parity validation
 Not run locally; root `npm ci` and `npm run ci:check` are reserved for
@@ -130,11 +135,15 @@ recorded as shared local browser/runtime observation evidence, not a product
 success claim.
 
 ### Commits
-Pending task implementation commit after focused validation.
+`88b5d451813bae35d0ca0b59541be358fa51452e` —
+`feat: centralize collection naming and selection rules` —
+includes the required `Co-authored-by: Copilot <copilot@github.com>` trailer.
+Pushed as `origin/feature/NG-015`.
 
 ### Merge / CI
-Feature branch will be pushed only after the task commit. Coordinator owns
-exact feature and post-merge CI lifecycle.
+Feature branch is published at the task SHA. Coordinator owns exact feature
+and post-merge CI lifecycle; clean-install and aggregate CI were not run
+locally.
 
 ### Rollback
 Not applicable.
