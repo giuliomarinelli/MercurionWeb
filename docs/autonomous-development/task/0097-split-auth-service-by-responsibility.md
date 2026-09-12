@@ -125,7 +125,11 @@ contract they use. The old service and passthrough spec were removed.
 - `node scripts/test-rest-route-ownership-policy-negative.mjs` — passed.
 
 ### Full pre-merge CI-parity validation
-Not applicable; dependency-skip metadata only.
+Exact feature-SHA run `34674533699` passed all CI checks through generated
+contracts on both Linux and Windows, then failed only in registered static
+checks because the route ownership references were stale after the Auth
+service split. The narrow inventory repair was pushed as a new feature SHA;
+the coordinator must obtain the replacement exact-SHA CI result.
 
 ### Browser validation performed
 Through `http://localhost:8888`, canonical Tox21/Nest/Angular runtime reached
@@ -141,6 +145,7 @@ stopped and their absence verified.
 ### Commits
 - `a88a3bb2` — refresh generated REST route ownership references after the
   Auth service split.
+- `87b260a9` — record the CI repair in the task execution notes.
 
 ### Merge / CI
 Feature SHA requires exact-SHA Actions `Required gate` before integration.
