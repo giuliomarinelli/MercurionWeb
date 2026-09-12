@@ -62,6 +62,18 @@ class FakeRedisService {
         this.ttls.set(key, ttl)
     }
 
+    public async smembers(key: string): Promise<string[]> {
+        return [...(this.sets.get(key) ?? [])]
+    }
+
+    public async ttl(key: string): Promise<number> {
+        return this.ttls.get(key) ?? -1
+    }
+
+    public async unlink(key: string): Promise<number> {
+        return this.del(key)
+    }
+
     public async set(key: string, value: string, ttl?: number): Promise<'OK'> {
         this.strings.set(key, value)
         if (ttl) {

@@ -19,6 +19,7 @@ import { MoleculeCollection } from "src/app_modules/molecule-collection/Models/e
 import { MoleculeCollectionItemJoin } from "src/app_modules/molecule-collection/Models/entities/molecule-collection-item-join.entity";
 import { SercurityService } from "src/app_modules/auth/services/sercurity.service";
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
+import { redisDurations, redisKeys } from 'src/app_modules/redis/contracts/redis-contracts'
 
 @Injectable()
 export class SocialAuthService {
@@ -47,13 +48,9 @@ export class SocialAuthService {
             .digest('hex')
     }
 
-    private getStateKey(rawState: string, provider: AuthProvider): string {
+    private getStateKey(rawState: string, provider: AuthProvider) {
         const hashed = this.hmacKey(rawState)
-        return `oauth2:state:${provider}:${hashed}`
-    }
-    
-    private getRedirectToKey(provider: AuthProvider): string {
-        return `oauth2:redirect_to:${provider}`
+        return redisKeys.sso.state(provider, hashed)
     }
 
     private generateOAuth2CsrfState(): string {
@@ -64,7 +61,7 @@ export class SocialAuthService {
         const state = this.generateOAuth2CsrfState()
         const key = this.getStateKey(state, provider)
         const val = this.securityService.encrypt_AES256(redirectTo)
-        await this.redisService.set(key, val, 240)
+        await this.redisService.set(key, val, redisDurations.seconds(240))
         return state
     }
 

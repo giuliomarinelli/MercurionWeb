@@ -10,14 +10,15 @@ import { Repository } from 'typeorm';
 import { UpdateFeedbackDTO } from '../Models/DTO/update-feedback.dto';
 import { IPaginationOptions, paginate, Pagination } from 'nestjs-typeorm-paginate';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
+import { redisDurations, redisKeys } from 'src/app_modules/redis/contracts/redis-contracts'
 
 @Injectable()
 export class FeedbackService {
 
-    private readonly FEEDBACK_SEND_WINDOW_SECONDS = 10 * 60
+    private readonly FEEDBACK_SEND_WINDOW = redisDurations.minutes(10)
     private readonly FEEDBACK_MAX_SENDS = 8
 
-    private readonly FEEDBACK_LOCK_SECONDS = 15 * 60
+    private readonly FEEDBACK_LOCK = redisDurations.minutes(15)
 
     constructor(
         private readonly redisService: RedisService,
@@ -25,16 +26,8 @@ export class FeedbackService {
         private readonly feedbackRepo: Repository<Feedback>
     ) { }
 
-    private getFeedbackSendKey(userId: UUID): string {
-        return `feedback:send:count:${userId}`
-    }
-
-    private getFeedbackLockKey(userId: UUID): string {
-        return `feedback:send:lock:${userId}`
-    }
-
     private async ensureFeedbackNotLocked(userId: UUID): Promise<void> {
-        const lockKey = this.getFeedbackLockKey(userId)
+        const lockKey = redisKeys.feedback.sendLock(userId)
         const locked = await this.redisService.exists(lockKey)
         if (locked) {
             throw applicationError(ApplicationErrorCode.FEEDBACK_TOO_MANY_REQUESTS)
@@ -42,24 +35,24 @@ export class FeedbackService {
     }
 
     private async registerFeedbackSend(userId: UUID): Promise<void> {
-        const sendKey = this.getFeedbackSendKey(userId)
-        const lockKey = this.getFeedbackLockKey(userId)
+        const sendKey = redisKeys.feedback.sendCount(userId)
+        const lockKey = redisKeys.feedback.sendLock(userId)
 
-        const sends = await this.redisService.getClient().incr(sendKey)
+        const sends = await this.redisService.incr(sendKey)
 
         if (sends === 1) {
-            await this.redisService.setTTL(sendKey, this.FEEDBACK_SEND_WINDOW_SECONDS)
+            await this.redisService.setTTL(sendKey, this.FEEDBACK_SEND_WINDOW)
         }
 
         if (sends >= this.FEEDBACK_MAX_SENDS) {
-            await this.redisService.set(lockKey, '1', this.FEEDBACK_LOCK_SECONDS)
+            await this.redisService.set(lockKey, '1', this.FEEDBACK_LOCK)
             await this.redisService.del(sendKey)
         }
     }
 
     private async clearFeedbackLock(userId: UUID): Promise<void> {
-        const sendKey = this.getFeedbackSendKey(userId)
-        const lockKey = this.getFeedbackLockKey(userId)
+        const sendKey = redisKeys.feedback.sendCount(userId)
+        const lockKey = redisKeys.feedback.sendLock(userId)
         await this.redisService.del(sendKey)
         await this.redisService.del(lockKey)
     }

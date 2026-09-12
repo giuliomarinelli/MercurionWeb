@@ -9,6 +9,7 @@ import { UUID } from 'crypto';
 import { OAuth2TokenData } from '../Models/interfaces/oauth2-token-data.interface';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { redisDurations, redisKeys } from 'src/app_modules/redis/contracts/redis-contracts';
 
 @Injectable()
 export class OAuth2ClientService implements IOAuth2ClientService {
@@ -84,14 +85,18 @@ export class OAuth2ClientService implements IOAuth2ClientService {
 
         // Persistenza
         await this.persistenceService.saveRefreshToken(provider, refresh_token, userId)
-        await this.redisService.set(`access_token:${provider}${userId ? `:${userId}` : ''}`, access_token ?? '', expires_in)
+        await this.redisService.set(
+            redisKeys.oauth.accessToken(provider, userId),
+            access_token ?? '',
+            redisDurations.seconds(expires_in)
+        )
     }
 
     /**
      * Recupera sempre un access token valido, fa refresh automatico se serve
      */
     async getAccessToken(provider: string, userId?: UUID): Promise<string> {
-        const redisKey = `access_token:${provider}${userId ? `:${userId}` : ''}`
+        const redisKey = redisKeys.oauth.accessToken(provider, userId)
         let accessToken = await this.redisService.get(redisKey)
 
         if (!accessToken) {
@@ -119,7 +124,11 @@ export class OAuth2ClientService implements IOAuth2ClientService {
             const { access_token, expires_in, new_refresh_token } = tokenRes.data as OAuth2TokenData
             if (!access_token) throw new UnauthorizedException('No access_token received during refresh.')
 
-            await this.redisService.set(redisKey, access_token, expires_in)
+            await this.redisService.set(
+                redisKey,
+                access_token,
+                redisDurations.seconds(expires_in)
+            )
 
             if (new_refresh_token) {
                 await this.persistenceService.saveRefreshToken(provider, new_refresh_token, userId)

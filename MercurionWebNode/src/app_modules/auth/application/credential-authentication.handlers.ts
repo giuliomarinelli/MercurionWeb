@@ -15,6 +15,7 @@ import { ApplicationErrorCode, applicationError } from 'src/exception-handling/a
 import { GeneralUtils } from 'src/utils/general-utils/general-utils'
 import { Environment } from 'src/config/config.schema'
 import type { AppConfiguration } from 'src/config/config.types'
+import { redisDurations, redisKeys } from 'src/app_modules/redis/contracts/redis-contracts'
 
 import { CompareResult } from '../Models/enums/compare-result.enum'
 import { GeoIpService, GeoLocation } from '../services/geo-ip.service'
@@ -107,8 +108,8 @@ export class CredentialLoginHandler {
             !!appConfiguration.localTestAccountEmail?.trim() &&
             GeneralUtils.normalizeEmail(email) ===
             GeneralUtils.normalizeEmail(appConfiguration.localTestAccountEmail)
-        const lockKey = this.getLockKey(email)
-        const failKey = this.getFailKey(email)
+        const lockKey = redisKeys.authentication.loginLock(email)
+        const failKey = redisKeys.authentication.loginFailures(email)
 
         if (await this.redisService.exists(lockKey)) {
             throw applicationError(ApplicationErrorCode.AUTHENTICATION_TOO_MANY_ATTEMPTS)
@@ -253,25 +254,17 @@ export class CredentialLoginHandler {
         }
     }
 
-    private getFailKey(email: string): string {
-        return `auth:fails:${email.toLowerCase()}`
-    }
-
-    private getLockKey(email: string): string {
-        return `auth:lock:${email.toLowerCase()}`
-    }
-
     private async bumpLoginFailCounter(
-        failKey: string,
-        lockKey: string
+        failKey: ReturnType<typeof redisKeys.authentication.loginFailures>,
+        lockKey: ReturnType<typeof redisKeys.authentication.loginLock>
     ): Promise<void> {
-        const fails = await this.redisService.getClient().incr(failKey)
+        const fails = await this.redisService.incr(failKey)
         if (fails === 1) {
-            await this.redisService.setTTL(failKey, 15 * 60)
+            await this.redisService.setTTL(failKey, redisDurations.minutes(15))
         }
 
         if (fails >= 8) {
-            await this.redisService.set(lockKey, '1', 5 * 60)
+            await this.redisService.set(lockKey, '1', redisDurations.minutes(5))
             await this.redisService.del(failKey)
         }
     }
