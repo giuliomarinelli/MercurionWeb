@@ -26,6 +26,8 @@ export type ButtonIconPosition = 'leading' | 'trailing';
       [class]="classes()"
       [attr.type]="type()"
       [disabled]="disabled() || loading()"
+      [attr.aria-label]="ariaLabel()"
+      [attr.aria-current]="ariaCurrent()"
       [attr.aria-busy]="loading() ? 'true' : null"
       [attr.aria-disabled]="disabled() || loading() ? 'true' : null"
       (click)="onClick($event)"
@@ -194,6 +196,8 @@ export class ButtonComponent {
   readonly type = input<ButtonType>('button');
   readonly disabled = input(false);
   readonly loading = input(false);
+  readonly ariaLabel = input<string | null>(null);
+  readonly ariaCurrent = input<string | null>(null);
   readonly iconPosition = input<ButtonIconPosition>('leading');
   readonly pressed = output<MouseEvent>();
 

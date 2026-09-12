@@ -47,7 +47,6 @@ import { Helpers } from '../../helpers';
 import { LinkModel } from '../../Models/link.model';
 import { MoleculeCardItemModel } from '../../Models/graphql/molecule-collection/molecule-collection.types';
 import { MyMoleculesHeadingComponent } from '../../components/molecule-detail/my-molecules-heading/my-molecules-heading.component';
-import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
 import { MoleculeCollectionItemCardComponent } from '../../components/molecule-detail/molecule-collection-item-card/molecule-collection-item-card.component';
 import { SkeletonMoleculeCardComponent } from '../../components/molecule-detail/skeleton-molecule-card/skeleton-molecule-card.component';
 import { PmSearchInputComponent } from '../../components/common/pm-search-input/pm-search-input.component';
@@ -55,17 +54,18 @@ import { CustomDetailSaveModel } from '../../Models/custom-detail-save.model';
 import { Observable } from 'rxjs';
 import { AppTitleService } from '../../services/app-title.service';
 import { DomainInvalidationService } from '../../services/domain-invalidation.service';
+import { PaginationComponent } from '../../components/common/pagination/pagination.component';
 
 @Component({
   selector: 'm-molecule-collection-detail',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     MyMoleculesHeadingComponent,
-    ClassicSpinnerComponent,
     MoleculeCollectionItemCardComponent,
     SkeletonMoleculeCardComponent,
     PmSearchInputComponent,
-    CustomDetailsComponent
+    CustomDetailsComponent,
+    PaginationComponent
   ],
   template: `
   <main class="max-w-5xl mx-auto p-0 xs:p-4 sm:p-6 md:p-8 space-y-12" role="main" [attr.aria-busy]="loading" aria-live="polite">
@@ -148,19 +148,18 @@ import { DomainInvalidationService } from '../../services/domain-invalidation.se
     <!-- Sentinel con altezza > 0 -->
     <div #sentinel class="h-px w-full"></div>
 
-    @if (loading) {
-      @if (page > 1 && items.length > 2) {
-        <div class="flex justify-center" role="status" aria-live="polite">
-          <m-classic-spinner [size]="60" />
-        </div>
-      } @else {
+    @if (loading && page === 1) {
         <div class="relative -top-20">
           @for (i of [0,1,2,3,4]; track i) {
             <m-skeleton-molecule-card />
           }
         </div>
-      }
-    } @else if (empty() && (earlyDone)) {
+    }
+    <m-pagination
+      [state]="paginationState()"
+      (loadMoreRequested)="loadMore()"
+      (retry)="retryPagination()" />
+    @if (empty() && (earlyDone)) {
       <p class="relative -top-8 text-slate-700 dark:text-slate-200" role="status" aria-live="polite">
         Nessuna molecola in questa collezione.
       </p>

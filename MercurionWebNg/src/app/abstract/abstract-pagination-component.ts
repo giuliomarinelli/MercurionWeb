@@ -1,7 +1,7 @@
 // ================== AbstractPaginationComponent ==================
-import { ChangeDetectorRef, ElementRef, inject, Signal, signal } from "@angular/core";
+import { ChangeDetectorRef, computed, ElementRef, inject, Signal, signal } from "@angular/core";
 import { firstValueFrom, Observable } from "rxjs";
-import { PageModel } from "../Models/graphql/page.models";
+import { InfinitePaginationState, PageModel } from "../Models/graphql/page.models";
 import { BrowserResourceOwner, injectBrowserResourceOwner } from "../utils/browser-resource-owner.util";
 
 export abstract class AbstractPaginationComponent<T> {
@@ -10,6 +10,14 @@ export abstract class AbstractPaginationComponent<T> {
   protected loading = false;
   protected done = false;
   protected earlyDone = false;
+  protected readonly paginationError = signal<string | undefined>(undefined);
+  protected readonly paginationState = computed<InfinitePaginationState>(() => ({
+    mode: 'infinite',
+    hasMore: !this.done,
+    pending: this.loading,
+    empty: this.empty(),
+    error: this.paginationError(),
+  }));
   protected observer?: IntersectionObserver;
   protected page = 1;
   protected empty = signal<boolean>(true);
@@ -45,21 +53,30 @@ export abstract class AbstractPaginationComponent<T> {
   protected async loadMore(): Promise<void> {
     if (this.loading || this.done) return;
     this.setLoading(true);
+    this.paginationError.set(undefined);
+    try {
+      const newPage = await firstValueFrom(this.fetch$());
 
-    const newPage = await firstValueFrom(this.fetch$());
-
-    if (newPage.items.length === 0) {
-      this.done = true;
-      if (this.page === 1) {
-        this.earlyDone = true;
+      if (newPage.items.length === 0) {
+        this.done = true;
+        if (this.page === 1) {
+          this.earlyDone = true;
+        }
+      } else {
+        if (this.empty()) this.empty.set(false);
+        this.items = [...this.items, ...newPage.items];
+        this.page++;
       }
-    } else {
-      if (this.empty()) this.empty.set(false);
-      this.items = [...this.items, ...newPage.items];
-      this.page++;
+    } catch {
+      this.paginationError.set('Unable to load results.');
+    } finally {
+      this.setLoading(false);
     }
+  }
 
-    this.setLoading(false);
+  protected retryPagination(): void {
+    this.paginationError.set(undefined);
+    void this.loadMore();
   }
 
   protected resetPagination(): void {
@@ -67,6 +84,7 @@ export abstract class AbstractPaginationComponent<T> {
     this.page = 1;
     this.done = false;
     this.earlyDone = false;
+    this.paginationError.set(undefined);
     this.empty.set(true);
     this.setLoading(false);
     void this.loadMore();
