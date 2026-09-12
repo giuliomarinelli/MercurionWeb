@@ -151,8 +151,7 @@ GitHub Actions. Exact feature-SHA aggregate validation remains coordinator-owned
 _Not applicable._
 ### Commits
 Original implementation: `d50a1d787aa9074d58d2f0352f45e8d3fbda6ac8`.
-CI repair commit is the commit containing this correction and its validation
-notes.
+CI repair: `8144130c`.
 ### Merge / CI
 _Not started._
 ### Rollback
