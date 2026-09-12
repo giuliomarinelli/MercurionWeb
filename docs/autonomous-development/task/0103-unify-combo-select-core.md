@@ -1,7 +1,7 @@
 # 0103 - Unify legacy combo-select wrappers on the canonical select core
 
-- [x] DONE
-- [ ] BLOCKED
+- [ ] DONE
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -161,4 +161,13 @@ worker. Exact-SHA CI is required before integration.
 _Not applicable._
 
 ### Blocker / human decision required
-None.
+The mandatory post-implementation browser interaction evidence could not be
+completed safely. Chrome DevTools MCP consistently timed out interacting with
+fresh snapshot UIDs (`fill_form`/`fill` on the login textbox and `click` on
+the collection navigation link), while direct navigation returned to the
+protected dashboard. Runtime readiness and protected dashboard rendering were
+re-observed, and additional pages/retries did not restore interaction. This
+is recorded as an environmental browser-capability blocker rather than a
+claim that the migrated flow is defective. A fresh worker with working MCP
+interaction capability must exercise the collection-picker single-select
+flow before this task can be integrated.
