@@ -167,7 +167,7 @@ _Not applicable._
 ### Commits
 - `c9a2ba3a915b7a4d9ec7857fa5247c25db99ddb8` — Angular zero-warning lint
   gate, boundary rule/negative fixture, focused repairs, and task notes.
-- A metadata-only follow-up commit records the final pushed SHA in these notes.
+- Metadata-only follow-up records the final pushed feature tip.
 ### Merge / CI
 Feature publication and exact feature-SHA CI observation are coordinator-owned.
 ### Rollback
