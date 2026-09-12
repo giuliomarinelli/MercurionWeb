@@ -1,7 +1,7 @@
 # 0136 - Make proxy, CORS and rate-limit trust policy environment explicit
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
@@ -83,24 +83,35 @@ Mark `BLOCKED` if the production trusted-proxy chain/origin contract is genuinel
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/BE-022` at diagnostic SHA
+`00d20c22101d67196b3853f6882e0f28fe30f418`; preserved and frozen for human
+review.
 ### Preflight
-_Not started._
+Passed unchanged-task preflight against develop
+`9a1a7a8d97535c184df7471bab004934250e5624`; exact-base CI run `34705560688`
+was green and dependencies `0130`, `0132`, and `0134` were DONE.
 ### Preflight remediation
 _None._
 ### Summary
-_Not started._
+Blocked before implementation because approved production/staging
+trusted-proxy boundaries and canonical allowed origins are not documented.
+The repository records Cloudflare forwarding but no source CIDRs or hop
+policy, and no authoritative staging/production origin allowlist exists.
+Implementing this task would require guessing a security boundary forbidden
+by the recipe.
 ### Task-specific validation performed
-_Not started._
+Not run; the documented stop condition applied before implementation.
 ### Full pre-merge CI-parity validation
-_Not started._
+Not applicable; the diagnostic branch was not eligible for feature CI.
 ### Browser validation performed
-_Not applicable / not started._
+Not applicable; no implementation was made.
 ### Commits
-_Not recorded._
+Feature diagnostic commit `00d20c22101d67196b3853f6882e0f28fe30f418`.
 ### Merge / CI
-_Not started._
+Blocked metadata recorded on develop; metadata CI pending.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-_None._
+Provide and approve Cloudflare CIDRs and/or exact trusted hop policy,
+the approved beta Kubernetes proxy boundary, and canonical staging/production
+allowed origins before implementation.
