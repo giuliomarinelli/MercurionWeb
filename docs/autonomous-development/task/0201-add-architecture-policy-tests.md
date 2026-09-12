@@ -125,7 +125,9 @@ _Not started._
 ### Browser validation performed
 _Not applicable._
 ### Commits
-Pending final task commit.
+- `fde89a53b04b345c9521fcac2c7133ba073ff6e4` — canonical architecture policy
+  gate, policy documentation, layer rules and representative negative fixtures.
+  A follow-up metadata commit records the final feature SHA.
 ### Merge / CI
 _Not started._
 ### Rollback
