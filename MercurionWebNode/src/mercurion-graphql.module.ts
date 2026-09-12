@@ -153,7 +153,7 @@ export function createMercurionGraphQLConfig(config: ConfigService): MercuriusDr
                         const status = original.getStatus()
                         const response = original.getResponse() as
                             | string
-                            | { message?: string | string[];[key: string]: any }
+                            | { message?: string | string[];[key: string]: unknown }
 
                         let message: string
 

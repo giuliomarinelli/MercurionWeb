@@ -98,7 +98,6 @@ export class GitHubProviderClient implements ISocialProviderClient {
                 lastName,
             };
         } catch (e) {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             const detail =
                 ((e)?.response?.data?.error_description as unknown as string) ||
                 e?.response?.data?.error ||

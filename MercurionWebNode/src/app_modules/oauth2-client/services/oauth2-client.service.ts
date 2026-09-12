@@ -59,7 +59,7 @@ export class OAuth2ClientService implements IOAuth2ClientService {
         const config = this.getProviderConfig(provider)
 
         // Token Exchange
-        let tokenRes: AxiosResponse<any, any>
+        let tokenRes: AxiosResponse<Record<string, unknown>, Record<string, unknown>>
         try {
             tokenRes = await axios.post(
                 config.tokenUrl,
@@ -77,7 +77,7 @@ export class OAuth2ClientService implements IOAuth2ClientService {
             throw new UnauthorizedException('Failed to exchange code for tokens')
         }
 
-        const { access_token, refresh_token, expires_in } = tokenRes.data as OAuth2TokenData
+        const { access_token, refresh_token, expires_in } = tokenRes.data as unknown as OAuth2TokenData
         if (!refresh_token) {
             this.logger.error('No refresh_token received. Verifica token_access_type=offline e revoca i permessi su Dropbox.')
             throw new UnauthorizedException('No refresh_token received from provider.')
@@ -121,7 +121,7 @@ export class OAuth2ClientService implements IOAuth2ClientService {
                 throw new UnauthorizedException('Failed to refresh access token')
             }
 
-            const { access_token, expires_in, new_refresh_token } = tokenRes.data as OAuth2TokenData
+            const { access_token, expires_in, new_refresh_token } = tokenRes.data as unknown as OAuth2TokenData
             if (!access_token) throw new UnauthorizedException('No access_token received during refresh.')
 
             await this.redisService.set(

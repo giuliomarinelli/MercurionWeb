@@ -5,5 +5,5 @@ export interface SecurityAuditEvent {
   ip?: string
   userAgent?: string
   createdAt: string
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 }
