@@ -9,6 +9,8 @@ import {
   buildTestEnvironment,
   createTestConfigurationModule
 } from './test-utils/configuration';
+import { TestApplicationModule } from './test-utils/test-application.module';
+import { TestController } from './test.controller';
 
 describe('AppModule', () => {
   it('should be defined', () => {
@@ -28,6 +30,23 @@ describe('AppModule', () => {
     });
 
     expect(rootModule.imports).toContain(AppModule);
+  });
+
+  it('keeps test-only controllers out of the production graph', () => {
+    const controllers =
+      (Reflect.getMetadata(MODULE_METADATA.CONTROLLERS, AppModule) as unknown[] | undefined) ?? [];
+
+    expect(controllers).not.toContain(TestController);
+  });
+
+  it('exposes test-only controllers only through explicit test composition', () => {
+    const controllers =
+      (Reflect.getMetadata(
+        MODULE_METADATA.CONTROLLERS,
+        TestApplicationModule,
+      ) as unknown[] | undefined) ?? [];
+
+    expect(controllers).toContain(TestController);
   });
 
   it('compiles isolated test configuration without developer env files', async () => {

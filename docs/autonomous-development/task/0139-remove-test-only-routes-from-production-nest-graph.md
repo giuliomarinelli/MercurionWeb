@@ -1,6 +1,6 @@
 # 0139 - Remove test-only routes from the production Nest graph
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -75,24 +75,46 @@ Mark `BLOCKED` only if an external deployment process is proven to depend on `/a
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/BE-025`, based on `a69b51c7fbde3781c054251bd0ecb106be1c03c5`.
 ### Preflight
-_Not started._
+Verified clean `feature/BE-025` identity at the supplied base SHA. `develop`,
+`origin/develop`, and the feature branch all matched
+`a69b51c7fbde3781c054251bd0ecb106be1c03c5`; no remote feature ref existed.
+Dependency task `0134` (`BE-020`) is `DONE`. Exact base GitHub Actions CI run
+`34709082960` completed successfully. No task-owned Angular, Nest, Tox21, or
+test watcher process was active. Local Nest typecheck and `git diff --check`
+passed.
 ### Preflight remediation
-_None._
+None.
 ### Summary
-_Not started._
+Removed `TestController` from `AppModule` so production bootstrap cannot expose
+`/api/test`. Added explicit `TestApplicationModule` composition and factory
+under `src/test-utils` for tests that intentionally need the route. Added
+production/test graph assertions in unit and E2E suites, and registered a
+static architecture policy that rejects test-only controller imports from
+production Nest modules. The existing `/health` controller and route remain
+unchanged.
 ### Task-specific validation performed
-_Not started._
+* `npm run typecheck --workspace mercurion_web_node` — passed.
+* `npm test --workspace mercurion_web_node -- --runInBand src/app.module.spec.ts src/test.controller.spec.ts` — 2 suites, 9 tests passed.
+* `npm run test:e2e --workspace mercurion_web_node -- --runInBand` — 1 suite, 3 tests passed, including production graph exclusion and explicit test graph registration assertions.
+* `npm run ci:nest:architecture` — passed: production module/configuration graphs acyclic, provider ownership checks passed, and test-only route policy passed.
+* `node scripts/check-nest-test-route-policy.mjs` — passed.
+* `npm run lint --workspace mercurion_web_node` — passed with 48 pre-existing warnings and no errors.
+* `npm run build --workspace mercurion_web_node` — passed.
+* `git diff --check` — passed.
 ### Full pre-merge CI-parity validation
-_Not started._
+Not run locally; `npm ci` and `npm run ci:check` are prohibited by the
+autonomous contract. Exact feature-SHA GitHub Actions validation is owned by
+the coordinator.
 ### Browser validation performed
-_Not applicable._
+Not applicable; this is a Nest graph/static architecture task.
 ### Commits
-_Not recorded._
+_Pending commit._
 ### Merge / CI
-_Not started._
+Feature publication follows the task-specific commit. No merge or branch
+deletion performed.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-_None._
+None. No deployment dependence on `/api/test` was found or proven.
