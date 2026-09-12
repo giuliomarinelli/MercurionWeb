@@ -253,7 +253,6 @@ export class DashboardPageComponent implements OnInit, OnDestroy, AfterViewInit 
     })
     effect(() => {
       // riallinea lo spinner quando la sidebar cambia
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const _ = this.sidenavContext.isOpen()
       queueMicrotask(() => {
         this.updateSpinnerLeft()

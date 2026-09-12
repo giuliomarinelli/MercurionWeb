@@ -67,7 +67,7 @@ import { IconButtonComponent } from '../../common/icon-button/icon-button.compon
       </div>
 
       <div class="p-4 flex flex-col gap-4">
-        <label class="flex flex-col gap-1">
+        <div class="flex flex-col gap-1">
           <span class="text-sm font-medium text-slate-700 dark:text-slate-200"
             >Oggetto</span
           >
@@ -81,9 +81,9 @@ import { IconButtonComponent } from '../../common/icon-button/icon-button.compon
             [attr.aria-required]="true"
             [attr.aria-invalid]="subject.trim().length <= 2"
           />
-        </label>
+        </div>
 
-        <label class="flex flex-col gap-1">
+        <div class="flex flex-col gap-1">
           <span class="text-sm font-medium text-slate-700 dark:text-slate-200"
             >Messaggio</span
           >
@@ -98,7 +98,7 @@ import { IconButtonComponent } from '../../common/icon-button/icon-button.compon
             aria-label="Testo del messaggio del ticket"
             [attr.aria-required]="true"
           ></quill-editor>
-        </label>
+        </div>
 
         <div class="flex justify-end pt-2">
           <button

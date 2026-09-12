@@ -16,7 +16,7 @@ import { ToastService } from '../../../services/toast.service'
   selector: 'm-toast',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <section class="toast-host" aria-live="polite" aria-relevant="additions removals">
+    <section class="toast-host" aria-live="polite" aria-relevant="additions">
       @for (toast of visibleMessages(); track toast.id) {
         <article
           #toastElement
