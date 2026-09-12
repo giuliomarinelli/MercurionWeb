@@ -113,7 +113,8 @@ Exact feature-SHA GitHub Actions validation is coordinator-owned.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-_Pending task commit._
+- `86d042f4` — `feat(redis): enforce required capabilities`.
+- Documentation follow-up records the final task commit and push.
 ### Merge / CI
 _Not started._
 ### Rollback
