@@ -3,7 +3,7 @@ import { VersionDTO } from 'src/app_modules/auth/Models/DTO/version.dto';
 import { DataSource } from 'typeorm';
 import { ReleaseVersion } from '../Models/entities/release-version.entity';
 import { ConfigService } from '@nestjs/config';
-import { Environment } from 'src/config/config';
+import { Environment } from 'src/config/config.schema';
 import { createHash } from 'crypto';
 import { ReleaseContext } from '../Models/enums/release-context.enum';
 

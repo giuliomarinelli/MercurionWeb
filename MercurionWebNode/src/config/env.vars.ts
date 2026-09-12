@@ -1,5 +1,5 @@
 import { IsBoolean, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Min } from "class-validator"
-import { Environment } from "./config"
+import { Environment } from "./config.schema"
 
 export class EnvVars {
 

@@ -4,7 +4,7 @@ import { ConfigService } from '@nestjs/config'
 import { catchError, firstValueFrom, OperatorFunction, throwError, timeout, TimeoutError } from 'rxjs'
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service'
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface'
-import { Environment } from 'src/config/config'
+import { Environment } from 'src/config/config.schema'
 import { RDKitAPI_NS } from '../Models/interfaces/rdkit-api-ns.interface'
 import {
     RDKIT_OPERATIONS,

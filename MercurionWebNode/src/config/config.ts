@@ -1,36 +1,14 @@
 
 
 import { registerAs } from "@nestjs/config";
-import { AppConfiguration, CloudflareConfiguration, DataConfiguration, OAuth2ProviderConfiguration, JwtConfigurations, MeilisearchConfiguration, SecureCookieConfiguration, SessionConfiguration, SmsConfiguration, TotpConfiguration, RedisConfiguration, SSO_Configurations } from "./config.types";
-import { UUID } from "crypto";
+import type { AppConfiguration, CloudflareConfiguration, DataConfiguration, OAuth2ProviderConfiguration, JwtConfigurations, MeilisearchConfiguration, SecureCookieConfiguration, SessionConfiguration, SmsConfiguration, TotpConfiguration, RedisConfiguration, SSO_Configurations } from "./config.types";
+import type { UUID } from "crypto";
 import { SnakeNamingStrategy } from "typeorm-naming-strategies";
-import { MailerOptions } from "@nestjs-modules/mailer";
+import type { MailerOptions } from "@nestjs-modules/mailer";
 import { join } from "path";
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/adapters/handlebars.adapter'
 import { parseAppEnv } from "src/utils/env-helpers";
-
-export enum Environment {
-    Development = 'development',
-    Staging = 'staging',
-    Production = 'production',
-    Test = 'test'
-}
-
-export enum ConfigKey {
-    App = 'App',
-    Data = 'Data',
-    Jwt = "Jwt",
-    SecureCookie = 'SecureCookie',
-    Email = "Email",
-    Sms = "Sms",
-    Totp = "Totp",
-    Session = "Session",
-    Dropbox = "Dropbox",
-    Meilisearch = 'Meilisearch',
-    Cloudflare = 'Cloudflare',
-    Redis = 'Redis',
-    SSO = 'SSO'
-}
+import { ConfigKey } from "./config.schema";
 
 const AppConfig = registerAs(
 

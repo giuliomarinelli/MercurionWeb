@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { readFileSync } from 'fs'
 import { resolve } from 'path'
-import { Environment } from 'src/config/config'
+import { Environment } from 'src/config/config.schema'
 
 export interface JwtKeyPair {
     privateKey: string

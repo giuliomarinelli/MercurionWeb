@@ -1,6 +1,6 @@
 # 0117 - Make the Nest configuration package acyclic
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -80,21 +80,54 @@ Mark `BLOCKED` if preserving a current config value requires choosing new enviro
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/BE-003`
 ### Preflight
-_Not started._
+Clean `feature/BE-003` at `2e0972e5adf857cff5a47b6f3422d9e4e8440d8e`, matching the
+supplied current `develop` base. The preceding BE-002 merge CI run
+`34685477631` passed. No task-owned Nest, Angular, Tox21, test-watcher, or
+workspace-consuming process was active; only the pre-existing Chrome DevTools
+MCP lease was present. The initial architecture capture reported the concrete
+cycle `config.ts -> config.types.ts -> config.ts`.
 ### Preflight remediation
-_None._
+None.
 ### Summary
-_Not started._
+Added dependency-neutral `config.schema.ts` for `Environment` and `ConfigKey`,
+made configuration interfaces depend only on that vocabulary, and moved all
+Nest consumers to the schema import. Configuration interfaces now use
+type-only imports, so importing schema/types cannot register factories or load
+environment files. Extended the Nest architecture checker to analyze the
+production configuration package (including the `src/utils/env-helpers.ts`
+boundary), and added a cyclic configuration fixture to its negative gate.
+Runtime configuration keys, defaults, and environment semantics were
+preserved.
 ### Task-specific validation performed
-_Not started._
+* `node scripts/check-nest-module-graph.mjs --root=MercurionWebNode --json`
+  captured the pre-change `config.ts`/`config.types.ts` cycle.
+* `npm run ci:nest:architecture` passed: 21 modules and 8 configuration files
+  checked; production and configuration graphs are acyclic; the negative
+  module/configuration-cycle fixture passed.
+* Focused environment/config tests passed:
+  `npm test --workspace mercurion_web_node -- --runInBand
+  --runTestsByPath src/config/env-validation.spec.ts
+  src/config/validation-pipe.spec.ts` (2 suites, 3 tests).
+* `npm run typecheck --workspace mercurion_web_node` passed.
+* `npm run lint --workspace mercurion_web_node` passed with 60 pre-existing
+  warnings and no errors.
+* `npm run build --workspace mercurion_web_node` passed.
+* `npm test --workspace mercurion_web_node -- --runInBand` passed (131 suites,
+  246 tests).
+* `npm run test:e2e --workspace mercurion_web_node -- --runInBand` passed
+  (1 suite, 1 test).
+* No browser validation was applicable. Per protocol, `npm ci`,
+  `npm run ci:check`, and clean-install/aggregate CI-parity validation were
+  not run locally; those belong to GitHub Actions.
 ### Full pre-merge CI-parity validation
-_Not started._
+Deferred to GitHub Actions on the pushed feature SHA; forbidden locally by
+protocol.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-_Not recorded._
+`06e188c6f71da15258a5bfdd1a5d0269f569fa0a`
 ### Merge / CI
 _Not started._
 ### Rollback
