@@ -1,6 +1,6 @@
 # 0135 - Implement deterministic graceful shutdown
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -84,24 +84,57 @@ Mark `BLOCKED` if a required resource has no deterministic ownership/close API a
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/BE-021` at base `19c45ee7955c197b659602f18640b0908138bfa7`; branch identity
+and clean worktree were verified before edits.
 ### Preflight
-_Not started._
+Verified task identity `0135` / Source `BE-021`, and hard prerequisites
+`0118`, `0119`, and `0134` are marked `DONE`. The supplied base equals local
+`develop`, `origin/develop`, and `feature/BE-021`. GitHub Actions run
+`34704522404` for the exact base SHA completed successfully with conclusion
+`success`. No task-owned Angular, Nest, Tox21, or test-watcher process was
+active; the existing Chrome DevTools MCP processes were not workspace
+processes. No browser/runtime validation was applicable.
 ### Preflight remediation
-_None._
+None. `npm ci` and `npm run ci:check` were not run locally.
 ### Summary
-_Not started._
+Added a single idempotent `ShutdownCoordinator` with `running`/`draining`/
+`closed` state, ordered readiness drain then Nest application closure, bounded
+timeout, structured lifecycle diagnostics, continued cleanup after individual
+resource failures, and shared in-flight shutdown promise for repeated signals.
+SIGTERM/SIGINT now use the coordinator; fatal rejection/exception handlers
+attempt the same cleanup and set a non-zero exit code. Added validated
+`APP_SHUTDOWN_TIMEOUT_MS` with a 10-second default. Health readiness returns
+HTTP 503 after draining. Redis, Pub/Sub, and Socket.IO adapter Redis clients
+now close through their existing canonical owners; Nest-managed HTTP,
+WebSocket, NATS, TypeORM, and module resources close through `app.close()`.
 ### Task-specific validation performed
-_Not started._
+Passed:
+
+- `npm test --workspace mercurion_web_node -- --runInBand shutdown`:
+  2 suites, 4 tests passed, including application-context shutdown.
+- Focused backend Jest set covering shutdown, health, config schema,
+  bootstrap composition, app module, and provider ownership: 6 suites,
+  28 tests passed.
+- `npm run typecheck --workspace mercurion_web_node`: passed.
+- `npm run build --workspace mercurion_web_node`: passed.
+- `npm run lint --workspace mercurion_web_node -- --quiet`: passed with the
+  existing 48 unsafe-argument warnings and no errors. The full lint command
+  also passed with the same warnings.
+- `git diff --check`: passed.
+
+The coordinator tests assert ordering, concurrent idempotence, cleanup after a
+failure, timeout diagnostics, and closed Nest application context.
 ### Full pre-merge CI-parity validation
-_Not started._
+Not run locally by policy. Exact-SHA full CI evidence is owned by the
+coordinator after feature publication.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-_Not recorded._
+`c13dbc811091cbf75ad997d452832ca001ca3259` -
+`feat(BE-021): implement deterministic graceful shutdown`
 ### Merge / CI
-_Not started._
+Feature CI pending coordinator observation after push.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-_None._
+None.

@@ -268,6 +268,7 @@ export const environmentSchema = defineEnvironmentSchema(
     required('APP_DEVICE_ID_SIGNATURE_SECRET', string()),
     required('APP_SUPPORT_EMAIL', string()),
     required('APP_MAX_NATS_PAYLOAD_BYTES', positiveInteger()),
+    defaulted('APP_SHUTDOWN_TIMEOUT_MS', positiveInteger(), 10000),
 
     required('SQL_DATABASE_TYPE', enumParser(['postgres', 'mariadb'] as const)),
     required('SQL_DATABASE_HOST', string()),

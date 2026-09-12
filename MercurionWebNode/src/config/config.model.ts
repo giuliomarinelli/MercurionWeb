@@ -36,7 +36,8 @@ export const configurationBuilders = {
         version: environment.APP_VERSION,
         deviceIdSignatureSecret: environment.APP_DEVICE_ID_SIGNATURE_SECRET,
         supportEmail: environment.APP_SUPPORT_EMAIL,
-        maxNatsPayloadBytes: environment.APP_MAX_NATS_PAYLOAD_BYTES
+        maxNatsPayloadBytes: environment.APP_MAX_NATS_PAYLOAD_BYTES,
+        shutdownTimeoutMs: environment.APP_SHUTDOWN_TIMEOUT_MS
     }),
 
     [ConfigKey.Data]: (environment: ValidatedEnvironment) => ({

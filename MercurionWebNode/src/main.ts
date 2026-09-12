@@ -10,15 +10,10 @@ import { SecureCookieService } from './app_modules/auth/services/secure-cookie.s
 import { applyBootstrapConfiguration } from './bootstrap/bootstrap.configurator'
 import { getBootstrapLogLevels, prepareDevelopmentBootstrap } from './bootstrap/configurators/logging.configurator'
 import { resolveAppEnv } from './utils/env-helpers'
+import { ReadinessService } from './shutdown/readiness.service'
+import { ShutdownCoordinator } from './shutdown/shutdown.coordinator'
 
 export async function bootstrap(): Promise<void> {
-  process.on('unhandledRejection', reason => {
-    console.error('[UNHANDLED_REJECTION]', reason)
-  })
-  process.on('uncaughtException', error => {
-    console.error('[UNCAUGHT_EXCEPTION]', error)
-  })
-
   prepareDevelopmentBootstrap()
   const app = await NestFactory.create<NestFastifyApplication>(
     createApplicationModule(),
@@ -33,6 +28,29 @@ export async function bootstrap(): Promise<void> {
   const config = app.get(ConfigService)
   const env = config.getOrThrow<Environment>('App.env')
   const loggerFactory = app.get(MeiliLoggerService)
+  const readiness = app.get(ReadinessService)
+  const shutdown = new ShutdownCoordinator(
+    [
+      { name: 'readiness', close: () => readiness.markDraining() },
+      { name: 'nest-application', close: () => app.close() }
+    ],
+    config.get<number>('App.shutdownTimeoutMs') ?? 10000,
+    loggerFactory.forContext('Shutdown')
+  )
+  const handleSignal = (signal: 'SIGTERM' | 'SIGINT') => {
+    void shutdown.shutdown({ kind: 'signal', signal }).then(result => {
+      if (result.timedOut || result.failures.length > 0) process.exitCode = 1
+    })
+  }
+  process.on('SIGTERM', handleSignal)
+  process.on('SIGINT', handleSignal)
+  const handleFatal = (error: unknown) => {
+    void shutdown.shutdown({ kind: 'fatal', error }).then(() => {
+      process.exitCode = 1
+    })
+  }
+  process.on('unhandledRejection', handleFatal)
+  process.on('uncaughtException', handleFatal)
   const dependencies = {
     app,
     fastify: app.getHttpAdapter().getInstance(),
