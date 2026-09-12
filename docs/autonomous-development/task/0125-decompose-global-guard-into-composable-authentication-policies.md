@@ -1,6 +1,6 @@
 # 0125 - Decompose GlobalGuard into composable authentication policies
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -89,23 +89,102 @@ Pay particular attention to singleton guard concurrency: fields that are mutated
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/BE-011`, created by the coordinator at green base
+`05cfe3f88f62421a9429ea69830b7b7a4e7eccf5`.
 ### Preflight
-_Not started._
+- Verified the working tree was clean, the active branch was exactly
+  `feature/BE-011`, and `HEAD` equalled the supplied base SHA. The base is an
+  ancestor of the feature branch and no remote `feature/BE-011` ref existed
+  before task work.
+- Verified dependencies `0116` and `0124` are both `DONE`.
+- Verified repository-local `commit.gpgSign=false`.
+- Process inventory found no active Angular, Nest, Tox21, Jest, or other
+  task/session-owned workspace process.
+- Exact base-SHA GitHub Actions run
+  [34693826608](https://github.com/giuliomarinelli/MercurionWeb/actions/runs/34693826608)
+  completed successfully in full mode: `Quality (windows-latest)`,
+  `Quality (ubuntu-latest)`, and `Required gate` all succeeded.
+- Focused unchanged baseline:
+  `npm test --workspace mercurion_web_node -- --runInBand --runTestsByPath
+  src/app_modules/auth/guards/global.guard.spec.ts
+  src/app_modules/auth/services/jwt-tools.service.spec.ts
+  src/app_modules/auth/services/session.service.spec.ts
+  src/app_modules/auth/services/scope.service.spec.ts` — 4 suites / 9 tests
+  passed.
 ### Preflight remediation
 _None._
 ### Summary
-_Not started._
+- Replaced the monolithic guard algorithm with a typed, ordered policy
+  pipeline for transport normalization, credential extraction, access-token
+  authentication/refresh, scope authorization, session/device validation,
+  transport mutation, and failure cleanup.
+- Removed the singleton guard's mutable `tokenType`; all request state now
+  lives in an invocation-local `AuthenticationAttemptState`.
+- Preserved HTTP/GraphQL adaptation, public and soft-auth handling, scope
+  ordering, device/session checks, refresh token response/header mutations,
+  the 1.5-second old-JTI revocation grace, hard-auth cleanup/revocation rules,
+  and permission-denied behavior.
+- Added policy-stage diagnostics and table-driven policy/guard tests,
+  including concurrent guard invocations.
 ### Task-specific validation performed
-_Not started._
+- `npm test --workspace mercurion_web_node -- --runInBand --runTestsByPath
+  src/app_modules/auth/guards/global.guard.spec.ts
+  src/app_modules/auth/guards/policies/authentication-policies.spec.ts
+  src/app_modules/auth/services/jwt-tools.service.spec.ts
+  src/app_modules/auth/services/session.service.spec.ts
+  src/app_modules/auth/services/scope.service.spec.ts
+  src/app_modules/auth/auth.module.spec.ts src/provider-ownership.spec.ts` —
+  7 suites / 62 tests passed.
+- `npm run test:e2e --workspace mercurion_web_node -- --runInBand` — the
+  repository's existing Nest E2E suite passed (1 suite / 1 test). There are no
+  dedicated auth REST/GraphQL E2E files on this baseline; HTTP and GraphQL
+  normalization and public/soft/protected policy behavior are covered by the
+  focused table-driven tests.
+- `npm run typecheck --workspace mercurion_web_node` — passed.
+- `npm run lint --workspace mercurion_web_node` — passed with 0 errors; 48
+  pre-existing warnings outside the changed guard/policy files remain.
+- `npm run build --workspace mercurion_web_node` — passed.
+- `npm run ci:nest:architecture` — passed module-graph and provider-ownership
+  positive/negative checks.
+- `git diff --check` — passed.
 ### Full pre-merge CI-parity validation
-_Not started._
+Local `npm ci` and `npm run ci:check` were intentionally not run per
+repository policy. The supplied base SHA has full green Windows/Linux evidence;
+exact feature-SHA GitHub Actions validation is pending coordinator observation
+after this branch is pushed.
 ### Browser validation performed
-_Not applicable._
+Not applicable; the recipe declares no browser/runtime gate.
 ### Commits
-_Not recorded._
+- `3fe92984` — `refactor(auth): compose global authentication policies`
+- Task outcome/execution-notes commit: this commit.
 ### Merge / CI
-_Not started._
+Not merged. Exact feature-SHA CI and integration remain coordinator-owned.
+### Feature-CI repair
+- Exact feature SHA `4c5d8b00036f3b2ec01a8fd94f15abb55f609410`
+  failed GitHub Actions run
+  [34695410234](https://github.com/giuliomarinelli/MercurionWeb/actions/runs/34695410234)
+  in `Run registered static checks` on both platforms. The actionable
+  diagnostic was
+  `authentication-policies.spec.ts:490:5 construct application errors through
+  applicationError()`.
+- Replaced the task-added direct `RpcException` construction with a narrow
+  unstructured RPC exception test fixture. This preserves coverage of the
+  legacy non-application `RpcException` failure branch without constructing an
+  application error outside `applicationError()`, and changes no production
+  authentication policy behavior.
+- Focused repair validation:
+  `npm run ci:errors` — passed;
+  `npm test --workspace mercurion_web_node -- --runInBand --runTestsByPath
+  src/app_modules/auth/guards/policies/authentication-policies.spec.ts` —
+  1 suite / 37 tests passed;
+  `npm run lint --workspace mercurion_web_node --
+  src/app_modules/auth/guards/policies/authentication-policies.spec.ts` —
+  passed with 0 errors; 48 pre-existing warnings outside the changed spec
+  remain;
+  `npm run ci:validate:autonomous` — passed;
+  `git diff --check` — passed.
+- Correction commit: this commit. Exact-SHA feature CI is pending coordinator
+  observation after push.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
