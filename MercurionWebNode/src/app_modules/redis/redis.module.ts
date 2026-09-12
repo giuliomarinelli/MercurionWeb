@@ -1,19 +1,14 @@
-import { forwardRef, Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { RedisService } from './services/redis.service';
 import { PubSubService } from './services/pub-sub.service';
 import Redis from 'ioredis';
-import { OAuth2ClientModule } from '../oauth2-client/oauth2-client.module';
-import { AuthModule } from '../auth/auth.module';
-import { MeilisearchModule } from '../meilisearch/meilisearch.module';
 import { ConfigService } from '@nestjs/config';
 import { RedisConfiguration } from 'src/config/config.types';
 import { MeiliLoggerService } from '../meilisearch/services/meili-logger.service';
 
+@Global()
 @Module({
     imports: [
-        forwardRef(() => OAuth2ClientModule),
-        forwardRef(() => AuthModule),
-        MeilisearchModule
     ],
     providers: [
         {
