@@ -1,10 +1,9 @@
-import { Inject, Injectable, forwardRef } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { JwtService, JwtSignOptions, JwtVerifyOptions } from '@nestjs/jwt';
 import { JwtAudience, JwtConfiguration } from 'src/config/config.types';
 import { ConfigService } from '@nestjs/config';
 import { TokenType } from '../Models/enums/token-type.enum';
 import { randomUUID, UUID } from 'crypto';
-import { UserService } from 'src/app_modules/user/services/user.service';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 import { Scope } from 'src/app_modules/user/Models/enums/scope.enum';
 import { FastifyRequest } from 'fastify';
@@ -16,6 +15,7 @@ import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interface
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 import { JwtKeysProvider } from '../providers/jwt-keys.provider';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
+import { IDENTITY_READ_PORT, IdentityReadPort } from '../Models/interfaces/identity-read.port'
 
 @Injectable()
 export class JwtToolsService {
@@ -49,8 +49,8 @@ export class JwtToolsService {
     constructor(
         private readonly jwtService: JwtService,
         private readonly configService: ConfigService,
-        @Inject(forwardRef(() => UserService))
-        private readonly userService: UserService,
+        @Inject(IDENTITY_READ_PORT)
+        private readonly identityRead: IdentityReadPort,
         private readonly redisservice: RedisService,
         private readonly sessionService: SessionService,
         loggerFactory: MeiliLoggerService,
@@ -138,7 +138,7 @@ export class JwtToolsService {
     // TODO: valutare la necessità di implementazione del claim kid per rotazione secrets => Previsto per Mercurion 1.x
     public async generateToken(userId: UUID, type: TokenType, sessionId?: UUID): Promise<string> {
         const jwtConfig = this.getJwtConfigurationFromTokenType(type)
-        const scopes: string[] = await this.userService.getUserScopesById(userId) ?? []
+        const scopes: Scope[] = await this.identityRead.getUserScopesById(userId) ?? []
         const scp = scopes
             .map((s) => GeneralUtils.getEnumKeyByValue(Scope, s))
             .filter((k) => k !== undefined)
