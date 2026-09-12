@@ -1,6 +1,6 @@
 # 0101 - Centralize collection naming, chip selection and collision handling
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -55,11 +55,11 @@ Source: `NG-015` in Series `0001`.
 
 ## Acceptance criteria
 
-- [ ] Collection naming/normalization logic has one implementation.
-- [ ] Duplicate/collision behavior is identical across migrated callers.
-- [ ] Chip selection operations are shared, immutable and tested.
-- [ ] Server-side conflict handling remains visible and deterministic.
-- [ ] No migrated action keeps its own equivalent trim/duplicate/add/remove rule set.
+- [x] Collection naming/normalization logic has one implementation.
+- [x] Duplicate/collision behavior is identical across migrated callers.
+- [x] Chip selection operations are shared, immutable and tested.
+- [x] Server-side conflict handling remains visible and deterministic.
+- [x] No migrated action keeps its own equivalent trim/duplicate/add/remove rule set.
 
 ## Validation
 
@@ -81,38 +81,63 @@ Mark `BLOCKED` if frontend and backend currently enforce materially conflicting 
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/NG-015`
 
 ### Preflight
-_Not started._
+Clean `feature/NG-015` at base `88651828bb96cdc35391bf03540f645a6e28ae37`.
+Exact base CI run `34678121368` succeeded. No task-owned Angular, Nest,
+Tox21, test watcher, or workspace-consuming process was active before the
+probe. The canonical runtime was started in order (Tox21, Nest, Angular) and
+all three remained alive. Two consecutive complete nginx readiness rounds
+returned HTTP 200 for `/health` and `/`; the authenticated dashboard was
+then established through a fresh ordinary login at `/login` using the local
+git-ignored test account. No credentials or session state were recorded.
+The probe was stopped completely before editing.
 
 ### Preflight remediation
-_None._
+None.
 
 ### Summary
-Not attempted because required task 0100 (NG-014) is
-`SKIPPED_DEPENDENCY`.
+Added typed, pure collection naming and collision rules that mirror the
+backend's whitespace normalization and 255-character limit, with
+case-sensitive comparison documented as an intentional backend contract.
+Centralized immutable identity/chip operations and migrated the create
+collection component and collection-picker facade to use them. Server
+uniqueness and conflict handling remain authoritative.
 
 ### Task-specific validation performed
-Not applicable; no feature branch or implementation worker was created.
+Focused pure helper and picker/create caller tests were added and run with
+the Angular test target. Runtime/browser validation after implementation is
+recorded below.
 
 ### Full pre-merge CI-parity validation
-Not applicable; dependency-skip metadata only.
+Not run locally; root `npm ci` and `npm run ci:check` are reserved for
+GitHub Actions. Exact feature-SHA CI is required before integration.
 
 ### Browser validation performed
-Not applicable; the task was not attempted.
+Pre-implementation capability evidence: `/health` and `/` each returned 200
+in two consecutive rounds through `http://localhost:8888`; fresh ordinary
+login reached the protected Dashboard and showed the authenticated identity.
+Post-implementation runtime reached the same two-round readiness gate and
+fresh protected Dashboard state. The collection route could not be rendered
+through Chrome DevTools MCP after bounded retries: the page requested several
+lazy chunks that returned HTTP 504 from the local Vite/nginx path
+(`chunk-XVAYTYB5.js`, `chunk-5RABDNNW.js`, `chunk-JEDVQY3T.js`,
+`chunk-Z3ZUPE2G.js`), leaving the route blank; the same route returned HTTP
+200 to a direct edge request. No task-specific browser interaction or
+console error attributable to the changed helpers was observed. This is
+recorded as shared local browser/runtime observation evidence, not a product
+success claim.
 
 ### Commits
-Pending metadata commit on `develop`.
+Pending task implementation commit after focused validation.
 
 ### Merge / CI
-No feature branch or merge. Exact-SHA CI is required for the metadata commit.
+Feature branch will be pushed only after the task commit. Coordinator owns
+exact feature and post-merge CI lifecycle.
 
 ### Rollback
-_Not applicable._
+Not applicable.
 
 ### Blocker / human decision required
-Direct terminal prerequisite: task 0100 (NG-014),
-`SKIPPED_DEPENDENCY`. Transitive chain: NG-015 -> NG-014 -> NG-003 ->
-UI-016 -> UI-001 -> FE-030 (BLOCKED). FE-030 requires filesystem-write
-capability for a fresh, human-authorized worker session.
+None.

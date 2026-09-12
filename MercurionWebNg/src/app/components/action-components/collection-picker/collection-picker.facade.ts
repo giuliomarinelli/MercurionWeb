@@ -4,6 +4,7 @@ import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/
 import { PageModel } from '../../../Models/graphql/page.models';
 import { MoleculeCollectionService } from '../../../services/graphql/molecule-collection.service';
 import { CollectionPickerInput, CollectionPickerSelection } from './collection-picker.models';
+import { addIdentity, removeIdentity } from './collection-rules';
 
 /**
  * Shared collection discovery and identity selection state for action overlays.
@@ -76,18 +77,18 @@ export class CollectionPickerFacade {
     if (!id) return;
     if (this.selectAll()) {
       this.excludedIds.update(ids => {
-        const next = new Set(ids);
-        if (checked) next.delete(id);
-        else next.add(id);
-        return next;
+        const next = checked
+          ? [...ids].filter(existingId => existingId !== id)
+          : addIdentity([...ids], id);
+        return new Set(next);
       });
       return;
     }
     this.selectedIds.update(ids => {
-      const next = new Set(ids);
-      if (checked) next.add(id);
-      else next.delete(id);
-      return next;
+      const next = checked
+        ? addIdentity([...ids], id)
+        : removeIdentity([...ids], id);
+      return new Set(next);
     });
   }
 
