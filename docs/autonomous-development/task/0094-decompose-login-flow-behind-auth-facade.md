@@ -1,6 +1,6 @@
 # 0094 - Decompose login flow behind the canonical auth facade
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -58,11 +58,11 @@ Source: `NG-008` in Series `0001`.
 
 ## Acceptance criteria
 
-- [ ] Credential form and SSO chooser are independently testable presentation components.
-- [ ] Login page delegates orchestration to the canonical auth facade.
-- [ ] No component-level raw auth persistence or HTTP calls remain.
-- [ ] Credential, SSO and MFA-handoff flows preserve existing behavior.
-- [ ] Concurrent/repeated attempts cannot produce stale final session state.
+- [x] Credential form and SSO chooser are independently testable presentation components.
+- [x] Login page delegates orchestration to the canonical auth facade.
+- [x] No component-level raw auth persistence or HTTP calls remain.
+- [x] Credential, SSO and MFA-handoff flows preserve existing behavior.
+- [x] Concurrent/repeated attempts cannot produce stale final session state.
 
 ## Validation
 
@@ -84,37 +84,79 @@ Mark `BLOCKED` if a provider/login transition conflicts with the canonical auth 
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/NG-008`, based on `aa8756c49b9fca1ae3ea6161eb9b30b955a5d1e8`.
 
 ### Preflight
-_Not started._
+Passed on 2026-09-12. The branch was clean and exactly matched the supplied
+NG-007 merge base. GitHub Actions run `34668983978` for the exact base SHA
+completed successfully. No workspace-consuming process was active before the
+task-scoped runtime probe. Tox21, Nest and Angular were started in the
+canonical order; Nest reported zero compile errors and Angular reached watch
+mode.
 
 ### Preflight remediation
 _None._
 
 ### Summary
-Not attempted because required FE auth/session/redirect/pre-auth work through
-task 0038 and task 0093 (NG-007) are terminally non-`DONE`.
+Implemented the login composition boundary. `LoginPageComponent` now only
+composes presentation components and delegates fingerprint preparation,
+credential orchestration, session activation, MFA handoff, redirect
+consumption, error lifecycle and SSO entry to `AuthFacade`. Credential entry
+uses non-nullable typed controls; provider choice is an independently
+testable component. `AuthFacade` filters stale attempts so an older response
+cannot install session state after a newer attempt begins.
 
 ### Task-specific validation performed
-Not applicable; no feature branch or implementation worker was created.
+Passed:
+
+- `npm run typecheck --workspace mercurion_web_ng`
+- `npx ng test --watch=false --karma-config=karma.conf.js --include 'src/app/pages/login/**/*.spec.ts'`
+  (10/10 focused login tests passed after the final test-shape correction).
+- `node scripts/check-angular-modern-component-apis.mjs` (passed).
+- `node scripts/test-angular-modern-component-apis-negative.mjs` (passed).
+- `node scripts/check-angular-interactive-semantics.mjs` (passed after the
+  narrow CI correction removing the unnecessary SSO anchor click handler).
+- `node scripts/check-angular-component-change-detection.mjs` (passed).
+- Canonical post-edit runtime restarted with Tox21, Nest and Angular in order;
+  two consecutive `/health` and `/login` readiness rounds returned HTTP 200.
+- Through `http://localhost:8888/login`, invalid credentials rendered the
+  accessible email error state and a 401 response; the configured non-MFA
+  test account completed ordinary login and reached protected `/dashboard`.
+  The final authenticated page had no relevant browser console errors.
+- Runtime processes started by this task were stopped after browser evidence;
+  only the dedicated Chrome DevTools MCP process remained.
 
 ### Full pre-merge CI-parity validation
-Not applicable; dependency-skip metadata only.
+Not run locally because `npm ci` and `npm run ci:check` are reserved for
+GitHub Actions. Exact feature-SHA CI is required after publication.
 
 ### Browser validation performed
-Not applicable; the task was not attempted.
+Invalid credentials, pending state, provider links, ordinary non-MFA login,
+redirect to `/dashboard`, protected dashboard state, network responses and
+console state were inspected through the dedicated persistent Chrome profile
+at `http://localhost:8888`. MFA was not available for the configured account
+during this run.
 
 ### Commits
-Pending metadata commit on `develop`.
+`6209abf2aebcd4461c3d307e2a10e9a7cc059fb5` — feature implementation.
+`235d3799db044ee32f1dcc4cae62c32fe77b2e12` — first CI repair. Exact feature
+run `34669933775` found the interactive-semantics violation in the SSO anchor;
+run `34670332658` then found the repository policy forbidding an unused
+production `EventEmitter` output in the chooser. `dfa868e7523c38746fefaa884f4c728971538732`
+is the second CI repair; run `34670718683` additionally identified the
+modern-component-API requirement, which is addressed by the final narrow
+conversion of both extracted components to functional input/output APIs.
+`811c701bf2e0b8713f918b0afd353f863c64958a` — final modern Angular API repair.
+Exact feature CI run `34671092779` passed on Linux and Windows, including the
+required gate.
 
 ### Merge / CI
-No feature branch or merge. Exact-SHA CI is required for the metadata commit.
+The feature branch is published at `811c701bf2e0b8713f918b0afd353f863c64958a`.
+Exact feature-SHA CI run `34671092779` is green; the coordinator may proceed
+with integration.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-The required FE auth foundation includes FE-004 (BLOCKED) and its terminal
-dependent tasks. FE-004 requires a test-safe canonical local auth/backend
-runtime and approved deterministic test state in a new session.
+None.
