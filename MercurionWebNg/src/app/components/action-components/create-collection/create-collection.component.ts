@@ -22,6 +22,12 @@ import { DomainInvalidationService } from '../../../services/domain-invalidation
 import { ActionCardComponent } from '../../common/action-card/action-card.component';
 import { ActionFooterComponent } from '../../common/action-footer/action-footer.component';
 import { ButtonComponent } from '../../common/button/button.component';
+import {
+  addSelection,
+  normalizeCollectionName,
+  removeSelection,
+  validateCollectionName
+} from '../collection-picker/collection-rules';
 
 
 @Component({
@@ -101,7 +107,7 @@ import { ButtonComponent } from '../../common/button/button.component';
                 placeholder="Inserisci una nuova collezione..."
                 aria-label="Nome nuova collezione"
                 [attr.aria-required]="true"
-                [attr.aria-describedby]="selectedChips.length ? 'collectionsPreview' : null"
+                [attr.aria-describedby]="!canAddName() ? 'collectionNameFeedback' : (selectedChips.length ? 'collectionsPreview' : null)"
                 class="flex-1 px-4 py-2 rounded-lg bg-white/90 text-black
                        placeholder:text-slate-500 shadow-sm
                        ring-1 ring-slate-300
@@ -140,15 +146,20 @@ import { ButtonComponent } from '../../common/button/button.component';
                  disabled:bg-light-accent-primary/50 disabled:cursor-not-allowed
                  transition-colors duration-200 dark:shadow-btn-dark disabled:hover:bg-light-accent-primary-hc/50
                  justify-center"
-              [disabled]="!name() || alreadyAdded(_trim(name()))"
+              [disabled]="!canAddName()"
               (click)="onAddNewName(_trim(name()))"
               [title]="title()"
-              [attr.aria-disabled]="!name() || alreadyAdded(_trim(name()))"
-              [attr.aria-label]="alreadyAdded(_trim(name())) ? 'Collezione già presente' : 'Aggiungi nome collezione'"
+              [attr.aria-disabled]="!canAddName()"
+              [attr.aria-label]="title() || 'Aggiungi nome collezione'"
             >
               Aggiungi
             </button>
           </div>
+          @if (name() && !canAddName()) {
+            <p id="collectionNameFeedback" class="text-sm text-red-700 dark:text-red-300" role="status" aria-live="polite">
+              {{ title() }}
+            </p>
+          }
         </div>
 
         <div class="border-t border-light-border dark:border-dark-border">
@@ -272,7 +283,9 @@ export class CreateCollectionComponent implements OnInit, AfterViewInit, OnDestr
 
   nameControl = new FormControl('', { nonNullable: true });
   name = signal<string>('');
-  title = computed(() => (this.name() ? 'Non puoi aggiungere duplicati.' : ''));
+  title = computed(() => validateCollectionName(this.name(), {
+    pendingNames: this.selectedChips
+  }).message ?? '');
 
   selectedChips: string[] = [];
 
@@ -303,26 +316,34 @@ export class CreateCollectionComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   _trim(s: string): string {
-    return s.trim();
+    return normalizeCollectionName(s);
   }
 
   onAddNewName(name: string) {
-    this.addChip(name);
+    const result = validateCollectionName(name, { pendingNames: this.selectedChips });
+    if (!result.ok) return;
+    this.addChip(result.normalized);
     this.clear();
   }
 
-  alreadyAdded(name: string): boolean {
-    return this.selectedChips.includes(name);
+  canAddName(): boolean {
+    return validateCollectionName(this.name(), { pendingNames: this.selectedChips }).ok;
   }
 
   addChip(chip: string) {
-    if (!chip) return;
-    if (this.selectedChips.some(name => name === chip)) return;
-    this.selectedChips = [...this.selectedChips, chip];
+    const result = validateCollectionName(chip, { pendingNames: this.selectedChips });
+    if (!result.ok) return;
+    this.selectedChips = addSelection(
+      this.selectedChips.map(name => ({ id: name, name })),
+      { id: result.normalized, name: result.normalized }
+    ).map(item => item.name);
   }
 
   removeChip(name: string) {
-    this.selectedChips = this.selectedChips.filter(c => c !== name);
+    this.selectedChips = removeSelection(
+      this.selectedChips.map(value => ({ id: value, name: value })),
+      normalizeCollectionName(name)
+    ).map(item => item.name);
   }
 
   clearChips() {
