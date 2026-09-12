@@ -125,7 +125,8 @@ the coordinator after push.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-Pending task commit; feature SHA and push recorded by the worker result.
+- `acd24a15` — `feat(redis): introduce typed key and TTL contracts`.
+- Final feature SHA and push recorded by the worker result.
 ### Merge / CI
 _Not started._
 ### Rollback
