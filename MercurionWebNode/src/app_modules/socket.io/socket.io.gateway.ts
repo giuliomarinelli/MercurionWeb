@@ -132,8 +132,9 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
       this.logger.log(
         `Socket ${client.id} autenticato onConnect, bind ws_session:${sessionId}, ws_user:${userId}`
       );
-    } catch (e: any) {
-      this.logger.warn(`WS auth fallita su handleConnection per ${client.id}: ${e?.message || e}`);
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : String(e)
+      this.logger.warn(`WS auth fallita su handleConnection per ${client.id}: ${message}`);
       // se questo gateway è solo privato puoi anche fare:
       // client.disconnect(true);
     }
@@ -154,11 +155,11 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
 
     if (sessionId && userId) {
       if (!client.rooms.has(`ws_session:${sessionId}`)) {
-        client.join(`ws_session:${sessionId}`)
+        void client.join(`ws_session:${sessionId}`)
         this.logger.debug(`Socket ${client.id} joinato a ws_session:${sessionId}`)
       }
       if (!client.rooms.has(`ws_user:${userId}`)) {
-        client.join(`ws_user:${userId}`);
+        void client.join(`ws_user:${userId}`);
         this.logger.debug(`Socket ${client.id} joinato a ws_user:${userId}`)
       }
 
