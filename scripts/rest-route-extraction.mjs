@@ -4,6 +4,7 @@ import ts from 'typescript';
 
 const root = process.cwd();
 const mainPath = path.join(root, 'MercurionWebNode', 'src', 'main.ts');
+const securityConfiguratorPath = path.join(root, 'MercurionWebNode', 'src', 'bootstrap', 'configurators', 'security.configurator.ts');
 const controllerRoot = path.join(root, 'MercurionWebNode', 'src');
 const verbs = new Set(['Get', 'Post', 'Put', 'Patch', 'Delete', 'All', 'Head', 'Options']);
 
@@ -50,16 +51,20 @@ export function joinPath(...segments) {
 }
 
 export function readPrefixConfiguration() {
-    const source = fs.readFileSync(mainPath, 'utf8');
-    const match = source.match(/setGlobalPrefix\(\s*['\"]([^'\"]+)['\"]\s*,\s*\{\s*exclude:\s*\[([^\]]*)\]/s);
-    if (!match) {
-        throw new Error(`Cannot read setGlobalPrefix configuration from ${relative(mainPath)}.`);
+    const configurationPaths = [mainPath, securityConfiguratorPath];
+    for (const configurationPath of configurationPaths) {
+        const source = fs.readFileSync(configurationPath, 'utf8');
+        const match = source.match(/setGlobalPrefix\(\s*['\"]([^'\"]+)['\"]\s*,\s*\{\s*exclude:\s*\[([^\]]*)\]/s);
+        if (!match) {
+            continue;
+        }
+        const prefix = `/${match[1].replace(/^\/+|\/+$/g, '')}`;
+        const prefixExceptions = [...match[2].matchAll(/['\"]([^'\"]+)['\"]/g)]
+            .map((entry) => joinPath(entry[1]))
+            .sort(compareText);
+        return { prefix, prefixExceptions };
     }
-    const prefix = `/${match[1].replace(/^\/+|\/+$/g, '')}`;
-    const prefixExceptions = [...match[2].matchAll(/['\"]([^'\"]+)['\"]/g)]
-        .map((entry) => joinPath(entry[1]))
-        .sort(compareText);
-    return { prefix, prefixExceptions };
+    throw new Error(`Cannot read setGlobalPrefix configuration from ${configurationPaths.map(relative).join(' or ')}.`);
 }
 
 export function effectivePath(controllerPath, methodPath, prefixConfiguration) {
