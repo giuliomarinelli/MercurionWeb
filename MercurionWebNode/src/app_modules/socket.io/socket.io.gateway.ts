@@ -66,6 +66,7 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
 
   private readonly logger: MeiliContextLogger
   private readonly redisConf: RedisConfiguration
+  private initialized = false
 
   @WebSocketServer()
   private readonly server: ApplicationServer
@@ -81,6 +82,8 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
   }
 
   afterInit(server: ApplicationServer) {
+    if (this.initialized) return
+
     server.use(createSocketContractVersionMiddleware(this.logger))
     const pubClient = new Redis({
       host: this.redisConf.host,
@@ -90,6 +93,7 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
     const subClient = pubClient.duplicate()
     server.adapter(createAdapter(pubClient, subClient))
     this.pubSubService.setSocketServer(server)
+    this.initialized = true
     this.logger.log('Socket.IO Redis Adapter e PubSubService pronti! 🚀')
   }
 
