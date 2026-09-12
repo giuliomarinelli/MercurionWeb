@@ -1,8 +1,8 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  EventEmitter,
-  Output,
+  inject,
+  output,
   signal
 } from '@angular/core'
 import {
@@ -16,7 +16,6 @@ import { SelectionControlComponent } from '../../components/common/selection-con
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component'
 import { TurnstileComponent } from '../../components/common/turnstile/turnstile.component'
 import { APP_CONFIG } from '../../config/app-config'
-import { inject } from '@angular/core'
 import type { LoginCredentials } from './login-flow.models'
 
 type CredentialForm = {
@@ -27,7 +26,6 @@ type CredentialForm = {
 
 @Component({
   selector: 'm-login-credential-form',
-  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
@@ -122,10 +120,10 @@ export class LoginCredentialFormComponent {
     pattern: 'Formato e-mail non corretto'
   }
 
-  @Output() readonly emailSubmitted = new EventEmitter<string>()
-  @Output() readonly credentialsSubmitted = new EventEmitter<LoginCredentials>()
-  @Output() readonly turnstile = new EventEmitter<string>()
-  @Output() readonly turnstileReady = new EventEmitter<void>()
+  readonly emailSubmitted = output<string>()
+  readonly credentialsSubmitted = output<LoginCredentials>()
+  readonly turnstile = output<string>()
+  readonly turnstileReady = output<void>()
 
   canSubmit(): boolean {
     return this.form.valid && (this.turnstileDisabled || Boolean(this.turnstileToken()))

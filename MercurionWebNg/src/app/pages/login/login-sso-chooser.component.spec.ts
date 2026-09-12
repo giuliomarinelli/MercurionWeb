@@ -15,7 +15,7 @@ describe('LoginSsoChooserComponent', () => {
   })
 
   it('emits a typed provider selection with the current redirect', () => {
-    component.redirectTo = '/dashboard'
+    fixture.componentRef.setInput('redirectTo', '/dashboard')
     expect(component.select('Google')).toEqual({ provider: 'Google', redirectTo: '/dashboard' })
   })
 })

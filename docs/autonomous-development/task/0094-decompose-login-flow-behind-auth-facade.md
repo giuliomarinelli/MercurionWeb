@@ -140,8 +140,10 @@ during this run.
 `235d3799db044ee32f1dcc4cae62c32fe77b2e12` — first CI repair. Exact feature
 run `34669933775` found the interactive-semantics violation in the SSO anchor;
 run `34670332658` then found the repository policy forbidding an unused
-production `EventEmitter` output in the chooser. The second narrow correction
-is pending commit and republish.
+production `EventEmitter` output in the chooser. `dfa868e7523c38746fefaa884f4c728971538732`
+is the second CI repair; run `34670718683` additionally identified the
+modern-component-API requirement, which is addressed by the final narrow
+conversion of both extracted components to functional input/output APIs.
 
 ### Merge / CI
 The feature branch must be published after the task-specific commit. The

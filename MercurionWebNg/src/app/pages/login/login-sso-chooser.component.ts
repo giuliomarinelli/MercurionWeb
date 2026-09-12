@@ -1,10 +1,9 @@
-import { ChangeDetectionStrategy, Component, Input } from '@angular/core'
+import { ChangeDetectionStrategy, Component, input } from '@angular/core'
 import type { SSO_AuthProvider } from '@mercurion/rest-contracts'
 import type { LoginSsoSelection } from './login-flow.models'
 
 @Component({
   selector: 'm-login-sso-chooser',
-  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section aria-labelledby="sso-title">
@@ -23,15 +22,16 @@ import type { LoginSsoSelection } from './login-flow.models'
   `]
 })
 export class LoginSsoChooserComponent {
-  @Input() redirectTo: string | null = null
+  readonly redirectTo = input<string | null>(null)
   readonly providers: readonly SSO_AuthProvider[] = ['Google', 'GitHub', 'Discord']
 
   hrefFor(provider: SSO_AuthProvider): string {
-    const query = this.redirectTo ? `?redirect_to=${encodeURIComponent(this.redirectTo)}` : ''
+    const redirectTo = this.redirectTo()
+    const query = redirectTo ? `?redirect_to=${encodeURIComponent(redirectTo)}` : ''
     return `/api/oauth2/sso/${provider}/login${query}`
   }
 
   select(provider: SSO_AuthProvider): LoginSsoSelection {
-    return { provider, redirectTo: this.redirectTo }
+    return { provider, redirectTo: this.redirectTo() }
   }
 }
