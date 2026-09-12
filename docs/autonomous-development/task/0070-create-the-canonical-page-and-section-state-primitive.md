@@ -1,6 +1,6 @@
 # 0070 - Create the canonical page and section state primitive
 
-- [x] DONE
+- [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -86,69 +86,6 @@ Mark `BLOCKED` if a feature requires a materially distinct stale-data/revalidati
 The primitive may expose a typed stale/revalidating variant only if existing repository behaviour clearly requires and defines it; otherwise keep the state machine minimal.
 
 ## Execution notes
-
-### Current implementation (2026-09-12, feature/UI-012)
-
-### Feature branch
-`feature/UI-012`, based on `origin/develop` /
-`d94a4edd078226b353e4e0e5a7e3e94fe159af91`.
-
-### Preflight
-- Confirmed the clean exact base and successful GitHub Actions CI run
-  `34662840295` for that SHA.
-- Confirmed no task-owned Angular, Nest, Tox21, or test watcher was active
-  before runtime validation.
-- Started the canonical Tox21, Nest, and Angular processes in the required
-  order for both runtime probes. Angular and Nest compiled successfully; the
-  nginx edge returned two consecutive complete `200` readiness rounds for
-  `/health` and `/`.
-- Initial edge `502` responses occurred only while the declared processes were
-  compiling and were retried according to `RUNTIME.md`.
-
-### Implementation
-- Added `PageState<T>`, an exhaustive discriminated union for loading, empty,
-  error, retry, and content states.
-- Added standalone `PageStateComponent` (`m-page-state`) with projected
-  loading skeleton and content regions, consistent status/alert semantics,
-  canonical `m-button` retry action, and caller-owned retry output.
-- Added component coverage for every state, projected loading, retry emission,
-  ARIA semantics, transitions, and stale-content exclusion.
-
-### Task-specific validation performed
-- `npm run typecheck --workspace mercurion_web_ng` — passed.
-- `npm run lint --workspace mercurion_web_ng` — passed with existing warnings.
-- `npm run test:ci --workspace mercurion_web_ng` — `440 SUCCESS`.
-- `npm run build --workspace mercurion_web_ng` — passed with existing bundle and
-  CommonJS warnings.
-- No `npm ci` or `npm run ci:check` was run locally.
-
-### Browser validation performed
-- Through `http://localhost:8888`, post-implementation readiness passed for
-  `/health` and `/`.
-- Chrome DevTools MCP opened the persistent-profile application at
-  `/dashboard`; the dashboard rendered accessible live regions and authenticated
-  UI identity, and was rechecked at a 390x844 dark viewport.
-- The isolated primitive has no dedicated product route; its loading, empty,
-  error, retry, content, focus-preserving native button, and ARIA fixture
-  evidence is captured by the Angular Karma component suite.
-- All task-owned runtime processes were stopped and process inventory showed no
-  remaining Tox21/Nest/Angular watcher.
-
-### Commits
-`141caa1cbfe8f0470742f19de62bd6babb50e4e6` —
-`feat(ui): add canonical page state primitive`, committed with
-`--no-gpg-sign` and a Copilot co-author trailer.
-`e46f7c4f55040ad1a38b21c53de5df7dcf6eb96e` —
-`docs(ui): record UI-012 validation`, also committed with `--no-gpg-sign`
-and a Copilot co-author trailer.
-
-### Feature CI
-Exact feature SHA `141caa1cbfe8f0470742f19de62bd6babb50e4e6` passed CI run
-`34663788104`: Ubuntu quality, Windows quality, and `Required gate` all
-successful. The final feature SHA
-`e46f7c4f55040ad1a38b21c53de5df7dcf6eb96e` passed exact-SHA CI run
-`34664160735` with `Required gate` successful (metadata path; the preceding
-source SHA supplied the full two-platform quality evidence).
 
 > Current status (2026-09-11): PENDING by direct owner instruction because this
 > activity was not completed. Historical attempt/skip evidence remains below
