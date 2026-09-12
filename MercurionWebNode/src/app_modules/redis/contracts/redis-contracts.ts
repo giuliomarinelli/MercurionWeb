@@ -10,6 +10,61 @@ export type RedisKey = string & { readonly __redisKey: unique symbol }
 export type RedisKeyPattern = string & { readonly __redisKeyPattern: unique symbol }
 export type RedisTtlSeconds = number & { readonly __redisTtlSeconds: unique symbol }
 
+export type RequiredRedisCapability = 'keyevent-notifications' | 'expired-key-events' | 'generic-key-events'
+
+export interface RedisCapabilityPolicy {
+    readonly setting: 'notify-keyspace-events'
+    readonly requiredFlags: readonly string[]
+    readonly capabilities: readonly RequiredRedisCapability[]
+}
+
+export const redisCapabilityPolicy: RedisCapabilityPolicy = Object.freeze({
+    setting: 'notify-keyspace-events',
+    requiredFlags: ['E', 'x', 'g'],
+    capabilities: [
+        'keyevent-notifications',
+        'expired-key-events',
+        'generic-key-events'
+    ] as const
+})
+
+export interface RedisCapabilityDiagnostic {
+    readonly setting: RedisCapabilityPolicy['setting']
+    readonly configuredFlags: string
+    readonly missingFlags: readonly string[]
+    readonly missingCapabilities: readonly RequiredRedisCapability[]
+}
+
+export class RedisCapabilityError extends Error {
+    readonly code = 'REDIS_REQUIRED_CAPABILITY_MISSING'
+
+    constructor(readonly diagnostic: RedisCapabilityDiagnostic) {
+        super(
+            `Redis ${diagnostic.setting} is missing required capabilities: ` +
+            `${diagnostic.missingCapabilities.join(', ')} ` +
+            `(missing flags: ${diagnostic.missingFlags.join('')})`
+        )
+        this.name = 'RedisCapabilityError'
+    }
+}
+
+export function validateRedisCapabilities(configuredFlags: string): RedisCapabilityDiagnostic | undefined {
+    const missingFlags = redisCapabilityPolicy.requiredFlags.filter(flag => !configuredFlags.includes(flag))
+    if (missingFlags.length === 0) return undefined
+
+    const capabilityByFlag: Record<string, RequiredRedisCapability> = {
+        E: 'keyevent-notifications',
+        x: 'expired-key-events',
+        g: 'generic-key-events'
+    }
+    return {
+        setting: redisCapabilityPolicy.setting,
+        configuredFlags,
+        missingFlags,
+        missingCapabilities: missingFlags.map(flag => capabilityByFlag[flag])
+    }
+}
+
 const key = (value: string): RedisKey => value as RedisKey
 const pattern = (value: string): RedisKeyPattern => value as RedisKeyPattern
 

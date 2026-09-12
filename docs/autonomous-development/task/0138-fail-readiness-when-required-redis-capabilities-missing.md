@@ -1,6 +1,6 @@
 # 0138 - Fail readiness when required Redis capabilities are missing
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -81,21 +81,39 @@ Mark `BLOCKED` if the active protocol does not actually require the currently do
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/BE-024`, based on `c27cc2444dafa77320f0abb9ac22ff49980dedaa`.
+Clean identity and HEAD were verified before editing; the supplied SHA is the
+clean `develop` base. Dependency 0137 is `DONE` at this base.
 ### Preflight
-_Not started._
+GitHub Actions CI run `34707670930` for the exact base SHA completed
+successfully. No task-owned Angular, Nest, Tox21, Jest watcher, or other
+workspace-consuming process was active. Browser validation is not applicable.
+Local `npm ci` and `npm run ci:check` were not run.
 ### Preflight remediation
-_None._
+None.
 ### Summary
-_Not started._
+Added a typed `notify-keyspace-events` Redis capability policy requiring `E`,
+`x`, and `g`, with structured non-secret diagnostics and a typed
+`REDIS_REQUIRED_CAPABILITY_MISSING` error. The Redis adapter now owns reading
+the server capability, startup/pub-sub initialization fails on missing or
+unreadable capabilities, and `/health` revalidates the capability so runtime
+loss makes the application unready. Added supported/superset and missing-flag
+coverage plus Docker/Kubernetes manifest compatibility coverage. DATA
+boundaries and session persistence were not changed.
 ### Task-specific validation performed
-_Not started._
+- `npm run typecheck --workspace mercurion_web_node` — passed.
+- Focused Redis capability/readiness tests — 5 suites, 18 tests passed.
+- `npm run build --workspace mercurion_web_node` — passed.
+- `npm run lint --workspace mercurion_web_node` — passed after fixing the
+  task test typing; 48 pre-existing warnings and zero errors.
+- `git diff --check` — passed.
 ### Full pre-merge CI-parity validation
-_Not started._
+Not run locally because `npm ci` and `npm run ci:check` are prohibited.
+Exact feature-SHA GitHub Actions validation is coordinator-owned.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-_Not recorded._
+_Pending task commit._
 ### Merge / CI
 _Not started._
 ### Rollback

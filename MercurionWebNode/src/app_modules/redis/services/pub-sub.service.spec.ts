@@ -5,6 +5,7 @@ import Redis from 'ioredis';
 import { OAuth2AccessTokenRefreshService } from 'src/app_modules/oauth2-client/services/access-token-refresh.service';
 import { SessionService } from 'src/app_modules/auth/services/session.service';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { RedisCapabilityService } from './redis-capability.service'
 
 describe('PubSubService', () => {
   let service: PubSubService;
@@ -21,6 +22,7 @@ describe('PubSubService', () => {
     psubscribe: jest.Mock;
     subscribe: jest.Mock;
   };
+  let assertRequiredCapabilities: jest.Mock
 
   beforeEach(async () => {
     const mockLogger = { log: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() };
@@ -29,6 +31,7 @@ describe('PubSubService', () => {
       psubscribe: jest.fn(),
       subscribe: jest.fn(),
     };
+    assertRequiredCapabilities = jest.fn()
     redisClient = {
       duplicate: jest.fn().mockReturnValue(subscriber),
       config: jest.fn().mockResolvedValue(['notify-keyspace-events', 'Exg']),
@@ -43,6 +46,7 @@ describe('PubSubService', () => {
         PubSubService,
         { provide: OAuth2AccessTokenRefreshService, useValue: { refreshAccessToken: jest.fn() } },
         { provide: RedisService, useValue: { getClient: () => redisClient as unknown as Redis } },
+        { provide: RedisCapabilityService, useValue: { assertRequiredCapabilities } },
         {
           provide: SessionService,
           useValue: {
@@ -66,7 +70,7 @@ describe('PubSubService', () => {
     await service.onModuleInit();
     await service.onModuleInit();
 
-    expect(redisClient.config).toHaveBeenCalledTimes(1);
+    expect(assertRequiredCapabilities).toHaveBeenCalledTimes(1);
     expect(subscriber.psubscribe).toHaveBeenCalledTimes(1);
     expect(subscriber.psubscribe).toHaveBeenCalledWith('__keyevent@0__:*');
     expect(subscriber.on).toHaveBeenCalledTimes(2);
