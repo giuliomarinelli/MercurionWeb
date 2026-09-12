@@ -1,5 +1,5 @@
 import { ConfigModule, ConfigService } from '@nestjs/config'
-import { Environment } from './config/config'
+import { Environment } from './config/config.schema'
 import { ForbiddenException, HttpException, UnauthorizedException } from '@nestjs/common'
 import { GraphQLError } from 'graphql'
 import { GraphQLModule } from '@nestjs/graphql'

@@ -4,7 +4,7 @@ import { MercurionInferReqDTO } from '../Models/DTO/mt21/mercurion-infer-req.dto
 import { MercurionInferDataDTO, MercurionInferResDTO } from '../Models/DTO/mt21/mercurion-infer-res.dto';
 import { catchError, firstValueFrom, throwError, timeout, TimeoutError } from 'rxjs';
 import { ConfigService } from '@nestjs/config';
-import { Environment } from 'src/config/config';
+import { Environment } from 'src/config/config.schema';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'

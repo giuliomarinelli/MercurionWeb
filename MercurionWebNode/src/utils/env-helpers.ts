@@ -1,4 +1,4 @@
-import { Environment } from 'src/config/config'
+import { Environment } from 'src/config/config.schema'
 
 export function parseAppEnv(raw: unknown): Environment {
     const value = (typeof raw === 'string' ? raw : undefined) ?? Environment.Development

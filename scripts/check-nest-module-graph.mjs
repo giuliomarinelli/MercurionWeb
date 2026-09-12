@@ -13,6 +13,15 @@ function filesIn(directory) {
   });
 }
 
+function typescriptFilesIn(directory) {
+  if (!fs.existsSync(directory)) return [];
+  return fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    const file = path.join(directory, entry.name);
+    if (entry.isDirectory()) return typescriptFilesIn(file);
+    return entry.name.endsWith('.ts') && !entry.name.endsWith('.spec.ts') ? [file] : [];
+  });
+}
+
 function importsBlock(source) {
   const start = source.indexOf('imports:');
   if (start < 0) return '';
@@ -81,23 +90,97 @@ function visit(node) {
 
 for (const file of graph.keys()) if (!indices.has(file)) visit(file);
 const relative = (file) => path.relative(root, file).split(path.sep).join('/');
+
+const configFiles = [
+  ...typescriptFilesIn(path.join(root, 'src', 'config')),
+  ...(fs.existsSync(path.join(root, 'src', 'utils', 'env-helpers.ts'))
+    ? [path.join(root, 'src', 'utils', 'env-helpers.ts')]
+    : []),
+];
+const configGraph = new Map(configFiles.map((file) => [file, new Set()]));
+const configFileBySpecifier = (file, specifier) => {
+  const candidate = specifier.startsWith('.')
+    ? path.resolve(path.dirname(file), specifier)
+    : specifier.startsWith('src/')
+      ? path.resolve(root, specifier)
+      : undefined;
+  if (!candidate) return undefined;
+  const matches = [candidate, `${candidate}.ts`, path.join(candidate, 'index.ts')];
+  return matches.find((match) => configGraph.has(match));
+};
+for (const file of configFiles) {
+  const source = fs.readFileSync(file, 'utf8');
+  for (const match of source.matchAll(/(?:from\s+|import\s*)['"]([^'"]+)['"]/g)) {
+    const target = configFileBySpecifier(file, match[1]);
+    if (target) configGraph.get(file).add(target);
+  }
+}
+
+const configCycles = [];
+const configIndices = new Map();
+const configLowLinks = new Map();
+const configStack = [];
+const configOnStack = new Set();
+let configNextIndex = 0;
+function visitConfig(node) {
+  configIndices.set(node, configNextIndex);
+  configLowLinks.set(node, configNextIndex);
+  configNextIndex += 1;
+  configStack.push(node);
+  configOnStack.add(node);
+  for (const child of configGraph.get(node) ?? []) {
+    if (!configIndices.has(child)) {
+      visitConfig(child);
+      configLowLinks.set(node, Math.min(configLowLinks.get(node), configLowLinks.get(child)));
+    } else if (configOnStack.has(child)) {
+      configLowLinks.set(node, Math.min(configLowLinks.get(node), configIndices.get(child)));
+    }
+  }
+  if (configLowLinks.get(node) === configIndices.get(node)) {
+    const component = [];
+    let member;
+    do {
+      member = configStack.pop();
+      configOnStack.delete(member);
+      component.push(member);
+    } while (member !== node);
+    if (component.length > 1 || configGraph.get(node)?.has(node)) {
+      configCycles.push(component.sort());
+    }
+  }
+}
+for (const file of configGraph.keys()) if (!configIndices.has(file)) visitConfig(file);
+
 const output = {
   root: relative(root),
   modules: [...graph.keys()].sort().map(relative),
   edges: [...graph.entries()].flatMap(([from, targets]) =>
     [...targets].sort().map((to) => ({ from: relative(from), to: relative(to) }))),
   cycles: cycles.map((cycle) => cycle.map(relative)),
+  config: {
+    files: configFiles.sort().map(relative),
+    edges: [...configGraph.entries()].flatMap(([from, targets]) =>
+      [...targets].sort().map((to) => ({ from: relative(from), to: relative(to) }))),
+    cycles: configCycles.map((cycle) => cycle.map(relative)),
+  },
 };
 
 if (json) {
   console.log(JSON.stringify(output, null, 2));
-} else if (cycles.length) {
-  console.error(`Nest production module graph contains ${cycles.length} cycle(s):`);
+} else if (cycles.length || configCycles.length) {
+  if (cycles.length) console.error(`Nest production module graph contains ${cycles.length} cycle(s):`);
   cycles.forEach((cycle, index) => {
     console.error(`\nCycle ${index + 1}:`);
     cycle.forEach((file) => console.error(`  ${relative(file)}`));
   });
+  if (configCycles.length) {
+    console.error(`Nest configuration graph contains ${configCycles.length} cycle(s):`);
+    configCycles.forEach((cycle, index) => {
+      console.error(`\nConfiguration cycle ${index + 1}:`);
+      cycle.forEach((file) => console.error(`  ${relative(file)}`));
+    });
+  }
   process.exitCode = 1;
 } else {
-  console.log(`Nest production module graph is acyclic (${graph.size} modules checked).`);
+  console.log(`Nest production and configuration graphs are acyclic (${graph.size} modules, ${configGraph.size} config files checked).`);
 }

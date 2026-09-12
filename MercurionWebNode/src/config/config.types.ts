@@ -1,6 +1,6 @@
-import { TypeOrmModuleOptions } from "@nestjs/typeorm"
-import { UUID } from "crypto"
-import { Environment } from "./config"
+import type { TypeOrmModuleOptions } from "@nestjs/typeorm"
+import type { UUID } from "crypto"
+import { Environment } from "./config.schema"
 
 export interface AppConfiguration {
     nodeEnv: 'development' | 'production',

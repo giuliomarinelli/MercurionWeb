@@ -1,7 +1,7 @@
 import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { DataSource } from 'typeorm';
-import { Environment } from 'src/config/config';
+import { Environment } from 'src/config/config.schema';
 import { ReleaseService } from './release.service';
 
 describe('ReleaseService', () => {

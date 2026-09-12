@@ -11,7 +11,7 @@ if (result.status === 0) {
   console.error('Nest module graph checker accepted a cyclic fixture.');
   process.exit(1);
 }
-if (!result.stderr.includes('cycle')) {
+if (!result.stderr.includes('cycle') || !result.stderr.includes('configuration')) {
   console.error('Nest module graph checker failed without reporting a cycle.');
   process.exit(1);
 }

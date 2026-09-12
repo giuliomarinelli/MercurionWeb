@@ -4,7 +4,7 @@ import { LogEntry } from '../Models/DTO/log-entry.interface';
 import { uuidv7 } from '@kripod/uuidv7';
 import { MeiliContextLogger } from '../Models/interfaces/meili-context-logger.interface';
 import { ConfigService } from '@nestjs/config';
-import { Environment } from 'src/config/config';
+import { Environment } from 'src/config/config.schema';
 
 
 @Injectable()
