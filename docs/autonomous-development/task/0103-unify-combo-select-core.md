@@ -147,11 +147,15 @@ Using the dedicated Chrome DevTools MCP profile and only
   sessions were stopped.
 
 ### Commits
-Pending implementation commit.
+- `1032a71b2d596ba9d1194157696b628d852b9dd2`
+  (`refactor(NG-017): unify combo selection callers`) contains the
+  implementation, caller migrations, canonical-core regression coverage,
+  legacy wrapper removal and execution notes.
 
 ### Merge / CI
-No merge performed by the worker. Exact-SHA CI is required after pushing the
-feature commit.
+Feature branch `feature/NG-017` was pushed at
+`1032a71b2d596ba9d1194157696b628d852b9dd2`. No merge was performed by the
+worker. Exact-SHA CI is required before integration.
 
 ### Rollback
 _Not applicable._
