@@ -1,11 +1,10 @@
 import { Module } from '@nestjs/common';
 import { AdminController } from './controllers/admin.controller';
 import { MeilisearchModule } from '../meilisearch/meilisearch.module';
-import { ResponseService } from 'src/services/response.service';
+import { ResponseModule } from 'src/services/response.module';
 
 @Module({
-  imports: [MeilisearchModule],
+  imports: [MeilisearchModule, ResponseModule],
   controllers: [AdminController],
-  providers: [ResponseService]
 })
 export class AdminModule { }

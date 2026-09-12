@@ -9,11 +9,7 @@ import { UserModule } from './app_modules/user/user.module';
 import { AuthModule } from './app_modules/auth/auth.module';
 import { APP_GUARD } from '@nestjs/core';
 import { GlobalGuard } from './app_modules/auth/guards/global.guard';
-import { JwtToolsService } from './app_modules/auth/services/jwt-tools.service';
-import { SessionService } from './app_modules/auth/services/session.service';
-import { JwtService } from '@nestjs/jwt';
 import { SocketIoModule } from './app_modules/socket.io/socket.io.module';
-import { ResponseService } from './services/response.service';
 import { NotificationModule } from './app_modules/notification/notification.module';
 import { MeilisearchModule } from './app_modules/meilisearch/meilisearch.module';
 import { TestController } from './test.controller';
@@ -89,12 +85,8 @@ const appEnv = resolveAppEnv()
   providers: [
     {
       provide: APP_GUARD,
-      useClass: GlobalGuard
-    },
-    JwtToolsService,
-    SessionService,
-    JwtService,
-    ResponseService
+      useExisting: GlobalGuard
+    }
   ],
   controllers: [TestController, HealthController, AssetController]
 })
