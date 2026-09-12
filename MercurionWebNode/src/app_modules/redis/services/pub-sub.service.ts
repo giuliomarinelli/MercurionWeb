@@ -129,10 +129,7 @@ export class PubSubService implements OnModuleInit {
     }
 
     try {
-      const client = this.redisService.getClient()
-      const pipe = client.pipeline()
-      pipe.srem(`user_sessions:${userId}`, sessionId)
-      await pipe.exec()
+      await this.sessionService.destroySessionByOwner(sessionId, userId)
     } catch (e) {
       this.logger.warn(`Failed to cleanup indexes for session ${sessionId}: ${e?.message || e}`)
     }

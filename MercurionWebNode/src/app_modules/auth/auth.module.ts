@@ -46,6 +46,10 @@ import {
 } from './application/session-authentication.handlers';
 import { CompleteSsoAuthenticationHandler } from './application/sso-authentication.handler';
 import { LocalDummyLoginHandler } from './application/local-dummy-login.handler';
+import { SessionIdentityService } from './services/session-identity.service';
+import { SessionRedisCodec } from './repositories/session-redis.codec';
+import { RedisSessionRepository } from './repositories/redis-session.repository';
+import { SESSION_REPOSITORY } from './Models/interfaces/session-repository.interface';
 
 
 
@@ -62,6 +66,13 @@ import { LocalDummyLoginHandler } from './application/local-dummy-login.handler'
     JwtToolsService,
     PasswordEncoderService,
     JwtService,
+    SessionIdentityService,
+    SessionRedisCodec,
+    RedisSessionRepository,
+    {
+      provide: SESSION_REPOSITORY,
+      useExisting: RedisSessionRepository
+    },
     SessionService,
     SecureCookieService,
     SercurityService,
