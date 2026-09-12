@@ -1,6 +1,6 @@
 # 0132 - Fail closed on unknown APP_ENV values
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -85,23 +85,75 @@ Mark `BLOCKED` only if the canonical schema from `0130` left the behaviour for a
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/BE-018`, created from and still based on
+`03a991b5f2e8cee5a74950542a86decc52932824`.
 ### Preflight
-_Not started._
+Passed:
+
+- clean `feature/BE-018` at the supplied base SHA; the supplied base is an
+  ancestor of the feature branch;
+- no active Angular, Nest, Tox21 or test-watcher process;
+- prerequisites `0130` and `0131` are both `DONE`;
+- exact base-SHA GitHub Actions run
+  [34699413289](https://github.com/giuliomarinelli/MercurionWeb/actions/runs/34699413289)
+  completed successfully with `Quality (ubuntu-latest)`,
+  `Quality (windows-latest)` and `Required gate` green;
+- focused unchanged configuration/bootstrap Jest suites: `4` suites / `25`
+  tests;
+- unchanged Nest typecheck.
 ### Preflight remediation
 _None._
 ### Summary
-_Not started._
+Changed `parseAppEnv()` so only a genuinely missing value receives the
+schema-declared `development` default. Every provided unsupported value now
+raises `ConfigurationError` with the same structured, value-free diagnostics
+as canonical environment validation, allowing `runBootstrap()` to report it
+and set a failing process result.
+
+Environment-sensitive production consumers now use
+`ConfigService.getOrThrow()` for the validated `App.env` value. This removes
+the JWT-key development fallback and prevents missing configuration from
+silently selecting development credentials, namespace, logging, GraphQL,
+release or redaction behaviour.
+
+Added table-driven coverage for all supported environments, typo/case/
+whitespace/arbitrary/empty values, the explicit missing-value policy,
+env-file selection, typed bootstrap failure handling, and every current
+Docker/Kubernetes `APP_ENV` declaration. Negative Docker and Kubernetes
+fixtures prove unsupported deployment values fail validation.
 ### Task-specific validation performed
-_Not started._
+Passed:
+
+- focused final APP_ENV/configuration/bootstrap/provider Jest run: `7` suites /
+  `53` tests;
+- complete Nest Jest suite: `142` suites / `396` tests;
+- complete Nest E2E suite: `1` suite / `1` test;
+- `npm run typecheck --workspace mercurion_web_node`;
+- `npm run lint --workspace mercurion_web_node` (`0` errors; `48` existing
+  warnings);
+- `npm run build --workspace mercurion_web_node`;
+- `npm run ci:nest:architecture`;
+- compiled `MercurionWebNode/dist/src/main.js` with
+  `APP_ENV=prodution`: emitted `[CONFIGURATION_ERROR]` with
+  `code: INVALID_CONFIGURATION`, an `APP_ENV` enum diagnostic and exit code
+  `1`;
+- `git diff --check`.
+
+An initial complete unit run exposed four stale test doubles after production
+consumers moved to `getOrThrow()`. The GraphQL and RDKit fixtures were updated,
+their focused suites passed, and the complete unit suite then passed.
 ### Full pre-merge CI-parity validation
-_Not started._
+Local `npm ci` and `npm run ci:check` were intentionally not run per autonomous
+policy. Complete clean-install Windows/Linux validation and the stable
+`Required gate` remain coordinator-owned on the exact pushed feature SHA.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-_Not recorded._
+- `a5b84ec9` - `refactor(config): reject unknown app environments`
+- Task outcome and execution record: this commit.
 ### Merge / CI
-_Not started._
+Feature branch is ready for exact-SHA pre-merge GitHub Actions validation;
+merge remains coordinator-owned.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
