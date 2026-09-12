@@ -133,7 +133,8 @@ in the canonical static gate for feature-branch CI.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-_Pending commit._
+- `163d307e460d9dd5afc53179ca4102d1e4bdf842` — behavior coverage,
+  smoke-ratio inventory gate, task notes and `DONE` outcome.
 ### Merge / CI
 _Not started._
 ### Rollback
