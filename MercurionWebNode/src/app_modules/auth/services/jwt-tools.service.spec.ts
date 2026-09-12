@@ -2,6 +2,7 @@ import { JwtToolsService } from './jwt-tools.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { TokenType } from '../Models/enums/token-type.enum';
 
 jest.mock('src/config/config', () => ({
   Environment: {
@@ -29,6 +30,12 @@ const jwtKeysMock = {
 
 describe('JwtToolsService', () => {
   let service: JwtToolsService;
+  let jwtService: { signAsync: jest.Mock; verifyAsync: jest.Mock; decode: jest.Mock };
+  let sessionService: {
+    isTokenRevoked: jest.Mock;
+    registerIssuedToken: jest.Mock;
+    revokeToken: jest.Mock;
+  };
 
   beforeEach(() => {
     const configMock = {
@@ -45,12 +52,22 @@ describe('JwtToolsService', () => {
       }),
     };
 
+    jwtService = {
+      signAsync: jest.fn().mockResolvedValue('token'),
+      verifyAsync: jest.fn(),
+      decode: jest.fn()
+    };
+    sessionService = {
+      isTokenRevoked: jest.fn().mockResolvedValue(false),
+      registerIssuedToken: jest.fn(),
+      revokeToken: jest.fn()
+    };
+
     service = new JwtToolsService(
-      { signAsync: jest.fn(), verifyAsync: jest.fn(), decode: jest.fn() } as unknown as JwtService,
+      jwtService as unknown as JwtService,
       configMock as unknown as ConfigService,
       { getUserScopesById: jest.fn().mockResolvedValue([]) },
-      { set: jest.fn() } as any,
-      { isTokenRevoked: jest.fn().mockResolvedValue(false), revokeToken: jest.fn() } as any,
+      sessionService as any,
       {
         forContext: jest.fn().mockReturnValue({ log: jest.fn(), warn: jest.fn() }),
       } as unknown as MeiliLoggerService,
@@ -60,5 +77,19 @@ describe('JwtToolsService', () => {
 
   it('should be defined', () => {
     expect(service).toBeDefined();
+  });
+
+  it('registers issued access tokens through the session application API', async () => {
+    const userId = '11111111-1111-4111-8111-111111111111';
+    const sessionId = '22222222-2222-4222-8222-222222222222';
+
+    await expect(
+      service.generateToken(userId, TokenType.AccessToken, sessionId)
+    ).resolves.toBe('token');
+    expect(sessionService.registerIssuedToken).toHaveBeenCalledWith(
+      sessionId,
+      expect.any(String),
+      3600
+    );
   });
 });

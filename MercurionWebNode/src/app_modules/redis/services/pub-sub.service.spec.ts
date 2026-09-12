@@ -43,7 +43,14 @@ describe('PubSubService', () => {
         PubSubService,
         { provide: OAuth2AccessTokenRefreshService, useValue: { refreshAccessToken: jest.fn() } },
         { provide: RedisService, useValue: { getClient: () => redisClient as unknown as Redis } },
-        { provide: SessionService, useValue: { getJtiListBySessionId: jest.fn().mockResolvedValue([]), revokeToken: jest.fn() } },
+        {
+          provide: SessionService,
+          useValue: {
+            destroySessionByOwner: jest.fn(),
+            getJtiListBySessionId: jest.fn().mockResolvedValue([]),
+            revokeToken: jest.fn()
+          }
+        },
         { provide: MeiliLoggerService, useValue: { forContext: jest.fn().mockReturnValue(mockLogger) } },
       ],
     }).compile();

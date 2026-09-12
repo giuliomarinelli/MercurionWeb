@@ -14,8 +14,11 @@ import { AdminModule } from './app_modules/admin/admin.module';
 import { AuthModule } from './app_modules/auth/auth.module';
 import { GlobalGuard } from './app_modules/auth/guards/global.guard';
 import { JwtKeysProvider } from './app_modules/auth/providers/jwt-keys.provider';
+import { RedisSessionRepository } from './app_modules/auth/repositories/redis-session.repository';
+import { SessionIdentityService } from './app_modules/auth/services/session-identity.service';
 import { JwtToolsService } from './app_modules/auth/services/jwt-tools.service';
 import { SessionService } from './app_modules/auth/services/session.service';
+import { SESSION_REPOSITORY } from './app_modules/auth/Models/interfaces/session-repository.interface';
 import { MeiliLoggerService } from './app_modules/meilisearch/services/meili-logger.service';
 import { RedisModule } from './app_modules/redis/redis.module';
 import { PubSubService } from './app_modules/redis/services/pub-sub.service';
@@ -122,6 +125,8 @@ describe('core Nest provider ownership', () => {
       JwtToolsService,
       RedisService,
       ResponseService,
+      RedisSessionRepository,
+      SessionIdentityService,
       SessionService,
     ];
 
@@ -139,6 +144,8 @@ describe('core Nest provider ownership', () => {
     expect(owners.get(JwtToolsService)).toEqual([AuthModule]);
     expect(owners.get(RedisService)).toEqual([RedisModule]);
     expect(owners.get(ResponseService)).toEqual([ResponseModule]);
+    expect(owners.get(RedisSessionRepository)).toEqual([AuthModule]);
+    expect(owners.get(SessionIdentityService)).toEqual([AuthModule]);
     expect(owners.get(SessionService)).toEqual([AuthModule]);
   });
 
@@ -172,7 +179,10 @@ describe('core Nest provider ownership', () => {
       JwtToolsService,
       RedisService,
       ResponseService,
+      RedisSessionRepository,
+      SessionIdentityService,
       SessionService,
+      SESSION_REPOSITORY,
     ]);
     for (const provider of metadata<unknown>(AuthModule, MODULE_METADATA.PROVIDERS)) {
       const token =
@@ -205,6 +215,8 @@ describe('core Nest provider ownership', () => {
     expect(moduleRef.get(SessionService)).toBeInstanceOf(SessionService);
     expect(moduleRef.get(RedisService)).toBeInstanceOf(RedisService);
     expect(moduleRef.get(ResponseService)).toBeInstanceOf(ResponseService);
+    expect(moduleRef.get(RedisSessionRepository)).toBeInstanceOf(RedisSessionRepository);
+    expect(moduleRef.get(SessionIdentityService)).toBeInstanceOf(SessionIdentityService);
 
     const authModule = moduleRef.select(AuthModule);
     const jwtService = authModule.get(JwtService, { strict: true });
@@ -212,8 +224,12 @@ describe('core Nest provider ownership', () => {
     expect(
       (guardConsumer.jwtTools as unknown as { jwtService: JwtService }).jwtService,
     ).toBe(jwtService);
+    const sessionRepository = (
+      guardConsumer.session as unknown as { repository: RedisSessionRepository }
+    ).repository;
+    expect(sessionRepository).toBe(moduleRef.get(RedisSessionRepository));
     expect(
-      (guardConsumer.session as unknown as { redisService: RedisService }).redisService,
+      (sessionRepository as unknown as { redisService: RedisService }).redisService,
     ).toBe(guardConsumer.redis);
   });
 });
