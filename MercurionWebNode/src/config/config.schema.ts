@@ -28,7 +28,7 @@ export enum ConfigKey {
 export type RawEnvironment = Record<string, string | number | boolean | undefined>
 
 export interface EnvironmentValueParser<T> {
-    readonly kind: 'string' | 'boolean' | 'integer' | 'enum' | 'json-string-list' | 'uuid'
+    readonly kind: 'string' | 'boolean' | 'integer' | 'enum' | 'json-string-list' | 'uuid' | 'nats-host'
     readonly constraint: string
     readonly example: T
     parse(value: unknown, source: string): T
@@ -84,10 +84,15 @@ function booleanParser(): EnvironmentValueParser<boolean> {
     }
 }
 
-function integerParser(minimum = Number.MIN_SAFE_INTEGER): EnvironmentValueParser<number> {
-    const constraint = minimum === Number.MIN_SAFE_INTEGER
+function integerParser(
+    minimum = Number.MIN_SAFE_INTEGER,
+    maximum = Number.MAX_SAFE_INTEGER
+): EnvironmentValueParser<number> {
+    const constraint = minimum === Number.MIN_SAFE_INTEGER && maximum === Number.MAX_SAFE_INTEGER
         ? 'an integer'
-        : `an integer greater than or equal to ${minimum}`
+        : maximum === Number.MAX_SAFE_INTEGER
+            ? `an integer greater than or equal to ${minimum}`
+            : `an integer between ${minimum} and ${maximum}`
     return {
         kind: 'integer',
         constraint,
@@ -100,10 +105,51 @@ function integerParser(minimum = Number.MIN_SAFE_INTEGER): EnvironmentValueParse
                 return invalid(source, constraint)
             }
             const parsed = typeof value === 'number' ? value : Number(value)
-            if (!Number.isInteger(parsed) || parsed < minimum) {
+            if (!Number.isInteger(parsed) || parsed < minimum || parsed > maximum) {
                 return invalid(source, constraint)
             }
             return parsed
+        }
+    }
+}
+
+function natsHostParser(): EnvironmentValueParser<string> {
+    const constraint = [
+        'a NATS host URL using nats or tls',
+        'without credentials, port, path, query, or fragment'
+    ].join(' ')
+    return {
+        kind: 'nats-host',
+        constraint,
+        example: 'nats://localhost',
+        parse(value, source) {
+            if (
+                typeof value !== 'string' ||
+                value.length === 0 ||
+                value.trim() !== value
+            ) {
+                return invalid(source, constraint)
+            }
+
+            try {
+                const endpoint = new URL(value)
+                const validProtocols = new Set(['nats:', 'tls:'])
+                if (
+                    !validProtocols.has(endpoint.protocol) ||
+                    endpoint.hostname.length === 0 ||
+                    endpoint.username.length > 0 ||
+                    endpoint.password.length > 0 ||
+                    endpoint.port.length > 0 ||
+                    endpoint.pathname.length > 0 ||
+                    endpoint.search.length > 0 ||
+                    endpoint.hash.length > 0
+                ) {
+                    return invalid(source, constraint)
+                }
+                return value
+            } catch {
+                return invalid(source, constraint)
+            }
         }
     }
 }
@@ -206,8 +252,8 @@ export const environmentSchema = defineEnvironmentSchema(
     defaulted('NODE_ENV', enumParser(['development', 'production'] as const), 'development'),
 
     required('APP_PORT', positiveInteger()),
-    required('APP_NATS_PORT', positiveInteger()),
-    required('APP_NATS_HOST', string()),
+    required('APP_NATS_PORT', integerParser(1, 65535)),
+    required('APP_NATS_HOST', natsHostParser()),
     required('APP_PROJECT_NAME', string()),
     required('APP_GLOBAL_NAME', string()),
     required('APP_PROJECT_ID', uuidParser()),

@@ -7,6 +7,7 @@ import {
     ConfigKey,
     type ValidatedEnvironment
 } from './config.schema'
+import { createNatsServerUrl } from './nats-endpoint'
 
 type ConfigurationBuilder = (environment: ValidatedEnvironment) => object
 
@@ -18,8 +19,10 @@ export const configurationBuilders = {
         disableTurnstile: environment.DISABLE_TURNSTILE,
         localTestAccountEmail: environment.LOCAL_TEST_ACCOUNT_EMAIL,
         port: environment.APP_PORT,
-        natsPort: environment.APP_NATS_PORT,
-        natsHost: environment.APP_NATS_HOST,
+        natsUrl: createNatsServerUrl(
+            environment.APP_NATS_HOST,
+            environment.APP_NATS_PORT
+        ),
         projectName: environment.APP_PROJECT_NAME,
         projectId: environment.APP_PROJECT_ID,
         corsOrigins: environment.APP_CORS_ORIGINS,

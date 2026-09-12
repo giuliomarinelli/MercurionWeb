@@ -3,7 +3,6 @@ import { createApplicationModule } from './app.module'
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify'
 import { LogLevel } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { MicroserviceOptions, Transport } from '@nestjs/microservices'
 import { HttpExceptionFilter } from './exception-handling/http-exception-filter'
 import { IoAdapter } from '@nestjs/platform-socket.io'
 import { copyBootstrapFiles } from './copy-bootstrap-files'
@@ -21,6 +20,13 @@ import { resolveAppEnv } from './utils/env-helpers'
 import { createGlobalValidationPipe } from './config/validation-pipe'
 import { registerRestContractVersioningHook } from './contracts/contract-versioning-http'
 import { ConfigurationError } from './config/env-validation'
+import {
+  formatNatsServerUrlForLog
+} from './config/nats-endpoint'
+import {
+  createNatsTransportOptions,
+  getNatsServerUrl
+} from './nats-transport'
 
 
 
@@ -63,15 +69,10 @@ export async function bootstrap() {
 
   const env = configService.getOrThrow<Environment>('App.env')
 
-  const natsPort = configService.get<number>('App.natsPort') ?? 4223
-  const natsHost = configService.get<string>('App.natsHost')
-  const natsUrl: string = `${natsHost}:${natsPort}`
+  const natsUrl = getNatsServerUrl(configService)
 
   app.useWebSocketAdapter(new IoAdapter(app))
-  app.connectMicroservice<MicroserviceOptions>({
-    transport: Transport.NATS,
-    options: { servers: [natsUrl] },
-  })
+  app.connectMicroservice(createNatsTransportOptions(configService))
 
   app.useGlobalFilters(new HttpExceptionFilter(
     loggerFactory,
@@ -248,14 +249,9 @@ export async function bootstrap() {
 
   logger.log(`Fastify listening on ${coloredUrl}`)
 
-  const lastColonIndexNats = natsUrl.lastIndexOf(':')
-  const coloredNatsUrl =
-    '\x1b[36m' + natsUrl.slice(0, lastColonIndexNats) +
-    '\x1b[34m:\x1b[31m' +
-    natsUrl.slice(lastColonIndexNats + 1) +
-    '\x1b[0m'
-
-  logger.log(`NATS client connected to NATS server on ${coloredNatsUrl}`)
+  logger.log(
+    `NATS client connected to NATS server on ${formatNatsServerUrlForLog(natsUrl)}`
+  )
 
 }
 
