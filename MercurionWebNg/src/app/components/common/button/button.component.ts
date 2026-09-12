@@ -46,12 +46,12 @@ export type ButtonIconPosition = 'leading' | 'trailing';
     .m-button__control {
       align-items: center;
       border: 1px solid transparent;
-      border-radius: var(--radius-control);
+      border-radius: 0.5rem;
       cursor: pointer;
       display: inline-flex;
       font: inherit;
       font-weight: 600;
-      gap: var(--space-2);
+      gap: 0.5rem;
       justify-content: center;
       min-height: 2.5rem;
       position: relative;
@@ -60,8 +60,8 @@ export type ButtonIconPosition = 'leading' | 'trailing';
     }
 
     .m-button__control:focus-visible {
-      outline: 3px solid color-mix(in srgb, var(--color-focus) 45%, transparent);
-      outline-offset: var(--space-2);
+      outline: 3px solid rgb(99 102 241 / 0.45);
+      outline-offset: 2px;
     }
 
     .m-button__control:active:not(:disabled) {
@@ -75,94 +75,94 @@ export type ButtonIconPosition = 'leading' | 'trailing';
 
     .m-button__control--sm {
       min-height: 2rem;
-      padding: 0.375rem var(--space-3);
+      padding: 0.375rem 0.75rem;
       font-size: 0.75rem;
     }
 
     .m-button__control--md {
-      padding: 0.625rem var(--space-4);
-      font-size: var(--font-body);
+      padding: 0.625rem 1rem;
+      font-size: 0.875rem;
     }
 
     .m-button__control--lg {
       min-height: 3rem;
-      padding: var(--space-3) var(--space-6);
+      padding: 0.75rem 1.5rem;
       font-size: 1rem;
     }
 
     .m-button__control--primary {
-      background: var(--color-control-primary);
-      color: var(--color-on-surface-main);
+      background: #4f46e5;
+      color: white;
     }
 
     .m-button__control--primary:hover:not(:disabled) {
-      background: var(--color-control-primary-hover);
+      background: #4338ca;
     }
 
     .m-button__control--secondary {
-      background: var(--color-control-secondary);
-      color: var(--color-on-surface-main);
+      background: #0f766e;
+      color: white;
     }
 
     .m-button__control--secondary:hover:not(:disabled) {
-      background: var(--color-control-secondary-hover);
+      background: #115e59;
     }
 
     .m-button__control--destructive {
-      background: var(--color-control-destructive);
-      color: var(--color-on-surface-main);
+      background: #dc2626;
+      color: white;
     }
 
     .m-button__control--destructive:hover:not(:disabled) {
-      background: var(--color-control-destructive-hover);
+      background: #b91c1c;
     }
 
     .m-button__control--neutral {
-      background: var(--color-surface-secondary);
-      color: var(--color-on-surface-main);
+      background: #e2e8f0;
+      color: #1e293b;
     }
 
     .m-button__control--neutral:hover:not(:disabled) {
-      background: var(--color-border);
+      background: #cbd5e1;
     }
 
     .m-button__control--ghost {
       background: transparent;
-      color: var(--color-on-surface-secondary);
+      color: #334155;
     }
 
     .m-button__control--ghost:hover:not(:disabled) {
-      background: color-mix(in srgb, var(--color-on-surface-muted) 18%, transparent);
+      background: rgb(148 163 184 / 0.18);
     }
 
     .m-button__control--outline {
       background: transparent;
-      border-color: var(--color-focus);
-      color: var(--color-accent-primary-hover);
+      border-color: #6366f1;
+      color: #4338ca;
     }
 
     .m-button__control--outline:hover:not(:disabled) {
-      background: color-mix(in srgb, var(--color-focus) 12%, var(--color-surface-main));
+      background: #eef2ff;
     }
 
     :host-context(.dark) .m-button__control--neutral {
-      background: var(--color-surface-secondary);
-      color: var(--color-on-surface-main);
+      background: #334155;
+      color: #f8fafc;
     }
 
     :host-context(.dark) .m-button__control--ghost {
-      color: var(--color-on-surface-secondary);
+      color: #e2e8f0;
     }
 
     :host-context(.dark) .m-button__control--outline {
-      color: var(--color-focus);
+      color: #c7d2fe;
     }
 
     .m-button__spinner {
       animation: m-button-spin 700ms linear infinite;
       border: 2px solid currentColor;
       border-right-color: transparent;
-      border-radius: var(--radius-pill);
+      border-radius: 9999px;
       height: 1em;
       left: 50%;
       position: absolute;

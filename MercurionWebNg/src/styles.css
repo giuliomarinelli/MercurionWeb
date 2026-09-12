@@ -66,69 +66,6 @@ html {
 :root {
   /* Updated at runtime (see src/main.ts) to handle iOS Safari viewport quirks */
   --app-vh: 1vh;
-
-  /* Semantic design tokens: light role values. */
-  --color-surface-main: #f9fafb;
-  --color-surface-secondary: #f3f4f6;
-  --color-surface-elevated: #ffffff;
-  --color-on-surface-main: #11141d;
-  --color-on-surface-secondary: #4b5563;
-  --color-on-surface-muted: #64748b;
-  --color-accent-primary: #2563eb;
-  --color-accent-primary-hover: #1d4ed8;
-  --color-accent-secondary: #006128;
-  --color-accent-secondary-hover: #005020;
-  --color-control-primary: #4f46e5;
-  --color-control-primary-hover: #4338ca;
-  --color-control-secondary: #0f766e;
-  --color-control-secondary-hover: #115e59;
-  --color-control-destructive: #dc2626;
-  --color-control-destructive-hover: #b91c1c;
-  --color-status-success: #15803d;
-  --color-status-warning: #a16207;
-  --color-status-error: #b91c1c;
-  --color-border: #e5e7eb;
-  --color-focus: #6366f1;
-  --shadow-control: 0 3px 12px rgb(0 0 0 / 0.35), inset 0 1px 0 rgb(255 255 255 / 0.18);
-  --shadow-surface: 0 18px 45px rgb(15 23 42 / 0.18), 0 4px 12px rgb(15 23 42 / 0.12);
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 0.75rem;
-  --space-4: 1rem;
-  --space-6: 1.5rem;
-  --radius-control: 0.5rem;
-  --radius-surface: 1rem;
-  --radius-pill: 9999px;
-  --font-body: 0.875rem;
-  --font-body-sm: 0.8125rem;
-  --font-heading: 1.125rem;
-}
-
-.dark {
-  /* The same semantic roles are remapped for the dark theme. */
-  --color-surface-main: #1f2937;
-  --color-surface-secondary: #374151;
-  --color-surface-elevated: #0f172a;
-  --color-on-surface-main: #f3f4f6;
-  --color-on-surface-secondary: #d1d5db;
-  --color-on-surface-muted: #94a3b8;
-  --color-accent-primary: #60a5fa;
-  --color-accent-primary-hover: #3b82f6;
-  --color-accent-secondary: #28b883;
-  --color-accent-secondary-hover: #3fd59e;
-  --color-control-primary: #0b6de5;
-  --color-control-primary-hover: #095fc9;
-  --color-control-secondary: #28b883;
-  --color-control-secondary-hover: #3fd59e;
-  --color-control-destructive: #ff7a7d;
-  --color-control-destructive-hover: #ff8f91;
-  --color-status-success: #4ade80;
-  --color-status-warning: #facc15;
-  --color-status-error: #ff7a7d;
-  --color-border: #4b5563;
-  --color-focus: #bfdbfe;
-  --shadow-control: 0 3px 12px rgb(0 0 0 / 0.45), inset 0 1px 0 rgb(255 255 255 / 0.18);
-  --shadow-surface: 0 18px 45px rgb(2 6 23 / 0.42), 0 4px 12px rgb(2 6 23 / 0.24);
 }
 
 .fade-out {
@@ -150,7 +87,7 @@ html {
 
 .custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: var(--color-on-surface-muted) var(--color-surface-secondary);
+  scrollbar-color: #45556c #f3f4f6;
   scrollbar-width: 3px;
   /* thumb, track - LIGHT */
 }
@@ -160,29 +97,29 @@ html {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--color-status-warning);
+  background: #f59e42;
   /* thumb - LIGHT */
   border-radius: 3px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: var(--color-surface-secondary);
+  background: #f3f4f6;
   /* track - LIGHT */
 }
 
 /* VERSIONE DARK: attiva se <html class="dark"> */
 .dark .custom-scrollbar {
-  scrollbar-color: var(--color-on-surface-secondary) var(--color-surface-elevated);
+  scrollbar-color: #cad5e2 #262626;
   /* thumb, track - DARK */
 }
 
 .dark .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--color-status-warning);
+  background: #fbbf24;
   /* thumb - DARK */
 }
 
 .dark .custom-scrollbar::-webkit-scrollbar-track {
-  background: var(--color-surface-elevated);
+  background: #262626;
   /* track - DARK */
 }
 
@@ -190,12 +127,12 @@ html {
 html.m-scroll-thin,
 .m-scroll-thin {
   scrollbar-width: thin;
-  scrollbar-color: var(--color-on-surface-muted) transparent;
+  scrollbar-color: #64748b transparent;
 }
 
 html.dark.m-scroll-thin,
 .dark .m-scroll-thin {
-  scrollbar-color: var(--color-on-surface-secondary) transparent;
+  scrollbar-color: #94a3b8 transparent;
 }
 
 html.m-scroll-thin::-webkit-scrollbar,
@@ -210,23 +147,23 @@ html.m-scroll-thin::-webkit-scrollbar-track,
 
 html.m-scroll-thin::-webkit-scrollbar-thumb,
 .m-scroll-thin::-webkit-scrollbar-thumb {
-  background-color: var(--color-border);
-  border-radius: theme('borderRadius.token-pill');
+  background-color: #cbd5e1;
+  border-radius: 9999px;
 }
 
 html.dark.m-scroll-thin::-webkit-scrollbar-thumb,
 .dark .m-scroll-thin::-webkit-scrollbar-thumb {
-  background-color: var(--color-border);
+  background-color: #475569;
 }
 
 html.m-scroll-thin::-webkit-scrollbar-thumb:hover,
 .m-scroll-thin::-webkit-scrollbar-thumb:hover {
-  background-color: var(--color-on-surface-secondary);
+  background-color: #94a3b8;
 }
 
 html.dark.m-scroll-thin::-webkit-scrollbar-thumb:hover,
 .dark .m-scroll-thin::-webkit-scrollbar-thumb:hover {
-  background-color: var(--color-on-surface-main);
+  background-color: #e2e8f0;
 }
 
 
