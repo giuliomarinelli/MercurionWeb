@@ -53,6 +53,26 @@ export interface ActionSessionInputMap {
 export type ActionSessionInput<S extends ActiveActionScope> = ActionSessionInputMap[S]
 
 /**
+ * Results are deliberately owned by the action contract rather than inferred
+ * from a component class. Actions currently complete through their context
+ * services and therefore have no value result, but keeping this map explicit
+ * makes the contract exhaustive when an action later returns a value.
+ */
+export interface ActionSessionResultMap {
+  MoleculeCollectionItemSave: void
+  AddMoleculesToCollection: void
+  CreateCollection: void
+  BindCollectionsToMolecule: void
+  SensitiveDataChange: void
+  EssentialProfileRegistryEdit: void
+  TicketDetail: void
+  NewTicket: void
+  SelectCollectionThenRoute: void
+}
+
+export type ActionSessionResult<S extends ActiveActionScope> = ActionSessionResultMap[S]
+
+/**
  * A single opening of the action overlay. `id` doubles as the state machine generation
  * token: it stays constant for the full opening/active/submitting/settled lifecycle of
  * one session and changes on every new OPEN/CLOSE, so it can be used to reject late

@@ -1,7 +1,7 @@
 # 0106 - Lazy-load actions from one typed overlay registry
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -84,28 +84,65 @@ Mark `BLOCKED` if an action still depends on undocumented global mutable payload
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/NG-020` at the preserved task commit described below.
 ### Preflight
-_Not started._
+Verified clean `feature/NG-020` at supplied base
+`93006ce204791b3d106e1616989c755db13571b8`, with matching `develop` and
+`origin/develop`. GitHub Actions run `34680847006` for that exact SHA was
+green. No task-owned workspace process was active before the probe.
+The unchanged Angular typecheck passed. The first focused test invocation was
+corrected from the workspace watcher script to the non-watching `test:ci`
+script; the resulting Angular test run passed.
+
+The mandatory runtime capability probe started Tox21, Nest and Angular in the
+required order. Nest compiled with zero errors, Angular served on port 3498,
+and two complete nginx rounds returned HTTP 200 for `/health` and `/`.
+Protected dashboard state was observable in the persistent profile before
+implementation. All three task-owned processes were stopped after the probe.
 ### Preflight remediation
-_None._
+The production build command with an extra positional configuration argument
+was rejected by Angular CLI; the canonical workspace build command was then
+used successfully.
 ### Summary
-Not attempted because hard prerequisite task `0087` (`NG-001`) is `BLOCKED`.
-FE-023 and FE-036 are `DONE`; the action-decomposition references are
-advisory.
+Implemented a single exhaustive typed action registry with lazy loaders,
+labels, input/result metadata, dynamic standalone-component rendering and a
+controlled lazy-load failure state. Removed all eager action implementation
+imports and both central scope switches from `ActionOverlayComponent`.
+Added registry completeness coverage and explicit result contracts to the
+action models.
 ### Task-specific validation performed
-Not applicable; no feature branch or implementation worker was created.
+- `npm run typecheck --workspace mercurion_web_ng` — passed.
+- `npm run lint --workspace mercurion_web_ng -- --no-warn-ignored` — passed
+  with pre-existing repository warnings only.
+- `npm run test:ci --workspace mercurion_web_ng -- --include=...action-overlay.component.spec.ts`
+  — passed; npm reported that the include option was not a valid npm config,
+  so the non-watching Angular test suite executed.
+- `npm run build --workspace mercurion_web_ng` — passed. The production output
+  contained nine action implementation lazy chunks and none of the nine
+  action selectors in the eager `main-YFD2S36A.js` chunk.
+- `git diff --check` — passed.
 ### Full pre-merge CI-parity validation
-Not applicable; dependency-skip metadata only.
+Not run locally because `npm ci` and `npm run ci:check` are prohibited. Exact
+feature-SHA CI remains coordinator-owned.
 ### Browser validation performed
-Not applicable; the task was not attempted.
+Post-implementation canonical runtime startup and two complete readiness rounds
+passed. Browser interaction could not be completed: after the persistent
+profile session expired, Chrome DevTools MCP repeatedly returned
+`Failed to interact with the element ... The element did not become
+interactive within the configured timeout` for freshly snapshotted dashboard
+controls, and the login page required the protected-account credential flow.
+No credential was echoed or copied. This leaves the mandatory action-by-action
+browser evidence unavailable; no browser acceptance claim is made.
 ### Commits
-Pending metadata commit on `develop`.
+Pending task commit on `feature/NG-020`.
 ### Merge / CI
-No feature branch or merge. Exact-SHA CI is required for the metadata commit.
+No merge. Feature publication and exact-SHA CI observation remain coordinator
+actions after the task commit.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Direct terminal prerequisite: task `0087` (`NG-001`), `BLOCKED`.
-Transitive chain: `0106` -> `0087` (`NG-001` BLOCKED). The blocked task
-requires independent workflow implementations and focused lifecycle tests.
+Mandatory browser acceptance evidence is unavailable because the dedicated
+Chrome DevTools page could be snapshotted and navigated but not interacted
+with after repeated fresh-page/selection retries. A human-supervised browser
+retry or restored MCP interaction capability is required before this task can
+be accepted.
