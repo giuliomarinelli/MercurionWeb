@@ -13,7 +13,7 @@ import { PmSelectComponent } from '../../common/pm-select/pm-select.component';
 import { PmOption } from '../../../Models/pm-option.model';
 import { ProfileRegistryEditContextService } from '../../../services/context/action-context/profile-registry-edit-context.service';
 import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
-import { IconButtonComponent } from '../../common/icon-button/icon-button.component';
+import { ActionCardComponent } from '../../common/action-card/action-card.component';
 import { ActionFooterComponent } from '../../common/action-footer/action-footer.component';
 import { ButtonComponent } from '../../common/button/button.component';
 
@@ -32,35 +32,28 @@ type RegistryFormValue = {
     ReactiveFormsModule,
     TextFieldComponent,
     PmSelectComponent,
-    IconButtonComponent,
+    ActionCardComponent,
     ActionFooterComponent,
     ButtonComponent
   ],
   template: `
 
 <div class="flex justify-center items-start md:items-center min-h-screen px-2 sm:px-4 pt-1 md:pt-6 m-overlay-screen">
-  <div
-    class="action-card h-full md:h-auto"
-    role="region"
-    aria-labelledby="profileRegistryHeading"
-    [attr.aria-busy]="step_12_loading() || onStart_loading()"
+  <m-action-card
+    size="standard"
+    labelledBy="profileRegistryHeading"
+    closeLabel="Chiudi pannello anagrafica profilo"
+    [busy]="step_12_loading() || onStart_loading()"
+    (closed)="close()"
   >
-    <div class="action-card-header">
-      <h2
+      <h2 action-card-title
         id="profileRegistryHeading"
         class="text-lg font-semibold text-light-on-surface-main dark:text-dark-on-surface-main"
       >
         Modifica l'anagrafica del profilo
       </h2>
-      <m-icon-button
-        size="sm"
-        icon="close"
-        ariaLabel="Chiudi pannello anagrafica profilo"
-        (pressed)="close()"
-      />
-    </div>
 
-    <div class="action-card-body bg-light-surface-secondary dark:bg-dark-surface-secondary">
+    <div action-card-body class="bg-light-surface-secondary dark:bg-dark-surface-secondary">
       <div
         class="relative border-b border-light-border dark:border-dark-border min-h-60 transition-[min-height] bg-light-surface-secondary dark:bg-dark-surface-secondary"
         [formGroup]="registryGroup"
@@ -144,7 +137,7 @@ type RegistryFormValue = {
       </div>
     </div>
 
-    <m-action-footer>
+    <m-action-footer action-card-footer>
       @if (step() === 1) {
         <m-button
           action-footer-secondary
@@ -188,7 +181,7 @@ type RegistryFormValue = {
         }
       </m-button>
     </m-action-footer>
-  </div>
+  </m-action-card>
 </div>
 
 `

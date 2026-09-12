@@ -22,7 +22,7 @@ import { PmSearchInputComponent } from '../../common/pm-search-input/pm-search-i
 import { CollectionSelectCardComponent } from '../../molecule-detail/collection-select-card/collection-select-card.component';
 import { SkeletonCollectionCardComponent } from '../../common/skeleton-card-loader/skeleton-card-loader.component';
 import { Router } from '@angular/router';
-import { IconButtonComponent } from '../../common/icon-button/icon-button.component';
+import { ActionCardComponent } from '../../common/action-card/action-card.component';
 import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
 import { ActionFooterComponent } from '../../common/action-footer/action-footer.component';
 import { ButtonComponent } from '../../common/button/button.component';
@@ -35,7 +35,7 @@ import { ButtonComponent } from '../../common/button/button.component';
     PmSearchInputComponent,
     CollectionSelectCardComponent,
     SkeletonCollectionCardComponent,
-    IconButtonComponent,
+    ActionCardComponent,
     ActionFooterComponent,
     ButtonComponent
   ],
@@ -79,31 +79,23 @@ import { ButtonComponent } from '../../common/button/button.component';
   ],
   template: `
 <div class="flex justify-center items-start md:items-center min-h-screen px-2 sm:px-4 pt-1 md:pt-6 m-overlay-screen">
-  <div
-    class="action-card max-w-5xl h-full md:h-auto"
-    role="region"
-    aria-labelledby="bindCollectionsHeading"
-    [attr.aria-busy]="step_12_loading()"
+  <m-action-card
+    size="wide"
+    labelledBy="bindCollectionsHeading"
+    closeLabel="Chiudi pannello collega collezioni"
+    [busy]="step_12_loading()"
+    (closed)="close()"
   >
     <!-- HEADER -->
-    <div class="action-card-header">
-      <h2
+      <h2 action-card-title
         id="bindCollectionsHeading"
         class="text-lg font-semibold text-light-on-surface-main dark:text-dark-on-surface-main"
       >
         Collega molecola a nuove collezioni
       </h2>
 
-      <m-icon-button
-        size="sm"
-        icon="close"
-        ariaLabel="Chiudi pannello collega collezioni"
-        (pressed)="close()"
-      />
-    </div>
-
       <!-- BODY -->
-      <div class="action-card-body bg-white dark:bg-dark-surface-main">
+      <div action-card-body class="bg-white dark:bg-dark-surface-main">
       <div
         #scrollRoot
         class="py-6 px-2 sm:px-3 overflow-y-auto flex flex-col gap-4 m-scroll-thin m-overscroll-touch m-overlay-body"
@@ -193,7 +185,7 @@ import { ButtonComponent } from '../../common/button/button.component';
     </div>
 
     <!-- FOOTER -->
-    <m-action-footer>
+    <m-action-footer action-card-footer>
       @if (step() === 1) {
         <m-button
         action-footer-secondary
@@ -219,7 +211,7 @@ import { ButtonComponent } from '../../common/button/button.component';
         }
       </m-button>
     </m-action-footer>
-  </div>
+  </m-action-card>
 </div>
   `
 })

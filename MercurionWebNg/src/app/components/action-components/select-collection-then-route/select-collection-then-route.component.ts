@@ -4,7 +4,7 @@ import { ComboSelectComponent } from '../../common/combo-select/combo-select.com
 import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
 import { MoleculeCollectionService } from '../../../services/graphql/molecule-collection.service';
 import { Subscription } from 'rxjs';
-import { IconButtonComponent } from '../../common/icon-button/icon-button.component';
+import { ActionCardComponent } from '../../common/action-card/action-card.component';
 import { ActionFooterComponent } from '../../common/action-footer/action-footer.component';
 import { ButtonComponent } from '../../common/button/button.component';
 
@@ -13,22 +13,22 @@ import { ButtonComponent } from '../../common/button/button.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ComboSelectComponent,
-    IconButtonComponent,
+    ActionCardComponent,
     ActionFooterComponent,
     ButtonComponent
   ],
   template: `
 
 <div class="flex justify-center items-start md:items-center min-h-screen px-2 sm:px-4 pt-1 md:pt-6 m-overlay-screen">
-  <div
-    class="action-card h-full md:h-auto"
-    role="region"
-    aria-labelledby="selectCollectionHeading"
-    [attr.aria-busy]="loadingCombo() || loading()"
-  >
+  <m-action-card
+      size="standard"
+      labelledBy="selectCollectionHeading"
+      closeLabel="Chiudi selezione collezione"
+      [busy]="loadingCombo() || loading()"
+      (closed)="close()"
+    >
     <!-- HEADER -->
-    <div class="action-card-header">
-      <div class="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-2 sm:gap-3">
+    <div action-card-title class="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-2 sm:gap-3">
         @if (importFromChembl()) {
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -62,18 +62,9 @@ import { ButtonComponent } from '../../common/button/button.component';
             Aggiungi nuove molecole: seleziona la collezione
           </h2>
         }
-      </div>
-
-      <m-icon-button
-        size="sm"
-        icon="close"
-        ariaLabel="Chiudi selezione collezione"
-        (pressed)="close()"
-      />
     </div>
-
     <!-- BODY -->
-    <div class="action-card-body bg-light-surface-secondary dark:bg-dark-surface-secondary">
+    <div action-card-body class="bg-light-surface-secondary dark:bg-dark-surface-secondary">
       <div class="flex flex-col gap-6 min-h-[50vh]">
         <p
           class="my-4 px-2 sm:px-4 flex flex-col sm:flex-row sm:flex-wrap justify-center items-center gap-3 sm:gap-4 text-sm
@@ -112,7 +103,7 @@ import { ButtonComponent } from '../../common/button/button.component';
     </div>
 
     <!-- FOOTER -->
-    <m-action-footer>
+    <m-action-footer action-card-footer>
       <m-button
         action-footer-secondary
         variant="neutral"
@@ -132,7 +123,7 @@ import { ButtonComponent } from '../../common/button/button.component';
         Continua
       </m-button>
     </m-action-footer>
-  </div>
+  </m-action-card>
 </div>
 
   `

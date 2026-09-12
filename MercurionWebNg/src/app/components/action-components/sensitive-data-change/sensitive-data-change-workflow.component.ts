@@ -28,6 +28,7 @@ import { Router, RouterLink } from '@angular/router';
 import { PmSelectComponent } from '../../common/pm-select/pm-select.component';
 import { PmOption } from '../../../Models/pm-option.model';
 import { CopyUiService } from '../../../services/copy-ui.service';
+import { ActionCardComponent } from '../../common/action-card/action-card.component';
 import { IconButtonComponent } from '../../common/icon-button/icon-button.component';
 import { ActionFooterComponent } from '../../common/action-footer/action-footer.component';
 import { ButtonComponent } from '../../common/button/button.component';
@@ -45,6 +46,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     TextFieldComponent,
     RouterLink,
     PmSelectComponent,
+    ActionCardComponent,
     IconButtonComponent,
     ActionFooterComponent,
     ButtonComponent
@@ -75,16 +77,16 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 
 <div class="flex justify-center items-start md:items-center min-h-screen px-2 sm:px-4 pt-1 md:pt-6 m-overlay-screen">
-  <div
-    class="action-card h-full md:h-auto"
-    role="region"
-    aria-labelledby="sensitiveDataHeading"
-    [attr.aria-busy]="loading()"
+  <m-action-card
+    size="standard"
+    labelledBy="sensitiveDataHeading"
+    closeLabel="Chiudi pannello modifica dati sensibili"
+    [busy]="loading()"
+    (closed)="close()"
   >
 
     <!-- Header sticky fuori dallo scroll -->
-    <div class="action-card-header">
-      <h2
+      <h2 action-card-title
         id="sensitiveDataHeading"
         class="text-lg font-semibold text-light-on-surface-main dark:text-dark-on-surface-main"
       >
@@ -112,16 +114,8 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
             }
         }
       </h2>
-      <m-icon-button
-        size="sm"
-        icon="close"
-        ariaLabel="Chiudi pannello modifica dati sensibili"
-        (pressed)="close()"
-      >
-      </m-icon-button>
-    </div>
     <!-- Body -->
-    <div class="action-card-body">
+    <div action-card-body>
     @if (!loading()) {
         @if ((innerScope() === 'EnableMfa' || innerScope() === 'ConfigMfa')) {
           @if ((enableMfaStep() === 'CHOOSE_STRATEGY' || disableMfaStep() === 'CHOOSE_STRATEGY')) {
@@ -841,7 +835,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
       </div>
     }
     </div>
-    <m-action-footer>
+    <m-action-footer action-card-footer>
         <m-button
           action-footer-secondary
           variant="neutral"
@@ -910,7 +904,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
           }
       </m-button>
     </m-action-footer>
-  </div>
+  </m-action-card>
 </div>
 `
 
