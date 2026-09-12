@@ -1,6 +1,6 @@
 import { CustomMoleculeCollectionItemSaveContextService } from './../../../services/context/action-context/custom-molecule-collection-item-save-context.service';
 import { NgClass } from '@angular/common';
-import { Component, ElementRef, HostListener, inject, signal, ChangeDetectionStrategy, OnInit, viewChild } from '@angular/core';
+import { Component, ElementRef, HostListener, inject, signal, ChangeDetectionStrategy, OnDestroy, OnInit, viewChild } from '@angular/core';
 import { ComboSelectComponent } from '../../common/combo-select/combo-select.component';
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
 import { MoleculeCollectionService } from '../../../services/graphql/molecule-collection.service';
@@ -14,6 +14,7 @@ import { MoleculeProperties } from '../../../Models/graphql/molecule-properties.
 import { SaveOverlayFormItem } from '../../../Models/action/action-overlay.models';
 import { ActionCardComponent } from '../../common/action-card/action-card.component';
 import { TextareaComponent } from '../../common/textarea/textarea.component';
+import { CollectionPickerFacade } from '../collection-picker/collection-picker.facade';
 
 @Component({
   selector: 'm-custom-molecule-collection-item-save',
@@ -212,7 +213,7 @@ import { TextareaComponent } from '../../common/textarea/textarea.component';
     </div>
   `
 })
-export class CustomMoleculeCollectionItemSaveComponent implements OnInit {
+export class CustomMoleculeCollectionItemSaveComponent implements OnInit, OnDestroy {
   private readonly nameRef = viewChild.required<ElementRef<HTMLInputElement>>('name');
 
   private readonly labelRef = viewChild.required<ElementRef<HTMLInputElement>>('label');
@@ -221,6 +222,9 @@ export class CustomMoleculeCollectionItemSaveComponent implements OnInit {
   private readonly sessionId = this.overlayCtx.session('MoleculeCollectionItemSave')?.id ?? -1;
   protected readonly saveCtx = inject(CustomMoleculeCollectionItemSaveContextService);
   private readonly collectionService = inject(MoleculeCollectionService);
+  private readonly picker = new CollectionPickerFacade({
+    mode: { kind: 'single', operation: 'save', allowCreate: true }
+  });
   private readonly moleculeJoinService = inject(MoleculeJoinService);
   private readonly toast = inject(ToastService);
   private readonly chemistryRenderer = inject(ChemistryRendererService);
@@ -228,9 +232,9 @@ export class CustomMoleculeCollectionItemSaveComponent implements OnInit {
 
   nameFocus = signal<boolean>(false);
   labelFocus = signal<boolean>(false);
-  collections = signal<MoleculeCollection[]>([]);
-  hasMore = signal(true);
-  loading = signal(false);
+  collections = this.picker.collections;
+  hasMore = this.picker.hasMore;
+  loading = this.picker.loading;
 
   // ngModel fields
   nameModel: string = '';
@@ -241,8 +245,12 @@ export class CustomMoleculeCollectionItemSaveComponent implements OnInit {
   properties = signal<MoleculeProperties | null>(null);
 
   ngOnInit() {
-    this.loadCollections(true);
+    this.picker.load(true);
     this.loadProperties();
+  }
+
+  ngOnDestroy() {
+    this.picker.destroy();
   }
 
   async loadProperties() {
@@ -270,41 +278,27 @@ export class CustomMoleculeCollectionItemSaveComponent implements OnInit {
   }
 
   loadCollections(reset = false) {
-    if (this.loading()) return;
-    this.loading.set(true);
-    const page = reset ? 1 : this.saveCtx.page();
-    this.collectionService
-      .getPaginatedCollections(page, 12, this.saveCtx.searchTerm())
-      .subscribe(res => {
-        if (reset) this.collections.set(res.items);
-        else this.collections.set([...this.collections(), ...res.items]);
-        this.hasMore.set(res.currentPage < res.totalPages);
-        this.saveCtx.page.set(res.currentPage + 1);
-        this.loading.set(false);
-      });
+    this.picker.load(reset);
   }
 
   onSearchChange(term: string) {
     this.saveCtx.searchTerm.set(term);
-    this.saveCtx.page.set(1);
-    this.loadCollections(true);
+    this.picker.search(term);
   }
 
   onScrollEnd() {
     if (this.hasMore() && !this.loading()) {
-      this.loadCollections();
+      this.picker.load();
     }
   }
 
   onSelect(item: Pick<MoleculeCollection, 'id'>) {
+    this.picker.setSingleSelection(item.id);
     this.saveCtx.selectedCollectionId.set(item.id);
   }
 
   onCreateNew(name: string) {
-    this.collectionService.createCollection(name).subscribe(newColl => {
-      this.collections.set([newColl, ...this.collections()]);
-      this.saveCtx.selectedCollectionId.set(newColl.id);
-    });
+    this.picker.create(name).subscribe(newColl => this.saveCtx.selectedCollectionId.set(newColl.id));
   }
 
   onFocus(item: SaveOverlayFormItem): void {
