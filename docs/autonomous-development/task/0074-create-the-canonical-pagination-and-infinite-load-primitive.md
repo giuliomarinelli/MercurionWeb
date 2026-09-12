@@ -1,7 +1,7 @@
 # 0074 - Create the canonical pagination and infinite-load primitive
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -135,3 +135,44 @@ _Not applicable._
 ### Blocker / human decision required
 No implementation blocker. Re-enable only after the direct prerequisite chains
 are deliberately resolved in a new authorized session.
+
+### UI-016 execution attempt (2026-09-12)
+
+#### Feature branch
+`feature/UI-016`, based on `ff86d2a915fb9f1c547ecabf0cbbde31d797e3c5`
+(`origin/develop`, exact successful CI run `34664281421`).
+
+#### Implementation
+Added typed `PagePaginationState`/`InfinitePaginationState` discriminated
+contracts and the standalone `m-pagination` primitive. It uses the canonical
+button, emits caller-owned page/load/retry intent, blocks pending activation,
+and renders accessible page, retry, pending and end-of-results states.
+Migrated the four existing `AbstractPaginationComponent` consumers and made
+the shared abstraction expose deterministic retry/error state. No API or
+fetching ownership was moved into the primitive.
+
+#### Validation
+- `npm run typecheck --workspace mercurion_web_ng` — passed.
+- `npm run lint --workspace mercurion_web_ng -- --no-warn-ignored` — passed
+  with pre-existing repository warnings only.
+- Angular test command completed successfully (the npm wrapper ignored the
+  attempted `--include` forwarding and ran the configured suite).
+- `git diff --check` — passed.
+- Canonical runtime preflight: Tox21, Nest and Angular were started in the
+  required order; Nest compiled with zero errors and Angular rebuilt
+  successfully after the primitive template fix; two complete nginx readiness
+  rounds passed. All task-owned processes were stopped.
+
+#### Browser blocker
+The dedicated Chrome DevTools MCP exposed the protected dashboard and its
+authenticated account marker. Fresh navigation to `/login` redirected to the
+already-authenticated dashboard. Two supported attempts to activate the
+account menu/link navigation timed out, and navigation to
+`/molecules/collections` remained on the dashboard. Therefore the required
+paginated and load-more browser exercise, including keyboard/pending/focus
+evidence, could not be observed without guessing or using an unsupported
+browser method. Task remains `BLOCKED` pending a recoverable browser
+observation and rerun of the declared browser validation.
+
+#### Commits
+Task-preservation commit: `2265a0177ab0532fda579dee73675a0ce4836c1a`.
