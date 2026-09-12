@@ -9,6 +9,7 @@ import { RedisCapabilityService } from './redis-capability.service'
 
 describe('PubSubService', () => {
   let service: PubSubService;
+  let moduleRef: TestingModule;
   let redisClient: {
     duplicate: jest.Mock;
     config: jest.Mock;
@@ -21,6 +22,7 @@ describe('PubSubService', () => {
     on: jest.Mock;
     psubscribe: jest.Mock;
     subscribe: jest.Mock;
+    quit: jest.Mock;
   };
   let assertRequiredCapabilities: jest.Mock
 
@@ -30,6 +32,7 @@ describe('PubSubService', () => {
       on: jest.fn(),
       psubscribe: jest.fn(),
       subscribe: jest.fn(),
+      quit: jest.fn().mockResolvedValue('OK'),
     };
     assertRequiredCapabilities = jest.fn()
     redisClient = {
@@ -41,7 +44,7 @@ describe('PubSubService', () => {
       del: jest.fn(),
     };
 
-    const module: TestingModule = await Test.createTestingModule({
+    moduleRef = await Test.createTestingModule({
       providers: [
         PubSubService,
         { provide: OAuth2AccessTokenRefreshService, useValue: { refreshAccessToken: jest.fn() } },
@@ -59,7 +62,11 @@ describe('PubSubService', () => {
       ],
     }).compile();
 
-    service = module.get<PubSubService>(PubSubService);
+    service = moduleRef.get<PubSubService>(PubSubService);
+  });
+
+  afterEach(async () => {
+    await moduleRef?.close();
   });
 
   it('should be defined', () => {

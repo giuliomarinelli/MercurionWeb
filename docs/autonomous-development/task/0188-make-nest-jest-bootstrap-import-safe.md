@@ -1,6 +1,6 @@
 # 0188 - Make Nest Jest bootstrap import-safe
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -94,21 +94,64 @@ Mark `BLOCKED` if a required test dependency cannot be represented with safe tes
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/QA-002` from base `8b7f1b4aff542d0bb9f15ec09a43f2086b750337`.
 ### Preflight
-_Not started._
+Confirmed clean branch identity and exact base SHA before edits. Dependencies
+`0008`, `0130`, and `0132` are all `[x] DONE`. GitHub Actions run
+`34713504284` for the supplied base SHA completed successfully. No task-owned
+workspace-consuming process was active; existing Node processes were Chrome
+DevTools MCP processes. Did not run `npm ci` or `npm run ci:check`.
 ### Preflight remediation
-_None._
+None.
+### CI repair
+The exact feature SHA `d50a1d787aa9074d58d2f0352f45e8d3fbda6ac8` failed
+GitHub Actions run `34714791373` in both registered OS quality jobs at
+`ci:static` -> `ci:contracts`: Jest implicit resolution found both the new
+`MercurionWebNode/jest.config.js` and the legacy `jest` key in
+`MercurionWebNode/package.json`. Removed the duplicate package-level Jest
+configuration, retaining the explicit import-safe config and existing explicit
+test/E2E invocations. This keeps `contracts:check`'s implicit Jest command
+unambiguous without weakening any test or static-check command.
 ### Summary
-_Not started._
+Added explicit unit Jest configuration and a shared safe test bootstrap derived
+from the canonical environment schema. The E2E Jest configuration uses the
+same bootstrap. No validation module is imported for side effects, no
+developer/production secrets are read, and the unit script no longer relies on
+`--forceExit`.
+
+Updated Redis and Socket.IO tests to close their Nest testing modules and to
+provide closeable mock clients. Updated the SMS sender fixture with safe,
+syntactically valid Twilio test values.
 ### Task-specific validation performed
-_Not started._
+- `npm test --workspace mercurion_web_node -- --runInBand --detectOpenHandles`:
+  PASS, 148 suites and 451 tests, exit code 0.
+- `npm run test:e2e --workspace mercurion_web_node -- --runInBand --detectOpenHandles`:
+  PASS, 1 suite and 3 tests, natural exit.
+- Focused config/bootstrap/lifecycle tests: PASS, including 41 config/bootstrap
+  tests and 17 Redis/Socket.IO teardown tests.
+- `npm run typecheck --workspace mercurion_web_node`: PASS.
+- `npm run lint --workspace mercurion_web_node`: PASS with 48 pre-existing
+  warnings and 0 errors.
+- `npm run build --workspace mercurion_web_node`: PASS.
+- `git diff --check`: PASS.
+- CI repair reproducer `npm run contracts:check --workspace mercurion_web_node`:
+  PASS after removing the duplicate package-level Jest configuration.
+- `npm test --workspace mercurion_web_node -- --runInBand --detectOpenHandles`:
+  PASS after the CI repair.
+- `npm run test:e2e --workspace mercurion_web_node -- --runInBand --detectOpenHandles`:
+  PASS after the CI repair.
+- Required Nest typecheck, lint, and build checks: PASS after the CI repair.
+  Nest lint retains the same 48 pre-existing warnings and 0 errors. The full
+  unit run exits 0; Jest still reports one worker force-exit warning despite
+  `--detectOpenHandles`, unchanged by this configuration-only CI repair.
 ### Full pre-merge CI-parity validation
-_Not started._
+Not run locally because `npm ci` and `npm run ci:check` are reserved for
+GitHub Actions. Exact feature-SHA aggregate validation remains coordinator-owned.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-_Not recorded._
+Original implementation: `d50a1d787aa9074d58d2f0352f45e8d3fbda6ac8`.
+CI repair: `8144130c`.
 ### Merge / CI
 _Not started._
 ### Rollback
