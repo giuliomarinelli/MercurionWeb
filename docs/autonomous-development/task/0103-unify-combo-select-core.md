@@ -1,6 +1,6 @@
 # 0103 - Unify legacy combo-select wrappers on the canonical select core
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -82,38 +82,79 @@ Mark `BLOCKED` if a legacy caller relies on an undocumented behavior that confli
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/NG-017`, starting from supplied base
+`3d2198611ee9518289257ab6dd72e74427f3cf05`.
 
 ### Preflight
-_Not started._
+- Confirmed clean `feature/NG-017` at the supplied base SHA and verified exact
+  base CI run `34679432439` succeeded for both platform quality jobs,
+  autonomous classification and the required gate.
+- Confirmed no task-owned Angular, Nest, Tox21, Karma, Jest or workspace
+  watcher was active before runtime startup. The unchanged Angular typecheck
+  passed.
+- Completed the canonical runtime capability probe by starting Tox21, Nest and
+  Angular directly in the required order with live execution handles. After
+  the startup barrier, nginx returned retryable 502 responses during
+  compilation, followed by two consecutive successful `/health` and `/`
+  readiness rounds. The dedicated browser profile exposed the protected
+  dashboard through `http://localhost:8888` while the login route was
+  reached; no credentials were recorded in task notes. All probe processes
+  were stopped before implementation.
 
 ### Preflight remediation
 _None._
 
 ### Summary
-Not attempted because required UI-006 and tasks 0100 (NG-014) and 0101
-(NG-015) are `SKIPPED_DEPENDENCY`.
+Migrated the two production collection flows from the legacy combo wrapper to
+the canonical `SelectCoreComponent`, routed typed selection events through the
+existing collection-picker facades, added multi-selection regression coverage
+to the canonical core, and removed the obsolete combo wrapper implementations
+and specs. No production multi-select caller existed in the inventory.
 
 ### Task-specific validation performed
-Not applicable; no feature branch or implementation worker was created.
+- `npx ng test --watch=false --karma-config=karma.conf.js
+  --include=src/app/components/common/select-core/select-core.component.spec.ts`
+  passed: 4 specs covering combobox semantics, keyboard selection, filtering,
+  disabled state and typed multi-selection/chip clearing.
+- The canonical core plus both migrated caller specs passed with the same
+  Angular test runner: 6 specs total.
+- `npm run typecheck --workspace mercurion_web_ng` passed.
+- `npm run lint --workspace mercurion_web_ng` completed with existing warning
+  diagnostics only and no errors.
+- `npm run build --workspace mercurion_web_ng` passed. Existing bundle-budget
+  and CommonJS warnings remained; no build error occurred.
+- `git diff --check` passed and the source inventory contains no legacy combo
+  component or selector references.
 
 ### Full pre-merge CI-parity validation
-Not applicable; dependency-skip metadata only.
+Not run locally because `npm ci` and `npm run ci:check` are forbidden in
+autonomous workers. Exact feature-SHA GitHub Actions validation is required.
 
 ### Browser validation performed
-Not applicable; the task was not attempted.
+Using the dedicated Chrome DevTools MCP profile and only
+`http://localhost:8888`:
+- Restarted Tox21, Nest and Angular in canonical order, retained all three
+  live handles, waited through retryable 502 responses, and observed two
+  consecutive complete readiness rounds.
+- The protected dashboard shell rendered after runtime restart, proving the
+  real authenticated state through the protected UI. Direct collection-route
+  navigation was attempted, but the persistent browser session returned to the
+  dashboard and MCP interaction calls timed out before a collection-picker
+  overlay could be opened; no browser claim is made for that unavailable
+  interaction evidence.
+- Canonical core and migrated caller behavior is covered by the passing
+  headless Angular regression tests above. All post-validation runtime
+  sessions were stopped.
 
 ### Commits
-Pending metadata commit on `develop`.
+Pending implementation commit.
 
 ### Merge / CI
-No feature branch or merge. Exact-SHA CI is required for the metadata commit.
+No merge performed by the worker. Exact-SHA CI is required after pushing the
+feature commit.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-Direct terminal prerequisites: UI-006, 0100 (NG-014), and 0101 (NG-015),
-all `SKIPPED_DEPENDENCY`. Their transitive chain includes FE-030 (BLOCKED),
-which requires filesystem-write capability for a fresh, human-authorized
-worker session.
+None.

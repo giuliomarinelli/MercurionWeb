@@ -1,6 +1,7 @@
 import { Component, ChangeDetectionStrategy, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
-import { ComboSelectComponent } from '../../common/combo-select/combo-select.component';
+import { SelectCoreComponent } from '../../common/select-core/select-core.component';
+import { SelectSelectionChange } from '../../common/select-core/select-core.types';
 import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
 import { MoleculeCollectionService } from '../../../services/graphql/molecule-collection.service';
 import { Subscription } from 'rxjs';
@@ -13,7 +14,7 @@ import { CollectionPickerFacade } from '../collection-picker/collection-picker.f
   selector: 'm-select-collection-then-route',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    ComboSelectComponent,
+    SelectCoreComponent,
     ActionCardComponent,
     ActionFooterComponent,
     ButtonComponent
@@ -85,7 +86,7 @@ import { CollectionPickerFacade } from '../collection-picker/collection-picker.f
         </p>
 
         <div class="w-full max-w-3xl mx-auto">
-          <m-combo-select
+          <m-select-core
             [items]="collections()"
             [displayFn]="displayCollection"
             [valueFn]="valueCollection"
@@ -95,7 +96,7 @@ import { CollectionPickerFacade } from '../collection-picker/collection-picker.f
             [selected]="selectedCollectionId()"
             (searchChange)="onSearchChange($event)"
             (loadMore)="onScrollEnd()"
-            (select)="onSelect($event)"
+            (selectionChange)="onSelectionChange($event)"
             (createNew)="onCreateNew($event)"
             [ariaLabel]="importFromChembl() ? 'Seleziona collezione per importazione ChEMBL' : 'Seleziona collezione per aggiungere molecole'"
           />
@@ -187,6 +188,10 @@ export class SelectCollectionThenRouteComponent implements OnInit, OnDestroy {
   onSelect(item: Pick<MoleculeCollection, 'id'>) {
     this.picker.setSingleSelection(item.id);
     this.selectedCollectionId.set(this.picker.selected().ids[0] ?? '');
+  }
+
+  onSelectionChange(change: SelectSelectionChange<MoleculeCollection, string>) {
+    if (change.item) this.onSelect(change.item);
   }
 
   onCreateNew(name: string) {
