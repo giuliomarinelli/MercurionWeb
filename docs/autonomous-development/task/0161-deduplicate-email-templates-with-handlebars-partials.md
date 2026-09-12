@@ -124,7 +124,9 @@ clean-install and aggregate CI evidence.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-Pending task commit.
+`20242be0a22d39feeca932551d9cf198b88ca42f` — refactor email templates with
+canonical layouts/partials, deterministic adapter resolution, fixtures, and
+duplication guard. Includes the required Copilot co-author trailer.
 ### Merge / CI
 _Not started._
 ### Rollback
