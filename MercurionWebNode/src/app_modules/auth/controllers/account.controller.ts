@@ -16,7 +16,6 @@ import { UserService } from 'src/app_modules/user/services/user.service';
 import { TurnstileGuard } from '../guards/turnstile.guard';
 import { SercurityService } from '../services/sercurity.service';
 import { ProfileDTO, ProfileRegistryClientDTO, ProfileRegistryDTO } from '../Models/DTO/profile.dtos';
-import { SessionService } from '../services/session.service';
 import { SessionDTO } from '../Models/DTO/session.dto';
 import { BackupCodeStatusDTO } from 'src/app_modules/user/Models/DTO/backup-code-status.dto';
 import { ConfigService } from '@nestjs/config';
@@ -28,6 +27,7 @@ import {
     applicationError,
     isApplicationError
 } from 'src/exception-handling/application-error'
+import { ListActiveSessionsHandler } from '../application/session-authentication.handlers';
 
 
 
@@ -41,7 +41,7 @@ export class AccountController {
         private readonly mfaService: MfaService,
         private readonly userService: UserService,
         private readonly securityService: SercurityService,
-        private readonly sessionService: SessionService,
+        private readonly listActiveSessions: ListActiveSessionsHandler,
         private readonly configService: ConfigService
     ) { }
 
@@ -275,7 +275,10 @@ export class AccountController {
         @AuthenticatedUserId() userId: UUID,
         @SessionId() sessionId: UUID
     ): Promise<SessionDTO[]> {
-        return this.sessionService.getAllActiveSessionsByUserIdAsDTOs(userId, sessionId)
+        return this.listActiveSessions.execute({
+            userId,
+            currentSessionId: sessionId
+        })
     }
 
     @Get('/mfa/backup/status')

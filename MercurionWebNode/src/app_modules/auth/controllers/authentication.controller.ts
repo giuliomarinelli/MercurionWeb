@@ -1,73 +1,103 @@
-import { SessionService } from 'src/app_modules/auth/services/session.service';
-import { SecureCookieService } from './../services/secure-cookie.service';
-import { FastifyReply, FastifyRequest } from 'fastify';
-import { BadRequestException, Body, Controller, Delete, Get, HttpCode, HttpStatus, NotFoundException, Param, Patch, Post, Query, Req, Res, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
-import { Login_FirstStepDTO } from '../Models/DTO/login-first-step.cls.dto';
-import { MfaService } from '../services/mfa.service';
-import { AuthenticationService } from '../services/authentication.service';
-import { SessionId, Authorization, ClientIp, DeviceId, DeviceInfo, Fingerprint, Public, AuthenticatedUserId } from 'src/metadata/metadata';
-import { UUID } from 'crypto';
-import { Authentication } from '../Models/interfaces/authentication.interface';
-import { ResponseService } from 'src/services/response.service';
-import { Confirm_Login_FirstStepDTO, ConfirmDTO, ConfirmWithTokenPairAndInitialsDTO, ConfirmWithTotpMetaDTO } from 'src/Models/confirm-responses.dto';
-import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum';
-import { GeneralUtils } from 'src/utils/general-utils/general-utils';
-import { JwtToolsService } from '../services/jwt-tools.service';
-import { TokenType } from '../Models/enums/token-type.enum';
-import { EmailDTO } from '../Models/DTO/email.cls.dto';
-import { LOCAL_DUMMY_AUTH, type FingerprintData, type SessionDeviceInfo } from '@mercurion/rest-contracts'
-import { UserService } from 'src/app_modules/user/services/user.service';
-import { TurnstileGuard } from '../guards/turnstile.guard';
-import { ConfigService } from '@nestjs/config';
-import { CookieConfiguration, SecureCookieConfiguration } from 'src/config/config.types';
-import { SignedSessionIdDTO } from '../Models/DTO/signed-session-id.dto';
-import { RedisService } from 'src/app_modules/redis/services/redis.service';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
-import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
-import { TypeGuards } from 'src/utils/type-guards/type-guards';
 import {
-    ApplicationErrorCode,
-    applicationHttpException
-} from 'src/exception-handling/application-error';
-import { VerifyBodyDTO } from '../Models/DTO/verify-body.cls.dto.';
-import { VerifyBodyPipe } from '../validation-pipes/verify-body.pipe';
-import { VerifyKind } from '../Models/enums/verify-kind.enum';
-import { BackupCodeDTO } from '../Models/DTO/backup-code.cls.dto';
-import { TotpBodyDTO } from '../Models/DTO/totp.cls.dto';
-import { SercurityService } from '../services/sercurity.service';
-import { AuthProvider } from 'src/app_modules/sso/Models/enums/auth-provider.enum';
-import { LocalDummyAuthService } from '../services/local-dummy-auth.service';
+    Body,
+    BadRequestException,
+    Controller,
+    Delete,
+    Get,
+    HttpCode,
+    HttpStatus,
+    Param,
+    Patch,
+    Post,
+    Query,
+    Req,
+    Res,
+    NotFoundException,
+    UnauthorizedException,
+    UseGuards,
+    ValidationPipe
+} from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
+import { UUID } from 'crypto'
+import { FastifyReply, FastifyRequest } from 'fastify'
+import {
+    LOCAL_DUMMY_AUTH,
+    type FingerprintData,
+    type SessionDeviceInfo
+} from '@mercurion/rest-contracts'
 
+import {
+    AuthenticatedUserId,
+    Authorization,
+    ClientIp,
+    DeviceId,
+    DeviceInfo,
+    Fingerprint,
+    Public,
+    SessionId
+} from 'src/metadata/metadata'
+import {
+    Confirm_Login_FirstStepDTO,
+    ConfirmDTO,
+    ConfirmWithTokenPairAndInitialsDTO,
+    ConfirmWithTotpMetaDTO
+} from 'src/Models/confirm-responses.dto'
+import { ResponseService } from 'src/services/response.service'
+import {
+    CookieConfiguration,
+    SecureCookieConfiguration
+} from 'src/config/config.types'
 
-
+import {
+    CredentialLoginHandler,
+    VerifyEmailHandler
+} from '../application/credential-authentication.handlers'
+import { LocalDummyLoginHandler } from '../application/local-dummy-login.handler'
+import {
+    CompleteMfaLoginHandler,
+    StartMfaChallengeHandler
+} from '../application/mfa-authentication.handlers'
+import {
+    LogoutHandler,
+    RefreshWsAccessTokenHandler,
+    RevokeAllSessionsHandler,
+    RevokeSessionHandler
+} from '../application/session-authentication.handlers'
+import { CompleteSsoAuthenticationHandler } from '../application/sso-authentication.handler'
+import { EmailDTO } from '../Models/DTO/email.cls.dto'
+import { Login_FirstStepDTO } from '../Models/DTO/login-first-step.cls.dto'
+import { SignedSessionIdDTO } from '../Models/DTO/signed-session-id.dto'
+import { VerifyBodyDTO } from '../Models/DTO/verify-body.cls.dto.'
+import { TurnstileGuard } from '../guards/turnstile.guard'
+import { SecureCookieService } from '../services/secure-cookie.service'
+import { VerifyBodyPipe } from '../validation-pipes/verify-body.pipe'
 
 @Controller('authentication')
 export class AuthenticationController {
-
-    private readonly logger: MeiliContextLogger
-
     private readonly cookieConf: CookieConfiguration
     private readonly LONG_SESSION_TTL: number
 
     constructor(
-        private readonly authService: AuthenticationService,
-        private readonly mfaService: MfaService,
-        private readonly jwtTools: JwtToolsService,
-        private readonly _r: ResponseService,
+        private readonly verifyEmail: VerifyEmailHandler,
+        private readonly credentialLogin: CredentialLoginHandler,
+        private readonly startMfaChallenge: StartMfaChallengeHandler,
+        private readonly completeMfaLogin: CompleteMfaLoginHandler,
+        private readonly logoutHandler: LogoutHandler,
+        private readonly revokeSession: RevokeSessionHandler,
+        private readonly revokeAllSessions: RevokeAllSessionsHandler,
+        private readonly refreshWsAccessToken: RefreshWsAccessTokenHandler,
+        private readonly completeSsoAuthentication: CompleteSsoAuthenticationHandler,
+        private readonly localDummyLoginHandler: LocalDummyLoginHandler,
+        private readonly response: ResponseService,
         private readonly secureCookieService: SecureCookieService,
-        private readonly userService: UserService,
-        private readonly configService: ConfigService,
-        private readonly sessionService: SessionService,
-        private readonly redisService: RedisService,
-        private readonly securityService: SercurityService,
-        private readonly localDummyAuth: LocalDummyAuthService,
-        loggerFactory: MeiliLoggerService
+        configService: ConfigService
     ) {
-        this.logger = loggerFactory.forContext(AuthenticationController.name)
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { secret, ...cookieConf } = this.configService.get<SecureCookieConfiguration>('SecureCookie')!
+        const { secret, ...cookieConf } =
+            configService.get<SecureCookieConfiguration>('SecureCookie')!
         this.cookieConf = cookieConf
-        this.LONG_SESSION_TTL = this.configService.get<number>('Session.persistentSessionLasting')!
+        this.LONG_SESSION_TTL =
+            configService.get<number>('Session.persistentSessionLasting')!
     }
 
     @Public()
@@ -75,46 +105,56 @@ export class AuthenticationController {
     @HttpCode(HttpStatus.OK)
     public async localDummyLogin(
         @Req() req: FastifyRequest,
-        @ClientIp() IP: string,
+        @ClientIp() ip: string,
         @DeviceId() deviceId: UUID,
         @DeviceInfo() sessionDeviceInfo: SessionDeviceInfo,
         @Fingerprint() fingerprintData: FingerprintData,
         @Res({ passthrough: true }) reply: FastifyReply
     ): Promise<ConfirmWithTokenPairAndInitialsDTO> {
-        if (!this.localDummyAuth.acceptsActivationRequest(req)) {
+        const result = await this.localDummyLoginHandler.execute({
+            requestHeaders: req.headers,
+            deviceId,
+            ip,
+            sessionDeviceInfo,
+            fingerprintData
+        })
+        if (result.outcome === 'not-found') {
             throw new NotFoundException()
         }
-
-        const { accessToken, ws_accessToken, sessionId } =
-            await this.localDummyAuth.createAuthenticatedSession(deviceId, IP, sessionDeviceInfo, fingerprintData)
-
-        this.secureCookieService.setSignedCookie(reply, '__node_session_id', sessionId, {
-            ...this.cookieConf,
-            maxAge: this.LONG_SESSION_TTL
-        })
+        this.secureCookieService.setSignedCookie(
+            reply,
+            '__node_session_id',
+            result.sessionId,
+            {
+                ...this.cookieConf,
+                maxAge: this.LONG_SESSION_TTL
+            }
+        )
         reply.setCookie('__logged_in', 'true', {
             ...this.cookieConf,
             maxAge: this.LONG_SESSION_TTL,
             httpOnly: false
         })
-
         return {
-            ...this._r.ok('Local dummy authenticated successfully'),
-            accessToken,
-            ws_accessToken,
+            ...this.response.ok('Local dummy authenticated successfully'),
+            accessToken: result.accessToken,
+            ws_accessToken: result.ws_accessToken,
             initials: LOCAL_DUMMY_AUTH.initials,
-            deviceId: this.securityService.signDeviceId(deviceId)
+            deviceId: result.signedDeviceId
         }
     }
 
     @Public()
     @Post('login/0')
     @HttpCode(HttpStatus.OK)
-    public async login_zeroStep(@Body(new ValidationPipe({ transform: true })) { email }: EmailDTO): Promise<ConfirmDTO> {
-        if (!await this.authService.verifyEmail(email)) {
+    public async login_zeroStep(
+        @Body(new ValidationPipe({ transform: true })) { email }: EmailDTO
+    ): Promise<ConfirmDTO> {
+        const result = await this.verifyEmail.execute({ email })
+        if (!result.verified) {
             throw new UnauthorizedException()
         }
-        return this._r.ok('Email successfully verified')
+        return this.response.ok('Email successfully verified')
     }
 
     @Public()
@@ -129,49 +169,60 @@ export class AuthenticationController {
         @Fingerprint() fingerprintData: FingerprintData,
         @Res({ passthrough: true }) reply: FastifyReply
     ): Promise<Confirm_Login_FirstStepDTO> {
-
-        // eslint-disable-next-line prefer-const
-        let { email, password, remember } = dto
-
-        const auth: Authentication = await this.authService.emailAndPasswordAuthentication(email, password, remember, ip, deviceId, sessionDeviceInfo, fingerprintData)
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { userId, sessionId, deviceId: _omit, ...authRes } = auth
-
-        this.secureCookieService.setSignedCookie(reply, '__node_session_id', sessionId, {
-            ...this.cookieConf,
-            maxAge: remember ? this.LONG_SESSION_TTL : undefined
+        const result = await this.credentialLogin.execute({
+            ...dto,
+            ip,
+            deviceId,
+            sessionDeviceInfo,
+            fingerprintData
         })
-
-        const initials = await this.userService.getUserInitialsByUserId(userId)
-
-        if (auth.needsMfa || auth.suspiciousAttempt) {
-            reply.setCookie('__logged_in', remember ? 'pending_long' : 'pending_short', {
+        this.secureCookieService.setSignedCookie(
+            reply,
+            '__node_session_id',
+            result.sessionId,
+            {
                 ...this.cookieConf,
-                maxAge: remember ? this.LONG_SESSION_TTL : undefined,
-                httpOnly: false
-            })
+                maxAge: result.remember ? this.LONG_SESSION_TTL : undefined
+            }
+        )
+        const authResult = {
+            needsMfa: result.needsMfa,
+            enabledMfaStrategies: result.enabledMfaStrategies,
+            obscuredEmail: result.obscuredEmail,
+            obscuredPhoneNumber: result.obscuredPhoneNumber,
+            suspiciousAttempt: result.suspiciousAttempt,
+            initials: result.initials,
+            deviceId: result.signedDeviceId
+        }
+
+        if (result.next === 'mfa') {
+            reply.setCookie(
+                '__logged_in',
+                result.remember ? 'pending_long' : 'pending_short',
+                {
+                    ...this.cookieConf,
+                    maxAge: result.remember ? this.LONG_SESSION_TTL : undefined,
+                    httpOnly: false
+                }
+            )
             return {
-                ...this._r.ok('MFA first step went on successfully'),
-                ...authRes,
-                preAuthorizationToken: await this.authService.performPreAuthenticationForMfa(auth),
-                initials: initials ?? '',
-                deviceId: this.securityService.signDeviceId(deviceId)
+                ...this.response.ok('MFA first step went on successfully'),
+                ...authResult,
+                preAuthorizationToken: result.preAuthorizationToken
             }
         }
+
         reply.setCookie('__logged_in', 'true', {
             ...this.cookieConf,
-            maxAge: remember ? this.LONG_SESSION_TTL : undefined,
+            maxAge: result.remember ? this.LONG_SESSION_TTL : undefined,
             httpOnly: false
         })
-
         return {
-            ...this._r.ok('Authenticated successfully'),
-            ...authRes,
-            ...await this.authService.performAuthentication(auth, fingerprintData, ip),
-            initials: initials ?? '',
-            deviceId: this.securityService.signDeviceId(deviceId)
+            ...this.response.ok('Authenticated successfully'),
+            ...authResult,
+            accessToken: result.accessToken,
+            ws_accessToken: result.ws_accessToken
         }
-
     }
 
     @Public()
@@ -182,20 +233,23 @@ export class AuthenticationController {
         @Authorization() preAuthorizationToken: string,
         @Param('strategy') strategyKey: string
     ): Promise<ConfirmWithTotpMetaDTO> {
-        try {
-            await this.jwtTools.verifyTokenAndGetPayload(preAuthorizationToken, TokenType.PreAuthorizationToken)
-        } catch {
+        const result = await this.startMfaChallenge.execute({
+            trustVerify,
+            preAuthorizationToken,
+            strategyKey
+        })
+        if (result.outcome === 'invalid-token') {
             throw new UnauthorizedException()
         }
-        const strategy: MfaStrategy | undefined = GeneralUtils.getEnumValueFromStringKey(MfaStrategy, strategyKey)
-        if (!strategy || strategy === MfaStrategy.APP_TOTP) {
+        if (result.outcome === 'invalid-strategy') {
             throw new BadRequestException('Invalid MFA strategy')
         }
-        const { generatedAt, expiresAt } = await this.mfaService.sendOtpToUser(preAuthorizationToken, strategy, trustVerify)
         return {
-            ...this._r.ok(`OTP successfully sent to user with strategy ${strategyKey}`),
-            generatedAt,
-            expiresAt
+            ...this.response.ok(
+                `OTP successfully sent to user with strategy ${strategyKey}`
+            ),
+            generatedAt: result.generatedAt,
+            expiresAt: result.expiresAt
         }
     }
 
@@ -213,68 +267,31 @@ export class AuthenticationController {
         @Res({ passthrough: true }) reply: FastifyReply,
         @DeviceId() actualDeviceId: UUID
     ): Promise<ConfirmWithTokenPairAndInitialsDTO> {
-
-        const loginPendingVal = req.cookies['__logged_in'] ?? ''
-        let shouldPersistLogin = loginPendingVal === 'pending_long'
-        let userId: UUID
-        let sessionId: UUID
-        let jti: UUID
-        try {
-            // Nota: questa verifica è una ridondanza intenzionale. Permette di aggiungere un layer di sicurezza in più ed evitare un possibile stato di "unico punto di rottura"
-            ({ sub: userId, sid: sessionId, jti } = await this.jwtTools.verifyTokenAndGetPayload(preAuthorizationToken, TokenType.PreAuthorizationToken))
-        } catch {
-            try {
-                await this.jwtTools.verifyTokenAndGetPayload(preAuthorizationToken, TokenType.PreAuthorizationToken, true)
-                throw applicationHttpException(ApplicationErrorCode.MFA_PREAUTHORIZATION_EXPIRED)
-            } catch (e) {
-                this.logger.warn(` > login_thirdStep > Error: ${e.message || e}`)
-                throw applicationHttpException(ApplicationErrorCode.MFA_PREAUTHORIZATION_INVALID)
-            }
-        }
-        if (!shouldPersistLogin) {
-            shouldPersistLogin = await this.sessionService.isSessionLongTerm(sessionId, userId)
-        }
-        const maxAge = shouldPersistLogin ? this.LONG_SESSION_TTL : undefined
-        const expectedDev = await this.redisService.get(`mfa:pat:dev:${jti}`)
-        if (expectedDev && expectedDev !== actualDeviceId) {
-            await this.sessionService.revokeToken(jti)
-            throw applicationHttpException(ApplicationErrorCode.MFA_DEVICE_MISMATCH)
-        }
-        let code: string
-
-        if (body.kind === VerifyKind.TOTP) {
-            code = (body.payload as TotpBodyDTO).totp
-        } else if (body.kind === VerifyKind.BACKUP) {
-            code = (body.payload as BackupCodeDTO).code
-        } else {
-            throw applicationHttpException(ApplicationErrorCode.PERMISSION_DENIED)
-        }
-        const strategy: MfaStrategy | undefined = GeneralUtils.getEnumValueFromStringKey(MfaStrategy, strategyKey)
-        if (!TypeGuards.isMfaStrategy(strategy)) {
+        const result = await this.completeMfaLogin.execute({
+            trustVerify,
+            preAuthorizationToken,
+            strategyKey,
+            body,
+            fingerprintData,
+            ip,
+            actualDeviceId,
+            loginPendingValue: req.cookies['__logged_in'] ?? ''
+        })
+        if (result.outcome === 'invalid-strategy') {
             throw new BadRequestException('Invalid MFA strategy')
         }
-        const isVerificationOk: boolean = strategy !== MfaStrategy.BACKUP_CODE
-            ?
-            await this.mfaService.verifyUserOtpOrAppTotp(code, preAuthorizationToken, strategy)
-            :
-            await this.mfaService.verifyBackupCode(code, preAuthorizationToken)
-        if (!isVerificationOk) {
-            throw applicationHttpException(ApplicationErrorCode.MFA_CODE_INVALID)
-        }
-        const { accessToken, ws_accessToken } = await this.authService.performAuthentication({ userId, sessionId }, fingerprintData, ip, trustVerify)
         reply.setCookie('__logged_in', 'true', {
             ...this.cookieConf,
-            maxAge,
+            maxAge: result.persistLogin ? this.LONG_SESSION_TTL : undefined,
             httpOnly: false
         })
         return {
-            ...this._r.ok('Authenticated successfully'),
-            accessToken,
-            ws_accessToken,
-            initials: await this.userService.getUserInitialsByUserId(userId) ?? '',
-            deviceId: this.securityService.signDeviceId(actualDeviceId)
+            ...this.response.ok('Authenticated successfully'),
+            accessToken: result.accessToken,
+            ws_accessToken: result.ws_accessToken,
+            initials: result.initials,
+            deviceId: result.signedDeviceId
         }
-
     }
 
     @Public()
@@ -285,31 +302,30 @@ export class AuthenticationController {
         @DeviceId() deviceId: UUID,
         @Res({ passthrough: true }) reply: FastifyReply
     ): Promise<void> {
-        try {
-            await this.authService.performLogout(sessionId, deviceId)
-        } catch {
-            // pass
-        }
+        await this.logoutHandler.execute({ sessionId, deviceId })
         this.secureCookieService.clearCookie(reply, '__node_session_id')
         this.secureCookieService.clearCookie(reply, '__logged_in')
         reply.clearCookie('__logged_in')
     }
 
-
     @Patch('/logout-from-session')
     public async logoutFromSession(
         @AuthenticatedUserId() userId: UUID,
-        @Body(new ValidationPipe({ transform: true })) { signedSessionId }: SignedSessionIdDTO,
+        @Body(new ValidationPipe({ transform: true }))
+        { signedSessionId }: SignedSessionIdDTO,
         @SessionId() currentSessionId: UUID,
         @Res({ passthrough: true }) reply: FastifyReply
     ): Promise<ConfirmDTO> {
-        await this.sessionService.destroySessionAndRevokeAllTokensBySignedSessionId(signedSessionId, userId)
-        const [targetSessionId] = signedSessionId.split('.')
-        if (targetSessionId === currentSessionId) {
+        const result = await this.revokeSession.execute({
+            userId,
+            signedSessionId,
+            currentSessionId
+        })
+        if (result.revokedCurrentSession) {
             this.secureCookieService.clearCookie(reply, '__node_session_id')
             this.secureCookieService.clearCookie(reply, '__logged_in')
         }
-        return this._r.ok('Action performed successfully')
+        return this.response.ok('Action performed successfully')
     }
 
     @Patch('/logout-from-all-sessions')
@@ -317,10 +333,10 @@ export class AuthenticationController {
         @AuthenticatedUserId() userId: UUID,
         @Res({ passthrough: true }) reply: FastifyReply
     ): Promise<ConfirmDTO> {
-        await this.sessionService.destroyAllSessionsAndRevokeAllTokensByUserId(userId)
+        await this.revokeAllSessions.execute({ userId })
         this.secureCookieService.clearCookie(reply, '__node_session_id')
         this.secureCookieService.clearCookie(reply, '__logged_in')
-        return this._r.ok('Action performed successfully')
+        return this.response.ok('Action performed successfully')
     }
 
     @Get('/ws-refresh')
@@ -328,44 +344,63 @@ export class AuthenticationController {
         @AuthenticatedUserId() userId: UUID,
         @SessionId() sessionId: UUID
     ): Promise<string> {
-        return this.jwtTools.generateToken(userId, TokenType.ws_AccessToken, sessionId)
+        const result = await this.refreshWsAccessToken.execute({
+            userId,
+            sessionId
+        })
+        return result.wsAccessToken
     }
 
     @Public()
     @Post('/sso/:provider/authorize-flow')
     @HttpCode(HttpStatus.OK)
     public async authorize_sso(
-        @ClientIp() IP: string,
-        @Fingerprint() fd: FingerprintData,
-        @DeviceInfo() di: SessionDeviceInfo,
-        @Authorization() sso_pat: string,
+        @ClientIp() ip: string,
+        @Fingerprint() fingerprintData: FingerprintData,
+        @DeviceInfo() sessionDeviceInfo: SessionDeviceInfo,
+        @Authorization() ssoPreAuthorizationToken: string,
         @DeviceId() deviceId: UUID,
         @Param('provider') provider: string,
         @Res({ passthrough: true }) reply: FastifyReply
     ): Promise<ConfirmWithTokenPairAndInitialsDTO> {
         try {
-            if (TypeGuards.isAuthProvider(provider) && provider !== AuthProvider.Mercurion) {
-                const maxAge = this.LONG_SESSION_TTL
-                const { sub: userId } = await this.jwtTools.verifyTokenAndGetPayload(sso_pat, TokenType.SSO_PreAuthorizationToken)
-                const { accessToken, ws_accessToken, sessionId } = await this.authService.perform_SSO_Authentication(sso_pat, IP, deviceId, di, fd, provider)
-                this.secureCookieService.setSignedCookie(reply, '__node_session_id', sessionId, {
-                    ...this.cookieConf,
-                    maxAge
-                })
-                reply.setCookie('__logged_in', 'true', {
-                    ...this.cookieConf,
-                    maxAge,
-                    httpOnly: false
-                })
-                return {
-                    ...this._r.ok(`Authenticated successfully, oauth2_provider=${provider}`),
-                    accessToken,
-                    ws_accessToken,
-                    deviceId: this.securityService.signDeviceId(deviceId),
-                    initials: await this.userService.getUserInitialsByUserId(userId) ?? ''
-                }
+            const result = await this.completeSsoAuthentication.execute({
+                ssoPreAuthorizationToken,
+                ip,
+                deviceId,
+                sessionDeviceInfo,
+                fingerprintData,
+                provider
+            })
+            if (result.outcome === 'invalid-provider') {
+                throw new BadRequestException('Invalid oauth2_provider')
             }
-            throw new BadRequestException('Invalid oauth2_provider')
+            if (result.outcome === 'unauthorized') {
+                throw new UnauthorizedException()
+            }
+            this.secureCookieService.setSignedCookie(
+                reply,
+                '__node_session_id',
+                result.sessionId,
+                {
+                    ...this.cookieConf,
+                    maxAge: this.LONG_SESSION_TTL
+                }
+            )
+            reply.setCookie('__logged_in', 'true', {
+                ...this.cookieConf,
+                maxAge: this.LONG_SESSION_TTL,
+                httpOnly: false
+            })
+            return {
+                ...this.response.ok(
+                    `Authenticated successfully, oauth2_provider=${result.provider}`
+                ),
+                accessToken: result.accessToken,
+                ws_accessToken: result.ws_accessToken,
+                deviceId: result.signedDeviceId,
+                initials: result.initials
+            }
         } catch {
             throw new UnauthorizedException()
         }

@@ -8,7 +8,6 @@ import { SercurityService } from './services/sercurity.service';
 import { AccountService } from './services/account.service';
 import { AccountController } from './controllers/account.controller';
 import { MfaService } from './services/mfa.service';
-import { AuthenticationService } from './services/authentication.service';
 import { AuthenticationController } from './controllers/authentication.controller';
 import { IpService } from './services/ip.service';
 import { GeoIpService } from './services/geo-ip.service';
@@ -29,6 +28,24 @@ import { IDENTITY_READ_PORT } from './Models/interfaces/identity-read.port';
 import { RedisModule } from '../redis/redis.module';
 import { ResponseModule } from 'src/services/response.module';
 import { GlobalGuard } from './guards/global.guard';
+import { AuthenticationSessionService } from './application/authentication-session.service';
+import {
+  CredentialLoginHandler,
+  VerifyEmailHandler
+} from './application/credential-authentication.handlers';
+import {
+  CompleteMfaLoginHandler,
+  StartMfaChallengeHandler
+} from './application/mfa-authentication.handlers';
+import {
+  ListActiveSessionsHandler,
+  LogoutHandler,
+  RefreshWsAccessTokenHandler,
+  RevokeAllSessionsHandler,
+  RevokeSessionHandler
+} from './application/session-authentication.handlers';
+import { CompleteSsoAuthenticationHandler } from './application/sso-authentication.handler';
+import { LocalDummyLoginHandler } from './application/local-dummy-login.handler';
 
 
 
@@ -50,7 +67,18 @@ import { GlobalGuard } from './guards/global.guard';
     SercurityService,
     AccountService,
     MfaService,
-    AuthenticationService,
+    AuthenticationSessionService,
+    VerifyEmailHandler,
+    CredentialLoginHandler,
+    StartMfaChallengeHandler,
+    CompleteMfaLoginHandler,
+    LogoutHandler,
+    RevokeSessionHandler,
+    RevokeAllSessionsHandler,
+    RefreshWsAccessTokenHandler,
+    ListActiveSessionsHandler,
+    CompleteSsoAuthenticationHandler,
+    LocalDummyLoginHandler,
     IpService,
     GeoIpService,
     TurnstileService,
