@@ -1,7 +1,7 @@
 # 0136 - Make proxy, CORS and rate-limit trust policy environment explicit
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
@@ -83,24 +83,51 @@ Mark `BLOCKED` if the production trusted-proxy chain/origin contract is genuinel
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/BE-022` at base SHA `9a1a7a8d97535c184df7471bab004934250e5624`.
+The working tree was clean, the branch identity matched the requested Source,
+and no remote `feature/BE-022` ref existed before this diagnostic commit.
 ### Preflight
-_Not started._
+Passed unchanged-task preflight:
+
+- `git status --porcelain=v1` was empty;
+- `git rev-parse HEAD` matched the supplied base SHA;
+- dependencies `0130`, `0132`, and `0134` were checked `DONE`;
+- no task-owned Nest, Angular, Tox21, Jest, or workspace watcher was active;
+- exact-base GitHub Actions CI run
+  [34705560688](https://github.com/giuliomarinelli/MercurionWeb/actions/runs/34705560688)
+  for `9a1a7a8d97535c184df7471bab004934250e5624` completed successfully;
+- local `commit.gpgSign` was `false`.
 ### Preflight remediation
-_None._
+None.
 ### Summary
-_Not started._
+Blocked before implementation because the production trusted-proxy chain and
+production/staging origin contract are not recoverable from approved repository
+configuration. The task explicitly forbids guessing these security boundaries.
+`docker_sl/nginx_dev/nginx.prod.conf` documents that production is behind
+Cloudflare and forwards `X-Real-IP`/`X-Forwarded-For`, but declares neither
+Cloudflare source CIDRs nor an approved proxy hop count/trust boundary.
+`k8s/beta/nginx-edge-config.yaml` likewise forwards those headers without a
+Cloudflare real-IP/trusted-source policy. The only checked-in environment
+example is the development configuration with `APP_CORS_ORIGINS=[]`; no
+staging/production origin allowlist or authoritative production environment
+policy is present. Implementing `trustProxy`, origin validation, or effective
+client-IP handling would therefore require inventing undocumented production
+security policy.
 ### Task-specific validation performed
-_Not started._
+Not run; no implementation was made.
 ### Full pre-merge CI-parity validation
-_Not started._
+Not run; local `npm ci` and `npm run ci:check` were intentionally not run.
 ### Browser validation performed
-_Not applicable / not started._
+Not applicable; the stop condition was established before implementation and
+browser validation.
 ### Commits
-_Not recorded._
+Pending diagnostic commit.
 ### Merge / CI
-_Not started._
+Not applicable.
 ### Rollback
-_Not applicable._
+Not applicable.
 ### Blocker / human decision required
-_None._
+Human/security authority must provide and approve the production/staging
+trusted-proxy boundary (Cloudflare CIDRs and/or exact hop policy) and canonical
+allowed origins, including whether the beta Kubernetes edge is an approved
+proxy boundary. No code change is safe until that contract is documented.
