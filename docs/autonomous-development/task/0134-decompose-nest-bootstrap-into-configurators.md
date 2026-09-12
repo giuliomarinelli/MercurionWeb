@@ -1,6 +1,6 @@
 # 0134 - Decompose Nest bootstrap into cohesive configurators
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -82,24 +82,42 @@ Mark `BLOCKED` if extracting a configurator exposes an unresolved security/envir
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/BE-020`, based on `aac3e6296d4d8798a57d98bf90bc4440957d544b`.
 ### Preflight
-_Not started._
+Verified a clean `feature/BE-020` checkout at the supplied base SHA. The exact
+`develop` SHA had a successful GitHub Actions CI run (`34702840339`), and
+dependency task `0133` was already `DONE`. No task-owned runtime or test
+watcher was started during the implementation preflight.
 ### Preflight remediation
 _None._
 ### Summary
-_Not started._
+Moved bootstrap policy out of `main.ts` into typed, independently callable
+configurators for logging, transport/microservices, security headers and REST
+versioning, validation/filters, cookies/request context and multipart parsing,
+Redis-backed rate limiting, and startup. `main.ts` now creates the application,
+collects dependencies, applies the explicit ordered composition, and retains
+only fatal bootstrap reporting. The anti-spoof request hook remains before
+rate limiting, while NATS, Socket.IO, global prefix, headers, validation,
+cookies, and startup behavior remain represented without duplicate setup.
 ### Task-specific validation performed
-_Not started._
+* `npm run typecheck --workspace mercurion_web_node` — passed.
+* `npm test --workspace mercurion_web_node -- --runInBand bootstrap.configurator.spec.ts main.spec.ts` — 11 tests passed.
+* `npm run build --workspace mercurion_web_node` — passed.
+* `npm run lint --workspace mercurion_web_node` — passed with 48 pre-existing warnings and no errors.
+* `git diff --check` — passed.
+* The new composition test verifies the explicit configurator order and
+  sequential application; logging tests verify environment-specific levels.
 ### Full pre-merge CI-parity validation
-_Not started._
+Not run locally; prohibited by the autonomous contract. Exact feature-SHA
+GitHub Actions validation is owned by the coordinator.
 ### Browser validation performed
-_Not applicable / not started._
+Not required for this structural bootstrap refactor; focused bootstrap tests,
+typecheck, build, and lint establish the declared acceptance locally.
 ### Commits
-_Not recorded._
+Pending task commit.
 ### Merge / CI
-_Not started._
+Feature branch publication is performed after the task-specific commit.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-_None._
+None.
