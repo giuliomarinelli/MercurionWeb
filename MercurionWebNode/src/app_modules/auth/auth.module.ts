@@ -25,6 +25,9 @@ import { CountryController } from './controllers/country.controller';
 import { RecoveryController } from './controllers/recovery.controller';
 import { JwtKeysProvider } from './providers/jwt-keys.provider';
 import { LocalDummyAuthService } from './services/local-dummy-auth.service';
+import { UserModule } from '../user/user.module';
+import { UserService } from '../user/services/user.service';
+import { IDENTITY_READ_PORT } from './Models/interfaces/identity-read.port';
 
 
 
@@ -32,6 +35,7 @@ import { LocalDummyAuthService } from './services/local-dummy-auth.service';
 @Module({
   imports: [
     HttpModule,
+    UserModule,
     TypeOrmModule.forFeature([User, Country])
   ],
   providers: [
@@ -52,7 +56,11 @@ import { LocalDummyAuthService } from './services/local-dummy-auth.service';
     ScopeService,
     CountryService,
     JwtKeysProvider,
-    LocalDummyAuthService
+    LocalDummyAuthService,
+    {
+      provide: IDENTITY_READ_PORT,
+      useExisting: UserService
+    }
   ],
   exports: [
     SecureCookieService,

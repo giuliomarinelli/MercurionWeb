@@ -1,6 +1,6 @@
 # 0116 - Separate identity, token and authorization services
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -82,21 +82,48 @@ Mark `BLOCKED` if an existing authorization decision relies on an undocumented c
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/BE-002` at base `13c914d0b8504e8dad71d4a89d664f4bc2b2e821`.
 ### Preflight
-_Not started._
+Clean branch and exact base confirmed before edits. Supplied BE-001 merge CI
+`34684350810` was successful for the exact base SHA, including Windows and
+Ubuntu quality jobs and the stable Required gate. No workspace-consuming
+process was active. Local `npm ci` and `npm run ci:check` were not run.
 ### Preflight remediation
 _None._
 ### Summary
-_Not started._
+Added the narrow `IdentityReadPort` contract and bound it to the User-owned
+`UserService` adapter. JwtTools now consumes only the identity port for scope
+claims and no longer imports or injects `UserService`. Scope policy now consumes
+the identity port and verified JWT claims, without importing or invoking
+JwtTools. User scope reads decrypt and validate scope values within the
+User-owned service, removing its ScopeService dependency. Removed service-level
+`forwardRef()` from the identity/token/scope path and updated the guard to pass
+already-verified claims to scope consistency checks.
 ### Task-specific validation performed
-_Not started._
+* `npm test --workspace mercurion_web_node -- --runInBand
+  src/app_modules/auth/services/jwt-tools.service.spec.ts
+  src/app_modules/auth/services/scope.service.spec.ts
+  src/app_modules/user/services/user.service.spec.ts` — 3 suites, 3 tests
+  passed.
+* Auth guard and authentication focused tests — 2 suites, 4 tests passed.
+* `npm run typecheck --workspace mercurion_web_node` — passed.
+* `npm run build --workspace mercurion_web_node` — passed.
+* `npm run lint --workspace mercurion_web_node` — passed with existing
+  repository warnings only.
+* Full Nest unit tests — 131 suites, 246 tests passed.
+* Full Nest E2E tests — 1 suite, 1 test passed.
+* `git diff --check` — passed. Service dependency inventory confirmed no
+  service-level `forwardRef()` remains between JwtTools, ScopeService and
+  UserService.
 ### Full pre-merge CI-parity validation
-_Not started._
+Complete clean-install and aggregate CI parity are reserved for GitHub Actions
+by protocol; no forbidden local `npm ci` or `npm run ci:check` was executed.
+The unchanged base's green CI evidence was verified before implementation.
+Feature-SHA CI is owned by the coordinator after push.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-_Not recorded._
+Pending final task commit and feature push.
 ### Merge / CI
 _Not started._
 ### Rollback

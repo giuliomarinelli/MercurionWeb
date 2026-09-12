@@ -16,7 +16,7 @@ import { SercurityService } from 'src/app_modules/auth/services/sercurity.servic
 import { CompareResult } from 'src/app_modules/auth/Models/enums/compare-result.enum';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
-import { ScopeService } from 'src/app_modules/auth/services/scope.service';
+import { Scope } from '../Models/enums/scope.enum';
 import { MoleculeCollectionItemEntity } from 'src/app_modules/molecule-collection/Models/entities/molecule-collection-item.entity';
 import { HistoryService } from 'src/app_modules/history/services/history.service';
 import { TinyHistoryDTO } from 'src/app_modules/history/Models/DTO/history.dto';
@@ -24,11 +24,12 @@ import { AuthIdentity } from 'src/app_modules/sso/Models/entities/auth-identity.
 import { ProvidedEmailDTO } from 'src/app_modules/auth/Models/DTO/provided-email.dto';
 import { AuthProvider } from 'src/app_modules/sso/Models/enums/auth-provider.enum';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
+import type { IdentityReadPort } from 'src/app_modules/auth/Models/interfaces/identity-read.port'
 
 
 
 @Injectable()
-export class UserService {
+export class UserService implements IdentityReadPort {
 
     private readonly logger: MeiliContextLogger
     private readonly mfaStrategyVals = Object.values(MfaStrategy)
@@ -37,7 +38,6 @@ export class UserService {
         @InjectRepository(User) private userRepository: Repository<User>,
         private readonly dataSource: DataSource,
         private readonly passwordEncoder: PasswordEncoderService,
-        private readonly scopeService: ScopeService,
         private readonly securityService: SercurityService,
         private readonly historyService: HistoryService,
         meiliLogger: MeiliLoggerService
@@ -45,7 +45,7 @@ export class UserService {
         this.logger = meiliLogger.forContext(UserService.name)
     }
 
-    public async getUserScopesById(userId: UUID): Promise<string[] | null> {
+    public async getUserScopesById(userId: UUID): Promise<Scope[] | null> {
         try {
             const user = await this.userRepository
                 .createQueryBuilder("user")
@@ -55,7 +55,9 @@ export class UserService {
             if (!user) {
                 return null
             }
-            return this.scopeService.decryptScopes(...user.scopes)
+            return user.scopes
+                .map((encryptedScope) => this.securityService.decrypt_AES256(encryptedScope))
+                .filter((scope): scope is Scope => Object.values(Scope).includes(scope as Scope))
         } catch (e) {
             this.logger.warn(`Error in getScopesById, userId=${userId}`, e as object)
             return null

@@ -16,12 +16,6 @@ jest.mock('fs', () => ({
   readFileSync: jest.fn().mockReturnValue('-----BEGIN KEY-----\nmock\n-----END KEY-----'),
 }));
 
-jest.mock('src/app_modules/user/services/user.service', () => ({
-  UserService: class {
-    getUserScopesById = jest.fn().mockResolvedValue([]);
-  },
-}));
-
 const jwtKeysMock = {
   getAccessKeyPair: () => ({
     privateKey: '-----BEGIN KEY-----\naccess\n-----END KEY-----',
@@ -54,7 +48,7 @@ describe('JwtToolsService', () => {
     service = new JwtToolsService(
       { signAsync: jest.fn(), verifyAsync: jest.fn(), decode: jest.fn() } as unknown as JwtService,
       configMock as unknown as ConfigService,
-      { getUserScopesById: jest.fn().mockResolvedValue([]) } as any,
+      { getUserScopesById: jest.fn().mockResolvedValue([]) },
       { set: jest.fn() } as any,
       { isTokenRevoked: jest.fn().mockResolvedValue(false), revokeToken: jest.fn() } as any,
       {

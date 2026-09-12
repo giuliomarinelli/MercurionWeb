@@ -172,7 +172,7 @@ export class GlobalGuard implements CanActivate {
                req.headers['x-scopes'] = JSON.stringify(
                   await this.scopeService.verifyUserClaimScopesConsistencyThenGetScopes(
                      payload.sub,
-                     newToken,
+                     payload.scp,
                   ),
                )
 
@@ -207,7 +207,7 @@ export class GlobalGuard implements CanActivate {
          req.headers['x-scopes'] = JSON.stringify(
             await this.scopeService.verifyUserClaimScopesConsistencyThenGetScopes(
                payload.sub,
-               accessToken,
+               payload.scp,
             ),
          )
 
