@@ -130,7 +130,7 @@ protocol.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-Pending commit after final task-file update.
+`d0e27cd4071bfd7351284dec1c01f6ad0a4a4785`
 ### Merge / CI
 _Not started._
 ### Rollback
