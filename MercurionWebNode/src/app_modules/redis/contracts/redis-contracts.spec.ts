@@ -1,8 +1,12 @@
 import {
+    redisCapabilityPolicy,
     redisDurations,
     redisKeys,
-    ttlSeconds
+    ttlSeconds,
+    validateRedisCapabilities
 } from './redis-contracts'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 
 describe('Redis key and TTL contracts', () => {
     it('keeps every governed owner namespace distinct for the same identifiers', () => {
@@ -46,5 +50,34 @@ describe('Redis key and TTL contracts', () => {
         expect(redisDurations.days(30)).toBe(2592000)
         expect(() => ttlSeconds(0)).toThrow()
         expect(() => ttlSeconds(1.5)).toThrow()
+    })
+
+    it.each([
+        ['Exg', true],
+        ['AExg$l', true],
+        ['Eg', false],
+        ['Ex', false],
+        ['', false]
+    ])('validates supported and missing notify-keyspace-events flags (%s)', (flags, supported) => {
+        expect(validateRedisCapabilities(flags) === undefined).toBe(supported)
+    })
+
+    it('describes the required policy with typed diagnostics', () => {
+        const result = validateRedisCapabilities('Eg')
+        expect(redisCapabilityPolicy.requiredFlags).toEqual(['E', 'x', 'g'])
+        expect(result).toMatchObject({
+            setting: 'notify-keyspace-events',
+            configuredFlags: 'Eg',
+            missingFlags: ['x'],
+            missingCapabilities: ['expired-key-events']
+        })
+    })
+
+    it('keeps local Docker and Kubernetes Redis manifests compatible with the policy', () => {
+        const docker = readFileSync(resolve(process.cwd(), '..', 'docker_sl', 'docker-compose.yml'), 'utf8')
+        const kubernetes = readFileSync(resolve(process.cwd(), '..', 'k8s', 'beta', 'redis-deploy.yaml'), 'utf8')
+        for (const manifest of [docker, kubernetes]) {
+            expect(manifest).toContain(`--notify-keyspace-events ${redisCapabilityPolicy.requiredFlags.join('')}`)
+        }
     })
 })

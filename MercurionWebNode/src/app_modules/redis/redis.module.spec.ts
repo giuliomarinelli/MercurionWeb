@@ -5,6 +5,7 @@ import { OAuth2AccessTokenRefreshService } from '../oauth2-client/services/acces
 import { SessionService } from '../auth/services/session.service';
 import { MeiliLoggerService } from '../meilisearch/services/meili-logger.service';
 import Redis from 'ioredis';
+import { RedisCapabilityService } from './services/redis-capability.service'
 
 describe('RedisModule (providers wiring)', () => {
   let moduleRef: TestingModule;
@@ -29,6 +30,7 @@ describe('RedisModule (providers wiring)', () => {
       providers: [
         { provide: Redis, useValue: mockRedisClient },
         RedisService,
+        RedisCapabilityService,
         {
           provide: OAuth2AccessTokenRefreshService,
           useValue: { refreshAccessToken: jest.fn() },
@@ -54,5 +56,6 @@ describe('RedisModule (providers wiring)', () => {
     const pubSubService = moduleRef.get(PubSubService);
     expect(redisService).toBeInstanceOf(RedisService);
     expect(pubSubService).toBeInstanceOf(PubSubService);
+    expect(moduleRef.get(RedisCapabilityService)).toBeInstanceOf(RedisCapabilityService)
   });
 });

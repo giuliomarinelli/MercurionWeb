@@ -25,6 +25,11 @@ export class RedisService implements OnModuleDestroy {
     return this.redisClient
   }
 
+  public async getNotifyKeyspaceEvents(): Promise<string> {
+    const response = await this.redisClient.config('GET', 'notify-keyspace-events')
+    return Array.isArray(response) && typeof response[1] === 'string' ? response[1] : ''
+  }
+
   async onModuleDestroy(): Promise<void> {
     await this.redisClient.quit()
   }

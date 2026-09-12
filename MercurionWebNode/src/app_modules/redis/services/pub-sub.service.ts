@@ -15,6 +15,7 @@ import {
 } from '@mercurion/socket-contracts';
 import { SessionInvalidationCause } from '@mercurion/rest-contracts';
 import { redisDurations, redisKeys } from '../contracts/redis-contracts';
+import { RedisCapabilityService } from './redis-capability.service'
 
 type ApplicationServer = Server<ClientToServerEvents, ServerToClientEvents>
 
@@ -30,6 +31,7 @@ export class PubSubService implements OnModuleDestroy, OnModuleInit {
     private readonly redisService: RedisService,
     private readonly oauth2_accessTokenRefreshService: OAuth2AccessTokenRefreshService,
     private readonly sessionService: SessionService,
+    private readonly redisCapabilityService: RedisCapabilityService,
     loggerFactory: MeiliLoggerService,
   ) {
     this.logger = loggerFactory.forContext(PubSubService.name)
@@ -40,7 +42,7 @@ export class PubSubService implements OnModuleDestroy, OnModuleInit {
   async onModuleInit() {
     if (this.initialized) return
 
-    await this.ensureKeyspaceEvents()     // log se non correttamente configurato
+    await this.redisCapabilityService.assertRequiredCapabilities()
     await this.subscribeToKeyspaceEvents() // psubscribe
     this.initialized = true
   }
@@ -53,22 +55,6 @@ export class PubSubService implements OnModuleDestroy, OnModuleInit {
 
   public setSocketServer(server: ApplicationServer): void {
     this.socketServer = server
-  }
-
-  private async ensureKeyspaceEvents() {
-    try {
-      const client = this.redisService.getClient()
-      const res = await client.config('GET', 'notify-keyspace-events')
-      const current = Array.isArray(res) ? res[1] as string : ''
-      if (!current || !/[E]/.test(current) || !/[x]/.test(current) || !/[g]/.test(current)) {
-        this.logger.warn(
-          `Redis notify-keyspace-events="${current}". Si consiglia almeno "Exg" per expired/del keyevents.`,
-        )
-      }
-    } catch {
-      this.logger.warn('Redis Keyspace Events are not correctly configured')
-      // Alcuni managed Redis non permettono CONFIG GET
-    }
   }
 
   private async subscribeToKeyspaceEvents(): Promise<void> {
