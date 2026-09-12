@@ -123,9 +123,13 @@ Feature-SHA CI is owned by the coordinator after push.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-Pending final task commit and feature push.
+`37f8ef71aabf9a02307a5b5cd13b32f840d92bcf` — BE-002 implementation,
+committed with `--no-gpg-sign` and the Copilot coauthor trailer; pushed to
+`origin/feature/BE-002`.
 ### Merge / CI
-_Not started._
+Feature CI run `34685155976` was dispatched for exact SHA
+`37f8ef71aabf9a02307a5b5cd13b32f840d92bcf` and was still in progress at
+handoff. Integration is coordinator-owned.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
