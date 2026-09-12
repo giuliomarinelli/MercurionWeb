@@ -8,6 +8,7 @@ describe('RedisService', () => {
   const testKey = 'test-key' as RedisKey
   const testHash = 'test-hash' as RedisKey
   let service: RedisService;
+  let moduleRef: TestingModule;
   let redisClient: Redis;
   const setMock = jest.fn();
   const getMock = jest.fn();
@@ -36,9 +37,10 @@ describe('RedisService', () => {
       hdel: hdelMock,
       hgetall: hgetallMock,
       hkeys: hkeysMock,
+      quit: jest.fn().mockResolvedValue('OK'),
     } as unknown as Redis;
 
-    const module: TestingModule = await Test.createTestingModule({
+    moduleRef = await Test.createTestingModule({
       providers: [
         RedisService,
         {
@@ -52,10 +54,11 @@ describe('RedisService', () => {
       ],
     }).compile();
 
-    service = module.get<RedisService>(RedisService);
+    service = moduleRef.get<RedisService>(RedisService);
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    await moduleRef?.close();
     jest.clearAllMocks(); // Pulisce i mock dopo ogni test
   });
 

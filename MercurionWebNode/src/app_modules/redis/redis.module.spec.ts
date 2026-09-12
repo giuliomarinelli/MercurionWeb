@@ -17,6 +17,7 @@ describe('RedisModule (providers wiring)', () => {
         on: jest.fn(),
         psubscribe: jest.fn(),
         subscribe: jest.fn(),
+        quit: jest.fn().mockResolvedValue('OK'),
       })),
       config: jest.fn().mockResolvedValue(['notify-keyspace-events', 'Ex']),
       publish: jest.fn(),
@@ -24,6 +25,7 @@ describe('RedisModule (providers wiring)', () => {
       get: jest.fn(),
       del: jest.fn(),
       keys: jest.fn(),
+      quit: jest.fn().mockResolvedValue('OK'),
     } as unknown as Redis;
 
     moduleRef = await Test.createTestingModule({
@@ -49,6 +51,10 @@ describe('RedisModule (providers wiring)', () => {
         PubSubService,
       ],
     }).compile();
+  });
+
+  afterEach(async () => {
+    await moduleRef?.close();
   });
 
   it('exposes RedisService and PubSubService as singletons', () => {
