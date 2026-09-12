@@ -1,6 +1,6 @@
 # 0077 - Establish semantic design tokens for the Angular UI
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -107,11 +107,25 @@ Prefer a small semantic layer over a huge token matrix. The goal is a stable pub
 
 ### Feature branch
 
-_Not started._
+`feature/UI-019`
 
 ### Preflight
 
-_Not started._
+- Verified clean `feature/UI-019` at supplied base
+  `262a06bc1817f57b7ed06a99486a5efe591d28e8`; the supplied fresh full
+  baseline run `34665560885` was green on Ubuntu, Windows, and Required gate.
+- Confirmed no task-owned Angular, Nest, Tox21, or test-watcher process was
+  active before the task.
+- Runtime capability preflight used the canonical Tox21, Nest, and Angular
+  start order. Nginx returned retryable 502 responses during compilation, then
+  two complete readiness rounds returned 200 for `/health` and `/`.
+- The dedicated browser profile exposed the existing protected dashboard
+  (`Benvenuto Test.` and workspace counts) and the login route was inspected.
+  Light and dark theme controls were exercised through `http://localhost:8888`;
+  the narrow viewport snapshot remained structurally usable and console
+  errors/warnings were absent. The browser transport timed out on attempts to
+  activate the collection/search controls, so no claim is made for those
+  additional routes.
 
 ### Preflight remediation
 
@@ -119,29 +133,54 @@ _None._
 
 ### Summary
 
-Not attempted. The required inclusive prerequisite range 0059 through 0076
-cannot be DONE because tasks 0059 through 0075 are
-`SKIPPED_DEPENDENCY`, and task 0076 is `BLOCKED`.
+Added a documented semantic token taxonomy to Tailwind and mapped shared CSS
+variables for light and dark semantic roles. Canonical button, action-card and
+toast primitives now consume semantic color, spacing, radius, shadow and
+typography roles instead of local color/shadow literals. Added a deterministic
+machine-readable token exception file and a token-usage gate with a negative
+fixture check, registered in the root `ci:static` aggregate.
 
 ### Task-specific validation performed
 
-Not applicable; no feature branch or implementation worker was created.
+- `npm run ui:tokens:check` — passed.
+- `npm run ui:tokens:check:negative` — passed; the temporary fixture with
+  `#123456` was rejected and removed.
+- `npm run typecheck --workspace mercurion_web_ng` — passed.
+- `npm run build --workspace mercurion_web_ng` — passed; only existing bundle
+  budget/CommonJS warnings were emitted.
+- `npx eslint src/app/components/common/button/button.component.ts
+  src/app/components/common/action-card/action-card.component.ts
+  src/app/components/common/toast/toast.component.ts` from `MercurionWebNg`
+  — passed.
+- The full workspace Angular lint command was started but did not produce a
+  result within the bounded local wait and was stopped; exact aggregate
+  validation remains owned by GitHub Actions.
 
 ### Full pre-merge CI-parity validation
 
-Not applicable; dependency-skip metadata only.
+Not run locally by policy (`npm ci` and `npm run ci:check` are forbidden in
+autonomous workers). Supplied baseline evidence was green; feature-SHA
+GitHub Actions validation is required after push.
 
 ### Browser validation performed
 
-Not applicable; the task was not attempted.
+Canonical runtime was restarted after implementation and stopped afterward.
+Through `http://localhost:8888`, protected dashboard content was observed in
+dark mode, the theme menu switched to light mode with light logo assets,
+responsive validation was performed at 390x844, and the page had no console
+errors or warnings. Login, dashboard and theme-control snapshots were
+captured. Collection/search/action-overlay activation was attempted but
+Chrome DevTools MCP timed out before interaction; no unsupported browser
+substitute was used.
 
 ### Commits
 
-Pending metadata commit on `develop`.
+Pending task implementation commit on `feature/UI-019`.
 
 ### Merge / CI
 
-No feature branch or merge. Exact-SHA CI is required for the metadata commit.
+Feature branch publication and exact-SHA CI are coordinator-controlled after
+the task-specific commit. No `develop` modification was made.
 
 ### Rollback
 
@@ -149,9 +188,5 @@ _Not applicable._
 
 ### Blocker / human decision required
 
-Direct terminal prerequisites: 0059 through 0075 are
-`SKIPPED_DEPENDENCY`, and 0076 (UI-018) is `BLOCKED`. The skipped
-prerequisites trace through blocked FE-030, which requires filesystem-write
-capability for a fresh, human-authorized worker session; UI-018 requires a
-test-safe local Nest runtime and dependencies for its mandatory browser
-validation.
+None for local implementation. The supplied direct human instruction
+authorizes execution despite the historical prerequisite metadata.
