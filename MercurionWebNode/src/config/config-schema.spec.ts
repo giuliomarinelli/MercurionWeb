@@ -91,6 +91,25 @@ describe('canonical configuration schema', () => {
     expect(violations).toEqual([])
   })
 
+  it('forbids process termination from importable configuration modules', () => {
+    const files = [
+      ...typescriptFiles(join(process.cwd(), 'src', 'config')),
+      join(process.cwd(), 'src', 'utils', 'env-helpers.ts')
+    ]
+    const violations = files.flatMap(file =>
+      readFileSync(file, 'utf8')
+        .split(/\r?\n/)
+        .map((line, index) => ({
+          line: line.trim(),
+          lineNumber: index + 1,
+          path: relative(process.cwd(), file).replaceAll('\\', '/')
+        }))
+        .filter(({ line }) => /process\.exit\s*\(/.test(line))
+    )
+
+    expect(violations).toEqual([])
+  })
+
   it('declares every application environment source shipped in the example file', () => {
     const example = readFileSync(join(process.cwd(), 'env', '.env.example'), 'utf8')
     const exampleSources = new Set(

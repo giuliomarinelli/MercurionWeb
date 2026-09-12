@@ -1,7 +1,5 @@
-import { Module } from '@nestjs/common';
+import { DynamicModule, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { join } from 'node:path';
-import { configurations } from './config/config';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { MailerModule, MailerOptions } from '@nestjs-modules/mailer';
 import { RedisModule } from './app_modules/redis/redis.module';
@@ -26,27 +24,16 @@ import { AdminModule } from './app_modules/admin/admin.module';
 import { SSO_Module } from './app_modules/sso/sso.module';
 import { HelpModule } from './app_modules/help/help.module';
 import { FeedbackModule } from './app_modules/feedback/feedback.module';
-import { resolveAppEnv, shouldUseEnvFile } from './utils/env-helpers';
-import { validateEnvOrKillProcess } from './config/env-validation';
 import { ReleaseVersionModule } from './app_modules/release-version/release-version.module';
 import { HealthController } from './health.controller';
 import { AssetController } from './asset.controller';
-
-const appEnv = resolveAppEnv()
+import {
+  createConfigurationModule,
+  type ConfigurationModuleOptions
+} from './config/configuration.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,      
-      ignoreEnvFile: !shouldUseEnvFile(appEnv),
-      envFilePath: shouldUseEnvFile(appEnv)
-        ? join(process.cwd(), 'env', `.env.${appEnv}`)
-        : undefined,
-      load: [...configurations],      
-      expandVariables: true,            
-      cache: false,
-      validate: (config) => validateEnvOrKillProcess(config as NodeJS.ProcessEnv)
-    }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => configService.get<TypeOrmModuleOptions>("Data.pgSQL") ?? {},
@@ -87,3 +74,22 @@ const appEnv = resolveAppEnv()
   controllers: [TestController, HealthController, AssetController]
 })
 export class AppModule { }
+
+@Module({})
+class ApplicationBootstrapModule {}
+
+export interface ApplicationModuleOptions {
+  readonly configuration?: ConfigurationModuleOptions
+}
+
+export function createApplicationModule(
+  options: ApplicationModuleOptions = {}
+): DynamicModule {
+  return {
+    module: ApplicationBootstrapModule,
+    imports: [
+      createConfigurationModule(options.configuration),
+      AppModule
+    ]
+  }
+}

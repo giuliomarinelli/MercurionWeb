@@ -4,11 +4,27 @@ import {
     type ValidatedEnvironment
 } from './config.schema'
 
-let validatedEnvironment: ValidatedEnvironment | undefined
+export interface ConfigurationDiagnostic {
+    readonly source: string
+    readonly message: string
+}
+
+export class ConfigurationError extends Error {
+    readonly code = 'INVALID_CONFIGURATION'
+
+    constructor(readonly diagnostics: readonly ConfigurationDiagnostic[]) {
+        super(
+            `Invalid environment configuration:\n${diagnostics
+                .map(diagnostic => `${diagnostic.source}: ${diagnostic.message}`)
+                .join('\n')}`
+        )
+        this.name = 'ConfigurationError'
+    }
+}
 
 export function validateEnvironment(raw: RawEnvironment): ValidatedEnvironment {
     const result: Record<string, unknown> = {}
-    const errors: string[] = []
+    const diagnostics: ConfigurationDiagnostic[] = []
 
     for (const property of environmentSchema.entries) {
         const rawValue = raw[property.source]
@@ -16,7 +32,10 @@ export function validateEnvironment(raw: RawEnvironment): ValidatedEnvironment {
             if (property.defaulted) {
                 result[property.source] = property.defaultValue
             } else if (property.required) {
-                errors.push(`${property.source}: is required`)
+                diagnostics.push({
+                    source: property.source,
+                    message: 'is required'
+                })
             } else {
                 result[property.source] = undefined
             }
@@ -26,22 +45,25 @@ export function validateEnvironment(raw: RawEnvironment): ValidatedEnvironment {
         try {
             result[property.source] = property.parser.parse(rawValue, property.source)
         } catch (error) {
-            errors.push(error instanceof Error ? error.message : `${property.source}: invalid`)
+            const message = error instanceof Error ? error.message : 'is invalid'
+            diagnostics.push({
+                source: property.source,
+                message: message.startsWith(`${property.source} `)
+                    ? message.slice(property.source.length + 1)
+                    : message
+            })
         }
     }
 
-    if (errors.length > 0) {
-        throw new Error(`Invalid environment configuration:\n${errors.join('\n')}`)
+    if (diagnostics.length > 0) {
+        throw new ConfigurationError(diagnostics)
     }
 
     return result as ValidatedEnvironment
 }
 
-export function validateEnvOrKillProcess(raw: RawEnvironment): ValidatedEnvironment {
-    validatedEnvironment = validateEnvironment(raw)
-    return validatedEnvironment
-}
-
-export function getValidatedEnvironment(): ValidatedEnvironment {
-    return validatedEnvironment ?? validateEnvOrKillProcess(process.env)
+export function getValidatedEnvironment(
+    raw: RawEnvironment = process.env
+): ValidatedEnvironment {
+    return validateEnvironment(raw)
 }
