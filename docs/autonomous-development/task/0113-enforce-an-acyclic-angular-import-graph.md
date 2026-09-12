@@ -1,6 +1,6 @@
 # 0113 - Enforce an acyclic Angular production import graph
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -84,27 +84,60 @@ Mark `BLOCKED` if a detected cycle reflects an unresolved ownership decision tha
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/NG-027` from `207431fdea7e06ae0a028efac20099369fe62b5e`.
 ### Preflight
-_Not started._
+* The clean feature branch matched the supplied base SHA
+  `207431fdea7e06ae0a028efac20099369fe62b5e`. The exact base CI run
+  `34682561695` completed successfully.
+* No task-owned Angular, Nest, Tox21, test watcher, or workspace-consuming
+  process was active before implementation. No install or aggregate local CI
+  command was run.
+* The pre-remediation audit identified the remaining SCC as
+  `SearchResultComponent -> AddMoleculesToCollectionComponent ->
+  SearchResultComponent`, caused by the `ChipItem` import/re-export. The
+  earlier Toast SCC was verified already removed: both the service and
+  renderer use `Models/toast.models.ts`, and the renderer imports the service
+  rather than the reverse.
 ### Preflight remediation
-_None._
+None.
 ### Summary
-Not attempted because required UI-018 is `BLOCKED`. The collection-picker and
-search-decomposition references are advisory.
+Moved the shared `ChipItem` import in `SearchResultComponent` to the
+feature-neutral `add-molecules-to-collection.flow.ts` contract, eliminating
+the component-to-component edge without duplicating the model. Added a
+TypeScript-aware deterministic production import-graph checker that resolves
+Angular project imports, aliases, exports, and lazy `import()` edges, reports
+strongly connected components, and supports fixture roots. Registered its
+positive gate and synthetic negative-cycle test in `ci:static`/`ci:check`.
 ### Task-specific validation performed
-Not applicable; no feature branch or implementation worker was created.
+* `npm run ci:angular:import-graph` — passed; 280 production modules were
+  checked and the negative fixture was rejected.
+* `npm run typecheck --workspace mercurion_web_ng` — passed.
+* Focused Angular component/flow tests — 8 SUCCESS.
+* Focused ESLint — 0 errors; one pre-existing Angular output-name warning.
+* Canonical runtime startup was performed in the required Tox21, Nest, Angular
+  order. After two consecutive complete readiness rounds, the protected
+  dashboard rendered through `http://localhost:8888` as `Benvenuto Test.` and
+  the browser error console was empty. The existing profile/session redirected
+  `/login` to the authenticated dashboard; no credentials were recorded or
+  changed. Runtime interaction attempts for dashboard action controls were not
+  used as graph acceptance evidence because the MCP reported the controls
+  non-interactive; all three worker-started processes were stopped and their
+  absence was verified.
 ### Full pre-merge CI-parity validation
-Not applicable; dependency-skip metadata only.
+Local `npm ci` and `npm run ci:check` were intentionally not run. The exact
+pushed feature SHA requires GitHub Actions CI for full clean-install and
+aggregate parity.
 ### Browser validation performed
-Not applicable; the task was not attempted.
+Canonical edge readiness passed with two consecutive complete HTTP 200 rounds
+for `/health` and `/`. The authenticated dashboard was observed through the
+persistent Chrome profile with no console errors. No special browser behavior
+was changed by the import-only refactor.
 ### Commits
-Pending metadata commit on `develop`.
+Pending task commit.
 ### Merge / CI
-No feature branch or merge. Exact-SHA CI is required for the metadata commit.
+Feature branch must be pushed after the task-specific commit; exact-SHA CI is
+required before integration.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Direct terminal prerequisite: UI-018, `BLOCKED` because mandatory browser
-validation could not complete without a test-safe local Nest runtime and its
-local dependencies.
+None.
