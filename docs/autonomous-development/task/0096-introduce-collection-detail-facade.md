@@ -1,6 +1,6 @@
 # 0096 - Introduce a collection-detail facade and independent toolbar/grid/pagination
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -82,38 +82,69 @@ Mark `BLOCKED` if current item mutation/invalidation semantics cannot be made de
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/NG-010`
 
 ### Preflight
-_Not started._
+* Confirmed clean `feature/NG-010` at base `e5fb7ab5ad42267fd9864cf4fa4ccc598e9a2984`.
+* No task-owned Angular, Nest, Tox21, watcher, or workspace-consuming process
+  was active before validation.
+* Exact-base GitHub Actions run `34672567109` completed successfully with
+  `Required gate` green; the run was the supplied metadata validation for the
+  preceding NG-009 block.
+* Did not run `npm ci` or `npm run ci:check` locally.
 
 ### Preflight remediation
-_None._
+None.
 
 ### Summary
-Not attempted because the required canonical collection/molecule-card and
-pagination primitives are terminally unavailable. Typed domain invalidation
-task 0047 is `DONE`.
+Introduced `MoleculeCollectionDetailFacade` as the single owner of typed route
+identity, collection query/filter state, discriminated loading/error/empty/
+content/page-pending state, page coordination, item commands, and typed
+invalidation. The page is now a layout shell composed from independently
+testable toolbar, grid, and pagination/load-more components. Route and page
+requests use a request version plus current collection identity check so stale
+results cannot repopulate a reopened collection. The anonymous refresh tick was
+removed and replaced with `items-changed` domain invalidation.
 
 ### Task-specific validation performed
-Not applicable; no feature branch or implementation worker was created.
+* `npm run typecheck --workspace mercurion_web_ng` — passed.
+* `npm run lint --workspace mercurion_web_ng -- --no-warn-ignored` — passed
+  (pre-existing warnings only).
+* `npm run test:ci --workspace mercurion_web_ng -- --include=src/app/pages/molecule-collection-detail/molecule-collection-detail.page.component.spec.ts`
+  — passed; focused page spec compiled and executed through the Angular
+  test runner.
+* `git diff --check` — passed.
+* Canonical runtime started in the required order (Tox21, Nest, Angular);
+  Nest compiled with zero errors and Angular reached watch mode. Two
+  consecutive edge readiness rounds returned HTTP 200 for `/health` and `/`.
+* Through the dedicated browser profile, ordinary login with the local
+  development test account reached the protected Dashboard and displayed the
+  authenticated user state. Direct collection-detail navigation was attempted
+  through `http://localhost:8888`; Chrome MCP snapshots remained available but
+  click/navigation interactions timed out and the app remained on Dashboard.
+  No console errors were reported. This is recorded as shared browser
+  interaction evidence rather than task behavior evidence.
 
 ### Full pre-merge CI-parity validation
-Not applicable; dependency-skip metadata only.
+Not run locally by policy. Exact feature-SHA GitHub Actions validation remains
+the coordinator's required pre-merge gate.
 
 ### Browser validation performed
-Not applicable; the task was not attempted.
+Protected local runtime and authenticated Dashboard state were verified through
+`http://localhost:8888`. The collection-detail route probe was attempted; the
+Chrome interaction transport timed out before route content could be observed.
 
 ### Commits
-Pending metadata commit on `develop`.
+Pending task implementation commit.
 
 ### Merge / CI
-No feature branch or merge. Exact-SHA CI is required for the metadata commit.
+Feature branch publication and exact-SHA CI are required after the task commit.
 
 ### Rollback
-_Not applicable._
+Not applicable.
 
 ### Blocker / human decision required
-Required primitives are in the UI-001 through UI-016 dependency chain, which
-is `SKIPPED_DEPENDENCY` through FE-030 (BLOCKED). FE-030 requires
-filesystem-write capability for a fresh, human-authorized worker session.
+None. The canonical pagination primitive referenced by the recipe is not
+present as a reusable component on this base, so the feature-local pagination
+unit exposes the same page/load-more contract without changing global
+pagination inheritance (owned by task 0102).
