@@ -1,5 +1,5 @@
 jest.mock('../src/config/env-validation', () => ({
-  validateEnvOrKillProcess: jest.fn(),
+  validateEnvOrKillProcess: jest.fn((config) => config),
 }));
 
 import { AppModule } from './../src/app.module';
