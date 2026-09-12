@@ -135,8 +135,14 @@ The primitive may expose a typed stale/revalidating variant only if existing rep
   remaining Tox21/Nest/Angular watcher.
 
 ### Commits
-Pending task-specific commit; the final commit will include `--no-gpg-sign`
-and a Copilot co-author trailer.
+`141caa1cbfe8f0470742f19de62bd6babb50e4e6` —
+`feat(ui): add canonical page state primitive`, committed with
+`--no-gpg-sign` and a Copilot co-author trailer.
+
+### Feature CI
+Exact feature SHA `141caa1cbfe8f0470742f19de62bd6babb50e4e6` passed CI run
+`34663788104`: Ubuntu quality, Windows quality, and `Required gate` all
+successful.
 
 > Current status (2026-09-11): PENDING by direct owner instruction because this
 > activity was not completed. Historical attempt/skip evidence remains below
