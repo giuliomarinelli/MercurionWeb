@@ -139,8 +139,8 @@ is covered by focused unit tests. All task-owned runtime processes were
 stopped and their absence verified.
 
 ### Commits
-- `CI repair commit pending` — refresh generated REST route ownership
-  references after the Auth service split.
+- `a88a3bb2` — refresh generated REST route ownership references after the
+  Auth service split.
 
 ### Merge / CI
 Feature SHA requires exact-SHA Actions `Required gate` before integration.
