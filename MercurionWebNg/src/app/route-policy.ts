@@ -1,4 +1,5 @@
 import { ActivatedRouteSnapshot, Data, Route } from '@angular/router'
+import { StatusPageConfig } from './pages/status-page/status-page.models'
 
 export type RouteAccess = 'public' | 'authenticated' | 'logged-out-only'
 export type RouteShell = 'standard' | 'welcome' | 'minimal'
@@ -11,6 +12,7 @@ export interface RoutePolicy {
 export interface AppRouteData extends Data {
   readonly routePolicy: RoutePolicy
   readonly titleManagedByComponent?: boolean
+  readonly statusPage?: StatusPageConfig
 }
 
 export const DEFAULT_ROUTE_POLICY: RoutePolicy = Object.freeze({

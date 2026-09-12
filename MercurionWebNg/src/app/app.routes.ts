@@ -1,6 +1,7 @@
 import { Route, Routes } from '@angular/router'
 import { AuthGuard } from './guards/auth.guard'
 import { routeData, routeManifest, RouteDescriptor } from './route-manifest'
+import { STATUS_PAGE_CONFIG } from './pages/status-page/status-page.models'
 
 const manifestRoute = (descriptor: RouteDescriptor<any>, route: Route = {}): Route => ({
   ...route,
@@ -32,8 +33,8 @@ export const routes: Routes = [
   manifestRoute(routeManifest.oauthCallback, { loadComponent: () => import('./pages/sso/sso.page.component').then(m => m.SsoPageComponent) }),
   manifestRoute(routeManifest.help, { loadComponent: () => import('./pages/help/help.page.component').then(m => m.HelpPageComponent), canActivate: [AuthGuard] }),
   manifestRoute(routeManifest.feedback, { loadComponent: () => import('./pages/feedback/feedback.page.component').then(m => m.FeedbackPageComponent), canActivate: [AuthGuard] }),
-  manifestRoute(routeManifest.notFound, { loadComponent: () => import('./pages/not-found-404-landing/not-found-404-landing.page.component').then(m => m.NotFound404LandingPageComponent) }),
-  manifestRoute(routeManifest.forbidden, { loadComponent: () => import('./pages/forbidden-403-landing/forbidden-403-landing.page.component').then(m => m.Forbidden403LandingPageComponent) }),
+  manifestRoute(routeManifest.notFound, { data: { statusPage: STATUS_PAGE_CONFIG[404] }, loadComponent: () => import('./pages/status-page/status-page.component').then(m => m.StatusPageComponent) }),
+  manifestRoute(routeManifest.forbidden, { data: { statusPage: STATUS_PAGE_CONFIG[403] }, loadComponent: () => import('./pages/status-page/status-page.component').then(m => m.StatusPageComponent) }),
   manifestRoute(routeManifest.privacy, { loadComponent: () => import('./pages/privacy/privacy.page.component').then(m => m.PrivacyPageComponent) }),
   manifestRoute(routeManifest.terms, { loadComponent: () => import('./pages/terms-and-policies/terms-and-policies.page.component').then(m => m.TermsAndPoliciesPageComponent) }),
   manifestRoute(routeManifest.contacts, { loadComponent: () => import('./pages/contacts/contacts.page.component').then(m => m.ContactsPageComponent) }),

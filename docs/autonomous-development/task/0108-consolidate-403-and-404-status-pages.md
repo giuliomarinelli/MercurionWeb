@@ -1,6 +1,6 @@
 # 0108 - Consolidate 403 and 404 into one status-page component
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -83,22 +83,42 @@ Mark `BLOCKED` if earlier routing/auth refactors leave unresolved intended behav
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/NG-022`
 ### Preflight
-_Not started._
+- Confirmed clean `feature/NG-022` at supplied base `fb3df08eae573959008b08b99a9bbed5d5e17e7e`.
+- Verified GitHub Actions run `34681561584` succeeded for that exact SHA.
+- Angular typecheck passed with `Set-Location MercurionWebNg; npm run typecheck`.
+- Canonical Tox21, Nest and Angular runtime sessions started in order; Nest and Angular reached live watch mode, nginx readiness returned two consecutive complete rounds of `200` for `/health` and `/`.
+- Browser preflight opened `http://localhost:8888/403-forbidden` in the dedicated profile and confirmed authenticated Dashboard CTA and accessible 403 heading/copy.
 ### Preflight remediation
 _None._
 ### Summary
-Not attempted because the required canonical UI button/link primitives are
-terminally unavailable. The FE-035 route-manifest reference is advisory.
+Consolidated both landing pages into one route-configured `StatusPageComponent`.
+Typed 403/404 metadata now lives in route data, while the shared component owns
+accessible semantics, focus, back navigation, auth-aware CTA behavior, and
+canonical button primitives. Obsolete page sources/specs were removed.
 ### Task-specific validation performed
-Not applicable; no feature branch or implementation worker was created.
+- `Set-Location MercurionWebNg; npm run typecheck` passed.
+- `Set-Location MercurionWebNg; npm run lint -- --no-warn-ignored` passed with
+  pre-existing warnings only.
+- `Set-Location MercurionWebNg; npm run test:ci -- --include=src/app/pages/status-page/status-page.component.spec.ts`
+  passed (Angular test process exit code 0).
+- `Set-Location MercurionWebNg; npm run build` passed with existing bundle and
+  CommonJS warnings.
+- `git diff --check` passed.
 ### Full pre-merge CI-parity validation
 Not applicable; dependency-skip metadata only.
 ### Browser validation performed
-Not applicable; the task was not attempted.
+Through `http://localhost:8888` after the final canonical runtime restart:
+authenticated 403 rendered the distinct 403 copy, Dashboard CTA, focused main
+region, status semantics and route title; authenticated 404 rendered distinct
+404 copy, Dashboard CTA, focused main region and route title; an unknown URL
+resolved to `/404-not-found` with the same 404 state. Anonymous CTA evidence
+was not separately captured because the dedicated profile remained
+authenticated; the component test covers the anonymous Home CTA and manifest
+destination.
 ### Commits
-Pending metadata commit on `develop`.
+Pending task implementation commit.
 ### Merge / CI
 No feature branch or merge. Exact-SHA CI is required for the metadata commit.
 ### Rollback
