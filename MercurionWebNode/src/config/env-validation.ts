@@ -22,6 +22,19 @@ export class ConfigurationError extends Error {
     }
 }
 
+export function toConfigurationDiagnostic(
+    source: string,
+    error: unknown
+): ConfigurationDiagnostic {
+    const message = error instanceof Error ? error.message : 'is invalid'
+    return {
+        source,
+        message: message.startsWith(`${source} `)
+            ? message.slice(source.length + 1)
+            : message
+    }
+}
+
 export function validateEnvironment(raw: RawEnvironment): ValidatedEnvironment {
     const result: Record<string, unknown> = {}
     const diagnostics: ConfigurationDiagnostic[] = []
@@ -45,13 +58,7 @@ export function validateEnvironment(raw: RawEnvironment): ValidatedEnvironment {
         try {
             result[property.source] = property.parser.parse(rawValue, property.source)
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'is invalid'
-            diagnostics.push({
-                source: property.source,
-                message: message.startsWith(`${property.source} `)
-                    ? message.slice(property.source.length + 1)
-                    : message
-            })
+            diagnostics.push(toConfigurationDiagnostic(property.source, error))
         }
     }
 

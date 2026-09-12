@@ -24,7 +24,7 @@ export class MercurionAIService implements OnModuleInit {
         loggerFactory: MeiliLoggerService
     ) {
         this.logger = loggerFactory.forContext(MercurionAIService.name)
-        const env = this.configService.get<Environment>('App.env')
+        const env = this.configService.getOrThrow<Environment>('App.env')
         let namespace: string = 'inference.tox21.smiles'
         if (env !== Environment.Production) {
             namespace = `${env}.${namespace}`

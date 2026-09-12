@@ -8,6 +8,13 @@ describe('RdKitService', () => {
   let service: RDKitService;
 
   beforeEach(async () => {
+    const getConfigValue = (key: string) => {
+      if (key === 'App.maxNatsPayloadBytes') return 1024 * 1024;
+      if (key === 'App.env') return 'development';
+      if (key === 'App.natsHost') return 'localhost';
+      if (key === 'App.natsPort') return 4222;
+      return undefined;
+    };
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         RDKitService,
@@ -18,13 +25,8 @@ describe('RdKitService', () => {
         {
           provide: ConfigService,
           useValue: {
-            get: jest.fn((key: string) => {
-              if (key === 'App.maxNatsPayloadBytes') return 1024 * 1024;
-              if (key === 'App.env') return 'development';
-              if (key === 'App.natsHost') return 'localhost';
-              if (key === 'App.natsPort') return 4222;
-              return undefined;
-            }),
+            get: jest.fn(getConfigValue),
+            getOrThrow: jest.fn(getConfigValue),
           },
         },
         {

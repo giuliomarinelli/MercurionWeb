@@ -51,4 +51,10 @@ describe('AppModule', () => {
 
     exit.mockRestore();
   });
+
+  it('rejects an unknown APP_ENV through the typed configuration path', () => {
+    expect(() => createConfigurationModule({
+      environment: buildTestEnvironment({ APP_ENV: 'prodution' })
+    })).toThrow(ConfigurationError);
+  });
 });

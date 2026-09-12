@@ -5,6 +5,7 @@ import {
   reportBootstrapFailure,
   runBootstrap
 } from './main'
+import { parseAppEnv } from './utils/env-helpers'
 
 describe('application bootstrap failure handling', () => {
   const originalExitCode = process.exitCode
@@ -64,5 +65,28 @@ describe('application bootstrap failure handling', () => {
         message: 'is required'
       }]
     })
+  })
+
+  it.each([
+    'prodution',
+    'DEV',
+    ' development',
+    'development ',
+    'future'
+  ])('routes invalid APP_ENV %j through typed bootstrap failure handling', async raw => {
+    process.exitCode = undefined
+    const report = jest.fn()
+
+    await runBootstrap(async () => {
+      parseAppEnv(raw)
+    }, report)
+
+    expect(report).toHaveBeenCalledTimes(1)
+    expect(report.mock.calls[0][0]).toBeInstanceOf(ConfigurationError)
+    expect((report.mock.calls[0][0] as ConfigurationError).diagnostics).toEqual([{
+      source: 'APP_ENV',
+      message: 'must be one of: development, staging, production, test'
+    }])
+    expect(process.exitCode).toBe(1)
   })
 })

@@ -61,7 +61,7 @@ export async function bootstrap() {
 
   logger.setLogLevels(Array.from(logLevels))
 
-  const env = configService.get<Environment>('App.env')
+  const env = configService.getOrThrow<Environment>('App.env')
 
   const natsPort = configService.get<number>('App.natsPort') ?? 4223
   const natsHost = configService.get<string>('App.natsHost')
@@ -242,7 +242,7 @@ export async function bootstrap() {
     appUrl.slice(lastColonIndex + 1) +
     '\x1b[0m'
 
-  const envUc = env?.toUpperCase() ?? 'DEVELOPMENT'
+  const envUc = env.toUpperCase()
 
   logger.log(`MercurionWebNode started in \x1b[36m${envUc} \x1b[32menvironment`)
 

@@ -25,7 +25,7 @@ export class MeiliLoggerService extends Logger implements LoggerService, OnModul
     }
 
     private async ensureIndexExists(): Promise<void> {
-        const env = this.configService.get<Environment>('App.env')!
+        const env = this.configService.getOrThrow<Environment>('App.env')
         const idxName = `mercurion_web_node_logs_${env}`
         try {
             await this.meiliClient.getIndex(idxName)
