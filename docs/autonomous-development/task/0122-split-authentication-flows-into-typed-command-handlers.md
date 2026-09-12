@@ -1,6 +1,6 @@
 # 0122 - Split authentication flows into typed command handlers
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -84,23 +84,78 @@ Mark `BLOCKED` if the current flow contains an ambiguous security transition (fo
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/BE-008`, created from and descended directly from green `develop`
+SHA `377713bbe0e2a675355cd9207c2d9b8d0e4c72e3`.
 ### Preflight
-_Not started._
+- Confirmed the clean local branch was exactly `feature/BE-008` at the supplied
+  base SHA and that the base is an ancestor of the task branch.
+- Confirmed GitHub Actions CI run
+  `https://github.com/giuliomarinelli/MercurionWeb/actions/runs/34690355968`
+  completed successfully for the exact base SHA.
+- Confirmed no Angular, Nest, Tox21, Jest/Vitest watcher, or other
+  workspace-consuming process was active.
+- Confirmed prerequisite tasks 0116 and 0118 are `DONE`.
+- Focused unchanged checks passed before editing:
+  - 8 authentication/controller/session/JWT/SSO suites, 15 tests.
+  - `npm run typecheck --workspace mercurion_web_node`.
+  - `npm run ci:nest:architecture`.
+- Local `npm ci` and `npm run ci:check` were not run.
 ### Preflight remediation
 _None._
 ### Summary
-_Not started._
+- Replaced the broad `AuthenticationService` with typed handlers for email
+  verification, credential login, MFA challenge start/completion, logout,
+  single/all-session revocation, websocket-token refresh, active-session
+  lookup, local-development login, and SSO authentication completion.
+- Added typed discriminated outcomes for transport-visible continuations and
+  failures. Controllers now invoke one handler per authentication entrypoint
+  and retain only HTTP response, cookie, header/decorator, and presentation
+  responsibilities.
+- Added the single-purpose `AuthenticationSessionService` for shared
+  fingerprinting, MFA pre-authorization binding, authenticated-session trust
+  updates, and access-token issuance.
+- Preserved existing credential lockout, password migration, adaptive MFA,
+  development test-account bypass, MFA device binding, token/session
+  revocation, cookie lifetime, logout idempotency, SSO error classification,
+  route paths, DTOs, and REST compatibility inventory.
+- Moved `/account/active-sessions` behind `ListActiveSessionsHandler` and
+  removed all remaining `AuthenticationService` references and files.
 ### Task-specific validation performed
-_Not started._
+- Focused authentication validation passed: 13 suites / 45 tests covering all
+  new handlers, controller presenters, session/JWT services, SSO boundaries,
+  and Auth module wiring.
+- Table-driven handler tests cover successful and failing credential, MFA,
+  logout, revocation, refresh, session-query, local-development, and SSO
+  transitions.
+- `npm run contracts:check --workspace mercurion_web_node` passed: 8 suites /
+  38 tests.
+- `npm run ci:rest-compatibility` passed with 59/59 client calls matched to 58
+  Nest routes; the committed REST inventory remained unchanged.
+- `npm run ci:nest:architecture` passed for 22 production modules, 8
+  configuration files, and all governed provider ownership checks.
+- `npm run typecheck --workspace mercurion_web_node` passed.
+- `npm run lint --workspace mercurion_web_node` passed with 49 pre-existing
+  warnings and no errors.
+- `npm run build --workspace mercurion_web_node` passed.
+- Full Nest unit suite passed: 137 suites / 288 tests.
+- Full Nest E2E suite passed: 1 suite / 1 test.
+- `git diff --check` passed; static inventory confirmed zero
+  `AuthenticationService` references and no direct authentication-domain
+  service imports in `AuthenticationController`.
 ### Full pre-merge CI-parity validation
-_Not started._
+Complete clean-install and aggregate CI parity are reserved for GitHub Actions
+on the exact pushed feature SHA. No forbidden local `npm ci` or
+`npm run ci:check` command was executed.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-_Not recorded._
+- `3ed3fcd49ef3a63deb52f72260f6ad717783a7b0` — BE-008 typed authentication
+  handlers and focused tests, committed with `--no-gpg-sign` and the Copilot
+  co-author trailer.
+- Task-status and execution-note finalization: current documentation commit.
 ### Merge / CI
-_Not started._
+Provisional `DONE` / `CI_PENDING`; exact feature-SHA CI and integration are
+coordinator-owned.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
