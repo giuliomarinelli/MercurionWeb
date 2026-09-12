@@ -1,7 +1,7 @@
 # 0150 - Establish versioned TypeORM migrations
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
@@ -93,24 +93,61 @@ Do not make a generated migration trustworthy merely because TypeORM emitted it.
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-001` at base `d3dd4e1f60463f447326e6c197e4826c812e6b98`.
+
 ### Preflight
-_Not started._
+- Branch identity and cleanliness verified with `git status --short --branch`,
+  `git rev-parse HEAD`, and `git branch --show-current`; the branch was clean
+  and exactly matched the supplied base SHA.
+- Dependency recipes 0008, 0130, and 0132 are all `[x] DONE`.
+- Exact base SHA GitHub Actions evidence verified with
+  `gh run list --commit d3dd4e1f60463f447326e6c197e4826c812e6b98`; CI run
+  `34710547193` completed successfully.
+- No task-owned Angular, Nest, Tox21, or test-watcher process was active.
+  Existing Node processes were only the dedicated Chrome DevTools MCP process.
+- Entity inventory found 36 files under
+  `MercurionWebNode/src/app_modules/**/Models/entities/`, including 24
+  `@Entity` declarations (the remainder are entity tests).
+- Current deployment configuration is PostgreSQL (`SQL_DATABASE_TYPE=postgres`
+  in `MercurionWebNode/env/.env.example` and the active development
+  configuration); the environment schema still accepts `mariadb`, but no
+  MariaDB deployment contract was found.
+- `AppModule` currently consumes `Data.pgSQL` with `autoLoadEntities: true` and
+  passes the unrestricted `SQL_DATABASE_SYNCHRONIZE` value through to TypeORM.
+- No repository TypeORM migrations, SQL baseline, dump, or documented schema
+  snapshot was found. Kubernetes staging runs the built application against an
+  externally managed PostgreSQL database, but its deployed schema/history is
+  not present or otherwise deterministically discoverable in this repository.
 ### Preflight remediation
-_None._
+None. The recipe stop condition applies before migration generation.
+
 ### Summary
-_Not started._
+`BLOCKED` before implementation. A safe initial baseline cannot be produced:
+the current deployed PostgreSQL schema cannot be reconciled to the 24 loaded
+entities from repository evidence alone. Generating a baseline from entity
+metadata would be an undocumented assumption and could create destructive or
+incompatible operations against the deployed database. No migration, DataSource,
+synchronization-policy, script, or CI change was made.
+
 ### Task-specific validation performed
-_Not started._
+Not run because the required human/database authority is absent and the task
+must stop before producing an unsafe migration.
+
 ### Full pre-merge CI-parity validation
-_Not started._
+Not run; local `npm ci` and `npm run ci:check` remain forbidden, and no
+task-specific implementation exists.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-_Not recorded._
+Pending diagnostic commit.
 ### Merge / CI
 _Not started._
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-_None._
+Human/database owner must provide and approve a deterministic PostgreSQL
+baseline/reconciliation plan for the deployed staging/production schema
+(for example an authoritative schema dump plus confirmation of the intended
+entity-to-schema mapping and any required non-destructive compatibility
+migrations). Until that authority is available, do not generate or apply an
+initial migration.
