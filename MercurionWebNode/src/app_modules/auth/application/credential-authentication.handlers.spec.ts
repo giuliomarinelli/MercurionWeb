@@ -54,13 +54,12 @@ describe('credential authentication handlers', () => {
             getLocation: jest.fn(),
             isTrustedLocation: jest.fn()
         }
-        const redisClient = { incr: jest.fn() }
         const redisService = {
             exists: jest.fn(),
             del: jest.fn(),
+            incr: jest.fn(),
             set: jest.fn(),
             setTTL: jest.fn(),
-            getClient: jest.fn(() => redisClient)
         }
         const authenticationSession = {
             generateFingerprint: jest.fn(() => 'fingerprint'),
@@ -199,7 +198,7 @@ describe('credential authentication handlers', () => {
             code
         }) => {
             arrange()
-            redisClient.incr.mockResolvedValue(1)
+            redisService.incr.mockResolvedValue(1)
 
             try {
                 await createHandler().execute({

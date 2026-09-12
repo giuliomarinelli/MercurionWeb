@@ -118,6 +118,21 @@ adapter bypasses.
 - Focused OAuth/SSO/pub-sub tests — 4 passed.
 - `npm run build --workspace mercurion_web_node` — passed.
 - `git diff --check` — passed.
+- CI repair focused reproducer:
+  `npm test --workspace mercurion_web_node -- --runInBand --runTestsByPath
+  src/app_modules/auth/application/credential-authentication.handlers.spec.ts`
+  initially reproduced the exact `AUTHENTICATION_INVALID_CREDENTIALS` failure.
+  The BE-023 production change migrated `CredentialLoginHandler` from
+  `redisService.getClient().incr(...)` to the typed adapter
+  `redisService.incr(...)`; the test double still exposed only `getClient()`,
+  so the mock threw before the explicit application error could be observed.
+  The test double was updated to model the new adapter contract, without
+  changing production behavior.
+- Focused reproducer after repair — passed, 1 suite/6 tests.
+- `npm run ci:redis:architecture` — passed.
+- `npm test --workspace mercurion_web_node -- --runInBand --testPathPattern=app_modules/auth`
+  — passed; Jest 30 ignored the deprecated path option and ran the complete
+  Nest unit suite, 146 suites/422 tests passed.
 ### Full pre-merge CI-parity validation
 Not run locally because `npm ci` and `npm run ci:check` are prohibited in
 autonomous sessions. Exact feature-SHA GitHub Actions validation is owned by
@@ -126,7 +141,9 @@ the coordinator after push.
 _Not applicable._
 ### Commits
 - `acd24a15` — `feat(redis): introduce typed key and TTL contracts`.
-- Final feature SHA and push recorded by the worker result.
+- `7edce4c4` — `docs(task): record BE-023 commit`.
+- CI repair commit records the auth test-double contract correction; final
+  feature SHA and push are recorded by the worker result.
 ### Merge / CI
 _Not started._
 ### Rollback
