@@ -140,7 +140,7 @@ and Ubuntu. Local `npm run ci:check` was intentionally not run per policy.
 Not applicable: no production code or browser-visible behavior changed.
 
 ### Commits
-Pending task-notes commit.
+- `5ed3affc` — QA-001 verification, task notes and `DONE` outcome.
 ### Merge / CI
 _Not started._
 ### Rollback
