@@ -1,7 +1,7 @@
 # 0095 - Decompose dashboard into lazy widget view models
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -115,3 +115,14 @@ Required foundations include FE-004 (BLOCKED because mandatory authenticated
 browser validation was unavailable), FE-030 (BLOCKED because worker
 filesystem-write capability was unavailable), and their terminal dependent
 account/session/page-state/design-system tasks.
+
+### NG-009 execution outcome (2026-09-12)
+
+Implementation was completed on preserved branch `feature/NG-009` at
+`19faee601e733705f54d450d9e129ded6590faa0`. Focused tests, typecheck, lint,
+build, and lazy-chunk checks passed. Mandatory fresh authenticated browser
+acceptance could not be completed: after logout, the configured local test
+identity produced the rendered validation error `L'e-mail inserita non è
+corretta`, so no protected post-login result could be proved. The feature
+branch is preserved and frozen; no feature-SHA CI was started because the
+required browser acceptance remained incomplete.
