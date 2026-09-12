@@ -153,7 +153,9 @@ the process remained alive and the public Angular route was validated.
 All task-owned runtime sessions were stopped and no task-owned runtime/watch
 process remained.
 ### Commits
-Pending final task commit.
+`35ba4045a1a0954ce70cd01e0d88d4e4ddc11f72`
+(`qa: enforce angular bundle and commonjs gates`), pushed to
+`origin/feature/QA-017`.
 ### Merge / CI
 Feature SHA will be pushed after the task-specific commit. Exact feature-SHA
 CI remains coordinator-owned.
