@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Replace the current Hello-World-only Nest E2E coverage with a deterministic real-application suite that exercises authentication, REST, GraphQL, canonical error mapping and session behavior while owning and closing every runtime resource it starts.
@@ -113,3 +113,8 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
+
+
+### Dependency skip
+
+Direct terminal prerequisite: 0120 (), terminal non-DONE dependency.

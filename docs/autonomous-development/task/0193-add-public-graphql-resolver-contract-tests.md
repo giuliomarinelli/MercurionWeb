@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Add contract tests for every public GraphQL resolver in the retained Help, Notebook, molecule-collection and Synth domains, proving schema shape, authentication/ownership policy, successful operations, invalid input, not-found behavior and canonical GraphQL error mapping through the real Nest GraphQL test application.
@@ -115,3 +115,8 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
+
+
+### Dependency skip
+
+Direct terminal prerequisite: 0120 (), terminal non-DONE dependency.

@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -118,3 +118,8 @@ Tasks 0039, 0040, and 0097 depend on FE-004, which is `BLOCKED` because
 mandatory authenticated browser validation was unavailable. FE-004 requires a
 test-safe canonical local auth/backend runtime and approved deterministic test
 state in a new session.
+
+
+### Dependency skip
+
+Direct terminal prerequisite: 0097 (), terminal non-DONE dependency.

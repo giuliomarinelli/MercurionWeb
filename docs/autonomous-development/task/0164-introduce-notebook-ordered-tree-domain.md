@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Replace the duplicated Chapter/Section/Page CRUD, move and reorder algorithms with one composition-based ordered-tree domain/repository capability plus thin level-specific adapters, while preserving Notebook ownership and GraphQL behaviour.
@@ -119,3 +119,8 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
+
+
+### Dependency skip
+
+Direct terminal prerequisite: 0120 (), terminal non-DONE dependency.

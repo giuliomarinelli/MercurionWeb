@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Introduce a structured `LoggerPort` owned by neutral/core application infrastructure and migrate production domains so they no longer import `MeiliLoggerService`, Meilisearch logger interfaces or the Meilisearch module merely to log.
@@ -107,3 +107,8 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
+
+
+### Dependency skip
+
+Direct terminal prerequisite: 0120 (), terminal non-DONE dependency.

@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Make Chapter/Section/Page sibling ordering remain unique and deterministic under concurrent create, move and reorder commands by combining an explicit database invariant with a transaction/locking strategy appropriate to the supported SQL dialect.
@@ -118,3 +118,8 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
+
+
+### Dependency skip
+
+Direct terminal prerequisite: 0120 (), terminal non-DONE dependency.

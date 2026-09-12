@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -141,3 +141,8 @@ Direct terminal prerequisites: 0077 (UI-019) and 0078 (UI-020), both
 `SKIPPED_DEPENDENCY`. Transitive chain: UI-023 -> UI-019 -> UI-018
 (BLOCKED), which requires a test-safe local Nest runtime and dependencies for
 mandatory browser validation.
+
+
+### Dependency skip
+
+Direct terminal prerequisite: 0077 (), terminal non-DONE dependency.

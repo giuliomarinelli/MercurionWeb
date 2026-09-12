@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Resolve every backend production file unreachable from legitimate Nest/runtime entrypoints and add a deterministic CI reachability gate so legacy DTOs/interfaces/modules cannot accumulate as zombie code.
@@ -102,3 +102,8 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
+
+
+### Dependency skip
+
+Direct terminal prerequisite: 0120 (), terminal non-DONE dependency.

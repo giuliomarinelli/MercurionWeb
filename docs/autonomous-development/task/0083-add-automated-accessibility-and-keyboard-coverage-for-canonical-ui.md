@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -141,3 +141,8 @@ Direct terminal prerequisites: 0059 through 0075 are
 `SKIPPED_DEPENDENCY`. Their transitive chains include FE-030 (BLOCKED,
 requiring a filesystem-write-capable worker) and UI-018 (BLOCKED, requiring a
 test-safe local Nest runtime for mandatory browser validation).
+
+
+### Dependency skip
+
+Direct terminal prerequisite: 0077 (), terminal non-DONE dependency.

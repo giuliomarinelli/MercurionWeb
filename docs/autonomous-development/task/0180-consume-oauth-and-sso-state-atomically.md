@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Make every OAuth/SSO authorization `state` a cryptographically random, TTL-bound, provider/session/redirect-bound one-time capability that is validated and consumed atomically so replay, concurrent reuse and cross-provider substitution fail.
@@ -109,3 +109,8 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
+
+
+### Dependency skip
+
+Direct terminal prerequisite: 0120 (), terminal non-DONE dependency.
