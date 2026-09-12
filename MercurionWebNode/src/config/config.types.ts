@@ -2,6 +2,7 @@ import type { ConfigurationModel } from './config.model'
 import { ConfigKey } from './config.schema'
 
 export type AppConfiguration = ConfigurationModel[ConfigKey.App]
+export type { NatsServerUrl } from './nats-endpoint'
 export type DataConfiguration = ConfigurationModel[ConfigKey.Data]
 export type JwtConfigurations = ConfigurationModel[ConfigKey.Jwt]
 type SecretJwtConfiguration = JwtConfigurations['preAuthorizationToken']

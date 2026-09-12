@@ -90,4 +90,21 @@ describe('canonical environment validation', () => {
 
     expect(() => validateEnvironment(raw)).toThrow(source)
   })
+
+  it.each([
+    ['missing host', 'APP_NATS_HOST', undefined],
+    ['missing port', 'APP_NATS_PORT', undefined],
+    ['missing protocol', 'APP_NATS_HOST', 'localhost'],
+    ['unsupported protocol', 'APP_NATS_HOST', 'http://localhost'],
+    ['embedded port', 'APP_NATS_HOST', 'nats://localhost:4223'],
+    ['credentials', 'APP_NATS_HOST', 'nats://user:password@localhost'],
+    ['path', 'APP_NATS_HOST', 'nats://localhost/messages'],
+    ['surrounding whitespace', 'APP_NATS_HOST', ' nats://localhost'],
+    ['out-of-range port', 'APP_NATS_PORT', '65536']
+  ])('fails closed for invalid NATS endpoint data: %s', (_case, source, value) => {
+    const raw = validRawEnvironment(true)
+    raw[source] = value
+
+    expect(() => validateEnvironment(raw)).toThrow(source)
+  })
 })

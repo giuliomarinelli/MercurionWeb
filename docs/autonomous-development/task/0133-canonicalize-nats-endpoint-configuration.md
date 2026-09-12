@@ -1,6 +1,6 @@
 # 0133 - Canonicalize the NATS endpoint configuration
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -78,23 +78,80 @@ Mark `BLOCKED` if an active deployment has an undocumented endpoint topology tha
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/BE-019`, created from and ancestrally based on
+`23779c4cbddc7feaf173e909cd8481581f4c1237`.
 ### Preflight
-_Not started._
+Passed before implementation:
+
+- the working tree was clean on `feature/BE-019` at the supplied base SHA;
+  `git merge-base --is-ancestor
+  23779c4cbddc7feaf173e909cd8481581f4c1237 HEAD` exited `0`, and the
+  base-to-HEAD divergence was `0 0`;
+- process inventory found no active Angular, Nest, Tox21, Jest watcher, or
+  other workspace-consuming process; only the coordinator, its inspection
+  shell, VS Code, and the idle Chrome DevTools MCP processes matched the broad
+  command-line filter;
+- dependencies `0130` and `0132` were confirmed `DONE`;
+- exact base-SHA GitHub Actions run
+  [34701165993](https://github.com/giuliomarinelli/MercurionWeb/actions/runs/34701165993)
+  completed successfully with `Quality (ubuntu-latest)`,
+  `Quality (windows-latest)`, and `Required gate` green;
+- unchanged focused configuration/bootstrap/NATS Jest suites passed:
+  `4` suites / `26` tests;
+- unchanged Nest TypeScript typecheck passed.
 ### Preflight remediation
 _None._
 ### Summary
-_Not started._
+Added a typed canonical `App.natsUrl` configuration value derived once from
+the existing deployment-owned `APP_NATS_HOST` and `APP_NATS_PORT` inputs.
+The schema now requires a protocol-qualified, port-free `nats://` or `tls://`
+host and a port in the valid TCP range. Missing, partial, credential-bearing,
+path-bearing, malformed, or out-of-range values fail configuration validation.
+
+Bootstrap and `MercurionAIModule` now use one shared NATS transport-options
+factory that reads only `App.natsUrl`; their independent host/port assembly and
+`4222`/`4223` consumer fallbacks were removed. Startup logging renders the
+resolved endpoint through a credential-redacting formatter.
+
+The existing deployment topology was preserved: local Docker continues to map
+host port `4223` to container port `4222`, while the Kubernetes NATS service
+continues to expose in-cluster port `4222`. The application selects those
+differences only through validated environment configuration; no Docker or
+Kubernetes topology was changed.
 ### Task-specific validation performed
-_Not started._
+Passed:
+
+- final focused configuration/bootstrap/NATS Jest run:
+  `4` suites / `42` tests;
+- complete Nest Jest suite: `142` suites / `412` tests;
+- complete Nest E2E suite: `1` suite / `1` test;
+- `npm run typecheck --workspace mercurion_web_node`;
+- `npm run lint --workspace mercurion_web_node` (`0` errors; `48` existing
+  warnings);
+- `npm run build --workspace mercurion_web_node`;
+- `npm run ci:nest:architecture`;
+- the git-ignored development environment validated through the canonical
+  schema without printing values;
+- repository searches confirmed no production `App.natsHost`/
+  `App.natsPort` consumer and no production `4222`/`4223` fallback remains;
+- `git diff --check`.
+
+Tests cover development, test, staging, and production endpoint resolution,
+including the documented local Docker `4223` mapping and Kubernetes `4222`
+service port; malformed and partial endpoint data; identical bootstrap and
+MercurionAI transport URLs; and credential-safe endpoint logging.
 ### Full pre-merge CI-parity validation
-_Not started._
+Local `npm ci` and `npm run ci:check` were intentionally not run per autonomous
+policy. Complete clean-install Windows/Linux validation and the stable
+`Required gate` remain coordinator-owned on the exact pushed feature SHA.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-_Not recorded._
+- `51e21e8d` - `refactor(config): canonicalize NATS endpoint`
+- Task outcome and execution record: this commit.
 ### Merge / CI
-_Not started._
+Feature branch is ready for exact-SHA pre-merge GitHub Actions validation;
+merge remains coordinator-owned.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
