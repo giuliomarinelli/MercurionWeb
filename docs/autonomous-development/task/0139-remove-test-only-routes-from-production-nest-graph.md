@@ -110,7 +110,8 @@ the coordinator.
 ### Browser validation performed
 Not applicable; this is a Nest graph/static architecture task.
 ### Commits
-_Pending commit._
+* `4b1ec6846e9cfd851898cd2e2521df342776eb8c` — implementation, tests,
+  architecture check, and task notes.
 ### Merge / CI
 Feature publication follows the task-specific commit. No merge or branch
 deletion performed.
