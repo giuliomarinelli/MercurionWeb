@@ -62,8 +62,4 @@ describe('LoginPageComponent', () => {
     }))
   })
 
-  it('delegates provider selection without building an HTTP URL in the page', () => {
-    component.selectSso('Google', '/dashboard')
-    expect(facade.selectSso).toHaveBeenCalledWith('Google', '/dashboard')
-  })
 })

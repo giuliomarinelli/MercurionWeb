@@ -39,7 +39,6 @@ import { environment } from '../../../environments/environment'
         <a routerLink="/account-recovery" class="block text-center">Recupera account</a>
         <m-login-sso-chooser
           [redirectTo]="redirectTo()"
-          (providerSelected)="selectSso($event.provider, $event.redirectTo)"
         />
         @if (authError(); as error) {
           <p role="alert" aria-live="assertive">{{ error.message ?? 'Si è verificato un errore.' }}</p>
@@ -105,10 +104,6 @@ export class LoginPageComponent implements OnInit {
       },
       complete: () => form?.setPending(false)
     })
-  }
-
-  selectSso(provider: string, redirectTo: string | null): void {
-    this.facade.selectSso(provider, redirectTo)
   }
 
   cancel(): void {

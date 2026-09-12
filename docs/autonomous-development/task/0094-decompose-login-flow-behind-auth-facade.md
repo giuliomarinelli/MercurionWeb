@@ -114,6 +114,7 @@ Passed:
   (11/11 tests passed)
 - `node scripts/check-angular-interactive-semantics.mjs` (passed after the
   narrow CI correction removing the unnecessary SSO anchor click handler).
+- `node scripts/check-angular-component-change-detection.mjs` (passed).
 - Canonical post-edit runtime restarted with Tox21, Nest and Angular in order;
   two consecutive `/health` and `/login` readiness rounds returned HTTP 200.
 - Through `http://localhost:8888/login`, invalid credentials rendered the
@@ -136,9 +137,11 @@ during this run.
 
 ### Commits
 `6209abf2aebcd4461c3d307e2a10e9a7cc059fb5` — feature implementation.
-The first exact feature run `34669933775` found only the interactive-semantics
-violation in the SSO anchor; the narrow correction is pending commit and
-republish.
+`235d3799db044ee32f1dcc4cae62c32fe77b2e12` — first CI repair. Exact feature
+run `34669933775` found the interactive-semantics violation in the SSO anchor;
+run `34670332658` then found the repository policy forbidding an unused
+production `EventEmitter` output in the chooser. The second narrow correction
+is pending commit and republish.
 
 ### Merge / CI
 The feature branch must be published after the task-specific commit. The

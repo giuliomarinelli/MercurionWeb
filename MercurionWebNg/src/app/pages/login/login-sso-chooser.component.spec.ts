@@ -15,9 +15,7 @@ describe('LoginSsoChooserComponent', () => {
   })
 
   it('emits a typed provider selection with the current redirect', () => {
-    const selection = spyOn(component.providerSelected, 'emit')
     component.redirectTo = '/dashboard'
-    component.select('Google')
-    expect(selection).toHaveBeenCalledWith({ provider: 'Google', redirectTo: '/dashboard' })
+    expect(component.select('Google')).toEqual({ provider: 'Google', redirectTo: '/dashboard' })
   })
 })

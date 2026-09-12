@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core'
+import { ChangeDetectionStrategy, Component, Input } from '@angular/core'
 import type { SSO_AuthProvider } from '@mercurion/rest-contracts'
 import type { LoginSsoSelection } from './login-flow.models'
 
@@ -24,8 +24,6 @@ import type { LoginSsoSelection } from './login-flow.models'
 })
 export class LoginSsoChooserComponent {
   @Input() redirectTo: string | null = null
-  @Output() readonly providerSelected = new EventEmitter<LoginSsoSelection>()
-
   readonly providers: readonly SSO_AuthProvider[] = ['Google', 'GitHub', 'Discord']
 
   hrefFor(provider: SSO_AuthProvider): string {
@@ -33,7 +31,7 @@ export class LoginSsoChooserComponent {
     return `/api/oauth2/sso/${provider}/login${query}`
   }
 
-  select(provider: SSO_AuthProvider): void {
-    this.providerSelected.emit({ provider, redirectTo: this.redirectTo })
+  select(provider: SSO_AuthProvider): LoginSsoSelection {
+    return { provider, redirectTo: this.redirectTo }
   }
 }
