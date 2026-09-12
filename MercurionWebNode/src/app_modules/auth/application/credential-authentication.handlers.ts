@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import { UUID } from 'crypto'
 import type {
     FingerprintData,
@@ -12,6 +13,8 @@ import { UserService } from 'src/app_modules/user/services/user.service'
 import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum'
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 import { GeneralUtils } from 'src/utils/general-utils/general-utils'
+import { Environment } from 'src/config/config.schema'
+import type { AppConfiguration } from 'src/config/config.types'
 
 import { CompareResult } from '../Models/enums/compare-result.enum'
 import { GeoIpService, GeoLocation } from '../services/geo-ip.service'
@@ -83,7 +86,8 @@ export class CredentialLoginHandler {
         private readonly mfaService: MfaService,
         private readonly geoIpService: GeoIpService,
         private readonly redisService: RedisService,
-        private readonly authenticationSession: AuthenticationSessionService
+        private readonly authenticationSession: AuthenticationSessionService,
+        private readonly configService: ConfigService
     ) { }
 
     public async execute(command: CredentialLoginCommand): Promise<CredentialLoginResult> {
@@ -96,10 +100,13 @@ export class CredentialLoginHandler {
             sessionDeviceInfo,
             fingerprintData
         } = command
-        const isLocalTestAccount = process.env.APP_ENV === 'development' &&
-            !!process.env.LOCAL_TEST_ACCOUNT_EMAIL?.trim() &&
+        const appConfiguration =
+            this.configService.getOrThrow<AppConfiguration>('App')
+        const isLocalTestAccount =
+            appConfiguration.env === Environment.Development &&
+            !!appConfiguration.localTestAccountEmail?.trim() &&
             GeneralUtils.normalizeEmail(email) ===
-            GeneralUtils.normalizeEmail(process.env.LOCAL_TEST_ACCOUNT_EMAIL)
+            GeneralUtils.normalizeEmail(appConfiguration.localTestAccountEmail)
         const lockKey = this.getLockKey(email)
         const failKey = this.getFailKey(email)
 

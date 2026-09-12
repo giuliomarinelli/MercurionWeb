@@ -69,7 +69,10 @@ export async function bootstrap() {
     options: { servers: [natsUrl] },
   })
 
-  app.useGlobalFilters(new HttpExceptionFilter(loggerFactory))
+  app.useGlobalFilters(new HttpExceptionFilter(
+    loggerFactory,
+    env !== Environment.Development
+  ))
   app.setGlobalPrefix('api', { exclude: ['/health', '/sitemap.xml', '/robots.txt', '/og/mercurion-og.png'] })
 
   const fastify = app.getHttpAdapter().getInstance()

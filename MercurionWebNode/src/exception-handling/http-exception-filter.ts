@@ -28,11 +28,12 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     private readonly logger: MeiliContextLogger
 
-    constructor(loggerFactory: MeiliLoggerService) {
+    constructor(
+        loggerFactory: MeiliLoggerService,
+        private readonly isNotDev: boolean
+    ) {
         this.logger = loggerFactory.forContext(HttpExceptionFilter.name)
     }
-
-    private readonly isNotDev = (process.env.APP_ENV ?? 'development') !== 'development'
 
     catch(e: unknown, host: ArgumentsHost) {
 

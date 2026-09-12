@@ -12,8 +12,6 @@ import { SessionService } from './session.service'
 describe('LocalDummyAuthService', () => {
   const sessionId = '00000000-0000-4000-8000-000000000102' as UUID
   const deviceId = '00000000-0000-4000-8000-000000000103' as UUID
-  const originalAppEnv = process.env.APP_ENV
-  const originalFlag = process.env.LOCAL_DUMMY_AUTH
   let service: LocalDummyAuthService
   let userRepo: Pick<Repository<User>, 'findOne' | 'createQueryBuilder'>
   let scopeService: Pick<ScopeService, 'getEncryptedStandardScopes'>
@@ -22,6 +20,10 @@ describe('LocalDummyAuthService', () => {
   let execute: jest.Mock
   let values: jest.Mock
   let callListeners: jest.Mock
+  const appConfiguration = {
+    env: 'development',
+    localDummyAuth: true
+  }
 
   beforeEach(() => {
     execute = jest.fn().mockResolvedValue(undefined)
@@ -55,10 +57,11 @@ describe('LocalDummyAuthService', () => {
       userRepo as Repository<User>,
       scopeService as ScopeService,
       sessionService as SessionService,
-      jwtTools as JwtToolsService
+      jwtTools as JwtToolsService,
+      { getOrThrow: jest.fn(() => appConfiguration) } as never
     )
-    process.env.APP_ENV = 'development'
-    process.env.LOCAL_DUMMY_AUTH = 'true'
+    appConfiguration.env = 'development'
+    appConfiguration.localDummyAuth = true
   })
 
   it('creates a persistent verified local account when enabled and absent', async () => {
@@ -90,18 +93,11 @@ describe('LocalDummyAuthService', () => {
   })
 
   it('does not access the database when the local fixture is disabled', async () => {
-    process.env.LOCAL_DUMMY_AUTH = 'false'
+    appConfiguration.localDummyAuth = false
 
     await service.onApplicationBootstrap()
 
     expect(userRepo.findOne).not.toHaveBeenCalled()
-  })
-
-  afterEach(() => {
-    if (originalAppEnv === undefined) delete process.env.APP_ENV
-    else process.env.APP_ENV = originalAppEnv
-    if (originalFlag === undefined) delete process.env.LOCAL_DUMMY_AUTH
-    else process.env.LOCAL_DUMMY_AUTH = originalFlag
   })
 
   it('accepts the explicit canonical localhost activation request', () => {
@@ -132,8 +128,8 @@ describe('LocalDummyAuthService', () => {
     ['a non-canonical host', 'development', 'true', 'example.test', LOCAL_DUMMY_AUTH.canonicalOrigin],
     ['a non-canonical origin', 'development', 'true', 'localhost', 'http://localhost:3498']
   ])('rejects %s', (_case, appEnv, flag, host, origin) => {
-    process.env.APP_ENV = appEnv
-    process.env.LOCAL_DUMMY_AUTH = flag
+    appConfiguration.env = appEnv
+    appConfiguration.localDummyAuth = flag === 'true'
 
     expect(service.acceptsActivationRequest({
       headers: {

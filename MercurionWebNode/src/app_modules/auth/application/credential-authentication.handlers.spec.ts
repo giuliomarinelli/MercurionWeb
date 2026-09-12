@@ -24,8 +24,6 @@ describe('credential authentication handlers', () => {
     })
 
     describe('CredentialLoginHandler', () => {
-        const originalAppEnv = process.env.APP_ENV
-        const originalTestEmail = process.env.LOCAL_TEST_ACCOUNT_EMAIL
         const userId = '00000000-0000-4000-8000-000000000101'
         const sessionId = '00000000-0000-4000-8000-000000000102'
         const deviceId = '00000000-0000-4000-8000-000000000103'
@@ -69,11 +67,18 @@ describe('credential authentication handlers', () => {
             createMfaPreAuthorizationToken: jest.fn(),
             completeAuthenticatedSession: jest.fn()
         }
+        const appConfiguration = {
+            env: 'development',
+            localTestAccountEmail: 'automation@example.test'
+        }
+        const configService = {
+            getOrThrow: jest.fn(() => appConfiguration)
+        }
 
         beforeEach(() => {
             jest.clearAllMocks()
-            process.env.APP_ENV = 'development'
-            process.env.LOCAL_TEST_ACCOUNT_EMAIL = 'automation@example.test'
+            appConfiguration.env = 'development'
+            appConfiguration.localTestAccountEmail = 'automation@example.test'
             redisService.exists.mockResolvedValue(false)
             userService.getVerifiedUserAuthByEmail.mockResolvedValue({
                 userId,
@@ -109,16 +114,6 @@ describe('credential authentication handlers', () => {
                 })
         })
 
-        afterAll(() => {
-            if (originalAppEnv === undefined) delete process.env.APP_ENV
-            else process.env.APP_ENV = originalAppEnv
-            if (originalTestEmail === undefined) {
-                delete process.env.LOCAL_TEST_ACCOUNT_EMAIL
-            } else {
-                process.env.LOCAL_TEST_ACCOUNT_EMAIL = originalTestEmail
-            }
-        })
-
         const createHandler = () => new CredentialLoginHandler(
             passwordEncoder as never,
             userService as never,
@@ -127,7 +122,8 @@ describe('credential authentication handlers', () => {
             mfaService as never,
             geoIpService as never,
             redisService as never,
-            authenticationSession as never
+            authenticationSession as never,
+            configService as never
         )
 
         it.each([

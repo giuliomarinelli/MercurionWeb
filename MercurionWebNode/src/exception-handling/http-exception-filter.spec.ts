@@ -11,14 +11,14 @@ describe('HttpExceptionFilter', () => {
   it('should create an instance', () => {
     const filter = new HttpExceptionFilter({
       forContext: jest.fn().mockReturnValue({ warn: jest.fn() }),
-    } as unknown as MeiliLoggerService);
+    } as unknown as MeiliLoggerService, false);
     expect(filter).toBeInstanceOf(HttpExceptionFilter);
   });
 
   it('maps canonical codes to the preserved REST status and public message', () => {
     const filter = new HttpExceptionFilter({
       forContext: jest.fn().mockReturnValue({ warn: jest.fn() }),
-    } as unknown as MeiliLoggerService);
+    } as unknown as MeiliLoggerService, false);
     let sent: HttpErrorRes | undefined;
     const reply = {
       code: jest.fn().mockReturnThis(),
@@ -50,13 +50,9 @@ describe('HttpExceptionFilter', () => {
   })
 
   it('preserves the machine code when production hides a 5xx message', () => {
-    const originalAppEnv = process.env.APP_ENV;
-    process.env.APP_ENV = 'production';
-
-    try {
-      const filter = new HttpExceptionFilter({
-        forContext: jest.fn().mockReturnValue({ warn: jest.fn() }),
-      } as unknown as MeiliLoggerService);
+    const filter = new HttpExceptionFilter({
+      forContext: jest.fn().mockReturnValue({ warn: jest.fn() }),
+    } as unknown as MeiliLoggerService, true);
       let sent: HttpErrorRes | undefined;
     const reply = {
       code: jest.fn().mockReturnThis(),
@@ -82,12 +78,5 @@ describe('HttpExceptionFilter', () => {
         statusCode: 500
       });
       expect(sent?.correlationId).toMatch(/^request-id-/);
-    } finally {
-      if (originalAppEnv === undefined) {
-        delete process.env.APP_ENV;
-      } else {
-        process.env.APP_ENV = originalAppEnv;
-      }
-    }
   })
 });
