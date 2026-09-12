@@ -92,8 +92,8 @@ Model races by controlling Promise/Observable completion order, not by making ti
 ## Execution notes
 
 ### Feature branch
-`feature/QA-004` at `827f7321979412e6c6855c184041043431ec2774` before
-implementation; final commit recorded below.
+`feature/QA-004` from `827f7321979412e6c6855c184041043431ec2774`; final SHA
+is recorded below.
 ### Preflight
 Clean branch identity verified against the supplied base SHA. FE prerequisites
 0026-0040 and runner prerequisite 0187 were all `[x] DONE`. No Angular/Nest/
@@ -122,7 +122,8 @@ Reserved for GitHub Actions exact feature SHA; forbidden locally per protocol.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-Pending task commit; this note is included in that commit.
+`f87cd30e` — `test: cover Angular auth session state machine`
+Documentation follow-up commit records the final execution-note SHA below.
 ### Merge / CI
 _Not started._
 ### Rollback
