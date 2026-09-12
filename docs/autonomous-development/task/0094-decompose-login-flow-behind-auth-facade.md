@@ -111,7 +111,9 @@ Passed:
 
 - `npm run typecheck --workspace mercurion_web_ng`
 - `npx ng test --watch=false --karma-config=karma.conf.js --include 'src/app/pages/login/**/*.spec.ts'`
-  (11/11 tests passed)
+  (10/10 focused login tests passed after the final test-shape correction).
+- `node scripts/check-angular-modern-component-apis.mjs` (passed).
+- `node scripts/test-angular-modern-component-apis-negative.mjs` (passed).
 - `node scripts/check-angular-interactive-semantics.mjs` (passed after the
   narrow CI correction removing the unnecessary SSO anchor click handler).
 - `node scripts/check-angular-component-change-detection.mjs` (passed).
@@ -144,10 +146,14 @@ production `EventEmitter` output in the chooser. `dfa868e7523c38746fefaa884f4c72
 is the second CI repair; run `34670718683` additionally identified the
 modern-component-API requirement, which is addressed by the final narrow
 conversion of both extracted components to functional input/output APIs.
+`811c701bf2e0b8713f918b0afd353f863c64958a` — final modern Angular API repair.
+Exact feature CI run `34671092779` passed on Linux and Windows, including the
+required gate.
 
 ### Merge / CI
-The feature branch must be published after the task-specific commit. The
-coordinator must wait for exact feature-SHA CI before integration.
+The feature branch is published at `811c701bf2e0b8713f918b0afd353f863c64958a`.
+Exact feature-SHA CI run `34671092779` is green; the coordinator may proceed
+with integration.
 
 ### Rollback
 _Not applicable._
