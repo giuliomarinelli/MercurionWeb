@@ -1,6 +1,6 @@
 # 0124 - Separate session domain logic from Redis persistence
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -84,23 +84,104 @@ Mark `BLOCKED` if extracting the boundary requires choosing new Redis atomicity/
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/BE-010`, created from and descended directly from green `develop`
+SHA `93b765d36ddd8f82e3951d2fe6b86798bacc7dd7`.
 ### Preflight
-_Not started._
+- Confirmed the clean local branch was exactly `feature/BE-010` at the supplied
+  base SHA and that the base is an ancestor of the task branch.
+- Confirmed GitHub Actions CI run
+  `https://github.com/giuliomarinelli/MercurionWeb/actions/runs/34692071044`
+  completed successfully for the exact base SHA.
+- Confirmed no Angular, Nest, Tox21, Jest watcher, or other task-owned
+  workspace-consuming process was active.
+- Confirmed prerequisite tasks 0118 and 0122 are `DONE`.
+- Focused unchanged preflight passed: 9 session/auth/guard/socket/module
+  suites, 28 tests.
+- Local `npm ci` and `npm run ci:check` were not run.
 ### Preflight remediation
 _None._
 ### Summary
-_Not started._
+- Inventoried and classified the former `SessionService` surface:
+  - domain/application commands and policy: `createSession`,
+    `activateSession`, `validateSession`, `revokeManyJtis`,
+    `revokeAllTokensBySessionId`, `destroySession`,
+    `destroySessionByOwner`,
+    `destroyAllSessionsAndRevokeAllTokensByUserId`,
+    `destroySessionAndRevokeAllTokensByPlainSessionId`,
+    `destroySessionAndRevokeAllTokensBySignedSessionId`,
+    `addTrustedLocation`, and DTO-list/current-session mapping;
+  - domain/application queries: `getActivatedSessionsForUser`,
+    `isSessionLongTerm`, `getAllSessionsByUserId`,
+    `getAllActiveSessionsByUserIdAsDTOs`, `existsSession`, `getSession`,
+    `isTokenRevoked`, `getJtiListBySessionId`,
+    `getFingerprintWhiteList`, `isFingerprintInWhiteList`,
+    `getTrustedLocations`, and `isKnownDeviceId`;
+  - persistence operations: `updateLastAccessed`, `revokeSession`,
+    `revokeToken`, fingerprint/device/location writes, issued-token TTL
+    lookup and revocation storage;
+  - signing/value-object responsibility: signed session-ID creation and
+    verification;
+  - Redis key/index/scan/mapping responsibility:
+    session/user-index/trust/token key builders, owner rediscovery scans,
+    hash serialization/deserialization, TTL writes, index cleanup, and
+    Redis deletion.
+- Added a typed `SessionRepository` port, an in-memory fake, and the
+  `RedisSessionRepository` adapter. All session hashes, user indexes,
+  scans, issued/revoked JTI keys, trust keys, serialized values, TTLs, and
+  unlink/delete behavior now remain inside the adapter.
+- Added `SessionRedisCodec` as the only session-record encoder/decoder and
+  `SessionIdentityService` as the focused HMAC signing/verification owner.
+- Reduced `SessionService` to session use-case orchestration, validation,
+  trust decisions, DTO projection, and repository delegation without a
+  `RedisService` import or Redis key construction.
+- Routed issued-token registration from `JwtToolsService` and expired-session
+  index cleanup from `PubSubService` through the public session API. Existing
+  auth handlers, guards, sockets, account/MFA/SSO consumers continue to use
+  the compatible public `SessionService` capabilities.
+- Preserved the current `SCAN` owner/index fallback, key taxonomy, record
+  fields, short/long TTL behavior, long-session expiry calculation,
+  JTI-revocation TTL fallback, user-session indexes, trust TTLs, and
+  non-transactional mutation ordering. No DATA-owned index, schema-version,
+  or atomicity decision was introduced, so the stop condition did not apply.
 ### Task-specific validation performed
-_Not started._
+- Shared repository contract tests compare the Redis adapter with the
+  in-memory fake for missing/create/read/activate/invalidate/delete,
+  owner/index, token, fingerprint, trusted-location, known-device, and
+  long-term semantics. Adapter-specific coverage verifies malformed-record
+  rejection and current create/refresh/revocation TTL behavior.
+- Domain tests cover valid/missing/mismatched sessions, same-device
+  replacement, invalid signed IDs, trust-location policy, and repository
+  failure propagation.
+- Final focused repository/session/JWT/pub-sub/provider run passed:
+  5 suites / 18 tests.
+- `npm run typecheck --workspace mercurion_web_node` passed.
+- `npm run lint --workspace mercurion_web_node` passed with 48 warnings and
+  no errors.
+- `npm run ci:nest:architecture` passed: 22 production modules, 8
+  configuration files, acyclic module graphs, and unique governed-provider
+  ownership.
+- `npm run build --workspace mercurion_web_node` passed.
+- Full Nest unit suite passed: 138 suites / 299 tests.
+- Full Nest E2E suite passed: 1 suite / 1 test.
+- `git diff --check` passed. Static key inventory confirmed that session
+  Redis schema/index/JTI/trust keys are absent from session-domain and
+  application callers; remaining `ws_session:*` strings are Socket.IO room
+  names rather than Redis session records.
 ### Full pre-merge CI-parity validation
-_Not started._
+Complete clean-install and aggregate CI parity are reserved for GitHub Actions
+on the exact pushed feature SHA. No forbidden local `npm ci` or
+`npm run ci:check` command was executed.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-_Not recorded._
+- `935a61d7e15cafa231ccaa1e74421a32cea82cd0` — BE-010 Redis session
+  repository/codec extraction, domain service reduction, caller migration,
+  and focused tests, committed with `--no-gpg-sign` and the Copilot co-author
+  trailer.
+- Task-status and execution-note finalization: current documentation commit.
 ### Merge / CI
-_Not started._
+Provisional `DONE` / `CI_PENDING`; exact feature-SHA CI and integration are
+coordinator-owned.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
