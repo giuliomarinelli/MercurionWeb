@@ -38,6 +38,45 @@ function importsBlock(source) {
   return '';
 }
 
+function topLevelEntries(block) {
+  const entries = [];
+  let current = '';
+  let depth = 0;
+  let quote = '';
+  let escaped = false;
+
+  for (const character of block) {
+    if (quote) {
+      current += character;
+      if (escaped) {
+        escaped = false;
+      } else if (character === '\\') {
+        escaped = true;
+      } else if (character === quote) {
+        quote = '';
+      }
+      continue;
+    }
+
+    if (character === "'" || character === '"' || character === '`') {
+      quote = character;
+      current += character;
+      continue;
+    }
+    if (character === '(' || character === '[' || character === '{') depth += 1;
+    if (character === ')' || character === ']' || character === '}') depth -= 1;
+    if (character === ',' && depth === 0) {
+      if (current.trim()) entries.push(current.trim());
+      current = '';
+      continue;
+    }
+    current += character;
+  }
+
+  if (current.trim()) entries.push(current.trim());
+  return entries;
+}
+
 const files = filesIn(path.join(root, 'src'));
 const modules = new Map();
 for (const file of files) {
@@ -47,11 +86,17 @@ for (const file of files) {
 }
 
 const graph = new Map(files.map((file) => [file, new Set()]));
+const duplicateImports = [];
 for (const file of files) {
   const source = fs.readFileSync(file, 'utf8');
   const block = importsBlock(source);
+  const entries = topLevelEntries(block);
   for (const [name, target] of modules) {
     if (target !== file && new RegExp(`\\b${name}\\b`).test(block)) graph.get(file).add(target);
+    const count = entries.filter((entry) => new RegExp(`\\b${name}\\b`).test(entry)).length;
+    if (target !== file && count > 1) {
+      duplicateImports.push({ file, module: name, count });
+    }
   }
 }
 
@@ -156,6 +201,9 @@ const output = {
   modules: [...graph.keys()].sort().map(relative),
   edges: [...graph.entries()].flatMap(([from, targets]) =>
     [...targets].sort().map((to) => ({ from: relative(from), to: relative(to) }))),
+  duplicateImports: duplicateImports
+    .sort((left, right) => left.file.localeCompare(right.file) || left.module.localeCompare(right.module))
+    .map(({ file, module, count }) => ({ file: relative(file), module, count })),
   cycles: cycles.map((cycle) => cycle.map(relative)),
   config: {
     files: configFiles.sort().map(relative),
@@ -167,7 +215,7 @@ const output = {
 
 if (json) {
   console.log(JSON.stringify(output, null, 2));
-} else if (cycles.length || configCycles.length) {
+} else if (cycles.length || configCycles.length || duplicateImports.length) {
   if (cycles.length) console.error(`Nest production module graph contains ${cycles.length} cycle(s):`);
   cycles.forEach((cycle, index) => {
     console.error(`\nCycle ${index + 1}:`);
@@ -180,7 +228,13 @@ if (json) {
       cycle.forEach((file) => console.error(`  ${relative(file)}`));
     });
   }
+  if (duplicateImports.length) {
+    console.error(`Nest production module graph contains ${duplicateImports.length} duplicate import(s):`);
+    duplicateImports.forEach(({ file, module, count }) => {
+      console.error(`  ${relative(file)} imports ${module} ${count} times`);
+    });
+  }
   process.exitCode = 1;
 } else {
-  console.log(`Nest production and configuration graphs are acyclic (${graph.size} modules, ${configGraph.size} config files checked).`);
+  console.log(`Nest production and configuration graphs are acyclic with unique module imports (${graph.size} modules, ${configGraph.size} config files checked).`);
 }

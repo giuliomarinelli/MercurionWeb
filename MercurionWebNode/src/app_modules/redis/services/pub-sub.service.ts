@@ -23,6 +23,7 @@ export class PubSubService implements OnModuleInit {
   private readonly subscriber: Redis
   private readonly logger: MeiliContextLogger
   private socketServer: ApplicationServer | undefined
+  private initialized = false
 
   constructor(
     private readonly redisService: RedisService,
@@ -36,8 +37,11 @@ export class PubSubService implements OnModuleInit {
   }
 
   async onModuleInit() {
+    if (this.initialized) return
+
     await this.ensureKeyspaceEvents()     // log se non correttamente configurato
     await this.subscribeToKeyspaceEvents() // psubscribe
+    this.initialized = true
   }
 
   public setSocketServer(server: ApplicationServer): void {

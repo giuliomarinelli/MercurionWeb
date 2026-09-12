@@ -68,7 +68,6 @@ const appEnv = resolveAppEnv()
     MercurionAIModule,
     NotificationModule,
     MeilisearchModule,
-    SocketIoModule,
     DropboxObjectStoreModule,
     OAuth2ClientModule,
     EmbeddingModule,
