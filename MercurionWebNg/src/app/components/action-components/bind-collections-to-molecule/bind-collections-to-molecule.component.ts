@@ -26,6 +26,7 @@ import { ActionCardComponent } from '../../common/action-card/action-card.compon
 import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
 import { ActionFooterComponent } from '../../common/action-footer/action-footer.component';
 import { ButtonComponent } from '../../common/button/button.component';
+import { CollectionPickerFacade } from '../collection-picker/collection-picker.facade';
 
 @Component({
   selector: 'm-bind-collections-to-molecule',
@@ -223,6 +224,10 @@ export class BindCollectionsToMoleculeComponent
   private readonly bindContext = inject(BindCollectionsToMoleculeContextService);
   private readonly invalidation = inject(DomainInvalidationService);
   private readonly moleculeCollectionService = inject(MoleculeCollectionService);
+  private readonly picker = new CollectionPickerFacade({
+    mode: { kind: 'multi', operation: 'bind', moleculeId: this.bindContext.moleculeId() ?? '' },
+    pageSize: 20
+  });
   private readonly router = inject(Router);
   private readonly sessionId = this.actionOverlayContext.session('BindCollectionsToMolecule')?.id ?? -1;
 
@@ -247,6 +252,7 @@ export class BindCollectionsToMoleculeComponent
   ngOnDestroy(): void {
     this.suSub?.unsubscribe();
     this.observer?.disconnect();
+    this.picker.destroy();
   }
 
   private _rearmOnStep = effect(() => {
@@ -264,8 +270,8 @@ export class BindCollectionsToMoleculeComponent
     excludeJoinedToCollection?: boolean,
     collectionId?: boolean
   ): Observable<PageModel<UiMoleculeCollection>> {
-    return this.moleculeCollectionService
-      .getPaginatedCollections(this.page, 20, this.searchTerm(), true, this.bindContext.moleculeId())
+    return this.picker
+      .fetchPage$(this.page, this.searchTerm())
       .pipe(
         debounceTime(100),
         map(page => ({
