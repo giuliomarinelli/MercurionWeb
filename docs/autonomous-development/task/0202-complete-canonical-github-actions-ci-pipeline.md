@@ -153,11 +153,16 @@ Playwright/system jobs remain deferred until their prerequisite recipes
 register canonical scripts and reproducible runner topology.
 
 ### Commits
-Pending task commit.
+`36d331dc49a6367844cb1ee76975ad5b43b8a9a2` —
+`ci: complete canonical GitHub Actions pipeline` (committed with
+`--no-gpg-sign` and Copilot trailer).
 
 ### Merge / CI
-Feature SHA must receive exact-SHA GitHub Actions `Required gate` before
-integration; no merge or post-merge action was performed by this worker.
+Exact feature SHA `36d331dc49a6367844cb1ee76975ad5b43b8a9a2` passed GitHub
+Actions run
+34724629438: Ubuntu/Windows prerequisites, Angular unit, Nest unit, Nest E2E,
+build artifacts, and `Required gate` all succeeded. No merge or post-merge
+action was performed by this worker.
 
 ### Rollback
 Not applicable.
