@@ -18,9 +18,9 @@ import type {
 } from '../../Models/graphql/molecule-collection/molecule-collection.types';
 import {
   mapMoleculeItemBasicData,
-  mapMoleculeItemDtoToClient,
-  MoleculeCollectionItemService
-} from './molecule-collection-item.service';
+  mapMoleculeItemDtoToClient
+} from './molecule-collection-item.mapper';
+import { MoleculeCollectionItemService } from './molecule-collection-item.service';
 
 describe('MoleculeCollectionItemService', () => {
   let service: MoleculeCollectionItemService;

@@ -7,6 +7,7 @@ import type {
   AddCustomMoleculeToCollectionMutationVariables,
   BindManyCollectionsToMoleculeMutation,
   DuplicateCollectionMutation,
+  MoleculeItemFieldsFragment,
   MyMoleculeItemsQuery,
   PaginatedCollectionsQuery
 } from "../../../generated/graphql";
@@ -85,7 +86,10 @@ export type MoleculeCollectionItemClient =
     createdAt?: string;
     updatedAt?: string;
     touchedAt: string
-    chemblDetails?: unknown;
+    chemblDetails?: Extract<
+      MoleculeItemFieldsFragment,
+      { __typename: 'ChEMBLMoleculeItemDTO' }
+    >['chemblDetails'];
     t1Inference?: T1PredictionDTO
   }
   | {
@@ -103,6 +107,13 @@ export type MoleculeCollectionItemClient =
     touchedAt: string
     t1Inference?: T1PredictionDTO
   };
+
+export type MoleculeItemLookup = {
+  id: string;
+  type: 'custom';
+  canonicalSmiles: string;
+  name: string | null;
+};
 
 export interface MoleculeCollectionItemEntityShort {
   id: string;
