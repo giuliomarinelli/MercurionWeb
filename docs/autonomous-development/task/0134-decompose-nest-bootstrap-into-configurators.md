@@ -105,6 +105,10 @@ cookies, and startup behavior remain represented without duplicate setup.
 * `npm run build --workspace mercurion_web_node` — passed.
 * `npm run lint --workspace mercurion_web_node` — passed with 48 pre-existing warnings and no errors.
 * `git diff --check` — passed.
+* CI repair focused checks: `node scripts/check-rest-route-ownership.mjs` — passed
+  with 72 routes classified; `node scripts/check-rest-compatibility.mjs` —
+  passed with 59 client calls matched to Nest routes; `git diff --check` —
+  passed.
 * The new composition test verifies the explicit configurator order and
   sequential application; logging tests verify environment-specific levels.
 ### Full pre-merge CI-parity validation
@@ -114,7 +118,21 @@ GitHub Actions validation is owned by the coordinator.
 Not required for this structural bootstrap refactor; focused bootstrap tests,
 typecheck, build, and lint establish the declared acceptance locally.
 ### Commits
-Pending task commit.
+* `66850b149f2929e3032ac906f843b1c9be1fce7e` — original implementation.
+* CI repair commit recorded below.
+
+### CI repair
+Exact feature CI run `34703550473` failed on Windows and Ubuntu in the
+registered static checks because `scripts/rest-route-extraction.mjs` only
+looked for `setGlobalPrefix` in `MercurionWebNode/src/main.ts`, while BE-020
+correctly moved that policy to
+`MercurionWebNode/src/bootstrap/configurators/security.configurator.ts`.
+The extractor now checks the legacy bootstrap location first and the extracted
+security configurator second, preserving the same prefix and exception
+contract. The REST compatibility checker likewise recognizes the extracted
+validation configurator, and the route ownership inventory was regenerated
+only for references that moved from `main.ts` to the security configurator.
+No runtime/browser behavior changed.
 ### Merge / CI
 Feature branch publication is performed after the task-specific commit.
 ### Rollback
