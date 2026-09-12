@@ -7,12 +7,10 @@ import { Observable, of, throwError } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 
 import {
-  MoleculeCollectionJoin,
   MoleculeCollectionItemClient,
   MoleculeCollectionItemEntityShort,
   CreateMoleculeItemInput,
-  MoleculeItemDTO,
-  CustomMoleculeItemEntity
+  MoleculeItemLookup
 } from '../../Models/graphql/molecule-collection/molecule-collection.types';
 import {
   extractGqlData,
@@ -20,6 +18,12 @@ import {
 } from './graphql-helpers/v1/extract-gql-data.helper';
 import { MoleculeSearchInput } from '../../Models/graphql/molecule-search/molecule-search-input.interface';
 import { AddManyChEMBLItemDTO } from '../../Models/graphql/add-many-chembl-item.dto';
+import {
+  mapCustomMoleculeLookup,
+  mapMoleculeItemBasicData,
+  mapMoleculeItemDtoToClient,
+  mapMoleculeItemShort
+} from './molecule-collection-item.mapper';
 import {
   AddManyChemblItemsToCollectionDocument,
   AddManyChemblItemsToCollectionMutation,
@@ -87,86 +91,7 @@ import {
 } from '../../generated/graphql';
 
 
-function toNum(n: string | number): number {
-  return typeof n === 'number' ? n : Number(n);
-}
 
-function mapJoins(
-  joins: MoleculeItemDTO['joins']
-): MoleculeCollectionJoin[] {
-  return (joins ?? []).flatMap((join) => join.collection
-    ? [{
-      id: join.id,
-      collection: join.collection
-    }]
-    : [])
-}
-
-export function mapMoleculeItemDtoToClient(
-  node: MoleculeItemDTO
-): MoleculeCollectionItemClient {
-  if (node.__typename === 'ChEMBLMoleculeItemDTO') {
-    return {
-      id: node.id,
-      label: node.label ?? null,
-      notes: node.notes ?? null,
-      type: 'chembl',
-      joins: mapJoins(node.joins),
-      chemblMolregno: toNum(node.chemblMolregno),
-      createdAt: String(node.createdAt),
-      updatedAt: String(node.updatedAt),
-      touchedAt: String(node.touchedAt),
-      chemblDetails: node.chemblDetails,
-    };
-  }
-  // Custom
-  return {
-    id: node.id,
-    label: node.label ?? null,
-    notes: node.notes ?? null,
-    type: 'custom',
-    joins: mapJoins(node.joins),
-    canonicalSmiles: node.canonicalSmiles,
-    molFormula: node.molFormula ?? null,
-    name: node.name ?? null,
-    propertiesJson: node.propertiesJson ?? null,
-    createdAt: String(node.createdAt),
-    updatedAt: String(node.updatedAt),
-    touchedAt: String(node.touchedAt)
-  };
-}
-
-export function mapMoleculeItemBasicData(
-  node: MoleculeItemBasicDataQuery['myMoleculeItems'][number]
-): NormalizedMoleculeCollectionBasicData {
-  if (node.__typename === 'ChEMBLMoleculeItemDTO') {
-    return {
-      id: node.id,
-      name: node.chemblDetails?.preferredName
-        ?? node.chemblDetails?.preferredNameIt
-        ?? '',
-      canonicalSmiles: node.chemblDetails?.canonicalSmiles ?? '',
-      type: 'chembl'
-    }
-  }
-  return {
-    id: node.id,
-    name: node.name ?? 'Lead sconosciuto',
-    canonicalSmiles: node.canonicalSmiles,
-    type: 'custom'
-  }
-}
-
-function mapDtoToShort(
-  node: NonNullable<MoleculeItemShortQuery['moleculeItem']>
-): MoleculeCollectionItemEntityShort {
-  return {
-    id: node.id,
-    type: node.__typename === 'ChEMBLMoleculeItemDTO' ? 'chembl' : 'custom',
-    chemblMolregno:
-      node.__typename === 'ChEMBLMoleculeItemDTO' ? toNum(node.chemblMolregno) : undefined,
-  };
-}
 
 
 
@@ -241,7 +166,7 @@ export class MoleculeCollectionItemService {
       })
       .pipe(
         map(res => extractGqlData<MoleculeItemShortQuery, 'moleculeItem'>(res, 'moleculeItem', true)),
-        map(node => (node ? mapDtoToShort(node) : null))
+        map(node => (node ? mapMoleculeItemShort(node) : null))
       );
   }
 
@@ -326,7 +251,7 @@ export class MoleculeCollectionItemService {
       )
   }
 
-  findOneCustomMoleculeByCanonicalSmiles_shortFetch(canonicalSmiles: string): Observable<CustomMoleculeItemEntity | null> {
+  findOneCustomMoleculeByCanonicalSmiles_shortFetch(canonicalSmiles: string): Observable<MoleculeItemLookup | null> {
     return this.apollo
       .query<FindOneCustomMoleculeByCanonicalSmilesQuery, FindOneCustomMoleculeByCanonicalSmilesQueryVariables>({
         query: FindOneCustomMoleculeByCanonicalSmilesDocument,
@@ -335,7 +260,11 @@ export class MoleculeCollectionItemService {
         },
         fetchPolicy: 'no-cache'
       }).pipe(
-        map((res) => extractGqlData<FindOneCustomMoleculeByCanonicalSmilesQuery, 'findOneCustomMoleculeByCanonicalSmiles'>(res, 'findOneCustomMoleculeByCanonicalSmiles', true) as CustomMoleculeItemEntity | null),
+        map(res => extractGqlData<
+          FindOneCustomMoleculeByCanonicalSmilesQuery,
+          'findOneCustomMoleculeByCanonicalSmiles'
+        >(res, 'findOneCustomMoleculeByCanonicalSmiles', true)),
+        map(node => node ? mapCustomMoleculeLookup(node) : null),
         catchError((e) => {
           if (e instanceof GqlDataError && e.kind === 'NoData') {
             return of(null)
