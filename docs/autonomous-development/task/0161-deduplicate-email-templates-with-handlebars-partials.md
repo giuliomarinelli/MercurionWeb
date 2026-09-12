@@ -127,6 +127,8 @@ _Not applicable._
 `20242be0a22d39feeca932551d9cf198b88ca42f` — refactor email templates with
 canonical layouts/partials, deterministic adapter resolution, fixtures, and
 duplication guard. Includes the required Copilot co-author trailer.
+`b449a2b18e04803aa2d73ce806f82f1dcaefde1f` — record final execution evidence
+and DONE state.
 ### Merge / CI
 _Not started._
 ### Rollback
