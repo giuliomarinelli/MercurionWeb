@@ -175,4 +175,4 @@ browser method. Task remains `BLOCKED` pending a recoverable browser
 observation and rerun of the declared browser validation.
 
 #### Commits
-Pending task-preservation commit on `feature/UI-016`.
+Task-preservation commit: `2265a0177ab0532fda579dee73675a0ce4836c1a`.
