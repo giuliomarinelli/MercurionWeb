@@ -292,6 +292,7 @@ jobs:
             MercurionWebNg/dist
             MercurionWebNode/dist
             MercurionWebNg/**/*.stats.json
+            MercurionWebNg/dist/**/bundle-gate-report.json
             MercurionWebNg/**/*.json
 
   required:
