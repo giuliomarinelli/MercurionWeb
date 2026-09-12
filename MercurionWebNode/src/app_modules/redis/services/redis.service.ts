@@ -1,10 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleDestroy } from '@nestjs/common';
 import { Redis } from 'ioredis';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 
 @Injectable()
-export class RedisService {
+export class RedisService implements OnModuleDestroy {
 
   private readonly logger: MeiliContextLogger
 
@@ -18,6 +18,10 @@ export class RedisService {
 
   public getClient(): Redis {
     return this.redisClient
+  }
+
+  async onModuleDestroy(): Promise<void> {
+    await this.redisClient.quit()
   }
 
   // Set TTL for a specific key

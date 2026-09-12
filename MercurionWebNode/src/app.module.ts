@@ -27,6 +27,7 @@ import { FeedbackModule } from './app_modules/feedback/feedback.module';
 import { ReleaseVersionModule } from './app_modules/release-version/release-version.module';
 import { HealthController } from './health.controller';
 import { AssetController } from './asset.controller';
+import { ReadinessService } from './shutdown/readiness.service'
 import {
   createConfigurationModule,
   type ConfigurationModuleOptions
@@ -66,6 +67,7 @@ import {
     ReleaseVersionModule
   ],
   providers: [
+    ReadinessService,
     {
       provide: APP_GUARD,
       useExisting: GlobalGuard

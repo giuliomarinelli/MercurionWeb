@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { RedisService } from './redis.service';
 import { Redis } from 'ioredis';
 import { OAuth2AccessTokenRefreshService } from 'src/app_modules/oauth2-client/services/access-token-refresh.service';
@@ -18,7 +18,7 @@ import { SessionInvalidationCause } from '@mercurion/rest-contracts';
 type ApplicationServer = Server<ClientToServerEvents, ServerToClientEvents>
 
 @Injectable()
-export class PubSubService implements OnModuleInit {
+export class PubSubService implements OnModuleDestroy, OnModuleInit {
 
   private readonly subscriber: Redis
   private readonly logger: MeiliContextLogger
@@ -42,6 +42,12 @@ export class PubSubService implements OnModuleInit {
     await this.ensureKeyspaceEvents()     // log se non correttamente configurato
     await this.subscribeToKeyspaceEvents() // psubscribe
     this.initialized = true
+  }
+
+  async onModuleDestroy(): Promise<void> {
+    if (this.subscriber.status !== 'end') {
+      await this.subscriber.quit()
+    }
   }
 
   public setSocketServer(server: ApplicationServer): void {
