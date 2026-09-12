@@ -51,7 +51,7 @@
     "ci:angular:console-debugger": "node scripts/check-angular-console-debugger-policy.mjs && node scripts/test-angular-console-debugger-policy-negative.mjs",
     "ci:angular:storage-registry": "node scripts/check-angular-browser-storage-registry.mjs",
     "ci:angular:import-graph": "node scripts/check-angular-import-graph.mjs --root=MercurionWebNg && node scripts/test-angular-import-graph-negative.mjs"
-    ,"ci:nest:architecture": "node scripts/check-nest-module-graph.mjs --root=MercurionWebNode && node scripts/test-nest-module-graph-negative.mjs"
+    ,"ci:nest:architecture": "node scripts/check-nest-module-graph.mjs --root=MercurionWebNode && node scripts/test-nest-module-graph-negative.mjs && node scripts/check-nest-provider-ownership.mjs --root=MercurionWebNode && node scripts/test-nest-provider-ownership-negative.mjs"
   },
   "devDependencies": {
     "patch-package": "8.0.1"

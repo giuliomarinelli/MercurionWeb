@@ -2,12 +2,10 @@ import { Global, Module } from '@nestjs/common';
 import { JwtToolsService } from './services/jwt-tools.service';
 import { PasswordEncoderService } from './services/password-encoder.service';
 import { JwtService } from '@nestjs/jwt';
-import { RedisService } from '../redis/services/redis.service';
 import { SessionService } from './services/session.service';
 import { SecureCookieService } from './services/secure-cookie.service';
 import { SercurityService } from './services/sercurity.service';
 import { AccountService } from './services/account.service';
-import { ResponseService } from 'src/services/response.service';
 import { AccountController } from './controllers/account.controller';
 import { MfaService } from './services/mfa.service';
 import { AuthenticationService } from './services/authentication.service';
@@ -28,6 +26,9 @@ import { LocalDummyAuthService } from './services/local-dummy-auth.service';
 import { UserModule } from '../user/user.module';
 import { UserService } from '../user/services/user.service';
 import { IDENTITY_READ_PORT } from './Models/interfaces/identity-read.port';
+import { RedisModule } from '../redis/redis.module';
+import { ResponseModule } from 'src/services/response.module';
+import { GlobalGuard } from './guards/global.guard';
 
 
 
@@ -36,18 +37,18 @@ import { IDENTITY_READ_PORT } from './Models/interfaces/identity-read.port';
   imports: [
     HttpModule,
     UserModule,
+    RedisModule,
+    ResponseModule,
     TypeOrmModule.forFeature([User, Country])
   ],
   providers: [
     JwtToolsService,
     PasswordEncoderService,
     JwtService,
-    RedisService,
     SessionService,
     SecureCookieService,
     SercurityService,
     AccountService,
-    ResponseService,
     MfaService,
     AuthenticationService,
     IpService,
@@ -57,6 +58,7 @@ import { IDENTITY_READ_PORT } from './Models/interfaces/identity-read.port';
     CountryService,
     JwtKeysProvider,
     LocalDummyAuthService,
+    GlobalGuard,
     {
       provide: IDENTITY_READ_PORT,
       useExisting: UserService
@@ -65,14 +67,14 @@ import { IDENTITY_READ_PORT } from './Models/interfaces/identity-read.port';
   exports: [
     SecureCookieService,
     JwtToolsService,
-    JwtService,
     SessionService,
     PasswordEncoderService,
     SercurityService,
     ScopeService,
     GeoIpService,
     JwtKeysProvider,
-    LocalDummyAuthService
+    LocalDummyAuthService,
+    GlobalGuard
   ],
   controllers: [AccountController, AuthenticationController, CountryController, RecoveryController],
 })
