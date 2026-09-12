@@ -159,6 +159,32 @@ Not applicable; the recipe declares no browser/runtime gate.
 - Task outcome/execution-notes commit: this commit.
 ### Merge / CI
 Not merged. Exact feature-SHA CI and integration remain coordinator-owned.
+### Feature-CI repair
+- Exact feature SHA `4c5d8b00036f3b2ec01a8fd94f15abb55f609410`
+  failed GitHub Actions run
+  [34695410234](https://github.com/giuliomarinelli/MercurionWeb/actions/runs/34695410234)
+  in `Run registered static checks` on both platforms. The actionable
+  diagnostic was
+  `authentication-policies.spec.ts:490:5 construct application errors through
+  applicationError()`.
+- Replaced the task-added direct `RpcException` construction with a narrow
+  unstructured RPC exception test fixture. This preserves coverage of the
+  legacy non-application `RpcException` failure branch without constructing an
+  application error outside `applicationError()`, and changes no production
+  authentication policy behavior.
+- Focused repair validation:
+  `npm run ci:errors` — passed;
+  `npm test --workspace mercurion_web_node -- --runInBand --runTestsByPath
+  src/app_modules/auth/guards/policies/authentication-policies.spec.ts` —
+  1 suite / 37 tests passed;
+  `npm run lint --workspace mercurion_web_node --
+  src/app_modules/auth/guards/policies/authentication-policies.spec.ts` —
+  passed with 0 errors; 48 pre-existing warnings outside the changed spec
+  remain;
+  `npm run ci:validate:autonomous` — passed;
+  `git diff --check` — passed.
+- Correction commit: this commit. Exact-SHA feature CI is pending coordinator
+  observation after push.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required

@@ -91,6 +91,15 @@ async function expectApplicationErrorCode(
   }
 }
 
+function unstructuredRpcException(message: string): RpcException {
+  const error = Object.create(RpcException.prototype) as RpcException
+  Object.defineProperties(error, {
+    error: { value: message },
+    message: { value: message }
+  })
+  return error
+}
+
 describe('AuthenticationRequestContextFactory', () => {
   const factory = new AuthenticationRequestContextFactory()
 
@@ -487,7 +496,7 @@ describe('AuthenticationFailurePolicy', () => {
 
   it.each([
     applicationError(ApplicationErrorCode.TOKEN_REVOKED, 'revoked'),
-    new RpcException('infrastructure'),
+    unstructuredRpcException('infrastructure'),
     new Error('infrastructure')
   ])('does not revoke hard-auth sessions for non-auth failures', async error => {
     const { policy, sessionService, transportPolicy } = setup()
