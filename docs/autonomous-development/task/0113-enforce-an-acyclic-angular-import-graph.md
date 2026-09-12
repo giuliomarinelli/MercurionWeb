@@ -133,10 +133,14 @@ for `/health` and `/`. The authenticated dashboard was observed through the
 persistent Chrome profile with no console errors. No special browser behavior
 was changed by the import-only refactor.
 ### Commits
-Pending task commit.
+* `6ff818dfb6a77c6a5aad89dcc820470108ef5a46`
+  (`fix(NG-027): enforce acyclic Angular imports`) pushed to
+  `feature/NG-027` with the Copilot coauthor trailer.
 ### Merge / CI
-Feature branch must be pushed after the task-specific commit; exact-SHA CI is
-required before integration.
+Exact feature-SHA CI run `34683153418` was dispatched for
+`6ff818dfb6a77c6a5aad89dcc820470108ef5a46` and was still in progress when
+this note was written. The coordinator owns waiting for that exact run before
+integration.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
