@@ -112,6 +112,8 @@ Passed:
 - `npm run typecheck --workspace mercurion_web_ng`
 - `npx ng test --watch=false --karma-config=karma.conf.js --include 'src/app/pages/login/**/*.spec.ts'`
   (11/11 tests passed)
+- `node scripts/check-angular-interactive-semantics.mjs` (passed after the
+  narrow CI correction removing the unnecessary SSO anchor click handler).
 - Canonical post-edit runtime restarted with Tox21, Nest and Angular in order;
   two consecutive `/health` and `/login` readiness rounds returned HTTP 200.
 - Through `http://localhost:8888/login`, invalid credentials rendered the
@@ -133,7 +135,10 @@ at `http://localhost:8888`. MFA was not available for the configured account
 during this run.
 
 ### Commits
-Pending feature commit.
+`6209abf2aebcd4461c3d307e2a10e9a7cc059fb5` — feature implementation.
+The first exact feature run `34669933775` found only the interactive-semantics
+violation in the SSO anchor; the narrow correction is pending commit and
+republish.
 
 ### Merge / CI
 The feature branch must be published after the task-specific commit. The

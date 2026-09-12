@@ -10,7 +10,7 @@ import type { LoginSsoSelection } from './login-flow.models'
     <section aria-labelledby="sso-title">
       <h2 id="sso-title">Oppure</h2>
       @for (provider of providers; track provider) {
-        <a [href]="hrefFor(provider)" (click)="select(provider)" [attr.aria-label]="'Continua con ' + provider">
+        <a [href]="hrefFor(provider)" [attr.aria-label]="'Continua con ' + provider">
           Continua con {{ provider }}
         </a>
       }
