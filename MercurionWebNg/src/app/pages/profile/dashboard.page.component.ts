@@ -1,545 +1,94 @@
-// ====================== IMPORTS ======================
 import {
-  Component,
-  ChangeDetectionStrategy,
-  ElementRef,
-  inject,
   AfterViewInit,
-  OnInit,
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
   OnDestroy,
-  effect,
+  inject,
   signal,
   viewChild
 } from '@angular/core';
-import { Subscription } from 'rxjs';
-import {
-  Chart,
-  ChartConfiguration,
-  registerables
-} from 'chart.js';
-import { AccountService } from '../../services/account.service';
-import { ProfileDTO } from '../../Models/account/account.models';
-import { ThemeManagerService } from '../../services/context/theme-manager.service';
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
 import { SidenavContextService } from '../../services/context/sidenav-context.service';
-import { DomainInvalidationService } from '../../services/domain-invalidation.service';
+import { DashboardChartsWidgetComponent } from './dashboard/dashboard-charts-widget.component';
+import { DashboardFacade } from './dashboard/dashboard.facade';
+import { DashboardMetricsWidgetComponent } from './dashboard/dashboard-metrics-widget.component';
 
-Chart.register(...registerables);
-
-type ActivityPoint = {
-  dayLabel: string;
-  molecules: number;
-  collections: number;
-};
-
-type ChartPalette = {
-  text: string;
-  grid: string;
-  bgMolecules: string;
-  bgCollections: string;
-  doughnut: [string, string, string];
-};
-
-// ====================== COMPONENT ======================
 @Component({
   selector: 'm-dashboard',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ClassicSpinnerComponent],
+  imports: [
+    ClassicSpinnerComponent,
+    DashboardMetricsWidgetComponent,
+    DashboardChartsWidgetComponent
+  ],
+  providers: [DashboardFacade],
   template: `
-    <section #mainHost class="main-container py-8 cursor-default" role="main" aria-live="polite" [attr.aria-busy]="loading()">
-      @if (profile) {
-
-        <!-- HEADER UTENTE -->
-        <div class="flex flex-col items-center mb-12">
-          <div
-            class="rounded-full w-20 h-20 text-xl font-semibold
-                   flex items-center justify-center
-                   bg-light-accent-secondary dark:bg-dark-accent-primary-btn text-white shadow-md mb-4"
-            role="img"
-            [attr.aria-label]="'Profilo di ' + profile.firstName + ' ' + profile.lastName"
-          >
-            {{ initials }}
-          </div>
-
-          <h1 id="dashboard-heading" class="text-3xl sm:text-4xl lg:text-5xl text-center tracking-wide">
-            Benvenut{{ ending }} {{ profile.firstName }}.
-          </h1>
+    <section
+      #mainHost
+      class="main-container py-8 cursor-default"
+      role="main"
+      aria-live="polite"
+      [attr.aria-busy]="facade.state().status === 'loading'">
+      @if (facade.state().status === 'content' && facade.state().value; as dashboard) {
+        <div class="mx-auto max-w-5xl grid gap-8
+                    lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] items-start">
+          <m-dashboard-metrics-widget [metrics]="dashboard.metrics" />
+          @defer (on viewport) {
+            <m-dashboard-charts-widget
+              [composition]="dashboard.composition"
+              [activity]="dashboard.activity" />
+          } @placeholder {
+            <div class="h-[260px] rounded-lg border border-slate-300/70 dark:border-slate-700/70"
+                 aria-label="Caricamento grafici"></div>
+          }
         </div>
-
-        <!-- GRID STATISTICHE + DOUGHNUT -->
-        <div
-          class="mx-auto max-w-5xl grid gap-8
-                 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]
-                 items-start">
-
-          <!-- METRICHE -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div
-              class="rounded-lg border border-slate-300/70 dark:border-slate-700/70
-                     bg-blue-50 dark:bg-[#050816] px-4 py-4 shadow-sm"
-              role="group"
-              aria-label="Totale molecole"
-            >
-              <p class="text-sm text-neutral-950 dark:text-slate-200 font-semibold">
-                Totale molecole
-              </p>
-              <p class="text-3xl font-semibold mt-1">
-                {{ profile.personalMoleculeCount + profile.chemblMoleculeCount }}
-              </p>
-            </div>
-
-            <div
-              class="rounded-lg border border-slate-300/70 dark:border-slate-700/70
-                     bg-blue-50 dark:bg-[#050816] px-4 py-4 shadow-sm"
-              role="group"
-              aria-label="Molecole personali"
-            >
-              <p class="text-sm text-neutral-950 dark:text-slate-200 font-semibold">
-                Molecole personali
-              </p>
-              <p class="text-3xl font-semibold mt-1">
-                {{ profile.personalMoleculeCount }}
-              </p>
-            </div>
-
-            <div
-              class="rounded-lg border border-slate-300/70 dark:border-slate-700/70
-                     bg-blue-50 dark:bg-[#050816] px-4 py-4 shadow-sm"
-              role="group"
-              aria-label="Molecole ChEMBL"
-            >
-              <p class="text-sm text-neutral-950 dark:text-slate-200 font-semibold">
-                Molecole ChEMBL
-              </p>
-              <p class="text-3xl font-semibold mt-1">
-                {{ profile.chemblMoleculeCount }}
-              </p>
-            </div>
-
-            <div
-              class="rounded-lg border border-slate-300/70 dark:border-slate-700/70
-                     bg-blue-50 dark:bg-[#050816] px-4 py-4 shadow-sm"
-              role="group"
-              aria-label="Collezioni"
-            >
-              <p class="text-sm text-neutral-950 dark:text-slate-200 font-semibold">
-                Collezioni
-              </p>
-              <p class="text-3xl font-semibold mt-1">
-                {{ profile.collectionCount }}
-              </p>
-            </div>
-          </div>
-
-          <!-- DOUGHNUT -->
+      } @else if (facade.state().status === 'loading') {
+        <div class="fixed inset-0 pointer-events-none">
           <div
-            class="rounded-lg border border-slate-300/70 dark:border-slate-700/70
-                  bg-blue-50 dark:bg-[#050816] px-4 py-4 shadow-sm
-                   h-[260px] sm:h-[300px]">
-            <h2 class="text-sm font-semibold mb-2 text-neutral-950 dark:text-slate-200">
-              Composizione workspace
-            </h2>
-            <div class="relative h-[210px] sm:h-[250px]">
-              <canvas #overviewChart role="img" aria-label="Grafico a torta della composizione del workspace tra molecole e collezioni"></canvas>
-            </div>
+            class="fixed top-1/2 -translate-y-1/2"
+            [style.left.px]="spinnerLeft()"
+            role="status"
+            aria-live="polite">
+            <m-classic-spinner [size]="60" />
           </div>
         </div>
-
-        <!-- ATTIVITÀ RECENTE -->
-        <section class="mx-auto max-w-5xl mt-12">
-          <div
-            class="rounded-lg border border-slate-300/70 dark:border-slate-700/70
-                   bg-blue-50 dark:bg-[#050816] px-4 py-4 shadow-sm
-                   h-[260px] sm:h-[360px]">
-            <h2 class="text-sm font-semibold mb-2 text-neutral-950 dark:text-slate-200">
-              Attività recente
-            </h2>
-            <p class="text-xs text-neutral-950 dark:text-slate-300 mb-2">
-              Molecole e collezioni visitate, create o modificate negli ultimi giorni.
-            </p>
-            <div class="relative h-[210px] sm:h-[270px]">
-              <canvas #activityChart role="img" aria-label="Grafico dell'attività recente su molecole e collezioni"></canvas>
-            </div>
-          </div>
-        </section>
-      } @else if (loading()) {
-          <div class="fixed inset-0 pointer-events-none">
-            <div
-              class="fixed top-1/2 -translate-y-1/2"
-              [style.left.px]="spinnerLeft()"
-              role="status"
-              aria-live="polite"
-            >
-              <m-classic-spinner [size]="60" />
-            </div>
-          </div>
-      } @else if (serverError()) {
-        <p class="text-light-error dark:text-dark-error" role="alert">Si è verificato un errore nel caricamento della dashboard.</p>
+      } @else if (facade.state().status === 'error') {
+        <p class="text-light-error dark:text-dark-error" role="alert">
+          Si è verificato un errore nel caricamento della dashboard.
+        </p>
       }
     </section>
-  ` })
-export class DashboardPageComponent implements OnInit, OnDestroy, AfterViewInit {
-
-  // ========= DEPS =========
-  private readonly accountService = inject(AccountService)
-  private readonly themeManager = inject(ThemeManagerService)
-  private readonly sidenavContext = inject(SidenavContextService)
-  private readonly invalidations = inject(DomainInvalidationService)
-
-  // ========================
-
-
-  private prSub?: Subscription
-  private reSub?: Subscription
-  private resizeObs?: ResizeObserver
-
-  private subArg = {
-    next: (profile: ProfileDTO) => {
-      this.profile = profile;
-
-      if (profile.gender === 'F') {
-        this.ending = 'a';
-      }
-      this.initials = profile.firstName.slice(0, 1) + profile.lastName.slice(0, 1)
-
-      this.loading.set(false)
-
-      this.tryBuildCharts()
-    },
-    error: () => {
-      this.serverError.set(true)
-      this.loading.set(false)
-    }
-  }
-
-  // ========= STATE =========
-  profile: ProfileDTO | null = null
-  ending: 'o' | 'a' = 'o'
-  initials = ''
-
-  // ========= CANVAS & CHARTS =========
-  private overviewCanvas?: HTMLCanvasElement
-  private activityCanvas?: HTMLCanvasElement
-
-  private overviewChart?: Chart<'doughnut'>
-  private activityChart?: Chart<'bar'>
-
-  loading = signal<boolean>(true)
-  serverError = signal<boolean>(false)
-  spinnerLeft = signal<number>(0)
-
+  `
+})
+export class DashboardPageComponent implements AfterViewInit, OnDestroy {
+  readonly facade = inject(DashboardFacade);
+  private readonly sidenavContext = inject(SidenavContextService);
   readonly mainHost = viewChild<ElementRef<HTMLElement>>('mainHost');
-  private spinnerFollowRaf?: number
-
-  readonly overviewChartRef = viewChild<ElementRef<HTMLCanvasElement>>('overviewChart')
-  readonly activityChartRef = viewChild<ElementRef<HTMLCanvasElement>>('activityChart')
+  readonly spinnerLeft = signal(0);
+  private resizeObserver?: ResizeObserver;
 
   constructor() {
-    effect(() => {
-      this.overviewCanvas = this.overviewChartRef()?.nativeElement
-      this.activityCanvas = this.activityChartRef()?.nativeElement
-      this.tryBuildCharts()
-    })
-    // reagisci al cambio tema: ricostruisco i grafici con la palette corretta
-    effect(() => {
-      this.tryBuildCharts()
-    })
-    effect(() => {
-      const event = this.invalidations.last()
-      if (event?.domain !== 'dashboard' || event.action !== 'profile-changed') {
-        return
-      }
-      this.reSub = this.accountService.getProfileRegistry().subscribe(this.subArg)
-    })
-    effect(() => {
-      // riallinea lo spinner quando la sidebar cambia
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const _ = this.sidenavContext.isOpen()
-      queueMicrotask(() => {
-        this.updateSpinnerLeft()
-        this.startSpinnerFollow()
-      })
-    })
-  }
-
-  // --------- LIFECYCLE ---------
-  ngOnInit(): void {
-    this.prSub = this.accountService.getProfileRegistry().subscribe(this.subArg)
+    this.sidenavContext.isOpen();
   }
 
   ngAfterViewInit(): void {
-    this.attachSpinnerTracking()
+    this.updateSpinnerLeft();
+    const host = this.mainHost()?.nativeElement;
+    if (host) {
+      this.resizeObserver = new ResizeObserver(() => this.updateSpinnerLeft());
+      this.resizeObserver.observe(host);
+    }
+    window.addEventListener('resize', this.updateSpinnerLeft);
   }
 
   ngOnDestroy(): void {
-    this.prSub?.unsubscribe()
-    this.overviewChart?.destroy()
-    this.activityChart?.destroy()
-    this.reSub?.unsubscribe()
-    this.resizeObs?.disconnect()
-    window.removeEventListener('resize', this.updateSpinnerLeft)
-    this.stopSpinnerFollow()
+    this.resizeObserver?.disconnect();
+    window.removeEventListener('resize', this.updateSpinnerLeft);
   }
 
-  // --------- HELPERS TEMA / PALETTE ---------
-  private currentTheme(): 'light' | 'dark' {
-    return this.themeManager.theme() === 'dark' ? 'dark' : 'light'
-  }
-
-  private getChartPalette(theme: 'light' | 'dark'): ChartPalette {
-    if (theme === 'dark') {
-      return {
-        text: '#cad5e2',
-        grid: '#47556955',
-        bgMolecules: '#38bdf8',
-        bgCollections: '#a855f7',
-        doughnut: ['#22c55e', '#0ea5e9', '#a855f7']
-      }
-    }
-
-    return {
-      text: '#0f172a',
-      grid: '#cad5e2',
-      bgMolecules: '#0956FB',
-      bgCollections: '#B200C2',
-      doughnut: ['#7A33FF', '#00754E', '#D10038']
-    }
-  }
-
-  // --------- BUILD ENTRYPOINT ---------
-  private tryBuildCharts(): void {
-    if (!this.profile) return
-
-    if (this.overviewCanvas) {
-      this.buildOverviewChart()
-    }
-    if (this.activityCanvas) {
-      this.buildActivityChart()
-    }
-  }
-
-  // --------- DOUGHNUT ---------
-  private buildOverviewChart(): void {
-    if (!this.profile || !this.overviewCanvas) return
-
-    const ctx = this.overviewCanvas.getContext('2d')
-    if (!ctx) return
-
-    this.overviewChart?.destroy()
-
-    const palette = this.getChartPalette(this.currentTheme())
-
-    // 👉 dati reali
-    const realData = [
-      this.profile.personalMoleculeCount,
-      this.profile.chemblMoleculeCount,
-      this.profile.collectionCount,
-    ]
-
-    // 👉 partenza a 0 per forzare l'animazione
-    const initialData = [0, 0, 0]
-
-    this.overviewChart = new Chart(ctx, {
-      type: 'doughnut',
-      data: {
-        labels: ['Molecole personali', 'Molecole ChEMBL', 'Collezioni'],
-        datasets: [
-          {
-            data: initialData,
-            backgroundColor: palette.doughnut,
-            borderColor: 'transparent',
-            hoverOffset: 6
-          },
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: '60%',
-        animation: {
-          duration: 700,
-          easing: 'easeOutCubic'
-        },
-        plugins: {
-          legend: {
-            position: 'bottom',
-            labels: {
-              color: palette.text,
-              boxWidth: 14
-            }
-          }
-        }
-      }
-    })
-
-    // 🔥 step 2: set dei valori reali → parte l’animazione
-    queueMicrotask(() => {
-      if (!this.overviewChart) return
-      const ds = this.overviewChart.data.datasets[0]
-      ds.data = realData
-      this.overviewChart.update()
-    })
-  }
-
-
-  // --------- BAR ATTIVITÀ ---------
-  private buildActivityChart(): void {
-    if (!this.profile || !this.activityCanvas) return
-
-    const ctx = this.activityCanvas.getContext('2d')
-    if (!ctx) return
-
-    const points = this.buildActivityPoints(this.profile, 7)
-    if (points.length === 0) {
-      this.activityChart?.destroy()
-      this.activityChart = undefined
-      return
-    }
-
-    this.activityChart?.destroy()
-
-    const palette = this.getChartPalette(this.currentTheme())
-
-    const labels = points.map((p) => p.dayLabel)
-    const molecules = points.map((p) => p.molecules)
-    const collections = points.map((p) => p.collections)
-
-    const config: ChartConfiguration<'bar'> = {
-      type: 'bar',
-      data: {
-        labels,
-        datasets: [
-          {
-            label: 'Molecole',
-            data: molecules,
-            backgroundColor: palette.bgMolecules,
-            borderRadius: 4
-          },
-          {
-            label: 'Collezioni',
-            data: collections,
-            backgroundColor: palette.bgCollections,
-            borderRadius: 4
-          },
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          x: {
-            stacked: true,
-            ticks: { color: palette.text },
-            grid: { color: palette.grid }
-          },
-          y: {
-            stacked: true,
-            beginAtZero: true,
-            ticks: { color: palette.text, precision: 0 },
-            grid: { color: palette.grid }
-          }
-        },
-        plugins: {
-          colors: {
-            enabled: false
-          },
-          legend: {
-            position: 'bottom',
-            labels: { color: palette.text }
-          }
-        }
-      }
-    }
-
-    this.activityChart = new Chart(ctx, config)
-  }
-
-  // --------- SPINNER POSITION ---------
-  private attachSpinnerTracking(): void {
-    const host = this.mainHost()?.nativeElement
-    if (!host) return
-
-    this.updateSpinnerLeft()
-    this.resizeObs?.disconnect()
-    this.resizeObs = new ResizeObserver(() => this.updateSpinnerLeft())
-    this.resizeObs.observe(host)
-    window.addEventListener('resize', this.updateSpinnerLeft)
-    this.startSpinnerFollow()
-  }
-
-  private updateSpinnerLeft = () => {
-    const rect = this.mainHost()?.nativeElement.getBoundingClientRect()
-    if (!rect) return
-    this.spinnerLeft.set(rect.left + rect.width / 2)
-  }
-
-  private startSpinnerFollow(): void {
-    this.stopSpinnerFollow()
-    const start = performance.now()
-    const step = (now: number) => {
-      this.updateSpinnerLeft()
-      if (now - start < 800) {
-        this.spinnerFollowRaf = requestAnimationFrame(step)
-      }
-    }
-    this.spinnerFollowRaf = requestAnimationFrame(step)
-  }
-
-  private stopSpinnerFollow(): void {
-    if (this.spinnerFollowRaf) {
-      cancelAnimationFrame(this.spinnerFollowRaf)
-      this.spinnerFollowRaf = undefined
-    }
-  }
-
-  // --------- UTILS ---------
-  private buildActivityPoints(
-    profile: ProfileDTO,
-    days: number = 7,
-  ): ActivityPoint[] {
-    const items = profile.recentHistory ?? [];
-    const buckets = new Map<string, { molecules: number; collections: number }>()
-
-    for (const item of items) {
-      const ts = Number(item.touchedAt)
-      if (Number.isNaN(ts)) continue
-
-      const d = new Date(ts)
-      d.setHours(0, 0, 0, 0)
-      const key = d.toISOString().slice(0, 10)
-
-      const bucket = buckets.get(key) ?? { molecules: 0, collections: 0 }
-
-      if (item.itemEntity === 'molecule_collection_items') {
-        bucket.molecules++
-      } else if (item.itemEntity === 'molecule_collections') {
-        bucket.collections++
-      }
-
-      buckets.set(key, bucket)
-    }
-
-    const result: ActivityPoint[] = []
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-
-    for (let i = days - 1; i >= 0; i--) {
-      const d = new Date(today)
-      d.setDate(today.getDate() - i)
-
-      const key = d.toISOString().slice(0, 10)
-      const bucket = buckets.get(key) ?? { molecules: 0, collections: 0 }
-
-      result.push({
-        dayLabel: d.toLocaleDateString('it-IT', {
-          day: '2-digit',
-          month: '2-digit'
-        }),
-        molecules: bucket.molecules,
-        collections: bucket.collections
-      })
-    }
-
-    return result
-  }
+  private updateSpinnerLeft = (): void => {
+    const rect = this.mainHost()?.nativeElement.getBoundingClientRect();
+    if (rect) this.spinnerLeft.set(rect.left + rect.width / 2);
+  };
 }
