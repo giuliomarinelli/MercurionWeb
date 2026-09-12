@@ -1,6 +1,6 @@
 # 0115 - Break the Nest domain-module dependency cycle
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -95,21 +95,42 @@ Do not substitute one giant shared module for the current SCC. A dependency grap
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/BE-001`
 ### Preflight
-_Not started._
+Clean `feature/BE-001` at `ced845cd59257199b61808c15b34c05560250ca4`, matching
+the supplied `develop` base. GitHub Actions run `34683505353` for that exact
+SHA completed successfully. No task-owned workspace process was active; the
+only Node processes were the pre-existing Chrome DevTools MCP lease.
 ### Preflight remediation
 _None._
 ### Summary
-_Not started._
+Removed application-domain `forwardRef()` module edges and made the affected
+capability modules globally available through their existing public provider
+exports, leaving TypeORM/configuration imports local. Added a deterministic
+Nest module graph/SCC checker, its cyclic-fixture negative test, and the
+architecture policy artifact documenting the audited SCC and denied patterns.
+The production module graph now reports zero cycles.
 ### Task-specific validation performed
-_Not started._
+* `node scripts/check-nest-module-graph.mjs --root=MercurionWebNode --json`
+  reported 21 production modules and `cycles: []`.
+* `node scripts/test-nest-module-graph-negative.mjs` passed.
+* `npm run ci:nest:architecture` passed.
+* `npm run typecheck --workspace mercurion_web_node` passed.
+* `npm run lint --workspace mercurion_web_node` passed with the repository's
+  pre-existing warnings and no errors.
+* `npm test --workspace mercurion_web_node -- --runInBand
+  --runTestsByPath src/app.module.spec.ts` passed.
+* `npm run build --workspace mercurion_web_node` passed.
+* No browser validation was applicable. Per protocol, `npm ci`,
+  `npm run ci:check`, and full clean-install/aggregate validation were not run
+  locally; those belong to GitHub Actions.
 ### Full pre-merge CI-parity validation
-_Not started._
+Deferred to GitHub Actions on the pushed feature SHA; forbidden locally by
+protocol.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-_Not recorded._
+Pending commit after final task-file update.
 ### Merge / CI
 _Not started._
 ### Rollback
