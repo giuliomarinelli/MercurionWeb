@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   OnDestroy,
+  OnInit,
   inject,
   signal,
 } from '@angular/core';
@@ -13,6 +14,7 @@ import { ToastService } from '../../../services/toast.service';
 import { Subscription } from 'rxjs';
 import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
 import { IconButtonComponent } from '../../common/icon-button/icon-button.component';
+import { QuillStylesService } from '../../../services/quill-styles.service';
 
 @Component({
   selector: 'm-new-ticket',
@@ -121,8 +123,9 @@ import { IconButtonComponent } from '../../common/icon-button/icon-button.compon
     </div>
   `,
 })
-export class NewTicketComponent implements OnDestroy {
+export class NewTicketComponent implements OnDestroy, OnInit {
 
+  private readonly quillStyles = inject(QuillStylesService)
   private readonly helpService = inject(HelpService)
   private readonly overlayContext = inject(ActionOverlayContextService)
   private readonly sessionId = this.overlayContext.session('NewTicket')?.id ?? -1
@@ -135,6 +138,10 @@ export class NewTicketComponent implements OnDestroy {
   contentHtml = ''
   private delta: any = null
   private lastPlainText = ''
+
+  ngOnInit(): void {
+    this.quillStyles.load()
+  }
 
   canSend = signal(false)
   loading = signal(false)
