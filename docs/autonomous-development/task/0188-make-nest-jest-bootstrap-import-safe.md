@@ -103,6 +103,15 @@ workspace-consuming process was active; existing Node processes were Chrome
 DevTools MCP processes. Did not run `npm ci` or `npm run ci:check`.
 ### Preflight remediation
 None.
+### CI repair
+The exact feature SHA `d50a1d787aa9074d58d2f0352f45e8d3fbda6ac8` failed
+GitHub Actions run `34714791373` in both registered OS quality jobs at
+`ci:static` -> `ci:contracts`: Jest implicit resolution found both the new
+`MercurionWebNode/jest.config.js` and the legacy `jest` key in
+`MercurionWebNode/package.json`. Removed the duplicate package-level Jest
+configuration, retaining the explicit import-safe config and existing explicit
+test/E2E invocations. This keeps `contracts:check`'s implicit Jest command
+unambiguous without weakening any test or static-check command.
 ### Summary
 Added explicit unit Jest configuration and a shared safe test bootstrap derived
 from the canonical environment schema. The E2E Jest configuration uses the
@@ -125,13 +134,25 @@ syntactically valid Twilio test values.
   warnings and 0 errors.
 - `npm run build --workspace mercurion_web_node`: PASS.
 - `git diff --check`: PASS.
+- CI repair reproducer `npm run contracts:check --workspace mercurion_web_node`:
+  PASS after removing the duplicate package-level Jest configuration.
+- `npm test --workspace mercurion_web_node -- --runInBand --detectOpenHandles`:
+  PASS after the CI repair.
+- `npm run test:e2e --workspace mercurion_web_node -- --runInBand --detectOpenHandles`:
+  PASS after the CI repair.
+- Required Nest typecheck, lint, and build checks: PASS after the CI repair.
+  Nest lint retains the same 48 pre-existing warnings and 0 errors. The full
+  unit run exits 0; Jest still reports one worker force-exit warning despite
+  `--detectOpenHandles`, unchanged by this configuration-only CI repair.
 ### Full pre-merge CI-parity validation
 Not run locally because `npm ci` and `npm run ci:check` are reserved for
 GitHub Actions. Exact feature-SHA aggregate validation remains coordinator-owned.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-Pending final task commit.
+Original implementation: `d50a1d787aa9074d58d2f0352f45e8d3fbda6ac8`.
+CI repair commit is the commit containing this correction and its validation
+notes.
 ### Merge / CI
 _Not started._
 ### Rollback
