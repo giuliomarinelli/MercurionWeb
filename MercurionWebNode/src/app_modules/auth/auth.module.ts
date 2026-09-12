@@ -28,6 +28,13 @@ import { IDENTITY_READ_PORT } from './Models/interfaces/identity-read.port';
 import { RedisModule } from '../redis/redis.module';
 import { ResponseModule } from 'src/services/response.module';
 import { GlobalGuard } from './guards/global.guard';
+import { AccessTokenAuthenticationPolicy } from './guards/policies/access-token-authentication.policy';
+import { AuthenticationFailurePolicy } from './guards/policies/authentication-failure.policy';
+import { AuthenticationRequestContextFactory } from './guards/policies/authentication-request-context.factory';
+import { AuthenticationTransportPolicy } from './guards/policies/authentication-transport.policy';
+import { CredentialExtractionPolicy } from './guards/policies/credential-extraction.policy';
+import { ScopeAuthorizationPolicy } from './guards/policies/scope-authorization.policy';
+import { SessionValidationPolicy } from './guards/policies/session-validation.policy';
 import { AuthenticationSessionService } from './application/authentication-session.service';
 import {
   CredentialLoginHandler,
@@ -97,6 +104,13 @@ import { SESSION_REPOSITORY } from './Models/interfaces/session-repository.inter
     CountryService,
     JwtKeysProvider,
     LocalDummyAuthService,
+    AuthenticationRequestContextFactory,
+    CredentialExtractionPolicy,
+    AccessTokenAuthenticationPolicy,
+    SessionValidationPolicy,
+    ScopeAuthorizationPolicy,
+    AuthenticationTransportPolicy,
+    AuthenticationFailurePolicy,
     GlobalGuard,
     {
       provide: IDENTITY_READ_PORT,
