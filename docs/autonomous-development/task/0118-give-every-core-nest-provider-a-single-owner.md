@@ -140,9 +140,38 @@ GitHub Actions on the exact pushed feature SHA.
 _Not applicable._
 ### Commits
 - `485703ab` - `BE-004 enforce Nest provider ownership`
+- `ec1c594b` - `test(BE-004): isolate ownership spec from runtime env`
 ### Merge / CI
 Provisional `DONE` / `CI_PENDING`; integration and exact feature-SHA CI are
 owned by the coordinator.
+### CI repair
+- Exact feature SHA `8a178b924335edfe0df4ee05693a8c6697adba2b`
+  failed GitHub Actions run
+  `https://github.com/giuliomarinelli/MercurionWeb/actions/runs/34687836360`.
+  Both Ubuntu and Windows `Quality` jobs failed in `Test Nest`, and the stable
+  `Required gate` failed.
+- The failure was task-owned: the new `provider-ownership.spec.ts` imported
+  `AppModule` to inspect provider metadata without using the existing
+  `env-validation` Jest boundary. Clean CI workers therefore evaluated
+  `ConfigModule.forRoot()` without the git-ignored development environment and
+  threw `Invalid environment configuration`, beginning with missing
+  `APP_PORT`.
+- Reproduced before the correction with
+  `$env:APP_ENV='production'; npm test --workspace mercurion_web_node -- --runInBand --runTestsByPath src/provider-ownership.spec.ts`
+  (exit 1 with the same environment-validation diagnostic).
+- Added the same narrow `env-validation` mock already used by
+  `app.module.spec.ts`; production configuration behavior is unchanged.
+- Focused reproducer passed after the correction with `APP_ENV=production`
+  (1 suite / 3 tests).
+- Full Nest unit validation passed with `APP_ENV=production`
+  (132 suites / 249 tests), proving the CI `Test Nest` path no longer depends
+  on a local environment file.
+- `npm run ci:nest:architecture` passed, including the six-provider ownership
+  inventory and negative duplicate-declaration test.
+- `npm run typecheck --workspace mercurion_web_node` passed.
+- `npm run lint --workspace mercurion_web_node` passed with the same 60
+  pre-existing warnings and no errors.
+- Local `npm ci` and `npm run ci:check` were not run, per repository policy.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
