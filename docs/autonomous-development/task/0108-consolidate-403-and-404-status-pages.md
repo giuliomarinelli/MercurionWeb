@@ -118,7 +118,8 @@ was not separately captured because the dedicated profile remained
 authenticated; the component test covers the anonymous Home CTA and manifest
 destination.
 ### Commits
-Pending task implementation commit.
+- `9d4f111b1d6b53169709060e6c343b584c586dcc` — consolidated status-page
+  implementation and focused tests.
 ### Merge / CI
 No feature branch or merge. Exact-SHA CI is required for the metadata commit.
 ### Rollback
