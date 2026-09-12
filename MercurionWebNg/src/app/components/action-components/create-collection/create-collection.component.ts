@@ -19,7 +19,7 @@ import { MoleculeCollectionService } from '../../../services/graphql/molecule-co
 import { ToastService } from '../../../services/toast.service';
 import { CreateCollectionContextService } from '../../../services/context/action-context/create-collection-context.service';
 import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
-import { IconButtonComponent } from '../../common/icon-button/icon-button.component';
+import { ActionCardComponent } from '../../common/action-card/action-card.component';
 import { ActionFooterComponent } from '../../common/action-footer/action-footer.component';
 import { ButtonComponent } from '../../common/button/button.component';
 
@@ -27,7 +27,7 @@ import { ButtonComponent } from '../../common/button/button.component';
 @Component({
   selector: 'm-create-collection',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, IconButtonComponent, ActionFooterComponent, ButtonComponent],
+  imports: [ReactiveFormsModule, ActionCardComponent, ActionFooterComponent, ButtonComponent],
   styles: [
     `
     /* Scrollbar sottile per i contenitori scrollabili */
@@ -69,31 +69,23 @@ import { ButtonComponent } from '../../common/button/button.component';
   ],
   template: `
   <div class="flex justify-center items-start md:items-center min-h-screen px-2 sm:px-4 pt-1 md:pt-6 m-overlay-screen">
-    <div
-      class="action-card max-w-2xl h-full md:h-auto"
-      role="region"
-      aria-labelledby="createCollectionHeading"
-      [attr.aria-busy]="selectedChips.length === 0 ? false : null"
-    >
+      <m-action-card
+        size="compact"
+        labelledBy="createCollectionHeading"
+        closeLabel="Chiudi pannello crea collezioni"
+        [busy]="selectedChips.length !== 0"
+        (closed)="close()"
+      >
       <!-- HEADER -->
-      <div class="action-card-header">
-        <h2
+        <h2 action-card-title
           id="createCollectionHeading"
           class="text-lg font-semibold text-light-on-surface-main dark:text-dark-on-surface-main"
         >
           Crea una o più collezioni molecolari
         </h2>
 
-        <m-icon-button
-            size="sm"
-            icon="close"
-            ariaLabel="Chiudi pannello crea collezioni"
-            (pressed)="close()"
-        />
-      </div>
-
       <!-- BODY -->
-      <div class="action-card-body bg-white dark:bg-dark-surface-main">
+      <div action-card-body class="bg-white dark:bg-dark-surface-main">
         <div class="py-6 px-3 sm:px-4 flex flex-col gap-3 sm:gap-4">
           <label for="nameInput" class="ml-px text-sm font-semibold block text-light-on-surface-main dark:text-dark-on-surface-main">
             Nome della nuova collezione
@@ -242,7 +234,7 @@ import { ButtonComponent } from '../../common/button/button.component';
       </div>
 
       <!-- FOOTER -->
-      <m-action-footer>
+      <m-action-footer action-card-footer>
         <m-button
           action-footer-secondary
           variant="neutral"
@@ -260,7 +252,7 @@ import { ButtonComponent } from '../../common/button/button.component';
           Crea
         </m-button>
       </m-action-footer>
-    </div>
+    </m-action-card>
   </div>
   `
 })

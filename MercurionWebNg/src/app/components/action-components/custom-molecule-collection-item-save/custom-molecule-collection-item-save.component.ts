@@ -12,40 +12,33 @@ import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/
 import { FormsModule } from '@angular/forms';
 import { MoleculeProperties } from '../../../Models/graphql/molecule-properties.model';
 import { SaveOverlayFormItem } from '../../../Models/action/action-overlay.models';
-import { IconButtonComponent } from '../../common/icon-button/icon-button.component';
+import { ActionCardComponent } from '../../common/action-card/action-card.component';
 import { TextareaComponent } from '../../common/textarea/textarea.component';
 
 @Component({
   selector: 'm-custom-molecule-collection-item-save',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgClass, ComboSelectComponent, FormsModule, IconButtonComponent, TextareaComponent],
+  imports: [NgClass, ComboSelectComponent, FormsModule, ActionCardComponent, TextareaComponent],
   template: `
 
     <div class="flex justify-center items-start md:items-center min-h-screen px-2 sm:px-4 pt-1 md:pt-6 m-overlay-screen">
-      <div
-        class="action-card max-w-2xl h-full md:h-auto overflow-y-auto m-scroll-thin m-overlay-max-80 m-overscroll-touch"
-        role="region"
-        aria-labelledby="saveMoleculeHeading"
+      <m-action-card
+        size="compact"
+        labelledBy="saveMoleculeHeading"
+        closeLabel="Chiudi pannello salva molecola"
+        (closed)="close()"
       >
 
         <!-- Header -->
-        <div class="action-card-header">
-          <h2
+          <h2 action-card-title
             id="saveMoleculeHeading"
             class="text-lg font-semibold text-light-on-surface-main dark:text-dark-on-surface-main"
           >
             Salva molecola
           </h2>
-          <m-icon-button
-            size="sm"
-            icon="close"
-            ariaLabel="Chiudi pannello salva molecola"
-            (pressed)="close()"
-          />
-        </div>
 
         <!-- Body -->
-        <div class="action-card-body bg-light-surface-secondary dark:bg-dark-surface-secondary space-y-5 transition-all">
+        <div action-card-body class="bg-light-surface-secondary dark:bg-dark-surface-secondary space-y-5 transition-all">
 
           <h2 class="font-semibold mt-2 text-light-on-surface-main dark:text-dark-on-surface-main">
             Scegli la collezione di destinazione:
@@ -215,7 +208,7 @@ import { TextareaComponent } from '../../common/textarea/textarea.component';
             </div>
           </form>
         </div>
-      </div>
+      </m-action-card>
     </div>
   `
 })

@@ -42,7 +42,7 @@ import {
   type ChipItem
 } from './add-molecules-to-collection.flow';
 import { AbstractMultiselectItem } from '../../../Models/abstract.models';
-import { IconButtonComponent } from '../../common/icon-button/icon-button.component';
+import { ActionCardComponent } from '../../common/action-card/action-card.component';
 import { ActionFooterComponent } from '../../common/action-footer/action-footer.component';
 import { ButtonComponent } from '../../common/button/button.component';
 export type { ChipItem } from './add-molecules-to-collection.flow';
@@ -59,7 +59,7 @@ export type { ChipItem } from './add-molecules-to-collection.flow';
     SearchInputComponent,
     SearchResultSkeletonLoaderComponent,
     SearchResultComponent,
-    IconButtonComponent,
+    ActionCardComponent,
     ActionFooterComponent,
     ButtonComponent
   ],
@@ -180,15 +180,15 @@ export type { ChipItem } from './add-molecules-to-collection.flow';
   ],
   template: `
 <div class="flex justify-center items-stretch md:items-center min-h-dvh h-dvh px-2 sm:px-4 pt-1 md:pt-6 m-overlay-screen">
-  <div
-    class="action-card w-full max-w-5xl flex flex-col h-dvh md:h-auto md:max-h-[calc(100dvh-6rem)] overflow-hidden"
-    role="region"
-    aria-labelledby="addMolHeading"
-    [attr.aria-busy]="step_12_loading()"
+  <m-action-card
+    size="wide"
+    labelledBy="addMolHeading"
+    closeLabel="Chiudi pannello aggiungi molecole"
+    [busy]="step_12_loading()"
+    (closed)="close()"
   >
     <!-- HEADER -->
-    <div class="action-card-header shrink-0">
-      <h2
+      <h2 action-card-title
         id="addMolHeading"
         class="flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-4 items-start sm:items-center text-lg font-semibold text-light-on-surface-main dark:text-dark-on-surface-main"
       >
@@ -203,17 +203,8 @@ export type { ChipItem } from './add-molecules-to-collection.flow';
         </span>
       </h2>
 
-      <m-icon-button
-        size="sm"
-        icon="close"
-        ariaLabel="Chiudi pannello aggiungi molecole"
-        [ariaDescribedby]="step() === 2 ? 'addMolStatus' : undefined"
-        (pressed)="close()"
-      />
-    </div>
-
     <!-- BODY -->
-    <div class="action-card-body bg-white dark:bg-dark-surface-main flex flex-col flex-1 min-h-0 overflow-hidden">
+    <div action-card-body class="bg-white dark:bg-dark-surface-main flex flex-col flex-1 min-h-0 overflow-hidden">
       <!-- Scelta metodo -->
       <div class="mx-auto shrink-0 w-full">
         <div
@@ -609,7 +600,7 @@ export type { ChipItem } from './add-molecules-to-collection.flow';
     </div>
 
     <!-- FOOTER -->
-    <m-action-footer>
+    <m-action-footer action-card-footer>
       @if (step() === 1) {
         <m-button
           action-footer-secondary
@@ -634,7 +625,7 @@ export type { ChipItem } from './add-molecules-to-collection.flow';
         }
       </m-button>
     </m-action-footer>
-  </div>
+  </m-action-card>
 </div>
 `
 
