@@ -1,7 +1,7 @@
 # 0097 - Split AuthService into transport, session repository and orchestration
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -84,39 +84,48 @@ Mark `BLOCKED` if a current `AuthService` method has ambiguous security ownershi
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/NG-011`, based on
+`15d0087f70a16e915e41f2f312d30a783ea5bbdd`, preserved at
+`b8fd3a6ef46fa6b562a568cd2c98f6e74d42c110`.
 
 ### Preflight
-_Not started._
+Focused validation and canonical runtime/browser preflight passed on the
+feature branch. No local `npm ci` or `npm run ci:check` was run.
 
 ### Preflight remediation
 _None._
 
 ### Summary
-Not attempted because required canonical FE auth/session architecture through
-task 0038 and tasks 0093 (NG-007) and 0094 (NG-008) are terminally
-non-`DONE`.
+The monolithic `AuthService` was split into transport, session repository,
+use-case orchestration and MFA catalog services, with consumers migrated to
+narrow contracts.
 
 ### Task-specific validation performed
-Not applicable; no feature branch or implementation worker was created.
+Typecheck, focused authentication tests, lint, runtime readiness and
+protected browser-state checks passed. Route ownership inventory repair passed.
 
 ### Full pre-merge CI-parity validation
-Not applicable; dependency-skip metadata only.
+Feature run `34674533699` failed stale route ownership checks. Repair run
+`34674925345` passed route ownership but failed the REST compatibility inventory
+check. Final repair run `34675378480` still failed on
+`AuthTransportService.isUserAvailableByEmail`: its request does not derive from
+the canonical `EmailDTO` contract (`58/59` calls matched) on both Linux and
+Windows. The configured repair budget is exhausted.
 
 ### Browser validation performed
 Not applicable; the task was not attempted.
 
 ### Commits
-Pending metadata commit on `develop`.
+Feature implementation and inventory repair commits are preserved on
+`feature/NG-011`; the final feature SHA is
+`b8fd3a6ef46fa6b562a568cd2c98f6e74d42c110`.
 
 ### Merge / CI
-No feature branch or merge. Exact-SHA CI is required for the metadata commit.
+No merge was performed. The feature branch is frozen for human follow-up.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-The required FE auth foundation includes FE-004 (BLOCKED because mandatory
-authenticated browser validation was unavailable) and its terminal dependent
-tasks. FE-004 requires a test-safe canonical local auth/backend runtime and
-approved deterministic test state in a new session.
+Migrate `isUserAvailableByEmail` to derive from the canonical `EmailDTO`
+contract before retrying this task in a new authorized session.
