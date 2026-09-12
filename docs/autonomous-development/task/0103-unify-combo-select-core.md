@@ -1,7 +1,7 @@
 # 0103 - Unify legacy combo-select wrappers on the canonical select core
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -82,38 +82,43 @@ Mark `BLOCKED` if a legacy caller relies on an undocumented behavior that confli
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/NG-017`, based on
+`3d2198611ee9518289257ab6dd72e74427f3cf05`, preserved at
+`22278b2b754ac01092a97edd1bc0394a1b3ffabd`.
 
 ### Preflight
-_Not started._
+Focused typecheck, tests, lint, build and canonical runtime readiness passed.
+No local `npm ci` or `npm run ci:check` was run.
 
 ### Preflight remediation
 _None._
 
 ### Summary
-Not attempted because required UI-006 and tasks 0100 (NG-014) and 0101
-(NG-015) are `SKIPPED_DEPENDENCY`.
+Migrated legacy single- and multi-select combo callers onto the canonical
+`SelectCoreComponent` and added multi-selection regression coverage.
 
 ### Task-specific validation performed
-Not applicable; no feature branch or implementation worker was created.
+Angular typecheck, six focused specs, lint, build and diff checks passed.
 
 ### Full pre-merge CI-parity validation
-Not applicable; dependency-skip metadata only.
+Not reached because required browser acceptance could not be completed.
 
 ### Browser validation performed
-Not applicable; the task was not attempted.
+Runtime readiness passed, but Chrome DevTools MCP repeatedly timed out during
+supported login and collection-navigation interactions. The required
+collection-picker evidence could not be captured.
 
 ### Commits
-Pending metadata commit on `develop`.
+Feature implementation and blocker evidence are preserved on
+`feature/NG-017`; final feature SHA:
+`22278b2b754ac01092a97edd1bc0394a1b3ffabd`.
 
 ### Merge / CI
-No feature branch or merge. Exact-SHA CI is required for the metadata commit.
+No merge was performed; the feature branch remains preserved and frozen.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-Direct terminal prerequisites: UI-006, 0100 (NG-014), and 0101 (NG-015),
-all `SKIPPED_DEPENDENCY`. Their transitive chain includes FE-030 (BLOCKED),
-which requires filesystem-write capability for a fresh, human-authorized
-worker session.
+A fresh worker with functioning Chrome DevTools MCP interaction capability is
+required to complete the declared collection-picker browser evidence.
