@@ -35,7 +35,7 @@
     }
   },
   "totalClientCalls": 59,
-  "matchedClientCalls": 59,
+  "matchedClientCalls": 58,
   "uniqueNestRoutes": 58,
   "entries": [
     {
@@ -4057,10 +4057,10 @@
       }
     },
     {
-      "id": "MercurionWebNg/src/app/services/auth.service.ts#AuthService.isUserAvailableByEmail#0",
+      "id": "MercurionWebNg/src/app/services/auth-transport.service.ts#AuthTransportService.isUserAvailableByEmail#0",
       "consumer": {
-        "file": "MercurionWebNg/src/app/services/auth.service.ts",
-        "class": "AuthService",
+        "file": "MercurionWebNg/src/app/services/auth-transport.service.ts",
+        "class": "AuthTransportService",
         "method": "isUserAvailableByEmail",
         "ordinal": 0,
         "verb": "POST",
@@ -4071,14 +4071,12 @@
         "pathParameters": [],
         "queryParameters": [],
         "body": {
-          "expression": "dto",
-          "type": "EmailDTO",
+          "expression": "{ email } satisfies EmailDTO",
+          "type": "{ email: string; }",
           "contract": {
             "applicable": true,
-            "compatible": true,
-            "canonicalNames": [
-              "EmailDTO"
-            ],
+            "compatible": false,
+            "canonicalNames": [],
             "shapeHash": "b0464e146dfbcb88be167682a44b94618fe00927bbc6ea3b46b20803281471e2"
           }
         },
@@ -4141,7 +4139,7 @@
         }
       },
       "matching": {
-        "status": "matched",
+        "status": "unmatched",
         "path": {
           "compatible": true,
           "failures": []
@@ -4156,10 +4154,8 @@
         },
         "request": {
           "compatible": true,
-          "canonical": true,
-          "canonicalNames": [
-            "EmailDTO"
-          ],
+          "canonical": false,
+          "canonicalNames": [],
           "clientShapeHash": "b0464e146dfbcb88be167682a44b94618fe00927bbc6ea3b46b20803281471e2",
           "serverShapeHash": "b0464e146dfbcb88be167682a44b94618fe00927bbc6ea3b46b20803281471e2"
         },
@@ -4190,11 +4186,11 @@
       }
     },
     {
-      "id": "MercurionWebNg/src/app/services/auth.service.ts#AuthService.login_firstStep#0",
+      "id": "MercurionWebNg/src/app/services/auth-transport.service.ts#AuthTransportService.loginFirstStep#0",
       "consumer": {
-        "file": "MercurionWebNg/src/app/services/auth.service.ts",
-        "class": "AuthService",
-        "method": "login_firstStep",
+        "file": "MercurionWebNg/src/app/services/auth-transport.service.ts",
+        "class": "AuthTransportService",
+        "method": "loginFirstStep",
         "ordinal": 0,
         "verb": "POST",
         "path": "/api/authentication/login/1",
@@ -4204,7 +4200,7 @@
         "pathParameters": [],
         "queryParameters": [],
         "body": {
-          "expression": "loginDTO",
+          "expression": "loginRequest as Login_FirstStepDTO",
           "type": "Login_FirstStepDTO",
           "contract": {
             "applicable": true,
@@ -4357,11 +4353,11 @@
       }
     },
     {
-      "id": "MercurionWebNg/src/app/services/auth.service.ts#AuthService.login_secondStep#0",
+      "id": "MercurionWebNg/src/app/services/auth-transport.service.ts#AuthTransportService.loginSecondStep#0",
       "consumer": {
-        "file": "MercurionWebNg/src/app/services/auth.service.ts",
-        "class": "AuthService",
-        "method": "login_secondStep",
+        "file": "MercurionWebNg/src/app/services/auth-transport.service.ts",
+        "class": "AuthTransportService",
+        "method": "loginSecondStep",
         "ordinal": 0,
         "verb": "POST",
         "path": "/api/authentication/login/:strategy/2",
@@ -4401,7 +4397,7 @@
           "mode": "json",
           "options": {
             "withCredentials": "true",
-            "headers": "{\n        'Authorization': `Bearer ${preAuthorizationToken}`\n      }"
+            "headers": "{ Authorization: `Bearer ${preAuthorizationToken}` }"
           },
           "contract": {
             "applicable": true,
@@ -4506,11 +4502,11 @@
       }
     },
     {
-      "id": "MercurionWebNg/src/app/services/auth.service.ts#AuthService.login_stepZero#0",
+      "id": "MercurionWebNg/src/app/services/auth-transport.service.ts#AuthTransportService.loginStepZero#0",
       "consumer": {
-        "file": "MercurionWebNg/src/app/services/auth.service.ts",
-        "class": "AuthService",
-        "method": "login_stepZero",
+        "file": "MercurionWebNg/src/app/services/auth-transport.service.ts",
+        "class": "AuthTransportService",
+        "method": "loginStepZero",
         "ordinal": 0,
         "verb": "POST",
         "path": "/api/authentication/login/0",
@@ -4520,7 +4516,7 @@
         "pathParameters": [],
         "queryParameters": [],
         "body": {
-          "expression": "emailDTO",
+          "expression": "email",
           "type": "EmailDTO",
           "contract": {
             "applicable": true,
@@ -4647,11 +4643,11 @@
       }
     },
     {
-      "id": "MercurionWebNg/src/app/services/auth.service.ts#AuthService.login_thirdStep#0",
+      "id": "MercurionWebNg/src/app/services/auth-transport.service.ts#AuthTransportService.loginThirdStep#0",
       "consumer": {
-        "file": "MercurionWebNg/src/app/services/auth.service.ts",
-        "class": "AuthService",
-        "method": "login_thirdStep",
+        "file": "MercurionWebNg/src/app/services/auth-transport.service.ts",
+        "class": "AuthTransportService",
+        "method": "loginThirdStep",
         "ordinal": 0,
         "verb": "POST",
         "path": "/api/authentication/login/:strategy/3",
@@ -4693,7 +4689,7 @@
           "mode": "json",
           "options": {
             "withCredentials": "true",
-            "headers": "{\n        'X-Fingerprint': fingerprintBase64,\n        'X-Device-Info': btoa(JSON.stringify(sessionDeviceInfo)),\n        'Authorization': `Bearer ${preauthorizationToken}`,\n      }"
+            "headers": "{\n          'X-Fingerprint': fingerprintData.fingerprintBase64,\n          'X-Device-Info': btoa(JSON.stringify(fingerprintData.sessionDeviceInfo)),\n          Authorization: `Bearer ${preauthorizationToken}`\n        }"
           },
           "contract": {
             "applicable": true,
@@ -4825,10 +4821,10 @@
       }
     },
     {
-      "id": "MercurionWebNg/src/app/services/auth.service.ts#AuthService.logout#0",
+      "id": "MercurionWebNg/src/app/services/auth-transport.service.ts#AuthTransportService.logout#0",
       "consumer": {
-        "file": "MercurionWebNg/src/app/services/auth.service.ts",
-        "class": "AuthService",
+        "file": "MercurionWebNg/src/app/services/auth-transport.service.ts",
+        "class": "AuthTransportService",
         "method": "logout",
         "ordinal": 0,
         "verb": "DELETE",
@@ -4924,10 +4920,10 @@
       }
     },
     {
-      "id": "MercurionWebNg/src/app/services/auth.service.ts#AuthService.logoutFromAllSessions#0",
+      "id": "MercurionWebNg/src/app/services/auth-transport.service.ts#AuthTransportService.logoutFromAllSessions#0",
       "consumer": {
-        "file": "MercurionWebNg/src/app/services/auth.service.ts",
-        "class": "AuthService",
+        "file": "MercurionWebNg/src/app/services/auth-transport.service.ts",
+        "class": "AuthTransportService",
         "method": "logoutFromAllSessions",
         "ordinal": 0,
         "verb": "PATCH",
@@ -5033,10 +5029,10 @@
       }
     },
     {
-      "id": "MercurionWebNg/src/app/services/auth.service.ts#AuthService.logoutFromSession#0",
+      "id": "MercurionWebNg/src/app/services/auth-transport.service.ts#AuthTransportService.logoutFromSession#0",
       "consumer": {
-        "file": "MercurionWebNg/src/app/services/auth.service.ts",
-        "class": "AuthService",
+        "file": "MercurionWebNg/src/app/services/auth-transport.service.ts",
+        "class": "AuthTransportService",
         "method": "logoutFromSession",
         "ordinal": 0,
         "verb": "PATCH",
@@ -5174,11 +5170,11 @@
       }
     },
     {
-      "id": "MercurionWebNg/src/app/services/auth.service.ts#AuthService.refreshWs_accessToken#0",
+      "id": "MercurionWebNg/src/app/services/auth-transport.service.ts#AuthTransportService.refreshWsAccessToken#0",
       "consumer": {
-        "file": "MercurionWebNg/src/app/services/auth.service.ts",
-        "class": "AuthService",
-        "method": "refreshWs_accessToken",
+        "file": "MercurionWebNg/src/app/services/auth-transport.service.ts",
+        "class": "AuthTransportService",
+        "method": "refreshWsAccessToken",
         "ordinal": 0,
         "verb": "GET",
         "path": "/api/authentication/ws-refresh",
@@ -5276,10 +5272,10 @@
       }
     },
     {
-      "id": "MercurionWebNg/src/app/services/auth.service.ts#AuthService.registerUser#0",
+      "id": "MercurionWebNg/src/app/services/auth-transport.service.ts#AuthTransportService.registerUser#0",
       "consumer": {
-        "file": "MercurionWebNg/src/app/services/auth.service.ts",
-        "class": "AuthService",
+        "file": "MercurionWebNg/src/app/services/auth-transport.service.ts",
+        "class": "AuthTransportService",
         "method": "registerUser",
         "ordinal": 0,
         "verb": "POST",
@@ -5306,7 +5302,7 @@
           "mode": "json",
           "options": {
             "withCredentials": "true",
-            "headers": "{\n        'X-Challenge-Token': turnstileToken\n      }"
+            "headers": "{ 'X-Challenge-Token': turnstileToken }"
           },
           "contract": {
             "applicable": true,
@@ -5464,10 +5460,10 @@
       }
     },
     {
-      "id": "MercurionWebNg/src/app/services/auth.service.ts#AuthService.skipMaintenanceMode#0",
+      "id": "MercurionWebNg/src/app/services/auth-transport.service.ts#AuthTransportService.skipMaintenanceMode#0",
       "consumer": {
-        "file": "MercurionWebNg/src/app/services/auth.service.ts",
-        "class": "AuthService",
+        "file": "MercurionWebNg/src/app/services/auth-transport.service.ts",
+        "class": "AuthTransportService",
         "method": "skipMaintenanceMode",
         "ordinal": 0,
         "verb": "GET",
@@ -5589,11 +5585,11 @@
       }
     },
     {
-      "id": "MercurionWebNg/src/app/services/auth.service.ts#AuthService.sso_authorizeFlow#0",
+      "id": "MercurionWebNg/src/app/services/auth-transport.service.ts#AuthTransportService.ssoAuthorizeFlow#0",
       "consumer": {
-        "file": "MercurionWebNg/src/app/services/auth.service.ts",
-        "class": "AuthService",
-        "method": "sso_authorizeFlow",
+        "file": "MercurionWebNg/src/app/services/auth-transport.service.ts",
+        "class": "AuthTransportService",
+        "method": "ssoAuthorizeFlow",
         "ordinal": 0,
         "verb": "POST",
         "path": "/api/authentication/sso/:provider/authorize-flow",
@@ -5623,7 +5619,7 @@
           "mode": "json",
           "options": {
             "withCredentials": "true",
-            "headers": "{\n        'X-Fingerprint': fingerprintBase64,\n        'X-Device-Info': sessionDeviceInfoBase64,\n        'Authorization': `Bearer ${sso_preAuthorizationToken}`\n      }"
+            "headers": "{\n          'X-Fingerprint': fingerprintBase64,\n          'X-Device-Info': sessionDeviceInfoBase64,\n          Authorization: `Bearer ${preAuthorizationToken}`\n        }"
           },
           "contract": {
             "applicable": true,

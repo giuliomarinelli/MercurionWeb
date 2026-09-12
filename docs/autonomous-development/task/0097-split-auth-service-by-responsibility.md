@@ -123,6 +123,19 @@ contract they use. The old service and passthrough spec were removed.
 - `node scripts/check-rest-route-ownership.mjs` — passed:
   72 routes classified and inventory current.
 - `node scripts/test-rest-route-ownership-policy-negative.mjs` — passed.
+- Final CI repair for run `34674925345` / feature SHA
+  `bf4ce5841a97f5a498e64c953a4e528115c7006f`: regenerated only
+  `docs/architecture/rest-contract-compatibility.json` with
+  `node scripts/check-rest-compatibility.mjs --write`. The reviewed diff is
+  limited to the task-owned AuthTransportService route references and their
+  extracted request/header expressions for email availability, login, logout,
+  WebSocket refresh, registration, maintenance and SSO. No application source
+  or unrelated inventory was changed.
+- `node scripts/check-rest-compatibility.mjs` — inventory regeneration
+  completed, but the focused checker still reports the task-owned
+  `AuthTransportService.isUserAvailableByEmail` request as not deriving from
+  the canonical `EmailDTO` contract (`58/59` calls matched). No application
+  behavior was altered in this final repair attempt.
 
 ### Full pre-merge CI-parity validation
 Exact feature-SHA run `34674533699` passed all CI checks through generated
@@ -146,6 +159,8 @@ stopped and their absence verified.
 - `a88a3bb2` — refresh generated REST route ownership references after the
   Auth service split.
 - `87b260a9` — record the CI repair in the task execution notes.
+- pending — refresh the REST compatibility inventory after the auth service
+  split for exact-SHA CI run `34674925345`.
 
 ### Merge / CI
 Feature SHA requires exact-SHA Actions `Required gate` before integration.
