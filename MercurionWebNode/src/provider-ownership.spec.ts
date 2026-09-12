@@ -1,7 +1,3 @@
-jest.mock('./config/env-validation', () => ({
-  validateEnvOrKillProcess: jest.fn((config) => config),
-}));
-
 import { Global, Inject, Injectable, Module } from '@nestjs/common';
 import { MODULE_METADATA } from '@nestjs/common/constants';
 import { ConfigService } from '@nestjs/config';

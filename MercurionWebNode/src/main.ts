@@ -1,5 +1,5 @@
 import { NestFactory } from '@nestjs/core'
-import { AppModule } from './app.module'
+import { createApplicationModule } from './app.module'
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify'
 import { LogLevel } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
@@ -20,6 +20,7 @@ import { MeiliLoggerService } from './app_modules/meilisearch/services/meili-log
 import { resolveAppEnv } from './utils/env-helpers'
 import { createGlobalValidationPipe } from './config/validation-pipe'
 import { registerRestContractVersioningHook } from './contracts/contract-versioning-http'
+import { ConfigurationError } from './config/env-validation'
 
 
 
@@ -44,9 +45,12 @@ export async function bootstrap() {
 
   // 🔒 trustProxy per IP reali dietro CF/NGINX
   const app = await NestFactory.create<NestFastifyApplication>(
-    AppModule,
+    createApplicationModule(),
     new FastifyAdapter({ trustProxy: true }),
-    { logger: Array.from(logLevels) }
+    {
+      logger: Array.from(logLevels),
+      abortOnError: false
+    }
   )
 
   const configService = app.get<ConfigService>(ConfigService)
@@ -255,4 +259,35 @@ export async function bootstrap() {
 
 }
 
-bootstrap()
+export type BootstrapFailureReporter = (error: unknown) => void
+
+export const reportBootstrapFailure: BootstrapFailureReporter = error => {
+  if (error instanceof ConfigurationError) {
+    console.error('[CONFIGURATION_ERROR]', {
+      code: error.code,
+      diagnostics: error.diagnostics
+    })
+    return
+  }
+
+  console.error('[BOOTSTRAP_ERROR]', {
+    name: error instanceof Error ? error.name : 'UnknownError',
+    message: error instanceof Error ? error.message : 'Unknown bootstrap failure'
+  })
+}
+
+export async function runBootstrap(
+  start: () => Promise<void> = bootstrap,
+  report: BootstrapFailureReporter = reportBootstrapFailure
+): Promise<void> {
+  try {
+    await start()
+  } catch (error) {
+    report(error)
+    process.exitCode = 1
+  }
+}
+
+if (require.main === module) {
+  void runBootstrap()
+}

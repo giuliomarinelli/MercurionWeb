@@ -5,8 +5,8 @@ import {
   type RawEnvironment
 } from './config.schema'
 import {
+  ConfigurationError,
   validateEnvironment,
-  validateEnvOrKillProcess
 } from './env-validation'
 
 function rawExample(property: EnvironmentProperty): string {
@@ -48,9 +48,32 @@ describe('canonical environment validation', () => {
   })
 
   it('reports every missing required property without terminating the process', () => {
-    expect(() => validateEnvOrKillProcess({})).toThrow(
-      /APP_PORT: is required/
-    )
+    const exit = jest.spyOn(process, 'exit').mockImplementation(code => {
+      throw new Error(`unexpected process.exit(${String(code)})`)
+    })
+
+    expect(() => validateEnvironment({})).toThrow(ConfigurationError)
+    expect(() => validateEnvironment({})).toThrow(/APP_PORT: is required/)
+    expect(exit).not.toHaveBeenCalled()
+
+    exit.mockRestore()
+  })
+
+  it('exposes structured diagnostics without including rejected values', () => {
+    const raw = validRawEnvironment(true)
+    raw.APP_PORT = 'not-a-secret-safe-value'
+
+    try {
+      validateEnvironment(raw)
+      throw new Error('Expected validation to fail')
+    } catch (error) {
+      expect(error).toBeInstanceOf(ConfigurationError)
+      expect((error as ConfigurationError).diagnostics).toContainEqual({
+        source: 'APP_PORT',
+        message: 'must be an integer greater than or equal to 1'
+      })
+      expect((error as Error).message).not.toContain('not-a-secret-safe-value')
+    }
   })
 
   it.each([
