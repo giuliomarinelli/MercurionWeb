@@ -16,8 +16,8 @@ services:
   mercurion_web_node:
     container_name: mercurion_web_node
     build:
-      context: ../../MercurionWebNode
-      dockerfile: Dockerfile.test
+      context: ../..
+      dockerfile: MercurionWebNode/Dockerfile.test
     image: mercurion_web_node:latest
     environment:
       # qui l’URL che i test usano per colpire l’API
@@ -31,8 +31,8 @@ services:
 
   mercurion_web_ng:
     build:
-      context: ../../MercurionWebNg
-      dockerfile: Dockerfile.test
+      context: ../..
+      dockerfile: MercurionWebNg/Dockerfile.test
     container_name: mercurion_web_ng
     expose:
       - 3497       
