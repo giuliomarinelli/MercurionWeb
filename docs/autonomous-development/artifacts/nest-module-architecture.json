@@ -1,0 +1,28 @@
+{
+  "description": "Application-module direction for BE-001. Domain modules expose capabilities through their public exports; the root application composes them.",
+  "root": "MercurionWebNode/src/app.module.ts",
+  "acyclic": true,
+  "layerOrder": [
+    "root",
+    "application",
+    "infrastructure"
+  ],
+  "auditedSccBeforeRefactor": [
+    "AuthModule",
+    "HelpModule",
+    "HistoryModule",
+    "MeilisearchModule",
+    "MercurionAIModule",
+    "MoleculeCollectionModule",
+    "NotificationModule",
+    "OAuth2ClientModule",
+    "RedisModule",
+    "SSO_Module",
+    "UserModule"
+  ],
+  "policy": {
+    "moduleCycles": "deny",
+    "forwardRefForApplicationDomains": "deny",
+    "sharedCommonModule": "deny"
+  }
+}

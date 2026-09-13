@@ -11,7 +11,7 @@ import { UserContextService } from '../../../services/context/user-context.servi
 import { filter, Subscription } from 'rxjs';
 import { SidenavComponent } from '../sidenav/sidenav.component';
 import { AccountService } from '../../../services/account.service';
-import { AuthService } from '../../../services/auth.service';
+import { AuthUseCasesService } from '../../../services/auth-use-cases.service';
 import { SessionSyncService } from '../../../services/session-sync.service';
 import { PathService } from '../../../services/path.service';
 import { ToastService } from '../../../services/toast.service';
@@ -542,7 +542,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   protected readonly sessionSync = inject(SessionSyncService)
   private readonly router = inject(Router)
   private accountService = inject(AccountService)
-  private readonly authService = inject(AuthService)
+  private readonly authService = inject(AuthUseCasesService)
   protected readonly userContext = inject(UserContextService)
   protected readonly pathService = inject(PathService)
   private readonly toast = inject(ToastService)

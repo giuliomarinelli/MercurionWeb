@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Build the final Nest runtime image from compiled application artifacts, declared runtime assets and production-only dependencies instead of copying the builder's complete development `node_modules`, and prove the delivered image inventory through SBOM and vulnerability evidence.
@@ -116,3 +116,8 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
+
+
+### Dependency skip
+
+Direct terminal prerequisite: 0120 (), terminal non-DONE dependency.

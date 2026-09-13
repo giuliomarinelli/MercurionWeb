@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -151,3 +151,8 @@ Direct terminal prerequisite range: 0059 through 0085. The range includes
 FE-030 (BLOCKED, requiring a filesystem-write-capable worker) and UI-018
 (BLOCKED, requiring a test-safe local Nest runtime for mandatory browser
 validation), with all dependent UI tasks `SKIPPED_DEPENDENCY`.
+
+
+### Dependency skip
+
+Direct terminal prerequisite: 0077 (), terminal non-DONE dependency.

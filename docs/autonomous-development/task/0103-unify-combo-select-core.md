@@ -83,7 +83,8 @@ Mark `BLOCKED` if a legacy caller relies on an undocumented behavior that confli
 
 ### Feature branch
 `feature/NG-017`, starting from supplied base
-`3d2198611ee9518289257ab6dd72e74427f3cf05`.
+`3d2198611ee9518289257ab6dd72e74427f3cf05`, preserved at
+`22278b2b754ac01092a97edd1bc0394a1b3ffabd`.
 
 ### Preflight
 - Confirmed clean `feature/NG-017` at the supplied base SHA and verified exact

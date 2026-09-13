@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   OnDestroy,
+  OnInit,
   inject,
   signal,
 } from '@angular/core';
@@ -13,6 +14,7 @@ import { ToastService } from '../../../services/toast.service';
 import { Subscription } from 'rxjs';
 import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
 import { IconButtonComponent } from '../../common/icon-button/icon-button.component';
+import { QuillStylesService } from '../../../services/quill-styles.service';
 
 @Component({
   selector: 'm-new-ticket',
@@ -67,7 +69,7 @@ import { IconButtonComponent } from '../../common/icon-button/icon-button.compon
       </div>
 
       <div class="p-4 flex flex-col gap-4">
-        <label class="flex flex-col gap-1">
+        <div class="flex flex-col gap-1">
           <span class="text-sm font-medium text-slate-700 dark:text-slate-200"
             >Oggetto</span
           >
@@ -81,9 +83,9 @@ import { IconButtonComponent } from '../../common/icon-button/icon-button.compon
             [attr.aria-required]="true"
             [attr.aria-invalid]="subject.trim().length <= 2"
           />
-        </label>
+        </div>
 
-        <label class="flex flex-col gap-1">
+        <div class="flex flex-col gap-1">
           <span class="text-sm font-medium text-slate-700 dark:text-slate-200"
             >Messaggio</span
           >
@@ -98,7 +100,7 @@ import { IconButtonComponent } from '../../common/icon-button/icon-button.compon
             aria-label="Testo del messaggio del ticket"
             [attr.aria-required]="true"
           ></quill-editor>
-        </label>
+        </div>
 
         <div class="flex justify-end pt-2">
           <button
@@ -121,8 +123,9 @@ import { IconButtonComponent } from '../../common/icon-button/icon-button.compon
     </div>
   `,
 })
-export class NewTicketComponent implements OnDestroy {
+export class NewTicketComponent implements OnDestroy, OnInit {
 
+  private readonly quillStyles = inject(QuillStylesService)
   private readonly helpService = inject(HelpService)
   private readonly overlayContext = inject(ActionOverlayContextService)
   private readonly sessionId = this.overlayContext.session('NewTicket')?.id ?? -1
@@ -135,6 +138,10 @@ export class NewTicketComponent implements OnDestroy {
   contentHtml = ''
   private delta: any = null
   private lastPlainText = ''
+
+  ngOnInit(): void {
+    this.quillStyles.load()
+  }
 
   canSend = signal(false)
   loading = signal(false)
