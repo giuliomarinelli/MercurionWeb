@@ -35,7 +35,7 @@
     }
   },
   "totalClientCalls": 59,
-  "matchedClientCalls": 58,
+  "matchedClientCalls": 59,
   "uniqueNestRoutes": 58,
   "entries": [
     {
@@ -4071,12 +4071,14 @@
         "pathParameters": [],
         "queryParameters": [],
         "body": {
-          "expression": "{ email } satisfies EmailDTO",
-          "type": "{ email: string; }",
+          "expression": "dto",
+          "type": "EmailDTO",
           "contract": {
             "applicable": true,
-            "compatible": false,
-            "canonicalNames": [],
+            "compatible": true,
+            "canonicalNames": [
+              "EmailDTO"
+            ],
             "shapeHash": "b0464e146dfbcb88be167682a44b94618fe00927bbc6ea3b46b20803281471e2"
           }
         },
@@ -4139,7 +4141,7 @@
         }
       },
       "matching": {
-        "status": "unmatched",
+        "status": "matched",
         "path": {
           "compatible": true,
           "failures": []
@@ -4154,8 +4156,10 @@
         },
         "request": {
           "compatible": true,
-          "canonical": false,
-          "canonicalNames": [],
+          "canonical": true,
+          "canonicalNames": [
+            "EmailDTO"
+          ],
           "clientShapeHash": "b0464e146dfbcb88be167682a44b94618fe00927bbc6ea3b46b20803281471e2",
           "serverShapeHash": "b0464e146dfbcb88be167682a44b94618fe00927bbc6ea3b46b20803281471e2"
         },

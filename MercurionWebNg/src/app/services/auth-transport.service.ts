@@ -34,7 +34,8 @@ export class AuthTransportService {
   }
 
   isUserAvailableByEmail(email: string): Observable<boolean> {
-    return this.http.post<boolean>('/api/account/is-email-available', { email } satisfies EmailDTO, {
+    const dto: EmailDTO = { email }
+    return this.http.post<boolean>('/api/account/is-email-available', dto, {
       withCredentials: true
     })
   }
