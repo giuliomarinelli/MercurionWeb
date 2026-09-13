@@ -52,7 +52,7 @@ type ActionLoadState = 'idle' | 'loading' | 'loaded' | 'failed'
 })
 export class ActionOverlayComponent {
   protected readonly ctx = inject(ActionOverlayContextService)
-  protected readonly actionHost = viewChild<ViewContainerRef>('actionHost')
+  protected readonly actionHost = viewChild('actionHost', { read: ViewContainerRef })
   protected readonly loadState = signal<ActionLoadState>('idle')
   protected readonly loadError = signal<unknown>(null)
 

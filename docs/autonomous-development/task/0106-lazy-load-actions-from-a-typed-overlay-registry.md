@@ -1,7 +1,7 @@
 # 0106 - Lazy-load actions from one typed overlay registry
 
-- [ ] DONE
-- [x] BLOCKED
+- [x] DONE
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -57,12 +57,12 @@ The current overlay eagerly imports all nine action components, lists them in `i
 
 ## Acceptance criteria
 
-- [ ] The overlay host has no eager imports of individual action implementations.
-- [ ] One typed exhaustive registry owns scope-to-loader and metadata mapping.
-- [ ] Adding/removing a scope causes a compile-time failure until the registry is updated.
-- [ ] Action input/result contracts remain typed end-to-end.
-- [ ] Lazy-load failure produces a controlled overlay error/close path.
-- [ ] Production build demonstrates action code splitting.
+- [x] The overlay host has no eager imports of individual action implementations.
+- [x] One typed exhaustive registry owns scope-to-loader and metadata mapping.
+- [x] Adding/removing a scope causes a compile-time failure until the registry is updated.
+- [x] Action input/result contracts remain typed end-to-end.
+- [x] Lazy-load failure produces a controlled overlay error/close path.
+- [x] Production build demonstrates action code splitting.
 
 ## Validation
 
@@ -144,8 +144,23 @@ actions after the task commit.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Mandatory browser acceptance evidence is unavailable because the dedicated
-Chrome DevTools page could be snapshotted and navigated but not interacted
-with after repeated fresh-page/selection retries. A human-supervised browser
-retry or restored MCP interaction capability is required before this task can
-be accepted.
+_None._
+
+### Authorized recovery
+Recovery was authorized directly on 2026-09-13. Current green `develop` at
+`5b6ba1a4946796521fb6ba6fd06930beef7b1810` was merged into the preserved
+feature branch with `--no-ff --no-gpg-sign` in commit `244e27f7`.
+
+The recovered runtime exposed a task-owned defect in both “Importa da ChEMBL”
+and “Aggiungi molecola a collezioni”: the page remained blurred and the console
+reported `TypeError: host.clear is not a function` at the dynamic action host.
+The signal query had asserted `ViewContainerRef` as its generic result while
+runtime query resolution returned the default `ElementRef`. The query now
+requests `{ read: ViewContainerRef }` explicitly, with a regression test that
+opens an action and renders its lazy standalone component through that host.
+
+After the fix, Angular typecheck and all 476 Angular tests passed. A supervised
+browser retest through `http://localhost:8888` confirmed that both affected
+action dialogs load, render and close without leaving the backdrop/blur stuck.
+The observed dialog sizing is intentionally left to dedicated UI work and did
+not expand this task. Nest also recorded authenticated `PRIVATE` socket state.
