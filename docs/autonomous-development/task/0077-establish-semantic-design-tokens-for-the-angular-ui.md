@@ -225,3 +225,22 @@ authorizes execution despite the historical prerequisite metadata.
   errors; Angular reported only the existing HMR `NG0751` informational log.
 - All three task-owned runtime sessions were stopped and local process
   inspection found no remaining Tox21, Nest, or Angular task process.
+
+### Feature-CI repair evidence (2026-09-14)
+
+- Exact feature run `34787733054` for SHA `d679eead3869c8c7bdfcc92e54623374d6ed64d9`
+  failed only in Angular unit tests; all prerequisite and other validation jobs
+  passed. The clean CI browser diagnostic showed that `PaginationComponent`
+  callers supplied `ariaLabel`/`ariaCurrent` to `m-button`, but the semantic
+  token commit had removed the corresponding button inputs and host bindings,
+  producing null accessible labels/current-page semantics.
+- Applied the narrow repository-controlled correction by restoring
+  `ariaLabel` and `ariaCurrent` inputs and their `aria-label`/`aria-current`
+  bindings in `ButtonComponent`. The pagination implementation and test were
+  not weakened or changed.
+- Focused validation: from `MercurionWebNg`,
+  `npx ng test --watch=false --karma-config=karma.conf.js
+  --include=src/app/components/common/pagination/pagination.component.spec.ts`
+  — passed, 3 tests. Focused ESLint for the corrected button and pagination
+  components — passed.
+- Repair commit: this commit.
