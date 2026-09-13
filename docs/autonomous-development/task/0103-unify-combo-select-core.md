@@ -1,7 +1,7 @@
 # 0103 - Unify legacy combo-select wrappers on the canonical select core
 
-- [ ] DONE
-- [x] BLOCKED
+- [x] DONE
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -56,11 +56,11 @@ The current `combo-multi-select.component.ts` explicitly describes itself as der
 
 ## Acceptance criteria
 
-- [ ] One canonical select/combobox interaction core exists.
-- [ ] Single and multi behavior are adapter modes, not cloned component implementations.
-- [ ] All legacy callers are migrated.
-- [ ] Keyboard/focus/filter/selection/create-new behavior required by current flows is covered by tests.
-- [ ] Legacy duplicate implementation is removed.
+- [x] One canonical select/combobox interaction core exists.
+- [x] Single and multi behavior are adapter modes, not cloned component implementations.
+- [x] All legacy callers are migrated.
+- [x] Keyboard/focus/filter/selection/create-new behavior required by current flows is covered by tests.
+- [x] Legacy duplicate implementation is removed.
 
 ## Validation
 
@@ -162,13 +162,22 @@ worker. Exact-SHA CI is required before integration.
 _Not applicable._
 
 ### Blocker / human decision required
-The mandatory post-implementation browser interaction evidence could not be
-completed safely. Chrome DevTools MCP consistently timed out interacting with
-fresh snapshot UIDs (`fill_form`/`fill` on the login textbox and `click` on
-the collection navigation link), while direct navigation returned to the
-protected dashboard. Runtime readiness and protected dashboard rendering were
-re-observed, and additional pages/retries did not restore interaction. This
-is recorded as an environmental browser-capability blocker rather than a
-claim that the migrated flow is defective. A fresh worker with working MCP
-interaction capability must exercise the collection-picker single-select
-flow before this task can be integrated.
+_None._
+
+### Authorized recovery
+- Reconciled current green `develop` into the preserved branch with merge
+  commit `c6f6246c21f2fbce112231e3c570fb3d06c35ef6` and no history rewrite.
+- Re-ran Angular typecheck, the six canonical-core and migrated-caller specs,
+  Angular lint with zero findings, and `git diff --check`; all passed.
+- Started Tox21, Nest and Angular directly in canonical order and observed two
+  consecutive `200` readiness rounds through `http://localhost:8888`.
+- Completed a fresh ordinary login with human-assisted MFA and proved the
+  protected dashboard through the rendered user identity and authenticated
+  socket state.
+- Exercised the migrated collection-routing combobox through the nginx origin:
+  expanded/collapsed semantics, `aria-activedescendant`, arrow-key navigation,
+  keyboard selection, filtering to `Aromatici`, create-new availability,
+  enabled continuation state and Escape focus return all behaved as expected.
+- Exercised the reachable multi-collection picker filter and reversible
+  selection/deselection without submitting any data. No relevant browser
+  console errors were present. All task-owned runtime processes were stopped.
