@@ -41,3 +41,13 @@ RUN npm run build && \
   mkdir -p dist/app_modules/notification && \
   cp -R src/app_modules/notification/email-templates dist/app_modules/notification/email-templates && \
   npm run test
+
+RUN addgroup -S -g 10001 mercurion && \
+  adduser -S -D -H -u 10001 -G mercurion mercurion && \
+  mkdir -p /tmp/mercurion && \
+  chown -R 10001:10001 /workspace/MercurionWebNode/dist /tmp/mercurion
+
+ENV TMPDIR=/tmp
+EXPOSE 8098
+USER 10001:10001
+CMD ["node", "dist/src/main.js"]

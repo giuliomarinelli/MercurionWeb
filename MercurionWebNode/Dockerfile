@@ -54,6 +54,11 @@ RUN npm run build && \
 FROM node:22.16.0-alpine AS runtime
 WORKDIR /usr/src/app
 
+RUN addgroup -S -g 10001 mercurion && \
+  adduser -S -D -H -u 10001 -G mercurion mercurion && \
+  mkdir -p /tmp/mercurion && \
+  chown 10001:10001 /tmp/mercurion
+
 ARG APP_VERSION
 ENV APP_VERSION=$APP_VERSION
 
@@ -62,8 +67,13 @@ LABEL org.opencontainers.image.version=$APP_VERSION
 ENV NODE_ENV=production
 ENV APP_ENV=production
 
-COPY --from=build /workspace/MercurionWebNode/dist ./dist
-COPY --from=build /workspace/MercurionWebNode/package.json ./package.json
-COPY --from=build /workspace/node_modules ./node_modules
-COPY --from=build /workspace/packages/rest-contracts ./packages/rest-contracts
-COPY --from=build /workspace/packages/socket-contracts ./packages/socket-contracts
+COPY --from=build --chown=10001:10001 /workspace/MercurionWebNode/dist ./dist
+COPY --from=build --chown=10001:10001 /workspace/MercurionWebNode/package.json ./package.json
+COPY --from=build --chown=10001:10001 /workspace/node_modules ./node_modules
+COPY --from=build --chown=10001:10001 /workspace/packages/rest-contracts ./packages/rest-contracts
+COPY --from=build --chown=10001:10001 /workspace/packages/socket-contracts ./packages/socket-contracts
+
+ENV TMPDIR=/tmp
+EXPOSE 8098
+USER 10001:10001
+CMD ["node", "dist/src/main.js"]
