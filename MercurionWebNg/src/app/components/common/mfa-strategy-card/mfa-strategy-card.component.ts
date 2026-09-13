@@ -3,11 +3,12 @@ import { Component, effect, inject, signal, ChangeDetectionStrategy, input, outp
 import { MfaStrategy } from '../../../Models/account/account.models';
 import { NgClass } from '@angular/common';
 import { DesignService } from '../../../services/design.service';
+import { ButtonComponent } from '../button/button.component';
 
 @Component({
   selector: 'm-mfa-strategy-card',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgClass],
+  imports: [NgClass, ButtonComponent],
   template: `
 
   @if (_strategy() && !(_strategy()!.strategy === 'BACKUP_CODE' && !_strategy()!.enabled)) {
@@ -97,15 +98,10 @@ import { DesignService } from '../../../services/design.service';
       </div>
       @if (showActions() && !(noPhone() && _strategy()!.strategy === 'SMS_OTP') && _strategy()!.strategy !== 'BACKUP_CODE') {
         <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto items-stretch sm:items-center justify-end sm:justify-start">
-          <button
+          <m-button
             type="button"
-            [class.green-btn]="!_strategy()!.enabled || _strategy()!.strategy === 'BACKUP_CODE'"
-            [class.red-btn]="_strategy()!.enabled && _strategy()!.strategy !== 'BACKUP_CODE'"
-            class="
-              flex items-center justify-center gap-2 px-3 py-2 rounded-md
-              font-semibold text-sm w-full sm:w-auto
-              transition-colors duration-150 shadow-sm sm:shadow-none
-            "
+            [variant]="_strategy()!.enabled ? 'destructive' : 'secondary'"
+            size="sm"
             (click)="handleActionClick()"
             [attr.aria-pressed]="_strategy()!.enabled"
             [attr.aria-label]="actionLabel()"
@@ -128,7 +124,7 @@ import { DesignService } from '../../../services/design.service';
                 <span class="text-sm sm:text-base">Disattiva</span>
               }
 
-          </button>
+          </m-button>
         </div>
       } @else if (_remainingBackupCodes() >= 0 && _strategy()!.strategy !== 'SMS_OTP') {
         <p class="text-sm">
