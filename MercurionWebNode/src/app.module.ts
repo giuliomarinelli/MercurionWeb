@@ -27,6 +27,7 @@ import { ReleaseVersionModule } from './app_modules/release-version/release-vers
 import { HealthController } from './health.controller';
 import { AssetController } from './asset.controller';
 import { ReadinessService } from './shutdown/readiness.service'
+import { ResponseModule } from './services/response.module'
 import {
   createConfigurationModule,
   type ConfigurationModuleOptions
@@ -63,7 +64,8 @@ import {
     SSO_Module,
     HelpModule,
     FeedbackModule,
-    ReleaseVersionModule
+    ReleaseVersionModule,
+    ResponseModule
   ],
   providers: [
     ReadinessService,
