@@ -24,10 +24,12 @@
     "graphql:schema:check": "node -r ts-node/register -r tsconfig-paths/register scripts/graphql-schema.ts",
     "graphql:schema:update": "node -r ts-node/register -r tsconfig-paths/register scripts/graphql-schema.ts --update",
     "test": "jest --config ./jest.config.js",
+    "test:ci": "node -e \"require('fs').mkdirSync('test-results',{recursive:true})\" && jest --config ./jest.config.js --runInBand --json --outputFile=./test-results/jest-results.json",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "test:e2e:ci": "node -e \"require('fs').mkdirSync('test-results',{recursive:true})\" && jest --config ./test/jest-e2e.json --runInBand --json --outputFile=./test-results/e2e-results.json"
   },
   "dependencies": {
     "@mercurion/rest-contracts": "1.0.0",
