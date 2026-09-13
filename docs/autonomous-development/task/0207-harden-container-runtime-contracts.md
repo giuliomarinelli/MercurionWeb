@@ -135,6 +135,7 @@ Not applicable: no browser-serving behavior changed; the Angular image
 runtime contract was validated directly through its standalone nginx process.
 ### Commits
 `d4c7a7d1a3ba53b7a0ec149142cdc6e2d6dc1c71` — `qa: harden container runtime contracts`
+`2545d7b6a84e136851c4429a42b4f0383ce3d01f` — execution evidence
 ### Merge / CI
 Feature-SHA CI is pending coordinator observation after push.
 ### Merge / CI
