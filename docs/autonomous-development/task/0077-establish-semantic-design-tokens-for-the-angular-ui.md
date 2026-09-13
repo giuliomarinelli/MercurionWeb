@@ -2,7 +2,7 @@
 
 - [ ] DONE
 - [ ] BLOCKED
-- [ ] REVERTED
+- [x] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
 ## Objective
@@ -155,3 +155,15 @@ prerequisites trace through blocked FE-030, which requires filesystem-write
 capability for a fresh, human-authorized worker session; UI-018 requires a
 test-safe local Nest runtime and dependencies for its mandatory browser
 validation.
+
+### UI-019 integration outcome (2026-09-12)
+
+The implementation reached `READY_FOR_INTEGRATION` on
+`feature/UI-019` at `10ab88c40b8677718878ea4c69dd84e4712cad94`; feature CI
+run `34666878540` passed on Ubuntu, Windows, and `Required gate`.
+It was merged in `41525c659ee72f322d4cc5337c698277842fe2f0`, but exact merge
+CI run `34667224703` failed in the Windows Angular test job because
+ChromeHeadless disconnected after 30 seconds. The merge was reverted by
+`7bedac77c52bd22b7bf3295e6a7c3558f0ed1c4d`, whose exact CI run
+`34667474039` passed on both platforms and `Required gate`. The feature branch
+is preserved and frozen for diagnosis.

@@ -93,9 +93,10 @@ Prefer a small headless state contract plus presentational controls if both numb
 
 ## Execution notes
 
-> Current status (2026-09-11): PENDING by direct owner instruction because this
-> activity was not completed. Historical attempt/skip evidence remains below
-> for traceability and is not a terminal outcome.
+> Current status (2026-09-13): BLOCKED. The owner-authorized recovery reconciled
+> the preserved implementation with current `develop`, but the mandatory browser
+> validation could not start because the canonical Nest runtime reproduced the
+> shared baseline bootstrap failure recorded below.
 
 ### Feature branch
 No task branch or worker was created because hard prerequisites
@@ -176,3 +177,38 @@ observation and rerun of the declared browser validation.
 
 #### Commits
 Task-preservation commit: `2265a0177ab0532fda579dee73675a0ce4836c1a`.
+
+### UI-016 owner-authorized recovery (2026-09-13)
+
+#### Reconciliation
+Merged current green `develop` at
+`268dc3c98fc866bfbaeb6b6e6f3880487b76ce1d` into the preserved
+`feature/UI-016` branch with `--no-ff --no-gpg-sign`. The only content conflict
+was the later `NG-010` collection-detail decomposition. Resolution retained the
+current facade/subcomponent architecture and migrated its pagination
+subcomponent to the canonical `m-pagination` family. Page-load failures now
+remain distinct from collection bootstrap failures and expose deterministic
+retry intent.
+
+#### Focused validation
+- `npm run typecheck --workspace mercurion_web_ng` — passed.
+- focused Angular pagination and collection-detail tests — 4 passed.
+- `npm run lint --workspace mercurion_web_ng` — passed.
+- `npm run build --workspace mercurion_web_ng` — passed with the configured
+  non-fatal initial-bundle warning.
+- `git diff --check` — passed.
+
+#### Runtime/browser blocker
+Tox21, Nest and Angular were started with the canonical task-scoped commands.
+Tox21 started normally, Angular completed its development build and nginx
+served the application shell. Nest compiled with zero TypeScript errors but
+then failed before listening on port 8099 with:
+
+`EPERM: operation not permitted, copyfile '.../email-templates/layouts' -> '.../dist/.../email-templates/layouts'`
+
+Consequently nginx returned `502` for `/health`, so the protected paginated and
+load-more views could not be exercised through `http://localhost:8888` and no
+browser acceptance evidence is claimed. This is the same shared baseline
+invariant failure already recorded by the latest v7 session report, not a
+UI-016 behavior failure. All task-owned runtime processes were stopped. The
+branch remains preserved for continuation after separate baseline repair.

@@ -1,6 +1,6 @@
 # 0189 - Replace smoke-only tests with behavior tests
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -87,21 +87,54 @@ Do not equate line execution with behavioral coverage. A small number of strong 
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/QA-003` from base `e5f6f8371b40701ca93cc00b9766e34df5a1ec74`.
 ### Preflight
-_Not started._
+Clean branch identity confirmed: `feature/QA-003` at the supplied base SHA,
+with no task-owned workspace process active. The supplied `develop` base is
+the exact current HEAD and the dependency task recipes `0187` and `0188` are
+both `[x] DONE`. The existing dependency tree was used; `npm ci` and
+`npm run ci:check` were not run locally.
 ### Preflight remediation
-_None._
+None.
 ### Summary
-_Not started._
+Added behavior-oriented success and failure coverage for Angular copy/title/JWT
+services and Nest health, country mapping, secure-cookie, and type-guard
+contracts. Replaced seven exact construction-only specs without deleting
+useful coverage. Added `scripts/check-smoke-test-ratio.mjs`, which inventories
+all 344 maintained production spec files, counts their 757 maintained unit
+tests, reports the exact smoke-only files, and fails when construction-only
+tests exceed ten percent of the maintained unit-test inventory. The current
+reproducible ratio is 75/757 = 9.91%. The gate is registered in `ci:static`.
+No auth/session, accessibility/action, or GraphQL contract scenarios owned by
+tasks `0190`–`0193` were duplicated.
 ### Task-specific validation performed
-_Not started._
+Passed:
+
+- `npm run ci:test:smoke-ratio` — 344 spec files, 757 unit tests, 75
+  construction-only tests, 9.91%, exit 0.
+- `npm run test:ci --workspace mercurion_web_ng` — complete Angular suite,
+  exit 0.
+- `npm test --workspace mercurion_web_node -- --runInBand` — 148 suites and
+  455 tests passed, exit 0. Jest retained the pre-existing worker graceful
+  exit warning.
+- `npm run test:e2e --workspace mercurion_web_node -- --runInBand` — 1 suite
+  and 3 tests passed, exit 0.
+- Focused behavior specs for the seven migrated services/controller/utilities
+  passed, including health success/not-ready/Redis-error paths.
+- `npm run ci:lint:angular` and `npm run ci:typecheck:angular` — passed.
+- `npm run ci:lint:nest`, `npm run ci:typecheck:nest`, and
+  `npm run ci:build:nest` — passed; lint retained 51 pre-existing warnings.
+- `npm run ci:build:angular` — passed; existing bundle/CommonJS warnings only.
+- `git diff --check` — passed.
 ### Full pre-merge CI-parity validation
-_Not started._
+Not run locally by policy: `npm ci` and `npm run ci:check` are reserved for
+GitHub Actions exact-SHA validation. The new smoke-ratio command is included
+in the canonical static gate for feature-branch CI.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-_Not recorded._
+- `163d307e460d9dd5afc53179ca4102d1e4bdf842` — behavior coverage,
+  smoke-ratio inventory gate, task notes and `DONE` outcome.
 ### Merge / CI
 _Not started._
 ### Rollback

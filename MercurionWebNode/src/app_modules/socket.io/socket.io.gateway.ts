@@ -1,4 +1,5 @@
 import { WebSocketGateway, WebSocketServer, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, MessageBody, ConnectedSocket } from '@nestjs/websockets';
+import { OnModuleDestroy } from '@nestjs/common'
 import { Server, Socket } from 'socket.io';
 import { UseGuards } from '@nestjs/common';
 import Redis from 'ioredis';
@@ -62,10 +63,13 @@ export function createSocketContractVersionMiddleware(
 
 @WebSocketGateway()
 @UseGuards(WsGuard)
-export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit {
+export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, OnModuleDestroy {
 
   private readonly logger: MeiliContextLogger
   private readonly redisConf: RedisConfiguration
+  private initialized = false
+  private pubClient: Redis | undefined
+  private subClient: Redis | undefined
 
   @WebSocketServer()
   private readonly server: ApplicationServer
@@ -81,6 +85,8 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
   }
 
   afterInit(server: ApplicationServer) {
+    if (this.initialized) return
+
     server.use(createSocketContractVersionMiddleware(this.logger))
     const pubClient = new Redis({
       host: this.redisConf.host,
@@ -88,9 +94,19 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
       password: this.redisConf.password
     })
     const subClient = pubClient.duplicate()
+    this.pubClient = pubClient
+    this.subClient = subClient
     server.adapter(createAdapter(pubClient, subClient))
     this.pubSubService.setSocketServer(server)
+    this.initialized = true
     this.logger.log('Socket.IO Redis Adapter e PubSubService pronti! 🚀')
+  }
+
+  async onModuleDestroy(): Promise<void> {
+    await Promise.all([
+      this.pubClient?.status !== 'end' ? this.pubClient?.quit() : undefined,
+      this.subClient?.status !== 'end' ? this.subClient?.quit() : undefined
+    ])
   }
 
 
@@ -116,8 +132,9 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
       this.logger.log(
         `Socket ${client.id} autenticato onConnect, bind ws_session:${sessionId}, ws_user:${userId}`
       );
-    } catch (e: any) {
-      this.logger.warn(`WS auth fallita su handleConnection per ${client.id}: ${e?.message || e}`);
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : String(e)
+      this.logger.warn(`WS auth fallita su handleConnection per ${client.id}: ${message}`);
       // se questo gateway è solo privato puoi anche fare:
       // client.disconnect(true);
     }
@@ -138,11 +155,11 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
 
     if (sessionId && userId) {
       if (!client.rooms.has(`ws_session:${sessionId}`)) {
-        client.join(`ws_session:${sessionId}`)
+        void client.join(`ws_session:${sessionId}`)
         this.logger.debug(`Socket ${client.id} joinato a ws_session:${sessionId}`)
       }
       if (!client.rooms.has(`ws_user:${userId}`)) {
-        client.join(`ws_user:${userId}`);
+        void client.join(`ws_user:${userId}`);
         this.logger.debug(`Socket ${client.id} joinato a ws_user:${userId}`)
       }
 

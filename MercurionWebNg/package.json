@@ -9,12 +9,13 @@
   "scripts": {
     "ng": "ng",
     "start:dev": "ng serve --serve-path /",
-    "build": "ng build",
+    "build": "ng build --stats-json",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "test:ci": "ng test --watch=false --karma-config=karma.conf.js",
     "test:onpush": "ng test --watch=false --ts-config src/tsconfig.onpush.spec.json",
-    "lint": "eslint \"src/**/*.{ts,html}\"",
+    "lint": "npm run lint:angular",
+    "lint:angular": "eslint \"src/**/*.{ts,html}\" --max-warnings=0",
     "lint:fix": "eslint \"src/**/*.{ts,html}\" --fix",
     "typecheck": "tsc --noEmit -p tsconfig.app.json",
     "graphql:generate": "graphql-codegen --config codegen.yml",
@@ -23,7 +24,8 @@
     "graphql:catalog-policy": "node scripts/check-graphql-catalog-policy.mjs",
     "graphql:catalog-policy:negative": "node scripts/test-graphql-catalog-policy-negative.mjs",
     "graphql:check": "npm run graphql:catalog-policy && npm run graphql:catalog-policy:negative && npm run graphql:validate && npm run graphql:validate:negative && graphql-codegen --config codegen.yml --check",
-    "chemistry:check-lazy": "node scripts/check-chemistry-lazy-chunks.mjs"
+    "chemistry:check-lazy": "node scripts/check-chemistry-lazy-chunks.mjs",
+    "bundle:check": "node scripts/check-bundle-gates.mjs"
   },
   "private": true,
   "dependencies": {

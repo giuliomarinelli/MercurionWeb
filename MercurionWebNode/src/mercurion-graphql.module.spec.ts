@@ -1,7 +1,7 @@
 import { ConfigService } from '@nestjs/config'
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import { GraphQLError } from 'graphql'
-import { Environment } from './config/config'
+import { Environment } from './config/config.schema'
 import {
   CONTRACT_VERSION_HEADER,
   CONTRACT_VERSION_RESPONSE_HEADERS
@@ -25,7 +25,7 @@ describe('Mercurion GraphQL contract versioning', () => {
   ) => unknown
 
   const createConfig = () => createMercurionGraphQLConfig({
-    get: jest.fn().mockReturnValue(Environment.Development)
+    getOrThrow: jest.fn().mockReturnValue(Environment.Development)
   } as unknown as ConfigService)
 
   const createRequestReply = (major?: string) => {

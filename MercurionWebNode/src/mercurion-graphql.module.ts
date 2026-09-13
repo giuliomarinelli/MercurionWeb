@@ -1,5 +1,5 @@
 import { ConfigModule, ConfigService } from '@nestjs/config'
-import { Environment } from './config/config'
+import { Environment } from './config/config.schema'
 import { ForbiddenException, HttpException, UnauthorizedException } from '@nestjs/common'
 import { GraphQLError } from 'graphql'
 import { GraphQLModule } from '@nestjs/graphql'
@@ -48,7 +48,7 @@ export function createContractVersionGraphQLError(
 }
 
 export function createMercurionGraphQLConfig(config: ConfigService): MercuriusDriverConfig {
-    const env = config.get<Environment>('App.env')!
+    const env = config.getOrThrow<Environment>('App.env')
     const isNotDev = env !== Environment.Development
 
     return {
@@ -153,7 +153,7 @@ export function createMercurionGraphQLConfig(config: ConfigService): MercuriusDr
                         const status = original.getStatus()
                         const response = original.getResponse() as
                             | string
-                            | { message?: string | string[];[key: string]: any }
+                            | { message?: string | string[];[key: string]: unknown }
 
                         let message: string
 

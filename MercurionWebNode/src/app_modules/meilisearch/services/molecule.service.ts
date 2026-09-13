@@ -7,6 +7,9 @@ import { MeiliLoggerService } from "./meili-logger.service";
 import { MeiliContextLogger } from "src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface";
 
 type Maybe<T> = T | null | undefined;
+type MoleculeDetailWithMolregno = MoleculeDetailModel & {
+    molregno?: number | string;
+};
 
 @Injectable()
 export class MoleculeService {
@@ -63,7 +66,7 @@ export class MoleculeService {
 
         // indicizza per molregno (fallback su id/cmbId se necessario)
         const keyOf = (d: MoleculeDetailModel) =>
-            String((d as any).molregno ?? d.id ?? d.cmbId);
+            String((d as MoleculeDetailWithMolregno).molregno ?? d.id ?? d.cmbId);
 
         const map = new Map<string, MoleculeDetail>(
             hits.map((doc) => [keyOf(doc), this.mapMeiliToDTO(doc)])
@@ -103,7 +106,7 @@ export class MoleculeService {
 
                 // normalizza synonyms
                 const normalizedSynonyms = this.normalizeSynonyms(
-                    (raw as any)?.synonyms as Maybe<string | string[]>
+                    raw.synonyms as Maybe<string | string[]>
                 );
                 const known = raw.preferredName != null || raw.preferredNameIt != null
                 const preferredName =
@@ -160,7 +163,7 @@ export class MoleculeService {
             doc.preferredName && String(doc.preferredName).trim().length > 0
                 ? String(doc.preferredName).trim()
                 : `Lead ${fallbackMolregno ??
-                (doc as any)?.molregno ??
+                (doc as MoleculeDetailWithMolregno).molregno ??
                 doc.id ??
                 doc.cmbId ??
                 "?"
@@ -170,7 +173,7 @@ export class MoleculeService {
             doc.preferredNameIt && String(doc.preferredNameIt).trim().length > 0
                 ? String(doc.preferredNameIt).trim()
                 : `Lead ${fallbackMolregno ??
-                (doc as any)?.molregno ??
+                (doc as MoleculeDetailWithMolregno).molregno ??
                 doc.id ??
                 doc.cmbId ??
                 "?"

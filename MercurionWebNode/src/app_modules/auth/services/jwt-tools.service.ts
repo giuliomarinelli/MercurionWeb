@@ -1,21 +1,20 @@
-import { Inject, Injectable, forwardRef } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { JwtService, JwtSignOptions, JwtVerifyOptions } from '@nestjs/jwt';
 import { JwtAudience, JwtConfiguration } from 'src/config/config.types';
 import { ConfigService } from '@nestjs/config';
 import { TokenType } from '../Models/enums/token-type.enum';
 import { randomUUID, UUID } from 'crypto';
-import { UserService } from 'src/app_modules/user/services/user.service';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 import { Scope } from 'src/app_modules/user/Models/enums/scope.enum';
 import { FastifyRequest } from 'fastify';
 
 import { AppJwtPayload } from '../Models/interfaces/app-jwt-payload.interface';
-import { RedisService } from 'src/app_modules/redis/services/redis.service';
 import { SessionService } from './session.service';
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 import { JwtKeysProvider } from '../providers/jwt-keys.provider';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
+import { IDENTITY_READ_PORT, IdentityReadPort } from '../Models/interfaces/identity-read.port'
 
 @Injectable()
 export class JwtToolsService {
@@ -49,9 +48,8 @@ export class JwtToolsService {
     constructor(
         private readonly jwtService: JwtService,
         private readonly configService: ConfigService,
-        @Inject(forwardRef(() => UserService))
-        private readonly userService: UserService,
-        private readonly redisservice: RedisService,
+        @Inject(IDENTITY_READ_PORT)
+        private readonly identityRead: IdentityReadPort,
         private readonly sessionService: SessionService,
         loggerFactory: MeiliLoggerService,
         private readonly jwtKeys: JwtKeysProvider
@@ -138,7 +136,7 @@ export class JwtToolsService {
     // TODO: valutare la necessità di implementazione del claim kid per rotazione secrets => Previsto per Mercurion 1.x
     public async generateToken(userId: UUID, type: TokenType, sessionId?: UUID): Promise<string> {
         const jwtConfig = this.getJwtConfigurationFromTokenType(type)
-        const scopes: string[] = await this.userService.getUserScopesById(userId) ?? []
+        const scopes: Scope[] = await this.identityRead.getUserScopesById(userId) ?? []
         const scp = scopes
             .map((s) => GeneralUtils.getEnumKeyByValue(Scope, s))
             .filter((k) => k !== undefined)
@@ -181,11 +179,17 @@ export class JwtToolsService {
         // 🔹 Se è un AccessToken, memorizziamo il JTI tra i token emessi
         if (type === TokenType.AccessToken || type === TokenType.ws_AccessToken || type === TokenType.PreAuthorizationToken) {
             if (sessionId == undefined) throw applicationError(ApplicationErrorCode.ACCESS_TOKEN_SESSION_MISSING)
-            const issuedKey = `issued:${sessionId.toString()}:${jti}`
-            await this.redisservice.set(issuedKey, '1', jwtConfig.expiresInMs / 1000) // TTL uguale alla durata del token
+            await this.sessionService.registerIssuedToken(
+                sessionId.toString(),
+                jti,
+                jwtConfig.expiresInMs / 1000
+            )
         } else {
-            const issuedKey = `issued:${this.configService.get<UUID>('Session.sessionZeroId')?.toString()}:${jti}`
-            await this.redisservice.set(issuedKey, '1', jwtConfig.expiresInMs / 1000) // TTL uguale alla durata del token
+            await this.sessionService.registerIssuedToken(
+                this.configService.get<UUID>('Session.sessionZeroId')!.toString(),
+                jti,
+                jwtConfig.expiresInMs / 1000
+            )
         }
         // session 0 = sessione fittizia, per revocare token stateless
         return token

@@ -7,6 +7,7 @@ import { Subscription } from 'rxjs';
 import { ActionCardComponent } from '../../common/action-card/action-card.component';
 import { ActionFooterComponent } from '../../common/action-footer/action-footer.component';
 import { ButtonComponent } from '../../common/button/button.component';
+import { CollectionPickerFacade } from '../collection-picker/collection-picker.facade';
 
 @Component({
   selector: 'm-select-collection-then-route',
@@ -133,28 +134,30 @@ export class SelectCollectionThenRouteComponent implements OnInit, OnDestroy {
   private readonly actionContext = inject(ActionOverlayContextService);
   private readonly sessionId = this.actionContext.session('SelectCollectionThenRoute')?.id ?? -1;
   private readonly collectionService = inject(MoleculeCollectionService);
+  private readonly picker = new CollectionPickerFacade({
+    mode: { kind: 'single', operation: 'route', allowCreate: true }
+  });
 
   private colFetchSub?: Subscription;
 
-  collections = signal<MoleculeCollection[]>([]);
-  hasMore = signal<boolean>(true);
-  loadingCombo = signal<boolean>(false);
+  collections = this.picker.collections;
+  hasMore = this.picker.hasMore;
+  loadingCombo = this.picker.loading;
   loading = signal<boolean>(false);
   selectedCollectionId = signal<string>('');
-  page = signal<number>(1);
-  searchTerm = signal<string>('');
   importFromChembl = signal<boolean>(false);
 
   ngOnInit(): void {
     queueMicrotask(() => {
       const ifc = this.actionContext.session('SelectCollectionThenRoute')?.input.importFromChembl ?? false;
       this.importFromChembl.set(ifc);
-      this.loadCollections(true);
+      this.picker.load(true);
     });
   }
 
   ngOnDestroy(): void {
     this.colFetchSub?.unsubscribe();
+    this.picker.destroy();
   }
 
   close(): void {
@@ -170,46 +173,24 @@ export class SelectCollectionThenRouteComponent implements OnInit, OnDestroy {
   }
 
   loadCollections(reset = false) {
-    if (this.loadingCombo()) {
-      return;
-    }
-    this.loadingCombo.set(true);
-    const page = reset ? 1 : this.page();
-    this.colFetchSub = this.collectionService
-      .getPaginatedCollections(page, 12, this.searchTerm())
-      .subscribe((res) => {
-        if (reset) {
-          this.collections.set(res.items);
-        } else {
-          this.collections.set([...this.collections(), ...res.items]);
-        }
-        this.hasMore.set(res.currentPage < res.totalPages);
-        this.page.set(res.currentPage + 1);
-        this.loadingCombo.set(false);
-      });
+    this.picker.load(reset);
   }
 
   onSearchChange(term: string) {
-    this.searchTerm.set(term);
-    this.page.set(1);
-    this.loadCollections(true);
+    this.picker.search(term);
   }
 
   onScrollEnd() {
-    if (this.hasMore() && !this.loadingCombo()) {
-      this.loadCollections();
-    }
+    if (this.hasMore() && !this.loadingCombo()) this.picker.load();
   }
 
   onSelect(item: Pick<MoleculeCollection, 'id'>) {
-    this.selectedCollectionId.set(item.id);
+    this.picker.setSingleSelection(item.id);
+    this.selectedCollectionId.set(this.picker.selected().ids[0] ?? '');
   }
 
   onCreateNew(name: string) {
-    this.collectionService.createCollection(name).subscribe((newColl) => {
-      this.collections.set([newColl, ...this.collections()]);
-      this.selectedCollectionId.set(newColl.id);
-    });
+    this.picker.create(name).subscribe(newColl => this.selectedCollectionId.set(newColl.id));
   }
 
   routeAction(): void {

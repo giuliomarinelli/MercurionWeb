@@ -1,6 +1,6 @@
 # 0100 - Introduce a reusable typed collection-picker feature
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -85,37 +85,67 @@ Mark `BLOCKED` if two current callers require genuinely incompatible collection-
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/NG-014`
 
 ### Preflight
-_Not started._
+Clean branch verified at `e07f9d7efced9767e47af32a43ee297fba0392a2`, matching
+`develop` and the supplied NG-013 green merge baseline. No task-owned
+workspace process was active before the probe. The canonical Tox21, Nest and
+Angular startup sequence was executed in that order; initial nginx 502
+responses cleared after the three watchers became live. Two consecutive
+complete readiness rounds returned HTTP 200 for `/health` and `/`.
+The protected persistent-profile browser state reached the authenticated
+dashboard and the console error stream was empty.
 
 ### Preflight remediation
-_None._
+None. No dependency installation or aggregate local CI command was run.
 
 ### Summary
-Not attempted because required task 0089 (NG-003) and canonical
-collection-card/select/pagination primitives are `SKIPPED_DEPENDENCY`.
+Added a reusable `CollectionPickerFacade` with explicit discriminated
+single-route, single-save, and multi-bind modes. It owns query, paging,
+deduplicated collection identity, loading/error state, selection/select-all
+state, initial selection, creation handoff, and teardown. Migrated the route
+selector and custom-save selector to the facade and routed bind-collections
+page queries through the same typed facade. Caller-specific navigation and
+save/bind mutations remain in their existing callers.
 
 ### Task-specific validation performed
-Not applicable; no feature branch or implementation worker was created.
+* `npm run typecheck --workspace mercurion_web_ng` — passed.
+* Targeted Angular tests for the facade and all three migrated callers —
+  6 specs passed.
+* `npx eslint` on the facade and migrated callers — 0 errors (repository
+  baseline warnings only).
+* Runtime post-change startup: Tox21, Nest and Angular all remained alive;
+  Nest reported 0 compile errors and Angular completed its bundle.
+* Runtime post-change readiness: two consecutive HTTP 200 rounds for
+  `http://localhost:8888/health` and `/`.
+* Chrome DevTools MCP through the canonical origin showed the protected
+  dashboard and no console errors. Direct collection routes were redirected
+  back to the authenticated dashboard by the existing route/session state, so
+  no mutation was submitted during browser validation.
+* All task-owned runtime sessions were stopped and local process inventory
+  showed no Tox21/Nest/Angular watcher remaining.
 
 ### Full pre-merge CI-parity validation
-Not applicable; dependency-skip metadata only.
+Not run locally by policy (`npm ci` and `npm run ci:check` are forbidden in
+autonomous workers). Exact-SHA GitHub Actions validation remains coordinator
+owned after publication.
 
 ### Browser validation performed
-Not applicable; the task was not attempted.
+Canonical origin only: readiness and protected dashboard evidence captured;
+console error query returned no messages. Collection action overlays were not
+reachable because collection route navigation redirected to the existing
+dashboard/session state. No credentials or session data were recorded.
 
 ### Commits
-Pending metadata commit on `develop`.
+Pending task commit on `feature/NG-014`.
 
 ### Merge / CI
-No feature branch or merge. Exact-SHA CI is required for the metadata commit.
+Feature SHA and exact-SHA CI observation are coordinator-owned after push.
 
 ### Rollback
-_Not applicable._
+No rollback required.
 
 ### Blocker / human decision required
-Task 0089 and required UI primitives trace through UI-001/UI-016 to FE-030
-(BLOCKED). FE-030 requires filesystem-write capability for a fresh,
-human-authorized worker session.
+None for the implementation. Browser overlay reachability remains an
+environment/session navigation limitation and did not alter repository state.

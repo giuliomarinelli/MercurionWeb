@@ -1,4 +1,5 @@
-import { Entity, PrimaryColumn, Column } from 'typeorm';
+import { Column, Entity, PrimaryColumn } from 'typeorm';
+import type { ColumnType } from 'typeorm';
 
 @Entity({ name: 'molecule_embeddings' })
 export class MoleculeEmbedding {
@@ -11,9 +12,9 @@ export class MoleculeEmbedding {
     @Column('text', { name: 'smiles' })
     smiles!: string;
 
-    // pgvector (Nullable finché non calcoliamo)
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    @Column({ type: 'vector' as any, nullable: true })
+    // pgvector is provided by the installed driver although TypeORM's
+    // portable ColumnType union does not include the extension.
+    @Column({ type: 'vector' as ColumnType, nullable: true })
     embedding!: number[] | null;
 
     @Column('text', { name: 'embedding_model', default: 'seyonec/ChemBERTa-zinc-base-v1' })
