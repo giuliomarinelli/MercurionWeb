@@ -45,6 +45,10 @@ describe('Mercurion GraphQL contract versioning', () => {
     return { request, reply, responseHeaders }
   }
 
+  it('keeps the runtime-generated schema in memory', () => {
+    expect(createConfig().autoSchemaFile).toBe(true)
+  })
+
   it('discloses canonical response metadata without a legacy warning for major 1', async () => {
     const config = createConfig()
     const { request, reply, responseHeaders } = createRequestReply('1')
