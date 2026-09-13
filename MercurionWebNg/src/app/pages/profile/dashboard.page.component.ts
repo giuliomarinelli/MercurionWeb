@@ -4,6 +4,7 @@ import {
   Component,
   ElementRef,
   OnDestroy,
+  effect,
   inject,
   signal,
   viewChild
