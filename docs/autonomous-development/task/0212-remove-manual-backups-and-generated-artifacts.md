@@ -1,6 +1,6 @@
 # 0212 - Remove manual backups and generated artifacts
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -133,7 +133,7 @@ Delegated to GitHub Actions for the pushed feature SHA; local
 ### Browser validation performed
 _Not started / not applicable._
 ### Commits
-_Pending commit._
+`138a6e6c` — QA-026 remove manual backups and generated artifacts.
 ### Merge / CI
 _Not started._
 ### Rollback
