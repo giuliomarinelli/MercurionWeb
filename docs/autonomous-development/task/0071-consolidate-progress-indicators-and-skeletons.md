@@ -144,8 +144,9 @@ When practical, share layout tokens/dimensions with the final component rather t
 
 #### Commit
 
-Pending task commit; the worker will commit with `--no-gpg-sign` and the
-required Copilot co-author trailer before publishing the feature branch.
+`90fc8eaa9c06adad01b12db3fa5d21817457221f` — committed with
+`--no-gpg-sign` and the required Copilot co-author trailer, then pushed as
+`feature/UI-013`.
 
 > Current status (2026-09-11): PENDING by direct owner instruction because this
 > activity was not completed. Historical attempt/skip evidence remains below
