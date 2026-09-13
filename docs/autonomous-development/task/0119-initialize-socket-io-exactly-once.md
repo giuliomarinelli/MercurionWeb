@@ -1,6 +1,6 @@
 # 0119 - Initialize Socket.IO exactly once
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -74,23 +74,68 @@ Mark `BLOCKED` if current runtime behaviour depends on duplicate module initiali
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/BE-005`, created from and still descended from green `develop` base
+`7a00ececaf499ec36bb210d12e004100ee77225b`.
 ### Preflight
-_Not started._
+- Verified a clean worktree, current branch `feature/BE-005`, `HEAD`,
+  `develop`, and `origin/develop` all at
+  `7a00ececaf499ec36bb210d12e004100ee77225b`; `git merge-base --is-ancestor`
+  returned 0.
+- Verified no task/session-owned Angular, Nest, Tox21, Jest, Karma, or other
+  workspace-consuming process was active. The existing coordinator and
+  Chrome DevTools MCP control-plane processes were not task runtime processes.
+- Confirmed exact-base GitHub Actions run
+  [34688673031](https://github.com/giuliomarinelli/MercurionWeb/actions/runs/34688673031)
+  succeeded with `Quality (ubuntu-latest)`, `Quality (windows-latest)`, and
+  `Required gate` all green.
+- Confirmed prerequisite task `0118` is `DONE`.
+- Unchanged focused baseline passed:
+  `node scripts/check-nest-module-graph.mjs --root=MercurionWebNode`;
+  `node scripts/test-nest-module-graph-negative.mjs`; and 6 focused Jest
+  suites (12 tests) covering the app module, Socket.IO module/gateway/guard,
+  Redis pub/sub, and session protocol.
 ### Preflight remediation
 _None._
 ### Summary
-_Not started._
+- Removed the duplicate `SocketIoModule` entry from the production
+  composition root and added a root-metadata regression assertion.
+- Made gateway adapter/middleware/PubSub binding and Redis keyspace
+  subscription/listener initialization idempotent per provider instance.
+- Added a Nest module-compilation test proving one `SocketIOGateway` provider
+  wrapper and instance per application context.
+- Extended the Nest module-graph gate with duplicate top-level production
+  module import detection and a negative fixture.
 ### Task-specific validation performed
-_Not started._
+- `node scripts/check-nest-module-graph.mjs --root=MercurionWebNode` - passed;
+  22 production modules and 8 configuration files were acyclic with unique
+  module imports.
+- `node scripts/test-nest-module-graph-negative.mjs` - passed, including the
+  new duplicate-import fixture.
+- Focused Jest run covering app/module composition, gateway, guard, Redis
+  pub/sub, provider ownership, socket/session contracts, reconnect/session
+  service behavior, and WebSocket utilities - 10 suites and 24 tests passed.
+- `npm run ci:nest:architecture` - passed module graph, duplicate-import
+  negative, provider ownership, and provider-ownership negative checks.
+- `npm run lint --workspace mercurion_web_node` - passed with 60 pre-existing
+  warnings and no errors.
+- `npm run typecheck --workspace mercurion_web_node` - passed.
+- `npm run test:e2e --workspace mercurion_web_node -- --runInBand` - 1 suite
+  and 1 test passed.
+- `npm run build --workspace mercurion_web_node` - passed.
 ### Full pre-merge CI-parity validation
-_Not started._
+Local `npm ci` and `npm run ci:check` were intentionally not run by policy.
+The exact base SHA has the successful full Windows/Linux run recorded above;
+exact feature-SHA CI remains coordinator-owned after this branch is pushed.
 ### Browser validation performed
-_Not applicable._
+Not applicable; the recipe declares transport/unit/E2E validation instead of
+browser/runtime evidence.
 ### Commits
-_Not recorded._
+- `9c340361b8a3c0c707c2342ba63adabf107cee2b` -
+  `fix(socket): initialize realtime infrastructure once`
+- Task completion metadata is recorded by the final branch commit reported in
+  the worker result.
 ### Merge / CI
-_Not started._
+Not merged. Exact feature-SHA CI is pending coordinator observation.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required

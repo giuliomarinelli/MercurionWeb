@@ -38,7 +38,8 @@ import { MoleculeCollectionDetailPaginationComponent } from './molecule-collecti
         <m-molecule-collection-detail-pagination
           [loading]="facade.loading()" [hasItems]="facade.items().length > 0"
           [empty]="facade.state() === 'empty'" [done]="facade.done()"
-          (loadMore)="facade.loadMore()" />
+          [error]="facade.pageError()"
+          (loadMore)="facade.loadMore()" (retry)="facade.retryPage()" />
       }
     </main>
   `

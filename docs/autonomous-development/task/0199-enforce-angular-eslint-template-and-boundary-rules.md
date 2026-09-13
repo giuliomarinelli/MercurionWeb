@@ -1,6 +1,6 @@
 # 0199 - Enforce Angular ESLint, template and boundary rules
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -98,24 +98,79 @@ Prefer enforceable architecture over comments such as “do not use localStorage
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/QA-013`, based on `47f2f253753ad59b6669b30f213e6f5d1f91a97f`.
+
+### Preflight
+Clean branch identity was confirmed before editing: `feature/QA-013` pointed
+at the supplied base SHA, with `origin/develop` and local `develop` at the
+same SHA. The exact base Actions run `34718596158` was successful for the
+`CI` workflow. The local repository signing setting was `commit.gpgSign=false`.
+No task-owned Angular, Nest, Tox21, Karma, or workspace watcher was active.
+Dependencies `0008` and `0187` were `DONE`; the completed FE environment,
+storage, import-graph, and UI accessibility owners were verified in the task
+registry. `npm ci` and `npm run ci:check` were not run locally.
 ### Preflight
 _Not started._
 ### Preflight remediation
-_None._
+None required. The existing pinned Angular 20 / `angular-eslint` 20.7.0 /
+ESLint 9.39.5 toolchain was compatible. The pre-change lint inventory reported
+legacy warnings, so the implementation made the check-only gate explicit and
+kept the accepted composite-control exceptions path-specific.
 ### Summary
-_Not started._
+Angular now has a zero-warning, check-only `lint:angular` command with an
+explicit separate `lint:fix` command. Root `lint:angular`, `lint:angular:fix`,
+and `ci:lint:angular` commands expose the same interface; CI uses
+`--max-warnings=0` and never autofixes. The flat config covers TypeScript and
+external/inline Angular templates, retains Angular recommended and template
+accessibility/correctness configurations, and rejects direct storage access or
+environment-variant imports through a small local ESLint boundary rule.
+Approved storage owners are limited to the browser storage registry and
+session-sync adapter. Existing composite-widget event boundaries are narrowly
+documented; no directory-wide exclusions or broad production suppressions were
+added. A temporary negative fixture proves both storage and environment
+violations are rejected and is removed in `finally`, leaving no fixture in the
+tree.
+
+The check-only gate also required removal of the remaining lint findings in
+the touched templates and code, including the invalid toast ARIA token,
+unassociated custom-editor label, redundant boolean coercion, and stale lint
+directive. Existing Angular ESLint packages were already pinned in the
+workspace dependency model, so no dependency migration was necessary.
 ### Task-specific validation performed
-_Not started._
+Passed:
+
+- `npm run lint:angular --workspace mercurion_web_ng` — exit 0, zero errors
+  and zero warnings.
+- `npm run ci:angular:eslint-boundaries` — negative fixture rejected both
+  direct browser storage and `environment.development` imports.
+- Check-only mutation probe around `lint:angular` — passed; the command did
+  not change the working tree.
+- `npm run typecheck --workspace mercurion_web_ng` — exit 0.
+- `npm run test:ci --workspace mercurion_web_ng` — complete Angular suite,
+  exit 0.
+- `npm run build --workspace mercurion_web_ng` — exit 0. Existing Angular
+  bundle/CommonJS warnings were non-fatal build diagnostics, not lint
+  warnings.
+- `npm run ci:angular:environment-imports` — passed, including its negative
+  check.
+- `npm run ci:angular:storage-registry` — passed.
+- `npm run ci:angular:import-graph` — passed, including its synthetic-cycle
+  negative check.
+- `git diff --check` — passed.
 ### Full pre-merge CI-parity validation
-_Not started._
+The supplied base was green in Actions. Full clean-install and aggregate
+CI-parity validation is intentionally delegated to GitHub Actions for the
+published exact feature SHA; local `npm ci` and `npm run ci:check` remain
+forbidden.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-_Not recorded._
+- `c9a2ba3a915b7a4d9ec7857fa5247c25db99ddb8` — Angular zero-warning lint
+  gate, boundary rule/negative fixture, focused repairs, and task notes.
+- Metadata-only follow-up records the final pushed feature tip.
 ### Merge / CI
-_Not started._
+Feature publication and exact feature-SHA CI observation are coordinator-owned.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-_None._
+None.

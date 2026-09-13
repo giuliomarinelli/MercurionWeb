@@ -1,4 +1,12 @@
-import { MoleculeCollectionItemJoin } from '../Models/entities/molecule-collection-item-join.entity';
+type RelationNode = Record<string, unknown>;
+
+function isRelationNode(value: unknown): value is RelationNode {
+    return typeof value === 'object' && value !== null;
+}
+
+function isRelationNodeArray(value: unknown): value is RelationNode[] {
+    return Array.isArray(value) && value.every(isRelationNode);
+}
 
 /**
  * Removes MoleculeCollectionItemJoin entries that lost their linked collection.
@@ -11,8 +19,8 @@ export function pruneNullCollectionJoins<T>(payload: T): T {
 
     const visited = new Set<object>();
 
-    const visit = (node: any): void => {
-        if (!node || typeof node !== 'object') {
+    const visit = (node: unknown): void => {
+        if (!isRelationNode(node)) {
             return;
         }
 
@@ -26,14 +34,16 @@ export function pruneNullCollectionJoins<T>(payload: T): T {
             return;
         }
 
-        if (Array.isArray(node.joins)) {
-            node.joins = (node.joins as MoleculeCollectionItemJoin[]).filter(join => join?.collection);
-            node.joins.forEach(visit);
+        if (isRelationNodeArray(node.joins)) {
+            const joins = node.joins.filter(join => Boolean(join.collection));
+            node.joins = joins;
+            joins.forEach(visit);
         }
 
-        if (Array.isArray(node.items)) {
-            node.items = (node.items as MoleculeCollectionItemJoin[]).filter(join => join?.collection);
-            node.items.forEach(visit);
+        if (isRelationNodeArray(node.items)) {
+            const items = node.items.filter(join => Boolean(join.collection));
+            node.items = items;
+            items.forEach(visit);
         }
 
         if (node.collection) {
@@ -45,6 +55,6 @@ export function pruneNullCollectionJoins<T>(payload: T): T {
         }
     };
 
-    visit(payload as any);
+    visit(payload);
     return payload;
 }

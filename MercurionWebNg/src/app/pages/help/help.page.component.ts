@@ -23,7 +23,6 @@ import {
   Ticket,
 } from '../../Models/graphql/help.models'
 import { TicketViewModel, toTicketViewModel } from '../../Models/graphql/help.view-models'
-import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component'
 import { TabsComponent } from '../../components/common/tabs/tabs.component'
 import { TicketCardComponent } from '../../components/support/ticket-card/ticket-card.component'
 import { TicketCardSkeletonComponent } from '../../components/support/ticket-card-skeleton/ticket-card-skeleton.component'
@@ -34,14 +33,15 @@ import {
   ApplicationErrorCode,
   hasApplicationErrorCode
 } from '../../utils/application-error.util'
+import { PaginationComponent } from '../../components/common/pagination/pagination.component'
 
 @Component({
   selector: 'm-help-page',
   imports: [
-    ClassicSpinnerComponent,
     TabsComponent,
     TicketCardComponent,
-    TicketCardSkeletonComponent
+    TicketCardSkeletonComponent,
+    PaginationComponent
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -95,19 +95,18 @@ import {
 
       <div #sentinel class="h-px w-full"></div>
 
-      @if (loading) {
-        @if (page > 1 && items.length > 2) {
-          <div class="flex justify-center">
-            <m-classic-spinner [size]="60" />
-          </div>
-        } @else {
+      @if (loading && page === 1) {
           <div class="relative -top-20">
             @for (i of [0, 1, 2, 3, 4]; track i) {
               <m-ticket-card-skeleton [i]="i" />
             }
           </div>
-        }
-      } @else if (empty() && (earlyDone)) {
+      }
+      <m-pagination
+        [state]="paginationState()"
+        (loadMoreRequested)="loadMore()"
+        (retry)="retryPagination()" />
+      @if (empty() && (earlyDone)) {
         <p class="relative -top-8 text-slate-700 dark:text-slate-200" role="status" aria-live="polite">
           Non sono ancora presenti ticket&nbsp;<button class="a" type="button" aria-label="Apri adesso il tuo primo ticket" (click)="newTicket()">Apri adesso il tuo primo ticket</button>
         </p>

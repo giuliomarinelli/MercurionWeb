@@ -169,4 +169,5 @@ Feature SHA requires exact-SHA Actions `Required gate` before integration.
 _Not applicable._
 
 ### Blocker / human decision required
-None.
+Migrate `isUserAvailableByEmail` to derive from the canonical `EmailDTO`
+contract before retrying this task in a new authorized session.

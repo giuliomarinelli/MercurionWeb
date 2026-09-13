@@ -4,7 +4,7 @@ import { LogEntry } from '../Models/DTO/log-entry.interface';
 import { uuidv7 } from '@kripod/uuidv7';
 import { MeiliContextLogger } from '../Models/interfaces/meili-context-logger.interface';
 import { ConfigService } from '@nestjs/config';
-import { Environment } from 'src/config/config';
+import { Environment } from 'src/config/config.schema';
 
 
 @Injectable()
@@ -25,7 +25,7 @@ export class MeiliLoggerService extends Logger implements LoggerService, OnModul
     }
 
     private async ensureIndexExists(): Promise<void> {
-        const env = this.configService.get<Environment>('App.env')!
+        const env = this.configService.getOrThrow<Environment>('App.env')
         const idxName = `mercurion_web_node_logs_${env}`
         try {
             await this.meiliClient.getIndex(idxName)
@@ -93,30 +93,30 @@ export class MeiliLoggerService extends Logger implements LoggerService, OnModul
         return {
             log(...messages: (string | object)[]) {
                 for (const message of messages) {
-                    logger.log(message, context)
+                    void logger.log(message, context)
                 }
             },
             error(message: string | object, stack?: string) {
-                logger.error(message, context, stack)
+                void logger.error(message, context, stack)
             },
             warn(...messages: (string | object)[]) {
                 for (const message of messages) {
-                    logger.warn(message, context)
+                    void logger.warn(message, context)
                 }
             },
             debug(...messages: (string | object)[]) {
                 for (const message of messages) {
-                    logger.debug(message, context)
+                    void logger.debug(message, context)
                 }
             },
             verbose(...messages: (string | object)[]) {
                 for (const message of messages) {
-                    logger.verbose(message, context)
+                    void logger.verbose(message, context)
                 }
             },
             fatal(...messages: (string | object)[]) {
                 for (const message of messages) {
-                    logger.fatal(message, context)
+                    void logger.fatal(message, context)
                 }
             },
             setLogLevels(levels: LogLevel[]) {
@@ -128,32 +128,32 @@ export class MeiliLoggerService extends Logger implements LoggerService, OnModul
 
     public override log(message: string | object, context?: string): void {
         super.log(message, context)
-        this.sendToMeili(this.createLogEntry('log', message, context))
+        void this.sendToMeili(this.createLogEntry('log', message, context))
     }
 
     public override error(message: string | object, context?: string, stack?: string) {
         super.error(message, stack, context)
-        this.sendToMeili(this.createLogEntry('error', message, context, stack))
+        void this.sendToMeili(this.createLogEntry('error', message, context, stack))
     }
 
     public override warn(message: string | object, context?: string): void {
         super.warn(message, context)
-        this.sendToMeili(this.createLogEntry('warn', message, context))
+        void this.sendToMeili(this.createLogEntry('warn', message, context))
     }
 
     public override debug(message: string | object, context?: string): void {
         super.debug(message, context)
-        this.sendToMeili(this.createLogEntry('debug', message, context))
+        void this.sendToMeili(this.createLogEntry('debug', message, context))
     }
 
     public override verbose(message: string | object, context?: string): void {
         super.verbose(message, context)
-        this.sendToMeili(this.createLogEntry('verbose', message, context))
+        void this.sendToMeili(this.createLogEntry('verbose', message, context))
     }
 
     public override fatal(message: string | object, context?: string): void {
         super.fatal(message, context)
-        this.sendToMeili(this.createLogEntry('fatal', message, context))
+        void this.sendToMeili(this.createLogEntry('fatal', message, context))
     }
 
     public setLogLevels(levels: LogLevel[]): void {

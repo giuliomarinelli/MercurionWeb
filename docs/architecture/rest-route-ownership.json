@@ -577,7 +577,12 @@
         "MercurionWebNode/src/test.controller.spec.ts",
         "MercurionWebNode/src/test.controller.ts"
       ],
-      "references": []
+      "references": [
+        {
+          "file": "MercurionWebNode/test/app.e2e-spec.ts",
+          "kind": "test"
+        }
+      ]
     },
     {
       "method": "GET",
@@ -596,11 +601,11 @@
           "kind": "server-source"
         },
         {
-          "file": "MercurionWebNode/src/health.controller.spec.ts",
+          "file": "MercurionWebNode/src/bootstrap/configurators/security.configurator.ts",
           "kind": "server-source"
         },
         {
-          "file": "MercurionWebNode/src/main.ts",
+          "file": "MercurionWebNode/src/health.controller.spec.ts",
           "kind": "server-source"
         },
         {
@@ -630,7 +635,7 @@
           "kind": "angular-source"
         },
         {
-          "file": "MercurionWebNode/src/main.ts",
+          "file": "MercurionWebNode/src/bootstrap/configurators/security.configurator.ts",
           "kind": "server-source"
         },
         {
@@ -656,7 +661,7 @@
       ],
       "references": [
         {
-          "file": "MercurionWebNode/src/main.ts",
+          "file": "MercurionWebNode/src/bootstrap/configurators/security.configurator.ts",
           "kind": "server-source"
         },
         {
@@ -682,7 +687,7 @@
       ],
       "references": [
         {
-          "file": "MercurionWebNode/src/main.ts",
+          "file": "MercurionWebNode/src/bootstrap/configurators/security.configurator.ts",
           "kind": "server-source"
         },
         {

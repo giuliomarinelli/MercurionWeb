@@ -1084,7 +1084,7 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
           case 'ChangePhone':
           case 'RemovePhone': {
             const phone = (res as string | null | undefined)?.trim() ?? ''
-            this.obscuredPhone.set(!!phone ? phone : null)
+            this.obscuredPhone.set(phone ? phone : null)
             break
           }
           case 'ChangePassword':
