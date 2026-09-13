@@ -5,6 +5,7 @@ import { OAuth2AccessTokenRefreshService } from '../oauth2-client/services/acces
 import { SessionService } from '../auth/services/session.service';
 import { MeiliLoggerService } from '../meilisearch/services/meili-logger.service';
 import Redis from 'ioredis';
+import { RedisCapabilityService } from './services/redis-capability.service'
 
 describe('RedisModule (providers wiring)', () => {
   let moduleRef: TestingModule;
@@ -16,6 +17,7 @@ describe('RedisModule (providers wiring)', () => {
         on: jest.fn(),
         psubscribe: jest.fn(),
         subscribe: jest.fn(),
+        quit: jest.fn().mockResolvedValue('OK'),
       })),
       config: jest.fn().mockResolvedValue(['notify-keyspace-events', 'Ex']),
       publish: jest.fn(),
@@ -23,12 +25,14 @@ describe('RedisModule (providers wiring)', () => {
       get: jest.fn(),
       del: jest.fn(),
       keys: jest.fn(),
+      quit: jest.fn().mockResolvedValue('OK'),
     } as unknown as Redis;
 
     moduleRef = await Test.createTestingModule({
       providers: [
         { provide: Redis, useValue: mockRedisClient },
         RedisService,
+        RedisCapabilityService,
         {
           provide: OAuth2AccessTokenRefreshService,
           useValue: { refreshAccessToken: jest.fn() },
@@ -49,10 +53,15 @@ describe('RedisModule (providers wiring)', () => {
     }).compile();
   });
 
+  afterEach(async () => {
+    await moduleRef?.close();
+  });
+
   it('exposes RedisService and PubSubService as singletons', () => {
     const redisService = moduleRef.get(RedisService);
     const pubSubService = moduleRef.get(PubSubService);
     expect(redisService).toBeInstanceOf(RedisService);
     expect(pubSubService).toBeInstanceOf(PubSubService);
+    expect(moduleRef.get(RedisCapabilityService)).toBeInstanceOf(RedisCapabilityService)
   });
 });

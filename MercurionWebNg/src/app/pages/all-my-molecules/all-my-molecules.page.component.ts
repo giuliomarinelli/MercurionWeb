@@ -1,6 +1,5 @@
 import { MoleculeCardItemModel } from './../../Models/graphql/molecule-collection/molecule-collection.types';
 import { AfterViewInit, Component, effect, ElementRef, inject, OnDestroy, OnInit, signal, ChangeDetectionStrategy, viewChild } from '@angular/core';
-import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
 import { MoleculeCollectionItemCardComponent } from '../../components/molecule-detail/molecule-collection-item-card/molecule-collection-item-card.component';
 import { delay, map, Subscription } from 'rxjs';
 import { MoleculeCollectionItemService } from '../../services/graphql/molecule-collection-item.service';
@@ -14,17 +13,18 @@ import { AbstractPaginationComponent } from '../../abstract/abstract-pagination-
 import { PmSearchInputComponent } from '../../components/common/pm-search-input/pm-search-input.component';
 import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service';
 import { DomainInvalidationService } from '../../services/domain-invalidation.service';
+import { PaginationComponent } from '../../components/common/pagination/pagination.component';
 
 @Component({
   selector: 'm-all-my-molecules.page',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    ClassicSpinnerComponent,
     MoleculeCollectionItemCardComponent,
     SkeletonMoleculeCardComponent,
     MyMoleculesHeadingComponent,
     RouterLink,
-    PmSearchInputComponent
+    PmSearchInputComponent,
+    PaginationComponent
   ],
   template: `
 
@@ -79,19 +79,18 @@ import { DomainInvalidationService } from '../../services/domain-invalidation.se
         }
       </div>
       <div #sentinel class="sentinel"></div>
-      @if (loading) {
-        @if (page > 1) {
-          <div class="flex justify-center">
-            <m-classic-spinner [size]="60" />
-          </div>
-        } @else {
+      @if (loading && page === 1) {
           <div class="relative -top-16">
             @for (i of [0, 1, 2, 3, 4]; track i) {
               <m-skeleton-molecule-card />
             }
           </div>
-        }
-      } @else if (empty() && (earlyDone || done)) {
+      }
+      <m-pagination
+        [state]="paginationState()"
+        (loadMoreRequested)="loadMore()"
+        (retry)="retryPagination()" />
+      @if (empty() && (earlyDone || done)) {
         <p class="relative -top-8 text-slate-700 dark:text-slate-200">Nessuna molecola.</p>
       }
     </section>

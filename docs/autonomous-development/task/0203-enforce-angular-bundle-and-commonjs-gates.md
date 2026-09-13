@@ -1,6 +1,6 @@
 # 0203 - Enforce Angular bundle and CommonJS gates
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -93,23 +93,72 @@ A lazy import is successful only if the production chunk graph proves the depend
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/QA-017` from green `develop` base
+`c3ab1fe3e6fe5684ba177c0097bad17a3bf8afc2`.
 ### Preflight
-_Not started._
+Clean branch and worktree confirmed. `develop`, `origin/develop` and the
+feature branch all matched `c3ab1fe3e6fe5684ba177c0097bad17a3bf8afc2`.
+GitHub Actions CI run `34725305751` for that exact develop SHA completed
+successfully on 2026-09-12. No task-owned Angular, Nest, Tox21 or test
+watchers were active before validation. Local `npm ci` and `npm run ci:check`
+were not run.
 ### Preflight remediation
-_None._
+The baseline production build exposed a 1,008,929-byte initial graph against
+the existing 1.02 MB budget, plus CommonJS diagnostics for RDKit,
+rest-contracts and Quill's delta dependency. The existing global Quill CSS
+was moved to copied public assets and is loaded by the editor-only
+`QuillStylesService`, reducing the initial graph without removing editor
+functionality.
 ### Summary
-_Not started._
+Kept the production initial maximum-error budget at a hard 1 MB and added a
+machine-readable stats gate that follows the initial output graph, reports
+initial/lazy output sizes and fails on undocumented CommonJS inputs. The
+canonical Angular CI build invokes the gate and retains its report as a build
+artifact. Quill CSS is no longer in the initial global stylesheet; the three
+editor components load it only when instantiated. Narrow CommonJS exceptions
+and their owners/removal plans are documented in
+`docs/autonomous-development/angular-commonjs-exceptions.md`.
 ### Task-specific validation performed
-_Not started._
+Passed:
+
+- `npm run ci:build:angular` — production build, 1 MB Angular budget,
+  machine-readable bundle/CommonJS gate and chemistry lazy-boundary gate.
+- Production initial graph: `969889` bytes of `1000000` bytes; representative
+  lazy chunks include dashboard `214.59 kB`, action overlay `206.02 kB`,
+  Quill `204.74 kB` and RDKit `75.56 kB`.
+- CommonJS report: 17 inputs, all covered by the narrow documented allowlist;
+  no undocumented inputs.
+- `npm run lint:angular --workspace mercurion_web_ng`.
+- `npm run typecheck --workspace mercurion_web_ng`.
+- `npm run test:ci --workspace mercurion_web_ng`.
+- `git diff --check`.
 ### Full pre-merge CI-parity validation
-_Not started._
+Not run locally by policy. Exact-SHA GitHub Actions owns clean-install and
+aggregate CI parity.
 ### Browser validation performed
-_Not started / as applicable._
+Canonical runtime sessions were started in Tox21, Nest, Angular order and
+kept alive before edge requests. `http://localhost:8888/` returned two
+consecutive 200 responses. Chrome DevTools MCP used the dedicated persistent
+profile at `http://localhost:8888/welcome`; the public shell rendered
+successfully. Navigating to
+`http://localhost:8888/molecules/detail/1` rendered the molecule-detail
+feature shell and requested its lazy component resources; the route displayed
+the expected API-loading error for the unavailable local data record, not a
+bundle or navigation failure. The network trace showed the Angular shell and
+molecule-detail component resources served through the canonical edge.
+No protected state or login was required for these public route checks.
+The Tox21 session was stopped after startup validation; Nest reported an
+existing `EPERM` copyfile diagnostic while compiling its watch output, but
+the process remained alive and the public Angular route was validated.
+All task-owned runtime sessions were stopped and no task-owned runtime/watch
+process remained.
 ### Commits
-_Not recorded._
+`35ba4045a1a0954ce70cd01e0d88d4e4ddc11f72`
+(`qa: enforce angular bundle and commonjs gates`), pushed to
+`origin/feature/QA-017`.
 ### Merge / CI
-_Not started._
+Feature SHA will be pushed after the task-specific commit. Exact feature-SHA
+CI remains coordinator-owned.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required

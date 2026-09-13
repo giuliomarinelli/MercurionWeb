@@ -150,3 +150,14 @@ error `L'e-mail inserita non è corretta`; no protected post-login result could
 be proved afterward. Human decision/capability required: restore a valid local
 test-account login path, then rerun the browser acceptance on this preserved
 feature branch.
+
+### NG-009 execution outcome (2026-09-12)
+
+Implementation was completed on preserved branch `feature/NG-009` at
+`19faee601e733705f54d450d9e129ded6590faa0`. Focused tests, typecheck, lint,
+build, and lazy-chunk checks passed. Mandatory fresh authenticated browser
+acceptance could not be completed: after logout, the configured local test
+identity produced the rendered validation error `L'e-mail inserita non è
+corretta`, so no protected post-login result could be proved. The feature
+branch is preserved and frozen; no feature-SHA CI was started because the
+required browser acceptance remained incomplete.

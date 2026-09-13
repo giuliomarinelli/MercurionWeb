@@ -1,6 +1,6 @@
 # 0200 - Make Nest ESLint zero-finding
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -97,21 +97,48 @@ The goal is safer code, not a cosmetic zero. Avoid transformations that satisfy 
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/QA-014` from supplied green `develop` SHA
+`a78da2989201db969901ed96f45126d0f91df9c6`.
 ### Preflight
-_Not started._
+Confirmed clean branch identity, exact base SHA, and no task-owned Angular,
+Nest, Tox21, Jest, or watcher process before edits. Existing Node processes
+were Chrome DevTools MCP only. Exact base GitHub Actions run `34720002085`
+for `a78da2989201db969901ed96f45126d0f91df9c6` completed successfully.
+Dependencies `0008` and `0188` are `[x] DONE`; the applicable BE strictness
+work was reviewed and `0141` remains a historical dependency skip, not an
+implementation authority for this task. Did not run `npm ci` or
+`npm run ci:check`.
 ### Preflight remediation
-_None._
+Captured the unchanged Nest lint baseline with
+`npm run lint --workspace mercurion_web_node`: 51 warnings, all from unsafe
+test doubles except two production traversal findings.
 ### Summary
-_Not started._
+Made the canonical Nest lint command check-only with `--max-warnings 0` and
+kept `lint:fix` separate. Re-enabled explicit-any and floating-promise
+quality rules for production, retained explicit test-file overrides, and
+documented the bounded GraphQL/ORM/class-transformer adapter exceptions.
+Replaced unsafe payload casts at Dropbox, OAuth, Meilisearch, Redis, Socket.IO,
+GraphQL, exception, mail, and collection traversal boundaries with typed
+decoders/narrowing or intentional `void` lifecycle handling. Removed an
+unneeded suppression and preserved existing test behavior.
 ### Task-specific validation performed
-_Not started._
+- `npm run lint --workspace mercurion_web_node`: PASS, zero errors and zero
+  warnings.
+- Repeated the strict lint command twice and compared binary diffs before and
+  after both runs: PASS, non-mutating.
+- `npm run typecheck --workspace mercurion_web_node`: PASS.
+- `npm test --workspace mercurion_web_node -- --runInBand --detectOpenHandles`:
+  PASS, 148 suites and 455 tests.
+- `npm run build --workspace mercurion_web_node`: PASS.
+- `git diff --check`: PASS.
 ### Full pre-merge CI-parity validation
-_Not started._
+Not run locally; complete clean-install and aggregate CI parity is reserved for
+GitHub Actions on the pushed exact feature SHA. The supplied base run was
+green.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-_Not recorded._
+Pending final task commit.
 ### Merge / CI
 _Not started._
 ### Rollback

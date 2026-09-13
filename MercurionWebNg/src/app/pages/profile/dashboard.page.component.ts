@@ -69,7 +69,12 @@ export class DashboardPageComponent implements AfterViewInit, OnDestroy {
   private resizeObserver?: ResizeObserver;
 
   constructor() {
-    this.sidenavContext.isOpen();
+    effect(() => {
+      this.sidenavContext.isOpen();
+      queueMicrotask(() => {
+        this.updateSpinnerLeft();
+      });
+    });
   }
 
   ngAfterViewInit(): void {

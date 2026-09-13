@@ -231,7 +231,7 @@ export class DropboxObjectStoreService {
 
         const accessToken = await this.getDropboxAccessToken()
 
-        let res: AxiosResponse<any, any>
+        let res: AxiosResponse<Buffer, unknown>
 
         try {
             res = await axios.post(

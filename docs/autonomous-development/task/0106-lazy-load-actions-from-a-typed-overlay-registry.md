@@ -1,7 +1,7 @@
 # 0106 - Lazy-load actions from one typed overlay registry
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -84,28 +84,33 @@ Mark `BLOCKED` if an action still depends on undocumented global mutable payload
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/NG-020`, based on
+`93006ce204791b3d106e1616989c755db13571b8`, preserved at
+`67d8b5537f1cee04b8933541bd705f2a796a0645`.
 ### Preflight
-_Not started._
+Focused typecheck, lint, tests, build and lazy-chunk inspection passed.
+No local `npm ci` or `npm run ci:check` was run.
 ### Preflight remediation
 _None._
 ### Summary
-Not attempted because hard prerequisite task `0087` (`NG-001`) is `BLOCKED`.
-FE-023 and FE-036 are `DONE`; the action-decomposition references are
-advisory.
+Added an exhaustive typed lazy action registry, dynamic standalone action
+rendering, load-failure handling and registry completeness tests.
 ### Task-specific validation performed
-Not applicable; no feature branch or implementation worker was created.
+Angular typecheck, lint, non-watching tests, production build, chunk inspection
+and diff checks passed.
 ### Full pre-merge CI-parity validation
-Not applicable; dependency-skip metadata only.
+Not reached because mandatory browser acceptance could not be completed.
 ### Browser validation performed
-Not applicable; the task was not attempted.
+Runtime readiness passed, but Chrome DevTools MCP repeatedly failed to
+interact with freshly snapshotted controls, and the protected login session
+expired. No credentials were exposed.
 ### Commits
-Pending metadata commit on `develop`.
+Implementation and blocker evidence are preserved on `feature/NG-020`; final
+feature SHA is `67d8b5537f1cee04b8933541bd705f2a796a0645`.
 ### Merge / CI
-No feature branch or merge. Exact-SHA CI is required for the metadata commit.
+No merge was performed; the feature branch remains preserved and frozen.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Direct terminal prerequisite: task `0087` (`NG-001`), `BLOCKED`.
-Transitive chain: `0106` -> `0087` (`NG-001` BLOCKED). The blocked task
-requires independent workflow implementations and focused lifecycle tests.
+Restore interactive Chrome DevTools MCP/browser capability or perform supervised
+browser validation before retrying this task in a new authorized session.

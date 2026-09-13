@@ -14,7 +14,7 @@ import { SearchContextService } from '../../../services/context/search-context.s
 import { ThemeManagerService } from '../../../services/context/theme-manager.service';
 import { MoleculeSearchResult } from
   '../../../Models/graphql/molecule-search/molecule-search-result.interface';
-import { ChipItem } from '../../action-components/add-molecules-to-collection/add-molecules-to-collection.component';
+import { ChipItem } from '../../action-components/add-molecules-to-collection/add-molecules-to-collection.flow';
 import { ShellLayoutService } from '../../../services/context/shell-layout.service';
 import { DesignService } from '../../../services/design.service';
 

@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Make OAuth/SSO provider clients depend on one Nest-owned external HTTP port/adapter that provides validated timeouts, permitted retry/cancellation semantics, metrics and typed infrastructure errors instead of calling Axios directly.
@@ -103,3 +103,8 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
+
+
+### Dependency skip
+
+Direct terminal prerequisite: 0120 (), terminal non-DONE dependency.
