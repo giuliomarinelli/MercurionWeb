@@ -148,7 +148,8 @@ navigation was redirected back to the dashboard by the current application
 guard, so no settings mutation was attempted.
 
 ### Commits
-Pending task-specific implementation commit.
+`fdf00019ebc53fb559db2133b9ab42f2386748f4` — `feat(UI-021): remove
+legacy button CSS` (pushed to `origin/feature/UI-021`).
 
 ### Merge / CI
 No merge performed. Coordinator must run exact-SHA CI for the pushed feature
