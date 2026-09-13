@@ -1,7 +1,7 @@
 # 0095 - Decompose dashboard into lazy widget view models
 
-- [ ] DONE
-- [x] BLOCKED
+- [x] DONE
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -55,11 +55,11 @@ Source: `NG-009` in Series `0001`.
 
 ## Acceptance criteria
 
-- [ ] Dashboard shell contains no chart/domain dataset transformation.
-- [ ] Each widget has an independently testable query/view-model boundary.
-- [ ] Widget presentation is lazy where practical.
-- [ ] Widget loading/error/empty/content states are deterministic.
-- [ ] Existing metric values and interactions remain compatible.
+- [x] Dashboard shell contains no chart/domain dataset transformation.
+- [x] Each widget has an independently testable query/view-model boundary.
+- [x] Widget presentation is lazy where practical.
+- [x] Widget loading/error/empty/content states are deterministic.
+- [x] Existing metric values and interactions remain compatible.
 
 ## Validation
 
@@ -142,14 +142,9 @@ pushed. No `develop` or `master` changes were made.
 _Not applicable._
 
 ### Blocker / human decision required
-The implementation and focused checks are green, but mandatory fresh
-authenticated browser acceptance could not be completed. After logging out
-through the supported account-menu keyboard flow, the ordinary login attempt
-using the configured local test identity returned the rendered validation
-error `L'e-mail inserita non è corretta`; no protected post-login result could
-be proved afterward. Human decision/capability required: restore a valid local
-test-account login path, then rerun the browser acceptance on this preserved
-feature branch.
+Resolved during authorized recovery. The configured local test identity
+completed a fresh ordinary login and reached a server-accepted protected
+Dashboard state.
 
 ### NG-009 execution outcome (2026-09-12)
 
@@ -161,3 +156,28 @@ identity produced the rendered validation error `L'e-mail inserita non è
 corretta`, so no protected post-login result could be proved. The feature
 branch is preserved and frozen; no feature-SHA CI was started because the
 required browser acceptance remained incomplete.
+
+### Authorized recovery (2026-09-13)
+
+Merged exact green `develop` at
+`1a1a5ee0dabd9ff36bead4aa78a7c9bae4e9fe91` into the preserved branch using
+`--no-ff --no-gpg-sign`. The current sidebar reactivity was retained in the
+layout-only shell. Browser validation exposed and fixed a narrow mobile
+min-content overflow by allowing both widget hosts to shrink.
+
+Focused recovery validation passed: Angular lint, typecheck, all `478/478`
+unit tests, production build, chemistry lazy-boundary check and
+`git diff --check`. The build emitted the existing initial-bundle budget
+warning and produced the independent
+`dashboard-charts-widget-component` lazy chunk.
+
+Fresh ordinary login through `http://localhost:8888/login` succeeded and
+proved the protected Dashboard with identity `Test` and existing metrics
+`6/0/6/1`. At `1280x800` and `390x844`, metrics and both chart sections
+rendered without document overflow; the narrow viewport loaded both deferred
+canvas elements. Browser console inspection after Dashboard load contained no
+errors. Runtime request logs showed the expected profile/history calls; no
+additional dashboard-owned query source was introduced. All task-owned Tox21,
+Nest and Angular processes were stopped after validation.
+
+Exact feature-SHA and post-merge CI remain coordinator-owned.

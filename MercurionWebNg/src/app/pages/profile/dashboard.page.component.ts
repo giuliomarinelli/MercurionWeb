@@ -34,9 +34,10 @@ import { DashboardMetricsWidgetComponent } from './dashboard/dashboard-metrics-w
       @if (facade.state().status === 'content' && facade.state().value; as dashboard) {
         <div class="mx-auto max-w-5xl grid gap-8
                     lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] items-start">
-          <m-dashboard-metrics-widget [metrics]="dashboard.metrics" />
+          <m-dashboard-metrics-widget class="min-w-0" [metrics]="dashboard.metrics" />
           @defer (on viewport) {
             <m-dashboard-charts-widget
+              class="min-w-0"
               [composition]="dashboard.composition"
               [activity]="dashboard.activity" />
           } @placeholder {
