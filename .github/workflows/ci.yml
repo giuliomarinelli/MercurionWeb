@@ -306,6 +306,49 @@ jobs:
             MercurionWebNg/dist/**/bundle-gate-report.json
             MercurionWebNg/**/*.json
 
+  containers:
+    name: Container ${{ matrix.name }}
+    if: ${{ needs.plan.outputs.mode == 'full' }}
+    needs:
+      - plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: angular-production
+            dockerfile: MercurionWebNg/Dockerfile
+          - name: angular-staging
+            dockerfile: MercurionWebNg/Dockerfile.staging
+          - name: angular-test
+            dockerfile: MercurionWebNg/Dockerfile.test
+          - name: nest-production
+            dockerfile: MercurionWebNode/Dockerfile
+          - name: nest-staging
+            dockerfile: MercurionWebNode/Dockerfile.staging
+          - name: nest-test
+            dockerfile: MercurionWebNode/Dockerfile.test
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Validate container build contract and lockfile drift
+        run: npm run ci:containers
+
+      - name: Build container without cache
+        run: docker build --pull --no-cache --file "${{ matrix.dockerfile }}" --tag "mercurion-ci-${{ matrix.name }}" .
+
+      - name: Confirm clean build did not modify tracked files
+        run: git diff --exit-code
+
   required:
     name: Required gate
     if: ${{ always() }}
@@ -317,6 +360,7 @@ jobs:
       - nest-unit
       - nest-e2e
       - build
+      - containers
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -328,6 +372,7 @@ jobs:
           NEST_UNIT_RESULT: ${{ needs.nest-unit.result }}
           NEST_E2E_RESULT: ${{ needs.nest-e2e.result }}
           BUILD_RESULT: ${{ needs.build.result }}
+          CONTAINERS_RESULT: ${{ needs.containers.result }}
           MODE: ${{ needs.plan.outputs.mode }}
           PLAN_RESULT: ${{ needs.plan.result }}
         shell: bash
@@ -345,6 +390,7 @@ jobs:
               test "$NEST_UNIT_RESULT" = "success"
               test "$NEST_E2E_RESULT" = "success"
               test "$BUILD_RESULT" = "success"
+              test "$CONTAINERS_RESULT" = "success"
               ;;
             *)
               echo "Unknown CI mode: $MODE" >&2

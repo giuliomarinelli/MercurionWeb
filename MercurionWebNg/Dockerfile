@@ -1,25 +1,30 @@
 # Dockerfile (prod)
 
 # ====== STAGE 1: build Angular ======
-FROM node:22-alpine AS build
-WORKDIR /app
+FROM node:22.16.0-alpine AS build
+WORKDIR /workspace
 
 ARG APP_VERSION
 LABEL org.opencontainers.image.version=$APP_VERSION
 
-COPY package*.json ./
-COPY ./patches ./patches
+RUN test "$(node --version)" = "v22.16.0" && test "$(npm --version)" = "10.9.2"
 
-RUN npm config set legacy-peer-deps=true
-RUN npm ci
+COPY package.json package-lock.json ./
+COPY MercurionWebNg/package.json MercurionWebNg/package.json
+COPY MercurionWebNode/package.json MercurionWebNode/package.json
+COPY packages/rest-contracts/package.json packages/rest-contracts/package.json
+COPY packages/socket-contracts/package.json packages/socket-contracts/package.json
+COPY MercurionWebNg/patches ./MercurionWebNg/patches
+RUN npm ci --ignore-scripts
 
-COPY angular.json tsconfig*.json ./
-COPY src ./src
-COPY public ./public
-COPY tailwind.config.js ./
+COPY packages/rest-contracts packages/rest-contracts
+COPY packages/socket-contracts packages/socket-contracts
+COPY MercurionWebNg ./MercurionWebNg
+RUN npm run postinstall
 
+WORKDIR /workspace/MercurionWebNg
 # build in configurazione "production"
-RUN npx ng build --configuration=production
+RUN npm run build -- --configuration=production
 
 # ====== STAGE 2: Nginx statico ======
 FROM nginx:1.27-alpine
@@ -31,9 +36,9 @@ LABEL org.opencontainers.image.version=$APP_VERSION
 WORKDIR /usr/share/nginx/html
 RUN rm -rf ./*
 
-COPY --from=build /app/dist/mercurion-web-ng/browser/ ./
+COPY --from=build /workspace/MercurionWebNg/dist/mercurion-web-ng/browser/ ./
 
-COPY nginx.mercurion_web_ng.prod.conf /etc/nginx/conf.d/default.conf
+COPY MercurionWebNg/nginx.mercurion_web_ng.prod.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 3497
 CMD ["nginx", "-g", "daemon off;"]
