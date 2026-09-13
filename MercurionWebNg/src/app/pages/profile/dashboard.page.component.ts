@@ -9,7 +9,7 @@ import {
   signal,
   viewChild
 } from '@angular/core';
-import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
+import { ProgressIndicatorComponent } from '../../components/common/progress-indicator/progress-indicator.component';
 import { SidenavContextService } from '../../services/context/sidenav-context.service';
 import { DashboardChartsWidgetComponent } from './dashboard/dashboard-charts-widget.component';
 import { DashboardFacade } from './dashboard/dashboard.facade';
@@ -19,7 +19,7 @@ import { DashboardMetricsWidgetComponent } from './dashboard/dashboard-metrics-w
   selector: 'm-dashboard',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    ClassicSpinnerComponent,
+    ProgressIndicatorComponent,
     DashboardMetricsWidgetComponent,
     DashboardChartsWidgetComponent
   ],
@@ -52,7 +52,7 @@ import { DashboardMetricsWidgetComponent } from './dashboard/dashboard-metrics-w
             [style.left.px]="spinnerLeft()"
             role="status"
             aria-live="polite">
-            <m-classic-spinner [size]="60" />
+            <m-progress-indicator [size]="60" />
           </div>
         </div>
       } @else if (facade.state().status === 'error') {

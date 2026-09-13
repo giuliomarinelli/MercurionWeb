@@ -5,7 +5,7 @@ import { EMPTY, map, of, startWith, Subscription, switchMap } from 'rxjs'
 import { AccountService } from '../../services/account.service'
 import { MfaStrategy, ProfileDTO, SessionDTOExt, VersionDTO } from '../../Models/account/account.models'
 import { ToastService } from '../../services/toast.service'
-import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component'
+import { ProgressIndicatorComponent } from '../../components/common/progress-indicator/progress-indicator.component'
 import { SessionCardComponent } from '../../components/common/session-card/session-card.component'
 import { MfaStrategyCardComponent } from '../../components/common/mfa-strategy-card/mfa-strategy-card.component'
 import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service'
@@ -29,7 +29,7 @@ import { IconButtonComponent } from '../../components/common/icon-button/icon-bu
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CdkAccordionModule,
-    ClassicSpinnerComponent,
+    ProgressIndicatorComponent,
     SessionCardComponent,
     MfaStrategyCardComponent,
     GenderPipe,
@@ -603,7 +603,7 @@ import { IconButtonComponent } from '../../components/common/icon-button/icon-bu
             [style.left.px]="spinnerLeft()"
             role="status"
           >
-            <m-classic-spinner [size]="60" />
+            <m-progress-indicator [size]="60" />
           </div>
         </div>
       </div>

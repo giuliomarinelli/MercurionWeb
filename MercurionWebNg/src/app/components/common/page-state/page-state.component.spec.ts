@@ -45,14 +45,14 @@ describe('PageStateComponent', () => {
     expect(section().getAttribute('role')).toBe('status');
     expect(section().getAttribute('aria-live')).toBe('polite');
     expect(section().getAttribute('aria-busy')).toBe('true');
-    expect(section().querySelector('m-classic-spinner')).not.toBeNull();
+    expect(section().querySelector('m-progress-indicator')).not.toBeNull();
   });
 
   it('supports a projected loading skeleton without coupling to a feature service', () => {
     host.useLoadingTemplate = true;
     fixture.detectChanges();
     expect(section().querySelector('[data-testid="loading-skeleton"]')).not.toBeNull();
-    expect(section().querySelector('m-classic-spinner')).toBeNull();
+    expect(section().querySelector('m-progress-indicator')).toBeNull();
   });
 
   it('renders the empty state with consistent public semantics', () => {

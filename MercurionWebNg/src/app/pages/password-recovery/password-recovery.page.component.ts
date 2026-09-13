@@ -6,7 +6,7 @@ import { AccountService } from '../../services/account.service';
 import { catchError, distinctUntilChanged, EMPTY, filter, of, Subscription, switchMap, take, tap } from 'rxjs';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TextFieldComponent } from '../../components/common/text-field/text-field.component';
-import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
+import { ProgressIndicatorComponent } from '../../components/common/progress-indicator/progress-indicator.component';
 import { matchPassword } from '../../custom-validators';
 import { ErrorRes } from '../../Models/confirm.models';
 import { UserContextService } from '../../services/context/user-context.service';
@@ -22,7 +22,7 @@ import {
   imports: [
     ReactiveFormsModule,
     TextFieldComponent,
-    ClassicSpinnerComponent,
+    ProgressIndicatorComponent,
     RouterLink
   ],
   template: `
@@ -80,12 +80,12 @@ import {
                 } @else {
                   <div class="text-slate-200 flex items-center justify-center gap-3">
                     <span>Redirecting...</span>
-                    <m-classic-spinner [size]="24" aria-hidden="true" />
+                    <m-progress-indicator [size]="24" aria-hidden="true" />
                   </div>
                 }
               } @else {
                 <div class="text-slate-200 flex items-center justify-center" aria-hidden="true">
-                  <m-classic-spinner [size]="24" />
+                  <m-progress-indicator [size]="24" />
                 </div>
 
               }

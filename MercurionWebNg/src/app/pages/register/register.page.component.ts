@@ -11,7 +11,7 @@ import { TextFieldComponent } from '../../components/common/text-field/text-fiel
 import { PmSelectComponent } from '../../components/common/pm-select/pm-select.component';
 import { emailAvailabilityValidator, matchPassword } from '../../custom-validators';
 import { UserGenderControl, UserRegisterDTO, UserRegistrationFormControls, UserRegistrationFormValue } from '../../Models/auth/user.models';
-import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
+import { ProgressIndicatorComponent } from '../../components/common/progress-indicator/progress-indicator.component';
 import { Helpers } from '../../helpers';
 import { ToastService } from '../../services/toast.service';
 import { ScrollContextService } from '../../services/context/scroll-context.service';
@@ -28,7 +28,7 @@ import { TurnstileComponent } from '../../components/common/turnstile/turnstile.
     ReactiveFormsModule,
     TextFieldComponent,
     PmSelectComponent,
-    ClassicSpinnerComponent,
+    ProgressIndicatorComponent,
     RouterLink,
     TurnstileComponent
   ],
@@ -194,7 +194,7 @@ import { TurnstileComponent } from '../../components/common/turnstile/turnstile.
                   Registrati
                 } @else {
                   <div class="text-slate-200 flex items-center justify-center" aria-hidden="true">
-                    <m-classic-spinner [size]="24"></m-classic-spinner>
+                    <m-progress-indicator [size]="24"></m-progress-indicator>
                   </div>
                 }
               </button>

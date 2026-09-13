@@ -1,6 +1,6 @@
 # 0071 - Consolidate progress indicators and skeletons
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -87,6 +87,65 @@ Mark `BLOCKED` if a feature's final layout is itself being replaced by a pending
 When practical, share layout tokens/dimensions with the final component rather than copying hard-coded skeleton measurements into an unrelated file.
 
 ## Execution notes
+
+### Current execution (2026-09-14, feature/UI-013)
+
+#### Feature branch and base
+
+- Branch: `feature/UI-013`
+- Base SHA: `aedf254eb08b8f76660024f27d6550a78cc5b8d4`
+- Exact base CI: GitHub Actions CI run `34785165988` for that SHA completed
+  successfully; the run included successful validation classification and the
+  stable required gate (the preceding exact-SHA run `34783347833` was also
+  successful).
+- Unchanged preflight: clean branch, `git diff --check`, local
+  `commit.gpgSign=false`, and no task-owned runtime remained after the
+  capability probe.
+
+#### Implementation
+
+- Added `m-progress-indicator`, with `sm`/`md`/`lg` sizes, numeric-size
+  compatibility for existing callers, status/`aria-busy` semantics, labels,
+  optional overlay, and reduced-motion behavior.
+- Added canonical `m-skeleton` text/rect/circle primitives with deterministic
+  dimensions and `prefers-reduced-motion` handling.
+- Migrated existing spinner consumers and page-state loading to the canonical
+  progress indicator.
+- Recomposed collection, molecule, search-result, and support-ticket skeletons
+  from the canonical primitive; removed the classic and chemistry spinner
+  implementations and their obsolete tests.
+
+#### Focused validation
+
+- Focused Angular loading component tests: **13 passed**.
+- `npm run typecheck --workspace mercurion_web_ng`: **passed**.
+- `npm run lint:angular --workspace mercurion_web_ng -- --no-warn-ignored`:
+  **passed**.
+- `npm run build --workspace mercurion_web_ng`: **passed** (existing initial
+  bundle budget warning only).
+- Static search found no remaining classic/chemistry spinner references.
+- No `npm ci` or `npm run ci:check` was run locally.
+
+#### Browser/runtime evidence
+
+- Followed `RUNTIME.md` startup order with separate live sessions:
+  Tox21 (`tox-ui013-final`), Nest (`nest-ui013-final`), Angular
+  (`angular-ui013-final`); the readiness barrier produced two consecutive
+  `health=200`, `angular=200` rounds after upstream compilation.
+- Through `http://localhost:8888/molecules/detail/1`, desktop and emulated
+  390x844 dark-mode snapshots showed the molecule loading region with two
+  accessible busy status indicators and stable loading labels.
+- Protected collection navigation was attempted through the canonical origin
+  but remained busy without a completed login; no credentials were recorded or
+  exposed. No dummy-auth route was used.
+- Browser console error inspection returned no console errors.
+- All task-owned runtime sessions were stopped and process inventory confirmed
+  no Tox21/Nest/Angular watcher remained.
+
+#### Commit
+
+Pending task commit; the worker will commit with `--no-gpg-sign` and the
+required Copilot co-author trailer before publishing the feature branch.
 
 > Current status (2026-09-11): PENDING by direct owner instruction because this
 > activity was not completed. Historical attempt/skip evidence remains below

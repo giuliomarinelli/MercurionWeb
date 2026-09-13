@@ -9,14 +9,14 @@ import {
   viewChild
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ClassicSpinnerComponent } from '../classic-spinner/classic-spinner.component';
+import { ProgressIndicatorComponent } from '../progress-indicator/progress-indicator.component';
 
 
 type FileKind = 'all' | 'images' | 'pdf';
 
 @Component({
   selector: 'm-file-uploader',
-  imports: [CommonModule, ClassicSpinnerComponent],
+  imports: [CommonModule, ProgressIndicatorComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div
@@ -110,7 +110,7 @@ type FileKind = 'all' | 'images' | 'pdf';
         }
         @if (loading()) {
           <!-- Spinner overlay -->
-          <m-classic-spinner
+          <m-progress-indicator
             *ngIf="loading()"
             [overlay]="true"
             [size]="56"

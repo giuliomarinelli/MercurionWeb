@@ -5,7 +5,7 @@ import { TurnstileComponent } from '../../components/common/turnstile/turnstile.
 import { FormControl, FormGroup, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize, Subscription } from 'rxjs';
 import { RecoveryService } from '../../services/recovery.service';
-import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
+import { ProgressIndicatorComponent } from '../../components/common/progress-indicator/progress-indicator.component';
 import { PublicPipe } from '../../pipes/public.pipe';
 import { ThemeManagerService } from '../../services/context/theme-manager.service';
 import { environment } from '../../../environments/environment';
@@ -21,7 +21,7 @@ import { HttpErrorResponse } from '@angular/common/http';
     TextFieldComponent,
     TurnstileComponent,
     ReactiveFormsModule,
-    ClassicSpinnerComponent,
+    ProgressIndicatorComponent,
     PublicPipe,
     RouterLink
   ],
@@ -101,7 +101,7 @@ import { HttpErrorResponse } from '@angular/common/http';
                   Continua
                 } @else {
                   <div class="text-slate-200 flex items-center justify-center">
-                    <m-classic-spinner [size]="24"></m-classic-spinner>
+                    <m-progress-indicator [size]="24"></m-progress-indicator>
                   </div>
                 }
               </button>
@@ -173,7 +173,7 @@ import { HttpErrorResponse } from '@angular/common/http';
                     Continua
                   } @else {
                     <div class="text-slate-200 flex items-center justify-center">
-                      <m-classic-spinner [size]="24"></m-classic-spinner>
+                      <m-progress-indicator [size]="24"></m-progress-indicator>
                     </div>
                   }
                 </button>

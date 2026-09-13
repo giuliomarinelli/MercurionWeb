@@ -10,7 +10,7 @@ import {
   effect,
   viewChild
 } from '@angular/core';
-import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
+import { ProgressIndicatorComponent } from '../../components/common/progress-indicator/progress-indicator.component';
 import { EMPTY, of, Subscription, switchMap, defer, from, combineLatest, catchError, take, filter } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TypeGuardsService } from '../../services/type-guards.service';
@@ -24,7 +24,7 @@ import { AuthRedirectService } from '../../services/auth-redirect.service'
 
 @Component({
   selector: 'm-sso-page',
-  imports: [ClassicSpinnerComponent],
+  imports: [ProgressIndicatorComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
 
@@ -35,7 +35,7 @@ import { AuthRedirectService } from '../../services/auth-redirect.service'
           [style.left.px]="spinnerLeft()"
           role="status"
         >
-          <m-classic-spinner [size]="60" />
+          <m-progress-indicator [size]="60" />
         </div>
       </div>
     </div>
