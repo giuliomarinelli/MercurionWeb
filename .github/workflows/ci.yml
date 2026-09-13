@@ -134,6 +134,17 @@ jobs:
       - name: Validate autonomous control plane
         run: npm run ci:validate:autonomous
 
+      - name: Enforce code-duplication baseline
+        run: npm run ci:duplication
+
+      - name: Upload code-duplication report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: duplication-report-${{ matrix.os }}
+          if-no-files-found: ignore
+          path: reports/duplication
+
       - name: Run lint gates
         run: npm run ci:lint
 
