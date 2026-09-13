@@ -3,14 +3,11 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { spawnSync } from 'node:child_process';
 
-const dockerfiles = [
-  'MercurionWebNg/Dockerfile',
-  'MercurionWebNg/Dockerfile.staging',
-  'MercurionWebNg/Dockerfile.test',
-  'MercurionWebNode/Dockerfile',
-  'MercurionWebNode/Dockerfile.staging',
-  'MercurionWebNode/Dockerfile.test',
-];
+const dockerfiles = ['MercurionWebNg/Dockerfile', 'MercurionWebNode/Dockerfile'];
+const targets = {
+  'MercurionWebNg/Dockerfile': ['production', 'staging', 'test'],
+  'MercurionWebNode/Dockerfile': ['production', 'staging', 'test'],
+};
 
 const requiredToolchain = [
   'FROM node:22.16.0-alpine AS',
@@ -47,12 +44,32 @@ for (const filename of dockerfiles) {
   if (!/\bCMD\s+\["[^"]+"/.test(source)) {
     throw new Error(`${filename} must declare an exec-form CMD`);
   }
+  for (const target of targets[filename]) {
+    if (!new RegExp(`FROM .+ AS ${target}\\b`).test(source)) {
+      throw new Error(`${filename} is missing explicit target ${target}`);
+    }
+  }
 }
 
 const ignore = await readFile('.dockerignore', 'utf8');
 for (const token of ['**/node_modules', '**/.env.*', '**/*.pem']) {
   if (!ignore.includes(token)) {
     throw new Error(`.dockerignore is missing ${token}`);
+  }
+}
+
+const stalePaths = ['MercurionWebNg/Dockerfile.staging', 'MercurionWebNg/Dockerfile.test',
+  'MercurionWebNode/Dockerfile.staging', 'MercurionWebNode/Dockerfile.test'];
+const tracked = spawnSync('git', ['ls-files', '-z'], { encoding: 'buffer' });
+if (tracked.status !== 0) throw new Error(`git ls-files failed: ${tracked.stderr.toString()}`);
+const excluded = new Set(['.git', 'node_modules', 'dist', 'coverage']);
+for (const filename of tracked.stdout.toString().split('\0').filter(Boolean)) {
+  if (filename.startsWith('docs/autonomous-development/task/')) continue;
+  if (filename === 'scripts/check-container-builds.mjs') continue;
+  if (excluded.has(filename.split('/')[0])) continue;
+  const source = await readFile(filename, 'utf8').catch(() => '');
+  for (const stalePath of stalePaths) {
+    if (source.includes(stalePath)) throw new Error(`${filename} retains stale Dockerfile reference ${stalePath}`);
   }
 }
 
@@ -90,4 +107,4 @@ try {
   await rm(tempRoot, { recursive: true, force: true });
 }
 
-console.log(`Validated ${dockerfiles.length} Dockerfiles and lockfile drift rejection.`);
+console.log(`Validated ${dockerfiles.length} Dockerfiles, ${Object.values(targets).flat().length} targets, stale references, and lockfile drift rejection.`);
