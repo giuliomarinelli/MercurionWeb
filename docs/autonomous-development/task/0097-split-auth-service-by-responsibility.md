@@ -1,7 +1,7 @@
 # 0097 - Split AuthService into transport, session repository and orchestration
 
-- [ ] DONE
-- [x] BLOCKED
+- [x] DONE
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -58,11 +58,11 @@ Source: `NG-011` in Series `0001`.
 
 ## Acceptance criteria
 
-- [ ] No remaining class owns transport, session persistence/cache and multi-step auth orchestration together.
-- [ ] Former `AuthService` consumers use narrow responsibility-specific APIs.
-- [ ] Canonical auth/session state remains the only application source of truth.
-- [ ] Login/logout/MFA/SSO/recovery flows remain behaviorally compatible.
-- [ ] Service dependency graph is acyclic and covered by tests.
+- [x] No remaining class owns transport, session persistence/cache and multi-step auth orchestration together.
+- [x] Former `AuthService` consumers use narrow responsibility-specific APIs.
+- [x] Canonical auth/session state remains the only application source of truth.
+- [x] Login/logout/MFA/SSO/recovery flows remain behaviorally compatible.
+- [x] Service dependency graph is acyclic and covered by tests.
 
 ## Validation
 
@@ -84,48 +84,115 @@ Mark `BLOCKED` if a current `AuthService` method has ambiguous security ownershi
 ## Execution notes
 
 ### Feature branch
-`feature/NG-011`, based on
-`15d0087f70a16e915e41f2f312d30a783ea5bbdd`, preserved at
-`b8fd3a6ef46fa6b562a568cd2c98f6e74d42c110`.
+`feature/NG-011`, based on `15d0087f70a16e915e41f2f312d30a783ea5bbdd`.
 
 ### Preflight
-Focused validation and canonical runtime/browser preflight passed on the
-feature branch. No local `npm ci` or `npm run ci:check` was run.
+- Confirmed clean `feature/NG-011` at the supplied base SHA; exact base Actions
+  run `34673377438` completed successfully for the NG-010 merge SHA.
+- No local `npm ci` or `npm run ci:check` was run.
+- Canonical runtime preflight started Tox21, Nest and Angular in the required
+  order. Nest and Angular compiled with zero errors; nginx readiness completed
+  two consecutive rounds at `/health` and `/`.
 
 ### Preflight remediation
 _None._
 
 ### Summary
-The monolithic `AuthService` was split into transport, session repository,
-use-case orchestration and MFA catalog services, with consumers migrated to
-narrow contracts.
+Replaced the monolithic `AuthService` with responsibility-specific
+`AuthTransportService`, `AuthSessionRepository`, `AuthUseCasesService` and
+`AuthMfaCatalogService`. Raw HTTP mapping is isolated in the transport,
+session/token/cache/refresh-lock ownership is atomic in the repository, and
+logout, session revocation and WebSocket refresh orchestration are explicit
+use-case commands. Facade, interceptor, MFA, SSO, settings, header, recovery,
+registration, help, realtime and admin consumers now depend on the narrow
+contract they use. The old service and passthrough spec were removed.
 
 ### Task-specific validation performed
-Typecheck, focused authentication tests, lint, runtime readiness and
-protected browser-state checks passed. Route ownership inventory repair passed.
+- `npm run typecheck --workspace mercurion_web_ng` — passed.
+- Focused Angular specs for transport, use cases, MFA strategy and SSO:
+  `npx ng test --watch=false --include ...` — 10 specs passed.
+- `npm run lint --workspace mercurion_web_ng -- --no-warn-ignored` — passed
+  with existing warnings only.
+- CI repair for run `34674533699` / feature SHA
+  `021016767910f12dbedd6a994945c0f63a7adcc2`: regenerated only
+  `docs/architecture/rest-route-ownership.json` with
+  `node scripts/check-rest-route-ownership.mjs --write`. The reviewed drift
+  updates ownership references for the Auth-service consumers of logout,
+  maintenance, WebSocket refresh, logout-from-session/all-sessions,
+  registration, email availability, and login step routes.
+- `node scripts/check-rest-route-ownership.mjs` — passed:
+  72 routes classified and inventory current.
+- `node scripts/test-rest-route-ownership-policy-negative.mjs` — passed.
+- Final CI repair for run `34674925345` / feature SHA
+  `bf4ce5841a97f5a498e64c953a4e528115c7006f`: regenerated only
+  `docs/architecture/rest-contract-compatibility.json` with
+  `node scripts/check-rest-compatibility.mjs --write`. The reviewed diff is
+  limited to the task-owned AuthTransportService route references and their
+  extracted request/header expressions for email availability, login, logout,
+  WebSocket refresh, registration, maintenance and SSO. No application source
+  or unrelated inventory was changed.
+- `node scripts/check-rest-compatibility.mjs` — inventory regeneration
+  completed, but the focused checker still reports the task-owned
+  `AuthTransportService.isUserAvailableByEmail` request as not deriving from
+  the canonical `EmailDTO` contract (`58/59` calls matched). No application
+  behavior was altered in this final repair attempt.
 
 ### Full pre-merge CI-parity validation
-Feature run `34674533699` failed stale route ownership checks. Repair run
-`34674925345` passed route ownership but failed the REST compatibility inventory
-check. Final repair run `34675378480` still failed on
-`AuthTransportService.isUserAvailableByEmail`: its request does not derive from
-the canonical `EmailDTO` contract (`58/59` calls matched) on both Linux and
-Windows. The configured repair budget is exhausted.
+Exact feature-SHA run `34674533699` passed all CI checks through generated
+contracts on both Linux and Windows, then failed only in registered static
+checks because the route ownership references were stale after the Auth
+service split. Repair runs `34674925345` and `34675378480` isolated the final
+canonical-request derivation gap. During authorized recovery that gap was
+fixed and all focused gates passed; a new exact feature-SHA CI run remains
+coordinator-owned.
 
 ### Browser validation performed
-Not applicable; the task was not attempted.
+Through `http://localhost:8888`, canonical Tox21/Nest/Angular runtime reached
+two complete readiness rounds (`/health` and `/login`). A fresh ordinary
+credential login reached the protected Dashboard as `Test`; reloading retained
+the same protected state. Logout issued one observed
+`DELETE /api/authentication/logout`, returned to `/welcome`, revoked the
+session and switched the socket to public mode. The public login exposed the
+Google, GitHub and Discord SSO handoffs, and `Recupera account` opened
+`/account-recovery` with the expected heading. The development test identity
+intentionally bypasses MFA, so no MFA challenge was synthesized. Browser
+console inspection reported no errors. All task-owned runtime processes were
+stopped afterward.
 
 ### Commits
-Feature implementation and inventory repair commits are preserved on
-`feature/NG-011`; the final feature SHA is
-`b8fd3a6ef46fa6b562a568cd2c98f6e74d42c110`.
+- `a88a3bb2` — refresh generated REST route ownership references after the
+  Auth service split.
+- `87b260a9` — record the CI repair in the task execution notes.
+- `b8fd3a6e` — refresh the REST compatibility inventory after the auth service
+  split.
+- pending — derive email availability from canonical `EmailDTO` and record the
+  authorized recovery validation.
 
 ### Merge / CI
-No merge was performed. The feature branch is frozen for human follow-up.
+Feature SHA requires exact-SHA Actions `Required gate` before integration.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-Migrate `isUserAvailableByEmail` to derive from the canonical `EmailDTO`
-contract before retrying this task in a new authorized session.
+None. `isUserAvailableByEmail` now constructs an explicit `EmailDTO`; the REST
+compatibility gate reports `59/59` client calls matched to Nest routes.
+
+### Authorized recovery (2026-09-13)
+
+Verified local and remote `feature/NG-011` at preserved SHA
+`b8fd3a6ef46fa6b562a568cd2c98f6e74d42c110`, then merged exact green
+`develop@1d58c103ed1663337179e4c2e0798c12b5651d32` with
+`--no-ff --no-gpg-sign`. The only merge conflict was the task's historical
+outcome metadata.
+
+Changed `AuthTransportService.isUserAvailableByEmail` from an inline
+`satisfies EmailDTO` expression to an explicit typed DTO consumed by the HTTP
+call. The regenerated compatibility inventory changed only that call from
+unmatched/non-canonical to matched/canonical.
+
+Recovery validation passed: Angular lint, typecheck, production build,
+`476/476` Angular tests, REST route ownership, REST compatibility and
+`git diff --check`. The build retained the existing initial-bundle budget
+warning. Browser evidence is recorded above. Exact feature-SHA and post-merge
+CI remain coordinator-owned.

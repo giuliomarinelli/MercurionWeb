@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -92,8 +92,9 @@ _Not started._
 _None._
 
 ### Summary
-Not attempted because required realtime tasks 0039 and 0040 and task 0097
-(NG-011) are terminally non-`DONE`.
+Pending. The prior dependency skip was cleared after authorized recovery made
+task 0097 (`NG-011`) `DONE`; the planner now classifies this task independently
+from that stale terminal root.
 
 ### Task-specific validation performed
 Not applicable; no feature branch or implementation worker was created.
@@ -105,21 +106,18 @@ Not applicable; dependency-skip metadata only.
 Not applicable; the task was not attempted.
 
 ### Commits
-Pending metadata commit on `develop`.
+Pending.
 
 ### Merge / CI
-No feature branch or merge. Exact-SHA CI is required for the metadata commit.
+Not started.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-Tasks 0039, 0040, and 0097 depend on FE-004, which is `BLOCKED` because
-mandatory authenticated browser validation was unavailable. FE-004 requires a
-test-safe canonical local auth/backend runtime and approved deterministic test
-state in a new session.
+None currently recorded; dependency readiness is planner-owned.
 
 
 ### Dependency skip
 
-Direct terminal prerequisite: 0097 (), terminal non-DONE dependency.
+Cleared on 2026-09-13 after task 0097 (`NG-011`) reached `DONE`.

@@ -3,7 +3,8 @@ import { Router } from '@angular/router'
 import { HttpErrorResponse } from '@angular/common/http'
 import { EMPTY, Observable, Subject, catchError, defer, filter, map, takeUntil, tap, throwError } from 'rxjs'
 import type { Confirm_Login_FirstStepDTO, EmailDTO } from '@mercurion/rest-contracts'
-import { AuthService } from './auth.service'
+import { AuthTransportService } from './auth-transport.service'
+import { AuthSessionRepository } from './auth-session-repository.service'
 import { AuthStateStore } from './auth-state.store'
 import { AuthSessionPersistenceService } from './auth-session-persistence.service'
 import { AuthErrorService } from './auth-error.service'
@@ -14,7 +15,8 @@ import type { LoginCredentials, LoginDeviceContext, LoginFlowResult } from '../p
 
 @Injectable({ providedIn: 'root' })
 export class AuthFacade {
-  private readonly auth = inject(AuthService)
+  private readonly auth = inject(AuthTransportService)
+  private readonly sessions = inject(AuthSessionRepository)
   private readonly authState = inject(AuthStateStore)
   private readonly persistence = inject(AuthSessionPersistenceService)
   private readonly authErrors = inject(AuthErrorService)
@@ -37,7 +39,7 @@ export class AuthFacade {
 
   checkEmail(email: string): Observable<void> {
     const request: EmailDTO = { email }
-    return this.auth.login_stepZero(request).pipe(
+    return this.auth.loginStepZero(request).pipe(
       tap(() => this.authErrors.clear()),
       map(() => undefined)
     )
@@ -59,7 +61,7 @@ export class AuthFacade {
       turnstileToken: credentials.turnstileToken
     }
 
-    return this.auth.login_firstStep(request).pipe(
+    return this.auth.loginFirstStep(request).pipe(
       takeUntil(this.cancelled),
       filter(() => currentAttempt === this.attempt),
       tap((response) => {
@@ -96,12 +98,16 @@ export class AuthFacade {
   private completeOrHandoff(response: Confirm_Login_FirstStepDTO): void {
     if (response.needsMfa) {
       const { statusCode, timestamp, message, ...preAuth } = response
-      if (!this.persistence.savePreAuthState(preAuth)) {
+      if (!this.sessions.savePreAuthState(preAuth)) {
         this.authState.beginAuthentication('password')
         void this.router.navigate(['/login'])
         return
       }
-      this.authState.enterPreAuthentication(response.preAuthorizationToken)
+      if (!response.preAuthorizationToken) {
+        this.sessions.invalidate()
+        return
+      }
+      this.sessions.enterPreAuthentication(response.preAuthorizationToken)
       const target = response.suspiciousAttempt
         ? ['/login/mfa/EMAIL_OTP']
         : (response.enabledMfaStrategies?.length ?? 0) === 1
@@ -115,7 +121,7 @@ export class AuthFacade {
       this.authState.invalidate()
       return
     }
-    this.authState.activateAuthenticatedSession({
+    this.sessions.activate({
       initials: response.initials ?? 'U',
       accessToken: response.accessToken,
       wsAccessToken: response.ws_accessToken
