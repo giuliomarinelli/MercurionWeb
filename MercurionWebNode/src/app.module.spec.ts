@@ -11,6 +11,7 @@ import {
 } from './test-utils/configuration';
 import { TestApplicationModule } from './test-utils/test-application.module';
 import { TestController } from './test.controller';
+import { ResponseModule } from './services/response.module';
 
 describe('AppModule', () => {
   it('should be defined', () => {
@@ -22,6 +23,13 @@ describe('AppModule', () => {
       (Reflect.getMetadata(MODULE_METADATA.IMPORTS, AppModule) as unknown[] | undefined) ?? [];
 
     expect(imports.filter((moduleType) => moduleType === SocketIoModule)).toHaveLength(1);
+  });
+
+  it('imports the response owner required by root controllers', () => {
+    const imports =
+      (Reflect.getMetadata(MODULE_METADATA.IMPORTS, AppModule) as unknown[] | undefined) ?? [];
+
+    expect(imports).toContain(ResponseModule);
   });
 
   it('assembles the production module only at the explicit bootstrap boundary', () => {
