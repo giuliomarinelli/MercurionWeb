@@ -1,30 +1,46 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   input,
   output
 } from '@angular/core';
 
+export interface TabItem {
+  id: string;
+  label: string;
+  disabled?: boolean;
+}
+
+export type TabsOrientation = 'horizontal' | 'vertical';
+
 @Component({
   selector: 'm-tabs',
+  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div
       class="w-full border-b border-slate-200/70 dark:border-slate-700/60"
       role="tablist"
-      aria-orientation="horizontal"
+      [attr.aria-label]="ariaLabel()"
+      [attr.aria-orientation]="orientation()"
+      (keydown)="onKeydown($event)"
     >
-      <div class="flex flex-col sm:flex-row sm:flex-wrap gap-y-2 sm:gap-y-2 gap-x-6">
-        @for (t of tabs(); let i = $index; track i) {
+      <div [class]="listClass()">
+        @for (tab of normalizedTabs(); let i = $index; track tab.id) {
           <button
             type="button"
             role="tab"
+            [id]="tabId(tab, i)"
             [attr.aria-selected]="i === activeIndex()"
-            [attr.aria-controls]="'tab-panel-' + i"
+            [attr.aria-controls]="panelId(tab, i)"
+            [attr.aria-disabled]="tab.disabled ? 'true' : null"
+            [disabled]="tab.disabled"
+            [tabIndex]="i === activeIndex() ? 0 : -1"
             [class]="tabClass(i)"
-            (click)="onClick(i)"
+            (click)="select(i)"
           >
-            {{ t }}
+            {{ tab.label }}
           </button>
         }
       </div>
@@ -32,11 +48,35 @@ import {
   `,
 })
 export class TabsComponent {
-  // inputs signal-based
-  tabs = input<string[]>([]);
-  activeIndex = input<number>(0);
+  readonly tabs = input<readonly (string | TabItem)[]>([]);
+  readonly activeIndex = input(0);
+  readonly orientation = input<TabsOrientation>('horizontal');
+  readonly ariaLabel = input('Tabs');
+  readonly idPrefix = input('m-tabs');
 
   readonly tabChange = output<number>();
+
+  protected readonly normalizedTabs = computed<TabItem[]>(() =>
+    this.tabs().map((tab, index) =>
+      typeof tab === 'string'
+        ? { id: `tab-${index}`, label: tab }
+        : tab,
+    ),
+  );
+
+  protected readonly listClass = computed(() =>
+    this.orientation() === 'vertical'
+      ? 'flex flex-col gap-y-2'
+      : 'flex flex-col sm:flex-row sm:flex-wrap gap-y-2 gap-x-6',
+  );
+
+  tabId(tab: TabItem, index: number): string {
+    return `${this.idPrefix()}-${tab.id || index}-tab`;
+  }
+
+  panelId(tab: TabItem, index: number): string {
+    return `${this.idPrefix()}-${tab.id || index}-tabpanel`;
+  }
 
   tabClass(i: number): string {
     const active = i === this.activeIndex();
@@ -54,8 +94,53 @@ export class TabsComponent {
     ].join(' ');
   }
 
-  onClick(i: number) {
-    if (i === this.activeIndex()) return;
+  select(i: number): void {
+    const tab = this.normalizedTabs()[i];
+    if (!tab || tab.disabled || i === this.activeIndex()) return;
     this.tabChange.emit(i);
+  }
+
+  protected onKeydown(event: KeyboardEvent): void {
+    const tabs = this.normalizedTabs();
+    if (!tabs.length) return;
+
+    const previous = this.orientation() === 'vertical' ? 'ArrowUp' : 'ArrowLeft';
+    const next = this.orientation() === 'vertical' ? 'ArrowDown' : 'ArrowRight';
+    let target = -1;
+
+    if (event.key === previous || event.key === next) {
+      event.preventDefault();
+      const direction = event.key === next ? 1 : -1;
+      target = this.findEnabled(this.activeIndex() + direction, direction);
+    } else if (event.key === 'Home' || event.key === 'End') {
+      event.preventDefault();
+      target = this.findEnabled(
+        event.key === 'Home' ? 0 : tabs.length - 1,
+        event.key === 'Home' ? 1 : -1,
+      );
+    } else if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      this.select(this.activeIndex());
+      return;
+    }
+
+    if (target >= 0) {
+      this.tabChange.emit(target);
+      queueMicrotask(() => {
+        const button = (event.currentTarget as HTMLElement).querySelector<HTMLElement>(
+          `#${CSS.escape(this.tabId(tabs[target], target))}`,
+        );
+        button?.focus();
+      });
+    }
+  }
+
+  private findEnabled(start: number, direction: 1 | -1): number {
+    const tabs = this.normalizedTabs();
+    for (let offset = 0; offset < tabs.length; offset++) {
+      const index = (start + offset * direction + tabs.length) % tabs.length;
+      if (!tabs[index].disabled) return index;
+    }
+    return -1;
   }
 }

@@ -79,7 +79,13 @@ import { PaginationComponent } from '../../components/common/pagination/paginati
         }
       </p>
 
-      <div class="mt-px relative -top-8">
+      <div
+        class="mt-px relative -top-8"
+        role="tabpanel"
+        [id]="'m-tabs-tab-' + activeTab() + '-tabpanel'"
+        [attr.aria-labelledby]="'m-tabs-tab-' + activeTab() + '-tab'"
+        tabindex="0"
+      >
         @for (item of items; track item.id; let i = $index) {
           <m-ticket-card
             [ticket]="item"

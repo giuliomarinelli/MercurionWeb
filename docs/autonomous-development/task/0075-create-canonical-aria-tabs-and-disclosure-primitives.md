@@ -1,7 +1,7 @@
 # 0075 - Create canonical ARIA Tabs and Disclosure primitives
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -100,40 +100,76 @@ Use native focusable elements and DOM order; avoid maintaining a parallel manual
 > for traceability and is not a terminal outcome.
 
 ### Feature branch
-_Not started._
+`feature/UI-017`
 
 ### Preflight
-_Not started._
+Unchanged task-start preflight passed on `feature/UI-017` at base
+`5e3071dea502a1d45b1ece0285c9f98f60ec0bb8`. The working tree was clean, the
+branch identity matched, local `commit.gpgSign` was `false`, no
+workspace-consuming runtime or watcher was active, and GitHub Actions run
+`34786428763` for the exact base SHA completed successfully. The canonical
+runtime capability probe was also completed in the required order (Tox21,
+Nest, Angular), with two consecutive `health=200`/Angular `200` readiness
+rounds and a protected dashboard response after ordinary local-account login.
 
 ### Preflight remediation
-_None._
+None.
 
 ### Summary
-Not attempted. Both required canonical interactive primitives are terminally
-unavailable: task 0059 (UI-001) and task 0067 (UI-009) are
-`SKIPPED_DEPENDENCY` because their prerequisite chain includes task 0052
-(FE-030), which is `BLOCKED`.
+Implemented a typed, standalone Tabs primitive with deterministic tab/panel
+IDs, WAI-ARIA roles and relationships, roving tabindex, horizontal/vertical
+orientation, disabled-item handling, automatic Arrow/Home/End activation and
+focus restoration. Added a standalone Disclosure primitive with native button
+semantics, controlled-region relationships and expanded-state output. Migrated
+the help page's existing tab panel relationship and added component tests.
+
+The attempt remains `BLOCKED`: the existing expandable-section consumers
+(notably the settings CDK accordion and sidenav local disclosure) were not
+migrated to the new canonical Disclosure before the acceptance boundary, and
+post-implementation browser validation could not obtain a stable representative
+help tablist through `http://localhost:8888/help` (the route repeatedly
+redirected to the dashboard or remained busy, so no tablist accessibility
+snapshot or keyboard tab evidence was obtained). A dashboard navigation
+disclosure was keyboard-operated and exposed `aria-expanded="true"`, but that
+does not close the missing canonical migration/tab evidence gap.
 
 ### Task-specific validation performed
-Not applicable; no feature branch or implementation worker was created.
+- `npm run test:ci --workspace mercurion_web_ng -- --include=...`: Angular
+  test run completed `480 SUCCESS` (the CLI forwarded the include arguments as
+  npm config warnings and executed the full existing Angular suite).
+- `npm run typecheck --workspace mercurion_web_ng`: passed.
+- `npm run lint:angular --workspace mercurion_web_ng -- --no-warn-ignored`:
+  passed.
+- `git diff --check`: passed.
+- Post-implementation runtime was started in the required Tox21/Nest/Angular
+  order, reached two complete readiness rounds, and all three task-owned
+  processes were stopped and confirmed absent.
 
 ### Full pre-merge CI-parity validation
-Not applicable; dependency-skip metadata only.
+Not run locally by policy. `npm ci` and `npm run ci:check` were not run.
+Exact feature-SHA CI remains coordinator-owned and was not requested because
+the worker result is `BLOCKED`.
 
 ### Browser validation performed
-Not applicable; the task was not attempted.
+Canonical edge only: `http://localhost:8888`. Capability preflight reached the
+authenticated dashboard using a fresh ordinary login flow and protected
+server-backed state. Post-implementation dashboard keyboard evidence showed the
+existing “Funzionalità” disclosure changing from collapsed to
+`aria-expanded="true"`; attempts to reach `/help` did not produce a stable
+tablist snapshot, so the required Tabs Arrow/Home/End and tabpanel evidence is
+not claimed.
 
 ### Commits
-Pending metadata commit on `develop`.
+Pending worker diagnostic/partial-work commit on `feature/UI-017`.
 
 ### Merge / CI
-No feature branch or merge. Exact-SHA CI is required for the metadata commit.
+No merge. The feature branch is preserved for coordinator review.
 
 ### Rollback
-_Not applicable._
+Not applicable.
 
 ### Blocker / human decision required
-Direct terminal prerequisites: 0059 (UI-001) and 0067 (UI-009), both
-`SKIPPED_DEPENDENCY`. Transitive dependency chain: UI-017 -> UI-001 ->
-FE-030 (BLOCKED); UI-017 -> UI-009 -> FE-030 (BLOCKED). FE-030 requires
-filesystem-write capability for a fresh, human-authorized worker session.
+Complete the migration of existing settings/sidenav expandable consumers to
+`m-disclosure`, then repeat the representative authenticated Tabs/Disclosure
+browser acceptance through the canonical edge and capture the tablist,
+tabpanel, keyboard, focus-visible and theme evidence.
