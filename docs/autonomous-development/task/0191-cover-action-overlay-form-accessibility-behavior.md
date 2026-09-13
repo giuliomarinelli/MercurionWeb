@@ -119,3 +119,8 @@ _Not applicable._
 Direct terminal prerequisite: 0086 (UI-028), `SKIPPED_DEPENDENCY`.
 Transitive root: 0076 (UI-018), `BLOCKED`; its preserved feature branch
 requires a test-safe local Nest runtime for mandatory browser validation.
+
+### Dependency skip
+
+Direct terminal prerequisite: `0086` (`UI-028`), `SKIPPED_DEPENDENCY`; its
+transitive root is `0071` (`UI-013`), `BLOCKED`. Materialized on 2026-09-13.

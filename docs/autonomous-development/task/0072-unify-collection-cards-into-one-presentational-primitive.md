@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -133,3 +133,8 @@ _Not applicable._
 ### Blocker / human decision required
 No implementation blocker. Re-enable only after the direct prerequisite chains
 are deliberately resolved in a new authorized session.
+
+### Dependency skip
+
+Direct terminal prerequisite: `0071` (`UI-013`), `BLOCKED`. This task was
+materialized in the new terminal closure on 2026-09-13.
