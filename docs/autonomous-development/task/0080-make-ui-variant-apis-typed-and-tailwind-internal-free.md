@@ -148,7 +148,7 @@ Exact feature-SHA Actions validation is coordinator-owned after push.
 * Stopped all three task-owned runtime sessions and verified their absence.
 
 ### Commits
-Pending feature commit.
+`6ae31def39c0f60cb44728e44d4e7d2ddf331505`
 
 ### Merge / CI
 Feature SHA will be pushed after the task-specific commit. Exact feature and
