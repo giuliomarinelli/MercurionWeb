@@ -183,7 +183,7 @@ coherent prior task work alongside current baseline changes. A focused
 accessibility correction changed the toast live region to the valid
 `aria-relevant="additions"` value.
 
-Final task implementation commit: pending.
+Final task implementation commit: `365c8f74`.
 
 ### Merge / CI
 
