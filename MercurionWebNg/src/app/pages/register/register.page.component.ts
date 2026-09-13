@@ -101,12 +101,7 @@ import { TurnstileComponent } from '../../components/common/turnstile/turnstile.
             <m-select label="Genere *"
               [options]="options"
               formControlName="gender"
-              [darkFocusClassList]="[
-                'dark:focus:ring-dark-accent-primary',
-                'dark:focus:border-dark-accent-primary',
-                'dark:focus-visible:outline-dark-accent-primary',
-                'dark:focus-visible:outline-dark-accent-primary'
-              ]">
+              tone="highContrast">
             </m-select>
             <div class="tflex justify-center mx-auto max-w-[500px] text-sm text-light-error dark:text-dark-error mt-1 min-h-5 mb-8">
               @if (form.controls['gender'].touched && form.controls['gender'].invalid) {
