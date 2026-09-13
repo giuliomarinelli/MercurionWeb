@@ -134,6 +134,7 @@ export class MoleculeCollectionDetailFacade {
         return;
       }
       this.items.update(current => [...current, ...result.items]);
+      this.done.set(result.currentPage >= result.totalPages);
       this.page.update(value => value + 1);
     } catch {
       if (version === this.requestVersion && expectedId === this.collectionId()) {

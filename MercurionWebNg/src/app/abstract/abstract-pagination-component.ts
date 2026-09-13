@@ -65,6 +65,7 @@ export abstract class AbstractPaginationComponent<T> {
       } else {
         if (this.empty()) this.empty.set(false);
         this.items = [...this.items, ...newPage.items];
+        this.done = newPage.currentPage >= newPage.totalPages;
         this.page++;
       }
     } catch {

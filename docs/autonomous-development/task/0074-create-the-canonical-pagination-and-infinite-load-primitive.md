@@ -1,7 +1,7 @@
 # 0074 - Create the canonical pagination and infinite-load primitive
 
-- [ ] DONE
-- [x] BLOCKED
+- [x] DONE
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -97,6 +97,10 @@ Prefer a small headless state contract plus presentational controls if both numb
 > the preserved implementation with current `develop`, but the mandatory browser
 > validation could not start because the canonical Nest runtime reproduced the
 > shared baseline bootstrap failure recorded below.
+
+> Final status (2026-09-13): DONE. The baseline runtime defects were repaired
+> separately and verified by exact feature- and merge-SHA CI. UI-016 browser
+> validation then completed against the recovered canonical runtime.
 
 ### Feature branch
 No task branch or worker was created because hard prerequisites
@@ -212,3 +216,35 @@ browser acceptance evidence is claimed. This is the same shared baseline
 invariant failure already recorded by the latest v7 session report, not a
 UI-016 behavior failure. All task-owned runtime processes were stopped. The
 branch remains preserved for continuation after separate baseline repair.
+
+### UI-016 completed recovery (2026-09-13)
+
+#### Baseline restoration
+The shared Nest runtime was restored on `develop` before resuming UI-016:
+recursive email-template asset copying, `ResponseModule` registration,
+CommonJS `graphql-fields` interoperability and in-memory runtime GraphQL schema
+generation each received focused tests plus successful exact feature- and
+merge-SHA CI. The canonical watch runtime then started once and remained stable.
+
+#### Browser validation
+- Started Tox21, Nest and Angular with the canonical task-scoped commands; two
+  consecutive nginx readiness rounds returned `200` for `/health` and `/`.
+- Authenticated through `http://localhost:8888` and exercised both “Tutte le
+  mie molecole” and collection-detail infinite-load consumers.
+- Observed accessible native `Load more results` controls, successful GraphQL
+  continuation requests, stable result order/focus and the live `End of
+  results` status.
+- Verified the collection with 19 results at a 25-item page size now derives
+  terminal state directly from `currentPage`/`totalPages`, avoiding a redundant
+  empty page-2 request.
+- Verified the 375x812 responsive layout and captured mobile evidence. No new
+  console errors were emitted during the final validation navigation.
+- Pending/duplicate intent, retry, page boundaries, accessibility labels and
+  terminal rendering remain covered by the focused component/state tests.
+
+#### Final focused validation
+- Angular typecheck — passed.
+- ESLint for the changed pagination abstraction/facade/spec — passed.
+- Focused Angular pagination, abstraction and collection-detail suites — 6
+  tests passed in Chrome 152.
+- All task-owned Tox21, Nest, Angular and test processes were stopped.
