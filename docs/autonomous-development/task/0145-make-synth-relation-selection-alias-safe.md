@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Replace ad-hoc Synth relation alias/path strings with a typed selection planner derived from TypeORM metadata so every requested GraphQL projection generates valid joins consistently.

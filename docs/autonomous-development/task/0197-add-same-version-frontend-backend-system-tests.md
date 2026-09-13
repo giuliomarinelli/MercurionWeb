@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Add deterministic system tests that run compatible Angular and Nest artifacts from the same repository revision through the canonical nginx same-origin edge and prove at least one anonymous and one authenticated real frontend→API/GraphQL journey without contract mocks.

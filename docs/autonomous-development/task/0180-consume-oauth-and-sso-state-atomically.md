@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Make every OAuth/SSO authorization `state` a cryptographically random, TTL-bound, provider/session/redirect-bound one-time capability that is validated and consumed atomically so replay, concurrent reuse and cross-provider substitution fail.

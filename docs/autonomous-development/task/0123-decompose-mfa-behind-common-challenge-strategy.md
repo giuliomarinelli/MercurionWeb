@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Replace the 858-line `MfaService` with separate challenge issuance, delivery, verification, enable/disable and backup-code services coordinated through a typed MFA strategy contract shared by supported MFA methods.

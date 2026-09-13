@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Give every persisted Redis session record an explicit schema version and validated codec with a rolling-deploy compatibility policy so old/new application versions can coexist safely and malformed session data is rejected/cleaned observably rather than silently defaulted.

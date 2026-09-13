@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Extract the initial Mercurion molecule/collection workspace into one idempotent domain initializer used by both native account activation and first-time SSO provisioning.

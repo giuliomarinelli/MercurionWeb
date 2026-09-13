@@ -1,7 +1,7 @@
 # 0120 - Keep TypeORM repositories private to their owning domains
 
 - [ ] DONE
-- [x] BLOCKED
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective

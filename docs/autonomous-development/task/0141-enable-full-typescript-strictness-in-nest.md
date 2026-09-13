@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Compile the Nest production/test codebase with full TypeScript strictness, `unknown` catch variables, safe bind/call/apply semantics and fallthrough protection without global escape hatches.

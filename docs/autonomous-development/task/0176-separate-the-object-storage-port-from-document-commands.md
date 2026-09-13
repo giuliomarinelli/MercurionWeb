@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Refactor Dropbox document handling so provider-specific object storage is hidden behind a typed port, while document upload/download/delete/profile-image commands own authorization, metadata and persistence orchestration through explicit input objects.

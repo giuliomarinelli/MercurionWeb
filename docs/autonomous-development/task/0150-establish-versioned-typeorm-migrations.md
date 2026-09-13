@@ -1,7 +1,7 @@
 # 0150 - Establish versioned TypeORM migrations
 
 - [ ] DONE
-- [x] BLOCKED
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective

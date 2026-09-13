@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Replace the current Hello-World-only Nest E2E coverage with a deterministic real-application suite that exercises authentication, REST, GraphQL, canonical error mapping and session behavior while owning and closing every runtime resource it starts.

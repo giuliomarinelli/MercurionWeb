@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Apply one repository naming convention to Nest files, symbols, directories and error codes, removing misspelled/legacy aliases instead of carrying duplicate names forward.

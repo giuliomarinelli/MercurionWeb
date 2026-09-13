@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Make document upload/delete/profile-image replacement converge after partial Dropbox/database failures through idempotent compensation or outbox work plus an observable reconciler that can detect and repair orphan objects and orphan metadata.

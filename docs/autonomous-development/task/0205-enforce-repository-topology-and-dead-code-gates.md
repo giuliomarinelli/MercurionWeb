@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Make the complete maintained Angular and Nest dependency topology a deterministic CI artifact and fail on any new orphan production unit, dependency cycle or forbidden dependency edge.

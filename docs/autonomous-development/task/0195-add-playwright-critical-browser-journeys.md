@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Introduce Playwright browser E2E tests for Mercurion's critical Angular journeys using accessible locators, deterministic API/test fixtures and the canonical `http://localhost:8888` browser edge, with zero arbitrary sleeps.

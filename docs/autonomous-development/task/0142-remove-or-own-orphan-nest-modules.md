@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Resolve every backend production file unreachable from legitimate Nest/runtime entrypoints and add a deterministic CI reachability gate so legacy DTOs/interfaces/modules cannot accumulate as zombie code.

@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Replace locally constructed NATS subject strings and request/response assumptions with one versioned contract registry describing subject, request schema, response schema, timeout and error contract for every MercurionAI/RDKit RPC operation.

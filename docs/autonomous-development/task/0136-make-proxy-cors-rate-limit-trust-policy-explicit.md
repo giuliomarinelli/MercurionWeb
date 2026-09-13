@@ -1,7 +1,7 @@
 # 0136 - Make proxy, CORS and rate-limit trust policy environment explicit
 
 - [ ] DONE
-- [x] BLOCKED
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective

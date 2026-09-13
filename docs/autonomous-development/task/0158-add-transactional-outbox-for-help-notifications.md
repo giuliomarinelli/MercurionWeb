@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Make Help ticket persistence and notification intent atomic by writing a versioned outbox event in the same database transaction as each ticket/message/status command, then delivering email asynchronously with durable retry and logical idempotency.

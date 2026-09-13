@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Replace duplicated GraphQL `page`/`limit` arguments and divergent pagination response shapes with one validated pagination contract that enforces min/max/defaults and stable ordering while preserving approved public schema compatibility.

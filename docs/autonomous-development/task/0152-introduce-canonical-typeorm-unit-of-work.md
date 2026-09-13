@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Standardize MercurionWebNode transactional persistence behind one Unit of Work contract so every operation in a transaction uses the same `EntityManager` and transaction lifecycle cannot be partially awaited, nested accidentally or bypassed by injected repositories.
