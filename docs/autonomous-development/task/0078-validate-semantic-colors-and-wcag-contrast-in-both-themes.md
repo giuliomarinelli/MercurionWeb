@@ -1,7 +1,7 @@
 # 0078 - Validate semantic colors and WCAG contrast in both themes
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -98,9 +98,85 @@ Keep the contrast implementation dependency-light. A small deterministic utility
 
 ## Execution notes
 
-> Current status (2026-09-11): PENDING by direct owner instruction because this
-> activity was not completed. Historical attempt/skip evidence remains below
-> for traceability and is not a terminal outcome.
+### Feature branch
+
+`feature/UI-020` from base `ee970f5acfd93f5f4d59f55dff59bc6bfbbb3b5b`.
+
+### Preflight
+
+- Confirmed the branch was clean and exactly at the supplied base SHA.
+- Confirmed GitHub Actions run `34788533211` for the exact base SHA was
+  successful, including both platform prerequisite jobs and `Required gate`.
+- The focused unchanged checks `npm run ui:tokens:check` and
+  `npm run ui:tokens:check:negative` passed.
+- No task-owned Angular, Nest, Tox21, or test-watcher process was active before
+  runtime startup.
+- Canonical runtime capability startup followed the required order
+  Tox21 -> Nest -> Angular. Two complete readiness rounds returned successful
+  responses for `/health` and `/` through `http://localhost:8888`.
+- The dedicated browser profile opened the login route and, when the protected
+  dashboard was requested during preflight, exposed the protected dashboard
+  identity and workspace counts. No credentials or browser storage were
+  recorded.
+
+### Summary
+
+Added `scripts/check-angular-semantic-colors.mjs`, a dependency-light
+deterministic validator that checks every light/dark Tailwind palette literal,
+requires matching CSS semantic roles in both themes, computes WCAG contrast,
+and validates a single registry of supported text, controls, statuses, focus,
+border, and elevated-surface pairings. Added malformed-token and
+insufficient-contrast negative fixtures, registered the gate in `ci:static`,
+corrected `219C6F` to `#219C6F`, and raised the semantic border values used by
+the focus/border contrast contract.
+
+### Task-specific validation performed
+
+- `npm run ui:colors:check` — passed (`12 pairings × 2 themes`).
+- `npm run ui:colors:check:negative` — passed; malformed syntax and
+  insufficient-contrast fixtures were rejected deterministically.
+- Existing semantic-token positive and negative checks — passed.
+- `npm run typecheck --workspace mercurion_web_ng` — passed.
+- `npm run build --workspace mercurion_web_ng` — passed; only the pre-existing
+  initial bundle-budget warning was emitted.
+- `git diff --check` — passed.
+
+### Browser validation performed
+
+- Final runtime startup again followed Tox21 -> Nest -> Angular and reached two
+  consecutive successful readiness rounds through the nginx edge.
+- A fresh navigation to `/dashboard` correctly required ordinary login and
+  displayed `/login?redirect_to=%2Fdashboard`; the latest snapshot identified
+  the email field.
+- Chrome DevTools MCP could not interact with that field: both the required
+  `fill_form` attempt and the permitted `fill` fallback returned
+  `Failed to interact with the element ... within the configured timeout`.
+  Because fresh supported login could not be completed, the required final
+  protected-state light/dark and representative-control evidence was not
+  claimed.
+- All three task-owned runtime sessions were stopped after the failed browser
+  interaction and no runtime process was carried forward.
+
+### Blocker / human decision required
+
+The final mandatory browser validation could not complete because the
+Chrome DevTools MCP interaction timed out for the fresh login field after
+canonical runtime readiness was established. The implementation and focused
+local checks are preserved, but the task is marked `BLOCKED` rather than
+claiming the unobserved browser acceptance criteria. A fresh worker with a
+working persistent-profile MCP interaction is required to complete the
+ordinary local login and repeat the declared light/dark UI evidence.
+
+### Commits
+
+Pending task commit; the diagnostic and coherent implementation must be
+committed with `--no-gpg-sign` and the required Copilot co-author trailer
+before publication.
+
+### Full pre-merge CI-parity validation
+
+Not run locally by policy. `npm ci` and `npm run ci:check` remain GitHub
+Actions-only checks.
 
 ### Feature branch
 
