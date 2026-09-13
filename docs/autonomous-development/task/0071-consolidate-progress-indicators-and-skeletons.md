@@ -1,7 +1,7 @@
 # 0071 - Consolidate progress indicators and skeletons
 
-- [x] DONE
-- [ ] BLOCKED
+- [ ] DONE
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -147,6 +147,18 @@ When practical, share layout tokens/dimensions with the final component rather t
 `90fc8eaa9c06adad01b12db3fa5d21817457221f` — committed with
 `--no-gpg-sign` and the required Copilot co-author trailer, then pushed as
 `feature/UI-013`.
+
+#### Terminal blocker
+
+The implementation and focused local gates passed, but the declared browser
+acceptance could not be completed: the unauthenticated canonical-origin
+collection route remained in a busy navigation state, and the search overlay
+could not be opened by the browser lease. The protected-state login was not
+attempted because credential values must not be exposed to shell/tool output.
+Molecule loading evidence was captured in desktop and emulated mobile/dark
+mode, but collection/search loading evidence and reduced-motion emulation were
+not fully obtained. The branch is preserved with coherent implementation work
+for an authorized follow-up.
 
 > Current status (2026-09-11): PENDING by direct owner instruction because this
 > activity was not completed. Historical attempt/skip evidence remains below
