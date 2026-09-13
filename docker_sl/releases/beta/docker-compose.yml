@@ -1,19 +1,37 @@
 services:
   mercurion_web_ng_beta:
     build:
-      context: ../../../MercurionWebNg
-      dockerfile: Dockerfile.staging
+      context: ../../..
+      dockerfile: MercurionWebNg/Dockerfile
+      target: staging
       args:
         APP_VERSION: ${APP_NG_VERSION}
     image: ${REGISTRY_IMAGE_NG}:${APP_NG_VERSION}
+    user: "10101:10101"
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
 
   mercurion_web_node_beta:
     build:
-      context: ../../../MercurionWebNode
-      dockerfile: Dockerfile.staging
+      context: ../../..
+      dockerfile: MercurionWebNode/Dockerfile
+      target: staging
       args:
         APP_VERSION: ${APP_NODE_VERSION}
     image: ${REGISTRY_IMAGE_NODE}:${APP_NODE_VERSION}
+    user: "10001:10001"
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
   
   mercurion_tox_21_beta:
     build:

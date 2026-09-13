@@ -84,7 +84,9 @@ Mark `BLOCKED` if an action still depends on undocumented global mutable payload
 ## Execution notes
 
 ### Feature branch
-`feature/NG-020` at the preserved task commit described below.
+`feature/NG-020`, based on
+`93006ce204791b3d106e1616989c755db13571b8`, preserved at
+`67d8b5537f1cee04b8933541bd705f2a796a0645`.
 ### Preflight
 Verified clean `feature/NG-020` at supplied base
 `93006ce204791b3d106e1616989c755db13571b8`, with matching `develop` and
@@ -99,6 +101,7 @@ required order. Nest compiled with zero errors, Angular served on port 3498,
 and two complete nginx rounds returned HTTP 200 for `/health` and `/`.
 Protected dashboard state was observable in the persistent profile before
 implementation. All three task-owned processes were stopped after the probe.
+No local `npm ci` or `npm run ci:check` was run.
 ### Preflight remediation
 The production build command with an extra positional configuration argument
 was rejected by Angular CLI; the canonical workspace build command was then

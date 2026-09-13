@@ -41,6 +41,7 @@ export class MoleculeCollectionDetailFacade {
   readonly items = signal<readonly MoleculeCardItemModel[]>([]);
   readonly loading = signal(false);
   readonly error = signal(false);
+  readonly pageError = signal<string | undefined>(undefined);
   readonly done = signal(false);
   readonly page = signal(1);
   readonly pagePending = computed(() => this.loading() && this.items().length > 0);
@@ -67,6 +68,7 @@ export class MoleculeCollectionDetailFacade {
         this.page.set(1);
         this.done.set(false);
         this.error.set(false);
+        this.pageError.set(undefined);
         this.loading.set(true);
       }),
       switchMap(id => this.collections.getCollectionById(id).pipe(
@@ -115,6 +117,7 @@ export class MoleculeCollectionDetailFacade {
     this.page.set(1);
     this.done.set(false);
     this.error.set(false);
+    this.pageError.set(undefined);
     await this.loadMore(expectedId, version);
   }
 
@@ -122,6 +125,7 @@ export class MoleculeCollectionDetailFacade {
     if (!expectedId || expectedId !== this.collectionId() || this.done() || (this.loading() && this.items().length > 0)) return;
     const requestedPage = this.page();
     this.loading.set(true);
+    this.pageError.set(undefined);
     try {
       const result = await firstValueFrom(this.fetchPage(expectedId, requestedPage));
       if (version !== this.requestVersion || expectedId !== this.collectionId()) return;
@@ -130,12 +134,20 @@ export class MoleculeCollectionDetailFacade {
         return;
       }
       this.items.update(current => [...current, ...result.items]);
+      this.done.set(result.currentPage >= result.totalPages);
       this.page.update(value => value + 1);
     } catch {
-      if (version === this.requestVersion && expectedId === this.collectionId()) this.error.set(true);
+      if (version === this.requestVersion && expectedId === this.collectionId()) {
+        this.pageError.set('Unable to load results.');
+      }
     } finally {
       if (version === this.requestVersion && expectedId === this.collectionId()) this.loading.set(false);
     }
+  }
+
+  retryPage(): void {
+    this.pageError.set(undefined);
+    void this.loadMore();
   }
 
   private fetchPage(id: string, page: number) {

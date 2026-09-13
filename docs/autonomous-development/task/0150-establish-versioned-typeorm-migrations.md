@@ -1,7 +1,7 @@
 # 0150 - Establish versioned TypeORM migrations
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
@@ -93,24 +93,33 @@ Do not make a generated migration trustworthy merely because TypeORM emitted it.
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-001` at diagnostic SHA
+`a2877255b4b9295926b05e972c5ed78a4ff6740c`; preserved and frozen for human
+review.
 ### Preflight
-_Not started._
+Passed unchanged-task preflight against develop
+`d3dd4e1f60463f447326e6c197e4826c812e6b98`; exact-base CI run `34710547193`
+was green and dependencies `0008`, `0130`, and `0132` were DONE.
 ### Preflight remediation
 _None._
 ### Summary
-_Not started._
+Blocked before implementation because no authoritative deployed PostgreSQL
+schema baseline, migration history, dump, or deterministic schema snapshot is
+available. Generating a baseline from entity metadata could create destructive
+or incompatible operations against live data, which the recipe forbids.
 ### Task-specific validation performed
-_Not started._
+Not run; the mandatory schema-authority stop condition applied before
+implementation.
 ### Full pre-merge CI-parity validation
-_Not started._
+Not applicable; no implementation was produced.
 ### Browser validation performed
-_Not applicable._
+Not applicable.
 ### Commits
-_Not recorded._
+Feature diagnostic commit `a2877255b4b9295926b05e972c5ed78a4ff6740c`.
 ### Merge / CI
-_Not started._
+Blocked metadata recorded on develop; metadata CI pending.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-_None._
+Provide and approve an authoritative PostgreSQL baseline/reconciliation plan
+for deployed staging/production schema before migration implementation.

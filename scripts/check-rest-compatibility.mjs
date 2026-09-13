@@ -32,6 +32,7 @@ const angularConfigPath = path.join(root, 'MercurionWebNg', 'src', 'app', 'app.c
 const interceptorRoot = path.join(root, 'MercurionWebNg', 'src', 'app', 'interceptors');
 const validationPipePath = path.join(root, 'MercurionWebNode', 'src', 'config', 'validation-pipe.ts');
 const nestMainPath = path.join(root, 'MercurionWebNode', 'src', 'main.ts');
+const validationConfiguratorPath = path.join(root, 'MercurionWebNode', 'src', 'bootstrap', 'configurators', 'validation.configurator.ts');
 
 function sourceFiles() {
     return walk(ngSourceRoot, (file) => file.endsWith('.ts')
@@ -92,10 +93,11 @@ function runtimeConfiguration(prefixConfiguration) {
         throw new Error(`Cannot verify nginx ${prefixConfiguration.prefix}/ proxy mapping in ${relative(nginxPath)}; expected ${expectedProxyPass}.`);
     }
 
-    const main = fs.readFileSync(nestMainPath, 'utf8');
     const validationPipe = fs.readFileSync(validationPipePath, 'utf8');
-    if (!/useGlobalPipes\(\s*createGlobalValidationPipe\(\s*\)\s*\)/.test(main)) {
-        throw new Error(`Cannot verify global ValidationPipe installation in ${relative(nestMainPath)}.`);
+    const validationConfigured = [nestMainPath, validationConfiguratorPath]
+        .some((file) => /useGlobalPipes\(\s*createGlobalValidationPipe\(\s*\)\s*\)/.test(fs.readFileSync(file, 'utf8')));
+    if (!validationConfigured) {
+        throw new Error(`Cannot verify global ValidationPipe installation in ${relative(nestMainPath)} or ${relative(validationConfiguratorPath)}.`);
     }
     const requiredValidationOptions = ['transform', 'whitelist', 'forbidNonWhitelisted', 'forbidUnknownValues'];
     for (const option of requiredValidationOptions) {
