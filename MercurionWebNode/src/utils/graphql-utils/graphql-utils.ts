@@ -1,5 +1,5 @@
 import { GraphQLResolveInfo } from 'graphql';
-import graphqlFields from 'graphql-fields';
+import * as graphqlFields from 'graphql-fields';
 
 export interface GraphQLFieldsMap {
     [key: string]: GraphQLFieldsMap;
