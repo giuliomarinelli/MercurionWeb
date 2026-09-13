@@ -103,8 +103,8 @@ or feature ref was mutated.
 - Soft deadline reached: not reached; finalization was required by the
   unrecoverable shared baseline incident
 - Active task completed after deadline: n/a
-- Report commit SHA: pending
-- Report commit exact-SHA CI: pending
+- Report commit SHA: `69d0edf8d19ed48b01d533c49e3da2bd02fe8399`
+- Report commit exact-SHA CI: run `34734046293` success
 
 ## CI and execution efficiency
 
