@@ -15,7 +15,7 @@ import { EMPTY, of, Subscription, switchMap, defer, from, combineLatest, catchEr
 import { ActivatedRoute, Router } from '@angular/router';
 import { TypeGuardsService } from '../../services/type-guards.service';
 import { FingerprintService } from '../../services/fingerprint.service';
-import { AuthService } from '../../services/auth.service';
+import { AuthTransportService } from '../../services/auth-transport.service';
 import { SessionSyncService } from '../../services/session-sync.service';
 import { AuthStateStore } from '../../services/auth-state.store'
 import { AuthSessionPersistenceService } from '../../services/auth-session-persistence.service'
@@ -50,7 +50,7 @@ export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly router = inject(Router)
   private readonly typeGuards = inject(TypeGuardsService)
   private readonly fingerprintService = inject(FingerprintService)
-  private readonly authService = inject(AuthService)
+  private readonly authService = inject(AuthTransportService)
   private readonly sessionSync = inject(SessionSyncService)
   private readonly authState = inject(AuthStateStore)
   private readonly sidenavContext = inject(SidenavContextService)
@@ -114,7 +114,7 @@ export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
 
           this.authState.beginAuthentication('sso')
 
-          return this.authService.sso_authorizeFlow(fp_enc, di_enc, sso_pat, provider).pipe(
+          return this.authService.ssoAuthorizeFlow(fp_enc, di_enc, sso_pat, provider).pipe(
             catchError(() => {
               queueMicrotask(() => {
                 this.redirects.clear()

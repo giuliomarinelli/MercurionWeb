@@ -1,17 +1,12 @@
-import { forwardRef, Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { UserService } from './services/user.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './Models/entities/user.entity';
 import { MfaBackupCode } from './Models/entities/backup-code.entity';
-import { MeilisearchModule } from '../meilisearch/meilisearch.module';
-import { AuthModule } from '../auth/auth.module';
 import { History } from '../history/Models/entities/history.entity';
-import { MoleculeCollectionModule } from '../molecule-collection/molecule-collection.module';
-import { HistoryModule } from '../history/history.module';
-import { SSO_Module } from '../sso/sso.module';
-import { NotificationModule } from '../notification/notification.module';
 
 
+@Global()
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -19,12 +14,6 @@ import { NotificationModule } from '../notification/notification.module';
       MfaBackupCode,
       History
     ]),
-    forwardRef(() => MeilisearchModule),
-    forwardRef(() => AuthModule),
-    forwardRef(() => MoleculeCollectionModule),
-    forwardRef(() => HistoryModule),
-    forwardRef(() => SSO_Module),
-    forwardRef(() => NotificationModule)
   ],
   providers: [
     UserService

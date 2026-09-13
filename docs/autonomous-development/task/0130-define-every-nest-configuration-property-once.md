@@ -1,6 +1,6 @@
 # 0130 - Define every Nest configuration property once
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -89,23 +89,79 @@ The important outcome is one source of truth, not a specific schema library. Reu
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/BE-016`, created from and ancestrally based on
+`b9463d6ba81ef2074bc87814515b31c8aede4a5d`.
 ### Preflight
-_Not started._
+Passed before implementation:
+
+- working tree clean and `HEAD`, local `develop`, and `origin/develop` all at
+  `b9463d6ba81ef2074bc87814515b31c8aede4a5d`;
+- `git merge-base --is-ancestor
+  b9463d6ba81ef2074bc87814515b31c8aede4a5d HEAD` exited `0`;
+- process inventory found no Angular, Nest, Tox21, Jest watcher, or other
+  workspace-consuming process (only the coordinator and the inventory shell
+  matched the broad command-line filter);
+- GitHub Actions run
+  `https://github.com/giuliomarinelli/MercurionWeb/actions/runs/34696198318`
+  was green for the exact base SHA: Ubuntu and Windows quality jobs plus
+  `Required gate` succeeded;
+- dependency `0117` was confirmed `DONE`;
+- unchanged focused checks passed: existing environment validation test
+  (`1` suite / `1` test), Nest architecture checks, and Nest TypeScript
+  typecheck.
 ### Preflight remediation
 _None._
 ### Summary
-_Not started._
+Replaced the parallel environment class, coercion table, factory casts, and
+handwritten configuration interfaces with one declarative environment schema.
+Each supported Nest runtime source now declares required/default semantics,
+coercion, constraints, and inferred output type once. Configuration groups are
+built from the validated typed environment, and their public TypeScript types
+are derived from those builders.
+
+Removed factory-level `Number`, `JSON.parse`, casts, and non-null assertions.
+Moved application consumers of local-development flags and `APP_ENV` from raw
+`process.env` reads to typed `ConfigService` groups, while retaining the
+documented pre-bootstrap `APP_ENV` compatibility fallback for task `0132`.
+No service endpoint, secret, security default, or deployment value was changed.
 ### Task-specific validation performed
-_Not started._
+Passed:
+
+- schema and migrated-consumer focused Jest run: `7` suites / `39` tests;
+- final schema-focused Jest run:
+  `src/config/env-validation.spec.ts` and
+  `src/config/config-schema.spec.ts` (`2` suites / `15` tests);
+- full Nest Jest run in band: `140` suites / `362` tests;
+- isolated Nest E2E run in band: `1` suite / `1` test;
+- `npm run typecheck --workspace mercurion_web_node`;
+- `npm run lint --workspace mercurion_web_node` (`0` errors; `48` existing
+  warnings);
+- `npm run build --workspace mercurion_web_node`;
+- `npm run ci:nest:architecture`, including positive and negative module graph
+  and provider ownership checks;
+- existing git-ignored `env/.env.development` validated successfully through
+  the canonical schema without printing values;
+- `git diff --check`.
+
+Coverage added for full/minimal valid environments, missing required values,
+invalid integers/booleans/JSON/enums/UUIDs, duplicate sources, unused schema
+declarations, configuration-group completeness, example-file coverage, and
+raw `process.env` consumer prevention.
 ### Full pre-merge CI-parity validation
-_Not started._
+Local `npm ci` and `npm run ci:check` were intentionally not run per autonomous
+policy. Complete clean-install Windows/Linux validation and the stable
+`Required gate` are coordinator-owned on the exact pushed feature SHA.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-_Not recorded._
+- `d75478797f5ae5ada4a45f05d6a5fed6db8e769f` -
+  `refactor(config): define canonical Nest schema`
+- `a53925fc884909c9be7d751c3a4fa9753830b4a1` -
+  `test(config): preserve validated e2e environment`
+- Task outcome and execution record: this commit.
 ### Merge / CI
-_Not started._
+Feature branch is ready for exact-SHA pre-merge GitHub Actions validation;
+merge remains coordinator-owned.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required

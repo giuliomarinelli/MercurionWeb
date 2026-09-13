@@ -104,9 +104,9 @@ Prefer Angular signals for current browser state and derived computed values, wi
 
 ## Execution notes
 
-> Current status (2026-09-11): PENDING by direct owner instruction because this
-> activity was not completed. Historical attempt/skip evidence remains below
-> for traceability and is not a terminal outcome.
+> Current status (2026-09-13): PENDING. UI-016 is now `DONE`, so the stale
+> dependency skip was cleared. Historical skip evidence remains below for
+> traceability and is not a terminal outcome.
 
 ### Feature branch
 _Not started._

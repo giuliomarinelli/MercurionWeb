@@ -3,10 +3,15 @@ import { TurnstileGuard } from './turnstile.guard';
 import { TurnstileService } from '../services/turnstile.service';
 
 describe('TurnstileGuard', () => {
-  const originalAppEnv = process.env.APP_ENV
-  const originalDisableTurnstile = process.env.DISABLE_TURNSTILE
   const verifyToken = jest.fn()
-  const guard = new TurnstileGuard({ verifyToken } as unknown as TurnstileService)
+  const appConfiguration = {
+    env: 'development',
+    disableTurnstile: false
+  }
+  const guard = new TurnstileGuard(
+    { verifyToken } as unknown as TurnstileService,
+    { getOrThrow: jest.fn(() => appConfiguration) } as never
+  )
 
   function context(headers: Record<string, string> = {}): ExecutionContext {
     return {
@@ -16,16 +21,9 @@ describe('TurnstileGuard', () => {
 
   beforeEach(() => verifyToken.mockReset())
 
-  afterAll(() => {
-    if (originalAppEnv === undefined) delete process.env.APP_ENV
-    else process.env.APP_ENV = originalAppEnv
-    if (originalDisableTurnstile === undefined) delete process.env.DISABLE_TURNSTILE
-    else process.env.DISABLE_TURNSTILE = originalDisableTurnstile
-  })
-
   it('bypasses Turnstile only when development and the flag are both active', async () => {
-    process.env.APP_ENV = 'development'
-    process.env.DISABLE_TURNSTILE = 'true'
+    appConfiguration.env = 'development'
+    appConfiguration.disableTurnstile = true
 
     await expect(guard.canActivate(context())).resolves.toBe(true)
     expect(verifyToken).not.toHaveBeenCalled()
@@ -35,8 +33,8 @@ describe('TurnstileGuard', () => {
     ['production with the flag active', 'production', 'true'],
     ['development with the flag inactive', 'development', 'false'],
   ])('does not bypass Turnstile in %s', async (_case, appEnv, flag) => {
-    process.env.APP_ENV = appEnv
-    process.env.DISABLE_TURNSTILE = flag
+    appConfiguration.env = appEnv
+    appConfiguration.disableTurnstile = flag === 'true'
 
     await expect(guard.canActivate(context())).rejects.toThrow(
       new UnauthorizedException('Turnstile::Missing challenge token')
@@ -45,8 +43,8 @@ describe('TurnstileGuard', () => {
   })
 
   it('keeps normal server-side token verification when bypass is unavailable', async () => {
-    process.env.APP_ENV = 'production'
-    process.env.DISABLE_TURNSTILE = 'true'
+    appConfiguration.env = 'production'
+    appConfiguration.disableTurnstile = true
     verifyToken.mockResolvedValue(true)
 
     await expect(guard.canActivate(context({

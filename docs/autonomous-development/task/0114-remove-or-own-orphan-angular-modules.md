@@ -1,7 +1,7 @@
 # 0114 - Remove or explicitly own every orphan Angular module
 
 - [ ] DONE
-- [x] BLOCKED
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective

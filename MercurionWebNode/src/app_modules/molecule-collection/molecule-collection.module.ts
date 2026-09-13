@@ -1,4 +1,4 @@
-import { Module, forwardRef } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ChEMBLMoleculeItemEntity } from './Models/entities/chembl-molecule-item.entity';
 import { CustomMoleculeItemEntity } from './Models/entities/custom-molecule-item.entity';
@@ -14,11 +14,9 @@ import { CustomMoleculeItemService } from './services/custom-molecule-item.servi
 import { ChEMBLMoleculeItemResolver } from './resolvers/chembl-molecule-item.resolver';
 import { CustomMoleculeItemResolver } from './resolvers/custom-molecule-item.resolver';
 import { ChEMBLMoleculeItemService } from './services/chembl-molecule-item.service';
-import { UserModule } from '../user/user.module';
-import { MeilisearchModule } from '../meilisearch/meilisearch.module';
 import { History } from '../history/Models/entities/history.entity';
-import { MercurionAIModule } from '../mercurion-ai/mercurion-ai.module';
 
+@Global()
 @Module({
     imports: [
         TypeOrmModule.forFeature([
@@ -29,9 +27,6 @@ import { MercurionAIModule } from '../mercurion-ai/mercurion-ai.module';
             MoleculeCollectionItemEntity,
             History
         ]),
-        forwardRef(() => UserModule),
-        forwardRef(() => MeilisearchModule),
-        forwardRef(() => MercurionAIModule)
     ],
     providers: [
         MoleculeCollectionService,

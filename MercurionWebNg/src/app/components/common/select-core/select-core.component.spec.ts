@@ -64,4 +64,26 @@ describe('SelectCoreComponent', () => {
     expect(input.disabled).toBeTrue();
     expect(fixture.nativeElement.querySelector('[role="listbox"]')).toBeNull();
   });
+
+  it('supports typed multi-selection toggling and chip removal', () => {
+    fixture.componentRef.setInput('multiple', true);
+    fixture.componentRef.setInput('selectedValues', ['alpha']);
+    fixture.detectChanges();
+
+    const changes: string[][] = [];
+    component.selectionChange.subscribe(change => changes.push([...change.values]));
+    const input = fixture.nativeElement.querySelector('input') as HTMLInputElement;
+
+    input.dispatchEvent(new Event('focus'));
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown' }));
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+    fixture.detectChanges();
+
+    expect(changes).toEqual([[]]);
+    expect(fixture.nativeElement.querySelector('[aria-label="Elementi selezionati"]')).not.toBeNull();
+
+    const clearButton = fixture.nativeElement.querySelector('[aria-label="Pulisci selezione"]') as HTMLButtonElement;
+    clearButton.click();
+    expect(changes).toEqual([[], []]);
+  });
 });

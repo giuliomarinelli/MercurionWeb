@@ -3,7 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PublicPipe } from '../../pipes/public.pipe';
 import { ReactiveFormsModule, Validators, FormGroup, FormControl, NonNullableFormBuilder } from '@angular/forms';
 import { ThemeManagerService } from '../../services/context/theme-manager.service';
-import { AuthService } from '../../services/auth.service';
+import { AuthTransportService } from '../../services/auth-transport.service';
 import { UserContextService } from '../../services/context/user-context.service';
 import { environment } from '../../../environments/environment';
 import { Subscription } from 'rxjs';
@@ -225,7 +225,7 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
   // ======================= DEPS =======================
   private readonly fb = inject(NonNullableFormBuilder)
   private readonly themeManager = inject(ThemeManagerService)
-  private readonly authService = inject(AuthService)
+  private readonly authService = inject(AuthTransportService)
   protected readonly userContext = inject(UserContextService)
   private readonly toast = inject(ToastService)
   private readonly scrollContext = inject(ScrollContextService)

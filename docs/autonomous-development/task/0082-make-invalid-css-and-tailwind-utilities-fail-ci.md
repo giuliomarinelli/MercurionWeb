@@ -134,3 +134,8 @@ Direct terminal prerequisites: 0080 (UI-022) and 0081 (UI-023), both
 `SKIPPED_DEPENDENCY`. Their transitive chain includes UI-018 (BLOCKED), which
 requires a test-safe local Nest runtime and dependencies for mandatory browser
 validation.
+
+
+### Dependency skip
+
+Direct terminal prerequisite: 0077 (), terminal non-DONE dependency.

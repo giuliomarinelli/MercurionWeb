@@ -21,13 +21,13 @@ export interface SecurityAuditEvent {
   event: SecurityAuditEventType
   ip?: string
   userAgent?: string
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 }
 
 interface BaseOptions {
   ip?: string
   userAgent?: string
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 }
 
 /**
@@ -75,14 +75,15 @@ export class SecurityAuditService implements OnModuleInit {
   private async send(event: SecurityAuditEvent): Promise<void> {
     try {
       await this.meiliClient.index(INDEX_NAME).addDocuments([event])
-    } catch (err: any) {
+    } catch (err: unknown) {
       const now = Date.now()
       // best effort + rate limit dei log di errore del logger stesso
       if (now - this.lastMeiliFailure > 10_000) {
         this.lastMeiliFailure = now
         // qui potresti anche usare console.error o un logger "di base" se vuoi
         // per evitare dipendenze circolari con MeiliLoggerService
-        console.error('[SecurityAudit] Failed to send event to Meili:', err?.message ?? err)
+        const message = err instanceof Error ? err.message : String(err)
+        console.error('[SecurityAudit] Failed to send event to Meili:', message)
       }
     }
   }

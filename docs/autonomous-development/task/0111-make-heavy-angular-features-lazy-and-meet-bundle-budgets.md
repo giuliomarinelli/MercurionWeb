@@ -95,21 +95,18 @@ _Not started._
 ### Preflight remediation
 _None._
 ### Summary
-Not attempted because hard prerequisite task `0106` (`NG-020`) is now
-`SKIPPED_DEPENDENCY` through blocked task `0087` (`NG-001`). Other references
-remain advisory where not hard prerequisites.
+_Not started._
 ### Task-specific validation performed
-Not applicable; no feature branch or implementation worker was created.
+_Not started._
 ### Full pre-merge CI-parity validation
-Not applicable; dependency-skip metadata only.
+_Not started._
 ### Browser validation performed
-Not applicable; the task was not attempted.
+_Not started._
 ### Commits
-Pending metadata commit on `develop`.
+_Not started._
 ### Merge / CI
-No feature branch or merge. Exact-SHA CI is required for the metadata commit.
+_Not started._
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Direct terminal prerequisite: task `0106` (`NG-020`), `SKIPPED_DEPENDENCY`.
-Transitive chain: `0111` -> `0106` -> `0087` (`NG-001` BLOCKED).
+_None._

@@ -1,6 +1,6 @@
 # 0099 - Separate molecule-item GraphQL documents, generated client and view-model mapping
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -84,38 +84,66 @@ Mark `BLOCKED` if a consumed operation is still invalid/ambiguous against the ca
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/NG-013`
 
 ### Preflight
-_Not started._
+- Verified clean `feature/NG-013` at base
+  `d07c9b25e999e68caa13e97e5d3e90233c4fda31`; exact base Actions run
+  `34675652402` succeeded.
+- SYS-016/task 0016 is `DONE`.
+- Angular typecheck and GraphQL catalog/codegen checks passed. No `npm ci` or
+  `npm run ci:check` was run locally.
 
 ### Preflight remediation
-_None._
+The first probe attempt used incorrect working directories and was stopped
+without HTTP requests. The canonical retry used the required Tox21 sibling
+directory, repository-root Nest command, and `MercurionWebNg` Angular
+directory; all three remained alive and built successfully.
 
 ### Summary
-Not attempted because required molecule transport/view-model separation task
-0016 (SYS-016) is `BLOCKED`. SYS GraphQL tasks 0002 through 0007 are `DONE`.
+Separated pure molecule-item transport mapping from the Apollo gateway into
+`molecule-collection-item.mapper.ts`. The gateway composes canonical generated
+documents and operation types while returning application-facing models. Added
+a typed custom-molecule lookup model, removed the transport-to-domain cast,
+tightened the ChEMBL detail type, and preserved existing fetch/error behavior.
 
 ### Task-specific validation performed
-Not applicable; no feature branch or implementation worker was created.
+- `npm run typecheck --workspace mercurion_web_ng` — passed.
+- `npm run graphql:check --workspace mercurion_web_ng` — passed.
+- Focused Angular Karma run for
+  `molecule-collection-item.service.spec.ts` — 7 specs passed.
+- Pure mapper tests cover both generated discriminants, null joins, numeric
+  molregno conversion, basic-data normalization, and operation documents.
 
 ### Full pre-merge CI-parity validation
-Not applicable; dependency-skip metadata only.
+Complete clean-install/aggregate parity is reserved for GitHub Actions; exact
+feature-SHA CI is required after publication.
 
 ### Browser validation performed
-Not applicable; the task was not attempted.
+- Post-change canonical readiness had two consecutive complete rounds with
+  `http://localhost:8888/health` 200 and `http://localhost:8888/` 200.
+- Protected caffeine molecule detail rendered through
+  `http://localhost:8888/molecules/detail/01a0903f-2cea-7000-b7cb-a3138940194a`,
+  including ChEMBL discriminant, canonical SMILES, collection membership and
+  mapped chemical properties.
+- Detail flow produced three successful `POST /api/graphql` responses (200).
+  The current detail page had no console warnings or errors.
+- The dedicated profile was already authenticated during capability preflight;
+  protected detail navigation proved server-accepted state. No credentials were
+  recorded.
+- Create/editor navigation was reachable, but transient lazy-chunk nginx 504s
+  occurred in the development watcher; no mutation was submitted to avoid
+  changing shared test data.
 
 ### Commits
-Pending metadata commit on `develop`.
+Pending task commit with `--no-gpg-sign` and Copilot co-author trailer.
 
 ### Merge / CI
-No feature branch or merge. Exact-SHA CI is required for the metadata commit.
+Feature branch only; no develop/master changes. Exact feature-SHA CI is
+required before integration.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-Direct terminal prerequisite: task 0016 (SYS-016), `BLOCKED` because
-mandatory browser validation could not complete with the available
-authentication/runtime state. A test-safe canonical local auth/backend runtime
-and approved deterministic test state are required in a new session.
+None.

@@ -1,7 +1,7 @@
 # 0020 - Resolve Notebook route reachability
 
 - [ ] DONE
-- [x] BLOCKED
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective

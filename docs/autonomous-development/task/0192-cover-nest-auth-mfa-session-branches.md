@@ -101,7 +101,8 @@ _Not started._
 ### Preflight remediation
 _None._
 ### Summary
-_Not started._
+Skipped transitively because hard prerequisite task 0186 is
+SKIPPED_DEPENDENCY due to terminal BLOCKED task 0136 (BE-022).
 ### Task-specific validation performed
 _Not started._
 ### Full pre-merge CI-parity validation
@@ -109,7 +110,7 @@ _Not started._
 ### Browser validation performed
 _Not applicable._
 ### Commits
-_Not recorded._
+Metadata-only dependency skip; recorded with the aggregate skip update.
 ### Merge / CI
 _Not started._
 ### Rollback

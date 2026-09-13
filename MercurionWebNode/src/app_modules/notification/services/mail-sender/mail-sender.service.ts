@@ -32,7 +32,7 @@ export class MailSenderService {
         return `${base}/help?m=${mode}&t_id=${ticketId}`
     }
 
-    public async sendEmail<T extends { [key: string]: any }>(to: string, subject: string, context: T, templatePath: string): Promise<SentMessageInfo> {
+    public async sendEmail<T extends object>(to: string, subject: string, context: T, templatePath: string): Promise<SentMessageInfo> {
         return await this.mailerService.sendMail({
             to,
             subject,

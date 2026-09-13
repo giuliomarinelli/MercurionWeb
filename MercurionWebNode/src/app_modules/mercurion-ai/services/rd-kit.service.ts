@@ -4,7 +4,7 @@ import { ConfigService } from '@nestjs/config'
 import { catchError, firstValueFrom, OperatorFunction, throwError, timeout, TimeoutError } from 'rxjs'
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service'
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface'
-import { Environment } from 'src/config/config'
+import { Environment } from 'src/config/config.schema'
 import { RDKitAPI_NS } from '../Models/interfaces/rdkit-api-ns.interface'
 import {
     RDKIT_OPERATIONS,
@@ -51,7 +51,7 @@ export class RDKitService implements OnModuleInit {
             [RDKIT_OPERATIONS.areSameStructure]: 'rdkit_api.are_same_structure'
         }
 
-        const env = this.configService.get<Environment>('App.env')!
+        const env = this.configService.getOrThrow<Environment>('App.env')
         if (env !== Environment.Production) {
             return {
                 [RDKIT_OPERATIONS.getMoleculeProperties]: `${env}.${base.get_molecule_properties}`,

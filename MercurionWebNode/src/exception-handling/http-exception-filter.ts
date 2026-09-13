@@ -22,17 +22,27 @@ import {
 } from './application-error-envelope';
 import { getApplicationErrorDefinition, isApplicationErrorPayload } from '@mercurion/rest-contracts';
 
+function errorMessage(value: unknown): string | undefined {
+    return value instanceof Error
+        ? value.message
+        : typeof value === 'object' && value !== null && 'message' in value &&
+          typeof value.message === 'string'
+            ? value.message
+            : undefined
+}
+
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
 
     private readonly logger: MeiliContextLogger
 
-    constructor(loggerFactory: MeiliLoggerService) {
+    constructor(
+        loggerFactory: MeiliLoggerService,
+        private readonly isNotDev: boolean
+    ) {
         this.logger = loggerFactory.forContext(HttpExceptionFilter.name)
     }
-
-    private readonly isNotDev = (process.env.APP_ENV ?? 'development') !== 'development'
 
     catch(e: unknown, host: ArgumentsHost) {
 
@@ -55,7 +65,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
             base = {
                 statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
                 error: HttpStatusMap.getDescriptionFromHttpStatusCode(HttpStatus.INTERNAL_SERVER_ERROR,),
-                message: (this.isNotDev ? 'Internal server error' : (e as any).message ?? 'Internal server error') as string
+                message: this.isNotDev ? 'Internal server error' : errorMessage(e) ?? 'Internal server error'
             }
         }
 
@@ -128,7 +138,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
         }
 
         const raw = e.getError();
-        const message = (typeof raw === 'string' ? raw : (raw as any)?.message ?? e.message) as string
+        const message = typeof raw === 'string' ? raw : errorMessage(raw) ?? e.message
         const statusCode = HttpStatus.INTERNAL_SERVER_ERROR
 
         return {

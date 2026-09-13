@@ -102,7 +102,7 @@ export class EmbeddingService implements OnModuleInit {
                 .map(r => ({
                     molregno: Number(r.molregno),
                     distance: Number(r.distance),
-                    has_name: !!(r as any).has_name,
+                    has_name: r.has_name,
                 }))
                 .filter(r => r.distance > EPS);
 
