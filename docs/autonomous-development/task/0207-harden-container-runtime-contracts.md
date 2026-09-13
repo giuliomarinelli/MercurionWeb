@@ -1,6 +1,6 @@
 # 0207 - Harden container runtime contracts
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -95,21 +95,46 @@ Test the final image metadata and the running process. A `USER` line in an inter
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/QA-021`
 ### Preflight
-_Not started._
+Clean feature branch at base `528a589d4364babdb195c17fefa0400a6179df44`,
+matching `develop` and `origin/develop`. Exact base CI run
+`34728529019` succeeded. Dependencies `0206` and `0135` are DONE. The
+repository-local `commit.gpgSign` value is `false`; no task-owned processes
+were running before validation.
 ### Preflight remediation
-_None._
+None.
 ### Summary
-_Not started._
+Hardened all six repository Angular/Nest image targets with stable numeric
+users (`10101:10101` for nginx and `10001:10001` for Nest), deliberate
+ownership, explicit exec-form commands, non-privileged ports, and explicit
+temporary paths. Nest production/staging now run standalone from
+`dist/src/main.js`; Angular images use a dedicated nginx configuration with
+PID/cache/temp paths under `/tmp`. Added read-only-root/no-new-privileges/
+capability-drop contracts to local and release Compose services and aligned
+the beta Kubernetes deployments with numeric user/group, non-root, read-only
+root, dropped capabilities, and memory-backed temporary storage. Added
+Docker image metadata enforcement and a bounded no-override smoke runner.
 ### Task-specific validation performed
-_Not started._
+- `npm run ci:containers` — passed for all six Dockerfiles and lockfile
+  drift policy.
+- `node --check` for container validation/smoke scripts and `git diff --check`
+  — passed.
+- Built all six application images with Docker and inspected each final
+  image: expected numeric user, exec-form command, and port metadata passed.
+- Bounded `docker run` smoke tests with `--read-only`, `/tmp` tmpfs,
+  `no-new-privileges`, all capabilities dropped, and no command override
+  passed for Angular production/staging/test and Nest production/staging/test.
+- `docker compose ... config --quiet` for local staging — passed.
 ### Full pre-merge CI-parity validation
-_Not started._
+Complete clean-install/aggregate CI remains owned by GitHub Actions per the
+repository protocol. The workflow now runs
+`scripts/check-container-runtime.mjs` after each container build.
 ### Browser validation performed
-_Not started / as applicable._
+Not applicable: no browser-serving behavior changed; the Angular image
+runtime contract was validated directly through its standalone nginx process.
 ### Commits
-_Not recorded._
+_Pending task commit._
 ### Merge / CI
 _Not started._
 ### Rollback

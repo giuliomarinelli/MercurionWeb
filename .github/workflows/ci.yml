@@ -346,6 +346,9 @@ jobs:
       - name: Build container without cache
         run: docker build --pull --no-cache --file "${{ matrix.dockerfile }}" --tag "mercurion-ci-${{ matrix.name }}" .
 
+      - name: Inspect standalone runtime contract
+        run: node scripts/check-container-runtime.mjs --dockerfile "${{ matrix.dockerfile }}" --image "mercurion-ci-${{ matrix.name }}"
+
       - name: Confirm clean build did not modify tracked files
         run: git diff --exit-code
 

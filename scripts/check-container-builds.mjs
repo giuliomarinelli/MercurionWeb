@@ -18,6 +18,11 @@ const requiredToolchain = [
   'test "$(npm --version)" = "10.9.2"',
 ];
 
+const runtimeUsers = {
+  angular: '10101:10101',
+  nest: '10001:10001',
+};
+
 for (const filename of dockerfiles) {
   const source = await readFile(filename, 'utf8');
   if (/\bnpm\s+install\b/.test(source)) {
@@ -33,6 +38,14 @@ for (const filename of dockerfiles) {
   }
   if (!source.includes('package-lock.json')) {
     throw new Error(`${filename} does not copy the canonical lockfile`);
+  }
+  const runtimeFamily = filename.includes('MercurionWebNg') ? 'angular' : 'nest';
+  const expectedUser = runtimeUsers[runtimeFamily];
+  if (!source.includes(`USER ${expectedUser}`)) {
+    throw new Error(`${filename} must declare runtime user ${expectedUser}`);
+  }
+  if (!/\bCMD\s+\["[^"]+"/.test(source)) {
+    throw new Error(`${filename} must declare an exec-form CMD`);
   }
 }
 

@@ -6,6 +6,14 @@ services:
       args:
         APP_VERSION: ${APP_VERSION}
     image: ${REGISTRY_IMAGE_NG}:${APP_VERSION}
+    user: "10101:10101"
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
 
   mercurion_web_node_prod:
     build:
@@ -14,3 +22,11 @@ services:
       args:
         APP_VERSION: ${APP_VERSION}
     image: ${REGISTRY_IMAGE_NODE}:${APP_VERSION}
+    user: "10001:10001"
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
