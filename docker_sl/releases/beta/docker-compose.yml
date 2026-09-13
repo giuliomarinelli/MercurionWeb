@@ -2,7 +2,8 @@ services:
   mercurion_web_ng_beta:
     build:
       context: ../../..
-      dockerfile: MercurionWebNg/Dockerfile.staging
+      dockerfile: MercurionWebNg/Dockerfile
+      target: staging
       args:
         APP_VERSION: ${APP_NG_VERSION}
     image: ${REGISTRY_IMAGE_NG}:${APP_NG_VERSION}
@@ -18,7 +19,8 @@ services:
   mercurion_web_node_beta:
     build:
       context: ../../..
-      dockerfile: MercurionWebNode/Dockerfile.staging
+      dockerfile: MercurionWebNode/Dockerfile
+      target: staging
       args:
         APP_VERSION: ${APP_NODE_VERSION}
     image: ${REGISTRY_IMAGE_NODE}:${APP_NODE_VERSION}

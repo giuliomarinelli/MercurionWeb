@@ -319,16 +319,22 @@ jobs:
         include:
           - name: angular-production
             dockerfile: MercurionWebNg/Dockerfile
+            target: production
           - name: angular-staging
-            dockerfile: MercurionWebNg/Dockerfile.staging
+            dockerfile: MercurionWebNg/Dockerfile
+            target: staging
           - name: angular-test
-            dockerfile: MercurionWebNg/Dockerfile.test
+            dockerfile: MercurionWebNg/Dockerfile
+            target: test
           - name: nest-production
             dockerfile: MercurionWebNode/Dockerfile
+            target: production
           - name: nest-staging
-            dockerfile: MercurionWebNode/Dockerfile.staging
+            dockerfile: MercurionWebNode/Dockerfile
+            target: staging
           - name: nest-test
-            dockerfile: MercurionWebNode/Dockerfile.test
+            dockerfile: MercurionWebNode/Dockerfile
+            target: test
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -344,10 +350,13 @@ jobs:
         run: npm run ci:containers
 
       - name: Build container without cache
-        run: docker build --pull --no-cache --file "${{ matrix.dockerfile }}" --tag "mercurion-ci-${{ matrix.name }}" .
+        run: docker build --pull --no-cache --file "${{ matrix.dockerfile }}" --target "${{ matrix.target }}" --tag "mercurion-ci-${{ matrix.name }}" .
 
       - name: Inspect standalone runtime contract
         run: node scripts/check-container-runtime.mjs --dockerfile "${{ matrix.dockerfile }}" --image "mercurion-ci-${{ matrix.name }}"
+
+      - name: Smoke-test standalone runtime contract
+        run: node scripts/smoke-container-runtime.mjs --image "mercurion-ci-${{ matrix.name }}"
 
       - name: Confirm clean build did not modify tracked files
         run: git diff --exit-code

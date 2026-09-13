@@ -3,6 +3,7 @@ services:
     build:
       context: ../../..
       dockerfile: MercurionWebNg/Dockerfile
+      target: production
       args:
         APP_VERSION: ${APP_VERSION}
     image: ${REGISTRY_IMAGE_NG}:${APP_VERSION}
@@ -19,6 +20,7 @@ services:
     build:
       context: ../../..
       dockerfile: MercurionWebNode/Dockerfile
+      target: production
       args:
         APP_VERSION: ${APP_VERSION}
     image: ${REGISTRY_IMAGE_NODE}:${APP_VERSION}
