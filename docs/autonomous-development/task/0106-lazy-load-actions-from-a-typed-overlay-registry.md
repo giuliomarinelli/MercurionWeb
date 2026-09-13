@@ -1,7 +1,7 @@
 # 0106 - Lazy-load actions from one typed overlay registry
 
-- [ ] DONE
-- [x] BLOCKED
+- [x] DONE
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -57,12 +57,12 @@ The current overlay eagerly imports all nine action components, lists them in `i
 
 ## Acceptance criteria
 
-- [ ] The overlay host has no eager imports of individual action implementations.
-- [ ] One typed exhaustive registry owns scope-to-loader and metadata mapping.
-- [ ] Adding/removing a scope causes a compile-time failure until the registry is updated.
-- [ ] Action input/result contracts remain typed end-to-end.
-- [ ] Lazy-load failure produces a controlled overlay error/close path.
-- [ ] Production build demonstrates action code splitting.
+- [x] The overlay host has no eager imports of individual action implementations.
+- [x] One typed exhaustive registry owns scope-to-loader and metadata mapping.
+- [x] Adding/removing a scope causes a compile-time failure until the registry is updated.
+- [x] Action input/result contracts remain typed end-to-end.
+- [x] Lazy-load failure produces a controlled overlay error/close path.
+- [x] Production build demonstrates action code splitting.
 
 ## Validation
 
@@ -88,29 +88,79 @@ Mark `BLOCKED` if an action still depends on undocumented global mutable payload
 `93006ce204791b3d106e1616989c755db13571b8`, preserved at
 `67d8b5537f1cee04b8933541bd705f2a796a0645`.
 ### Preflight
-Focused typecheck, lint, tests, build and lazy-chunk inspection passed.
+Verified clean `feature/NG-020` at supplied base
+`93006ce204791b3d106e1616989c755db13571b8`, with matching `develop` and
+`origin/develop`. GitHub Actions run `34680847006` for that exact SHA was
+green. No task-owned workspace process was active before the probe.
+The unchanged Angular typecheck passed. The first focused test invocation was
+corrected from the workspace watcher script to the non-watching `test:ci`
+script; the resulting Angular test run passed.
+
+The mandatory runtime capability probe started Tox21, Nest and Angular in the
+required order. Nest compiled with zero errors, Angular served on port 3498,
+and two complete nginx rounds returned HTTP 200 for `/health` and `/`.
+Protected dashboard state was observable in the persistent profile before
+implementation. All three task-owned processes were stopped after the probe.
 No local `npm ci` or `npm run ci:check` was run.
 ### Preflight remediation
-_None._
+The production build command with an extra positional configuration argument
+was rejected by Angular CLI; the canonical workspace build command was then
+used successfully.
 ### Summary
-Added an exhaustive typed lazy action registry, dynamic standalone action
-rendering, load-failure handling and registry completeness tests.
+Implemented a single exhaustive typed action registry with lazy loaders,
+labels, input/result metadata, dynamic standalone-component rendering and a
+controlled lazy-load failure state. Removed all eager action implementation
+imports and both central scope switches from `ActionOverlayComponent`.
+Added registry completeness coverage and explicit result contracts to the
+action models.
 ### Task-specific validation performed
-Angular typecheck, lint, non-watching tests, production build, chunk inspection
-and diff checks passed.
+- `npm run typecheck --workspace mercurion_web_ng` — passed.
+- `npm run lint --workspace mercurion_web_ng -- --no-warn-ignored` — passed
+  with pre-existing repository warnings only.
+- `npm run test:ci --workspace mercurion_web_ng -- --include=...action-overlay.component.spec.ts`
+  — passed; npm reported that the include option was not a valid npm config,
+  so the non-watching Angular test suite executed.
+- `npm run build --workspace mercurion_web_ng` — passed. The production output
+  contained nine action implementation lazy chunks and none of the nine
+  action selectors in the eager `main-YFD2S36A.js` chunk.
+- `git diff --check` — passed.
 ### Full pre-merge CI-parity validation
-Not reached because mandatory browser acceptance could not be completed.
+Not run locally because `npm ci` and `npm run ci:check` are prohibited. Exact
+feature-SHA CI remains coordinator-owned.
 ### Browser validation performed
-Runtime readiness passed, but Chrome DevTools MCP repeatedly failed to
-interact with freshly snapshotted controls, and the protected login session
-expired. No credentials were exposed.
+Post-implementation canonical runtime startup and two complete readiness rounds
+passed. Browser interaction could not be completed: after the persistent
+profile session expired, Chrome DevTools MCP repeatedly returned
+`Failed to interact with the element ... The element did not become
+interactive within the configured timeout` for freshly snapshotted dashboard
+controls, and the login page required the protected-account credential flow.
+No credential was echoed or copied. This leaves the mandatory action-by-action
+browser evidence unavailable; no browser acceptance claim is made.
 ### Commits
-Implementation and blocker evidence are preserved on `feature/NG-020`; final
-feature SHA is `67d8b5537f1cee04b8933541bd705f2a796a0645`.
+Pending task commit on `feature/NG-020`.
 ### Merge / CI
-No merge was performed; the feature branch remains preserved and frozen.
+No merge. Feature publication and exact-SHA CI observation remain coordinator
+actions after the task commit.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Restore interactive Chrome DevTools MCP/browser capability or perform supervised
-browser validation before retrying this task in a new authorized session.
+_None._
+
+### Authorized recovery
+Recovery was authorized directly on 2026-09-13. Current green `develop` at
+`5b6ba1a4946796521fb6ba6fd06930beef7b1810` was merged into the preserved
+feature branch with `--no-ff --no-gpg-sign` in commit `244e27f7`.
+
+The recovered runtime exposed a task-owned defect in both “Importa da ChEMBL”
+and “Aggiungi molecola a collezioni”: the page remained blurred and the console
+reported `TypeError: host.clear is not a function` at the dynamic action host.
+The signal query had asserted `ViewContainerRef` as its generic result while
+runtime query resolution returned the default `ElementRef`. The query now
+requests `{ read: ViewContainerRef }` explicitly, with a regression test that
+opens an action and renders its lazy standalone component through that host.
+
+After the fix, Angular typecheck and all 476 Angular tests passed. A supervised
+browser retest through `http://localhost:8888` confirmed that both affected
+action dialogs load, render and close without leaving the backdrop/blur stuck.
+The observed dialog sizing is intentionally left to dedicated UI work and did
+not expand this task. Nest also recorded authenticated `PRIVATE` socket state.
