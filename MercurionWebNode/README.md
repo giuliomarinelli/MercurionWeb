@@ -1,177 +1,59 @@
 # MercurionWebNode
 
-MercurionWebNode is the NestJS backend for the Mercurion platform. It exposes REST, GraphQL and WebSocket APIs using Fastify and integrates with NATS and Meilisearch.
+MercurionWebNode is the NestJS 11 API on Fastify 5. It owns authentication and sessions,
+REST controllers, the Mercurius GraphQL API, Socket.IO gateway, PostgreSQL persistence,
+Redis capabilities, Meilisearch integration, mail/SMS/SSO adapters, and NATS clients for
+Tox21/RDKit services.
 
-## Features
+The source entry point is `src/main.ts`; the development listener is `0.0.0.0:8099`.
+The public edge is nginx at `http://localhost:8888`, where `/api/*`, `/api/graphql`,
+`/socket.io/*` and `/health` are proxied to this service.
 
-- Authentication with JWT and multi-factor mechanisms
-- User and session management
-- Molecule search and synchronization via Meilisearch
-- WebSocket gateway for real time updates
+## Configuration and dependencies
 
-## Getting started
+Copy `env/.env.example` to `env/.env.development` and fill every placeholder with local
+values. `src/config/config.schema.ts` validates the complete environment before bootstrap.
+Do not commit that file, test-account credentials, tokens, private keys or production values.
+See the repository [configuration reference](../docs/configuration.md).
 
-1. Copy one of the example files in `env/` to configure your environment variables.
-2. Install dependencies with `npm install`.
-3. Run the application in development mode:
+The local stack supplies PostgreSQL/pgvector, Redis, NATS, Meilisearch and nginx through
+`docker_sl/docker-compose.yml`. Tox21 is a read-only sibling repository and is reached via
+NATS subjects; this project does not own or modify it.
+
+## Commands
 
 ```bash
 npm run start:dev
+npm run build
+npm run lint
+npm run typecheck
+npm run test
+npm run test:e2e
+npm run test:ci
+npm run test:e2e:ci
+npm run graphql:schema:check
+npm run graphql:schema:update
+npm run contracts:check
 ```
 
-## Testing
+Root CI wrappers are `npm run ci:lint:nest`, `npm run ci:typecheck:nest`,
+`npm run ci:test:nest`, `npm run ci:test:nest:e2e` and `npm run ci:build:nest`.
+Unit/E2E diagnostics are written to `coverage` and `test-results` by the CI variants.
 
-Execute the unit tests with:
+## Contracts
 
-```bash
-npm test
-```
-Aggiornare il progetto Nest 11 + Apollo GraphQL a Fastify 5
-Questa guida descrive tutti i passi effettivamente necessari (e funzionanti) per clonare il repo, installare le dipendenze e far partire l’app con Fastify 5 nonostante l’integrazione ufficiale Apollo-Fastify sia ferma a Fastify 4.
+- REST controllers are under `src/app_modules` and `src/*.controller.ts`; route ownership,
+  compatibility and error-envelope policies are checked by root static gates.
+- Mercurius serves the GraphQL schema at `/api/graphql`. `graphql:schema:update` regenerates
+  the committed SDL; `graphql:schema:check` fails on drift.
+- Socket.IO is configured by `src/app_modules/socket.io` and shares event types with
+  `packages/socket-contracts`.
+- NATS is internal service transport. Tox21 inference and RDKit subjects require the local
+  NATS service and the sibling Tox21 process.
 
-1 – Prerequisiti
-Strumento	Versione minima
-Node.js	20 (consigliato 22 LTS)
-npm	9
+## Runtime behavior
 
-2 – Clona il progetto
-bash
-Copia
-Modifica
-git clone <repo-url> my-app
-cd my-app
-3 – Allinea le versioni Nest 11 e Fastify 5
-bash
-Copia
-Modifica
-# core Nest
-npm install @nestjs/common@^11 @nestjs/core@^11 @nestjs/platform-fastify@^11 \
-             @nestjs/config@^4 @nestjs/jwt@^11 @nestjs/mongoose@^11 \
-             @nestjs/typeorm@^11 @nestjs/websockets@^11 \
-             @nestjs/microservices@^11 @nestjs/testing@^11 \
-             @nestjs/apollo@^13 @nestjs/graphql@^13 --save
-
-# fastify 5 + plugin
-npm install fastify@^5 @fastify/cookie@^11 @fastify/middie@^9 \
-             @fastify/multipart@latest --save
-4 – Aggiungi patch-package
-bash
-Copia
-Modifica
-npm install -D patch-package postinstall-postinstall
-Nel package.json, dentro "scripts":
-
-jsonc
-Copia
-Modifica
-"postinstall": "patch-package"
-5 – Patch di @as-integrations/fastify
-bash
-Copia
-Modifica
-npx patch-package @as-integrations/fastify
-5.1 package.json del modulo
-Modifica la peer-dependency:
-
-diff
-Copia
-Modifica
-- "fastify": "^4.4.0",
-+ "fastify": "^5.0.0",
-5.2 plugin.js (sostituisci TUTTO)
-js
-Copia
-Modifica
-'use strict';
-
-const fp = require('fastify-plugin');
-const { Readable } = require('node:stream');
-const { HeaderMap } = require('@apollo/server');
-
-/**
- * Fastify-5 adapter per Apollo Server 4.
- *
- * @param {import('@apollo/server').ApolloServer} apollo
- * @param {{ path?: string; context?: Function|object }} [opts]
- */
-function fastifyApollo(apollo, opts = {}) {
-  const routePath = opts.path ?? '/graphql';
-
-  return fp(async function (fastify) {
-    await apollo.start();
-
-    fastify.route({
-      method: ['GET', 'POST', 'OPTIONS'],
-      url: routePath,
-      async handler(req, reply) {
-        const res = await apollo.executeHTTPGraphQLRequest({
-          httpGraphQLRequest: {
-            method : req.method,
-            headers: new HeaderMap(Object.entries(req.headers)),
-            body   : req.body,
-            search : req.url.split('?')[1] ?? '',
-          },
-          context:
-            typeof opts.context === 'function'
-              ? () => opts.context(req, reply)
-              : () => opts.context ?? {},
-        });
-
-        res.headers.forEach((v, k) => reply.header(k, v));
-        reply.code(res.status ?? 200);
-
-        return res.body.kind === 'complete'
-          ? res.body.string
-          : reply.send(Readable.from(res.body.asyncIterator));
-      },
-    });
-  }, { name: '@as-integrations/fastify', fastify: '^5.x' });
-}
-
-module.exports = fastifyApollo;            // default export
-module.exports.fastifyApollo = fastifyApollo; // named export
-Salva → patch-package crea patches/@as-integrations-fastify+2.1.1.patch.
-
-6 – Installazione finale
-Il primo giro richiede di ignorare i peer-deps (la patch li corregge subito dopo):
-
-bash
-Copia
-Modifica
-npm install --legacy-peer-deps
-7 – Bootstrap Fastify 5
-Nel tuo main.ts assicurati che l’ascolto sia:
-
-ts
-Copia
-Modifica
-await app.listen({ port: 3000 });
-Fastify 5 non accetta più la forma listen(3000).
-
-8 – Avvia l’app
-bash
-Copia
-Modifica
-npm run start:dev
-Output atteso:
-
-csharp
-Copia
-Modifica
-🚀  Application is running on: http://localhost:3000/graphql
-GraphiQL/Apollo-Studio raggiungibile, nessun errore “package is missing”.
-
-Note
-patch-package applica automaticamente la patch dopo ogni npm install grazie allo script postinstall.
-
-Quando Apollo rilascerà @as-integrations/fastify v3 con supporto Fastify 5:
-
-bash
-Copia
-Modifica
-rm -r patches
-npm uninstall patch-package postinstall-postinstall
-npm install @as-integrations/fastify@^3
-e rimuovi la riga "postinstall": "patch-package".
-
-Fine. Progetto operativo su Nest 11 + Fastify 5 + Apollo Server 4.
+Use `APP_ENV=development LOCAL_DUMMY_AUTH=false` for the supported local browser stack.
+The deprecated dummy-auth route is not a validation workflow. When protected browser state
+is needed, use the ordinary login page and the local test account documented by the runtime
+policy; never copy its values into this README or Git.

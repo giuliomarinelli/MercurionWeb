@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Add deterministic system tests that run compatible Angular and Nest artifacts from the same repository revision through the canonical nginx same-origin edge and prove at least one anonymous and one authenticated real frontend→API/GraphQL journey without contract mocks.
@@ -101,8 +101,7 @@ _Not started._
 ### Preflight remediation
 _None._
 ### Summary
-Not attempted because direct terminal prerequisite 0195 (QA-009) is
-`SKIPPED_DEPENDENCY`.
+Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0195, 0196, 0194. This task was never attempted and receives no feature branch.
 ### Task-specific validation performed
 _Not started._
 ### Full pre-merge CI-parity validation
@@ -110,12 +109,10 @@ _Not started._
 ### Browser validation performed
 _Not started._
 ### Commits
-_Not recorded._
+Aggregate dependency-skip metadata commit on develop.
 ### Merge / CI
-_Not started._
+Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Direct terminal prerequisite: 0195 (QA-009), `SKIPPED_DEPENDENCY`.
-Transitive root: 0020 (SYS-020), `BLOCKED`; its preserved feature branch
-remains deliberately frozen.
+Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
