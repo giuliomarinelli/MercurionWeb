@@ -44,7 +44,7 @@ export class LocalDummyAuthPageComponent implements OnInit {
       }
 
       this.authState.completeAuthentication(await this.localDummyAuth.activate())
-      await this.sessionSync.syncSession(true)
+      await this.sessionSync.checkSession(true)
       if (!await this.waitForAuthenticatedSession()) {
         throw new Error('The local backend did not accept dummy authentication')
       }
