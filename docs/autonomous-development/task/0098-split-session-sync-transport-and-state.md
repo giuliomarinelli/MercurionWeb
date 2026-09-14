@@ -1,9 +1,9 @@
 # 0098 - Split session synchronization transport, protocol and state
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -83,43 +83,63 @@ Mark `BLOCKED` if the canonical server session-sync protocol is inconsistent wit
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/NG-012`, base `d4ae32bdd085764cf893547a8e1f9012290a42eb`.
 
 ### Preflight
-_Not started._
+Confirmed clean `feature/NG-012` at the supplied base SHA and no task-owned
+Angular, Nest, Tox21, or test-watcher process was active. The exact base SHA
+has successful full CI run `34793028934` with successful Ubuntu and Windows
+prerequisite jobs, build/test jobs, and the stable `Required gate`; local
+`commit.gpgSign` is `false`. No `npm ci` or `npm run ci:check` was run.
+Prerequisites 0039, 0040, and 0097 were already DONE.
 
 ### Preflight remediation
-_None._
+None.
 
 ### Summary
-Not attempted because required realtime tasks 0039 and 0040 and task 0097
-(NG-011) are terminally non-`DONE`.
+Split the former all-in-one session synchronization service into a public typed
+facade, a transport/lifecycle adapter, and a pure protocol translation
+boundary. Reused the canonical realtime socket owner, kept bounded retry and
+generation cancellation there, made server session invalidation idempotent, and
+migrated app-shell and local-auth consumers to the facade command
+`checkSession`.
 
 ### Task-specific validation performed
-Not applicable; no feature branch or implementation worker was created.
+* `npm run typecheck --workspace mercurion_web_ng` — passed.
+* `npm run lint:angular --workspace mercurion_web_ng` — passed.
+* `npm run test:onpush --workspace mercurion_web_ng` — `480 SUCCESS`.
+* Runtime preflight and post-change validation used the required direct
+  Tox21, Nest, then Angular sessions. Both phases reached two consecutive
+  `200/200` nginx readiness rounds after transient upstream `502` responses.
 
 ### Full pre-merge CI-parity validation
-Not applicable; dependency-skip metadata only.
+Not run locally by policy; exact feature-SHA GitHub Actions evidence remains
+coordinator-owned.
 
 ### Browser validation performed
-Not applicable; the task was not attempted.
+Using the dedicated persistent Chrome DevTools profile and only
+`http://localhost:8888`: fresh ordinary login with snapshot plus `fill_form`
+for both credentials reached the protected Dashboard (`Benvenuto Test`,
+account menu and authenticated API responses `200`); reload preserved the
+server-accepted protected state; logout navigated to `/welcome` and removed
+the authenticated UI. Console inspection after reload had no application
+errors or warnings. A transient Angular rebuild produced nginx `504` during
+one navigation; after the canonical runtime remained alive and the edge
+returned `200`, reload succeeded and validation completed.
 
 ### Commits
-Pending metadata commit on `develop`.
+`a5ea51a7` — implementation, focused validation, and execution evidence.
 
 ### Merge / CI
-No feature branch or merge. Exact-SHA CI is required for the metadata commit.
+Not started.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-Tasks 0039, 0040, and 0097 depend on FE-004, which is `BLOCKED` because
-mandatory authenticated browser validation was unavailable. FE-004 requires a
-test-safe canonical local auth/backend runtime and approved deterministic test
-state in a new session.
+None.
 
 
 ### Dependency skip
 
-Direct terminal prerequisite: 0097 (), terminal non-DONE dependency.
+Cleared on 2026-09-13 after task 0097 (`NG-011`) reached `DONE`.

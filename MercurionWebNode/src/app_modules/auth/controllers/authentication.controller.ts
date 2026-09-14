@@ -100,6 +100,21 @@ export class AuthenticationController {
             configService.get<number>('Session.persistentSessionLasting')!
     }
 
+    private setSessionCookie(reply: FastifyReply, sessionId: string, maxAge?: number): void {
+        this.secureCookieService.setSignedCookie(reply, '__node_session_id', sessionId, {
+            ...this.cookieConf,
+            maxAge
+        })
+    }
+
+    private setLoginMarker(reply: FastifyReply, value: string, maxAge?: number): void {
+        reply.setCookie('__logged_in', value, {
+            ...this.cookieConf,
+            maxAge,
+            httpOnly: false
+        })
+    }
+
     @Public()
     @Post('local-dummy')
     @HttpCode(HttpStatus.OK)
@@ -121,20 +136,8 @@ export class AuthenticationController {
         if (result.outcome === 'not-found') {
             throw new NotFoundException()
         }
-        this.secureCookieService.setSignedCookie(
-            reply,
-            '__node_session_id',
-            result.sessionId,
-            {
-                ...this.cookieConf,
-                maxAge: this.LONG_SESSION_TTL
-            }
-        )
-        reply.setCookie('__logged_in', 'true', {
-            ...this.cookieConf,
-            maxAge: this.LONG_SESSION_TTL,
-            httpOnly: false
-        })
+        this.setSessionCookie(reply, result.sessionId, this.LONG_SESSION_TTL)
+        this.setLoginMarker(reply, 'true', this.LONG_SESSION_TTL)
         return {
             ...this.response.ok('Local dummy authenticated successfully'),
             accessToken: result.accessToken,
@@ -176,14 +179,10 @@ export class AuthenticationController {
             sessionDeviceInfo,
             fingerprintData
         })
-        this.secureCookieService.setSignedCookie(
+        this.setSessionCookie(
             reply,
-            '__node_session_id',
             result.sessionId,
-            {
-                ...this.cookieConf,
-                maxAge: result.remember ? this.LONG_SESSION_TTL : undefined
-            }
+            result.remember ? this.LONG_SESSION_TTL : undefined
         )
         const authResult = {
             needsMfa: result.needsMfa,
@@ -196,14 +195,10 @@ export class AuthenticationController {
         }
 
         if (result.next === 'mfa') {
-            reply.setCookie(
-                '__logged_in',
+            this.setLoginMarker(
+                reply,
                 result.remember ? 'pending_long' : 'pending_short',
-                {
-                    ...this.cookieConf,
-                    maxAge: result.remember ? this.LONG_SESSION_TTL : undefined,
-                    httpOnly: false
-                }
+                result.remember ? this.LONG_SESSION_TTL : undefined
             )
             return {
                 ...this.response.ok('MFA first step went on successfully'),
@@ -212,11 +207,11 @@ export class AuthenticationController {
             }
         }
 
-        reply.setCookie('__logged_in', 'true', {
-            ...this.cookieConf,
-            maxAge: result.remember ? this.LONG_SESSION_TTL : undefined,
-            httpOnly: false
-        })
+        this.setLoginMarker(
+            reply,
+            'true',
+            result.remember ? this.LONG_SESSION_TTL : undefined
+        )
         return {
             ...this.response.ok('Authenticated successfully'),
             ...authResult,
@@ -280,11 +275,11 @@ export class AuthenticationController {
         if (result.outcome === 'invalid-strategy') {
             throw new BadRequestException('Invalid MFA strategy')
         }
-        reply.setCookie('__logged_in', 'true', {
-            ...this.cookieConf,
-            maxAge: result.persistLogin ? this.LONG_SESSION_TTL : undefined,
-            httpOnly: false
-        })
+        this.setLoginMarker(
+            reply,
+            'true',
+            result.persistLogin ? this.LONG_SESSION_TTL : undefined
+        )
         return {
             ...this.response.ok('Authenticated successfully'),
             accessToken: result.accessToken,
@@ -378,20 +373,8 @@ export class AuthenticationController {
             if (result.outcome === 'unauthorized') {
                 throw new UnauthorizedException()
             }
-            this.secureCookieService.setSignedCookie(
-                reply,
-                '__node_session_id',
-                result.sessionId,
-                {
-                    ...this.cookieConf,
-                    maxAge: this.LONG_SESSION_TTL
-                }
-            )
-            reply.setCookie('__logged_in', 'true', {
-                ...this.cookieConf,
-                maxAge: this.LONG_SESSION_TTL,
-                httpOnly: false
-            })
+            this.setSessionCookie(reply, result.sessionId, this.LONG_SESSION_TTL)
+            this.setLoginMarker(reply, 'true', this.LONG_SESSION_TTL)
             return {
                 ...this.response.ok(
                     `Authenticated successfully, oauth2_provider=${result.provider}`

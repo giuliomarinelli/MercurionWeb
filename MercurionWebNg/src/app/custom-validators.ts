@@ -1,5 +1,5 @@
 import { AbstractControl, AsyncValidatorFn, ValidatorFn } from "@angular/forms";
-import { AuthService } from "./services/auth.service";
+import { AuthTransportService } from "./services/auth-transport.service";
 import { catchError, debounceTime, distinctUntilChanged, of, switchMap } from "rxjs";
 import { map } from 'rxjs/operators'
 
@@ -16,7 +16,7 @@ export const matchPassword: ValidatorFn = (control: AbstractControl) => {
   return password.value === confirm.value ? null : { matchPassword: true }
 };
 
-export function emailAvailabilityValidator(auth: AuthService): AsyncValidatorFn {
+export function emailAvailabilityValidator(auth: Pick<AuthTransportService, 'isUserAvailableByEmail'>): AsyncValidatorFn {
   return (control: AbstractControl) => {
     if (!control.value) {
       return of(null)

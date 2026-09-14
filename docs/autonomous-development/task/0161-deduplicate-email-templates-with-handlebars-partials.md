@@ -1,6 +1,6 @@
 # 0161 - Deduplicate email templates with Handlebars partials
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -89,21 +89,46 @@ Do not optimize only for textual line-count reduction. The goal is one maintaina
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-012`, based on `4c65f282a56543e9fe276cf331eedfb2c816e321`.
 ### Preflight
-_Not started._
+Clean branch identity and exact base verified locally. `develop` and
+`origin/develop` both matched the supplied SHA. GitHub Actions CI run
+`34711235203` for that exact SHA completed successfully. No task-owned
+Angular, Nest, Tox21, Jest, or watcher process was active. The local
+dependency tree was reused; `npm ci` and `npm run ci:check` were not run.
 ### Preflight remediation
-_None._
+None.
 ### Summary
-_Not started._
+Created one canonical `layouts/email-shell.hbs` plus shared
+`partials/email-styles.hbs`, `partials/email-logo.hbs`, and
+`partials/email-footer.hbs`. Reduced all 13 message templates to their
+message-specific content blocks while retaining existing subjects, wording,
+links, strict escaping, and footer copy. Added
+`DeterministicHandlebarsAdapter`, which registers repository-owned partials by
+stable relative names and configures the mailer for the source/build template
+location without machine-specific absolute literals.
 ### Task-specific validation performed
-_Not started._
+`npm test --workspace mercurion_web_node -- --runInBand
+--runTestsByPath src/app_modules/notification/email-templates/email-templates.spec.ts
+src/app_modules/notification/services/mail-sender/mail-sender.service.spec.ts`
+passed: 17 tests. The render fixtures cover all 13 templates, assert shell,
+header/footer, CTA/link output, escaped URL/message-body output, strict
+missing-context failure, and the no-full-layout duplication guard.
+`npm run lint --workspace mercurion_web_node` passed with 0 errors and 48
+pre-existing warnings. `git diff --check` passed.
+`npm run typecheck --workspace mercurion_web_node` passed and
+`npm run build --workspace mercurion_web_node` passed.
 ### Full pre-merge CI-parity validation
-_Not started._
+Not run locally by policy; exact feature-SHA GitHub Actions supplies the
+clean-install and aggregate CI evidence.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-_Not recorded._
+`20242be0a22d39feeca932551d9cf198b88ca42f` — refactor email templates with
+canonical layouts/partials, deterministic adapter resolution, fixtures, and
+duplication guard. Includes the required Copilot co-author trailer.
+`b449a2b18e04803aa2d73ce806f82f1dcaefde1f` — record final execution evidence
+and DONE state.
 ### Merge / CI
 _Not started._
 ### Rollback

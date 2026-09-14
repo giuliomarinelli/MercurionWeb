@@ -1,5 +1,5 @@
 import type { MailerOptions } from '@nestjs-modules/mailer'
-import { HandlebarsAdapter } from '@nestjs-modules/mailer/adapters/handlebars.adapter'
+import { DeterministicHandlebarsAdapter } from '../app_modules/notification/email-templates/deterministic-handlebars.adapter'
 import { join } from 'path'
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies'
 
@@ -146,10 +146,15 @@ export const configurationBuilders = {
             from: environment.EMAIL_DEFAULT_FROM
         },
         template: {
-            dir: join(__dirname, './email/templates'),
-            adapter: new HandlebarsAdapter(),
+            dir: join(__dirname, '../app_modules/notification/email-templates'),
+            adapter: new DeterministicHandlebarsAdapter(join(__dirname, '../app_modules/notification/email-templates')),
             options: {
                 strict: true
+            },
+        },
+        options: {
+            partials: {
+                dir: join(__dirname, '../app_modules/notification/email-templates')
             }
         }
     }),

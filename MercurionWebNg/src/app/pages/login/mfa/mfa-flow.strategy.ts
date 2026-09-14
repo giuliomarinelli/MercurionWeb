@@ -8,7 +8,7 @@ import type {
   TotpBodyDTO
 } from '@mercurion/rest-contracts'
 import type { PersistedPreAuthState } from '../../../Models/auth/pre-auth.models'
-import { AuthService } from '../../../services/auth.service'
+import { AuthTransportService } from '../../../services/auth-transport.service'
 
 export type MfaCode = TotpBodyDTO | BackupCodeDTO
 
@@ -73,7 +73,7 @@ abstract class BaseMfaStrategy implements MfaStrategySession {
 
   constructor(
     readonly strategy: MfaStrategy,
-    protected readonly auth: AuthService,
+    protected readonly auth: AuthTransportService,
     protected readonly context: MfaStrategyContext
   ) {}
 
@@ -87,7 +87,7 @@ abstract class BaseMfaStrategy implements MfaStrategySession {
     }
 
     this.pending = true
-    return defer(() => this.auth.login_thirdStep(
+    return defer(() => this.auth.loginThirdStep(
       this.strategy,
       code,
       {
@@ -113,7 +113,7 @@ class EmailOtpStrategy extends BaseMfaStrategy {
   readonly challengeLabel = 'Codice monouso'
 
   override initialize(): Observable<void> {
-    return this.auth.login_secondStep(
+    return this.auth.loginSecondStep(
       'EMAIL_OTP',
       this.context.preAuth.preAuthorizationToken,
       this.context.trustVerify
@@ -126,7 +126,7 @@ class SmsOtpStrategy extends BaseMfaStrategy {
   readonly challengeLabel = 'Codice monouso'
 
   override initialize(): Observable<void> {
-    return this.auth.login_secondStep(
+    return this.auth.loginSecondStep(
       'SMS_OTP',
       this.context.preAuth.preAuthorizationToken,
       false
@@ -146,7 +146,7 @@ class BackupCodeStrategy extends BaseMfaStrategy {
 
 @Injectable({ providedIn: 'root' })
 export class MfaStrategyRegistry {
-  constructor(private readonly auth: AuthService) {}
+  constructor(private readonly auth: AuthTransportService) {}
 
   create(strategy: MfaStrategy, context: MfaStrategyContext): MfaStrategySession | null {
     switch (strategy) {

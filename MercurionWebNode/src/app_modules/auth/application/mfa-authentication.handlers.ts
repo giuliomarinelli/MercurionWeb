@@ -3,6 +3,7 @@ import { UUID } from 'crypto'
 import type { FingerprintData } from '@mercurion/rest-contracts'
 
 import { RedisService } from 'src/app_modules/redis/services/redis.service'
+import { redisKeys } from 'src/app_modules/redis/contracts/redis-contracts'
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface'
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service'
 import { UserService } from 'src/app_modules/user/services/user.service'
@@ -160,7 +161,9 @@ export class CompleteMfaLoginHandler {
             )
         }
 
-        const expectedDeviceId = await this.redisService.get(`mfa:pat:dev:${jti}`)
+        const expectedDeviceId = await this.redisService.get(
+            redisKeys.mfa.preAuthorizationDevice(jti)
+        )
         if (expectedDeviceId && expectedDeviceId !== command.actualDeviceId) {
             await this.sessionService.revokeToken(jti)
             throw applicationHttpException(ApplicationErrorCode.MFA_DEVICE_MISMATCH)

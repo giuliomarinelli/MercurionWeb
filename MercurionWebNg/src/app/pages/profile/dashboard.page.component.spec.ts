@@ -34,8 +34,7 @@ describe('ProfileComponent', () => {
     profileResult.error(new Error('profile unavailable'));
     fixture.detectChanges();
 
-    expect(component.loading()).toBeFalse();
-    expect(component.serverError()).toBeTrue();
+    expect(component.facade.state().status).toBe('error');
     expect(fixture.nativeElement.querySelector('[role="alert"]')?.textContent)
       .toContain('errore nel caricamento della dashboard');
   });

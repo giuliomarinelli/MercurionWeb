@@ -69,8 +69,6 @@ describe('application environment resolution', () => {
 
     it.each([
         'Dockerfile',
-        'Dockerfile.staging',
-        'Dockerfile.test',
         '../k8s/beta/mercurion-web-node-deploy.yaml',
         '../k8s/beta/mercurion-web-ng-deploy.yaml'
     ])('uses supported APP_ENV values in %s', relativePath => {

@@ -61,10 +61,10 @@ const SIZE_CLASSES: Record<ActionCardSize, string> = {
     }
 
     .m-action-card {
-      background: var(--m-action-card-background, white);
-      border: 1px solid var(--m-action-card-border, rgb(226 232 240));
-      border-radius: 1rem;
-      color: var(--m-action-card-color, inherit);
+      background: var(--m-action-card-background, var(--color-surface-elevated));
+      border: 1px solid var(--m-action-card-border, var(--color-border));
+      border-radius: var(--radius-surface);
+      color: var(--m-action-card-color, var(--color-on-surface-main));
       display: flex;
       flex-direction: column;
       max-height: calc(100dvh - 2rem);
@@ -91,13 +91,13 @@ const SIZE_CLASSES: Record<ActionCardSize, string> = {
 
     .m-action-card__header {
       align-items: center;
-      background: rgb(255 255 255 / 0.92);
-      border-bottom: 1px solid rgb(226 232 240);
+      background: color-mix(in srgb, var(--color-surface-elevated) 92%, transparent);
+      border-bottom: 1px solid var(--color-border);
       display: flex;
       flex: 0 0 auto;
-      gap: 1rem;
+      gap: var(--space-4);
       justify-content: space-between;
-      padding: 1rem 1.5rem;
+      padding: var(--space-4) var(--space-6);
       position: relative;
       z-index: 1;
     }
@@ -126,18 +126,18 @@ const SIZE_CLASSES: Record<ActionCardSize, string> = {
       }
 
       .m-action-card__header {
-        padding: 0.75rem;
+        padding: var(--space-3);
       }
     }
 
     :host-context(.dark) .m-action-card {
-      --m-action-card-background: var(--dark-surface-main, rgb(15 23 42));
-      --m-action-card-border: rgb(51 65 85);
+      --m-action-card-background: var(--color-surface-elevated);
+      --m-action-card-border: var(--color-border);
     }
 
     :host-context(.dark) .m-action-card__header {
-      background: rgb(15 23 42 / 0.96);
-      border-bottom-color: rgb(51 65 85);
+      background: color-mix(in srgb, var(--color-surface-elevated) 96%, transparent);
+      border-bottom-color: var(--color-border);
     }
   `,
 })

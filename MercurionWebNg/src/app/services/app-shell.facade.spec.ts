@@ -18,7 +18,7 @@ describe('AppShellFacade', () => {
   const sessionSync = {
     handshakeTick: signal(0),
     status: signal<'anonymous'>('anonymous'),
-    syncSession: jasmine.createSpy('syncSession').and.resolveTo()
+    checkSession: jasmine.createSpy('checkSession').and.resolveTo()
   }
   const redirects = { capture: jasmine.createSpy('capture') }
   const scrollContext = {
@@ -27,7 +27,7 @@ describe('AppShellFacade', () => {
 
   beforeEach(() => {
     authState.bootstrap.calls.reset()
-    sessionSync.syncSession.calls.reset()
+    sessionSync.checkSession.calls.reset()
     redirects.capture.calls.reset()
     scrollContext.smoothToTop.calls.reset()
 
@@ -55,7 +55,7 @@ describe('AppShellFacade', () => {
 
     expect(facade).toBeTruthy()
     expect(authState.bootstrap).toHaveBeenCalled()
-    expect(sessionSync.syncSession).toHaveBeenCalled()
+    expect(sessionSync.checkSession).toHaveBeenCalled()
   })
 
   it('exposes route metadata as the shell layout source of truth', async () => {

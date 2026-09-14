@@ -1,9 +1,9 @@
 # 0084 - Centralize viewport and scroll runtime measurements
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -104,43 +104,76 @@ Prefer Angular signals for current browser state and derived computed values, wi
 
 ## Execution notes
 
-> Current status (2026-09-11): PENDING by direct owner instruction because this
-> activity was not completed. Historical attempt/skip evidence remains below
-> for traceability and is not a terminal outcome.
+> Current status (2026-09-14): provisional `DONE` pending exact feature-SHA
+> CI and integration. UI-016 and FE-028 were verified `DONE`.
 
 ### Feature branch
-_Not started._
+`feature/UI-026`
 
 ### Preflight
-_Not started._
+- Clean feature branch at supplied base
+  `483d700e933c9f733c246918c766e7a631fdaecb`.
+- Exact base Actions run `34791552028` for that SHA completed successfully;
+  both platform validation and the stable Required gate were green.
+- No task-owned Angular, Nest, Tox21 or test watcher was active before the
+  task-scoped probe.
+- Focused preflight typecheck and Angular lint passed on the unchanged
+  baseline.
 
 ### Preflight remediation
-_None._
+The first Angular start attempt was corrected immediately by restarting the
+canonical command from `MercurionWebNg`; no repository change or HTTP request
+occurred before all three live runtime handles existed.
 
 ### Summary
-Not attempted because required task 0074 (UI-016) is
-`SKIPPED_DEPENDENCY`.
+Added `ViewportRuntimeService`, a typed readonly signal-based adapter that
+owns window, visual-viewport, orientation and global-scroll listeners,
+coalesces updates, provides near-bottom measurement helpers, and synchronizes
+the retained iOS `--app-vh` compatibility variable. Removed bootstrap-owned
+viewport listeners from `main.ts` and migrated pagination, toast layout,
+Ketcher viewport flags, spinner layout consumers, and viewport fallback reads
+to the adapter. Existing IntersectionObserver usage remains the native
+visibility primitive.
 
 ### Task-specific validation performed
-Not applicable; no feature branch or implementation worker was created.
+- Angular typecheck and lint passed.
+- Focused Karma command
+  `MercurionWebNg/node_modules/.bin/ng.cmd test --watch=false
+  --karma-config=karma.conf.js --include
+  src/app/services/context/viewport-runtime.service.spec.ts` passed: 4 tests.
+- Production inventory confirmed direct viewport reads/listeners remain only
+  in `viewport-runtime.service.ts`; unrelated message, focus, storage and
+  media-query listeners are outside this adapter's ownership.
 
 ### Full pre-merge CI-parity validation
-Not applicable; dependency-skip metadata only.
+Not run locally per policy (`npm ci` and `npm run ci:check` are GitHub Actions
+only). Exact feature-SHA CI is coordinator-owned.
 
 ### Browser validation performed
-Not applicable; the task was not attempted.
+- Canonical runtime started in required order (Tox21, Nest, Angular), with
+  live handles retained and two consecutive readiness rounds:
+  `GET http://localhost:8888/health` and `GET http://localhost:8888/` both
+  returned 200 in each final round. Nest compiled with 0 errors; Angular
+  reached watch mode; Tox21 remained live and connected through NATS.
+- Through the dedicated Chrome DevTools profile and only
+  `http://localhost:8888/login`, exercised the responsive drawer at
+  390x844 mobile, resized to 1280x800 desktop, then emulated 844x390
+  landscape orientation. Snapshots showed the expected responsive
+  navigation state and login content. No relevant console errors were
+  reported.
+- The protected route redirected to the public login flow after the runtime
+  restart; no dummy-auth route or synthetic protected-state evidence was
+  used.
 
 ### Commits
-Pending metadata commit on `develop`.
+- `0a38bb86` — `feat(UI-026): centralize viewport runtime measurements`
 
 ### Merge / CI
-No feature branch or merge. Exact-SHA CI is required for the metadata commit.
+Feature branch will be pushed after the task-specific commit. Coordinator must
+wait for exact feature-SHA CI before integration.
 
 ### Rollback
-_Not applicable._
+Not applicable before integration.
 
 ### Blocker / human decision required
-Direct terminal prerequisite: 0074 (UI-016), `SKIPPED_DEPENDENCY`.
-Transitive chain: UI-026 -> UI-016 -> UI-001 -> FE-030 (BLOCKED). FE-030
-requires filesystem-write capability for a fresh, human-authorized worker
-session.
+None.

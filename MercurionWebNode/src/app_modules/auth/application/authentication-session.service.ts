@@ -11,6 +11,7 @@ import { JwtToolsService } from '../services/jwt-tools.service'
 import { MfaService } from '../services/mfa.service'
 import { SessionService } from '../services/session.service'
 import { RedisService } from 'src/app_modules/redis/services/redis.service'
+import { redisDurations, redisKeys } from 'src/app_modules/redis/contracts/redis-contracts'
 
 @Injectable()
 export class AuthenticationSessionService {
@@ -39,7 +40,11 @@ export class AuthenticationSessionService {
             sessionId
         )
         const payload = this.jwtTools.decodeUnsafe(token)
-        await this.redisService.set(`mfa:pat:dev:${payload.jti}`, deviceId, 300)
+        await this.redisService.set(
+            redisKeys.mfa.preAuthorizationDevice(payload.jti),
+            deviceId,
+            redisDurations.seconds(300)
+        )
         return token
     }
 

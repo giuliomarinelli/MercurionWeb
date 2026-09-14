@@ -4,6 +4,7 @@ import { DecimalPipe, NgClass } from '@angular/common';
 import { MoleculeViewerComponent } from '../../chem/molecule-viewer/molecule-viewer.component';
 import { SearchContextService } from '../../../services/context/search-context.service';
 import { ThemeManagerService } from '../../../services/context/theme-manager.service';
+import { ViewportRuntimeService } from '../../../services/context/viewport-runtime.service';
 import { MoleculeSearchResult } from
   '../../../Models/graphql/molecule-search/molecule-search-result.interface';
 
@@ -62,6 +63,7 @@ export class SimilarItemComponent implements OnDestroy {
   protected readonly searchContext = inject(SearchContextService);
   private readonly themeManager = inject(ThemeManagerService);
   private readonly zone = inject(NgZone);
+  private readonly viewportRuntime = inject(ViewportRuntimeService);
   private host = inject<ElementRef<HTMLElement>>(ElementRef);
 
 
@@ -97,7 +99,7 @@ export class SimilarItemComponent implements OnDestroy {
         { rootMargin: '150px', threshold: 0.01 }
       );
       const isInViewport = (el: HTMLElement) =>
-        el.getBoundingClientRect().top < window.innerHeight + 150; // stesso rootMargin
+        el.getBoundingClientRect().top < this.viewportRuntime.height() + 150; // stesso rootMargin
 
       queueMicrotask(() => {
         if (this.disablePreview() && isInViewport(host.nativeElement)) {

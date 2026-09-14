@@ -1,6 +1,6 @@
 # 0204 - Enforce a code-duplication regression gate
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -92,21 +92,49 @@ The metric is a guardrail, not the design goal. Prefer reducing duplicated domai
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/QA-018`, base `ddf9b07e065130200170e0de77a29e1060fef1eb`.
 ### Preflight
-_Not started._
+Clean feature branch confirmed before edits. The exact base SHA matched
+`develop`/`origin/develop`; GitHub Actions run `34726379907` for that SHA was
+completed and successful (`Required gate` green). No Angular, Nest, Tox21, or
+test-watcher process was active. No `npm ci` or `npm run ci:check` was run.
 ### Preflight remediation
 _None._
 ### Summary
-_Not started._
+Pinned `jscpd` `4.0.5` in the root lockfile and added `.jscpd.json` plus the
+deterministic `npm run ci:duplication` entrypoint. The scan is limited to the
+maintained Angular/Nest source roots and explicitly names test, generated,
+GraphQL document/schema, and asset exclusions while including TypeScript,
+HTML, and CSS extensions. It emits an HTML report under the ignored
+`reports/duplication` directory.
+
+The pre-remediation measurement was 92 TypeScript clone groups, 1,019
+duplicated lines, 11,546 duplicated tokens (1.84%). The scoped refactor
+centralized pagination flattening in `HelpResolver` and session/login-cookie
+policy in `AuthenticationController`, producing 91 groups, 1,001 duplicated
+TypeScript lines, and 11,422 duplicated tokens (1.81%); the combined
+TypeScript/HTML/CSS measurement is 1.79%. The conservative CI threshold is
+1.82%, and `docs/autonomous-development/code-duplication.md` documents the
+scope, exclusions, baseline, and ratcheting procedure.
 ### Task-specific validation performed
-_Not started._
+Passed:
+
+- `npm run ci:duplication` — 91 clones; 1.81% TypeScript and 1.79% combined,
+  HTML report generated at `reports/duplication/html/`.
+- `npm run ci:typecheck:nest`
+- `npm run ci:lint:nest`
+- `git diff --check`
+
+Regression behavior was verified with the same scan and `--threshold=1.78`;
+it exited 1 with `jscpd found too many duplicates (1.79%) over threshold
+(1.78%)`.
 ### Full pre-merge CI-parity validation
-_Not started._
+Not run locally by policy. Complete clean-install and aggregate CI evidence
+belongs to GitHub Actions for the pushed exact feature SHA.
 ### Browser validation performed
 _Not started / not applicable._
 ### Commits
-_Not recorded._
+Pending commit and push after final clean-tree verification.
 ### Merge / CI
 _Not started._
 ### Rollback

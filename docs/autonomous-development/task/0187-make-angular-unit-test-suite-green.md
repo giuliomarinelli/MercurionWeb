@@ -1,6 +1,6 @@
 # 0187 - Make the Angular unit-test suite green
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -92,21 +92,55 @@ Treat the first full-suite run as evidence. Do not assume every failure listed i
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/QA-001` at base `5a55371d6a1322f6b19315c4a6ccebecf3a8bfcd`.
+
 ### Preflight
-_Not started._
+Clean branch and exact identity confirmed. The supplied base SHA has a
+successful GitHub Actions CI run `34712260526`, including both
+`Quality (windows-latest)`, `Quality (ubuntu-latest)`, and `Required gate`
+jobs. No task-owned Angular, Nest, Tox21, or test-watcher process was active;
+the only Node processes were the pre-existing Chrome DevTools MCP server.
+The current dependency tree was used; `npm ci` and `npm run ci:check` were
+not run locally.
+
 ### Preflight remediation
-_None._
+None required. The existing `MercurionWebNg` test target and root
+`ci:test:angular` script already execute the complete non-watch suite.
+
 ### Summary
-_Not started._
+The initial complete suite was already green (`TOTAL: 456 SUCCESS`), so no
+production regression or stale assertion repair was necessary. The existing
+`AppComponent` spec asserts application-shell creation rather than a
+scaffold-era title. A repository-wide Angular spec audit found no `fit`,
+`fdescribe`, `xit`, or `xdescribe` exclusions and no test changes were
+needed. No browser validation was required because production browser
+behavior was not changed.
+
 ### Task-specific validation performed
-_Not started._
+Passed:
+
+- `npm run test:ci --workspace mercurion_web_ng` — complete Angular suite,
+  `TOTAL: 456 SUCCESS`, exit 0.
+- Repeated `npm run test:ci --workspace mercurion_web_ng` after updating this
+  recipe — `TOTAL: 456 SUCCESS`, exit 0.
+- `npm run ci:lint:angular` — exit 0; existing lint warnings only.
+- `npm run ci:typecheck:angular` — exit 0.
+- `npm run ci:build:angular` — Angular build and chemistry lazy-boundary
+  check passed; existing non-fatal bundle/CommonJS warnings only.
+- Focused-exclusion audit over `MercurionWebNg/src/**/*.spec.ts` — zero
+  `fit`, `fdescribe`, `xit`, or `xdescribe` matches.
+
 ### Full pre-merge CI-parity validation
-_Not started._
+The canonical root CI interface already contains
+`ci:test:angular: npm run test:ci --workspace mercurion_web_ng`, and the
+base SHA's exact CI run passed the complete aggregate validation on Windows
+and Ubuntu. Local `npm run ci:check` was intentionally not run per policy.
+
 ### Browser validation performed
-_Not started / not applicable._
+Not applicable: no production code or browser-visible behavior changed.
+
 ### Commits
-_Not recorded._
+- `5ed3affc` — QA-001 verification, task notes and `DONE` outcome.
 ### Merge / CI
 _Not started._
 ### Rollback

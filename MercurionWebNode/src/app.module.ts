@@ -10,7 +10,6 @@ import { GlobalGuard } from './app_modules/auth/guards/global.guard';
 import { SocketIoModule } from './app_modules/socket.io/socket.io.module';
 import { NotificationModule } from './app_modules/notification/notification.module';
 import { MeilisearchModule } from './app_modules/meilisearch/meilisearch.module';
-import { TestController } from './test.controller';
 import { DropboxObjectStoreModule } from './app_modules/dropbox-object-store/dropbox-object-store.module';
 import { OAuth2ClientModule } from './app_modules/oauth2-client/oauth2-client.module';
 import { EmbeddingModule } from './app_modules/embedding/embedding.module';
@@ -28,6 +27,7 @@ import { ReleaseVersionModule } from './app_modules/release-version/release-vers
 import { HealthController } from './health.controller';
 import { AssetController } from './asset.controller';
 import { ReadinessService } from './shutdown/readiness.service'
+import { ResponseModule } from './services/response.module'
 import {
   createConfigurationModule,
   type ConfigurationModuleOptions
@@ -64,7 +64,8 @@ import {
     SSO_Module,
     HelpModule,
     FeedbackModule,
-    ReleaseVersionModule
+    ReleaseVersionModule,
+    ResponseModule
   ],
   providers: [
     ReadinessService,
@@ -73,7 +74,7 @@ import {
       useExisting: GlobalGuard
     }
   ],
-  controllers: [TestController, HealthController, AssetController]
+  controllers: [HealthController, AssetController]
 })
 export class AppModule { }
 

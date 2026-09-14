@@ -11,7 +11,11 @@ describe('SecureCookieService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         SecureCookieService,
-        { provide: ConfigService, useValue: { get: jest.fn().mockReturnValue('') } },
+        { provide: ConfigService, useValue: { get: jest.fn().mockReturnValue({
+          secret: 'test-secret',
+          httpOnly: true,
+          sameSite: 'lax',
+        }) } },
         { provide: MeiliLoggerService, useValue: { forContext: jest.fn().mockReturnValue(mockLogger) } },
       ],
     }).compile();
@@ -19,7 +23,14 @@ describe('SecureCookieService', () => {
     service = module.get<SecureCookieService>(SecureCookieService);
   });
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
+  it('round-trips signed cookie values', () => {
+    const signed = service.signCookie('session-123');
+
+    expect(service.verifyAndParseCookie(signed)).toBe('session-123');
+  });
+
+  it('rejects tampered and missing cookie values', () => {
+    expect(() => service.verifyAndParseCookie('session-123.invalid')).toThrow();
+    expect(() => service.getSignedCookie({ cookies: {} } as any, 'session')).toThrow();
   });
 });

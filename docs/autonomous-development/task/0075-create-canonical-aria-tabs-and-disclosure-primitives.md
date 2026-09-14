@@ -1,7 +1,7 @@
 # 0075 - Create canonical ARIA Tabs and Disclosure primitives
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -95,45 +95,52 @@ Use native focusable elements and DOM order; avoid maintaining a parallel manual
 
 ## Execution notes
 
-> Current status (2026-09-11): PENDING by direct owner instruction because this
-> activity was not completed. Historical attempt/skip evidence remains below
-> for traceability and is not a terminal outcome.
+> Current status (2026-09-13): BLOCKED during the v8 autonomous session after
+> partial implementation. Required consumer migration and stable Help-route
+> browser evidence were incomplete.
 
 ### Feature branch
-_Not started._
+`feature/UI-017` is preserved and frozen at
+`d1ea7d2946bfe3ae19ff3419c4d0603d1edcd3d3`, with the same SHA on origin.
 
 ### Preflight
-_Not started._
+Exact base-SHA CI run `34786428763` succeeded. Runtime capability preflight
+passed with the required startup order, two readiness rounds, and protected
+dashboard state; all task-owned processes were stopped before handoff.
 
 ### Preflight remediation
 _None._
 
 ### Summary
-Not attempted. Both required canonical interactive primitives are terminally
-unavailable: task 0059 (UI-001) and task 0067 (UI-009) are
-`SKIPPED_DEPENDENCY` because their prerequisite chain includes task 0052
-(FE-030), which is `BLOCKED`.
+Implemented typed standalone Tabs and Disclosure primitives, migrated the Help
+tabpanel relationship, and added focused tests. The task is blocked because
+existing expandable consumers were not migrated and the Help route could not
+provide stable tablist browser evidence.
 
 ### Task-specific validation performed
-Not applicable; no feature branch or implementation worker was created.
+480 Angular tests passed; typecheck, lint, and `git diff --check` passed. No
+full feature CI was requested because the task was blocked before integration.
 
 ### Full pre-merge CI-parity validation
-Not applicable; dependency-skip metadata only.
+Not applicable; the task was blocked before integration.
 
 ### Browser validation performed
-Not applicable; the task was not attempted.
+Protected dashboard state was confirmed after ordinary login. The Help route
+redirected or remained busy, so required Tabs accessibility-tree, keyboard,
+focus, and tabpanel evidence could not be safely claimed. A dashboard sidenav
+disclosure exposed `aria-expanded="true"` but was not a canonical migration.
 
 ### Commits
-Pending metadata commit on `develop`.
+Implementation and blocker commits are preserved on `feature/UI-017`; the
+blocked outcome is recorded here on `develop`.
 
 ### Merge / CI
-No feature branch or merge. Exact-SHA CI is required for the metadata commit.
+No feature merge. This metadata-only status commit requires exact CI before
+continuing.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-Direct terminal prerequisites: 0059 (UI-001) and 0067 (UI-009), both
-`SKIPPED_DEPENDENCY`. Transitive dependency chain: UI-017 -> UI-001 ->
-FE-030 (BLOCKED); UI-017 -> UI-009 -> FE-030 (BLOCKED). FE-030 requires
-filesystem-write capability for a fresh, human-authorized worker session.
+Migrate existing expandable consumers to the canonical Disclosure primitive and
+complete stable Help-route Tabs browser evidence in a new authorized session.

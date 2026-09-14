@@ -15,6 +15,7 @@ import { LoginCredentialFormComponent } from './login-credential-form.component'
 import { LoginSsoChooserComponent } from './login-sso-chooser.component'
 import type { LoginCredentials } from './login-flow.models'
 import { environment } from '../../../environments/environment'
+import { adaptHttpFormError } from '../../utils/form-error.adapter'
 
 @Component({
   selector: 'm-login',
@@ -81,7 +82,10 @@ export class LoginPageComponent implements OnInit {
     this.facade.checkEmail(email).subscribe({
       next: () => this.credentialForm()?.showPasswordStep(),
       error: error => {
-        this.credentialForm()?.showEmailError("L'e-mail inserita non è corretta")
+        const formError = adaptHttpFormError(error, {
+          AUTHENTICATION_INVALID_CREDENTIALS: { email: 'email' }
+        })
+        this.credentialForm()?.showEmailError(formError.fieldErrors.email ?? formError.globalError ?? "L'e-mail inserita non è corretta")
         this.errors.setFromHttp(error, 'login')
       },
       complete: () => this.credentialForm()?.setPending(false)
@@ -94,11 +98,12 @@ export class LoginPageComponent implements OnInit {
     form?.setPending(true)
     this.facade.login(credentials).subscribe({
       error: error => {
+        const formError = adaptHttpFormError(error)
         const category = this.errors.setFromHttp(error, 'login')?.category
         if (category === 'invalid-credentials') {
-          form?.showCredentialError('La password inserita non è corretta.')
+          form?.showCredentialError(formError.globalError ?? 'La password inserita non è corretta.')
         } else if (category === 'rate-limited') {
-          form?.showCredentialError('Troppi tentativi, riprova tra qualche minuto.')
+          form?.showCredentialError(formError.globalError ?? 'Troppi tentativi, riprova tra qualche minuto.')
         }
         form?.resetTurnstile()
       },

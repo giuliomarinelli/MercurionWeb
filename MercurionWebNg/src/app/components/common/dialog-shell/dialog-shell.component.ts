@@ -18,6 +18,20 @@ export type DialogDismissalPolicy = {
   backdrop: boolean;
 };
 
+export type DialogBackdropVariant = 'default' | 'action' | 'search';
+export type DialogPanelVariant = 'default' | 'search';
+
+const BACKDROP_CLASSES = {
+  default: 'bg-black/60',
+  action: 'bg-slate-300/75 dark:bg-slate-900/90 action-overlay-backdrop',
+  search: 'bg-black/70 text-light-on-surface-main dark:text-slate-50',
+} satisfies Record<DialogBackdropVariant, string>;
+
+const PANEL_CLASSES = {
+  default: 'w-full max-w-lg rounded-2xl bg-white shadow-xl overflow-hidden dark:bg-slate-900',
+  search: '!max-w-none !bg-transparent !shadow-none !rounded-none !overflow-visible',
+} satisfies Record<DialogPanelVariant, string>;
+
 @Component({
   selector: 'm-dialog-shell',
   standalone: true,
@@ -28,7 +42,7 @@ export type DialogDismissalPolicy = {
       <div
         #dialog
         class="fixed inset-0 z-[999] backdrop-blur-sm transition-all duration-300 m-dialog-backdrop"
-        [class]="backdropClass()"
+        [class]="BACKDROP_CLASSES[backdropVariant()]"
         [class.opacity-0]="!open()"
         [class.opacity-100]="open()"
         role="dialog"
@@ -44,7 +58,7 @@ export type DialogDismissalPolicy = {
         (keydown.escape)="onEscape($event)"
       >
         <div class="min-h-full flex items-center justify-center p-4 m-overscroll-touch">
-          <div [class]="panelClass()"
+          <div [class]="PANEL_CLASSES[panelVariant()]"
                (click)="$event.stopPropagation()">
             <ng-content />
           </div>
@@ -59,8 +73,8 @@ export class DialogShellComponent {
   readonly labelledBy = input<string | null>(null);
   readonly describedBy = input<string | null>(null);
   readonly label = input<string | null>(null);
-  readonly backdropClass = input('bg-black/60');
-  readonly panelClass = input('w-full max-w-lg rounded-2xl bg-white shadow-xl overflow-hidden dark:bg-slate-900');
+  readonly backdropVariant = input<DialogBackdropVariant>('default');
+  readonly panelVariant = input<DialogPanelVariant>('default');
   readonly dismissalPolicy = input<DialogDismissalPolicy>({ escape: true, backdrop: true });
   readonly dismissed = output<'escape' | 'backdrop'>();
 
@@ -70,6 +84,9 @@ export class DialogShellComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly opener = signal<HTMLElement | null>(null);
   private locked = false;
+
+  protected readonly BACKDROP_CLASSES = BACKDROP_CLASSES;
+  protected readonly PANEL_CLASSES = PANEL_CLASSES;
 
   constructor() {
     effect(() => {

@@ -5,6 +5,7 @@ import Redis from 'ioredis';
 import { ConfigService } from '@nestjs/config';
 import { RedisConfiguration } from 'src/config/config.types';
 import { MeiliLoggerService } from '../meilisearch/services/meili-logger.service';
+import { RedisCapabilityService } from './services/redis-capability.service'
 
 @Global()
 @Module({
@@ -41,8 +42,9 @@ import { MeiliLoggerService } from '../meilisearch/services/meili-logger.service
             },
         },
         RedisService,
+        RedisCapabilityService,
         PubSubService
     ],
-    exports: [RedisService, Redis, PubSubService]
+    exports: [RedisService, Redis, RedisCapabilityService, PubSubService]
 })
 export class RedisModule { }

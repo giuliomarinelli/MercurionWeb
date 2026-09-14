@@ -13,6 +13,11 @@ spec:
       labels:
         app: mercurion-web-ng
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10101
+        runAsGroup: 10101
+        fsGroup: 10101
       containers:
         - name: web-ng
           image: europe-west8-docker.pkg.dev/mercurion-483615/mercurion/mercurion-web-ng:1.0-beta-1c61
@@ -24,6 +29,14 @@ spec:
               value: "production"
             - name: APP_ENV
               value: "staging"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
           resources:
             requests:
               cpu: "50m"
@@ -31,6 +44,10 @@ spec:
             limits:
               cpu: "300m"
               memory: "512Mi"
+      volumes:
+        - name: tmp
+          emptyDir:
+            medium: Memory
 
 
 ---

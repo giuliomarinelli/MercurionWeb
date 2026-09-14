@@ -111,10 +111,10 @@ export class UserService implements IdentityReadPort {
             await queryRunner.commitTransaction()
             return user
         } catch {
-            queryRunner.rollbackTransaction()
+            await queryRunner.rollbackTransaction()
             return null
         } finally {
-            queryRunner.release()
+            await queryRunner.release()
         }
     }
 

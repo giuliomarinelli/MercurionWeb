@@ -146,3 +146,9 @@ requiring a test-safe local Nest runtime for mandatory browser validation).
 ### Dependency skip
 
 Direct terminal prerequisite: 0077 (), terminal non-DONE dependency.
+
+### Dependency skip
+
+Direct terminal prerequisite: `0071` (`UI-013`), `BLOCKED`; the other direct
+prerequisite `0083` remains pending. This task was materialized in the new
+terminal closure on 2026-09-13.
