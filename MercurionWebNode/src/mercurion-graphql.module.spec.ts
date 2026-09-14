@@ -25,7 +25,7 @@ describe('Mercurion GraphQL contract versioning', () => {
   ) => unknown
 
   const createConfig = () => createMercurionGraphQLConfig({
-    get: jest.fn().mockReturnValue(Environment.Development)
+    getOrThrow: jest.fn().mockReturnValue(Environment.Development)
   } as unknown as ConfigService)
 
   const createRequestReply = (major?: string) => {
@@ -44,6 +44,10 @@ describe('Mercurion GraphQL contract versioning', () => {
     } as unknown as FastifyReply
     return { request, reply, responseHeaders }
   }
+
+  it('keeps the runtime-generated schema in memory', () => {
+    expect(createConfig().autoSchemaFile).toBe(true)
+  })
 
   it('discloses canonical response metadata without a legacy warning for major 1', async () => {
     const config = createConfig()

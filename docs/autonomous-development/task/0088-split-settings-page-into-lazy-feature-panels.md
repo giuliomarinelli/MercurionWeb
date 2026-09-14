@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -121,3 +121,9 @@ Direct terminal prerequisite: task `0087` (`NG-001`), `BLOCKED`.
 Transitive dependency chain: `0088` -> `0087` (`NG-001` BLOCKED). The blocked
 task requires independently testable sensitive-data workflow implementations
 and focused lifecycle tests.
+
+### Dependency skip
+
+Direct terminal prerequisite: `0087` (`NG-001`), `BLOCKED`; transitive root
+`0071` (`UI-013`) is also `BLOCKED`. This task was materialized in the new
+terminal closure on 2026-09-13.

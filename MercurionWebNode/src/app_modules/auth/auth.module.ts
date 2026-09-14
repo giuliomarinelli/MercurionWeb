@@ -8,7 +8,6 @@ import { SercurityService } from './services/sercurity.service';
 import { AccountService } from './services/account.service';
 import { AccountController } from './controllers/account.controller';
 import { MfaService } from './services/mfa.service';
-import { AuthenticationService } from './services/authentication.service';
 import { AuthenticationController } from './controllers/authentication.controller';
 import { IpService } from './services/ip.service';
 import { GeoIpService } from './services/geo-ip.service';
@@ -29,6 +28,35 @@ import { IDENTITY_READ_PORT } from './Models/interfaces/identity-read.port';
 import { RedisModule } from '../redis/redis.module';
 import { ResponseModule } from 'src/services/response.module';
 import { GlobalGuard } from './guards/global.guard';
+import { AccessTokenAuthenticationPolicy } from './guards/policies/access-token-authentication.policy';
+import { AuthenticationFailurePolicy } from './guards/policies/authentication-failure.policy';
+import { AuthenticationRequestContextFactory } from './guards/policies/authentication-request-context.factory';
+import { AuthenticationTransportPolicy } from './guards/policies/authentication-transport.policy';
+import { CredentialExtractionPolicy } from './guards/policies/credential-extraction.policy';
+import { ScopeAuthorizationPolicy } from './guards/policies/scope-authorization.policy';
+import { SessionValidationPolicy } from './guards/policies/session-validation.policy';
+import { AuthenticationSessionService } from './application/authentication-session.service';
+import {
+  CredentialLoginHandler,
+  VerifyEmailHandler
+} from './application/credential-authentication.handlers';
+import {
+  CompleteMfaLoginHandler,
+  StartMfaChallengeHandler
+} from './application/mfa-authentication.handlers';
+import {
+  ListActiveSessionsHandler,
+  LogoutHandler,
+  RefreshWsAccessTokenHandler,
+  RevokeAllSessionsHandler,
+  RevokeSessionHandler
+} from './application/session-authentication.handlers';
+import { CompleteSsoAuthenticationHandler } from './application/sso-authentication.handler';
+import { LocalDummyLoginHandler } from './application/local-dummy-login.handler';
+import { SessionIdentityService } from './services/session-identity.service';
+import { SessionRedisCodec } from './repositories/session-redis.codec';
+import { RedisSessionRepository } from './repositories/redis-session.repository';
+import { SESSION_REPOSITORY } from './Models/interfaces/session-repository.interface';
 
 
 
@@ -45,12 +73,30 @@ import { GlobalGuard } from './guards/global.guard';
     JwtToolsService,
     PasswordEncoderService,
     JwtService,
+    SessionIdentityService,
+    SessionRedisCodec,
+    RedisSessionRepository,
+    {
+      provide: SESSION_REPOSITORY,
+      useExisting: RedisSessionRepository
+    },
     SessionService,
     SecureCookieService,
     SercurityService,
     AccountService,
     MfaService,
-    AuthenticationService,
+    AuthenticationSessionService,
+    VerifyEmailHandler,
+    CredentialLoginHandler,
+    StartMfaChallengeHandler,
+    CompleteMfaLoginHandler,
+    LogoutHandler,
+    RevokeSessionHandler,
+    RevokeAllSessionsHandler,
+    RefreshWsAccessTokenHandler,
+    ListActiveSessionsHandler,
+    CompleteSsoAuthenticationHandler,
+    LocalDummyLoginHandler,
     IpService,
     GeoIpService,
     TurnstileService,
@@ -58,6 +104,13 @@ import { GlobalGuard } from './guards/global.guard';
     CountryService,
     JwtKeysProvider,
     LocalDummyAuthService,
+    AuthenticationRequestContextFactory,
+    CredentialExtractionPolicy,
+    AccessTokenAuthenticationPolicy,
+    SessionValidationPolicy,
+    ScopeAuthorizationPolicy,
+    AuthenticationTransportPolicy,
+    AuthenticationFailurePolicy,
     GlobalGuard,
     {
       provide: IDENTITY_READ_PORT,

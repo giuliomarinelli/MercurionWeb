@@ -1,6 +1,6 @@
 # 0206 - Make container builds lockfile-reproducible
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -96,21 +96,43 @@ Keep the cache boundary deterministic: package metadata should invalidate depend
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/QA-020`
 ### Preflight
-_Not started._
+Clean `feature/QA-020` at base SHA `17cbdc0dba95c80be5aa85102c9edaede624e818`,
+equal to `origin/develop`. Exact base CI run `34727443185` completed
+successfully. Repository-local `commit.gpgSign` is `false`. No runtime/browser
+validation is applicable.
 ### Preflight remediation
 _None._
 ### Summary
-_Not started._
+Updated all six maintained Angular/Nest environment Dockerfiles to use the
+root workspace context and immutable `npm ci --ignore-scripts` installs against
+the committed root lockfile, followed by the existing root postinstall so
+contract builds and the verified patch-package application remain mandatory.
+Pinned every Node build/runtime stage to Node `22.16.0` with an npm `10.9.2`
+assertion, added root context exclusions for local dependency/state and
+credentials, corrected all Compose build contexts, and added a canonical
+six-target no-cache CI matrix.
 ### Task-specific validation performed
-_Not started._
+Passed `npm run ci:containers`, including the deliberately mismatched
+manifest/lockfile fixture failing under `npm ci --dry-run --offline`.
+Passed `docker compose config --quiet` for local-staging, beta, and production
+Compose files. Built each target from the repository root with
+`docker build --pull --no-cache`:
+
+- Angular: `Dockerfile`, `Dockerfile.staging`, `Dockerfile.test`
+- Nest: `Dockerfile`, `Dockerfile.staging`, `Dockerfile.test`
+
+The Nest test image completed all 148 suites / 455 tests. Builds completed
+without tracked-file changes.
 ### Full pre-merge CI-parity validation
-_Not started._
+Reserved for GitHub Actions on the exact pushed feature SHA; local
+`npm ci`/`npm run ci:check` were not run.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-_Not recorded._
+`dd2c386d0e539bae50b2845b05cc626b73d7767a` — `qa: make container builds
+lockfile reproducible`
 ### Merge / CI
 _Not started._
 ### Rollback

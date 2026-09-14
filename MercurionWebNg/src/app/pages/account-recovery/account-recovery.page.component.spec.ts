@@ -22,11 +22,17 @@ describe('AccountRecoveryPageComponent', () => {
   });
 
   it('stops reacting to form changes after destruction', () => {
-    component.serverErrorStep.set({ code: 401, step: 1 });
+    component.serverErrorStep.set({
+      step: 1,
+      error: { fieldErrors: {}, globalError: 'Il codice è errato.' }
+    });
 
     fixture.destroy();
     component.codeCtrl.setValue('replacement-code');
 
-    expect(component.serverErrorStep()).toEqual({ code: 401, step: 1 });
+    expect(component.serverErrorStep()).toEqual({
+      step: 1,
+      error: { fieldErrors: {}, globalError: 'Il codice è errato.' }
+    });
   });
 });

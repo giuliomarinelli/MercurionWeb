@@ -51,7 +51,7 @@ export class RDKitService implements OnModuleInit {
             [RDKIT_OPERATIONS.areSameStructure]: 'rdkit_api.are_same_structure'
         }
 
-        const env = this.configService.get<Environment>('App.env')!
+        const env = this.configService.getOrThrow<Environment>('App.env')
         if (env !== Environment.Production) {
             return {
                 [RDKIT_OPERATIONS.getMoleculeProperties]: `${env}.${base.get_molecule_properties}`,

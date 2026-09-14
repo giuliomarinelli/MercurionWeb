@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Remove or safely replace every audited deprecated/legacy direct dependency and make any unavoidable residual dependency an explicit time-bounded exception so clean install/build output contains no unaccepted deprecation warning.
@@ -124,3 +124,8 @@ _Not applicable._
 Direct terminal prerequisite: 0085 (UI-027), `SKIPPED_DEPENDENCY`.
 Transitive root: 0076 (UI-018), `BLOCKED`; its preserved feature branch
 remains deliberately frozen.
+
+### Dependency skip
+
+Direct terminal prerequisite: `0085` (`UI-027`), `SKIPPED_DEPENDENCY`; its
+transitive root is `0071` (`UI-013`), `BLOCKED`. Materialized on 2026-09-13.

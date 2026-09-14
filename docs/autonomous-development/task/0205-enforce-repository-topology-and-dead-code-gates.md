@@ -102,8 +102,9 @@ _Not started._
 ### Preflight remediation
 _None._
 ### Summary
-Not attempted because direct terminal prerequisite 0114 (NG-028) is
-`BLOCKED`.
+Skipped because direct terminal prerequisite 0114 (NG-028) is
+`BLOCKED` after its authorized recovery remained blocked by the unresolved
+Notebook ownership decision. This is the direct and transitive root cause.
 ### Task-specific validation performed
 _Not started._
 ### Full pre-merge CI-parity validation
@@ -111,12 +112,12 @@ _Not started._
 ### Browser validation performed
 _Not started / not applicable._
 ### Commits
-_Not recorded._
+Metadata-only status update on `develop`.
 ### Merge / CI
-_Not started._
+Recorded with the aggregate dependency-skip metadata commit on `develop`.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
 Direct terminal prerequisite and transitive root: 0114 (NG-028),
 `BLOCKED`. Its existing feature branch remains deliberately preserved and
-frozen.
+frozen; no feature branch or worker was created for this task.

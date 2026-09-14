@@ -1,6 +1,6 @@
 # 0111 - Make heavy Angular features lazy and meet production bundle budgets
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -89,27 +89,75 @@ Mark `BLOCKED` rather than raising budgets if the existing budget cannot be met 
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/NG-025` at base `4f6a89ae4111f9a0af6ac8f5a0a3d73f0f995e00`.
 ### Preflight
-_Not started._
+Confirmed clean `feature/NG-025` and exact base SHA. GitHub Actions run
+`34796831553` for that SHA completed successfully with both platform
+prerequisite jobs, Angular/Nest unit and E2E jobs, build artifacts, all
+container jobs, and `Required gate` green. Prerequisites `0095`, `0104`,
+`0105`, and `0106` are `DONE`.
+
+Focused production baseline (`npm run build --workspace mercurion_web_ng`)
+was `974,817` initial bytes against the unchanged `1,000,000` byte error
+budget. The build emitted the existing warning-only `500 kB` initial warning;
+the error budget passed. The baseline's largest optional chunks were the
+dashboard charts (`207,905` bytes), ngx-quill (`204,738` bytes), and RDKit
+(`75,561` bytes).
+
+Runtime capability preflight used the canonical Tox21, Nest, and Angular
+commands in order, with live handles recorded before HTTP requests. Nginx
+returned two consecutive `200/200` rounds for `/health` and `/`. The public
+welcome route loaded through `http://localhost:8888`; no optional Quill,
+RDKit, chart, or action implementation resource was requested there.
 ### Preflight remediation
-_None._
+Removed the obsolete globally copied `RDKit_minimal.js`; the lazy RDKit
+adapter already imports the package implementation and locates only the
+WASM resource on demand. Quill CSS remains served by the existing feature
+loader because the editor components require those styles at entry.
 ### Summary
-Not attempted because hard prerequisite task `0106` (`NG-020`) is now
-`SKIPPED_DEPENDENCY` through blocked task `0087` (`NG-001`). Other references
-remain advisory where not hard prerequisites.
+Kept the existing strict initial and component-style budgets unchanged.
+Extended `bundle:check` to write selected lazy entry-point sizes and fail on
+heavy feature signatures in the initial application chunk, while retaining
+the initial-byte and CommonJS gates already registered in root `ci:check`.
 ### Task-specific validation performed
-Not applicable; no feature branch or implementation worker was created.
+Passed:
+
+- `npm run build --workspace mercurion_web_ng`
+- `npm run bundle:check --workspace mercurion_web_ng`
+- `npm run chemistry:check-lazy --workspace mercurion_web_ng`
+- `npm run typecheck --workspace mercurion_web_ng`
+
+The bundle gate reported `974,817 / 1,000,000` initial bytes and selected
+lazy diagnostics for dashboard charts (`207,905`), ngx-quill (`204,738`),
+RDKit (`75,561`), and action chunks. The chemistry gate confirmed that the
+main chunk excludes RDKit and Ketcher signatures. The full Angular lint
+command was started but did not produce a result after several minutes and
+was stopped; no Angular source file was changed by this task.
+
+Post-change browser validation restarted all three canonical runtimes and
+again obtained two consecutive `200/200` readiness rounds. Through
+`http://localhost:8888/`, the lightweight welcome route requested only the
+application shell resources. Navigating to public
+`/molecules/detail/1` then loaded the molecule-detail chunk, RDKit lazy
+chunk, and `RDKit_minimal.wasm` on demand. The task-owned Tox21, Nest, and
+Angular processes were stopped afterward; only the externally managed NATS
+listener remained on port `4223`.
 ### Full pre-merge CI-parity validation
-Not applicable; dependency-skip metadata only.
+Not run locally because `npm ci` and `npm run ci:check` are prohibited in
+autonomous sessions. The exact pushed feature SHA is to receive the
+canonical GitHub Actions validation.
 ### Browser validation performed
-Not applicable; the task was not attempted.
+Completed on the dedicated Chrome DevTools profile using only
+`http://localhost:8888`. Lightweight welcome evidence showed no RDKit,
+Quill, chart, dashboard, or action implementation request. Public molecule
+detail evidence showed lazy molecule-detail, RDKit, and WASM requests after
+entering the feature boundary.
 ### Commits
-Pending metadata commit on `develop`.
+`412db356849170d345731c7881a4de88df0196d7` —
+`perf(angular): enforce lazy heavy feature bundles`.
 ### Merge / CI
-No feature branch or merge. Exact-SHA CI is required for the metadata commit.
+_Not started._
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Direct terminal prerequisite: task `0106` (`NG-020`), `SKIPPED_DEPENDENCY`.
-Transitive chain: `0111` -> `0106` -> `0087` (`NG-001` BLOCKED).
+_None._

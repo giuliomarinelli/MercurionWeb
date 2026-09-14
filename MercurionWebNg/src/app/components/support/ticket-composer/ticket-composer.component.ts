@@ -1,6 +1,7 @@
-import { Component, ChangeDetectionStrategy, signal, output } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal, output, OnInit, inject } from '@angular/core';
 import { QuillModule } from 'ngx-quill';
 import { FormsModule } from '@angular/forms';
+import { QuillStylesService } from '../../../services/quill-styles.service';
 
 @Component({
   selector: 'm-ticket-composer',
@@ -46,7 +47,9 @@ import { FormsModule } from '@angular/forms';
   </div>
   `
 })
-export class TicketComposerComponent {
+export class TicketComposerComponent implements OnInit {
+
+  private readonly quillStyles = inject(QuillStylesService)
 
   readonly send = output<{
     html: string;
@@ -57,6 +60,10 @@ export class TicketComposerComponent {
   private delta: any = null
 
   canSend = signal<boolean>(false)
+
+  ngOnInit(): void {
+    this.quillStyles.load()
+  }
 
   modules = {
     toolbar: [

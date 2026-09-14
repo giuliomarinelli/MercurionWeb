@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -148,6 +148,13 @@ _Not applicable._
 
 ### Blocker / human decision required
 Direct terminal prerequisite range: 0059 through 0085. The range includes
+newly terminal task `0071` (`UI-013`), `BLOCKED`, so this task was
+materialized in the new terminal closure on 2026-09-13.
 FE-030 (BLOCKED, requiring a filesystem-write-capable worker) and UI-018
 (BLOCKED, requiring a test-safe local Nest runtime for mandatory browser
 validation), with all dependent UI tasks `SKIPPED_DEPENDENCY`.
+
+
+### Dependency skip
+
+Direct terminal prerequisite: 0077 (), terminal non-DONE dependency.

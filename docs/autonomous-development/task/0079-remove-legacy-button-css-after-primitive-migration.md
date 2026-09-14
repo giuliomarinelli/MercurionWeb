@@ -1,6 +1,6 @@
 # 0079 - Remove legacy button CSS after primitive migration
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -99,40 +99,64 @@ Search backend email templates separately so similarly named email CSS is not ac
 > for traceability and is not a terminal outcome.
 
 ### Feature branch
-_Not started._
+`feature/UI-021` at base `95df8824f5d91cf3b5820cbe4bbe433f21710547`.
 
 ### Preflight
-_Not started._
+Clean `feature/UI-021` verified at the supplied base SHA. Exact baseline
+GitHub Actions run `34789457123` was green, including both platform jobs and
+the Required gate. No task-owned workspace process was running before the
+implementation.
 
 ### Preflight remediation
-_None._
+The canonical runtime was started after implementation for acceptance evidence
+in the required order: Tox21, Nest, Angular. Initial edge probes returned
+retryable 502 responses while upstreams compiled; two consecutive complete
+health/application rounds then returned HTTP 200.
 
 ### Summary
-Not attempted because required tasks 0059 (UI-001), 0060 (UI-002), 0061
-(UI-003), 0069 (UI-011), and 0077 (UI-019) are
-`SKIPPED_DEPENDENCY`.
+Migrated the remaining MFA and settings action buttons from `green-btn` and
+`red-btn` to the canonical `m-button` variants. Removed the deprecated global
+`.btn*`, `.green-btn`, and `.red-btn` CSS block. Added the deterministic
+`ui:legacy-buttons:check` source gate and wired it into `ci:static`.
 
 ### Task-specific validation performed
-Not applicable; no feature branch or implementation worker was created.
+- `npm run ui:legacy-buttons:check` — passed.
+- `npm run typecheck --workspace mercurion_web_ng` — passed.
+- `npm run lint:angular --workspace mercurion_web_ng` — passed.
+- `npm run build --workspace mercurion_web_ng` — passed (Angular reported the
+  existing initial-bundle budget warning).
+- Production CSS search over `MercurionWebNg/dist/mercurion-web-ng/**/*.css`
+  confirmed all removed selectors are absent.
+- Local browser validation through `http://localhost:8888` showed the
+  authenticated dashboard at mobile viewport, opened the theme menu, switched
+  from dark to light, and retained visible navigation/content. The dedicated
+  persistent profile already held the protected test account session; the
+  route guard redirected `/login` to the protected dashboard, so no
+  credential entry was needed or performed.
 
 ### Full pre-merge CI-parity validation
-Not applicable; dependency-skip metadata only.
+Not run locally: `npm ci` and `npm run ci:check` are reserved for GitHub
+Actions. Supplied exact base run `34789457123` was green; feature-branch CI is
+owned by the coordinator after this push.
 
 ### Browser validation performed
-Not applicable; the task was not attempted.
+Canonical Tox21, Nest, and Angular sessions were kept alive for the browser
+probe and stopped before return. Chrome DevTools MCP used the dedicated
+persistent profile and only `http://localhost:8888`; mobile dark/light theme
+interaction and protected dashboard rendering were observed. Settings route
+navigation was redirected back to the dashboard by the current application
+guard, so no settings mutation was attempted.
 
 ### Commits
-Pending metadata commit on `develop`.
+`fdf00019ebc53fb559db2133b9ab42f2386748f4` — `feat(UI-021): remove
+legacy button CSS` (pushed to `origin/feature/UI-021`).
 
 ### Merge / CI
-No feature branch or merge. Exact-SHA CI is required for the metadata commit.
+No merge performed. Coordinator must run exact-SHA CI for the pushed feature
+commit.
 
 ### Rollback
-_Not applicable._
+Not applicable.
 
 ### Blocker / human decision required
-Direct terminal prerequisites: 0059 (UI-001), 0060 (UI-002), 0061
-(UI-003), 0069 (UI-011), and 0077 (UI-019), each
-`SKIPPED_DEPENDENCY`. Their chains include FE-030 (BLOCKED) and UI-018
-(BLOCKED), which respectively require a filesystem-write-capable worker and a
-test-safe local Nest runtime for mandatory browser validation.
+None.

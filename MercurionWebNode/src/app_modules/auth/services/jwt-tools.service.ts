@@ -9,7 +9,6 @@ import { Scope } from 'src/app_modules/user/Models/enums/scope.enum';
 import { FastifyRequest } from 'fastify';
 
 import { AppJwtPayload } from '../Models/interfaces/app-jwt-payload.interface';
-import { RedisService } from 'src/app_modules/redis/services/redis.service';
 import { SessionService } from './session.service';
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
@@ -51,7 +50,6 @@ export class JwtToolsService {
         private readonly configService: ConfigService,
         @Inject(IDENTITY_READ_PORT)
         private readonly identityRead: IdentityReadPort,
-        private readonly redisservice: RedisService,
         private readonly sessionService: SessionService,
         loggerFactory: MeiliLoggerService,
         private readonly jwtKeys: JwtKeysProvider
@@ -181,11 +179,17 @@ export class JwtToolsService {
         // 🔹 Se è un AccessToken, memorizziamo il JTI tra i token emessi
         if (type === TokenType.AccessToken || type === TokenType.ws_AccessToken || type === TokenType.PreAuthorizationToken) {
             if (sessionId == undefined) throw applicationError(ApplicationErrorCode.ACCESS_TOKEN_SESSION_MISSING)
-            const issuedKey = `issued:${sessionId.toString()}:${jti}`
-            await this.redisservice.set(issuedKey, '1', jwtConfig.expiresInMs / 1000) // TTL uguale alla durata del token
+            await this.sessionService.registerIssuedToken(
+                sessionId.toString(),
+                jti,
+                jwtConfig.expiresInMs / 1000
+            )
         } else {
-            const issuedKey = `issued:${this.configService.get<UUID>('Session.sessionZeroId')?.toString()}:${jti}`
-            await this.redisservice.set(issuedKey, '1', jwtConfig.expiresInMs / 1000) // TTL uguale alla durata del token
+            await this.sessionService.registerIssuedToken(
+                this.configService.get<UUID>('Session.sessionZeroId')!.toString(),
+                jti,
+                jwtConfig.expiresInMs / 1000
+            )
         }
         // session 0 = sessione fittizia, per revocare token stateless
         return token

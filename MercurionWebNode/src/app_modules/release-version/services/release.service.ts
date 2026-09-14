@@ -17,7 +17,7 @@ export class ReleaseService {
 
     async getCurrentVersion(): Promise<VersionDTO> {
 
-        const env = this.configService.get<Environment>('App.env')!
+        const env = this.configService.getOrThrow<Environment>('App.env')
 
         const isLocalEnv = env === Environment.Development || env === Environment.Test
 

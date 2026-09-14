@@ -1,255 +1,97 @@
 import { NestFactory } from '@nestjs/core'
-import { AppModule } from './app.module'
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify'
-import { LogLevel } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { MicroserviceOptions, Transport } from '@nestjs/microservices'
-import { HttpExceptionFilter } from './exception-handling/http-exception-filter'
-import { IoAdapter } from '@nestjs/platform-socket.io'
-import { copyBootstrapFiles } from './copy-bootstrap-files'
-import fastifyCookie from '@fastify/cookie'
-import helmet from '@fastify/helmet'
-import rateLimit from '@fastify/rate-limit'
-import { randomBytes, randomUUID } from 'crypto'
-import { SecureCookieService } from './app_modules/auth/services/secure-cookie.service'
+import { createApplicationModule } from './app.module'
+import { ConfigurationError } from './config/env-validation'
 import { Environment } from './config/config.schema'
-import type { SecureCookieConfiguration } from './config/config.types'
-import { buildRateLimitKey, isValidIp, routeAwareMax } from './config/rate-limit.config'
-import { RedisService } from './app_modules/redis/services/redis.service'
 import { MeiliLoggerService } from './app_modules/meilisearch/services/meili-logger.service'
+import { RedisService } from './app_modules/redis/services/redis.service'
+import { SecureCookieService } from './app_modules/auth/services/secure-cookie.service'
+import { applyBootstrapConfiguration } from './bootstrap/bootstrap.configurator'
+import { getBootstrapLogLevels, prepareDevelopmentBootstrap } from './bootstrap/configurators/logging.configurator'
 import { resolveAppEnv } from './utils/env-helpers'
-import { createGlobalValidationPipe } from './config/validation-pipe'
-import { registerRestContractVersioningHook } from './contracts/contract-versioning-http'
+import { ReadinessService } from './shutdown/readiness.service'
+import { ShutdownCoordinator } from './shutdown/shutdown.coordinator'
 
-
-
-export async function bootstrap() {
-
-  process.on('unhandledRejection', (reason) => {
-    console.error('[UNHANDLED_REJECTION]', reason)
-  })
-
-  process.on('uncaughtException', (err) => {
-    console.error('[UNCAUGHT_EXCEPTION]', err)
-  })
-
-  const logLevels = new Set<LogLevel>(['error', 'warn', 'log', 'debug', 'verbose', 'fatal'])
-
-  if (resolveAppEnv() !== Environment.Development) {
-    logLevels.delete('debug')
-    logLevels.delete('verbose')
-  } else {
-    copyBootstrapFiles()
-  }
-
-  // 🔒 trustProxy per IP reali dietro CF/NGINX
+export async function bootstrap(): Promise<void> {
+  prepareDevelopmentBootstrap()
   const app = await NestFactory.create<NestFastifyApplication>(
-    AppModule,
+    createApplicationModule(),
     new FastifyAdapter({ trustProxy: true }),
-    { logger: Array.from(logLevels) }
+    {
+      logger: getBootstrapLogLevels(
+        resolveAppEnv()
+      ),
+      abortOnError: false
+    }
   )
-
-  const configService = app.get<ConfigService>(ConfigService)
-  const secureCookieService = app.get<SecureCookieService>(SecureCookieService)
-  const redisService = app.get<RedisService>(RedisService)
-  const loggerFactory = app.get<MeiliLoggerService>(MeiliLoggerService)
-  const logger = loggerFactory.forContext('Bootstrap')
-
-  logger.setLogLevels(Array.from(logLevels))
-
-  const env = configService.get<Environment>('App.env')
-
-  const natsPort = configService.get<number>('App.natsPort') ?? 4223
-  const natsHost = configService.get<string>('App.natsHost')
-  const natsUrl: string = `${natsHost}:${natsPort}`
-
-  app.useWebSocketAdapter(new IoAdapter(app))
-  app.connectMicroservice<MicroserviceOptions>({
-    transport: Transport.NATS,
-    options: { servers: [natsUrl] },
-  })
-
-  app.useGlobalFilters(new HttpExceptionFilter(loggerFactory))
-  app.setGlobalPrefix('api', { exclude: ['/health', '/sitemap.xml', '/robots.txt', '/og/mercurion-og.png'] })
-
-  const fastify = app.getHttpAdapter().getInstance()
-  registerRestContractVersioningHook(fastify, {
-    isProduction: env !== Environment.Development,
-    logger
-  })
-
-
-  /**
-  *  NOTE (HTTPS-bound security headers):
-  *  In staging/production these MUST be set at the reverse proxy (nginx / Cloudflare) — not here —
-  *  to avoid conflicts and to keep localhost (HTTP) from breaking.
-   
-  *  This helmet config only keeps HTTP-safe headers that are useful in every environment.
-   
-  *  Move to nginx (staging/prod):
-  *  - Strict-Transport-Security (HSTS)
-  *  - Content-Security-Policy (CSP)
-  *  - HTTP -> HTTPS redirects (and any TLS enforcement)
-  */
-  await app.register(helmet, {
-    // ✅ CSP spostata su nginx (in locale HTTP spesso rompe e/o crea policy incoerenti)
-    contentSecurityPolicy: false,
-
-    // niente referrer
-    referrerPolicy: {
-      policy: 'no-referrer',
-    },
-
-    // niente embedding di risorse da altri origin
-    crossOriginResourcePolicy: {
-      policy: 'same-origin',
-    },
-
-    // isolamento finestra (anti XS-Leaks)
-    crossOriginOpenerPolicy: {
-      policy: 'same-origin',
-    },
-
-    // COEP spesso rompe con librerie che non mettono gli header giusti:
-    // lo teniamo off finché non facciamo la combo COEP+COOP+CORP.
-    crossOriginEmbedderPolicy: false,
-
-    // vieta qualsiasi iframe
-    frameguard: { action: 'deny' },
-
-    // togliere X-Powered-By se dovesse spuntare da qualche parte
-    hidePoweredBy: true,
-
-    // ❌ HSTS spostato su nginx (HTTPS-bound)
-    hsts: false
-  })
-
-
-
-  app.useGlobalPipes(createGlobalValidationPipe())
-
-  await app.register(fastifyCookie)
-
-  // REST selection is URL-based; these response headers disclose shared metadata.
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { secret, ...cookieConf } = configService.get<SecureCookieConfiguration>('SecureCookie')!
-
-  // 🔒 Hook precoce: genera/sovrascrive header interni (anti-spoof)
-  fastify.addHook('onRequest', (req, reply, done) => {
-
-    // ========== SCUDO ANTI-SPOOFING ==========
-
-    req.headers['x-device-id'] = undefined
-    req.headers['x-session-id'] = undefined
-    req.headers['x-client-ip'] = undefined
-    req.headers['x-user-id'] = undefined
-    req.headers['x-scopes'] = undefined
-    req.headers['x-new-access-token'] = undefined
-
-    let deviceId: string | null = null
-
-    try {
-      deviceId = secureCookieService.getSignedCookie(req, '__device_id')
-    } catch {
-      deviceId = randomUUID()
-      secureCookieService.setSignedCookie(reply, '__device_id', deviceId, {
-        maxAge: 31_556_952, // ~1 anno in secondi
-        ...cookieConf
-      })
-    }
-
-    req.headers['x-device-id'] = deviceId
-
-    try {
-      req.headers['x-session-id'] = secureCookieService.getSignedCookie(req, '__node_session_id')
-    } catch {
-      req.headers['x-session-id'] = undefined
-    }
-
-    const isDevOrTest = env === Environment.Development || env === Environment.Test
-    const mockIp = req.headers['x-mock-ip']?.toString().trim()
-
-    const cfIpRaw = req.headers['cf-connecting-ip']?.toString().trim()
-    const cfIp = isValidIp(cfIpRaw) ? cfIpRaw : undefined
-
-    req.headers['x-client-ip'] = isDevOrTest && mockIp ? mockIp : (cfIp || req.ip)
-    done()
-  })
-
-  // Parser multipart passthrough
-  fastify.addContentTypeParser('multipart/form-data', (req, payload, done) => {
-    done(null, req)
-  })
-
-  fastify.addHook('onSend', (req, reply, payload, done) => {
-    reply.header('Cache-Control', 'no-store')
-    const DISABLE_ALL = '()'
-    reply.header(
-      'Permissions-Policy',
-      [
-        `geolocation=${DISABLE_ALL}`,
-        `microphone=${DISABLE_ALL}`,
-        `camera=${DISABLE_ALL}`,
-        `payment=${DISABLE_ALL}`,
-        `usb=${DISABLE_ALL}`,
-        `bluetooth=${DISABLE_ALL}`,
-        `interest-cohort=${DISABLE_ALL}`,
-        `fullscreen=(self)`
-      ].join(', '))
-    done()
-  })
-
-  const reqIdSuffix = randomBytes(16).toString('hex')
-  // 🔒 Rate limit distribuito (Redis), finestra 5 minuti chiara (ms)
-  await app.register(rateLimit, {
-    hook: 'preHandler',
-    timeWindow: 5 * 60 * 1000, // 5 minutes
-    keyGenerator: buildRateLimitKey,
-    max: (req) => routeAwareMax(req),
-    skipOnError: true,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    errorResponseBuilder: (req, ctx) => ({
-      statusCode: 429,
-      error: 'Too Many Requests',
-      message: `Rate limit exceeded.`,
-      timestamp: new Date().toISOString(),
-      requestId: `${req.id}-${reqIdSuffix}`,
-      path: req.url?.split('?')[0] || req.url
-    }),
-    redis: redisService.getClient(),
-    nameSpace: 'ratelimit:'
-  })
-
-
-  const port = configService.get<number>('App.port')
-  const host = configService.get<string>('App.host') as string
-  const appUrl = `${host}:${port ?? 8098}`
-
-  await app.startAllMicroservices()
-  await app.listen(port ?? 8098, host.replace('http://', ''))
-
-  const lastColonIndex = appUrl.lastIndexOf(':')
-  const coloredUrl =
-    '\x1b[36m' + appUrl.slice(0, lastColonIndex) +
-    '\x1b[34m:\x1b[31m' +
-    appUrl.slice(lastColonIndex + 1) +
-    '\x1b[0m'
-
-  const envUc = env?.toUpperCase() ?? 'DEVELOPMENT'
-
-  logger.log(`MercurionWebNode started in \x1b[36m${envUc} \x1b[32menvironment`)
-
-  logger.log(`Fastify listening on ${coloredUrl}`)
-
-  const lastColonIndexNats = natsUrl.lastIndexOf(':')
-  const coloredNatsUrl =
-    '\x1b[36m' + natsUrl.slice(0, lastColonIndexNats) +
-    '\x1b[34m:\x1b[31m' +
-    natsUrl.slice(lastColonIndexNats + 1) +
-    '\x1b[0m'
-
-  logger.log(`NATS client connected to NATS server on ${coloredNatsUrl}`)
-
+  const config = app.get(ConfigService)
+  const env = config.getOrThrow<Environment>('App.env')
+  const loggerFactory = app.get(MeiliLoggerService)
+  const readiness = app.get(ReadinessService)
+  const shutdown = new ShutdownCoordinator(
+    [
+      { name: 'readiness', close: () => readiness.markDraining() },
+      { name: 'nest-application', close: () => app.close() }
+    ],
+    config.get<number>('App.shutdownTimeoutMs') ?? 10000,
+    loggerFactory.forContext('Shutdown')
+  )
+  const handleSignal = (signal: 'SIGTERM' | 'SIGINT') => {
+    void shutdown.shutdown({ kind: 'signal', signal }).then(result => {
+      if (result.timedOut || result.failures.length > 0) process.exitCode = 1
+    })
+  }
+  process.on('SIGTERM', handleSignal)
+  process.on('SIGINT', handleSignal)
+  const handleFatal = (error: unknown) => {
+    void shutdown.shutdown({ kind: 'fatal', error }).then(() => {
+      process.exitCode = 1
+    })
+  }
+  process.on('unhandledRejection', handleFatal)
+  process.on('uncaughtException', handleFatal)
+  const dependencies = {
+    app,
+    fastify: app.getHttpAdapter().getInstance(),
+    config,
+    env,
+    secureCookie: app.get(SecureCookieService),
+    redis: app.get(RedisService),
+    loggerFactory,
+    logger: loggerFactory.forContext('Bootstrap')
+  }
+  await applyBootstrapConfiguration(dependencies)
 }
 
-bootstrap()
+export type BootstrapFailureReporter = (error: unknown) => void
+
+export const reportBootstrapFailure: BootstrapFailureReporter = error => {
+  if (error instanceof ConfigurationError) {
+    console.error('[CONFIGURATION_ERROR]', {
+      code: error.code,
+      diagnostics: error.diagnostics
+    })
+    return
+  }
+  console.error('[BOOTSTRAP_ERROR]', {
+    name: error instanceof Error ? error.name : 'UnknownError',
+    message: error instanceof Error ? error.message : 'Unknown bootstrap failure'
+  })
+}
+
+export async function runBootstrap(
+  start: () => Promise<void> = bootstrap,
+  report: BootstrapFailureReporter = reportBootstrapFailure
+): Promise<void> {
+  try {
+    await start()
+  } catch (error) {
+    report(error)
+    process.exitCode = 1
+  }
+}
+
+if (require.main === module) {
+  void runBootstrap()
+}

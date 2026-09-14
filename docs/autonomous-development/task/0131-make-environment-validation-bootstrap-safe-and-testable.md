@@ -1,6 +1,6 @@
 # 0131 - Make environment validation bootstrap-safe and testable
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -88,23 +88,78 @@ If Phase 0 of task `0001` already removed the direct `process.exit` blocker, ver
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/BE-017`, created from and ancestrally based on
+`819da24eb7f84f5345fe0f433c42095823ce8582`.
 ### Preflight
-_Not started._
+Passed before implementation:
+
+- working tree clean and `HEAD`, local `develop`, and `origin/develop` all at
+  `819da24eb7f84f5345fe0f433c42095823ce8582`;
+- `git merge-base --is-ancestor
+  819da24eb7f84f5345fe0f433c42095823ce8582 HEAD` exited `0`;
+- process inventory found no Angular, Nest, Tox21, Jest watcher, or other
+  workspace-consuming process (only the coordinator matched the broad
+  repository command-line filter);
+- GitHub Actions run
+  `https://github.com/giuliomarinelli/MercurionWeb/actions/runs/34697814726`
+  was green for the exact base SHA: Ubuntu and Windows quality jobs plus
+  `Required gate` succeeded;
+- dependency `0130` was confirmed `DONE`;
+- unchanged focused checks passed: environment/AppModule/provider-ownership
+  Jest tests (`3` suites / `15` tests), Nest TypeScript typecheck, and Nest
+  architecture checks.
 ### Preflight remediation
 _None._
 ### Summary
-_Not started._
+Introduced a typed `ConfigurationError` with structured, value-free
+diagnostics and removed `validateEnvOrKillProcess` plus its module-global
+validated-environment cache. Environment validation now throws ordinary typed
+errors without logging, terminating the process, or mutating lifecycle state.
+
+Moved `ConfigModule.forRoot` behind `createConfigurationModule` and
+`createApplicationModule`, so importing `AppModule` and configuration modules
+does not validate or terminate. Production bootstrap explicitly creates that
+root module, disables Nest's internal `abortOnError` process termination, and
+handles failures at the entrypoint by reporting safe structured diagnostics
+and setting `process.exitCode = 1`.
+
+Added reusable schema-derived test environment/configuration builders under
+`src/test-utils`, removed validation mocks from module/E2E tests, and added
+valid/invalid configuration compilation, process-exit regression, bootstrap
+result, safe-diagnostic, and static configuration-module guard coverage.
+Invalid configuration remains fail-fast; no permissive production fallback or
+secret-dependent test infrastructure was introduced.
 ### Task-specific validation performed
-_Not started._
+Passed:
+
+- focused final Jest run for environment validation, configuration schema,
+  AppModule, bootstrap, and provider ownership: `5` suites / `28` tests;
+- complete Nest Jest suite: `141` suites / `370` tests;
+- isolated Nest E2E suite: `1` suite / `1` test;
+- `npm run typecheck --workspace mercurion_web_node`;
+- `npm run lint --workspace mercurion_web_node` (`0` errors; `48` existing
+  warnings);
+- `npm run build --workspace mercurion_web_node`;
+- `npm run ci:nest:architecture` (production/configuration graphs acyclic,
+  unique imports, provider ownership checks and negative controls passed);
+- compiled production entrypoint with `APP_ENV=production` and intentionally
+  absent required configuration: emitted typed structured diagnostics and
+  exited with status `1`;
+- static search and Jest guard confirmed no `process.exit()` remains in
+  importable configuration code;
+- `git diff --check`.
 ### Full pre-merge CI-parity validation
-_Not started._
+Local `npm ci` and `npm run ci:check` were intentionally not run per autonomous
+policy. Complete clean-install Windows/Linux validation and the stable
+`Required gate` are coordinator-owned on the exact pushed feature SHA.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-_Not recorded._
+- `e53f1697` - `refactor(config): make validation bootstrap-safe`
+- Task outcome and execution record: this commit.
 ### Merge / CI
-_Not started._
+Feature branch is ready for exact-SHA pre-merge GitHub Actions validation;
+merge remains coordinator-owned.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required

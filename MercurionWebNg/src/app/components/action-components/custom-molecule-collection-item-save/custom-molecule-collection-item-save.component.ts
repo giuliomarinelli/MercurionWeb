@@ -1,7 +1,8 @@
 import { CustomMoleculeCollectionItemSaveContextService } from './../../../services/context/action-context/custom-molecule-collection-item-save-context.service';
 import { NgClass } from '@angular/common';
 import { Component, ElementRef, HostListener, inject, signal, ChangeDetectionStrategy, OnDestroy, OnInit, viewChild } from '@angular/core';
-import { ComboSelectComponent } from '../../common/combo-select/combo-select.component';
+import { SelectCoreComponent } from '../../common/select-core/select-core.component';
+import { SelectSelectionChange } from '../../common/select-core/select-core.types';
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
 import { MoleculeCollectionService } from '../../../services/graphql/molecule-collection.service';
 import { MoleculeJoinService } from '../../../services/graphql/molecule-collection-join.service';
@@ -19,7 +20,7 @@ import { CollectionPickerFacade } from '../collection-picker/collection-picker.f
 @Component({
   selector: 'm-custom-molecule-collection-item-save',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgClass, ComboSelectComponent, FormsModule, ActionCardComponent, TextareaComponent],
+  imports: [NgClass, SelectCoreComponent, FormsModule, ActionCardComponent, TextareaComponent],
   template: `
 
     <div class="flex justify-center items-start md:items-center min-h-screen px-2 sm:px-4 pt-1 md:pt-6 m-overlay-screen">
@@ -46,7 +47,7 @@ import { CollectionPickerFacade } from '../collection-picker/collection-picker.f
           </h2>
 
           <!-- ComboBox Collezioni -->
-          <m-combo-select class="block relative -top-3"
+          <m-select-core class="block relative -top-3"
             [items]="collections()"
             [displayFn]="displayCollection"
             [valueFn]="valueCollection"
@@ -56,7 +57,7 @@ import { CollectionPickerFacade } from '../collection-picker/collection-picker.f
             [selected]="saveCtx.selectedCollectionId()"
             (searchChange)="onSearchChange($event)"
             (loadMore)="onScrollEnd()"
-            (select)="onSelect($event)"
+            (selectionChange)="onSelectionChange($event)"
             (createNew)="onCreateNew($event)"
             [ariaLabel]="'Seleziona o crea collezione di destinazione'"
           />
@@ -295,6 +296,10 @@ export class CustomMoleculeCollectionItemSaveComponent implements OnInit, OnDest
   onSelect(item: Pick<MoleculeCollection, 'id'>) {
     this.picker.setSingleSelection(item.id);
     this.saveCtx.selectedCollectionId.set(item.id);
+  }
+
+  onSelectionChange(change: SelectSelectionChange<MoleculeCollection, string>) {
+    if (change.item) this.onSelect(change.item);
   }
 
   onCreateNew(name: string) {

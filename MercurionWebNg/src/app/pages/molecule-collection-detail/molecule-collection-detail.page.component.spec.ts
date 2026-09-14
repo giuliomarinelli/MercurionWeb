@@ -16,6 +16,7 @@ describe('MoleculeCollectionDetailComponent', () => {
       items: signal([]),
       loading: signal(false),
       error: signal(false),
+      pageError: signal(undefined),
       done: signal(true),
       state: signal('empty'),
       renameCollection: jasmine.createSpy(),
@@ -26,7 +27,8 @@ describe('MoleculeCollectionDetailComponent', () => {
       clearSearch: jasmine.createSpy(),
       deleteItem: jasmine.createSpy(),
       removeItem: jasmine.createSpy(),
-      loadMore: jasmine.createSpy()
+      loadMore: jasmine.createSpy(),
+      retryPage: jasmine.createSpy()
     };
     await TestBed.configureTestingModule({
       imports: [MoleculeCollectionDetailPageComponent]

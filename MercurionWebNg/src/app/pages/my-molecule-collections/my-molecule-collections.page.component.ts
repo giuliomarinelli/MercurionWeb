@@ -5,7 +5,6 @@ import { MyMoleculesHeadingComponent } from '../../components/molecule-detail/my
 import { AfterViewInit, Component, ElementRef, inject, OnInit, effect, OnDestroy, signal, ChangeDetectionStrategy, viewChild } from '@angular/core';
 import { MoleculeCollectionService } from '../../services/graphql/molecule-collection.service';
 import { CollectionCardComponent } from '../../components/molecule-detail/collection-card/collection-card.component';
-import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
 import { SkeletonCollectionCardComponent } from '../../components/common/skeleton-card-loader/skeleton-card-loader.component';
 import { RouterLink } from '@angular/router';
 import { PmSearchInputComponent } from '../../components/common/pm-search-input/pm-search-input.component';
@@ -17,6 +16,7 @@ import { CreateCollectionContextService } from '../../services/context/action-co
 import { ToastService } from '../../services/toast.service';
 import { ScrollContextService } from '../../services/context/scroll-context.service';
 import { DomainInvalidationService } from '../../services/domain-invalidation.service';
+import { PaginationComponent } from '../../components/common/pagination/pagination.component';
 
 
 @Component({
@@ -25,10 +25,10 @@ import { DomainInvalidationService } from '../../services/domain-invalidation.se
   imports: [
     MyMoleculesHeadingComponent,
     CollectionCardComponent,
-    ClassicSpinnerComponent,
     SkeletonCollectionCardComponent,
     RouterLink,
-    PmSearchInputComponent
+    PmSearchInputComponent,
+    PaginationComponent
   ],
   template: `
 
@@ -90,19 +90,17 @@ import { DomainInvalidationService } from '../../services/domain-invalidation.se
       }
     </div>
     <div #sentinel class="sentinel"></div>
-    @if (loading) {
-      @if (page > 1) {
-        <div class="flex justify-center" role="status" aria-live="polite">
-          <m-classic-spinner [size]="60" />
-        </div>
-      } @else {
+    @if (loading && page === 1) {
         <div class="relative -top-16">
           @for (i of [0, 1, 2, 3, 4]; track i) {
             <m-skeleton-collection-card />
           }
         </div>
-      }
     }
+    <m-pagination
+      [state]="paginationState()"
+      (loadMoreRequested)="loadMore()"
+      (retry)="retryPagination()" />
   </main>
 
   `

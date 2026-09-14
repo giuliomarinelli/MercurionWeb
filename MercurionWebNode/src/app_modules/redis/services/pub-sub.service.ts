@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { RedisService } from './redis.service';
 import { Redis } from 'ioredis';
 import { OAuth2AccessTokenRefreshService } from 'src/app_modules/oauth2-client/services/access-token-refresh.service';
@@ -14,11 +14,13 @@ import {
   type SocketSessionExpiredPayload,
 } from '@mercurion/socket-contracts';
 import { SessionInvalidationCause } from '@mercurion/rest-contracts';
+import { redisDurations, redisKeys } from '../contracts/redis-contracts';
+import { RedisCapabilityService } from './redis-capability.service'
 
 type ApplicationServer = Server<ClientToServerEvents, ServerToClientEvents>
 
 @Injectable()
-export class PubSubService implements OnModuleInit {
+export class PubSubService implements OnModuleDestroy, OnModuleInit {
 
   private readonly subscriber: Redis
   private readonly logger: MeiliContextLogger
@@ -29,6 +31,7 @@ export class PubSubService implements OnModuleInit {
     private readonly redisService: RedisService,
     private readonly oauth2_accessTokenRefreshService: OAuth2AccessTokenRefreshService,
     private readonly sessionService: SessionService,
+    private readonly redisCapabilityService: RedisCapabilityService,
     loggerFactory: MeiliLoggerService,
   ) {
     this.logger = loggerFactory.forContext(PubSubService.name)
@@ -39,44 +42,34 @@ export class PubSubService implements OnModuleInit {
   async onModuleInit() {
     if (this.initialized) return
 
-    await this.ensureKeyspaceEvents()     // log se non correttamente configurato
+    await this.redisCapabilityService.assertRequiredCapabilities()
     await this.subscribeToKeyspaceEvents() // psubscribe
     this.initialized = true
+  }
+
+  async onModuleDestroy(): Promise<void> {
+    if (this.subscriber.status !== 'end') {
+      await this.subscriber.quit()
+    }
   }
 
   public setSocketServer(server: ApplicationServer): void {
     this.socketServer = server
   }
 
-  private async ensureKeyspaceEvents() {
-    try {
-      const client = this.redisService.getClient()
-      const res = await client.config('GET', 'notify-keyspace-events')
-      const current = Array.isArray(res) ? res[1] as string : ''
-      if (!current || !/[E]/.test(current) || !/[x]/.test(current) || !/[g]/.test(current)) {
-        this.logger.warn(
-          `Redis notify-keyspace-events="${current}". Si consiglia almeno "Exg" per expired/del keyevents.`,
-        )
-      }
-    } catch {
-      this.logger.warn('Redis Keyspace Events are not correctly configured')
-      // Alcuni managed Redis non permettono CONFIG GET
-    }
-  }
-
   private async subscribeToKeyspaceEvents(): Promise<void> {
-    await (this.subscriber as any).psubscribe('__keyevent@0__:*');
+    await this.subscriber.psubscribe('__keyevent@0__:*');
     this.subscriber.on('pmessage', (_pattern, channel, key) => {
       try {
         const event = channel.split(':').pop(); // 'expired' | 'del' | ...
         if (!event) return;
 
         if (key.startsWith('session:') && (event === 'expired' || event === 'del')) {
-          this.handleSessionEvent(event, key)
+          void this.handleSessionEvent(event, key)
         }
 
         if (key.startsWith('access_token:') && event === 'expired') {
-          this.handleAccessTokenExpired(key)
+          void this.handleAccessTokenExpired(key)
         }
       } catch (e) {
         this.logger.error(`PubSub handler error for key="${key}": ${e?.message || e}`)
@@ -91,8 +84,12 @@ export class PubSubService implements OnModuleInit {
     const userId = userIdParts.length > 0 ? (userIdParts.join(':') as UUID) : undefined
 
     // anti-thrashing lock (30s)
-    const lockKey = `oauth2:refresh_lock:${provider}:${userId ?? '__global__'}`
-    const ok = await this.redisService.getClient().set(lockKey, '1', 'EX', 30, 'NX')
+    const lockKey = redisKeys.oauth.refreshLock(provider, userId)
+    const ok = await this.redisService.setIfNotExists(
+      lockKey,
+      '1',
+      redisDurations.seconds(30)
+    )
     if (!ok) {
       this.logger.debug?.(`Skip refresh (locked) for provider=${provider} userId=${userId ?? '[none]'}`)
       return
@@ -104,7 +101,7 @@ export class PubSubService implements OnModuleInit {
     } catch (err) {
       this.logger.error(`Error refreshing access token for provider=${provider} userId=${userId ?? '[none]'}: ${err?.message || err}`)
     } finally {
-      await this.redisService.getClient().del(lockKey)
+      await this.redisService.del(lockKey)
     }
   }
 
@@ -129,10 +126,7 @@ export class PubSubService implements OnModuleInit {
     }
 
     try {
-      const client = this.redisService.getClient()
-      const pipe = client.pipeline()
-      pipe.srem(`user_sessions:${userId}`, sessionId)
-      await pipe.exec()
+      await this.sessionService.destroySessionByOwner(sessionId, userId)
     } catch (e) {
       this.logger.warn(`Failed to cleanup indexes for session ${sessionId}: ${e?.message || e}`)
     }
@@ -164,7 +158,9 @@ export class PubSubService implements OnModuleInit {
   }
 
   public subscribe(channel: string, callback: (message: string) => void): void {
-    this.subscriber.subscribe(channel)
+    void this.subscriber.subscribe(channel).catch(error => {
+      this.logger.error(`Redis subscription failed for ${channel}: ${String(error)}`)
+    })
     this.subscriber.on('message', (chan, message) => {
       if (chan === channel) callback(message)
     })

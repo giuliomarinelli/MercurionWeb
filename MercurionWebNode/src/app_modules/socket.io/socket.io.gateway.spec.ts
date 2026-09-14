@@ -26,12 +26,13 @@ jest.mock('@socket.io/redis-adapter', () => ({
 describe('SocketGateway', () => {
   let gateway: SocketIOGateway;
   let setSocketServer: jest.Mock;
+  let moduleRef: TestingModule;
 
   beforeEach(async () => {
     jest.clearAllMocks();
     setSocketServer = jest.fn();
 
-    const module: TestingModule = await Test.createTestingModule({
+    moduleRef = await Test.createTestingModule({
       providers: [
         SocketIOGateway,
         { provide: ConfigService, useValue: { get: jest.fn().mockReturnValue({ host: 'localhost', port: 6379 }) } },
@@ -46,7 +47,11 @@ describe('SocketGateway', () => {
       ],
     }).compile();
 
-    gateway = module.get<SocketIOGateway>(SocketIOGateway);
+    gateway = moduleRef.get<SocketIOGateway>(SocketIOGateway);
+  });
+
+  afterEach(async () => {
+    await moduleRef?.close();
   });
 
   it('should create the gateway with required services', () => {
@@ -57,7 +62,9 @@ describe('SocketGateway', () => {
     const subClient = {};
     const pubClient = {
       duplicate: jest.fn().mockReturnValue(subClient),
+      quit: jest.fn().mockResolvedValue('OK'),
     };
+    (subClient as { quit?: jest.Mock }).quit = jest.fn().mockResolvedValue('OK');
     const redisAdapter = jest.fn();
     const use = jest.fn();
     const adapter = jest.fn();
