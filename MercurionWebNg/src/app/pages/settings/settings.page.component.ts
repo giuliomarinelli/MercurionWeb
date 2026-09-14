@@ -97,7 +97,6 @@ import { DisclosureComponent, DisclosureTriggerDirective } from '../../component
                 #disclosureItem
                 [id]="computeId(i)"
                 [expanded]="expandedIndex() === i"
-                panelClass="m-disclosure__panel accordion-body px-4 bg-slate-100 dark:bg-slate-700"
                 (toggled)="handleDisclosureToggle(i, $event)"
               >
                 <ng-template mDisclosureTrigger>
@@ -148,12 +147,13 @@ import { DisclosureComponent, DisclosureTriggerDirective } from '../../component
                   </div>
                 </div>
                 </ng-template>
-                @if (expandedIndex() === i) {
-                  <div
-                    animate.enter="accordion-enter"
-                    animate.leave="accordion-leave"
-                    [class.relative]="i === 1"
-                  >
+                <div class="accordion-body px-4 bg-slate-100 dark:bg-slate-700">
+                  @if (expandedIndex() === i) {
+                    <div
+                      animate.enter="accordion-enter"
+                      animate.leave="accordion-leave"
+                      [class.relative]="i === 1"
+                    >
                     <div class="py-6">
                       @switch (i) {
                           @case (0) {
@@ -583,8 +583,9 @@ import { DisclosureComponent, DisclosureTriggerDirective } from '../../component
                           @default { ... }
                       }
                     </div>
-                  </div>
-                }
+                    </div>
+                  }
+                </div>
               </m-disclosure>
               }
           </div>

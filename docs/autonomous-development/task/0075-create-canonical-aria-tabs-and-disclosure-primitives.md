@@ -191,3 +191,8 @@ The next full feature run `34909681749` on
 then identified the remaining constructor injection in the new Disclosure
 trigger directive. It is migrated to functional `inject(TemplateRef)` before
 requesting another exact feature-SHA run.
+
+The subsequent semantic-variant gate rejected the styling-only `panelClass`
+input before the next CI completed. Disclosure now owns only its canonical
+panel class, while Settings applies its layout classes inside projected content;
+the primitive API remains semantic and the rendered consumer layout is retained.

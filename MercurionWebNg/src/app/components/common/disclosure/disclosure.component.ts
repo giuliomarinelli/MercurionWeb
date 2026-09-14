@@ -42,7 +42,7 @@ export class DisclosureTriggerDirective {
       </button>
       @if (expanded()) {
         <div
-          [class]="panelClass()"
+          class="m-disclosure__panel"
           role="region"
           [id]="panelId()"
           [attr.aria-labelledby]="triggerId()"
@@ -77,7 +77,6 @@ export class DisclosureComponent {
   readonly label = input('');
   readonly expanded = input(false);
   readonly id = input('m-disclosure');
-  readonly panelClass = input('m-disclosure__panel');
   readonly toggled = output<boolean>();
   protected readonly trigger = contentChild(DisclosureTriggerDirective);
 
