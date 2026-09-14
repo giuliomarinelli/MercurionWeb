@@ -43,7 +43,7 @@ function scanSource(file, source) {
     'generic elements must use native interactive semantics',
     match =>
       !/\(click\)\s*=\s*"\$event\.stopPropagation\(\)"/.test(match) &&
-      !/\brole\s*=\s*["'](?:dialog|option)["']/.test(match),
+      !/\brole\s*=\s*["'](?:dialog|option|tablist)["']/.test(match),
   );
   reportMatches(
     file,

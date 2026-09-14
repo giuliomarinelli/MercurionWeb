@@ -177,3 +177,11 @@ Focused Tabs, Disclosure and AuthGuard tests passed. The full Angular suite,
 typecheck, lint and production build passed locally; the existing initial-bundle
 budget warning is unchanged. The task remains integration `CI_PENDING` until
 the exact feature-SHA and merge-SHA Required gates succeed.
+
+Feature CI run `34909359730` on SHA
+`4ae7a2f5bf4cefaa77844e714b58165655050cd2` found an actionable Ubuntu-only
+false positive in `ci:angular:interactive-semantics`: its textual rule treated
+the canonical `div[role="tablist"]` keyboard coordinator as a generic clickable
+element. The rule now narrowly recognizes `tablist` as an allowed composite
+widget while continuing to reject generic interactive div/span handlers. A new
+exact feature-SHA run is required after this correction.
