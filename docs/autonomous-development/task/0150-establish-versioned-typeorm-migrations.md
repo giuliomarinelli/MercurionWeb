@@ -93,7 +93,11 @@ Do not make a generated migration trustworthy merely because TypeORM emitted it.
 ## Execution notes
 
 ### Feature branch
-`feature/DATA-001` at base `d3dd4e1f60463f447326e6c197e4826c812e6b98`.
+`feature/DATA-001` recovery branch. Preserved diagnostic SHA
+`a2877255b4b9295926b05e972c5ed78a4ff6740c`; local and remote preserved refs
+matched before recovery. Current green `develop` SHA
+`59bbf8732f7fb16005ede6f0792c1f4f5f26fc13` was merged with
+`--no-ff --no-gpg-sign` as merge commit `62120f20`.
 
 ### Preflight
 - Branch identity and cleanliness verified with `git status --short --branch`,
@@ -118,11 +122,26 @@ Do not make a generated migration trustworthy merely because TypeORM emitted it.
   snapshot was found. Kubernetes staging runs the built application against an
   externally managed PostgreSQL database, but its deployed schema/history is
   not present or otherwise deterministically discoverable in this repository.
+
+Recovery reinspection after merging current `develop` did not change that
+finding. `MercurionWebNode/env/.env.example` still declares PostgreSQL with
+`SQL_DATABASE_SYNCHRONIZE=false`, while `src/config/config.schema.ts` still
+accepts both `postgres` and `mariadb` and requires the unrestricted
+`SQL_DATABASE_SYNCHRONIZE` property. `src/app.module.ts` still passes the
+validated `Data.pgSQL` options directly to TypeORM. The Kubernetes beta
+deployment supplies database settings through the external
+`mercurion-web-node-env` Secret and contains no schema dump, migration table
+contract, or reconciliation plan. Repository search found no TypeORM
+migration directory/history or authoritative PostgreSQL schema snapshot;
+`docker_sl/db/init` is only referenced as a local PostgreSQL init mount and
+does not provide the deployed baseline in this repository.
 ### Preflight remediation
-None. The recipe stop condition applies before migration generation.
+Authorized recovery completed by merging current green `develop` without
+rebasing or rewriting history. No task implementation was created.
 
 ### Summary
-`BLOCKED` before implementation. A safe initial baseline cannot be produced:
+`BLOCKED` after authorized recovery and before implementation. A safe initial
+baseline still cannot be produced:
 the current deployed PostgreSQL schema cannot be reconciled to the 24 loaded
 entities from repository evidence alone. Generating a baseline from entity
 metadata would be an undocumented assumption and could create destructive or
@@ -139,9 +158,11 @@ task-specific implementation exists.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-Pending diagnostic commit.
+Recovery merge commit `62120f20`; terminal diagnostic/status commit recorded
+below.
 ### Merge / CI
-_Not started._
+Not applicable: the task remains blocked before implementation. The recovery
+branch will be pushed after the diagnostic/status commit.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
