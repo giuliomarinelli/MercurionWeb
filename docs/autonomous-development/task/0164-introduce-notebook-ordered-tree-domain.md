@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Replace the duplicated Chapter/Section/Page CRUD, move and reorder algorithms with one composition-based ordered-tree domain/repository capability plus thin level-specific adapters, while preserving Notebook ownership and GraphQL behaviour.

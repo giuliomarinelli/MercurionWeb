@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Move persistence invariants that must survive concurrency and alternate code paths into explicit database foreign keys, unique/check constraints and workload-backed indexes, all delivered through migrations and verified against a real database.

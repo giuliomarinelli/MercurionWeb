@@ -1,7 +1,7 @@
 # 0150 - Establish versioned TypeORM migrations
 
 - [ ] DONE
-- [x] BLOCKED
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
@@ -172,3 +172,11 @@ baseline/reconciliation plan for the deployed staging/production schema
 entity-to-schema mapping and any required non-destructive compatibility
 migrations). Until that authority is available, do not generate or apply an
 initial migration.
+
+### Direct-human reopening (2026-09-14)
+
+Reopened to PENDING by direct human instruction. The preserved
+feature/DATA-001 history remains intact and is not evidence that the required
+schema authority has already been supplied. A resumed implementation must merge
+the current exact-green develop into that branch and resolve the documented
+baseline/reconciliation decision before generating or applying a migration.

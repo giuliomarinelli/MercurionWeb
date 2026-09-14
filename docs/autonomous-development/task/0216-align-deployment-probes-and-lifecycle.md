@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Align application health endpoints, Compose/Kubernetes probes and termination settings so readiness means capable of serving, liveness detects only a stuck process, startup covers bounded bootstrap and shutdown drains without losing accepted requests.

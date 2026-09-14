@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Make Notebook reorder/move commands validate duplicate IDs, complete sibling membership, ownership, parent identity and move-neighbor eligibility inside the same transaction as the write so invalid, stale or cross-owner input produces no partial structural change.
