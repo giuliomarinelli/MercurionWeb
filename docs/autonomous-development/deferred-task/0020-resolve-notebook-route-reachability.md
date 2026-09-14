@@ -131,7 +131,7 @@ and no Notebook route should be invented before the product decision exists.
 
 ### Changed files
 
-- `docs/autonomous-development/task/0020-resolve-notebook-route-reachability.md`
+- `docs/autonomous-development/deferred-task/0020-resolve-notebook-route-reachability.md`
 
 ### Blocker / human decision required
 
@@ -141,3 +141,81 @@ Required explicit human/product decision:
    client, schema, and server.
 2. If retained, explicitly approve the canonical Angular route path, navigation
    exposure/placement, and access policy/guard audience before implementation.
+
+## Deferred program handoff (management decision 2026-09-14)
+
+Management removed the Notebook program from the current autonomous workflow.
+This file and recipes `0164`–`0167` are non-executable backups for a separately
+configured future development program. Their numeric identities remain reserved
+and must not be reused.
+
+The following work was transferred here before being removed from active mixed
+recipes:
+
+### From 0114 / NG-028
+
+- Include the Notebook Angular tree in the future production reachability graph
+  only after it has an approved real route/registry entrypoint.
+- Classify every Notebook page, component and service as reachable retained
+  product code or remove it as part of the future Notebook decision; never add a
+  synthetic eager import merely to satisfy an orphan checker.
+- Make the future orphan/reachability gate understand the approved lazy Notebook
+  entrypoint and add negative coverage for newly orphaned Notebook production
+  files.
+- Browser-smoke the approved Notebook route through `http://localhost:8888` and
+  reject lazy-chunk failures, missing UI and incorrect guard behavior.
+
+### From 0195 / QA-009
+
+- Add a deterministic Playwright Notebook journey through
+  `http://localhost:8888`: create Notebook, chapter, section and page; edit,
+  reorder and reload; then verify persistence and representative
+  loading/error/empty states.
+- Use accessible locators, isolated authentication/storage, controlled
+  API/GraphQL fixtures where appropriate, web-first assertions and failure
+  traces/screenshots without arbitrary sleeps.
+- Keep the mocked browser journey distinct from the future real
+  frontend/backend same-version system proof.
+
+### Dedicated implementation recipes
+
+- `0164`: ordered-tree domain and thin Notebook level adapters.
+- `0165`: parameter-safe Notebook reorder SQL.
+- `0166`: atomic ownership, membership, move and reorder validation.
+- `0167`: migration-backed concurrent sibling-order invariants.
+
+### From 0151 / DATA-002
+
+- Add the Notebook entity constraints and indexes required by its approved
+  ordered-tree model, including the final parent/order invariant.
+- Validate the Notebook constraint set against the future migration baseline
+  without relying on application pre-checks.
+
+### From 0152 / DATA-003
+
+- Migrate Notebook services to the canonical TypeORM Unit of Work and ensure
+  nested helpers use transaction-scoped managers and repositories.
+
+### From 0185 / BE-032
+
+- Add explicit Notebook command patch allowlists and reject protected-field
+  injection.
+- Browser-check representative Notebook metadata updates through the canonical
+  development edge.
+
+### From 0193 / QA-007
+
+- Inventory and contract-test every public LabNotebook, Chapter, Section and
+  Page resolver through the real Nest GraphQL application, including schema,
+  authentication, ownership, success, invalid-input and not-found behavior.
+
+### From 0194 / QA-008
+
+- Add real-PostgreSQL transaction and concurrency tests for Notebook sibling
+  ordering, rollback, constraints and transaction-scoped repository use.
+
+The next Notebook program must explicitly copy or move these deferred recipes
+back into an executable task directory and establish its own ordering,
+dependencies, route/access decisions and CI lifecycle. They are not part of the
+current Series execution set merely because their registry rows remain as
+reserved historical identities.

@@ -18,7 +18,7 @@ The repository has Angular unit tests but no working browser E2E runner. The fut
 
 - `MercurionWebNg/package.json`
 - new Playwright configuration/test project
-- Angular routes/auth/action/collection/Notebook UI
+- Angular routes/auth/action/collection UI in the active program
 - canonical runtime in `docs/autonomous-development/RUNTIME.md`
 - nginx development edge at `http://localhost:8888`
 - CI pipeline from `0008`/`0202`
@@ -28,7 +28,7 @@ The repository has Angular unit tests but no working browser E2E runner. The fut
 - Add Playwright as the canonical browser E2E runner and provide root/project scripts for local and CI execution.
 - Use `http://localhost:8888` as the application base URL; never validate critical flows through a direct Angular dev-server origin.
 - Provide deterministic API/GraphQL/auth fixtures through Playwright route interception or a dedicated test backend mode where appropriate.
-- Cover representative anonymous navigation/login shell, authentication/MFA/session behavior, molecule/collection workflow and Notebook workflow when the features are reachable.
+- Cover representative anonymous navigation/login shell, authentication/MFA/session behavior and molecule/collection workflow.
 - Use role/label/text locators primarily; use stable `data-testid` only when no semantic locator exists.
 - Capture useful trace/screenshot diagnostics on failure without making them the assertion strategy.
 - Make readiness explicit and use web-first assertions instead of arbitrary timeout sleeps.
@@ -52,7 +52,7 @@ The repository has Angular unit tests but no working browser E2E runner. The fut
 1. Add pinned Playwright tooling/configuration and scripts compatible with the repository/root workspace architecture.
 2. Define base URL `http://localhost:8888` and deterministic readiness checks without starting/stopping externally managed nginx.
 3. Build reusable authenticated/anonymous fixture setup that does not store production secrets and can control session/API outcomes.
-4. Cover at minimum one anonymous route/login flow, one login→MFA/session lifecycle scenario, one molecule/collection interaction and the Notebook create/edit/reorder journey if Notebook is reachable after `0020`.
+4. Cover at minimum one anonymous route/login flow, one login→MFA/session lifecycle scenario and one molecule/collection interaction.
 5. Verify representative error/loading/empty states rather than only successful navigation.
 6. Use role/name/label locators and web-first assertions; justify any test ID introduced.
 7. Configure traces/screenshots on failure and retain them as CI artifacts.
@@ -82,7 +82,7 @@ Mark `BLOCKED` if a critical journey's expected behavior remains unresolved by i
 ## Dependencies
 
 - `0187` must provide a green Angular unit-test runner.
-- Relevant FE/UI/NG tasks and `0020` Notebook reachability must be `DONE` before their journeys are enabled.
+- Relevant active-program FE/UI/NG tasks must be `DONE` before their journeys are enabled.
 - `0019` records Playwright as the preferred browser E2E direction.
 
 ## Implementation notes
@@ -98,8 +98,9 @@ _Not started._
 ### Preflight remediation
 _None._
 ### Summary
-Not attempted because direct terminal prerequisite 0020 (SYS-020) is
-`BLOCKED`.
+Re-scoped by direct management instruction on 2026-09-14. Deferred feature
+journeys were transferred to the archived development program, so this recipe
+can implement the active product's Playwright infrastructure and journeys.
 ### Task-specific validation performed
 _Not started._
 ### Full pre-merge CI-parity validation
@@ -113,6 +114,4 @@ _Not started._
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Direct terminal prerequisite and transitive root: 0020 (SYS-020),
-`BLOCKED`. Its existing feature branch remains deliberately preserved and
-frozen; no browser-journey implementation was attempted.
+_None currently recorded after management re-scope._
