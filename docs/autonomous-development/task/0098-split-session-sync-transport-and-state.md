@@ -128,8 +128,7 @@ one navigation; after the canonical runtime remained alive and the edge
 returned `200`, reload succeeded and validation completed.
 
 ### Commits
-Implementation and execution-note commits are recorded on `feature/NG-012`
-and will be pushed after the task-specific commits exist.
+`a5ea51a7` — implementation, focused validation, and execution evidence.
 
 ### Merge / CI
 Not started.
