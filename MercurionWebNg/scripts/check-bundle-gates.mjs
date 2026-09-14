@@ -19,6 +19,7 @@ const approvedCommonJs = new Set([
 
 const stats = JSON.parse(await readFile(statsPath, 'utf8'))
 const outputs = stats.outputs ?? {}
+const browserOutputDirectory = join(outputDirectory, 'browser')
 const entryFiles = Object.keys(outputs).filter((file) =>
   /^(main|polyfills)-.*\.js$/.test(file) || /^styles-.*\.css$/.test(file),
 )
@@ -38,6 +39,32 @@ const initialBytes = [...initialFiles].reduce(
   (total, file) => total + (outputs[file]?.bytes ?? 0),
   0,
 )
+
+const lazyChunks = Object.entries(outputs)
+  .filter(([file]) => !initialFiles.has(file) && file.endsWith('.js'))
+  .map(([file, output]) => ({
+    file,
+    bytes: output.bytes ?? 0,
+    entryPoint: output.entryPoint ?? null,
+  }))
+  .sort((left, right) => right.bytes - left.bytes)
+
+const selectedLazyChunks = lazyChunks
+  .filter(({ entryPoint }) => entryPoint || false)
+  .slice(0, 20)
+
+const mainOutput = [...initialFiles].find((file) => /^main-.*\.js$/.test(file))
+const mainSource = mainOutput
+  ? await readFile(join(browserOutputDirectory, mainOutput), 'utf8')
+  : ''
+const heavyEagerSignatures = [
+  '@rdkit/rdkit',
+  'RDKit_minimal',
+  'ngx-quill',
+  'chart.js',
+  'dashboard-charts-widget',
+  'action-components/',
+].filter((signature) => mainSource.includes(signature))
 
 const commonJsModules = Object.entries(stats.inputs ?? {})
   .filter(([, input]) => input.format === 'cjs' || input.format === 'commonjs')
@@ -61,6 +88,8 @@ const report = {
   budgetBytes: initialBudget,
   initialBytes,
   initialFiles: [...initialFiles].sort(),
+  selectedLazyChunks,
+  heavyEagerSignatures,
   commonJsModules,
   approvedCommonJs: [...approvedCommonJs].sort(),
   undocumentedCommonJs,
@@ -77,4 +106,14 @@ if (undocumentedCommonJs.length > 0) {
   console.error('Undocumented CommonJS modules detected:')
   for (const module of undocumentedCommonJs) console.error(`- ${module.file}`)
   process.exitCode = 1
+}
+if (heavyEagerSignatures.length > 0) {
+  console.error('Heavy feature signatures detected in the initial application chunk:')
+  for (const signature of heavyEagerSignatures) console.error(`- ${signature}`)
+  process.exitCode = 1
+}
+
+console.log('Largest selected lazy chunks:')
+for (const chunk of selectedLazyChunks.slice(0, 8)) {
+  console.log(`- ${chunk.entryPoint ?? chunk.file}: ${chunk.bytes} bytes`)
 }
