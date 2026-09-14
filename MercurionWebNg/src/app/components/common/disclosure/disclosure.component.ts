@@ -4,6 +4,7 @@ import {
   Directive,
   TemplateRef,
   contentChild,
+  inject,
   input,
   output,
 } from '@angular/core';
@@ -14,7 +15,7 @@ import { NgTemplateOutlet } from '@angular/common';
   standalone: true,
 })
 export class DisclosureTriggerDirective {
-  constructor(readonly template: TemplateRef<unknown>) {}
+  readonly template = inject(TemplateRef<unknown>);
 }
 
 @Component({

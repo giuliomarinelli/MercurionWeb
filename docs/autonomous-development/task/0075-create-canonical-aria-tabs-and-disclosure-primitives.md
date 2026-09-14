@@ -185,3 +185,9 @@ the canonical `div[role="tablist"]` keyboard coordinator as a generic clickable
 element. The rule now narrowly recognizes `tablist` as an allowed composite
 widget while continuing to reject generic interactive div/span handlers. A new
 exact feature-SHA run is required after this correction.
+
+The next full feature run `34909681749` on
+`58ab4e160507a2b70eccd547d49e1f0a709ceea2` confirmed the semantics fix and
+then identified the remaining constructor injection in the new Disclosure
+trigger directive. It is migrated to functional `inject(TemplateRef)` before
+requesting another exact feature-SHA run.
