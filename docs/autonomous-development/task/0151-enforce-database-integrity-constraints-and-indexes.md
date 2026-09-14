@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Move persistence invariants that must survive concurrency and alternate code paths into explicit database foreign keys, unique/check constraints and workload-backed indexes, all delivered through migrations and verified against a real database.
@@ -97,9 +97,7 @@ _Not started._
 ### Preflight remediation
 _None._
 ### Summary
-Skipped because hard prerequisite task 0150 (DATA-001) is terminal BLOCKED: no
-authoritative deployed PostgreSQL schema baseline or approved reconciliation
-plan is available.
+Skipped because the resolved dependency closure contains terminal prerequisite 0150 (DATA-001), which is BLOCKED. Resolved hard dependencies for this recipe: 0150. This task was never attempted and receives no feature branch.
 ### Task-specific validation performed
 _Not started._
 ### Full pre-merge CI-parity validation
@@ -107,10 +105,10 @@ _Not started._
 ### Browser validation performed
 _Not applicable._
 ### Commits
-Metadata-only dependency skip; recorded with the aggregate skip update.
+Aggregate dependency-skip metadata commit on develop.
 ### Merge / CI
-_Not started._
+Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-_None._
+Terminal dependency root: 0150 (DATA-001). No feature branch or worker was created for this task.
