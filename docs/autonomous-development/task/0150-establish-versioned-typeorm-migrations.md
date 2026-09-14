@@ -1,7 +1,7 @@
 # 0150 - Establish versioned TypeORM migrations
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
@@ -93,33 +93,82 @@ Do not make a generated migration trustworthy merely because TypeORM emitted it.
 ## Execution notes
 
 ### Feature branch
-`feature/DATA-001` at diagnostic SHA
-`a2877255b4b9295926b05e972c5ed78a4ff6740c`; preserved and frozen for human
-review.
+`feature/DATA-001` recovery branch. Preserved diagnostic SHA
+`a2877255b4b9295926b05e972c5ed78a4ff6740c`; local and remote preserved refs
+matched before recovery. Current green `develop` SHA
+`59bbf8732f7fb16005ede6f0792c1f4f5f26fc13` was merged with
+`--no-ff --no-gpg-sign` as merge commit `62120f20`.
+
 ### Preflight
-Passed unchanged-task preflight against develop
-`d3dd4e1f60463f447326e6c197e4826c812e6b98`; exact-base CI run `34710547193`
-was green and dependencies `0008`, `0130`, and `0132` were DONE.
+- Branch identity and cleanliness verified with `git status --short --branch`,
+  `git rev-parse HEAD`, and `git branch --show-current`; the branch was clean
+  and exactly matched the supplied base SHA.
+- Dependency recipes 0008, 0130, and 0132 are all `[x] DONE`.
+- Exact base SHA GitHub Actions evidence verified with
+  `gh run list --commit d3dd4e1f60463f447326e6c197e4826c812e6b98`; CI run
+  `34710547193` completed successfully.
+- No task-owned Angular, Nest, Tox21, or test-watcher process was active.
+  Existing Node processes were only the dedicated Chrome DevTools MCP process.
+- Entity inventory found 36 files under
+  `MercurionWebNode/src/app_modules/**/Models/entities/`, including 24
+  `@Entity` declarations (the remainder are entity tests).
+- Current deployment configuration is PostgreSQL (`SQL_DATABASE_TYPE=postgres`
+  in `MercurionWebNode/env/.env.example` and the active development
+  configuration); the environment schema still accepts `mariadb`, but no
+  MariaDB deployment contract was found.
+- `AppModule` currently consumes `Data.pgSQL` with `autoLoadEntities: true` and
+  passes the unrestricted `SQL_DATABASE_SYNCHRONIZE` value through to TypeORM.
+- No repository TypeORM migrations, SQL baseline, dump, or documented schema
+  snapshot was found. Kubernetes staging runs the built application against an
+  externally managed PostgreSQL database, but its deployed schema/history is
+  not present or otherwise deterministically discoverable in this repository.
+
+Recovery reinspection after merging current `develop` did not change that
+finding. `MercurionWebNode/env/.env.example` still declares PostgreSQL with
+`SQL_DATABASE_SYNCHRONIZE=false`, while `src/config/config.schema.ts` still
+accepts both `postgres` and `mariadb` and requires the unrestricted
+`SQL_DATABASE_SYNCHRONIZE` property. `src/app.module.ts` still passes the
+validated `Data.pgSQL` options directly to TypeORM. The Kubernetes beta
+deployment supplies database settings through the external
+`mercurion-web-node-env` Secret and contains no schema dump, migration table
+contract, or reconciliation plan. Repository search found no TypeORM
+migration directory/history or authoritative PostgreSQL schema snapshot;
+`docker_sl/db/init` is only referenced as a local PostgreSQL init mount and
+does not provide the deployed baseline in this repository.
 ### Preflight remediation
-_None._
+Authorized recovery completed by merging current green `develop` without
+rebasing or rewriting history. No task implementation was created.
+
 ### Summary
-Blocked before implementation because no authoritative deployed PostgreSQL
-schema baseline, migration history, dump, or deterministic schema snapshot is
-available. Generating a baseline from entity metadata could create destructive
-or incompatible operations against live data, which the recipe forbids.
+`BLOCKED` after authorized recovery and before implementation. A safe initial
+baseline still cannot be produced:
+the current deployed PostgreSQL schema cannot be reconciled to the 24 loaded
+entities from repository evidence alone. Generating a baseline from entity
+metadata would be an undocumented assumption and could create destructive or
+incompatible operations against the deployed database. No migration, DataSource,
+synchronization-policy, script, or CI change was made.
+
 ### Task-specific validation performed
-Not run; the mandatory schema-authority stop condition applied before
-implementation.
+Not run because the required human/database authority is absent and the task
+must stop before producing an unsafe migration.
+
 ### Full pre-merge CI-parity validation
-Not applicable; no implementation was produced.
+Not run; local `npm ci` and `npm run ci:check` remain forbidden, and no
+task-specific implementation exists.
 ### Browser validation performed
-Not applicable.
+_Not applicable._
 ### Commits
-Feature diagnostic commit `a2877255b4b9295926b05e972c5ed78a4ff6740c`.
+Recovery merge commit `62120f20`; terminal diagnostic/status commit recorded
+below.
 ### Merge / CI
-Blocked metadata recorded on develop; metadata CI pending.
+Not applicable: the task remains blocked before implementation. The recovery
+branch will be pushed after the diagnostic/status commit.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Provide and approve an authoritative PostgreSQL baseline/reconciliation plan
-for deployed staging/production schema before migration implementation.
+Human/database owner must provide and approve a deterministic PostgreSQL
+baseline/reconciliation plan for the deployed staging/production schema
+(for example an authoritative schema dump plus confirmation of the intended
+entity-to-schema mapping and any required non-destructive compatibility
+migrations). Until that authority is available, do not generate or apply an
+initial migration.
