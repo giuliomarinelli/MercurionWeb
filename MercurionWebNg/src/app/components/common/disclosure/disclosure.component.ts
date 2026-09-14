@@ -1,13 +1,26 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  Directive,
+  TemplateRef,
+  contentChild,
   input,
   output,
 } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
+
+@Directive({
+  selector: 'ng-template[mDisclosureTrigger]',
+  standalone: true,
+})
+export class DisclosureTriggerDirective {
+  constructor(readonly template: TemplateRef<unknown>) {}
+}
 
 @Component({
   selector: 'm-disclosure',
   standalone: true,
+  imports: [NgTemplateOutlet],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="m-disclosure">
@@ -19,12 +32,16 @@ import {
         [attr.aria-controls]="panelId()"
         (click)="toggle()"
       >
-        <span>{{ label() }}</span>
-        <span aria-hidden="true" [class.m-disclosure__chevron--open]="expanded()">⌄</span>
+        @if (trigger(); as customTrigger) {
+          <ng-container [ngTemplateOutlet]="customTrigger.template" />
+        } @else {
+          <span>{{ label() }}</span>
+          <span aria-hidden="true" [class.m-disclosure__chevron--open]="expanded()">⌄</span>
+        }
       </button>
       @if (expanded()) {
         <div
-          class="m-disclosure__panel"
+          [class]="panelClass()"
           role="region"
           [id]="panelId()"
           [attr.aria-labelledby]="triggerId()"
@@ -56,10 +73,12 @@ import {
   `,
 })
 export class DisclosureComponent {
-  readonly label = input.required<string>();
+  readonly label = input('');
   readonly expanded = input(false);
   readonly id = input('m-disclosure');
+  readonly panelClass = input('m-disclosure__panel');
   readonly toggled = output<boolean>();
+  protected readonly trigger = contentChild(DisclosureTriggerDirective);
 
   triggerId(): string {
     return `${this.id()}-trigger`;

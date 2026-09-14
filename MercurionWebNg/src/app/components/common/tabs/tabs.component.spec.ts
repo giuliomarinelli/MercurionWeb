@@ -41,4 +41,36 @@ describe('TabsComponent', () => {
     tablist.dispatchEvent(new KeyboardEvent('keydown', { key: 'End' }));
     expect(changed).toHaveBeenCalledWith(2);
   });
+
+  it('skips disabled tabs and wraps keyboard navigation', () => {
+    fixture.componentRef.setInput('tabs', [
+      { id: 'one', label: 'One' },
+      { id: 'two', label: 'Two', disabled: true },
+      { id: 'three', label: 'Three' },
+    ]);
+    fixture.detectChanges();
+    const changed = spyOn(component.tabChange, 'emit');
+    const tablist = fixture.debugElement.query(By.css('[role="tablist"]')).nativeElement;
+
+    tablist.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
+    expect(changed).toHaveBeenCalledWith(2);
+
+    tablist.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft' }));
+    expect(changed).toHaveBeenCalledWith(2);
+  });
+
+  it('updates deterministic relationships when tabs change dynamically', () => {
+    fixture.componentRef.setInput('idPrefix', 'help');
+    fixture.componentRef.setInput('tabs', [{ id: 'mine', label: 'Mine' }]);
+    fixture.detectChanges();
+    let button = fixture.debugElement.query(By.css('[role="tab"]')).nativeElement;
+    expect(button.id).toBe('help-mine-tab');
+    expect(button.getAttribute('aria-controls')).toBe('help-mine-tabpanel');
+
+    fixture.componentRef.setInput('tabs', [{ id: 'admin', label: 'Admin' }]);
+    fixture.detectChanges();
+    button = fixture.debugElement.query(By.css('[role="tab"]')).nativeElement;
+    expect(button.id).toBe('help-admin-tab');
+    expect(button.getAttribute('aria-controls')).toBe('help-admin-tabpanel');
+  });
 });

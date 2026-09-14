@@ -1,6 +1,5 @@
 import { AuthUseCasesService } from './../../services/auth-use-cases.service';
 import { AfterViewInit, Component, effect, ElementRef, inject, OnDestroy, OnInit, signal, ChangeDetectionStrategy, viewChild, viewChildren } from '@angular/core'
-import { CdkAccordion, CdkAccordionItem, CdkAccordionModule } from '@angular/cdk/accordion'
 import { EMPTY, map, of, startWith, Subscription, switchMap } from 'rxjs'
 import { AccountService } from '../../services/account.service'
 import { MfaStrategy, ProfileDTO, SessionDTOExt, VersionDTO } from '../../Models/account/account.models'
@@ -23,6 +22,7 @@ import { DomainInvalidationService } from '../../services/domain-invalidation.se
 import { ViewportRuntimeService } from '../../services/context/viewport-runtime.service';
 import { IconButtonComponent } from '../../components/common/icon-button/icon-button.component';
 import { ButtonComponent } from '../../components/common/button/button.component';
+import { DisclosureComponent, DisclosureTriggerDirective } from '../../components/common/disclosure/disclosure.component';
 
 
 
@@ -30,7 +30,8 @@ import { ButtonComponent } from '../../components/common/button/button.component
   selector: 'm-settings.page',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    CdkAccordionModule,
+    DisclosureComponent,
+    DisclosureTriggerDirective,
     ProgressIndicatorComponent,
     SessionCardComponent,
     MfaStrategyCardComponent,
@@ -90,26 +91,23 @@ import { ButtonComponent } from '../../components/common/button/button.component
           class="flex flex-col justify-between transition-[padding-bottom] duration-200 ease-out"
           [style.paddingBottom]="bottomSpacerPx()"
         >
-          <cdk-accordion class="flex flex-col w-full border border-slate-300 dark:border-slate-500">
+          <div class="flex flex-col w-full border border-slate-300 dark:border-slate-500">
             @for (item of items; track item; let i = $index) {
-              <cdk-accordion-item
-                #accordionItem="cdkAccordionItem"
-                (opened)="onAccordionOpened(i)"
-                (closed)="smoothToTop()"
+              <m-disclosure
+                #disclosureItem
+                [id]="computeId(i)"
+                [expanded]="expandedIndex() === i"
+                panelClass="m-disclosure__panel accordion-body px-4 bg-slate-100 dark:bg-slate-700"
+                (toggled)="handleDisclosureToggle(i, $event)"
               >
+                <ng-template mDisclosureTrigger>
                 <div class="border-b border-slate-300 dark:border-slate-500" [class.border-b-0]="i === items.length - 1">
-                  <button
-                    type="button"
-                    [id]="computeId(i)"
-                    class="
+                  <div class="
                       w-full p-4 bg-slate-200 dark:bg-slate-800
                       text-start flex items-center justify-between
                       hover:bg-slate-200/75 dark:hover:bg-slate-800/75
                       transition-colors duration-300
-                      "
-                    (click)="handleAccordionClick(i)"
-                    [attr.aria-expanded]="accordionItem.expanded"
-                    [attr.aria-controls]="'accordion-body-' + i">
+                      ">
                     <div class="flex items-center gap-2">
                       @switch (i) {
                           @case (0) {
@@ -142,21 +140,18 @@ import { ButtonComponent } from '../../components/common/button/button.component
                     <svg xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 640 640"
                       class="fill-current h-6 w-auto transition-transform duration-200"
-                      [class.rotate-180]="accordionItem.expanded"
-                      [class.rotate-0]="!accordionItem.expanded">
+                      [class.rotate-180]="expandedIndex() === i"
+                      [class.rotate-0]="expandedIndex() !== i">
                       <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                       <path d="M320 96C196.3 96 96 196.3 96 320C96 443.7 196.3 544 320 544C443.7 544 544 443.7 544 320C544 196.3 443.7 96 320 96zM320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576zM331.3 411.3L320 422.6L308.7 411.3L196.7 299.3L185.4 288L208 265.4L219.3 276.7L320 377.4L420.7 276.7L432 265.4L454.6 288L443.3 299.3L331.3 411.3z"/>
                     </svg>
-                  </button>
+                  </div>
                 </div>
-                @if (accordionItem.expanded) {
+                </ng-template>
+                @if (expandedIndex() === i) {
                   <div
-                    class="accordion-body px-4 bg-slate-100 dark:bg-slate-700"
                     animate.enter="accordion-enter"
                     animate.leave="accordion-leave"
-                    role="region"
-                    [attr.id]="'accordion-body-' + i"
-                    [attr.aria-labelledby]="computeId(i)"
                     [class.relative]="i === 1"
                   >
                     <div class="py-6">
@@ -590,9 +585,9 @@ import { ButtonComponent } from '../../components/common/button/button.component
                     </div>
                   </div>
                 }
-              </cdk-accordion-item>
+              </m-disclosure>
               }
-          </cdk-accordion>
+          </div>
         </div>
       </section>
     } @else {
@@ -627,11 +622,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly sidenavContext = inject(SidenavContextService)
   private readonly userContext = inject(UserContextService)
 
-  readonly accordion = viewChild.required(CdkAccordion);
-
-  readonly accordionItems = viewChildren(CdkAccordionItem);
-
-  readonly accordionItemHosts = viewChildren(CdkAccordionItem, { read: ElementRef });
+  readonly disclosureItemHosts = viewChildren('disclosureItem', { read: ElementRef });
 
   readonly pageTop = viewChild<ElementRef<HTMLElement>>('pageTop');
 
@@ -654,6 +645,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   spinnerLeft = signal<number>(0)
 
   items = ['Generali', 'Anagrafica', 'Contatti', 'Sicurezza']
+  readonly expandedIndex = signal<number | null>(null)
   private readonly accordionAnchors = ['general', 'personal_details', 'contact_details', 'security']
   private pendingIndex: number | null = null
   private skipSmoothToTopOnClose = false
@@ -675,8 +667,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
       this.fetch()
     })
     effect(() => {
-      const items = this.accordionItems()
-      if (!items.length) return
+      if (!this.disclosureItemHosts().length) return
 
       queueMicrotask(() => {
         const currentFrag = this.route.snapshot.fragment
@@ -833,55 +824,28 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private openAccordionAtIndex(index: number | null, opts?: { closeOthers?: boolean }): void {
-    const items = this.accordionItems()
-    if (!items.length) {
+    if (!this.disclosureItemHosts().length) {
       return
     }
 
-    const closeOthers = opts?.closeOthers ?? true
-    const hasValidIndex = index !== null && index >= 0 && index < items.length
-    const isMultiAccordion = this.accordion()?.multi ?? false
-    const switchingBetweenItems =
-      closeOthers
-      && hasValidIndex
-      && !isMultiAccordion
-      && items.some((item, i) => i !== index && item.expanded)
-
-    this.skipSmoothToTopOnClose = switchingBetweenItems
-
-    if (!hasValidIndex) {
-      if (closeOthers) {
-        items.forEach(item => {
-          if (item.expanded) item.close()
-        })
-      }
-      return
-    }
-
-    items.forEach((item, i) => {
-      if (i === index) {
-        if (!item.expanded) item.open()
-      } else if (closeOthers && item.expanded && !isMultiAccordion) {
-        item.close()
-      }
-    })
+    const nextIndex = index !== null && index >= 0 && index < this.items.length ? index : null
+    this.skipSmoothToTopOnClose = Boolean(opts?.closeOthers && nextIndex !== null && this.expandedIndex() !== null)
+    this.expandedIndex.set(nextIndex)
   }
 
-  handleAccordionClick(i: number): void {
-    const items = this.accordionItems()
-    const item = items[i]
-    if (!item) return
-
+  handleDisclosureToggle(i: number, expanded: boolean): void {
     const fragment = this.accordionAnchors[i] ?? this.accordionAnchors[0]
 
-    if (item.expanded) {
-      item.close()
+    if (!expanded) {
+      this.expandedIndex.set(null)
+      this.updateBottomSpacer()
       this.router.navigate([], {
         relativeTo: this.route,
         fragment: undefined,
         replaceUrl: true,
         queryParamsHandling: 'preserve'
       })
+      this.smoothToTop()
       return
     }
 
@@ -891,12 +855,12 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
     })
   }
 
-  onAccordionOpened(i: number): void {
+  private onDisclosureOpened(i: number): void {
     this.skipSmoothToTopOnClose = false
     this.updateBottomSpacer()
 
     setTimeout(() => {
-      const hosts = this.accordionItemHosts()
+      const hosts = this.disclosureItemHosts()
       const itemEl = hosts[i]?.nativeElement
       const scrollRoot = this.scrollRootRef?.nativeElement
       if (!itemEl || !scrollRoot) {
@@ -1032,7 +996,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   smoothToAccordionItem(i: number): void {
-    const hostRef = this.accordionItemHosts().at(i)
+    const hostRef = this.disclosureItemHosts().at(i)
     if (!hostRef || !this.scrollRootRef) return
 
     const hostEl = hostRef.nativeElement
@@ -1070,13 +1034,13 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
     const idx = this.indexFromFragment(frag)
     this.pendingIndex = idx
 
-    const itemsArr = this.accordionItems()
-    if (!itemsArr.length) {
+    if (!this.disclosureItemHosts().length) {
       return
     }
 
     this.openAccordionAtIndex(idx, { closeOthers: true })
     this.updateBottomSpacer()
+    this.onDisclosureOpened(idx)
   }
 
   smoothToTop(): void {
@@ -1086,21 +1050,13 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
       return
     }
 
-    const items = this.accordionItems()
-    for (const item of items) {
-      if (item.expanded) {
-        return
-      }
-    }
+    if (this.expandedIndex() !== null) return
 
     this.scrollContext.smoothToTop(this.scrollRootRef)
   }
 
   private updateBottomSpacer(): void {
-    const items = this.accordionItems()
-    const anyOpen = items.some(item => item.expanded)
-
-    if (!anyOpen) {
+    if (this.expandedIndex() === null) {
       this.bottomSpacerPx.set('0px')
       return
     }

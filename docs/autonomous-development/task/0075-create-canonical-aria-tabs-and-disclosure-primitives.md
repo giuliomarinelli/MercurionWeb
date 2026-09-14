@@ -1,7 +1,7 @@
 # 0075 - Create canonical ARIA Tabs and Disclosure primitives
 
-- [ ] DONE
-- [x] BLOCKED
+- [x] DONE
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -59,13 +59,13 @@ Tabs and expandable sections currently implement their indicators, focus and int
 
 ## Acceptance criteria
 
-- [ ] Tab UIs use a canonical WAI-ARIA Tabs implementation.
-- [ ] Expandable sections use a canonical Disclosure implementation.
-- [ ] Navigation links are not incorrectly converted into tabs.
-- [ ] Keyboard navigation and focus-visible treatment are uniform.
-- [ ] Active/expanded state is represented correctly in the accessibility tree.
-- [ ] Local duplicate keyboard handlers/ARIA state are removed from migrated consumers.
-- [ ] Angular tests/build and canonical CI gates pass.
+- [x] Tab UIs use a canonical WAI-ARIA Tabs implementation.
+- [x] Expandable sections use a canonical Disclosure implementation.
+- [x] Navigation links are not incorrectly converted into tabs.
+- [x] Keyboard navigation and focus-visible treatment are uniform.
+- [x] Active/expanded state is represented correctly in the accessibility tree.
+- [x] Local duplicate keyboard handlers/ARIA state are removed from migrated consumers.
+- [x] Angular tests/build and canonical CI gates pass.
 
 ## Validation
 
@@ -144,3 +144,36 @@ Not applicable.
 ### Blocker / human decision required
 Migrate existing expandable consumers to the canonical Disclosure primitive and
 complete stable Help-route Tabs browser evidence in a new authorized session.
+
+## Authorized recovery (2026-09-15)
+
+Recovery resumed from preserved SHA
+`d1ea7d2946bfe3ae19ff3419c4d0603d1edcd3d3`. Current green `develop`
+(`0527e5299d2300e822692948161a03053fdaa123`, full CI run `34899813813`) was
+merged with `--no-ff --no-gpg-sign` as
+`5d14d9968ef069f556521c56ee76952396fcf125`.
+
+The Settings accordion and sidenav feature section now consume the canonical
+Disclosure primitive while preserving controlled expansion, fragment targets,
+responsive layout and link navigation semantics. Tabs coverage now includes
+disabled-item traversal and dynamic relationship updates. Disclosure supports
+a projected canonical trigger without duplicating ARIA ownership in consumers.
+
+The protected-route refresh race that made Help browser evidence unstable was
+also removed: AuthGuard waits for an in-progress session restore, and concurrent
+session checks share the same handshake promise instead of resolving early.
+Regression tests cover successful restore and anonymous redirect preservation.
+
+Runtime validation used the canonical Tox21, Nest and Angular processes through
+`http://localhost:8888`. Two readiness rounds passed. The authenticated Help
+tabs exposed canonical tablist/tab/tabpanel relationships; Arrow, Home and End
+selection/focus behaviour was exercised. Settings and sidenav disclosures
+exposed deterministic trigger/region relationships and correct expanded state.
+Focus treatment, responsive layout and light/dark themes were exercised, and a
+real protected-route refresh remained on the requested route without visiting
+login or falling back to dashboard. All task-owned processes were stopped.
+
+Focused Tabs, Disclosure and AuthGuard tests passed. The full Angular suite,
+typecheck, lint and production build passed locally; the existing initial-bundle
+budget warning is unchanged. The task remains integration `CI_PENDING` until
+the exact feature-SHA and merge-SHA Required gates succeed.
