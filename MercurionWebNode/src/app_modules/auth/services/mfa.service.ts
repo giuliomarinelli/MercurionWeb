@@ -3,9 +3,8 @@ import { UUID } from 'crypto';
 import { SercurityService } from './sercurity.service';
 import { UserService } from 'src/app_modules/user/services/user.service';
 import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum';
-import { InjectRepository } from '@nestjs/typeorm';
 import { MfaBackupCode } from 'src/app_modules/user/Models/entities/backup-code.entity';
-import { DataSource, EntityManager, Repository } from 'typeorm';
+import { DataSource, EntityManager } from 'typeorm';
 import { PasswordEncoderService } from './password-encoder.service';
 import { User } from 'src/app_modules/user/Models/entities/user.entity';
 import { BackupCodeStatusDTO } from 'src/app_modules/user/Models/DTO/backup-code-status.dto';
@@ -32,6 +31,7 @@ import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interface
 import { TypeGuards } from 'src/utils/type-guards/type-guards';
 import { ProvidedEmailDTO } from '../Models/DTO/provided-email.dto';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
+import { MfaBackupCodeStore } from 'src/app_modules/user/services/mfa-backup-code.store'
 
 @Injectable()
 export class MfaService {
@@ -57,8 +57,7 @@ export class MfaService {
     private readonly BACKUP_REGEN_MAX_REQUESTS = 3           // max 3 rigenerazioni/ora
 
     constructor(
-        @InjectRepository(MfaBackupCode)
-        private readonly backupCodeRepository: Repository<MfaBackupCode>,
+        private readonly backupCodes: MfaBackupCodeStore,
         private readonly dataSource: DataSource,
         private readonly passwordEncoderService: PasswordEncoderService,
         private readonly securityService: SercurityService,
@@ -238,12 +237,7 @@ export class MfaService {
 
             await this.ensureBackupNotLocked(userId as UUID)
 
-            const codes = await this.backupCodeRepository.find({
-                where: {
-                    userId: userId as UUID,
-                    used: false
-                }
-            })
+            const codes = await this.backupCodes.findUnused(userId as UUID)
 
             if (!codes || !codes.length) {
                 await this.registerBackupFailure(userId as UUID)
@@ -255,9 +249,7 @@ export class MfaService {
                 const match = (await this.passwordEncoderService.compare(plainCode, c.hash))
                 if (match) {
                     matched = true
-                    c.used = true
-                    c.usedAt = Date.now()
-                    await this.backupCodeRepository.save(c)
+                    await this.backupCodes.markUsed(c)
                     break
                 }
             }
@@ -324,8 +316,7 @@ export class MfaService {
     }
 
     public async hasValidBackupCodes(userId: UUID): Promise<boolean> {
-        const count = await this.backupCodeRepository.count({ where: { user: { id: userId }, used: false } })
-        return count > 0
+        return this.backupCodes.hasValid(userId)
     }
 
     public async getBackupCodesStatus(userId: UUID): Promise<BackupCodeStatusDTO> {
@@ -340,17 +331,11 @@ export class MfaService {
         if (ur && ur.sso) {
             throw applicationError(ApplicationErrorCode.UNPROCESSABLE_ENTITY)
         }
-        const codes = await this.backupCodeRepository.find({ where: { user: { id: userId } } })
-        const used = codes.filter(c => c.used).length
-        return {
-            total: codes.length,
-            used,
-            remaining: codes.length - used
-        }
+        return this.backupCodes.status(userId)
     }
 
     public async destroyBackupCodes(userId: UUID): Promise<void> {
-        await this.backupCodeRepository.delete({ userId })
+        await this.backupCodes.destroy(userId)
     }
 
     private getMfaFailKey(userId: UUID, strategy: MfaStrategy, context: MfaContext = MfaContext.VERIFY) {

@@ -5,14 +5,15 @@ import { JwtToolsService } from 'src/app_modules/auth/services/jwt-tools.service
 import { ConfigService } from '@nestjs/config';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
-import { DataSource } from 'typeorm';
 import { SercurityService } from 'src/app_modules/auth/services/sercurity.service';
 
 describe('SocialAuthService', () => {
   it('should be defined', () => {
     const service = new SocialAuthService(
       {} as SocialProviderRegistry,
-      { manager: {} } as DataSource,
+      {} as any,
+      {} as any,
+      {} as any,
       { getEncryptedStandardScopes: jest.fn() } as unknown as ScopeService,
       {} as JwtToolsService,
       { get: jest.fn().mockReturnValue('secret') } as unknown as ConfigService,
