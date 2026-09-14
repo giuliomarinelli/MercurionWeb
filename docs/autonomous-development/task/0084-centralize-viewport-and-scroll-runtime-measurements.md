@@ -166,11 +166,11 @@ only). Exact feature-SHA CI is coordinator-owned.
   used.
 
 ### Commits
-Pending feature commit.
+- `0a38bb86` — `feat(UI-026): centralize viewport runtime measurements`
 
 ### Merge / CI
-Feature branch will be pushed only after the task-specific commit. Coordinator
-must wait for exact feature-SHA CI before integration.
+Feature branch will be pushed after the task-specific commit. Coordinator must
+wait for exact feature-SHA CI before integration.
 
 ### Rollback
 Not applicable before integration.
