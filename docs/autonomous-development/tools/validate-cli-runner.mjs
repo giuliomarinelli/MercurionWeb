@@ -29,10 +29,10 @@ const paths = {
   completedSession: 'docs/autonomous-development/session.48h-2026-09-03.yaml',
   exampleSession: 'docs/autonomous-development/session.example.yaml',
   closedSession: 'docs/autonomous-development/session.until-2026-09-10.yaml',
-  preparedSession: 'docs/autonomous-development/session.overweek-2026-09-20-v7.yaml',
+  preparedSession: 'docs/autonomous-development/session.overweek-2026-09-21-v8.yaml',
   completedLaunch: 'docs/autonomous-development/LAUNCH-2026-09-03-v2.md',
   closedLaunch: 'docs/autonomous-development/LAUNCH-2026-09-06.md',
-  preparedLaunch: 'docs/autonomous-development/LAUNCH-2026-09-11-overweek-v7.md',
+  preparedLaunch: 'docs/autonomous-development/LAUNCH-2026-09-13-overweek-v8.md',
   runtime: 'docs/autonomous-development/RUNTIME.md',
   workflow: '.github/workflows/ci.yml',
   classifier: '.github/scripts/classify-ci.mjs',
@@ -658,15 +658,15 @@ for (const command of ['/model', '/permissions show', '/mcp list', '/keep-alive 
 }
 
 for (const [pattern, message] of [
-  [/docs\/autonomous-development\/session\.overweek-2026-09-20-v7\.yaml/, 'prepared launch must reference its dated session configuration'],
-  [/2026-09-20T10:00:00\+02:00/, 'prepared launch must retain the exact soft deadline'],
+  [/docs\/autonomous-development\/session\.overweek-2026-09-21-v8\.yaml/, 'prepared launch must reference its dated session configuration'],
+  [/2026-09-21T10:00:00\+02:00/, 'prepared launch must retain the exact soft deadline'],
   [/test-account login policy are integrated into `develop`/i, 'prepared launch must require the shared real test-account policy'],
   [/no\s+profile-persistence or pre-authenticated-state probe is a launch prerequisite/i, 'prepared launch must not depend on persisted profile authentication'],
   [/workload\.tasks` list is empty[\s\S]{0,120}complete Series is in\s*scope/i, 'prepared launch must select the complete Series'],
   [/there is no autonomous allowlist/i, 'prepared launch must explicitly disable workload restriction'],
-  [/expected first READY task[\s\S]{0,20}(?:is\s*)?0060/i, 'prepared launch must state the current expected first ready task'],
-  [/0087\/NG-001[\s\S]*0091\/NG-005[\s\S]*0109\/NG-023[\s\S]*recovery_resume: true/i, 'prepared launch must authorize the exact recovery tasks'],
-  [/Task `0041` \(`FE-019`\) is already integrated as `DONE`[\s\S]*must not attempt or re-enable it/i, 'prepared launch must retain completed FE-019'],
+  [/expected first READY task[\s\S]{0,20}(?:is\s*)?0020/i, 'prepared launch must state the current expected first ready task'],
+  [/0077\/UI-019[\s\S]*0109\/NG-023[\s\S]*0114\/NG-028[\s\S]*0120\/BE-006[\s\S]*0136\/BE-022[\s\S]*0150\/DATA-001[\s\S]*recovery_resume: true/i, 'prepared launch must authorize the exact recovery tasks'],
+  [/All 79 former `SKIPPED_DEPENDENCY` recipes[\s\S]*reset to `PENDING`/i, 'prepared launch must record the dependency-skip release'],
   [/env\/\.env\.development[\s\S]{0,260}ordinary login[\s\S]{0,260}server/i, 'prepared launch must require a fresh server-accepted real-account login'],
   [/Do[\s\S]{0,10}not bundle tasks/, 'prepared launch must prohibit multi-task bundles'],
   [/npm run autonomous:plan/, 'prepared launch must execute the deterministic planner'],
@@ -681,13 +681,14 @@ for (const staleSessionReference of [
   'docs/autonomous-development/session.overweek-2026-09-16-v2.yaml',
   'docs/autonomous-development/session.overweek-2026-09-17-v3.yaml',
   'docs/autonomous-development/session.overweek-2026-09-20-v6.yaml',
+  'docs/autonomous-development/session.overweek-2026-09-20-v7.yaml',
 ]) {
   if (preparedLaunch.includes(staleSessionReference)) {
     fail(paths.preparedLaunch, `contains stale session reference ${staleSessionReference}`);
   }
 }
 const preparedSessionReference =
-  'docs/autonomous-development/session.overweek-2026-09-20-v7.yaml';
+  'docs/autonomous-development/session.overweek-2026-09-21-v8.yaml';
 if (preparedLaunch.split(preparedSessionReference).length - 1 !== 2) {
   fail(paths.preparedLaunch, 'must reference the active session exactly twice');
 }
@@ -844,9 +845,9 @@ if (closedDeadlineMatches?.length !== 1) {
   fail(paths.closedSession, `deadline must remain exactly ${closedDeadline}`);
 }
 
-const preparedDeadline = '2026-09-20T10:00:00+02:00';
+const preparedDeadline = '2026-09-21T10:00:00+02:00';
 const preparedDeadlineMatches = preparedSession.match(
-  /^\s*end:\s*"2026-09-20T10:00:00\+02:00"/gm,
+  /^\s*end:\s*"2026-09-21T10:00:00\+02:00"/gm,
 );
 if (preparedDeadlineMatches?.length !== 1) {
   fail(paths.preparedSession, `deadline must remain exactly ${preparedDeadline}`);
@@ -900,19 +901,20 @@ for (const [pattern, message] of [
 
 for (const [pattern, message] of [
   [/browser_and_allowlist_hardening_pull_request:\s*31/, 'prepared session must record PR #31 provenance'],
-  [/name:\s*mercurion-code-red-0001-overweek-full-series-2026-09-20-v7/, 'prepared session must use a fresh session identity'],
+  [/name:\s*mercurion-code-red-0001-overweek-full-series-2026-09-21-v8/, 'prepared session must use a fresh session identity'],
   [/expected_task_count:\s*220/, 'prepared workload must contain 220 tasks'],
-  [/expected_current_done:\s*65/, 'prepared workload must record 65 DONE tasks'],
-  [/expected_current_blocked:\s*2/, 'prepared workload must record two retained blockers'],
-  [/expected_current_skipped_dependency:\s*11/, 'prepared workload must record 11 terminal skips'],
-  [/expected_current_pending:\s*142/, 'prepared workload must record 142 pending tasks'],
-  [/expected_first_ready_task:\s*"0060"/, 'prepared workload must start from task 0060'],
-  [/expected_planner_ready:\s*17/, 'prepared workload must record 17 ready tasks'],
-  [/expected_planner_waiting_dependency:\s*125/, 'prepared workload must record 125 waiting tasks'],
+  [/expected_current_done:\s*121/, 'prepared workload must record 121 DONE tasks'],
+  [/expected_current_blocked:\s*0/, 'prepared workload must record zero blockers'],
+  [/expected_current_reverted:\s*0/, 'prepared workload must record zero reverted tasks'],
+  [/expected_current_skipped_dependency:\s*0/, 'prepared workload must record zero terminal skips'],
+  [/expected_current_pending:\s*99/, 'prepared workload must record 99 pending tasks'],
+  [/expected_first_ready_task:\s*"0020"/, 'prepared workload must start from task 0020'],
+  [/expected_planner_ready:\s*14/, 'prepared workload must record 14 ready tasks'],
+  [/expected_planner_waiting_dependency:\s*85/, 'prepared workload must record 85 waiting tasks'],
   [/tasks:\s*\[\]/, 'prepared workload must select the complete Series'],
-  [/expected_autonomous_pending:\s*142/, 'prepared workload must record all 142 pending tasks in scope'],
-  [/authorized_recovery:[\s\S]*tasks:\s*\["0087", "0091", "0109"\][\s\S]*source_0087:\s*NG-001[\s\S]*source_0091:\s*NG-005[\s\S]*source_0109:\s*NG-023/, 'prepared workload must bind exact recovery task identities'],
-  [/reset_stale_skipped_dependency:[\s\S]*"0088"[\s\S]*"0106"[\s\S]*"0110"[\s\S]*"0111"[\s\S]*"0112"/, 'prepared workload must record reset stale skips'],
+  [/expected_autonomous_pending:\s*99/, 'prepared workload must record all 99 pending tasks in scope'],
+  [/authorized_recovery:[\s\S]*tasks:\s*\["0077", "0109", "0114", "0120", "0136", "0150"\][\s\S]*source_0077:\s*UI-019[\s\S]*source_0109:\s*NG-023[\s\S]*source_0114:\s*NG-028[\s\S]*source_0120:\s*BE-006[\s\S]*source_0136:\s*BE-022[\s\S]*source_0150:\s*DATA-001/, 'prepared workload must bind exact recovery task identities'],
+  [/reset_stale_skipped_dependency:[\s\S]*"0078"[\s\S]*"0121"[\s\S]*"0151"[\s\S]*"0191"[\s\S]*"0220"/, 'prepared workload must record the released dependency skips'],
   [/expected_human_led_pending:\s*0/, 'prepared workload must not exclude pending tasks'],
   [/autonomous_execution_scope:\s*complete-series/, 'prepared workload must declare complete-Series execution'],
   [/dependency_planner:[\s\S]*output:\s*versioned-json/, 'prepared session must use deterministic planner output'],
@@ -934,7 +936,7 @@ for (const [pattern, message] of [
   [/LOCAL_TEST_ACCOUNT_EMAIL[\s\S]*LOCAL_TEST_ACCOUNT_PASSWORD/, 'prepared session must require both shared credential variables'],
   [/LOCAL_DUMMY_AUTH:\s*"false"/, 'prepared session must disable deprecated local dummy auth'],
   [/required_once_before_enabling_unattended_reuse:\s*false/, 'prepared session must not gate launch on profile persistence'],
-  [/fe_019_completed:[\s\S]*task:\s*"0041"[\s\S]*source:\s*FE-019[\s\S]*outcome:\s*DONE[\s\S]*select_again:\s*false/, 'prepared session must retain completed FE-019 without re-enabling it'],
+  [/dependency_skips_released:\s*79/, 'prepared session must record all released dependency skips'],
   [/preserve_existing_frozen_branches:\s*true/, 'prepared session must preserve frozen blocked branches'],
   [/stop_and_report_exact_denial:\s*false/, 'prepared session must not stop on a denied prerequisite'],
   [/enter_session_recovery_pending:\s*true/, 'prepared session must recover from denied prerequisites'],

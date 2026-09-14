@@ -14,7 +14,8 @@ import {
   type SocketSessionExpiredPayload,
   type SocketSessionInitAcknowledgement,
 } from '@mercurion/socket-contracts';
-import { AuthService } from '../auth.service';
+import { AuthSessionRepository } from '../auth-session-repository.service'
+import { AuthUseCasesService } from '../auth-use-cases.service'
 import { JwtHelperService } from '../jwt-helper.service';
 import { APP_CONFIG } from '../../config/app-config';
 import {
@@ -64,7 +65,7 @@ export class RealtimeSocketService implements OnDestroy {
     this.retryAttempt = 0;
     this._state.set(reduceRealtimeConnection(this._state(), { type: 'transport-connected' }));
     this.lastAuthTokenSent = this.mode === 'private'
-      ? (this.auth.getWs_accessToken() ?? null)
+      ? (this.auth.getWsAccessToken() ?? null)
       : null;
   };
 
@@ -80,7 +81,7 @@ export class RealtimeSocketService implements OnDestroy {
     if (isAuthErr && this.mode === 'private') {
       await this.ensureFreshToken(true);
       if (this.generation !== this.currentGeneration()) return;
-      const tok = this.auth.getWs_accessToken();
+      const tok = this.auth.getWsAccessToken();
       if (tok && !this.jwt.isTokenExpired(tok)) this.socket.auth = { token: tok, contractMajor: SOCKET_CONTRACT_MAJOR };
     }
     if (!this.stopped) this.scheduleRetry();
@@ -90,7 +91,7 @@ export class RealtimeSocketService implements OnDestroy {
     const change = this.storageRegistry.event(e);
     if (e.key !== 'ws_accessToken' && change?.descriptor.id !== 'wsAccessToken') return;
     if (this.mode !== 'private' || !this.socket.connected) return;
-    const latest = this.auth.getWs_accessToken();
+    const latest = this.auth.getWsAccessToken();
     if (latest && !this.jwt.isTokenExpired(latest)) {
       this.socket.auth = { token: latest, contractMajor: SOCKET_CONTRACT_MAJOR };
       this.lastAuthTokenSent = latest;
@@ -99,7 +100,8 @@ export class RealtimeSocketService implements OnDestroy {
   };
 
   constructor(
-    private readonly auth: AuthService,
+    private readonly auth: AuthSessionRepository,
+    private readonly authCommands: AuthUseCasesService,
     private readonly jwt: JwtHelperService,
   ) {
 
@@ -143,10 +145,10 @@ export class RealtimeSocketService implements OnDestroy {
       const forceRefresh = opts?.forceRefresh === true;
 
       // 1) assicuriamoci di avere un token WS valido
-      let tok = tokenOverride ?? this.auth.getWs_accessToken();
+      let tok = tokenOverride ?? this.auth.getWsAccessToken();
       if (!tokenOverride) {
         await this.ensureFreshToken(forceRefresh);
-        tok = this.auth.getWs_accessToken();
+        tok = this.auth.getWsAccessToken();
       }
 
       if (this.generation !== myGeneration) return;
@@ -380,10 +382,10 @@ export class RealtimeSocketService implements OnDestroy {
   /** Se il token è assente o scaduto, prova a rinfrescarlo con lock cross-tab. */
   /** Se force=true, forza il refresh anche se il JWT non risulta scaduto. */
   private async ensureFreshToken(force = false): Promise<void> {
-    const tok = this.auth.getWs_accessToken();
+    const tok = this.auth.getWsAccessToken();
     const needRefresh = force || !tok || this.jwt.isTokenExpired(tok);
     if (!needRefresh) return;
-    await this.auth.refreshWsAccessTokenLocked().catch(() => null);
+    await this.authCommands.refreshWsAccessTokenLocked().catch(() => null);
   }
 
 }

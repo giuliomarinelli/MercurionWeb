@@ -1,9 +1,9 @@
 # 0078 - Validate semantic colors and WCAG contrast in both themes
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -104,11 +104,14 @@ Keep the contrast implementation dependency-light. A small deterministic utility
 
 ### Feature branch
 
-_Not started._
+`feature/UI-020` is preserved and frozen at
+`3ca7e172c52c8d51652851a07022e1f6c1d8f6fd`, with the same SHA on origin.
 
 ### Preflight
 
-_Not started._
+Exact base-SHA CI run `34788533211` succeeded. Runtime startup followed
+Tox21 -> Nest -> Angular, two readiness rounds passed, and all task-owned
+processes were stopped before handoff.
 
 ### Preflight remediation
 
@@ -116,28 +119,38 @@ _None._
 
 ### Summary
 
-Not attempted because required task 0077 (UI-019) is
-`SKIPPED_DEPENDENCY`.
+Implemented deterministic semantic color syntax and WCAG contrast validation,
+negative fixtures, and CI registration. Corrected `219C6F` to `#219C6F` and
+adjusted semantic borders for the registered non-text contrast contract. The
+task is blocked because final authenticated browser evidence could not be
+obtained.
 
 ### Task-specific validation performed
 
-Not applicable; no feature branch or implementation worker was created.
+Color/contrast positive and negative checks, semantic-token checks, Angular
+typecheck, and Angular build passed; `git diff --check` passed. Full feature CI
+was not requested because the task was blocked before integration.
 
 ### Full pre-merge CI-parity validation
 
-Not applicable; dependency-skip metadata only.
+Not applicable; the task was blocked before integration.
 
 ### Browser validation performed
 
-Not applicable; the task was not attempted.
+Runtime readiness passed, but Chrome DevTools MCP `fill_form` and `fill`
+fallback both timed out on the fresh login form. Fresh login and required
+authenticated light/dark representative UI evidence were therefore not
+obtained.
 
 ### Commits
 
-Pending metadata commit on `develop`.
+Implementation and blocker commits are preserved on `feature/UI-020`; the
+blocked outcome is recorded here on `develop`.
 
 ### Merge / CI
 
-No feature branch or merge. Exact-SHA CI is required for the metadata commit.
+No feature merge. This metadata-only status commit requires exact CI before
+continuing.
 
 ### Rollback
 
@@ -145,6 +158,6 @@ _Not applicable._
 
 ### Blocker / human decision required
 
-Direct terminal prerequisite: 0077 (UI-019), `SKIPPED_DEPENDENCY`.
-Transitive chain: UI-020 -> UI-019 -> UI-018 (BLOCKED). UI-018 requires a
-test-safe local Nest runtime and dependencies for mandatory browser validation.
+Complete fresh ordinary login and authenticated light/dark browser evidence
+through the canonical edge in a new authorized session with functioning MCP
+input interaction.

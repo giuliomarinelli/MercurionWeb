@@ -16,12 +16,17 @@ import GraphQLJSON from 'graphql-type-json'
 import { PaginatedTicket } from '../Models/DTO/paginated-ticket.type.gql'
 import { GeneralUtils } from 'src/utils/general-utils/general-utils'
 import { PaginatedTicketMessage } from '../Models/DTO/paginated-ticket-message.type.gql'
+import { Pagination } from 'nestjs-typeorm-paginate'
 
 
 @Resolver(() => Ticket)
 export class HelpResolver {
 
     constructor(private readonly helpService: HelpService) { }
+
+    private flattenPagination<T>(pagination: Pagination<T>) {
+        return GeneralUtils.paginationToFlatPaginationConverter(pagination)
+    }
 
     private ensureUuidv7(value: string, field: string): void {
         GeneralUtils.ensureValidUUIDv7(value, `GraphQLInvalid::Invalid ${field}`)
@@ -65,10 +70,7 @@ export class HelpResolver {
             true,
             scopes.includes(Scope.ViewUsers)
         )
-        const flat = GeneralUtils.paginationToFlatPaginationConverter(pagination)
-        return {
-            ...flat
-        }
+        return this.flattenPagination(pagination)
     }
 
     @Query(() => PaginatedTicketMessage)
@@ -83,10 +85,7 @@ export class HelpResolver {
         this.ensureUuidv7(ticketId, 'ticketId')
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         const pagination = await this.helpService.listTicketMessages(ticketId, userId, { page, limit }, fieldsMap, true, scopes.includes(Scope.ViewUsers))
-        const flat = GeneralUtils.paginationToFlatPaginationConverter(pagination)
-        return {
-            ...flat
-        }
+        return this.flattenPagination(pagination)
     }
 
     @SoftAuthorization()
@@ -186,10 +185,7 @@ export class HelpResolver {
                 tutti i ticket di supporto presenti nel sistema, ma gli userId avranno valore null, se invece ha anche lo scope
                 ViewUsers, allora potrà vedere tutti i ticket di supporto del sistema e gli userId saranno valorizzati  */
         )
-        const flat = GeneralUtils.paginationToFlatPaginationConverter(pagination)
-        return {
-            ...flat
-        }
+        return this.flattenPagination(pagination)
     }
 
     @HasScopes(Scope.HandleTickets)
@@ -205,10 +201,7 @@ export class HelpResolver {
         this.ensureUuidv7(ticketId, 'ticketId')
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         const pagination = await this.helpService.listTicketMessages(ticketId, userId, { page, limit }, fieldsMap, false, scopes.includes(Scope.ViewUsers))
-        const flat = GeneralUtils.paginationToFlatPaginationConverter(pagination)
-        return {
-            ...flat
-        }
+        return this.flattenPagination(pagination)
     }
 
     // --------------------------------

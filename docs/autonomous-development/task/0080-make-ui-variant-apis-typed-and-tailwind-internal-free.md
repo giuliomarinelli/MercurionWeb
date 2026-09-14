@@ -1,9 +1,9 @@
 # 0080 - Make UI variant APIs typed and Tailwind-internal-free
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -94,49 +94,70 @@ Prefer small readonly maps validated with `satisfies Record<Variant, string>` or
 
 ## Execution notes
 
-> Current status (2026-09-11): PENDING by direct owner instruction because this
-> activity was not completed. Historical attempt/skip evidence remains below
-> for traceability and is not a terminal outcome.
+> Completed on `feature/UI-022` from base
+> `3dec787573cdca285431f2b316b8264452aedec6`.
 
 ### Feature branch
-_Not started._
+`feature/UI-022`
 
 ### Preflight
-_Not started._
+* Verified the clean feature branch and supplied base SHA before edits.
+* Confirmed exact-SHA Actions run `34790436532` for
+  `3dec787573cdca285431f2b316b8264452aedec6`; Windows and Ubuntu jobs and
+  `Required gate` all succeeded.
+* Focused unchanged checks passed: `npm run ui:tokens:check`,
+  `npm run ui:legacy-buttons:check`, and
+  `npm run ci:angular:modern-component-apis`.
 
 ### Preflight remediation
-_None._
+None.
 
 ### Summary
-Not attempted. Required tasks 0059 through 0076 and task 0077 (UI-019)
-are terminally non-`DONE`.
+Replaced styling-class public inputs on canonical dialog, select and spinner
+primitives with closed semantic variant/layout/tone APIs. Replaced button
+variant/size/icon-position interpolation with exhaustive static maps, migrated
+production callers, and added a deterministic negative-tested static guard for
+canonical primitive styling-internal inputs.
 
 ### Task-specific validation performed
-Not applicable; no feature branch or implementation worker was created.
+* `npm run ci:angular:ui-variant-apis` passed, including its negative fixture.
+* `npm run ci:typecheck:angular` passed.
+* `npm run lint:angular --workspace mercurion_web_ng -- --quiet` passed.
+* `npm run ui:tokens:check` and `npm run ui:legacy-buttons:check` passed.
+* `npm run build --workspace mercurion_web_ng` passed; Angular reported only
+  the existing initial bundle budget warning.
+* `git diff --check` passed.
 
 ### Full pre-merge CI-parity validation
-Not applicable; dependency-skip metadata only.
+Not run locally because `npm ci` and `npm run ci:check` are Actions-only.
+Exact feature-SHA Actions validation is coordinator-owned after push.
 
 ### Browser validation performed
-Not applicable; the task was not attempted.
+* Started Tox21, Nest watch mode, and Angular watch mode in the required order
+  with separate live sessions. Nest reported zero compile errors and Angular
+  completed bundle generation.
+* Two consecutive `http://localhost:8888/` readiness rounds returned 200
+  with the application shell. The optional `/health` edge route returned 502
+  while Nest logged its active route as `/api/health`; the edge itself was
+  reachable.
+* Chrome DevTools MCP at `http://localhost:8888/register` rendered the typed
+  `m-select` in dark mode; opening `Genere *` produced an expanded listbox.
+* A fresh ordinary login attempt through `/login` used supported `fill_form`,
+  but the local application rejected the configured test email at its first
+  validation step. No credential or session data was recorded.
+* Stopped all three task-owned runtime sessions and verified their absence.
 
 ### Commits
-Pending metadata commit on `develop`.
+`6ae31def39c0f60cb44728e44d4e7d2ddf331505`
 
 ### Merge / CI
-No feature branch or merge. Exact-SHA CI is required for the metadata commit.
+Feature SHA will be pushed after the task-specific commit. Exact feature and
+merge CI remain coordinator-owned.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-Direct terminal prerequisites: 0059 through 0075 are
-`SKIPPED_DEPENDENCY`, 0076 (UI-018) is `BLOCKED`, and 0077 (UI-019) is
-`SKIPPED_DEPENDENCY`. The prerequisite chains include FE-030 (BLOCKED,
-requiring a filesystem-write-capable worker) and UI-018 (BLOCKED, requiring a
-test-safe local Nest runtime for mandatory browser validation).
-
-
-### Dependency skip
-
-Direct terminal prerequisite: 0077 (), terminal non-DONE dependency.
+None for the implementation. The login validation response is retained as
+non-sensitive runtime evidence; the public representative control evidence
+was used for browser smoke validation.

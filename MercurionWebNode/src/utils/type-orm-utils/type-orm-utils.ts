@@ -1,8 +1,7 @@
 import { SelectQueryBuilder } from 'typeorm'
+import type { GraphQLFieldsMap } from '../graphql-utils/graphql-utils'
 
-export type GraphQLFieldsMap = {
-    [key: string]: GraphQLFieldsMap | object
-}
+export type { GraphQLFieldsMap } from '../graphql-utils/graphql-utils'
 
 
 export class TypeOrmUtils {
@@ -28,16 +27,15 @@ export class TypeOrmUtils {
             if (typeof value === 'object' && value !== null && Object.keys(value).length > 0) {
                 const alias = path.replace(/\./g, '_')
                 qb.leftJoinAndSelect(`${base}.${path}`, alias)
-                this.addJoins(qb, alias, value as GraphQLFieldsMap, '')
+                this.addJoins(qb, alias, value, '')
             }
         })
         return qb
     }
-    static filterJoinsForEntity(fields: Record<string, any>, validJoins: string[]): Record<string, any> {
-        const filtered: Record<string, any> = {};
+    static filterJoinsForEntity(fields: GraphQLFieldsMap, validJoins: string[]): GraphQLFieldsMap {
+        const filtered: GraphQLFieldsMap = {};
         for (const key in fields) {
             if (validJoins.includes(key) && typeof fields[key] === 'object' && fields[key] !== null) {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                 filtered[key] = fields[key];
             }
         }

@@ -58,18 +58,18 @@ export class PubSubService implements OnModuleDestroy, OnModuleInit {
   }
 
   private async subscribeToKeyspaceEvents(): Promise<void> {
-    await (this.subscriber as any).psubscribe('__keyevent@0__:*');
+    await this.subscriber.psubscribe('__keyevent@0__:*');
     this.subscriber.on('pmessage', (_pattern, channel, key) => {
       try {
         const event = channel.split(':').pop(); // 'expired' | 'del' | ...
         if (!event) return;
 
         if (key.startsWith('session:') && (event === 'expired' || event === 'del')) {
-          this.handleSessionEvent(event, key)
+          void this.handleSessionEvent(event, key)
         }
 
         if (key.startsWith('access_token:') && event === 'expired') {
-          this.handleAccessTokenExpired(key)
+          void this.handleAccessTokenExpired(key)
         }
       } catch (e) {
         this.logger.error(`PubSub handler error for key="${key}": ${e?.message || e}`)
@@ -158,7 +158,9 @@ export class PubSubService implements OnModuleDestroy, OnModuleInit {
   }
 
   public subscribe(channel: string, callback: (message: string) => void): void {
-    this.subscriber.subscribe(channel)
+    void this.subscriber.subscribe(channel).catch(error => {
+      this.logger.error(`Redis subscription failed for ${channel}: ${String(error)}`)
+    })
     this.subscriber.on('message', (chan, message) => {
       if (chan === channel) callback(message)
     })

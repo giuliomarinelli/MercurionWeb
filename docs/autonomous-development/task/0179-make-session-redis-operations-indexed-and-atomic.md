@@ -94,7 +94,8 @@ _Not started._
 ### Preflight remediation
 _None._
 ### Summary
-_Not started._
+Skipped because hard prerequisite task 0136 (BE-022) is terminal BLOCKED:
+trusted proxy/CORS policy authority is unavailable.
 ### Task-specific validation performed
 _Not started._
 ### Full pre-merge CI-parity validation
@@ -102,7 +103,7 @@ _Not started._
 ### Browser validation performed
 _Not started._
 ### Commits
-_Not recorded._
+Metadata-only dependency skip; recorded with the aggregate skip update.
 ### Merge / CI
 _Not started._
 ### Rollback

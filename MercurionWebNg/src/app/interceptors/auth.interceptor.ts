@@ -11,7 +11,7 @@ import {
 } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { AuthService } from '../services/auth.service'; // Assumendo che sia il service dove gestisci il token
+import { AuthSessionRepository } from '../services/auth-session-repository.service'
 import { AuthStateStore } from '../services/auth-state.store';
 import { classifyAuthResponse } from './auth-error.util';
 
@@ -19,7 +19,7 @@ import { classifyAuthResponse } from './auth-error.util';
 export class AuthInterceptor implements HttpInterceptor {
 
   constructor(
-    private readonly authService: AuthService,
+    private readonly authService: AuthSessionRepository,
     private readonly authState: AuthStateStore,
     private zone: NgZone
   ) { }
