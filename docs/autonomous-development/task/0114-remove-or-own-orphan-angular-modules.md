@@ -12,7 +12,7 @@ Source: `NG-028` in Series `0001`.
 
 ## Context
 
-The Series baseline identified 31 files not reachable from the production static graph, including legacy modal/redirect/spinner code, Notebook-related code and services. Earlier tasks classify server/client feature ownership, make Notebook/Synth decisions explicit, introduce lazy route/action registries and remove several legacy UI implementations. This final Angular architecture task distinguishes legitimate lazy/plugin/tooling entrypoints from true zombie production code and makes that distinction machine-verifiable.
+The Series baseline identified production files not reachable from the production static graph, including legacy modal/redirect/spinner code and services. Earlier tasks classify server/client feature ownership, introduce lazy route/action registries and remove several legacy UI implementations. This final Angular architecture task distinguishes legitimate lazy/plugin/tooling entrypoints from true zombie production code and makes that distinction machine-verifiable. Management-deferred feature trees are outside this workflow and outside this recipe's reachability inventory.
 
 ## Relevant files and modules
 
@@ -20,7 +20,6 @@ The Series baseline identified 31 files not reachable from the production static
 - typed route manifest / `app.routes.ts`
 - lazy action registry from `0106`
 - production Angular source under `MercurionWebNg/src/app/`
-- Notebook implementation according to the decision completed by `SYS-020`
 - legacy modal/redirect/spinner/services identified by the baseline audit
 - Storybook/catalog/test-only entrypoints from `UI-028`
 
@@ -29,7 +28,7 @@ The Series baseline identified 31 files not reachable from the production static
 - Build a deterministic production reachability graph starting from all legitimate application entrypoints, including static imports and supported lazy route/action imports.
 - Classify every previously orphaned production file as reachable product code, explicit non-production/tooling entrypoint, generated artifact, or dead code to remove.
 - Delete dead legacy components/services/models and all obsolete exports/specs/references that exist only for them.
-- Ensure product features intentionally retained by prior decisions have explicit route/registry/feature entrypoints.
+- Ensure product features retained in the active program have explicit route/registry/feature entrypoints.
 - Keep Storybook/tests/scripts/generated sources outside the production-orphan rule through narrow documented configuration rather than blanket directory ignores.
 - Add a CI gate that fails on newly orphaned production files.
 
@@ -45,7 +44,7 @@ The Series baseline identified 31 files not reachable from the production static
 - Every production Angular source file either participates in an explicit runtime entrypoint graph or is removed.
 - Lazy routes/actions count as legitimate edges and must be understood by the reachability checker.
 - Test/catalog/generated/tooling code has separate explicit entrypoints/exclusions and cannot justify unreachable production code.
-- Notebook/Synth ownership follows the explicit decisions and implementations from `SYS-018` through `SYS-020`; this task does not reopen them.
+- Synth ownership follows the explicit decisions and implementations from `SYS-018` through `SYS-019`; this task does not reopen them.
 
 ## Requirements
 
@@ -61,7 +60,7 @@ The Series baseline identified 31 files not reachable from the production static
 
 - [ ] Zero unapproved production Angular files are unreachable from legitimate runtime entrypoints.
 - [ ] Legacy zombie modal/redirect/spinner/service code identified by the audit is removed unless a real owner/entrypoint is proven.
-- [ ] Retained Notebook/Synth/client features follow their previously approved product decision and are actually reachable when retained.
+- [ ] Retained active-program Synth/client features follow their previously approved product decision and are actually reachable when retained.
 - [ ] Lazy routes/action implementations are recognized without artificial eager imports.
 - [ ] CI fails on a newly introduced orphan production module.
 - [ ] No broad exemption hides future dead-code growth.
@@ -72,7 +71,7 @@ Run the reachability/orphan checker, negative fixture/test, production Angular b
 
 ## Browser validation
 
-Through `http://localhost:8888`, smoke-test every feature whose entrypoint or legacy replacement changed during orphan cleanup, especially redirects/status flows, overlays/actions and any retained Notebook feature. Verify no lazy-load 404/chunk errors or missing UI.
+Through `http://localhost:8888`, smoke-test every active-program feature whose entrypoint or legacy replacement changed during orphan cleanup, especially redirects/status flows and overlays/actions. Verify no lazy-load 404/chunk errors or missing UI.
 
 ## Stop conditions
 
@@ -81,44 +80,34 @@ Mark `BLOCKED` if an orphan's product ownership is still genuinely unresolved af
 ## Dependencies
 
 - `0113-enforce-an-acyclic-angular-import-graph.md` should be `DONE` so reachability runs over the final acyclic graph.
-- `SYS-018` through `SYS-020` feature ownership decisions must be honored.
+- `SYS-018` through `SYS-019` feature ownership decisions must be honored.
 - `0106` lazy action registry and the typed route manifest must be represented as graph entrypoints.
 
 ## Execution notes
 
 ### Feature branch
-`feature/NG-028`, based on `851592c3c878bb2bf670a531f17e306d262aa9f9`,
-is preserved and frozen at `63783d675f263ab5146f1a584896149050ce2560`.
+The earlier `feature/NG-028` attempt remains preserved. Direct management
+instruction on 2026-09-14 re-scoped and reopened this recipe for the active
+program; recovery must reconcile that preserved branch with current `develop`.
 ### Preflight
-Passed unchanged: root `npm ci` followed by `npm run ci:check`.
+Must be repeated by the future task worker under the current validation policy.
 ### Preflight remediation
 _None._
 ### Summary
-No implementation was attempted. The recipe requires existing Synth and
-Notebook ownership decisions to classify or remove currently unreachable
-modules; those decisions remain unresolved.
+Reopened after management removed the deferred feature program from the active
+recipe directory. This task now owns only reachability and orphan cleanup for
+the active Angular program and can complete independently.
 ### Task-specific validation performed
-Decision-gate inspection and recipe validation completed. The task recipe
-validator passed for 220 tasks with zero warnings.
+_Pending after management re-scope._
 ### Full pre-merge CI-parity validation
-Not applicable after immediate authority block; the unchanged root preflight
-passed before task scope and no implementation change was made.
+_Pending after management re-scope._
 ### Browser validation performed
-Not performed. Runtime evidence cannot resolve missing product authority, and
-the task made no implementation change.
+_Pending after management re-scope._
 ### Commits
-Preserved feature metadata commit:
-`63783d675f263ab5146f1a584896149050ce2560`
-(`docs(task-0114): block pending orphan ownership decisions`).
+Historical preserved branch evidence remains in Git history.
 ### Merge / CI
-No merge attempted. The feature branch is frozen at its final pushed SHA.
+_Pending after management re-scope._
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Provide a Synth retain/remove decision; retaining Synth additionally requires
-its approved Angular entry point, UX scope, and route/navigation placement.
-Provide a Notebook retain/remove decision; retaining Notebook additionally
-requires its route path, navigation placement, and access policy/guard
-audience. The current source retains both implementations without Angular
-routes, so removing or making either reachable would invent or bypass these
-decisions.
+_None currently recorded for the re-scoped active-program orphan audit._

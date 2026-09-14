@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './Models/entities/user.entity';
 import { MfaBackupCode } from './Models/entities/backup-code.entity';
 import { History } from '../history/Models/entities/history.entity';
+import { MfaBackupCodeStore } from './services/mfa-backup-code.store';
 
 
 @Global()
@@ -16,8 +17,9 @@ import { History } from '../history/Models/entities/history.entity';
     ]),
   ],
   providers: [
-    UserService
+    UserService,
+    MfaBackupCodeStore
   ],
-  exports: [UserService, TypeOrmModule]
+  exports: [UserService, MfaBackupCodeStore]
 })
 export class UserModule { }

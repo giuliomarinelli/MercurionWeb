@@ -10,7 +10,7 @@ import { AuthSessionPersistenceService } from '../../../services/auth-session-pe
 import { SessionSyncService } from '../../../services/session-sync.service'
 import type { SessionDeviceInfo } from '@mercurion/rest-contracts'
 import { ToastService } from '../../../services/toast.service'
-import { ClassicSpinnerComponent } from '../../../components/common/classic-spinner/classic-spinner.component'
+import { ProgressIndicatorComponent } from '../../../components/common/progress-indicator/progress-indicator.component'
 import { HttpErrorResponse } from '@angular/common/http'
 import { MfaStrategy, MfaView } from '../../../Models/account/account.models'
 import { MfaStrategyCardComponent } from '../../../components/common/mfa-strategy-card/mfa-strategy-card.component'
@@ -30,7 +30,7 @@ import {
   imports: [
     ReactiveFormsModule,
     NgClass,
-    ClassicSpinnerComponent,
+    ProgressIndicatorComponent,
     MfaStrategyCardComponent,
     ɵɵRouterLink
 ],
@@ -159,7 +159,7 @@ import {
                   <span>Verifica</span>
                 } @else {
                   <div class="text-slate-200 flex items-center justify-center">
-                    <m-classic-spinner [size]="24"></m-classic-spinner>
+                    <m-progress-indicator [size]="24"></m-progress-indicator>
                   </div>
                 }
               </button>
@@ -208,9 +208,9 @@ import {
     } @else {
       <div class="absolute inset-0 flex justify-center items-center">
         @if (design.maxBk('md')()) {
-          <m-classic-spinner [size]="30" />
+          <m-progress-indicator [size]="30" />
         } @else if (design.minBk('md')()) {
-          <m-classic-spinner [size]="60" />
+          <m-progress-indicator [size]="60" />
         }
       </div>
     }

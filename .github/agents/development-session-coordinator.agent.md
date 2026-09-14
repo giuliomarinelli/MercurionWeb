@@ -54,6 +54,13 @@ Reject duplicate, unknown, out-of-Series, or malformed allowlist entries.
 
 Use the planner output as follows:
 
+The executable queue is the set of recipe files actually present in
+`docs/autonomous-development/task/`. Numeric identities are reserved but need
+not be contiguous: if the next numeric identity has no active recipe, skip that
+gap and select the next planner-produced recipe. Absence alone is never fatal
+and the coordinator must never synthesize a recipe. A hard dependency that
+explicitly names an absent active recipe remains a planner configuration error.
+
 1. classify every configured pending recipe as `READY` when all hard dependencies are
    `DONE`, `WAITING_DEPENDENCY` when at least one hard dependency is still
    pending/active, or `SKIPPED_DEPENDENCY` when any hard dependency is

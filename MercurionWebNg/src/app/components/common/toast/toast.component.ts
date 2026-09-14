@@ -2,14 +2,13 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
-  afterNextRender,
   afterRenderEffect,
   computed,
   inject,
   signal,
   viewChildren,
 } from '@angular/core'
-import { DOCUMENT } from '@angular/common'
+import { ViewportRuntimeService } from '../../../services/context/viewport-runtime.service'
 import { ToastService } from '../../../services/toast.service'
 
 @Component({
@@ -58,8 +57,8 @@ import { ToastService } from '../../../services/toast.service'
     `
       :host {
         position: fixed;
-        top: 1rem;
-        right: 1rem;
+        top: var(--space-4);
+        right: var(--space-4);
         z-index: 11000;
         pointer-events: none;
       }
@@ -67,9 +66,9 @@ import { ToastService } from '../../../services/toast.service'
       .toast-host {
         display: flex;
         flex-direction: column;
-        gap: 0.75rem;
-        width: min(24rem, calc(100vw - 2rem));
-        max-height: calc(100dvh - 2rem);
+        gap: var(--space-3);
+        width: min(24rem, calc(100vw - 2 * var(--space-4)));
+        max-height: calc(100dvh - 2 * var(--space-4));
         overflow: clip;
       }
 
@@ -78,38 +77,37 @@ import { ToastService } from '../../../services/toast.service'
         display: grid;
         grid-template-columns: auto 1fr auto;
         align-items: center;
-        gap: 0.75rem;
+        gap: var(--space-3);
 
-        min-height: 4rem;
-        padding: 0.875rem 1rem;
+        min-height: theme('spacing.16');
+        padding: 0.875rem theme('spacing.token-4');
 
-        border-radius: 1rem;
+        border-radius: var(--radius-surface);
         border: 1px solid transparent;
 
         box-shadow:
-          0 18px 45px rgb(15 23 42 / 0.18),
-          0 4px 12px rgb(15 23 42 / 0.12);
+          var(--shadow-surface);
 
         backdrop-filter: blur(10px);
         will-change: transform, opacity;
       }
 
       .toast--success {
-        color: rgb(20 83 45);
-        background: rgb(220 252 231 / 0.96);
-        border-color: rgb(34 197 94 / 0.35);
+        color: var(--color-status-success);
+        background: color-mix(in srgb, var(--color-status-success) 18%, var(--color-surface-elevated));
+        border-color: color-mix(in srgb, var(--color-status-success) 35%, transparent);
       }
 
       .toast--error {
-        color: rgb(127 29 29);
-        background: rgb(254 226 226 / 0.96);
-        border-color: rgb(239 68 68 / 0.35);
+        color: var(--color-status-error);
+        background: color-mix(in srgb, var(--color-status-error) 18%, var(--color-surface-elevated));
+        border-color: color-mix(in srgb, var(--color-status-error) 35%, transparent);
       }
 
       .toast--warn {
-        color: rgb(113 63 18);
-        background: rgb(254 243 199 / 0.96);
-        border-color: rgb(245 158 11 / 0.4);
+        color: var(--color-status-warning);
+        background: color-mix(in srgb, var(--color-status-warning) 18%, var(--color-surface-elevated));
+        border-color: color-mix(in srgb, var(--color-status-warning) 40%, transparent);
       }
 
       .toast__icon {
@@ -119,27 +117,26 @@ import { ToastService } from '../../../services/toast.service'
         width: 1.75rem;
         height: 1.75rem;
 
-        border-radius: 999px;
+        border-radius: var(--radius-pill);
         font-weight: 800;
         line-height: 1;
       }
 
       .toast--success .toast__icon {
-        background: rgb(34 197 94 / 0.18);
+        background: color-mix(in srgb, var(--color-status-success) 18%, transparent);
       }
 
       .toast--error .toast__icon {
-        background: rgb(239 68 68 / 0.18);
+        background: color-mix(in srgb, var(--color-status-error) 18%, transparent);
       }
 
       .toast--warn .toast__icon {
-        background: rgb(245 158 11 / 0.2);
+        background: color-mix(in srgb, var(--color-status-warning) 20%, transparent);
       }
 
       .toast__message {
         margin: 0;
-        font-size: 0.925rem;
-        line-height: 1.35;
+        font-size: var(--font-body-sm);
         font-weight: 600;
       }
 
@@ -153,7 +150,7 @@ import { ToastService } from '../../../services/toast.service'
         width: 1.75rem;
         height: 1.75rem;
 
-        border-radius: 999px;
+        border-radius: var(--radius-pill);
 
         font-size: 1.35rem;
         line-height: 1;
@@ -162,7 +159,7 @@ import { ToastService } from '../../../services/toast.service'
 
       .toast__close:hover {
         opacity: 1;
-        background: color-mix(in srgb, white 72%, currentColor);
+        background: color-mix(in srgb, var(--color-surface-elevated) 72%, currentColor);
         color: currentColor;
       }
 
@@ -208,10 +205,9 @@ import { ToastService } from '../../../services/toast.service'
   ],
 })
 export class ToastComponent {
+  private readonly viewportRuntime = inject(ViewportRuntimeService)
   private readonly toastService = inject(ToastService)
-  private readonly document = inject(DOCUMENT)
-
-  private readonly viewportHeight = signal(0)
+  private readonly viewportHeight = this.viewportRuntime.height
 
   private readonly toastElements = viewChildren<ElementRef<HTMLElement>>('toastElement')
 
@@ -236,26 +232,6 @@ export class ToastComponent {
   readonly visibleMessages = computed(() => this.messages().slice(0, this.maxVisibleMessages()))
 
   constructor() {
-    afterNextRender({
-      write: () => {
-        const win = this.document.defaultView
-
-        if (!win) {
-          return
-        }
-
-        const syncViewportHeight = (): void => {
-          this.viewportHeight.set(win.innerHeight)
-        }
-
-        syncViewportHeight()
-
-        win.addEventListener('resize', syncViewportHeight, {
-          passive: true,
-        })
-      },
-    })
-
     /**
      * FLIP minimale:
      * quando un nuovo toast entra in alto, quelli già presenti cambiano posizione.

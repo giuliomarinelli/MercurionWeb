@@ -95,81 +95,52 @@ Use native focusable elements and DOM order; avoid maintaining a parallel manual
 
 ## Execution notes
 
-> Current status (2026-09-11): PENDING by direct owner instruction because this
-> activity was not completed. Historical attempt/skip evidence remains below
-> for traceability and is not a terminal outcome.
+> Current status (2026-09-13): BLOCKED during the v8 autonomous session after
+> partial implementation. Required consumer migration and stable Help-route
+> browser evidence were incomplete.
 
 ### Feature branch
-`feature/UI-017`
+`feature/UI-017` is preserved and frozen at
+`d1ea7d2946bfe3ae19ff3419c4d0603d1edcd3d3`, with the same SHA on origin.
 
 ### Preflight
-Unchanged task-start preflight passed on `feature/UI-017` at base
-`5e3071dea502a1d45b1ece0285c9f98f60ec0bb8`. The working tree was clean, the
-branch identity matched, local `commit.gpgSign` was `false`, no
-workspace-consuming runtime or watcher was active, and GitHub Actions run
-`34786428763` for the exact base SHA completed successfully. The canonical
-runtime capability probe was also completed in the required order (Tox21,
-Nest, Angular), with two consecutive `health=200`/Angular `200` readiness
-rounds and a protected dashboard response after ordinary local-account login.
+Exact base-SHA CI run `34786428763` succeeded. Runtime capability preflight
+passed with the required startup order, two readiness rounds, and protected
+dashboard state; all task-owned processes were stopped before handoff.
 
 ### Preflight remediation
 None.
 
 ### Summary
-Implemented a typed, standalone Tabs primitive with deterministic tab/panel
-IDs, WAI-ARIA roles and relationships, roving tabindex, horizontal/vertical
-orientation, disabled-item handling, automatic Arrow/Home/End activation and
-focus restoration. Added a standalone Disclosure primitive with native button
-semantics, controlled-region relationships and expanded-state output. Migrated
-the help page's existing tab panel relationship and added component tests.
-
-The attempt remains `BLOCKED`: the existing expandable-section consumers
-(notably the settings CDK accordion and sidenav local disclosure) were not
-migrated to the new canonical Disclosure before the acceptance boundary, and
-post-implementation browser validation could not obtain a stable representative
-help tablist through `http://localhost:8888/help` (the route repeatedly
-redirected to the dashboard or remained busy, so no tablist accessibility
-snapshot or keyboard tab evidence was obtained). A dashboard navigation
-disclosure was keyboard-operated and exposed `aria-expanded="true"`, but that
-does not close the missing canonical migration/tab evidence gap.
+Implemented typed standalone Tabs and Disclosure primitives, migrated the Help
+tabpanel relationship, and added focused tests. The task is blocked because
+existing expandable consumers were not migrated and the Help route could not
+provide stable tablist browser evidence.
 
 ### Task-specific validation performed
-- `npm run test:ci --workspace mercurion_web_ng -- --include=...`: Angular
-  test run completed `480 SUCCESS` (the CLI forwarded the include arguments as
-  npm config warnings and executed the full existing Angular suite).
-- `npm run typecheck --workspace mercurion_web_ng`: passed.
-- `npm run lint:angular --workspace mercurion_web_ng -- --no-warn-ignored`:
-  passed.
-- `git diff --check`: passed.
-- Post-implementation runtime was started in the required Tox21/Nest/Angular
-  order, reached two complete readiness rounds, and all three task-owned
-  processes were stopped and confirmed absent.
+480 Angular tests passed; typecheck, lint, and `git diff --check` passed. No
+full feature CI was requested because the task was blocked before integration.
 
 ### Full pre-merge CI-parity validation
-Not run locally by policy. `npm ci` and `npm run ci:check` were not run.
-Exact feature-SHA CI remains coordinator-owned and was not requested because
-the worker result is `BLOCKED`.
+Not applicable; the task was blocked before integration.
 
 ### Browser validation performed
-Canonical edge only: `http://localhost:8888`. Capability preflight reached the
-authenticated dashboard using a fresh ordinary login flow and protected
-server-backed state. Post-implementation dashboard keyboard evidence showed the
-existing “Funzionalità” disclosure changing from collapsed to
-`aria-expanded="true"`; attempts to reach `/help` did not produce a stable
-tablist snapshot, so the required Tabs Arrow/Home/End and tabpanel evidence is
-not claimed.
+Protected dashboard state was confirmed after ordinary login. The Help route
+redirected or remained busy, so required Tabs accessibility-tree, keyboard,
+focus, and tabpanel evidence could not be safely claimed. A dashboard sidenav
+disclosure exposed `aria-expanded="true"` but was not a canonical migration.
 
 ### Commits
-Pending worker diagnostic/partial-work commit on `feature/UI-017`.
+Implementation and blocker commits are preserved on `feature/UI-017`; the
+blocked outcome is recorded here on `develop`.
 
 ### Merge / CI
-No merge. The feature branch is preserved for coordinator review.
+No feature merge. This metadata-only status commit requires exact CI before
+continuing.
 
 ### Rollback
 Not applicable.
 
 ### Blocker / human decision required
-Complete the migration of existing settings/sidenav expandable consumers to
-`m-disclosure`, then repeat the representative authenticated Tabs/Disclosure
-browser acceptance through the canonical edge and capture the tablist,
-tabpanel, keyboard, focus-visible and theme evidence.
+Migrate existing expandable consumers to the canonical Disclosure primitive and
+complete stable Help-route Tabs browser evidence in a new authorized session.

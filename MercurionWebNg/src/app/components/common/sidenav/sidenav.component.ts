@@ -6,7 +6,7 @@ import { HistoryComponent } from '../history/history.component';
 import { filter, Subscription } from 'rxjs';
 import { HistoryService } from '../../../services/history.service';
 import { ToastService } from '../../../services/toast.service';
-import { ClassicSpinnerComponent } from "../classic-spinner/classic-spinner.component";
+import { ProgressIndicatorComponent } from "../progress-indicator/progress-indicator.component";
 import { DesignService } from '../../../services/design.service';
 import { SearchContextService } from '../../../services/context/search-context.service';
 import { SelectionService } from '../../../services/selection.service';
@@ -20,7 +20,7 @@ import { routeManifest } from '../../../route-manifest';
   imports: [
     RouterLink,
     HistoryComponent,
-    ClassicSpinnerComponent,
+    ProgressIndicatorComponent,
     NgClass
   ],
   template: `
@@ -156,7 +156,7 @@ import { routeManifest } from '../../../route-manifest';
             <h6 class="detail">Cronologia</h6>
             @if (triggerDelete()) {
               <div>
-                <m-classic-spinner [size]="16" class="block mt-2 mr-5" />
+                <m-progress-indicator [size]="16" class="block mt-2 mr-5" />
               </div>
             } @else {
               <button

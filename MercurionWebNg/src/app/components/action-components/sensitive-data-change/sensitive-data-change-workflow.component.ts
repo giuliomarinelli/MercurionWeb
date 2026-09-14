@@ -3,7 +3,7 @@ import { SensitiveDataChangeInnerScope } from './../../../Models/action/action-o
 import { SensitiveDataChangeContextService } from './../../../services/context/action-context/sensitive-data-change-context.service';
 import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
 import { Component, inject, OnDestroy, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
-import { ClassicSpinnerComponent } from '../../common/classic-spinner/classic-spinner.component';
+import { ProgressIndicatorComponent } from '../../common/progress-indicator/progress-indicator.component';
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
 import { combineLatest, EMPTY, Observable, of, Subscription, switchMap, tap, finalize, filter, catchError } from 'rxjs';
 import { SensitiveDataChangeFacade } from './sensitive-data-change-facade.service';
@@ -41,7 +41,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   selector: 'm-sensitive-data-change-workflow',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    ClassicSpinnerComponent,
+    ProgressIndicatorComponent,
     ReactiveFormsModule,
     MfaStrategyCardComponent,
     TextFieldComponent,
@@ -568,9 +568,9 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                           label="Prefisso internazionale"
                           formControlName="prefix"
                           [options]="computePrefixValues()"
-                          [containerClass]="'flex-none w-full'"
+                          layout="fullWidth"
                           [maxHeight]="200"
-                          darkTextClass="dark:text-dark-accent-secondary-hc" />
+                          tone="highContrast" />
                       <m-text-field
                         class="w-full max-w-md relative top-7"
                         label="Nuovo numero"
@@ -832,7 +832,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
       }
     } @else {
       <div class="absolute inset-0 flex justify-center items-center z-[30] bg-white/60 dark:bg-black/40 backdrop-blur-sm min-h-[40vh]">
-        <m-classic-spinner [size]="45" />
+        <m-progress-indicator [size]="45" />
       </div>
     }
     </div>

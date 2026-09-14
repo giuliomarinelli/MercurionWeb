@@ -27,6 +27,8 @@ describe('AccountService', () => {
       {} as any, // securityAuditService
       {} as any, // dataSource
       {} as ScopeService, // scopeService
+      {} as any, // unitOfWork
+      {} as any, // initialWorkspace
       meiliLoggerMock as any, // meiliLogger
     );
   });

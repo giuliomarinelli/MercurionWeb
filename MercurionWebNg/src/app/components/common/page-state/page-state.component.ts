@@ -6,7 +6,7 @@ import {
 } from '@angular/core';
 
 import { ButtonComponent } from '../button/button.component';
-import { ClassicSpinnerComponent } from '../classic-spinner/classic-spinner.component';
+import { ProgressIndicatorComponent } from '../progress-indicator/progress-indicator.component';
 
 export type PageState<T = unknown> =
   | { kind: 'loading'; label?: string }
@@ -18,7 +18,7 @@ export type PageState<T = unknown> =
 @Component({
   selector: 'm-page-state',
   standalone: true,
-  imports: [ButtonComponent, ClassicSpinnerComponent],
+  imports: [ButtonComponent, ProgressIndicatorComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @switch (state().kind) {
@@ -32,7 +32,7 @@ export type PageState<T = unknown> =
           @if (loadingTemplate()) {
             <ng-content select="[pageStateLoading]"></ng-content>
           } @else {
-            <m-classic-spinner [ariaLabel]="loadingLabel()" />
+            <m-progress-indicator [label]="loadingLabel()" size="md" />
           }
           <span class="m-page-state__sr">{{ loadingLabel() }}</span>
         </section>

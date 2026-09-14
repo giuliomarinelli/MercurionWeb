@@ -5,7 +5,7 @@ import { EMPTY, map, of, startWith, Subscription, switchMap } from 'rxjs'
 import { AccountService } from '../../services/account.service'
 import { MfaStrategy, ProfileDTO, SessionDTOExt, VersionDTO } from '../../Models/account/account.models'
 import { ToastService } from '../../services/toast.service'
-import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component'
+import { ProgressIndicatorComponent } from '../../components/common/progress-indicator/progress-indicator.component'
 import { SessionCardComponent } from '../../components/common/session-card/session-card.component'
 import { MfaStrategyCardComponent } from '../../components/common/mfa-strategy-card/mfa-strategy-card.component'
 import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service'
@@ -20,7 +20,9 @@ import { SessionSyncService } from '../../services/session-sync.service';
 import { SidenavContextService } from '../../services/context/sidenav-context.service';
 import { UserContextService } from '../../services/context/user-context.service';
 import { DomainInvalidationService } from '../../services/domain-invalidation.service';
+import { ViewportRuntimeService } from '../../services/context/viewport-runtime.service';
 import { IconButtonComponent } from '../../components/common/icon-button/icon-button.component';
+import { ButtonComponent } from '../../components/common/button/button.component';
 
 
 
@@ -29,11 +31,12 @@ import { IconButtonComponent } from '../../components/common/icon-button/icon-bu
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CdkAccordionModule,
-    ClassicSpinnerComponent,
+    ProgressIndicatorComponent,
     SessionCardComponent,
     MfaStrategyCardComponent,
     GenderPipe,
-    IconButtonComponent
+    IconButtonComponent,
+    ButtonComponent
   ],
   styles: `
 
@@ -488,11 +491,10 @@ import { IconButtonComponent } from '../../components/common/icon-button/icon-bu
                                     <span>●</span>
                                   }
                                 </div>
-                                <button
+                                <m-button
                                   type="button"
-                                  class="
-                                    green-btn w-fit
-                                  "
+                                  variant="secondary"
+                                  size="md"
                                   (click)="changePassword()"
                                 >
                                   <svg xmlns="http://www.w3.org/2000/svg"
@@ -502,7 +504,7 @@ import { IconButtonComponent } from '../../components/common/icon-button/icon-bu
                                     <path d="M256 240C256 160.5 320.5 96 400 96C479.5 96 544 160.5 544 240C544 319.5 479.5 384 400 384C388.9 384 378 382.7 367.6 380.4L359 378.4L352.7 384.7L321.3 416.1L255.9 416.1L255.9 480.1L191.9 480.1L191.9 544.1L95.9 544.1L95.9 462.7L258.7 299.9L265.6 293L262.7 283.7C258.3 269.9 256 255.3 256 240zM400 64C302.8 64 224 142.8 224 240C224 255.1 225.9 269.8 229.5 283.9L68.7 444.7L64 449.4L64 576L224 576L224 512L288 512L288 448L334.6 448L339.3 443.3L369.3 413.3C379.3 415.1 389.5 416 400 416C497.2 416 576 337.2 576 240C576 142.8 497.2 64 400 64zM432 232C445.3 232 456 221.3 456 208C456 194.7 445.3 184 432 184C418.7 184 408 194.7 408 208C408 221.3 418.7 232 432 232z"/>
                                   </svg>
                                   <p class="mr-2">Cambia password</p>
-                                </button>
+                                </m-button>
                               </div>
                             }
                             <h3 class="font-bold text-lg my-3">Sessioni attive</h3>
@@ -514,11 +516,10 @@ import { IconButtonComponent } from '../../components/common/icon-button/icon-bu
                                 />
                               }
                             </div>
-                            <button
+                            <m-button
                               type="button"
-                              class="
-                                red-btn
-                              "
+                              variant="destructive"
+                              size="md"
                               (click)="doLogoutFromAllSessions()"
                             >
                               <svg xmlns="http://www.w3.org/2000/svg"
@@ -528,7 +529,7 @@ import { IconButtonComponent } from '../../components/common/icon-button/icon-bu
                                 <path d="M240.1 128L256.1 128L256.1 96L64.1 96L64.1 544L256.1 544L256.1 512L96.1 512L96.1 128L240.1 128zM571.4 331.3L582.7 320L571.4 308.7L427.4 164.7L416.1 153.4L393.5 176L404.8 187.3L521.5 304L224.1 304L224.1 336L521.5 336L404.8 452.7L393.5 464L416.1 486.6L427.4 475.3L571.4 331.3z" />
                               </svg>
                               <span>Esci da tutte le sessioni</span>
-                            </button>
+                            </m-button>
                             @if (!is_sso()) {
                               <hr class="border-[0.5px] border-slate-400 dark:border-slate-500 mt-6" />
                               <h3 class="font-bold text-lg mt-6 mb-6 flex flex-col sm:flex-row gap-3 sm:gap-6 items-start sm:items-center">
@@ -547,11 +548,10 @@ import { IconButtonComponent } from '../../components/common/icon-button/icon-bu
                               </h3>
                               <div class="flex gap-8 items-center">
                                 @if (!isEnabledMfa) {
-                                  <button
+                                  <m-button
                                     type="button"
-                                    class="
-                                      green-btn
-                                    "
+                                    variant="secondary"
+                                    size="md"
                                     (click)="doEnableMfa()"
                                   >
                                     <svg xmlns="http://www.w3.org/2000/svg"
@@ -561,7 +561,7 @@ import { IconButtonComponent } from '../../components/common/icon-button/icon-bu
                                       <path d="M432.2 432L398.5 432L377.2 368L263.3 368L242 432L208.3 432L240.3 336L400.3 336L432.3 432zM320.2 304C284.9 304 256.2 275.3 256.2 240C256.2 204.7 284.9 176 320.2 176C355.5 176 384.2 204.7 384.2 240C384.2 275.3 355.5 304 320.2 304zM320.2 208C302.5 208 288.2 222.3 288.2 240C288.2 257.7 302.5 272 320.2 272C337.9 272 352.2 257.7 352.2 240C352.2 222.3 337.9 208 320.2 208zM320.2 576L307.5 570.5C156.3 505.1 71.4 337.8 80.7 177L81.9 156.5L320.2 64L558.5 156.5L559.6 177C569 337.8 484 505.1 332.9 570.5L320.2 576zM112.7 178.9C105.9 326.2 180.4 480.6 320.2 541.1C460 480.6 534.5 326.2 527.7 178.9L320.2 98.3L112.7 178.9z"/>
                                     </svg>
                                     <p class="mr-2">Attiva l'autenticazione a più fattori</p>
-                                  </button>
+                                  </m-button>
                                 }
                               </div>
                               @if (isEnabledMfa) {
@@ -603,7 +603,7 @@ import { IconButtonComponent } from '../../components/common/icon-button/icon-bu
             [style.left.px]="spinnerLeft()"
             role="status"
           >
-            <m-classic-spinner [size]="60" />
+            <m-progress-indicator [size]="60" />
           </div>
         </div>
       </div>
@@ -611,6 +611,7 @@ import { IconButtonComponent } from '../../components/common/icon-button/icon-bu
   `
 })
 export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
+  private readonly viewportRuntime = inject(ViewportRuntimeService)
 
   private readonly accountService = inject(AccountService)
   private readonly toast = inject(ToastService)
@@ -636,7 +637,6 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
 
   scrollRootRef!: ElementRef<HTMLElement>
   private resizeObs?: ResizeObserver
-  private spinnerTrackingAttached = false
   private spinnerFollowRaf?: number
 
   profileFetchError = signal<boolean>(false)
@@ -698,6 +698,8 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
     effect(() => {
       // riallinea lo spinner quando cambia sidebar o stato di loading
       const _ = this.sidenavContext.isOpen()
+      this.viewportRuntime.width()
+      this.viewportRuntime.height()
       this.loading()
       queueMicrotask(() => {
         this.attachSpinnerTracking()
@@ -732,9 +734,6 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
     this.fragmentSub?.unsubscribe()
     this.provSub?.unsubscribe()
     this.resizeObs?.disconnect()
-    if (this.spinnerTrackingAttached) {
-      window.removeEventListener('resize', this.updateSpinnerLeft)
-    }
     this.stopSpinnerFollow()
   }
 
@@ -747,10 +746,6 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
     this.resizeObs = new ResizeObserver(() => this.updateSpinnerLeft())
     this.resizeObs.observe(host)
 
-    if (!this.spinnerTrackingAttached) {
-      window.addEventListener('resize', this.updateSpinnerLeft)
-      this.spinnerTrackingAttached = true
-    }
     this.startSpinnerFollow()
   }
 

@@ -105,8 +105,7 @@ _Not started._
 ### Preflight remediation
 _None._
 ### Summary
-Not attempted because direct terminal prerequisite 0197 (QA-011) is
-`SKIPPED_DEPENDENCY`.
+Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0011, 0129, 0146, 0197, 0202. This task was never attempted and receives no feature branch.
 ### Task-specific validation performed
 _Not started._
 ### Full pre-merge CI-parity validation
@@ -114,12 +113,10 @@ _Not started._
 ### Browser validation performed
 _Not started._
 ### Commits
-_Not recorded._
+Aggregate dependency-skip metadata commit on develop.
 ### Merge / CI
-_Not started._
+Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Direct terminal prerequisite: 0197 (QA-011), `SKIPPED_DEPENDENCY`.
-Transitive root: 0020 (SYS-020), `BLOCKED`; its preserved feature branch
-remains deliberately frozen.
+Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.

@@ -4,7 +4,7 @@ import { DataSource } from 'typeorm';
 import { HelpService } from './help.service';
 import { Ticket } from '../Models/entities/ticket.entity';
 import { TicketMessage } from '../Models/entities/ticket-message.entity';
-import { User } from 'src/app_modules/user/Models/entities/user.entity';
+import { UserService } from 'src/app_modules/user/services/user.service';
 import { MailSenderService } from 'src/app_modules/notification/services/mail-sender/mail-sender.service';
 
 describe('HelpService', () => {
@@ -13,7 +13,7 @@ describe('HelpService', () => {
   const dataSourceMock = { transaction: jest.fn() };
   const ticketRepoMock = { findOneByOrFail: jest.fn(), update: jest.fn() };
   const msgRepoMock = {};
-  const userRepoMock = {};
+  const userServiceMock = { getUserFullNames: jest.fn() };
   const mailerMock = {
     notifySupportNewTicket: jest.fn(),
     confirmUserTicketOpened: jest.fn(),
@@ -28,7 +28,7 @@ describe('HelpService', () => {
         { provide: DataSource, useValue: dataSourceMock },
         { provide: getRepositoryToken(Ticket), useValue: ticketRepoMock },
         { provide: getRepositoryToken(TicketMessage), useValue: msgRepoMock },
-        { provide: getRepositoryToken(User), useValue: userRepoMock },
+        { provide: UserService, useValue: userServiceMock },
         { provide: MailSenderService, useValue: mailerMock },
       ],
     }).compile();

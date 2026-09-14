@@ -270,13 +270,12 @@ export const environmentSchema = defineEnvironmentSchema(
     required('APP_MAX_NATS_PAYLOAD_BYTES', positiveInteger()),
     defaulted('APP_SHUTDOWN_TIMEOUT_MS', positiveInteger(), 10000),
 
-    required('SQL_DATABASE_TYPE', enumParser(['postgres', 'mariadb'] as const)),
+    required('SQL_DATABASE_TYPE', enumParser(['postgres'] as const)),
     required('SQL_DATABASE_HOST', string()),
     required('SQL_DATABASE_PORT', positiveInteger()),
     required('SQL_DATABASE_USERNAME', string()),
     required('SQL_DATABASE_PASSWORD', string()),
     required('SQL_DATABASE', string()),
-    required('SQL_DATABASE_SYNCHRONIZE', booleanParser()),
     required('SQL_DATABASE_LOGGING', booleanParser()),
     required('SQL_DATABASE_LOGGER', enumParser([
         'debug',
@@ -386,6 +385,22 @@ export type ValidatedEnvironment = {
     [Property in typeof environmentSchema.entries[number] as Property['source']]:
         PropertyValue<Property>
 }
+
+export const databaseEnvironmentSources = [
+    'SQL_DATABASE_TYPE',
+    'SQL_DATABASE_HOST',
+    'SQL_DATABASE_PORT',
+    'SQL_DATABASE_USERNAME',
+    'SQL_DATABASE_PASSWORD',
+    'SQL_DATABASE',
+    'SQL_DATABASE_LOGGING',
+    'SQL_DATABASE_LOGGER'
+] as const
+
+export type DatabaseEnvironment = Pick<
+    ValidatedEnvironment,
+    typeof databaseEnvironmentSources[number]
+>
 
 export function environmentProperty<Name extends keyof ValidatedEnvironment>(
     source: Name
