@@ -1,6 +1,6 @@
 # 0213 - Refresh canonical repository documentation
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -98,21 +98,50 @@ Prefer links and generated/reference-checked tables over copying the same comman
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/QA-027` at base `12d4afbd2a6d39767166d164eeb4354fbbdb320f` before implementation.
 ### Preflight
-_Not started._
+Verified clean `feature/QA-027`, exact base SHA and `origin/develop` identity. Exact Actions
+run `34801286778` for `12d4afbd2a6d39767166d164eeb4354fbbdb320f` completed successfully
+with successful `Classify validation`, `Autonomous metadata`, and `Required gate` jobs.
+The run was correctly classified as metadata for allowlisted autonomous metadata changes.
+No local `npm ci` or `npm run ci:check` was run. Local process inventory found only the
+already-running Chrome DevTools MCP processes, not workspace runtimes or watchers.
 ### Preflight remediation
 _None._
 ### Summary
-_Not started._
+Replaced the stale root, Angular, Nest, data-service and landing-factory READMEs with
+source-derived project ownership, toolchain, runtime, dependency, contract, test, build and
+container guidance. Added `docs/configuration.md` with the validated environment surface and
+secret classifications, removed the obsolete refresh-token example, and added
+`scripts/check-documentation.mjs` plus root `ci:docs` registration in `ci:static`.
+Documentation keeps the autonomous protocol in its canonical documents instead of duplicating
+it in project READMEs and does not publish credentials or production endpoints.
 ### Task-specific validation performed
-_Not started._
+- `npm run ci:docs` passed, including relative-link, documented-script/scaffold-marker and
+  schema-to-example configuration checks.
+- `npm run ci:validate:autonomous` passed: 220 recipes, 128 DONE / 7 BLOCKED /
+  77 SKIPPED_DEPENDENCY, no validation warnings.
+- Focused Nest configuration tests passed: 32 tests in `config-schema.spec.ts` and
+  `env-validation.spec.ts`.
+- `npm run graphql:check --workspace mercurion_web_ng` passed, including generated-artifact
+  drift validation.
+- `git diff --check` passed.
 ### Full pre-merge CI-parity validation
-_Not started._
+Not run locally by policy. Exact-feature-SHA GitHub Actions supplies the clean-install and
+aggregate evidence after the task-specific commit and push; local `npm ci` and
+`npm run ci:check` are forbidden.
 ### Browser validation performed
-_Not started._
+Capability preflight and post-change validation started canonical sessions in order with
+live handles: Tox21, Nest and Angular (`711`/`712`/`713`, then `730`/`731`/`732`). After the
+change, readiness rounds 7 and 8 returned `/health=200` and `/=200`. Through the persistent
+Chrome DevTools profile and only `http://localhost:8888`, the shell rendered at `/welcome` and
+`/molecules/detail/1`. The detail page produced successful Angular-to-Nest
+`POST /api/graphql` responses (`18234`, `18239`) and
+`GET /api/embedding/get-similar-molregnos` (`18235`). The final snapshot rendered molecule
+data and the console had no messages. All task-owned runtime sessions were stopped; the
+remaining Node processes were only Chrome DevTools MCP.
 ### Commits
-_Not recorded._
+Pending task-specific commit.
 ### Merge / CI
 _Not started._
 ### Rollback
