@@ -37,11 +37,6 @@
                 "output": "/"
               },
               {
-                "glob": "RDKit_minimal.js",
-                "input": "../node_modules/@rdkit/rdkit/dist/",
-                "output": "/"
-              },
-              {
                 "glob": "*.svg",
                 "input": "../node_modules/svg-country-flags/svg",
                 "output": "flags"
