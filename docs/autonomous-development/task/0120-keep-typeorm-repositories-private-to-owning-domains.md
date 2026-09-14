@@ -1,7 +1,7 @@
 # 0120 - Keep TypeORM repositories private to their owning domains
 
-- [ ] DONE
-- [x] BLOCKED
+- [x] DONE
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
@@ -196,3 +196,31 @@ the current transaction and rollback boundaries.
 - Recovery result remains `BLOCKED` under the recipe stop condition. The
   precise human decision is still the DATA-series canonical transaction owner
   and public Unit of Work contract for the listed atomic workflows.
+
+### Direct-human recovery completion (2026-09-14)
+
+- Direct human authority selected an application-use-case-owned transaction,
+  explicit opaque `TransactionContext`, mandatory context reuse, and TypeORM
+  manager/repository access restricted to infrastructure and domain owners.
+- Merged current exact-green `develop` SHA
+  `51360f58515f6768d3e8f15ba70af8a567014df6` into the preserved branch with
+  `--no-ff --no-gpg-sign`; recovery merge `8bf5f812f03969b5716555776896cd433ab7f5ea`.
+- Added the minimal TypeORM-backed `UnitOfWork`/opaque context boundary and
+  moved initial workspace persistence behind the MoleculeCollection-owned
+  `InitialWorkspaceService`. Account activation and SSO onboarding now reuse
+  the same context without importing MoleculeCollection persistence entities.
+- Replaced Help's foreign User repository with the User-owned full-name query,
+  moved local fixture persistence behind `UserService`, and moved backup-code
+  repository access behind the User-owned `MfaBackupCodeStore`.
+- Removed every public `TypeOrmModule` export. Added a static repository-boundary
+  gate and negative fixture rejecting both TypeORM module exports and foreign
+  `@InjectRepository` dependencies.
+- Focused validation passed:
+  - `npm run typecheck --workspace mercurion_web_node`;
+  - `npm run lint --workspace mercurion_web_node`;
+  - `npm run build --workspace mercurion_web_node`;
+  - `npm run ci:nest:architecture`, including the new positive/negative gate;
+  - eight focused Jest suites, 17 tests, covering UnitOfWork lifecycle,
+    workspace ownership, Account, SSO, Help, MFA, local fixture and User.
+- Browser validation remains not applicable. Exact feature-SHA and merge-SHA
+  GitHub Actions gates remain required before this `DONE` state is final.

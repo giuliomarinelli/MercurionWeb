@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Give MercurionAI and RDKit calls one explicit validated policy for input limits, timeouts, concurrency/backpressure and stable failure classification instead of repeating hard-coded `timeout(3000)` and generic error mapping.

@@ -10,7 +10,7 @@ import { HistoryController } from './controllers/history.controller';
     TypeOrmModule.forFeature([History]),
   ],
   providers: [HistoryService],
-  exports: [TypeOrmModule, HistoryService],
+  exports: [HistoryService],
   controllers: [HistoryController]
 })
 export class HistoryModule { }
