@@ -17,8 +17,9 @@ The coordinator must refuse a new launch at or after
 `2026-09-21T10:00:00+02:00` (Europe/Rome, CEST), otto giorni dopo la
 preparazione del launch.
 
-The prepared snapshot contains 121 `DONE` and 99 `PENDING` recipes, with no
-persistent `BLOCKED`, `REVERTED` or `SKIPPED_DEPENDENCY` outcomes. Every
+The current active snapshot contains 131 `DONE`, 63 `PENDING`, 4 `BLOCKED`
+and 17 `SKIPPED_DEPENDENCY` recipes, with no `REVERTED` outcomes. Five reserved
+Notebook recipes are archived under `deferred-task/` and are non-executable. Every
 recipe currently marked `DONE` remains terminal; task selection comes only
 from the current authoritative planner snapshot.
 
@@ -164,21 +165,21 @@ Before task selection run `npm run autonomous:plan`. Treat its versioned JSON
 as the sole dependency authority; fail closed on malformed recipes, missing
 hard dependencies, cycles, stale terminal skips, or planner errors.
 
-The configured `workload.tasks` list is empty, so the complete Series is in
-scope: there is no autonomous allowlist. Select the earliest filename-ordered
+The configured `workload.tasks` list is empty, so every active recipe file is in
+scope: there is no autonomous allowlist. Reserved numeric gaps and recipes in
+`deferred-task/` are skipped without error. Select the earliest filename-ordered
 READY task from the authoritative planner output; the expected first READY task
-is 0020. Continue serially through eligible tasks until the soft deadline or
+is 0092. Continue serially through eligible tasks until the soft deadline or
 genuine workload exhaustion. No error, denial, branch collision, CI-observation
 failure, baseline incident, or unavailable capability may finalize the session
 early while configured pending work remains. Isolate one-task failures, skip a
 colliding branch for the current scheduling pass, and use
 `SESSION_RECOVERY_PENDING` for unsafe shared-state failures.
 
-All 121 recipes currently marked `DONE` are terminal; never select them again.
-Select task 0020 first only if its existing branch identity can be reconciled
-safely under the branch-collision rules; otherwise record
-`SESSION_BRANCH_COLLISION_PAUSE` for 0020 and continue with the next
-independent READY task from each fresh planner snapshot. When a selected task requires authenticated browser evidence,
+All 131 recipes currently marked `DONE` are terminal; never select them again.
+The archived `0020` and `0164`-`0167` recipes are not candidates and their
+absence from the active directory is not a branch collision or recovery state.
+When a selected task requires authenticated browser evidence,
 proceed only after a fresh ordinary login with the shared real test account has
 established a protected server-accepted session. Otherwise apply
 `SESSION_CAPABILITY_PAUSE` without mutating the task or propagating dependency
@@ -213,12 +214,10 @@ skip unless a root reaches a new persistent non-`DONE` outcome during this
 session.
 
 Do not mutate pull requests 25, 27, 28, 29, or 31. The local and remote
-`feature/SYS-020` refs are divergent, so task 0020 has no automatic recovery
-authority in this launch: preserve both refs and apply
-`SESSION_BRANCH_COLLISION_PAUSE` unless a later direct human instruction
-provides an exact reconciliation. The pre-existing local `feature/NG-006`
+`feature/SYS-020` refs are divergent and belong to the deferred Notebook
+program: preserve both refs without dispatching task 0020. The pre-existing local `feature/NG-006`
 branch is likewise not recovery-authorized. Apply task selection and
-dependency-status propagation to the complete Series strictly from each fresh
+dependency-status propagation to the active recipe set strictly from each fresh
 planner snapshot.
 
 Respect the soft deadline and finalization protocol. The report must include

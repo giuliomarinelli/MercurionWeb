@@ -12,7 +12,7 @@ Source: `DATA-002` in Series `0001`.
 
 ## Context
 
-The repository already contains some entity indexes, for example Help ticket/message access paths and unique indexes in selected domains, but integrity still depends partly on application checks. Once `0150` establishes migrations, schema invariants must no longer rely on a specific service checking first. This task is repository-wide, but specialized Notebook sibling-order constraints are finalized in `0167` after the ordered-tree semantics are defined.
+The repository already contains some entity indexes, for example Help ticket/message access paths and unique indexes in selected domains, but integrity still depends partly on application checks. Once `0150` establishes migrations, schema invariants must no longer rely on a specific service checking first. The deferred Notebook program owns its own sibling-order constraints and migrations.
 
 ## Relevant files and modules
 
@@ -22,7 +22,6 @@ The repository already contains some entity indexes, for example Help ticket/mes
 - auth/SSO identity entities
 - molecule-collection join entities
 - Help entities
-- Notebook entities
 - integration/concurrency test infrastructure
 
 ## In scope
@@ -39,7 +38,7 @@ The repository already contains some entity indexes, for example Help ticket/mes
 
 - Do not invent uniqueness rules when duplicate values may be legitimate product behaviour.
 - Do not add speculative indexes without a known query/use case.
-- Do not solve Notebook sibling-order concurrency here; `0167` owns the final parent/order invariant and locking strategy.
+- Do not introduce constraints for the deferred Notebook domain.
 - Do not alter data ownership semantics without an approved domain rule.
 
 ## Decisions already made

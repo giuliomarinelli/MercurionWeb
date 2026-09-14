@@ -12,13 +12,12 @@ Source: `DATA-003` in Series `0001`.
 
 ## Context
 
-Current services mix `dataSource.manager.transaction(...)`, repository-manager transactions and manual `QueryRunner` lifecycle. `UserService` alone uses both callback transactions and `createQueryRunner()`, while Notebook, Auth, History and MoleculeCollection use other forms. This makes it easy for a helper called from inside a transaction to read/write through its injected repository and therefore escape the active transaction.
+Current services mix `dataSource.manager.transaction(...)`, repository-manager transactions and manual `QueryRunner` lifecycle. `UserService` alone uses both callback transactions and `createQueryRunner()`, while Auth, History and MoleculeCollection use other forms. This makes it easy for a helper called from inside a transaction to read/write through its injected repository and therefore escape the active transaction.
 
 ## Relevant files and modules
 
 - `MercurionWebNode/src/app_modules/user/services/user.service.ts`
 - `MercurionWebNode/src/app_modules/auth/services/`
-- `MercurionWebNode/src/app_modules/lab-notebook/services/`
 - `MercurionWebNode/src/app_modules/molecule-collection/services/`
 - `MercurionWebNode/src/app_modules/help/services/`
 - `MercurionWebNode/src/app_modules/history/services/`

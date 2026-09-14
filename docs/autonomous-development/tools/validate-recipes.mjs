@@ -8,6 +8,10 @@ import { fileURLToPath } from 'node:url';
 const toolDirectory = path.dirname(fileURLToPath(import.meta.url));
 const repositoryRoot = path.resolve(toolDirectory, '../../..');
 const taskDirectory = path.join(repositoryRoot, 'docs/autonomous-development/task');
+const deferredTaskDirectory = path.join(
+  repositoryRoot,
+  'docs/autonomous-development/deferred-task',
+);
 const seriesDirectory = path.join(repositoryRoot, 'docs/autonomous-development/series');
 
 const errors = [];
@@ -35,8 +39,10 @@ function section(markdown, heading) {
 }
 
 const taskFiles = readMarkdownFiles(taskDirectory);
+const deferredTaskFiles = readMarkdownFiles(deferredTaskDirectory);
 const seriesFiles = readMarkdownFiles(seriesDirectory);
 const taskByNumber = new Map();
+const deferredTaskByNumber = new Map();
 const expectedTasks = new Map();
 const registrySources = new Set();
 
@@ -46,6 +52,17 @@ for (const filename of taskFiles) {
     report(filename, `duplicate task number ${number}`);
   }
   taskByNumber.set(number, filename);
+}
+
+for (const filename of deferredTaskFiles) {
+  const number = filename.slice(0, 4);
+  if (deferredTaskByNumber.has(number)) {
+    report(filename, `duplicate deferred task number ${number}`);
+  }
+  if (taskByNumber.has(number)) {
+    report(filename, `task number ${number} exists in both active and deferred directories`);
+  }
+  deferredTaskByNumber.set(number, filename);
 }
 
 for (const filename of seriesFiles) {
@@ -100,7 +117,28 @@ for (const filename of seriesFiles) {
 for (const [number, expected] of expectedTasks) {
   const filename = taskByNumber.get(number);
   if (!filename) {
-    report(`task ${number}`, `missing recipe for Source ${expected.source}`);
+    const deferredFilename = deferredTaskByNumber.get(number);
+    if (!deferredFilename) {
+      warnings.push(
+        `task ${number}: reserved Source ${expected.source} has no active or deferred recipe; numerical gaps are skipped`,
+      );
+      continue;
+    }
+    const deferredMarkdown = fs.readFileSync(
+      path.join(deferredTaskDirectory, deferredFilename),
+      'utf8',
+    );
+    const sourceLine = deferredMarkdown.match(
+      /^Source:\s*`([A-Z]+-\d{3})`\s+in Series\s+`(\d{4})`\.\s*$/m,
+    );
+    if (!sourceLine) {
+      report(deferredFilename, 'missing canonical Source line in deferred recipe');
+    } else if (sourceLine[1] !== expected.source || sourceLine[2] !== expected.seriesNumber) {
+      report(
+        deferredFilename,
+        `deferred identity ${sourceLine[1]}/${sourceLine[2]} does not match registry ${expected.source}/${expected.seriesNumber}`,
+      );
+    }
     continue;
   }
 
@@ -194,13 +232,9 @@ for (const [number, filename] of taskByNumber) {
   }
 }
 
-const sortedExpected = [...expectedTasks.keys()].sort();
-for (let index = 1; index < sortedExpected.length; index += 1) {
-  if (Number(sortedExpected[index]) !== Number(sortedExpected[index - 1]) + 1) {
-    report(
-      'series registry',
-      `non-contiguous task numbers ${sortedExpected[index - 1]} -> ${sortedExpected[index]}`,
-    );
+for (const [number, filename] of deferredTaskByNumber) {
+  if (!expectedTasks.has(number)) {
+    report(filename, 'deferred recipe is outside every real Series task_range');
   }
 }
 
@@ -226,6 +260,6 @@ if (errors.length > 0) {
     ]),
   );
   console.log(
-    `Recipe validation passed: ${seriesFiles.length} series, ${taskFiles.length} tasks, ${registrySources.size} Sources, ${counts.DONE} DONE, ${counts.BLOCKED} BLOCKED, ${counts.REVERTED} REVERTED, ${counts.SKIPPED_DEPENDENCY} SKIPPED_DEPENDENCY, ${warnings.length} warning(s).`,
+    `Recipe validation passed: ${seriesFiles.length} series, ${taskFiles.length} active tasks, ${deferredTaskFiles.length} deferred tasks, ${registrySources.size} Sources, ${counts.DONE} DONE, ${counts.BLOCKED} BLOCKED, ${counts.REVERTED} REVERTED, ${counts.SKIPPED_DEPENDENCY} SKIPPED_DEPENDENCY, ${warnings.length} warning(s).`,
   );
 }

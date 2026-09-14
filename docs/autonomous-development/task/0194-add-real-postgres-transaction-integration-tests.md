@@ -12,14 +12,14 @@ Source: `QA-008` in Series `0001`.
 
 ## Context
 
-The audit found that transaction-heavy Nest code is mostly tested through mocked QueryRunner behavior. The DATA tasks introduce versioned migrations, database constraints, a canonical Unit of Work, Notebook sibling-order locking, transactional outbox and bulk ownership/write invariants. Those semantics depend on the actual PostgreSQL driver/database and need a reusable integration-test foundation that starts from migrations rather than TypeORM `synchronize`.
+The audit found that transaction-heavy Nest code is mostly tested through mocked QueryRunner behavior. The DATA tasks introduce versioned migrations, database constraints, a canonical Unit of Work, transactional outbox and bulk ownership/write invariants. Those semantics depend on the actual PostgreSQL driver/database and need a reusable integration-test foundation that starts from migrations rather than TypeORM `synchronize`.
 
 ## Relevant files and modules
 
 - TypeORM DataSource/migrations from `0150`
 - database constraints/indexes from `0151`
 - canonical Unit of Work from `0152`
-- User/Notebook/Help/outbox/molecule bulk persistence
+- User/Help/outbox/molecule bulk persistence
 - PostgreSQL test-service configuration
 - Jest integration-test setup/teardown
 - canonical CI pipeline
@@ -31,7 +31,7 @@ The audit found that transaction-heavy Nest code is mostly tested through mocked
 - Add reusable transaction/database fixture helpers with deterministic cleanup.
 - Prove rollback behavior after mid-command failures.
 - Prove representative unique/check/foreign-key constraints by bypassing application pre-checks.
-- Prove Notebook sibling-order and another representative concurrency invariant under parallel transactions.
+- Prove representative active-domain concurrency invariants under parallel transactions.
 - Prove isolation/visibility assumptions used by Unit of Work/outbox/bulk commands.
 - Keep these tests separate from fast pure unit tests while including them in CI parity.
 
@@ -56,7 +56,7 @@ The audit found that transaction-heavy Nest code is mostly tested through mocked
 3. Provide fixture factories and cleanup/reset strategy that does not mask transaction behavior under test.
 4. Add rollback tests where writes occur before an injected failure and assert no partial durable state.
 5. Add direct constraint tests for representative ownership/join/identity invariants introduced by `0151`.
-6. Add parallel transaction tests for Notebook sibling ordering and at least one other race-sensitive domain command.
+6. Add parallel transaction tests for at least one race-sensitive active-domain command.
 7. Verify Unit of Work consumers use the transaction-scoped manager/repository rather than accidentally reading/writing outside the transaction.
 8. Register the integration suite in the canonical CI aggregate with clear diagnostics/artifacts on failure.
 
