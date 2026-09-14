@@ -38,11 +38,11 @@ export class AppShellFacade implements OnDestroy {
 
   constructor() {
     this.authState.bootstrap()
-    void this.sessionSync.syncSession()
+    void this.sessionSync.checkSession()
 
     effect(() => {
       const tick = this.sessionSync.handshakeTick()
-      if (tick !== 0) void this.sessionSync.syncSession(true)
+      if (tick !== 0) void this.sessionSync.checkSession(true)
     })
 
     this.currentPath.set(this.normalize(this.router.url))
