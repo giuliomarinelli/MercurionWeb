@@ -1,6 +1,6 @@
 # 0150 - Establish versioned TypeORM migrations
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -180,3 +180,32 @@ feature/DATA-001 history remains intact and is not evidence that the required
 schema authority has already been supplied. A resumed implementation must merge
 the current exact-green develop into that branch and resolve the documented
 baseline/reconciliation decision before generating or applying a migration.
+
+### Direct-human completion (2026-09-14)
+
+Direct human authority approved completing the task through integration. The
+approved non-destructive reconciliation policy makes the generated initial
+migration authoritative for empty databases. An existing environment must
+first prove zero entity/schema drift from a restorable backup and may then
+record the initial migration with TypeORM `--fake`; the baseline DDL is never
+blindly run over existing tables.
+
+- Reconciled current exact-green `develop` SHA `014761ba` into the preserved
+  branch with `--no-ff --no-gpg-sign` as merge commit `a6d4635f`.
+- Added the PostgreSQL/pgvector initial migration for all 25 currently loaded
+  entities, including deterministic defaults and the required `vector`
+  extension.
+- Added a side-effect-free migration DataSource, canonical database-only
+  validation, root/workspace lifecycle scripts, explicit drift checking and
+  operator documentation.
+- Removed the unrestricted synchronization variable. Runtime configuration now
+  fixes `synchronize` and `migrationsRun` to `false`, and the validated dialect
+  is PostgreSQL only.
+- Added a required GitHub Actions PostgreSQL/pgvector job that starts empty,
+  applies every migration and rejects entity/schema drift.
+- Disposable PostgreSQL validation passed for migrate, show, drift, revert,
+  re-apply and fresh-schema verification. Nest lint and typecheck passed; all
+  152 unit suites (461 tests), the Nest E2E suite (3 tests), documentation
+  validation and the Nest build passed.
+- Browser validation is not applicable. Exact feature- and merge-SHA CI
+  evidence is recorded by the coordinator after push and integration.

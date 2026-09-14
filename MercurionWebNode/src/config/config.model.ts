@@ -1,7 +1,7 @@
 import type { MailerOptions } from '@nestjs-modules/mailer'
 import { DeterministicHandlebarsAdapter } from '../app_modules/notification/email-templates/deterministic-handlebars.adapter'
 import { join } from 'path'
-import { SnakeNamingStrategy } from 'typeorm-naming-strategies'
+import { createDatabaseOptions } from '../persistence/database-options'
 
 import {
     ConfigKey,
@@ -42,17 +42,9 @@ export const configurationBuilders = {
 
     [ConfigKey.Data]: (environment: ValidatedEnvironment) => ({
         pgSQL: {
+            ...createDatabaseOptions(environment),
             type: environment.SQL_DATABASE_TYPE,
-            host: environment.SQL_DATABASE_HOST,
-            port: environment.SQL_DATABASE_PORT,
-            username: environment.SQL_DATABASE_USERNAME,
-            password: environment.SQL_DATABASE_PASSWORD,
-            database: environment.SQL_DATABASE,
-            synchronize: environment.SQL_DATABASE_SYNCHRONIZE,
-            logging: environment.SQL_DATABASE_LOGGING,
-            logger: environment.SQL_DATABASE_LOGGER,
             autoLoadEntities: true,
-            namingStrategy: new SnakeNamingStrategy()
         }
     }),
 
