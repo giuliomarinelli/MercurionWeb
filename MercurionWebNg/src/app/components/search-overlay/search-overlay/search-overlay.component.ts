@@ -48,8 +48,8 @@ import { DialogShellComponent } from '../../common/dialog-shell/dialog-shell.com
       [mounted]="searchContextService.isMounted()"
       [open]="searchContextService.isVisible()"
       label="Ricerca molecolare"
-      backdropClass="bg-black/70 text-light-on-surface-main dark:text-slate-50"
-      panelClass="!max-w-none !bg-transparent !shadow-none !rounded-none !overflow-visible"
+      backdropVariant="search"
+      panelVariant="search"
       (dismissed)="close()">
       <div class="flex justify-center md:justify-center items-stretch md:items-center px-2 sm:px-4 pt-1 md:pt-16 m-overlay-screen h-full">
         <div

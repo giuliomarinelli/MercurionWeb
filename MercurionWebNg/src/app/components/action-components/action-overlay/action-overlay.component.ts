@@ -25,7 +25,7 @@ type ActionLoadState = 'idle' | 'loading' | 'loaded' | 'failed'
         [mounted]="ctx.isMounted()"
         [open]="ctx.isVisible()"
         [label]="dialogLabel()"
-        backdropClass="bg-slate-300/75 dark:bg-slate-900/90 action-overlay-backdrop"
+        backdropVariant="action"
         [dismissalPolicy]="dismissalPolicy"
         (dismissed)="ctx.close()">
         <ng-container #actionHost />
