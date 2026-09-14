@@ -1,7 +1,7 @@
 # 0136 - Make proxy, CORS and rate-limit trust policy environment explicit
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
@@ -83,24 +83,69 @@ Mark `BLOCKED` if the production trusted-proxy chain/origin contract is genuinel
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/BE-022` resumed from preserved SHA
+`00d20c22101d67196b3853f6882e0f28fe30f418`; local and remote preserved refs
+matched the requested Source. The current green `develop` SHA supplied for
+recovery was `88b5e0e5b9f0492cf889ccdb068bceabc31402e7`.
+### Authorized recovery
+- Verified `feature/BE-022`, preserved local/remote SHA
+  `00d20c22101d67196b3853f6882e0f28fe30f418`, and current green `develop`
+  SHA `88b5e0e5b9f0492cf889ccdb068bceabc31402e7`.
+- Merged `develop` with
+  `git merge --no-ff --no-gpg-sign 88b5e0e5b9f0492cf889ccdb068bceabc31402e7`.
+- The task-file conflict was task-owned and resolved by preserving the prior
+  diagnostic notes and terminal `BLOCKED` state. Recovery merge commit:
+  `6589395407c67e0fee781cc40a2cb9c300aa1800`.
 ### Preflight
-_Not started._
+Passed recovery preflight:
+
+- branch identity and preserved refs matched the authorized recovery payload;
+- the recovery merge completed without rebase, reset, squash, or history
+  rewriting;
+- dependencies `0130`, `0132`, and `0134` were checked `DONE`;
+- no task-owned Nest, Angular, Tox21, Jest, or workspace watcher was active;
+- the supplied current green `develop` evidence was accepted by the recovery
+  coordinator;
+- local `commit.gpgSign` was `false`.
 ### Preflight remediation
-_None._
+None.
 ### Summary
-_Not started._
+Recovery reinspection still establishes the recipe stop condition before
+implementation: the production trusted-proxy chain and production/staging
+origin contract are not recoverable from approved repository configuration. The
+task explicitly forbids guessing these security boundaries.
+`docker_sl/nginx_dev/nginx.prod.conf` documents that production is behind
+Cloudflare and forwards `X-Real-IP`/`X-Forwarded-For`, but declares neither
+Cloudflare source CIDRs nor an approved proxy hop count/trust boundary.
+`k8s/beta/nginx-edge-config.yaml` likewise forwards those headers without a
+Cloudflare real-IP/trusted-source policy. The only checked-in environment
+example is the development configuration with `APP_CORS_ORIGINS=[]`; no
+staging/production origin allowlist or authoritative production environment
+policy is present. Implementing `trustProxy`, origin validation, or effective
+client-IP handling would therefore require inventing undocumented production
+security policy.
+The reinspection also confirmed the current implementation remains
+unconditional (`new FastifyAdapter({ trustProxy: true })`) and rate-limit
+failure remains hard-coded (`skipOnError: true`), while `APP_CORS_ORIGINS` is
+only a generic validated list with no staging/production contract. These are
+the behaviors this task would change, but no safe values are available.
 ### Task-specific validation performed
-_Not started._
+Not run; no implementation was made.
 ### Full pre-merge CI-parity validation
-_Not started._
+Not run; local `npm ci` and `npm run ci:check` were intentionally not run.
 ### Browser validation performed
-_Not applicable / not started._
+Not applicable; the stop condition was established before implementation and
+browser validation.
 ### Commits
-_Not recorded._
+Recovery merge commit
+`6589395407c67e0fee781cc40a2cb9c300aa1800`; terminal diagnostic update
+pending.
 ### Merge / CI
-_Not started._
+Not applicable.
 ### Rollback
-_Not applicable._
+Not applicable.
 ### Blocker / human decision required
-_None._
+Human/security authority must provide and approve the production/staging
+trusted-proxy boundary (Cloudflare CIDRs and/or exact hop policy) and canonical
+allowed origins, including whether the beta Kubernetes edge is an approved
+proxy boundary. No code change is safe until that contract is documented.

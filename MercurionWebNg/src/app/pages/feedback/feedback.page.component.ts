@@ -2,12 +2,13 @@ import { ChangeDetectionStrategy, Component, computed, inject, OnDestroy, signal
 import { FeedbackService } from '../../services/feedback.service'
 import { FeedbackKind, FeedbackContextKind, CreateFeedbackDTO } from '../../Models/feedback.models'
 import { StarRatingComponent } from '../../components/feedback/star-rating/star-rating.component'
+import { TextareaComponent } from '../../components/common/textarea/textarea.component'
 import { APP_CONFIG } from '../../config/app-config'
 import { Subscription } from 'rxjs'
 
 @Component({
   selector: 'm-feedback-page',
-  imports: [StarRatingComponent],
+  imports: [StarRatingComponent, TextareaComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: `
 
@@ -55,14 +56,15 @@ import { Subscription } from 'rxjs'
 
         <div class="my-4 h-px bg-sky-300/10"></div>
 
-        <textarea
-          class="w-full min-h-[120px] rounded-xl border border-slate-300 bg-slate-50 dark:border-sky-300/15 dark:bg-slate-950/70 px-3 py-3 dark:text-slate-100/90 outline-none focus:border-light-accent-primary-hq focus:ring-light-accent-primary-hq/70 dark:focus:border-sky-200/60 focus:ring-2 dark:focus:ring-sky-200/60 resize-y transition-all duration-150"
+        <m-textarea
+          label="Messaggio di feedback"
           placeholder="Raccontami cosa ha funzionato e cosa no..."
           [value]="message()"
-          (input)="onMessageInput($event)"
-          aria-label="Messaggio di feedback"
-          aria-live="polite"
-        ></textarea>
+          (valueChange)="onMessageInput($event)"
+          [showCount]="true"
+          resizeMode="vertical"
+          [rows]="5"
+        />
 
         <div class="mt-3 flex items-center justify-end gap-3">
           @if (error()) {
@@ -137,8 +139,7 @@ export class FeedbackPageComponent implements OnDestroy {
     this.hasAtLeastOneValue() && !this.submitting()
   )
 
-  onMessageInput(e: Event) {
-    const value = (e.target as HTMLTextAreaElement).value
+  onMessageInput(value: string) {
     this.message.set(value)
     if (this.sent()) this.sent.set(false)
     if (this.error()) this.error.set(null)
@@ -214,4 +215,3 @@ export class FeedbackPageComponent implements OnDestroy {
   }
 
 }
-

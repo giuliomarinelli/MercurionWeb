@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -93,6 +93,10 @@ Keep the discriminant meaningful (`source`/`kind`) and require exhaustive render
 
 ## Execution notes
 
+> Current status (2026-09-11): PENDING by direct owner instruction because this
+> activity was not completed. Historical attempt/skip evidence remains below
+> for traceability and is not a terminal outcome.
+
 ### Feature branch
 No task branch or worker was created because hard prerequisites `0066`
 (`UI-008`), `0067` (`UI-009`), and `0071` (`UI-013`) are terminal
@@ -131,3 +135,8 @@ _Not applicable._
 ### Blocker / human decision required
 No implementation blocker. Re-enable only after the direct prerequisite chains
 are deliberately resolved in a new authorized session.
+
+### Dependency skip
+
+Direct terminal prerequisite: `0071` (`UI-013`), `BLOCKED`. This task was
+materialized in the new terminal closure on 2026-09-13.

@@ -94,6 +94,10 @@ A patch registry should describe evidence, not duplicate the patch diff. Keep te
 
 ## Execution notes
 
+> Current status (2026-09-11): PENDING. The planner identified the prior
+> dependency skip as stale after direct owner re-enablement of its prerequisite
+> chain; historical skip evidence below is retained only for traceability.
+
 ### Feature branch
 _Not started._
 ### Preflight
@@ -119,3 +123,8 @@ _Not applicable._
 Direct terminal prerequisite: 0210 (QA-024), `SKIPPED_DEPENDENCY`.
 Transitive root: 0076 (UI-018), `BLOCKED`; its preserved feature branch
 remains deliberately frozen.
+
+### Dependency skip
+
+Direct terminal prerequisite: `0210` (`QA-024`), `SKIPPED_DEPENDENCY`; its
+transitive root is `0071` (`UI-013`), `BLOCKED`. Materialized on 2026-09-13.

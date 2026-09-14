@@ -1,6 +1,6 @@
 # 0150 - Establish versioned TypeORM migrations
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -93,24 +93,119 @@ Do not make a generated migration trustworthy merely because TypeORM emitted it.
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-001` recovery branch. Preserved diagnostic SHA
+`a2877255b4b9295926b05e972c5ed78a4ff6740c`; local and remote preserved refs
+matched before recovery. Current green `develop` SHA
+`59bbf8732f7fb16005ede6f0792c1f4f5f26fc13` was merged with
+`--no-ff --no-gpg-sign` as merge commit `62120f20`.
+
 ### Preflight
-_Not started._
+- Branch identity and cleanliness verified with `git status --short --branch`,
+  `git rev-parse HEAD`, and `git branch --show-current`; the branch was clean
+  and exactly matched the supplied base SHA.
+- Dependency recipes 0008, 0130, and 0132 are all `[x] DONE`.
+- Exact base SHA GitHub Actions evidence verified with
+  `gh run list --commit d3dd4e1f60463f447326e6c197e4826c812e6b98`; CI run
+  `34710547193` completed successfully.
+- No task-owned Angular, Nest, Tox21, or test-watcher process was active.
+  Existing Node processes were only the dedicated Chrome DevTools MCP process.
+- Entity inventory found 36 files under
+  `MercurionWebNode/src/app_modules/**/Models/entities/`, including 24
+  `@Entity` declarations (the remainder are entity tests).
+- Current deployment configuration is PostgreSQL (`SQL_DATABASE_TYPE=postgres`
+  in `MercurionWebNode/env/.env.example` and the active development
+  configuration); the environment schema still accepts `mariadb`, but no
+  MariaDB deployment contract was found.
+- `AppModule` currently consumes `Data.pgSQL` with `autoLoadEntities: true` and
+  passes the unrestricted `SQL_DATABASE_SYNCHRONIZE` value through to TypeORM.
+- No repository TypeORM migrations, SQL baseline, dump, or documented schema
+  snapshot was found. Kubernetes staging runs the built application against an
+  externally managed PostgreSQL database, but its deployed schema/history is
+  not present or otherwise deterministically discoverable in this repository.
+
+Recovery reinspection after merging current `develop` did not change that
+finding. `MercurionWebNode/env/.env.example` still declares PostgreSQL with
+`SQL_DATABASE_SYNCHRONIZE=false`, while `src/config/config.schema.ts` still
+accepts both `postgres` and `mariadb` and requires the unrestricted
+`SQL_DATABASE_SYNCHRONIZE` property. `src/app.module.ts` still passes the
+validated `Data.pgSQL` options directly to TypeORM. The Kubernetes beta
+deployment supplies database settings through the external
+`mercurion-web-node-env` Secret and contains no schema dump, migration table
+contract, or reconciliation plan. Repository search found no TypeORM
+migration directory/history or authoritative PostgreSQL schema snapshot;
+`docker_sl/db/init` is only referenced as a local PostgreSQL init mount and
+does not provide the deployed baseline in this repository.
 ### Preflight remediation
-_None._
+Authorized recovery completed by merging current green `develop` without
+rebasing or rewriting history. No task implementation was created.
+
 ### Summary
-_Not started._
+`BLOCKED` after authorized recovery and before implementation. A safe initial
+baseline still cannot be produced:
+the current deployed PostgreSQL schema cannot be reconciled to the 24 loaded
+entities from repository evidence alone. Generating a baseline from entity
+metadata would be an undocumented assumption and could create destructive or
+incompatible operations against the deployed database. No migration, DataSource,
+synchronization-policy, script, or CI change was made.
+
 ### Task-specific validation performed
-_Not started._
+Not run because the required human/database authority is absent and the task
+must stop before producing an unsafe migration.
+
 ### Full pre-merge CI-parity validation
-_Not started._
+Not run; local `npm ci` and `npm run ci:check` remain forbidden, and no
+task-specific implementation exists.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-_Not recorded._
+Recovery merge commit `62120f20`; terminal diagnostic/status commit recorded
+below.
 ### Merge / CI
-_Not started._
+Not applicable: the task remains blocked before implementation. The recovery
+branch will be pushed after the diagnostic/status commit.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-_None._
+Human/database owner must provide and approve a deterministic PostgreSQL
+baseline/reconciliation plan for the deployed staging/production schema
+(for example an authoritative schema dump plus confirmation of the intended
+entity-to-schema mapping and any required non-destructive compatibility
+migrations). Until that authority is available, do not generate or apply an
+initial migration.
+
+### Direct-human reopening (2026-09-14)
+
+Reopened to PENDING by direct human instruction. The preserved
+feature/DATA-001 history remains intact and is not evidence that the required
+schema authority has already been supplied. A resumed implementation must merge
+the current exact-green develop into that branch and resolve the documented
+baseline/reconciliation decision before generating or applying a migration.
+
+### Direct-human completion (2026-09-14)
+
+Direct human authority approved completing the task through integration. The
+approved non-destructive reconciliation policy makes the generated initial
+migration authoritative for empty databases. An existing environment must
+first prove zero entity/schema drift from a restorable backup and may then
+record the initial migration with TypeORM `--fake`; the baseline DDL is never
+blindly run over existing tables.
+
+- Reconciled current exact-green `develop` SHA `014761ba` into the preserved
+  branch with `--no-ff --no-gpg-sign` as merge commit `a6d4635f`.
+- Added the PostgreSQL/pgvector initial migration for all 25 currently loaded
+  entities, including deterministic defaults and the required `vector`
+  extension.
+- Added a side-effect-free migration DataSource, canonical database-only
+  validation, root/workspace lifecycle scripts, explicit drift checking and
+  operator documentation.
+- Removed the unrestricted synchronization variable. Runtime configuration now
+  fixes `synchronize` and `migrationsRun` to `false`, and the validated dialect
+  is PostgreSQL only.
+- Added a required GitHub Actions PostgreSQL/pgvector job that starts empty,
+  applies every migration and rejects entity/schema drift.
+- Disposable PostgreSQL validation passed for migrate, show, drift, revert,
+  re-apply and fresh-schema verification. Nest lint and typecheck passed; all
+  152 unit suites (461 tests), the Nest E2E suite (3 tests), documentation
+  validation and the Nest build passed.
+- Browser validation is not applicable. Exact feature- and merge-SHA CI
+  evidence is recorded by the coordinator after push and integration.

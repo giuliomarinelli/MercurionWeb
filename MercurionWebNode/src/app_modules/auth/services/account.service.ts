@@ -27,10 +27,6 @@ import { UserContext } from 'src/app_modules/notification/Models/contexts/user.c
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 import { DataSource } from 'typeorm';
-import { ChEMBLMoleculeItemEntity } from 'src/app_modules/molecule-collection/Models/entities/chembl-molecule-item.entity';
-import { uuidv7 } from '@kripod/uuidv7';
-import { MoleculeCollection } from 'src/app_modules/molecule-collection/Models/entities/molecule-collection.entity';
-import { MoleculeCollectionItemJoin } from 'src/app_modules/molecule-collection/Models/entities/molecule-collection-item-join.entity';
 import { ScopeService } from './scope.service';
 import { MfaBackupCode } from 'src/app_modules/user/Models/entities/backup-code.entity';
 import { RecoverCredentialsDTO } from '../Models/DTO/recover-cretentials.cls.dto';
@@ -38,6 +34,9 @@ import { TypeGuards } from 'src/utils/type-guards/type-guards';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
+import { redisDurations, redisKeys } from 'src/app_modules/redis/contracts/redis-contracts'
+import { UnitOfWork } from 'src/persistence/transaction-context'
+import { InitialWorkspaceService } from 'src/app_modules/molecule-collection/services/initial-workspace.service'
 
 
 
@@ -89,6 +88,8 @@ export class AccountService {
         private readonly securityAuditService: SecurityAuditService,
         private readonly dataSource: DataSource,
         private readonly scopeService: ScopeService,
+        private readonly unitOfWork: UnitOfWork,
+        private readonly initialWorkspace: InitialWorkspaceService,
         meiliLogger: MeiliLoggerService
     ) {
         this.CHANGE_PASSWORD_TOKEN_EXPIRATION_MS = this.configService.get<number>('Jwt.changePasswordToken.expiresInMs') ?? 300_000
@@ -102,39 +103,39 @@ export class AccountService {
             .digest('hex')
     }
 
-    private getRegistrationLockRedisKey(email: string): string {
+    private getRegistrationLockRedisKey(email: string) {
         const digest = this.hmacKey(email.toLowerCase())
-        return `email_registration_lock:${digest}`
+        return redisKeys.account.registrationLock(digest)
     }
 
-    private getChangeFailKey(userId: UUID, kind: ContactChangeKind): string {
-        return `change:${kind}:totp:fail:${userId}`
+    private getChangeFailKey(userId: UUID, kind: ContactChangeKind) {
+        return redisKeys.account.changeFailure(kind, userId)
     }
 
-    private getChangeLockKey(userId: UUID, kind: ContactChangeKind): string {
-        return `change:${kind}:totp:lock:${userId}`
+    private getChangeLockKey(userId: UUID, kind: ContactChangeKind) {
+        return redisKeys.account.changeLock(kind, userId)
     }
 
-    private getChangeSendKey(userId: UUID, kind: ContactChangeKind): string {
-        return `change:${kind}:send:${userId}`
+    private getChangeSendKey(userId: UUID, kind: ContactChangeKind) {
+        return redisKeys.account.changeSend(kind, userId)
     }
 
-    private getChangeSendLockKey(userId: UUID, kind: ContactChangeKind): string {
-        return `change:${kind}:send:lock:${userId}`
+    private getChangeSendLockKey(userId: UUID, kind: ContactChangeKind) {
+        return redisKeys.account.changeSendLock(kind, userId)
     }
 
     private getRecoveryFailKey(code: string) {
-        return `recovery:fail:${this.hmacKey(code)}`
+        return redisKeys.account.recoveryFailure(this.hmacKey(code))
     }
     private getRecoveryLockKey(code: string) {
-        return `recovery:lock:${this.hmacKey(code)}`
+        return redisKeys.account.recoveryLock(this.hmacKey(code))
     }
 
     private getRecoverySecondFailKey(userId: UUID) {
-        return `recovery:second:fail:${userId}`
+        return redisKeys.account.recoverySecondFailure(userId)
     }
     private getRecoverySecondLockKey(userId: UUID) {
-        return `recovery:second:lock:${userId}`
+        return redisKeys.account.recoverySecondLock(userId)
     }
 
     private async ensureRecoverySecondNotLocked(userId: UUID) {
@@ -147,13 +148,13 @@ export class AccountService {
         const failKey = this.getRecoverySecondFailKey(userId)
         const lockKey = this.getRecoverySecondLockKey(userId)
 
-        const fails = await this.redisService.getClient().incr(failKey)
+        const fails = await this.redisService.incr(failKey)
         if (fails === 1) {
-            await this.redisService.setTTL(failKey, this.RECOVERY_SECOND_FAIL_WINDOW_SECONDS)
+            await this.redisService.setTTL(failKey, redisDurations.seconds(this.RECOVERY_SECOND_FAIL_WINDOW_SECONDS))
         }
 
         if (fails >= this.RECOVERY_SECOND_MAX_FAILS) {
-            await this.redisService.set(lockKey, '1', this.RECOVERY_SECOND_LOCK_SECONDS)
+            await this.redisService.set(lockKey, '1', redisDurations.seconds(this.RECOVERY_SECOND_LOCK_SECONDS))
             await this.redisService.del(failKey)
         }
     }
@@ -173,11 +174,11 @@ export class AccountService {
         const failKey = this.getRecoveryFailKey(code)
         const lockKey = this.getRecoveryLockKey(code)
 
-        const fails = await this.redisService.getClient().incr(failKey)
-        if (fails === 1) await this.redisService.setTTL(failKey, this.RECOVERY_FAIL_WINDOW_SECONDS)
+        const fails = await this.redisService.incr(failKey)
+        if (fails === 1) await this.redisService.setTTL(failKey, redisDurations.seconds(this.RECOVERY_FAIL_WINDOW_SECONDS))
 
         if (fails >= this.RECOVERY_MAX_FAILS) {
-            await this.redisService.set(lockKey, '1', this.RECOVERY_LOCK_SECONDS)
+            await this.redisService.set(lockKey, '1', redisDurations.seconds(this.RECOVERY_LOCK_SECONDS))
             await this.redisService.del(failKey)
         }
     }
@@ -195,14 +196,14 @@ export class AccountService {
         const failKey = this.getChangeFailKey(userId, kind)
         const lockKey = this.getChangeLockKey(userId, kind)
 
-        const fails = await this.redisService.getClient().incr(failKey)
+        const fails = await this.redisService.incr(failKey)
 
         if (fails === 1) {
-            await this.redisService.setTTL(failKey, this.CHANGE_CONTACT_FAIL_WINDOW_SECONDS)
+            await this.redisService.setTTL(failKey, redisDurations.seconds(this.CHANGE_CONTACT_FAIL_WINDOW_SECONDS))
         }
 
         if (fails >= this.CHANGE_CONTACT_MAX_FAILS) {
-            await this.redisService.set(lockKey, '1', this.CHANGE_CONTACT_LOCK_SECONDS)
+            await this.redisService.set(lockKey, '1', redisDurations.seconds(this.CHANGE_CONTACT_LOCK_SECONDS))
             await this.redisService.del(failKey)
         }
     }
@@ -223,31 +224,31 @@ export class AccountService {
             throw applicationError(ApplicationErrorCode.ACCOUNT_CONTACT_CHANGE_SEND_TOO_MANY_REQUESTS, `Change${kind.charAt(0).toUpperCase()}${kind.slice(1)}Send::TooManyRequests`)
         }
 
-        const cnt = await this.redisService.getClient().incr(countKey)
+        const cnt = await this.redisService.incr(countKey)
         if (cnt === 1) {
-            await this.redisService.setTTL(countKey, this.CHANGE_CONTACT_SEND_WINDOW_SECONDS)
+            await this.redisService.setTTL(countKey, redisDurations.seconds(this.CHANGE_CONTACT_SEND_WINDOW_SECONDS))
         }
 
         if (cnt > this.CHANGE_CONTACT_MAX_SENDS) {
-            await this.redisService.set(lockKey, '1', this.CHANGE_CONTACT_LOCK_SECONDS)
+            await this.redisService.set(lockKey, '1', redisDurations.seconds(this.CHANGE_CONTACT_LOCK_SECONDS))
             throw applicationError(ApplicationErrorCode.ACCOUNT_CONTACT_CHANGE_SEND_TOO_MANY_REQUESTS, `Change${kind.charAt(0).toUpperCase()}${kind.slice(1)}Send::TooManyRequests`)
         }
     }
 
-    private getPasswordFailKey(userId: UUID, context: PasswordContext = PasswordContext.CHANGE): string {
-        return `pwd:fail:${context}:${userId}`
+    private getPasswordFailKey(userId: UUID, context: PasswordContext = PasswordContext.CHANGE) {
+        return redisKeys.account.passwordFailure(context, userId)
     }
 
-    private getPasswordLockKey(userId: UUID, context: PasswordContext = PasswordContext.CHANGE): string {
-        return `pwd:lock:${context}:${userId}`
+    private getPasswordLockKey(userId: UUID, context: PasswordContext = PasswordContext.CHANGE) {
+        return redisKeys.account.passwordLock(context, userId)
     }
 
-    private getPasswordResetSendKey(userId: UUID, context: PasswordContext = PasswordContext.RESET_SEND): string {
-        return `pwd:reset:${context}:send:${userId}`
+    private getPasswordResetSendKey(userId: UUID, context: PasswordContext = PasswordContext.RESET_SEND) {
+        return redisKeys.account.passwordResetSend(context, userId)
     }
 
-    private getPasswordResetSendLockKey(userId: UUID, context: PasswordContext = PasswordContext.RESET_SEND): string {
-        return `pwd:reset:${context}:send:lock:${userId}`
+    private getPasswordResetSendLockKey(userId: UUID, context: PasswordContext = PasswordContext.RESET_SEND) {
+        return redisKeys.account.passwordResetSendLock(context, userId)
     }
 
     private async ensurePasswordNotLocked(userId: UUID, context: PasswordContext = PasswordContext.CHANGE): Promise<void> {
@@ -262,14 +263,14 @@ export class AccountService {
         const failKey = this.getPasswordFailKey(userId, context)
         const lockKey = this.getPasswordLockKey(userId, context)
 
-        const fails = await this.redisService.getClient().incr(failKey)
+        const fails = await this.redisService.incr(failKey)
 
         if (fails === 1) {
-            await this.redisService.setTTL(failKey, this.PASSWORD_FAIL_WINDOW_SECONDS)
+            await this.redisService.setTTL(failKey, redisDurations.seconds(this.PASSWORD_FAIL_WINDOW_SECONDS))
         }
 
         if (fails >= this.PASSWORD_MAX_FAILS) {
-            await this.redisService.set(lockKey, '1', this.PASSWORD_LOCK_SECONDS)
+            await this.redisService.set(lockKey, '1', redisDurations.seconds(this.PASSWORD_LOCK_SECONDS))
             await this.redisService.del(failKey)
         }
     }
@@ -291,13 +292,13 @@ export class AccountService {
             throw applicationError(ApplicationErrorCode.PASSWORD_RESET_SEND_TOO_MANY_REQUESTS)
         }
 
-        const cnt = await this.redisService.getClient().incr(countKey)
+        const cnt = await this.redisService.incr(countKey)
         if (cnt === 1) {
-            await this.redisService.setTTL(countKey, this.PASSWORD_RESET_SEND_WINDOW_SECONDS)
+            await this.redisService.setTTL(countKey, redisDurations.seconds(this.PASSWORD_RESET_SEND_WINDOW_SECONDS))
         }
 
         if (cnt > this.PASSWORD_RESET_MAX_SENDS) {
-            await this.redisService.set(lockKey, '1', this.PASSWORD_LOCK_SECONDS)
+            await this.redisService.set(lockKey, '1', redisDurations.seconds(this.PASSWORD_LOCK_SECONDS))
             throw applicationError(ApplicationErrorCode.PASSWORD_RESET_SEND_TOO_MANY_REQUESTS)
         }
     }
@@ -306,12 +307,12 @@ export class AccountService {
 
         const { password, email, firstName, lastName, job, gender } = registerDTO
         const emailKey = this.getRegistrationLockRedisKey(email)
-        const ttlSeconds = 2 * 60 * 60; // 2 ore
+        const ttl = redisDurations.hours(2)
         const alreadyExists = await this.redisService.exists(emailKey) || await this.userService.existsUserByEmail(email)
         if (alreadyExists) {
             throw applicationError(ApplicationErrorCode.USER_REGISTRATION_EMAIL_CONFLICT)
         }
-        await this.redisService.set(emailKey, 'locked', ttlSeconds)
+        await this.redisService.set(emailKey, 'locked', ttl)
         const passwordHash = await this.passwordEncoder.encode(password)
         const otpSecret = this.securityService.generateOtpSecret()
         const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()
@@ -343,112 +344,13 @@ export class AccountService {
 
     public async activateUser(activationToken: string): Promise<ConfirmWithRecoveryCodeDTO> | never {
 
-        return this.dataSource.manager.transaction(async (manager) => {
+        return this.unitOfWork.run(async (context) => {
             const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(activationToken, TokenType.ActivationToken)
             await this.sessionService.revokeToken(jti)
-            const user = await manager.findOne(User, { where: { id: userId } })
-            if (user == null) {
-                throw applicationError(ApplicationErrorCode.ACCOUNT_ACTIVATION_USER_NOT_FOUND)
-            }
-            let { isVerified, email, unconfirmedEmail, updatedAt } = user
             const recoveryCode = this.securityService.generateAccountRecoveryReadableCode()
             const accountRecoveryCodeHash = await this.passwordEncoder.encode(recoveryCode)
-            email = unconfirmedEmail!
-            unconfirmedEmail = null
-            isVerified = true
-            updatedAt = Date.now()
-            await manager.update(User, { id: userId }, { email, unconfirmedEmail, isVerified, updatedAt, accountRecoveryCodeHash })
-            const now = Date.now()
-            const _1stMol = manager.create(ChEMBLMoleculeItemEntity, {
-                chemblMolregno: 1280,
-                name: 'ASPIRINA',
-                nameEn: 'ASPIRIN',
-                id: uuidv7() as UUID,
-                userId,
-                label: 'Acido acetilsalicilico',
-                notes: 'La mia prima molecola su Mercurion',
-                type: 'chembl',
-                createdAt: now,
-                updatedAt: now,
-                touchedAt: now
-            })
-            const _2ndMol = manager.create(ChEMBLMoleculeItemEntity, {
-                chemblMolregno: 11674,
-                name: 'IBUPROFENE',
-                nameEn: 'IBUPROFEN',
-                id: uuidv7() as UUID,
-                userId,
-                label: 'Antinfiammatorio non steroideo derivato dell\'acido arilpropionico',
-                notes: 'La mia seconda molecola su Mercurion',
-                type: 'chembl',
-                createdAt: now,
-                updatedAt: now,
-                touchedAt: now - 1
-            })
-            const _3rdMol = manager.create(ChEMBLMoleculeItemEntity, {
-                chemblMolregno: 5080,
-                name: 'KETOROLAC',
-                nameEn: 'KETOROLAC',
-                id: uuidv7() as UUID,
-                userId,
-                label: null,
-                notes: 'La mia terza molecola su Mercurion',
-                type: 'chembl',
-                createdAt: now,
-                updatedAt: now,
-                touchedAt: now - 2
-            })
-            const _4rdMol = manager.create(ChEMBLMoleculeItemEntity, {
-                chemblMolregno: 173,
-                name: 'INDOMETACINA',
-                nameEn: 'INDOMETHACIN',
-                id: uuidv7() as UUID,
-                userId,
-                label: 'Indometacina',
-                notes: 'Gastrotossica, nefrotossica',
-                type: 'chembl',
-                createdAt: now,
-                updatedAt: now,
-                touchedAt: now - 3
-            })
-            const _5rdMol = manager.create(ChEMBLMoleculeItemEntity, {
-                chemblMolregno: 16591,
-                name: 'KETOPROFENE',
-                nameEn: 'KETOPROFEN',
-                id: uuidv7() as UUID,
-                userId,
-                label: null,
-                notes: 'Potente antinfiammatorio, buon analgesico',
-                type: 'chembl',
-                createdAt: now,
-                updatedAt: now,
-                touchedAt: now - 4
-            })
-            await manager.save(_1stMol)
-            await manager.save(_2ndMol)
-            await manager.save(_3rdMol)
-            await manager.save(_4rdMol)
-            await manager.save(_5rdMol)
-            const firstCol = manager.create(MoleculeCollection, {
-                id: uuidv7() as UUID,
-                name: 'La mia prima collezione',
-                createdAt: now,
-                updatedAt: now,
-                touchedAt: now,
-                userId
-            })
-            const firstColPersisted = await manager.save(firstCol)
-            const joins = [_1stMol, _2ndMol, _3rdMol, _4rdMol, _5rdMol].map((mol) => {
-                const join = manager.create(MoleculeCollectionItemJoin, {
-                    id: uuidv7() as UUID,
-                    userId,
-                    collectionId: firstColPersisted.id,
-                    itemId: mol.id
-                })
-                return join
-            })
-
-            await manager.save(joins)
+            const email = await this.userService.activateAccount(userId, accountRecoveryCodeHash, context)
+            await this.initialWorkspace.createForUser(userId, context)
             await this.redisService.del(this.getRegistrationLockRedisKey(email))
             return {
                 ...this._r.ok('Account activated successfully'),
@@ -476,12 +378,12 @@ export class AccountService {
         await this.throttleContactChangeSend(userId, ContactChangeKind.EMAIL)
 
         // Lock per evitare abusi e race condition
-        const lockKey = `email_change_lock:${this.hmacKey(newEmail.toLowerCase())}`
+        const lockKey = redisKeys.account.emailChangeLock(this.hmacKey(newEmail.toLowerCase()))
         const exists = await this.redisService.exists(lockKey)
         if (exists) {
             throw applicationError(ApplicationErrorCode.CHANGE_EMAIL_IN_USE_OR_PENDING)
         }
-        await this.redisService.set(lockKey, 'locked', 300)
+        await this.redisService.set(lockKey, 'locked', redisDurations.minutes(5))
 
         await this.userService.updateUser(userId, {
             unconfirmedEmail: newEmail,
@@ -541,7 +443,9 @@ export class AccountService {
             updatedAt: Date.now()
         })
 
-        await this.redisService.del(`email_change_lock:${this.hmacKey(newEmail.toLowerCase())}`)
+        await this.redisService.del(
+            redisKeys.account.emailChangeLock(this.hmacKey(newEmail.toLowerCase()))
+        )
 
         await this.securityAuditService.emailChanged(userId, maskedOldEmail, maskedNewEmail)
 
@@ -583,12 +487,15 @@ export class AccountService {
         if (!currentNumber) {
             throw applicationError(ApplicationErrorCode.DELETE_PHONE_NO_NUMBER)
         }
-        const lockKey = `phone_change_lock:${this.hmacKey(userId)}:${this.hmacKey(currentNumber)}`
+        const lockKey = redisKeys.account.phoneChangeLockForUser(
+            this.hmacKey(userId),
+            this.hmacKey(currentNumber)
+        )
         const existsLock = await this.redisService.exists(lockKey)
         if (existsLock) {
             throw applicationError(ApplicationErrorCode.DELETE_PHONE_IN_USE_OR_PENDING)
         }
-        await this.redisService.set(lockKey, 'locked', 300)
+        await this.redisService.set(lockKey, 'locked', redisDurations.minutes(5))
         await this.userService.updateUser(userId, {
             unconfirmedPhoneNumber: null,
             unconfirmedPhoneNumberPrefixLength: 0,
@@ -672,7 +579,12 @@ export class AccountService {
                 phoneMfaDisabled = true
             }
 
-            await this.redisService.del(`phone_change_lock:${this.hmacKey(userId)}:${this.hmacKey(oldCompletePhoneNumber ?? '')}`)
+            await this.redisService.del(
+                redisKeys.account.phoneChangeLockForUser(
+                    this.hmacKey(userId),
+                    this.hmacKey(oldCompletePhoneNumber ?? '')
+                )
+            )
             await this.clearContactChangeFailures(userId, ContactChangeKind.PHONE)
 
             const oldNotificationBody = 'Mercurion: il numero di telefono del tuo account è stato eliminato. Se non sei stato tu, reimposta subito la password e contatta il supporto Mercurion.'
@@ -712,13 +624,13 @@ export class AccountService {
         }
 
         // lock per evitare abusi e race condition
-        const lockKey = `phone_change_lock:${this.hmacKey(fullNumber)}`
+        const lockKey = redisKeys.account.phoneChangeLock(this.hmacKey(fullNumber))
         const existsLock = await this.redisService.exists(lockKey)
         if (existsLock) {
             throw applicationError(ApplicationErrorCode.CHANGE_PHONE_IN_USE_OR_PENDING)
         }
 
-        await this.redisService.set(lockKey, 'locked', 300)
+        await this.redisService.set(lockKey, 'locked', redisDurations.minutes(5))
 
         await this.userService.updateUser(userId, {
             unconfirmedPhoneNumber: fullNumber,
@@ -777,7 +689,9 @@ export class AccountService {
             updatedAt: Date.now()
         })
 
-        await this.redisService.del(`phone_change_lock:${this.hmacKey(newCompletePhoneNumber)}`)
+        await this.redisService.del(
+            redisKeys.account.phoneChangeLock(this.hmacKey(newCompletePhoneNumber))
+        )
         await this.clearContactChangeFailures(userId, ContactChangeKind.PHONE)
 
         const oldNotificationBody = 'Mercurion: il numero di telefono del tuo account è stato cambiato. Se non sei stato tu, reimposta subito la password e contatta il supporto Mercurion.';
@@ -926,11 +840,15 @@ export class AccountService {
         let jti: UUID
         try {
             ({ jti } = await this.jwtTools.verifyTokenAndGetPayload(changePasswordToken, TokenType.ChangePasswordToken))
-            const redisKey = `changePasswordLock:${jti}`
+            const redisKey = redisKeys.account.changePasswordLock(jti)
             if (await this.redisService.exists(redisKey)) {
                 return false
             }
-            await this.redisService.set(redisKey, '1', this.CHANGE_PASSWORD_TOKEN_EXPIRATION_MS / 1000)
+            await this.redisService.set(
+                redisKey,
+                '1',
+                redisDurations.seconds(this.CHANGE_PASSWORD_TOKEN_EXPIRATION_MS / 1000)
+            )
             return true
         } catch {
             return false

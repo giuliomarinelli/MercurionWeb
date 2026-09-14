@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthSessionPersistenceService } from './auth-session-persistence.service';
+import { routeManifest } from '../route-manifest';
 
 @Injectable({ providedIn: 'root' })
 export class AuthRedirectService {
@@ -11,7 +12,7 @@ export class AuthRedirectService {
 
   ) { }
 
-  private readonly fallback = '/dashboard'
+  private readonly fallback = routeManifest.dashboard.build({})
 
   /**
    * Store only canonical, same-origin application URLs.  URL is deliberately
@@ -70,7 +71,7 @@ export class AuthRedirectService {
       const path = `${url.pathname}${url.search}${url.hash}`
       if (!path.startsWith('/') || path.startsWith('//')) return null
       const route = path.split(/[?#]/, 1)[0].toLowerCase()
-      if (route === '/login' || route.startsWith('/login/')) return null
+      if (route === routeManifest.login.build({}) || route.startsWith(`${routeManifest.login.build({})}/`)) return null
       return this.router.serializeUrl(this.router.parseUrl(path))
     } catch {
       return null
@@ -78,7 +79,7 @@ export class AuthRedirectService {
   }
 
   /**
-   * Forza il redirect verso `/login`, anche se sei già su una sotto-route
+   * Forza il redirect verso il route manifest login path, anche se sei già su una sotto-route
    * come `/login/mfa/...`. Pulisce anche lo stato sessionStorage opzionalmente.
    */
   async redirectToLogin(): Promise<void> {
@@ -89,6 +90,6 @@ export class AuthRedirectService {
     await this.router.navigateByUrl('/', { skipLocationChange: true })
 
     // Naviga poi a /login pulito
-    await this.router.navigate(['/login'], { replaceUrl: true })
+    await this.router.navigateByUrl(routeManifest.login.build({}), { replaceUrl: true })
   }
 }

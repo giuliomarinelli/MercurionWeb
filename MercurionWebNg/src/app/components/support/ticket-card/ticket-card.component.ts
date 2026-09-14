@@ -16,7 +16,7 @@ import { TypeGuardsService } from '../../../services/type-guards.service';
   imports: [DatePipe, NgClass],
   template: `
   @if (_ticket()) {
-    <div class="relative" (click)="openDetail()">
+    <div class="relative">
       <div
         class="
           relative
@@ -268,14 +268,6 @@ export class TicketCardComponent {
       return t.userFullName ?? ''
     }
     return ''
-  }
-
-  openDetail(): void {
-    const id = this._ticket()?.id ?? ''
-    if (!id) {
-      return
-    }
-    this.onOpenDetail.emit(id)
   }
 
 }

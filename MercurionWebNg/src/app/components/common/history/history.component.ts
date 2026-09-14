@@ -21,7 +21,7 @@ import { HistoryItemComponent } from '../history-item/history-item.component';
 import { ClassicSpinnerComponent } from '../classic-spinner/classic-spinner.component';
 import { HistoryContextService } from '../../../services/context/history-context.service';
 import { NgClass } from '@angular/common';
-import { AppContextService } from '../../../services/context/app-context.service';
+import { ScrollContextService } from '../../../services/context/scroll-context.service';
 import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
 
 @Component({
@@ -82,7 +82,7 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly historyContext = inject(HistoryContextService)
   private readonly zone = inject(NgZone)
   private readonly hostRef = inject(ElementRef<HTMLElement>)
-  private readonly appContext = inject(AppContextService)
+  private readonly scrollContext = inject(ScrollContextService)
   private readonly invalidation = inject(DomainInvalidationService)
   // ====================================================
 
@@ -143,7 +143,7 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
       if (rmId) {
         queueMicrotask(() => {
           const hostRef = new ElementRef(this.findScrollContainer() ?? document.body)
-          this.appContext.smoothToTop(hostRef, 400)
+          this.scrollContext.smoothToTop(hostRef, 400)
           this.historyContext.clearRemoveItemTriggerSignal()
           this.items.update(items => items.filter(it => it.itemId !== rmId))
           const selectedItemId = this.items().find((item) => item.itemId === rmId)?.itemId ?? ''
@@ -204,7 +204,7 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
           }
         }
         if (scroll) {
-          queueMicrotask(() => this.appContext.smoothToTop(rootRef, 400))
+          queueMicrotask(() => this.scrollContext.smoothToTop(rootRef, 400))
         }
         let route = this.route.root
         while (route.firstChild) {

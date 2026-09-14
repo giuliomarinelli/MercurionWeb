@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core'
 import { jwtDecode, type JwtPayload } from 'jwt-decode'
 import { type Login_FirstStep_Data } from '../Models/confirm.models'
 import { MfaStrategy } from '@mercurion/rest-contracts'
+import { BrowserStorageRegistry, storageDescriptor } from './browser-storage-registry'
 import {
   PRE_AUTH_STATE_KIND,
   PRE_AUTH_STATE_VERSION,
@@ -114,21 +115,17 @@ export class InMemoryAuthSessionPersistence implements AuthSessionPersistencePor
 @Injectable({ providedIn: 'root' })
 export class AuthSessionPersistenceService implements AuthSessionPersistencePort {
   private readonly memory = new InMemoryAuthSessionPersistence()
-  private get local(): Storage | undefined { return typeof localStorage === 'undefined' ? undefined : localStorage }
-  private get session(): Storage | undefined { return typeof sessionStorage === 'undefined' ? undefined : sessionStorage }
   private get cookieString() { return typeof document === 'undefined' ? '' : document.cookie }
-  private getItem(storage: Storage | undefined, key: string) { try { return storage?.getItem(key) ?? null } catch { return null } }
-  private setItem(storage: Storage | undefined, key: string, value: string) { try { storage?.setItem(key, value) } catch { /* fail closed */ } }
-  private removeItem(storage: Storage | undefined, key: string) { try { storage?.removeItem(key) } catch { /* fail closed */ } }
-  getAccessToken() { return this.getItem(this.local, 'accessToken') }
-  setAccessToken(value: string | null) { value ? this.setItem(this.local, 'accessToken', value) : this.removeItem(this.local, 'accessToken') }
-  getWsAccessToken() { return this.getItem(this.local, 'ws_accessToken') }
-  setWsAccessToken(value: string | null) { if (value) { this.setItem(this.local, 'ws_accessToken', value); this.setItem(this.local, 'ws_accessToken_ts', String(Date.now())) } else { this.removeItem(this.local, 'ws_accessToken'); this.removeItem(this.local, 'ws_accessToken_ts') } }
-  getWsAccessTokenTimestamp() { return Number(this.getItem(this.local, 'ws_accessToken_ts') ?? 0) }
-  getInitials() { return this.getItem(this.local, 'login') }
-  setInitials(value: string) { this.setItem(this.local, 'login', value) }
-  getScopes(context: 'http' | 'ws' = 'http') { const key = context === 'http' ? 'scp' : 'ws_scp'; const raw = this.getItem(this.local, key); if (!raw) return null; try { const value = JSON.parse(atob(raw)); if (!Array.isArray(value) || value.some(item => typeof item !== 'string')) throw new Error('invalid scopes'); return value as string[] } catch { this.removeItem(this.local, key); return null } }
-  setScopes(value: string[] | null, context: 'http' | 'ws' = 'http') { const key = context === 'http' ? 'scp' : 'ws_scp'; value === null ? this.removeItem(this.local, key) : this.setItem(this.local, key, btoa(JSON.stringify(value))) }
+  constructor(private readonly registry: BrowserStorageRegistry = new BrowserStorageRegistry()) {}
+  getAccessToken() { return this.registry.get(storageDescriptor<string>('accessToken')) }
+  setAccessToken(value: string | null) { value ? this.registry.set(storageDescriptor<string>('accessToken'), value) : this.registry.remove(storageDescriptor<string>('accessToken')) }
+  getWsAccessToken() { return this.registry.get(storageDescriptor<string>('wsAccessToken')) }
+  setWsAccessToken(value: string | null) { if (value) { this.registry.set(storageDescriptor<string>('wsAccessToken'), value); this.registry.set(storageDescriptor<number>('wsAccessTokenTimestamp'), Date.now()) } else { this.registry.remove(storageDescriptor<string>('wsAccessToken')); this.registry.remove(storageDescriptor<number>('wsAccessTokenTimestamp')) } }
+  getWsAccessTokenTimestamp() { return this.registry.get(storageDescriptor<number>('wsAccessTokenTimestamp')) ?? 0 }
+  getInitials() { return this.registry.get(storageDescriptor<string>('login')) }
+  setInitials(value: string) { this.registry.set(storageDescriptor<string>('login'), value) }
+  getScopes(context: 'http' | 'ws' = 'http') { return this.registry.get(storageDescriptor<string[]>(context === 'http' ? 'scopes' : 'wsScopes')) }
+  setScopes(value: string[] | null, context: 'http' | 'ws' = 'http') { const descriptor = storageDescriptor<string[]>(context === 'http' ? 'scopes' : 'wsScopes'); value === null ? this.registry.remove(descriptor) : this.registry.set(descriptor, value) }
   commitAuthenticatedSession(value: { accessToken: string; wsAccessToken: string; initials: string; scopes: string[] }) {
     this.setAccessToken(value.accessToken)
     this.setWsAccessToken(value.wsAccessToken)
@@ -139,16 +136,16 @@ export class AuthSessionPersistenceService implements AuthSessionPersistencePort
     this.setAccessToken(value)
     this.setScopes(scopes)
   }
-  getWsRefreshLock() { const raw = this.getItem(this.local, 'ws_refresh_lock'); if (!raw) return null; try { const value = JSON.parse(raw); if (typeof value.owner !== 'string' || !Number.isFinite(value.expiresAt)) throw new Error('invalid lock'); return value as { owner: string; expiresAt: number } } catch { this.removeWsRefreshLock(); return null } }
-  setWsRefreshLock(value: { owner: string; expiresAt: number }) { this.setItem(this.local, 'ws_refresh_lock', JSON.stringify(value)) }
-  removeWsRefreshLock() { this.removeItem(this.local, 'ws_refresh_lock') }
-  getTabId() { let id = this.getItem(this.session, 'tab_id'); if (!id) { id = globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2); this.setItem(this.session, 'tab_id', id) } return id }
+  getWsRefreshLock() { return this.registry.get(storageDescriptor<{ owner: string; expiresAt: number }>('wsRefreshLock')) }
+  setWsRefreshLock(value: { owner: string; expiresAt: number }) { this.registry.set(storageDescriptor('wsRefreshLock'), value) }
+  removeWsRefreshLock() { this.registry.remove(storageDescriptor('wsRefreshLock')) }
+  getTabId() { let id = this.registry.get(storageDescriptor<string>('tabId')); if (!id) { id = globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2); this.registry.set(storageDescriptor('tabId'), id) } return id }
   hasLoginMarker() { return this.getCookieValue('__logged_in') === 'true' || this.getCookieValue('__logged_in_') === 'true' }
   getCookieValue(name: string) { const cookie = this.cookieString.split('; ').find(value => value.startsWith(`${name}=`)); return cookie ? decodeURIComponent(cookie.slice(name.length + 1)) : null }
   removeLoginMarkers() { for (const name of ['__logged_in', '__logged_in_']) if (typeof document !== 'undefined') document.cookie = `${name}=; Max-Age=0; path=/` }
-  getPreAuthorizationData() { return this.getItem(this.session, 'preAuthorizationData') }
-  setPreAuthorizationData(value: string) { this.setItem(this.session, 'preAuthorizationData', value) }
-  removePreAuthorizationData() { this.removeItem(this.session, 'preAuthorizationData') }
+  getPreAuthorizationData() { return this.registry.get(storageDescriptor<string>('preAuthorizationData')) }
+  setPreAuthorizationData(value: string) { this.registry.set(storageDescriptor('preAuthorizationData'), value) }
+  removePreAuthorizationData() { this.registry.remove(storageDescriptor('preAuthorizationData')) }
   savePreAuthState(data: Login_FirstStep_Data) {
     const state = buildPreAuthState(data)
     if (!state) { this.removePreAuthorizationData(); return false }
@@ -161,13 +158,19 @@ export class AuthSessionPersistenceService implements AuthSessionPersistencePort
     this.removePreAuthorizationData()
     return result
   }
-  getRedirectState() { return this.getItem(this.session, 'authRedirectIntent') }
-  setRedirectState(value: string) { this.setItem(this.session, 'authRedirectIntent', value) }
-  removeRedirectState() { this.removeItem(this.session, 'authRedirectIntent') }
-  clearAuthenticatedSession() { for (const key of ['accessToken', 'ws_accessToken', 'ws_accessToken_ts', 'login', 'scp', 'ws_scp']) this.removeItem(this.local, key); this.removeLoginMarkers() }
-  clearClientCredentialsForPreAuth() { for (const key of ['accessToken', 'ws_accessToken', 'ws_accessToken_ts', 'login', 'scp', 'ws_scp']) this.removeItem(this.local, key) }
+  getRedirectState() { return this.registry.get(storageDescriptor<string>('authRedirectIntent')) }
+  setRedirectState(value: string) { this.registry.set(storageDescriptor('authRedirectIntent'), value) }
+  removeRedirectState() { this.registry.remove(storageDescriptor('authRedirectIntent')) }
+  clearAuthenticatedSession() { for (const key of ['accessToken', 'wsAccessToken', 'wsAccessTokenTimestamp', 'login', 'scopes', 'wsScopes']) this.registry.remove(storageDescriptor(key)); this.removeLoginMarkers() }
+  clearClientCredentialsForPreAuth() { for (const key of ['accessToken', 'wsAccessToken', 'wsAccessTokenTimestamp', 'login', 'scopes', 'wsScopes']) this.registry.remove(storageDescriptor(key)) }
   clearPreAuthData() { this.removePreAuthorizationData() }
-  clearEphemeralAuthData() { this.removeWsRefreshLock(); this.removeItem(this.session, 'tab_id'); this.removeRedirectState(); this.removeItem(this.session, 'mfaError'); this.removeItem(this.session, 'authError') }
+  clearEphemeralAuthData() {
+    this.removeWsRefreshLock()
+    this.registry.remove(storageDescriptor('tabId'))
+    this.removeRedirectState()
+    this.registry.remove(storageDescriptor('mfaError'))
+    this.registry.remove(storageDescriptor('authError'))
+  }
 }
 
 const supportedStrategies = new Set<string>(Object.values(MfaStrategy))

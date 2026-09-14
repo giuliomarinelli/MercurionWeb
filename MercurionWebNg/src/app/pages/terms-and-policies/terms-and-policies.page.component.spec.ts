@@ -2,12 +2,14 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ElementRef } from '@angular/core';
 
 import { TermsAndPoliciesPageComponent } from './terms-and-policies.page.component';
-import { AppContextService } from '../../services/context/app-context.service';
+import { ScrollContextService } from '../../services/context/scroll-context.service';
+import { ShellLayoutService } from '../../services/context/shell-layout.service';
 
 describe('TermsAndPoliciesPageComponent', () => {
   let component: TermsAndPoliciesPageComponent;
   let fixture: ComponentFixture<TermsAndPoliciesPageComponent>;
-  let appContext: AppContextService;
+  let scrollContext: ScrollContextService;
+  let shellLayout: ShellLayoutService;
 
   let rafCallbacks: FrameRequestCallback[];
   let rafHandle: number;
@@ -45,7 +47,8 @@ describe('TermsAndPoliciesPageComponent', () => {
 
     fixture = TestBed.createComponent(TermsAndPoliciesPageComponent);
     component = fixture.componentInstance;
-    appContext = TestBed.inject(AppContextService);
+    scrollContext = TestBed.inject(ScrollContextService);
+    shellLayout = TestBed.inject(ShellLayoutService);
     fixture.detectChanges();
   });
 
@@ -58,9 +61,9 @@ describe('TermsAndPoliciesPageComponent', () => {
     const fakeRoot = new ElementRef(document.createElement('div'));
     c.scrollRootRef = fakeRoot;
 
-    appContext.setHeaderHeight(0);
-    const smoothToSpy = spyOn(appContext, 'smoothTo');
-    spyOn(appContext, 'getScrollYRelativeToRoot').and.returnValue(100);
+    shellLayout.setHeaderHeight(0);
+    const smoothToSpy = spyOn(scrollContext, 'smoothTo');
+    spyOn(scrollContext, 'getScrollYRelativeToRoot').and.returnValue(100);
 
     c.applyFragment('terms');
 
@@ -68,7 +71,7 @@ describe('TermsAndPoliciesPageComponent', () => {
     flushRaf();
     expect(smoothToSpy).not.toHaveBeenCalled();
 
-    appContext.setHeaderHeight(40);
+    shellLayout.setHeaderHeight(40);
     // second owned frame: predicate now truthy, schedules the layout-settle frame
     flushRaf();
     // layout-settle frame: schedules the owned 20ms timeout
@@ -83,8 +86,8 @@ describe('TermsAndPoliciesPageComponent', () => {
     const fakeRoot = new ElementRef(document.createElement('div'));
     c.scrollRootRef = fakeRoot;
 
-    appContext.setHeaderHeight(0);
-    const smoothToSpy = spyOn(appContext, 'smoothTo');
+    shellLayout.setHeaderHeight(0);
+    const smoothToSpy = spyOn(scrollContext, 'smoothTo');
 
     c.applyFragment('terms');
     expect(rafCallbacks.length).toBe(1);
@@ -92,7 +95,7 @@ describe('TermsAndPoliciesPageComponent', () => {
     fixture.destroy();
 
     // even if the header height becomes available after destroy, no further frame/timer may fire
-    appContext.setHeaderHeight(48);
+    shellLayout.setHeaderHeight(48);
     flushRaf();
     flushRaf();
     flushTimeouts();

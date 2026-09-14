@@ -1,5 +1,6 @@
-import { Component, ChangeDetectionStrategy, signal, effect, input, output } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal, effect, input, output, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { QuillStylesService } from '../../../services/quill-styles.service';
 import { QuillModule } from 'ngx-quill';
 
 
@@ -28,7 +29,9 @@ import { QuillModule } from 'ngx-quill';
     }
   `]
 })
-export class LabNotebookEditorComponent {
+export class LabNotebookEditorComponent implements OnInit {
+
+  private readonly quillStyles = inject(QuillStylesService)
 
   readonly triggerContentEmission = input(false)
   readonly content = input('')
@@ -60,6 +63,10 @@ export class LabNotebookEditorComponent {
       ['link', 'image', 'video'],
       ['clean']
     ]
+  }
+
+  ngOnInit(): void {
+    this.quillStyles.load()
   }
 
   constructor() {

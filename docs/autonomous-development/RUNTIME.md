@@ -49,11 +49,11 @@ Working directory:
 MercurionWeb Git root
 ```
 
-PowerShell command:
+Windows `cmd.exe` command:
 
-```powershell
-$env:APP_ENV = "development"
-$env:LOCAL_DUMMY_AUTH = "false"
+```bat
+set "APP_ENV=development"
+set "LOCAL_DUMMY_AUTH=false"
 npm run start:dev --workspace mercurion_web_node
 ```
 
@@ -103,11 +103,11 @@ MercurionWeb-root-relative interpreter invocation. Do not rely on shell-specific
 virtual-environment activation; invoke the virtual environment's Python
 interpreter directly and force UTF-8 console I/O on Windows.
 
-Windows / PowerShell on the Windows development host:
+Windows `cmd.exe` on the Windows development host:
 
-```powershell
-$env:PYTHONUTF8 = "1"
-& .\.venv\Scripts\python.exe -m main
+```bat
+set "PYTHONUTF8=1"
+.venv\Scripts\python.exe -m main
 ```
 
 POSIX fallback when the same repositories are run on Linux/macOS:
@@ -126,29 +126,63 @@ different working directory or silently substitute another entry point.
 
 Runtime is task-scoped, never session-persistent across task boundaries. The
 coordinator and worker must not start Angular, Nest, Tox21, test watchers, or
-any other workspace-consuming process before the unchanged task-start `npm ci`
-plus `npm run ci:check` preflight completes. A coding-agent task must not create
+any other workspace-consuming process before exact base-SHA Actions evidence is
+confirmed and focused task-start checks complete. Local autonomous sessions
+never run `npm ci` or `npm run ci:check`. A coding-agent task must not create
 duplicate application processes.
 
 For a task that actually declares browser/runtime validation, and only after
 its unchanged task-start baseline passes, the worker should:
 
-1. probe `http://localhost:8888` at the transport and HTTP layers before
-   classifying the edge: any HTTP response proves that nginx is listening; the
-   current development proxy normally returns nginx `502 Bad Gateway` when a
-   deliberately stopped task-scoped Angular or Nest upstream cannot be reached,
-   and that response MUST be classified as edge-live/upstream-unavailable, not
-   nginx-unavailable. A future explicit `503 Service Unavailable` mapping would
-   have the same liveness meaning. Only a transport-level failure on port
-   `8888`, such as `ECONNREFUSED` because the container is stopped or unable to
-   listen, establishes nginx unavailability and justifies inspecting Docker;
-2. start the Tox21 process when not already managed by the current session;
-3. start NestJS in watch mode;
-4. start Angular in watch mode;
-5. wait for the managed processes to remain alive;
-6. verify Nest through the nginx edge using `http://localhost:8888/health` when that endpoint is available for the current baseline;
-7. verify the Angular application through `http://localhost:8888/`;
-8. only then allow browser validation to begin.
+Before step 1, the worker is in `RUNTIME_NOT_STARTED`. In that state every
+network request is forbidden, including a supposedly diagnostic nginx/edge
+liveness probe. Process inventory must inspect local processes only. The
+worker moves to `RUNTIME_STARTED` only after steps 1-3 have each returned a
+live long-running execution-session handle. Only that state permits the first
+HTTP request. This ordering is mandatory even when nginx is known to be
+externally managed or was reachable in a previous task.
+
+1. start the Tox21 process in its declared working directory;
+2. start NestJS in watch mode with the exact canonical command above;
+3. start Angular in watch mode with the exact canonical command above;
+4. keep each command attached to its own long-running execution session and
+   poll its output; do not treat the initial tool yield/timeout as process
+   completion and do not replace these commands with a repository PowerShell
+   supervisor;
+5. prove that all three managed commands were issued and remain alive. Never
+   run `require.resolve`, import probes, package-manifest probes, or another
+   invented dependency-tree gate before these starts. The canonical start
+   commands and their real stderr are the runtime authority;
+6. only after all three starts have returned live execution-session handles,
+   probe `http://localhost:8888`. HTTP `502 Bad
+   Gateway` or 503 means edge-live/upstream-unavailable and MUST NOT end or
+   pause the task. Only a transport error such as `ECONNREFUSED` establishes
+   nginx unavailability;
+7. wait for up to five minutes for the first builds to finish while proving
+   that all three managed processes remain alive. `nest` or another local npm
+   executable being unrecognized is an install/baseline invariant failure,
+   not nginx unavailability and not a runtime capability pause: stop the other
+   task-owned processes and return `BASELINE_INVARIANT_FAILURE` with the first
+   actionable stderr diagnostic;
+8. during that wait, poll Nest through the nginx edge using
+   `http://localhost:8888/health` when that endpoint is available for the
+   current baseline. HTTP 502 means the edge is live and the upstream is not
+   ready yet; keep waiting while the processes are alive;
+9. poll the Angular application through `http://localhost:8888/` (or the safe
+   route required by the task) until the application shell is returned;
+10. require two consecutive successful complete probe rounds before allowing
+   browser validation to begin.
+
+The worker must capture the first actionable stderr output when a managed
+process exits. It must not collapse an executable-not-found error, compiler
+error, or early process exit into the generic statement "nginx unavailable".
+Only an actual transport failure on port 8888 has that meaning.
+
+If a worker accidentally requests an nginx URL while still in
+`RUNTIME_NOT_STARTED`, it must discard that response, immediately execute the
+three canonical starts in order, and continue from the startup barrier. It
+must not wait on, classify, report, or ask a human to interpret the expected
+pre-start 502/503 response.
 
 ## Dedicated local test account
 
@@ -175,11 +209,21 @@ Agents must use them when authentication is required, must not substitute the
 deprecated dummy route, and must not copy them into Git-tracked files or
 session reports.
 
+Credential entry MUST use Chrome DevTools MCP input tools. After
+`take_snapshot` identifies the email and password field UIDs, prefer one
+`fill_form` call; use individual `fill` calls only as a fallback. Never use
+`navigator.clipboard`, `clipboard.readText`, `evaluate_script`, DOM injection,
+or an operating-system clipboard to transfer credentials. A clipboard
+permission denial is an unsupported-method error, not an authentication or
+browser capability failure: retry immediately in the same worker with
+`fill_form`/`fill` and do not emit `SESSION_CAPABILITY_PAUSE`. Credential values
+must not be echoed in prose, shell output, reports, screenshots, or committed
+files.
+
 After capturing the declared runtime evidence, the worker stops every process
-it started. It MUST do so before the final pre-merge `npm ci` plus
-`npm run ci:check`; on Windows, a live Angular/esbuild watcher can otherwise
-lock native executables under `node_modules` and make the clean install fail
-with `EPERM` or `ENOTEMPTY`.
+it started. It MUST do so before returning control to the coordinator. The
+complete clean install and aggregate validation run only in GitHub Actions;
+local autonomous sessions must not invoke them.
 
 A task may require a more specific route or application state, but it must still enter through `http://localhost:8888`.
 
@@ -191,6 +235,15 @@ clean install. Chrome DevTools MCP uses its dedicated default user-data
 directory, persisted outside the repository, so non-production cookies and
 browser storage survive runtime restarts, fresh serial workers, and later CLI
 sessions. `.github/mcp.json` must not pass `--isolated`.
+
+The repository MCP entrypoint is
+`.github/scripts/start-chrome-devtools-mcp.ps1`. It passes the dedicated
+profile explicitly and owns a strict serial lease: before starting MCP and
+again when MCP exits, it stops only Chrome processes whose process tree is
+rooted in that exact profile. This recovers automatically from a prior MCP
+server that was force-terminated while leaving its Chrome subprocess alive;
+the profile directory and its persistent state are never deleted. Do not
+bypass the launcher with a direct `npx chrome-devtools-mcp` invocation.
 
 The task worker is the sole owner of the MCP browser. The coordinator does not
 invoke Chrome tools, and workers are never concurrent. Do not attach the MCP to

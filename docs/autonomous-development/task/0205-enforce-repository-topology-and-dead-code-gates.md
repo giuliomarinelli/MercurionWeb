@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Make the complete maintained Angular and Nest dependency topology a deterministic CI artifact and fail on any new orphan production unit, dependency cycle or forbidden dependency edge.
@@ -102,8 +102,9 @@ _Not started._
 ### Preflight remediation
 _None._
 ### Summary
-Not attempted because direct terminal prerequisite 0114 (NG-028) is
-`BLOCKED`.
+Reopened by direct management instruction on 2026-09-14 after `0114 / NG-028`
+was re-scoped to the active non-Notebook topology. The former dependency skip
+is stale; execution remains pending until all hard prerequisites are `DONE`.
 ### Task-specific validation performed
 _Not started._
 ### Full pre-merge CI-parity validation
@@ -111,12 +112,11 @@ _Not started._
 ### Browser validation performed
 _Not started / not applicable._
 ### Commits
-_Not recorded._
+_Not started._
 ### Merge / CI
 _Not started._
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Direct terminal prerequisite and transitive root: 0114 (NG-028),
-`BLOCKED`. Its existing feature branch remains deliberately preserved and
-frozen.
+_None currently. The deferred Notebook program is outside this task's active
+topology inventory._

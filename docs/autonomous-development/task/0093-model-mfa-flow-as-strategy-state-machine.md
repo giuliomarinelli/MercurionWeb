@@ -1,6 +1,6 @@
 # 0093 - Model MFA login as a strategy-driven state machine
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -82,37 +82,61 @@ Mark `BLOCKED` if a supported MFA strategy cannot be mapped to an authoritative 
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/NG-007`
 
 ### Preflight
-_Not started._
+Clean `feature/NG-007` at base `5c26cc675c018ee0fa0cb88a2ca2b9e73aec404b`;
+`develop` and `origin/develop` matched that SHA before implementation.
+Repository-local `commit.gpgSign` was `false`. The supplied exact metadata CI
+evidence for the current base was accepted. No task-owned Angular, Nest, or
+Tox21 process was active before implementation.
 
 ### Preflight remediation
 _None._
 
 ### Summary
-Not attempted because required typed pre-auth/MFA task 0034 and canonical
-auth/session state tasks are terminally non-`DONE`.
+Added a typed `MfaStrategySession` contract and registry for email OTP, SMS
+OTP, app TOTP, and backup-code flows. The page now selects a strategy from
+validated pre-auth state, exposes explicit state-machine states, blocks
+duplicate submissions, cancels strategy-local work on navigation/destruction,
+and fails safe for missing, expired, invalid, or unsupported pre-auth state.
+Final session activation and redirect remain behind the canonical auth/session
+services.
 
 ### Task-specific validation performed
-Not applicable; no feature branch or implementation worker was created.
+`npm run typecheck --workspace mercurion_web_ng` passed.
+`npm run lint --workspace mercurion_web_ng` passed with pre-existing warnings
+only.
+`npm run test:ci --workspace mercurion_web_ng` passed: 445 tests.
+Added strategy contract tests covering all four strategies, unknown strategy
+rejection, duplicate-submit prevention, cancellation, and terminal state
+transitions.
 
 ### Full pre-merge CI-parity validation
-Not applicable; dependency-skip metadata only.
+Not run locally; `npm ci` and `npm run ci:check` remain GitHub Actions-only.
 
 ### Browser validation performed
-Not applicable; the task was not attempted.
+Started the canonical task-scoped Tox21, Nest, and Angular processes in the
+required order. Two readiness rounds through `http://localhost:8888` returned
+the Angular shell with HTTP 200; `/health` returned HTTP 502 while the edge
+remained reachable. Navigating directly to
+`http://localhost:8888/login/mfa/APP_TOTP` without pre-auth state redirected to
+the safe 403 terminal page. The browser console showed only the existing
+development WebSocket 502 while the upstream was unavailable. All
+task-owned processes were stopped after validation.
 
 ### Commits
-Pending metadata commit on `develop`.
+Pending feature commit on `feature/NG-007`.
 
 ### Merge / CI
-No feature branch or merge. Exact-SHA CI is required for the metadata commit.
+Not performed by this worker. Exact feature-SHA CI and later merge lifecycle
+belong to the coordinator.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-Direct terminal prerequisite: task 0034, `SKIPPED_DEPENDENCY` through
-FE-004 (BLOCKED). FE-004 requires a test-safe canonical local auth/backend
-runtime and approved deterministic test state in a new session.
+None for local implementation. Authenticated MFA variants requiring a live
+pre-auth challenge were covered by the strategy contract tests; the browser
+probe covered the invalid/expired-safe terminal path because no pre-auth
+challenge was available in the local browser session.

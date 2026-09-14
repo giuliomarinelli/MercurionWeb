@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   OnDestroy,
+  OnInit,
   inject,
   signal,
 } from '@angular/core';
@@ -12,10 +13,12 @@ import { ActionOverlayContextService } from '../../../services/context/action-co
 import { ToastService } from '../../../services/toast.service';
 import { Subscription } from 'rxjs';
 import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
+import { IconButtonComponent } from '../../common/icon-button/icon-button.component';
+import { QuillStylesService } from '../../../services/quill-styles.service';
 
 @Component({
   selector: 'm-new-ticket',
-  imports: [FormsModule, QuillModule],
+  imports: [FormsModule, QuillModule, IconButtonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: [
     `
@@ -57,22 +60,16 @@ import { DomainInvalidationService } from '../../../services/domain-invalidation
         class="flex items-center justify-between px-4 py-4 border-b border-slate-200/70 dark:border-slate-700/60"
       >
         <h2 id="newTicketHeading" class="text-lg font-semibold">Nuovo ticket di supporto</h2>
-        <button
-            class="inline-flex items-center justify-center size-8 rounded-md text-slate-700 dark:text-slate-200 hover:text-light-accent-primary-hc hover:bg-slate-100 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-light-accent-primary-hq focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-transparent transition"
-            (click)="close()"
-            aria-label="Chiudi pannello nuovo ticket"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 640 640"
-              class="fill-current w-5 h-auto">
-                <path d="M182.9 137.4L160.3 114.7L115 160L137.6 182.6L275 320L137.6 457.4L115 480L160.3 525.3L182.9 502.6L320.3 365.3L457.6 502.6L480.3 525.3L525.5 480L502.9 457.4L365.5 320L502.9 182.6L525.5 160L480.3 114.7L457.6 137.4L320.3 274.7L182.9 137.4z" />
-            </svg>
-        </button>
+        <m-icon-button
+            size="sm"
+            icon="close"
+            ariaLabel="Chiudi pannello nuovo ticket"
+            (pressed)="close()"
+          />
       </div>
 
       <div class="p-4 flex flex-col gap-4">
-        <label class="flex flex-col gap-1">
+        <div class="flex flex-col gap-1">
           <span class="text-sm font-medium text-slate-700 dark:text-slate-200"
             >Oggetto</span
           >
@@ -86,9 +83,9 @@ import { DomainInvalidationService } from '../../../services/domain-invalidation
             [attr.aria-required]="true"
             [attr.aria-invalid]="subject.trim().length <= 2"
           />
-        </label>
+        </div>
 
-        <label class="flex flex-col gap-1">
+        <div class="flex flex-col gap-1">
           <span class="text-sm font-medium text-slate-700 dark:text-slate-200"
             >Messaggio</span
           >
@@ -103,7 +100,7 @@ import { DomainInvalidationService } from '../../../services/domain-invalidation
             aria-label="Testo del messaggio del ticket"
             [attr.aria-required]="true"
           ></quill-editor>
-        </label>
+        </div>
 
         <div class="flex justify-end pt-2">
           <button
@@ -126,8 +123,9 @@ import { DomainInvalidationService } from '../../../services/domain-invalidation
     </div>
   `,
 })
-export class NewTicketComponent implements OnDestroy {
+export class NewTicketComponent implements OnDestroy, OnInit {
 
+  private readonly quillStyles = inject(QuillStylesService)
   private readonly helpService = inject(HelpService)
   private readonly overlayContext = inject(ActionOverlayContextService)
   private readonly sessionId = this.overlayContext.session('NewTicket')?.id ?? -1
@@ -140,6 +138,10 @@ export class NewTicketComponent implements OnDestroy {
   contentHtml = ''
   private delta: any = null
   private lastPlainText = ''
+
+  ngOnInit(): void {
+    this.quillStyles.load()
+  }
 
   canSend = signal(false)
   loading = signal(false)

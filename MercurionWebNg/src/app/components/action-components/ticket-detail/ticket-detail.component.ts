@@ -33,14 +33,15 @@ import { MessageItemComponent } from '../message-item/message-item.component';
 import { TicketDetailInnerScope } from '../../../Models/action/action-overlay.models';
 import { DatePipe, NgClass } from '@angular/common';
 import { TicketComposerComponent } from '../../support/ticket-composer/ticket-composer.component';
+import { IconButtonComponent } from '../../common/icon-button/icon-button.component';
 import { Subscription } from 'rxjs';
-import { AppContextService } from '../../../services/context/app-context.service';
+import { ScrollContextService } from '../../../services/context/scroll-context.service';
 import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
 
 @Component({
   selector: 'm-ticket-detail',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MessageItemComponent, DatePipe, NgClass, TicketComposerComponent],
+  imports: [MessageItemComponent, DatePipe, NgClass, TicketComposerComponent, IconButtonComponent],
   styles: [
     `
       :host {
@@ -111,21 +112,13 @@ import { DomainInvalidationService } from '../../../services/domain-invalidation
             >
             </span>
           </h2>
-          <button
-            class="inline-flex items-center justify-center size-8 rounded-md text-slate-700 dark:text-slate-200 hover:text-light-accent-primary-hc hover:dark:text-dark-accent-primary-btn-hc hover:bg-slate-100 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-light-accent-primary-hq focus:ring-offset-2 focus:dark:ring-dark-accent-primary-btn-hc focus:ring-offset-white dark:focus:ring-offset-transparent transition"
-            (click)="close()"
-            aria-label="Chiudi dettaglio ticket"
+          <m-icon-button
+            size="sm"
+            icon="close"
+            ariaLabel="Chiudi dettaglio ticket"
+            (pressed)="close()"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 640 640"
-              class="fill-current w-5 h-auto"
-            >
-              <path
-                d="M182.9 137.4L160.3 114.7L115 160L137.6 182.6L275 320L137.6 457.4L115 480L160.3 525.3L182.9 502.6L320.3 365.3L457.6 502.6L480.3 525.3L525.5 480L502.9 457.4L365.5 320L502.9 182.6L525.5 160L480.3 114.7L457.6 137.4L320.3 274.7L182.9 137.4z"
-              />
-            </svg>
-          </button>
+          </m-icon-button>
         </div>
 
         @if (ticket()) {
@@ -290,7 +283,7 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
   private readonly helpService = inject(HelpService)
   protected readonly typeGuards = inject(TypeGuardsService)
   protected readonly cdr = inject(ChangeDetectorRef)
-  private readonly appCtx = inject(AppContextService)
+  private readonly scrollContext = inject(ScrollContextService)
   private readonly ticketDetailContext = inject(TicketDetailContextService)
   private readonly invalidation = inject(DomainInvalidationService)
   private firstMessageSet = signal<boolean>(false)
@@ -391,7 +384,7 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
     const rootEl = root?.nativeElement;
     if (!rootEl) return;
     const target = rootEl.scrollHeight;
-    this.appCtx.smoothTo(root, target, duration);
+    this.scrollContext.smoothTo(root, target, duration);
   }
 
   close(): void {
@@ -640,4 +633,3 @@ export class TicketDetailComponent extends AbstractPaginationComponent<TicketMes
 
 
 }
-

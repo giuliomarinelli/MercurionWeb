@@ -9,9 +9,6 @@ export interface EnvironmentConfig {
   readonly minLogLevel: LogLevel
   readonly CLOUDFLARE_SITE_KEY: string
   readonly DISABLE_TURNSTILE: boolean
-  readonly PUBLIC_EXACT_PATHS: readonly string[]
-  readonly LOGGED_OUT_ONLY_PATHS: readonly string[]
-  readonly PUBLIC_PREFIXES: readonly string[]
   readonly logoSrc: Readonly<{
     readonly PICTOGRAM_LIGHT: string
     readonly PICTOGRAM_DARK: string
@@ -25,9 +22,6 @@ type EnvironmentConfigDefinition = Omit<EnvironmentConfig, 'production' | 'testi
 export function createEnvironmentConfig(config: EnvironmentConfigDefinition): EnvironmentConfig {
   const environment = {
     ...config,
-    PUBLIC_EXACT_PATHS: freezeList(config.PUBLIC_EXACT_PATHS),
-    LOGGED_OUT_ONLY_PATHS: freezeList(config.LOGGED_OUT_ONLY_PATHS),
-    PUBLIC_PREFIXES: freezeList(config.PUBLIC_PREFIXES),
     logoSrc: Object.freeze({ ...config.logoSrc }),
     production: config.name === 'production',
     testing: config.name === 'testing'
@@ -53,8 +47,4 @@ export function assertValidEnvironmentConfig(config: EnvironmentConfig): void {
   if (config.production && config.testing) {
     throw new Error(`Environment "${config.name}" cannot be both production and testing`)
   }
-}
-
-function freezeList<T>(values: readonly T[]): readonly T[] {
-  return Object.freeze([...values])
 }

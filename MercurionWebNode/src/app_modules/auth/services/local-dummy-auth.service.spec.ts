@@ -1,8 +1,6 @@
 import { LOCAL_DUMMY_AUTH, type FingerprintData } from '@mercurion/rest-contracts'
 import type { UUID } from 'crypto'
-import type { Repository } from 'typeorm'
-
-import { User } from 'src/app_modules/user/Models/entities/user.entity'
+import { UserService } from 'src/app_modules/user/services/user.service'
 
 import { JwtToolsService } from './jwt-tools.service'
 import { LocalDummyAuthService } from './local-dummy-auth.service'
@@ -12,33 +10,18 @@ import { SessionService } from './session.service'
 describe('LocalDummyAuthService', () => {
   const sessionId = '00000000-0000-4000-8000-000000000102' as UUID
   const deviceId = '00000000-0000-4000-8000-000000000103' as UUID
-  const originalAppEnv = process.env.APP_ENV
-  const originalFlag = process.env.LOCAL_DUMMY_AUTH
   let service: LocalDummyAuthService
-  let userRepo: Pick<Repository<User>, 'findOne' | 'createQueryBuilder'>
+  let users: Pick<UserService, 'ensureLocalDevelopmentUser'>
   let scopeService: Pick<ScopeService, 'getEncryptedStandardScopes'>
   let sessionService: Pick<SessionService, 'createSession' | 'activateSession'>
   let jwtTools: Pick<JwtToolsService, 'generateToken'>
-  let execute: jest.Mock
-  let values: jest.Mock
-  let callListeners: jest.Mock
+  const appConfiguration = {
+    env: 'development',
+    localDummyAuth: true
+  }
 
   beforeEach(() => {
-    execute = jest.fn().mockResolvedValue(undefined)
-    values = jest.fn().mockReturnThis()
-    callListeners = jest.fn().mockReturnThis()
-    const queryBuilder = {
-      insert: jest.fn().mockReturnThis(),
-      into: jest.fn().mockReturnThis(),
-      values,
-      orIgnore: jest.fn().mockReturnThis(),
-      callListeners,
-      execute
-    }
-    userRepo = {
-      findOne: jest.fn().mockResolvedValue(null),
-      createQueryBuilder: jest.fn().mockReturnValue(queryBuilder)
-    }
+    users = { ensureLocalDevelopmentUser: jest.fn().mockResolvedValue(undefined) }
     scopeService = {
       getEncryptedStandardScopes: jest.fn().mockReturnValue(['encrypted-scope'])
     }
@@ -52,56 +35,28 @@ describe('LocalDummyAuthService', () => {
         .mockResolvedValueOnce('ws-access-token')
     }
     service = new LocalDummyAuthService(
-      userRepo as Repository<User>,
+      users as UserService,
       scopeService as ScopeService,
       sessionService as SessionService,
-      jwtTools as JwtToolsService
+      jwtTools as JwtToolsService,
+      { getOrThrow: jest.fn(() => appConfiguration) } as never
     )
-    process.env.APP_ENV = 'development'
-    process.env.LOCAL_DUMMY_AUTH = 'true'
+    appConfiguration.env = 'development'
+    appConfiguration.localDummyAuth = true
   })
 
   it('creates a persistent verified local account when enabled and absent', async () => {
     await service.onApplicationBootstrap()
 
-    expect(userRepo.findOne).toHaveBeenCalledWith({
-      where: { id: LOCAL_DUMMY_AUTH.userId },
-      select: { id: true }
-    })
-    expect(values).toHaveBeenCalledWith(expect.objectContaining({
-      id: LOCAL_DUMMY_AUTH.userId,
-      email: LOCAL_DUMMY_AUTH.email,
-      firstName: LOCAL_DUMMY_AUTH.firstName,
-      lastName: LOCAL_DUMMY_AUTH.lastName,
-      initials: LOCAL_DUMMY_AUTH.initials,
-      isVerified: true,
-      scopes: ['encrypted-scope']
-    }))
-    expect(callListeners).toHaveBeenCalledWith(false)
-    expect(execute).toHaveBeenCalledTimes(1)
-  })
-
-  it('preserves an existing local account instead of resetting test data', async () => {
-    ;(userRepo.findOne as jest.Mock).mockResolvedValue({ id: LOCAL_DUMMY_AUTH.userId })
-
-    await service.onApplicationBootstrap()
-
-    expect(userRepo.createQueryBuilder).not.toHaveBeenCalled()
+    expect(users.ensureLocalDevelopmentUser).toHaveBeenCalledWith(['encrypted-scope'])
   })
 
   it('does not access the database when the local fixture is disabled', async () => {
-    process.env.LOCAL_DUMMY_AUTH = 'false'
+    appConfiguration.localDummyAuth = false
 
     await service.onApplicationBootstrap()
 
-    expect(userRepo.findOne).not.toHaveBeenCalled()
-  })
-
-  afterEach(() => {
-    if (originalAppEnv === undefined) delete process.env.APP_ENV
-    else process.env.APP_ENV = originalAppEnv
-    if (originalFlag === undefined) delete process.env.LOCAL_DUMMY_AUTH
-    else process.env.LOCAL_DUMMY_AUTH = originalFlag
+    expect(users.ensureLocalDevelopmentUser).not.toHaveBeenCalled()
   })
 
   it('accepts the explicit canonical localhost activation request', () => {
@@ -132,8 +87,8 @@ describe('LocalDummyAuthService', () => {
     ['a non-canonical host', 'development', 'true', 'example.test', LOCAL_DUMMY_AUTH.canonicalOrigin],
     ['a non-canonical origin', 'development', 'true', 'localhost', 'http://localhost:3498']
   ])('rejects %s', (_case, appEnv, flag, host, origin) => {
-    process.env.APP_ENV = appEnv
-    process.env.LOCAL_DUMMY_AUTH = flag
+    appConfiguration.env = appEnv
+    appConfiguration.localDummyAuth = flag === 'true'
 
     expect(service.acceptsActivationRequest({
       headers: {

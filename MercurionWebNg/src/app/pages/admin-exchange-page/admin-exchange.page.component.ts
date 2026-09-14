@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, OnDestroy, OnInit, signal } from '@angular/core';
-import { AuthService } from '../../services/auth.service';
+import { AuthTransportService } from '../../services/auth-transport.service';
 import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { JsonPipe } from '@angular/common';
@@ -14,7 +14,7 @@ import { HttpErrorBody } from '../../Models/http-error-body.dto';
 })
 export class AdminExchangePageComponent implements OnInit, OnDestroy {
 
-  private readonly authService = inject(AuthService)
+  private readonly authService = inject(AuthTransportService)
   private readonly route = inject(ActivatedRoute)
   protected res = signal<object>({})
 

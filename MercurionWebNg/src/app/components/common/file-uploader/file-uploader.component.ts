@@ -38,10 +38,8 @@ type FileKind = 'all' | 'images' | 'pdf';
       </div>
 
       <!-- Dropzone -->
-      <div
-        tabindex="0"
-        (keydown.enter)="triggerBrowse()"
-        (keydown.space)="triggerBrowse(); $event.preventDefault()"
+      <button
+        type="button"
         (click)="triggerBrowse()"
         (dragover)="onDragOver($event)"
         (dragleave)="onDragLeave($event)"
@@ -59,9 +57,9 @@ type FileKind = 'all' | 'images' | 'pdf';
         [class.ring-indigo-400]="isOver()"
         [class.border-indigo-400]="isOver()"
         [class.cursor-not-allowed]="disabled()"
+        [disabled]="disabled() || loading()"
         [attr.aria-disabled]="disabled() || loading()"
         [attr.aria-busy]="loading()"
-        role="button"
         [attr.aria-label]="dropzoneLabel()"
       >
         <!-- Gradient halo (brandable) -->
@@ -120,7 +118,7 @@ type FileKind = 'all' | 'images' | 'pdf';
             class="text-indigo-400"
           />
         }
-      </div>
+      </button>
 
       <!-- Input invisibile -->
       <input

@@ -8,11 +8,14 @@ import { Router } from '@angular/router';
 import { AccountService } from '../../../services/account.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ProfileRegistryDTO } from '../../../Models/account/account.models';
-import { FloatingInputComponent } from '../../common/floating-input/floating-input.component';
+import { TextFieldComponent } from '../../common/text-field/text-field.component';
 import { PmSelectComponent } from '../../common/pm-select/pm-select.component';
 import { PmOption } from '../../../Models/pm-option.model';
 import { ProfileRegistryEditContextService } from '../../../services/context/action-context/profile-registry-edit-context.service';
 import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
+import { ActionCardComponent } from '../../common/action-card/action-card.component';
+import { ActionFooterComponent } from '../../common/action-footer/action-footer.component';
+import { ButtonComponent } from '../../common/button/button.component';
 
 type RegistryFormValue = {
   firstName: string
@@ -27,38 +30,30 @@ type RegistryFormValue = {
   imports: [
     ClassicSpinnerComponent,
     ReactiveFormsModule,
-    FloatingInputComponent,
-    PmSelectComponent
+    TextFieldComponent,
+    PmSelectComponent,
+    ActionCardComponent,
+    ActionFooterComponent,
+    ButtonComponent
   ],
   template: `
 
 <div class="flex justify-center items-start md:items-center min-h-screen px-2 sm:px-4 pt-1 md:pt-6 m-overlay-screen">
-  <div
-    class="action-card h-full md:h-auto"
-    role="region"
-    aria-labelledby="profileRegistryHeading"
-    [attr.aria-busy]="step_12_loading() || onStart_loading()"
+  <m-action-card
+    size="standard"
+    labelledBy="profileRegistryHeading"
+    closeLabel="Chiudi pannello anagrafica profilo"
+    [busy]="step_12_loading() || onStart_loading()"
+    (closed)="close()"
   >
-    <div class="action-card-header">
-      <h2
+      <h2 action-card-title
         id="profileRegistryHeading"
         class="text-lg font-semibold text-light-on-surface-main dark:text-dark-on-surface-main"
       >
         Modifica l'anagrafica del profilo
       </h2>
-      <button
-        type="button"
-        class="action-card-close-btn"
-        (click)="close()"
-        aria-label="Chiudi pannello anagrafica profilo"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-5 h-auto">
-          <path d="M182.9 137.4L160.3 114.7L115 160L137.6 182.6L275 320L137.6 457.4L115 480L160.3 525.3L182.9 502.6L320.3 365.3L457.6 502.6L480.3 525.3L525.5 480L502.9 457.4L365.5 320L502.9 182.6L525.5 160L480.3 114.7L457.6 137.4L320.3 274.7L182.9 137.4z"/>
-        </svg>
-      </button>
-    </div>
 
-    <div class="action-card-body bg-light-surface-secondary dark:bg-dark-surface-secondary">
+    <div action-card-body class="bg-light-surface-secondary dark:bg-dark-surface-secondary">
       <div
         class="relative border-b border-light-border dark:border-dark-border min-h-60 transition-[min-height] bg-light-surface-secondary dark:bg-dark-surface-secondary"
         [formGroup]="registryGroup"
@@ -78,7 +73,7 @@ type RegistryFormValue = {
             </div>
           } @else {
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-12 w-full pt-9">
-              <m-floating-input
+              <m-text-field
                 label="Nome *"
                 type="text"
                 autocomplete="given-name"
@@ -87,12 +82,9 @@ type RegistryFormValue = {
                   required: 'Il nome è obbligatorio.',
                   pattern: 'Il formato del nome non è valido.'
                 }"
-                [bgClass]="'bg-light-surface-secondary'"
-                [darkBgClass]="'dark:bg-dark-surface-secondary'"
-                darkLabelClass="dark:text-dark-accent-secondary-hc"
               />
 
-              <m-floating-input
+              <m-text-field
                 label="Cognome *"
                 type="text"
                 autocomplete="family-name"
@@ -101,9 +93,6 @@ type RegistryFormValue = {
                   required: 'Il cognome è obbligatorio.',
                   pattern: 'Il formato del cognome non è valido.'
                 }"
-                [bgClass]="'bg-light-surface-secondary'"
-                [darkBgClass]="'dark:bg-dark-surface-secondary'"
-                darkLabelClass="dark:text-dark-accent-secondary-hc"
               />
 
               <m-select
@@ -111,18 +100,15 @@ type RegistryFormValue = {
                 label="Genere *"
                 [options]="options"
                 formControlName="gender"
-                darkTextClass="dark:text-dark-accent-secondary-hc"
+                tone="highContrast"
               />
 
-              <m-floating-input
+              <m-text-field
                 label="Il tuo lavoro"
                 type="text"
                 autocomplete="organization-title"
                 formControlName="job"
                 [errors]="{}"
-                [bgClass]="'bg-light-surface-secondary'"
-                [darkBgClass]="'dark:bg-dark-surface-secondary'"
-                darkLabelClass="dark:text-dark-accent-secondary-hc"
               />
             </div>
           }
@@ -151,59 +137,51 @@ type RegistryFormValue = {
       </div>
     </div>
 
-    <div class="action-card-footer">
+    <m-action-footer action-card-footer>
       @if (step() === 1) {
-        <button
-          type="button"
-          class="px-4 py-2 rounded-lg bg-light-surface-secondary text-light-on-surface-main dark:bg-slate-200 dark:text-light-on-surface-main hover:bg-white dark:hover:bg-slate-300/80 border border-light-border dark:border-dark-border/80 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary dark:focus-visible:ring-offset-dark-surface-secondary transition-colors duration-200"
+        <m-button
+          action-footer-secondary
+          variant="neutral"
           (click)="close()"
           aria-label="Annulla modifica anagrafica"
         >
           Annulla
-        </button>
+        </m-button>
 
-        <button
-          type="button"
+      }
+
+      @if (step() === 1) {
+        <m-button
+          action-footer-secondary
+          variant="neutral"
+          size="sm"
           title="Resetta"
-          class="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-light-surface-secondary text-light-on-surface-main dark:bg-slate-200 dark:text-light-on-surface-main hover:bg-white dark:hover:bg-slate-300/80 border border-light-border dark:border-dark-border/80 shadow-sm disabled:bg-light-surface-secondary disabled:text-slate-300 dark:disabled:bg-slate-200/60 dark:disabled:text-dark-on-surface-secondary/60 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary dark:focus-visible:ring-offset-dark-surface-secondary transition-colors duration-200"
           [disabled]="isGroupValueTheSameAsInitialValueSig()"
           (click)="reset()"
-          [attr.aria-disabled]="isGroupValueTheSameAsInitialValueSig()"
           aria-label="Reimposta i campi"
         >
+          <span class="sr-only">Reimposta</span>
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current size-5">
             <path d="M544 64L544 183.8L507 144.7C458.5 93.2 390.8 64 320 64C180.3 64 64.1 180.4 64 320C63.9 459.3 180.3 575.9 320 576C420.1 576.1 513.4 515.5 554 424.1L524.8 411.1C489.4 491 407.6 544.1 320.1 544C198 543.9 96 441.6 96.1 320C96.2 198.1 198.1 96 320.1 96C382.1 96 441.3 121.5 483.9 166.6L523 208L400.1 208L400.1 240L576.1 240L576.1 64L544.1 64z"/>
           </svg>
-        </button>
+        </m-button>
       }
 
-      <button
-        type="button"
-        class="relative inline-flex items-center justify-center px-4 py-2 rounded-lg bg-light-accent-primary text-white font-semibold shadow-md hover:bg-light-accent-primary-hc dark:bg-dark-accent-primary-btn dark:hover:bg-dark-accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary dark:focus-visible:ring-offset-dark-surface-secondary disabled:bg-light-accent-primary/50 disabled:cursor-not-allowed transition-colors duration-200 dark:shadow-btn-dark disabled:hover:bg-light-accent-primary-hc/50"
+      <m-button
+        action-footer-primary
         [disabled]="isGroupValueTheSameAsInitialValueSig() || step_12_loading()"
-        [attr.aria-busy]="step_12_loading()"
+        [loading]="step_12_loading()"
         (click)="routeAction()"
-        [attr.aria-disabled]="isGroupValueTheSameAsInitialValueSig() || step_12_loading()"
         [attr.aria-label]="step() === 1 ? 'Salva anagrafica' : 'Chiudi conferma'"
       >
-        <span [class.invisible]="step_12_loading()">
-          @if (step() === 1) {
-            <span>Salva</span>
-          } @else if (step() === 2) {
-            <span>Ok</span>
-          }
-        </span>
-
-        <span
-          aria-hidden="true"
-          class="absolute inset-0 flex items-center justify-center"
-          [class.hidden]="!step_12_loading()"
-        >
-          <m-classic-spinner [size]="24"></m-classic-spinner>
-        </span>
-      </button>
-    </div>
-  </div>
+        @if (step() === 1) {
+          Salva
+        } @else if (step() === 2) {
+          Ok
+        }
+      </m-button>
+    </m-action-footer>
+  </m-action-card>
 </div>
 
 `
@@ -400,4 +378,3 @@ export class EssentialProfileRegistryEditComponent implements OnInit, OnDestroy 
   }
 
 }
-

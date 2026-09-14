@@ -37,22 +37,27 @@
                 "output": "/"
               },
               {
-                "glob": "RDKit_minimal.js",
-                "input": "../node_modules/@rdkit/rdkit/dist/",
-                "output": "/"
-              },
-              {
                 "glob": "*.svg",
                 "input": "../node_modules/svg-country-flags/svg",
                 "output": "flags"
+              },
+              {
+                "glob": "quill.core.css",
+                "input": "../node_modules/quill/dist",
+                "output": "quill"
+              },
+              {
+                "glob": "quill.bubble.css",
+                "input": "../node_modules/quill/dist",
+                "output": "quill"
+              },
+              {
+                "glob": "quill.snow.css",
+                "input": "../node_modules/quill/dist",
+                "output": "quill"
               }
             ],
-            "styles": [
-              "quill/dist/quill.core.css",
-              "quill/dist/quill.bubble.css",
-              "quill/dist/quill.snow.css",
-              "src/styles.css"
-            ],
+            "styles": ["src/styles.css"],
             "scripts": []
           },
           "configurations": {
@@ -61,13 +66,18 @@
                 {
                   "type": "initial",
                   "maximumWarning": "500kB",
-                  "maximumError": "1.01MB"
+                  "maximumError": "1MB"
                 },
                 {
                   "type": "anyComponentStyle",
                   "maximumWarning": "4kB",
                   "maximumError": "8kB"
                 }
+              ],
+              "allowedCommonJsDependencies": [
+                "@mercurion/rest-contracts",
+                "@rdkit/rdkit",
+                "quill-delta"
               ],
               "outputHashing": "all"
             },
@@ -149,14 +159,24 @@
                 "glob": "*.svg",
                 "input": "../node_modules/svg-country-flags/svg",
                 "output": "flags"
+              },
+              {
+                "glob": "quill.core.css",
+                "input": "../node_modules/quill/dist",
+                "output": "quill"
+              },
+              {
+                "glob": "quill.bubble.css",
+                "input": "../node_modules/quill/dist",
+                "output": "quill"
+              },
+              {
+                "glob": "quill.snow.css",
+                "input": "../node_modules/quill/dist",
+                "output": "quill"
               }
             ],
-            "styles": [
-              "quill/dist/quill.core.css",
-              "quill/dist/quill.bubble.css",
-              "quill/dist/quill.snow.css",
-              "src/styles.css"
-            ],
+            "styles": ["src/styles.css"],
             "scripts": []
           }
         }

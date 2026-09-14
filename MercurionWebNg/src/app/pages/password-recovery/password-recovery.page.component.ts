@@ -5,7 +5,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AccountService } from '../../services/account.service';
 import { catchError, distinctUntilChanged, EMPTY, filter, of, Subscription, switchMap, take, tap } from 'rxjs';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { FloatingInputComponent } from '../../components/common/floating-input/floating-input.component';
+import { TextFieldComponent } from '../../components/common/text-field/text-field.component';
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
 import { matchPassword } from '../../custom-validators';
 import { ErrorRes } from '../../Models/confirm.models';
@@ -21,7 +21,7 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
-    FloatingInputComponent,
+    TextFieldComponent,
     ClassicSpinnerComponent,
     RouterLink
   ],
@@ -42,7 +42,7 @@ import {
             </span>
           </div>
             <form (ngSubmit)="send()" [formGroup]="form" class="mt-2 max-w-[400px] mx-auto" aria-labelledby="password-recovery-title" [attr.aria-busy]="step_12_loading()">
-              <m-floating-input class="mb-3 block"
+              <m-text-field class="mb-3 block"
                 label="Nuova password"
                 type="password"
                 formControlName="password"
@@ -50,12 +50,9 @@ import {
                   required: 'Campo obbligatorio.'
                 }"
                 (enter)="send()"
-                darkLabelClass = 'dark:text-dark-accent-secondary-hc'
-                darkFocusRingClass = 'dark:focus:ring-dark-accent-primary'
-                darkFocusBorderClass = 'dark:focus:border-dark-accent-primary'
               />
 
-              <m-floating-input
+              <m-text-field
                 label="Ripeti la nuova password"
                 type="password"
                 formControlName="confirmPassword"
@@ -67,9 +64,6 @@ import {
                   serverError() ? serverErrorMsg() : null
                 "
                 (enter)="send()"
-                darkLabelClass = 'dark:text-dark-accent-secondary-hc'
-                darkFocusRingClass = 'dark:focus:ring-dark-accent-primary'
-                darkFocusBorderClass = 'dark:focus:border-dark-accent-primary'
               />
 
               <button
@@ -252,4 +246,3 @@ export class PasswordRecoveryPageComponent implements OnInit, OnDestroy {
     this.valChSub2?.unsubscribe()
   }
 }
-

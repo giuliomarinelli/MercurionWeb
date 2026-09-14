@@ -32,6 +32,15 @@ Detailed session semantics and local runtime topology are defined in:
 @docs/autonomous-development/PROTOCOL.md
 @docs/autonomous-development/RUNTIME.md
 
+Repository project skills live in `.github/skills/` and are part of the
+autonomous control plane. Normal coordinator invocations MUST load
+`mercurion-ci-lifecycle` and `mercurion-outcome-classification`. Normal workers
+MUST load `mercurion-task-execution` and `mercurion-outcome-classification`,
+plus `mercurion-browser-runtime` and `chrome-devtools` whenever browser/runtime
+evidence is required. The nonce capability probe invokes no tools, including
+the `skill` tool. Skills refine procedures; they never override this file, the
+protocol, runtime policy, active session configuration, or task recipe.
+
 ## Operating contract
 
 - GitHub Copilot CLI is the only approved host for autonomous Development Sessions. The former VS Code Autopilot/advanced-mode route is unsupported for this workflow; `.vscode` configuration remains available only for ordinary interactive VS Code use.
@@ -58,7 +67,7 @@ Autonomous-development planning and execution are intentionally separate:
 ## Task execution
 
 - Execute exactly one numbered task file per coding-agent invocation.
-- In GitHub Copilot CLI, the `Development Session Coordinator` is the runner and MUST invoke exactly one fresh, stateless `Development Task Worker` per task through one synchronous `task` tool call using the repository-agent identifier `development-task-worker`. The coordinator never uses background worker mode, delegates two implementation tasks concurrently, or asks one worker to execute more than one recipe.
+- In GitHub Copilot CLI, the `Development Session Coordinator` is the runner and MUST invoke one fresh, stateless primary `Development Task Worker` per task through a synchronous `task` tool call using the repository-agent identifier `development-task-worker`. After an actionable exact feature-SHA CI failure it may invoke fresh synchronous repair workers for that same task within the configured repair budget. The coordinator never explicitly uses background worker mode, delegates two workers concurrently, or asks one worker to execute more than one recipe.
 - Executable task files start at `0001` and use globally progressive four-digit numeric prefixes.
 - Read the complete task before changing code.
 - Inspect the relevant existing implementation before editing.
@@ -77,8 +86,9 @@ Every recipe has four mutually exclusive persistent outcomes:
 - `SKIPPED_DEPENDENCY`: never attempted because a hard prerequisite is terminal non-`DONE`; never create a feature branch.
 
 All four unchecked means pending. At most one may be checked. `CI_PENDING`,
-`WAITING_DEPENDENCY`, and `SESSION_CAPABILITY_PAUSE` are transient coordinator
-states and do not receive checkboxes. A capability pause occurs before
+`WAITING_DEPENDENCY`, `SESSION_CAPABILITY_PAUSE`,
+`SESSION_BRANCH_COLLISION_PAUSE`, and `SESSION_RECOVERY_PENDING` are transient
+coordinator states and do not receive checkboxes. A capability pause occurs before
 implementation when required local runtime or non-production browser
 authentication is unavailable; it defers only that task for the remainder of
 the active session without changing the recipe or propagating dependency
@@ -93,30 +103,54 @@ Autonomous eligibility is orthogonal to these outcomes. A non-empty
 
 All four persistent outcomes are terminal within the active session. The coordinator MUST NOT reopen or resume a terminal task because a later probe or Autopilot continuation changes its opinion. Only a new direct human instruction in a new or restarted session may authorize re-enablement; an Autopilot continuation is not human authorization.
 
-Reaching a session-fatal blocker is successful completion of the coordinator objective even if pending workload remains. The coordinator finalizes the report, emits its concise final summary and report path, calls `task_complete` as the final Autopilot action, and stops.
+A restarted session may resume prior work only through an immutable
+`authorized_recovery` entry containing the exact pending task, Source, existing
+feature branch and preserved SHA. The worker receives `recovery_resume: true`,
+merges current green `develop` into that branch with `--no-ff --no-gpg-sign`,
+preserves coherent prior commits and completes the original recipe. Never infer
+recovery authority from a branch collision. Reset only dependency skips that
+the authoritative planner identifies as stale after the root is re-enabled.
+
+No error, denial, branch collision, unavailable dependency, CI observation
+failure, or baseline incident is an early completion condition before
+the configured soft deadline. Task-local problems are isolated to that task;
+branch collisions enter `SESSION_BRANCH_COLLISION_PAUSE`; unsafe shared-state
+problems enter `SESSION_RECOVERY_PENDING`. The coordinator continues other safe
+independent work or retries recovery with bounded backoff. It calls
+`task_complete` only at the soft deadline or genuine workload exhaustion after
+all pending work has become terminal.
 
 ## Session startup capabilities
 
 Before recipe work, the coordinator MUST perform the real isolated npm capability probe defined in `PROTOCOL.md`: actual `npm init -y`, actual pinned `npm install --ignore-scripts --no-save is-number@7.0.0`, the Node.js assertion, exact temporary-directory cleanup, and identical clean repository status before and after. A dry run is forbidden.
 
-Before creating a task branch, the coordinator MUST also make exactly one session-level, non-mutating synchronous `task` handshake using `agent_type: development-task-worker`, `capability_probe: true`, and a fresh nonce. The worker returns exactly `TASK_CAPABILITY_OK <nonce>` without invoking tools or touching the repository. Empty, denied, malformed, or mismatched delegation stops the session before Git state is changed.
+Before creating a task branch, the coordinator MUST also make exactly one session-level, non-mutating synchronous `task` handshake using `agent_type: development-task-worker`, `capability_probe: true`, and a fresh nonce. The worker returns exactly `TASK_CAPABILITY_OK <nonce>` without invoking tools or touching the repository. Empty, denied, malformed, or mismatched delegation prevents task dispatch, enters `SESSION_RECOVERY_PENDING`, and is retried with bounded backoff until restored or the soft deadline.
 
-The coordinator MUST also verify the effective repository-local `commit.gpgSign=false`. Every autonomous commit-producing command uses `--no-gpg-sign`, including ordinary commits, no-fast-forward merges, and reverts. A denied install, network, filesystem, cleanup, GitHub, `task`, MCP, signing, or `task_complete` prerequisite is reported exactly and stops the session.
+The coordinator MUST also verify the effective repository-local `commit.gpgSign=false`. Every autonomous commit-producing command uses `--no-gpg-sign`, including ordinary commits, no-fast-forward merges, and reverts. A denied install, network, filesystem, cleanup, GitHub, `task`, MCP, signing, or `task_complete` prerequisite is reported exactly, enters `SESSION_RECOVERY_PENDING`, and is retried without weakening the prerequisite or finalizing early.
 
-## Mandatory CI-parity preflight before every task
+## Remote CI baseline and local validation policy
 
 Before any task branch exists, the coordinator MUST establish a clean, fully
 green repository baseline according to
 `docs/autonomous-development/CI-BASELINE.md`. Local `develop` must equal
 `origin/develop`; the exact SHA must have a fresh successful GitHub Actions
-`full` run with both platform jobs and the stable `Required gate`; and the
-complete local non-mutating gate must pass. A `metadata` or `duplicate` result
-alone is insufficient to start a new session.
+`full` run with both platform jobs and the stable `Required gate`. A `metadata`
+or `duplicate` result alone is insufficient to start a new session.
+
+Autonomous sessions MUST NEVER run `npm ci` or `npm run ci:check` locally. The
+clean install and complete aggregate are GitHub Actions responsibilities only.
+This direct human policy overrides older launch documents, session YAML fields,
+and task recipes that still mention either local command. Local validation is
+limited to focused commands proportionate to the changed area and must reuse
+the existing dependency tree. Never use `require.resolve`, package-manifest
+resolution, or import probes to declare that tree unusable. For runtime work,
+only the canonical start commands and their actual output decide usability.
 
 There is no task `0001` bootstrap exception. Missing CI, a red exact-SHA run,
-or a red local baseline is a session-level startup failure. Stop before branch
-creation or task outcome mutation and request a separate human-authorized
-baseline repair.
+or a red local baseline prevents branch creation and task outcome mutation.
+Enter `SESSION_RECOVERY_PENDING` and keep retrying safe baseline verification
+or restoration until green or until the soft deadline; never charge the
+incident to a numbered task.
 
 The preflight must cover every repository-controlled gate that can fail the canonical CI pipeline, including at minimum:
 
@@ -133,25 +167,29 @@ The permanent GitHub Actions workflow predates every numbered task. It runs on
 feature branches and `develop` on Windows and Linux and must survive ordinary
 task merges and reverts.
 
-The task-start preflight MUST use the same root commands used by GitHub Actions:
-`npm ci` followed by `npm run ci:check`. Task `0008` extends this existing
-aggregate with GraphQL/generated-artifact drift gates; it does not create the
-root workspace or first canonical CI interface.
+GitHub Actions MUST use root `npm ci` followed by `npm run ci:check`. Task
+`0008` extends this existing aggregate with GraphQL/generated-artifact drift
+gates; it does not create the root workspace or first canonical CI interface.
 
 Every session-owned Angular, Nest, Tox21, test watcher, or other process that
-can load files from the workspace MUST be stopped before `npm ci`. The runner
+can load files from the workspace MUST be stopped before task handoff. The runner
 must not start watch-mode/runtime processes speculatively at session startup or
-before a worker completes its unchanged task-start preflight. Runtime processes
-may start only after implementation reaches a declared browser/runtime
-validation phase, and must stop again before the final clean-install gate.
+before a worker completes its unchanged task-start preflight. For a task that
+declares browser/runtime evidence, the worker starts the canonical runtime after
+that task-start preflight and before implementation to prove capability, stops
+it after the capability evidence, and restarts it after implementation for the
+declared browser validation. It must stop every task-owned runtime again before
+handoff; full clean-install validation remains owned by GitHub Actions.
 
 A missing or red root baseline gate is a session failure that requires a
 separate human-authorized repair; no numbered task or task branch may bootstrap
 or repair it.
 
-If preflight fails before the task has changed code, stop the session as a
+If preflight fails before the task has changed code, remove only an empty
+unpublished attempt branch when safe and enter `SESSION_RECOVERY_PENDING` as a
 baseline invariant failure. Do not assign the pre-existing defect to the task,
-mark the recipe `BLOCKED`, or use its branch for global remediation.
+mark the recipe `BLOCKED`, or use its branch for global remediation. Retry the
+baseline and resume task selection when it is green.
 
 ## Git lifecycle for one task
 
@@ -161,13 +199,14 @@ For each task:
 
 1. Start from an up-to-date, clean `develop`.
 2. Create `feature/<Source>` locally from that exact `develop` commit; do not push while its HEAD still equals the already-green base SHA.
-3. Run the mandatory CI-parity preflight before task implementation.
+3. Confirm exact base-SHA Actions evidence and run focused local checks only.
 4. Implement and validate the task on the feature branch.
 5. Commit the task changes on the feature branch. Prefer small, comprehensible commits; do not squash or rewrite history merely for cosmetic reasons.
-6. Run the complete CI-parity gate set again immediately before integration.
+6. Run focused task validation immediately before integration; exact
+   feature-SHA Actions supplies the complete clean-install/aggregate evidence.
 7. Mark the task `DONE` in the feature branch only when implementation and all local gates pass. The runner MUST treat this state as `CI_PENDING` until both feature and post-merge CI succeed.
 8. Create the remote feature ref only after a task-specific commit exists, push the final feature SHA, and wait for its exact GitHub Actions `Required gate`.
-9. If exact feature-SHA CI fails or is unverifiable, change the provisional outcome to `BLOCKED`, record diagnostics on the preserved feature branch, freeze it, and propagate only the metadata status to `develop`.
+9. If exact feature-SHA CI fails with an actionable repository-controlled diagnostic, keep the task `DONE`/`CI_PENDING`, invoke a fresh synchronous CI-repair worker on the same unfrozen feature branch, commit/push the narrow correction, and require a new exact feature-SHA CI run. Repeat within the configured repair budget. Only a non-actionable/unverifiable result or exhausted repeated repair budget may transition to `BLOCKED`.
 10. Only after exact feature-SHA CI succeeds, switch to `develop`, verify it has not moved unexpectedly, and merge the feature branch using an explicit `--no-ff --no-gpg-sign` merge commit.
 11. Push `develop` and wait for the GitHub Actions workflow associated with that exact merge commit.
 
@@ -187,8 +226,8 @@ If post-merge CI fails:
 - preserve the local and remote `feature/<Source>` branch for diagnosis or later human-approved retry;
 - once its final feature SHA is pushed, freeze that divergent branch: do not merge `develop` into it, commit/amend it, reset/rebase it, advance it, or delete it during the session.
 
-If a task becomes blocked before merge, including because exact feature-SHA CI
-fails or cannot be verified, do not merge partial implementation. Preserve and
+If a task becomes blocked before merge after its configured feature-CI repair
+budget is exhausted, or because CI cannot be verified, do not merge partial implementation. Preserve and
 freeze its feature branch, propagate only the task's `BLOCKED`
 status/diagnostics to `develop`, and wait for CI on that exact metadata commit.
 
@@ -215,7 +254,13 @@ individual commit/push. Wait for the aggregate commit's exact adaptive
 `Required gate`, then select the earliest filename-ordered recipe whose hard
 dependencies are all `DONE`.
 
-The runner may continue only when active session policy permits it, `develop` is clean/exact-SHA green, and the next task's hard dependencies are all `DONE`. Because every task integrates from a proven-green `develop`, a revert that does not restore the pre-merge tree and exact-SHA green CI is a session-fatal baseline/upstream incident. Stop the entire session, report it separately from the task outcome, and do not use a later task to repair or conceal it.
+The runner may dispatch implementation only when `develop` is clean/exact-SHA
+green and the next task's hard dependencies are all `DONE`. A revert that does
+not restore the pre-merge tree and exact-SHA green CI enters
+`SESSION_RECOVERY_PENDING`: suspend new task dispatch, preserve all branches,
+and retry safe restoration/verification until green or the soft deadline. Do
+not use a later numbered task to repair or conceal it, and do not finalize the
+session merely because recovery is pending.
 
 ## Git safety constraints
 
@@ -250,18 +295,33 @@ For frontend or browser-observable work:
 
 - follow the canonical local runtime in `docs/autonomous-development/RUNTIME.md`;
 - use the nginx development edge at `http://localhost:8888`; never validate the application by browsing the Angular development-server port directly;
+- before the task worker has started Tox21, Nest and Angular and recorded live
+  long-running execution-session handles for all three, it MUST NOT make any
+  HTTP request, health check, browser navigation, or diagnostic edge-liveness
+  probe; process inventory is local-only and a pre-start 502 is discarded as a
+  protocol-ordering error, never surfaced for human interpretation;
 - distinguish nginx listener liveness from proxied-service readiness: any HTTP response from `localhost:8888`, including the default nginx `502 Bad Gateway` while a task-scoped upstream is stopped, proves the edge is reachable; only a transport-level failure such as `ECONNREFUSED` on port `8888` indicates that nginx itself is unavailable;
 - use Chrome DevTools MCP when the active task declares browser validation or when runtime browser behaviour is necessary to establish an acceptance criterion;
-- start the canonical runtime only after the unchanged task-start `npm ci` plus
-  `npm run ci:check` preflight has succeeded, and only when the active task
+- start the canonical runtime only after exact base-SHA Actions evidence and
+  focused task-start checks have succeeded, and only when the active task
   actually requires runtime/browser evidence;
-- stop every task-owned runtime process before any later `npm ci`, including
-  the final pre-merge clean-install gate;
+- start Nest, Angular, and Tox21 with the direct canonical commands in separate
+  long-running execution sessions; keep them alive and allow up to five minutes
+  for their first builds, polling process output and requiring two consecutive
+  successful readiness rounds. Do not use a repository PowerShell runtime
+  supervisor;
+- classify a missing `nest` or other npm workspace executable as a failed
+  install/baseline invariant, never as nginx unavailability or
+  `SESSION_CAPABILITY_PAUSE`; an nginx 502 proves the edge is live and only
+  means its upstream is not ready yet;
+- stop every task-owned runtime process before task handoff and before the
+  coordinator proceeds;
 - use the browser to inspect the rendered UI and, when relevant, console errors, network requests, runtime state, accessibility/DOM state, responsive behaviour, and screenshots;
 - do not treat a successful TypeScript compilation or Angular build as sufficient evidence for a browser-facing acceptance criterion;
 - prefer the dedicated MCP-controlled Chrome instance; do not attach to a human developer's personal Chrome profile;
 - the task worker is the sole browser owner; the coordinator and another worker must not control the profile concurrently;
 - reuse the dedicated profile for browser isolation, but never rely on its stored authentication; every worker requiring protected state performs a fresh ordinary login with the shared account configured in the git-ignored development environment;
+- enter login credentials only through Chrome DevTools MCP `fill_form` after a page snapshot, with `fill` as fallback; never use `navigator.clipboard`, `clipboard.readText`, `evaluate_script`, DOM injection, or an OS clipboard, and never classify a clipboard permission denial as `SESSION_CAPABILITY_PAUSE`;
 - after the unchanged task-start baseline and before implementation, a task requiring browser/runtime evidence must prove runtime readiness and any required authenticated state; failure returns `SESSION_CAPABILITY_PAUSE` with no task mutation rather than `BLOCKED` or dependency skips, and the coordinator continues with the next independent `READY` task not already paused in this session;
 - a task that explicitly tests logout may leave the dedicated profile anonymous; the next worker logs in again, so this state alone never emits `BROWSER_PROFILE_RECOVERY_REQUIRED` or stops later task selection;
 - never browse production or enter production credentials/data during autonomous validation;
@@ -275,7 +335,8 @@ Before a task may be merged:
 
 1. Run every task-specific validation command.
 2. Perform declared browser validation when applicable.
-3. Run the complete canonical CI-parity gate set, not merely tests for the changed area.
+3. Use the exact feature-SHA GitHub Actions gate as the repository-wide
+   validation; local checks remain focused.
 4. Verify every acceptance criterion in the task.
 5. Verify the feature branch contains no unrelated changes except documented preflight remediation.
 6. Push the exact final feature SHA and require the permanent Windows/Linux

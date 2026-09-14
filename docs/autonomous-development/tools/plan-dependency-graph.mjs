@@ -208,9 +208,10 @@ function selfTest() {
     parseRecipe('0005-e.md', fixture('0005', null, ['0003'])),
     parseRecipe('0006-f.md', fixture('0006', 'SKIPPED_DEPENDENCY', ['0005'])),
     parseRecipe('0007-g.md', fixture('0007', 'SKIPPED_DEPENDENCY', ['0001'])),
+    parseRecipe('0009-gap.md', fixture('0009', null, ['0001'])),
   ];
   const plan = planRecipes(recipes);
-  assert.deepEqual(plan.ready.map((entry) => entry.id), ['0002']);
+  assert.deepEqual(plan.ready.map((entry) => entry.id), ['0002', '0009']);
   assert.deepEqual(plan.waiting.map((entry) => entry.id), ['0004']);
   assert.deepEqual(plan.toSkip.map((entry) => entry.id), ['0005']);
   assert.deepEqual(plan.toSkip[0].terminalRoots, ['0003']);

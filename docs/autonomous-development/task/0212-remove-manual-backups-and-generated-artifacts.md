@@ -1,6 +1,6 @@
 # 0212 - Remove manual backups and generated artifacts
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -95,21 +95,45 @@ The Git history is already the backup. Keep the new gate based on tracked-path p
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/QA-026`
 ### Preflight
-_Not started._
+Base `467ff2d15ab7dd10d88748530637cffa02757d4c` matches `develop` and
+`origin/develop`; exact successful CI run `34732712125` is green. The working
+tree was clean before implementation. All five audited files and the
+additional `docker_sl/nginx_dev/nginx.131125.bk` were inspected; none has a
+consumer in source, scripts, Docker inputs, documentation, or runtime reads.
 ### Preflight remediation
 _None._
 ### Summary
-_Not started._
+Removed the five audited debris files plus the additional tracked nginx
+backup. Added a tracked-path hygiene gate with narrow backup/result/output
+patterns and synthetic negative checks, registered in `ci:static`. Nest Jest
+coverage and CI JSON reports now stay under ignored project-local directories
+already collected by CI. Maintained architecture artifacts and task
+documentation are not blanket-matched.
 ### Task-specific validation performed
-_Not started._
+`node scripts/check-tracked-artifacts.mjs` passed after deletion.
+`node scripts/test-tracked-artifacts-negative.mjs` passed, including
+maintained schema/artifact/task-document false positives.
+`npm run ci:tracked-artifacts` passed after staging the deletions.
+`npm run ci:containers` passed (`2 Dockerfiles`, `6 targets`, stale-reference
+and lockfile checks). `npm run build --workspace mercurion_web_node` and
+`npm run build --workspace mercurion_web_ng` passed; Angular emitted only its
+existing bundle-budget warning. The focused
+`npm run test:ci --workspace mercurion_web_node -- --runTestsByPath
+src/config/validation-pipe.spec.ts` passed (1 suite, 2 tests) and wrote the
+ignored `MercurionWebNode/test-results/jest-results.json`. `git diff --check`
+and `git diff --exit-code` passed after generation. Exact-name searches found
+no deleted-file consumers; the remaining Jest result reference is the new
+intentional CI output path. Full clean-install CI remains the canonical
+pre-merge validation.
 ### Full pre-merge CI-parity validation
-_Not started._
+Delegated to GitHub Actions for the pushed feature SHA; local
+`npm ci`/`npm run ci:check` were not run.
 ### Browser validation performed
 _Not started / not applicable._
 ### Commits
-_Not recorded._
+`138a6e6c` — QA-026 remove manual backups and generated artifacts.
 ### Merge / CI
 _Not started._
 ### Rollback

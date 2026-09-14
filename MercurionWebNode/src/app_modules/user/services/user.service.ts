@@ -3,7 +3,7 @@ import { ProfileRegistryClientDTO, ProfileRegistryDTO as ProfileRegistryDTO } fr
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../Models/entities/user.entity';
-import { DataSource, FindOptionsWhere, Repository } from 'typeorm';
+import { DataSource, FindOptionsWhere, In, Repository } from 'typeorm';
 
 import { UUID } from 'crypto';
 import { nullish } from 'src/Models/nullish.type';
@@ -16,7 +16,7 @@ import { SercurityService } from 'src/app_modules/auth/services/sercurity.servic
 import { CompareResult } from 'src/app_modules/auth/Models/enums/compare-result.enum';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
-import { ScopeService } from 'src/app_modules/auth/services/scope.service';
+import { Scope } from '../Models/enums/scope.enum';
 import { MoleculeCollectionItemEntity } from 'src/app_modules/molecule-collection/Models/entities/molecule-collection-item.entity';
 import { HistoryService } from 'src/app_modules/history/services/history.service';
 import { TinyHistoryDTO } from 'src/app_modules/history/Models/DTO/history.dto';
@@ -24,11 +24,15 @@ import { AuthIdentity } from 'src/app_modules/sso/Models/entities/auth-identity.
 import { ProvidedEmailDTO } from 'src/app_modules/auth/Models/DTO/provided-email.dto';
 import { AuthProvider } from 'src/app_modules/sso/Models/enums/auth-provider.enum';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
+import type { IdentityReadPort } from 'src/app_modules/auth/Models/interfaces/identity-read.port'
+import { transactionManager, type TransactionContext } from 'src/persistence/transaction-context'
+import { LOCAL_DUMMY_AUTH } from '@mercurion/rest-contracts'
+import { UserGender } from '../Models/enums/user-gender.enum'
 
 
 
 @Injectable()
-export class UserService {
+export class UserService implements IdentityReadPort {
 
     private readonly logger: MeiliContextLogger
     private readonly mfaStrategyVals = Object.values(MfaStrategy)
@@ -37,7 +41,6 @@ export class UserService {
         @InjectRepository(User) private userRepository: Repository<User>,
         private readonly dataSource: DataSource,
         private readonly passwordEncoder: PasswordEncoderService,
-        private readonly scopeService: ScopeService,
         private readonly securityService: SercurityService,
         private readonly historyService: HistoryService,
         meiliLogger: MeiliLoggerService
@@ -45,7 +48,7 @@ export class UserService {
         this.logger = meiliLogger.forContext(UserService.name)
     }
 
-    public async getUserScopesById(userId: UUID): Promise<string[] | null> {
+    public async getUserScopesById(userId: UUID): Promise<Scope[] | null> {
         try {
             const user = await this.userRepository
                 .createQueryBuilder("user")
@@ -55,7 +58,9 @@ export class UserService {
             if (!user) {
                 return null
             }
-            return this.scopeService.decryptScopes(...user.scopes)
+            return user.scopes
+                .map((encryptedScope) => this.securityService.decrypt_AES256(encryptedScope))
+                .filter((scope): scope is Scope => Object.values(Scope).includes(scope as Scope))
         } catch (e) {
             this.logger.warn(`Error in getScopesById, userId=${userId}`, e as object)
             return null
@@ -82,12 +87,96 @@ export class UserService {
         }
     }
 
+    public async activateAccount(
+        id: UUID,
+        accountRecoveryCodeHash: string,
+        context: TransactionContext
+    ): Promise<string> {
+        const manager = transactionManager(context)
+        const user = await manager.findOne(User, { where: { id } })
+        if (!user) {
+            throw applicationError(ApplicationErrorCode.ACCOUNT_ACTIVATION_USER_NOT_FOUND)
+        }
+        const email = user.unconfirmedEmail!
+        await manager.update(User, { id }, {
+            email,
+            unconfirmedEmail: null,
+            isVerified: true,
+            updatedAt: Date.now(),
+            accountRecoveryCodeHash
+        })
+        return email
+    }
+
+    public async createSsoUser(
+        input: Pick<User, 'id' | 'firstName' | 'lastName' | 'initials' | 'scopes'>,
+        context: TransactionContext
+    ): Promise<{ id: UUID }> {
+        const manager = transactionManager(context)
+        const user = manager.create(User, { ...input, sso: true, isVerified: true })
+        const persisted = await manager.save(user)
+        return { id: persisted.id }
+    }
+
+    public async ensureLocalDevelopmentUser(scopes: string[]): Promise<void> {
+        const id = LOCAL_DUMMY_AUTH.userId as UUID
+        if (await this.userRepository.exists({ where: { id } })) return
+        const now = Date.now()
+        await this.userRepository.createQueryBuilder()
+            .insert()
+            .into(User)
+            .values({
+                id,
+                email: LOCAL_DUMMY_AUTH.email,
+                unconfirmedEmail: null,
+                completePhoneNumber: null,
+                phoneNumberPrefixLength: 0,
+                unconfirmedPhoneNumber: null,
+                unconfirmedPhoneNumberPrefixLength: null,
+                passwordHash: null,
+                firstName: LOCAL_DUMMY_AUTH.firstName,
+                lastName: LOCAL_DUMMY_AUTH.lastName,
+                gender: UserGender.Undefined,
+                job: 'Local development fixture',
+                initials: LOCAL_DUMMY_AUTH.initials,
+                isVerified: true,
+                scopes,
+                mfaStrategies: '[]',
+                createdAt: now,
+                updatedAt: now,
+                otpSecret: '',
+                appTotpSecret: null,
+                oldPasswordHashes: [],
+                avatarId: null,
+                backupCodesGiven: false,
+                accountRecoveryCodeHash: null,
+                locked: false,
+                recoveryMode: false,
+                sso: false
+            })
+            .orIgnore()
+            .callListeners(false)
+            .execute()
+    }
+
     public async existsUserById(id: UUID): Promise<boolean> {
         return this.userRepository.exists({ where: { id } })
     }
 
     public async existsUserByEmail(email: string): Promise<boolean> {
         return this.userRepository.exists({ where: { email, sso: false } })
+    }
+
+    public async getUserFullNames(ids: readonly UUID[]): Promise<Map<string, string>> {
+        if (ids.length === 0) return new Map()
+        const users = await this.userRepository.find({
+            where: { id: In([...ids]) },
+            select: ['id', 'firstName', 'lastName']
+        })
+        return new Map(users.map((user) => [
+            String(user.id),
+            `${user.firstName} ${user.lastName}`.trim()
+        ]))
     }
 
     public async getUserById(id: UUID, isVerified?: boolean): Promise<User | nullish> {
@@ -109,10 +198,10 @@ export class UserService {
             await queryRunner.commitTransaction()
             return user
         } catch {
-            queryRunner.rollbackTransaction()
+            await queryRunner.rollbackTransaction()
             return null
         } finally {
-            queryRunner.release()
+            await queryRunner.release()
         }
     }
 

@@ -15,12 +15,13 @@ import { EMPTY, of, Subscription, switchMap, defer, from, combineLatest, catchEr
 import { ActivatedRoute, Router } from '@angular/router';
 import { TypeGuardsService } from '../../services/type-guards.service';
 import { FingerprintService } from '../../services/fingerprint.service';
-import { AuthService } from '../../services/auth.service';
+import { AuthTransportService } from '../../services/auth-transport.service';
 import { SessionSyncService } from '../../services/session-sync.service';
 import { AuthStateStore } from '../../services/auth-state.store'
 import { AuthSessionPersistenceService } from '../../services/auth-session-persistence.service'
 import { SidenavContextService } from '../../services/context/sidenav-context.service';
 import { AuthRedirectService } from '../../services/auth-redirect.service'
+import { ViewportRuntimeService } from '../../services/context/viewport-runtime.service';
 
 @Component({
   selector: 'm-sso-page',
@@ -50,10 +51,11 @@ export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly router = inject(Router)
   private readonly typeGuards = inject(TypeGuardsService)
   private readonly fingerprintService = inject(FingerprintService)
-  private readonly authService = inject(AuthService)
+  private readonly authService = inject(AuthTransportService)
   private readonly sessionSync = inject(SessionSyncService)
   private readonly authState = inject(AuthStateStore)
   private readonly sidenavContext = inject(SidenavContextService)
+  private readonly viewportRuntime = inject(ViewportRuntimeService)
 
   private sub?: Subscription
   private resizeObs?: ResizeObserver
@@ -67,6 +69,8 @@ export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
     effect(() => {
       // riallinea lo spinner quando cambia la sidebar
       const _ = this.sidenavContext.isOpen()
+      this.viewportRuntime.width()
+      this.viewportRuntime.height()
       queueMicrotask(() => {
         this.updateSpinnerLeft()
         this.startSpinnerFollow()
@@ -114,7 +118,7 @@ export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
 
           this.authState.beginAuthentication('sso')
 
-          return this.authService.sso_authorizeFlow(fp_enc, di_enc, sso_pat, provider).pipe(
+          return this.authService.ssoAuthorizeFlow(fp_enc, di_enc, sso_pat, provider).pipe(
             catchError(() => {
               queueMicrotask(() => {
                 this.redirects.clear()
@@ -147,7 +151,6 @@ export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
   ngOnDestroy(): void {
     this.sub?.unsubscribe()
     this.resizeObs?.disconnect()
-    window.removeEventListener('resize', this.updateSpinnerLeft)
     this.stopSpinnerFollow()
   }
 
@@ -159,7 +162,6 @@ export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
     this.resizeObs?.disconnect()
     this.resizeObs = new ResizeObserver(() => this.updateSpinnerLeft())
     this.resizeObs.observe(host)
-    window.addEventListener('resize', this.updateSpinnerLeft)
     this.startSpinnerFollow()
   }
 
