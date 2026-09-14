@@ -1,18 +1,19 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { SkeletonComponent } from '../../common/skeleton/skeleton.component';
 
 @Component({
   selector: 'm-search-result-skeleton-loader',
-  imports: [],
+  imports: [SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
 
     <div class="space-y-3">
       @for (i of [0, 1, 2, 3, 4]; track i) {
-        <div class="flex items-center gap-3 p-3 rounded-lg animate-pulse bg-slate-200 my-1">
-          <div class="w-12 h-12 bg-slate-300 rounded-lg"></div>
+        <div class="flex items-center gap-3 p-3 rounded-lg my-1">
+          <m-skeleton shape="rect" width="3rem" height="3rem" />
           <div class="flex-1 min-w-0">
-            <div class="h-4 bg-slate-300 rounded w-2/3 mb-2"></div>
-            <div class="h-3 bg-slate-200 rounded w-1/2"></div>
+            <m-skeleton width="66.666667%" height="1rem" />
+            <m-skeleton width="50%" height=".75rem" />
           </div>
         </div>
         }

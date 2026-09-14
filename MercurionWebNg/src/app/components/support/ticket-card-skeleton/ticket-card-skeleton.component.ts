@@ -1,9 +1,10 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { NgClass } from '@angular/common';
+import { SkeletonComponent } from '../../common/skeleton/skeleton.component';
 
 @Component({
   selector: 'm-ticket-card-skeleton',
-  imports: [NgClass],
+  imports: [NgClass, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="relative">
@@ -32,28 +33,28 @@ import { NgClass } from '@angular/common';
         <div class="md:col-span-9 min-w-0 relative z-20">
           <!-- publicId + badge -->
           <div class="flex items-center gap-3">
-            <div class="h-5 w-16 rounded-full bg-slate-200 dark:bg-slate-700"></div>
-            <div class="h-5 w-20 rounded-full bg-slate-200 dark:bg-slate-700"></div>
+            <m-skeleton shape="rect" width="4rem" height="1.25rem" />
+            <m-skeleton shape="rect" width="5rem" height="1.25rem" />
           </div>
 
           <!-- subject -->
-          <div class="mt-2 h-6 md:h-7 w-3/4 rounded-md bg-slate-200 dark:bg-slate-700"></div>
+          <m-skeleton class="mt-2" width="75%" height="1.75rem" />
 
           <!-- meta line -->
           <div class="mt-2 flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-1 sm:gap-2">
-            <div class="h-3 w-40 rounded bg-slate-200 dark:bg-slate-700"></div>
-            <div class="h-3 w-2 rounded bg-slate-200 dark:bg-slate-700"></div>
-            <div class="h-3 w-28 rounded bg-slate-200 dark:bg-slate-700"></div>
+            <m-skeleton width="10rem" height=".75rem" />
+            <m-skeleton width=".5rem" height=".75rem" />
+            <m-skeleton width="7rem" height=".75rem" />
           </div>
 
           <!-- optional extra line for support -->
-          <div class="mt-1 h-3 w-52 rounded bg-slate-200 dark:bg-slate-700"></div>
+          <m-skeleton class="mt-1" width="13rem" height=".75rem" />
         </div>
 
         <!-- COLONNA DESTRA -->
         <div class="md:col-span-3 flex md:justify-end items-center gap-2 relative z-30">
-          <div class="h-7 w-16 rounded-md bg-slate-200 dark:bg-slate-700"></div>
-          <div class="h-7 w-16 rounded-md bg-slate-200 dark:bg-slate-700"></div>
+          <m-skeleton shape="rect" width="4rem" height="1.75rem" />
+          <m-skeleton shape="rect" width="4rem" height="1.75rem" />
         </div>
       </div>
     </div>
