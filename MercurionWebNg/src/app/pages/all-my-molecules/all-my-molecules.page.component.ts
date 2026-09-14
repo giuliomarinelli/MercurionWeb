@@ -131,7 +131,7 @@ export class AllMyMoleculesPageComponent extends AbstractPaginationComponent<Mol
       const docEl = document.documentElement ?? document.body;
       if (!docEl) return;
 
-      const viewportHeight = window.innerHeight || docEl.clientHeight;
+      const viewportHeight = this.viewportRuntime.height() || docEl.clientHeight;
       const contentHeight = Math.max(docEl.scrollHeight, document.body?.scrollHeight ?? 0);
       if (contentHeight <= viewportHeight + 1) {
         this.loadMore();

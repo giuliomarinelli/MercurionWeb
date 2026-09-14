@@ -21,6 +21,7 @@ import { AuthStateStore } from '../../services/auth-state.store'
 import { AuthSessionPersistenceService } from '../../services/auth-session-persistence.service'
 import { SidenavContextService } from '../../services/context/sidenav-context.service';
 import { AuthRedirectService } from '../../services/auth-redirect.service'
+import { ViewportRuntimeService } from '../../services/context/viewport-runtime.service';
 
 @Component({
   selector: 'm-sso-page',
@@ -54,6 +55,7 @@ export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly sessionSync = inject(SessionSyncService)
   private readonly authState = inject(AuthStateStore)
   private readonly sidenavContext = inject(SidenavContextService)
+  private readonly viewportRuntime = inject(ViewportRuntimeService)
 
   private sub?: Subscription
   private resizeObs?: ResizeObserver
@@ -67,6 +69,8 @@ export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
     effect(() => {
       // riallinea lo spinner quando cambia la sidebar
       const _ = this.sidenavContext.isOpen()
+      this.viewportRuntime.width()
+      this.viewportRuntime.height()
       queueMicrotask(() => {
         this.updateSpinnerLeft()
         this.startSpinnerFollow()
@@ -147,7 +151,6 @@ export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
   ngOnDestroy(): void {
     this.sub?.unsubscribe()
     this.resizeObs?.disconnect()
-    window.removeEventListener('resize', this.updateSpinnerLeft)
     this.stopSpinnerFollow()
   }
 
@@ -159,7 +162,6 @@ export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
     this.resizeObs?.disconnect()
     this.resizeObs = new ResizeObserver(() => this.updateSpinnerLeft())
     this.resizeObs.observe(host)
-    window.addEventListener('resize', this.updateSpinnerLeft)
     this.startSpinnerFollow()
   }
 

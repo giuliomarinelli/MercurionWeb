@@ -169,6 +169,10 @@ Rules:
 5. At most one terminal-state checkbox may be checked. All four unchecked means `PENDING`.
 6. `CI_PENDING` is transient coordinator state and is never represented by checking an additional box.
 7. The runner must never synthesize a missing task recipe from the series during execution.
+8. `docs/autonomous-development/task/` is the executable queue. Reserved task
+   numbers may be absent or archived under `deferred-task/`; the runner skips
+   such numeric gaps and continues with the next planner-produced recipe.
+   Missing targets of explicit hard dependencies remain configuration errors.
 
 ### Task outcome semantics
 
@@ -627,7 +631,9 @@ lexicographically earliest `READY` recipe by four-digit prefix that is not in a
 session-local capability or branch-collision exclusion set. A pending/active
 prerequisite produces transient `WAITING_DEPENDENCY`; a terminal non-`DONE`
 prerequisite enters the next batched `SKIPPED_DEPENDENCY` closure. Advisory
-references do not constrain readiness and never create dependency cycles. If
+references never block selection. Numeric continuity is not a scheduling
+invariant: absent or deferred recipe identities are skipped without failure.
+Advisory references do not constrain readiness and never create dependency cycles. If
 pending recipes remain but none is currently runnable, the coordinator remains
 active in `SESSION_RECOVERY_PENDING`, periodically rebuilds the planner and
 rechecks exclusions until work is safe or the soft deadline arrives.

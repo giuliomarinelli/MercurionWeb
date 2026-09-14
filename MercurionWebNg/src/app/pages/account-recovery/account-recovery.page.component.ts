@@ -12,7 +12,7 @@ import { environment } from '../../../environments/environment';
 import { emailAvailabilityValidator, matchPassword } from '../../custom-validators';
 import { AuthTransportService } from '../../services/auth-transport.service';
 import { Router, RouterLink } from '@angular/router';
-import { HttpErrorResponse } from '@angular/common/http';
+import { adaptHttpFormError, type FormErrorState } from '../../utils/form-error.adapter'
 
 @Component({
   selector: 'm-account-recovery.page',
@@ -252,9 +252,9 @@ export class AccountRecoveryPageComponent implements OnInit, OnDestroy {
     return this.themeManager.theme() === 'light' ? PICTOGRAM_LIGHT : PICTOGRAM_DARK
   })
 
-  serverErrorStep = signal<{ code: number, step: 0 | 1 | 2 | 3 }>({
-    code: 0,
-    step: 0
+  serverErrorStep = signal<{ step: 0 | 1 | 2 | 3, error: FormErrorState }>({
+    step: 0,
+    error: { fieldErrors: {}, globalError: null }
   })
 
   turnstileToken = signal<string>('')
@@ -280,13 +280,13 @@ export class AccountRecoveryPageComponent implements OnInit, OnDestroy {
     this.codeCtrlSub = this.codeCtrl.valueChanges.pipe(
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(() => {
-      this.serverErrorStep.set({ code: 0, step: 0 })
+      this.resetServerError()
       this.codeCtrl.updateValueAndValidity()
     })
     this.recoveryGroupSub = this.recoveryGroup.valueChanges.pipe(
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(() => {
-      this.serverErrorStep.set({ code: 0, step: 0 })
+      this.resetServerError()
       this.recoveryGroup.updateValueAndValidity()
     })
     const passwordCtrl = this.recoveryGroup.get('password')
@@ -325,7 +325,10 @@ export class AccountRecoveryPageComponent implements OnInit, OnDestroy {
           this.resetServerError()
           this.step.set(2)
         },
-        error: (e: HttpErrorResponse) => this.serverErrorStep.set({ step: 1, code: e.status })
+        error: e => this.serverErrorStep.set({
+          step: 1,
+          error: adaptHttpFormError(e, { ACCOUNT_RECOVERY_CODE_INVALID: { code: 'code' } })
+        })
       })
     }
   }
@@ -352,7 +355,10 @@ export class AccountRecoveryPageComponent implements OnInit, OnDestroy {
           this.resetServerError()
           this.step.set(3)
         },
-        error: (e: HttpErrorResponse) => this.serverErrorStep.set({ step: 2, code: e.status })
+        error: e => this.serverErrorStep.set({
+          step: 2,
+          error: adaptHttpFormError(e, { PASSWORD_CHANGE_CREDENTIALS_INVALID: { email: 'email' } })
+        })
       })
     }
   }
@@ -365,33 +371,8 @@ export class AccountRecoveryPageComponent implements OnInit, OnDestroy {
     this.loadingTurnstile.set(false)
   }
 
-  computeServerErrorMsg(input: { code: number, step: 0 | 1 | 2 | 3 }): string | null | never {
-    if (input.step === 0 || input.code === 0) {
-      return null
-    }
-    switch (input.step) {
-      case 1:
-        switch (input.code) {
-          case 401:
-            return 'Il codice è errato.'
-          case 429:
-            return 'Troppi tentativi, riprova in seguito.'
-          default:
-            return 'Si è verificato un errore imprevisto.'
-        }
-      case 2:
-        switch (input.code) {
-          case 401:
-          case 403:
-            this.router.navigateByUrl('/403-forbidden')
-            break
-          case 429:
-            return 'Troppi tentativi, riprova in seguito.'
-          default:
-            return 'Si è verificato un errore imprevisto.'
-        }
-    }
-    return 'Si è verificato un errore imprevisto.'
+  computeServerErrorMsg(input: { step: 0 | 1 | 2 | 3, error: FormErrorState }): string | null {
+    return input.step === 0 ? null : input.error.globalError
   }
 
   private resetTurnstileWidget(): void {
@@ -406,8 +387,8 @@ export class AccountRecoveryPageComponent implements OnInit, OnDestroy {
 
   private resetServerError(): void {
     this.serverErrorStep.set({
-      code: 0,
-      step: 0
+      step: 0,
+      error: { fieldErrors: {}, globalError: null }
     })
   }
 

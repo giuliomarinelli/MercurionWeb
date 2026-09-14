@@ -88,116 +88,55 @@ When practical, share layout tokens/dimensions with the final component rather t
 
 ## Execution notes
 
-### Current execution (2026-09-14, feature/UI-013)
-
-#### Feature branch and base
-
-- Branch: `feature/UI-013`
-- Base SHA: `aedf254eb08b8f76660024f27d6550a78cc5b8d4`
-- Exact base CI: GitHub Actions CI run `34785165988` for that SHA completed
-  successfully; the run included successful validation classification and the
-  stable required gate (the preceding exact-SHA run `34783347833` was also
-  successful).
-- Unchanged preflight: clean branch, `git diff --check`, local
-  `commit.gpgSign=false`, and no task-owned runtime remained after the
-  capability probe.
-
-#### Implementation
-
-- Added `m-progress-indicator`, with `sm`/`md`/`lg` sizes, numeric-size
-  compatibility for existing callers, status/`aria-busy` semantics, labels,
-  optional overlay, and reduced-motion behavior.
-- Added canonical `m-skeleton` text/rect/circle primitives with deterministic
-  dimensions and `prefers-reduced-motion` handling.
-- Migrated existing spinner consumers and page-state loading to the canonical
-  progress indicator.
-- Recomposed collection, molecule, search-result, and support-ticket skeletons
-  from the canonical primitive; removed the classic and chemistry spinner
-  implementations and their obsolete tests.
-
-#### Focused validation
-
-- Focused Angular loading component tests: **13 passed**.
-- `npm run typecheck --workspace mercurion_web_ng`: **passed**.
-- `npm run lint:angular --workspace mercurion_web_ng -- --no-warn-ignored`:
-  **passed**.
-- `npm run build --workspace mercurion_web_ng`: **passed** (existing initial
-  bundle budget warning only).
-- Static search found no remaining classic/chemistry spinner references.
-- No `npm ci` or `npm run ci:check` was run locally.
-
-#### Browser/runtime evidence
-
-- Followed `RUNTIME.md` startup order with separate live sessions:
-  Tox21 (`tox-ui013-final`), Nest (`nest-ui013-final`), Angular
-  (`angular-ui013-final`); the readiness barrier produced two consecutive
-  `health=200`, `angular=200` rounds after upstream compilation.
-- Through `http://localhost:8888/molecules/detail/1`, desktop and emulated
-  390x844 dark-mode snapshots showed the molecule loading region with two
-  accessible busy status indicators and stable loading labels.
-- Protected collection navigation was attempted through the canonical origin
-  but remained busy without a completed login; no credentials were recorded or
-  exposed. No dummy-auth route was used.
-- Browser console error inspection returned no console errors.
-- All task-owned runtime sessions were stopped and process inventory confirmed
-  no Tox21/Nest/Angular watcher remained.
-
-#### Commit
-
-`90fc8eaa9c06adad01b12db3fa5d21817457221f` — committed with
-`--no-gpg-sign` and the required Copilot co-author trailer, then pushed as
-`feature/UI-013`.
-
-#### Terminal blocker
-
-The implementation and focused local gates passed, but the declared browser
-acceptance could not be completed: the unauthenticated canonical-origin
-collection route remained in a busy navigation state, and the search overlay
-could not be opened by the browser lease. The protected-state login was not
-attempted because credential values must not be exposed to shell/tool output.
-Molecule loading evidence was captured in desktop and emulated mobile/dark
-mode, but collection/search loading evidence and reduced-motion emulation were
-not fully obtained. The branch is preserved with coherent implementation work
-for an authorized follow-up.
-
-> Current status (2026-09-11): PENDING by direct owner instruction because this
-> activity was not completed. Historical attempt/skip evidence remains below
-> for traceability and is not a terminal outcome.
+> Current status (2026-09-13): BLOCKED during the v8 autonomous session after
+> implementation. The canonical loading system was implemented, but required
+> collection/search browser evidence could not be completed safely.
 
 ### Feature branch
-No task branch or worker was created because hard prerequisite
-`0070-create-the-canonical-page-and-section-state-primitive.md` (`UI-012`) is
-`SKIPPED_DEPENDENCY`.
+`feature/UI-013` is preserved and frozen at
+`48376f001399d350bba3c557bf1314ab81ec9ac7`, with the same SHA on origin.
 
 ### Preflight
-Not applicable; the task was skipped before implementation.
+Exact base-SHA full CI run `34785165988` succeeded, including both platform
+quality jobs and `Required gate`. The task worker completed the required
+Tox21 -> Nest -> Angular startup order, two readiness rounds, and stopped all
+task-owned processes before handoff.
 
 ### Preflight remediation
 _None._
 
 ### Summary
-Skipped at the normal filename-order selection point. `UI-012` is terminal
-`SKIPPED_DEPENDENCY`, with direct blocked root cause
-`0052-standardize-modern-angular-component-apis.md` (`FE-030`).
+Implemented the canonical progress-indicator and skeleton primitives, migrated
+loading consumers, removed superseded spinner implementations, and passed
+focused Angular tests, typecheck, lint, and build. The task is blocked because
+the protected collection route remained in a busy navigation state and the
+search overlay could not be opened through the browser lease, leaving required
+collection/search loading and reduced-motion evidence incomplete.
 
 ### Task-specific validation performed
-No implementation or validation was performed.
+13 focused Angular loading tests passed; Angular typecheck, lint, and build
+passed. Static search found no remaining classic/chemistry spinner references.
 
 ### Full pre-merge CI-parity validation
-Not applicable; no feature branch was created.
+Not applicable; the task was blocked before integration. Exact feature-SHA CI
+was therefore not requested.
 
 ### Browser validation performed
-Not applicable; the task was skipped before implementation.
+Molecule loading state was verified at desktop and emulated mobile/dark mode,
+with accessible busy indicators and no browser console errors. Collection and
+search loading evidence, including reduced-motion emulation, was incomplete.
 
 ### Commits
-Only this task metadata was updated on `develop`.
+Implementation and blocker commits are preserved on `feature/UI-013`; the
+blocked outcome is recorded here on `develop`.
 
 ### Merge / CI
-No feature merge; skip metadata CI is required before continuing.
+No feature merge. This metadata-only status commit requires exact CI before
+continuing.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-No implementation blocker. Re-enable only after the dependency chain through
-FE-030 is deliberately resolved in a new authorized session.
+Complete collection/search loading-state browser validation through the
+canonical edge in a new authorized session before re-enabling this task.

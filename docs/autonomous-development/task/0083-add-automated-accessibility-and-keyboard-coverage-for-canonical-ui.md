@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -146,3 +146,8 @@ test-safe local Nest runtime for mandatory browser validation).
 ### Dependency skip
 
 Direct terminal prerequisite: 0077 (), terminal non-DONE dependency.
+
+### Dependency skip
+
+Direct terminal prerequisite: `0082` (`UI-024`), `SKIPPED_DEPENDENCY`, with
+terminal root `0078` (`UI-020`), `BLOCKED`. Materialized on 2026-09-13.

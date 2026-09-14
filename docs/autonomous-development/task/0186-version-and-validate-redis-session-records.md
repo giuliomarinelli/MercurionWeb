@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Give every persisted Redis session record an explicit schema version and validated codec with a rolling-deploy compatibility policy so old/new application versions can coexist safely and malformed session data is rejected/cleaned observably rather than silently defaulted.
@@ -96,8 +96,7 @@ _Not started._
 ### Preflight remediation
 _None._
 ### Summary
-Skipped transitively because hard prerequisite task 0179 is
-SKIPPED_DEPENDENCY due to terminal BLOCKED task 0136 (BE-022).
+Skipped because the resolved dependency closure contains terminal prerequisite 0136 (BE-022), which is BLOCKED. Resolved hard dependencies for this recipe: 0179. This task was never attempted and receives no feature branch.
 ### Task-specific validation performed
 _Not started._
 ### Full pre-merge CI-parity validation
@@ -105,10 +104,10 @@ _Not started._
 ### Browser validation performed
 _Not started._
 ### Commits
-Metadata-only dependency skip; recorded with the aggregate skip update.
+Aggregate dependency-skip metadata commit on develop.
 ### Merge / CI
-_Not started._
+Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-_None._
+Terminal dependency root: 0136 (BE-022). No feature branch or worker was created for this task.

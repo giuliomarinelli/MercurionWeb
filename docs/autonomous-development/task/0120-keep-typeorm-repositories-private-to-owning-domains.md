@@ -1,6 +1,6 @@
 # 0120 - Keep TypeORM repositories private to their owning domains
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -166,3 +166,61 @@ The decision must state how owner-provided capabilities participate in one
 transaction without exposing TypeORM repositories or `EntityManager`. Until
 that contract exists, repository privacy cannot be completed while preserving
 the current transaction and rollback boundaries.
+
+### Authorized recovery resume
+- Recovery authorization matched task `0120`, Source `BE-006`, branch
+  `feature/BE-006`, and preserved SHA
+  `bf147e2382fb0caea81412d89f4630fc4bda2cff`.
+- Merged current green `develop` SHA
+  `fcc69bb2bc38331e20708e99ee9a8aa423929b1a` into the preserved branch with
+  `git merge --no-ff --no-gpg-sign`; merge commit:
+  `7cf8e91d19f32fb65ba32b7420739f8a38757463`.
+- Rechecked the stop condition after the merge. DATA task `0152`
+  (`DATA-003`) remains pending with no implemented Unit of Work contract;
+  its recipe explicitly defines the future transaction context and is not
+  available as an existing contract. Current code still has cross-domain
+  atomic workflows using direct `DataSource.manager.transaction(...)`,
+  including User + MoleculeCollection onboarding, SSO onboarding, and
+  MoleculeCollection + History writes. Passing `EntityManager` or a
+  transaction context through new public domain capabilities would invent the
+  deferred DATA design, while ordinary owner APIs would split rollback
+  boundaries.
+- Focused post-recovery checks passed:
+  `npm run ci:nest:architecture` (24 production modules, 10 configuration
+  files, cycle/provider-ownership/test-route gates passed) and
+  `npm run typecheck --workspace mercurion_web_node` (`tsc --noEmit`).
+- No production implementation was changed. The pre-existing untracked
+  `MercurionWebNode/test-results/` and `reports/` paths were preserved and not
+  staged. `npm ci` and `npm run ci:check` were not run, per policy; browser
+  validation is not applicable.
+- Recovery result remains `BLOCKED` under the recipe stop condition. The
+  precise human decision is still the DATA-series canonical transaction owner
+  and public Unit of Work contract for the listed atomic workflows.
+
+### Direct-human recovery completion (2026-09-14)
+
+- Direct human authority selected an application-use-case-owned transaction,
+  explicit opaque `TransactionContext`, mandatory context reuse, and TypeORM
+  manager/repository access restricted to infrastructure and domain owners.
+- Merged current exact-green `develop` SHA
+  `51360f58515f6768d3e8f15ba70af8a567014df6` into the preserved branch with
+  `--no-ff --no-gpg-sign`; recovery merge `8bf5f812f03969b5716555776896cd433ab7f5ea`.
+- Added the minimal TypeORM-backed `UnitOfWork`/opaque context boundary and
+  moved initial workspace persistence behind the MoleculeCollection-owned
+  `InitialWorkspaceService`. Account activation and SSO onboarding now reuse
+  the same context without importing MoleculeCollection persistence entities.
+- Replaced Help's foreign User repository with the User-owned full-name query,
+  moved local fixture persistence behind `UserService`, and moved backup-code
+  repository access behind the User-owned `MfaBackupCodeStore`.
+- Removed every public `TypeOrmModule` export. Added a static repository-boundary
+  gate and negative fixture rejecting both TypeORM module exports and foreign
+  `@InjectRepository` dependencies.
+- Focused validation passed:
+  - `npm run typecheck --workspace mercurion_web_node`;
+  - `npm run lint --workspace mercurion_web_node`;
+  - `npm run build --workspace mercurion_web_node`;
+  - `npm run ci:nest:architecture`, including the new positive/negative gate;
+  - eight focused Jest suites, 17 tests, covering UnitOfWork lifecycle,
+    workspace ownership, Account, SSO, Help, MFA, local fixture and User.
+- Browser validation remains not applicable. Exact feature-SHA and merge-SHA
+  GitHub Actions gates remain required before this `DONE` state is final.

@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { DataSource, In, Repository } from 'typeorm'
+import { DataSource, Repository } from 'typeorm'
 import { uuidv7 } from '@kripod/uuidv7'
 import { randomBytes, UUID } from 'crypto'
 
@@ -15,7 +15,7 @@ import { GraphQLFieldsMap, TypeOrmUtils } from 'src/utils/type-orm-utils/type-or
 import { TicketDetailDTO } from '../Models/DTO/ticket-detail.dto'
 import { JsonValue } from 'src/Models/json.types'
 import { TypeGuards } from 'src/utils/type-guards/type-guards'
-import { User } from 'src/app_modules/user/Models/entities/user.entity'
+import { UserService } from 'src/app_modules/user/services/user.service'
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 
 @Injectable()
@@ -34,8 +34,7 @@ export class HelpService {
     private readonly ticketRepo: Repository<Ticket>,
     @InjectRepository(TicketMessage)
     private readonly msgRepo: Repository<TicketMessage>,
-    @InjectRepository(User)
-    private readonly userRepo: Repository<User>,
+    private readonly users: UserService,
     private readonly mailer: MailSenderService,
   ) { }
 
@@ -443,17 +442,7 @@ export class HelpService {
 
     if (!ids.length) return
 
-    const users = await this.userRepo.find({
-      where: { id: In(ids) },
-      select: ['id', 'firstName', 'lastName']
-    })
-
-    const map = new Map<string, string>(
-      users.map(u => [
-        String(u.id),
-        `${u.firstName} ${u.lastName}`.trim()
-      ])
-    )
+    const map = await this.users.getUserFullNames(ids)
 
     for (const t of tickets) {
       if (!t.userId) continue
@@ -474,17 +463,7 @@ export class HelpService {
 
     if (!ids.length) return
 
-    const users = await this.userRepo.find({
-      where: { id: In(ids) },
-      select: ['id', 'firstName', 'lastName']
-    })
-
-    const map = new Map<string, string>(
-      users.map(u => [
-        String(u.id),
-        `${u.firstName} ${u.lastName}`.trim()
-      ])
-    )
+    const map = await this.users.getUserFullNames(ids)
 
     for (const m of messages) {
       if (opts.user && m.userId) {

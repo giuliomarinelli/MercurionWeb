@@ -18,6 +18,7 @@ import { ScrollContextService } from '../../services/context/scroll-context.serv
 import { PmOption } from '../../Models/pm-option.model';
 import { RouterLink } from '@angular/router';
 import { TurnstileComponent } from '../../components/common/turnstile/turnstile.component';
+import { adaptHttpFormError, type FormErrorState } from '../../utils/form-error.adapter'
 
 
 @Component({
@@ -101,12 +102,7 @@ import { TurnstileComponent } from '../../components/common/turnstile/turnstile.
             <m-select label="Genere *"
               [options]="options"
               formControlName="gender"
-              [darkFocusClassList]="[
-                'dark:focus:ring-dark-accent-primary',
-                'dark:focus:border-dark-accent-primary',
-                'dark:focus-visible:outline-dark-accent-primary',
-                'dark:focus-visible:outline-dark-accent-primary'
-              ]">
+              tone="highContrast">
             </m-select>
             <div class="tflex justify-center mx-auto max-w-[500px] text-sm text-light-error dark:text-dark-error mt-1 min-h-5 mb-8">
               @if (form.controls['gender'].touched && form.controls['gender'].invalid) {
@@ -244,6 +240,7 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
   step = signal<1 | 2>(1)
   loading = signal<boolean>(false)
   obscuredEmail = signal<string>('')
+  serverError = signal<FormErrorState<'email'>>({ fieldErrors: {}, globalError: null })
   settedDisabledBtn = signal<boolean>(false)
   logoSrc = computed(() => {
     const { PICTOGRAM_LIGHT, PICTOGRAM_DARK } = environment.logoSrc
@@ -328,8 +325,20 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
             this.scrollContext.smoothToTop(undefined, 240)
           })
         },
-        error: () => {
-          this.toast.trigger('Si è verificato un errore lato server.', 'error', 3000)
+        error: error => {
+          const formError = adaptHttpFormError(error, {
+            USER_REGISTRATION_EMAIL_CONFLICT: { email: 'email' }
+          })
+          this.serverError.set(formError)
+          if (formError.fieldErrors.email) {
+            this.form.controls.email.setErrors({
+              ...this.form.controls.email.errors,
+              server: formError.fieldErrors.email
+            })
+            this.form.controls.email.markAsTouched()
+          } else if (formError.globalError) {
+            this.toast.trigger(formError.globalError, 'error', 3000)
+          }
           this.turnstileComponent()?.reset()
           this.turnstileToken.set('')
           this.loadingTurnstile.set(true)
@@ -363,6 +372,7 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
     this.form.valueChanges.pipe(
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(() => {
+      this.serverError.set({ fieldErrors: {}, globalError: null })
       if (this.settedDisabledBtn()) {
         this.settedDisabledBtn.set(false)
       }

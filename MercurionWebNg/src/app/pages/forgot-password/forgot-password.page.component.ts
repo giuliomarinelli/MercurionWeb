@@ -6,7 +6,7 @@ import { AccountService } from '../../services/account.service';
 import { Subscription } from 'rxjs';
 import { TurnstileComponent } from '../../components/common/turnstile/turnstile.component';
 import { ProgressIndicatorComponent } from '../../components/common/progress-indicator/progress-indicator.component';
-import { HttpErrorResponse } from '@angular/common/http';
+import { adaptHttpFormError } from '../../utils/form-error.adapter'
 
 @Component({
   selector: 'm-forgot-password',
@@ -138,10 +138,8 @@ export class ForgotPasswordPageComponent implements OnInit, OnDestroy {
             this.step_12_loading.set(false)
             this.obscuredEmail.set(obscuredEmail!)
           },
-          error: (e: HttpErrorResponse) => {
-            if ('status' in e && 'error' in e && e.status === 429) {
-              this.errMsg.set('Troppi tentativi, riprova tra qualche minuto.')
-            }
+          error: e => {
+            this.errMsg.set(adaptHttpFormError(e).globalError ?? 'Si è verificato un errore.')
             this.serverError.set(true)
             this.step_12_loading.set(false)
           }

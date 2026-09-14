@@ -568,9 +568,9 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                           label="Prefisso internazionale"
                           formControlName="prefix"
                           [options]="computePrefixValues()"
-                          [containerClass]="'flex-none w-full'"
+                          layout="fullWidth"
                           [maxHeight]="200"
-                          darkTextClass="dark:text-dark-accent-secondary-hc" />
+                          tone="highContrast" />
                       <m-text-field
                         class="w-full max-w-md relative top-7"
                         label="Nuovo numero"

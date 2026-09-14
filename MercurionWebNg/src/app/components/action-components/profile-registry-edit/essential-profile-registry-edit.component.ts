@@ -100,7 +100,7 @@ type RegistryFormValue = {
                 label="Genere *"
                 [options]="options"
                 formControlName="gender"
-                darkTextClass="dark:text-dark-accent-secondary-hc"
+                tone="highContrast"
               />
 
               <m-text-field
