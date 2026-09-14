@@ -20,6 +20,7 @@ import { SessionSyncService } from '../../services/session-sync.service';
 import { SidenavContextService } from '../../services/context/sidenav-context.service';
 import { UserContextService } from '../../services/context/user-context.service';
 import { DomainInvalidationService } from '../../services/domain-invalidation.service';
+import { ViewportRuntimeService } from '../../services/context/viewport-runtime.service';
 import { IconButtonComponent } from '../../components/common/icon-button/icon-button.component';
 import { ButtonComponent } from '../../components/common/button/button.component';
 
@@ -610,6 +611,7 @@ import { ButtonComponent } from '../../components/common/button/button.component
   `
 })
 export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
+  private readonly viewportRuntime = inject(ViewportRuntimeService)
 
   private readonly accountService = inject(AccountService)
   private readonly toast = inject(ToastService)
@@ -635,7 +637,6 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
 
   scrollRootRef!: ElementRef<HTMLElement>
   private resizeObs?: ResizeObserver
-  private spinnerTrackingAttached = false
   private spinnerFollowRaf?: number
 
   profileFetchError = signal<boolean>(false)
@@ -697,6 +698,8 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
     effect(() => {
       // riallinea lo spinner quando cambia sidebar o stato di loading
       const _ = this.sidenavContext.isOpen()
+      this.viewportRuntime.width()
+      this.viewportRuntime.height()
       this.loading()
       queueMicrotask(() => {
         this.attachSpinnerTracking()
@@ -731,9 +734,6 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
     this.fragmentSub?.unsubscribe()
     this.provSub?.unsubscribe()
     this.resizeObs?.disconnect()
-    if (this.spinnerTrackingAttached) {
-      window.removeEventListener('resize', this.updateSpinnerLeft)
-    }
     this.stopSpinnerFollow()
   }
 
@@ -746,10 +746,6 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
     this.resizeObs = new ResizeObserver(() => this.updateSpinnerLeft())
     this.resizeObs.observe(host)
 
-    if (!this.spinnerTrackingAttached) {
-      window.addEventListener('resize', this.updateSpinnerLeft)
-      this.spinnerTrackingAttached = true
-    }
     this.startSpinnerFollow()
   }
 

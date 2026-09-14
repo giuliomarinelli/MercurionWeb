@@ -14,6 +14,7 @@ import { SidenavContextService } from '../../services/context/sidenav-context.se
 import { DashboardChartsWidgetComponent } from './dashboard/dashboard-charts-widget.component';
 import { DashboardFacade } from './dashboard/dashboard.facade';
 import { DashboardMetricsWidgetComponent } from './dashboard/dashboard-metrics-widget.component';
+import { ViewportRuntimeService } from '../../services/context/viewport-runtime.service';
 
 @Component({
   selector: 'm-dashboard',
@@ -66,6 +67,7 @@ import { DashboardMetricsWidgetComponent } from './dashboard/dashboard-metrics-w
 export class DashboardPageComponent implements AfterViewInit, OnDestroy {
   readonly facade = inject(DashboardFacade);
   private readonly sidenavContext = inject(SidenavContextService);
+  private readonly viewportRuntime = inject(ViewportRuntimeService);
   readonly mainHost = viewChild<ElementRef<HTMLElement>>('mainHost');
   readonly spinnerLeft = signal(0);
   private resizeObserver?: ResizeObserver;
@@ -73,6 +75,8 @@ export class DashboardPageComponent implements AfterViewInit, OnDestroy {
   constructor() {
     effect(() => {
       this.sidenavContext.isOpen();
+      this.viewportRuntime.width();
+      this.viewportRuntime.height();
       queueMicrotask(() => {
         this.updateSpinnerLeft();
       });
@@ -86,12 +90,10 @@ export class DashboardPageComponent implements AfterViewInit, OnDestroy {
       this.resizeObserver = new ResizeObserver(() => this.updateSpinnerLeft());
       this.resizeObserver.observe(host);
     }
-    window.addEventListener('resize', this.updateSpinnerLeft);
   }
 
   ngOnDestroy(): void {
     this.resizeObserver?.disconnect();
-    window.removeEventListener('resize', this.updateSpinnerLeft);
   }
 
   private updateSpinnerLeft = (): void => {
