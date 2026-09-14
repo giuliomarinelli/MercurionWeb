@@ -153,7 +153,8 @@ Quill, chart, dashboard, or action implementation request. Public molecule
 detail evidence showed lazy molecule-detail, RDKit, and WASM requests after
 entering the feature boundary.
 ### Commits
-Pending task commit.
+`412db356849170d345731c7881a4de88df0196d7` —
+`perf(angular): enforce lazy heavy feature bundles`.
 ### Merge / CI
 _Not started._
 ### Rollback
