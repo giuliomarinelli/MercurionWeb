@@ -13,6 +13,7 @@ describe('CollectionCardComponent', () => {
     .compileComponents();
 
     fixture = TestBed.createComponent(CollectionCardComponent);
+    fixture.componentRef.setInput('collection', { id: 'collection-1' } as never);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

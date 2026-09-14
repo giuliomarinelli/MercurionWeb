@@ -1,9 +1,9 @@
 # 0071 - Consolidate progress indicators and skeletons
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -88,40 +88,55 @@ When practical, share layout tokens/dimensions with the final component rather t
 
 ## Execution notes
 
+> Current status (2026-09-13): BLOCKED during the v8 autonomous session after
+> implementation. The canonical loading system was implemented, but required
+> collection/search browser evidence could not be completed safely.
+
 ### Feature branch
-No task branch or worker was created because hard prerequisite
-`0070-create-the-canonical-page-and-section-state-primitive.md` (`UI-012`) is
-`SKIPPED_DEPENDENCY`.
+`feature/UI-013` is preserved and frozen at
+`48376f001399d350bba3c557bf1314ab81ec9ac7`, with the same SHA on origin.
 
 ### Preflight
-Not applicable; the task was skipped before implementation.
+Exact base-SHA full CI run `34785165988` succeeded, including both platform
+quality jobs and `Required gate`. The task worker completed the required
+Tox21 -> Nest -> Angular startup order, two readiness rounds, and stopped all
+task-owned processes before handoff.
 
 ### Preflight remediation
 _None._
 
 ### Summary
-Skipped at the normal filename-order selection point. `UI-012` is terminal
-`SKIPPED_DEPENDENCY`, with direct blocked root cause
-`0052-standardize-modern-angular-component-apis.md` (`FE-030`).
+Implemented the canonical progress-indicator and skeleton primitives, migrated
+loading consumers, removed superseded spinner implementations, and passed
+focused Angular tests, typecheck, lint, and build. The task is blocked because
+the protected collection route remained in a busy navigation state and the
+search overlay could not be opened through the browser lease, leaving required
+collection/search loading and reduced-motion evidence incomplete.
 
 ### Task-specific validation performed
-No implementation or validation was performed.
+13 focused Angular loading tests passed; Angular typecheck, lint, and build
+passed. Static search found no remaining classic/chemistry spinner references.
 
 ### Full pre-merge CI-parity validation
-Not applicable; no feature branch was created.
+Not applicable; the task was blocked before integration. Exact feature-SHA CI
+was therefore not requested.
 
 ### Browser validation performed
-Not applicable; the task was skipped before implementation.
+Molecule loading state was verified at desktop and emulated mobile/dark mode,
+with accessible busy indicators and no browser console errors. Collection and
+search loading evidence, including reduced-motion emulation, was incomplete.
 
 ### Commits
-Only this task metadata was updated on `develop`.
+Implementation and blocker commits are preserved on `feature/UI-013`; the
+blocked outcome is recorded here on `develop`.
 
 ### Merge / CI
-No feature merge; skip metadata CI is required before continuing.
+No feature merge. This metadata-only status commit requires exact CI before
+continuing.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-No implementation blocker. Re-enable only after the dependency chain through
-FE-030 is deliberately resolved in a new authorized session.
+Complete collection/search loading-state browser validation through the
+canonical edge in a new authorized session before re-enabling this task.

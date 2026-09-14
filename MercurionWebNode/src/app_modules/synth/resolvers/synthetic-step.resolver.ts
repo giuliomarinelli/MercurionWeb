@@ -44,6 +44,7 @@ export class SyntheticStepResolver {
         @AuthenticatedUserId() userId: UUID,
         @Args('input') input: SynthStepInput
     ) {
+        this.ensureUuid(input.synthId, 'synthId')
         return this.service.create(userId, input)
     }
 
@@ -55,6 +56,7 @@ export class SyntheticStepResolver {
         @Info() info: GraphQLResolveInfo
     ) {
         this.ensureUuid(id, 'id')
+        this.ensureUuid(input.synthId, 'synthId')
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         return this.service.update(userId, id, input, fieldsMap)
     }

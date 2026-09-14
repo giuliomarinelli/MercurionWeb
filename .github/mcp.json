@@ -2,12 +2,15 @@
   "mcpServers": {
     "chrome-devtools": {
       "type": "local",
-      "command": "npx",
+      "command": "pwsh",
       "args": [
-        "-y",
-        "chrome-devtools-mcp@1.8.0",
-        "--headless",
-        "--isolated"
+        "-NoLogo",
+        "-NoProfile",
+        "-NonInteractive",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        ".github/scripts/start-chrome-devtools-mcp.ps1"
       ]
     }
   }

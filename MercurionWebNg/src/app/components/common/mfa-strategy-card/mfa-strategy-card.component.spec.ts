@@ -13,6 +13,8 @@ describe('MfaStrategyCardComponent', () => {
     .compileComponents();
 
     fixture = TestBed.createComponent(MfaStrategyCardComponent);
+    fixture.componentRef.setInput('strategy', { strategy: 'EMAIL_OTP', enabled: true } as never);
+    fixture.componentRef.setInput('activeStrategies', []);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

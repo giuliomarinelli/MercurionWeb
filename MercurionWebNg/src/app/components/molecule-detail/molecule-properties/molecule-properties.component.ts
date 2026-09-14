@@ -1,4 +1,22 @@
-import { Component, ChangeDetectionStrategy, Input, computed, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, effect, input, computed, signal } from '@angular/core';
+
+type MoleculeProperties = {
+  mwFreebase: number | string | null
+  alogp: number | string | null
+  hba: number | string | null
+  hbd: number | string | null
+  psa: number | string | null
+  rtb: number | string | null
+}
+
+const EMPTY_MOLECULE_PROPERTIES: MoleculeProperties = {
+  mwFreebase: null,
+  alogp: null,
+  hba: null,
+  hbd: null,
+  psa: null,
+  rtb: null
+};
 
 @Component({
   selector: 'm-molecule-properties',
@@ -22,18 +40,12 @@ import { Component, ChangeDetectionStrategy, Input, computed, signal } from '@an
     </section>
   ` })
 export class MoleculePropertiesComponent {
-  private readonly propsSignal = signal({
-    mwFreebase: null,
-    alogp: null,
-    hba: null,
-    hbd: null,
-    psa: null,
-    rtb: null });
+  private readonly propsSignal = signal<MoleculeProperties>(EMPTY_MOLECULE_PROPERTIES);
 
-  @Input()
-  set properties(value: any) {
-    this.propsSignal.set(value);
-  }
+  readonly properties = input<MoleculeProperties | undefined>(undefined)
+  private readonly syncProperties = effect(() =>
+    this.propsSignal.set(this.properties() ?? EMPTY_MOLECULE_PROPERTIES)
+  )
 
   readonly props = this.propsSignal.asReadonly();
 

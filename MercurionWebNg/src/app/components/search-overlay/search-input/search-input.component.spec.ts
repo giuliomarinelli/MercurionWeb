@@ -52,7 +52,7 @@ describe('SearchInputComponent', () => {
   });
 
   it('uses latest-wins search requests so a stale response cannot replace newer results', async () => {
-    component.search_excludeAlreadyAdded = true;
+    fixture.componentRef.setInput('search_excludeAlreadyAdded', true);
 
     component['query'].set('first');
     fixture.detectChanges();

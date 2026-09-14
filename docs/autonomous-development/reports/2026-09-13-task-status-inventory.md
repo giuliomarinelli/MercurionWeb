@@ -1,0 +1,246 @@
+# Inventario stato attività autonome — 13 settembre 2026
+
+> Base `develop` verificata: `58ca2b2de763bc5074a48c446468bb970fca64ef`
+> Fonte autorevole per dipendenze: `npm run autonomous:plan`
+
+## Esito sblocco dipendenze
+
+Su istruzione diretta del 13 settembre 2026, i 79 task precedentemente `SKIPPED_DEPENDENCY` sono stati riportati a `PENDING`. Per mantenere il grafo coerente sono state riaperte a `PENDING` anche le sei radici terminali `SYS-020`, `UI-019`, `NG-028`, `BE-006`, `BE-022` e `DATA-001`.
+
+Il planner aggiornato rileva `staleSkips: []`, `toSkip: []`, 14 task `READY` e 85 task `WAITING_DEPENDENCY`.
+
+## Conteggi per stato
+
+| Stato | Conteggio |
+|---|---:|
+| DONE | 121 |
+| PENDING | 99 |
+| BLOCKED | 0 |
+| REVERTED | 0 |
+| SKIPPED_DEPENDENCY | 0 |
+| **Totale** | **220** |
+
+## Elenco completo
+
+| Task | Source | Stato |
+|---:|---|---|
+| 0001 | SYS-001 | DONE |
+| 0002 | SYS-002 | DONE |
+| 0003 | SYS-003 | DONE |
+| 0004 | SYS-004 | DONE |
+| 0005 | SYS-005 | DONE |
+| 0006 | SYS-006 | DONE |
+| 0007 | SYS-007 | DONE |
+| 0008 | SYS-008 | DONE |
+| 0009 | SYS-009 | DONE |
+| 0010 | SYS-010 | DONE |
+| 0011 | SYS-011 | DONE |
+| 0012 | SYS-012 | DONE |
+| 0013 | SYS-013 | DONE |
+| 0014 | SYS-014 | DONE |
+| 0015 | SYS-015 | DONE |
+| 0016 | SYS-016 | DONE |
+| 0017 | SYS-017 | DONE |
+| 0018 | SYS-018 | DONE |
+| 0019 | SYS-019 | DONE |
+| 0020 | SYS-020 | PENDING |
+| 0021 | SYS-021 | DONE |
+| 0022 | SYS-022 | DONE |
+| 0023 | FE-001 | DONE |
+| 0024 | FE-002 | DONE |
+| 0025 | FE-003 | DONE |
+| 0026 | FE-004 | DONE |
+| 0027 | FE-005 | DONE |
+| 0028 | FE-006 | DONE |
+| 0029 | FE-007 | DONE |
+| 0030 | FE-008 | DONE |
+| 0031 | FE-009 | DONE |
+| 0032 | FE-010 | DONE |
+| 0033 | FE-011 | DONE |
+| 0034 | FE-012 | DONE |
+| 0035 | FE-013 | DONE |
+| 0036 | FE-014 | DONE |
+| 0037 | FE-015 | DONE |
+| 0038 | FE-016 | DONE |
+| 0039 | FE-017 | DONE |
+| 0040 | FE-018 | DONE |
+| 0041 | FE-019 | DONE |
+| 0042 | FE-020 | DONE |
+| 0043 | FE-021 | DONE |
+| 0044 | FE-022 | DONE |
+| 0045 | FE-023 | DONE |
+| 0046 | FE-024 | DONE |
+| 0047 | FE-025 | DONE |
+| 0048 | FE-026 | DONE |
+| 0049 | FE-027 | DONE |
+| 0050 | FE-028 | DONE |
+| 0051 | FE-029 | DONE |
+| 0052 | FE-030 | DONE |
+| 0053 | FE-031 | DONE |
+| 0054 | FE-032 | DONE |
+| 0055 | FE-033 | DONE |
+| 0056 | FE-034 | DONE |
+| 0057 | FE-035 | DONE |
+| 0058 | FE-036 | DONE |
+| 0059 | UI-001 | DONE |
+| 0060 | UI-002 | DONE |
+| 0061 | UI-003 | DONE |
+| 0062 | UI-004 | DONE |
+| 0063 | UI-005 | DONE |
+| 0064 | UI-006 | DONE |
+| 0065 | UI-007 | DONE |
+| 0066 | UI-008 | DONE |
+| 0067 | UI-009 | DONE |
+| 0068 | UI-010 | DONE |
+| 0069 | UI-011 | DONE |
+| 0070 | UI-012 | DONE |
+| 0071 | UI-013 | PENDING |
+| 0072 | UI-014 | PENDING |
+| 0073 | UI-015 | PENDING |
+| 0074 | UI-016 | DONE |
+| 0075 | UI-017 | PENDING |
+| 0076 | UI-018 | DONE |
+| 0077 | UI-019 | PENDING |
+| 0078 | UI-020 | PENDING |
+| 0079 | UI-021 | PENDING |
+| 0080 | UI-022 | PENDING |
+| 0081 | UI-023 | PENDING |
+| 0082 | UI-024 | PENDING |
+| 0083 | UI-025 | PENDING |
+| 0084 | UI-026 | PENDING |
+| 0085 | UI-027 | PENDING |
+| 0086 | UI-028 | PENDING |
+| 0087 | NG-001 | DONE |
+| 0088 | NG-002 | PENDING |
+| 0089 | NG-003 | DONE |
+| 0090 | NG-004 | DONE |
+| 0091 | NG-005 | DONE |
+| 0092 | NG-006 | PENDING |
+| 0093 | NG-007 | DONE |
+| 0094 | NG-008 | DONE |
+| 0095 | NG-009 | DONE |
+| 0096 | NG-010 | DONE |
+| 0097 | NG-011 | DONE |
+| 0098 | NG-012 | PENDING |
+| 0099 | NG-013 | DONE |
+| 0100 | NG-014 | DONE |
+| 0101 | NG-015 | DONE |
+| 0102 | NG-016 | PENDING |
+| 0103 | NG-017 | DONE |
+| 0104 | NG-018 | DONE |
+| 0105 | NG-019 | DONE |
+| 0106 | NG-020 | DONE |
+| 0107 | NG-021 | PENDING |
+| 0108 | NG-022 | DONE |
+| 0109 | NG-023 | PENDING |
+| 0110 | NG-024 | PENDING |
+| 0111 | NG-025 | PENDING |
+| 0112 | NG-026 | PENDING |
+| 0113 | NG-027 | DONE |
+| 0114 | NG-028 | PENDING |
+| 0115 | BE-001 | DONE |
+| 0116 | BE-002 | DONE |
+| 0117 | BE-003 | DONE |
+| 0118 | BE-004 | DONE |
+| 0119 | BE-005 | DONE |
+| 0120 | BE-006 | PENDING |
+| 0121 | BE-007 | PENDING |
+| 0122 | BE-008 | DONE |
+| 0123 | BE-009 | PENDING |
+| 0124 | BE-010 | DONE |
+| 0125 | BE-011 | DONE |
+| 0126 | BE-012 | PENDING |
+| 0127 | BE-013 | PENDING |
+| 0128 | BE-014 | PENDING |
+| 0129 | BE-015 | PENDING |
+| 0130 | BE-016 | DONE |
+| 0131 | BE-017 | DONE |
+| 0132 | BE-018 | DONE |
+| 0133 | BE-019 | DONE |
+| 0134 | BE-020 | DONE |
+| 0135 | BE-021 | DONE |
+| 0136 | BE-022 | PENDING |
+| 0137 | BE-023 | DONE |
+| 0138 | BE-024 | DONE |
+| 0139 | BE-025 | DONE |
+| 0140 | BE-026 | PENDING |
+| 0141 | BE-027 | PENDING |
+| 0142 | BE-028 | PENDING |
+| 0143 | BE-029 | PENDING |
+| 0144 | BE-030 | PENDING |
+| 0145 | BE-031 | PENDING |
+| 0146 | BE-032 | PENDING |
+| 0147 | BE-033 | PENDING |
+| 0148 | BE-034 | PENDING |
+| 0149 | BE-035 | PENDING |
+| 0150 | DATA-001 | PENDING |
+| 0151 | DATA-002 | PENDING |
+| 0152 | DATA-003 | PENDING |
+| 0153 | DATA-004 | PENDING |
+| 0154 | DATA-005 | PENDING |
+| 0155 | DATA-006 | PENDING |
+| 0156 | DATA-007 | PENDING |
+| 0157 | DATA-008 | PENDING |
+| 0158 | DATA-009 | PENDING |
+| 0159 | DATA-010 | PENDING |
+| 0160 | DATA-011 | PENDING |
+| 0161 | DATA-012 | DONE |
+| 0162 | DATA-013 | PENDING |
+| 0163 | DATA-014 | PENDING |
+| 0164 | DATA-015 | PENDING |
+| 0165 | DATA-016 | PENDING |
+| 0166 | DATA-017 | PENDING |
+| 0167 | DATA-018 | PENDING |
+| 0168 | DATA-019 | PENDING |
+| 0169 | DATA-020 | PENDING |
+| 0170 | DATA-021 | PENDING |
+| 0171 | DATA-022 | PENDING |
+| 0172 | DATA-023 | PENDING |
+| 0173 | DATA-024 | PENDING |
+| 0174 | DATA-025 | PENDING |
+| 0175 | DATA-026 | PENDING |
+| 0176 | DATA-027 | PENDING |
+| 0177 | DATA-028 | PENDING |
+| 0178 | DATA-029 | PENDING |
+| 0179 | DATA-030 | PENDING |
+| 0180 | DATA-031 | PENDING |
+| 0181 | DATA-032 | PENDING |
+| 0182 | DATA-033 | PENDING |
+| 0183 | DATA-034 | PENDING |
+| 0184 | DATA-035 | PENDING |
+| 0185 | DATA-036 | PENDING |
+| 0186 | DATA-037 | PENDING |
+| 0187 | QA-001 | DONE |
+| 0188 | QA-002 | DONE |
+| 0189 | QA-003 | DONE |
+| 0190 | QA-004 | DONE |
+| 0191 | QA-005 | PENDING |
+| 0192 | QA-006 | PENDING |
+| 0193 | QA-007 | PENDING |
+| 0194 | QA-008 | PENDING |
+| 0195 | QA-009 | PENDING |
+| 0196 | QA-010 | PENDING |
+| 0197 | QA-011 | PENDING |
+| 0198 | QA-012 | PENDING |
+| 0199 | QA-013 | DONE |
+| 0200 | QA-014 | DONE |
+| 0201 | QA-015 | DONE |
+| 0202 | QA-016 | DONE |
+| 0203 | QA-017 | DONE |
+| 0204 | QA-018 | DONE |
+| 0205 | QA-019 | PENDING |
+| 0206 | QA-020 | DONE |
+| 0207 | QA-021 | DONE |
+| 0208 | QA-022 | DONE |
+| 0209 | QA-023 | PENDING |
+| 0210 | QA-024 | PENDING |
+| 0211 | QA-025 | PENDING |
+| 0212 | QA-026 | DONE |
+| 0213 | QA-027 | PENDING |
+| 0214 | QA-028 | PENDING |
+| 0215 | QA-029 | PENDING |
+| 0216 | QA-030 | PENDING |
+| 0217 | QA-031 | PENDING |
+| 0218 | QA-032 | PENDING |
+| 0219 | QA-033 | PENDING |
+| 0220 | QA-034 | PENDING |

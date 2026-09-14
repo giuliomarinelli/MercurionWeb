@@ -101,13 +101,11 @@ export class MoleculeCollectionItemService {
             'canonicalSmiles', 'molFormula', 'name', 'propertiesJson', 'chemblMolregno'
         ];
 
-        const wants = (map: any, path: string[]) => {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-            let cur = map;
+        const wants = (map: GraphQLFieldsMap, path: string[]): boolean => {
+            let cur: unknown = map;
             for (const p of path) {
-                if (!cur || typeof cur !== 'object') return false;
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                cur = cur[p];
+                if (typeof cur !== 'object' || cur === null || Array.isArray(cur)) return false;
+                cur = (cur as Record<string, unknown>)[p];
             }
             return cur !== undefined;
         };
@@ -139,10 +137,9 @@ export class MoleculeCollectionItemService {
                 qb = qb.leftJoin('j.collection', 'c', 'c.user_id = :userId', { userId });
 
                 const COL_ALLOWED = ['id', 'name', 'createdAt', 'updatedAt', 'touchedAt'];
-                const colFieldsMap =
-                    ((fieldsMap?.joins as GraphQLFieldsMap | undefined)?.collection as GraphQLFieldsMap | undefined) ?? {};
+                const colFieldsMap = fieldsMap.joins?.collection ?? {};
 
-                const colCols = COL_ALLOWED.filter(k => (colFieldsMap as any)[k] !== undefined);
+                const colCols = COL_ALLOWED.filter(k => colFieldsMap[k] !== undefined);
                 if (colCols.length) {
                     qb = qb.addSelect(colCols.map(cn => `c.${cn}`));
                 }

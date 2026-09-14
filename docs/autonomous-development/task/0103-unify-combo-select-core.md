@@ -1,9 +1,9 @@
 # 0103 - Unify legacy combo-select wrappers on the canonical select core
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -56,11 +56,11 @@ The current `combo-multi-select.component.ts` explicitly describes itself as der
 
 ## Acceptance criteria
 
-- [ ] One canonical select/combobox interaction core exists.
-- [ ] Single and multi behavior are adapter modes, not cloned component implementations.
-- [ ] All legacy callers are migrated.
-- [ ] Keyboard/focus/filter/selection/create-new behavior required by current flows is covered by tests.
-- [ ] Legacy duplicate implementation is removed.
+- [x] One canonical select/combobox interaction core exists.
+- [x] Single and multi behavior are adapter modes, not cloned component implementations.
+- [x] All legacy callers are migrated.
+- [x] Keyboard/focus/filter/selection/create-new behavior required by current flows is covered by tests.
+- [x] Legacy duplicate implementation is removed.
 
 ## Validation
 
@@ -82,38 +82,102 @@ Mark `BLOCKED` if a legacy caller relies on an undocumented behavior that confli
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/NG-017`, starting from supplied base
+`3d2198611ee9518289257ab6dd72e74427f3cf05`, preserved at
+`22278b2b754ac01092a97edd1bc0394a1b3ffabd`.
 
 ### Preflight
-_Not started._
+- Confirmed clean `feature/NG-017` at the supplied base SHA and verified exact
+  base CI run `34679432439` succeeded for both platform quality jobs,
+  autonomous classification and the required gate.
+- Confirmed no task-owned Angular, Nest, Tox21, Karma, Jest or workspace
+  watcher was active before runtime startup. The unchanged Angular typecheck
+  passed.
+- Completed the canonical runtime capability probe by starting Tox21, Nest and
+  Angular directly in the required order with live execution handles. After
+  the startup barrier, nginx returned retryable 502 responses during
+  compilation, followed by two consecutive successful `/health` and `/`
+  readiness rounds. The dedicated browser profile exposed the protected
+  dashboard through `http://localhost:8888` while the login route was
+  reached; no credentials were recorded in task notes. All probe processes
+  were stopped before implementation.
 
 ### Preflight remediation
 _None._
 
 ### Summary
-Not attempted because required UI-006 and tasks 0100 (NG-014) and 0101
-(NG-015) are `SKIPPED_DEPENDENCY`.
+Migrated the two production collection flows from the legacy combo wrapper to
+the canonical `SelectCoreComponent`, routed typed selection events through the
+existing collection-picker facades, added multi-selection regression coverage
+to the canonical core, and removed the obsolete combo wrapper implementations
+and specs. No production multi-select caller existed in the inventory.
 
 ### Task-specific validation performed
-Not applicable; no feature branch or implementation worker was created.
+- `npx ng test --watch=false --karma-config=karma.conf.js
+  --include=src/app/components/common/select-core/select-core.component.spec.ts`
+  passed: 4 specs covering combobox semantics, keyboard selection, filtering,
+  disabled state and typed multi-selection/chip clearing.
+- The canonical core plus both migrated caller specs passed with the same
+  Angular test runner: 6 specs total.
+- `npm run typecheck --workspace mercurion_web_ng` passed.
+- `npm run lint --workspace mercurion_web_ng` completed with existing warning
+  diagnostics only and no errors.
+- `npm run build --workspace mercurion_web_ng` passed. Existing bundle-budget
+  and CommonJS warnings remained; no build error occurred.
+- `git diff --check` passed and the source inventory contains no legacy combo
+  component or selector references.
 
 ### Full pre-merge CI-parity validation
-Not applicable; dependency-skip metadata only.
+Not run locally because `npm ci` and `npm run ci:check` are forbidden in
+autonomous workers. Exact feature-SHA GitHub Actions validation is required.
 
 ### Browser validation performed
-Not applicable; the task was not attempted.
+Using the dedicated Chrome DevTools MCP profile and only
+`http://localhost:8888`:
+- Restarted Tox21, Nest and Angular in canonical order, retained all three
+  live handles, waited through retryable 502 responses, and observed two
+  consecutive complete readiness rounds.
+- The protected dashboard shell rendered after runtime restart, proving the
+  real authenticated state through the protected UI. Direct collection-route
+  navigation was attempted, but the persistent browser session returned to the
+  dashboard and MCP interaction calls timed out before a collection-picker
+  overlay could be opened; no browser claim is made for that unavailable
+  interaction evidence.
+- Canonical core and migrated caller behavior is covered by the passing
+  headless Angular regression tests above. All post-validation runtime
+  sessions were stopped.
 
 ### Commits
-Pending metadata commit on `develop`.
+- `1032a71b2d596ba9d1194157696b628d852b9dd2`
+  (`refactor(NG-017): unify combo selection callers`) contains the
+  implementation, caller migrations, canonical-core regression coverage,
+  legacy wrapper removal and execution notes.
 
 ### Merge / CI
-No feature branch or merge. Exact-SHA CI is required for the metadata commit.
+Feature branch `feature/NG-017` was pushed at
+`1032a71b2d596ba9d1194157696b628d852b9dd2`. No merge was performed by the
+worker. Exact-SHA CI is required before integration.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-Direct terminal prerequisites: UI-006, 0100 (NG-014), and 0101 (NG-015),
-all `SKIPPED_DEPENDENCY`. Their transitive chain includes FE-030 (BLOCKED),
-which requires filesystem-write capability for a fresh, human-authorized
-worker session.
+_None._
+
+### Authorized recovery
+- Reconciled current green `develop` into the preserved branch with merge
+  commit `c6f6246c21f2fbce112231e3c570fb3d06c35ef6` and no history rewrite.
+- Re-ran Angular typecheck, the six canonical-core and migrated-caller specs,
+  Angular lint with zero findings, and `git diff --check`; all passed.
+- Started Tox21, Nest and Angular directly in canonical order and observed two
+  consecutive `200` readiness rounds through `http://localhost:8888`.
+- Completed a fresh ordinary login with human-assisted MFA and proved the
+  protected dashboard through the rendered user identity and authenticated
+  socket state.
+- Exercised the migrated collection-routing combobox through the nginx origin:
+  expanded/collapsed semantics, `aria-activedescendant`, arrow-key navigation,
+  keyboard selection, filtering to `Aromatici`, create-new availability,
+  enabled continuation state and Escape focus return all behaved as expected.
+- Exercised the reachable multi-collection picker filter and reversible
+  selection/deselection without submitting any data. No relevant browser
+  console errors were present. All task-owned runtime processes were stopped.

@@ -1,4 +1,5 @@
 import { WebSocketGateway, WebSocketServer, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, MessageBody, ConnectedSocket } from '@nestjs/websockets';
+import { OnModuleDestroy } from '@nestjs/common'
 import { Server, Socket } from 'socket.io';
 import { UseGuards } from '@nestjs/common';
 import Redis from 'ioredis';
@@ -13,18 +14,65 @@ import { ConfigService } from '@nestjs/config';
 import { RedisConfiguration } from 'src/config/config.types';
 import { JwtToolsService } from '../auth/services/jwt-tools.service';
 import { TokenType } from '../auth/Models/enums/token-type.enum';
+import {
+  socketEventRegistry,
+  type ClientToServerEvents,
+  type ServerToClientEvents,
+  type SocketHandshakeAuth,
+  type SocketEventPayload,
+  type SocketSessionInitAcknowledgement,
+} from '@mercurion/socket-contracts';
+import {
+  contractVersionDetails,
+  contractVersionWarning,
+  negotiateContractMajor
+} from '@mercurion/rest-contracts';
 
+type ApplicationServer = Server<ClientToServerEvents, ServerToClientEvents>
+type ApplicationSocket = Socket<ClientToServerEvents, ServerToClientEvents>
+type ApplicationSocketMiddleware = Parameters<ApplicationServer['use']>[0]
+
+export function createSocketContractVersionMiddleware(
+  logger: Pick<MeiliContextLogger, 'warn'>
+): ApplicationSocketMiddleware {
+  return (client, next) => {
+    const handshakeAuth = client.handshake.auth as SocketHandshakeAuth
+    const selection = negotiateContractMajor(handshakeAuth.contractMajor)
+    if (selection.kind === 'invalid' || selection.kind === 'unsupported') {
+      const error = new Error(selection.code === 'CONTRACT_VERSION_INVALID'
+        ? 'Invalid contract major version'
+        : 'Unsupported contract major version') as Error & { data?: unknown }
+      error.data = {
+        code: selection.code,
+        status: 400,
+        message: error.message,
+        correlationId: client.id,
+        details: contractVersionDetails(selection)
+      }
+      next(error)
+      return
+    }
+
+    const warning = contractVersionWarning(selection)
+    if (warning) logger.warn(`Socket ${client.id}: ${warning}`)
+    client.data.contractMajor = selection.selectedMajor
+    next()
+  }
+}
 
 
 @WebSocketGateway()
 @UseGuards(WsGuard)
-export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit {
+export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, OnModuleDestroy {
 
   private readonly logger: MeiliContextLogger
   private readonly redisConf: RedisConfiguration
+  private initialized = false
+  private pubClient: Redis | undefined
+  private subClient: Redis | undefined
 
   @WebSocketServer()
-  private readonly server: Server
+  private readonly server: ApplicationServer
 
   constructor(
     private readonly configService: ConfigService,
@@ -36,20 +84,33 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
     this.redisConf = this.configService.get<RedisConfiguration>('Redis')!
   }
 
-  afterInit(server: Server) {
+  afterInit(server: ApplicationServer) {
+    if (this.initialized) return
+
+    server.use(createSocketContractVersionMiddleware(this.logger))
     const pubClient = new Redis({
       host: this.redisConf.host,
       port: this.redisConf.port,
       password: this.redisConf.password
     })
     const subClient = pubClient.duplicate()
+    this.pubClient = pubClient
+    this.subClient = subClient
     server.adapter(createAdapter(pubClient, subClient))
     this.pubSubService.setSocketServer(server)
+    this.initialized = true
     this.logger.log('Socket.IO Redis Adapter e PubSubService pronti! 🚀')
   }
 
+  async onModuleDestroy(): Promise<void> {
+    await Promise.all([
+      this.pubClient?.status !== 'end' ? this.pubClient?.quit() : undefined,
+      this.subClient?.status !== 'end' ? this.subClient?.quit() : undefined
+    ])
+  }
 
-  async handleConnection(client: Socket) {
+
+  async handleConnection(client: ApplicationSocket) {
     this.logger.log(`🔗 Connected socket ${client.id}`);
 
     const token = client.handshake.auth?.token as string | undefined;
@@ -71,33 +132,34 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
       this.logger.log(
         `Socket ${client.id} autenticato onConnect, bind ws_session:${sessionId}, ws_user:${userId}`
       );
-    } catch (e: any) {
-      this.logger.warn(`WS auth fallita su handleConnection per ${client.id}: ${e?.message || e}`);
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : String(e)
+      this.logger.warn(`WS auth fallita su handleConnection per ${client.id}: ${message}`);
       // se questo gateway è solo privato puoi anche fare:
       // client.disconnect(true);
     }
   }
 
-  handleDisconnect(client: Socket): void {
+  handleDisconnect(client: ApplicationSocket): void {
     this.logger.log(`🔗 Disconnected socket ${client.id}`)
   }
 
-  private getUserId(client: Socket): UUID | undefined {
+  private getUserId(client: ApplicationSocket): UUID | undefined {
     return client.data?.userId as (UUID | undefined)
   }
 
-  private joinUserRooms(client: Socket): void {
+  private joinUserRooms(client: ApplicationSocket): void {
 
     const sessionId = client.data?.sessionId as string | undefined
     const userId = client.data?.userId?.toString() as string | undefined
 
     if (sessionId && userId) {
       if (!client.rooms.has(`ws_session:${sessionId}`)) {
-        client.join(`ws_session:${sessionId}`)
+        void client.join(`ws_session:${sessionId}`)
         this.logger.debug(`Socket ${client.id} joinato a ws_session:${sessionId}`)
       }
       if (!client.rooms.has(`ws_user:${userId}`)) {
-        client.join(`ws_user:${userId}`);
+        void client.join(`ws_user:${userId}`);
         this.logger.debug(`Socket ${client.id} joinato a ws_user:${userId}`)
       }
 
@@ -108,23 +170,31 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
 
 
   @Public()
-  @SubscribeMessage('so.pub.public_test')
-  handlePublicTest(@MessageBody() data: string, @ConnectedSocket() client: Socket): void {
-    client.emit('sv.pub.public_test', (data ?? '') + ' RESP')
+  @SubscribeMessage(socketEventRegistry.publicTestRequest.name)
+  handlePublicTest(
+    @MessageBody() data: SocketEventPayload<typeof socketEventRegistry.publicTestRequest.name>,
+    @ConnectedSocket() client: ApplicationSocket
+  ): void {
+    client.emit(socketEventRegistry.publicTestResponse.name, (data ?? '') + ' RESP')
   }
 
-  @SubscribeMessage('so.pub.private_test')
-  handlePrivateTest(@MessageBody() data: string, @ConnectedSocket() client: Socket): void {
+  @SubscribeMessage(socketEventRegistry.privateTestRequest.name)
+  handlePrivateTest(
+    @MessageBody() data: SocketEventPayload<typeof socketEventRegistry.privateTestRequest.name>,
+    @ConnectedSocket() client: ApplicationSocket
+  ): void {
     this.joinUserRooms(client)
-    this.server.to(`ws_user:${this.getUserId(client)!}`).emit('sv.pub.private_test', (data ?? '') + ' PRIVATE RESP')
+    this.server
+      .to(`ws_user:${this.getUserId(client)!}`)
+      .emit(socketEventRegistry.privateTestResponse.name, (data ?? '') + ' PRIVATE RESP')
   }
 
-  @SubscribeMessage('so.pub.session_init')
-  handleSessionInit(@ConnectedSocket() client: Socket): { detail: string } {
+  @SubscribeMessage(socketEventRegistry.sessionInit.name)
+  handleSessionInit(
+    @ConnectedSocket() client: ApplicationSocket
+  ): SocketSessionInitAcknowledgement {
     this.joinUserRooms(client)
-    return { detail: 'websocket session init successful' }
+    return { detail: 'websocket session init successful', state: 'authenticated' }
   }
 
 }
-
-

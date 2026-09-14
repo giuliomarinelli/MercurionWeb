@@ -1,20 +1,31 @@
 // ================== AbstractPaginationComponent ==================
-import { ElementRef, signal } from "@angular/core";
+import { ChangeDetectorRef, computed, ElementRef, inject, Signal, signal } from "@angular/core";
 import { firstValueFrom, Observable } from "rxjs";
-import { PageModel } from "../Models/graphql/page.models";
+import { InfinitePaginationState, PageModel } from "../Models/graphql/page.models";
 import { BrowserResourceOwner, injectBrowserResourceOwner } from "../utils/browser-resource-owner.util";
+import { ViewportRuntimeService } from "../services/context/viewport-runtime.service";
 
 export abstract class AbstractPaginationComponent<T> {
-  protected sentinel: ElementRef<HTMLDivElement> | undefined;
+  protected sentinel?: Signal<ElementRef<HTMLElement> | undefined>;
   protected items: T[] = [];
   protected loading = false;
   protected done = false;
   protected earlyDone = false;
+  protected readonly paginationError = signal<string | undefined>(undefined);
+  protected readonly paginationState = computed<InfinitePaginationState>(() => ({
+    mode: 'infinite',
+    hasMore: !this.done,
+    pending: this.loading,
+    empty: this.empty(),
+    error: this.paginationError(),
+  }));
   protected observer?: IntersectionObserver;
   protected page = 1;
   protected empty = signal<boolean>(true);
   protected searchTerm = signal<string>('');
-  protected root: ElementRef | null = null;
+  protected root?: Signal<ElementRef<HTMLElement> | undefined>;
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
+  protected readonly viewportRuntime = inject(ViewportRuntimeService);
 
   /**
    * Owns every RAF this base class schedules and is disposed automatically
@@ -43,22 +54,32 @@ export abstract class AbstractPaginationComponent<T> {
 
   protected async loadMore(): Promise<void> {
     if (this.loading || this.done) return;
-    this.loading = true;
+    this.setLoading(true);
+    this.paginationError.set(undefined);
+    try {
+      const newPage = await firstValueFrom(this.fetch$());
 
-    const newPage = await firstValueFrom(this.fetch$());
-
-    if (newPage.items.length === 0) {
-      this.done = true;
-      if (this.page === 1) {
-        this.earlyDone = true;
+      if (newPage.items.length === 0) {
+        this.done = true;
+        if (this.page === 1) {
+          this.earlyDone = true;
+        }
+      } else {
+        if (this.empty()) this.empty.set(false);
+        this.items = [...this.items, ...newPage.items];
+        this.done = newPage.currentPage >= newPage.totalPages;
+        this.page++;
       }
-    } else {
-      if (this.empty()) this.empty.set(false);
-      this.items = [...this.items, ...newPage.items];
-      this.page++;
+    } catch {
+      this.paginationError.set('Unable to load results.');
+    } finally {
+      this.setLoading(false);
     }
+  }
 
-    this.loading = false;
+  protected retryPagination(): void {
+    this.paginationError.set(undefined);
+    void this.loadMore();
   }
 
   protected resetPagination(): void {
@@ -66,8 +87,9 @@ export abstract class AbstractPaginationComponent<T> {
     this.page = 1;
     this.done = false;
     this.earlyDone = false;
+    this.paginationError.set(undefined);
     this.empty.set(true);
-    this.loading = false;
+    this.setLoading(false);
     void this.loadMore();
 
 
@@ -85,11 +107,17 @@ export abstract class AbstractPaginationComponent<T> {
     this.resetPagination();
   }
 
+  protected setLoading(loading: boolean): void {
+    this.loading = loading;
+    this.changeDetectorRef.markForCheck();
+  }
+
   /** Idempotente e robusto a layout dinamici (switch di step, skeleton, ecc.) */
   protected startObserver(bottomPx: number = 500): void {
-    if (!this.sentinel) return;
+    const sentinel = this.sentinel?.();
+    if (!sentinel) return;
 
-    const rootEl = this.root?.nativeElement ?? null;
+    const rootEl = this.root?.()?.nativeElement ?? null;
 
     // Stacca l'eventuale precedente
     this.observer?.disconnect();
@@ -107,8 +135,9 @@ export abstract class AbstractPaginationComponent<T> {
 
     // Osserva quando il DOM è misurabile
     this.resources.requestAnimationFrame(() => {
-      if (!this.sentinel) return;
-      this.observer!.observe(this.sentinel.nativeElement);
+      const currentSentinel = this.sentinel?.();
+      if (!currentSentinel) return;
+      this.observer!.observe(currentSentinel.nativeElement);
     });
 
     // Prime fetch se il contenuto non riempie il container (niente scroll -> niente intersect)
@@ -126,7 +155,7 @@ export abstract class AbstractPaginationComponent<T> {
       const docEl = document.documentElement ?? document.body;
       if (!docEl) return;
 
-      const viewportHeight = window.innerHeight || docEl.clientHeight;
+      const viewportHeight = this.viewportRuntime.height() || docEl.clientHeight;
       const contentHeight = Math.max(
         docEl.scrollHeight,
         document.body?.scrollHeight ?? 0

@@ -1,5 +1,5 @@
 import { NgClass, NgOptimizedImage, NgTemplateOutlet } from '@angular/common';
-import { Component, computed, effect, EventEmitter, inject, Input, OnDestroy, OnInit, Output, Signal, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, effect, inject, input, OnDestroy, OnInit, Signal, signal, ChangeDetectionStrategy, output } from '@angular/core';
 import { ThemeManagerService } from '../../../services/context/theme-manager.service';
 import { ThemeChoice } from '../../../Models/theme.models';
 import { DesignService } from '../../../services/design.service';
@@ -11,14 +11,22 @@ import { UserContextService } from '../../../services/context/user-context.servi
 import { filter, Subscription } from 'rxjs';
 import { SidenavComponent } from '../sidenav/sidenav.component';
 import { AccountService } from '../../../services/account.service';
-import { AuthService } from '../../../services/auth.service';
+import { AuthUseCasesService } from '../../../services/auth-use-cases.service';
 import { SessionSyncService } from '../../../services/session-sync.service';
 import { PathService } from '../../../services/path.service';
 import { ToastService } from '../../../services/toast.service';
 import { ProvidedEmailDTO } from '../../../Models/account/account.models';
 import { environment } from '../../../../environments/environment';
-import { AppContextService } from '../../../services/context/app-context.service';
+import { ShellLayoutService } from '../../../services/context/shell-layout.service';
 import { APP_CONFIG } from '../../../config/app-config';
+import { routeManifest } from '../../../route-manifest';
+import { BrowserStorageRegistry, storageDescriptor } from '../../../services/browser-storage-registry';
+import { HeaderFacade } from './header.facade';
+import { HeaderNavigationComponent } from './header-navigation.component';
+import { HeaderAccountMenuComponent } from './header-account-menu.component';
+import { HeaderResponsiveMenuComponent } from './header-responsive-menu.component';
+import { HeaderSessionIndicatorComponent } from './header-session-indicator.component';
+import { IconButtonComponent } from '../icon-button/icon-button.component';
 
 @Component({
   selector: 'm-header',
@@ -30,8 +38,14 @@ import { APP_CONFIG } from '../../../config/app-config';
     RouterLink,
     PublicPipe,
     SidenavComponent,
-    NgTemplateOutlet
+    NgTemplateOutlet,
+    HeaderNavigationComponent,
+    HeaderAccountMenuComponent,
+    HeaderResponsiveMenuComponent,
+    HeaderSessionIndicatorComponent,
+    IconButtonComponent
   ],
+  providers: [HeaderFacade],
   template: `
 
  <header class="px-2 2xs:px-6 py-4 bg-light-surface-secondary border-b-[0.5px] border-slate-300/65 dark:border-slate-300/40 header-shadow"
@@ -57,7 +71,7 @@ import { APP_CONFIG } from '../../../config/app-config';
       @if (designService.minBk("md")()) {
       <div class="flex items-center gap-3 lg:gap-4">
         <div class="flex items-center gap-3">
-          <a routerLink="/" aria-label="Vai alla home" class="block">
+          <a [routerLink]="routes.home.build({})" aria-label="Vai alla home" class="block">
             <img [ngSrc]="logoSrc() | public" alt="Mercurion" width="927" height="234" title="Mercurion" priority="true"
               class="w-[145px] h-auto contrast-115" />
           </a>
@@ -75,12 +89,14 @@ import { APP_CONFIG } from '../../../config/app-config';
       </div>
       }
       @if (designService.minBk("lg")() && userContext.isLoggedIn()) {
-      <m-nav [header]="true"></m-nav>
+      <m-header-navigation [items]="headerViewModel().navigation">
+        <m-nav [header]="true"></m-nav>
+      </m-header-navigation>
       }
     </div>
     @if (designService.maxBk("sm")()) {
     <div class="flex items-center gap-3">
-      <a routerLink="/" aria-label="Vai alla home" class="block">
+      <a [routerLink]="routes.home.build({})" aria-label="Vai alla home" class="block">
         <img [ngSrc]="logoSrc() | public" alt="Mercurion" width="927" height="234" priority="true"
           class="w-[128px] min-[350px]:w-[145px] h-auto contrast-115" />
       </a>
@@ -94,11 +110,11 @@ import { APP_CONFIG } from '../../../config/app-config';
       @if (!userContext.isLoggedIn() && !isLoginPath()) {
       <div
         class="hidden lg:flex items-center gap-3 text-sm xl:text-[0.925rem] font-medium text-light-on-surface-main dark:text-slate-100 tracking-wider mr-3 relative top-[1px]">
-        <a routerLink="/login"
+        <a [routerLink]="routes.login.build({})"
           class="hover:text-light-accent-primary-hc hover:dark:text-dark-accent-primary transition-colors duration-300">Accedi</a>
         @if (!isRegisterPath()) {
         <span class="cursor-default text-slate-700 dark:text-slate-300">●</span>
-        <a routerLink="/register"
+        <a [routerLink]="routes.register.build({})"
           class="hover:text-light-accent-primary-hc hover:dark:text-dark-accent-primary transition-colors duration-300">Registrati</a>
         }
       </div>
@@ -109,8 +125,8 @@ import { APP_CONFIG } from '../../../config/app-config';
       (!userContext.isLoggedIn() && isLoginPath())
       ) {
       <div class="hidden lg:block">
-        <div (click)="openSearchOverlay()"
-          class="flex items-center px-4 py-2.5 bg-slate-100 border border-slate-500/40 dark:border-none hover:bg-slate-200/30 dark:hover:bg-neutral-700 dark:bg-neutral-800 rounded-full cursor-pointer transition w-[240px] mr-2">
+        <button type="button" (click)="openSearchOverlay()"
+          class="flex items-center px-4 py-2.5 bg-slate-100 border border-slate-500/40 dark:border-none hover:bg-slate-200/30 dark:hover:bg-neutral-700 dark:bg-neutral-800 rounded-full cursor-pointer transition w-[240px] mr-2 text-left">
           <svg class="w-4 h-4 mr-2 fill-current text-slate-700 dark:text-slate-200" xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 512 512">
             <path
@@ -121,20 +137,21 @@ import { APP_CONFIG } from '../../../config/app-config';
           } @else {
           <span class="text-xs py-[3px] text-slate-700 dark:text-slate-200">Cerca molecola ChEMBL...</span>
           }
-        </div>
+        </button>
       </div>
       }
       <div class="hidden sm:block" [ngClass]="{
           'lg:hidden': userContext.isLoggedIn() || isLoginPath() || isWelcomePath() }">
-        <button
-          (click)="openSearchOverlay()"
-          class="inline-flex items-center justify-center size-10 rounded-full relative left-0.5 text-slate-700 dark:text-gray-200 hover:bg-slate-200/80 dark:hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-light-accent-primary-hq transition-colors">
+        <m-icon-button
+          size="sm"
+          ariaLabel="Cerca molecola ChEMBL"
+          (pressed)="openSearchOverlay()">
           <svg class="w-5 h-5 fill-current text-slate-700 dark:text-gray-200" xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 512 512">
             <path
               d="M505 442.7L405.3 343c28.4-34.9 45.5-79 45.5-127.3C450.8 103.5 347.3 0 225.4 0S0 103.5 0 215.6s103.5 215.6 225.4 215.6c48.3 0 92.4-17.1 127.3-45.5l99.7 99.7c4.6 4.6 10.6 7 16.7 7s12.1-2.3 16.7-7c9.3-9.2 9.3-24.4 0-33.7zM225.4 367c-83.5 0-151.4-67.9-151.4-151.4s67.9-151.4 151.4-151.4 151.4 67.9 151.4 151.4-67.9 151.4-151.4 151.4z" />
           </svg>
-        </button>
+        </m-icon-button>
       </div>
 
       <button class="flex items-center justify-center size-10 rounded-full theme-toggle-button mr-0 xs:mr-1 lg:mr-2 transition-all duration-500 hover:bg-slate-200/80 dark:hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-light-accent-primary-hq" [ngClass]="{
@@ -164,15 +181,17 @@ import { APP_CONFIG } from '../../../config/app-config';
       userContext.isLoggedIn() &&
       isAllowedPath()
       ) {
-      <button (click)="toggleAvatarMenu()" [innerHTML]="userContext.initials()"
-        [attr.title]="avatarMenuOpen() ? 'Chiudi il menu utente' : 'Apri il menu utente'"
-        class="avatar-toggle-button inline-flex items-center justify-center size-10 rounded-full cursor-pointer bg-light-accent-secondary-500/80 text-slate-100 dark:bg-dark-accent-primary-btn bg-light-accent-secondary/85 hover:bg-emerald-900/60 hover:text-slate-100 dark:hover:bg-blue-400/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-light-accent-primary-hq text-sm font-semibold transition-colors duration-300">
-      </button>
+      <m-header-session-indicator
+        [session]="headerViewModel().session"
+        [expanded]="avatarMenuOpen()"
+        (toggled)="toggleAvatarMenu()">
+      </m-header-session-indicator>
       }
 
     </div>
   </div>
 </header>
+<m-header-account-menu [session]="headerViewModel().session" />
 <!-- Menu cambio tema -->
 @if (themeMenuMounted()) {
 <div
@@ -303,7 +322,7 @@ import { APP_CONFIG } from '../../../config/app-config';
         <ng-container [ngTemplateOutlet]="providerIcon" [ngTemplateOutletContext]="{ provider: providedEmail()?.provider }" />
       <span class="text-sm text-green-900 dark:text-dark-accent-primary font-medium truncate">{{ providedEmail()?.email }}</span>
     </button>
-    <a routerLink="/dashboard" (click)="closeAvatarMenu()"
+    <a [routerLink]="routes.dashboard.build({})" (click)="closeAvatarMenu()"
       class="group flex items-center w-full pl-4 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300"
       [ngClass]="{ 'bg-slate-200 dark:bg-slate-500': isAvatarMenuItemActive('/dashboard') }">
 
@@ -315,7 +334,7 @@ import { APP_CONFIG } from '../../../config/app-config';
       </svg>
       <span>Dashboard</span>
     </a>
-    <a (click)="closeAvatarMenu()" routerLink="/settings"
+    <a (click)="closeAvatarMenu()" [routerLink]="routes.settings.build({})"
       class="group flex items-center w-full pl-4 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300"
       [ngClass]="{ 'bg-slate-200 dark:bg-slate-500': isAvatarMenuItemActive('/settings') }">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
@@ -327,7 +346,7 @@ import { APP_CONFIG } from '../../../config/app-config';
       <span>Impostazioni</span>
     </a>
     <a (click)="closeAvatarMenu()"
-      routerLink="/help"
+      [routerLink]="routes.help.build({})"
       class="group flex items-center w-full pl-4 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300"
       [ngClass]="{ 'bg-slate-200 dark:bg-slate-500': isAvatarMenuItemActive('/help') }">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
@@ -338,7 +357,7 @@ import { APP_CONFIG } from '../../../config/app-config';
       </svg>
       <span>Supporto</span>
     </a>
-    <a routerLink="/feedback"
+    <a [routerLink]="routes.feedback.build({})"
       (click)="closeAvatarMenu()"
       class="group flex items-center w-full mb-2 pl-4 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300"
       [ngClass]="{ 'bg-slate-200 dark:bg-slate-500': isAvatarMenuItemActive('/feedback') }">
@@ -365,8 +384,11 @@ import { APP_CONFIG } from '../../../config/app-config';
 </div>
 }
 <!-- Offcanvas backdrop -->
+<m-header-responsive-menu [open]="offCanvasMenuOpen()" />
 @if (offCanvasMenuOpen()) {
-  <div class="fixed inset-0 z-[9998] bg-black/30 transition-opacity duration-300 m-overscroll-touch" (click)="closeOffCanvasMenu()"></div>
+  <button type="button" aria-label="Chiudi menu laterale"
+    class="fixed inset-0 z-[9998] bg-black/30 transition-opacity duration-300 m-overscroll-touch border-0 p-0"
+    (click)="closeOffCanvasMenu()"></button>
 }
 
 <!-- Offcanvas Navigation Sidebar -->
@@ -379,21 +401,17 @@ import { APP_CONFIG } from '../../../config/app-config';
   <!-- Header of the offcanvas -->
   <div class="flex justify-between items-center px-4 border-b py-[18px] border-slate-300 dark:border-dark-border">
     <div class="flex items-center gap-4">
-      <a routerLink="/">
+      <a [routerLink]="routes.home.build({})">
         <img [ngSrc]="pictogramLogo() | public" alt="Pittogramma Logo di Mercurion" width="186" height="234" class="w-auto h-[30px] contrast-115" />
       </a>
       <span class="text-lg">Mercurion</span>
     </div>
-    <button
-      class="inline-flex items-center justify-center size-8 rounded-md text-slate-700 dark:text-slate-200 hover:text-light-accent-primary-hc hover:bg-slate-100 kark dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-light-accent-primary-hq focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-transparent transition"
-      (click)="closeOffCanvasMenu()">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 640 640"
-        class="fill-current w-5 h-auto">
-          <path d="M182.9 137.4L160.3 114.7L115 160L137.6 182.6L275 320L137.6 457.4L115 480L160.3 525.3L182.9 502.6L320.3 365.3L457.6 502.6L480.3 525.3L525.5 480L502.9 457.4L365.5 320L502.9 182.6L525.5 160L480.3 114.7L457.6 137.4L320.3 274.7L182.9 137.4z" />
-      </svg>
-    </button>
+    <m-icon-button
+      size="sm"
+      icon="close"
+      ariaLabel="Chiudi menu laterale"
+      (pressed)="closeOffCanvasMenu()">
+    </m-icon-button>
   </div>
 
   <!-- Menu items -->
@@ -405,6 +423,7 @@ import { APP_CONFIG } from '../../../config/app-config';
     class="sticky bottom-0 border-t py-3 px-5 bg-slate-100 dark:bg-neutral-800 border-slate-400 dark:border-dark-border flex gap-3 items-center">
     <button (click)="toggleAvatarMobileMenu()" [innerHTML]="userContext.initials()"
       class="avatar-toggle-button inline-flex items-center justify-center size-10 rounded-full cursor-pointer bg-emerald-500 text-slate-100 dark:bg-dark-accent-primary-btn hover:bg-emerald-900/60 hover:text-slate-100 dark:hover:bg-blue-400/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-light-accent-primary-hq text-sm font-semibold transition-colors duration-300"
+      [attr.aria-label]="avatarMobileMenuOpen() ? 'Chiudi il menù utente' : 'Apri il menu utente'"
       [attr.title]="avatarMobileMenuOpen() ? 'Chiudi il menù utente' : 'Apri il menu utente'">
     </button>
     <button (click)="toggleAvatarMobileMenu()"
@@ -415,11 +434,13 @@ import { APP_CONFIG } from '../../../config/app-config';
   }
   <!-- Modal avatar mobile (solo <= sm) -->
   @if (avatarMobileMenuMounted() && userContext.isLoggedIn()) {
-  <div class="fixed inset-0 z-[10000] bg-black/50 flex items-end sm:hidden transition-opacity duration-300 m-overscroll-touch"
+  <button type="button" aria-label="Chiudi menu utente"
+       class="fixed inset-0 z-[10000] bg-black/50 flex items-end sm:hidden transition-opacity duration-300 m-overscroll-touch border-0 p-0"
        [ngClass]="{
           'opacity-100 pointer-events-auto': avatarMobileMenuVisible(),
           'opacity-0 pointer-events-none': !avatarMobileMenuVisible() }" (click)="closeAvatarMobileMenu()">
-    <div
+  </button>
+  <div
       class="w-full h-[100dvh] max-h-[100dvh] bg-slate-100 dark:bg-neutral-900 rounded-t-2xl shadow-2xl p-6 pb-10 relative overflow-y-auto transition-transform duration-300 m-overscroll-touch m-scroll-thin"
       [ngClass]="{
             'translate-y-0': avatarMobileMenuVisible(),
@@ -437,7 +458,7 @@ import { APP_CONFIG } from '../../../config/app-config';
           </span>
         </button>
         <!-- Profilo -->
-        <a routerLink="/dashboard" (click)="closeAvatarMobileMenu(); closeOffCanvasMenu()"
+        <a [routerLink]="routes.dashboard.build({})" (click)="closeAvatarMobileMenu(); closeOffCanvasMenu()"
           class="group flex items-center w-full pl-3 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300"
           [ngClass]="{ 'bg-slate-200 dark:bg-slate-500': isAvatarMenuItemActive('/dashboard') }">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
@@ -450,7 +471,7 @@ import { APP_CONFIG } from '../../../config/app-config';
           <span>Dashboard</span>
         </a>
         <!-- Impostazioni -->
-        <a (click)="closeAvatarMobileMenu(); closeOffCanvasMenu()" routerLink="/settings"
+        <a (click)="closeAvatarMobileMenu(); closeOffCanvasMenu()" [routerLink]="routes.settings.build({})"
           class="group flex items-center w-full pl-3 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300"
           [ngClass]="{ 'bg-slate-200 dark:bg-slate-500': isAvatarMenuItemActive('/settings') }">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
@@ -463,7 +484,7 @@ import { APP_CONFIG } from '../../../config/app-config';
         </a>
         <!-- Assistenza -->
         <a (click)="closeAvatarMobileMenu(); closeOffCanvasMenu()"
-          routerLink="/help"
+          [routerLink]="routes.help.build({})"
           class="group flex items-center w-full pl-3 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300"
           [ngClass]="{ 'bg-slate-200 dark:bg-slate-500': isAvatarMenuItemActive('/help') }">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
@@ -475,7 +496,7 @@ import { APP_CONFIG } from '../../../config/app-config';
           <span>Supporto</span>
         </a>
         <!-- Feedback -->
-        <a routerLink="/feedback"
+        <a [routerLink]="routes.feedback.build({})"
           (click)="closeAvatarMobileMenu(); closeOffCanvasMenu()"
           class="group flex items-center w-full mb-2 pl-3 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300"
           [ngClass]="{ 'bg-slate-200 dark:bg-slate-500': isAvatarMenuItemActive('/feedback') }">
@@ -503,7 +524,6 @@ import { APP_CONFIG } from '../../../config/app-config';
         </button>
       </div>
     </div>
-  </div>
   }
 </div>
 }
@@ -513,36 +533,36 @@ import { APP_CONFIG } from '../../../config/app-config';
 })
 export class HeaderComponent implements OnInit, OnDestroy {
 
+  protected readonly routes = routeManifest
+  protected readonly headerFacade = inject(HeaderFacade)
+  protected readonly headerViewModel = this.headerFacade.viewModel
   protected readonly themeManager = inject(ThemeManagerService)
   protected readonly designService = inject(DesignService)
   protected readonly searchContextService = inject(SearchContextService)
   protected readonly sessionSync = inject(SessionSyncService)
   private readonly router = inject(Router)
   private accountService = inject(AccountService)
-  private readonly authService = inject(AuthService)
+  private readonly authService = inject(AuthUseCasesService)
   protected readonly userContext = inject(UserContextService)
   protected readonly pathService = inject(PathService)
   private readonly toast = inject(ToastService)
-  private readonly appContext = inject(AppContextService)
+  private readonly shellLayout = inject(ShellLayoutService)
   private readonly appConfig = inject(APP_CONFIG)
+  private readonly storageRegistry = inject(BrowserStorageRegistry)
 
   private updatePathFlags(currentPath: string) {
     const clean = (currentPath || '').split(/[?#]/)[0]
-    const notAllowedPaths: string[] = ['/login', '/']
+    const notAllowedPaths: string[] = [routeManifest.login.build({}), routeManifest.home.build({})]
 
     this.isAllowedPath.set(!notAllowedPaths.includes(clean))
-    this.isLoginPath.set(clean.startsWith('/login'))
-    this.isRegisterPath.set(clean === '/register')
-    this.isWelcomePath.set(clean.startsWith('/welcome'))
+    this.isLoginPath.set(clean.startsWith(`/${routeManifest.login.path}`))
+    this.isRegisterPath.set(clean === routeManifest.register.build({}))
+    this.isWelcomePath.set(clean.startsWith(`/${routeManifest.welcome.path}`))
   }
 
-  @Input()
-  set triggerOpenOffCanvas(triggerOpenOffCanvas: boolean) {
-    this._triggerOpenOffCanvas.set(triggerOpenOffCanvas)
-  }
+  readonly triggerOpenOffCanvas = input(false)
 
-  @Output()
-  onOffCanvasMenuOpen = new EventEmitter<boolean>()
+  readonly offCanvasMenuOpened = output<boolean>();
 
   private routeSub?: Subscription
   private emailSub?: Subscription
@@ -585,8 +605,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
 
   constructor() {
+    effect(() => this._triggerOpenOffCanvas.set(this.triggerOpenOffCanvas()))
     effect(() => {
-      const t = this.appContext.addedTriggerCloseOffCanvasMenu()
+      const t = this.shellLayout.closeOffCanvasRequest()
       if (t === 0) {
         return
       }
@@ -598,7 +619,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
         return
       }
       this.offCanvasMenuOpen.set(true)
-      this.onOffCanvasMenuOpen.emit(true)
+      this.offCanvasMenuOpened.emit(true)
     })
     effect(() => {
       clearTimeout(this.themeMenuTimeoutId)
@@ -648,14 +669,22 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   protected toggleAvatarMenu(): void {
-    !this.avatarMenuOpen() && this.getProvidedEmail()
-    this.themeMenuOpen() && this.toggleThemeMenu()
+    if (!this.avatarMenuOpen()) {
+      this.getProvidedEmail()
+    }
+    if (this.themeMenuOpen()) {
+      this.toggleThemeMenu()
+    }
     this.avatarMenuOpen.update(open => !open)
   }
 
   protected toggleAvatarMobileMenu(): void {
-    !this.avatarMobileMenuOpen() && this.getProvidedEmail()
-    this.themeMenuOpen() && this.toggleThemeMenu()
+    if (!this.avatarMobileMenuOpen()) {
+      this.getProvidedEmail()
+    }
+    if (this.themeMenuOpen()) {
+      this.toggleThemeMenu()
+    }
     this.avatarMobileMenuOpen.update(open => !open)
   }
 
@@ -752,15 +781,16 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.logoutSub = this.authService.logout().subscribe({
       next: () => {
         queueMicrotask(() => {
-          this.sessionSync.logout()
+          this.sessionSync.completeVoluntaryLogout()
           this.offCanvasMenuOpen.set(false)
           this.toast.trigger('Logout eseguito.', 'success', 3000)
         })
       },
       error: () => {
-        sessionStorage?.removeItem('RouteError')
-        this.sessionSync.logout()
+        this.storageRegistry.remove(storageDescriptor('routeError'))
+        this.sessionSync.completeVoluntaryLogout()
         this.offCanvasMenuOpen.set(false)
+        this.toast.trigger('Logout locale completato; revoca server non confermata.', 'warn', 5000)
       }
     })
   }
@@ -792,4 +822,3 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
 }
-

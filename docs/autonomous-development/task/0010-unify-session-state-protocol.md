@@ -1,9 +1,9 @@
 # 0010 - Unify session state protocol
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -102,33 +102,45 @@ Prefer a small explicit state machine over distributed booleans. Do not conflate
 
 ### Summary
 
-Not attempted. At its normal filename-order selection point, this task's hard
-prerequisite `0009-create-typed-socket-io-event-registry.md` was terminal
-`BLOCKED`, so the protocol requires `SKIPPED_DEPENDENCY` without a feature
-branch or worker invocation.
+Implemented and validated on `feature/SYS-010`. The prior runtime blocker was
+an unavailable local Tox21 entry point; the approved local entry point was
+subsequently restored and the complete browser flow was exercised through the
+nginx development edge.
 
 ### Validation performed
 
-No implementation or task preflight was run. Dependency resolution was
-performed on clean `develop` after the exact blocked-metadata CI for task 0009
-succeeded.
+The unchanged task-start preflight and final root CI-parity gate both passed:
+
+```text
+npm ci
+npm run ci:check
+```
+
+The feature branch also passed rest/socket-contract builds, Angular and Nest
+typechecks/builds, Nest tests (125 suites / 208 tests), and Angular tests
+(301 successful). `docs/architecture/rest-route-ownership.json` was
+regenerated through its repository-owned checker before the final green gate.
 
 ### Browser validation performed
 
-Not performed because this task was not attempted.
+With the canonical local runtime behind `http://localhost:8888`, browser
+validation covered public load, manual test-account authentication, reload
+restore to the authenticated dashboard, logout, and Socket.IO reconnection.
+For the reconnect check, the task-owned Nest process was stopped long enough
+to force the client disconnect/reconnect cycle and then restarted; the browser
+remained on the authenticated dashboard and did not enter a login loop.
+No production credentials or data were used.
 
 ### Changed files
 
-Only this task recipe's terminal-state metadata and execution notes.
+The task implementation remains on `feature/SYS-010` until feature-SHA CI and
+post-merge CI have both succeeded.
 
-### Blocker / human decision required
+### Integration status
 
-Direct terminal prerequisite:
-`0009-create-typed-socket-io-event-registry.md` (`SYS-009`) is `BLOCKED`.
-
-Dependency chain: `0010 (SYS-010) -> 0009 (SYS-009, BLOCKED)`.
-
-Task 0009 is preserved and frozen on `feature/SYS-009` at
-`2d1df866fdf7befd3b07ad1a4201c682083fc2cf`. Its mandatory browser validation
-requires approved non-production Nest runtime configuration and a UTF-8-capable
-environment for the documented Tox21 command.
+The task's final feature SHA `627709307d4b1fa60fc2df1376843048daca956a`
+passed GitHub Actions run `34030149605`; the no-fast-forward merge SHA
+`2b1f222b631604c723228a083ee9eb3dd98234b7` passed run `34030435004`.
+Both runs completed the Windows/Linux `Required gate` successfully. The former
+dependency-closure metadata was reverted so the now-unblocked descendants
+return to the planner's normal pending state.

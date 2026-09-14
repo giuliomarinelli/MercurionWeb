@@ -13,6 +13,11 @@ spec:
       labels:
         app: mercurion-web-node
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
       containers:
         - name: web-node
           image: europe-west8-docker.pkg.dev/mercurion-483615/mercurion/mercurion-web-node:1.0-beta-1c61
@@ -34,12 +39,19 @@ spec:
               value: "staging"
             - name: NODE_ENV
               value: "production"
-            - name: PORT
+            - name: APP_PORT
               value: "8098"
-            - name: HOST
+            - name: APP_HOST
               value: "0.0.0.0"
           
-          command: ["node", "dist/main.js"]
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
           resources:
             requests:
               cpu: "300m"
@@ -48,24 +60,28 @@ spec:
               cpu: "1"
               memory: "1Gi"
 
-
           startupProbe:
             tcpSocket:
               port: 8098
             failureThreshold: 60
-            periodSeconds: 2          
+            periodSeconds: 2
 
           livenessProbe:
             tcpSocket:
               port: 8098
             periodSeconds: 10
-            failureThreshold: 3         
+            failureThreshold: 3
 
           readinessProbe:
             tcpSocket:
               port: 8098
             periodSeconds: 5
-            failureThreshold: 3         
+            failureThreshold: 3
+
+      volumes:
+        - name: tmp
+          emptyDir:
+            medium: Memory
 
 
 ---

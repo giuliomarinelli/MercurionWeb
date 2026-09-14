@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, viewChild } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CollapseMaxHeightDirective } from './collapse-max-height.directive';
 
@@ -8,7 +8,7 @@ import { CollapseMaxHeightDirective } from './collapse-max-height.directive';
   template: `<div [appCollapseMaxH]="expanded" [minPx]="minPx" [maxPx]="maxPx" [auto]="auto"></div>`
 })
 class HostComponent {
-  @ViewChild(CollapseMaxHeightDirective) directive!: CollapseMaxHeightDirective;
+  readonly directive = viewChild.required(CollapseMaxHeightDirective);
   expanded = false;
   minPx = 100;
   maxPx = 200;
@@ -46,7 +46,7 @@ describe('CollapseMaxHeightDirective', () => {
   });
 
   it('should create an instance', () => {
-    expect(host.directive).toBeTruthy();
+    expect(host.directive()).toBeTruthy();
   });
 
   it('owns the double-rAF transition sequence and cancels the pending frame instead of leaking it on destroy', () => {
@@ -66,7 +66,7 @@ describe('CollapseMaxHeightDirective', () => {
   });
 
   it('detaches the previous transitionend listener before attaching a new one on rapid re-toggle (no duplicate listeners)', () => {
-    const directive = host.directive as any;
+    const directive = host.directive() as any;
 
     host.expanded = true;
     fixture.detectChanges();

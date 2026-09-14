@@ -1,17 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  effect,
-  ElementRef,
-  EventEmitter,
-  Input,
-  NgZone,
-  OnDestroy,
-  OnInit,
-  Output,
-  signal,
-  ViewChild
-} from '@angular/core'
+import { ChangeDetectionStrategy, Component, effect, ElementRef, NgZone, OnDestroy, OnInit, signal, input, output, inject, viewChild } from '@angular/core'
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser'
 import {
   catchError,
@@ -36,6 +23,7 @@ import {
 } from '../../../chemistry/chemistry-adapter.models'
 import { ChemistryEditorService } from '../../../chemistry/chemistry-editor.service'
 import { PublicPipe } from '../../../pipes/public.pipe'
+import { ViewportRuntimeService } from '../../../services/context/viewport-runtime.service'
 
 @Component({
   selector: 'm-ketcher-frame',
@@ -98,6 +86,12 @@ import { PublicPipe } from '../../../pipes/public.pipe'
   `
 })
 export class KetcherFrameComponent implements OnInit, OnDestroy {
+  private readonly viewportRuntime = inject(ViewportRuntimeService)
+  private readonly publicPipe = inject(PublicPipe);
+  private readonly sanitizer = inject(DomSanitizer);
+  private readonly editor = inject(ChemistryEditorService);
+  private readonly zone = inject(NgZone);
+
   readonly ketcherUrl = signal<SafeResourceUrl | null>(null)
   readonly showIframe = signal(true)
   readonly editorState = signal<'loading' | 'ready' | 'unavailable'>('loading')
@@ -117,48 +111,37 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
   private sessionGeneration = 0
   private destroyed = false
 
-  @Input() mode: ChemistryEditorMode = 'create'
+  readonly mode = input<ChemistryEditorMode>('create');
 
-  @Input()
-  set smiles(smiles: string | undefined) {
-    const nextSmiles = smiles ?? ''
-    this.structureValue.set(nextSmiles)
-    this.initialSmiles = nextSmiles
-    if (this.editorState() === 'ready') void this.updateEditorStructure(nextSmiles)
-  }
+  readonly smiles = input<string | undefined>(undefined)
+  readonly triggerReset = input(false)
+  readonly triggerGetSmiles = input(false)
 
-  @Input()
-  set triggerReset(trigger: boolean) {
-    this.triggerResetSignal.set(trigger)
-  }
+  readonly molChange = output<string>();
+  readonly exportSmiles = output<string>();
+  readonly exportPolledSmiles = output<string>();
+  readonly onReset = output<void>();
 
-  @Input()
-  set triggerGetSmiles(trigger: boolean) {
-    this.triggerGetSmilesSignal.set(trigger)
-  }
+  readonly iframeRef = viewChild<ElementRef<HTMLIFrameElement>>('ketcherIframe')
 
-  @Output() molChange = new EventEmitter<string>()
-  @Output() exportSmiles = new EventEmitter<string>()
-  @Output() exportPolledSmiles = new EventEmitter<string>()
-  @Output() onReset = new EventEmitter<void>()
-
-  @ViewChild('ketcherIframe')
-  set iframeRef(ref: ElementRef<HTMLIFrameElement> | undefined) {
-    this.iframe = ref?.nativeElement
-    if (this.iframe) this.session?.attach(this.iframe)
-  }
-
-  constructor(
-    private readonly publicPipe: PublicPipe,
-    private readonly sanitizer: DomSanitizer,
-    private readonly editor: ChemistryEditorService,
-    private readonly zone: NgZone
-  ) {
+  constructor() {
+    effect(() => {
+      const nextSmiles = this.smiles() ?? ''
+      this.structureValue.set(nextSmiles)
+      this.initialSmiles = nextSmiles
+      if (this.editorState() === 'ready') void this.updateEditorStructure(nextSmiles)
+    })
+    effect(() => this.triggerResetSignal.set(this.triggerReset()))
+    effect(() => this.triggerGetSmilesSignal.set(this.triggerGetSmiles()))
+    effect(() => {
+      this.iframe = this.iframeRef()?.nativeElement
+      if (this.iframe) this.session?.attach(this.iframe)
+    })
     effect(() => {
       if (this.triggerResetSignal()) {
         this.triggerResetSignal.set(false)
         this.resetMolecule()
-        this.zone.run(() => this.onReset.emit())
+        this.zone.run(() => this.onReset.emit(undefined))
         return
       }
 
@@ -174,13 +157,10 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
       }
     })
 
-    this.viewportListener = () => this.zone.run(() => this.updateViewportFlags())
   }
 
   ngOnInit(): void {
     this.updateViewportFlags()
-    window.addEventListener('resize', this.viewportListener)
-    window.addEventListener('orientationchange', this.viewportListener)
     void this.startSession()
 
     this.pollSubscription = interval(250)
@@ -196,8 +176,6 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroyed = true
     this.sessionGeneration += 1
-    window.removeEventListener('resize', this.viewportListener)
-    window.removeEventListener('orientationchange', this.viewportListener)
     this.destroy$.next()
     this.destroy$.complete()
     this.exportSubscription?.unsubscribe()
@@ -220,8 +198,6 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
   resetMolecule(): void {
     if (this.editorState() === 'ready') void this.updateEditorStructure(this.initialSmiles)
   }
-
-  private viewportListener: () => void = () => undefined
 
   private async startSession(): Promise<void> {
     const generation = ++this.sessionGeneration
@@ -265,9 +241,9 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
   }
 
   private updateViewportFlags(): void {
-    const width = window.innerWidth || 0
-    const height = window.innerHeight || 0
-    const landscape = height > 0 ? width >= height : false
+    const width = this.viewportRuntime.width()
+    const height = this.viewportRuntime.height()
+    const landscape = this.viewportRuntime.state().landscape
     const roomy = width >= 600 || (width >= 480 && height >= 360)
     this.showIframe.set(landscape || roomy)
   }
@@ -347,7 +323,7 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
         style.opacity === '0' ||
         rect.width < 12 ||
         rect.height < 12
-      const offscreen = rect.bottom < 0 || rect.top > (doc.defaultView?.innerHeight ?? window.innerHeight)
+      const offscreen = rect.bottom < 0 || rect.top > this.viewportRuntime.height()
       const suspiciousClass = /clipboard|hotkey|shortcut|key|hidden|dummy/i.test(element.className?.toString() ?? '')
       const typeHidden = element instanceof HTMLInputElement && element.type === 'hidden'
 

@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, DestroyRef, inject, Input, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, DestroyRef, effect, inject, input, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NotebookTree, SectionTree, PageTree } from '../../../Models/graphql/notebook/notebook.models';
 import { NotebookService } from '../../../services/graphql/notebook.service';
@@ -64,11 +64,11 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
                         <ul>
                           @for (page of section.pages; track page) {
                             <li class="flex items-center gap-2 ml-7">
-                              <span class="selectable"
+                              <button type="button" class="selectable text-left"
                                 [class.selected]="isSelected('page', page.id)"
                                 (click)="select('page', chapter.id, section.id, page.id)">
                                   {{ page.title }}
-                              </span>
+                              </button>
 
                               <button (click)="renamePage(page, section)">✏️</button>
                               <button (click)="deletePage(page.id, section)">🗑️</button>
@@ -93,22 +93,21 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
   `
 })
 export class NotebookTreeComponent {
+  private readonly notebookService = inject(NotebookService);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+
   private readonly destroyRef = inject(DestroyRef);
   _notebooks = signal<NotebookTree[]>([]);
 
-  @Input()
-  set notebooks(notebooks: NotebookTree[]) {
-    this._notebooks.set(notebooks)
-  }
+  readonly notebooks = input<NotebookTree[]>([])
 
   expandedChapters = signal<{ [id: string]: boolean }>({});
   expandedSections = signal<{ [id: string]: boolean }>({});
 
-  constructor(
-    private readonly notebookService: NotebookService,
-    private readonly router: Router,
-    private readonly route: ActivatedRoute
-  ) { }
+  constructor() {
+    effect(() => this._notebooks.set(this.notebooks()))
+  }
 
   toggleChapter(id: string) {
     this.expandedChapters.update(state => ({ ...state, [id]: !state[id] }));

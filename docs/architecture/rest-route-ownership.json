@@ -1,0 +1,1385 @@
+{
+  "schemaVersion": 3,
+  "generatedBy": "node scripts/check-rest-route-ownership.mjs --write",
+  "globalPrefix": "/api",
+  "prefixExceptions": [
+    "/health",
+    "/og/mercurion-og.png",
+    "/robots.txt",
+    "/sitemap.xml"
+  ],
+  "routes": [
+    {
+      "method": "DELETE",
+      "path": "/api/account/phone/1",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+      "handler": "deletePhoneNumber_firstStep",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/account.service.ts",
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
+          "kind": "server-source"
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/authentication/logout",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
+      "handler": "logout",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/auth-transport.service.ts",
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
+          "kind": "server-source"
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/documents/:id",
+      "controller": "MercurionWebNode/src/app_modules/dropbox-object-store/controllers/document.controller.ts",
+      "handler": "delete",
+      "classification": "temporarily disabled endpoint",
+      "owner": "Document API implementation backlog",
+      "evidence": [
+        "Human decision 2026-09-05: currently unused; the controller returns an empty HTTP 403 response until implementation."
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
+          "kind": "server-source"
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/feedback/:id",
+      "controller": "MercurionWebNode/src/app_modules/feedback/controllers/feedback.controller.ts",
+      "handler": "delete",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/feedback.service.ts",
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/history",
+      "controller": "MercurionWebNode/src/app_modules/history/controllers/history.controller.ts",
+      "handler": "deleteHistory",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/interceptors/auth.interceptor.spec.ts",
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNg/src/app/services/history.service.ts",
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/account/active-sessions",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+      "handler": "getActiveSessions",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/account.service.ts",
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
+          "kind": "server-source"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/account/auth-provider",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+      "handler": "getAuthProvider",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/account.service.ts",
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/account/current-version",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+      "handler": "getCurrentVersion",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/account.service.ts",
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/account/email",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+      "handler": "getProvidedEmail",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/account.service.spec.ts",
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNg/src/app/services/account.service.ts",
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
+          "kind": "server-source"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/account/is-authorized-to-recover-password",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+      "handler": "isAuthorizedToRecoverPassword",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/account.service.ts",
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
+          "kind": "server-source"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/account/is-mfa-enabled",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+      "handler": "isMfaEnabled",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/account.service.ts",
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/account/masked-email",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+      "handler": "getMaskedEmail",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/account.service.ts",
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/account/masked-phone",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+      "handler": "getMaskedPhone",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/account.service.ts",
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/account/mfa-active-strategies",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+      "handler": "getMfaActiveStrategies",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/account.service.ts",
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/account/mfa/backup/status",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+      "handler": "getBackupCodesStatus",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/account.service.ts",
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
+          "kind": "server-source"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/account/profile-registry",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+      "handler": "getProfileRegistry",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/account.service.ts",
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/account/profile-registry/essential",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+      "handler": "getEssentialProfileRegistry",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/account.service.ts",
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/maintenance",
+      "controller": "MercurionWebNode/src/app_modules/admin/controllers/admin.controller.ts",
+      "handler": "getAdminMaintenanceCookie",
+      "classification": "documented external consumer",
+      "owner": "Privileged administration client",
+      "evidence": [
+        "MercurionWebNode/src/app_modules/admin/controllers/admin.controller.ts",
+        "MercurionWebNode/src/app_modules/auth/guards/scope.guard.ts"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/auth-transport.service.ts",
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/authentication/ws-refresh",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
+      "handler": "refreshWs_accessToken",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/auth-transport.service.ts",
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
+          "kind": "server-source"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/countries/phone-prefixes",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/country.controller.ts",
+      "handler": "getAllPhonePrefixes",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/country.service.ts",
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/documents",
+      "controller": "MercurionWebNode/src/app_modules/dropbox-object-store/controllers/document.controller.ts",
+      "handler": "list",
+      "classification": "temporarily disabled endpoint",
+      "owner": "Document API implementation backlog",
+      "evidence": [
+        "Human decision 2026-09-05: currently unused; the controller returns an empty HTTP 403 response until implementation."
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
+          "kind": "server-source"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/documents/:id",
+      "controller": "MercurionWebNode/src/app_modules/dropbox-object-store/controllers/document.controller.ts",
+      "handler": "download",
+      "classification": "temporarily disabled endpoint",
+      "owner": "Document API implementation backlog",
+      "evidence": [
+        "Human decision 2026-09-05: currently unused; the controller returns an empty HTTP 403 response until implementation."
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
+          "kind": "server-source"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/embedding/get-similar-molregnos",
+      "controller": "MercurionWebNode/src/app_modules/embedding/controllers/embedding.controller.ts",
+      "handler": "getSimilarMolregnos",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/embedding.service.ts",
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/feedback",
+      "controller": "MercurionWebNode/src/app_modules/feedback/controllers/feedback.controller.ts",
+      "handler": "list",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/feedback.service.ts",
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/feedback/:id",
+      "controller": "MercurionWebNode/src/app_modules/feedback/controllers/feedback.controller.ts",
+      "handler": "getById",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/feedback.service.ts",
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/history",
+      "controller": "MercurionWebNode/src/app_modules/history/controllers/history.controller.ts",
+      "handler": "getHistory",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/interceptors/auth.interceptor.spec.ts",
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNg/src/app/services/history.service.ts",
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/oauth2/:provider/callback",
+      "controller": "MercurionWebNode/src/app_modules/oauth2-client/controllers/o-auth2-client.controller.ts",
+      "handler": "callback",
+      "classification": "browser/system API",
+      "owner": "OAuth provider redirect and callback flow",
+      "evidence": [
+        "MercurionWebNode/src/app_modules/oauth2-client/controllers/o-auth2-client.controller.ts",
+        "MercurionWebNode/src/app_modules/sso/controllers/social-auth.controller.ts"
+      ],
+      "references": []
+    },
+    {
+      "method": "GET",
+      "path": "/api/oauth2/:provider/login",
+      "controller": "MercurionWebNode/src/app_modules/oauth2-client/controllers/o-auth2-client.controller.ts",
+      "handler": "login",
+      "classification": "browser/system API",
+      "owner": "OAuth provider redirect and callback flow",
+      "evidence": [
+        "MercurionWebNode/src/app_modules/oauth2-client/controllers/o-auth2-client.controller.ts",
+        "MercurionWebNode/src/app_modules/sso/controllers/social-auth.controller.ts"
+      ],
+      "references": []
+    },
+    {
+      "method": "GET",
+      "path": "/api/oauth2/sso/:provider/callback",
+      "controller": "MercurionWebNode/src/app_modules/sso/controllers/social-auth.controller.ts",
+      "handler": "callback",
+      "classification": "browser/system API",
+      "owner": "OAuth provider redirect and callback flow",
+      "evidence": [
+        "MercurionWebNode/src/app_modules/oauth2-client/controllers/o-auth2-client.controller.ts",
+        "MercurionWebNode/src/app_modules/sso/controllers/social-auth.controller.ts"
+      ],
+      "references": []
+    },
+    {
+      "method": "GET",
+      "path": "/api/oauth2/sso/:provider/login",
+      "controller": "MercurionWebNode/src/app_modules/sso/controllers/social-auth.controller.ts",
+      "handler": "login",
+      "classification": "browser/system API",
+      "owner": "OAuth provider redirect and callback flow",
+      "evidence": [
+        "MercurionWebNode/src/app_modules/oauth2-client/controllers/o-auth2-client.controller.ts",
+        "MercurionWebNode/src/app_modules/sso/controllers/social-auth.controller.ts"
+      ],
+      "references": []
+    },
+    {
+      "method": "GET",
+      "path": "/api/test",
+      "controller": "MercurionWebNode/src/test.controller.ts",
+      "handler": "test",
+      "classification": "test/dev-only endpoint",
+      "owner": "Nest diagnostic and E2E test support",
+      "evidence": [
+        "MercurionWebNode/src/test.controller.spec.ts",
+        "MercurionWebNode/src/test.controller.ts"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNode/test/app.e2e-spec.ts",
+          "kind": "test"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/health",
+      "controller": "MercurionWebNode/src/health.controller.ts",
+      "handler": "health",
+      "classification": "browser/system API",
+      "owner": "Operations health monitoring",
+      "evidence": [
+        "MercurionWebNode/src/main.ts:setGlobalPrefix exclusion",
+        "docs/autonomous-development/RUNTIME.md: nginx health readiness check"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNode/src/app.module.ts",
+          "kind": "server-source"
+        },
+        {
+          "file": "MercurionWebNode/src/bootstrap/configurators/security.configurator.ts",
+          "kind": "server-source"
+        },
+        {
+          "file": "MercurionWebNode/src/health.controller.spec.ts",
+          "kind": "server-source"
+        },
+        {
+          "file": "docker_sl/nginx_dev/nginx.conf",
+          "kind": "nginx"
+        },
+        {
+          "file": "docker_sl/nginx_test/default.conf",
+          "kind": "nginx"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/og/mercurion-og.png",
+      "controller": "MercurionWebNode/src/asset.controller.ts",
+      "handler": "serveOgImage",
+      "classification": "browser/system API",
+      "owner": "Public web crawlers and social-preview clients",
+      "evidence": [
+        "MercurionWebNode/src/asset.controller.ts",
+        "MercurionWebNode/src/main.ts:setGlobalPrefix exclusion"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/index.html",
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNode/src/bootstrap/configurators/security.configurator.ts",
+          "kind": "server-source"
+        },
+        {
+          "file": "docker_sl/nginx_dev/nginx.conf",
+          "kind": "nginx"
+        },
+        {
+          "file": "docker_sl/nginx_test/default.conf",
+          "kind": "nginx"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/robots.txt",
+      "controller": "MercurionWebNode/src/asset.controller.ts",
+      "handler": "serveRobots",
+      "classification": "browser/system API",
+      "owner": "Public web crawlers and social-preview clients",
+      "evidence": [
+        "MercurionWebNode/src/asset.controller.ts",
+        "MercurionWebNode/src/main.ts:setGlobalPrefix exclusion"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNode/src/bootstrap/configurators/security.configurator.ts",
+          "kind": "server-source"
+        },
+        {
+          "file": "docker_sl/nginx_dev/nginx.conf",
+          "kind": "nginx"
+        },
+        {
+          "file": "docker_sl/nginx_test/default.conf",
+          "kind": "nginx"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/sitemap.xml",
+      "controller": "MercurionWebNode/src/asset.controller.ts",
+      "handler": "serveSiteMap",
+      "classification": "browser/system API",
+      "owner": "Public web crawlers and social-preview clients",
+      "evidence": [
+        "MercurionWebNode/src/asset.controller.ts",
+        "MercurionWebNode/src/main.ts:setGlobalPrefix exclusion"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNode/src/bootstrap/configurators/security.configurator.ts",
+          "kind": "server-source"
+        },
+        {
+          "file": "docker_sl/nginx_dev/nginx.conf",
+          "kind": "nginx"
+        },
+        {
+          "file": "docker_sl/nginx_test/default.conf",
+          "kind": "nginx"
+        }
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/account/activate",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+      "handler": "activateAccount",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/account.service.ts",
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
+          "kind": "server-source"
+        }
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/account/email/1",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+      "handler": "changeEmail_firstStep",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/account.service.ts",
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
+          "kind": "server-source"
+        }
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/account/email/2",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+      "handler": "changeEmail_secondStep",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/account.service.spec.ts",
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNg/src/app/services/account.service.ts",
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
+          "kind": "server-source"
+        }
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/account/mfa/backup/regenerate",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+      "handler": "regenerateBackupCodes",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/account.service.ts",
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
+          "kind": "server-source"
+        }
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/account/mfa/disable/:strategy/1",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+      "handler": "disableMfa_firstStep",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": []
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/account/mfa/disable/:strategy/2",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+      "handler": "disableMfa_secondStep",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": []
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/account/mfa/enable/:strategy/1",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+      "handler": "enableMfa_firstStep",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": []
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/account/mfa/enable/:strategy/2",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+      "handler": "enableMfa_secondStep",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": []
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/account/password",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+      "handler": "changePassword",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/account.service.ts",
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
+          "kind": "server-source"
+        }
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/account/password-recovery",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+      "handler": "passwordRecovery",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/account.service.ts",
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
+          "kind": "server-source"
+        }
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/account/phone/1",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+      "handler": "changePhoneNumber_firstStep",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/account.service.ts",
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
+          "kind": "server-source"
+        }
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/account/phone/2",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+      "handler": "changePhoneNumber_secondStep",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/account.service.ts",
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
+          "kind": "server-source"
+        }
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/account/phone/del/2",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+      "handler": "deletePhoneNumber_secondStep",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/account.service.ts",
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/account/profile-registry",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+      "handler": "updateProfileRegistry",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/account.service.ts",
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/authentication/logout-from-all-sessions",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
+      "handler": "logoutFromAllSessions",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/auth-transport.service.ts",
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/authentication/logout-from-session",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
+      "handler": "logoutFromSession",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/auth-transport.service.ts",
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/feedback/:id",
+      "controller": "MercurionWebNode/src/app_modules/feedback/controllers/feedback.controller.ts",
+      "handler": "moderate",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/feedback.service.ts",
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/account/forgotten-password",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+      "handler": "forgottenPassword",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/account.service.ts",
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
+          "kind": "server-source"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/account/is-email-available",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+      "handler": "isEmailAvailable",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/auth-transport.service.ts",
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
+          "kind": "server-source"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/account/mask-email",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+      "handler": "maskEmail",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/account.service.ts",
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/account/mask-phone",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+      "handler": "maskPhone",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/account.service.ts",
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/account/register",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+      "handler": "registerUser",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/auth-transport.service.ts",
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
+          "kind": "server-source"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/authentication/local-dummy",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
+      "handler": "localDummyLogin",
+      "classification": "test/dev-only endpoint",
+      "owner": "Local development authentication fixture",
+      "evidence": [
+        "MercurionWebNg/src/app/services/local-dummy-auth.service.ts",
+        "docs/autonomous-development/RUNTIME.md"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/local-dummy-auth.service.ts",
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/authentication/login/0",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
+      "handler": "login_zeroStep",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/auth-transport.service.ts",
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/authentication/login/1",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
+      "handler": "login_firstStep",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/auth-transport.service.spec.ts",
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNg/src/app/services/auth-transport.service.ts",
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
+          "kind": "server-source"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/authentication/login/:strategy/2",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
+      "handler": "login_secondStep",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": []
+    },
+    {
+      "method": "POST",
+      "path": "/api/authentication/login/:strategy/3",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
+      "handler": "login_thirdStep",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": []
+    },
+    {
+      "method": "POST",
+      "path": "/api/authentication/sso/:provider/authorize-flow",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/authentication.controller.ts",
+      "handler": "authorize_sso",
+      "classification": "browser/system API",
+      "owner": "OAuth provider redirect and callback flow",
+      "evidence": [
+        "MercurionWebNode/src/app_modules/oauth2-client/controllers/o-auth2-client.controller.ts",
+        "MercurionWebNode/src/app_modules/sso/controllers/social-auth.controller.ts"
+      ],
+      "references": []
+    },
+    {
+      "method": "POST",
+      "path": "/api/documents",
+      "controller": "MercurionWebNode/src/app_modules/dropbox-object-store/controllers/document.controller.ts",
+      "handler": "upload",
+      "classification": "temporarily disabled endpoint",
+      "owner": "Document API implementation backlog",
+      "evidence": [
+        "Human decision 2026-09-05: currently unused; the controller returns an empty HTTP 403 response until implementation."
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
+          "kind": "server-source"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/feedback",
+      "controller": "MercurionWebNode/src/app_modules/feedback/controllers/feedback.controller.ts",
+      "handler": "create",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/feedback.service.ts",
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/mercurion-ai/tox-21/infer",
+      "controller": "MercurionWebNode/src/app_modules/mercurion-ai/controllers/mercurion-ai.controller.ts",
+      "handler": "inferTox21Top4Smiles",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/mercurion-ai.service.ts",
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/rdkit-api/are-same-structure",
+      "controller": "MercurionWebNode/src/app_modules/mercurion-ai/controllers/rd-kit.controller.ts",
+      "handler": "areSameStructure",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/rd-kit-api.service.ts",
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/rdkit-api/get-molecule-properties",
+      "controller": "MercurionWebNode/src/app_modules/mercurion-ai/controllers/rd-kit.controller.ts",
+      "handler": "getMoleculeProperties",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/rd-kit-api.service.ts",
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/rdkit-api/to-canonical-smiles",
+      "controller": "MercurionWebNode/src/app_modules/mercurion-ai/controllers/rd-kit.controller.ts",
+      "handler": "toCanonicalSmiles",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/rd-kit-api.service.ts",
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/recovery/1",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/recovery.controller.ts",
+      "handler": "accountRecovery_firstStep",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/recovery.service.ts",
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/recovery/2",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/recovery.controller.ts",
+      "handler": "accountRecovery_second",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/recovery.service.ts",
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/admin/change-log-levels",
+      "controller": "MercurionWebNode/src/app_modules/admin/controllers/admin.controller.ts",
+      "handler": "changeLogLevels",
+      "classification": "documented external consumer",
+      "owner": "Administrative operators granted Scope.ChangeLogLevels",
+      "evidence": [
+        "MercurionWebNode/src/app_modules/admin/controllers/admin.controller.ts:@HasScopes(Scope.ChangeLogLevels)",
+        "MercurionWebNode/src/app_modules/user/Models/enums/scope.enum.ts:Scope.ChangeLogLevels"
+      ],
+      "references": []
+    }
+  ]
+}

@@ -1,9 +1,8 @@
 import {
-  Component, Input, signal, effect, ElementRef, OnDestroy, NgZone, inject,
+  Component, input, signal, effect, ElementRef, OnDestroy, NgZone, inject,
   ChangeDetectionStrategy,
   computed,
-  Output,
-  EventEmitter
+  output
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DecimalPipe, NgClass, DatePipe } from '@angular/common';
@@ -20,7 +19,8 @@ import { Subscription } from 'rxjs';
 import { MoleculeCollectionItemService } from '../../../services/graphql/molecule-collection-item.service';
 import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.component';
 import { DesignService } from '../../../services/design.service';
-import { AppContextService } from '../../../services/context/app-context.service';
+import { ShellLayoutService } from '../../../services/context/shell-layout.service';
+import { ViewportRuntimeService } from '../../../services/context/viewport-runtime.service';
 
 @Component({
   selector: 'm-molecule-collection-item-card',
@@ -262,6 +262,7 @@ import { AppContextService } from '../../../services/context/app-context.service
 
 })
 export class MoleculeCollectionItemCardComponent implements OnDestroy {
+  private readonly viewportRuntime = inject(ViewportRuntimeService);
   // ======================= DEPS =======================
   protected readonly searchContext = inject(SearchContextService)
   private readonly themeManager = inject(ThemeManagerService)
@@ -271,71 +272,35 @@ export class MoleculeCollectionItemCardComponent implements OnDestroy {
   private readonly historyContext = inject(HistoryContextService)
   private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService)
   private readonly design = inject(DesignService)
-  private readonly appContext = inject(AppContextService)
+  private readonly shellLayout = inject(ShellLayoutService)
   // ====================================================
 
-  /* inputs ---------------------------------- */
-  @Input({ required: true })
-  set molecule(m: MoleculeCardItemModel) {
-    this.seen = false
-    this.viewerReady.set(false)
-    this.disablePreview.set(true)
-    this._molecule.set(m)
-    this._pathToMolecule.set(`/molecules/detail/${m.id}`)
-
-    this.zone.runOutsideAngular(() => this.io.observe(this.host.nativeElement));
-  }
-
-  @Input({ required: true })
-  set i(i: number) {
-    this._i.set(i)
-  }
-
-  @Input()
-  set collectionId(collectionId: string) {
-    this._collectionId.set(collectionId)
-  }
-
-  @Input()
-  set isReadonly(isReadonly: boolean) {
-    this._isReadonly.set(isReadonly)
-  }
-
-  @Input()
-  set hideActions(hideActions: boolean) {
-    this._hideActions.set(hideActions)
-  }
-
-  @Input()
-  set triggerDisappear(triggerDisappear: boolean) {
-    this._triggerDisappear.set(triggerDisappear)
-  }
-
-  @Input()
-  set collapse(collapse: boolean) {
-    this._collapse.set(collapse)
-  }
+  readonly molecule = input.required<MoleculeCardItemModel>()
+  readonly i = input.required<number>()
+  readonly collectionId = input<string | null>(null)
+  readonly isReadonly = input(false)
+  readonly hideActions = input(false)
+  readonly triggerDisappear = input(false)
+  readonly collapse = input(false)
 
   /* outputs ---------------------------------- */
 
-  @Output()
-  onDelete = new EventEmitter<string>()
+  readonly onDelete = output<string>();
 
-  @Output()
-  onRemoveFromCollection = new EventEmitter<string>()
+  readonly onRemoveFromCollection = output<string>();
 
 
   private upNaSub?: Subscription
 
-  _collectionId = signal<string | null>(null)
-  _molecule = signal<MoleculeCardItemModel | undefined>(undefined);
-  _pathToMolecule = signal<string>('');
-  _i = signal<number>(0);
+  readonly _collectionId = computed(() => this.collectionId())
+  readonly _molecule = computed(() => this.molecule());
+  readonly _pathToMolecule = computed(() => `/molecules/detail/${this.molecule().id}`);
+  readonly _i = computed(() => this.i());
   isDarkMode = signal<boolean>(false);
   viewerReady = signal<boolean>(false);
   /** viewer OFF finché true */
   disablePreview = signal<boolean>(true);
-  _isReadonly = signal<boolean>(false)
+  readonly _isReadonly = computed(() => this.isReadonly())
   pathToDuplicate = computed(() => ({
     url: `/molecules/editor`,
     queryParams: {
@@ -343,9 +308,9 @@ export class MoleculeCollectionItemCardComponent implements OnDestroy {
       smiles: this._molecule()!.smiles
     }
   }))
-  _triggerDisappear = signal<boolean>(false)
-  _collapse = signal<boolean>(false)
-  _hideActions = signal<boolean>(false)
+  readonly _triggerDisappear = computed(() => this.triggerDisappear())
+  readonly _collapse = computed(() => this.collapse())
+  readonly _hideActions = computed(() => this.hideActions())
 
   isMobile = computed<boolean>(() => this.design.maxBk('sm')())
 
@@ -353,6 +318,13 @@ export class MoleculeCollectionItemCardComponent implements OnDestroy {
   private io!: IntersectionObserver;
 
   constructor() {
+    effect(() => {
+      this.molecule()
+      this.seen = false
+      this.viewerReady.set(false)
+      this.disablePreview.set(true)
+      if (this.io) this.zone.runOutsideAngular(() => this.io.observe(this.host.nativeElement))
+    })
     effect(() => this.isDarkMode.set(this.themeManager.theme() === 'dark'));
 
     this.zone.runOutsideAngular(() => {
@@ -368,7 +340,7 @@ export class MoleculeCollectionItemCardComponent implements OnDestroy {
       );
 
       const isInViewport = (el: HTMLElement) =>
-        el.getBoundingClientRect().top < window.innerHeight + 150;
+        el.getBoundingClientRect().top < this.viewportRuntime.height() + 150;
 
       queueMicrotask(() => {
         if (this.disablePreview() && isInViewport(this.host.nativeElement)) {
@@ -406,7 +378,7 @@ export class MoleculeCollectionItemCardComponent implements OnDestroy {
   handleCardClick(): void {
     queueMicrotask(() => {
       if (this.isMobile()) {
-        this.appContext.notifyAddedTriggerCloseOffCanvasMenu()
+        this.shellLayout.requestCloseOffCanvas()
       }
       this.searchContext.close()
     })
@@ -417,4 +389,3 @@ export class MoleculeCollectionItemCardComponent implements OnDestroy {
     this.upNaSub?.unsubscribe()
   }
 }
-

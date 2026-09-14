@@ -18,19 +18,22 @@
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
-    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\"",
+    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --max-warnings 0",
     "lint:fix": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "typecheck": "tsc --noEmit",
     "graphql:schema:check": "node -r ts-node/register -r tsconfig-paths/register scripts/graphql-schema.ts",
     "graphql:schema:update": "node -r ts-node/register -r tsconfig-paths/register scripts/graphql-schema.ts --update",
-    "test": "jest",
+    "test": "jest --config ./jest.config.js",
+    "test:ci": "node -e \"require('fs').mkdirSync('test-results',{recursive:true})\" && jest --config ./jest.config.js --runInBand --json --outputFile=./test-results/jest-results.json",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "test:e2e:ci": "node -e \"require('fs').mkdirSync('test-results',{recursive:true})\" && jest --config ./test/jest-e2e.json --runInBand --json --outputFile=./test-results/e2e-results.json"
   },
   "dependencies": {
     "@mercurion/rest-contracts": "1.0.0",
+    "@mercurion/socket-contracts": "1.0.0",
     "@fastify/cookie": "11.0.2",
     "@fastify/helmet": "13.0.2",
     "@fastify/middie": "9.3.3",
@@ -71,7 +74,7 @@
     "mercurius": "16.10.0",
     "nats": "2.29.3",
     "nestjs-typeorm-paginate": "4.1.0",
-    "nodemailer": "9.0.3",
+    "nodemailer": "9.1.1",
     "pg": "8.16.3",
     "qrcode": "1.5.4",
     "reflect-metadata": "0.2.2",
@@ -109,26 +112,5 @@
     "tsconfig-paths": "4.2.0",
     "typescript": "5.9.3",
     "typescript-eslint": "8.65.0"
-  },
-  "jest": {
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
-    "rootDir": "src",
-    "moduleNameMapper": {
-      "^src/(.*)$": "<rootDir>/$1",
-      "^jose$": "<rootDir>/test-utils/mocks/jose.ts"
-    },
-    "testRegex": ".*\\.spec\\.ts$",
-    "transform": {
-      "^.+\\.ts$": "ts-jest"
-    },
-    "collectCoverageFrom": [
-      "**/*.(t|j)s"
-    ],
-    "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
   }
 }

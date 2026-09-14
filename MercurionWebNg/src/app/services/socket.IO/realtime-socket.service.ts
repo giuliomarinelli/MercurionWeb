@@ -1,36 +1,51 @@
 /* ──────────────────────────────────────────────────────────────
  * RealtimeSocketService – public stabile, upgrade/downgrade safe
  * ────────────────────────────────────────────────────────────── */
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, OnDestroy } from '@angular/core';
 import { io, Socket } from 'socket.io-client';
 import { Observable } from 'rxjs';
-import { AuthService } from '../auth.service';
+import { signal } from '@angular/core';
+import {
+  socketEventRegistry,
+  SOCKET_CONTRACT_MAJOR,
+  type ClientToServerEvents,
+  type ServerToClientEvents,
+  type SocketApplicationError,
+  type SocketSessionExpiredPayload,
+  type SocketSessionInitAcknowledgement,
+} from '@mercurion/socket-contracts';
+import { AuthSessionRepository } from '../auth-session-repository.service'
+import { AuthUseCasesService } from '../auth-use-cases.service'
 import { JwtHelperService } from '../jwt-helper.service';
 import { APP_CONFIG } from '../../config/app-config';
 import {
   ApplicationErrorCode,
   hasApplicationErrorCode
 } from '../../utils/application-error.util';
+import {
+  DEFAULT_REALTIME_RETRY_POLICY,
+  reduceRealtimeConnection,
+  retryDelay,
+  type RealtimeConnectionState,
+} from './realtime-connection-state-machine';
+import { BrowserStorageRegistry } from '../browser-storage-registry';
 
 export type SocketMode = 'public' | 'private';
 
-interface Listener<T = any> {
-  event: string;
-  handler: (payload: T) => void;
-}
-
 @Injectable({ providedIn: 'root' })
-export class RealtimeSocketService {
+export class RealtimeSocketService implements OnDestroy {
 
-  private socket: Socket;
+  private socket: Socket<ServerToClientEvents, ClientToServerEvents>;
   private mode: SocketMode = 'public';
-  private readonly listeners: Listener[] = [];
+  private readonly _state = signal<RealtimeConnectionState>({ kind: 'disconnected', mode: 'public' });
+  readonly state = this._state.asReadonly();
+  private generation = 0;
+  private retryTimer?: ReturnType<typeof setTimeout>;
+  private retryAttempt = 0;
+  private stopped = false;
 
   private readonly appConfig = inject(APP_CONFIG);
-
-  // evita spam di connect()
-  private connectInFlight = false;
-  private lastConnectAt = 0;
+  private readonly storageRegistry = inject(BrowserStorageRegistry);
 
   // serializza transizioni (evita race ensurePrivate/ensurePublic sovrapposte)
   private modeOp: Promise<void> = Promise.resolve();
@@ -41,8 +56,52 @@ export class RealtimeSocketService {
   // piccolo delay per stabilizzazione post-connect (join server room, ecc.)
   private stableDelayMs = 100;
 
+  /**
+   * Ownership: these four handlers belong to the application/socket instance.
+   * Feature and session observers are registered by the Observable factories
+   * below and own only their exact handler until unsubscribe.
+   */
+  private readonly onConnectCore = () => {
+    this.retryAttempt = 0;
+    this._state.set(reduceRealtimeConnection(this._state(), { type: 'transport-connected' }));
+    this.lastAuthTokenSent = this.mode === 'private'
+      ? (this.auth.getWsAccessToken() ?? null)
+      : null;
+  };
+
+  private readonly onDisconnectCore = (reason: string) => {
+    if (reason === 'io client disconnect' || this.stopped) return;
+    this.scheduleRetry();
+  };
+
+  private readonly onConnectErrorCore = async (err: unknown) => {
+    const isAuthErr =
+      hasApplicationErrorCode(err, ApplicationErrorCode.ACCESS_TOKEN_INVALID_OR_EXPIRED) ||
+      hasApplicationErrorCode(err, ApplicationErrorCode.AUTHENTICATION_UNAUTHORIZED)
+    if (isAuthErr && this.mode === 'private') {
+      await this.ensureFreshToken(true);
+      if (this.generation !== this.currentGeneration()) return;
+      const tok = this.auth.getWsAccessToken();
+      if (tok && !this.jwt.isTokenExpired(tok)) this.socket.auth = { token: tok, contractMajor: SOCKET_CONTRACT_MAJOR };
+    }
+    if (!this.stopped) this.scheduleRetry();
+  };
+
+  private readonly onStorage = (e: StorageEvent): void => {
+    const change = this.storageRegistry.event(e);
+    if (e.key !== 'ws_accessToken' && change?.descriptor.id !== 'wsAccessToken') return;
+    if (this.mode !== 'private' || !this.socket.connected) return;
+    const latest = this.auth.getWsAccessToken();
+    if (latest && !this.jwt.isTokenExpired(latest)) {
+      this.socket.auth = { token: latest, contractMajor: SOCKET_CONTRACT_MAJOR };
+      this.lastAuthTokenSent = latest;
+      this.socket.emit(socketEventRegistry.authRefresh.name, latest);
+    }
+  };
+
   constructor(
-    private readonly auth: AuthService,
+    private readonly auth: AuthSessionRepository,
+    private readonly authCommands: AuthUseCasesService,
     private readonly jwt: JwtHelperService,
   ) {
 
@@ -50,62 +109,17 @@ export class RealtimeSocketService {
       path: this.appConfig.endpoints.realtimePath,
       transports: ['websocket'],
       withCredentials: true,
-      reconnection: true,
-      reconnectionAttempts: Infinity,
-      reconnectionDelay: 2000,
-      reconnectionDelayMax: 8000,
+      reconnection: false,
       autoConnect: false,
     });
 
     // ——— Core listeners ———
-    this.socket.on('connect', () => {
-      this.lastAuthTokenSent = (this.mode === 'private')
-        ? (this.auth.getWs_accessToken() ?? null)
-        : null;
-    });
-
-    this.socket.on('disconnect', async (reason: any) => {
-      if (this.mode !== 'private') return;
-      if (reason === 'io client disconnect') return;
-      await this.ensureFreshToken(); // soft
-    });
-
-    this.socket.on('reconnect_attempt', async () => {
-      if (this.mode !== 'private') return;
-      await this.ensureFreshToken(); // soft
-      const tok = this.auth.getWs_accessToken();
-      if (tok && !this.jwt.isTokenExpired(tok)) {
-        this.socket.auth = { token: tok };
-        this.lastAuthTokenSent = tok;
-      }
-    });
-
-    this.socket.on('connect_error', async (err: any) => {
-      if (this.mode !== 'private') return;
-      const isAuthErr =
-        hasApplicationErrorCode(err, ApplicationErrorCode.ACCESS_TOKEN_INVALID_OR_EXPIRED) ||
-        hasApplicationErrorCode(err, ApplicationErrorCode.AUTHENTICATION_UNAUTHORIZED)
-      if (!isAuthErr) return;
-
-      await this.ensureFreshToken(true); // <-- FORZA refresh
-      const tok = this.auth.getWs_accessToken();
-      if (tok && !this.jwt.isTokenExpired(tok)) {
-        this.socket.auth = { token: tok };
-        this.lastAuthTokenSent = tok;
-      }
-    });
+    this.socket.on('connect', this.onConnectCore);
+    this.socket.on('disconnect', this.onDisconnectCore);
+    this.socket.on('connect_error', this.onConnectErrorCore);
 
     // cross-tab: se cambia il token ed è valido, aggiorna in-place (nessun reconnect)
-    window.addEventListener('storage', (e) => {
-      if (e.key !== 'ws_accessToken') return;
-      if (this.mode !== 'private' || !this.socket.connected) return;
-      const latest = this.auth.getWs_accessToken();
-      if (latest && !this.jwt.isTokenExpired(latest)) {
-        this.socket.auth = { token: latest };
-        this.lastAuthTokenSent = latest;
-        this.socket.emit('auth_refresh', latest);
-      }
-    });
+    window.addEventListener('storage', this.onStorage);
   }
 
   /* ───────── API alto livello ───────── */
@@ -122,21 +136,27 @@ export class RealtimeSocketService {
     tokenOverride?: string,
     opts?: { forceRefresh?: boolean },
   ): Promise<void> {
+    const requestedGeneration = ++this.generation;
+    this.cancelRetry();
+    this.stopped = false;
     this.modeOp = this.modeOp.then(async () => {
+      const myGeneration = requestedGeneration;
       const wasPrivate = (this.mode === 'private');
       const forceRefresh = opts?.forceRefresh === true;
 
       // 1) assicuriamoci di avere un token WS valido
-      let tok = tokenOverride ?? this.auth.getWs_accessToken();
+      let tok = tokenOverride ?? this.auth.getWsAccessToken();
       if (!tokenOverride) {
         await this.ensureFreshToken(forceRefresh);
-        tok = this.auth.getWs_accessToken();
+        tok = this.auth.getWsAccessToken();
       }
 
+      if (this.generation !== myGeneration) return;
       if (!tok || this.jwt.isTokenExpired(tok)) {
         // token non disponibile → fallback PUBLIC
         this.mode = 'public';
-        delete (this.socket as any).auth;
+        this._state.set(reduceRealtimeConnection(this._state(), { type: 'connect-public' }));
+        this.socket.auth = { contractMajor: SOCKET_CONTRACT_MAJOR };
         this.lastAuthTokenSent = null;
         if (!this.socket.connected) this.safeConnect();
         return;
@@ -144,7 +164,8 @@ export class RealtimeSocketService {
 
       // 2) abbiamo un token valido → configuriamo auth per handshake
       this.mode = 'private';
-      this.socket.auth = { token: tok };
+      this._state.set(reduceRealtimeConnection(this._state(), { type: 'connect-private' }));
+      this.socket.auth = { token: tok, contractMajor: SOCKET_CONTRACT_MAJOR };
 
       if (!this.socket.connected) {
         // non connesso → connettiti con auth
@@ -156,7 +177,7 @@ export class RealtimeSocketService {
       // 3) già connesso
       if (wasPrivate && this.lastAuthTokenSent === tok) {
         // stesso token → refresh soft opzionale lato server
-        this.socket.emit('auth_refresh', tok);
+        this.socket.emit(socketEventRegistry.authRefresh.name, tok);
         return;
       }
 
@@ -174,11 +195,16 @@ export class RealtimeSocketService {
    * - Se sei già public e connesso: **NO-OP**.
    */
   async ensurePublic(): Promise<void> {
+    const requestedGeneration = ++this.generation;
+    this.cancelRetry();
+    this.stopped = false;
     this.modeOp = this.modeOp.then(async () => {
+      if (requestedGeneration !== this.generation) return;
       const wasPrivate = (this.mode === 'private');
 
       this.mode = 'public';
-      delete (this.socket as any).auth;
+      this._state.set(reduceRealtimeConnection(this._state(), { type: 'connect-public' }));
+      this.socket.auth = { contractMajor: SOCKET_CONTRACT_MAJOR };
       this.lastAuthTokenSent = null;
 
       if (!this.socket.connected) {
@@ -189,7 +215,7 @@ export class RealtimeSocketService {
 
       if (wasPrivate) {
         // eri private → de-auth in-place, nessun reconnect
-        this.socket.emit('auth_refresh', '');
+        this.socket.emit(socketEventRegistry.authRefresh.name, '');
         return;
       }
 
@@ -201,9 +227,14 @@ export class RealtimeSocketService {
 
   /** Downgrade immediato a PUBLIC con reconnect forzato (logout/scadenza). */
   async reconnectPublicNow(): Promise<void> {
+    const requestedGeneration = ++this.generation;
+    this.cancelRetry();
+    this.stopped = false;
     this.modeOp = this.modeOp.then(async () => {
+      if (requestedGeneration !== this.generation) return;
       this.mode = 'public';
-      delete (this.socket as any).auth;
+      this._state.set(reduceRealtimeConnection(this._state(), { type: 'connect-public' }));
+      this.socket.auth = { contractMajor: SOCKET_CONTRACT_MAJOR };
       this.lastAuthTokenSent = null;
       this.reconnectWithCurrentAuth();
     });
@@ -217,7 +248,25 @@ export class RealtimeSocketService {
   }
 
   disconnect(): void {
-    this.socket.off();
+    this.stopped = true;
+    this.cancelRetry();
+    ++this.generation;
+    this._state.set({ kind: 'stopped' });
+    this.socket.disconnect();
+  }
+
+  /**
+   * Application/socket ownership ends here. Do not use socket.off() without a
+   * handler: that would remove feature/session observers owned elsewhere.
+   */
+  ngOnDestroy(): void {
+    this.stopped = true;
+    this.cancelRetry();
+    ++this.generation;
+    window.removeEventListener('storage', this.onStorage);
+    this.socket.off('connect', this.onConnectCore);
+    this.socket.off('disconnect', this.onDisconnectCore);
+    this.socket.off('connect_error', this.onConnectErrorCore);
     this.socket.disconnect();
   }
 
@@ -242,12 +291,14 @@ export class RealtimeSocketService {
 
   /* ───────── Emit con ACK ───────── */
 
-  emit<T, R = any>(event: string, payload?: T, timeout = 5000): Promise<R | undefined> {
+  emitSessionInit(
+    timeout = 5000,
+  ): Promise<SocketSessionInitAcknowledgement | undefined> {
     return new Promise((res) => {
       let settled = false;
       const timer = setTimeout(() => { if (!settled) { settled = true; res(undefined); } }, timeout);
       try {
-        this.socket.emit(event, payload as any, (ack: R) => {
+        this.socket.emit(socketEventRegistry.sessionInit.name, undefined, (ack) => {
           if (!settled) { settled = true; clearTimeout(timer); res(ack); }
         });
       } catch {
@@ -258,31 +309,40 @@ export class RealtimeSocketService {
 
   /* ───────── Observable helper ───────── */
 
-  on<T>(event: string): Observable<T> {
-    return new Observable<T>(observer => {
-      const handler = (d: T) => observer.next(d);
-      this.listeners.push({ event, handler });
-      this.socket.on(event, handler);
-
-      return () => {
-        const i = this.listeners.findIndex(l => l.event === event && l.handler === handler);
-        if (i >= 0) this.listeners.splice(i, 1);
-        this.socket.off(event, handler);
-      };
+  onApplicationError(): Observable<SocketApplicationError> {
+    return new Observable<SocketApplicationError>(observer => {
+      const handler = (data: SocketApplicationError) => observer.next(data);
+      this.socket.on(socketEventRegistry.applicationError.name, handler);
+      return () => this.socket.off(socketEventRegistry.applicationError.name, handler);
     });
   }
-  onConnect() { return this.on<void>('connect'); }
-  onDisconnect() { return this.on<string>('disconnect'); }
+  onSessionExpired(): Observable<SocketSessionExpiredPayload> {
+    return new Observable<SocketSessionExpiredPayload>(observer => {
+      const handler = (data: SocketSessionExpiredPayload) => observer.next(data);
+      this.socket.on(socketEventRegistry.sessionExpired.name, handler);
+      return () => this.socket.off(socketEventRegistry.sessionExpired.name, handler);
+    });
+  }
+  onConnect(): Observable<void> {
+    return new Observable<void>(observer => {
+      const handler = () => observer.next();
+      this.socket.on('connect', handler);
+      return () => this.socket.off('connect', handler);
+    });
+  }
+  onDisconnect(): Observable<string> {
+    return new Observable<string>(observer => {
+      const handler = (reason: string) => observer.next(reason);
+      this.socket.on('disconnect', handler);
+      return () => this.socket.off('disconnect', handler);
+    });
+  }
 
   /* ───────── Interni ───────── */
 
   private safeConnect(): void {
-    const now = Date.now();
-    if (this.connectInFlight && (now - this.lastConnectAt) < 200) return;
-    this.connectInFlight = true;
-    this.lastConnectAt = now;
-    try { this.socket.connect(); }
-    finally { setTimeout(() => { this.connectInFlight = false; }, 50); }
+    if (this.stopped) return;
+    if (!this.socket.connected) this.socket.connect();
   }
 
   /** Reconnect atomico con l'`auth` già impostata (o rimossa). */
@@ -291,14 +351,41 @@ export class RealtimeSocketService {
     queueMicrotask(() => this.safeConnect());
   }
 
+  private scheduleRetry(): void {
+    const next = reduceRealtimeConnection(this._state(), { type: 'transport-disconnected' });
+    if (next.kind === 'degraded') {
+      this._state.set(next);
+      return;
+    }
+    if (next.kind !== 'reconnecting') return;
+    this.retryAttempt = next.attempt;
+    const delay = retryDelay(next.attempt, DEFAULT_REALTIME_RETRY_POLICY);
+    const retryAt = Date.now() + delay;
+    this._state.set({ ...next, retryAt });
+    this.cancelRetry();
+    const myGeneration = this.generation;
+    this.retryTimer = setTimeout(() => {
+      if (myGeneration !== this.generation || this.stopped) return;
+      this._state.set(reduceRealtimeConnection(this._state(), { type: 'retry', now: Date.now() }));
+      if (this.mode === 'private') void this.ensurePrivate();
+      else void this.ensurePublic();
+    }, delay);
+  }
+
+  private cancelRetry(): void {
+    if (this.retryTimer) clearTimeout(this.retryTimer);
+    this.retryTimer = undefined;
+  }
+
+  private currentGeneration(): number { return this.generation; }
+
   /** Se il token è assente o scaduto, prova a rinfrescarlo con lock cross-tab. */
   /** Se force=true, forza il refresh anche se il JWT non risulta scaduto. */
   private async ensureFreshToken(force = false): Promise<void> {
-    const tok = this.auth.getWs_accessToken();
+    const tok = this.auth.getWsAccessToken();
     const needRefresh = force || !tok || this.jwt.isTokenExpired(tok);
     if (!needRefresh) return;
-    await this.auth.refreshWsAccessTokenLocked().catch(() => null);
+    await this.authCommands.refreshWsAccessTokenLocked().catch(() => null);
   }
 
 }
-

@@ -7,6 +7,16 @@ export interface ApplicationErrorDefinition {
 }
 
 export const APPLICATION_ERROR_CATALOG = {
+  CONTRACT_VERSION_INVALID: {
+    httpStatus: 400,
+    defaultMessage: 'Invalid contract major version',
+    exposeInProduction: true,
+  },
+  CONTRACT_VERSION_UNSUPPORTED: {
+    httpStatus: 400,
+    defaultMessage: 'Unsupported contract major version',
+    exposeInProduction: true,
+  },
   ACCOUNT_ACTIVATION_USER_NOT_FOUND: {
     httpStatus: 404,
     defaultMessage: "AccountActivation::User not found",
@@ -416,10 +426,20 @@ export const APPLICATION_ERROR_CATALOG = {
     defaultMessage: "CustomItemAddError::Forbidden",
     exposeInProduction: true,
   },
-  SYNTHETIC_STEP_MOLECULE_ACCESS_DENIED: {
-    httpStatus: 500,
-    defaultMessage: "SyntheticStepMoleculeRefError::Forbidden",
-    exposeInProduction: false,
+  SYNTHESIS_ACCESS_DENIED: {
+    httpStatus: 403,
+    defaultMessage: "Synthesis::Forbidden",
+    exposeInProduction: true,
+  },
+  SYNTHESIS_POOL_ITEM_IN_USE: {
+    httpStatus: 409,
+    defaultMessage: "SynthesisPool::Molecule is used by a synthetic step",
+    exposeInProduction: true,
+  },
+  SYNTH_STEP_ITEM_INVALID: {
+    httpStatus: 400,
+    defaultMessage: "SynthStepItem::Invalid kind, position or content",
+    exposeInProduction: true,
   },
   MOLECULE_COLLECTION_ITEM_TYPE_UNKNOWN: {
     httpStatus: 500,

@@ -17,12 +17,12 @@ import { NotebookTreeComponent } from '../../../components/notebook/notebook-tre
   `
 })
 export class NotebookLandingComponent implements OnInit {
+  private notebookService = inject(NotebookService);
+
 
   protected notebooks = signal<NotebookTree[]>([])
   protected loading = signal<boolean>(false)
   private readonly destroyRef = inject(DestroyRef)
-
-  constructor(private notebookService: NotebookService) { }
 
   ngOnInit() {
     this.notebookService.getAllNotebooks().pipe(

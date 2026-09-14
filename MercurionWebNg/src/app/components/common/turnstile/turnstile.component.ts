@@ -1,14 +1,13 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  EventEmitter,
   OnInit,
   OnDestroy,
-  Output,
   EffectRef,
   effect,
   NgZone,
   inject,
+  output
 } from '@angular/core';
 import { APP_CONFIG } from '../../../config/app-config';
 import { Theme } from '../../../Models/theme.models';
@@ -22,10 +21,13 @@ import { ThemeManagerService } from '../../../services/context/theme-manager.ser
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TurnstileComponent implements OnInit, OnDestroy {
+  private readonly themeManager = inject(ThemeManagerService);
+  private readonly zone = inject(NgZone);
+
   // ===== Outputs =====
-  @Output() token = new EventEmitter<string>();
-  @Output() widgetReady = new EventEmitter<void>();
-  @Output() refresh = new EventEmitter<void>();
+  readonly token = output<string>();
+  readonly widgetReady = output<void>();
+  readonly refresh = output<void>();
 
   // ===== Config =====
   private readonly SITE_KEY = inject(APP_CONFIG).integrations.turnstileSiteKey;
@@ -35,10 +37,7 @@ export class TurnstileComponent implements OnInit, OnDestroy {
 
   private themeEffectCleanup?: EffectRef;
 
-  constructor(
-    private readonly themeManager: ThemeManagerService,
-    private readonly zone: NgZone,
-  ) {
+  constructor() {
     // Quando cambia il tema, ricreiamo il widget con il nuovo theme
     this.themeEffectCleanup = effect(() => {
       const currentTheme = this.themeManager.theme();
@@ -86,7 +85,7 @@ export class TurnstileComponent implements OnInit, OnDestroy {
 
   public reset(): void {
     if ((window as any).turnstile && this.widgetId) {
-      this.zone.run(() => this.refresh.emit());
+      this.zone.run(() => this.refresh.emit(undefined));
       (window as any).turnstile.reset(this.widgetId);
       this.waitForWidgetVisible();
     }
@@ -96,7 +95,7 @@ export class TurnstileComponent implements OnInit, OnDestroy {
 
   private refreshTurnstile(theme: Theme): void {
     // Notifichiamo il parent (login/forgot) che stiamo ricaricando il widget
-    this.zone.run(() => this.refresh.emit());
+    this.zone.run(() => this.refresh.emit(undefined));
 
     if ((window as any).turnstile && this.widgetId) {
       (window as any).turnstile.remove(this.widgetId);
@@ -167,12 +166,12 @@ export class TurnstileComponent implements OnInit, OnDestroy {
         wrapper.offsetHeight > 30;   // di solito ~65
 
       if (visible) {
-        this.zone.run(() => this.widgetReady.emit());
+        this.zone.run(() => this.widgetReady.emit(undefined));
       } else if (Date.now() - start < maxWait) {
         setTimeout(poll, interval);
       } else {
         // fallback: dopo 2s consideriamo comunque "ready"
-        this.zone.run(() => this.widgetReady.emit());
+        this.zone.run(() => this.widgetReady.emit(undefined));
       }
     };
 

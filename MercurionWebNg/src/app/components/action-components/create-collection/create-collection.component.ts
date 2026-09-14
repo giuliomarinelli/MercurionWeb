@@ -9,7 +9,7 @@ import {
   OnDestroy,
   OnInit,
   signal,
-  ViewChild
+  viewChild
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
@@ -19,12 +19,21 @@ import { MoleculeCollectionService } from '../../../services/graphql/molecule-co
 import { ToastService } from '../../../services/toast.service';
 import { CreateCollectionContextService } from '../../../services/context/action-context/create-collection-context.service';
 import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
+import { ActionCardComponent } from '../../common/action-card/action-card.component';
+import { ActionFooterComponent } from '../../common/action-footer/action-footer.component';
+import { ButtonComponent } from '../../common/button/button.component';
+import {
+  addSelection,
+  normalizeCollectionName,
+  removeSelection,
+  validateCollectionName
+} from '../collection-picker/collection-rules';
 
 
 @Component({
   selector: 'm-create-collection',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, ActionCardComponent, ActionFooterComponent, ButtonComponent],
   styles: [
     `
     /* Scrollbar sottile per i contenitori scrollabili */
@@ -66,37 +75,23 @@ import { DomainInvalidationService } from '../../../services/domain-invalidation
   ],
   template: `
   <div class="flex justify-center items-start md:items-center min-h-screen px-2 sm:px-4 pt-1 md:pt-6 m-overlay-screen">
-    <div
-      class="action-card max-w-2xl h-full md:h-auto"
-      role="region"
-      aria-labelledby="createCollectionHeading"
-      [attr.aria-busy]="selectedChips.length === 0 ? false : null"
-    >
+      <m-action-card
+        size="compact"
+        labelledBy="createCollectionHeading"
+        closeLabel="Chiudi pannello crea collezioni"
+        [busy]="selectedChips.length !== 0"
+        (closed)="close()"
+      >
       <!-- HEADER -->
-      <div class="action-card-header">
-        <h2
+        <h2 action-card-title
           id="createCollectionHeading"
           class="text-lg font-semibold text-light-on-surface-main dark:text-dark-on-surface-main"
         >
           Crea una o più collezioni molecolari
         </h2>
 
-        <button
-            type="button"
-            class="action-card-close-btn"
-            (click)="close()"
-            aria-label="Chiudi pannello crea collezioni"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-5 h-auto">
-            <path
-              d="M182.9 137.4L160.3 114.7L115 160L137.6 182.6L275 320L137.6 457.4L115 480L160.3 525.3L182.9 502.6L320.3 365.3L457.6 502.6L480.3 525.3L525.5 480L502.9 457.4L365.5 320L502.9 182.6L525.5 160L480.3 114.7L457.6 137.4L320.3 274.7L182.9 137.4z"
-            />
-          </svg>
-        </button>
-      </div>
-
       <!-- BODY -->
-      <div class="action-card-body bg-white dark:bg-dark-surface-main">
+      <div action-card-body class="bg-white dark:bg-dark-surface-main">
         <div class="py-6 px-3 sm:px-4 flex flex-col gap-3 sm:gap-4">
           <label for="nameInput" class="ml-px text-sm font-semibold block text-light-on-surface-main dark:text-dark-on-surface-main">
             Nome della nuova collezione
@@ -112,7 +107,7 @@ import { DomainInvalidationService } from '../../../services/domain-invalidation
                 placeholder="Inserisci una nuova collezione..."
                 aria-label="Nome nuova collezione"
                 [attr.aria-required]="true"
-                [attr.aria-describedby]="selectedChips.length ? 'collectionsPreview' : null"
+                [attr.aria-describedby]="!canAddName() ? 'collectionNameFeedback' : (selectedChips.length ? 'collectionsPreview' : null)"
                 class="flex-1 px-4 py-2 rounded-lg bg-white/90 text-black
                        placeholder:text-slate-500 shadow-sm
                        ring-1 ring-slate-300
@@ -151,15 +146,20 @@ import { DomainInvalidationService } from '../../../services/domain-invalidation
                  disabled:bg-light-accent-primary/50 disabled:cursor-not-allowed
                  transition-colors duration-200 dark:shadow-btn-dark disabled:hover:bg-light-accent-primary-hc/50
                  justify-center"
-              [disabled]="!name() || alreadyAdded(_trim(name()))"
+              [disabled]="!canAddName()"
               (click)="onAddNewName(_trim(name()))"
               [title]="title()"
-              [attr.aria-disabled]="!name() || alreadyAdded(_trim(name()))"
-              [attr.aria-label]="alreadyAdded(_trim(name())) ? 'Collezione già presente' : 'Aggiungi nome collezione'"
+              [attr.aria-disabled]="!canAddName()"
+              [attr.aria-label]="title() || 'Aggiungi nome collezione'"
             >
               Aggiungi
             </button>
           </div>
+          @if (name() && !canAddName()) {
+            <p id="collectionNameFeedback" class="text-sm text-red-700 dark:text-red-300" role="status" aria-live="polite">
+              {{ title() }}
+            </p>
+          }
         </div>
 
         <div class="border-t border-light-border dark:border-dark-border">
@@ -245,45 +245,25 @@ import { DomainInvalidationService } from '../../../services/domain-invalidation
       </div>
 
       <!-- FOOTER -->
-      <div class="action-card-footer">
-        <button
-          type="button"
-          class="px-4 py-2 rounded-lg bg-light-surface-secondary text-light-on-surface-main
-                 dark:bg-slate-200 dark:text-light-on-surface-main
-                 hover:bg-white dark:hover:bg-slate-300/80
-                 border border-light-border dark:border-dark-border/80
-                 shadow-sm
-                 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary
-                 focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary
-                 dark:focus-visible:ring-offset-dark-surface-secondary
-                 transition-colors duration-200"
+      <m-action-footer action-card-footer>
+        <m-button
+          action-footer-secondary
+          variant="neutral"
           (click)="close()"
         >
           Annulla
-        </button>
+        </m-button>
 
-        <button
-          type="button"
-          class="px-4 py-2 rounded-lg
-                 bg-light-accent-primary text-white font-semibold shadow-md
-                 hover:bg-light-accent-primary-hc
-                 dark:bg-dark-accent-primary-btn dark:hover:bg-dark-accent-primary
-                 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary
-                 focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary
-                 dark:focus-visible:ring-offset-dark-surface-secondary
-                 disabled:bg-light-accent-primary/50 disabled:cursor-not-allowed
-                 transition-colors duration-200 dark:shadow-btn-dark disabled:hover:bg-light-accent-primary-hc/50
-                 min-w-10"
+        <m-button
+          action-footer-primary
           [disabled]="selectedChips.length === 0"
           (click)="doSubmit()"
-          [attr.aria-disabled]="selectedChips.length === 0"
-          aria-live="polite"
           aria-label="Crea le collezioni"
         >
           Crea
-        </button>
-      </div>
-    </div>
+        </m-button>
+      </m-action-footer>
+    </m-action-card>
   </div>
   `
 })
@@ -299,12 +279,13 @@ export class CreateCollectionComponent implements OnInit, AfterViewInit, OnDestr
   private naSub?: Subscription;
   private addSub?: Subscription;
 
-  @ViewChild('nameInput')
-  private nameInputRef!: ElementRef<HTMLInputElement>;
+  private readonly nameInputRef = viewChild.required<ElementRef<HTMLInputElement>>('nameInput');
 
   nameControl = new FormControl('', { nonNullable: true });
   name = signal<string>('');
-  title = computed(() => (this.name() ? 'Non puoi aggiungere duplicati.' : ''));
+  title = computed(() => validateCollectionName(this.name(), {
+    pendingNames: this.selectedChips
+  }).message ?? '');
 
   selectedChips: string[] = [];
 
@@ -315,7 +296,7 @@ export class CreateCollectionComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   ngAfterViewInit(): void {
-    queueMicrotask(() => this.nameInputRef.nativeElement.focus());
+    queueMicrotask(() => this.nameInputRef().nativeElement.focus());
   }
 
   ngOnDestroy(): void {
@@ -326,7 +307,7 @@ export class CreateCollectionComponent implements OnInit, AfterViewInit, OnDestr
   clear(): void {
     queueMicrotask(() => {
       this.nameControl.setValue('');
-      this.nameInputRef.nativeElement.focus();
+      this.nameInputRef().nativeElement.focus();
     });
   }
 
@@ -335,26 +316,34 @@ export class CreateCollectionComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   _trim(s: string): string {
-    return s.trim();
+    return normalizeCollectionName(s);
   }
 
   onAddNewName(name: string) {
-    this.addChip(name);
+    const result = validateCollectionName(name, { pendingNames: this.selectedChips });
+    if (!result.ok) return;
+    this.addChip(result.normalized);
     this.clear();
   }
 
-  alreadyAdded(name: string): boolean {
-    return this.selectedChips.includes(name);
+  canAddName(): boolean {
+    return validateCollectionName(this.name(), { pendingNames: this.selectedChips }).ok;
   }
 
   addChip(chip: string) {
-    if (!chip) return;
-    if (this.selectedChips.some(name => name === chip)) return;
-    this.selectedChips = [...this.selectedChips, chip];
+    const result = validateCollectionName(chip, { pendingNames: this.selectedChips });
+    if (!result.ok) return;
+    this.selectedChips = addSelection(
+      this.selectedChips.map(name => ({ id: name, name })),
+      { id: result.normalized, name: result.normalized }
+    ).map(item => item.name);
   }
 
   removeChip(name: string) {
-    this.selectedChips = this.selectedChips.filter(c => c !== name);
+    this.selectedChips = removeSelection(
+      this.selectedChips.map(value => ({ id: value, name: value })),
+      normalizeCollectionName(name)
+    ).map(item => item.name);
   }
 
   clearChips() {
@@ -378,4 +367,3 @@ export class CreateCollectionComponent implements OnInit, AfterViewInit, OnDestr
     });
   }
 }
-

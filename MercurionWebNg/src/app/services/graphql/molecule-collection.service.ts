@@ -83,11 +83,11 @@ export class MoleculeCollectionService {
       ? MyMoleculeCollectionsWithItemsDocument
       : MyMoleculeCollectionsDocument;
     return this.apollo
-      .watchQuery<CollectionListQuery>({
+      .query<CollectionListQuery>({
         query,
-        fetchPolicy: 'network-only',
+        fetchPolicy: 'no-cache',
       })
-      .valueChanges.pipe(
+      .pipe(
         map(res => extractGqlData<CollectionListQuery, 'myMoleculeCollections'>(
           res,
           'myMoleculeCollections',
@@ -105,12 +105,12 @@ export class MoleculeCollectionService {
       ? MoleculeCollectionWithItemsDocument
       : MoleculeCollectionDocument;
     return this.apollo
-      .watchQuery<CollectionDetailQuery, MoleculeCollectionQueryVariables>({
+      .query<CollectionDetailQuery, MoleculeCollectionQueryVariables>({
         query,
         variables: { id },
-        fetchPolicy: 'network-only',
+        fetchPolicy: 'no-cache',
       })
-      .valueChanges.pipe(
+      .pipe(
         map(res => extractGqlData<CollectionDetailQuery, 'moleculeCollection'>(
           res,
           'moleculeCollection',
@@ -127,7 +127,7 @@ export class MoleculeCollectionService {
     moleculeId: string | null = null
   ): Observable<PageModel<MoleculeCollection>> {
     return this.apollo
-      .watchQuery<PaginatedCollectionsQuery, PaginatedCollectionsQueryVariables>({
+      .query<PaginatedCollectionsQuery, PaginatedCollectionsQueryVariables>({
         query: PaginatedCollectionsDocument,
         variables: {
           page,
@@ -136,9 +136,9 @@ export class MoleculeCollectionService {
           excludeJoinedToMolecule,
           moleculeId
         },
-        fetchPolicy: 'network-only'
+        fetchPolicy: 'no-cache'
       })
-      .valueChanges.pipe(
+      .pipe(
         map(res => extractGqlData<PaginatedCollectionsQuery, 'myMoleculeCollectionsPaginated'>(res, 'myMoleculeCollectionsPaginated'))
       )
   }

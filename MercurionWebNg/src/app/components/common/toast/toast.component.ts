@@ -1,60 +1,294 @@
-// toast.component.ts
-import { ChangeDetectionStrategy, Component, effect, Input, signal } from '@angular/core'
-import { CommonModule, NgClass } from '@angular/common'
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  afterRenderEffect,
+  computed,
+  inject,
+  signal,
+  viewChildren,
+} from '@angular/core'
+import { ViewportRuntimeService } from '../../../services/context/viewport-runtime.service'
 import { ToastService } from '../../../services/toast.service'
-
-export type ToastContext = 'error' | 'warn' | 'success'
 
 @Component({
   selector: 'm-toast',
-  imports: [CommonModule, NgClass],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    @if (toast.show()) {
-      <div
-        class="fixed top-8 right-4 z-50 max-w-[250px] 2xs:max-w-[320px] sm:max-w-sm xs:w-full mx-4 px-4 py-5 rounded-lg shadow-2xl transition-transform duration-700 transform text-[0.95rem] leading-snug ring-1 ring-black/10 dark:ring-white/10"
-        [ngClass]="contextClass"
-        [class.translate-x-full]="!toast.slideIn()"
-        [class.translate-x-0]="toast.slideIn()"
-        role="alert"
-        aria-live="assertive"
-      >
-        <div class="flex justify-between items-center gap-4 text-inherit">
-          <p class="text-sm font-medium text-inherit">{{ toast.message() }}</p>
+    <section class="toast-host" aria-live="polite" aria-relevant="additions">
+      @for (toast of visibleMessages(); track toast.id) {
+        <article
+          #toastElement
+          class="toast"
+          [class.toast--success]="toast.variant === 'success'"
+          [class.toast--warn]="toast.variant === 'warn'"
+          [class.toast--error]="toast.variant === 'error'"
+          [attr.data-toast-id]="toast.id"
+          animate.enter="toast-enter"
+          animate.leave="toast-leave"
+        >
+          <div class="toast__icon" aria-hidden="true">
+            @if (toast.variant === 'success') {
+              ✓
+            } @else if (toast.variant === 'warn') {
+              !
+            } @else {
+              !
+            }
+          </div>
+
+          <p class="toast__message">
+            {{ toast.message }}
+          </p>
+
           <button
             type="button"
-            (click)="toast.close()"
-            class="p-1 rounded-md text-inherit hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-white/80 dark:focus-visible:ring-black/70 focus-visible:ring-offset-transparent transition"
+            class="toast__close"
             aria-label="Chiudi notifica"
+            (click)="close(toast.id)"
           >
-            ✕
+            ×
           </button>
-        </div>
-      </div>
-    }
-  `
+        </article>
+      }
+    </section>
+  `,
+  styles: [
+    `
+      :host {
+        position: fixed;
+        top: var(--space-4);
+        right: var(--space-4);
+        z-index: 11000;
+        pointer-events: none;
+      }
+
+      .toast-host {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-3);
+        width: min(24rem, calc(100vw - 2 * var(--space-4)));
+        max-height: calc(100dvh - 2 * var(--space-4));
+        overflow: clip;
+      }
+
+      .toast {
+        pointer-events: auto;
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        gap: var(--space-3);
+
+        min-height: theme('spacing.16');
+        padding: 0.875rem theme('spacing.token-4');
+
+        border-radius: var(--radius-surface);
+        border: 1px solid transparent;
+
+        box-shadow:
+          var(--shadow-surface);
+
+        backdrop-filter: blur(10px);
+        will-change: transform, opacity;
+      }
+
+      .toast--success {
+        color: var(--color-status-success);
+        background: color-mix(in srgb, var(--color-status-success) 18%, var(--color-surface-elevated));
+        border-color: color-mix(in srgb, var(--color-status-success) 35%, transparent);
+      }
+
+      .toast--error {
+        color: var(--color-status-error);
+        background: color-mix(in srgb, var(--color-status-error) 18%, var(--color-surface-elevated));
+        border-color: color-mix(in srgb, var(--color-status-error) 35%, transparent);
+      }
+
+      .toast--warn {
+        color: var(--color-status-warning);
+        background: color-mix(in srgb, var(--color-status-warning) 18%, var(--color-surface-elevated));
+        border-color: color-mix(in srgb, var(--color-status-warning) 40%, transparent);
+      }
+
+      .toast__icon {
+        display: grid;
+        place-items: center;
+
+        width: 1.75rem;
+        height: 1.75rem;
+
+        border-radius: var(--radius-pill);
+        font-weight: 800;
+        line-height: 1;
+      }
+
+      .toast--success .toast__icon {
+        background: color-mix(in srgb, var(--color-status-success) 18%, transparent);
+      }
+
+      .toast--error .toast__icon {
+        background: color-mix(in srgb, var(--color-status-error) 18%, transparent);
+      }
+
+      .toast--warn .toast__icon {
+        background: color-mix(in srgb, var(--color-status-warning) 20%, transparent);
+      }
+
+      .toast__message {
+        margin: 0;
+        font-size: var(--font-body-sm);
+        font-weight: 600;
+      }
+
+      .toast__close {
+        appearance: none;
+        border: 0;
+        background: transparent;
+        color: currentColor;
+        cursor: pointer;
+
+        width: 1.75rem;
+        height: 1.75rem;
+
+        border-radius: var(--radius-pill);
+
+        font-size: 1.35rem;
+        line-height: 1;
+        opacity: 0.7;
+      }
+
+      .toast__close:hover {
+        opacity: 1;
+        background: color-mix(in srgb, var(--color-surface-elevated) 72%, currentColor);
+        color: currentColor;
+      }
+
+      .toast-enter {
+        animation: toast-enter 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
+      }
+
+      .toast-leave {
+        animation: toast-leave 140ms ease-in both;
+      }
+
+      @keyframes toast-enter {
+        from {
+          opacity: 0;
+          transform: translateY(-0.75rem) scale(0.98);
+        }
+
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      @keyframes toast-leave {
+        from {
+          opacity: 1;
+          transform: translateX(0) scale(1);
+        }
+
+        to {
+          opacity: 0;
+          transform: translateX(0.75rem) scale(0.98);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .toast-enter,
+        .toast-leave {
+          animation: none;
+        }
+      }
+    `,
+  ],
 })
 export class ToastComponent {
+  private readonly viewportRuntime = inject(ViewportRuntimeService)
+  private readonly toastService = inject(ToastService)
+  private readonly viewportHeight = this.viewportRuntime.height
 
-  private _context = signal<ToastContext>('error')
+  private readonly toastElements = viewChildren<ElementRef<HTMLElement>>('toastElement')
 
-  @Input()
-  public set context(context: ToastContext) {
-    this._context.set(context)
-  }
+  private previousRects = new Map<string, DOMRect>()
 
-  protected contextClass = ''
+  readonly messages = this.toastService.messages
 
-  private readonly contextClassMap: Record<ToastContext, string> = {
-    error: 'bg-[#7f1d1d] text-white dark:bg-[#fee2e2] dark:text-[#3b0d0c]',
-    success: 'bg-[#065f46] text-white dark:bg-[#d1fae5] dark:text-[#064e3b]',
-    warn: 'bg-[#78350f] text-white dark:bg-[#fef3c7] dark:text-[#2a1502]'
-  }
+  readonly maxVisibleMessages = computed(() => {
+    const availableHeight = this.viewportHeight() - 32
 
-  constructor(protected readonly toast: ToastService) {
-    effect(() => {
-      this.contextClass = this.contextClassMap[this._context()]
+    /**
+     * Stima prudente:
+     * 64px altezza minima toast
+     * 12px gap
+     * qualche margine extra per messaggi su due righe
+     */
+    const estimatedToastSlot = 92
+
+    return Math.max(1, Math.floor(availableHeight / estimatedToastSlot))
+  })
+
+  readonly visibleMessages = computed(() => this.messages().slice(0, this.maxVisibleMessages()))
+
+  constructor() {
+    /**
+     * FLIP minimale:
+     * quando un nuovo toast entra in alto, quelli già presenti cambiano posizione.
+     * Il browser di suo li sposterebbe di colpo.
+     * Qui leggiamo la posizione precedente e animiamo lo spostamento verticale.
+     *
+     * afterRenderEffect è adatto ai casi in cui dobbiamo leggere/scrivere DOM
+     * dopo il render Angular.
+     */
+    afterRenderEffect(() => {
+      const elements = this.toastElements()
+      const nextRects = new Map<string, DOMRect>()
+
+      for (const elementRef of elements) {
+        const element = elementRef.nativeElement
+        const id = element.dataset['toastId']
+
+        if (!id) {
+          continue
+        }
+
+        const nextRect = element.getBoundingClientRect()
+        const previousRect = this.previousRects.get(id)
+
+        nextRects.set(id, nextRect)
+
+        if (!previousRect) {
+          continue
+        }
+
+        const deltaY = previousRect.top - nextRect.top
+
+        if (Math.abs(deltaY) < 1) {
+          continue
+        }
+
+        element.animate(
+          [
+            {
+              transform: `translateY(${deltaY}px)`,
+            },
+            {
+              transform: 'translateY(0)',
+            },
+          ],
+          {
+            duration: 220,
+            easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+          },
+        )
+      }
+
+      this.previousRects = nextRects
     })
   }
 
+  close(id: string): void {
+    this.toastService.close(id)
+  }
 }

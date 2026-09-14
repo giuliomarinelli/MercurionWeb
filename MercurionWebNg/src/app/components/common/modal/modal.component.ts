@@ -1,28 +1,21 @@
 // modal.component.ts
-import { Component, ChangeDetectionStrategy, HostListener, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, effect, inject, viewChild } from '@angular/core';
 import { PortalModule, CdkPortalOutlet } from '@angular/cdk/portal';
-import { ViewChild } from '@angular/core';
 import { ModalContextService } from '../../../services/context/modal-context.service';
+import { DialogShellComponent } from '../dialog-shell/dialog-shell.component';
 
 @Component({
   selector: 'm-modal',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [PortalModule],
+  imports: [PortalModule, DialogShellComponent],
   template: `
-  @if (ctx.isMounted()) {
-    <div class="fixed inset-0 z-[999] bg-black/60 backdrop-blur-sm transition-all duration-300"
-         [class.opacity-0]="!ctx.isVisible()" [class.opacity-100]="ctx.isVisible()"
-         role="dialog" aria-modal="true" (click)="overlayClick($event)"
-         [attr.aria-hidden]="!ctx.isVisible()"
-         [attr.tabindex]="ctx.isVisible() ? 0 : -1">
-      <div class="min-h-full flex items-center justify-center p-4 m-overlay-screen m-overscroll-touch">
-        <div class="w-full max-w-lg rounded-2xl bg-white shadow-xl overflow-hidden"
-             (click)="$event.stopPropagation()">
-          <ng-template cdkPortalOutlet></ng-template>
-        </div>
-      </div>
-    </div>
-  }`
+    <m-dialog-shell
+      [mounted]="ctx.isMounted()"
+      [open]="ctx.isVisible()"
+      label="Dialog"
+      (dismissed)="close($event)">
+      <ng-template cdkPortalOutlet></ng-template>
+    </m-dialog-shell>`
 })
 export class ModalComponent {
 
@@ -30,19 +23,24 @@ export class ModalComponent {
 
   private _outlet?: CdkPortalOutlet;
 
-  // 👉 si attiva ogni volta che l’outlet compare (quando @if diventa true)
-  @ViewChild(CdkPortalOutlet)
-  set outlet(o: CdkPortalOutlet | undefined) {
-    if (o && o !== this._outlet) {
-      this._outlet = o;
-      this.ctx.registerOutlet(o);
+  // Si aggiorna ogni volta che l’outlet compare (quando @if diventa true).
+  readonly outlet = viewChild(CdkPortalOutlet)
+
+  constructor() {
+    effect(() => {
+      const outlet = this.outlet()
+      if (outlet && outlet !== this._outlet) {
+        this._outlet = outlet
+        this.ctx.registerOutlet(outlet)
+      }
+    })
+  }
+
+  close(reason: 'escape' | 'backdrop'): void {
+    const options = this.ctx.options();
+    if ((reason === 'escape' && options.closeOnEsc) ||
+        (reason === 'backdrop' && options.closeOnOverlay)) {
+      this.ctx.close();
     }
   }
-
-  overlayClick(_: MouseEvent) {
-    if (this.ctx.options().closeOnOverlay) this.ctx.close();
-  }
-
-  @HostListener('document:keydown.escape')
-  onEsc() { if (this.ctx.isOpened() && this.ctx.options().closeOnEsc) this.ctx.close(); }
 }

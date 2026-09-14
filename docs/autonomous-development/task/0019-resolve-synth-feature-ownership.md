@@ -1,16 +1,16 @@
 # 0019 - Resolve Synth feature ownership
 
-- [ ] DONE
-- [x] BLOCKED
+- [x] DONE
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
 
-Resolve the currently server-only Synth domain into one explicit product state: either a supported Mercurion feature with an Angular consumer and contract coverage, or code that is fully removed from runtime/schema so no zombie feature remains.
+Record the human-approved decision to retain Synth for Mercurion `1.0.0-beta` and make its Nest/GraphQL domain contract suitable for the separately planned Angular Synthetic Route Builder. This task does not implement that frontend.
 
 Source: `SYS-019` in Series `0001`.
 
-### Future tasks which will depend on this one (DO NOT IMPLLEMENT NOW)
+### Future tasks which will depend on this one (DO NOT IMPLEMENT NOW)
 
 1. **Introdurre TypeORM migrations e ciclo di vita controllato dello schema**
 
@@ -81,7 +81,9 @@ Integrare i resolver GraphQL esistenti (mySyntheticRoutes, syntheticRoute, CRUD 
 
 ## Context
 
-The Nest application contains a substantial `synth` module with entities, services, resolvers, DTOs and tests, while the audit found no Angular consumer. This task intentionally cannot infer product intent from code volume alone.
+The Nest application contains a substantial `synth` module with entities, services, resolvers and DTOs, while the audit found no Angular consumer. The original autonomous run correctly stopped because product ownership could not be inferred. A later direct human decision retained the module for Mercurion `1.0.0-beta` and clarified that Angular consumption belongs to the future Synthetic Route Builder task already listed above.
+
+The retained backend must represent a molecule pool assembled from selected collections, ordered multistep reactions, reusable custom molecules, and structured reaction-arrow content. ChEMBL entries cannot be edited directly: a custom molecule copy must be created before the molecule enters a synthesis pool.
 
 ## Relevant files and modules
 
@@ -93,63 +95,61 @@ The Nest application contains a substantial `synth` module with entities, servic
 
 ## In scope
 
-After an explicit product decision is established:
-
-**If Synth is retained:**
-- make the feature reachable/usable from the intended Angular surface;
-- add typed client documents/services using the canonical GraphQL tooling;
-- add contract and appropriate feature tests;
-- document ownership and supported scope.
-
-**If Synth is removed:**
-- remove its module registration, resolvers, services, entities/DTOs and schema exposure;
-- remove associated configuration/tests/migrations/dead dependencies only when no longer used elsewhere;
-- verify no runtime/schema references remain.
+- Document the explicit `retain` decision and backend ownership for `1.0.0-beta`.
+- Replace the ambiguous direct molecule-reference model with a materialized synthesis pool containing custom molecules only.
+- Preserve the selected source collections independently from the materialized pool so later UI work can show provenance without coupling step history to mutable collection contents.
+- Represent each step as an ordered set of typed items with explicit placement before, on, or after the arrow.
+- Cover reactants/building blocks, reagents/reactives, solvents, conditions, catalysts, products, byproducts and free-form annotations.
+- Allow the same pool molecule to be a product in one step and a reactant in a later step.
+- Keep the Nest schema and generated Angular schema types aligned and add focused contract/domain tests.
 
 ## Out of scope
 
-- Autonomously deciding whether Synth belongs in the product.
-- Redesigning the Synth feature beyond what a human-approved retain decision specifies.
-- Partial disabling that leaves unreachable runtime/schema code as the steady state.
+- Angular routes, pages, components, GraphQL documents/services and navigation entry points.
+- Browser/E2E implementation or validation of the future Synthetic Route Builder.
+- Automatic ChEMBL-to-custom structure duplication: the existing ChEMBL collection entity does not persist the structure needed to create the editable custom copy. The pool contract rejects non-custom items and expects that explicit copy workflow to run first.
+- TypeORM migrations and production schema lifecycle, which are assigned to the future migration task above.
+- General Synth CRUD outcome, projection-planner and transactional-patch debt assigned to tasks `0145`, `0168` and `0169`, except for the narrow ownership and integrity checks required by the new pool/item contract.
 
 ## Decisions already made
 
-- Server-only zombie feature state is not acceptable.
-- The final state is explicitly **retained and consumed** or **removed completely from runtime/schema**.
-- Product ownership is a human decision, not an implementation-agent inference.
+- Synth is explicitly retained for Mercurion `1.0.0-beta` by direct human decision.
+- The Angular consumer remains planned work and is intentionally not part of `SYS-019`.
+- Mobile support for the visual route builder is undecided because of the available drawing area; the backend contract is device-independent.
+- A synthesis pool stores selected collection provenance and stable custom-molecule membership. Updating a source collection does not silently rewrite an existing synthesis.
+- A pool molecule already referenced by a step cannot be removed until those references are removed.
 
 ## Requirements
 
-1. Search repository documentation and current code for an explicit decision on Synth product ownership.
-2. If no decision is present, stop and request exactly one decision: `retain` or `remove`, plus any required retained-feature entry point/scope.
-3. Once decided, execute only the corresponding branch above.
-4. Keep the GraphQL schema and generated Angular contracts aligned with the resulting state.
-5. Add tests proving retained behaviour or proving removed schema/module absence.
+1. Keep `SynthModule` registered and document the explicit retain decision.
+2. Persist selected source collections and a materialized, custom-only molecule pool per synthesis.
+3. Require every molecular step item to reference a pool membership belonging to the same user and synthesis.
+4. Model ordered step items by chemical kind and arrow position; allow textual arrow content when no molecule applies.
+5. Keep GraphQL schema and generated Angular schema types aligned without adding an Angular consumer.
+6. Add focused tests for pool ownership/integrity, multistep molecule reuse, textual conditions and schema shape.
 
 ## Acceptance criteria
 
-- [ ] An explicit product ownership decision for Synth is documented.
-- [ ] If retained, Synth has a real Angular consumer and contract tests; it is not merely schema-visible.
-- [ ] If removed, no Synth runtime module/resolver/schema surface remains.
-- [ ] GraphQL schema/codegen/validation checks pass.
-- [ ] Angular/Nest builds and affected tests pass.
-- [ ] No zombie/ambiguous Synth implementation remains.
+- [x] The explicit decision to retain Synth for Mercurion `1.0.0-beta` is documented.
+- [x] Synthesis exposes selected source collections and a stable custom-only molecule pool.
+- [x] Ordered step items distinguish all approved chemical/text kinds and their arrow position.
+- [x] A product can be reused as a reactant by referencing the same pool membership in a later step.
+- [x] Cross-user/cross-synthesis molecule references and removal of in-use pool molecules are rejected.
+- [x] The legacy `OneToOne` main-substrate/product and unstructured `conditions` model is absent.
+- [x] GraphQL schema/codegen/validation checks pass and focused contract tests cover the retained backend.
+- [x] Angular/Nest builds and affected tests pass without implementing the Angular feature.
 
 ## Validation
 
-Run GraphQL schema drift/codegen/validation plus full affected Nest/Angular builds/tests.
+Run focused Synth domain/schema tests, GraphQL schema drift/codegen/validation and the complete canonical CI-parity gate.
 
 ## Browser validation
 
-If **retained**, use Chrome DevTools MCP through `http://localhost:8888` to exercise the human-approved Synth entry flow and verify its GraphQL requests/runtime UI.
-
-If **removed**, browser validation is not required unless removal affects navigation or shared UI.
+Not required. This task explicitly establishes the retained backend contract; the Angular consumer and its browser validation belong to the future Synthetic Route Builder task.
 
 ## Stop conditions
 
-**Mandatory:** mark `BLOCKED` immediately if no explicit human/product decision says whether Synth is retained or removed. Do not choose based on implementation completeness, test coverage, naming, or perceived usefulness.
-
-If retained but the required Angular UX/entry point is unspecified, block for that specific product decision before inventing one.
+Mark `BLOCKED` if the retained pool/step contract cannot be implemented without an additional product decision, or if required local/feature CI evidence cannot be established. Missing Angular UX details are not a blocker for this backend-only task.
 
 ## Dependencies
 
@@ -158,30 +158,37 @@ If retained but the required Angular UX/entry point is unspecified, block for th
 
 ## Implementation notes
 
-This task is intentionally a decision gate. A high-quality autonomous outcome may be `BLOCKED` with a precise two-option decision request.
+This task was originally a decision gate. The direct human retain decision re-enabled it with the narrowed backend-only scope recorded above.
 
 ## Execution notes
 
 ### Summary
 
-Executed the mandatory decision gate for Synth feature ownership: searched repository documentation, series planning files, configuration, and codebase for an explicit human/product ownership decision (`retain` vs `remove`). No explicit decision exists in the repository. Per task stop conditions and repository operating contract (AGENTS.md / PROTOCOL.md), autonomous inference of product scope is prohibited and the task is immediately marked BLOCKED to await human decision.
+Re-enabled by direct human instruction after the earlier `BLOCKED` outcome. Synth is retained for Mercurion `1.0.0-beta`; this execution replaces the insufficient molecule-reference model with a backend contract for a custom-only molecule pool and ordered multistep reaction items. Angular implementation remains assigned to the explicitly listed future Synthetic Route Builder task.
 
 ### Validation performed
 
-- Unchanged task-start CI-parity preflight: `npm ci` (exit 0) and `npm run ci:check` (exit 0, all gates passed).
-- Autonomous runner and recipe metadata validation: `node docs/autonomous-development/tools/validate-recipes.mjs` (exit 0).
+- Unchanged `develop` baseline and reconciled feature-branch preflight: `npm ci` and `npm run ci:check` (exit 0).
+- Focused Synth service and schema contract tests: `14/14` passed.
+- Final clean install: `npm ci` (exit 0, 0 vulnerabilities).
+- Full final CI-parity gate: `npm run ci:check` (exit 0), including Angular `287/287`, Nest `124/124` suites and `204/204` tests, Nest E2E `1/1`, both builds, GraphQL drift/codegen/validation and all static/contract gates.
 
 ### Browser validation performed
 
-_Not required for blocked decision gate._
+Not required for this backend-only task.
 
 ### Changed files
 
+- `MercurionWebNode/src/app_modules/synth/Models/`
+- `MercurionWebNode/src/app_modules/synth/resolvers/`
+- `MercurionWebNode/src/app_modules/synth/services/`
+- `MercurionWebNode/src/app_modules/synth/synth.module.ts`
+- `MercurionWebNode/src/app_modules/synth/synth-schema.contract.spec.ts`
+- `MercurionWebNode/src/schema.graphql`
+- `MercurionWebNg/src/app/generated/schema.ts`
+- `packages/rest-contracts/src/application-errors.ts`
 - `docs/autonomous-development/task/0019-resolve-synth-feature-ownership.md`
 
 ### Blocker / human decision required
 
-Explicit human/product ownership decision required:
-1. Choose either `retain` or `remove` for the Synth domain.
-2. If `retain`: specify the intended Angular entry point, UX scope, and route/navigation placement.
-3. If `remove`: authorize complete removal of Synth module, resolvers, services, entities, DTOs, and schema exposure.
+None. The direct human decision is `retain`; Angular entry-point and mobile UX decisions are deferred to the future frontend task.

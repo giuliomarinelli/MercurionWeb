@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, effect, Input, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, effect, input, signal } from '@angular/core';
 import { T1PredictionDTO, T1PredictionItem } from '../../../Models/notebook/t1-prediction-model';
 import { PercentPipe } from '@angular/common';
 
@@ -77,14 +77,12 @@ export class T1PredictionCardComponent {
 
   protected _inference = signal<T1PredictionDTO | undefined>(undefined)
 
-  @Input()
-  set inference(inference: T1PredictionDTO | undefined) {
-    this._inference.set(inference)
-  }
+  readonly inference = input<T1PredictionDTO | undefined>(undefined)
 
   protected predictions = signal<T1PredictionItem[]>([])
 
   constructor() {
+    effect(() => this._inference.set(this.inference()))
     effect(() => {
       if (!this._inference()) {
         return

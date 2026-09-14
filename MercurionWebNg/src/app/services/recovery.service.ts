@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
+import { AuthStateStore } from './auth-state.store';
 import { Observable } from 'rxjs';
 import type {
   ConfirmWithRecoveryCodeDTO,
@@ -14,17 +15,13 @@ import type {
 export class RecoveryService {
 
   private readonly http = inject(HttpClient)
-
-  private clearBrowserCache(): void {
-    localStorage.clear()
-    sessionStorage.clear()
-  }
+  private readonly authState = inject(AuthStateStore)
 
   public accountRecovery_firstStep(code: string, turnstileToken: string): Observable<ConfirmWithRecoveryTokenDTO> {
     const body: RecoveryCodeDTO = {
       code
     }
-    this.clearBrowserCache()
+    this.authState.beginRecovery()
     return this.http.post<ConfirmWithRecoveryTokenDTO>('/api/recovery/1', body, {
       withCredentials: true,
       headers: {
@@ -38,7 +35,7 @@ export class RecoveryService {
       newEmail,
       newPassword
     }
-    this.clearBrowserCache()
+    this.authState.beginRecovery()
     return this.http.post<ConfirmWithRecoveryCodeDTO>('/api/recovery/2', body, {
       withCredentials: true,
       headers: {

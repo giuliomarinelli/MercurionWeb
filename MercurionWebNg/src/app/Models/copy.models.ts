@@ -1,4 +1,4 @@
-import { ToastContext } from "../components/common/toast/toast.component"
+import { ToastVariant } from "./toast.models"
 
 export type CopyPayload =
   | string
@@ -17,8 +17,8 @@ export interface CopyUiOptions {
   showToast?: boolean
   successMessage?: string
   errorMessage?: string
-  successContext?: ToastContext
-  errorContext?: ToastContext
+  successContext?: ToastVariant
+  errorContext?: ToastVariant
   durationMs?: number
   forceToast?: boolean
 }

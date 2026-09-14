@@ -6,7 +6,7 @@ The model is intentionally strict:
 
 - one task recipe;
 - one fresh stateless Copilot/Sol task worker;
-- one `feature/<Source>` branch;
+- one local `feature/<Source>` branch, published only after its first task-specific commit;
 - full CI-parity preflight **before** implementation;
 - full CI-parity validation again before integration;
 - wait for GitHub Actions on the exact feature SHA before integration;
@@ -15,9 +15,12 @@ The model is intentionally strict:
 - success => delete the feature branch;
 - post-merge CI non-success => revert the merge, mark `REVERTED`, preserve the feature branch;
 - pre-merge failure/stop condition => mark `BLOCKED`, preserve the feature branch;
-- terminal hard dependency encountered at a task's normal selection point =>
-  mark only that task `SKIPPED_DEPENDENCY` without creating a branch; never
-  precompute the full transitive closure.
+- one dependency snapshot before selection: pending prerequisites are transient
+  `WAITING_DEPENDENCY`, while every descendant of a terminal hard blocker is
+  marked `SKIPPED_DEPENDENCY` in one aggregate metadata-only commit without
+  creating branches or workers;
+- deterministic dependency selection through the read-only
+  `npm run autonomous:plan` JSON planner rather than model inference.
 
 `develop` is therefore never used as a dumping ground for hundreds of unrelated unverified changes.
 
@@ -39,6 +42,8 @@ docs/autonomous-development/
 ├── RUNTIME.md
 ├── session.example.yaml
 ├── session.overnight-2026-09-01.yaml
+├── tools/
+│   └── plan-dependency-graph.mjs
 ├── series/
 │   ├── 0000-series-example.md
 │   ├── 0001-....md
@@ -54,6 +59,7 @@ docs/autonomous-development/
 Recipe metadata and cross-references are checked with:
 
 ```text
+npm run autonomous:plan
 node docs/autonomous-development/tools/validate-recipes.mjs
 node docs/autonomous-development/tools/validate-cli-runner.mjs
 ```
@@ -82,6 +88,13 @@ The agent profiles do not pin a model or reasoning level. The coordinator and wo
 
 - `Development Session Coordinator` persists across the bounded run, parses the active YAML, owns time/task selection/Git integration/CI/reporting, and never implements two tasks concurrently.
 - `Development Task Worker` (`development-task-worker` programmatically) is one fresh stateless synchronous CLI `task` invocation for one prepared `feature/<Source>` branch. It owns preflight, implementation, local validation, task notes and feature-branch commits only. Its only non-implementation mode is the startup `capability_probe`, which echoes a nonce without tool use or repository access.
+
+Both profiles use repository project skills from `.github/skills/`. The
+coordinator explicitly invokes the CI-lifecycle and outcome-classification
+skills; workers invoke task-execution and outcome-classification, adding the
+runtime and Chrome DevTools skills only for browser-observable work. The skills
+encode repeatable operating procedures while `AGENTS.md`, the protocol, runtime
+policy, session YAML, and active recipe remain authoritative.
 - The coordinator independently verifies each worker result before merging and remains active through exact-SHA CI, cleanup/revert, the deadline and final report.
 
 The coordinator is manually selectable but cannot be inferred automatically. The worker is neither user-invocable nor inferable and is reached only by the coordinator's explicit `task` call.
@@ -108,9 +121,24 @@ The four terminal outcomes are mutually exclusive:
 | `REVERTED` | Locally successful and merged, then rolled back after post-merge CI non-success/unverifiable result; branch is frozen. |
 | `SKIPPED_DEPENDENCY` | Never attempted because a hard dependency is terminal non-`DONE`; no branch exists. |
 
-All unchecked means pending. `CI_PENDING` exists only as transient coordinator state.
+All unchecked means pending. `CI_PENDING`, `WAITING_DEPENDENCY`, and
+`SESSION_CAPABILITY_PAUSE` exist only as transient coordinator states. A
+capability pause defers only the affected task for the remainder of the active
+session; the coordinator continues with the next independent `READY` task and
+does not propagate dependency skips.
+
+Execution ownership is not a fifth outcome. In a session configuration,
+`workload.tasks: []` selects the complete Series; a non-empty list is an exact
+autonomous allowlist. Recipes omitted from it remain untouched and `PENDING`
+for human-led work or a later session.
 
 Every persistent outcome is terminal for the active session. A later probe or Autopilot continuation cannot reopen or resume it. Only a new direct human instruction in a new or restarted session can authorize re-enablement.
+
+That authorization is materialized before restart in the session YAML as an
+exact `authorized_recovery` allowlist. The named recipe returns to pending, its
+preserved branch is reconciled with current green `develop` by a fresh worker,
+and only planner-confirmed stale dependency skips return to pending. Existing
+branches outside the allowlist remain collision pauses or frozen outcomes.
 
 A session-fatal blocker completes the coordinator objective even if pending workload remains: the coordinator finalizes the report, emits the concise final summary and report path, calls `task_complete` as the final Autopilot action, and stops.
 
@@ -163,12 +191,33 @@ Before any recipe work, startup also performs a real capability probe in one uni
 
 Startup requires effective repository-local `commit.gpgSign=false`, and every autonomous commit-producing command uses `--no-gpg-sign`. It also proves synchronous custom-agent delegation with an exact `TASK_CAPABILITY_OK <nonce>` handshake before any task branch is created. Any denied install, network, filesystem, cleanup, GitHub, `task`, MCP, signing, or `task_complete` prerequisite stops the session with the exact denial.
 
+## Adaptive CI modes
+
+Every pushed SHA still receives the stable `Required gate`. The workflow
+selects `duplicate` only when the identical SHA already has an older
+successful CI run, `metadata` only for allowlisted autonomous task/report
+Markdown changes built on an exact green base, and `full` for every code,
+test, dependency, workflow, agent, protocol, configuration, unknown, or
+ambiguous change. The full path remains the Windows/Linux matrix. The metadata
+path runs the autonomous validators and diff hygiene on Ubuntu; the duplicate
+path reuses already-established exact-tree evidence.
+
+The classifier fails closed and is self-tested by
+`npm run ci:validate:autonomous`. Trigger-level path skipping is not used, so
+`Required gate` never disappears.
+
+Before a new autonomous session, manually dispatch `CI` for `develop` with
+`validation_mode=full`. Manual dispatch defaults to this mode and does not
+reuse an older duplicate result. Task/report metadata is deliberately excluded
+from application inventory inputs, so quoted routes in execution evidence
+cannot invalidate the application baseline.
+
 ## Integration lifecycle
 
 ```text
 green develop
     ↓
-feature/<Source>
+local feature/<Source> (not pushed yet)
     ↓
 preflight green
     ↓
@@ -178,9 +227,9 @@ task-specific validation
     ↓
 full CI-parity green
     ↓
-commit + push feature branch
+first task commit + push feature branch
     ↓
-wait CI for exact feature SHA (Windows + Linux)
+wait adaptive CI for exact feature SHA
    ↙                     ↘
 PASS                 NON-SUCCESS
  ↓                       ↓
@@ -198,9 +247,9 @@ PASS                 NON-SUCCESS
 delete branch      revert merge on develop
 next task          mark task REVERTED
                    preserve feature branch
-                   lazily evaluate the next task
-                   continue only if develop is green
-                   and a later task is independent
+                   rebuild dependency snapshot
+                   batch terminal skips once
+                   continue with earliest READY task
 ```
 
 No rebase, force-push, shared-history reset or CI bypass is part of the autonomous workflow.
@@ -209,12 +258,20 @@ No rebase, force-push, shared-history reset or CI bypass is part of the autonomo
 
 Chrome DevTools MCP is configured for GitHub Copilot CLI in `.github/mcp.json`. The VS Code MCP file remains only for ordinary interactive VS Code use and is not read as the autonomous-session configuration.
 
+The CLI configuration reuses Chrome DevTools MCP's dedicated persistent
+profile across serial task workers and later sessions. It does not use
+`--isolated`, Incognito, Guest, or a developer's personal profile. The browser
+may retain approved non-production cookies and storage while Angular, Nest and
+Tox21 continue to start and stop per task. A mandatory runtime/authentication
+probe runs before implementation; failure pauses the session without changing
+the task to `BLOCKED` or propagating dependency skips.
+
 The canonical local stack is:
 
 ```text
 MercurionWebNode  -> npm run start:dev
 MercurionWebNg    -> npm run start:dev
-../MercurionTox21 -> .venv Python -> python -m main
+../MercurionTox21 (cwd) -> UTF-8 .venv Python -> python -m main
 ```
 
 The externally managed nginx development reverse proxy is the only browser edge:

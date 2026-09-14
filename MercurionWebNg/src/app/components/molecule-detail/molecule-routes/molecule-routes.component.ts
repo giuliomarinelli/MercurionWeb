@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, computed, Input, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, computed, effect, input, signal } from '@angular/core';
 import { AdministrationRoutes } from '../../../Models/graphql/molecule.detail.models';
 
 
@@ -49,10 +49,8 @@ export class MoleculeRoutesComponent {
     topical: false
   })
 
-  @Input()
-  set adminRoutesInput(value: AdministrationRoutes) {
-    this.routeSignal.set(value);
-  }
+  readonly adminRoutesInput = input<AdministrationRoutes>({} as AdministrationRoutes)
+  private readonly syncAdminRoutes = effect(() => this.routeSignal.set(this.adminRoutesInput()))
 
   readonly adminRoutes = this.routeSignal.asReadonly()
 

@@ -100,6 +100,10 @@ Keep the helper framework-agnostic enough that later catalog/visual tests can re
 
 ## Execution notes
 
+> Current status (2026-09-11): PENDING. The planner identified the prior
+> dependency skip as stale after direct owner re-enablement of its prerequisite
+> chain; historical skip evidence below is retained only for traceability.
+
 ### Feature branch
 _Not started._
 
@@ -137,3 +141,13 @@ Direct terminal prerequisites: 0059 through 0075 are
 `SKIPPED_DEPENDENCY`. Their transitive chains include FE-030 (BLOCKED,
 requiring a filesystem-write-capable worker) and UI-018 (BLOCKED, requiring a
 test-safe local Nest runtime for mandatory browser validation).
+
+
+### Dependency skip
+
+Direct terminal prerequisite: 0077 (), terminal non-DONE dependency.
+
+### Dependency skip
+
+Direct terminal prerequisite: `0082` (`UI-024`), `SKIPPED_DEPENDENCY`, with
+terminal root `0078` (`UI-020`), `BLOCKED`. Materialized on 2026-09-13.

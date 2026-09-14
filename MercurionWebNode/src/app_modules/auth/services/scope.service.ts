@@ -1,19 +1,15 @@
-import { TokenType } from 'src/app_modules/auth/Models/enums/token-type.enum';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
-import { ExecutionContext, Inject, Injectable, forwardRef } from '@nestjs/common';
+import { ExecutionContext, Inject, Injectable } from '@nestjs/common';
 import { Scope } from 'src/app_modules/user/Models/enums/scope.enum';
 import { SercurityService } from './sercurity.service';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
-import { InjectRepository } from '@nestjs/typeorm';
-import { User } from 'src/app_modules/user/Models/entities/user.entity';
-import { Repository } from 'typeorm';
 import { UUID } from 'crypto';
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 import { Reflector } from '@nestjs/core';
 import { SCOPES_KEY } from 'src/metadata/metadata';
 
-import { JwtToolsService } from './jwt-tools.service';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
+import { IDENTITY_READ_PORT, IdentityReadPort } from '../Models/interfaces/identity-read.port'
 
 @Injectable()
 export class ScopeService {
@@ -39,10 +35,8 @@ export class ScopeService {
 
     constructor(
         private readonly securityService: SercurityService,
-        @InjectRepository(User)
-        private readonly userRepo: Repository<User>,
-        @Inject(forwardRef(() => JwtToolsService))
-        private readonly jwtTools: JwtToolsService,
+        @Inject(IDENTITY_READ_PORT)
+        private readonly identityRead: IdentityReadPort,
         loggerFactory: MeiliLoggerService
     ) {
         this.logger = loggerFactory.forContext(ScopeService.name)
@@ -102,16 +96,7 @@ export class ScopeService {
 
     async verifyUserHasScopes(userId: UUID, ...scopes: Scope[]): Promise<boolean> {
         try {
-            const { scopes: encScopes } = await this.userRepo.findOneOrFail({
-                where:
-                {
-                    id: userId
-                },
-                select: {
-                    scopes: true
-                }
-            })
-            const decScopes = this.decryptScopes(...encScopes)
+            const decScopes = await this.identityRead.getUserScopesById(userId) ?? []
             for (const scp of scopes) {
                 if (!decScopes.includes(scp)) {
                     return false
@@ -124,19 +109,9 @@ export class ScopeService {
         }
     }
 
-    async verifyUserClaimScopesConsistencyThenGetScopes(userId: UUID, token: string, type: TokenType = TokenType.AccessToken): Promise<Scope[]> | never {
-        const { scopes: encScopes } = await this.userRepo.findOneOrFail({
-            where:
-            {
-                id: userId
-            },
-            select: {
-                scopes: true
-            }
-        })
-        const decPersistedScopes = this.decryptScopes(...encScopes)
-        const { scp } = await this.jwtTools.verifyTokenAndGetPayload(token, type)
-        const tokenClaimScopes = this.generateScopesArrayFromJwtClaim(scp)
+    async verifyUserClaimScopesConsistencyThenGetScopes(userId: UUID, jwtScpClaim: string): Promise<Scope[]> | never {
+        const decPersistedScopes = await this.identityRead.getUserScopesById(userId) ?? []
+        const tokenClaimScopes = this.generateScopesArrayFromJwtClaim(jwtScpClaim)
         if (GeneralUtils.arrayEqualsIgnoreDuplicatesAndSorting(decPersistedScopes, tokenClaimScopes)) {
             return decPersistedScopes
         }

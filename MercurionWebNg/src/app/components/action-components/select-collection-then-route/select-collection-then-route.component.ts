@@ -1,30 +1,36 @@
 import { Component, ChangeDetectionStrategy, inject, OnDestroy, OnInit, signal } from '@angular/core';
-import { ClassicSpinnerComponent } from '../../common/classic-spinner/classic-spinner.component';
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
-import { ComboSelectComponent } from '../../common/combo-select/combo-select.component';
+import { SelectCoreComponent } from '../../common/select-core/select-core.component';
+import { SelectSelectionChange } from '../../common/select-core/select-core.types';
 import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
 import { MoleculeCollectionService } from '../../../services/graphql/molecule-collection.service';
 import { Subscription } from 'rxjs';
+import { ActionCardComponent } from '../../common/action-card/action-card.component';
+import { ActionFooterComponent } from '../../common/action-footer/action-footer.component';
+import { ButtonComponent } from '../../common/button/button.component';
+import { CollectionPickerFacade } from '../collection-picker/collection-picker.facade';
 
 @Component({
   selector: 'm-select-collection-then-route',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    ClassicSpinnerComponent,
-    ComboSelectComponent
+    SelectCoreComponent,
+    ActionCardComponent,
+    ActionFooterComponent,
+    ButtonComponent
   ],
   template: `
 
 <div class="flex justify-center items-start md:items-center min-h-screen px-2 sm:px-4 pt-1 md:pt-6 m-overlay-screen">
-  <div
-    class="action-card h-full md:h-auto"
-    role="region"
-    aria-labelledby="selectCollectionHeading"
-    [attr.aria-busy]="loadingCombo() || loading()"
-  >
+  <m-action-card
+      size="standard"
+      labelledBy="selectCollectionHeading"
+      closeLabel="Chiudi selezione collezione"
+      [busy]="loadingCombo() || loading()"
+      (closed)="close()"
+    >
     <!-- HEADER -->
-    <div class="action-card-header">
-      <div class="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-2 sm:gap-3">
+    <div action-card-title class="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-2 sm:gap-3">
         @if (importFromChembl()) {
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -58,24 +64,9 @@ import { Subscription } from 'rxjs';
             Aggiungi nuove molecole: seleziona la collezione
           </h2>
         }
-      </div>
-
-      <button
-        type="button"
-        class="action-card-close-btn"
-        (click)="close()"
-        aria-label="Chiudi selezione collezione"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-5 h-auto">
-          <path
-            d="M182.9 137.4L160.3 114.7L115 160L137.6 182.6L275 320L137.6 457.4L115 480L160.3 525.3L182.9 502.6L320.3 365.3L457.6 502.6L480.3 525.3L525.5 480L502.9 457.4L365.5 320L502.9 182.6L525.5 160L480.3 114.7L457.6 137.4L320.3 274.7L182.9 137.4z"
-          />
-        </svg>
-      </button>
     </div>
-
     <!-- BODY -->
-    <div class="action-card-body bg-light-surface-secondary dark:bg-dark-surface-secondary">
+    <div action-card-body class="bg-light-surface-secondary dark:bg-dark-surface-secondary">
       <div class="flex flex-col gap-6 min-h-[50vh]">
         <p
           class="my-4 px-2 sm:px-4 flex flex-col sm:flex-row sm:flex-wrap justify-center items-center gap-3 sm:gap-4 text-sm
@@ -95,7 +86,7 @@ import { Subscription } from 'rxjs';
         </p>
 
         <div class="w-full max-w-3xl mx-auto">
-          <m-combo-select
+          <m-select-core
             [items]="collections()"
             [displayFn]="displayCollection"
             [valueFn]="valueCollection"
@@ -105,64 +96,36 @@ import { Subscription } from 'rxjs';
             [selected]="selectedCollectionId()"
             (searchChange)="onSearchChange($event)"
             (loadMore)="onScrollEnd()"
-            (select)="onSelect($event)"
+            (selectionChange)="onSelectionChange($event)"
             (createNew)="onCreateNew($event)"
-            [attr.aria-label]="importFromChembl() ? 'Seleziona collezione per importazione ChEMBL' : 'Seleziona collezione per aggiungere molecole'"
+            [ariaLabel]="importFromChembl() ? 'Seleziona collezione per importazione ChEMBL' : 'Seleziona collezione per aggiungere molecole'"
           />
         </div>
       </div>
     </div>
 
     <!-- FOOTER -->
-    <div class="action-card-footer">
-      <button
-        type="button"
-        class="px-4 py-2 rounded-lg bg-light-surface-secondary text-light-on-surface-main
-               dark:bg-slate-200 dark:text-light-on-surface-main
-               hover:bg-white dark:hover:bg-slate-300/80
-               border border-light-border dark:border-dark-border/80
-               shadow-sm
-               focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq
-               focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary
-               dark:focus-visible:ring-offset-dark-surface-secondary
-               transition-colors duration-200"
+    <m-action-footer action-card-footer>
+      <m-button
+        action-footer-secondary
+        variant="neutral"
         (click)="close()"
         aria-label="Annulla selezione collezione"
       >
         Annulla
-      </button>
+      </m-button>
 
-      <button
-        type="button"
-        class="relative inline-flex items-center justify-center px-4 py-2 rounded-lg
-               bg-light-accent-primary text-white font-semibold shadow-md
-               hover:bg-light-accent-primary-hc
-               dark:bg-dark-accent-primary-btn dark:hover:bg-dark-accent-primary
-               focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq
-               focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary
-               dark:focus-visible:ring-offset-dark-surface-secondary
-               disabled:bg-light-accent-primary/50 disabled:cursor-not-allowed
-               transition-colors duration-200 dark:shadow-btn-dark disabled:hover:bg-light-accent-primary-hc/50"
+      <m-button
+        action-footer-primary
         [disabled]="!selectedCollectionId() || loadingCombo() || loading()"
+        [loading]="loadingCombo() || loading()"
         (click)="routeAction()"
-        [attr.aria-busy]="loadingCombo() || loading()"
-        [attr.aria-disabled]="!selectedCollectionId() || loadingCombo() || loading()"
         aria-label="Continua con la collezione selezionata"
       >
-        <span [class.invisible]="loadingCombo() || loading()">
-          Continua
-        </span>
-
-        <span
-          aria-hidden="true"
-          class="absolute inset-0 flex items-center justify-center"
-          [class.hidden]="!loadingCombo() && !loading()"
-        >
-          <m-classic-spinner [size]="24"></m-classic-spinner>
-        </span>
-      </button>
-    </div>
-  </div>
+        Continua
+      </m-button>
+    </m-action-footer>
+  </m-action-card>
 </div>
 
   `
@@ -172,28 +135,30 @@ export class SelectCollectionThenRouteComponent implements OnInit, OnDestroy {
   private readonly actionContext = inject(ActionOverlayContextService);
   private readonly sessionId = this.actionContext.session('SelectCollectionThenRoute')?.id ?? -1;
   private readonly collectionService = inject(MoleculeCollectionService);
+  private readonly picker = new CollectionPickerFacade({
+    mode: { kind: 'single', operation: 'route', allowCreate: true }
+  });
 
   private colFetchSub?: Subscription;
 
-  collections = signal<MoleculeCollection[]>([]);
-  hasMore = signal<boolean>(true);
-  loadingCombo = signal<boolean>(false);
+  collections = this.picker.collections;
+  hasMore = this.picker.hasMore;
+  loadingCombo = this.picker.loading;
   loading = signal<boolean>(false);
   selectedCollectionId = signal<string>('');
-  page = signal<number>(1);
-  searchTerm = signal<string>('');
   importFromChembl = signal<boolean>(false);
 
   ngOnInit(): void {
     queueMicrotask(() => {
       const ifc = this.actionContext.session('SelectCollectionThenRoute')?.input.importFromChembl ?? false;
       this.importFromChembl.set(ifc);
-      this.loadCollections(true);
+      this.picker.load(true);
     });
   }
 
   ngOnDestroy(): void {
     this.colFetchSub?.unsubscribe();
+    this.picker.destroy();
   }
 
   close(): void {
@@ -209,46 +174,28 @@ export class SelectCollectionThenRouteComponent implements OnInit, OnDestroy {
   }
 
   loadCollections(reset = false) {
-    if (this.loadingCombo()) {
-      return;
-    }
-    this.loadingCombo.set(true);
-    const page = reset ? 1 : this.page();
-    this.colFetchSub = this.collectionService
-      .getPaginatedCollections(page, 12, this.searchTerm())
-      .subscribe((res) => {
-        if (reset) {
-          this.collections.set(res.items);
-        } else {
-          this.collections.set([...this.collections(), ...res.items]);
-        }
-        this.hasMore.set(res.currentPage < res.totalPages);
-        this.page.set(res.currentPage + 1);
-        this.loadingCombo.set(false);
-      });
+    this.picker.load(reset);
   }
 
   onSearchChange(term: string) {
-    this.searchTerm.set(term);
-    this.page.set(1);
-    this.loadCollections(true);
+    this.picker.search(term);
   }
 
   onScrollEnd() {
-    if (this.hasMore() && !this.loadingCombo()) {
-      this.loadCollections();
-    }
+    if (this.hasMore() && !this.loadingCombo()) this.picker.load();
   }
 
   onSelect(item: Pick<MoleculeCollection, 'id'>) {
-    this.selectedCollectionId.set(item.id);
+    this.picker.setSingleSelection(item.id);
+    this.selectedCollectionId.set(this.picker.selected().ids[0] ?? '');
+  }
+
+  onSelectionChange(change: SelectSelectionChange<MoleculeCollection, string>) {
+    if (change.item) this.onSelect(change.item);
   }
 
   onCreateNew(name: string) {
-    this.collectionService.createCollection(name).subscribe((newColl) => {
-      this.collections.set([newColl, ...this.collections()]);
-      this.selectedCollectionId.set(newColl.id);
-    });
+    this.picker.create(name).subscribe(newColl => this.selectedCollectionId.set(newColl.id));
   }
 
   routeAction(): void {

@@ -1,23 +1,24 @@
-import { Component, ChangeDetectionStrategy, computed, DestroyRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import { Component, ChangeDetectionStrategy, computed, DestroyRef, inject, OnDestroy, OnInit, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PublicPipe } from '../../pipes/public.pipe';
 import { ReactiveFormsModule, Validators, FormGroup, FormControl, NonNullableFormBuilder } from '@angular/forms';
 import { ThemeManagerService } from '../../services/context/theme-manager.service';
-import { AuthService } from '../../services/auth.service';
+import { AuthTransportService } from '../../services/auth-transport.service';
 import { UserContextService } from '../../services/context/user-context.service';
 import { environment } from '../../../environments/environment';
 import { Subscription } from 'rxjs';
-import { FloatingInputComponent } from '../../components/common/floating-input/floating-input.component';
+import { TextFieldComponent } from '../../components/common/text-field/text-field.component'
 import { PmSelectComponent } from '../../components/common/pm-select/pm-select.component';
 import { emailAvailabilityValidator, matchPassword } from '../../custom-validators';
 import { UserGenderControl, UserRegisterDTO, UserRegistrationFormControls, UserRegistrationFormValue } from '../../Models/auth/user.models';
 import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
 import { Helpers } from '../../helpers';
 import { ToastService } from '../../services/toast.service';
-import { AppContextService } from '../../services/context/app-context.service';
+import { ScrollContextService } from '../../services/context/scroll-context.service';
 import { PmOption } from '../../Models/pm-option.model';
 import { RouterLink } from '@angular/router';
 import { TurnstileComponent } from '../../components/common/turnstile/turnstile.component';
+import { adaptHttpFormError, type FormErrorState } from '../../utils/form-error.adapter'
 
 
 @Component({
@@ -26,7 +27,7 @@ import { TurnstileComponent } from '../../components/common/turnstile/turnstile.
   imports: [
     PublicPipe,
     ReactiveFormsModule,
-    FloatingInputComponent,
+    TextFieldComponent,
     PmSelectComponent,
     ClassicSpinnerComponent,
     RouterLink,
@@ -56,7 +57,7 @@ import { TurnstileComponent } from '../../components/common/turnstile/turnstile.
           @case (1) {
             <form [formGroup]="form" (ngSubmit)="onSubmit()" aria-labelledby="register-heading" [attr.aria-busy]="loading()">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-8">
-              <m-floating-input
+              <m-text-field
                   label="Nome *"
                   type="text"
                   autocomplete="current-name"
@@ -65,11 +66,8 @@ import { TurnstileComponent } from '../../components/common/turnstile/turnstile.
                     required: 'Il nome è obbligatorio.',
                     pattern: 'Il formato del nome non è valido.'
                   }"
-                  darkLabelClass = 'dark:text-dark-accent-secondary-hc'
-                  darkFocusRingClass = 'dark:focus:ring-dark-accent-primary'
-                  darkFocusBorderClass = 'dark:focus:border-dark-accent-primary'
               />
-              <m-floating-input
+              <m-text-field
                   label="Cognome *"
                   type="text"
                   autocomplete="current-surname"
@@ -78,13 +76,10 @@ import { TurnstileComponent } from '../../components/common/turnstile/turnstile.
                     required: 'Il cognome è obbligatorio.',
                     pattern: 'Il formato del cognome non è valido.'
                   }"
-                  darkLabelClass = 'dark:text-dark-accent-secondary-hc'
-                  darkFocusRingClass = 'dark:focus:ring-dark-accent-primary'
-                  darkFocusBorderClass = 'dark:focus:border-dark-accent-primary'
               />
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-6">
-              <m-floating-input
+              <m-text-field
                   label="E-mail *"
                   type="email"
                   autocomplete="current-email"
@@ -95,31 +90,19 @@ import { TurnstileComponent } from '../../components/common/turnstile/turnstile.
                     email: this.emailMalformed,
                     emailTaken: 'E-mail già registrata.'
                   }"
-                  [asyncVerify]="true"
-                  darkLabelClass = 'dark:text-dark-accent-secondary-hc'
-                  darkFocusRingClass = 'dark:focus:ring-dark-accent-primary'
-                  darkFocusBorderClass = 'dark:focus:border-dark-accent-primary'
               />
-              <m-floating-input
+              <m-text-field
                   label="Il tuo lavoro"
                   type="text"
                   autocomplete="current-job"
                   formControlName="job"
                   [errors]="{}"
-                  darkLabelClass = 'dark:text-dark-accent-secondary-hc'
-                  darkFocusRingClass = 'dark:focus:ring-dark-accent-primary'
-                  darkFocusBorderClass = 'dark:focus:border-dark-accent-primary'
               />
             </div>
             <m-select label="Genere *"
               [options]="options"
               formControlName="gender"
-              [darkFocusClassList]="[
-                'dark:focus:ring-dark-accent-primary',
-                'dark:focus:border-dark-accent-primary',
-                'dark:focus-visible:outline-dark-accent-primary',
-                'dark:focus-visible:outline-dark-accent-primary'
-              ]">
+              tone="highContrast">
             </m-select>
             <div class="tflex justify-center mx-auto max-w-[500px] text-sm text-light-error dark:text-dark-error mt-1 min-h-5 mb-8">
               @if (form.controls['gender'].touched && form.controls['gender'].invalid) {
@@ -127,7 +110,7 @@ import { TurnstileComponent } from '../../components/common/turnstile/turnstile.
               }
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-8">
-              <m-floating-input
+              <m-text-field
                   label="Password"
                   type="password"
                   autocomplete="current-password"
@@ -136,11 +119,8 @@ import { TurnstileComponent } from '../../components/common/turnstile/turnstile.
                     required: 'La password è obbligatoria.',
                     pattern: 'La password deve essere di almeno 8 caratteri: almeno uno minuscolo, uno maiuscolo, un numero e un carattere speciale.'
                   }"
-                  darkLabelClass = 'dark:text-dark-accent-secondary-hc'
-                  darkFocusRingClass = 'dark:focus:ring-dark-accent-primary'
-                  darkFocusBorderClass = 'dark:focus:border-dark-accent-primary'
               />
-              <m-floating-input
+              <m-text-field
                   label="Inserisci di nuovo la password"
                   type="password"
                   autocomplete="current-password"
@@ -149,9 +129,6 @@ import { TurnstileComponent } from '../../components/common/turnstile/turnstile.
                     required: 'Il campo di conferma password è obbligatorio.',
                     matchPassword: 'Le due password non corrispondono.'
                   }"
-                  darkLabelClass = 'dark:text-dark-accent-secondary-hc'
-                  darkFocusRingClass = 'dark:focus:ring-dark-accent-primary'
-                  darkFocusBorderClass = 'dark:focus:border-dark-accent-primary'
               />
             </div>
             <div class="flex gap-3 relative top-2 sm:top-4 justify-center sm:justify-start">
@@ -244,15 +221,14 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
   // ======================= DEPS =======================
   private readonly fb = inject(NonNullableFormBuilder)
   private readonly themeManager = inject(ThemeManagerService)
-  private readonly authService = inject(AuthService)
+  private readonly authService = inject(AuthTransportService)
   protected readonly userContext = inject(UserContextService)
   private readonly toast = inject(ToastService)
-  private readonly appContext = inject(AppContextService)
+  private readonly scrollContext = inject(ScrollContextService)
   private readonly destroyRef = inject(DestroyRef)
   // ====================================================
 
-  @ViewChild(TurnstileComponent)
-  turnstileComponent!: TurnstileComponent
+  readonly turnstileComponent = viewChild.required(TurnstileComponent);
 
   private regSub?: Subscription
   private valChSub?: Subscription
@@ -264,6 +240,7 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
   step = signal<1 | 2>(1)
   loading = signal<boolean>(false)
   obscuredEmail = signal<string>('')
+  serverError = signal<FormErrorState<'email'>>({ fieldErrors: {}, globalError: null })
   settedDisabledBtn = signal<boolean>(false)
   logoSrc = computed(() => {
     const { PICTOGRAM_LIGHT, PICTOGRAM_DARK } = environment.logoSrc
@@ -322,7 +299,7 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
   onSubmit(): void {
     if (this.form.valid) {
       if (!this.turnstileToken()) {
-        this.turnstileComponent?.reset()
+        this.turnstileComponent()?.reset()
         this.turnstileToken.set('')
         this.loadingTurnstile.set(true)
         this.loading.set(false)
@@ -345,19 +322,31 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
           queueMicrotask(() => {
             this.loading.set(false)
             this.step.set(2)
-            this.appContext.smoothToTop(undefined, 240)
+            this.scrollContext.smoothToTop(undefined, 240)
           })
         },
-        error: () => {
-          this.toast.trigger('Si è verificato un errore lato server.', 'error', 3000)
-          this.turnstileComponent?.reset()
+        error: error => {
+          const formError = adaptHttpFormError(error, {
+            USER_REGISTRATION_EMAIL_CONFLICT: { email: 'email' }
+          })
+          this.serverError.set(formError)
+          if (formError.fieldErrors.email) {
+            this.form.controls.email.setErrors({
+              ...this.form.controls.email.errors,
+              server: formError.fieldErrors.email
+            })
+            this.form.controls.email.markAsTouched()
+          } else if (formError.globalError) {
+            this.toast.trigger(formError.globalError, 'error', 3000)
+          }
+          this.turnstileComponent()?.reset()
           this.turnstileToken.set('')
           this.loadingTurnstile.set(true)
           this.loading.set(false)
         }
       })
     } else {
-      this.turnstileComponent?.reset()
+      this.turnstileComponent()?.reset()
       this.turnstileToken.set('')
       this.loadingTurnstile.set(true)
       this.settedDisabledBtn.set(true)
@@ -383,6 +372,7 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
     this.form.valueChanges.pipe(
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(() => {
+      this.serverError.set({ fieldErrors: {}, globalError: null })
       if (this.settedDisabledBtn()) {
         this.settedDisabledBtn.set(false)
       }

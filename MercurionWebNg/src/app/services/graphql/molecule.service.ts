@@ -25,15 +25,15 @@ export class MoleculeService {
 
   getMoleculeByMolregno(molregno: string): Observable<MoleculeDetail> {
     return this.apollo
-      .watchQuery<GetMoleculeDetailQuery, GetMoleculeDetailQueryVariables>({
+      .query<GetMoleculeDetailQuery, GetMoleculeDetailQueryVariables>({
         query: GetMoleculeDetailDocument,
         variables: { molregno },
-        fetchPolicy: 'cache-first',
+        fetchPolicy: 'no-cache',
         context: {
           credentials: 'include'
         }
       })
-      .valueChanges.pipe(
+      .pipe(
         map(result => result.data.moleculeByMolregno),
         switchMap(mol => {
           if (mol == null) {
@@ -48,14 +48,14 @@ export class MoleculeService {
 
   getMoleculePreviewsByMolregnos(molregnos: string[]): Observable<MoleculeSearchResult[]> {
     return this.apollo
-      .watchQuery<MoleculePreviewsByMolregnosQuery, MoleculePreviewsByMolregnosQueryVariables>({
+      .query<MoleculePreviewsByMolregnosQuery, MoleculePreviewsByMolregnosQueryVariables>({
         query: MoleculePreviewsByMolregnosDocument,
         variables: { molregnos },
-        fetchPolicy: 'cache-first',
+        fetchPolicy: 'no-cache',
         context: {
           credentials: 'include'
         }
-      }).valueChanges.pipe(
+      }).pipe(
         map(result => result.data.moleculePreviewsByMolregnos)
       )
   }

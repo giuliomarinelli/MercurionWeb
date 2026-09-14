@@ -1,5 +1,5 @@
 import { LoggerService } from '../../../services/logger.service';
-import { AfterViewChecked, AfterViewInit, Component, ChangeDetectionStrategy, DestroyRef, ElementRef, OnDestroy, OnInit, ViewChild, computed, effect, inject, signal } from '@angular/core';
+import { AfterViewChecked, AfterViewInit, Component, ChangeDetectionStrategy, DestroyRef, ElementRef, OnDestroy, OnInit, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LabNotebookEditorComponent } from '../../../components/notebook/lab-notebook-editor/lab-notebook-editor.component';
 import { ActivatedRoute } from '@angular/router';
@@ -73,9 +73,11 @@ import { NotebookTocComponent } from '../../../components/notebook/notebook-tree
   `
 })
 export class NotebookEditPageComponent implements OnInit, OnDestroy, AfterViewChecked {
+  private readonly route = inject(ActivatedRoute);
+  private readonly notebookService = inject(NotebookService);
 
-  @ViewChild('h1')
-  h1Ref!: ElementRef<HTMLElement>
+
+  readonly h1Ref = viewChild<ElementRef<HTMLElement>>('h1');
 
   private autosave$ = new Subject<string>()
 
@@ -90,11 +92,6 @@ export class NotebookEditPageComponent implements OnInit, OnDestroy, AfterViewCh
   sectionId = signal<string>('')
   pageId = signal<string>('')
   notebook = signal<NotebookTree | undefined>(undefined)
-
-  constructor(
-    private readonly route: ActivatedRoute,
-    private readonly notebookService: NotebookService
-  ) { }
 
   ngOnInit(): void {
     this.route.params.pipe(
@@ -160,8 +157,9 @@ export class NotebookEditPageComponent implements OnInit, OnDestroy, AfterViewCh
   ngAfterViewChecked(): void {
 
     // Quando finalmente l'h1 compare, aggiorna il padding!
-    if (this.h1Ref?.nativeElement) {
-      const height = this.h1Ref.nativeElement.clientHeight;
+    const h1Ref = this.h1Ref();
+    if (h1Ref?.nativeElement) {
+      const height = h1Ref.nativeElement.clientHeight;
       if (this.offsetHeight() !== height) {
         this.offsetHeight.set(height + 12);
         

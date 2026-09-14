@@ -1,5 +1,6 @@
-import { Component, ChangeDetectionStrategy, signal, effect, Input, Output, EventEmitter } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal, effect, input, output, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { QuillStylesService } from '../../../services/quill-styles.service';
 import { QuillModule } from 'ngx-quill';
 
 
@@ -16,7 +17,7 @@ import { QuillModule } from 'ngx-quill';
       [placeholder]="placeholder"
       [ngModel]="_content()"
       (ngModelChange)="onModelChange($event)"
-      [attr.aria-label]="ariaLabel || placeholder"
+      [attr.aria-label]="ariaLabel() || placeholder"
       aria-live="polite">
     </quill-editor>
   `,
@@ -28,22 +29,16 @@ import { QuillModule } from 'ngx-quill';
     }
   `]
 })
-export class LabNotebookEditorComponent {
+export class LabNotebookEditorComponent implements OnInit {
 
-  @Input()
-  set triggerContentEmission(trigger: boolean) {
-    trigger && this._triggerContentEmission.set(true)
-  }
+  private readonly quillStyles = inject(QuillStylesService)
 
-  @Input()
-  set content(content: string) {
-    this._content.set(content)
-  }
+  readonly triggerContentEmission = input(false)
+  readonly content = input('')
 
-  @Input() ariaLabel = 'Editor di note di laboratorio'
+  readonly ariaLabel = input('Editor di note di laboratorio');
 
-  @Output()
-  emitContent = new EventEmitter<string>()
+  readonly emitContent = output<string>();
 
   private _triggerContentEmission = signal<boolean>(false)
   protected _content = signal<string>('')
@@ -70,7 +65,15 @@ export class LabNotebookEditorComponent {
     ]
   }
 
+  ngOnInit(): void {
+    this.quillStyles.load()
+  }
+
   constructor() {
+    effect(() => {
+      if (this.triggerContentEmission()) this._triggerContentEmission.set(true)
+    })
+    effect(() => this._content.set(this.content()))
     effect(() => {
       if (this._triggerContentEmission()) {
         this.emitContent.emit(this._content())

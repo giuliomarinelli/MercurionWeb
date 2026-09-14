@@ -13,6 +13,7 @@ describe('MyMoleculeJoinComponent', () => {
     .compileComponents();
 
     fixture = TestBed.createComponent(MyMoleculeJoinComponent);
+    fixture.componentRef.setInput('joins', null);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

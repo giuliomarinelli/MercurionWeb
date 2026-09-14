@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { SyntheticStepService } from './synthetic-step.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { SynthStep } from '../Models/entities/synth-step.entity';
+import { Synthesis } from '../Models/entities/synthesis.entity';
 
 describe('SyntheticStepService', () => {
   let service: SyntheticStepService;
@@ -20,6 +21,10 @@ describe('SyntheticStepService', () => {
             createQueryBuilder: jest.fn(),
             findOne: jest.fn(),
           },
+        },
+        {
+          provide: getRepositoryToken(Synthesis),
+          useValue: { findOne: jest.fn() },
         },
       ],
     }).compile();

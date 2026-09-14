@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
 @Component({
   selector: 'm-classic-spinner',
@@ -7,13 +7,13 @@ import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
     <span
       class="app-spinner"
       role="status"
-      [attr.aria-label]="ariaLabel"
-      [class.app-spinner--overlay]="overlay"
+      [attr.aria-label]="ariaLabel()"
+      [class.app-spinner--overlay]="overlay()"
     >
       <svg
         class="app-spinner__svg"
-        [attr.width]="size"
-        [attr.height]="size"
+        [attr.width]="size()"
+        [attr.height]="size()"
         viewBox="0 0 50 50"
         focusable="false"
         aria-hidden="true"
@@ -22,20 +22,20 @@ import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
         <circle
           class="app-spinner__track"
           cx="25" cy="25" r="20"
-          [attr.stroke-width]="stroke"
+          [attr.stroke-width]="stroke()"
           fill="none"
         />
         <!-- Indeterminate arc (Material-like) -->
         <circle
           class="app-spinner__arc"
           cx="25" cy="25" r="20"
-          [attr.stroke-width]="stroke"
-          [attr.stroke]="color || 'currentColor'"
+          [attr.stroke-width]="stroke()"
+          [attr.stroke]="color() || 'currentColor'"
           fill="none"
           stroke-linecap="round"
         />
       </svg>
-      <span class="app-spinner__sr">{{ ariaLabel }}</span>
+      <span class="app-spinner__sr">{{ ariaLabel() }}</span>
     </span>
   `,
   styles: [`
@@ -100,13 +100,13 @@ import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 })
 export class ClassicSpinnerComponent {
   /** dimensione in px */
-  @Input() size = 40;
+  readonly size = input(40);
   /** spessore della traccia */
-  @Input() stroke = 3.6;
+  readonly stroke = input(3.6);
   /** colore (default currentColor – consigliato) */
-  @Input() color: string | null = null;
+  readonly color = input<string | null>(null);
   /** label per a11y */
-  @Input() ariaLabel = 'Caricamento…';
+  readonly ariaLabel = input('Caricamento…');
   /** overlay centrato (assoluto) */
-  @Input() overlay = false;
+  readonly overlay = input(false);
 }

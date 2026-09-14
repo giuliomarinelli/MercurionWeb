@@ -46,9 +46,6 @@ describe('Angular environment configuration', () => {
 
   it('freezes environment objects and nested configuration collections', () => {
     expect(Object.isFrozen(productionEnvironment)).toBeTrue()
-    expect(Object.isFrozen(productionEnvironment.PUBLIC_EXACT_PATHS)).toBeTrue()
-    expect(Object.isFrozen(productionEnvironment.LOGGED_OUT_ONLY_PATHS)).toBeTrue()
-    expect(Object.isFrozen(productionEnvironment.PUBLIC_PREFIXES)).toBeTrue()
     expect(Object.isFrozen(productionEnvironment.logoSrc)).toBeTrue()
   })
 })

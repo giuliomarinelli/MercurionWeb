@@ -1,0 +1,492 @@
+# Fresh bounded overweek autonomous full-Series session. Do not reuse after its deadline.
+
+session:
+  name: mercurion-code-red-0001-overweek-full-series-2026-09-20-v7
+  timezone: Europe/Rome
+  start: null # coordinator records actual launch in runtime state/report; YAML stays read-only
+  end: "2026-09-20T10:00:00+02:00"
+  hard_stop: null
+  refuse_launch_at_or_after_end: true
+
+launch:
+  permanent_baseline_pull_request: 27
+  recovery_control_plane_pull_request: 28
+  workflow_hardening_pull_request: 29
+  browser_and_allowlist_hardening_pull_request: 31
+  require_configuration_on_integration_branch: true
+  require_current_cli_runner_control_plane_on_integration_branch: true
+  require_local_test_account_policy_on_integration_branch: true
+  configuration_read_only_during_session: true
+  do_not_mutate_pull_requests:
+    - 25
+    - 27
+    - 28
+    - 29
+    - 31
+
+repository:
+  name: giuliomarinelli/MercurionWeb
+  remote: origin
+  integration_branch: develop
+  feature_branch_pattern: "feature/{source}"
+
+  git:
+    allow_writes: true
+    merge_strategy: no-ff
+    commit_gpg_sign: false
+    require_no_gpg_sign_per_commit_command: true
+    allow_rebase: false
+    allow_force_push: false
+    push_feature_branch_before_work: false
+    push_feature_branch_after_first_task_commit: true
+    forbid_remote_feature_ref_equal_to_base_sha: true
+    delete_feature_branch_on_ci_success: true
+    preserve_feature_branch_on_failure: true
+    freeze_preserved_feature_branch_on_block: true
+
+  github:
+    allow_remote_git_writes: true
+    wait_for_feature_ci: true
+    wait_for_merge_ci: true
+    required_check: Required gate
+    ci_failure_policy: revert-merge-and-mark-reverted
+
+agent:
+  host: github-copilot-cli
+  provider: github-copilot
+  subscription_profile: max
+  harness: github-copilot-cli
+  mode: autopilot
+  inherit_parent_model_and_reasoning: true
+
+  coordinator:
+    name: Development Session Coordinator
+    file: .github/agents/development-session-coordinator.agent.md
+
+  worker:
+    name: Development Task Worker
+    agent_type: development-task-worker
+    file: .github/agents/development-task-worker.agent.md
+    invocation: task
+    mode: sync
+    stateless: true
+    exactly_one_task: true
+
+  context:
+    management:
+      required: true
+      provider: github-copilot-cli
+      strategy: native-compaction-and-checkpoints
+      automatic_compaction: true
+      checkpoint_behavior: native
+
+  max_autopilot_continues_per_task: 20
+  max_ai_credits_per_task: 100
+
+capabilities:
+  terminal_and_git:
+    required: true
+  github_actions_read:
+    required: true
+  subagents:
+    required: true
+    tool: task
+    agent_type: development-task-worker
+    mode: sync
+  browser_validation:
+    enabled: true
+    mcp_server: chrome-devtools
+    mcp_config: .github/mcp.json
+    required_when_declared_by_task: true
+    owner: development-task-worker
+    concurrent_owners_allowed: false
+    profile:
+      mode: dedicated-persistent
+      isolated: false
+      incognito_or_guest: false
+      personal_profile_allowed: false
+      reuse_across_serial_workers: true
+      reuse_across_sessions: true
+      production_credentials_allowed: false
+    capability_preflight:
+      required_before_implementation_when_browser_runtime_declared: true
+      verify_runtime_readiness: true
+      verify_authenticated_state_when_required: true
+      authenticated_entrypoint: http://localhost:8888/login
+      authentication_mode: fresh-shared-real-test-account-login
+      credential_file: MercurionWebNode/env/.env.development
+      required_credential_variables:
+        - LOCAL_TEST_ACCOUNT_EMAIL
+        - LOCAL_TEST_ACCOUNT_PASSWORD
+      credential_entry:
+        snapshot_before_fill: true
+        preferred_tool: fill_form
+        fallback_tool: fill
+        forbidden_methods:
+          - navigator.clipboard
+          - clipboard.readText
+          - evaluate_script
+          - dom-injection
+          - os-clipboard
+        clipboard_denial_is_capability_failure: false
+        retry_supported_fill_in_same_worker: true
+      require_server_accepted_protected_session: true
+      failure_result: SESSION_CAPABILITY_PAUSE
+      mutate_task_outcome: false
+      propagate_dependency_skips: false
+      continue_session_after_pause: true
+      exclude_paused_task_for_remainder_of_session: true
+      retry_paused_task_in_same_session: false
+    state_lease:
+      preserve_non_production_authentication: true
+      restore_after_explicit_logout_or_storage_test: false
+      recovery_failure_signal: BROWSER_PROFILE_RECOVERY_REQUIRED
+      stop_before_next_task_on_recovery_failure: false
+      secrets_in_reports: false
+    acceptance_probe:
+      required_once_before_enabling_unattended_reuse: false
+      outside_active_development_session: true
+      fresh_sequential_workers: 2
+      request_marker: browser_profile_probe
+      storage_key: mercurion-autonomous-profile-probe
+      remove_probe_state: true
+  task_completion:
+    required: true
+    tool: task_complete
+
+startup:
+  capability_probe:
+    required: true
+    dry_run_allowed: false
+    directory: unique-child-of-os-temporary-directory
+    init: npm init -y
+    install: npm install --ignore-scripts --no-save is-number@7.0.0
+    assertion: require("is-number")(42) === true
+    cleanup: delete-exact-probe-directory
+    require_clean_identical_git_status_before_after: true
+  signing:
+    require_effective_repository_local_commit_gpg_sign: true
+    required_repository_local_commit_gpg_sign_value: false
+    require_no_gpg_sign_per_commit_command: true
+  subagent_probe:
+    required: true
+    before_task_branch_creation: true
+    tool: task
+    agent_type: development-task-worker
+    mode: sync
+    request_marker: "capability_probe: true"
+    nonce: fresh-unpredictable-value
+    expected_response: "TASK_CAPABILITY_OK {nonce}"
+    worker_tool_calls_allowed: false
+    repository_access_allowed: false
+  denial_policy:
+    stop_and_report_exact_denial: false
+    enter_session_recovery_pending: true
+    retry_with_bounded_backoff_until_soft_deadline: true
+    prerequisites:
+      - install
+      - network
+      - filesystem
+      - cleanup
+      - github
+      - task
+      - mcp
+      - signing
+      - task_complete
+
+runtime:
+  documentation: docs/autonomous-development/RUNTIME.md
+  edge:
+    base_url: http://localhost:8888
+    managed: false
+    required_when_browser_validation_is_needed: true
+    angular_readiness_url: http://localhost:8888/
+    nest_readiness_url: http://localhost:8888/health
+  managed_processes:
+    tox21:
+      cwd: ../MercurionTox21
+      repository_access: read-only
+      watch: false
+      environment:
+        PYTHONUTF8: "1"
+      command:
+        windows: .venv/Scripts/python.exe -m main
+        posix: .venv/bin/python -m main
+    nest:
+      cwd: MercurionWebNode
+      repository_access: read-write
+      watch: true
+      environment:
+        APP_ENV: development
+        LOCAL_DUMMY_AUTH: "false"
+      command: npm run start:dev
+    angular:
+      cwd: MercurionWebNg
+      repository_access: read-write
+      watch: true
+      command: npm run start:dev
+  start_order:
+    - tox21
+    - nest
+    - angular
+  lifecycle:
+    task_scoped: true
+    start_only_after_task_start_preflight: true
+    start_only_when_browser_validation_required: true
+    stop_before_task_handoff: true
+    carry_processes_between_tasks: false
+
+quality:
+  baseline_document: docs/autonomous-development/CI-BASELINE.md
+  session_start_preflight: remote-ci-and-focused-local-only
+  require_clean_exact_origin_develop: true
+  require_green_before_first_task_scope: true
+  require_exact_sha_ci_for_every_develop_base: true
+  require_fresh_full_remote_ci_at_session_start: true
+  stop_before_task_branch_if_initial_baseline_is_not_green: true
+  numbered_tasks_may_repair_baseline: false
+  before_every_task: focused-local-only
+  before_merge: exact-feature-sha-actions
+  local_full_commands_forbidden: true
+  canonical:
+    directory: .
+    execution_owner: github-actions
+    install: npm ci
+    check: npm run ci:check
+
+workload:
+  task_directory: docs/autonomous-development/task
+  task_pattern: "[0-9][0-9][0-9][0-9]-*.md"
+  series_directory: docs/autonomous-development/series
+  series_pattern: "[0-9][0-9][0-9][0-9]-*.md"
+  order: filename
+  series_file: 'docs/autonomous-development/series/0001-010926-$oid(6a962b70d3e82215b546be6e)-MercurionWeb-technical-debt-audit-develop-8048279.md'
+  # Empty selects every pending task in the complete Series.
+  tasks: []
+  pending_only: true
+  expected_task_count: 220
+  expected_current_done: 65
+  expected_current_blocked: 2
+  expected_current_skipped_dependency: 11
+  expected_current_pending: 142
+  expected_first_ready_task: "0060"
+  expected_planner_ready: 17
+  expected_planner_waiting_dependency: 125
+  expected_planner_terminal_closure: 11
+  expected_new_skipped_dependency: 0
+  expected_autonomous_pending: 142
+  expected_human_led_pending: 0
+  dependency_planner:
+    command: npm run autonomous:plan
+    output: versioned-json
+    authoritative: true
+    read_only: true
+    fail_on_errors: true
+    fail_on_cycles: true
+    fail_on_stale_skips: true
+    model_inference_fallback: false
+
+blocked_branch_policy:
+  preserve_existing_frozen_branches: true
+  do_not_resume_without_new_direct_human_authorization: true
+  branches:
+    - feature/SYS-020
+    - feature/NG-028
+
+authorized_recovery:
+  authority: direct-human-instruction-2026-09-11
+  resume_existing_feature_branches: true
+  reconcile_with_current_develop: merge-no-ff-no-gpg-sign
+  tasks: ["0087", "0091", "0109"]
+  source_0087: NG-001
+  preserved_sha_0087: bb210295929e45ba739207361f40f1c1bbbb719b
+  source_0091: NG-005
+  preserved_sha_0091: e58a7e048a5c44a7ff4b1db21bfd8a360228da1a
+  source_0109: NG-023
+  preserved_sha_0109: a321fc44678f9f6298ddd460a35b2ddc9034d7f1
+  reset_stale_skipped_dependency:
+    - "0060"
+    - "0061"
+    - "0062"
+    - "0063"
+    - "0064"
+    - "0065"
+    - "0066"
+    - "0067"
+    - "0068"
+    - "0069"
+    - "0070"
+    - "0071"
+    - "0072"
+    - "0073"
+    - "0074"
+    - "0075"
+    - "0077"
+    - "0078"
+    - "0079"
+    - "0080"
+    - "0081"
+    - "0082"
+    - "0083"
+    - "0084"
+    - "0085"
+    - "0086"
+    - "0088"
+    - "0106"
+    - "0110"
+    - "0111"
+    - "0112"
+
+task_outcomes:
+  persistent:
+    - DONE
+    - BLOCKED
+    - REVERTED
+    - SKIPPED_DEPENDENCY
+  mutually_exclusive: true
+  transient:
+    - CI_PENDING
+    - WAITING_DEPENDENCY
+    - SESSION_CAPABILITY_PAUSE
+    - SESSION_BRANCH_COLLISION_PAUSE
+    - SESSION_RECOVERY_PENDING
+    - BROWSER_PROFILE_RECOVERY_REQUIRED
+
+policy:
+  fresh_agent_session_per_task: true
+  multi_task_bundles: false
+  one_feature_branch_per_task: true
+  source_required_for_branch_name: true
+  serialize_task_integration: true
+  finish_current_task_after_deadline: true
+  start_new_tasks_after_deadline: false
+  stop_when_workload_exhausted: true
+  stop_when_no_unpaused_ready_tasks: false
+  keep_alive_when_pending_tasks_are_temporarily_unrunnable: true
+  retry_recovery_until_soft_deadline: true
+  branch_collision_excludes_only_colliding_task: true
+  error_before_deadline_completes_session: false
+  continue_after_terminal_non_done_task: true
+  terminal_outcomes_immutable_within_active_session: true
+  terminal_task_reenable_authority: new-direct-human-instruction-in-new-or-restarted-session
+  autopilot_continuation_is_human_authorization: false
+  dependency_selection: graph-snapshot
+  waiting_dependency_is_transient: true
+  dependency_skip_evaluation: batched-terminal-transitive-closure
+  precompute_transitive_dependency_skips: true
+  batch_dependency_skip_metadata_commit: true
+  single_metadata_commit_per_skip_closure: true
+  next_task_after_terminal_non_done: earliest-ready-task
+  require_green_develop_before_next_task: true
+
+ci:
+  workflow_file: .github/workflows/ci.yml
+  integration_branch: develop
+  merge_commit_required: true
+  wait_for_exact_feature_sha: true
+  wait_for_exact_merge_sha: true
+  required_check: Required gate
+  platforms:
+    - ubuntu-latest
+    - windows-latest
+  poll_interval_seconds: 30
+  observation_timeout_minutes: 120
+  only_success_conclusion_is_green: true
+  classification:
+    modes:
+      - duplicate
+      - metadata
+      - full
+    duplicate_requires_prior_successful_exact_sha: true
+    duplicate_waits_only_for_older_run_ids: true
+    duplicate_wait_timeout_seconds: 900
+    metadata_requires_green_exact_base_sha: true
+    metadata_allowlist:
+      - 'docs/autonomous-development/task/(?!0000-)[0-9]{4}-[^/]+\.md'
+      - 'docs/autonomous-development/reports/[0-9]{4}-[0-9]{2}-[0-9]{2}-[^/]+\.md'
+    metadata_must_not_feed_application_inventories: true
+    manual_dispatch_default: full
+    manual_full_bypasses_duplicate_reuse: true
+    unknown_or_ambiguous_fallback: full
+    stable_required_gate_for_every_mode: true
+  on_success:
+    finalize_done: true
+    delete_feature_branch_local: true
+    delete_feature_branch_remote_if_present: true
+  on_pre_merge_block:
+    feature_ci_non_success_marks_blocked: false
+    feature_ci_repair:
+      enabled: true
+      max_attempts: 3
+      same_task_branch: true
+      fresh_synchronous_worker_per_attempt: true
+      actionable_repository_failure_only: true
+      keep_done_as_ci_pending_during_repair: true
+      block_after_exhaustion_or_unverifiable: true
+    mark_task_blocked: true
+    wait_for_blocked_metadata_ci_green: true
+    preserve_feature_branch_local: true
+    preserve_feature_branch_remote: true
+    freeze_preserved_feature_branch: true
+  on_failure:
+    stop_current_integration: true
+    revert_merge_commit: true
+    wait_for_revert_ci_green: true
+    verify_revert_tree_matches_pre_merge_base: true
+    stop_session_if_revert_not_green: false
+    enter_session_recovery_pending_if_revert_not_green: true
+    classify_non_green_revert_as: baseline-or-upstream-incident
+    mark_task_reverted: true
+    wait_for_reverted_metadata_ci_green: true
+    preserve_feature_branch_local: true
+    preserve_feature_branch_remote: true
+    freeze_preserved_feature_branch: true
+  on_dependency_skip:
+    create_feature_branch: false
+    invoke_worker: false
+    mark_task_skipped_dependency: true
+    record_direct_and_transitive_causes: true
+    materialize_entire_terminal_closure: true
+    aggregate_in_one_metadata_commit: true
+    wait_for_metadata_ci_green: true
+
+decisions:
+  sys_020_notebook: remain-blocked
+  ui_018: remain-blocked
+  ng_001: resume-and-complete-existing-work
+  ng_005: resume-and-complete-existing-work
+  ng_023: resume-and-complete-existing-work
+  ng_028: remain-blocked
+  task_batching: disabled
+  autonomous_execution_scope: complete-series
+  fe_019_completed:
+    task: "0041"
+    source: FE-019
+    outcome: DONE
+    merged_develop_sha: b25210a7e0fba04d98c58bb45ec62fc2526ee3ff
+    select_again: false
+
+telemetry:
+  record_ci_classification_counts: true
+  record_platform_jobs_started_and_avoided: true
+  record_ci_wait_seconds: true
+  record_task_wall_seconds: true
+  record_worker_invocations: true
+  record_pushes_and_retries: true
+  record_workload_allowlist_counts: true
+  unavailable_metrics_must_be_reported_as_unavailable: true
+
+on_finish:
+  validate_repository: true
+  require_green_develop: true
+  generate_report: true
+  stop_managed_runtime_processes: true
+  report_directory: docs/autonomous-development/reports
+  report_template: docs/autonomous-development/reports/0000-session-report-template.md
+  commit_and_push_report_to_develop: true
+  wait_for_exact_report_commit_ci: true
+  session_fatal_blocker_completes_coordinator_objective: false
+  task_complete_before_deadline_on_error: false
+  emit_final_summary_and_report_path_before_task_complete: true
+  task_complete_is_final_autopilot_action: true
+  call_task_complete: true

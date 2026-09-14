@@ -1,7 +1,7 @@
 import { Field, ID, InputType, Int } from "@nestjs/graphql"
 import { Transform } from "class-transformer"
 import { UUID } from "crypto"
-import { IsArray, IsInt, IsOptional, IsString, IsUUID } from "class-validator"
+import { IsInt, IsOptional, IsString, IsUUID, Min } from "class-validator"
 import { GeneralUtils } from "src/utils/general-utils/general-utils"
 
 @InputType()
@@ -13,18 +13,9 @@ export class SynthStepInput {
     synthId: UUID
 
     @IsInt()
+    @Min(0)
     @Field(() => Int) 
     order: number
-
-    @IsUUID()
-    @Field(() => ID)
-    @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
-    mainSubstrateId: UUID
-    
-    @IsUUID()
-    @Field(() => ID)
-    @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
-    mainProductId: UUID
 
     @IsOptional()
     @IsString()
@@ -37,11 +28,4 @@ export class SynthStepInput {
     @Field(() => String, { nullable: true }) 
     @Transform(({ value }) => typeof value === 'string' ? GeneralUtils.normalizeSpaces(value) : value)
     reactionType: string | null
-    
-    @IsArray()
-    @IsString({ each: true })
-    @Field(() => [String]) 
-    @Transform(({ value }) => Array.isArray(value) ? value.map((v) => typeof v === 'string' ? v.trim() : v) : value)
-    conditions: string[]
-
 }

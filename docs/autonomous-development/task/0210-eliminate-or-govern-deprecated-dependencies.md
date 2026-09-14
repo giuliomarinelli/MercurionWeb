@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Remove or safely replace every audited deprecated/legacy direct dependency and make any unavoidable residual dependency an explicit time-bounded exception so clean install/build output contains no unaccepted deprecation warning.
@@ -95,6 +95,10 @@ Evaluate the current graph, not only the original audit list. A removed direct p
 
 ## Execution notes
 
+> Current status (2026-09-11): PENDING. The planner identified the prior
+> dependency skip as stale after direct owner re-enablement of its prerequisite
+> chain; historical skip evidence below is retained only for traceability.
+
 ### Feature branch
 _Not started._
 ### Preflight
@@ -102,7 +106,8 @@ _Not started._
 ### Preflight remediation
 _None._
 ### Summary
-_Not started._
+Not attempted because direct terminal prerequisite 0085 (UI-027) is
+`SKIPPED_DEPENDENCY`.
 ### Task-specific validation performed
 _Not started._
 ### Full pre-merge CI-parity validation
@@ -116,4 +121,11 @@ _Not started._
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-_None._
+Direct terminal prerequisite: 0085 (UI-027), `SKIPPED_DEPENDENCY`.
+Transitive root: 0076 (UI-018), `BLOCKED`; its preserved feature branch
+remains deliberately frozen.
+
+### Dependency skip
+
+Direct terminal prerequisite: `0085` (`UI-027`), `SKIPPED_DEPENDENCY`; its
+transitive root is `0071` (`UI-013`), `BLOCKED`. Materialized on 2026-09-13.

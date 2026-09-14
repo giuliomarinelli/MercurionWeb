@@ -1,22 +1,22 @@
 import {
-  Component, Input, signal, effect,
+  Component, input, signal, effect,
   ChangeDetectionStrategy,
   ElementRef, OnDestroy,
   NgZone,
-  Output,
-  EventEmitter,
   inject,
-  computed
+  computed,
+  output
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DecimalPipe } from '@angular/common';
 import { MoleculeViewerComponent } from '../../chem/molecule-viewer/molecule-viewer.component';
 import { SearchContextService } from '../../../services/context/search-context.service';
 import { ThemeManagerService } from '../../../services/context/theme-manager.service';
+import { ViewportRuntimeService } from '../../../services/context/viewport-runtime.service';
 import { MoleculeSearchResult } from
   '../../../Models/graphql/molecule-search/molecule-search-result.interface';
-import { ChipItem } from '../../action-components/add-molecules-to-collection/add-molecules-to-collection.component';
-import { AppContextService } from '../../../services/context/app-context.service';
+import { ChipItem } from '../../action-components/add-molecules-to-collection/add-molecules-to-collection.flow';
+import { ShellLayoutService } from '../../../services/context/shell-layout.service';
 import { DesignService } from '../../../services/design.service';
 
 @Component({
@@ -67,7 +67,7 @@ import { DesignService } from '../../../services/design.service';
         </div>
       </a>
     } @else {
-      <div
+      <button
         type="button"
         (click)="doEmitChipItem()"
         class="group w-full flex items-center gap-3 cursor-pointer rounded-lg px-3 py-3
@@ -100,19 +100,20 @@ import { DesignService } from '../../../services/design.service';
             }
           </div>
         </div>
-      </div>
+      </button>
 
     }
   `
 })
 export class SearchResultComponent implements OnDestroy {
+  private readonly viewportRuntime = inject(ViewportRuntimeService);
 
   protected readonly searchContext = inject(SearchContextService)
   private readonly themeManager = inject(ThemeManagerService)
   private readonly zone = inject(NgZone)
   private host = inject(ElementRef<HTMLElement>)
   private readonly design = inject(DesignService)
-  private readonly appContext = inject(AppContextService)
+  private readonly shellLayout = inject(ShellLayoutService)
 
   /* segnali originali */
   _molecule = signal<MoleculeSearchResult | undefined>(undefined);
@@ -129,33 +130,25 @@ export class SearchResultComponent implements OnDestroy {
   private seen: boolean = false
   private io!: IntersectionObserver
 
-  /* inputs ---------------------------------- */
-  @Input({ required: true })
-  set molecule(m: MoleculeSearchResult) {
-    this.seen = false;                // <— nuova molecola = nuovo lazy load
-    this.viewerReady.set(false);
-    this.disablePreview.set(true);
+  readonly molecule = input.required<MoleculeSearchResult>()
+  readonly query = input.required<string>()
+  readonly search_excludeAlreadyAdded = input(false)
 
-    this._molecule.set(m);
-    this._pathToMolecule.set(`molecules/detail/${m.id}`);
-
-    // nel caso l’IO fosse stato detachato:
-    this.zone.runOutsideAngular(() => this.io.observe(this.host.nativeElement));
-  }
-
-
-  @Input({ required: true })
-  set query(q: string) { this._query.set(q); }
-
-  @Input()
-  set search_excludeAlreadyAdded(search_excludeAlreadyAdded: boolean) {
-    this._search_excludeAlreadyAdded.set(search_excludeAlreadyAdded)
-  }
-
-  @Output()
-  onChipItem = new EventEmitter<ChipItem>()
+  readonly onChipItem = output<ChipItem>();
 
   constructor() {
+
+    effect(() => {
+      const molecule = this.molecule()
+      this.seen = false
+      this.viewerReady.set(false)
+      this.disablePreview.set(true)
+      this._molecule.set(molecule)
+      this._pathToMolecule.set(`molecules/detail/${molecule.id}`)
+      if (this.io) this.zone.runOutsideAngular(() => this.io.observe(this.host.nativeElement))
+    })
+    effect(() => this._query.set(this.query()))
+    effect(() => this._search_excludeAlreadyAdded.set(this.search_excludeAlreadyAdded()))
 
     /* aggiorna dark mode */
     effect(() => this.isDarkMode.set(this.themeManager.theme() === 'dark'))
@@ -173,7 +166,7 @@ export class SearchResultComponent implements OnDestroy {
         { rootMargin: '150px', threshold: 0.01 }
       );
       const isInViewport = (el: HTMLElement) =>
-        el.getBoundingClientRect().top < window.innerHeight + 150; // stesso rootMargin
+        el.getBoundingClientRect().top < this.viewportRuntime.height() + 150; // stesso rootMargin
 
       queueMicrotask(() => {
         if (this.disablePreview() && isInViewport(this.host.nativeElement)) {
@@ -209,7 +202,7 @@ export class SearchResultComponent implements OnDestroy {
   handleClick(): void {
     queueMicrotask(() => {
       if (this.isMobile()) {
-        this.appContext.notifyAddedTriggerCloseOffCanvasMenu()
+        this.shellLayout.requestCloseOffCanvas()
       }
       this.searchContext.close()
     })

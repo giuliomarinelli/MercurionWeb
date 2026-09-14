@@ -13,6 +13,8 @@ describe('SimilarsComponent', () => {
     .compileComponents();
 
     fixture = TestBed.createComponent(SimilarsComponent);
+    fixture.componentRef.setInput('molecules', []);
+    fixture.componentRef.setInput('onlyKnown', false);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

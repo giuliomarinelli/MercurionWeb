@@ -6,20 +6,23 @@ import {
   ElementRef,
   OnDestroy,
   OnInit,
-  ViewChild,
   effect,
   inject,
-  signal
+  signal,
+  viewChild
 } from '@angular/core'
 import { ActivatedRoute, Router } from '@angular/router'
 import { Observable, Subscription, firstValueFrom, map, of, switchMap, take, tap } from 'rxjs'
-import { AuthService } from '../../services/auth.service'
+import { AuthSessionRepository } from '../../services/auth-session-repository.service'
 import { HelpService } from '../../services/graphql/help.service'
 import { TypeGuardsService } from '../../services/type-guards.service'
 import { AbstractPaginationComponent } from '../../abstract/abstract-pagination-component'
 import { PageModel } from '../../Models/graphql/page.models'
-import { Ticket, ClientTicket } from '../../Models/graphql/help.models'
-import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component'
+import {
+  ClientTicket,
+  Ticket,
+} from '../../Models/graphql/help.models'
+import { TicketViewModel, toTicketViewModel } from '../../Models/graphql/help.view-models'
 import { TabsComponent } from '../../components/common/tabs/tabs.component'
 import { TicketCardComponent } from '../../components/support/ticket-card/ticket-card.component'
 import { TicketCardSkeletonComponent } from '../../components/support/ticket-card-skeleton/ticket-card-skeleton.component'
@@ -30,14 +33,15 @@ import {
   ApplicationErrorCode,
   hasApplicationErrorCode
 } from '../../utils/application-error.util'
+import { PaginationComponent } from '../../components/common/pagination/pagination.component'
 
 @Component({
   selector: 'm-help-page',
   imports: [
-    ClassicSpinnerComponent,
     TabsComponent,
     TicketCardComponent,
-    TicketCardSkeletonComponent
+    TicketCardSkeletonComponent,
+    PaginationComponent
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -91,19 +95,18 @@ import {
 
       <div #sentinel class="h-px w-full"></div>
 
-      @if (loading) {
-        @if (page > 1 && items.length > 2) {
-          <div class="flex justify-center">
-            <m-classic-spinner [size]="60" />
-          </div>
-        } @else {
+      @if (loading && page === 1) {
           <div class="relative -top-20">
             @for (i of [0, 1, 2, 3, 4]; track i) {
               <m-ticket-card-skeleton [i]="i" />
             }
           </div>
-        }
-      } @else if (empty() && (earlyDone)) {
+      }
+      <m-pagination
+        [state]="paginationState()"
+        (loadMoreRequested)="loadMore()"
+        (retry)="retryPagination()" />
+      @if (empty() && (earlyDone)) {
         <p class="relative -top-8 text-slate-700 dark:text-slate-200" role="status" aria-live="polite">
           Non sono ancora presenti ticket&nbsp;<button class="a" type="button" aria-label="Apri adesso il tuo primo ticket" (click)="newTicket()">Apri adesso il tuo primo ticket</button>
         </p>
@@ -112,9 +115,9 @@ import {
 
   `
 })
-export class HelpPageComponent extends AbstractPaginationComponent<Ticket | ClientTicket> implements OnInit, OnDestroy, AfterViewInit {
+export class HelpPageComponent extends AbstractPaginationComponent<TicketViewModel> implements OnInit, OnDestroy, AfterViewInit {
 
-  private readonly authService = inject(AuthService)
+  private readonly authService = inject(AuthSessionRepository)
   private readonly helpService = inject(HelpService)
   protected readonly typeGuards = inject(TypeGuardsService)
   private readonly invalidations = inject(DomainInvalidationService)
@@ -123,8 +126,7 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
   private readonly route = inject(ActivatedRoute)
   private readonly router = inject(Router)
 
-  @ViewChild('sentinel')
-  protected declare sentinel: ElementRef<HTMLDivElement>
+  protected override readonly sentinel = viewChild<ElementRef<HTMLDivElement>>('sentinel');
 
   protected readonly tabs = ['Sezione utente', 'Sezione admin']
   private readonly ITEMS_PER_PAGE = 25
@@ -238,7 +240,7 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
     })
   }
 
-  protected override fetch$(): Observable<PageModel<Ticket | ClientTicket>> {
+  protected override fetch$(): Observable<PageModel<TicketViewModel>> {
     return of(null).pipe(
       switchMap(() => {
         if (this.activeTab() === 1) {
@@ -247,6 +249,10 @@ export class HelpPageComponent extends AbstractPaginationComponent<Ticket | Clie
         }
         return this.helpService.myTickets(this.page, this.ITEMS_PER_PAGE)
       }),
+      map(res => ({
+        ...res,
+        items: res.items.map(toTicketViewModel)
+      })),
       tap(res => this.totalItems.set(res.totalItems))
     )
   }

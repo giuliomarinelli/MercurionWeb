@@ -1,6 +1,6 @@
 # 0201 - Add architecture policy tests
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -94,21 +94,40 @@ The value is preserving the architecture already paid for by earlier refactors. 
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/QA-015`, based on `bdaaffdc2a37d0f14c33df979138b7534b7eb96a.`
 ### Preflight
-_Not started._
+Confirmed clean branch identity and exact supplied base SHA. Dependencies `0008`,
+`0199` and `0200` are `[x] DONE`; relevant Angular import/environment/storage
+and Nest module/provider ownership tasks are already integrated. No workspace
+watcher or task-owned runtime process was active. The supplied base is the
+green `develop` tip. Browser validation is not applicable. Did not run `npm ci`
+or `npm run ci:check`.
 ### Preflight remediation
 _None._
 ### Summary
-_Not started._
+Added the versioned architecture policy and one canonical `ci:architecture`
+runner. It reuses the existing Angular/Nest graph, environment, storage,
+GraphQL and provider scanners and their negative fixtures, adds deterministic
+static layer checks with actionable edge diagnostics, and keeps dynamic lazy
+imports out of the eager layer model while retaining graph cycle detection.
+One exact notification-template adapter edge is allowlisted with owner and
+rationale; future exceptions must use the same narrow format. Registered the
+canonical gate in `ci:static` without duplicating the existing scanners.
 ### Task-specific validation performed
-_Not started._
+Passed: `npm run ci:architecture`; `node scripts/test-architecture-policy-negative.mjs`;
+`npm run ci:static`; `git diff --check`. The negative fixture rejected Angular
+service-to-page and Nest utility-to-domain imports and accepted a dynamic lazy
+import. Existing negative fixtures reported their violating edge/path
+diagnostics. Full clean-install and aggregate CI parity remain GitHub Actions
+responsibilities.
 ### Full pre-merge CI-parity validation
 _Not started._
 ### Browser validation performed
 _Not applicable._
 ### Commits
-_Not recorded._
+- `fde89a53b04b345c9521fcac2c7133ba073ff6e4` — canonical architecture policy
+  gate, policy documentation, layer rules and representative negative fixtures.
+  A follow-up metadata commit records the final feature SHA.
 ### Merge / CI
 _Not started._
 ### Rollback

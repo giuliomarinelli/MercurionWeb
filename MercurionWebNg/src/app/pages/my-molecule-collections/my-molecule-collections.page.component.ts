@@ -1,11 +1,10 @@
 import { HistoryContextService } from './../../services/context/history-context.service';
 import { UiMoleculeCollection } from '../../Models/graphql/molecule-collection/molecule-collection.types';
-import { catchError, debounceTime, EMPTY, firstValueFrom, map, of, Subscription, switchMap, tap } from 'rxjs';
+import { catchError, delay, EMPTY, firstValueFrom, map, of, Subscription, switchMap, tap } from 'rxjs';
 import { MyMoleculesHeadingComponent } from '../../components/molecule-detail/my-molecules-heading/my-molecules-heading.component';
-import { AfterViewInit, Component, ElementRef, inject, OnInit, ViewChild, effect, OnDestroy, signal, ChangeDetectionStrategy } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, inject, OnInit, effect, OnDestroy, signal, ChangeDetectionStrategy, viewChild } from '@angular/core';
 import { MoleculeCollectionService } from '../../services/graphql/molecule-collection.service';
 import { CollectionCardComponent } from '../../components/molecule-detail/collection-card/collection-card.component';
-import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
 import { SkeletonCollectionCardComponent } from '../../components/common/skeleton-card-loader/skeleton-card-loader.component';
 import { RouterLink } from '@angular/router';
 import { PmSearchInputComponent } from '../../components/common/pm-search-input/pm-search-input.component';
@@ -15,8 +14,9 @@ import { PageModel } from '../../Models/graphql/page.models';
 import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service';
 import { CreateCollectionContextService } from '../../services/context/action-context/create-collection-context.service';
 import { ToastService } from '../../services/toast.service';
-import { AppContextService } from '../../services/context/app-context.service';
+import { ScrollContextService } from '../../services/context/scroll-context.service';
 import { DomainInvalidationService } from '../../services/domain-invalidation.service';
+import { PaginationComponent } from '../../components/common/pagination/pagination.component';
 
 
 @Component({
@@ -25,10 +25,10 @@ import { DomainInvalidationService } from '../../services/domain-invalidation.se
   imports: [
     MyMoleculesHeadingComponent,
     CollectionCardComponent,
-    ClassicSpinnerComponent,
     SkeletonCollectionCardComponent,
     RouterLink,
-    PmSearchInputComponent
+    PmSearchInputComponent,
+    PaginationComponent
   ],
   template: `
 
@@ -90,19 +90,17 @@ import { DomainInvalidationService } from '../../services/domain-invalidation.se
       }
     </div>
     <div #sentinel class="sentinel"></div>
-    @if (loading) {
-      @if (page > 1) {
-        <div class="flex justify-center" role="status" aria-live="polite">
-          <m-classic-spinner [size]="60" />
-        </div>
-      } @else {
+    @if (loading && page === 1) {
         <div class="relative -top-16">
           @for (i of [0, 1, 2, 3, 4]; track i) {
             <m-skeleton-collection-card />
           }
         </div>
-      }
     }
+    <m-pagination
+      [state]="paginationState()"
+      (loadMoreRequested)="loadMore()"
+      (retry)="retryPagination()" />
   </main>
 
   `
@@ -115,15 +113,14 @@ export class MyMoleculeCollectionsPageComponent extends AbstractPaginationCompon
   private readonly createCtx = inject(CreateCollectionContextService)
   private readonly toast = inject(ToastService)
   private readonly historyContext = inject(HistoryContextService)
-  private readonly appContext = inject(AppContextService)
+  private readonly scrollContext = inject(ScrollContextService)
   private readonly invalidations = inject(DomainInvalidationService)
   // ====================================================
 
   private delColSub?: Subscription
   private dupColSub?: Subscription
 
-  @ViewChild('sentinel', { static: true })
-  declare sentinel: ElementRef<HTMLDivElement> | undefined
+  protected override readonly sentinel = viewChild<ElementRef<HTMLDivElement>>('sentinel');
 
   private tick = signal<number>(0)
 
@@ -176,7 +173,7 @@ export class MyMoleculeCollectionsPageComponent extends AbstractPaginationCompon
   protected override async loadMore(): Promise<void> {
     if (this.loading || this.done) return
 
-    this.loading = true
+    this.setLoading(true)
 
     const newPage = await firstValueFrom(this.fetch$())
 
@@ -200,7 +197,7 @@ export class MyMoleculeCollectionsPageComponent extends AbstractPaginationCompon
       this.page++
     }
 
-    this.loading = false
+    this.setLoading(false)
   }
 
 
@@ -212,7 +209,9 @@ export class MyMoleculeCollectionsPageComponent extends AbstractPaginationCompon
   protected fetch$(): Observable<PageModel<UiMoleculeCollection>> {
     return this.moleculeCollectionService.getPaginatedCollections(this.page, 25, this.searchTerm())
       .pipe(
-        debounceTime(20),
+        // A one-shot Apollo query completes immediately; retain a perceptible
+        // first-page skeleton while the request is in flight.
+        delay(this.page === 1 ? 120 : 0),
         map(page => ({
           ...page,
           items: page.items.map(item => ({
@@ -236,7 +235,7 @@ export class MyMoleculeCollectionsPageComponent extends AbstractPaginationCompon
     this.dupColSub = this.moleculeCollectionService.duplicateCollection(collectionId).subscribe({
       next: () => {
         queueMicrotask(() => {
-          this.appContext.smoothToTop()
+          this.scrollContext.smoothToTop()
           this.resetPagination()
         })
       },

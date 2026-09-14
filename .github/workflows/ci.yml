@@ -5,32 +5,112 @@ on:
     branches:
       - develop
       - "feature/**"
-      - "chore/**"
   pull_request:
     branches:
       - develop
       - master
   workflow_dispatch:
+    inputs:
+      validation_mode:
+        description: Validation path for an explicit baseline certification
+        required: true
+        default: full
+        type: choice
+        options:
+          - full
+          - auto
 
+# PR revisions may supersede one another. A develop run is never cancelled:
+# its exact merge SHA must retain an observable result.
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/develop' }}
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' || startsWith(github.ref, 'refs/heads/feature/') }}
 
 permissions:
+  actions: read
   contents: read
 
+env:
+  NODE_VERSION: 22.16.0
+  NPM_VERSION: 10.9.2
+
 jobs:
+  plan:
+    name: Classify validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      mode: ${{ steps.classify.outputs.mode }}
+      reason: ${{ steps.classify.outputs.reason }}
+      base_sha: ${{ steps.classify.outputs.base_sha }}
+      change_count: ${{ steps.classify.outputs.change_count }}
+    steps:
+      - name: Check out repository history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Classify exact SHA
+        id: classify
+        env:
+          CI_DUPLICATE_WAIT_SECONDS: 900
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node .github/scripts/classify-ci.mjs
+
+  metadata:
+    name: Autonomous metadata
+    if: ${{ needs.plan.outputs.mode == 'metadata' }}
+    needs:
+      - plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Validate autonomous control plane
+        run: npm ci
+
+      - name: Run autonomous validators
+        run: npm run ci:validate:autonomous
+
+      - name: Check metadata diff
+        env:
+          BASE_SHA: ${{ needs.plan.outputs.base_sha }}
+        run: git diff --check "$BASE_SHA" "$GITHUB_SHA"
+
+  # Tasks 0194, 0195, 0196, 0197 and 0198 are not DONE on this baseline, so
+  # no database/browser/system-test service is invented here. Their future
+  # canonical scripts must add their disposable services to only the job that
+  # consumes them, rather than making the current unit/static gates depend on
+  # shared or production infrastructure.
   quality:
-    name: Quality (${{ matrix.os }})
+    name: Prerequisites (${{ matrix.os }})
+    if: ${{ needs.plan.outputs.mode == 'full' }}
+    needs:
+      - plan
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 60
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
         os:
           - ubuntu-latest
           - windows-latest
-
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -38,7 +118,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22.16.0
+          node-version: ${{ env.NODE_VERSION }}
           cache: npm
           cache-dependency-path: package-lock.json
 
@@ -54,26 +134,158 @@ jobs:
       - name: Validate autonomous control plane
         run: npm run ci:validate:autonomous
 
-      - name: Lint Angular
-        run: npm run ci:lint:angular
+      - name: Enforce code-duplication baseline
+        run: npm run ci:duplication
 
-      - name: Lint Nest
-        run: npm run ci:lint:nest
+      - name: Upload code-duplication report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: duplication-report-${{ matrix.os }}
+          if-no-files-found: ignore
+          path: reports/duplication
 
-      - name: Typecheck Angular
-        run: npm run ci:typecheck:angular
+      - name: Run lint gates
+        run: npm run ci:lint
 
-      - name: Typecheck Nest
-        run: npm run ci:typecheck:nest
+      - name: Run typecheck gates
+        run: npm run ci:typecheck
 
-      - name: Test Angular
+      - name: Run GraphQL and generated-contract gates
+        run: npm run ci:graphql
+
+      - name: Run registered static and architecture gates
+        run: npm run ci:static
+
+  angular-unit:
+    name: Angular unit tests
+    if: ${{ needs.plan.outputs.mode == 'full' }}
+    needs:
+      - plan
+      - quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install workspace dependencies
+        run: npm ci
+
+      - name: Run complete Angular unit suite
         run: npm run ci:test:angular
 
-      - name: Test Nest
+      - name: Upload Angular test diagnostics
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: angular-test-diagnostics
+          if-no-files-found: ignore
+          path: |
+            MercurionWebNg/coverage
+            MercurionWebNg/test-results
+            MercurionWebNg/**/*.xml
+
+  nest-unit:
+    name: Nest unit tests
+    if: ${{ needs.plan.outputs.mode == 'full' }}
+    needs:
+      - plan
+      - quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install workspace dependencies
+        run: npm ci
+
+      - name: Run complete Nest unit suite
         run: npm run ci:test:nest
 
-      - name: Test Nest E2E
+      - name: Upload Nest test diagnostics
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: nest-test-diagnostics
+          if-no-files-found: ignore
+          path: |
+            MercurionWebNode/coverage
+            MercurionWebNode/test-results
+            MercurionWebNode/**/*.xml
+
+  nest-e2e:
+    name: Nest E2E tests
+    if: ${{ needs.plan.outputs.mode == 'full' }}
+    needs:
+      - plan
+      - quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install workspace dependencies
+        run: npm ci
+
+      - name: Run isolated Nest E2E suite
         run: npm run ci:test:nest:e2e
+
+      - name: Upload Nest E2E diagnostics
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: nest-e2e-diagnostics
+          if-no-files-found: ignore
+          path: |
+            MercurionWebNode/coverage
+            MercurionWebNode/test-results
+            MercurionWebNode/**/*.xml
+
+  build:
+    name: Build artifacts
+    if: ${{ needs.plan.outputs.mode == 'full' }}
+    needs:
+      - plan
+      - quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install workspace dependencies
+        run: npm ci
 
       - name: Build Angular
         run: npm run ci:build:angular
@@ -81,21 +293,119 @@ jobs:
       - name: Build Nest
         run: npm run ci:build:nest
 
-      - name: Check GraphQL and generated contracts
-        run: npm run ci:graphql
+      - name: Upload build and bundle diagnostics
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-diagnostics
+          if-no-files-found: ignore
+          path: |
+            MercurionWebNg/dist
+            MercurionWebNode/dist
+            MercurionWebNg/**/*.stats.json
+            MercurionWebNg/dist/**/bundle-gate-report.json
+            MercurionWebNg/**/*.json
 
-      - name: Run registered static checks
-        run: npm run ci:static
+  containers:
+    name: Container ${{ matrix.name }}
+    if: ${{ needs.plan.outputs.mode == 'full' }}
+    needs:
+      - plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: angular-production
+            dockerfile: MercurionWebNg/Dockerfile
+            target: production
+          - name: angular-staging
+            dockerfile: MercurionWebNg/Dockerfile
+            target: staging
+          - name: angular-test
+            dockerfile: MercurionWebNg/Dockerfile
+            target: test
+          - name: nest-production
+            dockerfile: MercurionWebNode/Dockerfile
+            target: production
+          - name: nest-staging
+            dockerfile: MercurionWebNode/Dockerfile
+            target: staging
+          - name: nest-test
+            dockerfile: MercurionWebNode/Dockerfile
+            target: test
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Validate container build contract and lockfile drift
+        run: npm run ci:containers
+
+      - name: Build container without cache
+        run: docker build --pull --no-cache --file "${{ matrix.dockerfile }}" --target "${{ matrix.target }}" --tag "mercurion-ci-${{ matrix.name }}" .
+
+      - name: Inspect standalone runtime contract
+        run: node scripts/check-container-runtime.mjs --dockerfile "${{ matrix.dockerfile }}" --image "mercurion-ci-${{ matrix.name }}"
+
+      - name: Smoke-test standalone runtime contract
+        run: node scripts/smoke-container-runtime.mjs --image "mercurion-ci-${{ matrix.name }}"
+
+      - name: Confirm clean build did not modify tracked files
+        run: git diff --exit-code
 
   required:
     name: Required gate
     if: ${{ always() }}
     needs:
+      - plan
+      - metadata
       - quality
+      - angular-unit
+      - nest-unit
+      - nest-e2e
+      - build
+      - containers
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Require every platform gate
+      - name: Require the selected validation path
         env:
-          QUALITY_RESULT: ${{ needs.quality.result }}
-        run: test "$QUALITY_RESULT" = "success"
+          METADATA_RESULT: ${{ needs.metadata.result }}
+          PREREQUISITES_RESULT: ${{ needs.quality.result }}
+          ANGULAR_UNIT_RESULT: ${{ needs.angular-unit.result }}
+          NEST_UNIT_RESULT: ${{ needs.nest-unit.result }}
+          NEST_E2E_RESULT: ${{ needs.nest-e2e.result }}
+          BUILD_RESULT: ${{ needs.build.result }}
+          CONTAINERS_RESULT: ${{ needs.containers.result }}
+          MODE: ${{ needs.plan.outputs.mode }}
+          PLAN_RESULT: ${{ needs.plan.result }}
+        shell: bash
+        run: |
+          test "$PLAN_RESULT" = "success"
+          case "$MODE" in
+            duplicate)
+              ;;
+            metadata)
+              test "$METADATA_RESULT" = "success"
+              ;;
+            full)
+              test "$PREREQUISITES_RESULT" = "success"
+              test "$ANGULAR_UNIT_RESULT" = "success"
+              test "$NEST_UNIT_RESULT" = "success"
+              test "$NEST_E2E_RESULT" = "success"
+              test "$BUILD_RESULT" = "success"
+              test "$CONTAINERS_RESULT" = "success"
+              ;;
+            *)
+              echo "Unknown CI mode: $MODE" >&2
+              exit 1
+              ;;
+          esac

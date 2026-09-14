@@ -1,9 +1,9 @@
 # 0107 - Centralize typed HTTP form-error mapping
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -84,28 +84,53 @@ Mark `BLOCKED` if a form relies on backend message text because no stable canoni
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/NG-021`
 ### Preflight
-_Not started._
+- Verified clean `feature/NG-021` at supplied base
+  `f44509bd82d4f05d35f501e0a1e83a5748a70700`; local `HEAD`, `origin/develop`,
+  and the supplied SHA matched.
+- Exact base Actions run `34794852508` was successful for that SHA, including
+  both platform prerequisite jobs and the stable `Required gate`.
+- Confirmed SYS-011 and SYS-012 are both `DONE` in the current repository
+  baseline, so the canonical envelope and code catalog were available.
+- No task-owned application or test watcher process was active before the
+  focused baseline check. Angular typecheck passed.
+- Browser capability preflight passed after starting Tox21, Nest, and Angular
+  in the required order. The nginx edge reached two consecutive complete
+  readiness rounds, and a fresh ordinary shared-account login reached the
+  protected dashboard. All preflight runtimes were stopped before editing.
 ### Preflight remediation
-_None._
+None.
 ### Summary
-Not attempted because required SYS-011 is `SKIPPED_DEPENDENCY`. SYS-012 is
-`DONE`.
+Added the pure typed `adaptHttpFormError` adapter and `FormErrorState`, with
+typed per-form API-to-control maps, safe global fallback, retry metadata, and
+reauthentication action metadata. The adapter consumes canonical stable
+application codes and never exposes backend messages for unknown or malformed
+payloads. Login, registration, password recovery, and account-recovery flows
+now consume the adapter and clear server state on a new submit/value change;
+client-side validation remains separate.
 ### Task-specific validation performed
-Not applicable; no feature branch or implementation worker was created.
+- `npm run typecheck --workspace mercurion_web_ng` passed.
+- Adapter table-driven spec passed: 4 tests.
+- Focused login/register/recovery/auth error specs passed: 9 tests.
+- `git diff --check` passed.
 ### Full pre-merge CI-parity validation
-Not applicable; dependency-skip metadata only.
+Not run locally; forbidden by session policy. Exact feature-SHA Actions
+validation remains coordinator-owned.
 ### Browser validation performed
-Not applicable; the task was not attempted.
+Through `http://localhost:8888`, fresh login produced the protected dashboard,
+invalid login rendered the safe global fallback and the typed invalid-credentials
+message, and registration/password-recovery routes rendered their typed form
+surfaces. Registration and recovery submission were gated by the required
+Turnstile challenge in this environment, so no challenge bypass was attempted.
+The browser console/runtime showed no task-caused failure during the exercised
+flows. All task-owned runtimes were stopped afterward.
 ### Commits
-Pending metadata commit on `develop`.
+Pending task commit.
 ### Merge / CI
-No feature branch or merge. Exact-SHA CI is required for the metadata commit.
+Worker publishes the task-specific commit to `feature/NG-021`; coordinator must
+wait for exact-SHA feature Actions before integration.
 ### Rollback
-_Not applicable._
+Not applicable.
 ### Blocker / human decision required
-Direct terminal prerequisite: SYS-011, `SKIPPED_DEPENDENCY`. Its dependency
-chain is recorded in the SYS-011 recipe; existing auth/form facade work also
-includes the terminal FE-004 blocker requiring a test-safe local auth/backend
-runtime and approved deterministic test state.
+None. No UI-only error codes were introduced.

@@ -40,7 +40,7 @@ describe('HistoryComponent', () => {
   it('a rapid second triggerDelete resets the pending clear-history timer instead of firing it twice', fakeAsync(() => {
     const itemsSetSpy = spyOn(component.items, 'set').and.callThrough();
 
-    component.triggerDelete = true;
+    fixture.componentRef.setInput('triggerDelete', true);
     fixture.detectChanges();
     tick(); // flush the queued microtask that schedules the 600ms clear-history timeout
 
@@ -48,7 +48,9 @@ describe('HistoryComponent', () => {
     itemsSetSpy.calls.reset();
 
     // second trigger before the first 600ms window elapses: must reset, not stack, the timer
-    component.triggerDelete = true;
+    fixture.componentRef.setInput('triggerDelete', false);
+    fixture.detectChanges();
+    fixture.componentRef.setInput('triggerDelete', true);
     fixture.detectChanges();
     tick();
 

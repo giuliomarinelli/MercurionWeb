@@ -9,7 +9,7 @@ import {
   OnDestroy,
   OnInit,
   signal,
-  ViewChild
+  viewChild
 } from '@angular/core';
 import { AbstractPaginatedMultiselectComponent } from '../../../abstract/abstract-paginated-multiselect-component';
 import { UiMoleculeCollection } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
@@ -22,8 +22,11 @@ import { PmSearchInputComponent } from '../../common/pm-search-input/pm-search-i
 import { CollectionSelectCardComponent } from '../../molecule-detail/collection-select-card/collection-select-card.component';
 import { SkeletonCollectionCardComponent } from '../../common/skeleton-card-loader/skeleton-card-loader.component';
 import { Router } from '@angular/router';
-import { CloseButtonComponent } from '../../common/close-button/close-button.component';
+import { ActionCardComponent } from '../../common/action-card/action-card.component';
 import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
+import { ActionFooterComponent } from '../../common/action-footer/action-footer.component';
+import { ButtonComponent } from '../../common/button/button.component';
+import { CollectionPickerFacade } from '../collection-picker/collection-picker.facade';
 
 @Component({
   selector: 'm-bind-collections-to-molecule',
@@ -33,7 +36,9 @@ import { DomainInvalidationService } from '../../../services/domain-invalidation
     PmSearchInputComponent,
     CollectionSelectCardComponent,
     SkeletonCollectionCardComponent,
-    CloseButtonComponent
+    ActionCardComponent,
+    ActionFooterComponent,
+    ButtonComponent
   ],
   styles: [
     `
@@ -75,26 +80,23 @@ import { DomainInvalidationService } from '../../../services/domain-invalidation
   ],
   template: `
 <div class="flex justify-center items-start md:items-center min-h-screen px-2 sm:px-4 pt-1 md:pt-6 m-overlay-screen">
-  <div
-    class="action-card max-w-5xl h-full md:h-auto"
-    role="region"
-    aria-labelledby="bindCollectionsHeading"
-    [attr.aria-busy]="step_12_loading()"
+  <m-action-card
+    size="wide"
+    labelledBy="bindCollectionsHeading"
+    closeLabel="Chiudi pannello collega collezioni"
+    [busy]="step_12_loading()"
+    (closed)="close()"
   >
     <!-- HEADER -->
-    <div class="action-card-header">
-      <h2
+      <h2 action-card-title
         id="bindCollectionsHeading"
         class="text-lg font-semibold text-light-on-surface-main dark:text-dark-on-surface-main"
       >
         Collega molecola a nuove collezioni
       </h2>
 
-      <m-close-button [action]="close.bind(this)" ariaLabel="Chiudi pannello collega collezioni" />
-    </div>
-
       <!-- BODY -->
-      <div class="action-card-body bg-white dark:bg-dark-surface-main">
+      <div action-card-body class="bg-white dark:bg-dark-surface-main">
       <div
         #scrollRoot
         class="py-6 px-2 sm:px-3 overflow-y-auto flex flex-col gap-4 m-scroll-thin m-overscroll-touch m-overlay-body"
@@ -184,61 +186,33 @@ import { DomainInvalidationService } from '../../../services/domain-invalidation
     </div>
 
     <!-- FOOTER -->
-    <div class="action-card-footer">
+    <m-action-footer action-card-footer>
       @if (step() === 1) {
-        <button
-          type="button"
-          class="px-4 py-2 rounded-lg bg-light-surface-secondary text-light-on-surface-main
-                 dark:bg-slate-200 dark:text-light-on-surface-main
-                 hover:bg-white dark:hover:bg-slate-300/80
-                 border border-light-border dark:border-dark-border/80
-                 shadow-sm
-                 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq
-                 focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary
-                 dark:focus-visible:ring-offset-dark-surface-secondary
-                 transition-colors duration-200"
-          (click)="close()"
+        <m-button
+        action-footer-secondary
+        variant="neutral"
+        (click)="close()"
         >
-          Annulla
-        </button>
+        Annulla
+        </m-button>
       }
 
-      <button
-        type="button"
-        class="relative inline-flex items-center justify-center px-4 py-2 rounded-lg
-               bg-light-accent-primary text-white font-semibold shadow-md
-               hover:bg-light-accent-primary-hc
-               dark:bg-dark-accent-primary-btn dark:hover:bg-dark-accent-primary
-               focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq
-               focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary
-               dark:focus-visible:ring-offset-dark-surface-secondary
-               disabled:bg-light-accent-primary/50 disabled:cursor-not-allowed
-               transition-colors duration-200 dark:shadow-btn-dark disabled:hover:bg-light-accent-primary-hc/50"
+      <m-button
+        action-footer-primary
         [disabled]="(isSelectedNothing() || step_12_loading())"
+        [loading]="step_12_loading()"
         (click)="step() === 1 ? doSubmit() : close()"
-        [attr.aria-busy]="step_12_loading()"
-        [attr.aria-disabled]="(isSelectedNothing() || step_12_loading())"
         [attr.aria-label]="step() === 1 ? 'Aggiungi la molecola alle collezioni selezionate' : 'Chiudi conferma'"
         [attr.aria-describedby]="step() === 2 ? 'bindCollectionsStatus' : null"
       >
-        <span [class.invisible]="step_12_loading()">
-          @if (step() === 1) {
-            <span>Aggiungi</span>
-          } @else if (step() === 2) {
-            <span>Ok</span>
-          }
-        </span>
-
-        <span
-          aria-hidden="true"
-          class="absolute inset-0 flex items-center justify-center"
-          [class.hidden]="!step_12_loading() || (step() === 1 && isSelectedNothing())"
-        >
-          <m-classic-spinner [size]="24"></m-classic-spinner>
-        </span>
-      </button>
-    </div>
-  </div>
+        @if (step() === 1) {
+        Aggiungi
+        } @else if (step() === 2) {
+        Ok
+        }
+      </m-button>
+    </m-action-footer>
+  </m-action-card>
 </div>
   `
 })
@@ -250,6 +224,10 @@ export class BindCollectionsToMoleculeComponent
   private readonly bindContext = inject(BindCollectionsToMoleculeContextService);
   private readonly invalidation = inject(DomainInvalidationService);
   private readonly moleculeCollectionService = inject(MoleculeCollectionService);
+  private readonly picker = new CollectionPickerFacade({
+    mode: { kind: 'multi', operation: 'bind', moleculeId: this.bindContext.moleculeId() ?? '' },
+    pageSize: 20
+  });
   private readonly router = inject(Router);
   private readonly sessionId = this.actionOverlayContext.session('BindCollectionsToMolecule')?.id ?? -1;
 
@@ -259,11 +237,9 @@ export class BindCollectionsToMoleculeComponent
   step_12_loading = signal<boolean>(false);
   error = signal<boolean>(false);
 
-  @ViewChild('scrollRoot', { static: false })
-  protected declare root: ElementRef<HTMLDivElement>;
+  protected override readonly root = viewChild<ElementRef<HTMLDivElement>>('scrollRoot');
 
-  @ViewChild('sentinel', { static: false })
-  protected declare sentinel: ElementRef<HTMLDivElement>;
+  protected override readonly sentinel = viewChild<ElementRef<HTMLDivElement>>('sentinel');
 
   ngOnInit(): void {
     queueMicrotask(() => this.loadMore());
@@ -276,6 +252,7 @@ export class BindCollectionsToMoleculeComponent
   ngOnDestroy(): void {
     this.suSub?.unsubscribe();
     this.observer?.disconnect();
+    this.picker.destroy();
   }
 
   private _rearmOnStep = effect(() => {
@@ -293,8 +270,8 @@ export class BindCollectionsToMoleculeComponent
     excludeJoinedToCollection?: boolean,
     collectionId?: boolean
   ): Observable<PageModel<UiMoleculeCollection>> {
-    return this.moleculeCollectionService
-      .getPaginatedCollections(this.page, 20, this.searchTerm(), true, this.bindContext.moleculeId())
+    return this.picker
+      .fetchPage$(this.page, this.searchTerm())
       .pipe(
         debounceTime(100),
         map(page => ({
@@ -363,4 +340,3 @@ export class BindCollectionsToMoleculeComponent
     }
   }
 }
-

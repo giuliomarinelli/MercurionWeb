@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, computed, Input, OnInit, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, effect, computed, input, OnInit, signal } from '@angular/core';
 import { MoleculeSearchResult } from '../../../Models/graphql/molecule-search/molecule-search-result.interface';
 import { SimilarItemComponent } from '../similar-item/similar-item.component';
 import { SkeletonCollectionCardComponent } from '../../common/skeleton-card-loader/skeleton-card-loader.component';
@@ -48,14 +48,12 @@ export class SimilarsComponent implements OnInit {
   _onlyKnown = signal<boolean>(true)
   loading = signal<boolean>(true)
 
-  @Input({ required: true })
-  set molecules(molecules: MoleculeSearchResult[]) {
-    this._molecules.set(molecules)
-  }
+  readonly molecules = input.required<MoleculeSearchResult[]>()
+  readonly onlyKnown = input.required<boolean>()
 
-  @Input({ required: true })
-  set onlyKnown(onlyKnown: boolean) {
-    this._onlyKnown.set(onlyKnown)
+  constructor() {
+    effect(() => this._molecules.set(this.molecules()))
+    effect(() => this._onlyKnown.set(this.onlyKnown()))
   }
 
   ngOnInit(): void {

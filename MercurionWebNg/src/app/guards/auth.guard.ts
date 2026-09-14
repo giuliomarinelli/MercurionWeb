@@ -6,33 +6,37 @@ import {
   RouterStateSnapshot,
   UrlTree
 } from '@angular/router'
+import { AuthStateStore } from '../services/auth-state.store'
+import { AuthRedirectService } from '../services/auth-redirect.service'
+import { routePolicyOf } from '../route-policy'
+import { routeManifest } from '../route-manifest'
 
 @Injectable({ providedIn: 'root' })
 export class AuthGuard implements CanActivate {
   private readonly router = inject(Router)
+  private readonly authState = inject(AuthStateStore)
+  private readonly redirects = inject(AuthRedirectService)
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean | UrlTree {
-    const login = localStorage.getItem('login')
-    const isValid = !!login && login.length > 0
+    if (routePolicyOf(route).access !== 'authenticated') {
+      return true
+    }
 
-    if (isValid) {
+    if (this.authState.authenticated()) {
       return true
     }
 
     // evita loop: se stai già su /login o /login/mfa, non riscrivere redirect_to
     const current = (state.url || '').toLowerCase()
-    if (current.startsWith('/login')) {
-      return this.router.parseUrl('/login')
+    if (current.startsWith(routeManifest.login.build({}))) {
+      return this.router.parseUrl(routeManifest.login.build({}))
     }
 
 
 
-    // IMPORTANT: usa SEMPRE l’URL richiesto come redirect_to (include anche querystring)
-    // state.url è già tipo "/molecules/editor?x=1"
-    const redirectTo = state.url.startsWith('/') ? state.url : `/${state.url}`
-
-    return this.router.createUrlTree(['/login'], {
-      queryParams: { redirect_to: redirectTo }
+    const target = this.redirects.capture(state.url)
+    return this.router.createUrlTree([routeManifest.login.build({})], {
+      queryParams: target ? { redirect_to: target } : undefined
     })
   }
 }

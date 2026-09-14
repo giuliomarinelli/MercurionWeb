@@ -1,5 +1,5 @@
 {
-  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "$schema": "../node_modules/@angular/cli/lib/config/schema.json",
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
@@ -37,22 +37,27 @@
                 "output": "/"
               },
               {
-                "glob": "RDKit_minimal.js",
-                "input": "../node_modules/@rdkit/rdkit/dist/",
-                "output": "/"
-              },
-              {
                 "glob": "*.svg",
                 "input": "../node_modules/svg-country-flags/svg",
                 "output": "flags"
+              },
+              {
+                "glob": "quill.core.css",
+                "input": "../node_modules/quill/dist",
+                "output": "quill"
+              },
+              {
+                "glob": "quill.bubble.css",
+                "input": "../node_modules/quill/dist",
+                "output": "quill"
+              },
+              {
+                "glob": "quill.snow.css",
+                "input": "../node_modules/quill/dist",
+                "output": "quill"
               }
             ],
-            "styles": [
-              "quill/dist/quill.core.css",
-              "quill/dist/quill.bubble.css",
-              "quill/dist/quill.snow.css",
-              "src/styles.css"
-            ],
+            "styles": ["src/styles.css"],
             "scripts": []
           },
           "configurations": {
@@ -68,6 +73,11 @@
                   "maximumWarning": "4kB",
                   "maximumError": "8kB"
                 }
+              ],
+              "allowedCommonJsDependencies": [
+                "@mercurion/rest-contracts",
+                "@rdkit/rdkit",
+                "quill-delta"
               ],
               "outputHashing": "all"
             },
@@ -111,7 +121,8 @@
           "builder": "@angular/build:dev-server",
           "options": {
             "port": 3498,
-            "host": "0.0.0.0"
+            "host": "0.0.0.0",
+            "prebundle": false
           },
           "configurations": {
             "production": {
@@ -148,14 +159,24 @@
                 "glob": "*.svg",
                 "input": "../node_modules/svg-country-flags/svg",
                 "output": "flags"
+              },
+              {
+                "glob": "quill.core.css",
+                "input": "../node_modules/quill/dist",
+                "output": "quill"
+              },
+              {
+                "glob": "quill.bubble.css",
+                "input": "../node_modules/quill/dist",
+                "output": "quill"
+              },
+              {
+                "glob": "quill.snow.css",
+                "input": "../node_modules/quill/dist",
+                "output": "quill"
               }
             ],
-            "styles": [
-              "quill/dist/quill.core.css",
-              "quill/dist/quill.bubble.css",
-              "quill/dist/quill.snow.css",
-              "src/styles.css"
-            ],
+            "styles": ["src/styles.css"],
             "scripts": []
           }
         }

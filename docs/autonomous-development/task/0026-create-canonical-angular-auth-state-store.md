@@ -1,7 +1,7 @@
 # 0026 - Create the canonical Angular auth state store
 
-- [ ] DONE
-- [x] BLOCKED
+- [x] DONE
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -118,15 +118,19 @@ Favor a small discriminated union plus signals/computed selectors. The store may
 
 Implemented `AuthStateStore` as the sole signal-backed, discriminated auth-state owner. It centralizes bootstrap, pre-authentication, authenticated completion, invalidation, logout, token/scope persistence seams, and cross-tab synchronization. `UserContextService` is now a compatibility adapter, while the app shell, guard, interceptors, session sync, login, MFA, and SSO boundaries consume or command the store.
 
+Manual recovery on 2026-09-05 reconciled the preserved `feature/FE-004` implementation with current `develop` and corrected the remaining transition races: normal password and SSO flows explicitly enter `authenticating`; MFA enters `pre-auth` without issuing a destructive logout; persisted session markers are treated as `authenticating/restore`, not authenticated; and completion/token writes are rejected after server invalidation instead of restoring stale credentials. The focused store suite now covers the stale-completion and pending-MFA-cookie regressions.
+
 ### Validation performed
 
 Unchanged task-start baseline: `npm ci` and `npm run ci:check` passed on `feature/FE-004` at base `f3c435e610bbc890a7a6a8d0dcf702b3d45f1c4a`.
 
 Task validation: Angular `typecheck` passed; Angular production `build` passed; Angular `test:ci` passed with 190 tests. Auth-store tests cover anonymous/persisted bootstrap, pre-auth, login completion, invalidation, logout, cross-tab state convergence, and illegal transitions.
 
+Recovery validation: `npm ci` and `npm run ci:check` passed from the current `develop` baseline before implementation. Angular `typecheck`, focused auth-store tests, full Angular unit tests, and the Angular production build passed after the recovery changes. The complete root CI-parity gate is rerun immediately before integration.
+
 ### Browser validation performed
 
-Used Chrome DevTools MCP through `http://localhost:8888`. Anonymous `/` settled on the public welcome shell and `/login` rendered the available login paths (Mercurion classic plus Google/GitHub/Discord). Static asset requests returned successfully. The managed Angular runtime started on port 3498; NestJS could not start because the local environment configuration is unavailable, producing 502 responses for `/health` and Socket.IO handshake requests. Console evidence therefore contains the expected backend-unavailable WebSocket 502 errors. No deterministic local test account or approved credentials were available, so authenticated login/protected navigation/logout convergence could not be exercised and browser-auth validation is blocked without human-provided local test credentials and server environment configuration.
+Used the ChatGPT Chrome extension through the canonical `http://localhost:8888` edge. Anonymous `/` settled on the public welcome shell and `/login` rendered the classic Mercurion login and Google/GitHub/Discord paths without a redirect loop. Task-owned Angular, Nest and Tox21 processes were stopped before the final clean-install gate. No deterministic local test account or approved credentials are documented; authenticated login/protected navigation/logout could therefore not be exercised without inventing credentials. The task recipe explicitly allows that browser-auth portion to be recorded as unavailable while retaining unit/integration evidence.
 
 ### Changed files
 
@@ -143,6 +147,6 @@ Used Chrome DevTools MCP through `http://localhost:8888`. Anonymous `/` settled 
 `MercurionWebNg/src/app/pages/login/mfa/mfa.page.component.ts`
 `MercurionWebNg/src/app/pages/sso/sso.page.component.ts`
 
-### Blocker / human decision required
+### Browser-auth limitation
 
-Browser-auth validation requires the canonical Nest/Tox21 runtime environment to be configured and a deterministic local test account or approved credentials. Do not invent credentials. Feature branch remains preserved at its final implementation commit for human review.
+Authenticated browser coverage remains unavailable until a deterministic local test account or approved non-production credential is supplied. No production account, external provider login, or fabricated credential was used.

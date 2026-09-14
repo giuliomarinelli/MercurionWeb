@@ -1,3 +1,8 @@
+import type { ApplicationErrorEnvelope } from './application-error-envelope'
+
+export { LOCAL_DUMMY_AUTH } from './local-dummy-auth'
+export type { LocalDummyAuthMarker } from './local-dummy-auth'
+
 export type RestContractVersion = '1.0.0'
 
 export {
@@ -13,6 +18,53 @@ export type {
   ApplicationErrorDefinition,
   ApplicationErrorPayload
 } from './application-errors'
+export {
+  isApplicationErrorEnvelope,
+  isApplicationErrorEnvelopeCode
+} from './application-error-envelope'
+export {
+  CONTRACT_VERSION_HEADER,
+  CONTRACT_VERSION_RESPONSE_HEADERS,
+  CURRENT_CONTRACT_MAJOR,
+  LEGACY_UNVERSIONED_CONTRACT_WARNING,
+  PUBLIC_CONTRACT_VERSION_METADATA,
+  SUPPORTED_CONTRACT_MAJOR_RANGE,
+  contractVersionDetails,
+  contractVersionWarning,
+  formatSupportedMajorRange,
+  negotiateContractMajor,
+  negotiateContractMajorForPolicy,
+  restMajorFromPath
+} from './contract-versioning'
+export type {
+  ContractMajor,
+  ContractVersionPolicy,
+  ContractVersionSelection,
+  DeprecationMetadata,
+  SupportedMajorRange
+} from './contract-versioning'
+export type {
+  ApplicationErrorEnvelope,
+  ApplicationErrorEnvelopeCode,
+  TransportApplicationErrorCode
+} from './application-error-envelope'
+export {
+  INITIAL_SESSION_PROTOCOL,
+  SessionConnectionState,
+  SessionInvalidationCause,
+  SessionState,
+  SessionTransition,
+  isSessionTransitionAllowed,
+  sessionInvalidationCauseForApplicationError,
+  transitionSessionProtocol
+} from './session-protocol'
+export type {
+  SessionConnectionState as SessionConnectionStateType,
+  SessionInvalidationCause as SessionInvalidationCauseType,
+  SessionProtocolSnapshot,
+  SessionState as SessionStateType,
+  SessionTransition as SessionTransitionType
+} from './session-protocol'
 export {
   FINGERPRINT_CONTRACT_VERSION,
   parseFingerprintData,
@@ -60,11 +112,14 @@ export interface ConfirmDTO {
   message: string
 }
 
-export interface ErrorRes {
+export interface ErrorRes extends ApplicationErrorEnvelope {
   statusCode: number
   error: string
-  code?: import('./application-errors').ApplicationErrorCode
-  message?: string
+  code: ApplicationErrorEnvelope['code']
+  status: ApplicationErrorEnvelope['status']
+  message: ApplicationErrorEnvelope['message']
+  details?: ApplicationErrorEnvelope['details']
+  correlationId: ApplicationErrorEnvelope['correlationId']
   timestamp: string
   requestId: string
   path: string
