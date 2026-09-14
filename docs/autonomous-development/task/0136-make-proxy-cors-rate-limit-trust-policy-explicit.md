@@ -83,26 +83,37 @@ Mark `BLOCKED` if the production trusted-proxy chain/origin contract is genuinel
 ## Execution notes
 
 ### Feature branch
-`feature/BE-022` at base SHA `9a1a7a8d97535c184df7471bab004934250e5624`.
-The working tree was clean, the branch identity matched the requested Source,
-and no remote `feature/BE-022` ref existed before this diagnostic commit.
+`feature/BE-022` resumed from preserved SHA
+`00d20c22101d67196b3853f6882e0f28fe30f418`; local and remote preserved refs
+matched the requested Source. The current green `develop` SHA supplied for
+recovery was `88b5e0e5b9f0492cf889ccdb068bceabc31402e7`.
+### Authorized recovery
+- Verified `feature/BE-022`, preserved local/remote SHA
+  `00d20c22101d67196b3853f6882e0f28fe30f418`, and current green `develop`
+  SHA `88b5e0e5b9f0492cf889ccdb068bceabc31402e7`.
+- Merged `develop` with
+  `git merge --no-ff --no-gpg-sign 88b5e0e5b9f0492cf889ccdb068bceabc31402e7`.
+- The task-file conflict was task-owned and resolved by preserving the prior
+  diagnostic notes and terminal `BLOCKED` state. Recovery merge commit:
+  `6589395407c67e0fee781cc40a2cb9c300aa1800`.
 ### Preflight
-Passed unchanged-task preflight:
+Passed recovery preflight:
 
-- `git status --porcelain=v1` was empty;
-- `git rev-parse HEAD` matched the supplied base SHA;
+- branch identity and preserved refs matched the authorized recovery payload;
+- the recovery merge completed without rebase, reset, squash, or history
+  rewriting;
 - dependencies `0130`, `0132`, and `0134` were checked `DONE`;
 - no task-owned Nest, Angular, Tox21, Jest, or workspace watcher was active;
-- exact-base GitHub Actions CI run
-  [34705560688](https://github.com/giuliomarinelli/MercurionWeb/actions/runs/34705560688)
-  for `9a1a7a8d97535c184df7471bab004934250e5624` completed successfully;
+- the supplied current green `develop` evidence was accepted by the recovery
+  coordinator;
 - local `commit.gpgSign` was `false`.
 ### Preflight remediation
 None.
 ### Summary
-Blocked before implementation because the production trusted-proxy chain and
-production/staging origin contract are not recoverable from approved repository
-configuration. The task explicitly forbids guessing these security boundaries.
+Recovery reinspection still establishes the recipe stop condition before
+implementation: the production trusted-proxy chain and production/staging
+origin contract are not recoverable from approved repository configuration. The
+task explicitly forbids guessing these security boundaries.
 `docker_sl/nginx_dev/nginx.prod.conf` documents that production is behind
 Cloudflare and forwards `X-Real-IP`/`X-Forwarded-For`, but declares neither
 Cloudflare source CIDRs nor an approved proxy hop count/trust boundary.
@@ -113,6 +124,11 @@ staging/production origin allowlist or authoritative production environment
 policy is present. Implementing `trustProxy`, origin validation, or effective
 client-IP handling would therefore require inventing undocumented production
 security policy.
+The reinspection also confirmed the current implementation remains
+unconditional (`new FastifyAdapter({ trustProxy: true })`) and rate-limit
+failure remains hard-coded (`skipOnError: true`), while `APP_CORS_ORIGINS` is
+only a generic validated list with no staging/production contract. These are
+the behaviors this task would change, but no safe values are available.
 ### Task-specific validation performed
 Not run; no implementation was made.
 ### Full pre-merge CI-parity validation
@@ -121,7 +137,9 @@ Not run; local `npm ci` and `npm run ci:check` were intentionally not run.
 Not applicable; the stop condition was established before implementation and
 browser validation.
 ### Commits
-Pending diagnostic commit.
+Recovery merge commit
+`6589395407c67e0fee781cc40a2cb9c300aa1800`; terminal diagnostic update
+pending.
 ### Merge / CI
 Not applicable.
 ### Rollback
