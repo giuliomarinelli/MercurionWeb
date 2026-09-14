@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Turn code coverage into a non-regressing CI quality gate with stronger branch/function expectations for auth, session, transaction and mapper code, published reports and an explicit narrowly justified exclusion policy.

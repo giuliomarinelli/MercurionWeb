@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Make Chapter/Section/Page sibling ordering remain unique and deterministic under concurrent create, move and reorder commands by combining an explicit database invariant with a transaction/locking strategy appropriate to the supported SQL dialect.

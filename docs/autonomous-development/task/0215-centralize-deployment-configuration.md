@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Make Docker Compose, Docker build references and Kubernetes manifests derive from one validated service/deployment schema plus explicit environment overlays so image identity, names, ports, required variables and secret references cannot drift.

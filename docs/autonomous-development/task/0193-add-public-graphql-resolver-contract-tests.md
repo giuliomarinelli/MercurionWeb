@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Add contract tests for every public GraphQL resolver in the retained Help, Notebook, molecule-collection and Synth domains, proving schema shape, authentication/ownership policy, successful operations, invalid input, not-found behavior and canonical GraphQL error mapping through the real Nest GraphQL test application.

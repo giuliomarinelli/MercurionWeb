@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Refactor production Nest controllers so each endpoint only extracts/validates transport input, invokes one application use case/query and returns a typed DTO/presenter result, with no domain orchestration or manual Fastify parsing in controllers.

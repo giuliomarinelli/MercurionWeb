@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Split the oversized molecule/collection bulk-join commands into explicit selection planning, ownership validation, persistence write-set construction and domain-touch phases with typed inputs/results and bounded complexity.

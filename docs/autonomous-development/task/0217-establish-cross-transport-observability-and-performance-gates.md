@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Propagate one safe correlation context across HTTP, GraphQL, Socket.IO and NATS, expose low-cardinality request/query/cache/latency/error metrics and make agreed critical-path performance budgets deterministic non-regressing CI gates.

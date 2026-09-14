@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Eliminate SQL text construction from user-provided Notebook IDs so every Chapter/Section/Page reorder uses fully bound parameters or an equivalently parameter-safe bulk-update primitive.

@@ -27,10 +27,6 @@ import { UserContext } from 'src/app_modules/notification/Models/contexts/user.c
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 import { DataSource } from 'typeorm';
-import { ChEMBLMoleculeItemEntity } from 'src/app_modules/molecule-collection/Models/entities/chembl-molecule-item.entity';
-import { uuidv7 } from '@kripod/uuidv7';
-import { MoleculeCollection } from 'src/app_modules/molecule-collection/Models/entities/molecule-collection.entity';
-import { MoleculeCollectionItemJoin } from 'src/app_modules/molecule-collection/Models/entities/molecule-collection-item-join.entity';
 import { ScopeService } from './scope.service';
 import { MfaBackupCode } from 'src/app_modules/user/Models/entities/backup-code.entity';
 import { RecoverCredentialsDTO } from '../Models/DTO/recover-cretentials.cls.dto';
@@ -39,6 +35,8 @@ import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 import { redisDurations, redisKeys } from 'src/app_modules/redis/contracts/redis-contracts'
+import { UnitOfWork } from 'src/persistence/transaction-context'
+import { InitialWorkspaceService } from 'src/app_modules/molecule-collection/services/initial-workspace.service'
 
 
 
@@ -90,6 +88,8 @@ export class AccountService {
         private readonly securityAuditService: SecurityAuditService,
         private readonly dataSource: DataSource,
         private readonly scopeService: ScopeService,
+        private readonly unitOfWork: UnitOfWork,
+        private readonly initialWorkspace: InitialWorkspaceService,
         meiliLogger: MeiliLoggerService
     ) {
         this.CHANGE_PASSWORD_TOKEN_EXPIRATION_MS = this.configService.get<number>('Jwt.changePasswordToken.expiresInMs') ?? 300_000
@@ -344,112 +344,13 @@ export class AccountService {
 
     public async activateUser(activationToken: string): Promise<ConfirmWithRecoveryCodeDTO> | never {
 
-        return this.dataSource.manager.transaction(async (manager) => {
+        return this.unitOfWork.run(async (context) => {
             const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(activationToken, TokenType.ActivationToken)
             await this.sessionService.revokeToken(jti)
-            const user = await manager.findOne(User, { where: { id: userId } })
-            if (user == null) {
-                throw applicationError(ApplicationErrorCode.ACCOUNT_ACTIVATION_USER_NOT_FOUND)
-            }
-            let { isVerified, email, unconfirmedEmail, updatedAt } = user
             const recoveryCode = this.securityService.generateAccountRecoveryReadableCode()
             const accountRecoveryCodeHash = await this.passwordEncoder.encode(recoveryCode)
-            email = unconfirmedEmail!
-            unconfirmedEmail = null
-            isVerified = true
-            updatedAt = Date.now()
-            await manager.update(User, { id: userId }, { email, unconfirmedEmail, isVerified, updatedAt, accountRecoveryCodeHash })
-            const now = Date.now()
-            const _1stMol = manager.create(ChEMBLMoleculeItemEntity, {
-                chemblMolregno: 1280,
-                name: 'ASPIRINA',
-                nameEn: 'ASPIRIN',
-                id: uuidv7() as UUID,
-                userId,
-                label: 'Acido acetilsalicilico',
-                notes: 'La mia prima molecola su Mercurion',
-                type: 'chembl',
-                createdAt: now,
-                updatedAt: now,
-                touchedAt: now
-            })
-            const _2ndMol = manager.create(ChEMBLMoleculeItemEntity, {
-                chemblMolregno: 11674,
-                name: 'IBUPROFENE',
-                nameEn: 'IBUPROFEN',
-                id: uuidv7() as UUID,
-                userId,
-                label: 'Antinfiammatorio non steroideo derivato dell\'acido arilpropionico',
-                notes: 'La mia seconda molecola su Mercurion',
-                type: 'chembl',
-                createdAt: now,
-                updatedAt: now,
-                touchedAt: now - 1
-            })
-            const _3rdMol = manager.create(ChEMBLMoleculeItemEntity, {
-                chemblMolregno: 5080,
-                name: 'KETOROLAC',
-                nameEn: 'KETOROLAC',
-                id: uuidv7() as UUID,
-                userId,
-                label: null,
-                notes: 'La mia terza molecola su Mercurion',
-                type: 'chembl',
-                createdAt: now,
-                updatedAt: now,
-                touchedAt: now - 2
-            })
-            const _4rdMol = manager.create(ChEMBLMoleculeItemEntity, {
-                chemblMolregno: 173,
-                name: 'INDOMETACINA',
-                nameEn: 'INDOMETHACIN',
-                id: uuidv7() as UUID,
-                userId,
-                label: 'Indometacina',
-                notes: 'Gastrotossica, nefrotossica',
-                type: 'chembl',
-                createdAt: now,
-                updatedAt: now,
-                touchedAt: now - 3
-            })
-            const _5rdMol = manager.create(ChEMBLMoleculeItemEntity, {
-                chemblMolregno: 16591,
-                name: 'KETOPROFENE',
-                nameEn: 'KETOPROFEN',
-                id: uuidv7() as UUID,
-                userId,
-                label: null,
-                notes: 'Potente antinfiammatorio, buon analgesico',
-                type: 'chembl',
-                createdAt: now,
-                updatedAt: now,
-                touchedAt: now - 4
-            })
-            await manager.save(_1stMol)
-            await manager.save(_2ndMol)
-            await manager.save(_3rdMol)
-            await manager.save(_4rdMol)
-            await manager.save(_5rdMol)
-            const firstCol = manager.create(MoleculeCollection, {
-                id: uuidv7() as UUID,
-                name: 'La mia prima collezione',
-                createdAt: now,
-                updatedAt: now,
-                touchedAt: now,
-                userId
-            })
-            const firstColPersisted = await manager.save(firstCol)
-            const joins = [_1stMol, _2ndMol, _3rdMol, _4rdMol, _5rdMol].map((mol) => {
-                const join = manager.create(MoleculeCollectionItemJoin, {
-                    id: uuidv7() as UUID,
-                    userId,
-                    collectionId: firstColPersisted.id,
-                    itemId: mol.id
-                })
-                return join
-            })
-
-            await manager.save(joins)
+            const email = await this.userService.activateAccount(userId, accountRecoveryCodeHash, context)
+            await this.initialWorkspace.createForUser(userId, context)
             await this.redisService.del(this.getRegistrationLockRedisKey(email))
             return {
                 ...this._r.ok('Account activated successfully'),
