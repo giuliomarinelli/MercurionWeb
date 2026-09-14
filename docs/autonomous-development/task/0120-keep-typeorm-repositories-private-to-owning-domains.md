@@ -1,7 +1,7 @@
 # 0120 - Keep TypeORM repositories private to their owning domains
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
@@ -166,3 +166,33 @@ The decision must state how owner-provided capabilities participate in one
 transaction without exposing TypeORM repositories or `EntityManager`. Until
 that contract exists, repository privacy cannot be completed while preserving
 the current transaction and rollback boundaries.
+
+### Authorized recovery resume
+- Recovery authorization matched task `0120`, Source `BE-006`, branch
+  `feature/BE-006`, and preserved SHA
+  `bf147e2382fb0caea81412d89f4630fc4bda2cff`.
+- Merged current green `develop` SHA
+  `fcc69bb2bc38331e20708e99ee9a8aa423929b1a` into the preserved branch with
+  `git merge --no-ff --no-gpg-sign`; merge commit:
+  `7cf8e91d19f32fb65ba32b7420739f8a38757463`.
+- Rechecked the stop condition after the merge. DATA task `0152`
+  (`DATA-003`) remains pending with no implemented Unit of Work contract;
+  its recipe explicitly defines the future transaction context and is not
+  available as an existing contract. Current code still has cross-domain
+  atomic workflows using direct `DataSource.manager.transaction(...)`,
+  including User + MoleculeCollection onboarding, SSO onboarding, and
+  MoleculeCollection + History writes. Passing `EntityManager` or a
+  transaction context through new public domain capabilities would invent the
+  deferred DATA design, while ordinary owner APIs would split rollback
+  boundaries.
+- Focused post-recovery checks passed:
+  `npm run ci:nest:architecture` (24 production modules, 10 configuration
+  files, cycle/provider-ownership/test-route gates passed) and
+  `npm run typecheck --workspace mercurion_web_node` (`tsc --noEmit`).
+- No production implementation was changed. The pre-existing untracked
+  `MercurionWebNode/test-results/` and `reports/` paths were preserved and not
+  staged. `npm ci` and `npm run ci:check` were not run, per policy; browser
+  validation is not applicable.
+- Recovery result remains `BLOCKED` under the recipe stop condition. The
+  precise human decision is still the DATA-series canonical transaction owner
+  and public Unit of Work contract for the listed atomic workflows.
