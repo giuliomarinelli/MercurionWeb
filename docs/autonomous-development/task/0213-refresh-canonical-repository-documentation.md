@@ -141,7 +141,8 @@ Chrome DevTools profile and only `http://localhost:8888`, the shell rendered at 
 data and the console had no messages. All task-owned runtime sessions were stopped; the
 remaining Node processes were only Chrome DevTools MCP.
 ### Commits
-Pending task-specific commit.
+`ced9f9d8` — `docs: refresh canonical repository documentation` (committed with
+`--no-gpg-sign` and Copilot co-author trailer).
 ### Merge / CI
 _Not started._
 ### Rollback
