@@ -1,7 +1,7 @@
 # 0072 - Unify collection cards into one presentational primitive
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -91,50 +91,78 @@ Favor one small presentational card plus explicit slots/typed action descriptors
 
 ## Execution notes
 
-> Current status (2026-09-11): PENDING by direct owner instruction because this
-> activity was not completed. Historical attempt/skip evidence remains below
-> for traceability and is not a terminal outcome.
+> Current status (2026-09-15): BLOCKED after implementation because the
+> mandatory authenticated browser acceptance probe could not be completed.
+> The implementation and focused local checks are preserved on `feature/UI-014`
+> for a later human-authorized recovery.
 
 ### Feature branch
-No task branch or worker was created because hard prerequisites `0066`
-(`UI-008`), `0067` (`UI-009`), and `0071` (`UI-013`) are terminal
-`SKIPPED_DEPENDENCY`.
+`feature/UI-014` from base
+`5a121da0cbb3a22422b8f7de305b58ff95d622ef`.
 
 ### Preflight
-Not applicable; the task was skipped before implementation.
+- Confirmed clean `feature/UI-014` at the supplied base SHA before editing.
+- Exact base CI evidence was green: GitHub Actions CI run `34926756961`
+  completed successfully for `5a121da0cbb3a22422b8f7de305b58ff95d622ef`.
+- No task-owned Angular, Nest, Tox21, Karma, or workspace watcher was active
+  before startup.
+- Started Tox21, Nest, and Angular in the required order in separate attached
+  sessions. Nest compiled with zero errors and connected to Tox21, Angular
+  completed its development build, and two complete edge rounds returned HTTP
+  200 for `/health` and `/`.
+- The browser profile reached the ordinary login form. A fresh login was
+  attempted through the supported `fill_form` flow, but the server rejected
+  the configured account password and protected state could not be proved.
 
 ### Preflight remediation
-_None._
+_None; the shared account credential requires human-authorized recovery._
 
 ### Summary
-Skipped at the normal filename-order selection point. All direct selection,
-interaction, and skeleton prerequisites are `SKIPPED_DEPENDENCY`, with
-transitive blocked root cause
-`0052-standardize-modern-angular-component-apis.md` (`FE-030`).
+Implemented one canonical `CollectionCardComponent` presentation with an
+immutable `CollectionCardViewModel`, optional typed selection state using the
+canonical selection control, separate navigation links and action buttons, and
+the existing collection metadata/actions. Migrated the bind-collections
+overlay to the canonical card, replaced its select-all wrapper with a native
+button, and removed the redundant `CollectionSelectCardComponent` files.
 
 ### Task-specific validation performed
-No implementation or validation was performed.
+- `npm run typecheck --workspace mercurion_web_ng` — passed.
+- Angular lint with `--max-warnings=0` — passed.
+- Focused collection-card Angular spec — 3/3 passed.
+- Representative bind-collections overlay spec — 1/1 passed.
+- `npm run build --workspace mercurion_web_ng` — passed; existing initial
+  bundle budget warning remained non-fatal.
+- `git diff --check` — passed.
+- Neither `npm ci` nor `npm run ci:check` was run locally.
 
 ### Full pre-merge CI-parity validation
-Not applicable; no feature branch was created.
+Not run locally by policy. Exact feature-SHA CI remains coordinator-owned.
 
 ### Browser validation performed
-Not applicable; the task was skipped before implementation.
+Runtime startup and two complete readiness rounds were successful after
+implementation. The authenticated collection-card route could not be reached:
+the supported fresh login attempt at `http://localhost:8888/login` returned
+the application error “Le credenziali inserite non sono corrette.” Therefore
+normal/selectable card, keyboard, responsive, skeleton, and theme evidence was
+not claimed.
 
 ### Commits
-Only this task metadata was updated on `develop`.
+Pending implementation/status commit on `feature/UI-014`.
 
 ### Merge / CI
-No feature merge; skip metadata CI is required before continuing.
+No merge was performed. Feature publication and exact-SHA CI are pending the
+blocked-attempt preservation commit.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-No implementation blocker. Re-enable only after the direct prerequisite chains
-are deliberately resolved in a new authorized session.
+Human-authorized recovery of the configured local test-account credential is
+required, followed by fresh authenticated browser validation through
+`http://localhost:8888/login`. The feature branch and preserved work must not
+be discarded or rebased.
 
-### Dependency skip
+### Dependency history
 
-Direct terminal prerequisite: `0071` (`UI-013`), `BLOCKED`. This task was
-materialized in the new terminal closure on 2026-09-13.
+The historical dependency-skip note is retained for traceability; the direct
+owner instruction authorized this implementation attempt.

@@ -19,7 +19,7 @@ import { debounceTime, map, Observable, Subscription } from 'rxjs';
 import { PageModel } from '../../../Models/graphql/page.models';
 import { ProgressIndicatorComponent } from '../../common/progress-indicator/progress-indicator.component';
 import { PmSearchInputComponent } from '../../common/pm-search-input/pm-search-input.component';
-import { CollectionSelectCardComponent } from '../../molecule-detail/collection-select-card/collection-select-card.component';
+import { CollectionCardComponent } from '../../molecule-detail/collection-card/collection-card.component';
 import { SkeletonCollectionCardComponent } from '../../common/skeleton-card-loader/skeleton-card-loader.component';
 import { Router } from '@angular/router';
 import { ActionCardComponent } from '../../common/action-card/action-card.component';
@@ -34,7 +34,7 @@ import { CollectionPickerFacade } from '../collection-picker/collection-picker.f
   imports: [
     ProgressIndicatorComponent,
     PmSearchInputComponent,
-    CollectionSelectCardComponent,
+    CollectionCardComponent,
     SkeletonCollectionCardComponent,
     ActionCardComponent,
     ActionFooterComponent,
@@ -120,21 +120,26 @@ import { CollectionPickerFacade } from '../collection-picker/collection-picker.f
 
               <div class="pt-2 sm:pt-4">
                 @if (multiselectItems().length !== 0) {
-                  <m-collection-select-card
-                    class="block mb-6"
-                    [isSelectAll]="true"
-                    [value]="isSelectedAll()"
-                    [indeterminate]="isPartiallySelected()"
-                    (selectedAll)="onSelectAllChange($event)"
-                  />
+                  <div class="flex items-center gap-3 mb-6">
+                    <button
+                      type="button"
+                      class="block w-full select-none font-semibold ml-[2px] text-left"
+                      (click)="onSelectAllChange(!isSelectedAll())"
+                      aria-label="Seleziona tutte le collezioni"
+                    >
+                      {{ isSelectedAll() ? 'DESELEZIONA TUTTI' : 'SELEZIONA TUTTI' }}
+                    </button>
+                  </div>
                 }
 
                 @for (row of multiselectItems(); track row.item.id; let i = $index) {
-                  <m-collection-select-card
+                  <m-collection-card
                     [collection]="row.item"
                     [i]="i"
-                    [value]="row.isChecked()"
-                    (valueChange)="row.isChecked.set($event); toggleOne(row)"
+                    [isReadonly]="true"
+                    [selectable]="true"
+                    [selected]="row.isChecked()"
+                    (selectedChange)="row.isChecked.set($event); toggleOne(row)"
                   />
                 }
               </div>
