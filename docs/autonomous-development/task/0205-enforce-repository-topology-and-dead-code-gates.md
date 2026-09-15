@@ -131,16 +131,18 @@ policy. Production results were zero cycles, zero unapproved orphans, and
 zero forbidden edges. The negative fixture suite rejected representative
 Angular/Nest orphan and cycle fixtures plus forbidden architecture edges.
 ### Full pre-merge CI-parity validation
-Complete clean-install parity is owned by GitHub Actions and was not run
-locally, per repository policy. The pushed feature SHA is the required
-pre-merge CI evidence target.
+Complete clean-install parity was intentionally not run locally, per
+repository policy. GitHub Actions run `34984492516` for exact feature SHA
+`e93e1daec62de3b084b492361577c0793d9ca8dc` completed successfully, including
+Ubuntu and Windows quality jobs and `Required gate`.
 ### Browser validation performed
 _Not started / not applicable._
 ### Commits
 `0c5f6413` — topology aggregate, deterministic reports, CI artifact upload,
 JSON graph output, negative fixture aggregation, and execution record.
 ### Merge / CI
-_Not started._
+Feature CI passed for `e93e1daec62de3b084b492361577c0793d9ca8dc` in run
+`34984492516`; coordinator-owned integration into `develop` remains next.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
