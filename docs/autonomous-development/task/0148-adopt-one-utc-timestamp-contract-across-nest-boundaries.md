@@ -126,12 +126,37 @@ Forbidden clean-install and aggregate commands were not run: `npm ci` and
 ### Full pre-merge CI-parity validation
 Owned by GitHub Actions on the exact pushed feature SHA; not run locally per
 repository policy.
+
+### CI repair for feature run `34962890476`
+The exact feature SHA `0fe076024e7a98df2373fc63812929b32c3d767a` failed both
+platform static gates because the REST compatibility inventory was stale after
+the timestamp contract changes. The Nest test gate also failed one stale
+expectation in `mfa-authentication.handlers.spec.ts`: the handler correctly
+returned millisecond-precision UTC wire strings while the test still expected
+epoch numbers.
+
+Applied only the confirmed repair:
+
+- updated the MFA handler expectation to the canonical UTC wire values;
+- taught the REST compatibility type-shape inventory to treat branded string
+  aliases such as `UtcInstant` as their JSON string primitive at the boundary;
+- regenerated `docs/architecture/rest-contract-compatibility.json`.
+
+Focused repair validation passed:
+
+- `node scripts/check-rest-compatibility.mjs`
+- `npm test --workspace mercurion_web_node -- --runInBand src/app_modules/auth/application/mfa-authentication.handlers.spec.ts`
+- `git diff --check`
+
 ### Browser validation performed
 Not applicable; the recipe explicitly declares browser validation not
 applicable.
 ### Commits
 `fd8be666` — `feat(temporal): adopt UTC instant contract across Nest
 boundaries` (created with `git commit --no-gpg-sign`).
+`0fe076024` — `docs(task): finalize BE-034 execution notes`
+`(created with git commit --no-gpg-sign)`.
+CI repair commit is pending push from the repair worker.
 ### Merge / CI
 Feature-SHA CI is coordinator-owned and required before integration.
 ### Rollback
