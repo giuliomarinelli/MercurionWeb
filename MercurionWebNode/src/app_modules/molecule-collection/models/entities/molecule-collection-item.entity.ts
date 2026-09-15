@@ -12,6 +12,8 @@ import { Field, ID, InterfaceType } from '@nestjs/graphql';
 })
 @Entity('molecule_collection_items')
 @TableInheritance({ column: { type: 'varchar', name: 'type' } })
+@Index('uq_molecule_collection_items_id_user', ['id', 'userId'], { unique: true })
+@Index('idx_molecule_collection_items_user_touched', ['userId', 'touchedAt'])
 export abstract class MoleculeCollectionItemEntity {
 
   @Field(() => ID)

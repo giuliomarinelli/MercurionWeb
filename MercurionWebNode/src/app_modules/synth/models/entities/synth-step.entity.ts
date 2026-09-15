@@ -1,6 +1,6 @@
 import { UUID } from 'crypto';
 import { uuidv7 } from '@kripod/uuidv7';
-import { BeforeInsert, Column, Entity, ManyToOne, PrimaryColumn, OneToMany, JoinColumn, Index, Unique } from 'typeorm';
+import { BeforeInsert, Check, Column, Entity, ManyToOne, PrimaryColumn, OneToMany, JoinColumn, Index, Unique } from 'typeorm';
 import { Synthesis } from './synthesis.entity';
 import { SynthStepItem } from './synth-step-item.entity';
 import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
@@ -8,6 +8,7 @@ import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
 @ObjectType()
 @Entity('synth_steps')
 @Unique('uq_synth_step_order', ['synthId', 'order'])
+@Check('ck_synth_step_order_non_negative', '"step_order" >= 0')
 export class SynthStep {
 
     @Field(() => ID)
