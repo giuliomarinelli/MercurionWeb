@@ -1,6 +1,6 @@
 # 0205 - Enforce repository topology and dead-code gates
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -96,23 +96,50 @@ Prefer a thin aggregate over a new universal analyzer. The task succeeds when th
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/QA-019` from base `97ec9c021cc814c9380ce4e0b50b247bac234c25`.
 ### Preflight
-_Not started._
+Passed unchanged task-start preflight. The branch was clean and matched
+`origin/develop` at `97ec9c021cc814c9380ce4e0b50b247bac234c25`; the exact
+Actions run `34982736246` was successful, including Windows and Ubuntu
+quality jobs and `Required gate`. No workspace-consuming task process was
+active. The repository-local `commit.gpgSign` value is `false`.
 ### Preflight remediation
 _None._
 ### Summary
-Reopened by direct management instruction on 2026-09-14 after `0114 / NG-028`
-was re-scoped to the active non-Notebook topology. The former dependency skip
-is stale; execution remains pending until all hard prerequisites are `DONE`.
+Composed the existing Angular cycle/reachability checks, Nest module
+cycle/reachability checks, and the authoritative architecture policy into the
+canonical `ci:topology` gate. The gate validates its version-controlled
+composition, emits deterministic JSON and concise summaries under
+`reports/topology`, and is registered in `ci:static`/`ci:check`. Existing
+dynamic entrypoint and precise exclusion configurations remain authoritative;
+no eager imports or production source changes were added.
 ### Task-specific validation performed
-_Not started._
+Passed:
+
+- `npm run ci:angular:import-graph`
+- `npm run ng:orphans:check`
+- `npm run ci:nest:architecture`
+- `npm run nest:orphans:check`
+- `npm run ci:topology`
+- `npm run ci:topology:negative`
+- `npm run ci:validate:autonomous`
+- `git diff --check`
+
+The topology report passed all five composed checks: Angular import graph,
+Angular reachability, Nest module graph, Nest reachability, and architecture
+policy. Production results were zero cycles, zero unapproved orphans, and
+zero forbidden edges. The negative fixture suite rejected representative
+Angular/Nest orphan and cycle fixtures plus forbidden architecture edges.
 ### Full pre-merge CI-parity validation
-_Not started._
+Complete clean-install parity is owned by GitHub Actions and was not run
+locally, per repository policy. The pushed feature SHA is the required
+pre-merge CI evidence target.
 ### Browser validation performed
 _Not started / not applicable._
 ### Commits
-_Not started._
+Pending task commit: topology aggregate, deterministic reports, CI artifact
+upload, JSON graph output, negative fixture aggregation, and this execution
+record.
 ### Merge / CI
 _Not started._
 ### Rollback
