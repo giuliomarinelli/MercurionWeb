@@ -11,7 +11,7 @@ import { ReleaseService } from './services/release.service';
             ]
         )
     ],
-    exports: [TypeOrmModule],
+    exports: [],
     providers: [ReleaseService]
 })
 export class ReleaseVersionModule { }

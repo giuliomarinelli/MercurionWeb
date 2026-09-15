@@ -1,6 +1,6 @@
 # 0038 - Create one atomic client session entity
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -121,28 +121,46 @@ Keep this a domain model/facade invariant, not necessarily one serialized blob. 
 
 ### Summary
 
-Skipped without implementation because hard prerequisites
-`0010-unify-session-state-protocol.md` (`SYS-010`) and
-`0026-create-canonical-angular-auth-state-store.md` (`FE-004`) are
-`BLOCKED`, while `0028` (`FE-006`), `0029` (`FE-007`), `0030` (`FE-008`),
-`0031` (`FE-009`), and `0035` (`FE-013`) are `SKIPPED_DEPENDENCY`.
+Implemented a typed authenticated client-session boundary in the canonical
+Angular auth store. HTTP and WebSocket credentials now install and rotate only
+when their JWT `sub` and `sid` claims agree; scopes are derived from the
+accepted HTTP token, and stale refreshes cannot replace a newer session.
+Persistence commits the authenticated snapshot as one semantic operation.
 
 ### Validation performed
 
-No task branch or worker was created. Direct prerequisites include blocked
-`SYS-010`/`FE-004` and skipped `FE-006`/`FE-007`/`FE-008`/`FE-009`/`FE-013`;
-the transitive chain terminates at the blocked session protocol and canonical
-auth-store tasks.
+* `npm ci` (task-start preflight: passed).
+* `npm run ci:check` (task-start preflight: passed).
+* `npx ng test --watch=false --include=src/app/services/auth-state.store.spec.ts`
+  (18/18 passed).
+* `npx ng test --watch=false` (full Angular suite passed).
+* `npm run typecheck --workspace mercurion_web_ng` (passed).
+* `npm run build --workspace mercurion_web_ng` (passed; existing bundle-size
+  and CommonJS warnings only).
+* Final `npm ci` and `npm run ci:check` were run after all runtime evidence and
+  with task-owned processes stopped (both passed).
 
 ### Browser validation performed
 
-Not applicable; the task was skipped before implementation.
+Using the dedicated Chrome DevTools profile and only `http://localhost:8888`,
+the task runtime passed `/health`, a fresh ordinary login reached the
+protected Dashboard and produced successful protected account/history
+requests, and the private Socket.IO connection was observed by the runtime.
+Logout navigated to `/login`; the browser showed no owned auth storage keys and
+no logged-in marker, and reload remained anonymous. No token or cookie value was
+recorded.
 
 ### Changed files
 
-No files changed; only this task metadata was updated.
+* `MercurionWebNg/src/app/services/auth-state.store.ts`
+* `MercurionWebNg/src/app/services/auth-session-persistence.service.ts`
+* `MercurionWebNg/src/app/services/auth.service.ts`
+* `MercurionWebNg/src/app/interceptors/auth.interceptor.ts`
+* `MercurionWebNg/src/app/pages/login/login.page.component.ts`
+* `MercurionWebNg/src/app/services/auth-state.store.spec.ts`
+* this task file
 
 ### Blocker / human decision required
 
-No implementation blocker. The task may be re-enabled only after its hard
-dependency chain is deliberately resolved in a new authorized session.
+None. The server protocol exposes stable `sub` and `sid` claims on both token
+types, which is sufficient to associate rotations with the active session.

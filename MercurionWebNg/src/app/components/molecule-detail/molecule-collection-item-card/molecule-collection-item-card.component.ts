@@ -19,7 +19,8 @@ import { Subscription } from 'rxjs';
 import { MoleculeCollectionItemService } from '../../../services/graphql/molecule-collection-item.service';
 import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.component';
 import { DesignService } from '../../../services/design.service';
-import { AppContextService } from '../../../services/context/app-context.service';
+import { ShellLayoutService } from '../../../services/context/shell-layout.service';
+import { ViewportRuntimeService } from '../../../services/context/viewport-runtime.service';
 
 @Component({
   selector: 'm-molecule-collection-item-card',
@@ -261,6 +262,7 @@ import { AppContextService } from '../../../services/context/app-context.service
 
 })
 export class MoleculeCollectionItemCardComponent implements OnDestroy {
+  private readonly viewportRuntime = inject(ViewportRuntimeService);
   // ======================= DEPS =======================
   protected readonly searchContext = inject(SearchContextService)
   private readonly themeManager = inject(ThemeManagerService)
@@ -270,7 +272,7 @@ export class MoleculeCollectionItemCardComponent implements OnDestroy {
   private readonly historyContext = inject(HistoryContextService)
   private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService)
   private readonly design = inject(DesignService)
-  private readonly appContext = inject(AppContextService)
+  private readonly shellLayout = inject(ShellLayoutService)
   // ====================================================
 
   readonly molecule = input.required<MoleculeCardItemModel>()
@@ -338,7 +340,7 @@ export class MoleculeCollectionItemCardComponent implements OnDestroy {
       );
 
       const isInViewport = (el: HTMLElement) =>
-        el.getBoundingClientRect().top < window.innerHeight + 150;
+        el.getBoundingClientRect().top < this.viewportRuntime.height() + 150;
 
       queueMicrotask(() => {
         if (this.disablePreview() && isInViewport(this.host.nativeElement)) {
@@ -376,7 +378,7 @@ export class MoleculeCollectionItemCardComponent implements OnDestroy {
   handleCardClick(): void {
     queueMicrotask(() => {
       if (this.isMobile()) {
-        this.appContext.notifyAddedTriggerCloseOffCanvasMenu()
+        this.shellLayout.requestCloseOffCanvas()
       }
       this.searchContext.close()
     })
@@ -387,4 +389,3 @@ export class MoleculeCollectionItemCardComponent implements OnDestroy {
     this.upNaSub?.unsubscribe()
   }
 }
-

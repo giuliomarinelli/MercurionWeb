@@ -6,7 +6,7 @@
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
 
-Add contract tests for every public GraphQL resolver in the retained Help, Notebook, molecule-collection and Synth domains, proving schema shape, authentication/ownership policy, successful operations, invalid input, not-found behavior and canonical GraphQL error mapping through the real Nest GraphQL test application.
+Add contract tests for every public GraphQL resolver in the retained Help, molecule-collection and Synth domains, proving schema shape, authentication/ownership policy, successful operations, invalid input, not-found behavior and canonical GraphQL error mapping through the real Nest GraphQL test application.
 
 Source: `QA-007` in Series `0001`.
 
@@ -17,7 +17,6 @@ The Series audit found that important public resolvers are not protected by cont
 ## Relevant files and modules
 
 - Help resolvers/schema/DTOs
-- LabNotebook/Chapter/Section/Page resolvers
 - molecule-collection/item resolvers
 - Synth resolvers if retained by `0019`
 - GraphQL module/config and generated schema
@@ -51,7 +50,7 @@ The Series audit found that important public resolvers are not protected by cont
 
 ## Requirements
 
-1. Enumerate every public resolver/operation/field in Help, Notebook, molecule collection and retained Synth.
+1. Enumerate every public resolver/operation/field in Help, molecule collection and retained Synth.
 2. Provide reusable authenticated/anonymous GraphQL test clients and deterministic owner/non-owner fixtures.
 3. For each public resolver, cover schema/operation validity, success and at least the applicable auth/invalid-input/not-found/forbidden path.
 4. Cover scalar/ID validation at the GraphQL boundary, including canonical public-ID/UUID contracts.
@@ -62,7 +61,7 @@ The Series audit found that important public resolvers are not protected by cont
 
 ## Acceptance criteria
 
-- [ ] Every retained public Help/Notebook/Collection/Synth resolver is represented in the contract-test inventory.
+- [ ] Every retained public Help/Collection/Synth resolver is represented in the contract-test inventory.
 - [ ] Authentication/ownership and success/invalid/not-found behavior are covered as applicable.
 - [ ] Tests execute through the actual Nest GraphQL application/schema.
 - [ ] Error assertions use stable typed contract fields, not fragile message strings.
@@ -84,7 +83,7 @@ Mark `BLOCKED` if the public missing-versus-forbidden disclosure policy is still
 
 - SYS GraphQL generation/validation tasks `0002`–`0008` should be `DONE`.
 - BE error presentation tasks `0127`/`0128` should be `DONE`.
-- DATA domain/ownership tasks for Help/Notebook/Collection/Synth should be `DONE`.
+- DATA domain/ownership tasks for Help/Collection/Synth should be `DONE`.
 - `0188` must provide a reliable Nest test bootstrap.
 
 ## Implementation notes
@@ -100,7 +99,7 @@ _Not started._
 ### Preflight remediation
 _None._
 ### Summary
-_Not started._
+Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0002, 0008, 0127, 0128, 0188. This task was never attempted and receives no feature branch.
 ### Task-specific validation performed
 _Not started._
 ### Full pre-merge CI-parity validation
@@ -108,10 +107,10 @@ _Not started._
 ### Browser validation performed
 _Not applicable._
 ### Commits
-_Not recorded._
+Aggregate dependency-skip metadata commit on develop.
 ### Merge / CI
-_Not started._
+Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-_None._
+Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.

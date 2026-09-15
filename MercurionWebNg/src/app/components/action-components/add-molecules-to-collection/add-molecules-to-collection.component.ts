@@ -21,26 +21,31 @@ import { MoleculeCardItemModel, MoleculeCollection } from '../../../Models/graph
 import { PageModel } from '../../../Models/graphql/page.models';
 import { PmSearchInputComponent } from '../../common/pm-search-input/pm-search-input.component';
 import { MoleculeCollectionItemSelectCardComponent } from '../../molecule-detail/molecule-collection-item-select-card/molecule-collection-item-select-card.component';
-import { ClassicSpinnerComponent } from '../../common/classic-spinner/classic-spinner.component';
+import { ProgressIndicatorComponent } from '../../common/progress-indicator/progress-indicator.component';
 import { SkeletonMoleculeCardComponent } from '../../molecule-detail/skeleton-molecule-card/skeleton-molecule-card.component';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { SearchInputComponent } from '../../search-overlay/search-input/search-input.component';
 import { MoleculeSearchResult } from '../../../Models/graphql/molecule-search/molecule-search-result.interface';
 import { SearchResultSkeletonLoaderComponent } from '../../search-overlay/search-result-skeleton-loader/search-result-skeleton-loader.component';
 import { SearchResultComponent } from '../../search-overlay/search-result/search-result.component';
-import { AddManyChEMBLItemDTO } from '../../../Models/graphql/add-many-chembl-item.dto';
 import { AddMoleculesToCollectionContextService } from '../../../services/context/action-context/add-molecules-to-collection-context.service';
 import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
-import { CloseButtonComponent } from '../../common/close-button/close-button.component';
 import { MoleculeCollectionService } from '../../../services/graphql/molecule-collection.service';
 import { ToastService } from '../../../services/toast.service';
 import { Router } from '@angular/router';
 import { MoleculeSearchService } from '../../../services/graphql/molecule-search.service';
-
-export type ChipItem = {
-  id: string;
-  name: string;
-};
+import {
+  AddMoleculesSearchController,
+  AddMoleculesPaginationPort,
+  AddMoleculesSelectionController,
+  AddMoleculesSubmitController,
+  type ChipItem
+} from './add-molecules-to-collection.flow';
+import { AbstractMultiselectItem } from '../../../Models/abstract.models';
+import { ActionCardComponent } from '../../common/action-card/action-card.component';
+import { ActionFooterComponent } from '../../common/action-footer/action-footer.component';
+import { ButtonComponent } from '../../common/button/button.component';
+export type { ChipItem } from './add-molecules-to-collection.flow';
 
 @Component({
   selector: 'm-add-molecules-to-collection',
@@ -48,12 +53,15 @@ export type ChipItem = {
   imports: [
     PmSearchInputComponent,
     MoleculeCollectionItemSelectCardComponent,
-    ClassicSpinnerComponent,
+    ProgressIndicatorComponent,
     SkeletonMoleculeCardComponent,
     ReactiveFormsModule,
     SearchInputComponent,
     SearchResultSkeletonLoaderComponent,
-    SearchResultComponent
+    SearchResultComponent,
+    ActionCardComponent,
+    ActionFooterComponent,
+    ButtonComponent
   ],
   styles: [
     `
@@ -172,15 +180,15 @@ export type ChipItem = {
   ],
   template: `
 <div class="flex justify-center items-stretch md:items-center min-h-dvh h-dvh px-2 sm:px-4 pt-1 md:pt-6 m-overlay-screen">
-  <div
-    class="action-card w-full max-w-5xl flex flex-col h-dvh md:h-auto md:max-h-[calc(100dvh-6rem)] overflow-hidden"
-    role="region"
-    aria-labelledby="addMolHeading"
-    [attr.aria-busy]="step_12_loading()"
+  <m-action-card
+    size="wide"
+    labelledBy="addMolHeading"
+    closeLabel="Chiudi pannello aggiungi molecole"
+    [busy]="step_12_loading()"
+    (closed)="close()"
   >
     <!-- HEADER -->
-    <div class="action-card-header shrink-0">
-      <h2
+      <h2 action-card-title
         id="addMolHeading"
         class="flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-4 items-start sm:items-center text-lg font-semibold text-light-on-surface-main dark:text-dark-on-surface-main"
       >
@@ -195,24 +203,8 @@ export type ChipItem = {
         </span>
       </h2>
 
-      <button
-        type="button"
-        class="action-card-close-btn"
-        (click)="close()"
-        aria-label="Chiudi pannello aggiungi molecole"
-        [attr.aria-describedby]="step() === 2 ? 'addMolStatus' : null"
-        [attr.aria-disabled]="false"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-5 h-auto">
-          <path
-            d="M182.9 137.4L160.3 114.7L115 160L137.6 182.6L275 320L137.6 457.4L115 480L160.3 525.3L182.9 502.6L320.3 365.3L457.6 502.6L480.3 525.3L525.5 480L502.9 457.4L365.5 320L502.9 182.6L525.5 160L480.3 114.7L457.6 137.4L320.3 274.7L182.9 137.4z"
-          />
-        </svg>
-      </button>
-    </div>
-
     <!-- BODY -->
-    <div class="action-card-body bg-white dark:bg-dark-surface-main flex flex-col flex-1 min-h-0 overflow-hidden">
+    <div action-card-body class="bg-white dark:bg-dark-surface-main flex flex-col flex-1 min-h-0 overflow-hidden">
       <!-- Scelta metodo -->
       <div class="mx-auto shrink-0 w-full">
         <div
@@ -392,7 +384,7 @@ export type ChipItem = {
                     @if (loading) {
                       @if (page > 1) {
                         <div class="flex justify-center py-4" role="status" aria-live="polite" aria-busy="true">
-                          <m-classic-spinner [size]="60" />
+                          <m-progress-indicator [size]="60" />
                         </div>
                       } @else {
                         <div class="space-y-4" role="status" aria-live="polite" aria-busy="true">
@@ -608,61 +600,32 @@ export type ChipItem = {
     </div>
 
     <!-- FOOTER -->
-    <div class="action-card-footer shrink-0">
+    <m-action-footer action-card-footer>
       @if (step() === 1) {
-        <button
-          type="button"
-          class="px-4 py-2 rounded-lg bg-light-surface-secondary text-light-on-surface-main
-                 dark:bg-slate-200 dark:text-light-on-surface-main
-                 hover:bg-white dark:hover:bg-slate-300/80
-                 border border-light-border dark:border-dark-border/80
-                 shadow-sm
-                 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary
-                 focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary
-                 dark:focus-visible:ring-offset-dark-surface-secondary
-                 transition-colors duration-200"
+        <m-button
+          action-footer-secondary
+          variant="neutral"
           (click)="close()"
         >
           Annulla
-        </button>
+        </m-button>
       }
 
-      <button
-        type="button"
-        class="relative inline-flex items-center justify-center px-4 py-2 rounded-lg
-               bg-light-accent-primary text-white font-semibold shadow-md
-               hover:bg-light-accent-primary-hc
-               dark:bg-dark-accent-primary-btn dark:hover:bg-dark-accent-primary
-               focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq
-               focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary
-               dark:focus-visible:ring-offset-dark-surface-secondary
-               disabled:bg-light-accent-primary/50 disabled:cursor-not-allowed
-               transition-colors duration-200 dark:shadow-btn-dark disabled:hover:bg-light-accent-primary-hc/50"
+      <m-button
+        action-footer-primary
         [disabled]="(isSelectedNothing() && this.method() === 'my') || (this.selectedIds.length === 0 && this.method() === 'chembl' || step_12_loading())"
+        [loading]="step_12_loading()"
         (click)="step() === 1 ? dispatchSubmit() : close()"
-        [attr.aria-busy]="step_12_loading()"
-        [attr.aria-disabled]="(isSelectedNothing() && this.method() === 'my') || (this.selectedIds.length === 0 && this.method() === 'chembl' || step_12_loading())"
-        [attr.aria-live]="step_12_loading() ? 'assertive' : 'polite'"
         [attr.aria-label]="step() === 1 ? 'Aggiungi molecole' : 'Chiudi conferma'"
       >
-        <span [class.invisible]="step_12_loading()">
-          @if (step() === 1) {
-            <span>Aggiungi</span>
-          } @else if (step() === 2) {
-            <span>Ok</span>
-          }
-        </span>
-
-        <span
-          aria-hidden="true"
-          class="absolute inset-0 flex items-center justify-center"
-          [class.hidden]="!step_12_loading()"
-        >
-          <m-classic-spinner [size]="24"></m-classic-spinner>
-        </span>
-      </button>
-    </div>
-  </div>
+        @if (step() === 1) {
+          Aggiungi
+        } @else if (step() === 2) {
+          Ok
+        }
+      </m-button>
+    </m-action-footer>
+  </m-action-card>
 </div>
 `
 
@@ -681,6 +644,20 @@ export class AddMoleculesToCollectionComponent
   private readonly router = inject(Router);
   private readonly moleculeSearchService = inject(MoleculeSearchService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly selection = new AddMoleculesSelectionController();
+  private readonly submitController = new AddMoleculesSubmitController();
+  private readonly chemblSearch = new AddMoleculesSearchController(query => {
+    const collectionId = this.addContext.collectionId();
+    return collectionId
+      ? this.moleculeCollectionItemService.searchChemblMolecules_excludeAlreadyAdded(query, collectionId, 100)
+      : this.moleculeSearchService.searchMolecule(query, 100);
+  });
+  readonly pagination: AddMoleculesPaginationPort = {
+    loadMore: () => this.loadMore(),
+    reset: () => this.resetPagination(),
+    query: query => this.query(query),
+    clear: () => this.clear()
+  };
 
   private ctrlSub?: Subscription;
   private suSub1?: Subscription;
@@ -705,9 +682,9 @@ export class AddMoleculesToCollectionComponent
         queueMicrotask(() => {
           this.step.set(1);
           this.clearChips();
-          this.resetPagination();
+          this.pagination.reset();
           this.startObserver();
-          this.loadMore();
+          this.pagination.loadMore();
           this.cdr.markForCheck();
         });
       } else if (this.method() === 'chembl') {
@@ -757,7 +734,7 @@ export class AddMoleculesToCollectionComponent
             this.toast.trigger('Si è verificato un errore. Se si ripete, contatta il supporto', 'error', 3000);
           })
       });
-      this.loadMore();
+      this.pagination.loadMore();
     });
   }
 
@@ -772,14 +749,31 @@ export class AddMoleculesToCollectionComponent
     this.observer?.disconnect();
     this.colSub?.unsubscribe();
     this.metCtrlSub?.unsubscribe();
+    this.chemblSearch.destroy();
+    this.selection.reset();
+  }
+
+  protected override toggleOne(visibleItem: AbstractMultiselectItem<MoleculeCardItemModel>): void {
+    super.toggleOne(visibleItem);
+    this.selection.toggle(visibleItem.item.id, visibleItem.isChecked());
+  }
+
+  protected override onSelectAllChange(checked: boolean): void {
+    if (checked) {
+      this.selection.selectAll();
+    } else {
+      this.selection.clearVisibleSelection();
+    }
+    super.onSelectAllChange(checked);
+  }
+
+  protected override clearSelections(): void {
+    super.clearSelections();
+    this.selection.reset();
   }
 
   protected override fetch$(
-    page?: number,
-    size?: number,
-    q?: string,
-    excludeJoinedToCollection?: boolean,
-    collectionId?: boolean
+
   ): Observable<PageModel<MoleculeCardItemModel>> {
     return this.moleculeCollectionItemService
       .getAllPaginatedItems(this.page, 20, this.searchTerm(), true, this.addContext.collectionId())
@@ -812,17 +806,13 @@ export class AddMoleculesToCollectionComponent
 
       this.step_12_loading.set(true);
 
-      let itemIds: string[] = [];
-      if (this.isSelectedAll()) {
-        itemIds = this.multiselectItems()
-          .filter(w => !w.isChecked())
-          .map(w => w.item.id);
-      } else {
-        itemIds = Array.from(this.selectedIdSet());
-      }
-
-      this.suSub1 = this.moleculeCollectionItemService
-        .addManyMoleculesToCollection(this.addContext.collectionId()!, itemIds, this.isSelectedAll())
+      this.suSub1 = this.submitController
+        .submitExisting(
+          this.moleculeCollectionItemService,
+          this.addContext.collectionId()!,
+          this.selection,
+          this.multiselectItems().map(w => w.item.id)
+        )
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
           next: ok => {
@@ -854,16 +844,18 @@ export class AddMoleculesToCollectionComponent
 
   // ============= ChEMBL search selection
 
-  chemblQuery = signal<string>('');
-  chemblLoading = signal<boolean>(false);
-  chemblResults = signal<MoleculeSearchResult[]>([]);
-  chemblError = signal<unknown | null>(null);
-  chemblEmpty = signal<boolean>(true);
+  chemblQuery = this.chemblSearch.query;
+  chemblLoading = this.chemblSearch.loading;
+  chemblResults = this.chemblSearch.results;
+  chemblError = this.chemblSearch.error;
+  chemblEmpty = this.chemblSearch.empty;
 
-  selectedMolecules: ChipItem[] = [];
+  get selectedMolecules(): ChipItem[] {
+    return this.selection.chips();
+  }
 
   get selectedIds(): string[] {
-    return this.selectedMolecules.map(c => c.id);
+    return this.selection.selectedChemblIds;
   }
 
   // TODO: Medium priority - Safari/iOS quirks can break keyboard overlay layout and suppress realtime search.
@@ -873,82 +865,44 @@ export class AddMoleculesToCollectionComponent
   }
 
   addChip(chip: ChipItem) {
-    if (!chip?.id) return;
-    if (this.selectedMolecules.some(c => c.id === chip.id)) return;
-    this.selectedMolecules = [...this.selectedMolecules, chip];
+    this.selection.addChip(chip);
   }
 
   onChemblQuery(raw: string) {
-    this.chemblQuery.set(raw ?? '');
-    const trimmed = this.chemblQuery().trim();
-    if (trimmed.length < 2) {
-      this.chemblResults.set([]);
-      this.chemblEmpty.set(true);
-      this.chemblError.set(null);
-      return;
-    }
-    this.chemblEmpty.set(false);
-    this.chemblError.set(null);
-    this.chemblLoading.set(true);
-
-    const collectionId = this.addContext.collectionId();
-    const obs = collectionId
-      ? this.moleculeCollectionItemService.searchChemblMolecules_excludeAlreadyAdded(trimmed, collectionId, 100)
-      : this.moleculeSearchService.searchMolecule(trimmed, 100);
-
-    obs.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (res: MoleculeSearchResult[]) => {
-        this.chemblResults.set(res ?? []);
-        this.chemblLoading.set(false);
-      },
-      error: (err: unknown) => {
-        this.chemblError.set(err);
-        this.chemblResults.set([]);
-        this.chemblLoading.set(false);
-      }
-    });
+    this.chemblSearch.setQuery(raw);
   }
 
   removeChip(id: string) {
-    this.selectedMolecules = this.selectedMolecules.filter(c => c.id !== id);
+    this.selection.removeChip(id);
   }
 
   clearChips() {
-    this.selectedMolecules = [];
+    this.selection.clearChips();
   }
 
   onEmpty(): void {
-    this.chemblEmpty.set(true);
-    this.chemblQuery.set('');
-    this.chemblResults.set([]);
+    this.chemblSearch.clear();
   }
 
   handleResults(results: MoleculeSearchResult[] | PageModel<MoleculeCardItemModel>): void {
-    this.chemblEmpty.set(false);
-    this.chemblError.set(null);
     if (Array.isArray(results)) {
-      this.chemblResults.set(results);
+      this.chemblSearch.setResults(results);
       return;
     }
-    this.chemblResults.set([]);
+    this.chemblSearch.setResults([]);
   }
 
   handleError(err: unknown): void {
-    this.chemblEmpty.set(false);
-    this.chemblError.set(err);
-    this.chemblResults.set([]);
+    this.chemblSearch.setError(err);
   }
 
   private doSubmitChembl(): void {
-    const dtos: AddManyChEMBLItemDTO[] = this.selectedMolecules.map(chip => {
-      const dto: AddManyChEMBLItemDTO = {
-        chemblMolregno: Number(chip.id),
-        name: chip.name
-      };
-      return dto;
-    });
-    this.suSub2 = this.moleculeCollectionItemService
-      .addManyChEMBLItemsToCollection(this.addContext.collectionId()!, dtos)
+    this.suSub2 = this.submitController
+      .submitChembl(
+        this.moleculeCollectionItemService,
+        this.addContext.collectionId()!,
+        this.selection
+      )
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: ok => {
@@ -984,5 +938,3 @@ export class AddMoleculesToCollectionComponent
     }
   }
 }
-
-

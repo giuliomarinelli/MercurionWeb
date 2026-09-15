@@ -39,6 +39,18 @@ describe('ToastService', () => {
     expect(service.messages().map(({ message }) => message)).toEqual(['second', 'first']);
   });
 
+  it('supports each finite toast variant without changing the caller API', () => {
+    service.trigger('error message', 'error', 0);
+    service.trigger('warning message', 'warn', 0);
+    service.trigger('success message', 'success', 0);
+
+    expect(service.messages().map(({ variant }) => variant)).toEqual([
+      'success',
+      'warn',
+      'error',
+    ]);
+  });
+
   it('auto-dismisses a toast after its requested duration', () => {
     const id = service.trigger('hello', 'error', 1000);
 
@@ -74,5 +86,15 @@ describe('ToastService', () => {
     jasmine.clock().tick(5000);
 
     expect(service.messages()).toHaveSize(1);
+  });
+
+  it('close() dismisses every toast and cancels every timer', () => {
+    service.trigger('first', 'error', 1000);
+    service.trigger('second', 'warn', 2000);
+
+    service.close();
+    jasmine.clock().tick(5000);
+
+    expect(service.messages()).toEqual([]);
   });
 });

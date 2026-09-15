@@ -1,6 +1,10 @@
-import { computed, Injectable, signal } from '@angular/core'
+import { computed, inject, Injectable, signal } from '@angular/core'
+import { AuthSessionPersistenceService } from './auth-session-persistence.service'
+import { AuthErrorService } from './auth-error.service'
+import { BrowserStorageRegistry, storageDescriptor } from './browser-storage-registry'
 import {
   INITIAL_SESSION_PROTOCOL,
+  LOCAL_DUMMY_AUTH,
   SessionConnectionState,
   SessionInvalidationCause,
   SessionTransition,
@@ -26,29 +30,74 @@ export type AuthState =
 
 export type AuthStateSnapshot = AuthState
 
+export interface ClientSessionIdentity {
+  readonly userId: string
+  readonly sessionId: string
+}
+
+export interface AuthenticatedClientSession extends ClientSessionIdentity {
+  readonly initials: string
+  readonly scopes: readonly string[]
+  readonly accessToken: string
+  readonly wsAccessToken: string
+  readonly wsTokenIssuedAt: number
+}
+
 export interface AuthCompletion {
   initials: string
-  accessToken?: string | null
-  wsAccessToken?: string | null
-  scopes?: string[]
+  accessToken: string
+  wsAccessToken: string
 }
 
 @Injectable({ providedIn: 'root' })
 export class AuthStateStore {
+  private readonly storageRegistry = inject(BrowserStorageRegistry)
+  private readonly persistence = inject(AuthSessionPersistenceService)
+  private readonly authErrors = inject(AuthErrorService)
   private readonly stateSignal = signal<AuthState>({ kind: 'bootstrap' })
   private readonly protocolSignal = signal<SessionProtocolSnapshot>(INITIAL_SESSION_PROTOCOL)
+  private readonly expiryTick = signal(0)
+  private expiryTimer?: ReturnType<typeof setTimeout>
 
   readonly state = this.stateSignal.asReadonly()
   /** Canonical validity/connection state shared with Nest. */
   readonly sessionProtocol = this.protocolSignal.asReadonly()
   readonly kind = computed(() => this.state().kind)
-  readonly isAuthenticated = computed(() => this.state().kind === 'authenticated')
+  /**
+   * The only semantic authentication predicate exposed to Angular consumers.
+   * Persistence markers are restore hints; only an authenticated state backed
+   * by the canonical session protocol can satisfy this selector.
+   */
+  readonly authenticated = computed(() => {
+    this.expiryTick()
+    const state = this.state()
+    return state.kind === 'authenticated' &&
+      this.sessionProtocol().state === 'authenticated' &&
+      !this.isExpired(state.accessToken)
+  })
+  /** Compatibility name for code that has not yet migrated to `authenticated`. */
+  readonly isAuthenticated = this.authenticated
   readonly isAnonymous = computed(() => this.state().kind === 'anonymous')
   readonly isAuthenticating = computed(() => this.state().kind === 'authenticating')
   readonly isPreAuth = computed(() => this.state().kind === 'pre-auth')
   readonly initials = computed(() => {
     const state = this.state()
     return state.kind === 'authenticated' ? state.initials : ''
+  })
+  /** The complete, internally consistent credential set, or no session. */
+  readonly clientSession = computed<AuthenticatedClientSession | null>(() => {
+    const state = this.state()
+    if (state.kind !== 'authenticated') return null
+    const identity = this.identityFromTokenPair(state.accessToken, state.wsAccessToken)
+    if (!identity) return null
+    return {
+      ...identity,
+      initials: state.initials,
+      scopes: state.scopes,
+      accessToken: state.accessToken!,
+      wsAccessToken: state.wsAccessToken!,
+      wsTokenIssuedAt: this.persistence.getWsAccessTokenTimestamp()
+    }
   })
 
   bootstrap(): AuthStateSnapshot {
@@ -68,7 +117,11 @@ export class AuthStateStore {
 
   beginAuthentication(flow: 'password' | 'sso' | 'restore' = 'password'): void {
     this.assertAllowed(this.state().kind, 'authenticating')
-    if (flow !== 'restore') this.clearPersistence()
+    if (flow !== 'restore') {
+      this.authErrors.beginAttempt()
+      this.clearLocalDummyMarker()
+      this.clearPersistence()
+    }
     this.stateSignal.set({ kind: 'authenticating', flow })
     this.applyProtocol(SessionTransition.BeginAuthentication)
   }
@@ -83,9 +136,29 @@ export class AuthStateStore {
   }
 
   completeAuthentication(completion: AuthCompletion): void {
-    const accessToken = completion.accessToken ?? null
-    const wsAccessToken = completion.wsAccessToken ?? null
-    const scopes = completion.scopes ?? this.getCachedScopes() ?? []
+    this.activateAuthenticatedSession(completion)
+  }
+
+  /**
+   * Install the final server-accepted session.  This is the only normal
+   * authentication completion boundary: scopes are always replaced from the
+   * accepted access token, including when the token has no scp claim.
+   */
+  activateAuthenticatedSession(completion: AuthCompletion): void {
+    this.authErrors.clear()
+    const accessToken = completion.accessToken
+    const wsAccessToken = completion.wsAccessToken
+    const scopes = this.scopesFromAccessToken(accessToken)
+    const currentKind = this.state().kind
+    const identity = this.identityFromTokenPair(accessToken, wsAccessToken)
+    const hasServerAcceptedSession = Boolean(identity && this.hasClientLoginCookie())
+    if (!identity) {
+      this.clearPersistence()
+      throw new Error('Cannot install an authenticated session without matching user/session claims')
+    }
+    const canRecoverLoginRace =
+      (currentKind === 'anonymous' || currentKind === 'session-expired') &&
+      hasServerAcceptedSession
 
     const next: AuthState = {
       kind: 'authenticated',
@@ -94,29 +167,45 @@ export class AuthStateStore {
       wsAccessToken,
       scopes
     }
-    this.assertAllowed(this.state().kind, next.kind)
-    this.setAccessToken(accessToken)
-    this.setWsAccessToken(wsAccessToken)
+    if (!canRecoverLoginRace) this.assertAllowed(currentKind, next.kind)
+    if (canRecoverLoginRace && this.sessionProtocol().state !== 'authenticating') {
+      this.applyProtocol(SessionTransition.BeginAuthentication)
+    }
+    this.persistence.commitAuthenticatedSession({
+      accessToken,
+      wsAccessToken,
+      initials: completion.initials,
+      scopes
+    })
     this.setPersistedInitials(completion.initials)
     this.setCachedScopes(scopes)
     this.stateSignal.set(next)
     this.applyProtocol(SessionTransition.AuthenticationSucceeded)
+    this.scheduleExpiry(accessToken)
   }
 
-  updateAccessToken(token: string | null): void {
+  rotateAccessToken(token: string, expectedSessionId?: string): boolean {
     const state = this.state()
-    if (state.kind !== 'authenticated') return
-    this.setAccessToken(token)
-    this.transition({ ...state, accessToken: token })
+    if (state.kind !== 'authenticated' || !state.accessToken || !state.wsAccessToken) return false
+    const identity = this.identityFromTokenPair(token, state.wsAccessToken)
+    if (!identity || (expectedSessionId && identity.sessionId !== expectedSessionId)) return false
+    const scopes = this.scopesFromAccessToken(token)
+    this.persistence.commitRotatedAccessToken(token, scopes)
+    this.transition({ ...state, accessToken: token, scopes })
     this.applyProtocol(SessionTransition.CredentialsRefreshed)
+    this.scheduleExpiry(token)
+    return true
   }
 
-  updateWsAccessToken(token: string | null): void {
+  rotateWsAccessToken(token: string, expectedSessionId?: string): boolean {
     const state = this.state()
-    if (state.kind !== 'authenticated') return
-    this.setWsAccessToken(token)
+    if (state.kind !== 'authenticated' || !state.accessToken || !state.wsAccessToken) return false
+    const identity = this.identityFromTokenPair(state.accessToken, token)
+    if (!identity || (expectedSessionId && identity.sessionId !== expectedSessionId)) return false
+    this.persistence.setWsAccessToken(token)
     this.transition({ ...state, wsAccessToken: token })
     this.applyProtocol(SessionTransition.CredentialsRefreshed)
+    return true
   }
 
   resumeFromServer(initials: string): void {
@@ -125,6 +214,12 @@ export class AuthStateStore {
     }
     const accessToken = this.getAccessToken()
     const wsAccessToken = this.getWsAccessToken()
+    if (!accessToken || !wsAccessToken ||
+      !this.identityFromTokenPair(accessToken, wsAccessToken) ||
+      !this.hasClientLoginCookie()) {
+      this.invalidate(SessionInvalidationCause.InvalidSession)
+      return
+    }
     const next: AuthState = {
       kind: 'authenticated',
       initials,
@@ -139,12 +234,15 @@ export class AuthStateStore {
     this.setPersistedInitials(initials)
     this.stateSignal.set(next)
     this.applyProtocol(SessionTransition.AuthenticationSucceeded)
+    this.scheduleExpiry(accessToken)
   }
 
   syncExternalState(): void {
     if (this.getPersistedInitials() || this.getWsAccessToken() || this.hasClientLoginCookie()) {
       this.transition({ kind: 'authenticating', flow: 'restore' })
-      this.applyProtocol(SessionTransition.BeginAuthentication)
+      if (this.sessionProtocol().state !== 'authenticating') {
+        this.applyProtocol(SessionTransition.BeginAuthentication)
+      }
       return
     }
     this.clearPersistence()
@@ -153,15 +251,35 @@ export class AuthStateStore {
   }
 
   invalidate(reason: SessionInvalidationCauseType = SessionInvalidationCause.InvalidSession): void {
+    this.clearExpiryTimer()
+    this.clearLocalDummyMarker()
     this.clearPersistence()
     this.transition({ kind: 'session-expired', reason })
     this.applyProtocol(this.transitionForInvalidationCause(reason))
   }
 
   logout(): void {
+    this.authErrors.clear()
+    this.clearExpiryTimer()
     this.transition({ kind: 'logging-out' })
+    this.clearLocalDummyMarker()
     this.clearPersistence()
     this.transition({ kind: 'anonymous' })
+    this.applyProtocol(SessionTransition.Logout)
+  }
+
+  /**
+   * Enter the recovery flow from a safe anonymous state.  The state transition
+   * happens before persistence cleanup so guards and consumers cannot keep
+   * observing an authenticated session while recovery invalidates credentials.
+   */
+  beginRecovery(): void {
+    this.clearExpiryTimer()
+    this.transition({ kind: 'anonymous' })
+    this.clearLocalDummyMarker()
+    this.persistence.clearAuthenticatedSession()
+    this.persistence.clearPreAuthData()
+    this.persistence.clearEphemeralAuthData()
     this.applyProtocol(SessionTransition.Logout)
   }
 
@@ -181,75 +299,69 @@ export class AuthStateStore {
   }
 
   getAccessToken(): string | null {
-    return localStorage.getItem('accessToken')
+    return this.persistence.getAccessToken()
   }
 
   setAccessToken(token: string | null): void {
-    if (token) localStorage.setItem('accessToken', token)
-    else localStorage.removeItem('accessToken')
+    this.persistence.setAccessToken(token)
   }
 
   getWsAccessToken(): string | null {
-    return localStorage.getItem('ws_accessToken')
+    return this.persistence.getWsAccessToken()
   }
 
   setWsAccessToken(token: string | null): void {
-    if (token) {
-      localStorage.setItem('ws_accessToken', token)
-      localStorage.setItem('ws_accessToken_ts', String(Date.now()))
-    } else {
-      localStorage.removeItem('ws_accessToken')
-      localStorage.removeItem('ws_accessToken_ts')
-    }
+    this.persistence.setWsAccessToken(token)
   }
 
   getPersistedInitials(): string | null {
-    return localStorage.getItem('login')
+    return this.persistence.getInitials()
   }
 
   setPersistedInitials(initials: string): void {
-    localStorage.setItem('login', initials)
+    this.persistence.setInitials(initials)
   }
 
   getCachedScopes(): string[] | null {
-    const raw = localStorage.getItem('scp')
-    if (!raw) return null
+    return this.persistence.getScopes()
+  }
+
+  private identityFromTokenPair(accessToken: string | null, wsAccessToken: string | null): ClientSessionIdentity | null {
+    const access = this.readIdentity(accessToken)
+    const ws = this.readIdentity(wsAccessToken)
+    return access && ws && access.userId === ws.userId && access.sessionId === ws.sessionId
+      ? access
+      : null
+  }
+
+  private readIdentity(token: string | null): ClientSessionIdentity | null {
+    if (!token) return null
     try {
-      return JSON.parse(atob(raw)) as string[]
+      const encoded = token.split('.')[1]
+      if (!encoded) return null
+      const payload = JSON.parse(atob(encoded.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(encoded.length / 4) * 4, '=')))
+      return typeof payload.sub === 'string' && typeof payload.sid === 'string'
+        ? { userId: payload.sub, sessionId: payload.sid }
+        : null
     } catch {
       return null
     }
   }
 
   setCachedScopes(scopes: string[] | null): void {
-    if (scopes === null) {
-      localStorage.removeItem('scp')
-      return
-    }
-    localStorage.setItem('scp', btoa(JSON.stringify(scopes)))
+    this.persistence.setScopes(scopes)
   }
 
   clearPersistence(): void {
-    this.setAccessToken(null)
-    this.setWsAccessToken(null)
-    localStorage.removeItem('login')
-    this.setCachedScopes(null)
-    for (const name of ['__logged_in', '__logged_in_']) {
-      document.cookie = `${name}=; Max-Age=0; path=/`
-    }
+    this.persistence.clearAuthenticatedSession()
   }
 
   private clearClientCredentialsForPreAuth(): void {
-    this.setAccessToken(null)
-    this.setWsAccessToken(null)
-    localStorage.removeItem('login')
-    this.setCachedScopes(null)
+    this.persistence.clearClientCredentialsForPreAuth()
   }
 
   private hasClientLoginCookie(): boolean {
-    return document.cookie.split('; ').some(cookie =>
-      ['__logged_in=true', '__logged_in_=true'].includes(cookie)
-    )
+    return this.persistence.hasLoginMarker()
   }
 
   private transition(next: AuthState): void {
@@ -260,6 +372,68 @@ export class AuthStateStore {
 
   private applyProtocol(transition: SessionTransition): void {
     this.protocolSignal.update(snapshot => transitionSessionProtocol(snapshot, transition))
+  }
+
+  private scheduleExpiry(token: string | null): void {
+    this.clearExpiryTimer()
+    const expiresAt = this.tokenExpiry(token)
+    if (expiresAt === null) return
+    const delay = Math.max(0, expiresAt - Date.now())
+    this.expiryTimer = setTimeout(() => {
+      this.expiryTick.update(value => value + 1)
+      const state = this.state()
+      if (state.kind === 'authenticated' && this.isExpired(state.accessToken)) {
+        this.invalidate(SessionInvalidationCause.SessionExpired)
+      }
+    }, delay)
+  }
+
+  private clearExpiryTimer(): void {
+    if (this.expiryTimer !== undefined) {
+      clearTimeout(this.expiryTimer)
+      this.expiryTimer = undefined
+    }
+  }
+
+  private clearLocalDummyMarker(): void {
+    this.storageRegistry.remove(storageDescriptor('localDummyAuth'))
+    if (typeof document !== 'undefined') {
+      document.cookie = '__logged_in=; Max-Age=0; path=/'
+      document.cookie = '__logged_in_=; Max-Age=0; path=/'
+    }
+  }
+
+  private isExpired(token: string | null): boolean {
+    const expiresAt = this.tokenExpiry(token)
+    return expiresAt !== null && expiresAt <= Date.now()
+  }
+
+  private tokenExpiry(token: string | null): number | null {
+    if (!token) return null
+    const parts = token.split('.')
+    if (parts.length !== 3) return null
+    try {
+      const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')))
+      return typeof payload.exp === 'number' ? payload.exp * 1000 : null
+    } catch {
+      return null
+    }
+  }
+
+  private scopesFromAccessToken(token: string | null): string[] {
+    if (!token) return []
+    const parts = token.split('.')
+    if (parts.length !== 3) return []
+    try {
+      const encoded = parts[1].replace(/-/g, '+').replace(/_/g, '/')
+      const payload = JSON.parse(atob(encoded.padEnd(Math.ceil(encoded.length / 4) * 4, '=')))
+      const claim = payload?.scp
+      return typeof claim === 'string'
+        ? claim.split(/\s+/).filter((scope: string) => scope.length > 0)
+        : []
+    } catch {
+      return []
+    }
   }
 
   private transitionForInvalidationCause(cause: SessionInvalidationCauseType): SessionTransition {

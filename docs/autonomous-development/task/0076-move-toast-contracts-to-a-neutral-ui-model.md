@@ -1,7 +1,7 @@
 # 0076 - Move toast contracts to a neutral UI model
 
-- [ ] DONE
-- [x] BLOCKED
+- [x] DONE
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -90,9 +90,15 @@ A path such as `src/app/ui/toast/toast.model.ts` or the repository's canonical n
 
 ## Execution notes
 
+> Current status (2026-09-11): PENDING by direct owner instruction because this
+> activity was not completed. Historical attempt/skip evidence remains below
+> for traceability and is not a terminal outcome. The prior partial work is
+> preserved on `archive/UI-018-attempt-2026-09-11`.
+
 ### Feature branch
-`feature/UI-018`, based on `353ec33621b22763546633fa822cb9a858b9d305`,
-is preserved and frozen at `36ccc5d09cb2258b151c6cd6fee82807417f6155`.
+Historical attempt `archive/UI-018-attempt-2026-09-11`, based on
+`353ec33621b22763546633fa822cb9a858b9d305`, is preserved at
+`36ccc5d09cb2258b151c6cd6fee82807417f6155`.
 
 ### Preflight
 Passed unchanged: root `npm ci` followed by `npm run ci:check`.
@@ -101,19 +107,19 @@ Passed unchanged: root `npm ci` followed by `npm run ci:check`.
 _None._
 
 ### Summary
-The preserved feature branch moves toast contracts to a neutral typed model,
+The preserved historical attempt moves toast contracts to a neutral typed model,
 removes the service-to-renderer dependency, consolidates mutable toast signals
 into immutable discriminated state, adds deterministic timer cleanup, and adds
 focused lifecycle/import-boundary coverage. It cannot be integrated because
 the mandatory browser validation prerequisite could not be made ready.
 
 ### Task-specific validation performed
-On the preserved feature branch: focused service/component Karma tests (13
+On the preserved historical attempt: focused service/component Karma tests (13
 passing), `npm run ci:angular:toast-imports`, Angular typecheck, and focused
 ESLint completed successfully.
 
 ### Full pre-merge CI-parity validation
-On the preserved feature branch after its task-owned runtimes stopped: root
+On the preserved historical attempt after its task-owned runtimes stopped: root
 `npm ci` followed by `npm run ci:check` passed.
 
 ### Browser validation performed
@@ -130,7 +136,7 @@ Preserved feature commits: `34a10cc87eb5fc7e96b162663765ee48dfc63d0b`
 (`docs(UI-018): record blocked task evidence`).
 
 ### Merge / CI
-No merge attempted. The feature branch is frozen at its final pushed SHA.
+No merge attempted. The historical attempt is archived at its final pushed SHA.
 
 ### Rollback
 _Not applicable._
@@ -141,3 +147,41 @@ dependencies so `/health` is ready through `http://localhost:8888`, then
 authorize a new session to perform the required success/warning/error,
 replacement/dismiss/timeout, keyboard/accessibility, and light/dark browser
 checks. Production credentials are neither required nor permitted.
+
+### Fresh authorized attempt (2026-09-11, feature/UI-018)
+
+- Confirmed the clean feature branch started at base
+  `a39facd3de1e10b81ed7a3ab9e3e9b757f7bfdf5`, with exact-SHA Actions run
+  `34589848773` green: Ubuntu and Windows quality jobs plus `Required gate`.
+- Runtime capability preflight completed with the canonical Tox21, Nest and
+  Angular commands in order. After readiness, the persistent Chrome profile
+  performed a fresh ordinary login through `/login` using the ignored local
+  test account, and the protected dashboard (`Benvenuto Test.`) was observed.
+  All worker-started runtime processes were stopped before implementation.
+- The existing neutral `Models/toast.models.ts` contract and service-owned
+  immutable message signal were retained. This attempt closes the complete
+  current toast state when `close()` is called, adds explicit warning
+  presentation, and extends lifecycle/variant coverage without changing the
+  public trigger/close API.
+- Focused validation passed: Angular toast service/component tests (`11
+  SUCCESS`), Angular typecheck, and changed-file ESLint. The import-boundary
+  grep confirmed no service-to-component import and `ToastContext` is absent
+  from application sources; the renderer imports only the neutral model
+  transitively through the service.
+- Post-change browser validation used the canonical edge after two complete
+  readiness rounds. The protected dashboard rendered after fresh ordinary
+  login, including `Benvenuto Test.` and workspace data. The safe
+  `Importa da ChEMBL` flow opened and closed its accessible dialog without
+  modifying data; direct success/warn/error lifecycle and replacement,
+  dismiss, and timeout evidence is covered by the focused Angular tests.
+  Light-mode rendering was observed; no visual redesign was introduced.
+- A failed initial focused test assertion (newest-first ordering) was
+  corrected, then the complete focused suite passed. The initial
+  `npm run ci:angular:toast-imports` lookup was unavailable because that
+  historical script is not present in the current base; the direct
+  no-import boundary check was used instead. No full CI command was run
+  locally.
+- Commit `d4e077362c7a50d700b25cd7e0acc0bb4aebe6db`
+  (`fix(UI-018): complete neutral toast lifecycle`) was pushed to
+  `feature/UI-018`. Exact feature-SHA Actions run `34591790038` completed
+  successfully, including both platform quality jobs and `Required gate`.

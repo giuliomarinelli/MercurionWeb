@@ -1,6 +1,6 @@
 # 0043 - Reduce AppComponent to a thin application shell
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -96,39 +96,69 @@ A dedicated `AppShellFacade` and/or navigation coordinator is acceptable, but do
 ## Execution notes
 
 ### Feature branch
-No task branch or worker was created because hard prerequisites `0041` (`FE-019`),
-`0042` (`FE-020`), `0033` (`FE-011`), and `0038` (`FE-016`) are all terminal
-`SKIPPED_DEPENDENCY`.
+`feature/FE-021`, based on `8434d0e34c0bdd967e94e14d88523dc0b95c2a05`.
 
 ### Preflight
-Not applicable; the task was skipped before implementation.
+Verified a clean feature branch at the supplied base SHA and confirmed no
+task-owned Angular, Nest, Tox21, or watcher process was active. The canonical
+runtime capability preflight started Tox21 from `../MercurionTox21` with
+`.venv\Scripts\python.exe -m main`, Nest with
+`npm run start:dev --workspace mercurion_web_node`, and Angular with
+`npm run start:dev`, in that order and in separate attached sessions. After
+all three handles were live, nginx readiness was checked only through
+`http://localhost:8888`; two consecutive complete `/health` and `/` rounds
+returned 200. A fresh ordinary login through `/login` with the configured local
+test account reached the protected dashboard. All three processes were stopped
+before implementation.
 
 ### Preflight remediation
 _None._
 
 ### Summary
-Skipped at the normal filename-order selection point. The direct dependency
-chain terminates in blocked `FE-004` and `SYS-010` through the skipped route,
-redirect, session, and cache tasks.
+Introduced `AppShellFacade` as the root session/navigation boundary. It owns
+session bootstrap and synchronization, route-metadata policy state, safe
+programmatic redirects, normalized path updates, and route-change scrolling.
+`AppComponent` now composes the shell and keeps only presentation wiring,
+scroll-host handoff, theme/Safari presentation, and header/layout references.
+Direct auth persistence reconstruction, redirect policy, route access
+classification, and provided-email cache warming were removed from the root.
 
 ### Task-specific validation performed
-No implementation or validation was performed.
+* `npm run typecheck --workspace mercurion_web_ng` — passed.
+* `npm run lint --workspace mercurion_web_ng` — passed with pre-existing
+  repository warnings and no errors.
+* `npx ng test --watch=false --browsers=ChromeHeadless
+  --include=src/app/app.component.spec.ts
+  --include=src/app/services/app-shell.facade.spec.ts` from
+  `MercurionWebNg` — 3 specs passed.
+* Changed-file ESLint — passed with no errors.
+* `git diff --check` — passed.
+* Source review confirmed `app.component.ts` has no direct storage/cookie
+  reconstruction, redirect path lists, or route access policy logic.
 
 ### Full pre-merge CI-parity validation
-Not applicable; no feature branch was created.
+Reserved for GitHub Actions on the pushed exact feature SHA. Forbidden local
+commands `npm ci` and `npm run ci:check` were not run.
 
 ### Browser validation performed
-Not applicable; the task was skipped before implementation.
+After restarting the same canonical three-process runtime and obtaining two
+consecutive complete readiness rounds through `http://localhost:8888`, a fresh
+ordinary login reached `/dashboard` and displayed the protected user shell.
+Logout transitioned to `/welcome`; a second fresh ordinary login restored the
+protected dashboard. `/403-forbidden` and `/404-not-found` rendered their
+dedicated shells, and console error inspection found no errors. Runtime
+processes were stopped afterward and process inventory found no task-owned
+runtime remaining.
 
 ### Commits
-Only this task metadata was updated on `develop`.
+Pending feature commit on `feature/FE-021`.
 
 ### Merge / CI
-No feature merge; skip metadata CI is required before continuing.
+No merge performed by the worker. The feature ref is published only after the
+task commit exists; the coordinator owns exact-SHA feature CI and integration.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-No implementation blocker. Re-enable only after the hard dependency chain is
-deliberately resolved in a new authorized session.
+None.

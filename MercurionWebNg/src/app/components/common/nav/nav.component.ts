@@ -3,11 +3,12 @@ import { DesignService } from '../../../services/design.service';
 import { NgClass } from '@angular/common';
 import { SearchContextService } from '../../../services/context/search-context.service';
 import { SidenavComponent } from '../sidenav/sidenav.component';
+import { ButtonComponent } from '../button/button.component';
 
 @Component({
   selector: 'm-nav',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgClass],
+  imports: [NgClass, ButtonComponent],
   templateUrl: './nav.component.html',
   styleUrl: './nav.component.css'
 })

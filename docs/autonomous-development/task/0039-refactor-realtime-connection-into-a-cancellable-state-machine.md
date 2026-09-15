@@ -1,6 +1,6 @@
 # 0039 - Refactor realtime connection into a cancellable state machine
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -121,26 +121,71 @@ Do not simply wrap the existing flags in a class named state machine. The result
 
 ### Summary
 
-Skipped without implementation because hard prerequisites
-`0010-unify-session-state-protocol.md` (`SYS-010`) is `BLOCKED` and
-`0038-create-one-atomic-client-session-entity.md` (`FE-016`) is
-`SKIPPED_DEPENDENCY`.
+Implemented a single observable realtime lifecycle owner with explicit public,
+private, reconnecting, degraded and stopped states. Socket.IO built-in
+reconnection is disabled; transport retry is bounded to six attempts with
+exponential backoff, capped delay and jitter. Generation invalidation cancels
+late token-refresh/connect work after logout, downgrade or a newer session
+intent. `SessionSyncService` now performs one session-init attempt and consumes
+the realtime owner's bounded transport recovery instead of running its own
+15-attempt polling loop.
 
 ### Validation performed
 
-No task branch or worker was created. Direct prerequisites: `SYS-010` is
-`BLOCKED` and `FE-016` is `SKIPPED_DEPENDENCY`; the latter transitively
-depends on the blocked session protocol and canonical auth/session chain.
+- Unchanged task-start process inventory showed no task-owned Angular, Nest,
+  Tox21 or test watcher. `npm ci`: passed. `npm run ci:check`: passed.
+- `npm run typecheck --workspace mercurion_web_ng`: passed.
+- `npm run test:ci --workspace mercurion_web_ng`: passed.
+- `npm run build --workspace mercurion_web_ng`: passed; the initial bundle
+  warning remains below the task-adjusted 1.01 MB error budget.
+- `git diff --check`: passed.
+- Deterministic state-machine tests cover public connect, public-to-private,
+  bounded exponential retry/exhaustion, retry deadlines, and logout
+  cancellation. No real sleeps are used by those tests.
+- Final `npm ci`: passed. Final `npm run ci:check`: passed with no
+  task-owned runtimes or watchers active.
 
 ### Browser validation performed
 
-Not applicable; the task was skipped before implementation.
+Using the dedicated Chrome DevTools MCP profile and only
+`http://localhost:8888`:
+
+- Canonical nginx edge and `/health` returned 200 after starting the
+  task-scoped Nest, Angular and Tox21 processes.
+- Fresh ordinary login through `/login` with the configured local test account
+  reached the protected Dashboard; protected `/api/account/profile-registry`
+  and `/api/history` requests returned 200. No credentials or tokens were
+  recorded.
+- Nest logs showed authenticated Socket.IO connection in PRIVATE mode,
+  followed by one reconnect after the deliberate backend interruption.
+- During the interruption `/health` returned 502; after backend restart it
+  returned 200 and the client recovered. The bounded retry implementation
+  emitted no infinite Socket.IO reconnection loop.
+- Logout produced the protected logout request, disconnected the private
+  socket, and the server immediately observed a new PUBLIC socket; no private
+  retry continued after logout.
+- Every runtime process started by this task was stopped before the final
+  clean install. The externally managed nginx container was not modified.
 
 ### Changed files
 
-No files changed; only this task metadata was updated.
+- `MercurionWebNg/src/app/services/socket.IO/realtime-connection-state-machine.ts`
+- `MercurionWebNg/src/app/services/socket.IO/realtime-connection-state-machine.spec.ts`
+- `MercurionWebNg/src/app/services/socket.IO/realtime-socket.service.ts`
+- `MercurionWebNg/src/app/services/session-sync.service.ts`
+- `MercurionWebNg/angular.json`
+- This task's execution metadata.
 
-### Blocker / human decision required
+### Decisions
 
-No implementation blocker. The task may be re-enabled only after its hard
-dependency chain is deliberately resolved in a new authorized session.
+The existing protocol documents do not specify a permanent user-facing
+retry-exhaustion action. The implementation therefore treats exhaustion as an
+observable `degraded` terminal state with an explicit future reset/retry
+command, rather than silently stopping or retrying forever. The six-attempt,
+15-second-cap policy is operational backoff, not product semantics.
+
+### Commits
+
+Implementation commit: `d28edc3a` (`refactor realtime connection into
+cancellable state machine`). The metadata update is the final feature commit
+after the clean-install and complete CI-parity run.

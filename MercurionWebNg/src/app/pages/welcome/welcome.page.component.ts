@@ -1,15 +1,22 @@
 import { WelcomeHeroComponent } from './../../components/welcome/welcome-hero/welcome-hero.component'
-import { ChangeDetectionStrategy, Component, ElementRef, inject } from '@angular/core'
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  inject,
+  OnDestroy,
+  OnInit
+} from '@angular/core'
 import { FooterComponent } from '../../components/common/footer/footer.component'
 import { WelcomeCloudLogoComponent } from '../../components/welcome/welcome-cloud-logo/welcome-cloud-logo.component'
 import { WelcomeFeatureGridComponent } from '../../components/welcome/welcome-feature-grid/welcome-feature-grid.component'
 import { WelcomeScreenshotBandComponent } from '../../components/welcome/welcome-screenshot-band/welcome-screenshot-band.component'
 import { WelcomeSecondaryFeaturesComponent } from '../../components/welcome/welcome-secondary-features/welcome-secondary-features.component'
 import { Subscription } from 'rxjs'
-import { AppContextService } from '../../services/context/app-context.service'
+import { ScrollContextService } from '../../services/context/scroll-context.service'
 import { ActivatedRoute } from '@angular/router'
 import { UserContextService } from '../../services/context/user-context.service'
-import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component'
+import { ProgressIndicatorComponent } from '../../components/common/progress-indicator/progress-indicator.component'
 import { DesignService } from '../../services/design.service'
 
 @Component({
@@ -21,7 +28,7 @@ import { DesignService } from '../../services/design.service'
     WelcomeScreenshotBandComponent,
     WelcomeSecondaryFeaturesComponent,
     FooterComponent,
-    ClassicSpinnerComponent
+    ProgressIndicatorComponent
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: [`
@@ -87,9 +94,9 @@ import { DesignService } from '../../services/design.service'
       @if (userContext.isLoggedIn()) {
         <main class="mercurion-page-shell flex justify-center items-center h-full">
           @if (design.maxBk('md')()) {
-            <m-classic-spinner [size]="30" />
+            <m-progress-indicator [size]="30" />
           } @else if (design.minBk('md')()) {
-            <m-classic-spinner [size]="60" />
+            <m-progress-indicator [size]="60" />
           }
         </main>
       } @else {
@@ -113,10 +120,10 @@ import { DesignService } from '../../services/design.service'
   `,
 
 })
-export class WelcomePageComponent {
+export class WelcomePageComponent implements OnInit, OnDestroy {
 
   private readonly route = inject(ActivatedRoute)
-  private readonly appContext = inject(AppContextService)
+  private readonly scrollContext = inject(ScrollContextService)
   protected readonly userContext = inject(UserContextService)
   protected readonly design = inject(DesignService)
 
@@ -136,10 +143,10 @@ export class WelcomePageComponent {
 
       const rootEl = document.documentElement
 
-      const y = this.appContext.getScrollYRelativeToRoot(target, rootEl) - 85
+      const y = this.scrollContext.getScrollYRelativeToRoot(target, rootEl) - 85
       const hostRef = new ElementRef<HTMLElement>(rootEl)
 
-      this.appContext.smoothTo(hostRef, y, 240)
+      this.scrollContext.smoothTo(hostRef, y, 240)
     })
   }
 

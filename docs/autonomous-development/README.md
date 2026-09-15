@@ -64,7 +64,7 @@ node docs/autonomous-development/tools/validate-recipes.mjs
 node docs/autonomous-development/tools/validate-cli-runner.mjs
 ```
 
-The check validates Series ranges/registries, contiguous task identities, Source mappings, state markers, required recipe sections, and exact dependency filenames.
+The check validates Series ranges/registries, reserved active/deferred task identities, Source mappings, state markers, required active-recipe sections, and exact dependency filenames. Numeric gaps are valid and are skipped by the planner; an explicit hard dependency on an absent active recipe is still invalid.
 
 `RECIPE-AUDIT.md` records the reviewed inconsistencies, corrections and the intentional protected-branch lifecycle transition at task `0218`.
 
@@ -88,6 +88,13 @@ The agent profiles do not pin a model or reasoning level. The coordinator and wo
 
 - `Development Session Coordinator` persists across the bounded run, parses the active YAML, owns time/task selection/Git integration/CI/reporting, and never implements two tasks concurrently.
 - `Development Task Worker` (`development-task-worker` programmatically) is one fresh stateless synchronous CLI `task` invocation for one prepared `feature/<Source>` branch. It owns preflight, implementation, local validation, task notes and feature-branch commits only. Its only non-implementation mode is the startup `capability_probe`, which echoes a nonce without tool use or repository access.
+
+Both profiles use repository project skills from `.github/skills/`. The
+coordinator explicitly invokes the CI-lifecycle and outcome-classification
+skills; workers invoke task-execution and outcome-classification, adding the
+runtime and Chrome DevTools skills only for browser-observable work. The skills
+encode repeatable operating procedures while `AGENTS.md`, the protocol, runtime
+policy, session YAML, and active recipe remain authoritative.
 - The coordinator independently verifies each worker result before merging and remains active through exact-SHA CI, cleanup/revert, the deadline and final report.
 
 The coordinator is manually selectable but cannot be inferred automatically. The worker is neither user-invocable nor inferable and is reached only by the coordinator's explicit `task` call.
@@ -114,7 +121,11 @@ The four terminal outcomes are mutually exclusive:
 | `REVERTED` | Locally successful and merged, then rolled back after post-merge CI non-success/unverifiable result; branch is frozen. |
 | `SKIPPED_DEPENDENCY` | Never attempted because a hard dependency is terminal non-`DONE`; no branch exists. |
 
-All unchecked means pending. `CI_PENDING` and `WAITING_DEPENDENCY` exist only as transient coordinator states.
+All unchecked means pending. `CI_PENDING`, `WAITING_DEPENDENCY`, and
+`SESSION_CAPABILITY_PAUSE` exist only as transient coordinator states. A
+capability pause defers only the affected task for the remainder of the active
+session; the coordinator continues with the next independent `READY` task and
+does not propagate dependency skips.
 
 Execution ownership is not a fifth outcome. In a session configuration,
 `workload.tasks: []` selects the complete Series; a non-empty list is an exact
@@ -122,6 +133,12 @@ autonomous allowlist. Recipes omitted from it remain untouched and `PENDING`
 for human-led work or a later session.
 
 Every persistent outcome is terminal for the active session. A later probe or Autopilot continuation cannot reopen or resume it. Only a new direct human instruction in a new or restarted session can authorize re-enablement.
+
+That authorization is materialized before restart in the session YAML as an
+exact `authorized_recovery` allowlist. The named recipe returns to pending, its
+preserved branch is reconciled with current green `develop` by a fresh worker,
+and only planner-confirmed stale dependency skips return to pending. Existing
+branches outside the allowlist remain collision pauses or frozen outcomes.
 
 A session-fatal blocker completes the coordinator objective even if pending workload remains: the coordinator finalizes the report, emits the concise final summary and report path, calls `task_complete` as the final Autopilot action, and stops.
 

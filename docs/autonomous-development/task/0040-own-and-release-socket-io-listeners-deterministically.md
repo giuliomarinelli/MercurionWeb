@@ -1,6 +1,6 @@
 # 0040 - Own and release Socket.IO listeners deterministically
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -66,13 +66,13 @@ After `0039`, realtime connection lifecycle has one state-machine owner. This ta
 
 ## Acceptance criteria
 
-- [ ] Every Socket.IO listener/subscription has an explicit lifecycle owner.
-- [ ] Reconnect and public/private transitions do not duplicate handlers.
-- [ ] Logout/session replacement cannot leave private-session handlers attached to stale state.
-- [ ] Unsubscribing one owner removes only that owner's listener.
-- [ ] `SessionSyncService` has deterministic subscription teardown/ownership.
-- [ ] Repeated login→logout→login cycles deliver each realtime event once.
-- [ ] Listener lifecycle tests and Angular build pass.
+- [x] Every Socket.IO listener/subscription has an explicit lifecycle owner.
+- [x] Reconnect and public/private transitions do not duplicate handlers.
+- [x] Logout/session replacement cannot leave private-session handlers attached to stale state.
+- [x] Unsubscribing one owner removes only that owner's listener.
+- [x] `SessionSyncService` has deterministic subscription teardown/ownership.
+- [x] Repeated login→logout→login cycles deliver each realtime event once.
+- [x] Listener lifecycle tests and Angular build pass.
 
 ## Validation
 
@@ -114,26 +114,55 @@ Prefer APIs that naturally bind lifetime, e.g. typed observable event streams pl
 
 ### Summary
 
-Skipped without implementation because hard prerequisite
-`0039-refactor-realtime-connection-into-a-cancellable-state-machine.md`
-(`FE-017`) is `SKIPPED_DEPENDENCY`; its prerequisite `SYS-010` is
-`BLOCKED`.
+Implemented deterministic listener ownership on `feature/FE-018` from base
+`381f93dafc116b488c1db1b251d6133a0fb5cdc7`. Core Socket.IO handlers and the
+cross-tab storage handler now have stable identities and are removed by exact
+handler on service destruction. `disconnect()` no longer uses broad
+`socket.off()`, preserving observers owned by features and sessions.
+`SessionSyncService` now owns its realtime subscriptions through an explicit
+`Subscription`, Angular `takeUntilDestroyed`, and `ngOnDestroy` cleanup.
 
 ### Validation performed
 
-No task branch or worker was created. Direct prerequisite `FE-017` is
-`SKIPPED_DEPENDENCY`, with a transitive dependency on blocked
-`0010-unify-session-state-protocol.md` (`SYS-010`).
+- Initial process proof: no Angular/Nest/Tox21/runtime/test watcher was active
+  (only the coordinator, editor, and MCP infrastructure were present).
+- Unchanged task-start preflight: `npm ci` passed (Node 22.16.0/npm 10.9.2;
+  existing engine/deprecation/audit warnings only), then `npm run ci:check`
+  passed.
+- Focused listener lifecycle specs:
+  `npx ng test --watch=false --include
+  src/app/services/socket.IO/realtime-socket.service.spec.ts --include
+  src/app/services/session-sync.service.spec.ts` — 8 tests passed.
+- Angular typecheck: `npm run typecheck --workspace mercurion_web_ng` passed.
+- Angular lint: `npm run lint --workspace mercurion_web_ng -- --no-warn-ignored`
+  passed with pre-existing warnings only.
+- Complete Angular tests: `npm run test:ci --workspace mercurion_web_ng` —
+  348 tests passed.
+- Angular build: `npm run build --workspace mercurion_web_ng` passed with
+  pre-existing bundle/CommonJS budget warnings.
+- Test/esbuild processes were stopped and verified absent before final install.
+- Final pre-merge `npm ci` and `npm run ci:check` passed after all changes.
 
 ### Browser validation performed
 
-Not applicable; the task was skipped before implementation.
+The browser-specific server-event workflow was not used because representative
+public/private server events and safe reconnect/logout event triggering are not
+deterministic in this local environment. The task explicitly permits the
+deterministic substitute: Socket.IO listener-count tests proved two independent
+subscriptions reduce from 2→1→0, service destruction removes only core
+handlers, `SessionSyncService` destruction removes its four owned observers,
+and no broad `socket.off()` call is made. No application runtime was started,
+so no runtime processes required cleanup.
 
 ### Changed files
 
-No files changed; only this task metadata was updated.
+- `MercurionWebNg/src/app/services/socket.IO/realtime-socket.service.ts`
+- `MercurionWebNg/src/app/services/socket.IO/realtime-socket.service.spec.ts`
+- `MercurionWebNg/src/app/services/session-sync.service.ts`
+- `MercurionWebNg/src/app/services/session-sync.service.spec.ts`
+- This task execution metadata.
 
 ### Blocker / human decision required
 
-No implementation blocker. The task may be re-enabled only after its hard
-dependency chain is deliberately resolved in a new authorized session.
+None. Listener ownership was determinable from the service boundaries and
+verified with listener-count/lifecycle tests.

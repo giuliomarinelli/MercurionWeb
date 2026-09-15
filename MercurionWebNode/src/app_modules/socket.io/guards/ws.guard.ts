@@ -1,4 +1,5 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { Socket } from 'socket.io';
 import { TokenType } from 'src/app_modules/auth/Models/enums/token-type.enum';
@@ -31,6 +32,8 @@ import {
   createCorrelationId,
   createSocketApplicationError
 } from 'src/exception-handling/application-error-envelope';
+import { Environment } from 'src/config/config.schema';
+import type { AppConfiguration } from 'src/config/config.types';
 
 type ApplicationSocket = Socket<ClientToServerEvents, ServerToClientEvents>
 
@@ -45,6 +48,7 @@ export class WsGuard implements CanActivate {
     private readonly reflector: Reflector,
     private readonly secureCookieService: SecureCookieService,
     private readonly scopeService: ScopeService,
+    private readonly configService: ConfigService,
     loggerFactory: MeiliLoggerService
   ) {
     this.logger = loggerFactory.forContext(WsGuard.name)
@@ -67,6 +71,7 @@ export class WsGuard implements CanActivate {
   // 🔹 Validazione per EVENTI WebSocket
   private async validateWebSocketEvent(context: ExecutionContext): Promise<boolean> {
     const client: ApplicationSocket = context.switchToWs().getClient()
+
     const token = client.handshake.auth.token as string
     const rawDeviceId: string | undefined = WebSocketUtils.parseCookie(client.handshake.headers.cookie)['__device_id'] || undefined
     let deviceId: string | undefined
@@ -125,7 +130,7 @@ export class WsGuard implements CanActivate {
           message: applicationError.message,
           details: applicationError.details,
           correlationId: createCorrelationId(client.id),
-          isProduction: (process.env.APP_ENV ?? 'development') !== 'development'
+          isProduction: this.isProduction()
         }))
         return false
       }
@@ -154,9 +159,14 @@ export class WsGuard implements CanActivate {
       code: ApplicationErrorCode.AUTHENTICATION_UNAUTHORIZED,
       message: getApplicationErrorDefinition(ApplicationErrorCode.AUTHENTICATION_UNAUTHORIZED).defaultMessage ?? 'Unauthorized',
       correlationId: createCorrelationId(client.id),
-      isProduction: (process.env.APP_ENV ?? 'development') !== 'development'
+      isProduction: this.isProduction()
     }))
     client.disconnect()
+  }
+
+  private isProduction(): boolean {
+    return this.configService.getOrThrow<AppConfiguration>('App').env !==
+      Environment.Development
   }
 
 }

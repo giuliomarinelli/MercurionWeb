@@ -1,6 +1,6 @@
 # 0034 - Type, validate and expire pre-auth MFA state
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -115,30 +115,40 @@ A small codec/result type (`valid | missing | invalid | expired`) is preferable 
 
 ### Summary
 
-Skipped without implementation because hard prerequisites
-`0010-unify-session-state-protocol.md` (`SYS-010`) is `BLOCKED`,
-`0026-create-canonical-angular-auth-state-store.md` (`FE-004`) is `BLOCKED`,
-`0028-encapsulate-auth-session-browser-persistence.md` (`FE-006`) is
-`SKIPPED_DEPENDENCY`, and
-`0033-centralize-safe-post-auth-redirect-state.md` (`FE-011`) is
-`SKIPPED_DEPENDENCY`.
+Implemented a versioned `mfa` pre-auth persistence codec. The codec validates
+the token, enabled strategies and display metadata, derives `expiresAt` from
+the authoritative JWT `exp` claim, and removes legacy/malformed/expired
+storage values. MFA route initialization now consumes only validated state;
+successful and failed terminal transitions consume it atomically. The
+pre-auth state remains separate from the authenticated auth-store state.
 
 ### Validation performed
 
-No task branch or worker was created. Direct prerequisites are `SYS-010`,
-`FE-004`, `FE-006`, and `FE-011`; their terminal states are respectively
-`BLOCKED`, `BLOCKED`, `SKIPPED_DEPENDENCY`, and `SKIPPED_DEPENDENCY`.
-Transitive causes include the blocked `FE-004` auth-store task.
+* Baseline: `npm ci` passed; unchanged `npm run ci:check` passed on
+  `532c328fdb1f0ad717777f0171d2495f619592a1`.
+* Focused persistence/MFA coverage: `npm run test:ci --workspace
+  mercurion_web_ng -- --include=src/app/services/auth-session-persistence.service.spec.ts`
+  passed (the Angular runner executed all 330 specs; all passed), including
+  valid, expired, unsupported-strategy, malformed and replay/consume cases.
+* `npm run typecheck --workspace mercurion_web_ng` passed.
+* `npm run build --workspace mercurion_web_ng` passed.
+* Final gate: stopped task-owned test/runtime processes, then ran final
+  `npm ci` and `npm run ci:check`; both passed.
 
 ### Browser validation performed
 
-Not applicable; the task was skipped before implementation.
+Unavailable: no deterministic MFA credentials/fixture was provided. Browser
+validation was therefore not required; deterministic persistence/MFA tests
+were used instead. No runtime was started.
 
 ### Changed files
 
-No files changed; only this task metadata was updated.
+* `MercurionWebNg/src/app/Models/auth/pre-auth.models.ts`
+* `MercurionWebNg/src/app/services/auth-session-persistence.service.ts`
+* `MercurionWebNg/src/app/services/auth-session-persistence.service.spec.ts`
+* `MercurionWebNg/src/app/pages/login/login.page.component.ts`
+* `MercurionWebNg/src/app/pages/login/mfa/mfa.page.component.ts`
 
 ### Blocker / human decision required
 
-No implementation blocker. The task may be re-enabled only after its hard
-dependency chain is deliberately resolved in a new authorized session.
+None.

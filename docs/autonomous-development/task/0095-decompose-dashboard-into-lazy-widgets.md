@@ -1,6 +1,6 @@
 # 0095 - Decompose dashboard into lazy widget view models
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -55,11 +55,11 @@ Source: `NG-009` in Series `0001`.
 
 ## Acceptance criteria
 
-- [ ] Dashboard shell contains no chart/domain dataset transformation.
-- [ ] Each widget has an independently testable query/view-model boundary.
-- [ ] Widget presentation is lazy where practical.
-- [ ] Widget loading/error/empty/content states are deterministic.
-- [ ] Existing metric values and interactions remain compatible.
+- [x] Dashboard shell contains no chart/domain dataset transformation.
+- [x] Each widget has an independently testable query/view-model boundary.
+- [x] Widget presentation is lazy where practical.
+- [x] Widget loading/error/empty/content states are deterministic.
+- [x] Existing metric values and interactions remain compatible.
 
 ## Validation
 
@@ -80,38 +80,104 @@ Mark `BLOCKED` if a current metric transformation is ambiguous or cannot be pres
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/NG-009`, based on `de82ea0ba1f991d80fcc6e57c86fe249ddb10548`.
 
 ### Preflight
-_Not started._
+Clean branch verified at the supplied base SHA. Exact base GitHub Actions `CI`
+run `34671508893` completed successfully. The focused Angular baseline ran
+`npm run test:ci --workspace mercurion_web_ng` and completed `447/447` tests
+successfully. No task-owned application process was active before the probe.
 
 ### Preflight remediation
-_None._
+The canonical runtime was started in the required order (Tox21, NestJS,
+Angular), with separate live handles. The edge returned retryable `502` while
+the upstreams compiled, then two complete readiness rounds succeeded:
+`/health` and `/dashboard` both returned `200`. The persistent browser profile
+already exposed the protected Dashboard state; the dashboard menu control did
+not become interactable for a fresh logout/login attempt, so validation used
+the existing server-accepted protected session and recorded that limitation.
 
 ### Summary
-Not attempted because the required canonical page-state/design-system and
-account/session facade work is terminally non-`DONE`.
+Implemented the dashboard as a layout-only shell backed by a scoped
+`DashboardFacade`. Added typed metrics, workspace-composition and activity
+view models, pure mappers, independent state ownership, OnPush presentational
+widgets, deterministic loading/error/content state, and a viewport-deferred
+chart widget. Chart lifecycle cleanup is owned by the widget and facade
+subscriptions are cancelled/replaced on refresh.
 
 ### Task-specific validation performed
-Not applicable; no feature branch or implementation worker was created.
+* `npm run typecheck --workspace mercurion_web_ng` passed.
+* `npm run lint --workspace mercurion_web_ng -- --no-warn-ignored` passed with
+  the pre-existing warning set and zero errors.
+* `npm run test:ci --workspace mercurion_web_ng` passed: `450/450`.
+* `npm run build --workspace mercurion_web_ng` passed; the new
+  `dashboard-charts-widget-component` appeared as a lazy chunk.
+* `npm run chemistry:check-lazy --workspace mercurion_web_ng` passed.
+* `git diff --check` passed.
 
 ### Full pre-merge CI-parity validation
-Not applicable; dependency-skip metadata only.
+Not run locally because `npm ci` and `npm run ci:check` are prohibited by the
+autonomous-development policy; exact-SHA aggregate CI remains coordinator-owned.
 
 ### Browser validation performed
-Not applicable; the task was not attempted.
+Through `http://localhost:8888/dashboard` at the representative persistent
+profile viewport, the protected Dashboard rendered the independent metrics,
+workspace composition and recent activity sections with existing values
+`6/0/6/1`. Network inspection showed the expected account/history/profile
+requests without duplicate dashboard data requests, and console inspection
+returned no errors or warnings. The browser session remained authenticated
+from the pre-existing local test account state; a fresh ordinary login could
+not be performed because the account-menu control timed out in Chrome DevTools
+MCP. All Tox21/Nest/Angular processes started by this task were stopped
+afterward; only the externally managed Chrome DevTools MCP processes remained.
 
 ### Commits
-Pending metadata commit on `develop`.
+Pending task commit on `feature/NG-009`.
 
 ### Merge / CI
-No feature branch or merge. Exact-SHA CI is required for the metadata commit.
+Feature SHA and exact-SHA CI are coordinator-owned after this task commit is
+pushed. No `develop` or `master` changes were made.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-Required foundations include FE-004 (BLOCKED because mandatory authenticated
-browser validation was unavailable), FE-030 (BLOCKED because worker
-filesystem-write capability was unavailable), and their terminal dependent
-account/session/page-state/design-system tasks.
+Resolved during authorized recovery. The configured local test identity
+completed a fresh ordinary login and reached a server-accepted protected
+Dashboard state.
+
+### NG-009 execution outcome (2026-09-12)
+
+Implementation was completed on preserved branch `feature/NG-009` at
+`19faee601e733705f54d450d9e129ded6590faa0`. Focused tests, typecheck, lint,
+build, and lazy-chunk checks passed. Mandatory fresh authenticated browser
+acceptance could not be completed: after logout, the configured local test
+identity produced the rendered validation error `L'e-mail inserita non è
+corretta`, so no protected post-login result could be proved. The feature
+branch is preserved and frozen; no feature-SHA CI was started because the
+required browser acceptance remained incomplete.
+
+### Authorized recovery (2026-09-13)
+
+Merged exact green `develop` at
+`1a1a5ee0dabd9ff36bead4aa78a7c9bae4e9fe91` into the preserved branch using
+`--no-ff --no-gpg-sign`. The current sidebar reactivity was retained in the
+layout-only shell. Browser validation exposed and fixed a narrow mobile
+min-content overflow by allowing both widget hosts to shrink.
+
+Focused recovery validation passed: Angular lint, typecheck, all `478/478`
+unit tests, production build, chemistry lazy-boundary check and
+`git diff --check`. The build emitted the existing initial-bundle budget
+warning and produced the independent
+`dashboard-charts-widget-component` lazy chunk.
+
+Fresh ordinary login through `http://localhost:8888/login` succeeded and
+proved the protected Dashboard with identity `Test` and existing metrics
+`6/0/6/1`. At `1280x800` and `390x844`, metrics and both chart sections
+rendered without document overflow; the narrow viewport loaded both deferred
+canvas elements. Browser console inspection after Dashboard load contained no
+errors. Runtime request logs showed the expected profile/history calls; no
+additional dashboard-owned query source was introduced. All task-owned Tox21,
+Nest and Angular processes were stopped after validation.
+
+Exact feature-SHA and post-merge CI remain coordinator-owned.

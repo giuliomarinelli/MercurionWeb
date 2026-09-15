@@ -1,7 +1,8 @@
 import { CustomMoleculeCollectionItemSaveContextService } from './../../../services/context/action-context/custom-molecule-collection-item-save-context.service';
 import { NgClass } from '@angular/common';
-import { Component, ElementRef, HostListener, inject, signal, ChangeDetectionStrategy, OnInit, viewChild } from '@angular/core';
-import { ComboSelectComponent } from '../../common/combo-select/combo-select.component';
+import { Component, ElementRef, HostListener, inject, signal, ChangeDetectionStrategy, OnDestroy, OnInit, viewChild } from '@angular/core';
+import { SelectCoreComponent } from '../../common/select-core/select-core.component';
+import { SelectSelectionChange } from '../../common/select-core/select-core.types';
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
 import { MoleculeCollectionService } from '../../../services/graphql/molecule-collection.service';
 import { MoleculeJoinService } from '../../../services/graphql/molecule-collection-join.service';
@@ -12,51 +13,41 @@ import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/
 import { FormsModule } from '@angular/forms';
 import { MoleculeProperties } from '../../../Models/graphql/molecule-properties.model';
 import { SaveOverlayFormItem } from '../../../Models/action/action-overlay.models';
+import { ActionCardComponent } from '../../common/action-card/action-card.component';
+import { TextareaComponent } from '../../common/textarea/textarea.component';
+import { CollectionPickerFacade } from '../collection-picker/collection-picker.facade';
 
 @Component({
   selector: 'm-custom-molecule-collection-item-save',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgClass, ComboSelectComponent, FormsModule],
+  imports: [NgClass, SelectCoreComponent, FormsModule, ActionCardComponent, TextareaComponent],
   template: `
 
     <div class="flex justify-center items-start md:items-center min-h-screen px-2 sm:px-4 pt-1 md:pt-6 m-overlay-screen">
-      <div
-        class="action-card max-w-2xl h-full md:h-auto overflow-y-auto m-scroll-thin m-overlay-max-80 m-overscroll-touch"
-        role="region"
-        aria-labelledby="saveMoleculeHeading"
+      <m-action-card
+        size="compact"
+        labelledBy="saveMoleculeHeading"
+        closeLabel="Chiudi pannello salva molecola"
+        (closed)="close()"
       >
 
         <!-- Header -->
-        <div class="action-card-header">
-          <h2
+          <h2 action-card-title
             id="saveMoleculeHeading"
             class="text-lg font-semibold text-light-on-surface-main dark:text-dark-on-surface-main"
           >
             Salva molecola
           </h2>
-          <button
-            type="button"
-            class="action-card-close-btn"
-            (click)="close()"
-            aria-label="Chiudi pannello salva molecola"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-5 h-auto">
-              <path
-                d="M182.9 137.4L160.3 114.7L115 160L137.6 182.6L275 320L137.6 457.4L115 480L160.3 525.3L182.9 502.6L320.3 365.3L457.6 502.6L480.3 525.3L525.5 480L502.9 457.4L365.5 320L502.9 182.6L525.5 160L480.3 114.7L457.6 137.4L320.3 274.7L182.9 137.4z"
-              />
-            </svg>
-          </button>
-        </div>
 
         <!-- Body -->
-        <div class="action-card-body bg-light-surface-secondary dark:bg-dark-surface-secondary space-y-5 transition-all">
+        <div action-card-body class="bg-light-surface-secondary dark:bg-dark-surface-secondary space-y-5 transition-all">
 
           <h2 class="font-semibold mt-2 text-light-on-surface-main dark:text-dark-on-surface-main">
             Scegli la collezione di destinazione:
           </h2>
 
           <!-- ComboBox Collezioni -->
-          <m-combo-select class="block relative -top-3"
+          <m-select-core class="block relative -top-3"
             [items]="collections()"
             [displayFn]="displayCollection"
             [valueFn]="valueCollection"
@@ -66,9 +57,9 @@ import { SaveOverlayFormItem } from '../../../Models/action/action-overlay.model
             [selected]="saveCtx.selectedCollectionId()"
             (searchChange)="onSearchChange($event)"
             (loadMore)="onScrollEnd()"
-            (select)="onSelect($event)"
+            (selectionChange)="onSelectionChange($event)"
             (createNew)="onCreateNew($event)"
-            [attr.aria-label]="'Seleziona o crea collezione di destinazione'"
+            [ariaLabel]="'Seleziona o crea collezione di destinazione'"
           />
 
           <!-- FORM CUSTOM MOLECULE -->
@@ -144,30 +135,14 @@ import { SaveOverlayFormItem } from '../../../Models/action/action-overlay.model
             </div>
 
             <!-- NOTE -->
-            <div class="relative">
-              <textarea
-                #notes
-                id="notes"
-                class="block py-4 px-4 w-full text-sm bg-light-surface-secondary dark:bg-dark-surface-secondary border border-slate-400 dark:border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-light-accent-primary focus:border-light-accent-primary dark:focus:ring-dark-accent-primary-btn-hc dark:focus:border-dark-accent-primary-btn-hc peer text-light-on-surface-main dark:text-dark-on-surface-main"
-                placeholder=" "
-                name="notes"
-                [(ngModel)]="notesModel"
-                rows="2"
-                (blur)="onBlur('notes')"
-                (focus)="onFocus('notes')"
-              ></textarea>
-              <label
-                (click)="onFocus('notes')"
-                for="notes"
-                class="peer-focus:font-medium absolute transition-all duration-300 bg-light-surface-secondary dark:bg-dark-surface-secondary px-1 top-[13px] left-4 origin-[0] cursor-text"
-                [ngClass]="{
-                  'text-light-accent-secondary dark:text-dark-accent-secondary-hc scale-110 -translate-y-6 text-sm': notesFocus() || notesModel,
-                  'text-light-on-surface-secondary dark:text-dark-on-surface-secondary text-lg scale-100 translate-y-0': !notesFocus() && !notesModel
-                }"
-              >
-                Note (facoltative)
-              </label>
-            </div>
+            <m-textarea
+              id="notes"
+              name="notes"
+              label="Note (facoltative)"
+              [(ngModel)]="notesModel"
+              [rows]="2"
+              resizeMode="vertical"
+            />
 
             <!-- Proprietà calcolate -->
             <div
@@ -235,21 +210,22 @@ import { SaveOverlayFormItem } from '../../../Models/action/action-overlay.model
             </div>
           </form>
         </div>
-      </div>
+      </m-action-card>
     </div>
   `
 })
-export class CustomMoleculeCollectionItemSaveComponent implements OnInit {
+export class CustomMoleculeCollectionItemSaveComponent implements OnInit, OnDestroy {
   private readonly nameRef = viewChild.required<ElementRef<HTMLInputElement>>('name');
 
   private readonly labelRef = viewChild.required<ElementRef<HTMLInputElement>>('label');
-
-  private readonly notesRef = viewChild.required<ElementRef<HTMLTextAreaElement>>('notes');
 
   protected readonly overlayCtx = inject(ActionOverlayContextService);
   private readonly sessionId = this.overlayCtx.session('MoleculeCollectionItemSave')?.id ?? -1;
   protected readonly saveCtx = inject(CustomMoleculeCollectionItemSaveContextService);
   private readonly collectionService = inject(MoleculeCollectionService);
+  private readonly picker = new CollectionPickerFacade({
+    mode: { kind: 'single', operation: 'save', allowCreate: true }
+  });
   private readonly moleculeJoinService = inject(MoleculeJoinService);
   private readonly toast = inject(ToastService);
   private readonly chemistryRenderer = inject(ChemistryRendererService);
@@ -257,11 +233,9 @@ export class CustomMoleculeCollectionItemSaveComponent implements OnInit {
 
   nameFocus = signal<boolean>(false);
   labelFocus = signal<boolean>(false);
-  notesFocus = signal<boolean>(false);
-
-  collections = signal<MoleculeCollection[]>([]);
-  hasMore = signal(true);
-  loading = signal(false);
+  collections = this.picker.collections;
+  hasMore = this.picker.hasMore;
+  loading = this.picker.loading;
 
   // ngModel fields
   nameModel: string = '';
@@ -269,12 +243,15 @@ export class CustomMoleculeCollectionItemSaveComponent implements OnInit {
   labelModel: string = '';
   labelTouched: boolean = false;
   notesModel: string = '';
-  notesTouched: boolean = false;
   properties = signal<MoleculeProperties | null>(null);
 
   ngOnInit() {
-    this.loadCollections(true);
+    this.picker.load(true);
     this.loadProperties();
+  }
+
+  ngOnDestroy() {
+    this.picker.destroy();
   }
 
   async loadProperties() {
@@ -302,47 +279,36 @@ export class CustomMoleculeCollectionItemSaveComponent implements OnInit {
   }
 
   loadCollections(reset = false) {
-    if (this.loading()) return;
-    this.loading.set(true);
-    const page = reset ? 1 : this.saveCtx.page();
-    this.collectionService
-      .getPaginatedCollections(page, 12, this.saveCtx.searchTerm())
-      .subscribe(res => {
-        if (reset) this.collections.set(res.items);
-        else this.collections.set([...this.collections(), ...res.items]);
-        this.hasMore.set(res.currentPage < res.totalPages);
-        this.saveCtx.page.set(res.currentPage + 1);
-        this.loading.set(false);
-      });
+    this.picker.load(reset);
   }
 
   onSearchChange(term: string) {
     this.saveCtx.searchTerm.set(term);
-    this.saveCtx.page.set(1);
-    this.loadCollections(true);
+    this.picker.search(term);
   }
 
   onScrollEnd() {
     if (this.hasMore() && !this.loading()) {
-      this.loadCollections();
+      this.picker.load();
     }
   }
 
   onSelect(item: Pick<MoleculeCollection, 'id'>) {
+    this.picker.setSingleSelection(item.id);
     this.saveCtx.selectedCollectionId.set(item.id);
   }
 
+  onSelectionChange(change: SelectSelectionChange<MoleculeCollection, string>) {
+    if (change.item) this.onSelect(change.item);
+  }
+
   onCreateNew(name: string) {
-    this.collectionService.createCollection(name).subscribe(newColl => {
-      this.collections.set([newColl, ...this.collections()]);
-      this.saveCtx.selectedCollectionId.set(newColl.id);
-    });
+    this.picker.create(name).subscribe(newColl => this.saveCtx.selectedCollectionId.set(newColl.id));
   }
 
   onFocus(item: SaveOverlayFormItem): void {
     const labelRef = this.labelRef();
     const nameRef = this.nameRef();
-    const notesRef = this.notesRef();
     switch (item) {
       case 'label':
         document.activeElement !== labelRef.nativeElement && labelRef.nativeElement.focus();
@@ -352,9 +318,6 @@ export class CustomMoleculeCollectionItemSaveComponent implements OnInit {
         document.activeElement !== nameRef.nativeElement && nameRef.nativeElement.focus();
         this.nameFocus.set(true);
         break;
-      case 'notes':
-        document.activeElement !== notesRef.nativeElement && notesRef.nativeElement.focus();
-        this.notesFocus.set(true);
     }
   }
 
@@ -368,9 +331,6 @@ export class CustomMoleculeCollectionItemSaveComponent implements OnInit {
         this.nameFocus.set(false);
         this.nameTouched = true;
         break;
-      case 'notes':
-        this.notesTouched = true;
-        this.notesFocus.set(false);
     }
   }
 

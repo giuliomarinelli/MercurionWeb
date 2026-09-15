@@ -101,7 +101,7 @@ _Not started._
 ### Preflight remediation
 _None._
 ### Summary
-_Not started._
+Skipped because the resolved dependency closure contains terminal prerequisite 0136 (BE-022), which is BLOCKED. Resolved hard dependencies for this recipe: 0179, 0186, 0188. This task was never attempted and receives no feature branch.
 ### Task-specific validation performed
 _Not started._
 ### Full pre-merge CI-parity validation
@@ -109,10 +109,10 @@ _Not started._
 ### Browser validation performed
 _Not applicable._
 ### Commits
-_Not recorded._
+Aggregate dependency-skip metadata commit on develop.
 ### Merge / CI
-_Not started._
+Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-_None._
+Terminal dependency root: 0136 (BE-022). No feature branch or worker was created for this task.

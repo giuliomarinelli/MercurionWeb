@@ -1,6 +1,7 @@
-import { Component, ChangeDetectionStrategy, signal, output } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal, output, OnInit, inject, input } from '@angular/core';
 import { QuillModule } from 'ngx-quill';
 import { FormsModule } from '@angular/forms';
+import { QuillStylesService } from '../../../services/quill-styles.service';
 
 @Component({
   selector: 'm-ticket-composer',
@@ -35,28 +36,47 @@ import { FormsModule } from '@angular/forms';
         disabled:opacity-60
         transition-colors focus:outline-none focus:ring-2 focus:ring-light-accent-primary-hq focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-dark-surface-main
       "
-      [disabled]="!canSend()"
+      [disabled]="!canSend() || pending()"
       (click)="sendMsg()"
       title="Invia messaggio"
-      [attr.aria-disabled]="!canSend()"
+      [attr.aria-disabled]="!canSend() || pending()"
       aria-label="Invia messaggio"
     >
       Invia
     </button>
+    @if (pending()) {
+      <button type="button" class="text-xs underline" (click)="cancel.emit()">Annulla invio</button>
+    }
+    @if (error()) {
+      <div role="alert" class="flex gap-2 text-xs text-red-700 dark:text-red-300">
+        <span>{{ error() }}</span>
+        <button type="button" class="underline" (click)="retry.emit()">Riprova</button>
+      </div>
+    }
   </div>
   `
 })
-export class TicketComposerComponent {
+export class TicketComposerComponent implements OnInit {
+
+  private readonly quillStyles = inject(QuillStylesService)
 
   readonly send = output<{
     html: string;
     delta: any;
-}>();
+  }>();
+  readonly cancel = output<void>();
+  readonly retry = output<void>();
+  readonly pending = input(false);
+  readonly error = input<string | null>(null);
 
   contentHtml = ''
   private delta: any = null
 
   canSend = signal<boolean>(false)
+
+  ngOnInit(): void {
+    this.quillStyles.load()
+  }
 
   modules = {
     toolbar: [

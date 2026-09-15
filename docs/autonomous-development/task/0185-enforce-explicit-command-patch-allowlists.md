@@ -12,7 +12,7 @@ Source: `DATA-036` in Series `0001`.
 
 ## Context
 
-Several services accept `Partial<Entity>` or spread transport/input objects directly into TypeORM `create`, `update` or entity assignment. `0169` fixes this specifically for Synth, but the same class of defect can occur in User, Notebook, molecule collections/items, Help, documents and other domains. A future DTO field must not silently become a writable database column merely because an object spread exists.
+Several services accept `Partial<Entity>` or spread transport/input objects directly into TypeORM `create`, `update` or entity assignment. `0169` fixes this specifically for Synth, but the same class of defect can occur in User, molecule collections/items, Help, documents and other active domains. A future DTO field must not silently become a writable database column merely because an object spread exists.
 
 ## Relevant files and modules
 
@@ -69,7 +69,7 @@ Run repository static search/gate, domain mutation and mass-assignment negative 
 
 ## Browser validation
 
-Run representative update flows (profile, collection/item, Notebook and document metadata where reachable) through `http://localhost:8888`; malicious protected-field injection is covered by API tests.
+Run representative update flows (profile, collection/item and document metadata where reachable) through `http://localhost:8888`; malicious protected-field injection is covered by API tests.
 
 ## Stop conditions
 
@@ -93,7 +93,7 @@ _Not started._
 ### Preflight remediation
 _None._
 ### Summary
-_Not started._
+Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0169. This task was never attempted and receives no feature branch.
 ### Task-specific validation performed
 _Not started._
 ### Full pre-merge CI-parity validation
@@ -101,10 +101,10 @@ _Not started._
 ### Browser validation performed
 _Not started / not applicable._
 ### Commits
-_Not recorded._
+Aggregate dependency-skip metadata commit on develop.
 ### Merge / CI
-_Not started._
+Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-_None._
+Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.

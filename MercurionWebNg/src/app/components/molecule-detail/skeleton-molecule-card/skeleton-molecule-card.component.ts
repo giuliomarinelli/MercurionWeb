@@ -1,9 +1,10 @@
 import { ChangeDetectionStrategy, Component, effect, input, signal } from '@angular/core';
 import { NgClass, NgStyle } from '@angular/common';
+import { SkeletonComponent } from '../../common/skeleton/skeleton.component';
 
 @Component({
   selector: 'm-skeleton-molecule-card',
-  imports: [NgClass, NgStyle],
+  imports: [NgClass, NgStyle, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div
@@ -26,20 +27,18 @@ import { NgClass, NgStyle } from '@angular/common';
     >
       <!-- Colonna sinistra: 8/12 - testo -->
       <div class="md:col-span-8 min-w-0">
-        <div class="h-5 w-2/3 rounded-md bg-slate-200/80 dark:bg-slate-700/70"></div>
-        <div class="mt-2 h-4 w-1/3 rounded bg-slate-200/70 dark:bg-slate-700/60"></div>
+        <m-skeleton width="66.666667%" height="1.25rem" />
+        <m-skeleton class="mt-2" width="33.333333%" height="1rem" />
 
         <div class="mt-3 flex items-center gap-2">
-          <div class="h-5 w-24 rounded-full bg-slate-200/70 dark:bg-slate-700/60"></div>
-          <div class="h-5 w-20 rounded-full bg-amber-100/60 dark:bg-amber-900/20"></div>
+          <m-skeleton shape="rect" width="6rem" height="1.25rem" />
+          <m-skeleton shape="rect" width="5rem" height="1.25rem" />
         </div>
       </div>
 
       <!-- Colonna destra: 4/12 - viewer -->
       <div class="md:col-span-4 flex md:justify-end items-center">
-        <div class="size-24 md:size-28 rounded-xl border
-                    border-slate-200/70 dark:border-slate-700/60
-                    bg-slate-200/80 dark:bg-slate-700/70"></div>
+        <m-skeleton shape="rect" width="7rem" height="7rem" />
       </div>
 
       <span class="sr-only">Caricamento molecola…</span>

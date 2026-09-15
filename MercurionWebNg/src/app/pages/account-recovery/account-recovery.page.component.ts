@@ -1,27 +1,27 @@
 import { Component, ChangeDetectionStrategy, computed, DestroyRef, inject, OnDestroy, OnInit, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FloatingInputComponent } from '../../components/common/floating-input/floating-input.component';
+import { TextFieldComponent } from '../../components/common/text-field/text-field.component'
 import { TurnstileComponent } from '../../components/common/turnstile/turnstile.component';
 import { FormControl, FormGroup, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize, Subscription } from 'rxjs';
 import { RecoveryService } from '../../services/recovery.service';
-import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
+import { ProgressIndicatorComponent } from '../../components/common/progress-indicator/progress-indicator.component';
 import { PublicPipe } from '../../pipes/public.pipe';
 import { ThemeManagerService } from '../../services/context/theme-manager.service';
 import { environment } from '../../../environments/environment';
 import { emailAvailabilityValidator, matchPassword } from '../../custom-validators';
-import { AuthService } from '../../services/auth.service';
+import { AuthTransportService } from '../../services/auth-transport.service';
 import { Router, RouterLink } from '@angular/router';
-import { HttpErrorResponse } from '@angular/common/http';
+import { adaptHttpFormError, type FormErrorState } from '../../utils/form-error.adapter'
 
 @Component({
   selector: 'm-account-recovery.page',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    FloatingInputComponent,
+    TextFieldComponent,
     TurnstileComponent,
     ReactiveFormsModule,
-    ClassicSpinnerComponent,
+    ProgressIndicatorComponent,
     PublicPipe,
     RouterLink
   ],
@@ -77,7 +77,7 @@ import { HttpErrorResponse } from '@angular/common/http';
           @if (step() === 1) {
             <!-- STEP 1: CODE -->
             <div class="mt-2">
-              <m-floating-input
+              <m-text-field
                 label="Codice di recupero"
                 type="text"
                 autocomplete="text"
@@ -89,9 +89,7 @@ import { HttpErrorResponse } from '@angular/common/http';
                 [disabled]="loading()"
                 [serverError]="computeServerErrorMsg(this.serverErrorStep())"
                 (enter)="goToSecondStep()"
-                darkLabelClass = 'dark:text-dark-accent-secondary-hc'
-                darkFocusRingClass = 'dark:focus:ring-dark-accent-primary'
-                darkFocusBorderClass = 'dark:focus:border-dark-accent-primary'/>
+              />
             </div>
               <button
                 type="submit"
@@ -103,7 +101,7 @@ import { HttpErrorResponse } from '@angular/common/http';
                   Continua
                 } @else {
                   <div class="text-slate-200 flex items-center justify-center">
-                    <m-classic-spinner [size]="24"></m-classic-spinner>
+                    <m-progress-indicator [size]="24"></m-progress-indicator>
                   </div>
                 }
               </button>
@@ -126,7 +124,7 @@ import { HttpErrorResponse } from '@angular/common/http';
             <!-- STEP 2: NUOVE CREDENZIALI -->
             <form [formGroup]="recoveryGroup" (ngSubmit)="goToThirdStep()">
               <div class="relative mb-6 mt-2">
-                <m-floating-input
+                <m-text-field
                   label="Nuova e-mail"
                   type="email"
                   autocomplete="email"
@@ -137,12 +135,10 @@ import { HttpErrorResponse } from '@angular/common/http';
                     pattern: 'Formato e-mail non corretto'
                   }"
                   [disabled]="loading()"
-                  darkLabelClass = 'dark:text-dark-accent-secondary-hc'
-                  darkFocusRingClass = 'dark:focus:ring-dark-accent-primary'
-                  darkFocusBorderClass = 'dark:focus:border-dark-accent-primary' />
+              />
               </div>
               <div class="relative mb-6 mt-2">
-                <m-floating-input
+                <m-text-field
                 label="Nuova password"
                 type="password"
                 autocomplete="current-password"
@@ -151,12 +147,10 @@ import { HttpErrorResponse } from '@angular/common/http';
                     required: 'Password obbligatoria.',
                     pattern: 'La password deve essere di almeno 8 caratteri: almeno uno minuscolo, uno maiuscolo, un numero e un carattere speciale.'
                   }"
-                  darkLabelClass = 'dark:text-dark-accent-secondary-hc'
-                  darkFocusRingClass = 'dark:focus:ring-dark-accent-primary'
-                  darkFocusBorderClass = 'dark:focus:border-dark-accent-primary' />
+              />
               </div>
               <div class="relative mb-6 mt-2">
-                <m-floating-input
+                <m-text-field
                   label="Reinserisci la nuova password"
                   type="password"
                   autocomplete="current-password"
@@ -166,9 +160,7 @@ import { HttpErrorResponse } from '@angular/common/http';
                       matchPassword: 'Le due password non corrispondono.'
                     }"
                   [serverError]="computeServerErrorMsg(this.serverErrorStep())"
-                  darkLabelClass = 'dark:text-dark-accent-secondary-hc'
-                  darkFocusRingClass = 'dark:focus:ring-dark-accent-primary'
-                  darkFocusBorderClass = 'dark:focus:border-dark-accent-primary' />
+              />
               </div>
               <div class="relative mb-3 mt-2">
                 <button
@@ -181,7 +173,7 @@ import { HttpErrorResponse } from '@angular/common/http';
                     Continua
                   } @else {
                     <div class="text-slate-200 flex items-center justify-center">
-                      <m-classic-spinner [size]="24"></m-classic-spinner>
+                      <m-progress-indicator [size]="24"></m-progress-indicator>
                     </div>
                   }
                 </button>
@@ -240,7 +232,7 @@ export class AccountRecoveryPageComponent implements OnInit, OnDestroy {
   private readonly turnstileComponent = viewChild(TurnstileComponent);
 
   private readonly recoveryService = inject(RecoveryService)
-  private readonly authService = inject(AuthService)
+  private readonly authService = inject(AuthTransportService)
   private readonly themeManager = inject(ThemeManagerService)
   private readonly fb = inject(NonNullableFormBuilder)
   private readonly router = inject(Router)
@@ -260,9 +252,9 @@ export class AccountRecoveryPageComponent implements OnInit, OnDestroy {
     return this.themeManager.theme() === 'light' ? PICTOGRAM_LIGHT : PICTOGRAM_DARK
   })
 
-  serverErrorStep = signal<{ code: number, step: 0 | 1 | 2 | 3 }>({
-    code: 0,
-    step: 0
+  serverErrorStep = signal<{ step: 0 | 1 | 2 | 3, error: FormErrorState }>({
+    step: 0,
+    error: { fieldErrors: {}, globalError: null }
   })
 
   turnstileToken = signal<string>('')
@@ -288,13 +280,13 @@ export class AccountRecoveryPageComponent implements OnInit, OnDestroy {
     this.codeCtrlSub = this.codeCtrl.valueChanges.pipe(
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(() => {
-      this.serverErrorStep.set({ code: 0, step: 0 })
+      this.resetServerError()
       this.codeCtrl.updateValueAndValidity()
     })
     this.recoveryGroupSub = this.recoveryGroup.valueChanges.pipe(
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(() => {
-      this.serverErrorStep.set({ code: 0, step: 0 })
+      this.resetServerError()
       this.recoveryGroup.updateValueAndValidity()
     })
     const passwordCtrl = this.recoveryGroup.get('password')
@@ -333,7 +325,10 @@ export class AccountRecoveryPageComponent implements OnInit, OnDestroy {
           this.resetServerError()
           this.step.set(2)
         },
-        error: (e: HttpErrorResponse) => this.serverErrorStep.set({ step: 1, code: e.status })
+        error: e => this.serverErrorStep.set({
+          step: 1,
+          error: adaptHttpFormError(e, { ACCOUNT_RECOVERY_CODE_INVALID: { code: 'code' } })
+        })
       })
     }
   }
@@ -360,7 +355,10 @@ export class AccountRecoveryPageComponent implements OnInit, OnDestroy {
           this.resetServerError()
           this.step.set(3)
         },
-        error: (e: HttpErrorResponse) => this.serverErrorStep.set({ step: 2, code: e.status })
+        error: e => this.serverErrorStep.set({
+          step: 2,
+          error: adaptHttpFormError(e, { PASSWORD_CHANGE_CREDENTIALS_INVALID: { email: 'email' } })
+        })
       })
     }
   }
@@ -373,33 +371,8 @@ export class AccountRecoveryPageComponent implements OnInit, OnDestroy {
     this.loadingTurnstile.set(false)
   }
 
-  computeServerErrorMsg(input: { code: number, step: 0 | 1 | 2 | 3 }): string | null | never {
-    if (input.step === 0 || input.code === 0) {
-      return null
-    }
-    switch (input.step) {
-      case 1:
-        switch (input.code) {
-          case 401:
-            return 'Il codice è errato.'
-          case 429:
-            return 'Troppi tentativi, riprova in seguito.'
-          default:
-            return 'Si è verificato un errore imprevisto.'
-        }
-      case 2:
-        switch (input.code) {
-          case 401:
-          case 403:
-            this.router.navigateByUrl('/403-forbidden')
-            break
-          case 429:
-            return 'Troppi tentativi, riprova in seguito.'
-          default:
-            return 'Si è verificato un errore imprevisto.'
-        }
-    }
-    return 'Si è verificato un errore imprevisto.'
+  computeServerErrorMsg(input: { step: 0 | 1 | 2 | 3, error: FormErrorState }): string | null {
+    return input.step === 0 ? null : input.error.globalError
   }
 
   private resetTurnstileWidget(): void {
@@ -414,8 +387,8 @@ export class AccountRecoveryPageComponent implements OnInit, OnDestroy {
 
   private resetServerError(): void {
     this.serverErrorStep.set({
-      code: 0,
-      step: 0
+      step: 0,
+      error: { fieldErrors: {}, globalError: null }
     })
   }
 

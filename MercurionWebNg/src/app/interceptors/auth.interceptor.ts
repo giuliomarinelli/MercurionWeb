@@ -4,24 +4,22 @@ import {
 } from '@angular/core';
 import {
   HttpEvent,
-  HttpHandler,
   HttpErrorResponse,
+  HttpHandler,
   HttpInterceptor,
-  HttpRequest,
-  HttpResponse
+  HttpRequest
 } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { tap, catchError } from 'rxjs/operators';
-import { AuthService } from '../services/auth.service'; // Assumendo che sia il service dove gestisci il token
+import { Observable } from 'rxjs';
+import { tap } from 'rxjs/operators';
+import { AuthSessionRepository } from '../services/auth-session-repository.service'
 import { AuthStateStore } from '../services/auth-state.store';
-import { isFatalUnauthenticatedBody } from './fatal-unauthenticated.util';
-import { SessionInvalidationCause } from '@mercurion/rest-contracts'
+import { classifyAuthResponse } from './auth-error.util';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
 
   constructor(
-    private readonly authService: AuthService,
+    private readonly authService: AuthSessionRepository,
     private readonly authState: AuthStateStore,
     private zone: NgZone
   ) { }
@@ -34,25 +32,23 @@ export class AuthInterceptor implements HttpInterceptor {
       : req;
 
     return next.handle(authReq).pipe(
-      tap(e => {
-        if (e instanceof HttpResponse) {
-          // 1️⃣ Controlla se c'è un nuovo token nell'header custom
-          const newToken = e.headers.get('X-New-Access-Token')
-          if (newToken) {
-            this.authService.setAccessToken(newToken)
-            const scp = this.authService.getUserScopesFromClaims(newToken)
-            if (scp && scp.length) {
-              this.authService.setCachedScopes(scp)
-            }
-          }
+      tap({
+        next: event => {
+          this.handleAuthEvent(event)
+        },
+        error: error => {
+          this.handleAuthEvent(error)
         }
-      }),
-      catchError(err => {
-        if (err instanceof HttpErrorResponse && err.status === 401 && isFatalUnauthenticatedBody(err.error)) {
-          this.zone.run(() => this.authState.invalidate(SessionInvalidationCause.InvalidSession))
-        }
-        return throwError(() => err)
       })
     )
+  }
+
+  private handleAuthEvent(event: HttpEvent<unknown> | HttpErrorResponse): void {
+    const authEvent = classifyAuthResponse(event)
+    if (authEvent.kind === 'token-rotated') {
+      this.authState.rotateAccessToken(authEvent.token)
+    } else if (authEvent.kind === 'session-invalidated') {
+      this.zone.run(() => this.authState.invalidate(authEvent.cause))
+    }
   }
 }

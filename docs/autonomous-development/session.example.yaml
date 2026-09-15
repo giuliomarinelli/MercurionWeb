@@ -97,14 +97,23 @@ capabilities:
       required_before_implementation_when_browser_runtime_declared: true
       verify_runtime_readiness: true
       verify_authenticated_state_when_required: true
+      authenticated_entrypoint: http://localhost:8888/login
+      authentication_mode: fresh-shared-real-test-account-login
+      credential_file: MercurionWebNode/env/.env.development
+      required_credential_variables:
+        - LOCAL_TEST_ACCOUNT_EMAIL
+        - LOCAL_TEST_ACCOUNT_PASSWORD
       failure_result: SESSION_CAPABILITY_PAUSE
       mutate_task_outcome: false
       propagate_dependency_skips: false
+      continue_session_after_pause: true
+      exclude_paused_task_for_remainder_of_session: true
+      retry_paused_task_in_same_session: false
     state_lease:
       preserve_non_production_authentication: true
-      restore_after_explicit_logout_or_storage_test: true
+      restore_after_explicit_logout_or_storage_test: false
       recovery_failure_signal: BROWSER_PROFILE_RECOVERY_REQUIRED
-      stop_before_next_task_on_recovery_failure: true
+      stop_before_next_task_on_recovery_failure: false
       secrets_in_reports: false
     acceptance_probe:
       required_once_before_enabling_unattended_reuse: true
@@ -180,6 +189,9 @@ runtime:
       cwd: MercurionWebNode
       repository_access: read-write
       watch: true
+      environment:
+        APP_ENV: development
+        LOCAL_DUMMY_AUTH: "false"
       command: npm run start:dev
 
     angular:
@@ -197,25 +209,27 @@ runtime:
     task_scoped: true
     start_only_after_task_start_preflight: true
     start_only_when_browser_validation_required: true
-    stop_before_clean_install: true
+    stop_before_task_handoff: true
     carry_processes_between_tasks: false
 
 quality:
   # The permanent baseline is established outside all numbered recipes.
   baseline_document: docs/autonomous-development/CI-BASELINE.md
-  session_start_preflight: true
+  session_start_preflight: remote-ci-and-focused-local-only
   require_clean_exact_origin_develop: true
   require_green_before_first_task_scope: true
   require_exact_sha_ci_for_every_develop_base: true
   require_fresh_full_remote_ci_at_session_start: true
   stop_before_task_branch_if_initial_baseline_is_not_green: true
   numbered_tasks_may_repair_baseline: false
-  before_every_task: true
-  before_merge: true
+  before_every_task: focused-local-only
+  before_merge: exact-feature-sha-actions
+  local_full_commands_forbidden: true
 
   # Permanent root workspace interface; later tasks only extend ci:check.
   canonical:
     directory: .
+    execution_owner: github-actions
     install: npm ci
     check: npm run ci:check
 
@@ -270,6 +284,7 @@ policy:
   finish_current_task_after_deadline: true
   start_new_tasks_after_deadline: false
   stop_when_workload_exhausted: true
+  stop_when_no_unpaused_ready_tasks: true
 
   continue_after_terminal_non_done_task: true
   terminal_outcomes_immutable_within_active_session: true

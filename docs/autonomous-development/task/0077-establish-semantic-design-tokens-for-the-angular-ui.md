@@ -1,9 +1,9 @@
 # 0077 - Establish semantic design tokens for the Angular UI
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -101,13 +101,31 @@ Prefer a small semantic layer over a huge token matrix. The goal is a stable pub
 
 ## Execution notes
 
+> Current status (2026-09-11): PENDING by direct owner instruction because this
+> activity was not completed. Historical attempt/skip evidence remains below
+> for traceability and is not a terminal outcome.
+
 ### Feature branch
 
-_Not started._
+`feature/UI-019`
 
 ### Preflight
 
-_Not started._
+- Verified clean `feature/UI-019` at supplied base
+  `262a06bc1817f57b7ed06a99486a5efe591d28e8`; the supplied fresh full
+  baseline run `34665560885` was green on Ubuntu, Windows, and Required gate.
+- Confirmed no task-owned Angular, Nest, Tox21, or test-watcher process was
+  active before the task.
+- Runtime capability preflight used the canonical Tox21, Nest, and Angular
+  start order. Nginx returned retryable 502 responses during compilation, then
+  two complete readiness rounds returned 200 for `/health` and `/`.
+- The dedicated browser profile exposed the existing protected dashboard
+  (`Benvenuto Test.` and workspace counts) and the login route was inspected.
+  Light and dark theme controls were exercised through `http://localhost:8888`;
+  the narrow viewport snapshot remained structurally usable and console
+  errors/warnings were absent. The browser transport timed out on attempts to
+  activate the collection/search controls, so no claim is made for those
+  additional routes.
 
 ### Preflight remediation
 
@@ -115,29 +133,62 @@ _None._
 
 ### Summary
 
-Not attempted. The required inclusive prerequisite range 0059 through 0076
-cannot be DONE because tasks 0059 through 0075 are
-`SKIPPED_DEPENDENCY`, and task 0076 is `BLOCKED`.
+Added a documented semantic token taxonomy to Tailwind and mapped shared CSS
+variables for light and dark semantic roles. Canonical button, action-card and
+toast primitives now consume semantic color, spacing, radius, shadow and
+typography roles instead of local color/shadow literals. Added a deterministic
+machine-readable token exception file and a token-usage gate with a negative
+fixture check, registered in the root `ci:static` aggregate.
 
 ### Task-specific validation performed
 
-Not applicable; no feature branch or implementation worker was created.
+- `npm run ui:tokens:check` — passed.
+- `npm run ui:tokens:check:negative` — passed; the temporary fixture with
+  `#123456` was rejected and removed.
+- `npm run typecheck --workspace mercurion_web_ng` — passed.
+- `npm run build --workspace mercurion_web_ng` — passed; only existing bundle
+  budget/CommonJS warnings were emitted.
+- `npx eslint src/app/components/common/button/button.component.ts
+  src/app/components/common/action-card/action-card.component.ts
+  src/app/components/common/toast/toast.component.ts` from `MercurionWebNg`
+  — passed.
+- The full workspace Angular lint command was started but did not produce a
+  result within the bounded local wait and was stopped; exact aggregate
+  validation remains owned by GitHub Actions.
 
 ### Full pre-merge CI-parity validation
 
-Not applicable; dependency-skip metadata only.
+Not run locally by policy (`npm ci` and `npm run ci:check` are forbidden in
+autonomous workers). Supplied baseline evidence was green; feature-SHA
+GitHub Actions validation is required after push.
 
 ### Browser validation performed
 
-Not applicable; the task was not attempted.
+Canonical runtime was restarted after implementation and stopped afterward.
+Through `http://localhost:8888`, protected dashboard content was observed in
+dark mode, the theme menu switched to light mode with light logo assets,
+responsive validation was performed at 390x844, and the page had no console
+errors or warnings. Login, dashboard and theme-control snapshots were
+captured. Collection/search/action-overlay activation was attempted but
+Chrome DevTools MCP timed out before interaction; no unsupported browser
+substitute was used.
 
 ### Commits
 
-Pending metadata commit on `develop`.
+Recovery merge `91563fd74887c35e6059a52eaf8e0781469473b3` merged current
+green `develop` `2dd321682fd2afcbe845c57591944d698e0a9d75` with `--no-ff
+--no-gpg-sign`. The semantic-token implementation was restored after the
+current baseline's explicit revert of the earlier UI-019 merge, preserving the
+coherent prior task work alongside current baseline changes. A focused
+accessibility correction changed the toast live region to the valid
+`aria-relevant="additions"` value.
+
+Final task implementation commit: `365c8f74`.
 
 ### Merge / CI
 
-No feature branch or merge. Exact-SHA CI is required for the metadata commit.
+Feature branch publication and exact-SHA CI are coordinator-controlled after
+the task-specific commit. No `develop` modification was made.
 
 ### Rollback
 
@@ -145,9 +196,51 @@ _Not applicable._
 
 ### Blocker / human decision required
 
-Direct terminal prerequisites: 0059 through 0075 are
-`SKIPPED_DEPENDENCY`, and 0076 (UI-018) is `BLOCKED`. The skipped
-prerequisites trace through blocked FE-030, which requires filesystem-write
-capability for a fresh, human-authorized worker session; UI-018 requires a
-test-safe local Nest runtime and dependencies for its mandatory browser
-validation.
+None for local implementation. The supplied direct human instruction
+authorizes execution despite the historical prerequisite metadata.
+
+### Recovery resume evidence (2026-09-14)
+
+- Verified `feature/UI-019` at preserved SHA
+  `10ab88c40b8677718878ea4c69dd84e4712cad94`, matching `origin/feature/UI-019`,
+  with only the authorized pre-existing `MercurionWebNode/test-results/` and
+  `reports/` untracked artifact directories present.
+- Verified current `develop` and `origin/develop` at
+  `2dd321682fd2afcbe845c57591944d698e0a9d75`; GitHub Actions run `34787225385`
+  was successful with the `Required gate` successful. Merged it into the
+  feature branch without rebasing or rewriting history.
+- After reconciliation, `npm run ui:tokens:check`,
+  `npm run ui:tokens:check:negative`, Angular typecheck, Angular build, and
+  focused ESLint all passed. The build emitted only the existing initial
+  bundle-budget warning. The initial focused ESLint invocation from the
+  repository root was invalid because its paths were workspace-relative; the
+  corrected `MercurionWebNg` invocation passed after the toast accessibility
+  correction.
+- Runtime preflight and final validation followed the canonical order
+  Tox21, Nest, Angular. Both rounds reached `200` for `/health` and `/` after
+  retryable `502` responses during compilation. Through the persistent
+  `http://localhost:8888` profile, protected dashboard identity and workspace
+  counts were observed at the narrow viewport; theme menu light and dark
+  controls were exercised. Console inspection showed no application styling
+  errors; Angular reported only the existing HMR `NG0751` informational log.
+- All three task-owned runtime sessions were stopped and local process
+  inspection found no remaining Tox21, Nest, or Angular task process.
+
+### Feature-CI repair evidence (2026-09-14)
+
+- Exact feature run `34787733054` for SHA `d679eead3869c8c7bdfcc92e54623374d6ed64d9`
+  failed only in Angular unit tests; all prerequisite and other validation jobs
+  passed. The clean CI browser diagnostic showed that `PaginationComponent`
+  callers supplied `ariaLabel`/`ariaCurrent` to `m-button`, but the semantic
+  token commit had removed the corresponding button inputs and host bindings,
+  producing null accessible labels/current-page semantics.
+- Applied the narrow repository-controlled correction by restoring
+  `ariaLabel` and `ariaCurrent` inputs and their `aria-label`/`aria-current`
+  bindings in `ButtonComponent`. The pagination implementation and test were
+  not weakened or changed.
+- Focused validation: from `MercurionWebNg`,
+  `npx ng test --watch=false --karma-config=karma.conf.js
+  --include=src/app/components/common/pagination/pagination.component.spec.ts`
+  — passed, 3 tests. Focused ESLint for the corrected button and pagination
+  components — passed.
+- Repair commit: this commit.

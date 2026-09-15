@@ -40,7 +40,7 @@ export class User {
     @Column({ type: 'varchar', default: '' })
     lastName: string
 
-    @Column({ type: 'varchar', default: () => UserGender.Undefined })
+    @Column({ type: 'varchar', default: UserGender.Undefined })
     gender: UserGender
 
     @Column({ type: 'varchar', nullable: true })
@@ -58,10 +58,10 @@ export class User {
     @Column({ type: 'text', default: '[]' })
     mfaStrategies: string // JSON.stringify delle strategy UUID - permessi dell'utente (senza ruoli inutili e pesanti)
 
-    @Column({ type: 'bigint', default: Date.now() })
+    @Column({ type: 'bigint' })
     createdAt: number
 
-    @Column({ type: 'bigint', default: Date.now() })
+    @Column({ type: 'bigint' })
     updatedAt: number
 
     @Column({ type: 'varchar', default: '' })
@@ -70,7 +70,7 @@ export class User {
     @Column({ type: 'varchar', default: null, nullable: true })
     appTotpSecret: string | null
 
-    @Column({ type: 'jsonb', default: () => "'[]'::jsonb" })
+    @Column({ type: 'jsonb', default: '[]' })
     oldPasswordHashes: OldPasswordItem[]
 
     @OneToMany(() => MfaBackupCode, (backupCode) => backupCode.user, { cascade: true })

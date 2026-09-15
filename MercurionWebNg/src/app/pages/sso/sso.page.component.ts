@@ -10,19 +10,22 @@ import {
   effect,
   viewChild
 } from '@angular/core';
-import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
+import { ProgressIndicatorComponent } from '../../components/common/progress-indicator/progress-indicator.component';
 import { EMPTY, of, Subscription, switchMap, defer, from, combineLatest, catchError, take, filter } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TypeGuardsService } from '../../services/type-guards.service';
 import { FingerprintService } from '../../services/fingerprint.service';
-import { AuthService } from '../../services/auth.service';
+import { AuthTransportService } from '../../services/auth-transport.service';
 import { SessionSyncService } from '../../services/session-sync.service';
 import { AuthStateStore } from '../../services/auth-state.store'
+import { AuthSessionPersistenceService } from '../../services/auth-session-persistence.service'
 import { SidenavContextService } from '../../services/context/sidenav-context.service';
+import { AuthRedirectService } from '../../services/auth-redirect.service'
+import { ViewportRuntimeService } from '../../services/context/viewport-runtime.service';
 
 @Component({
   selector: 'm-sso-page',
-  imports: [ClassicSpinnerComponent],
+  imports: [ProgressIndicatorComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
 
@@ -33,7 +36,7 @@ import { SidenavContextService } from '../../services/context/sidenav-context.se
           [style.left.px]="spinnerLeft()"
           role="status"
         >
-          <m-classic-spinner [size]="60" />
+          <m-progress-indicator [size]="60" />
         </div>
       </div>
     </div>
@@ -41,15 +44,18 @@ import { SidenavContextService } from '../../services/context/sidenav-context.se
   `
 })
 export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
+  private readonly persistence = inject(AuthSessionPersistenceService)
+  private readonly redirects = inject(AuthRedirectService)
 
   private readonly route = inject(ActivatedRoute)
   private readonly router = inject(Router)
   private readonly typeGuards = inject(TypeGuardsService)
   private readonly fingerprintService = inject(FingerprintService)
-  private readonly authService = inject(AuthService)
+  private readonly authService = inject(AuthTransportService)
   private readonly sessionSync = inject(SessionSyncService)
   private readonly authState = inject(AuthStateStore)
   private readonly sidenavContext = inject(SidenavContextService)
+  private readonly viewportRuntime = inject(ViewportRuntimeService)
 
   private sub?: Subscription
   private resizeObs?: ResizeObserver
@@ -63,19 +69,13 @@ export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
     effect(() => {
       // riallinea lo spinner quando cambia la sidebar
       const _ = this.sidenavContext.isOpen()
+      this.viewportRuntime.width()
+      this.viewportRuntime.height()
       queueMicrotask(() => {
         this.updateSpinnerLeft()
         this.startSpinnerFollow()
       })
     })
-  }
-
-  private sanitizeRedirectTo(raw: string | null | undefined): string | null {
-    const v = (raw ?? '').trim()
-    if (!v) return null
-    if (!v.startsWith('/')) return null
-    if (v.startsWith('//')) return null
-    return v
   }
 
   ngOnInit(): void {
@@ -97,9 +97,7 @@ export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
         const provider = p.get('provider') ?? ''
 
         // redirect_to may be lost by provider; fallback to sessionStorage if needed
-        const redirectTo =
-          this.sanitizeRedirectTo(p.get('redirect_to')) ??
-          this.sanitizeRedirectTo(sessionStorage.getItem('redirectAfterLogin'))
+        const redirectTo = this.redirects.captureQueryParam(p.get('redirect_to')) ?? this.redirects.peek()
 
         // fragment atteso: "t=<token>"
         const sso_pat = frag ? (new URLSearchParams(frag).get('t') ?? '') : ''
@@ -120,10 +118,10 @@ export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
 
           this.authState.beginAuthentication('sso')
 
-          return this.authService.sso_authorizeFlow(fp_enc, di_enc, sso_pat, provider).pipe(
+          return this.authService.ssoAuthorizeFlow(fp_enc, di_enc, sso_pat, provider).pipe(
             catchError(() => {
               queueMicrotask(() => {
-                sessionStorage.removeItem('redirectAfterLogin')
+                this.redirects.clear()
                 this.router.navigate(['/login'], { queryParams: { err: 'sso_failed', provider } })
               })
               return EMPTY
@@ -135,15 +133,13 @@ export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
       })
     ).subscribe({
       next: (res) => {
-        this.authState.completeAuthentication({
+        this.authState.activateAuthenticatedSession({
           initials: res.initials ?? 'U',
           accessToken: res.accessToken,
-          wsAccessToken: res.ws_accessToken,
-          scopes: res.accessToken ? this.authService.getUserScopesFromClaims(res.accessToken) : []
+          wsAccessToken: res.ws_accessToken
         })
         this.sessionSync.resumeSession(res.initials ?? 'U')
-        const redirect = sessionStorage.getItem('redirectAfterLogin') || '/dashboard'
-        this.router.navigateByUrl(redirect)
+        window.location.assign(this.redirects.consume())
       }
     })
   }
@@ -155,7 +151,6 @@ export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
   ngOnDestroy(): void {
     this.sub?.unsubscribe()
     this.resizeObs?.disconnect()
-    window.removeEventListener('resize', this.updateSpinnerLeft)
     this.stopSpinnerFollow()
   }
 
@@ -167,7 +162,6 @@ export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
     this.resizeObs?.disconnect()
     this.resizeObs = new ResizeObserver(() => this.updateSpinnerLeft())
     this.resizeObs.observe(host)
-    window.addEventListener('resize', this.updateSpinnerLeft)
     this.startSpinnerFollow()
   }
 

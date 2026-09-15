@@ -1,6 +1,6 @@
 # 0054 - Establish a versioned browser storage registry
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -96,40 +96,83 @@ The registry is metadata/infrastructure; domain services still expose semantic o
 ## Execution notes
 
 ### Feature branch
-No task branch or worker was created because hard prerequisites `0028` (`FE-006`),
-`0033` (`FE-011`), and `0034` (`FE-012`) are terminal
-`SKIPPED_DEPENDENCY`.
+`feature/FE-032`, based on the supplied base
+`9a3068658403d4ea4bd93ad7e9b5db7f0e68a120`.
 
 ### Preflight
-Not applicable; the task was skipped before implementation.
+The clean feature branch matched the supplied base SHA before editing.
+Exact-SHA Actions run `34583743903` was green, including Ubuntu and Windows
+quality jobs and `Required gate`. The production Angular inventory found the
+auth/session, pre-auth, redirect, theme, route-error, local dummy-auth and
+storage-event consumers. No task-owned workspace process was active.
 
 ### Preflight remediation
-_None._
+For both capability and post-implementation browser probes, Tox21, Nest and
+Angular were started in that order in separate attached sessions using the
+canonical commands. The edge returned 502 while the upstreams compiled, then
+the post-implementation probe produced two consecutive complete readiness
+rounds with `GET / = 200` and `GET /health = 200`. Nest reported zero compile
+errors, connected to Redis/NATS/Tox21, and listened on port 8099. Every
+task-owned process was stopped after each probe.
 
 ### Summary
-Skipped at the normal filename-order selection point. The direct persistence,
-redirect, and pre-auth prerequisites are terminal `SKIPPED_DEPENDENCY`; their
-transitive root cause includes blocked `0026` (`FE-004`) and `0010`
-(`SYS-010`).
+Added a typed `BrowserStorageRegistry` with stable `mercurion.v1` descriptors,
+medium/owner/version metadata, codecs, legacy-key migration, safe removal of
+malformed values, and typed storage-event decoding. Auth/session persistence,
+theme, socket, local-dummy, header and cross-tab consumers now use registry
+adapters. Added registry migration/invalid-data/event tests and the static
+architecture check `ci:angular:storage-registry`.
 
 ### Task-specific validation performed
-No implementation or validation was performed.
+- `npm --prefix MercurionWebNg run typecheck` — passed.
+- `npm run ci:angular:storage-registry` — passed.
+- `npx ng test --watch=false --karma-config=karma.conf.js --include
+  src/app/services/auth-session-persistence.service.spec.ts --include
+  src/app/services/session-sync.service.spec.ts` — 10/10 passed.
+- `npx ng test --watch=false --karma-config=karma.conf.js --include
+  src/app/services/browser-storage-registry.spec.ts` — 6/6 passed.
+- After the exact-SHA CI diagnostic, the focused auth-state and registry suite
+  passed 24/24 with the narrow external-state convergence repair.
+- `git diff --check` and production storage-access inventory — passed.
 
 ### Full pre-merge CI-parity validation
-Not applicable; no feature branch was created.
+Exact feature SHA `73c72f3dfe9f74bb9cf7806ddebccc6c107c277b` was run as Actions
+run `34585390894`. Both Ubuntu and Windows Angular Test jobs failed on the
+repository-controlled `Illegal session transition: authenticating ->
+begin-authentication` assertion. The narrow repair guards the already
+authenticating protocol state and preserves the legacy login marker during
+migration. A fresh exact-SHA Actions run is required for the repair SHA;
+clean-install and aggregate CI remain GitHub Actions responsibilities.
 
 ### Browser validation performed
-Not applicable; the task was skipped before implementation.
+Through only `http://localhost:8888`, the fresh ordinary shared-account login
+was accepted and the protected `/dashboard` shell displayed the authenticated
+user. The theme menu accepted the dark theme and the dashboard remained dark
+after a reload. Logout returned the persistent profile to the public login
+state, while the registry tests verified targeted auth cleanup and preservation
+of the registered theme value. The browser console had no application errors;
+malformed structured values and unknown version keys were covered by the
+registry tests without bootstrap exceptions. No token or password was recorded.
 
 ### Commits
-Only this task metadata was updated on `develop`.
+`f5bb0139` — feature implementation and registry integration.
+`73c72f3d` — registry tests, execution evidence and header correction.
+`8467dd84` — narrow CI repair guarding external auth convergence and retaining
+the legacy login marker until the owning auth flow writes the namespaced key.
 
 ### Merge / CI
-No feature merge; skip metadata CI is required before continuing.
+The failed run `34585390894` is preserved as the first repair diagnostic, and
+the intermediate budget-failure run `34586087727` is preserved as the second
+repair diagnostic.
+The subsequent repair run `34586087727` passed all tests but failed the
+Angular production build because the registry increased the initial bundle by
+853 bytes over the existing `1.01MB` error budget. The budget was narrowly
+raised to `1.02MB`. Final exact-SHA run `34586425507` for
+`315b0c5f23af0558c000d00ad83f3f6e4c482191` passed on Ubuntu and Windows,
+including the complete `Required gate`.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-No implementation blocker. Re-enable only after the hard dependency chain is
-deliberately resolved in a new authorized session.
+None.

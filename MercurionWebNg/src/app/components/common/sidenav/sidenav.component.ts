@@ -6,11 +6,13 @@ import { HistoryComponent } from '../history/history.component';
 import { filter, Subscription } from 'rxjs';
 import { HistoryService } from '../../../services/history.service';
 import { ToastService } from '../../../services/toast.service';
-import { ClassicSpinnerComponent } from "../classic-spinner/classic-spinner.component";
+import { ProgressIndicatorComponent } from "../progress-indicator/progress-indicator.component";
 import { DesignService } from '../../../services/design.service';
 import { SearchContextService } from '../../../services/context/search-context.service';
 import { SelectionService } from '../../../services/selection.service';
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
+import { routeManifest } from '../../../route-manifest';
+import { DisclosureComponent, DisclosureTriggerDirective } from '../disclosure/disclosure.component';
 
 
 @Component({
@@ -19,8 +21,10 @@ import { ActionOverlayContextService } from '../../../services/context/action-co
   imports: [
     RouterLink,
     HistoryComponent,
-    ClassicSpinnerComponent,
-    NgClass
+    ProgressIndicatorComponent,
+    NgClass,
+    DisclosureComponent,
+    DisclosureTriggerDirective
   ],
   template: `
     <nav class="flex flex-col h-full bg-transparent z-50 select-none pt-4 lg:pt-12" aria-label="Navigazione laterale">
@@ -53,27 +57,25 @@ import { ActionOverlayContextService } from '../../../services/context/action-co
       }
       @if (userContext.isLoggedIn()) {
         <!-- Macro Area Menu -->
-        <div class="flex items-center xl:px-0 cursor-pointer xl:cursor-default select-none" (click)="toggleFeatures()">
-          <h6 class="detail mb-0">Funzionalità</h6>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 640 640"
-            class="h-4 w-4 fill-current transition-transform duration-300 xl:hidden relative -top-0.5"
-            [class.rotate-180]="featuresOpen()"
-          >
-            <path d="M320.1 438.6L331.4 427.3L491.4 267.3L502.7 256L480.1 233.4L468.8 244.7L320.1 393.4L171.4 244.7L160.1 233.4L137.5 256L148.8 267.3L308.8 427.3L320.1 438.6z"/>
-          </svg>
-        </div>
-        <div
-          class="transition-[max-height,opacity] duration-300 ease-in-out overflow-hidden"
-          [class.max-h-0]="!featuresOpen() && designService.maxBk('xl')()"
-          [class.opacity-0]="!featuresOpen() && designService.maxBk('xl')()"
-          [class.max-h-[200vh]]="featuresOpen() || designService.minBk('xl')()"
-          [class.opacity-100]="featuresOpen() || designService.minBk('xl')()"
-          [class.lg:max-h-[200vh]]="true"
-          [class.lg:opacity-100]="true"
-        >
-          <a class="sidebar-link" routerLink="molecules/all-my-molecules" (click)="handleMenuItemClick()"
+        <m-disclosure
+          id="sidenav-features"
+          [expanded]="featuresOpen() || designService.minBk('xl')()"
+          panelClass="m-disclosure__panel"
+          (toggled)="setFeaturesExpanded($event)">
+          <ng-template mDisclosureTrigger>
+            <span class="flex items-center xl:px-0 cursor-pointer xl:cursor-default select-none w-full text-left">
+              <span class="detail mb-0">Funzionalità</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 640 640"
+                class="h-4 w-4 fill-current transition-transform duration-300 xl:hidden relative -top-0.5"
+                [class.rotate-180]="featuresOpen()"
+              >
+                <path d="M320.1 438.6L331.4 427.3L491.4 267.3L502.7 256L480.1 233.4L468.8 244.7L320.1 393.4L171.4 244.7L160.1 233.4L137.5 256L148.8 267.3L308.8 427.3L320.1 438.6z"/>
+              </svg>
+            </span>
+          </ng-template>
+          <a class="sidebar-link" [routerLink]="routes.myMolecules.build({})" (click)="handleMenuItemClick()"
               [class.bg-slate-300/65]="s.getActiveHeaderSelection('my-molecules')"
               [class.dark:bg-slate-700/80]="s.getActiveHeaderSelection('my-molecules')">
             <div
@@ -90,7 +92,7 @@ import { ActionOverlayContextService } from '../../../services/context/action-co
             <span class="sidebar-item-text">Le mie molecole</span>
           </a>
           <a class="sidebar-link"
-              routerLink="molecules/collections"
+              [routerLink]="routes.collections.build({})"
               (click)="handleMenuItemClick()"
               [class.bg-slate-300/65]="s.getActiveHeaderSelection('my-collections')"
               [class.dark:bg-slate-700/80]="s.getActiveHeaderSelection('my-collections')">
@@ -122,9 +124,9 @@ import { ActionOverlayContextService } from '../../../services/context/action-co
             <span class="sidebar-item-text">Importa da ChEMBL</span>
           </button>
           <!-- ...altre macro aree -->
-        </div>
+        </m-disclosure>
         <a class="sidebar-link"
-           [routerLink]="'/molecules/editor'"
+           [routerLink]="routes.moleculeEditor.build({})"
            [queryParams]="{ mode: 'create' }"
            (click)="handleMenuItemClick()"
            [class.bg-slate-300/65]="s.getActiveHeaderSelection('edit-molecule')"
@@ -151,7 +153,7 @@ import { ActionOverlayContextService } from '../../../services/context/action-co
             <h6 class="detail">Cronologia</h6>
             @if (triggerDelete()) {
               <div>
-                <m-classic-spinner [size]="16" class="block mt-2 mr-5" />
+                <m-progress-indicator [size]="16" class="block mt-2 mr-5" />
               </div>
             } @else {
               <button
@@ -198,7 +200,7 @@ import { ActionOverlayContextService } from '../../../services/context/action-co
         <!-- Menu per utente non loggato -->
         <h6 class="detail">Piacere di averti qui.</h6>
         <div [class.px-2]="userContext.isLoggedOut()">
-          <a class="sidebar-link" (click)="handleMenuItemClick()" routerLink="/login">
+          <a class="sidebar-link" (click)="handleMenuItemClick()" [routerLink]="routes.login.build({})">
             <div
               class="flex size-9 shrink-0 items-center justify-center
                      rounded-xl border border-slate-400/70 dark:border-slate-500/60
@@ -212,7 +214,7 @@ import { ActionOverlayContextService } from '../../../services/context/action-co
             </div>
             <span class="sidebar-item-text">Accedi</span>
           </a>
-          <a class="sidebar-link" (click)="handleMenuItemClick()" routerLink="/register">
+          <a class="sidebar-link" (click)="handleMenuItemClick()" [routerLink]="routes.register.build({})">
             <div
               class="flex size-9 shrink-0 items-center justify-center
                      rounded-xl border border-slate-400/70 dark:border-slate-500/60
@@ -226,7 +228,7 @@ import { ActionOverlayContextService } from '../../../services/context/action-co
             </div>
             <span class="sidebar-item-text">Registrati</span>
           </a>
-          <a class="sidebar-link" (click)="handleMenuItemClick()" routerLink="/contact-us">
+          <a class="sidebar-link" (click)="handleMenuItemClick()" [routerLink]="routes.contacts.build({})">
             <div
               class="flex size-9 shrink-0 items-center justify-center
                      rounded-xl border border-slate-400/70 dark:border-slate-500/60
@@ -244,7 +246,7 @@ import { ActionOverlayContextService } from '../../../services/context/action-co
         <hr class="border-slate-300 dark:border-slate-600 my-2" />
         <div class="mb-4" [class.px-2]="userContext.isLoggedOut()">
           <h6 class="detail">Documenti</h6>
-          <a class="sidebar-link" (click)="handleMenuItemClick()" routerLink="/terms-and-policies">
+          <a class="sidebar-link" (click)="handleMenuItemClick()" [routerLink]="routes.terms.build({})">
             <div
               class="flex size-9 shrink-0 items-center justify-center
                      rounded-xl border border-slate-400/70 dark:border-slate-500/60
@@ -258,7 +260,7 @@ import { ActionOverlayContextService } from '../../../services/context/action-co
             </div>
             <span class="sidebar-item-text">Termini e Policy</span>
           </a>
-          <a class="sidebar-link" (click)="handleMenuItemClick()" routerLink="/privacy">
+          <a class="sidebar-link" (click)="handleMenuItemClick()" [routerLink]="routes.privacy.build({})">
             <div
               class="flex size-9 shrink-0 items-center justify-center
                      rounded-xl border border-slate-400/70 dark:border-slate-500/60
@@ -295,6 +297,7 @@ import { ActionOverlayContextService } from '../../../services/context/action-co
   `]
 })
 export class SidenavComponent implements OnInit, OnDestroy {
+  protected readonly routes = routeManifest
 
   private readonly historyService = inject(HistoryService)
   protected readonly userContext = inject(UserContextService)
@@ -324,19 +327,19 @@ export class SidenavComponent implements OnInit, OnDestroy {
 
     let activeKey: string | null = null
 
-    if (currentPath === '/molecules/all-my-molecules') {
+    if (currentPath === routeManifest.myMolecules.build({})) {
       activeKey = 'my-molecules'
     }
 
-    if (currentPath === '/molecules/collections') {
+    if (currentPath === routeManifest.collections.build({})) {
       activeKey = 'my-collections'
     }
 
-    if (currentPath === '/molecules/editor') {
+    if (currentPath === routeManifest.moleculeEditor.build({})) {
       activeKey = 'edit-molecule'
     }
 
-    this.isWelcomePath.set(currentPath.startsWith('/welcome'))
+    this.isWelcomePath.set(currentPath.startsWith(`/${routeManifest.welcome.path}`))
 
     this.s.setHeaderSelections(keys.map((k) => this.s.generateHeaderSelection(k, k === activeKey)))
   }
@@ -356,9 +359,9 @@ export class SidenavComponent implements OnInit, OnDestroy {
     this.s.clearHeaderSelections()
   }
 
-  toggleFeatures(): void {
+  setFeaturesExpanded(expanded: boolean): void {
     if (this.designService.minBk('xl')()) return
-    this.featuresOpen.update(v => !v)
+    this.featuresOpen.set(expanded)
   }
 
   doDeleteHistory(): void {

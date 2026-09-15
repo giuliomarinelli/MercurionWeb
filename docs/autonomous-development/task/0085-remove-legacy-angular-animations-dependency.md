@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -101,6 +101,10 @@ Do not confuse peer-dependency entries in `package-lock.json` with direct applic
 
 ## Execution notes
 
+> Current status (2026-09-11): PENDING. The planner identified the prior
+> dependency skip as stale after direct owner re-enablement of its prerequisite
+> chain; historical skip evidence below is retained only for traceability.
+
 ### Feature branch
 _Not started._
 
@@ -137,3 +141,14 @@ Direct terminal prerequisites: 0071 (UI-013) and 0083 (UI-025), both
 `SKIPPED_DEPENDENCY`. Their transitive dependency chains include FE-030
 (BLOCKED, requiring a filesystem-write-capable worker) and UI-018 (BLOCKED,
 requiring a test-safe local Nest runtime for mandatory browser validation).
+
+
+### Dependency skip
+
+Direct terminal prerequisite: 0077 (), terminal non-DONE dependency.
+
+### Dependency skip
+
+Direct terminal prerequisite: `0071` (`UI-013`), `BLOCKED`; the other direct
+prerequisite `0083` remains pending. This task was materialized in the new
+terminal closure on 2026-09-13.

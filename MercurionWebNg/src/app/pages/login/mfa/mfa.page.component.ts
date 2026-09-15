@@ -2,27 +2,27 @@ import { NgClass } from '@angular/common'
 import { Component, ElementRef, inject, OnDestroy, OnInit, signal, ChangeDetectionStrategy, viewChild } from '@angular/core'
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms'
 import { ActivatedRoute, Router, RouterLink } from '@angular/router'
-import { combineLatest, debounceTime, distinctUntilChanged, EMPTY, filter, map, Subscription, switchMap, throwError } from 'rxjs'
-import { Login_FirstStep_Data } from '../../../Models/confirm.models'
-import { AuthService } from '../../../services/auth.service'
+import { combineLatest, debounceTime, distinctUntilChanged, EMPTY, filter, map, Subscription, switchMap } from 'rxjs'
+import type { PersistedPreAuthState } from '../../../Models/auth/pre-auth.models'
 import { FingerprintService } from '../../../services/fingerprint.service'
-import { HttpErrorBody } from '../../../Models/http-error-body.dto'
-import {
-  ApplicationErrorCode,
-  getApplicationErrorCode,
-  hasApplicationErrorCode
-} from '../../../utils/application-error.util';
 import { AuthStateStore } from '../../../services/auth-state.store'
+import { AuthSessionPersistenceService } from '../../../services/auth-session-persistence.service'
 import { SessionSyncService } from '../../../services/session-sync.service'
 import type { SessionDeviceInfo } from '@mercurion/rest-contracts'
-import { BackupCodeDTO, TotpBodyDTO } from '../../../Models/auth/totp.models'
 import { ToastService } from '../../../services/toast.service'
-import { ClassicSpinnerComponent } from '../../../components/common/classic-spinner/classic-spinner.component'
+import { ProgressIndicatorComponent } from '../../../components/common/progress-indicator/progress-indicator.component'
 import { HttpErrorResponse } from '@angular/common/http'
 import { MfaStrategy, MfaView } from '../../../Models/account/account.models'
 import { MfaStrategyCardComponent } from '../../../components/common/mfa-strategy-card/mfa-strategy-card.component'
 import { ɵɵRouterLink } from "@angular/router/testing";
 import { DesignService } from '../../../services/design.service'
+import { AuthRedirectService } from '../../../services/auth-redirect.service'
+import { AuthErrorService } from '../../../services/auth-error.service'
+import {
+  MfaFlowState,
+  MfaStrategyRegistry,
+  MfaStrategySession
+} from './mfa-flow.strategy'
 
 @Component({
   selector: 'm-mfa',
@@ -30,7 +30,7 @@ import { DesignService } from '../../../services/design.service'
   imports: [
     ReactiveFormsModule,
     NgClass,
-    ClassicSpinnerComponent,
+    ProgressIndicatorComponent,
     MfaStrategyCardComponent,
     ɵɵRouterLink
 ],
@@ -159,7 +159,7 @@ import { DesignService } from '../../../services/design.service'
                   <span>Verifica</span>
                 } @else {
                   <div class="text-slate-200 flex items-center justify-center">
-                    <m-classic-spinner [size]="24"></m-classic-spinner>
+                    <m-progress-indicator [size]="24"></m-progress-indicator>
                   </div>
                 }
               </button>
@@ -208,20 +208,23 @@ import { DesignService } from '../../../services/design.service'
     } @else {
       <div class="absolute inset-0 flex justify-center items-center">
         @if (design.maxBk('md')()) {
-          <m-classic-spinner [size]="30" />
+          <m-progress-indicator [size]="30" />
         } @else if (design.minBk('md')()) {
-          <m-classic-spinner [size]="60" />
+          <m-progress-indicator [size]="60" />
         }
       </div>
     }
   `
 })
 export class MfaPageComponent implements OnInit, OnDestroy {
+  private readonly persistence = inject(AuthSessionPersistenceService)
+  private readonly redirects = inject(AuthRedirectService)
+  private readonly authErrors = inject(AuthErrorService)
+  private readonly strategyRegistry = inject(MfaStrategyRegistry)
 
   private readonly route = inject(ActivatedRoute)
   private readonly router = inject(Router)
   private readonly fb = inject(FormBuilder)
-  private readonly authService = inject(AuthService)
   private readonly fingerprintService = inject(FingerprintService)
   private readonly sessionSyncService = inject(SessionSyncService)
   private readonly authState = inject(AuthStateStore)
@@ -233,6 +236,7 @@ export class MfaPageComponent implements OnInit, OnDestroy {
   private paramsSub?: Subscription
   private otpStateSub?: Subscription
   private otpVerifySub?: Subscription
+  private strategySession?: MfaStrategySession
 
   protected view = signal<MfaView>('')
   protected serverError = signal<boolean>(false)
@@ -247,8 +251,9 @@ export class MfaPageComponent implements OnInit, OnDestroy {
   protected isOtpEmpty = signal<boolean>(true)
   protected loading = signal<boolean>(false)
   protected canView = signal<boolean>(false)
+  protected state = signal<MfaFlowState>({ kind: 'initializing' })
 
-  protected loginFirstStepData: Login_FirstStep_Data | null | undefined
+  protected loginFirstStepData: PersistedPreAuthState | null | undefined
 
   private fingerprintDataEnc = ''
   private sessionDeviceInfo: SessionDeviceInfo = {
@@ -259,41 +264,12 @@ export class MfaPageComponent implements OnInit, OnDestroy {
 
   private pollInterval!: ReturnType<typeof setInterval>
 
-  private readonly redirectKey = 'redirectAfterLogin'
-
-  private sanitizeRedirectTo(raw: string | null | undefined): string | null {
-    const v = (raw ?? '').trim()
-    if (!v) return null
-
-    // hardening minimo: accetta solo path interni
-    if (!v.startsWith('/')) return null
-    if (v.startsWith('//')) return null
-
-    return v
-  }
-
-  private getRedirectToQP(): string | null {
-    return this.sanitizeRedirectTo(this.route.snapshot.queryParamMap.get('redirect_to'))
-  }
-
   private resolveRedirectTarget(): string {
-    // ✅ query param vince SEMPRE
-    const qp = this.getRedirectToQP()
-    if (qp) return qp
-
-    const ss = this.sanitizeRedirectTo(sessionStorage.getItem(this.redirectKey))
-    return ss ?? '/dashboard'
-  }
-
-  private buildRedirectQp(): any {
-    const qp: any = {}
-    const r = this.getRedirectToQP()
-    if (r) qp.redirect_to = r
-    return qp
+    return this.redirects.consume()
   }
 
   private gotoLoginPreservingRedirect(): void {
-    this.router.navigate(['/login'], { queryParams: this.buildRedirectQp() })
+    this.router.navigate(['/login'])
   }
 
 
@@ -301,67 +277,38 @@ export class MfaPageComponent implements OnInit, OnDestroy {
     if (e.key === 'login' && e.newValue) {
       if (this.router.url.startsWith('/login')) {
         this.authState.syncExternalState()
-        this.router.navigateByUrl(this.resolveRedirectTarget())
+        window.location.assign(this.resolveRedirectTarget())
       }
     }
   }
 
 
   async ngOnInit(): Promise<void> {
-
     window.addEventListener('storage', this.storageListener)
-
     this.pollInterval = setInterval(() => {
       if (document.hidden) return
       if (!this.router.url.startsWith('/login')) return
-
-      if (localStorage.getItem('login')) {
+      if (this.persistence.getInitials()) {
         this.router.navigateByUrl(this.resolveRedirectTarget())
       }
     }, 1000)
 
-
-    // 1) fingerprint
     const { fingerprintDataEnc, sessionDeviceInfo } = await this.fingerprintService.getSanitizedFingerprint()
     this.fingerprintDataEnc = fingerprintDataEnc
     this.sessionDeviceInfo = sessionDeviceInfo
 
-    // 2) form
     this.codeControl = this.fb.control(null, [Validators.required])
     this.phoneControl = this.fb.control(null, [Validators.required])
 
-    // 3) preAuthorizationData
-    const raw = sessionStorage.getItem('preAuthorizationData')
-    if (!raw) {
+    const preAuth = this.persistence.readPreAuthState()
+    if (preAuth.status !== 'valid') {
+      this.state.set({ kind: 'terminal-invalid', reason: preAuth.status })
       this.router.navigateByUrl('/403-forbidden')
       return
     }
+    this.loginFirstStepData = preAuth.state
+    this.authState.enterPreAuthentication(preAuth.state.preAuthorizationToken)
 
-    try {
-      this.loginFirstStepData = JSON.parse(atob(raw)) as Login_FirstStep_Data
-    } catch {
-      this.router.navigateByUrl('/403-forbidden')
-      return
-    }
-
-    this.authState.enterPreAuthentication(this.loginFirstStepData?.preAuthorizationToken)
-
-    // 4) auto-verify otp a 6 cifre
-    this.otpStateSub = this.codeControl.valueChanges.pipe(
-      filter(val => !!val),
-      debounceTime(300),
-      distinctUntilChanged(),
-    ).subscribe((code: string) => {
-      if (this.view() !== 'BACKUP_CODE' && code.length === 6) {
-        this.loading.set(true)
-        this.verifyCode()
-      } else if (this.view() === 'BACKUP_CODE' && code.length === 14) {
-        this.loading.set(true)
-        this.verifyCode()
-      }
-    })
-
-    // 5) parametri route
     this.paramsSub = combineLatest([
       this.route.paramMap,
       this.route.queryParamMap
@@ -369,95 +316,83 @@ export class MfaPageComponent implements OnInit, OnDestroy {
       map(([params, query]) => {
         const view = params.get('view') as MfaView | null
         const trustVerify = (query.get('trust_verify') ?? 'false') === 'true'
-        const redirectTo = this.sanitizeRedirectTo(query.get('redirect_to'))
-        return { view, trustVerify, redirectTo }
+        return { view, trustVerify }
       }),
-      switchMap(({ view, trustVerify, redirectTo }) => {
-        // ✅ se arriva redirect_to in query, lo teniamo anche in sessionStorage (fallback)
-        if (redirectTo) sessionStorage.setItem(this.redirectKey, redirectTo)
-
+      switchMap(({ view, trustVerify }) => {
+        this.redirects.captureQueryParam(this.route.snapshot.queryParamMap.get('redirect_to'))
         if (!view || !this.viewList.includes(view)) {
+          this.state.set({ kind: 'terminal-invalid', reason: 'unsupported' })
           this.router.navigateByUrl('/403-forbidden')
           return EMPTY
         }
-
         this.view.set(view)
-
-        // CHOOSE_METHOD: solo UI, niente chiamate
         if (view === 'CHOOSE_METHOD') {
-          this.loading.set(false)
-          this.canView.set(true)
-
-          const pdRaw = sessionStorage.getItem('preAuthorizationData')
-          if (!pdRaw) {
-            this.router.navigateByUrl('/403-forbidden')
-            return EMPTY
-          }
-
-          try {
-            const pd: Login_FirstStep_Data = JSON.parse(atob(pdRaw))
-            this.enabledMfaStrategies.set(pd.enabledMfaStrategies as MfaStrategy[])
-            return EMPTY
-          } catch {
-            this.router.navigateByUrl('/403-forbidden')
-            return EMPTY
-          }
-        }
-
-        // APP_TOTP: mostra input ma NON invia OTP
-        if (view === 'APP_TOTP') {
+          this.enabledMfaStrategies.set(preAuth.state.enabledMfaStrategies)
+          this.state.set({ kind: 'challenge-ready', strategy: preAuth.state.enabledMfaStrategies[0] })
           this.loading.set(false)
           this.canView.set(true)
           return EMPTY
         }
-
-        if (view === 'BACKUP_CODE') {
-          this.loading.set(false)
-          this.canView.set(true)
+        const strategy = this.strategyRegistry.create(view, {
+          preAuth: preAuth.state,
+          fingerprintBase64: this.fingerprintDataEnc,
+          sessionDeviceInfo: this.sessionDeviceInfo,
+          trustVerify: view === 'EMAIL_OTP' && trustVerify
+        })
+        if (!strategy) {
+          this.state.set({ kind: 'terminal-invalid', reason: 'unsupported' })
+          this.router.navigateByUrl('/403-forbidden')
           return EMPTY
         }
-
-        const mustVerify = view === 'EMAIL_OTP' && trustVerify
-        this.unTrusted.set(mustVerify)
-
-        if (!['EMAIL_OTP', 'SMS_OTP'].includes(view)) {
-          return throwError(() => new Error('InvalidMethod'))
-        }
-
-        // EMAIL/SMS: invio OTP
-        return this.authService.login_secondStep(
-          view as 'EMAIL_OTP' | 'SMS_OTP',
-          this.loginFirstStepData?.preAuthorizationToken ?? '',
-          this.unTrusted()
-        )
+        this.strategySession?.cancel()
+        this.strategySession = strategy
+        this.unTrusted.set(view === 'EMAIL_OTP' && trustVerify)
+        this.state.set({ kind: 'initializing', strategy: strategy.strategy })
+        this.loading.set(true)
+        this.otpStateSub?.unsubscribe()
+        this.otpStateSub = this.codeControl.valueChanges.pipe(
+          filter(value => typeof value === 'string' && value.length === strategy.codeLength),
+          debounceTime(300),
+          distinctUntilChanged()
+        ).subscribe(() => this.verifyCode())
+        return strategy.initialize()
       })
     ).subscribe({
-      next: () => this.canView.set(true),
+      next: () => {
+        const strategy = this.strategySession
+        if (strategy) this.state.set({ kind: 'challenge-ready', strategy: strategy.strategy })
+        this.loading.set(false)
+        this.canView.set(true)
+      },
       error: (e) => {
         if ('error' in e && 'status' in e) {
           const he = e as HttpErrorResponse
           if (he.status === 429) {
+            this.authErrors.setFromHttp(he, 'mfa')
             this.toast.trigger('Troppi tentativi, riprova tra qualche minuto.', 'error', 3000)
             this.gotoLoginPreservingRedirect()
             return
           }
           if (he.status === 401) {
-            if (hasApplicationErrorCode(he.error, ApplicationErrorCode.MFA_PREAUTHORIZATION_EXPIRED)) {
+            const authError = this.authErrors.setFromHttp(he, 'mfa')
+            if (authError?.category === 'mfa-expired') {
+              this.state.set({ kind: 'terminal-invalid', reason: 'expired' })
               this.toast.trigger('Tempo scaduto. Devi ritentare il login.', 'error', 3000)
               this.gotoLoginPreservingRedirect()
               return
             }
-            if (hasApplicationErrorCode(he.error, ApplicationErrorCode.MFA_CODE_INVALID)) {
-              this.toast.trigger('Codice errato. Devi ritentare il login.', 'error', 3000)
-              this.gotoLoginPreservingRedirect()
-              return
-            }
-            this.toast.trigger('Si è verificato un errore.', 'error', 3000)
-            this.gotoLoginPreservingRedirect()
-            return
           }
         }
-        this.router.navigateByUrl('/403-forbidden')
+        const strategy = this.strategySession
+        if (strategy) {
+          this.state.set({
+            kind: 'recoverable-error',
+            strategy: strategy.strategy,
+            message: 'Non è stato possibile preparare la verifica.'
+          })
+        }
+        this.loading.set(false)
+        this.canView.set(true)
       }
     })
   }
@@ -501,11 +436,11 @@ export class MfaPageComponent implements OnInit, OnDestroy {
   goTo(target: MfaView): void {
     if (!this.viewList.includes(target)) return
 
-    const qp: any = this.buildRedirectQp()
+    const qp: Record<string, boolean> = {}
 
     // preserva trust_verify solo se stiamo andando su EMAIL_OTP
     const trust = this.route.snapshot.queryParamMap.get('trust_verify') === 'true'
-    if (trust && target === 'EMAIL_OTP') qp.trust_verify = true
+    if (trust && target === 'EMAIL_OTP') qp['trust_verify'] = true
 
     this.router.navigate([`/login/mfa/${target}`], { queryParams: qp })
   }
@@ -514,72 +449,52 @@ export class MfaPageComponent implements OnInit, OnDestroy {
   // ---- VERIFY
 
   verifyCode(): void {
-
-    const currentView = this.view()
-
-    if (!['EMAIL_OTP', 'SMS_OTP', 'APP_TOTP', 'BACKUP_CODE'].includes(currentView)) {
+    const strategy = this.strategySession
+    if (!strategy || this.state().kind === 'submitting' || this.state().kind === 'completed') {
       return
     }
-
-    let dto: TotpBodyDTO | BackupCodeDTO = this.view() !== 'BACKUP_CODE' ? {
-      totp: this.codeControl.value
-    }
-      :
-      {
-        code: this.codeControl.value
-      }
-
-    this.otpVerifySub = this.authService.login_thirdStep(
-      currentView as MfaStrategy,
-      dto,
-      {
-        fingerprintBase64: this.fingerprintDataEnc,
-        sessionDeviceInfo: this.sessionDeviceInfo },
-      this.loginFirstStepData?.preAuthorizationToken ?? '',
-      this.unTrusted()
-    ).subscribe({
+    const code = strategy.strategy === 'BACKUP_CODE'
+      ? { code: this.codeControl.value }
+      : { totp: this.codeControl.value }
+    this.state.set({ kind: 'submitting', strategy: strategy.strategy })
+    this.loading.set(true)
+    this.otpVerifySub = strategy.submit(code).subscribe({
       next: (res) => {
-        this.authState.completeAuthentication({
+        this.authErrors.clear()
+        this.authState.activateAuthenticatedSession({
           initials: res.initials ?? 'U',
           accessToken: res.accessToken,
-          wsAccessToken: res.ws_accessToken,
-          scopes: res.accessToken ? this.authService.getUserScopesFromClaims(res.accessToken) : []
+          wsAccessToken: res.ws_accessToken
         })
-        sessionStorage.removeItem('preAuthorizationData')
-
+        this.persistence.consumePreAuthState()
         this.sessionSyncService.resumeSession(res.initials ?? 'U')
-
+        this.state.set({ kind: 'completed', strategy: strategy.strategy })
         this.router.navigateByUrl(this.resolveRedirectTarget())
       },
       error: (e) => {
-        sessionStorage.removeItem('preAuthorizationData')
-
-        let message = 'Si è verificato un errore.'
-        if ('error' in e && 'status' in e) {
-          const errBody: HttpErrorBody = e.error
-          if (e.status === 401) {
-            switch (getApplicationErrorCode(errBody)) {
-              case ApplicationErrorCode.MFA_DEVICE_MISMATCH:
-                message = 'Hai inserito il codice da un altro browser o dispositivo. Accesso negato.'
-                break
-              case ApplicationErrorCode.MFA_CODE_INVALID:
-                message = 'Il codice inserito non è corretto, devi ripetere il login.'
-                break
-              default:
-                message = 'Si è verificato un errore.'
-            }
-          } else if (e.status === 429) {
-            message = 'Troppi tentativi, riprova tra qualche minuto.'
-          }
+        const authError = this.authErrors.setFromHttp(e, 'mfa')
+        if (authError?.category === 'mfa-expired') {
+          this.state.set({ kind: 'terminal-invalid', reason: 'expired' })
+          this.persistence.consumePreAuthState()
+          this.toast.trigger('Tempo scaduto. Devi ritentare il login.', 'error', 3000)
+          this.gotoLoginPreservingRedirect()
+          return
         }
-
-        this.toast.trigger(message, 'error', 3000)
-        this.router.navigateByUrl('/login')
+        this.state.set({
+          kind: 'recoverable-error',
+          strategy: strategy.strategy,
+          message: authError?.message ?? 'Si è verificato un errore.'
+        })
+        this.serverError.set(true)
+        this.toast.trigger(authError?.message ?? 'Si è verificato un errore.', 'error', 3000)
+        this.authErrors.consume()
+        this.loading.set(false)
       }
     })
   }
 
   ngOnDestroy(): void {
+    this.strategySession?.cancel()
     this.paramsSub?.unsubscribe()
     this.otpStateSub?.unsubscribe()
     this.otpVerifySub?.unsubscribe()

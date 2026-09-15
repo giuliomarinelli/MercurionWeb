@@ -1,9 +1,10 @@
 import { ChangeDetectionStrategy, Component, effect, input, signal } from '@angular/core';
 import { NgClass, NgStyle } from '@angular/common';
+import { SkeletonComponent } from '../skeleton/skeleton.component';
 
 @Component({
   selector: 'm-skeleton-collection-card',
-  imports: [NgClass, NgStyle],
+  imports: [NgClass, NgStyle, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div
@@ -27,70 +28,48 @@ import { NgClass, NgStyle } from '@angular/common';
       <!-- Colonna sinistra: 8/12 -->
       <div class="md:col-span-8 flex items-start gap-3 min-w-0">
         <!-- Avatar placeholder -->
-        <div
-          class="hidden sm:block size-9 shrink-0 rounded-xl border
-                 border-slate-200/70 dark:border-slate-700/60
-                 bg-slate-200/70 dark:bg-slate-700/60">
-        </div>
+        <m-skeleton class="hidden sm:block shrink-0" shape="rect" width="2.25rem" height="2.25rem" />
 
         <div class="min-w-0 w-full">
           <!-- Titolo placeholder -->
-          <div class="h-5 w-2/3 rounded-md
-                      bg-slate-200/80 dark:bg-slate-700/70"></div>
+          <m-skeleton width="66.666667%" height="1.25rem" />
 
           <!-- Meta (mobile) -->
           <div class="mt-2 flex md:hidden items-center gap-2">
-            <div class="h-3 w-24 rounded bg-slate-200/70 dark:bg-slate-700/60"></div>
+            <m-skeleton width="6rem" height=".75rem" />
             <span class="h-1 w-1 rounded-full bg-slate-300 dark:bg-slate-600"></span>
-            <div class="h-3 w-20 rounded bg-slate-200/70 dark:bg-slate-700/60"></div>
+            <m-skeleton width="5rem" height=".75rem" />
           </div>
         </div>
       </div>
 
       <!-- Colonna destra: 4/12 -->
       <div class="md:col-span-4 flex md:justify-end items-center gap-3 md:gap-4">
-        <div class="h-6 w-28 rounded-full border
-                    border-slate-200/70 dark:border-slate-700/60
-                    bg-slate-100 dark:bg-slate-800/60"></div>
+        <m-skeleton shape="rect" width="7rem" height="1.5rem" />
 
-        <div class="hidden md:block h-4 w-4 rounded bg-slate-200/70 dark:bg-slate-700/60"></div>
+        <m-skeleton class="hidden md:block" width="1rem" height="1rem" />
       </div>
 
       <!-- Footer: meta + (azioni placeholder se non readonly) -->
       <div class="md:col-span-12 mt-1 md:mt-0 flex items-center justify-between">
         <!-- Meta left -->
         <div class="flex items-center gap-3">
-          <div class="h-3 w-36 rounded bg-slate-200/70 dark:bg-slate-700/60"></div>
+          <m-skeleton width="9rem" height=".75rem" />
           <span class="size-1 rounded-full bg-slate-300 dark:bg-slate-600"></span>
-          <div class="h-3 w-32 rounded bg-slate-200/70 dark:bg-slate-700/60"></div>
+          <m-skeleton width="8rem" height=".75rem" />
         </div>
 
         <!-- Azioni right (solo se !readonly) -->
         @if (!_isReadonly()) {
           <div class="flex items-center gap-3">
             <!-- Duplica (icona) -->
-            <div
-              class="h-7 w-7 rounded-md border
-                     border-slate-200/70 dark:border-slate-700/60
-                     bg-slate-200/70 dark:bg-slate-700/60"
-              aria-hidden="true">
-            </div>
+            <m-skeleton shape="rect" width="1.75rem" height="1.75rem" />
 
             <!-- Elimina (icona) -->
-            <div
-              class="h-7 w-7 rounded-md border
-                     border-slate-200/70 dark:border-slate-700/60
-                     bg-slate-200/70 dark:bg-slate-700/60"
-              aria-hidden="true">
-            </div>
+            <m-skeleton shape="rect" width="1.75rem" height="1.75rem" />
 
             <!-- Aggiungi molecole (pill) -->
-            <div
-              class="h-7 w-28 rounded-md border
-                     border-slate-300 dark:border-slate-600
-                     bg-slate-100 dark:bg-slate-800/60"
-              aria-hidden="true">
-            </div>
+            <m-skeleton shape="rect" width="7rem" height="1.75rem" />
           </div>
         }
       </div>

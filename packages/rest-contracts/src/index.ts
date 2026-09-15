@@ -1,5 +1,8 @@
 import type { ApplicationErrorEnvelope } from './application-error-envelope'
 
+export { LOCAL_DUMMY_AUTH } from './local-dummy-auth'
+export type { LocalDummyAuthMarker } from './local-dummy-auth'
+
 export type RestContractVersion = '1.0.0'
 
 export {
@@ -19,6 +22,27 @@ export {
   isApplicationErrorEnvelope,
   isApplicationErrorEnvelopeCode
 } from './application-error-envelope'
+export {
+  CONTRACT_VERSION_HEADER,
+  CONTRACT_VERSION_RESPONSE_HEADERS,
+  CURRENT_CONTRACT_MAJOR,
+  LEGACY_UNVERSIONED_CONTRACT_WARNING,
+  PUBLIC_CONTRACT_VERSION_METADATA,
+  SUPPORTED_CONTRACT_MAJOR_RANGE,
+  contractVersionDetails,
+  contractVersionWarning,
+  formatSupportedMajorRange,
+  negotiateContractMajor,
+  negotiateContractMajorForPolicy,
+  restMajorFromPath
+} from './contract-versioning'
+export type {
+  ContractMajor,
+  ContractVersionPolicy,
+  ContractVersionSelection,
+  DeprecationMetadata,
+  SupportedMajorRange
+} from './contract-versioning'
 export type {
   ApplicationErrorEnvelope,
   ApplicationErrorEnvelopeCode,

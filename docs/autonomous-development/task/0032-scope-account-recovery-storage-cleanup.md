@@ -1,6 +1,6 @@
 # 0032 - Scope account-recovery storage cleanup
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -105,27 +105,61 @@ This task should be small after `0028`: recovery should call semantic operations
 
 ### Summary
 
-Skipped without implementation because hard prerequisites
-`0026-create-canonical-angular-auth-state-store.md` (`FE-004`) is `BLOCKED`
-and `0028-encapsulate-auth-session-browser-persistence.md` (`FE-006`) is
-`SKIPPED_DEPENDENCY`.
+Implemented FE-010 on `feature/FE-010`. Account recovery now delegates to the
+canonical `AuthStateStore.beginRecovery()` transition. The store first moves
+the state to anonymous, then invokes the existing semantic persistence
+operations for authenticated, pre-auth, and ephemeral auth/session data. No
+recovery code knows or duplicates browser-storage key names.
 
 ### Validation performed
 
-No task branch or worker was created. Direct prerequisites: `FE-004` is
-`BLOCKED`; `FE-006` is `SKIPPED_DEPENDENCY`. Transitive dependency chain:
-`FE-010` -> `FE-004` (`BLOCKED`) and `FE-006` (`SKIPPED_DEPENDENCY`) ->
-`FE-004` (`BLOCKED`).
+- Initial task-start process probe: no Angular, Nest, Tox21, test watcher, or
+  other workspace-consuming task/session process was active. The listed Node
+  processes were MCP/CLI infrastructure only.
+- `npm ci`: passed on Node 22.16.0/npm 10.9.2 (existing engine/deprecation and
+  audit warnings only).
+- `npm run ci:check`: passed unchanged at base
+  `9d0f0b2f91bddca834d5f42af7a0b42a4931eb85`.
+- Focused Angular specs: `npx ng test --watch=false
+  --karma-config=karma.conf.js
+  --include=src/app/services/recovery.service.spec.ts
+  --include=src/app/services/auth-session-persistence.service.spec.ts
+  --include=src/app/services/auth-state.store.spec.ts`: 22/22 passed.
+- Angular build: `npm run build --workspace mercurion_web_ng`: passed; existing
+  bundle/CommonJS budget warnings only.
+- Final pre-integration process probe: no task-owned workspace process was
+  active before the clean install.
+- Final `npm ci`: passed.
+- Final `npm run ci:check`: passed completely, including autonomous validation,
+  lint, typecheck, all Angular/Nest tests, builds, GraphQL, and static checks.
+- Browser-storage search:
+  `Get-ChildItem MercurionWebNg\src -Recurse -File | Select-String -Pattern
+  'localStorage\.clear\(\)|sessionStorage\.clear\(\)'` found only test
+  setup/teardown. No production auth/session blanket clear remains.
+- The other auth/session cleanup call sites use the canonical store or
+  persistence adapter. No additional production blanket-clear responsibility
+  required routing or a later-task note.
 
 ### Browser validation performed
 
-Not applicable; the task was skipped before implementation.
+Not required by this recipe. Deterministic adapter/store tests cover the
+storage contract and canonical recovery transition.
 
 ### Changed files
 
-No files changed; only this task metadata was updated.
+- `MercurionWebNg/src/app/services/recovery.service.ts`
+- `MercurionWebNg/src/app/services/recovery.service.spec.ts`
+- `MercurionWebNg/src/app/services/auth-state.store.ts`
+- `MercurionWebNg/src/app/services/auth-state.store.spec.ts`
+- `MercurionWebNg/src/app/services/auth-session-persistence.service.spec.ts`
+- `docs/autonomous-development/task/0032-scope-account-recovery-storage-cleanup.md`
+
+### Commits
+
+- `1cfaedc1` — `fix(auth): scope recovery storage cleanup`
+- Final task notes/status commit follows this validation.
 
 ### Blocker / human decision required
 
-No implementation blocker. The task may be re-enabled only after its hard
-dependency chain is deliberately resolved in a new authorized session.
+None. Final clean-install CI-parity validation is recorded below before
+integration.

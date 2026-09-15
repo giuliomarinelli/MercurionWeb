@@ -1,6 +1,6 @@
 # 0029 - Preserve authorization scopes through every login flow
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -110,23 +110,65 @@ Prefer an operation such as `activateAuthenticatedSession(result)` owned by the 
 
 ### Summary
 
-Skipped without implementation because hard prerequisites `0026-create-canonical-angular-auth-state-store.md` (`FE-004`) is terminal `BLOCKED` and `0028-encapsulate-auth-session-browser-persistence.md` (`FE-006`) is terminal `SKIPPED_DEPENDENCY`. The canonical auth owner and persistence adapter are not available on `develop`.
+Implemented canonical scope establishment at the Angular auth-state boundary.
+Direct password login, MFA completion, and SSO completion now all activate the
+accepted session through `AuthStateStore.activateAuthenticatedSession()`.
+Scopes are derived from the final accepted access token exactly once at that
+boundary; an absent or empty `scp` claim replaces any previous scope set with
+an empty set. Access-token refreshes use the same derivation, while logout,
+invalidation, session replacement, and pre-auth cleanup continue to clear the
+persisted scope cache.
 
 ### Validation performed
 
-- No task branch or worker was created.
-- Direct prerequisites: `FE-004` is `BLOCKED`; `FE-006` is `SKIPPED_DEPENDENCY`.
-- Transitive dependency chain: `FE-007` -> `FE-004` (`BLOCKED`) and `FE-006` (`SKIPPED_DEPENDENCY`) -> `FE-004` (`BLOCKED`).
+- Unchanged task-start preflight on base `f82ba8cc06953297e3b7bda49f2ee45f2f2daac5`:
+  `npm ci` passed and `npm run ci:check` passed.
+- Angular typecheck: `npm run typecheck --workspace mercurion_web_ng`
+  passed.
+- Angular unit tests: `npm run test:ci --workspace mercurion_web_ng` passed,
+  311/311.
+- Angular build: `npm run build --workspace mercurion_web_ng` passed; only
+  existing bundle-budget/CommonJS warnings were reported.
+- Regression coverage verifies token-derived scopes, empty-claim replacement
+  during a two-user transition, and logout cleanup. A source audit confirmed
+  login/MFA/SSO completion paths converge on the canonical activation method
+  and no longer manually write scopes.
+- An initial test run exposed an assertion that still expected caller-supplied
+  scopes; it was corrected to assert canonical derivation, then the complete
+  Angular suite passed.
 
 ### Browser validation performed
 
-Not applicable; the task was skipped before implementation.
+Not run. The recipe makes browser evidence conditional on deterministic local
+credentials; no approved non-production credentials or deterministic login
+fixture was available. No runtime process or browser profile state was
+changed.
 
 ### Changed files
 
-No files changed; only this task metadata was updated.
+- `MercurionWebNg/src/app/services/auth-state.store.ts`
+- `MercurionWebNg/src/app/services/auth-state.store.spec.ts`
+- `MercurionWebNg/src/app/services/auth.service.ts`
+- `MercurionWebNg/src/app/interceptors/auth.interceptor.ts`
+- `MercurionWebNg/src/app/pages/login/login.page.component.ts`
+- `MercurionWebNg/src/app/pages/login/mfa/mfa.page.component.ts`
+- `MercurionWebNg/src/app/pages/sso/sso.page.component.ts`
+- `docs/architecture/rest-route-ownership.json`
+- `docs/architecture/rest-contract-compatibility.json`
+- Commits: `4ec45c1f` implementation, `f666bc5f` task completion notes,
+  `64ba4a07` REST route inventory refresh, `28d406f3` REST compatibility
+  inventory refresh.
 
 ### Blocker / human decision required
 
-No implementation blocker. The task may be re-enabled only after its hard
-dependency chain is deliberately resolved in a new authorized session.
+No implementation blocker. The authenticated browser portion remains
+unavailable without approved deterministic credentials; unit, typecheck, build,
+and canonical CI validation remain mandatory and are being performed.
+
+### Final gate
+
+- After stopping all task-owned processes, final `npm ci` passed.
+- Final `npm run ci:check` passed on the feature branch after refreshing the
+  two required generated REST inventories. The aggregate covered autonomous
+  recipe/runner validation, lint, typecheck, Angular and Nest tests/builds,
+  GraphQL checks, contract checks, and static policy checks.

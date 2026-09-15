@@ -16,18 +16,18 @@ import { UserService } from 'src/app_modules/user/services/user.service';
 import { TurnstileGuard } from '../guards/turnstile.guard';
 import { SercurityService } from '../services/sercurity.service';
 import { ProfileDTO, ProfileRegistryClientDTO, ProfileRegistryDTO } from '../Models/DTO/profile.dtos';
-import { SessionService } from '../services/session.service';
 import { SessionDTO } from '../Models/DTO/session.dto';
 import { BackupCodeStatusDTO } from 'src/app_modules/user/Models/DTO/backup-code-status.dto';
 import { ConfigService } from '@nestjs/config';
 import { ProvidedEmailDTO } from '../Models/DTO/provided-email.dto';
 import { VersionDTO } from '../Models/DTO/version.dto';
-import type { AuthProvider as WireAuthProvider, BackupCodesDTO } from '@mercurion/rest-contracts'
+import type { AuthProvider as WireAuthProvider, BackupCodesDTO, MfaStrategy as WireMfaStrategy } from '@mercurion/rest-contracts'
 import {
     ApplicationErrorCode,
     applicationError,
     isApplicationError
 } from 'src/exception-handling/application-error'
+import { ListActiveSessionsHandler } from '../application/session-authentication.handlers';
 
 
 
@@ -41,7 +41,7 @@ export class AccountController {
         private readonly mfaService: MfaService,
         private readonly userService: UserService,
         private readonly securityService: SercurityService,
-        private readonly sessionService: SessionService,
+        private readonly listActiveSessions: ListActiveSessionsHandler,
         private readonly configService: ConfigService
     ) { }
 
@@ -275,7 +275,10 @@ export class AccountController {
         @AuthenticatedUserId() userId: UUID,
         @SessionId() sessionId: UUID
     ): Promise<SessionDTO[]> {
-        return this.sessionService.getAllActiveSessionsByUserIdAsDTOs(userId, sessionId)
+        return this.listActiveSessions.execute({
+            userId,
+            currentSessionId: sessionId
+        })
     }
 
     @Get('/mfa/backup/status')
@@ -310,10 +313,10 @@ export class AccountController {
     }
 
     @Get('/mfa-active-strategies')
-    public async getMfaActiveStrategies(@AuthenticatedUserId() userId: UUID): Promise<string[]> {
+    public async getMfaActiveStrategies(@AuthenticatedUserId() userId: UUID): Promise<WireMfaStrategy[]> {
         return (await this.mfaService.getEnabledMfaStrategies(userId))
             .map((val) => GeneralUtils.getEnumKeyByValue(MfaStrategy, val))
-            .filter((key) => key != undefined)
+            .filter((key): key is WireMfaStrategy => key != undefined)
     }
 
     @Get('/current-version')

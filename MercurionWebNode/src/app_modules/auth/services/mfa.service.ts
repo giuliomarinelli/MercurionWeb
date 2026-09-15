@@ -3,9 +3,8 @@ import { UUID } from 'crypto';
 import { SercurityService } from './sercurity.service';
 import { UserService } from 'src/app_modules/user/services/user.service';
 import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum';
-import { InjectRepository } from '@nestjs/typeorm';
 import { MfaBackupCode } from 'src/app_modules/user/Models/entities/backup-code.entity';
-import { DataSource, EntityManager, Repository } from 'typeorm';
+import { DataSource, EntityManager } from 'typeorm';
 import { PasswordEncoderService } from './password-encoder.service';
 import { User } from 'src/app_modules/user/Models/entities/user.entity';
 import { BackupCodeStatusDTO } from 'src/app_modules/user/Models/DTO/backup-code-status.dto';
@@ -23,6 +22,7 @@ import { SessionService } from './session.service';
 import { nullish } from 'src/Models/nullish.type';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
+import { redisDurations, redisKeys } from 'src/app_modules/redis/contracts/redis-contracts'
 import { MfaContext } from '../Models/enums/mfa-context.enum';
 import { uuidv7 } from '@kripod/uuidv7';
 import { SecurityAuditService } from 'src/app_modules/meilisearch/services/security-audit.service';
@@ -31,6 +31,7 @@ import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interface
 import { TypeGuards } from 'src/utils/type-guards/type-guards';
 import { ProvidedEmailDTO } from '../Models/DTO/provided-email.dto';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
+import { MfaBackupCodeStore } from 'src/app_modules/user/services/mfa-backup-code.store'
 
 @Injectable()
 export class MfaService {
@@ -56,8 +57,7 @@ export class MfaService {
     private readonly BACKUP_REGEN_MAX_REQUESTS = 3           // max 3 rigenerazioni/ora
 
     constructor(
-        @InjectRepository(MfaBackupCode)
-        private readonly backupCodeRepository: Repository<MfaBackupCode>,
+        private readonly backupCodes: MfaBackupCodeStore,
         private readonly dataSource: DataSource,
         private readonly passwordEncoderService: PasswordEncoderService,
         private readonly securityService: SercurityService,
@@ -85,20 +85,20 @@ export class MfaService {
             .map((s) => this.securityService.decrypt_AES256(s) as MfaStrategy)
     }
 
-    private getBackupFailKey(userId: UUID): string {
-        return `mfa:backup:fail:${userId}`
+    private getBackupFailKey(userId: UUID) {
+        return redisKeys.mfa.backupFailure(userId)
     }
 
-    private getBackupLockKey(userId: UUID): string {
-        return `mfa:backup:lock:${userId}`
+    private getBackupLockKey(userId: UUID) {
+        return redisKeys.mfa.backupLock(userId)
     }
 
-    private getBackupRegenKey(userId: UUID): string {
-        return `mfa:backup:regen:${userId}`
+    private getBackupRegenKey(userId: UUID) {
+        return redisKeys.mfa.backupRegeneration(userId)
     }
 
-    private getBackupRegenLockKey(userId: UUID): string {
-        return `mfa:backup:regen:lock:${userId}`
+    private getBackupRegenLockKey(userId: UUID) {
+        return redisKeys.mfa.backupRegenerationLock(userId)
     }
 
     private async ensureBackupNotLocked(userId: UUID): Promise<void> {
@@ -113,14 +113,14 @@ export class MfaService {
         const failKey = this.getBackupFailKey(userId)
         const lockKey = this.getBackupLockKey(userId)
 
-        const fails = await this.redisService.getClient().incr(failKey)
+        const fails = await this.redisService.incr(failKey)
 
         if (fails === 1) {
-            await this.redisService.setTTL(failKey, this.BACKUP_FAIL_WINDOW_SECONDS)
+            await this.redisService.setTTL(failKey, redisDurations.seconds(this.BACKUP_FAIL_WINDOW_SECONDS))
         }
 
         if (fails >= this.BACKUP_MAX_FAILS) {
-            await this.redisService.set(lockKey, '1', this.BACKUP_LOCK_SECONDS)
+            await this.redisService.set(lockKey, '1', redisDurations.seconds(this.BACKUP_LOCK_SECONDS))
             await this.redisService.del(failKey)
         }
     }
@@ -141,13 +141,13 @@ export class MfaService {
             throw applicationError(ApplicationErrorCode.MFA_BACKUP_CODE_REGEN_TOO_MANY_REQUESTS)
         }
 
-        const cnt = await this.redisService.getClient().incr(countKey)
+        const cnt = await this.redisService.incr(countKey)
         if (cnt === 1) {
-            await this.redisService.setTTL(countKey, this.BACKUP_REGEN_WINDOW_SECONDS)
+            await this.redisService.setTTL(countKey, redisDurations.seconds(this.BACKUP_REGEN_WINDOW_SECONDS))
         }
 
         if (cnt > this.BACKUP_REGEN_MAX_REQUESTS) {
-            await this.redisService.set(lockKey, '1', this.BACKUP_REGEN_WINDOW_SECONDS)
+            await this.redisService.set(lockKey, '1', redisDurations.seconds(this.BACKUP_REGEN_WINDOW_SECONDS))
             throw applicationError(ApplicationErrorCode.MFA_BACKUP_CODE_REGEN_TOO_MANY_REQUESTS)
         }
     }
@@ -237,12 +237,7 @@ export class MfaService {
 
             await this.ensureBackupNotLocked(userId as UUID)
 
-            const codes = await this.backupCodeRepository.find({
-                where: {
-                    userId: userId as UUID,
-                    used: false
-                }
-            })
+            const codes = await this.backupCodes.findUnused(userId as UUID)
 
             if (!codes || !codes.length) {
                 await this.registerBackupFailure(userId as UUID)
@@ -254,9 +249,7 @@ export class MfaService {
                 const match = (await this.passwordEncoderService.compare(plainCode, c.hash))
                 if (match) {
                     matched = true
-                    c.used = true
-                    c.usedAt = Date.now()
-                    await this.backupCodeRepository.save(c)
+                    await this.backupCodes.markUsed(c)
                     break
                 }
             }
@@ -323,8 +316,7 @@ export class MfaService {
     }
 
     public async hasValidBackupCodes(userId: UUID): Promise<boolean> {
-        const count = await this.backupCodeRepository.count({ where: { user: { id: userId }, used: false } })
-        return count > 0
+        return this.backupCodes.hasValid(userId)
     }
 
     public async getBackupCodesStatus(userId: UUID): Promise<BackupCodeStatusDTO> {
@@ -339,33 +331,27 @@ export class MfaService {
         if (ur && ur.sso) {
             throw applicationError(ApplicationErrorCode.UNPROCESSABLE_ENTITY)
         }
-        const codes = await this.backupCodeRepository.find({ where: { user: { id: userId } } })
-        const used = codes.filter(c => c.used).length
-        return {
-            total: codes.length,
-            used,
-            remaining: codes.length - used
-        }
+        return this.backupCodes.status(userId)
     }
 
     public async destroyBackupCodes(userId: UUID): Promise<void> {
-        await this.backupCodeRepository.delete({ userId })
+        await this.backupCodes.destroy(userId)
     }
 
-    private getMfaFailKey(userId: UUID, strategy: MfaStrategy, context: MfaContext = MfaContext.VERIFY): string {
-        return `mfa:fail:${context}:${userId}:${strategy}`;
+    private getMfaFailKey(userId: UUID, strategy: MfaStrategy, context: MfaContext = MfaContext.VERIFY) {
+        return redisKeys.mfa.failure(context, userId, strategy)
     }
 
-    private getMfaLockKey(userId: UUID, strategy: MfaStrategy, context: MfaContext = MfaContext.VERIFY): string {
-        return `mfa:lock:${context}:${userId}:${strategy}`;
+    private getMfaLockKey(userId: UUID, strategy: MfaStrategy, context: MfaContext = MfaContext.VERIFY) {
+        return redisKeys.mfa.lock(context, userId, strategy)
     }
 
-    private getMfaSendKey(userId: UUID, strategy: MfaStrategy, context: MfaContext = MfaContext.SEND): string {
-        return `mfa:${context}:${userId}:${strategy}`
+    private getMfaSendKey(userId: UUID, strategy: MfaStrategy, context: MfaContext = MfaContext.SEND) {
+        return redisKeys.mfa.send(context, userId, strategy)
     }
 
-    private getMfaSendLockKey(userId: UUID, strategy: MfaStrategy, context: MfaContext = MfaContext.SEND): string {
-        return `mfa:${context}:lock:${userId}:${strategy}`
+    private getMfaSendLockKey(userId: UUID, strategy: MfaStrategy, context: MfaContext = MfaContext.SEND) {
+        return redisKeys.mfa.sendLock(context, userId, strategy)
     }
 
     private async ensureMfaNotLocked(userId: UUID, strategy: MfaStrategy, context: MfaContext = MfaContext.VERIFY): Promise<void> {
@@ -380,14 +366,14 @@ export class MfaService {
         const failKey = this.getMfaFailKey(userId, strategy, context)
         const lockKey = this.getMfaLockKey(userId, strategy, context)
 
-        const fails = await this.redisService.getClient().incr(failKey)
+        const fails = await this.redisService.incr(failKey)
 
         if (fails === 1) {
-            await this.redisService.setTTL(failKey, this.MFA_FAIL_WINDOW_SECONDS)
+            await this.redisService.setTTL(failKey, redisDurations.seconds(this.MFA_FAIL_WINDOW_SECONDS))
         }
 
         if (fails >= this.MFA_MAX_FAILS) {
-            await this.redisService.set(lockKey, '1', this.MFA_LOCK_SECONDS)
+            await this.redisService.set(lockKey, '1', redisDurations.seconds(this.MFA_LOCK_SECONDS))
             await this.redisService.del(failKey)
         }
     }
@@ -410,13 +396,13 @@ export class MfaService {
             throw applicationError(ApplicationErrorCode.MFA_SEND_TOO_MANY_REQUESTS)
         }
 
-        const cnt = await this.redisService.getClient().incr(countKey)
+        const cnt = await this.redisService.incr(countKey)
         if (cnt === 1) {
-            await this.redisService.setTTL(countKey, this.MFA_SEND_WINDOW_SECONDS)
+            await this.redisService.setTTL(countKey, redisDurations.seconds(this.MFA_SEND_WINDOW_SECONDS))
         }
 
         if (cnt > this.MFA_MAX_SENDS) {
-            await this.redisService.set(lockKey, '1', 10 * 60)
+            await this.redisService.set(lockKey, '1', redisDurations.minutes(10))
             throw applicationError(ApplicationErrorCode.MFA_SEND_TOO_MANY_REQUESTS)
         }
     }
@@ -595,7 +581,11 @@ export class MfaService {
                 }
 
                 // salvataggio temporaneo del secret in redis (con TTL), associato allo user
-                await this.redisService.set(`mfa:temp:app-secret:${userId}`, totpSecret, 300) // 5 minuti
+                await this.redisService.set(
+                    redisKeys.mfa.temporaryAppSecret(userId),
+                    totpSecret,
+                    redisDurations.minutes(5)
+                )
                 secureToken = await this.jwtTools.generateToken(userId, TokenType.AppTotpMfaActivationToken)
                 await this.clearMfaFailures(userId, strategy, MfaContext.ENABLE_SEND)
                 return {
@@ -652,7 +642,7 @@ export class MfaService {
         let otpSecret: string | nullish
 
         if (strategy === MfaStrategy.APP_TOTP) {
-            otpSecret = await this.redisService.get(`mfa:temp:app-secret:${userId}`)
+            otpSecret = await this.redisService.get(redisKeys.mfa.temporaryAppSecret(userId))
             if (!otpSecret) throw applicationError(ApplicationErrorCode.MFA_TEMPORARY_APP_TOTP_SECRET_NOT_FOUND)
 
             const isValid = this.securityService.verifyTotp(totp, otpSecret, true)
@@ -662,7 +652,7 @@ export class MfaService {
             }
 
             await this.userService.updateUser(userId, { appTotpSecret: otpSecret })
-            await this.redisService.del(`mfa:temp:app-secret:${userId}`)
+            await this.redisService.del(redisKeys.mfa.temporaryAppSecret(userId))
         } else {
             otpSecret = await this.userService.getOtpSecretByUserId(userId)
             if (!otpSecret) throw applicationError(ApplicationErrorCode.MFA_OTP_SECRET_NOT_FOUND)
