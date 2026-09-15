@@ -261,7 +261,7 @@ describe('RedisSessionRepository TTL compatibility', () => {
             redis as unknown as RedisService,
             new SessionRedisCodec()
         )
-        const key = `session:${sessionId}:${userId}`
+        const key = `session:${sessionId}`
 
         await repository.saveSession(exampleSession(), {
             longTerm: false,

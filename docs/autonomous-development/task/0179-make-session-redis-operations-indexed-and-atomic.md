@@ -1,7 +1,7 @@
 # 0179 - Make session Redis operations indexed and atomic
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
@@ -88,24 +88,52 @@ Favor a direct `session:<sessionId>` primary record plus explicit owner/device i
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-030` from base `c9e07a8113c96751a227bb0ffa9bbeff7154f008`.
 ### Preflight
-_Not started._
+Local branch was clean and exactly at the supplied/current green `develop` base.
+`npm run autonomous:plan` classified task 0179 as READY with hard dependencies
+0136 and 0124 DONE. The exact base SHA had successful Actions run 34975442119
+(`Required gate`, Ubuntu and Windows jobs). No workspace-consuming process was
+active before implementation. `npm ci` and `npm run ci:check` were not run.
 ### Preflight remediation
-_None._
+None.
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0136 (BE-022), which is BLOCKED. Resolved hard dependencies for this recipe: 0136, 0124. This task was never attempted and receives no feature branch.
+Implemented direct session primary/owner/device/token indexes and Redis Lua
+atomic primitives for session creation/replacement, activation, refresh,
+invalidation, destruction and token registration. Removed request-path session
+and JTI keyspace scans; user and token lookups now use direct set/key indexes.
+The feature remains blocked because the required post-implementation runtime
+probe could not start Nest: canonical `npm run start:dev --workspace
+mercurion_web_node` compiled successfully but exited during bootstrap with
+`fastify-plugin: fastify-formidable - expected '4.x' fastify version, '5.12.1'
+is installed`. This is a pre-existing baseline/runtime dependency mismatch,
+not caused by the session changes, and prevented the recipe's explicitly
+required browser login/session/logout evidence.
 ### Task-specific validation performed
-_Not started._
+Passed focused Redis repository, Redis key-contract and Redis service tests:
+23 tests in 3 suites. Passed `npm run typecheck --workspace
+mercurion_web_node`, `npm run lint --workspace mercurion_web_node`, and
+`npm run build --workspace mercurion_web_node`. `git diff --check` passed.
+Canonical runtime starts were issued in Tox21, Nest, Angular order with live
+execution handles. Tox21 and Angular remained alive; Nest reached zero compile
+errors, connected to Redis, then terminated at bootstrap with the diagnostic
+above. All three task-owned sessions were stopped and process inventory showed
+no Tox21/Nest/Angular process remaining.
 ### Full pre-merge CI-parity validation
-_Not started._
+Not run locally; forbidden by policy. Exact feature-SHA Actions evidence was
+not available because the branch is blocked before publication.
 ### Browser validation performed
-_Not started._
+Not performed. Browser/runtime acceptance could not begin because the
+canonical Nest process failed during startup before nginx readiness/login.
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+Pending blocker commit on `feature/DATA-030`.
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+Not applicable before baseline/runtime repair.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Terminal dependency root: 0136 (BE-022). No feature branch or worker was created for this task.
+Repair the repository-controlled Fastify/formidable dependency compatibility
+(`fastify-formidable` currently expects Fastify 4 while the green baseline
+installs Fastify 5), then rerun the canonical runtime/browser acceptance probe
+and exact feature-SHA CI. The preserved feature branch contains the coherent
+implementation and blocker diagnostic.
