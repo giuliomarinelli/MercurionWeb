@@ -16,6 +16,11 @@
       "reason": "TypeORM migration discovery loads migration classes outside Nest bootstrap."
     },
     {
+      "file": "src/persistence/migrations/1789486400000-EnforceIntegrityConstraints.ts",
+      "category": "typeorm-cli",
+      "reason": "TypeORM migration discovery loads migration classes outside Nest bootstrap."
+    },
+    {
       "file": "src/contracts/rest-contract-parity.ts",
       "category": "tooling",
       "reason": "The REST contract parity gate loads this comparison unit directly."
