@@ -1,4 +1,3 @@
-export interface MercurionInferReqDTO {
-    smiles: string
-    accessToken: string
-}
+import type { MercurionInferenceRequest } from '@mercurion/rest-contracts'
+
+export type MercurionInferReqDTO = MercurionInferenceRequest

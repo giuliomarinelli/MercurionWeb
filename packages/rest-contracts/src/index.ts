@@ -80,6 +80,26 @@ export {
   RDKIT_OPERATIONS,
   RDKIT_SMILES_MAX_LENGTH
 } from './rdkit-contract'
+export {
+  NATS_CONTRACT_REGISTRY,
+  NATS_CONTRACT_VERSION,
+  NATS_TIMEOUT_MS,
+  NATS_TIMEOUT_POLICY_KEY,
+  assertNatsRequest,
+  assertNatsResponse,
+  natsSubject
+} from './nats-contract-registry'
+export type {
+  MercurionInferenceRequest,
+  MercurionInferenceResponse,
+  NatsContract,
+  NatsContractId,
+  NatsEnvironment,
+  NatsErrorContract,
+  NatsJsonSchema,
+  Tox21Inference as NatsTox21Inference,
+  Tox21Prediction as NatsTox21Prediction
+} from './nats-contract-registry'
 export type {
   RdkitAreSameStructureDTO,
   RdkitAreSameStructureResponse,
@@ -457,18 +477,7 @@ export interface DeleteFeedbackResponse {
   ok: boolean
 }
 
-export interface Tox21Inference {
-  probability: number
-  is_positive: boolean
-  threshold: number
-}
-
-export interface Tox21Prediction {
-  'SR-ATAD5'?: Tox21Inference
-  'NR-AhR'?: Tox21Inference
-  'SR-MMP'?: Tox21Inference
-  'SR-p53'?: Tox21Inference
-}
+export type { Tox21Inference, Tox21Prediction } from './nats-contract-registry'
 
 export interface SmilesDTO {
   smiles: string

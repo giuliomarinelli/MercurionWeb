@@ -1,6 +1,6 @@
 # 0146 - Define a typed versioned NATS contract registry
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -82,24 +82,37 @@ Mark `BLOCKED` if the deployed/read-only Tox21 wire behaviour cannot be determin
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/BE-032`, based on `8f4545aa240a9e0637689f70e7a706930ab6a3ee`.
+
 ### Preflight
-_Not started._
+- Session profile independently matched `docs/autonomous-development/session.overweek-2026-09-23-v10.yaml`: GPT-5.6 Luna, Medium reasoning, default 300k context; no worker override was used.
+- Branch was clean and exactly matched `develop` and `origin/develop` at the supplied base SHA. Effective repository-local `commit.gpgSign=false`.
+- Exact base SHA had successful GitHub Actions CI (`Required gate`/CI run `34957874574`, 2026-09-15).
+- Inspected `../MercurionTox21` read-only. Its current handlers confirm the existing inference and three RDKit subjects, environment prefixing, request fields, response envelopes, and stable `{error: string}` failure shape. No sibling files were modified.
+
 ### Preflight remediation
-_None._
+None.
+
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0133, 0141. This task was never attempted and receives no feature branch.
+Added a framework-neutral, versioned NATS scientific contract registry to `@mercurion/rest-contracts` covering inference and all three RDKit RPCs. The registry owns subjects, environment namespace derivation, JSON-schema metadata, timeout policy, stable error contract, and runtime request/response guards. MercurionAIService and RDKitService now resolve all subjects and timeout values through the registry. The inference DTO now aliases the canonical registry request type. Added compatibility-focused tests for current Tox21 wire payloads and malformed payload rejection.
+
 ### Task-specific validation performed
-_Not started._
+- `npm run build --workspace @mercurion/rest-contracts` — passed.
+- `npm run typecheck --workspace @mercurion/rest-contracts` — passed.
+- `npm run typecheck --workspace mercurion_web_node` — passed.
+- `npm test --workspace mercurion_web_node -- --runInBand --runTestsByPath src/contracts/nats-contract-registry.spec.ts src/app_modules/mercurion-ai/services/mercurion-ai.service.spec.ts src/app_modules/mercurion-ai/services/rd-kit.service.spec.ts` — 3 suites, 9 tests passed.
+- `npm run lint --workspace mercurion_web_node` — passed.
+- `git diff --check` — passed.
+
 ### Full pre-merge CI-parity validation
-_Not started._
+Not run locally; `npm ci` and `npm run ci:check` are prohibited in autonomous sessions. Exact-SHA GitHub Actions validation is coordinator-owned after push.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+Pending task commit.
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+Feature SHA will receive exact-SHA Actions validation after publication.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+None.
