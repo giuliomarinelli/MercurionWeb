@@ -17,6 +17,7 @@ import { JsonValue } from 'src/models/json.types'
 import { TypeGuards } from 'src/utils/type-guards/type-guards'
 import { UserService } from 'src/app_modules/user/services/user.service'
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
+import { runInTransaction } from 'src/persistence/transaction-context'
 
 @Injectable()
 export class HelpService {
@@ -59,7 +60,7 @@ export class HelpService {
 
     let firstMsg: TicketMessage | null = null
 
-    await this.dataSource.transaction(async (manager) => {
+    await runInTransaction(this.dataSource, async (_context, manager) => {
       await manager.save(ticket)
 
       const message = this.makeUserMessage({
@@ -109,7 +110,7 @@ export class HelpService {
 
     let msg: TicketMessage
 
-    await this.dataSource.transaction(async (manager) => {
+    await runInTransaction(this.dataSource, async (_context, manager) => {
       const now = Date.now()
 
       const ticket = await manager.findOne(Ticket, {
@@ -156,7 +157,7 @@ export class HelpService {
 
     let ticketUserId: UUID
 
-    await this.dataSource.transaction(async (manager) => {
+    await runInTransaction(this.dataSource, async (_context, manager) => {
 
       const now = Date.now()
 

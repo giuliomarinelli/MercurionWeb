@@ -91,11 +91,10 @@ export class SocialAuthService {
     async loginWithProvider(provider: AuthProvider, code: string): Promise<string> {
 
         try {
-            return this.unitOfWork.run(async (context) => {
+            const client = this.providerRegistry.get(provider)
+            const profile = await client.getProfileFromCode(code)
+            const userId = await this.unitOfWork.run(async (context) => {
                 const manager = transactionManager(context)
-
-                const client = this.providerRegistry.get(provider)
-                const profile = await client.getProfileFromCode(code)
 
                 // 1) ricerca identity
                 let identity = await manager.findOne(AuthIdentity, {
@@ -146,10 +145,9 @@ export class SocialAuthService {
                     }
                 }
 
-                const sso_preAuthorizationToken = await this.jwtTools.generateToken(identity.userId, TokenType.SSO_PreAuthorizationToken)
-
-                return sso_preAuthorizationToken
+                return identity.userId
             })
+            return this.jwtTools.generateToken(userId, TokenType.SSO_PreAuthorizationToken)
         } catch (e) {
             this.logger.warn(' > loginWithProvider > Error: ', (e instanceof Error ? e.stack : e) as object)
             throw applicationError(ApplicationErrorCode.SSO_CALLBACK_FAILED)

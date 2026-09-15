@@ -25,7 +25,7 @@ import { ProvidedEmailDTO } from 'src/app_modules/auth/models/dto/provided-email
 import { AuthProvider } from 'src/app_modules/sso/models/enums/auth-provider.enum';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 import type { IdentityReadPort } from 'src/app_modules/auth/models/interfaces/identity-read.port'
-import { transactionManager, type TransactionContext } from 'src/persistence/transaction-context'
+import { runInTransaction, transactionManager, type TransactionContext } from 'src/persistence/transaction-context'
 import { LOCAL_DUMMY_AUTH } from '@mercurion/rest-contracts'
 import { UserGender } from '../models/enums/user-gender.enum'
 
@@ -68,22 +68,14 @@ export class UserService implements IdentityReadPort {
     }
 
     public async createUser(userProps: Partial<User>): Promise<User> {
-
-        const queryRunner = this.dataSource.createQueryRunner()
-        await queryRunner.connect()
-        await queryRunner.startTransaction()
-
         try {
-            const user = queryRunner.manager.create(User, { ...userProps })
-            const u$er = await queryRunner.manager.save(user)
-            await queryRunner.commitTransaction()
-            return u$er
+            return await runInTransaction(this.dataSource, async (_context, manager) => {
+                const user = manager.create(User, { ...userProps })
+                return manager.save(user)
+            })
         } catch (e) {
             this.logger.warn('Error creating new User: ', e as object)
-            await queryRunner.rollbackTransaction()
             throw e
-        } finally {
-            await queryRunner.release()
         }
     }
 
@@ -188,20 +180,13 @@ export class UserService implements IdentityReadPort {
     }
 
     public async updateUser(id: UUID, userProps: Partial<User>): Promise<User | nullish> {
-
-        const queryRunner = this.dataSource.createQueryRunner()
-        await queryRunner.connect()
-        await queryRunner.startTransaction()
         try {
-            await queryRunner.manager.update<User>(User, { id }, { ...userProps })
-            const user = await this.getUserById(id)
-            await queryRunner.commitTransaction()
-            return user
+            return await runInTransaction(this.dataSource, async (_context, manager) => {
+                await manager.update<User>(User, { id }, { ...userProps })
+                return manager.findOne(User, { where: { id } })
+            })
         } catch {
-            await queryRunner.rollbackTransaction()
             return null
-        } finally {
-            await queryRunner.release()
         }
     }
 
@@ -401,7 +386,7 @@ export class UserService implements IdentityReadPort {
     }
 
     public async changePassword(userId: UUID, newPassword: string): Promise<void> | never {
-        await this.userRepository.manager.transaction(async manager => {
+        await runInTransaction(this.userRepository.manager, async (_context, manager) => {
             let user: User
             try {
                 user = await manager
@@ -458,7 +443,7 @@ export class UserService implements IdentityReadPort {
     public async getVerifiedUserProfileById(id: UUID, getRecentHistory = true): Promise<ProfileDTO | null> {
 
         try {
-            return this.dataSource.manager.transaction(async (manager) => {
+            return runInTransaction(this.dataSource, async (context, manager) => {
 
                 const profileRow = await manager.findOne(User, {
                     where: { id, isVerified: true },
@@ -525,7 +510,7 @@ export class UserService implements IdentityReadPort {
                 let recentHistory: TinyHistoryDTO[] = []
 
                 if (getRecentHistory) {
-                    recentHistory = await this.historyService.getRecentHistoryTinyDistinctPerDay(id)
+                    recentHistory = await this.historyService.getRecentHistoryTinyDistinctPerDay(id, 7, context)
                 }
 
                 const result: ProfileDTO = {
@@ -619,7 +604,7 @@ export class UserService implements IdentityReadPort {
     }
 
     public async migratePasswordHash(userId: UUID, currentHash: string, newHash: string): Promise<void> {
-        await this.userRepository.manager.transaction(async (manager) => {
+        await runInTransaction(this.userRepository.manager, async (_context, manager) => {
             const user = await manager
                 .createQueryBuilder(User, 'u')
                 .select(['u.id', 'u.passwordHash', 'u.oldPasswordHashes'])

@@ -25,7 +25,7 @@ describe('MoleculeCollectionService', () => {
             find: jest.fn(),
           },
         },
-        { provide: DataSource, useValue: { manager: { transaction: jest.fn() } } },
+        { provide: DataSource, useValue: { transaction: jest.fn() } },
         { provide: LoggerPort, useValue: { forContext: jest.fn().mockReturnValue(mockLogger) } },
       ],
     }).compile();

@@ -21,6 +21,7 @@ import {
   ApplicationErrorCode,
   applicationError
 } from 'src/exception-handling/application-error';
+import { runInTransaction } from 'src/persistence/transaction-context';
 
 @Injectable()
 export class MoleculeCollectionService {
@@ -160,7 +161,7 @@ WHERE i.user_id = $2::uuid
 
   async markAsTouched(userId: UUID, collectionId: UUID): Promise<boolean> {
     try {
-      return await this.dataSource.manager.transaction(async (manager) => {
+      return await runInTransaction(this.dataSource, async (_context, manager) => {
         return this.markAsTouchedWithManager(userId, collectionId, manager)
       })
     } catch (e) {
@@ -242,7 +243,7 @@ WHERE i.user_id = $2::uuid
 
   async create(userId: UUID, name: string): Promise<MoleculeCollection> {
     try {
-      return this.dataSource.manager.transaction(async (manager) => {
+      return runInTransaction(this.dataSource, async (_context, manager) => {
 
         const now = Date.now()
 
@@ -274,7 +275,7 @@ WHERE i.user_id = $2::uuid
   ): Promise<MoleculeCollection | null> {
     try {
 
-      return this.dataSource.manager.transaction(async (manager) => {
+      return runInTransaction(this.dataSource, async (_context, manager) => {
 
         const srcCollection = await manager.findOneOrFail(MoleculeCollection, {
           where: {
@@ -332,7 +333,7 @@ WHERE i.user_id = $2::uuid
         return true
       }
 
-      await this.dataSource.manager.transaction(async (manager) => {
+      await runInTransaction(this.dataSource, async (_context, manager) => {
 
         const payload = names.map((name) => {
           const now = Date.now()
@@ -415,7 +416,7 @@ WHERE i.user_id = $2::uuid
 
   async delete(collectionId: UUID, userId: UUID): Promise<boolean> {
     try {
-      return await this.dataSource.manager.transaction(async (manager) => {
+      return await runInTransaction(this.dataSource, async (_context, manager) => {
         await manager.query(this.DELETE_COLLECTION_AND_ORPHAN_MOLECULES_QUERY, [collectionId, userId])
         await manager.delete(History, {
           itemId: collectionId,

@@ -31,9 +31,7 @@ describe('MoleculeCollectionItemService', () => {
     insert: jest.fn(),
   };
   const dataSourceMock = {
-    manager: {
-      transaction: jest.fn().mockImplementation(async (cb: any) => cb(managerMock)),
-    },
+    transaction: jest.fn().mockImplementation(async (cb: any) => cb(managerMock)),
   };
   const loggerMock = {
     warn: jest.fn(),
@@ -93,7 +91,7 @@ describe('MoleculeCollectionItemService', () => {
 
     const result = await service.markAsTouched(MOCK_USER_ID, MOCK_ITEM_ID);
 
-    expect(dataSourceMock.manager.transaction).toHaveBeenCalled();
+    expect(dataSourceMock.transaction).toHaveBeenCalled();
     expect(managerMock.update).toHaveBeenCalledTimes(1);
     expect(managerMock.update.mock.calls[0]?.[0]).toBe(MoleculeCollectionItemEntity);
     expect(managerMock.update.mock.calls[0]?.[1]).toEqual({ userId: MOCK_USER_ID, id: MOCK_ITEM_ID });

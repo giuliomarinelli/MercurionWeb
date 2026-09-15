@@ -37,7 +37,7 @@ import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 import { MfaStrategy } from 'src/app_modules/user/models/enums/mfa-strategy.enum';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 import { redisDurations, redisKeys } from 'src/app_modules/redis/contracts/redis-contracts'
-import { UnitOfWork } from 'src/persistence/transaction-context'
+import { afterTransactionCommit, runInTransaction, UnitOfWork } from 'src/persistence/transaction-context'
 import { InitialWorkspaceService } from 'src/app_modules/molecule-collection/services/initial-workspace.service'
 
 
@@ -345,15 +345,16 @@ export class AccountFlowKernel {
     }
 
     public async activateUser(activationToken: string): Promise<ConfirmWithRecoveryCodeDTO> | never {
-
+        const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(activationToken, TokenType.ActivationToken)
+        const recoveryCode = this.securityService.generateAccountRecoveryReadableCode()
+        const accountRecoveryCodeHash = await this.passwordEncoder.encode(recoveryCode)
         return this.unitOfWork.run(async (context) => {
-            const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(activationToken, TokenType.ActivationToken)
-            await this.sessionService.revokeToken(jti)
-            const recoveryCode = this.securityService.generateAccountRecoveryReadableCode()
-            const accountRecoveryCodeHash = await this.passwordEncoder.encode(recoveryCode)
             const email = await this.userService.activateAccount(userId, accountRecoveryCodeHash, context)
             await this.initialWorkspace.createForUser(userId, context)
-            await this.redisService.del(this.getRegistrationLockRedisKey(email))
+            afterTransactionCommit(context, async () => {
+                await this.sessionService.revokeToken(jti)
+                await this.redisService.del(this.getRegistrationLockRedisKey(email))
+            })
             return {
                 ...this._r.ok('Account activated successfully'),
                 recoveryCode
@@ -522,14 +523,10 @@ export class AccountFlowKernel {
     }
 
     public async deletePhoneNumber_secondStep_verifyTotp(totp: string, secureToken: string): Promise<ConfirmWithPhoneMfaFeedback> {
+        const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(secureToken, TokenType.PhoneNumberVerificationToken)
+        await this.ensureContactChangeNotLocked(userId, ContactChangeKind.PHONE)
 
-        return this.dataSource.manager.transaction(async (manager) => {
-
-            const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(secureToken, TokenType.PhoneNumberVerificationToken)
-
-            await this.sessionService.revokeToken(jti)
-
-            await this.ensureContactChangeNotLocked(userId, ContactChangeKind.PHONE)
+        const result = await runInTransaction(this.dataSource, async (context, manager) => {
 
             const user = await manager.findOne(User, { where: { id: userId } })
             if (!user) {
@@ -542,8 +539,7 @@ export class AccountFlowKernel {
 
             const isTotpValid = this.securityService.verifyTotp(totp, user.otpSecret)
             if (!isTotpValid) {
-                await this.registerContactChangeFailure(userId, ContactChangeKind.PHONE)
-                throw applicationError(ApplicationErrorCode.CHANGE_PHONE_INVALID_TOTP)
+                return null
             }
             const maskedOldPhone = this.securityService.maskPhone(user.completePhoneNumber ?? '') || null
             const oldCompletePhoneNumber = user.completePhoneNumber
@@ -581,28 +577,35 @@ export class AccountFlowKernel {
                 phoneMfaDisabled = true
             }
 
-            await this.redisService.del(
-                redisKeys.account.phoneChangeLockForUser(
-                    this.hmacKey(userId),
-                    this.hmacKey(oldCompletePhoneNumber ?? '')
-                )
-            )
-            await this.clearContactChangeFailures(userId, ContactChangeKind.PHONE)
-
             const oldNotificationBody = 'Mercurion: il numero di telefono del tuo account è stato eliminato. Se non sei stato tu, reimposta subito la password e contatta il supporto Mercurion.'
 
-            await this.securityAuditService.phoneChanged(userId, maskedOldPhone, '')
-            if (oldCompletePhoneNumber != null) {
-                this.smsService.sendSms(oldCompletePhoneNumber, oldNotificationBody).catch((e) => {
-                    this.logger.warn(`Errore durante l'invio sms phone deleted, currentPhone=${this.hmacKey(oldCompletePhoneNumber)}, userId=${userId}`, e as string | object)
-                })
-            }
+            afterTransactionCommit(context, async () => {
+                await this.sessionService.revokeToken(jti)
+                await this.redisService.del(
+                    redisKeys.account.phoneChangeLockForUser(
+                        this.hmacKey(userId),
+                        this.hmacKey(oldCompletePhoneNumber ?? '')
+                    )
+                )
+                await this.clearContactChangeFailures(userId, ContactChangeKind.PHONE)
+                await this.securityAuditService.phoneChanged(userId, maskedOldPhone, '')
+                if (oldCompletePhoneNumber != null) {
+                    this.smsService.sendSms(oldCompletePhoneNumber, oldNotificationBody).catch((e) => {
+                        this.logger.warn(`Errore durante l'invio sms phone deleted, currentPhone=${this.hmacKey(oldCompletePhoneNumber)}, userId=${userId}`, e as string | object)
+                    })
+                }
+            })
 
             return {
                 ...this._r.ok('Phone number successfully deleted'),
                 phoneMfaDisabled
             }
         })
+        if (!result) {
+            await this.registerContactChangeFailure(userId, ContactChangeKind.PHONE)
+            throw applicationError(ApplicationErrorCode.CHANGE_PHONE_INVALID_TOTP)
+        }
+        return result
     }
 
     public async changePhoneNumber_firstStep_requestTotp(userId: UUID, dto: ChangePhoneDTO): Promise<ConfirmChangeDTO> {
@@ -866,16 +869,15 @@ export class AccountFlowKernel {
     }
 
     public async recoverAccount_firstStep(code: string): Promise<string> | never {
-        return this.dataSource.manager.transaction(async (manager) => {
-
-            await this.ensureRecoveryNotLocked(code)
+        await this.ensureRecoveryNotLocked(code)
+        const userId = await runInTransaction(this.dataSource, async (context, manager) => {
 
             const getTrue = () => true
 
             const BATCH_SIZE = 5_000
 
             let lastId: UUID | null = null
-            let userId: UUID | null = null
+            let matchedUserId: UUID | null = null
 
             // scan a batch paginati con early-exit
             while (getTrue()) {
@@ -908,30 +910,23 @@ export class AccountFlowKernel {
                     const matches = (await this.passwordEncoder.compareWithFallback(code, hash, true)) !== CompareResult.NoMatch
 
                     if (matches) {
-                        userId = row.id
+                        matchedUserId = row.id
                         break
                     }
                 }
 
-                if (userId) break
+                if (matchedUserId) break
 
                 // aggiorna cursore per batch successivo
                 lastId = batch[batch.length - 1].id
             }
 
-            if (!userId) {
-                await this.registerRecoveryFailure(code)
-                throw applicationError(ApplicationErrorCode.ACCOUNT_RECOVERY_CODE_INVALID)
-            }
+            if (!matchedUserId) return null
 
-            const user = await manager.findOne(User, { where: { id: userId } })
+            const user = await manager.findOne(User, { where: { id: matchedUserId } })
             if (!user) {
-                await this.registerRecoveryFailure(code)
-                throw applicationError(ApplicationErrorCode.ACCOUNT_RECOVERY_CODE_INVALID)
+                return null
             }
-
-            await this.redisService.del(this.getRecoveryFailKey(code))
-            await this.redisService.del(this.getRecoveryLockKey(code))
 
             user.locked = true
             user.mfaStrategies = '[]'
@@ -941,43 +936,51 @@ export class AccountFlowKernel {
 
             await manager.save(user)
 
-            await manager.delete(MfaBackupCode, { userId })
-            await this.sessionService.destroyAllSessionsAndRevokeAllTokensByUserId(userId)
-            await this.securityAuditService.accountRecovery(
-                userId,
-                'ACCOUNT_RECOVERY_TOKEN_GENERATED'
-            )
+            await manager.delete(MfaBackupCode, { userId: matchedUserId })
+            afterTransactionCommit(context, async () => {
+                await this.redisService.del(this.getRecoveryFailKey(code))
+                await this.redisService.del(this.getRecoveryLockKey(code))
+                await this.sessionService.destroyAllSessionsAndRevokeAllTokensByUserId(matchedUserId)
+                await this.securityAuditService.accountRecovery(
+                    matchedUserId,
+                    'ACCOUNT_RECOVERY_TOKEN_GENERATED'
+                )
+            })
 
-            return this.jwtTools.generateToken(userId, TokenType.AccountRecoveryToken)
+            return matchedUserId
         })
+        if (!userId) {
+            await this.registerRecoveryFailure(code)
+            throw applicationError(ApplicationErrorCode.ACCOUNT_RECOVERY_CODE_INVALID)
+        }
+        return this.jwtTools.generateToken(userId, TokenType.AccountRecoveryToken)
     }
 
     public async recoverAccount_secondStep(dto: RecoverCredentialsDTO, secureToken: string): Promise<string> | never {
-        return this.dataSource.manager.transaction(async (manager) => {
-            const { newEmail, newPassword } = dto
-            let userId: UUID
-            let jti: UUID
+        const { newEmail, newPassword } = dto
+        let userId: UUID
+        let jti: UUID
 
-            try {
-                ({ sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(secureToken, TokenType.AccountRecoveryToken))
-            } catch (e) {
-                this.logger.debug(`recoverAccount_secondStep > error in secure_token validation: `, errorStack(e) ?? errorMessage(e))
-                throw applicationError(ApplicationErrorCode.AUTHENTICATION_UNAUTHENTICATED)
-            }
-            await this.sessionService.revokeToken(jti)
+        try {
+            ({ sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(secureToken, TokenType.AccountRecoveryToken))
+        } catch (e) {
+            this.logger.debug(`recoverAccount_secondStep > error in secure_token validation: `, errorStack(e) ?? errorMessage(e))
+            throw applicationError(ApplicationErrorCode.AUTHENTICATION_UNAUTHENTICATED)
+        }
+        await this.ensureRecoverySecondNotLocked(userId)
+        const newRecoveryCode = this.securityService.generateAccountRecoveryReadableCode()
+        const newAccountRecoveryCodeHash = await this.passwordEncoder.encode(newRecoveryCode)
+        const newPasswordHash = await this.passwordEncoder.encode(newPassword)
+
+        const recovered = await runInTransaction(this.dataSource, async (context, manager) => {
             const user = await manager.findOne(User, {
                 where: {
                     id: userId
                 }
             })
-            await this.ensureRecoverySecondNotLocked(userId)
             if (!user || !user.accountRecoveryCodeHash) {
-                await this.registerRecoverySecondFailure(userId)
-                throw applicationError(ApplicationErrorCode.AUTHENTICATION_UNAUTHENTICATED)
+                return false
             }
-            const newRecoveryCode = this.securityService.generateAccountRecoveryReadableCode()
-            const newAccountRecoveryCodeHash = await this.passwordEncoder.encode(newRecoveryCode)
-            const newPasswordHash = await this.passwordEncoder.encode(newPassword)
             user.email = newEmail
             user.unconfirmedEmail = null
             user.completePhoneNumber = null
@@ -997,10 +1000,17 @@ export class AccountFlowKernel {
             user.recoveryMode = false
             user.oldPasswordHashes = []
             await manager.save(user)
-            await this.clearRecoverySecondFailures(userId)
-            return newRecoveryCode
+            afterTransactionCommit(context, async () => {
+                await this.sessionService.revokeToken(jti)
+                await this.clearRecoverySecondFailures(userId)
+            })
+            return true
         })
-
+        if (!recovered) {
+            await this.registerRecoverySecondFailure(userId)
+            throw applicationError(ApplicationErrorCode.AUTHENTICATION_UNAUTHENTICATED)
+        }
+        return newRecoveryCode
     }
 
 }

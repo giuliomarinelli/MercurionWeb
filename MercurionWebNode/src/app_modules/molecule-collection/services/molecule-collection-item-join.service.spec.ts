@@ -26,7 +26,7 @@ describe('MoleculeCollectionItemJoinService', () => {
             manager: { transaction: jest.fn() },
           },
         },
-        { provide: DataSource, useValue: { manager: { transaction: jest.fn() } } },
+        { provide: DataSource, useValue: { transaction: jest.fn() } },
         { provide: MoleculeCollectionService, useValue: {} },
         { provide: MoleculeCollectionItemService, useValue: {} },
         { provide: MoleculeService, useValue: {} },

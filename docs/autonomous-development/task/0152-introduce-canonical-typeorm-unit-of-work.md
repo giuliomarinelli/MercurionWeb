@@ -1,7 +1,7 @@
 # 0152 - Introduce a canonical TypeORM unit of work
 
-- [ ] DONE
-- [x] BLOCKED
+- [x] DONE
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
@@ -92,18 +92,20 @@ Do not implement transaction context through process-global state or AsyncLocalS
 ## Execution notes
 
 ### Feature branch
-`feature/DATA-003`, at supplied current `develop` base
-`649b3e12244598a8b056b88e7f06f30d67f0a14e`.
+Recovered `feature/DATA-003` from preserved SHA
+`7629ec35abae6e3c398b13b55e1a41590559d002` by merging the current green
+`develop` SHA `3c41ea9f99d7d27dce3a048f83722769815afe25` with
+`--no-ff --no-gpg-sign` (recovery merge `a66244af8b43c4e35fc40f63ed3b3cbf6f4ae460`).
 ### Preflight
-- Confirmed the local branch was clean, exactly `feature/DATA-003`, and its
-  HEAD matched `develop`, `origin/develop`, and the supplied base SHA via
-  `git rev-parse`.
-- Confirmed the exact base SHA has a successful GitHub Actions `CI` run
-  (`34970945179`), and the local repository signing policy is
-  `commit.gpgSign=false`.
-- Stopped stale workspace Angular test processes (PIDs 14812 and 14288) found
-  during process preflight; no task-owned Angular, Nest, Tox21, or test
-  watcher remained before validation.
+- Confirmed clean synchronized `develop`, local/remote preserved recovery refs,
+  `commit.gpgSign=false`, no task-owned runtime/test process, and successful
+  isolated npm install/call/cleanup capability probe.
+- Confirmed all hard dependencies `0115`, `0120`, and `0150` are `DONE` and
+  `npm run autonomous:plan` reported no errors, cycles, or stale skips before
+  recovery.
+- Certified exact base SHA with fresh GitHub Actions full CI run `34997244092`:
+  Windows and Ubuntu prerequisites, all container/build/test/schema jobs, and
+  `Required gate` succeeded.
 - Focused unchanged checks passed:
   - `npm run ci:nest:architecture`;
   - `npm run typecheck --workspace mercurion_web_node`;
@@ -114,47 +116,46 @@ Do not implement transaction context through process-global state or AsyncLocalS
     (3 suites, 4 tests).
 - No browser/runtime validation was required. `npm ci` and
   `npm run ci:check` were not run.
-### Preflight remediation
-None beyond stopping the stale Angular test processes listed above.
 ### Summary
-Blocked before production implementation by the recipe's explicit stop
-condition. The current code still places external Redis/session side effects
-inside TypeORM transaction callbacks, including
-`MfaService.deletePhoneNumber_secondStep_verifyTotp()` calling
-`sessionService.revokeToken()` and `registerContactChangeFailure()` while the
-database transaction is active, and
-`AccountFlowKernel.recoverAccount_firstStep()` calling
-`ensureRecoveryNotLocked()` before its manager-bound writes. The required
-consistency model for these external effects on commit, rollback, retry and
-transaction failure is not defined by the repository contracts. Moving these
-callbacks behind `UnitOfWork` without that decision could report a database
-rollback while retaining Redis state (or retry an already-applied external
-effect), so implementation would guess at domain behavior.
+Implemented and documented the canonical TypeORM `UnitOfWork` with an opaque,
+explicitly propagated `TransactionContext`, manager-bound repository access,
+root-context reuse for nested use cases, deterministic context invalidation,
+and awaited post-commit effects that never run after rollback. External auth,
+SSO and molecule-lookup effects were moved outside database callbacks or
+registered after commit.
 
-The existing opaque `TransactionContext`/`UnitOfWork` introduced by the
-repository-boundary work is only a partial infrastructure seam: it does not
-resolve external-effect consistency, and raw transaction entrypoints remain
-throughout application services. No production code was changed in this
-attempt.
+Migrated every existing application-service raw transaction and removed manual
+`QueryRunner` ownership. Added `ci:transactions` plus its negative test to
+reject new direct TypeORM transaction mechanisms outside persistence
+infrastructure. Added a PostgreSQL integration probe to the existing migration
+schema job for commit, rollback, nesting, manager reuse, and post-commit
+semantics.
 ### Task-specific validation performed
-The focused architecture, typecheck, and three transaction/ownership suites
-listed under Preflight passed. No implementation validation was run because
-the task stop condition was reached before production edits.
+- `npm run ci:transactions` passed, including the negative policy test.
+- `npm run ci:nest:architecture` passed.
+- `npm run typecheck --workspace mercurion_web_node` passed.
+- `npm run lint --workspace mercurion_web_node` passed with zero warnings.
+- Complete Nest unit suite passed: 157 suites, 509 tests.
+- Complete Nest E2E suite passed: 1 suite, 3 tests.
+- `npm run build --workspace mercurion_web_node` passed.
+- `npm run ci:database-schema` passed against disposable PostgreSQL after all
+  migrations: UnitOfWork commit/rollback/nesting/post-commit integration checks
+  passed and the container was removed.
+- `git diff --check` passed.
 ### Full pre-merge CI-parity validation
-Not run. Complete clean-install and aggregate validation belong to GitHub
-Actions; local `npm ci` and `npm run ci:check` are forbidden.
+Pending on the exact final feature SHA. Local `npm ci` and
+`npm run ci:check` were not run; clean-install aggregate evidence belongs to
+GitHub Actions.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-`DATA-003 record unresolved external transaction consistency blocker`
+`f156a796d7980c22fedcdde681d27d47c42a09dc` — canonical UnitOfWork,
+application migrations, architecture gate and PostgreSQL integration probe.
 ### Merge / CI
-Blocked before integration; preserve and freeze the pushed feature branch.
+`DONE` is provisional `CI_PENDING` until exact feature-SHA and merge-SHA CI
+succeed. Final run, merge SHA and cleanup are recorded by the integration
+lifecycle.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Define the consistency contract for Redis/session and other external effects
-that currently execute inside database transaction callbacks. The decision
-must specify whether each effect is forbidden in the transaction, deferred
-through an outbox, or compensated/idempotently retried, including behavior
-after database rollback and transaction retry. Until that authority exists,
-the canonical migration cannot be completed safely.
+_None._
