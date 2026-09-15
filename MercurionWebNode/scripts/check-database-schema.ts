@@ -1,4 +1,5 @@
 import dataSource from '../src/persistence/typeorm.datasource'
+import { checkDatabaseIntegrity, checkIntegrityMigrationBackfill } from './check-database-integrity'
 import { checkUnitOfWork } from './check-unit-of-work'
 
 async function checkDatabaseSchema(): Promise<void> {
@@ -16,6 +17,8 @@ async function checkDatabaseSchema(): Promise<void> {
     }
 
     await checkUnitOfWork(dataSource)
+    await checkIntegrityMigrationBackfill(dataSource)
+    await checkDatabaseIntegrity(dataSource)
 
     console.log(`Database schema is current (${dataSource.migrations.length} migrations).`)
   } finally {

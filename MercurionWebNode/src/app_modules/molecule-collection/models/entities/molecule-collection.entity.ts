@@ -6,6 +6,9 @@ import { Field, ID, Int, ObjectType } from "@nestjs/graphql";
 
 @ObjectType()
 @Entity('molecule_collections')
+@Index('uq_molecule_collections_id_user', ['id', 'userId'], { unique: true })
+@Index('idx_molecule_collections_user_name', ['userId', 'name'])
+@Index('idx_molecule_collections_user_touched', ['userId', 'touchedAt'])
 export class MoleculeCollection {
 
     @Field(() => ID)
@@ -17,7 +20,7 @@ export class MoleculeCollection {
     name!: string
 
     @Index()
-    @Column()
+    @Column({ type: 'uuid' })
     userId!: UUID
 
     @Field(() => [MoleculeCollectionItemJoin], { nullable: true })

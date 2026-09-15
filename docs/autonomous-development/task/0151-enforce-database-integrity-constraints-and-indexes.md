@@ -1,7 +1,7 @@
 # 0151 - Enforce database integrity constraints and indexes
 
-- [ ] DONE
-- [x] BLOCKED
+- [x] DONE
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
@@ -92,70 +92,56 @@ Prefer constraints that encode stable domain truth. Do not attempt to encode eve
 ### Feature branch
 `feature/DATA-002`
 ### Preflight
-- Branch, base and cleanliness:
-  `git rev-parse --abbrev-ref HEAD` returned `feature/DATA-002`;
-  `git rev-parse develop` and `git rev-parse HEAD` both returned
-  `9bc8197d552141b83223353ae78331031febdcbd`; `git status --short --branch`
-  was clean.
-- Exact base Actions evidence: `gh run list --commit
-  9bc8197d552141b83223353ae78331031febdcbd --limit 10` reported successful
-  run `34969281141` for the `develop` merge.
+- Authorized recovery resumed preserved SHA
+  `d163d4189821d2f2f09e4901ab0a6a4ee3254a92` and merged current green
+  `develop` SHA `f86b60e8eec8d6f41eb774abc76720a5d47a5f54` with
+  `--no-ff --no-gpg-sign`.
+- Exact base full CI run `35001367196` succeeded with Windows, Ubuntu and
+  Required gate green.
 - Dependency `0150-establish-versioned-typeorm-migrations.md` is `[x] DONE`.
-- No Tox21, Nest or Angular runtime was started by this task. Process
-  inspection found Chrome DevTools MCP processes and a pre-existing Angular
-  test process (`ng test --watch=false ...dashboard-widget.mappers.spec.ts`);
-  no task-owned process was started or stopped.
-- The entity/migration inventory identified existing named foreign keys,
-  unique constraints, checks and workload indexes in the `0150` baseline, but
-  also identified application/schema gaps in SSO identity uniqueness and
-  molecule-collection ownership enforcement.
+- The real isolated npm capability probe passed and its exact temporary
+  directory was removed; repository status remained identical.
 ### Preflight remediation
 None.
 ### Summary
-`BLOCKED` before implementation per the recipe stop condition. A read-only
-query against the configured development PostgreSQL database found `307`
-existing cross-owner molecule-collection joins:
-`molecule_collection_items_join.user_id` differs from the owning collection
-or item owner. The database also returned zero duplicate identity keys, zero
-duplicate join keys and zero orphan join references, but the 307 ownership
-violations prevent safely adding the required multi-column ownership
-relationship constraint. No approved cleanup, backfill, or data-ownership
-policy is present in this task or the repository. Adding a migration that
-would reject those persisted rows would therefore be unsafe.
+Added a versioned integrity migration and matching TypeORM metadata for SSO
+identity uniqueness, molecule collection ownership keys, join uniqueness,
+composite ownership foreign keys, closed synthesis values and non-negative
+ordering. Query-backed collection/item/join and SSO indexes are named and
+documented in the production entity inventory.
 
-The canonical `npm run migration:drift --workspace mercurion_web_node`
-against the configured development database also failed with pre-existing
-schema drift and listed live constraints/indexes not represented by the
-`0150` entity metadata baseline; it was not used to mutate the database.
+The migration deterministically reconciles the historical blocker: when
+collection and item owners agree it repairs the denormalized join owner; when
+the parents have different owners it removes the association already forbidden
+by the domain. The canonical PostgreSQL schema check now verifies the migration
+backfill, exact schema objects, concurrent uniqueness, invalid ownership and
+transaction rollback behavior.
 ### Task-specific validation performed
-Read-only database evidence only:
-
-```text
-auth_identity_duplicates=0
-join_duplicates=0
-join_orphans=0
-join_cross_owner=307
-synthesis_duplicates=0
-step_duplicates=0
-item_duplicates=0
-```
-
-No migration, source test, or schema mutation was run.
+- `npm run migration:check --workspace mercurion_web_node` passed against a
+  disposable PostgreSQL/pgvector database with both migrations and zero schema
+  drift. Backfill, metadata, ownership, concurrency and rollback probes passed.
+- `npm run typecheck --workspace mercurion_web_node` passed.
+- `npm run lint --workspace mercurion_web_node` passed with zero warnings.
+- Complete Nest unit suite passed: 157 suites, 509 tests.
+- Complete Nest E2E suite passed: 1 suite, 3 tests.
+- `npm run build --workspace mercurion_web_node` passed.
+- `npm run ci:nest:architecture` passed.
+- `git diff --check` passed; the disposable database container was removed.
 ### Full pre-merge CI-parity validation
-Not run. Local `npm ci` and `npm run ci:check` are forbidden, and the task
-was blocked before implementation.
+Pending exact final feature-SHA GitHub Actions. Local `npm ci` and
+`npm run ci:check` were not run; clean-install aggregate evidence belongs to
+GitHub Actions.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-Blocking diagnostic commit on `feature/DATA-002` (below).
+`d163d4189821d2f2f09e4901ab0a6a4ee3254a92` — preserved blocking diagnosis.
+
+`b6fd338e` — migration, entity metadata, inventory and PostgreSQL integrity
+probe.
 ### Merge / CI
-Not applicable before integration; the diagnostic feature SHA is pushed for
-preservation.
+`DONE` remains provisional `CI_PENDING` until exact feature-SHA and merge-SHA
+CI succeed.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-The database/domain owner must approve a non-destructive cleanup/backfill and
-ownership reconciliation policy for the 307 existing cross-owner joins, or
-explicitly redefine the ownership invariant. After that decision, rerun the
-inventory and add only constraints whose product semantics and existing-row
-handling are approved.
+_None._

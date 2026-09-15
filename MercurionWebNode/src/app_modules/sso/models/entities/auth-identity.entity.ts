@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne, JoinColumn, PrimaryColumn, BeforeInsert } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, PrimaryColumn, BeforeInsert, Index } from 'typeorm';
 import { UUID } from 'crypto';
 import { uuidv7 } from '@kripod/uuidv7';
 import { User } from 'src/app_modules/user/models/entities/user.entity';
@@ -7,6 +7,8 @@ import { AuthProvider } from '../enums/auth-provider.enum';
 
 
 @Entity('auth_identities')
+@Index('uq_auth_identities_provider_subject', ['provider', 'providerSubject'], { unique: true })
+@Index('idx_auth_identities_user_provider', ['userId', 'provider'])
 export class AuthIdentity {
 
     @PrimaryColumn({ type: 'uuid' })
