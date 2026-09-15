@@ -160,6 +160,8 @@ function main() {
     ['angular-import-graph-negative', 'test-angular-import-graph-negative.mjs'],
     ['nest-module-graph', 'check-nest-module-graph.mjs', ['--root=MercurionWebNode']],
     ['nest-module-graph-negative', 'test-nest-module-graph-negative.mjs'],
+    ['nest-orphans', 'check-nest-orphans.mjs', ['--root=MercurionWebNode']],
+    ['nest-orphans-negative', 'test-nest-orphans-negative.mjs'],
     ['nest-provider-ownership', 'check-nest-provider-ownership.mjs', ['--root=MercurionWebNode']],
     ['nest-provider-ownership-negative', 'test-nest-provider-ownership-negative.mjs'],
     ['nest-test-route-policy', 'check-nest-test-route-policy.mjs'],
