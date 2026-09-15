@@ -121,7 +121,8 @@ exact feature-SHA Actions validation is coordinator-owned.
 ### Browser validation performed
 Not applicable; backend-only recipe.
 ### Commits
-Pending task commit.
+`f6561c965582bca7d2f049ae0dd142d5cf240d8d` — Make registration activation
+and SSO idempotent (includes the required Copilot co-author trailer).
 ### Merge / CI
 Feature branch publication follows the task commit. No develop/master changes.
 ### Rollback
