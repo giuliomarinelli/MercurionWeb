@@ -158,6 +158,34 @@ boundaries` (created with `git commit --no-gpg-sign`).
 `(created with git commit --no-gpg-sign)`.
 `2f66f609` — `fix(ci): repair BE-034 compatibility and MFA checks`
 (created with git commit --no-gpg-sign).
+### CI repair for feature run `34963655285`
+The exact feature SHA `46fb211a8254ce13be59336b0bf96bc1507f0c98` passed the
+prior repair checks but failed Angular unit-test compilation because the
+dashboard mapper fixture still assigned epoch numbers to the public
+`UtcInstant` contract.
+
+Applied only the confirmed Angular correction:
+
+- converted dashboard activity mapping through the shared
+  `epochMsFromUtcInstant`/`isUtcInstant` boundary helpers;
+- updated the focused mapper fixtures to construct canonical
+  millisecond-precision `UtcInstant` values while retaining malformed-input
+  coverage.
+
+Focused repair validation:
+
+- `npm run typecheck --workspace mercurion_web_ng` passed;
+- `npm --workspace mercurion_web_ng exec ng test -- --watch=false
+  --karma-config=karma.conf.js --include=src/app/pages/profile/dashboard/dashboard-widget.mappers.spec.ts`
+  passed (Angular compiled and all 480 discovered unit tests passed; the
+  workspace runner emitted an npm `include` configuration warning and did not
+  narrow discovery);
+- `npm run lint:angular --workspace mercurion_web_ng` passed;
+- `git diff --check` passed;
+- direct repository-root ESLint invocation was not applicable because ESLint
+  requires the workspace configuration context; the workspace lint passed.
+- `npm ci` and `npm run ci:check` were not run locally.
+
 ### Merge / CI
 Feature-SHA CI is coordinator-owned and required before integration.
 ### Rollback
