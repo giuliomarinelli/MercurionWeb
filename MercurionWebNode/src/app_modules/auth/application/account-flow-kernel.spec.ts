@@ -22,6 +22,7 @@ describe('AccountFlowKernel', () => {
       {} as any, // mailService
       {} as any, // smsService
       {} as any, // redisService
+      {} as any, // attempts
       {} as any, // sessionService
       {} as any, // responseService
       {} as any, // securityAuditService

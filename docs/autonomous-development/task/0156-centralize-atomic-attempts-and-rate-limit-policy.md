@@ -1,6 +1,6 @@
 # 0156 - Centralize atomic attempts and rate-limit policy
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -92,21 +92,38 @@ Prefer a small domain-specific rate/attempt API over a generic Redis wrapper wit
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-007`
 ### Preflight
-_Not started._
+Clean `feature/DATA-007` at base `48cc6412a0b8641d175dfd894c24a1887691bb0d`; local
+branch matched the supplied SHA and no task-owned workspace process was active.
+GitHub Actions run `35036213358` for the exact base SHA was successful, including
+Ubuntu/Windows prerequisite and quality jobs plus `Required gate`.
 ### Preflight remediation
 _None._
 ### Summary
-Re-enabled after DATA-002 became `DONE`; this task was never attempted and has no feature branch.
+Added the typed `AtomicAttemptPolicyService` and authoritative policy registry.
+Redis Lua execution now atomically checks locks, increments counters, assigns
+first-increment TTLs, transitions to explicit lock TTLs, and removes threshold
+counters. Account, credential authentication, MFA, and feedback flows now use
+the shared intention-level engine and canonical Redis keys. Approved effective
+limits and error identities were preserved; no raw protected identifiers were
+introduced.
 ### Task-specific validation performed
-_Not started._
+`npm run typecheck --workspace mercurion_web_node` passed.
+Focused Jest suites passed (4 suites, 6 tests), including deterministic registry,
+atomic invocation, threshold-transition, account-kernel, MFA, and feedback
+coverage. `npm run lint --workspace mercurion_web_node`, `npm run build
+--workspace mercurion_web_node`, `npm run ci:redis:architecture`, and
+`git diff --check` passed. Governed service inspection found no remaining direct
+counter `incr`/TTL algorithms or duplicated policy constants.
 ### Full pre-merge CI-parity validation
-_Not started._
+Not run locally; forbidden by protocol. Exact pushed feature-SHA GitHub Actions
+validation remains coordinator-owned.
 ### Browser validation performed
 _Not started._
 ### Commits
-_None._
+Pending commit: atomic attempts/rate-limit policy engine and governed-flow
+migration.
 ### Merge / CI
 _Not started._
 ### Rollback
