@@ -116,7 +116,7 @@ feature validation is owned by GitHub Actions after push.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-Pending task commit.
+`c1ccae2e1211cf99fcee84d43bd63265265d31da` — `feat(BE-027): enable strict Nest TypeScript`
 ### Merge / CI
 Feature SHA must receive exact-SHA GitHub Actions validation before integration.
 ### Rollback
