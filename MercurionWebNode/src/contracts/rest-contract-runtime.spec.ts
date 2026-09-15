@@ -2,8 +2,10 @@ import { instanceToPlain } from 'class-transformer'
 import type { UUID } from 'node:crypto'
 import type {
   Feedback as FeedbackContract,
-  PhonePrefixDTO
+  PhonePrefixDTO,
+  UtcInstant
 } from '@mercurion/rest-contracts'
+import { parseUtcInstant } from '@mercurion/rest-contracts'
 import { CountryService } from '../app_modules/auth/services/country.service'
 import {
   FeedbackContextKind,
@@ -38,7 +40,7 @@ describe('REST contract runtime parity', () => {
   it('serializes feedback without Nest-only identity fields', () => {
     const wire: FeedbackContract = {
       id: '018f47f0-7b58-7c36-b7b2-f0c037bed6a4',
-      createdAtMs: '1720000000000',
+      createdAtMs: parseUtcInstant('2024-07-03T09:46:40.000Z') as UtcInstant,
       env: 'staging',
       source: 'manual_page',
       kind: 'bug',

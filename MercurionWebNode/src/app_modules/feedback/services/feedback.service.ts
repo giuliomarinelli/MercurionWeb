@@ -11,6 +11,8 @@ import { UpdateFeedbackDTO } from '../models/dto/update-feedback.dto';
 import { IPaginationOptions, paginate, Pagination } from 'nestjs-typeorm-paginate';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 import { redisDurations, redisKeys } from 'src/app_modules/redis/contracts/redis-contracts'
+import type { Feedback as FeedbackContract } from '@mercurion/rest-contracts'
+import { utcInstantFromEpochMs } from 'src/utils/temporal/temporal'
 
 @Injectable()
 export class FeedbackService {
@@ -25,6 +27,27 @@ export class FeedbackService {
         @InjectRepository(Feedback)
         private readonly feedbackRepo: Repository<Feedback>
     ) { }
+
+    private toPublicFeedback(feedback: Feedback): FeedbackContract {
+        return {
+            id: feedback.id,
+            createdAtMs: utcInstantFromEpochMs(Number(feedback.createdAtMs)),
+            env: feedback.env,
+            source: feedback.source,
+            kind: feedback.kind,
+            ratingUtility: feedback.ratingUtility,
+            ratingClarity: feedback.ratingClarity,
+            ratingExperience: feedback.ratingExperience,
+            message: feedback.message,
+            contextKind: feedback.contextKind,
+            contextRef: feedback.contextRef,
+            contextMeta: feedback.contextMeta,
+            clientVersion: feedback.clientVersion,
+            status: feedback.status,
+            internalNote: feedback.internalNote,
+            tags: feedback.tags
+        }
+    }
 
     private async ensureFeedbackNotLocked(userId: UUID): Promise<void> {
         const lockKey = redisKeys.feedback.sendLock(userId)
@@ -57,7 +80,7 @@ export class FeedbackService {
         await this.redisService.del(lockKey)
     }
 
-    async createFeedback(dto: CreateFeedbackDTO, userId: UUID): Promise<Feedback> {
+    async createFeedback(dto: CreateFeedbackDTO, userId: UUID): Promise<FeedbackContract> {
 
         await this.ensureFeedbackNotLocked(userId)
 
@@ -82,13 +105,14 @@ export class FeedbackService {
 
         await this.registerFeedbackSend(userId)
 
-        return saved
+        return this.toPublicFeedback(saved)
     }
 
-    async getFeedbackById(id: UUID): Promise<Feedback | null> {
-        return this.feedbackRepo.findOne({
+    async getFeedbackById(id: UUID): Promise<FeedbackContract | null> {
+        const feedback = await this.feedbackRepo.findOne({
             where: { id }
         })
+        return feedback ? this.toPublicFeedback(feedback) : null
     }
 
     async listFeedback(
@@ -97,7 +121,7 @@ export class FeedbackService {
             env?: FeedbackEnv
             status?: FeedbackStatus
         }
-    ): Promise<Pagination<Feedback>> {
+    ): Promise<Pagination<FeedbackContract>> {
         const where: Record<string, unknown> = {}
 
         if (filters?.env) {
@@ -108,15 +132,19 @@ export class FeedbackService {
             where.status = filters.status
         }
 
-        return paginate(this.feedbackRepo, options, {
+        const page = await paginate(this.feedbackRepo, options, {
             where,
             order: {
                 createdAtMs: 'DESC'
             }
         })
+        return {
+            ...page,
+            items: page.items.map(feedback => this.toPublicFeedback(feedback))
+        }
     }
 
-    async moderateFeedback(id: UUID, dto: UpdateFeedbackDTO): Promise<Feedback> {
+    async moderateFeedback(id: UUID, dto: UpdateFeedbackDTO): Promise<FeedbackContract> {
         const feedback = await this.feedbackRepo.findOne({
             where: { id }
         })
@@ -137,7 +165,8 @@ export class FeedbackService {
             feedback.tags = dto.tags
         }
 
-        return this.feedbackRepo.save(feedback)
+        const saved = await this.feedbackRepo.save(feedback)
+        return this.toPublicFeedback(saved)
     }
 
     async deleteFeedback(id: UUID): Promise<void> | never {

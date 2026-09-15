@@ -25,6 +25,8 @@ import { MfaChallengeService } from '../services/mfa-challenge.service'
 import { SecurityService } from '../services/security.service'
 import { SessionService } from '../services/session.service'
 import { AuthenticationSessionService } from './authentication-session.service'
+import { utcInstantFromEpochMs } from 'src/utils/temporal/temporal'
+import type { UtcInstant } from '@mercurion/rest-contracts'
 
 export interface StartMfaChallengeCommand {
     preAuthorizationToken: string
@@ -36,8 +38,8 @@ export type StartMfaChallengeResult =
     | {
         outcome: 'sent'
         strategy: MfaStrategy
-        generatedAt: number
-        expiresAt: number
+        generatedAt: UtcInstant
+        expiresAt: UtcInstant
     }
     | { outcome: 'invalid-token' }
     | { outcome: 'invalid-strategy' }
@@ -69,14 +71,17 @@ export class StartMfaChallengeHandler {
             return { outcome: 'invalid-strategy' }
         }
 
+        const { generatedAt, expiresAt } = await this.mfaService.sendOtpToUser(
+            command.preAuthorizationToken,
+            strategy,
+            command.trustVerify
+        )
+
         return {
             outcome: 'sent',
             strategy,
-            ...await this.mfaService.sendOtpToUser(
-                command.preAuthorizationToken,
-                strategy,
-                command.trustVerify
-            )
+            generatedAt: utcInstantFromEpochMs(generatedAt),
+            expiresAt: utcInstantFromEpochMs(expiresAt)
         }
     }
 }

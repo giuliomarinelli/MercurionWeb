@@ -27,6 +27,7 @@ import { SecurityAuditService } from 'src/app_modules/meilisearch/services/secur
 import { UserContext } from 'src/app_modules/notification/models/contexts/user.context';
 import { LoggerPort } from 'src/logging/logger.port';
 import { LoggerContext } from 'src/logging/logger.port';
+import { publicTotpMetadata } from 'src/utils/temporal/temporal'
 import { DataSource } from 'typeorm';
 import { ScopeService } from '../services/scope.service';
 import { MfaBackupCode } from 'src/app_modules/user/models/entities/backup-code.entity';
@@ -411,7 +412,7 @@ export class AccountFlowKernel {
             ...this._r.ok(`Email change requested. Check ${obscuredEmail} for verification code`),
             obscuredEmail,
             emailVerificationToken,
-            ...metadata
+            ...publicTotpMetadata(metadata)
         }
     }
 
@@ -515,7 +516,7 @@ export class AccountFlowKernel {
             ...this._r.ok(`Phone number deletion requested. Check ${this.securityService.maskPhone(currentNumber)} for verification code.`),
             obscuredPhoneNumber: this.securityService.maskPhone(currentNumber),
             phoneNumberVerificationToken,
-            ...metadata
+            ...publicTotpMetadata(metadata)
         }
 
     }
@@ -651,7 +652,7 @@ export class AccountFlowKernel {
             ...this._r.ok(`Phone number change requested. Check ${this.securityService.maskPhone(fullNumber)} for verification code.`),
             obscuredPhoneNumber: this.securityService.maskPhone(fullNumber),
             phoneNumberVerificationToken,
-            ...metadata
+            ...publicTotpMetadata(metadata)
         }
 
     }

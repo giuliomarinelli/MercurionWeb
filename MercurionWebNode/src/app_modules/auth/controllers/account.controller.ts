@@ -9,6 +9,7 @@ import { AccountSensitiveDataUseCase } from '../application/account-sensitive-da
 import { PasswordChangeUseCase, PasswordRecoveryUseCase } from '../application/password-recovery.use-case';
 import { ProfileAccountUseCase } from '../application/profile-account.use-case';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
+import { publicTotpMetadata } from 'src/utils/temporal/temporal'
 import { ResponseService } from 'src/services/response.service';
 import { MfaChallengeService } from '../services/mfa-challenge.service';
 import { MfaEnrollmentService } from '../services/mfa-enrollment.service';
@@ -132,7 +133,7 @@ export class AccountController {
         const strategy: MfaStrategy = GeneralUtils.validateMfaStrategy(strategyKey)
         return {
             ...this._r.ok(`OTP sent or QR generated and secure_token generated for MFA strategy ${strategyKey}`),
-            ...await this.mfaEnrollment.enableFirstStep(userId, strategy)
+            ...publicTotpMetadata(await this.mfaEnrollment.enableFirstStep(userId, strategy))
         }
     }
 
@@ -158,7 +159,7 @@ export class AccountController {
         const strategy: MfaStrategy = GeneralUtils.validateMfaStrategy(strategyKey)
         return {
             ...this._r.ok(`OTP sent and/or secure_token generated for MFA strategy ${strategyKey}`),
-            ...await this.mfaEnrollment.disableFirstStep(userId, strategy)
+            ...publicTotpMetadata(await this.mfaEnrollment.disableFirstStep(userId, strategy))
         }
     }
 

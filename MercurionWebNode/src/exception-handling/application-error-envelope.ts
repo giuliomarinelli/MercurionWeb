@@ -10,6 +10,7 @@ import {
 import { HttpException } from '@nestjs/common'
 import { categoryForStatus, getApplicationError } from './application-error'
 import { httpStatusDescription } from './http-status-description'
+import { utcNow } from 'src/utils/temporal/temporal'
 
 export interface CanonicalApplicationError extends ApplicationErrorEnvelope {
   readonly diagnosticCause?: unknown
@@ -189,7 +190,7 @@ export function createRestErrorResponse(
     ...envelope,
     statusCode: envelope.status,
     error: input.error ?? httpStatusDescription(envelope.status),
-    timestamp: new Date().toISOString(),
+    timestamp: utcNow(),
     requestId: envelope.correlationId,
     path: input.path
   }

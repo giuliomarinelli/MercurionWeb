@@ -23,6 +23,7 @@ import type {
   UserRegisterDTO as UserRegisterContract,
   VerifyBodyDTO as VerifyBodyContract
 } from '@mercurion/rest-contracts'
+import type { UtcInstant } from '@mercurion/rest-contracts'
 import type { BackupCodeDTO } from '../app_modules/auth/models/dto/backup-code.cls.dto'
 import type { ChangePasswordDTO } from '../app_modules/auth/models/dto/change-password.dto'
 import type { ChangePhoneDTO } from '../app_modules/auth/models/dto/change-phone.cls.dto'
@@ -89,6 +90,7 @@ type FeedbackWire = Omit<
   kind: EnumValue<Feedback['kind']>
   contextKind: EnumValue<Feedback['contextKind']>
   status: EnumValue<Feedback['status']>
+  createdAtMs: UtcInstant
 }
 
 // The internal MFA-strategy enum persists opaque DB identifiers as its values, so it cannot

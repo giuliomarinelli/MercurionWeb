@@ -1,6 +1,6 @@
 # 0148 - Adopt one UTC timestamp contract across Nest boundaries
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -84,24 +84,58 @@ Mark `BLOCKED` if a public field intentionally represents local civil time rathe
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/BE-034`
 ### Preflight
-_Not started._
+Verified branch identity `feature/BE-034`, preserved task-scoped worktree changes,
+and base `b09d5930bf2fa92baa44ce9bfd4d410e727a59af` equal to local
+`develop`/`origin/develop`. GitHub Actions run `34961530324` for that exact
+SHA completed successfully with a successful `Required gate`; the run used the
+autonomous metadata path because the base commit contains control-plane-only
+changes. No browser/runtime validation is declared for this recipe. No
+workspace-consuming process was started.
 ### Preflight remediation
-_None._
+The preserved implementation initially failed Nest typecheck because the
+feedback controller still exposed the TypeORM entity after the public contract
+changed. The controller and moderation path were corrected to use the public
+REST contract and explicit entity-to-wire mapping. No unrelated files were
+changed.
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0141, 0137. This task was never attempted and receives no feature branch.
+Added a shared millisecond-precision `UtcInstant` contract with strict UTC
+wire parsing, epoch/date conversion helpers, and application `utcNow()`/
+TOTP boundary helpers. Normalized REST response/error timestamps, session,
+history, feedback, MFA metadata, audit and logger timestamps at explicit
+boundaries while leaving elapsed-time/TTL values numeric. Feedback persistence
+continues to use epoch milliseconds internally and now maps to the public
+contract without leaking identity fields.
 ### Task-specific validation performed
-_Not started._
+Passed:
+
+- `npm run typecheck --workspace @mercurion/rest-contracts`
+- `npm run typecheck --workspace mercurion_web_node`
+- `npm run lint --workspace mercurion_web_node`
+- `npm run contracts:check --workspace mercurion_web_node` (10 suites, 55 tests)
+- focused Nest tests for temporal, REST runtime parity, authentication,
+  feedback, history and session boundaries (8 suites, 23 tests total)
+- `npm run build --workspace @mercurion/rest-contracts`
+- `npm run build --workspace mercurion_web_node`
+- UTC epoch round-trip under `TZ=America/Los_Angeles` and `TZ=Europe/Rome`
+- `git diff --check`
+
+Forbidden clean-install and aggregate commands were not run: `npm ci` and
+`npm run ci:check`.
 ### Full pre-merge CI-parity validation
-_Not started._
+Owned by GitHub Actions on the exact pushed feature SHA; not run locally per
+repository policy.
 ### Browser validation performed
-_Not applicable._
+Not applicable; the recipe explicitly declares browser validation not
+applicable.
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+`75977545` — `feat(temporal): adopt UTC instant contract across Nest
+boundaries` (created with `git commit --no-gpg-sign`).
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+Feature-SHA CI is coordinator-owned and required before integration.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+None for local implementation. Coordinator must observe exact feature-SHA
+Actions before integration.
