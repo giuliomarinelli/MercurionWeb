@@ -9,7 +9,7 @@ export class CustomMoleculeItemInput {
     @IsString()
     @Field(() => String)
     @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
-    canonicalSmiles: string
+    canonicalSmiles!: string
 
     @IsOptional()
     @IsString()

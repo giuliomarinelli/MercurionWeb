@@ -11,7 +11,7 @@ export class SynthStepItemInput {
     @IsUUID()
     @Field(() => ID)
     @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
-    stepId: UUID
+    stepId!: UUID
 
     @ValidateIf(input => !input.text)
     @IsUUID()
@@ -29,14 +29,14 @@ export class SynthStepItemInput {
 
     @IsEnum(SynthStepItemKind)
     @Field(() => SynthStepItemKind)
-    kind: SynthStepItemKind
+    kind!: SynthStepItemKind
 
     @IsEnum(SynthStepItemPosition)
     @Field(() => SynthStepItemPosition)
-    position: SynthStepItemPosition
+    position!: SynthStepItemPosition
 
     @IsInt()
     @Min(0)
     @Field(() => Int)
-    order: number
+    order!: number
 }

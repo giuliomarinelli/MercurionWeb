@@ -5,8 +5,8 @@ import { IsUUID } from 'class-validator';
 export class AddItemToCollectionInput {
     @IsUUID()
     @Field(() => ID)
-    collectionId: string
+    collectionId!: string
     @IsUUID()
     @Field(() => ID)
-    itemId: string
+    itemId!: string
 }

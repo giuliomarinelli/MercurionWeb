@@ -9,12 +9,12 @@ export class TotpBodyDTO implements TotpBodyContract {
     @IsString()
     @Matches(/^(?!\s*$)(\d{6}|[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4})$/)
     @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
-    totp: string
+    totp!: string
 }
 
 export class TotpDTO extends TotpBodyDTO implements TotpContract {
     @IsString()
     @Matches(/^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$/)
     @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
-    secureToken: string
+    secureToken!: string
 }

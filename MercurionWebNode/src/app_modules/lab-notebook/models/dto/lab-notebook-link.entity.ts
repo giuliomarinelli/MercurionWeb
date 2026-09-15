@@ -7,15 +7,15 @@ import { MoleculeCollectionItemEntity } from "src/app_modules/molecule-collectio
 @Entity('lab_notebook_links')
 export class LabNotebookLink {
 
-    @PrimaryColumn({ type: 'uuid' }) id: UUID
+    @PrimaryColumn({ type: 'uuid' }) id!: UUID
 
     @ManyToOne(() => NotebookPage, note => note.links, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'note_id' })
-    note: NotebookPage
+    note!: NotebookPage
 
     @ManyToOne(() => MoleculeCollectionItemEntity, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'item_id' })
-    item: MoleculeCollectionItemEntity
+    item!: MoleculeCollectionItemEntity
 
     @BeforeInsert() generateId() {
         this.id = uuidv7() as UUID

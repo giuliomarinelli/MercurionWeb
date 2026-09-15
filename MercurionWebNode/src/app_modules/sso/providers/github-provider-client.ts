@@ -9,6 +9,7 @@ import { AuthProvider } from '../models/enums/auth-provider.enum';
 import { SSO_Configuration } from 'src/config/config.types';
 import { GitHubEmailResponse, GitHubTokenResponse, GitHubUserResponse } from '../models/interfaces/github-response.interfaces';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
+import { errorMessage } from 'src/utils/errors/error-message'
 
 
 @Injectable()
@@ -98,11 +99,9 @@ export class GitHubProviderClient implements ISocialProviderClient {
                 lastName,
             };
         } catch (e) {
-            const detail =
-                ((e)?.response?.data?.error_description as unknown as string) ||
-                e?.response?.data?.error ||
-                e?.message ||
-                'unknown error'
+            const detail = axios.isAxiosError(e)
+                ? String(e.response?.data?.error_description ?? e.response?.data?.error ?? 'unknown error')
+                : errorMessage(e)
 
             throw applicationError(ApplicationErrorCode.SSO_GITHUB_PROFILE_FETCH_FAILED, `GitHub: failed to fetch profile (${detail})`)
         }

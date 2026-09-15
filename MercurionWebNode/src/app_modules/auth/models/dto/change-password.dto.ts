@@ -8,5 +8,5 @@ export class ChangePasswordDTO implements ChangePasswordContract {
 
     @IsString()
     @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/)
-    newPassword: string
+    newPassword!: string
 }

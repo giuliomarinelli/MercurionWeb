@@ -8,24 +8,24 @@ import { GeneralUtils } from "src/utils/general-utils/general-utils"
 export class SynthStepInput {
 
     @IsUUID()
-    @Field(() => ID) 
+    @Field(() => ID)
     @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
-    synthId: UUID
+    synthId!: UUID
 
     @IsInt()
     @Min(0)
-    @Field(() => Int) 
-    order: number
+    @Field(() => Int)
+    order!: number
 
     @IsOptional()
     @IsString()
-    @Field(() => String, { nullable: true }) 
+    @Field(() => String, { nullable: true })
     @Transform(({ value }) => typeof value === 'string' ? GeneralUtils.normalizeSpaces(value) : value)
-    description: string | null
-    
+    description!: string | null
+
     @IsOptional()
     @IsString()
-    @Field(() => String, { nullable: true }) 
+    @Field(() => String, { nullable: true })
     @Transform(({ value }) => typeof value === 'string' ? GeneralUtils.normalizeSpaces(value) : value)
-    reactionType: string | null
+    reactionType!: string | null
 }

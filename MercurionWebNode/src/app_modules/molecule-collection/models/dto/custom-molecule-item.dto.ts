@@ -4,38 +4,38 @@ import { MoleculeCollectionItemJoin } from '../entities/molecule-collection-item
 @ObjectType()
 export class CustomMoleculeItemDTO {
   @Field(() => ID)
-  id: string
+  id!: string
 
   @Field(() => String, { nullable: true })
-  label: string | null
+  label!: string | null
 
   @Field(() => String, { nullable: true })
-  notes: string | null
+  notes!: string | null
 
   @Field(() => String)
-  type: 'custom'
+  type!: 'custom'
 
   @Field(() => String)
-  canonicalSmiles: string
+  canonicalSmiles!: string
 
   @Field(() => String, { nullable: true })
-  molFormula: string | null
+  molFormula!: string | null
 
   @Field(() => String, { nullable: true })
-  name: string | null
+  name!: string | null
 
   @Field(() => String, { nullable: true })
-  propertiesJson: string | null
+  propertiesJson!: string | null
 
   @Field(() => String)
-  createdAt: number
+  createdAt!: number
 
   @Field(() => String)
-  updatedAt: number
+  updatedAt!: number
 
   @Field(() => String)
-  touchedAt: number
+  touchedAt!: number
 
   @Field(() => [MoleculeCollectionItemJoin], { nullable: true })
-  joins: MoleculeCollectionItemJoin[] | null
+  joins!: MoleculeCollectionItemJoin[] | null
 }

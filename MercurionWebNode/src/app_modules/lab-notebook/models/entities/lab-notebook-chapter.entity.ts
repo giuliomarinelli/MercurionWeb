@@ -11,40 +11,40 @@ export class NotebookChapter {
 
     @Field(() => ID)
     @PrimaryColumn({ type: 'uuid' })
-    id: UUID
+    id!: UUID
 
     @Index()
     @Column({ type: 'uuid' })
-    userId: UUID
+    userId!: UUID
 
     @Field()
     @Column({ type: 'varchar' })
-    title: string
+    title!: string
 
     @Field(() => LabNotebook)
     @ManyToOne(() => LabNotebook, notebook => notebook.chapters, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'notebook_id' })
-    notebook: LabNotebook
+    notebook!: LabNotebook
 
     @Index()
     @Column('uuid')
-    notebookId: UUID
+    notebookId!: UUID
 
     @Field(() => [NotebookSection], { nullable: true })
     @OneToMany(() => NotebookSection, section => section.chapter)
-    sections: NotebookSection[]
+    sections!: NotebookSection[]
 
     @Field(() => Int)
     @Column({ type: 'int', default: 0 })
-    order: number
+    order!: number
 
     @Field(() => String, { nullable: true })
     @Column({ nullable: true, type: 'bigint' })
-    createdAt: number
+    createdAt!: number
 
     @Field(() => String, { nullable: true })
     @Column({ nullable: true, type: 'bigint' })
-    updatedAt: number | null
+    updatedAt!: number | null
 
     @BeforeInsert() generateId() {
         this.id = uuidv7() as UUID

@@ -10,7 +10,7 @@ export class CreateMoleculeItemInput {
     @IsString()
     @Field(() => String)
     @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
-    type: string // 'custom' o 'chembl'
+    type!: string // 'custom' o 'chembl'
 
     @IsOptional()
     @IsString()

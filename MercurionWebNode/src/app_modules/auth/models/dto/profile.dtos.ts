@@ -11,19 +11,19 @@ import type {
 export type { ProfileDTO, ProfileRegistryClientDTO }
 
 export class ProfileRegistryDTO implements ProfileRegistryContract {
-   
-    @IsString()
-    @IsNotEmpty()
-    @Transform(({ value }) => typeof value === 'string' ? GeneralUtils.normalizePersonName(value) : value)
-    firstName: string
 
     @IsString()
     @IsNotEmpty()
     @Transform(({ value }) => typeof value === 'string' ? GeneralUtils.normalizePersonName(value) : value)
-    lastName: string
+    firstName!: string
+
+    @IsString()
+    @IsNotEmpty()
+    @Transform(({ value }) => typeof value === 'string' ? GeneralUtils.normalizePersonName(value) : value)
+    lastName!: string
 
     @IsEnum(UserGender)
-    gender: UserGender
+    gender!: UserGender
 
     @IsString()
     @IsNotEmpty()

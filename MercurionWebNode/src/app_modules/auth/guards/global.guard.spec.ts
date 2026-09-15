@@ -55,7 +55,7 @@ function normalizedContext(
 
 function setup(metadata: { public?: boolean; soft?: boolean } = {}) {
   const reflector = new Reflector()
-  jest.spyOn(reflector, 'get').mockImplementation((key: string) => {
+  jest.spyOn(reflector, 'get').mockImplementation((key: unknown) => {
     if (key === IS_PUBLIC_KEY) return metadata.public
     if (key === IS_SOFT_AUTHORIZATION) return metadata.soft
     return undefined
@@ -237,13 +237,13 @@ describe('GlobalGuard policy pipeline', () => {
     const context = executionContext(expectedStage)
     const pipeline = setup()
     const failure = new Error(expectedStage)
-    const owner = failingMethod === 'extractAccessToken'
+    const owner = (failingMethod === 'extractAccessToken'
       ? pipeline.credentialPolicy
       : failingMethod === 'authenticate'
         ? pipeline.authenticationPolicy
         : failingMethod === 'authorize' || failingMethod === 'resolveGrantedScopes'
           ? pipeline.scopePolicy
-          : pipeline.sessionPolicy
+          : pipeline.sessionPolicy) as { [key: string]: jest.Mock }
     if (failingMethod === 'extractAccessToken') {
       ;(owner[failingMethod] as jest.Mock).mockImplementationOnce(() => {
         throw failure

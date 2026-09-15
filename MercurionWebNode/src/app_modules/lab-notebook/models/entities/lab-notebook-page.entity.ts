@@ -12,46 +12,46 @@ export class NotebookPage {
 
     @Field(() => ID)
     @PrimaryColumn({ type: 'uuid' })
-    id: UUID
+    id!: UUID
 
     @Index()
     @Column({ type: 'uuid' })
-    userId: UUID
+    userId!: UUID
 
     @Field({ nullable: true })
     @Column({ type: 'varchar' })
-    title: string
+    title!: string
 
     @Field({ nullable: true })
     @Column({ type: 'text', default: '' })
-    content: string          // HTML o Delta
+    content!: string          // HTML o Delta
 
     @Field({ nullable: true })
     @Column({ type: 'text', default: '' })
-    sanitizedText: string    // per Meilisearch
+    sanitizedText!: string    // per Meilisearch
 
     @Field(() => NotebookSection)
     @ManyToOne(() => NotebookSection, section => section.pages, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'section_id' })
-    section: NotebookSection
+    section!: NotebookSection
 
     @Field(() => [LabNotebookLinkType])
     @OneToMany(() => LabNotebookLink, link => link.note)
-    links: LabNotebookLink[]
+    links!: LabNotebookLink[]
 
     @Field(() => String, { nullable: true })
     @Column({ nullable: true, type: 'bigint' })
-    createdAt: number
+    createdAt!: number
 
     @Field(() => String, { nullable: true })
     @Column({ nullable: true, type: 'bigint' })
-    updatedAt: number
+    updatedAt!: number
 
-    
+
     @Field(() => Int)
     @Column({ type: 'int', default: 0 })
-    order: number
-    
+    order!: number
+
     @BeforeInsert() generateId() {
         this.id = uuidv7() as UUID
         this.createdAt = Date.now()

@@ -11,95 +11,95 @@ import { AuthIdentity } from '../../../sso/models/entities/auth-identity.entity'
 export class User {
 
     @PrimaryColumn({ type: 'uuid' })
-    id: UUID
+    id!: UUID
 
     @Column({ type: 'varchar', unique: true, default: null })
-    email: string | null // nullo fino ad attivazione account con conferma email con link
+    email!: string | null // nullo fino ad attivazione account con conferma email con link
 
     @Column({ type: 'varchar', nullable: true })
-    unconfirmedEmail: string | null // nullo con email confermata, valorizzata con nuova email da confermare via OTP
+    unconfirmedEmail!: string | null // nullo con email confermata, valorizzata con nuova email da confermare via OTP
 
     @Column({ type: 'varchar', nullable: true, default: null })
-    completePhoneNumber: string | null // opzionale: numero di telefono comprensivo del prefisso internazionale
+    completePhoneNumber!: string | null // opzionale: numero di telefono comprensivo del prefisso internazionale
 
     @Column({ type: 'bigint', default: 0 })
-    phoneNumberPrefixLength: number // lunghezza del prefisso internazionale se si vuole parsare solo il numero
+    phoneNumberPrefixLength!: number // lunghezza del prefisso internazionale se si vuole parsare solo il numero
 
     @Column({ type: 'varchar', nullable: true, default: null })
-    unconfirmedPhoneNumber: string | null
+    unconfirmedPhoneNumber!: string | null
 
     @Column({ type: 'bigint', nullable: true, default: null })
-    unconfirmedPhoneNumberPrefixLength: number | null
+    unconfirmedPhoneNumberPrefixLength!: number | null
 
     @Column({ type: 'varchar', length: 100, nullable: true })
-    passwordHash: string | null // hash argon2
+    passwordHash!: string | null // hash argon2
 
     @Column({ type: 'varchar', default: '' })
-    firstName: string
+    firstName!: string
 
     @Column({ type: 'varchar', default: '' })
-    lastName: string
+    lastName!: string
 
     @Column({ type: 'varchar', default: UserGender.Undefined })
-    gender: UserGender
+    gender!: UserGender
 
     @Column({ type: 'varchar', nullable: true })
-    job: string | null
+    job!: string | null
 
     @Column({ type: 'varchar', length: 2, default: '' })
-    initials: string
+    initials!: string
 
     @Column({ type: 'boolean', default: false })
-    isVerified: boolean // portato a true dopo attivazione account con link email
+    isVerified!: boolean // portato a true dopo attivazione account con link email
 
     @Column({ type: 'jsonb', default: '[]' })
-    scopes: string[]
+    scopes!: string[]
 
     @Column({ type: 'text', default: '[]' })
-    mfaStrategies: string // JSON.stringify delle strategy UUID - permessi dell'utente (senza ruoli inutili e pesanti)
+    mfaStrategies!: string // JSON.stringify delle strategy UUID - permessi dell'utente (senza ruoli inutili e pesanti)
 
     @Column({ type: 'bigint' })
-    createdAt: number
+    createdAt!: number
 
     @Column({ type: 'bigint' })
-    updatedAt: number
+    updatedAt!: number
 
     @Column({ type: 'varchar', default: '' })
-    otpSecret: string
+    otpSecret!: string
 
     @Column({ type: 'varchar', default: null, nullable: true })
-    appTotpSecret: string | null
+    appTotpSecret!: string | null
 
     @Column({ type: 'jsonb', default: '[]' })
-    oldPasswordHashes: OldPasswordItem[]
+    oldPasswordHashes!: OldPasswordItem[]
 
     @OneToMany(() => MfaBackupCode, (backupCode) => backupCode.user, { cascade: true })
-    backupCodes: MfaBackupCode[]
+    backupCodes!: MfaBackupCode[]
 
     @OneToOne(() => DocumentEntity, { cascade: true, nullable: true })
     @JoinColumn({ name: 'avatar_id' })
-    avatar: DocumentEntity | null
+    avatar!: DocumentEntity | null
 
     @Column({ type: 'uuid', nullable: true })
-    avatarId: UUID | null
+    avatarId!: UUID | null
 
     @Column({ type: 'boolean', default: false })
-    backupCodesGiven: boolean
+    backupCodesGiven!: boolean
 
     @Column({ type: 'varchar', nullable: true })
-    accountRecoveryCodeHash: string | null
+    accountRecoveryCodeHash!: string | null
 
     @Column({ type: 'bool', default: false })
-    locked: boolean
+    locked!: boolean
 
     @Column({ type: 'bool', default: false })
-    recoveryMode: boolean
+    recoveryMode!: boolean
 
     @Column({ type: 'boolean', default: false })
-    sso: boolean
+    sso!: boolean
 
     @OneToMany(() => AuthIdentity, (ai) => ai.user, { cascade: true })
-    authIdentities: AuthIdentity[]
+    authIdentities!: AuthIdentity[]
 
     @BeforeInsert()
     private generateId() {

@@ -80,7 +80,7 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
   private subClient: Redis | undefined
 
   @WebSocketServer()
-  private readonly server: ApplicationServer
+  private readonly server!: ApplicationServer
 
   constructor(
     private readonly configService: ConfigService,

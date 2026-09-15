@@ -8,6 +8,7 @@ import { CompareResult } from '../models/enums/compare-result.enum'
 import { LoggerPort } from 'src/logging/logger.port'
 import { LoggerContext } from 'src/logging/logger.port'
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
+import { errorMessage } from 'src/utils/errors/error-message'
 
 @Injectable()
 export class PasswordEncoderService implements PasswordEncoder {
@@ -53,7 +54,7 @@ export class PasswordEncoderService implements PasswordEncoder {
             const material = this.makePepper(norm)
             return await argon2.hash(material, this.params)
         } catch (e) {
-            const message = e.message as string || 'Unknown error'
+            const message = errorMessage(e) || 'Unknown error'
             this.logger.warn(`Error during password encoding: ${message}`)
             throw applicationError(ApplicationErrorCode.PASSWORD_ENCODING_FAILED)
         }
@@ -66,7 +67,7 @@ export class PasswordEncoderService implements PasswordEncoder {
             const material = this.makePepper(norm)
             return await argon2.verify(hashedPassword, material)
         } catch (e) {
-            const message = e.message as string || 'Unknown error'
+            const message = errorMessage(e) || 'Unknown error'
             this.logger.warn(`Error during password comparison: ${message}`)
             throw applicationError(ApplicationErrorCode.PASSWORD_COMPARISON_FAILED)
         }
@@ -100,7 +101,7 @@ export class PasswordEncoderService implements PasswordEncoder {
 
             return CompareResult.NoMatch
         } catch (e) {
-            const message = e?.message as string ?? 'Unknown error'
+            const message = errorMessage(e) || 'Unknown error'
             this.logger.warn(`Error during password comparison (fallback): ${message}`)
             throw applicationError(ApplicationErrorCode.PASSWORD_COMPARISON_FAILED)
         }

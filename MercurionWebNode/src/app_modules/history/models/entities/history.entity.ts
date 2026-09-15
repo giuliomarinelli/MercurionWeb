@@ -7,22 +7,22 @@ import { uuidv7 } from "@kripod/uuidv7";
 export class History {
 
     @PrimaryColumn({ type: 'uuid' })
-    id: UUID
+    id!: UUID
 
     @Column()
-    itemEntity: HistoryItemEntity
+    itemEntity!: HistoryItemEntity
 
     @Column({ type: 'bigint' })
-    touchedAt: number
+    touchedAt!: number
 
     @Column({ type: 'uuid' })
-    itemId: UUID
+    itemId!: UUID
 
     @Column({ type: 'uuid' })
-    userId: UUID
+    userId!: UUID
 
     @Column({ type: 'text' })
-    flagIds: string
+    flagIds!: string
 
     @BeforeInsert()
     private beforeInsert(): void {

@@ -9,7 +9,7 @@ export class SynthesisPoolInput {
     @IsUUID()
     @Field(() => ID)
     @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
-    synthesisId: UUID
+    synthesisId!: UUID
 
     @IsArray()
     @ArrayUnique()
@@ -18,7 +18,7 @@ export class SynthesisPoolInput {
     @Transform(({ value }) => Array.isArray(value)
         ? value.map(item => typeof item === 'string' ? item.trim() : item)
         : value)
-    collectionIds: UUID[]
+    collectionIds!: UUID[]
 
     @IsArray()
     @ArrayUnique()
@@ -27,5 +27,5 @@ export class SynthesisPoolInput {
     @Transform(({ value }) => Array.isArray(value)
         ? value.map(item => typeof item === 'string' ? item.trim() : item)
         : value)
-    moleculeIds: UUID[]
+    moleculeIds!: UUID[]
 }

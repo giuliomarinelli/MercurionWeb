@@ -5,7 +5,7 @@ import { Ticket } from "../entities/ticket.entity";
 @ObjectType()
 export class TicketDetailDTO {
   @Field(() => Ticket)
-  ticket: Ticket 
+  ticket!: Ticket
 
   @Field(() => [TicketMessage], { nullable: true })
   messages?: TicketMessage[] | null

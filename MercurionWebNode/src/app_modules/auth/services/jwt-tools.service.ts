@@ -13,6 +13,7 @@ import { SessionService } from './session.service';
 import { LoggerContext } from 'src/logging/logger.port';
 import { LoggerPort } from 'src/logging/logger.port';
 import { JwtKeysProvider } from '../providers/jwt-keys.provider';
+import { errorMessage } from 'src/utils/errors/error-message'
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 import { IDENTITY_READ_PORT, IdentityReadPort } from '../models/interfaces/identity-read.port'
 
@@ -248,7 +249,7 @@ export class JwtToolsService {
             }
             return payload
         } catch (e) {
-            this.logger.warn(' > verifyTokenAndGetPayload > Error: ', (e.message ?? e) as string | object)
+            this.logger.warn(' > verifyTokenAndGetPayload > Error: ', errorMessage(e))
             throw applicationError(type === TokenType.AccessToken ? ApplicationErrorCode.ACCESS_TOKEN_INVALID_OR_EXPIRED : type === TokenType.ChangePasswordToken ? ApplicationErrorCode.PASSWORD_CHANGE_TOKEN_INVALID_OR_EXPIRED : ApplicationErrorCode.TOKEN_INVALID_OR_EXPIRED, `InvalidOrExpired${type}`, { tokenType: type })
         }
     }

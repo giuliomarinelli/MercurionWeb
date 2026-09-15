@@ -4,12 +4,12 @@ import { UUID } from "crypto";
 export class CreateNoteDto {
 
     @IsUUID()
-    userId: UUID
+    userId!: UUID
 
     @IsString()
-    title: string
+    title!: string
 
     @IsString()
-    content: string
+    content!: string
 
 }

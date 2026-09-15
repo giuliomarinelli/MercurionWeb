@@ -10,12 +10,12 @@ export class CreateSectionInput {
   @IsUUID()
   @Field(() => ID)
   @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
-  chapterId: UUID
+  chapterId!: UUID
 
   @IsString()
   @Field()
   @Transform(({ value }) => typeof value === 'string' ? GeneralUtils.normalizeSpaces(value) : value)
-  title: string
+  title!: string
 
   @IsOptional()
   @IsString()

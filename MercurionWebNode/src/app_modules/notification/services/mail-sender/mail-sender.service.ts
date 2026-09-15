@@ -1,7 +1,6 @@
 import { MailerService } from '@nestjs-modules/mailer';
 import { Injectable } from '@nestjs/common';
 import { UUID } from 'crypto';
-import { SentMessageInfo } from 'nodemailer';
 import { TicketMessage } from 'src/app_modules/help/models/entities/ticket-message.entity';
 import { Ticket } from 'src/app_modules/help/models/entities/ticket.entity';
 import { SupportContext } from '../../models/contexts/support.context';
@@ -32,7 +31,7 @@ export class MailSenderService {
         return `${base}/help?m=${mode}&t_id=${ticketId}`
     }
 
-    public async sendEmail<T extends object>(to: string, subject: string, context: T, templatePath: string): Promise<SentMessageInfo> {
+    public async sendEmail<T extends object>(to: string, subject: string, context: T, templatePath: string): Promise<unknown> {
         return await this.mailerService.sendMail({
             to,
             subject,

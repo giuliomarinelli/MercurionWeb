@@ -9,14 +9,14 @@ export class Login_FirstStepDTO implements LoginFirstStepContract {
     @IsEmail()
     @Matches(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)
     @Transform(({ value }) => typeof value === 'string' ? GeneralUtils.normalizeEmail(value) : value)
-    email: string
+    email!: string
 
     @IsNotEmpty()
     @IsString()
-    password: string
+    password!: string
 
     @IsBoolean()
     @Transform(({ value }) => value === true || value === 'true')
-    remember: boolean
+    remember!: boolean
 
 }

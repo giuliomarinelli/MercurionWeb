@@ -6,12 +6,12 @@ export class PhoneDTO {
     @IsString()
     @Matches(/^\d{6,15}$/)
     @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
-    phoneNumber: string
+    phoneNumber!: string
 }
 
 export class ChangePhoneDTO extends PhoneDTO implements ChangePhoneContract {
     @IsString()
     @Matches(/^\+\d{1,3}$/)
     @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
-    internationalPrefix: string
+    internationalPrefix!: string
 }

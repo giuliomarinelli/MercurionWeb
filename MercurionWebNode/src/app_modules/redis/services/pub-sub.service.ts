@@ -1,3 +1,4 @@
+import { errorMessage } from 'src/utils/errors/error-message'
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { RedisService } from './redis.service';
 import { Redis } from 'ioredis';
@@ -36,7 +37,7 @@ export class PubSubService implements OnModuleDestroy, OnModuleInit {
   ) {
     this.logger = loggerFactory.forContext(PubSubService.name)
     this.subscriber = this.redisService.getClient().duplicate()
-    this.subscriber.on('error', (e) => this.logger.error(`Redis subscriber error: ${e?.message || e}`))
+    this.subscriber.on('error', (e) => this.logger.error(`Redis subscriber error: ${errorMessage(e)}`))
   }
 
   async onModuleInit() {
@@ -72,7 +73,7 @@ export class PubSubService implements OnModuleDestroy, OnModuleInit {
           void this.handleAccessTokenExpired(key)
         }
       } catch (e) {
-        this.logger.error(`PubSub handler error for key="${key}": ${e?.message || e}`)
+        this.logger.error(`PubSub handler error for key="${key}": ${errorMessage(e)}`)
       }
     })
   }
@@ -99,7 +100,7 @@ export class PubSubService implements OnModuleDestroy, OnModuleInit {
       await this.oauth2_accessTokenRefreshService.refreshAccessToken(provider, userId);
       this.logger.log(`Access token refreshed for provider=${provider} userId=${userId ?? '[none]'}`)
     } catch (err) {
-      this.logger.error(`Error refreshing access token for provider=${provider} userId=${userId ?? '[none]'}: ${err?.message || err}`)
+      this.logger.error(`Error refreshing access token for provider=${provider} userId=${userId ?? '[none]'}: ${errorMessage(err)}`)
     } finally {
       await this.redisService.del(lockKey)
     }
@@ -107,7 +108,7 @@ export class PubSubService implements OnModuleDestroy, OnModuleInit {
 
   // session:{sid}:{uid}
   private async handleSessionEvent(event: 'expired' | 'del', key: string): Promise<void> {
-    
+
     const parts = key.split(':') // ["session", sid, uid]
     if (parts.length !== 3) {
       this.logger.warn(`Unexpected session key format on ${event}: ${key}`)
@@ -122,13 +123,13 @@ export class PubSubService implements OnModuleDestroy, OnModuleInit {
         await this.sessionService.revokeToken(jti)
       }
     } catch (e) {
-      this.logger.warn(`Failed to revoke JTIs for session ${sessionId}: ${e?.message || e}`)
+      this.logger.warn(`Failed to revoke JTIs for session ${sessionId}: ${errorMessage(e)}`)
     }
 
     try {
       await this.sessionService.destroySessionByOwner(sessionId, userId)
     } catch (e) {
-      this.logger.warn(`Failed to cleanup indexes for session ${sessionId}: ${e?.message || e}`)
+      this.logger.warn(`Failed to cleanup indexes for session ${sessionId}: ${errorMessage(e)}`)
     }
 
     if (this.socketServer) {
@@ -145,7 +146,7 @@ export class PubSubService implements OnModuleDestroy, OnModuleInit {
           .emit(socketEventRegistry.sessionExpired.name, payload)
         this.socketServer.in(`ws_session:${sessionId}`).socketsLeave(`ws_session:${sessionId}`)
       } catch (e) {
-        this.logger.warn(`Failed WS notify/leave for session ${sessionId}: ${e?.message || e}`)
+        this.logger.warn(`Failed WS notify/leave for session ${sessionId}: ${errorMessage(e)}`)
       }
     }
 

@@ -10,6 +10,7 @@ import { OAuth2TokenData } from '../models/interfaces/oauth2-token-data.interfac
 import { LoggerPort } from 'src/logging/logger.port';
 import { LoggerContext } from 'src/logging/logger.port';
 import { redisDurations, redisKeys } from 'src/app_modules/redis/contracts/redis-contracts';
+import { errorMessage } from 'src/utils/errors/error-message'
 
 @Injectable()
 export class OAuth2ClientService implements IOAuth2ClientService {
@@ -73,7 +74,7 @@ export class OAuth2ClientService implements IOAuth2ClientService {
                 { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
             );
         } catch (err) {
-            this.logger.error(`Token exchange error: ${err?.response?.data || err.message}`)
+            this.logger.error(`Token exchange error: ${axios.isAxiosError(err) ? String(err.response?.data) : errorMessage(err)}`)
             throw new UnauthorizedException('Failed to exchange code for tokens')
         }
 
@@ -117,7 +118,7 @@ export class OAuth2ClientService implements IOAuth2ClientService {
                     { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
                 );
             } catch (err) {
-                this.logger.error(`Token refresh error: ${err?.response?.data || err.message}`)
+                this.logger.error(`Token refresh error: ${axios.isAxiosError(err) ? String(err.response?.data) : errorMessage(err)}`)
                 throw new UnauthorizedException('Failed to refresh access token')
             }
 

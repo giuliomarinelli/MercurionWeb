@@ -12,37 +12,37 @@ export class SynthStep {
 
     @Field(() => ID)
     @PrimaryColumn({ type: 'uuid' })
-    id: UUID
+    id!: UUID
 
     @Index()
     @Column({ type: 'uuid' })
-    userId: UUID
+    userId!: UUID
 
     @Field(() => Synthesis)
     @ManyToOne(() => Synthesis, synth => synth.steps, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'synth_id' })
-    synth: Synthesis
+    synth!: Synthesis
 
     @Field(() => ID)
     @Index()
     @Column({ name: 'synth_id', type: 'uuid' })
-    synthId: UUID
+    synthId!: UUID
 
     @Field(() => Int)
     @Column({ type: 'int', name: 'step_order' })
-    order: number
+    order!: number
 
     @Field(() => [SynthStepItem], { nullable: true })
     @OneToMany(() => SynthStepItem, item => item.step, { cascade: true })
-    items: SynthStepItem[] | null
+    items!: SynthStepItem[] | null
 
     @Field(() => String, { nullable: true })
     @Column({ type: 'text', nullable: true })
-    description: string | null
+    description!: string | null
 
     @Field(() => String, { nullable: true })
     @Column({ type: 'varchar', nullable: true })
-    reactionType: string | null // es. "ossidazione", "alchilazione"
+    reactionType!: string | null // es. "ossidazione", "alchilazione"
 
     @BeforeInsert()
     private generateId() {

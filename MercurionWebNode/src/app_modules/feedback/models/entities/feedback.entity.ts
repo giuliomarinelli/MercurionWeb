@@ -36,47 +36,47 @@ import type { Feedback as FeedbackContract } from '@mercurion/rest-contracts'
 export class Feedback implements FeedbackContract {
 
     @PrimaryColumn('uuid')
-    id: UUID
+    id!: UUID
 
     @Column({ name: 'created_at_ms', type: 'bigint' })
-    createdAtMs: string
+    createdAtMs!: string
 
     @Exclude()
-    userId: UUID /* SOLO TRANSIENT, NON viene persistito, serve solo per generare il anonAuthorKey direttamente dentro l'entità in onInsert
+    userId!: UUID /* SOLO TRANSIENT, NON viene persistito, serve solo per generare il anonAuthorKey direttamente dentro l'entità in onInsert
      senza che l'entità debba dipendere da un contesto di iniezione esterno */
 
     @Column({ type: 'enum', enum: FeedbackEnv })
-    env: FeedbackEnv
+    env!: FeedbackEnv
 
     @Column({
         type: 'enum',
         enum: FeedbackSource,
         default: FeedbackSource.MANUAL_PAGE
     })
-    source: FeedbackSource
+    source!: FeedbackSource
 
     @Column({
         type: 'enum',
         enum: FeedbackKind,
         default: FeedbackKind.OTHER
     })
-    kind: FeedbackKind
+    kind!: FeedbackKind
 
     @Exclude()
     @Column({ name: 'anon_author_key', type: 'text' })
-    anonAuthorKey: string
+    anonAuthorKey!: string
 
     @Column({ name: 'rating_utility', type: 'smallint', nullable: true })
-    ratingUtility: number | null
+    ratingUtility!: number | null
 
     @Column({ name: 'rating_clarity', type: 'smallint', nullable: true })
-    ratingClarity: number | null
+    ratingClarity!: number | null
 
     @Column({ name: 'rating_experience', type: 'smallint', nullable: true })
-    ratingExperience: number | null
+    ratingExperience!: number | null
 
     @Column({ type: 'text', nullable: true })
-    message: string | null
+    message!: string | null
 
     @Column({
         name: 'context_kind',
@@ -84,29 +84,29 @@ export class Feedback implements FeedbackContract {
         enum: FeedbackContextKind,
         default: FeedbackContextKind.GLOBAL
     })
-    contextKind: FeedbackContextKind
+    contextKind!: FeedbackContextKind
 
     @Column({ name: 'context_ref', type: 'text', nullable: true })
-    contextRef: string | null
+    contextRef!: string | null
 
     @Column({ name: 'context_meta', type: 'jsonb', nullable: true })
-    contextMeta: Record<string, unknown> | null
+    contextMeta!: Record<string, unknown> | null
 
     @Column({ name: 'client_version', type: 'text', nullable: true })
-    clientVersion: string | null
+    clientVersion!: string | null
 
     @Column({
         type: 'enum',
         enum: FeedbackStatus,
         default: FeedbackStatus.NEW
     })
-    status: FeedbackStatus
+    status!: FeedbackStatus
 
     @Column({ name: 'internal_note', type: 'text', nullable: true })
-    internalNote: string | null
+    internalNote!: string | null
 
     @Column({ type: 'text', array: true, nullable: true })
-    tags: string[] | null
+    tags!: string[] | null
 
     @BeforeInsert()
     private onInsert(): void {

@@ -3,11 +3,11 @@ import { Field, ID, ObjectType } from '@nestjs/graphql';
 @ObjectType()
 export class LabNotebookLinkType {
   @Field(() => ID)
-  id: string;
+  id!: string;
 
   @Field(() => ID)
-  noteId: string;
+  noteId!: string;
 
   @Field(() => ID)
-  itemId: string;
+  itemId!: string;
 }

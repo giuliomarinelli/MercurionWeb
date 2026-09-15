@@ -1,3 +1,4 @@
+import { errorMessage } from 'src/utils/errors/error-message'
 /* eslint-disable no-useless-escape */
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -163,7 +164,7 @@ WHERE i.user_id = $2::uuid
         return this.markAsTouchedWithManager(userId, collectionId, manager)
       })
     } catch (e) {
-      this.logger.warn(`MoleculeCollectionService > markAsTouched: UPDATE FAILED => ${e}`)
+      this.logger.warn(`MoleculeCollectionService > markAsTouched: UPDATE FAILED => ${String(e)}`)
       return false
     }
   }
@@ -219,7 +220,7 @@ WHERE i.user_id = $2::uuid
     )
 
     // stato esistente
-    const rows = await manager.query<MoleculeCollection>(
+    const rows = await manager.query<{ has_plain: boolean | null; max_suffix_num: number | null }[]>(
       `
     SELECT
       BOOL_OR(name = $2) AS has_plain,
@@ -261,7 +262,7 @@ WHERE i.user_id = $2::uuid
         return persisted
       })
     } catch (e) {
-      this.logger.warn(e.message as object)
+      this.logger.warn(errorMessage(e))
       throw e
     }
   }
@@ -272,7 +273,7 @@ WHERE i.user_id = $2::uuid
     newName?: string
   ): Promise<MoleculeCollection | null> {
     try {
-      
+
       return this.dataSource.manager.transaction(async (manager) => {
 
         const srcCollection = await manager.findOneOrFail(MoleculeCollection, {
@@ -350,7 +351,7 @@ WHERE i.user_id = $2::uuid
       })
       return true
     } catch (e) {
-      this.logger.warn(`Database error: ${e?.message || e}`/*, e*/)
+      this.logger.warn(`Database error: ${errorMessage(e)}`/*, e*/)
       return false
     }
   }
@@ -424,7 +425,7 @@ WHERE i.user_id = $2::uuid
         return true
       })
     } catch (e) {
-      this.logger.warn(`MoleculeCollection > delete: Error => ${e}`)
+      this.logger.warn(`MoleculeCollection > delete: Error => ${String(e)}`)
       return false
     }
   }

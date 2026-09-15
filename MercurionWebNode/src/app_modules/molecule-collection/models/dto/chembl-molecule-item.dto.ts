@@ -6,32 +6,32 @@ import { MoleculeCollectionItemJoin } from '../entities/molecule-collection-item
 @ObjectType()
 export class ChEMBLMoleculeItemDTO {
     @Field(() => ID)
-    id: UUID
+    id!: UUID
 
     @Field(() => String)
-    chemblMolregno: string
+    chemblMolregno!: string
 
     @Field(() => String, { nullable: true })
-    label: string | null
+    label!: string | null
 
     @Field(() => String, { nullable: true })
-    notes: string | null
+    notes!: string | null
 
     @Field(() => String)
-    type: 'chembl'
+    type!: 'chembl'
 
     @Field(() => String)
-    createdAt: number
+    createdAt!: number
 
     @Field(() => String)
-    updatedAt: number
+    updatedAt!: number
 
     @Field(() => String)
-    touchedAt: number
+    touchedAt!: number
 
     @Field(() => MoleculeDetail, { nullable: true })
-    chemblDetails: MoleculeDetail | null
+    chemblDetails!: MoleculeDetail | null
 
     @Field(() => [MoleculeCollectionItemJoin], { nullable: true })
-    joins: MoleculeCollectionItemJoin[] | null
+    joins!: MoleculeCollectionItemJoin[] | null
 }

@@ -8,11 +8,11 @@ export class AddManyChEMBLItemDTO {
 
     @IsInt()
     @Field(() => ID)
-    chemblMolregno: number
+    chemblMolregno!: number
 
     @IsString()
     @Field(() => String)
     @Transform(({ value }) => typeof value === 'string' ? GeneralUtils.normalizeSpaces(value) : value)
-    name: string
+    name!: string
 
 }

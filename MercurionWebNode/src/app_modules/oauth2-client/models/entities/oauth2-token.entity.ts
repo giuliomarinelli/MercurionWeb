@@ -7,25 +7,25 @@ import { Entity, Column, Index, PrimaryColumn, BeforeInsert } from 'typeorm';
 export class OAuth2TokenEntity {
 
     @PrimaryColumn()
-    id: UUID
+    id!: UUID
 
     @Column({ length: 32 })
-    provider: string
+    provider!: string
 
     @Column({ type: 'uuid', nullable: true })
-    userId: UUID | null
+    userId!: UUID | null
 
     @Column({ type: 'text' })
-    refreshToken: string
+    refreshToken!: string
 
     @Column({ type: 'varchar', length: 255, nullable: true })
-    scope: string | null
+    scope!: string | null
 
     @Column({ type: 'bigint', default: null })
-    createdAt: number | null
+    createdAt!: number | null
 
     @Column({ type: 'bigint', default: null })
-    updatedAt: number | null
+    updatedAt!: number | null
 
     @BeforeInsert()
     private onInsert() {

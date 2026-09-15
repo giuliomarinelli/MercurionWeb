@@ -1,3 +1,4 @@
+import { errorMessage, errorStack } from 'src/utils/errors/error-message'
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
@@ -123,7 +124,7 @@ export class GoogleProviderClient implements ISocialProviderClient {
             })
             return payload
         } catch (e) {
-            this.logger.warn('verifyIdToken > error: ', (e.stack ?? e) as object)
+            this.logger.warn('verifyIdToken > error: ', errorStack(e) ?? errorMessage(e))
             throw applicationError(ApplicationErrorCode.SSO_GOOGLE_ID_TOKEN_INVALID)
         }
     }

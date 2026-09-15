@@ -5,7 +5,7 @@ import { IsOptional, IsString, IsUUID } from "class-validator";
 export class UpdateMoleculeCollectionInput {
   @IsUUID()
   @Field(() => ID)
-  id: string
+  id!: string
 
   @IsOptional()
   @IsString()

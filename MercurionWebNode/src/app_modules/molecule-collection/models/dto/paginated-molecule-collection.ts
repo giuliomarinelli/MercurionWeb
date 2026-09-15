@@ -7,21 +7,21 @@ import { FlatPagination } from "src/models/flat-pagination.interface";
 export class PaginatedMoleculeCollection implements FlatPagination<MoleculeCollection> {
 
     @Field(() => [MoleculeCollection])
-    items: MoleculeCollection[]
+    items!: MoleculeCollection[]
 
     @Field(() => Int)
-    itemCount: number
+    itemCount!: number
 
     @Field(() => Int)
-    totalItems: number
+    totalItems!: number
 
     @Field(() => Int)
-    itemsPerPage: number
+    itemsPerPage!: number
 
     @Field(() => Int)
-    totalPages: number
+    totalPages!: number
 
     @Field(() => Int)
-    currentPage: number
-    
+    currentPage!: number
+
 }

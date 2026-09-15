@@ -9,7 +9,7 @@ export class CreatePageInput {
   @IsUUID()
   @Field(() => ID)
   @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
-  sectionId: string
+  sectionId!: string
 
   @IsOptional()
   @IsString()

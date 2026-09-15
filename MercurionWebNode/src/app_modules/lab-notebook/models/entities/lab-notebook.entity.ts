@@ -11,27 +11,27 @@ export class LabNotebook {
 
     @Field(() => ID)
     @PrimaryColumn({ type: 'uuid' })
-    id: UUID
+    id!: UUID
 
     @Index()
     @Column({ type: 'uuid' })
-    userId: UUID
+    userId!: UUID
 
     @Field()
     @Column({ type: 'varchar' })
-    title: string
+    title!: string
 
     @Field(() => [NotebookChapter])
     @OneToMany(() => NotebookChapter, chapter => chapter.notebook)
-    chapters: NotebookChapter[]
+    chapters!: NotebookChapter[]
 
     @Field(() => String, { nullable: true })
     @Column({ nullable: true, type: 'bigint' })
-    createdAt: number | null
+    createdAt!: number | null
 
     @Field(() => String, { nullable: true })
     @Column({ nullable: true, type: 'bigint' })
-    updatedAt: number | null
+    updatedAt!: number | null
 
     @BeforeInsert()
     generateId() {

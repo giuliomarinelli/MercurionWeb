@@ -21,30 +21,30 @@ export class SynthesisPoolCollection {
 
     @Field(() => ID)
     @PrimaryColumn({ type: 'uuid' })
-    id: UUID
+    id!: UUID
 
     @Index()
     @Column({ name: 'user_id', type: 'uuid' })
-    userId: UUID
+    userId!: UUID
 
     @ManyToOne(() => Synthesis, synthesis => synthesis.poolCollections, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'synthesis_id' })
-    synthesis: Synthesis
+    synthesis!: Synthesis
 
     @Field(() => ID)
     @Index()
     @Column({ name: 'synthesis_id', type: 'uuid' })
-    synthesisId: UUID
+    synthesisId!: UUID
 
     @Field(() => MoleculeCollection)
     @ManyToOne(() => MoleculeCollection, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'collection_id' })
-    collection: MoleculeCollection
+    collection!: MoleculeCollection
 
     @Field(() => ID)
     @Index()
     @Column({ name: 'collection_id', type: 'uuid' })
-    collectionId: UUID
+    collectionId!: UUID
 
     @BeforeInsert()
     private generateId() {

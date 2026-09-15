@@ -12,31 +12,31 @@ export class Synthesis {
 
     @Field(() => ID)
     @PrimaryColumn({ type: 'uuid' })
-    id: UUID    
+    id!: UUID
 
     @Index()
     @Column({ type: 'uuid' })
-    userId: UUID
+    userId!: UUID
 
     @Field()
     @Column({ type: 'varchar' })
-    title: string
+    title!: string
 
     @Field(() => String, { nullable: true })
     @Column({ type: 'text', nullable: true })
-    notes: string | null
+    notes!: string | null
 
     @Field(() => [SynthStep], { nullable: true })
     @OneToMany(() => SynthStep, step => step.synth, { cascade: true })
-    steps: SynthStep[] | null
+    steps!: SynthStep[] | null
 
     @Field(() => [SynthesisPoolCollection], { nullable: true })
     @OneToMany(() => SynthesisPoolCollection, poolCollection => poolCollection.synthesis, { cascade: true })
-    poolCollections: SynthesisPoolCollection[] | null
+    poolCollections!: SynthesisPoolCollection[] | null
 
     @Field(() => [SynthesisPoolMolecule], { nullable: true })
     @OneToMany(() => SynthesisPoolMolecule, poolMolecule => poolMolecule.synthesis, { cascade: true })
-    poolMolecules: SynthesisPoolMolecule[] | null
+    poolMolecules!: SynthesisPoolMolecule[] | null
 
     @BeforeInsert()
     private generateId() {

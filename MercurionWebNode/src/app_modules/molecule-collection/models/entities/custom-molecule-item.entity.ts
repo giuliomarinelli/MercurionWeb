@@ -8,18 +8,18 @@ export class CustomMoleculeItemEntity extends MoleculeCollectionItemEntity {
 
     @Field()
     @Column({ type: 'text' })
-    canonicalSmiles: string
+    canonicalSmiles!: string
 
     @Field(() => String, { nullable: true })
     @Column({ type: 'text', nullable: true })
-    molFormula: string | null
+    molFormula!: string | null
 
     @Field(() => String, { nullable: true })
     @Column({ type: 'text', nullable: true })
-    name: string | null
+    name!: string | null
 
     @Field(() => String, { nullable: true })
     @Column({ type: 'text', nullable: true })
-    propertiesJson: string | null // Salvate come TEXT, ma associate a interfaccia `MoleculeProperties`
+    propertiesJson!: string | null // Salvate come TEXT, ma associate a interfaccia `MoleculeProperties`
 
 }

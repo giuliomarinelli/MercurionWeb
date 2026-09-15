@@ -8,6 +8,6 @@ export class Login_SecondStepDTO {
         message: 'Invalid TOTP code format'
     })
     @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
-    totp: string
+    totp!: string
 
 }

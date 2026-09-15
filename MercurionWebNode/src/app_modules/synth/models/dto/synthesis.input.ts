@@ -7,14 +7,14 @@ import { GeneralUtils } from "src/utils/general-utils/general-utils";
 export class SynthesisInput {
 
     @IsString()
-    @Field() 
+    @Field()
     @Transform(({ value }) => typeof value === 'string' ? GeneralUtils.normalizeSpaces(value) : value)
-    title: string
+    title!: string
 
     @IsOptional()
     @IsString()
-    @Field(() => String, { nullable: true }) 
+    @Field(() => String, { nullable: true })
     @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
     notes?: string | null
-    
+
 }
