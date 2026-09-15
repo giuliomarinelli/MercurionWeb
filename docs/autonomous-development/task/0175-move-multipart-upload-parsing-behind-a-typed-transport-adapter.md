@@ -125,7 +125,7 @@ the coordinator after publication.
 Not applicable: the current Angular surface does not expose document upload;
 transport integration/unit coverage is the declared fallback.
 ### Commits
-`aea2e5b6` — `feat: add typed multipart document upload adapter`
+`f4c3e9f2` — `feat: add typed multipart document upload adapter`
 ### Merge / CI
 Feature SHA and exact-SHA CI are recorded by the coordinator after push.
 ### Rollback
