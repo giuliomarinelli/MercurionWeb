@@ -109,7 +109,7 @@ Not run locally; `npm ci` and `npm run ci:check` are prohibited in autonomous se
 ### Browser validation performed
 _Not applicable._
 ### Commits
-Pending task commit.
+`2f467998aa817edd7cfe3e309acb3490f6a72746` — `feat(nats): add typed versioned scientific contract registry`
 ### Merge / CI
 Feature SHA will receive exact-SHA Actions validation after publication.
 ### Rollback
