@@ -128,19 +128,31 @@ transaction rollback behavior.
 - `npm run ci:nest:architecture` passed.
 - `git diff --check` passed; the disposable database container was removed.
 ### Full pre-merge CI-parity validation
-Pending exact final feature-SHA GitHub Actions. Local `npm ci` and
-`npm run ci:check` were not run; clean-install aggregate evidence belongs to
-GitHub Actions.
+Exact feature SHA `c66e87c93c8bf99fac006177a99664201499e5b8` passed the
+complete GitHub Actions workflow in run `35004093050`, including PostgreSQL
+schema validation and the stable Required gate. The preceding run
+`35003603649` exposed an unregistered TypeORM migration entrypoint; the narrow
+reachability correction passed locally and in the replacement run. Local
+`npm ci` and `npm run ci:check` were not run; clean-install aggregate evidence
+belongs to GitHub Actions.
 ### Browser validation performed
 _Not applicable._
 ### Commits
 `d163d4189821d2f2f09e4901ab0a6a4ee3254a92` — preserved blocking diagnosis.
 
-`b6fd338e` — migration, entity metadata, inventory and PostgreSQL integrity
-probe.
+`b6fd338e4a46ae52058956dd7f492d2d48e70ecd` — migration, entity metadata,
+inventory and PostgreSQL integrity probe.
+
+`895c2fba263b4d5dd6ea806e1aac9668c3027f9d` — recovery evidence and reset of
+the 19 dependency skips made stale by DATA-002 becoming `DONE`.
+
+`c66e87c93c8bf99fac006177a99664201499e5b8` — TypeORM migration reachability
+registration after the first feature-CI diagnostic.
 ### Merge / CI
-`DONE` remains provisional `CI_PENDING` until exact feature-SHA and merge-SHA
-CI succeed.
+Merged into `develop` with `--no-ff --no-gpg-sign` as
+`097a10118938f981bb727ad8efff7b762e567c98`. Exact merge-SHA full CI passed in
+run `35004741664`, including Windows, Ubuntu, container builds, Angular and
+Nest tests/builds, PostgreSQL migration/integrity probes, and Required gate.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
