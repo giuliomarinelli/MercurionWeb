@@ -165,6 +165,24 @@ Focused repair validation:
   Actions-owned.
 No Angular, Nest, Tox21, Chrome, or runtime process was started; browser
 validation remains not applicable.
+### CI repair attempt 3
+Exact feature SHA `b2d311588778e06111f942c8d67e7a1313949412` failed Actions run
+`35035020808` only in the PostgreSQL migration schema job
+`104602077731`. The schema diagnostic showed entity metadata attempting to
+drop migration constraint `fk_account_activation_receipts_user` and recreate
+it as TypeORM-generated constraint `FK_39a5e8feb04ff1249268fc589d7d`.
+The narrow correction adds
+`foreignKeyConstraintName: 'fk_account_activation_receipts_user'` to the
+`ActivationReceipt.user` relation's `@JoinColumn`, aligning generated entity
+metadata with migration `1789560000000-AddAuthIdempotency` without changing
+runtime behavior or migration SQL.
+Focused repair validation:
+- `npm run typecheck --workspace mercurion_web_node` — passed.
+- `npm test --workspace mercurion_web_node -- --runInBand src/app_modules/sso/services/social-auth.service.spec.ts src/app_modules/auth/application/account-flow-kernel.spec.ts` — passed, 2 suites / 3 tests.
+- `git diff --check` — passed.
+No Angular, Nest, Tox21, Chrome, or runtime process was started; browser
+validation remains not applicable. The PostgreSQL schema reproducer remains
+Actions-owned because local database environment variables are unavailable.
 ### Merge / CI
 Feature branch publication follows the task commit. No develop/master changes.
 ### Rollback

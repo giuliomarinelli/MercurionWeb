@@ -15,7 +15,10 @@ export class ActivationReceipt {
     onDelete: 'CASCADE',
     nullable: false
   })
-  @JoinColumn({ name: 'user_id' })
+  @JoinColumn({
+    name: 'user_id',
+    foreignKeyConstraintName: 'fk_account_activation_receipts_user'
+  })
   user!: User
 
   @Column({ type: 'varchar', length: 320 })
