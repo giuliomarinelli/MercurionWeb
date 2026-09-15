@@ -2,14 +2,14 @@ import { Component, ChangeDetectionStrategy, signal, input, output } from '@angu
 import { DatePipe } from '@angular/common';
 import { Helpers } from '../../../helpers'
 import { SessionDTOExt } from '../../../Models/account/account.models';
-import { ClassicSpinnerComponent } from "../classic-spinner/classic-spinner.component";
+import { ProgressIndicatorComponent } from "../progress-indicator/progress-indicator.component";
 
 @Component({
   selector: 'm-session-card',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     DatePipe,
-    ClassicSpinnerComponent
+    ProgressIndicatorComponent
   ],
   template: `
 
@@ -133,7 +133,7 @@ import { ClassicSpinnerComponent } from "../classic-spinner/classic-spinner.comp
         </div>
       } @else {
         <div class="min-h-64 flex justify-center items-center">
-          <m-classic-spinner [size]="30" />
+          <m-progress-indicator [size]="30" />
         </div>
       }
     </div>

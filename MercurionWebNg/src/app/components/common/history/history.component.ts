@@ -18,7 +18,7 @@ import { catchError, debounce, distinctUntilChanged, EMPTY, filter, firstValueFr
 import { HistoryDTOExt } from '../../../Models/history.models';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { HistoryItemComponent } from '../history-item/history-item.component';
-import { ClassicSpinnerComponent } from '../classic-spinner/classic-spinner.component';
+import { ProgressIndicatorComponent } from '../progress-indicator/progress-indicator.component';
 import { HistoryContextService } from '../../../services/context/history-context.service';
 import { NgClass } from '@angular/common';
 import { ScrollContextService } from '../../../services/context/scroll-context.service';
@@ -27,7 +27,7 @@ import { DomainInvalidationService } from '../../../services/domain-invalidation
 @Component({
   selector: 'm-history',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [HistoryItemComponent, ClassicSpinnerComponent, NgClass],
+  imports: [HistoryItemComponent, ProgressIndicatorComponent, NgClass],
   styles: `
     .fade-out-ani {
           animation: 0.5s ease-in both fade-out;
@@ -59,7 +59,7 @@ import { DomainInvalidationService } from '../../../services/domain-invalidation
 
     @if (loading) {
       <div class="flex justify-center pt-8">
-        <m-classic-spinner [size]="30" />
+        <m-progress-indicator [size]="30" />
       </div>
     }
 

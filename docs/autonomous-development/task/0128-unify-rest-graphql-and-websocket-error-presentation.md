@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Create one transport-neutral error presentation model from typed application errors and use thin REST, GraphQL and WebSocket adapters so all transports preserve the same error classification, code and observability metadata.

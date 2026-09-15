@@ -15,6 +15,7 @@ import { ChEMBLMoleculeItemResolver } from './resolvers/chembl-molecule-item.res
 import { CustomMoleculeItemResolver } from './resolvers/custom-molecule-item.resolver';
 import { ChEMBLMoleculeItemService } from './services/chembl-molecule-item.service';
 import { History } from '../history/Models/entities/history.entity';
+import { InitialWorkspaceService } from './services/initial-workspace.service';
 
 @Global()
 @Module({
@@ -37,11 +38,12 @@ import { History } from '../history/Models/entities/history.entity';
         CustomMoleculeItemService,
         ChEMBLMoleculeItemResolver,
         CustomMoleculeItemResolver,
-        ChEMBLMoleculeItemService
+        ChEMBLMoleculeItemService,
+        InitialWorkspaceService
     ],
     exports: [
-        TypeOrmModule,
-        ChEMBLMoleculeItemService
+        ChEMBLMoleculeItemService,
+        InitialWorkspaceService
     ]
 })
 export class MoleculeCollectionModule { }

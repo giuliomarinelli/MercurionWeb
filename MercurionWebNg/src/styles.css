@@ -87,7 +87,7 @@ html {
   --color-status-success: #15803d;
   --color-status-warning: #a16207;
   --color-status-error: #b91c1c;
-  --color-border: #e5e7eb;
+  --color-border: #6b7280;
   --color-focus: #6366f1;
   --shadow-control: 0 3px 12px rgb(0 0 0 / 0.35), inset 0 1px 0 rgb(255 255 255 / 0.18);
   --shadow-surface: 0 18px 45px rgb(15 23 42 / 0.18), 0 4px 12px rgb(15 23 42 / 0.12);
@@ -125,7 +125,7 @@ html {
   --color-status-success: #4ade80;
   --color-status-warning: #facc15;
   --color-status-error: #ff7a7d;
-  --color-border: #4b5563;
+  --color-border: #9ca3af;
   --color-focus: #bfdbfe;
   --shadow-control: 0 3px 12px rgb(0 0 0 / 0.45), inset 0 1px 0 rgb(255 255 255 / 0.18);
   --shadow-surface: 0 18px 45px rgb(2 6 23 / 0.42), 0 4px 12px rgb(2 6 23 / 0.24);

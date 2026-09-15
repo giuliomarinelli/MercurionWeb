@@ -90,7 +90,7 @@ export class SessionSyncTransportService implements OnDestroy {
   private _status = signal<SessionSyncStatus>('unknown')
   public readonly status = this._status.asReadonly()
 
-  private handshakePending = false
+  private handshakePending?: Promise<void>
 
   private lastAnonHS = 0
   private readonly anonCooldown = 5_000
@@ -236,7 +236,7 @@ export class SessionSyncTransportService implements OnDestroy {
     // se siamo già privati e marcati loggedIn, evita rumore
     if (!force && this._status() === 'loggedIn' && this.socket.getMode() === 'private') return
 
-    if (this.handshakePending) return
+    if (this.handshakePending) return this.handshakePending
 
     const now = Date.now()
     const initials = this.authState.getPersistedInitials() ?? ''
@@ -257,36 +257,38 @@ export class SessionSyncTransportService implements OnDestroy {
       return
     }
 
-    this.handshakePending = true
     this._status.set('checking')
 
-    try {
-      if (targetIsPrivate) await this.socket.ensurePrivate()
-      else await this.socket.ensurePublic()
+    const pending = (async () => {
+      try {
+        if (targetIsPrivate) await this.socket.ensurePrivate()
+        else await this.socket.ensurePublic()
 
-      const connected = await this.socket.waitConnected(4000)
-      if (!connected) {
-        this._status.set(targetIsPrivate ? 'disconnected' : 'anonymous')
-        if (!targetIsPrivate) this.lastAnonHS = now
-        return
+        const connected = await this.socket.waitConnected(4000)
+        if (!connected) {
+          this._status.set(targetIsPrivate ? 'disconnected' : 'anonymous')
+          if (!targetIsPrivate) this.lastAnonHS = now
+          return
+        }
+
+        await this.socket.waitStable()
+
+        // 🔹 Caso PUBLIC: WS attiva per eventi pubblici, ma niente handshake session_init
+        if (!targetIsPrivate) {
+          this._status.set('anonymous')
+          this.lastAnonHS = now
+          return
+        }
+
+        // 🔹 Caso PRIVATE: facciamo l’handshake forte via so.pub.session_init
+        await this.completePrivateHandshake()
+      } catch {
+        this._status.set(targetIsPrivate ? 'disconnected' : 'error')
       }
-
-      await this.socket.waitStable()
-
-      // 🔹 Caso PUBLIC: WS attiva per eventi pubblici, ma niente handshake session_init
-      if (!targetIsPrivate) {
-        this._status.set('anonymous')
-        this.lastAnonHS = now
-        return
-      }
-
-      // 🔹 Caso PRIVATE: facciamo l’handshake forte via so.pub.session_init
-      await this.completePrivateHandshake()
-    } catch {
-      this._status.set(targetIsPrivate ? 'disconnected' : 'error')
-    } finally {
-      this.handshakePending = false
-    }
+    })()
+    this.handshakePending = pending
+    await pending
+    if (this.handshakePending === pending) this.handshakePending = undefined
   }
 
   private async completePrivateHandshake(): Promise<void> {

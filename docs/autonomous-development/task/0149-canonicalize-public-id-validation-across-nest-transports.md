@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Make every public Mercurion identifier use one canonical format/version validator and typed boundary contract so REST controllers and GraphQL resolvers accept and reject exactly the same values.

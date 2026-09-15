@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Eliminate repository-wide DTO/`Partial<Entity>` mass assignment by making every mutation command map explicit writable fields, while IDs, ownership, audit columns and relations remain non-assignable unless changed through dedicated domain operations.
@@ -12,7 +12,7 @@ Source: `DATA-036` in Series `0001`.
 
 ## Context
 
-Several services accept `Partial<Entity>` or spread transport/input objects directly into TypeORM `create`, `update` or entity assignment. `0169` fixes this specifically for Synth, but the same class of defect can occur in User, Notebook, molecule collections/items, Help, documents and other domains. A future DTO field must not silently become a writable database column merely because an object spread exists.
+Several services accept `Partial<Entity>` or spread transport/input objects directly into TypeORM `create`, `update` or entity assignment. `0169` fixes this specifically for Synth, but the same class of defect can occur in User, molecule collections/items, Help, documents and other active domains. A future DTO field must not silently become a writable database column merely because an object spread exists.
 
 ## Relevant files and modules
 
@@ -69,7 +69,7 @@ Run repository static search/gate, domain mutation and mass-assignment negative 
 
 ## Browser validation
 
-Run representative update flows (profile, collection/item, Notebook and document metadata where reachable) through `http://localhost:8888`; malicious protected-field injection is covered by API tests.
+Run representative update flows (profile, collection/item and document metadata where reachable) through `http://localhost:8888`; malicious protected-field injection is covered by API tests.
 
 ## Stop conditions
 

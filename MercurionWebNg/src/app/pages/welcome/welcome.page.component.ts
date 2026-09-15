@@ -16,7 +16,7 @@ import { Subscription } from 'rxjs'
 import { ScrollContextService } from '../../services/context/scroll-context.service'
 import { ActivatedRoute } from '@angular/router'
 import { UserContextService } from '../../services/context/user-context.service'
-import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component'
+import { ProgressIndicatorComponent } from '../../components/common/progress-indicator/progress-indicator.component'
 import { DesignService } from '../../services/design.service'
 
 @Component({
@@ -28,7 +28,7 @@ import { DesignService } from '../../services/design.service'
     WelcomeScreenshotBandComponent,
     WelcomeSecondaryFeaturesComponent,
     FooterComponent,
-    ClassicSpinnerComponent
+    ProgressIndicatorComponent
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: [`
@@ -94,9 +94,9 @@ import { DesignService } from '../../services/design.service'
       @if (userContext.isLoggedIn()) {
         <main class="mercurion-page-shell flex justify-center items-center h-full">
           @if (design.maxBk('md')()) {
-            <m-classic-spinner [size]="30" />
+            <m-progress-indicator [size]="30" />
           } @else if (design.minBk('md')()) {
-            <m-classic-spinner [size]="60" />
+            <m-progress-indicator [size]="60" />
           }
         </main>
       } @else {

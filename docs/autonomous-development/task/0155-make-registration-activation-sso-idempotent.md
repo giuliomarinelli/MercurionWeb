@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Make native registration/activation and SSO callback provisioning safe under duplicate delivery, browser retry and concurrent execution so the same logical identity cannot create duplicate users, identities or starter workspaces.

@@ -90,7 +90,7 @@ module.exports = {
           'accent-secondary': '#006128',
           'warning': '#8F3900',
           'error': '#A80006',
-          'border': '#E5E7EB',
+          'border': '#6B7280',
           'slate-detail': '#3E4160'
         },
         dark: {
@@ -101,13 +101,13 @@ module.exports = {
           'accent-primary': '#60A5FA',
           'accent-primary-btn': '#0B6DE5',
           'accent-secondary': '#28B883',
-          'accent-secondary-surface': '219C6F',
+          'accent-secondary-surface': '#219C6F',
           'accent-secondary-hc': '#3FD59E',
           'accent-primary-btn-hc': '#BFD8F8',
           'warning': '#FCCF5F',
           'error': '#FF7A7D',
           'error-hc': '#FFC7CB',
-          'border': '#4B5563',
+          'border': '#9CA3AF',
           "custbg-offcanvas": '#1b2333',
           'slate-detail': '#BDC9D6'
         }

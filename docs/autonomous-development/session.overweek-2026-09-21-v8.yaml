@@ -264,18 +264,19 @@ workload:
   # Empty selects every pending task in the complete Series.
   tasks: []
   pending_only: true
-  expected_task_count: 220
-  expected_current_done: 121
-  expected_current_blocked: 0
+  expected_task_count: 215
+  expected_deferred_task_count: 5
+  expected_current_done: 131
+  expected_current_blocked: 4
   expected_current_reverted: 0
-  expected_current_skipped_dependency: 0
-  expected_current_pending: 99
-  expected_first_ready_task: "0020"
-  expected_planner_ready: 14
-  expected_planner_waiting_dependency: 85
+  expected_current_skipped_dependency: 17
+  expected_current_pending: 63
+  expected_first_ready_task: "0092"
+  expected_planner_ready: 7
+  expected_planner_waiting_dependency: 56
   expected_planner_terminal_closure: 0
   expected_new_skipped_dependency: 0
-  expected_autonomous_pending: 99
+  expected_autonomous_pending: 63
   expected_human_led_pending: 0
   dependency_planner:
     command: npm run autonomous:plan

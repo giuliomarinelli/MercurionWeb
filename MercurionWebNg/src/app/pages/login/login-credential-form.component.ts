@@ -13,7 +13,7 @@ import {
 } from '@angular/forms'
 import { TextFieldComponent } from '../../components/common/text-field/text-field.component'
 import { SelectionControlComponent } from '../../components/common/selection-control/selection-control.component'
-import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component'
+import { ProgressIndicatorComponent } from '../../components/common/progress-indicator/progress-indicator.component'
 import { TurnstileComponent } from '../../components/common/turnstile/turnstile.component'
 import { APP_CONFIG } from '../../config/app-config'
 import type { LoginCredentials } from './login-flow.models'
@@ -31,7 +31,7 @@ type CredentialForm = {
     ReactiveFormsModule,
     TextFieldComponent,
     SelectionControlComponent,
-    ClassicSpinnerComponent,
+    ProgressIndicatorComponent,
     TurnstileComponent
   ],
   template: `
@@ -70,7 +70,7 @@ type CredentialForm = {
         />
         <button type="submit" [disabled]="!canSubmit()" [attr.aria-busy]="pending()"
           aria-label="Accedi al tuo account">
-          @if (pending()) { <m-classic-spinner [size]="24" /> } @else { Accedi }
+          @if (pending()) { <m-progress-indicator [size]="24" /> } @else { Accedi }
         </button>
         @if (!turnstileDisabled) {
           <m-turnstile

@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Replace the giant textual HTTP-status/error-message mapping with a closed typed application-error taxonomy whose code/class carries stable classification and default status independently of message text.

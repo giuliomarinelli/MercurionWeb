@@ -1,6 +1,6 @@
 import { UserGender, UserGenderControl } from './../../../Models/auth/user.models';
 import { Component, inject, OnDestroy, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
-import { ClassicSpinnerComponent } from '../../common/classic-spinner/classic-spinner.component';
+import { ProgressIndicatorComponent } from '../../common/progress-indicator/progress-indicator.component';
 import { FormControl, FormGroup, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { catchError, finalize, of, Subscription, switchMap } from 'rxjs';
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
@@ -28,7 +28,7 @@ type RegistryFormValue = {
   selector: 'm-essential-profile-registry-edit',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    ClassicSpinnerComponent,
+    ProgressIndicatorComponent,
     ReactiveFormsModule,
     TextFieldComponent,
     PmSelectComponent,
@@ -69,7 +69,7 @@ type RegistryFormValue = {
               aria-live="polite"
               aria-busy="true"
             >
-              <m-classic-spinner [size]="45" />
+              <m-progress-indicator [size]="45" />
             </div>
           } @else {
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-12 w-full pt-9">

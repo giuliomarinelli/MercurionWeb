@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Replace the 1,047-line `AccountService` with focused registration, activation, profile, credential-recovery and sensitive-data-change use cases whose dependencies and public contracts are limited to one responsibility.
