@@ -1,6 +1,6 @@
 # 0144 - Route OAuth and SSO HTTP calls through one external HTTP adapter
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -82,24 +82,29 @@ Mark `BLOCKED` if a provider operation's retry/idempotency contract cannot be es
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/BE-030`
 ### Preflight
-_Not started._
+Clean feature branch verified at base `ddacb2c0275b52c92e1338759069fa6728694cff`, exactly matching `develop`. No task-owned Angular/Nest/Tox21/test watcher process was active; the Node processes present were MCP/Playwright infrastructure. Exact green base-SHA Actions evidence is inherited from the prepared branch.
 ### Preflight remediation
-_None._
+None.
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0127, 0129, 0130. This task was never attempted and receives no feature branch.
+Added the Nest-owned `ExternalHttpPort` with an Axios infrastructure adapter and typed `ExternalHttpError` classification. The adapter validates finite timeouts, propagates cancellation, performs explicit safety-aware retries, records latency/outcome metrics and structured secret-free logs, and decodes responses without exposing Axios types. Migrated Google, GitHub, LinkedIn, Discord and generic OAuth2 calls, including Google discovery/JWKS retrieval, off direct Axios. Added an architecture test preventing Axios imports in governed OAuth/SSO code.
 ### Task-specific validation performed
-_Not started._
+- `npm run typecheck --workspace mercurion_web_node` — passed.
+- `npm run lint --workspace mercurion_web_node -- --no-warn-ignored` — passed.
+- `npm test --workspace mercurion_web_node -- --runInBand src/infrastructure/external-http/axios-external-http.adapter.spec.ts src/infrastructure/external-http/external-http.architecture.spec.ts src/app_modules/sso/providers src/app_modules/oauth2-client/services/oauth2-client.service.spec.ts` — 7 suites / 12 tests passed.
+- `npm run build --workspace mercurion_web_node` — passed.
+- `git diff --check` — passed.
+- Adapter tests cover timeout, DNS/network, cancellation, HTTP failures, malformed JSON, safe GET retry, non-retryable OAuth POST, timeout validation and telemetry redaction. OAuth token/code exchanges intentionally use no retry because their idempotency contract is not established.
 ### Full pre-merge CI-parity validation
-_Not started._
+Owned by GitHub Actions on the pushed feature SHA; local `npm ci` and `npm run ci:check` were not run.
 ### Browser validation performed
-_Not applicable / not started._
+Not required for adapter correctness.
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+`88b57e4e4f994706fa590238a2eb7ec56d65428c` — `feat(BE-030): route OAuth HTTP through external adapter`
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+Feature SHA will be published for exact-SHA CI.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+None. Retry is opt-in and disabled for OAuth authorization-code/token exchanges; no unsafe idempotency assumption was made.
