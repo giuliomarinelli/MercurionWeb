@@ -3,7 +3,12 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
+
+> SKIPPED_DEPENDENCY (2026-09-15): direct terminal prerequisite `0152`
+> remains pending, while `0143` is skipped from terminal root `0126`
+> (`BE-012`), blocked by an unverified external Docker registry failure on
+> feature-SHA CI.
 ## Objective
 
 Replace the profile registry's sequential mixed-snapshot reads with one coherent read-model projection that obtains profile fields, SSO identity, collection/molecule counts and optional recent-history data with a constant, bounded number of queries on the same snapshot.

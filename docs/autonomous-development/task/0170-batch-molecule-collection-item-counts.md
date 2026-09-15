@@ -3,7 +3,12 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
+
+> SKIPPED_DEPENDENCY (2026-09-15): direct terminal prerequisite `0151`
+> remains pending, while its dependency `0143` is skipped from terminal root
+> `0126` (`BE-012`), which is blocked by an unverified external Docker
+> registry failure on feature-SHA CI.
 ## Objective
 
 Eliminate the `MoleculeCollectionResolver.itemsCount` N+1 query pattern by resolving collection item counts in one batch/aggregate per request scope or by returning a precomputed count projection with constant query growth.
