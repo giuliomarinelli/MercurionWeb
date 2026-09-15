@@ -4,8 +4,8 @@ import { firstValueFrom } from 'rxjs';
 import { ConfigService } from '@nestjs/config';
 import { TurnstileResponse } from '../Models/interfaces/turnstile-response.interface';
 import { AxiosResponse } from 'axios';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
-import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { LoggerPort } from 'src/logging/logger.port';
+import { LoggerContext } from 'src/logging/logger.port';
 
 
 
@@ -13,12 +13,12 @@ import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interface
 export class TurnstileService {
 
   private readonly secret: string
-  private readonly logger: MeiliContextLogger
+  private readonly logger: LoggerContext
 
   constructor(
     private readonly http: HttpService,
     private readonly configService: ConfigService,
-    loggerFactory: MeiliLoggerService
+    loggerFactory: LoggerPort
   ) {
     this.secret = this.configService.get<string>('Cloudflare.secretKey') as string
     this.logger = loggerFactory.forContext(TurnstileService.name)

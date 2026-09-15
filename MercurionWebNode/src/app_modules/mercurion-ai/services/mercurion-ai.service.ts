@@ -5,8 +5,8 @@ import { MercurionInferDataDTO, MercurionInferResDTO } from '../Models/DTO/mt21/
 import { catchError, firstValueFrom, throwError, timeout, TimeoutError } from 'rxjs';
 import { ConfigService } from '@nestjs/config';
 import { Environment } from 'src/config/config.schema';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
-import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { LoggerPort } from 'src/logging/logger.port';
+import { LoggerContext } from 'src/logging/logger.port';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 
 @Injectable()
@@ -14,14 +14,14 @@ export class MercurionAIService implements OnModuleInit {
 
     private readonly MAX_NATS_PAYLOAD_BYTES: number
 
-    private readonly logger: MeiliContextLogger
+    private readonly logger: LoggerContext
 
     private readonly namespace: string
 
     constructor(
         @Inject('MERCURION_AI_CLIENT') private readonly mercurionAIClient: ClientProxy,
         private readonly configService: ConfigService,
-        loggerFactory: MeiliLoggerService
+        loggerFactory: LoggerPort
     ) {
         this.logger = loggerFactory.forContext(MercurionAIService.name)
         const env = this.configService.getOrThrow<Environment>('App.env')

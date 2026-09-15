@@ -1,17 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { OAuth2ClientService } from './oauth2-client.service';
 import { UUID } from 'crypto';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
-import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { LoggerPort } from 'src/logging/logger.port';
+import { LoggerContext } from 'src/logging/logger.port';
 
 @Injectable()
 export class OAuth2AccessTokenRefreshService {
 
-    private readonly logger: MeiliContextLogger
+    private readonly logger: LoggerContext
 
     constructor(
         private readonly oauth2ClientService: OAuth2ClientService,
-        meiliLogger: MeiliLoggerService
+        meiliLogger: LoggerPort
     ) {
         this.logger = meiliLogger.forContext(OAuth2AccessTokenRefreshService.name)
     }

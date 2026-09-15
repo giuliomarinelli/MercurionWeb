@@ -12,21 +12,21 @@ import { uuidv7 } from '@kripod/uuidv7';
 import { StorageScope } from '../Models/enums/storage-scope.enum';
 import { StorageAction } from '../Models/enums/storage-action.type';
 import { User } from 'src/app_modules/user/Models/entities/user.entity';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
-import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { LoggerPort } from 'src/logging/logger.port';
+import { LoggerContext } from 'src/logging/logger.port';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 
 @Injectable()
 export class DropboxObjectStoreService {
 
-    private readonly logger: MeiliContextLogger
+    private readonly logger: LoggerContext
 
     constructor(
         private readonly oauth2ClientService: OAuth2ClientService,
         @InjectRepository(DocumentEntity)
         private readonly documentRepo: Repository<DocumentEntity>,
         private readonly dataSource: DataSource,
-        meiliLogger: MeiliLoggerService
+        meiliLogger: LoggerPort
     ) {
         this.logger = meiliLogger.forContext(DropboxObjectStoreService.name)
     }

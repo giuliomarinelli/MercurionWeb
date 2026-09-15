@@ -3,8 +3,8 @@ import { OAuth2ClientService } from '../services/oauth2-client.service';
 import { FastifyReply } from 'fastify/types/reply';
 import { UUID } from 'crypto';
 import { Public } from 'src/metadata/metadata';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
-import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { LoggerPort } from 'src/logging/logger.port';
+import { LoggerContext } from 'src/logging/logger.port';
 
 
 
@@ -12,11 +12,11 @@ import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interface
 @Controller('oauth2')
 export class OAuth2ClientController {
 
-    private readonly logger: MeiliContextLogger
+    private readonly logger: LoggerContext
 
     constructor(
         private readonly oauth2ClientService: OAuth2ClientService,
-        meiliLogger: MeiliLoggerService
+        meiliLogger: LoggerPort
     ) {
         this.logger = meiliLogger.forContext(OAuth2ClientController.name)
     }

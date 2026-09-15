@@ -3,7 +3,7 @@ import { MailSenderService } from './mail-sender.service';
 import { MailerService } from '@nestjs-modules/mailer';
 import { ConfigService } from '@nestjs/config';
 import { UserService } from 'src/app_modules/user/services/user.service';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { LoggerPort } from 'src/logging/logger.port';
 
 describe('MailSenderService', () => {
   let service: MailSenderService;
@@ -22,7 +22,7 @@ describe('MailSenderService', () => {
           },
         },
         {
-          provide: MeiliLoggerService,
+          provide: LoggerPort,
           useValue: {
             forContext: jest.fn().mockReturnValue({ warn: jest.fn() }),
           },

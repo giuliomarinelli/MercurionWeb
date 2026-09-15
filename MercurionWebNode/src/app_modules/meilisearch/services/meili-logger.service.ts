@@ -1,14 +1,14 @@
-import { Inject, Injectable, Logger, LoggerService, LogLevel, OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, Logger, LogLevel, OnModuleInit } from '@nestjs/common';
 import { MeiliSearch } from 'meilisearch';
 import { LogEntry } from '../Models/DTO/log-entry.interface';
 import { uuidv7 } from '@kripod/uuidv7';
-import { MeiliContextLogger } from '../Models/interfaces/meili-context-logger.interface';
 import { ConfigService } from '@nestjs/config';
 import { Environment } from 'src/config/config.schema';
+import { LoggerContext, LoggerPort } from 'src/logging/logger.port';
 
 
 @Injectable()
-export class MeiliLoggerService extends Logger implements LoggerService, OnModuleInit {
+export class MeiliLoggerService extends LoggerPort implements OnModuleInit {
 
     private lastMeiliFailure = 0
 
@@ -66,18 +66,14 @@ export class MeiliLoggerService extends Logger implements LoggerService, OnModul
         let out = message
 
         const patterns: RegExp[] = [
-            /("password"\\s*:\s*")([^"]+)/gi,
-            /(password=)([^&\s]+)/gi,
-
-            /("accessToken"\\s*:\s*")([^"]+)/gi,
-            /("ws_accessToken"\\s*:\s*")([^"]+)/gi,
-            /("token"\\s*:\s*")([^"]+)/gi,
-
-            /("otp"\\s*:\s*")([^"]+)/gi,
-            /("totp"\\s*:\s*")([^"]+)/gi,
-
-            /("email"\\s*:\s*")([^"]+)/gi,
-            /("phone"\\s*:\s*")([^"]+)/gi
+            /("password"\s*:\s*")([^"]+)/gi,
+            /("accessToken"\s*:\s*")([^"]+)/gi,
+            /("ws_accessToken"\s*:\s*")([^"]+)/gi,
+            /("token"\s*:\s*")([^"]+)/gi,
+            /("otp"\s*:\s*")([^"]+)/gi,
+            /("totp"\s*:\s*")([^"]+)/gi,
+            /("email"\s*:\s*")([^"]+)/gi,
+            /("phone"\s*:\s*")([^"]+)/gi
         ]
 
         for (const re of patterns) {
@@ -87,7 +83,7 @@ export class MeiliLoggerService extends Logger implements LoggerService, OnModul
         return out
     }
 
-    public forContext(context: string): MeiliContextLogger {
+    public forContext(context: string): LoggerContext {
         // eslint-disable-next-line @typescript-eslint/no-this-alias
         const logger = this
         return {

@@ -4,8 +4,8 @@ import {
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { GqlContextType } from '@nestjs/graphql';
 import { HttpErrorRes } from 'src/Models/error-res.dto';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
-import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { LoggerPort } from 'src/logging/logger.port';
+import { LoggerContext } from 'src/logging/logger.port';
 import {
     createCorrelationId,
     createRestErrorResponse,
@@ -16,10 +16,10 @@ import {
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
 
-    private readonly logger: MeiliContextLogger
+    private readonly logger: LoggerContext
 
     constructor(
-        loggerFactory: MeiliLoggerService,
+        loggerFactory: LoggerPort,
         private readonly isNotDev: boolean
     ) {
         this.logger = loggerFactory.forContext(HttpExceptionFilter.name)

@@ -6,7 +6,7 @@ import { DataSource } from 'typeorm';
 import { MoleculeCollectionService } from './molecule-collection.service';
 import { MoleculeCollectionItemService } from './molecule-collection-item.service';
 import { MoleculeService } from 'src/app_modules/meilisearch/services/molecule.service';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { LoggerPort } from 'src/logging/logger.port';
 
 describe('MoleculeCollectionItemJoinService', () => {
   let service: MoleculeCollectionItemJoinService;
@@ -30,7 +30,7 @@ describe('MoleculeCollectionItemJoinService', () => {
         { provide: MoleculeCollectionService, useValue: {} },
         { provide: MoleculeCollectionItemService, useValue: {} },
         { provide: MoleculeService, useValue: {} },
-        { provide: MeiliLoggerService, useValue: { forContext: jest.fn().mockReturnValue(mockLogger) } },
+        { provide: LoggerPort, useValue: { forContext: jest.fn().mockReturnValue(mockLogger) } },
       ],
     }).compile();
 

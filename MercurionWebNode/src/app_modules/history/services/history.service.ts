@@ -10,20 +10,20 @@ import { MoleculeCollection } from 'src/app_modules/molecule-collection/Models/e
 import { MoleculeCollectionItemEntity } from 'src/app_modules/molecule-collection/Models/entities/molecule-collection-item.entity';
 import { MoleculeService } from 'src/app_modules/meilisearch/services/molecule.service';
 import { TypeGuards } from 'src/utils/type-guards/type-guards';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
-import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { LoggerPort } from 'src/logging/logger.port';
+import { LoggerContext } from 'src/logging/logger.port';
 
 @Injectable()
 export class HistoryService {
 
-    private readonly logger: MeiliContextLogger
+    private readonly logger: LoggerContext
 
     constructor(
         @InjectRepository(History)
         private readonly historyRepo: Repository<History>,
         private readonly dataSource: DataSource,
         private readonly moleculeService: MoleculeService,
-        loggerFactory: MeiliLoggerService
+        loggerFactory: LoggerPort
     ) {
         this.logger = loggerFactory.forContext(HistoryService.name)
     }

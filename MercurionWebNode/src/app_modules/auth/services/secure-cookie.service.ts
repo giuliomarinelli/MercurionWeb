@@ -5,20 +5,20 @@ import { FastifyReply, FastifyRequest } from 'fastify';
 import { CookieSerializeOptions } from '@fastify/cookie'
 import { SecureCookieConfiguration } from 'src/config/config.types';
 
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
-import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { LoggerPort } from 'src/logging/logger.port';
+import { LoggerContext } from 'src/logging/logger.port';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 
 @Injectable()
 export class SecureCookieService {
 
-    private readonly logger: MeiliContextLogger
+    private readonly logger: LoggerContext
     private readonly secret: string
     private readonly defaultCookieOptions: CookieSerializeOptions
 
     constructor(
         private readonly configService: ConfigService,
-        meiliLogger: MeiliLoggerService
+        meiliLogger: LoggerPort
     ) {
         this.logger = meiliLogger.forContext(SecureCookieService.name)
 

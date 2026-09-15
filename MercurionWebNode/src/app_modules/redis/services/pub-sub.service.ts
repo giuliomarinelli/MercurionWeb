@@ -5,8 +5,8 @@ import { OAuth2AccessTokenRefreshService } from 'src/app_modules/oauth2-client/s
 import { UUID } from 'crypto';
 import { Server } from 'socket.io';
 import { SessionService } from 'src/app_modules/auth/services/session.service';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
-import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { LoggerPort } from 'src/logging/logger.port';
+import { LoggerContext } from 'src/logging/logger.port';
 import {
   socketEventRegistry,
   type ClientToServerEvents,
@@ -23,7 +23,7 @@ type ApplicationServer = Server<ClientToServerEvents, ServerToClientEvents>
 export class PubSubService implements OnModuleDestroy, OnModuleInit {
 
   private readonly subscriber: Redis
-  private readonly logger: MeiliContextLogger
+  private readonly logger: LoggerContext
   private socketServer: ApplicationServer | undefined
   private initialized = false
 
@@ -32,7 +32,7 @@ export class PubSubService implements OnModuleDestroy, OnModuleInit {
     private readonly oauth2_accessTokenRefreshService: OAuth2AccessTokenRefreshService,
     private readonly sessionService: SessionService,
     private readonly redisCapabilityService: RedisCapabilityService,
-    loggerFactory: MeiliLoggerService,
+    loggerFactory: LoggerPort,
   ) {
     this.logger = loggerFactory.forContext(PubSubService.name)
     this.subscriber = this.redisService.getClient().duplicate()

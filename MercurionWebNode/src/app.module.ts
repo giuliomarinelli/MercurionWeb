@@ -33,6 +33,7 @@ import {
   type ConfigurationModuleOptions
 } from './config/configuration.module';
 import { PersistenceModule } from './persistence/persistence.module'
+import { LoggingModule } from './logging/logging.module'
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { PersistenceModule } from './persistence/persistence.module'
     }),
     MercurionGraphQLModule,
     PersistenceModule,
+    LoggingModule,
     RedisModule,
     UserModule,
     AuthModule,

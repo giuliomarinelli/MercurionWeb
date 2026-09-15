@@ -24,8 +24,8 @@ import { PasswordContext } from '../Models/enums/password-context.enum';
 import { CompareResult } from '../Models/enums/compare-result.enum';
 import { SecurityAuditService } from 'src/app_modules/meilisearch/services/security-audit.service';
 import { UserContext } from 'src/app_modules/notification/Models/contexts/user.context';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
-import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { LoggerPort } from 'src/logging/logger.port';
+import { LoggerContext } from 'src/logging/logger.port';
 import { DataSource } from 'typeorm';
 import { ScopeService } from '../services/scope.service';
 import { MfaBackupCode } from 'src/app_modules/user/Models/entities/backup-code.entity';
@@ -46,7 +46,7 @@ import { InitialWorkspaceService } from 'src/app_modules/molecule-collection/ser
 @Injectable()
 export class AccountFlowKernel {
 
-    private readonly logger: MeiliContextLogger
+    private readonly logger: LoggerContext
 
     private readonly CHANGE_PASSWORD_TOKEN_EXPIRATION_MS: number
 
@@ -90,7 +90,7 @@ export class AccountFlowKernel {
         private readonly scopeService: ScopeService,
         private readonly unitOfWork: UnitOfWork,
         private readonly initialWorkspace: InitialWorkspaceService,
-        meiliLogger: MeiliLoggerService
+        meiliLogger: LoggerPort
     ) {
         this.CHANGE_PASSWORD_TOKEN_EXPIRATION_MS = this.configService.get<number>('Jwt.changePasswordToken.expiresInMs') ?? 300_000
         this.redisIdHmacSecret = this.configService.get<string>('App.redisIdHmacSecret')!

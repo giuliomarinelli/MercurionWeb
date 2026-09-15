@@ -11,8 +11,8 @@ import { MoleculeCollectionItemEntity } from '../Models/entities/molecule-collec
 import { ChEMBLMoleculeItemEntity } from '../Models/entities/chembl-molecule-item.entity';
 import { MoleculeService } from 'src/app_modules/meilisearch/services/molecule.service';
 import { BindManyCollectionsToMoleculeDTO } from '../Models/DTO/bind-many-collections-to-molecule.dto';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
-import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { LoggerPort } from 'src/logging/logger.port';
+import { LoggerContext } from 'src/logging/logger.port';
 
 
 
@@ -20,7 +20,7 @@ import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interface
 @Injectable()
 export class MoleculeCollectionItemJoinService {
 
-    private readonly logger: MeiliContextLogger
+    private readonly logger: LoggerContext
 
     constructor(
         @InjectRepository(MoleculeCollectionItemJoin)
@@ -29,7 +29,7 @@ export class MoleculeCollectionItemJoinService {
         private readonly collectionService: MoleculeCollectionService,
         private readonly itemService: MoleculeCollectionItemService,
         private readonly moleculeService: MoleculeService,
-        meiliLogger: MeiliLoggerService
+        meiliLogger: LoggerPort
     ) {
         this.logger = meiliLogger.forContext(MoleculeCollectionItemJoinService.name)
     }

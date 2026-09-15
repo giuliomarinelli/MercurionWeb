@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { GeoIpService } from './geo-ip.service';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { LoggerPort } from 'src/logging/logger.port';
 
 describe('GeoIpService', () => {
   let service: GeoIpService;
@@ -10,7 +10,7 @@ describe('GeoIpService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         GeoIpService,
-        { provide: MeiliLoggerService, useValue: { forContext: jest.fn().mockReturnValue(mockLogger) } },
+        { provide: LoggerPort, useValue: { forContext: jest.fn().mockReturnValue(mockLogger) } },
       ],
     }).compile();
 

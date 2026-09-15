@@ -5,14 +5,14 @@ import * as argon2 from 'argon2'
 import { createHmac } from 'crypto'
 import { ConfigService } from '@nestjs/config'
 import { CompareResult } from '../Models/enums/compare-result.enum'
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service'
-import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface'
+import { LoggerPort } from 'src/logging/logger.port'
+import { LoggerContext } from 'src/logging/logger.port'
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 
 @Injectable()
 export class PasswordEncoderService implements PasswordEncoder {
 
-    private readonly logger: MeiliContextLogger
+    private readonly logger: LoggerContext
 
     private readonly pepper: string
 
@@ -27,7 +27,7 @@ export class PasswordEncoderService implements PasswordEncoder {
 
     constructor(
         private readonly configService: ConfigService,
-        meiliLogger: MeiliLoggerService
+        meiliLogger: LoggerPort
     ) {
         this.logger = meiliLogger.forContext(PasswordEncoderService.name)
         this.pepper = this.configService.get<string>('App.passwordPepper')!

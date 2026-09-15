@@ -8,20 +8,20 @@ import { SupportContext } from '../../Models/contexts/support.context';
 import { ConfigService } from '@nestjs/config';
 import { UserService } from 'src/app_modules/user/services/user.service';
 import { resolve } from 'path';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
-import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { LoggerPort } from 'src/logging/logger.port';
+import { LoggerContext } from 'src/logging/logger.port';
 
 @Injectable()
 export class MailSenderService {
 
     private readonly supportEmail: string
-    private readonly logger: MeiliContextLogger
+    private readonly logger: LoggerContext
 
     constructor(
         private readonly configService: ConfigService,
         private readonly mailerService: MailerService,
         private readonly userService: UserService,
-        loggerFactory: MeiliLoggerService
+        loggerFactory: LoggerPort
     ) {
         this.supportEmail = this.configService.get<string>('App.supportEmail')!
         this.logger = loggerFactory.forContext(MailSenderService.name)

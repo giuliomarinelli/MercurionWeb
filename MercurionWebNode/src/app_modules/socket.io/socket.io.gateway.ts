@@ -8,8 +8,8 @@ import { WsGuard } from './guards/ws.guard';
 import { PubSubService } from '../redis/services/pub-sub.service';
 import { Public } from 'src/metadata/metadata';
 import { UUID } from 'crypto';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
-import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { LoggerPort } from 'src/logging/logger.port';
+import { LoggerContext } from 'src/logging/logger.port';
 import { ConfigService } from '@nestjs/config';
 import { RedisConfiguration } from 'src/config/config.types';
 import { JwtToolsService } from '../auth/services/jwt-tools.service';
@@ -38,7 +38,7 @@ type ApplicationSocket = Socket<ClientToServerEvents, ServerToClientEvents>
 type ApplicationSocketMiddleware = Parameters<ApplicationServer['use']>[0]
 
 export function createSocketContractVersionMiddleware(
-  logger: Pick<MeiliContextLogger, 'warn'>
+  logger: Pick<LoggerContext, 'warn'>
 ): ApplicationSocketMiddleware {
   return (client, next) => {
     const handshakeAuth = client.handshake.auth as SocketHandshakeAuth
@@ -73,7 +73,7 @@ export function createSocketContractVersionMiddleware(
 @UseGuards(WsGuard)
 export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, OnModuleDestroy {
 
-  private readonly logger: MeiliContextLogger
+  private readonly logger: LoggerContext
   private readonly redisConf: RedisConfiguration
   private initialized = false
   private pubClient: Redis | undefined
@@ -86,7 +86,7 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
     private readonly configService: ConfigService,
     private readonly pubSubService: PubSubService,
     private readonly jwtTools: JwtToolsService,
-    loggerFactory: MeiliLoggerService
+    loggerFactory: LoggerPort
   ) {
     this.logger = loggerFactory.forContext(SocketIOGateway.name)
     this.redisConf = this.configService.get<RedisConfiguration>('Redis')!

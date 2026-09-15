@@ -3,7 +3,7 @@ import { MoleculeCollectionService } from './molecule-collection.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { MoleculeCollection } from '../Models/entities/molecule-collection.entity';
 import { DataSource } from 'typeorm';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { LoggerPort } from 'src/logging/logger.port';
 
 describe('MoleculeCollectionService', () => {
   let service: MoleculeCollectionService;
@@ -26,7 +26,7 @@ describe('MoleculeCollectionService', () => {
           },
         },
         { provide: DataSource, useValue: { manager: { transaction: jest.fn() } } },
-        { provide: MeiliLoggerService, useValue: { forContext: jest.fn().mockReturnValue(mockLogger) } },
+        { provide: LoggerPort, useValue: { forContext: jest.fn().mockReturnValue(mockLogger) } },
       ],
     }).compile();
 

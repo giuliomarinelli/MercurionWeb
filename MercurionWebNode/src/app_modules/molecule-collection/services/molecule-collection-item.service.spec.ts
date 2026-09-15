@@ -4,7 +4,7 @@ import { MoleculeCollectionItemService } from './molecule-collection-item.servic
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { MoleculeCollectionItemEntity } from '../Models/entities/molecule-collection-item.entity';
 import { DataSource } from 'typeorm';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { LoggerPort } from 'src/logging/logger.port';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 
 const MOCK_ITEM_ID = '01900000-0000-7000-8000-000000000000';
@@ -55,7 +55,7 @@ describe('MoleculeCollectionItemService', () => {
           useValue: moleculeServiceMock,
         },
         { provide: DataSource, useValue: dataSourceMock },
-        { provide: MeiliLoggerService, useValue: { forContext: jest.fn().mockReturnValue(loggerMock) } },
+        { provide: LoggerPort, useValue: { forContext: jest.fn().mockReturnValue(loggerMock) } },
       ],
     }).compile();
 

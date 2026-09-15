@@ -4,13 +4,11 @@ import { DocumentEntity } from './Models/entities/document.entity';
 import { DropboxObjectStoreService } from './services/dropbox-object-store.service';
 import { OAuth2ClientModule } from '../oauth2-client/oauth2-client.module';
 import { DocumentController } from './controllers/document.controller';
-import { MeilisearchModule } from '../meilisearch/meilisearch.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([DocumentEntity]),
-    OAuth2ClientModule,
-    MeilisearchModule
+    OAuth2ClientModule
   ],
   providers: [DropboxObjectStoreService],
   controllers: [DocumentController]

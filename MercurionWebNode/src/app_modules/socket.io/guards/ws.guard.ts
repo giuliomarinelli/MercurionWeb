@@ -8,8 +8,8 @@ import { SecureCookieService } from 'src/app_modules/auth/services/secure-cookie
 import { SessionService } from 'src/app_modules/auth/services/session.service';
 import { IS_PUBLIC_KEY } from 'src/metadata/metadata';
 import { WebSocketUtils } from 'src/utils/web-socket-utils/web-socket-utils';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
-import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { LoggerPort } from 'src/logging/logger.port';
+import { LoggerContext } from 'src/logging/logger.port';
 import { ScopeService } from 'src/app_modules/auth/services/scope.service';
 import {
   socketEventRegistry,
@@ -41,7 +41,7 @@ type ApplicationSocket = Socket<ClientToServerEvents, ServerToClientEvents>
 @Injectable()
 export class WsGuard implements CanActivate {
 
-  private readonly logger: MeiliContextLogger
+  private readonly logger: LoggerContext
 
   constructor(
     private readonly jwtTools: JwtToolsService,
@@ -50,7 +50,7 @@ export class WsGuard implements CanActivate {
     private readonly secureCookieService: SecureCookieService,
     private readonly scopeService: ScopeService,
     private readonly configService: ConfigService,
-    loggerFactory: MeiliLoggerService
+    loggerFactory: LoggerPort
   ) {
     this.logger = loggerFactory.forContext(WsGuard.name)
   }

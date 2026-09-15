@@ -3,8 +3,8 @@ import { MoleculeDetail } from "../Models/DTO/molecule-detail.gql.dtos";
 import { MeiliSearch } from "meilisearch";
 import { MoleculeSearchResult } from "../Models/DTO/molecule-search-result.cls";
 import { MoleculeDetailModel } from "src/app_modules/chembl/Models/DTO/molecule-detail-model.interface";
-import { MeiliLoggerService } from "./meili-logger.service";
-import { MeiliContextLogger } from "src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface";
+import { LoggerPort } from 'src/logging/logger.port';
+import { LoggerContext } from "src/logging/logger.port";
 
 type Maybe<T> = T | null | undefined;
 type MoleculeDetailWithMolregno = MoleculeDetailModel & {
@@ -14,12 +14,12 @@ type MoleculeDetailWithMolregno = MoleculeDetailModel & {
 @Injectable()
 export class MoleculeService {
 
-    private readonly logger: MeiliContextLogger
+    private readonly logger: LoggerContext
 
     constructor(
         @Inject("MEILISEARCH_CLIENT")
         private readonly meiliClient: MeiliSearch,
-        meiliLogger: MeiliLoggerService
+        meiliLogger: LoggerPort
     ) {
         this.logger = meiliLogger.forContext(MoleculeService.name)
     }

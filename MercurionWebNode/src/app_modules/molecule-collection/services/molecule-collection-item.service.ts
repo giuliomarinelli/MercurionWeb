@@ -17,8 +17,8 @@ import { ChEMBLMoleculeItemEntity } from '../Models/entities/chembl-molecule-ite
 import { History } from 'src/app_modules/history/Models/entities/history.entity';
 import { HistoryItemEntity } from 'src/app_modules/history/Models/enums/history-item-entity.enum';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
-import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { LoggerPort } from 'src/logging/logger.port';
+import { LoggerContext } from 'src/logging/logger.port';
 import { pruneNullCollectionJoins } from '../utils/prune-molecule-collection-joins.util';
 import { MoleculeCollectionItemDTO } from '../Models/DTO/molecule-collection-item.union';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
@@ -28,14 +28,14 @@ import { ApplicationErrorCode, applicationError } from 'src/exception-handling/a
 @Injectable()
 export class MoleculeCollectionItemService {
 
-    private readonly logger: MeiliContextLogger
+    private readonly logger: LoggerContext
 
     constructor(
         @InjectRepository(MoleculeCollectionItemEntity)
         private readonly itemRepo: Repository<MoleculeCollectionItemEntity>,
         private readonly moleculeService: MoleculeService,
         private readonly dataSource: DataSource,
-        meiliLogger: MeiliLoggerService
+        meiliLogger: LoggerPort
     ) {
         this.logger = meiliLogger.forContext(MoleculeCollectionItemService.name)
     }

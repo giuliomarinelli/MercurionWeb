@@ -4,7 +4,7 @@ import { WsGuard } from './ws.guard';
 import { JwtToolsService } from 'src/app_modules/auth/services/jwt-tools.service';
 import { SessionService } from 'src/app_modules/auth/services/session.service';
 import { SecureCookieService } from 'src/app_modules/auth/services/secure-cookie.service';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { LoggerPort } from 'src/logging/logger.port';
 import { ScopeService } from 'src/app_modules/auth/services/scope.service';
 import { ConfigService } from '@nestjs/config';
 
@@ -21,7 +21,7 @@ describe('WsGuard', () => {
         { provide: SecureCookieService, useValue: {} },
         { provide: ScopeService, useValue: { scopeVerificationLayer: jest.fn(), generateScopesArrayFromJwtClaim: jest.fn() } },
         { provide: ConfigService, useValue: { getOrThrow: jest.fn(() => ({ env: 'development' })) } },
-        { provide: MeiliLoggerService, useValue: { forContext: jest.fn().mockReturnValue({ log: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() }) } },
+        { provide: LoggerPort, useValue: { forContext: jest.fn().mockReturnValue({ log: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() }) } },
       ],
     }).compile();
 

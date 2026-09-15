@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SecureCookieService } from './secure-cookie.service';
 import { ConfigService } from '@nestjs/config';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { LoggerPort } from 'src/logging/logger.port';
 
 describe('SecureCookieService', () => {
   let service: SecureCookieService;
@@ -16,7 +16,7 @@ describe('SecureCookieService', () => {
           httpOnly: true,
           sameSite: 'lax',
         }) } },
-        { provide: MeiliLoggerService, useValue: { forContext: jest.fn().mockReturnValue(mockLogger) } },
+        { provide: LoggerPort, useValue: { forContext: jest.fn().mockReturnValue(mockLogger) } },
       ],
     }).compile();
 

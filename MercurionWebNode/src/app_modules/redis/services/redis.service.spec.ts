@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { RedisService } from './redis.service';
 import { Redis } from 'ioredis';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { LoggerPort } from 'src/logging/logger.port';
 import { ttlSeconds, type RedisKey } from '../contracts/redis-contracts';
 
 describe('RedisService', () => {
@@ -44,7 +44,7 @@ describe('RedisService', () => {
       providers: [
         RedisService,
         {
-          provide: MeiliLoggerService,
+          provide: LoggerPort,
           useValue: { forContext: jest.fn().mockReturnValue(mockLogger) },
         },
         {
