@@ -1227,13 +1227,14 @@
     },
     {
       "method": "POST",
-      "path": "/api/documents",
+      "path": "/api/documents/upload",
       "controller": "MercurionWebNode/src/app_modules/dropbox-object-store/controllers/document.controller.ts",
       "handler": "upload",
-      "classification": "temporarily disabled endpoint",
-      "owner": "Document API implementation backlog",
+      "classification": "active product feature",
+      "owner": "Document upload application service",
       "evidence": [
-        "Human decision 2026-09-05: currently unused; the controller returns an empty HTTP 403 response until implementation."
+        "MercurionWebNode/src/app_modules/dropbox-object-store/controllers/document.controller.ts",
+        "MercurionWebNode/src/app_modules/dropbox-object-store/services/dropbox-object-store.service.ts"
       ],
       "references": [
         {
