@@ -21,7 +21,6 @@ import {
     presentGraphQLError
 } from './exception-handling/application-error-envelope'
 import { applyContractVersionResponseHeaders } from './contracts/contract-versioning-http'
-import { MercurionPublicIdScalar } from './identifiers/mercurion-public-id'
 
 interface MercurionGraphQLContext {
     request: FastifyRequest
@@ -77,7 +76,6 @@ export function createMercurionGraphQLConfig(config: ConfigService): MercuriusDr
 
             resolvers: {
                 JSON: GraphQLJSON,
-                MercurionPublicId: MercurionPublicIdScalar,
             },
 
             errorFormatter: (executionResult, ctx) => {

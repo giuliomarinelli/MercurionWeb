@@ -8,6 +8,15 @@ const confirmation = {
   message: 'OK'
 }
 
+const tokenPayload = Buffer.from(JSON.stringify({
+  sub: 'qa-user',
+  sid: 'qa-session',
+  iat: 1_767_225_600,
+  exp: 4_102_444_800,
+  scp: 'molecule-collection:read molecule-collection:write'
+})).toString('base64url')
+const fixtureToken = `eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.${tokenPayload}.fixture`
+
 async function mockAuthentication(page: Page, { mfa = false } = {}): Promise<void> {
   await page.route('**/api/authentication/login/0', route => route.fulfill({
     status: 200,
@@ -15,7 +24,11 @@ async function mockAuthentication(page: Page, { mfa = false } = {}): Promise<voi
     body: JSON.stringify(confirmation)
   }))
 
-  await page.route('**/api/authentication/login/1', route => route.fulfill({
+  await page.route('**/api/authentication/login/1', async route => {
+    if (!mfa) {
+      await page.context().addCookies([{ name: '__logged_in', value: 'true', url: baseUrl }])
+    }
+    await route.fulfill({
     status: 200,
     contentType: 'application/json',
     body: JSON.stringify({
@@ -23,29 +36,74 @@ async function mockAuthentication(page: Page, { mfa = false } = {}): Promise<voi
       needsMfa: mfa,
       enabledMfaStrategies: mfa ? ['EMAIL_OTP'] : [],
       suspiciousAttempt: false,
-      preAuthorizationToken: mfa ? 'test-pre-auth' : undefined,
-      accessToken: mfa ? undefined : 'test-access-token',
-      ws_accessToken: mfa ? undefined : 'test-ws-access-token',
+      preAuthorizationToken: mfa ? fixtureToken : undefined,
+      accessToken: mfa ? undefined : fixtureToken,
+      ws_accessToken: mfa ? undefined : fixtureToken,
       initials: 'QA',
       deviceId: 'test-device'
     })
+    })
+  })
+
+  await page.route('**/api/authentication/login/EMAIL_OTP/2**', route => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify(confirmation)
   }))
 
-  await page.route('**/api/authentication/login/EMAIL_OTP/3**', route => route.fulfill({
+  await page.route('**/api/authentication/login/EMAIL_OTP/3**', async route => {
+    await page.context().addCookies([{ name: '__logged_in', value: 'true', url: baseUrl }])
+    await route.fulfill({
     status: 200,
     contentType: 'application/json',
     body: JSON.stringify({
       ...confirmation,
-      accessToken: 'test-access-token',
-      ws_accessToken: 'test-ws-access-token',
+      accessToken: fixtureToken,
+      ws_accessToken: fixtureToken,
       initials: 'QA',
       deviceId: 'test-device'
     })
-  }))
+    })
+  })
 }
 
 async function mockCollections(page: Page): Promise<void> {
   let created = false
+  await page.route('**/api/account/profile-registry**', route => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({
+      firstName: 'Quality',
+      lastName: 'Assurance',
+      gender: 'Undefined',
+      job: null,
+      obscuredEmail: 'q***@example.test',
+      obscuredPhone: null,
+      avatarId: null,
+      recentHistory: [],
+      personalMoleculeCount: 0,
+      chemblMoleculeCount: 0,
+      collectionCount: 0,
+      initials: 'QA'
+    })
+  }))
+  await page.route('**/api/account/email', route => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({ email: 'qa@example.test', provider: 'Mercurion' })
+  }))
+  await page.route('**/api/history**', route => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({
+      items: [],
+      itemCount: 0,
+      totalItems: 0,
+      itemsPerPage: 25,
+      totalPages: 1,
+      currentPage: 1
+    })
+  }))
   await page.route('**/graphql', async route => {
     const operationName = route.request().postDataJSON()?.operationName
     if (operationName === 'CreateManyMoleculeCollections') {
@@ -97,6 +155,7 @@ async function mockCollections(page: Page): Promise<void> {
 
 export const test = base.extend<{ authenticatedPage: Page; mfaPage: Page }>({
   page: async ({ page }, use) => {
+    await page.routeWebSocket('**', () => {})
     await page.route('**/*', async route => {
       const url = new URL(route.request().url())
       if (url.origin !== baseUrl) {
