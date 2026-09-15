@@ -4,6 +4,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   effect,
+  computed,
   ElementRef,
   inject,
   OnDestroy,
@@ -11,7 +12,7 @@ import {
   signal,
   viewChild
 } from '@angular/core';
-import { AbstractPaginatedMultiselectComponent } from '../../../abstract/abstract-paginated-multiselect-component';
+import { PaginationController } from '../../../services/pagination/pagination-controller';
 import { UiMoleculeCollection } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
 import { MoleculeCollectionService } from '../../../services/graphql/molecule-collection.service';
@@ -27,6 +28,7 @@ import { DomainInvalidationService } from '../../../services/domain-invalidation
 import { ActionFooterComponent } from '../../common/action-footer/action-footer.component';
 import { ButtonComponent } from '../../common/button/button.component';
 import { CollectionPickerFacade } from '../collection-picker/collection-picker.facade';
+import { AbstractMultiselectItem } from '../../../Models/abstract.models';
 
 @Component({
   selector: 'm-bind-collections-to-molecule',
@@ -216,9 +218,7 @@ import { CollectionPickerFacade } from '../collection-picker/collection-picker.f
 </div>
   `
 })
-export class BindCollectionsToMoleculeComponent
-  extends AbstractPaginatedMultiselectComponent<UiMoleculeCollection>
-  implements OnInit, AfterViewInit, OnDestroy {
+export class BindCollectionsToMoleculeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private readonly actionOverlayContext = inject(ActionOverlayContextService);
   private readonly bindContext = inject(BindCollectionsToMoleculeContextService);
@@ -230,6 +230,17 @@ export class BindCollectionsToMoleculeComponent
   });
   private readonly router = inject(Router);
   private readonly sessionId = this.actionOverlayContext.session('BindCollectionsToMolecule')?.id ?? -1;
+  private readonly pagination = new PaginationController<UiMoleculeCollection>({
+    fetch: page => this.picker.fetchPage$(page, this.searchTerm()).pipe(
+      debounceTime(100),
+      map(result => ({ ...result, items: result.items.map(item => ({
+        ...item,
+        triggerDisappear: signal(false),
+        collapse: signal(false)
+      })) }))
+    )
+  })
+  private observer?: IntersectionObserver
 
   private suSub?: Subscription;
 
@@ -237,12 +248,29 @@ export class BindCollectionsToMoleculeComponent
   step_12_loading = signal<boolean>(false);
   error = signal<boolean>(false);
 
-  protected override readonly root = viewChild<ElementRef<HTMLDivElement>>('scrollRoot');
-
-  protected override readonly sentinel = viewChild<ElementRef<HTMLDivElement>>('sentinel');
+  protected readonly root = viewChild<ElementRef<HTMLDivElement>>('scrollRoot');
+  protected readonly sentinel = viewChild<ElementRef<HTMLDivElement>>('sentinel');
+  readonly multiselectItems = signal<AbstractMultiselectItem<UiMoleculeCollection>[]>([]);
+  readonly selectedIdSet = signal<Set<string>>(new Set());
+  readonly excludedIdSet = signal<Set<string>>(new Set());
+  readonly bulkIntent = signal<'none' | 'all' | 'unselect'>('none');
+  readonly isSelectedAll = computed(() => this.bulkIntent() === 'all');
+  readonly isSelectedNothing = computed(() => this.bulkIntent() !== 'all' && this.selectedIdSet().size === 0);
+  readonly isPartiallySelected = computed(() => {
+    const visible = this.multiselectItems();
+    const checked = visible.filter(item => item.isChecked()).length;
+    return checked > 0 && checked < visible.length;
+  });
+  get items(): UiMoleculeCollection[] { return this.pagination.items() }
+  get loading(): boolean { return this.pagination.loading() }
+  get done(): boolean { return this.pagination.done() }
+  get earlyDone(): boolean { return this.pagination.earlyDone() }
+  get page(): number { return this.pagination.page() }
+  get empty(): ReturnType<typeof signal<boolean>> { return this.pagination.empty }
+  get searchTerm(): ReturnType<typeof signal<string>> { return this.pagination.query }
 
   ngOnInit(): void {
-    queueMicrotask(() => this.loadMore());
+    queueMicrotask(() => void this.loadMore());
   }
 
   ngAfterViewInit(): void {
@@ -252,6 +280,7 @@ export class BindCollectionsToMoleculeComponent
   ngOnDestroy(): void {
     this.suSub?.unsubscribe();
     this.observer?.disconnect();
+    this.pagination.dispose();
     this.picker.destroy();
   }
 
@@ -263,34 +292,51 @@ export class BindCollectionsToMoleculeComponent
     }
   });
 
-  protected override fetch$(
-    page?: number,
-    size?: number,
-    q?: string,
-    excludeJoinedToCollection?: boolean,
-    collectionId?: boolean
-  ): Observable<PageModel<UiMoleculeCollection>> {
-    return this.picker
-      .fetchPage$(this.page, this.searchTerm())
-      .pipe(
-        debounceTime(100),
-        map(page => ({
-          ...page,
-          items: page.items.map(item => ({
-            ...item,
-            triggerDisappear: signal<boolean>(false),
-            collapse: signal<boolean>(false)
-          }))
-        }))
-      );
+  loadMore(): Promise<void> {
+    return this.pagination.loadMore().then(() => {
+      const existing = new Map(this.multiselectItems().map(row => [row.item.id, row]));
+      const rows = this.items.map(item => existing.get(item.id) ?? {
+        item,
+        isChecked: signal(this.isSelectedAll() ? !this.excludedIdSet().has(item.id) : this.selectedIdSet().has(item.id))
+      });
+      this.multiselectItems.set(rows);
+    });
   }
-
-  protected override doQuery(q: string): void {
-    this.query(q);
+  retryPagination(): void { this.pagination.retry(); }
+  resetPagination(): void { this.pagination.reset(); this.multiselectItems.set([]); }
+  doQuery(q: string): void { this.pagination.setQuery(q); this.multiselectItems.set([]); }
+  doClear(): void { this.pagination.clear(); this.multiselectItems.set([]); }
+  paginationState() { return this.pagination.paginationState(); }
+  private startObserver(): void {
+    const sentinel = this.sentinel()?.nativeElement;
+    if (!sentinel) return;
+    this.observer?.disconnect();
+    this.observer = new IntersectionObserver(entries => {
+      if (entries[0]?.isIntersecting) void this.loadMore();
+    }, { root: this.root()?.nativeElement ?? null, rootMargin: '0px 0px 500px 0px' });
+    this.observer.observe(sentinel);
   }
-
-  protected override doClear(): void {
-    this.clear();
+  toggleOne(row: AbstractMultiselectItem<UiMoleculeCollection>): void {
+    const next = new Set(this.bulkIntent() === 'all' ? this.excludedIdSet() : this.selectedIdSet());
+    if (this.bulkIntent() === 'all') {
+      row.isChecked() ? next.delete(row.item.id) : next.add(row.item.id);
+      this.excludedIdSet.set(next);
+    } else {
+      row.isChecked() ? next.add(row.item.id) : next.delete(row.item.id);
+      this.selectedIdSet.set(next);
+      this.bulkIntent.set('none');
+    }
+  }
+  onSelectAllChange(checked: boolean): void {
+    if (checked) {
+      this.bulkIntent.set('all');
+      this.excludedIdSet.set(new Set());
+    } else {
+      this.bulkIntent.set('unselect');
+      this.selectedIdSet.set(new Set());
+      this.excludedIdSet.set(new Set());
+    }
+    this.multiselectItems().forEach(row => row.isChecked.set(checked));
   }
 
   close(): void {
