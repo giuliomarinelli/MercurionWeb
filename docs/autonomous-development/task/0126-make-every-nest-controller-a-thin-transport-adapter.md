@@ -1,7 +1,7 @@
 # 0126 - Make every Nest controller a thin transport adapter
 
-- [x] DONE
-- [ ] BLOCKED
+- [ ] DONE
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
@@ -138,9 +138,15 @@ _Not applicable._
   committed with `--no-gpg-sign`.
 - Task-status and execution-note finalization: current documentation commit.
 ### Merge / CI
-Provisional `DONE` / `CI_PENDING`; exact feature-SHA CI and integration are
-coordinator-owned.
+The exact feature-SHA workflow `34935675824` for
+`1e58e26ebc5a4dd885b1c28ab1793fdb4c8778c1` failed in the
+`Container angular-production` job while Docker Hub reset the connection
+when fetching the `nginx:1.27-alpine` OAuth token. Repository-controlled
+quality jobs passed, but the required gate was not verifiable green, so the
+task is blocked before merge and the feature branch is preserved/frozen.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-None.
+The required feature-SHA gate is unverified because of the external Docker
+registry transport failure. Re-run under a later healthy CI infrastructure
+window; no implementation correction was identified.
