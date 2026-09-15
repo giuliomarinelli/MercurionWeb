@@ -26,7 +26,7 @@ import {
   SessionInvalidationCause,
   type SessionInvalidationCauseType
 } from '@mercurion/rest-contracts'
-import { ToastVariant } from '../models/toast.models'
+import { ToastVariant } from '../Models/toast.models'
 import { BrowserStorageRegistry } from './browser-storage-registry'
 import { DefaultSessionSyncProtocol } from './session-sync.protocol'
 
