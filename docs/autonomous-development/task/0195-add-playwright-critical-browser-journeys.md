@@ -1,7 +1,7 @@
 # 0195 - Add Playwright critical browser journeys
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
@@ -92,26 +92,40 @@ Keep mocked/controlled network semantics explicit in test names/fixtures. A brow
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/QA-009` from base `043a333feb20b0850353b571b31122e46dee7b31`,
+preserved at `1d37ba8ee0fb9961a5f29284009582a9b621558b`.
 ### Preflight
-_Not started._
+Exact base CI run `34985586114` passed. Tox21, Nest, and Angular were started
+in the required order with live handles. Nest initially exposed the
+repository-controlled Fastify 4/5 plugin mismatch; the authorized narrow
+compatibility remediation resolved that error.
 ### Preflight remediation
-_None._
+Added a Fastify 5 compatibility wrapper around the existing
+`fastify-formidable` plugin and pinned the direct `fastify-plugin` dependency.
+No infrastructure or Fastify version downgrade was made.
 ### Summary
-Re-scoped by direct management instruction on 2026-09-14. Deferred feature
-journeys were transferred to the archived development program, so this recipe
-can implement the active product's Playwright infrastructure and journeys.
+Added pinned Playwright 1.55.0 tooling/configuration, canonical
+`http://localhost:8888` base URL, failure diagnostics, deterministic route
+fixtures, and three critical journeys. The task is blocked because Nest then
+failed during bootstrap with `"MercurionPublicId" defined in resolvers, but not
+in schema`; the canonical edge remained unavailable for the required readiness
+rounds, so browser validation could not safely begin.
 ### Task-specific validation performed
-_Not started._
+Passed Playwright test discovery (three tests), Nest typecheck, Nest lint, and
+`git diff --check`.
 ### Full pre-merge CI-parity validation
-_Not started._
+Not run locally; forbidden by policy. Feature CI run `34988102571` passed with
+the Required gate.
 ### Browser validation performed
-_Not started._
+Not performed because the Nest bootstrap/schema baseline failure prevented
+nginx readiness and browser execution.
 ### Commits
-_Not recorded._
+Feature implementation and blocker diagnostic:
+`1d37ba8ee0fb9961a5f29284009582a9b621558b`.
 ### Merge / CI
-_Not started._
+Implementation was not merged. Feature CI run `34988102571` passed.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-_None currently recorded after management re-scope._
+Resolve the repository-controlled GraphQL schema baseline failure, then
+authorize a new QA-009 recovery attempt.
