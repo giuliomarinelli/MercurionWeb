@@ -146,7 +146,7 @@ export class CompleteMfaLoginHandler {
                 )
             } catch (error) {
                 this.logger.warn(
-                    ` > execute > Error: ${(error as { message?: string })?.message || error}`
+                    ` > execute > Error: ${String(error)}`
                 )
                 throw applicationHttpException(
                     ApplicationErrorCode.MFA_PREAUTHORIZATION_INVALID

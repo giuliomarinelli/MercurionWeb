@@ -23,7 +23,7 @@ import type { CreateFeedbackDTO as CreateFeedbackContract } from '@mercurion/res
 
 export class CreateFeedbackDTO implements CreateFeedbackContract {
     @IsEnum(FeedbackEnv)
-    env: FeedbackEnv
+    env!: FeedbackEnv
 
     @IsOptional()
     @IsEnum(FeedbackSource)

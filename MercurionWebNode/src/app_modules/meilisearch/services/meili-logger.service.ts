@@ -5,6 +5,7 @@ import { uuidv7 } from '@kripod/uuidv7';
 import { ConfigService } from '@nestjs/config';
 import { Environment } from 'src/config/config.schema';
 import { LoggerContext, LoggerPort } from 'src/logging/logger.port';
+import { errorMessage } from 'src/utils/errors/error-message'
 
 
 @Injectable()
@@ -41,7 +42,7 @@ export class MeiliLoggerService extends LoggerPort implements OnModuleInit {
             const now = Date.now()
             if (now - this.lastMeiliFailure > 10000) {
                 this.lastMeiliFailure = now;
-                super.error('[LOGGER] Failed to send log to Meili:', err.message)
+                super.error('[LOGGER] Failed to send log to Meili:', errorMessage(err))
             }
         }
     }

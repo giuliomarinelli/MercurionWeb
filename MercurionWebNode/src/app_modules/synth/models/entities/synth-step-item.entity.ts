@@ -23,21 +23,21 @@ export class SynthStepItem {
 
     @Field(() => ID)
     @PrimaryColumn({ type: 'uuid' })
-    id: UUID
+    id!: UUID
 
     @Index()
     @Column({ name: 'user_id', type: 'uuid' })
-    userId: UUID
+    userId!: UUID
 
     @Field(() => SynthStep)
     @ManyToOne(() => SynthStep, step => step.items, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'step_id' })
-    step: SynthStep
+    step!: SynthStep
 
     @Field(() => ID)
     @Index()
     @Column({ name: 'step_id', type: 'uuid' })
-    stepId: UUID
+    stepId!: UUID
 
     @Field(() => SynthesisPoolMolecule, { nullable: true })
     @ManyToOne(() => SynthesisPoolMolecule, poolMolecule => poolMolecule.stepItems, {
@@ -45,28 +45,28 @@ export class SynthStepItem {
         onDelete: 'RESTRICT'
     })
     @JoinColumn({ name: 'pool_molecule_id' })
-    poolMolecule: SynthesisPoolMolecule | null
+    poolMolecule!: SynthesisPoolMolecule | null
 
     @Field(() => ID, { nullable: true })
     @Index()
     @Column({ name: 'pool_molecule_id', type: 'uuid', nullable: true })
-    poolMoleculeId: UUID | null
+    poolMoleculeId!: UUID | null
 
     @Field(() => String, { nullable: true })
     @Column({ type: 'text', nullable: true })
-    text: string | null
+    text!: string | null
 
     @Field(() => SynthStepItemKind)
     @Column({ type: 'varchar' })
-    kind: SynthStepItemKind
+    kind!: SynthStepItemKind
 
     @Field(() => SynthStepItemPosition)
     @Column({ type: 'varchar' })
-    position: SynthStepItemPosition
+    position!: SynthStepItemPosition
 
     @Field(() => Int)
     @Column({ name: 'item_order', type: 'int' })
-    order: number
+    order!: number
 
     @BeforeInsert()
     private generateId() {

@@ -9,6 +9,6 @@ export class UpdateLabNotebookInput extends PartialType(CreateLabNotebookInput) 
     @IsUUID()
     @Field()
     @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
-    id: string
+    id!: string
 
 }

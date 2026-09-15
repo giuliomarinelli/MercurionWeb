@@ -5,14 +5,14 @@ import { GeneralUtils } from "src/utils/general-utils/general-utils";
 
 @InputType()
 export class CreateChapterInput {
-    
+
     @IsUUID()
     @Field()
     @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
-    notebookId: string
+    notebookId!: string
     @IsString()
     @Field()
     @Transform(({ value }) => typeof value === 'string' ? GeneralUtils.normalizeSpaces(value) : value)
-    title: string
-    
+    title!: string
+
 }

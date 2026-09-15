@@ -7,5 +7,5 @@ export class RecoveryCodeDTO implements RecoveryCodeContract {
     @IsDefined()
     @IsNotEmpty()
     @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
-    code: string
+    code!: string
 }

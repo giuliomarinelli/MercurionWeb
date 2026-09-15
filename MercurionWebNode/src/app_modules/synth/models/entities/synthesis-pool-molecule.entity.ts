@@ -23,33 +23,33 @@ export class SynthesisPoolMolecule {
 
     @Field(() => ID)
     @PrimaryColumn({ type: 'uuid' })
-    id: UUID
+    id!: UUID
 
     @Index()
     @Column({ name: 'user_id', type: 'uuid' })
-    userId: UUID
+    userId!: UUID
 
     @ManyToOne(() => Synthesis, synthesis => synthesis.poolMolecules, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'synthesis_id' })
-    synthesis: Synthesis
+    synthesis!: Synthesis
 
     @Field(() => ID)
     @Index()
     @Column({ name: 'synthesis_id', type: 'uuid' })
-    synthesisId: UUID
+    synthesisId!: UUID
 
     @Field(() => CustomMoleculeItemEntity)
     @ManyToOne(() => CustomMoleculeItemEntity, { onDelete: 'RESTRICT' })
     @JoinColumn({ name: 'molecule_id' })
-    molecule: CustomMoleculeItemEntity
+    molecule!: CustomMoleculeItemEntity
 
     @Field(() => ID)
     @Index()
     @Column({ name: 'molecule_id', type: 'uuid' })
-    moleculeId: UUID
+    moleculeId!: UUID
 
     @OneToMany(() => SynthStepItem, item => item.poolMolecule)
-    stepItems: SynthStepItem[]
+    stepItems!: SynthStepItem[]
 
     @BeforeInsert()
     private generateId() {

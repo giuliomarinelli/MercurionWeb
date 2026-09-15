@@ -19,21 +19,21 @@ import type { ReleaseNote } from './release-note.dtos'
 export class CreateReleaseVersionDTO {
 
     @IsEnum(ReleaseContext)
-    context: ReleaseContext
+    context!: ReleaseContext
 
     @IsInt()
     @Min(0)
     @Max(99)
-    major: number
+    major!: number
 
     @IsInt()
     @Min(0)
     @Max(999)
-    minor: number
+    minor!: number
 
     @IsString()
     @Matches(/^[0-9a-fA-F]{7,40}$/)
-    commitId: string
+    commitId!: string
 
     @IsOptional()
     @IsBoolean()
@@ -45,5 +45,5 @@ export class CreateReleaseVersionDTO {
     @ValidateNested({ each: true })
     @Type(() => Object) // ReleaseNote is an interface, so use Object as runtime type
     releaseNotes?: ReleaseNote[]
-    
+
 }

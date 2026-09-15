@@ -13,6 +13,7 @@ import { SmsSenderService } from 'src/app_modules/notification/services/sms-send
 import { MailSenderService } from 'src/app_modules/notification/services/mail-sender/mail-sender.service';
 import { ConfigService } from '@nestjs/config';
 import { TokenType } from '../models/enums/token-type.enum';
+import { errorMessage, errorStack } from 'src/utils/errors/error-message'
 
 import { JwtToolsService } from './jwt-tools.service';
 import { EmailTotpContext } from 'src/app_modules/notification/models/contexts/email-totp.context';
@@ -166,7 +167,7 @@ export class MfaApplicationService {
         } catch (e) {
             this.logger.warn(
                 `User.mfaStrategies json array deserialization error, userId=${userId}: `,
-                (e.stack ?? e) as object
+                errorStack(e) ?? errorMessage(e)
             )
             deserialized = []
         }
@@ -236,7 +237,7 @@ export class MfaApplicationService {
             const logData: string[] = []
             logData.push(userId ? `user_id=${userId}` : '', jti ? `pre_authorization_token_jti=${jti}` : '')
             const logDataStr = logData.length ? ', ' + logData.join(', ') : ''
-            this.logger.warn(` > verifyBackupCode${logDataStr} > Error: `, (e.stack ?? e) as object)
+            this.logger.warn(` > verifyBackupCode${logDataStr} > Error: `, errorStack(e) ?? errorMessage(e))
             return false
         }
     }
@@ -263,7 +264,7 @@ export class MfaApplicationService {
             } catch (e) {
                 this.logger.warn(
                     ` > regenerateBackupCodes: error in MFA Strategies deserialization, userId=${userId}: `,
-                    (e.stack ?? e) as object
+                    errorStack(e) ?? errorMessage(e)
                 );
                 deserialized = []
             }
@@ -767,7 +768,7 @@ export class MfaApplicationService {
             try {
                 deserialized = JSON.parse(rawMfaStrategies || '[]') as string[]
             } catch (e) {
-                this.logger.warn(` > disableMfa_secondStep_verifyTotpAndRemoveStrategy: error in deserialization: `, (e.stack ?? e) as object)
+                this.logger.warn(` > disableMfa_secondStep_verifyTotpAndRemoveStrategy: error in deserialization: `,                 errorStack(e) ?? errorMessage(e))
                 throw e
             }
             const mfaStrategiesWithoutJustDisabledStrategy = deserialized

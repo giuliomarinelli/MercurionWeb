@@ -10,35 +10,35 @@ import { AuthProvider } from '../enums/auth-provider.enum';
 export class AuthIdentity {
 
     @PrimaryColumn({ type: 'uuid' })
-    id: UUID
+    id!: UUID
 
     @Column({ type: 'uuid' })
-    userId: UUID
+    userId!: UUID
 
     @ManyToOne(() => User, (u) => u.authIdentities, {
         onDelete: 'CASCADE',
         nullable: false
     })
     @JoinColumn({ name: 'user_id' })
-    user: User
+    user!: User
 
     @Column({ type: 'text' })
-    provider: AuthProvider
+    provider!: AuthProvider
 
     @Column({ type: 'text', name: 'provider_subject' })
-    providerSubject: string
+    providerSubject!: string
 
     @Column({ type: 'varchar', length: 255, nullable: true })
-    email: string | null
+    email!: string | null
 
     @Column({ type: 'boolean', name: 'email_verified', default: false })
-    emailVerified: boolean
+    emailVerified!: boolean
 
     @Column({ type: 'bigint', name: 'created_at' })
-    createdAt: number
+    createdAt!: number
 
     @Column({ type: 'bigint', name: 'updated_at' })
-    updatedAt: number
+    updatedAt!: number
 
     @BeforeInsert()
     private onInsert() {

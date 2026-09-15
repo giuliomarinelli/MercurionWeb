@@ -11,27 +11,27 @@ export class MoleculeCollectionItemJoin {
 
     @Field(() => ID)
     @PrimaryColumn({ type: 'uuid' })
-    id: UUID
+    id!: UUID
 
     @Index()
     @Column({ type: 'uuid' })
-    userId: UUID
+    userId!: UUID
 
     @Field(() => MoleculeCollection, { nullable: true })
     @ManyToOne(() => MoleculeCollection, collection => collection.items, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'collection_id' })
-    collection: MoleculeCollection
+    collection!: MoleculeCollection
 
     @Field(() => MoleculeCollectionItemEntity, { nullable: true })
     @ManyToOne(() => MoleculeCollectionItemEntity, item => item.joins, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'item_id' })
-    item: MoleculeCollectionItemEntity
+    item!: MoleculeCollectionItemEntity
 
     @Column({ type: 'uuid' })
-    collectionId: UUID
+    collectionId!: UUID
 
     @Column({ type: 'uuid' })
-    itemId: UUID
+    itemId!: UUID
 
     // 🔧 Estensioni future: tag, commenti, ordine, metadati?
 

@@ -12,6 +12,7 @@ import { join } from 'path';
 import { MailSenderService } from 'src/app_modules/notification/services/mail-sender/mail-sender.service';
 import { UserCtaContext } from 'src/app_modules/notification/models/contexts/user-cta.context';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
+import { errorMessage, errorStack } from 'src/utils/errors/error-message'
 
 import { User } from 'src/app_modules/user/models/entities/user.entity';
 import { createHmac, UUID } from 'crypto';
@@ -959,7 +960,7 @@ export class AccountFlowKernel {
             try {
                 ({ sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(secureToken, TokenType.AccountRecoveryToken))
             } catch (e) {
-                this.logger.debug(`recoverAccount_secondStep > error in secure_token validation: `, (e.stack ?? e) as object)
+                this.logger.debug(`recoverAccount_secondStep > error in secure_token validation: `, errorStack(e) ?? errorMessage(e))
                 throw applicationError(ApplicationErrorCode.AUTHENTICATION_UNAUTHENTICATED)
             }
             await this.sessionService.revokeToken(jti)

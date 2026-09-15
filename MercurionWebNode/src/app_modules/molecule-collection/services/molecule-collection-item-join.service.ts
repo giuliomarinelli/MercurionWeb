@@ -1,3 +1,4 @@
+import { errorMessage } from 'src/utils/errors/error-message'
 import { MoleculeCollectionItemJoin } from './../models/entities/molecule-collection-item-join.entity';
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -188,7 +189,7 @@ export class MoleculeCollectionItemJoinService {
                 return this.bindManyCollectionsToMoleculeWithManager(userId, moleculeId, collectionIds, selectAll, manager)
             })
         } catch (e) {
-            this.logger.warn(`MoleculeCollectionItemJoinService > bindManyCollectionsToMolecule: Error => ${e.message || e}`)
+            this.logger.warn(`MoleculeCollectionItemJoinService > bindManyCollectionsToMolecule: Error => ${errorMessage(e)}`)
             return {
                 ok: false,
                 moleculeUUID: null

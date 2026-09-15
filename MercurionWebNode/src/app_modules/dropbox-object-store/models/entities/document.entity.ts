@@ -9,45 +9,45 @@ import { StorageScope } from '../enums/storage-scope.enum';
 export class DocumentEntity {
 
     @PrimaryColumn()
-    id: UUID
+    id!: UUID
 
     @Index()
     @Column({ type: 'uuid' })
-    userId: UUID
+    userId!: UUID
 
     @Index()
     @Column({ type: 'varchar', length: 32 })
-    storageType: StorageType
+    storageType!: StorageType
 
     @Column({ type: 'varchar', length: 1024 })
-    storagePath: string // path/id sullo store
+    storagePath!: string // path/id sullo store
 
     @Column({ type: 'varchar', length: 255 })
-    originalName: string
+    originalName!: string
 
     @Column({ type: 'bigint' })
-    size: number
+    size!: number
 
     @Column({ type: 'varchar', length: 128 })
-    mimeType: string
+    mimeType!: string
 
     @Column({ type: 'text', nullable: true, default: null })
-    note: string | null
+    note!: string | null
 
     @Column({ type: 'boolean', default: false })
-    isPublic: boolean
+    isPublic!: boolean
 
     @Column({ type: 'bigint', default: null })
-    createdAt: number
+    createdAt!: number
 
     @Column({ type: 'bigint', default: null })
-    updatedAt: number
+    updatedAt!: number
 
     @Column()
-    scope: StorageScope
+    scope!: StorageScope
 
     @Column()
-    isActive: boolean
+    isActive!: boolean
 
     @BeforeInsert()
     onInsert(): void {

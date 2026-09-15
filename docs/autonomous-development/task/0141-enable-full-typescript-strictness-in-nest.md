@@ -1,6 +1,6 @@
 # 0141 - Enable full TypeScript strictness in Nest
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -80,24 +80,46 @@ Mark `BLOCKED` if a third-party API has irreconcilably incorrect typings and no 
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/BE-027`, based on `49574285c3405485cfc7389111911c6a63ebed8d` (exact `develop` HEAD).
 ### Preflight
-_Not started._
+Clean feature branch matched `develop` at the supplied base SHA. No task-owned Angular,
+Nest, Tox21, test watcher, or workspace-consuming process was active. The exact base
+SHA had successful GitHub Actions evidence (`34946986880`, CI success). The inherited
+session configuration matched GPT-5.6 Luna, medium reasoning, default 300k context.
+The pre-strict baseline `npm run typecheck --workspace mercurion_web_node` passed.
 ### Preflight remediation
-_None._
+The strict compiler probe (`npx tsc --noEmit -p MercurionWebNode/tsconfig.json
+--strict --useUnknownInCatchVariables --strictBindCallApply
+--noFallthroughCasesInSwitch`) recorded 383 strict-property-initialization errors,
+15 unknown-catch errors and the remaining narrow indexing/vendor diagnostics.
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0127, 0128, 0130, 0140. This task was never attempted and receives no feature branch.
+Enabled the complete Nest strict compiler family and audited standalone strict flags.
+Initialized DTO/entity fields with definite-assignment assertions where framework
+construction supplies values, narrowed unknown catch values through a shared
+non-throwing error formatter, corrected typed SQL result rows and strict test mocks,
+and removed the untyped nodemailer import boundary. Added a CI static policy guard
+for required Nest strictness options; the existing root `ci:typecheck:nest` command
+remains the canonical non-emitting gate.
 ### Task-specific validation performed
-_Not started._
+Passed:
+
+- `npm run typecheck --workspace mercurion_web_node`
+- `npm run lint --workspace mercurion_web_node`
+- `npm run build --workspace mercurion_web_node`
+- `npm run test --workspace mercurion_web_node -- --runInBand` (154 suites, 475 tests)
+- `npm run test:e2e --workspace mercurion_web_node -- --runInBand` (3 tests)
+- `node scripts/check-nest-strictness.mjs`
+- `git diff --check`
 ### Full pre-merge CI-parity validation
-_Not started._
+Not run locally because `npm ci` and `npm run ci:check` are prohibited; exact-SHA
+feature validation is owned by GitHub Actions after push.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+Pending task commit.
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+Feature SHA must receive exact-SHA GitHub Actions validation before integration.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+None.

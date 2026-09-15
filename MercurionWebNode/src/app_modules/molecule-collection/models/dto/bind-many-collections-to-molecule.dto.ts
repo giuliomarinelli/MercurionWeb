@@ -5,9 +5,9 @@ import { UUID } from "crypto";
 export class BindManyCollectionsToMoleculeDTO {
 
     @Field(() => Boolean)
-    ok: boolean
+    ok!: boolean
 
     @Field(() => ID, { nullable: true })
-    moleculeUUID: UUID | null
+    moleculeUUID!: UUID | null
 
 }

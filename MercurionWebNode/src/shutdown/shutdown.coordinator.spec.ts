@@ -39,7 +39,7 @@ describe('ShutdownCoordinator', () => {
   })
 
   it('reports a hard timeout without waiting forever', async () => {
-    let release!: () => void
+    let release: (() => void) | undefined
     const result = await new ShutdownCoordinator([
       { name: 'stalled', close: () => new Promise<void>(resolve => { release = resolve }) }
     ], 5, logger).shutdown({ kind: 'signal', signal: 'SIGTERM' })
@@ -47,6 +47,6 @@ describe('ShutdownCoordinator', () => {
     expect(result.timedOut).toBe(true)
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.warn).toHaveBeenCalledWith('[SHUTDOWN_TIMEOUT]', { timeoutMs: 5 })
-    release()
+    release?.()
   })
 })

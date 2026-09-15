@@ -9,6 +9,6 @@ export class EmailDTO implements EmailContract {
     @IsEmail()
     @Matches(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)
     @Transform(({ value }) => typeof value === 'string' ? GeneralUtils.normalizeEmail(value) : value)
-    email: string
+    email!: string
 
 }

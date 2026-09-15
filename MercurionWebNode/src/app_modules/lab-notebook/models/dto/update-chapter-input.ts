@@ -5,21 +5,21 @@ import { GeneralUtils } from "src/utils/general-utils/general-utils";
 
 @InputType()
 export class UpdateChapterInput {
-    
+
     @IsUUID()
-    @Field(() => ID) 
+    @Field(() => ID)
     @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
-    id: string
-    
+    id!: string
+
     @IsOptional()
     @IsString()
-    @Field({ nullable: true }) 
+    @Field({ nullable: true })
     @Transform(({ value }) => typeof value === 'string' ? GeneralUtils.normalizeSpaces(value) : value)
     title?: string
-    
+
     @IsOptional()
     @IsInt()
-    @Field(() => Int, { nullable: true }) 
+    @Field(() => Int, { nullable: true })
     order?: number
-    
+
 }

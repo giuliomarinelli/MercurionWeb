@@ -4,5 +4,5 @@ import { IsArray, IsIn } from 'class-validator';
 export class ChangeLogLevelDTO {
     @IsArray()
     @IsIn(LOG_LEVELS, { each: true })
-    logLevels: LogLevel[]
+    logLevels!: LogLevel[]
 }

@@ -8,9 +8,9 @@ export class RecoverCredentialsDTO implements RecoverCredentialsContract {
     @IsEmail()
     @Matches(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)
     @Transform(({ value }) => typeof value === 'string' ? GeneralUtils.normalizeEmail(value) : value)
-    newEmail: string
+    newEmail!: string
 
     @IsString()
-    @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/)    
-    newPassword: string
+    @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/)
+    newPassword!: string
 }

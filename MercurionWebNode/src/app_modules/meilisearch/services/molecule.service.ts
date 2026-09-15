@@ -5,6 +5,7 @@ import { MoleculeSearchResult } from "../models/dto/molecule-search-result.cls";
 import { MoleculeDetailModel } from "src/app_modules/chembl/models/dto/molecule-detail-model.interface";
 import { LoggerPort } from 'src/logging/logger.port';
 import { LoggerContext } from "src/logging/logger.port";
+import { errorMessage } from 'src/utils/errors/error-message'
 
 type Maybe<T> = T | null | undefined;
 type MoleculeDetailWithMolregno = MoleculeDetailModel & {
@@ -32,10 +33,10 @@ export class MoleculeService {
             await index.getDocument(String(molregno))
             return true
         } catch (e) {
-            if (e.cause.code === 'document_not_found') {
+            if (e instanceof Error && 'cause' in e && e.cause === 'document_not_found') {
                 return false
             }
-            this.logger.warn(`MoleculeService > existsMoleculeByMolregno: Error => ${e}`)
+            this.logger.warn(`MoleculeService > existsMoleculeByMolregno: Error => ${errorMessage(e)}`)
             throw e
         }
     }

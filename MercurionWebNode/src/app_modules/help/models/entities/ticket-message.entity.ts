@@ -23,50 +23,50 @@ export class TicketMessage {
 
   @Field(() => ID)
   @PrimaryColumn('uuid')
-  id: UUID
+  id!: UUID
 
   @Field()
   @Column({ type: 'bigint', unique: true, name: 'public_id' })
   @Generated('increment')
-  publicId: string
+  publicId!: string
 
   @Field(() => ID)
   @Column({ type: 'uuid', name: 'ticket_id' })
-  ticketId: UUID
+  ticketId!: UUID
 
   @ManyToOne(() => Ticket, (t) => t.messages, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'ticket_id' })
-  ticket: Ticket
+  ticket!: Ticket
 
   @Field(() => AuthorType)
   @Column({ type: 'varchar', length: 30, name: 'author_type' })
-  authorType: AuthorType
+  authorType!: AuthorType
 
   @Field(() => ID, { nullable: true })
   @Column({ type: 'uuid', name: 'author_id', nullable: true })
-  authorId: UUID | null
+  authorId!: UUID | null
 
   @Field(() => String, { nullable: true })
   authorFullName?: string
 
   @Field(() => ID, { nullable: true })
   @Column({ type: 'uuid', name: 'user_id' })
-  userId: UUID
+  userId!: UUID
 
   @Field(() => String, { nullable: true })
   userFullName?: string
 
   @Field(() => String)
   @Column({ type: 'jsonb', name: 'content_delta' })
-  contentDelta: JsonValue | string
+  contentDelta!: JsonValue | string
 
   @Field()
   @Column({ type: 'text', name: 'content_html' })
-  contentHtml: string
+  contentHtml!: string
 
   @Field()
   @Column({ type: 'bigint', name: 'created_at' })
-  createdAt: string
+  createdAt!: string
 
   @BeforeInsert()
   private onInsert(): void {

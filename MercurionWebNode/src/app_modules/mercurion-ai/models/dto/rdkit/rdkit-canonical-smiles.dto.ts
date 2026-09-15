@@ -12,7 +12,7 @@ export class RdkitToCanonicalSmilesDTO extends RdkitBaseDTO implements RdkitCano
   @Matches(/\S/, { message: "SMILES cannot be empty or whitespace" })
   @MaxLength(RDKIT_SMILES_MAX_LENGTH, { message: "SMILES too long" })
   @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
-  smiles: string
+  smiles!: string
 
   @IsOptional()
   @ValidateNested()

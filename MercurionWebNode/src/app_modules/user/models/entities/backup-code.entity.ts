@@ -7,26 +7,26 @@ import { uuidv7 } from "@kripod/uuidv7";
 export class MfaBackupCode {
 
     @PrimaryColumn({ type: 'uuid' })
-    id: UUID
+    id!: UUID
 
     @Column()
-    hash: string
+    hash!: string
 
     @Column({ default: false })
-    used: boolean
+    used!: boolean
 
     @Column({ type: 'bigint' })
-    createdAt: number
+    createdAt!: number
 
     @Column({ type: 'bigint', nullable: true, default: null })
-    usedAt: number | null
+    usedAt!: number | null
 
     @ManyToOne(() => User, user => user.backupCodes, { onDelete: 'CASCADE', nullable: false })
     @JoinColumn()
-    user: User
+    user!: User
 
     @Column({ type: 'uuid' })
-    userId: UUID
+    userId!: UUID
 
     @BeforeInsert()
     private generateId() {

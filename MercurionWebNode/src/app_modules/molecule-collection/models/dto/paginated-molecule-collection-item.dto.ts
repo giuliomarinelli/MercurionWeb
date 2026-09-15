@@ -8,21 +8,21 @@ import { FlatPagination } from "src/models/flat-pagination.interface";
 export class PaginatedMoleculeCollectionItem implements FlatPagination<CustomMoleculeItemDTO | ChEMBLMoleculeItemDTO> {
 
     @Field(() => [MoleculeCollectionItemUnion])
-    items: Array<CustomMoleculeItemDTO | ChEMBLMoleculeItemDTO>
+    items!: Array<CustomMoleculeItemDTO | ChEMBLMoleculeItemDTO>
 
     @Field(() => Int)
-    itemCount: number
+    itemCount!: number
 
     @Field(() => Int)
-    totalItems: number
+    totalItems!: number
 
     @Field(() => Int)
-    itemsPerPage: number
+    itemsPerPage!: number
 
     @Field(() => Int)
-    totalPages: number
+    totalPages!: number
 
     @Field(() => Int)
-    currentPage: number
-    
+    currentPage!: number
+
 }

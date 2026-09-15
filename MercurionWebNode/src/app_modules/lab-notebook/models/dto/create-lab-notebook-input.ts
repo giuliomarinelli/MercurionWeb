@@ -9,6 +9,6 @@ export class CreateLabNotebookInput {
     @IsString()
     @Field()
     @Transform(({ value }) => typeof value === 'string' ? GeneralUtils.normalizeSpaces(value) : value)
-    title: string
+    title!: string
 
 }

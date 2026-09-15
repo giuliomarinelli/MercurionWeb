@@ -7,5 +7,5 @@ export class BackupCodeDTO implements BackupCodeContract {
 @IsNotEmpty()
 @Matches(/^[0-9A-Fa-f]{4}(?:-[0-9A-Fa-f]{4}){2}$/)
 @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
-code: string
+code!: string
 }

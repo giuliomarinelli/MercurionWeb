@@ -10,34 +10,34 @@ export class MoleculeCollection {
 
     @Field(() => ID)
     @PrimaryColumn({ type: 'uuid' })
-    id: UUID
+    id!: UUID
 
     @Field()
     @Column()
-    name: string
+    name!: string
 
     @Index()
     @Column()
-    userId: UUID
+    userId!: UUID
 
     @Field(() => [MoleculeCollectionItemJoin], { nullable: true })
     @OneToMany(() => MoleculeCollectionItemJoin, join => join.collection)
-    items: MoleculeCollectionItemJoin[]
+    items!: MoleculeCollectionItemJoin[]
 
     @Field(() => String)
     @Column({ type: 'bigint' })
-    createdAt: number
+    createdAt!: number
 
     @Field(() => String)
     @Column({ type: 'bigint' })
-    updatedAt: number
+    updatedAt!: number
 
     @Field(() => String)
     @Column({ type: 'bigint' })
-    touchedAt: number
+    touchedAt!: number
 
     @Field(() => Int)
-    itemsCount: number
+    itemsCount!: number
 
     @BeforeInsert()
     private init() {

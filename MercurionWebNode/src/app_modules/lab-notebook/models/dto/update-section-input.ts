@@ -9,7 +9,7 @@ export class UpdateSectionInput {
   @IsUUID()
   @Field(() => ID)
   @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
-  id: string
+  id!: string
 
   @IsOptional()
   @IsString()

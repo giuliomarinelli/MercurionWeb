@@ -4,19 +4,19 @@ import { ObjectType, Field, Int, Float } from '@nestjs/graphql';
 export class MoleculeSearchResult {
 
     @Field(() => Int)
-    id: number
+    id!: number
 
     @Field(() => String, { nullable: true })
-    preferredName: string
+    preferredName!: string
 
     @Field(() => String, { nullable: true })
-    preferredNameIt: string
+    preferredNameIt!: string
 
     @Field(() => String, { nullable: true })
-    smiles: string
+    smiles!: string
 
     @Field(() => [String], { nullable: true })
-    synonyms: string[]
+    synonyms!: string[]
 
     @Field(() => Float, { nullable: true })
     mwFreebase?: number
@@ -28,6 +28,6 @@ export class MoleculeSearchResult {
     maxPhase?: number
 
     @Field(() => Boolean, { defaultValue: false })
-    known: boolean
+    known!: boolean
 
 }

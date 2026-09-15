@@ -8,8 +8,8 @@ import type {
 
 export class VerifyBodyDTO implements VerifyBodyContract {
   @IsEnum(VerifyKind)
-  kind: VerifyKind
+  kind!: VerifyKind
 
   @IsDefined()
-  payload: TotpBodyDTO | BackupCodeDTO
+  payload!: TotpBodyDTO | BackupCodeDTO
 }

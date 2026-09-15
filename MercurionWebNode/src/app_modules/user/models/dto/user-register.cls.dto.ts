@@ -10,25 +10,25 @@ export class UserRegisterDTO implements UserRegisterContract {
     @IsEmail()
     @Matches(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)
     @Transform(({ value }) => typeof value === 'string' ? GeneralUtils.normalizeEmail(value) : value)
-    email: string 
+    email!: string
 
     @IsString()
     @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/)
-    password: string 
+    password!: string
 
     @IsString()
     @Matches(/^[A-ZÀ-Ý][a-zà-ÿ]*(?:\s+[A-ZÀ-Ý][a-zà-ÿ]*)*$/)
     @Transform(({ value }) => typeof value === 'string' ? GeneralUtils.normalizePersonName(value) : value)
-    firstName: string
+    firstName!: string
 
     @IsEnum(UserGender)
-    gender: UserGender
+    gender!: UserGender
 
     @IsString()
     @Matches(/^[A-ZÀ-Ý][a-zà-ÿ]*(?:\s+[A-ZÀ-Ý][a-zà-ÿ]*)*$/)
     @Transform(({ value }) => typeof value === 'string' ? GeneralUtils.normalizePersonName(value) : value)
-    lastName: string
-    
+    lastName!: string
+
     @IsString()
     @Matches(/^(?:[A-Za-zÀ-Ýà-ÿ]+(?:\s+[A-Za-zÀ-Ýà-ÿ]+)*)?$/)
     @IsOptional()

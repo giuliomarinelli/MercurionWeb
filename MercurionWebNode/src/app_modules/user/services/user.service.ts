@@ -402,7 +402,7 @@ export class UserService implements IdentityReadPort {
 
     public async changePassword(userId: UUID, newPassword: string): Promise<void> | never {
         await this.userRepository.manager.transaction(async manager => {
-            let user!: User
+            let user: User
             try {
                 user = await manager
                     .createQueryBuilder(User, 'u')

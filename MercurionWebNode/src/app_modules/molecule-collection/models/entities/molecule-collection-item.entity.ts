@@ -16,41 +16,41 @@ export abstract class MoleculeCollectionItemEntity {
 
   @Field(() => ID)
   @PrimaryColumn({ type: 'uuid' })
-  id: UUID
+  id!: UUID
 
   @Index()
   @Column({ type: 'uuid' })
-  userId: UUID
+  userId!: UUID
 
   @Field(() => String, { nullable: true })
   @Column({ nullable: true, type: 'varchar' })
-  label: string | null
+  label!: string | null
 
   @Field(() => String, { nullable: true })
   @Column({ nullable: true, type: 'text' })
-  notes: string | null
+  notes!: string | null
 
   @Field()
   @Column({ type: 'varchar' })
-  type: string
+  type!: string
 
   @Field(() => [MoleculeCollectionItemJoin], { nullable: true })
   @OneToMany(() => MoleculeCollectionItemJoin, join => join.item)
-  joins: MoleculeCollectionItemJoin[]
+  joins!: MoleculeCollectionItemJoin[]
 
   @Field(() => String)
   @Column({ type: 'bigint' })
-  createdAt: number
+  createdAt!: number
 
   @Field(() => String)
   @Column({ type: 'bigint' })
-  updatedAt: number
+  updatedAt!: number
 
   @Field(() => String)
   @Column({ type: 'bigint' })
-  touchedAt: number
+  touchedAt!: number
 
   @Column({ type: 'varchar', nullable: true })
-  alias: string | null
+  alias!: string | null
 
 }

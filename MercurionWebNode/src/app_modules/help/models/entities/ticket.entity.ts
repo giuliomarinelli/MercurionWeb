@@ -20,7 +20,7 @@ export class Ticket {
 
   @Field(() => ID)
   @PrimaryColumn('uuid')
-  id: UUID
+  id!: UUID
 
   /**
    * Generato dal DB via identity.
@@ -28,18 +28,18 @@ export class Ticket {
   @Field()
   @Column({ type: 'bigint', unique: true, name: 'public_id' })
   @Generated('increment')
-  publicId: string
+  publicId!: string
 
   @Field(() => ID, { nullable: true })
   @Column({ type: 'uuid', name: 'user_id' })
-  userId: UUID
+  userId!: UUID
 
   @Field(() => String, { nullable: true })
   userFullName?: string
 
   @Field()
   @Column({ type: 'varchar', length: 255 })
-  subject: string
+  subject!: string
 
   @Field(() => TicketStatus)
   @Column({
@@ -47,19 +47,19 @@ export class Ticket {
     length: 30,
     default: TicketStatus.Open,
   })
-  status: TicketStatus
+  status!: TicketStatus
 
   @Field()
   @Column({ type: 'bigint', name: 'last_message_at' })
-  lastMessageAt: string
+  lastMessageAt!: string
 
   @Field()
   @Column({ type: 'bigint', name: 'created_at' })
-  createdAt: string
+  createdAt!: string
 
   @Field()
   @Column({ type: 'bigint', name: 'updated_at' })
-  updatedAt: string
+  updatedAt!: string
 
   @Field(() => [TicketMessage], { nullable: true })
   @OneToMany(() => TicketMessage, (m) => m.ticket)

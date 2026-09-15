@@ -47,7 +47,7 @@ export class MoleculeCollectionItemService {
                 return this.markAsTouchedWithManager(userId, itemId, manager, _flagIds)
             })
         } catch (e) {
-            this.logger.warn(`MoleculeCollectionItemService > markAsTouched: UPDATE FAILED => ${e}`)
+            this.logger.warn(`MoleculeCollectionItemService > markAsTouched: UPDATE FAILED => ${String(e)}`)
             return false
         }
 
