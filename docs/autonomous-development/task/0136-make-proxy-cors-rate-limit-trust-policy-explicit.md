@@ -1,7 +1,7 @@
 # 0136 - Make proxy, CORS and rate-limit trust policy environment explicit
 
-- [ ] DONE
-- [x] BLOCKED
+- [x] DONE
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
@@ -58,11 +58,11 @@ The current Fastify adapter is created with `trustProxy: true`; bootstrap derive
 
 ## Acceptance criteria
 
-- [ ] Production/staging do not use unconditional `trustProxy: true`.
-- [ ] Untrusted requests cannot forge the effective client IP through forwarding headers.
-- [ ] CORS/origin policy has one validated owner.
-- [ ] Rate-limit storage failure follows an explicit environment policy, not a hidden default.
-- [ ] Development/test allowances are isolated from production configuration.
+- [x] Production/staging do not use unconditional `trustProxy: true`.
+- [x] Untrusted requests cannot forge the effective client IP through forwarding headers.
+- [x] CORS/origin policy has one validated owner.
+- [x] Rate-limit storage failure follows an explicit environment policy, not a hidden default.
+- [x] Development/test allowances are isolated from production configuration.
 
 ## Validation
 
@@ -149,3 +149,43 @@ Human/security authority must provide and approve the production/staging
 trusted-proxy boundary (Cloudflare CIDRs and/or exact hop policy) and canonical
 allowed origins, including whether the beta Kubernetes edge is an approved
 proxy boundary. No code change is safe until that contract is documented.
+
+### Recovery continuation 2026-09-15
+
+The human security authority approved the following implementation policy:
+
+- CORS remains disabled in every environment; cross-origin browser calls are
+  not supported.
+- Fastify trusts only deployment-configured IP/CIDR identities for the nginx
+  peer immediately in front of it. Boolean and hop-count trust are forbidden.
+- nginx owns external proxy trust and normalizes forwarded client identity;
+  staging and production include the official Cloudflare IPv4/IPv6 ranges and
+  accept `CF-Connecting-IP` only from those peers.
+- rate-limit storage failure is fail-closed in staging/production and an
+  explicit fail-open development/test allowance.
+
+The current green `develop` commit `2401feeee6c89b0867fbc75a38016c96a5b71b44`
+was merged into the preserved branch with `--no-ff --no-gpg-sign`; recovery
+merge commit: `f25b0356579e653254e57b23a3d934131610c221`.
+
+Implementation replaced `trustProxy: true` with a controller configured from
+the validated `APP_TRUSTED_PROXY_CIDRS` list, removed the unused
+`APP_CORS_ORIGINS` setting, removed application-level trust in
+`CF-Connecting-IP`, made request context consume Fastify's trusted `request.ip`,
+and selected rate-limit `skipOnError` from the environment policy. nginx now
+overwrites rather than appends `X-Forwarded-For`; the production and beta edges
+validate Cloudflare peers before accepting client IP metadata.
+
+Focused validation passed:
+
+- transport/config/rate-limit policy tests: 30 tests;
+- complete Nest unit suite: 154 suites, 471 tests;
+- Nest E2E: 1 suite, 3 tests;
+- Nest lint, typecheck and build;
+- live canonical Tox21/Nest/Angular runtime through `http://localhost:8888`,
+  with two consecutive `200` rounds for `/health` and `/`;
+- a cross-origin `Origin` probe returned no `Access-Control-Allow-*` header;
+- nginx development configuration syntax check.
+
+Local `npm ci` and `npm run ci:check` were not run. Exact feature-SHA and
+post-merge GitHub Actions remain the canonical full CI evidence.

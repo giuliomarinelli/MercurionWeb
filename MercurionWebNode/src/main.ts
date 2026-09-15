@@ -12,12 +12,15 @@ import { getBootstrapLogLevels, prepareDevelopmentBootstrap } from './bootstrap/
 import { resolveAppEnv } from './utils/env-helpers'
 import { ReadinessService } from './shutdown/readiness.service'
 import { ShutdownCoordinator } from './shutdown/shutdown.coordinator'
+import type { AppConfiguration } from './config/config.types'
+import { createProxyTrustController } from './config/transport-security.policy'
 
 export async function bootstrap(): Promise<void> {
   prepareDevelopmentBootstrap()
+  const proxyTrust = createProxyTrustController()
   const app = await NestFactory.create<NestFastifyApplication>(
     createApplicationModule(),
-    new FastifyAdapter({ trustProxy: true }),
+    new FastifyAdapter({ trustProxy: proxyTrust.trust }),
     {
       logger: getBootstrapLogLevels(
         resolveAppEnv()
@@ -27,6 +30,8 @@ export async function bootstrap(): Promise<void> {
   )
   const config = app.get(ConfigService)
   const env = config.getOrThrow<Environment>('App.env')
+  const appConfiguration = config.getOrThrow<AppConfiguration>('App')
+  proxyTrust.configure(appConfiguration.transportSecurity.trustedProxyCidrs)
   const loggerFactory = app.get(MeiliLoggerService)
   const readiness = app.get(ReadinessService)
   const shutdown = new ShutdownCoordinator(

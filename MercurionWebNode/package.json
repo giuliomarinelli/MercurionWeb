@@ -44,6 +44,7 @@
     "@fastify/cookie": "11.0.2",
     "@fastify/helmet": "13.0.2",
     "@fastify/middie": "9.3.3",
+    "@fastify/proxy-addr": "5.1.0",
     "@fastify/rate-limit": "10.3.0",
     "@kripod/uuidv7": "0.3.4",
     "@nestjs-modules/mailer": "2.3.7",

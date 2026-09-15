@@ -29,7 +29,7 @@ describe('canonical environment validation', () => {
     const environment = validateEnvironment(validRawEnvironment(true))
 
     expect(environment.APP_PORT).toBe(1)
-    expect(environment.APP_CORS_ORIGINS).toEqual(['http://localhost'])
+    expect(environment.APP_TRUSTED_PROXY_CIDRS).toEqual(['127.0.0.1/32', '::1/128'])
     expect(environment.APP_ENV).toBe(Environment.Development)
   })
 
@@ -79,7 +79,7 @@ describe('canonical environment validation', () => {
     ['integer', 'APP_PORT', '1.5'],
     ['positive integer', 'REDIS_PORT', '0'],
     ['boolean', 'SECURE_COOKIE_SECURE', 'yes'],
-    ['JSON string list', 'APP_CORS_ORIGINS', '{"origin":"http://localhost"}'],
+    ['proxy CIDR list', 'APP_TRUSTED_PROXY_CIDRS', '["not-an-ip"]'],
     ['database enum', 'SQL_DATABASE_TYPE', 'mariadb'],
     ['cookie enum', 'SECURE_COOKIE_SAME_SITE', 'sometimes'],
     ['UUID', 'APP_PROJECT_ID', 'not-a-uuid']
