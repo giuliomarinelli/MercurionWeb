@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Replace per-method template paths, subjects and context assembly conventions with one typed email-template registry that binds each notification kind to its asset, subject builder and validated context schema.
@@ -97,18 +97,18 @@ _Not started._
 ### Preflight remediation
 _None._
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0161, 0158. This task was never attempted and receives no feature branch.
+Re-enabled after DATA-002 became `DONE`; this task was never attempted and has no feature branch.
 ### Task-specific validation performed
 _Not started._
 ### Full pre-merge CI-parity validation
 _Not started._
 ### Browser validation performed
-_Not applicable._
+_Not started._
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+_None._
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+_Not started._
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+_None._
