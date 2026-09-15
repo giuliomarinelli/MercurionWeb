@@ -110,7 +110,8 @@ the final feature SHA; local `npm ci` and `npm run ci:check` were not run.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-Pending final task commit.
+`7933c1374df39f207d62941dccf4c581409a2a60`
+(`refactor: normalize Nest naming conventions`)
 ### Merge / CI
 Feature-SHA CI required before integration.
 ### Rollback
