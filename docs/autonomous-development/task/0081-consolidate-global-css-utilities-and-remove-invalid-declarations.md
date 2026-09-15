@@ -1,7 +1,7 @@
 # 0081 - Consolidate global CSS utilities and remove invalid declarations
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -101,53 +101,52 @@ Do not preserve a duplicate selector merely because the cascade currently makes 
 
 ## Execution notes
 
-> Current status (2026-09-11): PENDING. The planner identified the prior
-> dependency skip as stale after direct owner re-enablement of its prerequisite
-> chain; historical skip evidence below is retained only for traceability.
+> Current status (2026-09-15): BLOCKED. The CSS implementation and focused
+> build passed, but the required Chrome DevTools browser evidence could not be
+> collected because no browser interaction surface was available to the worker
+> session.
 
 ### Feature branch
-_Not started._
+`feature/UI-023`
 
 ### Preflight
-_Not started._
+Clean `develop` baseline at `4abaae803c02a7ae7e255b711bcd1385f7d3a9ca`;
+focused Angular validation reused the existing dependency tree.
 
 ### Preflight remediation
 _None._
 
 ### Summary
-Not attempted because required tasks 0077 (UI-019) and 0078 (UI-020) are
-`SKIPPED_DEPENDENCY`.
+Consolidated the global `.drawer` utility into one rule, removed the malformed
+`dark:dark:bg-neutral-900/75` variant, and removed the invalid
+`scrollbar-width: 3px` declaration while preserving valid Firefox and WebKit
+scrollbar behavior.
 
 ### Task-specific validation performed
-Not applicable; no feature branch or implementation worker was created.
+- Deterministic CSS audit: passed; one canonical `.drawer` and
+  `.custom-scrollbar` definition, with known invalid patterns absent.
+- `npm run build --workspace mercurion_web_ng`: passed; Angular production
+  bundle generated successfully (existing initial bundle budget warning).
 
 ### Full pre-merge CI-parity validation
-Not applicable; dependency-skip metadata only.
+Deferred to the exact feature-SHA GitHub Actions Required gate.
 
 ### Browser validation performed
-Not applicable; the task was not attempted.
+Runtime readiness was partially established: the Angular shell returned `200`
+through `http://localhost:8888/`, while `/health` returned retryable `502`
+edge-live/upstream-unavailable responses. The required Chrome DevTools
+drawer, overlay, scrollbar, viewport, theme, and console checks were not run.
 
 ### Commits
-Pending metadata commit on `develop`.
+Pending feature commit.
 
 ### Merge / CI
-No feature branch or merge. Exact-SHA CI is required for the metadata commit.
+Feature branch pending exact-SHA CI; no merge performed.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-Direct terminal prerequisites: 0077 (UI-019) and 0078 (UI-020), both
-`SKIPPED_DEPENDENCY`. Transitive chain: UI-023 -> UI-019 -> UI-018
-(BLOCKED), which requires a test-safe local Nest runtime and dependencies for
-mandatory browser validation.
-
-
-### Dependency skip
-
-Direct terminal prerequisite: 0077 (), terminal non-DONE dependency.
-
-### Dependency skip
-
-Direct terminal prerequisite: `0078` (`UI-020`), `BLOCKED`; this task was
-materialized in the new terminal closure on 2026-09-13.
+Chrome DevTools browser interaction was unavailable after the task-owned
+runtime reached readiness. The feature branch is preserved for an authorized
+retry with browser evidence.
