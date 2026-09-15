@@ -1,7 +1,7 @@
 # 0078 - Validate semantic colors and WCAG contrast in both themes
 
-- [ ] DONE
-- [x] BLOCKED
+- [x] DONE
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -57,13 +57,13 @@ The audited `MercurionWebNg/tailwind.config.js` contains duplicated/hard-coded c
 
 ## Acceptance criteria
 
-- [ ] Every Angular semantic color token is syntactically valid.
-- [ ] No production Angular caller uses an unapproved hard-coded color where a semantic token exists.
-- [ ] `219C6F` and any equivalent malformed values are absent.
-- [ ] Supported light-theme foreground/background combinations pass automated WCAG AA checks.
-- [ ] Supported dark-theme foreground/background combinations pass automated WCAG AA checks.
-- [ ] The color/contrast test fails deterministically for a temporary malformed token and a temporary insufficient-contrast fixture.
-- [ ] Existing product appearance is preserved except where a contrast correction is required by the task.
+- [x] Every Angular semantic color token is syntactically valid.
+- [x] No production Angular caller uses an unapproved hard-coded color where a semantic token exists.
+- [x] `219C6F` and any equivalent malformed values are absent.
+- [x] Supported light-theme foreground/background combinations pass automated WCAG AA checks.
+- [x] Supported dark-theme foreground/background combinations pass automated WCAG AA checks.
+- [x] The color/contrast test fails deterministically for a temporary malformed token and a temporary insufficient-contrast fixture.
+- [x] Existing product appearance is preserved except where a contrast correction is required by the task.
 
 ## Validation
 
@@ -100,24 +100,20 @@ Keep the contrast implementation dependency-light. A small deterministic utility
 
 ### Feature branch
 
-`feature/UI-020` from base `ee970f5acfd93f5f4d59f55dff59bc6bfbbb3b5b`.
+Authorized recovery of `feature/UI-020`, preserved at
+`3ca7e172c52c8d51652851a07022e1f6c1d8f6fd`, against current `develop`
+`33a83f04e98baeff46b983ebee8a2e9e58530557`.
 
 ### Preflight
 
-- Confirmed the branch was clean and exactly at the supplied base SHA.
-- Confirmed GitHub Actions run `34788533211` for the exact base SHA was
-  successful, including both platform prerequisite jobs and `Required gate`.
-- The focused unchanged checks `npm run ui:tokens:check` and
-  `npm run ui:tokens:check:negative` passed.
-- No task-owned Angular, Nest, Tox21, or test-watcher process was active before
-  runtime startup.
-- Canonical runtime capability startup followed the required order
-  Tox21 -> Nest -> Angular. Two complete readiness rounds returned successful
-  responses for `/health` and `/` through `http://localhost:8888`.
-- The dedicated browser profile opened the login route and, when the protected
-  dashboard was requested during preflight, exposed the protected dashboard
-  identity and workspace counts. No credentials or browser storage were
-  recorded.
+- Exact base-SHA full CI run `34910526680` succeeded for current `develop`,
+  including Windows, Ubuntu and `Required gate`.
+- The isolated npm install capability probe succeeded and its exact temporary
+  directory was removed; repository status remained clean.
+- Current `develop` was merged into the preserved feature branch with
+  `--no-ff --no-gpg-sign` as commit `0049f61efdc9b3b4204c627c5f2b919f1fcaf8f9`.
+- The only merge conflict was the root `ci:static` script; the resolution
+  preserved every current gate and registered `ui:colors:check`.
 
 ### Summary
 
@@ -136,104 +132,46 @@ the focus/border contrast contract.
 - `npm run ui:colors:check:negative` — passed; malformed syntax and
   insufficient-contrast fixtures were rejected deterministically.
 - Existing semantic-token positive and negative checks — passed.
-- `npm run typecheck --workspace mercurion_web_ng` — passed.
-- `npm run build --workspace mercurion_web_ng` — passed; only the pre-existing
-  initial bundle-budget warning was emitted.
-- `git diff --check` — passed.
+- Angular typecheck and build passed.
+- `git diff --check` passed.
 
 ### Browser validation performed
 
-- Final runtime startup again followed Tox21 -> Nest -> Angular and reached two
-  consecutive successful readiness rounds through the nginx edge.
-- A fresh navigation to `/dashboard` correctly required ordinary login and
-  displayed `/login?redirect_to=%2Fdashboard`; the latest snapshot identified
-  the email field.
-- Chrome DevTools MCP could not interact with that field: both the required
-  `fill_form` attempt and the permitted `fill` fallback returned
-  `Failed to interact with the element ... within the configured timeout`.
-  Because fresh supported login could not be completed, the required final
-  protected-state light/dark and representative-control evidence was not
-  claimed.
-- All three task-owned runtime sessions were stopped after the failed browser
-  interaction and no runtime process was carried forward.
-
-### Blocker / human decision required
-
-The final mandatory browser validation could not complete because the
-Chrome DevTools MCP interaction timed out for the fresh login field after
-canonical runtime readiness was established. The implementation and focused
-local checks are preserved, but the task is marked `BLOCKED` rather than
-claiming the unobserved browser acceptance criteria. A fresh worker with a
-working persistent-profile MCP interaction is required to complete the
-ordinary local login and repeat the declared light/dark UI evidence.
+- Runtime startup followed Tox21 -> Nest -> Angular and reached two consecutive
+  successful `/health` and `/` readiness rounds through
+  `http://localhost:8888`.
+- By direct owner authorization, the ChatGPT Chrome extension controlled the
+  local browser in place of the unavailable Chrome DevTools transport. The
+  owner completed the ordinary local test-account login without exposing
+  credentials to the agent.
+- The authenticated dashboard exposed the protected identity and workspace
+  counts. Authenticated `/settings` then exercised representative text,
+  buttons, semantic surfaces, profile fields, select state, disabled actions,
+  the profile dialog, a required-field error and keyboard focus-visible rings.
+- Light and dark themes were selected explicitly. Rendered UI and computed
+  semantic values matched each theme, including light border `#6b7280`, dark
+  border `#9ca3af`, light focus `#6366f1` and dark focus `#bfdbfe`.
+- The temporary invalid field state was cancelled without saving. No
+  error-level browser console entries were present; unrelated development
+  warnings remained visible.
+- All three task-owned runtime sessions were stopped and ports `3498` and
+  `8099` had no remaining listener.
 
 ### Commits
 
-Pending task commit; the diagnostic and coherent implementation must be
-committed with `--no-gpg-sign` and the required Copilot co-author trailer
-before publication.
+Implementation commit `3ca7e172c52c8d51652851a07022e1f6c1d8f6fd` and
+authorized recovery merge `0049f61efdc9b3b4204c627c5f2b919f1fcaf8f9`.
 
 ### Full pre-merge CI-parity validation
 
-Not run locally by policy. `npm ci` and `npm run ci:check` remain GitHub
-Actions-only checks.
-
-### Feature branch
-
-`feature/UI-020` is preserved and frozen at
-`3ca7e172c52c8d51652851a07022e1f6c1d8f6fd`, with the same SHA on origin.
-
-### Preflight
-
-Exact base-SHA CI run `34788533211` succeeded. Runtime startup followed
-Tox21 -> Nest -> Angular, two readiness rounds passed, and all task-owned
-processes were stopped before handoff.
-
-### Preflight remediation
-
-_None._
-
-### Summary
-
-Implemented deterministic semantic color syntax and WCAG contrast validation,
-negative fixtures, and CI registration. Corrected `219C6F` to `#219C6F` and
-adjusted semantic borders for the registered non-text contrast contract. The
-task is blocked because final authenticated browser evidence could not be
-obtained.
-
-### Task-specific validation performed
-
-Color/contrast positive and negative checks, semantic-token checks, Angular
-typecheck, and Angular build passed; `git diff --check` passed. Full feature CI
-was not requested because the task was blocked before integration.
-
-### Full pre-merge CI-parity validation
-
-Not applicable; the task was blocked before integration.
-
-### Browser validation performed
-
-Runtime readiness passed, but Chrome DevTools MCP `fill_form` and `fill`
-fallback both timed out on the fresh login form. Fresh login and required
-authenticated light/dark representative UI evidence were therefore not
-obtained.
-
-### Commits
-
-Implementation and blocker commits are preserved on `feature/UI-020`; the
-blocked outcome is recorded here on `develop`.
+Exact feature-SHA GitHub Actions is pending. Local `npm ci` and
+`npm run ci:check` were not run by policy.
 
 ### Merge / CI
 
-No feature merge. This metadata-only status commit requires exact CI before
-continuing.
+Pending exact feature-SHA and post-merge CI.
 
 ### Rollback
 
-_Not applicable._
-
-### Blocker / human decision required
-
-Complete fresh ordinary login and authenticated light/dark browser evidence
-through the canonical edge in a new authorized session with functioning MCP
-input interaction.
+If post-merge CI is not successful and verifiable, revert the merge commit and
+record `REVERTED` according to the integration lifecycle.
