@@ -85,24 +85,34 @@ Mark `BLOCKED` if a controller contains a transport concern whose safe extractio
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/BE-012`, final preserved SHA
+`b162dd8c115d55a9a6c30646a2768cbd6e226d75`.
 ### Preflight
-_Not started._
+The exact base SHA `38bae2ecedb84ad8c55345405a91fcac2703654a` had successful
+Actions run `34933836650`. Focused local validation passed and no local
+complete-install gate was run.
 ### Preflight remediation
 _None._
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0121, 0122, 0120. This task was never attempted and receives no feature branch.
+The thin-controller refactor and CI architecture gate were implemented on the
+preserved feature branch. Repository-controlled quality jobs passed in feature
+run `34935675824`; the `Container angular-production` job failed when Docker
+Hub reset the connection while fetching the `nginx:1.27-alpine` OAuth token.
 ### Task-specific validation performed
-_Not started._
+Focused controller tests, Nest typecheck/lint/build, architecture checks, full
+Nest unit tests, and REST compatibility checks passed on the feature branch.
 ### Full pre-merge CI-parity validation
-_Not started._
+Not run locally because `npm ci` and `npm run ci:check` are reserved for
+GitHub Actions.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+Implementation and status commits are preserved on `feature/BE-012`.
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+No merge was performed. The required feature gate was not green, so the task
+is blocked and the feature branch remains preserved/frozen.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+Retry exact feature-SHA CI in a later healthy Docker registry window; no
+implementation correction was identified.
