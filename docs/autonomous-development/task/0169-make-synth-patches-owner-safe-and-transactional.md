@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Ensure Synth updates accept only explicitly writable fields and perform ownership/existence validation plus persistence in one transaction, without spreading DTO identifiers, owner fields or relation objects directly into TypeORM entities.

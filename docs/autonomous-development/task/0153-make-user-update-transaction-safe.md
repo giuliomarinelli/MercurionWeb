@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Refactor `UserService.updateUser` so update, read-back and failure handling execute entirely through the canonical Unit of Work transaction context, with awaited rollback/lifecycle and no silent persistence failure.

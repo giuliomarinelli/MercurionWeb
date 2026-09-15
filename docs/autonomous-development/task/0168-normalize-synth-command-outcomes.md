@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Make Synth create/update/delete commands distinguish successful mutation, missing resource, forbidden ownership and infrastructure failure without converting database errors or zero-row writes into misleading business success/failure booleans.
