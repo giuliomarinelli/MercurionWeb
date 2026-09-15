@@ -111,6 +111,33 @@ the active Angular program and can complete independently.
 - Baseline inventory before cleanup: 36 unreachable production files.
   After cleanup: 17 explicitly documented non-production/deferred files and
   zero unapproved orphans.
+- The 19 removed baseline orphans were:
+  `src/app/Models/auth/totp.models.ts`,
+  `src/app/Models/graphql/graphql.response.ts`,
+  `src/app/Models/graphql/res.gql.ts`,
+  `src/app/Models/molecule.model.ts`,
+  `src/app/Models/rdkit-api.models.ts`,
+  `src/app/components/common/file-uploader/file-uploader.component.ts`,
+  `src/app/components/common/floating-input/floating-input.component.ts`,
+  `src/app/components/common/modal/modal.component.ts`,
+  `src/app/components/common/page-state/page-state.component.ts`,
+  `src/app/components/common/redirect-to-login-component/redirect-to-login.component.ts`,
+  `src/app/components/profile/avatar/avatar.component.ts`,
+  `src/app/directives/collapse-max-height.directive.ts`,
+  `src/app/interceptors/fatal-unauthenticated.util.ts`,
+  `src/app/services/context/action-context/new-ticket-context.service.ts`,
+  `src/app/services/context/action-context/select-collection-then-route-context.service.ts`,
+  `src/app/services/context/loading-context.service.ts`,
+  `src/app/services/context/modal-context.service.ts`,
+  `src/app/services/previous-route.service.ts`, and
+  `src/app/services/search.service.ts` (each obsolete component/service spec
+  was removed with its implementation).
+- The 17 retained explicit non-production entries are the nine deferred
+  Notebook files, generated `src/app/generated/schema.ts`, the three Angular
+  environment replacement files, `src/polyfills.ts`, the two `src/shims`
+  files, and the two test bootstrap files. Each has a per-file category and
+  reason in the machine-readable configuration; no directory-wide exemption
+  is used.
 - Removed 19 dead active-program modules and their obsolete specs, including
   legacy file-uploader, modal, page-state, redirect, floating-input alias,
   avatar, collapse directive, stale models, and unused context/services.
