@@ -1,7 +1,7 @@
 # 0195 - Add Playwright critical browser journeys
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
@@ -92,26 +92,66 @@ Keep mocked/controlled network semantics explicit in test names/fixtures. A brow
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/QA-009`, based on `043a333feb20b0850353b571b31122e46dee7b31`.
+The branch was clean and exactly matched the supplied/current green
+`develop` SHA before implementation; no remote feature ref existed.
 ### Preflight
-_Not started._
+Exact base SHA `043a333feb20b0850353b571b31122e46dee7b31` had successful
+GitHub Actions CI run `34985586114` on `develop`. No task-owned workspace
+process was active before the probe. Local `npm ci` and `npm run ci:check`
+were not run.
+
+The first canonical runtime probe started Tox21, Nest and Angular in the
+required order with live execution handles. Angular became ready through the
+edge (`/` returned 200), while Nest initially failed during bootstrap with:
+`fastify-plugin: fastify-formidable - expected '4.x' fastify version,
+'5.12.1' is installed`.
 ### Preflight remediation
-_None._
+Human-authorized remediation confirmed the installed mismatch:
+`fastify-formidable@3.0.2` advertises Fastify `^4.0.0` while the intentional
+repository dependency is `fastify@5.12.1`. Added the narrow
+`fastify-formidable.compat.ts` wrapper and the direct `fastify-plugin@5.1.0`
+helper dependency. The wrapper declares Fastify 5 compatibility and translates
+the legacy `multipart` parser alias to a Fastify-5-valid
+`multipart/form-data` matcher only while registering the existing plugin.
+Nest typecheck passed and the wrapper removed the original version-mismatch
+diagnostic.
 ### Summary
-Re-scoped by direct management instruction on 2026-09-14. Deferred feature
-journeys were transferred to the archived development program, so this recipe
-can implement the active product's Playwright infrastructure and journeys.
+Added pinned Playwright 1.55.0 tooling/configuration, canonical
+`http://localhost:8888` base URL, failure traces/screenshots/video settings,
+isolated route-interception fixtures, anonymous/login-to-MFA/session and
+molecule/collection journey tests, plus the Fastify 5 compatibility wrapper.
+The implementation could not safely reach browser validation because the
+post-remediation canonical Nest bootstrap exposed a pre-existing GraphQL
+schema failure: `"MercurionPublicId" defined in resolvers, but not in schema`.
+The nginx edge consequently remained `health=502` (while Angular `/` returned
+200). Per the authorized instruction, the branch is preserved as BLOCKED
+rather than repairing unrelated baseline/schema debt.
 ### Task-specific validation performed
-_Not started._
+Passed:
+- `npx playwright test --list` (3 critical tests discovered);
+- `npm run typecheck --workspace mercurion_web_node`;
+- `git diff --check`.
+
+Not run: Playwright browser execution, because the mandatory two consecutive
+complete canonical readiness rounds could not be obtained after the narrow
+preflight remediation.
 ### Full pre-merge CI-parity validation
-_Not started._
+Not run locally by policy. `npm ci` and `npm run ci:check` remain reserved for
+GitHub Actions.
 ### Browser validation performed
-_Not started._
+Not performed. Chrome/Playwright opening was correctly withheld because Nest
+did not complete canonical bootstrap and `/health` remained 502. Tox21, Nest
+and Angular sessions were stopped; no listeners remained on ports 3498, 8099
+or 4222.
 ### Commits
-_Not recorded._
+_Pending blocker diagnostic commit._
 ### Merge / CI
 _Not started._
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-_None currently recorded after management re-scope._
+Resolve the repository-controlled GraphQL baseline failure
+`"MercurionPublicId" defined in resolvers, but not in schema`, then authorize a
+new QA-009 attempt/recovery. Do not charge that unrelated schema repair to
+QA-009.
