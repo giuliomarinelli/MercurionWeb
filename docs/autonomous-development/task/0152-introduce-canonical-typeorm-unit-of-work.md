@@ -143,18 +143,23 @@ semantics.
   passed and the container was removed.
 - `git diff --check` passed.
 ### Full pre-merge CI-parity validation
-Pending on the exact final feature SHA. Local `npm ci` and
-`npm run ci:check` were not run; clean-install aggregate evidence belongs to
-GitHub Actions.
+Exact feature SHA `91a046176d89ca45c728785d0e21e857e4ab04cb` passed the
+complete GitHub Actions workflow in run `34999674430`, including the stable
+Required gate. Local `npm ci` and `npm run ci:check` were not run;
+clean-install aggregate evidence belongs to GitHub Actions.
 ### Browser validation performed
 _Not applicable._
 ### Commits
 `f156a796d7980c22fedcdde681d27d47c42a09dc` — canonical UnitOfWork,
 application migrations, architecture gate and PostgreSQL integration probe.
+
+`91a046176d89ca45c728785d0e21e857e4ab04cb` — recovery evidence and reset of
+the five dependency skips made stale by DATA-003 becoming `DONE`.
 ### Merge / CI
-`DONE` is provisional `CI_PENDING` until exact feature-SHA and merge-SHA CI
-succeed. Final run, merge SHA and cleanup are recorded by the integration
-lifecycle.
+Merged into `develop` with `--no-ff --no-gpg-sign` as
+`98f500ee1db704873f5f475fa0f6245dca4e9fdb`. Exact merge-SHA full CI passed in
+run `35000347615`, including Windows, Ubuntu, container builds, Angular and
+Nest tests/builds, PostgreSQL migration/UnitOfWork probes, and Required gate.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
