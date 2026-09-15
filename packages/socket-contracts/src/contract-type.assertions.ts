@@ -21,6 +21,7 @@ serverToClient[socketEventRegistry.publicTestResponse.name]('PING RESP')
 serverToClient[socketEventRegistry.privateTestResponse.name]('PING PRIVATE RESP')
 serverToClient[socketEventRegistry.applicationError.name]({
   code: 'AUTHENTICATION_UNAUTHORIZED',
+  category: 'internal',
   status: 500,
   message: 'Unauthorized',
   detail: 'Unauthorized',
