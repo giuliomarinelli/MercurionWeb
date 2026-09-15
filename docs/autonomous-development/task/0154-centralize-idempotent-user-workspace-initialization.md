@@ -140,6 +140,21 @@ Not applicable: backend-only recipe.
 Feature branch pushed after the task-specific commit. CI run
 `35031245493` is in progress for the exact pushed SHA; coordinator must wait
 for its `Required gate` and platform jobs before integration.
+### Feature-CI repair attempt 1
+Exact feature SHA `010a8f0d1f248c19c211e22d91c09fa27d697a47` failed Actions run
+`35031270426`. Prerequisite jobs `104590567023` (windows-latest) and
+`104590567055` (ubuntu-latest) both failed in `ci:architecture` ->
+`nest-orphans`; the repository-controlled diagnostic was
+`src/persistence/migrations/1789500000000-AddStarterWorkspaceKeys.ts is
+orphaned`. Required gate job `104591298416` consequently failed because its
+prerequisites failed. The narrow correction registers the migration as a
+`typeorm-cli` dynamic entrypoint in
+`MercurionWebNode/nest-reachability.config.json`, matching the existing
+datasource and migration registration convention without weakening the
+reachability policy. Focused repair validation passed:
+`npm run nest:orphans:check`, `npm run ci:architecture`, and the DATA-005
+initializer/auth focused Jest suites. No runtime or browser validation was
+required, and no task-owned process was started.
 ### Rollback
 No rollback required.
 ### Blocker / human decision required
