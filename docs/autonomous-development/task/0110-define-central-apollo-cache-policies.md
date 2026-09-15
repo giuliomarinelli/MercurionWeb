@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -90,7 +90,8 @@ _Not started._
 ### Preflight remediation
 _None._
 ### Summary
-Not attempted because required task 0109 (NG-023) is `BLOCKED`.
+Not attempted in this session because hard prerequisite task 0109 (NG-023) is
+now `SKIPPED_DEPENDENCY`, with terminal root 0102 (NG-016) `BLOCKED`.
 ### Task-specific validation performed
 Not applicable; no feature branch or implementation worker was created.
 ### Full pre-merge CI-parity validation
@@ -100,11 +101,11 @@ Not applicable; the task was not attempted.
 ### Commits
 Pending metadata commit on `develop`.
 ### Merge / CI
-No feature branch or merge. Exact-SHA CI is required for the metadata commit.
+No feature branch or merge. This change is part of the aggregate metadata-only
+skip commit on `develop`.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Direct terminal prerequisite: task 0109 (NG-023), `BLOCKED` because mandatory
-authenticated browser validation could not complete. A test-safe canonical
-local Nest environment and approved non-production browser credentials/session
-are required in a new session.
+Direct terminal prerequisite: task 0109 (NG-023), now
+`SKIPPED_DEPENDENCY`, with transitive root 0102 (NG-016) `BLOCKED`. Recovery
+requires new direct human authorization in a later session.
