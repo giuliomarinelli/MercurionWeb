@@ -120,7 +120,7 @@ Complete clean-install CI parity remains owned by GitHub Actions; local
 ### Browser validation performed
 Not applicable per recipe.
 ### Commits
-Task implementation commit(s) on `feature/BE-015` are recorded below.
+- `9880bbef` — `feat: decouple application logging from meilisearch`
 ### Merge / CI
 Feature SHA CI and coordinator integration lifecycle remain required.
 ### Rollback
