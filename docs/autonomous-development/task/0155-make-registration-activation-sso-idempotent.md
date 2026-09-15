@@ -123,6 +123,24 @@ Not applicable; backend-only recipe.
 ### Commits
 `f6561c965582bca7d2f049ae0dd142d5cf240d8d` — Make registration activation
 and SSO idempotent (includes the required Copilot co-author trailer).
+### CI repair attempt 1
+Exact feature SHA `0ee386e775fced30f94b71c25a2d978e47620915` failed Actions run
+`35033604446` because the Windows prerequisite job `104597595010` and the
+Ubuntu prerequisite job both failed at `ci:architecture` -> `nest-orphans`;
+the orphan diagnostic identified only
+`src/persistence/migrations/1789560000000-AddAuthIdempotency.ts`. The narrow
+DATA-005 reachability convention was followed by registering this migration
+under the `typeorm-cli` dynamic entrypoints in
+`MercurionWebNode/nest-reachability.config.json`. This preserves the orphan
+policy and changes no runtime or migration behavior.
+Focused repair validation:
+- `npm run nest:orphans:check` — passed, including its negative control.
+- `npm run ci:architecture` — passed.
+- `npm test --workspace mercurion_web_node -- --runInBand src/app_modules/sso/services/social-auth.service.spec.ts src/app_modules/auth/application/account-flow-kernel.spec.ts src/persistence/transaction-context.spec.ts` — passed, 3 suites / 7 tests.
+No Angular, Nest, Tox21, Chrome, or runtime process was started; browser
+validation remains not applicable.
+### Repair commit
+Pending task repair commit.
 ### Merge / CI
 Feature branch publication follows the task commit. No develop/master changes.
 ### Rollback
