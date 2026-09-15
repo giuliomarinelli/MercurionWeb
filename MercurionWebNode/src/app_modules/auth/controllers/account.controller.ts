@@ -10,7 +10,9 @@ import { PasswordChangeUseCase, PasswordRecoveryUseCase } from '../application/p
 import { ProfileAccountUseCase } from '../application/profile-account.use-case';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 import { ResponseService } from 'src/services/response.service';
-import { MfaService } from '../services/mfa.service';
+import { MfaChallengeService } from '../services/mfa-challenge.service';
+import { MfaEnrollmentService } from '../services/mfa-enrollment.service';
+import { MfaBackupCodeService } from '../services/mfa-backup-code.service';
 import { createHash, UUID } from 'crypto';
 import { TotpDTO } from '../Models/DTO/totp.cls.dto';
 import { ChangePhoneDTO } from '../Models/DTO/change-phone.cls.dto';
@@ -47,7 +49,9 @@ export class AccountController {
         private readonly passwordRecoveryUseCase: PasswordRecoveryUseCase,
         private readonly profileAccount: ProfileAccountUseCase,
         private readonly _r: ResponseService,
-        private readonly mfaService: MfaService,
+        private readonly mfaChallenge: MfaChallengeService,
+        private readonly mfaEnrollment: MfaEnrollmentService,
+        private readonly mfaBackupCodes: MfaBackupCodeService,
         private readonly userService: UserService,
         private readonly securityService: SercurityService,
         private readonly listActiveSessions: ListActiveSessionsHandler,
@@ -128,7 +132,7 @@ export class AccountController {
         const strategy: MfaStrategy = GeneralUtils.validateMfaStrategy(strategyKey)
         return {
             ...this._r.ok(`OTP sent or QR generated and secure_token generated for MFA strategy ${strategyKey}`),
-            ...await this.mfaService.enableMfa_firstStep(userId, strategy)
+            ...await this.mfaEnrollment.enableFirstStep(userId, strategy)
         }
     }
 
@@ -139,7 +143,7 @@ export class AccountController {
     ): Promise<ConfirmDTO> {
         const strategy: MfaStrategy = GeneralUtils.validateMfaStrategy(strategyKey)
         const { totp, secureToken } = totpDTO
-        const isValid: boolean = await this.mfaService.enableMfa_secondStep_verifyTotpAndAppendStrategy(totp, secureToken, strategy)
+        const isValid: boolean = await this.mfaEnrollment.enableSecondStep(totp, secureToken, strategy)
         if (!isValid) {
             throw new UnauthorizedException('Invalid MFA Code')
         }
@@ -154,7 +158,7 @@ export class AccountController {
         const strategy: MfaStrategy = GeneralUtils.validateMfaStrategy(strategyKey)
         return {
             ...this._r.ok(`OTP sent and/or secure_token generated for MFA strategy ${strategyKey}`),
-            ...await this.mfaService.disableMfa_firstStep(userId, strategy)
+            ...await this.mfaEnrollment.disableFirstStep(userId, strategy)
         }
     }
 
@@ -165,7 +169,7 @@ export class AccountController {
     ): Promise<ConfirmDTO> {
         const strategy: MfaStrategy = GeneralUtils.validateMfaStrategy(strategyKey)
         const { totp, secureToken } = totpDTO
-        const isValid: boolean = await this.mfaService.disableMfa_secondStep_verifyTotpAndRemoveStrategy(totp, secureToken, strategy)
+        const isValid: boolean = await this.mfaEnrollment.disableSecondStep(totp, secureToken, strategy)
         if (!isValid) {
             throw new UnauthorizedException('Invalid MFA Code')
         }
@@ -294,7 +298,7 @@ export class AccountController {
     public async getBackupCodesStatus(
         @AuthenticatedUserId() userId: UUID
     ): Promise<BackupCodeStatusDTO> {
-        return this.mfaService.getBackupCodesStatus(userId)
+        return this.mfaBackupCodes.getStatus(userId)
     }
 
     @Patch('/mfa/backup/regenerate')
@@ -303,12 +307,12 @@ export class AccountController {
         @AuthenticatedUserId() userId: UUID
     ): Promise<BackupCodesDTO> {
 
-        const strategies = await this.mfaService.getEnabledMfaStrategies(userId)
+        const strategies = await this.mfaChallenge.getEnabledMfaStrategies(userId)
         if (!strategies.length) {
             throw applicationError(ApplicationErrorCode.MFA_BACKUP_CODES_NOT_ENABLED)
         }
 
-        const codes = await this.mfaService.regenerateBackupCodes(userId)
+        const codes = await this.mfaBackupCodes.regenerate(userId)
 
         // volendo si può anche loggare un evento di sicurezza tramite il canale del SecurityAuditService
         // TODO maybe
@@ -318,12 +322,12 @@ export class AccountController {
 
     @Get('/is-mfa-enabled')
     public async isMfaEnabled(@AuthenticatedUserId() userId: UUID): Promise<boolean> {
-        return this.mfaService.isMfaEnabled(userId)
+        return this.mfaChallenge.isMfaEnabled(userId)
     }
 
     @Get('/mfa-active-strategies')
     public async getMfaActiveStrategies(@AuthenticatedUserId() userId: UUID): Promise<WireMfaStrategy[]> {
-        return (await this.mfaService.getEnabledMfaStrategies(userId))
+        return (await this.mfaChallenge.getEnabledMfaStrategies(userId))
             .map((val) => GeneralUtils.getEnumKeyByValue(MfaStrategy, val))
             .filter((key): key is WireMfaStrategy => key != undefined)
     }

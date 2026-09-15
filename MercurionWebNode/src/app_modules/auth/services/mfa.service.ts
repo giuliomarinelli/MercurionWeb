@@ -32,9 +32,14 @@ import { TypeGuards } from 'src/utils/type-guards/type-guards';
 import { ProvidedEmailDTO } from '../Models/DTO/provided-email.dto';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 import { MfaBackupCodeStore } from 'src/app_modules/user/services/mfa-backup-code.store'
+import { MfaPolicyService } from './mfa-policy.service'
 
 @Injectable()
-export class MfaService {
+/**
+ * Internal MFA coordinator.  Callers must use the responsibility-specific
+ * ports registered by AuthModule rather than depending on this implementation.
+ */
+export class MfaApplicationService {
 
     private readonly logger: MeiliContextLogger
 
@@ -69,9 +74,10 @@ export class MfaService {
         private readonly sessionService: SessionService,
         private readonly redisService: RedisService,
         private readonly securityAuditService: SecurityAuditService,
+        private readonly policy: MfaPolicyService,
         meiliLogger: MeiliLoggerService
     ) {
-        this.logger = meiliLogger.forContext(MfaService.name)
+        this.logger = meiliLogger.forContext(MfaApplicationService.name)
         this.totpConfig = this.configService.get<TotpConfiguration>('Totp') as TotpConfiguration
         this.appName = this.configService.get<string>("App.globalName") as string
     }
@@ -102,54 +108,19 @@ export class MfaService {
     }
 
     private async ensureBackupNotLocked(userId: UUID): Promise<void> {
-        const lockKey = this.getBackupLockKey(userId)
-        const locked = await this.redisService.exists(lockKey)
-        if (locked) {
-            throw applicationError(ApplicationErrorCode.MFA_BACKUP_CODE_TOO_MANY_ATTEMPTS)
-        }
+        return this.policy.ensureBackupNotLocked(userId)
     }
 
     private async registerBackupFailure(userId: UUID): Promise<void> {
-        const failKey = this.getBackupFailKey(userId)
-        const lockKey = this.getBackupLockKey(userId)
-
-        const fails = await this.redisService.incr(failKey)
-
-        if (fails === 1) {
-            await this.redisService.setTTL(failKey, redisDurations.seconds(this.BACKUP_FAIL_WINDOW_SECONDS))
-        }
-
-        if (fails >= this.BACKUP_MAX_FAILS) {
-            await this.redisService.set(lockKey, '1', redisDurations.seconds(this.BACKUP_LOCK_SECONDS))
-            await this.redisService.del(failKey)
-        }
+        return this.policy.registerBackupFailure(userId)
     }
 
     private async clearBackupFailures(userId: UUID): Promise<void> {
-        const failKey = this.getBackupFailKey(userId)
-        const lockKey = this.getBackupLockKey(userId)
-        await this.redisService.del(failKey)
-        await this.redisService.del(lockKey)
+        return this.policy.clearBackupFailures(userId)
     }
 
     private async throttleBackupRegeneration(userId: UUID): Promise<void> {
-        const countKey = this.getBackupRegenKey(userId)
-        const lockKey = this.getBackupRegenLockKey(userId)
-
-        const locked = await this.redisService.exists(lockKey)
-        if (locked) {
-            throw applicationError(ApplicationErrorCode.MFA_BACKUP_CODE_REGEN_TOO_MANY_REQUESTS)
-        }
-
-        const cnt = await this.redisService.incr(countKey)
-        if (cnt === 1) {
-            await this.redisService.setTTL(countKey, redisDurations.seconds(this.BACKUP_REGEN_WINDOW_SECONDS))
-        }
-
-        if (cnt > this.BACKUP_REGEN_MAX_REQUESTS) {
-            await this.redisService.set(lockKey, '1', redisDurations.seconds(this.BACKUP_REGEN_WINDOW_SECONDS))
-            throw applicationError(ApplicationErrorCode.MFA_BACKUP_CODE_REGEN_TOO_MANY_REQUESTS)
-        }
+        return this.policy.throttleBackupRegeneration(userId)
     }
 
     public async generateBackupCodes(userId: UUID, manager: EntityManager): Promise<string[]> {
@@ -355,56 +326,20 @@ export class MfaService {
     }
 
     private async ensureMfaNotLocked(userId: UUID, strategy: MfaStrategy, context: MfaContext = MfaContext.VERIFY): Promise<void> {
-        const lockKey = this.getMfaLockKey(userId, strategy, context)
-        const locked = await this.redisService.exists(lockKey)
-        if (locked) {
-            throw applicationError(ApplicationErrorCode.MFA_TOO_MANY_ATTEMPTS)
-        }
+        return this.policy.ensureNotLocked(userId, strategy, context)
     }
 
     private async registerMfaFailure(userId: UUID, strategy: MfaStrategy, context: MfaContext = MfaContext.VERIFY): Promise<void> {
-        const failKey = this.getMfaFailKey(userId, strategy, context)
-        const lockKey = this.getMfaLockKey(userId, strategy, context)
-
-        const fails = await this.redisService.incr(failKey)
-
-        if (fails === 1) {
-            await this.redisService.setTTL(failKey, redisDurations.seconds(this.MFA_FAIL_WINDOW_SECONDS))
-        }
-
-        if (fails >= this.MFA_MAX_FAILS) {
-            await this.redisService.set(lockKey, '1', redisDurations.seconds(this.MFA_LOCK_SECONDS))
-            await this.redisService.del(failKey)
-        }
+        return this.policy.registerFailure(userId, strategy, context)
     }
 
     private async clearMfaFailures(userId: UUID, strategy: MfaStrategy, context: MfaContext,): Promise<void> {
-        const failKey = this.getMfaFailKey(userId, strategy, context)
-        const lockKey = this.getMfaLockKey(userId, strategy, context)
-        await this.redisService.del(failKey)
-        await this.redisService.del(lockKey)
+        return this.policy.clearFailures(userId, strategy, context)
     }
 
 
     private async throttleMfaSend(userId: UUID, strategy: MfaStrategy, context: MfaContext = MfaContext.SEND): Promise<void> {
-
-        const countKey = this.getMfaSendKey(userId, strategy, context)
-        const lockKey = this.getMfaSendLockKey(userId, strategy, context)
-
-        const locked = await this.redisService.exists(lockKey)
-        if (locked) {
-            throw applicationError(ApplicationErrorCode.MFA_SEND_TOO_MANY_REQUESTS)
-        }
-
-        const cnt = await this.redisService.incr(countKey)
-        if (cnt === 1) {
-            await this.redisService.setTTL(countKey, redisDurations.seconds(this.MFA_SEND_WINDOW_SECONDS))
-        }
-
-        if (cnt > this.MFA_MAX_SENDS) {
-            await this.redisService.set(lockKey, '1', redisDurations.minutes(10))
-            throw applicationError(ApplicationErrorCode.MFA_SEND_TOO_MANY_REQUESTS)
-        }
+        return this.policy.throttleSend(userId, strategy, context)
     }
 
 

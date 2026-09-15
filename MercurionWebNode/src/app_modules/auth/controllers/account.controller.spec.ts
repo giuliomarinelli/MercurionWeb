@@ -6,7 +6,9 @@ import { AccountSensitiveDataUseCase } from '../application/account-sensitive-da
 import { PasswordChangeUseCase, PasswordRecoveryUseCase } from '../application/password-recovery.use-case';
 import { ProfileAccountUseCase } from '../application/profile-account.use-case';
 import { ResponseService } from 'src/services/response.service';
-import { MfaService } from '../services/mfa.service';
+import { MfaChallengeService } from '../services/mfa-challenge.service';
+import { MfaEnrollmentService } from '../services/mfa-enrollment.service';
+import { MfaBackupCodeService } from '../services/mfa-backup-code.service';
 import { UserService } from 'src/app_modules/user/services/user.service';
 import { TurnstileGuard } from '../guards/turnstile.guard';
 import { TurnstileService } from '../services/turnstile.service';
@@ -31,7 +33,9 @@ describe('AccountController', () => {
         { provide: PasswordRecoveryUseCase, useValue: {} },
         { provide: ProfileAccountUseCase, useValue: {} },
         { provide: ResponseService, useValue: {} },
-        { provide: MfaService, useValue: {} },
+        { provide: MfaChallengeService, useValue: {} },
+        { provide: MfaEnrollmentService, useValue: {} },
+        { provide: MfaBackupCodeService, useValue: {} },
         { provide: UserService, useValue: {} },
         { provide: TurnstileGuard, useValue: { canActivate: jest.fn().mockReturnValue(true) } },
         { provide: TurnstileService, useValue: {} },

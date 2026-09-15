@@ -1,6 +1,6 @@
 # 0123 - Decompose MFA behind a common challenge strategy contract
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -86,21 +86,56 @@ Mark `BLOCKED` if an MFA factor has undocumented issuance/verification semantics
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/BE-009`, created from clean `develop` at base SHA
+`448eadf4c571a4f19747940f35294d7ec76c44e0`.
 ### Preflight
-_Not started._
+- Confirmed `git rev-parse HEAD` and `git rev-parse develop` both returned
+  `448eadf4c571a4f19747940f35294d7ec76c44e0`; the working tree was clean and
+  no remote `feature/BE-009` ref existed before implementation.
+- Confirmed hard prerequisites 0122 (BE-008) and 0120 (BE-006) are `DONE`.
+- Confirmed no task-owned Angular, Nest, Tox21, Jest or Vitest process was
+  active. The existing Chrome DevTools MCP processes were not task-owned and
+  were left untouched.
+- Confirmed browser validation is explicitly not applicable. Local forbidden
+  commands `npm ci` and `npm run ci:check` were not run.
+- The inherited session profile was GPT-5.6 Luna, medium reasoning and the
+  default 300k context tier; no task-level model override was used.
 ### Preflight remediation
 _None._
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0122, 0120. This task was never attempted and receives no feature branch.
+- Replaced production references to the former `MfaService` with the narrow
+  challenge, enrollment and backup-code ports.
+- Added discriminated MFA challenge/context contracts and an exhaustive
+  strategy registry for email OTP, SMS OTP, authenticator/TOTP and backup-code
+  verification.
+- Added `MfaPolicyService` as the single replaceable seam for send throttling,
+  failure windows and lock thresholds, preserving the existing Redis keys,
+  limits and error codes.
+- Kept backup-code persistence behind `MfaBackupCodeStore`; the backup-code
+  application port owns status, regeneration, validity and destruction.
+- Kept factor-specific issuance/verification behavior and audit/security
+  outcomes unchanged while moving account and authentication callers to the
+  responsibility-specific services.
 ### Task-specific validation performed
-_Not started._
+- `npm run typecheck --workspace mercurion_web_node` passed.
+- Focused MFA/auth validation passed: 5 suites / 20 tests, including MFA
+  challenge handlers, authentication session and credential handlers, account
+  controller wiring and the MFA application service.
+- Repeated focused validation after policy extraction: 3 suites / 11 tests
+  passed.
+- `npm run ci:nest:architecture` passed, including module graph, provider
+  ownership, repository-boundary and test-route policy checks.
+- `npm run build --workspace mercurion_web_node` passed.
+- `npm run lint --workspace mercurion_web_node` passed with zero warnings or
+  errors after correcting the new registry callbacks.
+- `git diff --check` passed.
 ### Full pre-merge CI-parity validation
 _Not started._
 ### Browser validation performed
 _Not applicable._
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+Task implementation and execution-note finalization committed on
+`feature/BE-009` with `--no-gpg-sign`.
 ### Merge / CI
 Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
 ### Rollback

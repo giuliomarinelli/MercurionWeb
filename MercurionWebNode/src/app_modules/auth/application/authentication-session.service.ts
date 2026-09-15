@@ -8,7 +8,7 @@ import { TokenType } from '../Models/enums/token-type.enum'
 import { TokenPair } from '../Models/interfaces/token-pair.interface'
 import { GeoIpService, GeoLocation } from '../services/geo-ip.service'
 import { JwtToolsService } from '../services/jwt-tools.service'
-import { MfaService } from '../services/mfa.service'
+import { MfaChallengeService } from '../services/mfa-challenge.service'
 import { SessionService } from '../services/session.service'
 import { RedisService } from 'src/app_modules/redis/services/redis.service'
 import { redisDurations, redisKeys } from 'src/app_modules/redis/contracts/redis-contracts'
@@ -17,7 +17,7 @@ import { redisDurations, redisKeys } from 'src/app_modules/redis/contracts/redis
 export class AuthenticationSessionService {
     constructor(
         private readonly sessionService: SessionService,
-        private readonly mfaService: MfaService,
+        private readonly mfaService: MfaChallengeService,
         private readonly jwtTools: JwtToolsService,
         private readonly geoIpService: GeoIpService,
         private readonly redisService: RedisService
