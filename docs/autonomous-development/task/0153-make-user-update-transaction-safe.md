@@ -111,13 +111,19 @@ security-sensitive flows.
 - `npm run typecheck --workspace mercurion_web_node` passed.
 - `npm run lint --workspace mercurion_web_node` passed.
 ### Full pre-merge CI-parity validation
-Pending exact feature-SHA GitHub Actions validation owned by the coordinator.
+Exact feature SHA `d2c3cd3b49fbdc004288fb7c6031fcf97081f829` passed GitHub Actions
+CI run `35029360115`, including Windows/Ubuntu prerequisites, container builds,
+Angular/Nest unit and E2E tests, PostgreSQL migration schema, build artifacts,
+critical browser journeys, and `Required gate`.
 ### Browser validation performed
 _Not applicable._
 ### Commits
 `f8816110c2fcac97cbf5b1dd6e05f0fcf4f2b66d` — transaction-safe UserService
 updates, explicit caller not-found handling, focused rollback tests, and task
 execution notes.
+
+`d2c3cd3b49fbdc004288fb7c6031fcf97081f829` — recorded exact feature-SHA
+Actions evidence.
 ### Merge / CI
 _Not started._
 ### Rollback
