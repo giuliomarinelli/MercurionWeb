@@ -119,6 +119,23 @@ Recorded on `feature/BE-035` after task-specific validation; see feature
 branch history.
 ### Merge / CI
 Feature branch pushed for exact-SHA CI; integration remains coordinator-owned.
+The exact feature SHA `1a6230c1fbb52fbd4081f3f9254607389831fe2d` was
+diagnosed in Actions run `34967881315`: both Ubuntu and Windows static
+prerequisite jobs failed because the tracked REST compatibility inventory was
+stale after the public-ID contract changes. No runtime or browser validation
+was required for this CI repair.
+
+### CI repair
+Regenerated the inventory with
+`node scripts/check-rest-compatibility.mjs --write`, reviewing the resulting
+three affected route entries: their `id` parameter type is now
+`MercurionPublicId` and the obsolete declared `400` response metadata was
+removed. The generated file remains the only task-scoped metadata change.
+Focused checks passed:
+`node scripts/check-rest-compatibility.mjs` (59 client calls matched to 58
+Nest routes), `npm run ci:public-id-validation` (policy passed), and
+`git diff --check`. The repair commit and pushed SHA are recorded below.
+Repair commit: `4bad62ef` (`fix(ci): refresh REST compatibility inventory`).
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
