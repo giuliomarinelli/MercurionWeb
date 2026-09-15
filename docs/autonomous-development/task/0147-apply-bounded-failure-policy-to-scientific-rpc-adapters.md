@@ -101,7 +101,7 @@ Not applicable; no implementation commit was produced.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-Pending blocker-status commit on `feature/BE-033`.
+`4a561296bbd16a1ec59eb9bab705eb242db6e2bc` — blocker status and execution notes; no application implementation changes.
 ### Merge / CI
 Not merged. Feature branch is preserved for the missing production-capacity decision.
 ### Rollback
