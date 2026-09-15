@@ -18,7 +18,7 @@ import { CreateFeedbackDTO } from '../models/dto/create-feedback.dto'
 import { Scope } from 'src/app_modules/user/models/enums/scope.enum'
 import { UpdateFeedbackDTO } from '../models/dto/update-feedback.dto'
 import { FeedbackEnv, FeedbackStatus } from '../models/enums/feedback.enums'
-import { Feedback } from '../models/entities/feedback.entity'
+import type { Feedback } from '@mercurion/rest-contracts'
 import {
     ApplicationErrorCode,
     applicationHttpException,

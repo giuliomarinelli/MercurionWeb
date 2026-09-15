@@ -18,6 +18,7 @@ import {
 import type { SessionDTO } from '../models/dto/session.dto'
 import type { GeoLocation } from './geo-ip.service'
 import { SessionIdentityService } from './session-identity.service'
+import { utcInstantFromEpochMs } from 'src/utils/temporal/temporal'
 
 @Injectable()
 export class SessionService {
@@ -38,9 +39,9 @@ export class SessionService {
     private toDTO(session: ISession, current = false, showValid = true): SessionDTO {
         return {
             id: this.identity.sign(session.sessionId),
-            createdAt: session.createdAt,
-            expiresAt: session.expiresAt,
-            lastAccessedAt: session.lastAccessedAt,
+            createdAt: utcInstantFromEpochMs(session.createdAt),
+            expiresAt: utcInstantFromEpochMs(session.expiresAt),
+            lastAccessedAt: utcInstantFromEpochMs(session.lastAccessedAt),
             valid: showValid ? session.valid : undefined,
             current,
             location: session.location,

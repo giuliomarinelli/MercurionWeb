@@ -1,4 +1,5 @@
 import { ProfileDTO } from '../../../Models/account/account.models';
+import { epochMsFromUtcInstant, isUtcInstant } from '@mercurion/rest-contracts';
 import {
   ActivityPointViewModel,
   DashboardMetricsViewModel,
@@ -39,7 +40,9 @@ export function toActivityViewModel(
   const buckets = new Map<string, { molecules: number; collections: number }>();
 
   for (const item of profile.recentHistory ?? []) {
-    const timestamp = Number(item.touchedAt);
+    const timestamp = isUtcInstant(item.touchedAt)
+      ? epochMsFromUtcInstant(item.touchedAt)
+      : Number.NaN;
     if (Number.isNaN(timestamp)) continue;
 
     const date = new Date(timestamp);

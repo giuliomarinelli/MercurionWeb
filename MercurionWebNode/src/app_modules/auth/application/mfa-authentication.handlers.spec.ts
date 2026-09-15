@@ -58,8 +58,8 @@ describe('MFA authentication handlers', () => {
                 await expect(operation).resolves.toEqual({
                     outcome: 'sent',
                     strategy: MfaStrategy.EMAIL_OTP,
-                    generatedAt: 10,
-                    expiresAt: 20
+                    generatedAt: '1970-01-01T00:00:00.010Z',
+                    expiresAt: '1970-01-01T00:00:00.020Z'
                 })
             } else if (outcome === 'invalid-strategy') {
                 await expect(operation).resolves.toEqual({

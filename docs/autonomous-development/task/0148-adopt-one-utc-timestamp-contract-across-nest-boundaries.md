@@ -1,6 +1,6 @@
 # 0148 - Adopt one UTC timestamp contract across Nest boundaries
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -84,24 +84,112 @@ Mark `BLOCKED` if a public field intentionally represents local civil time rathe
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/BE-034`
 ### Preflight
-_Not started._
+Verified branch identity `feature/BE-034`, preserved task-scoped worktree changes,
+and base `b09d5930bf2fa92baa44ce9bfd4d410e727a59af` equal to local
+`develop`/`origin/develop`. GitHub Actions run `34961530324` for that exact
+SHA completed successfully with a successful `Required gate`; the run used the
+autonomous metadata path because the base commit contains control-plane-only
+changes. No browser/runtime validation is declared for this recipe. No
+workspace-consuming process was started.
 ### Preflight remediation
-_None._
+The preserved implementation initially failed Nest typecheck because the
+feedback controller still exposed the TypeORM entity after the public contract
+changed. The controller and moderation path were corrected to use the public
+REST contract and explicit entity-to-wire mapping. No unrelated files were
+changed.
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0141, 0137. This task was never attempted and receives no feature branch.
+Added a shared millisecond-precision `UtcInstant` contract with strict UTC
+wire parsing, epoch/date conversion helpers, and application `utcNow()`/
+TOTP boundary helpers. Normalized REST response/error timestamps, session,
+history, feedback, MFA metadata, audit and logger timestamps at explicit
+boundaries while leaving elapsed-time/TTL values numeric. Feedback persistence
+continues to use epoch milliseconds internally and now maps to the public
+contract without leaking identity fields.
 ### Task-specific validation performed
-_Not started._
+Passed:
+
+- `npm run typecheck --workspace @mercurion/rest-contracts`
+- `npm run typecheck --workspace mercurion_web_node`
+- `npm run lint --workspace mercurion_web_node`
+- `npm run contracts:check --workspace mercurion_web_node` (10 suites, 55 tests)
+- focused Nest tests for temporal, REST runtime parity, authentication,
+  feedback, history and session boundaries (8 suites, 23 tests total)
+- `npm run build --workspace @mercurion/rest-contracts`
+- `npm run build --workspace mercurion_web_node`
+- UTC epoch round-trip under `TZ=America/Los_Angeles` and `TZ=Europe/Rome`
+- `git diff --check`
+
+Forbidden clean-install and aggregate commands were not run: `npm ci` and
+`npm run ci:check`.
 ### Full pre-merge CI-parity validation
-_Not started._
+Owned by GitHub Actions on the exact pushed feature SHA; not run locally per
+repository policy.
+
+### CI repair for feature run `34962890476`
+The exact feature SHA `0fe076024e7a98df2373fc63812929b32c3d767a` failed both
+platform static gates because the REST compatibility inventory was stale after
+the timestamp contract changes. The Nest test gate also failed one stale
+expectation in `mfa-authentication.handlers.spec.ts`: the handler correctly
+returned millisecond-precision UTC wire strings while the test still expected
+epoch numbers.
+
+Applied only the confirmed repair:
+
+- updated the MFA handler expectation to the canonical UTC wire values;
+- taught the REST compatibility type-shape inventory to treat branded string
+  aliases such as `UtcInstant` as their JSON string primitive at the boundary;
+- regenerated `docs/architecture/rest-contract-compatibility.json`.
+
+Focused repair validation passed:
+
+- `node scripts/check-rest-compatibility.mjs`
+- `npm test --workspace mercurion_web_node -- --runInBand src/app_modules/auth/application/mfa-authentication.handlers.spec.ts`
+- `git diff --check`
+
 ### Browser validation performed
-_Not applicable._
+Not applicable; the recipe explicitly declares browser validation not
+applicable.
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+`fd8be666` — `feat(temporal): adopt UTC instant contract across Nest
+boundaries` (created with `git commit --no-gpg-sign`).
+`0fe076024` — `docs(task): finalize BE-034 execution notes`
+`(created with git commit --no-gpg-sign)`.
+`2f66f609` — `fix(ci): repair BE-034 compatibility and MFA checks`
+(created with git commit --no-gpg-sign).
+### CI repair for feature run `34963655285`
+The exact feature SHA `46fb211a8254ce13be59336b0bf96bc1507f0c98` passed the
+prior repair checks but failed Angular unit-test compilation because the
+dashboard mapper fixture still assigned epoch numbers to the public
+`UtcInstant` contract.
+
+Applied only the confirmed Angular correction:
+
+- converted dashboard activity mapping through the shared
+  `epochMsFromUtcInstant`/`isUtcInstant` boundary helpers;
+- updated the focused mapper fixtures to construct canonical
+  millisecond-precision `UtcInstant` values while retaining malformed-input
+  coverage.
+
+Focused repair validation:
+
+- `npm run typecheck --workspace mercurion_web_ng` passed;
+- `npm --workspace mercurion_web_ng exec ng test -- --watch=false
+  --karma-config=karma.conf.js --include=src/app/pages/profile/dashboard/dashboard-widget.mappers.spec.ts`
+  passed (Angular compiled and all 480 discovered unit tests passed; the
+  workspace runner emitted an npm `include` configuration warning and did not
+  narrow discovery);
+- `npm run lint:angular --workspace mercurion_web_ng` passed;
+- `git diff --check` passed;
+- direct repository-root ESLint invocation was not applicable because ESLint
+  requires the workspace configuration context; the workspace lint passed.
+- `npm ci` and `npm run ci:check` were not run locally.
+
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+Feature-SHA CI is coordinator-owned and required before integration.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+None for local implementation. Coordinator must observe exact feature-SHA
+Actions before integration.

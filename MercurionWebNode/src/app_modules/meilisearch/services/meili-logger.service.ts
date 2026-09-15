@@ -6,6 +6,7 @@ import { ConfigService } from '@nestjs/config';
 import { Environment } from 'src/config/config.schema';
 import { LoggerContext, LoggerPort } from 'src/logging/logger.port';
 import { errorMessage } from 'src/utils/errors/error-message'
+import { utcNow } from 'src/utils/temporal/temporal'
 
 
 @Injectable()
@@ -55,7 +56,7 @@ export class MeiliLoggerService extends LoggerPort implements OnModuleInit {
 
         return {
             id: uuidv7(),
-            timestamp: new Date().toISOString(),
+            timestamp: utcNow(),
             level,
             message: safeMessage,
             context,

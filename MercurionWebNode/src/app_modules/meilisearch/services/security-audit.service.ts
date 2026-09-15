@@ -2,6 +2,8 @@ import { Inject, Injectable, OnModuleInit } from '@nestjs/common'
 import { MeiliSearch } from 'meilisearch'
 import { uuidv7 } from '@kripod/uuidv7'
 import { UUID } from 'crypto'
+import type { UtcInstant } from '@mercurion/rest-contracts'
+import { utcNow } from 'src/utils/temporal/temporal'
 
 const INDEX_NAME = 'security_logs'
 
@@ -16,7 +18,7 @@ export type SecurityAuditEventType =
 
 export interface SecurityAuditEvent {
   id: string
-  timestamp: string
+  timestamp: UtcInstant
   userId: UUID
   event: SecurityAuditEventType
   ip?: string
@@ -63,7 +65,7 @@ export class SecurityAuditService implements OnModuleInit {
   ): SecurityAuditEvent {
     return {
       id: uuidv7(),
-      timestamp: new Date().toISOString(),
+      timestamp: utcNow(),
       userId,
       event,
       ip: options?.ip,

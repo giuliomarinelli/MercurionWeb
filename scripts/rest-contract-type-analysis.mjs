@@ -78,6 +78,13 @@ export function typeShape(checker, inputType, state = { active: new Set(), depth
     for (const [flag, name] of primitiveFlags) {
         if (inputType.flags & flag) return { kind: 'primitive', name };
     }
+    if (inputType.isIntersection?.()
+        && inputType.types.some((member) => member.flags & ts.TypeFlags.StringLike)) {
+        // Branded scalar aliases such as UtcInstant are still their wire
+        // primitive at a REST boundary; do not model the compile-time brand
+        // property as part of the JSON contract shape.
+        return { kind: 'primitive', name: 'string' };
+    }
     const type = checker.getApparentType(inputType);
     if (type.isUnion()) {
         const members = type.types.map((member) => typeShape(checker, member, state));
@@ -86,6 +93,9 @@ export function typeShape(checker, inputType, state = { active: new Set(), depth
         return unique.length === 1 ? unique[0] : { kind: 'union', members: unique };
     }
     if (type.isIntersection()) {
+        if (type.types.some((member) => member.flags & ts.TypeFlags.StringLike)) {
+            return { kind: 'primitive', name: 'string' };
+        }
         const properties = checker.getPropertiesOfType(type);
         if (properties.length === 0) {
             return { kind: 'intersection', members: type.types.map((member) => typeShape(checker, member, state)) };

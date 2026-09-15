@@ -12,6 +12,7 @@ import { MoleculeService } from 'src/app_modules/meilisearch/services/molecule.s
 import { TypeGuards } from 'src/utils/type-guards/type-guards';
 import { LoggerPort } from 'src/logging/logger.port';
 import { LoggerContext } from 'src/logging/logger.port';
+import { utcInstantFromEpochMs } from 'src/utils/temporal/temporal'
 
 @Injectable()
 export class HistoryService {
@@ -135,7 +136,11 @@ export class HistoryService {
             const { userId: _omit, ...rest } = it
             const key = `${it.itemEntity}:${it.itemId}`
             const itemName = nameByKey.get(key) ?? 'N/A'
-            return { ...rest, itemName }
+            return {
+                ...rest,
+                touchedAt: utcInstantFromEpochMs(Number(it.touchedAt)),
+                itemName
+            }
         }).filter(h => h.itemName !== 'N/A')
 
         return { ...page, items }
@@ -188,7 +193,7 @@ export class HistoryService {
                 id: row.id,
                 itemEntity: row.itemEntity,
                 itemId: row.itemId,
-                touchedAt: row.touchedAt,
+                touchedAt: utcInstantFromEpochMs(Number(row.touchedAt)),
             })
         }
 
@@ -218,5 +223,3 @@ export class HistoryService {
 
 
 }
-
-
