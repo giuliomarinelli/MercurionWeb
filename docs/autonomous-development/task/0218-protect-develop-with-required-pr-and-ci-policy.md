@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Protect `develop` so changes enter only through an approved pull request whose canonical aggregate quality gate is green, with direct pushes and failed-check merges rejected by GitHub.
@@ -96,27 +96,49 @@ Mark `BLOCKED` if repository-administration permission is unavailable, no indepe
 
 This task intentionally changes the repository-wide integration lifecycle. After it is final, later task recipes follow PR-backed integration even where older bootstrap prose previously described a direct no-ff merge/push.
 
+
 ## Execution notes
 
 ### Feature branch
+
 _Not started._
+
 ### Preflight
+
 _Not started._
+
 ### Preflight remediation
+
 _None._
+
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0202, 0217. This task was never attempted and receives no feature branch.
+
+_Not started._
+
 ### Task-specific validation performed
+
 _Not started._
+
 ### Full pre-merge CI-parity validation
+
 _Not started._
+
 ### Browser validation performed
-_Not applicable._
+
+_Not applicable / not started._
+
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+
+_Not recorded._
+
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+
+_Not started._
+
 ### Rollback
+
 _Not applicable._
+
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+
+_None._

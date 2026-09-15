@@ -4,6 +4,8 @@ node_modules.failed-*/
 packages/rest-contracts/dist/
 reports/duplication/
 reports/topology/
+playwright-report/
+test-results/
 
 .playwright-mcp/*
 !.playwright-mcp/.gitkeep

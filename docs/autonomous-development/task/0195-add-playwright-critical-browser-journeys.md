@@ -1,7 +1,7 @@
 # 0195 - Add Playwright critical browser journeys
 
-- [ ] DONE
-- [x] BLOCKED
+- [x] DONE
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
@@ -60,12 +60,12 @@ The repository has Angular unit tests but no working browser E2E runner. The fut
 
 ## Acceptance criteria
 
-- [ ] Playwright is the single configured browser E2E framework.
-- [ ] Critical tests navigate only through `http://localhost:8888`.
-- [ ] The selected critical journeys pass deterministically without arbitrary sleeps.
-- [ ] Semantic locators are the default and failure diagnostics are captured.
-- [ ] Tests are isolated and do not call uncontrolled external providers.
-- [ ] The browser E2E suite is registered in canonical CI parity.
+- [x] Playwright is the single configured browser E2E framework.
+- [x] Critical tests navigate only through `http://localhost:8888`.
+- [x] The selected critical journeys pass deterministically without arbitrary sleeps.
+- [x] Semantic locators are the default and failure diagnostics are captured.
+- [x] Tests are isolated and do not call uncontrolled external providers.
+- [x] The browser E2E suite is registered in canonical CI parity.
 
 ## Validation
 
@@ -126,6 +126,27 @@ Feature implementation and blocker diagnostic:
 Implementation was not merged. Feature CI run `34988102571` passed.
 ### Rollback
 _Not applicable._
-### Blocker / human decision required
-Resolve the repository-controlled GraphQL schema baseline failure, then
-authorize a new QA-009 recovery attempt.
+### Historical blocker (resolved)
+The repository-controlled GraphQL schema baseline failure required an
+authorized QA-009 recovery attempt. The recovery below resolves it.
+
+### Authorized recovery 2026-09-15
+Recovery resumed from preserved SHA
+`1d37ba8ee0fb9961a5f29284009582a9b621558b` after merging current green
+`develop` with `--no-ff --no-gpg-sign`. Removed the obsolete
+`MercurionPublicId` resolver registration that no longer had a matching schema
+scalar, restoring Nest bootstrap without changing the identifier utility.
+
+The three critical Chromium journeys now run serially with deterministic JWT,
+cookie, REST, GraphQL, MFA and WebSocket fixtures. They cover anonymous login
+validation, login-to-MFA session activation, and the collections empty/create
+flow through `http://localhost:8888`. Repeated headless runs passed with no
+fixed sleeps; retained traces, screenshots and videos were inspected while
+repairing failures. The canonical full CI path now installs Chromium, starts a
+disposable nginx edge in front of Angular, runs the suite and uploads failure
+artifacts. The stable `Required gate` requires this browser job.
+
+Focused validation passed: autonomous control-plane validation, Nest lint,
+Nest typecheck, Playwright discovery and repeated Playwright execution (three
+tests). Repository-wide clean-install validation remains owned by exact-SHA
+GitHub Actions.
