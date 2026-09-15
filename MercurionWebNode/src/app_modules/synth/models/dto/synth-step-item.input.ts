@@ -1,23 +1,22 @@
 import { Field, ID, InputType, Int } from '@nestjs/graphql';
 import { Transform } from 'class-transformer';
-import { IsEnum, IsInt, IsOptional, IsString, IsUUID, Min, ValidateIf } from 'class-validator';
+import { IsEnum, IsInt, IsOptional, IsString, Min, ValidateIf } from 'class-validator';
 import { UUID } from 'crypto';
+import { IsMercurionPublicId } from 'src/identifiers/mercurion-public-id';
 import { SynthStepItemKind } from '../enums/synth-step-item-kind.enum';
 import { SynthStepItemPosition } from '../enums/synth-step-item-position.enum';
 
 @InputType()
 export class SynthStepItemInput {
 
-    @IsUUID()
+    @IsMercurionPublicId()
     @Field(() => ID)
-    @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
     stepId!: UUID
 
     @ValidateIf(input => !input.text)
-    @IsUUID()
+    @IsMercurionPublicId()
     @IsOptional()
     @Field(() => ID, { nullable: true })
-    @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
     poolMoleculeId?: UUID | null
 
     @ValidateIf(input => !input.poolMoleculeId)

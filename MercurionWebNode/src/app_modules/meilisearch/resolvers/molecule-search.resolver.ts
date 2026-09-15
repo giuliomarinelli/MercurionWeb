@@ -4,7 +4,7 @@ import { MoleculeSearchResult } from '../models/dto/molecule-search-result.cls';
 import { MoleculeSearchInput } from '../models/dto/molecule-search-input.cls';
 import { AuthenticatedUserId, Public } from 'src/metadata/metadata';
 import { UUID } from 'crypto';
-import { GeneralUtils } from 'src/utils/general-utils/general-utils';
+import { assertMercurionPublicId } from 'src/identifiers/mercurion-public-id';
 
 
 
@@ -12,10 +12,6 @@ import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 export class MoleculeSearchResolver {
 
   constructor(private readonly moleculeSearchService: MoleculeSearchService) { }
-
-  private ensureUuid(value: string, field: string): void {
-    GeneralUtils.ensureValidUUIDv7(value, `GraphQLInvalid::Invalid ${field}`)
-  }
 
   @Public()
   @Query(() => [MoleculeSearchResult])
@@ -31,7 +27,7 @@ export class MoleculeSearchResolver {
     @Args('collectionId', { type: () => ID }) collectionId: UUID,
     @AuthenticatedUserId() userId: UUID
   ): Promise<MoleculeSearchResult[]> {
-    this.ensureUuid(collectionId, 'collectionId')
+    assertMercurionPublicId(collectionId, 'collectionId')
     return this.moleculeSearchService.searchMolecules_excludeAlreadyAdded(input, collectionId, userId)
   }
 

@@ -12,6 +12,7 @@ import { Repository } from 'typeorm';
 import { MoleculeCollectionItemJoinService } from '../services/molecule-collection-item-join.service';
 import { BindManyCollectionsToMoleculeDTO } from '../models/dto/bind-many-collections-to-molecule.dto';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
+import { assertMercurionPublicId } from 'src/identifiers/mercurion-public-id';
 
 
 @Resolver(() => MoleculeCollection)
@@ -23,10 +24,6 @@ export class MoleculeCollectionResolver {
         @InjectRepository(MoleculeCollectionItemJoin)
         private readonly joinRepo: Repository<MoleculeCollectionItemJoin>,
     ) { }
-
-    private ensureUuidv7(value: string, field: string): void {
-        GeneralUtils.ensureValidUUIDv7(value, `GraphQLInvalid::Invalid ${field}`)
-    }
 
     @ResolveField(() => Int)
     async itemsCount(
@@ -54,7 +51,7 @@ export class MoleculeCollectionResolver {
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
     ): Promise<MoleculeCollection | null> {
-        this.ensureUuidv7(id, 'id')
+        assertMercurionPublicId(id, 'id')
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         return this.collectionService.findOne(id, userId, fieldsMap)
     }
@@ -78,7 +75,7 @@ export class MoleculeCollectionResolver {
     ): Promise<MoleculeCollection | null> {
         // prima versione minimale, non chiede di creare con un nuovo nome, Duplica direttamente Vecchio Nome => Vecchio nome (1) ...
         // supporto per scelta del nuovo nome in versioni successive alla 1.0 beta 1
-        this.ensureUuidv7(srcCollectionId, 'srcCollectionId')
+        assertMercurionPublicId(srcCollectionId, 'srcCollectionId')
         return this.collectionService.duplicate(userId, srcCollectionId)
     }
 
@@ -107,7 +104,7 @@ export class MoleculeCollectionResolver {
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
     ): Promise<MoleculeCollection | null> {
-        this.ensureUuidv7(id, 'id')
+        assertMercurionPublicId(id, 'id')
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         const normalizedName = GeneralUtils.normalizeSpaces(name)
         return this.collectionService.update(id, userId, { name: normalizedName }, fieldsMap)
@@ -118,7 +115,7 @@ export class MoleculeCollectionResolver {
         @Args('id', { type: () => ID }) id: UUID,
         @AuthenticatedUserId() userId: UUID
     ): Promise<boolean> {
-        this.ensureUuidv7(id, 'id')
+        assertMercurionPublicId(id, 'id')
         return this.collectionService.delete(id, userId)
     }
 
@@ -127,7 +124,7 @@ export class MoleculeCollectionResolver {
         @Args('id', { type: () => ID }) collectionId: UUID,
         @AuthenticatedUserId() userId: UUID
     ): Promise<boolean> {
-        this.ensureUuidv7(collectionId, 'id')
+        assertMercurionPublicId(collectionId, 'id')
         return await this.collectionService.markAsTouched(userId, collectionId)
     }
 
@@ -164,7 +161,7 @@ export class MoleculeCollectionResolver {
         @Args('collectionIds', { type: () => [ID] }) collectionIds: UUID[],
         @Args('selectAll', { type: () => Boolean }) selectAll: boolean
     ): Promise<BindManyCollectionsToMoleculeDTO> {
-        collectionIds.forEach((collectionId) => this.ensureUuidv7(collectionId, 'collectionIds'))
+        collectionIds.forEach((collectionId) => assertMercurionPublicId(collectionId, 'collectionIds'))
         return this.joinService.bindManyCollectionsToMolecule(userId, moleculeId, collectionIds, selectAll)
     }
 

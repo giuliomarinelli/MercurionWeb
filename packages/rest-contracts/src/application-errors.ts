@@ -19,6 +19,12 @@ export const APPLICATION_ERROR_CATALOG = {
     defaultMessage: 'Unsupported contract major version',
     exposeInProduction: true,
   },
+  PUBLIC_ID_INVALID: {
+    httpStatus: 400,
+    graphQlStatus: 200,
+    defaultMessage: 'Invalid Mercurion public ID',
+    exposeInProduction: true,
+  },
   ACCOUNT_ACTIVATION_USER_NOT_FOUND: {
     httpStatus: 404,
     defaultMessage: "AccountActivation::User not found",

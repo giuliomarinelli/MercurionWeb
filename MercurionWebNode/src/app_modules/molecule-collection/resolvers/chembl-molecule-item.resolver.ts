@@ -7,6 +7,7 @@ import { GraphQLResolveInfo } from 'graphql';
 import { GraphQLUtils } from "src/utils/graphql-utils/graphql-utils";
 import { AddManyChEMBLItemDTO } from "../models/dto/add-many-chembl-items.dto";
 import { GeneralUtils } from "src/utils/general-utils/general-utils";
+import { assertMercurionPublicId } from "src/identifiers/mercurion-public-id";
 
 
 
@@ -16,17 +17,13 @@ export class ChEMBLMoleculeItemResolver {
 
     constructor(private readonly service: ChEMBLMoleculeItemService) { }
 
-    private ensureUuid(value: string, field: string): void {
-        GeneralUtils.ensureValidUUIDv7(value, `GraphQLInvalid::Invalid ${field}`)
-    }
-
     @Query(() => [ChEMBLMoleculeItemEntity])
     async chemblMoleculesByCollection(
         @Args('collectionId', { type: () => ID }) collectionId: UUID,
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
     ) {
-        this.ensureUuid(collectionId, 'collectionId')
+        assertMercurionPublicId(collectionId, 'collectionId')
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         return this.service.findByCollection(collectionId, userId, fieldsMap)
     }
@@ -37,7 +34,7 @@ export class ChEMBLMoleculeItemResolver {
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
     ): Promise<ChEMBLMoleculeItemEntity | null> {
-        this.ensureUuid(itemId, 'itemId')
+        assertMercurionPublicId(itemId, 'itemId')
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         return this.service.findOneById(itemId, userId, fieldsMap)
     }
@@ -55,7 +52,6 @@ export class ChEMBLMoleculeItemResolver {
     async existsChEMBLMoleculeByUUIDThenGetMolregno(        
         @Args('_uuid_', { type: () => String }) _uuid_: UUID
     ): Promise<string | null> {
-        this.ensureUuid(_uuid_, '_uuid_')
         return this.service.existsChEMBLMoleculeByUUIDThenGetMolregno(_uuid_)
     }
 
@@ -67,7 +63,7 @@ export class ChEMBLMoleculeItemResolver {
         @Args('label', { nullable: true }) label?: string,
         @Args('notes', { nullable: true }) notes?: string,
     ) {
-        this.ensureUuid(collectionId, 'collectionId')
+        assertMercurionPublicId(collectionId, 'collectionId')
         const normalizedLabel = typeof label === 'string' ? GeneralUtils.normalizeSpaces(label) : label
         const normalizedNotes = typeof notes === 'string' ? notes.trim() : notes
         return this.service.addToCollection(userId, collectionId, chemblMolregno, normalizedLabel, normalizedNotes)
@@ -79,8 +75,8 @@ export class ChEMBLMoleculeItemResolver {
         @Args('collectionId', { type: () => ID }) collectionId: UUID,
         @Args('itemId', { type: () => ID }) itemId: UUID
     ) {
-        this.ensureUuid(collectionId, 'collectionId')
-        this.ensureUuid(itemId, 'itemId')
+        assertMercurionPublicId(collectionId, 'collectionId')
+        assertMercurionPublicId(itemId, 'itemId')
         return this.service.removeFromCollection(userId, collectionId, itemId)
     }
 
@@ -90,7 +86,7 @@ export class ChEMBLMoleculeItemResolver {
         @Args('collectionId', { type: () => ID }) collectionId: UUID,
         @Args('input', { type: () => [AddManyChEMBLItemDTO] }) dtos: AddManyChEMBLItemDTO[]
     ): Promise<boolean> {
-        this.ensureUuid(collectionId, 'collectionId')
+        assertMercurionPublicId(collectionId, 'collectionId')
         return this.service.addManyChemblItemsToCollection(userId, collectionId, dtos)
     }
 

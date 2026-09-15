@@ -8,16 +8,12 @@ import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
 import { GraphQLFieldsMap } from 'src/utils/type-orm-utils/type-orm-utils';
 import { CreateChapterInput } from '../models/dto/create-notebook-chapter-input';
 import { UpdateChapterInput } from '../models/dto/update-chapter-input';
-import { GeneralUtils } from 'src/utils/general-utils/general-utils';
+import { assertMercurionPublicId } from 'src/identifiers/mercurion-public-id';
 
 @Resolver(() => NotebookChapter)
 export class NotebookChapterResolver {
 
     constructor(private readonly chapterService: NotebookChapterService) { }
-
-    private ensureUuid(value: string, field: string): void {
-        GeneralUtils.ensureValidUUIDv7(value, `GraphQLInvalid::Invalid ${field}`)
-    }
 
     @Query(() => [NotebookChapter])
     async chaptersByNotebook(
@@ -25,7 +21,7 @@ export class NotebookChapterResolver {
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
     ): Promise<NotebookChapter[]> {
-        this.ensureUuid(notebookId, 'notebookId')
+        assertMercurionPublicId(notebookId, 'notebookId')
         const fieldsMap = GraphQLUtils.getFieldsMap(info) as GraphQLFieldsMap
         return this.chapterService.listChapters(
             notebookId as UUID,
@@ -40,7 +36,7 @@ export class NotebookChapterResolver {
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
     ): Promise<NotebookChapter | null> {
-        this.ensureUuid(id, 'id')
+        assertMercurionPublicId(id, 'id')
         const fieldsMap = GraphQLUtils.getFieldsMap(info) as GraphQLFieldsMap
         return this.chapterService.getChapter(
             id as UUID,
@@ -55,7 +51,7 @@ export class NotebookChapterResolver {
         @Args('input') { notebookId, title }: CreateChapterInput,
         @AuthenticatedUserId() userId: UUID
     ): Promise<NotebookChapter> {
-        this.ensureUuid(notebookId, 'notebookId')
+        assertMercurionPublicId(notebookId, 'notebookId')
         return this.chapterService.createChapter(
             notebookId as UUID,
             userId,
@@ -69,7 +65,7 @@ export class NotebookChapterResolver {
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
     ): Promise<NotebookChapter | null> {
-        this.ensureUuid(id, 'id')
+        assertMercurionPublicId(id, 'id')
         const fieldsMap = GraphQLUtils.getFieldsMap(info) as GraphQLFieldsMap
         return this.chapterService.updateChapter(id as UUID, userId, input, fieldsMap)
     }
@@ -79,7 +75,7 @@ export class NotebookChapterResolver {
         @Args('id', { type: () => ID }) id: string,
         @AuthenticatedUserId() userId: UUID
     ) {
-        this.ensureUuid(id, 'id')
+        assertMercurionPublicId(id, 'id')
         await this.chapterService.deleteChapter(id as UUID, userId)
         return true
     }
@@ -90,7 +86,7 @@ export class NotebookChapterResolver {
         @Args('direction') direction: 'up' | 'down',
         @AuthenticatedUserId() userId: UUID
     ): Promise<boolean> {
-        this.ensureUuid(chapterId, 'chapterId')
+        assertMercurionPublicId(chapterId, 'chapterId')
         await this.chapterService.move(chapterId as UUID, userId, direction)
         return true
     }
@@ -101,8 +97,8 @@ export class NotebookChapterResolver {
         @Args('orderedIds', { type: () => [ID] }) orderedIds: string[],
         @AuthenticatedUserId() userId: UUID
     ): Promise<boolean> {
-        this.ensureUuid(notebookId, 'notebookId')
-        orderedIds.forEach((orderedId) => this.ensureUuid(orderedId, 'orderedIds'))
+        assertMercurionPublicId(notebookId, 'notebookId')
+        orderedIds.forEach((orderedId) => assertMercurionPublicId(orderedId, 'orderedIds'))
         await this.chapterService.reorder(notebookId as UUID, userId, orderedIds as UUID[])
         return true
     }
