@@ -116,14 +116,18 @@ coverage. `npm run lint --workspace mercurion_web_node`, `npm run build
 --workspace mercurion_web_node`, `npm run ci:redis:architecture`, and
 `git diff --check` passed. Governed service inspection found no remaining direct
 counter `incr`/TTL algorithms or duplicated policy constants.
+The first feature run (`35037165844`, SHA `fc125a77bb8fc77ddbe78a51c50027ea8cff0568`)
+exposed stale credential-handler test doubles after the constructor migration.
+Updated that task-owned test setup to mock the typed engine; the focused
+credential suite (6 tests) and typecheck then passed.
 ### Full pre-merge CI-parity validation
 Not run locally; forbidden by protocol. Exact pushed feature-SHA GitHub Actions
 validation remains coordinator-owned.
 ### Browser validation performed
 _Not started._
 ### Commits
-Pending commit: atomic attempts/rate-limit policy engine and governed-flow
-migration.
+Commits: `fc125a77bb8fc77ddbe78a51c50027ea8cff0568` (engine and migration);
+pending repair commit for the credential handler test double.
 ### Merge / CI
 _Not started._
 ### Rollback
