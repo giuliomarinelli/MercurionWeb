@@ -113,7 +113,7 @@ For each selected `READY` task, serially:
    exclusion set, return to clean synchronized `develop`, and continue with the
    next independent `READY` task;
 3. prove that every session-owned Angular, Nest, Tox21, test watcher, and other
-   workspace-consuming process is stopped, then call the `task` tool once for the primary implementation with `agent_type: development-task-worker` and `mode: sync`,
+   workspace-consuming process is stopped, then call the `task` tool once for the primary implementation with `agent_type: development-task-worker` and `mode: sync`. The call MUST omit `model`, `reasoning_effort`, and `context_tier` so the worker inherits the exact active parent profile declared by the session. Never select, request, or escalate to GPT-5.6 Sol inside an autonomous session. If Luna cannot complete a task, use the normal `BLOCKED` lifecycle; any Sol follow-up belongs to a separate human-operated session,
    supplying the exact task path, Source, feature branch, base SHA,
    session-config path, and a reminder that it must confirm exact base-SHA
    Actions evidence and use focused local validation before starting any

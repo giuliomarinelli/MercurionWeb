@@ -35,7 +35,7 @@ A **Development Session** is a bounded period in which a session coordinator exe
 
 ## Sources of truth
 
-Session timing, workload selection, host/context behavior, budgets, runtime configuration and lifecycle policy are defined by the active YAML session configuration. An empty `workload.tasks` list selects the complete Series; a non-empty list is an exact allowlist of quoted four-digit task IDs. Model and reasoning are intentionally unpinned there and inherit from the parent CLI session.
+Session timing, workload selection, host/context behavior, runtime configuration and lifecycle policy are defined by the active YAML session configuration. An empty `workload.tasks` list selects the complete Series; a non-empty list is an exact allowlist of quoted four-digit task IDs. The active session records the manually selected parent model, reasoning effort and context tier; every worker inherits that exact profile.
 
 Series identity, Trello binding, task-range binding, repository/baseline context and optional baseline metadata are defined by each series document's YAML frontmatter.
 
@@ -73,7 +73,7 @@ state before any integration write.
 
 The active configuration is a repository contract read by the coordinator; CLI Autopilot does not replace deterministic orchestration. Wall-clock enforcement therefore remains an explicit coordinator duty. The coordinator MUST use an absolute timestamp plus the configured IANA timezone and MUST NOT rely on a long-running shell `sleep` to detect the deadline.
 
-The custom-agent profiles use explicit required tool lists and do not pin a model or reasoning level. They inherit GPT-5.6 Sol and High reasoning from the manually launched parent CLI session without inheriting every unrelated user-scoped tool schema. Both profiles disable inferred invocation; the coordinator is manually invocable, while the worker is not user-invocable and can only be called explicitly through `task`.
+The custom-agent profiles use explicit required tool lists and do not pin a model, reasoning level or context tier in frontmatter. The coordinator is launched with the exact parent profile declared by the active session; normal `task` calls MUST omit `model`, `reasoning_effort` and `context_tier`, so every worker inherits that profile without inheriting every unrelated user-scoped tool schema. For the current overweek policy this means GPT-5.6 Luna, Medium reasoning and the default 300k context tier. A mismatched worker configuration is `SESSION_RECOVERY_PENDING`: stop it before implementation and do not mutate a task outcome. An autonomous session MUST NOT select, request, or escalate to GPT-5.6 Sol. A Luna task that cannot be completed follows the normal `BLOCKED` lifecycle; any later Sol diagnosis or targeted review occurs only in a separate, directly human-operated session with continuous developer-model interaction. Both profiles disable inferred invocation; the coordinator is manually invocable, while the worker is not user-invocable and can only be called explicitly through `task`.
 
 GitHub Copilot CLI uses its native automatic context compaction and session checkpoint behavior. Autonomous sessions do not depend on VS Code Responses context-management settings.
 
@@ -346,7 +346,7 @@ baseline incident; they are not permission to install locally.
 
 ## Task implementation and local completion
 
-Each task receives a fresh Copilot/Sol session. On its feature branch the agent:
+Each task receives a fresh Copilot worker session with the exact active parent model, reasoning effort and context tier. On its feature branch the agent:
 
 1. reads the complete task;
 2. inspects relevant code/docs;

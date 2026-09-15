@@ -29,10 +29,10 @@ const paths = {
   completedSession: 'docs/autonomous-development/session.48h-2026-09-03.yaml',
   exampleSession: 'docs/autonomous-development/session.example.yaml',
   closedSession: 'docs/autonomous-development/session.until-2026-09-10.yaml',
-  preparedSession: 'docs/autonomous-development/session.overweek-2026-09-23-v9.yaml',
+  preparedSession: 'docs/autonomous-development/session.overweek-2026-09-23-v10.yaml',
   completedLaunch: 'docs/autonomous-development/LAUNCH-2026-09-03-v2.md',
   closedLaunch: 'docs/autonomous-development/LAUNCH-2026-09-06.md',
-  preparedLaunch: 'docs/autonomous-development/LAUNCH-2026-09-15-overweek-v9.md',
+  preparedLaunch: 'docs/autonomous-development/LAUNCH-2026-09-15-overweek-v10.md',
   runtime: 'docs/autonomous-development/RUNTIME.md',
   workflow: '.github/workflows/ci.yml',
   classifier: '.github/scripts/classify-ci.mjs',
@@ -558,9 +558,28 @@ for (const [target, content] of [
     /carry_processes_between_tasks:\s*false/,
     'runtime processes must not cross task boundaries',
   );
-  if (/^\s+(?:model|reasoning):/m.test(content)) {
+  if (target !== paths.preparedSession && /^\s+(?:model|reasoning):/m.test(content)) {
     fail(target, 'must inherit rather than pin model or reasoning');
   }
+}
+
+for (const [target, content] of [
+  [paths.agents.coordinator, coordinator.content],
+  [paths.agents.worker, worker.content],
+  ['docs/autonomous-development/PROTOCOL.md', read('docs/autonomous-development/PROTOCOL.md')],
+]) {
+  requireMatch(
+    target,
+    content,
+    /(?:omit|omits)[\s\S]{0,100}`model`[\s\S]{0,100}`reasoning_effort`[\s\S]{0,100}`context_tier`/i,
+    'must require task calls to omit model, reasoning effort, and context tier',
+  );
+  requireMatch(
+    target,
+    content,
+    /GPT-5\.6 Sol[\s\S]{0,300}(?:separate|human-operated)[\s\S]{0,120}session/i,
+    'must prohibit Sol escalation inside autonomous sessions',
+  );
 }
 
 requireMatch(
@@ -658,7 +677,7 @@ for (const command of ['/model', '/permissions show', '/mcp list', '/keep-alive 
 }
 
 for (const [pattern, message] of [
-  [/docs\/autonomous-development\/session\.overweek-2026-09-23-v9\.yaml/, 'prepared launch must reference its dated session configuration'],
+  [/docs\/autonomous-development\/session\.overweek-2026-09-23-v10\.yaml/, 'prepared launch must reference its dated session configuration'],
   [/2026-09-23T10:00:00\+02:00/, 'prepared launch must retain the exact soft deadline'],
   [/test-account login policy are integrated into `develop`/i, 'prepared launch must require the shared real test-account policy'],
   [/no\s+profile-persistence or pre-authenticated-state probe is a launch prerequisite/i, 'prepared launch must not depend on persisted profile authentication'],
@@ -670,7 +689,10 @@ for (const [pattern, message] of [
   [/env\/\.env\.development[\s\S]{0,260}ordinary login[\s\S]{0,260}server/i, 'prepared launch must require a fresh server-accepted real-account login'],
   [/Do[\s\S]{0,10}not bundle tasks/, 'prepared launch must prohibit multi-task bundles'],
   [/npm run autonomous:plan/, 'prepared launch must execute the deterministic planner'],
-  [/copilot --agent development-session-coordinator --allow-all-tools --allow-all-urls --add-dir \.\.\/MercurionTox21 --reasoning-effort high --autopilot/, 'prepared launch is missing the deterministic Copilot CLI command'],
+  [/copilot --agent development-session-coordinator --allow-all-tools --allow-all-urls --add-dir \.\.\/MercurionTox21 --model gpt-5\.6-luna --reasoning-effort medium --context default --autopilot/, 'prepared launch is missing the exact Luna Medium 300k parent command'],
+  [/Every `task` invocation must omit `model`,[\s\S]*`reasoning_effort` and `context_tier`[\s\S]*exact inheritance/i, 'prepared launch must require exact worker inheritance without task overrides'],
+  [/Never select, request or escalate to GPT-5\.6 Sol[\s\S]*BLOCKED[\s\S]*separate[\s\S]*human-operated session/i, 'prepared launch must prohibit Sol escalation inside Autopilot'],
+  [/virtually unlimited number of serial tasks[\s\S]*deadline or[\s\S]*workload exhaustion/i, 'prepared launch must retain effectively unlimited task throughput'],
 ]) {
   requireMatch(paths.preparedLaunch, preparedLaunch, pattern, message);
 }
@@ -683,17 +705,18 @@ for (const staleSessionReference of [
   'docs/autonomous-development/session.overweek-2026-09-20-v6.yaml',
   'docs/autonomous-development/session.overweek-2026-09-20-v7.yaml',
   'docs/autonomous-development/session.overweek-2026-09-21-v8.yaml',
+  'docs/autonomous-development/session.overweek-2026-09-23-v9.yaml',
 ]) {
   if (preparedLaunch.includes(staleSessionReference)) {
     fail(paths.preparedLaunch, `contains stale session reference ${staleSessionReference}`);
   }
 }
 const preparedSessionReference =
-  'docs/autonomous-development/session.overweek-2026-09-23-v9.yaml';
+  'docs/autonomous-development/session.overweek-2026-09-23-v10.yaml';
 if (preparedLaunch.split(preparedSessionReference).length - 1 !== 2) {
   fail(paths.preparedLaunch, 'must reference the active session exactly twice');
 }
-for (const command of ['/model', '/permissions show', '/mcp list', '/skills list', '/keep-alive on']) {
+for (const command of ['/model', '/context', '/usage', '/permissions show', '/mcp list', '/skills list', '/keep-alive on']) {
   requireMatch(
     paths.preparedLaunch,
     preparedLaunch,
@@ -902,7 +925,7 @@ for (const [pattern, message] of [
 
 for (const [pattern, message] of [
   [/browser_and_allowlist_hardening_pull_request:\s*31/, 'prepared session must record PR #31 provenance'],
-  [/name:\s*mercurion-code-red-0001-overweek-full-series-2026-09-23-v9/, 'prepared session must use a fresh session identity'],
+  [/name:\s*mercurion-code-red-0001-overweek-full-series-2026-09-23-v10/, 'prepared session must use a fresh session identity'],
   [/expected_task_count:\s*215/, 'prepared workload must contain 215 active tasks'],
   [/expected_deferred_task_count:\s*5/, 'prepared workload must record five deferred tasks'],
   [/expected_current_done:\s*136/, 'prepared workload must record 136 DONE tasks'],
@@ -949,6 +972,9 @@ for (const [pattern, message] of [
   [/stop_session_if_revert_not_green:\s*false/, 'prepared session must recover rather than stop on revert verification failure'],
   [/session_fatal_blocker_completes_coordinator_objective:\s*false/, 'prepared session must disable fatal-blocker completion'],
   [/task_complete_before_deadline_on_error:\s*false/, 'prepared session must forbid task_complete on pre-deadline errors'],
+  [/parent_profile:[\s\S]*model:\s*gpt-5\.6-luna[\s\S]*reasoning_effort:\s*medium[\s\S]*context_tier:\s*default[\s\S]*context_window_tokens:\s*300000/, 'prepared session must declare the exact Luna Medium 300k parent profile'],
+  [/worker_inheritance:[\s\S]*task_call_must_omit:[\s\S]*- model[\s\S]*- reasoning_effort[\s\S]*- context_tier[\s\S]*mismatch_result:\s*SESSION_RECOVERY_PENDING[\s\S]*mutate_task_outcome:\s*false/, 'prepared session must require exact inheritance and fail safely on mismatch'],
+  [/model_policy:[\s\S]*autonomous_sol_allowed:\s*false[\s\S]*luna_failure_result:\s*BLOCKED[\s\S]*sol_follow_up_mode:\s*separate-human-operated-session[\s\S]*continuous_developer_model_interaction_required:\s*true/, 'prepared session must prohibit Sol escalation and defer it to separate human operation'],
 ]) {
   requireMatch(paths.preparedSession, preparedSession, pattern, message);
 }
