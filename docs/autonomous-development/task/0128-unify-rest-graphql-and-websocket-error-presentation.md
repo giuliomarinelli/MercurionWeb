@@ -122,9 +122,10 @@ Actions by session policy. Exact feature-SHA CI is coordinator-owned.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-Pending task-specific commit; coordinator obtains exact feature-SHA CI.
+`af9911a9` — `feat(errors): unify transport error presentation`.
 ### Merge / CI
-Coordinator-owned exact-SHA feature CI is required after push.
+Feature branch pushed at `af9911a9`; coordinator-owned exact-SHA feature CI is
+required before integration.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
