@@ -157,6 +157,14 @@ jobs:
       - name: Run registered static and architecture gates
         run: npm run ci:static
 
+      - name: Upload topology diagnostics
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: topology-report-${{ matrix.os }}
+          if-no-files-found: ignore
+          path: reports/topology
+
   angular-unit:
     name: Angular unit tests
     if: ${{ needs.plan.outputs.mode == 'full' }}

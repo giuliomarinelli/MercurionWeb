@@ -143,9 +143,18 @@ function main() {
       ['utils', 'config', 'contracts', 'metadata', 'app_modules'], 'Nest'),
   ];
   if (violations.length) {
+    if (process.argv.includes('--json')) {
+      console.log(JSON.stringify({ version: 1, violations }, null, 2));
+      process.exitCode = 1;
+      return;
+    }
     console.error('Architecture layer policy violations:');
     violations.forEach((violation) => console.error(`  ${violation}`));
     process.exitCode = 1;
+    return;
+  }
+  if (process.argv.includes('--json')) {
+    console.log(JSON.stringify({ version: 1, violations: [] }, null, 2));
     return;
   }
   console.log('Architecture layer policy passed; lazy dynamic imports are handled by the graph scanner.');
