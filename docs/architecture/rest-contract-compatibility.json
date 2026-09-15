@@ -6288,7 +6288,7 @@
           {
             "source": "param",
             "name": "id",
-            "type": "UUID",
+            "type": "MercurionPublicId",
             "optional": false
           }
         ],
@@ -6304,9 +6304,7 @@
           "authorization": [
             403
           ],
-          "declared": [
-            400
-          ]
+          "declared": []
         },
         "authentication": {
           "public": false,
@@ -6416,7 +6414,7 @@
           {
             "source": "param",
             "name": "id",
-            "type": "UUID",
+            "type": "MercurionPublicId",
             "optional": false
           }
         ],
@@ -6432,9 +6430,7 @@
           "authorization": [
             403
           ],
-          "declared": [
-            400
-          ]
+          "declared": []
         },
         "authentication": {
           "public": false,
@@ -6725,7 +6721,7 @@
           {
             "source": "param",
             "name": "id",
-            "type": "UUID",
+            "type": "MercurionPublicId",
             "optional": false
           },
           {
@@ -6746,9 +6742,7 @@
           "authorization": [
             403
           ],
-          "declared": [
-            400
-          ]
+          "declared": []
         },
         "authentication": {
           "public": false,
