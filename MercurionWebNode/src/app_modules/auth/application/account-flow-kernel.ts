@@ -28,7 +28,7 @@ import { UserContext } from 'src/app_modules/notification/models/contexts/user.c
 import { LoggerPort } from 'src/logging/logger.port';
 import { LoggerContext } from 'src/logging/logger.port';
 import { publicTotpMetadata } from 'src/utils/temporal/temporal'
-import { DataSource } from 'typeorm';
+import { DataSource, QueryFailedError } from 'typeorm';
 import { ScopeService } from '../services/scope.service';
 import { MfaBackupCode } from 'src/app_modules/user/models/entities/backup-code.entity';
 import { RecoverCredentialsDTO } from '../models/dto/recover-credentials.cls.dto';
@@ -37,8 +37,9 @@ import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 import { MfaStrategy } from 'src/app_modules/user/models/enums/mfa-strategy.enum';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 import { redisDurations, redisKeys } from 'src/app_modules/redis/contracts/redis-contracts'
-import { afterTransactionCommit, runInTransaction, UnitOfWork } from 'src/persistence/transaction-context'
+import { afterTransactionCommit, runInTransaction, transactionManager, UnitOfWork } from 'src/persistence/transaction-context'
 import { InitialWorkspaceService } from 'src/app_modules/molecule-collection/services/initial-workspace.service'
+import { ActivationReceipt } from '../models/entities/activation-receipt.entity'
 
 
 
@@ -308,9 +309,10 @@ export class AccountFlowKernel {
     public async registerUser(registerDTO: UserRegisterDTO): Promise<ConfirmWithObsContDTO> {
 
         const { password, email, firstName, lastName, job, gender } = registerDTO
-        const emailKey = this.getRegistrationLockRedisKey(email)
+        const normalizedEmail = email.trim().toLowerCase()
+        const emailKey = this.getRegistrationLockRedisKey(normalizedEmail)
         const ttl = redisDurations.hours(2)
-        const alreadyExists = await this.redisService.exists(emailKey) || await this.userService.existsUserByEmail(email)
+        const alreadyExists = await this.redisService.exists(emailKey) || await this.userService.existsUserByEmail(normalizedEmail)
         if (alreadyExists) {
             throw applicationError(ApplicationErrorCode.USER_REGISTRATION_EMAIL_CONFLICT)
         }
@@ -318,21 +320,33 @@ export class AccountFlowKernel {
         const passwordHash = await this.passwordEncoder.encode(password)
         const otpSecret = this.securityService.generateOtpSecret()
         const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()
-        const { id: userId } = await this.userService.createUser({
-            passwordHash,
-            otpSecret,
-            unconfirmedEmail: email,
-            firstName,
-            lastName,
-            scopes: this.scopeService.getEncryptedStandardScopes(),
-            initials,
-            job: (job ?? '').trim() ? job : null,
-            gender
-        })
+        let userId: UUID
+        try {
+            ({ id: userId } = await this.unitOfWork.run(async context => {
+                const user = await this.userService.createRegistration({
+                    passwordHash,
+                    otpSecret,
+                    unconfirmedEmail: normalizedEmail,
+                    registrationIdentity: normalizedEmail,
+                    firstName,
+                    lastName,
+                    scopes: this.scopeService.getEncryptedStandardScopes(),
+                    initials,
+                    job: (job ?? '').trim() ? job : null,
+                    gender
+                }, context)
+                return user
+            }))
+        } catch (error) {
+            if (error instanceof QueryFailedError) {
+                throw applicationError(ApplicationErrorCode.USER_REGISTRATION_EMAIL_CONFLICT)
+            }
+            throw error
+        }
         const activationToken: string = await this.jwtTools.generateToken(userId, TokenType.ActivationToken)
         const url = `${this.configService.get<string>("App.activationOrigin")!}/account/activate#t=${encodeURIComponent(activationToken)}`
         await this.mailService.sendEmail<UserCtaContext>(
-            email,
+            normalizedEmail,
             `${firstName}, completa la tua registrazione a Mercurion`,
             { firstName, url },
             join(__dirname, "../../../app_modules/notification/email-templates/confirmation.hbs")
@@ -345,15 +359,42 @@ export class AccountFlowKernel {
     }
 
     public async activateUser(activationToken: string): Promise<ConfirmWithRecoveryCodeDTO> | never {
-        const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(activationToken, TokenType.ActivationToken)
-        const recoveryCode = this.securityService.generateAccountRecoveryReadableCode()
-        const accountRecoveryCodeHash = await this.passwordEncoder.encode(recoveryCode)
+        // A committed activation is replayable by its durable jti receipt.
+        // Revocation is an after-commit optimization and must not turn a
+        // successful retry into an ambiguous token failure.
+        const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(
+            activationToken,
+            TokenType.ActivationToken,
+            false,
+            true
+        )
         return this.unitOfWork.run(async (context) => {
-            const email = await this.userService.activateAccount(userId, accountRecoveryCodeHash, context)
+            const manager = transactionManager(context)
+            const existing = await manager.findOne(ActivationReceipt, { where: { jti } })
+            if (existing) {
+                if (String(existing.userId) !== String(userId)) {
+                    throw applicationError(ApplicationErrorCode.TOKEN_INVALID_OR_EXPIRED)
+                }
+                return {
+                    ...this._r.ok('Account activated successfully'),
+                    recoveryCode: this.securityService.decrypt_AES256(existing.recoveryCode)
+                }
+            }
+
+            const recoveryCode = this.securityService.generateAccountRecoveryReadableCode()
+            const accountRecoveryCodeHash = await this.passwordEncoder.encode(recoveryCode)
+            const activation = await this.userService.activateAccount(userId, accountRecoveryCodeHash, context)
             await this.initialWorkspace.initializeForUser(userId, context)
+            await manager.save(manager.create(ActivationReceipt, {
+                jti,
+                userId,
+                email: activation.email,
+                recoveryCode: this.securityService.encrypt_AES256(recoveryCode),
+                createdAt: Date.now()
+            }))
             afterTransactionCommit(context, async () => {
                 await this.sessionService.revokeToken(jti)
-                await this.redisService.del(this.getRegistrationLockRedisKey(email))
+                await this.redisService.del(this.getRegistrationLockRedisKey(activation.email))
             })
             return {
                 ...this._r.ok('Account activated successfully'),
