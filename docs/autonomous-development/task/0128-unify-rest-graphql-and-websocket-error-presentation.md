@@ -131,9 +131,10 @@ _Not applicable._
 `9e5fa2a2` — `docs(task): record BE-014 execution`.
 `ad8d2624` — `fix(errors): update socket contract assertion`.
 `a7934eac` — `docs(task): record feature CI repair`.
+`52964c65` — `docs(task): record final feature validation`.
 ### Merge / CI
-Final feature branch SHA is `a7934eac2034d9c49ee95a23d0d57c44f4c597b`.
-Exact-SHA CI run `34940248690` passed with `Required gate`; its metadata
+Final feature branch SHA is `52964c6506182793624c0c75cb7177d3f3786939`.
+Exact-SHA CI run `34940370226` passed with `Required gate`; its metadata
 validation and exact feature evidence were green.
 ### Rollback
 _Not applicable._
