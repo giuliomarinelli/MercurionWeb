@@ -130,7 +130,7 @@ repository policy.
 Not applicable; the recipe explicitly declares browser validation not
 applicable.
 ### Commits
-`75977545` — `feat(temporal): adopt UTC instant contract across Nest
+`fd8be666` — `feat(temporal): adopt UTC instant contract across Nest
 boundaries` (created with `git commit --no-gpg-sign`).
 ### Merge / CI
 Feature-SHA CI is coordinator-owned and required before integration.
