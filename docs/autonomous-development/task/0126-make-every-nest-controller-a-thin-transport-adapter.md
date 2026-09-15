@@ -1,7 +1,7 @@
 # 0126 - Make every Nest controller a thin transport adapter
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
