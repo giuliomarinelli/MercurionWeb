@@ -1,7 +1,7 @@
-import { MfaService } from './mfa.service';
+import { MfaApplicationService } from './mfa.service';
 
-describe('MfaService', () => {
-  let service: MfaService;
+describe('MfaApplicationService', () => {
+  let service: MfaApplicationService;
 
   beforeEach(() => {
     const configServiceMock = {
@@ -13,7 +13,7 @@ describe('MfaService', () => {
     };
     const loggerMock = { log: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() };
 
-    service = new MfaService(
+    service = new MfaApplicationService(
       {} as any, // backupCodeRepository
       {} as any, // dataSource
       {} as any, // passwordEncoderService
@@ -26,6 +26,7 @@ describe('MfaService', () => {
       {} as any, // sessionService
       {} as any, // redisService
       {} as any, // securityAuditService
+      {} as any, // policy
       { forContext: jest.fn().mockReturnValue(loggerMock) } as any // meiliLogger
     );
   });

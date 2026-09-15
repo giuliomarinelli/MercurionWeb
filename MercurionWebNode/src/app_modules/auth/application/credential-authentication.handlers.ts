@@ -19,7 +19,7 @@ import { redisDurations, redisKeys } from 'src/app_modules/redis/contracts/redis
 
 import { CompareResult } from '../Models/enums/compare-result.enum'
 import { GeoIpService, GeoLocation } from '../services/geo-ip.service'
-import { MfaService } from '../services/mfa.service'
+import { MfaChallengeService } from '../services/mfa-challenge.service'
 import { PasswordEncoderService } from '../services/password-encoder.service'
 import { SercurityService } from '../services/sercurity.service'
 import { SessionService } from '../services/session.service'
@@ -84,7 +84,7 @@ export class CredentialLoginHandler {
         private readonly userService: UserService,
         private readonly sessionService: SessionService,
         private readonly securityService: SercurityService,
-        private readonly mfaService: MfaService,
+        private readonly mfaService: MfaChallengeService,
         private readonly geoIpService: GeoIpService,
         private readonly redisService: RedisService,
         private readonly authenticationSession: AuthenticationSessionService,

@@ -12,7 +12,12 @@ import { PasswordChangeUseCase, PasswordRecoveryUseCase } from './application/pa
 import { AccountRecoveryUseCase } from './application/account-recovery.use-case';
 import { ProfileAccountUseCase } from './application/profile-account.use-case';
 import { AccountController } from './controllers/account.controller';
-import { MfaService } from './services/mfa.service';
+import { MfaApplicationService } from './services/mfa.service';
+import { MfaChallengeService } from './services/mfa-challenge.service';
+import { MfaEnrollmentService } from './services/mfa-enrollment.service';
+import { MfaBackupCodeService } from './services/mfa-backup-code.service';
+import { MfaPolicyService } from './services/mfa-policy.service';
+import { MfaStrategyRegistry } from './services/mfa-strategy-registry';
 import { AuthenticationController } from './controllers/authentication.controller';
 import { IpService } from './services/ip.service';
 import { GeoIpService } from './services/geo-ip.service';
@@ -97,7 +102,12 @@ import { SESSION_REPOSITORY } from './Models/interfaces/session-repository.inter
     PasswordRecoveryUseCase,
     AccountRecoveryUseCase,
     ProfileAccountUseCase,
-    MfaService,
+    MfaApplicationService,
+    MfaPolicyService,
+    MfaChallengeService,
+    MfaEnrollmentService,
+    MfaBackupCodeService,
+    MfaStrategyRegistry,
     AuthenticationSessionService,
     VerifyEmailHandler,
     CredentialLoginHandler,

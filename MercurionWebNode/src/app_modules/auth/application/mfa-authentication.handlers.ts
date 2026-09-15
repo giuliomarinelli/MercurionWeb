@@ -21,7 +21,7 @@ import { VerifyBodyDTO } from '../Models/DTO/verify-body.cls.dto.'
 import { TokenType } from '../Models/enums/token-type.enum'
 import { VerifyKind } from '../Models/enums/verify-kind.enum'
 import { JwtToolsService } from '../services/jwt-tools.service'
-import { MfaService } from '../services/mfa.service'
+import { MfaChallengeService } from '../services/mfa-challenge.service'
 import { SercurityService } from '../services/sercurity.service'
 import { SessionService } from '../services/session.service'
 import { AuthenticationSessionService } from './authentication-session.service'
@@ -46,7 +46,7 @@ export type StartMfaChallengeResult =
 export class StartMfaChallengeHandler {
     constructor(
         private readonly jwtTools: JwtToolsService,
-        private readonly mfaService: MfaService
+        private readonly mfaService: MfaChallengeService
     ) { }
 
     public async execute(
@@ -109,7 +109,7 @@ export class CompleteMfaLoginHandler {
 
     constructor(
         private readonly jwtTools: JwtToolsService,
-        private readonly mfaService: MfaService,
+        private readonly mfaService: MfaChallengeService,
         private readonly sessionService: SessionService,
         private readonly redisService: RedisService,
         private readonly userService: UserService,
