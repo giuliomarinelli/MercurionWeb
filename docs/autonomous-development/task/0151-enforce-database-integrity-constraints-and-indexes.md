@@ -1,7 +1,7 @@
 # 0151 - Enforce database integrity constraints and indexes
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
@@ -90,24 +90,72 @@ Prefer constraints that encode stable domain truth. Do not attempt to encode eve
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-002`
 ### Preflight
-_Not started._
+- Branch, base and cleanliness:
+  `git rev-parse --abbrev-ref HEAD` returned `feature/DATA-002`;
+  `git rev-parse develop` and `git rev-parse HEAD` both returned
+  `9bc8197d552141b83223353ae78331031febdcbd`; `git status --short --branch`
+  was clean.
+- Exact base Actions evidence: `gh run list --commit
+  9bc8197d552141b83223353ae78331031febdcbd --limit 10` reported successful
+  run `34969281141` for the `develop` merge.
+- Dependency `0150-establish-versioned-typeorm-migrations.md` is `[x] DONE`.
+- No Tox21, Nest or Angular runtime was started by this task. Process
+  inspection found Chrome DevTools MCP processes and a pre-existing Angular
+  test process (`ng test --watch=false ...dashboard-widget.mappers.spec.ts`);
+  no task-owned process was started or stopped.
+- The entity/migration inventory identified existing named foreign keys,
+  unique constraints, checks and workload indexes in the `0150` baseline, but
+  also identified application/schema gaps in SSO identity uniqueness and
+  molecule-collection ownership enforcement.
 ### Preflight remediation
-_None._
+None.
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0150 (DATA-001), which is BLOCKED. Resolved hard dependencies for this recipe: 0150. This task was never attempted and receives no feature branch.
+`BLOCKED` before implementation per the recipe stop condition. A read-only
+query against the configured development PostgreSQL database found `307`
+existing cross-owner molecule-collection joins:
+`molecule_collection_items_join.user_id` differs from the owning collection
+or item owner. The database also returned zero duplicate identity keys, zero
+duplicate join keys and zero orphan join references, but the 307 ownership
+violations prevent safely adding the required multi-column ownership
+relationship constraint. No approved cleanup, backfill, or data-ownership
+policy is present in this task or the repository. Adding a migration that
+would reject those persisted rows would therefore be unsafe.
+
+The canonical `npm run migration:drift --workspace mercurion_web_node`
+against the configured development database also failed with pre-existing
+schema drift and listed live constraints/indexes not represented by the
+`0150` entity metadata baseline; it was not used to mutate the database.
 ### Task-specific validation performed
-_Not started._
+Read-only database evidence only:
+
+```text
+auth_identity_duplicates=0
+join_duplicates=0
+join_orphans=0
+join_cross_owner=307
+synthesis_duplicates=0
+step_duplicates=0
+item_duplicates=0
+```
+
+No migration, source test, or schema mutation was run.
 ### Full pre-merge CI-parity validation
-_Not started._
+Not run. Local `npm ci` and `npm run ci:check` are forbidden, and the task
+was blocked before implementation.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+Blocking diagnostic commit on `feature/DATA-002` (below).
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+Not applicable before integration; the diagnostic feature SHA is pushed for
+preservation.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Terminal dependency root: 0150 (DATA-001). No feature branch or worker was created for this task.
+The database/domain owner must approve a non-destructive cleanup/backfill and
+ownership reconciliation policy for the 307 existing cross-owner joins, or
+explicitly redefine the ownership invariant. After that decision, rerun the
+inventory and add only constraints whose product semantics and existing-row
+handling are approved.
