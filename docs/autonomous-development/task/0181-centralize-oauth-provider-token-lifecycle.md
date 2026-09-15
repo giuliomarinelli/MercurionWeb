@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Put provider access/refresh tokens behind one owner-scoped credential boundary that encrypts persisted secrets, minimizes exposure, handles refresh/revocation/deletion explicitly and prevents tokens from appearing in DTOs, logs or generic Redis/database access.
