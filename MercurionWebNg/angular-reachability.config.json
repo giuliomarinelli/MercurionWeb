@@ -1,0 +1,93 @@
+{
+  "version": 1,
+  "entrypoints": [
+    "src/main.ts"
+  ],
+  "allowlistedNonProductionFiles": [
+    {
+      "file": "src/app/Models/graphql/notebook/notebook.models.ts",
+      "category": "deferred-feature",
+      "reason": "Notebook feature tree is management-deferred and excluded from the active program."
+    },
+    {
+      "file": "src/app/Models/notebook/lab-notebook-entry-model.interface.ts",
+      "category": "deferred-feature",
+      "reason": "Notebook feature tree is management-deferred and excluded from the active program."
+    },
+    {
+      "file": "src/app/components/notebook/lab-notebook-editor/lab-notebook-editor.component.ts",
+      "category": "deferred-feature",
+      "reason": "Notebook feature tree is management-deferred and excluded from the active program."
+    },
+    {
+      "file": "src/app/components/notebook/notebook-tree-index/notebook-toc.component.ts",
+      "category": "deferred-feature",
+      "reason": "Notebook feature tree is management-deferred and excluded from the active program."
+    },
+    {
+      "file": "src/app/components/notebook/notebook-tree/notebook-tree.component.ts",
+      "category": "deferred-feature",
+      "reason": "Notebook feature tree is management-deferred and excluded from the active program."
+    },
+    {
+      "file": "src/app/generated/schema.ts",
+      "category": "generated",
+      "reason": "Generated GraphQL schema types are maintained by codegen and are not runtime entrypoints."
+    },
+    {
+      "file": "src/app/pages/notebook/edit/edit.page.component.ts",
+      "category": "deferred-feature",
+      "reason": "Notebook feature tree is management-deferred and excluded from the active program."
+    },
+    {
+      "file": "src/app/pages/notebook/notebook-landing/notebook-landing.component.ts",
+      "category": "deferred-feature",
+      "reason": "Notebook feature tree is management-deferred and excluded from the active program."
+    },
+    {
+      "file": "src/app/services/graphql/notebook.service.ts",
+      "category": "deferred-feature",
+      "reason": "Notebook feature tree is management-deferred and excluded from the active program."
+    },
+    {
+      "file": "src/environments/environment.development.ts",
+      "category": "build-entrypoint",
+      "reason": "Angular development file replacement entrypoint."
+    },
+    {
+      "file": "src/environments/environment.staging.ts",
+      "category": "build-entrypoint",
+      "reason": "Angular staging file replacement entrypoint."
+    },
+    {
+      "file": "src/environments/environment.testing.ts",
+      "category": "build-entrypoint",
+      "reason": "Angular testing file replacement entrypoint."
+    },
+    {
+      "file": "src/polyfills.ts",
+      "category": "test-entrypoint",
+      "reason": "Legacy test configuration entrypoint retained for explicit test tooling compatibility."
+    },
+    {
+      "file": "src/shims/fs.ts",
+      "category": "tooling-entrypoint",
+      "reason": "TypeScript test/build path mapping shim."
+    },
+    {
+      "file": "src/shims/path.ts",
+      "category": "tooling-entrypoint",
+      "reason": "TypeScript test/build path mapping shim."
+    },
+    {
+      "file": "src/test-setup.ts",
+      "category": "test-entrypoint",
+      "reason": "Angular Karma test bootstrap entrypoint."
+    },
+    {
+      "file": "src/test.ts",
+      "category": "test-entrypoint",
+      "reason": "Legacy Angular test module entrypoint."
+    }
+  ]
+}
