@@ -134,3 +134,18 @@ _Not applicable._
 None. The existing installed `fastify-formidable` integration enforces the
 streaming file limit without a dependency change, and the existing 10 MiB/MIME
 policy was preserved.
+
+### CI repair attempt
+Exact feature-SHA Actions run `34973442358` for `31a679fea5c113146538232299fea4c23cde4b29`
+failed in the registered static/architecture gates on Ubuntu and Windows because
+the REST route ownership inventory still described `POST /api/documents` and
+omitted the implemented `POST /api/documents/upload` route. Following the
+workflow diagnostic, ran `node scripts/check-rest-route-ownership.mjs --write`
+and reviewed the generated single-file diff. The corrected entry now records the
+upload route as an active product feature owned by the document upload
+application service, with controller/service evidence; no unrelated route
+records changed.
+
+Focused repair validation passed:
+`npm run ci:rest-route-ownership` (inventory check and negative policy checks),
+`npm run ci:architecture`, and `git diff --check`.
