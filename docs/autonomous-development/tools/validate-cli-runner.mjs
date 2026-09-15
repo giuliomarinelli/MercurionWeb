@@ -29,10 +29,10 @@ const paths = {
   completedSession: 'docs/autonomous-development/session.48h-2026-09-03.yaml',
   exampleSession: 'docs/autonomous-development/session.example.yaml',
   closedSession: 'docs/autonomous-development/session.until-2026-09-10.yaml',
-  preparedSession: 'docs/autonomous-development/session.overweek-2026-09-23-v10.yaml',
+  preparedSession: 'docs/autonomous-development/session.overweek-2026-09-23-v11.yaml',
   completedLaunch: 'docs/autonomous-development/LAUNCH-2026-09-03-v2.md',
   closedLaunch: 'docs/autonomous-development/LAUNCH-2026-09-06.md',
-  preparedLaunch: 'docs/autonomous-development/LAUNCH-2026-09-15-overweek-v10.md',
+  preparedLaunch: 'docs/autonomous-development/LAUNCH-2026-09-15-overweek-v11.md',
   runtime: 'docs/autonomous-development/RUNTIME.md',
   workflow: '.github/workflows/ci.yml',
   classifier: '.github/scripts/classify-ci.mjs',
@@ -677,15 +677,15 @@ for (const command of ['/model', '/permissions show', '/mcp list', '/keep-alive 
 }
 
 for (const [pattern, message] of [
-  [/docs\/autonomous-development\/session\.overweek-2026-09-23-v10\.yaml/, 'prepared launch must reference its dated session configuration'],
+  [/docs\/autonomous-development\/session\.overweek-2026-09-23-v11\.yaml/, 'prepared launch must reference its dated session configuration'],
   [/2026-09-23T10:00:00\+02:00/, 'prepared launch must retain the exact soft deadline'],
   [/test-account login policy are integrated into `develop`/i, 'prepared launch must require the shared real test-account policy'],
   [/no\s+profile-persistence or pre-authenticated-state probe is a launch prerequisite/i, 'prepared launch must not depend on persisted profile authentication'],
   [/workload\.tasks` list is empty[\s\S]{0,120}every active recipe file is in\s*scope/i, 'prepared launch must select every active recipe'],
   [/there is no autonomous allowlist/i, 'prepared launch must explicitly disable workload restriction'],
-  [/expected first READY task[\s\S]{0,20}(?:is\s*)?0072/i, 'prepared launch must state the current expected first ready task'],
+  [/expected first READY task[\s\S]{0,20}(?:is\s*)?0081/i, 'prepared launch must state the current expected first ready task'],
   [/No pending recipe has an `authorized_recovery` entry/i, 'prepared launch must forbid implicit recovery of stale branches'],
-  [/Task 0136\/BE-022 is now `DONE`[\s\S]*five dependency skips[\s\S]*reset to `PENDING`/i, 'prepared launch must record the current dependency release'],
+  [/Task 0195\/QA-009 is now `DONE`[\s\S]*seven stale dependency skips[\s\S]*reset[\s\S]*to `PENDING`/i, 'prepared launch must record the current dependency release'],
   [/env\/\.env\.development[\s\S]{0,260}ordinary login[\s\S]{0,260}server/i, 'prepared launch must require a fresh server-accepted real-account login'],
   [/Do[\s\S]{0,10}not bundle tasks/, 'prepared launch must prohibit multi-task bundles'],
   [/npm run autonomous:plan/, 'prepared launch must execute the deterministic planner'],
@@ -706,13 +706,14 @@ for (const staleSessionReference of [
   'docs/autonomous-development/session.overweek-2026-09-20-v7.yaml',
   'docs/autonomous-development/session.overweek-2026-09-21-v8.yaml',
   'docs/autonomous-development/session.overweek-2026-09-23-v9.yaml',
+  'docs/autonomous-development/session.overweek-2026-09-23-v10.yaml',
 ]) {
   if (preparedLaunch.includes(staleSessionReference)) {
     fail(paths.preparedLaunch, `contains stale session reference ${staleSessionReference}`);
   }
 }
 const preparedSessionReference =
-  'docs/autonomous-development/session.overweek-2026-09-23-v10.yaml';
+  'docs/autonomous-development/session.overweek-2026-09-23-v11.yaml';
 if (preparedLaunch.split(preparedSessionReference).length - 1 !== 2) {
   fail(paths.preparedLaunch, 'must reference the active session exactly twice');
 }
@@ -925,19 +926,19 @@ for (const [pattern, message] of [
 
 for (const [pattern, message] of [
   [/browser_and_allowlist_hardening_pull_request:\s*31/, 'prepared session must record PR #31 provenance'],
-  [/name:\s*mercurion-code-red-0001-overweek-full-series-2026-09-23-v10/, 'prepared session must use a fresh session identity'],
+  [/name:\s*mercurion-code-red-0001-overweek-full-series-2026-09-23-v11/, 'prepared session must use a fresh session identity'],
   [/expected_task_count:\s*215/, 'prepared workload must contain 215 active tasks'],
   [/expected_deferred_task_count:\s*5/, 'prepared workload must record five deferred tasks'],
-  [/expected_current_done:\s*136/, 'prepared workload must record 136 DONE tasks'],
-  [/expected_current_blocked:\s*0/, 'prepared workload must record zero blockers'],
+  [/expected_current_done:\s*157/, 'prepared workload must record 157 DONE tasks'],
+  [/expected_current_blocked:\s*4/, 'prepared workload must record four blockers'],
   [/expected_current_reverted:\s*0/, 'prepared workload must record zero reverted tasks'],
-  [/expected_current_skipped_dependency:\s*0/, 'prepared workload must record zero terminal skips'],
-  [/expected_current_pending:\s*79/, 'prepared workload must record 79 pending tasks'],
-  [/expected_first_ready_task:\s*"0072"/, 'prepared workload must start from task 0072'],
-  [/expected_planner_ready:\s*11/, 'prepared workload must record 11 ready tasks'],
-  [/expected_planner_waiting_dependency:\s*68/, 'prepared workload must record 68 waiting tasks'],
+  [/expected_current_skipped_dependency:\s*12/, 'prepared workload must record 12 terminal skips'],
+  [/expected_current_pending:\s*42/, 'prepared workload must record 42 pending tasks'],
+  [/expected_first_ready_task:\s*"0081"/, 'prepared workload must start from task 0081'],
+  [/expected_planner_ready:\s*9/, 'prepared workload must record 9 ready tasks'],
+  [/expected_planner_waiting_dependency:\s*33/, 'prepared workload must record 33 waiting tasks'],
   [/tasks:\s*\[\]/, 'prepared workload must select the complete Series'],
-  [/expected_autonomous_pending:\s*79/, 'prepared workload must record all 79 active pending tasks in scope'],
+  [/expected_autonomous_pending:\s*42/, 'prepared workload must record all 42 active pending tasks in scope'],
   [/expected_human_led_pending:\s*0/, 'prepared workload must not exclude pending tasks'],
   [/autonomous_execution_scope:\s*complete-series/, 'prepared workload must declare complete-Series execution'],
   [/dependency_planner:[\s\S]*output:\s*versioned-json/, 'prepared session must use deterministic planner output'],
@@ -960,7 +961,7 @@ for (const [pattern, message] of [
   [/LOCAL_DUMMY_AUTH:\s*"false"/, 'prepared session must disable deprecated local dummy auth'],
   [/required_once_before_enabling_unattended_reuse:\s*false/, 'prepared session must not gate launch on profile persistence'],
   [/preserve_existing_frozen_branches:\s*true/, 'prepared session must preserve frozen blocked branches'],
-  [/blocked_branch_policy:[\s\S]*branches:[\s\S]*- feature\/SYS-020/, 'prepared session must preserve the deferred Notebook branch'],
+  [/blocked_branch_policy:[\s\S]*branches:[\s\S]*- feature\/UI-014[\s\S]*- feature\/BE-012[\s\S]*- feature\/BE-033[\s\S]*- feature\/DATA-030[\s\S]*- feature\/SYS-020/, 'prepared session must preserve all frozen and deferred branches'],
   [/stop_and_report_exact_denial:\s*false/, 'prepared session must not stop on a denied prerequisite'],
   [/enter_session_recovery_pending:\s*true/, 'prepared session must recover from denied prerequisites'],
   [/SESSION_BRANCH_COLLISION_PAUSE/, 'prepared session must declare branch collision as transient'],
