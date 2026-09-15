@@ -1,5 +1,6 @@
 import type { UUID } from 'crypto'
 import { isUUID } from 'class-validator'
+import { isIP } from 'node:net'
 
 export enum Environment {
     Development = 'development',
@@ -194,6 +195,30 @@ function jsonStringListParser(): EnvironmentValueParser<string[]> {
     }
 }
 
+function ipCidrListParser(): EnvironmentValueParser<string[]> {
+    const constraint = 'a non-empty JSON array of IP addresses or CIDR ranges'
+    return {
+        kind: 'json-string-list',
+        constraint,
+        example: ['127.0.0.1/32', '::1/128'],
+        parse(value, source) {
+            const values = jsonStringListParser().parse(value, source)
+            if (values.length === 0 || values.some(entry => {
+                const [address, rawPrefix, ...extra] = entry.split('/')
+                const version = isIP(address)
+                if (version === 0 || extra.length > 0) return true
+                if (rawPrefix === undefined) return false
+                if (!/^\d+$/.test(rawPrefix)) return true
+                const prefix = Number(rawPrefix)
+                return prefix < 0 || prefix > (version === 4 ? 32 : 128)
+            })) {
+                return invalid(source, constraint)
+            }
+            return values
+        }
+    }
+}
+
 function uuidParser(): EnvironmentValueParser<UUID> {
     return {
         kind: 'uuid',
@@ -257,7 +282,7 @@ export const environmentSchema = defineEnvironmentSchema(
     required('APP_PROJECT_NAME', string()),
     required('APP_GLOBAL_NAME', string()),
     required('APP_PROJECT_ID', uuidParser()),
-    required('APP_CORS_ORIGINS', jsonStringListParser()),
+    required('APP_TRUSTED_PROXY_CIDRS', ipCidrListParser()),
     required('APP_USER_ACTIVATION_ORIGIN', string()),
     required('APP_HOST', string()),
     required('APP_SESSION_SIGNATURE_SECRET', string()),

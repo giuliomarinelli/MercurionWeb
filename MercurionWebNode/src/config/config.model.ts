@@ -8,6 +8,7 @@ import {
     type ValidatedEnvironment
 } from './config.schema'
 import { createNatsServerUrl } from './nats-endpoint'
+import { createTransportSecurityPolicy } from './transport-security.policy'
 
 type ConfigurationBuilder = (environment: ValidatedEnvironment) => object
 
@@ -25,7 +26,10 @@ export const configurationBuilders = {
         ),
         projectName: environment.APP_PROJECT_NAME,
         projectId: environment.APP_PROJECT_ID,
-        corsOrigins: environment.APP_CORS_ORIGINS,
+        transportSecurity: createTransportSecurityPolicy(
+            environment.APP_ENV,
+            environment.APP_TRUSTED_PROXY_CIDRS
+        ),
         activationOrigin: environment.APP_USER_ACTIVATION_ORIGIN,
         globalName: environment.APP_GLOBAL_NAME,
         host: environment.APP_HOST,

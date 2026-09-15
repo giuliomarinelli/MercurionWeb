@@ -2,7 +2,6 @@ import fastifyCookie from '@fastify/cookie'
 import { randomUUID } from 'crypto'
 import type { BootstrapDependencies } from '../bootstrap.types'
 import type { SecureCookieConfiguration } from '../../config/config.types'
-import { isValidIp } from '../../config/rate-limit.config'
 import { Environment } from '../../config/config.schema'
 
 export async function configureCookiesAndRequestContext(
@@ -42,12 +41,10 @@ export async function configureCookiesAndRequestContext(
     }
 
     const mockIp = req.headers['x-mock-ip']?.toString().trim()
-    const cfIpRaw = req.headers['cf-connecting-ip']?.toString().trim()
-    const cfIp = isValidIp(cfIpRaw) ? cfIpRaw : undefined
     const localRequest = dependencies.env === Environment.Development ||
       dependencies.env === Environment.Test
     req.headers['x-client-ip'] =
-      localRequest && mockIp ? mockIp : (cfIp || req.ip)
+      localRequest && mockIp ? mockIp : req.ip
     done()
   })
 
