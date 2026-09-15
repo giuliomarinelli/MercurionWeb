@@ -154,7 +154,9 @@ Task-specific validation performed. Runtime sessions were stopped after the
 incident and no task-owned runtime process remained.
 
 ### Commits
-Pending blocked-attempt commit.
+`2c38e2ef` implementation commit was published first. The preserved branch
+contains the subsequent note correction and non-rewriting reconciliation commits
+`fd42c0e1` and `408c57ec`.
 
 ### Merge / CI
 No merge. The preserved blocked-attempt commit was published to
