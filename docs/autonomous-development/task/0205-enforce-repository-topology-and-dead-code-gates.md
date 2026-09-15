@@ -137,9 +137,8 @@ pre-merge CI evidence target.
 ### Browser validation performed
 _Not started / not applicable._
 ### Commits
-Pending task commit: topology aggregate, deterministic reports, CI artifact
-upload, JSON graph output, negative fixture aggregation, and this execution
-record.
+`0c5f6413` — topology aggregate, deterministic reports, CI artifact upload,
+JSON graph output, negative fixture aggregation, and execution record.
 ### Merge / CI
 _Not started._
 ### Rollback
