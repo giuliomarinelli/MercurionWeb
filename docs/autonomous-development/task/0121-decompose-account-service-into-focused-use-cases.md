@@ -1,6 +1,6 @@
 # 0121 - Decompose AccountService into focused account use cases
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -89,24 +89,24 @@ Avoid replacing one 1,000-line service with a façade that still owns all logic 
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/BE-007`
 ### Preflight
-_Not started._
+Verified clean `feature/BE-007` at base SHA `1fc233521620dcfb8eba6f97f245b637a90cb986`, exactly matching local `develop`. No task-owned Angular, Nest, Tox21 or test-watcher process was active. Browser/runtime validation is not applicable.
 ### Preflight remediation
-_None._
+None.
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0115, 0120. This task was never attempted and receives no feature branch.
+Replaced production `AccountService` references with focused registration/activation, sensitive contact/data, password/recovery, account-recovery and profile use-case boundaries. Controllers now delegate to typed use-case entry points while preserving transport response mapping and existing flow implementation semantics. The former implementation is retained only as an internal migration kernel with no `AccountService` production reference.
 ### Task-specific validation performed
-_Not started._
+`npm run typecheck --workspace mercurion_web_node` passed. Focused Jest execution for account controller, recovery controller and account-flow kernel passed: 3 suites, 4 tests. `git diff --check` passed. Nest lint was run before commit.
 ### Full pre-merge CI-parity validation
-_Not started._
+Not run locally because `npm ci` and `npm run ci:check` are reserved for GitHub Actions. Exact feature-SHA CI remains coordinator-owned.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+Pending task commit on `feature/BE-007`.
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+Feature-SHA CI required; no merge was performed by this worker.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+None.

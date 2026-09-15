@@ -5,7 +5,12 @@ import { JwtService } from '@nestjs/jwt';
 import { SessionService } from './services/session.service';
 import { SecureCookieService } from './services/secure-cookie.service';
 import { SercurityService } from './services/sercurity.service';
-import { AccountService } from './services/account.service';
+import { AccountFlowKernel } from './application/account-flow-kernel';
+import { AccountRegistrationUseCase, AccountActivationUseCase, AccountEmailAvailabilityQuery } from './application/account-registration.use-case';
+import { AccountSensitiveDataUseCase } from './application/account-sensitive-data.use-case';
+import { PasswordChangeUseCase, PasswordRecoveryUseCase } from './application/password-recovery.use-case';
+import { AccountRecoveryUseCase } from './application/account-recovery.use-case';
+import { ProfileAccountUseCase } from './application/profile-account.use-case';
 import { AccountController } from './controllers/account.controller';
 import { MfaService } from './services/mfa.service';
 import { AuthenticationController } from './controllers/authentication.controller';
@@ -83,7 +88,15 @@ import { SESSION_REPOSITORY } from './Models/interfaces/session-repository.inter
     SessionService,
     SecureCookieService,
     SercurityService,
-    AccountService,
+    AccountFlowKernel,
+    AccountRegistrationUseCase,
+    AccountActivationUseCase,
+    AccountEmailAvailabilityQuery,
+    AccountSensitiveDataUseCase,
+    PasswordChangeUseCase,
+    PasswordRecoveryUseCase,
+    AccountRecoveryUseCase,
+    ProfileAccountUseCase,
     MfaService,
     AuthenticationSessionService,
     VerifyEmailHandler,

@@ -1,7 +1,7 @@
 import { Body, Controller, HttpCode, HttpStatus, Post, Res, UseGuards, ValidationPipe } from '@nestjs/common';
 import { RecoveryCodeDTO } from '../Models/DTO/recovery-code.cls.dto';
 import { ConfirmWithRecoveryCodeDTO, ConfirmWithRecoveryTokenDTO } from 'src/Models/confirm-responses.dto';
-import { AccountService } from '../services/account.service';
+import { AccountRecoveryUseCase } from '../application/account-recovery.use-case';
 import { ResponseService } from 'src/services/response.service';
 import { Authorization, Public } from 'src/metadata/metadata';
 import { TurnstileGuard } from '../guards/turnstile.guard';
@@ -18,7 +18,7 @@ export class RecoveryController {
     private readonly cookieConf: CookieConfiguration
 
     constructor(
-        private readonly accountService: AccountService,
+        private readonly accountRecovery: AccountRecoveryUseCase,
         private readonly secureCookieService: SecureCookieService,
         private readonly configService: ConfigService,
         private readonly _r: ResponseService
@@ -37,7 +37,7 @@ export class RecoveryController {
     ): Promise<ConfirmWithRecoveryTokenDTO> {
         return {
             ...this._r.ok('Account recovery first step went on successfully'),
-            recoveryToken: await this.accountService.recoverAccount_firstStep(code)
+            recoveryToken: await this.accountRecovery.firstStep(code)
         }
     }
 
@@ -57,7 +57,7 @@ export class RecoveryController {
         })
         return {
             ...this._r.ok('Account recovery second step went on successfully'),
-            recoveryCode: await this.accountService.recoverAccount_secondStep(dto, secureToken)
+            recoveryCode: await this.accountRecovery.secondStep(dto, secureToken)
         }
     }
 
