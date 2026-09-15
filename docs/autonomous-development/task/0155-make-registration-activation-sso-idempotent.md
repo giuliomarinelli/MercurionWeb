@@ -142,6 +142,29 @@ validation remains not applicable.
 ### Repair commit
 `d44169f5` — Register DATA-006 auth idempotency migration in the Nest
 reachability configuration (includes the required Copilot co-author trailer).
+### CI repair attempt 2
+Exact feature SHA `0bc93a254f5f16330216f9ece50a8b9bd30a88ef` failed Actions run
+`35034099080`, PostgreSQL migration schema job `104600275304`, because entity
+metadata attempted to drop the migration-backed registration and activation
+receipt indexes/foreign key and recreate the JTI index. The narrow correction
+aligned entity metadata with migration `1789560000000-AddAuthIdempotency`:
+`User.registrationIdentity` now declares the named partial unique index,
+`ActivationReceipt` declares the named user index and cascade foreign-key
+relation, and its primary-key JTI is no longer redundantly declared as a
+unique index.
+Focused repair validation:
+- `npm run typecheck --workspace mercurion_web_node` — passed.
+- `npm test --workspace mercurion_web_node -- --runInBand src/app_modules/sso/services/social-auth.service.spec.ts src/app_modules/auth/application/account-flow-kernel.spec.ts` — passed, 2 suites / 3 tests.
+- `npm run lint --workspace mercurion_web_node` — passed with `--max-warnings 0`.
+- `npm run build --workspace mercurion_web_node` — passed.
+- `git diff --check` — passed.
+- `npm run migration:drift --workspace mercurion_web_node` — could not reach
+  schema inspection because this worker lacks the required `SQL_DATABASE_*`
+  environment; it failed before database connection with the existing
+  configuration diagnostic. The exact PostgreSQL reproducer remains
+  Actions-owned.
+No Angular, Nest, Tox21, Chrome, or runtime process was started; browser
+validation remains not applicable.
 ### Merge / CI
 Feature branch publication follows the task commit. No develop/master changes.
 ### Rollback

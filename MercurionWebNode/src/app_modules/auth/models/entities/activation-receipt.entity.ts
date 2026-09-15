@@ -1,14 +1,22 @@
 import { UUID } from 'crypto'
-import { Column, Entity, Index } from 'typeorm'
+import { Column, Entity, Index, JoinColumn, ManyToOne } from 'typeorm'
+import { User } from '../../../user/models/entities/user.entity'
 
 @Entity('account_activation_receipts')
-@Index('uq_account_activation_receipts_jti', ['jti'], { unique: true })
+@Index('idx_account_activation_receipts_user', ['userId'])
 export class ActivationReceipt {
   @Column({ type: 'varchar', length: 255, primary: true })
   jti!: string
 
   @Column({ type: 'uuid' })
   userId!: UUID
+
+  @ManyToOne(() => User, {
+    onDelete: 'CASCADE',
+    nullable: false
+  })
+  @JoinColumn({ name: 'user_id' })
+  user!: User
 
   @Column({ type: 'varchar', length: 320 })
   email!: string
