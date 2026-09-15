@@ -350,7 +350,7 @@ export class AccountFlowKernel {
         const accountRecoveryCodeHash = await this.passwordEncoder.encode(recoveryCode)
         return this.unitOfWork.run(async (context) => {
             const email = await this.userService.activateAccount(userId, accountRecoveryCodeHash, context)
-            await this.initialWorkspace.createForUser(userId, context)
+            await this.initialWorkspace.initializeForUser(userId, context)
             afterTransactionCommit(context, async () => {
                 await this.sessionService.revokeToken(jti)
                 await this.redisService.del(this.getRegistrationLockRedisKey(email))

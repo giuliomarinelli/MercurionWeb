@@ -130,7 +130,7 @@ export class SocialAuthService {
 
                     const userId = user.id
 
-                    await this.initialWorkspace.createForUser(userId, context)
+                    await this.initialWorkspace.initializeForUser(userId, context)
 
                 } else {
 
