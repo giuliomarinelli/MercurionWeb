@@ -1,14 +1,14 @@
 import { Field, ID, InputType } from "@nestjs/graphql";
 import { Transform } from "class-transformer";
-import { IsOptional, IsString, IsUUID } from "class-validator";
+import { IsOptional, IsString } from "class-validator";
 import { GeneralUtils } from "src/utils/general-utils/general-utils";
+import { IsMercurionPublicId } from "src/identifiers/mercurion-public-id";
 
 @InputType()
 export class UpdateSectionInput {
 
-  @IsUUID()
+  @IsMercurionPublicId()
   @Field(() => ID)
-  @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
   id!: string
 
   @IsOptional()

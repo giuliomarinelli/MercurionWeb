@@ -7,17 +7,13 @@ import { GraphQLResolveInfo } from 'graphql';
 import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
 import { GraphQLFieldsMap } from 'src/utils/type-orm-utils/type-orm-utils';
 import { UpdateLabNotebookInput } from '../models/dto/update-lab-notebook-input';
-import { GeneralUtils } from 'src/utils/general-utils/general-utils';
+import { assertMercurionPublicId } from 'src/identifiers/mercurion-public-id';
 
 
 @Resolver(() => LabNotebook)
 export class LabNotebookResolver {
 
     constructor(private readonly notebookService: LabNotebookService) { }
-
-    private ensureUuid(value: string, field: string): void {
-        GeneralUtils.ensureValidUUIDv7(value, `GraphQLInvalid::Invalid ${field}`)
-    }
 
     @Query(() => [LabNotebook])
     async labNotebooksByUser(
@@ -34,7 +30,7 @@ export class LabNotebookResolver {
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
     ): Promise<LabNotebook | null> {
-        this.ensureUuid(id, 'id')
+        assertMercurionPublicId(id, 'id')
         const fieldsMap = GraphQLUtils.getFieldsMap(info) as GraphQLFieldsMap
         return this.notebookService.findOne(id as UUID, userId, fieldsMap)
     }
@@ -52,7 +48,7 @@ export class LabNotebookResolver {
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
     ): Promise<LabNotebook | null> {
-        this.ensureUuid(id, 'id')
+        assertMercurionPublicId(id, 'id')
         const fieldsMap = GraphQLUtils.getFieldsMap(info) as GraphQLFieldsMap
         return this.notebookService.update(id as UUID, userId, input, fieldsMap)
     }
@@ -61,7 +57,7 @@ export class LabNotebookResolver {
     async deleteLabNotebook(@Args('id', { type: () => ID }) id: string,
         @AuthenticatedUserId() userId: UUID
     ): Promise<boolean> {
-        this.ensureUuid(id, 'id')
+        assertMercurionPublicId(id, 'id')
         return this.notebookService.delete(id as UUID, userId)
     }
 

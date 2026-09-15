@@ -9,7 +9,6 @@ import {
     UseInterceptors,
     ClassSerializerInterceptor,
     Query,
-    BadRequestException
 } from '@nestjs/common'
 import { UUID } from 'crypto'
 import { FeedbackService } from '../services/feedback.service'
@@ -25,6 +24,10 @@ import {
     isApplicationError
 } from 'src/exception-handling/application-error'
 import { GeneralUtils } from 'src/utils/general-utils/general-utils'
+import {
+    MercurionPublicIdPipe,
+    type MercurionPublicId
+} from 'src/identifiers/mercurion-public-id'
 import { FlatPagination } from 'src/models/flat-pagination.interface'
 import type { DeleteFeedbackResponse } from '@mercurion/rest-contracts'
 
@@ -65,10 +68,7 @@ export class FeedbackController {
 
     @Get(':id')
     @HasScopes(Scope.ReadFeedback)
-    async getById(@Param('id') id: UUID): Promise<Feedback> | never {
-        if (!GeneralUtils.isValidUUIDv7(id)) {
-            throw new BadRequestException('Invalid id')
-        }
+    async getById(@Param('id', MercurionPublicIdPipe) id: MercurionPublicId): Promise<Feedback> | never {
         const f = await this.feedbackService.getFeedbackById(id)
         if (!f) {
             throw applicationHttpException(ApplicationErrorCode.FEEDBACK_NOT_FOUND)
@@ -79,21 +79,15 @@ export class FeedbackController {
     @Patch(':id')
     @HasScopes(Scope.UpdateFeedback)
     async moderate(
-        @Param('id') id: UUID,
+        @Param('id', MercurionPublicIdPipe) id: MercurionPublicId,
         @Body() dto: UpdateFeedbackDTO
     ): Promise<Feedback> {
-        if (!GeneralUtils.isValidUUIDv7(id)) {
-            throw new BadRequestException('Invalid id')
-        }
         return this.feedbackService.moderateFeedback(id, dto)
     }
 
     @Delete(':id')
     @HasScopes(Scope.DeleteFeedback)
-    async delete(@Param('id') id: UUID): Promise<DeleteFeedbackResponse> {
-        if (!GeneralUtils.isValidUUIDv7(id)) {
-            throw new BadRequestException('Invalid id')
-        }
+    async delete(@Param('id', MercurionPublicIdPipe) id: MercurionPublicId): Promise<DeleteFeedbackResponse> {
         try {
             await this.feedbackService.deleteFeedback(id)
             return { ok: true }

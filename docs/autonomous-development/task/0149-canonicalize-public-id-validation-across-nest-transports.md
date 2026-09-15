@@ -1,6 +1,6 @@
 # 0149 - Canonicalize public ID validation across Nest transports
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -85,24 +85,43 @@ Mark `BLOCKED` if an existing public ID family mixes UUID versions in production
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/BE-035`, based on `develop` `ce65612e47485cf11f65ddbfd0fb8a59b187d13b`.
 ### Preflight
-_Not started._
+Clean feature worktree confirmed. `git rev-parse develop` and `git rev-parse HEAD`
+both returned `ce65612e47485cf11f65ddbfd0fb8a59b187d13b`; local
+`commit.gpgSign` is `false`. Dependencies `0127`, `0140`, and `0141` are
+`DONE`. No task-owned Angular, Nest, Tox21, or watcher process was started.
 ### Preflight remediation
-_None._
+None.
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0127, 0140, 0141. This task was never attempted and receives no feature branch.
+Added the canonical branded Mercurion public-ID contract for UUIDv7 values,
+including shared validation, typed `PUBLIC_ID_INVALID` errors, a REST pipe,
+GraphQL scalar, and class-validator decorator. Migrated governed Nest GraphQL
+resolvers and DTOs to the canonical path, while leaving OAuth/provider state
+and ChEMBL `_uuid_` opaque. Added a CI static policy to prevent resolver-local
+UUID validators, generic `@IsUUID`, and ad-hoc UUID regexes.
 ### Task-specific validation performed
-_Not started._
+`npm run ci:public-id-validation`; `npm run typecheck --workspace
+mercurion_web_node`; `npm test --workspace mercurion_web_node -- --runInBand
+src/identifiers/mercurion-public-id.spec.ts
+src/app_modules/feedback/controllers/feedback.controller.spec.ts`; and
+`npm run build --workspace mercurion_web_node`; plus
+`npm run lint --workspace mercurion_web_node` all passed. Canonical tests cover
+valid UUIDv7, uppercase hex, malformed values, wrong versions, whitespace,
+REST/GraphQL parity, and stable application error classification.
 ### Full pre-merge CI-parity validation
-_Not started._
+Deferred to exact feature-SHA GitHub Actions; local `npm ci` and
+`npm run ci:check` were not run.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+Recorded on `feature/BE-035` after task-specific validation; see feature
+branch history.
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+Feature branch pushed for exact-SHA CI; integration remains coordinator-owned.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+None. Entity inventory confirmed Mercurion-generated public IDs are UUIDv7;
+OAuth/provider state and ChEMBL identifiers are opaque and were not
+canonicalized.

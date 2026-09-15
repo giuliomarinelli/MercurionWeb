@@ -1,14 +1,14 @@
 import { Field, InputType } from "@nestjs/graphql";
 import { Transform } from "class-transformer";
-import { IsString, IsUUID } from "class-validator";
+import { IsString } from "class-validator";
+import { IsMercurionPublicId } from "src/identifiers/mercurion-public-id";
 import { GeneralUtils } from "src/utils/general-utils/general-utils";
 
 @InputType()
 export class CreateChapterInput {
 
-    @IsUUID()
+    @IsMercurionPublicId()
     @Field()
-    @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
     notebookId!: string
     @IsString()
     @Field()

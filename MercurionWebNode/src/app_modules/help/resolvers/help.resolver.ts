@@ -15,6 +15,7 @@ import { JsonValue } from 'src/models/json.types'
 import GraphQLJSON from 'graphql-type-json'
 import { PaginatedTicket } from '../models/dto/paginated-ticket.type.gql'
 import { GeneralUtils } from 'src/utils/general-utils/general-utils'
+import { assertMercurionPublicId } from 'src/identifiers/mercurion-public-id'
 import { PaginatedTicketMessage } from '../models/dto/paginated-ticket-message.type.gql'
 import { Pagination } from 'nestjs-typeorm-paginate'
 
@@ -28,10 +29,6 @@ export class HelpResolver {
         return GeneralUtils.paginationToFlatPaginationConverter(pagination)
     }
 
-    private ensureUuidv7(value: string, field: string): void {
-        GeneralUtils.ensureValidUUIDv7(value, `GraphQLInvalid::Invalid ${field}`)
-    }
-
     // --------------------------------
     // USER QUERIES (owner)
     // --------------------------------
@@ -43,7 +40,7 @@ export class HelpResolver {
         @Info() info: GraphQLResolveInfo,
         @Scopes() scopes: Scope[]
     ): Promise<TicketDetailDTO> {
-        this.ensureUuidv7(ticketId, 'ticketId')
+        assertMercurionPublicId(ticketId, 'ticketId')
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         return this.helpService.getTicketDetail(
             ticketId,
@@ -82,7 +79,7 @@ export class HelpResolver {
         @Info() info: GraphQLResolveInfo,
         @Scopes() scopes: Scope[]
     ): Promise<PaginatedTicketMessage> {
-        this.ensureUuidv7(ticketId, 'ticketId')
+        assertMercurionPublicId(ticketId, 'ticketId')
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         const pagination = await this.helpService.listTicketMessages(ticketId, userId, { page, limit }, fieldsMap, true, scopes.includes(Scope.ViewUsers))
         return this.flattenPagination(pagination)
@@ -94,7 +91,7 @@ export class HelpResolver {
         @AuthenticatedUserId() userId: UUID,
         @Args('ticketId', { type: () => ID }) ticketId: UUID
     ): Promise<boolean> {
-        this.ensureUuidv7(ticketId, 'ticketId')
+        assertMercurionPublicId(ticketId, 'ticketId')
         return this.helpService.existsUserTicketById(userId, ticketId)
     }
 
@@ -121,7 +118,7 @@ export class HelpResolver {
         @Args('contentDelta', { type: () => GraphQLJSON }) contentDelta: JsonValue,
         @Args('contentHtml') contentHtml: string,
     ): Promise<boolean> {
-        this.ensureUuidv7(ticketId, 'ticketId')
+        assertMercurionPublicId(ticketId, 'ticketId')
         await this.helpService.addUserMessage({ ticketId, userId, contentDelta, contentHtml })
         return true
     }
@@ -131,7 +128,7 @@ export class HelpResolver {
         @AuthenticatedUserId() userId: UUID,
         @Args('ticketId', { type: () => ID }) ticketId: UUID,
     ): Promise<boolean> {
-        this.ensureUuidv7(ticketId, 'ticketId')
+        assertMercurionPublicId(ticketId, 'ticketId')
         // ownership check implicito: se non è tuo, TicketNotFound
         await this.helpService.getTicketDetail(
             ticketId,
@@ -155,7 +152,7 @@ export class HelpResolver {
         @Info() info: GraphQLResolveInfo,
         @Scopes() scopes: Scope[]
     ): Promise<TicketDetailDTO> {
-        this.ensureUuidv7(ticketId, 'ticketId')
+        assertMercurionPublicId(ticketId, 'ticketId')
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         return this.helpService.getTicketDetail(
             ticketId,
@@ -198,7 +195,7 @@ export class HelpResolver {
         @Info() info: GraphQLResolveInfo,
         @Scopes() scopes: Scope[]
     ): Promise<PaginatedTicketMessage> {
-        this.ensureUuidv7(ticketId, 'ticketId')
+        assertMercurionPublicId(ticketId, 'ticketId')
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         const pagination = await this.helpService.listTicketMessages(ticketId, userId, { page, limit }, fieldsMap, false, scopes.includes(Scope.ViewUsers))
         return this.flattenPagination(pagination)
@@ -215,7 +212,7 @@ export class HelpResolver {
         @Args('contentDelta', { type: () => GraphQLJSON }) contentDelta: JsonValue,
         @Args('contentHtml') contentHtml: string,
     ): Promise<boolean> {
-        this.ensureUuidv7(ticketId, 'ticketId')
+        assertMercurionPublicId(ticketId, 'ticketId')
         await this.helpService.addSupportMessage({ ticketId, contentDelta, contentHtml })
         return true
     }
@@ -225,7 +222,7 @@ export class HelpResolver {
     async closeTicketAsSupport(
         @Args('ticketId', { type: () => ID }) ticketId: UUID,
     ): Promise<boolean> {
-        this.ensureUuidv7(ticketId, 'ticketId')
+        assertMercurionPublicId(ticketId, 'ticketId')
         await this.helpService.closeTicket(ticketId)
         return true
     }
@@ -235,7 +232,7 @@ export class HelpResolver {
     async reopenTicketAsSupport(
         @Args('ticketId', { type: () => ID }) ticketId: UUID,
     ): Promise<boolean> {
-        this.ensureUuidv7(ticketId, 'ticketId')
+        assertMercurionPublicId(ticketId, 'ticketId')
         await this.helpService.reopenTicket(ticketId)
         return true
     }
