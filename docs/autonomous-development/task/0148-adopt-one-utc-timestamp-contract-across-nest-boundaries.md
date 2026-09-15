@@ -156,7 +156,8 @@ applicable.
 boundaries` (created with `git commit --no-gpg-sign`).
 `0fe076024` — `docs(task): finalize BE-034 execution notes`
 `(created with git commit --no-gpg-sign)`.
-CI repair commit is pending push from the repair worker.
+`2f66f609` — `fix(ci): repair BE-034 compatibility and MFA checks`
+(created with git commit --no-gpg-sign).
 ### Merge / CI
 Feature-SHA CI is coordinator-owned and required before integration.
 ### Rollback
