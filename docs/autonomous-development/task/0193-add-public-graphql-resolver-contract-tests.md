@@ -112,7 +112,7 @@ Not run locally; forbidden by repository policy. Exact feature-SHA GitHub Action
 ### Browser validation performed
 Not applicable: the recipe declares browser validation not required.
 ### Commits
-Pending task-specific commit.
+- `7772e71285be54f42931c95c03531f124fcc2bbd` — `test: add public GraphQL resolver contracts`.
 ### Merge / CI
 Feature branch will be pushed only after the task-specific commit; exact-SHA CI is coordinator-owned.
 ### Rollback
