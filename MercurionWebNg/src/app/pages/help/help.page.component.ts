@@ -16,7 +16,7 @@ import { Observable, Subscription, firstValueFrom, map, of, switchMap, take, tap
 import { AuthSessionRepository } from '../../services/auth-session-repository.service'
 import { HelpService } from '../../services/graphql/help.service'
 import { TypeGuardsService } from '../../services/type-guards.service'
-import { AbstractPaginationComponent } from '../../abstract/abstract-pagination-component'
+import { PaginationController } from '../../services/pagination/pagination-controller'
 import { PageModel } from '../../Models/graphql/page.models'
 import {
   ClientTicket,
@@ -121,7 +121,7 @@ import { PaginationComponent } from '../../components/common/pagination/paginati
 
   `
 })
-export class HelpPageComponent extends AbstractPaginationComponent<TicketViewModel> implements OnInit, OnDestroy, AfterViewInit {
+export class HelpPageComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private readonly authService = inject(AuthSessionRepository)
   private readonly helpService = inject(HelpService)
@@ -131,8 +131,27 @@ export class HelpPageComponent extends AbstractPaginationComponent<TicketViewMod
   private readonly cdr = inject(ChangeDetectorRef)
   private readonly route = inject(ActivatedRoute)
   private readonly router = inject(Router)
+  private readonly pagination = new PaginationController<TicketViewModel>({
+    fetch: (page) => {
+      const request = this.activeTab() === 1 && this.handleTickets()
+        ? this.helpService.ticketsAsSupport(page, this.ITEMS_PER_PAGE)
+        : this.helpService.myTickets(page, this.ITEMS_PER_PAGE)
+      return request.pipe(
+        map(res => ({ ...res, items: res.items.map(toTicketViewModel) })),
+        tap(res => this.totalItems.set(res.totalItems))
+      )
+    }
+  })
+  private observer?: IntersectionObserver
 
-  protected override readonly sentinel = viewChild<ElementRef<HTMLDivElement>>('sentinel');
+  protected readonly sentinel = viewChild<ElementRef<HTMLDivElement>>('sentinel');
+  get items(): TicketViewModel[] { return this.pagination.items() }
+  get loading(): boolean { return this.pagination.loading() }
+  get done(): boolean { return this.pagination.done() }
+  get earlyDone(): boolean { return this.pagination.earlyDone() }
+  get page(): number { return this.pagination.page() }
+  get empty(): ReturnType<typeof signal<boolean>> { return this.pagination.empty }
+  paginationState() { return this.pagination.paginationState() }
 
   protected readonly tabs = ['Sezione utente', 'Sezione admin']
   private readonly ITEMS_PER_PAGE = 25
@@ -145,8 +164,6 @@ export class HelpPageComponent extends AbstractPaginationComponent<TicketViewMod
   totalItems = signal<number>(0)
 
   constructor() {
-    super()
-
     effect(() => {
       const event = this.invalidations.last()
       if (event?.domain !== 'ticket' || event.action !== 'changed') return
@@ -167,7 +184,7 @@ export class HelpPageComponent extends AbstractPaginationComponent<TicketViewMod
         .includes('HandleTickets')
 
     this.handleTickets.set(handleTickets)
-    queueMicrotask(() => this.loadMore())
+    queueMicrotask(() => void this.loadMore())
   }
 
   ngAfterViewInit(): void {
@@ -234,6 +251,7 @@ export class HelpPageComponent extends AbstractPaginationComponent<TicketViewMod
     this.clsSub?.unsubscribe()
     this.ropSub?.unsubscribe()
     this.observer?.disconnect()
+    this.pagination.dispose()
   }
 
   switchTab(i: number): void {
@@ -246,46 +264,18 @@ export class HelpPageComponent extends AbstractPaginationComponent<TicketViewMod
     })
   }
 
-  protected override fetch$(): Observable<PageModel<TicketViewModel>> {
-    return of(null).pipe(
-      switchMap(() => {
-        if (this.activeTab() === 1) {
-          if (this.handleTickets()) return this.helpService.ticketsAsSupport(this.page, this.ITEMS_PER_PAGE)
-          queueMicrotask(() => this.activeTab.set(0))
-        }
-        return this.helpService.myTickets(this.page, this.ITEMS_PER_PAGE)
-      }),
-      map(res => ({
-        ...res,
-        items: res.items.map(toTicketViewModel)
-      })),
-      tap(res => this.totalItems.set(res.totalItems))
-    )
+  loadMore(): Promise<void> { return this.pagination.loadMore() }
+  retryPagination(): void { this.pagination.retry() }
+  resetPagination(): void { this.pagination.reset() }
+  private startObserver(): void {
+    const sentinel = this.sentinel()?.nativeElement
+    if (!sentinel) return
+    this.observer?.disconnect()
+    this.observer = new IntersectionObserver(entries => {
+      if (entries[0]?.isIntersecting) void this.loadMore()
+    }, { rootMargin: '0px 0px 500px 0px' })
+    this.observer.observe(sentinel)
   }
-
-  protected override async loadMore(): Promise<void> {
-    if (this.loading || this.done) return
-
-    this.loading = true
-
-    const newPage = await firstValueFrom(this.fetch$())
-
-    if (newPage.items.length === 0) {
-      this.done = true
-      if (this.page === 1) this.earlyDone = true
-    } else {
-      if (this.empty()) this.empty.set(false)
-      this.items = [...this.items, ...newPage.items]
-      this.page++
-    }
-
-    this.cdr.markForCheck()
-    this.loading = false
-  }
-
-  protected override doQuery(q: string): void { }
-
-  protected override doClear(): void { }
 
   private resetAndReload(): void {
     this.resetPagination()
@@ -318,11 +308,11 @@ export class HelpPageComponent extends AbstractPaginationComponent<TicketViewMod
       next: ok => {
         if (!ok) return
 
-        this.items = this.items.map(t =>
+        this.pagination.replaceItems(this.items.map(t =>
           t.id === ticketId
             ? { ...t, status: 'Closed' as const }
             : t
-        )
+        ))
 
         this.cdr.markForCheck()
       }
@@ -336,11 +326,11 @@ export class HelpPageComponent extends AbstractPaginationComponent<TicketViewMod
       next: ok => {
         if (!ok) return
 
-        this.items = this.items.map(t =>
+        this.pagination.replaceItems(this.items.map(t =>
           t.id === ticketId
             ? { ...t, status: 'Open' as const }
             : t
-        )
+        ))
 
         this.cdr.markForCheck()
       }
