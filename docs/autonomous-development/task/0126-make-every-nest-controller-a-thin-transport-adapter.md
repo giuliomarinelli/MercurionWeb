@@ -121,6 +121,11 @@ None.
   warnings/errors.
 - Focused refactored controller tests passed: 3 suites, 3 tests.
 - Full controller test baseline passed before editing: 16 suites, 33 tests.
+- Full Nest unit suite passed: 154 suites, 471 tests.
+- Nest build passed: `npm run build --workspace mercurion_web_node`.
+- `npm run ci:rest-compatibility` passed with 59/59 client calls matched to
+  58 Nest routes; the reviewed inventory records the validated query-pipe
+  metadata without changing route paths or methods.
 - `git diff --check` passed.
 ### Full pre-merge CI-parity validation
 Not run locally because `npm ci` and `npm run ci:check` are reserved for
@@ -128,7 +133,10 @@ GitHub Actions. Exact feature-SHA CI remains coordinator-owned.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-Pending task implementation commit on `feature/BE-012`.
+- `0c1ec82676bb93f02974cf2fc230909e9851748d` — BE-012 controller boundary
+  gate, transport validation cleanup and focused compatibility metadata,
+  committed with `--no-gpg-sign`.
+- Task-status and execution-note finalization: current documentation commit.
 ### Merge / CI
 Provisional `DONE` / `CI_PENDING`; exact feature-SHA CI and integration are
 coordinator-owned.
