@@ -4,21 +4,13 @@ import {
   ApplicationErrorCode,
   type ApplicationErrorCode as ApplicationErrorCodeType,
   type ApplicationErrorPayload,
+  type ApplicationErrorCategory,
   getApplicationErrorDefinition,
   isApplicationErrorPayload,
 } from '@mercurion/rest-contracts';
 
 export { ApplicationErrorCode }
-
-export type ApplicationErrorCategory =
-  | 'validation'
-  | 'authentication'
-  | 'authorization'
-  | 'not-found'
-  | 'conflict'
-  | 'rate-limit'
-  | 'infrastructure'
-  | 'internal'
+export type { ApplicationErrorCategory }
 
 export class ApplicationError extends RpcException {
   readonly code: ApplicationErrorCodeType
@@ -128,7 +120,7 @@ export function getApplicationErrorMessage(
   return definition.publicMessage ?? payload.message;
 }
 
-function categoryForStatus(status: number): ApplicationErrorCategory {
+export function categoryForStatus(status: number): ApplicationErrorCategory {
   if (status === 400 || status === 422) return 'validation'
   if (status === 401) return 'authentication'
   if (status === 403) return 'authorization'

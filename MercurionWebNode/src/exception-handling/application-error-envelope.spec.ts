@@ -1,9 +1,11 @@
 import { ApplicationErrorCode } from '@mercurion/rest-contracts'
+import { BadRequestException } from '@nestjs/common'
 import {
   createApplicationErrorEnvelope,
   createGraphQLErrorExtensions,
   createRestErrorResponse,
-  createSocketApplicationError
+  createSocketApplicationError,
+  presentApplicationError
 } from './application-error-envelope'
 
 describe('application error envelope serialization', () => {
@@ -63,6 +65,7 @@ describe('application error envelope serialization', () => {
 
     expect(rest).toMatchObject({
       code: envelope.code,
+      category: envelope.category,
       status: envelope.status,
       statusCode: envelope.status,
       message: envelope.message,
@@ -72,12 +75,14 @@ describe('application error envelope serialization', () => {
     })
     expect(graphqlExtensions).toMatchObject({
       code: envelope.code,
+      category: envelope.category,
       status: envelope.status,
       correlationId,
       applicationError: envelope
     })
     expect(socket).toMatchObject({
       code: envelope.code,
+      category: envelope.category,
       status: envelope.status,
       message: envelope.message,
       detail: envelope.message,
@@ -97,9 +102,46 @@ describe('application error envelope serialization', () => {
 
     expect(envelope).toEqual({
       code: ApplicationErrorCode.PASSWORD_ENCODING_FAILED,
+      category: 'internal',
       status: 500,
       message: 'Internal Server Error',
       correlationId
     })
+  })
+
+  it('keeps framework validation fields in the canonical presentation', () => {
+    const presentation = presentApplicationError(
+      new BadRequestException({
+        message: ['email must be an email', 'password is too short']
+      }),
+      { correlationId, isProduction: true }
+    )
+
+    expect(presentation).toMatchObject({
+      code: 'BAD_USER_INPUT',
+      category: 'validation',
+      status: 400,
+      details: {
+        fields: ['email must be an email', 'password is too short']
+      }
+    })
+    expect(presentation.message).toBe('email must be an email, password is too short')
+    expect(presentation.diagnosticCause).toBeInstanceOf(BadRequestException)
+  })
+
+  it('keeps an unhandled cause diagnostic-only while redacting its wire envelope', () => {
+    const presentation = presentApplicationError(
+      new Error('database password leaked by mistake'),
+      { correlationId, isProduction: true }
+    )
+
+    expect(presentation).toMatchObject({
+      code: 'INTERNAL_SERVER_ERROR',
+      category: 'internal',
+      status: 500,
+      message: 'Internal Server Error'
+    })
+    expect(presentation.diagnosticCause).toBeInstanceOf(Error)
+    expect(createSocketApplicationError(presentation)).not.toHaveProperty('diagnosticCause')
   })
 })

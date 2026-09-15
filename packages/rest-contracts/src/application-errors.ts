@@ -9,11 +9,13 @@ export interface ApplicationErrorDefinition {
 export const APPLICATION_ERROR_CATALOG = {
   CONTRACT_VERSION_INVALID: {
     httpStatus: 400,
+    graphQlStatus: 200,
     defaultMessage: 'Invalid contract major version',
     exposeInProduction: true,
   },
   CONTRACT_VERSION_UNSUPPORTED: {
     httpStatus: 400,
+    graphQlStatus: 200,
     defaultMessage: 'Unsupported contract major version',
     exposeInProduction: true,
   },
