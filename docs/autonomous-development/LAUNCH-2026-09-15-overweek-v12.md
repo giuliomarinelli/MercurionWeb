@@ -1,4 +1,4 @@
-# Mercurion Code Red — overweek autonomous full-Series launch v10
+# Mercurion Code Red — overweek autonomous full-Series launch v12
 
 Use this file only after this launch manifest, its session configuration, and
 the dedicated real test-account login policy are integrated into `develop`; the
@@ -10,15 +10,15 @@ every worker establishes its own fresh real-account login.
 The immutable session configuration is:
 
 ```text
-docs/autonomous-development/session.overweek-2026-09-23-v10.yaml
+docs/autonomous-development/session.overweek-2026-09-23-v12.yaml
 ```
 
 The coordinator must refuse a new launch at or after
 `2026-09-23T10:00:00+02:00` (Europe/Rome, CEST), otto giorni dopo la
 preparazione del launch.
 
-The current active snapshot contains 136 `DONE` and 79 `PENDING` recipes, with no `BLOCKED`, `REVERTED`
-or `SKIPPED_DEPENDENCY` outcomes. Five reserved
+The current active snapshot contains 157 `DONE`, 35 `PENDING`, 5 `BLOCKED`,
+18 `SKIPPED_DEPENDENCY` and no `REVERTED` recipes. Five reserved
 Notebook recipes are archived under `deferred-task/` and are non-executable. Every
 recipe currently marked `DONE` remains terminal; task selection comes only
 from the current authoritative planner snapshot.
@@ -115,7 +115,7 @@ nel profilo Chrome.
 
 ```text
 Run the bounded autonomous Mercurion development session defined by
-docs/autonomous-development/session.overweek-2026-09-23-v10.yaml.
+docs/autonomous-development/session.overweek-2026-09-23-v12.yaml.
 
 Read the complete active configuration, AGENTS.md,
 docs/autonomous-development/PROTOCOL.md,
@@ -137,12 +137,12 @@ focused local validation that reuses the existing dependency tree.
 The coordinator and every normal worker must use GPT-5.6 Luna, Medium reasoning
 and the default 300k context tier. Every `task` invocation must omit `model`,
 `reasoning_effort` and `context_tier`, allowing exact inheritance from the
-parent. If the worker configuration differs, stop that worker before
-implementation, enter SESSION_RECOVERY_PENDING and do not mutate the task
-outcome. Never select, request or escalate to legacy alternate model anywhere in this
-autonomous session. If Luna cannot complete a task, follow the normal BLOCKED
-lifecycle. Any later alternate-model diagnosis or targeted review belongs to a separate
-human-operated session with continuous developer-model interaction. Do not impose a global
+parent. Conformance is established by the verified parent launch,
+override-free task calls and the correlated handshake. Workers must not
+self-attest host metadata that the host does not expose. An explicit override
+or exposed mismatch enters SESSION_RECOVERY_PENDING without task mutation. Use
+only the configured GPT-5.6 Luna profile; if it cannot complete a task, follow
+the normal BLOCKED lifecycle. Do not impose a global
 AI-credit or Autopilot-continuation cap: the session must remain able to process
 a virtually unlimited number of serial tasks until the configured deadline or
 genuine workload exhaustion.
@@ -186,14 +186,14 @@ The configured `workload.tasks` list is empty, so every active recipe file is in
 scope: there is no autonomous allowlist. Reserved numeric gaps and recipes in
 `deferred-task/` are skipped without error. Select the earliest filename-ordered
 READY task from the authoritative planner output; the expected first READY task
-is 0072. Continue serially through eligible tasks until the soft deadline or
+is 0102. Continue serially through eligible tasks until the soft deadline or
 genuine workload exhaustion. No error, denial, branch collision, CI-observation
 failure, baseline incident, or unavailable capability may finalize the session
 early while configured pending work remains. Isolate one-task failures, skip a
 colliding branch for the current scheduling pass, and use
 `SESSION_RECOVERY_PENDING` for unsafe shared-state failures.
 
-All 136 recipes currently marked `DONE` are terminal; never select them again.
+All 157 recipes currently marked `DONE` are terminal; never select them again.
 The archived `0020` and `0164`-`0167` recipes are not candidates and their
 absence from the active directory is not a branch collision or recovery state.
 When a selected task requires authenticated browser evidence,
@@ -219,14 +219,18 @@ No pending recipe has an `authorized_recovery` entry in this session. Treat any
 pre-existing feature branch as a collision unless a new direct human instruction
 provides the exact pending recipe, Source, local and remote refs, and preserved SHA.
 
-Task 0136/BE-022 is now `DONE`; the five dependency skips that it had made
-stale were reset to `PENDING`. Let the planner determine `READY` versus
-`WAITING_DEPENDENCY`; do not rematerialize a skip unless a root reaches a new
-persistent non-`DONE` outcome during this session.
+Task 0081/UI-023 is now `BLOCKED` with its feature branch frozen at the recorded
+task SHA. Its six dependent recipes (`0082`, `0083`, `0085`, `0086`, `0088`
+and `0191`) are terminal `SKIPPED_DEPENDENCY`. The authoritative planner reports
+no new skip closure and no stale skips. Let it determine `READY` versus
+`WAITING_DEPENDENCY`; do not reopen terminal outcomes or infer recovery
+authority from the preserved branch.
 
-Do not mutate pull requests 25, 27, 28, 29, or 31. The pre-existing local
-`feature/SYS-020` ref belongs to the deferred Notebook program: preserve it
-without dispatching task 0020. Apply task selection and
+Do not mutate pull requests 25, 27, 28, 29, or 31. Preserve the frozen task
+branches `feature/UI-014`, `feature/BE-012`, `feature/BE-033`,
+`feature/DATA-030` and `feature/UI-023`, plus the local deferred-Notebook
+`feature/SYS-020` ref;
+do not infer recovery authority from their existence. Apply task selection and
 dependency-status propagation to the active recipe set strictly from each fresh
 planner snapshot.
 
@@ -235,12 +239,14 @@ the complete-Series workload, remaining pending count, CI classification/platfor
 telemetry, and every capability pause. After task_complete, produce no
 additional prose or tool calls.
 
-Immediately before any pre-deadline final report or task_complete, run
-`npm run autonomous:plan` and parse its versioned JSON. Pre-deadline
-task_complete is permitted only when `currentCounts.PENDING === 0`. READY=0,
+Immediately before any final report or task_complete, run
+`npm run autonomous:assert-finalizable -- docs/autonomous-development/session.overweek-2026-09-23-v12.yaml`
+and require exit code zero. The command obtains and validates a fresh planner
+snapshot. Pre-deadline task_complete is permitted only when
+`currentCounts.PENDING === 0`. READY=0,
 no task outside an exclusion set, capability exhaustion, branch collisions,
 waiting dependencies, and fatal blockers do not satisfy this guard. When
-PENDING is greater than zero, remain in SESSION_RECOVERY_PENDING and rebuild
-the planner periodically with bounded backoff until work becomes selectable or
-the soft deadline arrives.
+PENDING is greater than zero before the deadline, the guard fails closed:
+remain in SESSION_RECOVERY_PENDING and rebuild the planner periodically with
+bounded backoff until work becomes selectable or the soft deadline arrives.
 ```

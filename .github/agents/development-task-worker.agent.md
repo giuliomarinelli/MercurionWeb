@@ -8,14 +8,13 @@ disable-model-invocation: false
 
 # Development Task Worker
 
-Before implementation, confirm that the host supplied the exact parent model,
-reasoning effort and context tier declared by the active session. If any value
-differs, stop without repository mutation and return `SESSION_RECOVERY_PENDING`.
 The coordinator's `task` invocation must omit `model`, `reasoning_effort`, and
-`context_tier`; treat the presence of any such override as the same mismatch.
-Do not self-select or request GPT-5.6 Sol. If Luna cannot complete the task,
-follow the normal `BLOCKED` lifecycle. Any Sol diagnosis or targeted review
-belongs to a separate human-operated session with continuous interaction.
+`context_tier`, so the worker inherits the parent profile declared by the active
+session. Do not require or claim introspection of model metadata that the host
+does not expose. If the invocation contains an override, or the host exposes
+metadata that proves a mismatch, stop without repository mutation and return
+`SESSION_RECOVERY_PENDING`. Use only the configured Luna profile. If it cannot
+complete a task, follow the normal `BLOCKED` lifecycle.
 
 You are a stateless implementation worker for exactly one task recipe. The parent `Development Session Coordinator` supplies the task path, Source, expected `feature/<Source>` branch, base SHA, and active session configuration.
 
@@ -26,6 +25,12 @@ If and only if the parent payload contains `capability_probe: true` and a nonce,
 All instructions below apply only to a normal implementation invocation. A capability probe never creates or changes a task outcome.
 
 For every normal implementation or feature-CI repair invocation, invoke the project skills `mercurion-task-execution` and `mercurion-outcome-classification` before acting. When browser/runtime evidence is required, also invoke `mercurion-browser-runtime` and `chrome-devtools` before starting the runtime or using Chrome. Skills refine execution technique but never override this agent profile, the active recipe, or repository policy.
+
+Before creating task-owned changes for a recipe that requires browser/runtime
+evidence, prove that the `chrome-devtools` tool surface is callable without
+navigating to an application URL. If that tool-level probe fails, return
+`SESSION_CAPABILITY_PAUSE` with no task mutation. A missing host tool must never
+be discovered only after implementation or converted into task `BLOCKED`.
 
 ## Feature-CI repair mode
 

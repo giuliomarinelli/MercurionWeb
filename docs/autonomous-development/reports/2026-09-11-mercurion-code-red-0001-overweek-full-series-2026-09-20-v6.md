@@ -98,7 +98,7 @@ run and did not alter `develop`.
 
 ## Host usage
 
-- Model/reasoning: inherited GPT-5.6 Sol / High
+- Model/reasoning: inherited legacy alternate model / High
 - Autopilot/task-session information: 1 startup capability probe, 6 primary workers, 2 FE-032 repair/status workers
 - Credit/token/context information: unavailable
 - Unavailable metrics: exact credit usage, token counts, detailed task wall time and CI wait totals

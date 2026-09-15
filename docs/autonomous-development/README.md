@@ -5,7 +5,7 @@ This directory defines the repository contract for configurable autonomous Devel
 The model is intentionally strict:
 
 - one task recipe;
-- one fresh stateless Copilot/Sol task worker;
+- one fresh stateless Copilot task worker;
 - one local `feature/<Source>` branch, published only after its first task-specific commit;
 - full CI-parity preflight **before** implementation;
 - full CI-parity validation again before integration;
@@ -82,7 +82,12 @@ context:
 
 Each task gets a fresh worker context. The coordinator uses GitHub Copilot CLI's native automatic context compaction and session checkpoint behavior; `/compact` remains available when an explicit compaction is needed.
 
-The agent profiles do not pin a model or reasoning level. The coordinator and workers inherit GPT-5.6 Sol and High reasoning from the parent CLI session. Their explicit tool lists provide the required terminal/edit/search/delegation/browser capabilities without inheriting every unrelated user-scoped tool schema. Launch uses CLI Autopilot with all required permissions; no VS Code advanced-mode setting is required.
+The agent profiles do not pin a model or reasoning level. The coordinator and
+workers inherit the configured GPT-5.6 Luna and Medium reasoning profile from
+the parent CLI session. Conformance comes from the verified parent launch and
+override-free task calls; workers do not invent host metadata introspection.
+Their explicit tool lists provide the required terminal/edit/search/delegation/
+browser capabilities without inheriting unrelated user-scoped tool schemas.
 
 ## Agent topology
 
@@ -142,10 +147,11 @@ branches outside the allowlist remain collision pauses or frozen outcomes.
 
 A session-fatal blocker never completes the coordinator objective before the
 soft deadline while pending workload remains. The coordinator preserves safe
-state and stays in `SESSION_RECOVERY_PENDING`. Before any pre-deadline final
-report or `task_complete`, a fresh authoritative planner JSON must prove
-`currentCounts.PENDING === 0`; having no currently selectable task is not
-workload exhaustion.
+state and stays in `SESSION_RECOVERY_PENDING`. Before any final report or
+`task_complete`, `npm run autonomous:assert-finalizable -- <session-yaml>` must
+exit successfully. It obtains a fresh authoritative planner snapshot and,
+before the deadline, requires `currentCounts.PENDING === 0`; having no currently
+selectable task is not workload exhaustion.
 
 and a planning identifier such as:
 

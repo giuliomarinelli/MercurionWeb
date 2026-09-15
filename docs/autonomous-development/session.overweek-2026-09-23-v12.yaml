@@ -1,13 +1,32 @@
-# Example configuration for one autonomous Development Session.
+# Fresh bounded overweek autonomous full-Series session. Do not reuse after its deadline.
 
 session:
-  name: development-session
+  name: mercurion-code-red-0001-overweek-full-series-2026-09-23-v12
   timezone: Europe/Rome
   start: null # coordinator records actual launch in runtime state/report; YAML stays read-only
-  end: "YYYY-MM-DDTHH:MM:SS+HH:MM" # required soft deadline
-  hard_stop: null # optional absolute RFC 3339 guardrail
+  end: "2026-09-23T10:00:00+02:00"
+  hard_stop: null
+  refuse_launch_at_or_after_end: true
+
+launch:
+  permanent_baseline_pull_request: 27
+  recovery_control_plane_pull_request: 28
+  workflow_hardening_pull_request: 29
+  browser_and_allowlist_hardening_pull_request: 31
+  require_configuration_on_integration_branch: true
+  require_current_cli_runner_control_plane_on_integration_branch: true
+  require_local_test_account_policy_on_integration_branch: true
+  configuration_read_only_during_session: true
+  do_not_mutate_pull_requests:
+    - 25
+    - 27
+    - 28
+    - 29
+    - 31
 
 repository:
+  name: giuliomarinelli/MercurionWeb
+  remote: origin
   integration_branch: develop
   feature_branch_pattern: "feature/{source}"
 
@@ -38,7 +57,28 @@ agent:
   subscription_profile: max
   harness: github-copilot-cli
   mode: autopilot
-  inherit_parent_model_and_reasoning: true
+  parent_profile:
+    model: gpt-5.6-luna
+    reasoning_effort: medium
+    context_tier: default
+    context_window_tokens: 300000
+  worker_inheritance:
+    required: true
+    task_call_must_omit:
+      - model
+      - reasoning_effort
+      - context_tier
+    conformance_evidence: verified-parent-plus-override-free-task-call
+    require_worker_self_attestation: false
+    unobservable_host_metadata_result: continue-with-inheritance-contract
+    mismatch_result: SESSION_RECOVERY_PENDING
+    mutate_task_outcome: false
+  model_policy:
+    autonomous_profile: gpt-5.6-luna
+    alternate_model_allowed: false
+    luna_failure_result: BLOCKED
+
+
 
   coordinator:
     name: Development Session Coordinator
@@ -53,8 +93,6 @@ agent:
     stateless: true
     exactly_one_task: true
 
-  # Autonomous sessions use GitHub Copilot CLI native automatic compaction and
-  # checkpoint behavior. Agent profiles inherit the parent model and reasoning.
   context:
     management:
       required: true
@@ -62,11 +100,6 @@ agent:
       strategy: native-compaction-and-checkpoints
       automatic_compaction: true
       checkpoint_behavior: native
-
-  # Observability/budget hints are enforced only when the active Copilot host
-  # exposes the corresponding counters to the coordinator.
-  max_autopilot_continues_per_task: 20
-  max_ai_credits_per_task: 100
 
 capabilities:
   terminal_and_git:
@@ -94,6 +127,8 @@ capabilities:
       reuse_across_sessions: true
       production_credentials_allowed: false
     capability_preflight:
+      tool_surface_probe_before_task_mutation: true
+      tool_surface_probe_must_not_navigate: true
       required_before_implementation_when_browser_runtime_declared: true
       verify_runtime_readiness: true
       verify_authenticated_state_when_required: true
@@ -103,6 +138,19 @@ capabilities:
       required_credential_variables:
         - LOCAL_TEST_ACCOUNT_EMAIL
         - LOCAL_TEST_ACCOUNT_PASSWORD
+      credential_entry:
+        snapshot_before_fill: true
+        preferred_tool: fill_form
+        fallback_tool: fill
+        forbidden_methods:
+          - navigator.clipboard
+          - clipboard.readText
+          - evaluate_script
+          - dom-injection
+          - os-clipboard
+        clipboard_denial_is_capability_failure: false
+        retry_supported_fill_in_same_worker: true
+      require_server_accepted_protected_session: true
       failure_result: SESSION_CAPABILITY_PAUSE
       mutate_task_outcome: false
       propagate_dependency_skips: false
@@ -116,7 +164,7 @@ capabilities:
       stop_before_next_task_on_recovery_failure: false
       secrets_in_reports: false
     acceptance_probe:
-      required_once_before_enabling_unattended_reuse: true
+      required_once_before_enabling_unattended_reuse: false
       outside_active_development_session: true
       fresh_sequential_workers: 2
       request_marker: browser_profile_probe
@@ -152,7 +200,16 @@ startup:
     worker_tool_calls_allowed: false
     repository_access_allowed: false
   denial_policy:
-    stop_and_report_exact_denial: true
+    stop_and_report_exact_denial: false
+    enter_session_recovery_pending: true
+    retry_with_bounded_backoff_until_soft_deadline: true
+    backoff_seconds:
+      - 15
+      - 30
+      - 60
+      - 120
+      - 300
+    rebuild_planner_after_each_retry: true
     prerequisites:
       - install
       - network
@@ -166,14 +223,12 @@ startup:
 
 runtime:
   documentation: docs/autonomous-development/RUNTIME.md
-
   edge:
     base_url: http://localhost:8888
     managed: false
     required_when_browser_validation_is_needed: true
     angular_readiness_url: http://localhost:8888/
     nest_readiness_url: http://localhost:8888/health
-
   managed_processes:
     tox21:
       cwd: ../MercurionTox21
@@ -184,7 +239,6 @@ runtime:
       command:
         windows: .venv/Scripts/python.exe -m main
         posix: .venv/bin/python -m main
-
     nest:
       cwd: MercurionWebNode
       repository_access: read-write
@@ -193,18 +247,15 @@ runtime:
         APP_ENV: development
         LOCAL_DUMMY_AUTH: "false"
       command: npm run start:dev
-
     angular:
       cwd: MercurionWebNg
       repository_access: read-write
       watch: true
       command: npm run start:dev
-
   start_order:
     - tox21
     - nest
     - angular
-
   lifecycle:
     task_scoped: true
     start_only_after_task_start_preflight: true
@@ -213,7 +264,6 @@ runtime:
     carry_processes_between_tasks: false
 
 quality:
-  # The permanent baseline is established outside all numbered recipes.
   baseline_document: docs/autonomous-development/CI-BASELINE.md
   session_start_preflight: remote-ci-and-focused-local-only
   require_clean_exact_origin_develop: true
@@ -225,8 +275,6 @@ quality:
   before_every_task: focused-local-only
   before_merge: exact-feature-sha-actions
   local_full_commands_forbidden: true
-
-  # Permanent root workspace interface; later tasks only extend ci:check.
   canonical:
     directory: .
     execution_owner: github-actions
@@ -239,13 +287,24 @@ workload:
   series_directory: docs/autonomous-development/series
   series_pattern: "[0-9][0-9][0-9][0-9]-*.md"
   order: filename
-  series_file: null
-  # Empty selects the complete Series. A non-empty list is the exact set the
-  # autonomous coordinator may select or mutate; omitted tasks remain PENDING
-  # for human-led or later-session work.
+  series_file: 'docs/autonomous-development/series/0001-010926-$oid(6a962b70d3e82215b546be6e)-MercurionWeb-technical-debt-audit-develop-8048279.md'
+  # Empty selects every pending task in the complete Series.
   tasks: []
   pending_only: true
-
+  expected_task_count: 215
+  expected_deferred_task_count: 5
+  expected_current_done: 157
+  expected_current_blocked: 5
+  expected_current_reverted: 0
+  expected_current_skipped_dependency: 18
+  expected_current_pending: 35
+  expected_first_ready_task: "0102"
+  expected_planner_ready: 8
+  expected_planner_waiting_dependency: 27
+  expected_planner_terminal_closure: 18
+  expected_new_skipped_dependency: 0
+  expected_autonomous_pending: 35
+  expected_human_led_pending: 0
   dependency_planner:
     command: npm run autonomous:plan
     output: versioned-json
@@ -255,6 +314,16 @@ workload:
     fail_on_cycles: true
     fail_on_stale_skips: true
     model_inference_fallback: false
+
+blocked_branch_policy:
+  preserve_existing_frozen_branches: true
+  do_not_resume_without_new_direct_human_authorization: true
+  branches:
+    - feature/UI-014
+    - feature/BE-012
+    - feature/BE-033
+    - feature/DATA-030
+    - feature/SYS-020
 
 task_outcomes:
   persistent:
@@ -267,20 +336,16 @@ task_outcomes:
     - CI_PENDING
     - WAITING_DEPENDENCY
     - SESSION_CAPABILITY_PAUSE
+    - SESSION_BRANCH_COLLISION_PAUSE
+    - SESSION_RECOVERY_PENDING
     - BROWSER_PROFILE_RECOVERY_REQUIRED
 
 policy:
   fresh_agent_session_per_task: true
   multi_task_bundles: false
-
-  # Each task owns exactly one feature branch derived from its Source identifier.
   one_feature_branch_per_task: true
   source_required_for_branch_name: true
-
-  # The runner does not start the next task until merge CI succeeds or the merge
-  # has been reverted and the task has been recorded as REVERTED.
   serialize_task_integration: true
-
   finish_current_task_after_deadline: true
   start_new_tasks_after_deadline: false
   stop_when_workload_exhausted: true
@@ -288,7 +353,9 @@ policy:
   keep_alive_when_pending_tasks_are_temporarily_unrunnable: true
   no_selectable_tasks_state: SESSION_RECOVERY_PENDING
   exclusion_sets_reduce_pending_count: false
-
+  retry_recovery_until_soft_deadline: true
+  branch_collision_excludes_only_colliding_task: true
+  error_before_deadline_completes_session: false
   continue_after_terminal_non_done_task: true
   terminal_outcomes_immutable_within_active_session: true
   terminal_task_reenable_authority: new-direct-human-instruction-in-new-or-restarted-session
@@ -315,7 +382,6 @@ ci:
   poll_interval_seconds: 30
   observation_timeout_minutes: 120
   only_success_conclusion_is_green: true
-
   classification:
     modes:
       - duplicate
@@ -333,33 +399,38 @@ ci:
     manual_full_bypasses_duplicate_reuse: true
     unknown_or_ambiguous_fallback: full
     stable_required_gate_for_every_mode: true
-
   on_success:
     finalize_done: true
     delete_feature_branch_local: true
     delete_feature_branch_remote_if_present: true
-
   on_pre_merge_block:
-    feature_ci_non_success_marks_blocked: true
+    feature_ci_non_success_marks_blocked: false
+    feature_ci_repair:
+      enabled: true
+      max_attempts: 3
+      same_task_branch: true
+      fresh_synchronous_worker_per_attempt: true
+      actionable_repository_failure_only: true
+      keep_done_as_ci_pending_during_repair: true
+      block_after_exhaustion_or_unverifiable: true
     mark_task_blocked: true
     wait_for_blocked_metadata_ci_green: true
     preserve_feature_branch_local: true
     preserve_feature_branch_remote: true
     freeze_preserved_feature_branch: true
-
   on_failure:
     stop_current_integration: true
     revert_merge_commit: true
     wait_for_revert_ci_green: true
     verify_revert_tree_matches_pre_merge_base: true
-    stop_session_if_revert_not_green: true
+    stop_session_if_revert_not_green: false
+    enter_session_recovery_pending_if_revert_not_green: true
     classify_non_green_revert_as: baseline-or-upstream-incident
     mark_task_reverted: true
     wait_for_reverted_metadata_ci_green: true
     preserve_feature_branch_local: true
     preserve_feature_branch_remote: true
     freeze_preserved_feature_branch: true
-
   on_dependency_skip:
     create_feature_branch: false
     invoke_worker: false
@@ -370,13 +441,9 @@ ci:
     wait_for_metadata_ci_green: true
 
 decisions:
-  # Required choices that a task forbids the agent from inventing belong here.
-  # SYS-001 uses portable wire contracts; Nest-only decorated DTOs may remain as
-  # checked validation/transformation adapters and are never imported by Angular.
-  sys_001_rest_contract_source: shared-versioned-framework-neutral-package
-  sys_001_angular_nest_runtime_dependency: forbidden
-  sys_001_nest_validation_adapters: preserve-when-required-and-prove-contract-parity
-  sys_001_migration_policy: incremental-non-breaking
+  sys_020_notebook: pending-branch-divergence-requires-human-reconciliation
+  task_batching: disabled
+  autonomous_execution_scope: complete-series
 
 telemetry:
   record_ci_classification_counts: true
@@ -385,11 +452,12 @@ telemetry:
   record_task_wall_seconds: true
   record_worker_invocations: true
   record_pushes_and_retries: true
+  record_workload_allowlist_counts: true
   unavailable_metrics_must_be_reported_as_unavailable: true
 
 on_finish:
   finalization_guard:
-    command: npm run autonomous:assert-finalizable -- docs/autonomous-development/session.example.yaml
+    command: npm run autonomous:assert-finalizable -- docs/autonomous-development/session.overweek-2026-09-23-v12.yaml
     output: structured-json
     success_exit_code: 0
     run_immediately_before_every_finalization: true
