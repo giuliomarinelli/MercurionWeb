@@ -7,7 +7,6 @@ import {
 } from '@nestjs/common';
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { RpcException } from '@nestjs/microservices';
-import { HttpStatusMap } from './http-status-map';
 import { GqlContextType } from '@nestjs/graphql';
 import { HttpErrorRes, InternalErrorRes } from 'src/Models/error-res.dto';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
@@ -21,6 +20,7 @@ import {
     createRestErrorResponse
 } from './application-error-envelope';
 import { getApplicationErrorDefinition, isApplicationErrorPayload } from '@mercurion/rest-contracts';
+import { httpStatusDescription } from './http-status-description';
 
 function errorMessage(value: unknown): string | undefined {
     return value instanceof Error
@@ -64,7 +64,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
             this.logger.warn('Unhandled Internal Error', e as object)
             base = {
                 statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-                error: HttpStatusMap.getDescriptionFromHttpStatusCode(HttpStatus.INTERNAL_SERVER_ERROR,),
+                error: httpStatusDescription(HttpStatus.INTERNAL_SERVER_ERROR),
                 message: this.isNotDev ? 'Internal server error' : errorMessage(e) ?? 'Internal server error'
             }
         }
@@ -96,7 +96,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
             const definition = getApplicationErrorDefinition(resp.code)
             return {
                 statusCode: definition.httpStatus,
-                error: HttpStatusMap.getDescriptionFromHttpStatusCode(definition.httpStatus),
+                error: httpStatusDescription(definition.httpStatus),
                 code: resp.code,
                 message: getApplicationErrorMessage(resp, this.isNotDev),
                 details: resp.details
@@ -106,7 +106,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
         if (typeof resp === 'string') {
             return {
                 statusCode: status,
-                error: HttpStatusMap.getDescriptionFromHttpStatusCode(status),
+                error: httpStatusDescription(status),
                 message: this.isNotDev && status >= 500 ? undefined : resp
             }
         }
@@ -115,7 +115,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
         return {
             statusCode: r.statusCode ?? status,
-            error: r.error ?? HttpStatusMap.getDescriptionFromHttpStatusCode(r.statusCode ?? status),
+            error: r.error ?? httpStatusDescription(r.statusCode ?? status),
             // per i 4xx => in prod si può lasciare il messaggio (di solito è di dominio)
             // per i 5xx verrà comunque sovrascritto a livello chiamante se isProd
             message: r.message,
@@ -130,21 +130,20 @@ export class HttpExceptionFilter implements ExceptionFilter {
             const definition = getApplicationErrorDefinition(applicationError.code)
             return {
                 statusCode: definition.httpStatus,
-                error: HttpStatusMap.getDescriptionFromHttpStatusCode(definition.httpStatus),
+                error: httpStatusDescription(definition.httpStatus),
                 code: applicationError.code,
                 message: getApplicationErrorMessage(applicationError, this.isNotDev),
                 details: applicationError.details
             }
         }
 
-        const raw = e.getError();
-        const message = typeof raw === 'string' ? raw : errorMessage(raw) ?? e.message
         const statusCode = HttpStatus.INTERNAL_SERVER_ERROR
 
         return {
             statusCode,
-            error: HttpStatusMap.getDescriptionFromHttpStatusCode(statusCode),
-            message
+            error: httpStatusDescription(statusCode),
+            code: 'INTERNAL_SERVER_ERROR',
+            message: undefined
         }
     }
 }

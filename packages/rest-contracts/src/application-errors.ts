@@ -606,26 +606,6 @@ const applicationErrorCodes = new Set<string>(
   Object.keys(APPLICATION_ERROR_CATALOG),
 );
 
-const legacyMessageCodes = new Map<string, ApplicationErrorCode>();
-const ambiguousLegacyMessages = new Set<string>();
-
-for (const [code, definition] of Object.entries(
-  APPLICATION_ERROR_CATALOG as Readonly<
-    Record<ApplicationErrorCode, ApplicationErrorDefinition>
-  >,
-)) {
-  const message = definition.defaultMessage;
-  if (!message || ambiguousLegacyMessages.has(message)) {
-    continue;
-  }
-  if (legacyMessageCodes.has(message)) {
-    legacyMessageCodes.delete(message);
-    ambiguousLegacyMessages.add(message);
-    continue;
-  }
-  legacyMessageCodes.set(message, code as ApplicationErrorCode);
-}
-
 export function isApplicationErrorCode(
   value: unknown,
 ): value is ApplicationErrorCode {
@@ -649,10 +629,4 @@ export function getApplicationErrorDefinition(
   code: ApplicationErrorCode,
 ): ApplicationErrorDefinition {
   return APPLICATION_ERROR_CATALOG[code];
-}
-
-export function resolveLegacyApplicationErrorCode(
-  message: string,
-): ApplicationErrorCode | undefined {
-  return legacyMessageCodes.get(message);
 }

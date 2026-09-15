@@ -5,7 +5,7 @@ import {
   type ApplicationErrorEnvelope,
   type ApplicationErrorEnvelopeCode
 } from '@mercurion/rest-contracts'
-import { HttpStatusMap } from './http-status-map'
+import { httpStatusDescription } from './http-status-description'
 
 export interface ApplicationErrorSerializationInput {
   readonly status?: number
@@ -35,7 +35,7 @@ export function createApplicationErrorEnvelope(
   )
   const message = isHidden
     ? 'Internal Server Error'
-    : catalogDefinition?.publicMessage ?? input.message ?? HttpStatusMap.getDescriptionFromHttpStatusCode(status)
+    : catalogDefinition?.publicMessage ?? input.message ?? httpStatusDescription(status)
   const details = isHidden ? undefined : input.details
 
   return {
@@ -57,7 +57,7 @@ export function createRestErrorResponse(
   return {
     ...envelope,
     statusCode: envelope.status,
-    error: input.error ?? HttpStatusMap.getDescriptionFromHttpStatusCode(envelope.status),
+    error: input.error ?? httpStatusDescription(envelope.status),
     timestamp: new Date().toISOString(),
     requestId: envelope.correlationId,
     path: input.path
