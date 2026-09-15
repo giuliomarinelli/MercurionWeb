@@ -130,9 +130,11 @@ _Not applicable._
 `af9911a9` — `feat(errors): unify transport error presentation`.
 `9e5fa2a2` — `docs(task): record BE-014 execution`.
 `ad8d2624` — `fix(errors): update socket contract assertion`.
+`a7934eac` — `docs(task): record feature CI repair`.
 ### Merge / CI
-Feature branch pushed at `af9911a9`; coordinator-owned exact-SHA feature CI is
-required before integration.
+Final feature branch SHA is `a7934eac2034d9c49ee95a23d0d57c44f4c597b`.
+Exact-SHA CI run `34940248690` passed with `Required gate`; its metadata
+validation and exact feature evidence were green.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
