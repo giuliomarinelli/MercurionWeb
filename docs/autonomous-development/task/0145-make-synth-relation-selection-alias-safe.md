@@ -98,6 +98,7 @@ metadata before adding joins. This removes caller-controlled root/path alias
 composition while preserving the existing root ownership predicates.
 ### Task-specific validation performed
 - `npm test --workspace mercurion_web_node -- --runInBand --runTestsByPath src/app_modules/synth/services/synth-selection-planner.spec.ts src/app_modules/synth/services/synthesis.service.spec.ts src/app_modules/synth/services/synthetic-step.service.spec.ts src/utils/type-orm-utils/type-orm-utils.spec.ts` — 4 suites, 7 tests passed.
+- `npm test --workspace mercurion_web_node -- --runInBand --runTestsByPath src/app_modules/synth/synth-schema.contract.spec.ts src/app_modules/synth/services/synth-selection-planner.spec.ts` — 2 suites, 7 tests passed.
 - `npm run typecheck --workspace mercurion_web_node` — passed.
 - `npm run lint --workspace mercurion_web_node` — passed.
 - Planner tests cover scalar-only, route/step/pool-molecule and nested
@@ -109,7 +110,8 @@ Reserved for GitHub Actions on the pushed feature SHA; `npm ci` and
 ### Browser validation performed
 _Not applicable._
 ### Commits
-Pending task commit.
+- `e55c947e` — BE-031 make Synth relation selection alias-safe.
+- Follow-up execution-note commit records final validation and this commit list.
 ### Merge / CI
 Feature SHA requires exact-SHA GitHub Actions validation before integration.
 ### Rollback
