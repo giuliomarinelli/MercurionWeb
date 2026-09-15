@@ -115,7 +115,9 @@ Pending exact feature-SHA GitHub Actions validation owned by the coordinator.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-To be recorded after task commit.
+`f8816110c2fcac97cbf5b1dd6e05f0fcf4f2b66d` — transaction-safe UserService
+updates, explicit caller not-found handling, focused rollback tests, and task
+execution notes.
 ### Merge / CI
 _Not started._
 ### Rollback
