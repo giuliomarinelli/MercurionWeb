@@ -3,9 +3,10 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { UUID } from "crypto";
 import { GraphQLUtils } from "src/utils/graphql-utils/graphql-utils";
-import { GraphQLFieldsMap, TypeOrmUtils } from "src/utils/type-orm-utils/type-orm-utils";
+import { GraphQLFieldsMap } from "src/utils/type-orm-utils/type-orm-utils";
 import { Synthesis } from "../models/entities/synthesis.entity";
 import { SynthesisInput } from "../models/dto/synthesis.input";
+import { SynthSelectionPlanner } from './synth-selection-planner';
 
 @Injectable()
 export class SynthesisService {
@@ -44,22 +45,22 @@ export class SynthesisService {
     async findAllByUser(userId: UUID, fieldsMap: GraphQLFieldsMap): Promise<Synthesis[]> {
         const scalarFields = GraphQLUtils.getScalarFields(fieldsMap);
         const columns = GraphQLUtils.ensureRequiredFields(scalarFields, ['id', 'title'])
-        let qb = this.routeRepo.createQueryBuilder('route')
-            .select(columns.map(col => `route.${col}`))
-            .where('route.user_id = :userId', { userId })
-            .orderBy('route.title', 'ASC');
-        qb = TypeOrmUtils.addJoins(qb, 'route', fieldsMap)
+        let qb = this.routeRepo.createQueryBuilder('synthesis')
+            .select(columns.map(col => `synthesis.${col}`))
+            .where('synthesis.user_id = :userId', { userId })
+            .orderBy('synthesis.title', 'ASC');
+        qb = SynthSelectionPlanner.applyForSynthesis(qb, this.routeRepo.metadata, fieldsMap)
         return qb.getMany()
     }
 
     async findOne(id: UUID, userId: UUID, fieldsMap: GraphQLFieldsMap): Promise<Synthesis | null> {
         const scalarFields = GraphQLUtils.getScalarFields(fieldsMap);
         const columns = GraphQLUtils.ensureRequiredFields(scalarFields, ['id', 'title'])
-        let qb = this.routeRepo.createQueryBuilder('route')
-            .select(columns.map(col => `route.${col}`))
-            .where('route.id = :id', { id })
-            .andWhere('route.user_id = :userId', { userId })
-        qb = TypeOrmUtils.addJoins(qb, 'route', fieldsMap)
+        let qb = this.routeRepo.createQueryBuilder('synthesis')
+            .select(columns.map(col => `synthesis.${col}`))
+            .where('synthesis.id = :id', { id })
+            .andWhere('synthesis.user_id = :userId', { userId })
+        qb = SynthSelectionPlanner.applyForSynthesis(qb, this.routeRepo.metadata, fieldsMap)
         return qb.getOne()
     }
 }

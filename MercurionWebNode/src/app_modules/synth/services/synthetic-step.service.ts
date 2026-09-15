@@ -2,12 +2,13 @@ import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { UUID } from "crypto";
-import { GraphQLFieldsMap, TypeOrmUtils } from "src/utils/type-orm-utils/type-orm-utils";
+import { GraphQLFieldsMap } from "src/utils/type-orm-utils/type-orm-utils";
 import { GraphQLUtils } from "src/utils/graphql-utils/graphql-utils";
 import { SynthStep } from "../models/entities/synth-step.entity";
 import { SynthStepInput } from "../models/dto/synth-step.input";
 import { Synthesis } from "../models/entities/synthesis.entity";
 import { ApplicationErrorCode, applicationError } from "src/exception-handling/application-error";
+import { SynthSelectionPlanner } from './synth-selection-planner';
 
 @Injectable()
 export class SyntheticStepService {
@@ -65,7 +66,7 @@ export class SyntheticStepService {
             .select(columns.map(col => `step.${col}`))
             .where('step.id = :id', { id })
             .andWhere('step.user_id = :userId', { userId })
-        qb = TypeOrmUtils.addJoins(qb, 'step', fieldsMap)
+        qb = SynthSelectionPlanner.applyForStep(qb, this.stepRepo.metadata, fieldsMap)
         return qb.getOne()
     }
 
@@ -78,7 +79,7 @@ export class SyntheticStepService {
             .where('step.synth_id = :routeId', { routeId })
             .andWhere('step.user_id = :userId', { userId })
             .orderBy('step.order', 'ASC')
-        qb = TypeOrmUtils.addJoins(qb, 'step', fieldsMap)
+        qb = SynthSelectionPlanner.applyForStep(qb, this.stepRepo.metadata, fieldsMap)
         return qb.getMany()
     }
 

@@ -1,6 +1,6 @@
 # 0145 - Make Synth relation selection alias-safe and metadata-driven
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -79,24 +79,40 @@ Mark `BLOCKED` if the GraphQL schema currently exposes an ambiguous relation nam
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/BE-031`, based on `develop` at `35753d81841f51ab46d44913fd4791a6d36d6789`.
 ### Preflight
-_Not started._
+Clean feature branch verified at the supplied current `develop` SHA; recent
+successful CI run `34956164326` covered that exact base SHA. No
+workspace-consuming Angular, Nest, Tox21, or test-watcher process was active
+(the existing Node processes were MCP/tooling processes). Prerequisites 0115,
+0120, and 0141 are all `DONE`. The schema contract confirms that the retired
+ambiguous `SynthStepMoleculeRef`/`MoleculeRole` types are not exposed, so the
+stop condition does not apply.
 ### Preflight remediation
-_None._
+None.
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0115, 0120, 0141. This task was never attempted and receives no feature branch.
+Added a typed, metadata-driven Synth selection planner with canonical root and
+derived nested aliases. Synth route and step query builders now use the
+planner, which validates every requested relation against TypeORM inverse
+metadata before adding joins. This removes caller-controlled root/path alias
+composition while preserving the existing root ownership predicates.
 ### Task-specific validation performed
-_Not started._
+- `npm test --workspace mercurion_web_node -- --runInBand --runTestsByPath src/app_modules/synth/services/synth-selection-planner.spec.ts src/app_modules/synth/services/synthesis.service.spec.ts src/app_modules/synth/services/synthetic-step.service.spec.ts src/utils/type-orm-utils/type-orm-utils.spec.ts` — 4 suites, 7 tests passed.
+- `npm run typecheck --workspace mercurion_web_node` — passed.
+- `npm run lint --workspace mercurion_web_node` — passed.
+- Planner tests cover scalar-only, route/step/pool-molecule and nested
+  projections, canonical aliases, and rejection of the invalid `moleculeRefs`
+  path before query execution.
 ### Full pre-merge CI-parity validation
-_Not started._
+Reserved for GitHub Actions on the pushed feature SHA; `npm ci` and
+`npm run ci:check` were not run locally.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+Pending task commit.
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+Feature SHA requires exact-SHA GitHub Actions validation before integration.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+None.
