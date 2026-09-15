@@ -5,6 +5,7 @@ import { NotebookPage } from '../models/entities/lab-notebook-page.entity';
 import { UUID } from 'crypto';
 import { NotebookSection } from '../models/entities/lab-notebook-section.entity';
 import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
+import { runInTransaction } from 'src/persistence/transaction-context';
 
 @Injectable()
 export class NotebookPageService {
@@ -17,7 +18,7 @@ export class NotebookPageService {
     ) { }
 
     async createPage(sectionId: UUID, userId: UUID, data: Partial<NotebookPage>): Promise<NotebookPage> {
-        return this.pageRepo.manager.transaction(async manager => {
+        return runInTransaction(this.pageRepo.manager, async (_context, manager) => {
             const { max } = await manager
                 .createQueryBuilder(NotebookPage, 'page')
                 .where('page.section_id = :sectionId', { sectionId })  // snake_case
@@ -136,7 +137,7 @@ export class NotebookPageService {
     }
 
     async movePage(pageId: UUID, userId: UUID, direction: 'up' | 'down'): Promise<void> {
-        await this.pageRepo.manager.transaction(async manager => {
+        await runInTransaction(this.pageRepo.manager, async (_context, manager) => {
             const page = await manager.findOne(NotebookPage, {
                 where: { id: pageId, userId },
                 relations: ['section'],
@@ -169,7 +170,7 @@ export class NotebookPageService {
             .map((id, idx) => `WHEN id = '${id}' THEN ${idx}`)
             .join(' ')
 
-        await this.pageRepo.manager.transaction(async manager => {
+        await runInTransaction(this.pageRepo.manager, async (_context, manager) => {
             await manager
                 .createQueryBuilder()
                 .update(NotebookPage)

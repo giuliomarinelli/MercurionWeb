@@ -140,7 +140,12 @@ preserved branch is reconciled with current green `develop` by a fresh worker,
 and only planner-confirmed stale dependency skips return to pending. Existing
 branches outside the allowlist remain collision pauses or frozen outcomes.
 
-A session-fatal blocker completes the coordinator objective even if pending workload remains: the coordinator finalizes the report, emits the concise final summary and report path, calls `task_complete` as the final Autopilot action, and stops.
+A session-fatal blocker never completes the coordinator objective before the
+soft deadline while pending workload remains. The coordinator preserves safe
+state and stays in `SESSION_RECOVERY_PENDING`. Before any pre-deadline final
+report or `task_complete`, a fresh authoritative planner JSON must prove
+`currentCounts.PENDING === 0`; having no currently selectable task is not
+workload exhaustion.
 
 and a planning identifier such as:
 

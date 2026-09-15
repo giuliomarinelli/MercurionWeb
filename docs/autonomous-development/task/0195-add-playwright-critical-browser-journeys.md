@@ -92,66 +92,40 @@ Keep mocked/controlled network semantics explicit in test names/fixtures. A brow
 ## Execution notes
 
 ### Feature branch
-`feature/QA-009`, based on `043a333feb20b0850353b571b31122e46dee7b31`.
-The branch was clean and exactly matched the supplied/current green
-`develop` SHA before implementation; no remote feature ref existed.
+`feature/QA-009` from base `043a333feb20b0850353b571b31122e46dee7b31`,
+preserved at `1d37ba8ee0fb9961a5f29284009582a9b621558b`.
 ### Preflight
-Exact base SHA `043a333feb20b0850353b571b31122e46dee7b31` had successful
-GitHub Actions CI run `34985586114` on `develop`. No task-owned workspace
-process was active before the probe. Local `npm ci` and `npm run ci:check`
-were not run.
-
-The first canonical runtime probe started Tox21, Nest and Angular in the
-required order with live execution handles. Angular became ready through the
-edge (`/` returned 200), while Nest initially failed during bootstrap with:
-`fastify-plugin: fastify-formidable - expected '4.x' fastify version,
-'5.12.1' is installed`.
+Exact base CI run `34985586114` passed. Tox21, Nest, and Angular were started
+in the required order with live handles. Nest initially exposed the
+repository-controlled Fastify 4/5 plugin mismatch; the authorized narrow
+compatibility remediation resolved that error.
 ### Preflight remediation
-Human-authorized remediation confirmed the installed mismatch:
-`fastify-formidable@3.0.2` advertises Fastify `^4.0.0` while the intentional
-repository dependency is `fastify@5.12.1`. Added the narrow
-`fastify-formidable.compat.ts` wrapper and the direct `fastify-plugin@5.1.0`
-helper dependency. The wrapper declares Fastify 5 compatibility and translates
-the legacy `multipart` parser alias to a Fastify-5-valid
-`multipart/form-data` matcher only while registering the existing plugin.
-Nest typecheck passed and the wrapper removed the original version-mismatch
-diagnostic.
+Added a Fastify 5 compatibility wrapper around the existing
+`fastify-formidable` plugin and pinned the direct `fastify-plugin` dependency.
+No infrastructure or Fastify version downgrade was made.
 ### Summary
 Added pinned Playwright 1.55.0 tooling/configuration, canonical
-`http://localhost:8888` base URL, failure traces/screenshots/video settings,
-isolated route-interception fixtures, anonymous/login-to-MFA/session and
-molecule/collection journey tests, plus the Fastify 5 compatibility wrapper.
-The implementation could not safely reach browser validation because the
-post-remediation canonical Nest bootstrap exposed a pre-existing GraphQL
-schema failure: `"MercurionPublicId" defined in resolvers, but not in schema`.
-The nginx edge consequently remained `health=502` (while Angular `/` returned
-200). Per the authorized instruction, the branch is preserved as BLOCKED
-rather than repairing unrelated baseline/schema debt.
+`http://localhost:8888` base URL, failure diagnostics, deterministic route
+fixtures, and three critical journeys. The task is blocked because Nest then
+failed during bootstrap with `"MercurionPublicId" defined in resolvers, but not
+in schema`; the canonical edge remained unavailable for the required readiness
+rounds, so browser validation could not safely begin.
 ### Task-specific validation performed
-Passed:
-- `npx playwright test --list` (3 critical tests discovered);
-- `npm run typecheck --workspace mercurion_web_node`;
-- `git diff --check`.
-
-Not run: Playwright browser execution, because the mandatory two consecutive
-complete canonical readiness rounds could not be obtained after the narrow
-preflight remediation.
+Passed Playwright test discovery (three tests), Nest typecheck, Nest lint, and
+`git diff --check`.
 ### Full pre-merge CI-parity validation
-Not run locally by policy. `npm ci` and `npm run ci:check` remain reserved for
-GitHub Actions.
+Not run locally; forbidden by policy. Feature CI run `34988102571` passed with
+the Required gate.
 ### Browser validation performed
-Not performed. Chrome/Playwright opening was correctly withheld because Nest
-did not complete canonical bootstrap and `/health` remained 502. Tox21, Nest
-and Angular sessions were stopped; no listeners remained on ports 3498, 8099
-or 4222.
+Not performed because the Nest bootstrap/schema baseline failure prevented
+nginx readiness and browser execution.
 ### Commits
-_Pending blocker diagnostic commit._
+Feature implementation and blocker diagnostic:
+`1d37ba8ee0fb9961a5f29284009582a9b621558b`.
 ### Merge / CI
-_Not started._
+Implementation was not merged. Feature CI run `34988102571` passed.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Resolve the repository-controlled GraphQL baseline failure
-`"MercurionPublicId" defined in resolvers, but not in schema`, then authorize a
-new QA-009 attempt/recovery. Do not charge that unrelated schema repair to
-QA-009.
+Resolve the repository-controlled GraphQL schema baseline failure, then
+authorize a new QA-009 recovery attempt.

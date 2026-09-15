@@ -967,16 +967,33 @@ for (const [pattern, message] of [
   [/SESSION_RECOVERY_PENDING/, 'prepared session must declare coordinator recovery as transient'],
   [/preferred_tool:\s*fill_form[\s\S]*fallback_tool:\s*fill[\s\S]*clipboard_denial_is_capability_failure:\s*false/, 'prepared session must use supported browser form filling and reject clipboard-denial pauses'],
   [/stop_when_no_unpaused_ready_tasks:\s*false/, 'prepared session must remain active while pending tasks are temporarily excluded'],
+  [/no_selectable_tasks_state:\s*SESSION_RECOVERY_PENDING/, 'prepared session must map no-selectable-task state to recovery'],
+  [/exclusion_sets_reduce_pending_count:\s*false/, 'prepared session exclusions must not reduce pending workload'],
   [/branch_collision_excludes_only_colliding_task:\s*true/, 'prepared session must isolate only the colliding task'],
   [/error_before_deadline_completes_session:\s*false/, 'prepared session must forbid error-driven early completion'],
   [/stop_session_if_revert_not_green:\s*false/, 'prepared session must recover rather than stop on revert verification failure'],
   [/session_fatal_blocker_completes_coordinator_objective:\s*false/, 'prepared session must disable fatal-blocker completion'],
   [/task_complete_before_deadline_on_error:\s*false/, 'prepared session must forbid task_complete on pre-deadline errors'],
+  [/finalization_guard:[\s\S]*command:\s*npm run autonomous:plan[\s\S]*workload_exhausted_expression:\s*currentCounts\.PENDING === 0[\s\S]*ready_zero_is_workload_exhaustion:\s*false[\s\S]*no_unexcluded_ready_is_workload_exhaustion:\s*false[\s\S]*capability_exhaustion_is_workload_exhaustion:\s*false[\s\S]*pending_nonzero_result:\s*SESSION_RECOVERY_PENDING[\s\S]*pre_deadline_task_complete_allowed_only_when_workload_exhausted:\s*true/, 'prepared session must enforce the planner-backed finalization guard'],
   [/parent_profile:[\s\S]*model:\s*gpt-5\.6-luna[\s\S]*reasoning_effort:\s*medium[\s\S]*context_tier:\s*default[\s\S]*context_window_tokens:\s*300000/, 'prepared session must declare the exact Luna Medium 300k parent profile'],
   [/worker_inheritance:[\s\S]*task_call_must_omit:[\s\S]*- model[\s\S]*- reasoning_effort[\s\S]*- context_tier[\s\S]*mismatch_result:\s*SESSION_RECOVERY_PENDING[\s\S]*mutate_task_outcome:\s*false/, 'prepared session must require exact inheritance and fail safely on mismatch'],
   [/model_policy:[\s\S]*autonomous_sol_allowed:\s*false[\s\S]*luna_failure_result:\s*BLOCKED[\s\S]*sol_follow_up_mode:\s*separate-human-operated-session[\s\S]*continuous_developer_model_interaction_required:\s*true/, 'prepared session must prohibit Sol escalation and defer it to separate human operation'],
 ]) {
   requireMatch(paths.preparedSession, preparedSession, pattern, message);
+}
+
+for (const [target, content] of [
+  [paths.exampleSession, exampleSession],
+  [paths.preparedSession, preparedSession],
+]) {
+  requireMatch(target, content, /stop_when_no_unpaused_ready_tasks:\s*false/, 'session must not stop merely because all ready tasks are excluded');
+  requireMatch(target, content, /session_fatal_blocker_completes_coordinator_objective:\s*false/, 'fatal blockers must not complete pending sessions');
+  requireMatch(target, content, /task_complete_before_deadline_on_error:\s*false/, 'errors must not permit pre-deadline task_complete');
+  requireMatch(target, content, /workload_exhausted_expression:\s*currentCounts\.PENDING === 0/, 'session must define workload exhaustion from planner pending count');
+}
+
+if (/Finalize for capability exhaustion/i.test(preparedLaunch)) {
+  fail(paths.preparedLaunch, 'must not equate capability exhaustion with session finalization');
 }
 
 if (/^authorized_recovery:/m.test(preparedSession)) {
@@ -1343,7 +1360,26 @@ for (const target of [paths.agents.coordinator, 'docs/autonomous-development/PRO
   );
   requireMatch(target, content, /commit\.gpgSign.*false/, 'missing repository signing check');
   requireMatch(target, content, /--no-gpg-sign/, 'missing per-command signing override');
+  requireMatch(
+    target,
+    content,
+    /npm run autonomous:plan[\s\S]{0,500}currentCounts\.PENDING\s*===\s*0/,
+    'must require a fresh planner proof before pre-deadline task_complete',
+  );
+  requireMatch(
+    target,
+    content,
+    /(?:READY\s*===\s*0|`READY === 0`)[\s\S]{0,500}(?:not workload exhaustion|never substitute)/i,
+    'must distinguish no selectable tasks from workload exhaustion',
+  );
 }
+
+requireMatch(
+  'docs/autonomous-development/README.md',
+  read('docs/autonomous-development/README.md'),
+  /session-fatal blocker never completes[\s\S]{0,400}currentCounts\.PENDING === 0/i,
+  'README must forbid fatal-blocker early completion and require planner proof',
+);
 
 if (errors.length > 0) {
   for (const error of errors) console.error(`ERROR ${error}`);

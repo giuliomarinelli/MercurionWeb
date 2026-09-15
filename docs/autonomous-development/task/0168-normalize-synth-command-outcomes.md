@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Make Synth create/update/delete commands distinguish successful mutation, missing resource, forbidden ownership and infrastructure failure without converting database errors or zero-row writes into misleading business success/failure booleans.
@@ -93,7 +93,7 @@ _Not started._
 ### Preflight remediation
 _None._
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0019, 0127, 0128, 0152. This task was never attempted and receives no feature branch.
+Reset to `PENDING` by the human-authorized DATA-003 recovery. This task has not been attempted and has no feature branch.
 ### Task-specific validation performed
 _Not started._
 ### Full pre-merge CI-parity validation
@@ -101,10 +101,10 @@ _Not started._
 ### Browser validation performed
 _Not started / not applicable._
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+_None._
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+_Not started._
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+_None._

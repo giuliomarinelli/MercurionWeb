@@ -16,6 +16,7 @@ import { LoggerPort } from 'src/logging/logger.port';
 import { LoggerContext } from 'src/logging/logger.port';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 import type { Readable } from 'node:stream'
+import { runInTransaction } from 'src/persistence/transaction-context'
 
 @Injectable()
 export class DropboxObjectStoreService {
@@ -151,7 +152,7 @@ export class DropboxObjectStoreService {
 
         // 3) Transazione DB: salva documento, sposta avatar, elimina vecchio record
         try {
-            await this.dataSource.manager.transaction(async (manager) => {
+            await runInTransaction(this.dataSource, async (_context, manager) => {
                 await manager.save(DocumentEntity, document);
 
                 if (action === 'ChangeProfileImage') {

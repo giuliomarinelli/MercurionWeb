@@ -219,7 +219,8 @@ pass uncertain integration health to the next task and never finalize early.
 
 The configured `end` is a soft deadline. Once it is reached, finish the complete lifecycle of the one already-active task, including merge/revert, exact-SHA CI, status propagation, and branch cleanup/preservation. Do not materialize additional dependency skips during deadline finalization. Then start no new task.
 
-At genuine workload exhaustion (no pending configured task remains) or deadline
+At genuine workload exhaustion (a fresh authoritative planner JSON proves
+`currentCounts.PENDING === 0`) or deadline
 completion:
 
 1. stop only runtime processes that this session started;
@@ -232,5 +233,15 @@ No error or blocker completes the coordinator objective before the soft
 deadline while pending workload remains. Keep the session alive in recovery,
 continue any safe independent work, and reserve `task_complete` for genuine
 workload exhaustion or deadline finalization.
+
+Immediately before any pre-deadline final report or `task_complete`, run
+`npm run autonomous:plan` again and parse the versioned JSON; proceed only when
+it proves `currentCounts.PENDING === 0`. If parsing fails
+or `currentCounts.PENDING > 0`, finalization is forbidden: classify the state as
+`NO_SELECTABLE_TASKS`, enter `SESSION_RECOVERY_PENDING`, preserve every
+session-local exclusion, and re-evaluate with bounded backoff. `READY === 0`,
+no task outside the exclusion set, capability exhaustion, branch collisions,
+waiting dependencies, and fatal blockers never substitute for the exact
+`PENDING === 0` proof.
 
 Never mutate historical bootstrap PR #25 as part of a Development Session. Never deploy, publish, write `master`, rebase, force-push, or rewrite shared history.

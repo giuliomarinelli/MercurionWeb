@@ -22,6 +22,7 @@ import { LoggerContext } from 'src/logging/logger.port';
 import { pruneNullCollectionJoins } from '../utils/prune-molecule-collection-joins.util';
 import { MoleculeCollectionItemDTO } from '../models/dto/molecule-collection-item.union';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
+import { runInTransaction } from 'src/persistence/transaction-context'
 
 
 // TODO: valutare un refactoring per dryificare la duplicazione di logica tra questo service e i service delle entità figlie concrete
@@ -43,7 +44,7 @@ export class MoleculeCollectionItemService {
     async markAsTouched(userId: UUID, itemId: UUID, _flagIds?: string): Promise<boolean> {
 
         try {
-            return await this.dataSource.manager.transaction(async (manager) => {
+            return await runInTransaction(this.dataSource, async (_context, manager) => {
                 return this.markAsTouchedWithManager(userId, itemId, manager, _flagIds)
             })
         } catch (e) {
@@ -440,7 +441,7 @@ export class MoleculeCollectionItemService {
     async delete(id: UUID, userId: UUID): Promise<boolean> {
         try {
             let ok = false
-            await this.dataSource.manager.transaction(async manager => {
+            await runInTransaction(this.dataSource, async (_context, manager) => {
                 const resItem = await manager.delete(MoleculeCollectionItemEntity, { id, userId })
                 ok = (resItem.affected ?? 0) > 0
                 if (!ok) return

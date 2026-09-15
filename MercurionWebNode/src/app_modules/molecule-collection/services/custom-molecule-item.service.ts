@@ -12,6 +12,7 @@ import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
 import { GraphQLFieldsMap, TypeOrmUtils } from 'src/utils/type-orm-utils/type-orm-utils';
 import { RDKitService } from 'src/app_modules/mercurion-ai/services/rd-kit.service';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
+import { runInTransaction } from 'src/persistence/transaction-context'
 
 @Injectable()
 export class CustomMoleculeItemService {
@@ -34,13 +35,12 @@ export class CustomMoleculeItemService {
         accessToken: string
     ): Promise<CustomMoleculeItemEntity> {
 
-        return this.customRepo.manager.transaction(async manager => {
+        input.canonicalSmiles = await this._RDKitService.toCanonicalSmiles({
+            smiles: input.canonicalSmiles,
+            accessToken
+        })
 
-            input.canonicalSmiles = await this._RDKitService.toCanonicalSmiles({
-                smiles: input.canonicalSmiles,
-                accessToken
-            })
-
+        return runInTransaction(this.customRepo.manager, async (_context, manager) => {
             const r = await manager.createQueryBuilder(CustomMoleculeItemEntity, 'm')
                 .select(['m.canonicalSmiles'])
                 .where('m.userId = :userId', { userId })

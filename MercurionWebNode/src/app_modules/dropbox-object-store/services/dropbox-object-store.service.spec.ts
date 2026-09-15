@@ -26,7 +26,7 @@ describe('DropboxObjectStoreService', () => {
             delete: jest.fn(),
           },
         },
-        { provide: DataSource, useValue: { createQueryRunner: jest.fn().mockReturnValue({ connect: jest.fn(), startTransaction: jest.fn(), manager: { create: jest.fn(), save: jest.fn(), update: jest.fn() }, commitTransaction: jest.fn(), rollbackTransaction: jest.fn(), release: jest.fn() }) } },
+        { provide: DataSource, useValue: { transaction: jest.fn() } },
         { provide: LoggerPort, useValue: { forContext: jest.fn().mockReturnValue(mockLogger) } },
       ],
     }).compile();
