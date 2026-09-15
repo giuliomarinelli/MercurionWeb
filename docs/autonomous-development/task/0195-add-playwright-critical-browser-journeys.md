@@ -150,3 +150,14 @@ Focused validation passed: autonomous control-plane validation, Nest lint,
 Nest typecheck, Playwright discovery and repeated Playwright execution (three
 tests). Repository-wide clean-install validation remains owned by exact-SHA
 GitHub Actions.
+
+Final feature SHA `7ea5e067771bb9ad795d53f05f488ea5cb2a3df3` passed full
+CI run `35011032744`, including the critical browser job and stable Required
+gate. It was merged into `develop` with merge commit
+`84324fa193730886b27b08b875afa00590ee4a4e`; exact merge-SHA full CI run
+`35011807978` passed. The local and remote feature branches were then deleted.
+
+The authoritative dependency planner identified stale skips `0197`, `0198`,
+`0214`, `0215`, `0217`, `0218` and `0219`. They were reset to pending with
+placeholder execution notes; the final plan reports no errors, cycles,
+`toSkip`, or `staleSkips`.
