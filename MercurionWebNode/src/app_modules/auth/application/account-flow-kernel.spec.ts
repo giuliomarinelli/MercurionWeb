@@ -1,8 +1,8 @@
-import { AccountService } from './account.service';
-import { ScopeService } from './scope.service';
+import { AccountFlowKernel } from './account-flow-kernel';
+import { ScopeService } from '../services/scope.service';
 
-describe('AccountService', () => {
-  let service: AccountService;
+describe('AccountFlowKernel', () => {
+  let service: AccountFlowKernel;
 
   beforeEach(() => {
     const configMock = {
@@ -13,7 +13,7 @@ describe('AccountService', () => {
       }),
     };
     const meiliLoggerMock = { forContext: jest.fn(() => ({ warn: jest.fn() })) };
-    service = new AccountService(
+    service = new AccountFlowKernel(
       {} as any, // userService
       {} as any, // passwordEncoder
       {} as any, // securityService

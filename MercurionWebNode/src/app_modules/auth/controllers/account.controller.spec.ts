@@ -1,6 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AccountController } from './account.controller';
-import { AccountService } from '../services/account.service';
+import { AccountRegistrationUseCase } from '../application/account-registration.use-case';
+import { AccountActivationUseCase, AccountEmailAvailabilityQuery } from '../application/account-registration.use-case';
+import { AccountSensitiveDataUseCase } from '../application/account-sensitive-data.use-case';
+import { PasswordChangeUseCase, PasswordRecoveryUseCase } from '../application/password-recovery.use-case';
+import { ProfileAccountUseCase } from '../application/profile-account.use-case';
 import { ResponseService } from 'src/services/response.service';
 import { MfaService } from '../services/mfa.service';
 import { UserService } from 'src/app_modules/user/services/user.service';
@@ -19,7 +23,13 @@ describe('AccountController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AccountController],
       providers: [
-        { provide: AccountService, useValue: {} },
+        { provide: AccountRegistrationUseCase, useValue: {} },
+        { provide: AccountActivationUseCase, useValue: {} },
+        { provide: AccountEmailAvailabilityQuery, useValue: {} },
+        { provide: AccountSensitiveDataUseCase, useValue: {} },
+        { provide: PasswordChangeUseCase, useValue: {} },
+        { provide: PasswordRecoveryUseCase, useValue: {} },
+        { provide: ProfileAccountUseCase, useValue: {} },
         { provide: ResponseService, useValue: {} },
         { provide: MfaService, useValue: {} },
         { provide: UserService, useValue: {} },

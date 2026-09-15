@@ -4,7 +4,10 @@ import { BadRequestException, Body, Controller, Delete, Get, HttpCode, HttpStatu
 import { UserRegisterDTO } from 'src/app_modules/user/Models/DTO/user-register.cls.dto';
 import { AuthenticatedUserId, Authorization, Public, SessionId } from 'src/metadata/metadata';
 import { ConfirmChangeDTO, ConfirmDTO, ConfirmMfaChange, ConfirmWithObsContDTO, ConfirmWithPhoneMfaFeedback, ConfirmWithRecoveryCodeDTO } from 'src/Models/confirm-responses.dto';
-import { AccountService } from '../services/account.service';
+import { AccountRegistrationUseCase, AccountActivationUseCase, AccountEmailAvailabilityQuery } from '../application/account-registration.use-case';
+import { AccountSensitiveDataUseCase } from '../application/account-sensitive-data.use-case';
+import { PasswordChangeUseCase, PasswordRecoveryUseCase } from '../application/password-recovery.use-case';
+import { ProfileAccountUseCase } from '../application/profile-account.use-case';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 import { ResponseService } from 'src/services/response.service';
 import { MfaService } from '../services/mfa.service';
@@ -36,7 +39,13 @@ import { ListActiveSessionsHandler } from '../application/session-authentication
 export class AccountController {
 
     constructor(
-        private readonly accountService: AccountService,
+        private readonly registerAccount: AccountRegistrationUseCase,
+        private readonly activateAccountUseCase: AccountActivationUseCase,
+        private readonly emailAvailability: AccountEmailAvailabilityQuery,
+        private readonly sensitiveData: AccountSensitiveDataUseCase,
+        private readonly passwordChange: PasswordChangeUseCase,
+        private readonly passwordRecoveryUseCase: PasswordRecoveryUseCase,
+        private readonly profileAccount: ProfileAccountUseCase,
         private readonly _r: ResponseService,
         private readonly mfaService: MfaService,
         private readonly userService: UserService,
@@ -49,7 +58,7 @@ export class AccountController {
     @Post('/register')
     @UseGuards(TurnstileGuard)
     public async registerUser(@Body(new ValidationPipe({ transform: true })) userRegisterDTO: UserRegisterDTO): Promise<ConfirmWithObsContDTO> {
-        return this.accountService.registerUser(userRegisterDTO)
+        return this.registerAccount.execute({ registration: userRegisterDTO })
     }
 
     @Public()
@@ -58,7 +67,7 @@ export class AccountController {
         if (!/^[A-Za-z0-9_-]+=*\.[A-Za-z0-9_-]+=*\.[A-Za-z0-9_-]+=*$/i.test(activationToken)) {
             throw new BadRequestException('Invalid t param pattern')
         }
-        return this.accountService.activateUser(activationToken)
+        return this.activateAccountUseCase.execute(activationToken)
     }
 
     @Patch('/email/1')
@@ -66,7 +75,7 @@ export class AccountController {
         @AuthenticatedUserId() userId: UUID,
         @Body(new ValidationPipe({ transform: true })) dto: EmailDTO
     ): Promise<ConfirmChangeDTO> {
-        return await this.accountService.changeEmail_firstStep_requestTotp(userId, dto.email)
+        return await this.sensitiveData.requestEmailChange(userId, dto.email)
     }
 
     @Patch('/email/2')
@@ -74,21 +83,21 @@ export class AccountController {
         @Body(new ValidationPipe({ transform: true })) dto: TotpDTO
     ): Promise<ConfirmDTO> {
         const { totp, secureToken } = dto
-        const isValid = await this.accountService.changeEmail_secondStep_verifyTotp(totp, secureToken)
+        const isValid = await this.sensitiveData.confirmEmailChange(totp, secureToken)
         if (!isValid) throw new UnauthorizedException('Invalid TOTP code')
         return this._r.ok('Email changed successfully')
     }
 
     @Delete('/phone/1')
     public async deletePhoneNumber_firstStep(@AuthenticatedUserId() userId: UUID): Promise<ConfirmChangeDTO> {
-        return this.accountService.deletePhoneNumber_firstStep_requestTotp(userId)
+        return this.sensitiveData.requestPhoneDeletion(userId)
     }
 
     @Patch('/phone/del/2')
     public async deletePhoneNumber_secondStep(
         @Body(new ValidationPipe({ transform: true })) dto: TotpDTO
     ): Promise<ConfirmWithPhoneMfaFeedback> {
-        return this.accountService.deletePhoneNumber_secondStep_verifyTotp(dto.totp, dto.secureToken)
+        return this.sensitiveData.confirmPhoneDeletion(dto.totp, dto.secureToken)
     }
 
     @Patch('/phone/1')
@@ -96,7 +105,7 @@ export class AccountController {
         @AuthenticatedUserId() userId: UUID,
         @Body(new ValidationPipe({ transform: true })) dto: ChangePhoneDTO
     ): Promise<ConfirmChangeDTO> {
-        return this.accountService.changePhoneNumber_firstStep_requestTotp(userId, dto)
+        return this.sensitiveData.requestPhoneChange(userId, dto)
     }
 
     @Patch('/phone/2')
@@ -104,7 +113,7 @@ export class AccountController {
         @Body(new ValidationPipe({ transform: true })) dto: TotpDTO
     ): Promise<ConfirmDTO> {
         const { totp, secureToken } = dto
-        const isValid = await this.accountService.changePhoneNumber_secondStep_verifyTotp(totp, secureToken)
+        const isValid = await this.sensitiveData.confirmPhoneChange(totp, secureToken)
         if (!isValid) {
             throw new UnauthorizedException('Invalid TOTP code')
         }
@@ -191,7 +200,7 @@ export class AccountController {
         if (!oldPassword) {
             oldPassword = ''
         }
-        await this.accountService.changePassword(oldPassword, newPassword, userId)
+        await this.passwordChange.execute({ oldPassword, newPassword, userId })
         return this._r.ok('Password changed successfully')
     }
 
@@ -202,7 +211,7 @@ export class AccountController {
     public async forgottenPassword(@Body() dto: EmailDTO): Promise<ConfirmWithObsContDTO> {
         const { email } = dto
         try {
-            await this.accountService.sendForgottenPasswordLink(email)
+            await this.passwordRecoveryUseCase.sendResetLink(email)
         } catch (e) {
             if (isApplicationError(e, ApplicationErrorCode.PASSWORD_RESET_SEND_TOO_MANY_REQUESTS)) {
                 throw e
@@ -222,7 +231,7 @@ export class AccountController {
         @Body() changePasswordDTO: ChangePasswordDTO
     ): Promise<ConfirmDTO> {
         const { newPassword } = changePasswordDTO
-        await this.accountService.forgottenPassword(newPassword, changePasswordToken)
+        await this.passwordRecoveryUseCase.completeReset(newPassword, changePasswordToken)
         return this._r.ok('Password changed successfully')
     }
 
@@ -231,7 +240,7 @@ export class AccountController {
     isAuthorizedToRecoverPassword(
         @Authorization() changePasswordToken: string
     ): Promise<boolean> {
-        return this.accountService.isAuthorizedToRecoverPassword(changePasswordToken)
+        return this.passwordRecoveryUseCase.isAuthorized(changePasswordToken)
     }
 
     @Get('/profile-registry')
@@ -239,7 +248,7 @@ export class AccountController {
         @AuthenticatedUserId() userId: UUID,
         @Query('get_recent_history') getRecentHistory = 'true'
     ): Promise<ProfileDTO> {
-        const result = await this.userService.getVerifiedUserProfileById(userId, getRecentHistory === 'true')
+        const result = await this.profileAccount.getProfile(userId, getRecentHistory === 'true')
         if (!result) {
             throw new NotFoundException('UserNotFound')
         }
@@ -248,7 +257,7 @@ export class AccountController {
 
     @Get('/profile-registry/essential')
     public async getEssentialProfileRegistry(@AuthenticatedUserId() userId: UUID): Promise<ProfileRegistryClientDTO> {
-        return this.userService.getVerifiedUserEssentialProfileRegistryById(userId)
+        return this.profileAccount.getEssentialProfile(userId)
     }
 
     @Patch('/profile-registry')
@@ -256,7 +265,7 @@ export class AccountController {
         @AuthenticatedUserId() userId: UUID,
         @Body(new ValidationPipe({ transform: true })) dto: ProfileRegistryDTO
     ): Promise<ProfileRegistryClientDTO> {
-        const result = await this.userService.updateVerifiedUserProfileRegistryById(userId, dto)
+        const result = await this.profileAccount.updateProfile(userId, dto)
         if (!result) {
             throw new NotFoundException('UserNotFound::{updated: false}')
         }
@@ -267,7 +276,7 @@ export class AccountController {
     @HttpCode(HttpStatus.OK)
     @Post('/is-email-available')
     public async isEmailAvailable(@Body(new ValidationPipe({ transform: true })) { email }: EmailDTO): Promise<boolean> {
-        return this.accountService.isUserAvailableByEmail(email)
+        return this.emailAvailability.execute(email)
     }
 
     @Get('/active-sessions')
