@@ -1,6 +1,6 @@
 # 0127 - Replace string-based status mapping with typed application errors
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -87,24 +87,59 @@ Error `message` is not an identifier. Use a stable code such as `AUTH_INVALID_CR
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/BE-013`, based on `develop` at `bae51af3e2c0b2b6624a46f2c10a86657102e726`.
+
 ### Preflight
-_Not started._
+- Confirmed `git rev-parse HEAD` and `git rev-parse develop` both returned
+  `bae51af3e2c0b2b6624a46f2c10a86657102e726`.
+- Workspace was clean before implementation.
+- Recent exact `develop` CI run `34936500240` for that SHA completed
+  successfully.
+- Process inventory found no task-owned Angular, Nest, Tox21, or test watcher.
+  Existing Chrome DevTools MCP processes were not task-owned and were left
+  untouched.
+- Browser validation was not applicable per this recipe.
+
 ### Preflight remediation
-_None._
+None.
+
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0121, 0122, 0123. This task was never attempted and receives no feature branch.
+Replaced the legacy 1,034-line textual HTTP status map with the framework
+status-description API. Application errors now use a typed `ApplicationError`
+RpcException carrying stable code, category, status, production exposure
+policy, and optional cause/diagnostic details. Untyped RpcExceptions no longer
+derive status or public output from their message. Removed the legacy message
+resolver so message text is not an application classification authority.
+
 ### Task-specific validation performed
-_Not started._
+- `npm run typecheck --workspace @mercurion/rest-contracts` — passed.
+- `npm run build --workspace @mercurion/rest-contracts` — passed.
+- `npm test --workspace mercurion_web_node -- --runInBand --runTestsByPath
+  src/exception-handling/application-error.spec.ts
+  src/exception-handling/application-error-envelope.spec.ts
+  src/exception-handling/http-exception-filter.spec.ts` — 3 suites, 13 tests
+  passed.
+- `npm run typecheck --workspace mercurion_web_node` — passed.
+- `npm run lint --workspace mercurion_web_node` — passed.
+- `node scripts/check-application-error-policy.mjs` — passed.
+- `node scripts/test-application-error-policy-negative.mjs` — passed.
+- `git diff --check` — passed.
+
 ### Full pre-merge CI-parity validation
-_Not started._
+Not run locally; `npm ci` and `npm run ci:check` are reserved for GitHub
+Actions by session policy.
+
 ### Browser validation performed
-_Not applicable._
+Not applicable by task declaration.
+
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+`0d4f5c20` — `feat(errors): replace string status mapping with typed errors`.
+
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+Coordinator-owned exact-SHA feature CI is required after push.
+
 ### Rollback
-_Not applicable._
+Not applicable.
+
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+None.

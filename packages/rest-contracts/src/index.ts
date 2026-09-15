@@ -10,8 +10,7 @@ export {
   ApplicationErrorCode,
   getApplicationErrorDefinition,
   isApplicationErrorCode,
-  isApplicationErrorPayload,
-  resolveLegacyApplicationErrorCode
+  isApplicationErrorPayload
 } from './application-errors'
 export type {
   ApplicationErrorCode as ApplicationErrorCodeType,
