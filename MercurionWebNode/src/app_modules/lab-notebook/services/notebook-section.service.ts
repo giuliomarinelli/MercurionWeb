@@ -7,6 +7,7 @@ import { UUID } from 'crypto';
 import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
 import { GraphQLFieldsMap, TypeOrmUtils } from 'src/utils/type-orm-utils/type-orm-utils';
 import { UpdateSectionInput } from '../models/dto/update-section-input';
+import { runInTransaction } from 'src/persistence/transaction-context';
 
 @Injectable()
 export class NotebookSectionService {
@@ -25,7 +26,7 @@ export class NotebookSectionService {
      * @param data - dati della sezione
      */
     async create(userId: UUID, chapterId: UUID, data: Partial<NotebookSection>): Promise<NotebookSection> {
-        return this.sectionRepo.manager.transaction(async manager => {
+        return runInTransaction(this.sectionRepo.manager, async (_context, manager) => {
             const { max } = await manager
                 .createQueryBuilder(NotebookSection, 'section')
                 .where('section.chapter_id = :chapterId', { chapterId }) // fix
@@ -67,7 +68,7 @@ export class NotebookSectionService {
      * Sposta una sezione su/giù, **solo se di proprietà dell'utente**
      */
     async move(userId: UUID, sectionId: UUID, direction: 'up' | 'down'): Promise<void> {
-        await this.sectionRepo.manager.transaction(async manager => {
+        await runInTransaction(this.sectionRepo.manager, async (_context, manager) => {
             const section = await manager.findOne(NotebookSection, {
                 where: { id: sectionId, userId },
                 relations: { pages: true },
@@ -104,7 +105,7 @@ export class NotebookSectionService {
             .map((id, idx) => `WHEN id = '${id}' THEN ${idx}`)
             .join(' ')
 
-        await this.sectionRepo.manager.transaction(async manager => {
+        await runInTransaction(this.sectionRepo.manager, async (_context, manager) => {
             await manager
                 .createQueryBuilder()
                 .update(NotebookSection)
