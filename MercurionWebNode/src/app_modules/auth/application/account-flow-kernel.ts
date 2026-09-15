@@ -388,10 +388,13 @@ export class AccountFlowKernel {
         }
         await this.redisService.set(lockKey, 'locked', redisDurations.minutes(5))
 
-        await this.userService.updateUser(userId, {
+        const updatedUser = await this.userService.updateUser(userId, {
             unconfirmedEmail: newEmail,
             updatedAt: Date.now()
         })
+        if (!updatedUser) {
+            throw applicationError(ApplicationErrorCode.CHANGE_EMAIL_USER_NOT_FOUND)
+        }
 
         const emailVerificationToken = await this.jwtTools.generateToken(userId, TokenType.EmailVerificationToken)
         const { TOTP: totp, ...metadata } = this.securityService.generateTotp(user.otpSecret)
@@ -440,11 +443,14 @@ export class AccountFlowKernel {
         const maskedNewEmail = this.securityService.maskEmail(user.unconfirmedEmail ?? '')
         const oldEmail = user.email
         const newEmail = user.unconfirmedEmail
-        await this.userService.updateUser(userId, {
+        const updatedUser = await this.userService.updateUser(userId, {
             email: newEmail,
             unconfirmedEmail: null,
             updatedAt: Date.now()
         })
+        if (!updatedUser) {
+            throw applicationError(ApplicationErrorCode.CHANGE_EMAIL_CONFIRM_USER_NOT_FOUND)
+        }
 
         await this.redisService.del(
             redisKeys.account.emailChangeLock(this.hmacKey(newEmail.toLowerCase()))
@@ -499,11 +505,14 @@ export class AccountFlowKernel {
             throw applicationError(ApplicationErrorCode.DELETE_PHONE_IN_USE_OR_PENDING)
         }
         await this.redisService.set(lockKey, 'locked', redisDurations.minutes(5))
-        await this.userService.updateUser(userId, {
+        const updatedUser = await this.userService.updateUser(userId, {
             unconfirmedPhoneNumber: null,
             unconfirmedPhoneNumberPrefixLength: 0,
             updatedAt: Date.now()
         })
+        if (!updatedUser) {
+            throw applicationError(ApplicationErrorCode.DELETE_PHONE_USER_NOT_FOUND)
+        }
 
         const phoneNumberVerificationToken = await this.jwtTools.generateToken(userId, TokenType.PhoneNumberVerificationToken)
         const { TOTP: totp, ...metadata } = this.securityService.generateTotp(user.otpSecret)
@@ -637,11 +646,14 @@ export class AccountFlowKernel {
 
         await this.redisService.set(lockKey, 'locked', redisDurations.minutes(5))
 
-        await this.userService.updateUser(userId, {
+        const updatedUser = await this.userService.updateUser(userId, {
             unconfirmedPhoneNumber: fullNumber,
             unconfirmedPhoneNumberPrefixLength: internationalPrefix.length,
             updatedAt: Date.now()
         })
+        if (!updatedUser) {
+            throw applicationError(ApplicationErrorCode.CHANGE_PHONE_USER_NOT_FOUND)
+        }
 
         const phoneNumberVerificationToken = await this.jwtTools.generateToken(userId, TokenType.PhoneNumberVerificationToken)
         const { TOTP: totp, ...metadata } = this.securityService.generateTotp(user.otpSecret)
@@ -686,13 +698,16 @@ export class AccountFlowKernel {
         const newPhoneNumberPrefixLength = user.unconfirmedPhoneNumberPrefixLength
 
 
-        await this.userService.updateUser(userId, {
+        const updatedUser = await this.userService.updateUser(userId, {
             completePhoneNumber: newCompletePhoneNumber,
             phoneNumberPrefixLength: newPhoneNumberPrefixLength,
             unconfirmedPhoneNumber: null,
             unconfirmedPhoneNumberPrefixLength: 0,
             updatedAt: Date.now()
         })
+        if (!updatedUser) {
+            throw applicationError(ApplicationErrorCode.CHANGE_PHONE_USER_NOT_FOUND)
+        }
 
         await this.redisService.del(
             redisKeys.account.phoneChangeLock(this.hmacKey(newCompletePhoneNumber))

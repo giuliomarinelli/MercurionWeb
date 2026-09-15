@@ -180,14 +180,18 @@ export class UserService implements IdentityReadPort {
     }
 
     public async updateUser(id: UUID, userProps: Partial<User>): Promise<User | nullish> {
-        try {
-            return await runInTransaction(this.dataSource, async (_context, manager) => {
-                await manager.update<User>(User, { id }, { ...userProps })
-                return manager.findOne(User, { where: { id } })
-            })
-        } catch {
-            return null
-        }
+        return runInTransaction(this.dataSource, async (_context, manager) => {
+            const updateResult = await manager.update<User>(User, { id }, { ...userProps })
+            if (updateResult.affected === 0) {
+                return null
+            }
+
+            const updatedUser = await manager.findOne(User, { where: { id } })
+            if (!updatedUser) {
+                throw new Error(`User ${id} disappeared during transactional update read-back`)
+            }
+            return updatedUser
+        })
     }
 
     public async getUserEncryptedEnabledMfaStrategies(id: UUID): Promise<string[]> {
@@ -344,7 +348,10 @@ export class UserService implements IdentityReadPort {
         const updatedStrategies = Array.from(new Set([...currentStrategies, strategy]))
             .map((s) => this.securityService.encrypt_AES256(s))
         const mfaStrategies = JSON.stringify(updatedStrategies)
-        await this.updateUser(id, { mfaStrategies })
+        const updatedUser = await this.updateUser(id, { mfaStrategies })
+        if (!updatedUser) {
+            throw applicationError(ApplicationErrorCode.MFA_SETTINGS_USER_NOT_FOUND)
+        }
     }
 
     public async removeMfaStrategy(id: UUID, strategy: MfaStrategy): Promise<void> {
@@ -359,7 +366,10 @@ export class UserService implements IdentityReadPort {
         if (strategy === MfaStrategy.APP_TOTP) {
             userProps.appTotpSecret = null
         }
-        await this.updateUser(id, userProps)
+        const updatedUser = await this.updateUser(id, userProps)
+        if (!updatedUser) {
+            throw applicationError(ApplicationErrorCode.MFA_SETTINGS_USER_NOT_FOUND)
+        }
     }
 
     public async getUserInitialsByUserId(id: UUID): Promise<string | nullish> {

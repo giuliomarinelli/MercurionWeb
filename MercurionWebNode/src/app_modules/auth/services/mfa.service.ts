@@ -588,7 +588,10 @@ export class MfaApplicationService {
                 return false
             }
 
-            await this.userService.updateUser(userId, { appTotpSecret: otpSecret })
+            const updatedUser = await this.userService.updateUser(userId, { appTotpSecret: otpSecret })
+            if (!updatedUser) {
+                throw applicationError(ApplicationErrorCode.USER_NOT_FOUND)
+            }
             await this.redisService.del(redisKeys.mfa.temporaryAppSecret(userId))
         } else {
             otpSecret = await this.userService.getOtpSecretByUserId(userId)

@@ -1,6 +1,6 @@
 # 0153 - Make UserService updates transaction-safe
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -82,21 +82,40 @@ Mark `BLOCKED` if a current caller relies intentionally on swallowing database e
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-004`, based on `0dc1470a1d83e095ae671f52ffc20d751575214d`.
 ### Preflight
-_Not started._
+- Confirmed clean `feature/DATA-004` at the supplied base SHA and exact successful
+  GitHub Actions CI run `35028699428` for `0dc1470a1d83e095ae671f52ffc20d751575214d`.
+- Confirmed dependency task DATA-003/0152 is `DONE`, no task-owned Nest, Angular,
+  Tox21, Jest watcher, or other workspace runtime was started, and browser
+  validation is not applicable.
+- Focused unchanged validation passed:
+  `npm test --workspace mercurion_web_node -- --runInBand
+  src/persistence/transaction-context.spec.ts
+  src/app_modules/user/services/user.service.spec.ts`.
+- Local `npm ci` and `npm run ci:check` were not run.
 ### Preflight remediation
 _None._
 ### Summary
-Reset to `PENDING` by the human-authorized DATA-003 recovery. This task has not been attempted and has no feature branch.
+`UserService.updateUser` now performs affected-row detection and manager-scoped
+read-back inside the canonical Unit of Work, returning null only for an absent
+row while propagating persistence/read-back failures for rollback. Account and
+MFA callers explicitly handle a missing update result rather than continuing
+security-sensitive flows.
 ### Task-specific validation performed
-_Not started._
+- Added focused success, absent-user, update-failure, read-back-failure, and
+  rollback/lifecycle assertions in `user.service.spec.ts`.
+- `npm test --workspace mercurion_web_node -- --runInBand
+  src/persistence/transaction-context.spec.ts
+  src/app_modules/user/services/user.service.spec.ts` passed.
+- `npm run typecheck --workspace mercurion_web_node` passed.
+- `npm run lint --workspace mercurion_web_node` passed.
 ### Full pre-merge CI-parity validation
-_Not started._
+Pending exact feature-SHA GitHub Actions validation owned by the coordinator.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-_None._
+To be recorded after task commit.
 ### Merge / CI
 _Not started._
 ### Rollback
