@@ -5,8 +5,8 @@ import { createRemoteJWKSet, jwtVerify } from 'jose';
 import { ISocialProviderClient } from '../Models/interfaces/i-social-provider-client.interface';
 import { ProviderProfile } from '../Models/interfaces/provider-profile.interface';
 import { AuthProvider } from '../Models/enums/auth-provider.enum';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
-import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { LoggerPort } from 'src/logging/logger.port';
+import { LoggerContext } from 'src/logging/logger.port';
 
 import { SSO_Configuration } from 'src/config/config.types';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
@@ -20,7 +20,7 @@ import { ApplicationErrorCode, applicationError } from 'src/exception-handling/a
 @Injectable()
 export class GoogleProviderClient implements ISocialProviderClient {
 
-    private readonly logger: MeiliContextLogger
+    private readonly logger: LoggerContext
 
     private readonly clientId: string
     private readonly clientSecret: string
@@ -34,7 +34,7 @@ export class GoogleProviderClient implements ISocialProviderClient {
 
     constructor(
         private readonly configService: ConfigService,
-        loggerFactory: MeiliLoggerService
+        loggerFactory: LoggerPort
     ) {
         const { clientId, clientSecret, redirectUri } = this.configService.get<SSO_Configuration>('SSO.Google')!
         this.clientId = clientId

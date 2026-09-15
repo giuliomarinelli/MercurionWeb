@@ -10,8 +10,8 @@ import { FastifyRequest } from 'fastify';
 
 import { AppJwtPayload } from '../Models/interfaces/app-jwt-payload.interface';
 import { SessionService } from './session.service';
-import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { LoggerContext } from 'src/logging/logger.port';
+import { LoggerPort } from 'src/logging/logger.port';
 import { JwtKeysProvider } from '../providers/jwt-keys.provider';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 import { IDENTITY_READ_PORT, IdentityReadPort } from '../Models/interfaces/identity-read.port'
@@ -19,7 +19,7 @@ import { IDENTITY_READ_PORT, IdentityReadPort } from '../Models/interfaces/ident
 @Injectable()
 export class JwtToolsService {
 
-    private readonly logger: MeiliContextLogger
+    private readonly logger: LoggerContext
 
     private readonly accessTokenConfig: JwtConfiguration = { expiresInMs: 0 }
     private readonly ws_accessTokenConfig: JwtConfiguration = { expiresInMs: 0 }
@@ -51,7 +51,7 @@ export class JwtToolsService {
         @Inject(IDENTITY_READ_PORT)
         private readonly identityRead: IdentityReadPort,
         private readonly sessionService: SessionService,
-        loggerFactory: MeiliLoggerService,
+        loggerFactory: LoggerPort,
         private readonly jwtKeys: JwtKeysProvider
     ) {
         this.logger = loggerFactory.forContext(JwtToolsService.name)

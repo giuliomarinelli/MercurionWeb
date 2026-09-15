@@ -14,8 +14,8 @@ import { OldPasswordItem } from '../Models/DTO/old-password-item.interface';
 import { ProfileDTO } from 'src/app_modules/auth/Models/DTO/profile.dtos';
 import { SercurityService } from 'src/app_modules/auth/services/sercurity.service';
 import { CompareResult } from 'src/app_modules/auth/Models/enums/compare-result.enum';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
-import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { LoggerPort } from 'src/logging/logger.port';
+import { LoggerContext } from 'src/logging/logger.port';
 import { Scope } from '../Models/enums/scope.enum';
 import { MoleculeCollectionItemEntity } from 'src/app_modules/molecule-collection/Models/entities/molecule-collection-item.entity';
 import { HistoryService } from 'src/app_modules/history/services/history.service';
@@ -34,7 +34,7 @@ import { UserGender } from '../Models/enums/user-gender.enum'
 @Injectable()
 export class UserService implements IdentityReadPort {
 
-    private readonly logger: MeiliContextLogger
+    private readonly logger: LoggerContext
     private readonly mfaStrategyVals = Object.values(MfaStrategy)
 
     constructor(
@@ -43,7 +43,7 @@ export class UserService implements IdentityReadPort {
         private readonly passwordEncoder: PasswordEncoderService,
         private readonly securityService: SercurityService,
         private readonly historyService: HistoryService,
-        meiliLogger: MeiliLoggerService
+        meiliLogger: LoggerPort
     ) {
         this.logger = meiliLogger.forContext(UserService.name)
     }

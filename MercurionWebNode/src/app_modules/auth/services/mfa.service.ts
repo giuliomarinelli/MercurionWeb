@@ -26,8 +26,8 @@ import { redisDurations, redisKeys } from 'src/app_modules/redis/contracts/redis
 import { MfaContext } from '../Models/enums/mfa-context.enum';
 import { uuidv7 } from '@kripod/uuidv7';
 import { SecurityAuditService } from 'src/app_modules/meilisearch/services/security-audit.service';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
-import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { LoggerPort } from 'src/logging/logger.port';
+import { LoggerContext } from 'src/logging/logger.port';
 import { TypeGuards } from 'src/utils/type-guards/type-guards';
 import { ProvidedEmailDTO } from '../Models/DTO/provided-email.dto';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
@@ -41,7 +41,7 @@ import { MfaPolicyService } from './mfa-policy.service'
  */
 export class MfaApplicationService {
 
-    private readonly logger: MeiliContextLogger
+    private readonly logger: LoggerContext
 
     private readonly totpConfig: TotpConfiguration
     private readonly appName: string
@@ -75,7 +75,7 @@ export class MfaApplicationService {
         private readonly redisService: RedisService,
         private readonly securityAuditService: SecurityAuditService,
         private readonly policy: MfaPolicyService,
-        meiliLogger: MeiliLoggerService
+        meiliLogger: LoggerPort
     ) {
         this.logger = meiliLogger.forContext(MfaApplicationService.name)
         this.totpConfig = this.configService.get<TotpConfiguration>('Totp') as TotpConfiguration

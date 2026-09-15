@@ -4,7 +4,7 @@ import { ConfigService } from '@nestjs/config'
 import { createApplicationModule } from './app.module'
 import { ConfigurationError } from './config/env-validation'
 import { Environment } from './config/config.schema'
-import { MeiliLoggerService } from './app_modules/meilisearch/services/meili-logger.service'
+import { LoggerPort } from './logging/logger.port'
 import { RedisService } from './app_modules/redis/services/redis.service'
 import { SecureCookieService } from './app_modules/auth/services/secure-cookie.service'
 import { applyBootstrapConfiguration } from './bootstrap/bootstrap.configurator'
@@ -32,7 +32,7 @@ export async function bootstrap(): Promise<void> {
   const env = config.getOrThrow<Environment>('App.env')
   const appConfiguration = config.getOrThrow<AppConfiguration>('App')
   proxyTrust.configure(appConfiguration.transportSecurity.trustedProxyCidrs)
-  const loggerFactory = app.get(MeiliLoggerService)
+  const loggerFactory = app.get(LoggerPort)
   const readiness = app.get(ReadinessService)
   const shutdown = new ShutdownCoordinator(
     [

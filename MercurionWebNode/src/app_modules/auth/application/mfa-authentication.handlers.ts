@@ -4,8 +4,8 @@ import type { FingerprintData } from '@mercurion/rest-contracts'
 
 import { RedisService } from 'src/app_modules/redis/services/redis.service'
 import { redisKeys } from 'src/app_modules/redis/contracts/redis-contracts'
-import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface'
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service'
+import { LoggerContext } from 'src/logging/logger.port'
+import { LoggerPort } from 'src/logging/logger.port'
 import { UserService } from 'src/app_modules/user/services/user.service'
 import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum'
 import {
@@ -105,7 +105,7 @@ export type CompleteMfaLoginResult =
 
 @Injectable()
 export class CompleteMfaLoginHandler {
-    private readonly logger: MeiliContextLogger
+    private readonly logger: LoggerContext
 
     constructor(
         private readonly jwtTools: JwtToolsService,
@@ -115,7 +115,7 @@ export class CompleteMfaLoginHandler {
         private readonly userService: UserService,
         private readonly securityService: SercurityService,
         private readonly authenticationSession: AuthenticationSessionService,
-        loggerFactory: MeiliLoggerService
+        loggerFactory: LoggerPort
     ) {
         this.logger = loggerFactory.forContext(CompleteMfaLoginHandler.name)
     }

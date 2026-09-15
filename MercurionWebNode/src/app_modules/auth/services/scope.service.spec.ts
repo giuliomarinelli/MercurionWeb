@@ -1,6 +1,6 @@
 import { ScopeService } from './scope.service';
 import { SercurityService } from './sercurity.service';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { LoggerPort } from 'src/logging/logger.port';
 
 describe('ScopeService', () => {
   it('should be defined', () => {
@@ -11,7 +11,7 @@ describe('ScopeService', () => {
       },
       {
         forContext: jest.fn().mockReturnValue({ warn: jest.fn() }),
-      } as unknown as MeiliLoggerService,
+      } as unknown as LoggerPort,
     );
     expect(service).toBeDefined();
   });

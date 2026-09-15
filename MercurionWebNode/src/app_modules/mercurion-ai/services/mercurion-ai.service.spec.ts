@@ -1,6 +1,6 @@
 import { MercurionAIService } from './mercurion-ai.service';
 import { ConfigService } from '@nestjs/config';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { LoggerPort } from 'src/logging/logger.port';
 
 describe('MercurionService', () => {
   it('should be defined', () => {
@@ -10,7 +10,7 @@ describe('MercurionService', () => {
     } as unknown as ConfigService;
     const loggerFactory = {
       forContext: jest.fn().mockReturnValue({ log: jest.fn(), warn: jest.fn() }),
-    } as unknown as MeiliLoggerService;
+    } as unknown as LoggerPort;
     const service = new MercurionAIService(
       { send: jest.fn() } as any,
       config,

@@ -1,10 +1,10 @@
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { LoggerPort } from 'src/logging/logger.port';
 import { ExecutionContext, Inject, Injectable } from '@nestjs/common';
 import { Scope } from 'src/app_modules/user/Models/enums/scope.enum';
 import { SercurityService } from './sercurity.service';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 import { UUID } from 'crypto';
-import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { LoggerContext } from 'src/logging/logger.port';
 import { Reflector } from '@nestjs/core';
 import { SCOPES_KEY } from 'src/metadata/metadata';
 
@@ -14,7 +14,7 @@ import { IDENTITY_READ_PORT, IdentityReadPort } from '../Models/interfaces/ident
 @Injectable()
 export class ScopeService {
 
-    private readonly logger: MeiliContextLogger
+    private readonly logger: LoggerContext
 
     private readonly scopeValues = Object.values(Scope)
 
@@ -37,7 +37,7 @@ export class ScopeService {
         private readonly securityService: SercurityService,
         @Inject(IDENTITY_READ_PORT)
         private readonly identityRead: IdentityReadPort,
-        loggerFactory: MeiliLoggerService
+        loggerFactory: LoggerPort
     ) {
         this.logger = loggerFactory.forContext(ScopeService.name)
     }

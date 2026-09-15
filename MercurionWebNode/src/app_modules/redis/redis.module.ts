@@ -4,7 +4,7 @@ import { PubSubService } from './services/pub-sub.service';
 import Redis from 'ioredis';
 import { ConfigService } from '@nestjs/config';
 import { RedisConfiguration } from 'src/config/config.types';
-import { MeiliLoggerService } from '../meilisearch/services/meili-logger.service';
+import { LoggerPort } from 'src/logging/logger.port';
 import { RedisCapabilityService } from './services/redis-capability.service'
 
 @Global()
@@ -14,8 +14,8 @@ import { RedisCapabilityService } from './services/redis-capability.service'
     providers: [
         {
             provide: Redis,
-            inject: [ConfigService, MeiliLoggerService],
-            useFactory: async (configService: ConfigService, loggerFactory: MeiliLoggerService) => {
+            inject: [ConfigService, LoggerPort],
+            useFactory: async (configService: ConfigService, loggerFactory: LoggerPort) => {
 
                 const { host, port, password } = configService.get<RedisConfiguration>('Redis')!;
 

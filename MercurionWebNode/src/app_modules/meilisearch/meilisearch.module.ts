@@ -3,7 +3,6 @@ import { ConfigService } from '@nestjs/config';
 import { Meilisearch } from 'meilisearch';
 import { MoleculeSearchService } from './services/molecule-search.service';
 import { MoleculeSearchResolver } from './resolvers/molecule-search.resolver';
-import { MeiliLoggerService } from './services/meili-logger.service';
 import { MoleculeService } from './services/molecule.service';
 import { MoleculeResolver } from './resolvers/molecule.resolver';
 import { SecurityAuditService } from './services/security-audit.service';
@@ -23,7 +22,6 @@ import { SecurityAuditService } from './services/security-audit.service';
         },
         MoleculeSearchService,
         MoleculeSearchResolver,
-        MeiliLoggerService,
         MoleculeService,
         MoleculeResolver,
         SecurityAuditService
@@ -32,8 +30,6 @@ import { SecurityAuditService } from './services/security-audit.service';
         MoleculeService,
         'MEILISEARCH_CLIENT',
         SecurityAuditService,
-        MeiliLoggerService
     ]
-
 })
 export class MeilisearchModule { }

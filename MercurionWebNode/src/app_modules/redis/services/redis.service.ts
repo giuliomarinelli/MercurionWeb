@@ -1,7 +1,7 @@
 import { Injectable, OnModuleDestroy } from '@nestjs/common';
 import { Redis } from 'ioredis';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
-import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { LoggerPort } from 'src/logging/logger.port';
+import { LoggerContext } from 'src/logging/logger.port';
 import type {
   RedisKey,
   RedisKeyPattern,
@@ -11,11 +11,11 @@ import type {
 @Injectable()
 export class RedisService implements OnModuleDestroy {
 
-  private readonly logger: MeiliContextLogger
+  private readonly logger: LoggerContext
 
   constructor(
     private readonly redisClient: Redis,
-    loggerFactory: MeiliLoggerService
+    loggerFactory: LoggerPort
   ) {
     this.logger = loggerFactory.forContext(RedisService.name)
   }

@@ -1,7 +1,7 @@
 import { JwtToolsService } from './jwt-tools.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { LoggerPort } from 'src/logging/logger.port';
 import { TokenType } from '../Models/enums/token-type.enum';
 
 jest.mock('src/config/config', () => ({
@@ -70,7 +70,7 @@ describe('JwtToolsService', () => {
       sessionService as any,
       {
         forContext: jest.fn().mockReturnValue({ log: jest.fn(), warn: jest.fn() }),
-      } as unknown as MeiliLoggerService,
+      } as unknown as LoggerPort,
       jwtKeysMock as any
     );
   });

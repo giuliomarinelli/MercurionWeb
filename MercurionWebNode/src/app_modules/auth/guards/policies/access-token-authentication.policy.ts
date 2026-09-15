@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common'
 
 import { ApplicationErrorCode, isApplicationError } from 'src/exception-handling/application-error'
-import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface'
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service'
+import { LoggerContext } from 'src/logging/logger.port'
+import { LoggerPort } from 'src/logging/logger.port'
 
 import { TokenType } from '../../Models/enums/token-type.enum'
 import type { AppJwtPayload } from '../../Models/interfaces/app-jwt-payload.interface'
@@ -12,13 +12,13 @@ import type { AccessTokenAuthenticationResult } from './authentication-policy.ty
 
 @Injectable()
 export class AccessTokenAuthenticationPolicy {
-  private readonly logger: MeiliContextLogger
+  private readonly logger: LoggerContext
   private readonly refreshRevocationDelayMs = 1500
 
   constructor(
     private readonly jwtToolsService: JwtToolsService,
     private readonly sessionService: SessionService,
-    loggerFactory: MeiliLoggerService
+    loggerFactory: LoggerPort
   ) {
     this.logger = loggerFactory.forContext(AccessTokenAuthenticationPolicy.name)
   }

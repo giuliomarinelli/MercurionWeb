@@ -2,8 +2,8 @@ import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { RpcException } from '@nestjs/microservices'
 import { timingSafeEqual, UUID } from 'node:crypto'
 
-import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface'
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service'
+import { LoggerContext } from 'src/logging/logger.port'
+import { LoggerPort } from 'src/logging/logger.port'
 import {
   ApplicationErrorCode,
   applicationHttpException,
@@ -23,13 +23,13 @@ import type {
 
 @Injectable()
 export class AuthenticationFailurePolicy {
-  private readonly logger: MeiliContextLogger
+  private readonly logger: LoggerContext
 
   constructor(
     private readonly jwtToolsService: JwtToolsService,
     private readonly sessionService: SessionService,
     private readonly transportPolicy: AuthenticationTransportPolicy,
-    loggerFactory: MeiliLoggerService
+    loggerFactory: LoggerPort
   ) {
     this.logger = loggerFactory.forContext(AuthenticationFailurePolicy.name)
   }

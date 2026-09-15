@@ -4,7 +4,7 @@ import { OAuth2ClientService } from 'src/app_modules/oauth2-client/services/oaut
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { DocumentEntity } from '../Models/entities/document.entity';
 import { DataSource } from 'typeorm';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { LoggerPort } from 'src/logging/logger.port';
 
 describe('DropboxObjectStoreService', () => {
   let service: DropboxObjectStoreService;
@@ -27,7 +27,7 @@ describe('DropboxObjectStoreService', () => {
           },
         },
         { provide: DataSource, useValue: { createQueryRunner: jest.fn().mockReturnValue({ connect: jest.fn(), startTransaction: jest.fn(), manager: { create: jest.fn(), save: jest.fn(), update: jest.fn() }, commitTransaction: jest.fn(), rollbackTransaction: jest.fn(), release: jest.fn() }) } },
-        { provide: MeiliLoggerService, useValue: { forContext: jest.fn().mockReturnValue(mockLogger) } },
+        { provide: LoggerPort, useValue: { forContext: jest.fn().mockReturnValue(mockLogger) } },
       ],
     }).compile();
 

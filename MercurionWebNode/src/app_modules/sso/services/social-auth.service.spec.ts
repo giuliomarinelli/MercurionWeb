@@ -4,7 +4,7 @@ import { ScopeService } from 'src/app_modules/auth/services/scope.service';
 import { JwtToolsService } from 'src/app_modules/auth/services/jwt-tools.service';
 import { ConfigService } from '@nestjs/config';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { LoggerPort } from 'src/logging/logger.port';
 import { SercurityService } from 'src/app_modules/auth/services/sercurity.service';
 
 describe('SocialAuthService', () => {
@@ -28,7 +28,7 @@ describe('SocialAuthService', () => {
       } as unknown as SercurityService,
       {
         forContext: jest.fn().mockReturnValue({ warn: jest.fn(), log: jest.fn() }),
-      } as unknown as MeiliLoggerService,
+      } as unknown as LoggerPort,
     );
     expect(service).toBeDefined();
   });

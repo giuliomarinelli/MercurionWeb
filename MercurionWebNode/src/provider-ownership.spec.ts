@@ -15,7 +15,7 @@ import { SessionIdentityService } from './app_modules/auth/services/session-iden
 import { JwtToolsService } from './app_modules/auth/services/jwt-tools.service';
 import { SessionService } from './app_modules/auth/services/session.service';
 import { SESSION_REPOSITORY } from './app_modules/auth/Models/interfaces/session-repository.interface';
-import { MeiliLoggerService } from './app_modules/meilisearch/services/meili-logger.service';
+import { LoggerPort } from 'src/logging/logger.port';
 import { RedisModule } from './app_modules/redis/redis.module';
 import { PubSubService } from './app_modules/redis/services/pub-sub.service';
 import { RedisService } from './app_modules/redis/services/redis.service';
@@ -67,11 +67,11 @@ const logger = {
       },
     },
     {
-      provide: MeiliLoggerService,
+      provide: LoggerPort,
       useValue: { forContext: jest.fn(() => logger) },
     },
   ],
-  exports: [ConfigService, DataSource, MeiliLoggerService],
+  exports: [ConfigService, DataSource, LoggerPort],
 })
 class ProviderDependencyProbeModule {}
 

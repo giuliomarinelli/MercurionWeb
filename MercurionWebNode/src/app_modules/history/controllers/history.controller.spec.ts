@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { HistoryController } from './history.controller';
 import { HistoryService } from '../services/history.service';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { LoggerPort } from 'src/logging/logger.port';
 
 describe('HistoryController', () => {
   let controller: HistoryController;
@@ -13,7 +13,7 @@ describe('HistoryController', () => {
       controllers: [HistoryController],
       providers: [
         { provide: HistoryService, useValue: historyServiceMock },
-        { provide: MeiliLoggerService, useValue: loggerFactoryMock },
+        { provide: LoggerPort, useValue: loggerFactoryMock },
       ],
     }).compile();
 

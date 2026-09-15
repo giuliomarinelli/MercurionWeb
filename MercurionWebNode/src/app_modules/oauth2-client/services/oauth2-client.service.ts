@@ -7,19 +7,19 @@ import { IOAuth2ClientService } from '../Models/interfaces/i-oauth2-client-servi
 import { OAuth2PersistenceService } from './o-auth2-persistence.service';
 import { UUID } from 'crypto';
 import { OAuth2TokenData } from '../Models/interfaces/oauth2-token-data.interface';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
-import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { LoggerPort } from 'src/logging/logger.port';
+import { LoggerContext } from 'src/logging/logger.port';
 import { redisDurations, redisKeys } from 'src/app_modules/redis/contracts/redis-contracts';
 
 @Injectable()
 export class OAuth2ClientService implements IOAuth2ClientService {
-    private readonly logger: MeiliContextLogger;
+    private readonly logger: LoggerContext;
 
     constructor(
         private readonly configService: ConfigService,
         private readonly redisService: RedisService,
         private readonly persistenceService: OAuth2PersistenceService,
-        meiliLogger: MeiliLoggerService,
+        meiliLogger: LoggerPort,
     ) {
         this.logger = meiliLogger.forContext(OAuth2ClientService.name)
     }

@@ -2,8 +2,8 @@ import { Injectable } from "@nestjs/common";
 import { AuthIdentity } from "../Models/entities/auth-identity.entity";
 import { AuthProvider } from "../Models/enums/auth-provider.enum";
 import { SocialProviderRegistry } from "./social-provider-registry";
-import { MeiliLoggerService } from "src/app_modules/meilisearch/services/meili-logger.service";
-import { MeiliContextLogger } from "src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface";
+import { LoggerPort } from 'src/logging/logger.port';
+import { LoggerContext } from "src/logging/logger.port";
 import { uuidv7 } from "@kripod/uuidv7";
 import { createHmac, randomBytes, UUID } from "crypto";
 import { JwtToolsService } from 'src/app_modules/auth/services/jwt-tools.service';
@@ -22,7 +22,7 @@ import { InitialWorkspaceService } from 'src/app_modules/molecule-collection/ser
 @Injectable()
 export class SocialAuthService {
 
-    private readonly logger: MeiliContextLogger
+    private readonly logger: LoggerContext
 
     private readonly redisIdHmacSecret: string
 
@@ -36,7 +36,7 @@ export class SocialAuthService {
         private readonly configService: ConfigService,
         private readonly redisService: RedisService,
         private readonly securityService: SercurityService,
-        loggerFactory: MeiliLoggerService
+        loggerFactory: LoggerPort
     ) {
         this.logger = loggerFactory.forContext(SocialAuthService.name)
         this.redisIdHmacSecret = this.configService.get<string>('App.redisIdHmacSecret')!

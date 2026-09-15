@@ -13,8 +13,8 @@ import { uuidv7 } from '@kripod/uuidv7';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 import { MoleculeCollectionItemJoin } from '../Models/entities/molecule-collection-item-join.entity';
 import { ChEMBLMoleculeItemEntity } from '../Models/entities/chembl-molecule-item.entity';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
-import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { LoggerPort } from 'src/logging/logger.port';
+import { LoggerContext } from 'src/logging/logger.port';
 import { pruneNullCollectionJoins } from '../utils/prune-molecule-collection-joins.util';
 import {
   ApplicationErrorCode,
@@ -146,13 +146,13 @@ WHERE i.user_id = $2::uuid
   );
 `
 
-  private readonly logger: MeiliContextLogger
+  private readonly logger: LoggerContext
 
   constructor(
     @InjectRepository(MoleculeCollection)
     private readonly collectionRepo: Repository<MoleculeCollection>,
     private readonly dataSource: DataSource,
-    meiliLogger: MeiliLoggerService
+    meiliLogger: LoggerPort
   ) {
     this.logger = meiliLogger.forContext(MoleculeCollectionService.name)
   }

@@ -2,8 +2,8 @@ import { Inject, Injectable, OnModuleInit } from '@nestjs/common'
 import { ClientProxy } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config'
 import { catchError, firstValueFrom, OperatorFunction, throwError, timeout, TimeoutError } from 'rxjs'
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service'
-import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface'
+import { LoggerPort } from 'src/logging/logger.port'
+import { LoggerContext } from 'src/logging/logger.port'
 import { Environment } from 'src/config/config.schema'
 import { RDKitAPI_NS } from '../Models/interfaces/rdkit-api-ns.interface'
 import {
@@ -22,13 +22,13 @@ import { ApplicationErrorCode, applicationError } from 'src/exception-handling/a
 export class RDKitService implements OnModuleInit {
 
     private readonly MAX_NATS_PAYLOAD_BYTES: number
-    private readonly logger: MeiliContextLogger
+    private readonly logger: LoggerContext
     private readonly namespaces: RDKitAPI_NS
 
     constructor(
         @Inject('MERCURION_AI_CLIENT') private readonly mercurionAIClient: ClientProxy,
         private readonly configService: ConfigService,
-        loggerFactory: MeiliLoggerService
+        loggerFactory: LoggerPort
     ) {
         this.MAX_NATS_PAYLOAD_BYTES = this.configService.get<number>('App.maxNatsPayloadBytes')!
         this.logger = loggerFactory.forContext(RDKitService.name)

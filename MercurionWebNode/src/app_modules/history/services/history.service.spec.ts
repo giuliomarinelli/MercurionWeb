@@ -4,7 +4,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { History } from '../Models/entities/history.entity';
 import { DataSource } from 'typeorm';
 import { MoleculeService } from 'src/app_modules/meilisearch/services/molecule.service';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { LoggerPort } from 'src/logging/logger.port';
 
 describe('HistoryService', () => {
   let service: HistoryService;
@@ -29,7 +29,7 @@ describe('HistoryService', () => {
           },
         },
         {
-          provide: MeiliLoggerService,
+          provide: LoggerPort,
           useValue: { forContext: jest.fn(() => ({ warn: jest.fn() })) },
         },
       ],

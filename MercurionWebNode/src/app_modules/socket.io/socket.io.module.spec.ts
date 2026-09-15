@@ -7,12 +7,11 @@ import { JwtToolsService } from '../auth/services/jwt-tools.service';
 import { ScopeService } from '../auth/services/scope.service';
 import { SecureCookieService } from '../auth/services/secure-cookie.service';
 import { SessionService } from '../auth/services/session.service';
-import { MeilisearchModule } from '../meilisearch/meilisearch.module';
-import { MeiliLoggerService } from '../meilisearch/services/meili-logger.service';
 import { RedisModule } from '../redis/redis.module';
 import { PubSubService } from '../redis/services/pub-sub.service';
 import { SocketIOGateway } from './socket.io.gateway';
 import { SocketIoModule } from './socket.io.module';
+import { LoggerPort } from 'src/logging/logger.port';
 
 const logger = {
   debug: jest.fn(),
@@ -68,13 +67,13 @@ class SocketAuthProbeModule {}
 @Module({
   providers: [
     {
-      provide: MeiliLoggerService,
+      provide: LoggerPort,
       useValue: { forContext: jest.fn().mockReturnValue(logger) },
     },
   ],
-  exports: [MeiliLoggerService],
+  exports: [LoggerPort],
 })
-class SocketMeilisearchProbeModule {}
+class SocketLoggerProbeModule {}
 
 describe('SocketIoModule', () => {
   it('should be defined', () => {
@@ -83,14 +82,12 @@ describe('SocketIoModule', () => {
 
   it('creates exactly one gateway provider wrapper and instance per app context', async () => {
     const moduleRef = await Test.createTestingModule({
-      imports: [SocketIoModule],
+      imports: [SocketIoModule, SocketLoggerProbeModule],
     })
       .overrideModule(RedisModule)
       .useModule(SocketRedisProbeModule)
       .overrideModule(AuthModule)
       .useModule(SocketAuthProbeModule)
-      .overrideModule(MeilisearchModule)
-      .useModule(SocketMeilisearchProbeModule)
       .compile();
 
     const gateway = moduleRef.get(SocketIOGateway);

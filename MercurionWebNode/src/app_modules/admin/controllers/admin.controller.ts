@@ -3,7 +3,7 @@ import { Scope } from 'src/app_modules/user/Models/enums/scope.enum';
 import { HasScopes, Public } from 'src/metadata/metadata';
 import { ChangeLogLevelDTO } from '../Models/DTO/change-log-level.dto';
 import { ConfirmNewLogLevelsDTO } from 'src/Models/confirm-responses.dto';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { LoggerPort } from 'src/logging/logger.port';
 import { ResponseService } from 'src/services/response.service';
 import { FastifyReply } from 'fastify';
 import type { MaintenanceBypassResponse } from '@mercurion/rest-contracts'
@@ -13,7 +13,7 @@ import type { MaintenanceBypassResponse } from '@mercurion/rest-contracts'
 export class AdminController {
 
     constructor(
-        private readonly loggerFactory: MeiliLoggerService,
+        private readonly loggerFactory: LoggerPort,
         private readonly _r: ResponseService
     ) { }
 
