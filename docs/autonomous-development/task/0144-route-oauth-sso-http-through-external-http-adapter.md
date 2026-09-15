@@ -101,7 +101,7 @@ Owned by GitHub Actions on the pushed feature SHA; local `npm ci` and `npm run c
 ### Browser validation performed
 Not required for adapter correctness.
 ### Commits
-Pending task commit.
+`88b57e4e4f994706fa590238a2eb7ec56d65428c` — `feat(BE-030): route OAuth HTTP through external adapter`
 ### Merge / CI
 Feature SHA will be published for exact-SHA CI.
 ### Rollback
