@@ -90,7 +90,7 @@
     "ci:topology:negative": "node scripts/test-repository-topology-negative.mjs"
   },
   "devDependencies": {
-    "@playwright/test": "1.55.0",
+    "@playwright/test": "1.63.0",
     "jscpd": "4.0.5",
     "patch-package": "8.0.1"
   },
