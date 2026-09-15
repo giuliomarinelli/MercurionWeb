@@ -1,7 +1,7 @@
 # 0152 - Introduce a canonical TypeORM unit of work
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
@@ -92,24 +92,69 @@ Do not implement transaction context through process-global state or AsyncLocalS
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-003`, at supplied current `develop` base
+`649b3e12244598a8b056b88e7f06f30d67f0a14e`.
 ### Preflight
-_Not started._
+- Confirmed the local branch was clean, exactly `feature/DATA-003`, and its
+  HEAD matched `develop`, `origin/develop`, and the supplied base SHA via
+  `git rev-parse`.
+- Confirmed the exact base SHA has a successful GitHub Actions `CI` run
+  (`34970945179`), and the local repository signing policy is
+  `commit.gpgSign=false`.
+- Stopped stale workspace Angular test processes (PIDs 14812 and 14288) found
+  during process preflight; no task-owned Angular, Nest, Tox21, or test
+  watcher remained before validation.
+- Focused unchanged checks passed:
+  - `npm run ci:nest:architecture`;
+  - `npm run typecheck --workspace mercurion_web_node`;
+  - `npm test --workspace mercurion_web_node -- --runInBand
+    --runTestsByPath src/persistence/transaction-context.spec.ts
+    src/app_modules/auth/application/account-flow-kernel.spec.ts
+    src/app_modules/molecule-collection/services/initial-workspace.service.spec.ts`
+    (3 suites, 4 tests).
+- No browser/runtime validation was required. `npm ci` and
+  `npm run ci:check` were not run.
 ### Preflight remediation
-_None._
+None beyond stopping the stale Angular test processes listed above.
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0115, 0120, 0150. This task was never attempted and receives no feature branch.
+Blocked before production implementation by the recipe's explicit stop
+condition. The current code still places external Redis/session side effects
+inside TypeORM transaction callbacks, including
+`MfaService.deletePhoneNumber_secondStep_verifyTotp()` calling
+`sessionService.revokeToken()` and `registerContactChangeFailure()` while the
+database transaction is active, and
+`AccountFlowKernel.recoverAccount_firstStep()` calling
+`ensureRecoveryNotLocked()` before its manager-bound writes. The required
+consistency model for these external effects on commit, rollback, retry and
+transaction failure is not defined by the repository contracts. Moving these
+callbacks behind `UnitOfWork` without that decision could report a database
+rollback while retaining Redis state (or retry an already-applied external
+effect), so implementation would guess at domain behavior.
+
+The existing opaque `TransactionContext`/`UnitOfWork` introduced by the
+repository-boundary work is only a partial infrastructure seam: it does not
+resolve external-effect consistency, and raw transaction entrypoints remain
+throughout application services. No production code was changed in this
+attempt.
 ### Task-specific validation performed
-_Not started._
+The focused architecture, typecheck, and three transaction/ownership suites
+listed under Preflight passed. No implementation validation was run because
+the task stop condition was reached before production edits.
 ### Full pre-merge CI-parity validation
-_Not started._
+Not run. Complete clean-install and aggregate validation belong to GitHub
+Actions; local `npm ci` and `npm run ci:check` are forbidden.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+`DATA-003 record unresolved external transaction consistency blocker`
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+Blocked before integration; preserve and freeze the pushed feature branch.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+Define the consistency contract for Redis/session and other external effects
+that currently execute inside database transaction callbacks. The decision
+must specify whether each effect is forbidden in the transaction, deferred
+through an outbox, or compensated/idempotently retried, including behavior
+after database rollback and transaction retry. Until that authority exists,
+the canonical migration cannot be completed safely.
