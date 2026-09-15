@@ -12,6 +12,7 @@ import { MoleculeCollection } from "../models/entities/molecule-collection.entit
 import { uuidv7 } from '@kripod/uuidv7';
 import { AddManyChEMBLItemDTO } from "../models/dto/add-many-chembl-items.dto";
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
+import { runInTransaction } from 'src/persistence/transaction-context'
 
 @Injectable()
 export class ChEMBLMoleculeItemService {
@@ -92,7 +93,7 @@ export class ChEMBLMoleculeItemService {
         label?: string,
         notes?: string
     ): Promise<ChEMBLMoleculeItemEntity> {
-        return await this.dataSource.transaction(async (manager) => {
+        return await runInTransaction(this.dataSource, async (_context, manager) => {
 
             let item = await manager.findOne(ChEMBLMoleculeItemEntity, { where: { chemblMolregno, userId } })
             if (!item) {
@@ -135,7 +136,7 @@ export class ChEMBLMoleculeItemService {
         dtos: AddManyChEMBLItemDTO[]
     ): Promise<boolean> {
         try {
-            return await this.dataSource.manager.transaction(async manager => {
+            return await runInTransaction(this.dataSource, async (_context, manager) => {
                 const molregnoMap = new Map<number, AddManyChEMBLItemDTO>()
                 for (const dto of dtos) {
                     if (!molregnoMap.has(dto.chemblMolregno)) {

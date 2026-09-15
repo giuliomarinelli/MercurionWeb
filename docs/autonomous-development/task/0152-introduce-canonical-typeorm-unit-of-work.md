@@ -1,6 +1,6 @@
 # 0152 - Introduce a canonical TypeORM unit of work
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -92,24 +92,75 @@ Do not implement transaction context through process-global state or AsyncLocalS
 ## Execution notes
 
 ### Feature branch
-_Not started._
+Recovered `feature/DATA-003` from preserved SHA
+`7629ec35abae6e3c398b13b55e1a41590559d002` by merging the current green
+`develop` SHA `3c41ea9f99d7d27dce3a048f83722769815afe25` with
+`--no-ff --no-gpg-sign` (recovery merge `a66244af8b43c4e35fc40f63ed3b3cbf6f4ae460`).
 ### Preflight
-_Not started._
-### Preflight remediation
-_None._
+- Confirmed clean synchronized `develop`, local/remote preserved recovery refs,
+  `commit.gpgSign=false`, no task-owned runtime/test process, and successful
+  isolated npm install/call/cleanup capability probe.
+- Confirmed all hard dependencies `0115`, `0120`, and `0150` are `DONE` and
+  `npm run autonomous:plan` reported no errors, cycles, or stale skips before
+  recovery.
+- Certified exact base SHA with fresh GitHub Actions full CI run `34997244092`:
+  Windows and Ubuntu prerequisites, all container/build/test/schema jobs, and
+  `Required gate` succeeded.
+- Focused unchanged checks passed:
+  - `npm run ci:nest:architecture`;
+  - `npm run typecheck --workspace mercurion_web_node`;
+  - `npm test --workspace mercurion_web_node -- --runInBand
+    --runTestsByPath src/persistence/transaction-context.spec.ts
+    src/app_modules/auth/application/account-flow-kernel.spec.ts
+    src/app_modules/molecule-collection/services/initial-workspace.service.spec.ts`
+    (3 suites, 4 tests).
+- No browser/runtime validation was required. `npm ci` and
+  `npm run ci:check` were not run.
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0115, 0120, 0150. This task was never attempted and receives no feature branch.
+Implemented and documented the canonical TypeORM `UnitOfWork` with an opaque,
+explicitly propagated `TransactionContext`, manager-bound repository access,
+root-context reuse for nested use cases, deterministic context invalidation,
+and awaited post-commit effects that never run after rollback. External auth,
+SSO and molecule-lookup effects were moved outside database callbacks or
+registered after commit.
+
+Migrated every existing application-service raw transaction and removed manual
+`QueryRunner` ownership. Added `ci:transactions` plus its negative test to
+reject new direct TypeORM transaction mechanisms outside persistence
+infrastructure. Added a PostgreSQL integration probe to the existing migration
+schema job for commit, rollback, nesting, manager reuse, and post-commit
+semantics.
 ### Task-specific validation performed
-_Not started._
+- `npm run ci:transactions` passed, including the negative policy test.
+- `npm run ci:nest:architecture` passed.
+- `npm run typecheck --workspace mercurion_web_node` passed.
+- `npm run lint --workspace mercurion_web_node` passed with zero warnings.
+- Complete Nest unit suite passed: 157 suites, 509 tests.
+- Complete Nest E2E suite passed: 1 suite, 3 tests.
+- `npm run build --workspace mercurion_web_node` passed.
+- `npm run ci:database-schema` passed against disposable PostgreSQL after all
+  migrations: UnitOfWork commit/rollback/nesting/post-commit integration checks
+  passed and the container was removed.
+- `git diff --check` passed.
 ### Full pre-merge CI-parity validation
-_Not started._
+Exact feature SHA `91a046176d89ca45c728785d0e21e857e4ab04cb` passed the
+complete GitHub Actions workflow in run `34999674430`, including the stable
+Required gate. Local `npm ci` and `npm run ci:check` were not run;
+clean-install aggregate evidence belongs to GitHub Actions.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+`f156a796d7980c22fedcdde681d27d47c42a09dc` — canonical UnitOfWork,
+application migrations, architecture gate and PostgreSQL integration probe.
+
+`91a046176d89ca45c728785d0e21e857e4ab04cb` — recovery evidence and reset of
+the five dependency skips made stale by DATA-003 becoming `DONE`.
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+Merged into `develop` with `--no-ff --no-gpg-sign` as
+`98f500ee1db704873f5f475fa0f6245dca4e9fdb`. Exact merge-SHA full CI passed in
+run `35000347615`, including Windows, Ubuntu, container builds, Angular and
+Nest tests/builds, PostgreSQL migration/UnitOfWork probes, and Required gate.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+_None._

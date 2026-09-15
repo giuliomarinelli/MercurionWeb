@@ -34,6 +34,7 @@ import { ProvidedEmailDTO } from '../models/dto/provided-email.dto';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 import { MfaBackupCodeStore } from 'src/app_modules/user/services/mfa-backup-code.store'
 import { MfaPolicyService } from './mfa-policy.service'
+import { runInTransaction } from 'src/persistence/transaction-context'
 
 @Injectable()
 /**
@@ -246,7 +247,7 @@ export class MfaApplicationService {
 
         await this.throttleBackupRegeneration(userId)
 
-        return this.dataSource.manager.transaction(async (manager) => {
+        return runInTransaction(this.dataSource, async (_context, manager) => {
 
             const row = await manager.findOne(User, {
                 where: { id: userId },
@@ -754,7 +755,7 @@ export class MfaApplicationService {
             return false
         }
 
-        await this.dataSource.manager.transaction(async (manager) => {
+        await runInTransaction(this.dataSource, async (_context, manager) => {
 
             const row = await manager.createQueryBuilder(User, 'u')
                 .select(['u.mfaStrategies', 'u.backupCodesGiven'])

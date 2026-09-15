@@ -14,6 +14,7 @@ import { MoleculeService } from 'src/app_modules/meilisearch/services/molecule.s
 import { BindManyCollectionsToMoleculeDTO } from '../models/dto/bind-many-collections-to-molecule.dto';
 import { LoggerPort } from 'src/logging/logger.port';
 import { LoggerContext } from 'src/logging/logger.port';
+import { runInTransaction } from 'src/persistence/transaction-context';
 
 
 
@@ -37,7 +38,7 @@ export class MoleculeCollectionItemJoinService {
 
     // Metodo STANDARD (fuori da transaction esplicita)
     async add(userId: UUID, collectionId: UUID, itemId: UUID): Promise<MoleculeCollectionItemJoin> {
-        return await this.joinRepo.manager.transaction(async manager => {
+        return await runInTransaction(this.joinRepo.manager, async (_context, manager) => {
             return this.addMoleculeToCollectionWithManager(userId, collectionId, itemId, manager)
         })
     }
@@ -62,7 +63,7 @@ export class MoleculeCollectionItemJoinService {
 
     async removeMoleculeFromCollection(userId: UUID, collectionId: UUID, itemId: UUID, deleteCollectionIfEmpty = false): Promise<boolean> {
         try {
-            return await this.joinRepo.manager.transaction(async manager => {
+            return await runInTransaction(this.joinRepo.manager, async (_context, manager) => {
                 return this.removeMoleculeFromCollectionWithManager(userId, collectionId, itemId, deleteCollectionIfEmpty, manager);
             })
         } catch {
@@ -107,7 +108,7 @@ export class MoleculeCollectionItemJoinService {
         itemIds: UUID[],
         selectAll: boolean
     ): Promise<UUID[]> {
-        return this.dataSource.manager.transaction(manager =>
+        return runInTransaction(this.dataSource, async (_context, manager) =>
             this.addManyMoleculesToCollectionWithManager(userId, collectionId, itemIds, selectAll, manager)
         );
     }
@@ -185,8 +186,30 @@ export class MoleculeCollectionItemJoinService {
 
     async bindManyCollectionsToMolecule(userId: UUID, moleculeId: string, collectionIds: UUID[], selectAll: boolean): Promise<BindManyCollectionsToMoleculeDTO> {
         try {
-            return await this.dataSource.manager.transaction(async (manager) => {
-                return this.bindManyCollectionsToMoleculeWithManager(userId, moleculeId, collectionIds, selectAll, manager)
+            let preparedChemblName: string | undefined
+            if (/^\d+$/.test(String(moleculeId))) {
+                const chemblMolregno = Number(moleculeId)
+                if (!await this.moleculeService.existsMoleculeByMolregno(chemblMolregno)) {
+                    return { ok: false, moleculeUUID: null }
+                }
+                const [chemblMol] = (await this.moleculeService.getPreviewsByMolregnos([String(chemblMolregno)]))
+                    .filter(res => !!res)
+                if (!chemblMol) return { ok: false, moleculeUUID: null }
+                preparedChemblName = chemblMol.preferredName
+                if ((!preparedChemblName || !preparedChemblName.trim()) && Array.isArray(chemblMol.synonyms)) {
+                    preparedChemblName = chemblMol.synonyms.find(synonym => !!synonym?.trim())
+                }
+                preparedChemblName ||= `Lead ${chemblMolregno}`
+            }
+            return await runInTransaction(this.dataSource, async (_context, manager) => {
+                return this.bindManyCollectionsToMoleculeWithManager(
+                    userId,
+                    moleculeId,
+                    collectionIds,
+                    selectAll,
+                    manager,
+                    preparedChemblName
+                )
             })
         } catch (e) {
             this.logger.warn(`MoleculeCollectionItemJoinService > bindManyCollectionsToMolecule: Error => ${errorMessage(e)}`)
@@ -202,7 +225,8 @@ export class MoleculeCollectionItemJoinService {
         moleculeId: string,
         collectionIds: UUID[],
         selectAll: boolean,
-        manager: EntityManager
+        manager: EntityManager,
+        preparedChemblName?: string
     ): Promise<BindManyCollectionsToMoleculeDTO> {
 
         const isMolregno = /^\d+$/.test(String(moleculeId))
@@ -211,26 +235,11 @@ export class MoleculeCollectionItemJoinService {
 
         if (isMolregno) {
             const chemblMolregno = Number(moleculeId)
-            const existsChemblMolecule = await this.moleculeService.existsMoleculeByMolregno(chemblMolregno)
-            if (!existsChemblMolecule) {
+            if (!preparedChemblName) {
                 return {
                     ok: false,
                     moleculeUUID
                 }
-            }
-            const [chemblMol] = (await this.moleculeService.getPreviewsByMolregnos([String(chemblMolregno)])).filter(res => !!res)
-            let name = chemblMol.preferredName
-            if ((!name || !name.trim()) && !!chemblMol.synonyms && Array.isArray(chemblMol.synonyms) && chemblMol.synonyms.length > 0) {
-                for (const syn of chemblMol.synonyms) {
-                    if (!syn || !syn.trim()) {
-                        continue
-                    }
-                    name = syn
-                    break
-                }
-            }
-            if (!name) {
-                name = `Lead ${chemblMolregno}`
             }
             const existsEntity = await manager.exists(ChEMBLMoleculeItemEntity, {
                 where: {
@@ -257,7 +266,7 @@ export class MoleculeCollectionItemJoinService {
                     userId,
                     type: 'chembl',
                     chemblMolregno,
-                    name,
+                    name: preparedChemblName,
                     createdAt: now,
                     updatedAt: now,
                     touchedAt: now

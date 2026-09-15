@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Replace per-method template paths, subjects and context assembly conventions with one typed email-template registry that binds each notification kind to its asset, subject builder and validated context schema.

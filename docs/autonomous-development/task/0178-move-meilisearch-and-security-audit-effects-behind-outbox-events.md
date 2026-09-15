@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Remove synchronous/pervasive Meilisearch indexing and security-audit side effects from domain mutations by recording typed durable events in the same transaction as domain state and processing them through idempotent observable consumers.

@@ -8,6 +8,7 @@ import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
 import { GraphQLFieldsMap, TypeOrmUtils } from 'src/utils/type-orm-utils/type-orm-utils';
 import { LabNotebook } from '../models/entities/lab-notebook.entity';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
+import { runInTransaction } from 'src/persistence/transaction-context'
 
 @Injectable()
 export class NotebookChapterService {
@@ -20,7 +21,7 @@ export class NotebookChapterService {
     ) { }
 
     async createChapter(notebookId: UUID, userId: UUID, data: Partial<NotebookChapter>): Promise<NotebookChapter> {
-        return this.chapterRepo.manager.transaction(async manager => {
+        return runInTransaction(this.chapterRepo.manager, async (_context, manager) => {
             const { max } = await manager
                 .createQueryBuilder(NotebookChapter, 'chapter')
                 .where('chapter.notebook_id = :notebookId', { notebookId })  // SNAKE CASE
@@ -52,7 +53,7 @@ export class NotebookChapterService {
     }
 
     async move(chapterId: UUID, userId: UUID, direction: 'up' | 'down'): Promise<void> {
-        await this.chapterRepo.manager.transaction(async manager => {
+        await runInTransaction(this.chapterRepo.manager, async (_context, manager) => {
             const chapter = await manager.findOne(NotebookChapter, {
                 where: { id: chapterId, userId },
                 relations: {
@@ -87,7 +88,7 @@ export class NotebookChapterService {
             .map((id, idx) => `WHEN id = '${id}' THEN ${idx}`)
             .join(' ')
 
-        await this.chapterRepo.manager.transaction(async manager => {
+        await runInTransaction(this.chapterRepo.manager, async (_context, manager) => {
             await manager
                 .createQueryBuilder()
                 .update(NotebookChapter)

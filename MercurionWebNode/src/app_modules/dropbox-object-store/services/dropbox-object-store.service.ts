@@ -15,6 +15,8 @@ import { User } from 'src/app_modules/user/models/entities/user.entity';
 import { LoggerPort } from 'src/logging/logger.port';
 import { LoggerContext } from 'src/logging/logger.port';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
+import type { Readable } from 'node:stream'
+import { runInTransaction } from 'src/persistence/transaction-context'
 
 @Injectable()
 export class DropboxObjectStoreService {
@@ -64,7 +66,7 @@ export class DropboxObjectStoreService {
      * Upload file: carica su Dropbox, poi crea record DocumentEntity
      */
     async uploadFile(
-        buffer: Buffer,
+        buffer: Buffer | Readable,
         originalName: string,
         mimeType: string,
         size: number,
@@ -75,7 +77,7 @@ export class DropboxObjectStoreService {
         scope: StorageScope = StorageScope.None,
         action?: StorageAction
     ): Promise<DocumentEntity> {
-        if (size !== buffer.length) {
+        if (Buffer.isBuffer(buffer) && size !== buffer.length) {
             this.logger.warn(`Size mismatch: declared=${size}, actual=${buffer.length}`);
         }
 
@@ -150,7 +152,7 @@ export class DropboxObjectStoreService {
 
         // 3) Transazione DB: salva documento, sposta avatar, elimina vecchio record
         try {
-            await this.dataSource.manager.transaction(async (manager) => {
+            await runInTransaction(this.dataSource, async (_context, manager) => {
                 await manager.save(DocumentEntity, document);
 
                 if (action === 'ChangeProfileImage') {

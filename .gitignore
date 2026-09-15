@@ -3,6 +3,7 @@ node_modules.corrupt-*/
 node_modules.failed-*/
 packages/rest-contracts/dist/
 reports/duplication/
+reports/topology/
 
 .playwright-mcp/*
 !.playwright-mcp/.gitkeep

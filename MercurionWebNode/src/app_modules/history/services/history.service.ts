@@ -13,6 +13,7 @@ import { TypeGuards } from 'src/utils/type-guards/type-guards';
 import { LoggerPort } from 'src/logging/logger.port';
 import { LoggerContext } from 'src/logging/logger.port';
 import { utcInstantFromEpochMs } from 'src/utils/temporal/temporal'
+import { runInTransaction, transactionRepository, type TransactionContext } from 'src/persistence/transaction-context'
 
 @Injectable()
 export class HistoryService {
@@ -34,7 +35,7 @@ export class HistoryService {
         options: IPaginationOptions,
     ): Promise<Pagination<HistoryDTO>> {
         try {
-            return this.dataSource.manager.transaction(async (manager) => {
+            return runInTransaction(this.dataSource, async (_context, manager) => {
                 return this.getPaginatedHistoryWithManager(userId, options, manager)
             })
         } catch (e) {
@@ -149,6 +150,7 @@ export class HistoryService {
     async getRecentHistoryTinyDistinctPerDay(
         userId: UUID,
         lookbackDays = 7,
+        context?: TransactionContext,
     ): Promise<TinyHistoryDTO[]> {
         const days = Math.max(1, lookbackDays)
         const now = Date.now()
@@ -156,7 +158,8 @@ export class HistoryService {
         const cutoff = now - days * msPerDay
 
         // Query minimale, sfrutta idx_history_user_touched_at_desc
-        const rows = await this.historyRepo
+        const historyRepo = context ? transactionRepository(context, History) : this.historyRepo
+        const rows = await historyRepo
             .createQueryBuilder('h')
             .select([
                 'h.id',

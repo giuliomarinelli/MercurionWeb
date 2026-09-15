@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Converge email, notifications, indexing and security-audit work triggered by domain mutations onto one versioned transactional event/outbox boundary with shared dispatch, idempotency, retry, observability and lifecycle semantics.

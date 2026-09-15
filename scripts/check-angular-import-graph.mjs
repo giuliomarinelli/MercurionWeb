@@ -142,8 +142,24 @@ const rootArg = process.argv.find((arg) => arg.startsWith('--root='));
 const root = path.resolve(process.cwd(), rootArg ? rootArg.slice('--root='.length) : 'MercurionWebNg');
 const graph = resolveGraph(root);
 const cycles = stronglyConnectedComponents(graph);
+const json = process.argv.includes('--json');
 
-if (cycles.length > 0) {
+if (json) {
+  const files = [...graph.keys()].sort();
+  const report = {
+    version: 1,
+    root: path.relative(process.cwd(), root).split(path.sep).join('/'),
+    files: files.map((file) => relative(file, root)),
+    edges: files.flatMap((file) =>
+      [...(graph.get(file) ?? [])].sort().map((target) => ({
+        from: relative(file, root),
+        to: relative(target, root),
+      }))),
+    cycles: cycles.map((cycle) => cycle.map((file) => relative(file, root))),
+  };
+  console.log(JSON.stringify(report, null, 2));
+  if (cycles.length > 0) process.exitCode = 1;
+} else if (cycles.length > 0) {
   console.error(`Angular production import graph contains ${cycles.length} cycle(s):`);
   for (const [index, cycle] of cycles.entries()) {
     console.error(`\nCycle ${index + 1}:`);

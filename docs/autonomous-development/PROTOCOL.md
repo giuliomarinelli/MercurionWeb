@@ -653,6 +653,17 @@ remains. If pending tasks exist but are temporarily excluded or unsafe, the
 session stays alive in `SESSION_RECOVERY_PENDING` until they become runnable or
 the soft deadline arrives.
 
+Immediately before any pre-deadline `task_complete`, the coordinator MUST run
+`npm run autonomous:plan`, parse its versioned JSON successfully, and prove
+`currentCounts.PENDING === 0`. This is the sole machine-checkable definition of
+`WORKLOAD_EXHAUSTED`. `READY === 0`, no task outside a session-local exclusion
+set, capability exhaustion, branch collisions, `WAITING_DEPENDENCY`, or a
+session-fatal blocker are `NO_SELECTABLE_TASKS`, not workload exhaustion. While
+`currentCounts.PENDING > 0`, `task_complete` and final-report generation are
+forbidden before the soft deadline; exclusions remain temporary scheduling
+state and the coordinator stays in `SESSION_RECOVERY_PENDING` with bounded
+periodic planner re-evaluation.
+
 ## Session finalization and report
 
 At finalization the runner records at least:
@@ -679,7 +690,7 @@ Reports live under `docs/autonomous-development/reports/` unless overridden by c
 
 The coordinator writes the report from a clean `develop` after the active task lifecycle is terminal. It commits and pushes the report as session metadata and, when a workflow exists, waits for CI on that exact report commit before declaring final repository health. A report-CI failure is a session-finalization blocker; it does not retroactively change successfully completed task states.
 
-After final repository health is recorded, the coordinator emits the concise final summary and report path, then calls `task_complete` as the final Autopilot action. It performs no further prose or tool calls after `task_complete`.
+After final repository health is recorded, the coordinator emits the concise final summary and report path, then calls `task_complete` as the final Autopilot action. It performs no further prose or tool calls after `task_complete`. Before the soft deadline this sequence is reachable only after the fresh planner guard has proved `currentCounts.PENDING === 0`.
 
 No error or blocker is a successful completion condition while pending workload
 remains before the soft deadline. The coordinator preserves safe repository

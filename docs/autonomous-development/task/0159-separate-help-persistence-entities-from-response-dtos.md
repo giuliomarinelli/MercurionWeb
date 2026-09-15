@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Stop returning and mutating TypeORM `Ticket`/`TicketMessage` entities as API views; introduce immutable user/support response models and explicit mappers/presenters that apply public-ID, content and visibility rules without modifying persistence state.

@@ -1,7 +1,7 @@
 # 0179 - Make session Redis operations indexed and atomic
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
@@ -88,24 +88,41 @@ Favor a direct `session:<sessionId>` primary record plus explicit owner/device i
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-030` was created from `c9e07a8113c96751a227bb0ffa9bbeff7154f008` and
+preserved at `489ff4fa9dbf441546338daae3cdc456e1b6a38e`.
 ### Preflight
 _Not started._
 ### Preflight remediation
 _None._
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0136 (BE-022), which is BLOCKED. Resolved hard dependencies for this recipe: 0136, 0124. This task was never attempted and receives no feature branch.
+Implemented direct session primary, owner, device, and token indexes with Redis
+Lua atomic primitives for session creation/replacement, activation, refresh,
+invalidation, destruction, and token registration. Removed request-path
+session/JTI keyspace scans. The task is blocked because the required
+post-implementation runtime probe could not start Nest: canonical startup
+compiled successfully and connected to Redis, then exited with
+`fastify-plugin: fastify-formidable - expected '4.x' fastify version, '5.12.1'
+is installed`. This baseline/runtime dependency mismatch prevented the required
+browser login/session/logout evidence.
 ### Task-specific validation performed
-_Not started._
+Passed 23 Redis/session/key-contract tests across three suites, Nest
+typecheck, lint, build, and `git diff --check`. Canonical runtime starts were
+issued in Tox21, Nest, Angular order with live handles; all task-owned
+sessions were stopped after Nest bootstrap failed.
 ### Full pre-merge CI-parity validation
-_Not started._
+Not run locally; forbidden by policy. Exact feature-SHA Actions run
+34977410030 passed with the Required gate.
 ### Browser validation performed
-_Not started._
+Not performed because Nest failed during bootstrap before nginx readiness and
+login/session validation.
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+Feature implementation and blocker metadata: `489ff4fa9dbf441546338daae3cdc456e1b6a38e`.
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+Implementation was not merged. Feature CI run 34977410030 passed.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Terminal dependency root: 0136 (BE-022). No feature branch or worker was created for this task.
+Repair the repository-controlled Fastify/formidable compatibility mismatch,
+then rerun the canonical runtime/browser acceptance probe and exact feature-SHA
+CI. The preserved feature branch contains the coherent implementation and
+blocker diagnostic.
