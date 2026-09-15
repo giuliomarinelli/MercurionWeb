@@ -110,16 +110,19 @@ tests), `npm run test:e2e:ci --workspace mercurion_web_node` passed (1 suite,
 ### Full pre-merge CI-parity validation
 Exact feature SHA `5c319fabc15cc0b2caddcb12583b7d76c97285a8` run
 `34945537394` failed in Angular container/typecheck because the first commit
-had changed unchanged Angular `Models/` imports to lowercase. This was a
-task-owned correction, validated locally, and pushed as the repair commit;
-GitHub Actions must certify the resulting SHA. Local `npm ci` and
+had changed unchanged Angular `Models/` imports to lowercase. The correction
+was validated locally and pushed as `814e20d95e9023ddd4f8a687e082c8d8c6e5ddda`;
+run `34946194335` then passed all Ubuntu/Windows prerequisites, container,
+build, test, E2E, database, and `Required gate` jobs. Local `npm ci` and
 `npm run ci:check` were not run.
 ### Browser validation performed
 _Not applicable._
 ### Commits
 `7933c1374df39f207d62941dccf4c581409a2a60`
-(`refactor: normalize Nest naming conventions`), followed by the case-repair
-and execution-note commits.
+(`refactor: normalize Nest naming conventions`), `5c319fabc15cc0b2caddcb12583b7d76c97285a8`
+(`docs: record BE-026 execution evidence`), and
+`814e20d95e9023ddd4f8a687e082c8d8c6e5ddda`
+(`fix: preserve Angular model path casing`).
 ### Merge / CI
 Feature-SHA CI required before integration.
 ### Rollback
