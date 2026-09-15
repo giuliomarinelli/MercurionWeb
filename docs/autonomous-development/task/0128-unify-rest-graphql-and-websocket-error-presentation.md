@@ -118,11 +118,18 @@ formats.
 - `git diff --check` — passed.
 ### Full pre-merge CI-parity validation
 Not run locally; `npm ci` and `npm run ci:check` are reserved for GitHub
-Actions by session policy. Exact feature-SHA CI is coordinator-owned.
+Actions by session policy. Exact feature-SHA CI run `34939775415` for
+`ad8d2624603c79810d6b1a393fb28a714824319b` passed on Windows and Ubuntu,
+including `Required gate`. The preceding run `34939294468` failed because the
+Socket.IO contract type assertion fixture omitted the newly canonical
+`category`; the narrow correction was committed as `ad8d2624` and passed the
+focused contract checks before the repaired CI run.
 ### Browser validation performed
 _Not applicable._
 ### Commits
 `af9911a9` — `feat(errors): unify transport error presentation`.
+`9e5fa2a2` — `docs(task): record BE-014 execution`.
+`ad8d2624` — `fix(errors): update socket contract assertion`.
 ### Merge / CI
 Feature branch pushed at `af9911a9`; coordinator-owned exact-SHA feature CI is
 required before integration.
