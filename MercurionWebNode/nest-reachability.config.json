@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "entrypoints": [
+    "src/main.ts",
+    "src/app.module.ts"
+  ],
+  "dynamicEntrypoints": [
+    {
+      "file": "src/persistence/typeorm.datasource.ts",
+      "category": "typeorm-cli",
+      "reason": "TypeORM migration and schema commands load the datasource outside Nest bootstrap."
+    },
+    {
+      "file": "src/persistence/migrations/1789400000000-InitialSchema.ts",
+      "category": "typeorm-cli",
+      "reason": "TypeORM migration discovery loads migration classes outside Nest bootstrap."
+    },
+    {
+      "file": "src/contracts/rest-contract-parity.ts",
+      "category": "tooling",
+      "reason": "The REST contract parity gate loads this comparison unit directly."
+    }
+  ],
+  "allowlistedNonProductionFiles": [
+    {
+      "file": "src/contracts/fixtures/fingerprint-contract.fixtures.ts",
+      "category": "tooling-fixture",
+      "reason": "Contract tests load these fixture values directly."
+    },
+    {
+      "file": "src/test-utils/configuration.ts",
+      "category": "test-entrypoint",
+      "reason": "Explicit test application composition loads test configuration outside production bootstrap."
+    },
+    {
+      "file": "src/test-utils/mocks/jose.ts",
+      "category": "test-entrypoint",
+      "reason": "Jest setup loads this test-only module directly."
+    },
+    {
+      "file": "src/test-utils/test-application.module.ts",
+      "category": "test-entrypoint",
+      "reason": "The explicit test graph is separate from the production Nest graph."
+    },
+    {
+      "file": "src/test.controller.ts",
+      "category": "test-entrypoint",
+      "reason": "TestController is registered only by the explicit test application module."
+    }
+  ]
+}

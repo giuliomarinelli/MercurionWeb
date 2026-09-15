@@ -5,7 +5,6 @@ import type { ISession } from '../models/interfaces/i-session.interface'
 import type { SessionRepository } from '../models/interfaces/session-repository.interface'
 import { RedisSessionRepository } from './redis-session.repository'
 import { SessionRedisCodec } from './session-redis.codec'
-import { InMemorySessionRepository } from './testing/in-memory-session.repository'
 
 const userId = '11111111-1111-4111-8111-111111111111' as UUID
 const sessionId = '22222222-2222-4222-8222-222222222222' as UUID
@@ -233,10 +232,6 @@ function repositoryContract(
     })
 }
 
-repositoryContract(
-    'InMemorySessionRepository contract',
-    () => new InMemorySessionRepository()
-)
 repositoryContract(
     'RedisSessionRepository contract',
     () => new RedisSessionRepository(
