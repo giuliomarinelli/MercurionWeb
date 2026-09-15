@@ -45,6 +45,7 @@ export type {
 export type {
   ApplicationErrorEnvelope,
   ApplicationErrorEnvelopeCode,
+  ApplicationErrorCategory,
   TransportApplicationErrorCode
 } from './application-error-envelope'
 export {

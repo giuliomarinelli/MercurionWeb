@@ -27,6 +27,11 @@ import {
   contractVersionWarning,
   negotiateContractMajor
 } from '@mercurion/rest-contracts';
+import {
+  createSocketApplicationError,
+  createCorrelationId,
+  presentApplicationError
+} from 'src/exception-handling/application-error-envelope';
 
 type ApplicationServer = Server<ClientToServerEvents, ServerToClientEvents>
 type ApplicationSocket = Socket<ClientToServerEvents, ServerToClientEvents>
@@ -42,13 +47,16 @@ export function createSocketContractVersionMiddleware(
       const error = new Error(selection.code === 'CONTRACT_VERSION_INVALID'
         ? 'Invalid contract major version'
         : 'Unsupported contract major version') as Error & { data?: unknown }
-      error.data = {
+      const presentation = presentApplicationError({
         code: selection.code,
-        status: 400,
         message: error.message,
-        correlationId: client.id,
         details: contractVersionDetails(selection)
-      }
+      }, {
+        correlationId: createCorrelationId(client.id),
+        isProduction: false,
+        statusHint: 400
+      })
+      error.data = createSocketApplicationError(presentation)
       next(error)
       return
     }

@@ -30,7 +30,8 @@ import {
 } from '@mercurion/rest-contracts';
 import {
   createCorrelationId,
-  createSocketApplicationError
+  createSocketApplicationError,
+  presentApplicationError
 } from 'src/exception-handling/application-error-envelope';
 import { Environment } from 'src/config/config.schema';
 import type { AppConfiguration } from 'src/config/config.types';
@@ -123,15 +124,12 @@ export class WsGuard implements CanActivate {
       return true
     } catch (e) {
       if (isApplicationError(e, ApplicationErrorCode.PERMISSION_DENIED)) {
-        const applicationError = getApplicationError(e)!
-        client.emit(socketEventRegistry.applicationError.name, createSocketApplicationError({
-          status: getApplicationErrorDefinition(applicationError.code).httpStatus,
-          code: applicationError.code,
-          message: applicationError.message,
-          details: applicationError.details,
+        client.emit(socketEventRegistry.applicationError.name, createSocketApplicationError(
+          presentApplicationError(e, {
           correlationId: createCorrelationId(client.id),
           isProduction: this.isProduction()
-        }))
+          })
+        ))
         return false
       }
       const applicationError = getApplicationError(e)
@@ -154,13 +152,16 @@ export class WsGuard implements CanActivate {
       state: SessionState.Invalid,
       cause
     })
-    client.emit(socketEventRegistry.applicationError.name, createSocketApplicationError({
-      status: getApplicationErrorDefinition(ApplicationErrorCode.AUTHENTICATION_UNAUTHORIZED).httpStatus,
+    client.emit(socketEventRegistry.applicationError.name, createSocketApplicationError(
+      presentApplicationError({
       code: ApplicationErrorCode.AUTHENTICATION_UNAUTHORIZED,
       message: getApplicationErrorDefinition(ApplicationErrorCode.AUTHENTICATION_UNAUTHORIZED).defaultMessage ?? 'Unauthorized',
+      }, {
       correlationId: createCorrelationId(client.id),
-      isProduction: this.isProduction()
-    }))
+      isProduction: this.isProduction(),
+      statusHint: getApplicationErrorDefinition(ApplicationErrorCode.AUTHENTICATION_UNAUTHORIZED).httpStatus
+      })
+    ))
     client.disconnect()
   }
 
