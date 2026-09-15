@@ -38,7 +38,9 @@ import { SkeletonComponent } from '../../common/skeleton/skeleton.component';
 
       <!-- Colonna destra: 4/12 - viewer -->
       <div class="md:col-span-4 flex md:justify-end items-center">
-        <m-skeleton shape="rect" width="7rem" height="7rem" />
+        <div class="size-24 md:size-28 overflow-hidden rounded-xl border border-slate-200/70 dark:border-slate-700/60 bg-white/40 dark:bg-slate-900/30">
+          <m-skeleton shape="rect" width="100%" height="100%" />
+        </div>
       </div>
 
       <span class="sr-only">Caricamento molecola…</span>

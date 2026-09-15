@@ -21,7 +21,8 @@ import { MoleculeSearchResult } from '../../../Models/graphql/molecule-search/mo
 import { PageModel } from '../../../Models/graphql/page.models'
 import { MoleculeCardItemModel, MoleculeCollectionItemClient } from '../../../Models/graphql/molecule-collection/molecule-collection.types'
 import { SkeletonMoleculeCardComponent } from '../../molecule-detail/skeleton-molecule-card/skeleton-molecule-card.component'
-import { MoleculeCollectionItemCardComponent } from '../../molecule-detail/molecule-collection-item-card/molecule-collection-item-card.component'
+import { MoleculeSummaryCardComponent } from '../../molecule-detail/molecule-summary-card/molecule-summary-card.component'
+import { moleculeCardToSummary } from '../../molecule-detail/molecule-summary-card/molecule-summary-card.view-model'
 import { MoleculeSearchService } from '../../../services/graphql/molecule-search.service'
 import { MoleculeCollectionItemService } from '../../../services/graphql/molecule-collection-item.service'
 import { Helpers } from '../../../helpers'
@@ -40,7 +41,7 @@ import { DialogShellComponent } from '../../common/dialog-shell/dialog-shell.com
     IconButtonComponent,
     SearchResultSkeletonLoaderComponent,
     SkeletonMoleculeCardComponent,
-    MoleculeCollectionItemCardComponent,
+    MoleculeSummaryCardComponent,
     DialogShellComponent
   ],
   template: `
@@ -117,7 +118,9 @@ import { DialogShellComponent } from '../../common/dialog-shell/dialog-shell.com
                   }
                 } @else if (myItems().length) {
                   @for (molecule of myItems(); track molecule.id; let i = $index) {
-                    <m-molecule-collection-item-card [molecule]="molecule" [i]="i" [hideActions]="true" />
+                    <m-molecule-summary-card
+                      [viewModel]="savedSummary(molecule)"
+                      class="block w-full" />
                   }
                   @if (loading() && myItems().length) {
                     <div class="mt-3">
@@ -202,6 +205,11 @@ export class SearchOverlayComponent implements AfterViewInit, OnDestroy {
   private chemblSub?: Subscription
 
   myItems = signal<MoleculeCardItemModel[]>([])
+  savedSummary = (molecule: MoleculeCardItemModel) => moleculeCardToSummary(molecule, {
+    actions: [],
+    selectable: false,
+    compact: false
+  })
   private myPage = signal<number>(0)
   private myTotalPages = signal<number | null>(null)
   private myDone = signal<boolean>(false)
