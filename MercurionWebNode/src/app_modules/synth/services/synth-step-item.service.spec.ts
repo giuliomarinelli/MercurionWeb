@@ -2,11 +2,11 @@ import { RpcException } from '@nestjs/microservices';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { UUID } from 'crypto';
-import { SynthStepItem } from '../Models/entities/synth-step-item.entity';
-import { SynthStep } from '../Models/entities/synth-step.entity';
-import { SynthesisPoolMolecule } from '../Models/entities/synthesis-pool-molecule.entity';
-import { SynthStepItemKind } from '../Models/enums/synth-step-item-kind.enum';
-import { SynthStepItemPosition } from '../Models/enums/synth-step-item-position.enum';
+import { SynthStepItem } from '../models/entities/synth-step-item.entity';
+import { SynthStep } from '../models/entities/synth-step.entity';
+import { SynthesisPoolMolecule } from '../models/entities/synthesis-pool-molecule.entity';
+import { SynthStepItemKind } from '../models/enums/synth-step-item-kind.enum';
+import { SynthStepItemPosition } from '../models/enums/synth-step-item-position.enum';
 import { SynthStepItemService } from './synth-step-item.service';
 
 const STEP_ID = '0198f2f0-1111-7abc-8abc-1234567890ab' as UUID

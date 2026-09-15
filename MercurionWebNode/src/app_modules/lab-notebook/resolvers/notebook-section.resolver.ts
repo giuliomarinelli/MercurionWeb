@@ -3,12 +3,12 @@ import { NotebookSectionService } from '../services/notebook-section.service';
 import { AuthenticatedUserId } from 'src/metadata/metadata';
 import { UUID } from 'crypto';
 import { NotFoundException } from '@nestjs/common';
-import { NotebookSection } from '../Models/entities/lab-notebook-section.entity';
+import { NotebookSection } from '../models/entities/lab-notebook-section.entity';
 import { GraphQLResolveInfo } from 'graphql';
 import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
 import { GraphQLFieldsMap } from 'src/utils/type-orm-utils/type-orm-utils';
-import { CreateSectionInput } from '../Models/DTO/create-section-input';
-import { UpdateSectionInput } from '../Models/DTO/update-section-input';
+import { CreateSectionInput } from '../models/dto/create-section-input';
+import { UpdateSectionInput } from '../models/dto/update-section-input';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 
 

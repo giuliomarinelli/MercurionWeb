@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common'
 import type { UUID } from 'crypto'
 
-import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum'
-import type { MfaAuthMetadata } from '../Models/interfaces/totp-wrapper.interface'
+import { MfaStrategy } from 'src/app_modules/user/models/enums/mfa-strategy.enum'
+import type { MfaAuthMetadata } from '../models/interfaces/totp-wrapper.interface'
 import { MfaApplicationService } from './mfa.service'
 
 /** Owns MFA enrollment and inactivation; it does not participate in login. */

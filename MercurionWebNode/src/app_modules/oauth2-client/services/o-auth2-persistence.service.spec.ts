@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { OAuth2PersistenceService } from './o-auth2-persistence.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { OAuth2TokenEntity } from '../Models/entities/oauth2-token.entity';
+import { OAuth2TokenEntity } from '../models/entities/oauth2-token.entity';
 
 describe('OAuth2PersistenceService', () => {
   let service: OAuth2PersistenceService;

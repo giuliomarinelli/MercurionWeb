@@ -2,9 +2,9 @@ import { Body, Controller, HttpCode, HttpStatus, Post, ValidationPipe } from '@n
 import { RDKitService } from '../services/rd-kit.service';
 import type { RdkitGetMoleculePropertiesResult } from '@mercurion/rest-contracts';
 import { Authorization } from 'src/metadata/metadata';
-import { RdkitGetMoleculePropertiesDTO } from '../Models/DTO/rdkit/rdkit-get-molecule-properties.cls.dto';
-import { RdkitToCanonicalSmilesDTO } from '../Models/DTO/rdkit/rdkit-canonical-smiles.dto';
-import { RdkitAreSameStructureDTO } from '../Models/DTO/rdkit/rdkit-are-same-structures.dto';
+import { RdkitGetMoleculePropertiesDTO } from '../models/dto/rdkit/rdkit-get-molecule-properties.cls.dto';
+import { RdkitToCanonicalSmilesDTO } from '../models/dto/rdkit/rdkit-canonical-smiles.dto';
+import { RdkitAreSameStructureDTO } from '../models/dto/rdkit/rdkit-are-same-structures.dto';
 
 @Controller('rdkit-api')
 export class RdKitController {

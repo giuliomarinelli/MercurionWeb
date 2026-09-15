@@ -14,18 +14,18 @@ import {
 import { UUID } from 'crypto'
 import { FeedbackService } from '../services/feedback.service'
 import { AuthenticatedUserId, HasScopes } from 'src/metadata/metadata'
-import { CreateFeedbackDTO } from '../Models/DTO/create-feedback.dto'
-import { Scope } from 'src/app_modules/user/Models/enums/scope.enum'
-import { UpdateFeedbackDTO } from '../Models/DTO/update-feedback.dto'
-import { FeedbackEnv, FeedbackStatus } from '../Models/enums/feedback.enums'
-import { Feedback } from '../Models/entities/feedback.entity'
+import { CreateFeedbackDTO } from '../models/dto/create-feedback.dto'
+import { Scope } from 'src/app_modules/user/models/enums/scope.enum'
+import { UpdateFeedbackDTO } from '../models/dto/update-feedback.dto'
+import { FeedbackEnv, FeedbackStatus } from '../models/enums/feedback.enums'
+import { Feedback } from '../models/entities/feedback.entity'
 import {
     ApplicationErrorCode,
     applicationHttpException,
     isApplicationError
 } from 'src/exception-handling/application-error'
 import { GeneralUtils } from 'src/utils/general-utils/general-utils'
-import { FlatPagination } from 'src/Models/flat-pagination.interface'
+import { FlatPagination } from 'src/models/flat-pagination.interface'
 import type { DeleteFeedbackResponse } from '@mercurion/rest-contracts'
 
 

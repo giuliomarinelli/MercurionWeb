@@ -2,7 +2,7 @@ import { AppModule, createApplicationModule } from './app.module';
 import { MODULE_METADATA } from '@nestjs/common/constants';
 import { ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
-import { SocketIoModule } from './app_modules/socket.io/socket.io.module';
+import { SocketIoModule } from './app_modules/socket-io/socket.io.module';
 import { ConfigurationError } from './config/env-validation';
 import { createConfigurationModule } from './config/configuration.module';
 import {

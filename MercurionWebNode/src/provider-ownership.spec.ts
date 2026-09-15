@@ -14,7 +14,7 @@ import { RedisSessionRepository } from './app_modules/auth/repositories/redis-se
 import { SessionIdentityService } from './app_modules/auth/services/session-identity.service';
 import { JwtToolsService } from './app_modules/auth/services/jwt-tools.service';
 import { SessionService } from './app_modules/auth/services/session.service';
-import { SESSION_REPOSITORY } from './app_modules/auth/Models/interfaces/session-repository.interface';
+import { SESSION_REPOSITORY } from './app_modules/auth/models/interfaces/session-repository.interface';
 import { LoggerPort } from 'src/logging/logger.port';
 import { RedisModule } from './app_modules/redis/redis.module';
 import { PubSubService } from './app_modules/redis/services/pub-sub.service';

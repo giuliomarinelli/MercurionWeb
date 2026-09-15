@@ -9,13 +9,13 @@ import {
 import type {
     ISession,
     ISSO_SessionActivationData
-} from '../Models/interfaces/i-session.interface'
-import type { SessionFetchOptions } from '../Models/interfaces/session-fetch-options.interface'
+} from '../models/interfaces/i-session.interface'
+import type { SessionFetchOptions } from '../models/interfaces/session-fetch-options.interface'
 import {
     SESSION_REPOSITORY,
     type SessionRepository
-} from '../Models/interfaces/session-repository.interface'
-import type { SessionDTO } from '../Models/DTO/session.dto'
+} from '../models/interfaces/session-repository.interface'
+import type { SessionDTO } from '../models/dto/session.dto'
 import type { GeoLocation } from './geo-ip.service'
 import { SessionIdentityService } from './session-identity.service'
 

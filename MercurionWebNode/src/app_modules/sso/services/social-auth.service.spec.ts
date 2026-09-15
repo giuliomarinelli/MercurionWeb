@@ -5,7 +5,7 @@ import { JwtToolsService } from 'src/app_modules/auth/services/jwt-tools.service
 import { ConfigService } from '@nestjs/config';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
 import { LoggerPort } from 'src/logging/logger.port';
-import { SercurityService } from 'src/app_modules/auth/services/sercurity.service';
+import { SecurityService } from 'src/app_modules/auth/services/security.service';
 
 describe('SocialAuthService', () => {
   it('should be defined', () => {
@@ -25,7 +25,7 @@ describe('SocialAuthService', () => {
       {
         encrypt_AES256: jest.fn(),
         decrypt_AES256: jest.fn(),
-      } as unknown as SercurityService,
+      } as unknown as SecurityService,
       {
         forContext: jest.fn().mockReturnValue({ warn: jest.fn(), log: jest.fn() }),
       } as unknown as LoggerPort,

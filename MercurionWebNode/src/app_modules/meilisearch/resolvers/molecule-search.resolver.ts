@@ -1,7 +1,7 @@
 import { Resolver, Query, Args, ID } from '@nestjs/graphql';
 import { MoleculeSearchService } from '../services/molecule-search.service';
-import { MoleculeSearchResult } from '../Models/DTO/molecule-search-result.cls';
-import { MoleculeSearchInput } from '../Models/DTO/molecule-search-input.cls';
+import { MoleculeSearchResult } from '../models/dto/molecule-search-result.cls';
+import { MoleculeSearchInput } from '../models/dto/molecule-search-input.cls';
 import { AuthenticatedUserId, Public } from 'src/metadata/metadata';
 import { UUID } from 'crypto';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';

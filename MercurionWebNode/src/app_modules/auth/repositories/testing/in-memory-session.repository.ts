@@ -3,12 +3,12 @@ import type { GeoLocation } from '../../services/geo-ip.service'
 import type {
     ISession,
     ISSO_SessionActivationData
-} from '../../Models/interfaces/i-session.interface'
-import type { SessionFetchOptions } from '../../Models/interfaces/session-fetch-options.interface'
+} from '../../models/interfaces/i-session.interface'
+import type { SessionFetchOptions } from '../../models/interfaces/session-fetch-options.interface'
 import type {
     PersistSessionOptions,
     SessionRepository
-} from '../../Models/interfaces/session-repository.interface'
+} from '../../models/interfaces/session-repository.interface'
 
 export class InMemorySessionRepository implements SessionRepository {
 

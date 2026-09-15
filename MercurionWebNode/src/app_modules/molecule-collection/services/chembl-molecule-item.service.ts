@@ -1,16 +1,16 @@
-import { MoleculeCollectionItemJoin } from './../Models/entities/molecule-collection-item-join.entity';
+import { MoleculeCollectionItemJoin } from './../models/entities/molecule-collection-item-join.entity';
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { ChEMBLMoleculeItemEntity } from "../Models/entities/chembl-molecule-item.entity";
+import { ChEMBLMoleculeItemEntity } from "../models/entities/chembl-molecule-item.entity";
 import { DataSource, Repository } from "typeorm";
 import { UUID } from "crypto";
 import { GraphQLFieldsMap } from "src/utils/type-orm-utils/type-orm-utils";
 import { GraphQLUtils } from "src/utils/graphql-utils/graphql-utils";
 import { MoleculeCollectionItemJoinService } from "./molecule-collection-item-join.service";
 
-import { MoleculeCollection } from "../Models/entities/molecule-collection.entity";
+import { MoleculeCollection } from "../models/entities/molecule-collection.entity";
 import { uuidv7 } from '@kripod/uuidv7';
-import { AddManyChEMBLItemDTO } from "../Models/DTO/add-many-chembl-items.dto";
+import { AddManyChEMBLItemDTO } from "../models/dto/add-many-chembl-items.dto";
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 
 @Injectable()

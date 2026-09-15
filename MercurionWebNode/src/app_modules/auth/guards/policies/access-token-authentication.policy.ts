@@ -4,8 +4,8 @@ import { ApplicationErrorCode, isApplicationError } from 'src/exception-handling
 import { LoggerContext } from 'src/logging/logger.port'
 import { LoggerPort } from 'src/logging/logger.port'
 
-import { TokenType } from '../../Models/enums/token-type.enum'
-import type { AppJwtPayload } from '../../Models/interfaces/app-jwt-payload.interface'
+import { TokenType } from '../../models/enums/token-type.enum'
+import type { AppJwtPayload } from '../../models/interfaces/app-jwt-payload.interface'
 import { JwtToolsService } from '../../services/jwt-tools.service'
 import { SessionService } from '../../services/session.service'
 import type { AccessTokenAuthenticationResult } from './authentication-policy.types'

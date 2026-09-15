@@ -1,7 +1,7 @@
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
-import { MercurionInferReqDTO } from '../Models/DTO/mt21/mercurion-infer-req.dto';
-import { MercurionInferDataDTO, MercurionInferResDTO } from '../Models/DTO/mt21/mercurion-infer-res.dto';
+import { MercurionInferReqDTO } from '../models/dto/mt21/mercurion-infer-req.dto';
+import { MercurionInferDataDTO, MercurionInferResDTO } from '../models/dto/mt21/mercurion-infer-res.dto';
 import { catchError, firstValueFrom, throwError, timeout, TimeoutError } from 'rxjs';
 import { ConfigService } from '@nestjs/config';
 import { Environment } from 'src/config/config.schema';

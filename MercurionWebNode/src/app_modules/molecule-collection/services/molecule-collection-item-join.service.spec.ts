@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MoleculeCollectionItemJoinService } from './molecule-collection-item-join.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { MoleculeCollectionItemJoin } from '../Models/entities/molecule-collection-item-join.entity';
+import { MoleculeCollectionItemJoin } from '../models/entities/molecule-collection-item-join.entity';
 import { DataSource } from 'typeorm';
 import { MoleculeCollectionService } from './molecule-collection.service';
 import { MoleculeCollectionItemService } from './molecule-collection-item.service';

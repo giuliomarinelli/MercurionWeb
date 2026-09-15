@@ -3,11 +3,11 @@ import { NotebookChapterService } from '../services/notebook-chapter.service';
 import { UUID } from 'crypto';
 import { AuthenticatedUserId } from 'src/metadata/metadata';
 import { GraphQLResolveInfo } from 'graphql';
-import { NotebookChapter } from '../Models/entities/lab-notebook-chapter.entity';
+import { NotebookChapter } from '../models/entities/lab-notebook-chapter.entity';
 import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
 import { GraphQLFieldsMap } from 'src/utils/type-orm-utils/type-orm-utils';
-import { CreateChapterInput } from '../Models/DTO/create-notebook-chapter-input';
-import { UpdateChapterInput } from '../Models/DTO/update-chapter-input';
+import { CreateChapterInput } from '../models/dto/create-notebook-chapter-input';
+import { UpdateChapterInput } from '../models/dto/update-chapter-input';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 
 @Resolver(() => NotebookChapter)

@@ -1,8 +1,8 @@
 import { Args, Query, Resolver } from '@nestjs/graphql'
-import { MoleculeDetail } from '../Models/DTO/molecule-detail.gql.dtos'
+import { MoleculeDetail } from '../models/dto/molecule-detail.gql.dtos'
 import { MoleculeService } from '../services/molecule.service'
 import { Public } from 'src/metadata/metadata'
-import { MoleculeSearchResult } from '../Models/DTO/molecule-search-result.cls'
+import { MoleculeSearchResult } from '../models/dto/molecule-search-result.cls'
 
 
 @Resolver(() => MoleculeDetail)

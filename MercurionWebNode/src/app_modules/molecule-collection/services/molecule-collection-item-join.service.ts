@@ -1,4 +1,4 @@
-import { MoleculeCollectionItemJoin } from './../Models/entities/molecule-collection-item-join.entity';
+import { MoleculeCollectionItemJoin } from './../models/entities/molecule-collection-item-join.entity';
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, EntityManager, In, Repository } from 'typeorm';
@@ -6,11 +6,11 @@ import { UUID } from 'crypto';
 import { uuidv7 } from '@kripod/uuidv7';
 import { MoleculeCollectionService } from './molecule-collection.service';
 import { MoleculeCollectionItemService } from './molecule-collection-item.service';
-import { MoleculeCollection } from '../Models/entities/molecule-collection.entity';
-import { MoleculeCollectionItemEntity } from '../Models/entities/molecule-collection-item.entity';
-import { ChEMBLMoleculeItemEntity } from '../Models/entities/chembl-molecule-item.entity';
+import { MoleculeCollection } from '../models/entities/molecule-collection.entity';
+import { MoleculeCollectionItemEntity } from '../models/entities/molecule-collection-item.entity';
+import { ChEMBLMoleculeItemEntity } from '../models/entities/chembl-molecule-item.entity';
 import { MoleculeService } from 'src/app_modules/meilisearch/services/molecule.service';
-import { BindManyCollectionsToMoleculeDTO } from '../Models/DTO/bind-many-collections-to-molecule.dto';
+import { BindManyCollectionsToMoleculeDTO } from '../models/dto/bind-many-collections-to-molecule.dto';
 import { LoggerPort } from 'src/logging/logger.port';
 import { LoggerContext } from 'src/logging/logger.port';
 

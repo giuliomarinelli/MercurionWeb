@@ -3,7 +3,7 @@ import {
 } from '@nestjs/common';
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { GqlContextType } from '@nestjs/graphql';
-import { HttpErrorRes } from 'src/Models/error-res.dto';
+import { HttpErrorRes } from 'src/models/error-res.dto';
 import { LoggerPort } from 'src/logging/logger.port';
 import { LoggerContext } from 'src/logging/logger.port';
 import {

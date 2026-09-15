@@ -15,7 +15,7 @@ import { AuthStateStore } from './auth-state.store'
 import { AuthSessionPersistenceService } from './auth-session-persistence.service'
 import { AuthRedirectService } from './auth-redirect.service'
 import { ToastService } from './toast.service'
-import { RealtimeSocketService } from './socket.IO/realtime-socket.service'
+import { RealtimeSocketService } from './socket-io/realtime-socket.service'
 import { activeRoutePolicy } from '../route-policy'
 import {
   ApplicationErrorCode,

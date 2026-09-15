@@ -1,33 +1,33 @@
-import { MoleculeCollection } from 'src/app_modules/molecule-collection/Models/entities/molecule-collection.entity';
-import { ProfileRegistryClientDTO, ProfileRegistryDTO as ProfileRegistryDTO } from './../../auth/Models/DTO/profile.dtos';
+import { MoleculeCollection } from 'src/app_modules/molecule-collection/models/entities/molecule-collection.entity';
+import { ProfileRegistryClientDTO, ProfileRegistryDTO as ProfileRegistryDTO } from './../../auth/models/dto/profile.dtos';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from '../Models/entities/user.entity';
+import { User } from '../models/entities/user.entity';
 import { DataSource, FindOptionsWhere, In, Repository } from 'typeorm';
 
 import { UUID } from 'crypto';
-import { nullish } from 'src/Models/nullish.type';
-import { MfaStrategy } from '../Models/enums/mfa-strategy.enum';
-import { IAuth } from 'src/app_modules/auth/Models/interfaces/i-auth.interface';
+import { nullish } from 'src/models/nullish.type';
+import { MfaStrategy } from '../models/enums/mfa-strategy.enum';
+import { IAuth } from 'src/app_modules/auth/models/interfaces/i-auth.interface';
 import { PasswordEncoderService } from 'src/app_modules/auth/services/password-encoder.service';
-import { OldPasswordItem } from '../Models/DTO/old-password-item.interface';
-import { ProfileDTO } from 'src/app_modules/auth/Models/DTO/profile.dtos';
-import { SercurityService } from 'src/app_modules/auth/services/sercurity.service';
-import { CompareResult } from 'src/app_modules/auth/Models/enums/compare-result.enum';
+import { OldPasswordItem } from '../models/dto/old-password-item.interface';
+import { ProfileDTO } from 'src/app_modules/auth/models/dto/profile.dtos';
+import { SecurityService } from 'src/app_modules/auth/services/security.service';
+import { CompareResult } from 'src/app_modules/auth/models/enums/compare-result.enum';
 import { LoggerPort } from 'src/logging/logger.port';
 import { LoggerContext } from 'src/logging/logger.port';
-import { Scope } from '../Models/enums/scope.enum';
-import { MoleculeCollectionItemEntity } from 'src/app_modules/molecule-collection/Models/entities/molecule-collection-item.entity';
+import { Scope } from '../models/enums/scope.enum';
+import { MoleculeCollectionItemEntity } from 'src/app_modules/molecule-collection/models/entities/molecule-collection-item.entity';
 import { HistoryService } from 'src/app_modules/history/services/history.service';
-import { TinyHistoryDTO } from 'src/app_modules/history/Models/DTO/history.dto';
-import { AuthIdentity } from 'src/app_modules/sso/Models/entities/auth-identity.entity';
-import { ProvidedEmailDTO } from 'src/app_modules/auth/Models/DTO/provided-email.dto';
-import { AuthProvider } from 'src/app_modules/sso/Models/enums/auth-provider.enum';
+import { TinyHistoryDTO } from 'src/app_modules/history/models/dto/history.dto';
+import { AuthIdentity } from 'src/app_modules/sso/models/entities/auth-identity.entity';
+import { ProvidedEmailDTO } from 'src/app_modules/auth/models/dto/provided-email.dto';
+import { AuthProvider } from 'src/app_modules/sso/models/enums/auth-provider.enum';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
-import type { IdentityReadPort } from 'src/app_modules/auth/Models/interfaces/identity-read.port'
+import type { IdentityReadPort } from 'src/app_modules/auth/models/interfaces/identity-read.port'
 import { transactionManager, type TransactionContext } from 'src/persistence/transaction-context'
 import { LOCAL_DUMMY_AUTH } from '@mercurion/rest-contracts'
-import { UserGender } from '../Models/enums/user-gender.enum'
+import { UserGender } from '../models/enums/user-gender.enum'
 
 
 
@@ -41,7 +41,7 @@ export class UserService implements IdentityReadPort {
         @InjectRepository(User) private userRepository: Repository<User>,
         private readonly dataSource: DataSource,
         private readonly passwordEncoder: PasswordEncoderService,
-        private readonly securityService: SercurityService,
+        private readonly securityService: SecurityService,
         private readonly historyService: HistoryService,
         meiliLogger: LoggerPort
     ) {
@@ -255,7 +255,7 @@ export class UserService implements IdentityReadPort {
                 .getOneOrFail()
             return passwordHash!
         } catch {
-            throw applicationError(ApplicationErrorCode.AUTHENTICATION_UNAUTHENTICATED_LEGACY_TYPO)
+            throw applicationError(ApplicationErrorCode.AUTHENTICATION_UNAUTHENTICATED_SOFT)
         }
     }
 

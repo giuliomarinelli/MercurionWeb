@@ -2,16 +2,16 @@ import { Injectable } from '@nestjs/common';
 import axios, { AxiosResponse } from 'axios';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
-import { DocumentEntity } from '../Models/entities/document.entity';
+import { DocumentEntity } from '../models/entities/document.entity';
 import { OAuth2ClientService } from 'src/app_modules/oauth2-client/services/oauth2-client.service';
-import { StorageType } from '../Models/enums/storage-type.enum';
+import { StorageType } from '../models/enums/storage-type.enum';
 import { UUID } from 'crypto';
-import { DropboxUploadResponse } from '../Models/interfaces/dropbox-upload-response.interface';
+import { DropboxUploadResponse } from '../models/interfaces/dropbox-upload-response.interface';
 
 import { uuidv7 } from '@kripod/uuidv7';
-import { StorageScope } from '../Models/enums/storage-scope.enum';
-import { StorageAction } from '../Models/enums/storage-action.type';
-import { User } from 'src/app_modules/user/Models/entities/user.entity';
+import { StorageScope } from '../models/enums/storage-scope.enum';
+import { StorageAction } from '../models/enums/storage-action.type';
+import { User } from 'src/app_modules/user/models/entities/user.entity';
 import { LoggerPort } from 'src/logging/logger.port';
 import { LoggerContext } from 'src/logging/logger.port';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'

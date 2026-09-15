@@ -2,8 +2,8 @@ import { Args, Mutation, Resolver } from '@nestjs/graphql';
 import { UUID } from 'crypto';
 import { AuthenticatedUserId } from '../../../metadata/metadata';
 import { GeneralUtils } from '../../../utils/general-utils/general-utils';
-import { SynthesisPoolInput } from '../Models/DTO/synthesis-pool.input';
-import { Synthesis } from '../Models/entities/synthesis.entity';
+import { SynthesisPoolInput } from '../models/dto/synthesis-pool.input';
+import { Synthesis } from '../models/entities/synthesis.entity';
 import { SynthesisPoolService } from '../services/synthesis-pool.service';
 
 @Resolver(() => Synthesis)

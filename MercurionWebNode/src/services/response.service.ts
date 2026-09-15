@@ -1,5 +1,5 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
-import { ConfirmDTO } from 'src/Models/confirm-responses.dto';
+import { ConfirmDTO } from 'src/models/confirm-responses.dto';
 
 @Injectable()
 export class ResponseService {

@@ -4,8 +4,8 @@ import { Repository } from "typeorm";
 import { UUID } from "crypto";
 import { GraphQLUtils } from "src/utils/graphql-utils/graphql-utils";
 import { GraphQLFieldsMap, TypeOrmUtils } from "src/utils/type-orm-utils/type-orm-utils";
-import { Synthesis } from "../Models/entities/synthesis.entity";
-import { SynthesisInput } from "../Models/DTO/synthesis.input";
+import { Synthesis } from "../models/entities/synthesis.entity";
+import { SynthesisInput } from "../models/dto/synthesis.input";
 
 @Injectable()
 export class SynthesisService {

@@ -3,9 +3,9 @@ import { uuidv7 } from '@kripod/uuidv7'
 import type { UUID } from 'crypto'
 
 import { transactionManager, type TransactionContext } from 'src/persistence/transaction-context'
-import { ChEMBLMoleculeItemEntity } from '../Models/entities/chembl-molecule-item.entity'
-import { MoleculeCollection } from '../Models/entities/molecule-collection.entity'
-import { MoleculeCollectionItemJoin } from '../Models/entities/molecule-collection-item-join.entity'
+import { ChEMBLMoleculeItemEntity } from '../models/entities/chembl-molecule-item.entity'
+import { MoleculeCollection } from '../models/entities/molecule-collection.entity'
+import { MoleculeCollectionItemJoin } from '../models/entities/molecule-collection-item-join.entity'
 
 const INITIAL_MOLECULES = [
   [1280, 'ASPIRINA', 'ASPIRIN', 'Acido acetilsalicilico', 'La mia prima molecola su Mercurion'],

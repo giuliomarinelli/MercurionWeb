@@ -3,11 +3,11 @@ import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
 
 
-import { ISocialProviderClient } from '../Models/interfaces/i-social-provider-client.interface';
-import { ProviderProfile } from '../Models/interfaces/provider-profile.interface';
-import { AuthProvider } from '../Models/enums/auth-provider.enum';
+import { ISocialProviderClient } from '../models/interfaces/i-social-provider-client.interface';
+import { ProviderProfile } from '../models/interfaces/provider-profile.interface';
+import { AuthProvider } from '../models/enums/auth-provider.enum';
 import { SSO_Configuration } from 'src/config/config.types';
-import { GitHubEmailResponse, GitHubTokenResponse, GitHubUserResponse } from '../Models/interfaces/github-response.interfaces';
+import { GitHubEmailResponse, GitHubTokenResponse, GitHubUserResponse } from '../models/interfaces/github-response.interfaces';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 
 

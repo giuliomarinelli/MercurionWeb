@@ -12,7 +12,7 @@ import {
   DEFAULT_REALTIME_RETRY_POLICY,
   reduceRealtimeConnection,
   type RealtimeConnectionState
-} from './socket.IO/realtime-connection-state-machine'
+} from './socket-io/realtime-connection-state-machine'
 import { SessionInvalidationCause } from '@mercurion/rest-contracts'
 
 /**

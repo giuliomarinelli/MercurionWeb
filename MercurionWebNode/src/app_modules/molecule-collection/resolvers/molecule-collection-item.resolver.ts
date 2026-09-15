@@ -3,14 +3,14 @@ import { AuthenticatedUserId } from 'src/metadata/metadata';
 import { UUID } from 'crypto';
 import { GraphQLResolveInfo } from 'graphql';
 import { MoleculeCollectionItemService } from '../services/molecule-collection-item.service';
-import { CreateMoleculeItemInput } from '../Models/DTO/create-molecule-item.input';
+import { CreateMoleculeItemInput } from '../models/dto/create-molecule-item.input';
 import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
-import { PaginatedMoleculeCollectionItem } from '../Models/DTO/paginated-molecule-collection-item.dto';
+import { PaginatedMoleculeCollectionItem } from '../models/dto/paginated-molecule-collection-item.dto';
 import { IPaginationOptions } from 'nestjs-typeorm-paginate';
 import {
     MoleculeCollectionItemDTO,
     MoleculeCollectionItemUnion
-} from '../Models/DTO/molecule-collection-item.union';
+} from '../models/dto/molecule-collection-item.union';
 import { MoleculeCollectionItemJoinService } from '../services/molecule-collection-item-join.service';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 

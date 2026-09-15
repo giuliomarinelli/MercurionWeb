@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common'
 import { UUID } from 'crypto'
 
-import { SessionDTO } from '../Models/DTO/session.dto'
-import { TokenType } from '../Models/enums/token-type.enum'
+import { SessionDTO } from '../models/dto/session.dto'
+import { TokenType } from '../models/enums/token-type.enum'
 import { JwtToolsService } from '../services/jwt-tools.service'
 import { SessionService } from '../services/session.service'
 

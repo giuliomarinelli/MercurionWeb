@@ -4,9 +4,9 @@ import { Repository } from "typeorm";
 import { UUID } from "crypto";
 import { GraphQLFieldsMap, TypeOrmUtils } from "src/utils/type-orm-utils/type-orm-utils";
 import { GraphQLUtils } from "src/utils/graphql-utils/graphql-utils";
-import { SynthStep } from "../Models/entities/synth-step.entity";
-import { SynthStepInput } from "../Models/DTO/synth-step.input";
-import { Synthesis } from "../Models/entities/synthesis.entity";
+import { SynthStep } from "../models/entities/synth-step.entity";
+import { SynthStepInput } from "../models/dto/synth-step.input";
+import { Synthesis } from "../models/entities/synthesis.entity";
 import { ApplicationErrorCode, applicationError } from "src/exception-handling/application-error";
 
 @Injectable()

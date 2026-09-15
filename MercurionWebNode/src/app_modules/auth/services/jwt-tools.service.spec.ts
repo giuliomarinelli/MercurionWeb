@@ -2,7 +2,7 @@ import { JwtToolsService } from './jwt-tools.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { LoggerPort } from 'src/logging/logger.port';
-import { TokenType } from '../Models/enums/token-type.enum';
+import { TokenType } from '../models/enums/token-type.enum';
 
 jest.mock('src/config/config', () => ({
   Environment: {

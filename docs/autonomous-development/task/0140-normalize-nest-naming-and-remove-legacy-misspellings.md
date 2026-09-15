@@ -1,6 +1,6 @@
 # 0140 - Normalize Nest naming and remove legacy misspellings
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -80,24 +80,52 @@ Mark `BLOCKED` if a misspelled string is confirmed to be a currently supported e
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/BE-026`
 ### Preflight
-_Not started._
+Clean feature branch at `6e1c50d7d3942417cf61024bd6ad867d45b3d64b`, exactly matching
+`develop`. Exact-SHA GitHub Actions run `34943551143` succeeded with both Ubuntu
+and Windows prerequisite gates, all test/build/container jobs, and the stable
+`Required gate`. No task-owned workspace process was active. The pre-change
+inventory covered `SercurityService`, `sercurity`, `recover-cretentials`,
+`Unauthanticated`, `Models`, `DTO`, and `socket.IO`.
 ### Preflight remediation
 _None._
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0127. This task was never attempted and receives no feature branch.
+Normalized Nest source paths to lowercase `models/` and `models/dto/`, renamed
+the security and recovery files/symbols, normalized the realtime module path to
+`socket-io/`, removed the typed legacy unauthenticated error alias, and added an
+executable naming policy to the architecture checks.
 ### Task-specific validation performed
-_Not started._
+`node scripts/check-nest-naming-policy.mjs` passed; case-sensitive inventory
+found no governed legacy names; `git diff --check` passed.
+`npm run typecheck --workspace mercurion_web_node` passed,
+`npm run typecheck --workspace @mercurion/rest-contracts` passed,
+`npm run typecheck --workspace mercurion_web_ng` passed and the Angular build
+passed after correcting the case of unchanged Angular `Models/` imports exposed
+by the first feature-CI run,
+`npm run test:ci --workspace mercurion_web_node` passed (154 suites, 475
+tests), `npm run test:e2e:ci --workspace mercurion_web_node` passed (1 suite,
+3 tests), `npm run build --workspace mercurion_web_node` passed,
+`npm run ci:architecture` passed, and `npm run ci:errors` passed.
 ### Full pre-merge CI-parity validation
-_Not started._
+Exact feature SHA `5c319fabc15cc0b2caddcb12583b7d76c97285a8` run
+`34945537394` failed in Angular container/typecheck because the first commit
+had changed unchanged Angular `Models/` imports to lowercase. The correction
+was validated locally and pushed as `814e20d95e9023ddd4f8a687e082c8d8c6e5ddda`;
+run `34946194335` then passed all Ubuntu/Windows prerequisites, container,
+build, test, E2E, database, and `Required gate` jobs. Local `npm ci` and
+`npm run ci:check` were not run.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+`7933c1374df39f207d62941dccf4c581409a2a60`
+(`refactor: normalize Nest naming conventions`), `5c319fabc15cc0b2caddcb12583b7d76c97285a8`
+(`docs: record BE-026 execution evidence`), and
+`814e20d95e9023ddd4f8a687e082c8d8c6e5ddda`
+(`fix: preserve Angular model path casing`).
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+Feature-SHA CI required before integration.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+None.

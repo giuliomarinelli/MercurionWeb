@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { UUID } from 'crypto';
-import { ConfirmChangeDTO, ConfirmDTO, ConfirmWithPhoneMfaFeedback } from 'src/Models/confirm-responses.dto';
-import { ChangePhoneDTO } from '../Models/DTO/change-phone.cls.dto';
+import { ConfirmChangeDTO, ConfirmDTO, ConfirmWithPhoneMfaFeedback } from 'src/models/confirm-responses.dto';
+import { ChangePhoneDTO } from '../models/dto/change-phone.cls.dto';
 import { AccountFlowKernel } from './account-flow-kernel';
 
 @Injectable()

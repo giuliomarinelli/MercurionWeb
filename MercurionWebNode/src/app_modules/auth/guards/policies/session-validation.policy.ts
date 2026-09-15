@@ -4,7 +4,7 @@ import { timingSafeEqual } from 'node:crypto'
 import { LoggerContext } from 'src/logging/logger.port'
 import { LoggerPort } from 'src/logging/logger.port'
 
-import type { AppJwtPayload } from '../../Models/interfaces/app-jwt-payload.interface'
+import type { AppJwtPayload } from '../../models/interfaces/app-jwt-payload.interface'
 import { SessionService } from '../../services/session.service'
 import type {
   AccessTokenAuthenticationMode,

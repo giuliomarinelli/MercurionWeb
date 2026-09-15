@@ -6,7 +6,7 @@ import { environment as stagingEnvironment } from '../../environments/environmen
 import { environment as testingEnvironment } from '../../environments/environment.testing'
 import type { EnvironmentConfig, EnvironmentName } from '../../environments/environment.config'
 import { environmentNames } from '../../environments/environment.config'
-import { RealtimeSocketService } from '../services/socket.IO/realtime-socket.service'
+import { RealtimeSocketService } from '../services/socket-io/realtime-socket.service'
 import { APP_CONFIG, AppConfig, RELEASE_BASE_VERSION, createAppConfig, releaseVersionFor } from './app-config'
 
 describe('Application configuration', () => {

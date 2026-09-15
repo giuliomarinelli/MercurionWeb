@@ -10,18 +10,18 @@ import {
   UserGender as UserGenderContract,
   VerifyKind as VerifyKindContract
 } from '@mercurion/rest-contracts'
-import { AuthProvider } from '../app_modules/sso/Models/enums/auth-provider.enum'
-import { VerifyKind } from '../app_modules/auth/Models/enums/verify-kind.enum'
-import { UserGender } from '../app_modules/user/Models/enums/user-gender.enum'
-import { HistoryItemEntity } from '../app_modules/history/Models/enums/history-item-entity.enum'
+import { AuthProvider } from '../app_modules/sso/models/enums/auth-provider.enum'
+import { VerifyKind } from '../app_modules/auth/models/enums/verify-kind.enum'
+import { UserGender } from '../app_modules/user/models/enums/user-gender.enum'
+import { HistoryItemEntity } from '../app_modules/history/models/enums/history-item-entity.enum'
 import {
   FeedbackContextKind,
   FeedbackEnv,
   FeedbackKind,
   FeedbackSource,
   FeedbackStatus
-} from '../app_modules/feedback/Models/enums/feedback.enums'
-import { MfaStrategy as MfaStrategyDbEnum } from '../app_modules/user/Models/enums/mfa-strategy.enum'
+} from '../app_modules/feedback/models/enums/feedback.enums'
+import { MfaStrategy as MfaStrategyDbEnum } from '../app_modules/user/models/enums/mfa-strategy.enum'
 
 describe('Canonical cross-boundary enum parity (SYS-013)', () => {
   it('re-exports AuthProvider from the canonical rest-contracts source without local drift', () => {

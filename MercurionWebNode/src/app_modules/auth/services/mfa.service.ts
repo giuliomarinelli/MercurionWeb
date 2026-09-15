@@ -1,35 +1,35 @@
 import { Injectable } from '@nestjs/common';
 import { UUID } from 'crypto';
-import { SercurityService } from './sercurity.service';
+import { SecurityService } from './security.service';
 import { UserService } from 'src/app_modules/user/services/user.service';
-import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum';
-import { MfaBackupCode } from 'src/app_modules/user/Models/entities/backup-code.entity';
+import { MfaStrategy } from 'src/app_modules/user/models/enums/mfa-strategy.enum';
+import { MfaBackupCode } from 'src/app_modules/user/models/entities/backup-code.entity';
 import { DataSource, EntityManager } from 'typeorm';
 import { PasswordEncoderService } from './password-encoder.service';
-import { User } from 'src/app_modules/user/Models/entities/user.entity';
-import { BackupCodeStatusDTO } from 'src/app_modules/user/Models/DTO/backup-code-status.dto';
-import { MfaAuthMetadata, TotpMetadata } from '../Models/interfaces/totp-wrapper.interface';
+import { User } from 'src/app_modules/user/models/entities/user.entity';
+import { BackupCodeStatusDTO } from 'src/app_modules/user/models/dto/backup-code-status.dto';
+import { MfaAuthMetadata, TotpMetadata } from '../models/interfaces/totp-wrapper.interface';
 import { SmsSenderService } from 'src/app_modules/notification/services/sms-sender/sms-sender.service';
 import { MailSenderService } from 'src/app_modules/notification/services/mail-sender/mail-sender.service';
 import { ConfigService } from '@nestjs/config';
-import { TokenType } from '../Models/enums/token-type.enum';
+import { TokenType } from '../models/enums/token-type.enum';
 
 import { JwtToolsService } from './jwt-tools.service';
-import { EmailTotpContext } from 'src/app_modules/notification/Models/contexts/email-totp.context';
+import { EmailTotpContext } from 'src/app_modules/notification/models/contexts/email-totp.context';
 import { TotpConfiguration } from 'src/config/config.types';
 import { join } from 'path';
 import { SessionService } from './session.service';
-import { nullish } from 'src/Models/nullish.type';
+import { nullish } from 'src/models/nullish.type';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
 import { redisDurations, redisKeys } from 'src/app_modules/redis/contracts/redis-contracts'
-import { MfaContext } from '../Models/enums/mfa-context.enum';
+import { MfaContext } from '../models/enums/mfa-context.enum';
 import { uuidv7 } from '@kripod/uuidv7';
 import { SecurityAuditService } from 'src/app_modules/meilisearch/services/security-audit.service';
 import { LoggerPort } from 'src/logging/logger.port';
 import { LoggerContext } from 'src/logging/logger.port';
 import { TypeGuards } from 'src/utils/type-guards/type-guards';
-import { ProvidedEmailDTO } from '../Models/DTO/provided-email.dto';
+import { ProvidedEmailDTO } from '../models/dto/provided-email.dto';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 import { MfaBackupCodeStore } from 'src/app_modules/user/services/mfa-backup-code.store'
 import { MfaPolicyService } from './mfa-policy.service'
@@ -65,7 +65,7 @@ export class MfaApplicationService {
         private readonly backupCodes: MfaBackupCodeStore,
         private readonly dataSource: DataSource,
         private readonly passwordEncoderService: PasswordEncoderService,
-        private readonly securityService: SercurityService,
+        private readonly securityService: SecurityService,
         private readonly userService: UserService,
         private readonly smsService: SmsSenderService,
         private readonly mailService: MailSenderService,

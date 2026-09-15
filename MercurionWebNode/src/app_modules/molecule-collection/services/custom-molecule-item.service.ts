@@ -1,11 +1,11 @@
 import { MoleculeCollectionItemJoinService } from './molecule-collection-item-join.service';
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { CustomMoleculeItemEntity } from "../Models/entities/custom-molecule-item.entity";
+import { CustomMoleculeItemEntity } from "../models/entities/custom-molecule-item.entity";
 import { Repository } from "typeorm";
 import { UUID } from "crypto";
-import { CustomMoleculeItemInput } from "../Models/DTO/custom-molecule-item.input";
-import { MoleculeCollection } from '../Models/entities/molecule-collection.entity';
+import { CustomMoleculeItemInput } from "../models/dto/custom-molecule-item.input";
+import { MoleculeCollection } from '../models/entities/molecule-collection.entity';
 
 import { uuidv7 } from '@kripod/uuidv7';
 import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';

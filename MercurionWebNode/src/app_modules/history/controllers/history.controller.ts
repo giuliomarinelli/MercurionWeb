@@ -1,8 +1,8 @@
 import { BadRequestException, Controller, Delete, Get, Query } from '@nestjs/common';
 import { UUID } from 'crypto';
-import { FlatPagination } from 'src/Models/flat-pagination.interface';
+import { FlatPagination } from 'src/models/flat-pagination.interface';
 import { AuthenticatedUserId } from 'src/metadata/metadata';
-import { HistoryDTO } from '../Models/DTO/history.dto';
+import { HistoryDTO } from '../models/dto/history.dto';
 import { HistoryService } from '../services/history.service';
 import { LoggerContext } from 'src/logging/logger.port';
 import { LoggerPort } from 'src/logging/logger.port';

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import type { UUID } from 'node:crypto'
-import type { Scope } from 'src/app_modules/user/Models/enums/scope.enum'
+import type { Scope } from 'src/app_modules/user/models/enums/scope.enum'
 
 import { SecureCookieService } from '../../services/secure-cookie.service'
 import type { AuthenticationRequestContext } from './authentication-policy.types'

@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
-import { Feedback } from '../Models/entities/feedback.entity';
+import { Feedback } from '../models/entities/feedback.entity';
 import { FeedbackService } from './feedback.service';
 
 describe('FeedbackService', () => {
