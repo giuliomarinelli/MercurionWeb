@@ -2,14 +2,13 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
-  afterNextRender,
   afterRenderEffect,
   computed,
   inject,
   signal,
   viewChildren,
 } from '@angular/core'
-import { DOCUMENT } from '@angular/common'
+import { ViewportRuntimeService } from '../../../services/context/viewport-runtime.service'
 import { ToastService } from '../../../services/toast.service'
 
 @Component({
@@ -206,10 +205,9 @@ import { ToastService } from '../../../services/toast.service'
   ],
 })
 export class ToastComponent {
+  private readonly viewportRuntime = inject(ViewportRuntimeService)
   private readonly toastService = inject(ToastService)
-  private readonly document = inject(DOCUMENT)
-
-  private readonly viewportHeight = signal(0)
+  private readonly viewportHeight = this.viewportRuntime.height
 
   private readonly toastElements = viewChildren<ElementRef<HTMLElement>>('toastElement')
 
@@ -234,26 +232,6 @@ export class ToastComponent {
   readonly visibleMessages = computed(() => this.messages().slice(0, this.maxVisibleMessages()))
 
   constructor() {
-    afterNextRender({
-      write: () => {
-        const win = this.document.defaultView
-
-        if (!win) {
-          return
-        }
-
-        const syncViewportHeight = (): void => {
-          this.viewportHeight.set(win.innerHeight)
-        }
-
-        syncViewportHeight()
-
-        win.addEventListener('resize', syncViewportHeight, {
-          passive: true,
-        })
-      },
-    })
-
     /**
      * FLIP minimale:
      * quando un nuovo toast entra in alto, quelli già presenti cambiano posizione.

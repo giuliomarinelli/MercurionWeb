@@ -20,6 +20,7 @@ import { MoleculeCollectionItemService } from '../../../services/graphql/molecul
 import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.component';
 import { DesignService } from '../../../services/design.service';
 import { ShellLayoutService } from '../../../services/context/shell-layout.service';
+import { ViewportRuntimeService } from '../../../services/context/viewport-runtime.service';
 
 @Component({
   selector: 'm-molecule-collection-item-card',
@@ -261,6 +262,7 @@ import { ShellLayoutService } from '../../../services/context/shell-layout.servi
 
 })
 export class MoleculeCollectionItemCardComponent implements OnDestroy {
+  private readonly viewportRuntime = inject(ViewportRuntimeService);
   // ======================= DEPS =======================
   protected readonly searchContext = inject(SearchContextService)
   private readonly themeManager = inject(ThemeManagerService)
@@ -338,7 +340,7 @@ export class MoleculeCollectionItemCardComponent implements OnDestroy {
       );
 
       const isInViewport = (el: HTMLElement) =>
-        el.getBoundingClientRect().top < window.innerHeight + 150;
+        el.getBoundingClientRect().top < this.viewportRuntime.height() + 150;
 
       queueMicrotask(() => {
         if (this.disablePreview() && isInViewport(this.host.nativeElement)) {

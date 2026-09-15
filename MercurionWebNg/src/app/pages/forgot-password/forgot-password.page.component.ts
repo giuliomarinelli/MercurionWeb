@@ -5,13 +5,13 @@ import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AccountService } from '../../services/account.service';
 import { Subscription } from 'rxjs';
 import { TurnstileComponent } from '../../components/common/turnstile/turnstile.component';
-import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
-import { HttpErrorResponse } from '@angular/common/http';
+import { ProgressIndicatorComponent } from '../../components/common/progress-indicator/progress-indicator.component';
+import { adaptHttpFormError } from '../../utils/form-error.adapter'
 
 @Component({
   selector: 'm-forgot-password',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [  TextFieldComponent, ReactiveFormsModule, TurnstileComponent, ClassicSpinnerComponent],
+  imports: [  TextFieldComponent, ReactiveFormsModule, TurnstileComponent, ProgressIndicatorComponent],
   template: `
 
     <main class="block" role="main" aria-live="polite" aria-busy="{{ step_12_loading() }}">
@@ -58,7 +58,7 @@ import { HttpErrorResponse } from '@angular/common/http';
                 Recupera
               } @else {
                 <div class="text-slate-200 flex items-center justify-center" aria-hidden="true">
-                  <m-classic-spinner [size]="24"></m-classic-spinner>
+                  <m-progress-indicator [size]="24"></m-progress-indicator>
                 </div>
 
               }
@@ -138,10 +138,8 @@ export class ForgotPasswordPageComponent implements OnInit, OnDestroy {
             this.step_12_loading.set(false)
             this.obscuredEmail.set(obscuredEmail!)
           },
-          error: (e: HttpErrorResponse) => {
-            if ('status' in e && 'error' in e && e.status === 429) {
-              this.errMsg.set('Troppi tentativi, riprova tra qualche minuto.')
-            }
+          error: e => {
+            this.errMsg.set(adaptHttpFormError(e).globalError ?? 'Si è verificato un errore.')
             this.serverError.set(true)
             this.step_12_loading.set(false)
           }

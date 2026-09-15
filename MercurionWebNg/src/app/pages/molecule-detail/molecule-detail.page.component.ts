@@ -16,7 +16,7 @@ import { UserContextService } from '../../services/context/user-context.service'
 import { FormControl, ReactiveFormsModule } from '@angular/forms'
 import { TypeGuardsService } from '../../services/type-guards.service'
 import { MoleculeDetailItem } from '../../Models/graphql/molecule-collection/molecule-collection.types'
-import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component'
+import { ProgressIndicatorComponent } from '../../components/common/progress-indicator/progress-indicator.component'
 import { CustomDetailsComponent } from '../../components/molecule-detail/my-molecule-custom-details/custom-details.component'
 import { MyMoleculeJoinComponent } from '../../components/molecule-detail/my-molecule-join/my-molecule-join.component'
 import { MyMoleculesHeadingComponent } from '../../components/molecule-detail/my-molecules-heading/my-molecules-heading.component'
@@ -43,7 +43,7 @@ import { SelectionControlComponent } from '../../components/common/selection-con
     T1PredictionCardComponent,
     SimilarsComponent,
     ReactiveFormsModule,
-    ClassicSpinnerComponent,
+    ProgressIndicatorComponent,
     CustomDetailsComponent,
     MyMoleculeJoinComponent,
     RouterLink,
@@ -219,9 +219,9 @@ import { SelectionControlComponent } from '../../components/common/selection-con
         } @else {
         <section class="w-5xl mx-auto h-full flex justify-center items-center" role="main" aria-busy="true" aria-live="polite">
           @if (design.maxBk('md')()) {
-            <m-classic-spinner [size]="30" />
+            <m-progress-indicator [size]="30" />
           } @else if (design.minBk('md')()) {
-            <m-classic-spinner [size]="60" />
+            <m-progress-indicator [size]="60" />
           }
         </section>
         }

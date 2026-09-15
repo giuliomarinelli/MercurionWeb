@@ -21,7 +21,7 @@ import { MoleculeCardItemModel, MoleculeCollection } from '../../../Models/graph
 import { PageModel } from '../../../Models/graphql/page.models';
 import { PmSearchInputComponent } from '../../common/pm-search-input/pm-search-input.component';
 import { MoleculeCollectionItemSelectCardComponent } from '../../molecule-detail/molecule-collection-item-select-card/molecule-collection-item-select-card.component';
-import { ClassicSpinnerComponent } from '../../common/classic-spinner/classic-spinner.component';
+import { ProgressIndicatorComponent } from '../../common/progress-indicator/progress-indicator.component';
 import { SkeletonMoleculeCardComponent } from '../../molecule-detail/skeleton-molecule-card/skeleton-molecule-card.component';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { SearchInputComponent } from '../../search-overlay/search-input/search-input.component';
@@ -53,7 +53,7 @@ export type { ChipItem } from './add-molecules-to-collection.flow';
   imports: [
     PmSearchInputComponent,
     MoleculeCollectionItemSelectCardComponent,
-    ClassicSpinnerComponent,
+    ProgressIndicatorComponent,
     SkeletonMoleculeCardComponent,
     ReactiveFormsModule,
     SearchInputComponent,
@@ -384,7 +384,7 @@ export type { ChipItem } from './add-molecules-to-collection.flow';
                     @if (loading) {
                       @if (page > 1) {
                         <div class="flex justify-center py-4" role="status" aria-live="polite" aria-busy="true">
-                          <m-classic-spinner [size]="60" />
+                          <m-progress-indicator [size]="60" />
                         </div>
                       } @else {
                         <div class="space-y-4" role="status" aria-live="polite" aria-busy="true">

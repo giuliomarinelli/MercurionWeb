@@ -1,11 +1,10 @@
 import { AuthUseCasesService } from './../../services/auth-use-cases.service';
 import { AfterViewInit, Component, effect, ElementRef, inject, OnDestroy, OnInit, signal, ChangeDetectionStrategy, viewChild, viewChildren } from '@angular/core'
-import { CdkAccordion, CdkAccordionItem, CdkAccordionModule } from '@angular/cdk/accordion'
 import { EMPTY, map, of, startWith, Subscription, switchMap } from 'rxjs'
 import { AccountService } from '../../services/account.service'
 import { MfaStrategy, ProfileDTO, SessionDTOExt, VersionDTO } from '../../Models/account/account.models'
 import { ToastService } from '../../services/toast.service'
-import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component'
+import { ProgressIndicatorComponent } from '../../components/common/progress-indicator/progress-indicator.component'
 import { SessionCardComponent } from '../../components/common/session-card/session-card.component'
 import { MfaStrategyCardComponent } from '../../components/common/mfa-strategy-card/mfa-strategy-card.component'
 import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service'
@@ -20,7 +19,10 @@ import { SessionSyncService } from '../../services/session-sync.service';
 import { SidenavContextService } from '../../services/context/sidenav-context.service';
 import { UserContextService } from '../../services/context/user-context.service';
 import { DomainInvalidationService } from '../../services/domain-invalidation.service';
+import { ViewportRuntimeService } from '../../services/context/viewport-runtime.service';
 import { IconButtonComponent } from '../../components/common/icon-button/icon-button.component';
+import { ButtonComponent } from '../../components/common/button/button.component';
+import { DisclosureComponent, DisclosureTriggerDirective } from '../../components/common/disclosure/disclosure.component';
 
 
 
@@ -28,12 +30,14 @@ import { IconButtonComponent } from '../../components/common/icon-button/icon-bu
   selector: 'm-settings.page',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    CdkAccordionModule,
-    ClassicSpinnerComponent,
+    DisclosureComponent,
+    DisclosureTriggerDirective,
+    ProgressIndicatorComponent,
     SessionCardComponent,
     MfaStrategyCardComponent,
     GenderPipe,
-    IconButtonComponent
+    IconButtonComponent,
+    ButtonComponent
   ],
   styles: `
 
@@ -87,26 +91,22 @@ import { IconButtonComponent } from '../../components/common/icon-button/icon-bu
           class="flex flex-col justify-between transition-[padding-bottom] duration-200 ease-out"
           [style.paddingBottom]="bottomSpacerPx()"
         >
-          <cdk-accordion class="flex flex-col w-full border border-slate-300 dark:border-slate-500">
+          <div class="flex flex-col w-full border border-slate-300 dark:border-slate-500">
             @for (item of items; track item; let i = $index) {
-              <cdk-accordion-item
-                #accordionItem="cdkAccordionItem"
-                (opened)="onAccordionOpened(i)"
-                (closed)="smoothToTop()"
+              <m-disclosure
+                #disclosureItem
+                [id]="computeId(i)"
+                [expanded]="expandedIndex() === i"
+                (toggled)="handleDisclosureToggle(i, $event)"
               >
+                <ng-template mDisclosureTrigger>
                 <div class="border-b border-slate-300 dark:border-slate-500" [class.border-b-0]="i === items.length - 1">
-                  <button
-                    type="button"
-                    [id]="computeId(i)"
-                    class="
+                  <div class="
                       w-full p-4 bg-slate-200 dark:bg-slate-800
                       text-start flex items-center justify-between
                       hover:bg-slate-200/75 dark:hover:bg-slate-800/75
                       transition-colors duration-300
-                      "
-                    (click)="handleAccordionClick(i)"
-                    [attr.aria-expanded]="accordionItem.expanded"
-                    [attr.aria-controls]="'accordion-body-' + i">
+                      ">
                     <div class="flex items-center gap-2">
                       @switch (i) {
                           @case (0) {
@@ -139,23 +139,21 @@ import { IconButtonComponent } from '../../components/common/icon-button/icon-bu
                     <svg xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 640 640"
                       class="fill-current h-6 w-auto transition-transform duration-200"
-                      [class.rotate-180]="accordionItem.expanded"
-                      [class.rotate-0]="!accordionItem.expanded">
+                      [class.rotate-180]="expandedIndex() === i"
+                      [class.rotate-0]="expandedIndex() !== i">
                       <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                       <path d="M320 96C196.3 96 96 196.3 96 320C96 443.7 196.3 544 320 544C443.7 544 544 443.7 544 320C544 196.3 443.7 96 320 96zM320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576zM331.3 411.3L320 422.6L308.7 411.3L196.7 299.3L185.4 288L208 265.4L219.3 276.7L320 377.4L420.7 276.7L432 265.4L454.6 288L443.3 299.3L331.3 411.3z"/>
                     </svg>
-                  </button>
+                  </div>
                 </div>
-                @if (accordionItem.expanded) {
-                  <div
-                    class="accordion-body px-4 bg-slate-100 dark:bg-slate-700"
-                    animate.enter="accordion-enter"
-                    animate.leave="accordion-leave"
-                    role="region"
-                    [attr.id]="'accordion-body-' + i"
-                    [attr.aria-labelledby]="computeId(i)"
-                    [class.relative]="i === 1"
-                  >
+                </ng-template>
+                <div class="accordion-body px-4 bg-slate-100 dark:bg-slate-700">
+                  @if (expandedIndex() === i) {
+                    <div
+                      animate.enter="accordion-enter"
+                      animate.leave="accordion-leave"
+                      [class.relative]="i === 1"
+                    >
                     <div class="py-6">
                       @switch (i) {
                           @case (0) {
@@ -488,11 +486,10 @@ import { IconButtonComponent } from '../../components/common/icon-button/icon-bu
                                     <span>●</span>
                                   }
                                 </div>
-                                <button
+                                <m-button
                                   type="button"
-                                  class="
-                                    green-btn w-fit
-                                  "
+                                  variant="secondary"
+                                  size="md"
                                   (click)="changePassword()"
                                 >
                                   <svg xmlns="http://www.w3.org/2000/svg"
@@ -502,7 +499,7 @@ import { IconButtonComponent } from '../../components/common/icon-button/icon-bu
                                     <path d="M256 240C256 160.5 320.5 96 400 96C479.5 96 544 160.5 544 240C544 319.5 479.5 384 400 384C388.9 384 378 382.7 367.6 380.4L359 378.4L352.7 384.7L321.3 416.1L255.9 416.1L255.9 480.1L191.9 480.1L191.9 544.1L95.9 544.1L95.9 462.7L258.7 299.9L265.6 293L262.7 283.7C258.3 269.9 256 255.3 256 240zM400 64C302.8 64 224 142.8 224 240C224 255.1 225.9 269.8 229.5 283.9L68.7 444.7L64 449.4L64 576L224 576L224 512L288 512L288 448L334.6 448L339.3 443.3L369.3 413.3C379.3 415.1 389.5 416 400 416C497.2 416 576 337.2 576 240C576 142.8 497.2 64 400 64zM432 232C445.3 232 456 221.3 456 208C456 194.7 445.3 184 432 184C418.7 184 408 194.7 408 208C408 221.3 418.7 232 432 232z"/>
                                   </svg>
                                   <p class="mr-2">Cambia password</p>
-                                </button>
+                                </m-button>
                               </div>
                             }
                             <h3 class="font-bold text-lg my-3">Sessioni attive</h3>
@@ -514,11 +511,10 @@ import { IconButtonComponent } from '../../components/common/icon-button/icon-bu
                                 />
                               }
                             </div>
-                            <button
+                            <m-button
                               type="button"
-                              class="
-                                red-btn
-                              "
+                              variant="destructive"
+                              size="md"
                               (click)="doLogoutFromAllSessions()"
                             >
                               <svg xmlns="http://www.w3.org/2000/svg"
@@ -528,7 +524,7 @@ import { IconButtonComponent } from '../../components/common/icon-button/icon-bu
                                 <path d="M240.1 128L256.1 128L256.1 96L64.1 96L64.1 544L256.1 544L256.1 512L96.1 512L96.1 128L240.1 128zM571.4 331.3L582.7 320L571.4 308.7L427.4 164.7L416.1 153.4L393.5 176L404.8 187.3L521.5 304L224.1 304L224.1 336L521.5 336L404.8 452.7L393.5 464L416.1 486.6L427.4 475.3L571.4 331.3z" />
                               </svg>
                               <span>Esci da tutte le sessioni</span>
-                            </button>
+                            </m-button>
                             @if (!is_sso()) {
                               <hr class="border-[0.5px] border-slate-400 dark:border-slate-500 mt-6" />
                               <h3 class="font-bold text-lg mt-6 mb-6 flex flex-col sm:flex-row gap-3 sm:gap-6 items-start sm:items-center">
@@ -547,11 +543,10 @@ import { IconButtonComponent } from '../../components/common/icon-button/icon-bu
                               </h3>
                               <div class="flex gap-8 items-center">
                                 @if (!isEnabledMfa) {
-                                  <button
+                                  <m-button
                                     type="button"
-                                    class="
-                                      green-btn
-                                    "
+                                    variant="secondary"
+                                    size="md"
                                     (click)="doEnableMfa()"
                                   >
                                     <svg xmlns="http://www.w3.org/2000/svg"
@@ -561,7 +556,7 @@ import { IconButtonComponent } from '../../components/common/icon-button/icon-bu
                                       <path d="M432.2 432L398.5 432L377.2 368L263.3 368L242 432L208.3 432L240.3 336L400.3 336L432.3 432zM320.2 304C284.9 304 256.2 275.3 256.2 240C256.2 204.7 284.9 176 320.2 176C355.5 176 384.2 204.7 384.2 240C384.2 275.3 355.5 304 320.2 304zM320.2 208C302.5 208 288.2 222.3 288.2 240C288.2 257.7 302.5 272 320.2 272C337.9 272 352.2 257.7 352.2 240C352.2 222.3 337.9 208 320.2 208zM320.2 576L307.5 570.5C156.3 505.1 71.4 337.8 80.7 177L81.9 156.5L320.2 64L558.5 156.5L559.6 177C569 337.8 484 505.1 332.9 570.5L320.2 576zM112.7 178.9C105.9 326.2 180.4 480.6 320.2 541.1C460 480.6 534.5 326.2 527.7 178.9L320.2 98.3L112.7 178.9z"/>
                                     </svg>
                                     <p class="mr-2">Attiva l'autenticazione a più fattori</p>
-                                  </button>
+                                  </m-button>
                                 }
                               </div>
                               @if (isEnabledMfa) {
@@ -588,11 +583,12 @@ import { IconButtonComponent } from '../../components/common/icon-button/icon-bu
                           @default { ... }
                       }
                     </div>
-                  </div>
-                }
-              </cdk-accordion-item>
+                    </div>
+                  }
+                </div>
+              </m-disclosure>
               }
-          </cdk-accordion>
+          </div>
         </div>
       </section>
     } @else {
@@ -603,7 +599,7 @@ import { IconButtonComponent } from '../../components/common/icon-button/icon-bu
             [style.left.px]="spinnerLeft()"
             role="status"
           >
-            <m-classic-spinner [size]="60" />
+            <m-progress-indicator [size]="60" />
           </div>
         </div>
       </div>
@@ -611,6 +607,7 @@ import { IconButtonComponent } from '../../components/common/icon-button/icon-bu
   `
 })
 export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
+  private readonly viewportRuntime = inject(ViewportRuntimeService)
 
   private readonly accountService = inject(AccountService)
   private readonly toast = inject(ToastService)
@@ -626,17 +623,12 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly sidenavContext = inject(SidenavContextService)
   private readonly userContext = inject(UserContextService)
 
-  readonly accordion = viewChild.required(CdkAccordion);
-
-  readonly accordionItems = viewChildren(CdkAccordionItem);
-
-  readonly accordionItemHosts = viewChildren(CdkAccordionItem, { read: ElementRef });
+  readonly disclosureItemHosts = viewChildren('disclosureItem', { read: ElementRef });
 
   readonly pageTop = viewChild<ElementRef<HTMLElement>>('pageTop');
 
   scrollRootRef!: ElementRef<HTMLElement>
   private resizeObs?: ResizeObserver
-  private spinnerTrackingAttached = false
   private spinnerFollowRaf?: number
 
   profileFetchError = signal<boolean>(false)
@@ -654,6 +646,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   spinnerLeft = signal<number>(0)
 
   items = ['Generali', 'Anagrafica', 'Contatti', 'Sicurezza']
+  readonly expandedIndex = signal<number | null>(null)
   private readonly accordionAnchors = ['general', 'personal_details', 'contact_details', 'security']
   private pendingIndex: number | null = null
   private skipSmoothToTopOnClose = false
@@ -675,8 +668,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
       this.fetch()
     })
     effect(() => {
-      const items = this.accordionItems()
-      if (!items.length) return
+      if (!this.disclosureItemHosts().length) return
 
       queueMicrotask(() => {
         const currentFrag = this.route.snapshot.fragment
@@ -698,6 +690,8 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
     effect(() => {
       // riallinea lo spinner quando cambia sidebar o stato di loading
       const _ = this.sidenavContext.isOpen()
+      this.viewportRuntime.width()
+      this.viewportRuntime.height()
       this.loading()
       queueMicrotask(() => {
         this.attachSpinnerTracking()
@@ -732,9 +726,6 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
     this.fragmentSub?.unsubscribe()
     this.provSub?.unsubscribe()
     this.resizeObs?.disconnect()
-    if (this.spinnerTrackingAttached) {
-      window.removeEventListener('resize', this.updateSpinnerLeft)
-    }
     this.stopSpinnerFollow()
   }
 
@@ -747,10 +738,6 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
     this.resizeObs = new ResizeObserver(() => this.updateSpinnerLeft())
     this.resizeObs.observe(host)
 
-    if (!this.spinnerTrackingAttached) {
-      window.addEventListener('resize', this.updateSpinnerLeft)
-      this.spinnerTrackingAttached = true
-    }
     this.startSpinnerFollow()
   }
 
@@ -838,55 +825,28 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private openAccordionAtIndex(index: number | null, opts?: { closeOthers?: boolean }): void {
-    const items = this.accordionItems()
-    if (!items.length) {
+    if (!this.disclosureItemHosts().length) {
       return
     }
 
-    const closeOthers = opts?.closeOthers ?? true
-    const hasValidIndex = index !== null && index >= 0 && index < items.length
-    const isMultiAccordion = this.accordion()?.multi ?? false
-    const switchingBetweenItems =
-      closeOthers
-      && hasValidIndex
-      && !isMultiAccordion
-      && items.some((item, i) => i !== index && item.expanded)
-
-    this.skipSmoothToTopOnClose = switchingBetweenItems
-
-    if (!hasValidIndex) {
-      if (closeOthers) {
-        items.forEach(item => {
-          if (item.expanded) item.close()
-        })
-      }
-      return
-    }
-
-    items.forEach((item, i) => {
-      if (i === index) {
-        if (!item.expanded) item.open()
-      } else if (closeOthers && item.expanded && !isMultiAccordion) {
-        item.close()
-      }
-    })
+    const nextIndex = index !== null && index >= 0 && index < this.items.length ? index : null
+    this.skipSmoothToTopOnClose = Boolean(opts?.closeOthers && nextIndex !== null && this.expandedIndex() !== null)
+    this.expandedIndex.set(nextIndex)
   }
 
-  handleAccordionClick(i: number): void {
-    const items = this.accordionItems()
-    const item = items[i]
-    if (!item) return
-
+  handleDisclosureToggle(i: number, expanded: boolean): void {
     const fragment = this.accordionAnchors[i] ?? this.accordionAnchors[0]
 
-    if (item.expanded) {
-      item.close()
+    if (!expanded) {
+      this.expandedIndex.set(null)
+      this.updateBottomSpacer()
       this.router.navigate([], {
         relativeTo: this.route,
         fragment: undefined,
         replaceUrl: true,
         queryParamsHandling: 'preserve'
       })
+      this.smoothToTop()
       return
     }
 
@@ -896,12 +856,12 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
     })
   }
 
-  onAccordionOpened(i: number): void {
+  private onDisclosureOpened(i: number): void {
     this.skipSmoothToTopOnClose = false
     this.updateBottomSpacer()
 
     setTimeout(() => {
-      const hosts = this.accordionItemHosts()
+      const hosts = this.disclosureItemHosts()
       const itemEl = hosts[i]?.nativeElement
       const scrollRoot = this.scrollRootRef?.nativeElement
       if (!itemEl || !scrollRoot) {
@@ -1037,7 +997,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   smoothToAccordionItem(i: number): void {
-    const hostRef = this.accordionItemHosts().at(i)
+    const hostRef = this.disclosureItemHosts().at(i)
     if (!hostRef || !this.scrollRootRef) return
 
     const hostEl = hostRef.nativeElement
@@ -1075,13 +1035,13 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
     const idx = this.indexFromFragment(frag)
     this.pendingIndex = idx
 
-    const itemsArr = this.accordionItems()
-    if (!itemsArr.length) {
+    if (!this.disclosureItemHosts().length) {
       return
     }
 
     this.openAccordionAtIndex(idx, { closeOthers: true })
     this.updateBottomSpacer()
+    this.onDisclosureOpened(idx)
   }
 
   smoothToTop(): void {
@@ -1091,21 +1051,13 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
       return
     }
 
-    const items = this.accordionItems()
-    for (const item of items) {
-      if (item.expanded) {
-        return
-      }
-    }
+    if (this.expandedIndex() !== null) return
 
     this.scrollContext.smoothToTop(this.scrollRootRef)
   }
 
   private updateBottomSpacer(): void {
-    const items = this.accordionItems()
-    const anyOpen = items.some(item => item.expanded)
-
-    if (!anyOpen) {
+    if (this.expandedIndex() === null) {
       this.bottomSpacerPx.set('0px')
       return
     }

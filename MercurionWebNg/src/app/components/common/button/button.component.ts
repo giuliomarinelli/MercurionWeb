@@ -17,6 +17,26 @@ export type ButtonSize = 'sm' | 'md' | 'lg';
 export type ButtonType = 'button' | 'submit' | 'reset';
 export type ButtonIconPosition = 'leading' | 'trailing';
 
+const VARIANT_CLASSES = {
+  primary: 'm-button__control--primary',
+  secondary: 'm-button__control--secondary',
+  destructive: 'm-button__control--destructive',
+  neutral: 'm-button__control--neutral',
+  ghost: 'm-button__control--ghost',
+  outline: 'm-button__control--outline',
+} satisfies Record<ButtonVariant, string>;
+
+const SIZE_CLASSES = {
+  sm: 'm-button__control--sm',
+  md: 'm-button__control--md',
+  lg: 'm-button__control--lg',
+} satisfies Record<ButtonSize, string>;
+
+const ICON_POSITION_CLASSES = {
+  leading: 'm-button__control--icon-leading',
+  trailing: 'm-button__control--icon-trailing',
+} satisfies Record<ButtonIconPosition, string>;
+
 @Component({
   selector: 'm-button',
   standalone: true,
@@ -203,7 +223,12 @@ export class ButtonComponent {
 
   protected readonly classes = computed(
     () =>
-      `m-button__control m-button__control--${this.variant()} m-button__control--${this.size()} m-button__control--icon-${this.iconPosition()}`,
+      [
+        'm-button__control',
+        VARIANT_CLASSES[this.variant()],
+        SIZE_CLASSES[this.size()],
+        ICON_POSITION_CLASSES[this.iconPosition()],
+      ].join(' '),
   );
 
   protected onClick(event: MouseEvent): void {

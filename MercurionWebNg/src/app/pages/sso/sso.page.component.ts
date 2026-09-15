@@ -10,7 +10,7 @@ import {
   effect,
   viewChild
 } from '@angular/core';
-import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
+import { ProgressIndicatorComponent } from '../../components/common/progress-indicator/progress-indicator.component';
 import { EMPTY, of, Subscription, switchMap, defer, from, combineLatest, catchError, take, filter } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TypeGuardsService } from '../../services/type-guards.service';
@@ -21,10 +21,11 @@ import { AuthStateStore } from '../../services/auth-state.store'
 import { AuthSessionPersistenceService } from '../../services/auth-session-persistence.service'
 import { SidenavContextService } from '../../services/context/sidenav-context.service';
 import { AuthRedirectService } from '../../services/auth-redirect.service'
+import { ViewportRuntimeService } from '../../services/context/viewport-runtime.service';
 
 @Component({
   selector: 'm-sso-page',
-  imports: [ClassicSpinnerComponent],
+  imports: [ProgressIndicatorComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
 
@@ -35,7 +36,7 @@ import { AuthRedirectService } from '../../services/auth-redirect.service'
           [style.left.px]="spinnerLeft()"
           role="status"
         >
-          <m-classic-spinner [size]="60" />
+          <m-progress-indicator [size]="60" />
         </div>
       </div>
     </div>
@@ -54,6 +55,7 @@ export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly sessionSync = inject(SessionSyncService)
   private readonly authState = inject(AuthStateStore)
   private readonly sidenavContext = inject(SidenavContextService)
+  private readonly viewportRuntime = inject(ViewportRuntimeService)
 
   private sub?: Subscription
   private resizeObs?: ResizeObserver
@@ -67,6 +69,8 @@ export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
     effect(() => {
       // riallinea lo spinner quando cambia la sidebar
       const _ = this.sidenavContext.isOpen()
+      this.viewportRuntime.width()
+      this.viewportRuntime.height()
       queueMicrotask(() => {
         this.updateSpinnerLeft()
         this.startSpinnerFollow()
@@ -147,7 +151,6 @@ export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
   ngOnDestroy(): void {
     this.sub?.unsubscribe()
     this.resizeObs?.disconnect()
-    window.removeEventListener('resize', this.updateSpinnerLeft)
     this.stopSpinnerFollow()
   }
 
@@ -159,7 +162,6 @@ export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
     this.resizeObs?.disconnect()
     this.resizeObs = new ResizeObserver(() => this.updateSpinnerLeft())
     this.resizeObs.observe(host)
-    window.addEventListener('resize', this.updateSpinnerLeft)
     this.startSpinnerFollow()
   }
 

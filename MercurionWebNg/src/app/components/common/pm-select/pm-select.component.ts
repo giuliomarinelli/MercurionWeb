@@ -8,16 +8,37 @@ import {
   ScrollStrategyOptions
 } from '@angular/cdk/overlay';
 import { PmOption } from '../../../Models/pm-option.model';
-import { NgClass } from '@angular/common';
+
+export type PmSelectLayout = 'centered' | 'fullWidth';
+export type PmSelectTone = 'default' | 'highContrast';
+
+const LAYOUT_CLASSES = {
+  centered: 'flex justify-center mx-auto max-w-[500px]',
+  fullWidth: 'flex-none w-full',
+} satisfies Record<PmSelectLayout, string>;
+
+const LABEL_CLASSES = {
+  default: 'text-light-accent-secondary dark:text-dark-accent-secondary/90',
+  highContrast: 'text-light-accent-secondary dark:text-dark-accent-secondary-hc',
+} satisfies Record<PmSelectTone, string>;
+
+const FOCUS_CLASSES = {
+  default: [
+    'dark:focus:ring-dark-accent-primary-btn-hc',
+    'dark:focus:border-dark-accent-primary-btn-hc',
+    'dark:focus-visible:outline-dark-accent-primary-btn-hc',
+  ].join(' '),
+  highContrast: [
+    'dark:focus:ring-dark-accent-primary',
+    'dark:focus:border-dark-accent-primary',
+    'dark:focus-visible:outline-dark-accent-primary',
+  ].join(' '),
+} satisfies Record<PmSelectTone, string>;
 
 @Component({
   selector: 'm-select',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    PublicPipe,
-    OverlayModule,
-    NgClass
-  ],
+  imports: [PublicPipe, OverlayModule],
   providers: [{
     provide: NG_VALUE_ACCESSOR,
     useExisting: PmSelectComponent,
@@ -30,12 +51,12 @@ import { NgClass } from '@angular/common';
     }
   `],
   template: `
-    <div [class]="containerClass()">
+    <div [class]="LAYOUT_CLASSES[layout()]">
       <div class="w-full relative" cdkOverlayOrigin #origin="cdkOverlayOrigin">
         @if (label()) {
           <label [attr.for]="id() + '-btn'"
             class="block ml-[2px] mb-2 text-base"
-            [ngClass]="[textClass(), darkTextClass()]">
+            [class]="LABEL_CLASSES[tone()]">
             {{ label() }}
           </label>
         }
@@ -59,7 +80,7 @@ import { NgClass } from '@angular/common';
                  block px-4 py-3 border-[2px] border-slate-300 dark:border-slate-200 rounded-md transition duration-300
                  focus:outline-none focus:ring-2 focus:ring-light-accent-primary cursor-pointer
                  text-left pr-10"
-          [ngClass]="darkFocusClassList()">
+          [class]="FOCUS_CLASSES[tone()]">
 
           <span class="emoji-font inline-flex items-center gap-2">
             @if (currentIconUrl) {
@@ -130,16 +151,13 @@ export class PmSelectComponent implements ControlValueAccessor {
   readonly disabled = input(false);
   private readonly formDisabled = signal(false);
   readonly isDisabled = computed(() => this.disabled() || this.formDisabled());
-  readonly containerClass = input('flex justify-center mx-auto max-w-[500px]');
+  readonly layout = input<PmSelectLayout>('centered');
   readonly maxHeight = input(250);
-  readonly textClass = input('text-light-accent-secondary');
-  readonly darkTextClass = input('dark:text-dark-accent-secondary/90');
-  readonly darkFocusClassList = input([
-    'dark:focus:ring-dark-accent-primary-btn-hc',
-    'dark:focus:border-dark-accent-primary-btn-hc',
-    'dark:focus-visible:outline-dark-accent-primary-btn-hc',
-    'dark:focus-visible:outline-dark-accent-primary-btn-hc'
-]);
+  readonly tone = input<PmSelectTone>('default');
+
+  protected readonly LAYOUT_CLASSES = LAYOUT_CLASSES;
+  protected readonly LABEL_CLASSES = LABEL_CLASSES;
+  protected readonly FOCUS_CLASSES = FOCUS_CLASSES;
 
   opened = false;
   value: any = null;

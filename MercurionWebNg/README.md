@@ -1,59 +1,44 @@
 # MercurionWebNg
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.6.
+The supported browser client is an Angular 20.3 application. It renders the Mercurion SPA,
+uses Apollo Angular for GraphQL, Socket.IO for realtime events, and the shared REST/Socket
+contract packages. Its development server listens on `3498`; browser validation goes through
+the repository nginx edge at `http://localhost:8888`.
 
-## Development server
+## Commands
 
-To start a local development server, run:
-
-```bash
-ng serve
-```
-
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+Run from this directory unless a root command is shown:
 
 ```bash
-ng generate component component-name
+npm run start:dev
+npm run build
+npm run test:ci
+npm run lint
+npm run typecheck
+npm run graphql:generate
+npm run graphql:check
+npm run chemistry:check-lazy
+npm run bundle:check
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+The root equivalents are `npm run ci:lint:angular`, `npm run ci:typecheck:angular`,
+`npm run ci:test:angular` and `npm run ci:build:angular`. `test:ci` runs Karma without a
+watcher. Build output is under `dist`; generated GraphQL artifacts are under `src/generated`
+and must be refreshed through the generator rather than edited by hand.
 
-```bash
-ng generate --help
-```
+## Runtime and transport
 
-## Building
+`src/app/app.config.ts` configures Apollo to call `/api/graphql` and adds the current REST
+contract-major header. nginx sends `/api/*` and `/socket.io/*` to Nest, so direct access to
+`http://localhost:3498` is not equivalent to the supported runtime. The UI also consumes
+assets and lazy chunks from the Angular dev server through nginx.
 
-To build the project run:
+The client has no independent secret configuration file. API URLs are same-origin by design;
+credentials and server configuration belong to `MercurionWebNode/env/.env.development`.
 
-```bash
-ng build
-```
+## Generated and checked artifacts
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+Use `graphql:generate` when GraphQL documents or the server schema changes. Use `graphql:check`
+to validate the catalog, documents and code generation without changing tracked artifacts.
+`bundle:check` and `chemistry:check-lazy` protect the production bundle and RDKit lazy loading.
+The complete client checks are registered in the root `ci:check`.

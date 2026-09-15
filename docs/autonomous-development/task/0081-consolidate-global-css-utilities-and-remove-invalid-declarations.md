@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -146,3 +146,8 @@ mandatory browser validation.
 ### Dependency skip
 
 Direct terminal prerequisite: 0077 (), terminal non-DONE dependency.
+
+### Dependency skip
+
+Direct terminal prerequisite: `0078` (`UI-020`), `BLOCKED`; this task was
+materialized in the new terminal closure on 2026-09-13.

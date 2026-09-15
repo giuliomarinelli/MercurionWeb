@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { combineLatest, EMPTY, filter, of, Subscription, switchMap, take, tap } from 'rxjs';
-import { ClassicSpinnerComponent } from '../../components/common/classic-spinner/classic-spinner.component';
+import { ProgressIndicatorComponent } from '../../components/common/progress-indicator/progress-indicator.component';
 import { Helpers } from '../../helpers';
 import { AccountService } from '../../services/account.service';
 import { UserContextService } from '../../services/context/user-context.service';
@@ -12,16 +12,16 @@ import { IconButtonComponent } from '../../components/common/icon-button/icon-bu
 
 @Component({
   selector: 'm-account-activate.page',
-  imports: [ClassicSpinnerComponent, RouterLink, IconButtonComponent],
+  imports: [ProgressIndicatorComponent, RouterLink, IconButtonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
 
     @if (loading()) {
       <div class="absolute inset-0 flex justify-center items-center" role="status" aria-live="assertive">
         @if (design.maxBk('md')()) {
-          <m-classic-spinner [size]="30" />
+          <m-progress-indicator [size]="30" />
         } @else if (design.minBk('md')()) {
-          <m-classic-spinner [size]="60" />
+          <m-progress-indicator [size]="60" />
         }
       </div>
     } @else if (canView()) {

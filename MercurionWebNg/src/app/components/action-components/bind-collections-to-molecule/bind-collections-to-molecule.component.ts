@@ -17,7 +17,7 @@ import { ActionOverlayContextService } from '../../../services/context/action-co
 import { MoleculeCollectionService } from '../../../services/graphql/molecule-collection.service';
 import { debounceTime, map, Observable, Subscription } from 'rxjs';
 import { PageModel } from '../../../Models/graphql/page.models';
-import { ClassicSpinnerComponent } from '../../common/classic-spinner/classic-spinner.component';
+import { ProgressIndicatorComponent } from '../../common/progress-indicator/progress-indicator.component';
 import { PmSearchInputComponent } from '../../common/pm-search-input/pm-search-input.component';
 import { CollectionSelectCardComponent } from '../../molecule-detail/collection-select-card/collection-select-card.component';
 import { SkeletonCollectionCardComponent } from '../../common/skeleton-card-loader/skeleton-card-loader.component';
@@ -32,7 +32,7 @@ import { CollectionPickerFacade } from '../collection-picker/collection-picker.f
   selector: 'm-bind-collections-to-molecule',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    ClassicSpinnerComponent,
+    ProgressIndicatorComponent,
     PmSearchInputComponent,
     CollectionSelectCardComponent,
     SkeletonCollectionCardComponent,
@@ -144,7 +144,7 @@ import { CollectionPickerFacade } from '../collection-picker/collection-picker.f
               @if (loading) {
                 @if (page > 1) {
                   <div class="flex justify-center py-4" role="status" aria-live="polite" aria-busy="true">
-                    <m-classic-spinner [size]="60" />
+                    <m-progress-indicator [size]="60" />
                   </div>
                 } @else {
                   <div class="space-y-4" role="status" aria-live="polite" aria-busy="true">

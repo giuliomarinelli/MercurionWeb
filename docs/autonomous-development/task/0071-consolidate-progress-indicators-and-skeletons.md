@@ -1,7 +1,7 @@
 # 0071 - Consolidate progress indicators and skeletons
 
-- [ ] DONE
-- [x] BLOCKED
+- [x] DONE
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -59,12 +59,12 @@ The repository contains `classic-spinner` plus multiple skeleton implementations
 
 ## Acceptance criteria
 
-- [ ] One canonical progress-indicator family remains.
-- [ ] Skeleton primitives are canonical and feature skeletons compose them.
-- [ ] Legacy spinner/skeleton implementations are removed when no longer used.
-- [ ] Skeleton geometry tracks corresponding content layout.
-- [ ] Reduced-motion preference is respected.
-- [ ] Angular tests/build and canonical CI gates pass.
+- [x] One canonical progress-indicator family remains.
+- [x] Skeleton primitives are canonical and feature skeletons compose them.
+- [x] Legacy spinner/skeleton implementations are removed when no longer used.
+- [x] Skeleton geometry tracks corresponding content layout.
+- [x] Reduced-motion preference is respected.
+- [x] Angular tests/build and canonical CI gates pass.
 
 ## Validation
 
@@ -140,3 +140,28 @@ _Not applicable._
 ### Blocker / human decision required
 Complete collection/search loading-state browser validation through the
 canonical edge in a new authorized session before re-enabling this task.
+
+### Authorized recovery (2026-09-14)
+
+- Direct owner authorization resumed the preserved branch from
+  `48376f001399d350bba3c557bf1314ab81ec9ac7`.
+- Current green `develop` at `5a51a31758eb634e56cd4caf005b289057ec3398`
+  was merged without rebase as recovery commit `fff30cfbf`.
+- Merge conflicts retained the canonical progress indicator while preserving
+  the newer typed HTTP form-error adapter from `develop`; the superseded
+  chemistry spinner remained deleted.
+- The Angular test suite, focused typecheck, zero-warning lint and production
+  build passed. Static search found no remaining classic or chemistry spinner
+  consumers.
+- Runtime startup followed Tox21 -> Nest -> Angular and produced two
+  consecutive `health=200`, `app=200` readiness rounds through
+  `http://localhost:8888`.
+- A fresh ordinary login reached the protected dashboard. The protected
+  collection page exposed five accessible `Caricamento collezione…` skeleton
+  states before rendering the corresponding collection cards, and the global
+  molecular-search overlay opened and returned real result cards.
+- The prior molecule desktop/mobile-dark evidence remains valid. Reduced-motion
+  behavior is enforced by the canonical component media queries and tests; the
+  available browser controller did not expose DevTools media emulation.
+- All acceptance criteria are satisfied. The task remains `CI_PENDING` until
+  exact feature-SHA and post-merge `Required gate` runs succeed.

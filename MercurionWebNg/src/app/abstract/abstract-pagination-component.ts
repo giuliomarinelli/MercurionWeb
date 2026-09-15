@@ -3,6 +3,7 @@ import { ChangeDetectorRef, computed, ElementRef, inject, Signal, signal } from 
 import { firstValueFrom, Observable } from "rxjs";
 import { InfinitePaginationState, PageModel } from "../Models/graphql/page.models";
 import { BrowserResourceOwner, injectBrowserResourceOwner } from "../utils/browser-resource-owner.util";
+import { ViewportRuntimeService } from "../services/context/viewport-runtime.service";
 
 export abstract class AbstractPaginationComponent<T> {
   protected sentinel?: Signal<ElementRef<HTMLElement> | undefined>;
@@ -24,6 +25,7 @@ export abstract class AbstractPaginationComponent<T> {
   protected searchTerm = signal<string>('');
   protected root?: Signal<ElementRef<HTMLElement> | undefined>;
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
+  protected readonly viewportRuntime = inject(ViewportRuntimeService);
 
   /**
    * Owns every RAF this base class schedules and is disposed automatically
@@ -153,7 +155,7 @@ export abstract class AbstractPaginationComponent<T> {
       const docEl = document.documentElement ?? document.body;
       if (!docEl) return;
 
-      const viewportHeight = window.innerHeight || docEl.clientHeight;
+      const viewportHeight = this.viewportRuntime.height() || docEl.clientHeight;
       const contentHeight = Math.max(
         docEl.scrollHeight,
         document.body?.scrollHeight ?? 0

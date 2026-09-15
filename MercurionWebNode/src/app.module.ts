@@ -32,6 +32,7 @@ import {
   createConfigurationModule,
   type ConfigurationModuleOptions
 } from './config/configuration.module';
+import { PersistenceModule } from './persistence/persistence.module'
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import {
       inject: [ConfigService]
     }),
     MercurionGraphQLModule,
+    PersistenceModule,
     RedisModule,
     UserModule,
     AuthModule,

@@ -1,6 +1,5 @@
 import { Injectable, type OnApplicationBootstrap } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { InjectRepository } from '@nestjs/typeorm'
 import {
   LOCAL_DUMMY_AUTH,
   type FingerprintData,
@@ -8,12 +7,10 @@ import {
 } from '@mercurion/rest-contracts'
 import { createHash, type UUID } from 'crypto'
 import type { FastifyRequest } from 'fastify'
-import type { Repository } from 'typeorm'
 
 import { TokenType } from 'src/app_modules/auth/Models/enums/token-type.enum'
 import { AuthProvider } from 'src/app_modules/sso/Models/enums/auth-provider.enum'
-import { User } from 'src/app_modules/user/Models/entities/user.entity'
-import { UserGender } from 'src/app_modules/user/Models/enums/user-gender.enum'
+import { UserService } from 'src/app_modules/user/services/user.service'
 import { Environment } from 'src/config/config.schema'
 import type { AppConfiguration } from 'src/config/config.types'
 
@@ -25,8 +22,7 @@ import { SessionService } from './session.service'
 @Injectable()
 export class LocalDummyAuthService implements OnApplicationBootstrap {
   constructor(
-    @InjectRepository(User)
-    private readonly userRepo: Repository<User>,
+    private readonly users: UserService,
     private readonly scopeService: ScopeService,
     private readonly sessionService: SessionService,
     private readonly jwtTools: JwtToolsService,
@@ -36,49 +32,7 @@ export class LocalDummyAuthService implements OnApplicationBootstrap {
   async onApplicationBootstrap(): Promise<void> {
     if (!this.isEnabled()) return
 
-    const id = LOCAL_DUMMY_AUTH.userId as UUID
-    const existing = await this.userRepo.findOne({
-      where: { id },
-      select: { id: true }
-    })
-    if (existing) return
-
-    const now = Date.now()
-    await this.userRepo.createQueryBuilder()
-      .insert()
-      .into(User)
-      .values({
-        id,
-        email: LOCAL_DUMMY_AUTH.email,
-        unconfirmedEmail: null,
-        completePhoneNumber: null,
-        phoneNumberPrefixLength: 0,
-        unconfirmedPhoneNumber: null,
-        unconfirmedPhoneNumberPrefixLength: null,
-        passwordHash: null,
-        firstName: LOCAL_DUMMY_AUTH.firstName,
-        lastName: LOCAL_DUMMY_AUTH.lastName,
-        gender: UserGender.Undefined,
-        job: 'Local development fixture',
-        initials: LOCAL_DUMMY_AUTH.initials,
-        isVerified: true,
-        scopes: this.scopeService.getEncryptedStandardScopes(),
-        mfaStrategies: '[]',
-        createdAt: now,
-        updatedAt: now,
-        otpSecret: '',
-        appTotpSecret: null,
-        oldPasswordHashes: [],
-        avatarId: null,
-        backupCodesGiven: false,
-        accountRecoveryCodeHash: null,
-        locked: false,
-        recoveryMode: false,
-        sso: false
-      })
-      .orIgnore()
-      .callListeners(false)
-      .execute()
+    await this.users.ensureLocalDevelopmentUser(this.scopeService.getEncryptedStandardScopes())
   }
 
   isEnabled(): boolean {

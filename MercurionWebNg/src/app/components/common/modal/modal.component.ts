@@ -13,7 +13,6 @@ import { DialogShellComponent } from '../dialog-shell/dialog-shell.component';
       [mounted]="ctx.isMounted()"
       [open]="ctx.isVisible()"
       label="Dialog"
-      backdropClass="bg-black/60"
       (dismissed)="close($event)">
       <ng-template cdkPortalOutlet></ng-template>
     </m-dialog-shell>`
