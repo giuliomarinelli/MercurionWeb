@@ -1,7 +1,7 @@
 # 0081 - Consolidate global CSS utilities and remove invalid declarations
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -106,7 +106,7 @@ Do not preserve a duplicate selector merely because the cascade currently makes 
 > chain; historical skip evidence below is retained only for traceability.
 
 ### Feature branch
-_Not started._
+`feature/UI-023` preserved at `c940640291a7dba6f7d156b1b1afe997a0ecde91`.
 
 ### Preflight
 _Not started._
@@ -115,39 +115,28 @@ _Not started._
 _None._
 
 ### Summary
-Not attempted because required tasks 0077 (UI-019) and 0078 (UI-020) are
-`SKIPPED_DEPENDENCY`.
+The feature branch contains the scoped CSS consolidation, but the task is
+blocked because required Chrome DevTools browser evidence was unavailable.
 
 ### Task-specific validation performed
-Not applicable; no feature branch or implementation worker was created.
+Feature branch static CSS audit and Angular production build passed.
 
 ### Full pre-merge CI-parity validation
-Not applicable; dependency-skip metadata only.
+Exact feature-SHA CI succeeded for `c940640291a7dba6f7d156b1b1afe997a0ecde91`
+(run `35017881390`).
 
 ### Browser validation performed
-Not applicable; the task was not attempted.
+Not run: the required Chrome DevTools interaction surface was unavailable.
 
 ### Commits
-Pending metadata commit on `develop`.
+Feature commit: `c940640291a7dba6f7d156b1b1afe997a0ecde91`.
 
 ### Merge / CI
-No feature branch or merge. Exact-SHA CI is required for the metadata commit.
+Not merged; blocked before integration.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-Direct terminal prerequisites: 0077 (UI-019) and 0078 (UI-020), both
-`SKIPPED_DEPENDENCY`. Transitive chain: UI-023 -> UI-019 -> UI-018
-(BLOCKED), which requires a test-safe local Nest runtime and dependencies for
-mandatory browser validation.
-
-
-### Dependency skip
-
-Direct terminal prerequisite: 0077 (), terminal non-DONE dependency.
-
-### Dependency skip
-
-Direct terminal prerequisite: `0078` (`UI-020`), `BLOCKED`; this task was
-materialized in the new terminal closure on 2026-09-13.
+Retry requires a worker session with the authorized Chrome DevTools interaction
+surface for the declared browser acceptance checks.
