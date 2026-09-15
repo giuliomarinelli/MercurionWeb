@@ -140,7 +140,8 @@ Focused repair validation:
 No Angular, Nest, Tox21, Chrome, or runtime process was started; browser
 validation remains not applicable.
 ### Repair commit
-Pending task repair commit.
+`d44169f5` — Register DATA-006 auth idempotency migration in the Nest
+reachability configuration (includes the required Copilot co-author trailer).
 ### Merge / CI
 Feature branch publication follows the task commit. No develop/master changes.
 ### Rollback
