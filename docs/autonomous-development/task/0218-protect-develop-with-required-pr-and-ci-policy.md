@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Protect `develop` so changes enter only through an approved pull request whose canonical aggregate quality gate is green, with direct pushes and failed-check merges rejected by GitHub.

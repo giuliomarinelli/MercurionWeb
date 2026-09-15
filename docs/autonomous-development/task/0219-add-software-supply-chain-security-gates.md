@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Make secret, dependency, license, SBOM and final-image vulnerability checks mandatory CI gates and produce verifiable digest-bound signatures/attestations for release-candidate artifacts without deploying them.

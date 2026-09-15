@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Give every human/public-facing identifier a canonical typed value object and persistence/derivation rule so formatting, parsing and validation are deterministic and no service/presenter regenerates fallback IDs while reading data.

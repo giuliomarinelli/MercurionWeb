@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Make one canonical release version plus one CI-generated build identity feed Angular, Nest, container labels and deployment metadata so every artifact from the same build reports the same version and commit.

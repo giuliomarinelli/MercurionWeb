@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Make email templates, layouts and partials first-class Nest build assets copied by one build configuration to one runtime-relative path in development, test, staging and production, eliminating bootstrap/Dockerfile copy choreography.

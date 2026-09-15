@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Replace duplicated Redis attempt/cooldown/lock logic in Account, MFA, Authentication and Feedback with one typed atomic policy engine whose limits, windows, reset semantics and error outcomes cannot drift between comments and runtime behaviour.
