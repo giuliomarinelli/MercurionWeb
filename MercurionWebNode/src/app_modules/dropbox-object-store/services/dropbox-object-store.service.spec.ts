@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { DropboxObjectStoreService } from './dropbox-object-store.service';
 import { OAuth2ClientService } from 'src/app_modules/oauth2-client/services/oauth2-client.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { DocumentEntity } from '../Models/entities/document.entity';
+import { DocumentEntity } from '../models/entities/document.entity';
 import { DataSource } from 'typeorm';
 import { LoggerPort } from 'src/logging/logger.port';
 

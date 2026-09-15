@@ -1,4 +1,4 @@
-import { CompareResult } from '../Models/enums/compare-result.enum'
+import { CompareResult } from '../models/enums/compare-result.enum'
 import {
     CredentialLoginHandler,
     VerifyEmailHandler

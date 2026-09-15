@@ -2,12 +2,12 @@ import { Injectable } from '@nestjs/common';
 
 import { UUID } from 'node:crypto';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
-import { CreateFeedbackDTO } from '../Models/DTO/create-feedback.dto';
-import { Feedback } from '../Models/entities/feedback.entity';
-import { FeedbackContextKind, FeedbackEnv, FeedbackKind, FeedbackSource, FeedbackStatus } from '../Models/enums/feedback.enums';
+import { CreateFeedbackDTO } from '../models/dto/create-feedback.dto';
+import { Feedback } from '../models/entities/feedback.entity';
+import { FeedbackContextKind, FeedbackEnv, FeedbackKind, FeedbackSource, FeedbackStatus } from '../models/enums/feedback.enums';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UpdateFeedbackDTO } from '../Models/DTO/update-feedback.dto';
+import { UpdateFeedbackDTO } from '../models/dto/update-feedback.dto';
 import { IPaginationOptions, paginate, Pagination } from 'nestjs-typeorm-paginate';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 import { redisDurations, redisKeys } from 'src/app_modules/redis/contracts/redis-contracts'

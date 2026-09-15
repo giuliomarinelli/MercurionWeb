@@ -61,11 +61,6 @@ export const APPLICATION_ERROR_CATALOG = {
     defaultMessage: "Unauthenticated",
     exposeInProduction: false,
   },
-  AUTHENTICATION_UNAUTHENTICATED_LEGACY_TYPO: {
-    httpStatus: 401,
-    defaultMessage: "Unauthanticated",
-    exposeInProduction: true,
-  },
   AUTHENTICATION_UNAUTHENTICATED_SOFT: {
     httpStatus: 401,
     graphQlStatus: 200,

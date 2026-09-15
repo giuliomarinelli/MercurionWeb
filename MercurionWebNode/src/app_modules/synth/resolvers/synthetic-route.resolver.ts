@@ -3,9 +3,9 @@ import { AuthenticatedUserId } from "src/metadata/metadata";
 import { UUID } from "crypto";
 import { GraphQLResolveInfo } from 'graphql';
 import { GraphQLUtils } from "src/utils/graphql-utils/graphql-utils";
-import { Synthesis } from "../Models/entities/synthesis.entity";
+import { Synthesis } from "../models/entities/synthesis.entity";
 import { SynthesisService } from "../services/synthesis.service";
-import { SynthesisInput } from "../Models/DTO/synthesis.input";
+import { SynthesisInput } from "../models/dto/synthesis.input";
 import { GeneralUtils } from "src/utils/general-utils/general-utils";
 
 @Resolver(() => Synthesis)

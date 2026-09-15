@@ -15,7 +15,7 @@ import { AuthStateStore } from './auth-state.store'
 import { AuthSessionPersistenceService } from './auth-session-persistence.service'
 import { AuthRedirectService } from './auth-redirect.service'
 import { ToastService } from './toast.service'
-import { RealtimeSocketService } from './socket.IO/realtime-socket.service'
+import { RealtimeSocketService } from './socket-io/realtime-socket.service'
 import { activeRoutePolicy } from '../route-policy'
 import {
   ApplicationErrorCode,
@@ -26,7 +26,7 @@ import {
   SessionInvalidationCause,
   type SessionInvalidationCauseType
 } from '@mercurion/rest-contracts'
-import { ToastVariant } from '../Models/toast.models'
+import { ToastVariant } from '../models/toast.models'
 import { BrowserStorageRegistry } from './browser-storage-registry'
 import { DefaultSessionSyncProtocol } from './session-sync.protocol'
 

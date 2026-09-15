@@ -1,9 +1,9 @@
 import { Injectable } from "@nestjs/common";
 import axios from "axios";
 
-import { ISocialProviderClient } from "../Models/interfaces/i-social-provider-client.interface";
-import { ProviderProfile } from "../Models/interfaces/provider-profile.interface";
-import { AuthProvider } from "../Models/enums/auth-provider.enum";
+import { ISocialProviderClient } from "../models/interfaces/i-social-provider-client.interface";
+import { ProviderProfile } from "../models/interfaces/provider-profile.interface";
+import { AuthProvider } from "../models/enums/auth-provider.enum";
 import { ConfigService } from "@nestjs/config";
 import { SSO_Configuration } from "src/config/config.types";
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'

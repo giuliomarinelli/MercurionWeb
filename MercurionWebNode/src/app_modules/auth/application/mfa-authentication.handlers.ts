@@ -7,7 +7,7 @@ import { redisKeys } from 'src/app_modules/redis/contracts/redis-contracts'
 import { LoggerContext } from 'src/logging/logger.port'
 import { LoggerPort } from 'src/logging/logger.port'
 import { UserService } from 'src/app_modules/user/services/user.service'
-import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum'
+import { MfaStrategy } from 'src/app_modules/user/models/enums/mfa-strategy.enum'
 import {
     ApplicationErrorCode,
     applicationHttpException
@@ -15,14 +15,14 @@ import {
 import { GeneralUtils } from 'src/utils/general-utils/general-utils'
 import { TypeGuards } from 'src/utils/type-guards/type-guards'
 
-import { BackupCodeDTO } from '../Models/DTO/backup-code.cls.dto'
-import { TotpBodyDTO } from '../Models/DTO/totp.cls.dto'
-import { VerifyBodyDTO } from '../Models/DTO/verify-body.cls.dto.'
-import { TokenType } from '../Models/enums/token-type.enum'
-import { VerifyKind } from '../Models/enums/verify-kind.enum'
+import { BackupCodeDTO } from '../models/dto/backup-code.cls.dto'
+import { TotpBodyDTO } from '../models/dto/totp.cls.dto'
+import { VerifyBodyDTO } from '../models/dto/verify-body.cls.dto.'
+import { TokenType } from '../models/enums/token-type.enum'
+import { VerifyKind } from '../models/enums/verify-kind.enum'
 import { JwtToolsService } from '../services/jwt-tools.service'
 import { MfaChallengeService } from '../services/mfa-challenge.service'
-import { SercurityService } from '../services/sercurity.service'
+import { SecurityService } from '../services/security.service'
 import { SessionService } from '../services/session.service'
 import { AuthenticationSessionService } from './authentication-session.service'
 
@@ -113,7 +113,7 @@ export class CompleteMfaLoginHandler {
         private readonly sessionService: SessionService,
         private readonly redisService: RedisService,
         private readonly userService: UserService,
-        private readonly securityService: SercurityService,
+        private readonly securityService: SecurityService,
         private readonly authenticationSession: AuthenticationSessionService,
         loggerFactory: LoggerPort
     ) {

@@ -2,19 +2,19 @@ import { Inject, Injectable } from '@nestjs/common';
 import { JwtService, JwtSignOptions, JwtVerifyOptions } from '@nestjs/jwt';
 import { JwtAudience, JwtConfiguration } from 'src/config/config.types';
 import { ConfigService } from '@nestjs/config';
-import { TokenType } from '../Models/enums/token-type.enum';
+import { TokenType } from '../models/enums/token-type.enum';
 import { randomUUID, UUID } from 'crypto';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
-import { Scope } from 'src/app_modules/user/Models/enums/scope.enum';
+import { Scope } from 'src/app_modules/user/models/enums/scope.enum';
 import { FastifyRequest } from 'fastify';
 
-import { AppJwtPayload } from '../Models/interfaces/app-jwt-payload.interface';
+import { AppJwtPayload } from '../models/interfaces/app-jwt-payload.interface';
 import { SessionService } from './session.service';
 import { LoggerContext } from 'src/logging/logger.port';
 import { LoggerPort } from 'src/logging/logger.port';
 import { JwtKeysProvider } from '../providers/jwt-keys.provider';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
-import { IDENTITY_READ_PORT, IdentityReadPort } from '../Models/interfaces/identity-read.port'
+import { IDENTITY_READ_PORT, IdentityReadPort } from '../models/interfaces/identity-read.port'
 
 @Injectable()
 export class JwtToolsService {

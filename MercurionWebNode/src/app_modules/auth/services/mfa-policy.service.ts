@@ -4,8 +4,8 @@ import type { UUID } from 'crypto'
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 import { redisDurations, redisKeys } from 'src/app_modules/redis/contracts/redis-contracts'
 import { RedisService } from 'src/app_modules/redis/services/redis.service'
-import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum'
-import { MfaContext } from '../Models/enums/mfa-context.enum'
+import { MfaStrategy } from 'src/app_modules/user/models/enums/mfa-strategy.enum'
+import { MfaContext } from '../models/enums/mfa-context.enum'
 
 @Injectable()
 export class MfaPolicyService {

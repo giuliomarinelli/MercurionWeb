@@ -2,7 +2,7 @@ import type { ExecutionContext } from '@nestjs/common'
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import type { UUID } from 'node:crypto'
 
-import type { AppJwtPayload } from '../../Models/interfaces/app-jwt-payload.interface'
+import type { AppJwtPayload } from '../../models/interfaces/app-jwt-payload.interface'
 
 export type AuthenticationTransportKind = 'http' | 'graphql'
 export type AccessTokenAuthenticationMode = 'current' | 'refresh'

@@ -1,12 +1,12 @@
 import { Resolver, Query, Mutation, Args, ID, Info } from '@nestjs/graphql';
-import { LabNotebook } from '../Models/entities/lab-notebook.entity';
+import { LabNotebook } from '../models/entities/lab-notebook.entity';
 import { UUID } from 'crypto';
 import { AuthenticatedUserId } from 'src/metadata/metadata';
 import { LabNotebookService } from '../services/lab-notebook.service';
 import { GraphQLResolveInfo } from 'graphql';
 import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
 import { GraphQLFieldsMap } from 'src/utils/type-orm-utils/type-orm-utils';
-import { UpdateLabNotebookInput } from '../Models/DTO/update-lab-notebook-input';
+import { UpdateLabNotebookInput } from '../models/dto/update-lab-notebook-input';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 
 

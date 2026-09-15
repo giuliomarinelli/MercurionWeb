@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource, EntityManager, Repository } from 'typeorm';
-import { History } from '../Models/entities/history.entity';
+import { History } from '../models/entities/history.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IPaginationOptions, paginate, Pagination } from 'nestjs-typeorm-paginate';
-import { HistoryDTO, TinyHistoryDTO } from '../Models/DTO/history.dto';
+import { HistoryDTO, TinyHistoryDTO } from '../models/dto/history.dto';
 import { UUID } from 'crypto';
-import { HistoryItemEntity as HistoryItemEntityEnum } from '../Models/enums/history-item-entity.enum';
-import { MoleculeCollection } from 'src/app_modules/molecule-collection/Models/entities/molecule-collection.entity';
-import { MoleculeCollectionItemEntity } from 'src/app_modules/molecule-collection/Models/entities/molecule-collection-item.entity';
+import { HistoryItemEntity as HistoryItemEntityEnum } from '../models/enums/history-item-entity.enum';
+import { MoleculeCollection } from 'src/app_modules/molecule-collection/models/entities/molecule-collection.entity';
+import { MoleculeCollectionItemEntity } from 'src/app_modules/molecule-collection/models/entities/molecule-collection-item.entity';
 import { MoleculeService } from 'src/app_modules/meilisearch/services/molecule.service';
 import { TypeGuards } from 'src/utils/type-guards/type-guards';
 import { LoggerPort } from 'src/logging/logger.port';

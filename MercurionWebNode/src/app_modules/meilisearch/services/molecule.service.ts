@@ -1,8 +1,8 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { MoleculeDetail } from "../Models/DTO/molecule-detail.gql.dtos";
+import { MoleculeDetail } from "../models/dto/molecule-detail.gql.dtos";
 import { MeiliSearch } from "meilisearch";
-import { MoleculeSearchResult } from "../Models/DTO/molecule-search-result.cls";
-import { MoleculeDetailModel } from "src/app_modules/chembl/Models/DTO/molecule-detail-model.interface";
+import { MoleculeSearchResult } from "../models/dto/molecule-search-result.cls";
+import { MoleculeDetailModel } from "src/app_modules/chembl/models/dto/molecule-detail-model.interface";
 import { LoggerPort } from 'src/logging/logger.port';
 import { LoggerContext } from "src/logging/logger.port";
 

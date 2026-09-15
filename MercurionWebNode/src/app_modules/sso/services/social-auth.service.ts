@@ -1,18 +1,18 @@
 import { Injectable } from "@nestjs/common";
-import { AuthIdentity } from "../Models/entities/auth-identity.entity";
-import { AuthProvider } from "../Models/enums/auth-provider.enum";
+import { AuthIdentity } from "../models/entities/auth-identity.entity";
+import { AuthProvider } from "../models/enums/auth-provider.enum";
 import { SocialProviderRegistry } from "./social-provider-registry";
 import { LoggerPort } from 'src/logging/logger.port';
 import { LoggerContext } from "src/logging/logger.port";
 import { uuidv7 } from "@kripod/uuidv7";
 import { createHmac, randomBytes, UUID } from "crypto";
 import { JwtToolsService } from 'src/app_modules/auth/services/jwt-tools.service';
-import { TokenType } from 'src/app_modules/auth/Models/enums/token-type.enum';
+import { TokenType } from 'src/app_modules/auth/models/enums/token-type.enum';
 import { ScopeService } from "src/app_modules/auth/services/scope.service";
 import { ConfigService } from "@nestjs/config";
 import { RedisService } from "src/app_modules/redis/services/redis.service";
 
-import { SercurityService } from "src/app_modules/auth/services/sercurity.service";
+import { SecurityService } from "src/app_modules/auth/services/security.service";
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 import { redisDurations, redisKeys } from 'src/app_modules/redis/contracts/redis-contracts'
 import { UnitOfWork, transactionManager } from 'src/persistence/transaction-context'
@@ -35,7 +35,7 @@ export class SocialAuthService {
         private readonly jwtTools: JwtToolsService,
         private readonly configService: ConfigService,
         private readonly redisService: RedisService,
-        private readonly securityService: SercurityService,
+        private readonly securityService: SecurityService,
         loggerFactory: LoggerPort
     ) {
         this.logger = loggerFactory.forContext(SocialAuthService.name)

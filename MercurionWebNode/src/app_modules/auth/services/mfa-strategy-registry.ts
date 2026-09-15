@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common'
 
-import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum'
+import { MfaStrategy } from 'src/app_modules/user/models/enums/mfa-strategy.enum'
 import type {
     MfaChallengeInput,
     MfaChallengeResult,
     MfaStrategyPort,
     MfaVerificationInput
-} from '../Models/interfaces/mfa-strategy.contract'
+} from '../models/interfaces/mfa-strategy.contract'
 import { MfaChallengeService } from './mfa-challenge.service'
 
 /**

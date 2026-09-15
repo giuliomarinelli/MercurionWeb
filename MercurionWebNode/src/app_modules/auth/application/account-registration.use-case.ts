@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { UserRegisterDTO } from 'src/app_modules/user/Models/DTO/user-register.cls.dto';
-import { ConfirmWithObsContDTO, ConfirmWithRecoveryCodeDTO } from 'src/Models/confirm-responses.dto';
+import { UserRegisterDTO } from 'src/app_modules/user/models/dto/user-register.cls.dto';
+import { ConfirmWithObsContDTO, ConfirmWithRecoveryCodeDTO } from 'src/models/confirm-responses.dto';
 import { AccountFlowKernel } from './account-flow-kernel';
 
 export interface RegisterAccountInput {

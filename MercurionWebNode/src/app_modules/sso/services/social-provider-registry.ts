@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
-import { AuthProvider } from "../Models/enums/auth-provider.enum";
-import { ISocialProviderClient } from "../Models/interfaces/i-social-provider-client.interface";
+import { AuthProvider } from "../models/enums/auth-provider.enum";
+import { ISocialProviderClient } from "../models/interfaces/i-social-provider-client.interface";
 import { GoogleProviderClient } from "../providers/google-provider-client";
 
 import { GitHubProviderClient } from "../providers/github-provider-client";

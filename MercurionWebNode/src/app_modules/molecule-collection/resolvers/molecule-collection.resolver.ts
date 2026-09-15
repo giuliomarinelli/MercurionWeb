@@ -2,15 +2,15 @@ import { Resolver, Query, Mutation, Args, ID, Info, Int, ResolveField, Parent } 
 import { AuthenticatedUserId } from 'src/metadata/metadata'; // tuo custom decorator userId
 import { UUID } from 'crypto';
 import { GraphQLResolveInfo } from 'graphql';
-import { MoleculeCollection } from '../Models/entities/molecule-collection.entity';
+import { MoleculeCollection } from '../models/entities/molecule-collection.entity';
 import { MoleculeCollectionService } from '../services/molecule-collection.service';
 import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
-import { PaginatedMoleculeCollection } from '../Models/DTO/paginated-molecule-collection';
+import { PaginatedMoleculeCollection } from '../models/dto/paginated-molecule-collection';
 import { InjectRepository } from '@nestjs/typeorm';
-import { MoleculeCollectionItemJoin } from '../Models/entities/molecule-collection-item-join.entity';
+import { MoleculeCollectionItemJoin } from '../models/entities/molecule-collection-item-join.entity';
 import { Repository } from 'typeorm';
 import { MoleculeCollectionItemJoinService } from '../services/molecule-collection-item-join.service';
-import { BindManyCollectionsToMoleculeDTO } from '../Models/DTO/bind-many-collections-to-molecule.dto';
+import { BindManyCollectionsToMoleculeDTO } from '../models/dto/bind-many-collections-to-molecule.dto';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 
 

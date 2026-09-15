@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common'
 import type { SessionDeviceInfo } from '@mercurion/rest-contracts'
 import type { UUID } from 'crypto'
-import { AuthProvider } from 'src/app_modules/sso/Models/enums/auth-provider.enum'
+import { AuthProvider } from 'src/app_modules/sso/models/enums/auth-provider.enum'
 import { TypeGuards } from 'src/utils/type-guards/type-guards'
-import type { ISession } from '../Models/interfaces/i-session.interface'
+import type { ISession } from '../models/interfaces/i-session.interface'
 
 interface SessionRecord extends Record<string, string> {
     sessionId: string

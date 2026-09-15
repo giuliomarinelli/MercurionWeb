@@ -1,6 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { CountryService } from '../services/country.service';
-import { PhonePrefixDTO } from '../Models/DTO/phone-prefix.dto';
+import { PhonePrefixDTO } from '../models/dto/phone-prefix.dto';
 
 @Controller('countries')
 export class CountryController {

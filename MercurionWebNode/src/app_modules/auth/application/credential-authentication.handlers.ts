@@ -8,20 +8,20 @@ import type {
 } from '@mercurion/rest-contracts'
 
 import { RedisService } from 'src/app_modules/redis/services/redis.service'
-import { AuthProvider } from 'src/app_modules/sso/Models/enums/auth-provider.enum'
+import { AuthProvider } from 'src/app_modules/sso/models/enums/auth-provider.enum'
 import { UserService } from 'src/app_modules/user/services/user.service'
-import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum'
+import { MfaStrategy } from 'src/app_modules/user/models/enums/mfa-strategy.enum'
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 import { GeneralUtils } from 'src/utils/general-utils/general-utils'
 import { Environment } from 'src/config/config.schema'
 import type { AppConfiguration } from 'src/config/config.types'
 import { redisDurations, redisKeys } from 'src/app_modules/redis/contracts/redis-contracts'
 
-import { CompareResult } from '../Models/enums/compare-result.enum'
+import { CompareResult } from '../models/enums/compare-result.enum'
 import { GeoIpService, GeoLocation } from '../services/geo-ip.service'
 import { MfaChallengeService } from '../services/mfa-challenge.service'
 import { PasswordEncoderService } from '../services/password-encoder.service'
-import { SercurityService } from '../services/sercurity.service'
+import { SecurityService } from '../services/security.service'
 import { SessionService } from '../services/session.service'
 import { AuthenticationSessionService } from './authentication-session.service'
 
@@ -83,7 +83,7 @@ export class CredentialLoginHandler {
         private readonly passwordEncoder: PasswordEncoderService,
         private readonly userService: UserService,
         private readonly sessionService: SessionService,
-        private readonly securityService: SercurityService,
+        private readonly securityService: SecurityService,
         private readonly mfaService: MfaChallengeService,
         private readonly geoIpService: GeoIpService,
         private readonly redisService: RedisService,

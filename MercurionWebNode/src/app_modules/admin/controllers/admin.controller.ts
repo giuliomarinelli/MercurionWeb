@@ -1,8 +1,8 @@
 import { Body, Controller, ForbiddenException, Get, Put, Query, Res, ValidationPipe } from '@nestjs/common';
-import { Scope } from 'src/app_modules/user/Models/enums/scope.enum';
+import { Scope } from 'src/app_modules/user/models/enums/scope.enum';
 import { HasScopes, Public } from 'src/metadata/metadata';
-import { ChangeLogLevelDTO } from '../Models/DTO/change-log-level.dto';
-import { ConfirmNewLogLevelsDTO } from 'src/Models/confirm-responses.dto';
+import { ChangeLogLevelDTO } from '../models/dto/change-log-level.dto';
+import { ConfirmNewLogLevelsDTO } from 'src/models/confirm-responses.dto';
 import { LoggerPort } from 'src/logging/logger.port';
 import { ResponseService } from 'src/services/response.service';
 import { FastifyReply } from 'fastify';

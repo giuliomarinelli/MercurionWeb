@@ -1,11 +1,11 @@
 import { Args, ID, Info, Int, Mutation, Query, Resolver } from "@nestjs/graphql";
-import { ChEMBLMoleculeItemEntity } from "../Models/entities/chembl-molecule-item.entity";
+import { ChEMBLMoleculeItemEntity } from "../models/entities/chembl-molecule-item.entity";
 import { ChEMBLMoleculeItemService } from "../services/chembl-molecule-item.service";
 import { AuthenticatedUserId, Public } from "src/metadata/metadata";
 import { UUID } from "crypto";
 import { GraphQLResolveInfo } from 'graphql';
 import { GraphQLUtils } from "src/utils/graphql-utils/graphql-utils";
-import { AddManyChEMBLItemDTO } from "../Models/DTO/add-many-chembl-items.dto";
+import { AddManyChEMBLItemDTO } from "../models/dto/add-many-chembl-items.dto";
 import { GeneralUtils } from "src/utils/general-utils/general-utils";
 
 

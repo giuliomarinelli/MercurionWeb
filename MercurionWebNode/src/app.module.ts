@@ -7,7 +7,7 @@ import { UserModule } from './app_modules/user/user.module';
 import { AuthModule } from './app_modules/auth/auth.module';
 import { APP_GUARD } from '@nestjs/core';
 import { GlobalGuard } from './app_modules/auth/guards/global.guard';
-import { SocketIoModule } from './app_modules/socket.io/socket.io.module';
+import { SocketIoModule } from './app_modules/socket-io/socket.io.module';
 import { NotificationModule } from './app_modules/notification/notification.module';
 import { MeilisearchModule } from './app_modules/meilisearch/meilisearch.module';
 import { DropboxObjectStoreModule } from './app_modules/dropbox-object-store/dropbox-object-store.module';

@@ -3,11 +3,11 @@ import { join } from 'path';
 import { LazyMetadataStorage } from '@nestjs/graphql/dist/schema-builder/storages/lazy-metadata.storage';
 import { TypeMetadataStorage } from '@nestjs/graphql/dist/schema-builder/storages/type-metadata.storage';
 import { buildSchema, graphql } from 'graphql';
-import { ChEMBLMoleculeItemDTO } from '../Models/DTO/chembl-molecule-item.dto';
-import { CustomMoleculeItemDTO } from '../Models/DTO/custom-molecule-item.dto';
+import { ChEMBLMoleculeItemDTO } from '../models/dto/chembl-molecule-item.dto';
+import { CustomMoleculeItemDTO } from '../models/dto/custom-molecule-item.dto';
 import {
   resolveMoleculeCollectionItemType
-} from '../Models/DTO/molecule-collection-item.union';
+} from '../models/dto/molecule-collection-item.union';
 
 describe('MoleculeCollectionItem GraphQL polymorphism', () => {
   const customItem: CustomMoleculeItemDTO = {

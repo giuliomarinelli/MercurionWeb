@@ -2,8 +2,8 @@ import { Args, ID, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { UUID } from 'crypto';
 import { AuthenticatedUserId } from '../../../metadata/metadata';
 import { GeneralUtils } from '../../../utils/general-utils/general-utils';
-import { SynthStepItemInput } from '../Models/DTO/synth-step-item.input';
-import { SynthStepItem } from '../Models/entities/synth-step-item.entity';
+import { SynthStepItemInput } from '../models/dto/synth-step-item.input';
+import { SynthStepItem } from '../models/entities/synth-step-item.entity';
 import { SynthStepItemService } from '../services/synth-step-item.service';
 
 @Resolver(() => SynthStepItem)

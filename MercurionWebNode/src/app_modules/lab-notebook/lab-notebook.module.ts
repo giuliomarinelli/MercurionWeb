@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { LabNotebookLink } from './Models/DTO/lab-notebook-link.entity';
-import { NotebookChapter } from './Models/entities/lab-notebook-chapter.entity';
-import { NotebookPage } from './Models/entities/lab-notebook-page.entity';
-import { NotebookSection } from './Models/entities/lab-notebook-section.entity';
-import { LabNotebook } from './Models/entities/lab-notebook.entity';
+import { LabNotebookLink } from './models/dto/lab-notebook-link.entity';
+import { NotebookChapter } from './models/entities/lab-notebook-chapter.entity';
+import { NotebookPage } from './models/entities/lab-notebook-page.entity';
+import { NotebookSection } from './models/entities/lab-notebook-section.entity';
+import { LabNotebook } from './models/entities/lab-notebook.entity';
 import { LabNotebookService } from './services/lab-notebook.service';
 import { NotebookPageService } from './services/notebook-page.service';
 import { NotebookChapterService } from './services/notebook-chapter.service';

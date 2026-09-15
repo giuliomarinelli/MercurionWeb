@@ -1,7 +1,7 @@
 import { BadRequestException } from "@nestjs/common";
 import { Pagination } from "nestjs-typeorm-paginate";
-import { MfaStrategy } from "src/app_modules/user/Models/enums/mfa-strategy.enum";
-import { FlatPagination } from "src/Models/flat-pagination.interface";
+import { MfaStrategy } from "src/app_modules/user/models/enums/mfa-strategy.enum";
+import { FlatPagination } from "src/models/flat-pagination.interface";
 
 export class GeneralUtils {
 

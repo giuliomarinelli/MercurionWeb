@@ -41,7 +41,7 @@ import {
     ConfirmDTO,
     ConfirmWithTokenPairAndInitialsDTO,
     ConfirmWithTotpMetaDTO
-} from 'src/Models/confirm-responses.dto'
+} from 'src/models/confirm-responses.dto'
 import { ResponseService } from 'src/services/response.service'
 import {
     CookieConfiguration,
@@ -64,10 +64,10 @@ import {
     RevokeSessionHandler
 } from '../application/session-authentication.handlers'
 import { CompleteSsoAuthenticationHandler } from '../application/sso-authentication.handler'
-import { EmailDTO } from '../Models/DTO/email.cls.dto'
-import { Login_FirstStepDTO } from '../Models/DTO/login-first-step.cls.dto'
-import { SignedSessionIdDTO } from '../Models/DTO/signed-session-id.dto'
-import { VerifyBodyDTO } from '../Models/DTO/verify-body.cls.dto.'
+import { EmailDTO } from '../models/dto/email.cls.dto'
+import { Login_FirstStepDTO } from '../models/dto/login-first-step.cls.dto'
+import { SignedSessionIdDTO } from '../models/dto/signed-session-id.dto'
+import { VerifyBodyDTO } from '../models/dto/verify-body.cls.dto.'
 import { TurnstileGuard } from '../guards/turnstile.guard'
 import { SecureCookieService } from '../services/secure-cookie.service'
 import { VerifyBodyPipe } from '../validation-pipes/verify-body.pipe'

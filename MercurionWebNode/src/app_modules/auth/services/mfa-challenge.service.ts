@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common'
 import type { UUID } from 'crypto'
 
-import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum'
-import type { TotpMetadata } from '../Models/interfaces/totp-wrapper.interface'
-import type { MfaPort } from '../Models/interfaces/mfa-strategy.contract'
+import { MfaStrategy } from 'src/app_modules/user/models/enums/mfa-strategy.enum'
+import type { TotpMetadata } from '../models/interfaces/totp-wrapper.interface'
+import type { MfaPort } from '../models/interfaces/mfa-strategy.contract'
 import { MfaApplicationService } from './mfa.service'
 
 /** Login challenge issuance and verification port. */

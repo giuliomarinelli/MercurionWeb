@@ -6,7 +6,7 @@ import {
 } from './session-sync.service';
 import { SessionSyncTransportService } from './session-sync.transport.service'
 import { BrowserStorageRegistry } from './browser-storage-registry'
-import { RealtimeSocketService } from './socket.IO/realtime-socket.service';
+import { RealtimeSocketService } from './socket-io/realtime-socket.service';
 import { socketEventRegistry } from '@mercurion/socket-contracts';
 
 describe('SessionSyncService', () => {

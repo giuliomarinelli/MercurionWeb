@@ -2,7 +2,7 @@ import { MoleculeService } from '../../meilisearch/services/molecule.service';
 import { Test, TestingModule } from '@nestjs/testing';
 import { MoleculeCollectionItemService } from './molecule-collection-item.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { MoleculeCollectionItemEntity } from '../Models/entities/molecule-collection-item.entity';
+import { MoleculeCollectionItemEntity } from '../models/entities/molecule-collection-item.entity';
 import { DataSource } from 'typeorm';
 import { LoggerPort } from 'src/logging/logger.port';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';

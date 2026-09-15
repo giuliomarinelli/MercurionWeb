@@ -3,9 +3,9 @@ import {
     type FingerprintData
 } from '@mercurion/rest-contracts'
 
-import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum'
+import { MfaStrategy } from 'src/app_modules/user/models/enums/mfa-strategy.enum'
 import { getApplicationError } from 'src/exception-handling/application-error'
-import { VerifyKind } from '../Models/enums/verify-kind.enum'
+import { VerifyKind } from '../models/enums/verify-kind.enum'
 import {
     CompleteMfaLoginHandler,
     StartMfaChallengeHandler

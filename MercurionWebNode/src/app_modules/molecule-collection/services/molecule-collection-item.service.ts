@@ -1,26 +1,26 @@
-import { MoleculeCollectionItemEntity } from 'src/app_modules/molecule-collection/Models/entities/molecule-collection-item.entity';
+import { MoleculeCollectionItemEntity } from 'src/app_modules/molecule-collection/models/entities/molecule-collection-item.entity';
 import { MoleculeService } from '../../meilisearch/services/molecule.service';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, EntityManager, Repository } from 'typeorm';
 import { UUID } from 'crypto';
-import { CreateMoleculeItemInput } from '../Models/DTO/create-molecule-item.input';
+import { CreateMoleculeItemInput } from '../models/dto/create-molecule-item.input';
 import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
 import { GraphQLFieldsMap, TypeOrmUtils } from 'src/utils/type-orm-utils/type-orm-utils';
 import { uuidv7 } from '@kripod/uuidv7';
 import { IPaginationOptions, paginate } from 'nestjs-typeorm-paginate';
-import { PaginatedMoleculeCollectionItem } from '../Models/DTO/paginated-molecule-collection-item.dto';
-import { MoleculeDetail } from 'src/app_modules/meilisearch/Models/DTO/molecule-detail.gql.dtos';
+import { PaginatedMoleculeCollectionItem } from '../models/dto/paginated-molecule-collection-item.dto';
+import { MoleculeDetail } from 'src/app_modules/meilisearch/models/dto/molecule-detail.gql.dtos';
 
-import { CustomMoleculeItemEntity } from '../Models/entities/custom-molecule-item.entity';
-import { ChEMBLMoleculeItemEntity } from '../Models/entities/chembl-molecule-item.entity';
-import { History } from 'src/app_modules/history/Models/entities/history.entity';
-import { HistoryItemEntity } from 'src/app_modules/history/Models/enums/history-item-entity.enum';
+import { CustomMoleculeItemEntity } from '../models/entities/custom-molecule-item.entity';
+import { ChEMBLMoleculeItemEntity } from '../models/entities/chembl-molecule-item.entity';
+import { History } from 'src/app_modules/history/models/entities/history.entity';
+import { HistoryItemEntity } from 'src/app_modules/history/models/enums/history-item-entity.enum';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 import { LoggerPort } from 'src/logging/logger.port';
 import { LoggerContext } from 'src/logging/logger.port';
 import { pruneNullCollectionJoins } from '../utils/prune-molecule-collection-joins.util';
-import { MoleculeCollectionItemDTO } from '../Models/DTO/molecule-collection-item.union';
+import { MoleculeCollectionItemDTO } from '../models/dto/molecule-collection-item.union';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 
 

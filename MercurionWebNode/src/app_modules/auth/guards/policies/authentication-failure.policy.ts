@@ -12,7 +12,7 @@ import {
 } from 'src/exception-handling/application-error'
 import { TypeGuards } from 'src/utils/type-guards/type-guards'
 
-import type { AppJwtPayload } from '../../Models/interfaces/app-jwt-payload.interface'
+import type { AppJwtPayload } from '../../models/interfaces/app-jwt-payload.interface'
 import { JwtToolsService } from '../../services/jwt-tools.service'
 import { SessionService } from '../../services/session.service'
 import { AuthenticationTransportPolicy } from './authentication-transport.policy'

@@ -5,7 +5,7 @@ import { catchError, firstValueFrom, OperatorFunction, throwError, timeout, Time
 import { LoggerPort } from 'src/logging/logger.port'
 import { LoggerContext } from 'src/logging/logger.port'
 import { Environment } from 'src/config/config.schema'
-import { RDKitAPI_NS } from '../Models/interfaces/rdkit-api-ns.interface'
+import { RDKitAPI_NS } from '../models/interfaces/rdkit-api-ns.interface'
 import {
     RDKIT_OPERATIONS,
     type RdkitAreSameStructureWire,
@@ -13,9 +13,9 @@ import {
     type RdkitGetMoleculePropertiesResult,
     type RdkitGetMoleculePropertiesWire
 } from '@mercurion/rest-contracts'
-import { RdkitGetMoleculePropertiesDTO } from '../Models/DTO/rdkit/rdkit-get-molecule-properties.cls.dto'
-import { RdkitToCanonicalSmilesDTO } from '../Models/DTO/rdkit/rdkit-canonical-smiles.dto'
-import { RdkitAreSameStructureDTO } from '../Models/DTO/rdkit/rdkit-are-same-structures.dto'
+import { RdkitGetMoleculePropertiesDTO } from '../models/dto/rdkit/rdkit-get-molecule-properties.cls.dto'
+import { RdkitToCanonicalSmilesDTO } from '../models/dto/rdkit/rdkit-canonical-smiles.dto'
+import { RdkitAreSameStructureDTO } from '../models/dto/rdkit/rdkit-are-same-structures.dto'
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 
 @Injectable()

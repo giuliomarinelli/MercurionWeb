@@ -8,9 +8,9 @@ import {
   type RdkitCanonicalSmilesWire,
   type RdkitGetMoleculePropertiesWire
 } from '@mercurion/rest-contracts'
-import { RdkitAreSameStructureDTO } from '../app_modules/mercurion-ai/Models/DTO/rdkit/rdkit-are-same-structures.dto'
-import { RdkitGetMoleculePropertiesDTO } from '../app_modules/mercurion-ai/Models/DTO/rdkit/rdkit-get-molecule-properties.cls.dto'
-import { RdkitToCanonicalSmilesDTO } from '../app_modules/mercurion-ai/Models/DTO/rdkit/rdkit-canonical-smiles.dto'
+import { RdkitAreSameStructureDTO } from '../app_modules/mercurion-ai/models/dto/rdkit/rdkit-are-same-structures.dto'
+import { RdkitGetMoleculePropertiesDTO } from '../app_modules/mercurion-ai/models/dto/rdkit/rdkit-get-molecule-properties.cls.dto'
+import { RdkitToCanonicalSmilesDTO } from '../app_modules/mercurion-ai/models/dto/rdkit/rdkit-canonical-smiles.dto'
 
 type RdkitRequestDto =
   | RdkitAreSameStructureDTO

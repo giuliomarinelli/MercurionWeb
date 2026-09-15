@@ -1,38 +1,38 @@
 import { ConfigService } from '@nestjs/config';
 import { HttpStatus, Injectable } from '@nestjs/common';
-import { UserRegisterDTO } from 'src/app_modules/user/Models/DTO/user-register.cls.dto';
+import { UserRegisterDTO } from 'src/app_modules/user/models/dto/user-register.cls.dto';
 import { UserService } from 'src/app_modules/user/services/user.service';
-import { ConfirmChangeDTO, ConfirmDTO, ConfirmWithObsContDTO, ConfirmWithPhoneMfaFeedback, ConfirmWithRecoveryCodeDTO } from 'src/Models/confirm-responses.dto';
+import { ConfirmChangeDTO, ConfirmDTO, ConfirmWithObsContDTO, ConfirmWithPhoneMfaFeedback, ConfirmWithRecoveryCodeDTO } from 'src/models/confirm-responses.dto';
 import { PasswordEncoderService } from '../services/password-encoder.service';
-import { SercurityService } from '../services/sercurity.service';
+import { SecurityService } from '../services/security.service';
 import { ResponseService } from 'src/services/response.service';
 import { JwtToolsService } from '../services/jwt-tools.service';
-import { TokenType } from '../Models/enums/token-type.enum';
+import { TokenType } from '../models/enums/token-type.enum';
 import { join } from 'path';
 import { MailSenderService } from 'src/app_modules/notification/services/mail-sender/mail-sender.service';
-import { UserCtaContext } from 'src/app_modules/notification/Models/contexts/user-cta.context';
+import { UserCtaContext } from 'src/app_modules/notification/models/contexts/user-cta.context';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
 
-import { User } from 'src/app_modules/user/Models/entities/user.entity';
+import { User } from 'src/app_modules/user/models/entities/user.entity';
 import { createHmac, UUID } from 'crypto';
-import { EmailTotpContext } from 'src/app_modules/notification/Models/contexts/email-totp.context';
+import { EmailTotpContext } from 'src/app_modules/notification/models/contexts/email-totp.context';
 import { SessionService } from '../services/session.service';
 import { SmsSenderService } from 'src/app_modules/notification/services/sms-sender/sms-sender.service';
-import { ChangePhoneDTO } from '../Models/DTO/change-phone.cls.dto';
-import { ContactChangeKind } from '../Models/enums/contact-change-kind.enum';
-import { PasswordContext } from '../Models/enums/password-context.enum';
-import { CompareResult } from '../Models/enums/compare-result.enum';
+import { ChangePhoneDTO } from '../models/dto/change-phone.cls.dto';
+import { ContactChangeKind } from '../models/enums/contact-change-kind.enum';
+import { PasswordContext } from '../models/enums/password-context.enum';
+import { CompareResult } from '../models/enums/compare-result.enum';
 import { SecurityAuditService } from 'src/app_modules/meilisearch/services/security-audit.service';
-import { UserContext } from 'src/app_modules/notification/Models/contexts/user.context';
+import { UserContext } from 'src/app_modules/notification/models/contexts/user.context';
 import { LoggerPort } from 'src/logging/logger.port';
 import { LoggerContext } from 'src/logging/logger.port';
 import { DataSource } from 'typeorm';
 import { ScopeService } from '../services/scope.service';
-import { MfaBackupCode } from 'src/app_modules/user/Models/entities/backup-code.entity';
-import { RecoverCredentialsDTO } from '../Models/DTO/recover-cretentials.cls.dto';
+import { MfaBackupCode } from 'src/app_modules/user/models/entities/backup-code.entity';
+import { RecoverCredentialsDTO } from '../models/dto/recover-credentials.cls.dto';
 import { TypeGuards } from 'src/utils/type-guards/type-guards';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
-import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum';
+import { MfaStrategy } from 'src/app_modules/user/models/enums/mfa-strategy.enum';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 import { redisDurations, redisKeys } from 'src/app_modules/redis/contracts/redis-contracts'
 import { UnitOfWork } from 'src/persistence/transaction-context'
@@ -77,7 +77,7 @@ export class AccountFlowKernel {
     constructor(
         private readonly userService: UserService,
         private readonly passwordEncoder: PasswordEncoderService,
-        private readonly securityService: SercurityService,
+        private readonly securityService: SecurityService,
         private readonly jwtTools: JwtToolsService,
         private readonly configService: ConfigService,
         private readonly mailService: MailSenderService,

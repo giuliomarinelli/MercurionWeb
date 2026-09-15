@@ -1,7 +1,7 @@
 import { HttpExceptionFilter } from './http-exception-filter';
 import { LoggerPort } from 'src/logging/logger.port';
 import { ArgumentsHost } from '@nestjs/common';
-import type { HttpErrorRes } from 'src/Models/error-res.dto';
+import type { HttpErrorRes } from 'src/models/error-res.dto';
 import {
   ApplicationErrorCode,
   applicationError

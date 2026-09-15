@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { HistoryService } from './history.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { History } from '../Models/entities/history.entity';
+import { History } from '../models/entities/history.entity';
 import { DataSource } from 'typeorm';
 import { MoleculeService } from 'src/app_modules/meilisearch/services/molecule.service';
 import { LoggerPort } from 'src/logging/logger.port';

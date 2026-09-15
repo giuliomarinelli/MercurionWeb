@@ -1,9 +1,9 @@
 import { ChEMBLMoleculeItemService } from './../../molecule-collection/services/chembl-molecule-item.service';
 import { Injectable, Inject } from '@nestjs/common';
 import { MeiliSearch } from 'meilisearch'; // o dove hai il client
-import { MoleculeSearchInput } from '../Models/DTO/molecule-search-input.cls';
-import { SearchParams } from '../Models/interfaces/search-params.interface';
-import { MoleculeSearchResult } from '../Models/DTO/molecule-search-result.cls';
+import { MoleculeSearchInput } from '../models/dto/molecule-search-input.cls';
+import { SearchParams } from '../models/interfaces/search-params.interface';
+import { MoleculeSearchResult } from '../models/dto/molecule-search-result.cls';
 import { UUID } from 'crypto';
 import { toInt } from 'src/utils/to-int.helper';
 

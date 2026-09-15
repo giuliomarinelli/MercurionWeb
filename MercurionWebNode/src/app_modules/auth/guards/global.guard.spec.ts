@@ -4,8 +4,8 @@ import type { UUID } from 'node:crypto'
 
 import { IS_PUBLIC_KEY, IS_SOFT_AUTHORIZATION } from 'src/metadata/metadata'
 
-import type { AppJwtPayload } from '../Models/interfaces/app-jwt-payload.interface'
-import { TokenType } from '../Models/enums/token-type.enum'
+import type { AppJwtPayload } from '../models/interfaces/app-jwt-payload.interface'
+import { TokenType } from '../models/enums/token-type.enum'
 import { GlobalGuard } from './global.guard'
 import type {
   AuthenticationAttemptState,

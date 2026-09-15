@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { ConfigService } from '@nestjs/config';
-import { TurnstileResponse } from '../Models/interfaces/turnstile-response.interface';
+import { TurnstileResponse } from '../models/interfaces/turnstile-response.interface';
 import { AxiosResponse } from 'axios';
 import { LoggerPort } from 'src/logging/logger.port';
 import { LoggerContext } from 'src/logging/logger.port';

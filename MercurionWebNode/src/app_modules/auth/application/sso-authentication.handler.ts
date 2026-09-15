@@ -2,15 +2,15 @@ import { Injectable } from '@nestjs/common'
 import { UUID } from 'crypto'
 import type { FingerprintData, SessionDeviceInfo } from '@mercurion/rest-contracts'
 
-import { AuthProvider } from 'src/app_modules/sso/Models/enums/auth-provider.enum'
+import { AuthProvider } from 'src/app_modules/sso/models/enums/auth-provider.enum'
 import { UserService } from 'src/app_modules/user/services/user.service'
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 import { TypeGuards } from 'src/utils/type-guards/type-guards'
 
-import { TokenType } from '../Models/enums/token-type.enum'
+import { TokenType } from '../models/enums/token-type.enum'
 import { GeoIpService } from '../services/geo-ip.service'
 import { JwtToolsService } from '../services/jwt-tools.service'
-import { SercurityService } from '../services/sercurity.service'
+import { SecurityService } from '../services/security.service'
 import { SessionService } from '../services/session.service'
 import { AuthenticationSessionService } from './authentication-session.service'
 
@@ -43,7 +43,7 @@ export class CompleteSsoAuthenticationHandler {
         private readonly sessionService: SessionService,
         private readonly userService: UserService,
         private readonly geoIpService: GeoIpService,
-        private readonly securityService: SercurityService,
+        private readonly securityService: SecurityService,
         private readonly authenticationSession: AuthenticationSessionService
     ) { }
 

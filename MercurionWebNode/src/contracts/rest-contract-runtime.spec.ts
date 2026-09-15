@@ -11,8 +11,8 @@ import {
   FeedbackKind,
   FeedbackSource,
   FeedbackStatus
-} from '../app_modules/feedback/Models/enums/feedback.enums'
-import { Feedback } from '../app_modules/feedback/Models/entities/feedback.entity'
+} from '../app_modules/feedback/models/enums/feedback.enums'
+import { Feedback } from '../app_modules/feedback/models/entities/feedback.entity'
 
 describe('REST contract runtime parity', () => {
   it('maps country rows to the exact public phone-prefix shape', async () => {

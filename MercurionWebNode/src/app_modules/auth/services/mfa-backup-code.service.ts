@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import type { UUID } from 'crypto'
 
-import type { BackupCodeStatusDTO } from 'src/app_modules/user/Models/DTO/backup-code-status.dto'
+import type { BackupCodeStatusDTO } from 'src/app_modules/user/models/dto/backup-code-status.dto'
 import { MfaApplicationService } from './mfa.service'
 
 /** Backup-code lifecycle port. Persistence remains behind MfaBackupCodeStore. */

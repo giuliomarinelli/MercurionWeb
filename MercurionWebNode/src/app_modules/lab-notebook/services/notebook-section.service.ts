@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { NotebookSection } from '../Models/entities/lab-notebook-section.entity';
-import { NotebookChapter } from '../Models/entities/lab-notebook-chapter.entity';
+import { NotebookSection } from '../models/entities/lab-notebook-section.entity';
+import { NotebookChapter } from '../models/entities/lab-notebook-chapter.entity';
 import { UUID } from 'crypto';
 import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
 import { GraphQLFieldsMap, TypeOrmUtils } from 'src/utils/type-orm-utils/type-orm-utils';
-import { UpdateSectionInput } from '../Models/DTO/update-section-input';
+import { UpdateSectionInput } from '../models/dto/update-section-input';
 
 @Injectable()
 export class NotebookSectionService {

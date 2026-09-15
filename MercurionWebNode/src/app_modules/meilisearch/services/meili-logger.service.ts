@@ -1,6 +1,6 @@
 import { Inject, Injectable, Logger, LogLevel, OnModuleInit } from '@nestjs/common';
 import { MeiliSearch } from 'meilisearch';
-import { LogEntry } from '../Models/DTO/log-entry.interface';
+import { LogEntry } from '../models/dto/log-entry.interface';
 import { uuidv7 } from '@kripod/uuidv7';
 import { ConfigService } from '@nestjs/config';
 import { Environment } from 'src/config/config.schema';

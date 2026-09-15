@@ -2,8 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { HelpService } from './help.service';
-import { Ticket } from '../Models/entities/ticket.entity';
-import { TicketMessage } from '../Models/entities/ticket-message.entity';
+import { Ticket } from '../models/entities/ticket.entity';
+import { TicketMessage } from '../models/entities/ticket-message.entity';
 import { UserService } from 'src/app_modules/user/services/user.service';
 import { MailSenderService } from 'src/app_modules/notification/services/mail-sender/mail-sender.service';
 

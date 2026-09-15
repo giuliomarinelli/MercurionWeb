@@ -3,10 +3,10 @@ import { NotebookPageService } from '../services/notebook-page.service';
 import { UUID } from 'crypto';
 import { AuthenticatedUserId } from 'src/metadata/metadata';
 import { GraphQLResolveInfo } from 'graphql';
-import { NotebookPage } from '../Models/entities/lab-notebook-page.entity';
+import { NotebookPage } from '../models/entities/lab-notebook-page.entity';
 import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
-import { CreatePageInput } from '../Models/DTO/create-page-input';
-import { UpdatePageInput } from '../Models/DTO/update-page-input';
+import { CreatePageInput } from '../models/dto/create-page-input';
+import { UpdatePageInput } from '../models/dto/update-page-input';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 
 

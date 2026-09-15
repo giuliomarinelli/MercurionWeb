@@ -6,9 +6,9 @@ import {
 } from '@nestjs/common';
 import { plainToInstance, ClassConstructor } from 'class-transformer';
 import { validate } from 'class-validator';
-import { BackupCodeDTO } from '../Models/DTO/backup-code.cls.dto';
-import { TotpBodyDTO } from '../Models/DTO/totp.cls.dto';
-import { VerifyKind } from '../Models/enums/verify-kind.enum';
+import { BackupCodeDTO } from '../models/dto/backup-code.cls.dto';
+import { TotpBodyDTO } from '../models/dto/totp.cls.dto';
+import { VerifyKind } from '../models/enums/verify-kind.enum';
 
 type VerifyBodyLike = {
   kind: VerifyKind

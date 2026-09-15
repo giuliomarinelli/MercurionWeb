@@ -2,9 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
 import { createRemoteJWKSet, jwtVerify } from 'jose';
-import { ISocialProviderClient } from '../Models/interfaces/i-social-provider-client.interface';
-import { ProviderProfile } from '../Models/interfaces/provider-profile.interface';
-import { AuthProvider } from '../Models/enums/auth-provider.enum';
+import { ISocialProviderClient } from '../models/interfaces/i-social-provider-client.interface';
+import { ProviderProfile } from '../models/interfaces/provider-profile.interface';
+import { AuthProvider } from '../models/enums/auth-provider.enum';
 import { LoggerPort } from 'src/logging/logger.port';
 import { LoggerContext } from 'src/logging/logger.port';
 

@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common'
-import { PasswordEncoder } from '../Models/interfaces/password-encoder.interface'
+import { PasswordEncoder } from '../models/interfaces/password-encoder.interface'
 import * as argon2 from 'argon2'
 
 import { createHmac } from 'crypto'
 import { ConfigService } from '@nestjs/config'
-import { CompareResult } from '../Models/enums/compare-result.enum'
+import { CompareResult } from '../models/enums/compare-result.enum'
 import { LoggerPort } from 'src/logging/logger.port'
 import { LoggerContext } from 'src/logging/logger.port'
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
