@@ -1,6 +1,7 @@
 import { ConfigService } from '@nestjs/config';
 import { GoogleProviderClient } from './google-provider-client';
 import { LoggerPort } from 'src/logging/logger.port';
+import { ExternalHttpPort } from 'src/infrastructure/external-http/external-http.port';
 
 describe('GoogleProviderClientService', () => {
   let service: GoogleProviderClient;
@@ -16,7 +17,7 @@ describe('GoogleProviderClientService', () => {
     const loggerFactory = {
       forContext: jest.fn().mockReturnValue({ warn: jest.fn() }),
     } as unknown as LoggerPort;
-    service = new GoogleProviderClient(configService, loggerFactory);
+    service = new GoogleProviderClient(configService, loggerFactory, {} as ExternalHttpPort);
   });
 
   it('should be defined', () => {

@@ -11,6 +11,7 @@ import { DiscordProviderClient } from './providers/discord-provider-client';
 import { AuthModule } from '../auth/auth.module';
 import { RedisModule } from '../redis/redis.module';
 import { ResponseModule } from 'src/services/response.module';
+import { ExternalHttpModule } from 'src/infrastructure/external-http/external-http.module'
 
 @Global()
 @Module({
@@ -18,6 +19,7 @@ import { ResponseModule } from 'src/services/response.module';
         AuthModule,
         RedisModule,
         ResponseModule,
+        ExternalHttpModule,
         TypeOrmModule.forFeature([
             AuthIdentity
         ]),

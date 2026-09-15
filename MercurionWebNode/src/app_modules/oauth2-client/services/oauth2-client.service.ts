@@ -1,6 +1,5 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import axios, { AxiosResponse } from 'axios';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
 import { OAuth2ProviderConfiguration } from 'src/config/config.types';
 import { IOAuth2ClientService } from '../models/interfaces/i-oauth2-client-service.interface';
@@ -11,6 +10,7 @@ import { LoggerPort } from 'src/logging/logger.port';
 import { LoggerContext } from 'src/logging/logger.port';
 import { redisDurations, redisKeys } from 'src/app_modules/redis/contracts/redis-contracts';
 import { errorMessage } from 'src/utils/errors/error-message'
+import { ExternalHttpPort, ExternalHttpResponse } from 'src/infrastructure/external-http/external-http.port'
 
 @Injectable()
 export class OAuth2ClientService implements IOAuth2ClientService {
@@ -21,6 +21,7 @@ export class OAuth2ClientService implements IOAuth2ClientService {
         private readonly redisService: RedisService,
         private readonly persistenceService: OAuth2PersistenceService,
         meiliLogger: LoggerPort,
+        private readonly http: ExternalHttpPort,
     ) {
         this.logger = meiliLogger.forContext(OAuth2ClientService.name)
     }
@@ -60,9 +61,9 @@ export class OAuth2ClientService implements IOAuth2ClientService {
         const config = this.getProviderConfig(provider)
 
         // Token Exchange
-        let tokenRes: AxiosResponse<Record<string, unknown>, Record<string, unknown>>
+        let tokenRes: ExternalHttpResponse<Record<string, unknown>>
         try {
-            tokenRes = await axios.post(
+            tokenRes = await this.http.post<Record<string, unknown>>(
                 config.tokenUrl,
                 new URLSearchParams({
                     code,
@@ -71,10 +72,10 @@ export class OAuth2ClientService implements IOAuth2ClientService {
                     client_secret: config.appSecret,
                     redirect_uri: config.redirectUri,
                 }),
-                { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+                { timeoutMs: 10_000, headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
             );
         } catch (err) {
-            this.logger.error(`Token exchange error: ${axios.isAxiosError(err) ? String(err.response?.data) : errorMessage(err)}`)
+            this.logger.error(`Token exchange error: ${errorMessage(err)}`)
             throw new UnauthorizedException('Failed to exchange code for tokens')
         }
 
@@ -107,7 +108,7 @@ export class OAuth2ClientService implements IOAuth2ClientService {
             const config = this.getProviderConfig(provider)
             let tokenRes;
             try {
-                tokenRes = await axios.post(
+                tokenRes = await this.http.post<Record<string, unknown>>(
                     config.tokenUrl,
                     new URLSearchParams({
                         grant_type: 'refresh_token',
@@ -115,10 +116,10 @@ export class OAuth2ClientService implements IOAuth2ClientService {
                         client_id: config.appKey,
                         client_secret: config.appSecret,
                     }),
-                    { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+                    { timeoutMs: 10_000, headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
                 );
             } catch (err) {
-                this.logger.error(`Token refresh error: ${axios.isAxiosError(err) ? String(err.response?.data) : errorMessage(err)}`)
+                this.logger.error(`Token refresh error: ${errorMessage(err)}`)
                 throw new UnauthorizedException('Failed to refresh access token')
             }
 
