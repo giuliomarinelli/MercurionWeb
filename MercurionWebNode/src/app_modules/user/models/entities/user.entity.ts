@@ -16,6 +16,14 @@ export class User {
     @Column({ type: 'varchar', unique: true, default: null })
     email!: string | null // nullo fino ad attivazione account con conferma email con link
 
+    /**
+     * Durable identity for an unverified native registration.  It closes the
+     * pre-activation race without making nullable `email` unique semantics do
+     * the work (email remains null until activation).
+     */
+    @Column({ type: 'varchar', length: 320, nullable: true })
+    registrationIdentity!: string | null
+
     @Column({ type: 'varchar', nullable: true })
     unconfirmedEmail!: string | null // nullo con email confermata, valorizzata con nuova email da confermare via OTP
 

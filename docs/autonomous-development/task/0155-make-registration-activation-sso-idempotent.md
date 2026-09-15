@@ -1,6 +1,6 @@
 # 0155 - Make registration, activation and SSO provisioning idempotent
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -87,24 +87,44 @@ Mark `BLOCKED` if current account-linking semantics permit multiple users for th
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-006`, based on `dd7595959ec68f1163a33af1c37bc9b776aee853`.
 ### Preflight
-_Not started._
+Clean branch and exact base SHA verified before edits. GitHub Actions run
+`35032501838` for the exact base SHA completed successfully with the
+classification, Ubuntu, Windows, and `Required gate` jobs green. No Angular,
+Nest, Tox21, Chrome, or runtime process was started because browser validation
+is not applicable.
 ### Preflight remediation
-_None._
+None.
 ### Summary
-Re-enabled after DATA-002 became `DONE`; this task was never attempted and has no feature branch.
+Added a durable normalized pending-registration identity with a database
+unique index, and made native registration persist through the shared Unit of
+Work. Added a durable activation receipt keyed by JWT `jti`, encrypted recovery
+code replay semantics, row-locked activation, and atomic initializer/receipt
+persistence with token revocation deferred until commit. SSO provisioning now
+relies on the provider+immutable-subject database uniqueness constraint and
+re-reads the committed winner after a unique-constraint race instead of
+exposing SQL errors. Existing DATA-005/0154 initializer is reused.
 ### Task-specific validation performed
-_Not started._
+- `npm run typecheck --workspace mercurion_web_node` — passed.
+- `npm test --workspace mercurion_web_node -- --runInBand src/app_modules/sso/services/social-auth.service.spec.ts src/app_modules/auth/application/account-flow-kernel.spec.ts src/persistence/transaction-context.spec.ts` — passed, 3 suites / 7 tests.
+- `npm run lint --workspace mercurion_web_node` — passed with `--max-warnings 0`.
+- `npm run build --workspace mercurion_web_node` — passed.
+- `git diff --check` — passed.
+- `npm run migration:check --workspace mercurion_web_node` — could not run because this
+  worker has no database environment variables (`SQL_DATABASE_*`); this is an
+  environment-only schema-observation limitation, not a source or migration
+  diagnostic. Clean-install and aggregate CI checks remain Actions-owned.
 ### Full pre-merge CI-parity validation
-_Not started._
+Not run locally by policy (`npm ci` and `npm run ci:check` are forbidden);
+exact feature-SHA Actions validation is coordinator-owned.
 ### Browser validation performed
-_Not started._
+Not applicable; backend-only recipe.
 ### Commits
-_None._
+Pending task commit.
 ### Merge / CI
-_Not started._
+Feature branch publication follows the task commit. No develop/master changes.
 ### Rollback
-_Not applicable._
+Not applicable.
 ### Blocker / human decision required
-_None._
+None.

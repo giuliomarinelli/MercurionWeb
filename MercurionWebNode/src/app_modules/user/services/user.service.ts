@@ -79,25 +79,40 @@ export class UserService implements IdentityReadPort {
         }
     }
 
+    public async createRegistration(
+        userProps: Partial<User>,
+        context: TransactionContext
+    ): Promise<User> {
+        const manager = transactionManager(context)
+        return manager.save(manager.create(User, userProps))
+    }
+
     public async activateAccount(
         id: UUID,
         accountRecoveryCodeHash: string,
         context: TransactionContext
-    ): Promise<string> {
+    ): Promise<{ email: string, alreadyActivated: boolean }> {
         const manager = transactionManager(context)
-        const user = await manager.findOne(User, { where: { id } })
+        const user = await manager.findOne(User, {
+            where: { id },
+            lock: { mode: 'pessimistic_write' }
+        })
         if (!user) {
             throw applicationError(ApplicationErrorCode.ACCOUNT_ACTIVATION_USER_NOT_FOUND)
+        }
+        if (user.isVerified && user.email) {
+            return { email: user.email, alreadyActivated: true }
         }
         const email = user.unconfirmedEmail!
         await manager.update(User, { id }, {
             email,
             unconfirmedEmail: null,
+            registrationIdentity: null,
             isVerified: true,
             updatedAt: Date.now(),
             accountRecoveryCodeHash
         })
-        return email
+        return { email, alreadyActivated: false }
     }
 
     public async createSsoUser(
