@@ -1,4 +1,4 @@
-import { BadRequestException, Controller, Delete, Get, Query } from '@nestjs/common';
+import { Controller, Delete, Get, Query, ParseIntPipe, DefaultValuePipe } from '@nestjs/common';
 import { UUID } from 'crypto';
 import { FlatPagination } from 'src/Models/flat-pagination.interface';
 import { AuthenticatedUserId } from 'src/metadata/metadata';
@@ -6,7 +6,6 @@ import { HistoryDTO } from '../Models/DTO/history.dto';
 import { HistoryService } from '../services/history.service';
 import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
 import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
-import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 
 @Controller('history')
 export class HistoryController {
@@ -23,22 +22,21 @@ export class HistoryController {
     @Get()
     async getHistory(
         @AuthenticatedUserId() userId: UUID,
-        @Query('page') page = 1,
-        @Query('limit') limit = 20
+        @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+        @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number
     ): Promise<FlatPagination<HistoryDTO>> {
-        const parsedPage = Number(page)
-        const parsedLimit = Number(limit)
-        if (!Number.isInteger(parsedPage) || parsedPage < 1) {
-            throw new BadRequestException('page must be a positive integer')
-        }
-        if (!Number.isInteger(parsedLimit) || parsedLimit < 1) {
-            throw new BadRequestException('limit must be a positive integer')
-        }
         try {
             const pagination = await this.historyService.getPaginatedHistory(userId, {
-                page: parsedPage, limit: parsedLimit
+                page, limit
             })
-            return GeneralUtils.paginationToFlatPaginationConverter(pagination)
+            return {
+                items: pagination.items,
+                itemCount: pagination.meta.itemCount,
+                itemsPerPage: pagination.meta.itemsPerPage,
+                totalItems: pagination.meta.totalItems ?? -1,
+                totalPages: pagination.meta.totalPages ?? -1,
+                currentPage: pagination.meta.currentPage
+            }
         } catch (e) {
             this.logger.warn('Error in history fetching', e as object)
             return ({

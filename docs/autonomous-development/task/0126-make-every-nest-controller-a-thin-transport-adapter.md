@@ -1,6 +1,6 @@
 # 0126 - Make every Nest controller a thin transport adapter
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -85,24 +85,54 @@ Mark `BLOCKED` if a controller contains a transport concern whose safe extractio
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/BE-012`, at supplied green `develop` base
+`38bae2ecedb84ad8c55345405a91fcac2703654a`.
 ### Preflight
-_Not started._
+- Confirmed the clean local branch was exactly `feature/BE-012` and
+  `git rev-parse HEAD` exactly matched `develop` at
+  `38bae2ecedb84ad8c55345405a91fcac2703654a`.
+- Confirmed the exact base SHA has successful GitHub Actions CI run
+  `34933836650`; the run completed successfully before implementation.
+- Confirmed no task-owned Angular, Nest, Tox21, Jest/Vitest watcher, or other
+  workspace-consuming process was active. Existing Chrome DevTools MCP
+  processes were external browser tooling and were not touched.
+- Confirmed hard prerequisites 0120, 0121 and 0122 are `DONE`.
+- Unchanged focused Nest architecture, typecheck and all 16 controller suites
+  passed before editing. Local `npm ci` and `npm run ci:check` were not run.
 ### Preflight remediation
-_None._
+None.
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0121, 0122, 0120. This task was never attempted and receives no feature branch.
+- Added a CI-enforced Nest controller boundary checker covering every
+  production controller. It rejects repository/DataSource dependencies,
+  persistence entity or repository imports, and undocumented raw request
+  access, with a negative fixture proving each violation is caught.
+- Added validated transport DTOs for feedback pagination/filter queries,
+  history pagination, and embedding similarity queries. Controllers now use
+  Nest validation pipes rather than manually parsing query strings.
+- Kept response mapping transport-specific and typed, including the existing
+  pagination contract defaults, while preserving route and response contracts.
+- Documented the authentication controller's one unavoidable raw request read
+  as a transport-only cookie boundary.
 ### Task-specific validation performed
-_Not started._
+- `npm run ci:nest:architecture` passed, including the new controller
+  boundary gate and negative test.
+- `npm run typecheck --workspace mercurion_web_node` passed.
+- `npm run lint --workspace mercurion_web_node` passed with zero
+  warnings/errors.
+- Focused refactored controller tests passed: 3 suites, 3 tests.
+- Full controller test baseline passed before editing: 16 suites, 33 tests.
+- `git diff --check` passed.
 ### Full pre-merge CI-parity validation
-_Not started._
+Not run locally because `npm ci` and `npm run ci:check` are reserved for
+GitHub Actions. Exact feature-SHA CI remains coordinator-owned.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+Pending task implementation commit on `feature/BE-012`.
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+Provisional `DONE` / `CI_PENDING`; exact feature-SHA CI and integration are
+coordinator-owned.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+None.
