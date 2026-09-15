@@ -133,10 +133,13 @@ for GitHub Actions on the pushed exact feature SHA.
 ### Browser validation performed
 Not applicable: backend-only recipe.
 ### Commits
-Pending task commit; will include the required Copilot co-author trailer.
+`bace783824d4afc6ff3bf29c41712871c16b7385` —
+`feat(DATA-005): centralize starter workspace initialization` (includes
+`Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>`).
 ### Merge / CI
-Feature branch publication is pending the task-specific commit. Coordinator
-must wait for exact feature-SHA Actions evidence before integration.
+Feature branch pushed after the task-specific commit. CI run
+`35031245493` is in progress for the exact pushed SHA; coordinator must wait
+for its `Required gate` and platform jobs before integration.
 ### Rollback
 No rollback required.
 ### Blocker / human decision required
