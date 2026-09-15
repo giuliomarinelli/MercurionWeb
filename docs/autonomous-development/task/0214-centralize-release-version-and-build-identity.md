@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Make one canonical release version plus one CI-generated build identity feed Angular, Nest, container labels and deployment metadata so every artifact from the same build reports the same version and commit.
@@ -93,27 +93,49 @@ Mark `BLOCKED` if multiple release streams intentionally require independent pro
 
 Keep release version and build identity distinct: the release version may repeat across rebuilds, while the commit revision identifies the exact source artifact.
 
+
 ## Execution notes
 
 ### Feature branch
+
 _Not started._
+
 ### Preflight
+
 _Not started._
+
 ### Preflight remediation
+
 _None._
+
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0197, 0208, 0213. This task was never attempted and receives no feature branch.
+
+_Not started._
+
 ### Task-specific validation performed
+
 _Not started._
+
 ### Full pre-merge CI-parity validation
+
 _Not started._
+
 ### Browser validation performed
-_Not started._
+
+_Not applicable / not started._
+
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+
+_Not recorded._
+
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+
+_Not started._
+
 ### Rollback
+
 _Not applicable._
+
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+
+_None._

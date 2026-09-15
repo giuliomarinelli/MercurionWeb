@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Propagate one safe correlation context across HTTP, GraphQL, Socket.IO and NATS, expose low-cardinality request/query/cache/latency/error metrics and make agreed critical-path performance budgets deterministic non-regressing CI gates.
@@ -96,27 +96,49 @@ Mark `BLOCKED` if a transport cannot carry correlation metadata without an unres
 
 Prefer a small context/telemetry port at boundaries over pervasive instrumentation SDK calls. Benchmark regression policy should compare robust summaries with explicit tolerance, not single-run wall-clock noise.
 
+
 ## Execution notes
 
 ### Feature branch
+
 _Not started._
+
 ### Preflight
+
 _Not started._
+
 ### Preflight remediation
+
 _None._
+
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0011, 0129, 0146, 0197, 0202. This task was never attempted and receives no feature branch.
+
+_Not started._
+
 ### Task-specific validation performed
+
 _Not started._
+
 ### Full pre-merge CI-parity validation
+
 _Not started._
+
 ### Browser validation performed
-_Not started._
+
+_Not applicable / not started._
+
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+
+_Not recorded._
+
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+
+_Not started._
+
 ### Rollback
+
 _Not applicable._
+
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+
+_None._
