@@ -131,7 +131,7 @@ validation before integration.
 ### Browser validation performed
 Not applicable; the recipe declares no browser validation.
 ### Commits
-Pending task-specific commit on `feature/DATA-014`.
+`c2752827` (`DATA-014 package email templates as Nest assets`).
 ### Merge / CI
 Pending coordinator feature-SHA CI and integration lifecycle.
 ### Rollback
