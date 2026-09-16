@@ -9,7 +9,6 @@ import { Ticket } from '../models/entities/ticket.entity'
 import { TicketMessage } from '../models/entities/ticket-message.entity'
 import { TicketStatus } from '../models/enums/ticket-status.enum'
 import { AuthorType } from '../models/enums/author-type.enum'
-import { MailSenderService } from 'src/app_modules/notification/services/mail-sender/mail-sender.service'
 import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils'
 import { GraphQLFieldsMap, TypeOrmUtils } from 'src/utils/type-orm-utils/type-orm-utils'
 import { TicketDetailDTO } from '../models/dto/ticket-detail.dto'
@@ -18,6 +17,8 @@ import { UserService } from 'src/app_modules/user/services/user.service'
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 import { runInTransaction } from 'src/persistence/transaction-context'
 import { formatHelpPublicId } from '../models/value-objects/help-public-id'
+import { NotificationOutboxService } from 'src/app_modules/notification/services/outbox/notification-outbox.service'
+import { HelpNotificationEventType } from 'src/app_modules/notification/models/enums/help-notification-event-type.enum'
 
 @Injectable()
 export class HelpService {
@@ -36,7 +37,7 @@ export class HelpService {
     @InjectRepository(TicketMessage)
     private readonly msgRepo: Repository<TicketMessage>,
     private readonly users: UserService,
-    private readonly mailer: MailSenderService,
+    private readonly outbox: NotificationOutboxService,
   ) { }
 
   // -----------------------------
@@ -73,6 +74,18 @@ export class HelpService {
       firstMsg = message
 
       await manager.save(message)
+      await this.outbox.append(manager, {
+        aggregateId: ticket.id,
+        eventType: HelpNotificationEventType.TicketOpenedSupport,
+        payload: { ticketId: ticket.id, messageId: message.id },
+        dedupeKey: `help:${ticket.id}:ticket-opened-support`
+      })
+      await this.outbox.append(manager, {
+        aggregateId: ticket.id,
+        eventType: HelpNotificationEventType.TicketOpenedUser,
+        payload: { ticketId: ticket.id, messageId: message.id },
+        dedupeKey: `help:${ticket.id}:ticket-opened-user`
+      })
     })
 
     if (!firstMsg) {
@@ -83,11 +96,7 @@ export class HelpService {
       await this.attachTicketUserFullNames([ticket])
     }
 
-    const ticketPublicId = formatHelpPublicId(ticket.publicId, 'Ticket')
     const presentedTicket = this.presentTicket(ticket)
-
-    await this.mailer.notifySupportNewTicket(ticket, firstMsg, ticketPublicId)
-    await this.mailer.confirmUserTicketOpened(ticket, firstMsg, ticketPublicId)
 
     if (!canViewUsers) {
       Object.entries(presentedTicket).forEach(([key]) => {
@@ -140,11 +149,13 @@ export class HelpService {
 
       await manager.save(TicketMessage, msg)
       await manager.save(Ticket, ticket)
+      await this.outbox.append(manager, {
+        aggregateId: ticket.id,
+        eventType: HelpNotificationEventType.UserMessageAdded,
+        payload: { ticketId: ticket.id, messageId: msg.id },
+        dedupeKey: `help:${ticket.id}:message:${msg.id}:user`
+      })
     })
-
-    const freshTicket = await this.ticketRepo.findOneByOrFail({ id: input.ticketId })
-    const ticketPublicId = formatHelpPublicId(freshTicket.publicId, 'Ticket')
-    await this.mailer.notifySupportNewMessage(freshTicket, msg!, ticketPublicId)
 
     return { ok: true }
   }
@@ -154,8 +165,6 @@ export class HelpService {
     contentDelta: JsonValue
     contentHtml: string
   }): Promise<{ ok: boolean }> {
-
-    let ticketUserId: UUID
 
     await runInTransaction(this.dataSource, async (_context, manager) => {
 
@@ -175,8 +184,6 @@ export class HelpService {
         throw applicationError(ApplicationErrorCode.TICKET_CLOSED_FOR_PUBLISHING)
       }
 
-      ticketUserId = ticket.userId
-
       const msg = this.makeSupportMessage({
         ticketId: ticket.id,
         userId: ticket.userId,
@@ -190,12 +197,14 @@ export class HelpService {
 
       await manager.save(TicketMessage, msg)
       await manager.save(Ticket, ticket)
+      await this.outbox.append(manager, {
+        aggregateId: ticket.id,
+        eventType: HelpNotificationEventType.SupportReplied,
+        payload: { ticketId: ticket.id, userId: ticket.userId },
+        dedupeKey: `help:${ticket.id}:message:${now}:support`
+      })
 
     })
-
-    const freshTicket = await this.ticketRepo.findOneByOrFail({ id: input.ticketId })
-    const ticketPublicId = formatHelpPublicId(freshTicket.publicId, 'Ticket')
-    await this.mailer.notifyUserSupportReplied(freshTicket, ticketUserId!, ticketPublicId)
 
     return { ok: true }
   }

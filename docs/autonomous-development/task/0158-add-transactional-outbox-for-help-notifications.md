@@ -1,6 +1,6 @@
 # 0158 - Add a transactional outbox for Help notifications
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -95,21 +95,37 @@ Keep domain events/versioning independent of the current Handlebars template fil
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-009`
 ### Preflight
-_Not started._
+Confirmed clean `feature/DATA-009` at supplied base SHA
+`2766086bfb7c9b7b4ffec98ab439cf39f0274a60`, matching `develop` and
+`origin/develop`. Exact-SHA GitHub Actions CI run `35040672868` was completed
+successfully. No Mercurion workspace-consuming Angular/Nest/Tox21/test-watcher
+process was active; the observed Node processes were Codex/Chrome tooling.
+Dependencies 0150, 0152 and 0157 were confirmed `DONE`.
 ### Preflight remediation
-_None._
+None. Local `npm ci` and `npm run ci:check` were not run.
 ### Summary
-Re-enabled after DATA-002 became `DONE`; this task was never attempted and has no feature branch.
+Added the versioned PostgreSQL notification outbox, migration, durable dedupe
+identity, bounded retry/dead-letter dispatcher with row-lock claiming and
+graceful module shutdown, and moved Help ticket/message notifications into the
+same Unit of Work transaction as their state changes. Mail delivery now carries
+the stable outbox event identity as a provider-visible message header.
 ### Task-specific validation performed
-_Not started._
+Passed:
+- `npm run typecheck --workspace mercurion_web_node`
+- `npm run lint --workspace mercurion_web_node -- --no-warn-ignored`
+- focused Help/mail/outbox Jest tests with `--runInBand`
+- `npm run ci:transactions`
+- `npm run build --workspace mercurion_web_node`
+- `git diff --check`
 ### Full pre-merge CI-parity validation
-_Not started._
+Owned by GitHub Actions on the pushed exact feature SHA; local aggregate
+`npm run ci:check` was intentionally not run per protocol.
 ### Browser validation performed
 _Not started._
 ### Commits
-_None._
+Pending commit below; required Copilot co-author trailer included.
 ### Merge / CI
 _Not started._
 ### Rollback
