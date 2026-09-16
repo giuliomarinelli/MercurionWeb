@@ -131,12 +131,16 @@ failed in both platform `Prerequisites` jobs because the artifact check was
 registered in `ci:static`, which runs before the Nest build and therefore had
 no compiled registry to inspect. The correction removes that premature static
 invocation; the check remains in `ci:build:nest`, immediately after the build.
-The corrected feature SHA requires a new exact-SHA Actions run. `npm ci` and
-`npm run ci:check` remain Actions-only.
+The corrected SHA `e1c243819fdc5820130ca615b850f3ad259234f0` passed exact-SHA
+Actions run
+[`35049585946`](https://github.com/giuliomarinelli/MercurionWeb/actions/runs/35049585946).
+`npm ci` and `npm run ci:check` remain Actions-only.
 ### Browser validation performed
 Not applicable; the recipe declares no browser validation.
 ### Commits
-`c2752827` (`DATA-014 package email templates as Nest assets`).
+`c2752827` (`DATA-014 package email templates as Nest assets`),
+`7298b40a` (`DATA-014 record execution notes`), and
+`e1c24381` (`DATA-014 run email artifact check after build`).
 ### Merge / CI
 Pending coordinator feature-SHA CI and integration lifecycle.
 ### Rollback
