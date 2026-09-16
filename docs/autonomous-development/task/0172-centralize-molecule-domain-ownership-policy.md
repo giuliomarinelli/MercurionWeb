@@ -119,8 +119,7 @@ through `http://localhost:8888/login`, then created and observed the collection
 `DATA023 Ownership Smoke` through the collections UI. Runtime sessions were
 stopped afterward and no task-owned runtime remained.
 ### Commits
-Pending commit; feature branch will be pushed only after this task-specific
-commit.
+- `5d44f96b395042feb76d6f24dabe6b7fd522ddf` — `feat(DATA-023): centralize molecule ownership policy`
 ### Merge / CI
 _Not started._
 ### Rollback
