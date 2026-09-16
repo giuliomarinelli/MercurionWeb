@@ -149,7 +149,8 @@ WebSocket, or browser route interception was registered.
 
 ### Commits
 
-Pending final feature commit.
+`2939271f` — system project, real same-origin journeys, CI registration, and
+focused execution evidence.
 
 ### Merge / CI
 
