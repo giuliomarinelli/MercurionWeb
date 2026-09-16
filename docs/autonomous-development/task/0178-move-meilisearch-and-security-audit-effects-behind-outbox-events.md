@@ -126,6 +126,24 @@ All task-owned runtime processes were stopped afterward.
 Pending commit for the complete DATA-029 implementation and recipe notes.
 ### Merge / CI
 Not started; coordinator owns feature-SHA CI, merge, and merge-SHA CI.
+
+### CI repair
+- Exact feature-SHA run `35099072628` failed on both Ubuntu and Windows in
+  `nest-orphans` because
+  `src/persistence/migrations/1789661000000-ExtendOutboxForSearchAndAudit.ts`
+  was not registered as a dynamic TypeORM CLI reachability entrypoint.
+- Added the migration to `MercurionWebNode/nest-reachability.config.json`
+  using the existing DATA-028 registration convention.
+- Focused validation:
+  `npm run nest:orphans:check` — passed.
+  `npm run ci:architecture` — passed.
+  `npm test --workspace mercurion_web_node -- --runInBand
+  src/app_modules/meilisearch/services/meili-logger.service.spec.ts
+  src/app_modules/meilisearch/services/security-audit.service.spec.ts
+  src/app_modules/notification/services/outbox/notification-outbox-dispatcher.service.spec.ts`
+  — 3 suites, 6 tests passed.
+  `git diff --check` — passed.
+
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
