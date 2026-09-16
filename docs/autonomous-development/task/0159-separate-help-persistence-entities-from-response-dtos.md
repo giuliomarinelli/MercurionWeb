@@ -121,11 +121,12 @@ Not applicable per recipe.
 (`feat(help): separate persistence entities from response DTOs`, with required
 Co-authored-by trailer); `fcbd4718f647f617c13a12aa13edff3d58154df4`
 (`docs(task): record DATA-010 validation`, with required Co-authored-by
-trailer).
+trailer); `cf3fdeb17edf69a3f76306c439f9337c81f94488` (`docs(task): finalize
+DATA-010 execution notes`, with required Co-authored-by trailer).
 ### Merge / CI
 Implementation SHA `f2c4c2c2ac0c701c19390db60ba8a7432b22e492` Actions run
 `35043798417` completed successfully. Final feature SHA
-`fcbd4718f647f617c13a12aa13edff3d58154df4` Actions run `35044274747`
+`cf3fdeb17edf69a3f76306c439f9337c81f94488` Actions run `35044401320`
 completed successfully via the repository's metadata validation path because
 the final delta was execution notes only. The implementation run had Ubuntu
 and Windows prerequisites,
