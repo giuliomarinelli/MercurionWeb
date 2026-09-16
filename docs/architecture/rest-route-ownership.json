@@ -577,12 +577,7 @@
         "MercurionWebNode/src/test.controller.spec.ts",
         "MercurionWebNode/src/test.controller.ts"
       ],
-      "references": [
-        {
-          "file": "MercurionWebNode/test/app.e2e-spec.ts",
-          "kind": "test"
-        }
-      ]
+      "references": []
     },
     {
       "method": "GET",
@@ -607,6 +602,10 @@
         {
           "file": "MercurionWebNode/src/health.controller.spec.ts",
           "kind": "server-source"
+        },
+        {
+          "file": "MercurionWebNode/test/e2e-application.fixture.ts",
+          "kind": "test"
         },
         {
           "file": "docker_sl/nginx_dev/nginx.conf",
