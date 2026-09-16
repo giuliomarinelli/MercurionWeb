@@ -8,7 +8,7 @@ import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils'
 import { GraphQLFieldsMap } from 'src/utils/type-orm-utils/type-orm-utils'
 import { Scope } from 'src/app_modules/user/models/enums/scope.enum'
 import { HelpService } from '../services/help.service'
-import { Ticket } from '../models/entities/ticket.entity'
+import { TicketResponse } from '../models/dto/help-response.dto'
 import { TicketDetailDTO } from '../models/dto/ticket-detail.dto'
 import { AuthenticatedUserId, HasScopes, Scopes, SoftAuthorization } from 'src/metadata/metadata'
 import { JsonValue } from 'src/models/json.types'
@@ -20,7 +20,7 @@ import { PaginatedTicketMessage } from '../models/dto/paginated-ticket-message.t
 import { Pagination } from 'nestjs-typeorm-paginate'
 
 
-@Resolver(() => Ticket)
+@Resolver(() => TicketResponse)
 export class HelpResolver {
 
     constructor(private readonly helpService: HelpService) { }
@@ -99,14 +99,14 @@ export class HelpResolver {
     // USER MUTATIONS (owner)
     // --------------------------------
 
-    @Mutation(() => Ticket)
+    @Mutation(() => TicketResponse)
     async createTicket(
         @AuthenticatedUserId() userId: UUID,
         @Args('subject') subject: string,
         @Args('contentDelta', { type: () => GraphQLJSON }) contentDelta: string | JsonValue,
         @Args('contentHtml') contentHtml: string,
         @Scopes() scopes: Scope[]
-    ): Promise<Ticket> {
+    ): Promise<TicketResponse> {
         const normalizedSubject = GeneralUtils.normalizeSpaces(subject)
         return this.helpService.createTicket({ userId, subject: normalizedSubject, contentDelta, contentHtml }, scopes.includes(Scope.ViewUsers))
     }
