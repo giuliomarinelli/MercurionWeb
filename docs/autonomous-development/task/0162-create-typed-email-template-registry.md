@@ -120,6 +120,10 @@ Passed:
 - Feature CI run `35047216321` initially failed only because the three
   superseded context model files were reported as Nest orphan files; those
   files were removed as part of this registry migration.
+- Final exact feature-SHA CI run `35047576651` for
+  `0fd34139b167747992881f38d5dbf48b9e53d240` passed on Windows and Ubuntu,
+  including Required gate, static checks, builds, unit/E2E suites, containers
+  and critical browser journeys.
 
 Registry tests assert every production template key has a valid fixture,
 resolvable asset and subject; negative tests prove invalid context is rejected
@@ -130,8 +134,8 @@ Reserved for the exact pushed feature SHA GitHub Actions workflow; no local
 ### Browser validation performed
 Not applicable.
 ### Commits
-`c1c67b76` (initial implementation; feature CI run `35047216321` diagnosed)
-and pending CI repair commit.
+`c1c67b76` (initial implementation), `0fd34139` (CI repair and orphan context
+cleanup). Final feature CI passed at `0fd34139b167747992881f38d5dbf48b9e53d240`.
 ### Merge / CI
 _Not started._
 ### Rollback
