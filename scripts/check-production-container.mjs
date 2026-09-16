@@ -24,6 +24,18 @@ const run = (command, commandArgs, options = {}) => {
   return result.stdout.trim();
 };
 
+const runWithFallback = (label, commands) => {
+  const failures = [];
+  for (const [index, [command, commandArgs, options]] of commands.entries()) {
+    try {
+      return { output: run(command, commandArgs, options), fallback: index > 0 };
+    } catch (error) {
+      failures.push(`${command} ${commandArgs.join(' ')}: ${error.message}`);
+    }
+  }
+  throw new Error(`${label} is unavailable; no supported fallback succeeded:\n${failures.join('\n')}`);
+};
+
 const inspect = JSON.parse(run('docker', ['image', 'inspect', image, '--format', '{{json .}}']));
 const digest = inspect.Id;
 if (!/^sha256:[0-9a-f]{64}$/.test(digest)) {
@@ -95,16 +107,57 @@ const runtimeInventory = JSON.parse(run('docker', [
 await mkdir(reportDirectory, { recursive: true });
 const sbomPath = resolve(reportDirectory, 'nest-production.sbom.json');
 const vulnerabilityPath = resolve(reportDirectory, 'nest-production.vulnerability.sarif');
-const sbomOutput = run('docker', ['scout', 'sbom', `local://${image}`]);
-await writeFile(sbomPath, `${sbomOutput}\n`);
-const sbom = JSON.parse(await readFile(sbomPath, 'utf8'));
-const sbomDigest = sbom.source?.image?.digest;
-if (sbomDigest !== digest) {
-  throw new Error(`SBOM digest ${sbomDigest} does not match image digest ${digest}`);
-}
-run('docker', [
-  'scout', 'cves', '--format', 'sarif', '--output', vulnerabilityPath, `local://${image}`,
+const sbomResult = runWithFallback('image SBOM generation', [
+ ['docker', ['scout', 'sbom', `local://${image}`]],
+ ['docker', [
+   'run', '--rm', '--pull=missing',
+   '-v', '/var/run/docker.sock:/var/run/docker.sock',
+   'anchore/syft:v1.18.1', `docker:${image}`, '-o', 'cyclonedx-json',
+ ]],
 ]);
+const sbom = JSON.parse(sbomResult.output);
+if (!sbomResult.fallback) {
+ if (sbom.source?.image?.digest !== digest) {
+   throw new Error(`SBOM digest ${sbom.source?.image?.digest} does not match image digest ${digest}`);
+ }
+} else {
+ sbom.metadata ??= {};
+ sbom.metadata.properties ??= [];
+ sbom.metadata.properties = sbom.metadata.properties.filter(
+   property => property.name !== 'mercurion:image-digest',
+ );
+ sbom.metadata.properties.push({ name: 'mercurion:image-digest', value: digest });
+}
+await writeFile(sbomPath, `${JSON.stringify(sbom, null, 2)}\n`);
+const recordedSbomDigest = sbom.source?.image?.digest
+ ?? sbom.metadata?.properties?.find(property => property.name === 'mercurion:image-digest')?.value;
+if (recordedSbomDigest !== digest) {
+ throw new Error(`SBOM digest ${recordedSbomDigest} does not match image digest ${digest}`);
+}
+
+const vulnerabilityResult = runWithFallback('image vulnerability scanning', [
+ ['docker', [
+   'scout', 'cves', '--format', 'sarif', '--output', vulnerabilityPath, `local://${image}`,
+ ]],
+ ['docker', [
+   'run', '--rm', '--pull=missing',
+   '-v', '/var/run/docker.sock:/var/run/docker.sock',
+   '-v', `${dirname(vulnerabilityPath)}:/output`,
+   'aquasec/trivy:0.58.2',
+   'image', '--image-src', 'docker', '--format', 'sarif',
+   '--output', `/output/${vulnerabilityPath.split(/[\\/]/).pop()}`, image,
+ ]],
+]);
+const vulnerability = JSON.parse(await readFile(vulnerabilityPath, 'utf8'));
+vulnerability.properties ??= {};
+vulnerability.properties.imageDigest = digest;
+vulnerability.properties.scanner = vulnerabilityResult.fallback
+ ? 'trivy-fallback'
+ : (vulnerability.properties.scanner ?? 'docker-scout');
+await writeFile(vulnerabilityPath, `${JSON.stringify(vulnerability, null, 2)}\n`);
+if (vulnerability.properties.imageDigest !== digest) {
+ throw new Error(`Vulnerability report digest ${vulnerability.properties.imageDigest} does not match image digest ${digest}`);
+}
 
 const inventory = {
   image,
@@ -114,6 +167,8 @@ const inventory = {
   runtimeInventory,
   sbom: sbomPath,
   vulnerabilityScan: vulnerabilityPath,
+  sbomScanner: sbomResult.fallback ? 'syft-fallback' : 'docker-scout',
+  vulnerabilityScanner: vulnerabilityResult.fallback ? 'trivy-fallback' : 'docker-scout',
 };
 await writeFile(resolve(reportDirectory, 'nest-production.inventory.json'), `${JSON.stringify(inventory, null, 2)}\n`);
 console.log(JSON.stringify(inventory));

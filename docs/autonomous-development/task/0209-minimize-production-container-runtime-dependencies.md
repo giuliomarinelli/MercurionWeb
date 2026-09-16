@@ -143,6 +143,12 @@ scripts/check-production-container.mjs`, `npm run ci:containers`, and
 `git diff --check` passed. The SBOM command now uses Docker Scout's default
 JSON stdout and writes it to `nest-production.sbom.json`; no local
 `npm ci` or `npm run ci:check` was run.
+Third CI repair: the production-container checker keeps Docker Scout as the
+primary scanner but now falls back explicitly to pinned containerized
+`anchore/syft:v1.18.1` and `aquasec/trivy:0.58.2` when the runner has no
+Docker Scout plugin. Both tools inspect the local image through the Docker
+socket; the fallback SBOM and SARIF report are stamped with the inspected
+image digest and fail closed if neither primary nor fallback is available.
 ### Full pre-merge CI-parity validation
 Complete clean-install/aggregate validation remains owned by GitHub Actions on
 the exact pushed feature SHA; local `npm ci` and `npm run ci:check` were not
@@ -154,6 +160,9 @@ _Not started._
 `Pending CI repair commit` — refresh REST route ownership references and make
 Docker Scout SBOM generation compatible with the runner CLI by using its JSON
 default instead of unsupported `sbom --format` and `--output` flags.
+`Pending third CI repair commit` — preserve Docker Scout as primary and add
+explicit Syft/Trivy container fallbacks with digest-bound SBOM/SARIF evidence
+for runners without the Scout plugin.
 ### Merge / CI
 Feature CI run `35064159032` failed before merge because the generated REST
 route ownership inventory was stale for `GET /og/mercurion-og.png`, and the
@@ -162,6 +171,8 @@ removed `--format`, but feature CI run `35064784534` showed that this runner
 rejects `--output` as well. The second repair captures Scout's default JSON
 stdout into the SBOM report while preserving exact-image digest verification
 and SARIF scanning; rerun exact-SHA feature CI after the repair push.
+The third repair addresses feature CI run `35065457627`, which failed only in
+`Container nest-production` because the runner had no `docker scout` plugin.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
