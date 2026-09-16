@@ -117,11 +117,23 @@ Mercurius 400 status and canonical `GRAPHQL_VALIDATION_FAILED` code.
 - `npm run build --workspace mercurion_web_node` - passed.
 ### Full pre-merge CI-parity validation
 Reserved for exact feature-SHA GitHub Actions validation.
+### CI repair validation
+- Exact feature CI run `35070022011` reported stale REST route ownership for
+  `GET /api/test` and `GET /health`.
+- `node scripts/check-rest-route-ownership.mjs --write` regenerated the
+  reviewed inventory entries: the E2E fixture no longer references
+  `/api/test`, and the fixture now references `/health`.
+- `node scripts/check-rest-route-ownership.mjs` passed: 72 routes classified.
+- JSON parse check for `docs/architecture/rest-route-ownership.json` passed.
+- `git diff --check` passed.
 ### Browser validation performed
 Not applicable; this is server-side E2E coverage.
 ### Commits
 - `6295fbf4c3701c7a564b3c45c66d2d7b60440ac2` - expand deterministic Nest E2E
   fixture, transport coverage, and canonical GraphQL validation mapping.
+- `b6cbb97b` - refresh REST route ownership inventory for the QA-010 E2E
+  routes.
+- Pending execution-note commit.
 ### Merge / CI
 _Not started._
 ### Rollback
