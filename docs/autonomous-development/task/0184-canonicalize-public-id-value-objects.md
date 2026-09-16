@@ -1,6 +1,6 @@
 # 0184 - Canonicalize public-ID value objects
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -87,23 +87,70 @@ Prefer branded/opaque TypeScript types so a TicketPublicId cannot be passed wher
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-035` from base `00ef329b238e2e3dd52dbf7ff916411fde357ca6`.
 ### Preflight
-_Not started._
+- Confirmed clean `feature/DATA-035` at the supplied base SHA before edits.
+- Confirmed the exact base-SHA Actions run `35056527445`
+  (`https://github.com/giuliomarinelli/MercurionWeb/actions/runs/35056527445`)
+  completed successfully for `00ef329b238e2e3dd52dbf7ff916411fde357ca6`.
+  The classifier and autonomous metadata jobs passed and the stable
+  `Required gate` passed; the adaptive classifier correctly skipped unrelated
+  platform jobs for this task/report-only base.
+- Confirmed no task-owned Angular, Nest, Tox21, Jest, or workspace watcher
+  process was active. No runtime was started because the supplied execution
+  instruction classified this recipe as not requiring browser evidence.
+- Confirmed local `commit.gpgSign=false`, `git diff --check` passed, and no
+  `npm ci` or `npm run ci:check` was run.
+- Focused baseline policy check `npm run ci:public-id-validation` passed.
 ### Preflight remediation
-_None._
+None.
 ### Summary
-Re-enabled after DATA-002 became `DONE`; this task was never attempted and has no feature branch.
+Inventory found two human-facing generated Help ID families: Ticket
+(`tickets.public_id`, `MTCK-` plus minimum nine-digit padding, unique globally,
+GraphQL Help response and notification email) and Message
+(`ticket_messages.public_id`, `MTCKM-` plus minimum nine-digit padding, unique
+globally, GraphQL Help response). Other transport identifiers are UUIDv7
+Mercurion public IDs governed by the existing shared validator; opaque provider
+IDs and internal primary keys remain out of scope.
+
+Replaced the shared Help formatter's unbranded string result with typed,
+family-specific TicketPublicId and MessagePublicId codecs. The codecs provide
+canonical formatting, strict family parsing, source extraction, round-trip
+checks, invalid-input errors, and type-level separation. Help response DTOs
+now expose the family-specific brands. Added positive database constraints for
+both persisted BIGSERIAL sources in a new migration without changing an
+already-applied migration.
 ### Task-specific validation performed
-_Not started._
+- `npm test --workspace mercurion_web_node -- --runInBand
+  src/app_modules/help/models/value-objects/help-public-id.spec.ts
+  src/app_modules/help/models/dto/help-presenters.spec.ts` — passed, 2 suites
+  and 24 tests.
+- `npm test --workspace mercurion_web_node -- --runInBand
+  src/app_modules/help/services/help.service.spec.ts
+  src/app_modules/help/resolvers/help.resolver.spec.ts` — passed, 1 suite and
+  1 test (the repository currently has no Help resolver spec file).
+- `npm run typecheck --workspace mercurion_web_node` — passed.
+- `npm run lint --workspace mercurion_web_node -- --no-warn-ignored` — passed.
+- `npm run build --workspace mercurion_web_node` — passed.
+- `npm run ci:public-id-validation` — passed.
+- `git diff --check` — passed.
+- `npm run migration:check --workspace mercurion_web_node` — could not run
+  because this worker environment has no SQL configuration; it failed before
+  database access with the repository's `SQL_DATABASE_* is required`
+  configuration diagnostic. Migration source was reviewed and the exact
+  feature-SHA CI database job remains the authoritative migration check.
 ### Full pre-merge CI-parity validation
-_Not started._
+Pending exact pushed feature-SHA Actions validation; complete clean-install and
+aggregate CI parity remains Actions-owned. Local `npm ci` and `npm run ci:check`
+were not run.
 ### Browser validation performed
-_Not started._
+Not applicable under the supplied worker instruction; no runtime or browser
+process was started.
 ### Commits
-_None._
+Pending commit.
 ### Merge / CI
-_Not started._
+Coordinator owns feature-SHA CI observation and integration; this worker does
+not merge `develop`.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required

@@ -1,6 +1,9 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql'
 import { UUID } from 'crypto'
-import { HelpPublicId } from '../value-objects/help-public-id'
+import {
+  MessagePublicId,
+  TicketPublicId,
+} from '../value-objects/help-public-id'
 import { AuthorType } from '../enums/author-type.enum'
 import { TicketStatus } from '../enums/ticket-status.enum'
 
@@ -15,7 +18,7 @@ export class TicketMessageResponse {
   readonly id!: UUID
 
   @Field()
-  readonly publicId!: HelpPublicId
+  readonly publicId!: MessagePublicId
 
   @Field(() => ID)
   readonly ticketId!: UUID
@@ -51,7 +54,7 @@ export class TicketResponse {
   readonly id!: UUID
 
   @Field()
-  readonly publicId!: HelpPublicId
+  readonly publicId!: TicketPublicId
 
   @Field(() => ID, { nullable: true })
   readonly userId!: UUID | null | undefined
