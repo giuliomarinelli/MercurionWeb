@@ -1,22 +1,23 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConfigService } from '@nestjs/config';
 import { Logger } from '@nestjs/common';
 import { MeiliLoggerService } from './meili-logger.service';
+import { NotificationOutboxService } from 'src/app_modules/notification/services/outbox/notification-outbox.service';
+import { DataSource } from 'typeorm';
 
 describe('MeiliLoggerService', () => {
   let service: MeiliLoggerService;
-  let addDocuments: jest.Mock;
+  let append: jest.Mock;
 
   beforeEach(async () => {
-    addDocuments = jest.fn().mockResolvedValue(undefined);
+    append = jest.fn().mockResolvedValue(undefined);
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         MeiliLoggerService,
+        { provide: NotificationOutboxService, useValue: { append } },
         {
-          provide: 'MEILISEARCH_CLIENT',
-          useValue: { index: jest.fn().mockReturnValue({ addDocuments }) },
+          provide: DataSource,
+          useValue: { transaction: jest.fn(async (work: (manager: object) => Promise<void>) => work({})) },
         },
-        { provide: ConfigService, useValue: { getOrThrow: jest.fn(() => 'test') } },
       ],
     }).compile();
 
@@ -34,7 +35,7 @@ describe('MeiliLoggerService', () => {
       user: { email: 'user@example.test' },
     });
 
-    const entry = addDocuments.mock.calls[0][0][0];
+    const entry = append.mock.calls[0][1].payload.document;
     expect(entry.message).not.toContain('secret-password');
     expect(entry.message).not.toContain('secret-token');
     expect(entry.message).not.toContain('user@example.test');
@@ -42,15 +43,14 @@ describe('MeiliLoggerService', () => {
   });
 
   it('contains sink failures without recursively invoking the adapter', async () => {
-    addDocuments.mockRejectedValueOnce(new Error('sink unavailable'));
-    const baseError = jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
+    append.mockRejectedValueOnce(new Error('sink unavailable'));
+    const baseError = jest.spyOn(Logger, 'error').mockImplementation(() => undefined);
 
     expect(() => service.warn('application warning')).not.toThrow();
     await new Promise((resolve) => setImmediate(resolve));
 
     expect(baseError).toHaveBeenCalledWith(
-      '[LOGGER] Failed to send log to Meili:',
-      'sink unavailable',
+      '[LOGGER_OUTBOX_FAILED] sink unavailable',
     );
     baseError.mockRestore();
   });

@@ -1,11 +1,13 @@
-import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common'
+import { Inject, Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common'
 import { DataSource, Repository } from 'typeorm'
 import { InjectRepository } from '@nestjs/typeorm'
+import { MeiliSearch } from 'meilisearch'
 import { randomUUID } from 'node:crypto'
 import { UUID } from 'node:crypto'
 import { NotificationOutboxEvent } from '../../models/entities/notification-outbox-event.entity'
 import { OutboxEventStatus } from '../../models/enums/outbox-event-status.enum'
 import { HelpNotificationEventType } from '../../models/enums/help-notification-event-type.enum'
+import { OutboxEventType } from '../../models/enums/outbox-event-type.enum'
 import { MailSenderService } from '../mail-sender/mail-sender.service'
 import { Ticket } from '../../../help/models/entities/ticket.entity'
 import { TicketMessage } from '../../../help/models/entities/ticket-message.entity'
@@ -30,6 +32,8 @@ export class NotificationOutboxDispatcherService implements OnModuleInit, OnModu
     @InjectRepository(NotificationOutboxEvent)
     private readonly repo: Repository<NotificationOutboxEvent>,
     private readonly mailer: MailSenderService,
+    @Inject('MEILISEARCH_CLIENT')
+    private readonly meiliClient: MeiliSearch,
     loggerFactory: LoggerPort,
   ) {
     this.logger = loggerFactory.forContext(NotificationOutboxDispatcherService.name)
@@ -107,6 +111,24 @@ export class NotificationOutboxDispatcherService implements OnModuleInit, OnModu
 
   private async deliver(event: NotificationOutboxEvent): Promise<void> {
     const payload = event.payload
+    switch (event.eventType as OutboxEventType) {
+      case OutboxEventType.MeilisearchUpsert:
+        await this.meiliClient.index(String(payload.indexName)).addDocuments(
+          [payload.document as Record<string, unknown>],
+          { primaryKey: typeof payload.primaryKey === 'string' ? payload.primaryKey : 'id' }
+        )
+        return
+      case OutboxEventType.MeilisearchDelete:
+        await this.meiliClient.index(String(payload.indexName)).deleteDocument(String(payload.documentId))
+        return
+      case OutboxEventType.SecurityAuditRecorded:
+      case OutboxEventType.LogRecorded:
+        await this.meiliClient.index(String(payload.indexName)).addDocuments(
+          [payload.document as Record<string, unknown>],
+          { primaryKey: 'id' }
+        )
+        return
+    }
     const ticket = await this.dataSource.getRepository(Ticket).findOneByOrFail({ id: payload.ticketId as UUID })
     const messageRepository: Repository<TicketMessage> = this.dataSource.getRepository(TicketMessage)
     const message = payload.messageId

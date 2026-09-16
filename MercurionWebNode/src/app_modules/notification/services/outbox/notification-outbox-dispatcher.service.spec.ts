@@ -15,6 +15,7 @@ describe('NotificationOutboxDispatcherService', () => {
     update: jest.fn()
   } as unknown as Repository<NotificationOutboxEvent>
   const mailer = {} as MailSenderService
+  const meiliClient = {} as never
 
   beforeEach(() => jest.clearAllMocks())
   afterEach(() => jest.restoreAllMocks())
@@ -29,6 +30,7 @@ describe('NotificationOutboxDispatcherService', () => {
       dataSource,
       repository,
       mailer,
+      meiliClient,
       loggerFactory
     )
 
@@ -51,6 +53,7 @@ describe('NotificationOutboxDispatcherService', () => {
       dataSource,
       repository,
       mailer,
+      meiliClient,
       loggerFactory
     )
     const failure = new Error('database unavailable')

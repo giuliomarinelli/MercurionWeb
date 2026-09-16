@@ -46,4 +46,13 @@ export class NotificationOutboxEvent {
 
   @Column({ type: 'varchar', length: 255, name: 'dedupe_key', unique: true })
   dedupeKey!: string
+
+  @Column({ type: 'uuid', name: 'correlation_id', nullable: true })
+  correlationId!: UUID | null
+
+  @Column({ type: 'uuid', name: 'causation_id', nullable: true })
+  causationId!: UUID | null
+
+  @Column({ type: 'bigint', name: 'occurred_at' })
+  occurredAt!: string
 }

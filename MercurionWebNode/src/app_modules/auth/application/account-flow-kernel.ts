@@ -909,14 +909,15 @@ export class AccountFlowKernel {
             await manager.save(user)
 
             await manager.delete(MfaBackupCode, { userId: matchedUserId })
+            await this.securityAuditService.accountRecovery(
+                matchedUserId,
+                'ACCOUNT_RECOVERY_TOKEN_GENERATED',
+                context
+            )
             afterTransactionCommit(context, async () => {
                 await this.redisService.del(this.getRecoveryFailKey(code))
                 await this.redisService.del(this.getRecoveryLockKey(code))
                 await this.sessionService.destroyAllSessionsAndRevokeAllTokensByUserId(matchedUserId)
-                await this.securityAuditService.accountRecovery(
-                    matchedUserId,
-                    'ACCOUNT_RECOVERY_TOKEN_GENERATED'
-                )
             })
 
             return matchedUserId
