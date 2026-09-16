@@ -1,6 +1,6 @@
 # 0177 - Reconcile database and object-storage effects
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -89,21 +89,61 @@ Prefer explicit states such as pending/active/deleting/failed over guessing cons
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-028` at base `0729c38c8e51d82c13ff269a3910b98ff1e4f48d`.
 ### Preflight
-_Not started._
+- Confirmed clean `feature/DATA-028` identity and exact supplied base SHA.
+- Exact base GitHub Actions CI run `35091692269` for
+  `0729c38c8e51d82c13ff269a3910b98ff1e4f48d` completed successfully with
+  both `Prerequisites (windows-latest)`, `Prerequisites (ubuntu-latest)` and
+  `Required gate` green.
+- No task-owned workspace process was active before implementation. The
+  canonical Tox21, Nest and Angular startup preflight was completed in order;
+  the first Angular invocation was corrected to the declared
+  `MercurionWebNg` working directory after its root-directory command exposed
+  only the expected missing-script diagnostic. Two complete readiness rounds
+  returned HTTP 200 from `/health` and `/`.
+- Hard prerequisites 0150, 0158 and 0176 are checked `DONE`. Chrome DevTools
+  capability probe `list_pages` succeeded without navigation.
+  Post-change runtime readiness again returned two HTTP 200 rounds.
 ### Preflight remediation
-_None._
+The initial Angular command was stopped with no repository mutation and
+reissued from the canonical `MercurionWebNg` directory. No baseline files or
+task status were changed during that correction.
 ### Summary
-Re-enabled after DATA-002 became `DONE`; this task was never attempted and has no feature branch.
+Added durable storage-operation intent for provider cleanup and deletion,
+including explicit pending/processing/failed/terminal/completed states, retry
+backoff, dedupe keys, bounded reconciliation and structured operational
+logging. Upload compensation persists cleanup intent when immediate deletion
+fails; delete and avatar replacement tombstone metadata before provider
+cleanup, making retries safe and preventing inactive objects from being
+downloaded. Dropbox now exposes a provider-neutral listing primitive, and a
+versioned migration creates the operation table.
 ### Task-specific validation performed
-_Not started._
+- `npm test --workspace mercurion_web_node -- --runInBand
+  src/app_modules/dropbox-object-store/application/document-command.service.spec.ts
+  src/app_modules/dropbox-object-store/application/storage-reconciliation.service.spec.ts
+  src/app_modules/dropbox-object-store/infrastructure/dropbox-object-store.adapter.spec.ts`
+  — 3 suites, 7 tests passed, including provider-failure retry and deletion
+  repair scenarios.
+- `npm run typecheck --workspace mercurion_web_node` — passed.
+- `npm run lint --workspace mercurion_web_node -- --no-warn-ignored` — passed.
+- `npm run build --workspace mercurion_web_node` — passed.
+- `git diff --check` — passed.
 ### Full pre-merge CI-parity validation
-_Not started._
+Owned by GitHub Actions after the task-specific commit is pushed; local
+`npm ci` and `npm run ci:check` were not run.
 ### Browser validation performed
-_Not started._
+- Canonical runtime startup used `../MercurionTox21`, `MercurionWebNode` and
+  `MercurionWebNg` in the required order, with all three managed sessions
+  stopped afterward.
+- Chrome DevTools opened `http://localhost:8888/documents`; the Angular
+  application returned its observable `404-not-found` page. The current
+  baseline has backend-only document endpoints and no Angular upload/delete/
+  avatar consumer route, so ordinary document flows are not browser-reachable;
+  no credentials were needed or entered.
 ### Commits
-_None._
+Pending task-specific commit; required Copilot co-author trailer will be
+included.
 ### Merge / CI
 _Not started._
 ### Rollback
