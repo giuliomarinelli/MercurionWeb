@@ -1,6 +1,6 @@
 # 0157 - Make Help public IDs single-source and deterministic
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -86,23 +86,60 @@ Mark `BLOCKED` if production contains multiple incompatible historical public-ID
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-008` from base `393c3b452ebfe917e4b03e3b5a7d836d4cdb0086`.
+
 ### Preflight
-_Not started._
+- Confirmed clean `feature/DATA-008` at the supplied base SHA before edits.
+- Confirmed no task-owned Angular, Nest, Tox21, Jest, or workspace watcher
+  process was active; only the session's MCP/CLI Node processes were present.
+- Confirmed exact base-SHA GitHub Actions run
+  `35039070973` (`https://github.com/giuliomarinelli/MercurionWeb/actions/runs/35039070973`)
+  completed successfully for `393c3b452ebfe917e4b03e3b5a7d836d4cdb0086`,
+  including both platform prerequisite jobs, Nest/Angular tests and builds,
+  E2E/browser jobs, and `Required gate`.
+- Confirmed local `commit.gpgSign=false`. No `npm ci` or `npm run ci:check`
+  was run.
+
 ### Preflight remediation
-_None._
+None.
+
 ### Summary
-Re-enabled after DATA-002 became `DONE`; this task was never attempted and has no feature branch.
+Added a pure typed Help public-ID formatter for the persisted bigint string
+identity, with documented `MTCK-`/`MTCKM-` prefixes and nine-digit minimum
+padding. Invalid identities now raise the typed internal
+`HELP_PUBLIC_ID_INVALID` error instead of generating random IDs. Help service
+presentation now clones entities at the response boundary, resolves each
+ticket public ID once per command, and passes that value to mail notifications
+without mutating persistence entities.
+
 ### Task-specific validation performed
-_Not started._
+- `npm run build --workspace @mercurion/rest-contracts` — passed.
+- `npm test --workspace mercurion_web_node -- --runInBand
+  src/app_modules/help/models/value-objects/help-public-id.spec.ts
+  src/app_modules/help/services/help.service.spec.ts` — passed, 2 suites and
+  14 tests.
+- `npm run typecheck --workspace mercurion_web_node` — passed.
+- `npm run lint --workspace mercurion_web_node -- --no-warn-ignored` — passed.
+- `npm run ci:errors` — passed, including negative policy checks.
+- `npm run ci:public-id-validation` — passed.
+- `git diff --check` — passed.
+
 ### Full pre-merge CI-parity validation
-_Not started._
+Exact feature-SHA GitHub Actions run `35040068965`
+(`https://github.com/giuliomarinelli/MercurionWeb/actions/runs/35040068965`)
+for `e3b0e2a1ea3d813ddc3e521472c02616ff9cab4d` completed successfully with
+both platform prerequisite jobs, all aggregate test/build/E2E jobs, and
+`Required gate` green. Local `npm ci` and `npm run ci:check` were not run.
+
 ### Browser validation performed
-_Not started._
+Not applicable per recipe.
+
 ### Commits
-_None._
+- `54b5c80a` — `feat(DATA-008): make Help public IDs deterministic`
+
 ### Merge / CI
-_Not started._
+Feature CI passed for `e3b0e2a1`; coordinator owns integration and post-merge
+CI.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
