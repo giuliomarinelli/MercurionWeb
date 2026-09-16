@@ -86,21 +86,47 @@ Mark `BLOCKED` if current user/support entrypoints intentionally have conflictin
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-011` at base `317d7a3d6b4caf7600c18d647ee90616ecc752fe`.
 ### Preflight
-_Not started._
+Clean branch/worktree and exact branch identity confirmed. No task-owned
+Angular/Nest/Tox21/Jest watcher or runtime process was active. The exact base
+SHA has successful GitHub Actions run `35044614539` with Windows and Ubuntu
+prerequisites, Nest unit/E2E, Angular unit, GraphQL/static checks, builds,
+containers, database schema, critical browser journeys, and `Required gate`
+green. Local `commit.gpgSign` is `false`. No `npm ci` or `npm run ci:check`
+was run locally.
 ### Preflight remediation
-_None._
+None.
 ### Summary
-Re-enabled after DATA-002 became `DONE`; this task was never attempted and has no feature branch.
+Added a typed Help owner/support actor policy. Resolver entrypoints now create
+typed actors, while Help use cases enforce the same policy when called
+directly. Owner predicates are applied in ticket/message queries, support
+handling requires `HandleTickets`, `ViewUsers` only controls immutable
+presentation visibility, and close/reopen mutations use atomic transaction
+updates with ownership predicates. Missing and non-owned tickets consistently
+use `TICKET_NOT_FOUND`; unsupported handling uses a typed 403 application
+error.
 ### Task-specific validation performed
-_Not started._
+Passed:
+
+- `npm test --workspace mercurion_web_node -- --runInBand --runTestsByPath src/app_modules/help/authorization/help-authorization.policy.spec.ts src/app_modules/help/models/dto/help-presenters.spec.ts src/app_modules/help/services/help.service.spec.ts` (3 suites, 16 tests)
+- `npm run typecheck --workspace mercurion_web_node`
+- `npm run lint --workspace mercurion_web_node`
+- `npm run graphql:schema:check --workspace mercurion_web_node`
+- `npm run build --workspace mercurion_web_node`
+- `node scripts/check-typeorm-transaction-boundaries.mjs`
+- `git diff --check`
+
+The table-driven policy tests cover owner/support operations, missing
+`HandleTickets`, independent `ViewUsers`, and forbidden owner reopen behavior.
 ### Full pre-merge CI-parity validation
-_Not started._
+Complete clean-install and aggregate CI parity are delegated to GitHub Actions
+for the pushed exact feature SHA; local `npm ci` and `npm run ci:check` were
+intentionally not run.
 ### Browser validation performed
-_Not started._
+Not applicable per recipe.
 ### Commits
-_None._
+Pending implementation and execution-notes commits.
 ### Merge / CI
 _Not started._
 ### Rollback

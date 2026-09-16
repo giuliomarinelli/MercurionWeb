@@ -404,6 +404,11 @@ export const APPLICATION_ERROR_CATALOG = {
     defaultMessage: "Forbidden::Cannot publish on a closed ticket",
     exposeInProduction: true,
   },
+  TICKET_HANDLING_FORBIDDEN: {
+    httpStatus: 403,
+    defaultMessage: "Forbidden::Ticket handling is not authorized",
+    exposeInProduction: true,
+  },
   TICKET_INITIAL_MESSAGE_CREATE_FAILED: {
     httpStatus: 500,
     defaultMessage: "Failed to create first ticket message",
