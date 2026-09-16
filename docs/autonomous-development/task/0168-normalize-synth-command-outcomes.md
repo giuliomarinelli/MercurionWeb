@@ -131,8 +131,12 @@ _Not started / not applicable._
 - `88e24f92bbfc05750c4119b6c5918d9bcf9faecd` — implementation and task notes.
 - Repair commit pending; includes the required
   `Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>` trailer.
+- `11e4217a78d8235fb3b0a0d48ec6b439cae0bcb5` — regenerated Angular
+  GraphQL schema artifact and repaired feature-CI drift.
 ### Merge / CI
-_Not started._
+Feature-SHA CI run `35051621142` for
+`11e4217a78d8235fb3b0a0d48ec6b439cae0bcb5` succeeded on Windows and Ubuntu;
+all validation jobs and `Required gate` passed.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
