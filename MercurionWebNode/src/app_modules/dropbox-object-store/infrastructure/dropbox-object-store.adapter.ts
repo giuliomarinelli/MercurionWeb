@@ -15,6 +15,7 @@ import type { DropboxUploadResponse } from '../models/interfaces/dropbox-upload-
 const CONTENT_UPLOAD_URL = 'https://content.dropboxapi.com/2/files/upload'
 const CONTENT_DOWNLOAD_URL = 'https://content.dropboxapi.com/2/files/download'
 const API_DELETE_URL = 'https://api.dropboxapi.com/2/files/delete_v2'
+const API_LIST_URL = 'https://api.dropboxapi.com/2/files/list_folder'
 
 @Injectable()
 export class DropboxObjectStoreAdapter extends ObjectStore {
@@ -78,9 +79,33 @@ export class DropboxObjectStoreAdapter extends ObjectStore {
         Authorization: await this.authorization(),
         'Content-Type': 'application/json',
       },
+      'list',
+      'json',
+    )
+  }
+
+  async list(): Promise<ReadonlyArray<ObjectReference>> {
+    const response = await this.request(
+      API_LIST_URL,
+      { path: '/mercurion', recursive: false, include_deleted: false },
+      {
+        Authorization: await this.authorization(),
+        'Content-Type': 'application/json',
+      },
       'delete',
       'json',
     )
+    const entries = (response as { entries?: Array<{ id?: unknown; path_lower?: unknown }> }).entries
+    return (entries ?? [])
+      .map((entry) => {
+        const key = typeof entry.id === 'string' && entry.id
+          ? entry.id
+          : typeof entry.path_lower === 'string' && entry.path_lower
+            ? entry.path_lower
+            : null
+        return key ? { key } : null
+      })
+      .filter((reference): reference is ObjectReference => reference !== null)
   }
 
   private async authorization(): Promise<string> {
@@ -93,7 +118,7 @@ export class DropboxObjectStoreAdapter extends ObjectStore {
     url: string,
     body: TBody,
     headers: Readonly<Record<string, string>>,
-    operation: 'upload' | 'download' | 'delete',
+    operation: 'upload' | 'download' | 'delete' | 'list',
     responseType: 'json' | 'bytes',
   ): Promise<unknown> {
     try {

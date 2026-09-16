@@ -6,14 +6,17 @@ import { DocumentController } from './controllers/document.controller';
 import { DocumentCommandService } from './application/document-command.service';
 import { ObjectStore } from './application/object-store.port';
 import { DropboxObjectStoreAdapter } from './infrastructure/dropbox-object-store.adapter';
+import { StorageOperationEntity } from './models/entities/storage-operation.entity'
+import { StorageReconciliationService } from './application/storage-reconciliation.service'
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([DocumentEntity]),
+    TypeOrmModule.forFeature([DocumentEntity, StorageOperationEntity]),
     OAuth2ClientModule
   ],
   providers: [
     DocumentCommandService,
+    StorageReconciliationService,
     DropboxObjectStoreAdapter,
     { provide: ObjectStore, useExisting: DropboxObjectStoreAdapter },
   ],
