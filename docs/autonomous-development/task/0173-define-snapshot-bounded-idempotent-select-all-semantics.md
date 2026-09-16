@@ -1,9 +1,9 @@
 # 0173 - Define snapshot-bounded idempotent select-all semantics
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Give every molecule bulk command using `selectAll` an explicit filter/snapshot, maximum work bound, atomicity and retry contract so a retry is deterministic, does not duplicate joins and does not silently include rows that appeared after the original selection.
