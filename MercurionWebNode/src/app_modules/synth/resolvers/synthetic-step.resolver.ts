@@ -7,6 +7,7 @@ import { SynthStep } from "../models/entities/synth-step.entity";
 import { SyntheticStepService } from "../services/synthetic-step.service";
 import { SynthStepInput } from "../models/dto/synth-step.input";
 import { assertMercurionPublicId } from "src/identifiers/mercurion-public-id";
+import { SynthCommandResult } from "../models/dto/synth-command-result";
 
 @Resolver(() => SynthStep)
 export class SyntheticStepResolver {
@@ -57,7 +58,7 @@ export class SyntheticStepResolver {
         return this.service.update(userId, id, input, fieldsMap)
     }
 
-    @Mutation(() => Boolean)
+    @Mutation(() => SynthCommandResult)
     async deleteSyntheticStep(
         @AuthenticatedUserId() userId: UUID,
         @Args('id', { type: () => ID }) id: UUID

@@ -239,8 +239,8 @@ type Mutation {
   deleteMoleculeItem(id: ID!): Boolean!
   deletePage(id: String!): Boolean!
   deleteSection(id: ID!): Boolean!
-  deleteSyntheticRoute(id: ID!): Boolean!
-  deleteSyntheticStep(id: ID!): Boolean!
+  deleteSyntheticRoute(id: ID!): SynthCommandResult!
+  deleteSyntheticStep(id: ID!): SynthCommandResult!
   duplicateCollection(srcCollectionId: ID!): MoleculeCollection
   markMoleculeCollectionAsTouched(id: ID!): Boolean!
   markMoleculeCollectionItemAsTouched(flagIds: String!, id: ID!): Boolean!
@@ -375,6 +375,16 @@ type Query {
   ticketDetailAsSupport(ticketId: ID!): TicketDetailDTO!
   ticketMessagesAsSupport(limit: Int!, page: Int!, ticketId: ID!): PaginatedTicketMessage!
   ticketsAsSupport(limit: Int!, page: Int!): PaginatedTicket!
+}
+
+enum SynthCommandOutcome {
+  Deleted
+  Updated
+}
+
+type SynthCommandResult {
+  outcome: SynthCommandOutcome!
+  success: Boolean!
 }
 
 type SynthStep {
