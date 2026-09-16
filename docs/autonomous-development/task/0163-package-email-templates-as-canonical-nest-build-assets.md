@@ -125,9 +125,14 @@ needed.
 - `git diff --check` and duplicate-copy search: passed; no Dockerfile or
   bootstrap email-template copy remains.
 ### Full pre-merge CI-parity validation
-Not run locally by policy; `npm ci` and `npm run ci:check` are reserved for
-GitHub Actions. The pushed feature SHA must receive complete exact-SHA Actions
-validation before integration.
+The first exact feature-SHA run
+[`35049263627`](https://github.com/giuliomarinelli/MercurionWeb/actions/runs/35049263627)
+failed in both platform `Prerequisites` jobs because the artifact check was
+registered in `ci:static`, which runs before the Nest build and therefore had
+no compiled registry to inspect. The correction removes that premature static
+invocation; the check remains in `ci:build:nest`, immediately after the build.
+The corrected feature SHA requires a new exact-SHA Actions run. `npm ci` and
+`npm run ci:check` remain Actions-only.
 ### Browser validation performed
 Not applicable; the recipe declares no browser validation.
 ### Commits
