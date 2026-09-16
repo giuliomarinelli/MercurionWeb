@@ -139,3 +139,20 @@ _Not started._
 _Not applicable._
 ### Blocker / human decision required
 _None._
+
+### Direct-human regression remediation (2026-09-16)
+
+Reopened by direct human instruction after local startup exposed an unhandled
+outbox query rejection. The dispatcher now awaits its initial database access,
+so a missing required relation fails bootstrap with the original
+`QueryFailedError`; later polling failures are contained and logged. Bootstrap
+shutdown now begins only after startup has rejected, fatal diagnostics retain
+the original error, and Socket.IO Redis clients remain connected until the
+adapter has completed its own shutdown.
+
+Focused Jest tests, Nest typecheck, lint and build passed. A canonical Nest
+startup against the unchanged local database completed orderly shutdown and
+reported `relation "notification_outbox_events" does not exist` without the
+secondary Fastify `setNotFoundHandler` error or an unhandled Redis-adapter
+rejection. No database migration or schema mutation was performed; the local
+database still requires separately authorized migration reconciliation.

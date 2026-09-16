@@ -12,6 +12,8 @@ import { TicketMessage } from '../../../help/models/entities/ticket-message.enti
 import { formatHelpPublicId } from '../../../help/models/value-objects/help-public-id'
 import { OUTBOX_MAX_ATTEMPTS } from './notification-outbox.service'
 import { runInTransaction } from '../../../../persistence/transaction-context'
+import { LoggerContext, LoggerPort } from '../../../../logging/logger.port'
+import { errorMessage, errorStack } from '../../../../utils/errors/error-message'
 
 const POLL_MS = 1_000
 const CLAIM_TIMEOUT_MS = 60_000
@@ -19,6 +21,7 @@ const CLAIM_TIMEOUT_MS = 60_000
 @Injectable()
 export class NotificationOutboxDispatcherService implements OnModuleInit, OnModuleDestroy {
   private readonly workerId = randomUUID()
+  private readonly logger: LoggerContext
   private timer: ReturnType<typeof setInterval> | undefined
   private running = false
 
@@ -27,11 +30,16 @@ export class NotificationOutboxDispatcherService implements OnModuleInit, OnModu
     @InjectRepository(NotificationOutboxEvent)
     private readonly repo: Repository<NotificationOutboxEvent>,
     private readonly mailer: MailSenderService,
-  ) {}
+    loggerFactory: LoggerPort,
+  ) {
+    this.logger = loggerFactory.forContext(NotificationOutboxDispatcherService.name)
+  }
 
-  onModuleInit(): void {
-    this.timer = setInterval(() => void this.dispatchOnce(), POLL_MS)
-    void this.dispatchOnce()
+  async onModuleInit(): Promise<void> {
+    await this.dispatchOnce()
+    this.timer = setInterval(() => {
+      void this.dispatchScheduled()
+    }, POLL_MS)
   }
 
   async onModuleDestroy(): Promise<void> {
@@ -60,6 +68,17 @@ export class NotificationOutboxDispatcherService implements OnModuleInit, OnModu
       return true
     } finally {
       this.running = false
+    }
+  }
+
+  private async dispatchScheduled(): Promise<void> {
+    try {
+      await this.dispatchOnce()
+    } catch (error) {
+      this.logger.error(
+        `[NOTIFICATION_OUTBOX_DISPATCH_FAILED] ${errorMessage(error)}`,
+        errorStack(error)
+      )
     }
   }
 
