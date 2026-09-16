@@ -1,6 +1,6 @@
 # 0169 - Make Synth patches owner-safe and transactional
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -86,24 +86,40 @@ Prefer small command mappers (`toSynthesisPatch`, `toStepPatch`, or equivalent) 
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-020` at base `b279f5d15c399518446b27d3b767adf6d412f041`.
 ### Preflight
-_Not started._
+Clean branch and no task-owned Angular/Nest/Tox21/test-watcher processes confirmed.
+Exact base SHA Actions run `35052297338` (`CI`) was completed successfully with
+both platform prerequisites, all container/build/test jobs, `PostgreSQL migration
+schema`, `Critical browser journeys`, and `Required gate` green. Local focused
+preflight used the existing dependency tree; no `npm ci` or `npm run ci:check`
+was run.
 ### Preflight remediation
-_None._
+None.
 ### Summary
-Reset to `PENDING` by the human-authorized DATA-003 recovery. This task has not been attempted and has no feature branch.
+Added command-specific `SynthesisPatch` and `SynthStepPatch` mappers with explicit
+scalar allowlists. Synthesis and SynthStep create/update/delete commands now use
+the canonical `UnitOfWork`, perform owner-scoped existence checks, and read/write
+through transaction-bound repositories. Update results are selected through the
+same transaction repository, while protected identifiers, owners, audit fields,
+and relations are ignored rather than mass-assigned.
 ### Task-specific validation performed
-_Not started._
+- `npm test --workspace mercurion_web_node -- --runInBand --runTestsByPath src/app_modules/synth/services/synthesis.service.spec.ts src/app_modules/synth/services/synthetic-step.service.spec.ts src/persistence/transaction-context.spec.ts` — 3 suites, 18 tests passed.
+- `npm run typecheck --workspace mercurion_web_node` — passed.
+- `npm run lint --workspace mercurion_web_node` — passed.
+- `npm run ci:transactions` — transaction boundary policy and negative check passed.
+- `git diff --check` — passed.
+- Tests cover owner/missing outcomes, explicit allowlist behavior against protected/relation fields, and persistence failure/rollback propagation.
 ### Full pre-merge CI-parity validation
-_Not started._
+Reserved for GitHub Actions on the pushed feature SHA; local `npm run ci:check`
+was intentionally not run per policy.
 ### Browser validation performed
-_Not started / not applicable._
+Not required by this recipe.
 ### Commits
-_None._
+Pending commit.
 ### Merge / CI
-_Not started._
+Feature SHA Actions validation is coordinator-owned after push.
 ### Rollback
-_Not applicable._
+Not applicable.
 ### Blocker / human decision required
-_None._
+None.
