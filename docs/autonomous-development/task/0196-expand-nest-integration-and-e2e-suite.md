@@ -133,7 +133,8 @@ Not applicable; this is server-side E2E coverage.
   fixture, transport coverage, and canonical GraphQL validation mapping.
 - `b6cbb97b` - refresh REST route ownership inventory for the QA-010 E2E
   routes.
-- Pending execution-note commit.
+- `8739197047e644c875a4722f733245b70ce29cde` - record QA-010 CI repair
+  validation and focused checks.
 ### Merge / CI
 _Not started._
 ### Rollback
