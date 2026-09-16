@@ -109,7 +109,7 @@ Owned by GitHub Actions after the task-specific commit is pushed; local `npm ci`
 The Angular source contains no document/avatar upload consumer route; the document endpoints are backend-only in this baseline, so the recipe's conditional browser flow was not reachable. Chrome DevTools capability probe (`list_pages`, without navigation) succeeded; no application browser mutation or credentials were used.
 ### Commits
 - `6254b84e` — `refactor document storage behind typed object port` (implementation and focused tests).
-- Execution-note update commit follows before push.
+- `2325cd51` — `record DATA-027 validation evidence` (execution notes and validation record).
 ### Merge / CI
 _Not started._
 ### Rollback
