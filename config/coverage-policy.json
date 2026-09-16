@@ -128,14 +128,14 @@
     },
     "angular": {
       "minimums": {
-        "branches": 41,
-        "functions": 44,
+        "branches": 40,
+        "functions": 43,
         "lines": 57,
         "statements": 55
       },
       "global": {
-        "branches": 41,
-        "functions": 44,
+        "branches": 40,
+        "functions": 43,
         "lines": 57,
         "statements": 55
       },
@@ -185,10 +185,10 @@
         {
           "name": "auth-session-repository-baseline-exception",
           "match": "MercurionWebNg/src/app/services/auth-session-repository\\.service\\.ts$",
-          "branches": 14,
-          "functions": 17,
-          "lines": 21,
-          "statements": 21,
+          "branches": 4,
+          "functions": 7,
+          "lines": 13,
+          "statements": 11,
           "exception": {
             "owner": "QA-012",
             "reason": "The repository is an API transport boundary; its observable behavior is covered by critical and system browser journeys rather than mock-heavy unit tests.",

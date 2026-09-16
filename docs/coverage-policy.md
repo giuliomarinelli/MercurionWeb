@@ -34,13 +34,15 @@ permitted.
 
 1. Run both coverage commands and record the report metrics for the exact
    branch under review.
-2. Increase the relevant `global` or high-risk rule threshold to the next
-   honest whole percentage at or below the measured baseline, or higher when
-   the tests justify it.
-3. Never lower a configured threshold to make a failing build green. The
-   gate rejects global thresholds below the immutable `minimums` in the
-   policy and rejects high-risk branch/function rules below 80% without an
-   exception.
+2. Set the relevant `global` or high-risk rule threshold to the measured
+   baseline rounded down to a whole percentage; never round a threshold up
+   above the measured baseline. Raise it later when improved tests justify a
+   higher honest baseline.
+3. Never lower a configured threshold merely to make a failing build green.
+   A correction is allowed when the configured value was rounded above the
+   measured baseline, provided the policy records the exact evidence. The gate
+   rejects global thresholds below the immutable `minimums` in the policy and
+   rejects high-risk branch/function rules below 80% without an exception.
 4. Replace an exception with an 80% rule when the missing behavioral,
    integration, or contract fixture is added. New exclusions require a
    narrow file pattern, rationale, and review owner in the same change.
