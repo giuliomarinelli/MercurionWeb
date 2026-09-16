@@ -1,7 +1,7 @@
 # 0218 - Protect develop with required PR and CI policy
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
@@ -101,44 +101,95 @@ This task intentionally changes the repository-wide integration lifecycle. After
 
 ### Feature branch
 
-_Not started._
+`feature/QA-032` at base `b91544db325749c3aef944c3f67a34c665cbb0ff`.
+The branch was already checked out, matched the supplied base, and had no
+uncommitted changes before this task's status update.
 
 ### Preflight
 
-_Not started._
+- Confirmed `feature/QA-032` is the assigned branch and the working tree was
+  clean at `b91544db325749c3aef944c3f67a34c665cbb0ff`.
+- Confirmed local `develop` is also at
+  `b91544db325749c3aef944c3f67a34c665cbb0ff`.
+- Confirmed repository-local `commit.gpgSign=false`.
+- Confirmed no task-owned Angular, Nest, Tox21, test-watcher, or workspace
+  process was active before the status-only change.
+- Exact base CI evidence is green: GitHub Actions CI run `35141711090`
+  completed successfully for
+  `b91544db325749c3aef944c3f67a34c665cbb0ff` at
+  `https://github.com/giuliomarinelli/MercurionWeb/actions/runs/35141711090`.
+  `Prerequisites (windows-latest)`, `Prerequisites (ubuntu-latest)`, and
+  `Required gate` all completed successfully; all other executed jobs were
+  also successful.
+- Read-only policy inspection found `GET
+  /repos/giuliomarinelli/MercurionWeb/branches/develop/protection` returns
+  `404 Branch not protected`.
+- Read-only ruleset inspection found ruleset `8894577` (`Rebecca`) has
+  `enforcement=disabled`, only `deletion` and `non_fast_forward` rules, no
+  bypass actors, and no pull-request, approval, required-check, or
+  current-branch validation rules.
+- Read-only collaborator inspection found only the repository owner with admin
+  permission and one additional collaborator with push permission. No
+  independent eligible reviewer was confirmed as available for the required
+  controlled PR/review test.
+- The canonical aggregate check name was confirmed as stable `Required gate`.
+- Read-only `npm run autonomous:plan -- --json` passed with no errors, cycles,
+  or stale skips. Read-only `npm run ci:validate:autonomous` passed.
 
 ### Preflight remediation
 
-_None._
+None. No repository settings or ruleset mutation was attempted.
 
 ### Summary
 
-_Not started._
+No implementation was attempted because the task's explicit stop condition
+applies: develop is unprotected and the required independent eligible
+reviewer/authorized controlled PR path was not available. The task is blocked
+without a bypass, fake check, direct push, or weakened review requirement.
 
 ### Task-specific validation performed
 
-_Not started._
+- `gh run view 35141711090 --json ...` — passed; exact base SHA and all
+  required jobs were successful.
+- `gh api repos/giuliomarinelli/MercurionWeb/branches/develop/protection` —
+  expected stop-condition result: `404 Branch not protected`.
+- `gh api repos/giuliomarinelli/MercurionWeb/rulesets` and read-back of
+  ruleset `8894577` — passed; existing ruleset is disabled and incomplete for
+  this task.
+- `npm run autonomous:plan -- --json` — passed.
+- `npm run ci:validate:autonomous` — passed.
+- No direct-push, settings-mutation, rejection test, PR merge test, or
+  repository-wide CI parity run was attempted because the required
+  administration and independent-review prerequisites were unavailable.
 
 ### Full pre-merge CI-parity validation
 
-_Not started._
+Not applicable to the blocked status-only attempt. The exact green base CI
+run is recorded above. Local `npm ci` and `npm run ci:check` were not run.
 
 ### Browser validation performed
 
-_Not applicable / not started._
+Not applicable: backend/governance-only task.
 
 ### Commits
 
-_Not recorded._
+Pending status-only blocker commit; it will use `git commit --no-gpg-sign`
+with the required Copilot co-author trailer.
 
 ### Merge / CI
 
-_Not started._
+No merge was performed. The feature branch remains preserved and will be
+frozen after the blocker commit is pushed. No develop mutation was attempted.
 
 ### Rollback
 
-_Not applicable._
+Not applicable; no implementation or merge occurred.
 
 ### Blocker / human decision required
 
-_None._
+Repository administration must be authorized for this repository, and an
+independent eligible reviewer must be available to approve and exercise the
+protected PR lifecycle. The authorized operator must then configure and
+read back the develop PR/review/`Required gate` protection without granting a
+normal runner or bot a bypass. Until those prerequisites exist, do not enable
+partial protection and do not use a direct push or fake required check.
