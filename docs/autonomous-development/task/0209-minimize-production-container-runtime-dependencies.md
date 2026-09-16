@@ -146,8 +146,14 @@ run.
 _Not started._
 ### Commits
 `22c859bf4ae3a27edc7a7539b5c2b4589db45b48` — `qa: minimize Nest production image dependencies`
+`Pending CI repair commit` — refresh REST route ownership references and make
+Docker Scout SBOM generation compatible with the runner CLI by using its JSON
+default instead of the unsupported `sbom --format` flag.
 ### Merge / CI
-_Not started._
+Feature CI run `35064159032` failed before merge because the generated REST
+route ownership inventory was stale for `GET /og/mercurion-og.png`, and the
+runner Docker Scout CLI rejected `sbom --format`. Both issues were corrected
+on `feature/QA-023`; rerun exact-SHA feature CI after the repair push.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required

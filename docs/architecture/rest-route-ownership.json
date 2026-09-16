@@ -645,6 +645,10 @@
         {
           "file": "docker_sl/nginx_test/default.conf",
           "kind": "nginx"
+        },
+        {
+          "file": "scripts/check-production-container.mjs",
+          "kind": "tooling"
         }
       ]
     },

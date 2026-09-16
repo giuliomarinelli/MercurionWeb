@@ -95,7 +95,7 @@ const runtimeInventory = JSON.parse(run('docker', [
 await mkdir(reportDirectory, { recursive: true });
 const sbomPath = resolve(reportDirectory, 'nest-production.sbom.json');
 const vulnerabilityPath = resolve(reportDirectory, 'nest-production.vulnerability.sarif');
-run('docker', ['scout', 'sbom', '--format', 'json', '--output', sbomPath, `local://${image}`]);
+run('docker', ['scout', 'sbom', '--output', sbomPath, `local://${image}`]);
 const sbom = JSON.parse(await readFile(sbomPath, 'utf8'));
 const sbomDigest = sbom.source?.image?.digest;
 if (sbomDigest !== digest) {
