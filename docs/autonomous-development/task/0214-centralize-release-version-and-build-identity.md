@@ -1,7 +1,7 @@
 # 0214 - Centralize release version and build identity
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
