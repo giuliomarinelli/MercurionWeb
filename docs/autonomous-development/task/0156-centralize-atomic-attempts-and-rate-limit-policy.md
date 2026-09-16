@@ -127,7 +127,11 @@ validation remains coordinator-owned.
 _Not started._
 ### Commits
 Commits: `fc125a77bb8fc77ddbe78a51c50027ea8cff0568` (engine and migration);
-pending repair commit for the credential handler test double.
+`3d788286e0eeb2f8c86a6d29cdb764ac8bdc92e0` (credential handler test double and
+execution notes). Exact feature SHA `3d788286e0eeb2f8c86a6d29cdb764ac8bdc92e0`
+passed GitHub Actions run `35037839821`, including both platform prerequisites,
+Nest/Angular unit tests, Nest E2E, builds, migration schema, browser journeys,
+containers, and `Required gate`.
 ### Merge / CI
 _Not started._
 ### Rollback
