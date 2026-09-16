@@ -140,14 +140,20 @@ already-applied migration.
   configuration diagnostic. Migration source was reviewed and the exact
   feature-SHA CI database job remains the authoritative migration check.
 ### Full pre-merge CI-parity validation
-Pending exact pushed feature-SHA Actions validation; complete clean-install and
-aggregate CI parity remains Actions-owned. Local `npm ci` and `npm run ci:check`
-were not run.
+Initial exact feature-SHA Actions run `35057663288`
+(`https://github.com/giuliomarinelli/MercurionWeb/actions/runs/35057663288`)
+for `5a370be355d82df5f274f58cc9388c293fa4a34a` failed in both platform
+Prerequisites jobs because the new TypeORM migration was not registered in
+`MercurionWebNode/nest-reachability.config.json`; all preceding public-ID
+checks passed. Added the precise dynamic entrypoint and reran the focused
+orphan check locally. A replacement feature-SHA CI run is pending after the
+repair commit. Local `npm ci` and `npm run ci:check` were not run.
 ### Browser validation performed
 Not applicable under the supplied worker instruction; no runtime or browser
 process was started.
 ### Commits
-Pending commit.
+- `5a370be3` — `feat(DATA-035): canonicalize Help public IDs`
+- Repair pending for exact feature-SHA CI orphan diagnostic.
 ### Merge / CI
 Coordinator owns feature-SHA CI observation and integration; this worker does
 not merge `develop`.
