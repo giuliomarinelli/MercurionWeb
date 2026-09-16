@@ -129,14 +129,16 @@ _Not started._
 _Not started / not applicable._
 ### Commits
 - `88e24f92bbfc05750c4119b6c5918d9bcf9faecd` — implementation and task notes.
-- Repair commit pending; includes the required
-  `Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>` trailer.
 - `11e4217a78d8235fb3b0a0d48ec6b439cae0bcb5` — regenerated Angular
   GraphQL schema artifact and repaired feature-CI drift.
+- `2dc02b8c23766e0484c0da565fe4ee2d0c98a4a9` — recorded repaired feature-CI
+  evidence.
 ### Merge / CI
 Feature-SHA CI run `35051621142` for
 `11e4217a78d8235fb3b0a0d48ec6b439cae0bcb5` succeeded on Windows and Ubuntu;
 all validation jobs and `Required gate` passed.
+The final metadata-only documentation commit was also accepted by exact
+feature-SHA run `35052047412` with `Required gate` green.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
