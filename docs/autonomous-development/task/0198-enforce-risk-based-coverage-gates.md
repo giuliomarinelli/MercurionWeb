@@ -1,6 +1,6 @@
 # 0198 - Enforce risk-based coverage gates
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
