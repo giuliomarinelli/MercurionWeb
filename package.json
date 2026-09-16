@@ -14,8 +14,9 @@
     "packages/socket-contracts"
   ],
   "scripts": {
-    "test:e2e:critical": "playwright test",
-    "test:e2e:critical:report": "playwright test --reporter=line",
+    "test:e2e:critical": "playwright test --project=critical",
+    "test:e2e:critical:report": "playwright test --project=critical --reporter=line",
+    "test:e2e:system": "playwright test --project=system",
     "postinstall": "npm run build --workspace @mercurion/rest-contracts && npm run build --workspace @mercurion/socket-contracts && patch-package --patch-dir MercurionWebNg/patches",
     "autonomous:plan": "node docs/autonomous-development/tools/plan-dependency-graph.mjs --json",
     "autonomous:assert-finalizable": "node docs/autonomous-development/tools/assert-session-finalizable.mjs",

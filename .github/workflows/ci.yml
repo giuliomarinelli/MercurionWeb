@@ -417,6 +417,13 @@ jobs:
       - name: Run critical browser journeys
         run: npm run test:e2e:critical
 
+      - name: Run same-version system journeys
+        if: ${{ vars.MERCURION_SYSTEM_TEST_EMAIL != '' }}
+        env:
+          LOCAL_TEST_ACCOUNT_EMAIL: ${{ vars.MERCURION_SYSTEM_TEST_EMAIL }}
+          LOCAL_TEST_ACCOUNT_PASSWORD: ${{ secrets.MERCURION_SYSTEM_TEST_PASSWORD }}
+        run: npm run test:e2e:system
+
       - name: Upload browser diagnostics
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
