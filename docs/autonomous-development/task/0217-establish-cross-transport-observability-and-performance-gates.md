@@ -221,3 +221,24 @@ Focused repair validation:
 Local `npm ci` and `npm run ci:check` were not run. Browser validation was not
 repeated because the repair changes production reachability and structured
 redaction only, not browser-observable transport behavior.
+
+### CI repair invocation 2
+
+The exact feature-SHA workflow run `35138555617` failed the Angular console
+policy because `MercurionWebNg/src/app/interceptors/correlation.interceptor.ts`
+used a direct `console.warn` call. Replaced it with the established
+injected `LoggerService.warn` mechanism, preserving the correlation mismatch
+diagnostic and response handling.
+
+Focused repair validation:
+
+- `npm run lint:angular --workspace mercurion_web_ng -- --no-warn-ignored` -
+  passed.
+- `npm run typecheck --workspace mercurion_web_ng` - passed.
+- Angular console-policy search - passed; no direct console call remains in
+  `correlation.interceptor.ts`.
+- `git diff --check` - passed.
+
+Local `npm ci` and `npm run ci:check` were not run. Browser validation was not
+repeated because the correction only routes an existing warning through the
+approved neutral logger.
