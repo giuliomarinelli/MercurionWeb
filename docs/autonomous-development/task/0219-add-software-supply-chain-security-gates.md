@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Make secret, dependency, license, SBOM and final-image vulnerability checks mandatory CI gates and produce verifiable digest-bound signatures/attestations for release-candidate artifacts without deploying them.
@@ -114,7 +114,8 @@ _None._
 
 ### Summary
 
-_Not started._
+Skipped because hard dependency task `0209` (`QA-023`) is terminal
+`BLOCKED`. The direct blocker is the root cause for this dependency skip.
 
 ### Task-specific validation performed
 
@@ -134,7 +135,8 @@ _Not recorded._
 
 ### Merge / CI
 
-_Not started._
+Metadata-only dependency skip recorded on `develop`; no feature branch or
+worker invocation was created.
 
 ### Rollback
 
@@ -142,4 +144,4 @@ _Not applicable._
 
 ### Blocker / human decision required
 
-_None._
+Dependency chain is terminal through `0209` (`QA-023`).
