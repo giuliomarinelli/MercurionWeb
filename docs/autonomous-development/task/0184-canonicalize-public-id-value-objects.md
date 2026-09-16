@@ -153,6 +153,10 @@ constraints were not mirrored in the TypeORM entity metadata. Added matching
 for `7a657a30038ba75cb0e48d3fbf9ae72bff49a9b0` completed successfully with
 both platform prerequisites, migration schema validation, all aggregate jobs,
 and `Required gate` green. Local `npm ci` and `npm run ci:check` were not run.
+The final notes-only SHA is `c8f70f403c2b072d3cb5efee89edcaca38f569d7`;
+its exact Actions run `35059077944`
+(`https://github.com/giuliomarinelli/MercurionWeb/actions/runs/35059077944`)
+also completed successfully with `Required gate` green.
 ### Browser validation performed
 Not applicable under the supplied worker instruction; no runtime or browser
 process was started.
@@ -160,9 +164,11 @@ process was started.
 - `5a370be3` — `feat(DATA-035): canonicalize Help public IDs`
 - `1e229580` — `fix(DATA-035): register public ID migration`
 - `7a657a30` — `fix(DATA-035): mirror public ID checks in entities`
+- `c8f70f40` — `docs(DATA-035): record feature CI evidence`
 ### Merge / CI
-Feature CI passed for final SHA `7a657a30038ba75cb0e48d3fbf9ae72bff49a9b0`
-in run `35058600141`; coordinator owns integration and post-merge CI. This
+Feature CI passed for implementation SHA `7a657a30038ba75cb0e48d3fbf9ae72bff49a9b0`
+in run `35058600141` and final notes SHA `c8f70f403c2b072d3cb5efee89edcaca38f569d7`
+in run `35059077944`; coordinator owns integration and post-merge CI. This
 worker did not merge `develop`.
 ### Rollback
 _Not applicable._
