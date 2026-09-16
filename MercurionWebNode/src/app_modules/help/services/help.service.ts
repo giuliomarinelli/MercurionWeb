@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { DataSource, Repository } from 'typeorm'
 import { uuidv7 } from '@kripod/uuidv7'
@@ -20,6 +20,11 @@ import { ApplicationErrorCode, applicationError } from 'src/exception-handling/a
 import { runInTransaction } from 'src/persistence/transaction-context'
 import { NotificationOutboxService } from 'src/app_modules/notification/services/outbox/notification-outbox.service'
 import { HelpNotificationEventType } from 'src/app_modules/notification/models/enums/help-notification-event-type.enum'
+import {
+  authorizeHelpOperation,
+  type HelpActor,
+  isSupportActor,
+} from '../authorization/help-authorization.policy'
 
 @Injectable()
 export class HelpService {
@@ -44,17 +49,18 @@ export class HelpService {
   // Public API (WRITE)
   // -----------------------------
 
-  async createTicket(input: {
-    userId: UUID
+  async createTicket(actor: HelpActor, input: {
     subject: string
     contentDelta: JsonValue
     contentHtml: string
-  }, canViewUsers: boolean = false): Promise<TicketResponse> {
+  }): Promise<TicketResponse> {
+    authorizeHelpOperation(actor, 'create')
+    if (isSupportActor(actor)) throw applicationError(ApplicationErrorCode.TICKET_HANDLING_FORBIDDEN)
 
     const now = Date.now()
 
     const ticket = new Ticket()
-    ticket.userId = input.userId
+    ticket.userId = actor.userId
     ticket.subject = input.subject
     ticket.status = TicketStatus.Open
     this.stampTicket(ticket, now)
@@ -66,7 +72,7 @@ export class HelpService {
 
       const message = this.makeUserMessage({
         ticketId: ticket.id,
-        userId: input.userId,
+        userId: actor.userId,
         delta: input.contentDelta,
         html: input.contentHtml,
         now
@@ -92,22 +98,25 @@ export class HelpService {
       throw applicationError(ApplicationErrorCode.TICKET_INITIAL_MESSAGE_CREATE_FAILED)
     }
 
-    const names = canViewUsers
+    const names = actor.canViewUsers
       ? await this.users.getUserFullNames([ticket.userId])
       : undefined
     return presentTicket(ticket, {
-      canViewUsers,
+      canViewUsers: actor.canViewUsers,
       userFullName: names?.get(String(ticket.userId)),
     })
   }
 
 
-  async addUserMessage(input: {
+  async addUserMessage(actor: HelpActor, input: {
     ticketId: UUID
-    userId: UUID
     contentDelta: JsonValue
     contentHtml: string
   }): Promise<{ ok: boolean }> {
+    authorizeHelpOperation(actor, 'add-message')
+    if (isSupportActor(actor)) {
+      throw applicationError(ApplicationErrorCode.TICKET_HANDLING_FORBIDDEN)
+    }
 
     let msg: TicketMessage
 
@@ -115,7 +124,7 @@ export class HelpService {
       const now = Date.now()
 
       const ticket = await manager.findOne(Ticket, {
-        where: { id: input.ticketId, userId: input.userId },
+        where: { id: input.ticketId, userId: actor.userId },
         lock: { mode: 'pessimistic_write' },
       })
 
@@ -129,7 +138,7 @@ export class HelpService {
 
       msg = this.makeUserMessage({
         ticketId: ticket.id,
-        userId: input.userId,
+        userId: actor.userId,
         delta: input.contentDelta,
         html: input.contentHtml,
         now
@@ -152,11 +161,15 @@ export class HelpService {
     return { ok: true }
   }
 
-  async addSupportMessage(input: {
+  async addSupportMessage(actor: HelpActor, input: {
     ticketId: UUID
     contentDelta: JsonValue
     contentHtml: string
   }): Promise<{ ok: boolean }> {
+    authorizeHelpOperation(actor, 'add-message')
+    if (!isSupportActor(actor)) {
+      throw applicationError(ApplicationErrorCode.TICKET_HANDLING_FORBIDDEN)
+    }
 
     await runInTransaction(this.dataSource, async (_context, manager) => {
 
@@ -201,28 +214,14 @@ export class HelpService {
     return { ok: true }
   }
 
-  async closeTicket(ticketId: UUID): Promise<{ ok: boolean }> {
-    const now = Date.now()
-
-    const res = await this.ticketRepo.update(ticketId, {
-      status: TicketStatus.Closed,
-      updatedAt: String(now),
-    })
-
-    if (!res.affected) throw new NotFoundException('Ticket not found')
-    return { ok: true }
+  async closeTicket(actor: HelpActor, ticketId: UUID): Promise<{ ok: boolean }> {
+    authorizeHelpOperation(actor, 'close')
+    return this.updateTicketStatus(actor, ticketId, TicketStatus.Closed)
   }
 
-  async reopenTicket(ticketId: UUID) {
-    const now = Date.now()
-
-    const res = await this.ticketRepo.update(ticketId, {
-      status: TicketStatus.Open,
-      updatedAt: String(now),
-    })
-
-    if (!res.affected) throw new NotFoundException('Ticket not found')
-    return { ok: true }
+  async reopenTicket(actor: HelpActor, ticketId: UUID) {
+    authorizeHelpOperation(actor, 'reopen')
+    return this.updateTicketStatus(actor, ticketId, TicketStatus.Open)
   }
 
   // -----------------------------
@@ -230,12 +229,11 @@ export class HelpService {
   // -----------------------------
 
   async listTickets(
-    userId: UUID,
+    actor: HelpActor,
     options: IPaginationOptions,
     fieldsMap?: GraphQLFieldsMap,
-    onlyOwner: boolean = true,
-    canViewUsers: boolean = false
   ): Promise<Pagination<TicketResponse>> {
+    authorizeHelpOperation(actor, 'list')
 
     const itemFieldsMap = fieldsMap?.items ?? {}
     const scalarFields = GraphQLUtils.getScalarFields(itemFieldsMap)
@@ -245,18 +243,18 @@ export class HelpService {
     const columns = this.buildColumns(
       scalarFields,
       this.REQUIRED_TICKET_FIELDS,
-      canViewUsers,
+      actor.canViewUsers,
       ['userId'],
       this.TICKET_NON_DB_FIELDS,
-      wantsUserFullName && canViewUsers ? ['userId'] : []
+      wantsUserFullName && actor.canViewUsers ? ['userId'] : []
     )
 
     let qb = this.ticketRepo.createQueryBuilder('t')
       .select(columns.map(col => `t.${col}`))
       .orderBy('t.last_message_at', 'DESC')
 
-    if (onlyOwner) {
-      qb = qb.andWhere('t.user_id = :userId', { userId })
+    if (!isSupportActor(actor)) {
+      qb = qb.andWhere('t.user_id = :userId', { userId: actor.userId })
     }
 
     if (fieldsMap?.items) {
@@ -266,13 +264,13 @@ export class HelpService {
 
     const page = await paginate<Ticket>(qb, options)
 
-    const names = canViewUsers && wantsUserFullName
+    const names = actor.canViewUsers && wantsUserFullName
       ? await this.users.getUserFullNames(page.items.map((item) => item.userId))
       : undefined
     return {
       ...page,
       items: page.items.map((item) => presentTicket(item, {
-        canViewUsers,
+        canViewUsers: actor.canViewUsers,
         userFullName: names?.get(String(item.userId)),
       })),
     }
@@ -280,11 +278,10 @@ export class HelpService {
 
   async getTicketDetail(
     ticketId: UUID,
-    userId: UUID,
+    actor: HelpActor,
     fieldsMap: GraphQLFieldsMap,
-    onlyOwner: boolean = true,
-    canViewUsers: boolean = false
   ): Promise<TicketDetailDTO> {
+    authorizeHelpOperation(actor, 'detail')
 
     const ticketFields = fieldsMap.ticket ?? {}
     const scalarFields = GraphQLUtils.getScalarFields(ticketFields)
@@ -294,30 +291,30 @@ export class HelpService {
     const ticketColumns = this.buildColumns(
       scalarFields,
       this.REQUIRED_TICKET_FIELDS,
-      canViewUsers,
+      actor.canViewUsers,
       ['userId'],
       this.TICKET_NON_DB_FIELDS,
-      wantsUserFullName && canViewUsers ? ['userId'] : []
+      wantsUserFullName && actor.canViewUsers ? ['userId'] : []
     )
 
     let qb = this.ticketRepo.createQueryBuilder('t')
       .select(ticketColumns.map(col => `t.${col}`))
       .where('t.id = :ticketId', { ticketId })
 
-    if (onlyOwner) {
-      qb = qb.andWhere('t.user_id = :userId', { userId })
+    if (!isSupportActor(actor)) {
+      qb = qb.andWhere('t.user_id = :userId', { userId: actor.userId })
     }
 
     const ticket = await qb.getOne()
     if (!ticket) throw applicationError(ApplicationErrorCode.TICKET_NOT_FOUND)
 
-    const names = canViewUsers && wantsUserFullName
+    const names = actor.canViewUsers && wantsUserFullName
       ? await this.users.getUserFullNames([ticket.userId])
       : undefined
 
     return {
       ticket: presentTicket(ticket, {
-        canViewUsers,
+        canViewUsers: actor.canViewUsers,
         userFullName: names?.get(String(ticket.userId)),
       }),
       messages: undefined
@@ -326,21 +323,11 @@ export class HelpService {
 
   async listTicketMessages(
     ticketId: UUID,
-    userId: UUID,
+    actor: HelpActor,
     options: IPaginationOptions,
     fieldsMap: GraphQLFieldsMap,
-    onlyOwner: boolean = true,
-    canViewUsers: boolean = false
   ): Promise<Pagination<TicketMessageResponse>> {
-
-    if (onlyOwner) {
-      const owns = await this.ticketRepo.exists({
-        where: { id: ticketId, userId }
-      })
-      if (!owns) {
-        throw applicationError(ApplicationErrorCode.TICKET_NOT_FOUND)
-      }
-    }
+    authorizeHelpOperation(actor, 'messages')
 
     const itemFieldsMap = fieldsMap?.items ?? {}
     const scalarFields = GraphQLUtils.getScalarFields(itemFieldsMap)
@@ -349,26 +336,32 @@ export class HelpService {
     const wantsAuthorFullName = scalarFields.includes('authorFullName')
 
     const extraIds: string[] = []
-    if (canViewUsers && wantsUserFullName) extraIds.push('userId')
-    if (canViewUsers && wantsAuthorFullName) extraIds.push('authorId')
+    if (actor.canViewUsers && wantsUserFullName) extraIds.push('userId')
+    if (actor.canViewUsers && wantsAuthorFullName) extraIds.push('authorId')
 
     const columns = this.buildColumns(
       scalarFields,
       this.REQUIRED_MESSAGE_FIELDS,
-      canViewUsers,
+      actor.canViewUsers,
       ['authorId', 'userId'],
       this.MESSAGE_NON_DB_FIELDS,
       extraIds
     )
 
-    const qb = this.msgRepo.createQueryBuilder('m')
+    let qb = this.msgRepo.createQueryBuilder('m')
       .select(columns.map(col => `m.${col}`))
       .where('m.ticket_id = :ticketId', { ticketId })
       .orderBy('m.created_at', 'DESC')
 
+    if (!isSupportActor(actor)) {
+      qb = qb.innerJoin(Ticket, 't', 't.id = m.ticket_id AND t.user_id = :userId', {
+        userId: actor.userId,
+      })
+    }
+
     const page = await paginate<TicketMessage>(qb, options)
 
-    const names = canViewUsers && (wantsUserFullName || wantsAuthorFullName)
+    const names = actor.canViewUsers && (wantsUserFullName || wantsAuthorFullName)
       ? await this.users.getUserFullNames(
         page.items.flatMap((item) => [item.userId, item.authorId].filter(Boolean) as UUID[]),
       )
@@ -376,17 +369,43 @@ export class HelpService {
     return {
       ...page,
       items: page.items.map((item) => presentMessage(item, {
-        canViewUsers,
+        canViewUsers: actor.canViewUsers,
         authorFullNames: names,
       })),
     }
   }
 
-  existsUserTicketById(userId: UUID, ticketId: UUID): Promise<boolean> {
+  private async updateTicketStatus(
+    actor: HelpActor,
+    ticketId: UUID,
+    status: TicketStatus,
+  ): Promise<{ ok: boolean }> {
+    return runInTransaction(this.dataSource, async (_context, manager) => {
+      const now = Date.now()
+      const qb = manager.createQueryBuilder()
+        .update(Ticket)
+        .set({ status, updatedAt: String(now) })
+        .where('id = :ticketId', { ticketId })
+
+      if (!isSupportActor(actor)) {
+        qb.andWhere('user_id = :userId', { userId: actor.userId })
+      }
+
+      const result = await qb.execute()
+      if (!result.affected) {
+        throw applicationError(ApplicationErrorCode.TICKET_NOT_FOUND)
+      }
+      return { ok: true }
+    })
+  }
+
+  existsUserTicketById(actor: HelpActor, ticketId: UUID): Promise<boolean> {
+    authorizeHelpOperation(actor, 'detail')
+    if (isSupportActor(actor)) return Promise.resolve(false)
     return this.ticketRepo.exists({
       where: {
         id: ticketId,
-        userId
+        userId: actor.userId
       }
     })
   }
