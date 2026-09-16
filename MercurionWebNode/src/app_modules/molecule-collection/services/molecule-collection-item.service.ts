@@ -2,7 +2,7 @@ import { MoleculeCollectionItemEntity } from 'src/app_modules/molecule-collectio
 import { MoleculeService } from '../../meilisearch/services/molecule.service';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, EntityManager, Repository } from 'typeorm';
+import { DataSource, EntityManager, In, Repository } from 'typeorm';
 import { UUID } from 'crypto';
 import { CreateMoleculeItemInput } from '../models/dto/create-molecule-item.input';
 import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
@@ -83,6 +83,27 @@ export class MoleculeCollectionItemService {
             return true
         }
         return false
+    }
+
+    async markManyAsTouchedWithManager(userId: UUID, itemIds: UUID[], manager: EntityManager): Promise<void> {
+        const ids = Array.from(new Set(itemIds))
+        if (ids.length === 0) return
+        const owned = await manager.find(MoleculeCollectionItemEntity, {
+            where: { userId, id: In(ids) },
+            select: { id: true }
+        })
+        const ownedIds = owned.map(item => item.id)
+        if (ownedIds.length === 0) return
+        const touchedAt = Date.now()
+        await manager.update(MoleculeCollectionItemEntity, { userId, id: In(ownedIds) }, { touchedAt })
+        await manager.insert(History, ownedIds.map(itemId => ({
+            id: uuidv7() as UUID,
+            itemEntity: HistoryItemEntity.MoleculeCollectionItem,
+            itemId,
+            touchedAt,
+            userId,
+            flagIds: '{}'
+        })))
     }
 
     async create(userId: UUID, input: CreateMoleculeItemInput): Promise<MoleculeCollectionItemEntity> {
