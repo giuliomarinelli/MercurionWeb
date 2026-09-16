@@ -1,6 +1,6 @@
 # 0160 - Unify Help owner and support authorization policy
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -129,7 +129,9 @@ Not applicable per recipe.
 `d3700bb33` (`feat(help): unify owner and support authorization policy`, with
 required `Co-authored-by: GitHub Copilot <copilot@github.com>` trailer).
 ### Merge / CI
-_Not started._
+Merged into `develop` with merge commit `ca244d54d11742a1027a702959dc85552821e408`.
+Exact feature-SHA CI run `35045600976` and exact merge-SHA CI run
+`35046082196` both passed with the `Required gate` green.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
