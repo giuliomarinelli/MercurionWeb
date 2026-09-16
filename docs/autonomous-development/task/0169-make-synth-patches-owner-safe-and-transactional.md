@@ -117,6 +117,7 @@ was intentionally not run per policy.
 Not required by this recipe.
 ### Commits
 `4e7e9df92faf17a5116ec9e4ac7235853e257e34` — Make Synth patches transactional and owner-safe.
+`15d2ccef1edc8009badf7ba719956663da80b292` — Record DATA-020 execution evidence.
 ### Merge / CI
 Feature SHA Actions validation is coordinator-owned after push.
 ### Rollback
