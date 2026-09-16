@@ -5,11 +5,17 @@ import { Ticket } from 'src/app_modules/help/models/entities/ticket.entity';
 import { SupportContext } from '../../models/contexts/support.context';
 import { ConfigService } from '@nestjs/config';
 import { UserService } from 'src/app_modules/user/services/user.service';
-import { resolve } from 'path';
 import { LoggerPort } from 'src/logging/logger.port';
 import { LoggerContext } from 'src/logging/logger.port';
 import { HelpPublicId } from 'src/app_modules/help/models/value-objects/help-public-id';
 import { UUID } from 'crypto';
+import {
+    assertEmailTemplateContext,
+    EmailTemplateContextMap,
+    EmailTemplateKey,
+    getEmailTemplateDefinition,
+    getEmailTemplatePath,
+} from '../../email-template-registry';
 
 @Injectable()
 export class MailSenderService {
@@ -32,12 +38,19 @@ export class MailSenderService {
         return `${base}/help?m=${mode}&t_id=${ticketId}`
     }
 
-    public async sendEmail<T extends object>(to: string, subject: string, context: T, templatePath: string, notificationId?: UUID): Promise<unknown> {
+    public async send<K extends EmailTemplateKey>(
+        templateKey: K,
+        to: string,
+        context: EmailTemplateContextMap[K],
+        notificationId?: UUID
+    ): Promise<unknown> {
+        assertEmailTemplateContext(templateKey, context)
+        const definition = getEmailTemplateDefinition(templateKey)
         return await this.mailerService.sendMail({
             to,
-            subject,
+            subject: definition.subject(context),
             context,
-            template: templatePath,
+            template: getEmailTemplatePath(templateKey),
             headers: notificationId ? { 'X-Mercurion-Notification-Id': notificationId } : undefined
         })
     }
@@ -56,7 +69,7 @@ export class MailSenderService {
             userFirstName,
             url: this.generateUrl('support', ticket.id)
         }
-        await this.sendEmail<SupportContext>(this.supportEmail, 'Un nuovo ticket è stato aperto', context, resolve('dist/src/app_modules/notification/email-templates/support---notify-support-new-ticket.hbs'), notificationId)
+        await this.send('help-ticket-opened-support', this.supportEmail, context, notificationId)
     }
 
     public async confirmUserTicketOpened(ticket: Ticket, message: TicketMessage, ticketPublicId: HelpPublicId, notificationId?: UUID): Promise<void> {
@@ -74,7 +87,7 @@ export class MailSenderService {
             userFirstName,
             url: this.generateUrl('user', ticket.id)
         }
-        await this.sendEmail<SupportContext>(userEmail, 'Supporto Mercurion: un nuovo ticket è stato aperto', context, resolve('dist/src/app_modules/notification/email-templates/support---confirm-user-ticket-opened.hbs'), notificationId)
+        await this.send('help-ticket-opened-user', userEmail, context, notificationId)
     }
 
     public async notifySupportNewMessage(ticket: Ticket, message: TicketMessage, ticketPublicId: HelpPublicId, notificationId?: UUID): Promise<void> {
@@ -91,7 +104,7 @@ export class MailSenderService {
             userFirstName,
             url: this.generateUrl('support', ticket.id)
         }
-        await this.sendEmail<SupportContext>(this.supportEmail, `Un nuovo ticket messaggio è stato pubblicato nel ticket #${ticketPublicId}`, context, resolve('dist/src/app_modules/notification/email-templates/support---notify-support-new-message.hbs'), notificationId)
+        await this.send('help-message-added', this.supportEmail, context, notificationId)
     }
 
     public async notifyUserSupportReplied(ticket: Ticket, userId: UUID, ticketPublicId: HelpPublicId, notificationId?: UUID): Promise<void> {
@@ -109,7 +122,7 @@ export class MailSenderService {
             userFirstName,
             url: this.generateUrl('user', ticket.id)
         }
-        await this.sendEmail<SupportContext>(userEmail, `Supporto Mercurion: Il ticket #${ticketPublicId} ha ricevuto una nuova risposta`, context, resolve('dist/src/app_modules/notification/email-templates/support---notify-user-support-replied.hbs'), notificationId)
+        await this.send('help-support-replied', userEmail, context, notificationId)
     }
 
 

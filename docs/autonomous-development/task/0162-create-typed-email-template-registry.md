@@ -1,6 +1,6 @@
 # 0162 - Create a typed email-template registry
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -91,21 +91,43 @@ Keep recipient resolution and domain orchestration outside the registry. The reg
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-013` (base `71bf11ed7dee651f8f7a9008729bd6b8cce51b9d`)
 ### Preflight
-_Not started._
+Clean branch and exact base SHA confirmed. GitHub Actions run
+`35046603657` for the supplied SHA completed successfully with the stable
+`Required gate` (the exact-SHA classifier selected the repository metadata
+path). No task-owned workspace process was active. Local focused preflight
+used the existing dependency tree; `npm ci` and `npm run ci:check` were not
+run.
 ### Preflight remediation
-_None._
+None.
 ### Summary
-Re-enabled after DATA-002 became `DONE`; this task was never attempted and has no feature branch.
+Added an exhaustive semantic email-template registry with typed contexts,
+central subject builders, source/compiled-compatible asset resolution and
+runtime context validation. Replaced all Account, MFA and Help mail callers'
+raw paths/subjects with registry keys. Help outbox delivery remains keyed by
+stable event types and delegates rendering through the registry-backed mail
+sender.
 ### Task-specific validation performed
-_Not started._
+Passed:
+
+- `npm run typecheck --workspace mercurion_web_node`
+- `npm run lint --workspace mercurion_web_node`
+- `npm run build --workspace mercurion_web_node`
+- focused Jest coverage for the registry, all 13 email templates, mail sender
+  boundary validation, Account flow and MFA service: 5 suites, 23 tests
+- `git diff --check`
+
+Registry tests assert every production template key has a valid fixture,
+resolvable asset and subject; negative tests prove invalid context is rejected
+before the mail adapter is invoked.
 ### Full pre-merge CI-parity validation
-_Not started._
+Reserved for the exact pushed feature SHA GitHub Actions workflow; no local
+`npm run ci:check` was run.
 ### Browser validation performed
-_Not started._
+Not applicable.
 ### Commits
-_None._
+Pending task commit.
 ### Merge / CI
 _Not started._
 ### Rollback
