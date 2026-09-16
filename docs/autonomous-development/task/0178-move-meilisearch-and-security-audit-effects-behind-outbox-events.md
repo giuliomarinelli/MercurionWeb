@@ -123,7 +123,8 @@ dashboard, opened molecular search, queried `caffeine`, and observed searchable
 `CAFFEINA` and `ACEFILLINA` result cards. No credentials or session values were recorded.
 All task-owned runtime processes were stopped afterward.
 ### Commits
-Pending commit for the complete DATA-029 implementation and recipe notes.
+`7800b16b` — complete DATA-029 implementation.
+`5a57631e` — register outbox migration reachability and record CI repair evidence.
 ### Merge / CI
 Not started; coordinator owns feature-SHA CI, merge, and merge-SHA CI.
 
