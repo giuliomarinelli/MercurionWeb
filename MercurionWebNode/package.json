@@ -12,6 +12,8 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "nest build",
+    "check:email-assets": "node ../scripts/check-email-template-assets.mjs",
+    "ci:email-assets": "npm run check:email-assets",
     "contracts:check": "tsc --noEmit -p tsconfig.contracts.json && jest --runInBand contracts",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
