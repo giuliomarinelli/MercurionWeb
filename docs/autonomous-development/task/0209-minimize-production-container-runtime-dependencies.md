@@ -160,7 +160,8 @@ _Not started._
 `Pending CI repair commit` — refresh REST route ownership references and make
 Docker Scout SBOM generation compatible with the runner CLI by using its JSON
 default instead of unsupported `sbom --format` and `--output` flags.
-`Pending third CI repair commit` — preserve Docker Scout as primary and add
+`f65b593714b96f7a02e83daab062903aac34ca9e` — preserve Docker Scout as primary
+and add
 explicit Syft/Trivy container fallbacks with digest-bound SBOM/SARIF evidence
 for runners without the Scout plugin.
 ### Merge / CI
