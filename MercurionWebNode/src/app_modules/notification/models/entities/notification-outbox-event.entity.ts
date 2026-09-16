@@ -2,9 +2,9 @@ import { Column, Entity, Index, PrimaryColumn } from 'typeorm'
 import { UUID } from 'crypto'
 import { OutboxEventStatus } from '../enums/outbox-event-status.enum'
 
-@Entity({ name: 'notification_outbox_events' })
-@Index('notification_outbox_pending_idx', ['status', 'availableAt'])
-export class NotificationOutboxEvent {
+@Entity({ name: 'outbox_events' })
+@Index('outbox_pending_idx', ['status', 'availableAt'])
+export class OutboxEvent {
   @PrimaryColumn('uuid')
   id!: UUID
 
@@ -56,3 +56,9 @@ export class NotificationOutboxEvent {
   @Column({ type: 'bigint', name: 'occurred_at' })
   occurredAt!: string
 }
+
+/**
+ * Compatibility name for domain modules migrated by DATA-009 and DATA-029.
+ * Persistence remains owned by the shared outbox boundary.
+ */
+export { OutboxEvent as NotificationOutboxEvent }
