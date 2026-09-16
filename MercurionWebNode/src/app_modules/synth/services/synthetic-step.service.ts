@@ -8,7 +8,9 @@ import { SynthStep } from "../models/entities/synth-step.entity";
 import { SynthStepInput } from "../models/dto/synth-step.input";
 import { Synthesis } from "../models/entities/synthesis.entity";
 import { ApplicationErrorCode, applicationError } from "src/exception-handling/application-error";
+import { SynthCommandOutcome, SynthCommandResult } from "../models/dto/synth-command-result";
 import { SynthSelectionPlanner } from './synth-selection-planner';
+import { throwSynthPersistenceError } from './synth-command-errors';
 
 @Injectable()
 export class SyntheticStepService {
@@ -23,9 +25,14 @@ export class SyntheticStepService {
     ) { }
 
     async create(userId: UUID, input: SynthStepInput): Promise<SynthStep> {
-        const synthesis = await this.synthesisRepo.findOne({
-            where: { id: input.synthId, userId }
-        })
+        let synthesis: Synthesis | null
+        try {
+            synthesis = await this.synthesisRepo.findOne({
+                where: { id: input.synthId, userId }
+            })
+        } catch (error) {
+            return throwSynthPersistenceError(error)
+        }
         if (!synthesis) {
             throw applicationError(ApplicationErrorCode.SYNTHESIS_ACCESS_DENIED)
         }
@@ -37,7 +44,11 @@ export class SyntheticStepService {
             description: input.description ?? null,
             reactionType: input.reactionType ?? null
         })
-        return this.stepRepo.save(step)
+        try {
+            return await this.stepRepo.save(step)
+        } catch (error) {
+            return throwSynthPersistenceError(error)
+        }
     }
 
     async update(userId: UUID, id: UUID, input: Partial<SynthStepInput>, fieldsMap: GraphQLFieldsMap): Promise<SynthStep | null> {
@@ -46,16 +57,26 @@ export class SyntheticStepService {
             description: input.description ?? null,
             reactionType: input.reactionType ?? null
         }
-        await this.stepRepo.update({ id, userId }, patch)
-        return this.findOneById(userId, id, fieldsMap)
+        try {
+            const result = await this.stepRepo.update({ id, userId }, patch)
+            if ((result.affected ?? 0) === 0) {
+                throw applicationError(ApplicationErrorCode.SYNTHESIS_ACCESS_DENIED)
+            }
+            return this.findOneById(userId, id, fieldsMap)
+        } catch (error) {
+            return throwSynthPersistenceError(error)
+        }
     }
 
-    async delete(userId: UUID, id: UUID): Promise<boolean> {
+    async delete(userId: UUID, id: UUID): Promise<SynthCommandResult> {
         try {
-            await this.stepRepo.delete({ id, userId })
-            return true
-        } catch {
-            return false
+            const result = await this.stepRepo.delete({ id, userId })
+            if ((result.affected ?? 0) === 0) {
+                throw applicationError(ApplicationErrorCode.SYNTHESIS_ACCESS_DENIED)
+            }
+            return { success: true, outcome: SynthCommandOutcome.Deleted }
+        } catch (error) {
+            return throwSynthPersistenceError(error)
         }
     }
 
