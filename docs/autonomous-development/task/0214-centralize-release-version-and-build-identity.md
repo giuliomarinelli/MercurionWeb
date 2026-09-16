@@ -188,7 +188,21 @@ and propagate the CI-supplied `BUILD_REVISION` build argument to the build
 stages. The generator therefore continues deriving the release version from
 the root `package.json` and the revision from the immutable CI identity, with
 no duplicated version literal or fallback to container-local Git metadata.
-Repair commit and replacement feature-CI result are recorded below.
+
+Second bounded CI repair:
+
+- Exact repair SHA `722207bab42ac0a6fedbef5875d329f374654c93` failed run
+  `35132050609` in the existing `ci:rest-route-ownership` gate on both Ubuntu
+  and Windows because the REST route ownership inventory did not contain the
+  public `GET /api/version` route added by QA-028.
+- Added the deterministic ownership entry generated from
+  `node scripts/check-rest-route-ownership.mjs --write`, classified as an
+  active product feature owned by the Mercurion Angular application. The
+  generator-derived removal of the obsolete `/api/account/current-version`
+  reference was retained.
+- Focused repair validation passed: `npm run ci:rest-route-ownership` and
+  `git diff --check`.
+- Repair commit and replacement feature-CI result are recorded below.
 
 ### Rollback
 
