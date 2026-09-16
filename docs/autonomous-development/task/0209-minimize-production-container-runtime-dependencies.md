@@ -1,7 +1,7 @@
 # 0209 - Minimize production container runtime dependencies
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
@@ -111,8 +111,25 @@ _Not started._
 ### Commits
 _None._
 ### Merge / CI
-_Not started._
+Feature CI run `35064159032` failed before merge because the generated REST
+route ownership inventory was stale for `GET /og/mercurion-og.png`, and the
+runner Docker Scout CLI rejected `sbom --format`. The first repair also
+removed `--format`, but feature CI run `35064784534` showed that this runner
+rejects `--output` as well. The second repair captures Scout's default JSON
+stdout into the SBOM report while preserving exact-image digest verification
+and SARIF scanning; rerun exact-SHA feature CI after the repair push.
+The third repair addresses feature CI run `35065457627`, which failed only in
+`Container nest-production` because the runner had no `docker scout` plugin.
+The final repair feature CI run `35066388754` still failed in the same job:
+the pinned Syft fallback produced JSON output but exited unsuccessfully, and
+the checker failed closed with `image SBOM generation is unavailable; no
+supported fallback succeeded`. The configured feature-CI repair budget is
+exhausted, so this task is blocked before merge pending a supported CI image
+SBOM tool decision or runner capability.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-_None._
+The GitHub Actions container runner lacks Docker Scout and the pinned Syft
+fallback cannot complete successfully against the local image. A supported
+runner/tool decision is required before the exact-image SBOM and vulnerability
+evidence can be made green.
