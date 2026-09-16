@@ -135,7 +135,8 @@ Local `npm ci` and `npm run ci:check` were not run.
 ### Browser validation performed
 Not applicable.
 ### Commits
-Pending commit.
+`6b3e4c68` — disposable PostgreSQL fixture, migration-backed transaction
+integration tests, CI registration, diagnostics upload and local runbook.
 ### Merge / CI
 _Not started._
 ### Rollback
