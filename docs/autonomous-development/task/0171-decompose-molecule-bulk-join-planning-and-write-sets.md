@@ -131,7 +131,13 @@ and both the owned-molecules and ChEMBL selection paths were rendered,
 including the current selection UI. All task-owned runtime processes were
 stopped afterward and no task-owned process remained.
 ### Commits
-Pending commit on feature branch.
+`8c6f7b416dbce2d0193204956f1dd0966f01aeba` -
+`refactor: decompose molecule bulk join planning`
+
+### Merge / CI
+Feature SHA `8c6f7b416dbce2d0193204956f1dd0966f01aeba` passed GitHub Actions
+run `35089106194`, including all platform, unit, E2E, build, browser journey,
+database schema, and `Required gate` jobs.
 ### Merge / CI
 _Not started._
 ### Rollback
