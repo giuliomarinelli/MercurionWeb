@@ -1,7 +1,7 @@
 # 0214 - Centralize release version and build identity
 
-- [x] DONE
-- [ ] BLOCKED
+- [ ] DONE
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
@@ -210,4 +210,19 @@ _Not applicable._
 
 ### Blocker / human decision required
 
-_None._
+The configured feature-CI repair budget is exhausted. The task is blocked on
+`feature/QA-028` and the branch is frozen; no further implementation repair,
+merge, rebase, reset, or `develop` modification is authorized in this
+invocation.
+
+Final feature SHA `163b1ff89797f33c8e7381d1609e79a0894e23b2` failed exact CI run
+`35133938660` in Nest unit tests. TypeScript could not find the ignored
+generated module
+`MercurionWebNode/src/generated/build-identity.ts` while compiling
+`src/config/config.model.ts` (`TS2307`).
+
+The task received the configured three bounded CI-repair attempts. The initial
+feature-CI result and all three repair results were evaluated against their
+exact pushed feature SHAs; the final repair remained failed with the diagnostic
+above. No additional repair was attempted, and the feature branch is frozen at
+the final SHA.
