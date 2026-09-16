@@ -2,6 +2,8 @@
 
 FROM node:22.16.0-alpine AS dependencies
 WORKDIR /workspace
+ARG BUILD_REVISION
+ENV BUILD_REVISION=$BUILD_REVISION
 
 RUN apk add --no-cache \
   bash \
@@ -20,6 +22,7 @@ COPY packages/socket-contracts/package.json packages/socket-contracts/package.js
 RUN npm ci --ignore-scripts
 
 FROM dependencies AS source
+COPY scripts/build-identity.mjs scripts/build-identity.mjs
 COPY packages/rest-contracts packages/rest-contracts
 COPY packages/socket-contracts packages/socket-contracts
 COPY MercurionWebNg/patches MercurionWebNg/patches

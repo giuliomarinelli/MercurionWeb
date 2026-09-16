@@ -139,6 +139,16 @@ Passed:
 - Full Angular test suite: 480 tests passed
 - `git diff --check`
 
+CI-repair focused validation:
+
+- `npm run ci:containers` passed after the Dockerfile repair.
+- Angular staging container build passed with
+  `BUILD_REVISION=7d76295b342d6ba08a8db9bdd55aa043af64ce06`; its prebuild
+  generated `1.0.0@7d76295b342d6ba08a8db9bdd55aa043af64ce06`.
+- Nest staging container build passed with the same build arguments and
+  generated identity.
+- `git diff --check` passed.
+
 ### Full pre-merge CI-parity validation
 
 Not run locally because the repository protocol reserves `npm ci` and
@@ -162,7 +172,21 @@ after evidence capture.
 
 ### Merge / CI
 
-_Not started._
+Feature CI run `35130531726` for exact SHA
+`7d76295b342d6ba08a8db9bdd55aa043af64ce06` failed only in the six
+application container builds. Static/build identity checks passed. Each
+container build reached a workspace prebuild and failed because
+`/workspace/scripts/build-identity.mjs` was absent from the Docker build
+context:
+`Error: Cannot find module '/workspace/scripts/build-identity.mjs'`.
+
+Repair: both canonical application Dockerfiles now copy the shared
+`scripts/build-identity.mjs` into `/workspace/scripts` in their source stage
+and propagate the CI-supplied `BUILD_REVISION` build argument to the build
+stages. The generator therefore continues deriving the release version from
+the root `package.json` and the revision from the immutable CI identity, with
+no duplicated version literal or fallback to container-local Git metadata.
+Repair commit and replacement feature-CI result are recorded below.
 
 ### Rollback
 
