@@ -1,6 +1,6 @@
 # 0217 - Establish cross-transport observability and performance gates
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -101,23 +101,61 @@ Prefer a small context/telemetry port at boundaries over pervasive instrumentati
 
 ### Feature branch
 
-_Not started._
+`feature/QA-031`
 
 ### Preflight
 
-_Not started._
+Base SHA `8fc82c17c7741a97d1f3cb62e070358edad1719d` matched local
+`develop` and the feature branch. The exact base GitHub Actions CI run
+`35135316404` was successful. The Chrome DevTools surface probe succeeded
+without navigation. No application process was running before the probe.
+
+The runtime capability probe started Tox21, Nest and Angular in the required
+order, kept all three live through readiness, and stopped all three before
+implementation. Post-change validation repeated the same order and required
+two consecutive rounds of Angular shell `200` plus backend login validation
+`401`; `401` is the expected unauthenticated response for the synthetic
+non-production browser probe.
 
 ### Preflight remediation
 
-_None._
+None.
 
 ### Summary
 
-_Not started._
+Added a transport-neutral `AsyncLocalStorage` correlation contract with
+validated inbound IDs, generated IDs, HTTP response headers, correlated
+envelopes for NATS/background work, and a Fastify/Nest ingress middleware.
+The HTTP error presenter now reuses the ingress context so the request header,
+response header and public error envelope contain one correlation ID.
+Added recursive sensitive-field redaction, bounded metric dimensions and an
+in-memory metrics port for deterministic contract tests. Added the Angular
+HTTP interceptor and registered it with the existing DI interceptor chain.
+Added version-controlled workload budgets/tolerances and a CI performance
+gate with a deliberate-regression mode.
 
 ### Task-specific validation performed
 
-_Not started._
+`npm test --workspace mercurion_web_node -- --runInBand --runTestsByPath
+src/observability/correlation-context.spec.ts
+src/observability/redaction.spec.ts src/observability/metrics.spec.ts
+src/exception-handling/http-exception-filter.spec.ts` - passed, 4 suites,
+9 tests.
+
+`npm run typecheck --workspace mercurion_web_node` - passed.
+
+`npm run typecheck --workspace mercurion_web_ng` - passed.
+
+`npm run lint --workspace mercurion_web_node -- --no-warn-ignored` and
+`npm run lint:angular --workspace mercurion_web_ng -- --no-warn-ignored` -
+passed.
+
+`npm run ci:observability` - passed. The same runner with
+`--deliberate-regression` failed with the expected regression diagnostic,
+then the normal run passed.
+
+`git diff --check` - passed. Local `npm ci` and `npm run ci:check` were not
+run.
 
 ### Full pre-merge CI-parity validation
 
@@ -125,11 +163,18 @@ _Not started._
 
 ### Browser validation performed
 
-_Not applicable / not started._
+Through `http://localhost:8888/login`, the Angular form made an HTTP request
+with a bounded `x-correlation-id`. The backend returned the same value in
+the response header and safe error envelope; no credentials or tokens were
+used. The rendered login state was correct and the final browser console
+contained no new application warning after the stable retry. The first
+post-edit request overlapped a Nest watch restart and returned an edge `502`;
+it was re-observed after the process stabilized and the two required
+readiness rounds passed.
 
 ### Commits
 
-_Not recorded._
+Pending commit SHA.
 
 ### Merge / CI
 

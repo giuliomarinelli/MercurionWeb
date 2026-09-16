@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "workloads": [
+    { "name": "authentication/session", "budgetMs": 250, "tolerance": 0.2 },
+    { "name": "molecule read", "budgetMs": 300, "tolerance": 0.2 },
+    { "name": "molecule write", "budgetMs": 500, "tolerance": 0.2 },
+    { "name": "scientific RPC", "budgetMs": 1500, "tolerance": 0.25 }
+  ]
+}
