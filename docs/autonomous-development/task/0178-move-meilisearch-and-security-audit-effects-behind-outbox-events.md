@@ -1,6 +1,6 @@
 # 0178 - Move Meilisearch and security-audit effects behind outbox events
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -87,23 +87,64 @@ Do not serialize whole TypeORM entities into the outbox. Event payloads are expl
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-029` at base `e8971e04c133e977a5594303638b9e4890acaf7d`.
 ### Preflight
-_Not started._
+Clean feature branch and exact supplied green base confirmed. Local `commit.gpgSign=false`.
+Focused backend lint/typecheck baseline completed. Required runtime capability preflight
+started Tox21, Nest and Angular in the mandated order; nginx `/health` and `/` returned
+200 in two consecutive rounds. Chrome DevTools capability probe succeeded and the
+dedicated profile reached the login page. Task-owned processes were stopped before edits.
 ### Preflight remediation
-_None._
+The development database did not have the new outbox metadata columns because its
+historical migration table was not aligned with the checked-out baseline. The normal
+migration runner correctly refused to replay the initial schema; the task-only
+`correlation_id`, `causation_id`, and `occurred_at` columns were applied locally for
+runtime validation. No repository files or sibling repositories were changed.
 ### Summary
-Re-enabled after DATA-002 became `DONE`; this task was never attempted and has no feature branch.
+Extended the transactional notification outbox into a typed delivery channel for
+Meilisearch upserts/deletes, security-audit records, and application logs. Events now
+carry version, occurred-at, correlation/causation metadata and dedupe identity.
+Security audit and logger providers no longer call Meilisearch synchronously; the
+dispatcher performs retry/dead-letter delivery and idempotent document writes.
+MFA-disable and account-recovery mutations enqueue audit intent inside their existing
+database transaction contexts.
 ### Task-specific validation performed
-_Not started._
+`npm run typecheck --workspace mercurion_web_node` — passed.
+`npm run lint --workspace mercurion_web_node -- --quiet` — passed.
+Focused Jest suites for logger, security audit, and outbox dispatcher — 6 tests passed.
+`git diff --check` — passed.
 ### Full pre-merge CI-parity validation
-_Not started._
+Owned by GitHub Actions on the exact pushed feature SHA; not run locally per protocol.
 ### Browser validation performed
-_Not started._
+Canonical runtime was restarted after implementation and `/health` plus `/` returned 200
+for two consecutive rounds. Through `http://localhost:8888`, the dedicated browser
+profile performed a fresh ordinary test-account login, reached the authenticated
+dashboard, opened molecular search, queried `caffeine`, and observed searchable
+`CAFFEINA` and `ACEFILLINA` result cards. No credentials or session values were recorded.
+All task-owned runtime processes were stopped afterward.
 ### Commits
-_None._
+`7800b16b` — complete DATA-029 implementation.
+`5a57631e` — register outbox migration reachability and record CI repair evidence.
 ### Merge / CI
-_Not started._
+Not started; coordinator owns feature-SHA CI, merge, and merge-SHA CI.
+
+### CI repair
+- Exact feature-SHA run `35099072628` failed on both Ubuntu and Windows in
+  `nest-orphans` because
+  `src/persistence/migrations/1789661000000-ExtendOutboxForSearchAndAudit.ts`
+  was not registered as a dynamic TypeORM CLI reachability entrypoint.
+- Added the migration to `MercurionWebNode/nest-reachability.config.json`
+  using the existing DATA-028 registration convention.
+- Focused validation:
+  `npm run nest:orphans:check` — passed.
+  `npm run ci:architecture` — passed.
+  `npm test --workspace mercurion_web_node -- --runInBand
+  src/app_modules/meilisearch/services/meili-logger.service.spec.ts
+  src/app_modules/meilisearch/services/security-audit.service.spec.ts
+  src/app_modules/notification/services/outbox/notification-outbox-dispatcher.service.spec.ts`
+  — 3 suites, 6 tests passed.
+  `git diff --check` — passed.
+
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required

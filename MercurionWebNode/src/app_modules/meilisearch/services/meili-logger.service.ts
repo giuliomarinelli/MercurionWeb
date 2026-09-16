@@ -1,50 +1,38 @@
-import { Inject, Injectable, Logger, LogLevel, OnModuleInit } from '@nestjs/common';
-import { MeiliSearch } from 'meilisearch';
+import { Injectable, Logger, LogLevel } from '@nestjs/common';
 import { LogEntry } from '../models/dto/log-entry.interface';
 import { uuidv7 } from '@kripod/uuidv7';
-import { ConfigService } from '@nestjs/config';
-import { Environment } from 'src/config/config.schema';
 import { LoggerContext, LoggerPort } from 'src/logging/logger.port';
-import { errorMessage } from 'src/utils/errors/error-message'
 import { utcNow } from 'src/utils/temporal/temporal'
+import { NotificationOutboxService } from 'src/app_modules/notification/services/outbox/notification-outbox.service'
+import { OutboxEventType } from 'src/app_modules/notification/models/enums/outbox-event-type.enum'
+import { DataSource } from 'typeorm'
+import { runInTransaction } from 'src/persistence/transaction-context'
+import { UUID } from 'crypto'
 
 
 @Injectable()
-export class MeiliLoggerService extends LoggerPort implements OnModuleInit {
-
-    private lastMeiliFailure = 0
+export class MeiliLoggerService extends LoggerPort {
 
     constructor(
-        @Inject('MEILISEARCH_CLIENT')
-        private readonly meiliClient: MeiliSearch,
-        private readonly configService: ConfigService
+        private readonly outbox: NotificationOutboxService,
+        private readonly dataSource: DataSource
     ) {
         super()
     }
 
-    async onModuleInit(): Promise<void> {
-        await this.ensureIndexExists()
-    }
-
-    private async ensureIndexExists(): Promise<void> {
-        const env = this.configService.getOrThrow<Environment>('App.env')
-        const idxName = `mercurion_web_node_logs_${env}`
-        try {
-            await this.meiliClient.getIndex(idxName)
-        } catch {
-            await this.meiliClient.createIndex(idxName, { primaryKey: 'id' })
-        }
-    }
-
     private async sendToMeili(entry: LogEntry) {
         try {
-            await this.meiliClient.index('logs').addDocuments([entry])
-        } catch (err) {
-            const now = Date.now()
-            if (now - this.lastMeiliFailure > 10000) {
-                this.lastMeiliFailure = now;
-                super.error('[LOGGER] Failed to send log to Meili:', errorMessage(err))
-            }
+            await runInTransaction(this.dataSource, async (_context, manager) => {
+              await this.outbox.append(manager, {
+                  aggregateId: uuidv7() as UUID,
+                  eventType: OutboxEventType.LogRecorded,
+                  payload: { indexName: 'logs', document: entry },
+                  dedupeKey: `log:${entry.id}`,
+                  correlationId: entry.id as UUID
+              })
+            })
+        } catch (error) {
+            Logger.error(`[LOGGER_OUTBOX_FAILED] ${error instanceof Error ? error.message : String(error)}`)
         }
     }
 
