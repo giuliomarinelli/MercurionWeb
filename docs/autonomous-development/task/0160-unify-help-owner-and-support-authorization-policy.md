@@ -126,7 +126,8 @@ intentionally not run.
 ### Browser validation performed
 Not applicable per recipe.
 ### Commits
-Pending implementation and execution-notes commits.
+`d3700bb33` (`feat(help): unify owner and support authorization policy`, with
+required `Co-authored-by: GitHub Copilot <copilot@github.com>` trailer).
 ### Merge / CI
 _Not started._
 ### Rollback
