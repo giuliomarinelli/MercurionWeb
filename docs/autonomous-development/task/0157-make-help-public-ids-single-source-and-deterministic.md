@@ -132,10 +132,10 @@ the pushed feature SHA; local `npm ci` and `npm run ci:check` are prohibited.
 Not applicable per recipe.
 
 ### Commits
-Pending final task commit.
+- `54b5c80a` — `feat(DATA-008): make Help public IDs deterministic`
 
 ### Merge / CI
-Feature push and exact-SHA CI pending final task commit.
+Feature push and exact-SHA CI pending.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
