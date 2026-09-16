@@ -138,6 +138,11 @@ direct Nest dev dependencies, and no application/package source maps,
 declarations or TypeScript files. Docker Scout generated the digest-matched
 JSON SBOM and SARIF vulnerability report with 96 findings. The local image
 also passed the standalone non-root smoke window.
+Second CI repair validation: `node --check
+scripts/check-production-container.mjs`, `npm run ci:containers`, and
+`git diff --check` passed. The SBOM command now uses Docker Scout's default
+JSON stdout and writes it to `nest-production.sbom.json`; no local
+`npm ci` or `npm run ci:check` was run.
 ### Full pre-merge CI-parity validation
 Complete clean-install/aggregate validation remains owned by GitHub Actions on
 the exact pushed feature SHA; local `npm ci` and `npm run ci:check` were not
@@ -148,12 +153,15 @@ _Not started._
 `22c859bf4ae3a27edc7a7539b5c2b4589db45b48` — `qa: minimize Nest production image dependencies`
 `Pending CI repair commit` — refresh REST route ownership references and make
 Docker Scout SBOM generation compatible with the runner CLI by using its JSON
-default instead of the unsupported `sbom --format` flag.
+default instead of unsupported `sbom --format` and `--output` flags.
 ### Merge / CI
 Feature CI run `35064159032` failed before merge because the generated REST
 route ownership inventory was stale for `GET /og/mercurion-og.png`, and the
-runner Docker Scout CLI rejected `sbom --format`. Both issues were corrected
-on `feature/QA-023`; rerun exact-SHA feature CI after the repair push.
+runner Docker Scout CLI rejected `sbom --format`. The first repair also
+removed `--format`, but feature CI run `35064784534` showed that this runner
+rejects `--output` as well. The second repair captures Scout's default JSON
+stdout into the SBOM report while preserving exact-image digest verification
+and SARIF scanning; rerun exact-SHA feature CI after the repair push.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
