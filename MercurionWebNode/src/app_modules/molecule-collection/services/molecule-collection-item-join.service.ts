@@ -1,7 +1,7 @@
 import { MoleculeCollectionItemJoin } from './../models/entities/molecule-collection-item-join.entity';
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, EntityManager, In, Repository } from 'typeorm';
+import { DataSource, EntityManager, Repository } from 'typeorm';
 import { UUID } from 'crypto';
 import { uuidv7 } from '@kripod/uuidv7';
 import { MoleculeCollectionService } from './molecule-collection.service';
@@ -16,9 +16,9 @@ import { LoggerContext } from 'src/logging/logger.port';
 import { runInTransaction } from 'src/persistence/transaction-context';
 import {
     buildBulkJoinWriteSet,
-    distinctIds,
     planBulkJoinSelection
 } from './bulk-join-planner';
+import { MoleculeOwnershipPolicy } from './molecule-ownership.policy';
 
 @Injectable()
 export class MoleculeCollectionItemJoinService {
@@ -32,6 +32,7 @@ export class MoleculeCollectionItemJoinService {
         private readonly collectionService: MoleculeCollectionService,
         private readonly itemService: MoleculeCollectionItemService,
         private readonly moleculeService: MoleculeService,
+        private readonly ownershipPolicy: MoleculeOwnershipPolicy,
         meiliLogger: LoggerPort
     ) {
         this.logger = meiliLogger.forContext(MoleculeCollectionItemJoinService.name)
@@ -51,8 +52,8 @@ export class MoleculeCollectionItemJoinService {
         itemId: UUID,
         manager: EntityManager
     ): Promise<MoleculeCollectionItemJoin> {
-        await this.assertCollectionOwnership(manager, userId, collectionId);
-        await this.assertItemOwnership(manager, userId, itemId);
+        await this.ownershipPolicy.assertCollectionOwned(manager, userId, collectionId);
+        await this.ownershipPolicy.assertItemOwned(manager, userId, itemId);
 
         let join = await manager.findOne(MoleculeCollectionItemJoin, {
             where: { collectionId, itemId, userId }
@@ -125,7 +126,7 @@ export class MoleculeCollectionItemJoinService {
         manager: EntityManager
     ): Promise<UUID[]> {
 
-        await this.assertCollectionOwnership(manager, userId, collectionId);
+        await this.ownershipPolicy.assertCollectionOwned(manager, userId, collectionId);
         const selection = await this.planItemCandidates(manager, userId, itemIds, selectAll);
         if (selection.candidateIds.length === 0) return [];
 
@@ -232,10 +233,7 @@ export class MoleculeCollectionItemJoinService {
                 moleculeUUID = moleculeId as UUID
             }
         } else {
-            const ownsMolecule = await manager.exists(MoleculeCollectionItemEntity, {
-                where: { userId, id: moleculeId as UUID }
-            })
-            if (!ownsMolecule) {
+            if ((await this.ownershipPolicy.classifyItem(manager, userId, moleculeId as UUID)) !== 'owned') {
                 return {
                     ok: false,
                     moleculeUUID
@@ -277,38 +275,32 @@ export class MoleculeCollectionItemJoinService {
         }
     }
 
-    private async assertCollectionOwnership(manager: EntityManager, userId: UUID, collectionId: UUID): Promise<void> {
-        const owns = await manager.exists(MoleculeCollection, { where: { id: collectionId, userId } })
-        if (!owns) {
-            throw new ForbiddenException('CollectionAccessForbidden')
-        }
-    }
-
-    private async assertItemOwnership(manager: EntityManager, userId: UUID, itemId: UUID): Promise<void> {
-        const owns = await manager.exists(MoleculeCollectionItemEntity, { where: { id: itemId, userId } })
-        if (!owns) {
-            throw new ForbiddenException('MoleculeAccessForbidden')
-        }
-    }
-
     private async planItemCandidates(
         manager: EntityManager, userId: UUID, requestedIds: UUID[], selectAll: boolean
     ) {
-        const rows = await manager.find(MoleculeCollectionItemEntity, {
-            where: { userId, ...(selectAll ? {} : { id: In(distinctIds(requestedIds)) }) },
-            select: { id: true }
-        })
-        return planBulkJoinSelection({ requestedIds, selectAll }, rows.map(row => row.id))
+        const classification = await this.ownershipPolicy.classifyItems(manager, userId, requestedIds)
+        if (selectAll) {
+            const rows = await manager.find(MoleculeCollectionItemEntity, {
+                where: { userId },
+                select: { id: true }
+            })
+            return planBulkJoinSelection({ requestedIds, selectAll }, rows.map(row => row.id))
+        }
+        return planBulkJoinSelection({ requestedIds, selectAll }, classification.ownedIds)
     }
 
     private async planCollectionCandidates(
         manager: EntityManager, userId: UUID, requestedIds: UUID[], selectAll: boolean
     ) {
-        const rows = await manager.find(MoleculeCollection, {
-            where: { userId, ...(selectAll ? {} : { id: In(distinctIds(requestedIds)) }) },
-            select: { id: true }
-        })
-        return planBulkJoinSelection({ requestedIds, selectAll }, rows.map(row => row.id))
+        const classification = await this.ownershipPolicy.classifyCollections(manager, userId, requestedIds)
+        if (selectAll) {
+            const rows = await manager.find(MoleculeCollection, {
+                where: { userId },
+                select: { id: true }
+            })
+            return planBulkJoinSelection({ requestedIds, selectAll }, rows.map(row => row.id))
+        }
+        return planBulkJoinSelection({ requestedIds, selectAll }, classification.ownedIds)
     }
 
     private async findExistingItemJoins(
