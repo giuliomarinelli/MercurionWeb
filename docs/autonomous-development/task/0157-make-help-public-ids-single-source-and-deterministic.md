@@ -125,8 +125,11 @@ without mutating persistence entities.
 - `git diff --check` — passed.
 
 ### Full pre-merge CI-parity validation
-Complete clean-install/aggregate validation is delegated to GitHub Actions for
-the pushed feature SHA; local `npm ci` and `npm run ci:check` are prohibited.
+Exact feature-SHA GitHub Actions run `35040068965`
+(`https://github.com/giuliomarinelli/MercurionWeb/actions/runs/35040068965`)
+for `e3b0e2a1ea3d813ddc3e521472c02616ff9cab4d` completed successfully with
+both platform prerequisite jobs, all aggregate test/build/E2E jobs, and
+`Required gate` green. Local `npm ci` and `npm run ci:check` were not run.
 
 ### Browser validation performed
 Not applicable per recipe.
@@ -135,7 +138,8 @@ Not applicable per recipe.
 - `54b5c80a` — `feat(DATA-008): make Help public IDs deterministic`
 
 ### Merge / CI
-Feature push and exact-SHA CI pending.
+Feature CI passed for `e3b0e2a1`; coordinator owns integration and post-merge
+CI.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
