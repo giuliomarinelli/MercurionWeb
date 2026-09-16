@@ -1,6 +1,6 @@
 # 0209 - Minimize production container runtime dependencies
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -95,21 +95,57 @@ Scan what will execute. A clean source dependency audit does not prove that a co
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/QA-023`
 ### Preflight
-_Not started._
+Clean feature branch at exact base SHA
+`d6d23423cbf25ce3563e3bd7d465f33b0ef67a16`, matching `origin/develop`.
+Repository-local `commit.gpgSign` is `false`; no task-owned application
+process was active. Exact-base GitHub Actions run `35061870881` completed
+successfully. The unchanged-base `npm run ci:containers` check passed.
+The before image `mercurion-qa023-before` resolved to
+`sha256:5d52a5b703751af10defe381f21c598e49095a7dd477676b70d1b572b96e7f6a`,
+with size `1445123166` bytes, 1743 Scout SBOM artifacts, and direct dev
+tooling (`@nestjs/cli`, `jest`) present.
 ### Preflight remediation
 _None._
 ### Summary
-Re-enabled after DATA-002 became `DONE`; this task was never attempted and has no feature branch.
+The Nest production target now installs a separate deterministic
+`npm ci --omit=dev` dependency layer, rebuilds native package lifecycle
+artifacts for the final Alpine ABI, and copies only compiled Nest output,
+compiled shared contracts, declared assets and production dependencies.
+Build metadata, source maps and source-only TypeScript artifacts are pruned
+from the production target. Staging and test targets retain their existing
+full dependency contract.
+
+The production CI matrix now runs an exact-image regression script that
+asserts required runtime assets and native modules, rejects every direct Nest
+development dependency and forbidden source/cache artifact, records image
+size/package count/digest, emits a Docker Scout SBOM tied to that digest, and
+produces a SARIF vulnerability scan for the same local image.
 ### Task-specific validation performed
-_Not started._
+`npm run ci:containers` passed after the Dockerfile changes.
+`node --check scripts/check-production-container.mjs` passed.
+`npm run ci:build:nest` passed, including the compiled email-template asset
+check. The final `mercurion-qa023-after` image built successfully with
+`docker build --pull --no-cache --file MercurionWebNode/Dockerfile
+--target production`. `check-container-runtime.mjs` and
+`smoke-container-runtime.mjs` passed under user `10001:10001`.
+`check-production-container.mjs` passed against exact image digest
+`sha256:e9a22fa72c9756d2cdf8c30648a634d2cd9882f0696df055101a1a7d7aff76d9`:
+size `656057224` bytes, `772` SBOM artifacts, `461` top-level runtime
+modules, 9 required runtime files, 5 required native/runtime modules, no
+direct Nest dev dependencies, and no application/package source maps,
+declarations or TypeScript files. Docker Scout generated the digest-matched
+JSON SBOM and SARIF vulnerability report with 96 findings. The local image
+also passed the standalone non-root smoke window.
 ### Full pre-merge CI-parity validation
-_Not started._
+Complete clean-install/aggregate validation remains owned by GitHub Actions on
+the exact pushed feature SHA; local `npm ci` and `npm run ci:check` were not
+run.
 ### Browser validation performed
 _Not started._
 ### Commits
-_None._
+Pending task-specific commit.
 ### Merge / CI
 _Not started._
 ### Rollback

@@ -57,7 +57,21 @@ RUN find . -type f \( \
   -name "*.pem" -o -name "*.key" -o \
   -name "*.p12" -o -name "*.pfx" \
 \) -print -delete
-RUN npm run build
+RUN npm run build && \
+  find dist -type f \( \
+    -name "*.map" -o \
+    -name "*.d.ts" -o \
+    -name "*.ts" -o \
+    -name "*.tsbuildinfo" \
+  \) -print -delete && \
+  find ../packages/rest-contracts/dist ../packages/socket-contracts/cjs ../packages/socket-contracts/esm \
+    -type f \( -name "*.map" -o -name "*.d.ts" \) -print -delete
+
+FROM dependencies AS production-dependencies
+ENV NODE_ENV=production
+RUN rm -rf node_modules && \
+  npm ci --workspace mercurion_web_node --include-workspace-root=false --omit=dev --ignore-scripts && \
+  npm rebuild argon2 --omit=dev
 
 FROM node:22.16.0-alpine AS runtime
 WORKDIR /usr/src/app
@@ -95,6 +109,10 @@ FROM runtime AS production
 ENV APP_ENV=production
 COPY --from=build-production --chown=10001:10001 /workspace/MercurionWebNode/dist ./dist
 COPY --from=build-production --chown=10001:10001 /workspace/MercurionWebNode/package.json ./package.json
-COPY --from=build-production --chown=10001:10001 /workspace/node_modules ./node_modules
-COPY --from=build-production --chown=10001:10001 /workspace/packages/rest-contracts ./packages/rest-contracts
-COPY --from=build-production --chown=10001:10001 /workspace/packages/socket-contracts ./packages/socket-contracts
+COPY --from=production-dependencies --chown=10001:10001 /workspace/node_modules ./node_modules
+COPY --from=build-production --chown=10001:10001 /workspace/packages/rest-contracts/dist ./packages/rest-contracts/dist
+COPY --from=build-production --chown=10001:10001 /workspace/packages/rest-contracts/package.json ./packages/rest-contracts/package.json
+COPY --from=build-production --chown=10001:10001 /workspace/packages/socket-contracts/cjs ./packages/socket-contracts/cjs
+COPY --from=build-production --chown=10001:10001 /workspace/packages/socket-contracts/esm ./packages/socket-contracts/esm
+COPY --from=build-production --chown=10001:10001 /workspace/packages/socket-contracts/package.json ./packages/socket-contracts/package.json
+COPY --from=build-production --chown=10001:10001 /workspace/MercurionWebNode/assets-root ./assets-root

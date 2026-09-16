@@ -41,6 +41,7 @@
     "ci:build:nest": "npm run build --workspace mercurion_web_node && npm run ci:email-assets --workspace mercurion_web_node",
     "ci:build": "npm run ci:build:angular && npm run ci:build:nest",
     "ci:containers": "node scripts/check-container-builds.mjs",
+    "ci:container-production": "node scripts/check-production-container.mjs",
     "ci:container-runtime": "node scripts/check-container-runtime.mjs",
     "smoke:container-runtime": "node scripts/smoke-container-runtime.mjs",
     "ci:graphql:nest": "npm run graphql:schema:check --workspace mercurion_web_node",
