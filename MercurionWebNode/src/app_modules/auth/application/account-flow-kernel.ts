@@ -37,6 +37,7 @@ import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 import { MfaStrategy } from 'src/app_modules/user/models/enums/mfa-strategy.enum';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 import { redisDurations, redisKeys } from 'src/app_modules/redis/contracts/redis-contracts'
+import { AtomicAttemptPolicyService } from 'src/app_modules/redis/services/atomic-attempt-policy.service'
 import { afterTransactionCommit, runInTransaction, transactionManager, UnitOfWork } from 'src/persistence/transaction-context'
 import { InitialWorkspaceService } from 'src/app_modules/molecule-collection/services/initial-workspace.service'
 import { ActivationReceipt } from '../models/entities/activation-receipt.entity'
@@ -53,28 +54,6 @@ export class AccountFlowKernel {
 
     private readonly CHANGE_PASSWORD_TOKEN_EXPIRATION_MS: number
 
-    private readonly CHANGE_CONTACT_FAIL_WINDOW_SECONDS = 10 * 60
-    private readonly CHANGE_CONTACT_MAX_FAILS = 5
-    private readonly CHANGE_CONTACT_LOCK_SECONDS = 15 * 60
-
-    private readonly CHANGE_CONTACT_SEND_WINDOW_SECONDS = 10 * 60
-    private readonly CHANGE_CONTACT_MAX_SENDS = 5
-
-    private readonly PASSWORD_FAIL_WINDOW_SECONDS = 10 * 60
-    private readonly PASSWORD_MAX_FAILS = 5
-    private readonly PASSWORD_LOCK_SECONDS = 15 * 60
-
-    private readonly PASSWORD_RESET_SEND_WINDOW_SECONDS = 10 * 60
-    private readonly PASSWORD_RESET_MAX_SENDS = 5
-
-    private readonly RECOVERY_FAIL_WINDOW_SECONDS = 24 * 60 * 60  // 1 giorno
-    private readonly RECOVERY_MAX_FAILS = 2
-    private readonly RECOVERY_LOCK_SECONDS = 24 * 60 * 60
-
-    private readonly RECOVERY_SECOND_FAIL_WINDOW_SECONDS = 10 * 60
-    private readonly RECOVERY_SECOND_MAX_FAILS = 2
-    private readonly RECOVERY_SECOND_LOCK_SECONDS = 15 * 60
-
     private readonly redisIdHmacSecret: string
 
     constructor(
@@ -86,6 +65,7 @@ export class AccountFlowKernel {
         private readonly mailService: MailSenderService,
         private readonly smsService: SmsSenderService,
         private readonly redisService: RedisService,
+        private readonly attempts: AtomicAttemptPolicyService,
         private readonly sessionService: SessionService,
         private readonly _r: ResponseService,
         private readonly securityAuditService: SecurityAuditService,
@@ -142,54 +122,44 @@ export class AccountFlowKernel {
     }
 
     private async ensureRecoverySecondNotLocked(userId: UUID) {
-        if (await this.redisService.exists(this.getRecoverySecondLockKey(userId))) {
+        if (!await this.attempts.assertAllowed('accountRecoverySecondFailure', this.getRecoverySecondLockKey(userId))) {
             throw applicationError(ApplicationErrorCode.ACCOUNT_RECOVERY_SECOND_TOO_MANY_ATTEMPTS)
         }
     }
 
     private async registerRecoverySecondFailure(userId: UUID) {
-        const failKey = this.getRecoverySecondFailKey(userId)
-        const lockKey = this.getRecoverySecondLockKey(userId)
-
-        const fails = await this.redisService.incr(failKey)
-        if (fails === 1) {
-            await this.redisService.setTTL(failKey, redisDurations.seconds(this.RECOVERY_SECOND_FAIL_WINDOW_SECONDS))
-        }
-
-        if (fails >= this.RECOVERY_SECOND_MAX_FAILS) {
-            await this.redisService.set(lockKey, '1', redisDurations.seconds(this.RECOVERY_SECOND_LOCK_SECONDS))
-            await this.redisService.del(failKey)
-        }
+        await this.attempts.recordFailure(
+            'accountRecoverySecondFailure',
+            this.getRecoverySecondFailKey(userId),
+            this.getRecoverySecondLockKey(userId)
+        )
     }
 
     private async clearRecoverySecondFailures(userId: UUID) {
-        await this.redisService.del(this.getRecoverySecondFailKey(userId))
-        await this.redisService.del(this.getRecoverySecondLockKey(userId))
+        await this.attempts.reset(
+            'accountRecoverySecondFailure',
+            this.getRecoverySecondFailKey(userId),
+            this.getRecoverySecondLockKey(userId)
+        )
     }
 
     private async ensureRecoveryNotLocked(code: string) {
-        if (await this.redisService.exists(this.getRecoveryLockKey(code))) {
+        if (!await this.attempts.assertAllowed('accountRecoveryFailure', this.getRecoveryLockKey(code))) {
             throw applicationError(ApplicationErrorCode.ACCOUNT_RECOVERY_TOO_MANY_ATTEMPTS)
         }
     }
 
     private async registerRecoveryFailure(code: string) {
-        const failKey = this.getRecoveryFailKey(code)
-        const lockKey = this.getRecoveryLockKey(code)
-
-        const fails = await this.redisService.incr(failKey)
-        if (fails === 1) await this.redisService.setTTL(failKey, redisDurations.seconds(this.RECOVERY_FAIL_WINDOW_SECONDS))
-
-        if (fails >= this.RECOVERY_MAX_FAILS) {
-            await this.redisService.set(lockKey, '1', redisDurations.seconds(this.RECOVERY_LOCK_SECONDS))
-            await this.redisService.del(failKey)
-        }
+        await this.attempts.recordFailure(
+            'accountRecoveryFailure',
+            this.getRecoveryFailKey(code),
+            this.getRecoveryLockKey(code)
+        )
     }
 
     private async ensureContactChangeNotLocked(userId: UUID, kind: ContactChangeKind): Promise<void> {
         const lockKey = this.getChangeLockKey(userId, kind)
-        const locked = await this.redisService.exists(lockKey)
-        if (locked) {
+        if (!await this.attempts.assertAllowed('accountContactFailure', lockKey)) {
             throw applicationError(ApplicationErrorCode.ACCOUNT_CONTACT_CHANGE_TOO_MANY_ATTEMPTS, `Change${kind.charAt(0).toUpperCase()}${kind.slice(1)}::TooManyAttempts`)
         }
     }
@@ -199,41 +169,25 @@ export class AccountFlowKernel {
         const failKey = this.getChangeFailKey(userId, kind)
         const lockKey = this.getChangeLockKey(userId, kind)
 
-        const fails = await this.redisService.incr(failKey)
-
-        if (fails === 1) {
-            await this.redisService.setTTL(failKey, redisDurations.seconds(this.CHANGE_CONTACT_FAIL_WINDOW_SECONDS))
-        }
-
-        if (fails >= this.CHANGE_CONTACT_MAX_FAILS) {
-            await this.redisService.set(lockKey, '1', redisDurations.seconds(this.CHANGE_CONTACT_LOCK_SECONDS))
-            await this.redisService.del(failKey)
-        }
+        await this.attempts.recordFailure('accountContactFailure', failKey, lockKey)
     }
 
     private async clearContactChangeFailures(userId: UUID, kind: ContactChangeKind): Promise<void> {
         const failKey = this.getChangeFailKey(userId, kind)
         const lockKey = this.getChangeLockKey(userId, kind)
-        await this.redisService.del(failKey)
-        await this.redisService.del(lockKey)
+        await this.attempts.reset('accountContactFailure', failKey, lockKey)
     }
 
     private async throttleContactChangeSend(userId: UUID, kind: ContactChangeKind): Promise<void> {
         const countKey = this.getChangeSendKey(userId, kind)
         const lockKey = this.getChangeSendLockKey(userId, kind)
 
-        const locked = await this.redisService.exists(lockKey)
-        if (locked) {
+        if (!await this.attempts.assertAllowed('accountContactSend', lockKey)) {
             throw applicationError(ApplicationErrorCode.ACCOUNT_CONTACT_CHANGE_SEND_TOO_MANY_REQUESTS, `Change${kind.charAt(0).toUpperCase()}${kind.slice(1)}Send::TooManyRequests`)
         }
 
-        const cnt = await this.redisService.incr(countKey)
-        if (cnt === 1) {
-            await this.redisService.setTTL(countKey, redisDurations.seconds(this.CHANGE_CONTACT_SEND_WINDOW_SECONDS))
-        }
-
-        if (cnt > this.CHANGE_CONTACT_MAX_SENDS) {
-            await this.redisService.set(lockKey, '1', redisDurations.seconds(this.CHANGE_CONTACT_LOCK_SECONDS))
+        const result = await this.attempts.recordSend('accountContactSend', countKey, lockKey)
+        if (!result.allowed) {
             throw applicationError(ApplicationErrorCode.ACCOUNT_CONTACT_CHANGE_SEND_TOO_MANY_REQUESTS, `Change${kind.charAt(0).toUpperCase()}${kind.slice(1)}Send::TooManyRequests`)
         }
     }
@@ -256,8 +210,7 @@ export class AccountFlowKernel {
 
     private async ensurePasswordNotLocked(userId: UUID, context: PasswordContext = PasswordContext.CHANGE): Promise<void> {
         const lockKey = this.getPasswordLockKey(userId, context)
-        const locked = await this.redisService.exists(lockKey)
-        if (locked) {
+        if (!await this.attempts.assertAllowed('accountPasswordFailure', lockKey)) {
             throw applicationError(ApplicationErrorCode.PASSWORD_TOO_MANY_ATTEMPTS)
         }
     }
@@ -266,23 +219,13 @@ export class AccountFlowKernel {
         const failKey = this.getPasswordFailKey(userId, context)
         const lockKey = this.getPasswordLockKey(userId, context)
 
-        const fails = await this.redisService.incr(failKey)
-
-        if (fails === 1) {
-            await this.redisService.setTTL(failKey, redisDurations.seconds(this.PASSWORD_FAIL_WINDOW_SECONDS))
-        }
-
-        if (fails >= this.PASSWORD_MAX_FAILS) {
-            await this.redisService.set(lockKey, '1', redisDurations.seconds(this.PASSWORD_LOCK_SECONDS))
-            await this.redisService.del(failKey)
-        }
+        await this.attempts.recordFailure('accountPasswordFailure', failKey, lockKey)
     }
 
     private async clearPasswordFailures(userId: UUID, context: PasswordContext = PasswordContext.CHANGE): Promise<void> {
         const failKey = this.getPasswordFailKey(userId, context)
         const lockKey = this.getPasswordLockKey(userId, context)
-        await this.redisService.del(failKey)
-        await this.redisService.del(lockKey)
+        await this.attempts.reset('accountPasswordFailure', failKey, lockKey)
     }
 
     private async throttlePasswordResetSend(userId: UUID, context: PasswordContext = PasswordContext.RESET_SEND): Promise<void> {
@@ -290,18 +233,12 @@ export class AccountFlowKernel {
         const countKey = this.getPasswordResetSendKey(userId, context)
         const lockKey = this.getPasswordResetSendLockKey(userId, context)
 
-        const locked = await this.redisService.exists(lockKey)
-        if (locked) {
+        if (!await this.attempts.assertAllowed('accountPasswordSend', lockKey)) {
             throw applicationError(ApplicationErrorCode.PASSWORD_RESET_SEND_TOO_MANY_REQUESTS)
         }
 
-        const cnt = await this.redisService.incr(countKey)
-        if (cnt === 1) {
-            await this.redisService.setTTL(countKey, redisDurations.seconds(this.PASSWORD_RESET_SEND_WINDOW_SECONDS))
-        }
-
-        if (cnt > this.PASSWORD_RESET_MAX_SENDS) {
-            await this.redisService.set(lockKey, '1', redisDurations.seconds(this.PASSWORD_LOCK_SECONDS))
+        const result = await this.attempts.recordSend('accountPasswordSend', countKey, lockKey)
+        if (!result.allowed) {
             throw applicationError(ApplicationErrorCode.PASSWORD_RESET_SEND_TOO_MANY_REQUESTS)
         }
     }

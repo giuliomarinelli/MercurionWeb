@@ -54,12 +54,10 @@ describe('credential authentication handlers', () => {
             getLocation: jest.fn(),
             isTrustedLocation: jest.fn()
         }
-        const redisService = {
-            exists: jest.fn(),
-            del: jest.fn(),
-            incr: jest.fn(),
-            set: jest.fn(),
-            setTTL: jest.fn(),
+        const attempts = {
+            assertAllowed: jest.fn(),
+            recordFailure: jest.fn(),
+            reset: jest.fn(),
         }
         const authenticationSession = {
             generateFingerprint: jest.fn(() => 'fingerprint'),
@@ -78,7 +76,7 @@ describe('credential authentication handlers', () => {
             jest.clearAllMocks()
             appConfiguration.env = 'development'
             appConfiguration.localTestAccountEmail = 'automation@example.test'
-            redisService.exists.mockResolvedValue(false)
+            attempts.assertAllowed.mockResolvedValue(true)
             userService.getVerifiedUserAuthByEmail.mockResolvedValue({
                 userId,
                 passwordHash: 'encoded-password',
@@ -120,7 +118,7 @@ describe('credential authentication handlers', () => {
             securityService as never,
             mfaService as never,
             geoIpService as never,
-            redisService as never,
+            attempts as never,
             authenticationSession as never,
             configService as never
         )
@@ -185,7 +183,7 @@ describe('credential authentication handlers', () => {
 
         it.each([
             {
-                arrange: () => redisService.exists.mockResolvedValue(true),
+                arrange: () => attempts.assertAllowed.mockResolvedValue(false),
                 code: ApplicationErrorCode.AUTHENTICATION_TOO_MANY_ATTEMPTS
             },
             {
@@ -198,7 +196,11 @@ describe('credential authentication handlers', () => {
             code
         }) => {
             arrange()
-            redisService.incr.mockResolvedValue(1)
+            attempts.recordFailure.mockResolvedValue({
+                allowed: true,
+                count: 1,
+                locked: false
+            })
 
             try {
                 await createHandler().execute({
