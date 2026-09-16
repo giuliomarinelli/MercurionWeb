@@ -6,6 +6,7 @@ import {
   Index,
   BeforeInsert,
   Generated,
+  Check,
 } from 'typeorm'
 import { TicketStatus } from '../enums/ticket-status.enum'
 import { uuidv7 } from '@kripod/uuidv7'
@@ -14,6 +15,7 @@ import { TicketMessage } from './ticket-message.entity'
 
 @Entity({ name: 'tickets' })
 @Index('tickets_user_last_idx', ['userId', 'lastMessageAt'])
+@Check('ck_tickets_public_id_positive', '"public_id" > 0')
 export class Ticket {
 
   @PrimaryColumn('uuid')
