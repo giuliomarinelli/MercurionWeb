@@ -6,6 +6,11 @@ import { UUID } from 'crypto';
 import { NotebookSection } from '../models/entities/lab-notebook-section.entity';
 import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
 import { runInTransaction } from 'src/persistence/transaction-context';
+import {
+    NotebookPageCreateCommand,
+    NotebookPagePatchCommand,
+    toNotebookPagePatch
+} from '../models/dto/notebook-mutation.commands';
 
 @Injectable()
 export class NotebookPageService {
@@ -17,7 +22,7 @@ export class NotebookPageService {
         private readonly pageRepo: Repository<NotebookPage>
     ) { }
 
-    async createPage(sectionId: UUID, userId: UUID, data: Partial<NotebookPage>): Promise<NotebookPage> {
+    async createPage(sectionId: UUID, userId: UUID, data: NotebookPageCreateCommand): Promise<NotebookPage> {
         return runInTransaction(this.pageRepo.manager, async (_context, manager) => {
             const { max } = await manager
                 .createQueryBuilder(NotebookPage, 'page')
@@ -28,7 +33,8 @@ export class NotebookPageService {
             const maxOrder = max != null ? Number(max) : 0
 
             const newPage = manager.create(NotebookPage, {
-                ...data,
+                title: data.title,
+                content: data.content,
                 userId,
                 section: { id: sectionId } as NotebookSection,
                 order: (Number(maxOrder) || 0) + 1
@@ -122,8 +128,11 @@ export class NotebookPageService {
         return pages
     }
 
-    async updatePage(id: UUID, userId: UUID, data: Partial<NotebookPage>): Promise<NotebookPage | null> {
-        await this.pageRepo.update({ id, userId }, { updatedAt: Date.now(), ...data })
+    async updatePage(id: UUID, userId: UUID, data: NotebookPagePatchCommand): Promise<NotebookPage | null> {
+        await this.pageRepo.update({ id, userId }, {
+            updatedAt: Date.now(),
+            ...toNotebookPagePatch(data)
+        })
         return this.getPage(id, userId)
     }
 

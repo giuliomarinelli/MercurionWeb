@@ -22,6 +22,7 @@ import {
   applicationError
 } from 'src/exception-handling/application-error';
 import { runInTransaction } from 'src/persistence/transaction-context';
+import { MoleculeCollectionPatchCommand, toMoleculeCollectionPatch } from '../models/dto/molecule-mutation.commands';
 
 @Injectable()
 export class MoleculeCollectionService {
@@ -408,9 +409,12 @@ WHERE i.user_id = $2::uuid
     return pruneNullCollectionJoins(rows)
   }
 
-  async update(id: UUID, userId: UUID, input: Partial<MoleculeCollection>, fieldsMap: GraphQLFieldsMap): Promise<MoleculeCollection | null> {
+  async update(id: UUID, userId: UUID, input: MoleculeCollectionPatchCommand, fieldsMap: GraphQLFieldsMap): Promise<MoleculeCollection | null> {
     try {
-      await this.collectionRepo.update({ id, userId }, { ...input, updatedAt: Date.now() })
+      await this.collectionRepo.update({ id, userId }, {
+        ...toMoleculeCollectionPatch(input),
+        updatedAt: Date.now()
+      })
     } catch (error) {
       if (this.isCollectionNameConflict(error)) {
         throw applicationError(ApplicationErrorCode.MOLECULE_COLLECTION_NAME_CONFLICT)

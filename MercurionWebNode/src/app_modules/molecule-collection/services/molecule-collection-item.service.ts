@@ -4,7 +4,6 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, EntityManager, In, Repository } from 'typeorm';
 import { UUID } from 'crypto';
-import { CreateMoleculeItemInput } from '../models/dto/create-molecule-item.input';
 import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
 import { GraphQLFieldsMap, TypeOrmUtils } from 'src/utils/type-orm-utils/type-orm-utils';
 import { uuidv7 } from '@kripod/uuidv7';
@@ -23,6 +22,12 @@ import { pruneNullCollectionJoins } from '../utils/prune-molecule-collection-joi
 import { MoleculeCollectionItemDTO } from '../models/dto/molecule-collection-item.union';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 import { runInTransaction } from 'src/persistence/transaction-context'
+import {
+    MoleculeItemCreateCommand,
+    MoleculeItemPatchCommand,
+    toMoleculeItemCreatePatch,
+    toMoleculeItemPatch
+} from '../models/dto/molecule-mutation.commands'
 
 
 // TODO: valutare un refactoring per dryificare la duplicazione di logica tra questo service e i service delle entità figlie concrete
@@ -106,8 +111,12 @@ export class MoleculeCollectionItemService {
         })))
     }
 
-    async create(userId: UUID, input: CreateMoleculeItemInput): Promise<MoleculeCollectionItemEntity> {
-        const entity = this.itemRepo.create({ id: uuidv7() as UUID, ...input, userId })
+    async create(userId: UUID, input: MoleculeItemCreateCommand): Promise<MoleculeCollectionItemEntity> {
+        const entity = this.itemRepo.create({
+            id: uuidv7() as UUID,
+            ...toMoleculeItemCreatePatch(input),
+            userId
+        })
         const persisted = await this.itemRepo.save(entity)
         await this.markAsTouched(userId, persisted.id)
         return persisted
@@ -453,8 +462,11 @@ export class MoleculeCollectionItemService {
     }
 
 
-    async update(id: UUID, userId: UUID, input: Partial<MoleculeCollectionItemEntity>, fieldsMap: GraphQLFieldsMap): Promise<MoleculeCollectionItemEntity | null> {
-        await this.itemRepo.update({ id, userId }, { ...input, updatedAt: Date.now() })
+    async update(id: UUID, userId: UUID, input: MoleculeItemPatchCommand, fieldsMap: GraphQLFieldsMap): Promise<MoleculeCollectionItemEntity | null> {
+        await this.itemRepo.update({ id, userId }, {
+            ...toMoleculeItemPatch(input),
+            updatedAt: Date.now()
+        })
         await this.markAsTouched(userId, id)
         return this.findOne(id, userId, fieldsMap)
     }

@@ -57,7 +57,12 @@ export class CustomMoleculeItemService {
             if (!item) {                
                 item = this.customRepo.create({
                     id: uuidv7() as UUID,
-                    ...input,             
+                    canonicalSmiles: input.canonicalSmiles,
+                    molFormula: input.molFormula,
+                    name: input.name,
+                    propertiesJson: input.propertiesJson,
+                    label: input.label,
+                    notes: input.notes,
                     userId,
                     type: 'custom',
                     createdAt: Date.now(),
