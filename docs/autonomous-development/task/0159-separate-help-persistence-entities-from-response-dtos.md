@@ -119,12 +119,20 @@ Not applicable per recipe.
 ### Commits
 `f2c4c2c2ac0c701c19390db60ba8a7432b22e492`
 (`feat(help): separate persistence entities from response DTOs`, with required
-Co-authored-by trailer).
+Co-authored-by trailer); `fcbd4718f647f617c13a12aa13edff3d58154df4`
+(`docs(task): record DATA-010 validation`, with required Co-authored-by
+trailer).
 ### Merge / CI
-Exact feature SHA `f2c4c2c2ac0c701c19390db60ba8a7432b22e492` Actions run
-`35043798417` completed successfully. Ubuntu and Windows prerequisites,
+Implementation SHA `f2c4c2c2ac0c701c19390db60ba8a7432b22e492` Actions run
+`35043798417` completed successfully. Final feature SHA
+`fcbd4718f647f617c13a12aa13edff3d58154df4` Actions run `35044274747`
+completed successfully via the repository's metadata validation path because
+the final delta was execution notes only. The implementation run had Ubuntu
+and Windows prerequisites,
 Nest/Angular unit and E2E suites, GraphQL/static gates, builds, container
-checks, browser journeys, database schema, and `Required gate` were green.
+checks, browser journeys, database schema, and `Required gate` green; the
+final run's autonomous validators, metadata check, and `Required gate` were
+also green.
 Integration remains coordinator-owned; this worker did not merge or mutate
 `develop`.
 ### Rollback
