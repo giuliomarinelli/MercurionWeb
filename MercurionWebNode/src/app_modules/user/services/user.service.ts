@@ -194,7 +194,7 @@ export class UserService implements IdentityReadPort {
         return this.userRepository.findOne({ where })
     }
 
-    public async updateUser(id: UUID, userProps: Partial<User>): Promise<User | nullish> {
+    public async updateUser(id: UUID, userProps: Partial<User>, context?: TransactionContext): Promise<User | nullish> {
         return runInTransaction(this.dataSource, async (_context, manager) => {
             const updateResult = await manager.update<User>(User, { id }, { ...userProps })
             if (updateResult.affected === 0) {
@@ -206,7 +206,7 @@ export class UserService implements IdentityReadPort {
                 throw new Error(`User ${id} disappeared during transactional update read-back`)
             }
             return updatedUser
-        })
+        }, context)
     }
 
     public async getUserEncryptedEnabledMfaStrategies(id: UUID): Promise<string[]> {
@@ -410,7 +410,7 @@ export class UserService implements IdentityReadPort {
         return result.id
     }
 
-    public async changePassword(userId: UUID, newPassword: string): Promise<void> | never {
+    public async changePassword(userId: UUID, newPassword: string, context?: TransactionContext): Promise<void> | never {
         await runInTransaction(this.userRepository.manager, async (_context, manager) => {
             let user: User
             try {
@@ -462,7 +462,7 @@ export class UserService implements IdentityReadPort {
                 })
                 .where('id = :userId', { userId })
                 .execute()
-        })
+        }, context)
     }
 
     public async getVerifiedUserProfileById(id: UUID, getRecentHistory = true): Promise<ProfileDTO | null> {

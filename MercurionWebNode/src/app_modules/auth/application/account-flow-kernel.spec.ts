@@ -30,6 +30,7 @@ describe('AccountFlowKernel', () => {
       {} as ScopeService, // scopeService
       {} as any, // unitOfWork
       {} as any, // initialWorkspace
+      {} as any, // notificationOutbox
       meiliLoggerMock as any, // meiliLogger
     );
   });

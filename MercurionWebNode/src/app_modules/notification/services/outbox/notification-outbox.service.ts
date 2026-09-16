@@ -5,11 +5,38 @@ import { UUID } from 'crypto'
 import { NotificationOutboxEvent } from '../../models/entities/notification-outbox-event.entity'
 import { OutboxEventStatus } from '../../models/enums/outbox-event-status.enum'
 import { OutboxEventType } from '../../models/enums/outbox-event-type.enum'
+import type { EmailTemplateKey } from '../../email-template-registry'
 
 export const OUTBOX_MAX_ATTEMPTS = 5
 
 @Injectable()
 export class NotificationOutboxService {
+  async appendEmail(
+    manager: EntityManager,
+    input: {
+      aggregateId: UUID
+      templateKey: EmailTemplateKey
+      to: string
+      context: Record<string, unknown>
+      dedupeKey: string
+      correlationId?: UUID
+      causationId?: UUID
+    }
+  ): Promise<NotificationOutboxEvent> {
+    return this.append(manager, {
+      aggregateId: input.aggregateId,
+      eventType: OutboxEventType.EmailSend,
+      payload: {
+        templateKey: input.templateKey,
+        to: input.to,
+        context: input.context
+      },
+      dedupeKey: input.dedupeKey,
+      correlationId: input.correlationId,
+      causationId: input.causationId
+    })
+  }
+
   async appendMeilisearchUpsert(
     manager: EntityManager,
     input: {
