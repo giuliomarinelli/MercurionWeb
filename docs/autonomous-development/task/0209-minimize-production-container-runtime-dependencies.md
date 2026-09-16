@@ -145,7 +145,7 @@ run.
 ### Browser validation performed
 _Not started._
 ### Commits
-Pending task-specific commit.
+`22c859bf4ae3a27edc7a7539b5c2b4589db45b48` — `qa: minimize Nest production image dependencies`
 ### Merge / CI
 _Not started._
 ### Rollback
