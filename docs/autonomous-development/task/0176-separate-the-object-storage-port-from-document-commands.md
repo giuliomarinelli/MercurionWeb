@@ -1,6 +1,6 @@
 # 0176 - Separate the object-storage port from document commands
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -111,7 +111,9 @@ The Angular source contains no document/avatar upload consumer route; the docume
 - `6254b84e` — `refactor document storage behind typed object port` (implementation and focused tests).
 - `2325cd51` — `record DATA-027 validation evidence` (execution notes and validation record).
 ### Merge / CI
-_Not started._
+Merged into `develop` with merge commit `2f3baeb469fc2493072ac1fc0e776cfa9f1e0c40`.
+Exact feature-SHA CI run `35055557929` and exact merge-SHA CI run
+`35056003961` both passed with the `Required gate` green.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
