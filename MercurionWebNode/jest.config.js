@@ -16,7 +16,7 @@ module.exports = {
     '!**/*.test.ts',
     '!**/test-utils/**',
   ],
-  coverageDirectory: '<rootDir>/coverage/nest',
+  coverageDirectory: '<rootDir>/../coverage/nest',
   coverageReporters: ['text', 'text-summary', 'json', 'json-summary', 'lcov', 'cobertura'],
   testEnvironment: 'node',
 };

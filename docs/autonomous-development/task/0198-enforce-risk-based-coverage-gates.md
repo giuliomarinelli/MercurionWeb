@@ -142,11 +142,18 @@ _Not applicable / not started._
 
 ### Commits
 
-_Not recorded._
+Initial implementation: `3f21adcbe`.
+Coverage path repair: pending.
 
 ### Merge / CI
 
-_Not started._
+Feature CI run `35119847079` failed in the Nest unit job because Jest generated
+the report at `MercurionWebNode/src/coverage/nest/coverage-final.json` while
+the canonical gate and artifact path expected
+`MercurionWebNode/coverage/nest/coverage-final.json`. The repair changes
+Jest's coverage directory to `'<rootDir>/../coverage/nest'`, preserving the
+existing canonical gate argument and CI artifact publication path. Focused
+repair validation and the resulting feature SHA are recorded below.
 
 ### Rollback
 
@@ -155,3 +162,29 @@ _Not applicable._
 ### Blocker / human decision required
 
 _None._
+
+### CI repair - run 35119847079
+
+The failed run's Nest unit job completed all 168 suites and 588 tests, then
+the gate failed because `MercurionWebNode/coverage/nest/coverage-final.json`
+was missing. Local reproduction produced the same failure and confirmed the
+actual report under `MercurionWebNode/src/coverage/nest`.
+
+Repair: align `MercurionWebNode/jest.config.js` with the existing Nest
+workspace command, gate argument, and CI artifact path by writing coverage to
+`MercurionWebNode/coverage/nest`. Thresholds, report formats, artifact
+publication, and deterministic test ordering are unchanged.
+
+Focused validation:
+
+- `npm run test:coverage --workspace mercurion_web_node`: passed; 168 suites
+  and 588 tests passed, generated the report at
+  `MercurionWebNode/coverage/nest/coverage-final.json`, and the Nest gate
+  passed with 27.97% branch, 41.80% function, 55.61% line, and 53.72%
+  statement coverage.
+- `node scripts/check-coverage-gates.mjs --project nest --coverage-dir MercurionWebNode/coverage/nest`:
+  passed as part of the canonical command; 8 high-risk rules and 13 explicit
+  exclusions were evaluated.
+- `git diff --check`: passed.
+
+Repair commit: pending.
