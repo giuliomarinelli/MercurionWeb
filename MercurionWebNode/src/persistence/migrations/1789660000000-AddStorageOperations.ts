@@ -17,9 +17,12 @@ export class AddStorageOperations1789660000000 implements MigrationInterface {
         "completed_at" bigint,
         "last_error" text,
         "dedupe_key" character varying(255) NOT NULL,
-        CONSTRAINT "PK_storage_operations_id" PRIMARY KEY ("id"),
-        CONSTRAINT "UQ_storage_operations_dedupe_key" UNIQUE ("dedupe_key")
+        CONSTRAINT "PK_storage_operations_id" PRIMARY KEY ("id")
       )
+    `)
+    await queryRunner.query(`
+      CREATE UNIQUE INDEX "IDX_da97655d6791e511d80fc4a400"
+      ON "storage_operations" ("dedupe_key")
     `)
     await queryRunner.query(`
       CREATE INDEX "storage_operations_due_idx"
@@ -29,6 +32,7 @@ export class AddStorageOperations1789660000000 implements MigrationInterface {
 
   async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`DROP INDEX "public"."storage_operations_due_idx"`)
+    await queryRunner.query(`DROP INDEX "public"."IDX_da97655d6791e511d80fc4a400"`)
     await queryRunner.query(`DROP TABLE "storage_operations"`)
   }
 }

@@ -159,6 +159,29 @@ _Not started._
   `npm run ci:architecture` — passed.
 - Repair commit: `330c1164a306fdf6ab38d1907f58d085dd2f86fe`.
 
+### CI repair 2
+- Exact feature-SHA run `35094180306` failed in PostgreSQL migration schema
+  job `104788836659` / Required gate `104789432995` because the migration
+  created `UQ_storage_operations_dedupe_key` while
+  `StorageOperationEntity` declares an unnamed unique index.
+- Replaced the migration's unique constraint with the TypeORM-generated
+  `IDX_da97655d6791e511d80fc4a400` unique index and added matching `down`
+  cleanup.
+- Focused validation:
+  `npm run nest:orphans:check` — passed.
+  `npm run ci:architecture` — passed.
+  `npm run typecheck --workspace mercurion_web_node` — passed.
+  `git diff --check` — passed.
+  `npm run migration:check --workspace mercurion_web_node` — reached the
+  configured local PostgreSQL instance but stopped at the pre-existing
+  `InitialSchema1789400000000` attempt to create the already existing
+  `backup_codes` relation.
+  `npm run migration:drift --workspace mercurion_web_node` — reported the
+  existing local baseline's unrelated metadata drift before reaching a clean
+  schema result; the repaired migration's generated index name and reversible
+  down statement were verified in source.
+- Repair commit: _pending_.
+
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
