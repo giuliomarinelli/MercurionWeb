@@ -173,8 +173,12 @@ Not applicable: backend/governance-only task.
 
 ### Commits
 
-Pending status-only blocker commit; it will use `git commit --no-gpg-sign`
-with the required Copilot co-author trailer.
+Status-only blocker commit:
+`185855f2f24eef9a3c7d4cfad7a1647fd3e0b8b8`
+(`docs: block QA-032 pending protected PR authority`).
+This execution-note update records that commit and will be included in the
+final status commit, both created with `--no-gpg-sign` and the required Copilot
+co-author trailer.
 
 ### Merge / CI
 
