@@ -180,7 +180,7 @@ _Not started._
   existing local baseline's unrelated metadata drift before reaching a clean
   schema result; the repaired migration's generated index name and reversible
   down statement were verified in source.
-- Repair commit: _pending_.
+- Repair commit: `9b35d0f62c13b97953c48dcaa23df5676295a1f0`.
 
 ### Rollback
 _Not applicable._
