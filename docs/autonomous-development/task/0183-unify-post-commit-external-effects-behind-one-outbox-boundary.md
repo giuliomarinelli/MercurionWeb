@@ -142,7 +142,9 @@ success and showed the new ticket. Database inspection showed the related
 `outbox_events` with status `succeeded`, attempt count `1`, and populated
 processing timestamps. All task-owned runtime processes were stopped afterward.
 ### Commits
-Pending final task commit.
+`fd17aef1` — `feat: unify post-commit effects behind outbox`
+
+Execution-note correction is recorded in the follow-up metadata commit.
 ### Merge / CI
 Pending coordinator integration and exact feature-SHA CI observation.
 ### Rollback
