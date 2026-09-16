@@ -117,13 +117,20 @@ the same typed infrastructure policy.
 - `npm run graphql:schema:check --workspace mercurion_web_node` — passed after
   intentional schema regeneration.
 - `git diff --check` — passed.
+- Exact feature-SHA CI run `35051267813` for
+  `88e24f92bbfc05750c4119b6c5918d9bcf9faecd` failed in both prerequisite
+  GraphQL gates because the committed Angular `src/app/generated/schema.ts`
+  artifact was stale after the intentional Synth schema change. Regenerated
+  that artifact with `npm run graphql:generate --workspace mercurion_web_ng`;
+  this is a task-owned generated-contract correction.
 ### Full pre-merge CI-parity validation
 _Not started._
 ### Browser validation performed
 _Not started / not applicable._
 ### Commits
-Pending task commit; will include the required
-`Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>` trailer.
+- `88e24f92bbfc05750c4119b6c5918d9bcf9faecd` — implementation and task notes.
+- Repair commit pending; includes the required
+  `Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>` trailer.
 ### Merge / CI
 _Not started._
 ### Rollback
