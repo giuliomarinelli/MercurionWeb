@@ -1,6 +1,6 @@
 # 0196 - Expand the Nest integration and E2E suite
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -92,21 +92,35 @@ Prefer one well-owned E2E fixture over ad-hoc `Test.createTestingModule` setup c
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/QA-010` at base `3820a60ba1c9fabde78cb5dbfb80892478a03e4e`.
 ### Preflight
-_Not started._
+Clean worktree and exact feature branch/base SHA confirmed before edits. Existing
+`npm run test:e2e --workspace mercurion_web_node -- --runInBand --detectOpenHandles`
+passed unchanged with 1 suite, 3 tests, and no open-handle failure.
 ### Preflight remediation
-_None._
+None.
 ### Summary
-Re-enabled after DATA-002 became `DONE`; this task was never attempted and has no feature branch.
+Replaced the metadata-only E2E checks with a reusable Fastify/Nest application
+fixture. The fixture owns application initialization and `app.close()` teardown,
+uses explicit deterministic adapters for external providers, registers the real
+REST controllers and GraphQL module, and exercises public REST, authentication
+error presentation, logout/session transport, GraphQL HTTP resolution, and
+GraphQL validation error mapping. GraphQL validation errors now preserve the
+Mercurius 400 status and canonical `GRAPHQL_VALIDATION_FAILED` code.
 ### Task-specific validation performed
-_Not started._
+- `npm run test:e2e --workspace mercurion_web_node -- --runInBand --detectOpenHandles`
+  - passed: 1 suite, 5 tests; no leaked-handle warning.
+- `npm run typecheck --workspace mercurion_web_node` - passed.
+- `npm run lint --workspace mercurion_web_node` - passed with zero warnings.
+- `npm test --workspace mercurion_web_node -- --runInBand` - passed: 163 suites,
+  574 tests.
+- `npm run build --workspace mercurion_web_node` - passed.
 ### Full pre-merge CI-parity validation
-_Not started._
+Reserved for exact feature-SHA GitHub Actions validation.
 ### Browser validation performed
-_Not started._
+Not applicable; this is server-side E2E coverage.
 ### Commits
-_None._
+Pending commit.
 ### Merge / CI
 _Not started._
 ### Rollback
