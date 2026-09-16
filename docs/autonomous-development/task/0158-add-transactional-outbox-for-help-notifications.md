@@ -131,7 +131,8 @@ _Not started._
 ### Commits
 `54da665fc2105e4c25e65a96aa8ed0f3dfb99cea` — transactional outbox
 implementation; required Copilot co-author trailer included.
-`_repair pending commit_` — TypeORM migration reachability metadata correction.
+`1155f0601ac5adfbc813bba8fa1a8b0b7ed83ddc` — TypeORM migration reachability
+metadata correction; exact feature CI run `35042176140` succeeded.
 ### Merge / CI
 _Not started._
 ### Rollback
