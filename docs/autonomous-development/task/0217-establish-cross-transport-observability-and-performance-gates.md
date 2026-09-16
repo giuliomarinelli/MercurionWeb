@@ -166,11 +166,12 @@ _Not started._
 Through `http://localhost:8888/login`, the Angular form made an HTTP request
 with a bounded `x-correlation-id`. The backend returned the same value in
 the response header and safe error envelope; no credentials or tokens were
-used. The rendered login state was correct and the final browser console
-contained no new application warning after the stable retry. The first
-post-edit request overlapped a Nest watch restart and returned an edge `502`;
-it was re-observed after the process stabilized and the two required
-readiness rounds passed.
+used. The rendered login state was correct. The console contained the
+expected `401` from the synthetic unauthenticated probe; transient `502`
+WebSocket messages occurred only while Nest was restarting under watch mode
+and were not used as acceptance evidence. The first post-edit request also
+overlapped that restart and returned an edge `502`; it was re-observed after
+the process stabilized and the two required readiness rounds passed.
 
 ### Commits
 
