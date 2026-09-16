@@ -167,4 +167,4 @@ dependency is deliberately resolved in a new authorized session.
   --check` passed. `npm run ci:rest-route-ownership` reported existing
   unrelated reference drift across multiple routes; the route ownership
   inventory was not modified.
-- Repair commit and push are recorded on the final feature branch SHA.
+- Repair commit: `d3f64e7769115c575f3a05a604d8e1c0757460a1`.
