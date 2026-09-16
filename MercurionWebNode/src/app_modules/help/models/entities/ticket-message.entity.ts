@@ -7,6 +7,7 @@ import {
   Index,
   BeforeInsert,
   Generated,
+  Check,
 } from 'typeorm'
 import { Ticket } from './ticket.entity'
 import { AuthorType } from '../enums/author-type.enum'
@@ -17,6 +18,7 @@ import { JsonValue } from 'src/models/json.types'
 @Entity({ name: 'ticket_messages' })
 @Index('messages_ticket_created_idx', ['ticketId', 'createdAt'])
 @Index('messages_user_idx', ['userId', 'createdAt'])
+@Check('ck_ticket_messages_public_id_positive', '"public_id" > 0')
 export class TicketMessage {
 
   @PrimaryColumn('uuid')

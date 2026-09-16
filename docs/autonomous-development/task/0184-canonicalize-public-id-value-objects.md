@@ -146,14 +146,17 @@ for `5a370be355d82df5f274f58cc9388c293fa4a34a` failed in both platform
 Prerequisites jobs because the new TypeORM migration was not registered in
 `MercurionWebNode/nest-reachability.config.json`; all preceding public-ID
 checks passed. Added the precise dynamic entrypoint and reran the focused
-orphan check locally. A replacement feature-SHA CI run is pending after the
-repair commit. Local `npm ci` and `npm run ci:check` were not run.
+orphan check locally. The repair commit then exposed schema drift because the new database
+constraints were not mirrored in the TypeORM entity metadata. Added matching
+`@Check` decorators; replacement feature-SHA CI is pending. Local `npm ci` and
+`npm run ci:check` were not run.
 ### Browser validation performed
 Not applicable under the supplied worker instruction; no runtime or browser
 process was started.
 ### Commits
 - `5a370be3` — `feat(DATA-035): canonicalize Help public IDs`
-- Repair pending for exact feature-SHA CI orphan diagnostic.
+- `1e229580` — `fix(DATA-035): register public ID migration`
+- Pending schema-drift repair commit.
 ### Merge / CI
 Coordinator owns feature-SHA CI observation and integration; this worker does
 not merge `develop`.
