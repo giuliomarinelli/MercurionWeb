@@ -7,7 +7,8 @@
       "httpClientProvider": "withInterceptorsFromDi",
       "configuredInterceptors": [
         "AuthFallbackInterceptor",
-        "AuthInterceptor"
+        "AuthInterceptor",
+        "CorrelationInterceptor"
       ],
       "interceptorUrlMutations": []
     },
