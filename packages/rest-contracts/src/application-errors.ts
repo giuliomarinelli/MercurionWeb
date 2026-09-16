@@ -409,6 +409,11 @@ export const APPLICATION_ERROR_CATALOG = {
     defaultMessage: "Failed to create first ticket message",
     exposeInProduction: false,
   },
+  HELP_PUBLIC_ID_INVALID: {
+    httpStatus: 500,
+    defaultMessage: "Help public ID data is invalid",
+    exposeInProduction: false,
+  },
   LAB_NOTEBOOK_CHAPTER_NOT_FOUND: {
     httpStatus: 500,
     defaultMessage: "LabNotebook::Chapter not found",

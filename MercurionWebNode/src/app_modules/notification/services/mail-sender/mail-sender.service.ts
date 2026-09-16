@@ -9,6 +9,7 @@ import { UserService } from 'src/app_modules/user/services/user.service';
 import { resolve } from 'path';
 import { LoggerPort } from 'src/logging/logger.port';
 import { LoggerContext } from 'src/logging/logger.port';
+import { HelpPublicId } from 'src/app_modules/help/models/value-objects/help-public-id';
 
 @Injectable()
 export class MailSenderService {
@@ -40,7 +41,7 @@ export class MailSenderService {
         })
     }
 
-    public async notifySupportNewTicket(ticket: Ticket, message: TicketMessage): Promise<void> {
+    public async notifySupportNewTicket(ticket: Ticket, message: TicketMessage, ticketPublicId: HelpPublicId): Promise<void> {
         if (!message.authorId) {
             return
         }
@@ -49,7 +50,7 @@ export class MailSenderService {
             return
         }
         const context: SupportContext = {
-            ticketPublicId: ticket.publicId,
+            ticketPublicId,
             ticketMessageBody: message.contentHtml,
             userFirstName,
             url: this.generateUrl('support', ticket.id)
@@ -58,7 +59,7 @@ export class MailSenderService {
             .catch((e) => this.logger.warn('notifySupportNewTicket > Error: ', (e.stack ?? e) as object))
     }
 
-    public async confirmUserTicketOpened(ticket: Ticket, message: TicketMessage): Promise<void> {
+    public async confirmUserTicketOpened(ticket: Ticket, message: TicketMessage, ticketPublicId: HelpPublicId): Promise<void> {
         if (!message.authorId) {
             return
         }
@@ -68,7 +69,7 @@ export class MailSenderService {
             return
         }
         const context: SupportContext = {
-            ticketPublicId: ticket.publicId,
+            ticketPublicId,
             ticketMessageBody: message.contentHtml,
             userFirstName,
             url: this.generateUrl('user', ticket.id)
@@ -77,7 +78,7 @@ export class MailSenderService {
             .catch((e) => this.logger.warn('confirmUserTicketOpened > Error: ', (e.stack ?? e) as object))
     }
 
-    public async notifySupportNewMessage(ticket: Ticket, message: TicketMessage): Promise<void> {
+    public async notifySupportNewMessage(ticket: Ticket, message: TicketMessage, ticketPublicId: HelpPublicId): Promise<void> {
         if (!message.authorId) {
             return
         }
@@ -86,16 +87,16 @@ export class MailSenderService {
             return
         }
         const context: SupportContext = {
-            ticketPublicId: ticket.publicId,
+            ticketPublicId,
             ticketMessageBody: message.contentHtml,
             userFirstName,
             url: this.generateUrl('support', ticket.id)
         }
-        this.sendEmail<SupportContext>(this.supportEmail, `Un nuovo ticket messaggio è stato pubblicato nel ticket #${ticket.publicId}`, context, resolve('dist/src/app_modules/notification/email-templates/support---notify-support-new-message.hbs'))
+        this.sendEmail<SupportContext>(this.supportEmail, `Un nuovo ticket messaggio è stato pubblicato nel ticket #${ticketPublicId}`, context, resolve('dist/src/app_modules/notification/email-templates/support---notify-support-new-message.hbs'))
             .catch((e) => this.logger.warn('notifySupportNewMessage > Error: ', (e.stack ?? e) as object))
     }
 
-    public async notifyUserSupportReplied(ticket: Ticket, userId: UUID): Promise<void> {
+    public async notifyUserSupportReplied(ticket: Ticket, userId: UUID, ticketPublicId: HelpPublicId): Promise<void> {
         if (!userId) {
             return
         }
@@ -105,12 +106,12 @@ export class MailSenderService {
             return
         }
         const context: SupportContext = {
-            ticketPublicId: ticket.publicId,
+            ticketPublicId,
             ticketMessageBody: null,
             userFirstName,
             url: this.generateUrl('user', ticket.id)
         }
-        this.sendEmail<SupportContext>(userEmail, `Supporto Mercurion: Il ticket #${ticket.publicId} ha ricevuto una nuova risposta`, context, resolve('dist/src/app_modules/notification/email-templates/support---notify-user-support-replied.hbs'))
+        this.sendEmail<SupportContext>(userEmail, `Supporto Mercurion: Il ticket #${ticketPublicId} ha ricevuto una nuova risposta`, context, resolve('dist/src/app_modules/notification/email-templates/support---notify-user-support-replied.hbs'))
             .catch((e) => this.logger.warn('notifyUserSupportReplied > Error: ', (e.stack ?? e) as object))
     }
 

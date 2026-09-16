@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { DataSource, Repository } from 'typeorm'
 import { uuidv7 } from '@kripod/uuidv7'
-import { randomBytes, UUID } from 'crypto'
+import { UUID } from 'crypto'
 
 import { IPaginationOptions, paginate, Pagination } from 'nestjs-typeorm-paginate'
 import { Ticket } from '../models/entities/ticket.entity'
@@ -14,10 +14,10 @@ import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils'
 import { GraphQLFieldsMap, TypeOrmUtils } from 'src/utils/type-orm-utils/type-orm-utils'
 import { TicketDetailDTO } from '../models/dto/ticket-detail.dto'
 import { JsonValue } from 'src/models/json.types'
-import { TypeGuards } from 'src/utils/type-guards/type-guards'
 import { UserService } from 'src/app_modules/user/services/user.service'
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 import { runInTransaction } from 'src/persistence/transaction-context'
+import { formatHelpPublicId } from '../models/value-objects/help-public-id'
 
 @Injectable()
 export class HelpService {
@@ -83,21 +83,21 @@ export class HelpService {
       await this.attachTicketUserFullNames([ticket])
     }
 
-    ticket.publicId = this.generateReadablePublicId(ticket.publicId)
+    const ticketPublicId = formatHelpPublicId(ticket.publicId, 'Ticket')
+    const presentedTicket = this.presentTicket(ticket)
 
-    await this.mailer.notifySupportNewTicket(ticket, firstMsg)
-    await this.mailer.confirmUserTicketOpened(ticket, firstMsg)
+    await this.mailer.notifySupportNewTicket(ticket, firstMsg, ticketPublicId)
+    await this.mailer.confirmUserTicketOpened(ticket, firstMsg, ticketPublicId)
 
     if (!canViewUsers) {
-      Object.entries(ticket).forEach(([key]) => {
+      Object.entries(presentedTicket).forEach(([key]) => {
         if (['authorId', 'userId', 'messages', 'userFullName'].includes(key)) {
-          (ticket as unknown as Record<string, string | object | null | undefined>)[key] = undefined
+          ;(presentedTicket as unknown as Record<string, string | object | null | undefined>)[key] = undefined
         }
       })
     }
 
-    ticket.publicId = this.generateReadablePublicId(ticket.publicId)
-    return ticket
+    return presentedTicket
   }
 
 
@@ -143,8 +143,8 @@ export class HelpService {
     })
 
     const freshTicket = await this.ticketRepo.findOneByOrFail({ id: input.ticketId })
-    freshTicket.publicId = this.generateReadablePublicId(freshTicket.publicId)
-    await this.mailer.notifySupportNewMessage(freshTicket, msg!)
+    const ticketPublicId = formatHelpPublicId(freshTicket.publicId, 'Ticket')
+    await this.mailer.notifySupportNewMessage(freshTicket, msg!, ticketPublicId)
 
     return { ok: true }
   }
@@ -194,8 +194,8 @@ export class HelpService {
     })
 
     const freshTicket = await this.ticketRepo.findOneByOrFail({ id: input.ticketId })
-    freshTicket.publicId = this.generateReadablePublicId(freshTicket.publicId)
-    await this.mailer.notifyUserSupportReplied(freshTicket, ticketUserId!)
+    const ticketPublicId = formatHelpPublicId(freshTicket.publicId, 'Ticket')
+    await this.mailer.notifyUserSupportReplied(freshTicket, ticketUserId!, ticketPublicId)
 
     return { ok: true }
   }
@@ -272,14 +272,7 @@ export class HelpService {
     page = {
       ...page,
       items: page.items.map((i) => {
-        i.publicId = this.generateReadablePublicId(i.publicId)
-        if (i.messages) {
-          i.messages = i.messages.map((m) => {
-            m.publicId = this.generateReadablePublicId(m.publicId, 'Message')
-            return m
-          })
-        }
-        return i
+        return this.presentTicket(i)
       })
     }
 
@@ -323,10 +316,8 @@ export class HelpService {
       await this.attachTicketUserFullNames([ticket])
     }
 
-    ticket.publicId = this.generateReadablePublicId(ticket.publicId)
-
     return {
-      ticket,
+      ticket: this.presentTicket(ticket),
       messages: undefined
     }
   }
@@ -385,9 +376,7 @@ export class HelpService {
     page = {
       ...page,
       items: page.items.map((m) => {
-        m.publicId = this.generateReadablePublicId(m.publicId, 'Message')
-        m.contentDelta = JSON.stringify(m.contentDelta)
-        return m
+        return this.presentMessage(m)
       })
     }
 
@@ -482,21 +471,29 @@ export class HelpService {
     ticket.lastMessageAt = String(now)
   }
 
-  private generateReadablePublicId(
-    publicId: string,
-    scope: 'Ticket' | 'Message' = 'Ticket'
-  ): string {
-    const prefix = scope === 'Ticket' ? 'MTCK-' : 'MTCKM-'
-    if (TypeGuards.isThruthyString(publicId) && /^\d+$/.test(publicId)) {
-      return `${prefix}${publicId.padStart(9, '0')}`
+  private presentTicket(ticket: Ticket): Ticket {
+    const presented = Object.assign(
+      Object.create(Object.getPrototypeOf(ticket)),
+      ticket,
+      { publicId: formatHelpPublicId(ticket.publicId, 'Ticket') },
+    ) as Ticket
+
+    if (ticket.messages) {
+      presented.messages = ticket.messages.map(message => this.presentMessage(message))
     }
-    return (
-      prefix +
-      '-f-' +
-      parseInt(randomBytes(8).toString('hex'), 16)
-        .toString()
-        .padStart(16, '0')
-    )
+
+    return presented
+  }
+
+  private presentMessage(message: TicketMessage): TicketMessage {
+    return Object.assign(
+      Object.create(Object.getPrototypeOf(message)),
+      message,
+      {
+        publicId: formatHelpPublicId(message.publicId, 'Message'),
+        contentDelta: JSON.stringify(message.contentDelta),
+      },
+    ) as TicketMessage
   }
 
   private makeUserMessage(input: {
