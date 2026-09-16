@@ -188,3 +188,36 @@ _Not applicable._
 ### Blocker / human decision required
 
 _None._
+
+### CI repair invocation
+
+The exact feature-SHA workflow run `35137350844` failed on the Windows
+`nest-orphans` prerequisite because `src/observability/metrics.ts` and
+`src/observability/redaction.ts` were not reachable from the production Nest
+graph. The failure was reproduced with
+`node scripts/check-nest-orphans.mjs --root=MercurionWebNode --json`, which
+reported 2 orphaned files.
+
+Added the global `ObservabilityModule` to the application composition root,
+registering the existing `MetricsPort` with its deterministic
+`InMemoryMetrics` implementation. Updated the production Meilisearch logger
+to consume the existing `redactSensitive` contract for structured payloads.
+This makes both observability units reachable through real production
+composition and preserves the existing string sanitization behavior.
+
+Focused repair validation:
+
+- `node scripts/check-nest-orphans.mjs --root=MercurionWebNode --json` -
+  passed, 380/380 production files reachable and zero orphans.
+- `npm test --workspace mercurion_web_node -- --runInBand --runTestsByPath
+  src/observability/metrics.spec.ts src/observability/redaction.spec.ts
+  src/app_modules/meilisearch/services/meili-logger.service.spec.ts` -
+  passed.
+- `npm run typecheck --workspace mercurion_web_node` - passed.
+- `npm run lint --workspace mercurion_web_node -- --no-warn-ignored` -
+  passed.
+- `git diff --check` - passed.
+
+Local `npm ci` and `npm run ci:check` were not run. Browser validation was not
+repeated because the repair changes production reachability and structured
+redaction only, not browser-observable transport behavior.
