@@ -148,18 +148,22 @@ Prerequisites jobs because the new TypeORM migration was not registered in
 checks passed. Added the precise dynamic entrypoint and reran the focused
 orphan check locally. The repair commit then exposed schema drift because the new database
 constraints were not mirrored in the TypeORM entity metadata. Added matching
-`@Check` decorators; replacement feature-SHA CI is pending. Local `npm ci` and
-`npm run ci:check` were not run.
+`@Check` decorators. Final exact feature-SHA Actions run `35058600141`
+(`https://github.com/giuliomarinelli/MercurionWeb/actions/runs/35058600141`)
+for `7a657a30038ba75cb0e48d3fbf9ae72bff49a9b0` completed successfully with
+both platform prerequisites, migration schema validation, all aggregate jobs,
+and `Required gate` green. Local `npm ci` and `npm run ci:check` were not run.
 ### Browser validation performed
 Not applicable under the supplied worker instruction; no runtime or browser
 process was started.
 ### Commits
 - `5a370be3` — `feat(DATA-035): canonicalize Help public IDs`
 - `1e229580` — `fix(DATA-035): register public ID migration`
-- Pending schema-drift repair commit.
+- `7a657a30` — `fix(DATA-035): mirror public ID checks in entities`
 ### Merge / CI
-Coordinator owns feature-SHA CI observation and integration; this worker does
-not merge `develop`.
+Feature CI passed for final SHA `7a657a30038ba75cb0e48d3fbf9ae72bff49a9b0`
+in run `35058600141`; coordinator owns integration and post-merge CI. This
+worker did not merge `develop`.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
