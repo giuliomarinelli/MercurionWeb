@@ -157,7 +157,8 @@ after evidence capture.
 
 ### Commits
 
-Pending final task commit.
+`e66b5193cd7b41c51d61d540a74ea2114f22fd26` -
+`feat: centralize release build identity`.
 
 ### Merge / CI
 
