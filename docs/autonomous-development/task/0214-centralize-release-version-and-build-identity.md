@@ -1,6 +1,6 @@
 # 0214 - Centralize release version and build identity
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -98,11 +98,16 @@ Keep release version and build identity distinct: the release version may repeat
 
 ### Feature branch
 
-_Not started._
+`feature/QA-028`, based on `e1a90721143d66407cefe1df984b471c00a9f8cf`.
 
 ### Preflight
 
-_Not started._
+Unchanged baseline preflight passed on the supplied green `develop` SHA:
+`npm run ci:docs` passed, local `commit.gpgSign` is `false`, and no task-owned
+runtime was active before implementation. Required browser capability
+preflight passed after starting Tox21, Nest, and Angular in that order with
+live handles; two consecutive `http://localhost:8888/health` and `/` readiness
+rounds returned 200. All task-owned processes were stopped before editing.
 
 ### Preflight remediation
 
@@ -110,23 +115,49 @@ _None._
 
 ### Summary
 
-_Not started._
+The root `package.json` `version` (`1.0.0`) is the sole manually maintained
+product release-version input. Added deterministic build-identity generation
+and drift/negative checks producing version plus full source revision, with
+typed Angular/Nest consumption. Added the public Nest `/api/version` DTO and
+aligned the Angular footer/settings surfaces. Added OCI version/revision/source
+labels and identity-based release image metadata for both application images,
+removed the independent Nest `APP_VERSION` input, and registered generation,
+validation, retention, and Docker propagation in CI. The contract middleware
+explicitly permits the public build-identity endpoint without a request header.
 
 ### Task-specific validation performed
 
-_Not started._
+Passed:
+
+- `npm run ci:build-identity` (deterministic drift check and mismatched
+  revision negative fixture)
+- `npm run build --workspace @mercurion/rest-contracts`
+- `npm run typecheck --workspace mercurion_web_ng`
+- `npm run typecheck --workspace mercurion_web_node`
+- Targeted Nest release-version tests: 2 suites, 2 tests passed
+- `npm run ci:containers`
+- Full Angular test suite: 480 tests passed
+- `git diff --check`
 
 ### Full pre-merge CI-parity validation
 
-_Not started._
+Not run locally because the repository protocol reserves `npm ci` and
+`npm run ci:check` for GitHub Actions. Exact feature-SHA CI is required from
+the coordinator before merge.
 
 ### Browser validation performed
 
-_Not applicable / not started._
+Through `http://localhost:8888`, the public footer rendered
+`v1.0.0 @ e1a90721143d66407cefe1df984b471c00a9f8cf`. The corresponding
+`http://localhost:8888/api/version` response rendered
+`{"version":"1.0.0","revision":"e1a90721143d66407cefe1df984b471c00a9f8cf"}`.
+The UI and API values matched; no credentials or protected state were needed.
+Post-change readiness passed and all task-owned runtime processes were stopped
+after evidence capture.
 
 ### Commits
 
-_Not recorded._
+Pending final task commit.
 
 ### Merge / CI
 

@@ -128,6 +128,15 @@ jobs:
       - name: Install workspace dependencies
         run: npm ci
 
+      - name: Generate and validate build identity
+        run: npm run ci:build-identity
+
+      - name: Retain build identity artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-identity-${{ matrix.os }}
+          path: build/build-identity.json
+
       - name: Validate autonomous control plane
         run: npm run ci:validate:autonomous
 
@@ -354,6 +363,9 @@ jobs:
       - name: Install workspace dependencies
         run: npm ci
 
+      - name: Generate immutable build identity
+        run: npm run build:identity -- --revision "$GITHUB_SHA"
+
       - name: Build Angular
         run: npm run ci:build:angular
 
@@ -488,11 +500,20 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
 
+      - name: Generate immutable build identity
+        shell: bash
+        run: |
+          npm run build:identity -- --revision "$GITHUB_SHA"
+          {
+            echo "BUILD_VERSION=$(node -e "console.log(require('./build/build-identity.json').version)")"
+            echo "BUILD_REVISION=$(node -e "console.log(require('./build/build-identity.json').revision)")"
+          } >> "$GITHUB_ENV"
+
       - name: Validate container build contract and lockfile drift
         run: npm run ci:containers
 
       - name: Build container without cache
-        run: docker build --pull --no-cache --file "${{ matrix.dockerfile }}" --target "${{ matrix.target }}" --tag "mercurion-ci-${{ matrix.name }}" .
+        run: docker build --pull --no-cache --file "${{ matrix.dockerfile }}" --target "${{ matrix.target }}" --build-arg BUILD_VERSION --build-arg BUILD_REVISION --tag "mercurion-ci-${{ matrix.name }}" .
 
       - name: Inspect standalone runtime contract
         run: node scripts/check-container-runtime.mjs --dockerfile "${{ matrix.dockerfile }}" --image "mercurion-ci-${{ matrix.name }}"

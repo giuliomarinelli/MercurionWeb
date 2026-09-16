@@ -8,8 +8,12 @@
   },
   "scripts": {
     "ng": "ng",
+    "prestart:dev": "node ../scripts/build-identity.mjs",
     "start:dev": "ng serve --serve-path /",
+    "prebuild": "node ../scripts/build-identity.mjs",
     "build": "ng build --stats-json",
+    "pretypecheck": "node ../scripts/build-identity.mjs",
+    "pretest": "node ../scripts/build-identity.mjs",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "test:ci": "npm run test:coverage",

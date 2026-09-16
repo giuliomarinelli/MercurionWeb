@@ -9,6 +9,7 @@ import {
 } from './config.schema'
 import { createNatsServerUrl } from './nats-endpoint'
 import { createTransportSecurityPolicy } from './transport-security.policy'
+import { buildIdentity } from '../generated/build-identity'
 
 type ConfigurationBuilder = (environment: ValidatedEnvironment) => object
 
@@ -37,7 +38,7 @@ export const configurationBuilders = {
         passwordPepper: environment.APP_PASSWORD_PEPPER,
         redisIdHmacSecret: environment.APP_REDIS_ID_HMAC_SECRET,
         AES_secret: environment.APP_AES_SECRET,
-        version: environment.APP_VERSION,
+        version: buildIdentity.version,
         deviceIdSignatureSecret: environment.APP_DEVICE_ID_SIGNATURE_SECRET,
         supportEmail: environment.APP_SUPPORT_EMAIL,
         maxNatsPayloadBytes: environment.APP_MAX_NATS_PAYLOAD_BYTES,

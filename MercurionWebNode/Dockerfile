@@ -65,9 +65,11 @@ RUN addgroup -S -g 10001 mercurion && \
   adduser -S -D -H -u 10001 -G mercurion mercurion && \
   mkdir -p /tmp/mercurion && \
   chown 10001:10001 /tmp/mercurion
-ARG APP_VERSION
-ENV APP_VERSION=$APP_VERSION
-LABEL org.opencontainers.image.version=$APP_VERSION
+ARG BUILD_VERSION
+ARG BUILD_REVISION
+LABEL org.opencontainers.image.version=$BUILD_VERSION \
+      org.opencontainers.image.revision=$BUILD_REVISION \
+      org.opencontainers.image.source="https://github.com/giuliomarinelli/MercurionWeb"
 ENV NODE_ENV=production
 ENV TMPDIR=/tmp
 EXPOSE 8098

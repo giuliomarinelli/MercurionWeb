@@ -21,26 +21,22 @@ RUN npm run postinstall
 
 FROM source AS build-production
 WORKDIR /workspace/MercurionWebNg
-ARG APP_VERSION
-LABEL org.opencontainers.image.version=$APP_VERSION
 RUN npm run build -- --configuration=production
 
 FROM source AS build-staging
 WORKDIR /workspace/MercurionWebNg
-ARG APP_VERSION
-LABEL org.opencontainers.image.version=$APP_VERSION
 RUN npm run build -- --configuration=staging
 
 FROM source AS build-test
 WORKDIR /workspace/MercurionWebNg
-ARG APP_VERSION
-LABEL org.opencontainers.image.version=$APP_VERSION
 RUN npm run build -- --configuration=testing
 
 FROM nginx:1.27-alpine AS runtime
-ARG APP_VERSION
-ENV APP_VERSION=$APP_VERSION
-LABEL org.opencontainers.image.version=$APP_VERSION
+ARG BUILD_VERSION
+ARG BUILD_REVISION
+LABEL org.opencontainers.image.version=$BUILD_VERSION \
+      org.opencontainers.image.revision=$BUILD_REVISION \
+      org.opencontainers.image.source="https://github.com/giuliomarinelli/MercurionWeb"
 WORKDIR /usr/share/nginx/html
 RUN addgroup -S -g 10101 mercurion && \
   adduser -S -D -H -u 10101 -G mercurion mercurion && \
