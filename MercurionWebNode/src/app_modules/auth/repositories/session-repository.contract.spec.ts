@@ -254,6 +254,30 @@ describe('RedisSessionRepository invalid records', () => {
     })
 })
 
+describe('SessionRedisCodec provider compatibility', () => {
+    it('falls back to the Mercurion provider for unknown serialized providers', () => {
+        const codec = new SessionRedisCodec()
+
+        expect(codec.decode({
+            sessionId,
+            userId,
+            deviceId: 'device-1',
+            createdAt: '100',
+            expiresAt: '200',
+            lastAccessedAt: '150',
+            IP: '127.0.0.1',
+            valid: 'true',
+            longTerm: 'false',
+            sessionDeviceInfo: JSON.stringify({ browser: { name: 'Chrome' } }),
+            fingerprint: 'fingerprint',
+            location: 'local',
+            provider: 'unknown-provider'
+        })).toEqual(expect.objectContaining({
+            provider: AuthProvider.Mercurion
+        }))
+    })
+})
+
 describe('RedisSessionRepository TTL compatibility', () => {
     it('keeps create, short-session refresh and issued-token revocation TTLs', async () => {
         const redis = new FakeRedisService()
