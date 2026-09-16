@@ -1,7 +1,7 @@
 # 0209 - Minimize production container runtime dependencies
 
-- [x] DONE
-- [ ] BLOCKED
+- [ ] DONE
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
@@ -174,7 +174,16 @@ stdout into the SBOM report while preserving exact-image digest verification
 and SARIF scanning; rerun exact-SHA feature CI after the repair push.
 The third repair addresses feature CI run `35065457627`, which failed only in
 `Container nest-production` because the runner had no `docker scout` plugin.
+The final repair feature CI run `35066388754` still failed in the same job:
+the pinned Syft fallback produced JSON output but exited unsuccessfully, and
+the checker failed closed with `image SBOM generation is unavailable; no
+supported fallback succeeded`. The configured feature-CI repair budget is
+exhausted, so this task is blocked before merge pending a supported CI image
+SBOM tool decision or runner capability.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-_None._
+The GitHub Actions container runner lacks Docker Scout and the pinned Syft
+fallback cannot complete successfully against the local image. A supported
+runner/tool decision is required before the exact-image SBOM and vulnerability
+evidence can be made green.
