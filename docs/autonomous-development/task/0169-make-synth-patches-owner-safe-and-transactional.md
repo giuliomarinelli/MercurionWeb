@@ -116,7 +116,7 @@ was intentionally not run per policy.
 ### Browser validation performed
 Not required by this recipe.
 ### Commits
-Pending commit.
+`4e7e9df92faf17a5116ec9e4ac7235853e257e34` — Make Synth patches transactional and owner-safe.
 ### Merge / CI
 Feature SHA Actions validation is coordinator-owned after push.
 ### Rollback
