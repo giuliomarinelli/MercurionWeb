@@ -169,6 +169,8 @@ after evidence capture.
 
 `e66b5193cd7b41c51d61d540a74ea2114f22fd26` -
 `feat: centralize release build identity`.
+`21f310b4f6e5ea98a3d5b05b66f558fb55475c5b` -
+`fix: provide build identity to containers`.
 
 ### Merge / CI
 
