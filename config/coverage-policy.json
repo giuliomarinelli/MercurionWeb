@@ -1,0 +1,241 @@
+{
+  "version": 1,
+  "policy": "Coverage is a non-regressing floor. Thresholds may only increase unless an approved exception is recorded here.",
+  "projects": {
+    "nest": {
+      "minimums": {
+        "branches": 27,
+        "functions": 41,
+        "lines": 55,
+        "statements": 53
+      },
+      "global": {
+        "branches": 27,
+        "functions": 41,
+        "lines": 55,
+        "statements": 53
+      },
+      "rules": [
+        {
+          "name": "auth-policy-and-session-codec",
+          "match": "MercurionWebNode/src/app_modules/auth/(guards/policies/|repositories/session-redis\\.codec\\.ts$)",
+          "branches": 80,
+          "functions": 80,
+          "lines": 80,
+          "statements": 80
+        },
+        {
+          "name": "transaction-context",
+          "match": "MercurionWebNode/src/persistence/transaction-context\\.ts$",
+          "branches": 80,
+          "functions": 80,
+          "lines": 80,
+          "statements": 80
+        },
+        {
+          "name": "mfa-service-baseline-exception",
+          "match": "MercurionWebNode/src/app_modules/auth/services/mfa\\.service\\.ts$",
+          "branches": 0,
+          "functions": 2,
+          "lines": 15,
+          "statements": 15,
+          "exception": {
+            "owner": "QA-012",
+            "reason": "MFA orchestration is exercised through the auth integration and E2E suites; the current unit baseline does not isolate its provider and challenge collaborators.",
+            "review": "Raise to the 80% branch/function floor when the next MFA-focused fixture task lands."
+          }
+        },
+        {
+          "name": "notification-outbox-dispatcher-baseline-exception",
+          "match": "MercurionWebNode/src/app_modules/notification/services/outbox/notification-outbox-dispatcher\\.service\\.ts$",
+          "branches": 14,
+          "functions": 28,
+          "lines": 51,
+          "statements": 51,
+          "exception": {
+            "owner": "QA-012",
+            "reason": "The outbox dispatcher and repository require collaborator-backed integration fixtures that are not represented by the current unit suite. Existing transaction and outbox integration gates remain mandatory; this is a measured baseline, not a permission to lower a future threshold.",
+            "review": "Raise to the 80% branch/function floor when the next outbox-focused coverage task lands."
+          }
+        },
+        {
+          "name": "notification-outbox-service-baseline-exception",
+          "match": "MercurionWebNode/src/app_modules/notification/services/outbox/notification-outbox\\.service\\.ts$",
+          "branches": 50,
+          "functions": 25,
+          "lines": 59,
+          "statements": 59,
+          "exception": {
+            "owner": "QA-012",
+            "reason": "The outbox service is exercised through integration-facing collaborators that are not represented by the current unit suite. Existing transaction and outbox integration gates remain mandatory; this is a measured baseline, not a permission to lower a future threshold.",
+            "review": "Raise to the 80% branch/function floor when the next outbox-focused coverage task lands."
+          }
+        },
+        {
+          "name": "outbox-consumer-registry-baseline-exception",
+          "match": "MercurionWebNode/src/persistence/outbox/outbox-consumer-registry\\.ts$",
+          "branches": 0,
+          "functions": 75,
+          "lines": 90,
+          "statements": 90,
+          "exception": {
+            "owner": "QA-012",
+            "reason": "The consumer registry's dynamic registration branch is exercised by integration wiring rather than the current unit suite.",
+            "review": "Raise the branch floor to 80% when the next outbox-focused coverage task lands."
+          }
+        },
+        {
+          "name": "outbox-metrics-baseline-exception",
+          "match": "MercurionWebNode/src/persistence/outbox/outbox-metrics\\.service\\.ts$",
+          "branches": 0,
+          "functions": 0,
+          "lines": 27,
+          "statements": 27,
+          "exception": {
+            "owner": "QA-012",
+            "reason": "Metrics emission is observed through integration diagnostics and has no isolated unit fixture in the current suite.",
+            "review": "Raise to the 80% branch/function floor when the next outbox-focused coverage task lands."
+          }
+        },
+        {
+          "name": "outbox-repository-baseline-exception",
+          "match": "MercurionWebNode/src/persistence/outbox/outbox-repository\\.ts$",
+          "branches": 0,
+          "functions": 0,
+          "lines": 31,
+          "statements": 31,
+          "exception": {
+            "owner": "QA-012",
+            "reason": "Repository behavior is covered through PostgreSQL integration tests and is not duplicated with a low-value unit mock.",
+            "review": "Raise to the 80% branch/function floor when the next outbox-focused coverage task lands."
+          }
+        }
+      ],
+      "exclusions": [
+        {
+          "match": "MercurionWebNode/src/persistence/migrations/.*\\.ts$",
+          "reason": "Schema migration entrypoints are executed by the migration integration gate, not unit-instrumented application behavior."
+        },
+        {
+          "match": "MercurionWebNode/src/.*\\.gql\\.ts$",
+          "reason": "Generated GraphQL artifacts are validated by the generated-artifact drift gate."
+        },
+        {
+          "match": "MercurionWebNode/src/(main|copy-bootstrap-files)\\.ts$",
+          "reason": "Process bootstrap and filesystem copy entrypoints have no meaningful isolated unit boundary."
+        }
+      ]
+    },
+    "angular": {
+      "minimums": {
+        "branches": 41,
+        "functions": 44,
+        "lines": 57,
+        "statements": 55
+      },
+      "global": {
+        "branches": 41,
+        "functions": 44,
+        "lines": 57,
+        "statements": 55
+      },
+      "rules": [
+        {
+          "name": "auth-fallback-interceptor",
+          "match": "MercurionWebNg/src/app/interceptors/auth-fallback\\.interceptor\\.ts$",
+          "branches": 80,
+          "functions": 80,
+          "lines": 80,
+          "statements": 80
+        },
+        {
+          "name": "auth-interceptor",
+          "match": "MercurionWebNg/src/app/interceptors/auth\\.interceptor\\.ts$",
+          "branches": 80,
+          "functions": 80,
+          "lines": 80,
+          "statements": 80
+        },
+        {
+          "name": "auth-guard-baseline-exception",
+          "match": "MercurionWebNg/src/app/guards/auth\\.guard\\.ts$",
+          "branches": 50,
+          "functions": 100,
+          "lines": 78,
+          "statements": 80,
+          "exception": {
+            "owner": "QA-012",
+            "reason": "The guard's router/error branch is exercised by the critical browser journey and remains below the 80% branch floor in the current unit baseline.",
+            "review": "Raise to the 80% branch/line floor when the next Angular auth coverage task adds the missing navigation branch."
+          }
+        },
+        {
+          "name": "auth-session-persistence-baseline-exception",
+          "match": "MercurionWebNg/src/app/services/auth-session-persistence\\.service\\.ts$",
+          "branches": 72,
+          "functions": 84,
+          "lines": 81,
+          "statements": 78,
+          "exception": {
+            "owner": "QA-012",
+            "reason": "Storage corruption and cross-tab recovery branches require browser storage fixtures not available in the current unit baseline.",
+            "review": "Raise all metrics to the 80% floor when the next Angular auth coverage task adds storage failure cases."
+          }
+        },
+        {
+          "name": "auth-session-repository-baseline-exception",
+          "match": "MercurionWebNg/src/app/services/auth-session-repository\\.service\\.ts$",
+          "branches": 14,
+          "functions": 17,
+          "lines": 21,
+          "statements": 21,
+          "exception": {
+            "owner": "QA-012",
+            "reason": "The repository is an API transport boundary; its observable behavior is covered by critical and system browser journeys rather than mock-heavy unit tests.",
+            "review": "Raise to the 80% floor when a transport-backed Angular auth test fixture is available."
+          }
+        },
+        {
+          "name": "auth-state-store-baseline-exception",
+          "match": "MercurionWebNg/src/app/services/auth-state\\.store\\.ts$",
+          "branches": 73,
+          "functions": 86,
+          "lines": 86,
+          "statements": 83,
+          "exception": {
+            "owner": "QA-012",
+            "reason": "The remaining state transition branch depends on browser event timing and is covered by the session state-machine suite plus system journeys.",
+            "review": "Raise the branch floor to 80% when the next Angular auth coverage task adds the event-timing case."
+          }
+        },
+        {
+          "name": "dashboard-mappers-baseline-exception",
+          "match": "MercurionWebNg/src/app/pages/profile/dashboard/dashboard-widget\\.mappers\\.ts$",
+          "branches": 66,
+          "functions": 100,
+          "lines": 100,
+          "statements": 100,
+          "exception": {
+            "owner": "QA-012",
+            "reason": "The mapper's defensive union branch is preserved for forward-compatible API payloads and is not produced by the current contract fixtures.",
+            "review": "Raise the branch floor to 80% when the next mapper contract fixture adds an unknown widget variant."
+          }
+        }
+      ],
+      "exclusions": [
+        {
+          "match": "MercurionWebNg/src/(main|polyfills)\\.ts$",
+          "reason": "Angular process entrypoints contain framework bootstrap glue rather than maintained unit behavior."
+        },
+        {
+          "match": "MercurionWebNg/src/app/.*\\.generated\\.ts$",
+          "reason": "Generated client artifacts are covered by GraphQL generation and drift checks."
+        },
+        {
+          "match": "MercurionWebNg/src/environments/.*\\.ts$",
+          "reason": "Build-time environment constants are selected by configuration and have no meaningful unit branches."
+        }
+      ]
+    }
+  }
+}

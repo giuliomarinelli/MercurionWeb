@@ -195,6 +195,7 @@ jobs:
           if-no-files-found: ignore
           path: |
             MercurionWebNg/coverage
+            reports/coverage/angular
             MercurionWebNg/test-results
             MercurionWebNg/**/*.xml
 
@@ -231,6 +232,7 @@ jobs:
           if-no-files-found: ignore
           path: |
             MercurionWebNode/coverage
+            reports/coverage/nest
             MercurionWebNode/test-results
             MercurionWebNode/**/*.xml
 

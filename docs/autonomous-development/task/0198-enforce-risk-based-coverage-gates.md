@@ -98,7 +98,10 @@ _Not started._
 
 ### Preflight
 
-_Not started._
+Clean `feature/QA-012` at base `479a4da411c72e8ac6f52ec105e2adabf702756a`; exact
+merge CI for the supplied develop SHA was green. No browser/runtime evidence is
+required. Existing local dependency tree was reused; no `npm ci` or
+`npm run ci:check` was run locally.
 
 ### Preflight remediation
 
@@ -106,15 +109,32 @@ _None._
 
 ### Summary
 
-_Not started._
+Added deterministic Angular/Karma and Nest/Jest coverage collection with HTML,
+LCOV, Cobertura, JSON and text-summary outputs. Added the versioned
+`config/coverage-policy.json` risk policy and `scripts/check-coverage-gates.mjs`
+gate, including global non-regression floors, 80% branch/function/line/statement
+rules for covered auth/session/transaction and mapper paths, and one explicit
+measured outbox exception with owner and ratchet review requirement. Registered
+both coverage suites in the canonical CI test gates and published reports as
+CI artifacts.
 
 ### Task-specific validation performed
 
-_Not started._
+`npm run test:coverage --workspace mercurion_web_node` completed: 168 suites
+and 588 tests passed, producing HTML/LCOV/Cobertura/JSON reports. The measured
+Nest baseline was 27.97% branch, 41.80% function, 55.61% line and 53.72%
+statement coverage; policy floors are the rounded-down non-regressing values.
+The auth policy/session-codec and transaction-context paths meet the 80%
+high-risk floor; MFA and outbox paths are listed as measured,
+owner-attributed exceptions. `npm run test:coverage --workspace
+mercurion_web_ng` completed 480 tests and the Angular gate passed at 41.34%
+branch, 44.19% function, 57.44% line and 55.69% statement coverage, with
+named session/mapper exceptions.
 
 ### Full pre-merge CI-parity validation
 
-_Not started._
+Complete clean-install parity is owned by GitHub Actions for the exact pushed
+feature SHA. Local validation intentionally remained focused per protocol.
 
 ### Browser validation performed
 
