@@ -242,3 +242,30 @@ Focused repair validation:
 Local `npm ci` and `npm run ci:check` were not run. Browser validation was not
 repeated because the correction only routes an existing warning through the
 approved neutral logger.
+
+### CI repair invocation 3
+
+The exact feature-SHA workflow run `35139604235` for SHA
+`1c13150bac70dcd7a159abc5db47cc33d4e30d4b` failed because the canonical REST
+compatibility inventory was stale after QA-031 added the public correlation
+interceptor behavior.
+
+Regenerated `docs/architecture/rest-contract-compatibility.json` with the
+checker’s supported command:
+
+`node scripts/check-rest-compatibility.mjs --write`
+
+The reviewed inventory change is limited to registering
+`CorrelationInterceptor` in the existing Angular interceptor list. Route
+matching remains 59 client calls matched to 58 Nest routes.
+
+Focused repair validation:
+
+- `node scripts/check-rest-compatibility.mjs` - passed.
+- `node scripts/test-rest-compatibility-negative.mjs` - passed, including
+  CRLF/LF determinism and all six deliberate incompatibility mutations.
+- `git diff --check` - passed.
+
+Local `npm ci` and `npm run ci:check` were not run. Browser validation was not
+repeated because this correction updates only generated compatibility metadata
+for the already-validated correlation behavior.
