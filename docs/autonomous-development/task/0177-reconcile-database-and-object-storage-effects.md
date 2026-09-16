@@ -146,6 +146,19 @@ Owned by GitHub Actions after the task-specific commit is pushed; local
 Copilot co-author trailer included.
 ### Merge / CI
 _Not started._
+
+### CI repair
+- Exact feature-SHA run `35093607850` failed in `nest-orphans` because the
+  TypeORM migration
+  `src/persistence/migrations/1789660000000-AddStorageOperations.ts` was not
+  registered as a dynamic reachability entrypoint.
+- Added the migration to `MercurionWebNode/nest-reachability.config.json`
+  using the existing `typeorm-cli` registration convention.
+- Focused validation:
+  `npm run nest:orphans:check` — passed.
+  `npm run ci:architecture` — passed.
+- Repair commit: _pending_.
+
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
