@@ -119,13 +119,19 @@ Passed:
 - `npm run ci:transactions`
 - `npm run build --workspace mercurion_web_node`
 - `git diff --check`
+- Feature CI run `35041833688` diagnosed as a repository-controlled Nest
+  reachability failure for the new TypeORM migration; the migration was added
+  to `nest-reachability.config.json` and `npm run ci:nest:architecture` passed
+  locally afterward.
 ### Full pre-merge CI-parity validation
 Owned by GitHub Actions on the pushed exact feature SHA; local aggregate
 `npm run ci:check` was intentionally not run per protocol.
 ### Browser validation performed
 _Not started._
 ### Commits
-Pending commit below; required Copilot co-author trailer included.
+`54da665fc2105e4c25e65a96aa8ed0f3dfb99cea` — transactional outbox
+implementation; required Copilot co-author trailer included.
+`_repair pending commit_` — TypeORM migration reachability metadata correction.
 ### Merge / CI
 _Not started._
 ### Rollback
