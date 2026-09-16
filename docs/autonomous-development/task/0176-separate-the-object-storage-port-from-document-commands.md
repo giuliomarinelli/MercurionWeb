@@ -87,21 +87,28 @@ Keep the port deliberately small. It should express object-storage capabilities,
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-027` at base `b45d9e9c5a9789d66f340e73d8c1ba1135981c97`.
 ### Preflight
-_Not started._
+- Confirmed clean `feature/DATA-027` identity and exact base SHA.
+- Exact GitHub Actions CI run `35053603025` for `b45d9e9c5a9789d66f340e73d8c1ba1135981c97` completed successfully; required jobs and gate were green.
+- No task-owned Angular/Nest/Tox21/test watcher was started during focused implementation validation. Local `npm ci` and `npm run ci:check` were not run.
+- Prerequisites `0144`, `0152`, and `0175` are checked `DONE`.
 ### Preflight remediation
 _None._
 ### Summary
-Reset to `PENDING` by the human-authorized DATA-003 recovery. This task has not been attempted and has no feature branch.
+Introduced a provider-neutral `ObjectStore` port and typed put/get/delete primitives, moved Dropbox HTTP calls into an infrastructure adapter using `ExternalHttpPort`, and replaced the positional Dropbox service API with `DocumentCommandService` input objects. Authorization and persistence orchestration now live in the application layer; profile-image replacement is a dedicated command and public document responses omit provider storage identifiers. The obsolete provider/application hybrid service was removed.
 ### Task-specific validation performed
-_Not started._
+- `npm test --workspace mercurion_web_node -- --runInBand src/app_modules/dropbox-object-store/application/document-command.service.spec.ts src/app_modules/dropbox-object-store/infrastructure/dropbox-object-store.adapter.spec.ts` — 2 suites, 5 tests passed.
+- `npm run typecheck --workspace mercurion_web_node` — passed.
+- `npm run lint --workspace mercurion_web_node -- --no-warn-ignored` — passed.
+- `npm run build --workspace mercurion_web_node` — passed.
+- `git diff --check` — passed.
 ### Full pre-merge CI-parity validation
-_Not started._
+Owned by GitHub Actions after the task-specific commit is pushed; local `npm ci` and `npm run ci:check` are prohibited.
 ### Browser validation performed
-_Not started / not applicable._
+The Angular source contains no document/avatar upload consumer route; the document endpoints are backend-only in this baseline, so the recipe's conditional browser flow was not reachable. Chrome DevTools capability probe (`list_pages`, without navigation) succeeded; no application browser mutation or credentials were used.
 ### Commits
-_None._
+Pending task-specific commit.
 ### Merge / CI
 _Not started._
 ### Rollback
