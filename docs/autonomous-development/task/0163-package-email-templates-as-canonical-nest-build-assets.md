@@ -1,6 +1,6 @@
 # 0163 - Package email templates as canonical Nest build assets
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -61,12 +61,12 @@ Email assets are currently copied through multiple independent mechanisms: `copy
 
 ## Acceptance criteria
 
-- [ ] Email assets are declared once in Nest build configuration.
-- [ ] Clean local/test/staging/production builds emit the same logical template tree.
-- [ ] No Dockerfile or bootstrap helper separately copies email templates.
-- [ ] Runtime rendering does not require `src/app_modules/notification/email-templates` to exist.
-- [ ] Registry/render tests pass against clean compiled output.
-- [ ] CI fails if any registered template/partial is absent from the build artifact.
+- [x] Email assets are declared once in Nest build configuration.
+- [x] Clean local/test/staging/production builds emit the same logical template tree.
+- [x] No Dockerfile or bootstrap helper separately copies email templates.
+- [x] Runtime rendering does not require `src/app_modules/notification/email-templates` to exist.
+- [x] Registry/render tests pass against clean compiled output.
+- [x] CI fails if any registered template/partial is absent from the build artifact.
 
 ## Validation
 
@@ -87,24 +87,54 @@ Mark `BLOCKED` if the Nest compiler/runtime currently cannot preserve a required
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-014` (Source `DATA-014`), based on
+`902e842759296b776403c372cca2bc7ed3e09675`.
 ### Preflight
-_Not started._
+Clean branch and working tree confirmed at the supplied base SHA. No
+task-owned Angular, Nest, Tox21, Jest, or workspace watcher process was
+active. Exact base-SHA Actions run
+[`35048119526`](https://github.com/giuliomarinelli/MercurionWeb/actions/runs/35048119526)
+completed successfully for
+`902e842759296b776403c372cca2bc7ed3e09675`; both platform prerequisite jobs,
+container jobs, unit/E2E/browser jobs, build artifacts, and `Required gate`
+were green. Prerequisites `0161` and `0162` were `DONE`.
 ### Preflight remediation
-_None._
+None.
 ### Summary
-Re-enabled after DATA-002 became `DONE`; this task was never attempted and has no feature branch.
+Configured Nest's compiler asset copy once for the complete email
+template/layout/partial tree, with a stable `dist/src/app_modules/...`
+runtime-relative output and watch support. Removed email-template copying from
+the bootstrap helper and all production/staging/test Docker build stages.
+Added a compiled-artifact registry/render check and registered it in the CI
+static gate. The existing registry and mailer paths already target the
+canonical compiled location, so no environment-specific path branch was
+needed.
 ### Task-specific validation performed
-_Not started._
+- Cleaned `MercurionWebNode/dist`, then ran
+  `npm run build --workspace mercurion_web_node`: passed; 22 email assets
+  emitted, including all layouts and partials.
+- `npm run check:email-assets --workspace mercurion_web_node`: passed,
+  validating all 13 registry entries, four required layout/partial assets, and
+  rendering each registered template from compiled output.
+- `npm test --workspace mercurion_web_node -- --runInBand
+  src/app_modules/notification/email-template-registry.spec.ts
+  src/app_modules/notification/email-templates/email-templates.spec.ts`:
+  passed, 2 suites and 18 tests.
+- `npm run typecheck --workspace mercurion_web_node`: passed.
+- `npm run lint --workspace mercurion_web_node`: passed.
+- `git diff --check` and duplicate-copy search: passed; no Dockerfile or
+  bootstrap email-template copy remains.
 ### Full pre-merge CI-parity validation
-_Not started._
+Not run locally by policy; `npm ci` and `npm run ci:check` are reserved for
+GitHub Actions. The pushed feature SHA must receive complete exact-SHA Actions
+validation before integration.
 ### Browser validation performed
-_Not started._
+Not applicable; the recipe declares no browser validation.
 ### Commits
-_None._
+Pending task-specific commit on `feature/DATA-014`.
 ### Merge / CI
-_Not started._
+Pending coordinator feature-SHA CI and integration lifecycle.
 ### Rollback
-_Not applicable._
+Not applicable.
 ### Blocker / human decision required
-_None._
+None.
