@@ -142,8 +142,8 @@ Owned by GitHub Actions after the task-specific commit is pushed; local
   avatar consumer route, so ordinary document flows are not browser-reachable;
   no credentials were needed or entered.
 ### Commits
-Pending task-specific commit; required Copilot co-author trailer will be
-included.
+`e83fdbe3` — `feat(DATA-028): reconcile document storage effects`; required
+Copilot co-author trailer included.
 ### Merge / CI
 _Not started._
 ### Rollback
