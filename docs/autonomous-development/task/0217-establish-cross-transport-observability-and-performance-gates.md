@@ -174,7 +174,7 @@ readiness rounds passed.
 
 ### Commits
 
-Pending commit SHA.
+Implementation commit `38e9b48c`.
 
 ### Merge / CI
 
