@@ -157,7 +157,7 @@ _Not started._
 - Focused validation:
   `npm run nest:orphans:check` — passed.
   `npm run ci:architecture` — passed.
-- Repair commit: _pending_.
+- Repair commit: `330c1164a306fdf6ab38d1907f58d085dd2f86fe`.
 
 ### Rollback
 _Not applicable._
