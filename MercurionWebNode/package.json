@@ -34,6 +34,7 @@
     "migration:check": "ts-node -r tsconfig-paths/register scripts/check-database-schema.ts",
     "test": "jest --config ./jest.config.js",
     "test:ci": "node -e \"require('fs').mkdirSync('test-results',{recursive:true})\" && jest --config ./jest.config.js --runInBand --json --outputFile=./test-results/jest-results.json",
+    "test:integration": "node -e \"require('fs').mkdirSync('test-results',{recursive:true})\" && jest --config ./test/jest-integration.json --runInBand --json --outputFile=./test-results/integration-results.json",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",

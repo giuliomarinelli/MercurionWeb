@@ -34,6 +34,7 @@
     "ci:test:angular": "npm run test:ci --workspace mercurion_web_ng",
     "ci:test:nest": "npm run test:ci --workspace mercurion_web_node",
     "ci:test:nest:e2e": "npm run test:e2e:ci --workspace mercurion_web_node",
+    "ci:test:nest:integration": "npm run test:integration --workspace mercurion_web_node",
     "ci:test:smoke-ratio": "node scripts/check-smoke-test-ratio.mjs",
     "ci:test": "npm run ci:test:angular && npm run ci:test:nest && npm run ci:test:nest:e2e",
     "ci:build:angular": "npm run build --workspace mercurion_web_ng && npm run bundle:check --workspace mercurion_web_ng && npm run chemistry:check-lazy --workspace mercurion_web_ng",

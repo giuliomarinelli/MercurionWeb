@@ -1,0 +1,15 @@
+{
+  "moduleFileExtensions": ["js", "json", "ts"],
+  "rootDir": "..",
+  "testEnvironment": "node",
+  "testTimeout": 120000,
+  "testRegex": "test/integration/.*\\.integration\\.spec\\.ts$",
+  "moduleNameMapper": {
+    "^src/(.*)$": "<rootDir>/src/$1",
+    "^jose$": "<rootDir>/src/test-utils/mocks/jose.ts"
+  },
+  "setupFiles": ["<rootDir>/test/integration.setup.ts"],
+  "transform": {
+    "^.+\\.ts$": "ts-jest"
+  }
+}

@@ -284,11 +284,11 @@ jobs:
         env:
           POSTGRES_USER: app
           POSTGRES_PASSWORD: migration-ci
-          POSTGRES_DB: mercurion
+          POSTGRES_DB: mercurion_integration
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U app -d mercurion"
+          --health-cmd "pg_isready -U app -d mercurion_integration"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
@@ -298,9 +298,10 @@ jobs:
       SQL_DATABASE_PORT: 5432
       SQL_DATABASE_USERNAME: app
       SQL_DATABASE_PASSWORD: migration-ci
-      SQL_DATABASE: mercurion
+      SQL_DATABASE: mercurion_integration
       SQL_DATABASE_LOGGING: "false"
       SQL_DATABASE_LOGGER: advanced-console
+      MERCURION_POSTGRES_INTEGRATION: "true"
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -317,6 +318,17 @@ jobs:
 
       - name: Apply migrations and reject entity drift
         run: npm run ci:database-schema
+
+      - name: Run real PostgreSQL transaction integration suite
+        run: npm run ci:test:nest:integration
+
+      - name: Upload PostgreSQL integration diagnostics
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: postgres-integration-diagnostics
+          if-no-files-found: ignore
+          path: MercurionWebNode/test-results/integration-results.json
 
   build:
     name: Build artifacts
