@@ -117,6 +117,9 @@ Passed:
 - focused Jest coverage for the registry, all 13 email templates, mail sender
   boundary validation, Account flow and MFA service: 5 suites, 23 tests
 - `git diff --check`
+- Feature CI run `35047216321` initially failed only because the three
+  superseded context model files were reported as Nest orphan files; those
+  files were removed as part of this registry migration.
 
 Registry tests assert every production template key has a valid fixture,
 resolvable asset and subject; negative tests prove invalid context is rejected
@@ -127,7 +130,8 @@ Reserved for the exact pushed feature SHA GitHub Actions workflow; no local
 ### Browser validation performed
 Not applicable.
 ### Commits
-Pending task commit.
+`c1c67b76` (initial implementation; feature CI run `35047216321` diagnosed)
+and pending CI repair commit.
 ### Merge / CI
 _Not started._
 ### Rollback
