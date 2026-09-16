@@ -4,6 +4,7 @@ import { OutboxEventStatus } from '../enums/outbox-event-status.enum'
 
 @Entity({ name: 'outbox_events' })
 @Index('outbox_pending_idx', ['status', 'availableAt'])
+@Index('outbox_dispatch_idx', ['status', 'availableAt', 'claimedAt'])
 export class OutboxEvent {
   @PrimaryColumn('uuid')
   id!: UUID

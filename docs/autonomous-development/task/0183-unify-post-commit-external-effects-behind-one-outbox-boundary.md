@@ -131,6 +131,20 @@ No local `npm ci` or `npm run ci:check` was run.
 The supplied exact base-SHA merge CI was green. Complete clean-install
 validation remains delegated to the permanent GitHub Actions gate for the
 final pushed feature SHA.
+### Feature-CI repair
+Exact feature SHA `8ec0d8b6d679e9d5dec73ac68c7ecb7d051d7243` failed run
+`35106178581` in the PostgreSQL migration schema job on Ubuntu because the
+canonical migration-created `outbox_dispatch_idx` was absent from the entity
+metadata and schema validation requested `DROP INDEX "public"."outbox_dispatch_idx"`.
+The repair declares the existing three-column dispatch index on `OutboxEvent`,
+matching `1789700000000-CanonicalizeOutboxEvents` and preserving claiming
+performance semantics. The repaired TypeORM metadata inspection passed, and
+the focused outbox tests, Nest typecheck, Nest lint, and `git diff --check`
+passed. Local `migration:drift` reached the database but remains blocked by
+pre-existing unrelated schema drift; no `outbox_dispatch_idx` drift was
+reported. Local `migration:check` could not run cleanly because the existing
+development database has no matching migration history and the initial
+migration found an already-existing `backup_codes` relation.
 ### Browser validation performed
 Started Tox21, Nest, and Angular in the mandated order with live handles.
 After readiness, two consecutive rounds returned HTTP 200 from
@@ -145,6 +159,7 @@ processing timestamps. All task-owned runtime processes were stopped afterward.
 `fd17aef1` — `feat: unify post-commit effects behind outbox`
 
 Execution-note correction is recorded in the follow-up metadata commit.
+The repair is included in the current feature-CI repair commit.
 ### Merge / CI
 Pending coordinator integration and exact feature-SHA CI observation.
 ### Rollback
