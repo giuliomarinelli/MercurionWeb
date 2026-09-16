@@ -1,6 +1,6 @@
 # 0159 - Separate Help persistence entities from response DTOs
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -86,21 +86,38 @@ Mark `BLOCKED` if the current GraphQL schema intentionally exposes a persistence
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-010` at base `c8b2bf798d13f4116c78803684abb0b547871aae`.
 ### Preflight
-_Not started._
+Clean branch and workspace confirmed; `develop`, `origin/develop`, and HEAD
+matched the supplied base SHA. Local `commit.gpgSign` is `false`, no
+workspace-consuming Angular/Nest/Tox21/Jest processes were active, and the
+focused Help service baseline test passed. GitHub Actions run
+`35042741481` for the exact base SHA completed successfully with Ubuntu and
+Windows prerequisite jobs, Nest unit/E2E, GraphQL/static gates, builds,
+containers, browser journeys, and `Required gate` green.
 ### Preflight remediation
-_None._
+None. No install or aggregate CI command was run locally.
 ### Summary
-Re-enabled after DATA-002 became `DONE`; this task was never attempted and has no feature branch.
+Added immutable GraphQL response DTOs and pure Help presenters. Help queries and
+mutations now construct explicit response shapes from persistence projections,
+perform public-ID/content formatting and visibility/name presentation without
+mutating entities, and persistence entities no longer carry GraphQL-only
+presentation properties.
 ### Task-specific validation performed
-_Not started._
+Passed `npm test --workspace mercurion_web_node -- --runInBand
+--runTestsByPath src/app_modules/help/models/dto/help-presenters.spec.ts
+src/app_modules/help/services/help.service.spec.ts` (3 tests), Nest
+`typecheck`, Nest `lint`, Nest `build`, GraphQL `schema:check`, and
+`git diff --check`. Presenter tests deep-clone sources and verify public IDs,
+content-delta serialization, computed names, and hidden user/support fields.
 ### Full pre-merge CI-parity validation
-_Not started._
+Complete clean-install and aggregate CI parity are delegated to GitHub Actions
+for the pushed exact feature SHA; local `npm ci` and `npm run ci:check` were
+intentionally not run.
 ### Browser validation performed
-_Not started._
+Not applicable per recipe.
 ### Commits
-_None._
+Pending task-specific commit.
 ### Merge / CI
 _Not started._
 ### Rollback

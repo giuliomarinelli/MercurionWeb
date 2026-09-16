@@ -12,11 +12,12 @@ import { AuthorType } from '../models/enums/author-type.enum'
 import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils'
 import { GraphQLFieldsMap, TypeOrmUtils } from 'src/utils/type-orm-utils/type-orm-utils'
 import { TicketDetailDTO } from '../models/dto/ticket-detail.dto'
+import { TicketMessageResponse, TicketResponse } from '../models/dto/help-response.dto'
+import { presentMessage, presentTicket } from '../models/dto/help-presenters'
 import { JsonValue } from 'src/models/json.types'
 import { UserService } from 'src/app_modules/user/services/user.service'
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 import { runInTransaction } from 'src/persistence/transaction-context'
-import { formatHelpPublicId } from '../models/value-objects/help-public-id'
 import { NotificationOutboxService } from 'src/app_modules/notification/services/outbox/notification-outbox.service'
 import { HelpNotificationEventType } from 'src/app_modules/notification/models/enums/help-notification-event-type.enum'
 
@@ -26,7 +27,6 @@ export class HelpService {
   private readonly REQUIRED_TICKET_FIELDS = ['id', 'publicId', 'status', 'lastMessageAt']
   private readonly REQUIRED_MESSAGE_FIELDS = ['id', 'publicId', 'createdAt', 'authorType']
 
-  // campi transienti GraphQL (non esistono sul DB)
   private readonly TICKET_NON_DB_FIELDS = ['userFullName']
   private readonly MESSAGE_NON_DB_FIELDS = ['userFullName', 'authorFullName']
 
@@ -49,7 +49,7 @@ export class HelpService {
     subject: string
     contentDelta: JsonValue
     contentHtml: string
-  }, canViewUsers: boolean = false): Promise<Ticket> {
+  }, canViewUsers: boolean = false): Promise<TicketResponse> {
 
     const now = Date.now()
 
@@ -92,21 +92,13 @@ export class HelpService {
       throw applicationError(ApplicationErrorCode.TICKET_INITIAL_MESSAGE_CREATE_FAILED)
     }
 
-    if (canViewUsers) {
-      await this.attachTicketUserFullNames([ticket])
-    }
-
-    const presentedTicket = this.presentTicket(ticket)
-
-    if (!canViewUsers) {
-      Object.entries(presentedTicket).forEach(([key]) => {
-        if (['authorId', 'userId', 'messages', 'userFullName'].includes(key)) {
-          ;(presentedTicket as unknown as Record<string, string | object | null | undefined>)[key] = undefined
-        }
-      })
-    }
-
-    return presentedTicket
+    const names = canViewUsers
+      ? await this.users.getUserFullNames([ticket.userId])
+      : undefined
+    return presentTicket(ticket, {
+      canViewUsers,
+      userFullName: names?.get(String(ticket.userId)),
+    })
   }
 
 
@@ -243,7 +235,7 @@ export class HelpService {
     fieldsMap?: GraphQLFieldsMap,
     onlyOwner: boolean = true,
     canViewUsers: boolean = false
-  ): Promise<Pagination<Ticket>> {
+  ): Promise<Pagination<TicketResponse>> {
 
     const itemFieldsMap = fieldsMap?.items ?? {}
     const scalarFields = GraphQLUtils.getScalarFields(itemFieldsMap)
@@ -272,20 +264,18 @@ export class HelpService {
       qb = TypeOrmUtils.addJoins(qb, 't', joins as GraphQLFieldsMap)
     }
 
-    let page = await paginate<Ticket>(qb, options)
+    const page = await paginate<Ticket>(qb, options)
 
-    if (canViewUsers && wantsUserFullName) {
-      await this.attachTicketUserFullNames(page.items)
-    }
-
-    page = {
+    const names = canViewUsers && wantsUserFullName
+      ? await this.users.getUserFullNames(page.items.map((item) => item.userId))
+      : undefined
+    return {
       ...page,
-      items: page.items.map((i) => {
-        return this.presentTicket(i)
-      })
+      items: page.items.map((item) => presentTicket(item, {
+        canViewUsers,
+        userFullName: names?.get(String(item.userId)),
+      })),
     }
-
-    return page
   }
 
   async getTicketDetail(
@@ -321,12 +311,15 @@ export class HelpService {
     const ticket = await qb.getOne()
     if (!ticket) throw applicationError(ApplicationErrorCode.TICKET_NOT_FOUND)
 
-    if (canViewUsers && wantsUserFullName) {
-      await this.attachTicketUserFullNames([ticket])
-    }
+    const names = canViewUsers && wantsUserFullName
+      ? await this.users.getUserFullNames([ticket.userId])
+      : undefined
 
     return {
-      ticket: this.presentTicket(ticket),
+      ticket: presentTicket(ticket, {
+        canViewUsers,
+        userFullName: names?.get(String(ticket.userId)),
+      }),
       messages: undefined
     }
   }
@@ -338,7 +331,7 @@ export class HelpService {
     fieldsMap: GraphQLFieldsMap,
     onlyOwner: boolean = true,
     canViewUsers: boolean = false
-  ): Promise<Pagination<TicketMessage>> {
+  ): Promise<Pagination<TicketMessageResponse>> {
 
     if (onlyOwner) {
       const owns = await this.ticketRepo.exists({
@@ -373,23 +366,20 @@ export class HelpService {
       .where('m.ticket_id = :ticketId', { ticketId })
       .orderBy('m.created_at', 'DESC')
 
-    let page = await paginate<TicketMessage>(qb, options)
+    const page = await paginate<TicketMessage>(qb, options)
 
-    if (canViewUsers && (wantsUserFullName || wantsAuthorFullName)) {
-      await this.attachMessageFullNames(page.items, {
-        user: wantsUserFullName,
-        author: wantsAuthorFullName
-      })
-    }
-
-    page = {
+    const names = canViewUsers && (wantsUserFullName || wantsAuthorFullName)
+      ? await this.users.getUserFullNames(
+        page.items.flatMap((item) => [item.userId, item.authorId].filter(Boolean) as UUID[]),
+      )
+      : undefined
+    return {
       ...page,
-      items: page.items.map((m) => {
-        return this.presentMessage(m)
-      })
+      items: page.items.map((item) => presentMessage(item, {
+        canViewUsers,
+        authorFullNames: names,
+      })),
     }
-
-    return page
   }
 
   existsUserTicketById(userId: UUID, ticketId: UUID): Promise<boolean> {
@@ -432,77 +422,10 @@ export class HelpService {
     return cols
   }
 
-  private async attachTicketUserFullNames(tickets: Ticket[]): Promise<void> {
-    const ids: UUID[] = []
-
-    for (const t of tickets) {
-      if (t.userId) ids.push(t.userId)
-    }
-
-    if (!ids.length) return
-
-    const map = await this.users.getUserFullNames(ids)
-
-    for (const t of tickets) {
-      if (!t.userId) continue
-      t.userFullName = map.get(String(t.userId))
-    }
-  }
-
-  private async attachMessageFullNames(
-    messages: TicketMessage[],
-    opts: { user: boolean; author: boolean }
-  ): Promise<void> {
-    const ids: UUID[] = []
-
-    for (const m of messages) {
-      if (opts.user && m.userId) ids.push(m.userId)
-      if (opts.author && m.authorId) ids.push(m.authorId)
-    }
-
-    if (!ids.length) return
-
-    const map = await this.users.getUserFullNames(ids)
-
-    for (const m of messages) {
-      if (opts.user && m.userId) {
-        m.userFullName = map.get(String(m.userId))
-      }
-      if (opts.author && m.authorId) {
-        m.authorFullName = map.get(String(m.authorId))
-      }
-    }
-  }
-
   private stampTicket(ticket: Ticket, now: number): void {
     ; (ticket as unknown as Record<string, string | null | undefined>).createdAt ??= String(now)
     ticket.updatedAt = String(now)
     ticket.lastMessageAt = String(now)
-  }
-
-  private presentTicket(ticket: Ticket): Ticket {
-    const presented = Object.assign(
-      Object.create(Object.getPrototypeOf(ticket)),
-      ticket,
-      { publicId: formatHelpPublicId(ticket.publicId, 'Ticket') },
-    ) as Ticket
-
-    if (ticket.messages) {
-      presented.messages = ticket.messages.map(message => this.presentMessage(message))
-    }
-
-    return presented
-  }
-
-  private presentMessage(message: TicketMessage): TicketMessage {
-    return Object.assign(
-      Object.create(Object.getPrototypeOf(message)),
-      message,
-      {
-        publicId: formatHelpPublicId(message.publicId, 'Message'),
-        contentDelta: JSON.stringify(message.contentDelta),
-      },
-    ) as TicketMessage
   }
 
   private makeUserMessage(input: {
