@@ -120,7 +120,8 @@ Reserved for exact feature-SHA GitHub Actions validation.
 ### Browser validation performed
 Not applicable; this is server-side E2E coverage.
 ### Commits
-Pending commit.
+- `6295fbf4c3701c7a564b3c45c66d2d7b60440ac2` - expand deterministic Nest E2E
+  fixture, transport coverage, and canonical GraphQL validation mapping.
 ### Merge / CI
 _Not started._
 ### Rollback
