@@ -8,15 +8,12 @@ import { SecurityService } from '../services/security.service';
 import { ResponseService } from 'src/services/response.service';
 import { JwtToolsService } from '../services/jwt-tools.service';
 import { TokenType } from '../models/enums/token-type.enum';
-import { join } from 'path';
 import { MailSenderService } from 'src/app_modules/notification/services/mail-sender/mail-sender.service';
-import { UserCtaContext } from 'src/app_modules/notification/models/contexts/user-cta.context';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
 import { errorMessage, errorStack } from 'src/utils/errors/error-message'
 
 import { User } from 'src/app_modules/user/models/entities/user.entity';
 import { createHmac, UUID } from 'crypto';
-import { EmailTotpContext } from 'src/app_modules/notification/models/contexts/email-totp.context';
 import { SessionService } from '../services/session.service';
 import { SmsSenderService } from 'src/app_modules/notification/services/sms-sender/sms-sender.service';
 import { ChangePhoneDTO } from '../models/dto/change-phone.cls.dto';
@@ -24,7 +21,6 @@ import { ContactChangeKind } from '../models/enums/contact-change-kind.enum';
 import { PasswordContext } from '../models/enums/password-context.enum';
 import { CompareResult } from '../models/enums/compare-result.enum';
 import { SecurityAuditService } from 'src/app_modules/meilisearch/services/security-audit.service';
-import { UserContext } from 'src/app_modules/notification/models/contexts/user.context';
 import { LoggerPort } from 'src/logging/logger.port';
 import { LoggerContext } from 'src/logging/logger.port';
 import { publicTotpMetadata } from 'src/utils/temporal/temporal'
@@ -282,12 +278,7 @@ export class AccountFlowKernel {
         }
         const activationToken: string = await this.jwtTools.generateToken(userId, TokenType.ActivationToken)
         const url = `${this.configService.get<string>("App.activationOrigin")!}/account/activate#t=${encodeURIComponent(activationToken)}`
-        await this.mailService.sendEmail<UserCtaContext>(
-            normalizedEmail,
-            `${firstName}, completa la tua registrazione a Mercurion`,
-            { firstName, url },
-            join(__dirname, "../../../app_modules/notification/email-templates/confirmation.hbs")
-        )
+        await this.mailService.send('account-confirmation', normalizedEmail, { firstName, url })
         return {
             ...this._r.ok('Registration performed successfully', HttpStatus.CREATED),
             obscuredEmail: this.securityService.maskEmail(email)
@@ -377,16 +368,11 @@ export class AccountFlowKernel {
         const emailVerificationToken = await this.jwtTools.generateToken(userId, TokenType.EmailVerificationToken)
         const { TOTP: totp, ...metadata } = this.securityService.generateTotp(user.otpSecret)
 
-        await this.mailService.sendEmail<EmailTotpContext>(
-            newEmail,
-            `Conferma il tuo nuovo indirizzo email`,
-            {
-                firstName: user.firstName,
-                period: this.configService.get<number>('Totp.period') as number,
-                totp
-            },
-            join(__dirname, "../../../app_modules/notification/email-templates/email-verification.hbs")
-        )
+        await this.mailService.send('email-verification', newEmail, {
+            firstName: user.firstName,
+            period: this.configService.get<number>('Totp.period') as number,
+            totp
+        })
 
         const obscuredEmail = this.securityService.maskEmail(newEmail)
 
@@ -436,24 +422,24 @@ export class AccountFlowKernel {
 
         await this.securityAuditService.emailChanged(userId, maskedOldEmail, maskedNewEmail)
 
-        this.mailService.sendEmail<UserContext>(
+        this.mailService.send(
+            'email-changed-old-contact',
             oldEmail!,
-            'Mercurion: email modificata',
             {
-                firstName: user.firstName
-            },
-            join(__dirname, "../../../app_modules/notification/email-templates/email-changed-old-contact.hbs")
+                firstName: user.firstName,
+                newEmail
+            }
         ).catch((e) => {
             this.logger.warn(`Errore durante l'invio mail email changed, oldEmail=${this.hmacKey(oldEmail ?? '')}, userId=${userId}`, e as string | object)
         })
 
-        this.mailService.sendEmail<UserContext>(
+        this.mailService.send(
+            'email-changed-new-contact',
             newEmail,
-            'Mercurion: email modificata',
             {
-                firstName: user.firstName
-            },
-            join(__dirname, "../../../app_modules/notification/email-templates/email-changed-new-contact.hbs")
+                firstName: user.firstName,
+                newEmail
+            }
         ).catch((e) => {
             this.logger.warn(`Errore durante l'invio mail email changed, newEmail=${this.hmacKey(newEmail)}, userId=${userId}`, e as string | object)
         })
@@ -734,13 +720,10 @@ export class AccountFlowKernel {
         await this.securityAuditService.passwordChanged(userId, { viaResetFlow: false })
         const email = (await this.userService.getUserProvidedEmailById(userId))!.email
         const firstName = (await this.userService.getUserFirstNameById(userId))!
-        this.mailService.sendEmail<UserContext>(
+        this.mailService.send(
+            'password-changed',
             email,
-            'Mercurion: password modificata',
-            {
-                firstName
-            },
-            join(__dirname, "../../../app_modules/notification/email-templates/password-changed-notification.hbs")
+            { firstName }
         ).catch((e) => {
             this.logger.warn(`Errore durante l'invio email password changed, userId=${userId}`, e as string | object)
         })
@@ -776,14 +759,13 @@ export class AccountFlowKernel {
         const changePasswordToken = await this.jwtTools.generateToken(userId as UUID, TokenType.ChangePasswordToken)
         const firstName = await this.userService.getUserFirstNameById(userId as UUID)
         const url = `${this.configService.get<string>("App.activationOrigin")}/password-recovery#t=${encodeURIComponent(changePasswordToken)}`
-        await this.mailService.sendEmail<UserCtaContext>(
+        await this.mailService.send(
+            'forgotten-password',
             email,
-            'Mercurion: recupero password',
             {
                 url,
                 firstName: firstName ?? 'Utente'
-            },
-            join(__dirname, "../../../app_modules/notification/email-templates/forgotten-password.hbs")
+            }
         )
     }
 
@@ -820,13 +802,10 @@ export class AccountFlowKernel {
         await this.securityAuditService.passwordChanged(userId, { viaResetFlow: true })
         const email = (await this.userService.getUserProvidedEmailById(userId))!.email
         const firstName = (await this.userService.getUserFirstNameById(userId))!
-        this.mailService.sendEmail<UserContext>(
+        this.mailService.send(
+            'password-changed',
             email,
-            'Mercurion: password modificata',
-            {
-                firstName
-            },
-            join(__dirname, "../../../app_modules/notification/email-templates/password-changed-notification.hbs")
+            { firstName }
         ).catch((e) => {
             this.logger.warn(`Errore durante l'invio email password changed, userId=${userId}`, e as string | object)
         })
