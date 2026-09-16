@@ -117,9 +117,16 @@ intentionally not run.
 ### Browser validation performed
 Not applicable per recipe.
 ### Commits
-Pending task-specific commit.
+`f2c4c2c2ac0c701c19390db60ba8a7432b22e492`
+(`feat(help): separate persistence entities from response DTOs`, with required
+Co-authored-by trailer).
 ### Merge / CI
-_Not started._
+Exact feature SHA `f2c4c2c2ac0c701c19390db60ba8a7432b22e492` Actions run
+`35043798417` completed successfully. Ubuntu and Windows prerequisites,
+Nest/Angular unit and E2E suites, GraphQL/static gates, builds, container
+checks, browser journeys, database schema, and `Required gate` were green.
+Integration remains coordinator-owned; this worker did not merge or mutate
+`develop`.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
