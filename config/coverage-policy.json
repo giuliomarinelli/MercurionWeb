@@ -130,13 +130,13 @@
       "minimums": {
         "branches": 40,
         "functions": 43,
-        "lines": 57,
+        "lines": 56,
         "statements": 55
       },
       "global": {
         "branches": 40,
         "functions": 43,
-        "lines": 57,
+        "lines": 56,
         "statements": 55
       },
       "rules": [

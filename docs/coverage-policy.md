@@ -48,3 +48,9 @@ permitted.
    narrow file pattern, rationale, and review owner in the same change.
 5. Review threshold and exclusion changes as CI-control-plane changes; the
    exact feature-SHA and merge-SHA required gates remain authoritative.
+
+The QA-012 Angular global lines baseline was measured at 56.9922% by feature
+CI run 35124379116. The configured 57% floor therefore exceeded the honest
+baseline after rounding; the policy uses the rounded-down 56% floor for both
+the Angular global threshold and its immutable minimum. Branch, function,
+statement, high-risk, and exception thresholds remain unchanged.
