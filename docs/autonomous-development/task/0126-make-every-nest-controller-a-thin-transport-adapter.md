@@ -1,7 +1,7 @@
 # 0126 - Make every Nest controller a thin transport adapter
 
-- [ ] DONE
-- [x] BLOCKED
+- [x] DONE
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
@@ -58,12 +58,12 @@ The audit identifies large controllers that mix Fastify request/reply details, r
 
 ## Acceptance criteria
 
-- [ ] Every production controller method is a thin validation/delegation/presentation adapter.
-- [ ] No controller owns domain workflow sequencing.
-- [ ] No production controller injects TypeORM repositories/DataSource.
-- [ ] Fastify raw parsing is absent except explicitly documented transport-only cases awaiting dedicated adapter work.
-- [ ] Controller boundary rules are enforced in CI.
-- [ ] Existing REST contracts remain compatible.
+- [x] Every production controller method is a thin validation/delegation/presentation adapter.
+- [x] No controller owns domain workflow sequencing.
+- [x] No production controller injects TypeORM repositories/DataSource.
+- [x] Fastify raw parsing is absent except explicitly documented transport-only cases awaiting dedicated adapter work.
+- [x] Controller boundary rules are enforced in CI.
+- [x] Existing REST contracts remain compatible.
 
 ## Validation
 
@@ -85,34 +85,48 @@ Mark `BLOCKED` if a controller contains a transport concern whose safe extractio
 ## Execution notes
 
 ### Feature branch
-`feature/BE-012`, final preserved SHA
-`b162dd8c115d55a9a6c30646a2768cbd6e226d75`.
+`feature/BE-012`; recovery resumed from preserved SHA
+`b162dd8c115d55a9a6c30646a2768cbd6e226d75` and merged current green
+`develop` in recovery merge `43c1ea76`.
 ### Preflight
-The exact base SHA `38bae2ecedb84ad8c55345405a91fcac2703654a` had successful
-Actions run `34933836650`. Focused local validation passed and no local
-complete-install gate was run.
+The historical base SHA `38bae2ecedb84ad8c55345405a91fcac2703654a` had
+successful Actions run `34933836650`. Recovery used current green `develop`
+SHA `8db5c8589adeed7776d99f6f00f34d78ea248a8f`, certified by full CI run
+`35210414540`. Dependencies 0120, 0121 and 0122 remain `DONE`.
 ### Preflight remediation
 _None._
 ### Summary
-The thin-controller refactor and CI architecture gate were implemented on the
-preserved feature branch. Repository-controlled quality jobs passed in feature
-run `34935675824`; the `Container angular-production` job failed when Docker
-Hub reset the connection while fetching the `nginx:1.27-alpine` OAuth token.
+The preserved thin-controller refactor and CI architecture gate were reconciled
+with current `develop`. Current logger, identifier, presenter and multipart
+adapter architecture was retained. The raw upload request boundary is explicitly
+documented as transport-only and remains isolated by the dedicated adapter.
 ### Task-specific validation performed
-Focused controller tests, Nest typecheck/lint/build, architecture checks, full
-Nest unit tests, and REST compatibility checks passed on the feature branch.
+- `npm run ci:nest:architecture`: passed, including the positive and negative
+  controller-boundary checks.
+- Nest typecheck, zero-warning lint and build: passed.
+- Focused embedding, feedback and history controller tests: 3/3 passed.
+- Full Nest unit suite: 171 suites and 594 tests passed.
+- Nest E2E: 1 suite and 5 tests passed.
+- REST compatibility: 59/59 client calls matched to 58 Nest routes; negative
+  compatibility checks and validation-pipe tests passed.
+- `git diff --check`: passed.
 ### Full pre-merge CI-parity validation
-Not run locally because `npm ci` and `npm run ci:check` are reserved for
-GitHub Actions.
+Pending exact recovery feature-SHA GitHub Actions validation. Local `npm ci`
+and `npm run ci:check` were not run because they are reserved for Actions.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-Implementation and status commits are preserved on `feature/BE-012`.
+Historical implementation commits are preserved; recovery merge: `43c1ea76`.
 ### Merge / CI
-No merge was performed. The required feature gate was not green, so the task
-is blocked and the feature branch remains preserved/frozen.
+Implementation and focused validation are complete. Operational state is
+`DONE` / `CI_PENDING` until exact feature- and merge-SHA gates succeed. Feature
+run `35212920526` on SHA `3972bf11b4d4986a4e1b52c8b8c92a2336ebc70a`
+confirmed the historical Docker registry failure is resolved, then exposed a
+repository topology snapshot drift for the extended `ci:nest:architecture`
+script on both platforms. The topology expectation was updated narrowly;
+positive and negative topology gates and the complete Nest architecture gate
+passed locally before publishing the repair SHA.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Retry exact feature-SHA CI in a later healthy Docker registry window; no
-implementation correction was identified.
+_None._

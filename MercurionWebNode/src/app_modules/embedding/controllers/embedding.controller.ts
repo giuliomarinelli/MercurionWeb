@@ -1,5 +1,5 @@
 // embedding/embedding.controller.ts
-import { BadRequestException, Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Query, ParseIntPipe, ParseBoolPipe, DefaultValuePipe } from '@nestjs/common';
 import { EmbeddingService } from '../services/embedding.service';
 import { Public } from 'src/metadata/metadata';
 import type { EmbeddingResponse } from '@mercurion/rest-contracts'
@@ -11,30 +11,16 @@ export class EmbeddingController {
     @Public()
     @Get('/get-similar-molregnos')
     async getSimilarMolregnos(
-        @Query('molregno') molregno: number,
-        @Query('n') n: number = 10,
-        @Query('only_molregnos') only_molregnos: string = 'true',
-        @Query('with_no_name') with_no_name: string = 'false'
+        @Query('molregno', ParseIntPipe) molregno: number,
+        @Query('n', new DefaultValuePipe(10), ParseIntPipe) n: number,
+        @Query('only_molregnos', new DefaultValuePipe(true), ParseBoolPipe) onlyMolregnos: boolean,
+        @Query('with_no_name', new DefaultValuePipe(false), ParseBoolPipe) withNoName: boolean
     ): Promise<EmbeddingResponse> {
-        const parsedMolregno = Number(molregno)
-        if (!Number.isFinite(parsedMolregno)) {
-            throw new BadRequestException('molregno must be a number')
-        }
-
-        const parsedN = Number(n ?? 10)
-        if (!Number.isFinite(parsedN) || parsedN <= 0) {
-            throw new BadRequestException('n must be a positive number')
-        }
-
-        const onlyMolregnosFlag = String(only_molregnos ?? 'true').trim().toLowerCase()
-        const withNoNameFlag = String(with_no_name ?? 'false').trim().toLowerCase()
-        if (!['true', 'false'].includes(onlyMolregnosFlag) || !['true', 'false'].includes(withNoNameFlag)) {
-            throw new BadRequestException('Boolean query params must be either true or false')
-        }
-
-        const onlyMolregnos = onlyMolregnosFlag === 'true'
-        const withNoNameParam = withNoNameFlag === 'true' ? 'true' : 'false'
-        const result = await this.svc.getSimilarMolregnos(parsedMolregno, parsedN, withNoNameParam);
+        const result = await this.svc.getSimilarMolregnos(
+            molregno,
+            n,
+            withNoName ? 'true' : 'false',
+        )
 
         return onlyMolregnos ? result.map(r => r.molregno) : result
     }

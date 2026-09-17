@@ -5913,22 +5913,19 @@
             "source": "query",
             "name": "n",
             "type": "number",
-            "optional": true,
-            "defaultValue": "10"
+            "optional": false
           },
           {
             "source": "query",
             "name": "only_molregnos",
-            "type": "string",
-            "optional": true,
-            "defaultValue": "'true'"
+            "type": "boolean",
+            "optional": false
           },
           {
             "source": "query",
             "name": "with_no_name",
-            "type": "string",
-            "optional": true,
-            "defaultValue": "'false'"
+            "type": "boolean",
+            "optional": false
           }
         ],
         "returnType": "EmbeddingResponse",
@@ -5939,9 +5936,7 @@
           ],
           "authentication": [],
           "authorization": [],
-          "declared": [
-            400
-          ]
+          "declared": []
         },
         "authentication": {
           "public": true,
@@ -6572,14 +6567,14 @@
           {
             "source": "query",
             "name": "page",
-            "type": "string",
-            "optional": true
+            "type": "number",
+            "optional": false
           },
           {
             "source": "query",
             "name": "limit",
-            "type": "string",
-            "optional": true
+            "type": "number",
+            "optional": false
           },
           {
             "source": "query",
@@ -7007,14 +7002,14 @@
           {
             "source": "query",
             "name": "page",
-            "optional": true,
-            "defaultValue": "1"
+            "type": "number",
+            "optional": false
           },
           {
             "source": "query",
             "name": "limit",
-            "optional": true,
-            "defaultValue": "20"
+            "type": "number",
+            "optional": false
           }
         ],
         "returnType": "FlatPagination<HistoryDTO>",
@@ -7027,9 +7022,7 @@
             401
           ],
           "authorization": [],
-          "declared": [
-            400
-          ]
+          "declared": []
         },
         "authentication": {
           "public": false,
