@@ -125,8 +125,10 @@ the authenticated collection UI and post-mutation count refresh were not
 validated because supported credential entry was unavailable. No browser
 acceptance result is claimed.
 ### Commits
-Implementation and task metadata committed on `feature/DATA-021` with
-`--no-gpg-sign`; final SHA recorded after commit.
+Implementation commit `942409474db8db191ee5e49452c0da1baeeb482a` created on
+`feature/DATA-021` with `--no-gpg-sign` and pushed to `origin`.
+Execution-status metadata is recorded in the follow-up commit on the same
+branch.
 ### Merge / CI
 Pending coordinator integration and exact feature-SHA CI.
 ### Rollback
@@ -137,3 +139,9 @@ nginx edge were healthy, and Chrome DevTools was callable, but the supported
 credential-entry bridge was unavailable without exposing the local test
 credential. No browser result is claimed; human-authorized browser capability
 recovery is required before changing this task to `DONE`.
+
+### Final worker result
+`BLOCKED`
+
+Final feature SHA before the status-metadata commit:
+`942409474db8db191ee5e49452c0da1baeeb482a`.
