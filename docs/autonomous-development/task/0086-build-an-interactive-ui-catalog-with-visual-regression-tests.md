@@ -1,8 +1,8 @@
 # 0086 - Build an interactive UI catalog with visual regression tests
 
 - [ ] DONE
-- [x] BLOCKED
-- [ ] REVERTED
+- [ ] BLOCKED
+- [x] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
 ## Objective
@@ -250,3 +250,26 @@ Not applicable.
 Review and resolve the remaining Ubuntu visual-regression baseline divergence
 before a separately authorized retry. Preserve `feature/UI-028` frozen at
 `ceb7b100c5a7bd5aed40174265c3082a74a50716`.
+
+### Authorized recovery (2026-09-17)
+- Fresh full baseline run `35247230267` succeeded on exact `develop` SHA
+  `4cbcd3bbbfffc5f8a7917208631c25d003cb7c61`.
+- Merged current green `develop` into the preserved branch with
+  `--no-ff --no-gpg-sign` (`227291de56f575f4e46f0bdc3438fc9b49fdeec3`).
+- Corrected the cross-platform visual contract by giving strict Playwright
+  snapshots explicit `win32` and `linux` identities. The Linux baselines were
+  captured by Ubuntu run `35248298723`; local Windows visual validation passed
+  all three snapshots without relaxed thresholds.
+- Reset planner-confirmed stale dependency skips `0088` and `0191` on the
+  feature branch. Exact final feature SHA
+  `c73793fe6dc039fa72d0d25dd0da200288519b00` passed run `35249415806`, including
+  the Ubuntu visual gate and `Required gate`.
+- Integrated with merge commit `e198a0c943feab731c7e0c7fb1c8bb22734aa8cf`.
+  Post-merge run `35250241928` failed the Angular accessibility unit fixture on
+  axe `color-contrast`; the catalog build, strict visual baselines, browser
+  journeys and all other jobs succeeded.
+- Reverted the merge with ordinary `--no-gpg-sign` commit
+  `92e4b069c2a1a4aa71916308cdf833d04973826f`. Restoration run `35251075072`
+  succeeded completely, including Angular tests and `Required gate`.
+- Final outcome: `REVERTED`. Preserve and freeze `feature/UI-028` at
+  `c73793fe6dc039fa72d0d25dd0da200288519b00` for a future human-authorized retry.
