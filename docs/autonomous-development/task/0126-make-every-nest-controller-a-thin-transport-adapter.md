@@ -125,7 +125,11 @@ confirmed the historical Docker registry failure is resolved, then exposed a
 repository topology snapshot drift for the extended `ci:nest:architecture`
 script on both platforms. The topology expectation was updated narrowly;
 positive and negative topology gates and the complete Nest architecture gate
-passed locally before publishing the repair SHA.
+passed locally before publishing repair SHA
+`ad288c18f62708ba77b9617792bd58d13a3121dd`. Exact feature-SHA CI run
+`35213846667` and integration merge-SHA CI run `35214451389` both completed
+successfully, including the stable `Required gate`. Integration merge:
+`51f2a7a1ab83ce5d4e1e72368bfb8016826c4b78`.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
