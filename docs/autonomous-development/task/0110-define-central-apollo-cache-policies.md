@@ -139,6 +139,7 @@ token; isolated auth tests omit it and therefore skip cache clearing safely.
 The full Angular suite after the repair reported 500 passed and one unrelated
 pre-existing accessibility contrast failure in
 `src/app/testing/accessibility-canonical-ui.spec.ts:178`.
+Repair commit: `d95929137b5f9b8919f38385691712631c031b0d`.
 ### Full pre-merge CI-parity validation
 Not run locally because clean-install and aggregate CI parity are reserved for
 GitHub Actions. The coordinator must validate the exact pushed feature SHA.
