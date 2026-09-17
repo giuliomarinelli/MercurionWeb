@@ -1,27 +1,12 @@
-import { ObjectType, Field, Int } from "@nestjs/graphql";
+import { ObjectType, Field } from "@nestjs/graphql";
 import { MoleculeCollection } from "../entities/molecule-collection.entity";
-import { FlatPagination } from "src/models/flat-pagination.interface";
+import { PaginatedResponse } from "src/models/pagination/pagination.model";
 
 
 @ObjectType()
-export class PaginatedMoleculeCollection implements FlatPagination<MoleculeCollection> {
+export class PaginatedMoleculeCollection extends PaginatedResponse {
 
     @Field(() => [MoleculeCollection])
     items!: MoleculeCollection[]
-
-    @Field(() => Int)
-    itemCount!: number
-
-    @Field(() => Int)
-    totalItems!: number
-
-    @Field(() => Int)
-    itemsPerPage!: number
-
-    @Field(() => Int)
-    totalPages!: number
-
-    @Field(() => Int)
-    currentPage!: number
 
 }
