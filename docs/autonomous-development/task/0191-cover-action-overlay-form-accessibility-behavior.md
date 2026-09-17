@@ -78,10 +78,6 @@ Not required by this component-test task, but `0195` must validate representativ
 
 Mark `BLOCKED` if a primitive's intended keyboard/focus behavior is ambiguous after the corresponding UI task, because accessibility tests must encode an explicit approved interaction contract.
 
-## Execution notes
-
-- 2026-09-17: Marked `SKIPPED_DEPENDENCY` without implementation because hard prerequisite `0086` is terminal `BLOCKED` (UI-028). This task was not attempted.
-
 ## Dependencies
 
 - Relevant UI tasks `0059`–`0086` must be `DONE`.
@@ -97,6 +93,8 @@ Prefer role/name queries and user-visible interaction to raw `querySelector` aga
 > Current status (2026-09-11): PENDING. The planner identified the prior
 > dependency skip as stale after direct owner re-enablement of its prerequisite
 > chain; historical skip evidence below is retained only for traceability.
+
+- 2026-09-17: Marked `SKIPPED_DEPENDENCY` without implementation because hard prerequisite `0086` is terminal `BLOCKED` (UI-028). This task was not attempted.
 
 ### Feature branch
 _Not started._
