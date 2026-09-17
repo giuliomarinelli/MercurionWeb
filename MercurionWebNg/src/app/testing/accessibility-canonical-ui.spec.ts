@@ -151,7 +151,10 @@ describe('canonical UI accessibility coverage', () => {
   let fixture: ComponentFixture<CanonicalUiFixtureComponent>;
 
   async function waitForRenderedStyles(): Promise<void> {
+    await fixture.whenRenderingDone();
     await document.fonts.ready;
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
     const root = fixture.nativeElement as HTMLElement;
     root.getBoundingClientRect();
     getComputedStyle(root).color;
