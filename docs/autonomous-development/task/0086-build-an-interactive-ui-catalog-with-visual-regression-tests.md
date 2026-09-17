@@ -190,6 +190,22 @@ Not run locally; exact feature-SHA CI is owned by the coordinator.
   --workspace mercurion_web_ng` passed against committed baselines using the
   existing local dependency tree. No local `npm ci` or `npm run ci:check` was
   run. Exact post-repair feature CI remains coordinator-owned.
+- Third and final bounded repair: exact feature CI run `35243073312` passed
+  all prerequisite/test jobs and the browser-install step, but the Ubuntu
+  `Build artifacts` visual-regression step differed on all three committed
+  catalog snapshots. The desktop images differed by about 2%, and the mobile
+  capture was 390x3131 instead of the committed 390x3112, indicating the
+  screenshot was taken while the declared Space Grotesk web fonts were still
+  loading and fallback metrics were affecting layout.
+- Added an explicit `document.fonts.ready`/`FontFace.loaded` barrier to the
+  catalog visual fixture before each screenshot. This keeps the existing
+  committed baselines and strict pixel comparison, fixes the cross-runner
+  timing race at its source, and does not broaden thresholds or suppress
+  visual coverage. The barrier waits only on loading faces, so unused
+  declared weights cannot leave the fixture hanging.
+- Focused local check for this repair: `npm run ui:visual
+  --workspace mercurion_web_ng` passed all three committed snapshots after the
+  font-readiness barrier. No local `npm ci` or `npm run ci:check` was run.
 
 ### Browser validation performed
 - Catalog-only Chrome DevTools MCP validation at `http://localhost:4400/`
@@ -213,6 +229,9 @@ the required Copilot co-author trailer.
 `--no-gpg-sign` and the required Copilot co-author trailer.
 `2790d24e` — narrow CI browser-install repair for exact run `35241574204`,
 committed with `--no-gpg-sign` and the required Copilot co-author trailer.
+`<pending>` — narrow cross-runner font-readiness repair for exact run
+`35243073312`, committed with `--no-gpg-sign` and the required Copilot
+co-author trailer.
 
 ### Merge / CI
 No merge performed. Coordinator must publish this feature SHA and observe

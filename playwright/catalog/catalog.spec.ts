@@ -12,6 +12,14 @@ test.beforeEach(async ({ page }) => {
       }
     `,
   });
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+    await Promise.all(
+      [...document.fonts]
+        .filter(font => font.status === 'loading')
+        .map(font => font.loaded),
+    );
+  });
 });
 
 test('light theme canonical primitive matrix', async ({ page }) => {
