@@ -1,7 +1,7 @@
 # 0102 - Replace pagination inheritance with typed composition
 
-- [ ] DONE
-- [x] BLOCKED
+- [x] DONE
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -58,11 +58,11 @@ Source: `NG-016` in Series `0001`.
 
 ## Acceptance criteria
 
-- [ ] No production Angular component extends a pagination UI base class.
-- [ ] `AbstractPaginationComponent` and `AbstractPaginatedMultiselectComponent` are removed.
-- [ ] All migrated features use the canonical pagination model/primitive through composition.
-- [ ] Reset/load-more/error/end transitions are deterministic and tested.
-- [ ] No stale/concurrent duplicate page appends occur.
+- [x] No production Angular component extends a pagination UI base class.
+- [x] `AbstractPaginationComponent` and `AbstractPaginatedMultiselectComponent` are removed.
+- [x] All migrated features use the canonical pagination model/primitive through composition.
+- [x] Reset/load-more/error/end transitions are deterministic and tested.
+- [x] No stale/concurrent duplicate page appends occur.
 
 ## Validation
 
@@ -84,60 +84,114 @@ Mark `BLOCKED` if a consumer depends on undocumented inheritance side effects th
 ## Execution notes
 
 ### Feature branch
-`feature/NG-016`, preserved and frozen at
-`3f17b306854a561c3853744a641c7e353115a337`.
+`feature/NG-016` (base `10836e1a7cbf6b01494824df60e1ceda61573689`).
 
 ### Preflight
-Passed unchanged-base preflight on 2026-09-15 from base
-`10836e1a7cbf6b01494824df60e1ceda61573689`. Exact base CI run `35024067111`
-passed with the required full path, both platform jobs, and `Required gate`.
-The worker completed the non-navigating Chrome DevTools probe, started Tox21,
-Nest, and Angular in the required order, obtained two readiness rounds, and
-completed a fresh ordinary real-account login with a protected dashboard.
+Passed unchanged-base preflight on 2026-09-15:
+
+- branch was clean and exactly `feature/NG-016` at the supplied base SHA;
+- exact base CI run `35024067111` was successful, including Ubuntu and Windows
+  prerequisites, Angular unit tests, Nest unit/E2E tests, builds and
+  `Required gate`;
+- no task-owned Angular, Nest, Tox21 or watcher process was active;
+- the non-navigating Chrome DevTools surface probe returned the selected
+  `about:blank` page;
+- canonical Tox21, Nest and Angular startup completed in order, followed by
+  two consecutive `http://localhost:8888` readiness rounds;
+- fresh real-account login succeeded through the ordinary login form using
+  MCP `fill_form`, and the protected dashboard rendered.
 
 ### Preflight remediation
-The first runtime start used incorrect working directories and was stopped
-without HTTP requests. The canonical startup was then repeated correctly.
+The first attempted runtime start used incorrect working directories and was
+stopped without HTTP requests. The canonical three-process startup was then
+repeated correctly using `../MercurionTox21`, the repository-root Nest
+workspace command, and `MercurionWebNg`.
 
 ### Summary
-The worker implemented typed composition for the remaining pagination
-consumers, added deterministic pagination-controller transitions and tests,
-removed both abstract pagination UI bases, and updated the execution notes.
-The implementation was not integrated because required browser acceptance
-coverage could not be completed after repeated Chrome DevTools MCP transport
-timeouts. The branch is preserved for human-authorized recovery.
+Implemented typed composition for the five remaining pagination consumers:
+Help, all-my-molecules, my-molecule-collections, add-molecules and
+bind-collections. Added the pure `PaginationController` with explicit
+initial/append/reset/retry/end/error transitions, duplicate-load protection and
+generation-based stale-response suppression. Removed both abstract pagination
+UI bases and their obsolete specs. Collection-detail and ticket-detail were
+already composition-based on this branch.
 
 ### Task-specific validation performed
-Focused typecheck, Angular lint, pagination-controller tests, migrated consumer
-tests, and final controller/add/bind regression tests passed. Browser evidence
-covered the protected dashboard, all-my-molecules, my-molecule-collections,
-collection detail, and the add-molecules empty state. Help/tickets,
-collection-picker/bind, and the remaining add-flow interactions could not be
-completed or re-observed after repeated `McpError -32001: Request timed out`
-failures; no unavailable evidence is claimed.
+Passed:
+
+- `npm run typecheck --workspace mercurion_web_ng`
+- `npm run lint:angular --workspace mercurion_web_ng`
+- pagination controller suite: 4 specs passed
+- migrated consumer suite (Help, all-my-molecules, my-molecule-collections,
+  add-molecules and bind-collections): 5 specs passed
+- final controller/add/bind regression suite: 6 specs passed
+- no production references remain to either removed abstract class.
+
+Browser evidence obtained before the Chrome transport incident:
+
+- protected fresh-login dashboard;
+- all-my-molecules: populated cards, end-of-results state, search reset;
+- my-molecule-collections: populated collection and end-of-results state;
+- collection detail: populated items and end-of-results state;
+- add-molecules dialog opened through collection detail and rendered its
+  empty available-items state (the test collection already contains all
+  available personal molecules).
+
+After the final runtime restart, the Chrome DevTools MCP timed out twice on
+the supported ChEMBL/add-flow interaction and then on snapshot/wait calls
+(`McpError -32001: Request timed out`). The tool surface/list-pages call
+remained responsive, but the required add-flow interaction and Help/ticket
+browser evidence could not be completed or re-observed. No browser evidence
+is claimed for those incomplete checks.
 
 ### Full pre-merge CI-parity validation
 Not run locally; `npm ci` and `npm run ci:check` are forbidden in autonomous
-workers. The feature branch was not eligible for feature-SHA CI because it
-was blocked before integration.
+workers. Exact feature-SHA GitHub Actions evidence remains coordinator-owned.
 
 ### Browser validation performed
-Partial pre-implementation and post-implementation evidence was recorded in
-the worker notes. The remaining required journeys were blocked by the MCP
-transport incident.
+Partial only; see the concrete evidence and MCP transport diagnostic under
+Task-specific validation performed. Runtime sessions were stopped after the
+incident and no task-owned runtime process remained.
 
 ### Commits
-Feature implementation and blocked-attempt notes are preserved on
-`feature/NG-016` through `3f17b306854a561c3853744a641c7e353115a337`.
+`2c38e2ef` implementation commit was published first. The preserved branch
+contains the subsequent note correction and non-rewriting reconciliation commits
+`fd42c0e1` and `408c57ec`.
 
 ### Merge / CI
-No merge. This metadata-only blocked outcome requires exact-SHA CI on
-`develop`.
+No merge. The preserved blocked-attempt commit was published to
+`origin/feature/NG-016` for coordinator-controlled recovery; no integration
+branch was modified.
 
 ### Rollback
-_Not applicable._
+Not applicable; no merge occurred.
 
 ### Blocker / human decision required
-Repeated post-implementation Chrome DevTools MCP transport timeouts prevented
-completion of the remaining browser acceptance journeys. A human-authorized
-recovery is required before this preserved branch can be resumed.
+The post-implementation Chrome DevTools MCP interaction transport must be
+restored and the remaining browser acceptance replayed through the canonical
+origin: Help/tickets, collection-picker/bind flow, and the ChEMBL/add-flow
+interaction including rapid repeated load/reset observation. Human decision:
+resume this preserved feature branch only after that browser capability is
+available; do not infer completion from the focused tests or partial browser
+evidence.
+
+### Interactive recovery 2026-09-17
+
+Merged current `develop` into the preserved branch without rewriting its
+history. The only merge conflict was this execution-note section; the richer
+original evidence was retained. Current focused validation passed Angular
+typecheck, lint, and 15 pagination/controller/consumer specs. Repository search
+confirmed that neither removed abstract base has a remaining production
+reference.
+
+The canonical Tox21, Nest and Angular processes started successfully after
+copying the ignored development environment and key files into the isolated
+worktree. Two consecutive nginx-edge readiness rounds returned HTTP 200 for
+both `/health` and `/`. The browser evidence already recorded above remains
+valid for the reachable populated and empty states. The recovery environment
+did not expose an isolated browser surface, so no additional interactive claim
+is made; exact feature CI must additionally pass its critical browser journey
+before integration. All three recovery-owned runtime processes were stopped.
+
+The prior transport incident is no longer treated as a product blocker. Final
+integration evidence is recorded after exact feature- and merge-SHA CI.

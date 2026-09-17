@@ -9,7 +9,7 @@ import { MyMoleculesHeadingComponent } from '../../components/molecule-detail/my
 import { RouterLink } from '@angular/router';
 import { HistoryContextService } from '../../services/context/history-context.service';
 import { ToastService } from '../../services/toast.service';
-import { AbstractPaginationComponent } from '../../abstract/abstract-pagination-component';
+import { PaginationController } from '../../services/pagination/pagination-controller';
 import { PmSearchInputComponent } from '../../components/common/pm-search-input/pm-search-input.component';
 import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service';
 import { DomainInvalidationService } from '../../services/domain-invalidation.service';
@@ -97,7 +97,7 @@ import { PaginationComponent } from '../../components/common/pagination/paginati
 
   `
 })
-export class AllMyMoleculesPageComponent extends AbstractPaginationComponent<MoleculeCardItemModel> implements OnInit, AfterViewInit, OnDestroy {
+export class AllMyMoleculesPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // ======================= DEPS =======================
   private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService)
@@ -105,50 +105,31 @@ export class AllMyMoleculesPageComponent extends AbstractPaginationComponent<Mol
   private readonly toast = inject(ToastService)
   private readonly actionContext = inject(ActionOverlayContextService)
   private readonly invalidations = inject(DomainInvalidationService)
+  private readonly pagination = new PaginationController<MoleculeCardItemModel>({
+    fetch: (page, query) => this.moleculeCollectionItemService.getAllPaginatedItems(page, 25, query).pipe(
+      delay(page === 1 ? 120 : 0),
+      map(result => ({ ...result, items: result.items.map(mol => Helpers.moleculeClientToCardConverter(mol)) }))
+    )
+  })
+  private observer?: IntersectionObserver
+  protected readonly sentinel = viewChild<ElementRef<HTMLDivElement>>('sentinel')
   // ====================================================
 
   private tick = signal<number>(0)
 
-  // Ensure infinite scroll fills the viewport when content is short
-  private enforceInfiniteScroll(attempts = 5): void {
-    if (attempts <= 0 || this.loading || this.done) return;
-
-    const check = () => {
-      if (this.loading || this.done) return;
-
-      const rootEl = this.root?.()?.nativeElement as HTMLElement | null | undefined;
-
-      if (rootEl instanceof HTMLElement) {
-        const notEnough = rootEl.scrollHeight <= rootEl.clientHeight + 1;
-        if (notEnough) {
-          this.loadMore();
-          queueMicrotask(() => this.enforceInfiniteScroll(attempts - 1));
-        }
-        return;
-      }
-
-      if (typeof window === 'undefined' || typeof document === 'undefined') return;
-      const docEl = document.documentElement ?? document.body;
-      if (!docEl) return;
-
-      const viewportHeight = this.viewportRuntime.height() || docEl.clientHeight;
-      const contentHeight = Math.max(docEl.scrollHeight, document.body?.scrollHeight ?? 0);
-      if (contentHeight <= viewportHeight + 1) {
-        this.loadMore();
-        queueMicrotask(() => this.enforceInfiniteScroll(attempts - 1));
-      }
-    };
-
-    this.resources.requestAnimationFrame(check);
-  }
-
-  protected override readonly sentinel = viewChild<ElementRef<HTMLDivElement>>('sentinel');
+  get items(): MoleculeCardItemModel[] { return this.pagination.items() }
+  get loading(): boolean { return this.pagination.loading() }
+  get done(): boolean { return this.pagination.done() }
+  get earlyDone(): boolean { return this.pagination.earlyDone() }
+  get page(): number { return this.pagination.page() }
+  get searchTerm(): ReturnType<typeof signal<string>> { return this.pagination.query }
+  get empty(): ReturnType<typeof signal<boolean>> { return this.pagination.empty }
+  paginationState() { return this.pagination.paginationState() }
 
 
   private delSub?: Subscription
 
   constructor() {
-    super()
     effect(() => {
       const t = this.tick()
       if (t === 0) {
@@ -171,33 +152,36 @@ export class AllMyMoleculesPageComponent extends AbstractPaginationComponent<Mol
 
 
   ngOnInit(): void {
-    queueMicrotask(() => this.loadMore())
+    queueMicrotask(() => void this.loadMore())
   }
 
   ngAfterViewInit(): void {
     queueMicrotask(() => {
       this.startObserver()
-      this.enforceInfiniteScroll()
     })
   }
 
   ngOnDestroy(): void {
-    super.disposePaginationResources()
+    this.observer?.disconnect()
+    this.pagination.dispose()
     this.delSub?.unsubscribe()
   }
 
-  protected override fetch$(page = this.page, size = 25) {
-    return this.moleculeCollectionItemService.getAllPaginatedItems(page, size, this.searchTerm()).pipe(
-      // `query()` completes after one value, so debounceTime would flush it immediately.
-      // Preserve a perceptible initial loading state without delaying later pages.
-      delay(page === 1 ? 120 : 0),
-      map(page => ({
-        ...page,
-        items: page.items.map(mol => Helpers.moleculeClientToCardConverter(mol))
-      }))
-    )
-  }
+  loadMore(): Promise<void> { return this.pagination.loadMore() }
+  retryPagination(): void { this.pagination.retry() }
+  resetPagination(): void { this.pagination.reset() }
+  doQuery(q: string): void { this.pagination.setQuery(q) }
+  doClear(): void { this.pagination.clear() }
 
+  private startObserver(): void {
+    const sentinel = this.sentinel()?.nativeElement
+    if (!sentinel) return
+    this.observer?.disconnect()
+    this.observer = new IntersectionObserver(entries => {
+      if (entries[0]?.isIntersecting) void this.loadMore()
+    }, { rootMargin: '0px 0px 500px 0px' })
+    this.observer.observe(sentinel)
+  }
 
   doDelete(id: string): void {
     const onError = () => queueMicrotask(() => this.toast.trigger('Si è verificato un errore.', 'error', 3000))
@@ -210,14 +194,14 @@ export class AllMyMoleculesPageComponent extends AbstractPaginationComponent<Mol
             queueMicrotask(() => {
               this.historyContext.triggerRemoveItemFromHistoryView(id)
               this.items[i].triggerDisappear.set(true)
-              this.resources.setTimeout(() => this.items[i].collapse.set(true), 120)
-              this.resources.setTimeout(() => {
-                this.items.splice(i, 1)
+              setTimeout(() => this.items[i]?.collapse.set(true), 120)
+              setTimeout(() => {
+                this.pagination.replaceItems(this.items.filter(item => item.id !== id))
                 if (this.items.length === 0) {
                   this.tick.update(x => x + 1)
                 }
               }, 500)
-              this.enforceInfiniteScroll()
+              void this.loadMore()
             })
           }
         } else {
@@ -233,14 +217,6 @@ export class AllMyMoleculesPageComponent extends AbstractPaginationComponent<Mol
       // Ensure a clean context when starting from the All My Molecules page
       this.actionContext.open('SelectCollectionThenRoute', { importFromChembl: false })
     })
-  }
-
-  protected override doQuery(q: string): void {
-    this.query(q)
-  }
-
-  protected override doClear(): void {
-    this.clear()
   }
 
 }
