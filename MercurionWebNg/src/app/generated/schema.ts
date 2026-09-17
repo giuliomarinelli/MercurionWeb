@@ -258,8 +258,8 @@ export type Mutation = {
   deleteMoleculeItem: Scalars['Boolean']['output'];
   deletePage: Scalars['Boolean']['output'];
   deleteSection: Scalars['Boolean']['output'];
-  deleteSyntheticRoute: Scalars['Boolean']['output'];
-  deleteSyntheticStep: Scalars['Boolean']['output'];
+  deleteSyntheticRoute: SynthCommandResult;
+  deleteSyntheticStep: SynthCommandResult;
   duplicateCollection?: Maybe<MoleculeCollection>;
   markMoleculeCollectionAsTouched: Scalars['Boolean']['output'];
   markMoleculeCollectionItemAsTouched: Scalars['Boolean']['output'];
@@ -888,6 +888,16 @@ export type QueryTicketMessagesAsSupportArgs = {
 export type QueryTicketsAsSupportArgs = {
   limit: Scalars['Int']['input'];
   page: Scalars['Int']['input'];
+};
+
+export type SynthCommandOutcome =
+  | 'Deleted'
+  | 'Updated';
+
+export type SynthCommandResult = {
+  __typename?: 'SynthCommandResult';
+  outcome: SynthCommandOutcome;
+  success: Scalars['Boolean']['output'];
 };
 
 export type SynthStep = {

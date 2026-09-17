@@ -9,6 +9,11 @@ import { GraphQLFieldsMap, TypeOrmUtils } from 'src/utils/type-orm-utils/type-or
 import { LabNotebook } from '../models/entities/lab-notebook.entity';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 import { runInTransaction } from 'src/persistence/transaction-context'
+import {
+    NotebookChapterCreateCommand,
+    NotebookChapterPatchCommand,
+    toNotebookChapterPatch
+} from '../models/dto/notebook-mutation.commands'
 
 @Injectable()
 export class NotebookChapterService {
@@ -20,7 +25,7 @@ export class NotebookChapterService {
         private readonly chapterRepo: Repository<NotebookChapter>,
     ) { }
 
-    async createChapter(notebookId: UUID, userId: UUID, data: Partial<NotebookChapter>): Promise<NotebookChapter> {
+    async createChapter(notebookId: UUID, userId: UUID, data: NotebookChapterCreateCommand): Promise<NotebookChapter> {
         return runInTransaction(this.chapterRepo.manager, async (_context, manager) => {
             const { max } = await manager
                 .createQueryBuilder(NotebookChapter, 'chapter')
@@ -33,7 +38,7 @@ export class NotebookChapterService {
             this.chapterRepo.createQueryBuilder()
 
             const newChapter = manager.create(NotebookChapter, {
-                ...data,
+                title: data.title,
                 userId,
                 notebook: { id: notebookId } as LabNotebook,
                 order: (Number(maxOrder) || 0) + 1,
@@ -155,10 +160,13 @@ export class NotebookChapterService {
     async updateChapter(
         id: UUID,
         userId: UUID,
-        data: Partial<NotebookChapter>,
+        data: NotebookChapterPatchCommand,
         fieldsMap: GraphQLFieldsMap
     ): Promise<NotebookChapter | null> {
-        await this.chapterRepo.update({ id, userId }, { updatedAt: Date.now(), ...data });
+        await this.chapterRepo.update({ id, userId }, {
+            updatedAt: Date.now(),
+            ...toNotebookChapterPatch(data)
+        });
         return this.getChapter(id, userId, fieldsMap); // <--- passalo qui
     }
 

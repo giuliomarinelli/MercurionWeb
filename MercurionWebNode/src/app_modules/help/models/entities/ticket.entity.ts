@@ -6,42 +6,34 @@ import {
   Index,
   BeforeInsert,
   Generated,
+  Check,
 } from 'typeorm'
-import { ObjectType, Field, ID } from '@nestjs/graphql'
 import { TicketStatus } from '../enums/ticket-status.enum'
 import { uuidv7 } from '@kripod/uuidv7'
 import { UUID } from 'crypto'
 import { TicketMessage } from './ticket-message.entity'
 
-@ObjectType()
 @Entity({ name: 'tickets' })
 @Index('tickets_user_last_idx', ['userId', 'lastMessageAt'])
+@Check('ck_tickets_public_id_positive', '"public_id" > 0')
 export class Ticket {
 
-  @Field(() => ID)
   @PrimaryColumn('uuid')
   id!: UUID
 
   /**
    * Generato dal DB via identity.
    */
-  @Field()
   @Column({ type: 'bigint', unique: true, name: 'public_id' })
   @Generated('increment')
   publicId!: string
 
-  @Field(() => ID, { nullable: true })
   @Column({ type: 'uuid', name: 'user_id' })
   userId!: UUID
 
-  @Field(() => String, { nullable: true })
-  userFullName?: string
-
-  @Field()
   @Column({ type: 'varchar', length: 255 })
   subject!: string
 
-  @Field(() => TicketStatus)
   @Column({
     type: 'varchar',
     length: 30,
@@ -49,19 +41,15 @@ export class Ticket {
   })
   status!: TicketStatus
 
-  @Field()
   @Column({ type: 'bigint', name: 'last_message_at' })
   lastMessageAt!: string
 
-  @Field()
   @Column({ type: 'bigint', name: 'created_at' })
   createdAt!: string
 
-  @Field()
   @Column({ type: 'bigint', name: 'updated_at' })
   updatedAt!: string
 
-  @Field(() => [TicketMessage], { nullable: true })
   @OneToMany(() => TicketMessage, (m) => m.ticket)
   messages?: TicketMessage[]
 

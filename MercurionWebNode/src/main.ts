@@ -42,6 +42,23 @@ export async function bootstrap(): Promise<void> {
     config.get<number>('App.shutdownTimeoutMs') ?? 10000,
     loggerFactory.forContext('Shutdown')
   )
+  const dependencies = {
+    app,
+    fastify: app.getHttpAdapter().getInstance(),
+    config,
+    env,
+    secureCookie: app.get(SecureCookieService),
+    redis: app.get(RedisService),
+    loggerFactory,
+    logger: loggerFactory.forContext('Bootstrap')
+  }
+  try {
+    await applyBootstrapConfiguration(dependencies)
+  } catch (error) {
+    await shutdown.shutdown({ kind: 'fatal', error })
+    throw error
+  }
+
   const handleSignal = (signal: 'SIGTERM' | 'SIGINT') => {
     void shutdown.shutdown({ kind: 'signal', signal }).then(result => {
       if (result.timedOut || result.failures.length > 0) process.exitCode = 1
@@ -56,17 +73,6 @@ export async function bootstrap(): Promise<void> {
   }
   process.on('unhandledRejection', handleFatal)
   process.on('uncaughtException', handleFatal)
-  const dependencies = {
-    app,
-    fastify: app.getHttpAdapter().getInstance(),
-    config,
-    env,
-    secureCookie: app.get(SecureCookieService),
-    redis: app.get(RedisService),
-    loggerFactory,
-    logger: loggerFactory.forContext('Bootstrap')
-  }
-  await applyBootstrapConfiguration(dependencies)
 }
 
 export type BootstrapFailureReporter = (error: unknown) => void

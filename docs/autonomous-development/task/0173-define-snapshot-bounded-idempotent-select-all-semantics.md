@@ -1,7 +1,7 @@
 # 0173 - Define snapshot-bounded idempotent select-all semantics
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
@@ -87,24 +87,27 @@ Prefer a compact server-verifiable snapshot descriptor over persisting thousands
 ## Execution notes
 
 ### Feature branch
-_Not started._
+No feature branch was created. The task was skipped before implementation
+after the required runtime/browser capability pause.
 ### Preflight
 _Not started._
 ### Preflight remediation
 _None._
 ### Summary
-Re-enabled after DATA-002 became `DONE`; this task was never attempted and has no feature branch.
+Skipped at the explicit session direction after the required real-account
+browser capability was unavailable. No implementation was attempted.
 ### Task-specific validation performed
-_Not started._
+No task validation was run because implementation was skipped.
 ### Full pre-merge CI-parity validation
 _Not started._
 ### Browser validation performed
 _Not started._
 ### Commits
-_None._
+No task commit.
 ### Merge / CI
-_Not started._
+No merge. This metadata-only state change is recorded on `develop`.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-_None._
+The task was excluded from this session after its capability pause and requires
+a new session for any implementation attempt.

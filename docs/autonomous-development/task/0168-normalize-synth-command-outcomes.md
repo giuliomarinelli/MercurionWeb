@@ -1,6 +1,6 @@
 # 0168 - Normalize Synth command outcomes
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -87,23 +87,58 @@ Do not use a preliminary unrestricted `findOne(id)` followed by an owner-scoped 
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-019` from base `40af6f14f775ba476746ea7845c6dbabf327d876`.
 ### Preflight
-_Not started._
+- Verified clean `feature/DATA-019` at the supplied base SHA before editing.
+- Confirmed exact GitHub Actions CI run `35050122955` for
+  `40af6f14f775ba476746ea7845c6dbabf327d876` succeeded, including both
+  platform prerequisite jobs, all validation/build/test jobs, and `Required gate`.
+- Process inventory found no task-owned Angular, Nest, Tox21, Jest, or watcher
+  process. Browser/runtime validation was not required by this recipe.
+- Hard dependencies `0019`, `0127`, `0128`, and `0152` are all `DONE`.
 ### Preflight remediation
 _None._
 ### Summary
-Reset to `PENDING` by the human-authorized DATA-003 recovery. This task has not been attempted and has no feature branch.
+Normalized route and step mutation semantics. Owner-scoped update/delete writes
+now inspect TypeORM `affected`; zero-row writes use the documented
+security-preserving `SYNTHESIS_ACCESS_DENIED` outcome for both missing and
+wrong-owner resources. Successful deletes return the typed
+`SynthCommandResult` (`success` plus `DELETED`) through GraphQL rather than an
+ambiguous boolean. Database/driver failures are wrapped as
+`PERSISTENCE_FAILED` with the original error as the cause, and broad
+`catch { return false }` paths were removed. Create persistence failures use
+the same typed infrastructure policy.
 ### Task-specific validation performed
-_Not started._
+- `npm test --workspace mercurion_web_node -- --runInBand --runTestsByPath
+  src/app_modules/synth/services/synthesis.service.spec.ts
+  src/app_modules/synth/services/synthetic-step.service.spec.ts` — passed,
+  12 tests.
+- `npm run typecheck --workspace mercurion_web_node` — passed.
+- `npm run graphql:schema:check --workspace mercurion_web_node` — passed after
+  intentional schema regeneration.
+- `git diff --check` — passed.
+- Exact feature-SHA CI run `35051267813` for
+  `88e24f92bbfc05750c4119b6c5918d9bcf9faecd` failed in both prerequisite
+  GraphQL gates because the committed Angular `src/app/generated/schema.ts`
+  artifact was stale after the intentional Synth schema change. Regenerated
+  that artifact with `npm run graphql:generate --workspace mercurion_web_ng`;
+  this is a task-owned generated-contract correction.
 ### Full pre-merge CI-parity validation
 _Not started._
 ### Browser validation performed
 _Not started / not applicable._
 ### Commits
-_None._
+- `88e24f92bbfc05750c4119b6c5918d9bcf9faecd` — implementation and task notes.
+- `11e4217a78d8235fb3b0a0d48ec6b439cae0bcb5` — regenerated Angular
+  GraphQL schema artifact and repaired feature-CI drift.
+- `2dc02b8c23766e0484c0da565fe4ee2d0c98a4a9` — recorded repaired feature-CI
+  evidence.
 ### Merge / CI
-_Not started._
+Feature-SHA CI run `35051621142` for
+`11e4217a78d8235fb3b0a0d48ec6b439cae0bcb5` succeeded on Windows and Ubuntu;
+all validation jobs and `Required gate` passed.
+The final metadata-only documentation commit was also accepted by exact
+feature-SHA run `35052047412` with `Required gate` green.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required

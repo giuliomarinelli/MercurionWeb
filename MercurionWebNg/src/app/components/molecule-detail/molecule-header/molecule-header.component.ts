@@ -64,7 +64,7 @@ import { RouterLink } from '@angular/router';
                      text-light-accent-primary-hc dark:text-dark-accent-primary">
               ChEMBL ID:
               <span
-                class="text-muted-foreground font-normal text-light-on-surface-main dark:text-slate-100">
+                class="text-light-on-surface-secondary dark:text-slate-100 font-normal">
                 {{ chemblId() }}
               </span>
             </p>

@@ -93,6 +93,30 @@ describe('SocketGateway', () => {
     expect(setSocketServer).toHaveBeenCalledWith(server);
   });
 
+  it('keeps Redis adapter clients alive until application shutdown', async () => {
+    const subClient = {
+      status: 'ready',
+      quit: jest.fn().mockResolvedValue('OK')
+    };
+    const pubClient = {
+      status: 'ready',
+      duplicate: jest.fn().mockReturnValue(subClient),
+      quit: jest.fn().mockResolvedValue('OK')
+    };
+    const server = { use: jest.fn(), adapter: jest.fn() };
+
+    (Redis as unknown as jest.Mock).mockImplementation(() => pubClient);
+    gateway.afterInit(server as never);
+
+    expect(pubClient.quit).not.toHaveBeenCalled();
+    expect(subClient.quit).not.toHaveBeenCalled();
+
+    await gateway.onApplicationShutdown();
+
+    expect(pubClient.quit).toHaveBeenCalledTimes(1);
+    expect(subClient.quit).toHaveBeenCalledTimes(1);
+  });
+
   it('accepts and records the declared Socket.IO contract major', () => {
     const logger = { warn: jest.fn() }
     const middleware = createSocketContractVersionMiddleware(logger)

@@ -37,7 +37,11 @@ export function registerRestContractVersioningHook(
 ): void {
   fastify.addHook('onRequest', (req, reply, done) => {
     const path = req.url.split('?')[0]
-    if (!path.startsWith('/api/') || path === PUBLIC_CONTRACT_VERSION_METADATA.graphql.endpoint) {
+    if (
+      !path.startsWith('/api/') ||
+      path === PUBLIC_CONTRACT_VERSION_METADATA.graphql.endpoint ||
+      path === '/api/version'
+    ) {
       done()
       return
     }

@@ -34,6 +34,7 @@ import {
 } from './config/configuration.module';
 import { PersistenceModule } from './persistence/persistence.module'
 import { LoggingModule } from './logging/logging.module'
+import { ObservabilityModule } from './observability/observability.module'
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { LoggingModule } from './logging/logging.module'
     MercurionGraphQLModule,
     PersistenceModule,
     LoggingModule,
+    ObservabilityModule,
     RedisModule,
     UserModule,
     AuthModule,

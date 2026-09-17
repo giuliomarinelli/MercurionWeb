@@ -379,6 +379,11 @@ export interface ProvidedEmailDTO {
   provider: AuthProvider
 }
 
+export interface BuildIdentityDTO {
+  version: string
+  revision: string
+}
+
 export interface VersionDTO {
   version: string
   versionHash: string

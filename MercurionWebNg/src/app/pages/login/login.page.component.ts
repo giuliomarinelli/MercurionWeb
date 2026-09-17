@@ -34,10 +34,26 @@ import { adaptHttpFormError } from '../../utils/form-error.adapter'
           (credentialsSubmitted)="submit($event)"
         />
         <div class="my-3 text-sm flex gap-3 justify-between items-center flex-col 2xs:flex-row">
-          <a routerLink="/forgot-password">Password dimenticata?</a>
-          <a routerLink="/register">Registrati</a>
+          <a routerLink="/forgot-password" class="login-secondary-link text-light-accent-primary-hc hover:underline dark:text-dark-accent-primary">Password dimenticata?</a>
+          <a routerLink="/register" class="login-secondary-link text-light-accent-primary-hc hover:underline dark:text-dark-accent-primary">Registrati</a>
         </div>
-        <a routerLink="/account-recovery" class="block text-center">Recupera account</a>
+        <div class="relative py-2">
+          <div class="absolute inset-0 flex items-center"><div class="w-full border-t"></div></div>
+          <div class="relative flex justify-center text-sm">
+            <span class="bg-light-surface-main px-2 text-gray-500 dark:bg-neutral-950 dark:text-slate-300">IN CASO DI EMERGENZA</span>
+          </div>
+        </div>
+        <a
+          title="Usa il codice di recupero mostrato all’attivazione per recuperare e ripristinare il tuo account"
+          routerLink="/account-recovery"
+          class="flex w-full items-center justify-center gap-3 rounded-md border bg-slate-200 py-2.5 text-sm transition-colors duration-150 hover:bg-slate-200/80 dark:bg-transparent dark:hover:bg-slate-100 dark:hover:text-neutral-900"
+        >
+          <svg viewBox="0 0 640 640" class="h-5 w-auto fill-current" aria-hidden="true">
+            <path d="M592 544H48L320 48l272 496zM292 420v56h56v-56h-56zm-4-196 12.8 160h38.4L352 224h-64z"/>
+          </svg>
+          <span class="hidden text-[0.85rem] sm:block">Recupera account inaccessibile o hackerato</span>
+          <span class="block text-xs sm:hidden">Recupera account</span>
+        </a>
         <m-login-sso-chooser
           [redirectTo]="redirectTo()"
         />
@@ -49,7 +65,8 @@ import { adaptHttpFormError } from '../../utils/form-error.adapter'
   `,
   styles: [`
     :host { display: block; }
-    a { color: inherit; text-decoration: underline; }
+    a { color: inherit; }
+    .login-secondary-link { text-decoration: underline; }
   `]
 })
 export class LoginPageComponent implements OnInit {

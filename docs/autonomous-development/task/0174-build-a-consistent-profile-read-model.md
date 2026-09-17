@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 
 > SKIPPED_DEPENDENCY (2026-09-15): direct terminal prerequisite `0152`
 > remains pending, while `0143` is skipped from terminal root `0126`

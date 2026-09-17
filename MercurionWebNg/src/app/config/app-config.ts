@@ -1,6 +1,7 @@
 import { InjectionToken } from '@angular/core'
 import type { FeedbackEnv } from '@mercurion/rest-contracts'
 import { environment } from '../../environments/environment'
+import { buildIdentity } from '../../generated/build-identity'
 
 
 /** Canonical environment contract, taken from the single allowed environment entry point. */
@@ -13,14 +14,7 @@ export type LogLevel = EnvironmentConfig['minLogLevel']
  * qualify this base version through {@link RELEASE_CHANNEL_SUFFIXES}; they never
  * declare an independent version string.
  */
-export const RELEASE_BASE_VERSION = '1.0.0'
-
-const RELEASE_CHANNEL_SUFFIXES = {
-  development: 'd',
-  testing: 'i',
-  staging: '-beta',
-  production: ''
-} as const satisfies Record<EnvironmentName, string>
+export const RELEASE_BASE_VERSION = buildIdentity.version
 
 /** Same-origin realtime endpoint: the browser always reaches Socket.IO through the serving origin. */
 const REALTIME_ORIGIN = '/'
@@ -40,6 +34,7 @@ export interface AppCapabilitiesConfig {
 
 export interface AppReleaseConfig {
   readonly version: string
+  readonly revision: string
 }
 
 export interface AppPublicIntegrationsConfig {
@@ -62,7 +57,8 @@ export interface AppConfig {
 }
 
 export function releaseVersionFor(name: EnvironmentName): string {
-  return `${RELEASE_BASE_VERSION}${RELEASE_CHANNEL_SUFFIXES[name]}`
+  void name
+  return RELEASE_BASE_VERSION
 }
 
 /**
@@ -85,7 +81,8 @@ export function createAppConfig(config: EnvironmentConfig): AppConfig {
       disableTurnstile: config.name === 'development' && config.DISABLE_TURNSTILE
     }),
     release: Object.freeze({
-      version: releaseVersionFor(config.name)
+      version: releaseVersionFor(config.name),
+      revision: buildIdentity.revision
     }),
     integrations: Object.freeze({
       turnstileSiteKey: config.CLOUDFLARE_SITE_KEY
@@ -100,4 +97,3 @@ export const APP_CONFIG = new InjectionToken<AppConfig>('APP_CONFIG', {
   providedIn: 'root',
   factory: () => createAppConfig(environment)
 })
-

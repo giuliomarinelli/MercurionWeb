@@ -1,9 +1,9 @@
 # 0082 - Make invalid CSS and Tailwind utilities fail CI
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -94,53 +94,78 @@ Prefer correctness over fashionable lint rules. If a third-party linter cannot p
 
 ## Execution notes
 
-> Current status (2026-09-11): PENDING. The planner identified the prior
-> dependency skip as stale after direct owner re-enablement of its prerequisite
-> chain; historical skip evidence below is retained only for traceability.
+> Current status (2026-09-17): `DONE` / `CI_PENDING`. Implementation and
+> focused validation passed on `feature/UI-024`; exact feature-SHA and merge
+> CI remain coordinator-owned.
 
 ### Feature branch
-_Not started._
+`feature/UI-024`
 
 ### Preflight
-_Not started._
+- Verified clean `feature/UI-024` at certified base
+  `cb1681211e389193390da3cf5bdaf74c57d2ea9f`.
+- Confirmed supplied fresh full develop CI run `35222871770` succeeded with
+  the Required gate and platform/container jobs.
+- Unchanged focused checks passed: `npm run ui:tokens:check`,
+  `npm run ui:colors:check`, and `npm run ci:angular:ui-variant-apis`.
+- Chrome DevTools MCP non-navigating capability probe passed with the
+  dedicated browser page at `about:blank`.
+- Runtime preflight started Tox21, Nest watch mode, and Angular watch mode in
+  the required order with live handles. The nginx edge returned two complete
+  readiness rounds of HTTP 200 for `/health` and `/`.
 
 ### Preflight remediation
-_None._
+None.
 
 ### Summary
-Not attempted because required tasks 0080 (UI-022) and 0081 (UI-023) are
-`SKIPPED_DEPENDENCY`.
+Added `ci:angular:styling`, a deterministic PostCSS/Tailwind generated-CSS
+validator for Angular external and inline templates plus governed stylesheets.
+The gate rejects malformed repeated variants, candidates absent from generated
+CSS, non-enumerable Tailwind class construction, malformed CSS, and invalid
+standard property values. Added four negative regression fixtures and wired
+the command into the existing `ci:static` aggregate. Corrected nine existing
+invalid utility usages surfaced by the new gate without adding a broad
+allowlist.
 
 ### Task-specific validation performed
-Not applicable; no feature branch or implementation worker was created.
+- `node scripts/check-angular-styling.mjs` passed for 479 governed files and
+  1,127 Tailwind candidates.
+- `node scripts/test-angular-styling-negative.mjs` passed for malformed
+  `dark:dark:bg-*`, an unknown utility, non-enumerable dynamic class
+  construction, and invalid `scrollbar-width`.
+- `npm run ci:typecheck:angular` passed.
+- `npm run ci:lint:angular` passed with zero warnings.
+- `npm run build --workspace mercurion_web_ng` passed; Angular reported only
+  the existing initial bundle budget warning.
+- `git diff --check` passed.
 
 ### Full pre-merge CI-parity validation
-Not applicable; dependency-skip metadata only.
+Not run locally because `npm ci` and `npm run ci:check` are Actions-only.
+Exact feature-SHA validation is coordinator-owned after publication.
 
 ### Browser validation performed
-Not applicable; the task was not attempted.
+- Restarted Tox21, Nest watch mode, and Angular watch mode in the required
+  order with live handles; two complete readiness rounds returned HTTP 200
+  through `http://localhost:8888/health` and `http://localhost:8888/`.
+- Chrome DevTools MCP opened `http://localhost:8888/welcome`; the rendered
+  canonical welcome shell, images, links, responsive utility classes, and
+  theme selector were present.
+- Opened the theme selector, switched to dark theme, confirmed the theme
+  controls rendered, then restored the light theme. Browser console contained
+  no errors before or after the interaction.
+- No authentication or protected state was required.
+- Stopped all three task-owned runtime sessions and verified no matching
+  Tox21, Nest, or Angular process remained.
 
 ### Commits
-Pending metadata commit on `develop`.
+`9d306affed32bf4fad654b028317e51e468f6465`
 
 ### Merge / CI
-No feature branch or merge. Exact-SHA CI is required for the metadata commit.
+Feature branch publication and exact feature-SHA/merge-SHA CI remain
+coordinator-owned.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-Direct terminal prerequisites: 0080 (UI-022) and 0081 (UI-023), both
-`SKIPPED_DEPENDENCY`. Their transitive chain includes UI-018 (BLOCKED), which
-requires a test-safe local Nest runtime and dependencies for mandatory browser
-validation.
-
-
-### Dependency skip
-
-Direct terminal prerequisite: 0077 (), terminal non-DONE dependency.
-
-### Dependency skip
-
-Direct terminal prerequisite: `0081` (`UI-023`), `SKIPPED_DEPENDENCY`, with
-terminal root `0078` (`UI-020`), `BLOCKED`. Materialized on 2026-09-13.
+None.

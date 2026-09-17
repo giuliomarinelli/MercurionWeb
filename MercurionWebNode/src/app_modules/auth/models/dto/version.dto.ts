@@ -1,1 +1,1 @@
-export type { VersionDTO } from '@mercurion/rest-contracts'
+export type { BuildIdentityDTO, VersionDTO } from '@mercurion/rest-contracts'

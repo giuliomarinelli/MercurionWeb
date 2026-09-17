@@ -8,15 +8,13 @@ import { SecurityService } from '../services/security.service';
 import { ResponseService } from 'src/services/response.service';
 import { JwtToolsService } from '../services/jwt-tools.service';
 import { TokenType } from '../models/enums/token-type.enum';
-import { join } from 'path';
 import { MailSenderService } from 'src/app_modules/notification/services/mail-sender/mail-sender.service';
-import { UserCtaContext } from 'src/app_modules/notification/models/contexts/user-cta.context';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
 import { errorMessage, errorStack } from 'src/utils/errors/error-message'
 
 import { User } from 'src/app_modules/user/models/entities/user.entity';
 import { createHmac, UUID } from 'crypto';
-import { EmailTotpContext } from 'src/app_modules/notification/models/contexts/email-totp.context';
+import { uuidv7 } from '@kripod/uuidv7'
 import { SessionService } from '../services/session.service';
 import { SmsSenderService } from 'src/app_modules/notification/services/sms-sender/sms-sender.service';
 import { ChangePhoneDTO } from '../models/dto/change-phone.cls.dto';
@@ -24,11 +22,10 @@ import { ContactChangeKind } from '../models/enums/contact-change-kind.enum';
 import { PasswordContext } from '../models/enums/password-context.enum';
 import { CompareResult } from '../models/enums/compare-result.enum';
 import { SecurityAuditService } from 'src/app_modules/meilisearch/services/security-audit.service';
-import { UserContext } from 'src/app_modules/notification/models/contexts/user.context';
 import { LoggerPort } from 'src/logging/logger.port';
 import { LoggerContext } from 'src/logging/logger.port';
 import { publicTotpMetadata } from 'src/utils/temporal/temporal'
-import { DataSource } from 'typeorm';
+import { DataSource, QueryFailedError } from 'typeorm';
 import { ScopeService } from '../services/scope.service';
 import { MfaBackupCode } from 'src/app_modules/user/models/entities/backup-code.entity';
 import { RecoverCredentialsDTO } from '../models/dto/recover-credentials.cls.dto';
@@ -37,8 +34,11 @@ import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 import { MfaStrategy } from 'src/app_modules/user/models/enums/mfa-strategy.enum';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 import { redisDurations, redisKeys } from 'src/app_modules/redis/contracts/redis-contracts'
-import { afterTransactionCommit, runInTransaction, UnitOfWork } from 'src/persistence/transaction-context'
+import { AtomicAttemptPolicyService } from 'src/app_modules/redis/services/atomic-attempt-policy.service'
+import { afterTransactionCommit, runInTransaction, transactionManager, UnitOfWork } from 'src/persistence/transaction-context'
 import { InitialWorkspaceService } from 'src/app_modules/molecule-collection/services/initial-workspace.service'
+import { ActivationReceipt } from '../models/entities/activation-receipt.entity'
+import { NotificationOutboxService } from 'src/app_modules/notification/services/outbox/notification-outbox.service'
 
 
 
@@ -52,28 +52,6 @@ export class AccountFlowKernel {
 
     private readonly CHANGE_PASSWORD_TOKEN_EXPIRATION_MS: number
 
-    private readonly CHANGE_CONTACT_FAIL_WINDOW_SECONDS = 10 * 60
-    private readonly CHANGE_CONTACT_MAX_FAILS = 5
-    private readonly CHANGE_CONTACT_LOCK_SECONDS = 15 * 60
-
-    private readonly CHANGE_CONTACT_SEND_WINDOW_SECONDS = 10 * 60
-    private readonly CHANGE_CONTACT_MAX_SENDS = 5
-
-    private readonly PASSWORD_FAIL_WINDOW_SECONDS = 10 * 60
-    private readonly PASSWORD_MAX_FAILS = 5
-    private readonly PASSWORD_LOCK_SECONDS = 15 * 60
-
-    private readonly PASSWORD_RESET_SEND_WINDOW_SECONDS = 10 * 60
-    private readonly PASSWORD_RESET_MAX_SENDS = 5
-
-    private readonly RECOVERY_FAIL_WINDOW_SECONDS = 24 * 60 * 60  // 1 giorno
-    private readonly RECOVERY_MAX_FAILS = 2
-    private readonly RECOVERY_LOCK_SECONDS = 24 * 60 * 60
-
-    private readonly RECOVERY_SECOND_FAIL_WINDOW_SECONDS = 10 * 60
-    private readonly RECOVERY_SECOND_MAX_FAILS = 2
-    private readonly RECOVERY_SECOND_LOCK_SECONDS = 15 * 60
-
     private readonly redisIdHmacSecret: string
 
     constructor(
@@ -85,6 +63,7 @@ export class AccountFlowKernel {
         private readonly mailService: MailSenderService,
         private readonly smsService: SmsSenderService,
         private readonly redisService: RedisService,
+        private readonly attempts: AtomicAttemptPolicyService,
         private readonly sessionService: SessionService,
         private readonly _r: ResponseService,
         private readonly securityAuditService: SecurityAuditService,
@@ -92,6 +71,7 @@ export class AccountFlowKernel {
         private readonly scopeService: ScopeService,
         private readonly unitOfWork: UnitOfWork,
         private readonly initialWorkspace: InitialWorkspaceService,
+        private readonly notificationOutbox: NotificationOutboxService,
         meiliLogger: LoggerPort
     ) {
         this.CHANGE_PASSWORD_TOKEN_EXPIRATION_MS = this.configService.get<number>('Jwt.changePasswordToken.expiresInMs') ?? 300_000
@@ -141,54 +121,44 @@ export class AccountFlowKernel {
     }
 
     private async ensureRecoverySecondNotLocked(userId: UUID) {
-        if (await this.redisService.exists(this.getRecoverySecondLockKey(userId))) {
+        if (!await this.attempts.assertAllowed('accountRecoverySecondFailure', this.getRecoverySecondLockKey(userId))) {
             throw applicationError(ApplicationErrorCode.ACCOUNT_RECOVERY_SECOND_TOO_MANY_ATTEMPTS)
         }
     }
 
     private async registerRecoverySecondFailure(userId: UUID) {
-        const failKey = this.getRecoverySecondFailKey(userId)
-        const lockKey = this.getRecoverySecondLockKey(userId)
-
-        const fails = await this.redisService.incr(failKey)
-        if (fails === 1) {
-            await this.redisService.setTTL(failKey, redisDurations.seconds(this.RECOVERY_SECOND_FAIL_WINDOW_SECONDS))
-        }
-
-        if (fails >= this.RECOVERY_SECOND_MAX_FAILS) {
-            await this.redisService.set(lockKey, '1', redisDurations.seconds(this.RECOVERY_SECOND_LOCK_SECONDS))
-            await this.redisService.del(failKey)
-        }
+        await this.attempts.recordFailure(
+            'accountRecoverySecondFailure',
+            this.getRecoverySecondFailKey(userId),
+            this.getRecoverySecondLockKey(userId)
+        )
     }
 
     private async clearRecoverySecondFailures(userId: UUID) {
-        await this.redisService.del(this.getRecoverySecondFailKey(userId))
-        await this.redisService.del(this.getRecoverySecondLockKey(userId))
+        await this.attempts.reset(
+            'accountRecoverySecondFailure',
+            this.getRecoverySecondFailKey(userId),
+            this.getRecoverySecondLockKey(userId)
+        )
     }
 
     private async ensureRecoveryNotLocked(code: string) {
-        if (await this.redisService.exists(this.getRecoveryLockKey(code))) {
+        if (!await this.attempts.assertAllowed('accountRecoveryFailure', this.getRecoveryLockKey(code))) {
             throw applicationError(ApplicationErrorCode.ACCOUNT_RECOVERY_TOO_MANY_ATTEMPTS)
         }
     }
 
     private async registerRecoveryFailure(code: string) {
-        const failKey = this.getRecoveryFailKey(code)
-        const lockKey = this.getRecoveryLockKey(code)
-
-        const fails = await this.redisService.incr(failKey)
-        if (fails === 1) await this.redisService.setTTL(failKey, redisDurations.seconds(this.RECOVERY_FAIL_WINDOW_SECONDS))
-
-        if (fails >= this.RECOVERY_MAX_FAILS) {
-            await this.redisService.set(lockKey, '1', redisDurations.seconds(this.RECOVERY_LOCK_SECONDS))
-            await this.redisService.del(failKey)
-        }
+        await this.attempts.recordFailure(
+            'accountRecoveryFailure',
+            this.getRecoveryFailKey(code),
+            this.getRecoveryLockKey(code)
+        )
     }
 
     private async ensureContactChangeNotLocked(userId: UUID, kind: ContactChangeKind): Promise<void> {
         const lockKey = this.getChangeLockKey(userId, kind)
-        const locked = await this.redisService.exists(lockKey)
-        if (locked) {
+        if (!await this.attempts.assertAllowed('accountContactFailure', lockKey)) {
             throw applicationError(ApplicationErrorCode.ACCOUNT_CONTACT_CHANGE_TOO_MANY_ATTEMPTS, `Change${kind.charAt(0).toUpperCase()}${kind.slice(1)}::TooManyAttempts`)
         }
     }
@@ -198,41 +168,25 @@ export class AccountFlowKernel {
         const failKey = this.getChangeFailKey(userId, kind)
         const lockKey = this.getChangeLockKey(userId, kind)
 
-        const fails = await this.redisService.incr(failKey)
-
-        if (fails === 1) {
-            await this.redisService.setTTL(failKey, redisDurations.seconds(this.CHANGE_CONTACT_FAIL_WINDOW_SECONDS))
-        }
-
-        if (fails >= this.CHANGE_CONTACT_MAX_FAILS) {
-            await this.redisService.set(lockKey, '1', redisDurations.seconds(this.CHANGE_CONTACT_LOCK_SECONDS))
-            await this.redisService.del(failKey)
-        }
+        await this.attempts.recordFailure('accountContactFailure', failKey, lockKey)
     }
 
     private async clearContactChangeFailures(userId: UUID, kind: ContactChangeKind): Promise<void> {
         const failKey = this.getChangeFailKey(userId, kind)
         const lockKey = this.getChangeLockKey(userId, kind)
-        await this.redisService.del(failKey)
-        await this.redisService.del(lockKey)
+        await this.attempts.reset('accountContactFailure', failKey, lockKey)
     }
 
     private async throttleContactChangeSend(userId: UUID, kind: ContactChangeKind): Promise<void> {
         const countKey = this.getChangeSendKey(userId, kind)
         const lockKey = this.getChangeSendLockKey(userId, kind)
 
-        const locked = await this.redisService.exists(lockKey)
-        if (locked) {
+        if (!await this.attempts.assertAllowed('accountContactSend', lockKey)) {
             throw applicationError(ApplicationErrorCode.ACCOUNT_CONTACT_CHANGE_SEND_TOO_MANY_REQUESTS, `Change${kind.charAt(0).toUpperCase()}${kind.slice(1)}Send::TooManyRequests`)
         }
 
-        const cnt = await this.redisService.incr(countKey)
-        if (cnt === 1) {
-            await this.redisService.setTTL(countKey, redisDurations.seconds(this.CHANGE_CONTACT_SEND_WINDOW_SECONDS))
-        }
-
-        if (cnt > this.CHANGE_CONTACT_MAX_SENDS) {
-            await this.redisService.set(lockKey, '1', redisDurations.seconds(this.CHANGE_CONTACT_LOCK_SECONDS))
+        const result = await this.attempts.recordSend('accountContactSend', countKey, lockKey)
+        if (!result.allowed) {
             throw applicationError(ApplicationErrorCode.ACCOUNT_CONTACT_CHANGE_SEND_TOO_MANY_REQUESTS, `Change${kind.charAt(0).toUpperCase()}${kind.slice(1)}Send::TooManyRequests`)
         }
     }
@@ -255,8 +209,7 @@ export class AccountFlowKernel {
 
     private async ensurePasswordNotLocked(userId: UUID, context: PasswordContext = PasswordContext.CHANGE): Promise<void> {
         const lockKey = this.getPasswordLockKey(userId, context)
-        const locked = await this.redisService.exists(lockKey)
-        if (locked) {
+        if (!await this.attempts.assertAllowed('accountPasswordFailure', lockKey)) {
             throw applicationError(ApplicationErrorCode.PASSWORD_TOO_MANY_ATTEMPTS)
         }
     }
@@ -265,23 +218,13 @@ export class AccountFlowKernel {
         const failKey = this.getPasswordFailKey(userId, context)
         const lockKey = this.getPasswordLockKey(userId, context)
 
-        const fails = await this.redisService.incr(failKey)
-
-        if (fails === 1) {
-            await this.redisService.setTTL(failKey, redisDurations.seconds(this.PASSWORD_FAIL_WINDOW_SECONDS))
-        }
-
-        if (fails >= this.PASSWORD_MAX_FAILS) {
-            await this.redisService.set(lockKey, '1', redisDurations.seconds(this.PASSWORD_LOCK_SECONDS))
-            await this.redisService.del(failKey)
-        }
+        await this.attempts.recordFailure('accountPasswordFailure', failKey, lockKey)
     }
 
     private async clearPasswordFailures(userId: UUID, context: PasswordContext = PasswordContext.CHANGE): Promise<void> {
         const failKey = this.getPasswordFailKey(userId, context)
         const lockKey = this.getPasswordLockKey(userId, context)
-        await this.redisService.del(failKey)
-        await this.redisService.del(lockKey)
+        await this.attempts.reset('accountPasswordFailure', failKey, lockKey)
     }
 
     private async throttlePasswordResetSend(userId: UUID, context: PasswordContext = PasswordContext.RESET_SEND): Promise<void> {
@@ -289,18 +232,12 @@ export class AccountFlowKernel {
         const countKey = this.getPasswordResetSendKey(userId, context)
         const lockKey = this.getPasswordResetSendLockKey(userId, context)
 
-        const locked = await this.redisService.exists(lockKey)
-        if (locked) {
+        if (!await this.attempts.assertAllowed('accountPasswordSend', lockKey)) {
             throw applicationError(ApplicationErrorCode.PASSWORD_RESET_SEND_TOO_MANY_REQUESTS)
         }
 
-        const cnt = await this.redisService.incr(countKey)
-        if (cnt === 1) {
-            await this.redisService.setTTL(countKey, redisDurations.seconds(this.PASSWORD_RESET_SEND_WINDOW_SECONDS))
-        }
-
-        if (cnt > this.PASSWORD_RESET_MAX_SENDS) {
-            await this.redisService.set(lockKey, '1', redisDurations.seconds(this.PASSWORD_LOCK_SECONDS))
+        const result = await this.attempts.recordSend('accountPasswordSend', countKey, lockKey)
+        if (!result.allowed) {
             throw applicationError(ApplicationErrorCode.PASSWORD_RESET_SEND_TOO_MANY_REQUESTS)
         }
     }
@@ -308,9 +245,10 @@ export class AccountFlowKernel {
     public async registerUser(registerDTO: UserRegisterDTO): Promise<ConfirmWithObsContDTO> {
 
         const { password, email, firstName, lastName, job, gender } = registerDTO
-        const emailKey = this.getRegistrationLockRedisKey(email)
+        const normalizedEmail = email.trim().toLowerCase()
+        const emailKey = this.getRegistrationLockRedisKey(normalizedEmail)
         const ttl = redisDurations.hours(2)
-        const alreadyExists = await this.redisService.exists(emailKey) || await this.userService.existsUserByEmail(email)
+        const alreadyExists = await this.redisService.exists(emailKey) || await this.userService.existsUserByEmail(normalizedEmail)
         if (alreadyExists) {
             throw applicationError(ApplicationErrorCode.USER_REGISTRATION_EMAIL_CONFLICT)
         }
@@ -318,25 +256,39 @@ export class AccountFlowKernel {
         const passwordHash = await this.passwordEncoder.encode(password)
         const otpSecret = this.securityService.generateOtpSecret()
         const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()
-        const { id: userId } = await this.userService.createUser({
-            passwordHash,
-            otpSecret,
-            unconfirmedEmail: email,
-            firstName,
-            lastName,
-            scopes: this.scopeService.getEncryptedStandardScopes(),
-            initials,
-            job: (job ?? '').trim() ? job : null,
-            gender
-        })
-        const activationToken: string = await this.jwtTools.generateToken(userId, TokenType.ActivationToken)
-        const url = `${this.configService.get<string>("App.activationOrigin")!}/account/activate#t=${encodeURIComponent(activationToken)}`
-        await this.mailService.sendEmail<UserCtaContext>(
-            email,
-            `${firstName}, completa la tua registrazione a Mercurion`,
-            { firstName, url },
-            join(__dirname, "../../../app_modules/notification/email-templates/confirmation.hbs")
-        )
+        try {
+            await this.unitOfWork.run(async context => {
+                const manager = transactionManager(context)
+                const user = await this.userService.createRegistration({
+                    passwordHash,
+                    otpSecret,
+                    unconfirmedEmail: normalizedEmail,
+                    registrationIdentity: normalizedEmail,
+                    firstName,
+                    lastName,
+                    scopes: this.scopeService.getEncryptedStandardScopes(),
+                    initials,
+                    job: (job ?? '').trim() ? job : null,
+                    gender
+                }, context)
+                const token = await this.jwtTools.generateToken(user.id, TokenType.ActivationToken)
+                const url = `${this.configService.get<string>("App.activationOrigin")!}/account/activate#t=${encodeURIComponent(token)}`
+                await this.notificationOutbox.appendEmail(manager, {
+                    aggregateId: user.id,
+                    templateKey: 'account-confirmation',
+                    to: normalizedEmail,
+                    context: { firstName, url },
+                    dedupeKey: `account:${user.id}:confirmation`,
+                    correlationId: user.id
+                })
+                return { id: user.id, token }
+            })
+        } catch (error) {
+            if (error instanceof QueryFailedError) {
+                throw applicationError(ApplicationErrorCode.USER_REGISTRATION_EMAIL_CONFLICT)
+            }
+            throw error
+        }
         return {
             ...this._r.ok('Registration performed successfully', HttpStatus.CREATED),
             obscuredEmail: this.securityService.maskEmail(email)
@@ -345,15 +297,42 @@ export class AccountFlowKernel {
     }
 
     public async activateUser(activationToken: string): Promise<ConfirmWithRecoveryCodeDTO> | never {
-        const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(activationToken, TokenType.ActivationToken)
-        const recoveryCode = this.securityService.generateAccountRecoveryReadableCode()
-        const accountRecoveryCodeHash = await this.passwordEncoder.encode(recoveryCode)
+        // A committed activation is replayable by its durable jti receipt.
+        // Revocation is an after-commit optimization and must not turn a
+        // successful retry into an ambiguous token failure.
+        const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(
+            activationToken,
+            TokenType.ActivationToken,
+            false,
+            true
+        )
         return this.unitOfWork.run(async (context) => {
-            const email = await this.userService.activateAccount(userId, accountRecoveryCodeHash, context)
-            await this.initialWorkspace.createForUser(userId, context)
+            const manager = transactionManager(context)
+            const existing = await manager.findOne(ActivationReceipt, { where: { jti } })
+            if (existing) {
+                if (String(existing.userId) !== String(userId)) {
+                    throw applicationError(ApplicationErrorCode.TOKEN_INVALID_OR_EXPIRED)
+                }
+                return {
+                    ...this._r.ok('Account activated successfully'),
+                    recoveryCode: this.securityService.decrypt_AES256(existing.recoveryCode)
+                }
+            }
+
+            const recoveryCode = this.securityService.generateAccountRecoveryReadableCode()
+            const accountRecoveryCodeHash = await this.passwordEncoder.encode(recoveryCode)
+            const activation = await this.userService.activateAccount(userId, accountRecoveryCodeHash, context)
+            await this.initialWorkspace.initializeForUser(userId, context)
+            await manager.save(manager.create(ActivationReceipt, {
+                jti,
+                userId,
+                email: activation.email,
+                recoveryCode: this.securityService.encrypt_AES256(recoveryCode),
+                createdAt: Date.now()
+            }))
             afterTransactionCommit(context, async () => {
                 await this.sessionService.revokeToken(jti)
-                await this.redisService.del(this.getRegistrationLockRedisKey(email))
+                await this.redisService.del(this.getRegistrationLockRedisKey(activation.email))
             })
             return {
                 ...this._r.ok('Account activated successfully'),
@@ -388,24 +367,22 @@ export class AccountFlowKernel {
         }
         await this.redisService.set(lockKey, 'locked', redisDurations.minutes(5))
 
-        await this.userService.updateUser(userId, {
+        const updatedUser = await this.userService.updateUser(userId, {
             unconfirmedEmail: newEmail,
             updatedAt: Date.now()
         })
+        if (!updatedUser) {
+            throw applicationError(ApplicationErrorCode.CHANGE_EMAIL_USER_NOT_FOUND)
+        }
 
         const emailVerificationToken = await this.jwtTools.generateToken(userId, TokenType.EmailVerificationToken)
         const { TOTP: totp, ...metadata } = this.securityService.generateTotp(user.otpSecret)
 
-        await this.mailService.sendEmail<EmailTotpContext>(
-            newEmail,
-            `Conferma il tuo nuovo indirizzo email`,
-            {
-                firstName: user.firstName,
-                period: this.configService.get<number>('Totp.period') as number,
-                totp
-            },
-            join(__dirname, "../../../app_modules/notification/email-templates/email-verification.hbs")
-        )
+        await this.mailService.send('email-verification', newEmail, {
+            firstName: user.firstName,
+            period: this.configService.get<number>('Totp.period') as number,
+            totp
+        })
 
         const obscuredEmail = this.securityService.maskEmail(newEmail)
 
@@ -440,38 +417,37 @@ export class AccountFlowKernel {
         const maskedNewEmail = this.securityService.maskEmail(user.unconfirmedEmail ?? '')
         const oldEmail = user.email
         const newEmail = user.unconfirmedEmail
-        await this.userService.updateUser(userId, {
-            email: newEmail,
-            unconfirmedEmail: null,
-            updatedAt: Date.now()
-        })
+        await this.unitOfWork.run(async (context, manager) => {
+            const updatedUser = await this.userService.updateUser(userId, {
+                email: newEmail,
+                unconfirmedEmail: null,
+                updatedAt: Date.now()
+            }, context)
+            if (!updatedUser) {
+                throw applicationError(ApplicationErrorCode.CHANGE_EMAIL_CONFIRM_USER_NOT_FOUND)
+            }
 
-        await this.redisService.del(
-            redisKeys.account.emailChangeLock(this.hmacKey(newEmail.toLowerCase()))
-        )
+            await this.redisService.del(
+                redisKeys.account.emailChangeLock(this.hmacKey(newEmail.toLowerCase()))
+            )
 
-        await this.securityAuditService.emailChanged(userId, maskedOldEmail, maskedNewEmail)
-
-        this.mailService.sendEmail<UserContext>(
-            oldEmail!,
-            'Mercurion: email modificata',
-            {
-                firstName: user.firstName
-            },
-            join(__dirname, "../../../app_modules/notification/email-templates/email-changed-old-contact.hbs")
-        ).catch((e) => {
-            this.logger.warn(`Errore durante l'invio mail email changed, oldEmail=${this.hmacKey(oldEmail ?? '')}, userId=${userId}`, e as string | object)
-        })
-
-        this.mailService.sendEmail<UserContext>(
-            newEmail,
-            'Mercurion: email modificata',
-            {
-                firstName: user.firstName
-            },
-            join(__dirname, "../../../app_modules/notification/email-templates/email-changed-new-contact.hbs")
-        ).catch((e) => {
-            this.logger.warn(`Errore durante l'invio mail email changed, newEmail=${this.hmacKey(newEmail)}, userId=${userId}`, e as string | object)
+            await this.securityAuditService.emailChanged(userId, maskedOldEmail, maskedNewEmail, undefined, context)
+            await this.notificationOutbox.appendEmail(manager, {
+                aggregateId: userId,
+                templateKey: 'email-changed-old-contact',
+                to: oldEmail!,
+                context: { firstName: user.firstName, newEmail },
+                dedupeKey: `account:${userId}:email-changed-old:${jti}`,
+                correlationId: jti
+            })
+            await this.notificationOutbox.appendEmail(manager, {
+                aggregateId: userId,
+                templateKey: 'email-changed-new-contact',
+                to: newEmail,
+                context: { firstName: user.firstName, newEmail },
+                dedupeKey: `account:${userId}:email-changed-new:${jti}`,
+                correlationId: jti
+            })
         })
 
         return this._r.ok('Email successfully changed and verified')
@@ -499,11 +475,14 @@ export class AccountFlowKernel {
             throw applicationError(ApplicationErrorCode.DELETE_PHONE_IN_USE_OR_PENDING)
         }
         await this.redisService.set(lockKey, 'locked', redisDurations.minutes(5))
-        await this.userService.updateUser(userId, {
+        const updatedUser = await this.userService.updateUser(userId, {
             unconfirmedPhoneNumber: null,
             unconfirmedPhoneNumberPrefixLength: 0,
             updatedAt: Date.now()
         })
+        if (!updatedUser) {
+            throw applicationError(ApplicationErrorCode.DELETE_PHONE_USER_NOT_FOUND)
+        }
 
         const phoneNumberVerificationToken = await this.jwtTools.generateToken(userId, TokenType.PhoneNumberVerificationToken)
         const { TOTP: totp, ...metadata } = this.securityService.generateTotp(user.otpSecret)
@@ -637,11 +616,14 @@ export class AccountFlowKernel {
 
         await this.redisService.set(lockKey, 'locked', redisDurations.minutes(5))
 
-        await this.userService.updateUser(userId, {
+        const updatedUser = await this.userService.updateUser(userId, {
             unconfirmedPhoneNumber: fullNumber,
             unconfirmedPhoneNumberPrefixLength: internationalPrefix.length,
             updatedAt: Date.now()
         })
+        if (!updatedUser) {
+            throw applicationError(ApplicationErrorCode.CHANGE_PHONE_USER_NOT_FOUND)
+        }
 
         const phoneNumberVerificationToken = await this.jwtTools.generateToken(userId, TokenType.PhoneNumberVerificationToken)
         const { TOTP: totp, ...metadata } = this.securityService.generateTotp(user.otpSecret)
@@ -686,13 +668,16 @@ export class AccountFlowKernel {
         const newPhoneNumberPrefixLength = user.unconfirmedPhoneNumberPrefixLength
 
 
-        await this.userService.updateUser(userId, {
+        const updatedUser = await this.userService.updateUser(userId, {
             completePhoneNumber: newCompletePhoneNumber,
             phoneNumberPrefixLength: newPhoneNumberPrefixLength,
             unconfirmedPhoneNumber: null,
             unconfirmedPhoneNumberPrefixLength: 0,
             updatedAt: Date.now()
         })
+        if (!updatedUser) {
+            throw applicationError(ApplicationErrorCode.CHANGE_PHONE_USER_NOT_FOUND)
+        }
 
         await this.redisService.del(
             redisKeys.account.phoneChangeLock(this.hmacKey(newCompletePhoneNumber))
@@ -737,19 +722,20 @@ export class AccountFlowKernel {
             throw applicationError(ApplicationErrorCode.PASSWORD_CHANGE_CREDENTIALS_INVALID)
         }
         await this.clearPasswordFailures(userId, PasswordContext.CHANGE)
-        await this.userService.changePassword(userId, newPassword)
-        await this.securityAuditService.passwordChanged(userId, { viaResetFlow: false })
         const email = (await this.userService.getUserProvidedEmailById(userId))!.email
         const firstName = (await this.userService.getUserFirstNameById(userId))!
-        this.mailService.sendEmail<UserContext>(
-            email,
-            'Mercurion: password modificata',
-            {
-                firstName
-            },
-            join(__dirname, "../../../app_modules/notification/email-templates/password-changed-notification.hbs")
-        ).catch((e) => {
-            this.logger.warn(`Errore durante l'invio email password changed, userId=${userId}`, e as string | object)
+        const passwordChangeId = uuidv7() as UUID
+        await this.unitOfWork.run(async (context, manager) => {
+            await this.userService.changePassword(userId, newPassword, context)
+            await this.securityAuditService.passwordChanged(userId, { viaResetFlow: false }, context)
+            await this.notificationOutbox.appendEmail(manager, {
+                aggregateId: userId,
+                templateKey: 'password-changed',
+                to: email,
+                context: { firstName },
+                dedupeKey: `account:${userId}:password-changed:${passwordChangeId}`,
+                correlationId: passwordChangeId
+            })
         })
     }
 
@@ -783,14 +769,13 @@ export class AccountFlowKernel {
         const changePasswordToken = await this.jwtTools.generateToken(userId as UUID, TokenType.ChangePasswordToken)
         const firstName = await this.userService.getUserFirstNameById(userId as UUID)
         const url = `${this.configService.get<string>("App.activationOrigin")}/password-recovery#t=${encodeURIComponent(changePasswordToken)}`
-        await this.mailService.sendEmail<UserCtaContext>(
+        await this.mailService.send(
+            'forgotten-password',
             email,
-            'Mercurion: recupero password',
             {
                 url,
                 firstName: firstName ?? 'Utente'
-            },
-            join(__dirname, "../../../app_modules/notification/email-templates/forgotten-password.hbs")
+            }
         )
     }
 
@@ -822,20 +807,21 @@ export class AccountFlowKernel {
         for (const s of sessions) {
             await this.sessionService.destroySessionByOwner(s.sessionId, s.userId)
         }
-        await this.userService.changePassword(userId, newPassword)
-        await this.clearPasswordFailures(userId, PasswordContext.CHANGE)
-        await this.securityAuditService.passwordChanged(userId, { viaResetFlow: true })
         const email = (await this.userService.getUserProvidedEmailById(userId))!.email
         const firstName = (await this.userService.getUserFirstNameById(userId))!
-        this.mailService.sendEmail<UserContext>(
-            email,
-            'Mercurion: password modificata',
-            {
-                firstName
-            },
-            join(__dirname, "../../../app_modules/notification/email-templates/password-changed-notification.hbs")
-        ).catch((e) => {
-            this.logger.warn(`Errore durante l'invio email password changed, userId=${userId}`, e as string | object)
+        const passwordResetId = uuidv7() as UUID
+        await this.unitOfWork.run(async (context, manager) => {
+            await this.userService.changePassword(userId, newPassword, context)
+            await this.clearPasswordFailures(userId, PasswordContext.CHANGE)
+            await this.securityAuditService.passwordChanged(userId, { viaResetFlow: true }, context)
+            await this.notificationOutbox.appendEmail(manager, {
+                aggregateId: userId,
+                templateKey: 'password-changed',
+                to: email,
+                context: { firstName },
+                dedupeKey: `account:${userId}:password-reset:${passwordResetId}`,
+                correlationId: passwordResetId
+            })
         })
     }
 
@@ -937,14 +923,15 @@ export class AccountFlowKernel {
             await manager.save(user)
 
             await manager.delete(MfaBackupCode, { userId: matchedUserId })
+            await this.securityAuditService.accountRecovery(
+                matchedUserId,
+                'ACCOUNT_RECOVERY_TOKEN_GENERATED',
+                context
+            )
             afterTransactionCommit(context, async () => {
                 await this.redisService.del(this.getRecoveryFailKey(code))
                 await this.redisService.del(this.getRecoveryLockKey(code))
                 await this.sessionService.destroyAllSessionsAndRevokeAllTokensByUserId(matchedUserId)
-                await this.securityAuditService.accountRecovery(
-                    matchedUserId,
-                    'ACCOUNT_RECOVERY_TOKEN_GENERATED'
-                )
             })
 
             return matchedUserId

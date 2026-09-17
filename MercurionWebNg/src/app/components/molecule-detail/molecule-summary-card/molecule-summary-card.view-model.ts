@@ -2,8 +2,8 @@ import { MoleculeCardItemModel } from '../../../Models/graphql/molecule-collecti
 import { MoleculeSearchResult } from '../../../Models/graphql/molecule-search/molecule-search-result.interface';
 
 export type MoleculeSummaryAction =
-  | { readonly kind: 'link'; readonly label: string; readonly href: string; readonly queryParams?: Record<string, string> }
-  | { readonly kind: 'button'; readonly label: string; readonly action: 'delete' | 'remove' | 'select' };
+  | { readonly kind: 'link'; readonly label: string; readonly icon?: 'duplicate'; readonly href: string; readonly queryParams?: Record<string, string> }
+  | { readonly kind: 'button'; readonly label: string; readonly icon?: 'delete' | 'remove'; readonly action: 'delete' | 'remove' | 'select' };
 
 export type MoleculeSummaryViewModel =
   | {

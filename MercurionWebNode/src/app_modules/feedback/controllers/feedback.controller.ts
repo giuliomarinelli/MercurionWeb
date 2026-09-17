@@ -9,6 +9,8 @@ import {
     UseInterceptors,
     ClassSerializerInterceptor,
     Query,
+    DefaultValuePipe,
+    ParseIntPipe,
 } from '@nestjs/common'
 import { UUID } from 'crypto'
 import { FeedbackService } from '../services/feedback.service'
@@ -49,14 +51,12 @@ export class FeedbackController {
     @Get()
     @HasScopes(Scope.ReadFeedback)
     async list(
-        @Query('page') pageRaw?: string,
-        @Query('limit') limitRaw?: string,
+        @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+        @Query('limit', new DefaultValuePipe(25), ParseIntPipe) limitRaw: number,
         @Query('env') env?: FeedbackEnv,
         @Query('status') status?: FeedbackStatus
     ): Promise<FlatPagination<Feedback>> {
-        const page = Math.max(1, Number(pageRaw ?? 1) || 1)
-        const limitUnsafe = Math.max(1, Number(limitRaw ?? 25) || 25)
-        const limit = Math.min(limitUnsafe, 100)
+        const limit = Math.min(limitRaw, 100)
 
         const pagination = await this.feedbackService.listFeedback(
             { page, limit },

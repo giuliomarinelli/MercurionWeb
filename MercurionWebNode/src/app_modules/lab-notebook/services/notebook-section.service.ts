@@ -6,8 +6,12 @@ import { NotebookChapter } from '../models/entities/lab-notebook-chapter.entity'
 import { UUID } from 'crypto';
 import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
 import { GraphQLFieldsMap, TypeOrmUtils } from 'src/utils/type-orm-utils/type-orm-utils';
-import { UpdateSectionInput } from '../models/dto/update-section-input';
 import { runInTransaction } from 'src/persistence/transaction-context';
+import {
+    NotebookSectionCreateCommand,
+    NotebookSectionPatchCommand,
+    toNotebookSectionPatch
+} from '../models/dto/notebook-mutation.commands';
 
 @Injectable()
 export class NotebookSectionService {
@@ -25,7 +29,7 @@ export class NotebookSectionService {
      * @param chapterId - capitolo di riferimento
      * @param data - dati della sezione
      */
-    async create(userId: UUID, chapterId: UUID, data: Partial<NotebookSection>): Promise<NotebookSection> {
+    async create(userId: UUID, chapterId: UUID, data: NotebookSectionCreateCommand): Promise<NotebookSection> {
         return runInTransaction(this.sectionRepo.manager, async (_context, manager) => {
             const { max } = await manager
                 .createQueryBuilder(NotebookSection, 'section')
@@ -34,7 +38,8 @@ export class NotebookSectionService {
                 .getRawOne() as { max: string | number | null }
 
             const section = manager.create(NotebookSection, {
-                ...data,
+                title: data.title,
+                description: data.description,
                 userId,
                 chapter: { id: chapterId } as NotebookChapter,
                 order: max !== null && max !== undefined ? Number(max) + 1 : 0,
@@ -165,10 +170,13 @@ export class NotebookSectionService {
     async update(
         userId: UUID,
         id: UUID,
-        input: Omit<UpdateSectionInput, 'id'>,
+        input: NotebookSectionPatchCommand,
         fieldsMap: GraphQLFieldsMap
     ): Promise<NotebookSection | null> {
-        await this.sectionRepo.update({ id, userId }, { updatedAt: Date.now(), ...input })
+        await this.sectionRepo.update({ id, userId }, {
+            updatedAt: Date.now(),
+            ...toNotebookSectionPatch(input)
+        })
         return this.getSection(id, userId, fieldsMap)
     }
 

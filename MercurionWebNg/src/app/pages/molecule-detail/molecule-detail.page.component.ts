@@ -217,7 +217,7 @@ import { SelectionControlComponent } from '../../components/common/selection-con
           <p class="text-light-error dark:text-dark-error text-sm" role="alert">Si è verificato un errore nel caricamento della molecola</p>
         </section>
         } @else {
-        <section class="w-5xl mx-auto h-full flex justify-center items-center" role="main" aria-busy="true" aria-live="polite">
+        <section class="max-w-5xl mx-auto h-full flex justify-center items-center" role="main" aria-busy="true" aria-live="polite">
           @if (design.maxBk('md')()) {
             <m-progress-indicator [size]="30" />
           } @else if (design.minBk('md')()) {

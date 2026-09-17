@@ -151,8 +151,6 @@ html {
 .custom-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: var(--color-on-surface-muted) var(--color-surface-secondary);
-  scrollbar-width: 3px;
-  /* thumb, track - LIGHT */
 }
 
 .custom-scrollbar::-webkit-scrollbar {
@@ -273,11 +271,7 @@ html {
   }
 
   .drawer {
-    @apply bg-slate-200/50 dark:dark:bg-neutral-900/75 transition-colors;
-  }
-
-  .drawer {
-    @apply transition-transform duration-200 ease-in-out;
+    @apply bg-slate-200/50 dark:bg-neutral-900/75 transition-colors transition-transform duration-200 ease-in-out;
   }
 
   .content {

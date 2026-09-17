@@ -19,5 +19,15 @@ export default defineConfig({
   expect: {
     timeout: 10_000
   },
-  outputDir: 'test-results/playwright'
+  outputDir: 'test-results/playwright',
+  projects: [
+    {
+      name: 'critical',
+      testDir: './playwright/critical'
+    },
+    {
+      name: 'system',
+      testDir: './playwright/system'
+    }
+  ]
 })

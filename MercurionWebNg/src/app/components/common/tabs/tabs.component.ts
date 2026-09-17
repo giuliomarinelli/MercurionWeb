@@ -126,8 +126,9 @@ export class TabsComponent {
 
     if (target >= 0) {
       this.tabChange.emit(target);
+      const tablist = event.currentTarget as HTMLElement | null;
       queueMicrotask(() => {
-        const button = (event.currentTarget as HTMLElement).querySelector<HTMLElement>(
+        const button = tablist?.querySelector<HTMLElement>(
           `#${CSS.escape(this.tabId(tabs[target], target))}`,
         );
         button?.focus();

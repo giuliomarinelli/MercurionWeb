@@ -2,6 +2,8 @@
 
 FROM node:22.16.0-alpine AS dependencies
 WORKDIR /workspace
+ARG BUILD_REVISION
+ENV BUILD_REVISION=$BUILD_REVISION
 
 RUN apk add --no-cache \
   bash \
@@ -20,6 +22,7 @@ COPY packages/socket-contracts/package.json packages/socket-contracts/package.js
 RUN npm ci --ignore-scripts
 
 FROM dependencies AS source
+COPY scripts/build-identity.mjs scripts/build-identity.mjs
 COPY packages/rest-contracts packages/rest-contracts
 COPY packages/socket-contracts packages/socket-contracts
 COPY MercurionWebNg/patches MercurionWebNg/patches
@@ -35,9 +38,7 @@ RUN find . -type f \( \
   -name "*.pem" -o -name "*.key" -o \
   -name "*.p12" -o -name "*.pfx" \
 \) -print -delete
-RUN npm run build && \
-  mkdir -p dist/app_modules/notification && \
-  cp -R src/app_modules/notification/email-templates dist/app_modules/notification/email-templates
+RUN npm run build
 
 FROM source AS build-test
 ENV NODE_ENV=production
@@ -49,8 +50,6 @@ COPY k8s/beta/redis-deploy.yaml /workspace/k8s/beta/redis-deploy.yaml
 RUN npm run build && \
   mkdir -p dist/config && \
   cp -R src/config/keys dist/config/keys && \
-  mkdir -p dist/app_modules/notification && \
-  cp -R src/app_modules/notification/email-templates dist/app_modules/notification/email-templates && \
   npm run test
 
 FROM source AS build-production
@@ -61,9 +60,7 @@ RUN find . -type f \( \
   -name "*.pem" -o -name "*.key" -o \
   -name "*.p12" -o -name "*.pfx" \
 \) -print -delete
-RUN npm run build && \
-  mkdir -p dist/app_modules/notification && \
-  cp -R src/app_modules/notification/email-templates dist/app_modules/notification/email-templates
+RUN npm run build
 
 FROM node:22.16.0-alpine AS runtime
 WORKDIR /usr/src/app
@@ -71,9 +68,11 @@ RUN addgroup -S -g 10001 mercurion && \
   adduser -S -D -H -u 10001 -G mercurion mercurion && \
   mkdir -p /tmp/mercurion && \
   chown 10001:10001 /tmp/mercurion
-ARG APP_VERSION
-ENV APP_VERSION=$APP_VERSION
-LABEL org.opencontainers.image.version=$APP_VERSION
+ARG BUILD_VERSION
+ARG BUILD_REVISION
+LABEL org.opencontainers.image.version=$BUILD_VERSION \
+      org.opencontainers.image.revision=$BUILD_REVISION \
+      org.opencontainers.image.source="https://github.com/giuliomarinelli/MercurionWeb"
 ENV NODE_ENV=production
 ENV TMPDIR=/tmp
 EXPOSE 8098

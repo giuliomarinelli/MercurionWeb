@@ -254,6 +254,44 @@ describe('RedisSessionRepository invalid records', () => {
     })
 })
 
+describe('RedisSessionRepository bounded stale-index cleanup', () => {
+    it('removes missing records while resolving the user session index', async () => {
+        const redis = new FakeRedisService()
+        await redis.sadd(`user_sessions:${userId}`, sessionId)
+        const repository = new RedisSessionRepository(
+            redis as unknown as RedisService,
+            new SessionRedisCodec()
+        )
+
+        await expect(repository.findSessionIdsByUserId(userId)).resolves.toEqual([])
+        await expect(redis.smembers(`user_sessions:${userId}`)).resolves.toEqual([])
+    })
+})
+
+describe('SessionRedisCodec provider compatibility', () => {
+    it('falls back to the Mercurion provider for unknown serialized providers', () => {
+        const codec = new SessionRedisCodec()
+
+        expect(codec.decode({
+            sessionId,
+            userId,
+            deviceId: 'device-1',
+            createdAt: '100',
+            expiresAt: '200',
+            lastAccessedAt: '150',
+            IP: '127.0.0.1',
+            valid: 'true',
+            longTerm: 'false',
+            sessionDeviceInfo: JSON.stringify({ browser: { name: 'Chrome' } }),
+            fingerprint: 'fingerprint',
+            location: 'local',
+            provider: 'unknown-provider'
+        })).toEqual(expect.objectContaining({
+            provider: AuthProvider.Mercurion
+        }))
+    })
+})
+
 describe('RedisSessionRepository TTL compatibility', () => {
     it('keeps create, short-session refresh and issued-token revocation TTLs', async () => {
         const redis = new FakeRedisService()
@@ -261,7 +299,7 @@ describe('RedisSessionRepository TTL compatibility', () => {
             redis as unknown as RedisService,
             new SessionRedisCodec()
         )
-        const key = `session:${sessionId}:${userId}`
+        const key = `session:${sessionId}`
 
         await repository.saveSession(exampleSession(), {
             longTerm: false,

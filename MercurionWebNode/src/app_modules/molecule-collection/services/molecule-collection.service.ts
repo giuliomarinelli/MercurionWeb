@@ -2,7 +2,7 @@ import { errorMessage } from 'src/utils/errors/error-message'
 /* eslint-disable no-useless-escape */
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, EntityManager, QueryFailedError, Repository } from 'typeorm';
+import { DataSource, EntityManager, In, QueryFailedError, Repository } from 'typeorm';
 import { UUID } from 'crypto';
 import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
 import { GraphQLFieldsMap, TypeOrmUtils } from 'src/utils/type-orm-utils/type-orm-utils';
@@ -22,6 +22,7 @@ import {
   applicationError
 } from 'src/exception-handling/application-error';
 import { runInTransaction } from 'src/persistence/transaction-context';
+import { MoleculeCollectionPatchCommand, toMoleculeCollectionPatch } from '../models/dto/molecule-mutation.commands';
 
 @Injectable()
 export class MoleculeCollectionService {
@@ -186,6 +187,26 @@ WHERE i.user_id = $2::uuid
       itemId: collectionId
     })
     return true
+  }
+
+  async markManyAsTouchedWithManager(userId: UUID, collectionIds: UUID[], manager: EntityManager): Promise<void> {
+    const ids = Array.from(new Set(collectionIds))
+    if (ids.length === 0) return
+    const owned = await manager.find(MoleculeCollection, {
+      where: { userId, id: In(ids) },
+      select: { id: true }
+    })
+    const ownedIds = owned.map(collection => collection.id)
+    if (ownedIds.length === 0) return
+    const touchedAt = Date.now()
+    await manager.update(MoleculeCollection, { userId, id: In(ownedIds) }, { touchedAt })
+    await manager.insert(History, ownedIds.map(itemId => ({
+      id: uuidv7() as UUID,
+      itemEntity: HistoryItemEntity.MoleculeCollection,
+      userId,
+      touchedAt,
+      itemId
+    })))
   }
 
   private stripTrailingSuffix(name: string): string {
@@ -388,9 +409,12 @@ WHERE i.user_id = $2::uuid
     return pruneNullCollectionJoins(rows)
   }
 
-  async update(id: UUID, userId: UUID, input: Partial<MoleculeCollection>, fieldsMap: GraphQLFieldsMap): Promise<MoleculeCollection | null> {
+  async update(id: UUID, userId: UUID, input: MoleculeCollectionPatchCommand, fieldsMap: GraphQLFieldsMap): Promise<MoleculeCollection | null> {
     try {
-      await this.collectionRepo.update({ id, userId }, { ...input, updatedAt: Date.now() })
+      await this.collectionRepo.update({ id, userId }, {
+        ...toMoleculeCollectionPatch(input),
+        updatedAt: Date.now()
+      })
     } catch (error) {
       if (this.isCollectionNameConflict(error)) {
         throw applicationError(ApplicationErrorCode.MOLECULE_COLLECTION_NAME_CONFLICT)

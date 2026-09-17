@@ -7,7 +7,8 @@
       "httpClientProvider": "withInterceptorsFromDi",
       "configuredInterceptors": [
         "AuthFallbackInterceptor",
-        "AuthInterceptor"
+        "AuthInterceptor",
+        "CorrelationInterceptor"
       ],
       "interceptorUrlMutations": []
     },
@@ -2247,9 +2248,9 @@
         "method": "getCurrentVersion",
         "ordinal": 0,
         "verb": "GET",
-        "path": "/api/account/current-version",
+        "path": "/api/version",
         "urlVariants": [
-          "/api/account/current-version"
+          "/api/version"
         ],
         "pathParameters": [],
         "queryParameters": [],
@@ -2262,47 +2263,45 @@
           }
         },
         "response": {
-          "type": "VersionDTO",
+          "type": "BuildIdentityDTO",
           "mode": "json",
           "options": {
-            "withCredentials": "true"
+            "withCredentials": "false"
           },
           "contract": {
             "applicable": true,
             "compatible": true,
             "canonicalNames": [
-              "VersionDTO"
+              "BuildIdentityDTO"
             ],
-            "shapeHash": "824ae1bab3444bfdc3e9315416de81667dc98cbc7d257a17bd916314c91a1df9"
+            "shapeHash": "4a98c24691fe2c26b0a1c37609c5850669490d29932ba5e02698a42201af4bd8"
           }
         }
       },
       "server": {
-        "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
-        "handler": "getCurrentVersion",
+        "controller": "MercurionWebNode/src/app_modules/release-version/controllers/build-identity.controller.ts",
+        "handler": "getBuildIdentity",
         "verb": "GET",
-        "path": "/api/account/current-version",
+        "path": "/api/version",
         "parameters": [],
-        "returnType": "VersionDTO",
+        "returnType": "BuildIdentityDTO",
         "successStatus": 200,
         "errorStatuses": {
           "validation": [],
-          "authentication": [
-            401
-          ],
+          "authentication": [],
           "authorization": [],
           "declared": []
         },
         "authentication": {
-          "public": false,
+          "public": true,
           "guards": [],
           "scopes": []
         },
         "responseContract": {
-          "displayType": "VersionDTO",
-          "shapeHash": "824ae1bab3444bfdc3e9315416de81667dc98cbc7d257a17bd916314c91a1df9",
+          "displayType": "BuildIdentityDTO",
+          "shapeHash": "4a98c24691fe2c26b0a1c37609c5850669490d29932ba5e02698a42201af4bd8",
           "canonicalNames": [
-            "VersionDTO"
+            "BuildIdentityDTO"
           ],
           "applicable": true,
           "canonical": true
@@ -2339,10 +2338,10 @@
           "compatible": true,
           "canonical": true,
           "canonicalNames": [
-            "VersionDTO"
+            "BuildIdentityDTO"
           ],
-          "clientShapeHash": "824ae1bab3444bfdc3e9315416de81667dc98cbc7d257a17bd916314c91a1df9",
-          "serverShapeHash": "824ae1bab3444bfdc3e9315416de81667dc98cbc7d257a17bd916314c91a1df9"
+          "clientShapeHash": "4a98c24691fe2c26b0a1c37609c5850669490d29932ba5e02698a42201af4bd8",
+          "serverShapeHash": "4a98c24691fe2c26b0a1c37609c5850669490d29932ba5e02698a42201af4bd8"
         }
       }
     },
@@ -5912,22 +5911,19 @@
             "source": "query",
             "name": "n",
             "type": "number",
-            "optional": true,
-            "defaultValue": "10"
+            "optional": false
           },
           {
             "source": "query",
             "name": "only_molregnos",
-            "type": "string",
-            "optional": true,
-            "defaultValue": "'true'"
+            "type": "boolean",
+            "optional": false
           },
           {
             "source": "query",
             "name": "with_no_name",
-            "type": "string",
-            "optional": true,
-            "defaultValue": "'false'"
+            "type": "boolean",
+            "optional": false
           }
         ],
         "returnType": "EmbeddingResponse",
@@ -5938,9 +5934,7 @@
           ],
           "authentication": [],
           "authorization": [],
-          "declared": [
-            400
-          ]
+          "declared": []
         },
         "authentication": {
           "public": true,
@@ -6571,14 +6565,14 @@
           {
             "source": "query",
             "name": "page",
-            "type": "string",
-            "optional": true
+            "type": "number",
+            "optional": false
           },
           {
             "source": "query",
             "name": "limit",
-            "type": "string",
-            "optional": true
+            "type": "number",
+            "optional": false
           },
           {
             "source": "query",
@@ -7006,14 +7000,14 @@
           {
             "source": "query",
             "name": "page",
-            "optional": true,
-            "defaultValue": "1"
+            "type": "number",
+            "optional": false
           },
           {
             "source": "query",
             "name": "limit",
-            "optional": true,
-            "defaultValue": "20"
+            "type": "number",
+            "optional": false
           }
         ],
         "returnType": "FlatPagination<HistoryDTO>",
@@ -7026,9 +7020,7 @@
             401
           ],
           "authorization": [],
-          "declared": [
-            400
-          ]
+          "declared": []
         },
         "authentication": {
           "public": false,

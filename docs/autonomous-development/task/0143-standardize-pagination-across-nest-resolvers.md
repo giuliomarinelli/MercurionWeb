@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 
 > SKIPPED_DEPENDENCY (2026-09-15): direct terminal prerequisite `0126`
 > (`BE-012`) is `BLOCKED`; transitive root cause is the unverified external

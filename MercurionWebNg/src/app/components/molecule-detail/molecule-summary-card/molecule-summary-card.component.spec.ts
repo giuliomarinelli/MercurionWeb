@@ -27,7 +27,10 @@ describe('MoleculeSummaryCardComponent', () => {
       badge: 'ChEMBL',
       molecularWeight: 123.4,
       phase: 3,
-      actions: [{ kind: 'button', label: 'Elimina', action: 'delete' }]
+      actions: [
+        { kind: 'link', label: 'Duplica', icon: 'duplicate', href: '/molecules/editor' },
+        { kind: 'button', label: 'Elimina', icon: 'delete', action: 'delete' }
+      ]
     }));
     fixture.detectChanges();
 
@@ -35,6 +38,29 @@ describe('MoleculeSummaryCardComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('MW:');
     expect(fixture.nativeElement.textContent).toContain('Phase 3');
     expect(fixture.nativeElement.querySelector('button[aria-label="Elimina"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('a[aria-label="Duplica"] svg')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('button[aria-label="Elimina"] svg')).not.toBeNull();
+  });
+
+  it('keeps the whole non-selectable card clickable above passive content', () => {
+    fixture.componentRef.setInput('viewModel', model('saved'));
+    fixture.detectChanges();
+
+    const detailLink = fixture.nativeElement.querySelector('a[aria-label="Apri molecola Example"]') as HTMLAnchorElement;
+    expect(detailLink.classList).toContain('z-10');
+    expect(fixture.nativeElement.querySelector('.pointer-events-none')).not.toBeNull();
+  });
+
+  it('applies disappearance and collapse states supplied by the collection wrapper', () => {
+    fixture.componentRef.setInput('viewModel', model('saved'));
+    fixture.componentRef.setInput('disappearing', true);
+    fixture.componentRef.setInput('collapsed', true);
+    fixture.detectChanges();
+
+    const article = fixture.nativeElement.querySelector('article') as HTMLElement;
+    expect(article.classList).toContain('fade-out');
+    expect(article.classList).toContain('collapse');
+    expect(fixture.nativeElement.querySelector('a[aria-label="Apri molecola Example"].hidden')).not.toBeNull();
   });
 
   it('renders compact search and external variants through the same template', () => {

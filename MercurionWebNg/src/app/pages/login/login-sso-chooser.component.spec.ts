@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing'
+import { RouterTestingModule } from '@angular/router/testing'
 import { LoginSsoChooserComponent } from './login-sso-chooser.component'
 
 describe('LoginSsoChooserComponent', () => {
@@ -7,7 +8,7 @@ describe('LoginSsoChooserComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [LoginSsoChooserComponent]
+      imports: [RouterTestingModule, LoginSsoChooserComponent]
     }).compileComponents()
     fixture = TestBed.createComponent(LoginSsoChooserComponent)
     component = fixture.componentInstance
@@ -17,5 +18,16 @@ describe('LoginSsoChooserComponent', () => {
   it('emits a typed provider selection with the current redirect', () => {
     fixture.componentRef.setInput('redirectTo', '/dashboard')
     expect(component.select('Google')).toEqual({ provider: 'Google', redirectTo: '/dashboard' })
+  })
+
+  it('renders every provider as a styled control with an icon', () => {
+    const controls = fixture.nativeElement.querySelectorAll('section > a') as NodeListOf<HTMLAnchorElement>
+
+    expect(controls.length).toBe(3)
+    controls.forEach(control => {
+      expect(control.querySelector('svg')).not.toBeNull()
+      expect(control.classList).toContain('rounded-md')
+      expect(control.classList).toContain('border')
+    })
   })
 })
