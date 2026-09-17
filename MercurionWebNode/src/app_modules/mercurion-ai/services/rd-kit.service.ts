@@ -1,14 +1,11 @@
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common'
 import { ClientProxy } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config'
-import { catchError, firstValueFrom, OperatorFunction, throwError, timeout, TimeoutError } from 'rxjs'
 import { LoggerPort } from 'src/logging/logger.port'
 import { LoggerContext } from 'src/logging/logger.port'
 import { RDKitAPI_NS } from '../models/interfaces/rdkit-api-ns.interface'
 import {
     NATS_CONTRACT_REGISTRY,
-    assertNatsRequest,
-    assertNatsResponse,
     natsSubject,
     type RdkitAreSameStructureWire,
     type RdkitCanonicalSmilesWire,
@@ -19,11 +16,11 @@ import { RdkitGetMoleculePropertiesDTO } from '../models/dto/rdkit/rdkit-get-mol
 import { RdkitToCanonicalSmilesDTO } from '../models/dto/rdkit/rdkit-canonical-smiles.dto'
 import { RdkitAreSameStructureDTO } from '../models/dto/rdkit/rdkit-are-same-structures.dto'
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
+import { ScientificRpcPolicy } from './scientific-rpc.policy'
 
 @Injectable()
 export class RDKitService implements OnModuleInit {
 
-    private readonly MAX_NATS_PAYLOAD_BYTES: number
     private readonly logger: LoggerContext
     private readonly namespaces: RDKitAPI_NS
     private readonly contracts = {
@@ -35,9 +32,9 @@ export class RDKitService implements OnModuleInit {
     constructor(
         @Inject('MERCURION_AI_CLIENT') private readonly mercurionAIClient: ClientProxy,
         private readonly configService: ConfigService,
-        loggerFactory: LoggerPort
+        loggerFactory: LoggerPort,
+        private readonly scientificRpc: ScientificRpcPolicy,
     ) {
-        this.MAX_NATS_PAYLOAD_BYTES = this.configService.get<number>('App.maxNatsPayloadBytes')!
         this.logger = loggerFactory.forContext(RDKitService.name)
         this.namespaces = this.computeNamespaces()
     }
@@ -57,17 +54,6 @@ export class RDKitService implements OnModuleInit {
             get_molecule_properties: natsSubject('rdkitGetMoleculeProperties', env),
             to_canonical_smiles: natsSubject('rdkitToCanonicalSmiles', env),
             are_same_structure: natsSubject('rdkitAreSameStructure', env)
-        }
-    }
-
-    // =========================
-    // VALIDAZIONI PAYLOAD
-    // =========================
-
-    private ensurePayloadSize(dto: unknown) {
-        const size = Buffer.byteLength(JSON.stringify(dto), 'utf8')
-        if (size > this.MAX_NATS_PAYLOAD_BYTES) {
-            throw applicationError(ApplicationErrorCode.TOX21_PAYLOAD_TOO_LARGE)
         }
     }
 
@@ -95,36 +81,19 @@ export class RDKitService implements OnModuleInit {
         return typeof res.data === 'boolean'
     }
 
-    private mapError<T>(op: string): OperatorFunction<T, T> {
-        return catchError((e: unknown) => {
-            if (e instanceof TimeoutError) {
-                return throwError(() =>
-                    applicationError(ApplicationErrorCode.TOX21_TIMEOUT, `MercurionTox21ClientConnectionTimeoutNoResponse::${op}`)
-                )
-            }
-            return throwError(() =>
-                applicationError(ApplicationErrorCode.TOX21_UNKNOWN_ERROR, `MercurionTox21ClientConnectionUnknownError::${op}`)
-            )
-        })
-    }
-
     // =========================
     // PUBLIC API
     // =========================
 
     async getMoleculeProperties(dto: RdkitGetMoleculePropertiesDTO): Promise<RdkitGetMoleculePropertiesResult> {
-        this.ensurePayloadSize(dto)
-        assertNatsRequest(this.contracts.getMoleculeProperties, dto)
-
-        const res = await firstValueFrom(
-            this.mercurionAIClient
-                .send<RdkitGetMoleculePropertiesWire>(this.namespaces.get_molecule_properties, dto)
-                .pipe(
-                    timeout(this.contracts.getMoleculeProperties.timeoutMs),
-                    this.mapError('get_molecule_properties')
-                )
-        )
-        assertNatsResponse(this.contracts.getMoleculeProperties, res)
+        const res = await this.scientificRpc.execute({
+            operation: this.contracts.getMoleculeProperties.id,
+            client: this.mercurionAIClient,
+            subject: this.namespaces.get_molecule_properties,
+            contract: this.contracts.getMoleculeProperties,
+            payload: dto,
+            isRemoteError: response => Boolean(response.error?.trim()),
+        })
 
         if (!this.isValidPropsPayload(res)) {
             throw applicationError(ApplicationErrorCode.TOX21_INVALID_MOLECULE_PROPERTIES_PAYLOAD)
@@ -137,18 +106,14 @@ export class RDKitService implements OnModuleInit {
     }
 
     async toCanonicalSmiles(dto: RdkitToCanonicalSmilesDTO): Promise<string> {
-        this.ensurePayloadSize(dto)
-        assertNatsRequest(this.contracts.toCanonicalSmiles, dto)
-
-        const res = await firstValueFrom(
-            this.mercurionAIClient
-                .send<RdkitCanonicalSmilesWire>(this.namespaces.to_canonical_smiles, dto)
-                .pipe(
-                    timeout(this.contracts.toCanonicalSmiles.timeoutMs),
-                    this.mapError('to_canonical_smiles')
-                )
-        )
-        assertNatsResponse(this.contracts.toCanonicalSmiles, res)
+        const res = await this.scientificRpc.execute<RdkitToCanonicalSmilesDTO, RdkitCanonicalSmilesWire>({
+            operation: this.contracts.toCanonicalSmiles.id,
+            client: this.mercurionAIClient,
+            subject: this.namespaces.to_canonical_smiles,
+            contract: this.contracts.toCanonicalSmiles,
+            payload: dto,
+            isRemoteError: response => Boolean(response.error?.trim()),
+        })
 
         if (!this.isValidCanonicalPayload(res)) {
             throw applicationError(ApplicationErrorCode.TOX21_INVALID_CANONICAL_SMILES_PAYLOAD)
@@ -161,18 +126,14 @@ export class RDKitService implements OnModuleInit {
     }
 
     async areSameStructure(dto: RdkitAreSameStructureDTO): Promise<boolean> {
-        this.ensurePayloadSize(dto)
-        assertNatsRequest(this.contracts.areSameStructure, dto)
-
-        const res = await firstValueFrom(
-            this.mercurionAIClient
-                .send<RdkitAreSameStructureWire>(this.namespaces.are_same_structure, dto)
-                .pipe(
-                    timeout(this.contracts.areSameStructure.timeoutMs),
-                    this.mapError('are_same_structure')
-                )
-        )
-        assertNatsResponse(this.contracts.areSameStructure, res)
+        const res = await this.scientificRpc.execute({
+            operation: this.contracts.areSameStructure.id,
+            client: this.mercurionAIClient,
+            subject: this.namespaces.are_same_structure,
+            contract: this.contracts.areSameStructure,
+            payload: dto,
+            isRemoteError: response => Boolean(response.error?.trim()),
+        })
 
         if (!this.isValidSameStructPayload(res)) {
             throw applicationError(ApplicationErrorCode.TOX21_INVALID_ARE_SAME_STRUCTURE_PAYLOAD)
