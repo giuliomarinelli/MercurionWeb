@@ -132,6 +132,8 @@ animation or spinner dependency reintroduction.
 ### Task-specific validation performed
 Passed:
 
+- `npm run test:accessibility --workspace mercurion_web_ng -- --no-progress`
+- `npm test --workspace mercurion_web_ng -- --watch=false --no-progress`
 - `node scripts/check-angular-legacy-animations.mjs`
 - `node scripts/test-angular-legacy-animations-negative.mjs`
 - `npm run typecheck --workspace mercurion_web_ng`
@@ -139,6 +141,11 @@ Passed:
 - `npm run build --workspace mercurion_web_ng`
 - `npm run test:accessibility --workspace mercurion_web_ng`
 - `git diff --check`
+
+The accessibility test now waits for two animation frames after Angular
+stabilization before running axe. This keeps the canonical fixture's computed
+foreground/background styles deterministic in the headless runner; it does not
+disable any axe rule or suppress a real contrast violation.
 
 The production source search found no direct `@angular/animations`,
 `provideAnimations`, legacy browser-animation provider, or `ngx-spinner`
