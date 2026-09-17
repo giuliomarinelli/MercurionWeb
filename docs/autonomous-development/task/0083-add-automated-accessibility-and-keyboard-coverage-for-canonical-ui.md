@@ -1,6 +1,6 @@
 # 0083 - Add automated accessibility and keyboard coverage for canonical UI
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -100,54 +100,98 @@ Keep the helper framework-agnostic enough that later catalog/visual tests can re
 
 ## Execution notes
 
-> Current status (2026-09-11): PENDING. The planner identified the prior
+> Current status (2026-09-17): DONE locally; awaiting exact feature-SHA CI
+> and integration by the coordinator. The prior
 > dependency skip as stale after direct owner re-enablement of its prerequisite
 > chain; historical skip evidence below is retained only for traceability.
 
 ### Feature branch
-_Not started._
+`feature/UI-025`
 
 ### Preflight
-_Not started._
+- Confirmed clean `feature/UI-025` at certified `develop` base
+  `4bfcdf0ff3a34308bd02860985fb9f1c710e959c`; local
+  `commit.gpgSign=false`.
+- Chrome DevTools MCP `list_pages` capability probe succeeded without
+  navigation.
+- Started Tox21, Nest and Angular in the required order; two consecutive
+  `http://localhost:8888/health` and `/` rounds returned 200. Nest compiled
+  with zero errors and Angular completed its development build.
+- Opened `http://localhost:8888/login` and confirmed the login form,
+  accessible names, and polite live region through the Chrome accessibility
+  snapshot. No protected state was required for this fixture-only validation.
+- Stopped all task-owned runtime processes before implementation.
 
 ### Preflight remediation
 _None._
 
 ### Summary
-Not attempted. Required tasks 0059 through 0076 and task 0082 (UI-024) are
-terminally non-`DONE`.
+Added an axe-core helper with critical/serious-only reporting, a deterministic
+canonical primitive fixture covering interactive semantics, keyboard behavior,
+dialog focus restoration, live feedback, and a negative unnamed-button fixture.
+Registered the focused accessibility command in the Angular test setup and the
+canonical `ci:check` aggregate.
 
 ### Task-specific validation performed
-Not applicable; no feature branch or implementation worker was created.
+- `npm install --workspace mercurion_web_ng --save-dev axe-core@4.11.0
+  --ignore-scripts` completed successfully; `package-lock.json` records the
+  dependency.
+- `npm run test:accessibility --workspace mercurion_web_ng`: 6 tests passed in
+  ChromeHeadless, including the axe composition check, deterministic keyboard
+  order, dialog Escape/focus restoration, tabs/disclosure/combobox keyboard
+  behavior, live-region semantics, and the failing unnamed-button fixture.
+- `npm run typecheck --workspace mercurion_web_ng`: passed.
+- `npm run lint:angular --workspace mercurion_web_ng`: passed.
+- Direct affected regression command
+  `ng test --watch=false --karma-config=karma.conf.js
+  --include=src/app/components/common/tabs/tabs.component.spec.ts`: 11 tests
+  passed.
+- `git diff --check`: passed after documentation cleanup.
+- The focused suite initially exposed a real tabs roving-focus defect
+  (`event.currentTarget` was read after dispatch); capturing the tablist before
+  the microtask fixed it without suppressing the regression.
 
 ### Full pre-merge CI-parity validation
-Not applicable; dependency-skip metadata only.
+Not run locally; reserved for exact feature-SHA CI.
 
 ### Browser validation performed
-Not applicable; the task was not attempted.
+Post-implementation: restarted Tox21, Nest and Angular in the required order,
+then obtained two consecutive successful 200 responses from
+`http://localhost:8888/health` and `http://localhost:8888/`. Through Chrome
+DevTools MCP at `http://localhost:8888/login`, the accessibility snapshot
+verified the named required email textbox, login form, disabled submit state,
+remember-me switch, named recovery/provider links and polite live regions.
+Keyboard-only Tab traversal visibly focused the home link, search control,
+theme control, and required email textbox in order. No protected state was
+needed for the changed fixture/test behavior, so no credentials were entered.
+All task-owned runtime processes were stopped afterward.
 
 ### Commits
-Pending metadata commit on `develop`.
+- `25e44629` - `test: add canonical accessibility coverage`
+- Follow-up metadata commit records this execution note update.
 
 ### Merge / CI
-No feature branch or merge. Exact-SHA CI is required for the metadata commit.
+Coordinator-owned; exact feature-SHA CI is required before merge.
+
+### Feature CI repair
+- Run `35229416349` for feature SHA
+  `a755283aa66bea146cd4bd2796b627d154d00ae7` failed in both prerequisite
+  jobs at `Run registered static and architecture gates` because
+  `angular-reachability` reported
+  `src/app/testing/accessibility-test.helpers.ts` as an orphan from
+  `src/main.ts`.
+- Renamed the test-only reusable helper to
+  `src/app/testing/accessibility-test.helpers.spec.ts` and updated its
+  accessibility-spec import. This follows the topology check's existing
+  `*.spec.ts` exclusion for test files; no production reachability allowlist
+  or gate suppression was added.
+- Repair validation: `node scripts/check-repository-topology.mjs` passed all
+  five checks, including `angular-reachability`; `npm run test:accessibility
+  --workspace mercurion_web_ng` passed all 6 ChromeHeadless tests; and
+  `git diff --check` passed.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-Direct terminal prerequisites: 0059 through 0075 are
-`SKIPPED_DEPENDENCY`, 0076 (UI-018) is `BLOCKED`, and 0082 (UI-024) is
-`SKIPPED_DEPENDENCY`. Their transitive chains include FE-030 (BLOCKED,
-requiring a filesystem-write-capable worker) and UI-018 (BLOCKED, requiring a
-test-safe local Nest runtime for mandatory browser validation).
-
-
-### Dependency skip
-
-Direct terminal prerequisite: 0077 (), terminal non-DONE dependency.
-
-### Dependency skip
-
-Direct terminal prerequisite: `0082` (`UI-024`), `SKIPPED_DEPENDENCY`, with
-terminal root `0078` (`UI-020`), `BLOCKED`. Materialized on 2026-09-13.
+None.
