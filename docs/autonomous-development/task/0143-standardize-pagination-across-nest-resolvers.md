@@ -105,6 +105,9 @@ unique-ID tie-breaker to their primary ordering.
 - `npm test --workspace mercurion_web_node -- --runInBand src/models/pagination/pagination.spec.ts src/contracts/public-graphql-resolver.contract.spec.ts` — 2 suites, 14 tests passed.
 - `npm exec --workspace mercurion_web_node -- eslint <changed Nest pagination files>` — passed.
 - `npm run graphql:schema:check --workspace mercurion_web_node` — passed after updating `MercurionWebNode/src/schema.graphql`.
+- `npm run graphql:check --workspace mercurion_web_ng` — passed, including
+  GraphQL codegen drift verification after regenerating
+  `MercurionWebNg/src/app/generated/schema.ts`.
 - `git diff --check` — passed.
 ### Full pre-merge CI-parity validation
 Complete clean-install and aggregate CI gates remain owned by Actions. The
@@ -115,7 +118,15 @@ Not applicable; this backend-only task declares no browser validation.
 - `1dcbbf67d8ff0c93543383db448ea834ab62f5af` — implementation and focused
   validation.
 ### Merge / CI
-Pending coordinator feature-SHA CI and integration lifecycle.
+Feature-SHA CI run `35284627530` failed on the Ubuntu/Windows prerequisite
+GraphQL/generated-contract gates because the committed Angular generated
+schema artifact was stale. This was an actionable generated-artifact drift
+only; all other observed container jobs succeeded. Repair attempt 1 of 3
+regenerated the artifact from the committed Nest schema. The resulting diff
+contains only the expected optional `page`/`limit` argument type changes in
+`MercurionWebNg/src/app/generated/schema.ts`; `graphql.ts` and unrelated files
+were unchanged. Focused GraphQL checks and pagination tests passed after the
+repair. The repaired feature commit is pending exact-SHA CI verification.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
