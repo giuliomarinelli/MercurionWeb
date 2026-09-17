@@ -165,6 +165,7 @@ ordinary login with the local test account:
 
 ### Commits
 `b2024a80` — Remove legacy Angular animations dependency.
+`2af6f8a4` — Record UI-027 commit in execution notes.
 
 ### Merge / CI
 Feature branch is ready for coordinator-owned exact feature-SHA CI. No merge
