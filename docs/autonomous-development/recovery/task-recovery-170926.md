@@ -7,7 +7,7 @@
 |        3 | 0147 | BE-033   |         **4** | [x]       |
 |        4 | 0179 | DATA-030 |         **4** | [x]       |
 |        5 | 0214 | QA-028   |         **4** | [x]       |
-|        6 | 0102 | NG-016   |         **3** | [ ]       |
+|        6 | 0102 | NG-016   |         **3** | [x]       |
 |        7 | 0209 | QA-023   |         **2** | [ ]       |
 |        8 | 0086 | UI-028   |         **2** | [x]       |
 |        9 | 0218 | QA-032   |         **2** | [ ]       |
@@ -36,3 +36,10 @@
   adapter senza abbassare le soglie. Feature `24bbe7430` verde nel run
   `35262639511`; merge `4b87cb305` verde nel run `35263378446`, entrambi con
   `Required gate`, container, build, test e browser journey verdi.
+- `0102` / `NG-016`: recuperata dal branch preservato, riallineata al
+  `develop` corrente e integrata senza riscrivere la storia. Typecheck, lint e
+  15 test mirati verdi; feature `5957783e8` verde nel run `35265369047`.
+  Merge `7a83321b8`; il primo run post-merge `35266181805` ha esposto il race
+  del fixture axe, corretto fix-forward da `92a176caa`. Run finale
+  `35267240243` verde con `Required gate`. Gli skip obsoleti `0109`, `0110` e
+  `0112` sono stati riaperti; il planner finale non segnala `staleSkips`.

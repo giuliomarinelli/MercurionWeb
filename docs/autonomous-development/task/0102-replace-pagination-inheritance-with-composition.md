@@ -195,3 +195,11 @@ before integration. All three recovery-owned runtime processes were stopped.
 
 The prior transport incident is no longer treated as a product blocker. Final
 integration evidence is recorded after exact feature- and merge-SHA CI.
+
+Feature `5957783e899448fc0481034134b9e6ae80b4fab6` passed full CI run
+`35265369047`, including critical browser journeys and `Required gate`. Merge
+`7a83321b8745f97c9cf9a60e3ef13bfeb957ca9e` exposed the pre-existing axe
+rendering race in run `35266181805`; it was repaired forward without reverting
+the merge. Fix `92a176caa39b0e28925c98fd5e034d83cbb1c563` passed full run
+`35267240243`. Dependency skips `0109`, `0110` and `0112` were reset to pending,
+and the authoritative planner reported no stale skips.
