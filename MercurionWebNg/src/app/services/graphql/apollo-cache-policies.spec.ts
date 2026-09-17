@@ -1,4 +1,7 @@
-import { gql } from '@apollo/client/core';
+import {
+  MyMoleculeCollectionsDocument,
+  PaginatedCollectionsDocument
+} from '../../generated/graphql';
 import {
   clearMercurionUserCache,
   createMercurionApolloCache,
@@ -7,15 +10,6 @@ import {
 } from './apollo-cache-policies';
 
 describe('Mercurion Apollo cache policies', () => {
-  const paginatedCollectionsQuery = gql`
-    query PaginatedCollections($page: Int!, $limit: Int!, $q: String!) {
-      myMoleculeCollectionsPaginated(page: $page, limit: $limit, q: $q) {
-        currentPage
-        items { __typename id name }
-      }
-    }
-  `;
-
   it('normalizes stable entities by their schema identifiers', () => {
     const cache = createMercurionApolloCache();
 
@@ -54,34 +48,54 @@ describe('Mercurion Apollo cache policies', () => {
   it('keeps independent filter identities in separate cache entries', () => {
     const cache = createMercurionApolloCache();
     cache.writeQuery({
-      query: paginatedCollectionsQuery,
+      query: PaginatedCollectionsDocument,
       variables: { page: 1, limit: 20, q: 'alpha' },
       data: {
         myMoleculeCollectionsPaginated: {
-          __typename: 'PaginatedMoleculeCollection',
           currentPage: 1,
-          items: [{ __typename: 'MoleculeCollection', id: 'alpha', name: 'Alpha' }]
+          items: [{
+            id: 'alpha',
+            name: 'Alpha',
+            createdAt: '',
+            updatedAt: '',
+            touchedAt: '',
+            itemsCount: 0
+          }],
+          itemCount: 1,
+          totalPages: 1,
+          totalItems: 1,
+          itemsPerPage: 20
         }
       }
     });
     cache.writeQuery({
-      query: paginatedCollectionsQuery,
+      query: PaginatedCollectionsDocument,
       variables: { page: 1, limit: 20, q: 'beta' },
       data: {
         myMoleculeCollectionsPaginated: {
-          __typename: 'PaginatedMoleculeCollection',
           currentPage: 1,
-          items: [{ __typename: 'MoleculeCollection', id: 'beta', name: 'Beta' }]
+          items: [{
+            id: 'beta',
+            name: 'Beta',
+            createdAt: '',
+            updatedAt: '',
+            touchedAt: '',
+            itemsCount: 0
+          }],
+          itemCount: 1,
+          totalPages: 1,
+          totalItems: 1,
+          itemsPerPage: 20
         }
       }
     });
 
     expect(cache.readQuery<{ myMoleculeCollectionsPaginated: { items: Array<{ id: string }> } }>({
-      query: paginatedCollectionsQuery,
+      query: PaginatedCollectionsDocument,
       variables: { page: 1, limit: 20, q: 'alpha' }
     })?.myMoleculeCollectionsPaginated.items.map(item => item.id)).toEqual(['alpha']);
     expect(cache.readQuery<{ myMoleculeCollectionsPaginated: { items: Array<{ id: string }> } }>({
-      query: paginatedCollectionsQuery,
+      query: PaginatedCollectionsDocument,
       variables: { page: 1, limit: 20, q: 'beta' }
     })?.myMoleculeCollectionsPaginated.items.map(item => item.id)).toEqual(['beta']);
   });
@@ -99,9 +113,9 @@ describe('Mercurion Apollo cache policies', () => {
   it('invalidates affected list fields from mutation completion policies', () => {
     const cache = createMercurionApolloCache();
     cache.writeQuery({
-      query: gql`query { myMoleculeCollections { id name } }`,
+      query: MyMoleculeCollectionsDocument,
       data: {
-        myMoleculeCollections: [{ __typename: 'MoleculeCollection', id: 'one', name: 'One' }]
+        myMoleculeCollections: [{ id: 'one', name: 'One' }]
       }
     });
 
@@ -127,20 +141,20 @@ describe('Mercurion Apollo cache policies', () => {
       variables: {}
     } as never);
 
-    expect(cache.readQuery({ query: gql`query { myMoleculeCollections { id name } }` })).toBeNull();
+    expect(cache.readQuery({ query: MyMoleculeCollectionsDocument })).toBeNull();
   });
 
   it('removes user-owned roots on a session transition', () => {
     const cache = createMercurionApolloCache();
     cache.writeQuery({
-      query: gql`query { myMoleculeCollections { id name } }`,
+      query: MyMoleculeCollectionsDocument,
       data: {
-        myMoleculeCollections: [{ __typename: 'MoleculeCollection', id: 'one', name: 'One' }]
+        myMoleculeCollections: [{ id: 'one', name: 'One' }]
       }
     });
 
     clearMercurionUserCache(cache);
 
-    expect(cache.readQuery({ query: gql`query { myMoleculeCollections { id name } }` })).toBeNull();
+    expect(cache.readQuery({ query: MyMoleculeCollectionsDocument })).toBeNull();
   });
 });
