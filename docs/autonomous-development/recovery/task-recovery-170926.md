@@ -9,7 +9,7 @@
 |        5 | 0214 | QA-028   |         **4** | [ ]       |
 |        6 | 0102 | NG-016   |         **3** | [ ]       |
 |        7 | 0209 | QA-023   |         **2** | [ ]       |
-|        8 | 0086 | UI-028   |         **2** | [ ]       |
+|        8 | 0086 | UI-028   |         **2** | [x]       |
 |        9 | 0218 | QA-032   |         **2** | [ ]       |
 |       10 | 0072 | UI-014   |         **0** | [ ]       |
 |       11 | 0173 | DATA-024 |         **0** | [ ]       |
@@ -20,3 +20,7 @@
   completa (`35249415806`), ma il merge-SHA `e198a0c94` ha fallito il test axe
   di contrasto Angular nel run `35250241928`. Revert `92e4b069c2` verificato
   verde dal run `35251075072`; branch `feature/UI-028` preservato e congelato.
+- `0086` / `UI-028`: successivamente reintegrato in modalità interattiva dopo
+  aver riprodotto e corretto sul baseline il test axe intermittente. Fix baseline
+  `8d801a7ca`, run full verde `35253527693`; reintegrazione finale e relativo
+  run CI sono riportati nel task `0086`.

@@ -1,8 +1,8 @@
 # 0086 - Build an interactive UI catalog with visual regression tests
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
-- [x] REVERTED
+- [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
 ## Objective
@@ -273,3 +273,23 @@ before a separately authorized retry. Preserve `feature/UI-028` frozen at
   succeeded completely, including Angular tests and `Required gate`.
 - Final outcome: `REVERTED`. Preserve and freeze `feature/UI-028` at
   `c73793fe6dc039fa72d0d25dd0da200288519b00` for a future human-authorized retry.
+
+### Interactive reintegration (2026-09-17)
+- The user clarified that this is a direct interactive recovery, not an
+  autonomous Development Session, and explicitly required retaining the
+  integration instead of applying the autonomous post-merge revert policy.
+- The same axe contrast failure reproduced on baseline commit `b33f48a71`,
+  proving it was independent of the UI-028 catalog tree.
+- Stabilized the shared canonical accessibility fixture in commit
+  `8d801a7cac60017bb9e788bcab0470fe77b08567`: deterministic surface/foreground
+  colors, white foreground scoped only to primary controls, font readiness,
+  and a synchronous layout/style flush replacing throttled double animation
+  frames.
+- Focused accessibility validation passed 6/6 and Angular lint passed. Full
+  baseline run `35253527693` then passed Angular 490/490, both platforms,
+  browser journeys and `Required gate`.
+- Restored the already verified UI-028 tree from merge
+  `e198a0c943feab731c7e0c7fb1c8bb22734aa8cf` with a normal integration commit;
+  no additional revert was performed.
+- The final reintegration commit and its exact CI run are recorded in the
+  follow-up recovery evidence after publication.
