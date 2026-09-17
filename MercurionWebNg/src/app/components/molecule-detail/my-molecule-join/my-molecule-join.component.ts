@@ -19,7 +19,7 @@ import { SkeletonCollectionCardComponent } from '../../common/skeleton-card-load
         <m-skeleton-collection-card [height]="'112px'" />
       }
     } @else if (notFound()) {
-      <div class="flex items-center justify-center min-h-[112px] text-sm text-muted-foreground">
+      <div class="flex items-center justify-center min-h-[112px] text-sm text-light-on-surface-secondary dark:text-dark-on-surface-secondary">
         Nessuna collezione.
       </div>
     }

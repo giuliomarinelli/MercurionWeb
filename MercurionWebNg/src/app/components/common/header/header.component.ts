@@ -73,7 +73,7 @@ import { IconButtonComponent } from '../icon-button/icon-button.component';
         <div class="flex items-center gap-3">
           <a [routerLink]="routes.home.build({})" aria-label="Vai alla home" class="block">
             <img [ngSrc]="logoSrc() | public" alt="Mercurion" width="927" height="234" title="Mercurion" priority="true"
-              class="w-[145px] h-auto contrast-115" />
+              class="w-[145px] h-auto contrast-100" />
           </a>
           <span
             class="cursor-default relative top-1 px-2.5 py-[3px] rounded-full text-[10px] font-semibold uppercase tracking-tight leading-none bg-emerald-100/90 text-emerald-900 shadow-sm ring-1 ring-emerald-900/15 dark:bg-emerald-900/85 dark:text-emerald-50 dark:ring-emerald-200/20">
@@ -98,7 +98,7 @@ import { IconButtonComponent } from '../icon-button/icon-button.component';
     <div class="flex items-center gap-3">
       <a [routerLink]="routes.home.build({})" aria-label="Vai alla home" class="block">
         <img [ngSrc]="logoSrc() | public" alt="Mercurion" width="927" height="234" priority="true"
-          class="w-[128px] min-[350px]:w-[145px] h-auto contrast-115" />
+          class="w-[128px] min-[350px]:w-[145px] h-auto contrast-100" />
       </a>
       <span
         class="relative top-1 px-2.5 py-[3px] rounded-full text-[10px] font-semibold uppercase tracking-tight leading-none bg-emerald-100/90 text-emerald-900 shadow-sm ring-1 ring-emerald-900/15 dark:bg-emerald-900/85 dark:text-emerald-50 dark:ring-emerald-200/20">
@@ -195,7 +195,7 @@ import { IconButtonComponent } from '../icon-button/icon-button.component';
 <!-- Menu cambio tema -->
 @if (themeMenuMounted()) {
 <div
-  class="theme-menu-container absolute -right-2 min-[350px]:right-8 sm:right-20 md:right-28 mt-2 z-50 w-64 text-md rounded-md shadow-lg bg-white text-light-on-surface-main dark:text-slate-100 dark:bg-neutral-800 transform transition-all duration-300 ease-out"
+  class="theme-menu-container absolute -right-2 min-[350px]:right-8 sm:right-20 md:right-28 mt-2 z-50 w-64 text-base rounded-md shadow-lg bg-white text-light-on-surface-main dark:text-slate-100 dark:bg-neutral-800 transform transition-all duration-300 ease-out"
   [ngClass]="{
       'opacity-100 translate-x-0 translate-y-0': themeMenuVisible(),
       'opacity-0 pointer-events-none translate-x-2 -translate-y-2':
@@ -311,7 +311,7 @@ import { IconButtonComponent } from '../icon-button/icon-button.component';
 <!-- Menu avatar -->
 @if (avatarMenuMounted() && designService.minBk('sm')()) {
 <div
-  class="avatar-menu-container absolute xs:right-9 md:right-12 mt-2 z-50 w-72 text-md rounded-md shadow-lg bg-white text-light-on-surface-main dark:text-slate-100 dark:bg-neutral-800 transform transition-all duration-300 ease-out"
+  class="avatar-menu-container absolute xs:right-9 md:right-12 mt-2 z-50 w-72 text-base rounded-md shadow-lg bg-white text-light-on-surface-main dark:text-slate-100 dark:bg-neutral-800 transform transition-all duration-300 ease-out"
   [ngClass]="{
       'opacity-100 translate-x-0 translate-y-0': avatarMenuVisible(),
       'opacity-0 pointer-events-none translate-x-2 -translate-y-2':
@@ -402,7 +402,7 @@ import { IconButtonComponent } from '../icon-button/icon-button.component';
   <div class="flex justify-between items-center px-4 border-b py-[18px] border-slate-300 dark:border-dark-border">
     <div class="flex items-center gap-4">
       <a [routerLink]="routes.home.build({})">
-        <img [ngSrc]="pictogramLogo() | public" alt="Pittogramma Logo di Mercurion" width="186" height="234" class="w-auto h-[30px] contrast-115" />
+        <img [ngSrc]="pictogramLogo() | public" alt="Pittogramma Logo di Mercurion" width="186" height="234" class="w-auto h-[30px] contrast-100" />
       </a>
       <span class="text-lg">Mercurion</span>
     </div>
