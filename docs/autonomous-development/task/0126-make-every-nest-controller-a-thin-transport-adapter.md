@@ -119,7 +119,13 @@ _Not applicable._
 Historical implementation commits are preserved; recovery merge: `43c1ea76`.
 ### Merge / CI
 Implementation and focused validation are complete. Operational state is
-`DONE` / `CI_PENDING` until exact feature- and merge-SHA gates succeed.
+`DONE` / `CI_PENDING` until exact feature- and merge-SHA gates succeed. Feature
+run `35212920526` on SHA `3972bf11b4d4986a4e1b52c8b8c92a2336ebc70a`
+confirmed the historical Docker registry failure is resolved, then exposed a
+repository topology snapshot drift for the extended `ci:nest:architecture`
+script on both platforms. The topology expectation was updated narrowly;
+positive and negative topology gates and the complete Nest architecture gate
+passed locally before publishing the repair SHA.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
