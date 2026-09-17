@@ -15,6 +15,7 @@ import {
   ApplicationClientError,
   ApplicationErrorCode
 } from '../../utils/application-error.util';
+import { GRAPHQL_QUERY_FETCH_POLICY } from './graphql-query-policy';
 
 @Injectable({
   providedIn: 'root'
@@ -28,7 +29,7 @@ export class MoleculeService {
       .query<GetMoleculeDetailQuery, GetMoleculeDetailQueryVariables>({
         query: GetMoleculeDetailDocument,
         variables: { molregno },
-        fetchPolicy: 'no-cache',
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.stableReference,
         context: {
           credentials: 'include'
         }
@@ -51,7 +52,7 @@ export class MoleculeService {
       .query<MoleculePreviewsByMolregnosQuery, MoleculePreviewsByMolregnosQueryVariables>({
         query: MoleculePreviewsByMolregnosDocument,
         variables: { molregnos },
-        fetchPolicy: 'no-cache',
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.stableReference,
         context: {
           credentials: 'include'
         }

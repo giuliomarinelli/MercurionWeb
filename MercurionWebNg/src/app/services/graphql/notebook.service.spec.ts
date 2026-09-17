@@ -6,6 +6,7 @@ import type {
   DeleteLabNotebookMutationVariables,
   DeleteSectionMutationVariables,
 } from '../../generated/graphql';
+import { GRAPHQL_QUERY_FETCH_POLICY } from './graphql-query-policy';
 import { NotebookService } from './notebook.service';
 
 describe('NotebookService', () => {
@@ -65,7 +66,7 @@ describe('NotebookService', () => {
 
       expect(querySpy).toHaveBeenCalledOnceWith(jasmine.objectContaining({
         variables: { id },
-        fetchPolicy: 'no-cache',
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot,
       }));
 
       const query = querySpy.calls.mostRecent().args[0].query as DocumentNode;

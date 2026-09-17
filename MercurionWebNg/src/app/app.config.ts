@@ -11,6 +11,7 @@ import { AuthFallbackInterceptor } from './interceptors/auth-fallback.intercepto
 import { CorrelationInterceptor } from './interceptors/correlation.interceptor';
 import { MercurionTitleStrategy } from './mercurion-title-strategy';
 import { CONTRACT_VERSION_HEADER, CURRENT_CONTRACT_MAJOR } from '@mercurion/rest-contracts';
+import { GRAPHQL_QUERY_FETCH_POLICY } from './services/graphql/graphql-query-policy';
 
 
 export const appConfig: ApplicationConfig = {
@@ -35,6 +36,16 @@ export const appConfig: ApplicationConfig = {
       return {
         link: contractVersionLink.concat(httpLink.create({ uri: '/api/graphql' })),
         cache: new InMemoryCache(),
+        defaultOptions: {
+          query: {
+            fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.stableReference,
+            errorPolicy: 'none'
+          },
+          watchQuery: {
+            fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.ownedReactive,
+            errorPolicy: 'none'
+          }
+        },
         uri: '/api/graphql'
       };
     }),

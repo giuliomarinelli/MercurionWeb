@@ -20,6 +20,7 @@ import {
   mapMoleculeItemBasicData,
   mapMoleculeItemDtoToClient
 } from './molecule-collection-item.mapper';
+import { GRAPHQL_QUERY_FETCH_POLICY } from './graphql-query-policy';
 import { MoleculeCollectionItemService } from './molecule-collection-item.service';
 
 describe('MoleculeCollectionItemService', () => {
@@ -82,7 +83,7 @@ describe('MoleculeCollectionItemService', () => {
     });
   });
 
-  it('loads a detail as a single no-cache query', () => {
+  it('loads a detail as a single network-only query', () => {
     const dto = {
       __typename: 'CustomMoleculeItemDTO',
       id: 'custom-1',
@@ -106,12 +107,12 @@ describe('MoleculeCollectionItemService', () => {
     expect(apollo.query).toHaveBeenCalledWith(jasmine.objectContaining({
       query: MoleculeItemDocument,
       variables: { id: dto.id },
-      fetchPolicy: 'no-cache'
+      fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot
     }));
     expect(item).toEqual(jasmine.objectContaining({ id: dto.id, type: 'custom' }));
   });
 
-  it('loads the custom editor structure as a single no-cache query', () => {
+  it('loads the custom editor structure as a single network-only query', () => {
     const dto = {
       __typename: 'CustomMoleculeItemDTO',
       id: 'custom-structure',
@@ -135,7 +136,7 @@ describe('MoleculeCollectionItemService', () => {
     expect(apollo.query).toHaveBeenCalledWith(jasmine.objectContaining({
       query: MoleculeItemDocument,
       variables: { id: dto.id },
-      fetchPolicy: 'no-cache'
+      fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot
     }));
     expect(structure).toEqual(jasmine.objectContaining({ id: dto.id, canonicalSmiles: 'CCO' }));
   });
