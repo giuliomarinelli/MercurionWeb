@@ -318,6 +318,7 @@ jobs:
             MercurionWebNg/**/*.stats.json
             MercurionWebNg/dist/**/bundle-gate-report.json
             MercurionWebNg/**/*.json
+            test-results
 
   browser-e2e:
     name: Critical browser journeys
