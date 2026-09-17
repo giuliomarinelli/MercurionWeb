@@ -1,14 +1,12 @@
 # 0174 - Build a consistent profile read model
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
-> SKIPPED_DEPENDENCY (2026-09-15): direct terminal prerequisite `0152`
-> remains pending, while `0143` is skipped from terminal root `0126`
-> (`BE-012`), blocked by an unverified external Docker registry failure on
-> feature-SHA CI.
+Planner status at execution: `PENDING/READY`. Resolved hard dependencies:
+`0152` and `0143`, both `DONE`; no terminal dependency closure applies.
 ## Objective
 
 Replace the profile registry's sequential mixed-snapshot reads with one coherent read-model projection that obtains profile fields, SSO identity, collection/molecule counts and optional recent-history data with a constant, bounded number of queries on the same snapshot.
@@ -92,24 +90,56 @@ Do not optimize by firing the current queries concurrently with `Promise.all`; t
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-025`
 ### Preflight
-_Not started._
+Base SHA `d11790ca7eaeec10c064f3ee63290a18ae1b18af` was clean, matched the
+requested feature branch, and had successful exact-SHA Actions run
+`35287572853` (`Required gate` green). `npm run autonomous:plan --silent`
+classified task `0174` as `PENDING/READY` with no stale skips, cycles, or
+planner errors. Local signing policy was `commit.gpgSign=false`. No
+workspace-consuming application process was active before the task runtime
+probe.
 ### Preflight remediation
-_None._
+None.
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0152, 0143. This task was never attempted and receives no feature branch.
+Extracted `ProfileReadModelService` as a read-only projection boundary. Profile
+identity, conditional molecule counts, collection count, and optional recent
+history are now read through one transaction manager; the profile result is a
+frozen DTO projection. `HistoryService` exposes an explicit manager-aware
+recent-history primitive, while its existing API preserves standalone
+transaction behavior.
 ### Task-specific validation performed
-_Not started._
+Passed:
+
+- `npm test --workspace mercurion_web_node -- --runInBand src/app_modules/user/services/profile-read-model.service.spec.ts src/app_modules/user/services/user.service.spec.ts`
+  (2 suites, 9 tests).
+- `npm run typecheck --workspace mercurion_web_node`.
+- `npm run lint --workspace mercurion_web_node`.
+- `npm run build --workspace mercurion_web_node`.
+- `git diff --check`.
+
+The profile tests cover native and SSO identity projection, missing SSO
+identity handling, frozen output, bounded metric-query instrumentation, and
+manager identity propagation to recent history.
 ### Full pre-merge CI-parity validation
-_Not started._
+Reserved for the exact pushed feature SHA GitHub Actions `Required gate`; local
+`npm ci` and `npm run ci:check` were not run.
 ### Browser validation performed
-_Not started._
+Canonical runtime started in the required order with live handles:
+Tox21, Nest watch mode, Angular watch mode. Two consecutive readiness rounds
+passed through `http://localhost:8888` for `/` and `/health` before browser
+use, both before and after implementation. The supported fresh ordinary local
+login completed before implementation and rendered the protected dashboard.
+Post-change protected settings validation at
+`http://localhost:8888/settings` showed the native profile summary, masked
+email, provider identity, and molecule/collection metrics; the page had no
+console errors. No SSO fixture was available in the local environment.
+Task-owned Tox21, Nest, and Angular processes were stopped after validation.
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+Pending task-specific commit on `feature/DATA-025`.
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+Pending coordinator integration after exact feature-SHA CI succeeds.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+None.
