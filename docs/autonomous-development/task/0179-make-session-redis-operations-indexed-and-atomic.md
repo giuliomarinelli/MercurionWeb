@@ -143,5 +143,8 @@ blocker diagnostic.
   proves ordinary login, the protected settings “Sessioni attive” view,
   current-session visibility, logout and subsequent protected rejection.
 - Final focused verification passed 30/30 tests across five Redis/session
-  suites, plus Nest typecheck, lint and build. Feature SHA and exact CI
-  evidence are recorded after publication.
+  suites, plus Nest typecheck, lint and build.
+- Final feature `1f1d58f4cca6b960b8e5e4f6dcfd5644f01f3ca8` passed exact
+  CI run `35257870848`; merge `24bdc6fcfc1cb71f63ee01085d6d07e94568a986`
+  passed exact CI run `35258693809`. Both runs completed the stable
+  `Required gate` successfully.

@@ -5,7 +5,7 @@
 |        1 | 0081 | UI-023   |         **9** | [x]       |
 |        2 | 0126 | BE-012   |         **4** | [x]       |
 |        3 | 0147 | BE-033   |         **4** | [x]       |
-|        4 | 0179 | DATA-030 |         **4** | [ ]       |
+|        4 | 0179 | DATA-030 |         **4** | [x]       |
 |        5 | 0214 | QA-028   |         **4** | [ ]       |
 |        6 | 0102 | NG-016   |         **3** | [ ]       |
 |        7 | 0209 | QA-023   |         **2** | [ ]       |
@@ -25,3 +25,8 @@
   `8d801a7ca`, run full verde `35253527693`; reintegrazione finale
   `68f7cd349` verificata dal run full verde `35254855568`, incluso il
   `Required gate`.
+- `0179` / `DATA-030`: recuperata dal branch preservato e aggiornata al
+  `develop` corrente. Corrette integrazione `RedisService.eval`, scrittura Lua,
+  TTL/cleanup degli indici e listener keyspace; browser login/sessioni/logout
+  verde 2/2. Feature `1f1d58f4c` verde nel run `35257870848`; merge
+  `24bdc6fcf` verde nel run `35258693809`, entrambi con `Required gate`.
