@@ -159,7 +159,7 @@ Focused validation passed:
 - `npm run lint:angular --workspace mercurion_web_ng -- --no-warn-ignored`
 - `git diff --check`
 
-Repair commit: _pending_.
+Repair commit: `2bab49fd9c58f5fc1ed89e97211aaca1f374a8d3`.
 
 ### Full pre-merge CI-parity validation
 Not run locally because clean-install and aggregate CI parity are reserved for
