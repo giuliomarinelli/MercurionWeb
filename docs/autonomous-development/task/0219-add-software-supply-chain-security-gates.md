@@ -97,27 +97,51 @@ Mark `BLOCKED` if a real secret is detected pending owner-led rotation/incident 
 
 Keep policy separate from scanner-specific output so tools can change without silently changing risk semantics. Verification must begin from the artifact digest and trusted identity, never from a mutable tag alone.
 
+
 ## Execution notes
 
 ### Feature branch
+
 _Not started._
+
 ### Preflight
+
 _Not started._
+
 ### Preflight remediation
+
 _None._
+
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0202, 0209, 0214, 0218. This task was never attempted and receives no feature branch.
+
+Skipped because hard dependency task `0209` (`QA-023`) is terminal
+`BLOCKED`. The direct blocker is the root cause for this dependency skip.
+
 ### Task-specific validation performed
+
 _Not started._
+
 ### Full pre-merge CI-parity validation
+
 _Not started._
+
 ### Browser validation performed
-_Not applicable._
+
+_Not applicable / not started._
+
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+
+_Not recorded._
+
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+
+Metadata-only dependency skip recorded on `develop`; no feature branch or
+worker invocation was created.
+
 ### Rollback
+
 _Not applicable._
+
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+
+Dependency chain is terminal through `0209` (`QA-023`).

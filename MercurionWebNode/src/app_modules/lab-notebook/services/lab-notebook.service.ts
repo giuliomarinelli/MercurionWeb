@@ -5,6 +5,7 @@ import { UUID } from 'crypto';
 import { LabNotebook } from '../models/entities/lab-notebook.entity';
 import { GraphQLUtils as GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
 import { GraphQLFieldsMap, TypeOrmUtils } from 'src/utils/type-orm-utils/type-orm-utils';
+import { LabNotebookPatchCommand, toLabNotebookPatch } from '../models/dto/notebook-mutation.commands';
 
 @Injectable()
 export class LabNotebookService {
@@ -79,8 +80,11 @@ export class LabNotebookService {
         return notebooks
     }
 
-    async update(id: UUID, userId: UUID, data: Partial<LabNotebook>, fieldsMap: GraphQLFieldsMap): Promise<LabNotebook | null> {
-        await this.notebookRepo.update({ id, userId }, { updatedAt: Date.now(), ...data })
+    async update(id: UUID, userId: UUID, data: LabNotebookPatchCommand, fieldsMap: GraphQLFieldsMap): Promise<LabNotebook | null> {
+        await this.notebookRepo.update({ id, userId }, {
+            updatedAt: Date.now(),
+            ...toLabNotebookPatch(data)
+        })
         return this.findOne(id, userId, fieldsMap)
     }
 

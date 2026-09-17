@@ -3,6 +3,7 @@ import { uuidv7 } from '@kripod/uuidv7';
 import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
 import {
     BeforeInsert,
+    Check,
     Column,
     Entity,
     Index,
@@ -19,6 +20,9 @@ import { SynthesisPoolMolecule } from './synthesis-pool-molecule.entity';
 @ObjectType()
 @Entity('synth_step_items')
 @Unique('uq_synth_step_item_position_order', ['stepId', 'position', 'order'])
+@Check('ck_synth_step_item_order_non_negative', '"item_order" >= 0')
+@Check('ck_synth_step_item_position', '"position" IN (\'BeforeArrow\', \'OnArrow\', \'AfterArrow\')')
+@Check('ck_synth_step_item_kind', '"kind" IN (\'Reactant\', \'Reagent\', \'Solvent\', \'Condition\', \'Catalyst\', \'Product\', \'Byproduct\', \'Other\')')
 export class SynthStepItem {
 
     @Field(() => ID)

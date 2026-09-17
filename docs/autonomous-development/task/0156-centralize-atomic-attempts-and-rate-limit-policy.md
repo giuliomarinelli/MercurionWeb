@@ -1,9 +1,9 @@
 # 0156 - Centralize atomic attempts and rate-limit policy
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Replace duplicated Redis attempt/cooldown/lock logic in Account, MFA, Authentication and Feedback with one typed atomic policy engine whose limits, windows, reset semantics and error outcomes cannot drift between comments and runtime behaviour.
@@ -92,24 +92,49 @@ Prefer a small domain-specific rate/attempt API over a generic Redis wrapper wit
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-007`
 ### Preflight
-_Not started._
+Clean `feature/DATA-007` at base `48cc6412a0b8641d175dfd894c24a1887691bb0d`; local
+branch matched the supplied SHA and no task-owned workspace process was active.
+GitHub Actions run `35036213358` for the exact base SHA was successful, including
+Ubuntu/Windows prerequisite and quality jobs plus `Required gate`.
 ### Preflight remediation
 _None._
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0127, 0155. This task was never attempted and receives no feature branch.
+Added the typed `AtomicAttemptPolicyService` and authoritative policy registry.
+Redis Lua execution now atomically checks locks, increments counters, assigns
+first-increment TTLs, transitions to explicit lock TTLs, and removes threshold
+counters. Account, credential authentication, MFA, and feedback flows now use
+the shared intention-level engine and canonical Redis keys. Approved effective
+limits and error identities were preserved; no raw protected identifiers were
+introduced.
 ### Task-specific validation performed
-_Not started._
+`npm run typecheck --workspace mercurion_web_node` passed.
+Focused Jest suites passed (4 suites, 6 tests), including deterministic registry,
+atomic invocation, threshold-transition, account-kernel, MFA, and feedback
+coverage. `npm run lint --workspace mercurion_web_node`, `npm run build
+--workspace mercurion_web_node`, `npm run ci:redis:architecture`, and
+`git diff --check` passed. Governed service inspection found no remaining direct
+counter `incr`/TTL algorithms or duplicated policy constants.
+The first feature run (`35037165844`, SHA `fc125a77bb8fc77ddbe78a51c50027ea8cff0568`)
+exposed stale credential-handler test doubles after the constructor migration.
+Updated that task-owned test setup to mock the typed engine; the focused
+credential suite (6 tests) and typecheck then passed.
 ### Full pre-merge CI-parity validation
-_Not started._
+Not run locally; forbidden by protocol. Exact pushed feature-SHA GitHub Actions
+validation remains coordinator-owned.
 ### Browser validation performed
-_Not applicable._
+_Not started._
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+Commits: `fc125a77bb8fc77ddbe78a51c50027ea8cff0568` (engine and migration);
+`3d788286e0eeb2f8c86a6d29cdb764ac8bdc92e0` (credential handler test double and
+execution notes). Exact feature SHA `3d788286e0eeb2f8c86a6d29cdb764ac8bdc92e0`
+passed GitHub Actions run `35037839821`, including both platform prerequisites,
+Nest/Angular unit tests, Nest E2E, builds, migration schema, browser journeys,
+containers, and `Required gate`.
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+_Not started._
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+_None._

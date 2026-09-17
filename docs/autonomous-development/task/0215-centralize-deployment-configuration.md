@@ -96,27 +96,51 @@ Mark `BLOCKED` if two active manifests encode conflicting environment behavior w
 
 The canonical model need not erase platform-specific constructs. Own shared semantics once, then keep Compose/Kubernetes-only fields inside typed platform projections or overlays.
 
+
 ## Execution notes
 
 ### Feature branch
+
 _Not started._
+
 ### Preflight
+
 _Not started._
+
 ### Preflight remediation
+
 _None._
+
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0130, 0131, 0133, 0208, 0214. This task was never attempted and receives no feature branch.
+
+Skipped because hard prerequisite `0214` (QA-028) is terminal
+`BLOCKED`; no implementation was attempted.
+
 ### Task-specific validation performed
+
 _Not started._
+
 ### Full pre-merge CI-parity validation
+
 _Not started._
+
 ### Browser validation performed
-_Not started._
+
+_Not applicable / not started._
+
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+
+Metadata-only dependency skip; no feature branch was created.
+
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+
+_Not started._
+
 ### Rollback
+
 _Not applicable._
+
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+
+Direct terminal prerequisite: `0214` / QA-028 (`BLOCKED`). The task remains
+terminal until that prerequisite is explicitly recovered in a new session.

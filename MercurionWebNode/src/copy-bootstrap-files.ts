@@ -6,11 +6,7 @@ export function copyBootstrapFiles() {
   const keysSourcePath = path.join(process.cwd(), 'src/config/keys')
   const keysDistPath = path.join(process.cwd(), 'dist/src/config/keys')
 
-  const templatesSourcePath = path.join(process.cwd(), 'src/app_modules/notification/email-templates')
-  const templatesDistPath = path.join(process.cwd(), 'dist/src/app_modules/notification/email-templates')
-
   copyDirectory(keysSourcePath, keysDistPath)
-  copyDirectory(templatesSourcePath, templatesDistPath)
 
   console.log('✅ File bootstrap copiati con successo!')
 

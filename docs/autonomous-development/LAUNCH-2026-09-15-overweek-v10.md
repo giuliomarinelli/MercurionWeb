@@ -139,9 +139,9 @@ and the default 300k context tier. Every `task` invocation must omit `model`,
 `reasoning_effort` and `context_tier`, allowing exact inheritance from the
 parent. If the worker configuration differs, stop that worker before
 implementation, enter SESSION_RECOVERY_PENDING and do not mutate the task
-outcome. Never select, request or escalate to GPT-5.6 Sol anywhere in this
+outcome. Never select, request or escalate to legacy alternate model anywhere in this
 autonomous session. If Luna cannot complete a task, follow the normal BLOCKED
-lifecycle. Any later Sol diagnosis or targeted review belongs to a separate
+lifecycle. Any later alternate-model diagnosis or targeted review belongs to a separate
 human-operated session with continuous developer-model interaction. Do not impose a global
 AI-credit or Autopilot-continuation cap: the session must remain able to process
 a virtually unlimited number of serial tasks until the configured deadline or
@@ -201,8 +201,9 @@ proceed only after a fresh ordinary login with the shared real test account has
 established a protected server-accepted session. Otherwise apply
 `SESSION_CAPABILITY_PAUSE` without mutating the task or propagating dependency
 skips, then continue with the next independent READY task outside the
-session-local pause set. Finalize for capability exhaustion only when no such
-task remains.
+session-local pause set. If no task remains outside the exclusion set, classify
+the state as NO_SELECTABLE_TASKS and remain in SESSION_RECOVERY_PENDING; this is
+never workload exhaustion while any configured recipe is still PENDING.
 
 Execute exactly one recipe per fresh synchronous development-task-worker. Do
 not bundle tasks. Create each feature branch locally, publish it only after a
@@ -233,5 +234,13 @@ Respect the soft deadline and finalization protocol. The report must include
 the complete-Series workload, remaining pending count, CI classification/platform
 telemetry, and every capability pause. After task_complete, produce no
 additional prose or tool calls.
-```
 
+Immediately before any pre-deadline final report or task_complete, run
+`npm run autonomous:plan` and parse its versioned JSON. Pre-deadline
+task_complete is permitted only when `currentCounts.PENDING === 0`. READY=0,
+no task outside an exclusion set, capability exhaustion, branch collisions,
+waiting dependencies, and fatal blockers do not satisfy this guard. When
+PENDING is greater than zero, remain in SESSION_RECOVERY_PENDING and rebuild
+the planner periodically with bounded backoff until work becomes selectable or
+the soft deadline arrives.
+```

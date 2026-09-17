@@ -7,30 +7,27 @@ import {
   Index,
   BeforeInsert,
   Generated,
+  Check,
 } from 'typeorm'
-import { ObjectType, Field, ID } from '@nestjs/graphql'
 import { Ticket } from './ticket.entity'
 import { AuthorType } from '../enums/author-type.enum'
 import { uuidv7 } from '@kripod/uuidv7'
 import { UUID } from 'crypto'
 import { JsonValue } from 'src/models/json.types'
 
-@ObjectType()
 @Entity({ name: 'ticket_messages' })
 @Index('messages_ticket_created_idx', ['ticketId', 'createdAt'])
 @Index('messages_user_idx', ['userId', 'createdAt'])
+@Check('ck_ticket_messages_public_id_positive', '"public_id" > 0')
 export class TicketMessage {
 
-  @Field(() => ID)
   @PrimaryColumn('uuid')
   id!: UUID
 
-  @Field()
   @Column({ type: 'bigint', unique: true, name: 'public_id' })
   @Generated('increment')
   publicId!: string
 
-  @Field(() => ID)
   @Column({ type: 'uuid', name: 'ticket_id' })
   ticketId!: UUID
 
@@ -38,33 +35,21 @@ export class TicketMessage {
   @JoinColumn({ name: 'ticket_id' })
   ticket!: Ticket
 
-  @Field(() => AuthorType)
   @Column({ type: 'varchar', length: 30, name: 'author_type' })
   authorType!: AuthorType
 
-  @Field(() => ID, { nullable: true })
   @Column({ type: 'uuid', name: 'author_id', nullable: true })
   authorId!: UUID | null
 
-  @Field(() => String, { nullable: true })
-  authorFullName?: string
-
-  @Field(() => ID, { nullable: true })
   @Column({ type: 'uuid', name: 'user_id' })
   userId!: UUID
 
-  @Field(() => String, { nullable: true })
-  userFullName?: string
-
-  @Field(() => String)
   @Column({ type: 'jsonb', name: 'content_delta' })
   contentDelta!: JsonValue | string
 
-  @Field()
   @Column({ type: 'text', name: 'content_html' })
   contentHtml!: string
 
-  @Field()
   @Column({ type: 'bigint', name: 'created_at' })
   createdAt!: string
 

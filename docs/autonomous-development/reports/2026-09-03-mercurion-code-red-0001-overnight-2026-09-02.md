@@ -214,7 +214,7 @@ The runtime readiness attempt also exposed a pre-existing Nest startup error on 
 
 ## Host usage
 
-- Model/reasoning: GPT-5.6 Sol, inherited parent coordinator profile/reasoning.
+- Model/reasoning: legacy alternate model, inherited parent coordinator profile/reasoning.
 - Autopilot/task-session information: one startup capability handshake and nine serial task worker invocations, including the unchanged task `0009` preflight attempt; detailed counters unavailable.
 - Credit/token/context information: unavailable from the host.
 

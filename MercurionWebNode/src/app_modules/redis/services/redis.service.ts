@@ -149,6 +149,10 @@ export class RedisService implements OnModuleDestroy {
     return this.redisClient.incr(key)
   }
 
+  public async eval(script: string, numberOfKeys: number, ...args: string[]): Promise<unknown> {
+    return this.redisClient.eval(script, numberOfKeys, ...args)
+  }
+
   public async ttl(key: RedisKey): Promise<number> {
     return this.redisClient.ttl(key)
   }

@@ -27,11 +27,11 @@ const EMPTY_MOLECULE_PROPERTIES: MoleculeProperties = {
         <span id="molecule-properties-heading">Proprietà chimico-fisiche</span>
       </h2>
 
-      <div class="rounded-xl border border-border bg-gray-200/40 dark:bg-gray-700/40 p-4 shadow-sm">
+      <div class="rounded-xl border border-token-border bg-gray-200/40 dark:bg-gray-700/40 p-4 shadow-sm">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4 text-sm">
           @for (item of propertiesList(); track item.label) {
             <div>
-              <span class="text-muted-foreground">{{ item.label }}:&nbsp;</span>
+              <span class="text-light-on-surface-secondary dark:text-dark-on-surface-secondary">{{ item.label }}:&nbsp;</span>
               <span class="font-medium">{{ item.value }}</span>
             </div>
           }

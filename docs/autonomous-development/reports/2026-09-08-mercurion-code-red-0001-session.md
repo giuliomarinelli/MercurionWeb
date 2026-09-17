@@ -98,7 +98,7 @@ exact worker handshake `TASK_CAPABILITY_OK 7f3a9c1e5d4b8a27`.
 
 ## Host usage
 
-- Model/reasoning: inherited GPT-5.6 Sol / High
+- Model/reasoning: inherited legacy alternate model / High
 - Autopilot/task-session information: one startup handshake; zero
   implementation workers
 - Credit/token/context information: unavailable

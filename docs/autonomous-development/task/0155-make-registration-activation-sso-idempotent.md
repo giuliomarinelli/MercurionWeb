@@ -1,9 +1,9 @@
 # 0155 - Make registration, activation and SSO provisioning idempotent
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Make native registration/activation and SSO callback provisioning safe under duplicate delivery, browser retry and concurrent execution so the same logical identity cannot create duplicate users, identities or starter workspaces.
@@ -87,24 +87,105 @@ Mark `BLOCKED` if current account-linking semantics permit multiple users for th
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-006`, based on `dd7595959ec68f1163a33af1c37bc9b776aee853`.
 ### Preflight
-_Not started._
+Clean branch and exact base SHA verified before edits. GitHub Actions run
+`35032501838` for the exact base SHA completed successfully with the
+classification, Ubuntu, Windows, and `Required gate` jobs green. No Angular,
+Nest, Tox21, Chrome, or runtime process was started because browser validation
+is not applicable.
 ### Preflight remediation
-_None._
+None.
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0151, 0152, 0154. This task was never attempted and receives no feature branch.
+Added a durable normalized pending-registration identity with a database
+unique index, and made native registration persist through the shared Unit of
+Work. Added a durable activation receipt keyed by JWT `jti`, encrypted recovery
+code replay semantics, row-locked activation, and atomic initializer/receipt
+persistence with token revocation deferred until commit. SSO provisioning now
+relies on the provider+immutable-subject database uniqueness constraint and
+re-reads the committed winner after a unique-constraint race instead of
+exposing SQL errors. Existing DATA-005/0154 initializer is reused.
 ### Task-specific validation performed
-_Not started._
+- `npm run typecheck --workspace mercurion_web_node` — passed.
+- `npm test --workspace mercurion_web_node -- --runInBand src/app_modules/sso/services/social-auth.service.spec.ts src/app_modules/auth/application/account-flow-kernel.spec.ts src/persistence/transaction-context.spec.ts` — passed, 3 suites / 7 tests.
+- `npm run lint --workspace mercurion_web_node` — passed with `--max-warnings 0`.
+- `npm run build --workspace mercurion_web_node` — passed.
+- `git diff --check` — passed.
+- `npm run migration:check --workspace mercurion_web_node` — could not run because this
+  worker has no database environment variables (`SQL_DATABASE_*`); this is an
+  environment-only schema-observation limitation, not a source or migration
+  diagnostic. Clean-install and aggregate CI checks remain Actions-owned.
 ### Full pre-merge CI-parity validation
-_Not started._
+Not run locally by policy (`npm ci` and `npm run ci:check` are forbidden);
+exact feature-SHA Actions validation is coordinator-owned.
 ### Browser validation performed
-_Not applicable._
+Not applicable; backend-only recipe.
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+`f6561c965582bca7d2f049ae0dd142d5cf240d8d` — Make registration activation
+and SSO idempotent (includes the required Copilot co-author trailer).
+### CI repair attempt 1
+Exact feature SHA `0ee386e775fced30f94b71c25a2d978e47620915` failed Actions run
+`35033604446` because the Windows prerequisite job `104597595010` and the
+Ubuntu prerequisite job both failed at `ci:architecture` -> `nest-orphans`;
+the orphan diagnostic identified only
+`src/persistence/migrations/1789560000000-AddAuthIdempotency.ts`. The narrow
+DATA-005 reachability convention was followed by registering this migration
+under the `typeorm-cli` dynamic entrypoints in
+`MercurionWebNode/nest-reachability.config.json`. This preserves the orphan
+policy and changes no runtime or migration behavior.
+Focused repair validation:
+- `npm run nest:orphans:check` — passed, including its negative control.
+- `npm run ci:architecture` — passed.
+- `npm test --workspace mercurion_web_node -- --runInBand src/app_modules/sso/services/social-auth.service.spec.ts src/app_modules/auth/application/account-flow-kernel.spec.ts src/persistence/transaction-context.spec.ts` — passed, 3 suites / 7 tests.
+No Angular, Nest, Tox21, Chrome, or runtime process was started; browser
+validation remains not applicable.
+### Repair commit
+`d44169f5` — Register DATA-006 auth idempotency migration in the Nest
+reachability configuration (includes the required Copilot co-author trailer).
+### CI repair attempt 2
+Exact feature SHA `0bc93a254f5f16330216f9ece50a8b9bd30a88ef` failed Actions run
+`35034099080`, PostgreSQL migration schema job `104600275304`, because entity
+metadata attempted to drop the migration-backed registration and activation
+receipt indexes/foreign key and recreate the JTI index. The narrow correction
+aligned entity metadata with migration `1789560000000-AddAuthIdempotency`:
+`User.registrationIdentity` now declares the named partial unique index,
+`ActivationReceipt` declares the named user index and cascade foreign-key
+relation, and its primary-key JTI is no longer redundantly declared as a
+unique index.
+Focused repair validation:
+- `npm run typecheck --workspace mercurion_web_node` — passed.
+- `npm test --workspace mercurion_web_node -- --runInBand src/app_modules/sso/services/social-auth.service.spec.ts src/app_modules/auth/application/account-flow-kernel.spec.ts` — passed, 2 suites / 3 tests.
+- `npm run lint --workspace mercurion_web_node` — passed with `--max-warnings 0`.
+- `npm run build --workspace mercurion_web_node` — passed.
+- `git diff --check` — passed.
+- `npm run migration:drift --workspace mercurion_web_node` — could not reach
+  schema inspection because this worker lacks the required `SQL_DATABASE_*`
+  environment; it failed before database connection with the existing
+  configuration diagnostic. The exact PostgreSQL reproducer remains
+  Actions-owned.
+No Angular, Nest, Tox21, Chrome, or runtime process was started; browser
+validation remains not applicable.
+### CI repair attempt 3
+Exact feature SHA `b2d311588778e06111f942c8d67e7a1313949412` failed Actions run
+`35035020808` only in the PostgreSQL migration schema job
+`104602077731`. The schema diagnostic showed entity metadata attempting to
+drop migration constraint `fk_account_activation_receipts_user` and recreate
+it as TypeORM-generated constraint `FK_39a5e8feb04ff1249268fc589d7d`.
+The narrow correction adds
+`foreignKeyConstraintName: 'fk_account_activation_receipts_user'` to the
+`ActivationReceipt.user` relation's `@JoinColumn`, aligning generated entity
+metadata with migration `1789560000000-AddAuthIdempotency` without changing
+runtime behavior or migration SQL.
+Focused repair validation:
+- `npm run typecheck --workspace mercurion_web_node` — passed.
+- `npm test --workspace mercurion_web_node -- --runInBand src/app_modules/sso/services/social-auth.service.spec.ts src/app_modules/auth/application/account-flow-kernel.spec.ts` — passed, 2 suites / 3 tests.
+- `git diff --check` — passed.
+No Angular, Nest, Tox21, Chrome, or runtime process was started; browser
+validation remains not applicable. The PostgreSQL schema reproducer remains
+Actions-owned because local database environment variables are unavailable.
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+Feature branch publication follows the task commit. No develop/master changes.
 ### Rollback
-_Not applicable._
+Not applicable.
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+None.

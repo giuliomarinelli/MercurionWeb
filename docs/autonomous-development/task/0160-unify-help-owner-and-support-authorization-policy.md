@@ -1,9 +1,9 @@
 # 0160 - Unify Help owner and support authorization policy
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Make every Help ticket query/command evaluate ownership, `HandleTickets` support authority and `ViewUsers` field visibility through one typed policy so user/support resolver variants cannot drift in permissions or existence-leak behaviour.
@@ -86,24 +86,53 @@ Mark `BLOCKED` if current user/support entrypoints intentionally have conflictin
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-011` at base `317d7a3d6b4caf7600c18d647ee90616ecc752fe`.
 ### Preflight
-_Not started._
+Clean branch/worktree and exact branch identity confirmed. No task-owned
+Angular/Nest/Tox21/Jest watcher or runtime process was active. The exact base
+SHA has successful GitHub Actions run `35044614539` with Windows and Ubuntu
+prerequisites, Nest unit/E2E, Angular unit, GraphQL/static checks, builds,
+containers, database schema, critical browser journeys, and `Required gate`
+green. Local `commit.gpgSign` is `false`. No `npm ci` or `npm run ci:check`
+was run locally.
 ### Preflight remediation
-_None._
+None.
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0127, 0159, 0152. This task was never attempted and receives no feature branch.
+Added a typed Help owner/support actor policy. Resolver entrypoints now create
+typed actors, while Help use cases enforce the same policy when called
+directly. Owner predicates are applied in ticket/message queries, support
+handling requires `HandleTickets`, `ViewUsers` only controls immutable
+presentation visibility, and close/reopen mutations use atomic transaction
+updates with ownership predicates. Missing and non-owned tickets consistently
+use `TICKET_NOT_FOUND`; unsupported handling uses a typed 403 application
+error.
 ### Task-specific validation performed
-_Not started._
+Passed:
+
+- `npm test --workspace mercurion_web_node -- --runInBand --runTestsByPath src/app_modules/help/authorization/help-authorization.policy.spec.ts src/app_modules/help/models/dto/help-presenters.spec.ts src/app_modules/help/services/help.service.spec.ts` (3 suites, 16 tests)
+- `npm run typecheck --workspace mercurion_web_node`
+- `npm run lint --workspace mercurion_web_node`
+- `npm run graphql:schema:check --workspace mercurion_web_node`
+- `npm run build --workspace mercurion_web_node`
+- `node scripts/check-typeorm-transaction-boundaries.mjs`
+- `git diff --check`
+
+The table-driven policy tests cover owner/support operations, missing
+`HandleTickets`, independent `ViewUsers`, and forbidden owner reopen behavior.
 ### Full pre-merge CI-parity validation
-_Not started._
+Complete clean-install and aggregate CI parity are delegated to GitHub Actions
+for the pushed exact feature SHA; local `npm ci` and `npm run ci:check` were
+intentionally not run.
 ### Browser validation performed
-_Not applicable._
+Not applicable per recipe.
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+`d3700bb33` (`feat(help): unify owner and support authorization policy`, with
+required `Co-authored-by: GitHub Copilot <copilot@github.com>` trailer).
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+Merged into `develop` with merge commit `ca244d54d11742a1027a702959dc85552821e408`.
+Exact feature-SHA CI run `35045600976` and exact merge-SHA CI run
+`35046082196` both passed with the `Required gate` green.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+_None._

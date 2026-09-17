@@ -35,6 +35,12 @@ describe('ShutdownCoordinator', () => {
     expect(calls).toEqual(['first', 'second'])
     expect(result.failures).toHaveLength(1)
     // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(logger.log).toHaveBeenCalledWith('[SHUTDOWN_START]', {
+      reason: 'fatal',
+      timeoutMs: 100,
+      error: { name: 'Error', message: 'fatal' }
+    })
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.warn).toHaveBeenCalledWith('[SHUTDOWN_RESOURCE_FAILED]', expect.anything())
   })
 

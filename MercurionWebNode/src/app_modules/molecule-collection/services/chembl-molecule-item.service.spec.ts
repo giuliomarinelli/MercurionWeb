@@ -5,6 +5,7 @@ import { ChEMBLMoleculeItemEntity } from '../models/entities/chembl-molecule-ite
 import { MoleculeCollection } from '../models/entities/molecule-collection.entity';
 import { MoleculeCollectionItemJoinService } from './molecule-collection-item-join.service';
 import { DataSource } from 'typeorm';
+import { MoleculeOwnershipPolicy } from './molecule-ownership.policy';
 
 describe('ChemblMoleculeItemService', () => {
   let service: ChEMBLMoleculeItemService;
@@ -34,6 +35,7 @@ describe('ChemblMoleculeItemService', () => {
           provide: DataSource,
           useValue: { transaction: jest.fn() },
         },
+        { provide: MoleculeOwnershipPolicy, useValue: { assertCollectionOwned: jest.fn() } },
       ],
     }).compile();
 

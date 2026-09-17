@@ -11,6 +11,7 @@ import {
     createRestErrorResponse,
     presentApplicationError
 } from './application-error-envelope';
+import { getCorrelationId, resolveCorrelationId } from '../observability/correlation-context'
 
 
 @Catch()
@@ -37,7 +38,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
         const headers = req.headers ?? {}
         const headerCorrelationId = headers['x-correlation-id'] ?? headers['x-request-id']
-        const correlationId = createCorrelationId(headerCorrelationId ?? req.id)
+        const correlationId = getCorrelationId() ??
+            (headerCorrelationId ? resolveCorrelationId(headerCorrelationId) : createCorrelationId(req.id))
         const presentation = presentApplicationError(e, {
             correlationId,
             isProduction: this.isNotDev

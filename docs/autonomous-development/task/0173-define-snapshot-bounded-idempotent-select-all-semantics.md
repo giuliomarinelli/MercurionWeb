@@ -1,9 +1,9 @@
 # 0173 - Define snapshot-bounded idempotent select-all semantics
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Give every molecule bulk command using `selectAll` an explicit filter/snapshot, maximum work bound, atomicity and retry contract so a retry is deterministic, does not duplicate joins and does not silently include rows that appeared after the original selection.
@@ -87,24 +87,27 @@ Prefer a compact server-verifiable snapshot descriptor over persisting thousands
 ## Execution notes
 
 ### Feature branch
-_Not started._
+No feature branch was created. The task was skipped before implementation
+after the required runtime/browser capability pause.
 ### Preflight
 _Not started._
 ### Preflight remediation
 _None._
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0171, 0172, 0151, 0152. This task was never attempted and receives no feature branch.
+Skipped at the explicit session direction after the required real-account
+browser capability was unavailable. No implementation was attempted.
 ### Task-specific validation performed
-_Not started._
+No task validation was run because implementation was skipped.
 ### Full pre-merge CI-parity validation
 _Not started._
 ### Browser validation performed
 _Not started._
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+No task commit.
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+No merge. This metadata-only state change is recorded on `develop`.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+The task was excluded from this session after its capability pause and requires
+a new session for any implementation attempt.

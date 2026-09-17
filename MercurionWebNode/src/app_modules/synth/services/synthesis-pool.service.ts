@@ -10,6 +10,7 @@ import { SynthStepItem } from '../models/entities/synth-step-item.entity';
 import { SynthesisPoolCollection } from '../models/entities/synthesis-pool-collection.entity';
 import { SynthesisPoolMolecule } from '../models/entities/synthesis-pool-molecule.entity';
 import { Synthesis } from '../models/entities/synthesis.entity';
+import { runInTransaction } from '../../../persistence/transaction-context';
 
 @Injectable()
 export class SynthesisPoolService {
@@ -23,7 +24,7 @@ export class SynthesisPoolService {
         const collectionIds = Array.from(new Set(input.collectionIds))
         const moleculeIds = Array.from(new Set(input.moleculeIds))
 
-        return this.dataSource.transaction(async manager => {
+        return runInTransaction(this.dataSource, async (_context, manager) => {
             const synthesis = await manager.findOne(Synthesis, {
                 where: { id: input.synthesisId, userId }
             })

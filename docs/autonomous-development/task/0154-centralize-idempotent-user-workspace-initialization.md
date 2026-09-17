@@ -1,9 +1,9 @@
 # 0154 - Centralize idempotent user-workspace initialization
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Extract the initial Mercurion molecule/collection workspace into one idempotent domain initializer used by both native account activation and first-time SSO provisioning.
@@ -90,24 +90,72 @@ Do not use collection display text such as `La mia prima collezione` as the sole
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-005` (base `9aaf15e252d7eb510f87920e7f4e934edff78fd2`)
 ### Preflight
-_Not started._
+Clean `feature/DATA-005` at the supplied base SHA was confirmed before edits.
+GitHub Actions CI run `35030119714` for exact SHA
+`9aaf15e252d7eb510f87920e7f4e934edff78fd2` completed successfully; its
+classification, Linux and Windows validation, and `Required gate` jobs were
+green. No task-owned Angular, Nest, Tox21, Jest watcher, or runtime process
+was active; the existing `node_repl`/Chrome MCP processes were unrelated host
+tooling and were not modified. No runtime was started because browser
+validation is not applicable.
 ### Preflight remediation
-_None._
+None. `migration:check` was attempted once and stopped at the pre-existing
+environment validation boundary because the local session does not provide
+the required SQL_DATABASE_* variables; no database or repository mutation
+occurred.
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0152, 0151. This task was never attempted and receives no feature branch.
+Added the typed immutable `STARTER_WORKSPACE` specification and made
+`InitialWorkspaceService.initializeForUser` the single transaction-context
+aware initializer used by native activation and SSO provisioning. Added
+durable nullable `system_key` identities with unique per-user indexes and a
+migration, safe reconciliation of partial keyed workspaces, legacy adoption
+only when the complete starter item/join set matches, and join-level
+idempotency. Starter payload values and display copy remain unchanged.
+Authentication services no longer construct or import starter entities.
 ### Task-specific validation performed
-_Not started._
+Passed:
+
+- `npm test --workspace mercurion_web_node -- --runInBand --runTestsByPath src/app_modules/molecule-collection/services/initial-workspace.service.spec.ts`
+  (2 tests: canonical specification, sequential idempotency, persistence
+  failure propagation for rollback)
+- `npm test --workspace mercurion_web_node -- --runInBand --runTestsByPath src/app_modules/auth/application/account-flow-kernel.spec.ts src/app_modules/sso/services/social-auth.service.spec.ts`
+  (2 tests)
+- Combined three-suite DATA-005 focused Jest run (4 tests passed)
+- `npm run typecheck --workspace mercurion_web_node`
+- `npm run lint --workspace mercurion_web_node`
+- `npm run build --workspace mercurion_web_node`
+- `git diff --check`
 ### Full pre-merge CI-parity validation
-_Not started._
+Not run locally by policy; clean-install and aggregate CI parity are reserved
+for GitHub Actions on the pushed exact feature SHA.
 ### Browser validation performed
-_Not applicable._
+Not applicable: backend-only recipe.
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+`bace783824d4afc6ff3bf29c41712871c16b7385` —
+`feat(DATA-005): centralize starter workspace initialization` (includes
+`Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>`).
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+Feature branch pushed after the task-specific commit. CI run
+`35031245493` is in progress for the exact pushed SHA; coordinator must wait
+for its `Required gate` and platform jobs before integration.
+### Feature-CI repair attempt 1
+Exact feature SHA `010a8f0d1f248c19c211e22d91c09fa27d697a47` failed Actions run
+`35031270426`. Prerequisite jobs `104590567023` (windows-latest) and
+`104590567055` (ubuntu-latest) both failed in `ci:architecture` ->
+`nest-orphans`; the repository-controlled diagnostic was
+`src/persistence/migrations/1789500000000-AddStarterWorkspaceKeys.ts is
+orphaned`. Required gate job `104591298416` consequently failed because its
+prerequisites failed. The narrow correction registers the migration as a
+`typeorm-cli` dynamic entrypoint in
+`MercurionWebNode/nest-reachability.config.json`, matching the existing
+datasource and migration registration convention without weakening the
+reachability policy. Focused repair validation passed:
+`npm run nest:orphans:check`, `npm run ci:architecture`, and the DATA-005
+initializer/auth focused Jest suites. No runtime or browser validation was
+required, and no task-owned process was started.
 ### Rollback
-_Not applicable._
+No rollback required.
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+None.

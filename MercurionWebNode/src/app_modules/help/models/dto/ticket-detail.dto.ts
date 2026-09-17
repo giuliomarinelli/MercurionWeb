@@ -1,12 +1,11 @@
 import { Field, ObjectType } from "@nestjs/graphql";
-import { TicketMessage } from "../entities/ticket-message.entity";
-import { Ticket } from "../entities/ticket.entity";
+import { TicketMessageResponse, TicketResponse } from "./help-response.dto";
 
 @ObjectType()
 export class TicketDetailDTO {
-  @Field(() => Ticket)
-  ticket!: Ticket
+  @Field(() => TicketResponse)
+  ticket!: TicketResponse
 
-  @Field(() => [TicketMessage], { nullable: true })
-  messages?: TicketMessage[] | null
+  @Field(() => [TicketMessageResponse], { nullable: true })
+  messages?: TicketMessageResponse[] | null
 }

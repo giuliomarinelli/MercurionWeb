@@ -1,9 +1,9 @@
 # 0183 - Unify post-commit external effects behind one outbox boundary
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Converge email, notifications, indexing and security-audit work triggered by domain mutations onto one versioned transactional event/outbox boundary with shared dispatch, idempotency, retry, observability and lifecycle semantics.
@@ -92,24 +92,77 @@ Unify infrastructure, not event schemas. A common `outbox_events` table/dispatch
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-034`
 ### Preflight
-_Not started._
+Base `develop` SHA `dfb82eeb3cb32074fbb5c3d952774fe5aebfda9a` was clean and
+matched the supplied green exact-SHA CI baseline. Focused unchanged-baseline
+Nest typecheck and lint passed. No task-owned Angular, Nest, Tox21, or test
+watcher process was active before implementation. Chrome DevTools tool-surface
+probe passed.
 ### Preflight remediation
-_None._
+None. For post-change runtime validation, the existing development database
+schema was already present without migration history; the canonical migration
+was applied directly through its TypeORM migration implementation after the
+normal `migration:run` command correctly refused to replay the initial schema.
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0158, 0178, 0152. This task was never attempted and receives no feature branch.
+Introduced one typed/versioned `outbox_events` boundary with shared envelope,
+consumer registry, batch claiming/leases, retry/dead-letter/requeue lifecycle,
+metrics, canonical migration, and schema-evolution/retention documentation.
+Help, Meilisearch/security-audit/log events and eligible account email effects
+now use the shared dispatcher. Registration, email-change, and password-change
+mutation intents are transactionally appended; indispensable verification,
+password-reset-link, and MFA challenge sends remain synchronous. Existing
+domain event contracts remain independently typed and versioned.
 ### Task-specific validation performed
-_Not started._
+Passed:
+
+- `npm run typecheck --workspace mercurion_web_node`
+- `npm run lint --workspace mercurion_web_node -- --quiet`
+- `npm run ci:transactions`
+- `npm run ci:nest:architecture`
+- `npm run nest:orphans:check`
+- `npm run build --workspace mercurion_web_node`
+- Focused Jest suites for account flow, outbox append/dispatcher, and consumer
+  registry: 6 tests passed.
+- `git diff --check`
+
+No local `npm ci` or `npm run ci:check` was run.
 ### Full pre-merge CI-parity validation
-_Not started._
+The supplied exact base-SHA merge CI was green. Complete clean-install
+validation remains delegated to the permanent GitHub Actions gate for the
+final pushed feature SHA.
+### Feature-CI repair
+Exact feature SHA `8ec0d8b6d679e9d5dec73ac68c7ecb7d051d7243` failed run
+`35106178581` in the PostgreSQL migration schema job on Ubuntu because the
+canonical migration-created `outbox_dispatch_idx` was absent from the entity
+metadata and schema validation requested `DROP INDEX "public"."outbox_dispatch_idx"`.
+The repair declares the existing three-column dispatch index on `OutboxEvent`,
+matching `1789700000000-CanonicalizeOutboxEvents` and preserving claiming
+performance semantics. The repaired TypeORM metadata inspection passed, and
+the focused outbox tests, Nest typecheck, Nest lint, and `git diff --check`
+passed. Local `migration:drift` reached the database but remains blocked by
+pre-existing unrelated schema drift; no `outbox_dispatch_idx` drift was
+reported. Local `migration:check` could not run cleanly because the existing
+development database has no matching migration history and the initial
+migration found an already-existing `backup_codes` relation.
 ### Browser validation performed
-_Not started / not applicable._
+Started Tox21, Nest, and Angular in the mandated order with live handles.
+After readiness, two consecutive rounds returned HTTP 200 from
+`http://localhost:8888/health` and `/`. Fresh ordinary authenticated browser
+state was verified in Chrome DevTools at `http://localhost:8888/dashboard`.
+Created Help ticket `MTCK-000000084` through `/help`; the UI returned immediate
+success and showed the new ticket. Database inspection showed the related
+`help.ticket_opened.user` and `help.ticket_opened.support` events in
+`outbox_events` with status `succeeded`, attempt count `1`, and populated
+processing timestamps. All task-owned runtime processes were stopped afterward.
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+`fd17aef1` — `feat: unify post-commit effects behind outbox`
+
+Execution-note correction is recorded in the follow-up metadata commit.
+The repair is included in the current feature-CI repair commit.
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+Pending coordinator integration and exact feature-SHA CI observation.
 ### Rollback
-_Not applicable._
+Not applicable.
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+None.

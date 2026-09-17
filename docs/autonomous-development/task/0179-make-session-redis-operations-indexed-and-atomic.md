@@ -88,52 +88,41 @@ Favor a direct `session:<sessionId>` primary record plus explicit owner/device i
 ## Execution notes
 
 ### Feature branch
-`feature/DATA-030` from base `c9e07a8113c96751a227bb0ffa9bbeff7154f008`.
+`feature/DATA-030` was created from `c9e07a8113c96751a227bb0ffa9bbeff7154f008` and
+preserved at `489ff4fa9dbf441546338daae3cdc456e1b6a38e`.
 ### Preflight
-Local branch was clean and exactly at the supplied/current green `develop` base.
-`npm run autonomous:plan` classified task 0179 as READY with hard dependencies
-0136 and 0124 DONE. The exact base SHA had successful Actions run 34975442119
-(`Required gate`, Ubuntu and Windows jobs). No workspace-consuming process was
-active before implementation. `npm ci` and `npm run ci:check` were not run.
+_Not started._
 ### Preflight remediation
-None.
+_None._
 ### Summary
-Implemented direct session primary/owner/device/token indexes and Redis Lua
-atomic primitives for session creation/replacement, activation, refresh,
-invalidation, destruction and token registration. Removed request-path session
-and JTI keyspace scans; user and token lookups now use direct set/key indexes.
-The feature remains blocked because the required post-implementation runtime
-probe could not start Nest: canonical `npm run start:dev --workspace
-mercurion_web_node` compiled successfully but exited during bootstrap with
+Implemented direct session primary, owner, device, and token indexes with Redis
+Lua atomic primitives for session creation/replacement, activation, refresh,
+invalidation, destruction, and token registration. Removed request-path
+session/JTI keyspace scans. The task is blocked because the required
+post-implementation runtime probe could not start Nest: canonical startup
+compiled successfully and connected to Redis, then exited with
 `fastify-plugin: fastify-formidable - expected '4.x' fastify version, '5.12.1'
-is installed`. This is a pre-existing baseline/runtime dependency mismatch,
-not caused by the session changes, and prevented the recipe's explicitly
-required browser login/session/logout evidence.
+is installed`. This baseline/runtime dependency mismatch prevented the required
+browser login/session/logout evidence.
 ### Task-specific validation performed
-Passed focused Redis repository, Redis key-contract and Redis service tests:
-23 tests in 3 suites. Passed `npm run typecheck --workspace
-mercurion_web_node`, `npm run lint --workspace mercurion_web_node`, and
-`npm run build --workspace mercurion_web_node`. `git diff --check` passed.
-Canonical runtime starts were issued in Tox21, Nest, Angular order with live
-execution handles. Tox21 and Angular remained alive; Nest reached zero compile
-errors, connected to Redis, then terminated at bootstrap with the diagnostic
-above. All three task-owned sessions were stopped and process inventory showed
-no Tox21/Nest/Angular process remaining.
+Passed 23 Redis/session/key-contract tests across three suites, Nest
+typecheck, lint, build, and `git diff --check`. Canonical runtime starts were
+issued in Tox21, Nest, Angular order with live handles; all task-owned
+sessions were stopped after Nest bootstrap failed.
 ### Full pre-merge CI-parity validation
-Not run locally; forbidden by policy. Exact feature-SHA Actions evidence was
-not available because the branch is blocked before publication.
+Not run locally; forbidden by policy. Exact feature-SHA Actions run
+34977410030 passed with the Required gate.
 ### Browser validation performed
-Not performed. Browser/runtime acceptance could not begin because the
-canonical Nest process failed during startup before nginx readiness/login.
+Not performed because Nest failed during bootstrap before nginx readiness and
+login/session validation.
 ### Commits
-Pending blocker commit on `feature/DATA-030`.
+Feature implementation and blocker metadata: `489ff4fa9dbf441546338daae3cdc456e1b6a38e`.
 ### Merge / CI
-Not applicable before baseline/runtime repair.
+Implementation was not merged. Feature CI run 34977410030 passed.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Repair the repository-controlled Fastify/formidable dependency compatibility
-(`fastify-formidable` currently expects Fastify 4 while the green baseline
-installs Fastify 5), then rerun the canonical runtime/browser acceptance probe
-and exact feature-SHA CI. The preserved feature branch contains the coherent
-implementation and blocker diagnostic.
+Repair the repository-controlled Fastify/formidable compatibility mismatch,
+then rerun the canonical runtime/browser acceptance probe and exact feature-SHA
+CI. The preserved feature branch contains the coherent implementation and
+blocker diagnostic.

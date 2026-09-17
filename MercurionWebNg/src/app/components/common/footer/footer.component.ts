@@ -28,7 +28,7 @@ import { RouterLink } from '@angular/router';
             priority="true"
             width="186"
             height="234"
-            class="w-[23px] h-auto contrast-115"
+            class="w-[23px] h-auto contrast-100"
           />
           <span>&copy; {{year}} Mercurion. Tutti i diritti riservati.</span>
         </p>

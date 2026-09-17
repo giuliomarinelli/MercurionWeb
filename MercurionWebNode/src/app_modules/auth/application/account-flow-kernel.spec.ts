@@ -22,6 +22,7 @@ describe('AccountFlowKernel', () => {
       {} as any, // mailService
       {} as any, // smsService
       {} as any, // redisService
+      {} as any, // attempts
       {} as any, // sessionService
       {} as any, // responseService
       {} as any, // securityAuditService
@@ -29,6 +30,7 @@ describe('AccountFlowKernel', () => {
       {} as ScopeService, // scopeService
       {} as any, // unitOfWork
       {} as any, // initialWorkspace
+      {} as any, // notificationOutbox
       meiliLoggerMock as any, // meiliLogger
     );
   });

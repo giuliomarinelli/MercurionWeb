@@ -1,9 +1,9 @@
 # 0172 - Centralize molecule-domain ownership policy
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Provide one batch-aware ownership/existence policy for molecule collections, molecule items and joins so every command classifies owner, missing and forbidden cases consistently without repeating ad-hoc repository queries and error messages.
@@ -88,24 +88,41 @@ Avoid a generic `owns(entityName, id)` API. Typed per-resource operations preser
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-023` (base `f254d2b17fb732184a9a5f5793c0d5e49d20025d`)
 ### Preflight
-_Not started._
+Clean feature branch at the supplied base SHA; exact base CI run `35089906006`
+completed successfully with the required gate. Local `commit.gpgSign` is
+`false`. No workspace-consuming process was active before task work.
 ### Preflight remediation
-_None._
+None.
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0171, 0127, 0128, 0152. This task was never attempted and receives no feature branch.
+Added `MoleculeOwnershipPolicy`, a typed molecule-domain policy that classifies
+owned, missing and foreign single/batch resources with set-based manager
+queries. Join planning and custom/ChEMBL collection mutations now use the
+transaction manager policy assertions rather than local ownership queries.
+Mixed batches can be asserted atomically and policy tests cover owner,
+foreign, missing and no-N+1 behavior.
 ### Task-specific validation performed
-_Not started._
+- `npm --prefix MercurionWebNode test -- --runInBand app_modules/molecule-collection/services/molecule-ownership.policy.spec.ts app_modules/molecule-collection/services/molecule-collection-item-join.service.spec.ts app_modules/molecule-collection/services/custom-molecule-item.service.spec.ts app_modules/molecule-collection/services/chembl-molecule-item.service.spec.ts` — 4 suites, 6 tests passed.
+- `npm --prefix MercurionWebNode run typecheck` — passed.
+- Focused ESLint over changed molecule services — passed.
+- `git diff --check` — passed.
 ### Full pre-merge CI-parity validation
-_Not started._
+Reserved for GitHub Actions on the exact pushed feature SHA; forbidden to run
+`npm ci` or `npm run ci:check` locally.
 ### Browser validation performed
-_Not started / not applicable._
+Canonical runtime started in required order (Tox21, Nest, Angular) and all
+three sessions remained alive. Nginx readiness completed two consecutive
+rounds with `/health` and `/` returning 200 after an initial retryable 502.
+Using the dedicated Chrome DevTools profile, performed a fresh ordinary login
+through `http://localhost:8888/login`, then created and observed the collection
+`DATA023 Ownership Smoke` through the collections UI. Runtime sessions were
+stopped afterward and no task-owned runtime remained.
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+- `5d44f96b395042feb76d6f24dabe6b7fd522ddf` — `feat(DATA-023): centralize molecule ownership policy`
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+_Not started._
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+_None._

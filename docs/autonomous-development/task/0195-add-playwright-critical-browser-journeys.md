@@ -1,6 +1,6 @@
 # 0195 - Add Playwright critical browser journeys
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -60,12 +60,12 @@ The repository has Angular unit tests but no working browser E2E runner. The fut
 
 ## Acceptance criteria
 
-- [ ] Playwright is the single configured browser E2E framework.
-- [ ] Critical tests navigate only through `http://localhost:8888`.
-- [ ] The selected critical journeys pass deterministically without arbitrary sleeps.
-- [ ] Semantic locators are the default and failure diagnostics are captured.
-- [ ] Tests are isolated and do not call uncontrolled external providers.
-- [ ] The browser E2E suite is registered in canonical CI parity.
+- [x] Playwright is the single configured browser E2E framework.
+- [x] Critical tests navigate only through `http://localhost:8888`.
+- [x] The selected critical journeys pass deterministically without arbitrary sleeps.
+- [x] Semantic locators are the default and failure diagnostics are captured.
+- [x] Tests are isolated and do not call uncontrolled external providers.
+- [x] The browser E2E suite is registered in canonical CI parity.
 
 ## Validation
 
@@ -92,26 +92,72 @@ Keep mocked/controlled network semantics explicit in test names/fixtures. A brow
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/QA-009` from base `043a333feb20b0850353b571b31122e46dee7b31`,
+preserved at `1d37ba8ee0fb9961a5f29284009582a9b621558b`.
 ### Preflight
-_Not started._
+Exact base CI run `34985586114` passed. Tox21, Nest, and Angular were started
+in the required order with live handles. Nest initially exposed the
+repository-controlled Fastify 4/5 plugin mismatch; the authorized narrow
+compatibility remediation resolved that error.
 ### Preflight remediation
-_None._
+Added a Fastify 5 compatibility wrapper around the existing
+`fastify-formidable` plugin and pinned the direct `fastify-plugin` dependency.
+No infrastructure or Fastify version downgrade was made.
 ### Summary
-Re-scoped by direct management instruction on 2026-09-14. Deferred feature
-journeys were transferred to the archived development program, so this recipe
-can implement the active product's Playwright infrastructure and journeys.
+Added pinned Playwright 1.55.0 tooling/configuration, canonical
+`http://localhost:8888` base URL, failure diagnostics, deterministic route
+fixtures, and three critical journeys. The task is blocked because Nest then
+failed during bootstrap with `"MercurionPublicId" defined in resolvers, but not
+in schema`; the canonical edge remained unavailable for the required readiness
+rounds, so browser validation could not safely begin.
 ### Task-specific validation performed
-_Not started._
+Passed Playwright test discovery (three tests), Nest typecheck, Nest lint, and
+`git diff --check`.
 ### Full pre-merge CI-parity validation
-_Not started._
+Not run locally; forbidden by policy. Feature CI run `34988102571` passed with
+the Required gate.
 ### Browser validation performed
-_Not started._
+Not performed because the Nest bootstrap/schema baseline failure prevented
+nginx readiness and browser execution.
 ### Commits
-_Not recorded._
+Feature implementation and blocker diagnostic:
+`1d37ba8ee0fb9961a5f29284009582a9b621558b`.
 ### Merge / CI
-_Not started._
+Implementation was not merged. Feature CI run `34988102571` passed.
 ### Rollback
 _Not applicable._
-### Blocker / human decision required
-_None currently recorded after management re-scope._
+### Historical blocker (resolved)
+The repository-controlled GraphQL schema baseline failure required an
+authorized QA-009 recovery attempt. The recovery below resolves it.
+
+### Authorized recovery 2026-09-15
+Recovery resumed from preserved SHA
+`1d37ba8ee0fb9961a5f29284009582a9b621558b` after merging current green
+`develop` with `--no-ff --no-gpg-sign`. Removed the obsolete
+`MercurionPublicId` resolver registration that no longer had a matching schema
+scalar, restoring Nest bootstrap without changing the identifier utility.
+
+The three critical Chromium journeys now run serially with deterministic JWT,
+cookie, REST, GraphQL, MFA and WebSocket fixtures. They cover anonymous login
+validation, login-to-MFA session activation, and the collections empty/create
+flow through `http://localhost:8888`. Repeated headless runs passed with no
+fixed sleeps; retained traces, screenshots and videos were inspected while
+repairing failures. The canonical full CI path now installs Chromium, starts a
+disposable nginx edge in front of Angular, runs the suite and uploads failure
+artifacts. The stable `Required gate` requires this browser job.
+
+Focused validation passed: autonomous control-plane validation, Nest lint,
+Nest typecheck, Playwright discovery and repeated Playwright execution (three
+tests). Repository-wide clean-install validation remains owned by exact-SHA
+GitHub Actions.
+
+Final feature SHA `7ea5e067771bb9ad795d53f05f488ea5cb2a3df3` passed full
+CI run `35011032744`, including the critical browser job and stable Required
+gate. It was merged into `develop` with merge commit
+`84324fa193730886b27b08b875afa00590ee4a4e`; exact merge-SHA full CI run
+`35011807978` passed. The local and remote feature branches were then deleted.
+
+The authoritative dependency planner identified stale skips `0197`, `0198`,
+`0214`, `0215`, `0217`, `0218` and `0219`. They were reset to pending with
+placeholder execution notes; the final plan reports no errors, cycles,
+`toSkip`, or `staleSkips`.

@@ -1,9 +1,9 @@
 # 0185 - Enforce explicit command patch allowlists
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Eliminate repository-wide DTO/`Partial<Entity>` mass assignment by making every mutation command map explicit writable fields, while IDs, ownership, audit columns and relations remain non-assignable unless changed through dedicated domain operations.
@@ -87,24 +87,46 @@ The safest mapper is boring code. `return { title: input.title, notes: input.not
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-036` at base `71d28f4ba93ed072bb6ebb582404b01d284e03a4`.
 ### Preflight
-_Not started._
+Clean feature branch and no task-owned runtime processes confirmed. The exact
+supplied base SHA matched `develop` and its merge CI was green. The existing
+dependency tree was used; no `npm ci` or `npm run ci:check` was run locally.
+The Chrome DevTools surface was callable before mutation.
 ### Preflight remediation
-_None._
+None.
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0169. This task was never attempted and receives no feature branch.
+Added domain-specific command patch/create types and field-by-field mappers for
+molecule collections/items, custom molecule items, lab notebooks and user
+updates/registration. Protected IDs, ownership, audit fields, relations and
+system fields are no longer accepted through partial entity commands or
+transport spreads. Added the repository static `ci:command-patch-allowlists`
+gate and its negative self-check, registered in `ci:static`.
 ### Task-specific validation performed
-_Not started._
+- `npm run typecheck --workspace mercurion_web_node` — passed.
+- `npm run lint --workspace mercurion_web_node` — passed.
+- Focused molecule, custom-item, lab-notebook and user service suites — 27
+  tests passed.
+- `npm run ci:command-patch-allowlists` — passed, including negative check.
+- `git diff --check` — passed.
 ### Full pre-merge CI-parity validation
-_Not started._
+Reserved for GitHub Actions on the pushed feature SHA; local
+`npm run ci:check` was intentionally not run per policy.
 ### Browser validation performed
-_Not started / not applicable._
+The required Chrome capability probe and pre-change authenticated dashboard
+state were observed through `http://localhost:8888`. After implementation,
+Tox21, Nest and Angular restarted in canonical order, all three remained live,
+and two consecutive `/health` and `/` readiness rounds returned HTTP 200.
+The authenticated profile was logged out through the supported UI; no
+protected mutation was performed because this task's malicious-field coverage
+is API/unit-test based and no safe representative mutation fixture was
+available without changing user data.
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+`363a729fc4ee3c5cb82fe546f9f2e5527f800e44` — Enforce explicit command patch
+allowlists and add the static recurrence gate.
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+_Not started._
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+_None._

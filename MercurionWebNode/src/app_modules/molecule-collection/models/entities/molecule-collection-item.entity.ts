@@ -12,6 +12,9 @@ import { Field, ID, InterfaceType } from '@nestjs/graphql';
 })
 @Entity('molecule_collection_items')
 @TableInheritance({ column: { type: 'varchar', name: 'type' } })
+@Index('uq_molecule_collection_items_id_user', ['id', 'userId'], { unique: true })
+@Index('uq_molecule_collection_items_user_system_key', ['userId', 'systemKey'], { unique: true })
+@Index('idx_molecule_collection_items_user_touched', ['userId', 'touchedAt'])
 export abstract class MoleculeCollectionItemEntity {
 
   @Field(() => ID)
@@ -52,5 +55,12 @@ export abstract class MoleculeCollectionItemEntity {
 
   @Column({ type: 'varchar', nullable: true })
   alias!: string | null
+
+  /**
+   * Stable application identity for system-created items.  It is nullable so
+   * existing user-created items and legacy starter rows remain compatible.
+   */
+  @Column({ type: 'varchar', nullable: true })
+  systemKey!: string | null
 
 }

@@ -1,9 +1,9 @@
 # 0171 - Decompose molecule bulk join planning and write sets
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Split the oversized molecule/collection bulk-join commands into explicit selection planning, ownership validation, persistence write-set construction and domain-touch phases with typed inputs/results and bounded complexity.
@@ -88,24 +88,59 @@ Do not turn the decomposition into a generic “bulk framework”. Keep primitiv
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-022`
 ### Preflight
-_Not started._
+Clean `feature/DATA-022` at base `472a48eb7572e114d96743d22737722f57ea7041`.
+Exact base CI run `35085350094` was successful, including both platform
+prerequisite jobs, Nest/Angular unit and E2E jobs, build artifacts, database
+schema, critical browser journeys, and `Required gate`. Hard dependencies
+`0127`, `0128`, `0151`, and `0152` were confirmed `[x] DONE`. No task-owned
+workspace process was active before validation.
 ### Preflight remediation
-_None._
+None; the supplied migration-recovered baseline was left unchanged.
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0151, 0152, 0127, 0128. This task was never attempted and receives no feature branch.
+Added molecule/collection-domain bulk selection and write-set types and pure
+planner functions. Both bulk directions now orchestrate selection planning,
+ownership reads, existing-join classification, set-based insertion and
+transaction-manager touch writes through cohesive helpers. Existing join
+uniqueness remains the final concurrency guard. Infrastructure exceptions from
+the bind command are no longer converted into ambiguous `{ ok: false }`
+results. Batch touch methods preserve history writes while using set-based
+entity updates.
 ### Task-specific validation performed
-_Not started._
+Passed:
+
+- `npm test --workspace mercurion_web_node -- --runInBand --runTestsByPath src/app_modules/molecule-collection/services/bulk-join-planner.spec.ts src/app_modules/molecule-collection/services/molecule-collection-item-join.service.spec.ts src/app_modules/molecule-collection/services/molecule-collection-item.service.spec.ts src/app_modules/molecule-collection/services/molecule-collection.service.spec.ts`
+  (`4` suites, `9` tests).
+- `npm run typecheck --workspace mercurion_web_node`.
+- `npm run lint --workspace mercurion_web_node -- --no-fix`.
+- `git diff --check`.
+
+The planner tests cover duplicate requests, explicit ownership filtering,
+select-all exclusions, existing joins, and deterministic `toInsert` sets.
 ### Full pre-merge CI-parity validation
-_Not started._
+Not run locally by policy (`npm ci` and `npm run ci:check` are prohibited);
+exact feature-SHA GitHub Actions evidence is coordinator-owned.
 ### Browser validation performed
-_Not started._
+Using the canonical runtime in Tox21 → Nest → Angular order, two consecutive
+complete nginx readiness rounds succeeded after the startup barrier. Through
+`http://localhost:8888`, a fresh ordinary test-account login was completed and
+the protected dashboard was observed. The collections page and collection
+detail page loaded existing partial joins, the add-molecules dialog opened,
+and both the owned-molecules and ChEMBL selection paths were rendered,
+including the current selection UI. All task-owned runtime processes were
+stopped afterward and no task-owned process remained.
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+`8c6f7b416dbce2d0193204956f1dd0966f01aeba` -
+`refactor: decompose molecule bulk join planning`
+
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+Feature SHA `8c6f7b416dbce2d0193204956f1dd0966f01aeba` passed GitHub Actions
+run `35089106194`, including all platform, unit, E2E, build, browser journey,
+database schema, and `Required gate` jobs.
+### Merge / CI
+_Not started._
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+None.

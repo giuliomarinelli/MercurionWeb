@@ -81,9 +81,12 @@ Mark `BLOCKED` if a panel's ownership cannot be separated without an unresolved 
 
 ## Execution notes
 
-> Current status (2026-09-11): PENDING. The planner identified the prior
-> dependency skip as stale after direct owner re-enablement of its prerequisite
-> chain; historical skip evidence below is retained only for traceability.
+> Current status (2026-09-17): PENDING. `npm run autonomous:plan --silent`
+> identified this skip as stale after the authorized recovery of prerequisite
+> `0086` (UI-028); historical skip evidence below is retained only for
+> traceability.
+
+- 2026-09-17: Marked `SKIPPED_DEPENDENCY` without implementation because hard prerequisite `0086` is terminal `BLOCKED` (UI-028). This task was not attempted.
 
 ### Feature branch
 _Not started._

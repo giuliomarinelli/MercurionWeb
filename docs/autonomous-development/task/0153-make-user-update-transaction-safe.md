@@ -1,9 +1,9 @@
 # 0153 - Make UserService updates transaction-safe
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Refactor `UserService.updateUser` so update, read-back and failure handling execute entirely through the canonical Unit of Work transaction context, with awaited rollback/lifecycle and no silent persistence failure.
@@ -82,24 +82,51 @@ Mark `BLOCKED` if a current caller relies intentionally on swallowing database e
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-004`, based on `0dc1470a1d83e095ae671f52ffc20d751575214d`.
 ### Preflight
-_Not started._
+- Confirmed clean `feature/DATA-004` at the supplied base SHA and exact successful
+  GitHub Actions CI run `35028699428` for `0dc1470a1d83e095ae671f52ffc20d751575214d`.
+- Confirmed dependency task DATA-003/0152 is `DONE`, no task-owned Nest, Angular,
+  Tox21, Jest watcher, or other workspace runtime was started, and browser
+  validation is not applicable.
+- Focused unchanged validation passed:
+  `npm test --workspace mercurion_web_node -- --runInBand
+  src/persistence/transaction-context.spec.ts
+  src/app_modules/user/services/user.service.spec.ts`.
+- Local `npm ci` and `npm run ci:check` were not run.
 ### Preflight remediation
 _None._
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0152. This task was never attempted and receives no feature branch.
+`UserService.updateUser` now performs affected-row detection and manager-scoped
+read-back inside the canonical Unit of Work, returning null only for an absent
+row while propagating persistence/read-back failures for rollback. Account and
+MFA callers explicitly handle a missing update result rather than continuing
+security-sensitive flows.
 ### Task-specific validation performed
-_Not started._
+- Added focused success, absent-user, update-failure, read-back-failure, and
+  rollback/lifecycle assertions in `user.service.spec.ts`.
+- `npm test --workspace mercurion_web_node -- --runInBand
+  src/persistence/transaction-context.spec.ts
+  src/app_modules/user/services/user.service.spec.ts` passed.
+- `npm run typecheck --workspace mercurion_web_node` passed.
+- `npm run lint --workspace mercurion_web_node` passed.
 ### Full pre-merge CI-parity validation
-_Not started._
+Exact feature SHA `d2c3cd3b49fbdc004288fb7c6031fcf97081f829` passed GitHub Actions
+CI run `35029360115`, including Windows/Ubuntu prerequisites, container builds,
+Angular/Nest unit and E2E tests, PostgreSQL migration schema, build artifacts,
+critical browser journeys, and `Required gate`.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+`f8816110c2fcac97cbf5b1dd6e05f0fcf4f2b66d` — transaction-safe UserService
+updates, explicit caller not-found handling, focused rollback tests, and task
+execution notes.
+
+`d2c3cd3b49fbdc004288fb7c6031fcf97081f829` — recorded exact feature-SHA
+Actions evidence.
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+_Not started._
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+_None._

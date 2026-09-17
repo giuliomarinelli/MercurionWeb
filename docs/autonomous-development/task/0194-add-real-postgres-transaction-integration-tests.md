@@ -1,9 +1,9 @@
 # 0194 - Add real PostgreSQL transaction integration tests
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Add integration tests against a disposable real PostgreSQL instance that prove transaction rollback, database constraints, isolation and concurrency invariants which mocked QueryRunner/EntityManager tests cannot establish.
@@ -93,24 +93,53 @@ A transaction mock can prove that code calls `rollbackTransaction`; it cannot pr
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/QA-008` from base `4acaedc3c25171ee38da0fa797f7e6705e4af6cf`.
 ### Preflight
-_Not started._
+- Branch identity, cleanliness, exact base SHA and `commit.gpgSign=false`
+  verified before edits.
+- Exact base GitHub Actions CI run `35059501790` completed successfully.
+- Unchanged-base Nest typecheck passed.
+- The existing local schema probe was not runnable without database
+  environment variables; this task's integration fixture therefore requires
+  an explicit disposable-database opt-in and loopback database guard.
+- No task-owned Angular, Nest, Tox21 or test-watcher process was active.
 ### Preflight remediation
-_None._
+None.
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0150, 0151, 0152, 0188. This task was never attempted and receives no feature branch.
+Added an isolated PostgreSQL integration-test configuration and reusable
+fixture. Each run drops the disposable schema, applies all TypeORM migrations,
+and deterministically removes the database state during teardown. The suite
+proves rollback, direct ownership/unique/check constraints, concurrent unique
+writes, and transaction visibility through the active Unit of Work manager.
+The canonical PostgreSQL CI job now runs the suite after migration/schema
+validation and uploads its JSON diagnostics.
 ### Task-specific validation performed
-_Not started._
+- Started disposable `pgvector/pgvector:pg17` container
+  `mercurion-postgres-integration` with database `mercurion_integration`.
+- `npm run test:integration --workspace mercurion_web_node`: passed, 1 suite
+  and 5 tests.
+- Repeated the same integration command twice sequentially: both repetitions
+  passed, including migration setup, rollback, ownership/unique/check
+  constraints, concurrent writes and transaction visibility.
+- `npm run ci:database-schema`: passed migrations, drift, Unit of Work and
+  integrity checks against the disposable database.
+- `npm run ci:transactions`: passed architecture and negative checks.
+- `npm run typecheck --workspace mercurion_web_node`: passed.
+- `npm run lint --workspace mercurion_web_node`: passed with zero warnings.
+- `npm run build --workspace mercurion_web_node`: passed.
+- `git diff --check`: passed.
+- The disposable PostgreSQL container was stopped after validation.
 ### Full pre-merge CI-parity validation
-_Not started._
+Coordinator-owned exact feature-SHA GitHub Actions validation; not run locally.
+Local `npm ci` and `npm run ci:check` were not run.
 ### Browser validation performed
-_Not applicable._
+Not applicable.
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+`6b3e4c68` — disposable PostgreSQL fixture, migration-backed transaction
+integration tests, CI registration, diagnostics upload and local runbook.
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+_Not started._
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+_None._

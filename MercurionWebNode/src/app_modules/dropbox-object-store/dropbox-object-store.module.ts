@@ -1,16 +1,25 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DocumentEntity } from './models/entities/document.entity';
-import { DropboxObjectStoreService } from './services/dropbox-object-store.service';
 import { OAuth2ClientModule } from '../oauth2-client/oauth2-client.module';
 import { DocumentController } from './controllers/document.controller';
+import { DocumentCommandService } from './application/document-command.service';
+import { ObjectStore } from './application/object-store.port';
+import { DropboxObjectStoreAdapter } from './infrastructure/dropbox-object-store.adapter';
+import { StorageOperationEntity } from './models/entities/storage-operation.entity'
+import { StorageReconciliationService } from './application/storage-reconciliation.service'
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([DocumentEntity]),
+    TypeOrmModule.forFeature([DocumentEntity, StorageOperationEntity]),
     OAuth2ClientModule
   ],
-  providers: [DropboxObjectStoreService],
+  providers: [
+    DocumentCommandService,
+    StorageReconciliationService,
+    DropboxObjectStoreAdapter,
+    { provide: ObjectStore, useExisting: DropboxObjectStoreAdapter },
+  ],
   controllers: [DocumentController]
 })
 export class DropboxObjectStoreModule { }

@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "description": "Canonical composition of the maintained Angular and Nest topology checks.",
+  "checks": [
+    {
+      "id": "angular-import-graph",
+      "product": "angular",
+      "script": "scripts/check-angular-import-graph.mjs",
+      "arguments": ["--root=MercurionWebNg", "--json"]
+    },
+    {
+      "id": "angular-reachability",
+      "product": "angular",
+      "script": "scripts/check-angular-orphans.mjs",
+      "arguments": ["--root=MercurionWebNg", "--json"],
+      "configuration": "MercurionWebNg/angular-reachability.config.json"
+    },
+    {
+      "id": "nest-module-graph",
+      "product": "nest",
+      "script": "scripts/check-nest-module-graph.mjs",
+      "arguments": ["--root=MercurionWebNode", "--json"]
+    },
+    {
+      "id": "nest-reachability",
+      "product": "nest",
+      "script": "scripts/check-nest-orphans.mjs",
+      "arguments": ["--root=MercurionWebNode", "--json"],
+      "configuration": "MercurionWebNode/nest-reachability.config.json"
+    },
+    {
+      "id": "architecture-policy",
+      "product": "repository",
+      "script": "scripts/check-architecture-policy.mjs",
+      "arguments": ["--json"],
+      "configuration": "scripts/architecture-policy.json"
+    }
+  ]
+}

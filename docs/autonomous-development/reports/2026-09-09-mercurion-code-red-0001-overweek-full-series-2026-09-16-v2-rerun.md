@@ -119,7 +119,7 @@ repository-local `commit.gpgSign=false`, and the exact worker handshake
 
 ## Host usage
 
-- Model/reasoning: inherited parent GPT-5.6 Sol / High
+- Model/reasoning: inherited parent legacy alternate model / High
 - Autopilot/task-session information: one startup handshake and one
   implementation-worker invocation; other counters unavailable
 - Credit/token/context information: unavailable

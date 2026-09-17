@@ -1,19 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { RedisService } from 'src/app_modules/redis/services/redis.service';
+import { AtomicAttemptPolicyService } from 'src/app_modules/redis/services/atomic-attempt-policy.service';
 import { Feedback } from '../models/entities/feedback.entity';
 import { FeedbackService } from './feedback.service';
 
 describe('FeedbackService', () => {
   let service: FeedbackService;
-
-  const redisServiceMock = {
-    exists: jest.fn(),
-    getClient: jest.fn(() => ({ incr: jest.fn() })),
-    setTTL: jest.fn(),
-    set: jest.fn(),
-    del: jest.fn(),
-  };
 
   const feedbackRepoMock = {
     save: jest.fn(),
@@ -25,7 +17,7 @@ describe('FeedbackService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         FeedbackService,
-        { provide: RedisService, useValue: redisServiceMock },
+        { provide: AtomicAttemptPolicyService, useValue: {} },
         { provide: getRepositoryToken(Feedback), useValue: feedbackRepoMock },
       ],
     }).compile();

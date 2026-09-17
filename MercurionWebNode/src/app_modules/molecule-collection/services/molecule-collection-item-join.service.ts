@@ -1,8 +1,7 @@
-import { errorMessage } from 'src/utils/errors/error-message'
 import { MoleculeCollectionItemJoin } from './../models/entities/molecule-collection-item-join.entity';
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, EntityManager, In, Repository } from 'typeorm';
+import { DataSource, EntityManager, Repository } from 'typeorm';
 import { UUID } from 'crypto';
 import { uuidv7 } from '@kripod/uuidv7';
 import { MoleculeCollectionService } from './molecule-collection.service';
@@ -14,9 +13,12 @@ import { MoleculeService } from 'src/app_modules/meilisearch/services/molecule.s
 import { BindManyCollectionsToMoleculeDTO } from '../models/dto/bind-many-collections-to-molecule.dto';
 import { LoggerPort } from 'src/logging/logger.port';
 import { LoggerContext } from 'src/logging/logger.port';
-
-
-
+import { runInTransaction } from 'src/persistence/transaction-context';
+import {
+    buildBulkJoinWriteSet,
+    planBulkJoinSelection
+} from './bulk-join-planner';
+import { MoleculeOwnershipPolicy } from './molecule-ownership.policy';
 
 @Injectable()
 export class MoleculeCollectionItemJoinService {
@@ -30,6 +32,7 @@ export class MoleculeCollectionItemJoinService {
         private readonly collectionService: MoleculeCollectionService,
         private readonly itemService: MoleculeCollectionItemService,
         private readonly moleculeService: MoleculeService,
+        private readonly ownershipPolicy: MoleculeOwnershipPolicy,
         meiliLogger: LoggerPort
     ) {
         this.logger = meiliLogger.forContext(MoleculeCollectionItemJoinService.name)
@@ -37,7 +40,7 @@ export class MoleculeCollectionItemJoinService {
 
     // Metodo STANDARD (fuori da transaction esplicita)
     async add(userId: UUID, collectionId: UUID, itemId: UUID): Promise<MoleculeCollectionItemJoin> {
-        return await this.joinRepo.manager.transaction(async manager => {
+        return await runInTransaction(this.joinRepo.manager, async (_context, manager) => {
             return this.addMoleculeToCollectionWithManager(userId, collectionId, itemId, manager)
         })
     }
@@ -49,8 +52,8 @@ export class MoleculeCollectionItemJoinService {
         itemId: UUID,
         manager: EntityManager
     ): Promise<MoleculeCollectionItemJoin> {
-        await this.assertCollectionOwnership(manager, userId, collectionId);
-        await this.assertItemOwnership(manager, userId, itemId);
+        await this.ownershipPolicy.assertCollectionOwned(manager, userId, collectionId);
+        await this.ownershipPolicy.assertItemOwned(manager, userId, itemId);
 
         let join = await manager.findOne(MoleculeCollectionItemJoin, {
             where: { collectionId, itemId, userId }
@@ -62,7 +65,7 @@ export class MoleculeCollectionItemJoinService {
 
     async removeMoleculeFromCollection(userId: UUID, collectionId: UUID, itemId: UUID, deleteCollectionIfEmpty = false): Promise<boolean> {
         try {
-            return await this.joinRepo.manager.transaction(async manager => {
+            return await runInTransaction(this.joinRepo.manager, async (_context, manager) => {
                 return this.removeMoleculeFromCollectionWithManager(userId, collectionId, itemId, deleteCollectionIfEmpty, manager);
             })
         } catch {
@@ -107,7 +110,7 @@ export class MoleculeCollectionItemJoinService {
         itemIds: UUID[],
         selectAll: boolean
     ): Promise<UUID[]> {
-        return this.dataSource.manager.transaction(manager =>
+        return runInTransaction(this.dataSource, async (_context, manager) =>
             this.addManyMoleculesToCollectionWithManager(userId, collectionId, itemIds, selectAll, manager)
         );
     }
@@ -123,44 +126,15 @@ export class MoleculeCollectionItemJoinService {
         manager: EntityManager
     ): Promise<UUID[]> {
 
-        await this.assertCollectionOwnership(manager, userId, collectionId);
-        const distinct = Array.from(new Set(itemIds));
+        await this.ownershipPolicy.assertCollectionOwned(manager, userId, collectionId);
+        const selection = await this.planItemCandidates(manager, userId, itemIds, selectAll);
+        if (selection.candidateIds.length === 0) return [];
 
-        // 1) Costruisci i candidati
-        let candidateIds: UUID[] = [];
-        if (!selectAll) {
-            candidateIds = await this.filterOwnedItemIds(manager, userId, distinct);
-        } else {
-
-            const qbAll = manager
-                .createQueryBuilder(MoleculeCollectionItemEntity, 'it')
-                .select('it.id', 'id')
-                .where('it.userId = :userId', { userId });
-
-            if (distinct.length > 0) {
-                qbAll.andWhere('NOT (it.id = ANY(:excluded))', { excluded: distinct });
-            }
-
-            const rows = await qbAll.getRawMany<{ id: UUID }>();
-            candidateIds = rows.map(r => r.id);
-        }
-
-        if (candidateIds.length === 0) return [];
-
-        // 2) Trova quelli già joinati (da scartare)
-        const qbExisting = manager
-            .createQueryBuilder(MoleculeCollectionItemJoin, 'j')
-            .select('j.itemId', 'itemId')
-            .where('j.userId = :userId', { userId })
-            .andWhere('j.collectionId = :collectionId', { collectionId });
-
-        // Postgres-ottimizzato:
-        qbExisting.andWhere('j.itemId = ANY(:ids)', { ids: candidateIds });
-
-        const alreadyRows = await qbExisting.getRawMany<{ itemId: UUID }>();
-        const alreadySet = new Set(alreadyRows.map(r => r.itemId));
-
-        const toInsert = candidateIds.filter(id => !alreadySet.has(id));
+        const existingIds = await this.findExistingItemJoins(
+            manager, userId, collectionId, selection.candidateIds
+        );
+        const writeSet = buildBulkJoinWriteSet(selection.candidateIds, existingIds);
+        const { toInsertIds: toInsert } = writeSet;
         if (toInsert.length > 0) {
             await manager
                 .createQueryBuilder()
@@ -175,26 +149,32 @@ export class MoleculeCollectionItemJoinService {
 
         await this.collectionService.markAsTouchedWithManager(userId, collectionId, manager)
 
-        for (const itemId of toInsert) {
-            await this.itemService.markAsTouchedWithManager(userId, itemId, manager)
-        }
+        await this.itemService.markManyAsTouchedWithManager(userId, toInsert, manager)
 
-        // 3) Ritorna gli scartati
-        return Array.from(alreadySet);
+        return writeSet.alreadyJoinedIds;
     }
 
     async bindManyCollectionsToMolecule(userId: UUID, moleculeId: string, collectionIds: UUID[], selectAll: boolean): Promise<BindManyCollectionsToMoleculeDTO> {
-        try {
-            return await this.dataSource.manager.transaction(async (manager) => {
-                return this.bindManyCollectionsToMoleculeWithManager(userId, moleculeId, collectionIds, selectAll, manager)
-            })
-        } catch (e) {
-            this.logger.warn(`MoleculeCollectionItemJoinService > bindManyCollectionsToMolecule: Error => ${errorMessage(e)}`)
-            return {
-                ok: false,
-                moleculeUUID: null
+        let preparedChemblName: string | undefined
+        if (/^\d+$/.test(String(moleculeId))) {
+            const chemblMolregno = Number(moleculeId)
+            if (!await this.moleculeService.existsMoleculeByMolregno(chemblMolregno)) {
+                return { ok: false, moleculeUUID: null }
             }
+            const [chemblMol] = (await this.moleculeService.getPreviewsByMolregnos([String(chemblMolregno)]))
+                .filter(res => !!res)
+            if (!chemblMol) return { ok: false, moleculeUUID: null }
+            preparedChemblName = chemblMol.preferredName
+            if ((!preparedChemblName || !preparedChemblName.trim()) && Array.isArray(chemblMol.synonyms)) {
+                preparedChemblName = chemblMol.synonyms.find(synonym => !!synonym?.trim())
+            }
+            preparedChemblName ||= `Lead ${chemblMolregno}`
         }
+        return runInTransaction(this.dataSource, async (_context, manager) =>
+            this.bindManyCollectionsToMoleculeWithManager(
+                userId, moleculeId, collectionIds, selectAll, manager, preparedChemblName
+            )
+        )
     }
 
     async bindManyCollectionsToMoleculeWithManager(
@@ -202,7 +182,8 @@ export class MoleculeCollectionItemJoinService {
         moleculeId: string,
         collectionIds: UUID[],
         selectAll: boolean,
-        manager: EntityManager
+        manager: EntityManager,
+        preparedChemblName?: string
     ): Promise<BindManyCollectionsToMoleculeDTO> {
 
         const isMolregno = /^\d+$/.test(String(moleculeId))
@@ -211,26 +192,11 @@ export class MoleculeCollectionItemJoinService {
 
         if (isMolregno) {
             const chemblMolregno = Number(moleculeId)
-            const existsChemblMolecule = await this.moleculeService.existsMoleculeByMolregno(chemblMolregno)
-            if (!existsChemblMolecule) {
+            if (!preparedChemblName) {
                 return {
                     ok: false,
                     moleculeUUID
                 }
-            }
-            const [chemblMol] = (await this.moleculeService.getPreviewsByMolregnos([String(chemblMolregno)])).filter(res => !!res)
-            let name = chemblMol.preferredName
-            if ((!name || !name.trim()) && !!chemblMol.synonyms && Array.isArray(chemblMol.synonyms) && chemblMol.synonyms.length > 0) {
-                for (const syn of chemblMol.synonyms) {
-                    if (!syn || !syn.trim()) {
-                        continue
-                    }
-                    name = syn
-                    break
-                }
-            }
-            if (!name) {
-                name = `Lead ${chemblMolregno}`
             }
             const existsEntity = await manager.exists(ChEMBLMoleculeItemEntity, {
                 where: {
@@ -257,7 +223,7 @@ export class MoleculeCollectionItemJoinService {
                     userId,
                     type: 'chembl',
                     chemblMolregno,
-                    name,
+                    name: preparedChemblName,
                     createdAt: now,
                     updatedAt: now,
                     touchedAt: now
@@ -267,10 +233,7 @@ export class MoleculeCollectionItemJoinService {
                 moleculeUUID = moleculeId as UUID
             }
         } else {
-            const ownsMolecule = await manager.exists(MoleculeCollectionItemEntity, {
-                where: { userId, id: moleculeId as UUID }
-            })
-            if (!ownsMolecule) {
+            if ((await this.ownershipPolicy.classifyItem(manager, userId, moleculeId as UUID)) !== 'owned') {
                 return {
                     ok: false,
                     moleculeUUID
@@ -278,39 +241,18 @@ export class MoleculeCollectionItemJoinService {
             }
         }
 
-        const distinct = Array.from(new Set(collectionIds))
-        let candidateIds: UUID[] = []
-
-        if (!selectAll) {
-            candidateIds = await this.filterOwnedCollectionIds(manager, userId, distinct)
-        } else {
-            const qbAll = manager
-                .createQueryBuilder(MoleculeCollection, 'c')
-                .select('c.id', 'id')
-                .where('c.userId = :userId', { userId });
-
-            if (distinct.length > 0) {
-                qbAll.andWhere('NOT (c.id = ANY(:excluded))', { excluded: distinct })
-            }
-            const rows = await qbAll.getRawMany<Pick<MoleculeCollection, 'id'>>()
-            candidateIds = rows.map(r => r.id)
-        }
-        if (candidateIds.length === 0) {
+        const selection = await this.planCollectionCandidates(manager, userId, collectionIds, selectAll)
+        if (selection.candidateIds.length === 0) {
             return {
                 ok: false,
                 moleculeUUID
             }
         }
-        const qbExisting = manager
-            .createQueryBuilder(MoleculeCollectionItemJoin, 'j')
-            .select(['j.collectionId'])
-            .where('j.userId = :userId', { userId })
-            .andWhere('j.itemId = :itemId', { itemId: moleculeId })
-            .andWhere('j.collectionId = ANY(:ids)', { ids: candidateIds })
-
-        const alreadyRows = await qbExisting.getRawMany<Pick<MoleculeCollectionItemJoin, 'collectionId'>>()
-        const alreadySet = new Set(alreadyRows.map(r => r.collectionId))
-        const toInsert = candidateIds.filter(id => !alreadySet.has(id))
+        const existingIds = await this.findExistingCollectionJoins(
+            manager, userId, moleculeId as UUID, selection.candidateIds
+        )
+        const writeSet = buildBulkJoinWriteSet(selection.candidateIds, existingIds)
+        const { toInsertIds: toInsert } = writeSet
         if (toInsert.length > 0) {
             await manager
                 .createQueryBuilder()
@@ -326,49 +268,63 @@ export class MoleculeCollectionItemJoinService {
                 .execute()
         }
         await this.itemService.markAsTouchedWithManager(userId, moleculeId as UUID, manager)
-        for (const collectionId of toInsert) {
-            await this.collectionService.markAsTouchedWithManager(userId, collectionId, manager)
-        }
+        await this.collectionService.markManyAsTouchedWithManager(userId, toInsert, manager)
         return {
             ok: true,
             moleculeUUID
         }
     }
 
-    private async assertCollectionOwnership(manager: EntityManager, userId: UUID, collectionId: UUID): Promise<void> {
-        const owns = await manager.exists(MoleculeCollection, { where: { id: collectionId, userId } })
-        if (!owns) {
-            throw new ForbiddenException('CollectionAccessForbidden')
+    private async planItemCandidates(
+        manager: EntityManager, userId: UUID, requestedIds: UUID[], selectAll: boolean
+    ) {
+        const classification = await this.ownershipPolicy.classifyItems(manager, userId, requestedIds)
+        if (selectAll) {
+            const rows = await manager.find(MoleculeCollectionItemEntity, {
+                where: { userId },
+                select: { id: true }
+            })
+            return planBulkJoinSelection({ requestedIds, selectAll }, rows.map(row => row.id))
         }
+        return planBulkJoinSelection({ requestedIds, selectAll }, classification.ownedIds)
     }
 
-    private async assertItemOwnership(manager: EntityManager, userId: UUID, itemId: UUID): Promise<void> {
-        const owns = await manager.exists(MoleculeCollectionItemEntity, { where: { id: itemId, userId } })
-        if (!owns) {
-            throw new ForbiddenException('MoleculeAccessForbidden')
+    private async planCollectionCandidates(
+        manager: EntityManager, userId: UUID, requestedIds: UUID[], selectAll: boolean
+    ) {
+        const classification = await this.ownershipPolicy.classifyCollections(manager, userId, requestedIds)
+        if (selectAll) {
+            const rows = await manager.find(MoleculeCollection, {
+                where: { userId },
+                select: { id: true }
+            })
+            return planBulkJoinSelection({ requestedIds, selectAll }, rows.map(row => row.id))
         }
+        return planBulkJoinSelection({ requestedIds, selectAll }, classification.ownedIds)
     }
 
-    private async filterOwnedItemIds(manager: EntityManager, userId: UUID, ids: UUID[]): Promise<UUID[]> {
-        if (ids.length === 0) {
-            return []
-        }
-        const rows = await manager.find(MoleculeCollectionItemEntity, {
-            where: { userId, id: In(ids) },
-            select: { id: true }
-        })
-        return rows.map(r => r.id)
+    private async findExistingItemJoins(
+        manager: EntityManager, userId: UUID, collectionId: UUID, candidateIds: UUID[]
+    ): Promise<UUID[]> {
+        const rows = await manager.createQueryBuilder(MoleculeCollectionItemJoin, 'j')
+            .select('j.itemId', 'itemId')
+            .where('j.userId = :userId', { userId })
+            .andWhere('j.collectionId = :collectionId', { collectionId })
+            .andWhere('j.itemId = ANY(:ids)', { ids: candidateIds })
+            .getRawMany<{ itemId: UUID }>()
+        return rows.map(row => row.itemId)
     }
 
-    private async filterOwnedCollectionIds(manager: EntityManager, userId: UUID, ids: UUID[]): Promise<UUID[]> {
-        if (ids.length === 0) {
-            return []
-        }
-        const rows = await manager.find(MoleculeCollection, {
-            where: { userId, id: In(ids) },
-            select: { id: true }
-        })
-        return rows.map(r => r.id)
+    private async findExistingCollectionJoins(
+        manager: EntityManager, userId: UUID, itemId: UUID, candidateIds: UUID[]
+    ): Promise<UUID[]> {
+        const rows = await manager.createQueryBuilder(MoleculeCollectionItemJoin, 'j')
+            .select('j.collectionId', 'collectionId')
+            .where('j.userId = :userId', { userId })
+            .andWhere('j.itemId = :itemId', { itemId })
+            .andWhere('j.collectionId = ANY(:ids)', { ids: candidateIds })
+            .getRawMany<{ collectionId: UUID }>()
+        return rows.map(row => row.collectionId)
     }
 
 
