@@ -161,6 +161,19 @@ separate development-only output.
 ### Full pre-merge CI-parity validation
 Not run locally; exact feature-SHA CI is owned by the coordinator.
 
+### Feature-CI repair
+- Feature CI run `35240272116` failed in both platform `Prerequisites` jobs
+  because the topology checker reported the development-only catalog entrypoint
+  `src/catalog/main.ts` and its component as orphaned from the production
+  `src/main.ts` entrypoint.
+- Added explicit development-only reachability allowlist entries for both
+  catalog files in `MercurionWebNg/angular-reachability.config.json`; no
+  checker logic, production entrypoint, or unrelated code was changed.
+- Before repair, `node scripts/check-repository-topology.mjs
+  --report-dir=reports/topology-ui028-repair` failed only
+  `angular-reachability`; import-graph, Nest, and architecture checks passed.
+- The repair validation and final commit SHA are recorded below.
+
 ### Browser validation performed
 - Catalog-only Chrome DevTools MCP validation at `http://localhost:4400/`
   rendered the complete catalog accessibility tree, including disabled,
@@ -179,6 +192,7 @@ Not run locally; exact feature-SHA CI is owned by the coordinator.
 `7844e1c3b039d3a52abc417770def4ab24b2ece9` — catalog implementation,
 tooling, baselines and focused validation, committed with `--no-gpg-sign` and
 the required Copilot co-author trailer.
+Repair commit pending after focused topology validation.
 
 ### Merge / CI
 No merge performed. Coordinator must publish this feature SHA and observe
