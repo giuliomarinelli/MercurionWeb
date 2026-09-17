@@ -6,7 +6,7 @@
 |        2 | 0126 | BE-012   |         **4** | [x]       |
 |        3 | 0147 | BE-033   |         **4** | [x]       |
 |        4 | 0179 | DATA-030 |         **4** | [x]       |
-|        5 | 0214 | QA-028   |         **4** | [ ]       |
+|        5 | 0214 | QA-028   |         **4** | [x]       |
 |        6 | 0102 | NG-016   |         **3** | [ ]       |
 |        7 | 0209 | QA-023   |         **2** | [ ]       |
 |        8 | 0086 | UI-028   |         **2** | [x]       |
@@ -30,3 +30,9 @@
   TTL/cleanup degli indici e listener keyspace; browser login/sessioni/logout
   verde 2/2. Feature `1f1d58f4c` verde nel run `35257870848`; merge
   `24bdc6fcf` verde nel run `35258693809`, entrambi con `Required gate`.
+- `0214` / `QA-028`: recuperata dal branch preservato e aggiornata al
+  `develop` corrente. Resa deterministica la generazione della build identity
+  anche nei gate test diretti e stabilizzata la copertura del persistence
+  adapter senza abbassare le soglie. Feature `24bbe7430` verde nel run
+  `35262639511`; merge `4b87cb305` verde nel run `35263378446`, entrambi con
+  `Required gate`, container, build, test e browser journey verdi.
