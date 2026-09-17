@@ -25,6 +25,14 @@ export class RedisService implements OnModuleDestroy {
     return this.redisClient
   }
 
+  public async eval<T = unknown>(
+    script: string,
+    keys: RedisKey[],
+    args: string[] = []
+  ): Promise<T> {
+    return this.redisClient.eval(script, keys.length, ...keys, ...args) as Promise<T>
+  }
+
   public async getNotifyKeyspaceEvents(): Promise<string> {
     const response = await this.redisClient.config('GET', 'notify-keyspace-events')
     return Array.isArray(response) && typeof response[1] === 'string' ? response[1] : ''
@@ -139,10 +147,6 @@ export class RedisService implements OnModuleDestroy {
 
   public async incr(key: RedisKey): Promise<number> {
     return this.redisClient.incr(key)
-  }
-
-  public async eval(script: string, numberOfKeys: number, ...args: string[]): Promise<unknown> {
-    return this.redisClient.eval(script, numberOfKeys, ...args)
   }
 
   public async ttl(key: RedisKey): Promise<number> {

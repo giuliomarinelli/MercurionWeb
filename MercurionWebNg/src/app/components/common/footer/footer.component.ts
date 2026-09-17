@@ -29,7 +29,7 @@ import { APP_CONFIG } from '../../../config/app-config';
             priority="true"
             width="186"
             height="234"
-            class="w-[23px] h-auto contrast-115"
+            class="w-[23px] h-auto contrast-100"
           />
           <span>&copy; {{year}} Mercurion. Tutti i diritti riservati.</span>
           <span data-build-identity="true">v{{appConfig.release.version}} @ {{appConfig.release.revision}}</span>

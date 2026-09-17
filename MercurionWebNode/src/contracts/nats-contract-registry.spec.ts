@@ -66,9 +66,16 @@ describe('NATS contract registry', () => {
     const rdkit = NATS_CONTRACT_REGISTRY.rdkitAreSameStructure
 
     expect(inference.request({ smiles: '', accessToken: 'short' })).toBe(false)
+    expect(inference.request({ smiles: 'C'.repeat(1025), accessToken: 'a'.repeat(10) })).toBe(false)
+    expect(inference.request({ smiles: 'CCO', accessToken: 'a'.repeat(4097) })).toBe(false)
     expect(inference.request({ smiles: 'CCO', accessToken: 'a'.repeat(10), extra: true })).toBe(false)
     expect(inference.response({ 'SR-p53': { probability: '0.5' } })).toBe(false)
+    expect(inference.response({})).toBe(false)
+    expect(inference.response({ error: 'peer failure', data: true })).toBe(false)
     expect(rdkit.response({ data: { unexpected: true } })).toBe(false)
+    expect(rdkit.response({ data: {
+      mwFreebase: '46.069', alogp: 0, hba: 1, hbd: 1, psa: 20, rtb: 0
+    } })).toBe(false)
     expect(rdkit.response({ error: '' })).toBe(false)
   })
 })

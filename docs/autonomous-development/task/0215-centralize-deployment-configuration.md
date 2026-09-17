@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Make Docker Compose, Docker build references and Kubernetes manifests derive from one validated service/deployment schema plus explicit environment overlays so image identity, names, ports, required variables and secret references cannot drift.
@@ -113,7 +113,8 @@ _None._
 
 ### Summary
 
-_Not started._
+Skipped because hard prerequisite `0214` (QA-028) is terminal
+`BLOCKED`; no implementation was attempted.
 
 ### Task-specific validation performed
 
@@ -129,7 +130,7 @@ _Not applicable / not started._
 
 ### Commits
 
-_Not recorded._
+Metadata-only dependency skip; no feature branch was created.
 
 ### Merge / CI
 
@@ -141,4 +142,5 @@ _Not applicable._
 
 ### Blocker / human decision required
 
-_None._
+Direct terminal prerequisite: `0214` / QA-028 (`BLOCKED`). The task remains
+terminal until that prerequisite is explicitly recovered in a new session.

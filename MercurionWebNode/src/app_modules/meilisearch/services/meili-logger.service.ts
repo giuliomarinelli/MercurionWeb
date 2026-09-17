@@ -8,6 +8,7 @@ import { OutboxEventType } from 'src/app_modules/notification/models/enums/outbo
 import { DataSource } from 'typeorm'
 import { runInTransaction } from 'src/persistence/transaction-context'
 import { UUID } from 'crypto'
+import { redactSensitive } from 'src/observability/redaction'
 
 
 @Injectable()
@@ -37,7 +38,9 @@ export class MeiliLoggerService extends LoggerPort {
     }
 
     private createLogEntry(level: LogLevel, message: string | object, context?: string, stack?: string): LogEntry {
-        const raw = typeof message === 'string' ? message : JSON.stringify(message)
+        const raw = typeof message === 'string'
+            ? message
+            : JSON.stringify(redactSensitive(message))
 
         const safeMessage = this.sanitize(raw)
         const safeStack = stack ? this.sanitize(stack) : undefined

@@ -5,6 +5,7 @@ import { BrowserTestingModule, platformBrowserTesting } from '@angular/platform-
 import { provideRouter } from '@angular/router'
 import { Apollo } from 'apollo-angular'
 import { NEVER } from 'rxjs'
+import './app/testing/accessibility-canonical-ui.spec'
 
 getTestBed().initTestEnvironment(
   BrowserTestingModule,

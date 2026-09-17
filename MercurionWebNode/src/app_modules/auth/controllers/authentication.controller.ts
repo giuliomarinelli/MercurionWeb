@@ -115,6 +115,7 @@ export class AuthenticationController {
         })
     }
 
+    // transport-only: raw request access reads the signed-in marker cookie for MFA continuation.
     @Public()
     @Post('local-dummy')
     @HttpCode(HttpStatus.OK)

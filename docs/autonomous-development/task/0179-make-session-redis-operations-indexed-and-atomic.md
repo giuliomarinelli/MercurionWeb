@@ -1,7 +1,7 @@
 # 0179 - Make session Redis operations indexed and atomic
 
-- [ ] DONE
-- [x] BLOCKED
+- [x] DONE
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
@@ -58,11 +58,11 @@ Source: `DATA-030` in Series `0001`.
 
 ## Acceptance criteria
 
-- [ ] No normal auth/session request path performs keyspace `SCAN` to locate a session or token.
-- [ ] Session create/activate/refresh/revoke/destroy keep all Redis indexes consistent atomically.
-- [ ] Concurrent same-device/session operations preserve documented invariants.
-- [ ] Expired sessions do not leave unbounded stale secondary indexes.
-- [ ] Real-Redis integration tests cover races and partial-failure scenarios.
+- [x] No normal auth/session request path performs keyspace `SCAN` to locate a session or token.
+- [x] Session create/activate/refresh/revoke/destroy keep all Redis indexes consistent atomically.
+- [x] Concurrent same-device/session operations preserve documented invariants.
+- [x] Expired sessions do not leave unbounded stale secondary indexes.
+- [x] Real-Redis integration tests cover races and partial-failure scenarios.
 
 ## Validation
 
@@ -126,3 +126,25 @@ Repair the repository-controlled Fastify/formidable compatibility mismatch,
 then rerun the canonical runtime/browser acceptance probe and exact feature-SHA
 CI. The preserved feature branch contains the coherent implementation and
 blocker diagnostic.
+
+### Interactive recovery (2026-09-17)
+- Merged current green `develop` into the preserved feature branch. The later
+  Fastify 5 compatibility adapter removed the original runtime blocker.
+- Consolidated the duplicate Redis `eval` APIs on the typed keys/arguments
+  contract and migrated the atomic-attempt policy and its regression test.
+- Runtime testing against the real development Redis found and fixed an
+  off-by-one Lua argument range that made an atomically created session
+  unreadable, then verified login succeeds with the direct session record.
+- Preserved the longest user-index TTL, made device-index deletion
+  compare-and-delete safe, added bounded stale-index cleanup, and taught the
+  keyspace listener to accept canonical `session:<id>` events.
+- Canonical Tox21, Nest and Angular runtimes reached readiness through
+  `http://localhost:8888`. The same-version browser suite passed 2/2 and now
+  proves ordinary login, the protected settings “Sessioni attive” view,
+  current-session visibility, logout and subsequent protected rejection.
+- Final focused verification passed 30/30 tests across five Redis/session
+  suites, plus Nest typecheck, lint and build.
+- Final feature `1f1d58f4cca6b960b8e5e4f6dcfd5644f01f3ca8` passed exact
+  CI run `35257870848`; merge `24bdc6fcfc1cb71f63ee01085d6d07e94568a986`
+  passed exact CI run `35258693809`. Both runs completed the stable
+  `Required gate` successfully.

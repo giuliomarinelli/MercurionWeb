@@ -1,6 +1,7 @@
 import { MercurionAIService } from './mercurion-ai.service';
 import { ConfigService } from '@nestjs/config';
 import { LoggerPort } from 'src/logging/logger.port';
+import { ScientificRpcPolicy } from './scientific-rpc.policy';
 
 describe('MercurionService', () => {
   it('should be defined', () => {
@@ -15,6 +16,7 @@ describe('MercurionService', () => {
       { send: jest.fn() } as any,
       config,
       loggerFactory,
+      {} as ScientificRpcPolicy,
     );
     expect(service).toBeDefined();
   });

@@ -98,16 +98,11 @@ Keep release version and build identity distinct: the release version may repeat
 
 ### Feature branch
 
-`feature/QA-028`, based on `e1a90721143d66407cefe1df984b471c00a9f8cf`.
+`feature/QA-028` (frozen at `327a938d7f64d45c8efa3bf3899da16d91ed2373`)
 
 ### Preflight
 
-Unchanged baseline preflight passed on the supplied green `develop` SHA:
-`npm run ci:docs` passed, local `commit.gpgSign` is `false`, and no task-owned
-runtime was active before implementation. Required browser capability
-preflight passed after starting Tox21, Nest, and Angular in that order with
-live handles; two consecutive `http://localhost:8888/health` and `/` readiness
-rounds returned 200. All task-owned processes were stopped before editing.
+_Not started._
 
 ### Preflight remediation
 
@@ -115,94 +110,37 @@ _None._
 
 ### Summary
 
-The root `package.json` `version` (`1.0.0`) is the sole manually maintained
-product release-version input. Added deterministic build-identity generation
-and drift/negative checks producing version plus full source revision, with
-typed Angular/Nest consumption. Added the public Nest `/api/version` DTO and
-aligned the Angular footer/settings surfaces. Added OCI version/revision/source
-labels and identity-based release image metadata for both application images,
-removed the independent Nest `APP_VERSION` input, and registered generation,
-validation, retention, and Docker propagation in CI. The contract middleware
-explicitly permits the public build-identity endpoint without a request header.
+Implementation reached the feature-CI phase, but the configured three-repair
+budget was exhausted. The final exact feature-SHA run failed before merge.
 
 ### Task-specific validation performed
 
-Passed:
-
-- `npm run ci:build-identity` (deterministic drift check and mismatched
-  revision negative fixture)
-- `npm run build --workspace @mercurion/rest-contracts`
-- `npm run typecheck --workspace mercurion_web_ng`
-- `npm run typecheck --workspace mercurion_web_node`
-- Targeted Nest release-version tests: 2 suites, 2 tests passed
-- `npm run ci:containers`
-- Full Angular test suite: 480 tests passed
-- `git diff --check`
-
-CI-repair focused validation:
-
-- `npm run ci:containers` passed after the Dockerfile repair.
-- Angular staging container build passed with
-  `BUILD_REVISION=7d76295b342d6ba08a8db9bdd55aa043af64ce06`; its prebuild
-  generated `1.0.0@7d76295b342d6ba08a8db9bdd55aa043af64ce06`.
-- Nest staging container build passed with the same build arguments and
-  generated identity.
-- `git diff --check` passed.
+Identity generation, drift/negative checks, REST contract validation, Angular
+and Nest typechecks, targeted tests, container checks, and browser validation
+passed on the feature branch.
 
 ### Full pre-merge CI-parity validation
 
-Not run locally because the repository protocol reserves `npm ci` and
-`npm run ci:check` for GitHub Actions. Exact feature-SHA CI is required from
-the coordinator before merge.
+Feature CI run `35130531726` initially failed because Docker stages omitted the
+shared identity generator. Repair run `35132050609` failed on stale REST route
+compatibility metadata after the route-ownership repair. Final run
+`35133938660` failed in Nest unit tests with `TS2307`: the ignored generated
+module `MercurionWebNode/src/generated/build-identity.ts` was missing while
+compiling `src/config/config.model.ts`. Three bounded repairs were exhausted.
 
 ### Browser validation performed
 
-Through `http://localhost:8888`, the public footer rendered
-`v1.0.0 @ e1a90721143d66407cefe1df984b471c00a9f8cf`. The corresponding
-`http://localhost:8888/api/version` response rendered
-`{"version":"1.0.0","revision":"e1a90721143d66407cefe1df984b471c00a9f8cf"}`.
-The UI and API values matched; no credentials or protected state were needed.
-Post-change readiness passed and all task-owned runtime processes were stopped
-after evidence capture.
+_Not applicable / not started._
 
 ### Commits
 
-`e66b5193cd7b41c51d61d540a74ea2114f22fd26` -
-`feat: centralize release build identity`.
-`21f310b4f6e5ea98a3d5b05b66f558fb55475c5b` -
-`fix: provide build identity to containers`.
+Feature implementation and repair commits are preserved on
+`feature/QA-028`; blocked status commit:
+`327a938d7f64d45c8efa3bf3899da16d91ed2373`.
 
 ### Merge / CI
 
-Feature CI run `35130531726` for exact SHA
-`7d76295b342d6ba08a8db9bdd55aa043af64ce06` failed only in the six
-application container builds. Static/build identity checks passed. Each
-container build reached a workspace prebuild and failed because
-`/workspace/scripts/build-identity.mjs` was absent from the Docker build
-context:
-`Error: Cannot find module '/workspace/scripts/build-identity.mjs'`.
-
-Repair: both canonical application Dockerfiles now copy the shared
-`scripts/build-identity.mjs` into `/workspace/scripts` in their source stage
-and propagate the CI-supplied `BUILD_REVISION` build argument to the build
-stages. The generator therefore continues deriving the release version from
-the root `package.json` and the revision from the immutable CI identity, with
-no duplicated version literal or fallback to container-local Git metadata.
-
-Second bounded CI repair:
-
-- Exact repair SHA `722207bab42ac0a6fedbef5875d329f374654c93` failed run
-  `35132050609` in the existing `ci:rest-route-ownership` gate on both Ubuntu
-  and Windows because the REST route ownership inventory did not contain the
-  public `GET /api/version` route added by QA-028.
-- Added the deterministic ownership entry generated from
-  `node scripts/check-rest-route-ownership.mjs --write`, classified as an
-  active product feature owned by the Mercurion Angular application. The
-  generator-derived removal of the obsolete `/api/account/current-version`
-  reference was retained.
-- Focused repair validation passed: `npm run ci:rest-route-ownership` and
-  `git diff --check`.
-- Repair commit and replacement feature-CI result are recorded below.
+Not merged. Feature branch frozen after failed exact feature-SHA CI.
 
 ### Rollback
 
@@ -210,19 +148,5 @@ _Not applicable._
 
 ### Blocker / human decision required
 
-The configured feature-CI repair budget is exhausted. The task is blocked on
-`feature/QA-028` and the branch is frozen; no further implementation repair,
-merge, rebase, reset, or `develop` modification is authorized in this
-invocation.
-
-Final feature SHA `163b1ff89797f33c8e7381d1609e79a0894e23b2` failed exact CI run
-`35133938660` in Nest unit tests. TypeScript could not find the ignored
-generated module
-`MercurionWebNode/src/generated/build-identity.ts` while compiling
-`src/config/config.model.ts` (`TS2307`).
-
-The task received the configured three bounded CI-repair attempts. The initial
-feature-CI result and all three repair results were evaluated against their
-exact pushed feature SHAs; the final repair remained failed with the diagnostic
-above. No additional repair was attempted, and the feature branch is frozen at
-the final SHA.
+Resolve deterministic generated build-identity availability for Nest unit-test
+compilation, then authorize a new recovery session.

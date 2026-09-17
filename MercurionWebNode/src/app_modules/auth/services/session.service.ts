@@ -65,14 +65,6 @@ export class SessionService {
         >,
         rememberMe: boolean
     ): Promise<ISession> {
-        const sessionsForDevice = (
-            await this.getAllSessionsByUserId(sessionData.userId)
-        ).filter(session => session.deviceId === sessionData.deviceId)
-
-        for (const session of sessionsForDevice) {
-            await this.destroySession(session.sessionId, session.deviceId, session.userId)
-        }
-
         const now = Date.now()
         const session: ISession = {
             sessionId: randomUUID(),

@@ -1,9 +1,9 @@
 # 0085 - Remove legacy Angular animations dependency
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -106,48 +106,94 @@ Do not confuse peer-dependency entries in `package-lock.json` with direct applic
 > chain; historical skip evidence below is retained only for traceability.
 
 ### Feature branch
-_Not started._
+`feature/UI-027`
 
 ### Preflight
-_Not started._
+Certified base `885fcd7be7744c8dd905f7366f6a1ddf2070d506` matched the
+feature branch before edits. The required browser capability probe succeeded
+with the non-navigating Chrome DevTools `list_pages` call. Tox21, Nest and
+Angular were started in that order with live execution handles; Nest and
+Angular completed clean startup, Tox21 remained alive, and two consecutive
+post-start rounds returned HTTP 200 from `http://localhost:8888/health` and
+`http://localhost:8888/`. All task-owned processes were stopped before
+implementation and again before handoff.
 
 ### Preflight remediation
 _None._
 
 ### Summary
-Not attempted because required tasks 0071 (UI-013) and 0083 (UI-025) are
-`SKIPPED_DEPENDENCY`.
+Removed the global legacy Angular animation provider and unused
+`NgxSpinnerModule`, removed their direct dependencies from `MercurionWebNg`,
+and refreshed the lockfile. Existing CSS/native `animate.enter` and
+`animate.leave` transitions remain in place with their reduced-motion rules.
+Added a deterministic static policy and negative test to prevent direct legacy
+animation or spinner dependency reintroduction.
 
 ### Task-specific validation performed
-Not applicable; no feature branch or implementation worker was created.
+Passed:
+
+- `npm run test:accessibility --workspace mercurion_web_ng -- --no-progress`
+- `npm test --workspace mercurion_web_ng -- --watch=false --no-progress`
+- `node scripts/check-angular-legacy-animations.mjs`
+- `node scripts/test-angular-legacy-animations-negative.mjs`
+- `npm run typecheck --workspace mercurion_web_ng`
+- `npm run lint:angular --workspace mercurion_web_ng`
+- `npm run build --workspace mercurion_web_ng`
+- `npm run test:accessibility --workspace mercurion_web_ng`
+- `git diff --check`
+
+The accessibility test now waits for two animation frames after Angular
+stabilization before running axe. This keeps the canonical fixture's computed
+foreground/background styles deterministic in the headless runner; it does not
+disable any axe rule or suppress a real contrast violation.
+
+The production source search found no direct `@angular/animations`,
+`provideAnimations`, legacy browser-animation provider, or `ngx-spinner`
+usage. The lockfile retains only an optional third-party peer declaration.
 
 ### Full pre-merge CI-parity validation
-Not applicable; dependency-skip metadata only.
+Not run locally by policy. Exact feature-SHA CI is coordinator-owned.
 
 ### Browser validation performed
-Not applicable; the task was not attempted.
+Using Chrome DevTools MCP through `http://localhost:8888` after a fresh
+ordinary login with the local test account:
+
+- Protected dashboard state was reached successfully and showed the testing
+  account UI.
+- Search dialog opened, closed, and survived a rapid reopen/close sequence
+  without orphaned dialog content.
+- Settings accordion content entered and left the DOM cleanly.
+- Light and dark themes rendered at desktop size; the protected dashboard
+  rendered at a 390x844 mobile viewport.
+- No Chrome console errors were reported.
+- The MCP `emulate` surface does not expose reduced-motion emulation in this
+  version; reduced-motion preservation was verified statically in the
+  existing progress, skeleton, toast, and migrated transition CSS.
 
 ### Commits
-Pending metadata commit on `develop`.
+`b2024a80` — Remove legacy Angular animations dependency.
+`2af6f8a4` — Record UI-027 commit in execution notes.
 
 ### Merge / CI
-No feature branch or merge. Exact-SHA CI is required for the metadata commit.
+Feature branch is ready for coordinator-owned exact feature-SHA CI. No merge
+or integration was performed.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-Direct terminal prerequisites: 0071 (UI-013) and 0083 (UI-025), both
-`SKIPPED_DEPENDENCY`. Their transitive dependency chains include FE-030
-(BLOCKED, requiring a filesystem-write-capable worker) and UI-018 (BLOCKED,
-requiring a test-safe local Nest runtime for mandatory browser validation).
+None.
 
 
-### Dependency skip
+### Historical dependency-skip trace
+
+The following stale dependency-skip metadata predates the explicit task
+execution request and is retained only for traceability; it is not the current
+task outcome.
 
 Direct terminal prerequisite: 0077 (), terminal non-DONE dependency.
 
-### Dependency skip
+### Historical dependency-skip trace
 
 Direct terminal prerequisite: `0071` (`UI-013`), `BLOCKED`; the other direct
 prerequisite `0083` remains pending. This task was materialized in the new
