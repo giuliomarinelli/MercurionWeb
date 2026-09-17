@@ -297,6 +297,9 @@ jobs:
       - name: Build Angular
         run: npm run ci:build:angular
 
+      - name: Verify UI catalog and visual baselines
+        run: npm run ci:ui:catalog
+
       - name: Build Nest
         run: npm run ci:build:nest
 

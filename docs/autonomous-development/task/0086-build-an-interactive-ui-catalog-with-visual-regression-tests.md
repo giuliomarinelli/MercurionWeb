@@ -1,6 +1,6 @@
 # 0086 - Build an interactive UI catalog with visual regression tests
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -111,50 +111,80 @@ Favor primitive-level stories with deterministic fixture data. A small number of
 
 ## Execution notes
 
-> Current status (2026-09-11): PENDING. The planner identified the prior
-> dependency skip as stale after direct owner re-enablement of its prerequisite
-> chain; historical skip evidence below is retained only for traceability.
+> Current status (2026-09-17): READY_FOR_INTEGRATION / CI_PENDING. The catalog
+> implementation and focused local validation passed on `feature/UI-028`.
 
 ### Feature branch
-_Not started._
+`feature/UI-028`, based on certified develop SHA
+`7c5ea0629a443cde4d45d458ca63184e8713cf9b`.
 
 ### Preflight
-_Not started._
+- Confirmed clean `feature/UI-028` at the supplied certified base and effective
+  local `commit.gpgSign=false`.
+- Confirmed exact base CI run `35237286411` succeeded with `Required gate`.
+- `npm run autonomous:plan --silent` reported task `0086` as `READY` with no
+  terminal roots.
+- Stopped stale Angular test watcher processes before task work.
+- Browser capability probe used Chrome DevTools MCP `list_pages` without
+  navigation and succeeded.
+- Started Tox21, Nest and Angular directly in the required order. Nest and
+  Angular compiled successfully; nginx returned initial 502 responses while
+  upstreams compiled, followed by two consecutive complete `200` rounds for
+  `/health` and `/`. All three task-owned processes were stopped before edits.
 
 ### Preflight remediation
-_None._
+None.
 
 ### Summary
-Not attempted. Required tasks 0059 through 0085 are terminally
-non-`DONE`.
+Added a separate Angular catalog build/serve target with shared application
+tokens/fonts, light/dark switching, responsive layout, deterministic fixture
+states, typed API/accessibility notes, and interactive coverage for the
+canonical action, form, selection, navigation, feedback and loading
+primitives. Added local Playwright screenshot baselines for light desktop,
+dark desktop and mobile layouts, with an explicit `ui:visual:update` approval
+workflow. Production remains on `src/main.ts`; the catalog emits to a
+separate development-only output.
 
 ### Task-specific validation performed
-Not applicable; no feature branch or implementation worker was created.
+- `npm run build-storybook --workspace mercurion_web_ng` — passed.
+- `npm run typecheck --workspace mercurion_web_ng` — passed.
+- `npm run lint:angular --workspace mercurion_web_ng` — passed.
+- `npm run build --workspace mercurion_web_ng` — passed; production output
+  contained no catalog markers.
+- `npm run ui:visual --workspace mercurion_web_ng` — 3 passed against committed
+  baselines.
+- Changed one catalog fixture style temporarily; visual gate failed with
+  pixel diffs in all three snapshots, then reverted the style and reran the
+  suite successfully.
+- No local `npm ci` or `npm run ci:check` was run.
 
 ### Full pre-merge CI-parity validation
-Not applicable; dependency-skip metadata only.
+Not run locally; exact feature-SHA CI is owned by the coordinator.
 
 ### Browser validation performed
-Not applicable; the task was not attempted.
+- Catalog-only Chrome DevTools MCP validation at `http://localhost:4400/`
+  rendered the complete catalog accessibility tree, including disabled,
+  loading, invalid, pending, selected, dialog-open and responsive sections.
+- Dark theme switching changed the catalog theme and preserved the accessible
+  matrix. Dialog open state exposed `role="dialog"` and `aria-modal="true"`
+  with focus captured on the close action.
+- Console recheck after adding the catalog favicon reported no warnings or
+  errors.
+- Application-flow validation through `http://localhost:8888` was not
+  performed because this recipe's browser evidence was catalog-only; the
+  canonical edge was nevertheless readiness-probed during preflight.
+- The catalog server was stopped before handoff.
 
 ### Commits
-Pending metadata commit on `develop`.
+Pending task commit on `feature/UI-028`; exact commit SHA will be recorded
+after the task-specific commit.
 
 ### Merge / CI
-No feature branch or merge. Exact-SHA CI is required for the metadata commit.
+No merge performed. Coordinator must publish this feature SHA and observe
+exact feature-SHA CI before integration.
 
 ### Rollback
-_Not applicable._
+Not applicable.
 
 ### Blocker / human decision required
-Direct terminal prerequisite range: 0059 through 0085. The range includes
-newly terminal task `0071` (`UI-013`), `BLOCKED`, so this task was
-materialized in the new terminal closure on 2026-09-13.
-FE-030 (BLOCKED, requiring a filesystem-write-capable worker) and UI-018
-(BLOCKED, requiring a test-safe local Nest runtime for mandatory browser
-validation), with all dependent UI tasks `SKIPPED_DEPENDENCY`.
-
-
-### Dependency skip
-
-Direct terminal prerequisite: 0077 (), terminal non-DONE dependency.
+None before feature-SHA CI.
