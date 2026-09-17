@@ -211,7 +211,7 @@ tooling, baselines and focused validation, committed with `--no-gpg-sign` and
 the required Copilot co-author trailer.
 `a441c65a` — narrow topology-policy repair and repair evidence, committed with
 `--no-gpg-sign` and the required Copilot co-author trailer.
-`<pending>` — narrow CI browser-install repair for exact run `35241574204`,
+`2790d24e` — narrow CI browser-install repair for exact run `35241574204`,
 committed with `--no-gpg-sign` and the required Copilot co-author trailer.
 
 ### Merge / CI
