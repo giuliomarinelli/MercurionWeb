@@ -2,6 +2,8 @@ import { computed, inject, Injectable, signal } from '@angular/core'
 import { AuthSessionPersistenceService } from './auth-session-persistence.service'
 import { AuthErrorService } from './auth-error.service'
 import { BrowserStorageRegistry, storageDescriptor } from './browser-storage-registry'
+import { Apollo } from 'apollo-angular'
+import { clearMercurionUserCache } from './graphql/apollo-cache-policies'
 import {
   INITIAL_SESSION_PROTOCOL,
   LOCAL_DUMMY_AUTH,
@@ -54,6 +56,7 @@ export class AuthStateStore {
   private readonly storageRegistry = inject(BrowserStorageRegistry)
   private readonly persistence = inject(AuthSessionPersistenceService)
   private readonly authErrors = inject(AuthErrorService)
+  private readonly apollo = inject(Apollo, { optional: true })
   private readonly stateSignal = signal<AuthState>({ kind: 'bootstrap' })
   private readonly protocolSignal = signal<SessionProtocolSnapshot>(INITIAL_SESSION_PROTOCOL)
   private readonly expiryTick = signal(0)
@@ -118,6 +121,7 @@ export class AuthStateStore {
   beginAuthentication(flow: 'password' | 'sso' | 'restore' = 'password'): void {
     this.assertAllowed(this.state().kind, 'authenticating')
     if (flow !== 'restore') {
+      this.clearApolloUserCache()
       this.authErrors.beginAttempt()
       this.clearLocalDummyMarker()
       this.clearPersistence()
@@ -168,6 +172,9 @@ export class AuthStateStore {
       scopes
     }
     if (!canRecoverLoginRace) this.assertAllowed(currentKind, next.kind)
+    if (this.clientSession()?.userId && this.clientSession()?.userId !== identity.userId) {
+      this.clearApolloUserCache()
+    }
     if (canRecoverLoginRace && this.sessionProtocol().state !== 'authenticating') {
       this.applyProtocol(SessionTransition.BeginAuthentication)
     }
@@ -246,6 +253,7 @@ export class AuthStateStore {
       return
     }
     this.clearPersistence()
+    this.clearApolloUserCache()
     this.transition({ kind: 'anonymous' })
     this.applyProtocol(SessionTransition.Logout)
   }
@@ -254,6 +262,7 @@ export class AuthStateStore {
     this.clearExpiryTimer()
     this.clearLocalDummyMarker()
     this.clearPersistence()
+    this.clearApolloUserCache()
     this.transition({ kind: 'session-expired', reason })
     this.applyProtocol(this.transitionForInvalidationCause(reason))
   }
@@ -264,6 +273,7 @@ export class AuthStateStore {
     this.transition({ kind: 'logging-out' })
     this.clearLocalDummyMarker()
     this.clearPersistence()
+    this.clearApolloUserCache()
     this.transition({ kind: 'anonymous' })
     this.applyProtocol(SessionTransition.Logout)
   }
@@ -280,6 +290,7 @@ export class AuthStateStore {
     this.persistence.clearAuthenticatedSession()
     this.persistence.clearPreAuthData()
     this.persistence.clearEphemeralAuthData()
+    this.clearApolloUserCache()
     this.applyProtocol(SessionTransition.Logout)
   }
 
@@ -354,6 +365,11 @@ export class AuthStateStore {
 
   clearPersistence(): void {
     this.persistence.clearAuthenticatedSession()
+  }
+
+  private clearApolloUserCache(): void {
+    const cache = this.apollo?.client.cache
+    if (cache) clearMercurionUserCache(cache)
   }
 
   private clearClientCredentialsForPreAuth(): void {

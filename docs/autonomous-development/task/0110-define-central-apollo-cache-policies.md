@@ -1,6 +1,6 @@
 # 0110 - Define central Apollo cache and mutation-update policies
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -84,28 +84,66 @@ Mark `BLOCKED` if a domain lacks stable entity identity or its intended freshnes
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/NG-024`, based on `23deb9f6befe9aef5ee4010c481c98c1d959cedb`.
 ### Preflight
-_Not started._
+Passed unchanged against the supplied base. Exact current `develop` merge run
+`35276442690` succeeded with Required gate and predecessor NG-023 run
+`35275686381` succeeded. Local signing is disabled. No local `npm ci` or
+`npm run ci:check` was run.
+
+The non-navigating Chrome DevTools capability probe passed. Task-owned Tox21,
+Nest, and Angular were started in the mandated order for both pre- and
+post-implementation probes. Nest and Angular reached two consecutive HTTP 200
+readiness rounds through `http://localhost:8888`; Tox21 remained alive and
+connected to Nest through NATS. The persistent profile redirected `/login` to
+the authenticated dashboard and exposed protected account data. A fresh
+UI logout/login attempt was not possible because the account-menu interaction
+timed out twice; this was recorded as a browser-tool diagnostic, not a task
+failure.
 ### Preflight remediation
-_None._
+None.
 ### Summary
-Not attempted in this session because hard prerequisite task 0109 (NG-023) is
-now `SKIPPED_DEPENDENCY`, with terminal root 0102 (NG-016) `BLOCKED`.
+Replaced the bare Apollo `InMemoryCache` with a central typed policy module.
+Stable GraphQL entities now have explicit schema-backed identities; search and
+value objects intentionally remain embedded. Paginated collection, molecule,
+and ticket fields use filter-scoped key arguments, reset on first-page identity
+changes, merge later pages, and deduplicate normalized entities. Mutation field
+policies invalidate affected list/detail roots and evict deleted entities
+without global `resetStore()` calls. Authentication transitions synchronously
+evict user-owned query roots so cached data cannot cross session ownership
+boundaries.
 ### Task-specific validation performed
-Not applicable; no feature branch or implementation worker was created.
+Passed:
+
+- `npm run typecheck --workspace mercurion_web_ng`
+- `npm run lint:angular --workspace mercurion_web_ng -- --no-warn-ignored`
+- `npx ng test --watch=false --include=src/app/services/graphql/apollo-cache-policies.spec.ts`
+  (12 passed)
+- `git diff --check`
+
+The full Angular test invocation also observed 483 passed and 18 pre-existing
+auth/session contract failures unrelated to this task.
 ### Full pre-merge CI-parity validation
-Not applicable; dependency-skip metadata only.
+Not run locally because clean-install and aggregate CI parity are reserved for
+GitHub Actions. The coordinator must validate the exact pushed feature SHA.
 ### Browser validation performed
-Not applicable; the task was not attempted.
+Through `http://localhost:8888`, post-implementation dashboard and collection
+detail routes rendered with protected account state. GraphQL inspection
+observed successful 200 responses for collection detail,
+`PaginatedMoleculeCollectionItemsByCollection`, and the existing
+`MarkMoleculeCollectionAsTouched` mutation. Route revisit rendered the
+collection state without console errors. No destructive create/delete action
+was issued because the browser interaction surface timed out during the
+required fresh-login attempt; mutation invalidation behavior is covered by the
+isolated cache suite.
+
+All task-owned runtime processes were stopped after validation and verified
+absent; the externally managed nginx edge was left running.
 ### Commits
-Pending metadata commit on `develop`.
+Pending task commit.
 ### Merge / CI
-No feature branch or merge. This change is part of the aggregate metadata-only
-skip commit on `develop`.
+Pending coordinator feature-SHA and merge-SHA CI lifecycle.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Direct terminal prerequisite: task 0109 (NG-023), now
-`SKIPPED_DEPENDENCY`, with transitive root 0102 (NG-016) `BLOCKED`. Recovery
-requires new direct human authorization in a later session.
+None.
