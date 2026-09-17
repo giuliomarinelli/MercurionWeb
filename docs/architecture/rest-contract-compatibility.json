@@ -6047,7 +6047,7 @@
             "optional": false
           }
         ],
-        "returnType": "FeedbackDTO",
+        "returnType": "Feedback",
         "successStatus": 201,
         "errorStatuses": {
           "validation": [
@@ -6414,7 +6414,7 @@
             "optional": false
           }
         ],
-        "returnType": "FeedbackDTO",
+        "returnType": "Feedback",
         "successStatus": 200,
         "errorStatuses": {
           "validation": [
@@ -6589,7 +6589,7 @@
             "optional": true
           }
         ],
-        "returnType": "FlatPagination<FeedbackDTO>",
+        "returnType": "FlatPagination<Feedback>",
         "successStatus": 200,
         "errorStatuses": {
           "validation": [
@@ -6726,7 +6726,7 @@
             "optional": false
           }
         ],
-        "returnType": "FeedbackDTO",
+        "returnType": "Feedback",
         "successStatus": 200,
         "errorStatuses": {
           "validation": [
