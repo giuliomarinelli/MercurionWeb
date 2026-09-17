@@ -140,7 +140,7 @@ isolated cache suite.
 All task-owned runtime processes were stopped after validation and verified
 absent; the externally managed nginx edge was left running.
 ### Commits
-Pending task commit.
+`c127a14f` (`feat(angular): define central Apollo cache policies`).
 ### Merge / CI
 Pending coordinator feature-SHA and merge-SHA CI lifecycle.
 ### Rollback
