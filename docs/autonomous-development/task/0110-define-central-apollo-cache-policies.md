@@ -1,7 +1,7 @@
 # 0110 - Define central Apollo cache and mutation-update policies
 
-- [x] DONE
-- [ ] BLOCKED
+- [ ] DONE
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -162,8 +162,14 @@ Focused validation passed:
 Repair commit: `2bab49fd9c58f5fc1ed89e97211aaca1f374a8d3`.
 
 ### Full pre-merge CI-parity validation
-Not run locally because clean-install and aggregate CI parity are reserved for
-GitHub Actions. The coordinator must validate the exact pushed feature SHA.
+The final pushed feature SHA `9eb9f34dcd66763f7dfd0d80be03366dfbd664d6`
+was not mergeable after the configured three repair attempts. Exact feature
+run `35282799357` passed both platform prerequisite jobs, GraphQL gates,
+containers, Nest tests/E2E and browser journeys, but the Angular unit job
+`105409445464` failed its approved coverage gate:
+`auth-state-store-baseline-exception` branch coverage was `72.65625%`, below
+the required `73%` QA-012 floor. The full clean-install aggregate remains
+owned by GitHub Actions and was not run locally.
 ### Browser validation performed
 Through `http://localhost:8888`, post-implementation dashboard and collection
 detail routes rendered with protected account state. GraphQL inspection
@@ -178,10 +184,17 @@ isolated cache suite.
 All task-owned runtime processes were stopped after validation and verified
 absent; the externally managed nginx edge was left running.
 ### Commits
-`c127a14f` (`feat(angular): define central Apollo cache policies`).
+`c127a14f` (`feat(angular): define central Apollo cache policies`),
+`d9592913`, `18d603c5`, and `9eb9f34d` (bounded CI repairs and coverage
+correction). The final feature SHA is preserved and frozen at
+`9eb9f34dcd66763f7dfd0d80be03366dfbd664d6`.
 ### Merge / CI
-Pending coordinator feature-SHA and merge-SHA CI lifecycle.
+Not merged. Exact feature-SHA CI remained unsuccessful after the configured
+three repair attempts; preserve the feature branch for human diagnosis.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-None.
+The repository-controlled Angular coverage gate remains below its approved
+QA-012 branch floor by `0.34375` percentage points after the repair budget was
+exhausted. Human-authorized follow-up is required before integration; do not
+weaken the threshold or merge the branch without restoring the gate.
