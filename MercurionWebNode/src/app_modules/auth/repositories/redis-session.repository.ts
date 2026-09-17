@@ -60,11 +60,14 @@ export class RedisSessionRepository implements SessionRepository {
                 redis.call('DEL', 'session:' .. previous, 'session_owner:' .. previous,
                     'session_tokens:' .. previous)
             end
-            redis.call('HSET', KEYS[1], unpack(ARGV, 4, 3 + (2 * tonumber(ARGV[3]))))
+            redis.call('HSET', KEYS[1], unpack(ARGV, 5, 4 + (2 * tonumber(ARGV[3]))))
             redis.call('EXPIRE', KEYS[1], ARGV[2])
             redis.call('SET', KEYS[2], ARGV[4], 'EX', ARGV[2])
             redis.call('SADD', KEYS[3], ARGV[1])
-            redis.call('EXPIRE', KEYS[3], ARGV[2])
+            local userIndexTtl = redis.call('TTL', KEYS[3])
+            if userIndexTtl < tonumber(ARGV[2]) then
+                redis.call('EXPIRE', KEYS[3], ARGV[2])
+            end
             redis.call('SET', KEYS[4], ARGV[1], 'EX', ARGV[2])
             return 1
         `
@@ -148,9 +151,21 @@ export class RedisSessionRepository implements SessionRepository {
         options?: SessionFetchOptions
     ): Promise<ISession[]> {
         const sessionIds = await this.redisService.smembers(this.userSessionsKey(userId))
-        const sessions = (await Promise.all(sessionIds.map(async sessionId =>
-            this.codec.decode(await this.redisService.hgetall(this.sessionKey(sessionId))
-        )))).filter((session): session is ISession => session !== null)
+        const decoded = await Promise.all(sessionIds.map(async sessionId => ({
+            sessionId,
+            session: this.codec.decode(
+                await this.redisService.hgetall(this.sessionKey(sessionId))
+            )
+        })))
+        const staleIds = decoded
+            .filter(({ session }) => session === null)
+            .map(({ sessionId }) => sessionId)
+        await Promise.all(staleIds.map(sessionId =>
+            this.redisService.srem(this.userSessionsKey(userId), sessionId)
+        ))
+        const sessions = decoded
+            .map(({ session }) => session)
+            .filter((session): session is ISession => session !== null)
 
         return options?.onlyValid
             ? sessions.filter(session => session.valid)
@@ -158,7 +173,16 @@ export class RedisSessionRepository implements SessionRepository {
     }
 
     public async findSessionIdsByUserId(userId: string): Promise<string[]> {
-        return this.redisService.smembers(this.userSessionsKey(userId))
+        const sessionIds = await this.redisService.smembers(this.userSessionsKey(userId))
+        const existing = await Promise.all(sessionIds.map(async sessionId => ({
+            sessionId,
+            exists: await this.redisService.exists(this.sessionKey(sessionId))
+        })))
+        const staleIds = existing.filter(({ exists }) => !exists)
+        await Promise.all(staleIds.map(({ sessionId }) =>
+            this.redisService.srem(this.userSessionsKey(userId), sessionId)
+        ))
+        return existing.filter(({ exists }) => exists).map(({ sessionId }) => sessionId)
     }
 
     public async findSession(sessionId: string, userId?: string): Promise<ISession | null> {
@@ -201,7 +225,10 @@ export class RedisSessionRepository implements SessionRepository {
             if redis.call('HGET', KEYS[1], 'longTerm') ~= 'true' then
                 redis.call('EXPIRE', KEYS[1], ARGV[2])
                 redis.call('EXPIRE', KEYS[2], ARGV[2])
-                redis.call('EXPIRE', KEYS[3], ARGV[2])
+                local userIndexTtl = redis.call('TTL', KEYS[3])
+                if userIndexTtl < tonumber(ARGV[2]) then
+                    redis.call('EXPIRE', KEYS[3], ARGV[2])
+                end
             end
             return 1
         `
@@ -238,7 +265,12 @@ export class RedisSessionRepository implements SessionRepository {
             local device = redis.call('HGET', KEYS[1], 'deviceId')
             redis.call('SREM', KEYS[2], ARGV[1])
             redis.call('DEL', KEYS[1], KEYS[3], KEYS[4])
-            if device then redis.call('DEL', 'session_device:' .. ARGV[2] .. ':' .. device) end
+            if device then
+                local deviceKey = 'session_device:' .. ARGV[2] .. ':' .. device
+                if redis.call('GET', deviceKey) == ARGV[1] then
+                    redis.call('DEL', deviceKey)
+                end
+            end
             return 1
         `
         if (typeof this.redisService.eval === 'function') {

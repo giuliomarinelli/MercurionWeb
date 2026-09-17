@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Build comprehensive deterministic Nest tests for authentication, MFA and session security branches, including expiry/replay/revocation, concurrent sessions and refresh, scopes, external-provider flows, rate limits and Redis failure modes.
