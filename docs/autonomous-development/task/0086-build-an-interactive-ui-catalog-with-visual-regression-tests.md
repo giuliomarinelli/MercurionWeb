@@ -176,8 +176,9 @@ Not run locally; exact feature-SHA CI is owned by the coordinator.
 - The catalog server was stopped before handoff.
 
 ### Commits
-Pending task commit on `feature/UI-028`; exact commit SHA will be recorded
-after the task-specific commit.
+`7844e1c3b039d3a52abc417770def4ab24b2ece9` — catalog implementation,
+tooling, baselines and focused validation, committed with `--no-gpg-sign` and
+the required Copilot co-author trailer.
 
 ### Merge / CI
 No merge performed. Coordinator must publish this feature SHA and observe
