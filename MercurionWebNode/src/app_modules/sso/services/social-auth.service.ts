@@ -18,6 +18,7 @@ import { redisDurations, redisKeys } from 'src/app_modules/redis/contracts/redis
 import { UnitOfWork, transactionManager } from 'src/persistence/transaction-context'
 import { UserService } from 'src/app_modules/user/services/user.service'
 import { InitialWorkspaceService } from 'src/app_modules/molecule-collection/services/initial-workspace.service'
+import { QueryFailedError } from 'typeorm'
 
 @Injectable()
 export class SocialAuthService {
@@ -93,60 +94,73 @@ export class SocialAuthService {
         try {
             const client = this.providerRegistry.get(provider)
             const profile = await client.getProfileFromCode(code)
-            const userId = await this.unitOfWork.run(async (context) => {
-                const manager = transactionManager(context)
+            let userId: UUID
+            try {
+                userId = await this.unitOfWork.run(async (context) => {
+                    const manager = transactionManager(context)
 
-                // 1) ricerca identity
-                let identity = await manager.findOne(AuthIdentity, {
-                    where: {
-                        provider: profile.provider,
-                        providerSubject: profile.subject
-                    },
-                    relations: {
-                        user: true
-                    }
-                })
-
-                // 2) se non esiste, creazione user + identity
-                if (!identity) {
-                    const user = await this.userService.createSsoUser({
-                        id: uuidv7() as UUID,
-                        firstName: profile.firstName ? profile.firstName.charAt(0).toUpperCase() + profile.firstName.slice(1) : '',
-                        lastName: profile.lastName ? profile.lastName.charAt(0).toUpperCase() + profile.lastName.slice(1) : '',
-                        scopes: this.scopeService.getEncryptedStandardScopes(),
-                        initials: `${profile.firstName?.charAt(0).toUpperCase() || 'U'}${profile.lastName?.charAt(0).toUpperCase() || 'U'}`,
-                    }, context)
-
-                    identity = manager.create(AuthIdentity, {
-                        id: uuidv7() as UUID,
-                        userId: user.id,
-                        provider: profile.provider,
-                        providerSubject: profile.subject,
-                        email: profile.email,
-                        emailVerified: profile.emailVerified
+                    // The database unique key is the authority for concurrent
+                    // first callbacks; this lookup is only the fast path.
+                    let identity = await manager.findOne(AuthIdentity, {
+                        where: {
+                            provider: profile.provider,
+                            providerSubject: profile.subject
+                        },
+                        relations: {
+                            user: true
+                        }
                     })
 
-                    await manager.save(identity)
+                    if (!identity) {
+                        const user = await this.userService.createSsoUser({
+                            id: uuidv7() as UUID,
+                            firstName: profile.firstName ? profile.firstName.charAt(0).toUpperCase() + profile.firstName.slice(1) : '',
+                            lastName: profile.lastName ? profile.lastName.charAt(0).toUpperCase() + profile.lastName.slice(1) : '',
+                            scopes: this.scopeService.getEncryptedStandardScopes(),
+                            initials: `${profile.firstName?.charAt(0).toUpperCase() || 'U'}${profile.lastName?.charAt(0).toUpperCase() || 'U'}`,
+                        }, context)
 
-                    const userId = user.id
+                        identity = manager.create(AuthIdentity, {
+                            id: uuidv7() as UUID,
+                            userId: user.id,
+                            provider: profile.provider,
+                            providerSubject: profile.subject,
+                            email: profile.email,
+                            emailVerified: profile.emailVerified
+                        })
 
-                    await this.initialWorkspace.createForUser(userId, context)
-
-                } else {
-
-                    // opzionale: syncare email/verified se cambia
-                    const needsUpdate = identity.email !== profile.email || identity.emailVerified !== profile.emailVerified
-
-                    if (needsUpdate) {
-                        identity.email = profile.email
-                        identity.emailVerified = profile.emailVerified
-                        identity.updatedAt = Date.now()
                         await manager.save(identity)
-                    }
-                }
+                        await this.initialWorkspace.initializeForUser(user.id, context)
+                    } else {
+                        const needsUpdate = identity.email !== profile.email || identity.emailVerified !== profile.emailVerified
 
-                return identity.userId
-            })
+                        if (needsUpdate) {
+                            identity.email = profile.email
+                            identity.emailVerified = profile.emailVerified
+                            identity.updatedAt = Date.now()
+                            await manager.save(identity)
+                        }
+                    }
+
+                    return identity.userId
+                })
+            } catch (error) {
+                if (!(error instanceof QueryFailedError)) throw error
+
+                // The losing transaction is aborted by PostgreSQL.  Re-read
+                // in a fresh transaction and converge on the committed
+                // provider+subject winner instead of leaking SQL details.
+                userId = await this.unitOfWork.run(async context => {
+                    const identity = await transactionManager(context).findOne(AuthIdentity, {
+                        where: {
+                            provider: profile.provider,
+                            providerSubject: profile.subject
+                        }
+                    })
+                    if (!identity) throw applicationError(ApplicationErrorCode.SSO_CALLBACK_FAILED)
+                    return identity.userId
+                })
+            }
             return this.jwtTools.generateToken(userId, TokenType.SSO_PreAuthorizationToken)
         } catch (e) {
             this.logger.warn(' > loginWithProvider > Error: ', (e instanceof Error ? e.stack : e) as object)

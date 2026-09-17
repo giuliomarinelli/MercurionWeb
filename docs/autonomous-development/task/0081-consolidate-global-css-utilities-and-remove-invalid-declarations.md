@@ -101,17 +101,19 @@ Do not preserve a duplicate selector merely because the cascade currently makes 
 
 ## Execution notes
 
-> Current status (2026-09-15): BLOCKED. The CSS implementation and focused
-> build passed, but the required Chrome DevTools browser evidence could not be
-> collected because no browser interaction surface was available to the worker
-> session.
+> Current status (2026-09-17): authorized recovery in progress. The preserved
+> CSS implementation remains historically `BLOCKED` until the required browser
+> evidence and the complete feature/merge CI lifecycle succeed.
 
 ### Feature branch
-`feature/UI-023`
+`feature/UI-023` preserved at `c940640291a7dba6f7d156b1b1afe997a0ecde91`.
 
 ### Preflight
-Clean `develop` baseline at `4abaae803c02a7ae7e255b711bcd1385f7d3a9ca`;
-focused Angular validation reused the existing dependency tree.
+The historical implementation started from clean `develop` at
+`4abaae803c02a7ae7e255b711bcd1385f7d3a9ca`. Recovery was authorized directly
+on 2026-09-17 from green `develop` at
+`74b047a6660267f8db50b16d5eb2f128e37f8471`; dependencies `0077` and `0078`
+were confirmed `DONE`.
 
 ### Preflight remediation
 _None._
@@ -129,24 +131,25 @@ scrollbar behavior.
   bundle generated successfully (existing initial bundle budget warning).
 
 ### Full pre-merge CI-parity validation
-Deferred to the exact feature-SHA GitHub Actions Required gate.
+Historical exact feature-SHA CI succeeded for
+`c940640291a7dba6f7d156b1b1afe997a0ecde91` (run `35017881390`). Recovery
+requires a new exact feature-SHA gate after merging current `develop` and
+recording the completed evidence.
 
 ### Browser validation performed
-Runtime readiness was partially established: the Angular shell returned `200`
-through `http://localhost:8888/`, while `/health` returned retryable `502`
-edge-live/upstream-unavailable responses. The required Chrome DevTools
-drawer, overlay, scrollbar, viewport, theme, and console checks were not run.
+Historical runtime readiness reached the Angular shell through
+`http://localhost:8888/`, but the required browser checks were unavailable.
+Recovery browser validation is pending.
 
 ### Commits
-Pending feature commit.
+Historical feature commit: `c940640291a7dba6f7d156b1b1afe997a0ecde91`.
 
 ### Merge / CI
-Feature branch pending exact-SHA CI; no merge performed.
+Not yet merged; authorized recovery is in progress.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-Chrome DevTools browser interaction was unavailable after the task-owned
-runtime reached readiness. The feature branch is preserved for an authorized
-retry with browser evidence.
+The historical Chrome DevTools capability blocker is being retried with the
+user-authorized Playwright/Chromium fallback. No product decision is pending.

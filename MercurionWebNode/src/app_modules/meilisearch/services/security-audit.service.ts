@@ -1,9 +1,12 @@
-import { Inject, Injectable, OnModuleInit } from '@nestjs/common'
-import { MeiliSearch } from 'meilisearch'
+import { Injectable } from '@nestjs/common'
 import { uuidv7 } from '@kripod/uuidv7'
 import { UUID } from 'crypto'
 import type { UtcInstant } from '@mercurion/rest-contracts'
 import { utcNow } from 'src/utils/temporal/temporal'
+import { NotificationOutboxService } from 'src/app_modules/notification/services/outbox/notification-outbox.service'
+import { OutboxEventType } from 'src/app_modules/notification/models/enums/outbox-event-type.enum'
+import { DataSource } from 'typeorm'
+import { TransactionContext, runInTransaction, transactionManager } from 'src/persistence/transaction-context'
 
 const INDEX_NAME = 'security_logs'
 
@@ -38,25 +41,11 @@ interface BaseOptions {
  *   (es. usando SecurityService.maskEmail / maskPhone) da chi chiama.
  */
 @Injectable()
-export class SecurityAuditService implements OnModuleInit {
-  private lastMeiliFailure = 0
-
+export class SecurityAuditService {
   constructor(
-    @Inject('MEILISEARCH_CLIENT')
-    private readonly meiliClient: MeiliSearch
+    private readonly outbox: NotificationOutboxService,
+    private readonly dataSource: DataSource
   ) {}
-
-  async onModuleInit(): Promise<void> {
-    await this.ensureIndexExists()
-  }
-
-  private async ensureIndexExists(): Promise<void> {
-    try {
-      await this.meiliClient.getIndex(INDEX_NAME)
-    } catch {
-      await this.meiliClient.createIndex(INDEX_NAME, { primaryKey: 'id' })
-    }
-  }
 
   private buildEvent(
     userId: UUID,
@@ -74,20 +63,21 @@ export class SecurityAuditService implements OnModuleInit {
     }
   }
 
-  private async send(event: SecurityAuditEvent): Promise<void> {
-    try {
-      await this.meiliClient.index(INDEX_NAME).addDocuments([event])
-    } catch (err: unknown) {
-      const now = Date.now()
-      // best effort + rate limit dei log di errore del logger stesso
-      if (now - this.lastMeiliFailure > 10_000) {
-        this.lastMeiliFailure = now
-        // qui potresti anche usare console.error o un logger "di base" se vuoi
-        // per evitare dipendenze circolari con MeiliLoggerService
-        const message = err instanceof Error ? err.message : String(err)
-        console.error('[SecurityAudit] Failed to send event to Meili:', message)
-      }
+  private async send(event: SecurityAuditEvent, context?: TransactionContext): Promise<void> {
+    const append = async (manager: Parameters<NotificationOutboxService['append']>[0]) => {
+      await this.outbox.append(manager, {
+        aggregateId: event.userId,
+        eventType: OutboxEventType.SecurityAuditRecorded,
+        payload: { indexName: INDEX_NAME, document: event },
+        dedupeKey: `security-audit:${event.id}`,
+        correlationId: event.id as UUID
+      })
     }
+    if (context) {
+      await append(transactionManager(context))
+      return
+    }
+    await runInTransaction(this.dataSource, async (_context, manager) => append(manager))
   }
 
   // ==========
@@ -100,7 +90,8 @@ export class SecurityAuditService implements OnModuleInit {
    */
   async passwordChanged(
     userId: UUID,
-    opts?: BaseOptions & { viaResetFlow?: boolean }
+    opts?: BaseOptions & { viaResetFlow?: boolean },
+    context?: TransactionContext
   ): Promise<void> {
     const { viaResetFlow, ...base } = opts ?? {}
     const event = this.buildEvent(userId, 'PASSWORD_CHANGED', {
@@ -110,7 +101,7 @@ export class SecurityAuditService implements OnModuleInit {
         viaResetFlow: !!viaResetFlow
       }
     })
-    await this.send(event)
+    await this.send(event, context)
   }
 
   /**
@@ -121,7 +112,8 @@ export class SecurityAuditService implements OnModuleInit {
     userId: UUID,
     maskedOldEmail: string | null,
     maskedNewEmail: string,
-    opts?: BaseOptions
+    opts?: BaseOptions,
+    context?: TransactionContext
   ): Promise<void> {
     const event = this.buildEvent(userId, 'EMAIL_CHANGED', {
       ...opts,
@@ -131,7 +123,7 @@ export class SecurityAuditService implements OnModuleInit {
         newEmail: maskedNewEmail
       }
     })
-    await this.send(event)
+    await this.send(event, context)
   }
 
   /**
@@ -142,7 +134,8 @@ export class SecurityAuditService implements OnModuleInit {
     userId: UUID,
     maskedOldPhone: string | null,
     maskedNewPhone: string,
-    opts?: BaseOptions
+    opts?: BaseOptions,
+    context?: TransactionContext
   ): Promise<void> {
     const event = this.buildEvent(userId, 'PHONE_CHANGED', {
       ...opts,
@@ -152,7 +145,7 @@ export class SecurityAuditService implements OnModuleInit {
         newPhone: maskedNewPhone
       }
     })
-    await this.send(event)
+    await this.send(event, context)
   }
 
   /**
@@ -162,7 +155,8 @@ export class SecurityAuditService implements OnModuleInit {
   async mfaEnabled(
     userId: UUID,
     strategy: string,
-    opts?: BaseOptions
+    opts?: BaseOptions,
+    context?: TransactionContext
   ): Promise<void> {
     const event = this.buildEvent(userId, 'MFA_ENABLED', {
       ...opts,
@@ -171,7 +165,7 @@ export class SecurityAuditService implements OnModuleInit {
         strategy
       }
     })
-    await this.send(event)
+    await this.send(event, context)
   }
 
   /**
@@ -182,7 +176,8 @@ export class SecurityAuditService implements OnModuleInit {
   async mfaDisabled(
     userId: UUID,
     strategy: string,
-    opts?: BaseOptions & { backupCodesCleared?: boolean }
+    opts?: BaseOptions & { backupCodesCleared?: boolean },
+    context?: TransactionContext
   ): Promise<void> {
     const { backupCodesCleared, ...base } = opts ?? {}
     const event = this.buildEvent(userId, 'MFA_DISABLED', {
@@ -193,12 +188,12 @@ export class SecurityAuditService implements OnModuleInit {
         backupCodesCleared: !!backupCodesCleared
       }
     })
-    await this.send(event)
+    await this.send(event, context)
   }
 
-  async accountRecovery(userId: UUID, strategy: | 'ACCOUNT_RECOVERY_TOKEN_GENERATED' | 'ACCOUNT_RECOVERY_ACCOUNT_RECOVERED'): Promise<void> {
+  async accountRecovery(userId: UUID, strategy: | 'ACCOUNT_RECOVERY_TOKEN_GENERATED' | 'ACCOUNT_RECOVERY_ACCOUNT_RECOVERED', context?: TransactionContext): Promise<void> {
     const event = this.buildEvent(userId, strategy)
-    await this.send(event)
+    await this.send(event, context)
   }
   
 }

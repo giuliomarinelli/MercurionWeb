@@ -1,11 +1,11 @@
 import { Field, Int, ObjectType } from "@nestjs/graphql";
 import { FlatPagination } from "src/models/flat-pagination.interface";
-import { Ticket } from "../entities/ticket.entity";
+import { TicketResponse } from "./help-response.dto";
 
 @ObjectType()
-export class PaginatedTicket implements FlatPagination<Ticket> {
-    @Field(() => [Ticket])
-    items!: Ticket[]
+export class PaginatedTicket implements FlatPagination<TicketResponse> {
+    @Field(() => [TicketResponse])
+    items!: TicketResponse[]
 
     @Field(() => Int)
     itemCount!: number

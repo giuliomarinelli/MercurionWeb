@@ -1,7 +1,7 @@
 # 0102 - Replace pagination inheritance with typed composition
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -84,38 +84,60 @@ Mark `BLOCKED` if a consumer depends on undocumented inheritance side effects th
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/NG-016`, preserved and frozen at
+`3f17b306854a561c3853744a641c7e353115a337`.
 
 ### Preflight
-_Not started._
+Passed unchanged-base preflight on 2026-09-15 from base
+`10836e1a7cbf6b01494824df60e1ceda61573689`. Exact base CI run `35024067111`
+passed with the required full path, both platform jobs, and `Required gate`.
+The worker completed the non-navigating Chrome DevTools probe, started Tox21,
+Nest, and Angular in the required order, obtained two readiness rounds, and
+completed a fresh ordinary real-account login with a protected dashboard.
 
 ### Preflight remediation
-_None._
+The first runtime start used incorrect working directories and was stopped
+without HTTP requests. The canonical startup was then repeated correctly.
 
 ### Summary
-Not attempted because required UI-016 is `SKIPPED_DEPENDENCY`. The references
-to tasks 0089, 0092, and 0096 are advisory (`should be DONE`) and were not
-treated as hard prerequisites.
+The worker implemented typed composition for the remaining pagination
+consumers, added deterministic pagination-controller transitions and tests,
+removed both abstract pagination UI bases, and updated the execution notes.
+The implementation was not integrated because required browser acceptance
+coverage could not be completed after repeated Chrome DevTools MCP transport
+timeouts. The branch is preserved for human-authorized recovery.
 
 ### Task-specific validation performed
-Not applicable; no feature branch or implementation worker was created.
+Focused typecheck, Angular lint, pagination-controller tests, migrated consumer
+tests, and final controller/add/bind regression tests passed. Browser evidence
+covered the protected dashboard, all-my-molecules, my-molecule-collections,
+collection detail, and the add-molecules empty state. Help/tickets,
+collection-picker/bind, and the remaining add-flow interactions could not be
+completed or re-observed after repeated `McpError -32001: Request timed out`
+failures; no unavailable evidence is claimed.
 
 ### Full pre-merge CI-parity validation
-Not applicable; dependency-skip metadata only.
+Not run locally; `npm ci` and `npm run ci:check` are forbidden in autonomous
+workers. The feature branch was not eligible for feature-SHA CI because it
+was blocked before integration.
 
 ### Browser validation performed
-Not applicable; the task was not attempted.
+Partial pre-implementation and post-implementation evidence was recorded in
+the worker notes. The remaining required journeys were blocked by the MCP
+transport incident.
 
 ### Commits
-Pending metadata commit on `develop`.
+Feature implementation and blocked-attempt notes are preserved on
+`feature/NG-016` through `3f17b306854a561c3853744a641c7e353115a337`.
 
 ### Merge / CI
-No feature branch or merge. Exact-SHA CI is required for the metadata commit.
+No merge. This metadata-only blocked outcome requires exact-SHA CI on
+`develop`.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-Direct terminal prerequisite: UI-016, `SKIPPED_DEPENDENCY`. Transitive chain:
-NG-016 -> UI-016 -> UI-001 -> FE-030 (BLOCKED). FE-030 requires
-filesystem-write capability for a fresh, human-authorized worker session.
+Repeated post-implementation Chrome DevTools MCP transport timeouts prevented
+completion of the remaining browser acceptance journeys. A human-authorized
+recovery is required before this preserved branch can be resumed.

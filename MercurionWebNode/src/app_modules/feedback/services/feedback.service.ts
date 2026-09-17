@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
 import { UUID } from 'node:crypto';
-import { RedisService } from 'src/app_modules/redis/services/redis.service';
 import { CreateFeedbackDTO } from '../models/dto/create-feedback.dto';
 import { Feedback } from '../models/entities/feedback.entity';
 import { FeedbackContextKind, FeedbackEnv, FeedbackKind, FeedbackSource, FeedbackStatus } from '../models/enums/feedback.enums';
@@ -10,20 +9,16 @@ import { Repository } from 'typeorm';
 import { UpdateFeedbackDTO } from '../models/dto/update-feedback.dto';
 import { IPaginationOptions, paginate, Pagination } from 'nestjs-typeorm-paginate';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
-import { redisDurations, redisKeys } from 'src/app_modules/redis/contracts/redis-contracts'
+import { redisKeys } from 'src/app_modules/redis/contracts/redis-contracts'
+import { AtomicAttemptPolicyService } from 'src/app_modules/redis/services/atomic-attempt-policy.service'
 import type { Feedback as FeedbackContract } from '@mercurion/rest-contracts'
 import { utcInstantFromEpochMs } from 'src/utils/temporal/temporal'
 
 @Injectable()
 export class FeedbackService {
 
-    private readonly FEEDBACK_SEND_WINDOW = redisDurations.minutes(10)
-    private readonly FEEDBACK_MAX_SENDS = 8
-
-    private readonly FEEDBACK_LOCK = redisDurations.minutes(15)
-
     constructor(
-        private readonly redisService: RedisService,
+        private readonly attempts: AtomicAttemptPolicyService,
         @InjectRepository(Feedback)
         private readonly feedbackRepo: Repository<Feedback>
     ) { }
@@ -50,34 +45,25 @@ export class FeedbackService {
     }
 
     private async ensureFeedbackNotLocked(userId: UUID): Promise<void> {
-        const lockKey = redisKeys.feedback.sendLock(userId)
-        const locked = await this.redisService.exists(lockKey)
-        if (locked) {
+        if (!await this.attempts.assertAllowed('feedbackSend', redisKeys.feedback.sendLock(userId))) {
             throw applicationError(ApplicationErrorCode.FEEDBACK_TOO_MANY_REQUESTS)
         }
     }
 
     private async registerFeedbackSend(userId: UUID): Promise<void> {
-        const sendKey = redisKeys.feedback.sendCount(userId)
-        const lockKey = redisKeys.feedback.sendLock(userId)
-
-        const sends = await this.redisService.incr(sendKey)
-
-        if (sends === 1) {
-            await this.redisService.setTTL(sendKey, this.FEEDBACK_SEND_WINDOW)
-        }
-
-        if (sends >= this.FEEDBACK_MAX_SENDS) {
-            await this.redisService.set(lockKey, '1', this.FEEDBACK_LOCK)
-            await this.redisService.del(sendKey)
-        }
+        await this.attempts.recordSend(
+            'feedbackSend',
+            redisKeys.feedback.sendCount(userId),
+            redisKeys.feedback.sendLock(userId)
+        )
     }
 
     private async clearFeedbackLock(userId: UUID): Promise<void> {
-        const sendKey = redisKeys.feedback.sendCount(userId)
-        const lockKey = redisKeys.feedback.sendLock(userId)
-        await this.redisService.del(sendKey)
-        await this.redisService.del(lockKey)
+        await this.attempts.reset(
+            'feedbackSend',
+            redisKeys.feedback.sendCount(userId),
+            redisKeys.feedback.sendLock(userId)
+        )
     }
 
     async createFeedback(dto: CreateFeedbackDTO, userId: UUID): Promise<FeedbackContract> {

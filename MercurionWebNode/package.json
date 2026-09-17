@@ -12,6 +12,8 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "nest build",
+    "check:email-assets": "node ../scripts/check-email-template-assets.mjs",
+    "ci:email-assets": "npm run check:email-assets",
     "contracts:check": "tsc --noEmit -p tsconfig.contracts.json && jest --runInBand contracts",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
@@ -23,20 +25,14 @@
     "typecheck": "tsc --noEmit",
     "graphql:schema:check": "node -r ts-node/register -r tsconfig-paths/register scripts/graphql-schema.ts",
     "graphql:schema:update": "node -r ts-node/register -r tsconfig-paths/register scripts/graphql-schema.ts --update",
-    "migration:create": "node -r ts-node/register -r tsconfig-paths/register ../node_modules/typeorm/cli.js migration:create src/persistence/migrations/Migration",
-    "migration:generate": "node -r ts-node/register -r tsconfig-paths/register ../node_modules/typeorm/cli.js migration:generate src/persistence/migrations/Migration -d src/persistence/typeorm.datasource.ts",
-    "migration:run": "node -r ts-node/register -r tsconfig-paths/register ../node_modules/typeorm/cli.js migration:run -d src/persistence/typeorm.datasource.ts",
-    "migration:revert": "node -r ts-node/register -r tsconfig-paths/register ../node_modules/typeorm/cli.js migration:revert -d src/persistence/typeorm.datasource.ts",
-    "migration:show": "node -r ts-node/register -r tsconfig-paths/register ../node_modules/typeorm/cli.js migration:show -d src/persistence/typeorm.datasource.ts",
-    "migration:drift": "ts-node -r tsconfig-paths/register scripts/check-database-drift.ts",
-    "migration:check": "ts-node -r tsconfig-paths/register scripts/check-database-schema.ts",
     "test": "jest --config ./jest.config.js",
-    "test:ci": "node -e \"require('fs').mkdirSync('test-results',{recursive:true})\" && jest --config ./jest.config.js --runInBand --json --outputFile=./test-results/jest-results.json",
+    "test:ci": "npm run test:coverage",
+    "test:coverage": "node -e \"require('fs').mkdirSync('test-results',{recursive:true})\" && jest --config ./jest.config.js --runInBand --coverage --json --outputFile=./test-results/jest-results.json && node ../scripts/check-coverage-gates.mjs --project nest --coverage-dir MercurionWebNode/coverage/nest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json",
-    "test:e2e:ci": "node -e \"require('fs').mkdirSync('test-results',{recursive:true})\" && jest --config ./test/jest-e2e.json --runInBand --json --outputFile=./test-results/e2e-results.json"
+    "test:e2e": "node --experimental-vm-modules ../node_modules/jest/bin/jest.js --config ./test/jest-e2e.json",
+    "test:e2e:ci": "node -e \"require('fs').mkdirSync('test-results',{recursive:true})\" && node --experimental-vm-modules ../node_modules/jest/bin/jest.js --config ./test/jest-e2e.json --runInBand --json --outputFile=./test-results/e2e-results.json"
   },
   "dependencies": {
     "@fastify/cookie": "11.0.2",

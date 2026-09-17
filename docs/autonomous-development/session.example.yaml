@@ -389,9 +389,10 @@ telemetry:
 
 on_finish:
   finalization_guard:
-    command: npm run autonomous:plan
-    output: versioned-json
-    run_immediately_before_pre_deadline_finalization: true
+    command: npm run autonomous:assert-finalizable -- docs/autonomous-development/session.example.yaml
+    output: structured-json
+    success_exit_code: 0
+    run_immediately_before_every_finalization: true
     workload_exhausted_expression: currentCounts.PENDING === 0
     ready_zero_is_workload_exhaustion: false
     no_unexcluded_ready_is_workload_exhaustion: false

@@ -1,7 +1,7 @@
 # 0214 - Centralize release version and build identity
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
@@ -98,7 +98,7 @@ Keep release version and build identity distinct: the release version may repeat
 
 ### Feature branch
 
-_Not started._
+`feature/QA-028` (frozen at `327a938d7f64d45c8efa3bf3899da16d91ed2373`)
 
 ### Preflight
 
@@ -110,15 +110,23 @@ _None._
 
 ### Summary
 
-_Not started._
+Implementation reached the feature-CI phase, but the configured three-repair
+budget was exhausted. The final exact feature-SHA run failed before merge.
 
 ### Task-specific validation performed
 
-_Not started._
+Identity generation, drift/negative checks, REST contract validation, Angular
+and Nest typechecks, targeted tests, container checks, and browser validation
+passed on the feature branch.
 
 ### Full pre-merge CI-parity validation
 
-_Not started._
+Feature CI run `35130531726` initially failed because Docker stages omitted the
+shared identity generator. Repair run `35132050609` failed on stale REST route
+compatibility metadata after the route-ownership repair. Final run
+`35133938660` failed in Nest unit tests with `TS2307`: the ignored generated
+module `MercurionWebNode/src/generated/build-identity.ts` was missing while
+compiling `src/config/config.model.ts`. Three bounded repairs were exhausted.
 
 ### Browser validation performed
 
@@ -126,11 +134,13 @@ _Not applicable / not started._
 
 ### Commits
 
-_Not recorded._
+Feature implementation and repair commits are preserved on
+`feature/QA-028`; blocked status commit:
+`327a938d7f64d45c8efa3bf3899da16d91ed2373`.
 
 ### Merge / CI
 
-_Not started._
+Not merged. Feature branch frozen after failed exact feature-SHA CI.
 
 ### Rollback
 
@@ -138,4 +148,5 @@ _Not applicable._
 
 ### Blocker / human decision required
 
-_None._
+Resolve deterministic generated build-identity availability for Nest unit-test
+compilation, then authorize a new recovery session.

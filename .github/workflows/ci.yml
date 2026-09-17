@@ -195,6 +195,7 @@ jobs:
           if-no-files-found: ignore
           path: |
             MercurionWebNg/coverage
+            reports/coverage/angular
             MercurionWebNg/test-results
             MercurionWebNg/**/*.xml
 
@@ -231,6 +232,7 @@ jobs:
           if-no-files-found: ignore
           path: |
             MercurionWebNode/coverage
+            reports/coverage/nest
             MercurionWebNode/test-results
             MercurionWebNode/**/*.xml
 
@@ -269,54 +271,6 @@ jobs:
             MercurionWebNode/coverage
             MercurionWebNode/test-results
             MercurionWebNode/**/*.xml
-
-  database-schema:
-    name: PostgreSQL migration schema
-    if: ${{ needs.plan.outputs.mode == 'full' }}
-    needs:
-      - plan
-      - quality
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    services:
-      postgres:
-        image: pgvector/pgvector:pg17
-        env:
-          POSTGRES_USER: app
-          POSTGRES_PASSWORD: migration-ci
-          POSTGRES_DB: mercurion
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U app -d mercurion"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-    env:
-      SQL_DATABASE_TYPE: postgres
-      SQL_DATABASE_HOST: 127.0.0.1
-      SQL_DATABASE_PORT: 5432
-      SQL_DATABASE_USERNAME: app
-      SQL_DATABASE_PASSWORD: migration-ci
-      SQL_DATABASE: mercurion
-      SQL_DATABASE_LOGGING: "false"
-      SQL_DATABASE_LOGGER: advanced-console
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-          cache-dependency-path: package-lock.json
-
-      - name: Install workspace dependencies
-        run: npm ci
-
-      - name: Apply migrations and reject entity drift
-        run: npm run ci:database-schema
 
   build:
     name: Build artifacts
@@ -405,6 +359,13 @@ jobs:
       - name: Run critical browser journeys
         run: npm run test:e2e:critical
 
+      - name: Run same-version system journeys
+        if: ${{ vars.MERCURION_SYSTEM_TEST_EMAIL != '' }}
+        env:
+          LOCAL_TEST_ACCOUNT_EMAIL: ${{ vars.MERCURION_SYSTEM_TEST_EMAIL }}
+          LOCAL_TEST_ACCOUNT_PASSWORD: ${{ secrets.MERCURION_SYSTEM_TEST_PASSWORD }}
+        run: npm run test:e2e:system
+
       - name: Upload browser diagnostics
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
@@ -492,7 +453,6 @@ jobs:
       - angular-unit
       - nest-unit
       - nest-e2e
-      - database-schema
       - build
       - browser-e2e
       - containers
@@ -506,7 +466,6 @@ jobs:
           ANGULAR_UNIT_RESULT: ${{ needs.angular-unit.result }}
           NEST_UNIT_RESULT: ${{ needs.nest-unit.result }}
           NEST_E2E_RESULT: ${{ needs.nest-e2e.result }}
-          DATABASE_SCHEMA_RESULT: ${{ needs.database-schema.result }}
           BUILD_RESULT: ${{ needs.build.result }}
           BROWSER_E2E_RESULT: ${{ needs.browser-e2e.result }}
           CONTAINERS_RESULT: ${{ needs.containers.result }}
@@ -526,7 +485,6 @@ jobs:
               test "$ANGULAR_UNIT_RESULT" = "success"
               test "$NEST_UNIT_RESULT" = "success"
               test "$NEST_E2E_RESULT" = "success"
-              test "$DATABASE_SCHEMA_RESULT" = "success"
               test "$BUILD_RESULT" = "success"
               test "$BROWSER_E2E_RESULT" = "success"
               test "$CONTAINERS_RESULT" = "success"

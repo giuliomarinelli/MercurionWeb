@@ -139,9 +139,9 @@ and the default 300k context tier. Every `task` invocation must omit `model`,
 `reasoning_effort` and `context_tier`, allowing exact inheritance from the
 parent. If the worker configuration differs, stop that worker before
 implementation, enter SESSION_RECOVERY_PENDING and do not mutate the task
-outcome. Never select, request or escalate to GPT-5.6 Sol anywhere in this
+outcome. Never select, request or escalate to legacy alternate model anywhere in this
 autonomous session. If Luna cannot complete a task, follow the normal BLOCKED
-lifecycle. Any later Sol diagnosis or targeted review belongs to a separate
+lifecycle. Any later alternate-model diagnosis or targeted review belongs to a separate
 human-operated session with continuous developer-model interaction. Do not impose a global
 AI-credit or Autopilot-continuation cap: the session must remain able to process
 a virtually unlimited number of serial tasks until the configured deadline or
