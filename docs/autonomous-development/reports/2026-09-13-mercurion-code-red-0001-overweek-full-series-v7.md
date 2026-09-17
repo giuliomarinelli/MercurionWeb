@@ -122,7 +122,7 @@ or feature ref was mutated.
 
 ## Host usage
 
-- Model/reasoning: inherited GPT-5.6 Sol / High
+- Model/reasoning: inherited legacy alternate model / High
 - Autopilot/task-session information: one synchronous worker per recipe;
   exact historical worker counters unavailable
 - Credit/token/context information: unavailable

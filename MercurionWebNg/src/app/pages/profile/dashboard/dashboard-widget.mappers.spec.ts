@@ -1,4 +1,5 @@
 import { ProfileDTO } from '../../../Models/account/account.models';
+import { utcInstantFromEpochMs } from '@mercurion/rest-contracts';
 import {
   toActivityViewModel,
   toMetricsViewModel,
@@ -37,9 +38,9 @@ describe('dashboard widget mappers', () => {
     const now = new Date('2026-09-12T12:00:00.000Z');
     const result = toActivityViewModel(profile({
       recentHistory: [
-        { id: '1', itemId: 'm1', itemEntity: 'molecule_collection_items', touchedAt: now.getTime() },
-        { id: '2', itemId: 'c1', itemEntity: 'molecule_collections', touchedAt: now.getTime() },
-        { id: '3', itemId: 'c2', itemEntity: 'molecule_collections', touchedAt: Number.NaN }
+        { id: '1', itemId: 'm1', itemEntity: 'molecule_collection_items', touchedAt: utcInstantFromEpochMs(now.getTime()) },
+        { id: '2', itemId: 'c1', itemEntity: 'molecule_collections', touchedAt: utcInstantFromEpochMs(now.getTime()) },
+        { id: '3', itemId: 'c2', itemEntity: 'molecule_collections', touchedAt: 'not-a-utc-instant' as never }
       ]
     }), 1, now);
 

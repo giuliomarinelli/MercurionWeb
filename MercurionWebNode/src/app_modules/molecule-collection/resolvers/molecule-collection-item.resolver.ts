@@ -12,7 +12,7 @@ import {
     MoleculeCollectionItemUnion
 } from '../models/dto/molecule-collection-item.union';
 import { MoleculeCollectionItemJoinService } from '../services/molecule-collection-item-join.service';
-import { GeneralUtils } from 'src/utils/general-utils/general-utils';
+import { assertMercurionPublicId } from 'src/identifiers/mercurion-public-id';
 
 @Resolver()
 export class MoleculeCollectionItemResolver {
@@ -21,10 +21,6 @@ export class MoleculeCollectionItemResolver {
         private readonly itemService: MoleculeCollectionItemService,
         private readonly joinService: MoleculeCollectionItemJoinService
     ) { }
-
-    private ensureUuid(value: string, field: string): void {
-        GeneralUtils.ensureValidUUIDv7(value, `GraphQLInvalid::Invalid ${field}`)
-    }
 
     @Query(() => [MoleculeCollectionItemUnion])
     async myMoleculeItems(
@@ -41,7 +37,7 @@ export class MoleculeCollectionItemResolver {
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
     ): Promise<MoleculeCollectionItemDTO | null> {
-        this.ensureUuid(id, 'id')
+        assertMercurionPublicId(id, 'id')
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         return this.itemService.findOneDTO(id, userId, fieldsMap)
     }
@@ -72,7 +68,7 @@ export class MoleculeCollectionItemResolver {
         @Args('excluded', { type: () => Boolean, nullable: true }) excluded: boolean | null,
         @Info() info: GraphQLResolveInfo
     ): Promise<PaginatedMoleculeCollectionItem> {
-        this.ensureUuid(collectionId, 'collectionId')
+        assertMercurionPublicId(collectionId, 'collectionId')
         const options: IPaginationOptions = { page, limit }
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         const normalizedQ = typeof q === 'string' ? q.trim() : q
@@ -101,7 +97,7 @@ export class MoleculeCollectionItemResolver {
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
     ): Promise<MoleculeCollectionItemDTO | null> {
-        this.ensureUuid(id, 'id')
+        assertMercurionPublicId(id, 'id')
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         const updated = await this.itemService.update(id, userId, input, fieldsMap)
         return updated
@@ -114,7 +110,7 @@ export class MoleculeCollectionItemResolver {
         @Args('id', { type: () => ID }) id: UUID,
         @AuthenticatedUserId() userId: UUID
     ): Promise<boolean> {
-        this.ensureUuid(id, 'id')
+        assertMercurionPublicId(id, 'id')
         return this.itemService.delete(id, userId)
     }
 
@@ -124,7 +120,7 @@ export class MoleculeCollectionItemResolver {
         @Args('flagIds', { type: () => String }) flagIds: string,
         @AuthenticatedUserId() userId: UUID
     ): Promise<boolean> {
-        this.ensureUuid(itemId, 'id')
+        assertMercurionPublicId(itemId, 'id')
         const normalizedFlagIds = typeof flagIds === 'string' ? flagIds.trim() : flagIds
         return await this.itemService.markAsTouched(userId, itemId, normalizedFlagIds)
     }
@@ -136,8 +132,8 @@ export class MoleculeCollectionItemResolver {
         @Args('itemIds', { type: () => [ID] }) itemIds: UUID[],
         @Args('selectAll', { type: () => Boolean }) selectAll: boolean
     ): Promise<boolean> {
-        this.ensureUuid(collectionId, 'collectionId')
-        itemIds.forEach((itemId) => this.ensureUuid(itemId, 'itemIds'))
+        assertMercurionPublicId(collectionId, 'collectionId')
+        itemIds.forEach((itemId) => assertMercurionPublicId(itemId, 'itemIds'))
         try {
             await this.joinService.addManyMoleculesToCollection(userId, collectionId, itemIds, selectAll)
             return true
@@ -153,8 +149,8 @@ export class MoleculeCollectionItemResolver {
         @Args('itemId', { type: () => ID }) itemId: UUID,
         @Args('deleteCollectionIfEmpty', { type: () => Boolean, nullable: true }) deleteCollectionIfEmpty: boolean | null
     ): Promise<boolean> {
-        this.ensureUuid(collectionId, 'collectionId')
-        this.ensureUuid(itemId, 'itemId')
+        assertMercurionPublicId(collectionId, 'collectionId')
+        assertMercurionPublicId(itemId, 'itemId')
         return this.joinService.removeMoleculeFromCollection(userId, collectionId, itemId, deleteCollectionIfEmpty ?? false)
     }
 

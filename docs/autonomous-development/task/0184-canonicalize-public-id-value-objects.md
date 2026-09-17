@@ -1,6 +1,6 @@
 # 0184 - Canonicalize public-ID value objects
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -87,24 +87,96 @@ Prefer branded/opaque TypeScript types so a TicketPublicId cannot be passed wher
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-035` from base `00ef329b238e2e3dd52dbf7ff916411fde357ca6`.
 ### Preflight
-_Not started._
+- Confirmed clean `feature/DATA-035` at the supplied base SHA before edits.
+- Confirmed the exact base-SHA Actions run `35056527445`
+  (`https://github.com/giuliomarinelli/MercurionWeb/actions/runs/35056527445`)
+  completed successfully for `00ef329b238e2e3dd52dbf7ff916411fde357ca6`.
+  The classifier and autonomous metadata jobs passed and the stable
+  `Required gate` passed; the adaptive classifier correctly skipped unrelated
+  platform jobs for this task/report-only base.
+- Confirmed no task-owned Angular, Nest, Tox21, Jest, or workspace watcher
+  process was active. No runtime was started because the supplied execution
+  instruction classified this recipe as not requiring browser evidence.
+- Confirmed local `commit.gpgSign=false`, `git diff --check` passed, and no
+  `npm ci` or `npm run ci:check` was run.
+- Focused baseline policy check `npm run ci:public-id-validation` passed.
 ### Preflight remediation
-_None._
+None.
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0149, 0157, 0150, 0151. This task was never attempted and receives no feature branch.
+Inventory found two human-facing generated Help ID families: Ticket
+(`tickets.public_id`, `MTCK-` plus minimum nine-digit padding, unique globally,
+GraphQL Help response and notification email) and Message
+(`ticket_messages.public_id`, `MTCKM-` plus minimum nine-digit padding, unique
+globally, GraphQL Help response). Other transport identifiers are UUIDv7
+Mercurion public IDs governed by the existing shared validator; opaque provider
+IDs and internal primary keys remain out of scope.
+
+Replaced the shared Help formatter's unbranded string result with typed,
+family-specific TicketPublicId and MessagePublicId codecs. The codecs provide
+canonical formatting, strict family parsing, source extraction, round-trip
+checks, invalid-input errors, and type-level separation. Help response DTOs
+now expose the family-specific brands. Added positive database constraints for
+both persisted BIGSERIAL sources in a new migration without changing an
+already-applied migration.
 ### Task-specific validation performed
-_Not started._
+- `npm test --workspace mercurion_web_node -- --runInBand
+  src/app_modules/help/models/value-objects/help-public-id.spec.ts
+  src/app_modules/help/models/dto/help-presenters.spec.ts` — passed, 2 suites
+  and 24 tests.
+- `npm test --workspace mercurion_web_node -- --runInBand
+  src/app_modules/help/services/help.service.spec.ts
+  src/app_modules/help/resolvers/help.resolver.spec.ts` — passed, 1 suite and
+  1 test (the repository currently has no Help resolver spec file).
+- `npm run typecheck --workspace mercurion_web_node` — passed.
+- `npm run lint --workspace mercurion_web_node -- --no-warn-ignored` — passed.
+- `npm run build --workspace mercurion_web_node` — passed.
+- `npm run ci:public-id-validation` — passed.
+- `git diff --check` — passed.
+- `npm run migration:check --workspace mercurion_web_node` — could not run
+  because this worker environment has no SQL configuration; it failed before
+  database access with the repository's `SQL_DATABASE_* is required`
+  configuration diagnostic. Migration source was reviewed and the exact
+  feature-SHA CI database job remains the authoritative migration check.
 ### Full pre-merge CI-parity validation
-_Not started._
+Initial exact feature-SHA Actions run `35057663288`
+(`https://github.com/giuliomarinelli/MercurionWeb/actions/runs/35057663288`)
+for `5a370be355d82df5f274f58cc9388c293fa4a34a` failed in both platform
+Prerequisites jobs because the new TypeORM migration was not registered in
+`MercurionWebNode/nest-reachability.config.json`; all preceding public-ID
+checks passed. Added the precise dynamic entrypoint and reran the focused
+orphan check locally. The repair commit then exposed schema drift because the new database
+constraints were not mirrored in the TypeORM entity metadata. Added matching
+`@Check` decorators. Final exact feature-SHA Actions run `35058600141`
+(`https://github.com/giuliomarinelli/MercurionWeb/actions/runs/35058600141`)
+for `7a657a30038ba75cb0e48d3fbf9ae72bff49a9b0` completed successfully with
+both platform prerequisites, migration schema validation, all aggregate jobs,
+and `Required gate` green. Local `npm ci` and `npm run ci:check` were not run.
+The final notes-only SHA is `3c3fd758b39b629635e123aa9aadbd6a79b91fc6`;
+its exact Actions run `35059277482`
+(`https://github.com/giuliomarinelli/MercurionWeb/actions/runs/35059277482`)
+also completed successfully with `Required gate` green.
 ### Browser validation performed
-_Not started / not applicable._
+Not applicable under the supplied worker instruction; no runtime or browser
+process was started.
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+- `5a370be3` — `feat(DATA-035): canonicalize Help public IDs`
+- `1e229580` — `fix(DATA-035): register public ID migration`
+- `7a657a30` — `fix(DATA-035): mirror public ID checks in entities`
+- `c8f70f40` — `docs(DATA-035): record feature CI evidence`
+- `6b7ead7e` — `docs(DATA-035): finalize feature CI notes`
+- `3c3fd758` — `docs(DATA-035): record final feature SHA`
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+Feature CI passed for implementation SHA `7a657a30038ba75cb0e48d3fbf9ae72bff49a9b0`
+in run `35058600141`, notes SHA `c8f70f403c2b072d3cb5efee89edcaca38f569d7`
+in run `35059077944`, notes SHA
+`6b7ead7ee15b85fa3286b418d59162363fb1801b` in run `35059178069`, and
+final notes SHA `3c3fd758b39b629635e123aa9aadbd6a79b91fc6` in run
+`35059277482`;
+coordinator owns integration and post-merge CI. This worker did not merge
+`develop`.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+_None._

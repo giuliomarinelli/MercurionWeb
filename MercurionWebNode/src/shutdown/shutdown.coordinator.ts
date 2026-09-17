@@ -41,7 +41,12 @@ export class ShutdownCoordinator {
     this.stateValue = 'draining'
     this.logger.log('[SHUTDOWN_START]', {
       reason: reason.kind === 'signal' ? reason.signal : 'fatal',
-      timeoutMs: this.timeoutMs
+      timeoutMs: this.timeoutMs,
+      ...(reason.kind === 'fatal' ? {
+        error: reason.error instanceof Error
+          ? { name: reason.error.name, message: reason.error.message }
+          : { name: 'UnknownError', message: String(reason.error) }
+      } : {})
     })
     this.shutdownPromise = this.runShutdown()
     return this.shutdownPromise

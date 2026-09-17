@@ -1,6 +1,6 @@
 # 0158 - Add a transactional outbox for Help notifications
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -95,24 +95,64 @@ Keep domain events/versioning independent of the current Handlebars template fil
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-009`
 ### Preflight
-_Not started._
+Confirmed clean `feature/DATA-009` at supplied base SHA
+`2766086bfb7c9b7b4ffec98ab439cf39f0274a60`, matching `develop` and
+`origin/develop`. Exact-SHA GitHub Actions CI run `35040672868` was completed
+successfully. No Mercurion workspace-consuming Angular/Nest/Tox21/test-watcher
+process was active; the observed Node processes were Codex/Chrome tooling.
+Dependencies 0150, 0152 and 0157 were confirmed `DONE`.
 ### Preflight remediation
-_None._
+None. Local `npm ci` and `npm run ci:check` were not run.
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0150, 0152, 0157. This task was never attempted and receives no feature branch.
+Added the versioned PostgreSQL notification outbox, migration, durable dedupe
+identity, bounded retry/dead-letter dispatcher with row-lock claiming and
+graceful module shutdown, and moved Help ticket/message notifications into the
+same Unit of Work transaction as their state changes. Mail delivery now carries
+the stable outbox event identity as a provider-visible message header.
 ### Task-specific validation performed
-_Not started._
+Passed:
+- `npm run typecheck --workspace mercurion_web_node`
+- `npm run lint --workspace mercurion_web_node -- --no-warn-ignored`
+- focused Help/mail/outbox Jest tests with `--runInBand`
+- `npm run ci:transactions`
+- `npm run build --workspace mercurion_web_node`
+- `git diff --check`
+- Feature CI run `35041833688` diagnosed as a repository-controlled Nest
+  reachability failure for the new TypeORM migration; the migration was added
+  to `nest-reachability.config.json` and `npm run ci:nest:architecture` passed
+  locally afterward.
 ### Full pre-merge CI-parity validation
-_Not started._
+Owned by GitHub Actions on the pushed exact feature SHA; local aggregate
+`npm run ci:check` was intentionally not run per protocol.
 ### Browser validation performed
-_Not applicable._
+_Not started._
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+`54da665fc2105e4c25e65a96aa8ed0f3dfb99cea` — transactional outbox
+implementation; required Copilot co-author trailer included.
+`1155f0601ac5adfbc813bba8fa1a8b0b7ed83ddc` — TypeORM migration reachability
+metadata correction; exact feature CI run `35042176140` succeeded.
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+_Not started._
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+_None._
+
+### Direct-human regression remediation (2026-09-16)
+
+Reopened by direct human instruction after local startup exposed an unhandled
+outbox query rejection. The dispatcher now awaits its initial database access,
+so a missing required relation fails bootstrap with the original
+`QueryFailedError`; later polling failures are contained and logged. Bootstrap
+shutdown now begins only after startup has rejected, fatal diagnostics retain
+the original error, and Socket.IO Redis clients remain connected until the
+adapter has completed its own shutdown.
+
+Focused Jest tests, Nest typecheck, lint and build passed. A canonical Nest
+startup against the unchanged local database completed orderly shutdown and
+reported `relation "notification_outbox_events" does not exist` without the
+secondary Fastify `setNotFoundHandler` error or an unhandled Redis-adapter
+rejection. No database migration or schema mutation was performed; the local
+database still requires separately authorized migration reconciliation.

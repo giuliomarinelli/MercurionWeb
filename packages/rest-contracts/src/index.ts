@@ -1,4 +1,5 @@
 import type { ApplicationErrorEnvelope } from './application-error-envelope'
+import type { UtcInstant } from './temporal'
 
 export { LOCAL_DUMMY_AUTH } from './local-dummy-auth'
 export type { LocalDummyAuthMarker } from './local-dummy-auth'
@@ -48,6 +49,14 @@ export type {
   ApplicationErrorCategory,
   TransportApplicationErrorCode
 } from './application-error-envelope'
+export {
+  epochMsFromUtcInstant,
+  isUtcInstant,
+  parseUtcInstant,
+  utcInstantFromDate,
+  utcInstantFromEpochMs
+} from './temporal'
+export type { UtcInstant } from './temporal'
 export {
   INITIAL_SESSION_PROTOCOL,
   SessionConnectionState,
@@ -128,7 +137,7 @@ export interface PageModel<T> {
 
 export interface ConfirmDTO {
   statusCode: number
-  timestamp: string
+  timestamp: UtcInstant
   message: string
 }
 
@@ -140,14 +149,14 @@ export interface ErrorRes extends ApplicationErrorEnvelope {
   message: ApplicationErrorEnvelope['message']
   details?: ApplicationErrorEnvelope['details']
   correlationId: ApplicationErrorEnvelope['correlationId']
-  timestamp: string
+  timestamp: UtcInstant
   requestId: string
   path: string
 }
 
 export interface TotpMetadata {
-  generatedAt: number
-  expiresAt: number
+  generatedAt: UtcInstant
+  expiresAt: UtcInstant
 }
 
 export interface TotpAuthMetadata extends TotpMetadata {
@@ -309,7 +318,7 @@ export interface RecoveryCodeDTO {
 export interface HistoryDTO {
   id: string
   itemEntity: HistoryItemEntity
-  touchedAt: number
+  touchedAt: UtcInstant
   itemId: string
   itemName: string
   flagIds: string
@@ -355,9 +364,9 @@ export interface MfaStrategyDTO {
 
 export interface SessionDTO {
   id: string
-  createdAt: number
-  expiresAt: number
-  lastAccessedAt: number
+  createdAt: UtcInstant
+  expiresAt: UtcInstant
+  lastAccessedAt: UtcInstant
   valid?: boolean
   current: boolean
   location: string
@@ -436,7 +445,7 @@ export type FeedbackStatus = (typeof FeedbackStatus)[keyof typeof FeedbackStatus
 
 export interface Feedback {
   id: string
-  createdAtMs: string
+  createdAtMs: UtcInstant
   env: FeedbackEnv
   source: FeedbackSource
   kind: FeedbackKind

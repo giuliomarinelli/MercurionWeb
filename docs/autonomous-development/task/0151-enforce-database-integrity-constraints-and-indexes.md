@@ -1,6 +1,6 @@
 # 0151 - Enforce database integrity constraints and indexes
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -90,24 +90,70 @@ Prefer constraints that encode stable domain truth. Do not attempt to encode eve
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-002`
 ### Preflight
-_Not started._
+- Authorized recovery resumed preserved SHA
+  `d163d4189821d2f2f09e4901ab0a6a4ee3254a92` and merged current green
+  `develop` SHA `f86b60e8eec8d6f41eb774abc76720a5d47a5f54` with
+  `--no-ff --no-gpg-sign`.
+- Exact base full CI run `35001367196` succeeded with Windows, Ubuntu and
+  Required gate green.
+- Dependency `0150-establish-versioned-typeorm-migrations.md` is `[x] DONE`.
+- The real isolated npm capability probe passed and its exact temporary
+  directory was removed; repository status remained identical.
 ### Preflight remediation
-_None._
+None.
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0150 (DATA-001), which is BLOCKED. Resolved hard dependencies for this recipe: 0150. This task was never attempted and receives no feature branch.
+Added a versioned integrity migration and matching TypeORM metadata for SSO
+identity uniqueness, molecule collection ownership keys, join uniqueness,
+composite ownership foreign keys, closed synthesis values and non-negative
+ordering. Query-backed collection/item/join and SSO indexes are named and
+documented in the production entity inventory.
+
+The migration deterministically reconciles the historical blocker: when
+collection and item owners agree it repairs the denormalized join owner; when
+the parents have different owners it removes the association already forbidden
+by the domain. The canonical PostgreSQL schema check now verifies the migration
+backfill, exact schema objects, concurrent uniqueness, invalid ownership and
+transaction rollback behavior.
 ### Task-specific validation performed
-_Not started._
+- `npm run migration:check --workspace mercurion_web_node` passed against a
+  disposable PostgreSQL/pgvector database with both migrations and zero schema
+  drift. Backfill, metadata, ownership, concurrency and rollback probes passed.
+- `npm run typecheck --workspace mercurion_web_node` passed.
+- `npm run lint --workspace mercurion_web_node` passed with zero warnings.
+- Complete Nest unit suite passed: 157 suites, 509 tests.
+- Complete Nest E2E suite passed: 1 suite, 3 tests.
+- `npm run build --workspace mercurion_web_node` passed.
+- `npm run ci:nest:architecture` passed.
+- `git diff --check` passed; the disposable database container was removed.
 ### Full pre-merge CI-parity validation
-_Not started._
+Exact feature SHA `c66e87c93c8bf99fac006177a99664201499e5b8` passed the
+complete GitHub Actions workflow in run `35004093050`, including PostgreSQL
+schema validation and the stable Required gate. The preceding run
+`35003603649` exposed an unregistered TypeORM migration entrypoint; the narrow
+reachability correction passed locally and in the replacement run. Local
+`npm ci` and `npm run ci:check` were not run; clean-install aggregate evidence
+belongs to GitHub Actions.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+`d163d4189821d2f2f09e4901ab0a6a4ee3254a92` — preserved blocking diagnosis.
+
+`b6fd338e4a46ae52058956dd7f492d2d48e70ecd` — migration, entity metadata,
+inventory and PostgreSQL integrity probe.
+
+`895c2fba263b4d5dd6ea806e1aac9668c3027f9d` — recovery evidence and reset of
+the 19 dependency skips made stale by DATA-002 becoming `DONE`.
+
+`c66e87c93c8bf99fac006177a99664201499e5b8` — TypeORM migration reachability
+registration after the first feature-CI diagnostic.
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+Merged into `develop` with `--no-ff --no-gpg-sign` as
+`097a10118938f981bb727ad8efff7b762e567c98`. Exact merge-SHA full CI passed in
+run `35004741664`, including Windows, Ubuntu, container builds, Angular and
+Nest tests/builds, PostgreSQL migration/integrity probes, and Required gate.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Terminal dependency root: 0150 (DATA-001). No feature branch or worker was created for this task.
+_None._

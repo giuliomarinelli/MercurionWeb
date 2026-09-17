@@ -1,6 +1,6 @@
 # 0177 - Reconcile database and object-storage effects
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -89,24 +89,100 @@ Prefer explicit states such as pending/active/deleting/failed over guessing cons
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-028` at base `0729c38c8e51d82c13ff269a3910b98ff1e4f48d`.
 ### Preflight
-_Not started._
+- Confirmed clean `feature/DATA-028` identity and exact supplied base SHA.
+- Exact base GitHub Actions CI run `35091692269` for
+  `0729c38c8e51d82c13ff269a3910b98ff1e4f48d` completed successfully with
+  both `Prerequisites (windows-latest)`, `Prerequisites (ubuntu-latest)` and
+  `Required gate` green.
+- No task-owned workspace process was active before implementation. The
+  canonical Tox21, Nest and Angular startup preflight was completed in order;
+  the first Angular invocation was corrected to the declared
+  `MercurionWebNg` working directory after its root-directory command exposed
+  only the expected missing-script diagnostic. Two complete readiness rounds
+  returned HTTP 200 from `/health` and `/`.
+- Hard prerequisites 0150, 0158 and 0176 are checked `DONE`. Chrome DevTools
+  capability probe `list_pages` succeeded without navigation.
+  Post-change runtime readiness again returned two HTTP 200 rounds.
 ### Preflight remediation
-_None._
+The initial Angular command was stopped with no repository mutation and
+reissued from the canonical `MercurionWebNg` directory. No baseline files or
+task status were changed during that correction.
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0176, 0158, 0150. This task was never attempted and receives no feature branch.
+Added durable storage-operation intent for provider cleanup and deletion,
+including explicit pending/processing/failed/terminal/completed states, retry
+backoff, dedupe keys, bounded reconciliation and structured operational
+logging. Upload compensation persists cleanup intent when immediate deletion
+fails; delete and avatar replacement tombstone metadata before provider
+cleanup, making retries safe and preventing inactive objects from being
+downloaded. Dropbox now exposes a provider-neutral listing primitive, and a
+versioned migration creates the operation table.
 ### Task-specific validation performed
-_Not started._
+- `npm test --workspace mercurion_web_node -- --runInBand
+  src/app_modules/dropbox-object-store/application/document-command.service.spec.ts
+  src/app_modules/dropbox-object-store/application/storage-reconciliation.service.spec.ts
+  src/app_modules/dropbox-object-store/infrastructure/dropbox-object-store.adapter.spec.ts`
+  — 3 suites, 7 tests passed, including provider-failure retry and deletion
+  repair scenarios.
+- `npm run typecheck --workspace mercurion_web_node` — passed.
+- `npm run lint --workspace mercurion_web_node -- --no-warn-ignored` — passed.
+- `npm run build --workspace mercurion_web_node` — passed.
+- `git diff --check` — passed.
 ### Full pre-merge CI-parity validation
-_Not started._
+Owned by GitHub Actions after the task-specific commit is pushed; local
+`npm ci` and `npm run ci:check` were not run.
 ### Browser validation performed
-_Not started / not applicable._
+- Canonical runtime startup used `../MercurionTox21`, `MercurionWebNode` and
+  `MercurionWebNg` in the required order, with all three managed sessions
+  stopped afterward.
+- Chrome DevTools opened `http://localhost:8888/documents`; the Angular
+  application returned its observable `404-not-found` page. The current
+  baseline has backend-only document endpoints and no Angular upload/delete/
+  avatar consumer route, so ordinary document flows are not browser-reachable;
+  no credentials were needed or entered.
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+`e83fdbe3` — `feat(DATA-028): reconcile document storage effects`; required
+Copilot co-author trailer included.
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+_Not started._
+
+### CI repair
+- Exact feature-SHA run `35093607850` failed in `nest-orphans` because the
+  TypeORM migration
+  `src/persistence/migrations/1789660000000-AddStorageOperations.ts` was not
+  registered as a dynamic reachability entrypoint.
+- Added the migration to `MercurionWebNode/nest-reachability.config.json`
+  using the existing `typeorm-cli` registration convention.
+- Focused validation:
+  `npm run nest:orphans:check` — passed.
+  `npm run ci:architecture` — passed.
+- Repair commit: `330c1164a306fdf6ab38d1907f58d085dd2f86fe`.
+
+### CI repair 2
+- Exact feature-SHA run `35094180306` failed in PostgreSQL migration schema
+  job `104788836659` / Required gate `104789432995` because the migration
+  created `UQ_storage_operations_dedupe_key` while
+  `StorageOperationEntity` declares an unnamed unique index.
+- Replaced the migration's unique constraint with the TypeORM-generated
+  `IDX_da97655d6791e511d80fc4a400` unique index and added matching `down`
+  cleanup.
+- Focused validation:
+  `npm run nest:orphans:check` — passed.
+  `npm run ci:architecture` — passed.
+  `npm run typecheck --workspace mercurion_web_node` — passed.
+  `git diff --check` — passed.
+  `npm run migration:check --workspace mercurion_web_node` — reached the
+  configured local PostgreSQL instance but stopped at the pre-existing
+  `InitialSchema1789400000000` attempt to create the already existing
+  `backup_codes` relation.
+  `npm run migration:drift --workspace mercurion_web_node` — reported the
+  existing local baseline's unrelated metadata drift before reaching a clean
+  schema result; the repaired migration's generated index name and reversible
+  down statement were verified in source.
+- Repair commit: `9b35d0f62c13b97953c48dcaa23df5676295a1f0`.
+
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+_None._

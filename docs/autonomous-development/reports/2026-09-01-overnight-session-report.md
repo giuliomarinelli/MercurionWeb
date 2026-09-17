@@ -148,7 +148,7 @@ skipped.
 
 ## Host usage
 
-- Model/reasoning: GPT-5.6 Sol, High reasoning, Max subscription profile.
+- Model/reasoning: legacy alternate model, High reasoning, Max subscription profile.
 - Worker activity: one non-mutating capability-probe invocation and one fresh
   synchronous implementation invocation for task `0001`.
 - Elapsed time available at report generation: `02:19:55.7324601`.

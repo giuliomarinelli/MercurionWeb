@@ -16,9 +16,7 @@ import { TokenType } from '../models/enums/token-type.enum';
 import { errorMessage, errorStack } from 'src/utils/errors/error-message'
 
 import { JwtToolsService } from './jwt-tools.service';
-import { EmailTotpContext } from 'src/app_modules/notification/models/contexts/email-totp.context';
 import { TotpConfiguration } from 'src/config/config.types';
-import { join } from 'path';
 import { SessionService } from './session.service';
 import { nullish } from 'src/models/nullish.type';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
@@ -34,6 +32,7 @@ import { ProvidedEmailDTO } from '../models/dto/provided-email.dto';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 import { MfaBackupCodeStore } from 'src/app_modules/user/services/mfa-backup-code.store'
 import { MfaPolicyService } from './mfa-policy.service'
+import { runInTransaction } from 'src/persistence/transaction-context'
 
 @Injectable()
 /**
@@ -246,7 +245,7 @@ export class MfaApplicationService {
 
         await this.throttleBackupRegeneration(userId)
 
-        return this.dataSource.manager.transaction(async (manager) => {
+        return runInTransaction(this.dataSource, async (_context, manager) => {
 
             const row = await manager.findOne(User, {
                 where: { id: userId },
@@ -374,15 +373,15 @@ export class MfaApplicationService {
 
             case MfaStrategy.EMAIL_OTP:
 
-                await this.mailService.sendEmail<EmailTotpContext>(
+                await this.mailService.send(
+                    'mfa-login-code',
                     user.email as string,
-                    `Il tuo codice per accedere a ${this.appName}`,
                     {
                         firstName: user.firstName,
                         totp: TOTP,
-                        period: this.totpConfig.period
-                    },
-                    join(__dirname, "../../notification/email-templates/send-totp-for-2fa.hbs")
+                        period: this.totpConfig.period,
+                        appName: this.appName
+                    }
 
                 )
                 break
@@ -478,15 +477,15 @@ export class MfaApplicationService {
                     throw applicationError(ApplicationErrorCode.MFA_TOTP_SECRET_NOT_FOUND)
                 }
                 ({ TOTP, ...metadata } = this.securityService.generateTotp(totpSecret))
-                await this.mailService.sendEmail<EmailTotpContext>(
+                await this.mailService.send(
+                    'mfa-enable-code',
                     email,
-                    `Il tuo codice per attivare l'MFA in ${this.appName}`,
                     {
                         firstName,
                         totp: TOTP,
-                        period: this.totpConfig.period
-                    },
-                    join(__dirname, "../../notification/email-templates/send-totp-to-enable-mfa.hbs")
+                        period: this.totpConfig.period,
+                        appName: this.appName
+                    }
                 )
                 secureToken = await this.jwtTools.generateToken(userId, TokenType.EmailOtpMfaActivationToken)
                 break
@@ -587,7 +586,10 @@ export class MfaApplicationService {
                 return false
             }
 
-            await this.userService.updateUser(userId, { appTotpSecret: otpSecret })
+            const updatedUser = await this.userService.updateUser(userId, { appTotpSecret: otpSecret })
+            if (!updatedUser) {
+                throw applicationError(ApplicationErrorCode.USER_NOT_FOUND)
+            }
             await this.redisService.del(redisKeys.mfa.temporaryAppSecret(userId))
         } else {
             otpSecret = await this.userService.getOtpSecretByUserId(userId)
@@ -659,11 +661,10 @@ export class MfaApplicationService {
                 }
                 ({ TOTP, ...metadata } = this.securityService.generateTotp(totpSecret))
 
-                await this.mailService.sendEmail<EmailTotpContext>(
+                await this.mailService.send(
+                    'mfa-disable-code',
                     email,
-                    `Codice per disattivare l'MFA via email in ${this.appName}`,
-                    { firstName, totp: TOTP, period: this.totpConfig.period },
-                    join(__dirname, "../../notification/email-templates/send-totp-to-disable-mfa.hbs")
+                    { firstName, totp: TOTP, period: this.totpConfig.period, appName: this.appName },
                 )
                 secureToken = await this.jwtTools.generateToken(userId, TokenType.EmailOtpMfaInactivationToken)
                 break
@@ -754,7 +755,7 @@ export class MfaApplicationService {
             return false
         }
 
-        await this.dataSource.manager.transaction(async (manager) => {
+        await runInTransaction(this.dataSource, async (transactionContext, manager) => {
 
             const row = await manager.createQueryBuilder(User, 'u')
                 .select(['u.mfaStrategies', 'u.backupCodesGiven'])
@@ -803,9 +804,14 @@ export class MfaApplicationService {
             if (mfaStrategiesWithoutJustDisabledStrategy.length === 0) {
                 await manager.delete(MfaBackupCode, { userId })
             }
-        })
 
-        await this.securityAuditService.mfaDisabled(userId, GeneralUtils.getEnumKeyByValue(MfaStrategy, strategy) ?? 'unknown')
+            await this.securityAuditService.mfaDisabled(
+                userId,
+                GeneralUtils.getEnumKeyByValue(MfaStrategy, strategy) ?? 'unknown',
+                undefined,
+                transactionContext
+            )
+        })
 
         await this.clearMfaFailures(userId, strategy, context)
         return true

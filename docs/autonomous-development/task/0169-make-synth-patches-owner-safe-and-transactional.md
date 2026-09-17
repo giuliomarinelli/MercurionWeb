@@ -1,6 +1,6 @@
 # 0169 - Make Synth patches owner-safe and transactional
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -86,24 +86,41 @@ Prefer small command mappers (`toSynthesisPatch`, `toStepPatch`, or equivalent) 
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-020` at base `b279f5d15c399518446b27d3b767adf6d412f041`.
 ### Preflight
-_Not started._
+Clean branch and no task-owned Angular/Nest/Tox21/test-watcher processes confirmed.
+Exact base SHA Actions run `35052297338` (`CI`) was completed successfully with
+both platform prerequisites, all container/build/test jobs, `PostgreSQL migration
+schema`, `Critical browser journeys`, and `Required gate` green. Local focused
+preflight used the existing dependency tree; no `npm ci` or `npm run ci:check`
+was run.
 ### Preflight remediation
-_None._
+None.
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0168, 0152. This task was never attempted and receives no feature branch.
+Added command-specific `SynthesisPatch` and `SynthStepPatch` mappers with explicit
+scalar allowlists. Synthesis and SynthStep create/update/delete commands now use
+the canonical `UnitOfWork`, perform owner-scoped existence checks, and read/write
+through transaction-bound repositories. Update results are selected through the
+same transaction repository, while protected identifiers, owners, audit fields,
+and relations are ignored rather than mass-assigned.
 ### Task-specific validation performed
-_Not started._
+- `npm test --workspace mercurion_web_node -- --runInBand --runTestsByPath src/app_modules/synth/services/synthesis.service.spec.ts src/app_modules/synth/services/synthetic-step.service.spec.ts src/persistence/transaction-context.spec.ts` — 3 suites, 18 tests passed.
+- `npm run typecheck --workspace mercurion_web_node` — passed.
+- `npm run lint --workspace mercurion_web_node` — passed.
+- `npm run ci:transactions` — transaction boundary policy and negative check passed.
+- `git diff --check` — passed.
+- Tests cover owner/missing outcomes, explicit allowlist behavior against protected/relation fields, and persistence failure/rollback propagation.
 ### Full pre-merge CI-parity validation
-_Not started._
+Reserved for GitHub Actions on the pushed feature SHA; local `npm run ci:check`
+was intentionally not run per policy.
 ### Browser validation performed
-_Not started / not applicable._
+Not required by this recipe.
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+`4e7e9df92faf17a5116ec9e4ac7235853e257e34` — Make Synth patches transactional and owner-safe.
+`15d2ccef1edc8009badf7ba719956663da80b292` — Record DATA-020 execution evidence.
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+Feature SHA Actions validation is coordinator-owned after push.
 ### Rollback
-_Not applicable._
+Not applicable.
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+None.

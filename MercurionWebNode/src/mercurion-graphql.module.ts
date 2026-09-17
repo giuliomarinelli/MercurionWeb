@@ -74,7 +74,9 @@ export function createMercurionGraphQLConfig(config: ConfigService): MercuriusDr
                 }
             },
 
-            resolvers: { JSON: GraphQLJSON },
+            resolvers: {
+                JSON: GraphQLJSON,
+            },
 
             errorFormatter: (executionResult, ctx) => {
                 const { errors, data } = executionResult

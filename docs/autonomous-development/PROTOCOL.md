@@ -51,6 +51,12 @@ nonce probe is intentionally tool-free and therefore never loads a skill.
 
 The canonical local runtime topology is defined by `docs/autonomous-development/RUNTIME.md`.
 
+Every task declaring browser/runtime evidence performs a non-navigating Chrome
+DevTools tool-surface probe before task mutation. Failure is
+`SESSION_CAPABILITY_PAUSE`; the recipe remains pending and no branch work or
+dependency skip is retained. Host-tool unavailability discovered after
+implementation is a recovery incident, not evidence that the task is defective.
+
 The coordinator owns deterministic orchestration: task discovery/order, YAML parsing, time/deadlines, branch lifecycle, feature-SHA and merge-SHA CI waiting, merge/revert sequencing and reporting. The fresh task worker owns local preflight, task-scoped runtime processes, exclusive browser control, implementation and task-specific validation inside the currently assigned feature branch.
 
 ## GitHub Copilot CLI coordinator/worker topology
@@ -73,7 +79,7 @@ state before any integration write.
 
 The active configuration is a repository contract read by the coordinator; CLI Autopilot does not replace deterministic orchestration. Wall-clock enforcement therefore remains an explicit coordinator duty. The coordinator MUST use an absolute timestamp plus the configured IANA timezone and MUST NOT rely on a long-running shell `sleep` to detect the deadline.
 
-The custom-agent profiles use explicit required tool lists and do not pin a model, reasoning level or context tier in frontmatter. The coordinator is launched with the exact parent profile declared by the active session; normal `task` calls MUST omit `model`, `reasoning_effort` and `context_tier`, so every worker inherits that profile without inheriting every unrelated user-scoped tool schema. For the current overweek policy this means GPT-5.6 Luna, Medium reasoning and the default 300k context tier. A mismatched worker configuration is `SESSION_RECOVERY_PENDING`: stop it before implementation and do not mutate a task outcome. An autonomous session MUST NOT select, request, or escalate to GPT-5.6 Sol. A Luna task that cannot be completed follows the normal `BLOCKED` lifecycle; any later Sol diagnosis or targeted review occurs only in a separate, directly human-operated session with continuous developer-model interaction. Both profiles disable inferred invocation; the coordinator is manually invocable, while the worker is not user-invocable and can only be called explicitly through `task`.
+The custom-agent profiles use explicit required tool lists and do not pin a model, reasoning level or context tier in frontmatter. The coordinator is launched with the exact parent profile declared by the active session; normal `task` calls MUST omit `model`, `reasoning_effort` and `context_tier`, so every worker inherits that profile without inheriting every unrelated user-scoped tool schema. For the current overweek policy this means GPT-5.6 Luna, Medium reasoning and the default 300k context tier. Conformance is established by the verified parent launch, absence of task-call overrides and the correlated worker handshake; workers never self-attest metadata that the host does not expose. An explicit override or exposed metadata proving a mismatch is `SESSION_RECOVERY_PENDING`: stop before implementation and do not mutate a task outcome. Only the configured Luna profile is permitted. Both profiles disable inferred invocation; the coordinator is manually invocable, while the worker is not user-invocable and can only be called explicitly through `task`.
 
 GitHub Copilot CLI uses its native automatic context compaction and session checkpoint behavior. Autonomous sessions do not depend on VS Code Responses context-management settings.
 
@@ -653,6 +659,20 @@ remains. If pending tasks exist but are temporarily excluded or unsafe, the
 session stays alive in `SESSION_RECOVERY_PENDING` until they become runnable or
 the soft deadline arrives.
 
+Immediately before any final report or `task_complete`, the coordinator MUST
+run the active session's
+`npm run autonomous:assert-finalizable -- <active-session-yaml>` command and
+require exit code zero. The executable guard obtains and validates a fresh
+planner snapshot. Before the deadline it succeeds only when
+`currentCounts.PENDING === 0`. This is the sole machine-checkable definition of
+`WORKLOAD_EXHAUSTED`. `READY === 0`, no task outside a session-local exclusion
+set, capability exhaustion, branch collisions, `WAITING_DEPENDENCY`, or a
+session-fatal blocker are `NO_SELECTABLE_TASKS`, not workload exhaustion. While
+`currentCounts.PENDING > 0`, `task_complete` and final-report generation are
+forbidden before the soft deadline; exclusions remain temporary scheduling
+state and the coordinator stays in `SESSION_RECOVERY_PENDING` with bounded
+periodic planner re-evaluation.
+
 ## Session finalization and report
 
 At finalization the runner records at least:
@@ -679,7 +699,7 @@ Reports live under `docs/autonomous-development/reports/` unless overridden by c
 
 The coordinator writes the report from a clean `develop` after the active task lifecycle is terminal. It commits and pushes the report as session metadata and, when a workflow exists, waits for CI on that exact report commit before declaring final repository health. A report-CI failure is a session-finalization blocker; it does not retroactively change successfully completed task states.
 
-After final repository health is recorded, the coordinator emits the concise final summary and report path, then calls `task_complete` as the final Autopilot action. It performs no further prose or tool calls after `task_complete`.
+After final repository health is recorded, the coordinator emits the concise final summary and report path, then calls `task_complete` as the final Autopilot action. It performs no further prose or tool calls after `task_complete`. Before the soft deadline this sequence is reachable only after the fresh planner guard has proved `currentCounts.PENDING === 0`.
 
 No error or blocker is a successful completion condition while pending workload
 remains before the soft deadline. The coordinator preserves safe repository

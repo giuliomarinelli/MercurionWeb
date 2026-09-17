@@ -6,6 +6,10 @@ import { Field, ID, Int, ObjectType } from "@nestjs/graphql";
 
 @ObjectType()
 @Entity('molecule_collections')
+@Index('uq_molecule_collections_id_user', ['id', 'userId'], { unique: true })
+@Index('uq_molecule_collections_user_system_key', ['userId', 'systemKey'], { unique: true })
+@Index('idx_molecule_collections_user_name', ['userId', 'name'])
+@Index('idx_molecule_collections_user_touched', ['userId', 'touchedAt'])
 export class MoleculeCollection {
 
     @Field(() => ID)
@@ -16,8 +20,15 @@ export class MoleculeCollection {
     @Column()
     name!: string
 
+    /**
+     * Stable application identity for system-created collections.  The display
+     * name remains user-editable and is deliberately not used as an identity.
+     */
+    @Column({ type: 'varchar', nullable: true })
+    systemKey!: string | null
+
     @Index()
-    @Column()
+    @Column({ type: 'uuid' })
     userId!: UUID
 
     @Field(() => [MoleculeCollectionItemJoin], { nullable: true })

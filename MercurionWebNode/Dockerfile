@@ -35,9 +35,7 @@ RUN find . -type f \( \
   -name "*.pem" -o -name "*.key" -o \
   -name "*.p12" -o -name "*.pfx" \
 \) -print -delete
-RUN npm run build && \
-  mkdir -p dist/app_modules/notification && \
-  cp -R src/app_modules/notification/email-templates dist/app_modules/notification/email-templates
+RUN npm run build
 
 FROM source AS build-test
 ENV NODE_ENV=production
@@ -49,8 +47,6 @@ COPY k8s/beta/redis-deploy.yaml /workspace/k8s/beta/redis-deploy.yaml
 RUN npm run build && \
   mkdir -p dist/config && \
   cp -R src/config/keys dist/config/keys && \
-  mkdir -p dist/app_modules/notification && \
-  cp -R src/app_modules/notification/email-templates dist/app_modules/notification/email-templates && \
   npm run test
 
 FROM source AS build-production
@@ -61,9 +57,7 @@ RUN find . -type f \( \
   -name "*.pem" -o -name "*.key" -o \
   -name "*.p12" -o -name "*.pfx" \
 \) -print -delete
-RUN npm run build && \
-  mkdir -p dist/app_modules/notification && \
-  cp -R src/app_modules/notification/email-templates dist/app_modules/notification/email-templates
+RUN npm run build
 
 FROM node:22.16.0-alpine AS runtime
 WORKDIR /usr/src/app

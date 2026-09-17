@@ -9,7 +9,8 @@ import {
     UseInterceptors,
     ClassSerializerInterceptor,
     Query,
-    BadRequestException
+    DefaultValuePipe,
+    ParseIntPipe,
 } from '@nestjs/common'
 import { UUID } from 'crypto'
 import { FeedbackService } from '../services/feedback.service'
@@ -18,13 +19,17 @@ import { CreateFeedbackDTO } from '../models/dto/create-feedback.dto'
 import { Scope } from 'src/app_modules/user/models/enums/scope.enum'
 import { UpdateFeedbackDTO } from '../models/dto/update-feedback.dto'
 import { FeedbackEnv, FeedbackStatus } from '../models/enums/feedback.enums'
-import { Feedback } from '../models/entities/feedback.entity'
+import type { Feedback } from '@mercurion/rest-contracts'
 import {
     ApplicationErrorCode,
     applicationHttpException,
     isApplicationError
 } from 'src/exception-handling/application-error'
 import { GeneralUtils } from 'src/utils/general-utils/general-utils'
+import {
+    MercurionPublicIdPipe,
+    type MercurionPublicId
+} from 'src/identifiers/mercurion-public-id'
 import { FlatPagination } from 'src/models/flat-pagination.interface'
 import type { DeleteFeedbackResponse } from '@mercurion/rest-contracts'
 
@@ -46,14 +51,12 @@ export class FeedbackController {
     @Get()
     @HasScopes(Scope.ReadFeedback)
     async list(
-        @Query('page') pageRaw?: string,
-        @Query('limit') limitRaw?: string,
+        @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+        @Query('limit', new DefaultValuePipe(25), ParseIntPipe) limitRaw: number,
         @Query('env') env?: FeedbackEnv,
         @Query('status') status?: FeedbackStatus
     ): Promise<FlatPagination<Feedback>> {
-        const page = Math.max(1, Number(pageRaw ?? 1) || 1)
-        const limitUnsafe = Math.max(1, Number(limitRaw ?? 25) || 25)
-        const limit = Math.min(limitUnsafe, 100)
+        const limit = Math.min(limitRaw, 100)
 
         const pagination = await this.feedbackService.listFeedback(
             { page, limit },
@@ -65,10 +68,7 @@ export class FeedbackController {
 
     @Get(':id')
     @HasScopes(Scope.ReadFeedback)
-    async getById(@Param('id') id: UUID): Promise<Feedback> | never {
-        if (!GeneralUtils.isValidUUIDv7(id)) {
-            throw new BadRequestException('Invalid id')
-        }
+    async getById(@Param('id', MercurionPublicIdPipe) id: MercurionPublicId): Promise<Feedback> | never {
         const f = await this.feedbackService.getFeedbackById(id)
         if (!f) {
             throw applicationHttpException(ApplicationErrorCode.FEEDBACK_NOT_FOUND)
@@ -79,21 +79,15 @@ export class FeedbackController {
     @Patch(':id')
     @HasScopes(Scope.UpdateFeedback)
     async moderate(
-        @Param('id') id: UUID,
+        @Param('id', MercurionPublicIdPipe) id: MercurionPublicId,
         @Body() dto: UpdateFeedbackDTO
     ): Promise<Feedback> {
-        if (!GeneralUtils.isValidUUIDv7(id)) {
-            throw new BadRequestException('Invalid id')
-        }
         return this.feedbackService.moderateFeedback(id, dto)
     }
 
     @Delete(':id')
     @HasScopes(Scope.DeleteFeedback)
-    async delete(@Param('id') id: UUID): Promise<DeleteFeedbackResponse> {
-        if (!GeneralUtils.isValidUUIDv7(id)) {
-            throw new BadRequestException('Invalid id')
-        }
+    async delete(@Param('id', MercurionPublicIdPipe) id: MercurionPublicId): Promise<DeleteFeedbackResponse> {
         try {
             await this.feedbackService.deleteFeedback(id)
             return { ok: true }

@@ -197,6 +197,7 @@ function visitConfig(node) {
 for (const file of configGraph.keys()) if (!configIndices.has(file)) visitConfig(file);
 
 const output = {
+  version: 1,
   root: relative(root),
   modules: [...graph.keys()].sort().map(relative),
   edges: [...graph.entries()].flatMap(([from, targets]) =>

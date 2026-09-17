@@ -10,6 +10,7 @@ import {
 import { HttpException } from '@nestjs/common'
 import { categoryForStatus, getApplicationError } from './application-error'
 import { httpStatusDescription } from './http-status-description'
+import { utcNow } from 'src/utils/temporal/temporal'
 
 export interface CanonicalApplicationError extends ApplicationErrorEnvelope {
   readonly diagnosticCause?: unknown
@@ -62,16 +63,22 @@ export function presentApplicationError(
   }
 
   const httpException = error instanceof HttpException ? error : undefined
-  const status = httpException?.getStatus() ?? normalizeStatus(context.statusHint)
   const response = httpException?.getResponse()
   const errorRecord = isRecord(error) ? error : undefined
   const responseRecord = isRecord(response) ? response : errorRecord
+  const status = httpException?.getStatus() ??
+    normalizeStatus(
+      context.statusHint ??
+      (typeof errorRecord?.statusCode === 'number' ? errorRecord.statusCode : undefined)
+    )
   const responseMessage = Array.isArray(responseRecord?.message)
     ? responseRecord.message.filter((value): value is string => typeof value === 'string').join(', ')
     : typeof responseRecord?.message === 'string'
       ? responseRecord.message
       : typeof response === 'string' ? response : undefined
-  const responseCode = isApplicationErrorCode(responseRecord?.code)
+  const responseCode = responseRecord?.code === 'MER_ERR_GQL_VALIDATION'
+    ? 'GRAPHQL_VALIDATION_FAILED'
+    : isApplicationErrorCode(responseRecord?.code)
     ? responseRecord.code
     : isApplicationErrorCode(errorRecord?.code)
       ? errorRecord.code
@@ -189,7 +196,7 @@ export function createRestErrorResponse(
     ...envelope,
     statusCode: envelope.status,
     error: input.error ?? httpStatusDescription(envelope.status),
-    timestamp: new Date().toISOString(),
+    timestamp: utcNow(),
     requestId: envelope.correlationId,
     path: input.path
   }

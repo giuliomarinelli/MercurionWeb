@@ -6,6 +6,7 @@ import { ConfigService } from '@nestjs/config';
 import { RedisConfiguration } from 'src/config/config.types';
 import { LoggerPort } from 'src/logging/logger.port';
 import { RedisCapabilityService } from './services/redis-capability.service'
+import { AtomicAttemptPolicyService } from './services/atomic-attempt-policy.service'
 
 @Global()
 @Module({
@@ -43,8 +44,9 @@ import { RedisCapabilityService } from './services/redis-capability.service'
         },
         RedisService,
         RedisCapabilityService,
+        AtomicAttemptPolicyService,
         PubSubService
     ],
-    exports: [RedisService, Redis, RedisCapabilityService, PubSubService]
+    exports: [RedisService, Redis, RedisCapabilityService, AtomicAttemptPolicyService, PubSubService]
 })
 export class RedisModule { }

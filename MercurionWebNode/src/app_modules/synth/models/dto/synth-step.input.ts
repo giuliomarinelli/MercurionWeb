@@ -1,15 +1,15 @@
 import { Field, ID, InputType, Int } from "@nestjs/graphql"
 import { Transform } from "class-transformer"
 import { UUID } from "crypto"
-import { IsInt, IsOptional, IsString, IsUUID, Min } from "class-validator"
+import { IsMercurionPublicId } from "src/identifiers/mercurion-public-id"
+import { IsInt, IsOptional, IsString, Min } from "class-validator"
 import { GeneralUtils } from "src/utils/general-utils/general-utils"
 
 @InputType()
 export class SynthStepInput {
 
-    @IsUUID()
+    @IsMercurionPublicId()
     @Field(() => ID)
-    @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
     synthId!: UUID
 
     @IsInt()
