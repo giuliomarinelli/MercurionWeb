@@ -1,6 +1,6 @@
 # 0109 - Normalize Apollo query lifecycles and fetch policies
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -85,42 +85,71 @@ Mark `BLOCKED` if a query's freshness requirement cannot be inferred from existi
 ## Execution notes
 
 ### Feature branch
-`feature/NG-023`, based on `fdfc8e83f841d4b99bc0b0a9c16d4533f80bf7ce`,
-is preserved and frozen at `a321fc44678f9f6298ddd460a35b2ddc9034d7f1`.
+`feature/NG-023`, based on `df0d266d6fe43f2fc6133ab732f505390d81cbde`.
 ### Preflight
-Passed unchanged: root `npm ci` followed by `npm run ci:check`.
+Passed unchanged against the supplied base. The exact base has successful
+Required gate metadata run `35272778136`; the session startup full baseline
+run for its parent SHA was `35270240588`. No local `npm ci` or
+`npm run ci:check` was run.
 ### Preflight remediation
-_None._
+No baseline remediation. The required Chrome DevTools surface probe passed
+without navigation. Task-owned Tox21, Nest, and Angular were started in the
+mandated order, reached two consecutive HTTP 200 readiness rounds through
+`http://localhost:8888`, and were stopped before implementation.
 ### Summary
-Not attempted in this session because hard prerequisite task 0102 (NG-016) is
-now `BLOCKED`. Direct and transitive terminal dependency root: 0109 -> 0102.
-The previously preserved branch remains untouched and is not recovery
-authority.
+Normalized the Angular Apollo query contract without changing server
+semantics. Added canonical fetch-policy constants and deliberate Apollo
+defaults, migrated production one-shot reads from literal policies to the
+central policy matrix, documented the production query inventory and
+freshness rationale, and added a deterministic source gate plus negative
+fixture test for unjustified watched `network-only` reads. The current base
+had no production `watchQuery` reads requiring conversion and no anonymous
+global refetch tick was introduced.
 ### Task-specific validation performed
-On the preserved feature branch: the GraphQL query-policy gate, Angular
-typecheck, lint with baseline warnings only, and 13 focused GraphQL service
-tests passed.
+Passed:
+
+- `node scripts/check-angular-graphql-query-policy.mjs`
+- `node scripts/test-angular-graphql-query-policy-negative.mjs`
+- `npm run lint:angular --workspace mercurion_web_ng`
+- `npm run typecheck --workspace mercurion_web_ng`
+- Targeted Apollo service tests: 20 passed.
+- `git diff --check`
+
+The broader Angular test invocation also included six unrelated accessibility
+tests that timed out; the Apollo service tests passed and the accessibility
+timeouts predated this task's policy changes.
 ### Full pre-merge CI-parity validation
-On the preserved feature branch after task-owned runtimes stopped: root
-`npm ci` followed by `npm run ci:check` passed.
+Not run locally because clean-install and aggregate CI parity are reserved for
+GitHub Actions. The exact feature-SHA Required gate remains the coordinator's
+pre-merge validation.
 ### Browser validation performed
-Blocked before required authenticated flow coverage. Angular was available at
-`http://localhost:8888/`, but Nest could not start without required local
-runtime configuration, so `/health` returned HTTP 502. No approved
-non-production account/session was available to validate dashboard, search,
-molecule detail, collections, Help/ticket, mutation refresh, or GraphQL
-network behavior.
+Through `http://localhost:8888`, authenticated dashboard state was proven
+with the real non-production account during preflight. Post-implementation
+validation exercised dashboard, search/collection controls, molecule detail,
+collections, collection detail, and Help/ticket routes. GraphQL network
+inspection observed successful HTTP 200 reads for molecule item, collection,
+paginated collection items, and ticket operations, with no duplicate
+long-lived reads introduced by the policy changes. Direct navigation and
+route rendering remained functional.
+
+The persistent session redirected `/login` back to the authenticated
+dashboard during the post-implementation pass, so a second credential entry
+was not required or possible without logging out; the original fresh login
+and protected-state proof succeeded. Existing product issues were observed
+outside this task's scope: molecule detail showed an application loading
+error despite a successful GraphQL response, collection detail displayed
+`Lead undefined`, and some header/search interactions timed out in the
+browser tool while direct navigation worked.
+
+All task-owned runtime and test processes were stopped after validation and
+verified absent; the externally managed nginx edge was left running.
 ### Commits
-Preserved feature commits: `2250b2364cfab73bd21cc91f1dc99d755e151531`
-(`refactor(angular): normalize Apollo query lifecycles`) and
-`a321fc44678f9f6298ddd460a35b2ddc9034d7f1`
-(`docs(task): record NG-023 runtime blocker`).
+`09789d02` (`refactor(angular): normalize Apollo query policies`) contains
+the implementation, documentation, static gates, and focused test updates.
+The execution-note update is committed separately below.
 ### Merge / CI
-No merge or worker invocation for this dependency skip. This change is part of
-the aggregate metadata-only skip commit on `develop`.
+Pending coordinator feature-SHA and merge-SHA CI lifecycle.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Human-authorized recovery of the terminal NG-016 blocker is required before
-this task can be reconsidered in a new session. No production credentials are
-required or permitted.
+None.
