@@ -140,6 +140,27 @@ The full Angular suite after the repair reported 500 passed and one unrelated
 pre-existing accessibility contrast failure in
 `src/app/testing/accessibility-canonical-ui.spec.ts:178`.
 Repair commit: `d95929137b5f9b8919f38385691712631c031b0d`.
+
+### CI repair attempt 3
+Exact feature run `35281616145` / Angular unit-test job `105406005716`
+reported 501 passing tests but the `auth-state-store-baseline-exception`
+branch gate at 71.875%, below the approved 73% QA-012 floor. Added focused
+coverage for the task's optional `MERCURION_APOLLO_CACHE` injection path by
+providing a cache spy and verifying user-owned root eviction during
+authentication start. The existing tests continue to cover the absent-token
+path; no coverage threshold was changed.
+
+Focused validation passed:
+
+- `npx ng test --watch=false --include=src/app/services/auth-state.store.spec.ts --browsers=ChromeHeadless` (25 passed)
+- `npx ng test --watch=false --include=src/app/services/graphql/apollo-cache-policies.spec.ts --browsers=ChromeHeadless` (12 passed)
+- `npx ng test --watch=false --include=src/app/services/auth-state.store.spec.ts --browsers=ChromeHeadless --code-coverage` (25 passed)
+- `npm run typecheck --workspace mercurion_web_ng`
+- `npm run lint:angular --workspace mercurion_web_ng -- --no-warn-ignored`
+- `git diff --check`
+
+Repair commit: _pending_.
+
 ### Full pre-merge CI-parity validation
 Not run locally because clean-install and aggregate CI parity are reserved for
 GitHub Actions. The coordinator must validate the exact pushed feature SHA.

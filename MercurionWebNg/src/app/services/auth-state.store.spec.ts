@@ -1,5 +1,7 @@
 import { TestBed } from '@angular/core/testing'
+import { ApolloCache } from '@apollo/client/core'
 import { AuthStateStore } from './auth-state.store'
+import { MERCURION_APOLLO_CACHE } from './graphql/apollo-cache-policies'
 import {
   SessionConnectionState,
   SessionInvalidationCause,
@@ -252,6 +254,26 @@ describe('AuthStateStore', () => {
     expect(sessionStorage.getItem('preAuthorizationData')).toBeNull()
     expect(localStorage.getItem('theme')).toBe('dark')
     expect(sessionStorage.getItem('preference')).toBe('compact')
+  })
+
+  it('clears user-owned Apollo roots when the optional cache is provided', () => {
+    TestBed.resetTestingModule()
+    const cache = {
+      evict: jasmine.createSpy('evict'),
+      gc: jasmine.createSpy('gc')
+    } as unknown as ApolloCache<unknown>
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: MERCURION_APOLLO_CACHE, useValue: cache }
+      ]
+    })
+    const cacheStore = TestBed.inject(AuthStateStore)
+
+    cacheStore.bootstrap()
+    cacheStore.beginAuthentication('password')
+
+    expect(cache.evict).toHaveBeenCalled()
+    expect(cache.gc).toHaveBeenCalled()
   })
 
   it('rejects tokens from another user or server session', () => {
