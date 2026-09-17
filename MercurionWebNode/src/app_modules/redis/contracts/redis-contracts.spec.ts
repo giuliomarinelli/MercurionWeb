@@ -15,7 +15,7 @@ describe('Redis key and TTL contracts', () => {
         const jti = 'jti'
 
         const keys = [
-            redisKeys.session.record(sessionId, userId),
+            redisKeys.session.record(sessionId),
             redisKeys.session.userIndex(userId),
             redisKeys.token.issued(sessionId, jti),
             redisKeys.token.revoked(jti),
@@ -36,8 +36,7 @@ describe('Redis key and TTL contracts', () => {
     })
 
     it('preserves representative key formats and owner vocabulary', () => {
-        expect(redisKeys.session.record('sid', 'uid')).toBe('session:sid:uid')
-        expect(redisKeys.session.recordsByUser('uid')).toBe('session:*:uid')
+        expect(redisKeys.session.record('sid')).toBe('session:sid')
         expect(redisKeys.token.issued('sid', 'jti')).toBe('issued:sid:jti')
         expect(redisKeys.mfa.preAuthorizationDevice('jti')).toBe('mfa:pat:dev:jti')
         expect(redisKeys.oauth.accessToken('dropbox')).toBe('access_token:dropbox')

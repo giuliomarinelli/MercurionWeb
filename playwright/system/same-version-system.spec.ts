@@ -59,5 +59,27 @@ test.describe('same-version frontend/backend system journeys', () => {
     expect(loginMarkerCookie?.httpOnly).toBe(false)
     expect(loginMarkerCookie?.sameSite).toBe('Strict')
     expect(apiResponses.some(status => status === 200)).toBe(true)
+
+    await page.goto('/settings')
+    await page.getByRole('button', { name: 'Sicurezza', exact: true }).click()
+    await expect(page.getByRole('heading', { name: 'Sessioni attive' })).toBeVisible()
+    await expect(page.getByText('Sessione (attuale)')).toBeVisible()
+
+    const logoutStatus = await page.evaluate(async () => {
+      const response = await fetch('/api/authentication/logout', {
+        method: 'DELETE',
+        credentials: 'same-origin'
+      })
+      return response.status
+    })
+    expect(logoutStatus).toBe(204)
+
+    const protectedStatus = await page.evaluate(async () => {
+      const response = await fetch('/api/account/active-sessions', {
+        credentials: 'same-origin'
+      })
+      return response.status
+    })
+    expect(protectedStatus).toBe(401)
   })
 })
