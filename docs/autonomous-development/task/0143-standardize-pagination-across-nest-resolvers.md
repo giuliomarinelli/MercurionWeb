@@ -122,11 +122,13 @@ Feature-SHA CI run `35284627530` failed on the Ubuntu/Windows prerequisite
 GraphQL/generated-contract gates because the committed Angular generated
 schema artifact was stale. This was an actionable generated-artifact drift
 only; all other observed container jobs succeeded. Repair attempt 1 of 3
-regenerated the artifact from the committed Nest schema. The resulting diff
+regenerated the artifact from the committed Nest schema. Correction commit
+`2f8a6aa9a54282751a67801450a25c899541d575` contains the repair. The resulting diff
 contains only the expected optional `page`/`limit` argument type changes in
 `MercurionWebNg/src/app/generated/schema.ts`; `graphql.ts` and unrelated files
 were unchanged. Focused GraphQL checks and pagination tests passed after the
-repair. The repaired feature commit is pending exact-SHA CI verification.
+repair. The final pushed feature SHA after this execution-note update is
+pending exact-SHA CI verification.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
