@@ -1,7 +1,7 @@
 # 0088 - Split Settings into lazy autonomous feature panels
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -81,52 +81,73 @@ Mark `BLOCKED` if a panel's ownership cannot be separated without an unresolved 
 
 ## Execution notes
 
-> Current status (2026-09-17): PENDING. `npm run autonomous:plan --silent`
-> identified this skip as stale after the authorized recovery of prerequisite
-> `0086` (UI-028); historical skip evidence below is retained only for
-> traceability.
+> Current status (2026-09-17): BLOCKED after implementation. The stale
+> dependency-skip metadata was replaced because this invocation was explicitly
+> authorized on `feature/NG-002` after prerequisite recovery.
 
-- 2026-09-17: Marked `SKIPPED_DEPENDENCY` without implementation because hard prerequisite `0086` is terminal `BLOCKED` (UI-028). This task was not attempted.
+- 2026-09-17: Split Settings into four standalone panel components with
+  deferred instantiation, a scoped account facade, and a security facade.
+- 2026-09-17: Chrome DevTools capability probe and canonical Tox21 -> Nest ->
+  Angular runtime preflight passed. Two complete rounds through
+  `http://localhost:8888` succeeded; Angular `/` and Nest `/health` returned
+  `200`. All started processes were stopped before implementation.
+- 2026-09-17: Focused typecheck, Angular lint, and the settings Jasmine suite
+  passed (`8 SUCCESS`).
+- 2026-09-17: Post-implementation runtime rebuilt successfully and
+  unauthenticated `/settings` correctly redirected to
+  `/login?redirect_to=%2Fsettings`; no browser console errors were reported.
+  The required fresh real-account login and protected panel exercise could not
+  be completed without exposing credentials through an unsupported transfer
+  path. All post-validation processes were stopped.
 
 ### Feature branch
-_Not started._
+`feature/NG-002`
 
 ### Preflight
-_Not started._
+Passed. Supplied base SHA `7f16c8bd6e6d0ccfcb12b64fec5ffb7fdbba2f6a`;
+fresh full Actions run `35270240588` was supplied green. The branch and
+worktree matched the supplied feature identity before edits.
 
 ### Preflight remediation
 _None._
 
 ### Summary
-Not attempted because hard prerequisite task `0087` (`NG-001`) is `BLOCKED`;
-this task is part of the resulting dependency-skip closure.
+Settings is now a page-level disclosure shell with independently owned
+overview, profile, contact, and security panels. The task is blocked because
+mandatory authenticated browser acceptance evidence was not collected.
 
 ### Task-specific validation performed
-Not applicable; no feature branch or implementation worker was created.
+Typecheck, Angular lint, and the focused settings Jasmine suite passed.
 
 ### Full pre-merge CI-parity validation
-Not applicable; dependency-skip metadata only.
+Not run locally; clean-install aggregate validation belongs to exact
+feature-SHA Actions.
 
 ### Browser validation performed
-Not applicable; the task was not attempted.
+Chrome DevTools capability and canonical runtime readiness passed. The
+unauthenticated Settings navigation redirected to the login flow with no
+console errors. Protected panel interaction and per-panel
+network/keyboard/responsive evidence remain unverified.
 
 ### Commits
-Pending metadata commit on `develop`.
+Pending feature commit; push only after committing the implementation and
+diagnostic.
 
 ### Merge / CI
-No feature branch or merge. Exact-SHA CI is required for the metadata commit.
+Not merged. Preserve and freeze the feature branch under the normal BLOCKED
+lifecycle.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-Direct terminal prerequisite: task `0087` (`NG-001`), `BLOCKED`.
-Transitive dependency chain: `0088` -> `0087` (`NG-001` BLOCKED). The blocked
-task requires independently testable sensitive-data workflow implementations
-and focused lifecycle tests.
+Mandatory browser acceptance evidence requires a fresh ordinary login with the
+dedicated real local test account. The protected route redirected to login and
+the supported credential-entry bridge was unavailable without exposing
+credential values or using a prohibited transfer mechanism. A later
+human-authorized retry must complete authenticated panel interaction and
+network/keyboard/responsive evidence before integration.
 
 ### Dependency skip
 
-Direct terminal prerequisite: `0087` (`NG-001`), `BLOCKED`; transitive root
-`0071` (`UI-013`) is also `BLOCKED`. This task was materialized in the new
-terminal closure on 2026-09-13.
+None. This task was attempted on the supplied `feature/NG-002` branch.
