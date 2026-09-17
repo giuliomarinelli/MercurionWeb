@@ -164,7 +164,7 @@ ordinary login with the local test account:
   existing progress, skeleton, toast, and migrated transition CSS.
 
 ### Commits
-Pending feature commit.
+`b2024a80` — Remove legacy Angular animations dependency.
 
 ### Merge / CI
 Feature branch is ready for coordinator-owned exact feature-SHA CI. No merge
@@ -177,11 +177,15 @@ _Not applicable._
 None.
 
 
-### Dependency skip
+### Historical dependency-skip trace
+
+The following stale dependency-skip metadata predates the explicit task
+execution request and is retained only for traceability; it is not the current
+task outcome.
 
 Direct terminal prerequisite: 0077 (), terminal non-DONE dependency.
 
-### Dependency skip
+### Historical dependency-skip trace
 
 Direct terminal prerequisite: `0071` (`UI-013`), `BLOCKED`; the other direct
 prerequisite `0083` remains pending. This task was materialized in the new
