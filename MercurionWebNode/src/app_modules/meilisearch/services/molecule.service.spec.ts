@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MoleculeService } from './molecule.service';
-import { MeiliLoggerService } from './meili-logger.service';
+import { LoggerPort } from 'src/logging/logger.port';
 
 describe('MoleculeService', () => {
   let service: MoleculeService;
@@ -11,7 +11,7 @@ describe('MoleculeService', () => {
       providers: [
         MoleculeService,
         { provide: 'MEILISEARCH_CLIENT', useValue: { index: jest.fn().mockReturnValue({}) } },
-        { provide: MeiliLoggerService, useValue: { forContext: jest.fn().mockReturnValue(mockLogger) } },
+        { provide: LoggerPort, useValue: { forContext: jest.fn().mockReturnValue(mockLogger) } },
       ],
     }).compile();
 

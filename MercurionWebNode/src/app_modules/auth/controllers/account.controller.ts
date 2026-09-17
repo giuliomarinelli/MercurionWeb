@@ -1,31 +1,32 @@
-import { ChangePasswordDTO } from './../Models/DTO/change-password.dto';
-import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum';
+import { ChangePasswordDTO } from './../models/dto/change-password.dto';
+import { MfaStrategy } from 'src/app_modules/user/models/enums/mfa-strategy.enum';
 import { BadRequestException, Body, Controller, Delete, Get, HttpCode, HttpStatus, NotFoundException, Param, Patch, Post, Query, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
-import { UserRegisterDTO } from 'src/app_modules/user/Models/DTO/user-register.cls.dto';
+import { UserRegisterDTO } from 'src/app_modules/user/models/dto/user-register.cls.dto';
 import { AuthenticatedUserId, Authorization, Public, SessionId } from 'src/metadata/metadata';
-import { ConfirmChangeDTO, ConfirmDTO, ConfirmMfaChange, ConfirmWithObsContDTO, ConfirmWithPhoneMfaFeedback, ConfirmWithRecoveryCodeDTO } from 'src/Models/confirm-responses.dto';
+import { ConfirmChangeDTO, ConfirmDTO, ConfirmMfaChange, ConfirmWithObsContDTO, ConfirmWithPhoneMfaFeedback, ConfirmWithRecoveryCodeDTO } from 'src/models/confirm-responses.dto';
 import { AccountRegistrationUseCase, AccountActivationUseCase, AccountEmailAvailabilityQuery } from '../application/account-registration.use-case';
 import { AccountSensitiveDataUseCase } from '../application/account-sensitive-data.use-case';
 import { PasswordChangeUseCase, PasswordRecoveryUseCase } from '../application/password-recovery.use-case';
 import { ProfileAccountUseCase } from '../application/profile-account.use-case';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
+import { publicTotpMetadata } from 'src/utils/temporal/temporal'
 import { ResponseService } from 'src/services/response.service';
 import { MfaChallengeService } from '../services/mfa-challenge.service';
 import { MfaEnrollmentService } from '../services/mfa-enrollment.service';
 import { MfaBackupCodeService } from '../services/mfa-backup-code.service';
 import { createHash, UUID } from 'crypto';
-import { TotpDTO } from '../Models/DTO/totp.cls.dto';
-import { ChangePhoneDTO } from '../Models/DTO/change-phone.cls.dto';
-import { EmailDTO } from '../Models/DTO/email.cls.dto';
+import { TotpDTO } from '../models/dto/totp.cls.dto';
+import { ChangePhoneDTO } from '../models/dto/change-phone.cls.dto';
+import { EmailDTO } from '../models/dto/email.cls.dto';
 import { UserService } from 'src/app_modules/user/services/user.service';
 import { TurnstileGuard } from '../guards/turnstile.guard';
-import { SercurityService } from '../services/sercurity.service';
-import { ProfileDTO, ProfileRegistryClientDTO, ProfileRegistryDTO } from '../Models/DTO/profile.dtos';
-import { SessionDTO } from '../Models/DTO/session.dto';
-import { BackupCodeStatusDTO } from 'src/app_modules/user/Models/DTO/backup-code-status.dto';
+import { SecurityService } from '../services/security.service';
+import { ProfileDTO, ProfileRegistryClientDTO, ProfileRegistryDTO } from '../models/dto/profile.dtos';
+import { SessionDTO } from '../models/dto/session.dto';
+import { BackupCodeStatusDTO } from 'src/app_modules/user/models/dto/backup-code-status.dto';
 import { ConfigService } from '@nestjs/config';
-import { ProvidedEmailDTO } from '../Models/DTO/provided-email.dto';
-import { VersionDTO } from '../Models/DTO/version.dto';
+import { ProvidedEmailDTO } from '../models/dto/provided-email.dto';
+import { VersionDTO } from '../models/dto/version.dto';
 import type { AuthProvider as WireAuthProvider, BackupCodesDTO, MfaStrategy as WireMfaStrategy } from '@mercurion/rest-contracts'
 import {
     ApplicationErrorCode,
@@ -53,7 +54,7 @@ export class AccountController {
         private readonly mfaEnrollment: MfaEnrollmentService,
         private readonly mfaBackupCodes: MfaBackupCodeService,
         private readonly userService: UserService,
-        private readonly securityService: SercurityService,
+        private readonly securityService: SecurityService,
         private readonly listActiveSessions: ListActiveSessionsHandler,
         private readonly configService: ConfigService
     ) { }
@@ -132,7 +133,7 @@ export class AccountController {
         const strategy: MfaStrategy = GeneralUtils.validateMfaStrategy(strategyKey)
         return {
             ...this._r.ok(`OTP sent or QR generated and secure_token generated for MFA strategy ${strategyKey}`),
-            ...await this.mfaEnrollment.enableFirstStep(userId, strategy)
+            ...publicTotpMetadata(await this.mfaEnrollment.enableFirstStep(userId, strategy))
         }
     }
 
@@ -158,7 +159,7 @@ export class AccountController {
         const strategy: MfaStrategy = GeneralUtils.validateMfaStrategy(strategyKey)
         return {
             ...this._r.ok(`OTP sent and/or secure_token generated for MFA strategy ${strategyKey}`),
-            ...await this.mfaEnrollment.disableFirstStep(userId, strategy)
+            ...publicTotpMetadata(await this.mfaEnrollment.disableFirstStep(userId, strategy))
         }
     }
 

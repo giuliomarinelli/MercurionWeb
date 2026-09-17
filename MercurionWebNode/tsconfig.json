@@ -15,12 +15,12 @@
     "types": ["node", "jest"],
     "incremental": true,
     "skipLibCheck": true,
+    "strict": true,
     "strictNullChecks": true,
     "forceConsistentCasingInFileNames": true,
-    "noImplicitAny": false,
-    // Temporary compatibility debt: migrate catch blocks to narrow unknown errors before enabling this.
-    "useUnknownInCatchVariables": false,
-    "strictBindCallApply": false,
-    "noFallthroughCasesInSwitch": false
+    "noImplicitAny": true,
+    "useUnknownInCatchVariables": true,
+    "strictBindCallApply": true,
+    "noFallthroughCasesInSwitch": true
   }
 }

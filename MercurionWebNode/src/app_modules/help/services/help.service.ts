@@ -1,22 +1,30 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { DataSource, Repository } from 'typeorm'
 import { uuidv7 } from '@kripod/uuidv7'
-import { randomBytes, UUID } from 'crypto'
+import { UUID } from 'crypto'
 
 import { IPaginationOptions, paginate, Pagination } from 'nestjs-typeorm-paginate'
-import { Ticket } from '../Models/entities/ticket.entity'
-import { TicketMessage } from '../Models/entities/ticket-message.entity'
-import { TicketStatus } from '../Models/enums/ticket-status.enum'
-import { AuthorType } from '../Models/enums/author-type.enum'
-import { MailSenderService } from 'src/app_modules/notification/services/mail-sender/mail-sender.service'
+import { Ticket } from '../models/entities/ticket.entity'
+import { TicketMessage } from '../models/entities/ticket-message.entity'
+import { TicketStatus } from '../models/enums/ticket-status.enum'
+import { AuthorType } from '../models/enums/author-type.enum'
 import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils'
 import { GraphQLFieldsMap, TypeOrmUtils } from 'src/utils/type-orm-utils/type-orm-utils'
-import { TicketDetailDTO } from '../Models/DTO/ticket-detail.dto'
-import { JsonValue } from 'src/Models/json.types'
-import { TypeGuards } from 'src/utils/type-guards/type-guards'
+import { TicketDetailDTO } from '../models/dto/ticket-detail.dto'
+import { TicketMessageResponse, TicketResponse } from '../models/dto/help-response.dto'
+import { presentMessage, presentTicket } from '../models/dto/help-presenters'
+import { JsonValue } from 'src/models/json.types'
 import { UserService } from 'src/app_modules/user/services/user.service'
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
+import { runInTransaction } from 'src/persistence/transaction-context'
+import { NotificationOutboxService } from 'src/app_modules/notification/services/outbox/notification-outbox.service'
+import { HelpNotificationEventType } from 'src/app_modules/notification/models/enums/help-notification-event-type.enum'
+import {
+  authorizeHelpOperation,
+  type HelpActor,
+  isSupportActor,
+} from '../authorization/help-authorization.policy'
 
 @Injectable()
 export class HelpService {
@@ -24,7 +32,6 @@ export class HelpService {
   private readonly REQUIRED_TICKET_FIELDS = ['id', 'publicId', 'status', 'lastMessageAt']
   private readonly REQUIRED_MESSAGE_FIELDS = ['id', 'publicId', 'createdAt', 'authorType']
 
-  // campi transienti GraphQL (non esistono sul DB)
   private readonly TICKET_NON_DB_FIELDS = ['userFullName']
   private readonly MESSAGE_NON_DB_FIELDS = ['userFullName', 'authorFullName']
 
@@ -35,36 +42,37 @@ export class HelpService {
     @InjectRepository(TicketMessage)
     private readonly msgRepo: Repository<TicketMessage>,
     private readonly users: UserService,
-    private readonly mailer: MailSenderService,
+    private readonly outbox: NotificationOutboxService,
   ) { }
 
   // -----------------------------
   // Public API (WRITE)
   // -----------------------------
 
-  async createTicket(input: {
-    userId: UUID
+  async createTicket(actor: HelpActor, input: {
     subject: string
     contentDelta: JsonValue
     contentHtml: string
-  }, canViewUsers: boolean = false): Promise<Ticket> {
+  }): Promise<TicketResponse> {
+    authorizeHelpOperation(actor, 'create')
+    if (isSupportActor(actor)) throw applicationError(ApplicationErrorCode.TICKET_HANDLING_FORBIDDEN)
 
     const now = Date.now()
 
     const ticket = new Ticket()
-    ticket.userId = input.userId
+    ticket.userId = actor.userId
     ticket.subject = input.subject
     ticket.status = TicketStatus.Open
     this.stampTicket(ticket, now)
 
     let firstMsg: TicketMessage | null = null
 
-    await this.dataSource.transaction(async (manager) => {
+    await runInTransaction(this.dataSource, async (_context, manager) => {
       await manager.save(ticket)
 
       const message = this.makeUserMessage({
         ticketId: ticket.id,
-        userId: input.userId,
+        userId: actor.userId,
         delta: input.contentDelta,
         html: input.contentHtml,
         now
@@ -72,48 +80,51 @@ export class HelpService {
       firstMsg = message
 
       await manager.save(message)
+      await this.outbox.append(manager, {
+        aggregateId: ticket.id,
+        eventType: HelpNotificationEventType.TicketOpenedSupport,
+        payload: { ticketId: ticket.id, messageId: message.id },
+        dedupeKey: `help:${ticket.id}:ticket-opened-support`
+      })
+      await this.outbox.append(manager, {
+        aggregateId: ticket.id,
+        eventType: HelpNotificationEventType.TicketOpenedUser,
+        payload: { ticketId: ticket.id, messageId: message.id },
+        dedupeKey: `help:${ticket.id}:ticket-opened-user`
+      })
     })
 
     if (!firstMsg) {
       throw applicationError(ApplicationErrorCode.TICKET_INITIAL_MESSAGE_CREATE_FAILED)
     }
 
-    if (canViewUsers) {
-      await this.attachTicketUserFullNames([ticket])
-    }
-
-    ticket.publicId = this.generateReadablePublicId(ticket.publicId)
-
-    await this.mailer.notifySupportNewTicket(ticket, firstMsg)
-    await this.mailer.confirmUserTicketOpened(ticket, firstMsg)
-
-    if (!canViewUsers) {
-      Object.entries(ticket).forEach(([key]) => {
-        if (['authorId', 'userId', 'messages', 'userFullName'].includes(key)) {
-          (ticket as unknown as Record<string, string | object | null | undefined>)[key] = undefined
-        }
-      })
-    }
-
-    ticket.publicId = this.generateReadablePublicId(ticket.publicId)
-    return ticket
+    const names = actor.canViewUsers
+      ? await this.users.getUserFullNames([ticket.userId])
+      : undefined
+    return presentTicket(ticket, {
+      canViewUsers: actor.canViewUsers,
+      userFullName: names?.get(String(ticket.userId)),
+    })
   }
 
 
-  async addUserMessage(input: {
+  async addUserMessage(actor: HelpActor, input: {
     ticketId: UUID
-    userId: UUID
     contentDelta: JsonValue
     contentHtml: string
   }): Promise<{ ok: boolean }> {
+    authorizeHelpOperation(actor, 'add-message')
+    if (isSupportActor(actor)) {
+      throw applicationError(ApplicationErrorCode.TICKET_HANDLING_FORBIDDEN)
+    }
 
     let msg: TicketMessage
 
-    await this.dataSource.transaction(async (manager) => {
+    await runInTransaction(this.dataSource, async (_context, manager) => {
       const now = Date.now()
 
       const ticket = await manager.findOne(Ticket, {
-        where: { id: input.ticketId, userId: input.userId },
+        where: { id: input.ticketId, userId: actor.userId },
         lock: { mode: 'pessimistic_write' },
       })
 
@@ -127,7 +138,7 @@ export class HelpService {
 
       msg = this.makeUserMessage({
         ticketId: ticket.id,
-        userId: input.userId,
+        userId: actor.userId,
         delta: input.contentDelta,
         html: input.contentHtml,
         now
@@ -139,24 +150,28 @@ export class HelpService {
 
       await manager.save(TicketMessage, msg)
       await manager.save(Ticket, ticket)
+      await this.outbox.append(manager, {
+        aggregateId: ticket.id,
+        eventType: HelpNotificationEventType.UserMessageAdded,
+        payload: { ticketId: ticket.id, messageId: msg.id },
+        dedupeKey: `help:${ticket.id}:message:${msg.id}:user`
+      })
     })
-
-    const freshTicket = await this.ticketRepo.findOneByOrFail({ id: input.ticketId })
-    freshTicket.publicId = this.generateReadablePublicId(freshTicket.publicId)
-    await this.mailer.notifySupportNewMessage(freshTicket, msg!)
 
     return { ok: true }
   }
 
-  async addSupportMessage(input: {
+  async addSupportMessage(actor: HelpActor, input: {
     ticketId: UUID
     contentDelta: JsonValue
     contentHtml: string
   }): Promise<{ ok: boolean }> {
+    authorizeHelpOperation(actor, 'add-message')
+    if (!isSupportActor(actor)) {
+      throw applicationError(ApplicationErrorCode.TICKET_HANDLING_FORBIDDEN)
+    }
 
-    let ticketUserId: UUID
-
-    await this.dataSource.transaction(async (manager) => {
+    await runInTransaction(this.dataSource, async (_context, manager) => {
 
       const now = Date.now()
 
@@ -174,8 +189,6 @@ export class HelpService {
         throw applicationError(ApplicationErrorCode.TICKET_CLOSED_FOR_PUBLISHING)
       }
 
-      ticketUserId = ticket.userId
-
       const msg = this.makeSupportMessage({
         ticketId: ticket.id,
         userId: ticket.userId,
@@ -189,38 +202,26 @@ export class HelpService {
 
       await manager.save(TicketMessage, msg)
       await manager.save(Ticket, ticket)
+      await this.outbox.append(manager, {
+        aggregateId: ticket.id,
+        eventType: HelpNotificationEventType.SupportReplied,
+        payload: { ticketId: ticket.id, userId: ticket.userId },
+        dedupeKey: `help:${ticket.id}:message:${now}:support`
+      })
 
     })
-
-    const freshTicket = await this.ticketRepo.findOneByOrFail({ id: input.ticketId })
-    freshTicket.publicId = this.generateReadablePublicId(freshTicket.publicId)
-    await this.mailer.notifyUserSupportReplied(freshTicket, ticketUserId!)
 
     return { ok: true }
   }
 
-  async closeTicket(ticketId: UUID): Promise<{ ok: boolean }> {
-    const now = Date.now()
-
-    const res = await this.ticketRepo.update(ticketId, {
-      status: TicketStatus.Closed,
-      updatedAt: String(now),
-    })
-
-    if (!res.affected) throw new NotFoundException('Ticket not found')
-    return { ok: true }
+  async closeTicket(actor: HelpActor, ticketId: UUID): Promise<{ ok: boolean }> {
+    authorizeHelpOperation(actor, 'close')
+    return this.updateTicketStatus(actor, ticketId, TicketStatus.Closed)
   }
 
-  async reopenTicket(ticketId: UUID) {
-    const now = Date.now()
-
-    const res = await this.ticketRepo.update(ticketId, {
-      status: TicketStatus.Open,
-      updatedAt: String(now),
-    })
-
-    if (!res.affected) throw new NotFoundException('Ticket not found')
-    return { ok: true }
+  async reopenTicket(actor: HelpActor, ticketId: UUID) {
+    authorizeHelpOperation(actor, 'reopen')
+    return this.updateTicketStatus(actor, ticketId, TicketStatus.Open)
   }
 
   // -----------------------------
@@ -228,12 +229,11 @@ export class HelpService {
   // -----------------------------
 
   async listTickets(
-    userId: UUID,
+    actor: HelpActor,
     options: IPaginationOptions,
     fieldsMap?: GraphQLFieldsMap,
-    onlyOwner: boolean = true,
-    canViewUsers: boolean = false
-  ): Promise<Pagination<Ticket>> {
+  ): Promise<Pagination<TicketResponse>> {
+    authorizeHelpOperation(actor, 'list')
 
     const itemFieldsMap = fieldsMap?.items ?? {}
     const scalarFields = GraphQLUtils.getScalarFields(itemFieldsMap)
@@ -243,18 +243,18 @@ export class HelpService {
     const columns = this.buildColumns(
       scalarFields,
       this.REQUIRED_TICKET_FIELDS,
-      canViewUsers,
+      actor.canViewUsers,
       ['userId'],
       this.TICKET_NON_DB_FIELDS,
-      wantsUserFullName && canViewUsers ? ['userId'] : []
+      wantsUserFullName && actor.canViewUsers ? ['userId'] : []
     )
 
     let qb = this.ticketRepo.createQueryBuilder('t')
       .select(columns.map(col => `t.${col}`))
       .orderBy('t.last_message_at', 'DESC')
 
-    if (onlyOwner) {
-      qb = qb.andWhere('t.user_id = :userId', { userId })
+    if (!isSupportActor(actor)) {
+      qb = qb.andWhere('t.user_id = :userId', { userId: actor.userId })
     }
 
     if (fieldsMap?.items) {
@@ -262,36 +262,26 @@ export class HelpService {
       qb = TypeOrmUtils.addJoins(qb, 't', joins as GraphQLFieldsMap)
     }
 
-    let page = await paginate<Ticket>(qb, options)
+    const page = await paginate<Ticket>(qb, options)
 
-    if (canViewUsers && wantsUserFullName) {
-      await this.attachTicketUserFullNames(page.items)
-    }
-
-    page = {
+    const names = actor.canViewUsers && wantsUserFullName
+      ? await this.users.getUserFullNames(page.items.map((item) => item.userId))
+      : undefined
+    return {
       ...page,
-      items: page.items.map((i) => {
-        i.publicId = this.generateReadablePublicId(i.publicId)
-        if (i.messages) {
-          i.messages = i.messages.map((m) => {
-            m.publicId = this.generateReadablePublicId(m.publicId, 'Message')
-            return m
-          })
-        }
-        return i
-      })
+      items: page.items.map((item) => presentTicket(item, {
+        canViewUsers: actor.canViewUsers,
+        userFullName: names?.get(String(item.userId)),
+      })),
     }
-
-    return page
   }
 
   async getTicketDetail(
     ticketId: UUID,
-    userId: UUID,
+    actor: HelpActor,
     fieldsMap: GraphQLFieldsMap,
-    onlyOwner: boolean = true,
-    canViewUsers: boolean = false
   ): Promise<TicketDetailDTO> {
+    authorizeHelpOperation(actor, 'detail')
 
     const ticketFields = fieldsMap.ticket ?? {}
     const scalarFields = GraphQLUtils.getScalarFields(ticketFields)
@@ -301,52 +291,43 @@ export class HelpService {
     const ticketColumns = this.buildColumns(
       scalarFields,
       this.REQUIRED_TICKET_FIELDS,
-      canViewUsers,
+      actor.canViewUsers,
       ['userId'],
       this.TICKET_NON_DB_FIELDS,
-      wantsUserFullName && canViewUsers ? ['userId'] : []
+      wantsUserFullName && actor.canViewUsers ? ['userId'] : []
     )
 
     let qb = this.ticketRepo.createQueryBuilder('t')
       .select(ticketColumns.map(col => `t.${col}`))
       .where('t.id = :ticketId', { ticketId })
 
-    if (onlyOwner) {
-      qb = qb.andWhere('t.user_id = :userId', { userId })
+    if (!isSupportActor(actor)) {
+      qb = qb.andWhere('t.user_id = :userId', { userId: actor.userId })
     }
 
     const ticket = await qb.getOne()
     if (!ticket) throw applicationError(ApplicationErrorCode.TICKET_NOT_FOUND)
 
-    if (canViewUsers && wantsUserFullName) {
-      await this.attachTicketUserFullNames([ticket])
-    }
-
-    ticket.publicId = this.generateReadablePublicId(ticket.publicId)
+    const names = actor.canViewUsers && wantsUserFullName
+      ? await this.users.getUserFullNames([ticket.userId])
+      : undefined
 
     return {
-      ticket,
+      ticket: presentTicket(ticket, {
+        canViewUsers: actor.canViewUsers,
+        userFullName: names?.get(String(ticket.userId)),
+      }),
       messages: undefined
     }
   }
 
   async listTicketMessages(
     ticketId: UUID,
-    userId: UUID,
+    actor: HelpActor,
     options: IPaginationOptions,
     fieldsMap: GraphQLFieldsMap,
-    onlyOwner: boolean = true,
-    canViewUsers: boolean = false
-  ): Promise<Pagination<TicketMessage>> {
-
-    if (onlyOwner) {
-      const owns = await this.ticketRepo.exists({
-        where: { id: ticketId, userId }
-      })
-      if (!owns) {
-        throw applicationError(ApplicationErrorCode.TICKET_NOT_FOUND)
-      }
-    }
+  ): Promise<Pagination<TicketMessageResponse>> {
+    authorizeHelpOperation(actor, 'messages')
 
     const itemFieldsMap = fieldsMap?.items ?? {}
     const scalarFields = GraphQLUtils.getScalarFields(itemFieldsMap)
@@ -355,49 +336,76 @@ export class HelpService {
     const wantsAuthorFullName = scalarFields.includes('authorFullName')
 
     const extraIds: string[] = []
-    if (canViewUsers && wantsUserFullName) extraIds.push('userId')
-    if (canViewUsers && wantsAuthorFullName) extraIds.push('authorId')
+    if (actor.canViewUsers && wantsUserFullName) extraIds.push('userId')
+    if (actor.canViewUsers && wantsAuthorFullName) extraIds.push('authorId')
 
     const columns = this.buildColumns(
       scalarFields,
       this.REQUIRED_MESSAGE_FIELDS,
-      canViewUsers,
+      actor.canViewUsers,
       ['authorId', 'userId'],
       this.MESSAGE_NON_DB_FIELDS,
       extraIds
     )
 
-    const qb = this.msgRepo.createQueryBuilder('m')
+    let qb = this.msgRepo.createQueryBuilder('m')
       .select(columns.map(col => `m.${col}`))
       .where('m.ticket_id = :ticketId', { ticketId })
       .orderBy('m.created_at', 'DESC')
 
-    let page = await paginate<TicketMessage>(qb, options)
-
-    if (canViewUsers && (wantsUserFullName || wantsAuthorFullName)) {
-      await this.attachMessageFullNames(page.items, {
-        user: wantsUserFullName,
-        author: wantsAuthorFullName
+    if (!isSupportActor(actor)) {
+      qb = qb.innerJoin(Ticket, 't', 't.id = m.ticket_id AND t.user_id = :userId', {
+        userId: actor.userId,
       })
     }
 
-    page = {
+    const page = await paginate<TicketMessage>(qb, options)
+
+    const names = actor.canViewUsers && (wantsUserFullName || wantsAuthorFullName)
+      ? await this.users.getUserFullNames(
+        page.items.flatMap((item) => [item.userId, item.authorId].filter(Boolean) as UUID[]),
+      )
+      : undefined
+    return {
       ...page,
-      items: page.items.map((m) => {
-        m.publicId = this.generateReadablePublicId(m.publicId, 'Message')
-        m.contentDelta = JSON.stringify(m.contentDelta)
-        return m
-      })
+      items: page.items.map((item) => presentMessage(item, {
+        canViewUsers: actor.canViewUsers,
+        authorFullNames: names,
+      })),
     }
-
-    return page
   }
 
-  existsUserTicketById(userId: UUID, ticketId: UUID): Promise<boolean> {
+  private async updateTicketStatus(
+    actor: HelpActor,
+    ticketId: UUID,
+    status: TicketStatus,
+  ): Promise<{ ok: boolean }> {
+    return runInTransaction(this.dataSource, async (_context, manager) => {
+      const now = Date.now()
+      const qb = manager.createQueryBuilder()
+        .update(Ticket)
+        .set({ status, updatedAt: String(now) })
+        .where('id = :ticketId', { ticketId })
+
+      if (!isSupportActor(actor)) {
+        qb.andWhere('user_id = :userId', { userId: actor.userId })
+      }
+
+      const result = await qb.execute()
+      if (!result.affected) {
+        throw applicationError(ApplicationErrorCode.TICKET_NOT_FOUND)
+      }
+      return { ok: true }
+    })
+  }
+
+  existsUserTicketById(actor: HelpActor, ticketId: UUID): Promise<boolean> {
+    authorizeHelpOperation(actor, 'detail')
+    if (isSupportActor(actor)) return Promise.resolve(false)
     return this.ticketRepo.exists({
       where: {
         id: ticketId,
-        userId
+        userId: actor.userId
       }
     })
   }
@@ -433,69 +441,10 @@ export class HelpService {
     return cols
   }
 
-  private async attachTicketUserFullNames(tickets: Ticket[]): Promise<void> {
-    const ids: UUID[] = []
-
-    for (const t of tickets) {
-      if (t.userId) ids.push(t.userId)
-    }
-
-    if (!ids.length) return
-
-    const map = await this.users.getUserFullNames(ids)
-
-    for (const t of tickets) {
-      if (!t.userId) continue
-      t.userFullName = map.get(String(t.userId))
-    }
-  }
-
-  private async attachMessageFullNames(
-    messages: TicketMessage[],
-    opts: { user: boolean; author: boolean }
-  ): Promise<void> {
-    const ids: UUID[] = []
-
-    for (const m of messages) {
-      if (opts.user && m.userId) ids.push(m.userId)
-      if (opts.author && m.authorId) ids.push(m.authorId)
-    }
-
-    if (!ids.length) return
-
-    const map = await this.users.getUserFullNames(ids)
-
-    for (const m of messages) {
-      if (opts.user && m.userId) {
-        m.userFullName = map.get(String(m.userId))
-      }
-      if (opts.author && m.authorId) {
-        m.authorFullName = map.get(String(m.authorId))
-      }
-    }
-  }
-
   private stampTicket(ticket: Ticket, now: number): void {
     ; (ticket as unknown as Record<string, string | null | undefined>).createdAt ??= String(now)
     ticket.updatedAt = String(now)
     ticket.lastMessageAt = String(now)
-  }
-
-  private generateReadablePublicId(
-    publicId: string,
-    scope: 'Ticket' | 'Message' = 'Ticket'
-  ): string {
-    const prefix = scope === 'Ticket' ? 'MTCK-' : 'MTCKM-'
-    if (TypeGuards.isThruthyString(publicId) && /^\d+$/.test(publicId)) {
-      return `${prefix}${publicId.padStart(9, '0')}`
-    }
-    return (
-      prefix +
-      '-f-' +
-      parseInt(randomBytes(8).toString('hex'), 16)
-        .toString()
-        .padStart(16, '0')
-    )
   }
 
   private makeUserMessage(input: {

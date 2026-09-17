@@ -1,7 +1,7 @@
 # 0147 - Apply one bounded failure policy to scientific RPC adapters
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
@@ -83,24 +83,28 @@ Mark `BLOCKED` if an operation requires a new capacity/timeout decision beyond p
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/BE-033`, based on `f14346645bb91fec94c650616c117ea0da3cd42b`.
 ### Preflight
-_Not started._
+- Session profile matched the inherited GPT-5.6 Luna, Medium reasoning, default 300k context profile; no model, reasoning, or context override was supplied.
+- `git rev-parse HEAD`, `git rev-parse develop`, and `git rev-parse origin/develop` all resolved to `f14346645bb91fec94c650616c117ea0da3cd42b`; branch was `feature/BE-033` and the worktree was clean before the task mutation. Effective repository-local `commit.gpgSign=false`.
+- `npm run autonomous:plan --silent` resolved this task as `READY` with hard dependencies `0127`, `0129`, `0130`, and `0146`; the prior dependency-skip note was stale.
+- Inspected `../MercurionTox21` read-only. Its current subjects and handlers remain compatible with the 0146 registry; no sibling files were modified.
+- No owned Angular, Nest, Tox21, or test-watcher process was started by this task.
 ### Preflight remediation
-_None._
+None.
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0127, 0129, 0130, 0146. This task was never attempted and receives no feature branch.
+Blocked by the explicit recipe stop condition. The current repository preserves the existing 3000 ms scientific RPC timeout and `APP_MAX_NATS_PAYLOAD_BYTES` payload limit, but defines no approved scientific in-flight concurrency or queue bound. Implementing the required bounded saturation policy would therefore invent a production capacity value, which is prohibited. No application implementation was changed.
 ### Task-specific validation performed
-_Not started._
+No task-specific code validation was run because implementation was stopped before code changes. Baseline inspection used `npm run autonomous:plan --silent`; no prohibited `npm ci` or `npm run ci:check` command was run.
 ### Full pre-merge CI-parity validation
-_Not started._
+Not applicable; no implementation commit was produced.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+`4a561296bbd16a1ec59eb9bab705eb242db6e2bc` — blocker status and execution notes; no application implementation changes.
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+Not merged. Feature branch is preserved for the missing production-capacity decision.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+Approve a scientific RPC concurrency and bounded-queue policy (including validated production values and whether saturation rejects immediately or waits for a bounded interval). Until that decision exists, do not implement or infer a capacity limit.

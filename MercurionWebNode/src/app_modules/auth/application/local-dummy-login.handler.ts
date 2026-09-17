@@ -7,7 +7,7 @@ import type {
 import type { FastifyRequest } from 'fastify'
 
 import { LocalDummyAuthService } from '../services/local-dummy-auth.service'
-import { SercurityService } from '../services/sercurity.service'
+import { SecurityService } from '../services/security.service'
 
 export interface LocalDummyLoginCommand {
     requestHeaders: FastifyRequest['headers']
@@ -31,7 +31,7 @@ export type LocalDummyLoginResult =
 export class LocalDummyLoginHandler {
     constructor(
         private readonly localDummyAuth: LocalDummyAuthService,
-        private readonly securityService: SercurityService
+        private readonly securityService: SecurityService
     ) { }
 
     public async execute(

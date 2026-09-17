@@ -1,10 +1,11 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { MoleculeDetail } from "../Models/DTO/molecule-detail.gql.dtos";
+import { MoleculeDetail } from "../models/dto/molecule-detail.gql.dtos";
 import { MeiliSearch } from "meilisearch";
-import { MoleculeSearchResult } from "../Models/DTO/molecule-search-result.cls";
-import { MoleculeDetailModel } from "src/app_modules/chembl/Models/DTO/molecule-detail-model.interface";
-import { MeiliLoggerService } from "./meili-logger.service";
-import { MeiliContextLogger } from "src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface";
+import { MoleculeSearchResult } from "../models/dto/molecule-search-result.cls";
+import { MoleculeDetailModel } from "src/app_modules/chembl/models/dto/molecule-detail-model.interface";
+import { LoggerPort } from 'src/logging/logger.port';
+import { LoggerContext } from "src/logging/logger.port";
+import { errorMessage } from 'src/utils/errors/error-message'
 
 type Maybe<T> = T | null | undefined;
 type MoleculeDetailWithMolregno = MoleculeDetailModel & {
@@ -14,12 +15,12 @@ type MoleculeDetailWithMolregno = MoleculeDetailModel & {
 @Injectable()
 export class MoleculeService {
 
-    private readonly logger: MeiliContextLogger
+    private readonly logger: LoggerContext
 
     constructor(
         @Inject("MEILISEARCH_CLIENT")
         private readonly meiliClient: MeiliSearch,
-        meiliLogger: MeiliLoggerService
+        meiliLogger: LoggerPort
     ) {
         this.logger = meiliLogger.forContext(MoleculeService.name)
     }
@@ -32,10 +33,10 @@ export class MoleculeService {
             await index.getDocument(String(molregno))
             return true
         } catch (e) {
-            if (e.cause.code === 'document_not_found') {
+            if (e instanceof Error && 'cause' in e && e.cause === 'document_not_found') {
                 return false
             }
-            this.logger.warn(`MoleculeService > existsMoleculeByMolregno: Error => ${e}`)
+            this.logger.warn(`MoleculeService > existsMoleculeByMolregno: Error => ${errorMessage(e)}`)
             throw e
         }
     }

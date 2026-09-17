@@ -85,68 +85,34 @@ Mark `BLOCKED` if a controller contains a transport concern whose safe extractio
 ## Execution notes
 
 ### Feature branch
-`feature/BE-012`, at supplied green `develop` base
-`38bae2ecedb84ad8c55345405a91fcac2703654a`.
+`feature/BE-012`, final preserved SHA
+`b162dd8c115d55a9a6c30646a2768cbd6e226d75`.
 ### Preflight
-- Confirmed the clean local branch was exactly `feature/BE-012` and
-  `git rev-parse HEAD` exactly matched `develop` at
-  `38bae2ecedb84ad8c55345405a91fcac2703654a`.
-- Confirmed the exact base SHA has successful GitHub Actions CI run
-  `34933836650`; the run completed successfully before implementation.
-- Confirmed no task-owned Angular, Nest, Tox21, Jest/Vitest watcher, or other
-  workspace-consuming process was active. Existing Chrome DevTools MCP
-  processes were external browser tooling and were not touched.
-- Confirmed hard prerequisites 0120, 0121 and 0122 are `DONE`.
-- Unchanged focused Nest architecture, typecheck and all 16 controller suites
-  passed before editing. Local `npm ci` and `npm run ci:check` were not run.
+The exact base SHA `38bae2ecedb84ad8c55345405a91fcac2703654a` had successful
+Actions run `34933836650`. Focused local validation passed and no local
+complete-install gate was run.
 ### Preflight remediation
-None.
+_None._
 ### Summary
-- Added a CI-enforced Nest controller boundary checker covering every
-  production controller. It rejects repository/DataSource dependencies,
-  persistence entity or repository imports, and undocumented raw request
-  access, with a negative fixture proving each violation is caught.
-- Added validated transport DTOs for feedback pagination/filter queries,
-  history pagination, and embedding similarity queries. Controllers now use
-  Nest validation pipes rather than manually parsing query strings.
-- Kept response mapping transport-specific and typed, including the existing
-  pagination contract defaults, while preserving route and response contracts.
-- Documented the authentication controller's one unavoidable raw request read
-  as a transport-only cookie boundary.
+The thin-controller refactor and CI architecture gate were implemented on the
+preserved feature branch. Repository-controlled quality jobs passed in feature
+run `34935675824`; the `Container angular-production` job failed when Docker
+Hub reset the connection while fetching the `nginx:1.27-alpine` OAuth token.
 ### Task-specific validation performed
-- `npm run ci:nest:architecture` passed, including the new controller
-  boundary gate and negative test.
-- `npm run typecheck --workspace mercurion_web_node` passed.
-- `npm run lint --workspace mercurion_web_node` passed with zero
-  warnings/errors.
-- Focused refactored controller tests passed: 3 suites, 3 tests.
-- Full controller test baseline passed before editing: 16 suites, 33 tests.
-- Full Nest unit suite passed: 154 suites, 471 tests.
-- Nest build passed: `npm run build --workspace mercurion_web_node`.
-- `npm run ci:rest-compatibility` passed with 59/59 client calls matched to
-  58 Nest routes; the reviewed inventory records the validated query-pipe
-  metadata without changing route paths or methods.
-- `git diff --check` passed.
+Focused controller tests, Nest typecheck/lint/build, architecture checks, full
+Nest unit tests, and REST compatibility checks passed on the feature branch.
 ### Full pre-merge CI-parity validation
 Not run locally because `npm ci` and `npm run ci:check` are reserved for
-GitHub Actions. Exact feature-SHA CI remains coordinator-owned.
+GitHub Actions.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-- `0c1ec82676bb93f02974cf2fc230909e9851748d` — BE-012 controller boundary
-  gate, transport validation cleanup and focused compatibility metadata,
-  committed with `--no-gpg-sign`.
-- Task-status and execution-note finalization: current documentation commit.
+Implementation and status commits are preserved on `feature/BE-012`.
 ### Merge / CI
-The exact feature-SHA workflow `34935675824` for
-`1e58e26ebc5a4dd885b1c28ab1793fdb4c8778c1` failed in the
-`Container angular-production` job while Docker Hub reset the connection
-when fetching the `nginx:1.27-alpine` OAuth token. Repository-controlled
-quality jobs passed, but the required gate was not verifiable green, so the
-task is blocked before merge and the feature branch is preserved/frozen.
+No merge was performed. The required feature gate was not green, so the task
+is blocked and the feature branch remains preserved/frozen.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-The required feature-SHA gate is unverified because of the external Docker
-registry transport failure. Re-run under a later healthy CI infrastructure
-window; no implementation correction was identified.
+Retry exact feature-SHA CI in a later healthy Docker registry window; no
+implementation correction was identified.

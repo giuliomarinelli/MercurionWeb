@@ -2,7 +2,6 @@ import {
   APPLICATION_ERROR_CATALOG,
   ApplicationErrorCode,
   getApplicationErrorDefinition,
-  resolveLegacyApplicationErrorCode,
 } from '@mercurion/rest-contracts';
 import {
   applicationError,
@@ -39,6 +38,9 @@ describe('application error catalog', () => {
   it('branches on stable codes instead of legacy messages', () => {
     const error = applicationError(ApplicationErrorCode.PERMISSION_DENIED);
 
+    expect(error.category).toBe('authorization');
+    expect(error.httpStatus).toBe(403);
+    expect(error.exposeInProduction).toBe(true);
     expect(
       isApplicationError(error, ApplicationErrorCode.PERMISSION_DENIED),
     ).toBe(true);
@@ -66,7 +68,9 @@ describe('application error catalog', () => {
     ).toBe(403);
   });
 
-  it('does not guess when one legacy message had distinct transport meanings', () => {
-    expect(resolveLegacyApplicationErrorCode('Unauthenticated')).toBeUndefined();
+  it('does not classify an untyped exception from its message', () => {
+    expect(
+      getApplicationError(new Error('AuthenticationInvalidCredentials')),
+    ).toBeUndefined();
   });
 });

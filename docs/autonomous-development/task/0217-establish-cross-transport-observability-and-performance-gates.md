@@ -1,6 +1,6 @@
 # 0217 - Establish cross-transport observability and performance gates
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -96,27 +96,176 @@ Mark `BLOCKED` if a transport cannot carry correlation metadata without an unres
 
 Prefer a small context/telemetry port at boundaries over pervasive instrumentation SDK calls. Benchmark regression policy should compare robust summaries with explicit tolerance, not single-run wall-clock noise.
 
+
 ## Execution notes
 
 ### Feature branch
-_Not started._
+
+`feature/QA-031`
+
 ### Preflight
-_Not started._
+
+Base SHA `8fc82c17c7741a97d1f3cb62e070358edad1719d` matched local
+`develop` and the feature branch. The exact base GitHub Actions CI run
+`35135316404` was successful. The Chrome DevTools surface probe succeeded
+without navigation. No application process was running before the probe.
+
+The runtime capability probe started Tox21, Nest and Angular in the required
+order, kept all three live through readiness, and stopped all three before
+implementation. Post-change validation repeated the same order and required
+two consecutive rounds of Angular shell `200` plus backend login validation
+`401`; `401` is the expected unauthenticated response for the synthetic
+non-production browser probe.
+
 ### Preflight remediation
-_None._
+
+None.
+
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0011, 0129, 0146, 0197, 0202. This task was never attempted and receives no feature branch.
+
+Added a transport-neutral `AsyncLocalStorage` correlation contract with
+validated inbound IDs, generated IDs, HTTP response headers, correlated
+envelopes for NATS/background work, and a Fastify/Nest ingress middleware.
+The HTTP error presenter now reuses the ingress context so the request header,
+response header and public error envelope contain one correlation ID.
+Added recursive sensitive-field redaction, bounded metric dimensions and an
+in-memory metrics port for deterministic contract tests. Added the Angular
+HTTP interceptor and registered it with the existing DI interceptor chain.
+Added version-controlled workload budgets/tolerances and a CI performance
+gate with a deliberate-regression mode.
+
 ### Task-specific validation performed
-_Not started._
+
+`npm test --workspace mercurion_web_node -- --runInBand --runTestsByPath
+src/observability/correlation-context.spec.ts
+src/observability/redaction.spec.ts src/observability/metrics.spec.ts
+src/exception-handling/http-exception-filter.spec.ts` - passed, 4 suites,
+9 tests.
+
+`npm run typecheck --workspace mercurion_web_node` - passed.
+
+`npm run typecheck --workspace mercurion_web_ng` - passed.
+
+`npm run lint --workspace mercurion_web_node -- --no-warn-ignored` and
+`npm run lint:angular --workspace mercurion_web_ng -- --no-warn-ignored` -
+passed.
+
+`npm run ci:observability` - passed. The same runner with
+`--deliberate-regression` failed with the expected regression diagnostic,
+then the normal run passed.
+
+`git diff --check` - passed. Local `npm ci` and `npm run ci:check` were not
+run.
+
 ### Full pre-merge CI-parity validation
+
 _Not started._
+
 ### Browser validation performed
-_Not started._
+
+Through `http://localhost:8888/login`, the Angular form made an HTTP request
+with a bounded `x-correlation-id`. The backend returned the same value in
+the response header and safe error envelope; no credentials or tokens were
+used. The rendered login state was correct. The console contained the
+expected `401` from the synthetic unauthenticated probe; transient `502`
+WebSocket messages occurred only while Nest was restarting under watch mode
+and were not used as acceptance evidence. The first post-edit request also
+overlapped that restart and returned an edge `502`; it was re-observed after
+the process stabilized and the two required readiness rounds passed.
+
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+
+Implementation commit `38e9b48c`.
+
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+
+_Not started._
+
 ### Rollback
+
 _Not applicable._
+
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+
+_None._
+
+### CI repair invocation
+
+The exact feature-SHA workflow run `35137350844` failed on the Windows
+`nest-orphans` prerequisite because `src/observability/metrics.ts` and
+`src/observability/redaction.ts` were not reachable from the production Nest
+graph. The failure was reproduced with
+`node scripts/check-nest-orphans.mjs --root=MercurionWebNode --json`, which
+reported 2 orphaned files.
+
+Added the global `ObservabilityModule` to the application composition root,
+registering the existing `MetricsPort` with its deterministic
+`InMemoryMetrics` implementation. Updated the production Meilisearch logger
+to consume the existing `redactSensitive` contract for structured payloads.
+This makes both observability units reachable through real production
+composition and preserves the existing string sanitization behavior.
+
+Focused repair validation:
+
+- `node scripts/check-nest-orphans.mjs --root=MercurionWebNode --json` -
+  passed, 380/380 production files reachable and zero orphans.
+- `npm test --workspace mercurion_web_node -- --runInBand --runTestsByPath
+  src/observability/metrics.spec.ts src/observability/redaction.spec.ts
+  src/app_modules/meilisearch/services/meili-logger.service.spec.ts` -
+  passed.
+- `npm run typecheck --workspace mercurion_web_node` - passed.
+- `npm run lint --workspace mercurion_web_node -- --no-warn-ignored` -
+  passed.
+- `git diff --check` - passed.
+
+Local `npm ci` and `npm run ci:check` were not run. Browser validation was not
+repeated because the repair changes production reachability and structured
+redaction only, not browser-observable transport behavior.
+
+### CI repair invocation 2
+
+The exact feature-SHA workflow run `35138555617` failed the Angular console
+policy because `MercurionWebNg/src/app/interceptors/correlation.interceptor.ts`
+used a direct `console.warn` call. Replaced it with the established
+injected `LoggerService.warn` mechanism, preserving the correlation mismatch
+diagnostic and response handling.
+
+Focused repair validation:
+
+- `npm run lint:angular --workspace mercurion_web_ng -- --no-warn-ignored` -
+  passed.
+- `npm run typecheck --workspace mercurion_web_ng` - passed.
+- Angular console-policy search - passed; no direct console call remains in
+  `correlation.interceptor.ts`.
+- `git diff --check` - passed.
+
+Local `npm ci` and `npm run ci:check` were not run. Browser validation was not
+repeated because the correction only routes an existing warning through the
+approved neutral logger.
+
+### CI repair invocation 3
+
+The exact feature-SHA workflow run `35139604235` for SHA
+`1c13150bac70dcd7a159abc5db47cc33d4e30d4b` failed because the canonical REST
+compatibility inventory was stale after QA-031 added the public correlation
+interceptor behavior.
+
+Regenerated `docs/architecture/rest-contract-compatibility.json` with the
+checker’s supported command:
+
+`node scripts/check-rest-compatibility.mjs --write`
+
+The reviewed inventory change is limited to registering
+`CorrelationInterceptor` in the existing Angular interceptor list. Route
+matching remains 59 client calls matched to 58 Nest routes.
+
+Focused repair validation:
+
+- `node scripts/check-rest-compatibility.mjs` - passed.
+- `node scripts/test-rest-compatibility-negative.mjs` - passed, including
+  CRLF/LF determinism and all six deliberate incompatibility mutations.
+- `git diff --check` - passed.
+
+Local `npm ci` and `npm run ci:check` were not run. Browser validation was not
+repeated because this correction updates only generated compatibility metadata
+for the already-validated correlation behavior.

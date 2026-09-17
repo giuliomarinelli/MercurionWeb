@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
-import type { Scope } from 'src/app_modules/user/Models/enums/scope.enum'
+import type { Scope } from 'src/app_modules/user/models/enums/scope.enum'
 
-import type { AppJwtPayload } from '../../Models/interfaces/app-jwt-payload.interface'
+import type { AppJwtPayload } from '../../models/interfaces/app-jwt-payload.interface'
 import { ScopeService } from '../../services/scope.service'
 import type { AuthenticationRequestContext } from './authentication-policy.types'
 

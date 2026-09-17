@@ -3,7 +3,11 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
+
+> SKIPPED_DEPENDENCY (2026-09-15): direct terminal prerequisite `0126`
+> (`BE-012`) is `BLOCKED`; transitive root cause is the unverified external
+> Docker registry failure on its feature-SHA CI.
 ## Objective
 
 Replace duplicated GraphQL `page`/`limit` arguments and divergent pagination response shapes with one validated pagination contract that enforces min/max/defaults and stable ordering while preserving approved public schema compatibility.

@@ -1,6 +1,6 @@
 # 0159 - Separate Help persistence entities from response DTOs
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -86,24 +86,57 @@ Mark `BLOCKED` if the current GraphQL schema intentionally exposes a persistence
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-010` at base `c8b2bf798d13f4116c78803684abb0b547871aae`.
 ### Preflight
-_Not started._
+Clean branch and workspace confirmed; `develop`, `origin/develop`, and HEAD
+matched the supplied base SHA. Local `commit.gpgSign` is `false`, no
+workspace-consuming Angular/Nest/Tox21/Jest processes were active, and the
+focused Help service baseline test passed. GitHub Actions run
+`35042741481` for the exact base SHA completed successfully with Ubuntu and
+Windows prerequisite jobs, Nest unit/E2E, GraphQL/static gates, builds,
+containers, browser journeys, and `Required gate` green.
 ### Preflight remediation
-_None._
+None. No install or aggregate CI command was run locally.
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0157. This task was never attempted and receives no feature branch.
+Added immutable GraphQL response DTOs and pure Help presenters. Help queries and
+mutations now construct explicit response shapes from persistence projections,
+perform public-ID/content formatting and visibility/name presentation without
+mutating entities, and persistence entities no longer carry GraphQL-only
+presentation properties.
 ### Task-specific validation performed
-_Not started._
+Passed `npm test --workspace mercurion_web_node -- --runInBand
+--runTestsByPath src/app_modules/help/models/dto/help-presenters.spec.ts
+src/app_modules/help/services/help.service.spec.ts` (3 tests), Nest
+`typecheck`, Nest `lint`, Nest `build`, GraphQL `schema:check`, and
+`git diff --check`. Presenter tests deep-clone sources and verify public IDs,
+content-delta serialization, computed names, and hidden user/support fields.
 ### Full pre-merge CI-parity validation
-_Not started._
+Complete clean-install and aggregate CI parity are delegated to GitHub Actions
+for the pushed exact feature SHA; local `npm ci` and `npm run ci:check` were
+intentionally not run.
 ### Browser validation performed
-_Not applicable._
+Not applicable per recipe.
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+`f2c4c2c2ac0c701c19390db60ba8a7432b22e492`
+(`feat(help): separate persistence entities from response DTOs`, with required
+Co-authored-by trailer); `fcbd4718f647f617c13a12aa13edff3d58154df4`
+(`docs(task): record DATA-010 validation`, with required Co-authored-by
+trailer); `cf3fdeb17edf69a3f76306c439f9337c81f94488` (`docs(task): finalize
+DATA-010 execution notes`, with required Co-authored-by trailer).
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+Implementation SHA `f2c4c2c2ac0c701c19390db60ba8a7432b22e492` Actions run
+`35043798417` completed successfully. Final feature SHA
+`cf3fdeb17edf69a3f76306c439f9337c81f94488` Actions run `35044401320`
+completed successfully via the repository's metadata validation path because
+the final delta was execution notes only. The implementation run had Ubuntu
+and Windows prerequisites,
+Nest/Angular unit and E2E suites, GraphQL/static gates, builds, container
+checks, browser journeys, database schema, and `Required gate` green; the
+final run's autonomous validators, metadata check, and `Required gate` were
+also green.
+Integration remains coordinator-owned; this worker did not merge or mutate
+`develop`.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+_None._

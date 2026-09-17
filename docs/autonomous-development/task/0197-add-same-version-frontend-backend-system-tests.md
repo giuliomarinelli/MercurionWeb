@@ -1,6 +1,6 @@
 # 0197 - Add same-version frontend/backend system tests
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -63,12 +63,12 @@ Angular browser E2E in `0195` is allowed to control API responses so it can isol
 
 ## Acceptance criteria
 
-- [ ] Angular and Nest artifacts under test come from the same commit.
-- [ ] At least one anonymous and one authenticated real system journey pass through `http://localhost:8888`.
-- [ ] No API/GraphQL contract mock is used in the system suite.
-- [ ] Auth/session/same-origin behavior is exercised through the real reverse-proxy topology.
-- [ ] Test data and owned processes/resources are cleaned deterministically.
-- [ ] System tests are part of canonical CI with usable failure diagnostics.
+- [x] Angular and Nest artifacts under test come from the same commit.
+- [x] At least one anonymous and one authenticated real system journey pass through `http://localhost:8888`.
+- [x] No API/GraphQL contract mock is used in the system suite.
+- [x] Auth/session/same-origin behavior is exercised through the real reverse-proxy topology.
+- [x] Test data and owned processes/resources are cleaned deterministically.
+- [x] System tests are part of canonical CI with usable failure diagnostics.
 
 ## Validation
 
@@ -92,27 +92,74 @@ Mark `BLOCKED` if the canonical nginx topology cannot be reproduced by CI withou
 
 Keep this suite intentionally smaller than the mocked browser E2E matrix. Its value is crossing the real deployment boundaries with compatible artifacts, not duplicating every frontend scenario.
 
+
 ## Execution notes
 
 ### Feature branch
-_Not started._
+
+`feature/QA-011` from base
+`0bceeee529e4a3800ba8140d0155a5ccd59c6924`.
+
 ### Preflight
-_Not started._
+
+The supplied exact base SHA had successful merge-CI evidence. The Chrome
+DevTools tool-surface probe succeeded without application navigation. Tox21,
+Nest, and Angular were started in the mandated order with live handles, two
+consecutive canonical nginx readiness rounds passed, and all task-owned
+processes were stopped before implementation and before handoff.
+
 ### Preflight remediation
+
 _None._
+
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0195, 0196, 0194. This task was never attempted and receives no feature branch.
+
+Added a distinct Playwright `system` project and command that does not load
+the mocked `critical` fixtures. The suite reads the configured local test
+account without printing or committing credentials, performs a fresh ordinary
+login, verifies real Angular-to-Nest requests and same-origin routing through
+nginx, checks signed session/login-marker cookie semantics, and logs out in
+fixture cleanup. Failure traces, screenshots, and videos use the existing
+Playwright diagnostics directory. The CI browser job registers the system
+command after the critical browser journeys and uploads the diagnostics.
+
 ### Task-specific validation performed
-_Not started._
+
+`npx playwright test --project=system --list` — 2 tests discovered.
+
+`npm run test:e2e:system` — 2 passed in 9.3s against the live Angular and Nest
+processes through `http://localhost:8888`.
+
+`git diff --check` — passed.
+
 ### Full pre-merge CI-parity validation
-_Not started._
+
+Not run locally; clean-install and aggregate CI parity remain GitHub Actions
+responsibilities.
+
 ### Browser validation performed
-_Not started._
+
+The anonymous journey rendered the real login shell and fetched the real Nest
+health response through the canonical edge, asserting the canonical request
+origin. The authenticated journey completed the ordinary login flow, reached
+`/dashboard`, observed successful real `/api/` responses, and verified
+`__node_session_id` and `__logged_in` cookie flags without exposing values.
+The fixture issued a same-origin logout cleanup request. No API, GraphQL,
+WebSocket, or browser route interception was registered.
+
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+
+`2939271f` — system project, real same-origin journeys, CI registration, and
+focused execution evidence.
+
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+
+_Not started._
+
 ### Rollback
+
 _Not applicable._
+
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+
+_None._

@@ -4,18 +4,48 @@ import {
   ApplicationErrorCode,
   type ApplicationErrorCode as ApplicationErrorCodeType,
   type ApplicationErrorPayload,
+  type ApplicationErrorCategory,
   getApplicationErrorDefinition,
   isApplicationErrorPayload,
-  resolveLegacyApplicationErrorCode,
 } from '@mercurion/rest-contracts';
 
 export { ApplicationErrorCode }
+export type { ApplicationErrorCategory }
+
+export class ApplicationError extends RpcException {
+  readonly code: ApplicationErrorCodeType
+  readonly category: ApplicationErrorCategory
+  readonly httpStatus: number
+  readonly exposeInProduction: boolean
+  readonly cause?: unknown
+
+  constructor(
+    code: ApplicationErrorCodeType,
+    message: string,
+    details?: Readonly<Record<string, unknown>>,
+    cause?: unknown,
+  ) {
+    const definition = getApplicationErrorDefinition(code)
+    const payload: ApplicationErrorPayload = {
+      code,
+      message,
+      ...(details ? { details } : {}),
+    }
+    super(payload)
+    this.code = code
+    this.category = categoryForStatus(definition.httpStatus)
+    this.httpStatus = definition.httpStatus
+    this.exposeInProduction = definition.exposeInProduction
+    this.cause = cause
+  }
+}
 
 export function applicationError(
   code: ApplicationErrorCodeType,
   message?: string,
   details?: Readonly<Record<string, unknown>>,
-): RpcException {
+  cause?: unknown,
+): ApplicationError {
   const definition = getApplicationErrorDefinition(code);
   const resolvedMessage = message ?? definition.defaultMessage;
 
@@ -23,13 +53,7 @@ export function applicationError(
     throw new Error(`Application error ${code} requires an explicit message`);
   }
 
-  const payload: ApplicationErrorPayload = {
-    code,
-    message: resolvedMessage,
-    ...(details ? { details } : {}),
-  };
-
-  return new RpcException(payload);
+  return new ApplicationError(code, resolvedMessage, details, cause)
 }
 
 export function applicationHttpException(
@@ -75,13 +99,7 @@ export function getApplicationError(
     return error;
   }
 
-  const message = getErrorMessage(error);
-  if (!message) {
-    return undefined;
-  }
-
-  const code = resolveLegacyApplicationErrorCode(message);
-  return code ? { code, message } : undefined;
+  return undefined;
 }
 
 export function isApplicationError(
@@ -102,11 +120,13 @@ export function getApplicationErrorMessage(
   return definition.publicMessage ?? payload.message;
 }
 
-function getErrorMessage(error: unknown): string | undefined {
-  if (!error || typeof error !== 'object') {
-    return undefined;
-  }
-
-  const message = (error as { message?: unknown }).message;
-  return typeof message === 'string' ? message : undefined;
+export function categoryForStatus(status: number): ApplicationErrorCategory {
+  if (status === 400 || status === 422) return 'validation'
+  if (status === 401) return 'authentication'
+  if (status === 403) return 'authorization'
+  if (status === 404) return 'not-found'
+  if (status === 409) return 'conflict'
+  if (status === 429) return 'rate-limit'
+  if (status >= 500 && status < 600) return 'internal'
+  return 'infrastructure'
 }

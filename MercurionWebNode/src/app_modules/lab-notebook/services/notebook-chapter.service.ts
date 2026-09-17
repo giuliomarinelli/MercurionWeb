@@ -1,13 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { NotebookChapter } from '../Models/entities/lab-notebook-chapter.entity';
+import { NotebookChapter } from '../models/entities/lab-notebook-chapter.entity';
 import { UUID } from 'crypto';
 
 import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
 import { GraphQLFieldsMap, TypeOrmUtils } from 'src/utils/type-orm-utils/type-orm-utils';
-import { LabNotebook } from '../Models/entities/lab-notebook.entity';
+import { LabNotebook } from '../models/entities/lab-notebook.entity';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
+import { runInTransaction } from 'src/persistence/transaction-context'
+import {
+    NotebookChapterCreateCommand,
+    NotebookChapterPatchCommand,
+    toNotebookChapterPatch
+} from '../models/dto/notebook-mutation.commands'
 
 @Injectable()
 export class NotebookChapterService {
@@ -19,8 +25,8 @@ export class NotebookChapterService {
         private readonly chapterRepo: Repository<NotebookChapter>,
     ) { }
 
-    async createChapter(notebookId: UUID, userId: UUID, data: Partial<NotebookChapter>): Promise<NotebookChapter> {
-        return this.chapterRepo.manager.transaction(async manager => {
+    async createChapter(notebookId: UUID, userId: UUID, data: NotebookChapterCreateCommand): Promise<NotebookChapter> {
+        return runInTransaction(this.chapterRepo.manager, async (_context, manager) => {
             const { max } = await manager
                 .createQueryBuilder(NotebookChapter, 'chapter')
                 .where('chapter.notebook_id = :notebookId', { notebookId })  // SNAKE CASE
@@ -32,7 +38,7 @@ export class NotebookChapterService {
             this.chapterRepo.createQueryBuilder()
 
             const newChapter = manager.create(NotebookChapter, {
-                ...data,
+                title: data.title,
                 userId,
                 notebook: { id: notebookId } as LabNotebook,
                 order: (Number(maxOrder) || 0) + 1,
@@ -52,7 +58,7 @@ export class NotebookChapterService {
     }
 
     async move(chapterId: UUID, userId: UUID, direction: 'up' | 'down'): Promise<void> {
-        await this.chapterRepo.manager.transaction(async manager => {
+        await runInTransaction(this.chapterRepo.manager, async (_context, manager) => {
             const chapter = await manager.findOne(NotebookChapter, {
                 where: { id: chapterId, userId },
                 relations: {
@@ -87,7 +93,7 @@ export class NotebookChapterService {
             .map((id, idx) => `WHEN id = '${id}' THEN ${idx}`)
             .join(' ')
 
-        await this.chapterRepo.manager.transaction(async manager => {
+        await runInTransaction(this.chapterRepo.manager, async (_context, manager) => {
             await manager
                 .createQueryBuilder()
                 .update(NotebookChapter)
@@ -154,10 +160,13 @@ export class NotebookChapterService {
     async updateChapter(
         id: UUID,
         userId: UUID,
-        data: Partial<NotebookChapter>,
+        data: NotebookChapterPatchCommand,
         fieldsMap: GraphQLFieldsMap
     ): Promise<NotebookChapter | null> {
-        await this.chapterRepo.update({ id, userId }, { updatedAt: Date.now(), ...data });
+        await this.chapterRepo.update({ id, userId }, {
+            updatedAt: Date.now(),
+            ...toNotebookChapterPatch(data)
+        });
         return this.getChapter(id, userId, fieldsMap); // <--- passalo qui
     }
 

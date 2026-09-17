@@ -1,12 +1,17 @@
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
-import { MercurionInferReqDTO } from '../Models/DTO/mt21/mercurion-infer-req.dto';
-import { MercurionInferDataDTO, MercurionInferResDTO } from '../Models/DTO/mt21/mercurion-infer-res.dto';
+import { MercurionInferReqDTO } from '../models/dto/mt21/mercurion-infer-req.dto';
+import { MercurionInferDataDTO, MercurionInferResDTO } from '../models/dto/mt21/mercurion-infer-res.dto';
 import { catchError, firstValueFrom, throwError, timeout, TimeoutError } from 'rxjs';
 import { ConfigService } from '@nestjs/config';
-import { Environment } from 'src/config/config.schema';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
-import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { LoggerPort } from 'src/logging/logger.port'
+import { LoggerContext } from 'src/logging/logger.port'
+import {
+    NATS_CONTRACT_REGISTRY,
+    assertNatsRequest,
+    assertNatsResponse,
+    natsSubject,
+} from '@mercurion/rest-contracts'
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 
 @Injectable()
@@ -14,22 +19,21 @@ export class MercurionAIService implements OnModuleInit {
 
     private readonly MAX_NATS_PAYLOAD_BYTES: number
 
-    private readonly logger: MeiliContextLogger
+    private readonly logger: LoggerContext
 
+    private readonly contract = NATS_CONTRACT_REGISTRY.inferenceTop4
     private readonly namespace: string
 
     constructor(
         @Inject('MERCURION_AI_CLIENT') private readonly mercurionAIClient: ClientProxy,
         private readonly configService: ConfigService,
-        loggerFactory: MeiliLoggerService
+        loggerFactory: LoggerPort
     ) {
         this.logger = loggerFactory.forContext(MercurionAIService.name)
-        const env = this.configService.getOrThrow<Environment>('App.env')
-        let namespace: string = 'inference.tox21.smiles'
-        if (env !== Environment.Production) {
-            namespace = `${env}.${namespace}`
-        }
-        this.namespace = namespace
+        this.namespace = natsSubject(
+            'inferenceTop4',
+            this.configService.getOrThrow('App.env')
+        )
         this.MAX_NATS_PAYLOAD_BYTES = this.configService.get<number>('App.maxNatsPayloadBytes')!
     }
 
@@ -61,12 +65,13 @@ export class MercurionAIService implements OnModuleInit {
     ): Promise<MercurionInferDataDTO> {
 
         this.ensurePayloadSize(dto)
+        assertNatsRequest(this.contract, dto)
 
         const res: MercurionInferResDTO = await firstValueFrom(
             this.mercurionAIClient
                 .send<MercurionInferResDTO>(this.namespace, dto)
                 .pipe(
-                    timeout(3000),
+                    timeout(this.contract.timeoutMs),
                     catchError((err) => {
                         if (err instanceof TimeoutError) {
                             return throwError(() =>
@@ -79,6 +84,7 @@ export class MercurionAIService implements OnModuleInit {
                     }),
                 ),
         )
+        assertNatsResponse(this.contract, res)
 
         if (!this.isValidInferencePayload(res)) {
             throw applicationError(ApplicationErrorCode.TOX21_INVALID_PAYLOAD)

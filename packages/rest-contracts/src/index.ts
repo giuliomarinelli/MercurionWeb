@@ -1,4 +1,5 @@
 import type { ApplicationErrorEnvelope } from './application-error-envelope'
+import type { UtcInstant } from './temporal'
 
 export { LOCAL_DUMMY_AUTH } from './local-dummy-auth'
 export type { LocalDummyAuthMarker } from './local-dummy-auth'
@@ -10,8 +11,7 @@ export {
   ApplicationErrorCode,
   getApplicationErrorDefinition,
   isApplicationErrorCode,
-  isApplicationErrorPayload,
-  resolveLegacyApplicationErrorCode
+  isApplicationErrorPayload
 } from './application-errors'
 export type {
   ApplicationErrorCode as ApplicationErrorCodeType,
@@ -46,8 +46,17 @@ export type {
 export type {
   ApplicationErrorEnvelope,
   ApplicationErrorEnvelopeCode,
+  ApplicationErrorCategory,
   TransportApplicationErrorCode
 } from './application-error-envelope'
+export {
+  epochMsFromUtcInstant,
+  isUtcInstant,
+  parseUtcInstant,
+  utcInstantFromDate,
+  utcInstantFromEpochMs
+} from './temporal'
+export type { UtcInstant } from './temporal'
 export {
   INITIAL_SESSION_PROTOCOL,
   SessionConnectionState,
@@ -80,6 +89,26 @@ export {
   RDKIT_OPERATIONS,
   RDKIT_SMILES_MAX_LENGTH
 } from './rdkit-contract'
+export {
+  NATS_CONTRACT_REGISTRY,
+  NATS_CONTRACT_VERSION,
+  NATS_TIMEOUT_MS,
+  NATS_TIMEOUT_POLICY_KEY,
+  assertNatsRequest,
+  assertNatsResponse,
+  natsSubject
+} from './nats-contract-registry'
+export type {
+  MercurionInferenceRequest,
+  MercurionInferenceResponse,
+  NatsContract,
+  NatsContractId,
+  NatsEnvironment,
+  NatsErrorContract,
+  NatsJsonSchema,
+  Tox21Inference as NatsTox21Inference,
+  Tox21Prediction as NatsTox21Prediction
+} from './nats-contract-registry'
 export type {
   RdkitAreSameStructureDTO,
   RdkitAreSameStructureResponse,
@@ -108,7 +137,7 @@ export interface PageModel<T> {
 
 export interface ConfirmDTO {
   statusCode: number
-  timestamp: string
+  timestamp: UtcInstant
   message: string
 }
 
@@ -120,14 +149,14 @@ export interface ErrorRes extends ApplicationErrorEnvelope {
   message: ApplicationErrorEnvelope['message']
   details?: ApplicationErrorEnvelope['details']
   correlationId: ApplicationErrorEnvelope['correlationId']
-  timestamp: string
+  timestamp: UtcInstant
   requestId: string
   path: string
 }
 
 export interface TotpMetadata {
-  generatedAt: number
-  expiresAt: number
+  generatedAt: UtcInstant
+  expiresAt: UtcInstant
 }
 
 export interface TotpAuthMetadata extends TotpMetadata {
@@ -289,7 +318,7 @@ export interface RecoveryCodeDTO {
 export interface HistoryDTO {
   id: string
   itemEntity: HistoryItemEntity
-  touchedAt: number
+  touchedAt: UtcInstant
   itemId: string
   itemName: string
   flagIds: string
@@ -335,9 +364,9 @@ export interface MfaStrategyDTO {
 
 export interface SessionDTO {
   id: string
-  createdAt: number
-  expiresAt: number
-  lastAccessedAt: number
+  createdAt: UtcInstant
+  expiresAt: UtcInstant
+  lastAccessedAt: UtcInstant
   valid?: boolean
   current: boolean
   location: string
@@ -416,7 +445,7 @@ export type FeedbackStatus = (typeof FeedbackStatus)[keyof typeof FeedbackStatus
 
 export interface Feedback {
   id: string
-  createdAtMs: string
+  createdAtMs: UtcInstant
   env: FeedbackEnv
   source: FeedbackSource
   kind: FeedbackKind
@@ -457,18 +486,7 @@ export interface DeleteFeedbackResponse {
   ok: boolean
 }
 
-export interface Tox21Inference {
-  probability: number
-  is_positive: boolean
-  threshold: number
-}
-
-export interface Tox21Prediction {
-  'SR-ATAD5'?: Tox21Inference
-  'NR-AhR'?: Tox21Inference
-  'SR-MMP'?: Tox21Inference
-  'SR-p53'?: Tox21Inference
-}
+export type { Tox21Inference, Tox21Prediction } from './nats-contract-registry'
 
 export interface SmilesDTO {
   smiles: string

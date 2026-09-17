@@ -1,7 +1,7 @@
 # 0209 - Minimize production container runtime dependencies
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
@@ -101,18 +101,35 @@ _Not started._
 ### Preflight remediation
 _None._
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0163, 0206, 0207, 0208. This task was never attempted and receives no feature branch.
+Re-enabled after DATA-002 became `DONE`; this task was never attempted and has no feature branch.
 ### Task-specific validation performed
 _Not started._
 ### Full pre-merge CI-parity validation
 _Not started._
 ### Browser validation performed
-_Not started / not applicable._
+_Not started._
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+_None._
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+Feature CI run `35064159032` failed before merge because the generated REST
+route ownership inventory was stale for `GET /og/mercurion-og.png`, and the
+runner Docker Scout CLI rejected `sbom --format`. The first repair also
+removed `--format`, but feature CI run `35064784534` showed that this runner
+rejects `--output` as well. The second repair captures Scout's default JSON
+stdout into the SBOM report while preserving exact-image digest verification
+and SARIF scanning; rerun exact-SHA feature CI after the repair push.
+The third repair addresses feature CI run `35065457627`, which failed only in
+`Container nest-production` because the runner had no `docker scout` plugin.
+The final repair feature CI run `35066388754` still failed in the same job:
+the pinned Syft fallback produced JSON output but exited unsuccessfully, and
+the checker failed closed with `image SBOM generation is unavailable; no
+supported fallback succeeded`. The configured feature-CI repair budget is
+exhausted, so this task is blocked before merge pending a supported CI image
+SBOM tool decision or runner capability.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+The GitHub Actions container runner lacks Docker Scout and the pinned Syft
+fallback cannot complete successfully against the local image. A supported
+runner/tool decision is required before the exact-image SBOM and vulnerability
+evidence can be made green.

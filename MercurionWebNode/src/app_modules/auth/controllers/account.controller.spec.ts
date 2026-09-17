@@ -12,7 +12,7 @@ import { MfaBackupCodeService } from '../services/mfa-backup-code.service';
 import { UserService } from 'src/app_modules/user/services/user.service';
 import { TurnstileGuard } from '../guards/turnstile.guard';
 import { TurnstileService } from '../services/turnstile.service';
-import { SercurityService } from '../services/sercurity.service';
+import { SecurityService } from '../services/security.service';
 import { ListActiveSessionsHandler } from '../application/session-authentication.handlers';
 import { ConfigService } from '@nestjs/config';
 
@@ -39,7 +39,7 @@ describe('AccountController', () => {
         { provide: UserService, useValue: {} },
         { provide: TurnstileGuard, useValue: { canActivate: jest.fn().mockReturnValue(true) } },
         { provide: TurnstileService, useValue: {} },
-        { provide: SercurityService, useValue: { maskEmail: jest.fn() } },
+        { provide: SecurityService, useValue: { maskEmail: jest.fn() } },
         { provide: ListActiveSessionsHandler, useValue: listActiveSessions },
         {
           provide: ConfigService,

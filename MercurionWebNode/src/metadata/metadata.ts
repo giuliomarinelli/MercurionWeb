@@ -8,8 +8,8 @@ import {
     type FingerprintData,
     type SessionDeviceInfo
 } from '@mercurion/rest-contracts'
-import { TokenType } from 'src/app_modules/auth/Models/enums/token-type.enum';
-import { Scope } from 'src/app_modules/user/Models/enums/scope.enum';
+import { TokenType } from 'src/app_modules/auth/models/enums/token-type.enum';
+import { Scope } from 'src/app_modules/user/models/enums/scope.enum';
 
 
 export const IS_PUBLIC_KEY = 'isPublic'

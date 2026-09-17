@@ -1,11 +1,11 @@
 import { Body, Controller, HttpCode, HttpStatus, Post, Res, UseGuards, ValidationPipe } from '@nestjs/common';
-import { RecoveryCodeDTO } from '../Models/DTO/recovery-code.cls.dto';
-import { ConfirmWithRecoveryCodeDTO, ConfirmWithRecoveryTokenDTO } from 'src/Models/confirm-responses.dto';
+import { RecoveryCodeDTO } from '../models/dto/recovery-code.cls.dto';
+import { ConfirmWithRecoveryCodeDTO, ConfirmWithRecoveryTokenDTO } from 'src/models/confirm-responses.dto';
 import { AccountRecoveryUseCase } from '../application/account-recovery.use-case';
 import { ResponseService } from 'src/services/response.service';
 import { Authorization, Public } from 'src/metadata/metadata';
 import { TurnstileGuard } from '../guards/turnstile.guard';
-import { RecoverCredentialsDTO } from '../Models/DTO/recover-cretentials.cls.dto';
+import { RecoverCredentialsDTO } from '../models/dto/recover-credentials.cls.dto';
 import { FastifyReply } from 'fastify';
 import { SecureCookieService } from '../services/secure-cookie.service';
 import { randomUUID } from 'crypto';

@@ -10,7 +10,13 @@ module.exports = {
     '^.+\\.ts$': 'ts-jest',
   },
   setupFilesAfterEnv: ['<rootDir>/../test/jest.setup.ts'],
-  collectCoverageFrom: ['**/*.(t|j)s'],
-  coverageDirectory: 'coverage',
+  collectCoverageFrom: [
+    '**/*.(t|j)s',
+    '!**/*.spec.ts',
+    '!**/*.test.ts',
+    '!**/test-utils/**',
+  ],
+  coverageDirectory: '<rootDir>/../coverage/nest',
+  coverageReporters: ['text', 'text-summary', 'json', 'json-summary', 'lcov', 'cobertura'],
   testEnvironment: 'node',
 };

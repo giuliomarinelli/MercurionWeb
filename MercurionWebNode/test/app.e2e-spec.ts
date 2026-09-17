@@ -1,39 +1,105 @@
-import { ConfigService } from '@nestjs/config';
-import { Test } from '@nestjs/testing';
-import { MODULE_METADATA } from '@nestjs/common/constants';
-import { Environment } from '../src/config/config.schema';
-import { createTestConfigurationModule } from '../src/test-utils/configuration';
-import { AppModule } from '../src/app.module';
-import { TestApplicationModule } from '../src/test-utils/test-application.module';
-import { TestController } from '../src/test.controller';
+import { createE2eApplicationFixture, type E2eApplicationFixture } from './e2e-application.fixture'
 
-describe('application configuration (e2e)', () => {
-  it('loads isolated test configuration without production secrets', async () => {
-    const moduleRef = await Test.createTestingModule({
-      imports: [createTestConfigurationModule()]
-    }).compile();
+describe('Nest public application boundary (e2e)', () => {
+  let fixture: E2eApplicationFixture
 
-    const config = moduleRef.get(ConfigService);
-    expect(config.get('App.env')).toBe(Environment.Test);
-    expect(config.get('App.port')).toBe(1);
+  beforeAll(async () => {
+    fixture = await createE2eApplicationFixture()
+  })
 
-    await moduleRef.close();
-  });
+  afterAll(async () => {
+    await fixture?.close()
+  })
 
-  it('does not register /api/test in the production application graph', () => {
-    const productionControllers =
-      (Reflect.getMetadata(MODULE_METADATA.CONTROLLERS, AppModule) as unknown[] | undefined) ?? [];
+  beforeEach(() => {
+    fixture.verifyEmail.execute.mockReset()
+    fixture.verifyEmail.execute.mockResolvedValue({ verified: true })
+    fixture.logout.execute.mockClear()
+    fixture.listTickets.mockClear()
+  })
 
-    expect(productionControllers).not.toContain(TestController);
-  });
+  it('serves public REST endpoints through the real Fastify transport', async () => {
+    const response = await fixture.app.getHttpAdapter().getInstance().inject({
+      method: 'GET',
+      url: '/test'
+    })
 
-  it('registers /api/test only in the explicit test application graph', () => {
-    const testControllers =
-      (Reflect.getMetadata(
-        MODULE_METADATA.CONTROLLERS,
-        TestApplicationModule,
-      ) as unknown[] | undefined) ?? [];
+    expect(response.statusCode).toBe(200)
+    expect(response.json()).toEqual(expect.objectContaining({
+      message: 'TEST DEL BACKEND OK',
+      statusCode: 200
+    }))
+  })
 
-    expect(testControllers).toContain(TestController);
-  });
-});
+  it('maps anonymous authentication failures to the canonical REST envelope', async () => {
+    fixture.verifyEmail.execute.mockResolvedValue({ verified: false })
+
+    const response = await fixture.app.getHttpAdapter().getInstance().inject({
+      method: 'POST',
+      url: '/authentication/login/0',
+      payload: { email: 'missing@example.test' }
+    })
+
+    expect(response.statusCode).toBe(401)
+    expect(response.json()).toEqual(expect.objectContaining({
+      code: 'UNAUTHORIZED',
+      status: 401,
+      category: 'authentication',
+      message: expect.any(String)
+    }))
+    expect(response.json()).not.toHaveProperty('stack')
+  })
+
+  it('creates and revokes a session at the logout transport boundary', async () => {
+    const response = await fixture.app.getHttpAdapter().getInstance().inject({
+      method: 'DELETE',
+      url: '/authentication/logout',
+      headers: {
+        'x-session-id': '00000000-0000-7000-8000-000000000001',
+        'x-device-id': '00000000-0000-7000-8000-000000000002'
+      }
+    })
+
+    expect(response.statusCode).toBe(204)
+    expect(fixture.logout.execute).toHaveBeenCalledWith({
+      sessionId: '00000000-0000-7000-8000-000000000001',
+      deviceId: '00000000-0000-7000-8000-000000000002'
+    })
+  })
+
+  it('executes a representative GraphQL query over HTTP', async () => {
+    const response = await fixture.app.getHttpAdapter().getInstance().inject({
+      method: 'POST',
+      url: '/api/graphql',
+      payload: {
+        query: '{ myTickets(page: 1, limit: 20) { currentPage totalItems } }'
+      }
+    })
+
+    expect(response.statusCode).toBe(200)
+    expect(response.json()).toEqual(expect.objectContaining({
+      data: {
+        myTickets: {
+          currentPage: 1,
+          totalItems: 0
+        }
+      }
+    }))
+    expect(fixture.listTickets).toHaveBeenCalled()
+  })
+
+  it('maps GraphQL validation errors to the canonical error code', async () => {
+    const response = await fixture.app.getHttpAdapter().getInstance().inject({
+      method: 'POST',
+      url: '/api/graphql',
+      payload: { query: '{ fieldThatDoesNotExist }' }
+    })
+
+    expect(response.statusCode).toBe(400)
+    expect(response.json().errors[0].extensions).toEqual(expect.objectContaining({
+      code: 'GRAPHQL_VALIDATION_FAILED',
+      status: 400,
+      category: 'validation'
+    }))
+  })
+})

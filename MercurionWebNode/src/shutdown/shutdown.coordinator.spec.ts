@@ -35,11 +35,17 @@ describe('ShutdownCoordinator', () => {
     expect(calls).toEqual(['first', 'second'])
     expect(result.failures).toHaveLength(1)
     // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(logger.log).toHaveBeenCalledWith('[SHUTDOWN_START]', {
+      reason: 'fatal',
+      timeoutMs: 100,
+      error: { name: 'Error', message: 'fatal' }
+    })
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.warn).toHaveBeenCalledWith('[SHUTDOWN_RESOURCE_FAILED]', expect.anything())
   })
 
   it('reports a hard timeout without waiting forever', async () => {
-    let release!: () => void
+    let release: (() => void) | undefined
     const result = await new ShutdownCoordinator([
       { name: 'stalled', close: () => new Promise<void>(resolve => { release = resolve }) }
     ], 5, logger).shutdown({ kind: 'signal', signal: 'SIGTERM' })
@@ -47,6 +53,6 @@ describe('ShutdownCoordinator', () => {
     expect(result.timedOut).toBe(true)
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.warn).toHaveBeenCalledWith('[SHUTDOWN_TIMEOUT]', { timeoutMs: 5 })
-    release()
+    release?.()
   })
 })

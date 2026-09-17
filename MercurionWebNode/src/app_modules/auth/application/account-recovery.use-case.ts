@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { RecoverCredentialsDTO } from '../Models/DTO/recover-cretentials.cls.dto';
+import { RecoverCredentialsDTO } from '../models/dto/recover-credentials.cls.dto';
 import { AccountFlowKernel } from './account-flow-kernel';
 
 @Injectable()

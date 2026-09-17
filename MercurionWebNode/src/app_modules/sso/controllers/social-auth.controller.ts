@@ -2,7 +2,7 @@ import { BadRequestException, Controller, Get, Param, Query, Res } from '@nestjs
 import { FastifyReply } from 'fastify/types/reply';
 import { Public } from 'src/metadata/metadata';
 import { SocialAuthService } from '../services/social-auth.service';
-import { AuthProvider } from '../Models/enums/auth-provider.enum';
+import { AuthProvider } from '../models/enums/auth-provider.enum';
 import { ConfigService } from '@nestjs/config';
 import {
   ApplicationErrorCode,

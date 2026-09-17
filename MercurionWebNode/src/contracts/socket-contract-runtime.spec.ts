@@ -42,6 +42,7 @@ describe('Socket.IO contract registry', () => {
   it('defines application errors and session expiration as server events', () => {
     const error: SocketApplicationError = {
       code: 'AUTHENTICATION_UNAUTHORIZED',
+      category: 'internal',
       status: 500,
       message: 'Unauthorized',
       detail: 'Unauthorized',

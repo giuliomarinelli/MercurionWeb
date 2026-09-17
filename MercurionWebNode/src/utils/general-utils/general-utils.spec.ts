@@ -1,6 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 import { GeneralUtils } from './general-utils';
-import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum';
+import { MfaStrategy } from 'src/app_modules/user/models/enums/mfa-strategy.enum';
 
 enum TestEnum {
   FIRST = 'first',

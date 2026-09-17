@@ -5,7 +5,7 @@ import {
     RevokeAllSessionsHandler,
     RevokeSessionHandler
 } from './session-authentication.handlers'
-import { TokenType } from '../Models/enums/token-type.enum'
+import { TokenType } from '../models/enums/token-type.enum'
 
 describe('session authentication handlers', () => {
     it.each([

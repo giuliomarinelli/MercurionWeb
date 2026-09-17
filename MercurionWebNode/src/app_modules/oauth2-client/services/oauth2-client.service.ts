@@ -1,25 +1,27 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import axios, { AxiosResponse } from 'axios';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
 import { OAuth2ProviderConfiguration } from 'src/config/config.types';
-import { IOAuth2ClientService } from '../Models/interfaces/i-oauth2-client-service.interface';
+import { IOAuth2ClientService } from '../models/interfaces/i-oauth2-client-service.interface';
 import { OAuth2PersistenceService } from './o-auth2-persistence.service';
 import { UUID } from 'crypto';
-import { OAuth2TokenData } from '../Models/interfaces/oauth2-token-data.interface';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
-import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { OAuth2TokenData } from '../models/interfaces/oauth2-token-data.interface';
+import { LoggerPort } from 'src/logging/logger.port';
+import { LoggerContext } from 'src/logging/logger.port';
 import { redisDurations, redisKeys } from 'src/app_modules/redis/contracts/redis-contracts';
+import { errorMessage } from 'src/utils/errors/error-message'
+import { ExternalHttpPort, ExternalHttpResponse } from 'src/infrastructure/external-http/external-http.port'
 
 @Injectable()
 export class OAuth2ClientService implements IOAuth2ClientService {
-    private readonly logger: MeiliContextLogger;
+    private readonly logger: LoggerContext;
 
     constructor(
         private readonly configService: ConfigService,
         private readonly redisService: RedisService,
         private readonly persistenceService: OAuth2PersistenceService,
-        meiliLogger: MeiliLoggerService,
+        meiliLogger: LoggerPort,
+        private readonly http: ExternalHttpPort,
     ) {
         this.logger = meiliLogger.forContext(OAuth2ClientService.name)
     }
@@ -59,9 +61,9 @@ export class OAuth2ClientService implements IOAuth2ClientService {
         const config = this.getProviderConfig(provider)
 
         // Token Exchange
-        let tokenRes: AxiosResponse<Record<string, unknown>, Record<string, unknown>>
+        let tokenRes: ExternalHttpResponse<Record<string, unknown>>
         try {
-            tokenRes = await axios.post(
+            tokenRes = await this.http.post<Record<string, unknown>>(
                 config.tokenUrl,
                 new URLSearchParams({
                     code,
@@ -70,10 +72,10 @@ export class OAuth2ClientService implements IOAuth2ClientService {
                     client_secret: config.appSecret,
                     redirect_uri: config.redirectUri,
                 }),
-                { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+                { timeoutMs: 10_000, headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
             );
         } catch (err) {
-            this.logger.error(`Token exchange error: ${err?.response?.data || err.message}`)
+            this.logger.error(`Token exchange error: ${errorMessage(err)}`)
             throw new UnauthorizedException('Failed to exchange code for tokens')
         }
 
@@ -106,7 +108,7 @@ export class OAuth2ClientService implements IOAuth2ClientService {
             const config = this.getProviderConfig(provider)
             let tokenRes;
             try {
-                tokenRes = await axios.post(
+                tokenRes = await this.http.post<Record<string, unknown>>(
                     config.tokenUrl,
                     new URLSearchParams({
                         grant_type: 'refresh_token',
@@ -114,10 +116,10 @@ export class OAuth2ClientService implements IOAuth2ClientService {
                         client_id: config.appKey,
                         client_secret: config.appSecret,
                     }),
-                    { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+                    { timeoutMs: 10_000, headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
                 );
             } catch (err) {
-                this.logger.error(`Token refresh error: ${err?.response?.data || err.message}`)
+                this.logger.error(`Token refresh error: ${errorMessage(err)}`)
                 throw new UnauthorizedException('Failed to refresh access token')
             }
 

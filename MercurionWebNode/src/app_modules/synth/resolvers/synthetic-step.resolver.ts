@@ -3,19 +3,16 @@ import { AuthenticatedUserId } from "src/metadata/metadata";
 import { UUID } from "crypto";
 import { GraphQLResolveInfo } from "graphql";
 import { GraphQLUtils } from "src/utils/graphql-utils/graphql-utils";
-import { SynthStep } from "../Models/entities/synth-step.entity";
+import { SynthStep } from "../models/entities/synth-step.entity";
 import { SyntheticStepService } from "../services/synthetic-step.service";
-import { SynthStepInput } from "../Models/DTO/synth-step.input";
-import { GeneralUtils } from "src/utils/general-utils/general-utils";
+import { SynthStepInput } from "../models/dto/synth-step.input";
+import { assertMercurionPublicId } from "src/identifiers/mercurion-public-id";
+import { SynthCommandResult } from "../models/dto/synth-command-result";
 
 @Resolver(() => SynthStep)
 export class SyntheticStepResolver {
 
     constructor(private readonly service: SyntheticStepService) { }
-
-    private ensureUuid(value: string, field: string): void {
-        GeneralUtils.ensureValidUUIDv7(value, `GraphQLInvalid::Invalid ${field}`)
-    }
 
     @Query(() => [SynthStep])
     async syntheticStepsByRoute(
@@ -23,7 +20,7 @@ export class SyntheticStepResolver {
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
     ) {
-        this.ensureUuid(routeId, 'routeId')
+        assertMercurionPublicId(routeId, 'routeId')
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         return this.service.findByRoute(userId, routeId, fieldsMap)
     }
@@ -34,7 +31,7 @@ export class SyntheticStepResolver {
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
     ) {
-        this.ensureUuid(id, 'id')
+        assertMercurionPublicId(id, 'id')
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         return this.service.findOneById(userId, id, fieldsMap)
     }
@@ -44,7 +41,7 @@ export class SyntheticStepResolver {
         @AuthenticatedUserId() userId: UUID,
         @Args('input') input: SynthStepInput
     ) {
-        this.ensureUuid(input.synthId, 'synthId')
+        assertMercurionPublicId(input.synthId, 'synthId')
         return this.service.create(userId, input)
     }
 
@@ -55,18 +52,18 @@ export class SyntheticStepResolver {
         @Args('input') input: SynthStepInput,
         @Info() info: GraphQLResolveInfo
     ) {
-        this.ensureUuid(id, 'id')
-        this.ensureUuid(input.synthId, 'synthId')
+        assertMercurionPublicId(id, 'id')
+        assertMercurionPublicId(input.synthId, 'synthId')
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         return this.service.update(userId, id, input, fieldsMap)
     }
 
-    @Mutation(() => Boolean)
+    @Mutation(() => SynthCommandResult)
     async deleteSyntheticStep(
         @AuthenticatedUserId() userId: UUID,
         @Args('id', { type: () => ID }) id: UUID
     ) {
-        this.ensureUuid(id, 'id')
+        assertMercurionPublicId(id, 'id')
         return this.service.delete(userId, id)
     }
 }

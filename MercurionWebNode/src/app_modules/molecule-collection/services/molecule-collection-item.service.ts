@@ -1,41 +1,47 @@
-import { MoleculeCollectionItemEntity } from 'src/app_modules/molecule-collection/Models/entities/molecule-collection-item.entity';
+import { MoleculeCollectionItemEntity } from 'src/app_modules/molecule-collection/models/entities/molecule-collection-item.entity';
 import { MoleculeService } from '../../meilisearch/services/molecule.service';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, EntityManager, Repository } from 'typeorm';
+import { DataSource, EntityManager, In, Repository } from 'typeorm';
 import { UUID } from 'crypto';
-import { CreateMoleculeItemInput } from '../Models/DTO/create-molecule-item.input';
 import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
 import { GraphQLFieldsMap, TypeOrmUtils } from 'src/utils/type-orm-utils/type-orm-utils';
 import { uuidv7 } from '@kripod/uuidv7';
 import { IPaginationOptions, paginate } from 'nestjs-typeorm-paginate';
-import { PaginatedMoleculeCollectionItem } from '../Models/DTO/paginated-molecule-collection-item.dto';
-import { MoleculeDetail } from 'src/app_modules/meilisearch/Models/DTO/molecule-detail.gql.dtos';
+import { PaginatedMoleculeCollectionItem } from '../models/dto/paginated-molecule-collection-item.dto';
+import { MoleculeDetail } from 'src/app_modules/meilisearch/models/dto/molecule-detail.gql.dtos';
 
-import { CustomMoleculeItemEntity } from '../Models/entities/custom-molecule-item.entity';
-import { ChEMBLMoleculeItemEntity } from '../Models/entities/chembl-molecule-item.entity';
-import { History } from 'src/app_modules/history/Models/entities/history.entity';
-import { HistoryItemEntity } from 'src/app_modules/history/Models/enums/history-item-entity.enum';
+import { CustomMoleculeItemEntity } from '../models/entities/custom-molecule-item.entity';
+import { ChEMBLMoleculeItemEntity } from '../models/entities/chembl-molecule-item.entity';
+import { History } from 'src/app_modules/history/models/entities/history.entity';
+import { HistoryItemEntity } from 'src/app_modules/history/models/enums/history-item-entity.enum';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
-import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { LoggerPort } from 'src/logging/logger.port';
+import { LoggerContext } from 'src/logging/logger.port';
 import { pruneNullCollectionJoins } from '../utils/prune-molecule-collection-joins.util';
-import { MoleculeCollectionItemDTO } from '../Models/DTO/molecule-collection-item.union';
+import { MoleculeCollectionItemDTO } from '../models/dto/molecule-collection-item.union';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
+import { runInTransaction } from 'src/persistence/transaction-context'
+import {
+    MoleculeItemCreateCommand,
+    MoleculeItemPatchCommand,
+    toMoleculeItemCreatePatch,
+    toMoleculeItemPatch
+} from '../models/dto/molecule-mutation.commands'
 
 
 // TODO: valutare un refactoring per dryificare la duplicazione di logica tra questo service e i service delle entità figlie concrete
 @Injectable()
 export class MoleculeCollectionItemService {
 
-    private readonly logger: MeiliContextLogger
+    private readonly logger: LoggerContext
 
     constructor(
         @InjectRepository(MoleculeCollectionItemEntity)
         private readonly itemRepo: Repository<MoleculeCollectionItemEntity>,
         private readonly moleculeService: MoleculeService,
         private readonly dataSource: DataSource,
-        meiliLogger: MeiliLoggerService
+        meiliLogger: LoggerPort
     ) {
         this.logger = meiliLogger.forContext(MoleculeCollectionItemService.name)
     }
@@ -43,11 +49,11 @@ export class MoleculeCollectionItemService {
     async markAsTouched(userId: UUID, itemId: UUID, _flagIds?: string): Promise<boolean> {
 
         try {
-            return await this.dataSource.manager.transaction(async (manager) => {
+            return await runInTransaction(this.dataSource, async (_context, manager) => {
                 return this.markAsTouchedWithManager(userId, itemId, manager, _flagIds)
             })
         } catch (e) {
-            this.logger.warn(`MoleculeCollectionItemService > markAsTouched: UPDATE FAILED => ${e}`)
+            this.logger.warn(`MoleculeCollectionItemService > markAsTouched: UPDATE FAILED => ${String(e)}`)
             return false
         }
 
@@ -84,8 +90,33 @@ export class MoleculeCollectionItemService {
         return false
     }
 
-    async create(userId: UUID, input: CreateMoleculeItemInput): Promise<MoleculeCollectionItemEntity> {
-        const entity = this.itemRepo.create({ id: uuidv7() as UUID, ...input, userId })
+    async markManyAsTouchedWithManager(userId: UUID, itemIds: UUID[], manager: EntityManager): Promise<void> {
+        const ids = Array.from(new Set(itemIds))
+        if (ids.length === 0) return
+        const owned = await manager.find(MoleculeCollectionItemEntity, {
+            where: { userId, id: In(ids) },
+            select: { id: true }
+        })
+        const ownedIds = owned.map(item => item.id)
+        if (ownedIds.length === 0) return
+        const touchedAt = Date.now()
+        await manager.update(MoleculeCollectionItemEntity, { userId, id: In(ownedIds) }, { touchedAt })
+        await manager.insert(History, ownedIds.map(itemId => ({
+            id: uuidv7() as UUID,
+            itemEntity: HistoryItemEntity.MoleculeCollectionItem,
+            itemId,
+            touchedAt,
+            userId,
+            flagIds: '{}'
+        })))
+    }
+
+    async create(userId: UUID, input: MoleculeItemCreateCommand): Promise<MoleculeCollectionItemEntity> {
+        const entity = this.itemRepo.create({
+            id: uuidv7() as UUID,
+            ...toMoleculeItemCreatePatch(input),
+            userId
+        })
         const persisted = await this.itemRepo.save(entity)
         await this.markAsTouched(userId, persisted.id)
         return persisted
@@ -431,8 +462,11 @@ export class MoleculeCollectionItemService {
     }
 
 
-    async update(id: UUID, userId: UUID, input: Partial<MoleculeCollectionItemEntity>, fieldsMap: GraphQLFieldsMap): Promise<MoleculeCollectionItemEntity | null> {
-        await this.itemRepo.update({ id, userId }, { ...input, updatedAt: Date.now() })
+    async update(id: UUID, userId: UUID, input: MoleculeItemPatchCommand, fieldsMap: GraphQLFieldsMap): Promise<MoleculeCollectionItemEntity | null> {
+        await this.itemRepo.update({ id, userId }, {
+            ...toMoleculeItemPatch(input),
+            updatedAt: Date.now()
+        })
         await this.markAsTouched(userId, id)
         return this.findOne(id, userId, fieldsMap)
     }
@@ -440,7 +474,7 @@ export class MoleculeCollectionItemService {
     async delete(id: UUID, userId: UUID): Promise<boolean> {
         try {
             let ok = false
-            await this.dataSource.manager.transaction(async manager => {
+            await runInTransaction(this.dataSource, async (_context, manager) => {
                 const resItem = await manager.delete(MoleculeCollectionItemEntity, { id, userId })
                 ok = (resItem.affected ?? 0) > 0
                 if (!ok) return

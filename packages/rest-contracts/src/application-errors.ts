@@ -9,12 +9,20 @@ export interface ApplicationErrorDefinition {
 export const APPLICATION_ERROR_CATALOG = {
   CONTRACT_VERSION_INVALID: {
     httpStatus: 400,
+    graphQlStatus: 200,
     defaultMessage: 'Invalid contract major version',
     exposeInProduction: true,
   },
   CONTRACT_VERSION_UNSUPPORTED: {
     httpStatus: 400,
+    graphQlStatus: 200,
     defaultMessage: 'Unsupported contract major version',
+    exposeInProduction: true,
+  },
+  PUBLIC_ID_INVALID: {
+    httpStatus: 400,
+    graphQlStatus: 200,
+    defaultMessage: 'Invalid Mercurion public ID',
     exposeInProduction: true,
   },
   ACCOUNT_ACTIVATION_USER_NOT_FOUND: {
@@ -58,11 +66,6 @@ export const APPLICATION_ERROR_CATALOG = {
     httpStatus: 500,
     defaultMessage: "Unauthenticated",
     exposeInProduction: false,
-  },
-  AUTHENTICATION_UNAUTHENTICATED_LEGACY_TYPO: {
-    httpStatus: 401,
-    defaultMessage: "Unauthanticated",
-    exposeInProduction: true,
   },
   AUTHENTICATION_UNAUTHENTICATED_SOFT: {
     httpStatus: 401,
@@ -401,9 +404,19 @@ export const APPLICATION_ERROR_CATALOG = {
     defaultMessage: "Forbidden::Cannot publish on a closed ticket",
     exposeInProduction: true,
   },
+  TICKET_HANDLING_FORBIDDEN: {
+    httpStatus: 403,
+    defaultMessage: "Forbidden::Ticket handling is not authorized",
+    exposeInProduction: true,
+  },
   TICKET_INITIAL_MESSAGE_CREATE_FAILED: {
     httpStatus: 500,
     defaultMessage: "Failed to create first ticket message",
+    exposeInProduction: false,
+  },
+  HELP_PUBLIC_ID_INVALID: {
+    httpStatus: 500,
+    defaultMessage: "Help public ID data is invalid",
     exposeInProduction: false,
   },
   LAB_NOTEBOOK_CHAPTER_NOT_FOUND: {
@@ -606,26 +619,6 @@ const applicationErrorCodes = new Set<string>(
   Object.keys(APPLICATION_ERROR_CATALOG),
 );
 
-const legacyMessageCodes = new Map<string, ApplicationErrorCode>();
-const ambiguousLegacyMessages = new Set<string>();
-
-for (const [code, definition] of Object.entries(
-  APPLICATION_ERROR_CATALOG as Readonly<
-    Record<ApplicationErrorCode, ApplicationErrorDefinition>
-  >,
-)) {
-  const message = definition.defaultMessage;
-  if (!message || ambiguousLegacyMessages.has(message)) {
-    continue;
-  }
-  if (legacyMessageCodes.has(message)) {
-    legacyMessageCodes.delete(message);
-    ambiguousLegacyMessages.add(message);
-    continue;
-  }
-  legacyMessageCodes.set(message, code as ApplicationErrorCode);
-}
-
 export function isApplicationErrorCode(
   value: unknown,
 ): value is ApplicationErrorCode {
@@ -649,10 +642,4 @@ export function getApplicationErrorDefinition(
   code: ApplicationErrorCode,
 ): ApplicationErrorDefinition {
   return APPLICATION_ERROR_CATALOG[code];
-}
-
-export function resolveLegacyApplicationErrorCode(
-  message: string,
-): ApplicationErrorCode | undefined {
-  return legacyMessageCodes.get(message);
 }

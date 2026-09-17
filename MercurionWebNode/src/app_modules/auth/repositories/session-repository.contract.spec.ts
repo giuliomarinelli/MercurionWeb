@@ -1,11 +1,10 @@
 import type { UUID } from 'crypto'
-import { AuthProvider } from 'src/app_modules/sso/Models/enums/auth-provider.enum'
+import { AuthProvider } from 'src/app_modules/sso/models/enums/auth-provider.enum'
 import type { RedisService } from 'src/app_modules/redis/services/redis.service'
-import type { ISession } from '../Models/interfaces/i-session.interface'
-import type { SessionRepository } from '../Models/interfaces/session-repository.interface'
+import type { ISession } from '../models/interfaces/i-session.interface'
+import type { SessionRepository } from '../models/interfaces/session-repository.interface'
 import { RedisSessionRepository } from './redis-session.repository'
 import { SessionRedisCodec } from './session-redis.codec'
-import { InMemorySessionRepository } from './testing/in-memory-session.repository'
 
 const userId = '11111111-1111-4111-8111-111111111111' as UUID
 const sessionId = '22222222-2222-4222-8222-222222222222' as UUID
@@ -234,10 +233,6 @@ function repositoryContract(
 }
 
 repositoryContract(
-    'InMemorySessionRepository contract',
-    () => new InMemorySessionRepository()
-)
-repositoryContract(
     'RedisSessionRepository contract',
     () => new RedisSessionRepository(
         new FakeRedisService() as unknown as RedisService,
@@ -256,6 +251,30 @@ describe('RedisSessionRepository invalid records', () => {
         )
 
         await expect(repository.findSession(sessionId, userId)).resolves.toBeNull()
+    })
+})
+
+describe('SessionRedisCodec provider compatibility', () => {
+    it('falls back to the Mercurion provider for unknown serialized providers', () => {
+        const codec = new SessionRedisCodec()
+
+        expect(codec.decode({
+            sessionId,
+            userId,
+            deviceId: 'device-1',
+            createdAt: '100',
+            expiresAt: '200',
+            lastAccessedAt: '150',
+            IP: '127.0.0.1',
+            valid: 'true',
+            longTerm: 'false',
+            sessionDeviceInfo: JSON.stringify({ browser: { name: 'Chrome' } }),
+            fingerprint: 'fingerprint',
+            location: 'local',
+            provider: 'unknown-provider'
+        })).toEqual(expect.objectContaining({
+            provider: AuthProvider.Mercurion
+        }))
     })
 })
 

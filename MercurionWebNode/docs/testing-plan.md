@@ -48,7 +48,7 @@ Below each class you’ll find the scenarios that must be covered or improved.
 
 ### Services
 
-- [ ] `AuthenticationService`, `AccountService`, `MfaService`, `SessionService`, `SercurityService`, `TurnstileService`
+- [ ] `AuthenticationService`, `AccountService`, `MfaService`, `SessionService`, `SecurityService`, `TurnstileService`
   - Cover token issuance, MFA sequence, Redis/session persistence, security masking utilities.
   - Use fake repositories / Redis mocks; assert error branches raise `RpcException`/`UnauthorizedException`.
 - [x] `JwtToolsService`

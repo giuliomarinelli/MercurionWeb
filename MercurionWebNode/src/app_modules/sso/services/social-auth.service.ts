@@ -1,28 +1,29 @@
 import { Injectable } from "@nestjs/common";
-import { AuthIdentity } from "../Models/entities/auth-identity.entity";
-import { AuthProvider } from "../Models/enums/auth-provider.enum";
+import { AuthIdentity } from "../models/entities/auth-identity.entity";
+import { AuthProvider } from "../models/enums/auth-provider.enum";
 import { SocialProviderRegistry } from "./social-provider-registry";
-import { MeiliLoggerService } from "src/app_modules/meilisearch/services/meili-logger.service";
-import { MeiliContextLogger } from "src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface";
+import { LoggerPort } from 'src/logging/logger.port';
+import { LoggerContext } from "src/logging/logger.port";
 import { uuidv7 } from "@kripod/uuidv7";
 import { createHmac, randomBytes, UUID } from "crypto";
 import { JwtToolsService } from 'src/app_modules/auth/services/jwt-tools.service';
-import { TokenType } from 'src/app_modules/auth/Models/enums/token-type.enum';
+import { TokenType } from 'src/app_modules/auth/models/enums/token-type.enum';
 import { ScopeService } from "src/app_modules/auth/services/scope.service";
 import { ConfigService } from "@nestjs/config";
 import { RedisService } from "src/app_modules/redis/services/redis.service";
 
-import { SercurityService } from "src/app_modules/auth/services/sercurity.service";
+import { SecurityService } from "src/app_modules/auth/services/security.service";
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 import { redisDurations, redisKeys } from 'src/app_modules/redis/contracts/redis-contracts'
 import { UnitOfWork, transactionManager } from 'src/persistence/transaction-context'
 import { UserService } from 'src/app_modules/user/services/user.service'
 import { InitialWorkspaceService } from 'src/app_modules/molecule-collection/services/initial-workspace.service'
+import { QueryFailedError } from 'typeorm'
 
 @Injectable()
 export class SocialAuthService {
 
-    private readonly logger: MeiliContextLogger
+    private readonly logger: LoggerContext
 
     private readonly redisIdHmacSecret: string
 
@@ -35,8 +36,8 @@ export class SocialAuthService {
         private readonly jwtTools: JwtToolsService,
         private readonly configService: ConfigService,
         private readonly redisService: RedisService,
-        private readonly securityService: SercurityService,
-        loggerFactory: MeiliLoggerService
+        private readonly securityService: SecurityService,
+        loggerFactory: LoggerPort
     ) {
         this.logger = loggerFactory.forContext(SocialAuthService.name)
         this.redisIdHmacSecret = this.configService.get<string>('App.redisIdHmacSecret')!
@@ -91,65 +92,76 @@ export class SocialAuthService {
     async loginWithProvider(provider: AuthProvider, code: string): Promise<string> {
 
         try {
-            return this.unitOfWork.run(async (context) => {
-                const manager = transactionManager(context)
+            const client = this.providerRegistry.get(provider)
+            const profile = await client.getProfileFromCode(code)
+            let userId: UUID
+            try {
+                userId = await this.unitOfWork.run(async (context) => {
+                    const manager = transactionManager(context)
 
-                const client = this.providerRegistry.get(provider)
-                const profile = await client.getProfileFromCode(code)
-
-                // 1) ricerca identity
-                let identity = await manager.findOne(AuthIdentity, {
-                    where: {
-                        provider: profile.provider,
-                        providerSubject: profile.subject
-                    },
-                    relations: {
-                        user: true
-                    }
-                })
-
-                // 2) se non esiste, creazione user + identity
-                if (!identity) {
-                    const user = await this.userService.createSsoUser({
-                        id: uuidv7() as UUID,
-                        firstName: profile.firstName ? profile.firstName.charAt(0).toUpperCase() + profile.firstName.slice(1) : '',
-                        lastName: profile.lastName ? profile.lastName.charAt(0).toUpperCase() + profile.lastName.slice(1) : '',
-                        scopes: this.scopeService.getEncryptedStandardScopes(),
-                        initials: `${profile.firstName?.charAt(0).toUpperCase() || 'U'}${profile.lastName?.charAt(0).toUpperCase() || 'U'}`,
-                    }, context)
-
-                    identity = manager.create(AuthIdentity, {
-                        id: uuidv7() as UUID,
-                        userId: user.id,
-                        provider: profile.provider,
-                        providerSubject: profile.subject,
-                        email: profile.email,
-                        emailVerified: profile.emailVerified
+                    // The database unique key is the authority for concurrent
+                    // first callbacks; this lookup is only the fast path.
+                    let identity = await manager.findOne(AuthIdentity, {
+                        where: {
+                            provider: profile.provider,
+                            providerSubject: profile.subject
+                        },
+                        relations: {
+                            user: true
+                        }
                     })
 
-                    await manager.save(identity)
+                    if (!identity) {
+                        const user = await this.userService.createSsoUser({
+                            id: uuidv7() as UUID,
+                            firstName: profile.firstName ? profile.firstName.charAt(0).toUpperCase() + profile.firstName.slice(1) : '',
+                            lastName: profile.lastName ? profile.lastName.charAt(0).toUpperCase() + profile.lastName.slice(1) : '',
+                            scopes: this.scopeService.getEncryptedStandardScopes(),
+                            initials: `${profile.firstName?.charAt(0).toUpperCase() || 'U'}${profile.lastName?.charAt(0).toUpperCase() || 'U'}`,
+                        }, context)
 
-                    const userId = user.id
+                        identity = manager.create(AuthIdentity, {
+                            id: uuidv7() as UUID,
+                            userId: user.id,
+                            provider: profile.provider,
+                            providerSubject: profile.subject,
+                            email: profile.email,
+                            emailVerified: profile.emailVerified
+                        })
 
-                    await this.initialWorkspace.createForUser(userId, context)
-
-                } else {
-
-                    // opzionale: syncare email/verified se cambia
-                    const needsUpdate = identity.email !== profile.email || identity.emailVerified !== profile.emailVerified
-
-                    if (needsUpdate) {
-                        identity.email = profile.email
-                        identity.emailVerified = profile.emailVerified
-                        identity.updatedAt = Date.now()
                         await manager.save(identity)
+                        await this.initialWorkspace.initializeForUser(user.id, context)
+                    } else {
+                        const needsUpdate = identity.email !== profile.email || identity.emailVerified !== profile.emailVerified
+
+                        if (needsUpdate) {
+                            identity.email = profile.email
+                            identity.emailVerified = profile.emailVerified
+                            identity.updatedAt = Date.now()
+                            await manager.save(identity)
+                        }
                     }
-                }
 
-                const sso_preAuthorizationToken = await this.jwtTools.generateToken(identity.userId, TokenType.SSO_PreAuthorizationToken)
+                    return identity.userId
+                })
+            } catch (error) {
+                if (!(error instanceof QueryFailedError)) throw error
 
-                return sso_preAuthorizationToken
-            })
+                // The losing transaction is aborted by PostgreSQL.  Re-read
+                // in a fresh transaction and converge on the committed
+                // provider+subject winner instead of leaking SQL details.
+                userId = await this.unitOfWork.run(async context => {
+                    const identity = await transactionManager(context).findOne(AuthIdentity, {
+                        where: {
+                            provider: profile.provider,
+                            providerSubject: profile.subject
+                        }
+                    })
+                    if (!identity) throw applicationError(ApplicationErrorCode.SSO_CALLBACK_FAILED)
+                    return identity.userId
+                })
+            }
+            return this.jwtTools.generateToken(userId, TokenType.SSO_PreAuthorizationToken)
         } catch (e) {
             this.logger.warn(' > loginWithProvider > Error: ', (e instanceof Error ? e.stack : e) as object)
             throw applicationError(ApplicationErrorCode.SSO_CALLBACK_FAILED)

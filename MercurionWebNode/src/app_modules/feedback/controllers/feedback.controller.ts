@@ -9,24 +9,29 @@ import {
     UseInterceptors,
     ClassSerializerInterceptor,
     Query,
-    ParseUUIDPipe,
+    DefaultValuePipe,
     ParseIntPipe,
-    DefaultValuePipe
 } from '@nestjs/common'
 import { UUID } from 'crypto'
 import { FeedbackService } from '../services/feedback.service'
 import { AuthenticatedUserId, HasScopes } from 'src/metadata/metadata'
-import { CreateFeedbackDTO } from '../Models/DTO/create-feedback.dto'
-import { Scope } from 'src/app_modules/user/Models/enums/scope.enum'
-import { UpdateFeedbackDTO } from '../Models/DTO/update-feedback.dto'
-import { FeedbackEnv, FeedbackStatus } from '../Models/enums/feedback.enums'
+import { CreateFeedbackDTO } from '../models/dto/create-feedback.dto'
+import { Scope } from 'src/app_modules/user/models/enums/scope.enum'
+import { UpdateFeedbackDTO } from '../models/dto/update-feedback.dto'
+import { FeedbackEnv, FeedbackStatus } from '../models/enums/feedback.enums'
+import type { Feedback } from '@mercurion/rest-contracts'
 import {
     ApplicationErrorCode,
     applicationHttpException,
     isApplicationError
 } from 'src/exception-handling/application-error'
-import { FlatPagination } from 'src/Models/flat-pagination.interface'
-import type { DeleteFeedbackResponse, Feedback as FeedbackDTO } from '@mercurion/rest-contracts'
+import { GeneralUtils } from 'src/utils/general-utils/general-utils'
+import {
+    MercurionPublicIdPipe,
+    type MercurionPublicId
+} from 'src/identifiers/mercurion-public-id'
+import { FlatPagination } from 'src/models/flat-pagination.interface'
+import type { DeleteFeedbackResponse } from '@mercurion/rest-contracts'
 
 
 @Controller('feedback')
@@ -39,7 +44,7 @@ export class FeedbackController {
     async create(
         @Body() dto: CreateFeedbackDTO,
         @AuthenticatedUserId() userId: UUID
-    ): Promise<FeedbackDTO> {
+    ): Promise<Feedback> {
         return this.feedbackService.createFeedback(dto, userId)
     }
 
@@ -50,26 +55,20 @@ export class FeedbackController {
         @Query('limit', new DefaultValuePipe(25), ParseIntPipe) limitRaw: number,
         @Query('env') env?: FeedbackEnv,
         @Query('status') status?: FeedbackStatus
-    ): Promise<FlatPagination<FeedbackDTO>> {
+    ): Promise<FlatPagination<Feedback>> {
         const limit = Math.min(limitRaw, 100)
+
         const pagination = await this.feedbackService.listFeedback(
             { page, limit },
             { env, status }
         )
 
-        return {
-            items: pagination.items,
-            itemCount: pagination.meta.itemCount,
-            itemsPerPage: pagination.meta.itemsPerPage,
-            totalItems: pagination.meta.totalItems ?? -1,
-            totalPages: pagination.meta.totalPages ?? -1,
-            currentPage: pagination.meta.currentPage
-        }
+        return GeneralUtils.paginationToFlatPaginationConverter(pagination)
     }
 
     @Get(':id')
     @HasScopes(Scope.ReadFeedback)
-    async getById(@Param('id', new ParseUUIDPipe({ version: '7' })) id: UUID): Promise<FeedbackDTO> | never {
+    async getById(@Param('id', MercurionPublicIdPipe) id: MercurionPublicId): Promise<Feedback> | never {
         const f = await this.feedbackService.getFeedbackById(id)
         if (!f) {
             throw applicationHttpException(ApplicationErrorCode.FEEDBACK_NOT_FOUND)
@@ -80,15 +79,15 @@ export class FeedbackController {
     @Patch(':id')
     @HasScopes(Scope.UpdateFeedback)
     async moderate(
-        @Param('id', new ParseUUIDPipe({ version: '7' })) id: UUID,
+        @Param('id', MercurionPublicIdPipe) id: MercurionPublicId,
         @Body() dto: UpdateFeedbackDTO
-    ): Promise<FeedbackDTO> {
+    ): Promise<Feedback> {
         return this.feedbackService.moderateFeedback(id, dto)
     }
 
     @Delete(':id')
     @HasScopes(Scope.DeleteFeedback)
-    async delete(@Param('id', new ParseUUIDPipe({ version: '7' })) id: UUID): Promise<DeleteFeedbackResponse> {
+    async delete(@Param('id', MercurionPublicIdPipe) id: MercurionPublicId): Promise<DeleteFeedbackResponse> {
         try {
             await this.feedbackService.deleteFeedback(id)
             return { ok: true }

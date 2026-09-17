@@ -1,6 +1,6 @@
 # 0129 - Decouple application logging from Meilisearch
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -86,24 +86,44 @@ Mark `BLOCKED` if a current Meili logging call is actually a required security-a
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/BE-015`
 ### Preflight
-_Not started._
+Verified `feature/BE-015` was clean and its HEAD matched `develop` and
+`origin/develop` at `cf3d22425b951caeef1afec0feb48ccd9ee54a29`. The exact
+develop SHA had a successful GitHub Actions CI run (`34940634092`). No
+workspace-consuming application/test watcher was active before implementation.
+Resolved hard dependencies 0115, 0128, and 0120 are all `DONE`.
 ### Preflight remediation
-_None._
+None.
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0115, 0128. This task was never attempted and receives no feature branch.
+Added the application-owned `LoggerPort`/`LoggerContext` contract and a
+composition-root `LoggingModule` binding the existing Meilisearch sink adapter.
+Migrated production consumers and tests away from `MeiliLoggerService` and
+`MeiliContextLogger`, removed Meilisearch-only module edges, and kept the
+Meilisearch search/audit services available. Repaired and tested adapter
+redaction and sink-failure isolation. Added a negative architecture gate
+rejecting direct application imports of the Meilisearch logger implementation.
 ### Task-specific validation performed
-_Not started._
+- `npm run ci:logger-boundary` — passed, including the negative fixture.
+- `npm run typecheck --workspace mercurion_web_node` — passed.
+- `npm run lint --workspace mercurion_web_node` — passed.
+- `npm run ci:nest:architecture` — passed.
+- `npm test --workspace mercurion_web_node -- --runInBand --runTestsByPath src/app_modules/meilisearch/services/meili-logger.service.spec.ts src/provider-ownership.spec.ts src/app_modules/socket.io/socket.io.module.spec.ts` — 6 tests passed.
+- `npm test --workspace mercurion_web_node -- --runInBand` — 154 suites and 475 tests passed.
+- `npm run test:e2e --workspace mercurion_web_node -- --runInBand` — 1 suite and 3 tests passed.
+- `npm run build --workspace mercurion_web_node` — passed.
+- `npm run ci:static` — passed, including contracts, architecture, logger boundary,
+  tracked artifacts, REST compatibility, and documentation checks.
 ### Full pre-merge CI-parity validation
-_Not started._
+Complete clean-install CI parity remains owned by GitHub Actions; local
+`npm ci` and `npm run ci:check` were not run.
 ### Browser validation performed
-_Not applicable._
+Not applicable per recipe.
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+- `9880bbef` — `feat: decouple application logging from meilisearch`
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+Feature SHA CI and coordinator integration lifecycle remain required.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+None.

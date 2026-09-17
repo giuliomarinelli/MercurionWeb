@@ -14,8 +14,19 @@ export type ApplicationErrorEnvelopeCode =
   | ApplicationErrorCode
   | TransportApplicationErrorCode
 
+export type ApplicationErrorCategory =
+  | 'validation'
+  | 'authentication'
+  | 'authorization'
+  | 'not-found'
+  | 'conflict'
+  | 'rate-limit'
+  | 'infrastructure'
+  | 'internal'
+
 export interface ApplicationErrorEnvelope {
   readonly code: ApplicationErrorEnvelopeCode
+  readonly category: ApplicationErrorCategory
   readonly status: number
   readonly message: string
   readonly correlationId: string

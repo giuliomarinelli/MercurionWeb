@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -92,10 +92,10 @@ Passed unchanged: root `npm ci` followed by `npm run ci:check`.
 ### Preflight remediation
 _None._
 ### Summary
-The preserved branch migrates production one-shot GraphQL reads to explicit
-Apollo query lifecycles, documents fetch-policy decisions, and adds
-query-policy regression coverage. Mandatory authenticated browser validation
-could not be completed with the available local runtime and test state.
+Not attempted in this session because hard prerequisite task 0102 (NG-016) is
+now `BLOCKED`. Direct and transitive terminal dependency root: 0109 -> 0102.
+The previously preserved branch remains untouched and is not recovery
+authority.
 ### Task-specific validation performed
 On the preserved feature branch: the GraphQL query-policy gate, Angular
 typecheck, lint with baseline warnings only, and 13 focused GraphQL service
@@ -116,11 +116,11 @@ Preserved feature commits: `2250b2364cfab73bd21cc91f1dc99d755e151531`
 `a321fc44678f9f6298ddd460a35b2ddc9034d7f1`
 (`docs(task): record NG-023 runtime blocker`).
 ### Merge / CI
-No merge attempted. The feature branch is frozen at its final pushed SHA.
+No merge or worker invocation for this dependency skip. This change is part of
+the aggregate metadata-only skip commit on `develop`.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Provide a test-safe canonical local Nest environment and approved
-non-production browser credentials/session, then authorize a new session to
-perform the mandatory authenticated GraphQL lifecycle/browser validation.
-Production credentials are neither required nor permitted.
+Human-authorized recovery of the terminal NG-016 blocker is required before
+this task can be reconsidered in a new session. No production credentials are
+required or permitted.

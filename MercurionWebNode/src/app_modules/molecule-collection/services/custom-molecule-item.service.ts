@@ -1,17 +1,18 @@
 import { MoleculeCollectionItemJoinService } from './molecule-collection-item-join.service';
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { CustomMoleculeItemEntity } from "../Models/entities/custom-molecule-item.entity";
+import { CustomMoleculeItemEntity } from "../models/entities/custom-molecule-item.entity";
 import { Repository } from "typeorm";
 import { UUID } from "crypto";
-import { CustomMoleculeItemInput } from "../Models/DTO/custom-molecule-item.input";
-import { MoleculeCollection } from '../Models/entities/molecule-collection.entity';
+import { CustomMoleculeItemInput } from "../models/dto/custom-molecule-item.input";
 
 import { uuidv7 } from '@kripod/uuidv7';
 import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
 import { GraphQLFieldsMap, TypeOrmUtils } from 'src/utils/type-orm-utils/type-orm-utils';
 import { RDKitService } from 'src/app_modules/mercurion-ai/services/rd-kit.service';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
+import { runInTransaction } from 'src/persistence/transaction-context'
+import { MoleculeOwnershipPolicy } from './molecule-ownership.policy'
 
 @Injectable()
 export class CustomMoleculeItemService {
@@ -21,10 +22,9 @@ export class CustomMoleculeItemService {
     constructor(
         @InjectRepository(CustomMoleculeItemEntity)
         private readonly customRepo: Repository<CustomMoleculeItemEntity>,
-        @InjectRepository(MoleculeCollection)
-        private readonly collectionRepo: Repository<MoleculeCollection>,
         private readonly joinService: MoleculeCollectionItemJoinService,
-        private readonly _RDKitService: RDKitService
+        private readonly _RDKitService: RDKitService,
+        private readonly ownershipPolicy: MoleculeOwnershipPolicy
     ) { }
 
     async addToCollection(
@@ -34,13 +34,12 @@ export class CustomMoleculeItemService {
         accessToken: string
     ): Promise<CustomMoleculeItemEntity> {
 
-        return this.customRepo.manager.transaction(async manager => {
+        input.canonicalSmiles = await this._RDKitService.toCanonicalSmiles({
+            smiles: input.canonicalSmiles,
+            accessToken
+        })
 
-            input.canonicalSmiles = await this._RDKitService.toCanonicalSmiles({
-                smiles: input.canonicalSmiles,
-                accessToken
-            })
-
+        return runInTransaction(this.customRepo.manager, async (_context, manager) => {
             const r = await manager.createQueryBuilder(CustomMoleculeItemEntity, 'm')
                 .select(['m.canonicalSmiles'])
                 .where('m.userId = :userId', { userId })
@@ -58,7 +57,12 @@ export class CustomMoleculeItemService {
             if (!item) {                
                 item = this.customRepo.create({
                     id: uuidv7() as UUID,
-                    ...input,             
+                    canonicalSmiles: input.canonicalSmiles,
+                    molFormula: input.molFormula,
+                    name: input.name,
+                    propertiesJson: input.propertiesJson,
+                    label: input.label,
+                    notes: input.notes,
                     userId,
                     type: 'custom',
                     createdAt: Date.now(),
@@ -76,10 +80,7 @@ export class CustomMoleculeItemService {
                 if (input.name !== undefined) item.name = input.name;
             }
             item = await manager.save(item);
-            const collection = await this.collectionRepo.findOne({
-                where: { id: collectionId, userId }
-            })
-            if (!collection) throw applicationError(ApplicationErrorCode.CUSTOM_ITEM_ACCESS_DENIED);
+            await this.ownershipPolicy.assertCollectionOwned(manager, userId, collectionId)
             await this.joinService.addMoleculeToCollectionWithManager(userId, collectionId, item.id, manager);
 
             return item;

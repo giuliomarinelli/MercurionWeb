@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MoleculeCollectionService } from './molecule-collection.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { MoleculeCollection } from '../Models/entities/molecule-collection.entity';
+import { MoleculeCollection } from '../models/entities/molecule-collection.entity';
 import { DataSource } from 'typeorm';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { LoggerPort } from 'src/logging/logger.port';
 
 describe('MoleculeCollectionService', () => {
   let service: MoleculeCollectionService;
@@ -25,8 +25,8 @@ describe('MoleculeCollectionService', () => {
             find: jest.fn(),
           },
         },
-        { provide: DataSource, useValue: { manager: { transaction: jest.fn() } } },
-        { provide: MeiliLoggerService, useValue: { forContext: jest.fn().mockReturnValue(mockLogger) } },
+        { provide: DataSource, useValue: { transaction: jest.fn() } },
+        { provide: LoggerPort, useValue: { forContext: jest.fn().mockReturnValue(mockLogger) } },
       ],
     }).compile();
 

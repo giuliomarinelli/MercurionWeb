@@ -1,20 +1,21 @@
-import { Controller, Delete, Get, Query, ParseIntPipe, DefaultValuePipe } from '@nestjs/common';
+import { Controller, DefaultValuePipe, Delete, Get, ParseIntPipe, Query } from '@nestjs/common';
 import { UUID } from 'crypto';
-import { FlatPagination } from 'src/Models/flat-pagination.interface';
+import { FlatPagination } from 'src/models/flat-pagination.interface';
 import { AuthenticatedUserId } from 'src/metadata/metadata';
-import { HistoryDTO } from '../Models/DTO/history.dto';
+import { HistoryDTO } from '../models/dto/history.dto';
 import { HistoryService } from '../services/history.service';
-import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { LoggerContext } from 'src/logging/logger.port';
+import { LoggerPort } from 'src/logging/logger.port';
+import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 
 @Controller('history')
 export class HistoryController {
 
-    private readonly logger: MeiliContextLogger
+    private readonly logger: LoggerContext
 
     constructor(
         private readonly historyService: HistoryService,
-        loggerFactory: MeiliLoggerService
+        loggerFactory: LoggerPort
     ) {
         this.logger = loggerFactory.forContext(HistoryController.name)
     }
@@ -29,14 +30,7 @@ export class HistoryController {
             const pagination = await this.historyService.getPaginatedHistory(userId, {
                 page, limit
             })
-            return {
-                items: pagination.items,
-                itemCount: pagination.meta.itemCount,
-                itemsPerPage: pagination.meta.itemsPerPage,
-                totalItems: pagination.meta.totalItems ?? -1,
-                totalPages: pagination.meta.totalPages ?? -1,
-                currentPage: pagination.meta.currentPage
-            }
+            return GeneralUtils.paginationToFlatPaginationConverter(pagination)
         } catch (e) {
             this.logger.warn('Error in history fetching', e as object)
             return ({

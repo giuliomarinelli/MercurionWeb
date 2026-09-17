@@ -1,7 +1,7 @@
 import { HttpExceptionFilter } from './http-exception-filter';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { LoggerPort } from 'src/logging/logger.port';
 import { ArgumentsHost } from '@nestjs/common';
-import type { HttpErrorRes } from 'src/Models/error-res.dto';
+import type { HttpErrorRes } from 'src/models/error-res.dto';
 import {
   ApplicationErrorCode,
   applicationError
@@ -11,14 +11,14 @@ describe('HttpExceptionFilter', () => {
   it('should create an instance', () => {
     const filter = new HttpExceptionFilter({
       forContext: jest.fn().mockReturnValue({ warn: jest.fn() }),
-    } as unknown as MeiliLoggerService, false);
+    } as unknown as LoggerPort, false);
     expect(filter).toBeInstanceOf(HttpExceptionFilter);
   });
 
   it('maps canonical codes to the preserved REST status and public message', () => {
     const filter = new HttpExceptionFilter({
       forContext: jest.fn().mockReturnValue({ warn: jest.fn() }),
-    } as unknown as MeiliLoggerService, false);
+    } as unknown as LoggerPort, false);
     let sent: HttpErrorRes | undefined;
     const reply = {
       code: jest.fn().mockReturnThis(),
@@ -52,7 +52,7 @@ describe('HttpExceptionFilter', () => {
   it('preserves the machine code when production hides a 5xx message', () => {
     const filter = new HttpExceptionFilter({
       forContext: jest.fn().mockReturnValue({ warn: jest.fn() }),
-    } as unknown as MeiliLoggerService, true);
+    } as unknown as LoggerPort, true);
       let sent: HttpErrorRes | undefined;
     const reply = {
       code: jest.fn().mockReturnThis(),

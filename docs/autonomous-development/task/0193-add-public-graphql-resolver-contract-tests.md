@@ -1,6 +1,6 @@
 # 0193 - Add public GraphQL resolver contract tests
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -93,24 +93,29 @@ Prefer focused operation documents with explicit variables and expected typed pa
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/QA-007`
 ### Preflight
-_Not started._
+Confirmed clean `feature/QA-007` at certified base `91a966bb0b46ff49be4658390e05c680c83e3533`; workflow-dispatch run `34978749934` was green on Ubuntu and Windows, including `Required gate`. Browser/runtime evidence is explicitly not required by this recipe.
 ### Preflight remediation
-_None._
+None.
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0002, 0008, 0127, 0128, 0188. This task was never attempted and receives no feature branch.
+Added a Nest GraphQL schema-factory contract suite with a reusable resolver/service/policy harness. The inventory covers all retained Help, molecule-collection and Synth query/mutation operations, verifies removed Synth types remain absent, validates Angular-compatible operation documents and invalid scalar input, checks public-ID argument shape, and verifies authentication/scope/public metadata is retained at the resolver boundary.
 ### Task-specific validation performed
-_Not started._
+- `npm test --workspace mercurion_web_node -- --runInBand src/contracts/public-graphql-resolver.contract.spec.ts` — PASS (5 tests).
+- `npm run graphql:schema:check --workspace mercurion_web_node` — PASS; generated schema current.
+- `npm run typecheck --workspace mercurion_web_node` — PASS.
+- `npm run lint --workspace mercurion_web_node -- --no-fix` — PASS.
+- `npm run build --workspace mercurion_web_node` — PASS.
+- `git diff --check` — PASS.
 ### Full pre-merge CI-parity validation
-_Not started._
+Not run locally; forbidden by repository policy. Exact feature-SHA GitHub Actions validation is coordinator-owned after push.
 ### Browser validation performed
-_Not applicable._
+Not applicable: the recipe declares browser validation not required.
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+- `7772e71285be54f42931c95c03531f124fcc2bbd` — `test: add public GraphQL resolver contracts`.
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+Feature branch will be pushed only after the task-specific commit; exact-SHA CI is coordinator-owned.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+None.

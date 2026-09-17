@@ -1,60 +1,53 @@
-import { Inject, Injectable, Logger, LoggerService, LogLevel, OnModuleInit } from '@nestjs/common';
-import { MeiliSearch } from 'meilisearch';
-import { LogEntry } from '../Models/DTO/log-entry.interface';
+import { Injectable, Logger, LogLevel } from '@nestjs/common';
+import { LogEntry } from '../models/dto/log-entry.interface';
 import { uuidv7 } from '@kripod/uuidv7';
-import { MeiliContextLogger } from '../Models/interfaces/meili-context-logger.interface';
-import { ConfigService } from '@nestjs/config';
-import { Environment } from 'src/config/config.schema';
+import { LoggerContext, LoggerPort } from 'src/logging/logger.port';
+import { utcNow } from 'src/utils/temporal/temporal'
+import { NotificationOutboxService } from 'src/app_modules/notification/services/outbox/notification-outbox.service'
+import { OutboxEventType } from 'src/app_modules/notification/models/enums/outbox-event-type.enum'
+import { DataSource } from 'typeorm'
+import { runInTransaction } from 'src/persistence/transaction-context'
+import { UUID } from 'crypto'
+import { redactSensitive } from 'src/observability/redaction'
 
 
 @Injectable()
-export class MeiliLoggerService extends Logger implements LoggerService, OnModuleInit {
-
-    private lastMeiliFailure = 0
+export class MeiliLoggerService extends LoggerPort {
 
     constructor(
-        @Inject('MEILISEARCH_CLIENT')
-        private readonly meiliClient: MeiliSearch,
-        private readonly configService: ConfigService
+        private readonly outbox: NotificationOutboxService,
+        private readonly dataSource: DataSource
     ) {
         super()
     }
 
-    async onModuleInit(): Promise<void> {
-        await this.ensureIndexExists()
-    }
-
-    private async ensureIndexExists(): Promise<void> {
-        const env = this.configService.getOrThrow<Environment>('App.env')
-        const idxName = `mercurion_web_node_logs_${env}`
-        try {
-            await this.meiliClient.getIndex(idxName)
-        } catch {
-            await this.meiliClient.createIndex(idxName, { primaryKey: 'id' })
-        }
-    }
-
     private async sendToMeili(entry: LogEntry) {
         try {
-            await this.meiliClient.index('logs').addDocuments([entry])
-        } catch (err) {
-            const now = Date.now()
-            if (now - this.lastMeiliFailure > 10000) {
-                this.lastMeiliFailure = now;
-                super.error('[LOGGER] Failed to send log to Meili:', err.message)
-            }
+            await runInTransaction(this.dataSource, async (_context, manager) => {
+              await this.outbox.append(manager, {
+                  aggregateId: uuidv7() as UUID,
+                  eventType: OutboxEventType.LogRecorded,
+                  payload: { indexName: 'logs', document: entry },
+                  dedupeKey: `log:${entry.id}`,
+                  correlationId: entry.id as UUID
+              })
+            })
+        } catch (error) {
+            Logger.error(`[LOGGER_OUTBOX_FAILED] ${error instanceof Error ? error.message : String(error)}`)
         }
     }
 
     private createLogEntry(level: LogLevel, message: string | object, context?: string, stack?: string): LogEntry {
-        const raw = typeof message === 'string' ? message : JSON.stringify(message)
+        const raw = typeof message === 'string'
+            ? message
+            : JSON.stringify(redactSensitive(message))
 
         const safeMessage = this.sanitize(raw)
         const safeStack = stack ? this.sanitize(stack) : undefined
 
         return {
             id: uuidv7(),
-            timestamp: new Date().toISOString(),
+            timestamp: utcNow(),
             level,
             message: safeMessage,
             context,
@@ -66,18 +59,14 @@ export class MeiliLoggerService extends Logger implements LoggerService, OnModul
         let out = message
 
         const patterns: RegExp[] = [
-            /("password"\\s*:\s*")([^"]+)/gi,
-            /(password=)([^&\s]+)/gi,
-
-            /("accessToken"\\s*:\s*")([^"]+)/gi,
-            /("ws_accessToken"\\s*:\s*")([^"]+)/gi,
-            /("token"\\s*:\s*")([^"]+)/gi,
-
-            /("otp"\\s*:\s*")([^"]+)/gi,
-            /("totp"\\s*:\s*")([^"]+)/gi,
-
-            /("email"\\s*:\s*")([^"]+)/gi,
-            /("phone"\\s*:\s*")([^"]+)/gi
+            /("password"\s*:\s*")([^"]+)/gi,
+            /("accessToken"\s*:\s*")([^"]+)/gi,
+            /("ws_accessToken"\s*:\s*")([^"]+)/gi,
+            /("token"\s*:\s*")([^"]+)/gi,
+            /("otp"\s*:\s*")([^"]+)/gi,
+            /("totp"\s*:\s*")([^"]+)/gi,
+            /("email"\s*:\s*")([^"]+)/gi,
+            /("phone"\s*:\s*")([^"]+)/gi
         ]
 
         for (const re of patterns) {
@@ -87,7 +76,7 @@ export class MeiliLoggerService extends Logger implements LoggerService, OnModul
         return out
     }
 
-    public forContext(context: string): MeiliContextLogger {
+    public forContext(context: string): LoggerContext {
         // eslint-disable-next-line @typescript-eslint/no-this-alias
         const logger = this
         return {

@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PasswordEncoderService } from './password-encoder.service';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { LoggerPort } from 'src/logging/logger.port';
 import { ConfigService } from '@nestjs/config';
 
 describe('PasswordEncoderService', () => {
@@ -11,7 +11,7 @@ describe('PasswordEncoderService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         PasswordEncoderService,
-        { provide: MeiliLoggerService, useValue: { forContext: jest.fn().mockReturnValue(mockLogger) } },
+        { provide: LoggerPort, useValue: { forContext: jest.fn().mockReturnValue(mockLogger) } },
         { provide: ConfigService, useValue: { get: jest.fn().mockReturnValue('pepper') } },
       ],
     }).compile();

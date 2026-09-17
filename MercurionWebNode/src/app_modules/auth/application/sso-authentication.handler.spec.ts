@@ -1,5 +1,5 @@
-import { AuthProvider } from 'src/app_modules/sso/Models/enums/auth-provider.enum'
-import { TokenType } from '../Models/enums/token-type.enum'
+import { AuthProvider } from 'src/app_modules/sso/models/enums/auth-provider.enum'
+import { TokenType } from '../models/enums/token-type.enum'
 import { CompleteSsoAuthenticationHandler } from './sso-authentication.handler'
 
 describe('CompleteSsoAuthenticationHandler', () => {

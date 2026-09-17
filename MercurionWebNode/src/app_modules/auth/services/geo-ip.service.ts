@@ -3,8 +3,8 @@
 
 import { Injectable } from '@nestjs/common';
 import * as geoip from 'geoip-lite';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
-import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { LoggerPort } from 'src/logging/logger.port';
+import { LoggerContext } from 'src/logging/logger.port';
 
 export interface GeoLocationInfo {
     ip: string;
@@ -23,9 +23,9 @@ export interface GeoLocation {
 @Injectable()
 export class GeoIpService {
 
-    private readonly logger: MeiliContextLogger;
+    private readonly logger: LoggerContext;
 
-    constructor(meiliLogger: MeiliLoggerService) {
+    constructor(meiliLogger: LoggerPort) {
         this.logger = meiliLogger.forContext(GeoIpService.name)
     }
 

@@ -5,15 +5,15 @@ import { RpcException } from '@nestjs/microservices'
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import type { UUID } from 'node:crypto'
 
-import { Scope } from 'src/app_modules/user/Models/enums/scope.enum'
+import { Scope } from 'src/app_modules/user/models/enums/scope.enum'
 import {
   ApplicationErrorCode,
   applicationError,
   getApplicationError
 } from 'src/exception-handling/application-error'
 
-import { TokenType } from '../../Models/enums/token-type.enum'
-import type { AppJwtPayload } from '../../Models/interfaces/app-jwt-payload.interface'
+import { TokenType } from '../../models/enums/token-type.enum'
+import type { AppJwtPayload } from '../../models/interfaces/app-jwt-payload.interface'
 import { AccessTokenAuthenticationPolicy } from './access-token-authentication.policy'
 import { AuthenticationFailurePolicy } from './authentication-failure.policy'
 import type { AuthenticationRequestContext } from './authentication-policy.types'

@@ -23,28 +23,29 @@ import type {
   UserRegisterDTO as UserRegisterContract,
   VerifyBodyDTO as VerifyBodyContract
 } from '@mercurion/rest-contracts'
-import type { BackupCodeDTO } from '../app_modules/auth/Models/DTO/backup-code.cls.dto'
-import type { ChangePasswordDTO } from '../app_modules/auth/Models/DTO/change-password.dto'
-import type { ChangePhoneDTO } from '../app_modules/auth/Models/DTO/change-phone.cls.dto'
-import type { EmailDTO } from '../app_modules/auth/Models/DTO/email.cls.dto'
-import type { Login_FirstStepDTO } from '../app_modules/auth/Models/DTO/login-first-step.cls.dto'
-import type { ProfileRegistryDTO } from '../app_modules/auth/Models/DTO/profile.dtos'
-import type { RecoverCredentialsDTO } from '../app_modules/auth/Models/DTO/recover-cretentials.cls.dto'
-import type { RecoveryCodeDTO } from '../app_modules/auth/Models/DTO/recovery-code.cls.dto'
-import type { SignedSessionIdDTO } from '../app_modules/auth/Models/DTO/signed-session-id.dto'
-import type { TotpBodyDTO, TotpDTO } from '../app_modules/auth/Models/DTO/totp.cls.dto'
-import type { VerifyBodyDTO } from '../app_modules/auth/Models/DTO/verify-body.cls.dto.'
-import type { CreateFeedbackDTO } from '../app_modules/feedback/Models/DTO/create-feedback.dto'
-import type { UpdateFeedbackDTO } from '../app_modules/feedback/Models/DTO/update-feedback.dto'
-import type { Feedback } from '../app_modules/feedback/Models/entities/feedback.entity'
-import type { SmilesDTO } from '../app_modules/mercurion-ai/Models/DTO/smiles.cls.dto'
-import type { RdkitAreSameStructureDTO } from '../app_modules/mercurion-ai/Models/DTO/rdkit/rdkit-are-same-structures.dto'
-import type { RdkitBaseDTO } from '../app_modules/mercurion-ai/Models/DTO/rdkit/rdkit-base.cls.dto'
-import type { RdkitToCanonicalSmilesOptsDTO } from '../app_modules/mercurion-ai/Models/DTO/rdkit/rd-kit-canonical-smiles-opts.dto'
-import type { RdkitToCanonicalSmilesDTO } from '../app_modules/mercurion-ai/Models/DTO/rdkit/rdkit-canonical-smiles.dto'
-import type { RdkitGetMoleculePropertiesDTO } from '../app_modules/mercurion-ai/Models/DTO/rdkit/rdkit-get-molecule-properties.cls.dto'
-import type { UserRegisterDTO } from '../app_modules/user/Models/DTO/user-register.cls.dto'
-import type { MfaStrategy as MfaStrategyDbEnum } from '../app_modules/user/Models/enums/mfa-strategy.enum'
+import type { UtcInstant } from '@mercurion/rest-contracts'
+import type { BackupCodeDTO } from '../app_modules/auth/models/dto/backup-code.cls.dto'
+import type { ChangePasswordDTO } from '../app_modules/auth/models/dto/change-password.dto'
+import type { ChangePhoneDTO } from '../app_modules/auth/models/dto/change-phone.cls.dto'
+import type { EmailDTO } from '../app_modules/auth/models/dto/email.cls.dto'
+import type { Login_FirstStepDTO } from '../app_modules/auth/models/dto/login-first-step.cls.dto'
+import type { ProfileRegistryDTO } from '../app_modules/auth/models/dto/profile.dtos'
+import type { RecoverCredentialsDTO } from '../app_modules/auth/models/dto/recover-credentials.cls.dto'
+import type { RecoveryCodeDTO } from '../app_modules/auth/models/dto/recovery-code.cls.dto'
+import type { SignedSessionIdDTO } from '../app_modules/auth/models/dto/signed-session-id.dto'
+import type { TotpBodyDTO, TotpDTO } from '../app_modules/auth/models/dto/totp.cls.dto'
+import type { VerifyBodyDTO } from '../app_modules/auth/models/dto/verify-body.cls.dto.'
+import type { CreateFeedbackDTO } from '../app_modules/feedback/models/dto/create-feedback.dto'
+import type { UpdateFeedbackDTO } from '../app_modules/feedback/models/dto/update-feedback.dto'
+import type { Feedback } from '../app_modules/feedback/models/entities/feedback.entity'
+import type { SmilesDTO } from '../app_modules/mercurion-ai/models/dto/smiles.cls.dto'
+import type { RdkitAreSameStructureDTO } from '../app_modules/mercurion-ai/models/dto/rdkit/rdkit-are-same-structures.dto'
+import type { RdkitBaseDTO } from '../app_modules/mercurion-ai/models/dto/rdkit/rdkit-base.cls.dto'
+import type { RdkitToCanonicalSmilesOptsDTO } from '../app_modules/mercurion-ai/models/dto/rdkit/rd-kit-canonical-smiles-opts.dto'
+import type { RdkitToCanonicalSmilesDTO } from '../app_modules/mercurion-ai/models/dto/rdkit/rdkit-canonical-smiles.dto'
+import type { RdkitGetMoleculePropertiesDTO } from '../app_modules/mercurion-ai/models/dto/rdkit/rdkit-get-molecule-properties.cls.dto'
+import type { UserRegisterDTO } from '../app_modules/user/models/dto/user-register.cls.dto'
+import type { MfaStrategy as MfaStrategyDbEnum } from '../app_modules/user/models/enums/mfa-strategy.enum'
 
 type Equivalent<A, B> =
   [A] extends [B]
@@ -89,6 +90,7 @@ type FeedbackWire = Omit<
   kind: EnumValue<Feedback['kind']>
   contextKind: EnumValue<Feedback['contextKind']>
   status: EnumValue<Feedback['status']>
+  createdAtMs: UtcInstant
 }
 
 // The internal MFA-strategy enum persists opaque DB identifiers as its values, so it cannot

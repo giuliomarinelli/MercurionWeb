@@ -7,21 +7,21 @@ import type {
     SessionDeviceInfo
 } from '@mercurion/rest-contracts'
 
-import { RedisService } from 'src/app_modules/redis/services/redis.service'
-import { AuthProvider } from 'src/app_modules/sso/Models/enums/auth-provider.enum'
+import { AtomicAttemptPolicyService } from 'src/app_modules/redis/services/atomic-attempt-policy.service'
+import { AuthProvider } from 'src/app_modules/sso/models/enums/auth-provider.enum'
 import { UserService } from 'src/app_modules/user/services/user.service'
-import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum'
+import { MfaStrategy } from 'src/app_modules/user/models/enums/mfa-strategy.enum'
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 import { GeneralUtils } from 'src/utils/general-utils/general-utils'
 import { Environment } from 'src/config/config.schema'
 import type { AppConfiguration } from 'src/config/config.types'
-import { redisDurations, redisKeys } from 'src/app_modules/redis/contracts/redis-contracts'
+import { redisKeys } from 'src/app_modules/redis/contracts/redis-contracts'
 
-import { CompareResult } from '../Models/enums/compare-result.enum'
+import { CompareResult } from '../models/enums/compare-result.enum'
 import { GeoIpService, GeoLocation } from '../services/geo-ip.service'
 import { MfaChallengeService } from '../services/mfa-challenge.service'
 import { PasswordEncoderService } from '../services/password-encoder.service'
-import { SercurityService } from '../services/sercurity.service'
+import { SecurityService } from '../services/security.service'
 import { SessionService } from '../services/session.service'
 import { AuthenticationSessionService } from './authentication-session.service'
 
@@ -83,10 +83,10 @@ export class CredentialLoginHandler {
         private readonly passwordEncoder: PasswordEncoderService,
         private readonly userService: UserService,
         private readonly sessionService: SessionService,
-        private readonly securityService: SercurityService,
+        private readonly securityService: SecurityService,
         private readonly mfaService: MfaChallengeService,
         private readonly geoIpService: GeoIpService,
-        private readonly redisService: RedisService,
+        private readonly attempts: AtomicAttemptPolicyService,
         private readonly authenticationSession: AuthenticationSessionService,
         private readonly configService: ConfigService
     ) { }
@@ -111,13 +111,13 @@ export class CredentialLoginHandler {
         const lockKey = redisKeys.authentication.loginLock(email)
         const failKey = redisKeys.authentication.loginFailures(email)
 
-        if (await this.redisService.exists(lockKey)) {
+        if (!await this.attempts.assertAllowed('authenticationLogin', lockKey)) {
             throw applicationError(ApplicationErrorCode.AUTHENTICATION_TOO_MANY_ATTEMPTS)
         }
 
         const auth = await this.userService.getVerifiedUserAuthByEmail(email)
         if (!auth || !auth.userId || !auth.passwordHash || auth.locked) {
-            await this.bumpLoginFailCounter(failKey, lockKey)
+            await this.attempts.recordFailure('authenticationLogin', failKey, lockKey)
             throw applicationError(ApplicationErrorCode.AUTHENTICATION_INVALID_CREDENTIALS)
         }
 
@@ -127,7 +127,7 @@ export class CredentialLoginHandler {
             true
         )
         if (comparison === CompareResult.NoMatch) {
-            await this.bumpLoginFailCounter(failKey, lockKey)
+            await this.attempts.recordFailure('authenticationLogin', failKey, lockKey)
             throw applicationError(ApplicationErrorCode.AUTHENTICATION_INVALID_CREDENTIALS)
         }
 
@@ -214,8 +214,7 @@ export class CredentialLoginHandler {
             obscuredEmail = this.securityService.maskEmail(email)
         }
 
-        await this.redisService.del(failKey)
-        await this.redisService.del(lockKey)
+        await this.attempts.reset('authenticationLogin', failKey, lockKey)
 
         const common: CredentialLoginResultBase = {
             sessionId: session.sessionId,
@@ -254,18 +253,4 @@ export class CredentialLoginHandler {
         }
     }
 
-    private async bumpLoginFailCounter(
-        failKey: ReturnType<typeof redisKeys.authentication.loginFailures>,
-        lockKey: ReturnType<typeof redisKeys.authentication.loginLock>
-    ): Promise<void> {
-        const fails = await this.redisService.incr(failKey)
-        if (fails === 1) {
-            await this.redisService.setTTL(failKey, redisDurations.minutes(15))
-        }
-
-        if (fails >= 8) {
-            await this.redisService.set(lockKey, '1', redisDurations.minutes(5))
-            await this.redisService.del(failKey)
-        }
-    }
 }

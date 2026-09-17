@@ -1,5 +1,5 @@
 import { SocialProviderRegistry } from './social-provider-registry';
-import { AuthProvider } from '../Models/enums/auth-provider.enum';
+import { AuthProvider } from '../models/enums/auth-provider.enum';
 
 describe('SocialProviderRegistryService', () => {
   it('should be defined', () => {

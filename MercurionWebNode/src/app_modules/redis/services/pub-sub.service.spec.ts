@@ -4,7 +4,7 @@ import { RedisService } from './redis.service';
 import Redis from 'ioredis';
 import { OAuth2AccessTokenRefreshService } from 'src/app_modules/oauth2-client/services/access-token-refresh.service';
 import { SessionService } from 'src/app_modules/auth/services/session.service';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { LoggerPort } from 'src/logging/logger.port';
 import { RedisCapabilityService } from './redis-capability.service'
 
 describe('PubSubService', () => {
@@ -58,7 +58,7 @@ describe('PubSubService', () => {
             revokeToken: jest.fn()
           }
         },
-        { provide: MeiliLoggerService, useValue: { forContext: jest.fn().mockReturnValue(mockLogger) } },
+        { provide: LoggerPort, useValue: { forContext: jest.fn().mockReturnValue(mockLogger) } },
       ],
     }).compile();
 

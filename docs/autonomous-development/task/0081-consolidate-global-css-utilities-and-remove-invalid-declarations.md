@@ -1,6 +1,6 @@
 # 0081 - Consolidate global CSS utilities and remove invalid declarations
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -57,13 +57,13 @@ Source: `UI-023` in Series `0001`.
 
 ## Acceptance criteria
 
-- [ ] `.drawer` and every other shared utility has one canonical definition per intentional cascade layer.
-- [ ] `dark:dark:bg` is absent.
-- [ ] `scrollbar-width: 3px` and other invalid standard declarations are absent.
-- [ ] Scrollbar behaviour uses valid Firefox/WebKit mechanisms without contradictory duplicate values.
-- [ ] No zero-consumer global utility remains in the audited scope.
-- [ ] Component-owned styles are not unnecessarily retained in the global stylesheet.
-- [ ] Existing drawer, overlay and scroll behaviour remains compatible.
+- [x] `.drawer` and every other shared utility has one canonical definition per intentional cascade layer.
+- [x] `dark:dark:bg` is absent.
+- [x] `scrollbar-width: 3px` and other invalid standard declarations are absent.
+- [x] Scrollbar behaviour uses valid Firefox/WebKit mechanisms without contradictory duplicate values.
+- [x] No zero-consumer global utility remains in the audited scope.
+- [x] Component-owned styles are not unnecessarily retained in the global stylesheet.
+- [x] Existing drawer, overlay and scroll behaviour remains compatible.
 
 ## Validation
 
@@ -101,53 +101,74 @@ Do not preserve a duplicate selector merely because the cascade currently makes 
 
 ## Execution notes
 
-> Current status (2026-09-11): PENDING. The planner identified the prior
-> dependency skip as stale after direct owner re-enablement of its prerequisite
-> chain; historical skip evidence below is retained only for traceability.
+> Current status (2026-09-17): `DONE` / `CI_PENDING`. Authorized recovery
+> completed the missing browser evidence; final status remains provisional
+> until exact feature-SHA and post-merge CI both succeed.
 
 ### Feature branch
-_Not started._
+`feature/UI-023` preserved at `c940640291a7dba6f7d156b1b1afe997a0ecde91`.
 
 ### Preflight
-_Not started._
+The historical implementation started from clean `develop` at
+`4abaae803c02a7ae7e255b711bcd1385f7d3a9ca`. Recovery was authorized directly
+on 2026-09-17 from green `develop` at
+`74b047a6660267f8db50b16d5eb2f128e37f8471`; dependencies `0077` and `0078`
+were confirmed `DONE`.
 
 ### Preflight remediation
 _None._
 
 ### Summary
-Not attempted because required tasks 0077 (UI-019) and 0078 (UI-020) are
-`SKIPPED_DEPENDENCY`.
+Consolidated the global `.drawer` utility into one rule, removed the malformed
+`dark:dark:bg-neutral-900/75` variant, and removed the invalid
+`scrollbar-width: 3px` declaration while preserving valid Firefox and WebKit
+scrollbar behavior.
 
 ### Task-specific validation performed
-Not applicable; no feature branch or implementation worker was created.
+- Deterministic CSS audit: passed; one canonical `.drawer` and
+  `.custom-scrollbar` definition, with known invalid patterns absent.
+- `npm run build --workspace mercurion_web_ng`: passed; Angular production
+  bundle generated successfully (existing initial bundle budget warning).
 
 ### Full pre-merge CI-parity validation
-Not applicable; dependency-skip metadata only.
+Historical exact feature-SHA CI succeeded for
+`c940640291a7dba6f7d156b1b1afe997a0ecde91` (run `35017881390`). Recovery
+feature SHA `0485acfc2c12e6755afc00336945cf68748d4c6c` passed the complete CI and
+stable `Required gate` in run `35209157292`.
 
 ### Browser validation performed
-Not applicable; the task was not attempted.
+User-authorized Playwright/Chromium fallback through
+`http://localhost:8888` completed the historically missing evidence:
+
+- Tox21, Nest and Angular ran in separate task-owned sessions; `/health` and
+  `/` returned HTTP 200 in two consecutive readiness rounds.
+- Fresh authenticated state was proved by successful protected account
+  requests, including email, current version, MFA, sessions and profile data.
+- Desktop drawer hide/show preserved the canonical rendered drawer; a real
+  `.custom-scrollbar` moved to `scrollTop=120` with `scrollbar-width: thin`.
+- At `390x844`, the responsive drawer moved from `x=0` to `x=-288.59375` when
+  closed and returned to `x=0` when reopened.
+- Light and dark themes rendered the drawer respectively as
+  `rgba(226, 232, 240, 0.5)` and `rgba(23, 23, 23, 0.75)`; the original dark
+  preference was restored afterward.
+- Search and create-collection action overlays rendered successfully; the
+  action dialog occupied the complete `390x844` mobile viewport without
+  overflow beyond its bounds.
+- Browser console inspection reported zero errors. All overlays were closed
+  and every task-owned runtime/listener was stopped after validation.
 
 ### Commits
-Pending metadata commit on `develop`.
+Historical feature commit: `c940640291a7dba6f7d156b1b1afe997a0ecde91`.
+Recovery merge commit: `e3138c8fe`.
+Final recovery feature commit: `0485acfc2c12e6755afc00336945cf68748d4c6c`.
+Integration merge commit: `08798d2c90f73ff7a4ec97ea6914ad68ba7d3226`.
 
 ### Merge / CI
-No feature branch or merge. Exact-SHA CI is required for the metadata commit.
+Exact feature-SHA CI run `35209157292` and exact integration merge-SHA CI run
+`35209717952` both completed successfully, including the stable `Required gate`.
 
 ### Rollback
 _Not applicable._
 
 ### Blocker / human decision required
-Direct terminal prerequisites: 0077 (UI-019) and 0078 (UI-020), both
-`SKIPPED_DEPENDENCY`. Transitive chain: UI-023 -> UI-019 -> UI-018
-(BLOCKED), which requires a test-safe local Nest runtime and dependencies for
-mandatory browser validation.
-
-
-### Dependency skip
-
-Direct terminal prerequisite: 0077 (), terminal non-DONE dependency.
-
-### Dependency skip
-
-Direct terminal prerequisite: `0078` (`UI-020`), `BLOCKED`; this task was
-materialized in the new terminal closure on 2026-09-13.
+_None._

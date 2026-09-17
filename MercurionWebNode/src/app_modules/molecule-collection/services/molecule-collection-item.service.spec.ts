@@ -2,9 +2,9 @@ import { MoleculeService } from '../../meilisearch/services/molecule.service';
 import { Test, TestingModule } from '@nestjs/testing';
 import { MoleculeCollectionItemService } from './molecule-collection-item.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { MoleculeCollectionItemEntity } from '../Models/entities/molecule-collection-item.entity';
+import { MoleculeCollectionItemEntity } from '../models/entities/molecule-collection-item.entity';
 import { DataSource } from 'typeorm';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { LoggerPort } from 'src/logging/logger.port';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 
 const MOCK_ITEM_ID = '01900000-0000-7000-8000-000000000000';
@@ -31,9 +31,7 @@ describe('MoleculeCollectionItemService', () => {
     insert: jest.fn(),
   };
   const dataSourceMock = {
-    manager: {
-      transaction: jest.fn().mockImplementation(async (cb: any) => cb(managerMock)),
-    },
+    transaction: jest.fn().mockImplementation(async (cb: any) => cb(managerMock)),
   };
   const loggerMock = {
     warn: jest.fn(),
@@ -55,7 +53,7 @@ describe('MoleculeCollectionItemService', () => {
           useValue: moleculeServiceMock,
         },
         { provide: DataSource, useValue: dataSourceMock },
-        { provide: MeiliLoggerService, useValue: { forContext: jest.fn().mockReturnValue(loggerMock) } },
+        { provide: LoggerPort, useValue: { forContext: jest.fn().mockReturnValue(loggerMock) } },
       ],
     }).compile();
 
@@ -93,7 +91,7 @@ describe('MoleculeCollectionItemService', () => {
 
     const result = await service.markAsTouched(MOCK_USER_ID, MOCK_ITEM_ID);
 
-    expect(dataSourceMock.manager.transaction).toHaveBeenCalled();
+    expect(dataSourceMock.transaction).toHaveBeenCalled();
     expect(managerMock.update).toHaveBeenCalledTimes(1);
     expect(managerMock.update.mock.calls[0]?.[0]).toBe(MoleculeCollectionItemEntity);
     expect(managerMock.update.mock.calls[0]?.[1]).toEqual({ userId: MOCK_USER_ID, id: MOCK_ITEM_ID });

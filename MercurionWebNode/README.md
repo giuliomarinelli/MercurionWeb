@@ -9,6 +9,14 @@ The source entry point is `src/main.ts`; the development listener is `0.0.0.0:80
 The public edge is nginx at `http://localhost:8888`, where `/api/*`, `/api/graphql`,
 `/socket.io/*` and `/health` are proxied to this service.
 
+## Source naming convention
+
+Nest source directories and files use lowercase kebab-case. Backend model trees
+use `models/` and `models/dto/`, and the realtime module uses `socket-io/`.
+TypeScript symbols retain conventional PascalCase names such as
+`SecurityService` and `RecoverCredentialsDTO`; legacy misspellings are not
+exported as aliases.
+
 ## Configuration and dependencies
 
 Copy `env/.env.example` to `env/.env.development` and fill every placeholder with local
@@ -46,7 +54,7 @@ Unit/E2E diagnostics are written to `coverage` and `test-results` by the CI vari
   compatibility and error-envelope policies are checked by root static gates.
 - Mercurius serves the GraphQL schema at `/api/graphql`. `graphql:schema:update` regenerates
   the committed SDL; `graphql:schema:check` fails on drift.
-- Socket.IO is configured by `src/app_modules/socket.io` and shares event types with
+- Socket.IO is configured by `src/app_modules/socket-io` and shares event types with
   `packages/socket-contracts`.
 - NATS is internal service transport. Tox21 inference and RDKit subjects require the local
   NATS service and the sibling Tox21 process.

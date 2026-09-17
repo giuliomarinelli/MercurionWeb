@@ -3,7 +3,7 @@ import type { FastifyInstance } from 'fastify'
 import type { NestFastifyApplication } from '@nestjs/platform-fastify'
 import type { SecureCookieService } from '../app_modules/auth/services/secure-cookie.service'
 import type { RedisService } from '../app_modules/redis/services/redis.service'
-import type { MeiliLoggerService } from '../app_modules/meilisearch/services/meili-logger.service'
+import type { LoggerPort } from '../logging/logger.port'
 import type { Environment } from '../config/config.schema'
 
 export interface BootstrapDependencies {
@@ -13,7 +13,7 @@ export interface BootstrapDependencies {
   env: Environment
   secureCookie: SecureCookieService
   redis: RedisService
-  loggerFactory: MeiliLoggerService
+  loggerFactory: LoggerPort
   logger: {
     log(message: string): void
     warn(message: string): void
