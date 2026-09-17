@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -78,6 +78,10 @@ Mark `BLOCKED` if a panel's ownership cannot be separated without an unresolved 
 
 - `0087` may provide extracted sensitive-data feature boundaries used by the security panel.
 - Route/auth/session/UI foundation tasks through `0086` must be integrated.
+
+## Execution notes
+
+- 2026-09-17: Marked `SKIPPED_DEPENDENCY` without implementation because hard prerequisite `0086` is terminal `BLOCKED` (UI-028). This task was not attempted.
 
 ## Execution notes
 

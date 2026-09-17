@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Add behavior and accessibility tests for the canonical Angular action/overlay/form primitives so open/close, confirm/cancel, loading/error state, focus ownership, keyboard interaction and ARIA semantics are protected as contracts rather than inferred from visual markup.
@@ -77,6 +77,10 @@ Not required by this component-test task, but `0195` must validate representativ
 ## Stop conditions
 
 Mark `BLOCKED` if a primitive's intended keyboard/focus behavior is ambiguous after the corresponding UI task, because accessibility tests must encode an explicit approved interaction contract.
+
+## Execution notes
+
+- 2026-09-17: Marked `SKIPPED_DEPENDENCY` without implementation because hard prerequisite `0086` is terminal `BLOCKED` (UI-028). This task was not attempted.
 
 ## Dependencies
 
