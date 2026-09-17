@@ -5,9 +5,12 @@ import {
   InMemoryCache,
   TypePolicies
 } from '@apollo/client/core';
+import { InjectionToken } from '@angular/core';
 
 type CacheObject = Record<string, unknown>;
 type PaginatedResult = CacheObject & { items?: readonly unknown[] };
+
+export const MERCURION_APOLLO_CACHE = new InjectionToken<ApolloCache<unknown>>('MERCURION_APOLLO_CACHE');
 
 const PAGINATED_QUERY_FIELDS = [
   'myMoleculeCollectionsPaginated',

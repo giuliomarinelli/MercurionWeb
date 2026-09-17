@@ -2,8 +2,10 @@ import { computed, inject, Injectable, signal } from '@angular/core'
 import { AuthSessionPersistenceService } from './auth-session-persistence.service'
 import { AuthErrorService } from './auth-error.service'
 import { BrowserStorageRegistry, storageDescriptor } from './browser-storage-registry'
-import { Apollo } from 'apollo-angular'
-import { clearMercurionUserCache } from './graphql/apollo-cache-policies'
+import {
+  clearMercurionUserCache,
+  MERCURION_APOLLO_CACHE
+} from './graphql/apollo-cache-policies'
 import {
   INITIAL_SESSION_PROTOCOL,
   LOCAL_DUMMY_AUTH,
@@ -56,7 +58,7 @@ export class AuthStateStore {
   private readonly storageRegistry = inject(BrowserStorageRegistry)
   private readonly persistence = inject(AuthSessionPersistenceService)
   private readonly authErrors = inject(AuthErrorService)
-  private readonly apollo = inject(Apollo, { optional: true })
+  private readonly apolloCache = inject(MERCURION_APOLLO_CACHE, { optional: true })
   private readonly stateSignal = signal<AuthState>({ kind: 'bootstrap' })
   private readonly protocolSignal = signal<SessionProtocolSnapshot>(INITIAL_SESSION_PROTOCOL)
   private readonly expiryTick = signal(0)
@@ -368,8 +370,7 @@ export class AuthStateStore {
   }
 
   private clearApolloUserCache(): void {
-    const cache = this.apollo?.client.cache
-    if (cache) clearMercurionUserCache(cache)
+    if (this.apolloCache) clearMercurionUserCache(this.apolloCache)
   }
 
   private clearClientCredentialsForPreAuth(): void {

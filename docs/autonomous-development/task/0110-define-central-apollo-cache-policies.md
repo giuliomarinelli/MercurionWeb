@@ -119,10 +119,26 @@ Passed:
 - `npm run lint:angular --workspace mercurion_web_ng -- --no-warn-ignored`
 - `npx ng test --watch=false --include=src/app/services/graphql/apollo-cache-policies.spec.ts`
   (12 passed)
+- `npx ng test --watch=false --include=src/app/services/auth-state.store.spec.ts
+  --browsers=ChromeHeadless` (24 passed; reproduces and fixes feature CI run
+  `35279946669`, Angular unit tests job `105399617`)
 - `git diff --check`
 
 The full Angular test invocation also observed 483 passed and 18 pre-existing
 auth/session contract failures unrelated to this task.
+
+### CI repair attempt 2
+The exact feature-SHA failure was isolated to `AuthStateStore.clearApolloUserCache`:
+Apollo Angular's root-provided `Apollo` shell exists in isolated tests, but its
+`client` is uninitialized, so reading `apollo.client.cache` failed before the
+optional chaining guard could run. The repair exposes the initialized central
+cache through the optional `MERCURION_APOLLO_CACHE` application token and makes
+`AuthStateStore` depend on that token. Production `provideApollo` supplies the
+token; isolated auth tests omit it and therefore skip cache clearing safely.
+
+The full Angular suite after the repair reported 500 passed and one unrelated
+pre-existing accessibility contrast failure in
+`src/app/testing/accessibility-canonical-ui.spec.ts:178`.
 ### Full pre-merge CI-parity validation
 Not run locally because clean-install and aggregate CI parity are reserved for
 GitHub Actions. The coordinator must validate the exact pushed feature SHA.
