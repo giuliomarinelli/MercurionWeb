@@ -39,7 +39,6 @@
     "ci:test:smoke-ratio": "node scripts/check-smoke-test-ratio.mjs",
     "ci:test": "npm run ci:test:angular && npm run ci:test:accessibility && npm run ci:test:nest && npm run ci:test:nest:e2e",
     "ci:build:angular": "npm run build --workspace mercurion_web_ng && npm run bundle:check --workspace mercurion_web_ng && npm run chemistry:check-lazy --workspace mercurion_web_ng",
-    "ci:ui:catalog": "npm run ui:visual --workspace mercurion_web_ng",
     "ci:build:nest": "npm run build --workspace mercurion_web_node && npm run ci:email-assets --workspace mercurion_web_node",
     "ci:build": "npm run ci:build:angular && npm run ci:build:nest",
     "ci:containers": "node scripts/check-container-builds.mjs",

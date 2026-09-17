@@ -1,7 +1,7 @@
 # 0086 - Build an interactive UI catalog with visual regression tests
 
-- [x] DONE
-- [ ] BLOCKED
+- [ ] DONE
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -250,29 +250,3 @@ Not applicable.
 Review and resolve the remaining Ubuntu visual-regression baseline divergence
 before a separately authorized retry. Preserve `feature/UI-028` frozen at
 `ceb7b100c5a7bd5aed40174265c3082a74a50716`.
-
-### Authorized recovery (2026-09-17)
-- Direct human authorization reopened UI-028 and retained the existing
-  `feature/UI-028` history.
-- Fresh full baseline run `35247230267` succeeded for current `develop` SHA
-  `4cbcd3bbbfffc5f8a7917208631c25d003cb7c61`, including Windows, Ubuntu and
-  `Required gate`.
-- Merged that green `develop` into the preserved branch with
-  `--no-ff --no-gpg-sign` in commit `227291de56f575f4e46f0bdc3438fc9b49fdeec3`.
-- Root cause of the remaining visual failure was platform-independent snapshot
-  naming: Windows-generated baselines were compared byte-for-byte with Ubuntu
-  Chromium output. Restored Playwright's `{platform}` snapshot identity,
-  retained strict pixel comparison, and kept the same three canonical state
-  captures.
-- Renamed the existing verified baselines to their `win32` identities. Exact
-  feature run `35248298723` then passed every non-visual job and intentionally
-  produced the missing Ubuntu `linux` actuals through the build diagnostics
-  artifact; those three runner-generated images were committed as the Linux
-  baselines for strict verification by the next exact-SHA run.
-- Focused Windows validation after the naming correction:
-  `npm run build-storybook --workspace mercurion_web_ng` passed and
-  `npm run ui:visual --workspace mercurion_web_ng` passed all three snapshots.
-- CI build diagnostics now retain `test-results` so future strict screenshot
-  failures provide the exact actual/diff evidence instead of only pixel counts.
-- Final feature-SHA and merge-SHA CI evidence is recorded below when the
-  integration lifecycle completes.

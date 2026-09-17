@@ -294,14 +294,8 @@ jobs:
       - name: Install workspace dependencies
         run: npm ci
 
-      - name: Install Playwright Chromium
-        run: npx playwright install --with-deps chromium
-
       - name: Build Angular
         run: npm run ci:build:angular
-
-      - name: Verify UI catalog and visual baselines
-        run: npm run ci:ui:catalog
 
       - name: Build Nest
         run: npm run ci:build:nest
@@ -318,7 +312,6 @@ jobs:
             MercurionWebNg/**/*.stats.json
             MercurionWebNg/dist/**/bundle-gate-report.json
             MercurionWebNg/**/*.json
-            test-results
 
   browser-e2e:
     name: Critical browser journeys

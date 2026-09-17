@@ -5,16 +5,6 @@
   ],
   "allowlistedNonProductionFiles": [
     {
-      "file": "src/catalog/catalog.component.ts",
-      "category": "development-only",
-      "reason": "Interactive UI catalog component is compiled only by the development catalog target."
-    },
-    {
-      "file": "src/catalog/main.ts",
-      "category": "development-only",
-      "reason": "UI catalog bootstrap is a separate development-only Angular entrypoint."
-    },
-    {
       "file": "src/app/Models/graphql/notebook/notebook.models.ts",
       "category": "deferred-feature",
       "reason": "Notebook feature tree is management-deferred and excluded from the active program."

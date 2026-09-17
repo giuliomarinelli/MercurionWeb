@@ -92,14 +92,6 @@
                 }
               ]
             },
-            "catalog": {
-              "optimization": false,
-              "extractLicenses": false,
-              "sourceMap": true,
-              "outputPath": "dist/mercurion-ui-catalog",
-              "index": "src/catalog/index.html",
-              "browser": "src/catalog/main.ts"
-            },
             "testing": {
               "optimization": true,
               "extractLicenses": true,
@@ -138,9 +130,6 @@
             },
             "development": {
               "buildTarget": "MercurionWebNg:build:development"
-            },
-            "catalog": {
-              "buildTarget": "MercurionWebNg:build:catalog"
             }
           },
           "defaultConfiguration": "development"
