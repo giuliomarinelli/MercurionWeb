@@ -133,8 +133,8 @@ scrollbar behavior.
 ### Full pre-merge CI-parity validation
 Historical exact feature-SHA CI succeeded for
 `c940640291a7dba6f7d156b1b1afe997a0ecde91` (run `35017881390`). Recovery
-requires a new exact feature-SHA gate after merging current `develop` and
-recording the completed evidence.
+feature SHA `0485acfc2c12e6755afc00336945cf68748d4c6c` passed the complete CI and
+stable `Required gate` in run `35209157292`.
 
 ### Browser validation performed
 User-authorized Playwright/Chromium fallback through
@@ -160,9 +160,12 @@ User-authorized Playwright/Chromium fallback through
 ### Commits
 Historical feature commit: `c940640291a7dba6f7d156b1b1afe997a0ecde91`.
 Recovery merge commit: `e3138c8fe`.
+Final recovery feature commit: `0485acfc2c12e6755afc00336945cf68748d4c6c`.
+Integration merge commit: `08798d2c90f73ff7a4ec97ea6914ad68ba7d3226`.
 
 ### Merge / CI
-Pending new exact feature-SHA CI and integration.
+Exact feature-SHA CI run `35209157292` and exact integration merge-SHA CI run
+`35209717952` both completed successfully, including the stable `Required gate`.
 
 ### Rollback
 _Not applicable._
