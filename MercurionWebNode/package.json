@@ -31,11 +31,13 @@
     "graphql:schema:update": "node -r ts-node/register -r tsconfig-paths/register scripts/graphql-schema.ts --update",
     "test": "jest --config ./jest.config.js",
     "test:ci": "npm run test:coverage",
+    "pretest:coverage": "node ../scripts/build-identity.mjs",
     "test:coverage": "node -e \"require('fs').mkdirSync('test-results',{recursive:true})\" && jest --config ./jest.config.js --runInBand --coverage --json --outputFile=./test-results/jest-results.json && node ../scripts/check-coverage-gates.mjs --project nest --coverage-dir MercurionWebNode/coverage/nest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "node --experimental-vm-modules ../node_modules/jest/bin/jest.js --config ./test/jest-e2e.json",
+    "pretest:e2e:ci": "node ../scripts/build-identity.mjs",
     "test:e2e:ci": "node -e \"require('fs').mkdirSync('test-results',{recursive:true})\" && node --experimental-vm-modules ../node_modules/jest/bin/jest.js --config ./test/jest-e2e.json --runInBand --json --outputFile=./test-results/e2e-results.json"
   },
   "dependencies": {
