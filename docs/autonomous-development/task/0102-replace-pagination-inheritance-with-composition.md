@@ -1,7 +1,7 @@
 # 0102 - Replace pagination inheritance with typed composition
 
-- [ ] DONE
-- [x] BLOCKED
+- [x] DONE
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -58,11 +58,11 @@ Source: `NG-016` in Series `0001`.
 
 ## Acceptance criteria
 
-- [ ] No production Angular component extends a pagination UI base class.
-- [ ] `AbstractPaginationComponent` and `AbstractPaginatedMultiselectComponent` are removed.
-- [ ] All migrated features use the canonical pagination model/primitive through composition.
-- [ ] Reset/load-more/error/end transitions are deterministic and tested.
-- [ ] No stale/concurrent duplicate page appends occur.
+- [x] No production Angular component extends a pagination UI base class.
+- [x] `AbstractPaginationComponent` and `AbstractPaginatedMultiselectComponent` are removed.
+- [x] All migrated features use the canonical pagination model/primitive through composition.
+- [x] Reset/load-more/error/end transitions are deterministic and tested.
+- [x] No stale/concurrent duplicate page appends occur.
 
 ## Validation
 
@@ -174,3 +174,24 @@ interaction including rapid repeated load/reset observation. Human decision:
 resume this preserved feature branch only after that browser capability is
 available; do not infer completion from the focused tests or partial browser
 evidence.
+
+### Interactive recovery 2026-09-17
+
+Merged current `develop` into the preserved branch without rewriting its
+history. The only merge conflict was this execution-note section; the richer
+original evidence was retained. Current focused validation passed Angular
+typecheck, lint, and 15 pagination/controller/consumer specs. Repository search
+confirmed that neither removed abstract base has a remaining production
+reference.
+
+The canonical Tox21, Nest and Angular processes started successfully after
+copying the ignored development environment and key files into the isolated
+worktree. Two consecutive nginx-edge readiness rounds returned HTTP 200 for
+both `/health` and `/`. The browser evidence already recorded above remains
+valid for the reachable populated and empty states. The recovery environment
+did not expose an isolated browser surface, so no additional interactive claim
+is made; exact feature CI must additionally pass its critical browser journey
+before integration. All three recovery-owned runtime processes were stopped.
+
+The prior transport incident is no longer treated as a product blocker. Final
+integration evidence is recorded after exact feature- and merge-SHA CI.
