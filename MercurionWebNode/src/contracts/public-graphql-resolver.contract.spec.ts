@@ -23,6 +23,7 @@ import { CustomMoleculeItemResolver } from 'src/app_modules/molecule-collection/
 import { MoleculeCollectionService } from 'src/app_modules/molecule-collection/services/molecule-collection.service'
 import { MoleculeCollectionItemService } from 'src/app_modules/molecule-collection/services/molecule-collection-item.service'
 import { MoleculeCollectionItemJoinService } from 'src/app_modules/molecule-collection/services/molecule-collection-item-join.service'
+import { MoleculeCollectionItemCountLoader } from 'src/app_modules/molecule-collection/services/molecule-collection-item-count.loader'
 import { ChEMBLMoleculeItemService } from 'src/app_modules/molecule-collection/services/chembl-molecule-item.service'
 import { CustomMoleculeItemService } from 'src/app_modules/molecule-collection/services/custom-molecule-item.service'
 import { MoleculeCollectionItemJoin } from 'src/app_modules/molecule-collection/models/entities/molecule-collection-item-join.entity'
@@ -163,6 +164,7 @@ describe('public GraphQL resolver contracts', () => {
         { provide: MoleculeCollectionService, useValue: serviceMock() },
         { provide: MoleculeCollectionItemService, useValue: serviceMock() },
         { provide: MoleculeCollectionItemJoinService, useValue: serviceMock() },
+        { provide: MoleculeCollectionItemCountLoader, useValue: { load: jest.fn().mockResolvedValue(0) } },
         { provide: ChEMBLMoleculeItemService, useValue: serviceMock() },
         { provide: CustomMoleculeItemService, useValue: serviceMock() },
         { provide: SynthesisService, useValue: serviceMock() },

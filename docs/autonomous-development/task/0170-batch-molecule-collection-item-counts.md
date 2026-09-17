@@ -1,14 +1,10 @@
 # 0170 - Batch molecule-collection item counts
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
-> SKIPPED_DEPENDENCY (2026-09-15): direct terminal prerequisite `0151`
-> remains pending, while its dependency `0143` is skipped from terminal root
-> `0126` (`BE-012`), which is blocked by an unverified external Docker
-> registry failure on feature-SHA CI.
 ## Objective
 
 Eliminate the `MoleculeCollectionResolver.itemsCount` N+1 query pattern by resolving collection item counts in one batch/aggregate per request scope or by returning a precomputed count projection with constant query growth.
@@ -89,24 +85,55 @@ A single `WHERE user_id = :userId AND collection_id IN (...) GROUP BY collection
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-021`
 ### Preflight
-_Not started._
+- Confirmed clean `feature/DATA-021` at base SHA
+  `420a7b65b3b84cc247d9cbc6c3518e776d4d16a1`.
+- Exact base-SHA GitHub Actions run `35285854434` completed successfully
+  with the Required gate green.
+- Focused runtime preflight started Tox21, Nest, and Angular in the
+  canonical order. Nest compiled with zero errors, Angular completed its
+  development build, and two consecutive nginx rounds returned 200 from
+  `/health` and `/`.
+- Browser capability surface was callable. Fresh authenticated browser
+  evidence could not be completed because the supported credential-entry
+  bridge could not safely transfer the local test credential into the
+  browser tool; no credential was emitted.
 ### Preflight remediation
 _None._
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0143, 0151. This task was never attempted and receives no feature branch.
+Replaced the resolver's per-collection count query with a request-scoped
+owner-keyed loader. Requests are grouped by authenticated owner and queried
+with one `COUNT(*) GROUP BY collection_id` aggregate per owner; missing rows
+resolve to zero and duplicate keys share one promise.
 ### Task-specific validation performed
-_Not started._
+- `npm test --workspace mercurion_web_node -- --runInBand
+  --runTestsByPath
+  src/app_modules/molecule-collection/services/molecule-collection-item-count.loader.spec.ts`
+  passed 5 tests, including query-count cases for 1, 10, and 100 collections.
+- `npm test --workspace mercurion_web_node -- --runInBand
+  --runTestsByPath src/contracts/public-graphql-resolver.contract.spec.ts`
+  passed 6 tests after registering the new loader test double.
+- `npm run typecheck --workspace mercurion_web_node` passed.
+- `npm run lint --workspace mercurion_web_node -- --no-warn-ignored` passed.
+- `npm run build --workspace mercurion_web_node` passed.
 ### Full pre-merge CI-parity validation
 _Not started._
 ### Browser validation performed
-_Not started / not applicable._
+Canonical runtime readiness was proven through `http://localhost:8888`, but
+the authenticated collection UI and post-mutation count refresh were not
+validated because supported credential entry was unavailable. No browser
+acceptance result is claimed.
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+Implementation and task metadata committed on `feature/DATA-021` with
+`--no-gpg-sign`; final SHA recorded after commit.
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+Pending coordinator integration and exact feature-SHA CI.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+Authenticated browser acceptance remains unverified. The canonical runtime and
+nginx edge were healthy, and Chrome DevTools was callable, but the supported
+credential-entry bridge was unavailable without exposing the local test
+credential. No browser result is claimed; human-authorized browser capability
+recovery is required before changing this task to `DONE`.
