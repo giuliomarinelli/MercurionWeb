@@ -51,11 +51,14 @@ interface SelectItem {
   template: `
     <main
       aria-label="Canonical UI accessibility fixture"
-      style="--color-control-primary: #4338ca; --color-on-surface-main: #ffffff; --color-control-primary-hover: #3730a3"
+      style="background: #ffffff; color: #11141d; --color-control-primary: #4338ca; --color-on-surface-main: #11141d; --color-control-primary-hover: #3730a3"
     >
       <h1>Canonical controls</h1>
       <form (submit)="$event.preventDefault()">
-        <m-button ariaLabel="Save changes" (pressed)="submitted = true">Save</m-button>
+        <m-button
+          style="--color-on-surface-main: #ffffff"
+          ariaLabel="Save changes"
+          (pressed)="submitted = true">Save</m-button>
         <m-icon-button ariaLabel="Close fixture" icon="close" />
         <m-text-field
           [(ngModel)]="text"
@@ -100,7 +103,7 @@ interface SelectItem {
           (toggled)="disclosureExpanded = $event">
           <p>Additional settings</p>
         </m-disclosure>
-        <m-button type="submit">Submit</m-button>
+        <m-button style="--color-on-surface-main: #ffffff" type="submit">Submit</m-button>
       </form>
       <m-action-card labelledBy="action-title" closeLabel="Close action">
         <h2 id="action-title" action-card-title>Action</h2>
@@ -148,11 +151,10 @@ describe('canonical UI accessibility coverage', () => {
   let fixture: ComponentFixture<CanonicalUiFixtureComponent>;
 
   async function waitForRenderedStyles(): Promise<void> {
-    await new Promise<void>(resolve => {
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => resolve());
-      });
-    });
+    await document.fonts.ready;
+    const root = fixture.nativeElement as HTMLElement;
+    root.getBoundingClientRect();
+    getComputedStyle(root).color;
   }
 
   beforeEach(async () => {
