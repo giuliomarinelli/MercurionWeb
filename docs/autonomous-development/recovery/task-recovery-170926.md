@@ -22,5 +22,6 @@
   verde dal run `35251075072`; branch `feature/UI-028` preservato e congelato.
 - `0086` / `UI-028`: successivamente reintegrato in modalità interattiva dopo
   aver riprodotto e corretto sul baseline il test axe intermittente. Fix baseline
-  `8d801a7ca`, run full verde `35253527693`; reintegrazione finale e relativo
-  run CI sono riportati nel task `0086`.
+  `8d801a7ca`, run full verde `35253527693`; reintegrazione finale
+  `68f7cd349` verificata dal run full verde `35254855568`, incluso il
+  `Required gate`.

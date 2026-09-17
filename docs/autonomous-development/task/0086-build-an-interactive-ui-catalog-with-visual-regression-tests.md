@@ -291,5 +291,6 @@ before a separately authorized retry. Preserve `feature/UI-028` frozen at
 - Restored the already verified UI-028 tree from merge
   `e198a0c943feab731c7e0c7fb1c8bb22734aa8cf` with a normal integration commit;
   no additional revert was performed.
-- The final reintegration commit and its exact CI run are recorded in the
-  follow-up recovery evidence after publication.
+- Final reintegration commit: `68f7cd3491534f6f1a428dba379a6076034f6026`.
+- Exact reintegration CI run `35254855568` succeeded completely, including the
+  cross-platform visual regression gate and stable `Required gate`.
