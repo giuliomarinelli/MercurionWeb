@@ -109,8 +109,11 @@ _Not applicable._
 `4a561296bbd16a1ec59eb9bab705eb242db6e2bc` — original blocker status and execution notes.
 `29bd5392f` — merged current green `develop` into the preserved recovery branch.
 `ff4a7fa7143dbace077f48edda95555893d24a46` — shared bounded scientific RPC policy and adapter integration.
+`ed5ac3e8e8e4dccaa582b5ddacacd077bb13c8c5` — final feature SHA including task status and stale-skip reset.
 ### Merge / CI
-CI_PENDING until exact feature-SHA and post-merge `Required gate` runs succeed.
+- Exact feature-SHA CI: run `35218104121` succeeded for `ed5ac3e8e8e4dccaa582b5ddacacd077bb13c8c5`.
+- No-fast-forward merge: `5f4367ea5cae1a4a05a833d08f848513b54c2195`.
+- Exact post-merge CI: run `35218761835` succeeded, including the stable `Required gate`.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
