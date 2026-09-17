@@ -3,8 +3,10 @@ import type {
   RdkitAreSameStructureWire,
   RdkitCanonicalSmilesWire,
   RdkitGetMoleculePropertiesDTO,
-  RdkitGetMoleculePropertiesWire
+  RdkitGetMoleculePropertiesWire,
+  RdkitToCanonicalSmilesDTO
 } from './rdkit-contract'
+import { RDKIT_SMILES_MAX_LENGTH } from './rdkit-contract'
 
 export const NATS_CONTRACT_VERSION = '1.0.0' as const
 export const NATS_TIMEOUT_POLICY_KEY = 'scientific-rpc' as const
@@ -76,15 +78,20 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value)
 
 const hasError = (value: unknown): value is { error: string } =>
-  isRecord(value) && typeof value.error === 'string' && value.error.trim().length > 0
+  isRecord(value) &&
+  Object.keys(value).length === 1 &&
+  typeof value.error === 'string' &&
+  value.error.trim().length > 0
 
 const isInferenceResponse = (value: unknown): value is MercurionInferenceResponse => {
   if (hasError(value)) return true
   if (!isRecord(value)) return false
-  return Object.entries(value).every(([label, prediction]) => {
+  const entries = Object.entries(value)
+  return entries.length > 0 && entries.every(([label, prediction]) => {
     if (!['SR-ATAD5', 'NR-AhR', 'SR-MMP', 'SR-p53'].includes(label)) return false
     if (!isRecord(prediction)) return false
-    return typeof prediction.probability === 'number' &&
+    return Object.keys(prediction).every((key) => ['probability', 'threshold', 'is_positive'].includes(key)) &&
+      typeof prediction.probability === 'number' &&
       Number.isFinite(prediction.probability) &&
       typeof prediction.threshold === 'number' &&
       Number.isFinite(prediction.threshold) &&
@@ -102,19 +109,32 @@ const isInferenceRequest = (value: unknown): value is MercurionInferenceRequest 
   value.accessToken.length <= 4096 &&
   Object.keys(value).every((key) => ['smiles', 'accessToken'].includes(key))
 
-const isRdkitRequest = <T>(value: unknown): value is T =>
-  isRecord(value) &&
+const hasBoundedAccessToken = (value: Record<string, unknown>): boolean =>
   typeof value.accessToken === 'string' &&
   value.accessToken.trim().length >= 10 &&
-  Object.keys(value).every((key) => ['accessToken', 'smiles', 'a', 'b', 'opts'].includes(key))
+  value.accessToken.length <= 4096
+
+const isBoundedSmiles = (value: unknown): value is string =>
+  typeof value === 'string' && value.trim().length > 0 && value.length <= RDKIT_SMILES_MAX_LENGTH
+
+const isRdkitSingleSmilesRequest = <T>(value: unknown): value is T =>
+  isRecord(value) && hasBoundedAccessToken(value) && isBoundedSmiles(value.smiles) &&
+  Object.keys(value).every((key) => ['accessToken', 'smiles', 'opts'].includes(key))
+
+const isRdkitSameStructureRequest = <T>(value: unknown): value is T =>
+  isRecord(value) && hasBoundedAccessToken(value) &&
+  isBoundedSmiles(value.a) && isBoundedSmiles(value.b) &&
+  Object.keys(value).every((key) => ['accessToken', 'a', 'b'].includes(key))
 
 const isRdkitResponse = <T>(value: unknown): value is T => {
   if (hasError(value)) return true
-  if (!isRecord(value) || !('data' in value)) return false
+  if (!isRecord(value) || Object.keys(value).length !== 1 || !('data' in value)) return false
   const data = value.data
   return typeof data === 'string' || typeof data === 'boolean' || (
-    isRecord(data) &&
-    ['mwFreebase', 'alogp', 'hba', 'hbd', 'psa', 'rtb'].every((key) => key in data)
+    isRecord(data) && Object.keys(data).length === 6 &&
+    ['mwFreebase', 'alogp', 'hba', 'hbd', 'psa', 'rtb'].every((key) =>
+      data[key] === null || (typeof data[key] === 'number' && Number.isFinite(data[key]))
+    )
   )
 }
 
@@ -127,6 +147,9 @@ const errorContract: NatsErrorContract = Object.freeze({
     'TOX21_INVALID_ARE_SAME_STRUCTURE_PAYLOAD',
     'TOX21_UPSTREAM_ERROR',
     'TOX21_TIMEOUT',
+    'SCIENTIFIC_RPC_OVERLOADED',
+    'SCIENTIFIC_RPC_UNAVAILABLE',
+    'SCIENTIFIC_RPC_INVALID_RESPONSE',
     'TOX21_UNKNOWN_ERROR'
   ])
 })
@@ -201,15 +224,15 @@ export const NATS_CONTRACT_REGISTRY = Object.freeze({
     'rdkit_api.get_molecule_properties',
     rdkitRequestSchema,
     rdkitResponseSchema,
-    isRdkitRequest,
+    isRdkitSingleSmilesRequest,
     isRdkitResponse
   ),
-  rdkitToCanonicalSmiles: contract(
+  rdkitToCanonicalSmiles: contract<RdkitToCanonicalSmilesDTO, RdkitCanonicalSmilesWire>(
     'mercurion.rdkit.to-canonical-smiles',
     'rdkit_api.to_canonical_smiles',
     rdkitRequestSchema,
     rdkitResponseSchema,
-    isRdkitRequest,
+    isRdkitSingleSmilesRequest,
     isRdkitResponse
   ),
   rdkitAreSameStructure: contract<RdkitAreSameStructureDTO, RdkitAreSameStructureWire>(
@@ -217,7 +240,7 @@ export const NATS_CONTRACT_REGISTRY = Object.freeze({
     'rdkit_api.are_same_structure',
     rdkitRequestSchema,
     rdkitResponseSchema,
-    isRdkitRequest,
+    isRdkitSameStructureRequest,
     isRdkitResponse
   )
 } as const)

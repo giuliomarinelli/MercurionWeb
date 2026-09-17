@@ -3,6 +3,7 @@ import { RDKitService } from './rd-kit.service';
 import { ConfigService } from '@nestjs/config';
 import { LoggerPort } from 'src/logging/logger.port';
 import { ClientProxy } from '@nestjs/microservices';
+import { ScientificRpcPolicy } from './scientific-rpc.policy';
 
 describe('RdKitService', () => {
   let service: RDKitService;
@@ -42,6 +43,10 @@ describe('RdKitService', () => {
               setLogLevels: jest.fn(),
             })),
           },
+        },
+        {
+          provide: ScientificRpcPolicy,
+          useValue: { execute: jest.fn() },
         },
       ],
     }).compile();
