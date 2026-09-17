@@ -172,7 +172,12 @@ Not run locally; exact feature-SHA CI is owned by the coordinator.
 - Before repair, `node scripts/check-repository-topology.mjs
   --report-dir=reports/topology-ui028-repair` failed only
   `angular-reachability`; import-graph, Nest, and architecture checks passed.
-- The repair validation and final commit SHA are recorded below.
+- After repair, `node scripts/check-angular-orphans.mjs --root=MercurionWebNg
+  --json` reported no orphaned files, and
+  `node scripts/check-repository-topology.mjs
+  --report-dir=reports/topology-ui028-repair` passed all five checks.
+- No local `npm ci` or `npm run ci:check` was run; generated topology reports
+  were removed before commit.
 
 ### Browser validation performed
 - Catalog-only Chrome DevTools MCP validation at `http://localhost:4400/`
@@ -192,7 +197,8 @@ Not run locally; exact feature-SHA CI is owned by the coordinator.
 `7844e1c3b039d3a52abc417770def4ab24b2ece9` — catalog implementation,
 tooling, baselines and focused validation, committed with `--no-gpg-sign` and
 the required Copilot co-author trailer.
-Repair commit pending after focused topology validation.
+`a441c65a` — narrow topology-policy repair and repair evidence, committed with
+`--no-gpg-sign` and the required Copilot co-author trailer.
 
 ### Merge / CI
 No merge performed. Coordinator must publish this feature SHA and observe
