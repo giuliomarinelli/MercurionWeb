@@ -1,7 +1,7 @@
 # 0086 - Build an interactive UI catalog with visual regression tests
 
-- [x] DONE
-- [ ] BLOCKED
+- [ ] DONE
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -111,8 +111,9 @@ Favor primitive-level stories with deterministic fixture data. A small number of
 
 ## Execution notes
 
-> Current status (2026-09-17): READY_FOR_INTEGRATION / CI_PENDING. The catalog
-> implementation and focused local validation passed on `feature/UI-028`.
+> Current status (2026-09-17): BLOCKED. The catalog implementation and focused
+> local validation passed on `feature/UI-028`, but the strict visual gate
+> remained unrecoverable after the configured three feature-CI repair attempts.
 
 ### Feature branch
 `feature/UI-028`, based on certified develop SHA
@@ -234,11 +235,18 @@ committed with `--no-gpg-sign` and the required Copilot co-author trailer.
 co-author trailer.
 
 ### Merge / CI
-No merge performed. Coordinator must publish this feature SHA and observe
-exact feature-SHA CI before integration.
+No merge performed. The implementation branch is preserved and frozen.
+Final feature SHA: `ceb7b100c5a7bd5aed40174265c3082a74a50716`.
+Exact feature CI run `35244774301` failed in the Ubuntu `Build artifacts`
+visual-regression step after the browser-install step and font-load
+synchronization were present. All catalog snapshots still differed on Ubuntu.
+The strict visual gate cannot be restored within the configured three repair
+attempts, so the task is finalized as `BLOCKED`.
 
 ### Rollback
 Not applicable.
 
 ### Blocker / human decision required
-None before feature-SHA CI.
+Review and resolve the remaining Ubuntu visual-regression baseline divergence
+before a separately authorized retry. Preserve `feature/UI-028` frozen at
+`ceb7b100c5a7bd5aed40174265c3082a74a50716`.
