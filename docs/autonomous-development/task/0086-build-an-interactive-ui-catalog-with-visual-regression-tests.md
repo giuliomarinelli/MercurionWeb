@@ -178,6 +178,18 @@ Not run locally; exact feature-SHA CI is owned by the coordinator.
   --report-dir=reports/topology-ui028-repair` passed all five checks.
 - No local `npm ci` or `npm run ci:check` was run; generated topology reports
   were removed before commit.
+- Second bounded repair: exact feature CI run `35241574204` passed topology and
+  all tests but failed the `Build artifacts` visual-regression step because the
+  Ubuntu runner did not have the Playwright Chromium executable installed
+  (`/home/runner/.cache/ms-playwright/chromium_headless_shell-1187/.../headless_shell`).
+- Added the existing `npx playwright install --with-deps chromium` pattern to
+  the `Build artifacts` job immediately after `npm ci`, before the unchanged
+  `ci:ui:catalog` command. This installs the required browser for clean CI
+  without changing the visual runner, snapshots, or test behavior.
+- Focused local checks for this repair: `npm run ui:visual
+  --workspace mercurion_web_ng` passed against committed baselines using the
+  existing local dependency tree. No local `npm ci` or `npm run ci:check` was
+  run. Exact post-repair feature CI remains coordinator-owned.
 
 ### Browser validation performed
 - Catalog-only Chrome DevTools MCP validation at `http://localhost:4400/`
@@ -199,6 +211,8 @@ tooling, baselines and focused validation, committed with `--no-gpg-sign` and
 the required Copilot co-author trailer.
 `a441c65a` — narrow topology-policy repair and repair evidence, committed with
 `--no-gpg-sign` and the required Copilot co-author trailer.
+`<pending>` — narrow CI browser-install repair for exact run `35241574204`,
+committed with `--no-gpg-sign` and the required Copilot co-author trailer.
 
 ### Merge / CI
 No merge performed. Coordinator must publish this feature SHA and observe
