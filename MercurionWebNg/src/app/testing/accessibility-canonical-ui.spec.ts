@@ -147,6 +147,14 @@ class CanonicalUiFixtureComponent {
 describe('canonical UI accessibility coverage', () => {
   let fixture: ComponentFixture<CanonicalUiFixtureComponent>;
 
+  async function waitForRenderedStyles(): Promise<void> {
+    await new Promise<void>(resolve => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => resolve());
+      });
+    });
+  }
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [CanonicalUiFixtureComponent],
@@ -156,6 +164,7 @@ describe('canonical UI accessibility coverage', () => {
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
+    await waitForRenderedStyles();
   });
 
   async function expectNoBlockingViolations(): Promise<AxeResults> {
