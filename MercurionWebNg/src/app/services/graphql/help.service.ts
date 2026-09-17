@@ -47,6 +47,7 @@ import {
   TicketsAsSupportQuery,
   TicketsAsSupportQueryVariables
 } from '../../generated/graphql';
+import { GRAPHQL_QUERY_FETCH_POLICY } from './graphql-query-policy';
 
 @Injectable({
   providedIn: 'root'
@@ -62,7 +63,7 @@ export class HelpService {
         variables: {
           ticketId
         },
-        fetchPolicy: 'no-cache'
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot
       }).pipe(
         map((res) => extractGqlData<MyTicketDetailQuery, 'myTicketDetail'>(res, 'myTicketDetail')),
         map((res) => res.ticket)
@@ -77,7 +78,7 @@ export class HelpService {
           page,
           limit
         },
-        fetchPolicy: 'no-cache'
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot
       }).pipe(
         map((res) => extractGqlData<MyTicketsQuery, 'myTickets'>(res, 'myTickets')),
         map((res) => res)
@@ -93,7 +94,7 @@ export class HelpService {
           limit,
           ticketId
         },
-        fetchPolicy: 'no-cache'
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot
       }).pipe(
         map((res) => extractGqlData<MyTicketMessagesQuery, 'myTicketMessages'>(res, 'myTicketMessages')),
         map((res) => res)
@@ -107,7 +108,7 @@ export class HelpService {
         variables: {
           ticketId
         },
-        fetchPolicy: 'no-cache'
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot
       }).pipe(
         map((res): boolean => extractGqlDataV2(res, 'existsUserTicketById'))
       )
@@ -161,7 +162,7 @@ export class HelpService {
         variables: {
           ticketId
         },
-        fetchPolicy: 'no-cache'
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot
       }).pipe(
         map((res) => extractGqlData<TicketDetailAsSupportQuery, 'ticketDetailAsSupport'>(res, 'ticketDetailAsSupport')),
         map((res) => res.ticket),
@@ -177,7 +178,7 @@ export class HelpService {
           page,
           limit
         },
-        fetchPolicy: 'no-cache'
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot
       }).pipe(
         map((res) => extractGqlData<TicketsAsSupportQuery, 'ticketsAsSupport'>(res, 'ticketsAsSupport')),
         map((res) => res)
@@ -193,7 +194,7 @@ export class HelpService {
           limit,
           ticketId
         },
-        fetchPolicy: 'no-cache'
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot
       }).pipe(
         map((res) => extractGqlData<TicketMessagesAsSupportQuery, 'ticketMessagesAsSupport'>(res, 'ticketMessagesAsSupport')),
         map((res) => res)

@@ -56,6 +56,7 @@ import {
   UpdateSectionMutation,
   UpdateSectionMutationVariables,
 } from "../../generated/graphql";
+import { GRAPHQL_QUERY_FETCH_POLICY } from "./graphql-query-policy";
 
 
 
@@ -76,7 +77,7 @@ export class NotebookService {
     return this.apollo
       .query<GetAllNotebooksQuery, GetAllNotebooksQueryVariables>({
         query: GetAllNotebooksDocument,
-        fetchPolicy: 'no-cache',
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot,
       })
       .pipe(
         map(res => extractGqlData<GetAllNotebooksQuery, 'labNotebooksByUser'>(
@@ -95,7 +96,7 @@ export class NotebookService {
       .query<GetNotebookDetailQuery, GetNotebookDetailQueryVariables>({
         query: GetNotebookDetailDocument,
         variables: { id },
-        fetchPolicy: 'no-cache',
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot,
       })
       .pipe(
         map(res => extractGqlData<GetNotebookDetailQuery, 'labNotebook'>(
@@ -110,7 +111,7 @@ export class NotebookService {
       .query<GetChapterByIdQuery, GetChapterByIdQueryVariables>({
         query: GetChapterByIdDocument,
         variables: { id },
-        fetchPolicy: 'no-cache',
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot,
       })
       .pipe(
         map(res => extractGqlData<GetChapterByIdQuery, 'chapterById'>(
@@ -126,7 +127,7 @@ export class NotebookService {
       .query<GetSectionByIdQuery, GetSectionByIdQueryVariables>({
         query: GetSectionByIdDocument,
         variables: { id },
-        fetchPolicy: 'no-cache',
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot,
       })
       .pipe(
         map(res => extractGqlData<GetSectionByIdQuery, 'sectionById'>(
@@ -142,7 +143,7 @@ export class NotebookService {
       .query<GetPageHeaderByIdQuery, GetPageHeaderByIdQueryVariables>({
         query: GetPageHeaderByIdDocument,
         variables: { id },
-        fetchPolicy: 'no-cache',
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot,
       })
       .pipe(
         map(res => extractGqlData<GetPageHeaderByIdQuery, 'pageById'>(
