@@ -167,7 +167,8 @@ needed for the changed fixture/test behavior, so no credentials were entered.
 All task-owned runtime processes were stopped afterward.
 
 ### Commits
-Pending task-specific commit.
+- `25e44629` - `test: add canonical accessibility coverage`
+- Follow-up metadata commit records this execution note update.
 
 ### Merge / CI
 Coordinator-owned; exact feature-SHA CI is required before merge.
