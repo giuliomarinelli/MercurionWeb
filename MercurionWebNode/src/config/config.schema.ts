@@ -289,7 +289,6 @@ export const environmentSchema = defineEnvironmentSchema(
     required('APP_PASSWORD_PEPPER', string()),
     required('APP_REDIS_ID_HMAC_SECRET', string()),
     required('APP_AES_SECRET', string()),
-    optional('APP_VERSION', string()),
     required('APP_DEVICE_ID_SIGNATURE_SECRET', string()),
     required('APP_SUPPORT_EMAIL', string()),
     required('APP_MAX_NATS_PAYLOAD_BYTES', positiveInteger()),

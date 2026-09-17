@@ -44,6 +44,17 @@ for (const filename of dockerfiles) {
   if (!/\bCMD\s+\["[^"]+"/.test(source)) {
     throw new Error(`${filename} must declare an exec-form CMD`);
   }
+  for (const token of [
+    'ARG BUILD_VERSION',
+    'ARG BUILD_REVISION',
+    'org.opencontainers.image.version=$BUILD_VERSION',
+    'org.opencontainers.image.revision=$BUILD_REVISION',
+    'org.opencontainers.image.source='
+  ]) {
+    if (!source.includes(token)) {
+      throw new Error(`${filename} is missing build identity label contract: ${token}`);
+    }
+  }
   for (const target of targets[filename]) {
     if (!new RegExp(`FROM .+ AS ${target}\\b`).test(source)) {
       throw new Error(`${filename} is missing explicit target ${target}`);

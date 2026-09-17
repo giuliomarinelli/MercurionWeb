@@ -11,6 +11,9 @@ MercurionWebNode/coverage/
 MercurionWebNode/src/coverage/
 playwright-report/
 test-results/
+build/
+MercurionWebNg/src/generated/build-identity.ts
+MercurionWebNode/src/generated/build-identity.ts
 
 .playwright-mcp/*
 !.playwright-mcp/.gitkeep

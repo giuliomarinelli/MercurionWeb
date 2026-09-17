@@ -150,3 +150,21 @@ state were changed.
 
 No implementation blocker. The task may be re-enabled only after its hard
 dependency is deliberately resolved in a new authorized session.
+
+### Final bounded CI repair
+
+- Failed feature-SHA CI run: `35132839050` for
+  `b1644e0d28b4f3d10b05d17289a8093c239f485a`.
+- Failure: `ci:rest-compatibility` reported
+  `docs/architecture/rest-contract-compatibility.json` stale after the
+  public `GET /api/version` route was added.
+- Repair: regenerated the deterministic compatibility inventory with
+  `node scripts/check-rest-compatibility.mjs --write`. The only inventory
+  entry changed is `AccountService.getCurrentVersion#0`, now mapped to
+  `GET /api/version` and the public `BuildIdentityDTO` response contract.
+- Focused validation: `npm run ci:rest-compatibility` passed, including the
+  negative compatibility checks and `validation-pipe.spec.ts`; `git diff
+  --check` passed. `npm run ci:rest-route-ownership` reported existing
+  unrelated reference drift across multiple routes; the route ownership
+  inventory was not modified.
+- Repair commit: `d3f64e7769115c575f3a05a604d8e1c0757460a1`.
