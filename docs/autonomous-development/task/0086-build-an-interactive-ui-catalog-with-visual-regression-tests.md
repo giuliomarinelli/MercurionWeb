@@ -229,7 +229,7 @@ the required Copilot co-author trailer.
 `--no-gpg-sign` and the required Copilot co-author trailer.
 `2790d24e` — narrow CI browser-install repair for exact run `35241574204`,
 committed with `--no-gpg-sign` and the required Copilot co-author trailer.
-`<pending>` — narrow cross-runner font-readiness repair for exact run
+`f904f0aee` — narrow cross-runner font-readiness repair for exact run
 `35243073312`, committed with `--no-gpg-sign` and the required Copilot
 co-author trailer.
 
