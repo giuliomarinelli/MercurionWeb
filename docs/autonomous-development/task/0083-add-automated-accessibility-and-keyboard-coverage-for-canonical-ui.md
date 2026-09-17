@@ -173,6 +173,23 @@ All task-owned runtime processes were stopped afterward.
 ### Merge / CI
 Coordinator-owned; exact feature-SHA CI is required before merge.
 
+### Feature CI repair
+- Run `35229416349` for feature SHA
+  `a755283aa66bea146cd4bd2796b627d154d00ae7` failed in both prerequisite
+  jobs at `Run registered static and architecture gates` because
+  `angular-reachability` reported
+  `src/app/testing/accessibility-test.helpers.ts` as an orphan from
+  `src/main.ts`.
+- Renamed the test-only reusable helper to
+  `src/app/testing/accessibility-test.helpers.spec.ts` and updated its
+  accessibility-spec import. This follows the topology check's existing
+  `*.spec.ts` exclusion for test files; no production reachability allowlist
+  or gate suppression was added.
+- Repair validation: `node scripts/check-repository-topology.mjs` passed all
+  five checks, including `angular-reachability`; `npm run test:accessibility
+  --workspace mercurion_web_ng` passed all 6 ChromeHeadless tests; and
+  `git diff --check` passed.
+
 ### Rollback
 _Not applicable._
 

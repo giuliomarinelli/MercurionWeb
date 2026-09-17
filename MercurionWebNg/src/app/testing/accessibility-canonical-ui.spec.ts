@@ -22,7 +22,7 @@ import {
   blockingViolations,
   formatAxeViolations,
   runAxe,
-} from './accessibility-test.helpers';
+} from './accessibility-test.helpers.spec';
 
 interface SelectItem {
   id: string;
