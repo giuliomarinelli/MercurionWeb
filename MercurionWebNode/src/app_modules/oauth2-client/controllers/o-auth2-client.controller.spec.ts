@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { OAuth2ClientController } from './o-auth2-client.controller';
 import { OAuth2ClientService } from '../services/oauth2-client.service';
 import { LoggerPort } from 'src/logging/logger.port';
+import { OAuthStateService } from '../services/oauth-state.service';
 
 describe('OAuth2ClientController', () => {
   let controller: OAuth2ClientController;
@@ -12,6 +13,7 @@ describe('OAuth2ClientController', () => {
       providers: [
         { provide: OAuth2ClientService, useValue: { getAuthorizationUrl: jest.fn(), handleCallback: jest.fn() } },
         { provide: LoggerPort, useValue: { forContext: jest.fn().mockReturnValue({ log: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() }) } },
+        { provide: OAuthStateService, useValue: { consume: jest.fn() } },
       ],
     }).compile();
 

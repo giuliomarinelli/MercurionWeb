@@ -204,7 +204,9 @@ export const redisKeys = {
         accessToken: (provider: string, userId?: string) =>
             key(`access_token:${provider}${userId ? `:${userId}` : ''}`),
         refreshLock: (provider: string, userId?: string) =>
-            key(`oauth2:refresh_lock:${provider}:${userId ?? '__global__'}`)
+            key(`oauth2:refresh_lock:${provider}:${userId ?? '__global__'}`),
+        state: (provider: string, hashedState: string) =>
+            key(`oauth2:state:${provider}:${hashedState}`)
     },
     sso: {
         state: (provider: string, hashedState: string) =>

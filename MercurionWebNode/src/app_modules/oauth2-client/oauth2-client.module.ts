@@ -6,6 +6,7 @@ import { OAuth2TokenEntity } from './models/entities/oauth2-token.entity';
 import { OAuth2ClientController } from './controllers/o-auth2-client.controller';
 import { OAuth2AccessTokenRefreshService } from './services/access-token-refresh.service';
 import { ExternalHttpModule } from 'src/infrastructure/external-http/external-http.module'
+import { OAuthStateService } from './services/oauth-state.service'
 
 @Global()
 @Module({
@@ -13,8 +14,8 @@ import { ExternalHttpModule } from 'src/infrastructure/external-http/external-ht
         TypeOrmModule.forFeature([OAuth2TokenEntity]),
         ExternalHttpModule,
     ],
-    providers: [OAuth2PersistenceService, OAuth2ClientService, OAuth2AccessTokenRefreshService],
+    providers: [OAuth2PersistenceService, OAuth2ClientService, OAuth2AccessTokenRefreshService, OAuthStateService],
     controllers: [OAuth2ClientController],
-    exports: [OAuth2AccessTokenRefreshService, OAuth2ClientService]
+    exports: [OAuth2AccessTokenRefreshService, OAuth2ClientService, OAuthStateService]
 })
 export class OAuth2ClientModule { }

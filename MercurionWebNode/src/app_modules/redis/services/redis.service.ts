@@ -59,6 +59,17 @@ export class RedisService implements OnModuleDestroy {
     return this.redisClient.get(key)
   }
 
+  public async getAndDelete(key: RedisKey): Promise<string | null> {
+    const script = `
+      local value = redis.call('GET', KEYS[1])
+      if value then
+        redis.call('DEL', KEYS[1])
+      end
+      return value
+    `
+    return this.eval<string | null>(script, [key])
+  }
+
   public async del(key: RedisKey): Promise<number> {
     return this.redisClient.del(key)
   }
