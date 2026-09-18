@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Configure one repository-owned dependency-update automation with explicit ecosystem coverage, SemVer/grouping policy, maintainer ownership and security-update windows so compatible updates open fully verified pull requests instead of accumulating reactively.
@@ -97,6 +97,10 @@ Mark `BLOCKED` if no eligible maintainer/security owner exists, routine cadence 
 Optimize for reviewable risk units, not the smallest possible PR count. The update policy should make absence of coverage and stale exceptions visible just as clearly as available upgrades.
 
 ## Execution notes
+
+> Recovery update (2026-09-18): the dependency skip below is historical and
+> stale. The task is reopened as pending; it remains dependency-waiting until
+> `0219` (`QA-033`) is `DONE`.
 
 ### Feature branch
 _Not started._

@@ -10,12 +10,10 @@ The model is intentionally strict:
 - full CI-parity preflight **before** implementation;
 - full CI-parity validation again before integration;
 - wait for GitHub Actions on the exact feature SHA before integration;
-- one approved, green pull request merged with an explicit merge commit into
-  protected `develop`;
+- one explicit `--no-ff --no-gpg-sign` merge commit into `develop`;
 - wait for GitHub Actions on that exact merge SHA;
 - success => delete the feature branch;
-- post-merge CI non-success => revert through an urgent protected pull request,
-  mark `REVERTED` through metadata PR, preserve the feature branch;
+- post-merge CI non-success => revert the merge, mark `REVERTED`, preserve the feature branch;
 - pre-merge failure/stop condition => mark `BLOCKED`, preserve the feature branch;
 - one dependency snapshot before selection: pending prerequisites are transient
   `WAITING_DEPENDENCY`, while every descendant of a terminal hard blocker is
@@ -68,7 +66,7 @@ node docs/autonomous-development/tools/validate-cli-runner.mjs
 
 The check validates Series ranges/registries, reserved active/deferred task identities, Source mappings, state markers, required active-recipe sections, and exact dependency filenames. Numeric gaps are valid and are skipped by the planner; an explicit hard dependency on an absent active recipe is still invalid.
 
-`RECIPE-AUDIT.md` records the reviewed inconsistencies, corrections and the intentional protected-branch lifecycle transition at task `0218`.
+`RECIPE-AUDIT.md` records the reviewed inconsistencies, corrections and the owner-approved manual dual-CI integration lifecycle at task `0218`.
 
 ## Model profile
 
@@ -246,18 +244,18 @@ wait adaptive CI for exact feature SHA
    ↙                     ↘
 PASS                 NON-SUCCESS
  ↓                       ↓
- open/update protected task PR
+--no-ff --no-gpg-sign merge to develop
                     mark task BLOCKED
                     freeze feature branch
                     never merge it
     ↓
-independent approval + Required gate + merge commit
+push develop
     ↓
 wait CI for exact merge SHA
    ↙                     ↘
 PASS                 NON-SUCCESS
  ↓                       ↓
-delete branch      urgent revert branch + protected PR
+delete branch      revert merge on develop
 next task          mark task REVERTED
                    preserve feature branch
                    rebuild dependency snapshot

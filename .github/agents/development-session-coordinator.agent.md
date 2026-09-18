@@ -143,15 +143,10 @@ For each selected `READY` task, serially:
    its narrow correction, push, and wait for the new exact feature SHA. Repeat
    up to `feature_ci_repair.max_attempts`; only then apply `BLOCKED`. An
    uncorrelated/unverifiable result may fail closed without speculative edits;
-8. only after exact feature-SHA CI succeeds, open or update the task pull
-   request to `develop`. If the base moved, merge current `develop` into the
-   feature branch with `--no-ff --no-gpg-sign`, rerun affected validation and
-   exact feature-SHA CI, then require `Required gate`, resolved conversations,
-   and one eligible independent approval. Merge with GitHub's merge-commit
-   method; never push directly to `develop`;
-9. wait for the GitHub Actions result associated with the exact resulting
-   `develop` merge SHA;
-10. apply the success or failure lifecycle from `PROTOCOL.md` completely
+8. only after exact feature-SHA CI succeeds, perform the no-fast-forward merge
+   with `--no-gpg-sign`, push `develop`, and wait for the GitHub Actions
+   result associated with the exact merge SHA;
+9. apply the success or failure lifecycle from `PROTOCOL.md` completely
    before selecting anything else.
 
 If an otherwise successful worker result contains
@@ -201,14 +196,7 @@ feature-CI failure is always `CI_REPAIR_PENDING`, never `BLOCKED`. The permanent
 CI workflow must already exist; its absence enters `SESSION_RECOVERY_PENDING`,
 not a task outcome or an early session-completion condition.
 
-If merge CI does not succeed or cannot be verified, freeze the feature branch
-locally and remotely at its final pushed SHA. Create a uniquely named revert
-branch from current `develop`, revert the merge there with mainline parent 1
-and `--no-gpg-sign`, open an urgent PR, and require the same protected checks
-and independent approval before merge. Verify the resulting `develop` tree and
-exact CI, then record only `REVERTED` through a separate metadata PR and wait
-for that exact merge-SHA CI too. Never push a revert directly to `develop` or
-grant the runner a ruleset bypass.
+If merge CI does not succeed or cannot be verified, freeze the feature branch locally and remotely at its final pushed SHA, revert the merge with mainline parent 1 and `--no-gpg-sign`, verify the revert tree equals the pre-merge `develop` tree, push and wait for the exact revert CI, then record only `REVERTED` in a separate metadata-only commit made with `--no-gpg-sign` and wait for that exact CI too. Record whether the cause was a confirmed regression, infrastructure failure, cancellation/timeout, or unverified result. Never merge `develop` into, commit/amend, reset/rebase, advance, or delete the frozen branch.
 
 After a `BLOCKED` or `REVERTED` metadata commit is green, rebuild the
 dependency snapshot. Materialize every newly affected configured pending
@@ -238,9 +226,7 @@ completion:
 1. stop only runtime processes that this session started;
 2. verify and record the final local/remote `develop` SHA, clean-tree state, and exact CI health;
 3. create the required report under `docs/autonomous-development/reports/` using `0000-session-report-template.md`, with separate counts/evidence for `DONE`, `BLOCKED`, `REVERTED`, `SKIPPED_DEPENDENCY`, and pending tasks, plus CI classification counts, runner jobs started/avoided, CI wait time, task wall time, pushes, and retries when observable;
-4. commit with `--no-gpg-sign`, push a metadata branch, and integrate the report
-   through the protected PR lifecycle, then wait for the report merge SHA's
-   exact CI result when a workflow exists;
+4. commit with `--no-gpg-sign` and push the report as a metadata-only `develop` commit, then wait for that report commit's exact CI result when a workflow exists;
 5. emit the concise final summary and report path, then call `task_complete` as the final Autopilot action; after `task_complete`, produce no further prose or tool calls.
 
 No error or blocker completes the coordinator objective before the soft
