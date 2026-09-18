@@ -474,12 +474,12 @@ jobs:
         with:
           image: mercurion-ci-nest-production
           format: cyclonedx-json
-          output-file: reports/containers/nest-production/nest-production.sbom.json
+          output-file: nest-production.sbom.json
           upload-artifact: false
 
       - name: Verify Nest production image inventory, SBOM and vulnerability scan
         if: ${{ matrix.name == 'nest-production' }}
-        run: node scripts/check-production-container.mjs --image "mercurion-ci-${{ matrix.name }}" --report-dir "reports/containers/${{ matrix.name }}" --sbom-path "reports/containers/${{ matrix.name }}/nest-production.sbom.json"
+        run: node scripts/check-production-container.mjs --image "mercurion-ci-${{ matrix.name }}" --report-dir "reports/containers/${{ matrix.name }}" --sbom-path "nest-production.sbom.json"
 
       - name: Upload container inventory and supply-chain diagnostics
         if: ${{ always() && matrix.name == 'nest-production' }}
