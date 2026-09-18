@@ -107,6 +107,7 @@ const runtimeInventory = JSON.parse(run('docker', [
 await mkdir(reportDirectory, { recursive: true });
 const sbomPath = resolve(reportDirectory, 'nest-production.sbom.json');
 const vulnerabilityPath = resolve(reportDirectory, 'nest-production.vulnerability.sarif');
+const scannerVulnerabilityPath = resolve(reportDirectory, 'nest-production.vulnerability.raw.sarif');
 const sbomResult = suppliedSbomPath
  ? { output: await readFile(suppliedSbomPath, 'utf8'), fallback: false, scanner: 'anchore-sbom-action' }
  : { ...runWithFallback('image SBOM generation', [
@@ -147,10 +148,13 @@ const vulnerabilityResult = runWithFallback('image vulnerability scanning', [
    '-v', `${dirname(vulnerabilityPath)}:/output`,
    'aquasec/trivy:0.58.2',
    'image', '--image-src', 'docker', '--format', 'sarif',
-   '--output', `/output/${vulnerabilityPath.split(/[\\/]/).pop()}`, image,
+   '--output', `/output/${scannerVulnerabilityPath.split(/[\\/]/).pop()}`, image,
  ]],
 ]);
-const vulnerability = JSON.parse(await readFile(vulnerabilityPath, 'utf8'));
+const vulnerability = JSON.parse(await readFile(
+ vulnerabilityResult.fallback ? scannerVulnerabilityPath : vulnerabilityPath,
+ 'utf8',
+));
 vulnerability.properties ??= {};
 vulnerability.properties.imageDigest = digest;
 vulnerability.properties.scanner = vulnerabilityResult.fallback
