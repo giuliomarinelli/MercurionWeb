@@ -1,6 +1,6 @@
 # 0218 - Protect develop with required PR and CI policy
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -197,3 +197,30 @@ protected PR lifecycle. The authorized operator must then configure and
 read back the develop PR/review/`Required gate` protection without granting a
 normal runner or bot a bypass. Until those prerequisites exist, do not enable
 partial protection and do not use a direct push or fake required check.
+
+### Manual AI-assisted recovery (2026-09-18)
+
+- The repository owner authorized manual recovery, and collaborator
+  `stefanone91` was confirmed with `write` permission as an eligible independent
+  reviewer.
+- Merged current green `develop` into `feature/QA-032` with an explicit
+  no-fast-forward, unsigned merge before continuing the preserved branch.
+- Updated the autonomous lifecycle to use protected task PRs and protected
+  revert PRs, added a fail-closed repository-policy verifier, and added its
+  scheduled/manual GitHub Actions workflow.
+- Created and read back active repository ruleset `23653359` (`Protect
+  develop`) for `develop`: pull requests only, one approval, stale-approval
+  dismissal, last-push approval, resolved conversations, strict required
+  `Required gate`, merge commits only, deletion and non-fast-forward changes
+  blocked, and no bypass actors.
+- `node scripts/check-develop-protection.mjs` passed against the effective
+  GitHub configuration.
+- Opened protected PR #41 from `feature/QA-032` to `develop`, requested review
+  from `stefanone91`, and enabled merge-commit auto-merge without administrator
+  bypass. An attempted merge before approval was rejected by GitHub as
+  required.
+- Exact feature-SHA `Required gate` checks passed before this final metadata
+  update. This update intentionally starts a fresh exact-SHA check; PR #41
+  remains unable to merge until both that check and the independent approval
+  succeed. The exact merge SHA must then receive successful post-merge CI
+  before this outcome is final and the feature branch may be deleted.
