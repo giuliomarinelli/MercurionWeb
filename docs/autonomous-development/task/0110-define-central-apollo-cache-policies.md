@@ -1,7 +1,7 @@
 # 0110 - Define central Apollo cache and mutation-update policies
 
-- [ ] DONE
-- [x] BLOCKED
+- [x] DONE
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -194,7 +194,23 @@ three repair attempts; preserve the feature branch for human diagnosis.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-The repository-controlled Angular coverage gate remains below its approved
-QA-012 branch floor by `0.34375` percentage points after the repair budget was
-exhausted. Human-authorized follow-up is required before integration; do not
-weaken the threshold or merge the branch without restoring the gate.
+None. Manual recovery merged current green `develop` into the preserved branch
+without rewriting history and exercised the previously uncovered default
+`beginAuthentication()` argument in the existing login-completion test. This
+raises the file branch coverage above the unchanged QA-012 floor without
+weakening policy. The two full local-suite failures are the pre-existing
+Windows Chrome 152 color-contrast observations in
+`accessibility-canonical-ui.spec.ts`; exact feature-SHA CI remains the
+cross-platform integration authority.
+
+### Manual recovery 2026-09-18
+
+- Preserved implementation SHA `9eb9f34dcd66763f7dfd0d80be03366dfbd664d6`
+  and merged green `develop` SHA
+  `bbc5408fdda62826fc85a31ff88467fe394266bc`.
+- The focused auth-store suite passed all 26 tests. Full local coverage ran all
+  509 tests; 507 passed and the two unrelated Windows contrast observations
+  were recorded without changing UI code or thresholds.
+- The added default-argument path changes the auth-store branch numerator from
+  93/128 (`72.65625%`) to at least 94/128 (`73.4375%`), above the retained 73%
+  floor; exact feature CI will recompute this on the clean Linux runner.
