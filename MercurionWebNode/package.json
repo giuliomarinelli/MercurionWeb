@@ -75,7 +75,7 @@
     "fastify-plugin": "5.1.0",
     "formidable": "3.5.4",
     "geoip-lite": "2.0.3",
-    "graphql": "16.11.0",
+    "graphql": "17.0.2",
     "graphql-fields": "2.0.3",
     "graphql-type-json": "0.3.2",
     "hi-base32": "0.5.1",
