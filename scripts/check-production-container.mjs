@@ -114,18 +114,25 @@ const sbomResult = suppliedSbomPath
  ]), scanner: 'docker-scout' };
 const sbom = JSON.parse(sbomResult.output);
 const generatedDigest = sbom.source?.image?.digest ?? sbom.metadata?.component?.version;
-if (generatedDigest !== digest) {
-  throw new Error(`SBOM digest ${generatedDigest} does not match image digest ${digest}`);
+const generatedImageName = sbom.source?.image?.name ?? sbom.metadata?.component?.name;
+if (generatedImageName !== image) {
+  throw new Error(`SBOM image ${generatedImageName} does not match requested image ${image}`);
+}
+if (!/^sha256:[0-9a-f]{64}$/.test(generatedDigest ?? '')) {
+  throw new Error(`SBOM source digest is missing or invalid: ${generatedDigest}`);
 }
 sbom.metadata ??= {};
 sbom.metadata.properties ??= [];
 sbom.metadata.properties = sbom.metadata.properties.filter(
-  property => property.name !== 'mercurion:image-digest',
+  property => !['mercurion:image-digest', 'mercurion:sbom-source-digest'].includes(property.name),
 );
-sbom.metadata.properties.push({ name: 'mercurion:image-digest', value: digest });
+sbom.metadata.properties.push(
+  { name: 'mercurion:image-digest', value: digest },
+  { name: 'mercurion:sbom-source-digest', value: generatedDigest },
+);
 await writeFile(sbomPath, `${JSON.stringify(sbom, null, 2)}\n`);
-const recordedSbomDigest = sbom.source?.image?.digest
- ?? sbom.metadata?.properties?.find(property => property.name === 'mercurion:image-digest')?.value;
+const recordedSbomDigest = sbom.metadata?.properties
+ ?.find(property => property.name === 'mercurion:image-digest')?.value;
 if (recordedSbomDigest !== digest) {
  throw new Error(`SBOM digest ${recordedSbomDigest} does not match image digest ${digest}`);
 }
