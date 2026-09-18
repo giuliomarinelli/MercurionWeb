@@ -1,6 +1,6 @@
 # Reusable Nest image targets: production, staging and test.
 
-FROM node:22.16.0-alpine AS dependencies
+FROM node:26.8.2-alpine AS dependencies
 WORKDIR /workspace
 ARG BUILD_REVISION
 ENV BUILD_REVISION=$BUILD_REVISION
@@ -76,7 +76,7 @@ RUN rm -rf node_modules && \
   npm ci --workspace mercurion_web_node --include-workspace-root=false --omit=dev --ignore-scripts && \
   npm rebuild argon2 --omit=dev
 
-FROM node:22.16.0-alpine AS runtime
+FROM node:26.8.2-alpine AS runtime
 WORKDIR /usr/src/app
 RUN addgroup -S -g 10001 mercurion && \
   adduser -S -D -H -u 10001 -G mercurion mercurion && \
