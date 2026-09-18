@@ -1,5 +1,6 @@
 import { ConfigService } from '@nestjs/config';
 import { GitHubProviderClient } from './github-provider-client';
+import { ExternalHttpPort } from 'src/infrastructure/external-http/external-http.port';
 
 describe('GitHubProviderClientService', () => {
   let service: GitHubProviderClient;
@@ -12,7 +13,7 @@ describe('GitHubProviderClientService', () => {
         redirectUri: 'https://example.com/callback',
       }),
     } as unknown as ConfigService;
-    service = new GitHubProviderClient(configService);
+    service = new GitHubProviderClient(configService, {} as ExternalHttpPort);
   });
 
   it('should be defined', () => {

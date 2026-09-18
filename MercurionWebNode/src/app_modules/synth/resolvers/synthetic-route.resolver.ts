@@ -3,19 +3,16 @@ import { AuthenticatedUserId } from "src/metadata/metadata";
 import { UUID } from "crypto";
 import { GraphQLResolveInfo } from 'graphql';
 import { GraphQLUtils } from "src/utils/graphql-utils/graphql-utils";
-import { Synthesis } from "../Models/entities/synthesis.entity";
+import { Synthesis } from "../models/entities/synthesis.entity";
 import { SynthesisService } from "../services/synthesis.service";
-import { SynthesisInput } from "../Models/DTO/synthesis.input";
-import { GeneralUtils } from "src/utils/general-utils/general-utils";
+import { SynthesisInput } from "../models/dto/synthesis.input";
+import { assertMercurionPublicId } from "src/identifiers/mercurion-public-id";
+import { SynthCommandResult } from "../models/dto/synth-command-result";
 
 @Resolver(() => Synthesis)
 export class SyntheticRouteResolver {
 
     constructor(private readonly routeService: SynthesisService) { }
-
-    private ensureUuid(value: string, field: string): void {
-        GeneralUtils.ensureValidUUIDv7(value, `GraphQLInvalid::Invalid ${field}`)
-    }
 
     @Query(() => [Synthesis])
     async mySyntheticRoutes(
@@ -32,7 +29,7 @@ export class SyntheticRouteResolver {
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
     ) {
-        this.ensureUuid(id, 'id')
+        assertMercurionPublicId(id, 'id')
         const fieldsMap = GraphQLUtils.getFieldsMap(info);
         return this.routeService.findOne(id, userId, fieldsMap);
     }
@@ -52,17 +49,17 @@ export class SyntheticRouteResolver {
         @Args('input') input: SynthesisInput,
         @Info() info: GraphQLResolveInfo
     ) {
-        this.ensureUuid(id, 'id')
+        assertMercurionPublicId(id, 'id')
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         return this.routeService.update(id, userId, input, fieldsMap)
     }
 
-    @Mutation(() => Boolean)
+    @Mutation(() => SynthCommandResult)
     async deleteSyntheticRoute(
         @AuthenticatedUserId() userId: UUID,
         @Args('id', { type: () => ID }) id: UUID
     ) {
-        this.ensureUuid(id, 'id')
+        assertMercurionPublicId(id, 'id')
         return this.routeService.delete(id, userId)
     }
 }

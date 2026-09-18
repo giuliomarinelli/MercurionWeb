@@ -161,12 +161,7 @@
         "MercurionWebNg/src/app/services/",
         "MercurionWebNode/src/app_modules/"
       ],
-      "references": [
-        {
-          "file": "MercurionWebNg/src/app/services/account.service.ts",
-          "kind": "angular-source"
-        }
-      ]
+      "references": []
     },
     {
       "method": "GET",
@@ -577,10 +572,27 @@
         "MercurionWebNode/src/test.controller.spec.ts",
         "MercurionWebNode/src/test.controller.ts"
       ],
+      "references": []
+    },
+    {
+      "method": "GET",
+      "path": "/api/version",
+      "controller": "MercurionWebNode/src/app_modules/release-version/controllers/build-identity.controller.ts",
+      "handler": "getBuildIdentity",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/account.service.ts",
+        "MercurionWebNode/src/app_modules/release-version/controllers/build-identity.controller.ts"
+      ],
       "references": [
         {
-          "file": "MercurionWebNode/test/app.e2e-spec.ts",
-          "kind": "test"
+          "file": "MercurionWebNg/src/app/services/account.service.ts",
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNode/src/contracts/contract-versioning-http.ts",
+          "kind": "server-source"
         }
       ]
     },
@@ -607,6 +619,10 @@
         {
           "file": "MercurionWebNode/src/health.controller.spec.ts",
           "kind": "server-source"
+        },
+        {
+          "file": "MercurionWebNode/test/e2e-application.fixture.ts",
+          "kind": "test"
         },
         {
           "file": "docker_sl/nginx_dev/nginx.conf",
@@ -1227,13 +1243,14 @@
     },
     {
       "method": "POST",
-      "path": "/api/documents",
+      "path": "/api/documents/upload",
       "controller": "MercurionWebNode/src/app_modules/dropbox-object-store/controllers/document.controller.ts",
       "handler": "upload",
-      "classification": "temporarily disabled endpoint",
-      "owner": "Document API implementation backlog",
+      "classification": "active product feature",
+      "owner": "Document upload application service",
       "evidence": [
-        "Human decision 2026-09-05: currently unused; the controller returns an empty HTTP 403 response until implementation."
+        "MercurionWebNode/src/app_modules/dropbox-object-store/controllers/document.controller.ts",
+        "MercurionWebNode/src/app_modules/dropbox-object-store/services/dropbox-object-store.service.ts"
       ],
       "references": [
         {

@@ -1,5 +1,5 @@
 import { Controller, Get } from '@nestjs/common';
-import { ConfirmDTO } from './Models/confirm-responses.dto';
+import { ConfirmDTO } from './models/confirm-responses.dto';
 import { ResponseService } from './services/response.service';
 
 

@@ -5,12 +5,12 @@ import type { GeoLocation } from '../services/geo-ip.service'
 import type {
     ISession,
     ISSO_SessionActivationData
-} from '../Models/interfaces/i-session.interface'
-import type { SessionFetchOptions } from '../Models/interfaces/session-fetch-options.interface'
+} from '../models/interfaces/i-session.interface'
+import type { SessionFetchOptions } from '../models/interfaces/session-fetch-options.interface'
 import type {
     PersistSessionOptions,
     SessionRepository
-} from '../Models/interfaces/session-repository.interface'
+} from '../models/interfaces/session-repository.interface'
 import { SessionRedisCodec } from './session-redis.codec'
 import {
     redisDurations,
@@ -27,48 +27,17 @@ export class RedisSessionRepository implements SessionRepository {
         private readonly codec: SessionRedisCodec
     ) { }
 
-    private sessionKey(sessionId: string, userId: string) {
-        return redisKeys.session.record(sessionId, userId)
-    }
-
-    private sessionPattern(sessionId: string) {
-        return redisKeys.session.recordsBySession(sessionId)
+    private sessionKey(sessionId: string) {
+        return redisKeys.session.record(sessionId)
     }
 
     private userSessionsKey(userId: string) {
         return redisKeys.session.userIndex(userId)
     }
 
-    private userIdFromSessionKey(key: string): string | undefined {
-        const parts = key.split(':')
-        return parts.length === 3 ? parts[2] : undefined
-    }
-
-    private async findSessionKey(
-        sessionId: string,
-        userId?: string
-    ): Promise<ReturnType<typeof redisKeys.session.record> | undefined> {
-        if (userId) {
-            return this.sessionKey(sessionId, userId)
-        }
-        const [key] = await this.redisService.scanIterate(this.sessionPattern(sessionId))
-        return key
-    }
-
-    private async findUserIdInSessionIndexes(sessionId: string): Promise<string | undefined> {
-        const keys = await this.redisService.scanIterate(redisKeys.session.allUserIndexes())
-        for (const key of keys) {
-            if (await this.redisService.sismember(key, sessionId)) {
-                return key.split(':')[1]
-            }
-        }
-        return undefined
-    }
-
-    private async deleteKey(
-        key: ReturnType<typeof redisKeys.session.record>
-    ): Promise<void> {
-        await this.redisService.unlink(key)
+    private async findSessionOwner(sessionId: string): Promise<string | undefined> {
+        const owner = await this.redisService.get(redisKeys.session.owner(sessionId))
+        return owner ?? undefined
     }
 
     public async getActivatedSessionIds(userId: UUID): Promise<string[]> {
@@ -79,13 +48,63 @@ export class RedisSessionRepository implements SessionRepository {
         session: ISession,
         options: PersistSessionOptions
     ): Promise<void> {
-        const key = this.sessionKey(session.sessionId, session.userId)
         const record = this.codec.encode(session, options.longTerm)
-        for (const [field, value] of Object.entries(record)) {
-            await this.redisService.hset(key, field, value)
+        const fields = Object.entries(record).flat()
+        const script = `
+            local previous = redis.call('GET', KEYS[4])
+            if previous and previous ~= ARGV[1] then
+                local previousOwner = redis.call('GET', 'session_owner:' .. previous)
+                if previousOwner then
+                    redis.call('SREM', 'user_sessions:' .. previousOwner, previous)
+                end
+                redis.call('DEL', 'session:' .. previous, 'session_owner:' .. previous,
+                    'session_tokens:' .. previous)
+            end
+            redis.call('HSET', KEYS[1], unpack(ARGV, 5, 4 + (2 * tonumber(ARGV[3]))))
+            redis.call('EXPIRE', KEYS[1], ARGV[2])
+            redis.call('SET', KEYS[2], ARGV[4], 'EX', ARGV[2])
+            redis.call('SADD', KEYS[3], ARGV[1])
+            local userIndexTtl = redis.call('TTL', KEYS[3])
+            if userIndexTtl < tonumber(ARGV[2]) then
+                redis.call('EXPIRE', KEYS[3], ARGV[2])
+            end
+            redis.call('SET', KEYS[4], ARGV[1], 'EX', ARGV[2])
+            return 1
+        `
+        const args = [
+            session.sessionId,
+            String(options.ttlSeconds),
+            String(fields.length / 2),
+            session.userId,
+            ...fields
+        ]
+        if (typeof this.redisService.eval === 'function') {
+            await this.redisService.eval(script, [
+                this.sessionKey(session.sessionId),
+                redisKeys.session.owner(session.sessionId),
+                this.userSessionsKey(session.userId),
+                redisKeys.session.deviceIndex(session.userId, session.deviceId)
+            ], args)
+            return
         }
-        await this.redisService.setTTL(key, redisDurations.seconds(options.ttlSeconds))
+        for (const [field, value] of Object.entries(record)) {
+            await this.redisService.hset(this.sessionKey(session.sessionId), field, value)
+        }
+        await this.redisService.setTTL(
+            this.sessionKey(session.sessionId),
+            redisDurations.seconds(options.ttlSeconds)
+        )
+        await this.redisService.set(
+            redisKeys.session.owner(session.sessionId),
+            session.userId,
+            redisDurations.seconds(options.ttlSeconds)
+        )
         await this.redisService.sadd(this.userSessionsKey(session.userId), session.sessionId)
+        await this.redisService.set(
+            redisKeys.session.deviceIndex(session.userId, session.deviceId),
+            session.sessionId,
+            redisDurations.seconds(options.ttlSeconds)
+        )
     }
 
     public async activateSession(
@@ -93,26 +112,35 @@ export class RedisSessionRepository implements SessionRepository {
         userId: string,
         activationData?: ISSO_SessionActivationData
     ): Promise<void> {
-        const key = this.sessionKey(sessionId, userId)
-        await this.redisService.hset(key, 'valid', 'true')
-        if (!activationData) {
-            return
+        const key = this.sessionKey(sessionId)
+        const fields = activationData
+            ? [
+                'valid', 'true',
+                'IP', activationData.IP,
+                'deviceId', activationData.deviceId,
+                'fingerprint', activationData.fingerprint,
+                'location', activationData.location,
+                'sessionDeviceInfo', JSON.stringify(activationData.sessionDeviceInfo)
+            ]
+            : ['valid', 'true']
+        const script = `
+            if redis.call('EXISTS', KEYS[1]) == 0 then return 0 end
+            redis.call('HSET', KEYS[1], unpack(ARGV))
+            return 1
+        `
+        if (typeof this.redisService.eval === 'function') {
+            await this.redisService.eval(script, [key], fields)
+        } else {
+            for (let index = 0; index < fields.length; index += 2) {
+                await this.redisService.hset(key, fields[index], fields[index + 1])
+            }
         }
-
-        await this.redisService.hset(key, 'IP', activationData.IP)
-        await this.redisService.hset(key, 'deviceId', activationData.deviceId)
-        await this.redisService.hset(key, 'fingerprint', activationData.fingerprint)
-        await this.redisService.hset(key, 'location', activationData.location)
-        await this.redisService.hset(
-            key,
-            'sessionDeviceInfo',
-            JSON.stringify(activationData.sessionDeviceInfo)
-        )
     }
 
     public async isSessionLongTerm(sessionId: UUID, userId: UUID): Promise<boolean> {
+        void userId
         const value = await this.redisService.hget(
-            this.sessionKey(sessionId, userId),
+            this.sessionKey(sessionId),
             'longTerm'
         )
         return value === 'true'
@@ -122,10 +150,22 @@ export class RedisSessionRepository implements SessionRepository {
         userId: string,
         options?: SessionFetchOptions
     ): Promise<ISession[]> {
-        const keys = await this.redisService.scanIterate(redisKeys.session.recordsByUser(userId))
-        const sessions = (await Promise.all(keys.map(async key =>
-            this.codec.decode(await this.redisService.hgetall(key))
-        ))).filter((session): session is ISession => session !== null)
+        const sessionIds = await this.redisService.smembers(this.userSessionsKey(userId))
+        const decoded = await Promise.all(sessionIds.map(async sessionId => ({
+            sessionId,
+            session: this.codec.decode(
+                await this.redisService.hgetall(this.sessionKey(sessionId))
+            )
+        })))
+        const staleIds = decoded
+            .filter(({ session }) => session === null)
+            .map(({ sessionId }) => sessionId)
+        await Promise.all(staleIds.map(sessionId =>
+            this.redisService.srem(this.userSessionsKey(userId), sessionId)
+        ))
+        const sessions = decoded
+            .map(({ session }) => session)
+            .filter((session): session is ISession => session !== null)
 
         return options?.onlyValid
             ? sessions.filter(session => session.valid)
@@ -133,19 +173,24 @@ export class RedisSessionRepository implements SessionRepository {
     }
 
     public async findSessionIdsByUserId(userId: string): Promise<string[]> {
-        const keys = await this.redisService.scanIterate(redisKeys.session.recordsByUser(userId))
-        return keys.flatMap(key => {
-            const parts = key.split(':')
-            return parts.length === 3 ? [parts[1]] : []
-        })
+        const sessionIds = await this.redisService.smembers(this.userSessionsKey(userId))
+        const existing = await Promise.all(sessionIds.map(async sessionId => ({
+            sessionId,
+            exists: await this.redisService.exists(this.sessionKey(sessionId))
+        })))
+        const staleIds = existing.filter(({ exists }) => !exists)
+        await Promise.all(staleIds.map(({ sessionId }) =>
+            this.redisService.srem(this.userSessionsKey(userId), sessionId)
+        ))
+        return existing.filter(({ exists }) => exists).map(({ sessionId }) => sessionId)
     }
 
     public async findSession(sessionId: string, userId?: string): Promise<ISession | null> {
-        const key = await this.findSessionKey(sessionId, userId)
-        if (!key) {
+        const owner = userId ?? await this.findSessionOwner(sessionId)
+        if (!owner) {
             return null
         }
-        return this.codec.decode(await this.redisService.hgetall(key))
+        return this.codec.decode(await this.redisService.hgetall(this.sessionKey(sessionId)))
     }
 
     public async resolveSessionOwner(
@@ -156,19 +201,11 @@ export class RedisSessionRepository implements SessionRepository {
             return userId
         }
 
-        const key = await this.findSessionKey(sessionId)
-        if (key) {
-            return this.userIdFromSessionKey(key)
-        }
-        return this.findUserIdInSessionIndexes(sessionId)
+        return this.findSessionOwner(sessionId)
     }
 
     public async sessionExists(sessionId: string): Promise<boolean> {
-        const key = await this.findSessionKey(sessionId)
-        if (!key) {
-            return false
-        }
-        const value = await this.redisService.hget(key, 'sessionId')
+        const value = await this.redisService.hget(this.sessionKey(sessionId), 'sessionId')
         return value !== null && value !== undefined
     }
 
@@ -177,31 +214,75 @@ export class RedisSessionRepository implements SessionRepository {
         shortSessionTtl: number,
         userId?: string
     ): Promise<void> {
-        const key = await this.findSessionKey(sessionId, userId)
-        if (!key) {
+        const owner = userId ?? await this.findSessionOwner(sessionId)
+        if (!owner) {
             return
         }
-
-        await this.redisService.hset(key, 'lastAccessedAt', Date.now().toString())
-        const longTerm = await this.redisService.hget(key, 'longTerm')
-        if (longTerm !== 'true') {
-            await this.redisService.setTTL(key, redisDurations.seconds(shortSessionTtl))
+        const key = this.sessionKey(sessionId)
+        const script = `
+            if redis.call('EXISTS', KEYS[1]) == 0 then return 0 end
+            redis.call('HSET', KEYS[1], 'lastAccessedAt', ARGV[1])
+            if redis.call('HGET', KEYS[1], 'longTerm') ~= 'true' then
+                redis.call('EXPIRE', KEYS[1], ARGV[2])
+                redis.call('EXPIRE', KEYS[2], ARGV[2])
+                local userIndexTtl = redis.call('TTL', KEYS[3])
+                if userIndexTtl < tonumber(ARGV[2]) then
+                    redis.call('EXPIRE', KEYS[3], ARGV[2])
+                end
+            end
+            return 1
+        `
+        if (typeof this.redisService.eval === 'function') {
+            await this.redisService.eval(script, [
+                key,
+                redisKeys.session.owner(sessionId),
+                this.userSessionsKey(owner)
+            ], [Date.now().toString(), String(shortSessionTtl)])
+        } else {
+            await this.redisService.hset(key, 'lastAccessedAt', Date.now().toString())
+            if (await this.redisService.hget(key, 'longTerm') !== 'true') {
+                await this.redisService.setTTL(key, redisDurations.seconds(shortSessionTtl))
+            }
         }
     }
 
     public async invalidateSession(sessionId: string, userId?: string): Promise<void> {
-        const key = await this.findSessionKey(sessionId, userId)
-        if (!key) {
-            return
+        void userId
+        const script = `
+            if redis.call('EXISTS', KEYS[1]) == 0 then return 0 end
+            redis.call('HSET', KEYS[1], 'valid', 'false')
+            return 1
+        `
+        if (typeof this.redisService.eval === 'function') {
+            await this.redisService.eval(script, [this.sessionKey(sessionId)], [])
+        } else {
+            await this.redisService.hset(this.sessionKey(sessionId), 'valid', 'false')
         }
-        await this.redisService.hset(key, 'valid', 'false')
     }
 
     public async deleteSessionByOwner(sessionId: string, userId: string): Promise<void> {
-        const key = this.sessionKey(sessionId, userId)
-        await this.redisService.srem(this.userSessionsKey(userId), sessionId)
-        if (await this.redisService.hget(key, 'sessionId')) {
-            await this.deleteKey(key)
+        const script = `
+            local device = redis.call('HGET', KEYS[1], 'deviceId')
+            redis.call('SREM', KEYS[2], ARGV[1])
+            redis.call('DEL', KEYS[1], KEYS[3], KEYS[4])
+            if device then
+                local deviceKey = 'session_device:' .. ARGV[2] .. ':' .. device
+                if redis.call('GET', deviceKey) == ARGV[1] then
+                    redis.call('DEL', deviceKey)
+                end
+            end
+            return 1
+        `
+        if (typeof this.redisService.eval === 'function') {
+            await this.redisService.eval(script, [
+                this.sessionKey(sessionId),
+                this.userSessionsKey(userId),
+                redisKeys.session.owner(sessionId),
+                redisKeys.session.tokenIndex(sessionId)
+            ], [sessionId, userId])
+        } else {
+            await this.redisService.srem(this.userSessionsKey(userId), sessionId)
+            await this.redisService.unlink(this.sessionKey(sessionId))
         }
     }
 
@@ -210,16 +291,8 @@ export class RedisSessionRepository implements SessionRepository {
     }
 
     private async issuedTokenTtl(jti: string, sessionId?: string): Promise<number | null> {
-        let key: ReturnType<typeof redisKeys.token.issued> | undefined
-        if (sessionId) {
-            key = redisKeys.token.issued(sessionId, jti)
-        } else {
-            [key] = await this.redisService.scanIterate(redisKeys.token.issuedByJti(jti))
-        }
-        if (!key) {
-            return null
-        }
-
+        void sessionId
+        const key = redisKeys.token.issuedByJti(jti)
         const ttl = await this.redisService.ttl(key)
         return ttl >= 0 ? ttl : null
     }
@@ -229,11 +302,25 @@ export class RedisSessionRepository implements SessionRepository {
         jti: string,
         ttlSeconds: number
     ): Promise<void> {
-        await this.redisService.set(
-            redisKeys.token.issued(sessionId, jti),
-            '1',
-            redisDurations.seconds(ttlSeconds)
-        )
+        const script = `
+            redis.call('SET', KEYS[1], ARGV[1], 'EX', ARGV[2])
+            redis.call('SADD', KEYS[2], ARGV[3])
+            redis.call('EXPIRE', KEYS[2], ARGV[2])
+            return 1
+        `
+        if (typeof this.redisService.eval === 'function') {
+            await this.redisService.eval(script, [
+                redisKeys.token.issuedByJti(jti),
+                redisKeys.session.tokenIndex(sessionId)
+            ], ['1', String(ttlSeconds), jti])
+        } else {
+            await this.redisService.set(
+                redisKeys.token.issuedByJti(jti),
+                '1',
+                redisDurations.seconds(ttlSeconds)
+            )
+            await this.redisService.sadd(redisKeys.session.tokenIndex(sessionId), jti)
+        }
     }
 
     public async revokeToken(jti: string, sessionId?: string): Promise<void> {
@@ -253,10 +340,7 @@ export class RedisSessionRepository implements SessionRepository {
     }
 
     public async findIssuedJtis(sessionId: string): Promise<string[]> {
-        const keys = await this.redisService.scanKeysByPattern(
-            redisKeys.token.issuedBySession(sessionId)
-        )
-        return keys.map(key => key.split(':')[2])
+        return this.redisService.smembers(redisKeys.session.tokenIndex(sessionId))
     }
 
     public async getFingerprintWhiteList(userId: UUID): Promise<string[]> {

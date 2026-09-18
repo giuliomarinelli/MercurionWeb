@@ -1,6 +1,6 @@
 # 0179 - Make session Redis operations indexed and atomic
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -58,11 +58,11 @@ Source: `DATA-030` in Series `0001`.
 
 ## Acceptance criteria
 
-- [ ] No normal auth/session request path performs keyspace `SCAN` to locate a session or token.
-- [ ] Session create/activate/refresh/revoke/destroy keep all Redis indexes consistent atomically.
-- [ ] Concurrent same-device/session operations preserve documented invariants.
-- [ ] Expired sessions do not leave unbounded stale secondary indexes.
-- [ ] Real-Redis integration tests cover races and partial-failure scenarios.
+- [x] No normal auth/session request path performs keyspace `SCAN` to locate a session or token.
+- [x] Session create/activate/refresh/revoke/destroy keep all Redis indexes consistent atomically.
+- [x] Concurrent same-device/session operations preserve documented invariants.
+- [x] Expired sessions do not leave unbounded stale secondary indexes.
+- [x] Real-Redis integration tests cover races and partial-failure scenarios.
 
 ## Validation
 
@@ -88,24 +88,63 @@ Favor a direct `session:<sessionId>` primary record plus explicit owner/device i
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-030` was created from `c9e07a8113c96751a227bb0ffa9bbeff7154f008` and
+preserved at `489ff4fa9dbf441546338daae3cdc456e1b6a38e`.
 ### Preflight
 _Not started._
 ### Preflight remediation
 _None._
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0136 (BE-022), which is BLOCKED. Resolved hard dependencies for this recipe: 0136, 0124. This task was never attempted and receives no feature branch.
+Implemented direct session primary, owner, device, and token indexes with Redis
+Lua atomic primitives for session creation/replacement, activation, refresh,
+invalidation, destruction, and token registration. Removed request-path
+session/JTI keyspace scans. The task is blocked because the required
+post-implementation runtime probe could not start Nest: canonical startup
+compiled successfully and connected to Redis, then exited with
+`fastify-plugin: fastify-formidable - expected '4.x' fastify version, '5.12.1'
+is installed`. This baseline/runtime dependency mismatch prevented the required
+browser login/session/logout evidence.
 ### Task-specific validation performed
-_Not started._
+Passed 23 Redis/session/key-contract tests across three suites, Nest
+typecheck, lint, build, and `git diff --check`. Canonical runtime starts were
+issued in Tox21, Nest, Angular order with live handles; all task-owned
+sessions were stopped after Nest bootstrap failed.
 ### Full pre-merge CI-parity validation
-_Not started._
+Not run locally; forbidden by policy. Exact feature-SHA Actions run
+34977410030 passed with the Required gate.
 ### Browser validation performed
-_Not started._
+Not performed because Nest failed during bootstrap before nginx readiness and
+login/session validation.
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+Feature implementation and blocker metadata: `489ff4fa9dbf441546338daae3cdc456e1b6a38e`.
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+Implementation was not merged. Feature CI run 34977410030 passed.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Terminal dependency root: 0136 (BE-022). No feature branch or worker was created for this task.
+Repair the repository-controlled Fastify/formidable compatibility mismatch,
+then rerun the canonical runtime/browser acceptance probe and exact feature-SHA
+CI. The preserved feature branch contains the coherent implementation and
+blocker diagnostic.
+
+### Interactive recovery (2026-09-17)
+- Merged current green `develop` into the preserved feature branch. The later
+  Fastify 5 compatibility adapter removed the original runtime blocker.
+- Consolidated the duplicate Redis `eval` APIs on the typed keys/arguments
+  contract and migrated the atomic-attempt policy and its regression test.
+- Runtime testing against the real development Redis found and fixed an
+  off-by-one Lua argument range that made an atomically created session
+  unreadable, then verified login succeeds with the direct session record.
+- Preserved the longest user-index TTL, made device-index deletion
+  compare-and-delete safe, added bounded stale-index cleanup, and taught the
+  keyspace listener to accept canonical `session:<id>` events.
+- Canonical Tox21, Nest and Angular runtimes reached readiness through
+  `http://localhost:8888`. The same-version browser suite passed 2/2 and now
+  proves ordinary login, the protected settings “Sessioni attive” view,
+  current-session visibility, logout and subsequent protected rejection.
+- Final focused verification passed 30/30 tests across five Redis/session
+  suites, plus Nest typecheck, lint and build.
+- Final feature `1f1d58f4cca6b960b8e5e4f6dcfd5644f01f3ca8` passed exact
+  CI run `35257870848`; merge `24bdc6fcfc1cb71f63ee01085d6d07e94568a986`
+  passed exact CI run `35258693809`. Both runs completed the stable
+  `Required gate` successfully.

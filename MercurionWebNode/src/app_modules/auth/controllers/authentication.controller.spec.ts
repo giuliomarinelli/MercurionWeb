@@ -4,6 +4,7 @@ import {
     NotFoundException,
     UnauthorizedException
 } from '@nestjs/common'
+import { utcNow } from 'src/utils/temporal/temporal'
 
 describe('AuthenticationController', () => {
     const verifyEmail = { execute: jest.fn() }
@@ -20,7 +21,7 @@ describe('AuthenticationController', () => {
         ok: jest.fn((message: string) => ({
             statusCode: 200,
             message,
-            timestamp: 'now'
+            timestamp: utcNow()
         }))
     }
     const secureCookieService = {

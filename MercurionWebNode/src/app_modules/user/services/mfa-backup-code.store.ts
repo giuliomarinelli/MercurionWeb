@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm'
 import type { UUID } from 'crypto'
 import { Repository } from 'typeorm'
 
-import { MfaBackupCode } from '../Models/entities/backup-code.entity'
+import { MfaBackupCode } from '../models/entities/backup-code.entity'
 
 export interface BackupCodeRecord {
   readonly id: UUID

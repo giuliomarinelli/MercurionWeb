@@ -1,10 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ChEMBLMoleculeItemService } from './chembl-molecule-item.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { ChEMBLMoleculeItemEntity } from '../Models/entities/chembl-molecule-item.entity';
-import { MoleculeCollection } from '../Models/entities/molecule-collection.entity';
+import { ChEMBLMoleculeItemEntity } from '../models/entities/chembl-molecule-item.entity';
+import { MoleculeCollection } from '../models/entities/molecule-collection.entity';
 import { MoleculeCollectionItemJoinService } from './molecule-collection-item-join.service';
 import { DataSource } from 'typeorm';
+import { MoleculeOwnershipPolicy } from './molecule-ownership.policy';
 
 describe('ChemblMoleculeItemService', () => {
   let service: ChEMBLMoleculeItemService;
@@ -34,6 +35,7 @@ describe('ChemblMoleculeItemService', () => {
           provide: DataSource,
           useValue: { transaction: jest.fn() },
         },
+        { provide: MoleculeOwnershipPolicy, useValue: { assertCollectionOwned: jest.fn() } },
       ],
     }).compile();
 

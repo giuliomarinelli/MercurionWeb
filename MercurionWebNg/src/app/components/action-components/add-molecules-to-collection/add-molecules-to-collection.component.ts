@@ -1,5 +1,6 @@
 import {
   AfterViewInit,
+  computed,
   Component,
   DestroyRef,
   ElementRef,
@@ -12,7 +13,7 @@ import {
   viewChild
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { AbstractPaginatedMultiselectComponent } from '../../../abstract/abstract-paginated-multiselect-component';
+import { PaginationController } from '../../../services/pagination/pagination-controller';
 import { debounceTime, map, Observable, Subscription } from 'rxjs';
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
 import { MoleculeCollectionItemService } from '../../../services/graphql/molecule-collection-item.service';
@@ -631,7 +632,6 @@ export type { ChipItem } from './add-molecules-to-collection.flow';
 
 })
 export class AddMoleculesToCollectionComponent
-  extends AbstractPaginatedMultiselectComponent<MoleculeCardItemModel>
   implements OnInit, AfterViewInit, OnDestroy {
 
   private readonly actionOverlayContext = inject(ActionOverlayContextService);
@@ -645,6 +645,14 @@ export class AddMoleculesToCollectionComponent
   private readonly moleculeSearchService = inject(MoleculeSearchService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly selection = new AddMoleculesSelectionController();
+  private readonly pageController = new PaginationController<MoleculeCardItemModel>({
+    fetch: (page, query) => this.moleculeCollectionItemService
+      .getAllPaginatedItems(page, 20, query, true, this.addContext.collectionId())
+      .pipe(
+        debounceTime(100),
+        map(result => ({ ...result, items: result.items.map(mol => Helpers.moleculeClientToCardConverter(mol)) }))
+      )
+  });
   private readonly submitController = new AddMoleculesSubmitController();
   private readonly chemblSearch = new AddMoleculesSearchController(query => {
     const collectionId = this.addContext.collectionId();
@@ -658,6 +666,17 @@ export class AddMoleculesToCollectionComponent
     query: query => this.query(query),
     clear: () => this.clear()
   };
+  readonly multiselectItems = signal<AbstractMultiselectItem<MoleculeCardItemModel>[]>([]);
+  readonly isSelectedAll = computed(() => this.selection.mode() === 'all');
+  readonly isSelectedNothing = computed(() => this.selection.isNothingSelected());
+  readonly isPartiallySelected = computed(() => this.selection.isPartiallySelected(this.multiselectItems().map(row => row.item.id)));
+  get items(): MoleculeCardItemModel[] { return this.pageController.items() }
+  get loading(): boolean { return this.pageController.loading() }
+  get done(): boolean { return this.pageController.done() }
+  get earlyDone(): boolean { return this.pageController.earlyDone() }
+  get page(): number { return this.pageController.page() }
+  get empty(): ReturnType<typeof signal<boolean>> { return this.pageController.empty }
+  get searchTerm(): ReturnType<typeof signal<string>> { return this.pageController.query }
 
   private ctrlSub?: Subscription;
   private suSub1?: Subscription;
@@ -672,11 +691,15 @@ export class AddMoleculesToCollectionComponent
   method = signal<'my' | 'chembl'>('my');
   collection = signal<MoleculeCollection | null>(null);
 
-  protected override readonly root = viewChild<ElementRef<HTMLDivElement>>('scrollRoot');
-  protected override readonly sentinel = viewChild<ElementRef<HTMLDivElement>>('sentinel');
+  protected readonly root = viewChild<ElementRef<HTMLDivElement>>('scrollRoot');
+  protected readonly sentinel = viewChild<ElementRef<HTMLDivElement>>('sentinel');
+  private observer?: IntersectionObserver;
 
   constructor() {
-    super();
+    effect(() => {
+      this.pageController.items();
+      queueMicrotask(() => this.loadRows());
+    });
     effect(() => {
       if (this.method() === 'my') {
         queueMicrotask(() => {
@@ -685,18 +708,13 @@ export class AddMoleculesToCollectionComponent
           this.pagination.reset();
           this.startObserver();
           this.pagination.loadMore();
-          this.cdr.markForCheck();
         });
       } else if (this.method() === 'chembl') {
         this.clearSelections();
         this.clearChips();
         this.multiselectItems.set([]);
-        this.items = [];
-        this.done = false;
-        this.earlyDone = false;
-        this.empty.set(true);
-        this.loading = false;
-        this.bulkIntent.set('none');
+        this.pageController.reset();
+        this.selection.mode.set('none');
         this.step.set(1);
         this.chemblEmpty.set(true);
         this.chemblError.set(null);
@@ -734,7 +752,7 @@ export class AddMoleculesToCollectionComponent
             this.toast.trigger('Si è verificato un errore. Se si ripete, contatta il supporto', 'error', 3000);
           })
       });
-      this.pagination.loadMore();
+      void this.pagination.loadMore();
     });
   }
 
@@ -747,51 +765,56 @@ export class AddMoleculesToCollectionComponent
     this.suSub1?.unsubscribe();
     this.suSub2?.unsubscribe();
     this.observer?.disconnect();
+    this.pageController.dispose();
     this.colSub?.unsubscribe();
     this.metCtrlSub?.unsubscribe();
     this.chemblSearch.destroy();
     this.selection.reset();
   }
 
-  protected override toggleOne(visibleItem: AbstractMultiselectItem<MoleculeCardItemModel>): void {
-    super.toggleOne(visibleItem);
+  toggleOne(visibleItem: AbstractMultiselectItem<MoleculeCardItemModel>): void {
     this.selection.toggle(visibleItem.item.id, visibleItem.isChecked());
   }
 
-  protected override onSelectAllChange(checked: boolean): void {
+  onSelectAllChange(checked: boolean): void {
     if (checked) {
       this.selection.selectAll();
     } else {
       this.selection.clearVisibleSelection();
     }
-    super.onSelectAllChange(checked);
+    this.multiselectItems().forEach(row => row.isChecked.set(checked));
   }
 
-  protected override clearSelections(): void {
-    super.clearSelections();
+  clearSelections(): void {
     this.selection.reset();
+    this.multiselectItems().forEach(row => row.isChecked.set(false));
   }
 
-  protected override fetch$(
-
-  ): Observable<PageModel<MoleculeCardItemModel>> {
-    return this.moleculeCollectionItemService
-      .getAllPaginatedItems(this.page, 20, this.searchTerm(), true, this.addContext.collectionId())
-      .pipe(
-        debounceTime(100),
-        map(p => ({
-          ...p,
-          items: p.items.map(mol => Helpers.moleculeClientToCardConverter(mol))
-        }))
-      );
+  doQuery(q: string): void { this.pagination.query(q); }
+  doClear(): void { this.pagination.clear(); }
+  private loadRows(): void {
+    const existing = new Map(this.multiselectItems().map(row => [row.item.id, row]));
+    this.multiselectItems.set(this.items.map(item => existing.get(item.id) ?? {
+      item,
+      isChecked: signal(this.selection.isSelected(item.id))
+    }));
   }
-
-  protected override doQuery(q: string): void {
-    this.query(q);
+  loadMore(): Promise<void> {
+    return this.pageController.loadMore().then(() => this.loadRows());
   }
-
-  protected override doClear(): void {
-    this.clear();
+  resetPagination(): void { this.pageController.reset(); this.multiselectItems.set([]); }
+  query(q: string): void { this.doQuery(q); }
+  clear(): void { this.doClear(); }
+  paginationState() { return this.pageController.paginationState(); }
+  retryPagination(): void { this.pageController.retry(); }
+  private startObserver(): void {
+    const sentinel = this.sentinel()?.nativeElement;
+    if (!sentinel) return;
+    this.observer?.disconnect();
+    this.observer = new IntersectionObserver(entries => {
+      if (entries[0]?.isIntersecting) void this.loadMore();
+    }, { root: this.root()?.nativeElement ?? null, rootMargin: '0px 0px 500px 0px' });
+    this.observer.observe(sentinel);
   }
 
   close(): void {

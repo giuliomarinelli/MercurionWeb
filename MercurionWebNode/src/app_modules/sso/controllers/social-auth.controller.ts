@@ -2,7 +2,7 @@ import { BadRequestException, Controller, Get, Param, Query, Res } from '@nestjs
 import { FastifyReply } from 'fastify/types/reply';
 import { Public } from 'src/metadata/metadata';
 import { SocialAuthService } from '../services/social-auth.service';
-import { AuthProvider } from '../Models/enums/auth-provider.enum';
+import { AuthProvider } from '../models/enums/auth-provider.enum';
 import { ConfigService } from '@nestjs/config';
 import {
   ApplicationErrorCode,
@@ -63,14 +63,15 @@ export class SocialAuthController {
       reply.redirect(errorRedirectUrl, 302)
       return
     }
-    const isValidState = await this.socialAuth.validateCallbackState(normalizedState, normalizedProvider)
-    if (!isValidState) {
+    const stateRecord = await this.socialAuth.consumeCallbackState(normalizedState, normalizedProvider)
+    if (!stateRecord) {
       onError('SSO_Unauthorized::callback_flow_invalid_state')
+      return
     }
     try {
       const sso_pat = await this.socialAuth.loginWithProvider(normalizedProvider, normalizedCode)
       let redirectUrl = `${this.base}/oauth2/callback?provider=${encodeURIComponent(normalizedProvider)}`
-      const redirectTo = await this.socialAuth.retrieveRedirectTo(state, provider)
+      const redirectTo = stateRecord.redirectTo
       if (redirectTo) {
         redirectUrl += `&redirect_to=${encodeURIComponent(redirectTo)}`
       }

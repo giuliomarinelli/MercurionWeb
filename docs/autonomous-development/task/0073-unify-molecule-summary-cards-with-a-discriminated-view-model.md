@@ -1,6 +1,6 @@
 # 0073 - Unify molecule summary cards with a discriminated view model
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -140,3 +140,32 @@ are deliberately resolved in a new authorized session.
 
 Direct terminal prerequisite: `0071` (`UI-013`), `BLOCKED`. This task was
 materialized in the new terminal closure on 2026-09-13.
+
+### Current execution (2026-09-15)
+
+Implemented on `feature/UI-015` from base
+`c9ecc22ecad8fb287a01e501aa8969b68129fa71`.
+
+- Added immutable discriminated `MoleculeSummaryViewModel` variants for
+  saved, search, and external molecules, with typed action configuration and
+  transport-to-UI adapters.
+- Added canonical `m-molecule-summary-card`; saved collection cards,
+  search-overlay results, and similar-molecule cards now use it.
+- Added canonical-card tests covering all discriminants, metadata/actions, and
+  selectable action semantics.
+- Preflight: base Actions run `34927772703` succeeded; Tox21, Nest, and
+  Angular started in order; nginx `/health` and `/` each passed two
+  consecutive readiness rounds; fresh ordinary login reached the protected
+  dashboard; all task runtimes were stopped before and after validation.
+- Validation: Angular typecheck passed; Angular lint passed; Angular build
+  passed with only the existing initial bundle-budget warning; focused
+  summary-card/saved-card/search-result tests passed (7/7).
+- Browser evidence through `http://localhost:8888`: saved cards showed
+  badges, synonym, MW, phase, dates, duplicate and delete actions; the search
+  overlay showed compact results with links, synonym, MW, and phase.
+  Selectable action semantics passed in the focused component test; the
+  account's add-to-collection chooser had no existing collection option
+  without mutating data.
+- Local `npm ci` and `npm run ci:check` were not run; exact feature-SHA CI is
+  coordinator-owned.
+- Commit: `2703bcac268315eb104c5e22bdeaa0999db859d6`

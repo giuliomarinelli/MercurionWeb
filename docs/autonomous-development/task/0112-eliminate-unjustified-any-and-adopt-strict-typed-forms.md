@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 
 ## Objective
 
@@ -90,9 +90,9 @@ _Not started._
 ### Preflight remediation
 _None._
 ### Summary
-Not attempted because required SYS/FE contract, error, session, and socket
-foundation tasks are terminally non-`DONE`. References to tasks 0099, 0107,
-0109, and 0110 are advisory.
+Not attempted in this session because hard prerequisite task 0110 (NG-024)
+is `BLOCKED`. The planner identified 0110 as the direct terminal prerequisite;
+the existing advisory references were not used as additional blocking causes.
 ### Task-specific validation performed
 Not applicable; no feature branch or implementation worker was created.
 ### Full pre-merge CI-parity validation
@@ -100,14 +100,13 @@ Not applicable; dependency-skip metadata only.
 ### Browser validation performed
 Not applicable; the task was not attempted.
 ### Commits
-Pending metadata commit on `develop`.
+Recorded in the aggregate dependency-skip metadata commit on `develop`.
 ### Merge / CI
-No feature branch or merge. Exact-SHA CI is required for the metadata commit.
+No feature branch or merge. This change is part of the aggregate metadata-only
+skip commit on `develop`.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-The required foundation includes SYS-011 (`SKIPPED_DEPENDENCY`) and FE-004
-(`BLOCKED` because mandatory authenticated browser validation was unavailable),
-with terminal dependent session/socket tasks. FE-004 requires a test-safe
-canonical local auth/backend runtime and approved deterministic test state in a
-new session.
+Direct terminal prerequisites 0109 and 0110 are skipped, with transitive root
+0102 (NG-016) `BLOCKED`. Recovery requires new direct human authorization in a
+later session.

@@ -8,8 +8,8 @@ import {
 import { createHash, type UUID } from 'crypto'
 import type { FastifyRequest } from 'fastify'
 
-import { TokenType } from 'src/app_modules/auth/Models/enums/token-type.enum'
-import { AuthProvider } from 'src/app_modules/sso/Models/enums/auth-provider.enum'
+import { TokenType } from 'src/app_modules/auth/models/enums/token-type.enum'
+import { AuthProvider } from 'src/app_modules/sso/models/enums/auth-provider.enum'
 import { UserService } from 'src/app_modules/user/services/user.service'
 import { Environment } from 'src/config/config.schema'
 import type { AppConfiguration } from 'src/config/config.types'

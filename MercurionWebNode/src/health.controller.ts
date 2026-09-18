@@ -1,6 +1,6 @@
 import { Controller, Get, ServiceUnavailableException } from '@nestjs/common';
 import { Public } from 'src/metadata/metadata'
-import { ConfirmDTO } from './Models/confirm-responses.dto';
+import { ConfirmDTO } from './models/confirm-responses.dto';
 import { ResponseService } from './services/response.service';
 import { ReadinessService } from './shutdown/readiness.service'
 import { RedisCapabilityService } from './app_modules/redis/services/redis-capability.service'

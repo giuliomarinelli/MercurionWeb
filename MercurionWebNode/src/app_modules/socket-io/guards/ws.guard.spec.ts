@@ -1,0 +1,34 @@
+import { Test, TestingModule } from '@nestjs/testing';
+import { Reflector } from '@nestjs/core';
+import { WsGuard } from './ws.guard';
+import { JwtToolsService } from 'src/app_modules/auth/services/jwt-tools.service';
+import { SessionService } from 'src/app_modules/auth/services/session.service';
+import { SecureCookieService } from 'src/app_modules/auth/services/secure-cookie.service';
+import { LoggerPort } from 'src/logging/logger.port';
+import { ScopeService } from 'src/app_modules/auth/services/scope.service';
+import { ConfigService } from '@nestjs/config';
+
+describe('WsGuard', () => {
+  let guard: WsGuard;
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        WsGuard,
+        { provide: JwtToolsService, useValue: {} },
+        { provide: SessionService, useValue: {} },
+        { provide: Reflector, useValue: { get: jest.fn() } },
+        { provide: SecureCookieService, useValue: {} },
+        { provide: ScopeService, useValue: { scopeVerificationLayer: jest.fn(), generateScopesArrayFromJwtClaim: jest.fn() } },
+        { provide: ConfigService, useValue: { getOrThrow: jest.fn(() => ({ env: 'development' })) } },
+        { provide: LoggerPort, useValue: { forContext: jest.fn().mockReturnValue({ log: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() }) } },
+      ],
+    }).compile();
+
+    guard = module.get<WsGuard>(WsGuard);
+  });
+
+  it('should be defined', () => {
+    expect(guard).toBeDefined();
+  });
+});

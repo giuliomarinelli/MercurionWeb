@@ -1,6 +1,6 @@
 # 0086 - Build an interactive UI catalog with visual regression tests
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -111,50 +111,186 @@ Favor primitive-level stories with deterministic fixture data. A small number of
 
 ## Execution notes
 
-> Current status (2026-09-11): PENDING. The planner identified the prior
-> dependency skip as stale after direct owner re-enablement of its prerequisite
-> chain; historical skip evidence below is retained only for traceability.
+> Current status (2026-09-17): BLOCKED. The catalog implementation and focused
+> local validation passed on `feature/UI-028`, but the strict visual gate
+> remained unrecoverable after the configured three feature-CI repair attempts.
 
 ### Feature branch
-_Not started._
+`feature/UI-028`, based on certified develop SHA
+`7c5ea0629a443cde4d45d458ca63184e8713cf9b`.
 
 ### Preflight
-_Not started._
+- Confirmed clean `feature/UI-028` at the supplied certified base and effective
+  local `commit.gpgSign=false`.
+- Confirmed exact base CI run `35237286411` succeeded with `Required gate`.
+- `npm run autonomous:plan --silent` reported task `0086` as `READY` with no
+  terminal roots.
+- Stopped stale Angular test watcher processes before task work.
+- Browser capability probe used Chrome DevTools MCP `list_pages` without
+  navigation and succeeded.
+- Started Tox21, Nest and Angular directly in the required order. Nest and
+  Angular compiled successfully; nginx returned initial 502 responses while
+  upstreams compiled, followed by two consecutive complete `200` rounds for
+  `/health` and `/`. All three task-owned processes were stopped before edits.
 
 ### Preflight remediation
-_None._
+None.
 
 ### Summary
-Not attempted. Required tasks 0059 through 0085 are terminally
-non-`DONE`.
+Added a separate Angular catalog build/serve target with shared application
+tokens/fonts, light/dark switching, responsive layout, deterministic fixture
+states, typed API/accessibility notes, and interactive coverage for the
+canonical action, form, selection, navigation, feedback and loading
+primitives. Added local Playwright screenshot baselines for light desktop,
+dark desktop and mobile layouts, with an explicit `ui:visual:update` approval
+workflow. Production remains on `src/main.ts`; the catalog emits to a
+separate development-only output.
 
 ### Task-specific validation performed
-Not applicable; no feature branch or implementation worker was created.
+- `npm run build-storybook --workspace mercurion_web_ng` — passed.
+- `npm run typecheck --workspace mercurion_web_ng` — passed.
+- `npm run lint:angular --workspace mercurion_web_ng` — passed.
+- `npm run build --workspace mercurion_web_ng` — passed; production output
+  contained no catalog markers.
+- `npm run ui:visual --workspace mercurion_web_ng` — 3 passed against committed
+  baselines.
+- Changed one catalog fixture style temporarily; visual gate failed with
+  pixel diffs in all three snapshots, then reverted the style and reran the
+  suite successfully.
+- No local `npm ci` or `npm run ci:check` was run.
 
 ### Full pre-merge CI-parity validation
-Not applicable; dependency-skip metadata only.
+Not run locally; exact feature-SHA CI is owned by the coordinator.
+
+### Feature-CI repair
+- Feature CI run `35240272116` failed in both platform `Prerequisites` jobs
+  because the topology checker reported the development-only catalog entrypoint
+  `src/catalog/main.ts` and its component as orphaned from the production
+  `src/main.ts` entrypoint.
+- Added explicit development-only reachability allowlist entries for both
+  catalog files in `MercurionWebNg/angular-reachability.config.json`; no
+  checker logic, production entrypoint, or unrelated code was changed.
+- Before repair, `node scripts/check-repository-topology.mjs
+  --report-dir=reports/topology-ui028-repair` failed only
+  `angular-reachability`; import-graph, Nest, and architecture checks passed.
+- After repair, `node scripts/check-angular-orphans.mjs --root=MercurionWebNg
+  --json` reported no orphaned files, and
+  `node scripts/check-repository-topology.mjs
+  --report-dir=reports/topology-ui028-repair` passed all five checks.
+- No local `npm ci` or `npm run ci:check` was run; generated topology reports
+  were removed before commit.
+- Second bounded repair: exact feature CI run `35241574204` passed topology and
+  all tests but failed the `Build artifacts` visual-regression step because the
+  Ubuntu runner did not have the Playwright Chromium executable installed
+  (`/home/runner/.cache/ms-playwright/chromium_headless_shell-1187/.../headless_shell`).
+- Added the existing `npx playwright install --with-deps chromium` pattern to
+  the `Build artifacts` job immediately after `npm ci`, before the unchanged
+  `ci:ui:catalog` command. This installs the required browser for clean CI
+  without changing the visual runner, snapshots, or test behavior.
+- Focused local checks for this repair: `npm run ui:visual
+  --workspace mercurion_web_ng` passed against committed baselines using the
+  existing local dependency tree. No local `npm ci` or `npm run ci:check` was
+  run. Exact post-repair feature CI remains coordinator-owned.
+- Third and final bounded repair: exact feature CI run `35243073312` passed
+  all prerequisite/test jobs and the browser-install step, but the Ubuntu
+  `Build artifacts` visual-regression step differed on all three committed
+  catalog snapshots. The desktop images differed by about 2%, and the mobile
+  capture was 390x3131 instead of the committed 390x3112, indicating the
+  screenshot was taken while the declared Space Grotesk web fonts were still
+  loading and fallback metrics were affecting layout.
+- Added an explicit `document.fonts.ready`/`FontFace.loaded` barrier to the
+  catalog visual fixture before each screenshot. This keeps the existing
+  committed baselines and strict pixel comparison, fixes the cross-runner
+  timing race at its source, and does not broaden thresholds or suppress
+  visual coverage. The barrier waits only on loading faces, so unused
+  declared weights cannot leave the fixture hanging.
+- Focused local check for this repair: `npm run ui:visual
+  --workspace mercurion_web_ng` passed all three committed snapshots after the
+  font-readiness barrier. No local `npm ci` or `npm run ci:check` was run.
 
 ### Browser validation performed
-Not applicable; the task was not attempted.
+- Catalog-only Chrome DevTools MCP validation at `http://localhost:4400/`
+  rendered the complete catalog accessibility tree, including disabled,
+  loading, invalid, pending, selected, dialog-open and responsive sections.
+- Dark theme switching changed the catalog theme and preserved the accessible
+  matrix. Dialog open state exposed `role="dialog"` and `aria-modal="true"`
+  with focus captured on the close action.
+- Console recheck after adding the catalog favicon reported no warnings or
+  errors.
+- Application-flow validation through `http://localhost:8888` was not
+  performed because this recipe's browser evidence was catalog-only; the
+  canonical edge was nevertheless readiness-probed during preflight.
+- The catalog server was stopped before handoff.
 
 ### Commits
-Pending metadata commit on `develop`.
+`7844e1c3b039d3a52abc417770def4ab24b2ece9` — catalog implementation,
+tooling, baselines and focused validation, committed with `--no-gpg-sign` and
+the required Copilot co-author trailer.
+`a441c65a` — narrow topology-policy repair and repair evidence, committed with
+`--no-gpg-sign` and the required Copilot co-author trailer.
+`2790d24e` — narrow CI browser-install repair for exact run `35241574204`,
+committed with `--no-gpg-sign` and the required Copilot co-author trailer.
+`f904f0aee` — narrow cross-runner font-readiness repair for exact run
+`35243073312`, committed with `--no-gpg-sign` and the required Copilot
+co-author trailer.
 
 ### Merge / CI
-No feature branch or merge. Exact-SHA CI is required for the metadata commit.
+No merge performed. The implementation branch is preserved and frozen.
+Final feature SHA: `ceb7b100c5a7bd5aed40174265c3082a74a50716`.
+Exact feature CI run `35244774301` failed in the Ubuntu `Build artifacts`
+visual-regression step after the browser-install step and font-load
+synchronization were present. All catalog snapshots still differed on Ubuntu.
+The strict visual gate cannot be restored within the configured three repair
+attempts, so the task is finalized as `BLOCKED`.
 
 ### Rollback
-_Not applicable._
+Not applicable.
 
 ### Blocker / human decision required
-Direct terminal prerequisite range: 0059 through 0085. The range includes
-newly terminal task `0071` (`UI-013`), `BLOCKED`, so this task was
-materialized in the new terminal closure on 2026-09-13.
-FE-030 (BLOCKED, requiring a filesystem-write-capable worker) and UI-018
-(BLOCKED, requiring a test-safe local Nest runtime for mandatory browser
-validation), with all dependent UI tasks `SKIPPED_DEPENDENCY`.
+Review and resolve the remaining Ubuntu visual-regression baseline divergence
+before a separately authorized retry. Preserve `feature/UI-028` frozen at
+`ceb7b100c5a7bd5aed40174265c3082a74a50716`.
 
+### Authorized recovery (2026-09-17)
+- Fresh full baseline run `35247230267` succeeded on exact `develop` SHA
+  `4cbcd3bbbfffc5f8a7917208631c25d003cb7c61`.
+- Merged current green `develop` into the preserved branch with
+  `--no-ff --no-gpg-sign` (`227291de56f575f4e46f0bdc3438fc9b49fdeec3`).
+- Corrected the cross-platform visual contract by giving strict Playwright
+  snapshots explicit `win32` and `linux` identities. The Linux baselines were
+  captured by Ubuntu run `35248298723`; local Windows visual validation passed
+  all three snapshots without relaxed thresholds.
+- Reset planner-confirmed stale dependency skips `0088` and `0191` on the
+  feature branch. Exact final feature SHA
+  `c73793fe6dc039fa72d0d25dd0da200288519b00` passed run `35249415806`, including
+  the Ubuntu visual gate and `Required gate`.
+- Integrated with merge commit `e198a0c943feab731c7e0c7fb1c8bb22734aa8cf`.
+  Post-merge run `35250241928` failed the Angular accessibility unit fixture on
+  axe `color-contrast`; the catalog build, strict visual baselines, browser
+  journeys and all other jobs succeeded.
+- Reverted the merge with ordinary `--no-gpg-sign` commit
+  `92e4b069c2a1a4aa71916308cdf833d04973826f`. Restoration run `35251075072`
+  succeeded completely, including Angular tests and `Required gate`.
+- Final outcome: `REVERTED`. Preserve and freeze `feature/UI-028` at
+  `c73793fe6dc039fa72d0d25dd0da200288519b00` for a future human-authorized retry.
 
-### Dependency skip
-
-Direct terminal prerequisite: 0077 (), terminal non-DONE dependency.
+### Interactive reintegration (2026-09-17)
+- The user clarified that this is a direct interactive recovery, not an
+  autonomous Development Session, and explicitly required retaining the
+  integration instead of applying the autonomous post-merge revert policy.
+- The same axe contrast failure reproduced on baseline commit `b33f48a71`,
+  proving it was independent of the UI-028 catalog tree.
+- Stabilized the shared canonical accessibility fixture in commit
+  `8d801a7cac60017bb9e788bcab0470fe77b08567`: deterministic surface/foreground
+  colors, white foreground scoped only to primary controls, font readiness,
+  and a synchronous layout/style flush replacing throttled double animation
+  frames.
+- Focused accessibility validation passed 6/6 and Angular lint passed. Full
+  baseline run `35253527693` then passed Angular 490/490, both platforms,
+  browser journeys and `Required gate`.
+- Restored the already verified UI-028 tree from merge
+  `e198a0c943feab731c7e0c7fb1c8bb22734aa8cf` with a normal integration commit;
+  no additional revert was performed.
+- Final reintegration commit: `68f7cd3491534f6f1a428dba379a6076034f6026`.
+- Exact reintegration CI run `35254855568` succeeded completely, including the
+  cross-platform visual regression gate and stable `Required gate`.

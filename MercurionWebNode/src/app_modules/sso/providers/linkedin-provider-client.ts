@@ -1,12 +1,11 @@
 import { Injectable } from "@nestjs/common";
-import axios from "axios";
-
-import { ISocialProviderClient } from "../Models/interfaces/i-social-provider-client.interface";
-import { ProviderProfile } from "../Models/interfaces/provider-profile.interface";
-import { AuthProvider } from "../Models/enums/auth-provider.enum";
+import { ISocialProviderClient } from "../models/interfaces/i-social-provider-client.interface";
+import { ProviderProfile } from "../models/interfaces/provider-profile.interface";
+import { AuthProvider } from "../models/enums/auth-provider.enum";
 import { ConfigService } from "@nestjs/config";
 import { SSO_Configuration } from "src/config/config.types";
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
+import { ExternalHttpPort } from 'src/infrastructure/external-http/external-http.port'
 
 @Injectable()
 export class LinkedInProviderClient implements ISocialProviderClient {
@@ -15,7 +14,10 @@ export class LinkedInProviderClient implements ISocialProviderClient {
     private readonly clientSecret: string
     private readonly redirectUri: string
 
-    constructor(private readonly configService: ConfigService) {
+    constructor(
+        private readonly configService: ConfigService,
+        private readonly http: ExternalHttpPort,
+    ) {
         const { clientId, clientSecret, redirectUri } = this.configService.get<SSO_Configuration>('SSO.LinkedIn')!
         this.clientId = clientId
         this.clientSecret = clientSecret
@@ -35,7 +37,7 @@ export class LinkedInProviderClient implements ISocialProviderClient {
 
     async getProfileFromCode(code: string): Promise<ProviderProfile> {
         // 1) code -> access token
-        const tokenRes = await axios.post(
+        const tokenRes = await this.http.post<Record<string, string>>(
             "https://www.linkedin.com/oauth/v2/accessToken",
             new URLSearchParams({
                 grant_type: "authorization_code",
@@ -44,7 +46,7 @@ export class LinkedInProviderClient implements ISocialProviderClient {
                 client_id: this.clientId,
                 client_secret: this.clientSecret,
             }).toString(),
-            { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
+            { timeoutMs: 10_000, headers: { "Content-Type": "application/x-www-form-urlencoded" } }
         )
 
         const accessToken = ((tokenRes as unknown as Record<string, string>).data as unknown as Record<string, string>).access_token
@@ -53,7 +55,8 @@ export class LinkedInProviderClient implements ISocialProviderClient {
         }
 
         // 2) userinfo OIDC
-        const meRes = await axios.get("https://api.linkedin.com/v2/userinfo", {
+        const meRes = await this.http.get<Record<string, string>>("https://api.linkedin.com/v2/userinfo", {
+            timeoutMs: 10_000,
             headers: { Authorization: `Bearer ${accessToken}` }
         })
 

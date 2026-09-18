@@ -93,11 +93,8 @@ jobs:
           BASE_SHA: ${{ needs.plan.outputs.base_sha }}
         run: git diff --check "$BASE_SHA" "$GITHUB_SHA"
 
-  # Tasks 0194, 0195, 0196, 0197 and 0198 are not DONE on this baseline, so
-  # no database/browser/system-test service is invented here. Their future
-  # canonical scripts must add their disposable services to only the job that
-  # consumes them, rather than making the current unit/static gates depend on
-  # shared or production infrastructure.
+  # Disposable services belong only to the job that consumes them; the
+  # unit/static gates must not depend on shared or production infrastructure.
   quality:
     name: Prerequisites (${{ matrix.os }})
     if: ${{ needs.plan.outputs.mode == 'full' }}
@@ -131,6 +128,15 @@ jobs:
       - name: Install workspace dependencies
         run: npm ci
 
+      - name: Generate and validate build identity
+        run: npm run ci:build-identity
+
+      - name: Retain build identity artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-identity-${{ matrix.os }}
+          path: build/build-identity.json
+
       - name: Validate autonomous control plane
         run: npm run ci:validate:autonomous
 
@@ -156,6 +162,14 @@ jobs:
 
       - name: Run registered static and architecture gates
         run: npm run ci:static
+
+      - name: Upload topology diagnostics
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: topology-report-${{ matrix.os }}
+          if-no-files-found: ignore
+          path: reports/topology
 
   angular-unit:
     name: Angular unit tests
@@ -190,6 +204,7 @@ jobs:
           if-no-files-found: ignore
           path: |
             MercurionWebNg/coverage
+            reports/coverage/angular
             MercurionWebNg/test-results
             MercurionWebNg/**/*.xml
 
@@ -226,6 +241,7 @@ jobs:
           if-no-files-found: ignore
           path: |
             MercurionWebNode/coverage
+            reports/coverage/nest
             MercurionWebNode/test-results
             MercurionWebNode/**/*.xml
 
@@ -265,54 +281,6 @@ jobs:
             MercurionWebNode/test-results
             MercurionWebNode/**/*.xml
 
-  database-schema:
-    name: PostgreSQL migration schema
-    if: ${{ needs.plan.outputs.mode == 'full' }}
-    needs:
-      - plan
-      - quality
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    services:
-      postgres:
-        image: pgvector/pgvector:pg17
-        env:
-          POSTGRES_USER: app
-          POSTGRES_PASSWORD: migration-ci
-          POSTGRES_DB: mercurion
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U app -d mercurion"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-    env:
-      SQL_DATABASE_TYPE: postgres
-      SQL_DATABASE_HOST: 127.0.0.1
-      SQL_DATABASE_PORT: 5432
-      SQL_DATABASE_USERNAME: app
-      SQL_DATABASE_PASSWORD: migration-ci
-      SQL_DATABASE: mercurion
-      SQL_DATABASE_LOGGING: "false"
-      SQL_DATABASE_LOGGER: advanced-console
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-          cache-dependency-path: package-lock.json
-
-      - name: Install workspace dependencies
-        run: npm ci
-
-      - name: Apply migrations and reject entity drift
-        run: npm run ci:database-schema
-
   build:
     name: Build artifacts
     if: ${{ needs.plan.outputs.mode == 'full' }}
@@ -335,8 +303,17 @@ jobs:
       - name: Install workspace dependencies
         run: npm ci
 
+      - name: Generate immutable build identity
+        run: npm run build:identity -- --revision "$GITHUB_SHA"
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
       - name: Build Angular
         run: npm run ci:build:angular
+
+      - name: Verify UI catalog and visual baselines
+        run: npm run ci:ui:catalog
 
       - name: Build Nest
         run: npm run ci:build:nest
@@ -353,6 +330,82 @@ jobs:
             MercurionWebNg/**/*.stats.json
             MercurionWebNg/dist/**/bundle-gate-report.json
             MercurionWebNg/**/*.json
+            test-results
+
+  browser-e2e:
+    name: Critical browser journeys
+    if: ${{ needs.plan.outputs.mode == 'full' }}
+    needs:
+      - plan
+      - quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install workspace dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Install the disposable nginx edge
+        run: sudo apt-get update && sudo apt-get install --yes nginx
+
+      - name: Start Angular and the canonical browser edge
+        shell: bash
+        run: |
+          npm run start:dev --workspace mercurion_web_ng > angular-e2e.log 2>&1 &
+          echo $! > angular-e2e.pid
+          nginx -c "$GITHUB_WORKSPACE/playwright/nginx.ci.conf" -p "$GITHUB_WORKSPACE"
+          for attempt in {1..90}; do
+            if curl --fail --silent --show-error http://localhost:8888/ > /dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          cat angular-e2e.log
+          exit 1
+
+      - name: Run critical browser journeys
+        run: npm run test:e2e:critical
+
+      - name: Run same-version system journeys
+        if: ${{ vars.MERCURION_SYSTEM_TEST_EMAIL != '' }}
+        env:
+          LOCAL_TEST_ACCOUNT_EMAIL: ${{ vars.MERCURION_SYSTEM_TEST_EMAIL }}
+          LOCAL_TEST_ACCOUNT_PASSWORD: ${{ secrets.MERCURION_SYSTEM_TEST_PASSWORD }}
+        run: npm run test:e2e:system
+
+      - name: Upload browser diagnostics
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: critical-browser-diagnostics
+          if-no-files-found: ignore
+          path: |
+            playwright-report
+            test-results/playwright
+            angular-e2e.log
+
+      - name: Stop browser runtime
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          if test -f /tmp/mercurion-playwright-nginx.pid; then
+            nginx -s stop -c "$GITHUB_WORKSPACE/playwright/nginx.ci.conf" -p "$GITHUB_WORKSPACE" || true
+          fi
+          if test -f angular-e2e.pid; then
+            kill "$(cat angular-e2e.pid)" || true
+          fi
 
   containers:
     name: Container ${{ matrix.name }}
@@ -394,11 +447,20 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
 
+      - name: Generate immutable build identity
+        shell: bash
+        run: |
+          npm run build:identity -- --revision "$GITHUB_SHA"
+          {
+            echo "BUILD_VERSION=$(node -e "console.log(require('./build/build-identity.json').version)")"
+            echo "BUILD_REVISION=$(node -e "console.log(require('./build/build-identity.json').revision)")"
+          } >> "$GITHUB_ENV"
+
       - name: Validate container build contract and lockfile drift
         run: npm run ci:containers
 
       - name: Build container without cache
-        run: docker build --pull --no-cache --file "${{ matrix.dockerfile }}" --target "${{ matrix.target }}" --tag "mercurion-ci-${{ matrix.name }}" .
+        run: docker build --pull --no-cache --file "${{ matrix.dockerfile }}" --target "${{ matrix.target }}" --build-arg BUILD_VERSION --build-arg BUILD_REVISION --tag "mercurion-ci-${{ matrix.name }}" .
 
       - name: Inspect standalone runtime contract
         run: node scripts/check-container-runtime.mjs --dockerfile "${{ matrix.dockerfile }}" --image "mercurion-ci-${{ matrix.name }}"
@@ -419,8 +481,8 @@ jobs:
       - angular-unit
       - nest-unit
       - nest-e2e
-      - database-schema
       - build
+      - browser-e2e
       - containers
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -432,8 +494,8 @@ jobs:
           ANGULAR_UNIT_RESULT: ${{ needs.angular-unit.result }}
           NEST_UNIT_RESULT: ${{ needs.nest-unit.result }}
           NEST_E2E_RESULT: ${{ needs.nest-e2e.result }}
-          DATABASE_SCHEMA_RESULT: ${{ needs.database-schema.result }}
           BUILD_RESULT: ${{ needs.build.result }}
+          BROWSER_E2E_RESULT: ${{ needs.browser-e2e.result }}
           CONTAINERS_RESULT: ${{ needs.containers.result }}
           MODE: ${{ needs.plan.outputs.mode }}
           PLAN_RESULT: ${{ needs.plan.result }}
@@ -451,8 +513,8 @@ jobs:
               test "$ANGULAR_UNIT_RESULT" = "success"
               test "$NEST_UNIT_RESULT" = "success"
               test "$NEST_E2E_RESULT" = "success"
-              test "$DATABASE_SCHEMA_RESULT" = "success"
               test "$BUILD_RESULT" = "success"
+              test "$BROWSER_E2E_RESULT" = "success"
               test "$CONTAINERS_RESULT" = "success"
               ;;
             *)

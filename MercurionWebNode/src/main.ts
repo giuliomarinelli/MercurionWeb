@@ -4,7 +4,7 @@ import { ConfigService } from '@nestjs/config'
 import { createApplicationModule } from './app.module'
 import { ConfigurationError } from './config/env-validation'
 import { Environment } from './config/config.schema'
-import { MeiliLoggerService } from './app_modules/meilisearch/services/meili-logger.service'
+import { LoggerPort } from './logging/logger.port'
 import { RedisService } from './app_modules/redis/services/redis.service'
 import { SecureCookieService } from './app_modules/auth/services/secure-cookie.service'
 import { applyBootstrapConfiguration } from './bootstrap/bootstrap.configurator'
@@ -32,7 +32,7 @@ export async function bootstrap(): Promise<void> {
   const env = config.getOrThrow<Environment>('App.env')
   const appConfiguration = config.getOrThrow<AppConfiguration>('App')
   proxyTrust.configure(appConfiguration.transportSecurity.trustedProxyCidrs)
-  const loggerFactory = app.get(MeiliLoggerService)
+  const loggerFactory = app.get(LoggerPort)
   const readiness = app.get(ReadinessService)
   const shutdown = new ShutdownCoordinator(
     [
@@ -42,6 +42,23 @@ export async function bootstrap(): Promise<void> {
     config.get<number>('App.shutdownTimeoutMs') ?? 10000,
     loggerFactory.forContext('Shutdown')
   )
+  const dependencies = {
+    app,
+    fastify: app.getHttpAdapter().getInstance(),
+    config,
+    env,
+    secureCookie: app.get(SecureCookieService),
+    redis: app.get(RedisService),
+    loggerFactory,
+    logger: loggerFactory.forContext('Bootstrap')
+  }
+  try {
+    await applyBootstrapConfiguration(dependencies)
+  } catch (error) {
+    await shutdown.shutdown({ kind: 'fatal', error })
+    throw error
+  }
+
   const handleSignal = (signal: 'SIGTERM' | 'SIGINT') => {
     void shutdown.shutdown({ kind: 'signal', signal }).then(result => {
       if (result.timedOut || result.failures.length > 0) process.exitCode = 1
@@ -56,17 +73,6 @@ export async function bootstrap(): Promise<void> {
   }
   process.on('unhandledRejection', handleFatal)
   process.on('uncaughtException', handleFatal)
-  const dependencies = {
-    app,
-    fastify: app.getHttpAdapter().getInstance(),
-    config,
-    env,
-    secureCookie: app.get(SecureCookieService),
-    redis: app.get(RedisService),
-    loggerFactory,
-    logger: loggerFactory.forContext('Bootstrap')
-  }
-  await applyBootstrapConfiguration(dependencies)
 }
 
 export type BootstrapFailureReporter = (error: unknown) => void

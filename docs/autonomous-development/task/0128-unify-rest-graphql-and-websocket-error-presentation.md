@@ -1,6 +1,6 @@
 # 0128 - Unify REST, GraphQL and WebSocket error presentation
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -85,24 +85,58 @@ Mark `BLOCKED` if current external clients depend on contradictory transport err
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/BE-014`, based on `develop` at
+`c2b377a2b113a6d461446594b4e4c915268dc283`.
 ### Preflight
-_Not started._
+- Confirmed `git rev-parse HEAD` and `git rev-parse develop` both returned
+  `c2b377a2b113a6d461446594b4e4c915268dc283`; the feature branch was clean
+  before implementation.
+- Exact `develop` GitHub Actions run `34938178275` for that SHA completed
+  successfully.
+- Process inventory found no task-owned Angular, Nest, Tox21, or test watcher.
+  Existing browser/MCP and unrelated host processes were not task-owned.
+- Browser validation is not applicable per this recipe.
 ### Preflight remediation
-_None._
+None.
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0127. This task was never attempted and receives no feature branch.
+Added a transport-neutral `presentApplicationError` boundary that classifies
+typed, framework, validation, GraphQL and unhandled failures once. The
+canonical record now carries stable code, category, safe public semantics,
+structured validation details, correlation metadata and a diagnostic-only
+cause. REST, GraphQL and Socket.IO now use thin serializers over that record;
+production redaction is shared and internal causes are excluded from all wire
+formats.
 ### Task-specific validation performed
-_Not started._
+- `npm run build --workspace @mercurion/rest-contracts` — passed.
+- `npm run typecheck --workspace @mercurion/rest-contracts` — passed.
+- `npm run typecheck --workspace mercurion_web_node` — passed.
+- `npm run lint --workspace mercurion_web_node` — passed.
+- Focused Nest cross-transport tests — 6 suites, 27 tests passed:
+  `application-error.spec.ts`, `application-error-envelope.spec.ts`,
+  `http-exception-filter.spec.ts`, `mercurion-graphql.module.spec.ts`,
+  `socket-contract-runtime.spec.ts`, and `socket.io.gateway.spec.ts`.
+- `git diff --check` — passed.
 ### Full pre-merge CI-parity validation
-_Not started._
+Not run locally; `npm ci` and `npm run ci:check` are reserved for GitHub
+Actions by session policy. Exact feature-SHA CI run `34939775415` for
+`ad8d2624603c79810d6b1a393fb28a714824319b` passed on Windows and Ubuntu,
+including `Required gate`. The preceding run `34939294468` failed because the
+Socket.IO contract type assertion fixture omitted the newly canonical
+`category`; the narrow correction was committed as `ad8d2624` and passed the
+focused contract checks before the repaired CI run.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+`af9911a9` — `feat(errors): unify transport error presentation`.
+`9e5fa2a2` — `docs(task): record BE-014 execution`.
+`ad8d2624` — `fix(errors): update socket contract assertion`.
+`a7934eac` — `docs(task): record feature CI repair`.
+`52964c65` — `docs(task): record final feature validation`.
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+Final feature branch SHA is `52964c6506182793624c0c75cb7177d3f3786939`.
+Exact-SHA CI run `34940370226` passed with `Required gate`; its metadata
+validation and exact feature evidence were green.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+None.

@@ -4,8 +4,9 @@ import { PubSubService } from './services/pub-sub.service';
 import Redis from 'ioredis';
 import { ConfigService } from '@nestjs/config';
 import { RedisConfiguration } from 'src/config/config.types';
-import { MeiliLoggerService } from '../meilisearch/services/meili-logger.service';
+import { LoggerPort } from 'src/logging/logger.port';
 import { RedisCapabilityService } from './services/redis-capability.service'
+import { AtomicAttemptPolicyService } from './services/atomic-attempt-policy.service'
 
 @Global()
 @Module({
@@ -14,8 +15,8 @@ import { RedisCapabilityService } from './services/redis-capability.service'
     providers: [
         {
             provide: Redis,
-            inject: [ConfigService, MeiliLoggerService],
-            useFactory: async (configService: ConfigService, loggerFactory: MeiliLoggerService) => {
+            inject: [ConfigService, LoggerPort],
+            useFactory: async (configService: ConfigService, loggerFactory: LoggerPort) => {
 
                 const { host, port, password } = configService.get<RedisConfiguration>('Redis')!;
 
@@ -43,8 +44,9 @@ import { RedisCapabilityService } from './services/redis-capability.service'
         },
         RedisService,
         RedisCapabilityService,
+        AtomicAttemptPolicyService,
         PubSubService
     ],
-    exports: [RedisService, Redis, RedisCapabilityService, PubSubService]
+    exports: [RedisService, Redis, RedisCapabilityService, AtomicAttemptPolicyService, PubSubService]
 })
 export class RedisModule { }

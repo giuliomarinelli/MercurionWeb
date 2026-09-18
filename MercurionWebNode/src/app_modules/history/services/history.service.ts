@@ -1,29 +1,31 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource, EntityManager, Repository } from 'typeorm';
-import { History } from '../Models/entities/history.entity';
+import { History } from '../models/entities/history.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IPaginationOptions, paginate, Pagination } from 'nestjs-typeorm-paginate';
-import { HistoryDTO, TinyHistoryDTO } from '../Models/DTO/history.dto';
+import { HistoryDTO, TinyHistoryDTO } from '../models/dto/history.dto';
 import { UUID } from 'crypto';
-import { HistoryItemEntity as HistoryItemEntityEnum } from '../Models/enums/history-item-entity.enum';
-import { MoleculeCollection } from 'src/app_modules/molecule-collection/Models/entities/molecule-collection.entity';
-import { MoleculeCollectionItemEntity } from 'src/app_modules/molecule-collection/Models/entities/molecule-collection-item.entity';
+import { HistoryItemEntity as HistoryItemEntityEnum } from '../models/enums/history-item-entity.enum';
+import { MoleculeCollection } from 'src/app_modules/molecule-collection/models/entities/molecule-collection.entity';
+import { MoleculeCollectionItemEntity } from 'src/app_modules/molecule-collection/models/entities/molecule-collection-item.entity';
 import { MoleculeService } from 'src/app_modules/meilisearch/services/molecule.service';
 import { TypeGuards } from 'src/utils/type-guards/type-guards';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
-import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { LoggerPort } from 'src/logging/logger.port';
+import { LoggerContext } from 'src/logging/logger.port';
+import { utcInstantFromEpochMs } from 'src/utils/temporal/temporal'
+import { runInTransaction, transactionManager, type TransactionContext } from 'src/persistence/transaction-context'
 
 @Injectable()
 export class HistoryService {
 
-    private readonly logger: MeiliContextLogger
+    private readonly logger: LoggerContext
 
     constructor(
         @InjectRepository(History)
         private readonly historyRepo: Repository<History>,
         private readonly dataSource: DataSource,
         private readonly moleculeService: MoleculeService,
-        loggerFactory: MeiliLoggerService
+        loggerFactory: LoggerPort
     ) {
         this.logger = loggerFactory.forContext(HistoryService.name)
     }
@@ -33,7 +35,7 @@ export class HistoryService {
         options: IPaginationOptions,
     ): Promise<Pagination<HistoryDTO>> {
         try {
-            return this.dataSource.manager.transaction(async (manager) => {
+            return runInTransaction(this.dataSource, async (_context, manager) => {
                 return this.getPaginatedHistoryWithManager(userId, options, manager)
             })
         } catch (e) {
@@ -135,7 +137,11 @@ export class HistoryService {
             const { userId: _omit, ...rest } = it
             const key = `${it.itemEntity}:${it.itemId}`
             const itemName = nameByKey.get(key) ?? 'N/A'
-            return { ...rest, itemName }
+            return {
+                ...rest,
+                touchedAt: utcInstantFromEpochMs(Number(it.touchedAt)),
+                itemName
+            }
         }).filter(h => h.itemName !== 'N/A')
 
         return { ...page, items }
@@ -144,6 +150,25 @@ export class HistoryService {
     async getRecentHistoryTinyDistinctPerDay(
         userId: UUID,
         lookbackDays = 7,
+        context?: TransactionContext,
+    ): Promise<TinyHistoryDTO[]> {
+        if (context) {
+            return this.getRecentHistoryTinyDistinctPerDayWithManager(
+                userId,
+                lookbackDays,
+                transactionManager(context),
+            )
+        }
+
+        return runInTransaction(this.dataSource, async (_context, manager) =>
+            this.getRecentHistoryTinyDistinctPerDayWithManager(userId, lookbackDays, manager),
+        )
+    }
+
+    async getRecentHistoryTinyDistinctPerDayWithManager(
+        userId: UUID,
+        lookbackDays: number,
+        manager: EntityManager,
     ): Promise<TinyHistoryDTO[]> {
         const days = Math.max(1, lookbackDays)
         const now = Date.now()
@@ -151,7 +176,8 @@ export class HistoryService {
         const cutoff = now - days * msPerDay
 
         // Query minimale, sfrutta idx_history_user_touched_at_desc
-        const rows = await this.historyRepo
+        const rows = await manager
+            .getRepository(History)
             .createQueryBuilder('h')
             .select([
                 'h.id',
@@ -188,7 +214,7 @@ export class HistoryService {
                 id: row.id,
                 itemEntity: row.itemEntity,
                 itemId: row.itemId,
-                touchedAt: row.touchedAt,
+                touchedAt: utcInstantFromEpochMs(Number(row.touchedAt)),
             })
         }
 
@@ -218,5 +244,3 @@ export class HistoryService {
 
 
 }
-
-

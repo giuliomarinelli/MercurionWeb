@@ -3,9 +3,9 @@ import {
     type FingerprintData
 } from '@mercurion/rest-contracts'
 
-import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum'
+import { MfaStrategy } from 'src/app_modules/user/models/enums/mfa-strategy.enum'
 import { getApplicationError } from 'src/exception-handling/application-error'
-import { VerifyKind } from '../Models/enums/verify-kind.enum'
+import { VerifyKind } from '../models/enums/verify-kind.enum'
 import {
     CompleteMfaLoginHandler,
     StartMfaChallengeHandler
@@ -58,8 +58,8 @@ describe('MFA authentication handlers', () => {
                 await expect(operation).resolves.toEqual({
                     outcome: 'sent',
                     strategy: MfaStrategy.EMAIL_OTP,
-                    generatedAt: 10,
-                    expiresAt: 20
+                    generatedAt: '1970-01-01T00:00:00.010Z',
+                    expiresAt: '1970-01-01T00:00:00.020Z'
                 })
             } else if (outcome === 'invalid-strategy') {
                 await expect(operation).resolves.toEqual({

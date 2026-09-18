@@ -25,6 +25,11 @@ timeout, GitHub observation outage or runner interruption does not by itself
 prove the task implementation is defective. Recover or re-observe within the
 configured bounds first. Never claim acceptance evidence that was not obtained.
 
+For a task declaring browser/runtime evidence, probe the Chrome DevTools tool
+surface before task mutation and without application navigation. An unavailable
+tool is `SESSION_CAPABILITY_PAUSE`, leaves the recipe pending, and must not be
+rediscovered after implementation as a reason to mark the task `BLOCKED`.
+
 Record exact command/run/tool diagnostics without credentials or secret state.
 Persistent outcomes remain terminal within the active session.
 

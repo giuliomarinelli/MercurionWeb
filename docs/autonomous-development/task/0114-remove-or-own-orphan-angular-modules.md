@@ -1,6 +1,6 @@
 # 0114 - Remove or explicitly own every orphan Angular module
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -98,13 +98,72 @@ Reopened after management removed the deferred feature program from the active
 recipe directory. This task now owns only reachability and orphan cleanup for
 the active Angular program and can complete independently.
 ### Task-specific validation performed
-_Pending after management re-scope._
+- Baseline identity: `feature/NG-028` HEAD and `develop` both matched
+  `9c672b139327fafbf46b49cbf30be8f1af45e9ab`; exact base Actions run
+  `34928928550` was successful with the stable required gate.
+- Added `scripts/check-angular-orphans.mjs` and the explicit
+  `MercurionWebNg/angular-reachability.config.json`. The graph starts at
+  `src/main.ts`, follows static and dynamic imports (including route and
+  action-registry lazy imports), and reports machine-readable, per-file
+  reasons
+  for deferred Notebook, generated, build-replacement, test, and tooling
+  entrypoints.
+- Baseline inventory before cleanup: 36 unreachable production files.
+  After cleanup: 17 explicitly documented non-production/deferred files and
+  zero unapproved orphans.
+- The 19 removed baseline orphans were:
+  `src/app/Models/auth/totp.models.ts`,
+  `src/app/Models/graphql/graphql.response.ts`,
+  `src/app/Models/graphql/res.gql.ts`,
+  `src/app/Models/molecule.model.ts`,
+  `src/app/Models/rdkit-api.models.ts`,
+  `src/app/components/common/file-uploader/file-uploader.component.ts`,
+  `src/app/components/common/floating-input/floating-input.component.ts`,
+  `src/app/components/common/modal/modal.component.ts`,
+  `src/app/components/common/page-state/page-state.component.ts`,
+  `src/app/components/common/redirect-to-login-component/redirect-to-login.component.ts`,
+  `src/app/components/profile/avatar/avatar.component.ts`,
+  `src/app/directives/collapse-max-height.directive.ts`,
+  `src/app/interceptors/fatal-unauthenticated.util.ts`,
+  `src/app/services/context/action-context/new-ticket-context.service.ts`,
+  `src/app/services/context/action-context/select-collection-then-route-context.service.ts`,
+  `src/app/services/context/loading-context.service.ts`,
+  `src/app/services/context/modal-context.service.ts`,
+  `src/app/services/previous-route.service.ts`, and
+  `src/app/services/search.service.ts` (each obsolete component/service spec
+  was removed with its implementation).
+- The 17 retained explicit non-production entries are the nine deferred
+  Notebook files, generated `src/app/generated/schema.ts`, the three Angular
+  environment replacement files, `src/polyfills.ts`, the two `src/shims`
+  files, and the two test bootstrap files. Each has a per-file category and
+  reason in the machine-readable configuration; no directory-wide exemption
+  is used.
+- Removed 19 dead active-program modules and their obsolete specs, including
+  legacy file-uploader, modal, page-state, redirect, floating-input alias,
+  avatar, collapse directive, stale models, and unused context/services.
+  Removed the obsolete `m-floating-input` selector alias.
+- Added the negative fixture and wired `ng:orphans:check` into root `ci:static`.
+- Passed `npm run ng:orphans:check`, `npm run ci:angular:import-graph`,
+  `npm run ci:typecheck:angular`, `npm run test:ci --workspace
+  mercurion_web_ng`, `npm run build --workspace mercurion_web_ng`, and
+  `git diff --check`.
 ### Full pre-merge CI-parity validation
-_Pending after management re-scope._
+Not run locally; forbidden by the active policy. Exact feature-SHA Actions
+validation is coordinator-owned.
 ### Browser validation performed
-_Pending after management re-scope._
+- Started Tox21, Nest, and Angular in the required order with separate live
+  handles. The edge returned retryable 502s during compilation, then two
+  consecutive complete readiness rounds returned HTTP 200 for `/health` and
+  `/`.
+- Through the persistent Chrome DevTools profile at `http://localhost:8888`,
+  verified the login shell, the 404 status route (rendered 404 state), and
+  the terms route (rendered page shell). No console errors were reported
+  after navigation. No authentication was required for these public smoke
+  routes.
+- Stopped all three task-owned runtimes and verified no
+  `MercurionTox21`/`MercurionWebNode`/`MercurionWebNg` process remained.
 ### Commits
-Historical preserved branch evidence remains in Git history.
+Pending task commit.
 ### Merge / CI
 _Pending after management re-scope._
 ### Rollback

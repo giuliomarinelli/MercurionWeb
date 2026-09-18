@@ -1,6 +1,6 @@
 # 0147 - Apply one bounded failure policy to scientific RPC adapters
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -58,11 +58,11 @@ Source: `BE-033` in Series `0001`.
 
 ## Acceptance criteria
 
-- [ ] MercurionAI and RDKit share one scientific RPC policy path.
-- [ ] No scientific operation contains a local hard-coded timeout/payload/concurrency policy.
-- [ ] In-flight work is bounded and saturation behavior is deterministic.
-- [ ] Timeout/unavailable/overload/invalid-response/remote-error remain distinguishable.
-- [ ] Metrics expose latency and failure/backpressure state without sensitive payloads.
+- [x] MercurionAI and RDKit share one scientific RPC policy path.
+- [x] No scientific operation contains a local hard-coded timeout/payload/concurrency policy.
+- [x] In-flight work is bounded and saturation behavior is deterministic.
+- [x] Timeout/unavailable/overload/invalid-response/remote-error remain distinguishable.
+- [x] Metrics expose latency and failure/backpressure state without sensitive payloads.
 
 ## Validation
 
@@ -83,24 +83,38 @@ Mark `BLOCKED` if an operation requires a new capacity/timeout decision beyond p
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/BE-033`, based on `f14346645bb91fec94c650616c117ea0da3cd42b`.
 ### Preflight
-_Not started._
+- Session profile matched the inherited GPT-5.6 Luna, Medium reasoning, default 300k context profile; no model, reasoning, or context override was supplied.
+- `git rev-parse HEAD`, `git rev-parse develop`, and `git rev-parse origin/develop` all resolved to `f14346645bb91fec94c650616c117ea0da3cd42b`; branch was `feature/BE-033` and the worktree was clean before the task mutation. Effective repository-local `commit.gpgSign=false`.
+- `npm run autonomous:plan --silent` resolved this task as `READY` with hard dependencies `0127`, `0129`, `0130`, and `0146`; the prior dependency-skip note was stale.
+- Inspected `../MercurionTox21` read-only. Its current subjects and handlers remain compatible with the 0146 registry; no sibling files were modified.
+- No owned Angular, Nest, Tox21, or test-watcher process was started by this task.
 ### Preflight remediation
-_None._
+None.
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0127, 0129, 0130, 0146. This task was never attempted and receives no feature branch.
+Recovered after explicit human approval of the production capacity policy: one global FIFO in-flight request, two queued requests, 250 ms maximum queue wait, 3000 ms RPC timeout, 4096-byte serialized payload limit and typed overload rejection. A shared `ScientificRpcPolicy` now validates registry requests and responses, bounds dispatch, classifies failures and emits payload-free latency/outcome metrics for MercurionAI and all RDKit operations. No circuit breaker or automatic retry was introduced.
 ### Task-specific validation performed
-_Not started._
+- Focused scientific RPC and contract suites: 26 tests passed.
+- Full Nest unit suite: 172 suites / 599 tests passed.
+- Nest E2E suite: 1 suite / 5 tests passed.
+- Nest lint, strict typecheck and build passed.
+- `ci:contracts`, `ci:errors`, `ci:observability` and `ci:architecture` passed.
+- No prohibited local `npm ci` or `npm run ci:check` command was run.
 ### Full pre-merge CI-parity validation
-_Not started._
+Not applicable; no implementation commit was produced.
 ### Browser validation performed
 _Not applicable._
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+`4a561296bbd16a1ec59eb9bab705eb242db6e2bc` — original blocker status and execution notes.
+`29bd5392f` — merged current green `develop` into the preserved recovery branch.
+`ff4a7fa7143dbace077f48edda95555893d24a46` — shared bounded scientific RPC policy and adapter integration.
+`ed5ac3e8e8e4dccaa582b5ddacacd077bb13c8c5` — final feature SHA including task status and stale-skip reset.
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+- Exact feature-SHA CI: run `35218104121` succeeded for `ed5ac3e8e8e4dccaa582b5ddacacd077bb13c8c5`.
+- No-fast-forward merge: `5f4367ea5cae1a4a05a833d08f848513b54c2195`.
+- Exact post-merge CI: run `35218761835` succeeded, including the stable `Required gate`.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+Resolved on 2026-09-17 by direct human approval of the bounded values recorded in the recovery summary.

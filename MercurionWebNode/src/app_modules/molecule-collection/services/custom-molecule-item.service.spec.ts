@@ -1,10 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CustomMoleculeItemService } from './custom-molecule-item.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { CustomMoleculeItemEntity } from '../Models/entities/custom-molecule-item.entity';
-import { MoleculeCollection } from '../Models/entities/molecule-collection.entity';
+import { CustomMoleculeItemEntity } from '../models/entities/custom-molecule-item.entity';
 import { MoleculeCollectionItemJoinService } from './molecule-collection-item-join.service';
 import { RDKitService } from 'src/app_modules/mercurion-ai/services/rd-kit.service';
+import { MoleculeOwnershipPolicy } from './molecule-ownership.policy';
 
 describe('CustomMoleculeItemService', () => {
   let service: CustomMoleculeItemService;
@@ -40,12 +40,7 @@ describe('CustomMoleculeItemService', () => {
             createQueryBuilder: jest.fn(),
           },
         },
-        {
-          provide: getRepositoryToken(MoleculeCollection),
-          useValue: {
-            findOne: jest.fn(),
-          },
-        },
+        { provide: MoleculeOwnershipPolicy, useValue: { assertCollectionOwned: jest.fn() } },
       ],
     }).compile();
 

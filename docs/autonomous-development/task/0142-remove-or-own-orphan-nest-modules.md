@@ -1,6 +1,6 @@
 # 0142 - Remove or explicitly own every orphan Nest module
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -81,24 +81,58 @@ Mark `BLOCKED` if an apparently orphaned unit is tied to an undocumented dynamic
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/BE-028`, resumed with the preserved task-scoped working tree at base
+`7df6b76252f0ec3043df5cf020df28130e147a96`.
 ### Preflight
-_Not started._
+Confirmed the inherited session profile is GPT-5.6 Luna, Medium reasoning and
+the default 300k context tier. The feature branch was `feature/BE-028`, its
+HEAD matched the supplied green `develop` base, and no task-owned Angular,
+Nest, Tox21 or test-watcher process was active. No browser/runtime validation
+was required.
+
+Using the preserved implementation, the baseline graph reproduced 18
+unreachable production files (346 production files, 328 reachable). The
+completed graph reports 328 production files and 328 reachable files, with
+five precise documented non-production exceptions.
 ### Preflight remediation
-_None._
+None. The prior worker's task-scoped deletions and reachability-gate changes
+were inspected and preserved; no reset or discard was performed.
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0115, 0139, 0140, 0141. This task was never attempted and receives no feature branch.
+Removed the unreachable legacy Nest DTOs, interfaces, in-memory repository and
+obsolete specs. Added `scripts/check-nest-orphans.mjs` with explicit production
+entrypoints, dynamic TypeORM/tooling roots and narrow test/tooling exceptions;
+added a synthetic negative fixture; registered both the positive and negative
+checks in the architecture policy and dedicated `nest:orphans:check` command.
+The production graph now has zero unapproved orphans.
 ### Task-specific validation performed
-_Not started._
+- `node scripts/check-nest-orphans.mjs --root=MercurionWebNode --json`:
+  passed; 328/328 reachable, zero orphans.
+- `node scripts/test-nest-orphans-negative.mjs`: passed; synthetic orphan
+  rejected.
+- `npm run nest:orphans:check`: passed.
+- `node scripts/check-architecture-policy.mjs`: passed, including module graph,
+  layer, orphan and negative checks.
+- `npm run lint --workspace mercurion_web_node`: passed.
+- `npm run typecheck --workspace mercurion_web_node`: passed.
+- `npm test --workspace mercurion_web_node -- --runInBand`: passed, 149 suites
+  and 464 tests.
+- `npm run test:e2e:ci --workspace mercurion_web_node`: passed, 1 suite and 3
+  tests.
+- `npm run build --workspace mercurion_web_node`: passed.
 ### Full pre-merge CI-parity validation
-_Not started._
+The local policy forbids `npm ci` and `npm run ci:check`; clean-install and
+aggregate CI parity remain delegated to GitHub Actions for the exact pushed
+feature SHA.
 ### Browser validation performed
-_Not applicable._
+Not applicable by recipe.
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+`0d260a5a` — `feat(BE-028): remove orphan Nest modules` (created with
+`--no-gpg-sign`).
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+Task-specific commit exists on `feature/BE-028`; the final feature SHA will be
+pushed to `origin`. Exact-SHA feature CI is required before integration; this
+worker does not modify `develop`.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+None.

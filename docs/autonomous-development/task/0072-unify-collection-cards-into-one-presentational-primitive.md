@@ -147,11 +147,12 @@ normal/selectable card, keyboard, responsive, skeleton, and theme evidence was
 not claimed.
 
 ### Commits
-Pending implementation/status commit on `feature/UI-014`.
+Implementation and status commit `ea2ef5f45b11b85cbd605534e08faca1d4178b97`
+is preserved on `feature/UI-014`.
 
 ### Merge / CI
-No merge was performed. Feature publication and exact-SHA CI are pending the
-blocked-attempt preservation commit.
+No merge was performed; the feature branch is preserved and frozen pending
+human-authorized recovery.
 
 ### Rollback
 _Not applicable._
@@ -164,5 +165,5 @@ be discarded or rebased.
 
 ### Dependency history
 
-The historical dependency-skip note is retained for traceability; the direct
-owner instruction authorized this implementation attempt.
+The historical dependency-skip note is retained in prior repository history;
+the direct owner instruction authorized this implementation attempt.

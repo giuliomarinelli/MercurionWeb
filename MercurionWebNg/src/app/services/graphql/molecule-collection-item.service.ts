@@ -89,6 +89,7 @@ import {
   UpdateMoleculeItemNotesMutation,
   UpdateMoleculeItemNotesMutationVariables
 } from '../../generated/graphql';
+import { GRAPHQL_QUERY_FETCH_POLICY } from './graphql-query-policy';
 
 
 
@@ -116,7 +117,7 @@ export class MoleculeCollectionItemService {
     return this.apollo
       .query<MoleculeItemBasicDataQuery, MoleculeItemBasicDataQueryVariables>({
         query: MoleculeItemBasicDataDocument,
-        fetchPolicy: 'no-cache'
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot
       }).pipe(
         map(res => extractGqlData<MoleculeItemBasicDataQuery, 'myMoleculeItems'>(res, 'myMoleculeItems')),
         map(items => items.map(mapMoleculeItemBasicData))
@@ -129,7 +130,7 @@ export class MoleculeCollectionItemService {
     return this.apollo
       .query<MyMoleculeItemsQuery, MyMoleculeItemsQueryVariables>({
         query: MyMoleculeItemsDocument,
-        fetchPolicy: 'no-cache',
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot,
       })
       .pipe(
         map(res => extractGqlData<MyMoleculeItemsQuery, 'myMoleculeItems'>(res, 'myMoleculeItems')),
@@ -148,7 +149,7 @@ export class MoleculeCollectionItemService {
       .query<MoleculeItemQuery, MoleculeItemQueryVariables>({
         query: MoleculeItemDocument,
         variables: { id },
-        fetchPolicy: 'no-cache',
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot,
       })
       .pipe(
         map(res => extractGqlData<MoleculeItemQuery, 'moleculeItem'>(res, 'moleculeItem', true)),
@@ -162,7 +163,7 @@ export class MoleculeCollectionItemService {
       .query<MoleculeItemShortQuery, MoleculeItemShortQueryVariables>({
         query: MoleculeItemShortDocument,
         variables: { id },
-        fetchPolicy: 'no-cache',
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot,
       })
       .pipe(
         map(res => extractGqlData<MoleculeItemShortQuery, 'moleculeItem'>(res, 'moleculeItem', true)),
@@ -180,7 +181,7 @@ export class MoleculeCollectionItemService {
           limit,
           q
         },
-        fetchPolicy: 'no-cache'
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot
       })
       .pipe(
         map(res => extractGqlData<PaginatedMoleculeCollectionItemsByCollectionQuery, 'paginatedMoleculeCollectionItemsByCollection'>(res, 'paginatedMoleculeCollectionItemsByCollection')),
@@ -200,7 +201,7 @@ export class MoleculeCollectionItemService {
       .query<PaginatedMoleculeCollectionItemsByUserQuery, PaginatedMoleculeCollectionItemsByUserQueryVariables>({
         query: PaginatedMoleculeCollectionItemsByUserDocument,
         variables: { page, limit, q, excludeJoinedToCollection, collectionId },
-        fetchPolicy: 'no-cache'
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot
       }).pipe(
         map(res => extractGqlData<PaginatedMoleculeCollectionItemsByUserQuery, 'paginatedMoleculeCollectionItemsByUser'>(res, 'paginatedMoleculeCollectionItemsByUser')),
         map(node => {
@@ -219,7 +220,7 @@ export class MoleculeCollectionItemService {
       .query<HasUserChEmblMoleculeByMolregnoThenGetUuidQuery, HasUserChEmblMoleculeByMolregnoThenGetUuidQueryVariables>({
         query: HasUserChEmblMoleculeByMolregnoThenGetUuidDocument,
         variables: { molregno },
-        fetchPolicy: 'no-cache'
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot
       }).pipe(
         map(res => extractGqlData<HasUserChEmblMoleculeByMolregnoThenGetUuidQuery, 'hasUserChEMBLMoleculeByMolregnoThenGetUUID'>(res, 'hasUserChEMBLMoleculeByMolregnoThenGetUUID', true))
       )
@@ -230,7 +231,7 @@ export class MoleculeCollectionItemService {
       .query<ExistsChEmblMoleculeByUuidThenGetMolregnoQuery, ExistsChEmblMoleculeByUuidThenGetMolregnoQueryVariables>({
         query: ExistsChEmblMoleculeByUuidThenGetMolregnoDocument,
         variables: { _uuid_ },
-        fetchPolicy: 'no-cache'
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot
       }).pipe(
         map(res => extractGqlData<ExistsChEmblMoleculeByUuidThenGetMolregnoQuery, 'existsChEMBLMoleculeByUUIDThenGetMolregno'>(res, 'existsChEMBLMoleculeByUUIDThenGetMolregno', true))
       )
@@ -245,7 +246,7 @@ export class MoleculeCollectionItemService {
       .query<MoleculeSearch_ExcludeAlreadyAddedQuery, MoleculeSearch_ExcludeAlreadyAddedQueryVariables>({
         query: MoleculeSearch_ExcludeAlreadyAddedDocument,
         variables: { input, collectionId },
-        fetchPolicy: 'no-cache'
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot
       }).pipe(
         map(res => extractGqlData<MoleculeSearch_ExcludeAlreadyAddedQuery, 'moleculeSearch_excludeAlreadyAdded'>(res, 'moleculeSearch_excludeAlreadyAdded'))
       )
@@ -258,7 +259,7 @@ export class MoleculeCollectionItemService {
         variables: {
           canonicalSmiles
         },
-        fetchPolicy: 'no-cache'
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot
       }).pipe(
         map(res => extractGqlData<
           FindOneCustomMoleculeByCanonicalSmilesQuery,
@@ -424,7 +425,7 @@ export class MoleculeCollectionItemService {
       .query<MoleculeItemQuery, MoleculeItemQueryVariables>({
         query: MoleculeItemDocument,
         variables: { id },
-        fetchPolicy: 'no-cache',
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot,
       })
       .pipe(
         map(res => extractGqlData<MoleculeItemQuery, 'moleculeItem'>(res, 'moleculeItem', true)),

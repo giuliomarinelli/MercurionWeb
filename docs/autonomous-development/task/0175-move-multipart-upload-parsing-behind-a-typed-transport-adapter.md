@@ -1,6 +1,6 @@
 # 0175 - Move multipart upload parsing behind a typed transport adapter
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -90,24 +90,62 @@ Do not trust only the client-provided MIME string for security-sensitive process
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-026`
 ### Preflight
-_Not started._
+Verified clean `feature/DATA-026` at base `cdd623d40c06546a8f66d7a45b442d79cd3c9011`,
+which equals local `develop`. Exact-SHA GitHub Actions CI run `34971965186`
+completed successfully for that base. No task-owned runtime or test watcher was
+started.
 ### Preflight remediation
 _None._
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0144, 0021. This task was never attempted and receives no feature branch.
+Added a Fastify-formidable transport boundary with the existing dependency,
+centralized the 10 MiB/MIME/count/metadata policy, validated metadata into a
+typed upload command, streamed the bounded temporary file to the object-store
+service, and made cleanup explicit on success and parser/validation failure.
+The controller now only orchestrates parsing, application invocation and
+response mapping; disabled non-upload document routes remain unchanged.
 ### Task-specific validation performed
-_Not started._
+`npm test --workspace mercurion_web_node -- --runInBand
+app_modules/dropbox-object-store/transport/document-upload.adapter.spec.ts
+app_modules/dropbox-object-store/controllers/document.controller.spec.ts` —
+passed (2 suites, 9 tests). Covered typed metadata, missing/multiple files,
+unsupported MIME, oversized files, malformed metadata and disabled-route
+compatibility.
+
+`npm run lint --workspace mercurion_web_node -- --no-fix` — passed.
+`npm run typecheck --workspace mercurion_web_node` — passed.
+`npm run build --workspace mercurion_web_node` — passed.
+`git diff --check` — passed.
 ### Full pre-merge CI-parity validation
-_Not started._
+Not run locally because `npm ci` and `npm run ci:check` are prohibited in
+autonomous sessions. Base exact-SHA CI was green; feature-SHA CI is owned by
+the coordinator after publication.
 ### Browser validation performed
-_Not started / not applicable._
+Not applicable: the current Angular surface does not expose document upload;
+transport integration/unit coverage is the declared fallback.
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+`f4c3e9f2` — `feat: add typed multipart document upload adapter`
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+Feature SHA and exact-SHA CI are recorded by the coordinator after push.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+None. The existing installed `fastify-formidable` integration enforces the
+streaming file limit without a dependency change, and the existing 10 MiB/MIME
+policy was preserved.
+
+### CI repair attempt
+Exact feature-SHA Actions run `34973442358` for `31a679fea5c113146538232299fea4c23cde4b29`
+failed in the registered static/architecture gates on Ubuntu and Windows because
+the REST route ownership inventory still described `POST /api/documents` and
+omitted the implemented `POST /api/documents/upload` route. Following the
+workflow diagnostic, ran `node scripts/check-rest-route-ownership.mjs --write`
+and reviewed the generated single-file diff. The corrected entry now records the
+upload route as an active product feature owned by the document upload
+application service, with controller/service evidence; no unrelated route
+records changed.
+
+Focused repair validation passed:
+`npm run ci:rest-route-ownership` (inventory check and negative policy checks),
+`npm run ci:architecture`, and `git diff --check`.

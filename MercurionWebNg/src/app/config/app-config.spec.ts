@@ -6,15 +6,15 @@ import { environment as stagingEnvironment } from '../../environments/environmen
 import { environment as testingEnvironment } from '../../environments/environment.testing'
 import type { EnvironmentConfig, EnvironmentName } from '../../environments/environment.config'
 import { environmentNames } from '../../environments/environment.config'
-import { RealtimeSocketService } from '../services/socket.IO/realtime-socket.service'
+import { RealtimeSocketService } from '../services/socket-io/realtime-socket.service'
 import { APP_CONFIG, AppConfig, RELEASE_BASE_VERSION, createAppConfig, releaseVersionFor } from './app-config'
 
 describe('Application configuration', () => {
   const environments = [
-    { config: developmentEnvironment, name: 'development', beta: true, feedbackEnv: 'staging', localDummyAuth: true, disableTurnstile: true, version: '1.0.0d' },
-    { config: testingEnvironment, name: 'testing', beta: true, feedbackEnv: 'staging', localDummyAuth: false, disableTurnstile: false, version: '1.0.0i' },
-    { config: stagingEnvironment, name: 'staging', beta: true, feedbackEnv: 'staging', localDummyAuth: false, disableTurnstile: false, version: '1.0.0-beta' },
-    { config: productionEnvironment, name: 'production', beta: false, feedbackEnv: 'prod', localDummyAuth: false, disableTurnstile: false, version: '1.0.0' }
+    { config: developmentEnvironment, name: 'development', beta: true, feedbackEnv: 'staging', localDummyAuth: true, disableTurnstile: true, version: packageJson.version },
+    { config: testingEnvironment, name: 'testing', beta: true, feedbackEnv: 'staging', localDummyAuth: false, disableTurnstile: false, version: packageJson.version },
+    { config: stagingEnvironment, name: 'staging', beta: true, feedbackEnv: 'staging', localDummyAuth: false, disableTurnstile: false, version: packageJson.version },
+    { config: productionEnvironment, name: 'production', beta: false, feedbackEnv: 'prod', localDummyAuth: false, disableTurnstile: false, version: packageJson.version }
   ] satisfies readonly {
     readonly config: EnvironmentConfig
     readonly name: EnvironmentName
@@ -25,7 +25,7 @@ describe('Application configuration', () => {
     readonly version: string
   }[]
 
-  it('uses the package manifest as the single release-version source', () => {
+  it('uses the root package manifest as the single release-version source', () => {
     expect(RELEASE_BASE_VERSION).toBe(packageJson.version)
   })
 
@@ -44,6 +44,7 @@ describe('Application configuration', () => {
       expect(appConfig.capabilities.disableTurnstile).toBe(disableTurnstile)
       expect(appConfig.release.version).toBe(version)
       expect(appConfig.release.version).toBe(releaseVersionFor(name))
+      expect(appConfig.release.revision).toMatch(/^[0-9a-f]{40}$/)
       expect(appConfig.endpoints.realtimeUrl).toBe('/')
       expect(appConfig.endpoints.realtimePath).toBe('/socket.io')
       expect(appConfig.integrations.turnstileSiteKey).toBe(config.CLOUDFLARE_SITE_KEY)
@@ -67,6 +68,7 @@ describe('Application configuration', () => {
 
     expect(environmentNames).toContain(appConfig.environment)
     expect(appConfig.release.version).toBe(releaseVersionFor(appConfig.environment))
+    expect(appConfig.release.revision).toMatch(/^[0-9a-f]{40}$/)
   })
 
   it('keeps browser configuration free of secret-looking values', () => {

@@ -1,11 +1,15 @@
 import { BadRequestException } from "@nestjs/common";
 import { Pagination } from "nestjs-typeorm-paginate";
-import { MfaStrategy } from "src/app_modules/user/Models/enums/mfa-strategy.enum";
-import { FlatPagination } from "src/Models/flat-pagination.interface";
+import { MfaStrategy } from "src/app_modules/user/models/enums/mfa-strategy.enum";
+import { FlatPagination } from "src/models/flat-pagination.interface";
+import {
+    assertMercurionPublicId,
+    isMercurionPublicId,
+    parseMercurionPublicId,
+    type MercurionPublicId,
+} from "src/identifiers/mercurion-public-id";
 
 export class GeneralUtils {
-
-    private static readonly uuidV7Re = /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
     public static getEnumValue<T extends object>(enumType: T, value: string | number): T[keyof T] | undefined {
         return Object.values(enumType).find((val) => val === value) as T[keyof T] | undefined
@@ -64,13 +68,21 @@ export class GeneralUtils {
     }
 
     public static isValidUUIDv7(uuid: string): boolean {
-        return this.uuidV7Re.test(uuid)
+        return isMercurionPublicId(uuid)
     }
 
-    public static ensureValidUUIDv7(uuid: unknown, errorMessage?: string): asserts uuid is string {
-        if (typeof uuid !== 'string' || !this.isValidUUIDv7(uuid)) {
-            throw new BadRequestException(errorMessage ?? 'Invalid UUID')
-        }
+    public static ensureValidUUIDv7(
+        uuid: unknown,
+        errorMessage?: string,
+    ): asserts uuid is string {
+        assertMercurionPublicId(uuid, errorMessage ?? 'id')
+    }
+
+    public static parsePublicId(
+        value: unknown,
+        field = 'id',
+    ): MercurionPublicId {
+        return parseMercurionPublicId(value, field)
     }
 
     public static paginationToFlatPaginationConverter<T>(pagination: Pagination<T>): FlatPagination<T> {
@@ -101,4 +113,3 @@ export class GeneralUtils {
     }
 
 }
-

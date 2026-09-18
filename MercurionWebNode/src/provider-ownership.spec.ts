@@ -14,13 +14,15 @@ import { RedisSessionRepository } from './app_modules/auth/repositories/redis-se
 import { SessionIdentityService } from './app_modules/auth/services/session-identity.service';
 import { JwtToolsService } from './app_modules/auth/services/jwt-tools.service';
 import { SessionService } from './app_modules/auth/services/session.service';
-import { SESSION_REPOSITORY } from './app_modules/auth/Models/interfaces/session-repository.interface';
-import { MeiliLoggerService } from './app_modules/meilisearch/services/meili-logger.service';
+import { SESSION_REPOSITORY } from './app_modules/auth/models/interfaces/session-repository.interface';
+import { LoggerPort } from 'src/logging/logger.port';
 import { RedisModule } from './app_modules/redis/redis.module';
 import { PubSubService } from './app_modules/redis/services/pub-sub.service';
 import { RedisService } from './app_modules/redis/services/redis.service';
 import { SSO_Module } from './app_modules/sso/sso.module';
 import { UserService } from './app_modules/user/services/user.service';
+import { ProfileReadModelService } from './app_modules/user/services/profile-read-model.service';
+import { HistoryService } from './app_modules/history/services/history.service';
 import { AppModule } from './app.module';
 import { ResponseModule } from './services/response.module';
 import { ResponseService } from './services/response.service';
@@ -67,11 +69,11 @@ const logger = {
       },
     },
     {
-      provide: MeiliLoggerService,
+      provide: LoggerPort,
       useValue: { forContext: jest.fn(() => logger) },
     },
   ],
-  exports: [ConfigService, DataSource, MeiliLoggerService],
+  exports: [ConfigService, DataSource, LoggerPort],
 })
 class ProviderDependencyProbeModule {}
 
@@ -192,6 +194,8 @@ describe('core Nest provider ownership', () => {
     builder.overrideProvider(Redis).useValue({});
     builder.overrideProvider(PubSubService).useValue({});
     builder.overrideProvider(UserService).useValue({});
+    builder.overrideProvider(ProfileReadModelService).useValue({});
+    builder.overrideProvider(HistoryService).useValue({});
     builder.overrideProvider(JwtKeysProvider).useValue({
       getAccessKeyPair: () => ({ privateKey: 'private', publicKey: 'public' }),
       getWsKeyPair: () => ({ privateKey: 'private', publicKey: 'public' }),

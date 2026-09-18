@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { OAuth2AccessTokenRefreshService } from './access-token-refresh.service';
 import { OAuth2ClientService } from './oauth2-client.service';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { LoggerPort } from 'src/logging/logger.port';
 
 describe('AccessTokenRefreshService', () => {
   let service: OAuth2AccessTokenRefreshService;
@@ -12,7 +12,7 @@ describe('AccessTokenRefreshService', () => {
       providers: [
         OAuth2AccessTokenRefreshService,
         { provide: OAuth2ClientService, useValue: { getAccessToken: jest.fn() } },
-        { provide: MeiliLoggerService, useValue: { forContext: jest.fn().mockReturnValue(mockLogger) } },
+        { provide: LoggerPort, useValue: { forContext: jest.fn().mockReturnValue(mockLogger) } },
       ],
     }).compile();
 

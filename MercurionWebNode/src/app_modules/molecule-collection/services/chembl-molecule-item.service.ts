@@ -1,17 +1,18 @@
-import { MoleculeCollectionItemJoin } from './../Models/entities/molecule-collection-item-join.entity';
+import { MoleculeCollectionItemJoin } from './../models/entities/molecule-collection-item-join.entity';
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { ChEMBLMoleculeItemEntity } from "../Models/entities/chembl-molecule-item.entity";
+import { ChEMBLMoleculeItemEntity } from "../models/entities/chembl-molecule-item.entity";
 import { DataSource, Repository } from "typeorm";
 import { UUID } from "crypto";
 import { GraphQLFieldsMap } from "src/utils/type-orm-utils/type-orm-utils";
 import { GraphQLUtils } from "src/utils/graphql-utils/graphql-utils";
 import { MoleculeCollectionItemJoinService } from "./molecule-collection-item-join.service";
 
-import { MoleculeCollection } from "../Models/entities/molecule-collection.entity";
+import { MoleculeCollection } from "../models/entities/molecule-collection.entity";
 import { uuidv7 } from '@kripod/uuidv7';
-import { AddManyChEMBLItemDTO } from "../Models/DTO/add-many-chembl-items.dto";
-import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
+import { AddManyChEMBLItemDTO } from "../models/dto/add-many-chembl-items.dto";
+import { runInTransaction } from 'src/persistence/transaction-context'
+import { MoleculeOwnershipPolicy } from './molecule-ownership.policy'
 
 @Injectable()
 export class ChEMBLMoleculeItemService {
@@ -20,7 +21,8 @@ export class ChEMBLMoleculeItemService {
         @InjectRepository(ChEMBLMoleculeItemEntity)
         private readonly chemblRepo: Repository<ChEMBLMoleculeItemEntity>,
         private readonly joinService: MoleculeCollectionItemJoinService,
-        private readonly dataSource: DataSource
+        private readonly dataSource: DataSource,
+        private readonly ownershipPolicy: MoleculeOwnershipPolicy
     ) { }
 
     async getChemblMolregnosByUserId(userId: UUID): Promise<number[]> {
@@ -92,7 +94,7 @@ export class ChEMBLMoleculeItemService {
         label?: string,
         notes?: string
     ): Promise<ChEMBLMoleculeItemEntity> {
-        return await this.dataSource.transaction(async (manager) => {
+        return await runInTransaction(this.dataSource, async (_context, manager) => {
 
             let item = await manager.findOne(ChEMBLMoleculeItemEntity, { where: { chemblMolregno, userId } })
             if (!item) {
@@ -110,8 +112,7 @@ export class ChEMBLMoleculeItemService {
             }
 
             // 2. Trova la collection (usa il manager)
-            const collection = await manager.findOne(MoleculeCollection, { where: { id: collectionId, userId } });
-            if (!collection) throw applicationError(ApplicationErrorCode.CHEMBL_ITEM_ACCESS_DENIED);
+            await this.ownershipPolicy.assertCollectionOwned(manager, userId, collectionId)
 
             // 3. Crea la join (se il joinService usa repository, passagli manager.queryRunner.manager oppure implementa la logica qui)
             await this.joinService.addMoleculeToCollectionWithManager(userId, collectionId, item.id, manager);
@@ -135,7 +136,7 @@ export class ChEMBLMoleculeItemService {
         dtos: AddManyChEMBLItemDTO[]
     ): Promise<boolean> {
         try {
-            return await this.dataSource.manager.transaction(async manager => {
+            return await runInTransaction(this.dataSource, async (_context, manager) => {
                 const molregnoMap = new Map<number, AddManyChEMBLItemDTO>()
                 for (const dto of dtos) {
                     if (!molregnoMap.has(dto.chemblMolregno)) {

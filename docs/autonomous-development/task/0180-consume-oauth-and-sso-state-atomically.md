@@ -1,6 +1,6 @@
 # 0180 - Consume OAuth and SSO state atomically
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -88,24 +88,58 @@ A state record should be consumed before token exchange so a slow/failing provid
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-031`
 ### Preflight
-_Not started._
+Base SHA `fa4d3b795d9a785880fe194d018de1500f0a0326` matched the supplied
+feature branch HEAD. Exact base CI run `35290378377` completed successfully
+for that SHA. `npm --workspace mercurion_web_node run lint -- --no-fix`
+passed before mutation. The authoritative planner reported task 0180
+`READY` with hard dependencies 0179 and 0144 DONE; no stale skips were
+reported.
 ### Preflight remediation
-_None._
+None. The canonical runtime capability probe started Tox21 from
+`../MercurionTox21`, Nest with `APP_ENV=development` and
+`LOCAL_DUMMY_AUTH=false`, then Angular in separate live sessions. After all
+three handles existed, the nginx edge at `http://localhost:8888` returned
+two consecutive complete readiness rounds; initial 502 responses were
+transient upstream build responses. All task-owned processes were stopped
+before implementation.
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0179, 0144. This task was never attempted and receives no feature branch.
+Added `OAuthStateService` with a versioned provider/purpose-bound record,
+opaque 256-bit state, HMAC-derived Redis lookup key and four-minute TTL.
+Added atomic Redis GET-and-delete via Lua and wired both SSO and OAuth2
+callbacks to consume state before token exchange/profile work. Callback
+metadata, including OAuth owner identity and SSO redirect target, now comes
+only from the consumed server-side record; raw state is not logged.
 ### Task-specific validation performed
-_Not started._
+`npm --workspace mercurion_web_node run typecheck -- --pretty false` passed.
+`npm --workspace mercurion_web_node run lint -- --no-fix` passed.
+Focused OAuth/SSO tests passed: 5 suites, 8 tests. The complete OAuth2/SSO
+module test selection passed: 12 suites, 15 tests. `npm --workspace
+mercurion_web_node run build` passed.
+State tests cover opaque storage and TTL metadata, provider/purpose/expiry
+rejection, and concurrent consumption where exactly one callback receives the
+record.
 ### Full pre-merge CI-parity validation
-_Not started._
+Complete clean-install/aggregate CI parity remains assigned to GitHub Actions
+on the pushed feature SHA. Local `npm ci` and `npm run ci:check` were not run.
 ### Browser validation performed
-_Not started / not applicable._
+Post-change canonical runtime readiness was proven through
+`http://localhost:8888`. Chrome DevTools MCP used the dedicated profile and
+local API fixtures only. The OAuth2 provider callback fixture
+`/api/oauth2/dropbox/callback?code=fixture&state=invalid-0180` returned the
+structured 401 `Invalid or expired OAuth state`. The SSO callback fixture
+`/api/oauth2/sso/Google/callback?code=fixture&state=invalid-0180` consumed no
+state, returned the local `sso_failed` flow and landed on the local
+dashboard/login surface. No external provider, credential, clipboard API or
+script evaluation was used. All task-owned runtime processes were stopped
+after evidence collection.
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+Pending task commit on `feature/DATA-031`.
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+Coordinator must push this task-specific commit and wait for exact feature-SHA
+CI before integration.
 ### Rollback
-_Not applicable._
+Not applicable.
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+None.

@@ -140,9 +140,9 @@ import { adaptHttpFormError, type FormErrorState } from '../../utils/form-error.
 
                   <span class="inline-block size-4 rounded-sm border
                                      border-gray-300 bg-white
-                                     peer-checked:bg-blue-600/80 peer-checked:blue-600/80
+                                     peer-checked:bg-blue-600/80
                                      dark:border-white/10 dark:bg-white/5
-                                     dark:peer-checked:bg-dark-accent-primary-btn dark:peer-checked:border-dark-accbg-dark-accent-primary-btn"
+                                     dark:peer-checked:bg-dark-accent-primary-btn dark:peer-checked:border-dark-accent-primary-btn"
                     aria-hidden="true"></span>
 
                   <svg viewBox="0 0 14 14" fill="none" class="pointer-events-none hidden peer-checked:block

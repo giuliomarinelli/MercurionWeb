@@ -35,10 +35,10 @@ in `CI-BASELINE.md` is green on the exact `develop` SHA.
 8. From the MercurionWeb root, launch the coordinator with the deterministic repository-agent identifier and permissions required for unattended npm/Git/network work. The sibling repository is added explicitly instead of disabling all path verification:
 
    ```text
-   copilot --agent development-session-coordinator --allow-all-tools --allow-all-urls --add-dir ../MercurionTox21 --reasoning-effort high --autopilot
+   copilot --agent development-session-coordinator --allow-all-tools --allow-all-urls --add-dir ../MercurionTox21 --model gpt-5.6-luna --reasoning-effort medium --context default --autopilot
    ```
 
-9. In the fresh parent session, use `/model` to verify **GPT-5.6 Sol** and **High** reasoning, `/permissions show` to verify the launch grants, `/mcp list` to verify `chrome-devtools` is connected, `/skills list` to verify the five repository project skills are discovered, and `/keep-alive on` to prevent machine sleep. The agent profiles inherit the parent model/reasoning and use explicit tool lists rather than inheriting every unrelated user-scoped tool.
+9. In the fresh parent session, use `/model` to verify **GPT-5.6 Luna** and **Medium** reasoning, `/permissions show` to verify the launch grants, `/mcp list` to verify `chrome-devtools` is connected, `/skills list` to verify the five repository project skills are discovered, and `/keep-alive on` to prevent machine sleep. The agent profiles inherit the parent model/reasoning through override-free task calls and use explicit tool lists rather than inheriting every unrelated user-scoped tool.
 10. Paste the starting prompt below once. Before any task branch is created, the coordinator must perform the real npm probe and one synchronous nonce-correlated `development-task-worker` handshake. Do not start a second coordinator against the same checkout.
 
 ## Starting prompt
@@ -54,7 +54,7 @@ Before any task branch or recipe work, run the required real isolated npm capabi
 
 Before creating any task branch, make exactly one non-mutating synchronous `task` call with `agent_type: development-task-worker`, `mode: sync`, `capability_probe: true`, and a fresh nonce. Require the exact correlated response `TASK_CAPABILITY_OK <nonce>`. The probe worker must use no tools, perform no repository/Git/task work, and create no outcome. An empty, malformed, denied, or mismatched result is a startup failure.
 
-If any install, network, filesystem, cleanup, GitHub, synchronous `task`, MCP, signing, or `task_complete` prerequisite is denied or requires additional approval despite the launch permissions, stop and report the exact denial.
+If any install, network, filesystem, cleanup, GitHub, synchronous `task`, MCP, signing, or `task_complete` prerequisite is denied or unavailable, record the exact diagnostic and enter `SESSION_RECOVERY_PENDING`; retry with bounded backoff until it is restored or the soft deadline arrives.
 
 Before any task branch or recipe implementation, prove the exact `develop`
 baseline clean and green using `docs/autonomous-development/CI-BASELINE.md` and
@@ -82,7 +82,7 @@ DONE, BLOCKED, REVERTED and SKIPPED_DEPENDENCY are terminal within this active s
 
 Operate autonomously within these rules and do not ask me to approve routine in-scope tool calls. Never touch master, deploy, publish, use production data/credentials, force-push, rebase, rewrite history, or mutate historical PR #25.
 
-At `2026-09-02T10:00:00+02:00`, start no new task. Finish the complete safe lifecycle of the currently active task, including dependency-skip propagation caused by its terminal outcome, then generate and push the configured report on clean develop and wait for exact report-commit CI when a workflow exists. Emit the concise final summary and report path, then call `task_complete` as the final Autopilot action and produce no further prose or tool calls. Report separate DONE, BLOCKED, REVERTED, SKIPPED_DEPENDENCY and pending counts/evidence; task/merge/revert/status SHAs and CI runs; preserved frozen branches; direct/transitive skip causes; baseline remediation; validation/browser evidence; final develop health; stop reason; and actual elapsed/usage information available from the host. Reaching a session-fatal blocker is successful completion of the coordinator objective even when pending workload remains: finalize the report, summarize, call `task_complete`, and stop. Do not claim completion before finalization is terminal.
+At the configured soft deadline, start no new task. Finish the complete safe lifecycle of the currently active task, then run the configured executable finalization guard. Before the deadline, only an authoritative planner result with `currentCounts.PENDING === 0` permits finalization; an error or unavailable capability never completes the coordinator objective while pending workload remains. After a successful guard, generate and push the configured report on clean develop, wait for exact report-commit CI, emit the concise final summary and report path, then call `task_complete` as the final Autopilot action and produce no further prose or tool calls.
 ```
 
 ## Expected terminal states

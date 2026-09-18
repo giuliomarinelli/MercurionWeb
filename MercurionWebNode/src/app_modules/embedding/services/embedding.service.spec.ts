@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { EmbeddingService } from './embedding.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { MoleculeEmbedding } from '../Models/entities/molecule-embedding.entity';
+import { MoleculeEmbedding } from '../models/entities/molecule-embedding.entity';
 import { DataSource } from 'typeorm';
 
 describe('EmbeddingService', () => {

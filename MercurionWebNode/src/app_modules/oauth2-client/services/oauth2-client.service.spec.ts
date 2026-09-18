@@ -3,7 +3,9 @@ import { OAuth2ClientService } from './oauth2-client.service';
 import { ConfigService } from '@nestjs/config';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
 import { OAuth2PersistenceService } from './o-auth2-persistence.service';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { LoggerPort } from 'src/logging/logger.port';
+import { ExternalHttpPort } from 'src/infrastructure/external-http/external-http.port';
+import { OAuthStateService } from './oauth-state.service';
 
 describe('OAuth2ClientService', () => {
   let service: OAuth2ClientService;
@@ -16,7 +18,9 @@ describe('OAuth2ClientService', () => {
         { provide: ConfigService, useValue: { get: jest.fn() } },
         { provide: RedisService, useValue: { get: jest.fn(), set: jest.fn() } },
         { provide: OAuth2PersistenceService, useValue: { saveRefreshToken: jest.fn(), getRefreshToken: jest.fn() } },
-        { provide: MeiliLoggerService, useValue: { forContext: jest.fn().mockReturnValue(mockLogger) } },
+        { provide: LoggerPort, useValue: { forContext: jest.fn().mockReturnValue(mockLogger) } },
+        { provide: ExternalHttpPort, useValue: { post: jest.fn(), get: jest.fn() } },
+        { provide: OAuthStateService, useValue: { create: jest.fn() } },
       ],
     }).compile();
 

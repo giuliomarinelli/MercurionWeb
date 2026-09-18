@@ -1,8 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull } from 'typeorm';
-import { OAuth2TokenEntity } from '../Models/entities/oauth2-token.entity';
+import { OAuth2TokenEntity } from '../models/entities/oauth2-token.entity';
 import { UUID } from 'crypto';
+
+interface OAuthTokenCreateCommand {
+    provider: string
+    refreshToken: string
+    userId: UUID | null
+    scope?: string
+}
 
 @Injectable()
 export class OAuth2PersistenceService {
@@ -24,7 +31,7 @@ export class OAuth2PersistenceService {
             if (scope) existing.scope = scope;
             await this.tokenRepo.save(existing);
         } else {
-            const record: Partial<OAuth2TokenEntity> = {
+            const record: OAuthTokenCreateCommand = {
                 provider,
                 refreshToken,
                 userId: userId ?? null,

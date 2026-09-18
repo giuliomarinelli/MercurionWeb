@@ -121,7 +121,7 @@ browser-profile acceptance sequence.
 
 ## Host usage
 
-- Model/reasoning: inherited GPT-5.6 Sol / High
+- Model/reasoning: inherited legacy alternate model / High
 - Autopilot/task-session information: one startup capability handshake, two
   profile acceptance workers, zero implementation workers
 - Credit/token/context information: unavailable

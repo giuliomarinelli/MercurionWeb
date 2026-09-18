@@ -96,16 +96,19 @@ export const redisDurations = {
  */
 export const redisKeys = {
     session: {
-        record: (sessionId: string, userId: string) =>
-            key(`session:${sessionId}:${userId}`),
-        recordsBySession: (sessionId: string) =>
-            pattern(`session:${sessionId}:*`),
-        recordsByUser: (userId: string) =>
-            pattern(`session:*:${userId}`),
-        allUserIndexes: () =>
-            pattern('user_sessions:*'),
+        record: (sessionId: string) => key(`session:${sessionId}`),
+        owner: (sessionId: string) => key(`session_owner:${sessionId}`),
         userIndex: (userId: string) =>
             key(`user_sessions:${userId}`)
+        ,
+        deviceIndex: (userId: string, deviceId: string) =>
+            key(`session_device:${userId}:${deviceId}`),
+        tokenIndex: (sessionId: string) =>
+            key(`session_tokens:${sessionId}`),
+        recordsBySession: (sessionId: string) =>
+            pattern(`session:${sessionId}*`),
+        recordsByUser: (userId: string) =>
+            pattern(`session:*:${userId}`)
     },
     token: {
         issued: (sessionId: string, jti: string) =>
@@ -113,7 +116,7 @@ export const redisKeys = {
         issuedBySession: (sessionId: string) =>
             pattern(`issued:${sessionId}:*`),
         issuedByJti: (jti: string) =>
-            pattern(`issued:*:${jti}`),
+            key(`issued:${jti}`),
         revoked: (jti: string) =>
             key(`revoked:${jti}`)
     },
@@ -201,7 +204,9 @@ export const redisKeys = {
         accessToken: (provider: string, userId?: string) =>
             key(`access_token:${provider}${userId ? `:${userId}` : ''}`),
         refreshLock: (provider: string, userId?: string) =>
-            key(`oauth2:refresh_lock:${provider}:${userId ?? '__global__'}`)
+            key(`oauth2:refresh_lock:${provider}:${userId ?? '__global__'}`),
+        state: (provider: string, hashedState: string) =>
+            key(`oauth2:state:${provider}:${hashedState}`)
     },
     sso: {
         state: (provider: string, hashedState: string) =>

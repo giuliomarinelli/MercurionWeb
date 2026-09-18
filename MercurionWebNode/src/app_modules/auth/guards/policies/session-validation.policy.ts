@@ -1,10 +1,10 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { timingSafeEqual } from 'node:crypto'
 
-import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface'
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service'
+import { LoggerContext } from 'src/logging/logger.port'
+import { LoggerPort } from 'src/logging/logger.port'
 
-import type { AppJwtPayload } from '../../Models/interfaces/app-jwt-payload.interface'
+import type { AppJwtPayload } from '../../models/interfaces/app-jwt-payload.interface'
 import { SessionService } from '../../services/session.service'
 import type {
   AccessTokenAuthenticationMode,
@@ -13,11 +13,11 @@ import type {
 
 @Injectable()
 export class SessionValidationPolicy {
-  private readonly logger: MeiliContextLogger
+  private readonly logger: LoggerContext
 
   constructor(
     private readonly sessionService: SessionService,
-    loggerFactory: MeiliLoggerService
+    loggerFactory: LoggerPort
   ) {
     this.logger = loggerFactory.forContext(SessionValidationPolicy.name)
   }

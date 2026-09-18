@@ -1,21 +1,21 @@
-import { BadRequestException, Controller, Delete, Get, Query } from '@nestjs/common';
+import { Controller, DefaultValuePipe, Delete, Get, ParseIntPipe, Query } from '@nestjs/common';
 import { UUID } from 'crypto';
-import { FlatPagination } from 'src/Models/flat-pagination.interface';
+import { FlatPagination } from 'src/models/flat-pagination.interface';
 import { AuthenticatedUserId } from 'src/metadata/metadata';
-import { HistoryDTO } from '../Models/DTO/history.dto';
+import { HistoryDTO } from '../models/dto/history.dto';
 import { HistoryService } from '../services/history.service';
-import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { LoggerContext } from 'src/logging/logger.port';
+import { LoggerPort } from 'src/logging/logger.port';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 
 @Controller('history')
 export class HistoryController {
 
-    private readonly logger: MeiliContextLogger
+    private readonly logger: LoggerContext
 
     constructor(
         private readonly historyService: HistoryService,
-        loggerFactory: MeiliLoggerService
+        loggerFactory: LoggerPort
     ) {
         this.logger = loggerFactory.forContext(HistoryController.name)
     }
@@ -23,20 +23,12 @@ export class HistoryController {
     @Get()
     async getHistory(
         @AuthenticatedUserId() userId: UUID,
-        @Query('page') page = 1,
-        @Query('limit') limit = 20
+        @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+        @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number
     ): Promise<FlatPagination<HistoryDTO>> {
-        const parsedPage = Number(page)
-        const parsedLimit = Number(limit)
-        if (!Number.isInteger(parsedPage) || parsedPage < 1) {
-            throw new BadRequestException('page must be a positive integer')
-        }
-        if (!Number.isInteger(parsedLimit) || parsedLimit < 1) {
-            throw new BadRequestException('limit must be a positive integer')
-        }
         try {
             const pagination = await this.historyService.getPaginatedHistory(userId, {
-                page: parsedPage, limit: parsedLimit
+                page, limit
             })
             return GeneralUtils.paginationToFlatPaginationConverter(pagination)
         } catch (e) {

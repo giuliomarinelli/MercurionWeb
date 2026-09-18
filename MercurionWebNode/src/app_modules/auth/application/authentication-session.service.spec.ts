@@ -1,7 +1,7 @@
 import { ApplicationErrorCode } from '@mercurion/rest-contracts'
 
 import { getApplicationError } from 'src/exception-handling/application-error'
-import { TokenType } from '../Models/enums/token-type.enum'
+import { TokenType } from '../models/enums/token-type.enum'
 import { AuthenticationSessionService } from './authentication-session.service'
 
 describe('AuthenticationSessionService', () => {

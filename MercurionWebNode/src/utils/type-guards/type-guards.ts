@@ -1,12 +1,12 @@
-import { BackupCodeDTO } from "src/app_modules/auth/Models/DTO/backup-code.cls.dto";
-import { TotpBodyDTO } from "src/app_modules/auth/Models/DTO/totp.cls.dto";
-import { VerifyBodyDTO } from "src/app_modules/auth/Models/DTO/verify-body.cls.dto.";
-import { StorageAction } from "src/app_modules/dropbox-object-store/Models/enums/storage-action.type";
-import { ChEMBLMoleculeItemEntity } from "src/app_modules/molecule-collection/Models/entities/chembl-molecule-item.entity";
-import { CustomMoleculeItemEntity } from "src/app_modules/molecule-collection/Models/entities/custom-molecule-item.entity";
-import { MoleculeCollectionItemEntity } from "src/app_modules/molecule-collection/Models/entities/molecule-collection-item.entity";
-import { AuthProvider } from "src/app_modules/sso/Models/enums/auth-provider.enum";
-import { MfaStrategy } from "src/app_modules/user/Models/enums/mfa-strategy.enum";
+import { BackupCodeDTO } from "src/app_modules/auth/models/dto/backup-code.cls.dto";
+import { TotpBodyDTO } from "src/app_modules/auth/models/dto/totp.cls.dto";
+import { VerifyBodyDTO } from "src/app_modules/auth/models/dto/verify-body.cls.dto.";
+import { StorageAction } from "src/app_modules/dropbox-object-store/models/enums/storage-action.type";
+import { ChEMBLMoleculeItemEntity } from "src/app_modules/molecule-collection/models/entities/chembl-molecule-item.entity";
+import { CustomMoleculeItemEntity } from "src/app_modules/molecule-collection/models/entities/custom-molecule-item.entity";
+import { MoleculeCollectionItemEntity } from "src/app_modules/molecule-collection/models/entities/molecule-collection-item.entity";
+import { AuthProvider } from "src/app_modules/sso/models/enums/auth-provider.enum";
+import { MfaStrategy } from "src/app_modules/user/models/enums/mfa-strategy.enum";
 
 export class TypeGuards {
 

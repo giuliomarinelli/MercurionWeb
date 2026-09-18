@@ -1,26 +1,32 @@
-import { ChangePasswordDTO } from './../Models/DTO/change-password.dto';
-import { MfaStrategy } from 'src/app_modules/user/Models/enums/mfa-strategy.enum';
+import { ChangePasswordDTO } from './../models/dto/change-password.dto';
+import { MfaStrategy } from 'src/app_modules/user/models/enums/mfa-strategy.enum';
 import { BadRequestException, Body, Controller, Delete, Get, HttpCode, HttpStatus, NotFoundException, Param, Patch, Post, Query, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
-import { UserRegisterDTO } from 'src/app_modules/user/Models/DTO/user-register.cls.dto';
+import { UserRegisterDTO } from 'src/app_modules/user/models/dto/user-register.cls.dto';
 import { AuthenticatedUserId, Authorization, Public, SessionId } from 'src/metadata/metadata';
-import { ConfirmChangeDTO, ConfirmDTO, ConfirmMfaChange, ConfirmWithObsContDTO, ConfirmWithPhoneMfaFeedback, ConfirmWithRecoveryCodeDTO } from 'src/Models/confirm-responses.dto';
-import { AccountService } from '../services/account.service';
+import { ConfirmChangeDTO, ConfirmDTO, ConfirmMfaChange, ConfirmWithObsContDTO, ConfirmWithPhoneMfaFeedback, ConfirmWithRecoveryCodeDTO } from 'src/models/confirm-responses.dto';
+import { AccountRegistrationUseCase, AccountActivationUseCase, AccountEmailAvailabilityQuery } from '../application/account-registration.use-case';
+import { AccountSensitiveDataUseCase } from '../application/account-sensitive-data.use-case';
+import { PasswordChangeUseCase, PasswordRecoveryUseCase } from '../application/password-recovery.use-case';
+import { ProfileAccountUseCase } from '../application/profile-account.use-case';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
+import { publicTotpMetadata } from 'src/utils/temporal/temporal'
 import { ResponseService } from 'src/services/response.service';
-import { MfaService } from '../services/mfa.service';
-import { createHash, UUID } from 'crypto';
-import { TotpDTO } from '../Models/DTO/totp.cls.dto';
-import { ChangePhoneDTO } from '../Models/DTO/change-phone.cls.dto';
-import { EmailDTO } from '../Models/DTO/email.cls.dto';
+import { MfaChallengeService } from '../services/mfa-challenge.service';
+import { MfaEnrollmentService } from '../services/mfa-enrollment.service';
+import { MfaBackupCodeService } from '../services/mfa-backup-code.service';
+import { UUID } from 'crypto';
+import { TotpDTO } from '../models/dto/totp.cls.dto';
+import { ChangePhoneDTO } from '../models/dto/change-phone.cls.dto';
+import { EmailDTO } from '../models/dto/email.cls.dto';
 import { UserService } from 'src/app_modules/user/services/user.service';
 import { TurnstileGuard } from '../guards/turnstile.guard';
-import { SercurityService } from '../services/sercurity.service';
-import { ProfileDTO, ProfileRegistryClientDTO, ProfileRegistryDTO } from '../Models/DTO/profile.dtos';
-import { SessionDTO } from '../Models/DTO/session.dto';
-import { BackupCodeStatusDTO } from 'src/app_modules/user/Models/DTO/backup-code-status.dto';
+import { SecurityService } from '../services/security.service';
+import { ProfileDTO, ProfileRegistryClientDTO, ProfileRegistryDTO } from '../models/dto/profile.dtos';
+import { SessionDTO } from '../models/dto/session.dto';
+import { BackupCodeStatusDTO } from 'src/app_modules/user/models/dto/backup-code-status.dto';
 import { ConfigService } from '@nestjs/config';
-import { ProvidedEmailDTO } from '../Models/DTO/provided-email.dto';
-import { VersionDTO } from '../Models/DTO/version.dto';
+import { ProvidedEmailDTO } from '../models/dto/provided-email.dto';
+import { BuildIdentityDTO } from '../models/dto/version.dto';
 import type { AuthProvider as WireAuthProvider, BackupCodesDTO, MfaStrategy as WireMfaStrategy } from '@mercurion/rest-contracts'
 import {
     ApplicationErrorCode,
@@ -28,6 +34,7 @@ import {
     isApplicationError
 } from 'src/exception-handling/application-error'
 import { ListActiveSessionsHandler } from '../application/session-authentication.handlers';
+import { buildIdentity } from 'src/generated/build-identity';
 
 
 
@@ -36,11 +43,19 @@ import { ListActiveSessionsHandler } from '../application/session-authentication
 export class AccountController {
 
     constructor(
-        private readonly accountService: AccountService,
+        private readonly registerAccount: AccountRegistrationUseCase,
+        private readonly activateAccountUseCase: AccountActivationUseCase,
+        private readonly emailAvailability: AccountEmailAvailabilityQuery,
+        private readonly sensitiveData: AccountSensitiveDataUseCase,
+        private readonly passwordChange: PasswordChangeUseCase,
+        private readonly passwordRecoveryUseCase: PasswordRecoveryUseCase,
+        private readonly profileAccount: ProfileAccountUseCase,
         private readonly _r: ResponseService,
-        private readonly mfaService: MfaService,
+        private readonly mfaChallenge: MfaChallengeService,
+        private readonly mfaEnrollment: MfaEnrollmentService,
+        private readonly mfaBackupCodes: MfaBackupCodeService,
         private readonly userService: UserService,
-        private readonly securityService: SercurityService,
+        private readonly securityService: SecurityService,
         private readonly listActiveSessions: ListActiveSessionsHandler,
         private readonly configService: ConfigService
     ) { }
@@ -49,7 +64,7 @@ export class AccountController {
     @Post('/register')
     @UseGuards(TurnstileGuard)
     public async registerUser(@Body(new ValidationPipe({ transform: true })) userRegisterDTO: UserRegisterDTO): Promise<ConfirmWithObsContDTO> {
-        return this.accountService.registerUser(userRegisterDTO)
+        return this.registerAccount.execute({ registration: userRegisterDTO })
     }
 
     @Public()
@@ -58,7 +73,7 @@ export class AccountController {
         if (!/^[A-Za-z0-9_-]+=*\.[A-Za-z0-9_-]+=*\.[A-Za-z0-9_-]+=*$/i.test(activationToken)) {
             throw new BadRequestException('Invalid t param pattern')
         }
-        return this.accountService.activateUser(activationToken)
+        return this.activateAccountUseCase.execute(activationToken)
     }
 
     @Patch('/email/1')
@@ -66,7 +81,7 @@ export class AccountController {
         @AuthenticatedUserId() userId: UUID,
         @Body(new ValidationPipe({ transform: true })) dto: EmailDTO
     ): Promise<ConfirmChangeDTO> {
-        return await this.accountService.changeEmail_firstStep_requestTotp(userId, dto.email)
+        return await this.sensitiveData.requestEmailChange(userId, dto.email)
     }
 
     @Patch('/email/2')
@@ -74,21 +89,21 @@ export class AccountController {
         @Body(new ValidationPipe({ transform: true })) dto: TotpDTO
     ): Promise<ConfirmDTO> {
         const { totp, secureToken } = dto
-        const isValid = await this.accountService.changeEmail_secondStep_verifyTotp(totp, secureToken)
+        const isValid = await this.sensitiveData.confirmEmailChange(totp, secureToken)
         if (!isValid) throw new UnauthorizedException('Invalid TOTP code')
         return this._r.ok('Email changed successfully')
     }
 
     @Delete('/phone/1')
     public async deletePhoneNumber_firstStep(@AuthenticatedUserId() userId: UUID): Promise<ConfirmChangeDTO> {
-        return this.accountService.deletePhoneNumber_firstStep_requestTotp(userId)
+        return this.sensitiveData.requestPhoneDeletion(userId)
     }
 
     @Patch('/phone/del/2')
     public async deletePhoneNumber_secondStep(
         @Body(new ValidationPipe({ transform: true })) dto: TotpDTO
     ): Promise<ConfirmWithPhoneMfaFeedback> {
-        return this.accountService.deletePhoneNumber_secondStep_verifyTotp(dto.totp, dto.secureToken)
+        return this.sensitiveData.confirmPhoneDeletion(dto.totp, dto.secureToken)
     }
 
     @Patch('/phone/1')
@@ -96,7 +111,7 @@ export class AccountController {
         @AuthenticatedUserId() userId: UUID,
         @Body(new ValidationPipe({ transform: true })) dto: ChangePhoneDTO
     ): Promise<ConfirmChangeDTO> {
-        return this.accountService.changePhoneNumber_firstStep_requestTotp(userId, dto)
+        return this.sensitiveData.requestPhoneChange(userId, dto)
     }
 
     @Patch('/phone/2')
@@ -104,7 +119,7 @@ export class AccountController {
         @Body(new ValidationPipe({ transform: true })) dto: TotpDTO
     ): Promise<ConfirmDTO> {
         const { totp, secureToken } = dto
-        const isValid = await this.accountService.changePhoneNumber_secondStep_verifyTotp(totp, secureToken)
+        const isValid = await this.sensitiveData.confirmPhoneChange(totp, secureToken)
         if (!isValid) {
             throw new UnauthorizedException('Invalid TOTP code')
         }
@@ -119,7 +134,7 @@ export class AccountController {
         const strategy: MfaStrategy = GeneralUtils.validateMfaStrategy(strategyKey)
         return {
             ...this._r.ok(`OTP sent or QR generated and secure_token generated for MFA strategy ${strategyKey}`),
-            ...await this.mfaService.enableMfa_firstStep(userId, strategy)
+            ...publicTotpMetadata(await this.mfaEnrollment.enableFirstStep(userId, strategy))
         }
     }
 
@@ -130,7 +145,7 @@ export class AccountController {
     ): Promise<ConfirmDTO> {
         const strategy: MfaStrategy = GeneralUtils.validateMfaStrategy(strategyKey)
         const { totp, secureToken } = totpDTO
-        const isValid: boolean = await this.mfaService.enableMfa_secondStep_verifyTotpAndAppendStrategy(totp, secureToken, strategy)
+        const isValid: boolean = await this.mfaEnrollment.enableSecondStep(totp, secureToken, strategy)
         if (!isValid) {
             throw new UnauthorizedException('Invalid MFA Code')
         }
@@ -145,7 +160,7 @@ export class AccountController {
         const strategy: MfaStrategy = GeneralUtils.validateMfaStrategy(strategyKey)
         return {
             ...this._r.ok(`OTP sent and/or secure_token generated for MFA strategy ${strategyKey}`),
-            ...await this.mfaService.disableMfa_firstStep(userId, strategy)
+            ...publicTotpMetadata(await this.mfaEnrollment.disableFirstStep(userId, strategy))
         }
     }
 
@@ -156,7 +171,7 @@ export class AccountController {
     ): Promise<ConfirmDTO> {
         const strategy: MfaStrategy = GeneralUtils.validateMfaStrategy(strategyKey)
         const { totp, secureToken } = totpDTO
-        const isValid: boolean = await this.mfaService.disableMfa_secondStep_verifyTotpAndRemoveStrategy(totp, secureToken, strategy)
+        const isValid: boolean = await this.mfaEnrollment.disableSecondStep(totp, secureToken, strategy)
         if (!isValid) {
             throw new UnauthorizedException('Invalid MFA Code')
         }
@@ -191,7 +206,7 @@ export class AccountController {
         if (!oldPassword) {
             oldPassword = ''
         }
-        await this.accountService.changePassword(oldPassword, newPassword, userId)
+        await this.passwordChange.execute({ oldPassword, newPassword, userId })
         return this._r.ok('Password changed successfully')
     }
 
@@ -202,7 +217,7 @@ export class AccountController {
     public async forgottenPassword(@Body() dto: EmailDTO): Promise<ConfirmWithObsContDTO> {
         const { email } = dto
         try {
-            await this.accountService.sendForgottenPasswordLink(email)
+            await this.passwordRecoveryUseCase.sendResetLink(email)
         } catch (e) {
             if (isApplicationError(e, ApplicationErrorCode.PASSWORD_RESET_SEND_TOO_MANY_REQUESTS)) {
                 throw e
@@ -222,7 +237,7 @@ export class AccountController {
         @Body() changePasswordDTO: ChangePasswordDTO
     ): Promise<ConfirmDTO> {
         const { newPassword } = changePasswordDTO
-        await this.accountService.forgottenPassword(newPassword, changePasswordToken)
+        await this.passwordRecoveryUseCase.completeReset(newPassword, changePasswordToken)
         return this._r.ok('Password changed successfully')
     }
 
@@ -231,7 +246,7 @@ export class AccountController {
     isAuthorizedToRecoverPassword(
         @Authorization() changePasswordToken: string
     ): Promise<boolean> {
-        return this.accountService.isAuthorizedToRecoverPassword(changePasswordToken)
+        return this.passwordRecoveryUseCase.isAuthorized(changePasswordToken)
     }
 
     @Get('/profile-registry')
@@ -239,7 +254,7 @@ export class AccountController {
         @AuthenticatedUserId() userId: UUID,
         @Query('get_recent_history') getRecentHistory = 'true'
     ): Promise<ProfileDTO> {
-        const result = await this.userService.getVerifiedUserProfileById(userId, getRecentHistory === 'true')
+        const result = await this.profileAccount.getProfile(userId, getRecentHistory === 'true')
         if (!result) {
             throw new NotFoundException('UserNotFound')
         }
@@ -248,7 +263,7 @@ export class AccountController {
 
     @Get('/profile-registry/essential')
     public async getEssentialProfileRegistry(@AuthenticatedUserId() userId: UUID): Promise<ProfileRegistryClientDTO> {
-        return this.userService.getVerifiedUserEssentialProfileRegistryById(userId)
+        return this.profileAccount.getEssentialProfile(userId)
     }
 
     @Patch('/profile-registry')
@@ -256,7 +271,7 @@ export class AccountController {
         @AuthenticatedUserId() userId: UUID,
         @Body(new ValidationPipe({ transform: true })) dto: ProfileRegistryDTO
     ): Promise<ProfileRegistryClientDTO> {
-        const result = await this.userService.updateVerifiedUserProfileRegistryById(userId, dto)
+        const result = await this.profileAccount.updateProfile(userId, dto)
         if (!result) {
             throw new NotFoundException('UserNotFound::{updated: false}')
         }
@@ -267,7 +282,7 @@ export class AccountController {
     @HttpCode(HttpStatus.OK)
     @Post('/is-email-available')
     public async isEmailAvailable(@Body(new ValidationPipe({ transform: true })) { email }: EmailDTO): Promise<boolean> {
-        return this.accountService.isUserAvailableByEmail(email)
+        return this.emailAvailability.execute(email)
     }
 
     @Get('/active-sessions')
@@ -285,7 +300,7 @@ export class AccountController {
     public async getBackupCodesStatus(
         @AuthenticatedUserId() userId: UUID
     ): Promise<BackupCodeStatusDTO> {
-        return this.mfaService.getBackupCodesStatus(userId)
+        return this.mfaBackupCodes.getStatus(userId)
     }
 
     @Patch('/mfa/backup/regenerate')
@@ -294,12 +309,12 @@ export class AccountController {
         @AuthenticatedUserId() userId: UUID
     ): Promise<BackupCodesDTO> {
 
-        const strategies = await this.mfaService.getEnabledMfaStrategies(userId)
+        const strategies = await this.mfaChallenge.getEnabledMfaStrategies(userId)
         if (!strategies.length) {
             throw applicationError(ApplicationErrorCode.MFA_BACKUP_CODES_NOT_ENABLED)
         }
 
-        const codes = await this.mfaService.regenerateBackupCodes(userId)
+        const codes = await this.mfaBackupCodes.regenerate(userId)
 
         // volendo si può anche loggare un evento di sicurezza tramite il canale del SecurityAuditService
         // TODO maybe
@@ -309,26 +324,19 @@ export class AccountController {
 
     @Get('/is-mfa-enabled')
     public async isMfaEnabled(@AuthenticatedUserId() userId: UUID): Promise<boolean> {
-        return this.mfaService.isMfaEnabled(userId)
+        return this.mfaChallenge.isMfaEnabled(userId)
     }
 
     @Get('/mfa-active-strategies')
     public async getMfaActiveStrategies(@AuthenticatedUserId() userId: UUID): Promise<WireMfaStrategy[]> {
-        return (await this.mfaService.getEnabledMfaStrategies(userId))
+        return (await this.mfaChallenge.getEnabledMfaStrategies(userId))
             .map((val) => GeneralUtils.getEnumKeyByValue(MfaStrategy, val))
             .filter((key): key is WireMfaStrategy => key != undefined)
     }
 
     @Get('/current-version')
-    public getCurrentVersion(): VersionDTO {
-        const version = this.configService.get<string>('App.version')!
-        const versionHash = createHash('sha256')
-            .update(version)
-            .digest('hex')
-        return {
-            version,
-            versionHash
-        }
+    public getCurrentVersion(): BuildIdentityDTO {
+        return buildIdentity
     }
 
     @Get('/masked-email')

@@ -4,6 +4,7 @@ import { ThemeManagerService } from '../../../services/context/theme-manager.ser
 import { PublicPipe } from '../../../pipes/public.pipe';
 import { environment } from '../../../../environments/environment';
 import { RouterLink } from '@angular/router';
+import { APP_CONFIG } from '../../../config/app-config';
 
 @Component({
   selector: 'm-footer',
@@ -28,9 +29,10 @@ import { RouterLink } from '@angular/router';
             priority="true"
             width="186"
             height="234"
-            class="w-[23px] h-auto contrast-115"
+            class="w-[23px] h-auto contrast-100"
           />
           <span>&copy; {{year}} Mercurion. Tutti i diritti riservati.</span>
+          <span data-build-identity="true">v{{appConfig.release.version}} @ {{appConfig.release.revision}}</span>
         </p>
 
         <!-- Link essenziali -->
@@ -58,6 +60,7 @@ import { RouterLink } from '@angular/router';
 export class FooterComponent implements OnInit {
 
   private readonly themeManager = inject(ThemeManagerService)
+  protected readonly appConfig = inject(APP_CONFIG)
 
   protected year!: number
 

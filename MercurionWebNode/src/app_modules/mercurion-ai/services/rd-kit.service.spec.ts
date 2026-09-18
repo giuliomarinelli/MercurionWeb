@@ -1,8 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { RDKitService } from './rd-kit.service';
 import { ConfigService } from '@nestjs/config';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
+import { LoggerPort } from 'src/logging/logger.port';
 import { ClientProxy } from '@nestjs/microservices';
+import { ScientificRpcPolicy } from './scientific-rpc.policy';
 
 describe('RdKitService', () => {
   let service: RDKitService;
@@ -30,7 +31,7 @@ describe('RdKitService', () => {
           },
         },
         {
-          provide: MeiliLoggerService,
+          provide: LoggerPort,
           useValue: {
             forContext: jest.fn(() => ({
               log: jest.fn(),
@@ -42,6 +43,10 @@ describe('RdKitService', () => {
               setLogLevels: jest.fn(),
             })),
           },
+        },
+        {
+          provide: ScientificRpcPolicy,
+          useValue: { execute: jest.fn() },
         },
       ],
     }).compile();

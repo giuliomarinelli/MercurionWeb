@@ -1,15 +1,16 @@
+import { errorMessage, errorStack } from 'src/utils/errors/error-message'
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import axios from 'axios';
-import { createRemoteJWKSet, jwtVerify } from 'jose';
-import { ISocialProviderClient } from '../Models/interfaces/i-social-provider-client.interface';
-import { ProviderProfile } from '../Models/interfaces/provider-profile.interface';
-import { AuthProvider } from '../Models/enums/auth-provider.enum';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
-import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { createLocalJWKSet, jwtVerify } from 'jose';
+import { ISocialProviderClient } from '../models/interfaces/i-social-provider-client.interface';
+import { ProviderProfile } from '../models/interfaces/provider-profile.interface';
+import { AuthProvider } from '../models/enums/auth-provider.enum';
+import { LoggerPort } from 'src/logging/logger.port';
+import { LoggerContext } from 'src/logging/logger.port';
 
 import { SSO_Configuration } from 'src/config/config.types';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
+import { ExternalHttpPort } from 'src/infrastructure/external-http/external-http.port'
 
 /**
  * Google OIDC:
@@ -20,7 +21,7 @@ import { ApplicationErrorCode, applicationError } from 'src/exception-handling/a
 @Injectable()
 export class GoogleProviderClient implements ISocialProviderClient {
 
-    private readonly logger: MeiliContextLogger
+    private readonly logger: LoggerContext
 
     private readonly clientId: string
     private readonly clientSecret: string
@@ -29,12 +30,13 @@ export class GoogleProviderClient implements ISocialProviderClient {
     private readonly issuer = 'https://accounts.google.com'
     private readonly discoveryUrl = 'https://accounts.google.com/.well-known/openid-configuration'
 
-    private jwks: ReturnType<typeof createRemoteJWKSet> | null = null
+    private jwks: ReturnType<typeof createLocalJWKSet> | null = null
     private cachedDiscovery: unknown = null
 
     constructor(
         private readonly configService: ConfigService,
-        loggerFactory: MeiliLoggerService
+        loggerFactory: LoggerPort,
+        private readonly http: ExternalHttpPort,
     ) {
         const { clientId, clientSecret, redirectUri } = this.configService.get<SSO_Configuration>('SSO.Google')!
         this.clientId = clientId
@@ -70,7 +72,7 @@ export class GoogleProviderClient implements ISocialProviderClient {
         const discovery = await this.getDiscovery()
 
         // Token exchange <==> OAuth2 Flow
-        const tokenRes = await axios.post(
+        const tokenRes = await this.http.post<Record<string, string>>(
             (discovery as Record<string, string>).token_endpoint,
             new URLSearchParams({
                 code,
@@ -79,7 +81,7 @@ export class GoogleProviderClient implements ISocialProviderClient {
                 redirect_uri: this.redirectUri,
                 grant_type: 'authorization_code',
             }),
-            { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } },
+            { timeoutMs: 10_000, headers: { 'Content-Type': 'application/x-www-form-urlencoded' } },
         )
 
         const { id_token } = (tokenRes as unknown as Record<string, string>).data as unknown as Record<string, string>
@@ -107,23 +109,26 @@ export class GoogleProviderClient implements ISocialProviderClient {
             return this.cachedDiscovery
         }
         // Discovery OIDC standard :contentReference[oaicite:2]{index=2}
-        const res = await axios.get(this.discoveryUrl)
+        const res = await this.http.get<Record<string, string>>(this.discoveryUrl, { timeoutMs: 10_000 })
         this.cachedDiscovery = res.data
         return res.data
     }
 
     private async verifyIdToken(idToken: string, jwksUri: string): Promise<unknown> {
-        if (!this.jwks) {
-            this.jwks = createRemoteJWKSet(new URL(jwksUri))
-        }
         try {
+            if (!this.jwks) {
+                const response = await this.http.get<{
+                    keys: Record<string, unknown>[]
+                }>(jwksUri, { timeoutMs: 10_000 })
+                this.jwks = createLocalJWKSet(response.data as Parameters<typeof createLocalJWKSet>[0])
+            }
             const { payload } = await jwtVerify(idToken, this.jwks, {
                 issuer: this.issuer,           // Google issuer :contentReference[oaicite:3]{index=3}
                 audience: this.clientId
             })
             return payload
         } catch (e) {
-            this.logger.warn('verifyIdToken > error: ', (e.stack ?? e) as object)
+            this.logger.warn('verifyIdToken > error: ', errorStack(e) ?? errorMessage(e))
             throw applicationError(ApplicationErrorCode.SSO_GOOGLE_ID_TOKEN_INVALID)
         }
     }

@@ -1,36 +1,36 @@
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
-import { MercurionInferReqDTO } from '../Models/DTO/mt21/mercurion-infer-req.dto';
-import { MercurionInferDataDTO, MercurionInferResDTO } from '../Models/DTO/mt21/mercurion-infer-res.dto';
-import { catchError, firstValueFrom, throwError, timeout, TimeoutError } from 'rxjs';
+import { MercurionInferReqDTO } from '../models/dto/mt21/mercurion-infer-req.dto';
+import { MercurionInferDataDTO, MercurionInferResDTO } from '../models/dto/mt21/mercurion-infer-res.dto';
 import { ConfigService } from '@nestjs/config';
-import { Environment } from 'src/config/config.schema';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
-import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { LoggerPort } from 'src/logging/logger.port'
+import { LoggerContext } from 'src/logging/logger.port'
+import {
+    NATS_CONTRACT_REGISTRY,
+    natsSubject,
+} from '@mercurion/rest-contracts'
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
+import { ScientificRpcPolicy } from './scientific-rpc.policy'
 
 @Injectable()
 export class MercurionAIService implements OnModuleInit {
 
-    private readonly MAX_NATS_PAYLOAD_BYTES: number
+    private readonly logger: LoggerContext
 
-    private readonly logger: MeiliContextLogger
-
+    private readonly contract = NATS_CONTRACT_REGISTRY.inferenceTop4
     private readonly namespace: string
 
     constructor(
         @Inject('MERCURION_AI_CLIENT') private readonly mercurionAIClient: ClientProxy,
         private readonly configService: ConfigService,
-        loggerFactory: MeiliLoggerService
+        loggerFactory: LoggerPort,
+        private readonly scientificRpc: ScientificRpcPolicy,
     ) {
         this.logger = loggerFactory.forContext(MercurionAIService.name)
-        const env = this.configService.getOrThrow<Environment>('App.env')
-        let namespace: string = 'inference.tox21.smiles'
-        if (env !== Environment.Production) {
-            namespace = `${env}.${namespace}`
-        }
-        this.namespace = namespace
-        this.MAX_NATS_PAYLOAD_BYTES = this.configService.get<number>('App.maxNatsPayloadBytes')!
+        this.namespace = natsSubject(
+            'inferenceTop4',
+            this.configService.getOrThrow('App.env')
+        )
     }
 
     onModuleInit(): void {
@@ -49,36 +49,18 @@ export class MercurionAIService implements OnModuleInit {
         return true
     }
 
-    private ensurePayloadSize(dto: MercurionInferReqDTO) {
-        const size = Buffer.byteLength(JSON.stringify(dto), 'utf8')
-        if (size > this.MAX_NATS_PAYLOAD_BYTES) {
-            throw applicationError(ApplicationErrorCode.TOX21_PAYLOAD_TOO_LARGE)
-        }
-    }
-
     public async getInferenceFromTop4MercurionTox21(
         dto: MercurionInferReqDTO,
     ): Promise<MercurionInferDataDTO> {
 
-        this.ensurePayloadSize(dto)
-
-        const res: MercurionInferResDTO = await firstValueFrom(
-            this.mercurionAIClient
-                .send<MercurionInferResDTO>(this.namespace, dto)
-                .pipe(
-                    timeout(3000),
-                    catchError((err) => {
-                        if (err instanceof TimeoutError) {
-                            return throwError(() =>
-                                applicationError(ApplicationErrorCode.TOX21_TIMEOUT),
-                            );
-                        }
-                        return throwError(() =>
-                            applicationError(ApplicationErrorCode.TOX21_UNKNOWN_ERROR),
-                        );
-                    }),
-                ),
-        )
+        const res: MercurionInferResDTO = await this.scientificRpc.execute({
+            operation: this.contract.id,
+            client: this.mercurionAIClient,
+            subject: this.namespace,
+            contract: this.contract,
+            payload: dto,
+            isRemoteError: response => typeof response === 'object' && response !== null && 'error' in response,
+        })
 
         if (!this.isValidInferencePayload(res)) {
             throw applicationError(ApplicationErrorCode.TOX21_INVALID_PAYLOAD)

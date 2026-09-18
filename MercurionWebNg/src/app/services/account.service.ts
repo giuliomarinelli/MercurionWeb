@@ -24,7 +24,7 @@ import type {
   ProvidedEmailDTO,
   SessionDTO,
   TotpDTO,
-  VersionDTO
+  BuildIdentityDTO
 } from '@mercurion/rest-contracts'
 
 
@@ -196,9 +196,9 @@ export class AccountService {
     })
   }
 
-  public getCurrentVersion(): Observable<VersionDTO> {
-    return this.http.get<VersionDTO>('/api/account/current-version', {
-      withCredentials: true
+  public getCurrentVersion(): Observable<BuildIdentityDTO> {
+    return this.http.get<BuildIdentityDTO>('/api/version', {
+      withCredentials: false
     })
   }
 

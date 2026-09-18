@@ -1,6 +1,6 @@
 # 0162 - Create a typed email-template registry
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -91,24 +91,54 @@ Keep recipient resolution and domain orchestration outside the registry. The reg
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-013` (base `71bf11ed7dee651f8f7a9008729bd6b8cce51b9d`)
 ### Preflight
-_Not started._
+Clean branch and exact base SHA confirmed. GitHub Actions run
+`35046603657` for the supplied SHA completed successfully with the stable
+`Required gate` (the exact-SHA classifier selected the repository metadata
+path). No task-owned workspace process was active. Local focused preflight
+used the existing dependency tree; `npm ci` and `npm run ci:check` were not
+run.
 ### Preflight remediation
-_None._
+None.
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0161, 0158. This task was never attempted and receives no feature branch.
+Added an exhaustive semantic email-template registry with typed contexts,
+central subject builders, source/compiled-compatible asset resolution and
+runtime context validation. Replaced all Account, MFA and Help mail callers'
+raw paths/subjects with registry keys. Help outbox delivery remains keyed by
+stable event types and delegates rendering through the registry-backed mail
+sender.
 ### Task-specific validation performed
-_Not started._
+Passed:
+
+- `npm run typecheck --workspace mercurion_web_node`
+- `npm run lint --workspace mercurion_web_node`
+- `npm run build --workspace mercurion_web_node`
+- focused Jest coverage for the registry, all 13 email templates, mail sender
+  boundary validation, Account flow and MFA service: 5 suites, 23 tests
+- `git diff --check`
+- Feature CI run `35047216321` initially failed only because the three
+  superseded context model files were reported as Nest orphan files; those
+  files were removed as part of this registry migration.
+- Final exact feature-SHA CI run `35047576651` for
+  `0fd34139b167747992881f38d5dbf48b9e53d240` passed on Windows and Ubuntu,
+  including Required gate, static checks, builds, unit/E2E suites, containers
+  and critical browser journeys.
+
+Registry tests assert every production template key has a valid fixture,
+resolvable asset and subject; negative tests prove invalid context is rejected
+before the mail adapter is invoked.
 ### Full pre-merge CI-parity validation
-_Not started._
+Reserved for the exact pushed feature SHA GitHub Actions workflow; no local
+`npm run ci:check` was run.
 ### Browser validation performed
-_Not applicable._
+Not applicable.
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+`c1c67b76` (initial implementation), `0fd34139` (CI repair and orphan context
+cleanup). Final feature CI passed at `0fd34139b167747992881f38d5dbf48b9e53d240`.
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+_Not started._
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+_None._

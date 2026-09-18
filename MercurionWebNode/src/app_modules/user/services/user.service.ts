@@ -1,49 +1,111 @@
-import { MoleculeCollection } from 'src/app_modules/molecule-collection/Models/entities/molecule-collection.entity';
-import { ProfileRegistryClientDTO, ProfileRegistryDTO as ProfileRegistryDTO } from './../../auth/Models/DTO/profile.dtos';
+import { ProfileRegistryClientDTO, ProfileRegistryDTO as ProfileRegistryDTO } from './../../auth/models/dto/profile.dtos';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from '../Models/entities/user.entity';
+import { User } from '../models/entities/user.entity';
 import { DataSource, FindOptionsWhere, In, Repository } from 'typeorm';
 
 import { UUID } from 'crypto';
-import { nullish } from 'src/Models/nullish.type';
-import { MfaStrategy } from '../Models/enums/mfa-strategy.enum';
-import { IAuth } from 'src/app_modules/auth/Models/interfaces/i-auth.interface';
+import { nullish } from 'src/models/nullish.type';
+import { MfaStrategy } from '../models/enums/mfa-strategy.enum';
+import { IAuth } from 'src/app_modules/auth/models/interfaces/i-auth.interface';
 import { PasswordEncoderService } from 'src/app_modules/auth/services/password-encoder.service';
-import { OldPasswordItem } from '../Models/DTO/old-password-item.interface';
-import { ProfileDTO } from 'src/app_modules/auth/Models/DTO/profile.dtos';
-import { SercurityService } from 'src/app_modules/auth/services/sercurity.service';
-import { CompareResult } from 'src/app_modules/auth/Models/enums/compare-result.enum';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
-import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
-import { Scope } from '../Models/enums/scope.enum';
-import { MoleculeCollectionItemEntity } from 'src/app_modules/molecule-collection/Models/entities/molecule-collection-item.entity';
+import { OldPasswordItem } from '../models/dto/old-password-item.interface';
+import { ProfileDTO } from 'src/app_modules/auth/models/dto/profile.dtos';
+import { SecurityService } from 'src/app_modules/auth/services/security.service';
+import { CompareResult } from 'src/app_modules/auth/models/enums/compare-result.enum';
+import { LoggerPort } from 'src/logging/logger.port';
+import { LoggerContext } from 'src/logging/logger.port';
+import { Scope } from '../models/enums/scope.enum';
 import { HistoryService } from 'src/app_modules/history/services/history.service';
-import { TinyHistoryDTO } from 'src/app_modules/history/Models/DTO/history.dto';
-import { AuthIdentity } from 'src/app_modules/sso/Models/entities/auth-identity.entity';
-import { ProvidedEmailDTO } from 'src/app_modules/auth/Models/DTO/provided-email.dto';
-import { AuthProvider } from 'src/app_modules/sso/Models/enums/auth-provider.enum';
+import { AuthIdentity } from 'src/app_modules/sso/models/entities/auth-identity.entity';
+import { ProvidedEmailDTO } from 'src/app_modules/auth/models/dto/provided-email.dto';
+import { AuthProvider } from 'src/app_modules/sso/models/enums/auth-provider.enum';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
-import type { IdentityReadPort } from 'src/app_modules/auth/Models/interfaces/identity-read.port'
-import { transactionManager, type TransactionContext } from 'src/persistence/transaction-context'
+import type { IdentityReadPort } from 'src/app_modules/auth/models/interfaces/identity-read.port'
+import { runInTransaction, transactionManager, type TransactionContext } from 'src/persistence/transaction-context'
 import { LOCAL_DUMMY_AUTH } from '@mercurion/rest-contracts'
-import { UserGender } from '../Models/enums/user-gender.enum'
+import { UserGender } from '../models/enums/user-gender.enum'
+import { ProfileReadModelService } from './profile-read-model.service'
+
+interface UserCreateCommand {
+    email?: string
+    unconfirmedEmail?: string
+    passwordHash?: string
+    firstName: string
+    lastName: string
+    initials: string
+    job?: string | null
+    gender: UserGender
+    scopes: string[]
+    otpSecret?: string
+    registrationIdentity?: string
+}
+
+interface UserUpdateCommand {
+    firstName?: string
+    lastName?: string
+    initials?: string
+    email?: string | null
+    unconfirmedEmail?: string | null
+    completePhoneNumber?: string | null
+    phoneNumberPrefixLength?: number
+    unconfirmedPhoneNumber?: string | null
+    unconfirmedPhoneNumberPrefixLength?: number | null
+    updatedAt?: number
+    mfaStrategies?: string
+    appTotpSecret?: string | null
+}
+
+type UserPersistencePatch = {
+    firstName?: string
+    lastName?: string
+    initials?: string
+    email?: string | null
+    unconfirmedEmail?: string | null
+    completePhoneNumber?: string | null
+    phoneNumberPrefixLength?: number
+    unconfirmedPhoneNumber?: string | null
+    unconfirmedPhoneNumberPrefixLength?: number | null
+    updatedAt?: number
+    mfaStrategies?: string
+    appTotpSecret?: string | null
+}
+
+function toUserPatch(input: UserUpdateCommand): UserPersistencePatch {
+    const patch: UserPersistencePatch = {}
+    if (input.firstName !== undefined) patch.firstName = input.firstName
+    if (input.lastName !== undefined) patch.lastName = input.lastName
+    if (input.initials !== undefined) patch.initials = input.initials
+    if (input.email !== undefined) patch.email = input.email
+    if (input.unconfirmedEmail !== undefined) patch.unconfirmedEmail = input.unconfirmedEmail
+    if (input.completePhoneNumber !== undefined) patch.completePhoneNumber = input.completePhoneNumber
+    if (input.phoneNumberPrefixLength !== undefined) patch.phoneNumberPrefixLength = input.phoneNumberPrefixLength
+    if (input.unconfirmedPhoneNumber !== undefined) patch.unconfirmedPhoneNumber = input.unconfirmedPhoneNumber
+    if (input.unconfirmedPhoneNumberPrefixLength !== undefined) {
+        patch.unconfirmedPhoneNumberPrefixLength = input.unconfirmedPhoneNumberPrefixLength
+    }
+    if (input.updatedAt !== undefined) patch.updatedAt = input.updatedAt
+    if (input.mfaStrategies !== undefined) patch.mfaStrategies = input.mfaStrategies
+    if (input.appTotpSecret !== undefined) patch.appTotpSecret = input.appTotpSecret
+    return patch
+}
 
 
 
 @Injectable()
 export class UserService implements IdentityReadPort {
 
-    private readonly logger: MeiliContextLogger
+    private readonly logger: LoggerContext
     private readonly mfaStrategyVals = Object.values(MfaStrategy)
 
     constructor(
         @InjectRepository(User) private userRepository: Repository<User>,
         private readonly dataSource: DataSource,
         private readonly passwordEncoder: PasswordEncoderService,
-        private readonly securityService: SercurityService,
+        private readonly securityService: SecurityService,
         private readonly historyService: HistoryService,
-        meiliLogger: MeiliLoggerService
+        private readonly profileReadModelService: ProfileReadModelService,
+        meiliLogger: LoggerPort
     ) {
         this.logger = meiliLogger.forContext(UserService.name)
     }
@@ -67,45 +129,76 @@ export class UserService implements IdentityReadPort {
         }
     }
 
-    public async createUser(userProps: Partial<User>): Promise<User> {
-
-        const queryRunner = this.dataSource.createQueryRunner()
-        await queryRunner.connect()
-        await queryRunner.startTransaction()
-
+    public async createUser(userProps: UserCreateCommand): Promise<User> {
         try {
-            const user = queryRunner.manager.create(User, { ...userProps })
-            const u$er = await queryRunner.manager.save(user)
-            await queryRunner.commitTransaction()
-            return u$er
+            return await runInTransaction(this.dataSource, async (_context, manager) => {
+                const user = manager.create(User, {
+                    email: userProps.email ?? undefined,
+                    unconfirmedEmail: userProps.unconfirmedEmail ?? undefined,
+                    passwordHash: userProps.passwordHash ?? undefined,
+                    firstName: userProps.firstName,
+                    lastName: userProps.lastName,
+                    initials: userProps.initials,
+                    job: userProps.job ?? undefined,
+                    gender: userProps.gender,
+                    scopes: userProps.scopes,
+                    otpSecret: userProps.otpSecret ?? undefined,
+                    registrationIdentity: userProps.registrationIdentity ?? undefined
+                })
+                return manager.save(user)
+            })
         } catch (e) {
             this.logger.warn('Error creating new User: ', e as object)
-            await queryRunner.rollbackTransaction()
             throw e
-        } finally {
-            await queryRunner.release()
         }
+    }
+
+    public async createRegistration(
+        userProps: UserCreateCommand,
+        context: TransactionContext
+    ): Promise<User> {
+        const manager = transactionManager(context)
+        return manager.save(manager.create(User, {
+            email: userProps.email ?? undefined,
+            unconfirmedEmail: userProps.unconfirmedEmail ?? undefined,
+            passwordHash: userProps.passwordHash ?? undefined,
+            firstName: userProps.firstName,
+            lastName: userProps.lastName,
+            initials: userProps.initials,
+            job: userProps.job ?? undefined,
+            gender: userProps.gender,
+            scopes: userProps.scopes,
+            otpSecret: userProps.otpSecret ?? undefined,
+            registrationIdentity: userProps.registrationIdentity ?? undefined
+        }))
     }
 
     public async activateAccount(
         id: UUID,
         accountRecoveryCodeHash: string,
         context: TransactionContext
-    ): Promise<string> {
+    ): Promise<{ email: string, alreadyActivated: boolean }> {
         const manager = transactionManager(context)
-        const user = await manager.findOne(User, { where: { id } })
+        const user = await manager.findOne(User, {
+            where: { id },
+            lock: { mode: 'pessimistic_write' }
+        })
         if (!user) {
             throw applicationError(ApplicationErrorCode.ACCOUNT_ACTIVATION_USER_NOT_FOUND)
+        }
+        if (user.isVerified && user.email) {
+            return { email: user.email, alreadyActivated: true }
         }
         const email = user.unconfirmedEmail!
         await manager.update(User, { id }, {
             email,
             unconfirmedEmail: null,
+            registrationIdentity: null,
             isVerified: true,
             updatedAt: Date.now(),
             accountRecoveryCodeHash
         })
-        return email
+        return { email, alreadyActivated: false }
     }
 
     public async createSsoUser(
@@ -113,7 +206,15 @@ export class UserService implements IdentityReadPort {
         context: TransactionContext
     ): Promise<{ id: UUID }> {
         const manager = transactionManager(context)
-        const user = manager.create(User, { ...input, sso: true, isVerified: true })
+        const user = manager.create(User, {
+            id: input.id,
+            firstName: input.firstName,
+            lastName: input.lastName,
+            initials: input.initials,
+            scopes: input.scopes,
+            sso: true,
+            isVerified: true
+        })
         const persisted = await manager.save(user)
         return { id: persisted.id }
     }
@@ -187,22 +288,19 @@ export class UserService implements IdentityReadPort {
         return this.userRepository.findOne({ where })
     }
 
-    public async updateUser(id: UUID, userProps: Partial<User>): Promise<User | nullish> {
+    public async updateUser(id: UUID, userProps: UserUpdateCommand, context?: TransactionContext): Promise<User | nullish> {
+        return runInTransaction(this.dataSource, async (_context, manager) => {
+            const updateResult = await manager.update<User>(User, { id }, toUserPatch(userProps))
+            if (updateResult.affected === 0) {
+                return null
+            }
 
-        const queryRunner = this.dataSource.createQueryRunner()
-        await queryRunner.connect()
-        await queryRunner.startTransaction()
-        try {
-            await queryRunner.manager.update<User>(User, { id }, { ...userProps })
-            const user = await this.getUserById(id)
-            await queryRunner.commitTransaction()
-            return user
-        } catch {
-            await queryRunner.rollbackTransaction()
-            return null
-        } finally {
-            await queryRunner.release()
-        }
+            const updatedUser = await manager.findOne(User, { where: { id } })
+            if (!updatedUser) {
+                throw new Error(`User ${id} disappeared during transactional update read-back`)
+            }
+            return updatedUser
+        }, context)
     }
 
     public async getUserEncryptedEnabledMfaStrategies(id: UUID): Promise<string[]> {
@@ -255,7 +353,7 @@ export class UserService implements IdentityReadPort {
                 .getOneOrFail()
             return passwordHash!
         } catch {
-            throw applicationError(ApplicationErrorCode.AUTHENTICATION_UNAUTHENTICATED_LEGACY_TYPO)
+            throw applicationError(ApplicationErrorCode.AUTHENTICATION_UNAUTHENTICATED_SOFT)
         }
     }
 
@@ -359,7 +457,10 @@ export class UserService implements IdentityReadPort {
         const updatedStrategies = Array.from(new Set([...currentStrategies, strategy]))
             .map((s) => this.securityService.encrypt_AES256(s))
         const mfaStrategies = JSON.stringify(updatedStrategies)
-        await this.updateUser(id, { mfaStrategies })
+        const updatedUser = await this.updateUser(id, { mfaStrategies })
+        if (!updatedUser) {
+            throw applicationError(ApplicationErrorCode.MFA_SETTINGS_USER_NOT_FOUND)
+        }
     }
 
     public async removeMfaStrategy(id: UUID, strategy: MfaStrategy): Promise<void> {
@@ -368,13 +469,16 @@ export class UserService implements IdentityReadPort {
             .filter((s) => this.mfaStrategyVals.includes(s))
         const updated = currentStrategies.filter(s => s !== strategy)
             .map((s) => this.securityService.encrypt_AES256(s))
-        const userProps: Partial<User> = {
+        const userProps: UserUpdateCommand = {
             mfaStrategies: JSON.stringify(updated)
         }
         if (strategy === MfaStrategy.APP_TOTP) {
             userProps.appTotpSecret = null
         }
-        await this.updateUser(id, userProps)
+        const updatedUser = await this.updateUser(id, userProps)
+        if (!updatedUser) {
+            throw applicationError(ApplicationErrorCode.MFA_SETTINGS_USER_NOT_FOUND)
+        }
     }
 
     public async getUserInitialsByUserId(id: UUID): Promise<string | nullish> {
@@ -400,9 +504,9 @@ export class UserService implements IdentityReadPort {
         return result.id
     }
 
-    public async changePassword(userId: UUID, newPassword: string): Promise<void> | never {
-        await this.userRepository.manager.transaction(async manager => {
-            let user!: User
+    public async changePassword(userId: UUID, newPassword: string, context?: TransactionContext): Promise<void> | never {
+        await runInTransaction(this.userRepository.manager, async (_context, manager) => {
+            let user: User
             try {
                 user = await manager
                     .createQueryBuilder(User, 'u')
@@ -452,103 +556,11 @@ export class UserService implements IdentityReadPort {
                 })
                 .where('id = :userId', { userId })
                 .execute()
-        })
+        }, context)
     }
 
     public async getVerifiedUserProfileById(id: UUID, getRecentHistory = true): Promise<ProfileDTO | null> {
-
-        try {
-            return this.dataSource.manager.transaction(async (manager) => {
-
-                const profileRow = await manager.findOne(User, {
-                    where: { id, isVerified: true },
-                    select: {
-                        id: true,
-                        firstName: true,
-                        lastName: true,
-                        gender: true,
-                        job: true,
-                        email: true,
-                        completePhoneNumber: true,
-                        avatarId: true,
-                        sso: true,
-                        initials: true
-                    }
-                })
-
-                if (!profileRow) {
-                    return null
-                }
-
-                const { firstName, lastName, gender, job, completePhoneNumber, avatarId, initials } = profileRow
-
-                let _email: string | null = null
-                let authIdentityRow: AuthIdentity | null
-
-                if (profileRow.sso) {
-                    authIdentityRow = await manager.findOne(AuthIdentity, {
-                        where: {
-                            userId: id
-                        },
-                        select: {
-                            email: true
-                        }
-                    })
-                    if (!authIdentityRow) {
-                        return null
-                    }
-                    _email = authIdentityRow.email
-                } else {
-                    _email = profileRow.email
-                }
-
-                const personalMoleculeCount = await manager.count(MoleculeCollectionItemEntity, {
-                    where: {
-                        type: 'custom',
-                        userId: id
-                    }
-                })
-
-                const chemblMoleculeCount = await manager.count(MoleculeCollectionItemEntity, {
-                    where: {
-                        type: 'chembl',
-                        userId: id
-                    }
-                })
-
-                const collectionCount = await manager.count(MoleculeCollection, {
-                    where: {
-                        userId: id
-                    }
-                })
-
-                let recentHistory: TinyHistoryDTO[] = []
-
-                if (getRecentHistory) {
-                    recentHistory = await this.historyService.getRecentHistoryTinyDistinctPerDay(id)
-                }
-
-                const result: ProfileDTO = {
-                    firstName,
-                    lastName,
-                    gender,
-                    job,
-                    obscuredEmail: this.securityService.maskEmail(_email ?? ''),
-                    obscuredPhone: completePhoneNumber ? this.securityService.maskPhone(completePhoneNumber) : null,
-                    avatarId,
-                    recentHistory,
-                    personalMoleculeCount,
-                    chemblMoleculeCount,
-                    collectionCount,
-                    initials
-                }
-
-                return result
-            })
-        } catch (e) {
-            this.logger.warn('Failed to fetch profile', e as object)
-            throw e
-        }
+        return this.profileReadModelService.getVerifiedUserProfileById(id, getRecentHistory)
     }
 
     public async getVerifiedUserEssentialProfileRegistryById(id: UUID): Promise<ProfileRegistryClientDTO> {
@@ -619,7 +631,7 @@ export class UserService implements IdentityReadPort {
     }
 
     public async migratePasswordHash(userId: UUID, currentHash: string, newHash: string): Promise<void> {
-        await this.userRepository.manager.transaction(async (manager) => {
+        await runInTransaction(this.userRepository.manager, async (_context, manager) => {
             const user = await manager
                 .createQueryBuilder(User, 'u')
                 .select(['u.id', 'u.passwordHash', 'u.oldPasswordHashes'])

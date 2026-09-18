@@ -29,14 +29,15 @@ const paths = {
   completedSession: 'docs/autonomous-development/session.48h-2026-09-03.yaml',
   exampleSession: 'docs/autonomous-development/session.example.yaml',
   closedSession: 'docs/autonomous-development/session.until-2026-09-10.yaml',
-  preparedSession: 'docs/autonomous-development/session.overweek-2026-09-23-v10.yaml',
+  preparedSession: 'docs/autonomous-development/session.overweek-2026-09-24-v15.yaml',
   completedLaunch: 'docs/autonomous-development/LAUNCH-2026-09-03-v2.md',
   closedLaunch: 'docs/autonomous-development/LAUNCH-2026-09-06.md',
-  preparedLaunch: 'docs/autonomous-development/LAUNCH-2026-09-15-overweek-v10.md',
+  preparedLaunch: 'docs/autonomous-development/LAUNCH-2026-09-17-overweek-v15.md',
   runtime: 'docs/autonomous-development/RUNTIME.md',
   workflow: '.github/workflows/ci.yml',
   classifier: '.github/scripts/classify-ci.mjs',
   planner: 'docs/autonomous-development/tools/plan-dependency-graph.mjs',
+  finalizationGuard: 'docs/autonomous-development/tools/assert-session-finalizable.mjs',
   reportTemplate: 'docs/autonomous-development/reports/0000-session-report-template.md',
   routeOwnership: 'scripts/check-rest-route-ownership.mjs',
   routeOwnershipNegative: 'scripts/test-rest-route-ownership-policy-negative.mjs',
@@ -69,6 +70,7 @@ const controlPlaneFiles = [
   paths.workflow,
   paths.classifier,
   paths.planner,
+  paths.finalizationGuard,
   paths.reportTemplate,
 ];
 
@@ -574,12 +576,10 @@ for (const [target, content] of [
     /(?:omit|omits)[\s\S]{0,100}`model`[\s\S]{0,100}`reasoning_effort`[\s\S]{0,100}`context_tier`/i,
     'must require task calls to omit model, reasoning effort, and context tier',
   );
-  requireMatch(
-    target,
-    content,
-    /GPT-5\.6 Sol[\s\S]{0,300}(?:separate|human-operated)[\s\S]{0,120}session/i,
-    'must prohibit Sol escalation inside autonomous sessions',
-  );
+  const forbiddenAlternateName = ['S', 'o', 'l'].join('');
+  if (new RegExp(`GPT-5\\.6[ -]${forbiddenAlternateName}|\\b${forbiddenAlternateName}\\b`, 'i').test(content)) {
+    fail(target, 'active autonomous control plane must reference only the configured Luna profile');
+  }
 }
 
 requireMatch(
@@ -612,7 +612,7 @@ for (const [pattern, message] of [
 requireMatch(
   'docs/autonomous-development/LAUNCH.md',
   launch,
-  /copilot --agent development-session-coordinator --allow-all-tools --allow-all-urls --add-dir \.\.\/MercurionTox21 --reasoning-effort high --autopilot/,
+  /copilot --agent development-session-coordinator --allow-all-tools --allow-all-urls --add-dir \.\.\/MercurionTox21 --model gpt-5\.6-luna --reasoning-effort medium --context default --autopilot/,
   'missing deterministic Copilot CLI launch command',
 );
 if (/--allow-all-paths/.test(launch)) {
@@ -677,21 +677,22 @@ for (const command of ['/model', '/permissions show', '/mcp list', '/keep-alive 
 }
 
 for (const [pattern, message] of [
-  [/docs\/autonomous-development\/session\.overweek-2026-09-23-v10\.yaml/, 'prepared launch must reference its dated session configuration'],
-  [/2026-09-23T10:00:00\+02:00/, 'prepared launch must retain the exact soft deadline'],
+  [/docs\/autonomous-development\/session\.overweek-2026-09-24-v15\.yaml/, 'prepared launch must reference its dated session configuration'],
+  [/2026-09-24T12:00:00\+02:00/, 'prepared launch must retain the exact soft deadline'],
   [/test-account login policy are integrated into `develop`/i, 'prepared launch must require the shared real test-account policy'],
   [/no\s+profile-persistence or pre-authenticated-state probe is a launch prerequisite/i, 'prepared launch must not depend on persisted profile authentication'],
   [/workload\.tasks` list is empty[\s\S]{0,120}every active recipe file is in\s*scope/i, 'prepared launch must select every active recipe'],
   [/there is no autonomous allowlist/i, 'prepared launch must explicitly disable workload restriction'],
-  [/expected first READY task[\s\S]{0,20}(?:is\s*)?0072/i, 'prepared launch must state the current expected first ready task'],
+  [/expected first READY task[\s\S]{0,20}(?:is\s*)?0088/i, 'prepared launch must state the current expected first ready task'],
   [/No pending recipe has an `authorized_recovery` entry/i, 'prepared launch must forbid implicit recovery of stale branches'],
-  [/Task 0136\/BE-022 is now `DONE`[\s\S]*five dependency skips[\s\S]*reset to `PENDING`/i, 'prepared launch must record the current dependency release'],
+  [/Tasks `0072\/UI-014`[\s\S]*`0218\/QA-032` are[\s\S]*`BLOCKED`[\s\S]*2 recipes currently marked `SKIPPED_DEPENDENCY`[\s\S]*explicitly deferred until after this session/i, 'prepared launch must preserve all current blockers and defer their recovery'],
   [/env\/\.env\.development[\s\S]{0,260}ordinary login[\s\S]{0,260}server/i, 'prepared launch must require a fresh server-accepted real-account login'],
   [/Do[\s\S]{0,10}not bundle tasks/, 'prepared launch must prohibit multi-task bundles'],
   [/npm run autonomous:plan/, 'prepared launch must execute the deterministic planner'],
   [/copilot --agent development-session-coordinator --allow-all-tools --allow-all-urls --add-dir \.\.\/MercurionTox21 --model gpt-5\.6-luna --reasoning-effort medium --context default --autopilot/, 'prepared launch is missing the exact Luna Medium 300k parent command'],
   [/Every `task` invocation must omit `model`,[\s\S]*`reasoning_effort` and `context_tier`[\s\S]*exact inheritance/i, 'prepared launch must require exact worker inheritance without task overrides'],
-  [/Never select, request or escalate to GPT-5\.6 Sol[\s\S]*BLOCKED[\s\S]*separate[\s\S]*human-operated session/i, 'prepared launch must prohibit Sol escalation inside Autopilot'],
+  [/Use\s+only the configured GPT-5\.6 Luna profile/i, 'prepared launch must restrict autonomous execution to Luna'],
+  [/autonomous:assert-finalizable[\s\S]*task_complete/i, 'prepared launch must require the executable finalization guard'],
   [/virtually unlimited number of serial tasks[\s\S]*deadline or[\s\S]*workload exhaustion/i, 'prepared launch must retain effectively unlimited task throughput'],
 ]) {
   requireMatch(paths.preparedLaunch, preparedLaunch, pattern, message);
@@ -706,15 +707,20 @@ for (const staleSessionReference of [
   'docs/autonomous-development/session.overweek-2026-09-20-v7.yaml',
   'docs/autonomous-development/session.overweek-2026-09-21-v8.yaml',
   'docs/autonomous-development/session.overweek-2026-09-23-v9.yaml',
+  'docs/autonomous-development/session.overweek-2026-09-23-v10.yaml',
+  'docs/autonomous-development/session.overweek-2026-09-23-v11.yaml',
+  'docs/autonomous-development/session.overweek-2026-09-23-v12.yaml',
+  'docs/autonomous-development/session.overweek-2026-09-23-v13.yaml',
+  'docs/autonomous-development/session.overweek-2026-09-24-v14.yaml',
 ]) {
   if (preparedLaunch.includes(staleSessionReference)) {
     fail(paths.preparedLaunch, `contains stale session reference ${staleSessionReference}`);
   }
 }
 const preparedSessionReference =
-  'docs/autonomous-development/session.overweek-2026-09-23-v10.yaml';
-if (preparedLaunch.split(preparedSessionReference).length - 1 !== 2) {
-  fail(paths.preparedLaunch, 'must reference the active session exactly twice');
+  'docs/autonomous-development/session.overweek-2026-09-24-v15.yaml';
+if (preparedLaunch.split(preparedSessionReference).length - 1 !== 3) {
+  fail(paths.preparedLaunch, 'must reference the active session exactly three times');
 }
 for (const command of ['/model', '/context', '/usage', '/permissions show', '/mcp list', '/skills list', '/keep-alive on']) {
   requireMatch(
@@ -869,9 +875,9 @@ if (closedDeadlineMatches?.length !== 1) {
   fail(paths.closedSession, `deadline must remain exactly ${closedDeadline}`);
 }
 
-const preparedDeadline = '2026-09-23T10:00:00+02:00';
+const preparedDeadline = '2026-09-24T12:00:00+02:00';
 const preparedDeadlineMatches = preparedSession.match(
-  /^\s*end:\s*"2026-09-23T10:00:00\+02:00"/gm,
+  /^\s*end:\s*"2026-09-24T12:00:00\+02:00"/gm,
 );
 if (preparedDeadlineMatches?.length !== 1) {
   fail(paths.preparedSession, `deadline must remain exactly ${preparedDeadline}`);
@@ -925,19 +931,19 @@ for (const [pattern, message] of [
 
 for (const [pattern, message] of [
   [/browser_and_allowlist_hardening_pull_request:\s*31/, 'prepared session must record PR #31 provenance'],
-  [/name:\s*mercurion-code-red-0001-overweek-full-series-2026-09-23-v10/, 'prepared session must use a fresh session identity'],
+  [/name:\s*mercurion-code-red-0001-overweek-full-series-2026-09-24-v15/, 'prepared session must use a fresh session identity'],
   [/expected_task_count:\s*215/, 'prepared workload must contain 215 active tasks'],
   [/expected_deferred_task_count:\s*5/, 'prepared workload must record five deferred tasks'],
-  [/expected_current_done:\s*136/, 'prepared workload must record 136 DONE tasks'],
-  [/expected_current_blocked:\s*0/, 'prepared workload must record zero blockers'],
+  [/expected_current_done:\s*192/, 'prepared workload must record 192 DONE tasks'],
+  [/expected_current_blocked:\s*4/, 'prepared workload must record four blockers'],
   [/expected_current_reverted:\s*0/, 'prepared workload must record zero reverted tasks'],
-  [/expected_current_skipped_dependency:\s*0/, 'prepared workload must record zero terminal skips'],
-  [/expected_current_pending:\s*79/, 'prepared workload must record 79 pending tasks'],
-  [/expected_first_ready_task:\s*"0072"/, 'prepared workload must start from task 0072'],
-  [/expected_planner_ready:\s*11/, 'prepared workload must record 11 ready tasks'],
-  [/expected_planner_waiting_dependency:\s*68/, 'prepared workload must record 68 waiting tasks'],
+  [/expected_current_skipped_dependency:\s*2/, 'prepared workload must record 2 terminal skips'],
+  [/expected_current_pending:\s*17/, 'prepared workload must record 17 pending tasks'],
+  [/expected_first_ready_task:\s*"0088"/, 'prepared workload must start from task 0088'],
+  [/expected_planner_ready:\s*8/, 'prepared workload must record 8 ready tasks'],
+  [/expected_planner_waiting_dependency:\s*9/, 'prepared workload must record 9 waiting tasks'],
   [/tasks:\s*\[\]/, 'prepared workload must select the complete Series'],
-  [/expected_autonomous_pending:\s*79/, 'prepared workload must record all 79 active pending tasks in scope'],
+  [/expected_autonomous_pending:\s*17/, 'prepared workload must record all 17 active pending tasks in scope'],
   [/expected_human_led_pending:\s*0/, 'prepared workload must not exclude pending tasks'],
   [/autonomous_execution_scope:\s*complete-series/, 'prepared workload must declare complete-Series execution'],
   [/dependency_planner:[\s\S]*output:\s*versioned-json/, 'prepared session must use deterministic planner output'],
@@ -960,23 +966,41 @@ for (const [pattern, message] of [
   [/LOCAL_DUMMY_AUTH:\s*"false"/, 'prepared session must disable deprecated local dummy auth'],
   [/required_once_before_enabling_unattended_reuse:\s*false/, 'prepared session must not gate launch on profile persistence'],
   [/preserve_existing_frozen_branches:\s*true/, 'prepared session must preserve frozen blocked branches'],
-  [/blocked_branch_policy:[\s\S]*branches:[\s\S]*- feature\/SYS-020/, 'prepared session must preserve the deferred Notebook branch'],
+  [/blocked_branch_policy:[\s\S]*branches:[\s\S]*- feature\/UI-014[\s\S]*- feature\/QA-023[\s\S]*- feature\/QA-032[\s\S]*- feature\/SYS-020/, 'prepared session must preserve all frozen and deferred branches'],
   [/stop_and_report_exact_denial:\s*false/, 'prepared session must not stop on a denied prerequisite'],
   [/enter_session_recovery_pending:\s*true/, 'prepared session must recover from denied prerequisites'],
   [/SESSION_BRANCH_COLLISION_PAUSE/, 'prepared session must declare branch collision as transient'],
   [/SESSION_RECOVERY_PENDING/, 'prepared session must declare coordinator recovery as transient'],
   [/preferred_tool:\s*fill_form[\s\S]*fallback_tool:\s*fill[\s\S]*clipboard_denial_is_capability_failure:\s*false/, 'prepared session must use supported browser form filling and reject clipboard-denial pauses'],
   [/stop_when_no_unpaused_ready_tasks:\s*false/, 'prepared session must remain active while pending tasks are temporarily excluded'],
+  [/no_selectable_tasks_state:\s*SESSION_RECOVERY_PENDING/, 'prepared session must map no-selectable-task state to recovery'],
+  [/exclusion_sets_reduce_pending_count:\s*false/, 'prepared session exclusions must not reduce pending workload'],
   [/branch_collision_excludes_only_colliding_task:\s*true/, 'prepared session must isolate only the colliding task'],
   [/error_before_deadline_completes_session:\s*false/, 'prepared session must forbid error-driven early completion'],
   [/stop_session_if_revert_not_green:\s*false/, 'prepared session must recover rather than stop on revert verification failure'],
   [/session_fatal_blocker_completes_coordinator_objective:\s*false/, 'prepared session must disable fatal-blocker completion'],
   [/task_complete_before_deadline_on_error:\s*false/, 'prepared session must forbid task_complete on pre-deadline errors'],
+  [/finalization_guard:[\s\S]*command:\s*npm run autonomous:assert-finalizable -- docs\/autonomous-development\/session\.overweek-2026-09-24-v15\.yaml[\s\S]*success_exit_code:\s*0[\s\S]*workload_exhausted_expression:\s*currentCounts\.PENDING === 0[\s\S]*ready_zero_is_workload_exhaustion:\s*false[\s\S]*no_unexcluded_ready_is_workload_exhaustion:\s*false[\s\S]*capability_exhaustion_is_workload_exhaustion:\s*false[\s\S]*pending_nonzero_result:\s*SESSION_RECOVERY_PENDING[\s\S]*pre_deadline_task_complete_allowed_only_when_workload_exhausted:\s*true/, 'prepared session must enforce the executable planner-backed finalization guard'],
   [/parent_profile:[\s\S]*model:\s*gpt-5\.6-luna[\s\S]*reasoning_effort:\s*medium[\s\S]*context_tier:\s*default[\s\S]*context_window_tokens:\s*300000/, 'prepared session must declare the exact Luna Medium 300k parent profile'],
-  [/worker_inheritance:[\s\S]*task_call_must_omit:[\s\S]*- model[\s\S]*- reasoning_effort[\s\S]*- context_tier[\s\S]*mismatch_result:\s*SESSION_RECOVERY_PENDING[\s\S]*mutate_task_outcome:\s*false/, 'prepared session must require exact inheritance and fail safely on mismatch'],
-  [/model_policy:[\s\S]*autonomous_sol_allowed:\s*false[\s\S]*luna_failure_result:\s*BLOCKED[\s\S]*sol_follow_up_mode:\s*separate-human-operated-session[\s\S]*continuous_developer_model_interaction_required:\s*true/, 'prepared session must prohibit Sol escalation and defer it to separate human operation'],
+  [/worker_inheritance:[\s\S]*task_call_must_omit:[\s\S]*- model[\s\S]*- reasoning_effort[\s\S]*- context_tier[\s\S]*require_worker_self_attestation:\s*false[\s\S]*mismatch_result:\s*SESSION_RECOVERY_PENDING[\s\S]*mutate_task_outcome:\s*false/, 'prepared session must require override-free inheritance without impossible worker self-attestation'],
+  [/model_policy:[\s\S]*autonomous_profile:\s*gpt-5\.6-luna[\s\S]*alternate_model_allowed:\s*false[\s\S]*luna_failure_result:\s*BLOCKED/, 'prepared session must restrict autonomous execution to Luna'],
+  [/tool_surface_probe_before_task_mutation:\s*true/, 'prepared session must probe Chrome DevTools before browser-task mutation'],
 ]) {
   requireMatch(paths.preparedSession, preparedSession, pattern, message);
+}
+
+for (const [target, content] of [
+  [paths.exampleSession, exampleSession],
+  [paths.preparedSession, preparedSession],
+]) {
+  requireMatch(target, content, /stop_when_no_unpaused_ready_tasks:\s*false/, 'session must not stop merely because all ready tasks are excluded');
+  requireMatch(target, content, /session_fatal_blocker_completes_coordinator_objective:\s*false/, 'fatal blockers must not complete pending sessions');
+  requireMatch(target, content, /task_complete_before_deadline_on_error:\s*false/, 'errors must not permit pre-deadline task_complete');
+  requireMatch(target, content, /workload_exhausted_expression:\s*currentCounts\.PENDING === 0/, 'session must define workload exhaustion from planner pending count');
+}
+
+if (/Finalize for capability exhaustion/i.test(preparedLaunch)) {
+  fail(paths.preparedLaunch, 'must not equate capability exhaustion with session finalization');
 }
 
 if (/^authorized_recovery:/m.test(preparedSession)) {
@@ -1151,13 +1175,32 @@ if (
 ) {
   fail('package.json', 'autonomous:plan must emit the deterministic JSON snapshot');
 }
+if (
+  packageJson.scripts?.['autonomous:assert-finalizable'] !==
+  'node docs/autonomous-development/tools/assert-session-finalizable.mjs'
+) {
+  fail('package.json', 'autonomous:assert-finalizable must expose the fail-closed guard');
+}
 for (const requiredCommand of [
   'node docs/autonomous-development/tools/plan-dependency-graph.mjs --self-test',
   'node docs/autonomous-development/tools/plan-dependency-graph.mjs --check',
+  'node docs/autonomous-development/tools/assert-session-finalizable.mjs --self-test',
 ]) {
   if (!packageJson.scripts?.['ci:validate:autonomous']?.includes(requiredCommand)) {
     fail('package.json', `ci:validate:autonomous must run ${requiredCommand}`);
   }
+}
+
+const finalizationGuard = read(paths.finalizationGuard);
+for (const [pattern, message] of [
+  [/export function evaluateFinalization/, 'guard must expose deterministic evaluation'],
+  [/PENDING_WORK_REMAINS_BEFORE_DEADLINE/, 'guard must fail closed before the deadline'],
+  [/SOFT_DEADLINE_REACHED/, 'guard must recognize deadline finalization'],
+  [/WORKLOAD_EXHAUSTED/, 'guard must recognize planner-proven exhaustion'],
+  [/process\.exitCode = 2/, 'guard must return a non-zero pending-work exit code'],
+  [/--self-test/, 'guard must expose a deterministic self-test'],
+]) {
+  requireMatch(paths.finalizationGuard, finalizationGuard, pattern, message);
 }
 
 for (const [pattern, message] of [
@@ -1343,7 +1386,26 @@ for (const target of [paths.agents.coordinator, 'docs/autonomous-development/PRO
   );
   requireMatch(target, content, /commit\.gpgSign.*false/, 'missing repository signing check');
   requireMatch(target, content, /--no-gpg-sign/, 'missing per-command signing override');
+  requireMatch(
+    target,
+    content,
+    /autonomous:assert-finalizable[\s\S]{0,500}currentCounts\.PENDING\s*===\s*0/,
+    'must require the executable fresh-planner guard before task_complete',
+  );
+  requireMatch(
+    target,
+    content,
+    /(?:READY\s*===\s*0|`READY === 0`)[\s\S]{0,500}(?:not workload exhaustion|never substitute)/i,
+    'must distinguish no selectable tasks from workload exhaustion',
+  );
 }
+
+requireMatch(
+  'docs/autonomous-development/README.md',
+  read('docs/autonomous-development/README.md'),
+  /session-fatal blocker never completes[\s\S]{0,400}currentCounts\.PENDING === 0/i,
+  'README must forbid fatal-blocker early completion and require planner proof',
+);
 
 if (errors.length > 0) {
   for (const error of errors) console.error(`ERROR ${error}`);

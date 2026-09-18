@@ -3,7 +3,7 @@ import { RedisService } from './services/redis.service';
 import { PubSubService } from './services/pub-sub.service';
 import { OAuth2AccessTokenRefreshService } from '../oauth2-client/services/access-token-refresh.service';
 import { SessionService } from '../auth/services/session.service';
-import { MeiliLoggerService } from '../meilisearch/services/meili-logger.service';
+import { LoggerPort } from 'src/logging/logger.port';
 import Redis from 'ioredis';
 import { RedisCapabilityService } from './services/redis-capability.service'
 
@@ -45,7 +45,7 @@ describe('RedisModule (providers wiring)', () => {
           },
         },
         {
-          provide: MeiliLoggerService,
+          provide: LoggerPort,
           useValue: { forContext: jest.fn().mockReturnValue(mockLogger) },
         },
         PubSubService,

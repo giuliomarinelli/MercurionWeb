@@ -1,7 +1,7 @@
 import { Injectable, OnModuleDestroy } from '@nestjs/common';
 import { Redis } from 'ioredis';
-import { MeiliLoggerService } from 'src/app_modules/meilisearch/services/meili-logger.service';
-import { MeiliContextLogger } from 'src/app_modules/meilisearch/Models/interfaces/meili-context-logger.interface';
+import { LoggerPort } from 'src/logging/logger.port';
+import { LoggerContext } from 'src/logging/logger.port';
 import type {
   RedisKey,
   RedisKeyPattern,
@@ -11,11 +11,11 @@ import type {
 @Injectable()
 export class RedisService implements OnModuleDestroy {
 
-  private readonly logger: MeiliContextLogger
+  private readonly logger: LoggerContext
 
   constructor(
     private readonly redisClient: Redis,
-    loggerFactory: MeiliLoggerService
+    loggerFactory: LoggerPort
   ) {
     this.logger = loggerFactory.forContext(RedisService.name)
   }
@@ -23,6 +23,14 @@ export class RedisService implements OnModuleDestroy {
 
   public getClient(): Redis {
     return this.redisClient
+  }
+
+  public async eval<T = unknown>(
+    script: string,
+    keys: RedisKey[],
+    args: string[] = []
+  ): Promise<T> {
+    return this.redisClient.eval(script, keys.length, ...keys, ...args) as Promise<T>
   }
 
   public async getNotifyKeyspaceEvents(): Promise<string> {
@@ -49,6 +57,17 @@ export class RedisService implements OnModuleDestroy {
 
   public async get(key: RedisKey): Promise<string | null> {
     return this.redisClient.get(key)
+  }
+
+  public async getAndDelete(key: RedisKey): Promise<string | null> {
+    const script = `
+      local value = redis.call('GET', KEYS[1])
+      if value then
+        redis.call('DEL', KEYS[1])
+      end
+      return value
+    `
+    return this.eval<string | null>(script, [key])
   }
 
   public async del(key: RedisKey): Promise<number> {

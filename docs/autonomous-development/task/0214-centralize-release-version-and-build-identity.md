@@ -1,6 +1,6 @@
 # 0214 - Centralize release version and build identity
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -64,12 +64,12 @@ Version values currently appear independently in package metadata, Angular envir
 
 ## Acceptance criteria
 
-- [ ] One repository input owns the product release version.
-- [ ] Angular, Nest and application images from one CI build expose identical release version and source revision.
-- [ ] Environment/release configuration contains no independently editable product-version literal.
-- [ ] OCI labels and deployment image metadata derive from the same build identity.
-- [ ] A frontend/backend/image mismatch makes CI/system testing fail.
-- [ ] Version responses contain no secret or unsafe CI metadata.
+- [x] One repository input owns the product release version.
+- [x] Angular, Nest and application images from one CI build expose identical release version and source revision.
+- [x] Environment/release configuration contains no independently editable product-version literal.
+- [x] OCI labels and deployment image metadata derive from the same build identity.
+- [x] A frontend/backend/image mismatch makes CI/system testing fail.
+- [x] Version responses contain no secret or unsafe CI metadata.
 
 ## Validation
 
@@ -93,27 +93,75 @@ Mark `BLOCKED` if multiple release streams intentionally require independent pro
 
 Keep release version and build identity distinct: the release version may repeat across rebuilds, while the commit revision identifies the exact source artifact.
 
+
 ## Execution notes
 
 ### Feature branch
-_Not started._
+
+`feature/QA-028` (frozen at `327a938d7f64d45c8efa3bf3899da16d91ed2373`)
+
 ### Preflight
+
 _Not started._
+
 ### Preflight remediation
+
 _None._
+
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0197, 0208, 0213. This task was never attempted and receives no feature branch.
+
+Implementation reached the feature-CI phase, but the configured three-repair
+budget was exhausted. The final exact feature-SHA run failed before merge.
+
 ### Task-specific validation performed
-_Not started._
+
+Identity generation, drift/negative checks, REST contract validation, Angular
+and Nest typechecks, targeted tests, container checks, and browser validation
+passed on the feature branch.
+
 ### Full pre-merge CI-parity validation
-_Not started._
+
+Feature CI run `35130531726` initially failed because Docker stages omitted the
+shared identity generator. Repair run `35132050609` failed on stale REST route
+compatibility metadata after the route-ownership repair. Final run
+`35133938660` failed in Nest unit tests with `TS2307`: the ignored generated
+module `MercurionWebNode/src/generated/build-identity.ts` was missing while
+compiling `src/config/config.model.ts`. Three bounded repairs were exhausted.
+
 ### Browser validation performed
-_Not started._
+
+_Not applicable / not started._
+
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+
+Feature implementation and repair commits are preserved on
+`feature/QA-028`; blocked status commit:
+`327a938d7f64d45c8efa3bf3899da16d91ed2373`.
+
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+
+Not merged. Feature branch frozen after failed exact feature-SHA CI.
+
 ### Rollback
+
 _Not applicable._
+
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+
+Resolve deterministic generated build-identity availability for Nest unit-test
+compilation, then authorize a new recovery session.
+
+### Interactive recovery (2026-09-17)
+
+- Merged current green `develop` into the preserved feature branch while
+  retaining both the catalog/accessibility gates and build-identity gates.
+- Confirmed the failed Nest job invoked `test:coverage` directly, so the
+  existing `pretest` lifecycle never generated the ignored typed module.
+- Added matching generation hooks for Angular/Nest coverage, Angular
+  accessibility, and Nest E2E entry points. Every isolated CI test job now
+  materializes the same identity from root version plus exact `GITHUB_SHA`
+  before TypeScript compilation.
+- Deterministic generation, drift validation and mismatched negative fixture
+  pass from a checkout where all generated identity files are initially absent.
+- Final feature SHA, focused checks, browser evidence and exact CI results are
+  recorded after publication.

@@ -7,7 +7,8 @@
       "httpClientProvider": "withInterceptorsFromDi",
       "configuredInterceptors": [
         "AuthFallbackInterceptor",
-        "AuthInterceptor"
+        "AuthInterceptor",
+        "CorrelationInterceptor"
       ],
       "interceptorUrlMutations": []
     },
@@ -209,7 +210,7 @@
               "ConfirmWithObsContDTO",
               "TotpMetadata"
             ],
-            "shapeHash": "5e71dcf60aef869b4870cf793184be2f36809fb9cfa7e8cba4fe44a22c1f7f1c"
+            "shapeHash": "1dedac2ad2769deb396196839cca5faf8dec995ae9023b0045c48c6de3189c53"
           }
         }
       },
@@ -253,7 +254,7 @@
         },
         "responseContract": {
           "displayType": "ConfirmChangeDTO",
-          "shapeHash": "5e71dcf60aef869b4870cf793184be2f36809fb9cfa7e8cba4fe44a22c1f7f1c",
+          "shapeHash": "1dedac2ad2769deb396196839cca5faf8dec995ae9023b0045c48c6de3189c53",
           "canonicalNames": [
             "ConfirmChangeDTO",
             "ConfirmDTO",
@@ -313,8 +314,8 @@
             "ConfirmWithObsContDTO",
             "TotpMetadata"
           ],
-          "clientShapeHash": "5e71dcf60aef869b4870cf793184be2f36809fb9cfa7e8cba4fe44a22c1f7f1c",
-          "serverShapeHash": "5e71dcf60aef869b4870cf793184be2f36809fb9cfa7e8cba4fe44a22c1f7f1c"
+          "clientShapeHash": "1dedac2ad2769deb396196839cca5faf8dec995ae9023b0045c48c6de3189c53",
+          "serverShapeHash": "1dedac2ad2769deb396196839cca5faf8dec995ae9023b0045c48c6de3189c53"
         }
       }
     },
@@ -660,7 +661,7 @@
               "ConfirmWithObsContDTO",
               "TotpMetadata"
             ],
-            "shapeHash": "5e71dcf60aef869b4870cf793184be2f36809fb9cfa7e8cba4fe44a22c1f7f1c"
+            "shapeHash": "1dedac2ad2769deb396196839cca5faf8dec995ae9023b0045c48c6de3189c53"
           }
         }
       },
@@ -704,7 +705,7 @@
         },
         "responseContract": {
           "displayType": "ConfirmChangeDTO",
-          "shapeHash": "5e71dcf60aef869b4870cf793184be2f36809fb9cfa7e8cba4fe44a22c1f7f1c",
+          "shapeHash": "1dedac2ad2769deb396196839cca5faf8dec995ae9023b0045c48c6de3189c53",
           "canonicalNames": [
             "ConfirmChangeDTO",
             "ConfirmDTO",
@@ -772,8 +773,8 @@
             "ConfirmWithObsContDTO",
             "TotpMetadata"
           ],
-          "clientShapeHash": "5e71dcf60aef869b4870cf793184be2f36809fb9cfa7e8cba4fe44a22c1f7f1c",
-          "serverShapeHash": "5e71dcf60aef869b4870cf793184be2f36809fb9cfa7e8cba4fe44a22c1f7f1c"
+          "clientShapeHash": "1dedac2ad2769deb396196839cca5faf8dec995ae9023b0045c48c6de3189c53",
+          "serverShapeHash": "1dedac2ad2769deb396196839cca5faf8dec995ae9023b0045c48c6de3189c53"
         }
       }
     },
@@ -968,7 +969,7 @@
               "ConfirmWithObsContDTO",
               "TotpMetadata"
             ],
-            "shapeHash": "5e71dcf60aef869b4870cf793184be2f36809fb9cfa7e8cba4fe44a22c1f7f1c"
+            "shapeHash": "1dedac2ad2769deb396196839cca5faf8dec995ae9023b0045c48c6de3189c53"
           }
         }
       },
@@ -995,7 +996,7 @@
         },
         "responseContract": {
           "displayType": "ConfirmChangeDTO",
-          "shapeHash": "5e71dcf60aef869b4870cf793184be2f36809fb9cfa7e8cba4fe44a22c1f7f1c",
+          "shapeHash": "1dedac2ad2769deb396196839cca5faf8dec995ae9023b0045c48c6de3189c53",
           "canonicalNames": [
             "ConfirmChangeDTO",
             "ConfirmDTO",
@@ -1042,8 +1043,8 @@
             "ConfirmWithObsContDTO",
             "TotpMetadata"
           ],
-          "clientShapeHash": "5e71dcf60aef869b4870cf793184be2f36809fb9cfa7e8cba4fe44a22c1f7f1c",
-          "serverShapeHash": "5e71dcf60aef869b4870cf793184be2f36809fb9cfa7e8cba4fe44a22c1f7f1c"
+          "clientShapeHash": "1dedac2ad2769deb396196839cca5faf8dec995ae9023b0045c48c6de3189c53",
+          "serverShapeHash": "1dedac2ad2769deb396196839cca5faf8dec995ae9023b0045c48c6de3189c53"
         }
       }
     },
@@ -1248,7 +1249,7 @@
               "TotpAuthMetadata",
               "TotpMetadata"
             ],
-            "shapeHash": "7ecdcc4072a550d70981b8e3cb223a640b87e1a5757f4b742a2f608a39432278"
+            "shapeHash": "3fed9354a38f8b6278fdf7181b4c1115f8a7b907abf51b8b3c964a69098c4c87"
           }
         }
       },
@@ -1284,7 +1285,7 @@
         },
         "responseContract": {
           "displayType": "ConfirmMfaChange",
-          "shapeHash": "7ecdcc4072a550d70981b8e3cb223a640b87e1a5757f4b742a2f608a39432278",
+          "shapeHash": "3fed9354a38f8b6278fdf7181b4c1115f8a7b907abf51b8b3c964a69098c4c87",
           "canonicalNames": [
             "ConfirmDTO",
             "ConfirmMfaChange",
@@ -1333,8 +1334,8 @@
             "TotpAuthMetadata",
             "TotpMetadata"
           ],
-          "clientShapeHash": "7ecdcc4072a550d70981b8e3cb223a640b87e1a5757f4b742a2f608a39432278",
-          "serverShapeHash": "7ecdcc4072a550d70981b8e3cb223a640b87e1a5757f4b742a2f608a39432278"
+          "clientShapeHash": "3fed9354a38f8b6278fdf7181b4c1115f8a7b907abf51b8b3c964a69098c4c87",
+          "serverShapeHash": "3fed9354a38f8b6278fdf7181b4c1115f8a7b907abf51b8b3c964a69098c4c87"
         }
       }
     },
@@ -1550,7 +1551,7 @@
               "TotpAuthMetadata",
               "TotpMetadata"
             ],
-            "shapeHash": "7ecdcc4072a550d70981b8e3cb223a640b87e1a5757f4b742a2f608a39432278"
+            "shapeHash": "3fed9354a38f8b6278fdf7181b4c1115f8a7b907abf51b8b3c964a69098c4c87"
           }
         }
       },
@@ -1586,7 +1587,7 @@
         },
         "responseContract": {
           "displayType": "ConfirmMfaChange",
-          "shapeHash": "7ecdcc4072a550d70981b8e3cb223a640b87e1a5757f4b742a2f608a39432278",
+          "shapeHash": "3fed9354a38f8b6278fdf7181b4c1115f8a7b907abf51b8b3c964a69098c4c87",
           "canonicalNames": [
             "ConfirmDTO",
             "ConfirmMfaChange",
@@ -1635,8 +1636,8 @@
             "TotpAuthMetadata",
             "TotpMetadata"
           ],
-          "clientShapeHash": "7ecdcc4072a550d70981b8e3cb223a640b87e1a5757f4b742a2f608a39432278",
-          "serverShapeHash": "7ecdcc4072a550d70981b8e3cb223a640b87e1a5757f4b742a2f608a39432278"
+          "clientShapeHash": "3fed9354a38f8b6278fdf7181b4c1115f8a7b907abf51b8b3c964a69098c4c87",
+          "serverShapeHash": "3fed9354a38f8b6278fdf7181b4c1115f8a7b907abf51b8b3c964a69098c4c87"
         }
       }
     },
@@ -1840,7 +1841,7 @@
             "canonicalNames": [
               "SessionDTO"
             ],
-            "shapeHash": "6694ae178ae41dd9563f0dc67ba8d2c96acfbdad12af2e668c1812f73e856f7f"
+            "shapeHash": "2e557d439e81c91d554da6119735ca2dfa0f0cdeae202f8fc894a0727f80c9b2"
           }
         }
       },
@@ -1867,7 +1868,7 @@
         },
         "responseContract": {
           "displayType": "SessionDTO[]",
-          "shapeHash": "6694ae178ae41dd9563f0dc67ba8d2c96acfbdad12af2e668c1812f73e856f7f",
+          "shapeHash": "2e557d439e81c91d554da6119735ca2dfa0f0cdeae202f8fc894a0727f80c9b2",
           "canonicalNames": [
             "SessionDTO"
           ],
@@ -1908,8 +1909,8 @@
           "canonicalNames": [
             "SessionDTO"
           ],
-          "clientShapeHash": "6694ae178ae41dd9563f0dc67ba8d2c96acfbdad12af2e668c1812f73e856f7f",
-          "serverShapeHash": "6694ae178ae41dd9563f0dc67ba8d2c96acfbdad12af2e668c1812f73e856f7f"
+          "clientShapeHash": "2e557d439e81c91d554da6119735ca2dfa0f0cdeae202f8fc894a0727f80c9b2",
+          "serverShapeHash": "2e557d439e81c91d554da6119735ca2dfa0f0cdeae202f8fc894a0727f80c9b2"
         }
       }
     },
@@ -2247,9 +2248,9 @@
         "method": "getCurrentVersion",
         "ordinal": 0,
         "verb": "GET",
-        "path": "/api/account/current-version",
+        "path": "/api/version",
         "urlVariants": [
-          "/api/account/current-version"
+          "/api/version"
         ],
         "pathParameters": [],
         "queryParameters": [],
@@ -2262,47 +2263,45 @@
           }
         },
         "response": {
-          "type": "VersionDTO",
+          "type": "BuildIdentityDTO",
           "mode": "json",
           "options": {
-            "withCredentials": "true"
+            "withCredentials": "false"
           },
           "contract": {
             "applicable": true,
             "compatible": true,
             "canonicalNames": [
-              "VersionDTO"
+              "BuildIdentityDTO"
             ],
-            "shapeHash": "824ae1bab3444bfdc3e9315416de81667dc98cbc7d257a17bd916314c91a1df9"
+            "shapeHash": "4a98c24691fe2c26b0a1c37609c5850669490d29932ba5e02698a42201af4bd8"
           }
         }
       },
       "server": {
-        "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
-        "handler": "getCurrentVersion",
+        "controller": "MercurionWebNode/src/app_modules/release-version/controllers/build-identity.controller.ts",
+        "handler": "getBuildIdentity",
         "verb": "GET",
-        "path": "/api/account/current-version",
+        "path": "/api/version",
         "parameters": [],
-        "returnType": "VersionDTO",
+        "returnType": "BuildIdentityDTO",
         "successStatus": 200,
         "errorStatuses": {
           "validation": [],
-          "authentication": [
-            401
-          ],
+          "authentication": [],
           "authorization": [],
           "declared": []
         },
         "authentication": {
-          "public": false,
+          "public": true,
           "guards": [],
           "scopes": []
         },
         "responseContract": {
-          "displayType": "VersionDTO",
-          "shapeHash": "824ae1bab3444bfdc3e9315416de81667dc98cbc7d257a17bd916314c91a1df9",
+          "displayType": "BuildIdentityDTO",
+          "shapeHash": "4a98c24691fe2c26b0a1c37609c5850669490d29932ba5e02698a42201af4bd8",
           "canonicalNames": [
-            "VersionDTO"
+            "BuildIdentityDTO"
           ],
           "applicable": true,
           "canonical": true
@@ -2339,10 +2338,10 @@
           "compatible": true,
           "canonical": true,
           "canonicalNames": [
-            "VersionDTO"
+            "BuildIdentityDTO"
           ],
-          "clientShapeHash": "824ae1bab3444bfdc3e9315416de81667dc98cbc7d257a17bd916314c91a1df9",
-          "serverShapeHash": "824ae1bab3444bfdc3e9315416de81667dc98cbc7d257a17bd916314c91a1df9"
+          "clientShapeHash": "4a98c24691fe2c26b0a1c37609c5850669490d29932ba5e02698a42201af4bd8",
+          "serverShapeHash": "4a98c24691fe2c26b0a1c37609c5850669490d29932ba5e02698a42201af4bd8"
         }
       }
     },
@@ -2813,7 +2812,7 @@
             "canonicalNames": [
               "ProfileDTO"
             ],
-            "shapeHash": "4a0cdc965b433f3510c2eed4e28691c23847e7293a1f3480cd3117a204657aa8"
+            "shapeHash": "7d75514b9adf71bb1c7cdb6c57c829256ade11d15ac94777b2866b57666c2c7e"
           }
         }
       },
@@ -2851,7 +2850,7 @@
         },
         "responseContract": {
           "displayType": "ProfileDTO",
-          "shapeHash": "4a0cdc965b433f3510c2eed4e28691c23847e7293a1f3480cd3117a204657aa8",
+          "shapeHash": "7d75514b9adf71bb1c7cdb6c57c829256ade11d15ac94777b2866b57666c2c7e",
           "canonicalNames": [
             "ProfileDTO"
           ],
@@ -2892,8 +2891,8 @@
           "canonicalNames": [
             "ProfileDTO"
           ],
-          "clientShapeHash": "4a0cdc965b433f3510c2eed4e28691c23847e7293a1f3480cd3117a204657aa8",
-          "serverShapeHash": "4a0cdc965b433f3510c2eed4e28691c23847e7293a1f3480cd3117a204657aa8"
+          "clientShapeHash": "7d75514b9adf71bb1c7cdb6c57c829256ade11d15ac94777b2866b57666c2c7e",
+          "serverShapeHash": "7d75514b9adf71bb1c7cdb6c57c829256ade11d15ac94777b2866b57666c2c7e"
         }
       }
     },
@@ -4411,7 +4410,7 @@
               "ConfirmWithTotpMetaDTO",
               "TotpMetadata"
             ],
-            "shapeHash": "bf58fa54cc79777ad1bc5e9be1532a2e640eeda8d329892f12a2d831c0f8e50d"
+            "shapeHash": "a67b4e36ff0dbe9ffb6d71fbf09031c39bbae8c1bce55ca41dbd0f9a4cdf5d67"
           }
         }
       },
@@ -4455,7 +4454,7 @@
         },
         "responseContract": {
           "displayType": "ConfirmWithTotpMetaDTO",
-          "shapeHash": "bf58fa54cc79777ad1bc5e9be1532a2e640eeda8d329892f12a2d831c0f8e50d",
+          "shapeHash": "a67b4e36ff0dbe9ffb6d71fbf09031c39bbae8c1bce55ca41dbd0f9a4cdf5d67",
           "canonicalNames": [
             "ConfirmDTO",
             "ConfirmWithTotpMetaDTO",
@@ -4500,8 +4499,8 @@
             "ConfirmWithTotpMetaDTO",
             "TotpMetadata"
           ],
-          "clientShapeHash": "bf58fa54cc79777ad1bc5e9be1532a2e640eeda8d329892f12a2d831c0f8e50d",
-          "serverShapeHash": "bf58fa54cc79777ad1bc5e9be1532a2e640eeda8d329892f12a2d831c0f8e50d"
+          "clientShapeHash": "a67b4e36ff0dbe9ffb6d71fbf09031c39bbae8c1bce55ca41dbd0f9a4cdf5d67",
+          "serverShapeHash": "a67b4e36ff0dbe9ffb6d71fbf09031c39bbae8c1bce55ca41dbd0f9a4cdf5d67"
         }
       }
     },
@@ -5912,22 +5911,19 @@
             "source": "query",
             "name": "n",
             "type": "number",
-            "optional": true,
-            "defaultValue": "10"
+            "optional": false
           },
           {
             "source": "query",
             "name": "only_molregnos",
-            "type": "string",
-            "optional": true,
-            "defaultValue": "'true'"
+            "type": "boolean",
+            "optional": false
           },
           {
             "source": "query",
             "name": "with_no_name",
-            "type": "string",
-            "optional": true,
-            "defaultValue": "'false'"
+            "type": "boolean",
+            "optional": false
           }
         ],
         "returnType": "EmbeddingResponse",
@@ -5938,9 +5934,7 @@
           ],
           "authentication": [],
           "authorization": [],
-          "declared": [
-            400
-          ]
+          "declared": []
         },
         "authentication": {
           "public": true,
@@ -6288,7 +6282,7 @@
           {
             "source": "param",
             "name": "id",
-            "type": "UUID",
+            "type": "MercurionPublicId",
             "optional": false
           }
         ],
@@ -6304,9 +6298,7 @@
           "authorization": [
             403
           ],
-          "declared": [
-            400
-          ]
+          "declared": []
         },
         "authentication": {
           "public": false,
@@ -6416,7 +6408,7 @@
           {
             "source": "param",
             "name": "id",
-            "type": "UUID",
+            "type": "MercurionPublicId",
             "optional": false
           }
         ],
@@ -6432,9 +6424,7 @@
           "authorization": [
             403
           ],
-          "declared": [
-            400
-          ]
+          "declared": []
         },
         "authentication": {
           "public": false,
@@ -6575,14 +6565,14 @@
           {
             "source": "query",
             "name": "page",
-            "type": "string",
-            "optional": true
+            "type": "number",
+            "optional": false
           },
           {
             "source": "query",
             "name": "limit",
-            "type": "string",
-            "optional": true
+            "type": "number",
+            "optional": false
           },
           {
             "source": "query",
@@ -6725,7 +6715,7 @@
           {
             "source": "param",
             "name": "id",
-            "type": "UUID",
+            "type": "MercurionPublicId",
             "optional": false
           },
           {
@@ -6746,9 +6736,7 @@
           "authorization": [
             403
           ],
-          "declared": [
-            400
-          ]
+          "declared": []
         },
         "authentication": {
           "public": false,
@@ -6999,7 +6987,7 @@
               "HistoryDTO",
               "PageModel"
             ],
-            "shapeHash": "9d1071754d0219e7042e74dc8ec6c04ca7e84dd66fa285d76ab97ad42fc14b56"
+            "shapeHash": "602182009a995991947361b2a62f17d9f5b1b6527fff0cd4c626c256a64adcd9"
           }
         }
       },
@@ -7012,14 +7000,14 @@
           {
             "source": "query",
             "name": "page",
-            "optional": true,
-            "defaultValue": "1"
+            "type": "number",
+            "optional": false
           },
           {
             "source": "query",
             "name": "limit",
-            "optional": true,
-            "defaultValue": "20"
+            "type": "number",
+            "optional": false
           }
         ],
         "returnType": "FlatPagination<HistoryDTO>",
@@ -7032,9 +7020,7 @@
             401
           ],
           "authorization": [],
-          "declared": [
-            400
-          ]
+          "declared": []
         },
         "authentication": {
           "public": false,
@@ -7043,7 +7029,7 @@
         },
         "responseContract": {
           "displayType": "PageModel<HistoryDTO>",
-          "shapeHash": "9d1071754d0219e7042e74dc8ec6c04ca7e84dd66fa285d76ab97ad42fc14b56",
+          "shapeHash": "602182009a995991947361b2a62f17d9f5b1b6527fff0cd4c626c256a64adcd9",
           "canonicalNames": [
             "HistoryDTO",
             "PageModel"
@@ -7086,8 +7072,8 @@
             "HistoryDTO",
             "PageModel"
           ],
-          "clientShapeHash": "9d1071754d0219e7042e74dc8ec6c04ca7e84dd66fa285d76ab97ad42fc14b56",
-          "serverShapeHash": "9d1071754d0219e7042e74dc8ec6c04ca7e84dd66fa285d76ab97ad42fc14b56"
+          "clientShapeHash": "602182009a995991947361b2a62f17d9f5b1b6527fff0cd4c626c256a64adcd9",
+          "serverShapeHash": "602182009a995991947361b2a62f17d9f5b1b6527fff0cd4c626c256a64adcd9"
         }
       }
     },

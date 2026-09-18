@@ -101,7 +101,7 @@ _Not started._
 ### Preflight remediation
 _None._
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0136 (BE-022), which is BLOCKED. Resolved hard dependencies for this recipe: 0179, 0186, 0188. This task was never attempted and receives no feature branch.
+Skipped because hard prerequisite 0179 (DATA-030) is BLOCKED, with transitive descendants 0186 and terminal root 0179. Resolved hard dependencies: 0179, 0186, 0188. This task was never attempted and receives no feature branch.
 ### Task-specific validation performed
 _Not started._
 ### Full pre-merge CI-parity validation
@@ -111,7 +111,7 @@ _Not applicable._
 ### Commits
 Aggregate dependency-skip metadata commit on develop.
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+Recorded in the aggregate dependency-skip metadata commit on `develop`; exact-SHA CI required.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required

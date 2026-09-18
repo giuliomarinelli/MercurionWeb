@@ -2,16 +2,19 @@ import { Resolver, Query, Mutation, Args, ID, Info, Int, ResolveField, Parent } 
 import { AuthenticatedUserId } from 'src/metadata/metadata'; // tuo custom decorator userId
 import { UUID } from 'crypto';
 import { GraphQLResolveInfo } from 'graphql';
-import { MoleculeCollection } from '../Models/entities/molecule-collection.entity';
+import { MoleculeCollection } from '../models/entities/molecule-collection.entity';
 import { MoleculeCollectionService } from '../services/molecule-collection.service';
 import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
-import { PaginatedMoleculeCollection } from '../Models/DTO/paginated-molecule-collection';
+import { PaginatedMoleculeCollection } from '../models/dto/paginated-molecule-collection';
 import { InjectRepository } from '@nestjs/typeorm';
-import { MoleculeCollectionItemJoin } from '../Models/entities/molecule-collection-item-join.entity';
+import { MoleculeCollectionItemJoin } from '../models/entities/molecule-collection-item-join.entity';
 import { Repository } from 'typeorm';
 import { MoleculeCollectionItemJoinService } from '../services/molecule-collection-item-join.service';
-import { BindManyCollectionsToMoleculeDTO } from '../Models/DTO/bind-many-collections-to-molecule.dto';
+import { BindManyCollectionsToMoleculeDTO } from '../models/dto/bind-many-collections-to-molecule.dto';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
+import { assertMercurionPublicId } from 'src/identifiers/mercurion-public-id';
+import { PaginationArgs } from 'src/models/pagination/pagination.args';
+import { toFlatPagination } from 'src/models/pagination/pagination.utils';
 
 
 @Resolver(() => MoleculeCollection)
@@ -23,10 +26,6 @@ export class MoleculeCollectionResolver {
         @InjectRepository(MoleculeCollectionItemJoin)
         private readonly joinRepo: Repository<MoleculeCollectionItemJoin>,
     ) { }
-
-    private ensureUuidv7(value: string, field: string): void {
-        GeneralUtils.ensureValidUUIDv7(value, `GraphQLInvalid::Invalid ${field}`)
-    }
 
     @ResolveField(() => Int)
     async itemsCount(
@@ -54,7 +53,7 @@ export class MoleculeCollectionResolver {
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
     ): Promise<MoleculeCollection | null> {
-        this.ensureUuidv7(id, 'id')
+        assertMercurionPublicId(id, 'id')
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         return this.collectionService.findOne(id, userId, fieldsMap)
     }
@@ -78,7 +77,7 @@ export class MoleculeCollectionResolver {
     ): Promise<MoleculeCollection | null> {
         // prima versione minimale, non chiede di creare con un nuovo nome, Duplica direttamente Vecchio Nome => Vecchio nome (1) ...
         // supporto per scelta del nuovo nome in versioni successive alla 1.0 beta 1
-        this.ensureUuidv7(srcCollectionId, 'srcCollectionId')
+        assertMercurionPublicId(srcCollectionId, 'srcCollectionId')
         return this.collectionService.duplicate(userId, srcCollectionId)
     }
 
@@ -107,7 +106,7 @@ export class MoleculeCollectionResolver {
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo
     ): Promise<MoleculeCollection | null> {
-        this.ensureUuidv7(id, 'id')
+        assertMercurionPublicId(id, 'id')
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         const normalizedName = GeneralUtils.normalizeSpaces(name)
         return this.collectionService.update(id, userId, { name: normalizedName }, fieldsMap)
@@ -118,7 +117,7 @@ export class MoleculeCollectionResolver {
         @Args('id', { type: () => ID }) id: UUID,
         @AuthenticatedUserId() userId: UUID
     ): Promise<boolean> {
-        this.ensureUuidv7(id, 'id')
+        assertMercurionPublicId(id, 'id')
         return this.collectionService.delete(id, userId)
     }
 
@@ -127,15 +126,14 @@ export class MoleculeCollectionResolver {
         @Args('id', { type: () => ID }) collectionId: UUID,
         @AuthenticatedUserId() userId: UUID
     ): Promise<boolean> {
-        this.ensureUuidv7(collectionId, 'id')
+        assertMercurionPublicId(collectionId, 'id')
         return await this.collectionService.markAsTouched(userId, collectionId)
     }
 
     @Query(() => PaginatedMoleculeCollection)
     async myMoleculeCollectionsPaginated(
         @AuthenticatedUserId() userId: UUID,
-        @Args('page', { type: () => Int, defaultValue: 1 }) page: number,
-        @Args('limit', { type: () => Int, defaultValue: 20 }) limit: number,
+        @Args() pagination: PaginationArgs,
         @Args('excludeJoinedToMolecule', { type: () => Boolean, nullable: true }) excludeJoinedToMolecule: boolean | null,
         @Args('moleculeId', { type: () => ID, nullable: true }) moleculeId: string | null,
         @Info() info: GraphQLResolveInfo,
@@ -145,16 +143,9 @@ export class MoleculeCollectionResolver {
         
 
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
-        const paginated = await this.collectionService.paginateAllByUser(userId, { page, limit }, normalizedQ, excludeJoinedToMolecule ?? false, moleculeId, fieldsMap);
+        const paginated = await this.collectionService.paginateAllByUser(userId, pagination, normalizedQ, excludeJoinedToMolecule ?? false, moleculeId, fieldsMap);
 
-        return {
-            items: paginated.items,
-            itemCount: paginated.meta.itemCount,
-            totalItems: Number(paginated.meta.totalItems),
-            itemsPerPage: paginated.meta.itemsPerPage,
-            totalPages: Number(paginated.meta.totalPages),
-            currentPage: paginated.meta.currentPage,
-        }
+        return toFlatPagination(paginated)
     }
 
     @Mutation(() => BindManyCollectionsToMoleculeDTO)
@@ -164,7 +155,7 @@ export class MoleculeCollectionResolver {
         @Args('collectionIds', { type: () => [ID] }) collectionIds: UUID[],
         @Args('selectAll', { type: () => Boolean }) selectAll: boolean
     ): Promise<BindManyCollectionsToMoleculeDTO> {
-        collectionIds.forEach((collectionId) => this.ensureUuidv7(collectionId, 'collectionIds'))
+        collectionIds.forEach((collectionId) => assertMercurionPublicId(collectionId, 'collectionIds'))
         return this.joinService.bindManyCollectionsToMolecule(userId, moleculeId, collectionIds, selectAll)
     }
 

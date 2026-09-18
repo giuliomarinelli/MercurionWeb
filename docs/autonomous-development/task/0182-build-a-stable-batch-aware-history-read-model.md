@@ -4,6 +4,10 @@
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
+
+> SKIPPED_DEPENDENCY (2026-09-15): transitive dependency `0174` is skipped
+> through `0143` from terminal root `0126` (`BE-012`), blocked by an
+> unverified external Docker registry failure on feature-SHA CI.
 ## Objective
 
 Turn History reads into an explicit paginated projection with stable ordering and batch enrichment so queries/presenters load only required columns and never perform per-row external/entity lookups.

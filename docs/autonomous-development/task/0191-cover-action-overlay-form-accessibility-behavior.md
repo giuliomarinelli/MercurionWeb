@@ -1,6 +1,6 @@
 # 0191 - Cover action-overlay, form and accessibility behavior
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -90,37 +90,67 @@ Prefer role/name queries and user-visible interaction to raw `querySelector` aga
 
 ## Execution notes
 
-> Current status (2026-09-11): PENDING. The planner identified the prior
-> dependency skip as stale after direct owner re-enablement of its prerequisite
-> chain; historical skip evidence below is retained only for traceability.
+> Current status (2026-09-18): READY. The authoritative planner resolves all
+> hard prerequisites as DONE; the historical dependency skip was stale and was
+> replaced before implementation.
+
+- 2026-09-18: Replaced stale `SKIPPED_DEPENDENCY` history after
+  `npm run autonomous:plan --silent` classified 0191 (`QA-005`) as READY.
 
 ### Feature branch
-_Not started._
+`feature/QA-005`
 ### Preflight
-_Not started._
+- Base SHA `d81ae228797a53b4ecf7ca7e73de1b0dc9ee21c3` was clean and matched the
+  assigned feature branch.
+- Exact-SHA Actions run `35293843125` completed successfully with `Required gate`
+  green.
+- Focused baseline: existing action, dialog, form, select and accessibility
+  specs; 43 tests passed.
+- Browser validation was not required by this component-test task.
 ### Preflight remediation
 _None._
 ### Summary
-Not attempted because direct terminal prerequisite 0086 (UI-028) is
-`SKIPPED_DEPENDENCY`.
+Added reusable semantic-role test querying and a dedicated action overlay/form
+accessibility fixture covering modal focus ownership/restoration, Escape and
+semantic action behavior, loading/disabled duplicate-submit protection, form
+validation associations, and representative axe states. Extended the canonical
+button and accessibility specs with loading/disabled and modal/error coverage.
 ### Task-specific validation performed
-_Not started._
+- `ng test --watch=false` with the action context, action overlay, action card,
+  action footer, button, dialog shell, text field, textarea, select,
+  canonical accessibility and new action overlay/form accessibility specs:
+  50 tests passed.
+- `eslint` on all changed Angular test/helper files: passed.
+- `tsc --noEmit -p tsconfig.app.json`: passed.
+- `git diff --check`: passed.
+- Initial feature CI run `35296355339` on commit
+  `7fe3d70bab6e072c233d68b0462c82f3ff34920f` failed only at the repository
+  topology gate because the test helper used a non-`.spec.ts` filename and was
+  classified as an Angular orphan.
+- CI repair renamed the helper to `component-test-helpers.spec.ts`; focused
+  validation passed again (28 tests, lint, typecheck and diff check).
 ### Full pre-merge CI-parity validation
-_Not started._
+- Exact feature-SHA run `35296355339` for `7fe3d70bab6e072c233d68b0462c82f3ff34920f`
+  failed at `angular-reachability` because the test helper was not named as a
+  spec-only file.
+- Repair commit `3a4b7aa597f5c09cc4352f35a2472bf7f5828513` passed exact feature
+  CI run `35296784272`; all workflow jobs and `Required gate` succeeded.
+- Final notes commit `14f7d0046b2af8f2bf15f4a3e2f480454695e25c` passed exact
+  metadata CI run `35297320377` with `Required gate` green.
 ### Browser validation performed
-_Not started / not applicable._
+Not required by task; component tests use ChromeHeadless and axe-core.
 ### Commits
-_Not recorded._
+- `7fe3d70bab6e072c233d68b0462c82f3ff34920f` — initial implementation.
+- `3a4b7aa597f5c09cc4352f35a2472bf7f5828513` — CI repair.
+- `14f7d0046b2af8f2bf15f4a3e2f480454695e25c` — final execution evidence.
 ### Merge / CI
 _Not started._
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Direct terminal prerequisite: 0086 (UI-028), `SKIPPED_DEPENDENCY`.
-Transitive root: 0076 (UI-018), `BLOCKED`; its preserved feature branch
-requires a test-safe local Nest runtime for mandatory browser validation.
+None.
 
 ### Dependency skip
 
-Direct terminal prerequisite: `0086` (`UI-028`), `SKIPPED_DEPENDENCY`; its
-transitive root is `0071` (`UI-013`), `BLOCKED`. Materialized on 2026-09-13.
+Historical skip text replaced because the authoritative planner reports 0191
+as READY with no terminal dependency roots.

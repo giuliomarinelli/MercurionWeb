@@ -1,1 +1,0 @@
-export type { VersionDTO } from '@mercurion/rest-contracts'

@@ -22,7 +22,7 @@ type ErrorMap = Record<string, string>;
 let nextGeneratedId = 0;
 
 @Component({
-  selector: 'm-text-field, m-floating-input',
+  selector: 'm-text-field',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, ReactiveFormsModule],
   host: { class: 'block' },

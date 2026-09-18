@@ -1,5 +1,6 @@
 import { ConfigService } from '@nestjs/config';
 import { DiscordProviderClient } from './discord-provider-client';
+import { ExternalHttpPort } from 'src/infrastructure/external-http/external-http.port';
 
 describe('DiscordProviderClientService', () => {
   let service: DiscordProviderClient;
@@ -12,7 +13,7 @@ describe('DiscordProviderClientService', () => {
         redirectUri: 'https://example.com/callback',
       }),
     } as unknown as ConfigService;
-    service = new DiscordProviderClient(configService);
+    service = new DiscordProviderClient(configService, {} as ExternalHttpPort);
   });
 
   it('should be defined', () => {
