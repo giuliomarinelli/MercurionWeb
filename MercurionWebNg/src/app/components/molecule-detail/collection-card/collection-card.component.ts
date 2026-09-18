@@ -3,20 +3,19 @@ import {
   ChangeDetectionStrategy,
   Component,
   effect,
-  inject,
   input,
   model,
   output,
   signal
 } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { SelectionControlComponent } from '../../common/selection-control/selection-control.component';
 import { CollectionCardViewModel } from './collection-card.models';
 
 @Component({
   selector: 'm-collection-card',
-  imports: [NgClass, DatePipe, UpperCasePipe, ReactiveFormsModule, SelectionControlComponent],
+  imports: [NgClass, DatePipe, UpperCasePipe, ReactiveFormsModule, RouterLink, SelectionControlComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: `
     @keyframes slide-out-card {
@@ -82,8 +81,7 @@ import { CollectionCardViewModel } from './collection-card.models';
                   @if (!_isReadonly() && !_selectable()) {
                     <a
                       class="text-base md:text-lg font-semibold text-slate-800 dark:text-slate-100 truncate hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
-                      [href]="pathToCollection()"
-                      (click)="goToCollection($event)"
+                      [routerLink]="pathToCollection()"
                     >
                       {{ _collection()!.name }}
                     </a>
@@ -106,8 +104,7 @@ import { CollectionCardViewModel } from './collection-card.models';
                 @if (!_isReadonly() && !_selectable()) {
                   <a
                     class="hidden md:block size-4 opacity-0 group-hover:opacity-100 transition-opacity focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
-                    [href]="pathToCollection()"
-                    (click)="goToCollection($event)"
+                    [routerLink]="pathToCollection()"
                     aria-label="Apri collezione {{ _collection()!.name }}"
                   >
                     <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -152,8 +149,6 @@ import { CollectionCardViewModel } from './collection-card.models';
   `
 })
 export class CollectionCardComponent {
-  private readonly router = inject(Router);
-
   _collection = signal<CollectionCardViewModel | undefined>(undefined);
   _i = signal(0);
   pathToCollection = signal('');
@@ -186,13 +181,6 @@ export class CollectionCardComponent {
     this._hideActionButtons.set(this.hideActionButtons());
     this._selectable.set(this.selectable());
   });
-
-  goToCollection(evt?: Event): void {
-    if (this._isReadonly() || this._selectable()) return;
-    evt?.preventDefault();
-    evt?.stopPropagation();
-    this.router.navigateByUrl(this.pathToCollection());
-  }
 
   setSelected(value: boolean): void {
     if (!this.selectionDisabled()) this.selected.set(value);
