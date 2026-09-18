@@ -12,7 +12,7 @@ import {
   formatAxeViolations,
   runAxe,
 } from './accessibility-test.helpers.spec';
-import { queryByRole } from './component-test-helpers';
+import { queryByRole } from './component-test-helpers.spec';
 
 interface SelectItem {
   id: string;

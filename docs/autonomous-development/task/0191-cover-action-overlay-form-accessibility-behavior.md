@@ -123,12 +123,19 @@ button and accessibility specs with loading/disabled and modal/error coverage.
 - `eslint` on all changed Angular test/helper files: passed.
 - `tsc --noEmit -p tsconfig.app.json`: passed.
 - `git diff --check`: passed.
+- Initial feature CI run `35296355339` on commit
+  `7fe3d70bab6e072c233d68b0462c82f3ff34920f` failed only at the repository
+  topology gate because the test helper used a non-`.spec.ts` filename and was
+  classified as an Angular orphan.
+- CI repair renamed the helper to `component-test-helpers.spec.ts`; focused
+  validation passed again (28 tests, lint, typecheck and diff check).
 ### Full pre-merge CI-parity validation
 _Not started._
 ### Browser validation performed
 Not required by task; component tests use ChromeHeadless and axe-core.
 ### Commits
-Pending task commit.
+- `7fe3d70bab6e072c233d68b0462c82f3ff34920f` — initial implementation.
+- Pending repair commit.
 ### Merge / CI
 _Not started._
 ### Rollback

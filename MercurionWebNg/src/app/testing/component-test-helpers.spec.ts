@@ -32,7 +32,6 @@ export function accessibleName(element: HTMLElement, root?: ParentNode): string 
   const label = element.id
     ? root?.querySelector<HTMLLabelElement>(`label[for="${CSS.escape(element.id)}"]`)?.textContent
     : '';
-
   const name = element.getAttribute('aria-label')
     || labelledByText
     || label
