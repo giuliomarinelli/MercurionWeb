@@ -1,6 +1,6 @@
 # 0211 - Govern patch-package lifecycle
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
