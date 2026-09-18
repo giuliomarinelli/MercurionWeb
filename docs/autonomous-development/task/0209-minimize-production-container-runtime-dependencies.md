@@ -1,7 +1,7 @@
 # 0209 - Minimize production container runtime dependencies
 
-- [ ] DONE
-- [x] BLOCKED
+- [x] DONE
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
@@ -174,16 +174,31 @@ stdout into the SBOM report while preserving exact-image digest verification
 and SARIF scanning; rerun exact-SHA feature CI after the repair push.
 The third repair addresses feature CI run `35065457627`, which failed only in
 `Container nest-production` because the runner had no `docker scout` plugin.
-The final repair feature CI run `35066388754` still failed in the same job:
-the pinned Syft fallback produced JSON output but exited unsuccessfully, and
-the checker failed closed with `image SBOM generation is unavailable; no
-supported fallback succeeded`. The configured feature-CI repair budget is
-exhausted, so this task is blocked before merge pending a supported CI image
-SBOM tool decision or runner capability.
+Feature CI run `35066388754` still failed in the same job because the pinned
+containerized Syft fallback produced JSON but exited unsuccessfully. The
+manual recovery preserves that evidence and replaces the unreliable fallback
+with the official Anchore SBOM action pinned at
+`e22c389904149dbc22b58101806040fa8d37a610`. The action scans the exact local
+image; the verifier requires its CycloneDX component digest to equal the
+Docker-inspected image digest. Exact final feature-SHA and protected PR
+merge-SHA CI remain required.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-The GitHub Actions container runner lacks Docker Scout and the pinned Syft
-fallback cannot complete successfully against the local image. A supported
-runner/tool decision is required before the exact-image SBOM and vulnerability
-evidence can be made green.
+None. The recovery explicitly selects and pins the supported official Anchore
+SBOM action, retains Trivy as the vulnerability scanner fallback, recognizes
+CycloneDX `components` for package-count evidence, and removes the obsolete
+TypeORM migration asset expectation after the DB-first transition.
+
+### Manual recovery 2026-09-18
+
+- Recovered preserved SHA `502c6920208b9bbd85dfe71e7eea99b2b4bd2c3a`
+  and merged current green `develop` SHA
+  `bbc5408fdda62826fc85a31ff88467fe394266bc` without rebase or history
+  rewriting.
+- Fresh base workflow-dispatch run `35336403153` passed the full Windows,
+  Ubuntu, browser, container and stable `Required gate` lifecycle.
+- `node --check scripts/check-production-container.mjs`,
+  `npm run ci:validate:autonomous`, and `git diff --check` passed.
+- Browser validation remains unnecessary because no browser-served endpoint
+  behavior changed.

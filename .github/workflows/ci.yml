@@ -468,9 +468,18 @@ jobs:
       - name: Smoke-test standalone runtime contract
         run: node scripts/smoke-container-runtime.mjs --image "mercurion-ci-${{ matrix.name }}"
 
+      - name: Generate Nest production image SBOM
+        if: ${{ matrix.name == 'nest-production' }}
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610
+        with:
+          image: mercurion-ci-nest-production
+          format: cyclonedx-json
+          output-file: reports/containers/nest-production/nest-production.sbom.json
+          upload-artifact: false
+
       - name: Verify Nest production image inventory, SBOM and vulnerability scan
         if: ${{ matrix.name == 'nest-production' }}
-        run: node scripts/check-production-container.mjs --image "mercurion-ci-${{ matrix.name }}" --report-dir "reports/containers/${{ matrix.name }}"
+        run: node scripts/check-production-container.mjs --image "mercurion-ci-${{ matrix.name }}" --report-dir "reports/containers/${{ matrix.name }}" --sbom-path "reports/containers/${{ matrix.name }}/nest-production.sbom.json"
 
       - name: Upload container inventory and supply-chain diagnostics
         if: ${{ always() && matrix.name == 'nest-production' }}

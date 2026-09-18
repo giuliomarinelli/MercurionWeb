@@ -12,6 +12,7 @@ for (let index = 2; index < process.argv.length; index += 1) {
 
 const image = args.get('image');
 const reportDirectory = resolve(args.get('report-dir') ?? 'reports/containers');
+const suppliedSbomPath = args.get('sbom-path') ? resolve(args.get('sbom-path')) : null;
 if (!image) {
   throw new Error('Usage: node scripts/check-production-container.mjs --image <tag> [--report-dir <path>]');
 }
@@ -50,7 +51,6 @@ const requiredRuntimeFiles = [
   'dist/src/app_modules/notification/email-templates/confirmation.hbs',
   'dist/src/app_modules/notification/email-templates/layouts/email-shell.hbs',
   'dist/src/app_modules/notification/email-templates/partials/email-footer.hbs',
-  'dist/src/persistence/migrations/1789580000000-CanonicalizeHelpPublicIdSources.js',
   'assets-root/og/mercurion-og.png',
   'packages/rest-contracts/dist/index.js',
   'packages/socket-contracts/cjs/index.js',
@@ -107,27 +107,22 @@ const runtimeInventory = JSON.parse(run('docker', [
 await mkdir(reportDirectory, { recursive: true });
 const sbomPath = resolve(reportDirectory, 'nest-production.sbom.json');
 const vulnerabilityPath = resolve(reportDirectory, 'nest-production.vulnerability.sarif');
-const sbomResult = runWithFallback('image SBOM generation', [
- ['docker', ['scout', 'sbom', `local://${image}`]],
- ['docker', [
-   'run', '--rm', '--pull=missing',
-   '-v', '/var/run/docker.sock:/var/run/docker.sock',
-   'anchore/syft:v1.18.1', `docker:${image}`, '-o', 'cyclonedx-json',
- ]],
-]);
+const sbomResult = suppliedSbomPath
+ ? { output: await readFile(suppliedSbomPath, 'utf8'), fallback: false, scanner: 'anchore-sbom-action' }
+ : { ...runWithFallback('image SBOM generation', [
+   ['docker', ['scout', 'sbom', `local://${image}`]],
+ ]), scanner: 'docker-scout' };
 const sbom = JSON.parse(sbomResult.output);
-if (!sbomResult.fallback) {
- if (sbom.source?.image?.digest !== digest) {
-   throw new Error(`SBOM digest ${sbom.source?.image?.digest} does not match image digest ${digest}`);
- }
-} else {
- sbom.metadata ??= {};
- sbom.metadata.properties ??= [];
- sbom.metadata.properties = sbom.metadata.properties.filter(
-   property => property.name !== 'mercurion:image-digest',
- );
- sbom.metadata.properties.push({ name: 'mercurion:image-digest', value: digest });
+const generatedDigest = sbom.source?.image?.digest ?? sbom.metadata?.component?.version;
+if (generatedDigest !== digest) {
+  throw new Error(`SBOM digest ${generatedDigest} does not match image digest ${digest}`);
 }
+sbom.metadata ??= {};
+sbom.metadata.properties ??= [];
+sbom.metadata.properties = sbom.metadata.properties.filter(
+  property => property.name !== 'mercurion:image-digest',
+);
+sbom.metadata.properties.push({ name: 'mercurion:image-digest', value: digest });
 await writeFile(sbomPath, `${JSON.stringify(sbom, null, 2)}\n`);
 const recordedSbomDigest = sbom.source?.image?.digest
  ?? sbom.metadata?.properties?.find(property => property.name === 'mercurion:image-digest')?.value;
@@ -163,11 +158,13 @@ const inventory = {
   image,
   digest,
   sizeBytes: inspect.Size,
-  packageCount: Array.isArray(sbom.artifacts) ? sbom.artifacts.length : 0,
+  packageCount: Array.isArray(sbom.components)
+    ? sbom.components.length
+    : (Array.isArray(sbom.artifacts) ? sbom.artifacts.length : 0),
   runtimeInventory,
   sbom: sbomPath,
   vulnerabilityScan: vulnerabilityPath,
-  sbomScanner: sbomResult.fallback ? 'syft-fallback' : 'docker-scout',
+  sbomScanner: sbomResult.scanner,
   vulnerabilityScanner: vulnerabilityResult.fallback ? 'trivy-fallback' : 'docker-scout',
 };
 await writeFile(resolve(reportDirectory, 'nest-production.inventory.json'), `${JSON.stringify(inventory, null, 2)}\n`);
