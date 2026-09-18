@@ -1,4 +1,3 @@
-import { MoleculeCollection } from 'src/app_modules/molecule-collection/models/entities/molecule-collection.entity';
 import { ProfileRegistryClientDTO, ProfileRegistryDTO as ProfileRegistryDTO } from './../../auth/models/dto/profile.dtos';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -17,9 +16,7 @@ import { CompareResult } from 'src/app_modules/auth/models/enums/compare-result.
 import { LoggerPort } from 'src/logging/logger.port';
 import { LoggerContext } from 'src/logging/logger.port';
 import { Scope } from '../models/enums/scope.enum';
-import { MoleculeCollectionItemEntity } from 'src/app_modules/molecule-collection/models/entities/molecule-collection-item.entity';
 import { HistoryService } from 'src/app_modules/history/services/history.service';
-import { TinyHistoryDTO } from 'src/app_modules/history/models/dto/history.dto';
 import { AuthIdentity } from 'src/app_modules/sso/models/entities/auth-identity.entity';
 import { ProvidedEmailDTO } from 'src/app_modules/auth/models/dto/provided-email.dto';
 import { AuthProvider } from 'src/app_modules/sso/models/enums/auth-provider.enum';
@@ -28,6 +25,70 @@ import type { IdentityReadPort } from 'src/app_modules/auth/models/interfaces/id
 import { runInTransaction, transactionManager, type TransactionContext } from 'src/persistence/transaction-context'
 import { LOCAL_DUMMY_AUTH } from '@mercurion/rest-contracts'
 import { UserGender } from '../models/enums/user-gender.enum'
+import { ProfileReadModelService } from './profile-read-model.service'
+
+interface UserCreateCommand {
+    email?: string
+    unconfirmedEmail?: string
+    passwordHash?: string
+    firstName: string
+    lastName: string
+    initials: string
+    job?: string | null
+    gender: UserGender
+    scopes: string[]
+    otpSecret?: string
+    registrationIdentity?: string
+}
+
+interface UserUpdateCommand {
+    firstName?: string
+    lastName?: string
+    initials?: string
+    email?: string | null
+    unconfirmedEmail?: string | null
+    completePhoneNumber?: string | null
+    phoneNumberPrefixLength?: number
+    unconfirmedPhoneNumber?: string | null
+    unconfirmedPhoneNumberPrefixLength?: number | null
+    updatedAt?: number
+    mfaStrategies?: string
+    appTotpSecret?: string | null
+}
+
+type UserPersistencePatch = {
+    firstName?: string
+    lastName?: string
+    initials?: string
+    email?: string | null
+    unconfirmedEmail?: string | null
+    completePhoneNumber?: string | null
+    phoneNumberPrefixLength?: number
+    unconfirmedPhoneNumber?: string | null
+    unconfirmedPhoneNumberPrefixLength?: number | null
+    updatedAt?: number
+    mfaStrategies?: string
+    appTotpSecret?: string | null
+}
+
+function toUserPatch(input: UserUpdateCommand): UserPersistencePatch {
+    const patch: UserPersistencePatch = {}
+    if (input.firstName !== undefined) patch.firstName = input.firstName
+    if (input.lastName !== undefined) patch.lastName = input.lastName
+    if (input.initials !== undefined) patch.initials = input.initials
+    if (input.email !== undefined) patch.email = input.email
+    if (input.unconfirmedEmail !== undefined) patch.unconfirmedEmail = input.unconfirmedEmail
+    if (input.completePhoneNumber !== undefined) patch.completePhoneNumber = input.completePhoneNumber
+    if (input.phoneNumberPrefixLength !== undefined) patch.phoneNumberPrefixLength = input.phoneNumberPrefixLength
+    if (input.unconfirmedPhoneNumber !== undefined) patch.unconfirmedPhoneNumber = input.unconfirmedPhoneNumber
+    if (input.unconfirmedPhoneNumberPrefixLength !== undefined) {
+        patch.unconfirmedPhoneNumberPrefixLength = input.unconfirmedPhoneNumberPrefixLength
+    }
+    if (input.updatedAt !== undefined) patch.updatedAt = input.updatedAt
+    if (input.mfaStrategies !== undefined) patch.mfaStrategies = input.mfaStrategies
+    if (input.appTotpSecret !== undefined) patch.appTotpSecret = input.appTotpSecret
+    return patch
+}
 
 
 
@@ -43,6 +104,7 @@ export class UserService implements IdentityReadPort {
         private readonly passwordEncoder: PasswordEncoderService,
         private readonly securityService: SecurityService,
         private readonly historyService: HistoryService,
+        private readonly profileReadModelService: ProfileReadModelService,
         meiliLogger: LoggerPort
     ) {
         this.logger = meiliLogger.forContext(UserService.name)
@@ -67,10 +129,22 @@ export class UserService implements IdentityReadPort {
         }
     }
 
-    public async createUser(userProps: Partial<User>): Promise<User> {
+    public async createUser(userProps: UserCreateCommand): Promise<User> {
         try {
             return await runInTransaction(this.dataSource, async (_context, manager) => {
-                const user = manager.create(User, { ...userProps })
+                const user = manager.create(User, {
+                    email: userProps.email ?? undefined,
+                    unconfirmedEmail: userProps.unconfirmedEmail ?? undefined,
+                    passwordHash: userProps.passwordHash ?? undefined,
+                    firstName: userProps.firstName,
+                    lastName: userProps.lastName,
+                    initials: userProps.initials,
+                    job: userProps.job ?? undefined,
+                    gender: userProps.gender,
+                    scopes: userProps.scopes,
+                    otpSecret: userProps.otpSecret ?? undefined,
+                    registrationIdentity: userProps.registrationIdentity ?? undefined
+                })
                 return manager.save(user)
             })
         } catch (e) {
@@ -80,11 +154,23 @@ export class UserService implements IdentityReadPort {
     }
 
     public async createRegistration(
-        userProps: Partial<User>,
+        userProps: UserCreateCommand,
         context: TransactionContext
     ): Promise<User> {
         const manager = transactionManager(context)
-        return manager.save(manager.create(User, userProps))
+        return manager.save(manager.create(User, {
+            email: userProps.email ?? undefined,
+            unconfirmedEmail: userProps.unconfirmedEmail ?? undefined,
+            passwordHash: userProps.passwordHash ?? undefined,
+            firstName: userProps.firstName,
+            lastName: userProps.lastName,
+            initials: userProps.initials,
+            job: userProps.job ?? undefined,
+            gender: userProps.gender,
+            scopes: userProps.scopes,
+            otpSecret: userProps.otpSecret ?? undefined,
+            registrationIdentity: userProps.registrationIdentity ?? undefined
+        }))
     }
 
     public async activateAccount(
@@ -120,7 +206,15 @@ export class UserService implements IdentityReadPort {
         context: TransactionContext
     ): Promise<{ id: UUID }> {
         const manager = transactionManager(context)
-        const user = manager.create(User, { ...input, sso: true, isVerified: true })
+        const user = manager.create(User, {
+            id: input.id,
+            firstName: input.firstName,
+            lastName: input.lastName,
+            initials: input.initials,
+            scopes: input.scopes,
+            sso: true,
+            isVerified: true
+        })
         const persisted = await manager.save(user)
         return { id: persisted.id }
     }
@@ -194,9 +288,9 @@ export class UserService implements IdentityReadPort {
         return this.userRepository.findOne({ where })
     }
 
-    public async updateUser(id: UUID, userProps: Partial<User>): Promise<User | nullish> {
+    public async updateUser(id: UUID, userProps: UserUpdateCommand, context?: TransactionContext): Promise<User | nullish> {
         return runInTransaction(this.dataSource, async (_context, manager) => {
-            const updateResult = await manager.update<User>(User, { id }, { ...userProps })
+            const updateResult = await manager.update<User>(User, { id }, toUserPatch(userProps))
             if (updateResult.affected === 0) {
                 return null
             }
@@ -206,7 +300,7 @@ export class UserService implements IdentityReadPort {
                 throw new Error(`User ${id} disappeared during transactional update read-back`)
             }
             return updatedUser
-        })
+        }, context)
     }
 
     public async getUserEncryptedEnabledMfaStrategies(id: UUID): Promise<string[]> {
@@ -375,7 +469,7 @@ export class UserService implements IdentityReadPort {
             .filter((s) => this.mfaStrategyVals.includes(s))
         const updated = currentStrategies.filter(s => s !== strategy)
             .map((s) => this.securityService.encrypt_AES256(s))
-        const userProps: Partial<User> = {
+        const userProps: UserUpdateCommand = {
             mfaStrategies: JSON.stringify(updated)
         }
         if (strategy === MfaStrategy.APP_TOTP) {
@@ -410,7 +504,7 @@ export class UserService implements IdentityReadPort {
         return result.id
     }
 
-    public async changePassword(userId: UUID, newPassword: string): Promise<void> | never {
+    public async changePassword(userId: UUID, newPassword: string, context?: TransactionContext): Promise<void> | never {
         await runInTransaction(this.userRepository.manager, async (_context, manager) => {
             let user: User
             try {
@@ -462,103 +556,11 @@ export class UserService implements IdentityReadPort {
                 })
                 .where('id = :userId', { userId })
                 .execute()
-        })
+        }, context)
     }
 
     public async getVerifiedUserProfileById(id: UUID, getRecentHistory = true): Promise<ProfileDTO | null> {
-
-        try {
-            return runInTransaction(this.dataSource, async (context, manager) => {
-
-                const profileRow = await manager.findOne(User, {
-                    where: { id, isVerified: true },
-                    select: {
-                        id: true,
-                        firstName: true,
-                        lastName: true,
-                        gender: true,
-                        job: true,
-                        email: true,
-                        completePhoneNumber: true,
-                        avatarId: true,
-                        sso: true,
-                        initials: true
-                    }
-                })
-
-                if (!profileRow) {
-                    return null
-                }
-
-                const { firstName, lastName, gender, job, completePhoneNumber, avatarId, initials } = profileRow
-
-                let _email: string | null = null
-                let authIdentityRow: AuthIdentity | null
-
-                if (profileRow.sso) {
-                    authIdentityRow = await manager.findOne(AuthIdentity, {
-                        where: {
-                            userId: id
-                        },
-                        select: {
-                            email: true
-                        }
-                    })
-                    if (!authIdentityRow) {
-                        return null
-                    }
-                    _email = authIdentityRow.email
-                } else {
-                    _email = profileRow.email
-                }
-
-                const personalMoleculeCount = await manager.count(MoleculeCollectionItemEntity, {
-                    where: {
-                        type: 'custom',
-                        userId: id
-                    }
-                })
-
-                const chemblMoleculeCount = await manager.count(MoleculeCollectionItemEntity, {
-                    where: {
-                        type: 'chembl',
-                        userId: id
-                    }
-                })
-
-                const collectionCount = await manager.count(MoleculeCollection, {
-                    where: {
-                        userId: id
-                    }
-                })
-
-                let recentHistory: TinyHistoryDTO[] = []
-
-                if (getRecentHistory) {
-                    recentHistory = await this.historyService.getRecentHistoryTinyDistinctPerDay(id, 7, context)
-                }
-
-                const result: ProfileDTO = {
-                    firstName,
-                    lastName,
-                    gender,
-                    job,
-                    obscuredEmail: this.securityService.maskEmail(_email ?? ''),
-                    obscuredPhone: completePhoneNumber ? this.securityService.maskPhone(completePhoneNumber) : null,
-                    avatarId,
-                    recentHistory,
-                    personalMoleculeCount,
-                    chemblMoleculeCount,
-                    collectionCount,
-                    initials
-                }
-
-                return result
-            })
-        } catch (e) {
-            this.logger.warn('Failed to fetch profile', e as object)
-            throw e
-        }
+        return this.profileReadModelService.getVerifiedUserProfileById(id, getRecentHistory)
     }
 
     public async getVerifiedUserEssentialProfileRegistryById(id: UUID): Promise<ProfileRegistryClientDTO> {

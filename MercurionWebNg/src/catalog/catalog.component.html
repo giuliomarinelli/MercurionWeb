@@ -1,0 +1,125 @@
+<div class="catalog-shell" [class.dark]="darkTheme()">
+  <header class="catalog-header">
+    <div>
+      <p class="catalog-eyebrow">Development-only design system</p>
+      <h1>Mercurion UI Catalog</h1>
+      <p class="catalog-intro">
+        Canonical primitives, typed API notes, accessibility expectations and deterministic states.
+      </p>
+    </div>
+    <div class="catalog-actions">
+      <button class="catalog-theme-toggle" type="button" (click)="toggleTheme()">
+        {{ darkTheme() ? 'Use light theme' : 'Use dark theme' }}
+      </button>
+      <span class="catalog-status" role="status">No network or application data</span>
+    </div>
+  </header>
+
+  <main class="catalog-grid" aria-label="Canonical UI primitive catalog">
+    <section class="catalog-section catalog-section--wide" aria-labelledby="buttons-heading">
+      <div class="catalog-section__heading">
+        <div>
+          <p class="catalog-kicker">Actions</p>
+          <h2 id="buttons-heading">Button and icon button</h2>
+        </div>
+        <p>Keyboard reachable, visible focus, typed variants, sizes and loading/disabled contracts.</p>
+      </div>
+      <div class="catalog-row catalog-row--wrap">
+        @for (variant of ['primary', 'secondary', 'destructive', 'neutral', 'ghost', 'outline']; track variant) {
+          <m-button [variant]="$any(variant)" [attr.data-variant]="variant">{{ variant }}</m-button>
+        }
+        <m-button [disabled]="true">disabled</m-button>
+        <m-button [loading]="true">loading</m-button>
+        <m-icon-button icon="close" ariaLabel="Close catalog preview" />
+        <m-icon-button icon="close" variant="destructive" ariaLabel="Delete preview" />
+      </div>
+      <m-action-footer>
+        <span action-footer-secondary class="catalog-note">Secondary actions stay separate from the primary group.</span>
+        <div action-footer-primary class="catalog-row">
+          <m-button variant="ghost">Cancel</m-button>
+          <m-button variant="primary">Continue</m-button>
+        </div>
+      </m-action-footer>
+    </section>
+
+    <section class="catalog-section" aria-labelledby="fields-heading">
+      <div class="catalog-section__heading">
+        <div><p class="catalog-kicker">Forms</p><h2 id="fields-heading">Text and search fields</h2></div>
+        <p>Labels, hints, required/error states and pending search are part of the public contract.</p>
+      </div>
+      <div class="catalog-stack">
+        <m-text-field label="Name" hint="Required display name" [required]="true" />
+        <m-text-field label="Invalid name" error="Use at least two characters" [required]="true" />
+        <m-textarea label="Description" hint="Optional supporting text" [maxLength]="120" [showCount]="true" />
+        <m-search-field label="Search molecules" placeholder="Search deterministic fixture data" [pending]="true" />
+      </div>
+    </section>
+
+    <section class="catalog-section" aria-labelledby="selection-heading">
+      <div class="catalog-section__heading">
+        <div><p class="catalog-kicker">Selection</p><h2 id="selection-heading">Selection controls and select core</h2></div>
+        <p>Checkbox, switch, single and multi-select states preserve native keyboard semantics.</p>
+      </div>
+      <div class="catalog-stack">
+        <m-selection-control label="Remember this device" description="Uses a native checkbox" />
+        <m-selection-control label="Notifications" description="Uses the switch contract" mode="switch" [checked]="true" />
+        <m-selection-control label="Unavailable option" mode="checkbox" [disabled]="true" />
+        <m-select-core
+          label="Collection"
+          hint="Choose one or more collections"
+          [items]="options"
+          [displayFn]="displayOption"
+          [valueFn]="valueOption"
+          [selected]="selectedOption()"
+          [selectedValues]="selectedOptions()"
+          [multiple]="true"
+          [invalid]="true"
+          error="Choose an active collection" />
+      </div>
+    </section>
+
+    <section class="catalog-section" aria-labelledby="navigation-heading">
+      <div class="catalog-section__heading">
+        <div><p class="catalog-kicker">Navigation</p><h2 id="navigation-heading">Tabs, disclosure and pagination</h2></div>
+        <p>Roving tab focus, disabled options, disclosure regions and page state are documented together.</p>
+      </div>
+      <m-tabs [tabs]="['Overview', 'History', 'Disabled']" [activeIndex]="activeTab()" ariaLabel="Catalog tabs" />
+      <div class="catalog-panel" role="tabpanel">
+        {{ activeTab() === 0 ? 'Overview content' : activeTab() === 1 ? 'History content' : 'Disabled content' }}
+      </div>
+      <m-disclosure label="Keyboard and accessibility expectations" [expanded]="true">
+        <p>Every interactive control must be reachable with Tab, expose its state and retain a visible focus indicator.</p>
+      </m-disclosure>
+      <m-pagination [state]="paginationState" />
+    </section>
+
+    <section class="catalog-section" aria-labelledby="feedback-heading">
+      <div class="catalog-section__heading">
+        <div><p class="catalog-kicker">Feedback and state</p><h2 id="feedback-heading">Dialog, action card, progress, skeleton and toast</h2></div>
+        <p>Open, pending, empty and error states are fixture-driven; timers and generated identifiers are avoided.</p>
+      </div>
+      <div class="catalog-row catalog-row--wrap">
+        <m-button (pressed)="dialogOpen.set(true)">Open dialog</m-button>
+        <m-button variant="secondary" (pressed)="showToast('success')">Success toast</m-button>
+        <m-button variant="destructive" (pressed)="showToast('error')">Error toast</m-button>
+        <m-progress-indicator ariaLabel="Loading catalog data" />
+        <m-skeleton shape="circle" width="2.5rem" height="2.5rem" label="Loading avatar" />
+        <m-skeleton shape="text" width="12rem" height="1rem" />
+      </div>
+      <m-action-card labelledBy="catalog-card-title" closeLabel="Close action card">
+        <h3 id="catalog-card-title" action-card-title>Action card shell</h3>
+        <p action-card-body class="catalog-card-copy">Composition boundary: the shell owns layout and dismissal affordance; business logic remains outside.</p>
+      </m-action-card>
+      @if (dialogOpen()) {
+        <m-dialog-shell [mounted]="true" [open]="true" label="Confirm catalog action" (dismissed)="dialogOpen.set(false)">
+          <div class="catalog-dialog">
+            <h3>Dialog shell open state</h3>
+            <p>Escape and backdrop dismiss this deterministic fixture.</p>
+            <m-button (pressed)="dialogOpen.set(false)">Close dialog</m-button>
+          </div>
+        </m-dialog-shell>
+      }
+      <m-toast />
+    </section>
+  </main>
+</div>

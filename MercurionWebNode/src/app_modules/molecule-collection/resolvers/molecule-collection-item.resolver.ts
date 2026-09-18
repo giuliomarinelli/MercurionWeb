@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Args, ID, Info, Int } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, ID, Info } from '@nestjs/graphql';
 import { AuthenticatedUserId } from 'src/metadata/metadata';
 import { UUID } from 'crypto';
 import { GraphQLResolveInfo } from 'graphql';
@@ -13,6 +13,7 @@ import {
 } from '../models/dto/molecule-collection-item.union';
 import { MoleculeCollectionItemJoinService } from '../services/molecule-collection-item-join.service';
 import { assertMercurionPublicId } from 'src/identifiers/mercurion-public-id';
+import { PaginationArgs } from 'src/models/pagination/pagination.args';
 
 @Resolver()
 export class MoleculeCollectionItemResolver {
@@ -45,14 +46,13 @@ export class MoleculeCollectionItemResolver {
     @Query(() => PaginatedMoleculeCollectionItem)
     async paginatedMoleculeCollectionItemsByUser(
         @AuthenticatedUserId() userId: UUID,
-        @Args('page', { type: () => Int }) page: number,
-        @Args('limit', { type: () => Int }) limit: number,
+        @Args() pagination: PaginationArgs,
         @Args('q', { type: () => String }) q: string,
         @Args('excludeJoinedToCollection', { type: () => Boolean, nullable: true }) excludeJoinedToCollection: boolean | null,
         @Args('collectionId', { type: () => ID, nullable: true }) collectionId: UUID | null,
         @Info() info: GraphQLResolveInfo
     ): Promise<PaginatedMoleculeCollectionItem> {
-        const options: IPaginationOptions = { page, limit }
+        const options: IPaginationOptions = pagination
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         const normalizedQ = typeof q === 'string' ? q.trim() : q
         return this.itemService.paginateAllByUser(userId, options, normalizedQ, excludeJoinedToCollection ?? false, collectionId, fieldsMap)
@@ -62,14 +62,13 @@ export class MoleculeCollectionItemResolver {
     async paginatedMoleculeCollectionItemsByCollection(
         @AuthenticatedUserId() userId: UUID,
         @Args('collectionId', { type: () => String }) collectionId: UUID,
-        @Args('page', { type: () => Int }) page: number,
-        @Args('limit', { type: () => Int }) limit: number,
+        @Args() pagination: PaginationArgs,
         @Args('q', { type: () => String }) q: string,
         @Args('excluded', { type: () => Boolean, nullable: true }) excluded: boolean | null,
         @Info() info: GraphQLResolveInfo
     ): Promise<PaginatedMoleculeCollectionItem> {
         assertMercurionPublicId(collectionId, 'collectionId')
-        const options: IPaginationOptions = { page, limit }
+        const options: IPaginationOptions = pagination
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         const normalizedQ = typeof q === 'string' ? q.trim() : q
         return this.itemService.paginateByCollection(userId, collectionId, options, normalizedQ, excluded ?? false, fieldsMap)

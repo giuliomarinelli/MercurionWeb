@@ -755,7 +755,7 @@ export class MfaApplicationService {
             return false
         }
 
-        await runInTransaction(this.dataSource, async (_context, manager) => {
+        await runInTransaction(this.dataSource, async (transactionContext, manager) => {
 
             const row = await manager.createQueryBuilder(User, 'u')
                 .select(['u.mfaStrategies', 'u.backupCodesGiven'])
@@ -804,9 +804,14 @@ export class MfaApplicationService {
             if (mfaStrategiesWithoutJustDisabledStrategy.length === 0) {
                 await manager.delete(MfaBackupCode, { userId })
             }
-        })
 
-        await this.securityAuditService.mfaDisabled(userId, GeneralUtils.getEnumKeyByValue(MfaStrategy, strategy) ?? 'unknown')
+            await this.securityAuditService.mfaDisabled(
+                userId,
+                GeneralUtils.getEnumKeyByValue(MfaStrategy, strategy) ?? 'unknown',
+                undefined,
+                transactionContext
+            )
+        })
 
         await this.clearMfaFailures(userId, strategy, context)
         return true

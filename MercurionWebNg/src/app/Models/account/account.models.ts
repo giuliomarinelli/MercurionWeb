@@ -8,6 +8,7 @@ export interface UserData {
 
 export type {
   BackupCodeStatusDTO,
+  BuildIdentityDTO,
   ChangePasswordDTO,
   ChangePhoneDTO,
   MfaStrategy,

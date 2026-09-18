@@ -14,6 +14,7 @@ import { errorMessage, errorStack } from 'src/utils/errors/error-message'
 
 import { User } from 'src/app_modules/user/models/entities/user.entity';
 import { createHmac, UUID } from 'crypto';
+import { uuidv7 } from '@kripod/uuidv7'
 import { SessionService } from '../services/session.service';
 import { SmsSenderService } from 'src/app_modules/notification/services/sms-sender/sms-sender.service';
 import { ChangePhoneDTO } from '../models/dto/change-phone.cls.dto';
@@ -37,6 +38,7 @@ import { AtomicAttemptPolicyService } from 'src/app_modules/redis/services/atomi
 import { afterTransactionCommit, runInTransaction, transactionManager, UnitOfWork } from 'src/persistence/transaction-context'
 import { InitialWorkspaceService } from 'src/app_modules/molecule-collection/services/initial-workspace.service'
 import { ActivationReceipt } from '../models/entities/activation-receipt.entity'
+import { NotificationOutboxService } from 'src/app_modules/notification/services/outbox/notification-outbox.service'
 
 
 
@@ -69,6 +71,7 @@ export class AccountFlowKernel {
         private readonly scopeService: ScopeService,
         private readonly unitOfWork: UnitOfWork,
         private readonly initialWorkspace: InitialWorkspaceService,
+        private readonly notificationOutbox: NotificationOutboxService,
         meiliLogger: LoggerPort
     ) {
         this.CHANGE_PASSWORD_TOKEN_EXPIRATION_MS = this.configService.get<number>('Jwt.changePasswordToken.expiresInMs') ?? 300_000
@@ -253,9 +256,9 @@ export class AccountFlowKernel {
         const passwordHash = await this.passwordEncoder.encode(password)
         const otpSecret = this.securityService.generateOtpSecret()
         const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()
-        let userId: UUID
         try {
-            ({ id: userId } = await this.unitOfWork.run(async context => {
+            await this.unitOfWork.run(async context => {
+                const manager = transactionManager(context)
                 const user = await this.userService.createRegistration({
                     passwordHash,
                     otpSecret,
@@ -268,17 +271,24 @@ export class AccountFlowKernel {
                     job: (job ?? '').trim() ? job : null,
                     gender
                 }, context)
-                return user
-            }))
+                const token = await this.jwtTools.generateToken(user.id, TokenType.ActivationToken)
+                const url = `${this.configService.get<string>("App.activationOrigin")!}/account/activate#t=${encodeURIComponent(token)}`
+                await this.notificationOutbox.appendEmail(manager, {
+                    aggregateId: user.id,
+                    templateKey: 'account-confirmation',
+                    to: normalizedEmail,
+                    context: { firstName, url },
+                    dedupeKey: `account:${user.id}:confirmation`,
+                    correlationId: user.id
+                })
+                return { id: user.id, token }
+            })
         } catch (error) {
             if (error instanceof QueryFailedError) {
                 throw applicationError(ApplicationErrorCode.USER_REGISTRATION_EMAIL_CONFLICT)
             }
             throw error
         }
-        const activationToken: string = await this.jwtTools.generateToken(userId, TokenType.ActivationToken)
-        const url = `${this.configService.get<string>("App.activationOrigin")!}/account/activate#t=${encodeURIComponent(activationToken)}`
-        await this.mailService.send('account-confirmation', normalizedEmail, { firstName, url })
         return {
             ...this._r.ok('Registration performed successfully', HttpStatus.CREATED),
             obscuredEmail: this.securityService.maskEmail(email)
@@ -407,41 +417,37 @@ export class AccountFlowKernel {
         const maskedNewEmail = this.securityService.maskEmail(user.unconfirmedEmail ?? '')
         const oldEmail = user.email
         const newEmail = user.unconfirmedEmail
-        const updatedUser = await this.userService.updateUser(userId, {
-            email: newEmail,
-            unconfirmedEmail: null,
-            updatedAt: Date.now()
-        })
-        if (!updatedUser) {
-            throw applicationError(ApplicationErrorCode.CHANGE_EMAIL_CONFIRM_USER_NOT_FOUND)
-        }
-
-        await this.redisService.del(
-            redisKeys.account.emailChangeLock(this.hmacKey(newEmail.toLowerCase()))
-        )
-
-        await this.securityAuditService.emailChanged(userId, maskedOldEmail, maskedNewEmail)
-
-        this.mailService.send(
-            'email-changed-old-contact',
-            oldEmail!,
-            {
-                firstName: user.firstName,
-                newEmail
+        await this.unitOfWork.run(async (context, manager) => {
+            const updatedUser = await this.userService.updateUser(userId, {
+                email: newEmail,
+                unconfirmedEmail: null,
+                updatedAt: Date.now()
+            }, context)
+            if (!updatedUser) {
+                throw applicationError(ApplicationErrorCode.CHANGE_EMAIL_CONFIRM_USER_NOT_FOUND)
             }
-        ).catch((e) => {
-            this.logger.warn(`Errore durante l'invio mail email changed, oldEmail=${this.hmacKey(oldEmail ?? '')}, userId=${userId}`, e as string | object)
-        })
 
-        this.mailService.send(
-            'email-changed-new-contact',
-            newEmail,
-            {
-                firstName: user.firstName,
-                newEmail
-            }
-        ).catch((e) => {
-            this.logger.warn(`Errore durante l'invio mail email changed, newEmail=${this.hmacKey(newEmail)}, userId=${userId}`, e as string | object)
+            await this.redisService.del(
+                redisKeys.account.emailChangeLock(this.hmacKey(newEmail.toLowerCase()))
+            )
+
+            await this.securityAuditService.emailChanged(userId, maskedOldEmail, maskedNewEmail, undefined, context)
+            await this.notificationOutbox.appendEmail(manager, {
+                aggregateId: userId,
+                templateKey: 'email-changed-old-contact',
+                to: oldEmail!,
+                context: { firstName: user.firstName, newEmail },
+                dedupeKey: `account:${userId}:email-changed-old:${jti}`,
+                correlationId: jti
+            })
+            await this.notificationOutbox.appendEmail(manager, {
+                aggregateId: userId,
+                templateKey: 'email-changed-new-contact',
+                to: newEmail,
+                context: { firstName: user.firstName, newEmail },
+                dedupeKey: `account:${userId}:email-changed-new:${jti}`,
+                correlationId: jti
+            })
         })
 
         return this._r.ok('Email successfully changed and verified')
@@ -716,16 +722,20 @@ export class AccountFlowKernel {
             throw applicationError(ApplicationErrorCode.PASSWORD_CHANGE_CREDENTIALS_INVALID)
         }
         await this.clearPasswordFailures(userId, PasswordContext.CHANGE)
-        await this.userService.changePassword(userId, newPassword)
-        await this.securityAuditService.passwordChanged(userId, { viaResetFlow: false })
         const email = (await this.userService.getUserProvidedEmailById(userId))!.email
         const firstName = (await this.userService.getUserFirstNameById(userId))!
-        this.mailService.send(
-            'password-changed',
-            email,
-            { firstName }
-        ).catch((e) => {
-            this.logger.warn(`Errore durante l'invio email password changed, userId=${userId}`, e as string | object)
+        const passwordChangeId = uuidv7() as UUID
+        await this.unitOfWork.run(async (context, manager) => {
+            await this.userService.changePassword(userId, newPassword, context)
+            await this.securityAuditService.passwordChanged(userId, { viaResetFlow: false }, context)
+            await this.notificationOutbox.appendEmail(manager, {
+                aggregateId: userId,
+                templateKey: 'password-changed',
+                to: email,
+                context: { firstName },
+                dedupeKey: `account:${userId}:password-changed:${passwordChangeId}`,
+                correlationId: passwordChangeId
+            })
         })
     }
 
@@ -797,17 +807,21 @@ export class AccountFlowKernel {
         for (const s of sessions) {
             await this.sessionService.destroySessionByOwner(s.sessionId, s.userId)
         }
-        await this.userService.changePassword(userId, newPassword)
-        await this.clearPasswordFailures(userId, PasswordContext.CHANGE)
-        await this.securityAuditService.passwordChanged(userId, { viaResetFlow: true })
         const email = (await this.userService.getUserProvidedEmailById(userId))!.email
         const firstName = (await this.userService.getUserFirstNameById(userId))!
-        this.mailService.send(
-            'password-changed',
-            email,
-            { firstName }
-        ).catch((e) => {
-            this.logger.warn(`Errore durante l'invio email password changed, userId=${userId}`, e as string | object)
+        const passwordResetId = uuidv7() as UUID
+        await this.unitOfWork.run(async (context, manager) => {
+            await this.userService.changePassword(userId, newPassword, context)
+            await this.clearPasswordFailures(userId, PasswordContext.CHANGE)
+            await this.securityAuditService.passwordChanged(userId, { viaResetFlow: true }, context)
+            await this.notificationOutbox.appendEmail(manager, {
+                aggregateId: userId,
+                templateKey: 'password-changed',
+                to: email,
+                context: { firstName },
+                dedupeKey: `account:${userId}:password-reset:${passwordResetId}`,
+                correlationId: passwordResetId
+            })
         })
     }
 
@@ -909,14 +923,15 @@ export class AccountFlowKernel {
             await manager.save(user)
 
             await manager.delete(MfaBackupCode, { userId: matchedUserId })
+            await this.securityAuditService.accountRecovery(
+                matchedUserId,
+                'ACCOUNT_RECOVERY_TOKEN_GENERATED',
+                context
+            )
             afterTransactionCommit(context, async () => {
                 await this.redisService.del(this.getRecoveryFailKey(code))
                 await this.redisService.del(this.getRecoveryLockKey(code))
                 await this.sessionService.destroyAllSessionsAndRevokeAllTokensByUserId(matchedUserId)
-                await this.securityAuditService.accountRecovery(
-                    matchedUserId,
-                    'ACCOUNT_RECOVERY_TOKEN_GENERATED'
-                )
             })
 
             return matchedUserId

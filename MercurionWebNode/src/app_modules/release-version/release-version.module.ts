@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ReleaseVersion } from './models/entities/release-version.entity';
 import { ReleaseService } from './services/release.service';
+import { BuildIdentityController } from './controllers/build-identity.controller';
 
 @Module({
     imports: [
@@ -11,6 +12,7 @@ import { ReleaseService } from './services/release.service';
             ]
         )
     ],
+    controllers: [BuildIdentityController],
     exports: [],
     providers: [ReleaseService]
 })

@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { NotificationOutboxEvent } from './models/entities/notification-outbox-event.entity';
 import { NotificationOutboxService } from './services/outbox/notification-outbox.service';
 import { NotificationOutboxDispatcherService } from './services/outbox/notification-outbox-dispatcher.service';
+import { OutboxRepository } from '../../persistence/outbox/outbox-repository'
 
 @Global()
 @Module({
@@ -15,12 +16,14 @@ import { NotificationOutboxDispatcherService } from './services/outbox/notificat
         SmsSenderService,
         MailSenderService,
         NotificationOutboxService,
-        NotificationOutboxDispatcherService
+        NotificationOutboxDispatcherService,
+        OutboxRepository
     ],
     exports: [
         SmsSenderService,
         MailSenderService,
-        NotificationOutboxService
+        NotificationOutboxService,
+        OutboxRepository
     ]
 })
 export class NotificationModule { }

@@ -2,6 +2,8 @@
 
 FROM node:22.16.0-alpine AS dependencies
 WORKDIR /workspace
+ARG BUILD_REVISION
+ENV BUILD_REVISION=$BUILD_REVISION
 
 RUN apk add --no-cache \
   bash \
@@ -20,6 +22,7 @@ COPY packages/socket-contracts/package.json packages/socket-contracts/package.js
 RUN npm ci --ignore-scripts
 
 FROM dependencies AS source
+COPY scripts/build-identity.mjs scripts/build-identity.mjs
 COPY packages/rest-contracts packages/rest-contracts
 COPY packages/socket-contracts packages/socket-contracts
 COPY MercurionWebNg/patches MercurionWebNg/patches
@@ -79,9 +82,11 @@ RUN addgroup -S -g 10001 mercurion && \
   adduser -S -D -H -u 10001 -G mercurion mercurion && \
   mkdir -p /tmp/mercurion && \
   chown 10001:10001 /tmp/mercurion
-ARG APP_VERSION
-ENV APP_VERSION=$APP_VERSION
-LABEL org.opencontainers.image.version=$APP_VERSION
+ARG BUILD_VERSION
+ARG BUILD_REVISION
+LABEL org.opencontainers.image.version=$BUILD_VERSION \
+      org.opencontainers.image.revision=$BUILD_REVISION \
+      org.opencontainers.image.source="https://github.com/giuliomarinelli/MercurionWeb"
 ENV NODE_ENV=production
 ENV TMPDIR=/tmp
 EXPOSE 8098

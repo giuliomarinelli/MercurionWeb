@@ -1,9 +1,9 @@
 # 0181 - Centralize OAuth provider-token lifecycle
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Put provider access/refresh tokens behind one owner-scoped credential boundary that encrypts persisted secrets, minimizes exposure, handles refresh/revocation/deletion explicitly and prevents tokens from appearing in DTOs, logs or generic Redis/database access.
@@ -90,24 +90,33 @@ Database/storage-level encryption alone does not make raw token columns safe fro
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-032` preserved and frozen at
+`94ce196d5bfb52cfc1ff169b6cf56038a1696fca`.
 ### Preflight
-_Not started._
+- Exact base CI run `35292525166` succeeded for base SHA
+  `9db273352958663a9bdf6499c1037c6931feef67`; focused Nest lint passed.
+- Runtime readiness and Chrome DevTools capability passed through the
+  canonical edge; all task-started processes were stopped.
 ### Preflight remediation
 _None._
 ### Summary
-Skipped because hard prerequisite 0180 is SKIPPED_DEPENDENCY through terminal root 0179 (DATA-030), which is BLOCKED by the unresolved Fastify/formidable runtime compatibility decision. Resolved hard dependencies: 0180, 0144. This task was never attempted and receives no feature branch.
+Blocked before implementation because the repository lacks an approved
+durable provider-credential encryption key ownership, rotation, re-encryption,
+retirement and recovery policy. No application changes were made.
 ### Task-specific validation performed
-_Not started._
+- Pre-change focused lint passed; no implementation validation was applicable.
 ### Full pre-merge CI-parity validation
-_Not started._
+- Not applicable; the task was blocked before implementation.
 ### Browser validation performed
-_Not started / not applicable._
+- Runtime/browser capability only; no OAuth connect/use/disconnect flow was run.
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+Diagnostic commit `94ce196d5bfb52cfc1ff169b6cf56038a1696fca` is preserved on
+`feature/DATA-032`; blocked status is recorded on `develop`.
 ### Merge / CI
-Recorded in the aggregate dependency-skip metadata commit on `develop`; exact-SHA CI required.
+No merge; exact diagnostic metadata CI run `35293660184` succeeded.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+Human security decision required for the durable provider-credential encryption
+boundary, key source/ownership, rotation/versioning, re-encryption,
+retirement/recovery semantics and provider-specific revocation requirements.

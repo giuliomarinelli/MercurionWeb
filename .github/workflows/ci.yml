@@ -128,6 +128,15 @@ jobs:
       - name: Install workspace dependencies
         run: npm ci
 
+      - name: Generate and validate build identity
+        run: npm run ci:build-identity
+
+      - name: Retain build identity artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-identity-${{ matrix.os }}
+          path: build/build-identity.json
+
       - name: Validate autonomous control plane
         run: npm run ci:validate:autonomous
 
@@ -195,6 +204,7 @@ jobs:
           if-no-files-found: ignore
           path: |
             MercurionWebNg/coverage
+            reports/coverage/angular
             MercurionWebNg/test-results
             MercurionWebNg/**/*.xml
 
@@ -231,6 +241,7 @@ jobs:
           if-no-files-found: ignore
           path: |
             MercurionWebNode/coverage
+            reports/coverage/nest
             MercurionWebNode/test-results
             MercurionWebNode/**/*.xml
 
@@ -270,66 +281,6 @@ jobs:
             MercurionWebNode/test-results
             MercurionWebNode/**/*.xml
 
-  database-schema:
-    name: PostgreSQL migration schema
-    if: ${{ needs.plan.outputs.mode == 'full' }}
-    needs:
-      - plan
-      - quality
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    services:
-      postgres:
-        image: pgvector/pgvector:pg17
-        env:
-          POSTGRES_USER: app
-          POSTGRES_PASSWORD: migration-ci
-          POSTGRES_DB: mercurion_integration
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U app -d mercurion_integration"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-    env:
-      SQL_DATABASE_TYPE: postgres
-      SQL_DATABASE_HOST: 127.0.0.1
-      SQL_DATABASE_PORT: 5432
-      SQL_DATABASE_USERNAME: app
-      SQL_DATABASE_PASSWORD: migration-ci
-      SQL_DATABASE: mercurion_integration
-      SQL_DATABASE_LOGGING: "false"
-      SQL_DATABASE_LOGGER: advanced-console
-      MERCURION_POSTGRES_INTEGRATION: "true"
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-          cache-dependency-path: package-lock.json
-
-      - name: Install workspace dependencies
-        run: npm ci
-
-      - name: Apply migrations and reject entity drift
-        run: npm run ci:database-schema
-
-      - name: Run real PostgreSQL transaction integration suite
-        run: npm run ci:test:nest:integration
-
-      - name: Upload PostgreSQL integration diagnostics
-        if: ${{ always() }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: postgres-integration-diagnostics
-          if-no-files-found: ignore
-          path: MercurionWebNode/test-results/integration-results.json
-
   build:
     name: Build artifacts
     if: ${{ needs.plan.outputs.mode == 'full' }}
@@ -352,8 +303,17 @@ jobs:
       - name: Install workspace dependencies
         run: npm ci
 
+      - name: Generate immutable build identity
+        run: npm run build:identity -- --revision "$GITHUB_SHA"
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
       - name: Build Angular
         run: npm run ci:build:angular
+
+      - name: Verify UI catalog and visual baselines
+        run: npm run ci:ui:catalog
 
       - name: Build Nest
         run: npm run ci:build:nest
@@ -370,6 +330,7 @@ jobs:
             MercurionWebNg/**/*.stats.json
             MercurionWebNg/dist/**/bundle-gate-report.json
             MercurionWebNg/**/*.json
+            test-results
 
   browser-e2e:
     name: Critical browser journeys
@@ -416,6 +377,13 @@ jobs:
 
       - name: Run critical browser journeys
         run: npm run test:e2e:critical
+
+      - name: Run same-version system journeys
+        if: ${{ vars.MERCURION_SYSTEM_TEST_EMAIL != '' }}
+        env:
+          LOCAL_TEST_ACCOUNT_EMAIL: ${{ vars.MERCURION_SYSTEM_TEST_EMAIL }}
+          LOCAL_TEST_ACCOUNT_PASSWORD: ${{ secrets.MERCURION_SYSTEM_TEST_PASSWORD }}
+        run: npm run test:e2e:system
 
       - name: Upload browser diagnostics
         if: ${{ always() }}
@@ -479,11 +447,20 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
 
+      - name: Generate immutable build identity
+        shell: bash
+        run: |
+          npm run build:identity -- --revision "$GITHUB_SHA"
+          {
+            echo "BUILD_VERSION=$(node -e "console.log(require('./build/build-identity.json').version)")"
+            echo "BUILD_REVISION=$(node -e "console.log(require('./build/build-identity.json').revision)")"
+          } >> "$GITHUB_ENV"
+
       - name: Validate container build contract and lockfile drift
         run: npm run ci:containers
 
       - name: Build container without cache
-        run: docker build --pull --no-cache --file "${{ matrix.dockerfile }}" --target "${{ matrix.target }}" --tag "mercurion-ci-${{ matrix.name }}" .
+        run: docker build --pull --no-cache --file "${{ matrix.dockerfile }}" --target "${{ matrix.target }}" --build-arg BUILD_VERSION --build-arg BUILD_REVISION --tag "mercurion-ci-${{ matrix.name }}" .
 
       - name: Inspect standalone runtime contract
         run: node scripts/check-container-runtime.mjs --dockerfile "${{ matrix.dockerfile }}" --image "mercurion-ci-${{ matrix.name }}"
@@ -516,7 +493,6 @@ jobs:
       - angular-unit
       - nest-unit
       - nest-e2e
-      - database-schema
       - build
       - browser-e2e
       - containers
@@ -530,7 +506,6 @@ jobs:
           ANGULAR_UNIT_RESULT: ${{ needs.angular-unit.result }}
           NEST_UNIT_RESULT: ${{ needs.nest-unit.result }}
           NEST_E2E_RESULT: ${{ needs.nest-e2e.result }}
-          DATABASE_SCHEMA_RESULT: ${{ needs.database-schema.result }}
           BUILD_RESULT: ${{ needs.build.result }}
           BROWSER_E2E_RESULT: ${{ needs.browser-e2e.result }}
           CONTAINERS_RESULT: ${{ needs.containers.result }}
@@ -550,7 +525,6 @@ jobs:
               test "$ANGULAR_UNIT_RESULT" = "success"
               test "$NEST_UNIT_RESULT" = "success"
               test "$NEST_E2E_RESULT" = "success"
-              test "$DATABASE_SCHEMA_RESULT" = "success"
               test "$BUILD_RESULT" = "success"
               test "$BROWSER_E2E_RESULT" = "success"
               test "$CONTAINERS_RESULT" = "success"

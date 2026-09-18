@@ -4,19 +4,94 @@ import { uuidv7 } from '@kripod/uuidv7'
 import { UUID } from 'crypto'
 import { NotificationOutboxEvent } from '../../models/entities/notification-outbox-event.entity'
 import { OutboxEventStatus } from '../../models/enums/outbox-event-status.enum'
+import { OutboxEventType } from '../../models/enums/outbox-event-type.enum'
+import type { EmailTemplateKey } from '../../email-template-registry'
 
 export const OUTBOX_MAX_ATTEMPTS = 5
 
 @Injectable()
 export class NotificationOutboxService {
+  async appendEmail(
+    manager: EntityManager,
+    input: {
+      aggregateId: UUID
+      templateKey: EmailTemplateKey
+      to: string
+      context: Record<string, unknown>
+      dedupeKey: string
+      correlationId?: UUID
+      causationId?: UUID
+    }
+  ): Promise<NotificationOutboxEvent> {
+    return this.append(manager, {
+      aggregateId: input.aggregateId,
+      eventType: OutboxEventType.EmailSend,
+      payload: {
+        templateKey: input.templateKey,
+        to: input.to,
+        context: input.context
+      },
+      dedupeKey: input.dedupeKey,
+      correlationId: input.correlationId,
+      causationId: input.causationId
+    })
+  }
+
+  async appendMeilisearchUpsert(
+    manager: EntityManager,
+    input: {
+      aggregateId: UUID
+      indexName: string
+      document: Record<string, unknown>
+      dedupeKey: string
+      correlationId?: UUID
+      causationId?: UUID
+    }
+  ): Promise<NotificationOutboxEvent> {
+    return this.append(manager, {
+      aggregateId: input.aggregateId,
+      eventType: OutboxEventType.MeilisearchUpsert,
+      payload: { indexName: input.indexName, document: input.document },
+      dedupeKey: input.dedupeKey,
+      correlationId: input.correlationId,
+      causationId: input.causationId
+    })
+  }
+
+  async appendMeilisearchDelete(
+    manager: EntityManager,
+    input: {
+      aggregateId: UUID
+      indexName: string
+      documentId: string
+      dedupeKey: string
+      correlationId?: UUID
+      causationId?: UUID
+    }
+  ): Promise<NotificationOutboxEvent> {
+    return this.append(manager, {
+      aggregateId: input.aggregateId,
+      eventType: OutboxEventType.MeilisearchDelete,
+      payload: {
+        indexName: input.indexName,
+        documentId: input.documentId
+      },
+      dedupeKey: input.dedupeKey,
+      correlationId: input.correlationId,
+      causationId: input.causationId
+    })
+  }
+
   async append(
     manager: EntityManager,
     input: {
       aggregateId: UUID
-      eventType: string
+      eventType: OutboxEventType | string
       payload: Record<string, unknown>
       dedupeKey: string
       now?: number
+      correlationId?: UUID
+      causationId?: UUID
     }
   ): Promise<NotificationOutboxEvent> {
     const now = input.now ?? Date.now()
@@ -34,8 +109,20 @@ export class NotificationOutboxService {
       claimedBy: null,
       processedAt: null,
       lastError: null,
-      dedupeKey: input.dedupeKey
+      dedupeKey: input.dedupeKey,
+      correlationId: input.correlationId ?? null,
+      causationId: input.causationId ?? null,
+      occurredAt: String(now)
     })
-    return manager.save(event)
+    try {
+      return await manager.save(event)
+    } catch (error) {
+      if (!String(error).toLowerCase().includes('dedupe')) throw error
+      const existing = await manager.findOneBy(NotificationOutboxEvent, {
+        dedupeKey: input.dedupeKey
+      })
+      if (!existing) throw error
+      return existing
+    }
   }
 }

@@ -90,10 +90,9 @@ _Not started._
 ### Preflight remediation
 _None._
 ### Summary
-Not attempted in this session because hard prerequisite tasks 0109 and 0110
-are now `SKIPPED_DEPENDENCY`, with transitive terminal root 0102 (NG-016)
-`BLOCKED`. The existing advisory references were not used as additional
-blocking causes.
+Not attempted in this session because hard prerequisite task 0110 (NG-024)
+is `BLOCKED`. The planner identified 0110 as the direct terminal prerequisite;
+the existing advisory references were not used as additional blocking causes.
 ### Task-specific validation performed
 Not applicable; no feature branch or implementation worker was created.
 ### Full pre-merge CI-parity validation
@@ -101,7 +100,7 @@ Not applicable; dependency-skip metadata only.
 ### Browser validation performed
 Not applicable; the task was not attempted.
 ### Commits
-Pending metadata commit on `develop`.
+Recorded in the aggregate dependency-skip metadata commit on `develop`.
 ### Merge / CI
 No feature branch or merge. This change is part of the aggregate metadata-only
 skip commit on `develop`.

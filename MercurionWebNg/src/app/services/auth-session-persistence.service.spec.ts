@@ -101,6 +101,36 @@ describe('AuthSessionPersistenceService browser cleanup', () => {
     sessionStorage.clear()
   })
 
+  it('round-trips browser-backed credentials, scopes and refresh coordination state', () => {
+    persistence.commitAuthenticatedSession({
+      accessToken: 'http-token',
+      wsAccessToken: 'ws-token',
+      initials: 'AB',
+      scopes: ['read', 'write']
+    })
+    persistence.setScopes(['socket'], 'ws')
+    persistence.setWsRefreshLock({ owner: 'tab', expiresAt: 123 })
+
+    expect(persistence.getAccessToken()).toBe('http-token')
+    expect(persistence.getWsAccessToken()).toBe('ws-token')
+    expect(persistence.getWsAccessTokenTimestamp()).toBeGreaterThan(0)
+    expect(persistence.getInitials()).toBe('AB')
+    expect(persistence.getScopes()).toEqual(['read', 'write'])
+    expect(persistence.getScopes('ws')).toEqual(['socket'])
+    expect(persistence.getWsRefreshLock()).toEqual({ owner: 'tab', expiresAt: 123 })
+
+    persistence.commitRotatedAccessToken('rotated-token', ['rotated'])
+    expect(persistence.getAccessToken()).toBe('rotated-token')
+    expect(persistence.getScopes()).toEqual(['rotated'])
+
+    persistence.removeWsRefreshLock()
+    persistence.setWsAccessToken(null)
+    persistence.setAccessToken(null)
+    expect(persistence.getWsRefreshLock()).toBeNull()
+    expect(persistence.getWsAccessToken()).toBeNull()
+    expect(persistence.getAccessToken()).toBeNull()
+  })
+
   it('removes owned auth/session and pre-auth keys while preserving unrelated storage', () => {
     localStorage.setItem('accessToken', 'http-token')
     localStorage.setItem('ws_accessToken', 'ws-token')

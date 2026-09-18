@@ -21,9 +21,13 @@ describe('AtomicAttemptPolicyService', () => {
     )).resolves.toEqual({ allowed: true, count: 2, locked: false })
 
     expect(evalMock).toHaveBeenCalledTimes(1)
-    expect(evalMock.mock.calls[0][1]).toBe(2)
-    expect(evalMock.mock.calls[0][2]).toBe('counter')
-    expect(evalMock.mock.calls[0][3]).toBe('lock')
+    expect(evalMock.mock.calls[0][1]).toEqual(['counter', 'lock'])
+    expect(evalMock.mock.calls[0][2]).toEqual([
+      '600',
+      '5',
+      'atLeast',
+      '600'
+    ])
   })
 
   it('reports a threshold transition as denied and locked', async () => {

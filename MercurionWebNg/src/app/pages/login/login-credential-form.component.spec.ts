@@ -33,4 +33,20 @@ describe('LoginCredentialFormComponent', () => {
       turnstileToken: ''
     })
   })
+
+  it('returns to email entry and clears password when email changes', () => {
+    component.form.setValue({
+      email: 'first@example.test',
+      password: 'password',
+      remember: true
+    })
+    component.step.set(2)
+    component.showCredentialError('Errore')
+
+    component.form.controls.email.setValue('second@example.test')
+
+    expect(component.step()).toBe(1)
+    expect(component.form.controls.password.value).toBe('')
+    expect(component.credentialError()).toBeNull()
+  })
 })

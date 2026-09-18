@@ -6,6 +6,7 @@ import { MercurionAIController } from './controllers/mercurion-ai.controller';
 import { RDKitService } from './services/rd-kit.service';
 import { RdKitController } from './controllers/rd-kit.controller';
 import { createNatsTransportOptions } from '../../nats-transport';
+import { ScientificRpcPolicy } from './services/scientific-rpc.policy';
 
 
 @Global()
@@ -21,7 +22,7 @@ import { createNatsTransportOptions } from '../../nats-transport';
             },
         ]),
     ],
-    providers: [MercurionAIService, RDKitService],
+    providers: [ScientificRpcPolicy, MercurionAIService, RDKitService],
     controllers: [MercurionAIController, RdKitController],
     exports: [RDKitService]
 })

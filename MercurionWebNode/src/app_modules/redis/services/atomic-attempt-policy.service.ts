@@ -116,16 +116,16 @@ export class AtomicAttemptPolicyService {
         lockKey: RedisKey
     ): Promise<AtomicAttemptResult> {
         const descriptor = this.getPolicy(id)
-        const [allowed, count, locked] = await this.redis.eval(
+        const [allowed, count, locked] = await this.redis.eval<[number, number, number]>(
             SCRIPT,
-            2,
-            counterKey,
-            lockKey,
-            String(descriptor.windowSeconds),
-            String(descriptor.limit),
-            descriptor.lockWhen,
-            String(descriptor.lockSeconds)
-        ) as [number, number, number]
+            [counterKey, lockKey],
+            [
+                String(descriptor.windowSeconds),
+                String(descriptor.limit),
+                descriptor.lockWhen,
+                String(descriptor.lockSeconds)
+            ]
+        )
         return { allowed: allowed === 1, count, locked: locked === 1 }
     }
 }

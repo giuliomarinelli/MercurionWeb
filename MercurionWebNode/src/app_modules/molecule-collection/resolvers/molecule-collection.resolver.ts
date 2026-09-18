@@ -13,6 +13,8 @@ import { MoleculeCollectionItemJoinService } from '../services/molecule-collecti
 import { BindManyCollectionsToMoleculeDTO } from '../models/dto/bind-many-collections-to-molecule.dto';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 import { assertMercurionPublicId } from 'src/identifiers/mercurion-public-id';
+import { PaginationArgs } from 'src/models/pagination/pagination.args';
+import { toFlatPagination } from 'src/models/pagination/pagination.utils';
 
 
 @Resolver(() => MoleculeCollection)
@@ -131,8 +133,7 @@ export class MoleculeCollectionResolver {
     @Query(() => PaginatedMoleculeCollection)
     async myMoleculeCollectionsPaginated(
         @AuthenticatedUserId() userId: UUID,
-        @Args('page', { type: () => Int, defaultValue: 1 }) page: number,
-        @Args('limit', { type: () => Int, defaultValue: 20 }) limit: number,
+        @Args() pagination: PaginationArgs,
         @Args('excludeJoinedToMolecule', { type: () => Boolean, nullable: true }) excludeJoinedToMolecule: boolean | null,
         @Args('moleculeId', { type: () => ID, nullable: true }) moleculeId: string | null,
         @Info() info: GraphQLResolveInfo,
@@ -142,16 +143,9 @@ export class MoleculeCollectionResolver {
         
 
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
-        const paginated = await this.collectionService.paginateAllByUser(userId, { page, limit }, normalizedQ, excludeJoinedToMolecule ?? false, moleculeId, fieldsMap);
+        const paginated = await this.collectionService.paginateAllByUser(userId, pagination, normalizedQ, excludeJoinedToMolecule ?? false, moleculeId, fieldsMap);
 
-        return {
-            items: paginated.items,
-            itemCount: paginated.meta.itemCount,
-            totalItems: Number(paginated.meta.totalItems),
-            itemsPerPage: paginated.meta.itemsPerPage,
-            totalPages: Number(paginated.meta.totalPages),
-            currentPage: paginated.meta.currentPage,
-        }
+        return toFlatPagination(paginated)
     }
 
     @Mutation(() => BindManyCollectionsToMoleculeDTO)

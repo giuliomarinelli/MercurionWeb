@@ -224,6 +224,23 @@ describe('public GraphQL resolver contracts', () => {
     )
   })
 
+  it('publishes the shared pagination defaults on every paginated resolver', () => {
+    const query = schema.getQueryType() as GraphQLObjectType
+    for (const operation of [
+      'myTickets',
+      'myTicketMessages',
+      'ticketsAsSupport',
+      'ticketMessagesAsSupport',
+      'myMoleculeCollectionsPaginated',
+      'paginatedMoleculeCollectionItemsByUser',
+      'paginatedMoleculeCollectionItemsByCollection',
+    ]) {
+      const args = query.getFields()[operation].args
+      expect(args.find((arg) => arg.name === 'page')?.defaultValue).toBe(1)
+      expect(args.find((arg) => arg.name === 'limit')?.defaultValue).toBe(20)
+    }
+  })
+
   it('rejects an anonymous protected operation through the authentication guard', async () => {
     const itemPrototype = ChEMBLMoleculeItemResolver.prototype as unknown as Record<string, unknown>
     const helpPrototype = HelpResolver.prototype as unknown as Record<string, unknown>

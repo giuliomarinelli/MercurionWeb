@@ -42,7 +42,6 @@ describe('canonical environment validation', () => {
       LOCAL_DUMMY_AUTH: false,
       DISABLE_TURNSTILE: false,
       LOCAL_TEST_ACCOUNT_EMAIL: undefined,
-      APP_VERSION: undefined
     }))
   })
 

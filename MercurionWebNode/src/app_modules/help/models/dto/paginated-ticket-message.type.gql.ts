@@ -1,25 +1,10 @@
-import { Field, Int, ObjectType } from "@nestjs/graphql";
-import { FlatPagination } from "src/models/flat-pagination.interface";
+import { Field, ObjectType } from "@nestjs/graphql";
+import { PaginatedResponse } from "src/models/pagination/pagination.model";
 import { TicketMessageResponse } from "./help-response.dto";
 
 
 @ObjectType()
-export class PaginatedTicketMessage implements FlatPagination<TicketMessageResponse> {
+export class PaginatedTicketMessage extends PaginatedResponse {
     @Field(() => [TicketMessageResponse])
     items!: TicketMessageResponse[]
-
-    @Field(() => Int)
-    itemCount!: number
-
-    @Field(() => Int)
-    totalItems!: number
-
-    @Field(() => Int)
-    itemsPerPage!: number
-
-    @Field(() => Int)
-    totalPages!: number
-
-    @Field(() => Int)
-    currentPage!: number
 }

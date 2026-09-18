@@ -11,6 +11,7 @@ import { LoggerContext } from 'src/logging/logger.port';
 import { redisDurations, redisKeys } from 'src/app_modules/redis/contracts/redis-contracts';
 import { errorMessage } from 'src/utils/errors/error-message'
 import { ExternalHttpPort, ExternalHttpResponse } from 'src/infrastructure/external-http/external-http.port'
+import { OAuthStateService } from './oauth-state.service'
 
 @Injectable()
 export class OAuth2ClientService implements IOAuth2ClientService {
@@ -22,6 +23,7 @@ export class OAuth2ClientService implements IOAuth2ClientService {
         private readonly persistenceService: OAuth2PersistenceService,
         meiliLogger: LoggerPort,
         private readonly http: ExternalHttpPort,
+        private readonly oauthStateService: OAuthStateService,
     ) {
         this.logger = meiliLogger.forContext(OAuth2ClientService.name)
     }
@@ -34,8 +36,13 @@ export class OAuth2ClientService implements IOAuth2ClientService {
      * Genera la URL di autorizzazione per il provider richiesto
      * (Dropbox: SEMPRE token_access_type=offline)
      */
-    getAuthorizationUrl(provider: string, userId?: string): string {
+    async getAuthorizationUrl(provider: string, userId?: string): Promise<string> {
         const config = this.getProviderConfig(provider)
+        const state = await this.oauthStateService.create({
+            provider,
+            purpose: 'oauth2-connect',
+            ownerUserId: userId,
+        })
 
         // Parametri base
         const params: Record<string, string> = {
@@ -43,7 +50,7 @@ export class OAuth2ClientService implements IOAuth2ClientService {
             redirect_uri: config.redirectUri,
             response_type: 'code',
             ...(config.scopes ? { scope: config.scopes.join(' ') } : {}),
-            state: userId || '',
+            state,
         };
 
         // PATCH: Dropbox richiede token_access_type=offline per refresh_token

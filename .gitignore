@@ -4,8 +4,16 @@ node_modules.failed-*/
 packages/rest-contracts/dist/
 reports/duplication/
 reports/topology/
+reports/coverage/
+coverage/
+MercurionWebNg/coverage/
+MercurionWebNode/coverage/
+MercurionWebNode/src/coverage/
 playwright-report/
 test-results/
+build/
+MercurionWebNg/src/generated/build-identity.ts
+MercurionWebNode/src/generated/build-identity.ts
 
 .playwright-mcp/*
 !.playwright-mcp/.gitkeep

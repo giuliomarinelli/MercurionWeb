@@ -25,4 +25,5 @@ export abstract class ObjectStore {
   abstract put(input: PutObjectInput): Promise<PutObjectResult>
   abstract get(reference: ObjectReference): Promise<Buffer>
   abstract delete(reference: ObjectReference): Promise<void>
+  list?(): Promise<ReadonlyArray<ObjectReference>>
 }

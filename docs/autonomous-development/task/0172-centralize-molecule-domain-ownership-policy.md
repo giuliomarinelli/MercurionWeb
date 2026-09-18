@@ -1,6 +1,6 @@
 # 0172 - Centralize molecule-domain ownership policy
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -88,21 +88,38 @@ Avoid a generic `owns(entityName, id)` API. Typed per-resource operations preser
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-023` (base `f254d2b17fb732184a9a5f5793c0d5e49d20025d`)
 ### Preflight
-_Not started._
+Clean feature branch at the supplied base SHA; exact base CI run `35089906006`
+completed successfully with the required gate. Local `commit.gpgSign` is
+`false`. No workspace-consuming process was active before task work.
 ### Preflight remediation
-_None._
+None.
 ### Summary
-Re-enabled after DATA-002 became `DONE`; this task was never attempted and has no feature branch.
+Added `MoleculeOwnershipPolicy`, a typed molecule-domain policy that classifies
+owned, missing and foreign single/batch resources with set-based manager
+queries. Join planning and custom/ChEMBL collection mutations now use the
+transaction manager policy assertions rather than local ownership queries.
+Mixed batches can be asserted atomically and policy tests cover owner,
+foreign, missing and no-N+1 behavior.
 ### Task-specific validation performed
-_Not started._
+- `npm --prefix MercurionWebNode test -- --runInBand app_modules/molecule-collection/services/molecule-ownership.policy.spec.ts app_modules/molecule-collection/services/molecule-collection-item-join.service.spec.ts app_modules/molecule-collection/services/custom-molecule-item.service.spec.ts app_modules/molecule-collection/services/chembl-molecule-item.service.spec.ts` — 4 suites, 6 tests passed.
+- `npm --prefix MercurionWebNode run typecheck` — passed.
+- Focused ESLint over changed molecule services — passed.
+- `git diff --check` — passed.
 ### Full pre-merge CI-parity validation
-_Not started._
+Reserved for GitHub Actions on the exact pushed feature SHA; forbidden to run
+`npm ci` or `npm run ci:check` locally.
 ### Browser validation performed
-_Not started._
+Canonical runtime started in required order (Tox21, Nest, Angular) and all
+three sessions remained alive. Nginx readiness completed two consecutive
+rounds with `/health` and `/` returning 200 after an initial retryable 502.
+Using the dedicated Chrome DevTools profile, performed a fresh ordinary login
+through `http://localhost:8888/login`, then created and observed the collection
+`DATA023 Ownership Smoke` through the collections UI. Runtime sessions were
+stopped afterward and no task-owned runtime remained.
 ### Commits
-_None._
+- `5d44f96b395042feb76d6f24dabe6b7fd522ddf` — `feat(DATA-023): centralize molecule ownership policy`
 ### Merge / CI
 _Not started._
 ### Rollback

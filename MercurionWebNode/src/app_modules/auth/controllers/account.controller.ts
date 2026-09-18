@@ -14,7 +14,7 @@ import { ResponseService } from 'src/services/response.service';
 import { MfaChallengeService } from '../services/mfa-challenge.service';
 import { MfaEnrollmentService } from '../services/mfa-enrollment.service';
 import { MfaBackupCodeService } from '../services/mfa-backup-code.service';
-import { createHash, UUID } from 'crypto';
+import { UUID } from 'crypto';
 import { TotpDTO } from '../models/dto/totp.cls.dto';
 import { ChangePhoneDTO } from '../models/dto/change-phone.cls.dto';
 import { EmailDTO } from '../models/dto/email.cls.dto';
@@ -26,7 +26,7 @@ import { SessionDTO } from '../models/dto/session.dto';
 import { BackupCodeStatusDTO } from 'src/app_modules/user/models/dto/backup-code-status.dto';
 import { ConfigService } from '@nestjs/config';
 import { ProvidedEmailDTO } from '../models/dto/provided-email.dto';
-import { VersionDTO } from '../models/dto/version.dto';
+import { BuildIdentityDTO } from '../models/dto/version.dto';
 import type { AuthProvider as WireAuthProvider, BackupCodesDTO, MfaStrategy as WireMfaStrategy } from '@mercurion/rest-contracts'
 import {
     ApplicationErrorCode,
@@ -34,6 +34,7 @@ import {
     isApplicationError
 } from 'src/exception-handling/application-error'
 import { ListActiveSessionsHandler } from '../application/session-authentication.handlers';
+import { buildIdentity } from 'src/generated/build-identity';
 
 
 
@@ -334,15 +335,8 @@ export class AccountController {
     }
 
     @Get('/current-version')
-    public getCurrentVersion(): VersionDTO {
-        const version = this.configService.get<string>('App.version')!
-        const versionHash = createHash('sha256')
-            .update(version)
-            .digest('hex')
-        return {
-            version,
-            versionHash
-        }
+    public getCurrentVersion(): BuildIdentityDTO {
+        return buildIdentity
     }
 
     @Get('/masked-email')

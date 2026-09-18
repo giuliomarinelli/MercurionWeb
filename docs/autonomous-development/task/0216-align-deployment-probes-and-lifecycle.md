@@ -98,24 +98,28 @@ Health checks are control-plane contracts, not verbose diagnostics. Keep respons
 ## Execution notes
 
 ### Feature branch
-_Not started._
+No feature branch; this task was never attempted.
 ### Preflight
-_Not started._
+Not applicable; dependency skip was materialized from the authoritative planner.
 ### Preflight remediation
 _None._
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0135, 0138, 0147, 0207, 0215. This task was never attempted and receives no feature branch.
+Skipped because hard prerequisite `0215` (QA-029) is terminal `REVERTED`
+after its post-merge CI failure. The direct terminal root is `0215`; this task
+was never attempted.
 ### Task-specific validation performed
-_Not started._
+Not applicable; no worker or feature branch was created.
 ### Full pre-merge CI-parity validation
-_Not started._
+Not applicable; aggregate metadata CI is required.
 ### Browser validation performed
-_Not applicable directly._
+Not applicable; dependency skip only.
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+Recorded in the aggregate dependency-skip metadata commit on `develop`.
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI
+required.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+Terminal dependency root: `0215` (QA-029), `REVERTED` after post-merge CI
+failure. Recovery requires new direct authorization in a later session.
