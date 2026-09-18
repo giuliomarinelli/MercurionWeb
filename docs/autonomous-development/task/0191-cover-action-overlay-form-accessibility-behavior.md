@@ -130,12 +130,16 @@ button and accessibility specs with loading/disabled and modal/error coverage.
 - CI repair renamed the helper to `component-test-helpers.spec.ts`; focused
   validation passed again (28 tests, lint, typecheck and diff check).
 ### Full pre-merge CI-parity validation
-_Not started._
+- Exact feature-SHA run `35296355339` for `7fe3d70bab6e072c233d68b0462c82f3ff34920f`
+  failed at `angular-reachability` because the test helper was not named as a
+  spec-only file.
+- Repair commit `3a4b7aa597f5c09cc4352f35a2472bf7f5828513` passed exact feature
+  CI run `35296784272`; all workflow jobs and `Required gate` succeeded.
 ### Browser validation performed
 Not required by task; component tests use ChromeHeadless and axe-core.
 ### Commits
 - `7fe3d70bab6e072c233d68b0462c82f3ff34920f` — initial implementation.
-- Pending repair commit.
+- `3a4b7aa597f5c09cc4352f35a2472bf7f5828513` — CI repair.
 ### Merge / CI
 _Not started._
 ### Rollback
