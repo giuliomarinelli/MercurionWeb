@@ -1,6 +1,6 @@
 # 0215 - Centralize deployment configuration
 
-- [x] DONE
+- [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -68,12 +68,12 @@ The repository repeats service variables, image names, ports and environment wir
 
 ## Acceptance criteria
 
-- [x] One canonical schema owns logical services, shared ports, required variables, secret-reference names and application image identity.
-- [x] Development, local staging, beta and production differences are explicit validated overlays.
-- [x] Compose and Kubernetes artifacts render/validate deterministically with no independent conflicting values.
-- [x] No real secret value is committed, logged or retained in CI render artifacts.
-- [x] Image/version and application-variable mismatches fail before deployment.
-- [x] All active environment artifacts pass schema, drift and cross-environment consistency gates.
+- [ ] One canonical schema owns logical services, shared ports, required variables, secret-reference names and application image identity.
+- [ ] Development, local staging, beta and production differences are explicit validated overlays.
+- [ ] Compose and Kubernetes artifacts render/validate deterministically with no independent conflicting values.
+- [ ] No real secret value is committed, logged or retained in CI render artifacts.
+- [ ] Image/version and application-variable mismatches fail before deployment.
+- [ ] All active environment artifacts pass schema, drift and cross-environment consistency gates.
 
 ## Validation
 
@@ -101,16 +101,11 @@ The canonical model need not erase platform-specific constructs. Own shared sema
 
 ### Feature branch
 
-`feature/QA-029`
+_Not started._
 
 ### Preflight
 
-Clean feature branch at base SHA `e9babb6f7e4297c4676d878c254de75f485a8690`,
-matching the supplied exact base and `origin/develop`. Exact base CI run
-`35302018274` completed successfully. The authoritative planner classified
-0215 as `READY` with all five hard dependencies `DONE`; the old dependency-skip
-text below was stale and was removed. Repository-local `commit.gpgSign` is
-`false`, and no task-owned runtime was active before validation.
+_Not started._
 
 ### Preflight remediation
 
@@ -118,51 +113,24 @@ _None._
 
 ### Summary
 
-Added the canonical deployment schema and explicit development, local-staging,
-beta and production overlays. The schema owns logical service identities,
-ports, required variables, secret-reference identifiers, health contracts,
-dependencies and application build-identity image coordinates. Added
-deterministic render/validation and negative fixtures for unknown variables,
-port drift, missing secrets, stale generated manifests and image mismatch.
-Updated Kubernetes application image references to the immutable build identity
-template and registered the deployment gate in canonical CI static checks.
+Skipped because hard prerequisite `0214` (QA-028) is terminal
+`BLOCKED`; no implementation was attempted.
 
 ### Task-specific validation performed
 
-- Pre-change runtime capability passed in the required Tox21 -> Nest -> Angular
-  order. Two consecutive `http://localhost:8888` root/health readiness rounds
-  passed; the browser rendered the dashboard and build identity
-  `1.0.0 @ e9babb6f7e4297c4676d878c254de75f485a8690`. Task-owned runtimes were
-  stopped before implementation.
-- `node scripts/check-deployment-config.mjs` passed with deterministic
-  schema/overlay rendering and active-artifact checks.
-- `node scripts/test-deployment-config-negative.mjs` passed all five negative
-  fixtures.
-- `npm run ci:deployment` passed.
-- `git diff --check` passed. No real secret values were added.
-- Compose syntax validation passed for local-staging, beta and production
-  overlays with safe build-identity fixture values.
+_Not started._
 
 ### Full pre-merge CI-parity validation
 
-Complete clean-install/aggregate validation remains owned by GitHub Actions on
-the exact pushed feature SHA; local `npm ci` and `npm run ci:check` were not
-run.
+_Not started._
 
 ### Browser validation performed
 
-Pre-change and post-change canonical runtime/browser evidence passed through
-`http://localhost:8888`: Angular shell/dashboard rendered, Nest `/health`
-returned HTTP 200 through nginx in two consecutive readiness rounds, the
-dashboard showed the expected build identity, the post-change browser console
-had no errors, and all task-owned runtimes were stopped after validation. No
-beta/production route or infrastructure was accessed.
+_Not applicable / not started._
 
 ### Commits
 
-`b235103adb998edc6b081da266acbcbf7e1898a7` — `qa: centralize deployment configuration`
-
-The execution-note update is included in the final feature-branch commit.
+Metadata-only dependency skip; no feature branch was created.
 
 ### Merge / CI
 
@@ -174,4 +142,5 @@ _Not applicable._
 
 ### Blocker / human decision required
 
-_None._
+Direct terminal prerequisite: `0214` / QA-028 (`BLOCKED`). The task remains
+terminal until that prerequisite is explicitly recovered in a new session.
