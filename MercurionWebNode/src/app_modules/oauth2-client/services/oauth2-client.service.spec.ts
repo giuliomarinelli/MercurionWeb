@@ -5,6 +5,7 @@ import { RedisService } from 'src/app_modules/redis/services/redis.service';
 import { OAuth2PersistenceService } from './o-auth2-persistence.service';
 import { LoggerPort } from 'src/logging/logger.port';
 import { ExternalHttpPort } from 'src/infrastructure/external-http/external-http.port';
+import { OAuthStateService } from './oauth-state.service';
 
 describe('OAuth2ClientService', () => {
   let service: OAuth2ClientService;
@@ -19,6 +20,7 @@ describe('OAuth2ClientService', () => {
         { provide: OAuth2PersistenceService, useValue: { saveRefreshToken: jest.fn(), getRefreshToken: jest.fn() } },
         { provide: LoggerPort, useValue: { forContext: jest.fn().mockReturnValue(mockLogger) } },
         { provide: ExternalHttpPort, useValue: { post: jest.fn(), get: jest.fn() } },
+        { provide: OAuthStateService, useValue: { create: jest.fn() } },
       ],
     }).compile();
 
