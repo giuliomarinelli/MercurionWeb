@@ -15,7 +15,8 @@ describe('AddMoleculesSelectionController', () => {
     expect(selection.isSelected('molecule-a')).toBeTrue();
     expect(selection.buildExistingMoleculePayload(['molecule-b', 'molecule-c'])).toEqual({
       itemIds: ['molecule-a', 'molecule-b'],
-      selectAll: false
+      selectAll: false,
+      snapshotAt: null
     });
   });
 
@@ -40,7 +41,8 @@ describe('AddMoleculesSelectionController', () => {
 
     expect(selection.buildExistingMoleculePayload(['molecule-a', 'molecule-b'])).toEqual({
       itemIds: ['molecule-b'],
-      selectAll: true
+      selectAll: true,
+      snapshotAt: jasmine.any(String) as unknown as string
     });
   });
 });
@@ -78,7 +80,8 @@ describe('AddMoleculesSubmitController', () => {
     expect(service.addManyMoleculesToCollection).toHaveBeenCalledWith(
       'collection-1',
       ['item-1'],
-      false
+      false,
+      null
     );
   });
 

@@ -128,12 +128,13 @@ export class MoleculeCollectionItemResolver {
         @AuthenticatedUserId() userId: UUID,
         @Args('collectionId', { type: () => ID }) collectionId: UUID,
         @Args('itemIds', { type: () => [ID] }) itemIds: UUID[],
-        @Args('selectAll', { type: () => Boolean }) selectAll: boolean
+        @Args('selectAll', { type: () => Boolean }) selectAll: boolean,
+        @Args('snapshotAt', { type: () => String, nullable: true }) snapshotAt?: string
     ): Promise<boolean> {
         assertMercurionPublicId(collectionId, 'collectionId')
         itemIds.forEach((itemId) => assertMercurionPublicId(itemId, 'itemIds'))
         try {
-            await this.joinService.addManyMoleculesToCollection(userId, collectionId, itemIds, selectAll)
+            await this.joinService.addManyMoleculesToCollection(userId, collectionId, itemIds, selectAll, snapshotAt)
             return true
         } catch {
             return false

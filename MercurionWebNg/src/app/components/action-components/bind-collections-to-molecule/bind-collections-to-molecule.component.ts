@@ -259,6 +259,7 @@ export class BindCollectionsToMoleculeComponent implements OnInit, AfterViewInit
   readonly selectedIdSet = signal<Set<string>>(new Set());
   readonly excludedIdSet = signal<Set<string>>(new Set());
   readonly bulkIntent = signal<'none' | 'all' | 'unselect'>('none');
+  readonly selectionSnapshotAt = signal<string | null>(null);
   readonly isSelectedAll = computed(() => this.bulkIntent() === 'all');
   readonly isSelectedNothing = computed(() => this.bulkIntent() !== 'all' && this.selectedIdSet().size === 0);
   readonly isPartiallySelected = computed(() => {
@@ -336,10 +337,12 @@ export class BindCollectionsToMoleculeComponent implements OnInit, AfterViewInit
     if (checked) {
       this.bulkIntent.set('all');
       this.excludedIdSet.set(new Set());
+      this.selectionSnapshotAt.set(String(Date.now()));
     } else {
       this.bulkIntent.set('unselect');
       this.selectedIdSet.set(new Set());
       this.excludedIdSet.set(new Set());
+      this.selectionSnapshotAt.set(null);
     }
     this.multiselectItems().forEach(row => row.isChecked.set(checked));
   }
@@ -363,7 +366,12 @@ export class BindCollectionsToMoleculeComponent implements OnInit, AfterViewInit
         collectionIds = Array.from(this.selectedIdSet());
       }
       this.suSub = this.moleculeCollectionService
-        .bindManyCollectionsToMolecule(this.bindContext.moleculeId()!, collectionIds, this.isSelectedAll())
+        .bindManyCollectionsToMolecule(
+          this.bindContext.moleculeId()!,
+          collectionIds,
+          this.isSelectedAll(),
+          this.selectionSnapshotAt()
+        )
         .subscribe({
           next: ({ ok, moleculeUUID }) => {
             this.step_12_loading.set(false);
