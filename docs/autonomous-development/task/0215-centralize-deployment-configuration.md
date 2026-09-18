@@ -166,7 +166,11 @@ The execution-note update is included in the final feature-branch commit.
 
 ### Merge / CI
 
-_Not started._
+Direct-human recovery merged current `develop` into the preserved branch and
+reverted the earlier rollback with an ordinary commit, preserving all history.
+The original feature implementation, focused validation and browser evidence
+remain applicable; exact recovery feature- and merge-SHA CI are required before
+the task is final.
 
 ### Rollback
 
@@ -174,4 +178,5 @@ _Not applicable._
 
 ### Blocker / human decision required
 
-_None._
+_None._ The prior post-merge axe contrast failure was independently reproduced
+as intermittent on QA-034 and passed on an unchanged-SHA rerun.
