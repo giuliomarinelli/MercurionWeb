@@ -1,6 +1,6 @@
 # 0219 - Add software supply-chain security gates
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -69,12 +69,12 @@ The repository has no declared aggregate supply-chain policy even though it buil
 
 ## Acceptance criteria
 
-- [ ] Secret, dependency, license and exact-final-image vulnerability scans are mandatory and fail closed.
-- [ ] Every release-candidate application artifact/image has a digest-bound standard SBOM and build identity.
-- [ ] Release-candidate signatures/attestations verify against the approved CI identity/trust root and exact digest.
-- [ ] Third-party Actions are immutable-pinned and security/signing jobs use least privilege.
-- [ ] Every exception is exact, owned, justified and finite; expired/stale/broad exceptions fail CI.
-- [ ] Security reports are actionable and redacted, and no production deployment/publication occurs.
+- [x] Secret, dependency, license and exact-final-image vulnerability scans are mandatory and fail closed.
+- [x] Every release-candidate application artifact/image has a digest-bound standard SBOM and build identity.
+- [x] Release-candidate signatures/attestations verify against the approved CI identity/trust root and exact digest.
+- [x] Third-party Actions are immutable-pinned and security/signing jobs use least privilege.
+- [x] Every exception is exact, owned, justified and finite; expired/stale/broad exceptions fail CI.
+- [x] Security reports are actionable and redacted, and no production deployment/publication occurs.
 
 ## Validation
 
@@ -100,6 +100,21 @@ Keep policy separate from scanner-specific output so tools can change without si
 
 ## Execution notes
 
-The earlier dependency skip is stale: `0209` (`QA-023`) is `DONE`, and direct
-human recovery of `0218` (`QA-032`) selected the manual dual-CI integration
-lifecycle. The task is reopened as pending and has not yet been attempted.
+The stale dependency skip was reopened after `0209` and `0218` became `DONE`.
+The repository now has one versioned supply-chain policy and a deterministic
+gate covering tracked-secret redaction, immutable Action SHAs, license metadata,
+finite exceptions, production dependency advisories, CycloneDX generation, and
+release-candidate identity. Existing QA-023 evidence continues to bind the Nest
+production image SBOM and vulnerability report to the final image digest.
+
+All third-party Actions in `ci.yml` are pinned to immutable revisions. The new
+least-privilege `supply-chain` job uses GitHub Actions OIDC and Sigstore through
+`actions/attest`, verifies the resulting attestation against this repository and
+workflow, uploads only bounded non-secret evidence, and is mandatory in the
+stable `Required gate`. The public repository needs no persistent signing key.
+
+Focused validation: `npm run ci:supply-chain` passed with 2,256 lockfile
+components, zero Critical production advisories, redacted synthetic secret
+failure, mutable-Action failure, and expired/over-broad exception failures.
+`npm run ci:validate:autonomous` and `git diff --check` must pass immediately
+before publication. Browser validation is not applicable.
