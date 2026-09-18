@@ -1,7 +1,7 @@
 # 0209 - Minimize production container runtime dependencies
 
-- [ ] DONE
-- [x] BLOCKED
+- [x] DONE
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
@@ -95,21 +95,75 @@ Scan what will execute. A clean source dependency audit does not prove that a co
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/QA-023`
 ### Preflight
-_Not started._
+Clean feature branch at exact base SHA
+`d6d23423cbf25ce3563e3bd7d465f33b0ef67a16`, matching `origin/develop`.
+Repository-local `commit.gpgSign` is `false`; no task-owned application
+process was active. Exact-base GitHub Actions run `35061870881` completed
+successfully. The unchanged-base `npm run ci:containers` check passed.
+The before image `mercurion-qa023-before` resolved to
+`sha256:5d52a5b703751af10defe381f21c598e49095a7dd477676b70d1b572b96e7f6a`,
+with size `1445123166` bytes, 1743 Scout SBOM artifacts, and direct dev
+tooling (`@nestjs/cli`, `jest`) present.
 ### Preflight remediation
 _None._
 ### Summary
-Re-enabled after DATA-002 became `DONE`; this task was never attempted and has no feature branch.
+The Nest production target now installs a separate deterministic
+`npm ci --omit=dev` dependency layer, rebuilds native package lifecycle
+artifacts for the final Alpine ABI, and copies only compiled Nest output,
+compiled shared contracts, declared assets and production dependencies.
+Build metadata, source maps and source-only TypeScript artifacts are pruned
+from the production target. Staging and test targets retain their existing
+full dependency contract.
+
+The production CI matrix now runs an exact-image regression script that
+asserts required runtime assets and native modules, rejects every direct Nest
+development dependency and forbidden source/cache artifact, records image
+size/package count/digest, emits a Docker Scout SBOM tied to that digest, and
+produces a SARIF vulnerability scan for the same local image.
 ### Task-specific validation performed
-_Not started._
+`npm run ci:containers` passed after the Dockerfile changes.
+`node --check scripts/check-production-container.mjs` passed.
+`npm run ci:build:nest` passed, including the compiled email-template asset
+check. The final `mercurion-qa023-after` image built successfully with
+`docker build --pull --no-cache --file MercurionWebNode/Dockerfile
+--target production`. `check-container-runtime.mjs` and
+`smoke-container-runtime.mjs` passed under user `10001:10001`.
+`check-production-container.mjs` passed against exact image digest
+`sha256:e9a22fa72c9756d2cdf8c30648a634d2cd9882f0696df055101a1a7d7aff76d9`:
+size `656057224` bytes, `772` SBOM artifacts, `461` top-level runtime
+modules, 9 required runtime files, 5 required native/runtime modules, no
+direct Nest dev dependencies, and no application/package source maps,
+declarations or TypeScript files. Docker Scout generated the digest-matched
+JSON SBOM and SARIF vulnerability report with 96 findings. The local image
+also passed the standalone non-root smoke window.
+Second CI repair validation: `node --check
+scripts/check-production-container.mjs`, `npm run ci:containers`, and
+`git diff --check` passed. The SBOM command now uses Docker Scout's default
+JSON stdout and writes it to `nest-production.sbom.json`; no local
+`npm ci` or `npm run ci:check` was run.
+Third CI repair: the production-container checker keeps Docker Scout as the
+primary scanner but now falls back explicitly to pinned containerized
+`anchore/syft:v1.18.1` and `aquasec/trivy:0.58.2` when the runner has no
+Docker Scout plugin. Both tools inspect the local image through the Docker
+socket; the fallback SBOM and SARIF report are stamped with the inspected
+image digest and fail closed if neither primary nor fallback is available.
 ### Full pre-merge CI-parity validation
-_Not started._
+Complete clean-install/aggregate validation remains owned by GitHub Actions on
+the exact pushed feature SHA; local `npm ci` and `npm run ci:check` were not
+run.
 ### Browser validation performed
 _Not started._
 ### Commits
-_None._
+`22c859bf4ae3a27edc7a7539b5c2b4589db45b48` — `qa: minimize Nest production image dependencies`
+`Pending CI repair commit` — refresh REST route ownership references and make
+Docker Scout SBOM generation compatible with the runner CLI by using its JSON
+default instead of unsupported `sbom --format` and `--output` flags.
+`f65b593714b96f7a02e83daab062903aac34ca9e` — preserve Docker Scout as primary
+and add
+explicit Syft/Trivy container fallbacks with digest-bound SBOM/SARIF evidence
+for runners without the Scout plugin.
 ### Merge / CI
 Feature CI run `35064159032` failed before merge because the generated REST
 route ownership inventory was stale for `GET /og/mercurion-og.png`, and the
@@ -120,16 +174,31 @@ stdout into the SBOM report while preserving exact-image digest verification
 and SARIF scanning; rerun exact-SHA feature CI after the repair push.
 The third repair addresses feature CI run `35065457627`, which failed only in
 `Container nest-production` because the runner had no `docker scout` plugin.
-The final repair feature CI run `35066388754` still failed in the same job:
-the pinned Syft fallback produced JSON output but exited unsuccessfully, and
-the checker failed closed with `image SBOM generation is unavailable; no
-supported fallback succeeded`. The configured feature-CI repair budget is
-exhausted, so this task is blocked before merge pending a supported CI image
-SBOM tool decision or runner capability.
+Feature CI run `35066388754` still failed in the same job because the pinned
+containerized Syft fallback produced JSON but exited unsuccessfully. The
+manual recovery preserves that evidence and replaces the unreliable fallback
+with the official Anchore SBOM action pinned at
+`e22c389904149dbc22b58101806040fa8d37a610`. The action scans the exact local
+image; the verifier requires its CycloneDX component digest to equal the
+Docker-inspected image digest. Exact final feature-SHA and protected PR
+merge-SHA CI remain required.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-The GitHub Actions container runner lacks Docker Scout and the pinned Syft
-fallback cannot complete successfully against the local image. A supported
-runner/tool decision is required before the exact-image SBOM and vulnerability
-evidence can be made green.
+None. The recovery explicitly selects and pins the supported official Anchore
+SBOM action, retains Trivy as the vulnerability scanner fallback, recognizes
+CycloneDX `components` for package-count evidence, and removes the obsolete
+TypeORM migration asset expectation after the DB-first transition.
+
+### Manual recovery 2026-09-18
+
+- Recovered preserved SHA `502c6920208b9bbd85dfe71e7eea99b2b4bd2c3a`
+  and merged current green `develop` SHA
+  `bbc5408fdda62826fc85a31ff88467fe394266bc` without rebase or history
+  rewriting.
+- Fresh base workflow-dispatch run `35336403153` passed the full Windows,
+  Ubuntu, browser, container and stable `Required gate` lifecycle.
+- `node --check scripts/check-production-container.mjs`,
+  `npm run ci:validate:autonomous`, and `git diff --check` passed.
+- Browser validation remains unnecessary because no browser-served endpoint
+  behavior changed.
