@@ -13,8 +13,8 @@ import { MoleculeCollectionItemJoinService } from '../services/molecule-collecti
 import { BindManyCollectionsToMoleculeDTO } from '../models/dto/bind-many-collections-to-molecule.dto';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 import { assertMercurionPublicId } from 'src/identifiers/mercurion-public-id';
-import { PaginationArgs } from 'src/models/pagination/pagination.args';
 import { toFlatPagination } from 'src/models/pagination/pagination.utils';
+import { MoleculeCollectionPaginationArgs } from '../models/dto/molecule-collection-pagination.args';
 
 
 @Resolver(() => MoleculeCollection)
@@ -133,12 +133,10 @@ export class MoleculeCollectionResolver {
     @Query(() => PaginatedMoleculeCollection)
     async myMoleculeCollectionsPaginated(
         @AuthenticatedUserId() userId: UUID,
-        @Args() pagination: PaginationArgs,
-        @Args('excludeJoinedToMolecule', { type: () => Boolean, nullable: true }) excludeJoinedToMolecule: boolean | null,
-        @Args('moleculeId', { type: () => ID, nullable: true }) moleculeId: string | null,
-        @Info() info: GraphQLResolveInfo,
-        @Args('q', { type: () => String }) q: string
+        @Args() pagination: MoleculeCollectionPaginationArgs,
+        @Info() info: GraphQLResolveInfo
     ): Promise<PaginatedMoleculeCollection> {
+        const { q, excludeJoinedToMolecule, moleculeId } = pagination
         const normalizedQ = typeof q === 'string' ? q.trim() : q
         
 
