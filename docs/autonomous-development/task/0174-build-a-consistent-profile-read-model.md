@@ -124,11 +124,13 @@ manager identity propagation to recent history.
 ### Full pre-merge CI-parity validation
 Initial feature SHA `765d48f4807e23941a622d788c3dbeb301071465` failed exact
 feature-SHA CI run `35288626219`: provider-ownership could not resolve
-`HistoryService` for `ProfileReadModelService`. The narrow repair imports `HistoryModule` into `UserModule`; the provider
-ownership test now overrides the task-local read-model/history providers when
-assembling its intentionally partial module graph. A replacement exact
-feature-SHA `Required gate` is pending; local `npm ci` and `npm run ci:check`
-were not run.
+`HistoryService` for `ProfileReadModelService`. Repair commit
+`9a108eefe8f7385992df1fd95f462de1c3ed4f44` imports `HistoryModule` into
+`UserModule`; the provider ownership test now overrides the task-local
+read-model/history providers when assembling its intentionally partial module
+graph. Exact feature-SHA CI run `35289521184` passed all platform,
+Nest/Angular, build, browser, E2E, and `Required gate` jobs. Local `npm ci` and
+`npm run ci:check` were not run.
 ### Browser validation performed
 Canonical runtime started in the required order with live handles:
 Tox21, Nest watch mode, Angular watch mode. Two consecutive readiness rounds
@@ -141,8 +143,9 @@ email, provider identity, and molecule/collection metrics; the page had no
 console errors. No SSO fixture was available in the local environment.
 Task-owned Tox21, Nest, and Angular processes were stopped after validation.
 ### Commits
-Initial implementation `765d48f4807e23941a622d788c3dbeb301071465`; CI repair
-commit pending on `feature/DATA-025`.
+Initial implementation `765d48f4807e23941a622d788c3dbeb301071465`; repair
+commit `9a108eefe8f7385992df1fd95f462de1c3ed4f44`. Final feature SHA pending
+task-note commit.
 ### Merge / CI
 Pending coordinator integration after exact feature-SHA CI succeeds.
 ### Rollback
