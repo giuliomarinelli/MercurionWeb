@@ -50,7 +50,7 @@
     "@mercurion/rest-contracts": "1.0.0",
     "@mercurion/socket-contracts": "1.0.0",
     "@nestjs-modules/mailer": "2.3.7",
-    "@nestjs/axios": "4.0.1",
+    "@nestjs/axios": "12.0.1",
     "@nestjs/common": "11.1.28",
     "@nestjs/config": "4.0.4",
     "@nestjs/core": "11.1.28",
