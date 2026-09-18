@@ -163,7 +163,9 @@ All task-owned Tox21, Nest, and Angular processes were stopped after
 validation.
 
 ### Commits
-To be recorded after the final task-note and validation pass.
+`de579cd2` (`QA-025 govern patch package lifecycle`).
+The commit contains the registry, lifecycle checker, regression fixtures,
+package-script wiring, and these execution notes.
 
 ### Merge / CI
 Not started. The feature branch must be pushed only after the task-specific
