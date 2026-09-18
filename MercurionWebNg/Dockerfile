@@ -1,6 +1,6 @@
 # Reusable Angular image targets: production, staging and test.
 
-FROM node:22.16.0-alpine AS dependencies
+FROM node:26.8.2-alpine AS dependencies
 WORKDIR /workspace
 ARG BUILD_REVISION
 ENV BUILD_REVISION=$BUILD_REVISION
