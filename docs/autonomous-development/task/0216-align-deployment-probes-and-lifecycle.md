@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Align application health endpoints, Compose/Kubernetes probes and termination settings so readiness means capable of serving, liveness detects only a stuck process, startup covers bounded bootstrap and shutdown drains without losing accepted requests.
@@ -96,6 +96,10 @@ Mark `BLOCKED` if a dependency's hard/optional serving classification or the inf
 Health checks are control-plane contracts, not verbose diagnostics. Keep response work cheap and bounded; expose deeper dependency detail through structured observability rather than public probe bodies.
 
 ## Execution notes
+
+> Recovery update (2026-09-18): the dependency skip below is historical and
+> stale after the direct-human recovery of `0215` (`QA-029`). This task is
+> reopened as pending.
 
 ### Feature branch
 No feature branch; this task was never attempted.

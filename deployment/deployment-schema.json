@@ -1,0 +1,160 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schemaVersion": 1,
+  "description": "Canonical shared deployment contract. Platform manifests project this model; they do not redefine shared service identity.",
+  "services": {
+    "web-ng": {
+      "kind": "application",
+      "image": "mercurion-web-ng",
+      "ports": {
+        "http": 3497
+      },
+      "requiredEnv": [
+        "NODE_ENV",
+        "APP_ENV"
+      ],
+      "secretRefs": [],
+      "health": {
+        "path": "/"
+      },
+      "dependsOn": []
+    },
+    "web-node": {
+      "kind": "application",
+      "image": "mercurion-web-node",
+      "ports": {
+        "http": 8098
+      },
+      "requiredEnv": [
+        "APP_ENV",
+        "NODE_ENV",
+        "APP_PORT",
+        "APP_HOST"
+      ],
+      "secretRefs": [
+        "mercurion-web-node-env",
+        "mercurion-jwt-b64"
+      ],
+      "health": {
+        "path": "/health"
+      },
+      "dependsOn": [
+        "redis",
+        "nats",
+        "postgres",
+        "meilisearch"
+      ]
+    },
+    "redis": {
+      "kind": "infrastructure",
+      "image": "redis@sha256:4521b581dbddea6e7d81f8fe95ede93f5648aaa66a9dacd581611bf6fe7527bd",
+      "ports": {
+        "client": 6379
+      },
+      "requiredEnv": [
+        "REDIS_PASSWORD"
+      ],
+      "secretRefs": [
+        "redis-credentials"
+      ],
+      "health": {
+        "command": "redis-cli ping"
+      },
+      "dependsOn": []
+    },
+    "nats": {
+      "kind": "infrastructure",
+      "image": "nats@sha256:77a161c7d888a1791d5a46b50cd87a2f8466ce40a33cbb51238d227ace01e35a",
+      "ports": {
+        "client": 4222
+      },
+      "requiredEnv": [],
+      "secretRefs": [],
+      "health": {
+        "command": "nats server check"
+      },
+      "dependsOn": []
+    },
+    "postgres": {
+      "kind": "infrastructure",
+      "image": "local/postgres16-pgvector",
+      "ports": {
+        "client": 5432
+      },
+      "requiredEnv": [
+        "POSTGRES_USER",
+        "POSTGRES_PASSWORD",
+        "POSTGRES_DB"
+      ],
+      "secretRefs": [
+        "mercurion-pg-credentials"
+      ],
+      "health": {
+        "command": "pg_isready"
+      },
+      "dependsOn": []
+    },
+    "meilisearch": {
+      "kind": "infrastructure",
+      "image": "getmeili/meilisearch@sha256:8cd411ba5d9ec2dfce02e241305208eebacce0fd74a72bece21cadd03dc566ce",
+      "ports": {
+        "http": 7700
+      },
+      "requiredEnv": [
+        "MEILI_MASTER_KEY"
+      ],
+      "secretRefs": [
+        "meilisearch-credentials"
+      ],
+      "health": {
+        "path": "/health"
+      },
+      "dependsOn": []
+    },
+    "nginx": {
+      "kind": "edge",
+      "image": "nginx-sl",
+      "ports": {
+        "http": 80,
+        "https": 443
+      },
+      "requiredEnv": [],
+      "secretRefs": [
+        "mercurion-origin-tls"
+      ],
+      "health": {
+        "path": "/health"
+      },
+      "dependsOn": [
+        "web-ng",
+        "web-node"
+      ]
+    },
+    "tox21": {
+      "kind": "external",
+      "image": "mercurion-tox-21",
+      "ports": {},
+      "requiredEnv": [
+        "PY_ENV",
+        "NATS_URL",
+        "VERSION"
+      ],
+      "secretRefs": [],
+      "health": {
+        "command": "nats connectivity"
+      },
+      "dependsOn": [
+        "nats"
+      ]
+    }
+  },
+  "imageIdentity": {
+    "versionVariable": "BUILD_VERSION",
+    "revisionVariable": "BUILD_REVISION",
+    "applicationTag": "${BUILD_VERSION}-${BUILD_REVISION}",
+    "applicationImages": {
+      "web-ng": "${REGISTRY_IMAGE_NG}:${BUILD_VERSION}-${BUILD_REVISION}",
+      "web-node": "${REGISTRY_IMAGE_NODE}:${BUILD_VERSION}-${BUILD_REVISION}"
+    }
+  }
+}

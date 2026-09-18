@@ -20,7 +20,7 @@ spec:
         fsGroup: 10001
       containers:
         - name: web-node
-          image: europe-west8-docker.pkg.dev/mercurion-483615/mercurion/mercurion-web-node:1.0-beta-1c61
+          image: ${REGISTRY_IMAGE_NODE}:${BUILD_VERSION}-${BUILD_REVISION}
           imagePullPolicy: IfNotPresent
 
           ports:
