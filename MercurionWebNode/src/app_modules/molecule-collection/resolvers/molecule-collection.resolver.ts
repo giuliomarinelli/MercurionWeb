@@ -151,10 +151,11 @@ export class MoleculeCollectionResolver {
         @AuthenticatedUserId() userId: UUID,
         @Args('moleculeId', { type: () => ID }) moleculeId: string,
         @Args('collectionIds', { type: () => [ID] }) collectionIds: UUID[],
-        @Args('selectAll', { type: () => Boolean }) selectAll: boolean
+        @Args('selectAll', { type: () => Boolean }) selectAll: boolean,
+        @Args('snapshotAt', { type: () => String, nullable: true }) snapshotAt?: string
     ): Promise<BindManyCollectionsToMoleculeDTO> {
         collectionIds.forEach((collectionId) => assertMercurionPublicId(collectionId, 'collectionIds'))
-        return this.joinService.bindManyCollectionsToMolecule(userId, moleculeId, collectionIds, selectAll)
+        return this.joinService.bindManyCollectionsToMolecule(userId, moleculeId, collectionIds, selectAll, snapshotAt)
     }
 
 

@@ -310,6 +310,7 @@ export type MutationAddManyMoleculesToCollectionArgs = {
   collectionId: Scalars['ID']['input'];
   itemIds: Array<Scalars['ID']['input']>;
   selectAll: Scalars['Boolean']['input'];
+  snapshotAt?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -336,6 +337,7 @@ export type MutationBindManyCollectionsToMoleculeArgs = {
   collectionIds: Array<Scalars['ID']['input']>;
   moleculeId: Scalars['ID']['input'];
   selectAll: Scalars['Boolean']['input'];
+  snapshotAt?: InputMaybe<Scalars['String']['input']>;
 };
 
 

@@ -1,5 +1,6 @@
 import { UUID } from 'crypto'
 import {
+  BulkJoinLimitExceededError,
   buildBulkJoinWriteSet,
   planBulkJoinSelection
 } from './bulk-join-planner'
@@ -36,5 +37,19 @@ describe('bulk join planner', () => {
       alreadyJoinedIds: [id('b')],
       toInsertIds: [id('a'), id('c')]
     })
+  })
+
+  it('sorts the snapshot deterministically and rejects work above the bound', () => {
+    expect(planBulkJoinSelection({
+      requestedIds: [],
+      selectAll: true,
+      maxCandidates: 3
+    }, [id('c'), id('a'), id('b')]).candidateIds).toEqual([id('a'), id('b'), id('c')])
+
+    expect(() => planBulkJoinSelection({
+      requestedIds: [],
+      selectAll: true,
+      maxCandidates: 2
+    }, [id('a'), id('b'), id('c')])).toThrow(BulkJoinLimitExceededError)
   })
 })
