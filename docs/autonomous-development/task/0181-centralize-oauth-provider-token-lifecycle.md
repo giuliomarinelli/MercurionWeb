@@ -1,7 +1,7 @@
 # 0181 - Centralize OAuth provider-token lifecycle
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
@@ -90,24 +90,63 @@ Database/storage-level encryption alone does not make raw token columns safe fro
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-032`
 ### Preflight
-_Not started._
+Base SHA `9db273352958663a9bdf6499c1037c6931feef67` matched the supplied
+feature branch HEAD. Exact base CI run `35292525166` completed successfully
+for that SHA, including both platform prerequisite jobs, all container jobs,
+Nest unit/E2E tests, Angular tests, critical browser journeys, build
+artifacts and the `Required gate`. The authoritative planner reported task
+0181 `READY` with hard dependencies 0180 and 0144 DONE and no stale skips.
+The focused baseline `npm --workspace mercurion_web_node run lint -- --no-fix`
+passed before mutation.
 ### Preflight remediation
-_None._
+None. The canonical runtime probe issued the required live sessions in order:
+Tox21 from `../MercurionTox21`, Nest with `APP_ENV=development` and
+`LOCAL_DUMMY_AUTH=false`, then Angular. After all three handles existed,
+`http://localhost:8888/health` and `http://localhost:8888/` returned two
+consecutive complete `200` readiness rounds. All task-started runtime
+sessions were stopped before task mutation; no sibling-repository files were
+changed. Chrome DevTools MCP capability was callable through the
+non-navigating `list_pages` probe. The dedicated browser profile was already
+authenticated; navigating to `http://localhost:8888/login` redirected to the
+local dashboard, so no credential entry was needed for this pre-change
+stop-condition review.
 ### Summary
-Skipped because hard prerequisite 0180 is SKIPPED_DEPENDENCY through terminal root 0179 (DATA-030), which is BLOCKED by the unresolved Fastify/formidable runtime compatibility decision. Resolved hard dependencies: 0180, 0144. This task was never attempted and receives no feature branch.
+Blocked before implementation because the task requires an approved
+encryption-key source and rotation policy for durable provider credentials,
+but the repository documents only `APP_AES_SECRET` as generic encryption
+material and exposes an existing AES-256-GCM helper in `SecurityService`; it
+does not document key ownership, rotation/versioning, re-encryption,
+retirement, or recovery semantics for durable provider credentials. The
+existing raw `OAuth2TokenEntity.refreshToken` persistence therefore cannot be
+changed safely without inventing the missing security decision. No
+application implementation, schema, DTO, logging, or test changes were made.
 ### Task-specific validation performed
-_Not started._
+Pre-change only: `npm --workspace mercurion_web_node run lint -- --no-fix`
+passed. Runtime compilation completed with zero Nest TypeScript errors and
+the Angular watch build completed successfully during the readiness probe.
+No OAuth provider fake-server, persistence, rotation, revocation, or browser
+connect/use/disconnect validation was attempted because the explicit security
+policy stop condition applies before implementation.
 ### Full pre-merge CI-parity validation
-_Not started._
+Not applicable: no task implementation exists. The exact green base CI
+evidence is recorded above; local `npm ci` and `npm run ci:check` were not run.
 ### Browser validation performed
-_Not started / not applicable._
+Pre-change capability only: Chrome DevTools MCP `list_pages` succeeded and the
+canonical dashboard rendered through `http://localhost:8888` after runtime
+readiness. No provider fixture or OAuth connect/use/disconnect flow was run
+because the task was blocked before implementation.
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+Pending blocked-status commit on `feature/DATA-032`; the branch remains at the
+base implementation with task diagnostic metadata only.
 ### Merge / CI
-Recorded in the aggregate dependency-skip metadata commit on `develop`; exact-SHA CI required.
+Coordinator must push this diagnostic commit and preserve/freeze the branch;
+the task must not be merged.
 ### Rollback
-_Not applicable._
+Not applicable.
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+Human security decision required: approve the durable provider-credential
+encryption boundary, key source and ownership, key version/rotation and
+re-encryption policy, retirement/recovery behavior, and provider-specific
+revocation requirements. No speculative token-lifecycle design was applied.
