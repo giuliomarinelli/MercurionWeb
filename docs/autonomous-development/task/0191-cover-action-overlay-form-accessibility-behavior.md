@@ -135,11 +135,14 @@ button and accessibility specs with loading/disabled and modal/error coverage.
   spec-only file.
 - Repair commit `3a4b7aa597f5c09cc4352f35a2472bf7f5828513` passed exact feature
   CI run `35296784272`; all workflow jobs and `Required gate` succeeded.
+- Final notes commit `14f7d0046b2af8f2bf15f4a3e2f480454695e25c` passed exact
+  metadata CI run `35297320377` with `Required gate` green.
 ### Browser validation performed
 Not required by task; component tests use ChromeHeadless and axe-core.
 ### Commits
 - `7fe3d70bab6e072c233d68b0462c82f3ff34920f` — initial implementation.
 - `3a4b7aa597f5c09cc4352f35a2472bf7f5828513` — CI repair.
+- `14f7d0046b2af8f2bf15f4a3e2f480454695e25c` — final execution evidence.
 ### Merge / CI
 _Not started._
 ### Rollback
