@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "owners": ["repository-owner"],
+  "vulnerabilities": { "blockingSeverities": ["critical"] },
+  "licenses": {
+    "denied": ["AGPL-3.0", "SSPL-1.0"],
+    "missingMetadataExceptions": [
+      "MercurionWebNg",
+      "node_modules/@mercurion/rest-contracts",
+      "node_modules/@mercurion/socket-contracts",
+      "node_modules/alce/node_modules/esprima",
+      "node_modules/alce/node_modules/estraverse",
+      "node_modules/busboy",
+      "node_modules/mercurion_web_ng",
+      "node_modules/mercurion_web_node",
+      "node_modules/streamsearch",
+      "node_modules/xmlhttprequest-ssl"
+    ]
+  },
+  "exceptions": [],
+  "attestation": {
+    "issuer": "https://token.actions.githubusercontent.com",
+    "repository": "giuliomarinelli/MercurionWeb",
+    "workflow": ".github/workflows/ci.yml"
+  }
+}

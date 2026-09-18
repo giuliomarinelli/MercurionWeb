@@ -46,12 +46,12 @@ jobs:
       change_count: ${{ steps.classify.outputs.change_count }}
     steps:
       - name: Check out repository history
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           fetch-depth: 0
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: ${{ env.NODE_VERSION }}
 
@@ -71,12 +71,12 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Check out repository history
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           fetch-depth: 0
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
@@ -110,10 +110,10 @@ jobs:
           - windows-latest
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
@@ -132,7 +132,7 @@ jobs:
         run: npm run ci:build-identity
 
       - name: Retain build identity artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: build-identity-${{ matrix.os }}
           path: build/build-identity.json
@@ -145,7 +145,7 @@ jobs:
 
       - name: Upload code-duplication report
         if: ${{ always() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: duplication-report-${{ matrix.os }}
           if-no-files-found: ignore
@@ -165,7 +165,7 @@ jobs:
 
       - name: Upload topology diagnostics
         if: ${{ always() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: topology-report-${{ matrix.os }}
           if-no-files-found: ignore
@@ -181,10 +181,10 @@ jobs:
     timeout-minutes: 35
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
@@ -198,7 +198,7 @@ jobs:
 
       - name: Upload Angular test diagnostics
         if: ${{ always() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: angular-test-diagnostics
           if-no-files-found: ignore
@@ -218,10 +218,10 @@ jobs:
     timeout-minutes: 35
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
@@ -235,7 +235,7 @@ jobs:
 
       - name: Upload Nest test diagnostics
         if: ${{ always() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: nest-test-diagnostics
           if-no-files-found: ignore
@@ -255,10 +255,10 @@ jobs:
     timeout-minutes: 35
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
@@ -272,7 +272,7 @@ jobs:
 
       - name: Upload Nest E2E diagnostics
         if: ${{ always() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: nest-e2e-diagnostics
           if-no-files-found: ignore
@@ -291,10 +291,10 @@ jobs:
     timeout-minutes: 35
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
@@ -320,7 +320,7 @@ jobs:
 
       - name: Upload build and bundle diagnostics
         if: ${{ always() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: build-diagnostics
           if-no-files-found: ignore
@@ -342,10 +342,10 @@ jobs:
     timeout-minutes: 35
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
@@ -387,7 +387,7 @@ jobs:
 
       - name: Upload browser diagnostics
         if: ${{ always() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: critical-browser-diagnostics
           if-no-files-found: ignore
@@ -438,10 +438,10 @@ jobs:
             target: test
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
@@ -483,7 +483,7 @@ jobs:
 
       - name: Upload container inventory and supply-chain diagnostics
         if: ${{ always() && matrix.name == 'nest-production' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: container-${{ matrix.name }}-supply-chain
           if-no-files-found: error
@@ -491,6 +491,56 @@ jobs:
 
       - name: Confirm clean build did not modify tracked files
         run: git diff --exit-code
+
+  supply-chain:
+    name: Supply-chain policy and attestation
+    if: ${{ needs.plan.outputs.mode == 'full' }}
+    needs:
+      - plan
+      - quality
+      - containers
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install workspace dependencies
+        run: npm ci
+
+      - name: Enforce supply-chain policy and build release-candidate evidence
+        run: npm run ci:supply-chain
+
+      - name: Attest release-candidate manifest with GitHub OIDC
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6
+        with:
+          subject-path: reports/supply-chain/release-candidate.json
+
+      - name: Verify repository and workflow-bound attestation
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh attestation verify reports/supply-chain/release-candidate.json --repo "$GITHUB_REPOSITORY" --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/ci.yml"
+
+      - name: Upload redacted supply-chain evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: supply-chain-${{ github.sha }}
+          if-no-files-found: error
+          retention-days: 14
+          path: reports/supply-chain
 
   required:
     name: Required gate
@@ -505,6 +555,7 @@ jobs:
       - build
       - browser-e2e
       - containers
+      - supply-chain
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -518,6 +569,7 @@ jobs:
           BUILD_RESULT: ${{ needs.build.result }}
           BROWSER_E2E_RESULT: ${{ needs.browser-e2e.result }}
           CONTAINERS_RESULT: ${{ needs.containers.result }}
+          SUPPLY_CHAIN_RESULT: ${{ needs.supply-chain.result }}
           MODE: ${{ needs.plan.outputs.mode }}
           PLAN_RESULT: ${{ needs.plan.result }}
         shell: bash
@@ -537,6 +589,7 @@ jobs:
               test "$BUILD_RESULT" = "success"
               test "$BROWSER_E2E_RESULT" = "success"
               test "$CONTAINERS_RESULT" = "success"
+              test "$SUPPLY_CHAIN_RESULT" = "success"
               ;;
             *)
               echo "Unknown CI mode: $MODE" >&2
