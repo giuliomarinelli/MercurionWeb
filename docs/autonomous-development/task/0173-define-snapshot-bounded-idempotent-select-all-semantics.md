@@ -1,7 +1,7 @@
 # 0173 - Define snapshot-bounded idempotent select-all semantics
 
-- [ ] DONE
-- [x] BLOCKED
+- [x] DONE
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
@@ -57,11 +57,11 @@ Current join commands interpret `selectAll` by issuing a fresh query for all own
 
 ## Acceptance criteria
 
-- [ ] `selectAll` has a documented, testable snapshot/filter meaning.
-- [ ] Bulk commands cannot process an unbounded number of rows synchronously.
-- [ ] Retrying the same logical command cannot add newly appeared rows or duplicate prior joins.
-- [ ] Explicit exclusions are deterministic across retry.
-- [ ] Concurrent changes are covered by integration tests.
+- [x] `selectAll` has a documented, testable snapshot/filter meaning.
+- [x] Bulk commands cannot process an unbounded number of rows synchronously.
+- [x] Retrying the same logical command cannot add newly appeared rows or duplicate prior joins.
+- [x] Explicit exclusions are deterministic across retry.
+- [x] Concurrent changes are covered by integration tests.
 
 ## Validation
 
@@ -111,3 +111,28 @@ _Not applicable._
 ### Blocker / human decision required
 The task was excluded from this session after its capability pause and requires
 a new session for any implementation attempt.
+
+### Direct-human recovery completion (2026-09-18)
+
+- Reopened manually on `feature/DATA-024` from exact-green `develop` SHA
+  `c30b897641e3e2616e2f2d64061f46b539713547`.
+- Added an explicit millisecond snapshot boundary captured when the user enters
+  select-all mode and carried through both GraphQL bulk commands. Candidate
+  reads are owner-scoped, bounded by `createdAt <= snapshotAt`, ordered
+  deterministically and capped at 500 before writes begin.
+- Added the typed `BULK_JOIN_LIMIT_EXCEEDED` domain error, deterministic
+  exclusions/write sets, generated GraphQL contracts and the documented retry
+  contract in `MercurionWebNode/docs/bulk-selection.md`.
+- Focused Nest typecheck and 7 planner/service tests passed. Angular typecheck,
+  GraphQL schema/document/codegen checks, both workspace lint gates and the
+  complete 509-test Angular suite passed.
+- Canonical Tox21, Nest and Angular runtime reached two consecutive 200/200
+  readiness rounds through `http://localhost:8888`. A fresh real-account login
+  reached the protected collection route. The same select-all snapshot command
+  and retry both returned HTTP 200/`true`; the target retained exactly 7 join
+  rows, proving the retry added no duplicates.
+- The local disposable development database lacked the nullable `system_key`
+  columns already required by current entities. They and their existing-model
+  unique indexes were added locally with idempotent PostgreSQL DDL solely to
+  restore browser-test parity; no repository or external environment data was
+  changed by that remediation.

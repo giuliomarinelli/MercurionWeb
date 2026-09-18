@@ -293,14 +293,15 @@ export class MoleculeCollectionItemService {
       )
   }
 
-  addManyMoleculesToCollection(collectionId: string, itemIds: string[], selectAll: boolean): Observable<boolean> {
+  addManyMoleculesToCollection(collectionId: string, itemIds: string[], selectAll: boolean, snapshotAt?: string | null): Observable<boolean> {
     return this.apollo
       .mutate<AddManyMoleculesToCollectionMutation, AddManyMoleculesToCollectionMutationVariables>({
         mutation: AddManyMoleculesToCollectionDocument,
         variables: {
           collectionId,
           itemIds,
-          selectAll
+          selectAll,
+          snapshotAt
         }
       }).pipe(
         map(res => extractGqlData<AddManyMoleculesToCollectionMutation, 'addManyMoleculesToCollection'>(res, 'addManyMoleculesToCollection'))

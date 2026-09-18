@@ -36,12 +36,14 @@ export class AddMoleculesSelectionController {
   readonly excludedIds = signal<Set<string>>(new Set());
   readonly mode = signal<SelectionMode>('none');
   readonly chips = signal<ChipItem[]>([]);
+  readonly snapshotAt = signal<string | null>(null);
 
   reset(): void {
     this.selectedIds.set(new Set());
     this.excludedIds.set(new Set());
     this.mode.set('none');
     this.chips.set([]);
+    this.snapshotAt.set(null);
   }
 
   toggle(id: string, checked: boolean): void {
@@ -60,12 +62,14 @@ export class AddMoleculesSelectionController {
   selectAll(): void {
     this.mode.set('all');
     this.excludedIds.set(new Set());
+    this.snapshotAt.set(String(Date.now()));
   }
 
   clearVisibleSelection(): void {
     this.mode.set('unselect');
     this.selectedIds.set(new Set());
     this.excludedIds.set(new Set());
+    this.snapshotAt.set(null);
   }
 
   isSelected(id: string): boolean {
@@ -101,14 +105,15 @@ export class AddMoleculesSelectionController {
     return this.chips().map(chip => chip.id);
   }
 
-  buildExistingMoleculePayload(visibleIds: string[]): { itemIds: string[]; selectAll: boolean } {
+  buildExistingMoleculePayload(visibleIds: string[]): { itemIds: string[]; selectAll: boolean; snapshotAt: string | null } {
     if (this.mode() === 'all') {
       return {
         itemIds: visibleIds.filter(id => this.excludedIds().has(id)),
-        selectAll: true
+        selectAll: true,
+        snapshotAt: this.snapshotAt()
       };
     }
-    return { itemIds: [...this.selectedIds()], selectAll: false };
+    return { itemIds: [...this.selectedIds()], selectAll: false, snapshotAt: null };
   }
 
   buildChemblPayload(): AddManyChEMBLItemDTO[] {
@@ -199,7 +204,7 @@ export class AddMoleculesSearchController {
 }
 
 export interface AddMoleculesSubmitPort {
-  addManyMoleculesToCollection(collectionId: string, itemIds: string[], selectAll: boolean): Observable<boolean>;
+  addManyMoleculesToCollection(collectionId: string, itemIds: string[], selectAll: boolean, snapshotAt?: string | null): Observable<boolean>;
   addManyChEMBLItemsToCollection(collectionId: string, items: AddManyChEMBLItemDTO[]): Observable<boolean>;
 }
 
@@ -212,7 +217,7 @@ export class AddMoleculesSubmitController {
     visibleIds: string[]
   ): Observable<boolean> {
     const payload = selection.buildExistingMoleculePayload(visibleIds);
-    return service.addManyMoleculesToCollection(collectionId, payload.itemIds, payload.selectAll);
+    return service.addManyMoleculesToCollection(collectionId, payload.itemIds, payload.selectAll, payload.snapshotAt);
   }
 
   submitChembl(
