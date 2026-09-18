@@ -1,28 +1,13 @@
-import { Field, Int, ObjectType } from "@nestjs/graphql";
+import { Field, ObjectType } from "@nestjs/graphql";
 import { ChEMBLMoleculeItemDTO } from "./chembl-molecule-item.dto";
 import { MoleculeCollectionItemUnion } from "./molecule-collection-item.union";
 import { CustomMoleculeItemDTO } from "./custom-molecule-item.dto";
-import { FlatPagination } from "src/models/flat-pagination.interface";
+import { PaginatedResponse } from "src/models/pagination/pagination.model";
 
 @ObjectType()
-export class PaginatedMoleculeCollectionItem implements FlatPagination<CustomMoleculeItemDTO | ChEMBLMoleculeItemDTO> {
+export class PaginatedMoleculeCollectionItem extends PaginatedResponse {
 
     @Field(() => [MoleculeCollectionItemUnion])
     items!: Array<CustomMoleculeItemDTO | ChEMBLMoleculeItemDTO>
-
-    @Field(() => Int)
-    itemCount!: number
-
-    @Field(() => Int)
-    totalItems!: number
-
-    @Field(() => Int)
-    itemsPerPage!: number
-
-    @Field(() => Int)
-    totalPages!: number
-
-    @Field(() => Int)
-    currentPage!: number
 
 }

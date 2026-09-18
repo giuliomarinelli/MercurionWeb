@@ -1,14 +1,10 @@
 # 0170 - Batch molecule-collection item counts
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
-> SKIPPED_DEPENDENCY (2026-09-15): direct terminal prerequisite `0151`
-> remains pending, while its dependency `0143` is skipped from terminal root
-> `0126` (`BE-012`), which is blocked by an unverified external Docker
-> registry failure on feature-SHA CI.
 ## Objective
 
 Eliminate the `MoleculeCollectionResolver.itemsCount` N+1 query pattern by resolving collection item counts in one batch/aggregate per request scope or by returning a precomputed count projection with constant query growth.
@@ -89,24 +85,38 @@ A single `WHERE user_id = :userId AND collection_id IN (...) GROUP BY collection
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-021` preserved and frozen at
+`46f4f9322c2f2c4df18000588288a30c8fe5ecea`.
 ### Preflight
-_Not started._
+- Base SHA `420a7b65b3b84cc247d9cbc6c3518e776d4d16a1` was clean and exact
+  Actions run `35285854434` had a green Required gate.
+- Runtime readiness passed through the canonical nginx edge. Authenticated
+  browser acceptance could not be completed because the supported credential
+  entry bridge was unavailable without exposing the local test credential.
 ### Preflight remediation
 _None._
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0143, 0151. This task was never attempted and receives no feature branch.
+Implemented a request-scoped, owner-keyed grouped count loader with duplicate
+key deduplication, zero mapping, and focused query-count tests. The task is
+`BLOCKED` because authenticated collection UI and post-mutation browser
+evidence could not be obtained.
 ### Task-specific validation performed
-_Not started._
+- Focused loader and GraphQL resolver contract tests passed.
+- Nest typecheck, lint and build passed.
 ### Full pre-merge CI-parity validation
-_Not started._
+- Not run because the task was blocked before integration.
 ### Browser validation performed
-_Not started / not applicable._
+- Runtime readiness passed, but authenticated collection UI and post-mutation
+  count refresh were not validated. No browser acceptance result is claimed.
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+Implementation commit `942409474db8db191ee5e49452c0da1baeeb482a` and status
+commit `46f4f9322c2f2c4df18000588288a30c8fe5ecea` remain preserved on
+`feature/DATA-021`; blocked status is recorded on `develop`.
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+No merge; this is task-status metadata on `develop`.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+Authenticated browser capability/credential-entry recovery is required before
+this task can be changed to `DONE`; the preserved feature branch must not be
+resumed without new direct human authorization.

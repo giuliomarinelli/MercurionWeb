@@ -525,6 +525,7 @@ WHERE i.user_id = $2::uuid
     }
 
     qb = qb.orderBy('collection.touchedAt', 'DESC')
+      .addOrderBy('collection.id', 'ASC')
 
     const paginated = await paginate<MoleculeCollection>(qb, options)
     pruneNullCollectionJoins(paginated.items)

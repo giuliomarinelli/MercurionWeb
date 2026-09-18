@@ -358,13 +358,13 @@ type Query {
   myMoleculeItems: [MoleculeCollectionItemUnion!]!
   mySyntheticRoutes: [Synthesis!]!
   myTicketDetail(ticketId: ID!): TicketDetailDTO!
-  myTicketMessages(limit: Int!, page: Int!, ticketId: ID!): PaginatedTicketMessage!
-  myTickets(limit: Int!, page: Int!): PaginatedTicket!
+  myTicketMessages(limit: Int! = 20, page: Int! = 1, ticketId: ID!): PaginatedTicketMessage!
+  myTickets(limit: Int! = 20, page: Int! = 1): PaginatedTicket!
   page(id: String!): NotebookPage
   pageById(id: ID!): NotebookPage!
   pagesBySection(sectionId: String!): [NotebookPage!]!
-  paginatedMoleculeCollectionItemsByCollection(collectionId: String!, excluded: Boolean, limit: Int!, page: Int!, q: String!): PaginatedMoleculeCollectionItem!
-  paginatedMoleculeCollectionItemsByUser(collectionId: ID, excludeJoinedToCollection: Boolean, limit: Int!, page: Int!, q: String!): PaginatedMoleculeCollectionItem!
+  paginatedMoleculeCollectionItemsByCollection(collectionId: String!, excluded: Boolean, limit: Int! = 20, page: Int! = 1, q: String!): PaginatedMoleculeCollectionItem!
+  paginatedMoleculeCollectionItemsByUser(collectionId: ID, excludeJoinedToCollection: Boolean, limit: Int! = 20, page: Int! = 1, q: String!): PaginatedMoleculeCollectionItem!
   searchMyCollections(limit: Float, query: String): [MoleculeCollection!]!
   sectionByChapterId(chapterId: ID!): NotebookSection!
   sectionById(id: ID!): NotebookSection!
@@ -373,8 +373,8 @@ type Query {
   syntheticStepById(id: ID!): SynthStep
   syntheticStepsByRoute(routeId: ID!): [SynthStep!]!
   ticketDetailAsSupport(ticketId: ID!): TicketDetailDTO!
-  ticketMessagesAsSupport(limit: Int!, page: Int!, ticketId: ID!): PaginatedTicketMessage!
-  ticketsAsSupport(limit: Int!, page: Int!): PaginatedTicket!
+  ticketMessagesAsSupport(limit: Int! = 20, page: Int! = 1, ticketId: ID!): PaginatedTicketMessage!
+  ticketsAsSupport(limit: Int! = 20, page: Int! = 1): PaginatedTicket!
 }
 
 enum SynthCommandOutcome {

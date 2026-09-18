@@ -60,4 +60,27 @@ describe('CollectionSaveOverlayComponent', () => {
 
     expect(fixture.nativeElement.querySelector('m-test-action')?.textContent).toContain('Azione caricata');
   });
+
+  it('exposes loading and error states for a failed action load', async () => {
+    let rejectLoad!: (error: unknown) => void;
+    spyOn(ACTION_REGISTRY.CreateCollection, 'load').and.returnValue(
+      new Promise<never>((_, reject) => {
+        rejectLoad = reject;
+      }),
+    );
+
+    context.open('CreateCollection');
+    await new Promise(resolve => setTimeout(resolve, 20));
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('[role="status"]')?.textContent)
+      .toContain('Caricamento azione');
+
+    rejectLoad(new Error('load failed'));
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('[role="alert"]')?.textContent)
+      .toContain('Impossibile caricare questa azione');
+  });
 });

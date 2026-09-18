@@ -356,7 +356,8 @@ export class MoleculeCollectionItemService {
             qb = qb.andWhere('item.name ILIKE :query', { query: `%${searchTerm}%` });
         }
 
-        qb = qb.orderBy('item.touchedAt', 'DESC');
+        qb = qb.orderBy('item.touchedAt', 'DESC')
+            .addOrderBy('item.id', 'ASC');
 
         // Niente join su campi virtuali!
         const page = await paginate<MoleculeCollectionItemEntity>(qb, options);
@@ -430,7 +431,8 @@ export class MoleculeCollectionItemService {
             qb = qb.andWhere('item.name ILIKE :query', { query: `%${searchTerm}%` });
         }
 
-        qb = qb.orderBy('item.touchedAt', 'DESC');
+        qb = qb.orderBy('item.touchedAt', 'DESC')
+            .addOrderBy('item.id', 'ASC');
 
         // Niente join su campi virtuali!
         const page = await paginate<MoleculeCollectionItemEntity>(qb, options);

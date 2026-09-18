@@ -2,7 +2,7 @@
 
 - [ ] DONE
 - [ ] BLOCKED
-- [ ] REVERTED
+- [x] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
 
@@ -101,11 +101,15 @@ The canonical model need not erase platform-specific constructs. Own shared sema
 
 ### Feature branch
 
-_Not started._
+`feature/QA-029` preserved and frozen at
+`43d21ed8b97983edc44679580a806f1d51ce7689`.
 
 ### Preflight
 
-_Not started._
+- Base SHA `e9babb6f7e4297c4676d878c254de75f485a8690` had green exact CI
+  run `35302018274`.
+- Feature SHA `43d21ed8b97983edc44679580a806f1d51ce7689` had green exact CI
+  run `35303216252`.
 
 ### Preflight remediation
 
@@ -113,28 +117,36 @@ _None._
 
 ### Summary
 
-Skipped because hard prerequisite `0214` (QA-028) is terminal
-`BLOCKED`; no implementation was attempted.
+Implemented the canonical deployment schema, explicit environment overlays,
+deterministic render validation and negative configuration fixtures. Merge
+commit `1c8d9a03e25832dddb34e618ac9def6854199d87` was reverted after merge CI
+run `35303703804` failed in the Angular unit suite with two axe color-contrast
+assertion failures. Rollback commit `023c498efdf9e894c247921366e576711839682f`
+and CI run `35304275969` are green.
 
 ### Task-specific validation performed
 
-_Not started._
+- Deployment schema/render checks, Compose validation, negative fixtures and
+  `git diff --check` passed.
 
 ### Full pre-merge CI-parity validation
 
-_Not started._
+- Feature CI passed; merge CI failed and the merge was reverted.
 
 ### Browser validation performed
 
-_Not applicable / not started._
+- Browser/runtime validation passed on the feature branch through the
+  canonical edge; post-merge failure was Angular unit-test CI.
 
 ### Commits
 
-Metadata-only dependency skip; no feature branch was created.
+Implementation and execution commits are preserved on `feature/QA-029` at
+`43d21ed8b97983edc44679580a806f1d51ce7689`.
 
 ### Merge / CI
 
-_Not started._
+Merged as `1c8d9a03e25832dddb34e618ac9def6854199d87`, then reverted as
+`023c498efdf9e894c247921366e576711839682f` after CI failure.
 
 ### Rollback
 
@@ -142,5 +154,6 @@ _Not applicable._
 
 ### Blocker / human decision required
 
-Direct terminal prerequisite: `0214` / QA-028 (`BLOCKED`). The task remains
-terminal until that prerequisite is explicitly recovered in a new session.
+Post-merge Angular CI failed in accessibility-canonical-ui.spec.ts on color
+contrast assertions. The implementation branch remains frozen for human
+diagnosis and retry authorization.

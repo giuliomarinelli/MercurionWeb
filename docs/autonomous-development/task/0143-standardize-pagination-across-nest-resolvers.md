@@ -1,13 +1,13 @@
 # 0143 - Standardize pagination across Nest resolvers
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
-> SKIPPED_DEPENDENCY (2026-09-15): direct terminal prerequisite `0126`
-> (`BE-012`) is `BLOCKED`; transitive root cause is the unverified external
-> Docker registry failure on its feature-SHA CI.
+This recipe was previously described as skipped by stale historical metadata.
+The authoritative planner classified task `0143` (`BE-029`) as `READY` for
+this attempt.
 ## Objective
 
 Replace duplicated GraphQL `page`/`limit` arguments and divergent pagination response shapes with one validated pagination contract that enforces min/max/defaults and stable ordering while preserving approved public schema compatibility.
@@ -83,24 +83,53 @@ Mark `BLOCKED` if two public endpoints intentionally require incompatible pagina
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/BE-029`
 ### Preflight
-_Not started._
+Clean feature branch at base SHA `cc926b76692065d1581f6db9368ce33b50261954`.
+Exact base-SHA Actions run `35283695278` completed successfully with the
+`Required gate` green. The run used the repository's metadata path because the
+base commit contained only task metadata changes; no local `npm ci` or
+`npm run ci:check` was run.
 ### Preflight remediation
-_None._
+None.
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0008, 0126. This task was never attempted and receives no feature branch.
+Added a shared top-level GraphQL `PaginationArgs` contract with page 1,
+default limit 20, minimum 1, and maximum limit 100. Public Help and
+molecule-collection paginated resolvers now use the shared arguments and
+canonical flat metadata conversion while preserving the existing `page` and
+`limit` wire names. Shared paginated response metadata is inherited by all
+public paginated response models. All paginated queries append an ascending
+unique-ID tie-breaker to their primary ordering.
 ### Task-specific validation performed
-_Not started._
+- `npm run typecheck --workspace mercurion_web_node` — passed.
+- `npm test --workspace mercurion_web_node -- --runInBand src/models/pagination/pagination.spec.ts src/contracts/public-graphql-resolver.contract.spec.ts` — 2 suites, 14 tests passed.
+- `npm exec --workspace mercurion_web_node -- eslint <changed Nest pagination files>` — passed.
+- `npm run graphql:schema:check --workspace mercurion_web_node` — passed after updating `MercurionWebNode/src/schema.graphql`.
+- `npm run graphql:check --workspace mercurion_web_ng` — passed, including
+  GraphQL codegen drift verification after regenerating
+  `MercurionWebNg/src/app/generated/schema.ts`.
+- `git diff --check` — passed.
 ### Full pre-merge CI-parity validation
-_Not started._
+Complete clean-install and aggregate CI gates remain owned by Actions. The
+exact feature-SHA Actions run is required before integration.
 ### Browser validation performed
-_Not applicable._
+Not applicable; this backend-only task declares no browser validation.
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+- `1dcbbf67d8ff0c93543383db448ea834ab62f5af` — implementation and focused
+  validation.
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+Feature-SHA CI run `35284627530` failed on the Ubuntu/Windows prerequisite
+GraphQL/generated-contract gates because the committed Angular generated
+schema artifact was stale. This was an actionable generated-artifact drift
+only; all other observed container jobs succeeded. Repair attempt 1 of 3
+regenerated the artifact from the committed Nest schema. Correction commit
+`2f8a6aa9a54282751a67801450a25c899541d575` contains the repair. The resulting diff
+contains only the expected optional `page`/`limit` argument type changes in
+`MercurionWebNg/src/app/generated/schema.ts`; `graphql.ts` and unrelated files
+were unchanged. Focused GraphQL checks and pagination tests passed after the
+repair. The final pushed feature SHA after this execution-note update is
+pending exact-SHA CI verification.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+None.
