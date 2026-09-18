@@ -144,10 +144,11 @@ console errors. No SSO fixture was available in the local environment.
 Task-owned Tox21, Nest, and Angular processes were stopped after validation.
 ### Commits
 Initial implementation `765d48f4807e23941a622d788c3dbeb301071465`; repair
-commit `9a108eefe8f7385992df1fd95f462de1c3ed4f44`. Final feature SHA pending
-task-note commit.
+commit `9a108eefe8f7385992df1fd95f462de1c3ed4f44`; final feature SHA
+`59e7906d3fdb9d048bb179058fa2e22b88d8e74d`.
 ### Merge / CI
-Pending coordinator integration after exact feature-SHA CI succeeds.
+Pending coordinator integration after exact feature-SHA CI succeeds. Exact
+final feature-SHA metadata run `35290128861` passed `Required gate`.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
