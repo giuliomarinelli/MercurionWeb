@@ -8,6 +8,10 @@
       {
         "include": "app_modules/notification/email-templates",
         "outDir": "dist/src"
+      },
+      {
+        "include": "schema.graphql",
+        "outDir": "dist/src"
       }
     ],
     "watchAssets": true
