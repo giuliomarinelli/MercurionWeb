@@ -56,7 +56,7 @@ describe('AuthStateStore', () => {
 
   it('completes login and exposes derived authenticated state', () => {
     store.bootstrap()
-    store.beginAuthentication('password')
+    store.beginAuthentication()
     store.enterPreAuthentication('pre-auth-token')
     store.completeAuthentication(session('AB', 'read write'))
 
