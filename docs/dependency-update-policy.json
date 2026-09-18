@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "automation": "dependabot",
+  "owner": "giuliomarinelli",
+  "targetBranch": "develop",
+  "routineSchedule": "weekly Monday 06:00-07:15 Europe/Rome",
+  "securityUpdateWindowsHours": {
+    "critical": 24,
+    "high": 72,
+    "moderate": 336,
+    "low": 720
+  },
+  "semver": {
+    "major": "isolated-manual-review",
+    "minor": "isolated-except-development-tooling",
+    "patch": "group-development-tooling-only",
+    "prerelease": "disabled-unless-already-prerelease"
+  },
+  "separateReview": [
+    "runtime dependencies",
+    "security updates",
+    "native and scientific packages",
+    "patched packages",
+    "framework and toolchain majors"
+  ],
+  "autoMerge": false,
+  "requiredChecks": ["Required gate", "Supply-chain policy and attestation"]
+}
