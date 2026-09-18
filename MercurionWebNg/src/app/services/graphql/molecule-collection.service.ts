@@ -248,14 +248,15 @@ export class MoleculeCollectionService {
       .pipe(map(res => extractGqlData<DeleteMoleculeCollectionMutation, 'deleteMoleculeCollection'>(res, 'deleteMoleculeCollection')));
   }
 
-  bindManyCollectionsToMolecule(moleculeId: string, collectionIds: string[], selectAll: boolean): Observable<BindManyCollectionsToMoleculeDTO> {
+  bindManyCollectionsToMolecule(moleculeId: string, collectionIds: string[], selectAll: boolean, snapshotAt?: string | null): Observable<BindManyCollectionsToMoleculeDTO> {
     return this.apollo
       .mutate<BindManyCollectionsToMoleculeMutation, BindManyCollectionsToMoleculeMutationVariables>({
         mutation: BindManyCollectionsToMoleculeDocument,
         variables: {
           moleculeId,
           collectionIds,
-          selectAll
+          selectAll,
+          snapshotAt
         }
       }).pipe(
         map(res => extractGqlData<BindManyCollectionsToMoleculeMutation, 'bindManyCollectionsToMolecule'>(res, 'bindManyCollectionsToMolecule'))

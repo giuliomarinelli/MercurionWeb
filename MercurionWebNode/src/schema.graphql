@@ -215,11 +215,11 @@ type Mutation {
   addChemblMoleculeToCollection(chemblMolregno: Float!, collectionId: ID!, label: String, notes: String): ChEMBLMoleculeItemEntity!
   addCustomMoleculeToCollection(collectionId: ID!, input: CustomMoleculeItemInput!): CustomMoleculeItemEntity!
   addManyChemblItemsToCollection(collectionId: ID!, input: [AddManyChEMBLItemDTO!]!): Boolean!
-  addManyMoleculesToCollection(collectionId: ID!, itemIds: [ID!]!, selectAll: Boolean!): Boolean!
+  addManyMoleculesToCollection(collectionId: ID!, itemIds: [ID!]!, selectAll: Boolean!, snapshotAt: String): Boolean!
   addSupportTicketMessage(contentDelta: JSON!, contentHtml: String!, ticketId: ID!): Boolean!
   addSynthStepItem(input: SynthStepItemInput!): SynthStepItem!
   addTicketMessage(contentDelta: JSON!, contentHtml: String!, ticketId: ID!): Boolean!
-  bindManyCollectionsToMolecule(collectionIds: [ID!]!, moleculeId: ID!, selectAll: Boolean!): BindManyCollectionsToMoleculeDTO!
+  bindManyCollectionsToMolecule(collectionIds: [ID!]!, moleculeId: ID!, selectAll: Boolean!, snapshotAt: String): BindManyCollectionsToMoleculeDTO!
   closeMyTicket(ticketId: ID!): Boolean!
   closeTicketAsSupport(ticketId: ID!): Boolean!
   configureSynthesisPool(input: SynthesisPoolInput!): Synthesis!

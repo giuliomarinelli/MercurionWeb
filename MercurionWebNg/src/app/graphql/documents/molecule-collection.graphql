@@ -123,11 +123,13 @@ mutation BindManyCollectionsToMolecule(
   $moleculeId: ID!
   $collectionIds: [ID!]!
   $selectAll: Boolean!
+  $snapshotAt: String
 ) {
   bindManyCollectionsToMolecule(
     moleculeId: $moleculeId
     collectionIds: $collectionIds
     selectAll: $selectAll
+    snapshotAt: $snapshotAt
   ) {
     ok
     moleculeUUID

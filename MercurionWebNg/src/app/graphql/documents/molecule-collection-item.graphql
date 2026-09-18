@@ -270,11 +270,13 @@ mutation AddManyMoleculesToCollection(
   $collectionId: ID!
   $itemIds: [ID!]!
   $selectAll: Boolean!
+  $snapshotAt: String
 ) {
   addManyMoleculesToCollection(
     collectionId: $collectionId
     itemIds: $itemIds
     selectAll: $selectAll
+    snapshotAt: $snapshotAt
   )
 }
 

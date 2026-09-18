@@ -13,7 +13,10 @@ import {
 } from '../models/dto/molecule-collection-item.union';
 import { MoleculeCollectionItemJoinService } from '../services/molecule-collection-item-join.service';
 import { assertMercurionPublicId } from 'src/identifiers/mercurion-public-id';
-import { PaginationArgs } from 'src/models/pagination/pagination.args';
+import {
+    MoleculeItemsByCollectionArgs,
+    MoleculeItemsByUserArgs
+} from '../models/dto/molecule-collection-item-pagination.args';
 
 @Resolver()
 export class MoleculeCollectionItemResolver {
@@ -46,12 +49,10 @@ export class MoleculeCollectionItemResolver {
     @Query(() => PaginatedMoleculeCollectionItem)
     async paginatedMoleculeCollectionItemsByUser(
         @AuthenticatedUserId() userId: UUID,
-        @Args() pagination: PaginationArgs,
-        @Args('q', { type: () => String }) q: string,
-        @Args('excludeJoinedToCollection', { type: () => Boolean, nullable: true }) excludeJoinedToCollection: boolean | null,
-        @Args('collectionId', { type: () => ID, nullable: true }) collectionId: UUID | null,
+        @Args() pagination: MoleculeItemsByUserArgs,
         @Info() info: GraphQLResolveInfo
     ): Promise<PaginatedMoleculeCollectionItem> {
+        const { q, excludeJoinedToCollection, collectionId } = pagination
         const options: IPaginationOptions = pagination
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         const normalizedQ = typeof q === 'string' ? q.trim() : q
@@ -61,12 +62,10 @@ export class MoleculeCollectionItemResolver {
     @Query(() => PaginatedMoleculeCollectionItem)
     async paginatedMoleculeCollectionItemsByCollection(
         @AuthenticatedUserId() userId: UUID,
-        @Args('collectionId', { type: () => String }) collectionId: UUID,
-        @Args() pagination: PaginationArgs,
-        @Args('q', { type: () => String }) q: string,
-        @Args('excluded', { type: () => Boolean, nullable: true }) excluded: boolean | null,
+        @Args() pagination: MoleculeItemsByCollectionArgs,
         @Info() info: GraphQLResolveInfo
     ): Promise<PaginatedMoleculeCollectionItem> {
+        const { collectionId, q, excluded } = pagination
         assertMercurionPublicId(collectionId, 'collectionId')
         const options: IPaginationOptions = pagination
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
@@ -129,12 +128,13 @@ export class MoleculeCollectionItemResolver {
         @AuthenticatedUserId() userId: UUID,
         @Args('collectionId', { type: () => ID }) collectionId: UUID,
         @Args('itemIds', { type: () => [ID] }) itemIds: UUID[],
-        @Args('selectAll', { type: () => Boolean }) selectAll: boolean
+        @Args('selectAll', { type: () => Boolean }) selectAll: boolean,
+        @Args('snapshotAt', { type: () => String, nullable: true }) snapshotAt?: string
     ): Promise<boolean> {
         assertMercurionPublicId(collectionId, 'collectionId')
         itemIds.forEach((itemId) => assertMercurionPublicId(itemId, 'itemIds'))
         try {
-            await this.joinService.addManyMoleculesToCollection(userId, collectionId, itemIds, selectAll)
+            await this.joinService.addManyMoleculesToCollection(userId, collectionId, itemIds, selectAll, snapshotAt)
             return true
         } catch {
             return false
