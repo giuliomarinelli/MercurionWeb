@@ -252,6 +252,7 @@ export class HelpService {
     let qb = this.ticketRepo.createQueryBuilder('t')
       .select(columns.map(col => `t.${col}`))
       .orderBy('t.last_message_at', 'DESC')
+      .addOrderBy('t.id', 'ASC')
 
     if (!isSupportActor(actor)) {
       qb = qb.andWhere('t.user_id = :userId', { userId: actor.userId })
@@ -352,6 +353,7 @@ export class HelpService {
       .select(columns.map(col => `m.${col}`))
       .where('m.ticket_id = :ticketId', { ticketId })
       .orderBy('m.created_at', 'DESC')
+      .addOrderBy('m.id', 'ASC')
 
     if (!isSupportActor(actor)) {
       qb = qb.innerJoin(Ticket, 't', 't.id = m.ticket_id AND t.user_id = :userId', {

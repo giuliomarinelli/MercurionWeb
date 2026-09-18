@@ -106,11 +106,11 @@ export class PubSubService implements OnModuleDestroy, OnModuleInit {
     }
   }
 
-  // session:{sid}:{uid}
+  // session:{sid}; legacy session:{sid}:{uid} remains accepted during migration.
   private async handleSessionEvent(event: 'expired' | 'del', key: string): Promise<void> {
 
-    const parts = key.split(':') // ["session", sid, uid]
-    if (parts.length !== 3) {
+    const parts = key.split(':')
+    if (parts.length !== 2 && parts.length !== 3) {
       this.logger.warn(`Unexpected session key format on ${event}: ${key}`)
       return
     }
@@ -126,10 +126,12 @@ export class PubSubService implements OnModuleDestroy, OnModuleInit {
       this.logger.warn(`Failed to revoke JTIs for session ${sessionId}: ${errorMessage(e)}`)
     }
 
-    try {
-      await this.sessionService.destroySessionByOwner(sessionId, userId)
-    } catch (e) {
-      this.logger.warn(`Failed to cleanup indexes for session ${sessionId}: ${errorMessage(e)}`)
+    if (userId) {
+      try {
+        await this.sessionService.destroySessionByOwner(sessionId, userId)
+      } catch (e) {
+        this.logger.warn(`Failed to cleanup indexes for session ${sessionId}: ${errorMessage(e)}`)
+      }
     }
 
     if (this.socketServer) {
@@ -150,7 +152,7 @@ export class PubSubService implements OnModuleDestroy, OnModuleInit {
       }
     }
 
-    this.logger.log(`🛑 Session ${sessionId} (${event}) → revoked JTIs, cleaned indexes, notified WS`)
+    this.logger.log(`🛑 Session ${sessionId} (${event}) → revoked JTIs, notified WS`)
   }
 
   // Pub/Sub utilità opzionali

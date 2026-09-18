@@ -21,6 +21,8 @@ import { PubSubService } from './app_modules/redis/services/pub-sub.service';
 import { RedisService } from './app_modules/redis/services/redis.service';
 import { SSO_Module } from './app_modules/sso/sso.module';
 import { UserService } from './app_modules/user/services/user.service';
+import { ProfileReadModelService } from './app_modules/user/services/profile-read-model.service';
+import { HistoryService } from './app_modules/history/services/history.service';
 import { AppModule } from './app.module';
 import { ResponseModule } from './services/response.module';
 import { ResponseService } from './services/response.service';
@@ -192,6 +194,8 @@ describe('core Nest provider ownership', () => {
     builder.overrideProvider(Redis).useValue({});
     builder.overrideProvider(PubSubService).useValue({});
     builder.overrideProvider(UserService).useValue({});
+    builder.overrideProvider(ProfileReadModelService).useValue({});
+    builder.overrideProvider(HistoryService).useValue({});
     builder.overrideProvider(JwtKeysProvider).useValue({
       getAccessKeyPair: () => ({ privateKey: 'private', publicKey: 'public' }),
       getWsKeyPair: () => ({ privateKey: 'private', publicKey: 'public' }),

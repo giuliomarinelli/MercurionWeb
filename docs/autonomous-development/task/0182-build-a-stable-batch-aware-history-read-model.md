@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 
 > SKIPPED_DEPENDENCY (2026-09-15): transitive dependency `0174` is skipped
 > through `0143` from terminal root `0126` (`BE-012`), blocked by an

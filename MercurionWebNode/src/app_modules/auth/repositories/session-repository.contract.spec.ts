@@ -254,6 +254,20 @@ describe('RedisSessionRepository invalid records', () => {
     })
 })
 
+describe('RedisSessionRepository bounded stale-index cleanup', () => {
+    it('removes missing records while resolving the user session index', async () => {
+        const redis = new FakeRedisService()
+        await redis.sadd(`user_sessions:${userId}`, sessionId)
+        const repository = new RedisSessionRepository(
+            redis as unknown as RedisService,
+            new SessionRedisCodec()
+        )
+
+        await expect(repository.findSessionIdsByUserId(userId)).resolves.toEqual([])
+        await expect(redis.smembers(`user_sessions:${userId}`)).resolves.toEqual([])
+    })
+})
+
 describe('SessionRedisCodec provider compatibility', () => {
     it('falls back to the Mercurion provider for unknown serialized providers', () => {
         const codec = new SessionRedisCodec()
@@ -285,7 +299,7 @@ describe('RedisSessionRepository TTL compatibility', () => {
             redis as unknown as RedisService,
             new SessionRedisCodec()
         )
-        const key = `session:${sessionId}:${userId}`
+        const key = `session:${sessionId}`
 
         await repository.saveSession(exampleSession(), {
             longTerm: false,

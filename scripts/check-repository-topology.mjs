@@ -16,7 +16,7 @@ const reportDir = path.resolve(
 const expectedScripts = {
   'ci:angular:import-graph': 'node scripts/check-angular-import-graph.mjs --root=MercurionWebNg && node scripts/test-angular-import-graph-negative.mjs',
   'ng:orphans:check': 'node scripts/check-angular-orphans.mjs --root=MercurionWebNg && node scripts/test-angular-orphans-negative.mjs',
-  'ci:nest:architecture': 'node scripts/check-nest-module-graph.mjs --root=MercurionWebNode && node scripts/test-nest-module-graph-negative.mjs && node scripts/check-nest-provider-ownership.mjs --root=MercurionWebNode && node scripts/test-nest-provider-ownership-negative.mjs && node scripts/check-nest-repository-boundaries.mjs --root=MercurionWebNode && node scripts/test-nest-repository-boundaries-negative.mjs && node scripts/check-nest-test-route-policy.mjs',
+  'ci:nest:architecture': 'node scripts/check-nest-module-graph.mjs --root=MercurionWebNode && node scripts/test-nest-module-graph-negative.mjs && node scripts/check-nest-provider-ownership.mjs --root=MercurionWebNode && node scripts/test-nest-provider-ownership-negative.mjs && node scripts/check-nest-repository-boundaries.mjs --root=MercurionWebNode && node scripts/test-nest-repository-boundaries-negative.mjs && node scripts/check-nest-controller-boundaries.mjs --root=MercurionWebNode && node scripts/test-nest-controller-boundaries-negative.mjs && node scripts/check-nest-test-route-policy.mjs',
   'nest:orphans:check': 'node scripts/check-nest-orphans.mjs --root=MercurionWebNode && node scripts/test-nest-orphans-negative.mjs',
 };
 

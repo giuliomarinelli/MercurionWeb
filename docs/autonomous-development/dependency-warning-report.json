@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "source": "package-lock.json and focused build diagnostics on 2026-09-18",
+  "warnings": [],
+  "acceptedWarnings": [
+    {
+      "package": "@angular/animations",
+      "version": "20.3.30",
+      "reason": "Optional peer metadata only; no application ownership."
+    },
+    {
+      "package": "subscriptions-transport-ws",
+      "version": "0.11.0",
+      "reason": "Optional Apollo/Nest GraphQL compatibility metadata only."
+    },
+    {
+      "package": "scmp",
+      "version": "2.1.0",
+      "reason": "Transitive Twilio dependency only."
+    }
+  ]
+}

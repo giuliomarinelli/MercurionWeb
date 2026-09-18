@@ -8,7 +8,7 @@ import { CollectionCardComponent } from '../../components/molecule-detail/collec
 import { SkeletonCollectionCardComponent } from '../../components/common/skeleton-card-loader/skeleton-card-loader.component';
 import { RouterLink } from '@angular/router';
 import { PmSearchInputComponent } from '../../components/common/pm-search-input/pm-search-input.component';
-import { AbstractPaginationComponent } from '../../abstract/abstract-pagination-component';
+import { PaginationController } from '../../services/pagination/pagination-controller';
 import { Observable } from 'rxjs';
 import { PageModel } from '../../Models/graphql/page.models';
 import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service';
@@ -105,7 +105,7 @@ import { PaginationComponent } from '../../components/common/pagination/paginati
 
   `
 })
-export class MyMoleculeCollectionsPageComponent extends AbstractPaginationComponent<UiMoleculeCollection> implements OnInit, AfterViewInit, OnDestroy {
+export class MyMoleculeCollectionsPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // ======================= DEPS =======================
   private readonly moleculeCollectionService = inject(MoleculeCollectionService)
@@ -115,18 +115,43 @@ export class MyMoleculeCollectionsPageComponent extends AbstractPaginationCompon
   private readonly historyContext = inject(HistoryContextService)
   private readonly scrollContext = inject(ScrollContextService)
   private readonly invalidations = inject(DomainInvalidationService)
+  private readonly pagination = new PaginationController<UiMoleculeCollection>({
+    fetch: (page, query) => this.moleculeCollectionService.getPaginatedCollections(page, 25, query).pipe(
+      delay(page === 1 ? 120 : 0),
+      map(result => ({ ...result, items: result.items.map(item => ({
+        ...item,
+        triggerDisappear: signal(false),
+        collapse: signal(false)
+      })) }))
+    ),
+    merge: (current, incoming) => {
+      const seen = new Set<string>()
+      return [...current, ...incoming].filter(item => {
+        if (seen.has(item.id)) return false
+        seen.add(item.id)
+        return true
+      })
+    }
+  })
+  private observer?: IntersectionObserver
   // ====================================================
 
   private delColSub?: Subscription
   private dupColSub?: Subscription
 
-  protected override readonly sentinel = viewChild<ElementRef<HTMLDivElement>>('sentinel');
+  protected readonly sentinel = viewChild<ElementRef<HTMLDivElement>>('sentinel');
+  get items(): UiMoleculeCollection[] { return this.pagination.items() }
+  get loading(): boolean { return this.pagination.loading() }
+  get done(): boolean { return this.pagination.done() }
+  get earlyDone(): boolean { return this.pagination.earlyDone() }
+  get page(): number { return this.pagination.page() }
+  get searchTerm(): ReturnType<typeof signal<string>> { return this.pagination.query }
+  get empty(): ReturnType<typeof signal<boolean>> { return this.pagination.empty }
+  paginationState() { return this.pagination.paginationState() }
 
   private tick = signal<number>(0)
 
   constructor() {
-
-    super();
 
     effect(() => {
       const event = this.invalidations.last()
@@ -157,7 +182,7 @@ export class MyMoleculeCollectionsPageComponent extends AbstractPaginationCompon
 
 
   ngOnInit(): void {
-    this.loadMore()
+    void this.loadMore()
   }
 
   ngAfterViewInit(): void {
@@ -165,70 +190,32 @@ export class MyMoleculeCollectionsPageComponent extends AbstractPaginationCompon
   }
 
   ngOnDestroy(): void {
-    super.disposePaginationResources()
+    this.observer?.disconnect()
+    this.pagination.dispose()
     this.delColSub?.unsubscribe()
     this.dupColSub?.unsubscribe()
   }
 
-  protected override async loadMore(): Promise<void> {
-    if (this.loading || this.done) return
+  loadMore(): Promise<void> { return this.pagination.loadMore() }
+  retryPagination(): void { this.pagination.retry() }
+  resetPagination(): void { this.pagination.reset() }
+  doQuery(q: string): void { this.pagination.setQuery(q) }
+  doClear(): void { this.pagination.clear() }
 
-    this.setLoading(true)
-
-    const newPage = await firstValueFrom(this.fetch$())
-
-    if (newPage.items.length === 0) {
-      this.done = true
-      if (this.page === 1) this.earlyDone = true
-    } else {
-      if (this.empty()) this.empty.set(false)
-
-      this.items = [...this.items, ...newPage.items]
-
-      const seen = new Set<string>()
-      this.items = this.items.filter(item => {
-        const id = (item as any)?.id as string | undefined
-        if (!id) return true
-        if (seen.has(id)) return false
-        seen.add(id)
-        return true
-      })
-
-      this.page++
-    }
-
-    this.setLoading(false)
+  private startObserver(): void {
+    const sentinel = this.sentinel()?.nativeElement
+    if (!sentinel) return
+    this.observer?.disconnect()
+    this.observer = new IntersectionObserver(entries => {
+      if (entries[0]?.isIntersecting) void this.loadMore()
+    }, { rootMargin: '0px 0px 500px 0px' })
+    this.observer.observe(sentinel)
   }
 
 
 
   createNewCollection(): void {
     this.actionOverlayContext.open('CreateCollection')
-  }
-
-  protected fetch$(): Observable<PageModel<UiMoleculeCollection>> {
-    return this.moleculeCollectionService.getPaginatedCollections(this.page, 25, this.searchTerm())
-      .pipe(
-        // A one-shot Apollo query completes immediately; retain a perceptible
-        // first-page skeleton while the request is in flight.
-        delay(this.page === 1 ? 120 : 0),
-        map(page => ({
-          ...page,
-          items: page.items.map(item => ({
-            ...item,
-            triggerDisappear: signal<boolean>(false),
-            collapse: signal<boolean>(false)
-          }))
-        }))
-      )
-  }
-
-  protected override doQuery(q: string): void {
-    this.query(q)
-  }
-
-  protected override doClear(): void {
-    this.clear()
   }
 
   doDuplicateCollection(collectionId: string): void {
@@ -264,9 +251,9 @@ export class MyMoleculeCollectionsPageComponent extends AbstractPaginationCompon
             queueMicrotask(() => {
               this.historyContext.triggerRemoveItemFromHistoryView(collectionId)
               this.items[i].triggerDisappear.set(true)
-              this.resources.setTimeout(() => this.items[i].collapse.set(true), 120)
-              this.resources.setTimeout(() => {
-                this.items.splice(i, 1)
+              setTimeout(() => this.items[i]?.collapse.set(true), 120)
+              setTimeout(() => {
+                this.pagination.replaceItems(this.items.filter(item => item.id !== collectionId))
                 if (this.items.length === 0) {
                   this.tick.update(x => x + 1)
                 }

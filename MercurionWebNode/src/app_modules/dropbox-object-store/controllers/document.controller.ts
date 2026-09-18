@@ -12,6 +12,7 @@ export class DocumentController {
   @Post('upload')
   async upload(
     @AuthenticatedUserId() userId: string,
+    // transport-only: raw request access is isolated by the multipart upload adapter.
     @Req() request: FastifyRequest,
     @Res({ passthrough: true }) reply: FastifyReply,
   ): Promise<void> {

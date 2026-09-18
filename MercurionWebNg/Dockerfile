@@ -2,6 +2,8 @@
 
 FROM node:22.16.0-alpine AS dependencies
 WORKDIR /workspace
+ARG BUILD_REVISION
+ENV BUILD_REVISION=$BUILD_REVISION
 
 RUN test "$(node --version)" = "v22.16.0" && test "$(npm --version)" = "10.9.2"
 
@@ -14,6 +16,7 @@ COPY MercurionWebNg/patches ./MercurionWebNg/patches
 RUN npm ci --ignore-scripts
 
 FROM dependencies AS source
+COPY scripts/build-identity.mjs scripts/build-identity.mjs
 COPY packages/rest-contracts packages/rest-contracts
 COPY packages/socket-contracts packages/socket-contracts
 COPY MercurionWebNg ./MercurionWebNg
@@ -21,26 +24,22 @@ RUN npm run postinstall
 
 FROM source AS build-production
 WORKDIR /workspace/MercurionWebNg
-ARG APP_VERSION
-LABEL org.opencontainers.image.version=$APP_VERSION
 RUN npm run build -- --configuration=production
 
 FROM source AS build-staging
 WORKDIR /workspace/MercurionWebNg
-ARG APP_VERSION
-LABEL org.opencontainers.image.version=$APP_VERSION
 RUN npm run build -- --configuration=staging
 
 FROM source AS build-test
 WORKDIR /workspace/MercurionWebNg
-ARG APP_VERSION
-LABEL org.opencontainers.image.version=$APP_VERSION
 RUN npm run build -- --configuration=testing
 
 FROM nginx:1.27-alpine AS runtime
-ARG APP_VERSION
-ENV APP_VERSION=$APP_VERSION
-LABEL org.opencontainers.image.version=$APP_VERSION
+ARG BUILD_VERSION
+ARG BUILD_REVISION
+LABEL org.opencontainers.image.version=$BUILD_VERSION \
+      org.opencontainers.image.revision=$BUILD_REVISION \
+      org.opencontainers.image.source="https://github.com/giuliomarinelli/MercurionWeb"
 WORKDIR /usr/share/nginx/html
 RUN addgroup -S -g 10101 mercurion && \
   adduser -S -D -H -u 10101 -G mercurion mercurion && \

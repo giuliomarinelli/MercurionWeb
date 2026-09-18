@@ -1,10 +1,12 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   inject,
   output,
   signal
 } from '@angular/core'
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import {
   FormControl,
   FormGroup,
@@ -47,6 +49,8 @@ type CredentialForm = {
           (enter)="submitEmail()"
         />
         <button type="button" (click)="submitEmail()" [disabled]="form.controls.email.invalid"
+          class="relative bottom-[10px] mt-1 w-full rounded-md bg-light-accent-primary-hq py-2 text-white transition-colors duration-150 hover:bg-light-accent-primary-hc disabled:cursor-not-allowed disabled:bg-light-accent-primary-hq/60 disabled:hover:bg-light-accent-primary-hq/60 dark:bg-dark-accent-primary-btn dark:disabled:bg-dark-accent-primary/80 dark:disabled:hover:bg-dark-accent-primary/80"
+          [attr.aria-disabled]="form.controls.email.invalid"
           aria-label="Continua con l'e-mail inserita">
           Continua
         </button>
@@ -69,6 +73,8 @@ type CredentialForm = {
           [serverError]="credentialError()"
         />
         <button type="submit" [disabled]="!canSubmit()" [attr.aria-busy]="pending()"
+          class="relative bottom-[2px] mt-4 w-full rounded-md bg-light-accent-primary-hq py-2 text-white transition-colors duration-150 hover:bg-light-accent-primary-hc disabled:cursor-not-allowed disabled:bg-light-accent-primary-hq/60 disabled:hover:bg-light-accent-primary-hq/60 dark:bg-dark-accent-primary-btn dark:hover:bg-dark-accent-primary/80 dark:disabled:bg-dark-accent-primary/80 dark:disabled:hover:bg-dark-accent-primary/80"
+          [attr.aria-disabled]="!canSubmit()"
           aria-label="Accedi al tuo account">
           @if (pending()) { <m-progress-indicator [size]="24" /> } @else { Accedi }
         </button>
@@ -81,6 +87,7 @@ type CredentialForm = {
         }
       }
       <m-selection-control
+        class="text-sm text-gray-600 dark:text-gray-300"
         label="Ricordami per 30 giorni"
         name="setting"
         mode="switch"
@@ -91,11 +98,11 @@ type CredentialForm = {
   styles: [`
     :host { display: block; }
     form { display: grid; gap: 1rem; }
-    button { width: 100%; padding: .55rem; border-radius: .375rem; }
   `]
 })
 export class LoginCredentialFormComponent {
   private readonly appConfig = inject(APP_CONFIG)
+  private readonly destroyRef = inject(DestroyRef)
 
   readonly form = new FormGroup<CredentialForm>({
     email: new FormControl('', { nonNullable: true, validators: [
@@ -124,6 +131,24 @@ export class LoginCredentialFormComponent {
   readonly credentialsSubmitted = output<LoginCredentials>()
   readonly turnstile = output<string>()
   readonly turnstileReady = output<void>()
+
+  constructor() {
+    this.form.controls.email.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.emailError.set(null)
+        this.credentialError.set(null)
+        if (this.step() === 2) {
+          this.step.set(1)
+          this.form.controls.password.reset()
+          this.resetTurnstile()
+        }
+      })
+
+    this.form.controls.password.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.credentialError.set(null))
+  }
 
   canSubmit(): boolean {
     return this.form.valid && (this.turnstileDisabled || Boolean(this.turnstileToken()))

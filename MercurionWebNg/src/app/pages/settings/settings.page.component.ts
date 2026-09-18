@@ -2,7 +2,7 @@ import { AuthUseCasesService } from './../../services/auth-use-cases.service';
 import { AfterViewInit, Component, effect, ElementRef, inject, OnDestroy, OnInit, signal, ChangeDetectionStrategy, viewChild, viewChildren } from '@angular/core'
 import { EMPTY, map, of, startWith, Subscription, switchMap } from 'rxjs'
 import { AccountService } from '../../services/account.service'
-import { MfaStrategy, ProfileDTO, SessionDTOExt, VersionDTO } from '../../Models/account/account.models'
+import { BuildIdentityDTO, MfaStrategy, ProfileDTO, SessionDTOExt } from '../../Models/account/account.models'
 import { ToastService } from '../../services/toast.service'
 import { ProgressIndicatorComponent } from '../../components/common/progress-indicator/progress-indicator.component'
 import { SessionCardComponent } from '../../components/common/session-card/session-card.component'
@@ -371,7 +371,7 @@ import { DisclosureComponent, DisclosureTriggerDirective } from '../../component
                                   Informazioni sulla versione
                                 </h4>
                                 <p>Mercurion {{currentVersion.version}}</p>
-                                <p class="text-xs">mercurion@sha256:{{breakHex(currentVersion.versionHash)}}</p>
+                                <p class="text-xs">mercurion@{{breakHex(currentVersion.revision)}}</p>
 
                               </div>
 
@@ -634,7 +634,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   profileFetchError = signal<boolean>(false)
   loading = signal<boolean>(true)
   bottomSpacerPx = signal<string>('0px')
-  currentVersion!: VersionDTO
+  currentVersion!: BuildIdentityDTO
 
   profile!: ProfileDTO
   isEnabledMfa!: boolean

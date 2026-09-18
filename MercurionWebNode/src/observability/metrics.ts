@@ -1,5 +1,5 @@
 export type MetricTransport = 'http' | 'graphql' | 'socket.io' | 'nats' | 'database' | 'cache' | 'external'
-export type MetricOutcome = 'success' | 'error' | 'timeout' | 'miss' | 'hit'
+export type MetricOutcome = 'success' | 'error' | 'timeout' | 'overload' | 'unavailable' | 'invalid-response' | 'remote-error' | 'miss' | 'hit'
 
 export interface MetricDimensions {
   readonly transport: MetricTransport

@@ -1,7 +1,7 @@
 # 0214 - Centralize release version and build identity
 
-- [ ] DONE
-- [x] BLOCKED
+- [x] DONE
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
@@ -64,12 +64,12 @@ Version values currently appear independently in package metadata, Angular envir
 
 ## Acceptance criteria
 
-- [ ] One repository input owns the product release version.
-- [ ] Angular, Nest and application images from one CI build expose identical release version and source revision.
-- [ ] Environment/release configuration contains no independently editable product-version literal.
-- [ ] OCI labels and deployment image metadata derive from the same build identity.
-- [ ] A frontend/backend/image mismatch makes CI/system testing fail.
-- [ ] Version responses contain no secret or unsafe CI metadata.
+- [x] One repository input owns the product release version.
+- [x] Angular, Nest and application images from one CI build expose identical release version and source revision.
+- [x] Environment/release configuration contains no independently editable product-version literal.
+- [x] OCI labels and deployment image metadata derive from the same build identity.
+- [x] A frontend/backend/image mismatch makes CI/system testing fail.
+- [x] Version responses contain no secret or unsafe CI metadata.
 
 ## Validation
 
@@ -150,3 +150,18 @@ _Not applicable._
 
 Resolve deterministic generated build-identity availability for Nest unit-test
 compilation, then authorize a new recovery session.
+
+### Interactive recovery (2026-09-17)
+
+- Merged current green `develop` into the preserved feature branch while
+  retaining both the catalog/accessibility gates and build-identity gates.
+- Confirmed the failed Nest job invoked `test:coverage` directly, so the
+  existing `pretest` lifecycle never generated the ignored typed module.
+- Added matching generation hooks for Angular/Nest coverage, Angular
+  accessibility, and Nest E2E entry points. Every isolated CI test job now
+  materializes the same identity from root version plus exact `GITHUB_SHA`
+  before TypeScript compilation.
+- Deterministic generation, drift validation and mismatched negative fixture
+  pass from a checkout where all generated identity files are initially absent.
+- Final feature SHA, focused checks, browser evidence and exact CI results are
+  recorded after publication.

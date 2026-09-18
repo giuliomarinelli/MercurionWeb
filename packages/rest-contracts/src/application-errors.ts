@@ -502,6 +502,21 @@ export const APPLICATION_ERROR_CATALOG = {
     defaultMessage: "MercurionTox21ClientConnectionTimeoutNoResponse",
     exposeInProduction: true,
   },
+  SCIENTIFIC_RPC_OVERLOADED: {
+    httpStatus: 429,
+    defaultMessage: "ScientificRpc::Overloaded",
+    exposeInProduction: true,
+  },
+  SCIENTIFIC_RPC_UNAVAILABLE: {
+    httpStatus: 503,
+    defaultMessage: "ScientificRpc::Unavailable",
+    exposeInProduction: true,
+  },
+  SCIENTIFIC_RPC_INVALID_RESPONSE: {
+    httpStatus: 502,
+    defaultMessage: "ScientificRpc::InvalidResponse",
+    exposeInProduction: false,
+  },
   TOX21_UNKNOWN_ERROR: {
     httpStatus: 500,
     defaultMessage: "MercurionTox21ClientConnectionUnknownError",
