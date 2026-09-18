@@ -1,7 +1,7 @@
 # 0218 - Protect develop with required PR and CI policy
 
 - [ ] DONE
-- [x] BLOCKED
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective

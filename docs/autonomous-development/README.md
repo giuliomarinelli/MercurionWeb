@@ -10,10 +10,12 @@ The model is intentionally strict:
 - full CI-parity preflight **before** implementation;
 - full CI-parity validation again before integration;
 - wait for GitHub Actions on the exact feature SHA before integration;
-- one explicit `--no-ff --no-gpg-sign` merge commit into `develop`;
+- one approved, green pull request merged with an explicit merge commit into
+  protected `develop`;
 - wait for GitHub Actions on that exact merge SHA;
 - success => delete the feature branch;
-- post-merge CI non-success => revert the merge, mark `REVERTED`, preserve the feature branch;
+- post-merge CI non-success => revert through an urgent protected pull request,
+  mark `REVERTED` through metadata PR, preserve the feature branch;
 - pre-merge failure/stop condition => mark `BLOCKED`, preserve the feature branch;
 - one dependency snapshot before selection: pending prerequisites are transient
   `WAITING_DEPENDENCY`, while every descendant of a terminal hard blocker is
@@ -244,18 +246,18 @@ wait adaptive CI for exact feature SHA
    ↙                     ↘
 PASS                 NON-SUCCESS
  ↓                       ↓
---no-ff --no-gpg-sign merge to develop
+ open/update protected task PR
                     mark task BLOCKED
                     freeze feature branch
                     never merge it
     ↓
-push develop
+independent approval + Required gate + merge commit
     ↓
 wait CI for exact merge SHA
    ↙                     ↘
 PASS                 NON-SUCCESS
  ↓                       ↓
-delete branch      revert merge on develop
+delete branch      urgent revert branch + protected PR
 next task          mark task REVERTED
                    preserve feature branch
                    rebuild dependency snapshot

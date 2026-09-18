@@ -386,14 +386,16 @@ After local completion:
    2. Use at most the configured `feature_ci_repair.max_attempts`. Apply the
    pre-merge `BLOCKED` lifecycle only after that budget is exhausted, the same
    failure survives correction, or CI is uncorrelated/unverifiable;
-4. switch to `develop`;
-5. verify `develop` has not changed unexpectedly since the branch was created;
-   if it has, reconcile safely without rebase/history rewriting and rerun all
-   affected local and remote gates, or block if unsafe;
-6. merge `feature/<Source>` into `develop` using `--no-ff --no-gpg-sign` so one
-   explicit merge commit identifies the task integration boundary;
-7. push `develop`;
-8. identify the GitHub Actions run for the exact merge SHA;
+4. open or update a pull request from `feature/<Source>` to `develop`;
+5. verify the PR head contains current `develop`; if the base moved, merge
+   current `develop` into the feature branch with `--no-ff --no-gpg-sign`,
+   rerun affected validation, push, and require a new exact feature-SHA gate;
+6. require the stable `Required gate`, resolved review conversations and at
+   least one approval from an eligible reviewer other than the task author;
+7. merge through GitHub using the merge-commit method so one explicit merge
+   commit identifies the task integration boundary; never rebase, squash,
+   force-push, bypass protection or push directly to `develop`;
+8. identify the GitHub Actions run for the exact resulting `develop` merge SHA;
 9. wait until the workflow reaches a terminal result.
 
 Do not begin the next task until the merge CI is terminal and the success/failure policy below has completed.
@@ -419,13 +421,17 @@ If CI for the merge commit fails:
 
 1. stop the current integration progression immediately;
 2. preserve `feature/<Source>` locally and remotely at its last pushed feature SHA;
-3. on `develop`, create an ordinary `--no-gpg-sign` revert of the merge commit (mainline parent 1); never reset or rewrite shared history;
-4. push the revert commit;
-5. verify the revert commit's tree matches the pre-merge `develop` tree, then wait for CI on the exact revert SHA and require the integration branch to return to green;
-6. ensure the task's `DONE` state is no longer present on `develop` after the revert;
-7. set only `REVERTED` on the task in `develop` and record the failed/unverified merge SHA, CI run/result, cause category and diagnostic summary;
-8. commit/push that task-status metadata without reintroducing implementation changes;
-9. wait for CI on the exact metadata commit and require it to be green;
+3. create `revert/<Source>-<merge-sha>` from current `develop` and create an
+   ordinary `--no-gpg-sign` mainline-parent-1 revert there; never reset or
+   rewrite shared history;
+4. push the revert branch, open an urgent PR, and require the same protected
+   checks and independent approval without bypass;
+5. merge the revert PR with a merge commit, verify its resulting `develop` tree
+   matches the pre-merge tree, and require exact merge-SHA CI to return green;
+6. ensure the task's `DONE` state is no longer present on `develop`;
+7. set only `REVERTED` and record diagnostics on a separate metadata branch;
+8. integrate that metadata through another protected reviewed PR;
+9. wait for CI on its exact merge SHA and require it to be green;
 10. keep the `REVERTED` feature branch for diagnosis or a later human-approved retry, frozen at the preserved SHA; do not check it out to merge `develop`, commit/amend, reset/rebase, advance, or delete it during this session.
 
 A failed merge is never left on `develop` merely because the next task might repair it.
@@ -559,10 +565,14 @@ required exact-SHA check entirely.
 
 ## Git safety rules
 
-Allowed lifecycle writes: branch creation/deletion, ordinary add/commit, push, explicit no-ff merge into `develop`, ordinary merge revert after failed CI, metadata-only task-state commits, and the final metadata-only session-report commit.
+Allowed lifecycle writes: branch creation/deletion, ordinary add/commit, branch
+pushes, protected merge-commit pull requests into `develop`, ordinary merge
+reverts on revert branches, metadata-only task-state pull requests, and the
+final metadata-only session-report pull request.
 
 Forbidden:
 
+- direct pushes to `develop`;
 - writes to `master`;
 - force-push;
 - autonomous rebase/history rewriting;

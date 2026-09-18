@@ -207,8 +207,16 @@ For each task:
 7. Mark the task `DONE` in the feature branch only when implementation and all local gates pass. The runner MUST treat this state as `CI_PENDING` until both feature and post-merge CI succeed.
 8. Create the remote feature ref only after a task-specific commit exists, push the final feature SHA, and wait for its exact GitHub Actions `Required gate`.
 9. If exact feature-SHA CI fails with an actionable repository-controlled diagnostic, keep the task `DONE`/`CI_PENDING`, invoke a fresh synchronous CI-repair worker on the same unfrozen feature branch, commit/push the narrow correction, and require a new exact feature-SHA CI run. Repeat within the configured repair budget. Only a non-actionable/unverifiable result or exhausted repeated repair budget may transition to `BLOCKED`.
-10. Only after exact feature-SHA CI succeeds, switch to `develop`, verify it has not moved unexpectedly, and merge the feature branch using an explicit `--no-ff --no-gpg-sign` merge commit.
-11. Push `develop` and wait for the GitHub Actions workflow associated with that exact merge commit.
+10. Only after exact feature-SHA CI succeeds, open or update a pull request from
+    `feature/<Source>` to `develop`. If `develop` moved, merge current `develop`
+    into the feature branch with `--no-ff --no-gpg-sign`, rerun affected local
+    checks, push, and require a new exact feature-SHA gate; never rebase or
+    force-push.
+11. Require the PR head to be current, the stable `Required gate` to succeed,
+    all review conversations to be resolved, and at least one approval from an
+    eligible reviewer other than the task author. Merge through GitHub using an
+    explicit merge commit; direct pushes to `develop` are forbidden.
+12. Wait for GitHub Actions on the exact resulting `develop` merge SHA.
 
 If post-merge CI succeeds:
 
@@ -219,10 +227,12 @@ If post-merge CI succeeds:
 If post-merge CI fails:
 
 - stop the current integration progression immediately;
-- revert the merge commit on `develop` with an ordinary `--no-gpg-sign` revert commit; never reset or rewrite shared history;
-- push the revert and verify the integration branch returns to a green state;
-- update the task on `develop` to `REVERTED`, recording the failed/unverified workflow, merge/revert SHAs, cause category and reason;
-- push the metadata-only status commit and wait for CI on that exact commit;
+- create `revert/<Source>-<merge-sha>` from current `develop`, revert the merge
+  commit there with ordinary `--no-gpg-sign`, and open an urgent pull request;
+- require the protected review/check lifecycle, merge the revert PR with an
+  explicit merge commit, and verify the exact resulting `develop` SHA is green;
+- record `REVERTED` and its diagnostics through a separate protected metadata
+  PR, then require its exact merge-SHA CI before proceeding;
 - preserve the local and remote `feature/<Source>` branch for diagnosis or later human-approved retry;
 - once its final feature SHA is pushed, freeze that divergent branch: do not merge `develop` into it, commit/amend it, reset/rebase it, advance it, or delete it during the session.
 
@@ -264,11 +274,17 @@ session merely because recovery is pending.
 
 ## Git safety constraints
 
-Allowed task/session-lifecycle writes include ordinary branch creation, add/commit, push, no-ff merge into `develop`, merge revert after failed CI, branch deletion after successful CI, metadata-only commits needed to record `BLOCKED`, `REVERTED`, or `SKIPPED_DEPENDENCY`, and the final session-report commit.
+Allowed task/session-lifecycle writes include ordinary branch creation,
+add/commit, feature/revert/metadata branch pushes, GitHub pull requests,
+reviewed merge-commit PR integration into `develop`, merge reverts performed on
+revert branches, branch deletion after successful CI, metadata-only pull
+requests needed to record `BLOCKED`, `REVERTED`, or `SKIPPED_DEPENDENCY`, and
+the final session-report pull request.
 
 Forbidden operations include:
 
 - any write to `master`;
+- any direct push to `develop`;
 - force-push;
 - rebase of autonomous task history;
 - `reset --hard` or equivalent history rewriting on shared branches;

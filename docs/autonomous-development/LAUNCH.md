@@ -21,7 +21,11 @@ in `CI-BASELINE.md` is green on the exact `develop` SHA.
 1. Merge the current GitHub Copilot CLI runner migration into `develop`. In the repository checkout, fetch `origin`, check out `develop`, and fast-forward it to `origin/develop`. The worktree must be clean and `develop` must equal `origin/develop`.
 2. Use a current GitHub Copilot CLI with custom agents, the `task` tool, `task_complete`, MCP, and Autopilot support. Restart the CLI after the migration reaches the checked-out `develop`, because repository custom agents are loaded when a CLI session starts. The former VS Code Autopilot/advanced-mode route is unsupported for this overnight workflow.
 3. Start GitHub Copilot CLI from the MercurionWeb repository root. Keep the parent CLI session, machine, network and GitHub authentication available for the complete run; disable automatic sleep for the night.
-4. Confirm GitHub authentication can read Actions and push ordinary branches/`develop`. Do not launch with production credentials or broader unrelated repository access in the agent environment.
+4. Confirm GitHub authentication can read Actions, push ordinary branches,
+   open pull requests and merge an independently approved green PR. It must not
+   have or use a ruleset bypass, and it must never push directly to `develop`.
+   Do not launch with production credentials or broader unrelated repository
+   access in the agent environment.
 5. Run the structural recipe check:
 
    ```text
@@ -70,11 +74,22 @@ exactly one task at a time, create and push `feature/<Source>` from the
 proven-green `develop` SHA, call the CLI `task` tool once with
 `agent_type: development-task-worker` and `mode: sync`, verify its evidence,
 push the final feature SHA and require its exact Windows/Linux `Required gate`.
-Only then no-ff/no-GPG-sign merge green work into `develop`, push, and wait for
-CI associated with the exact merge SHA. Never use background mode or run two
-workers concurrently.
+Only then open or update the task PR, reconcile a moved base by merging
+`develop` into the feature branch without rebase, and require a new exact-head
+gate when it changes. Require an independent approval, resolved conversations
+and `Required gate`, merge with an explicit GitHub merge commit, and wait for
+CI associated with the exact resulting `develop` merge SHA. Never use
+background mode or run two workers concurrently.
 
-On success, finalize DONE and delete the feature branch locally and remotely if present. On pre-merge block, preserve/push and freeze the divergent branch, record only BLOCKED on `develop`, and wait for exact metadata-commit CI. On merge CI non-success/unverifiable result, freeze the feature branch at its last pushed SHA, revert the merge, verify the revert tree equals the pre-merge tree, push and require exact revert-SHA green CI, then record only REVERTED in a separate metadata commit and require its exact CI. Never merge develop into, amend, reset, rebase, advance or delete a BLOCKED/REVERTED branch.
+On success, finalize DONE and delete the feature branch locally and remotely if
+present. Every integration and metadata change enters protected `develop`
+through a green independently approved merge-commit PR. On pre-merge block,
+preserve/push and freeze the divergent branch and record only BLOCKED through a
+metadata PR. On merge CI non-success/unverifiable result, freeze the feature
+branch, create an urgent revert branch/PR, verify the protected revert merge
+restores the pre-merge tree and exact-SHA green CI, then record only REVERTED
+through another metadata PR. Never push directly to `develop`, bypass the
+ruleset, rebase, force-push or rewrite shared history.
 
 After BLOCKED or REVERTED becomes green, resolve the transitive hard-dependency graph. Mark each pending dependent task SKIPPED_DEPENDENCY in one batched metadata-only commit without creating a feature branch or invoking a worker; record direct and transitive causes and require exact skip-commit CI. Continue only with the next pending task whose hard dependencies are all DONE. Tasks merely left unattempted because the deadline arrives remain pending. If develop does not return to exact-SHA green after revert/status/skip metadata, classify it as a baseline/upstream incident and stop the whole session; do not pass the problem to another task.
 

@@ -354,6 +354,25 @@ requireMatch(
 requireMatch(
   paths.agents.coordinator,
   coordinator.content,
+  /pull[\s\S]*request to `develop`[\s\S]*independent approval[\s\S]*merge-commit[\s\S]*never push directly to `develop`/,
+  'coordinator must use protected independently reviewed PR integration',
+);
+requireMatch(
+  paths.agents.coordinator,
+  coordinator.content,
+  /revert[\s\S]*branch[\s\S]*urgent PR[\s\S]*protected checks[\s\S]*metadata PR/,
+  'coordinator must use protected PRs for rollback and REVERTED metadata',
+);
+const ciSkill = read(paths.skills.ci);
+requireMatch(
+  paths.skills.ci,
+  ciSkill,
+  /independently approved pull request[\s\S]*never push directly to `develop`/,
+  'CI lifecycle skill must require protected PR integration',
+);
+requireMatch(
+  paths.agents.coordinator,
+  coordinator.content,
   /entire affected[\s\S]*transitive closure[\s\S]*one aggregate metadata-only commit/,
   'coordinator must batch terminal dependency skips',
 );
