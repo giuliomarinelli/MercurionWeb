@@ -1,6 +1,6 @@
 # 0210 - Eliminate or govern deprecated dependencies
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -142,7 +142,8 @@ Passed:
   `1000000` byte gate; Quill and RDKit remained lazy.
 - `git diff --check`.
 ### Full pre-merge CI-parity validation
-Not run locally by policy. Exact feature-SHA CI is coordinator-owned.
+Not run locally by policy. Exact feature-SHA CI is coordinator-owned; the
+task remains provisional `DONE`/`CI_PENDING` until that exact SHA is green.
 ### Browser validation performed
 Using Chrome DevTools MCP through `http://localhost:8888`:
 
@@ -157,7 +158,11 @@ Using Chrome DevTools MCP through `http://localhost:8888`:
 - Two consecutive post-change readiness rounds returned HTTP 200 from
   `/health` and `/`; all task-owned processes were stopped afterward.
 ### Commits
-_Pending implementation commit._
+`32be217d82d7bd81ae2496368bee5daa151de07d` — govern deprecated dependencies.
+
+### Merge / CI
+Feature branch is ready for coordinator-owned exact feature-SHA CI. No merge
+or integration was performed by the worker.
 ### Merge / CI
 _Not started._
 ### Rollback
