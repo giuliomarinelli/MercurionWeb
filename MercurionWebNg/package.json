@@ -71,7 +71,7 @@
   },
   "devDependencies": {
     "@angular/build": "20.3.32",
-    "@angular/cli": "20.3.32",
+    "@angular/cli": "22.1.8",
     "@angular/compiler-cli": "20.3.30",
     "@graphql-codegen/add": "7.1.0",
     "@graphql-codegen/cli": "7.4.0",
