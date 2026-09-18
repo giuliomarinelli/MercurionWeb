@@ -1,7 +1,7 @@
 # 0072 - Unify collection cards into one presentational primitive
 
-- [ ] DONE
-- [x] BLOCKED
+- [x] DONE
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -167,3 +167,22 @@ be discarded or rebased.
 
 The historical dependency-skip note is retained in prior repository history;
 the direct owner instruction authorized this implementation attempt.
+
+### Manual recovery (2026-09-18)
+
+- Re-enabled directly by the repository owner as a manual AI-assisted recovery.
+- Refreshed the preserved implementation from current green `develop` without
+  rebasing or discarding its commits.
+- Restored authenticated runtime access with the configured local test account.
+- Corrected strict GraphQL argument validation for collection and collection-item
+  pagination so the current backend accepts the existing generated client contract;
+  added three focused validation cases, all passing, and passed Nest typecheck.
+- Browser evidence through `http://localhost:8888` confirmed two rendered canonical
+  collection cards, no residual skeletons, distinct link/button semantics, keyboard
+  Enter navigation to collection detail, no horizontal overflow at desktop width,
+  and successful authenticated route loading. Selectable/selected semantics remain
+  covered by the canonical card and overlay component specs.
+- Angular validation completed with `509 SUCCESS`; the earlier local watch-mode run
+  that timed out seven unrelated accessibility cases was superseded by this clean run.
+- Exact feature-SHA and post-merge CI evidence is recorded by the manual integration
+  lifecycle after this status commit.
