@@ -160,7 +160,9 @@ beta/production route or infrastructure was accessed.
 
 ### Commits
 
-_Pending task-specific commit._
+`b235103adb998edc6b081da266acbcbf7e1898a7` — `qa: centralize deployment configuration`
+
+The execution-note update is included in the final feature-branch commit.
 
 ### Merge / CI
 
