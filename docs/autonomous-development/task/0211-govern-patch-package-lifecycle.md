@@ -94,37 +94,88 @@ A patch registry should describe evidence, not duplicate the patch diff. Keep te
 
 ## Execution notes
 
-> Current status (2026-09-11): PENDING. The planner identified the prior
-> dependency skip as stale after direct owner re-enablement of its prerequisite
-> chain; historical skip evidence below is retained only for traceability.
+> Current status (2026-09-13): DONE (provisional `CI_PENDING`). The planner
+> classified task 0211 as `READY`; the historical dependency skip was stale and
+> was not materialized.
 
 ### Feature branch
-_Not started._
+`feature/QA-025`, based on `dd3e8201b1cc9a7fc18a4e20e6c55f8534468798`.
+
 ### Preflight
-_Not started._
+- Confirmed the clean feature branch and exact supplied base SHA before edits.
+- Confirmed repository-local `commit.gpgSign=false`.
+- Exact base-SHA Actions run `35299431242` succeeded, including Ubuntu,
+  Windows, and `Required gate`.
+- `npm run autonomous:plan --silent` classified 0211 as `READY` with no
+  planner errors, cycles, or stale skips.
+- `npm run ci:dependencies` passed before mutation.
+- No local `npm ci` or `npm run ci:check` was run.
+
 ### Preflight remediation
-_None._
+None. The canonical runtime was started in the required Tox21 -> Nest ->
+Angular order. The first Angular start was corrected from the repository root
+to `MercurionWebNg` after the root correctly reported that it has no
+`start:dev` script; no task files had been changed at that point.
+
 ### Summary
-Not attempted because direct terminal prerequisite 0210 (QA-024) is
-`SKIPPED_DEPENDENCY`.
+Added a fail-closed patch registry and lifecycle checker for all committed
+`patch-package` patches. Retained RDKit is registered with ownership,
+rationale, upstream reference, removal deadline, removal condition, target
+file, and expected wrapper delta. Historical removal records cover the
+minimatch and `@as-integrations/fastify` patches removed by task 0210.
+Registered the checks in canonical static CI, made postinstall fail on patch
+application errors, and added focused RDKit and negative lifecycle regression
+checks.
+
 ### Task-specific validation performed
-_Not started._
+- `npm run ci:patches` passed: one retained patch, two removed records, one
+  patch file, RDKit regression, and all negative lifecycle fixtures.
+- Angular typecheck passed.
+- Angular lint passed.
+- Focused chemistry/molecule-viewer Angular tests passed: 33 tests.
+- `npm run ci:build:angular` passed; initial bundle was 918602 bytes under
+  the 1000000-byte gate, RDKit remained lazy, and the chemistry lazy-boundary
+  check passed.
+- `git diff --check` passed.
+
 ### Full pre-merge CI-parity validation
-_Not started._
+The complete clean-install and aggregate gate remain exact-feature-SHA
+Actions responsibilities. Local validation intentionally used the existing
+dependency tree and did not run `npm ci` or `npm run ci:check`.
+
 ### Browser validation performed
-_Not started / as applicable._
+Because the retained RDKit patch affects browser-visible Angular behavior,
+Chrome DevTools capability was probed successfully without navigation.
+Pre-change and post-change runtimes each produced two consecutive readiness
+rounds through `http://localhost:8888` with HTTP 200 responses for `/health`
+and `/`. The protected caffeine molecule detail route rendered the RDKit
+structure and molecule properties after the change. Network evidence showed
+successful GraphQL/API requests, the lazy RDKit chunk, and
+`RDKit_minimal.wasm` loading with HTTP 200/304 responses.
+
+The persistent non-production profile was already authenticated; navigation
+to `/login` redirected to the protected dashboard, so protected UI state was
+proven without exposing credentials. A fresh logout/login cycle could not be
+completed because the account-menu controls did not become interactive.
+One `ApolloError: Invalid Mercurion public ID for id` console error appeared
+both before and after the change and was not caused by any task-touched file.
+All task-owned Tox21, Nest, and Angular processes were stopped after
+validation.
+
 ### Commits
-_Not recorded._
+To be recorded after the final task-note and validation pass.
+
 ### Merge / CI
-_Not started._
+Not started. The feature branch must be pushed only after the task-specific
+commit; the coordinator owns exact feature-SHA CI observation and integration.
+
 ### Rollback
-_Not applicable._
+Not applicable.
+
 ### Blocker / human decision required
-Direct terminal prerequisite: 0210 (QA-024), `SKIPPED_DEPENDENCY`.
-Transitive root: 0076 (UI-018), `BLOCKED`; its preserved feature branch
-remains deliberately frozen.
+None for local implementation. Exact feature-SHA Actions must pass before
+integration.
 
 ### Dependency skip
-
-Direct terminal prerequisite: `0210` (`QA-024`), `SKIPPED_DEPENDENCY`; its
-transitive root is `0071` (`UI-013`), `BLOCKED`. Materialized on 2026-09-13.
+The previous skip narrative was stale. The authoritative planner resolved
+0211 as `READY`; no skip metadata was created.
