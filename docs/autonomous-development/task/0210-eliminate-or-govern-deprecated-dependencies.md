@@ -1,6 +1,6 @@
 # 0210 - Eliminate or govern deprecated dependencies
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -95,27 +95,74 @@ Evaluate the current graph, not only the original audit list. A removed direct p
 
 ## Execution notes
 
-> Current status (2026-09-11): PENDING. The planner identified the prior
-> dependency skip as stale after direct owner re-enablement of its prerequisite
-> chain; historical skip evidence below is retained only for traceability.
+> Current status (2026-09-18): PENDING. The planner classified this recipe
+> `READY`; the historical dependency-skip text below is retained only for
+> traceability and is not an execution result.
 
 ### Feature branch
-_Not started._
+`feature/QA-024` from base `514953820b4572256e000ff81c8bad431e3d09e4`.
 ### Preflight
-_Not started._
+Exact base-SHA Actions run `35297549970` completed successfully for
+`514953820b4572256e000ff81c8bad431e3d09e4`, including `Required gate`.
+The authoritative planner reported `0210` as `READY` with no errors, cycles or
+stale skips. The feature branch was clean and matched the supplied base SHA.
+Focused unchanged checks passed (`git diff --check` and local signing policy
+was `commit.gpgSign=false`). No local `npm ci` or `npm run ci:check` was run.
+
+The pre-change browser/runtime capability probe started Tox21, Nest and Angular
+in canonical order with live handles. After startup, two initial nginx rounds
+returned retryable `502` responses while the workspaces compiled, followed by
+two consecutive `200` responses from `http://localhost:8888/health` and
+`http://localhost:8888/`. Chrome DevTools MCP was callable without navigation,
+and a fresh ordinary login through `http://localhost:8888/login` reached the
+protected dashboard. All task-owned processes were stopped before mutation.
 ### Preflight remediation
 _None._
 ### Summary
-Not attempted because direct terminal prerequisite 0085 (UI-027) is
-`SKIPPED_DEPENDENCY`.
+Replaced the stale dependency-skip narrative with a current inventory and
+machine-readable policy. The policy rejects deprecated audited packages as
+direct dependencies, requires exact approved versions for the canonical
+fingerprint/NATS/lazy editor and chemistry adapters, and records only
+time-bounded transitive exceptions for package-manager-owned compatibility
+metadata. A deterministic warning report and CI gate now reject unregistered
+warnings or unexplained direct ownership.
 ### Task-specific validation performed
-_Not started._
+Passed:
+
+- `npm run ci:dependencies` — 126 direct packages, three registered
+  transitive exceptions, zero unaccepted warnings, plus the negative policy
+  probe.
+- `npm run ci:angular:legacy-animations`.
+- `npm run ci:graphql`.
+- `npm run lint:angular --workspace mercurion_web_ng`.
+- `npm run typecheck --workspace mercurion_web_ng`.
+- `npm run ci:lint:nest`.
+- `npm run ci:typecheck:nest`.
+- `npm run ci:build:angular` — initial bundle `918602` bytes under the
+  `1000000` byte gate; Quill and RDKit remained lazy.
+- `git diff --check`.
 ### Full pre-merge CI-parity validation
-_Not started._
+Not run locally by policy. Exact feature-SHA CI is coordinator-owned; the
+task remains provisional `DONE`/`CI_PENDING` until that exact SHA is green.
 ### Browser validation performed
-_Not started / as applicable._
+Using Chrome DevTools MCP through `http://localhost:8888`:
+
+- Protected runtime state was available through the authenticated account API
+  with HTTP 200 after the pre-change fresh ordinary login.
+- The lazy Ketcher editor loaded at
+  `/molecules/editor?mode=create`, including its editor iframe and lazy
+  resources.
+- The molecule-detail route loaded and showed the expected unavailable-record
+  error rather than a route, bundle or navigation failure.
+- No console errors were reported on the editor page.
+- Two consecutive post-change readiness rounds returned HTTP 200 from
+  `/health` and `/`; all task-owned processes were stopped afterward.
 ### Commits
-_Not recorded._
+`32be217d82d7bd81ae2496368bee5daa151de07d` — govern deprecated dependencies.
+
+### Merge / CI
+Feature branch is ready for coordinator-owned exact feature-SHA CI. No merge
+or integration was performed by the worker.
 ### Merge / CI
 _Not started._
 ### Rollback

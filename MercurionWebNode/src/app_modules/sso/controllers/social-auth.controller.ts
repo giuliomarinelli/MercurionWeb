@@ -63,14 +63,15 @@ export class SocialAuthController {
       reply.redirect(errorRedirectUrl, 302)
       return
     }
-    const isValidState = await this.socialAuth.validateCallbackState(normalizedState, normalizedProvider)
-    if (!isValidState) {
+    const stateRecord = await this.socialAuth.consumeCallbackState(normalizedState, normalizedProvider)
+    if (!stateRecord) {
       onError('SSO_Unauthorized::callback_flow_invalid_state')
+      return
     }
     try {
       const sso_pat = await this.socialAuth.loginWithProvider(normalizedProvider, normalizedCode)
       let redirectUrl = `${this.base}/oauth2/callback?provider=${encodeURIComponent(normalizedProvider)}`
-      const redirectTo = await this.socialAuth.retrieveRedirectTo(state, provider)
+      const redirectTo = stateRecord.redirectTo
       if (redirectTo) {
         redirectUrl += `&redirect_to=${encodeURIComponent(redirectTo)}`
       }

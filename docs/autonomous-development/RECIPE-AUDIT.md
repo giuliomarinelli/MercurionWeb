@@ -37,7 +37,7 @@ node docs/autonomous-development/tools/validate-recipes.mjs
 
 ## Intentional late-series lifecycle transition
 
-Task `0218` intentionally changes integration from direct `develop` pushes to protected pull requests with an independent review. This is not normalized away: the task must update the repository-wide protocol/runner before protection becomes effective and must block if administration permission or an eligible independent reviewer is unavailable. Tasks `0219` and `0220` remain hard-dependent on that protected lifecycle; no autonomous bypass is allowed.
+Task `0218` records the repository owner's decision to retain isolated feature branches, explicit merge commits, and exact feature/merge-SHA CI without mandatory protected pull requests. Tasks `0219` and `0220` depend on that fail-closed integration lifecycle, not on branch-protection or independent-review settings.
 
 ## Audit boundary
 

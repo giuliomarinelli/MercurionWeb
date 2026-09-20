@@ -309,7 +309,7 @@ Il registro seguente contiene **220 task atomici**. Ogni Definition of Done desc
 | QA-029 | Variabili e immagini sono replicate tra Docker Compose, Dockerfile e manifest Kubernetes | Deployment config deriva da uno schema/overlay canonico; nomi, porte, env obbligatorie, secret reference e image version non divergono tra ambienti. |
 | QA-030 | Probes e lifecycle deployment non sono collegati a readiness reale delle dipendenze/shutdown | Readiness segnala capacità di servire, liveness solo deadlock, startup copre bootstrap e termination grace completa lo shutdown senza richieste perse. |
 | QA-031 | Logging e performance non hanno criteri di regressione sistemici | Ogni richiesta propaga correlation ID su HTTP/GraphQL/socket/NATS, metriche misurano query/cache/latency/error rate e benchmark bloccano regressioni concordate. |
-| QA-032 | Branch `develop` non è protetto e non ha required checks | `develop` richiede PR, review e tutte le quality gate verdi; push diretto/merge con controlli falliti non sono consentiti. |
+| QA-032 | Il lifecycle di integrazione di `develop` richiede una decisione esplicita | Le modifiche passano da branch feature isolati, CI verde sul feature SHA, merge commit esplicito e CI verde sul merge SHA; non è richiesta una policy PR protetta. |
 | QA-033 | Supply chain e segreti non hanno gate repository/image dichiarate | CI esegue secret scan, dependency/license scan, SBOM e image vulnerability scan; artifact release è firmato e riferito per digest. |
 | QA-034 | Aggiornamenti dependency sono reattivi e non hanno finestra/owner | Ogni dipendenza ha update automation, policy di semver e owner; patch di sicurezza compatibili aprono PR verificate entro una finestra definita. |
 

@@ -63,6 +63,22 @@ describe('ButtonComponent', () => {
     expect(button.getBoundingClientRect().width).toBe(width);
   });
 
+  it('does not emit a second command while loading or when disabled', () => {
+    const host = fixture.componentInstance;
+    const button = fixture.debugElement.queryAll(By.css('button'))[0].nativeElement as HTMLButtonElement;
+
+    host.loading = true;
+    fixture.detectChanges();
+    button.click();
+    expect(host.pressed).toBeFalse();
+
+    host.loading = false;
+    host.disabled = true;
+    fixture.detectChanges();
+    button.click();
+    expect(host.pressed).toBeFalse();
+  });
+
   it('does not submit when the default type is used', () => {
     const button = fixture.debugElement.queryAll(By.css('button'))[1].nativeElement;
     button.click();

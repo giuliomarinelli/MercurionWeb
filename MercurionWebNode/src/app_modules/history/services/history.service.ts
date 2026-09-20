@@ -13,7 +13,7 @@ import { TypeGuards } from 'src/utils/type-guards/type-guards';
 import { LoggerPort } from 'src/logging/logger.port';
 import { LoggerContext } from 'src/logging/logger.port';
 import { utcInstantFromEpochMs } from 'src/utils/temporal/temporal'
-import { runInTransaction, transactionRepository, type TransactionContext } from 'src/persistence/transaction-context'
+import { runInTransaction, transactionManager, type TransactionContext } from 'src/persistence/transaction-context'
 
 @Injectable()
 export class HistoryService {
@@ -152,14 +152,32 @@ export class HistoryService {
         lookbackDays = 7,
         context?: TransactionContext,
     ): Promise<TinyHistoryDTO[]> {
+        if (context) {
+            return this.getRecentHistoryTinyDistinctPerDayWithManager(
+                userId,
+                lookbackDays,
+                transactionManager(context),
+            )
+        }
+
+        return runInTransaction(this.dataSource, async (_context, manager) =>
+            this.getRecentHistoryTinyDistinctPerDayWithManager(userId, lookbackDays, manager),
+        )
+    }
+
+    async getRecentHistoryTinyDistinctPerDayWithManager(
+        userId: UUID,
+        lookbackDays: number,
+        manager: EntityManager,
+    ): Promise<TinyHistoryDTO[]> {
         const days = Math.max(1, lookbackDays)
         const now = Date.now()
         const msPerDay = 24 * 60 * 60 * 1000
         const cutoff = now - days * msPerDay
 
         // Query minimale, sfrutta idx_history_user_touched_at_desc
-        const historyRepo = context ? transactionRepository(context, History) : this.historyRepo
-        const rows = await historyRepo
+        const rows = await manager
+            .getRepository(History)
             .createQueryBuilder('h')
             .select([
                 'h.id',

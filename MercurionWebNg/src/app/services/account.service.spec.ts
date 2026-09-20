@@ -63,6 +63,16 @@ describe('AccountService provided-email cache', () => {
     await expectAsync(expired).toBeResolvedTo({ email: 'a-fresh@example.test', provider: 'Mercurion' })
   })
 
+  it('coalesces concurrent reads for the active owner', async () => {
+    const first = firstValueFrom(service.getProvidedEmail())
+    const second = firstValueFrom(service.getProvidedEmail())
+
+    flushEmail('a@example.test')
+
+    await expectAsync(first).toBeResolvedTo({ email: 'a@example.test', provider: 'Mercurion' })
+    await expectAsync(second).toBeResolvedTo({ email: 'a@example.test', provider: 'Mercurion' })
+  })
+
   it('does not reuse data after logout or session replacement', async () => {
     const first = firstValueFrom(service.getProvidedEmail())
     flushEmail('a@example.test')
