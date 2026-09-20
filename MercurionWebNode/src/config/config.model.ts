@@ -189,7 +189,9 @@ export const configurationBuilders = {
         appSecret: environment.DROPBOX_APP_SECRET,
         redirectUri: environment.DROPBOX_REDIRECT_URI,
         tokenUrl: environment.DROPBOX_TOKEN_URL,
-        authUrl: environment.DROPBOX_AUTH_URL
+        authUrl: environment.DROPBOX_AUTH_URL,
+        revocationUrl: `${environment.DROPBOX_API_URL.replace(/\/$/, '')}/auth/token/revoke`,
+        revocationAuth: 'bearer' as const
     }),
 
     [ConfigKey.Meilisearch]: (environment: ValidatedEnvironment) => ({

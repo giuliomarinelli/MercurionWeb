@@ -15,7 +15,7 @@ export class OAuth2TokenEntity {
     @Column({ type: 'uuid', nullable: true })
     userId!: UUID | null
 
-    @Column({ type: 'text' })
+    @Column({ type: 'text', select: false })
     refreshToken!: string
 
     @Column({ type: 'varchar', length: 255, nullable: true })
@@ -31,6 +31,17 @@ export class OAuth2TokenEntity {
     private onInsert() {
         this.id = uuidv7() as UUID
         this.createdAt = Date.now()
+    }
+
+    toJSON() {
+        return {
+            id: this.id,
+            provider: this.provider,
+            userId: this.userId,
+            scope: this.scope,
+            createdAt: this.createdAt,
+            updatedAt: this.updatedAt,
+        }
     }
 
 }

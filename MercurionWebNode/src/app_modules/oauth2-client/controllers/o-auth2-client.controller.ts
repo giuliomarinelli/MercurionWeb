@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Param, Res, UnauthorizedException } from '@nestjs/common';
+import { Controller, Delete, Get, Query, Param, Res, UnauthorizedException } from '@nestjs/common';
 import { OAuth2ClientService } from '../services/oauth2-client.service';
 import { FastifyReply } from 'fastify/types/reply';
 import { UUID } from 'crypto';
@@ -6,6 +6,7 @@ import { Public } from 'src/metadata/metadata';
 import { LoggerPort } from 'src/logging/logger.port';
 import { LoggerContext } from 'src/logging/logger.port';
 import { OAuthStateService } from '../services/oauth-state.service';
+import { AuthenticatedUserId } from 'src/metadata/metadata';
 
 
 
@@ -59,5 +60,14 @@ export class OAuth2ClientController {
             stateRecord.ownerUserId as UUID | undefined,
         )
         return { detail: 'Login OAuth2 completato! Ora puoi chiudere questa finestra' }
+    }
+
+    @Delete(':provider')
+    async disconnect(
+        @Param('provider') provider: string,
+        @AuthenticatedUserId() userId: UUID,
+    ) {
+        await this.oauth2ClientService.disconnect(provider, userId)
+        return { detail: 'OAuth provider disconnected' }
     }
 }

@@ -9,7 +9,6 @@ import { OAuth2TokenData } from '../models/interfaces/oauth2-token-data.interfac
 import { LoggerPort } from 'src/logging/logger.port';
 import { LoggerContext } from 'src/logging/logger.port';
 import { redisDurations, redisKeys } from 'src/app_modules/redis/contracts/redis-contracts';
-import { errorMessage } from 'src/utils/errors/error-message'
 import { ExternalHttpPort, ExternalHttpResponse } from 'src/infrastructure/external-http/external-http.port'
 import { OAuthStateService } from './oauth-state.service'
 
@@ -29,7 +28,20 @@ export class OAuth2ClientService implements IOAuth2ClientService {
     }
 
     private getProviderConfig(provider: string): OAuth2ProviderConfiguration {
-        return this.configService.get<OAuth2ProviderConfiguration>(provider) as OAuth2ProviderConfiguration;
+        return this.configService.get<OAuth2ProviderConfiguration>(provider.toLowerCase()) as OAuth2ProviderConfiguration;
+    }
+
+    private normalizeProvider(provider: string): string {
+        const normalized = provider.trim().toLowerCase()
+        if (!normalized) throw new UnauthorizedException('OAuth provider is required')
+        return normalized
+    }
+
+    private accessTokenTtl(expiresIn: number): ReturnType<typeof redisDurations.seconds> {
+        if (!Number.isFinite(expiresIn) || expiresIn <= 0) {
+            throw new UnauthorizedException('Provider returned an invalid access-token expiry')
+        }
+        return redisDurations.seconds(Math.max(1, Math.floor(expiresIn)))
     }
 
     /**
@@ -37,6 +49,7 @@ export class OAuth2ClientService implements IOAuth2ClientService {
      * (Dropbox: SEMPRE token_access_type=offline)
      */
     async getAuthorizationUrl(provider: string, userId?: string): Promise<string> {
+        provider = this.normalizeProvider(provider)
         const config = this.getProviderConfig(provider)
         const state = await this.oauthStateService.create({
             provider,
@@ -65,6 +78,7 @@ export class OAuth2ClientService implements IOAuth2ClientService {
      * Gestisce il callback OAuth2, scambia code per access/refresh token e salva tutto
      */
     async handleCallback(provider: string, code: string, userId?: UUID): Promise<void> {
+        provider = this.normalizeProvider(provider)
         const config = this.getProviderConfig(provider)
 
         // Token Exchange
@@ -81,12 +95,15 @@ export class OAuth2ClientService implements IOAuth2ClientService {
                 }),
                 { timeoutMs: 10_000, headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
             );
-        } catch (err) {
-            this.logger.error(`Token exchange error: ${errorMessage(err)}`)
+        } catch {
+            this.logger.error(`OAuth token exchange failed for provider ${provider}`)
             throw new UnauthorizedException('Failed to exchange code for tokens')
         }
 
         const { access_token, refresh_token, expires_in } = tokenRes.data as unknown as OAuth2TokenData
+        if (!access_token) {
+            throw new UnauthorizedException('No access_token received from provider.')
+        }
         if (!refresh_token) {
             this.logger.error('No refresh_token received. Verifica token_access_type=offline e revoca i permessi su Dropbox.')
             throw new UnauthorizedException('No refresh_token received from provider.')
@@ -96,8 +113,8 @@ export class OAuth2ClientService implements IOAuth2ClientService {
         await this.persistenceService.saveRefreshToken(provider, refresh_token, userId)
         await this.redisService.set(
             redisKeys.oauth.accessToken(provider, userId),
-            access_token ?? '',
-            redisDurations.seconds(expires_in)
+            access_token,
+            this.accessTokenTtl(expires_in)
         )
     }
 
@@ -105,6 +122,7 @@ export class OAuth2ClientService implements IOAuth2ClientService {
      * Recupera sempre un access token valido, fa refresh automatico se serve
      */
     async getAccessToken(provider: string, userId?: UUID): Promise<string> {
+        provider = this.normalizeProvider(provider)
         const redisKey = redisKeys.oauth.accessToken(provider, userId)
         let accessToken = await this.redisService.get(redisKey)
 
@@ -125,26 +143,54 @@ export class OAuth2ClientService implements IOAuth2ClientService {
                     }),
                     { timeoutMs: 10_000, headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
                 );
-            } catch (err) {
-                this.logger.error(`Token refresh error: ${errorMessage(err)}`)
+            } catch {
+                this.logger.error(`OAuth token refresh failed for provider ${provider}`)
                 throw new UnauthorizedException('Failed to refresh access token')
             }
 
-            const { access_token, expires_in, new_refresh_token } = tokenRes.data as unknown as OAuth2TokenData
+            const { access_token, expires_in, new_refresh_token, refresh_token } = tokenRes.data as unknown as OAuth2TokenData
             if (!access_token) throw new UnauthorizedException('No access_token received during refresh.')
+
+            const rotatedRefreshToken = new_refresh_token ?? refresh_token
+            if (rotatedRefreshToken) {
+                await this.persistenceService.saveRefreshToken(provider, rotatedRefreshToken, userId)
+            }
 
             await this.redisService.set(
                 redisKey,
                 access_token,
-                redisDurations.seconds(expires_in)
+                this.accessTokenTtl(expires_in)
             )
-
-            if (new_refresh_token) {
-                await this.persistenceService.saveRefreshToken(provider, new_refresh_token, userId)
-            }
 
             accessToken = access_token
         }
         return accessToken
+    }
+
+    async disconnect(provider: string, userId?: UUID): Promise<void> {
+        provider = this.normalizeProvider(provider)
+        const accessTokenKey = redisKeys.oauth.accessToken(provider, userId)
+        const accessToken = await this.redisService.get(accessTokenKey)
+        const config = this.getProviderConfig(provider)
+
+        try {
+            if (accessToken && config.revocationUrl) {
+                await this.http.post(
+                    config.revocationUrl,
+                    undefined,
+                    {
+                        timeoutMs: 10_000,
+                        headers: config.revocationAuth === 'bearer'
+                            ? { Authorization: `Bearer ${accessToken}` }
+                            : { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    },
+                )
+            }
+        } catch {
+            this.logger.warn(`OAuth provider revocation failed for provider ${provider}`)
+        } finally {
+            await this.redisService.del(accessTokenKey)
+            await this.persistenceService.deleteCredentials(provider, userId)
+        }
     }
 }

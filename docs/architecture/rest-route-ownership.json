@@ -111,6 +111,32 @@
       ]
     },
     {
+      "method": "DELETE",
+      "path": "/api/oauth2/:provider",
+      "controller": "MercurionWebNode/src/app_modules/oauth2-client/controllers/o-auth2-client.controller.ts",
+      "handler": "disconnect",
+      "classification": "browser/system API",
+      "owner": "OAuth provider credential lifecycle",
+      "evidence": [
+        "MercurionWebNode/src/app_modules/oauth2-client/controllers/o-auth2-client.controller.ts",
+        "docs/security/oauth-provider-credential-policy.md"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/pages/login/login-sso-chooser.component.ts",
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNg/src/app/services/auth.facade.ts",
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNode/src/app_modules/sso/providers/discord-provider-client.ts",
+          "kind": "server-source"
+        }
+      ]
+    },
+    {
       "method": "GET",
       "path": "/api/account/active-sessions",
       "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
