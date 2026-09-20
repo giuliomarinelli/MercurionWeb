@@ -1,7 +1,7 @@
 # 0186 - Version and validate Redis session records
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
@@ -90,24 +90,76 @@ Do not use the TypeScript `ISession` interface itself as the persistence validat
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-037`, based on `a9fb2083328bb6a65e558af25e021247d06792f9`.
+
 ### Preflight
-_Not started._
+Unchanged task-start baseline passed. The exact supplied `develop` SHA
+`a9fb2083328bb6a65e558af25e021247d06792f9` matches local `develop` and the
+feature branch. GitHub Actions run `35532097293` completed successfully with
+Windows, Linux, and `Required gate` green. Repository-local
+`commit.gpgSign=false`; no task-owned runtime was active before the probe.
+
 ### Preflight remediation
-_None._
+None.
+
 ### Summary
-Skipped because hard prerequisite 0179 (DATA-030) is BLOCKED by the unresolved Fastify/formidable runtime compatibility decision. Resolved hard dependency: 0179. This task was never attempted and receives no feature branch.
+The task is blocked by its explicit deployment-architecture stop condition
+before implementation. The active deployment surfaces do not document or
+enforce a bounded zero-downtime rolling compatibility window: the Kubernetes
+web-node deployment has one replica and only TCP startup/liveness/readiness
+probes (`k8s/beta/mercurion-web-node-deploy.yaml:7,63-77`), while the beta and
+production release Compose files define services/images but no rollout,
+promotion, update, or rollback compatibility policy
+(`docker_sl/releases/beta/docker-compose.yml:1-28`,
+`docker_sl/releases/prod/docker-compose.yml:1-28`). No existing architecture
+decision establishes the required N/N+1 session-codec read/write window.
+Choosing expand/contract, dual-read, or writer sequencing would therefore
+invent the deployment decision that this recipe requires before its codec
+contract can be implemented safely.
+
+No application implementation was changed. Only this task's terminal blocker
+metadata was added; the feature branch is preserved and frozen.
+
 ### Task-specific validation performed
-_Not started._
+Focused pre-implementation checks:
+
+- Chrome DevTools tool-surface probe: `list_pages` succeeded without
+  navigation; the dedicated persistent profile was used.
+- Canonical runtime starts were issued in the required Tox21 -> Nest ->
+  Angular order with live handles `tox21-DATA037`, `nest-DATA037`, and
+  `angular-DATA037` before any HTTP request.
+- Through `http://localhost:8888`, initial retryable `502` responses were
+  observed while upstreams compiled, followed by two complete readiness rounds:
+  `/health` `200/79` and `/` `200/4464` in each round.
+- Fresh ordinary login was performed after an explicit logout using the local
+  development test account through the login form with snapshot plus
+  `fill_form`; protected server-accepted state was proved by the rendered
+  authenticated dashboard (`Benvenuto Test.`).
+- All three task-owned runtime processes were stopped before returning; no
+  Tox21, Nest, or Angular task process remained.
+
 ### Full pre-merge CI-parity validation
-_Not started._
+Not run locally; `npm ci` and `npm run ci:check` are forbidden for autonomous
+local validation. Exact base-SHA Actions run `35532097293` is green.
+
 ### Browser validation performed
-_Not started._
+Pre-implementation capability evidence only, as implementation was stopped by
+the recipe's explicit architecture decision condition. The canonical origin
+was `http://localhost:8888`; no direct Angular port, dummy auth, clipboard
+API, script evaluation, or production state was used.
+
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+Pending blocker-metadata commit on `feature/DATA-037`.
+
 ### Merge / CI
-Recorded in the aggregate dependency-skip metadata commit on `develop`; exact-SHA CI required.
+Not merged. The preserved feature branch must remain frozen for human review.
+
 ### Rollback
 _Not applicable._
+
 ### Blocker / human decision required
-Terminal dependency root: 0136 (BE-022). No feature branch or worker was created for this task.
+Define and document the bounded zero-downtime rolling deployment architecture
+for Redis session-record codec changes, including the adjacent-version
+read/write compatibility matrix, writer sequencing, lazy migration/dual-read
+policy, and the point at which legacy support may be removed. Do not resume
+implementation until that decision is owned by deployment architecture policy.
