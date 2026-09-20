@@ -17,6 +17,7 @@ import { ChEMBLMoleculeItemService } from './services/chembl-molecule-item.servi
 import { History } from '../history/models/entities/history.entity';
 import { InitialWorkspaceService } from './services/initial-workspace.service';
 import { MoleculeOwnershipPolicy } from './services/molecule-ownership.policy';
+import { MoleculeCollectionItemCountLoader } from './services/molecule-collection-item-count.loader';
 
 @Global()
 @Module({
@@ -41,7 +42,8 @@ import { MoleculeOwnershipPolicy } from './services/molecule-ownership.policy';
         CustomMoleculeItemResolver,
         ChEMBLMoleculeItemService,
         InitialWorkspaceService,
-        MoleculeOwnershipPolicy
+        MoleculeOwnershipPolicy,
+        MoleculeCollectionItemCountLoader
     ],
     exports: [
         ChEMBLMoleculeItemService,

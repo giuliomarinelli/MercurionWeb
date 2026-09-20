@@ -6,10 +6,8 @@ import { MoleculeCollection } from '../models/entities/molecule-collection.entit
 import { MoleculeCollectionService } from '../services/molecule-collection.service';
 import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
 import { PaginatedMoleculeCollection } from '../models/dto/paginated-molecule-collection';
-import { InjectRepository } from '@nestjs/typeorm';
-import { MoleculeCollectionItemJoin } from '../models/entities/molecule-collection-item-join.entity';
-import { Repository } from 'typeorm';
 import { MoleculeCollectionItemJoinService } from '../services/molecule-collection-item-join.service';
+import { MoleculeCollectionItemCountLoader } from '../services/molecule-collection-item-count.loader';
 import { BindManyCollectionsToMoleculeDTO } from '../models/dto/bind-many-collections-to-molecule.dto';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 import { assertMercurionPublicId } from 'src/identifiers/mercurion-public-id';
@@ -23,8 +21,7 @@ export class MoleculeCollectionResolver {
     constructor(
         private readonly collectionService: MoleculeCollectionService,
         private readonly joinService: MoleculeCollectionItemJoinService,
-        @InjectRepository(MoleculeCollectionItemJoin)
-        private readonly joinRepo: Repository<MoleculeCollectionItemJoin>,
+        private readonly itemCountLoader: MoleculeCollectionItemCountLoader,
     ) { }
 
     @ResolveField(() => Int)
@@ -32,7 +29,7 @@ export class MoleculeCollectionResolver {
         @Parent() collection: MoleculeCollection,
         @AuthenticatedUserId() userId: UUID
     ): Promise<number> {
-        return this.joinRepo.count({ where: { collectionId: collection.id, userId } })
+        return this.itemCountLoader.load(userId, collection.id)
     }
 
     // Query: Lista collezioni dell'utente
