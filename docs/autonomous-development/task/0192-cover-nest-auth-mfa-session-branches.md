@@ -3,7 +3,7 @@
 - [ ] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [ ] SKIPPED_DEPENDENCY
+- [x] SKIPPED_DEPENDENCY
 ## Objective
 
 Build comprehensive deterministic Nest tests for authentication, MFA and session security branches, including expiry/replay/revocation, concurrent sessions and refresh, scopes, external-provider flows, rate limits and Redis failure modes.
@@ -101,7 +101,7 @@ _Not started._
 ### Preflight remediation
 _None._
 ### Summary
-Skipped because hard prerequisite 0179 (DATA-030) is BLOCKED, with transitive descendants 0186 and terminal root 0179. Resolved hard dependencies: 0179, 0186, 0188. This task was never attempted and receives no feature branch.
+Skipped because hard prerequisite 0186 (DATA-037) is BLOCKED. Resolved hard dependencies: 0179, 0186, 0188. This task was never attempted and receives no feature branch.
 ### Task-specific validation performed
 _Not started._
 ### Full pre-merge CI-parity validation
@@ -115,4 +115,4 @@ Recorded in the aggregate dependency-skip metadata commit on `develop`; exact-SH
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Terminal dependency root: 0136 (BE-022). No feature branch or worker was created for this task.
+Terminal dependency root: 0186 (DATA-037), blocked by the unresolved bounded rolling-deployment architecture decision for Redis session codecs. No feature branch or worker was created for this task.
