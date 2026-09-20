@@ -143,8 +143,8 @@ be evaluated by the coordinator before integration.
 - Task-owned Tox21, Nest, and Angular processes were stopped after evidence
   collection; no task runtime processes remained.
 ### Commits
-Implementation and task metadata commits are recorded in the feature branch
-history after local validation.
+- `daefe13c` — `feat(history): build stable batch-aware read model`
+- This task metadata is included in the implementation commit.
 ### Merge / CI
 Not applicable to the worker; coordinator must push/observe exact feature-SHA
 CI before merging.
