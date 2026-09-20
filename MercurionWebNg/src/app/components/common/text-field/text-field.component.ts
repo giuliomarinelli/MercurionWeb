@@ -56,7 +56,7 @@ let nextGeneratedId = 0;
           [attr.aria-invalid]="isInvalid() ? 'true' : null"
           [attr.aria-required]="isRequired() ? 'true' : null"
           [attr.aria-describedby]="describedBy()"
-          (input)="onInput($any($event.target).value)"
+          (input)="onInput($event)"
           (focus)="focused.set(true)"
           (blur)="onBlur()"
           (keyup.enter)="enter.emit()"
@@ -138,8 +138,8 @@ export class TextFieldComponent implements ControlValueAccessor {
     }
   }
 
-  get control(): FormControl | null {
-    return (this.ngControl?.control as FormControl) ?? null;
+  get control(): FormControl<string> | null {
+    return (this.ngControl?.control as FormControl<string> | null) ?? null;
   }
 
   empty(): boolean {
@@ -206,7 +206,10 @@ export class TextFieldComponent implements ControlValueAccessor {
     this.disabledByForm = isDisabled;
   }
 
-  onInput(value: string): void {
+  onInput(event: Event): void {
+    const target = event.target;
+    if (!(target instanceof HTMLInputElement)) return;
+    const value = target.value;
     this.value.set(value);
     this.onChange(value);
   }

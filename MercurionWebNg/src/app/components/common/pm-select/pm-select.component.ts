@@ -11,6 +11,7 @@ import { PmOption } from '../../../Models/pm-option.model';
 
 export type PmSelectLayout = 'centered' | 'fullWidth';
 export type PmSelectTone = 'default' | 'highContrast';
+type PmValue = PmOption['value'];
 
 const LAYOUT_CLASSES = {
   centered: 'flex justify-center mx-auto max-w-[500px]',
@@ -160,7 +161,7 @@ export class PmSelectComponent implements ControlValueAccessor {
   protected readonly FOCUS_CLASSES = FOCUS_CLASSES;
 
   opened = false;
-  value: any = null;
+  value: PmValue | null = null;
   highlighted = -1;
 
   // ✅ tipizzato, così originX ecc non diventano "string"
@@ -181,7 +182,7 @@ export class PmSelectComponent implements ControlValueAccessor {
   private sso = inject(ScrollStrategyOptions);
   scrollStrategy: ScrollStrategy = this.sso.reposition();
 
-  private onChange = (_: any) => { };
+  private onChange: (value: PmValue | null) => void = () => undefined;
   private onTouched = () => { };
 
   private get currentOption() {
@@ -192,10 +193,23 @@ export class PmSelectComponent implements ControlValueAccessor {
   get currentIconUrl() { return this.currentOption?.iconUrl; }
   get currentIconAlt() { return this.currentOption?.iconAlt; }
 
-  writeValue(v: any) { this.value = v; }
-  registerOnChange(fn: any) { this.onChange = fn; }
-  registerOnTouched(fn: any) { this.onTouched = fn; }
-  setDisabledState(d: boolean) { this.formDisabled.set(d); }
+  writeValue(value: unknown): void {
+    if (value === null || typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+      this.value = value;
+    }
+  }
+
+  registerOnChange(fn: (value: unknown) => void): void {
+    this.onChange = value => fn(value);
+  }
+
+  registerOnTouched(fn: () => void): void {
+    this.onTouched = fn;
+  }
+
+  setDisabledState(disabled: boolean): void {
+    this.formDisabled.set(disabled);
+  }
 
   toggle() {
     if (this.isDisabled()) return;

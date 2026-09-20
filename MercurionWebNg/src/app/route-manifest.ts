@@ -119,7 +119,9 @@ export type RouteManifest = typeof routeManifest
 
 export const routePath = <T extends RouteId>(id: T): RouteManifest[T]['path'] => routeManifest[id].path
 
-export function routeData<T extends RouteDescriptor>(descriptor: T): AppRouteData {
+export function routeData(
+  descriptor: Pick<RouteDescriptor, 'data' | 'policy'>
+): AppRouteData {
   return {
     ...descriptor.data,
     routePolicy: descriptor.policy

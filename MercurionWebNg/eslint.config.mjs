@@ -117,7 +117,7 @@ export default tseslint.config(
       // zero-warning gate until their owning feature contracts are migrated.
       // The recommended correctness, security and Angular template rules
       // remain enforced below.
-      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-unused-vars': 'off',
       '@typescript-eslint/no-unused-expressions': 'off',
       '@angular-eslint/prefer-inject': 'off',

@@ -245,8 +245,8 @@ export class MfaPageComponent implements OnInit, OnDestroy {
   private readonly viewList: MfaView[] = ['EMAIL_OTP', 'SMS_OTP', 'APP_TOTP', 'BACKUP_CODE', 'CHOOSE_METHOD', '']
 
   protected enabledMfaStrategies = signal<MfaStrategy[]>([])
-  protected codeControl!: FormControl
-  protected phoneControl!: FormControl
+  protected codeControl: FormControl<string> = new FormControl('', { nonNullable: true })
+  protected phoneControl: FormControl<string> = new FormControl('', { nonNullable: true })
   protected isOtpFocused = signal<boolean>(false)
   protected isOtpEmpty = signal<boolean>(true)
   protected loading = signal<boolean>(false)
@@ -262,7 +262,7 @@ export class MfaPageComponent implements OnInit, OnDestroy {
     browser: { name: '', version: '' }
   }
 
-  private pollInterval!: ReturnType<typeof setInterval>
+  private pollInterval: ReturnType<typeof setInterval> | undefined
 
   private resolveRedirectTarget(): string {
     return this.redirects.consume()
@@ -297,8 +297,8 @@ export class MfaPageComponent implements OnInit, OnDestroy {
     this.fingerprintDataEnc = fingerprintDataEnc
     this.sessionDeviceInfo = sessionDeviceInfo
 
-    this.codeControl = this.fb.control(null, [Validators.required])
-    this.phoneControl = this.fb.control(null, [Validators.required])
+    this.codeControl = this.fb.nonNullable.control('', [Validators.required])
+    this.phoneControl = this.fb.nonNullable.control('', [Validators.required])
 
     const preAuth = this.persistence.readPreAuthState()
     if (preAuth.status !== 'valid') {
@@ -499,6 +499,6 @@ export class MfaPageComponent implements OnInit, OnDestroy {
     this.otpStateSub?.unsubscribe()
     this.otpVerifySub?.unsubscribe()
     window.removeEventListener('storage', this.storageListener)
-    clearInterval(this.pollInterval)
+    if (this.pollInterval) clearInterval(this.pollInterval)
   }
 }

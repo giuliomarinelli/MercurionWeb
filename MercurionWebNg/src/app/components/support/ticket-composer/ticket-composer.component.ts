@@ -2,6 +2,12 @@ import { Component, ChangeDetectionStrategy, signal, output, OnInit, inject, inp
 import { QuillModule } from 'ngx-quill';
 import { FormsModule } from '@angular/forms';
 import { QuillStylesService } from '../../../services/quill-styles.service';
+import { JsonValue, toJsonValue } from '../../../Models/json.models';
+
+type QuillContentChange = {
+  delta?: unknown;
+  text?: unknown;
+};
 
 @Component({
   selector: 'm-ticket-composer',
@@ -62,7 +68,7 @@ export class TicketComposerComponent implements OnInit {
 
   readonly send = output<{
     html: string;
-    delta: any;
+    delta: JsonValue;
   }>();
   readonly cancel = output<void>();
   readonly retry = output<void>();
@@ -70,7 +76,7 @@ export class TicketComposerComponent implements OnInit {
   readonly error = input<string | null>(null);
 
   contentHtml = ''
-  private delta: any = null
+  private delta: JsonValue = null
 
   canSend = signal<boolean>(false)
 
@@ -86,9 +92,9 @@ export class TicketComposerComponent implements OnInit {
     ]
   }
 
-  onChanged(e: any) {
-    this.delta = e?.delta ?? null
-    const text = (e?.text ?? '').trim()
+  onChanged(e: QuillContentChange) {
+    this.delta = toJsonValue(e.delta)
+    const text = typeof e.text === 'string' ? e.text.trim() : ''
     this.canSend.set(text.length > 0)
   }
 

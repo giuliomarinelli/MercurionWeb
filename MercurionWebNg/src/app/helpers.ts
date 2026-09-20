@@ -59,10 +59,13 @@ export class Helpers {
 
   static moleculeSearchResultToMoleculeCardItemModelConverter(dto: MoleculeSearchResult): MoleculeCardItemModel {
     const now = Date.now()
+    if (!dto.smiles) {
+      throw new Error(`Molecule search result ${dto.id} is missing canonical SMILES`)
+    }
     return ({
       id: dto.id.toString(),
       name: dto.preferredName ?? dto.preferredNameIt ?? '',
-      smiles: dto.smiles!,
+      smiles: dto.smiles,
       syn: dto.synonyms && dto.synonyms.length !== 0 ? dto.synonyms[0] : '',
       type: 'chembl',
       mwFreebase: dto.mwFreebase ?? undefined,

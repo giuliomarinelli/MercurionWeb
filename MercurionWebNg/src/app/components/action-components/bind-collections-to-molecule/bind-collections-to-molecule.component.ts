@@ -352,6 +352,11 @@ export class BindCollectionsToMoleculeComponent implements OnInit, AfterViewInit
   }
 
   doSubmit(): void {
+    const moleculeId = this.bindContext.moleculeId();
+    if (!moleculeId) {
+      this.error.set(true);
+      return;
+    }
     if (this.step() === 1) {
       if (this.isSelectedNothing()) {
         return;
@@ -367,7 +372,7 @@ export class BindCollectionsToMoleculeComponent implements OnInit, AfterViewInit
       }
       this.suSub = this.moleculeCollectionService
         .bindManyCollectionsToMolecule(
-          this.bindContext.moleculeId()!,
+          moleculeId,
           collectionIds,
           this.isSelectedAll(),
           this.selectionSnapshotAt()
@@ -379,7 +384,7 @@ export class BindCollectionsToMoleculeComponent implements OnInit, AfterViewInit
               this.invalidation.publish({
                 domain: 'molecule',
                 action: 'collections-bound',
-                moleculeId: this.bindContext.moleculeId()!
+                moleculeId
               });
             }
             this.error.set(!ok);

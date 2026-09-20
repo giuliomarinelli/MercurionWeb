@@ -20,6 +20,7 @@ import {
 import { ChemistryEditorMode } from '../../chemistry/chemistry-adapter.models';
 import { KetcherFrameComponent } from '../../components/chem/ketcher-frame/ketcher-frame.component';
 import { MoleculeCollectionItemService } from '../../services/graphql/molecule-collection-item.service';
+import { MoleculeItemLookup } from '../../Models/graphql/molecule-collection/molecule-collection.types';
 import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service';
 import { ToastService } from '../../services/toast.service';
 import { RdKitApiService } from '../../services/rd-kit-api.service';
@@ -240,6 +241,13 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
 
   // salvataggio in edit
   async doSaveEdit(smiles: string): Promise<void> {
+    const moleculeId = this.mId();
+    if (!moleculeId) {
+      this.logger.error('Cannot update molecule without an id');
+      this.toast.trigger('Impossibile modificare la molecola.', 'error', 2000);
+      return;
+    }
+
     const props = await firstValueFrom(
       this.RDKitAPI.getMoleculeProperties({ smiles }).pipe(
         catchError(e => {
@@ -252,15 +260,20 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
 
     this.molEdSub = this.moleculeCollectionItemService
       .updateItemCanonicalSmiles(
-        this.mId()!,
+        moleculeId,
         smiles,
         'custom',
         JSON.stringify(props ?? {})
       )
       .subscribe({
         next: res => {
+          if (!res) {
+            this.logger.error('Molecule update returned no item');
+            this.toast.trigger('Si è verificato un errore.', 'error', 2000);
+            return;
+          }
           this.toast.trigger('Struttura modificata correttamente.', 'success', 2000);
-          this.router.navigateByUrl(`/molecules/detail/${res!.id}`);
+          this.router.navigateByUrl(`/molecules/detail/${res.id}`);
         },
         error: () => this.toast.trigger('Si è verificato un errore.', 'error', 2000) });
   }
@@ -288,10 +301,10 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
           return this.moleculeCollectionItemService.getCustomSmilesById(mId).pipe(
             switchMap(mol => combineLatest([
               of(mol),
-              this.RDKitAPI.toCanonicalSmiles({ smiles: mol!.canonicalSmiles }).pipe(
+              this.RDKitAPI.toCanonicalSmiles({ smiles: mol.canonicalSmiles }).pipe(
                 catchError(e => {
                   this.logger.error('RDKitAPI canonicalization init error', e);
-                  return of(mol!.canonicalSmiles);
+                  return of(mol.canonicalSmiles);
                 })
               ),
             ])),
@@ -364,13 +377,13 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
               map(res => ({ canon, res })),
               catchError(e => {
                 this.logger.error('Duplicate check stream error', e);
-                return of({ canon, res: null as any });
+                return of({ canon, res: null as MoleculeItemLookup | null });
               })
             )
         )
       )
       .subscribe({
-        next: ({ res, canon }: { res: any; canon: string }) => {
+        next: ({ res, canon }: { res: MoleculeItemLookup | null; canon: string }) => {
           const mode = this.mode();
           const isBaselineMode = mode === 'edit' || mode === 'duplicate';
 

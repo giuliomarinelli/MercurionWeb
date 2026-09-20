@@ -15,7 +15,7 @@ import { TypeGuardsService } from '../../../services/type-guards.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [DatePipe, NgClass],
   template: `
-  @if (_ticket()) {
+  @if (_ticket(); as ticket) {
     <div class="relative">
       <div
         class="
@@ -34,7 +34,7 @@ import { TypeGuardsService } from '../../../services/type-guards.service';
           'fade-out': _triggerDisappear(),
           'collapse': _collapse()
         }"
-        aria-label="Ticket {{ _ticket()!.publicId }}"
+        aria-label="Ticket {{ ticket.publicId }}"
         role="article"
         aria-live="polite"
       >
@@ -44,7 +44,7 @@ import { TypeGuardsService } from '../../../services/type-guards.service';
           class="absolute inset-0 rounded-2xl"
           [class.z-10]="true"
           [class.hidden]="_triggerDisappear()"
-          (click)="onOpenDetail.emit(_ticket()!.id)"
+          (click)="onOpenDetail.emit(ticket.id)"
           aria-label="Apri ticket"
         ></button>
 
@@ -76,9 +76,9 @@ import { TypeGuardsService } from '../../../services/type-guards.service';
           <div
             class="mt-2 text-base md:text-lg font-semibold
                    text-slate-800 dark:text-slate-100 truncate"
-            title="{{ _ticket()!.subject }}"
+            title="{{ ticket.subject }}"
           >
-            {{ _ticket()!.subject }}
+            {{ ticket.subject }}
           </div>
 
           <!-- preview / meta line -->
@@ -89,7 +89,7 @@ import { TypeGuardsService } from '../../../services/type-guards.service';
                 <path d="M320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64zM296 184L296 332.8L306.7 339.9L402.7 403.9L422.7 417.2L449.3 377.3C446.9 375.7 411.8 352.3 344 307.1L344 159.9L296 159.9L296 183.9z"/>
               </svg>
               <span>
-                {{ _ticket()!.lastMessageAt | date:'dd/MM/yyyy HH:mm:ss' }}
+                {{ ticket.lastMessageAt | date:'dd/MM/yyyy HH:mm:ss' }}
               </span>
             </div>
             <span class="text-slate-300 dark:text-slate-600 hidden md:inline">•</span>
@@ -107,7 +107,7 @@ import { TypeGuardsService } from '../../../services/type-guards.service';
                 <path d="M3 8h14v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8z" />
               </svg>
               <span>
-                {{ _ticket()!.createdAt | date:'dd/MM/yyyy HH:mm' }}
+                {{ ticket.createdAt | date:'dd/MM/yyyy HH:mm' }}
               </span>
             </div>
 
@@ -115,7 +115,7 @@ import { TypeGuardsService } from '../../../services/type-guards.service';
             @if (mode() === 'support' && typeGuards.isTicket(_ticket())) {
               <span class="text-slate-300 dark:text-slate-600 hidden md:inline">•</span>
               <span class="truncate">
-                Utente: {{ getUserFullNameIfIsTicket(this._ticket()) }}
+                Utente: {{ getUserFullNameIfIsTicket(ticket) }}
               </span>
             }
           </div>
@@ -135,9 +135,9 @@ import { TypeGuardsService } from '../../../services/type-guards.service';
                 text-slate-700 dark:text-slate-200
                 hover:bg-slate-200 dark:hover:bg-slate-700
               "
-              (click)="$event.stopPropagation(); close.emit(_ticket()!.id)"
+              (click)="$event.stopPropagation(); close.emit(ticket.id)"
               title="Chiudi ticket"
-              [attr.aria-label]="'Chiudi ticket ' + _ticket()!.publicId"
+              [attr.aria-label]="'Chiudi ticket ' + ticket.publicId"
             >
               Chiudi
             </button>
@@ -153,9 +153,9 @@ import { TypeGuardsService } from '../../../services/type-guards.service';
                 text-light-accent-primary-hc dark:text-indigo-200
                 hover:bg-light-accent-primary-hc/20 dark:hover:bg-indigo-900/20
               "
-              (click)="$event.stopPropagation(); reopen.emit(_ticket()!.id)"
+              (click)="$event.stopPropagation(); reopen.emit(ticket.id)"
               title="Riapri ticket"
-              [attr.aria-label]="'Riapri ticket ' + _ticket()!.publicId"
+              [attr.aria-label]="'Riapri ticket ' + ticket.publicId"
             >
               Riapri
             </button>
@@ -211,16 +211,16 @@ export class TicketCardComponent {
   /* computed ------------------------- */
 
   readablePublicId = computed(() => {
-    const t = this._ticket()
+    const t = this.ticket()
     if (!t) {
       return ''
     }
-    const pid = (t as any).publicId ?? ''
+    const pid = t.publicId ?? ''
     return pid ? String(pid) : String(t.id).slice(0, 8)
   })
 
   statusLabel = computed(() => {
-    const s = this._ticket()?.status
+    const s = this.ticket()?.status
     switch (s) {
       case 'Open': return 'Aperto'
       case 'WaitingSupport': return 'In attesa supporto'
@@ -231,7 +231,7 @@ export class TicketCardComponent {
   });
 
   statusBadgeClass = computed(() => {
-    const s = this._ticket()?.status
+    const s = this.ticket()?.status
     // palette leggibile anche su dark
     switch (s) {
       case 'Open':
@@ -248,7 +248,7 @@ export class TicketCardComponent {
   })
 
   showCloseButton = computed(() => {
-    const t = this._ticket();
+    const t = this.ticket();
     if (!t || !this._allowActions()) {
       return false
     }
@@ -256,7 +256,7 @@ export class TicketCardComponent {
   })
 
   showReopenButton = computed(() => {
-    const t = this._ticket();
+    const t = this.ticket();
     if (!t || !this._allowActions() || this.mode() !== 'support') {
       return false
     }

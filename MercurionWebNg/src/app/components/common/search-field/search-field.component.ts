@@ -38,7 +38,7 @@ import { IconButtonComponent } from '../icon-button/icon-button.component';
           [attr.aria-describedby]="hint() ? hintId() : null"
           [attr.aria-busy]="pending() ? 'true' : null"
           autocomplete="off"
-          (input)="onInput($any($event.target).value)"
+          (input)="onInput($event)"
           (keydown.enter)="onSubmit()" />
         @if (value() && !pending()) {
           <m-icon-button
@@ -86,7 +86,13 @@ export class SearchFieldComponent {
     return `${this.fieldId()}-hint`;
   }
 
-  onInput(value: string): void {
+  onInput(event: Event | string): void {
+    const value = typeof event === 'string'
+      ? event
+      : event.target instanceof HTMLInputElement
+        ? event.target.value
+        : null;
+    if (value === null) return;
     if (!this.disabled()) this.valueChange.emit(value);
   }
 

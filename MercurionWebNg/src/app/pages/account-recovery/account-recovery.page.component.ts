@@ -244,8 +244,16 @@ export class AccountRecoveryPageComponent implements OnInit, OnDestroy {
   private recoveryGroupSub?: Subscription
   private passwordValueChangesSub?: Subscription
 
-  codeCtrl!: FormControl
-  recoveryGroup!: FormGroup
+  codeCtrl: FormControl<string> = new FormControl('', { nonNullable: true })
+  recoveryGroup: FormGroup<{
+    email: FormControl<string>
+    password: FormControl<string>
+    confirmPassword: FormControl<string>
+  }> = new FormGroup({
+    email: new FormControl('', { nonNullable: true }),
+    password: new FormControl('', { nonNullable: true }),
+    confirmPassword: new FormControl('', { nonNullable: true })
+  })
 
   logoSrc = computed<string>(() => {
     const { PICTOGRAM_LIGHT, PICTOGRAM_DARK } = environment.logoSrc

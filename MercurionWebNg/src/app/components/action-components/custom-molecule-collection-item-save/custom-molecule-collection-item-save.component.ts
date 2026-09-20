@@ -335,7 +335,8 @@ export class CustomMoleculeCollectionItemSaveComponent implements OnInit, OnDest
   }
 
   async onConfirm() {
-    if (!this.saveCtx.selectedCollectionId()) {
+    const collectionId = this.saveCtx.selectedCollectionId();
+    if (!collectionId) {
       this.toast.trigger('Seleziona una collezione', 'error');
       return;
     }
@@ -349,7 +350,7 @@ export class CustomMoleculeCollectionItemSaveComponent implements OnInit, OnDest
 
     this.moleculeJoinService
       .addCustomMoleculeToCollection({
-        collectionId: this.saveCtx.selectedCollectionId()!,
+        collectionId,
         input: {
           canonicalSmiles: this.saveCtx.smiles(),
           propertiesJson,

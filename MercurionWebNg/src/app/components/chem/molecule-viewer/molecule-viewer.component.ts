@@ -7,6 +7,12 @@ import {
 import { ChemistryRendererService } from '../../../chemistry/chemistry-renderer.service';
 import { ThemeManagerService } from '../../../services/context/theme-manager.service';
 
+type IdleCallback = (deadline: { readonly didTimeout: boolean; readonly timeRemaining: () => number }) => void;
+type IdleWindow = Window & {
+  requestIdleCallback?: (callback: IdleCallback, options?: { timeout: number }) => number;
+  cancelIdleCallback?: (handle: number) => void;
+};
+
 /**
  * <m-molecule-viewer>
  * ---------------------------------------------------------------------------
@@ -178,9 +184,10 @@ export class MoleculeViewerComponent implements OnInit, OnChanges {
       void this.renderSvg(generation);
     };
 
-    if ((window as any).requestIdleCallback) {
+    const idleWindow = window as IdleWindow;
+    if (idleWindow.requestIdleCallback) {
       this.pendingRenderIsIdleCallback = true;
-      this.pendingRenderHandle = (window as any).requestIdleCallback(job, { timeout: 120 });
+      this.pendingRenderHandle = idleWindow.requestIdleCallback(job, { timeout: 120 });
     } else {
       this.pendingRenderIsIdleCallback = false;
       this.pendingRenderHandle = setTimeout(job, 0);
@@ -189,8 +196,9 @@ export class MoleculeViewerComponent implements OnInit, OnChanges {
 
   private cancelScheduledRender(): void {
     if (this.pendingRenderHandle === undefined) return;
-    if (this.pendingRenderIsIdleCallback && (window as any).cancelIdleCallback) {
-      (window as any).cancelIdleCallback(this.pendingRenderHandle);
+    const idleWindow = window as IdleWindow;
+    if (this.pendingRenderIsIdleCallback && idleWindow.cancelIdleCallback) {
+      idleWindow.cancelIdleCallback(this.pendingRenderHandle);
     } else {
       clearTimeout(this.pendingRenderHandle as ReturnType<typeof setTimeout>);
     }
@@ -242,11 +250,14 @@ export class MoleculeViewerComponent implements OnInit, OnChanges {
     const Z: Record<string, number> = {
       H: 1, C: 6, N: 7, O: 8, F: 9, P: 15, S: 16, Cl: 17, Br: 35, I: 53 };
     const def = this.rgb(p.default);
-    const palette: Record<number, [number, number, number]> = {} as any;
+    const palette: Record<number, [number, number, number]> = {};
     for (let i = 1; i <= 118; i++) palette[i] = def;
     for (const [sym, hex] of Object.entries(p)) {
-      if ((['bg', 'bond', 'default'] as const).includes(sym as any)) continue;
-      palette[Z[sym]] = this.rgb(hex as string);
+      if (sym === 'bg' || sym === 'bond' || sym === 'default') continue;
+      const atomicNumber = Z[sym];
+      if (atomicNumber !== undefined) {
+        palette[atomicNumber] = this.rgb(hex);
+      }
     }
     return palette;
   }

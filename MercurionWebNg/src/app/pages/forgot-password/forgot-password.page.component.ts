@@ -128,15 +128,23 @@ export class ForgotPasswordPageComponent implements OnInit, OnDestroy {
   private emailCtrlSub?: Subscription
 
   send(): void {
-    if (this.email.valid && this.turnstileToken()) {
+    const email = this.email.value
+    const turnstileToken = this.turnstileToken()
+    if (this.email.valid && email && turnstileToken) {
       this.step_12_loading.set(true)
-      this.recoverSub = this.accountService.sendForgottenPasswordLink({ email: this.email.value! }, this.turnstileToken()!)
+      this.recoverSub = this.accountService.sendForgottenPasswordLink({ email }, turnstileToken)
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
           next: ({ obscuredEmail }) => {
+            if (!obscuredEmail) {
+              this.errMsg.set('Il server non ha restituito un indirizzo oscurato.')
+              this.serverError.set(true)
+              this.step_12_loading.set(false)
+              return
+            }
             this.step.set(2)
             this.step_12_loading.set(false)
-            this.obscuredEmail.set(obscuredEmail!)
+            this.obscuredEmail.set(obscuredEmail)
           },
           error: e => {
             this.errMsg.set(adaptHttpFormError(e).globalError ?? 'Si è verificato un errore.')

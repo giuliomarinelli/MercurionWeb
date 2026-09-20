@@ -3,7 +3,10 @@ import { AuthGuard } from './guards/auth.guard'
 import { routeData, routeManifest, RouteDescriptor } from './route-manifest'
 import { STATUS_PAGE_CONFIG } from './pages/status-page/status-page.models'
 
-const manifestRoute = (descriptor: RouteDescriptor<any>, route: Route = {}): Route => ({
+const manifestRoute = <TParams extends Record<string, string>>(
+  descriptor: RouteDescriptor<TParams>,
+  route: Route = {}
+): Route => ({
   ...route,
   path: route.path ?? descriptor.path,
   title: route.title ?? descriptor.title,

@@ -13,6 +13,25 @@ import { APP_CONFIG } from '../../../config/app-config';
 import { Theme } from '../../../Models/theme.models';
 import { ThemeManagerService } from '../../../services/context/theme-manager.service';
 
+type TurnstileWidgetId = string | number;
+type TurnstileRenderOptions = {
+  sitekey: string;
+  callback: (token: string) => void;
+  theme: Theme;
+};
+type TurnstileApi = {
+  render: (container: string, options: TurnstileRenderOptions) => TurnstileWidgetId;
+  remove: (widgetId: TurnstileWidgetId) => void;
+  reset: (widgetId: TurnstileWidgetId) => void;
+};
+
+declare global {
+  interface Window {
+    onTurnstileSuccess?: (token: string) => void;
+    turnstile?: TurnstileApi;
+  }
+}
+
 @Component({
   selector: 'm-turnstile',
   template: `
@@ -32,7 +51,7 @@ export class TurnstileComponent implements OnInit, OnDestroy {
   // ===== Config =====
   private readonly SITE_KEY = inject(APP_CONFIG).integrations.turnstileSiteKey;
   containerId = 'turnstile-container-' + Math.random().toString(36).substring(2);
-  private widgetId: any = null;
+  private widgetId: TurnstileWidgetId | null = null;
   private destroyed = false;
 
   private themeEffectCleanup?: EffectRef;
@@ -50,16 +69,18 @@ export class TurnstileComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadTurnstileScript().then(() => {
-      (window as any).onTurnstileSuccess = (token: string) => {
+      window.onTurnstileSuccess = (token: string) => {
         // **IMPORTANTE**: rientriamo in NgZone
         this.zone.run(() => {
           this.token.emit(token);
         });
       };
 
-      this.widgetId = (window as any).turnstile.render(`#${this.containerId}`, {
+      const turnstile = window.turnstile;
+      if (!turnstile) return;
+      this.widgetId = turnstile.render(`#${this.containerId}`, {
         sitekey: this.SITE_KEY,
-        callback: (token: string) => (window as any).onTurnstileSuccess(token),
+        callback: (token: string) => window.onTurnstileSuccess?.(token),
         theme: this.themeManager.theme(),
       });
 
@@ -70,11 +91,11 @@ export class TurnstileComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroyed = true;
 
-    if (this.widgetId && (window as any).turnstile) {
-      (window as any).turnstile.remove(this.widgetId);
+    if (this.widgetId && window.turnstile) {
+      window.turnstile.remove(this.widgetId);
     }
 
-    delete (window as any).onTurnstileSuccess;
+    delete window.onTurnstileSuccess;
 
     if (this.themeEffectCleanup) {
       this.themeEffectCleanup.destroy();
@@ -84,9 +105,9 @@ export class TurnstileComponent implements OnInit, OnDestroy {
   // ================== Public API ==================
 
   public reset(): void {
-    if ((window as any).turnstile && this.widgetId) {
+    if (window.turnstile && this.widgetId) {
       this.zone.run(() => this.refresh.emit(undefined));
-      (window as any).turnstile.reset(this.widgetId);
+      window.turnstile.reset(this.widgetId);
       this.waitForWidgetVisible();
     }
   }
@@ -97,21 +118,23 @@ export class TurnstileComponent implements OnInit, OnDestroy {
     // Notifichiamo il parent (login/forgot) che stiamo ricaricando il widget
     this.zone.run(() => this.refresh.emit(undefined));
 
-    if ((window as any).turnstile && this.widgetId) {
-      (window as any).turnstile.remove(this.widgetId);
+    if (window.turnstile && this.widgetId) {
+      window.turnstile.remove(this.widgetId);
       this.widgetId = null;
     }
 
     this.loadTurnstileScript().then(() => {
-      (window as any).onTurnstileSuccess = (token: string) => {
+      window.onTurnstileSuccess = (token: string) => {
         this.zone.run(() => {
           this.token.emit(token);
         });
       };
 
-      this.widgetId = (window as any).turnstile.render(`#${this.containerId}`, {
+      const turnstile = window.turnstile;
+      if (!turnstile) return;
+      this.widgetId = turnstile.render(`#${this.containerId}`, {
         sitekey: this.SITE_KEY,
-        callback: (token: string) => (window as any).onTurnstileSuccess(token),
+        callback: (token: string) => window.onTurnstileSuccess?.(token),
         theme,
       });
 
@@ -122,13 +145,13 @@ export class TurnstileComponent implements OnInit, OnDestroy {
   private loadTurnstileScript(): Promise<void> {
     return new Promise<void>((resolve) => {
       // Se c'è già un widget, lo rimuoviamo
-      if ((window as any).turnstile && this.widgetId) {
-        (window as any).turnstile.remove(this.widgetId);
+      if (window.turnstile && this.widgetId) {
+        window.turnstile.remove(this.widgetId);
         this.widgetId = null;
       }
 
       // Script già caricato → ok
-      if ((window as any).turnstile) {
+      if (window.turnstile) {
         resolve();
         return;
       }
@@ -178,4 +201,3 @@ export class TurnstileComponent implements OnInit, OnDestroy {
     poll();
   }
 }
-

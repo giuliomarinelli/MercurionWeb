@@ -930,10 +930,24 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
   private readonly mfaUseCase = inject(SensitiveMfaUseCase)
   private readonly backupCodesUseCase = inject(SensitiveBackupCodesUseCase)
 
-  emailCtrl!: FormControl<string>
-  phoneForm!: FormGroup
-  otpCtrl!: FormControl
-  passwordForm!: FormGroup
+  emailCtrl: FormControl<string> = new FormControl('', { nonNullable: true })
+  phoneForm: FormGroup<{
+    prefix: FormControl<number>
+    phone: FormControl<string>
+  }> = new FormGroup({
+    prefix: new FormControl(107, { nonNullable: true }),
+    phone: new FormControl('', { nonNullable: true })
+  })
+  otpCtrl: FormControl<string> = new FormControl('', { nonNullable: true })
+  passwordForm: FormGroup<{
+    oldPassword: FormControl<string>
+    password: FormControl<string>
+    confirmPassword: FormControl<string>
+  }> = new FormGroup({
+    oldPassword: new FormControl('', { nonNullable: true }),
+    password: new FormControl('', { nonNullable: true }),
+    confirmPassword: new FormControl('', { nonNullable: true })
+  })
 
   private fetchSub?: Subscription
   private enMfaSub?: Subscription
@@ -989,7 +1003,7 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
   appSecret = signal<string>('')
   qrCode = signal<string>('')
 
-  mfaStrategiesDescrMap!: Map<MfaStrategy, string>
+  mfaStrategiesDescrMap = new Map<MfaStrategy, string>()
 
   ngOnInit(): void {
     this.fetchSub = this.fluxStarter$.pipe(
@@ -1236,9 +1250,13 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
           this.disableMfaStep.set('')
           this.enableMfaStep.set(s === 'APP_TOTP' ? 'APP:SCAN_QR_CODE_OR_COPY_SECRET' : 'OTP_VERIFICATION')
           if (s === 'APP_TOTP') {
-            this.qrCode.set(res.qrCode!)
-            this.otpauthUrl.set(res.otpauthUrl!)
-            this.appSecret.set(res.secret!)
+            if (!res.qrCode || !res.otpauthUrl || !res.secret) {
+              this.onError()
+              return
+            }
+            this.qrCode.set(res.qrCode)
+            this.otpauthUrl.set(res.otpauthUrl)
+            this.appSecret.set(res.secret)
           }
           this.secureToken.set(res.secureToken)
         })
@@ -1416,8 +1434,12 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
         finalize(() => this.loading.set(false))
       ).subscribe({
         next: (res) => queueMicrotask(() => {
-          this.tempObscuredEmail.set(res.obscuredEmail!)
-          this.secureToken.set(res.emailVerificationToken!)
+          if (!res.obscuredEmail || !res.emailVerificationToken) {
+            this.onError()
+            return
+          }
+          this.tempObscuredEmail.set(res.obscuredEmail)
+          this.secureToken.set(res.emailVerificationToken)
           this.changeEmailStep.set('OTP_VERIFICATION')
         }),
         error: (e: (HttpErrorResponse & { obscuredEmail: string })) => queueMicrotask(() => {
@@ -1456,15 +1478,23 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
     this.phoneForm.markAllAsTouched()
     if (this.phoneForm.valid) {
       this.loading.set(true)
-      const prefix = this.phonePrefixes().find((pr) => pr.id === this.phoneForm.controls['prefix'].value)!
+      const prefix = this.phonePrefixes().find((pr) => pr.id === this.phoneForm.controls['prefix'].value)
+      if (!prefix) {
+        this.onError()
+        return
+      }
       this.sendNewPhoneSub = this.phoneUseCase.requestChange(
         prefix.phonecode, this.phoneForm.controls['phone'].value
       ).pipe(
         finalize(() => this.loading.set(false))
       ).subscribe({
         next: (res) => queueMicrotask(() => {
-          this.tempObscuredPhone.set(res.obscuredPhoneNumber!)
-          this.secureToken.set(res.phoneNumberVerificationToken!)
+          if (!res.obscuredPhoneNumber || !res.phoneNumberVerificationToken) {
+            this.onError()
+            return
+          }
+          this.tempObscuredPhone.set(res.obscuredPhoneNumber)
+          this.secureToken.set(res.phoneNumberVerificationToken)
           this.changeOrAddPhoneStep.set('OTP_VERIFICATION')
         }),
         error: (e: HttpErrorResponse) => queueMicrotask(() => {

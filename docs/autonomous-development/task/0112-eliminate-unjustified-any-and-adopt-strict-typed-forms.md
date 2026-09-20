@@ -1,6 +1,6 @@
 # 0112 - Eliminate unjustified any and adopt strict typed Angular forms
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
@@ -84,29 +84,61 @@ Mark `BLOCKED` if removing a type escape requires a missing canonical contract o
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/NG-026`
 ### Preflight
-_Not started._
+Base `develop` SHA `8b1e08b9c979a6c97f7d89395162d5d356ef3cd9` matched the assigned feature
+branch. GitHub Actions run `35526582968` was a successful `full` run with Windows,
+Linux and `Required gate` green. The worktree was clean before mutation and
+`commit.gpgSign=false` was verified.
+
+The non-navigating Chrome DevTools probe succeeded. The canonical runtime was
+started in the required order (Tox21, NestJS, Angular), with live attached
+handles before HTTP probing. The nginx edge returned two consecutive successful
+`200` rounds for `/health` and `/` through `http://localhost:8888`. The
+dedicated persistent profile completed a fresh ordinary login through `/login`
+with the local test account, and the protected Dashboard displayed the
+authenticated identity. All preflight runtime processes were stopped before
+implementation.
 ### Preflight remediation
 _None._
 ### Summary
-Not attempted in this session because hard prerequisite task 0110 (NG-024)
-is `BLOCKED`. The planner identified 0110 as the direct terminal prerequisite;
-the existing advisory references were not used as additional blocking causes.
+Removed unjustified production Angular `any` usage and unsafe non-null
+assertions at GraphQL, browser-global, form-control, query-parameter, JWT,
+Quill, CVA, ticket and molecule boundaries. Added JSON/unknown narrowing for
+untyped external values, migrated affected reactive forms to explicit typed
+non-nullable controls/groups, and enabled `@typescript-eslint/no-explicit-any`
+for production source. Added a deterministic machine-readable typing scan with
+negative fixtures for explicit `any` and untyped forms, and registered it in
+the canonical CI aggregate.
 ### Task-specific validation performed
-Not applicable; no feature branch or implementation worker was created.
+Passed:
+
+- `npm run typecheck --workspace mercurion_web_ng`
+- `npm run lint:angular --workspace mercurion_web_ng`
+- `npm run ci:angular:typing` (zero production violations plus negative fixtures)
+- `npx ng test --watch=false --karma-config=karma.conf.js --include src/app/components/action-components/sensitive-data-change/sensitive-data-change.use-cases.spec.ts --include src/app/pages/account-recovery/account-recovery.page.component.spec.ts --include src/app/pages/login/mfa/mfa.page.component.spec.ts` (`17` specs passed)
+- `git diff --check`
+
+The post-implementation runtime rebuilt successfully. Browser evidence through
+the nginx edge covered the authenticated Dashboard, collection search and
+collection detail GraphQL views, Settings contact/security forms and MFA
+strategy/session state. No browser console errors were reported. All
+task-owned runtime processes were stopped after validation.
 ### Full pre-merge CI-parity validation
-Not applicable; dependency-skip metadata only.
+The complete clean-install aggregate remains GitHub Actions-only by policy.
+The exact base-SHA full run was green in preflight; the final feature-SHA gate
+is pending coordinator observation.
 ### Browser validation performed
-Not applicable; the task was not attempted.
+Passed through `http://localhost:8888` using the dedicated persistent
+non-production profile. Protected state was server-accepted and rendered as
+the authenticated Test account. Representative collection, search, account
+settings and MFA surfaces rendered without console errors.
 ### Commits
-Recorded in the aggregate dependency-skip metadata commit on `develop`.
+`5134c26e7` — `NG-026 enforce strict Angular typing boundaries`
 ### Merge / CI
-No feature branch or merge. This change is part of the aggregate metadata-only
-skip commit on `develop`.
+No merge performed by the worker. The final feature SHA is pushed for exact-SHA
+CI observation by the coordinator.
 ### Rollback
 _Not applicable._
 ### Blocker / human decision required
-Direct terminal prerequisites 0109 and 0110 are skipped, with transitive root
-0102 (NG-016) `BLOCKED`. Recovery requires new direct human authorization in a
-later session.
+None.

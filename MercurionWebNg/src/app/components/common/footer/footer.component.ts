@@ -62,7 +62,7 @@ export class FooterComponent implements OnInit {
   private readonly themeManager = inject(ThemeManagerService)
   protected readonly appConfig = inject(APP_CONFIG)
 
-  protected year!: number
+  protected year = new Date().getFullYear()
 
   protected logoSrc = signal<string>('')
 
@@ -72,8 +72,7 @@ export class FooterComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    const now = new Date()
-    this.year = now.getFullYear()
+    this.year = new Date().getFullYear()
   }
 
 }

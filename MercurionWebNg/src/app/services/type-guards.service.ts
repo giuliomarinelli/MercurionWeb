@@ -14,8 +14,8 @@ export class TypeGuardsService {
   isChemblMolecule(item: MoleculeDetailItem): item is ChEMBLMoleculeItemEntity;
   isChemblMolecule(item: MoleculeCollectionItemClient): item is Extract<MoleculeCollectionItemClient, { type: 'chembl' }>;
   isChemblMolecule(item: MoleculeCollectionItemEntityShort): item is MoleculeCollectionItemEntityShort & { type: 'chembl' };
-  isChemblMolecule(item: any): boolean {
-    return item?.type === 'chembl';
+  isChemblMolecule(item: unknown): boolean {
+    return this.isObject(item) && item['type'] === 'chembl';
   }
 
   // custom
@@ -23,8 +23,8 @@ export class TypeGuardsService {
   isCustomMolecule(
     item: MoleculeCollectionItemEntityShort
   ): item is MoleculeCollectionItemEntityShort & { type: 'custom' };
-  isCustomMolecule(item: any): boolean {
-    return item?.type === 'custom';
+  isCustomMolecule(item: unknown): boolean {
+    return this.isObject(item) && item['type'] === 'custom';
   }
 
   // system (solo per detail)
