@@ -1,6 +1,7 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-
-import { SettingsPageComponent } from './settings.page.component';
+import { ComponentFixture, TestBed } from '@angular/core/testing'
+import { provideRouter } from '@angular/router'
+import { SettingsPageComponent } from './settings.page.component'
+import { SettingsAccountFacade } from './settings-account.facade'
 
 describe('SettingsPageComponent', () => {
   let component: SettingsPageComponent;
@@ -8,7 +9,21 @@ describe('SettingsPageComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [SettingsPageComponent]
+      imports: [SettingsPageComponent],
+      providers: [
+        provideRouter([]),
+        {
+          provide: SettingsAccountFacade,
+          useValue: {
+            loading: () => false,
+            profile: () => null,
+            version: () => null,
+            authProvider: () => null,
+            isSso: () => false,
+            load: () => undefined,
+          },
+        },
+      ],
     })
     .compileComponents();
 
@@ -20,4 +35,9 @@ describe('SettingsPageComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('keeps panel loading deferred until a section is expanded', () => {
+    expect(component.expandedIndex()).toBeNull()
+    expect(fixture.nativeElement.querySelector('m-settings-security-panel')).toBeNull()
+  })
 });

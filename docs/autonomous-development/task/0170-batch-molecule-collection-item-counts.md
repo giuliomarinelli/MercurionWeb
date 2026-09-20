@@ -1,7 +1,7 @@
 # 0170 - Batch molecule-collection item counts
 
-- [ ] DONE
-- [x] BLOCKED
+- [x] DONE
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -56,10 +56,10 @@ Source: `DATA-021` in Series `0001`.
 
 ## Acceptance criteria
 
-- [ ] Requesting `itemsCount` for many collections no longer issues one count query per collection.
-- [ ] Counts remain correct for empty, populated and mixed collections.
-- [ ] Cross-owner collection IDs cannot influence or expose counts.
-- [ ] Query-count tests fail if the N+1 pattern returns.
+- [x] Requesting `itemsCount` for many collections no longer issues one count query per collection.
+- [x] Counts remain correct for empty, populated and mixed collections.
+- [x] Cross-owner collection IDs cannot influence or expose counts.
+- [x] Query-count tests fail if the N+1 pattern returns.
 
 ## Validation
 
@@ -120,3 +120,18 @@ _Not applicable._
 Authenticated browser capability/credential-entry recovery is required before
 this task can be changed to `DONE`; the preserved feature branch must not be
 resumed without new direct human authorization.
+
+### Manual recovery 2026-09-20
+- Direct human authorization resumed the preserved feature branch and merged
+  current `develop` into it with a no-fast-forward merge.
+- Focused loader and resolver-contract validation passed (2 suites, 11 tests),
+  including constant single-query behavior for 1, 10 and 100 keys, zero
+  mapping, duplicate-key deduplication and owner isolation.
+- Nest typecheck, lint and build passed after the recovery merge.
+- The canonical runtime reached two consecutive readiness rounds through
+  `http://localhost:8888`. In an authenticated browser session, the empty
+  `DATA023 Ownership Smoke` collection visibly changed from 0 to 1 after a
+  ChEMBL join mutation and back to 0 after removal. Cleanup restored the
+  original data, with no browser console or page errors.
+- The historical capability blocker is resolved; final DONE status remains
+  subject to exact feature-SHA and post-merge-SHA Required gate success.

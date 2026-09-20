@@ -90,16 +90,13 @@ Database/storage-level encryption alone does not make raw token columns safe fro
 ## Execution notes
 
 ### Feature branch
-`feature/DATA-032`
+`feature/DATA-032` preserved and frozen at
+`94ce196d5bfb52cfc1ff169b6cf56038a1696fca`.
 ### Preflight
-Base SHA `9db273352958663a9bdf6499c1037c6931feef67` matched the supplied
-feature branch HEAD. Exact base CI run `35292525166` completed successfully
-for that SHA, including both platform prerequisite jobs, all container jobs,
-Nest unit/E2E tests, Angular tests, critical browser journeys, build
-artifacts and the `Required gate`. The authoritative planner reported task
-0181 `READY` with hard dependencies 0180 and 0144 DONE and no stale skips.
-The focused baseline `npm --workspace mercurion_web_node run lint -- --no-fix`
-passed before mutation.
+- Exact base CI run `35292525166` succeeded for base SHA
+  `9db273352958663a9bdf6499c1037c6931feef67`; focused Nest lint passed.
+- Runtime readiness and Chrome DevTools capability passed through the
+  canonical edge; all task-started processes were stopped.
 ### Preflight remediation
 None. The canonical runtime probe issued the required live sessions in order:
 Tox21 from `../MercurionTox21`, Nest with `APP_ENV=development` and
@@ -113,40 +110,23 @@ authenticated; navigating to `http://localhost:8888/login` redirected to the
 local dashboard, so no credential entry was needed for this pre-change
 stop-condition review.
 ### Summary
-Blocked before implementation because the task requires an approved
-encryption-key source and rotation policy for durable provider credentials,
-but the repository documents only `APP_AES_SECRET` as generic encryption
-material and exposes an existing AES-256-GCM helper in `SecurityService`; it
-does not document key ownership, rotation/versioning, re-encryption,
-retirement, or recovery semantics for durable provider credentials. The
-existing raw `OAuth2TokenEntity.refreshToken` persistence therefore cannot be
-changed safely without inventing the missing security decision. No
-application implementation, schema, DTO, logging, or test changes were made.
+Blocked before implementation because the repository lacks an approved
+durable provider-credential encryption key ownership, rotation, re-encryption,
+retirement and recovery policy. No application changes were made.
 ### Task-specific validation performed
-Pre-change only: `npm --workspace mercurion_web_node run lint -- --no-fix`
-passed. Runtime compilation completed with zero Nest TypeScript errors and
-the Angular watch build completed successfully during the readiness probe.
-No OAuth provider fake-server, persistence, rotation, revocation, or browser
-connect/use/disconnect validation was attempted because the explicit security
-policy stop condition applies before implementation.
+- Pre-change focused lint passed; no implementation validation was applicable.
 ### Full pre-merge CI-parity validation
-Not applicable: no task implementation exists. The exact green base CI
-evidence is recorded above; local `npm ci` and `npm run ci:check` were not run.
+- Not applicable; the task was blocked before implementation.
 ### Browser validation performed
-Pre-change capability only: Chrome DevTools MCP `list_pages` succeeded and the
-canonical dashboard rendered through `http://localhost:8888` after runtime
-readiness. No provider fixture or OAuth connect/use/disconnect flow was run
-because the task was blocked before implementation.
+- Runtime/browser capability only; no OAuth connect/use/disconnect flow was run.
 ### Commits
-Pending blocked-status commit on `feature/DATA-032`; the branch remains at the
-base implementation with task diagnostic metadata only.
+Diagnostic commit `94ce196d5bfb52cfc1ff169b6cf56038a1696fca` is preserved on
+`feature/DATA-032`; blocked status is recorded on `develop`.
 ### Merge / CI
-Coordinator must push this diagnostic commit and preserve/freeze the branch;
-the task must not be merged.
+No merge; exact diagnostic metadata CI run `35293660184` succeeded.
 ### Rollback
 Not applicable.
 ### Blocker / human decision required
-Human security decision required: approve the durable provider-credential
-encryption boundary, key source and ownership, key version/rotation and
-re-encryption policy, retirement/recovery behavior, and provider-specific
-revocation requirements. No speculative token-lifecycle design was applied.
+Human security decision required for the durable provider-credential encryption
+boundary, key source/ownership, rotation/versioning, re-encryption,
+retirement/recovery semantics and provider-specific revocation requirements.

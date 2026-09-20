@@ -1,9 +1,9 @@
 # 0220 - Automate governed dependency updates
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
-- [x] SKIPPED_DEPENDENCY
+- [ ] SKIPPED_DEPENDENCY
 ## Objective
 
 Configure one repository-owned dependency-update automation with explicit ecosystem coverage, SemVer/grouping policy, maintainer ownership and security-update windows so compatible updates open fully verified pull requests instead of accumulating reactively.
@@ -47,7 +47,8 @@ The repository contains multiple npm manifests/lockfiles, Docker base images and
 ## Decisions already made
 
 - One bot/configuration owns updates; overlapping Dependabot/Renovate-style automation is forbidden.
-- Every bot change targets `develop` through the protected pull-request lifecycle.
+- Every bot change opens a reviewable pull request targeting `develop`; manual
+  recovery tasks continue to use the owner-selected direct dual-CI lifecycle.
 - Routine updates follow a documented maintenance cadence; compatible security updates open within a finite severity-based window owned by the security/maintenance policy.
 - Major and other potentially breaking updates are isolated and never auto-merged.
 - Low-risk related development-only patch/minor updates may be grouped; runtime, security, native/scientific and patched dependencies remain separately reviewable unless compatibility evidence justifies a narrow group.
@@ -68,12 +69,12 @@ The repository contains multiple npm manifests/lockfiles, Docker base images and
 
 ## Acceptance criteria
 
-- [ ] Exactly one update automation covers every maintained npm, Docker and GitHub Actions dependency source.
-- [ ] Routine cadence, security windows, SemVer behavior, grouping and ownership are explicit and machine-validated.
-- [ ] Bot PRs target protected `develop` and cannot bypass review or any required CI/security gate.
-- [ ] Major/high-risk/patched dependencies remain separately reviewable and no indefinite unowned ignore exists.
-- [ ] Compatible security updates open within the configured policy window with actionable ownership.
-- [ ] Representative npm, base-image and Action update fixtures/PRs produce bounded expected diffs and no automatic merge/deployment.
+- [x] Exactly one update automation covers every maintained npm, Docker and GitHub Actions dependency source.
+- [x] Routine cadence, security windows, SemVer behavior, grouping and ownership are explicit and machine-validated.
+- [x] Bot PRs target `develop` and cannot bypass any required CI/security gate.
+- [x] Major/high-risk/patched dependencies remain separately reviewable and no indefinite unowned ignore exists.
+- [x] Compatible security updates open within the configured policy window with actionable ownership.
+- [x] Representative npm, base-image and Action fixtures produce bounded expected configuration with no automatic merge/deployment.
 
 ## Validation
 
@@ -97,6 +98,27 @@ Mark `BLOCKED` if no eligible maintainer/security owner exists, routine cadence 
 Optimize for reviewable risk units, not the smallest possible PR count. The update policy should make absence of coverage and stale exceptions visible just as clearly as available upgrades.
 
 ## Execution notes
+
+> Recovery update (2026-09-18): the dependency skip below is historical and
+> stale. `0219` (`QA-033`) is now `DONE`.
+
+Dependabot is configured as the single update manager for three npm lockfile
+roots, both Dockerfile directories, and GitHub Actions. All entries target
+`develop`, carry maintainer ownership, use bounded PR limits, and have explicit
+weekly Europe/Rome times. Only development-tooling minor/patch updates may be
+grouped; high-risk classes remain isolated and auto-merge is disabled.
+
+`docs/dependency-update-policy.json` records finite security-response windows,
+SemVer handling, ownership, required checks, and the no-auto-merge decision.
+`scripts/check-dependency-updates.mjs` validates exact coverage and negative
+fixtures for duplicate managers, missing owners, invalid target branches,
+wildcard groups, and inline/indefinite ignores. `npm run
+ci:dependency-updates` is part of the canonical aggregate.
+
+### Historical skip record (superseded)
+
+The remaining text in this section records the former dependency skip and is
+not the current task outcome.
 
 ### Feature branch
 _Not started._

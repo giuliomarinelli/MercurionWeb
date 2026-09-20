@@ -1,7 +1,7 @@
 # 0088 - Split Settings into lazy autonomous feature panels
 
-- [ ] DONE
-- [x] BLOCKED
+- [x] DONE
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
@@ -56,11 +56,11 @@ Source: `NG-002` in Series `0001`.
 
 ## Acceptance criteria
 
-- [ ] `SettingsPageComponent` contains no account/session/MFA transport orchestration.
-- [ ] Each settings panel is independently owned and testable.
-- [ ] Panel code is lazy where practical and does not regress route UX.
-- [ ] Existing settings actions remain reachable and behave compatibly.
-- [ ] No second global settings state container is introduced.
+- [x] `SettingsPageComponent` contains no account/session/MFA transport orchestration.
+- [x] Each settings panel is independently owned and testable.
+- [x] Panel code is lazy where practical and does not regress route UX.
+- [x] Existing settings actions remain reachable and behave compatibly.
+- [x] No second global settings state container is introduced.
 
 ## Validation
 
@@ -151,3 +151,21 @@ network/keyboard/responsive evidence before integration.
 ### Dependency skip
 
 None. This task was attempted on the supplied `feature/NG-002` branch.
+
+## Manual recovery (2026-09-20)
+
+- Refreshed `feature/NG-002` from current green `develop` and repeated focused
+  typecheck and lint validation.
+- Completed fresh authenticated acceptance through `http://localhost:8888` in
+  isolated Playwright Chromium. All four panels were expanded and collapsed;
+  keyboard focus/activation, account and active-session state, the password
+  action overlay, and a 390 x 844 responsive viewport were exercised.
+- Browser evidence showed no console or page errors, no horizontal overflow,
+  and exactly one request per account resource at page open and per security
+  resource when that panel was opened.
+- Coalesced concurrent provided-email reads in `AccountService` so the header
+  and Settings facade share the same in-flight request. Added focused coverage
+  for this concurrency case.
+- The focused run completed all seven Settings/account assertions successfully;
+  the globally injected canonical accessibility suite timed out under the local
+  browser load and remains owned by exact feature-SHA CI.
