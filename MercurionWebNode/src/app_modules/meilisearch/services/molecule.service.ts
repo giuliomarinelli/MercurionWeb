@@ -48,6 +48,20 @@ export class MoleculeService {
     }
 
     async getDetailsByMolregnos(molregnos: string[]): Promise<MoleculeDetail[]> {
+        const detailsByMolregno = await this.getDetailsByMolregnosByKey(molregnos)
+
+        return molregnos
+            .map((molregno) => detailsByMolregno.get(String(molregno)))
+            .filter((detail): detail is MoleculeDetail => Boolean(detail))
+    }
+
+    async getDetailsByMolregnosByKey(
+        molregnos: string[],
+    ): Promise<ReadonlyMap<string, MoleculeDetail>> {
+        if (!molregnos.length) {
+            return new Map()
+        }
+
         const index = this.meiliClient.index<MoleculeDetailModel>(
             "molecule_details_chembl_36"
         );
@@ -69,23 +83,15 @@ export class MoleculeService {
         const keyOf = (d: MoleculeDetailModel) =>
             String((d as MoleculeDetailWithMolregno).molregno ?? d.id ?? d.cmbId);
 
-        const map = new Map<string, MoleculeDetail>(
-            hits.map((doc) => [keyOf(doc), this.mapMeiliToDTO(doc)])
-        );
-
-        // preserva l'ordine richiesto e applica fallback name sul molregno richiesto
-        const ordered = molregnos
-            .map((m) => {
-                const v = map.get(String(m));
-                if (!v) return undefined;
-                if (!v.preferredName || !v.preferredName.trim()) {
-                    v.preferredName = `Lead ${m}`;
-                }
-                return v;
+        return new Map(
+            hits.map((doc) => {
+                const molregno = keyOf(doc)
+                return [
+                    molregno,
+                    this.mapMeiliToDTO(doc, molregno),
+                ] as const
             })
-            .filter((x): x is MoleculeDetail => Boolean(x));
-
-        return ordered;
+        )
     }
 
     async getPreviewsByMolregnos(

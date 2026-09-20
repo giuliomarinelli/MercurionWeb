@@ -1,13 +1,13 @@
 # 0182 - Build a stable batch-aware History read model
 
-- [ ] DONE
+- [x] DONE
 - [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 
-> SKIPPED_DEPENDENCY (2026-09-15): transitive dependency `0174` is skipped
-> through `0143` from terminal root `0126` (`BE-012`), blocked by an
-> unverified external Docker registry failure on feature-SHA CI.
+> Direct task execution was authorized on `feature/DATA-033` from the supplied
+> green base SHA. The stale historical dependency-skip metadata was cleared;
+> no dependency skip was applied to this execution.
 ## Objective
 
 Turn History reads into an explicit paginated projection with stable ordering and batch enrichment so queries/presenters load only required columns and never perform per-row external/entity lookups.
@@ -93,24 +93,62 @@ Avoid solving the N provider calls with an unbounded process cache. A batch API 
 ## Execution notes
 
 ### Feature branch
-_Not started._
+`feature/DATA-033`, based on `35aaaa4b0c26cdd6c8e86096b318e34fd4c85bc8`.
 ### Preflight
-_Not started._
+- Verified clean feature branch and exact supplied base SHA.
+- Confirmed effective repository-local `commit.gpgSign=false`.
+- Confirmed GitHub Actions run `35529750643` succeeded for the exact base SHA,
+  including Windows, Linux, and `Required gate`.
+- Loaded the required task, outcome-classification, browser-runtime, and
+  Chrome DevTools project skills.
+- Chrome DevTools non-navigating tool-surface probe succeeded.
+- Started Tox21, Nest, and Angular in canonical order with live handles.
+  Initial edge `502` responses were retryable while upstreams built; two later
+  readiness rounds returned `200` for `/` and `/health`.
+- Performed a fresh ordinary login through `/login` using the configured local
+  test account with snapshot plus `fill_form`. Server-accepted login and
+  protected account, history, and profile requests returned `200`.
+- Stopped all three task-owned runtime processes before implementation.
 ### Preflight remediation
-_None._
+None.
 ### Summary
-Skipped because the resolved dependency closure contains terminal prerequisite 0120 (BE-006), which is BLOCKED by its deferred DATA unit-of-work decision. Resolved hard dependencies for this recipe: 0174. This task was never attempted and receives no feature branch.
+Implemented a stable projection-based History read model. The service now
+selects explicit raw projection columns, preserves latest-per-resource
+semantics with deterministic `touchedAt`/`id` ordering, resolves local names
+set-wise, performs one keyed ChEMBL batch lookup per page, and retains missing
+resources as documented `N/A` rows so pagination metadata and boundaries remain
+stable. The manager-aware recent-history path uses the same projection
+approach. Added projection types and focused provider/query-bound tests.
 ### Task-specific validation performed
-_Not started._
+- `npm test --workspace mercurion_web_node -- --runInBand src/app_modules/history/services/history.service.spec.ts src/app_modules/history/models/dto/history-read-model.types.spec.ts src/app_modules/meilisearch/services/molecule.service.spec.ts`
+  — 3 suites and 7 tests passed.
+- `npm run lint --workspace mercurion_web_node` — passed.
+- `npm run typecheck --workspace mercurion_web_node` — passed.
+- `npm run build --workspace mercurion_web_node` — passed.
+- `git diff --check` — passed.
 ### Full pre-merge CI-parity validation
-_Not started._
+Complete clean-install/aggregate parity remains owned by GitHub Actions. The
+exact base run was green before implementation; the pushed feature SHA is to
+be evaluated by the coordinator before integration.
 ### Browser validation performed
-_Not started._
+- Canonical origin: `http://localhost:8888`.
+- Fresh login reached the protected Dashboard and rendered profile summary
+  (`Benvenuto Test.`, workspace totals, and recent activity).
+- The rendered History surface contained a custom collection entry, ChEMBL
+  entries, and a missing-resource `N/A` entry in deterministic timestamp order.
+- Network evidence included `POST /api/authentication/login/0` and `/1`,
+  `GET /api/account/email`, `GET /api/history?page=1&limit=25`, and
+  `GET /api/account/profile-registry`, all with `200` responses.
+- No browser console errors or warnings were reported.
+- Task-owned Tox21, Nest, and Angular processes were stopped after evidence
+  collection; no task runtime processes remained.
 ### Commits
-Aggregate dependency-skip metadata commit on develop.
+Implementation and task metadata commits are recorded in the feature branch
+history after local validation.
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI required.
+Not applicable to the worker; coordinator must push/observe exact feature-SHA
+CI before merging.
 ### Rollback
-_Not applicable._
+Not applicable.
 ### Blocker / human decision required
-Terminal dependency root: 0120 (BE-006), BLOCKED pending the DATA-series unit-of-work contract. No feature branch or worker was created for this task.
+None.
