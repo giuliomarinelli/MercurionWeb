@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { effect, inject, Injectable, signal } from '@angular/core';
-import { map, Observable, of, switchMap, tap, throwError } from 'rxjs';
+import { finalize, map, Observable, of, shareReplay, switchMap, tap, throwError } from 'rxjs';
 import { TypeGuardsService } from './type-guards.service';
 import { AuthStateStore } from './auth-state.store';
 import { PROVIDED_EMAIL_CACHE_CLOCK, type ProvidedEmailCache } from './provided-email-cache.tokens';
@@ -41,6 +41,11 @@ export class AccountService {
   private readonly now = inject(PROVIDED_EMAIL_CACHE_CLOCK)
 
   private cachedProvidedEmail = signal<ProvidedEmailCache | null>(null)
+  private providedEmailRequest: {
+    owner: string | null
+    generation: number
+    value: Observable<ProvidedEmailDTO>
+  } | null = null
   private cacheOwner: string | null = null
   private cacheGeneration = 0
 
@@ -78,6 +83,7 @@ export class AccountService {
 
   private invalidateProvidedEmailCache(): void {
     this.cachedProvidedEmail.set(null)
+    this.providedEmailRequest = null
     this.cacheGeneration++
   }
 
@@ -98,11 +104,24 @@ export class AccountService {
     } else {
       const owner = this.cacheOwner
       const generation = this.cacheGeneration
-      return this.http.get<ProvidedEmailDTO>('/api/account/email', {
+      const pending = this.providedEmailRequest
+      if (!refetch && pending?.owner === owner && pending.generation === generation) {
+        return pending.value
+      }
+      const request = this.http.get<ProvidedEmailDTO>('/api/account/email', {
         withCredentials: true
       }).pipe(
-        tap(dto => this.setCachedProvidedEmail(dto, owner, generation))
+        tap(dto => this.setCachedProvidedEmail(dto, owner, generation)),
+        finalize(() => {
+          if (
+            this.providedEmailRequest?.owner === owner
+            && this.providedEmailRequest.generation === generation
+          ) this.providedEmailRequest = null
+        }),
+        shareReplay({ bufferSize: 1, refCount: true })
       )
+      if (!refetch) this.providedEmailRequest = { owner, generation, value: request }
+      return request
     }
   }
 
