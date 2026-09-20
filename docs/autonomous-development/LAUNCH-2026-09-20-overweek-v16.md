@@ -1,4 +1,4 @@
-# Mercurion Code Red — overweek autonomous full-Series launch v15
+# Mercurion Code Red — overweek autonomous full-Series launch v16
 
 Use this file only after this launch manifest, its session configuration, and
 the dedicated real test-account login policy are integrated into `develop`; the
@@ -10,14 +10,14 @@ every worker establishes its own fresh real-account login.
 The immutable session configuration is:
 
 ```text
-docs/autonomous-development/session.overweek-2026-09-24-v15.yaml
+docs/autonomous-development/session.overweek-2026-09-28-v16.yaml
 ```
 
 The coordinator must refuse a new launch at or after
-`2026-09-24T12:00:00+02:00` (Europe/Rome, CEST).
+`2026-09-28T10:00:00+02:00` (Europe/Rome, CEST).
 
-The current active snapshot contains 192 `DONE`, 17 `PENDING`, 4 `BLOCKED`,
-2 `SKIPPED_DEPENDENCY` and no `REVERTED` recipes. Five reserved
+The current active snapshot contains 210 `DONE`, 5 `PENDING`, no `BLOCKED`,
+no `SKIPPED_DEPENDENCY` and no `REVERTED` recipes. Five reserved
 Notebook recipes are archived under `deferred-task/` and are non-executable. Every
 recipe currently marked `DONE` remains terminal; task selection comes only
 from the current authoritative planner snapshot.
@@ -114,7 +114,7 @@ nel profilo Chrome.
 
 ```text
 Run the bounded autonomous Mercurion development session defined by
-docs/autonomous-development/session.overweek-2026-09-24-v15.yaml.
+docs/autonomous-development/session.overweek-2026-09-28-v16.yaml.
 
 Read the complete active configuration, AGENTS.md,
 docs/autonomous-development/PROTOCOL.md,
@@ -147,7 +147,7 @@ a virtually unlimited number of serial tasks until the configured deadline or
 genuine workload exhaustion.
 
 Perform every configured startup and capability probe. Refuse launch at or
-after 2026-09-24T12:00:00+02:00. Require a clean, synchronized develop and a
+after 2026-09-28T10:00:00+02:00. Require a clean, synchronized develop and a
 successful fresh full GitHub Actions Required gate for its exact SHA. Confirm
 the dedicated persistent non-production browser profile is available for
 browser isolation without opening an application URL. Before runtime startup,
@@ -183,10 +183,10 @@ hard dependencies, cycles, stale terminal skips, or planner errors.
 
 The configured `workload.tasks` list is empty, so every active recipe file is in
 scope: there is no autonomous allowlist. The planner currently exposes exactly
-17 PENDING recipes; terminal recipes remain in scope only for state validation
+5 PENDING recipes; terminal recipes remain in scope only for state validation
 and can never be selected. Reserved numeric gaps and recipes in `deferred-task/`
 are skipped without error. Select the earliest filename-ordered READY task from
-the authoritative planner output; the expected first READY task is 0088.
+the authoritative planner output; the expected first READY task is 0112.
 Continue serially through eligible tasks until the soft deadline or
 genuine workload exhaustion. No error, denial, branch collision, CI-observation
 failure, baseline incident, or unavailable capability may finalize the session
@@ -194,7 +194,7 @@ early while configured pending work remains. Isolate one-task failures, skip a
 colliding branch for the current scheduling pass, and use
 `SESSION_RECOVERY_PENDING` for unsafe shared-state failures.
 
-All 192 recipes currently marked `DONE` are terminal; never select them again.
+All 210 recipes currently marked `DONE` are terminal; never select them again.
 The archived `0020` and `0164`-`0167` recipes are not candidates and their
 absence from the active directory is not a branch collision or recovery state.
 When a selected task requires authenticated browser evidence,
@@ -220,20 +220,16 @@ No pending recipe has an `authorized_recovery` entry in this session. Treat any
 pre-existing feature branch as a collision unless a new direct human instruction
 provides the exact pending recipe, Source, local and remote refs, and preserved SHA.
 
-Tasks `0072/UI-014`, `0173/DATA-024`, `0209/QA-023` and `0218/QA-032` are
-`BLOCKED`. Existing feature branches for these tasks remain frozen. The 2 recipes currently marked `SKIPPED_DEPENDENCY`
-are terminal. The authoritative planner reports no new skip closure and no
-stale skips. Let it determine `READY` versus `WAITING_DEPENDENCY`; do not reopen
-any blocked task or terminal descendant during this session. Recovery of all
-four blocked tasks is explicitly deferred until after this session and requires
-a new direct human instruction in a new or restarted session.
+There are no recipes currently marked `BLOCKED`, `REVERTED` or
+`SKIPPED_DEPENDENCY`, and there are no frozen recovery branches in this
+session. The authoritative planner reports no skip closure and no stale skips.
+Let it determine `READY` versus `WAITING_DEPENDENCY`; do not reconstruct the
+dependency graph or reopen terminal tasks by inference.
 
-Do not mutate pull requests 25, 27, 28, 29, or 31. Preserve the existing frozen task
-branches `feature/UI-014`, `feature/QA-023` and `feature/QA-032`,
-plus the local deferred-Notebook `feature/SYS-020` ref;
-do not infer recovery authority from their existence. Apply task selection and
-dependency-status propagation to the active recipe set strictly from each fresh
-planner snapshot.
+Do not mutate pull requests 25, 27, 28, 29, or 31. No existing feature branch
+is authorized for recovery by this configuration; treat any collision as a
+session branch collision. Apply task selection and dependency-status
+propagation to the active recipe set strictly from each fresh planner snapshot.
 
 Respect the soft deadline and finalization protocol. The report must include
 the complete-Series workload, remaining pending count, CI classification/platform
@@ -241,7 +237,7 @@ telemetry, and every capability pause. After task_complete, produce no
 additional prose or tool calls.
 
 Immediately before any final report or task_complete, run
-`npm run autonomous:assert-finalizable -- docs/autonomous-development/session.overweek-2026-09-24-v15.yaml`
+`npm run autonomous:assert-finalizable -- docs/autonomous-development/session.overweek-2026-09-28-v16.yaml`
 and require exit code zero. The command obtains and validates a fresh planner
 snapshot. Pre-deadline task_complete is permitted only when
 `currentCounts.PENDING === 0`. READY=0,
