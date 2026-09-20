@@ -47,6 +47,7 @@ import {
   UpdateMoleculeCollectionNameMutation,
   UpdateMoleculeCollectionNameMutationVariables
 } from '../../generated/graphql';
+import { GRAPHQL_QUERY_FETCH_POLICY } from './graphql-query-policy';
 
 // --- OPTION OBJECT ---
 export interface CollectionFieldsOptions {
@@ -85,7 +86,7 @@ export class MoleculeCollectionService {
     return this.apollo
       .query<CollectionListQuery>({
         query,
-        fetchPolicy: 'no-cache',
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot,
       })
       .pipe(
         map(res => extractGqlData<CollectionListQuery, 'myMoleculeCollections'>(
@@ -108,7 +109,7 @@ export class MoleculeCollectionService {
       .query<CollectionDetailQuery, MoleculeCollectionQueryVariables>({
         query,
         variables: { id },
-        fetchPolicy: 'no-cache',
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot,
       })
       .pipe(
         map(res => extractGqlData<CollectionDetailQuery, 'moleculeCollection'>(
@@ -136,7 +137,7 @@ export class MoleculeCollectionService {
           excludeJoinedToMolecule,
           moleculeId
         },
-        fetchPolicy: 'no-cache'
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot
       })
       .pipe(
         map(res => extractGqlData<PaginatedCollectionsQuery, 'myMoleculeCollectionsPaginated'>(res, 'myMoleculeCollectionsPaginated'))
@@ -247,14 +248,15 @@ export class MoleculeCollectionService {
       .pipe(map(res => extractGqlData<DeleteMoleculeCollectionMutation, 'deleteMoleculeCollection'>(res, 'deleteMoleculeCollection')));
   }
 
-  bindManyCollectionsToMolecule(moleculeId: string, collectionIds: string[], selectAll: boolean): Observable<BindManyCollectionsToMoleculeDTO> {
+  bindManyCollectionsToMolecule(moleculeId: string, collectionIds: string[], selectAll: boolean, snapshotAt?: string | null): Observable<BindManyCollectionsToMoleculeDTO> {
     return this.apollo
       .mutate<BindManyCollectionsToMoleculeMutation, BindManyCollectionsToMoleculeMutationVariables>({
         mutation: BindManyCollectionsToMoleculeDocument,
         variables: {
           moleculeId,
           collectionIds,
-          selectAll
+          selectAll,
+          snapshotAt
         }
       }).pipe(
         map(res => extractGqlData<BindManyCollectionsToMoleculeMutation, 'bindManyCollectionsToMolecule'>(res, 'bindManyCollectionsToMolecule'))

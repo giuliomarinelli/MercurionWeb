@@ -66,7 +66,7 @@ node docs/autonomous-development/tools/validate-cli-runner.mjs
 
 The check validates Series ranges/registries, reserved active/deferred task identities, Source mappings, state markers, required active-recipe sections, and exact dependency filenames. Numeric gaps are valid and are skipped by the planner; an explicit hard dependency on an absent active recipe is still invalid.
 
-`RECIPE-AUDIT.md` records the reviewed inconsistencies, corrections and the intentional protected-branch lifecycle transition at task `0218`.
+`RECIPE-AUDIT.md` records the reviewed inconsistencies, corrections and the owner-approved manual dual-CI integration lifecycle at task `0218`.
 
 ## Model profile
 

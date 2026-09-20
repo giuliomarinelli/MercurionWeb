@@ -1,7 +1,7 @@
 import { MoleculeCollectionItemJoin } from './../models/entities/molecule-collection-item-join.entity';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, EntityManager, Repository } from 'typeorm';
+import { DataSource, EntityManager, LessThanOrEqual, Repository } from 'typeorm';
 import { UUID } from 'crypto';
 import { uuidv7 } from '@kripod/uuidv7';
 import { MoleculeCollectionService } from './molecule-collection.service';
@@ -22,6 +22,8 @@ import { MoleculeOwnershipPolicy } from './molecule-ownership.policy';
 
 @Injectable()
 export class MoleculeCollectionItemJoinService {
+
+    static readonly MAX_SYNCHRONOUS_BULK_CANDIDATES = 500
 
     private readonly logger: LoggerContext
 
@@ -108,10 +110,11 @@ export class MoleculeCollectionItemJoinService {
         userId: UUID,
         collectionId: UUID,
         itemIds: UUID[],
-        selectAll: boolean
+        selectAll: boolean,
+        snapshotAt?: string
     ): Promise<UUID[]> {
         return runInTransaction(this.dataSource, async (_context, manager) =>
-            this.addManyMoleculesToCollectionWithManager(userId, collectionId, itemIds, selectAll, manager)
+            this.addManyMoleculesToCollectionWithManager(userId, collectionId, itemIds, selectAll, manager, snapshotAt)
         );
     }
 
@@ -123,11 +126,12 @@ export class MoleculeCollectionItemJoinService {
         collectionId: UUID,
         itemIds: UUID[],
         selectAll: boolean,
-        manager: EntityManager
+        manager: EntityManager,
+        snapshotAt?: string
     ): Promise<UUID[]> {
 
         await this.ownershipPolicy.assertCollectionOwned(manager, userId, collectionId);
-        const selection = await this.planItemCandidates(manager, userId, itemIds, selectAll);
+        const selection = await this.planItemCandidates(manager, userId, itemIds, selectAll, snapshotAt);
         if (selection.candidateIds.length === 0) return [];
 
         const existingIds = await this.findExistingItemJoins(
@@ -154,7 +158,7 @@ export class MoleculeCollectionItemJoinService {
         return writeSet.alreadyJoinedIds;
     }
 
-    async bindManyCollectionsToMolecule(userId: UUID, moleculeId: string, collectionIds: UUID[], selectAll: boolean): Promise<BindManyCollectionsToMoleculeDTO> {
+    async bindManyCollectionsToMolecule(userId: UUID, moleculeId: string, collectionIds: UUID[], selectAll: boolean, snapshotAt?: string): Promise<BindManyCollectionsToMoleculeDTO> {
         let preparedChemblName: string | undefined
         if (/^\d+$/.test(String(moleculeId))) {
             const chemblMolregno = Number(moleculeId)
@@ -172,7 +176,7 @@ export class MoleculeCollectionItemJoinService {
         }
         return runInTransaction(this.dataSource, async (_context, manager) =>
             this.bindManyCollectionsToMoleculeWithManager(
-                userId, moleculeId, collectionIds, selectAll, manager, preparedChemblName
+                userId, moleculeId, collectionIds, selectAll, manager, preparedChemblName, snapshotAt
             )
         )
     }
@@ -183,7 +187,8 @@ export class MoleculeCollectionItemJoinService {
         collectionIds: UUID[],
         selectAll: boolean,
         manager: EntityManager,
-        preparedChemblName?: string
+        preparedChemblName?: string,
+        snapshotAt?: string
     ): Promise<BindManyCollectionsToMoleculeDTO> {
 
         const isMolregno = /^\d+$/.test(String(moleculeId))
@@ -241,7 +246,7 @@ export class MoleculeCollectionItemJoinService {
             }
         }
 
-        const selection = await this.planCollectionCandidates(manager, userId, collectionIds, selectAll)
+        const selection = await this.planCollectionCandidates(manager, userId, collectionIds, selectAll, snapshotAt)
         if (selection.candidateIds.length === 0) {
             return {
                 ok: false,
@@ -276,31 +281,61 @@ export class MoleculeCollectionItemJoinService {
     }
 
     private async planItemCandidates(
-        manager: EntityManager, userId: UUID, requestedIds: UUID[], selectAll: boolean
+        manager: EntityManager, userId: UUID, requestedIds: UUID[], selectAll: boolean, snapshotAt?: string
     ) {
         const classification = await this.ownershipPolicy.classifyItems(manager, userId, requestedIds)
         if (selectAll) {
+            const boundary = this.parseSnapshotBoundary(snapshotAt)
             const rows = await manager.find(MoleculeCollectionItemEntity, {
-                where: { userId },
-                select: { id: true }
+                where: { userId, createdAt: LessThanOrEqual(boundary) },
+                select: { id: true },
+                order: { createdAt: 'ASC', id: 'ASC' },
+                take: MoleculeCollectionItemJoinService.MAX_SYNCHRONOUS_BULK_CANDIDATES + 1
             })
-            return planBulkJoinSelection({ requestedIds, selectAll }, rows.map(row => row.id))
+            return planBulkJoinSelection({
+                requestedIds,
+                selectAll,
+                maxCandidates: MoleculeCollectionItemJoinService.MAX_SYNCHRONOUS_BULK_CANDIDATES
+            }, rows.map(row => row.id))
         }
-        return planBulkJoinSelection({ requestedIds, selectAll }, classification.ownedIds)
+        return planBulkJoinSelection({
+            requestedIds,
+            selectAll,
+            maxCandidates: MoleculeCollectionItemJoinService.MAX_SYNCHRONOUS_BULK_CANDIDATES
+        }, classification.ownedIds)
     }
 
     private async planCollectionCandidates(
-        manager: EntityManager, userId: UUID, requestedIds: UUID[], selectAll: boolean
+        manager: EntityManager, userId: UUID, requestedIds: UUID[], selectAll: boolean, snapshotAt?: string
     ) {
         const classification = await this.ownershipPolicy.classifyCollections(manager, userId, requestedIds)
         if (selectAll) {
+            const boundary = this.parseSnapshotBoundary(snapshotAt)
             const rows = await manager.find(MoleculeCollection, {
-                where: { userId },
-                select: { id: true }
+                where: { userId, createdAt: LessThanOrEqual(boundary) },
+                select: { id: true },
+                order: { createdAt: 'ASC', id: 'ASC' },
+                take: MoleculeCollectionItemJoinService.MAX_SYNCHRONOUS_BULK_CANDIDATES + 1
             })
-            return planBulkJoinSelection({ requestedIds, selectAll }, rows.map(row => row.id))
+            return planBulkJoinSelection({
+                requestedIds,
+                selectAll,
+                maxCandidates: MoleculeCollectionItemJoinService.MAX_SYNCHRONOUS_BULK_CANDIDATES
+            }, rows.map(row => row.id))
         }
-        return planBulkJoinSelection({ requestedIds, selectAll }, classification.ownedIds)
+        return planBulkJoinSelection({
+            requestedIds,
+            selectAll,
+            maxCandidates: MoleculeCollectionItemJoinService.MAX_SYNCHRONOUS_BULK_CANDIDATES
+        }, classification.ownedIds)
+    }
+
+    private parseSnapshotBoundary(snapshotAt?: string): number {
+        const boundary = Number(snapshotAt)
+        if (!snapshotAt || !Number.isSafeInteger(boundary) || boundary <= 0) {
+            throw new Error('BULK_SELECTION_SNAPSHOT_REQUIRED')
+        }
+        return boundary
     }
 
     private async findExistingItemJoins(

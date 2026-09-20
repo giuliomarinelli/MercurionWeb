@@ -3,6 +3,7 @@ import { UUID } from 'crypto'
 export interface BulkJoinSelectionInput {
   requestedIds: UUID[]
   selectAll: boolean
+  maxCandidates?: number
 }
 
 export interface BulkJoinSelectionPlan {
@@ -16,6 +17,18 @@ export interface BulkJoinWriteSet {
   toInsertIds: UUID[]
 }
 
+export class BulkJoinLimitExceededError extends Error {
+  readonly code = 'BULK_JOIN_LIMIT_EXCEEDED'
+
+  constructor(
+    readonly candidateCount: number,
+    readonly maxCandidates: number
+  ) {
+    super(`Bulk selection contains ${candidateCount} candidates; maximum is ${maxCandidates}`)
+    this.name = 'BulkJoinLimitExceededError'
+  }
+}
+
 export function distinctIds(ids: UUID[]): UUID[] {
   return Array.from(new Set(ids))
 }
@@ -27,18 +40,21 @@ export function planBulkJoinSelection(
   const requestedIds = distinctIds(input.requestedIds)
   const owned = new Set(ownedIds)
 
-  if (!input.selectAll) {
-    return {
-      candidateIds: requestedIds.filter(id => owned.has(id)),
+  const plan = !input.selectAll
+    ? {
+      candidateIds: requestedIds.filter(id => owned.has(id)).sort(),
       excludedIds: []
     }
+    : {
+      candidateIds: distinctIds(ownedIds).filter(id => !new Set(requestedIds).has(id)).sort(),
+      excludedIds: requestedIds.sort()
+    }
+
+  if (input.maxCandidates !== undefined && plan.candidateIds.length > input.maxCandidates) {
+    throw new BulkJoinLimitExceededError(plan.candidateIds.length, input.maxCandidates)
   }
 
-  const excludedIds = new Set(requestedIds)
-  return {
-    candidateIds: distinctIds(ownedIds).filter(id => !excludedIds.has(id)),
-    excludedIds: requestedIds
-  }
+  return plan
 }
 
 export function buildBulkJoinWriteSet(

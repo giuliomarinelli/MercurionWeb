@@ -58,6 +58,7 @@ interface SelectItem {
         <m-button
           style="--color-on-surface-main: #ffffff"
           ariaLabel="Save changes"
+          [disabled]="saveDisabled"
           (pressed)="submitted = true">Save</m-button>
         <m-icon-button ariaLabel="Close fixture" icon="close" />
         <m-text-field
@@ -129,6 +130,7 @@ class CanonicalUiFixtureComponent {
   text = '';
   description = '';
   submitted = false;
+  saveDisabled = false;
   fieldError = '';
   dialogOpen = false;
   activeTab = 0;
@@ -240,6 +242,19 @@ describe('canonical UI accessibility coverage', () => {
 
     expect(fixture.componentInstance.dialogOpen).toBeFalse();
     expect(document.activeElement).toBe(opener);
+  });
+
+  it('passes axe for disabled, invalid and modal representative states', async () => {
+    fixture.componentInstance.fieldError = 'Name is required';
+    fixture.componentInstance.saveDisabled = true;
+    fixture.componentInstance.dialogOpen = true;
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const disabledButton = nativeElement('m-button button[aria-label="Save changes"]');
+    expect(disabledButton).not.toBeNull();
+    await expectNoBlockingViolations();
   });
 
   it('tests tabs, disclosure and combobox keyboard activation', async () => {

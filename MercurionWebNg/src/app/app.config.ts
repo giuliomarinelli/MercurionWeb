@@ -1,8 +1,8 @@
 import { ApplicationConfig, inject, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter, TitleStrategy, withInMemoryScrolling } from '@angular/router';
 import { routes } from './app.routes';
-import { provideApollo } from 'apollo-angular';
-import { ApolloLink, InMemoryCache } from '@apollo/client/core';
+import { Apollo, provideApollo } from 'apollo-angular';
+import { ApolloLink } from '@apollo/client/core';
 import { HttpLink } from 'apollo-angular/http';
 import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { APP_BASE_HREF } from '@angular/common';
@@ -11,6 +11,11 @@ import { AuthFallbackInterceptor } from './interceptors/auth-fallback.intercepto
 import { CorrelationInterceptor } from './interceptors/correlation.interceptor';
 import { MercurionTitleStrategy } from './mercurion-title-strategy';
 import { CONTRACT_VERSION_HEADER, CURRENT_CONTRACT_MAJOR } from '@mercurion/rest-contracts';
+import { GRAPHQL_QUERY_FETCH_POLICY } from './services/graphql/graphql-query-policy';
+import {
+  createMercurionApolloCache,
+  MERCURION_APOLLO_CACHE
+} from './services/graphql/apollo-cache-policies';
 
 
 export const appConfig: ApplicationConfig = {
@@ -34,10 +39,24 @@ export const appConfig: ApplicationConfig = {
       });
       return {
         link: contractVersionLink.concat(httpLink.create({ uri: '/api/graphql' })),
-        cache: new InMemoryCache(),
+        cache: createMercurionApolloCache(),
+        defaultOptions: {
+          query: {
+            fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.stableReference,
+            errorPolicy: 'none'
+          },
+          watchQuery: {
+            fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.ownedReactive,
+            errorPolicy: 'none'
+          }
+        },
         uri: '/api/graphql'
       };
     }),
+    {
+      provide: MERCURION_APOLLO_CACHE,
+      useFactory: () => inject(Apollo).client.cache
+    },
     {
       provide: APP_BASE_HREF,
       useValue: '/'

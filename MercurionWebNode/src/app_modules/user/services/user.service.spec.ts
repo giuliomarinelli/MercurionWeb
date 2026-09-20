@@ -15,6 +15,7 @@ describe('UserService', () => {
       {} as any,
       {} as any,
       {} as any,
+      {} as any,
       { forContext: jest.fn().mockReturnValue(loggerMock) } as any,
       ),
       dataSource,

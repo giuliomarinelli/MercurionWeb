@@ -1,6 +1,5 @@
 import {
     Resolver, Query, Mutation, Args, Info, ID,
-    Int
 } from '@nestjs/graphql'
 import { GraphQLResolveInfo } from 'graphql'
 import { UUID } from 'crypto'
@@ -17,7 +16,8 @@ import { PaginatedTicket } from '../models/dto/paginated-ticket.type.gql'
 import { GeneralUtils } from 'src/utils/general-utils/general-utils'
 import { assertMercurionPublicId } from 'src/identifiers/mercurion-public-id'
 import { PaginatedTicketMessage } from '../models/dto/paginated-ticket-message.type.gql'
-import { Pagination } from 'nestjs-typeorm-paginate'
+import { PaginationArgs } from 'src/models/pagination/pagination.args'
+import { toFlatPagination } from 'src/models/pagination/pagination.utils'
 import { ownerActor, supportActor } from '../authorization/help-authorization.policy'
 
 
@@ -25,10 +25,6 @@ import { ownerActor, supportActor } from '../authorization/help-authorization.po
 export class HelpResolver {
 
     constructor(private readonly helpService: HelpService) { }
-
-    private flattenPagination<T>(pagination: Pagination<T>) {
-        return GeneralUtils.paginationToFlatPaginationConverter(pagination)
-    }
 
     // --------------------------------
     // USER QUERIES (owner)
@@ -52,25 +48,23 @@ export class HelpResolver {
 
     @Query(() => PaginatedTicket)
     async myTickets(
-        @Args('page', { type: () => Int }) page: number = 1,
-        @Args('limit', { type: () => Int }) limit: number = 20,
+        @Args() pagination: PaginationArgs,
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo,
         @Scopes() scopes: Scope[]
     ): Promise<PaginatedTicket> {
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
-        const pagination = await this.helpService.listTickets(
+        const result = await this.helpService.listTickets(
             ownerActor(userId, scopes),
-            { page, limit },
+            pagination,
             fieldsMap as GraphQLFieldsMap,
         )
-        return this.flattenPagination(pagination)
+        return toFlatPagination(result)
     }
 
     @Query(() => PaginatedTicketMessage)
     async myTicketMessages(
-        @Args('page', { type: () => Int }) page: number = 1,
-        @Args('limit', { type: () => Int }) limit: number = 20,
+        @Args() pagination: PaginationArgs,
         @Args('ticketId', { type: () => ID }) ticketId: UUID,
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo,
@@ -78,8 +72,8 @@ export class HelpResolver {
     ): Promise<PaginatedTicketMessage> {
         assertMercurionPublicId(ticketId, 'ticketId')
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
-        const pagination = await this.helpService.listTicketMessages(ticketId, ownerActor(userId, scopes), { page, limit }, fieldsMap)
-        return this.flattenPagination(pagination)
+        const result = await this.helpService.listTicketMessages(ticketId, ownerActor(userId, scopes), pagination, fieldsMap)
+        return toFlatPagination(result)
     }
 
     @SoftAuthorization()
@@ -154,26 +148,24 @@ export class HelpResolver {
     @HasScopes(Scope.HandleTickets) // Se non ha lo scope HandleTickets viene restituito un errore 403
     @Query(() => PaginatedTicket)
     async ticketsAsSupport(
-        @Args('page', { type: () => Int }) page: number = 1,
-        @Args('limit', { type: () => Int }) limit: number = 20,
+        @Args() pagination: PaginationArgs,
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo,
         @Scopes() scopes: Scope[]
     ): Promise<PaginatedTicket> {
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
-        const pagination = await this.helpService.listTickets(
+        const result = await this.helpService.listTickets(
             supportActor(userId, scopes),
-            { page, limit },
+            pagination,
             fieldsMap as GraphQLFieldsMap,
         )
-        return this.flattenPagination(pagination)
+        return toFlatPagination(result)
     }
 
     @HasScopes(Scope.HandleTickets)
     @Query(() => PaginatedTicketMessage)
     async ticketMessagesAsSupport(
-        @Args('page', { type: () => Int }) page: number = 1,
-        @Args('limit', { type: () => Int }) limit: number = 20,
+        @Args() pagination: PaginationArgs,
         @Args('ticketId', { type: () => ID }) ticketId: UUID,
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo,
@@ -181,8 +173,8 @@ export class HelpResolver {
     ): Promise<PaginatedTicketMessage> {
         assertMercurionPublicId(ticketId, 'ticketId')
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
-        const pagination = await this.helpService.listTicketMessages(ticketId, supportActor(userId, scopes), { page, limit }, fieldsMap)
-        return this.flattenPagination(pagination)
+        const result = await this.helpService.listTicketMessages(ticketId, supportActor(userId, scopes), pagination, fieldsMap)
+        return toFlatPagination(result)
     }
 
     // --------------------------------

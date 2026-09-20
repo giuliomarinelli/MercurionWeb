@@ -310,6 +310,7 @@ export type MutationAddManyMoleculesToCollectionArgs = {
   collectionId: Scalars['ID']['input'];
   itemIds: Array<Scalars['ID']['input']>;
   selectAll: Scalars['Boolean']['input'];
+  snapshotAt?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -336,6 +337,7 @@ export type MutationBindManyCollectionsToMoleculeArgs = {
   collectionIds: Array<Scalars['ID']['input']>;
   moleculeId: Scalars['ID']['input'];
   selectAll: Scalars['Boolean']['input'];
+  snapshotAt?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -792,15 +794,15 @@ export type QueryMyTicketDetailArgs = {
 
 
 export type QueryMyTicketMessagesArgs = {
-  limit: Scalars['Int']['input'];
-  page: Scalars['Int']['input'];
+  limit?: Scalars['Int']['input'];
+  page?: Scalars['Int']['input'];
   ticketId: Scalars['ID']['input'];
 };
 
 
 export type QueryMyTicketsArgs = {
-  limit: Scalars['Int']['input'];
-  page: Scalars['Int']['input'];
+  limit?: Scalars['Int']['input'];
+  page?: Scalars['Int']['input'];
 };
 
 
@@ -822,8 +824,8 @@ export type QueryPagesBySectionArgs = {
 export type QueryPaginatedMoleculeCollectionItemsByCollectionArgs = {
   collectionId: Scalars['String']['input'];
   excluded?: InputMaybe<Scalars['Boolean']['input']>;
-  limit: Scalars['Int']['input'];
-  page: Scalars['Int']['input'];
+  limit?: Scalars['Int']['input'];
+  page?: Scalars['Int']['input'];
   q: Scalars['String']['input'];
 };
 
@@ -831,8 +833,8 @@ export type QueryPaginatedMoleculeCollectionItemsByCollectionArgs = {
 export type QueryPaginatedMoleculeCollectionItemsByUserArgs = {
   collectionId?: InputMaybe<Scalars['ID']['input']>;
   excludeJoinedToCollection?: InputMaybe<Scalars['Boolean']['input']>;
-  limit: Scalars['Int']['input'];
-  page: Scalars['Int']['input'];
+  limit?: Scalars['Int']['input'];
+  page?: Scalars['Int']['input'];
   q: Scalars['String']['input'];
 };
 
@@ -879,15 +881,15 @@ export type QueryTicketDetailAsSupportArgs = {
 
 
 export type QueryTicketMessagesAsSupportArgs = {
-  limit: Scalars['Int']['input'];
-  page: Scalars['Int']['input'];
+  limit?: Scalars['Int']['input'];
+  page?: Scalars['Int']['input'];
   ticketId: Scalars['ID']['input'];
 };
 
 
 export type QueryTicketsAsSupportArgs = {
-  limit: Scalars['Int']['input'];
-  page: Scalars['Int']['input'];
+  limit?: Scalars['Int']['input'];
+  page?: Scalars['Int']['input'];
 };
 
 export type SynthCommandOutcome =

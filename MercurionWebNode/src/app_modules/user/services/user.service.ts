@@ -1,4 +1,3 @@
-import { MoleculeCollection } from 'src/app_modules/molecule-collection/models/entities/molecule-collection.entity';
 import { ProfileRegistryClientDTO, ProfileRegistryDTO as ProfileRegistryDTO } from './../../auth/models/dto/profile.dtos';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -17,9 +16,7 @@ import { CompareResult } from 'src/app_modules/auth/models/enums/compare-result.
 import { LoggerPort } from 'src/logging/logger.port';
 import { LoggerContext } from 'src/logging/logger.port';
 import { Scope } from '../models/enums/scope.enum';
-import { MoleculeCollectionItemEntity } from 'src/app_modules/molecule-collection/models/entities/molecule-collection-item.entity';
 import { HistoryService } from 'src/app_modules/history/services/history.service';
-import { TinyHistoryDTO } from 'src/app_modules/history/models/dto/history.dto';
 import { AuthIdentity } from 'src/app_modules/sso/models/entities/auth-identity.entity';
 import { ProvidedEmailDTO } from 'src/app_modules/auth/models/dto/provided-email.dto';
 import { AuthProvider } from 'src/app_modules/sso/models/enums/auth-provider.enum';
@@ -28,6 +25,7 @@ import type { IdentityReadPort } from 'src/app_modules/auth/models/interfaces/id
 import { runInTransaction, transactionManager, type TransactionContext } from 'src/persistence/transaction-context'
 import { LOCAL_DUMMY_AUTH } from '@mercurion/rest-contracts'
 import { UserGender } from '../models/enums/user-gender.enum'
+import { ProfileReadModelService } from './profile-read-model.service'
 
 interface UserCreateCommand {
     email?: string
@@ -106,6 +104,7 @@ export class UserService implements IdentityReadPort {
         private readonly passwordEncoder: PasswordEncoderService,
         private readonly securityService: SecurityService,
         private readonly historyService: HistoryService,
+        private readonly profileReadModelService: ProfileReadModelService,
         meiliLogger: LoggerPort
     ) {
         this.logger = meiliLogger.forContext(UserService.name)
@@ -561,99 +560,7 @@ export class UserService implements IdentityReadPort {
     }
 
     public async getVerifiedUserProfileById(id: UUID, getRecentHistory = true): Promise<ProfileDTO | null> {
-
-        try {
-            return runInTransaction(this.dataSource, async (context, manager) => {
-
-                const profileRow = await manager.findOne(User, {
-                    where: { id, isVerified: true },
-                    select: {
-                        id: true,
-                        firstName: true,
-                        lastName: true,
-                        gender: true,
-                        job: true,
-                        email: true,
-                        completePhoneNumber: true,
-                        avatarId: true,
-                        sso: true,
-                        initials: true
-                    }
-                })
-
-                if (!profileRow) {
-                    return null
-                }
-
-                const { firstName, lastName, gender, job, completePhoneNumber, avatarId, initials } = profileRow
-
-                let _email: string | null = null
-                let authIdentityRow: AuthIdentity | null
-
-                if (profileRow.sso) {
-                    authIdentityRow = await manager.findOne(AuthIdentity, {
-                        where: {
-                            userId: id
-                        },
-                        select: {
-                            email: true
-                        }
-                    })
-                    if (!authIdentityRow) {
-                        return null
-                    }
-                    _email = authIdentityRow.email
-                } else {
-                    _email = profileRow.email
-                }
-
-                const personalMoleculeCount = await manager.count(MoleculeCollectionItemEntity, {
-                    where: {
-                        type: 'custom',
-                        userId: id
-                    }
-                })
-
-                const chemblMoleculeCount = await manager.count(MoleculeCollectionItemEntity, {
-                    where: {
-                        type: 'chembl',
-                        userId: id
-                    }
-                })
-
-                const collectionCount = await manager.count(MoleculeCollection, {
-                    where: {
-                        userId: id
-                    }
-                })
-
-                let recentHistory: TinyHistoryDTO[] = []
-
-                if (getRecentHistory) {
-                    recentHistory = await this.historyService.getRecentHistoryTinyDistinctPerDay(id, 7, context)
-                }
-
-                const result: ProfileDTO = {
-                    firstName,
-                    lastName,
-                    gender,
-                    job,
-                    obscuredEmail: this.securityService.maskEmail(_email ?? ''),
-                    obscuredPhone: completePhoneNumber ? this.securityService.maskPhone(completePhoneNumber) : null,
-                    avatarId,
-                    recentHistory,
-                    personalMoleculeCount,
-                    chemblMoleculeCount,
-                    collectionCount,
-                    initials
-                }
-
-                return result
-            })
-        } catch (e) {
-            this.logger.warn('Failed to fetch profile', e as object)
-            throw e
-        }
+        return this.profileReadModelService.getVerifiedUserProfileById(id, getRecentHistory)
     }
 
     public async getVerifiedUserEssentialProfileRegistryById(id: UUID): Promise<ProfileRegistryClientDTO> {
