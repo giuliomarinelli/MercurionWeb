@@ -11,7 +11,7 @@ describe('OAuth2ClientController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [OAuth2ClientController],
       providers: [
-        { provide: OAuth2ClientService, useValue: { getAuthorizationUrl: jest.fn(), handleCallback: jest.fn() } },
+        { provide: OAuth2ClientService, useValue: { getAuthorizationUrl: jest.fn(), handleCallback: jest.fn(), disconnect: jest.fn() } },
         { provide: LoggerPort, useValue: { forContext: jest.fn().mockReturnValue({ log: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() }) } },
         { provide: OAuthStateService, useValue: { consume: jest.fn() } },
       ],

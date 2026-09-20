@@ -1,7 +1,7 @@
 # 0181 - Centralize OAuth provider-token lifecycle
 
-- [ ] DONE
-- [x] BLOCKED
+- [x] DONE
+- [ ] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
@@ -60,11 +60,11 @@ Source: `DATA-032` in Series `0001`.
 
 ## Acceptance criteria
 
-- [ ] Durable provider tokens are encrypted at rest behind one credential boundary.
-- [ ] Access-token cache is owner/provider scoped, TTL-bound and removed on revoke.
-- [ ] Refresh rotation/revocation are explicit and tested.
-- [ ] Public DTOs/logs/errors never contain raw provider tokens.
-- [ ] Cross-owner/provider credential access fails deterministically.
+- [x] Durable provider tokens are encrypted at rest behind one credential boundary.
+- [x] Access-token cache is owner/provider scoped, TTL-bound and removed on revoke.
+- [x] Refresh rotation/revocation are explicit and tested.
+- [x] Public DTOs/logs/errors never contain raw provider tokens.
+- [x] Cross-owner/provider credential access fails deterministically.
 
 ## Validation
 
@@ -130,3 +130,28 @@ Not applicable.
 Human security decision required for the durable provider-credential encryption
 boundary, key source/ownership, rotation/versioning, re-encryption,
 retirement/recovery semantics and provider-specific revocation requirements.
+
+### Manual recovery 2026-09-20
+- Direct human authorization resumed the frozen branch and approved manual
+  AI-assisted completion outside the former autonomous stop condition.
+- Added a dedicated credential cipher/store boundary. It derives a
+  purpose-specific AES-256-GCM key with HKDF from deployment-owned root
+  material and binds every versioned envelope to normalized provider and owner
+  scope as authenticated data. Raw legacy rows are re-encrypted on first read;
+  the entity excludes secret material from default selection and serialization.
+- Added the repository policy for key ownership, versioned rotation,
+  re-encryption, retirement and loss recovery. No secret value is committed.
+- Access-token keys remain canonical owner/provider Redis keys, reject invalid
+  expiries, and are removed during idempotent disconnect. Dropbox declares its
+  supported revoke endpoint; local deletion completes even if remote revoke
+  fails.
+- Refresh rotation persists the encrypted replacement before exposing the new
+  access token. Provider response bodies and token literals are absent from
+  application logs and public errors.
+- Focused OAuth/security validation passed: 6 suites / 16 tests plus 3
+  configuration/redaction suites / 33 tests; Nest lint, typecheck and build
+  passed. The browser provider flow was not run because no local fake-provider
+  browser fixture is configured; the same exchange/refresh/rotation/revoke
+  behavior is covered through the injected provider HTTP port.
+- Final DONE status remains subject to exact feature-SHA and post-merge-SHA
+  Required gate success.

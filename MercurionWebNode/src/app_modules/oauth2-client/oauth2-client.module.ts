@@ -7,6 +7,7 @@ import { OAuth2ClientController } from './controllers/o-auth2-client.controller'
 import { OAuth2AccessTokenRefreshService } from './services/access-token-refresh.service';
 import { ExternalHttpModule } from 'src/infrastructure/external-http/external-http.module'
 import { OAuthStateService } from './services/oauth-state.service'
+import { ProviderCredentialCipherService } from './services/provider-credential-cipher.service'
 
 @Global()
 @Module({
@@ -14,7 +15,7 @@ import { OAuthStateService } from './services/oauth-state.service'
         TypeOrmModule.forFeature([OAuth2TokenEntity]),
         ExternalHttpModule,
     ],
-    providers: [OAuth2PersistenceService, OAuth2ClientService, OAuth2AccessTokenRefreshService, OAuthStateService],
+    providers: [OAuth2PersistenceService, ProviderCredentialCipherService, OAuth2ClientService, OAuth2AccessTokenRefreshService, OAuthStateService],
     controllers: [OAuth2ClientController],
     exports: [OAuth2AccessTokenRefreshService, OAuth2ClientService, OAuthStateService]
 })
