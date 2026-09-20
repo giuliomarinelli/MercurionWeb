@@ -34,8 +34,14 @@ export class OAuth2TokenEntity {
     }
 
     toJSON() {
-        const { refreshToken: _refreshToken, ...safe } = this
-        return safe
+        return {
+            id: this.id,
+            provider: this.provider,
+            userId: this.userId,
+            scope: this.scope,
+            createdAt: this.createdAt,
+            updatedAt: this.updatedAt,
+        }
     }
 
 }
