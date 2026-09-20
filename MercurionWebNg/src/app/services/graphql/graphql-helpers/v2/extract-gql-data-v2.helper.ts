@@ -18,7 +18,7 @@ export function extractGqlDataV2<
   res: ApolloLike<T>,
   field: K,
   allowNull: boolean = false
-): any {
+): T[K] | null {
   if (res.errors?.length) {
     const gqlErrors = res.errors
       .filter((e): e is GraphQLErrorLike => typeof e === 'object' && e !== null)
@@ -27,14 +27,14 @@ export function extractGqlDataV2<
     throw new GqlV2Error('GraphQL', gqlErrors, String(field))
   }
 
-  const data = res.data as T | null | undefined
+  const data = res.data
   const key = String(field)
 
   if (!data || !(key in data)) {
     throw new GqlV2Error('NoData', [], key)
   }
 
-  const value = (data as any)[key];
+  const value = data[field];
 
   if ((value === null || value === undefined) && !allowNull) {
     throw new GqlV2Error('NoData', [], key)
@@ -69,4 +69,3 @@ export function extractGqlDataV2<
  *
  *
  */
-

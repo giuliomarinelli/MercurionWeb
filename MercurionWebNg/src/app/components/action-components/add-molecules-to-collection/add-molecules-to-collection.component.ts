@@ -687,7 +687,7 @@ export class AddMoleculesToCollectionComponent
   step = signal<1 | 2>(1);
   step_12_loading = signal<boolean>(false);
   error = signal<boolean>(false);
-  methodControl!: FormControl<'my' | 'chembl'>;
+  methodControl = new FormControl<'my' | 'chembl'>('my', { nonNullable: true });
   method = signal<'my' | 'chembl'>('my');
   collection = signal<MoleculeCollection | null>(null);
 
@@ -742,7 +742,12 @@ export class AddMoleculesToCollectionComponent
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(val => this.method.set(val));
     queueMicrotask(() => {
-      this.colSub = this.moleculeCollectionService.getCollectionById(this.addContext.collectionId()!).pipe(
+      const collectionId = this.addContext.collectionId();
+      if (!collectionId) {
+        this.close();
+        return;
+      }
+      this.colSub = this.moleculeCollectionService.getCollectionById(collectionId).pipe(
         takeUntilDestroyed(this.destroyRef)
       ).subscribe({
         next: col => this.collection.set(col),
@@ -822,6 +827,11 @@ export class AddMoleculesToCollectionComponent
   }
 
   private doSubmit(): void {
+    const collectionId = this.addContext.collectionId();
+    if (!collectionId) {
+      this.error.set(true);
+      return;
+    }
     if (this.step() === 1) {
       if (this.isSelectedNothing()) {
         return;
@@ -832,7 +842,7 @@ export class AddMoleculesToCollectionComponent
       this.suSub1 = this.submitController
         .submitExisting(
           this.moleculeCollectionItemService,
-          this.addContext.collectionId()!,
+          collectionId,
           this.selection,
           this.multiselectItems().map(w => w.item.id)
         )
@@ -920,10 +930,15 @@ export class AddMoleculesToCollectionComponent
   }
 
   private doSubmitChembl(): void {
+    const collectionId = this.addContext.collectionId();
+    if (!collectionId) {
+      this.error.set(true);
+      return;
+    }
     this.suSub2 = this.submitController
       .submitChembl(
         this.moleculeCollectionItemService,
-        this.addContext.collectionId()!,
+        collectionId,
         this.selection
       )
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -934,7 +949,7 @@ export class AddMoleculesToCollectionComponent
             this.invalidation.publish({
               domain: 'molecule-collection',
               action: 'molecules-added',
-              collectionId: this.addContext.collectionId()!
+              collectionId
             });
           }
           this.error.set(!ok);

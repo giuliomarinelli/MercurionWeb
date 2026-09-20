@@ -173,10 +173,10 @@ export class NotebookTreeComponent {
 
   select(level: 'chapter' | 'section' | 'page', chapterId: string, sectionId?: string, pageId?: string) {
     // Imposta i query param in base al livello selezionato
-    const queryParams: any = {};
-    if (level === 'chapter') queryParams.c_id = chapterId;
-    if (level === 'section') { queryParams.c_id = chapterId; queryParams.s_id = sectionId; }
-    if (level === 'page') { queryParams.c_id = chapterId; queryParams.s_id = sectionId; queryParams.p_id = pageId; }
+    const queryParams: Record<string, string | undefined> = {};
+    if (level === 'chapter') queryParams['c_id'] = chapterId;
+    if (level === 'section') { queryParams['c_id'] = chapterId; queryParams['s_id'] = sectionId; }
+    if (level === 'page') { queryParams['c_id'] = chapterId; queryParams['s_id'] = sectionId; queryParams['p_id'] = pageId; }
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams,

@@ -15,6 +15,12 @@ import { Subscription } from 'rxjs';
 import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
 import { IconButtonComponent } from '../../common/icon-button/icon-button.component';
 import { QuillStylesService } from '../../../services/quill-styles.service';
+import { JsonValue, toJsonValue } from '../../../Models/json.models';
+
+type QuillContentChange = {
+  delta?: unknown;
+  text?: unknown;
+};
 
 @Component({
   selector: 'm-new-ticket',
@@ -136,7 +142,7 @@ export class NewTicketComponent implements OnDestroy, OnInit {
 
   subject = ''
   contentHtml = ''
-  private delta: any = null
+  private delta: JsonValue = null
   private lastPlainText = ''
 
   ngOnInit(): void {
@@ -158,9 +164,9 @@ export class NewTicketComponent implements OnDestroy, OnInit {
     this.sub?.unsubscribe()
   }
 
-  onChanged(e: any) {
-    this.delta = e?.delta ?? null
-    this.lastPlainText = (e?.text ?? '').trim()
+  onChanged(e: QuillContentChange) {
+    this.delta = toJsonValue(e.delta)
+    this.lastPlainText = typeof e.text === 'string' ? e.text.trim() : ''
     this.validate()
   }
 

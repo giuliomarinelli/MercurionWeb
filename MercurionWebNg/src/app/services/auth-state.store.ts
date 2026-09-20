@@ -93,14 +93,15 @@ export class AuthStateStore {
   readonly clientSession = computed<AuthenticatedClientSession | null>(() => {
     const state = this.state()
     if (state.kind !== 'authenticated') return null
+    if (!state.accessToken || !state.wsAccessToken) return null
     const identity = this.identityFromTokenPair(state.accessToken, state.wsAccessToken)
     if (!identity) return null
     return {
       ...identity,
       initials: state.initials,
       scopes: state.scopes,
-      accessToken: state.accessToken!,
-      wsAccessToken: state.wsAccessToken!,
+      accessToken: state.accessToken,
+      wsAccessToken: state.wsAccessToken,
       wsTokenIssuedAt: this.persistence.getWsAccessTokenTimestamp()
     }
   })

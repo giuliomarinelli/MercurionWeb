@@ -318,7 +318,15 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
       ).subscribe({
         next: res => {
           const { obscuredEmail } = res
-          this.obscuredEmail.set(obscuredEmail!)
+          if (!obscuredEmail) {
+            this.loading.set(false)
+            this.serverError.set({
+              fieldErrors: {},
+              globalError: 'Il server non ha restituito un indirizzo oscurato.'
+            })
+            return
+          }
+          this.obscuredEmail.set(obscuredEmail)
           queueMicrotask(() => {
             this.loading.set(false)
             this.step.set(2)

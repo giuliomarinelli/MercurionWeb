@@ -31,9 +31,13 @@ export class JwtHelperService {
    * @param claimName Nome del claim da estrarre
    * @returns Valore del claim o null
    */
-  getClaim<T = Record<string, any>>(token: string, claimName: string): T | null {
-    const decoded = this.decodeToken(token) as Record<string, any>;
-    return decoded && claimName in decoded ? decoded[claimName] as T : null
+  getClaim<T = unknown>(token: string, claimName: string): T | null {
+    const decoded = this.decodeToken(token);
+    if (!decoded || !(claimName in decoded)) {
+      return null;
+    }
+    const claims = decoded as JwtPayload & Record<string, unknown>;
+    return claims[claimName] as T;
   }
 
   /**
@@ -48,4 +52,3 @@ export class JwtHelperService {
     return decoded.exp < now
   }
 }
-

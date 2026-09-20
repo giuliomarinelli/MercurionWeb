@@ -26,7 +26,7 @@ import { TicketToolbarComponent } from './ticket-toolbar.component';
            role="region" aria-labelledby="ticketDetailHeading" [attr.aria-busy]="state().kind === 'loading'">
         <header class="flex items-center justify-between px-4 py-4 border-b border-b-slate-400 sticky top-0 z-50 rounded-t-xl bg-white dark:bg-dark-surface-main">
           <h2 id="ticketDetailHeading" class="text-lg font-semibold">Dettaglio Ticket&nbsp;
-            @if (content()) { <span class="text-light-accent-secondary">#{{ content()!.ticket.publicId }}</span> }
+            @if (content(); as ticketContent) { <span class="text-light-accent-secondary">#{{ ticketContent.ticket.publicId }}</span> }
           </h2>
           <m-icon-button size="sm" icon="close" ariaLabel="Chiudi dettaglio ticket" (pressed)="close()" />
         </header>
@@ -38,30 +38,32 @@ import { TicketToolbarComponent } from './ticket-toolbar.component';
             </div>
           }
           @case ('content') {
+            @if (content(); as ticketContent) {
             <section class="px-4 py-3 border-b border-slate-200/70 dark:border-slate-700/60 bg-slate-50/70 dark:bg-slate-800/40 flex flex-col gap-2">
               <div class="flex flex-wrap items-center gap-2">
-                <span class="text-xs font-medium px-2 py-0.5 rounded-full">#{{ content()!.ticket.publicId }}</span>
+                <span class="text-xs font-medium px-2 py-0.5 rounded-full">#{{ ticketContent.ticket.publicId }}</span>
                 <span class="text-xs font-semibold px-2 py-0.5 rounded-full border" [ngClass]="statusBadgeClass()">{{ statusLabel() }}</span>
-                @if (content()!.capabilities.showRequester && requesterName()) { <span class="text-xs">Utente: <b>{{ requesterName() }}</b></span> }
+                @if (ticketContent.capabilities.showRequester && requesterName()) { <span class="text-xs">Utente: <b>{{ requesterName() }}</b></span> }
               </div>
-              <div class="text-base md:text-lg font-semibold">{{ content()!.ticket.subject }}</div>
+              <div class="text-base md:text-lg font-semibold">{{ ticketContent.ticket.subject }}</div>
               <div class="flex flex-wrap gap-3 text-xs">
-                <span>Creato: {{ content()!.ticket.createdAt | date: 'dd/MM/yyyy HH:mm' }}</span>
-                <span>Aggiornato: {{ content()!.ticket.updatedAt | date: 'dd/MM/yyyy HH:mm' }}</span>
-                <span>Ultimo msg: {{ content()!.ticket.lastMessageAt | date: 'dd/MM/yyyy HH:mm:ss' }}</span>
+                <span>Creato: {{ ticketContent.ticket.createdAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+                <span>Aggiornato: {{ ticketContent.ticket.updatedAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+                <span>Ultimo msg: {{ ticketContent.ticket.lastMessageAt | date: 'dd/MM/yyyy HH:mm:ss' }}</span>
               </div>
-              <m-ticket-toolbar [capabilities]="content()!.capabilities" [pending]="content()!.commandPending"
+              <m-ticket-toolbar [capabilities]="ticketContent.capabilities" [pending]="ticketContent.commandPending"
                 (closeTicket)="facade.closeTicket()" (reopenTicket)="facade.reopenTicket()" />
             </section>
-            <m-ticket-thread [messages]="content()!.messages" [scope]="content()!.scope"
-              [pagePending]="content()!.thread.pending" [pageError]="content()!.thread.error"
+            <m-ticket-thread [messages]="ticketContent.messages" [scope]="ticketContent.scope"
+              [pagePending]="ticketContent.thread.pending" [pageError]="ticketContent.thread.error"
               (loadMore)="facade.loadMore()" (retry)="facade.retryPage()" />
             <div class="border-t border-slate-200/70 dark:border-slate-700/60">
-              @if (content()!.capabilities.canSend) {
-                <m-ticket-composer [pending]="content()!.composer.kind === 'pending'" [error]="composerError()"
+              @if (ticketContent.capabilities.canSend) {
+                <m-ticket-composer [pending]="ticketContent.composer.kind === 'pending'" [error]="composerError()"
                   (send)="send($event)" (retry)="facade.retrySubmit()" (cancel)="facade.cancelSubmit()" />
               } @else { <p class="text-center text-xs py-8">Il ticket è chiuso, non è possibile inviare messaggi.</p> }
             </div>
+            }
           }
         }
       </div>

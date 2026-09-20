@@ -24,7 +24,7 @@ export class AuthInterceptor implements HttpInterceptor {
     private zone: NgZone
   ) { }
 
-  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+  intercept(req: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
 
     const token = this.authService.getAccessToken()
     const authReq = token

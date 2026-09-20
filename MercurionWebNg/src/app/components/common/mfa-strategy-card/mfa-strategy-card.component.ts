@@ -11,7 +11,7 @@ import { ButtonComponent } from '../button/button.component';
   imports: [NgClass, ButtonComponent],
   template: `
 
-  @if (_strategy() && !(_strategy()!.strategy === 'BACKUP_CODE' && !_strategy()!.enabled)) {
+  @if (_strategy() && !(_strategy()?.strategy === 'BACKUP_CODE' && !_strategy()?.enabled)) {
     <div
       class="
         w-full rounded-md border p-4 mb-3
@@ -32,7 +32,7 @@ import { ButtonComponent } from '../button/button.component';
 
 
       <div class="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
-          @switch (_strategy()!.strategy) {
+          @switch (_strategy()?.strategy) {
               @case ('EMAIL_OTP') {
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-7 w-auto shrink-0">
                   <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
@@ -77,14 +77,14 @@ import { ButtonComponent } from '../button/button.component';
         @if (choose() || config()) {
           <span
             class="px-2 py-[2px] rounded text-[0.7rem] sm:text-xs font-semibold shrink-0"
-            [class.bg-emerald-200]="_strategy()!.enabled"
-            [class.text-emerald-800]="_strategy()!.enabled"
-            [class.bg-amber-200]="!_strategy()!.enabled"
-            [class.text-amber-800]="!_strategy()!.enabled"
+            [class.bg-emerald-200]="_strategy()?.enabled"
+            [class.text-emerald-800]="_strategy()?.enabled"
+            [class.bg-amber-200]="!_strategy()?.enabled"
+            [class.text-amber-800]="!_strategy()?.enabled"
           >
-            {{ _strategy()!.enabled ? 'Attiva' : 'Non attiva' }}
+            {{ _strategy()?.enabled ? 'Attiva' : 'Non attiva' }}
           </span>
-          @if (_strategy()!.strategy === 'SMS_OTP' && noPhone()) {
+          @if (_strategy()?.strategy === 'SMS_OTP' && noPhone()) {
               <div class="flex items-center gap-4 flex-wrap text-sm">
                 <span >Per attivare questa strategia</span>
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-auto">
@@ -96,17 +96,17 @@ import { ButtonComponent } from '../button/button.component';
             }
         }
       </div>
-      @if (showActions() && !(noPhone() && _strategy()!.strategy === 'SMS_OTP') && _strategy()!.strategy !== 'BACKUP_CODE') {
+      @if (showActions() && !(noPhone() && _strategy()?.strategy === 'SMS_OTP') && _strategy()?.strategy !== 'BACKUP_CODE') {
         <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto items-stretch sm:items-center justify-end sm:justify-start">
           <m-button
             type="button"
-            [variant]="_strategy()!.enabled ? 'destructive' : 'secondary'"
+            [variant]="_strategy()?.enabled ? 'destructive' : 'secondary'"
             size="sm"
             (click)="handleActionClick()"
-            [attr.aria-pressed]="_strategy()!.enabled"
+            [attr.aria-pressed]="_strategy()?.enabled"
             [attr.aria-label]="actionLabel()"
           >
-            @if (!_strategy()!.enabled) {
+            @if (!_strategy()?.enabled) {
                 <svg xmlns="http://www.w3.org/2000/svg"
                      viewBox="0 0 640 640"
                      class="fill-current h-5 w-5 sm:h-6 sm:w-6 relative -left-1">
@@ -126,7 +126,7 @@ import { ButtonComponent } from '../button/button.component';
 
           </m-button>
         </div>
-      } @else if (_remainingBackupCodes() >= 0 && _strategy()!.strategy !== 'SMS_OTP') {
+      } @else if (_remainingBackupCodes() >= 0 && _strategy()?.strategy !== 'SMS_OTP') {
         <p class="text-sm">
           Rimanenti:&nbsp;
           @if (!_remainingBackupCodes()) {

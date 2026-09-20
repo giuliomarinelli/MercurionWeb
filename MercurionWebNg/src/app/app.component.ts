@@ -196,10 +196,11 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     if (!this.isBrowser) return
 
     const docEl = this.doc?.documentElement as HTMLElement | null
-    const shouldUseScrollHost = this.routePolicy().shell === 'standard' && !!this.scrollHostRef
+    const scrollHostRef = this.scrollHostRef
+    const shouldUseScrollHost = this.routePolicy().shell === 'standard' && !!scrollHostRef
 
-    if (shouldUseScrollHost) {
-      this.scrollContext.registerScrollRootRef(this.scrollHostRef!)
+    if (scrollHostRef && shouldUseScrollHost) {
+      this.scrollContext.registerScrollRootRef(scrollHostRef)
       return
     }
 

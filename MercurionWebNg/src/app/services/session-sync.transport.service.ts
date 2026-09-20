@@ -98,7 +98,7 @@ export class SessionSyncTransportService implements OnDestroy {
   /** True dopo il primo ACK positivo in questa pagina. */
   private verifiedOnce = false
 
-  private toastMuteTimer!: ReturnType<typeof setTimeout>
+  private toastMuteTimer: ReturnType<typeof setTimeout> | undefined
   private toastMutedUntil = 0
   private readonly voluntaryLogoutToastSilenceMs = 3000
   private lastVoluntaryLogoutAt = 0
@@ -187,7 +187,7 @@ export class SessionSyncTransportService implements OnDestroy {
     this.realtimeSubscriptions.unsubscribe()
     clearTimeout(this.storageDebounce)
     window.removeEventListener('storage', this.onStorage)
-    clearTimeout(this.toastMuteTimer)
+    if (this.toastMuteTimer) clearTimeout(this.toastMuteTimer)
   }
 
   notifyVoluntaryLogout(): void {
@@ -433,7 +433,7 @@ export class SessionSyncTransportService implements OnDestroy {
   }
 
   private startToastMuteWindow(): void {
-    clearTimeout(this.toastMuteTimer)
+    if (this.toastMuteTimer) clearTimeout(this.toastMuteTimer)
     const delay = this.voluntaryLogoutToastSilenceMs
     const expiresAt = Date.now() + delay
     this.toastMutedUntil = expiresAt

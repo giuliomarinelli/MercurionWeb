@@ -220,10 +220,10 @@ export class CustomDetailsComponent {
       this._hideActions.set(this.hideActions())
     })
     effect(() => {
-      if (this._triggerRollback() && this.lastValue()) {
+      const restore = this.lastValue()
+      if (this._triggerRollback() && restore) {
         queueMicrotask(() => {
           this._triggerRollback.set(false);
-          const restore = this.lastValue()!;
           this._value.set(restore);
           this.startValue.set(restore);
           const el = this.valueRef().nativeElement;
