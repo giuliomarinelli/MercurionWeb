@@ -1,19 +1,22 @@
-import { Injectable } from '@nestjs/common';
-import { DataSource, EntityManager, Repository } from 'typeorm';
-import { History } from '../models/entities/history.entity';
-import { InjectRepository } from '@nestjs/typeorm';
-import { IPaginationOptions, paginate, Pagination } from 'nestjs-typeorm-paginate';
-import { HistoryDTO, TinyHistoryDTO } from '../models/dto/history.dto';
-import { UUID } from 'crypto';
-import { HistoryItemEntity as HistoryItemEntityEnum } from '../models/enums/history-item-entity.enum';
-import { MoleculeCollection } from 'src/app_modules/molecule-collection/models/entities/molecule-collection.entity';
-import { MoleculeCollectionItemEntity } from 'src/app_modules/molecule-collection/models/entities/molecule-collection-item.entity';
-import { MoleculeService } from 'src/app_modules/meilisearch/services/molecule.service';
-import { TypeGuards } from 'src/utils/type-guards/type-guards';
-import { LoggerPort } from 'src/logging/logger.port';
-import { LoggerContext } from 'src/logging/logger.port';
+import { Injectable } from '@nestjs/common'
+import { DataSource, EntityManager, Repository } from 'typeorm'
+import { InjectRepository } from '@nestjs/typeorm'
+import { IPaginationOptions, paginateRaw, Pagination } from 'nestjs-typeorm-paginate'
+import { UUID } from 'crypto'
+import { History } from '../models/entities/history.entity'
+import { HistoryDTO, TinyHistoryDTO } from '../models/dto/history.dto'
+import { HistoryItemEntity as HistoryItemEntityEnum } from '../models/enums/history-item-entity.enum'
+import { MoleculeCollection } from 'src/app_modules/molecule-collection/models/entities/molecule-collection.entity'
+import { MoleculeCollectionItemEntity } from 'src/app_modules/molecule-collection/models/entities/molecule-collection-item.entity'
+import { MoleculeService } from 'src/app_modules/meilisearch/services/molecule.service'
+import { LoggerPort, LoggerContext } from 'src/logging/logger.port'
 import { utcInstantFromEpochMs } from 'src/utils/temporal/temporal'
 import { runInTransaction, transactionManager, type TransactionContext } from 'src/persistence/transaction-context'
+import {
+    HistoryCollectionNameProjection,
+    HistoryItemNameProjection,
+    HistoryQueryProjection,
+} from '../models/dto/history-read-model.types'
 
 @Injectable()
 export class HistoryService {
@@ -25,7 +28,7 @@ export class HistoryService {
         private readonly historyRepo: Repository<History>,
         private readonly dataSource: DataSource,
         private readonly moleculeService: MoleculeService,
-        loggerFactory: LoggerPort
+        loggerFactory: LoggerPort,
     ) {
         this.logger = loggerFactory.forContext(HistoryService.name)
     }
@@ -35,9 +38,9 @@ export class HistoryService {
         options: IPaginationOptions,
     ): Promise<Pagination<HistoryDTO>> {
         try {
-            return runInTransaction(this.dataSource, async (_context, manager) => {
-                return this.getPaginatedHistoryWithManager(userId, options, manager)
-            })
+            return runInTransaction(this.dataSource, async (_context, manager) =>
+                this.getPaginatedHistoryWithManager(userId, options, manager),
+            )
         } catch (e) {
             this.logger.warn(`Error in History fetch, userId=${userId}`, e as object)
             throw e
@@ -47,20 +50,17 @@ export class HistoryService {
     async getPaginatedHistoryWithManager(
         userId: UUID,
         options: IPaginationOptions,
-        manager: EntityManager
+        manager: EntityManager,
     ): Promise<Pagination<HistoryDTO>> {
-        // Subquery: per ciascuna (itemEntity,itemId) scelgo l'id della riga più recente
         const latestIdsQb = manager.createQueryBuilder(History, 'x')
             .select('x.id', 'id')
             .where('x.userId = :userId', { userId })
             .distinctOn(['x.itemEntity', 'x.itemId'])
-            // Ordine usato da DISTINCT ON per scegliere la riga della coppia
             .orderBy('x.itemEntity', 'ASC')
             .addOrderBy('x.itemId', 'ASC')
             .addOrderBy('x.touchedAt', 'DESC')
-            .addOrderBy('x.id', 'DESC'); // tie-breaker
+            .addOrderBy('x.id', 'DESC')
 
-        // Query principale: mantengo alias 'h' (entità History) -> paginate può mappare
         const qb = manager.createQueryBuilder(History, 'h')
             .innerJoin(
                 '(' + latestIdsQb.getQuery() + ')',
@@ -68,83 +68,110 @@ export class HistoryService {
                 'dh.id = h.id',
             )
             .setParameters(latestIdsQb.getParameters())
-            // Ordinamento finale REALE per UI
+            .select('h.id', 'id')
+            .addSelect('h.itemEntity', 'itemEntity')
+            .addSelect('h.touchedAt', 'touchedAt')
+            .addSelect('h.itemId', 'itemId')
+            .addSelect('h.flagIds', 'flagIds')
             .orderBy('h.touchedAt', 'DESC')
-            .addOrderBy('h.id', 'DESC');
+            .addOrderBy('h.id', 'DESC')
 
-        const page = await paginate<History>(qb, options)
+        const page = await paginateRaw<History>(qb, options)
+        const projectionRows = page.items as unknown as HistoryQueryProjection[]
+        const idsByType = new Map<HistoryItemEntityEnum, Set<string>>()
 
-        // Raccolgo gli ID per tipo presenti in questa pagina (deduplicati)
-        const idsByType = new Map<HistoryItemEntityEnum, Set<UUID>>()
-        for (const { itemEntity, itemId } of page.items) {
-            if (!idsByType.has(itemEntity)) idsByType.set(itemEntity, new Set<UUID>())
-            idsByType.get(itemEntity)!.add(itemId)
+        for (const row of projectionRows) {
+            const ids = idsByType.get(row.itemEntity) ?? new Set<string>()
+            ids.add(row.itemId)
+            idsByType.set(row.itemEntity, ids)
         }
 
-        // Risoluzione nomi: `${entity}:${id}` -> name
-        const nameByKey = new Map<string, string>()
+        const nameByKey = await this.resolveNamesByKey(userId, idsByType, manager)
 
-        // ---- MoleculeCollection
-        {
-            const itemIds = [...(idsByType.get(HistoryItemEntityEnum.MoleculeCollection) ?? [])];
-            if (itemIds.length) {
-                const rows = await manager.createQueryBuilder(MoleculeCollection, 'c')
-                    .select(['c.id', 'c.name'])
-                    .where('c.userId = :userId', { userId })
-                    .andWhere('c.id IN (:...itemIds)', { itemIds })
-                    .getMany()
-
-                for (const r of rows) {
-                    nameByKey.set(`${HistoryItemEntityEnum.MoleculeCollection}:${r.id}`, r.name ?? 'N/A')
-                }
-            }
-        }
-
-        // ---- MoleculeCollectionItem
-        {
-            const itemIds = [...(idsByType.get(HistoryItemEntityEnum.MoleculeCollectionItem) ?? [])]
-            if (itemIds.length) {
-                const rows = await manager.createQueryBuilder(MoleculeCollectionItemEntity, 'c')
-                    .select(['c.id', 'c.name', 'c.chemblMolregno', 'c.type'])
-                    .where('c.userId = :userId', { userId })
-                    .andWhere('c.id IN (:...itemIds)', { itemIds })
-                    .getMany()
-
-                await Promise.all(rows.map(async (r) => {
-                    if (TypeGuards.isChemblMolecule(r)) {
-                        const detail = await this.moleculeService.getDetailByMolregno(String(r.chemblMolregno))
-                        if (!detail) {
-                            return
-                        }
-                        const { preferredNameIt, preferredName } = detail
-                        nameByKey.set(
-                            `${HistoryItemEntityEnum.MoleculeCollectionItem}:${r.id}`,
-                            preferredNameIt ?? preferredName ?? `Lead ${r.chemblMolregno}`
-                        )
-                    } else if (TypeGuards.isCustomMolecule(r)) {
-                        nameByKey.set(
-                            `${HistoryItemEntityEnum.MoleculeCollectionItem}:${r.id}`,
-                            r.name ?? 'Lead sconosciuto',
-                        )
-                    }
-                }))
-            }
-        }
-
-        // Costruisco i DTO nell’ordine della pagina
-        const items: HistoryDTO[] = page.items.map((it) => {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const { userId: _omit, ...rest } = it
-            const key = `${it.itemEntity}:${it.itemId}`
-            const itemName = nameByKey.get(key) ?? 'N/A'
-            return {
-                ...rest,
-                touchedAt: utcInstantFromEpochMs(Number(it.touchedAt)),
-                itemName
-            }
-        }).filter(h => h.itemName !== 'N/A')
+        // Missing/deleted resources remain in the page as N/A so itemCount and
+        // page boundaries describe the stable history projection, not enrichment success.
+        const items: HistoryDTO[] = projectionRows.map((row) => ({
+            id: row.id,
+            itemEntity: row.itemEntity,
+            touchedAt: utcInstantFromEpochMs(Number(row.touchedAt)),
+            itemId: row.itemId,
+            flagIds: row.flagIds,
+            itemName: nameByKey.get(`${row.itemEntity}:${row.itemId}`) ?? 'N/A',
+        }))
 
         return { ...page, items }
+    }
+
+    private async resolveNamesByKey(
+        userId: UUID,
+        idsByType: Map<HistoryItemEntityEnum, Set<string>>,
+        manager: EntityManager,
+    ): Promise<Map<string, string>> {
+        const nameByKey = new Map<string, string>()
+        const collectionIds = [
+            ...(idsByType.get(HistoryItemEntityEnum.MoleculeCollection) ?? []),
+        ]
+
+        if (collectionIds.length) {
+            const rows = await manager.createQueryBuilder(MoleculeCollection, 'collection')
+                .select('collection.id', 'id')
+                .addSelect('collection.name', 'name')
+                .where('collection.userId = :userId', { userId })
+                .andWhere('collection.id IN (:...collectionIds)', { collectionIds })
+                .getRawMany<HistoryCollectionNameProjection>()
+
+            for (const row of rows) {
+                nameByKey.set(
+                    `${HistoryItemEntityEnum.MoleculeCollection}:${row.id}`,
+                    row.name ?? 'N/A',
+                )
+            }
+        }
+
+        const itemIds = [
+            ...(idsByType.get(HistoryItemEntityEnum.MoleculeCollectionItem) ?? []),
+        ]
+        if (!itemIds.length) {
+            return nameByKey
+        }
+
+        const rows = await manager.createQueryBuilder(MoleculeCollectionItemEntity, 'item')
+            .select('item.id', 'id')
+            .addSelect('item.type', 'type')
+            .addSelect('item.name', 'name')
+            .addSelect('item.chemblMolregno', 'chemblMolregno')
+            .where('item.userId = :userId', { userId })
+            .andWhere('item.id IN (:...itemIds)', { itemIds })
+            .getRawMany<HistoryItemNameProjection>()
+
+        const chemblMolregnos = [
+            ...new Set(
+                rows
+                    .filter((row) => row.type === 'chembl' && row.chemblMolregno !== null)
+                    .map((row) => String(row.chemblMolregno)),
+            ),
+        ]
+        const detailsByMolregno = await this.moleculeService.getDetailsByMolregnosByKey(
+            chemblMolregnos,
+        )
+
+        for (const row of rows) {
+            const key = `${HistoryItemEntityEnum.MoleculeCollectionItem}:${row.id}`
+            if (row.type === 'custom') {
+                nameByKey.set(key, row.name ?? 'N/A')
+                continue
+            }
+
+            if (row.type === 'chembl' && row.chemblMolregno !== null) {
+                const detail = detailsByMolregno.get(String(row.chemblMolregno))
+                nameByKey.set(
+                    key,
+                    detail?.preferredNameIt ?? detail?.preferredName ?? 'N/A',
+                )
+            }
+        }
+
+        return nameByKey
     }
 
     async getRecentHistoryTinyDistinctPerDay(
@@ -175,23 +202,19 @@ export class HistoryService {
         const msPerDay = 24 * 60 * 60 * 1000
         const cutoff = now - days * msPerDay
 
-        // Query minimale, sfrutta idx_history_user_touched_at_desc
         const rows = await manager
             .getRepository(History)
             .createQueryBuilder('h')
-            .select([
-                'h.id',
-                'h.itemEntity',
-                'h.itemId',
-                'h.touchedAt',
-            ])
+            .select('h.id', 'id')
+            .addSelect('h.itemEntity', 'itemEntity')
+            .addSelect('h.itemId', 'itemId')
+            .addSelect('h.touchedAt', 'touchedAt')
             .where('h.userId = :userId', { userId })
             .andWhere('h.touchedAt >= :cutoff', { cutoff })
             .orderBy('h.touchedAt', 'DESC')
             .addOrderBy('h.id', 'DESC')
-            .getMany()
+            .getRawMany<HistoryQueryProjection>()
 
-        // Distinct per (giorno, entity, itemId)
         const seen = new Map<string, TinyHistoryDTO>()
 
         for (const row of rows) {
@@ -202,35 +225,25 @@ export class HistoryService {
 
             const d = new Date(ts)
             d.setHours(0, 0, 0, 0)
-            const dayKey = d.getTime()
+            const key = `${d.getTime()}:${row.itemEntity}:${row.itemId}`
 
-            const key = `${dayKey}:${row.itemEntity}:${row.itemId}`
-
-            if (seen.has(key)) {
-                continue
+            if (!seen.has(key)) {
+                seen.set(key, {
+                    id: row.id,
+                    itemEntity: row.itemEntity,
+                    itemId: row.itemId,
+                    touchedAt: utcInstantFromEpochMs(ts),
+                })
             }
-
-            seen.set(key, {
-                id: row.id,
-                itemEntity: row.itemEntity,
-                itemId: row.itemId,
-                touchedAt: utcInstantFromEpochMs(Number(row.touchedAt)),
-            })
         }
 
-        const result = Array.from(seen.values())
-
-        // Merge dei "gruppi" e ordinamento finale per id DESC (uuidv7 → cronologico)
-        result.sort((a, b) => {
+        return Array.from(seen.values()).sort((a, b) => {
             const aId = String(a.id)
             const bId = String(b.id)
             if (aId === bId) return 0
             return aId < bId ? 1 : -1
         })
-
-        return result
     }
-
 
     async deleteHistory(userId: UUID): Promise<boolean> {
         try {
@@ -241,6 +254,4 @@ export class HistoryService {
             return false
         }
     }
-
-
 }
