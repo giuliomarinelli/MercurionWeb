@@ -1,7 +1,7 @@
 # 0216 - Align deployment probes and lifecycle
 
 - [ ] DONE
-- [ ] BLOCKED
+- [x] BLOCKED
 - [ ] REVERTED
 - [ ] SKIPPED_DEPENDENCY
 ## Objective
@@ -97,33 +97,78 @@ Health checks are control-plane contracts, not verbose diagnostics. Keep respons
 
 ## Execution notes
 
-> Recovery update (2026-09-18): the dependency skip below is historical and
-> stale after the direct-human recovery of `0215` (`QA-029`). This task is
-> reopened as pending.
-
 ### Feature branch
-No feature branch; this task was never attempted.
+
+`feature/QA-030`, based on `f09a2fcad6823c557eef86b5365162e5c9694136`.
+The branch was clean, matched `develop` and `origin/develop`, and no remote
+`feature/QA-030` ref existed before the blocking diagnostic commit.
+
 ### Preflight
-Not applicable; dependency skip was materialized from the authoritative planner.
+
+The supplied exact base-SHA Actions run `35533139087` completed successfully
+with `Required gate` green through the metadata path. Hard dependencies `0135`
+(`BE-021`), `0138` (`BE-024`), `0207` (`QA-021`) and `0215` (`QA-029`) are
+marked `DONE`. Repository-local `commit.gpgSign` is `false`. No task-owned
+Angular, Nest, Tox21 or test-watcher process was active. No browser/runtime
+validation was started because this recipe declares no browser UI validation
+and the stop condition was reached before implementation.
+
 ### Preflight remediation
-_None._
+
+None. Local `npm ci` and `npm run ci:check` were not run.
+
 ### Summary
-Skipped because hard prerequisite `0215` (QA-029) is terminal `REVERTED`
-after its post-merge CI failure. The direct terminal root is `0215`; this task
-was never attempted.
+
+Blocked by the recipe's explicit stop condition before implementation. The
+canonical deployment schema contains only an undifferentiated `dependsOn`
+list (`web-node` depends on Redis, NATS, PostgreSQL and Meilisearch); it has no
+hard/optional/degraded serving classification. The application health path
+currently gates readiness with `ReadinessService` and the required Redis
+capability check only, while no existing architecture/deployment policy
+defines the serving classification or bounded checks for the other declared
+dependencies. Choosing those classifications would require guessing.
+
+The shutdown contract defines `APP_SHUTDOWN_TIMEOUT_MS` with a 10-second
+default and `ShutdownCoordinator` uses the same default, but the active
+application Compose overlays do not define `stop_grace_period` and the
+`mercurion-web-node` Kubernetes deployment does not define
+`terminationGracePeriodSeconds` or a `preStop` drain policy. The isolated
+Meilisearch manifest's 60-second grace value is not an application
+termination policy. Therefore the required larger infrastructure grace budget
+cannot be derived from existing policy without guessing.
+
+No health, deployment, or lifecycle implementation was added.
+
 ### Task-specific validation performed
-Not applicable; no worker or feature branch was created.
+
+- `node scripts/check-deployment-config.mjs` — passed: canonical schema,
+  four overlays and 18 active artifacts validated deterministically.
+- `git diff --check` — passed.
+
 ### Full pre-merge CI-parity validation
-Not applicable; aggregate metadata CI is required.
+
+Not run locally by policy. Exact feature-SHA CI is coordinator-owned.
+
 ### Browser validation performed
-Not applicable; dependency skip only.
+
+Not applicable; no browser UI validation is required and no application URL
+was opened.
+
 ### Commits
-Recorded in the aggregate dependency-skip metadata commit on `develop`.
+
+Pending diagnostic commit for the explicit stop-condition block.
+
 ### Merge / CI
-Recorded in one aggregate dependency-skip metadata commit; exact-SHA CI
-required.
+
+Not applicable; the preserved feature branch is blocked before integration.
+
 ### Rollback
 _Not applicable._
+
 ### Blocker / human decision required
-Terminal dependency root: `0215` (QA-029), `REVERTED` after post-merge CI
-failure. Recovery requires new direct authorization in a later session.
+
+Define, in existing architecture/deployment policy, the hard versus
+optional/degraded serving dependencies and the measured application shutdown
+timeout plus larger Compose/Kubernetes termination-grace/pre-stop budget.
+Until those decisions exist, this recipe must not guess probe semantics or
+deployment timing.
