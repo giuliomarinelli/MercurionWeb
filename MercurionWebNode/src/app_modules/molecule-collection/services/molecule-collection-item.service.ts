@@ -331,9 +331,13 @@ export class MoleculeCollectionItemService {
         ];
 
         // Prendi solo quelli richiesti e realmente esistenti nel DB
-        const itemsFields = fieldsMap?.items
+        // Union fragments can make graphql-fields expose an empty/partial
+        // `items` map. The polymorphic DTO mapper still requires these
+        // columns, so never project a partial entity here.
+        const requestedFields = fieldsMap?.items
             ? Object.keys(fieldsMap.items).filter(k => DB_FIELDS.includes(k))
-            : DB_FIELDS;
+            : [];
+        const itemsFields = GraphQLUtils.ensureRequiredFields(requestedFields, DB_FIELDS);
 
         // Base query: tutti gli item dell'utente
         let qb = this.itemRepo.createQueryBuilder('item')
@@ -403,9 +407,12 @@ export class MoleculeCollectionItemService {
             'canonicalSmiles', 'molFormula', 'name', 'propertiesJson', 'chemblMolregno'
         ];
 
-        const itemsFields = fieldsMap?.items
+        // See paginateAllByUser: the DTO mapper needs the complete persisted
+        // shape even when the GraphQL selection is expressed via fragments.
+        const requestedFields = fieldsMap?.items
             ? Object.keys(fieldsMap.items).filter(k => DB_FIELDS.includes(k))
-            : DB_FIELDS;
+            : [];
+        const itemsFields = GraphQLUtils.ensureRequiredFields(requestedFields, DB_FIELDS);
 
         // LEFT JOIN condizionato sulla collection corrente
         let qb = this.itemRepo.createQueryBuilder('item')
