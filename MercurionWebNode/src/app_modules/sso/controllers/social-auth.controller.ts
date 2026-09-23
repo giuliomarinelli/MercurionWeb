@@ -1,4 +1,4 @@
-import { BadRequestException, Controller, Get, Param, Query, Res } from '@nestjs/common';
+import { BadRequestException, Controller, Get, HttpStatus, Param, Query, Res } from '@nestjs/common';
 import { FastifyReply } from 'fastify/types/reply';
 import { Public } from 'src/metadata/metadata';
 import { SocialAuthService } from '../services/social-auth.service';
@@ -25,6 +25,11 @@ export class SocialAuthController {
     this.base = this.configService.get<string>('App.activationOrigin')!
   }
 
+  private readonly forbiddenRes = (reply: FastifyReply) => {
+    reply.status(HttpStatus.FORBIDDEN)
+      .send({ error: 'Forbidden' })    
+  }
+
   @Public()
   @Get(':provider/login')
   async login(
@@ -32,7 +37,11 @@ export class SocialAuthController {
     @Query('redirect_to') redirectTo: string,
     @Res() reply: FastifyReply
   ): Promise<void> {
-    const normalizedProvider = typeof provider === 'string' ? provider.trim() : provider
+    if (TypeGuards.isForbiddenAuthProvider(provider)) {
+      this.forbiddenRes(reply)
+      return
+    }
+    const normalizedProvider = typeof provider === 'string' ? (provider as string).trim() : provider
     if (!TypeGuards.isAuthProvider(normalizedProvider)) {
       throw new BadRequestException('Invalid provider')
     }
@@ -49,7 +58,11 @@ export class SocialAuthController {
     @Query('state') state: string,
     @Res() reply: FastifyReply
   ): Promise<void> {
-    const normalizedProvider = typeof provider === 'string' ? provider.trim() : provider
+    if (TypeGuards.isForbiddenAuthProvider(provider)) {
+      this.forbiddenRes(reply)
+      return
+    }
+    const normalizedProvider = typeof provider === 'string' ? (provider as string).trim() : provider
     if (!TypeGuards.isAuthProvider(normalizedProvider)) {
       throw new BadRequestException('SSO_BadRequest::Invalid provider')
     }

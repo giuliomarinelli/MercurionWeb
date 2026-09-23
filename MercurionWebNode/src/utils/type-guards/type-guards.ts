@@ -1,3 +1,4 @@
+import { ForbiddenSSO_AuthProviders } from "@mercurion/rest-contracts";
 import { BackupCodeDTO } from "src/app_modules/auth/models/dto/backup-code.cls.dto";
 import { TotpBodyDTO } from "src/app_modules/auth/models/dto/totp.cls.dto";
 import { VerifyBodyDTO } from "src/app_modules/auth/models/dto/verify-body.cls.dto.";
@@ -9,6 +10,8 @@ import { AuthProvider } from "src/app_modules/sso/models/enums/auth-provider.enu
 import { MfaStrategy } from "src/app_modules/user/models/enums/mfa-strategy.enum";
 
 export class TypeGuards {
+
+    private static readonly FORBIDDEN_PROVIDERS: ForbiddenSSO_AuthProviders[] = [AuthProvider.GitHub, AuthProvider.LinkedIn]
 
     static isChemblMolecule(item: MoleculeCollectionItemEntity): item is ChEMBLMoleculeItemEntity {
         return item.type === 'chembl'
@@ -83,6 +86,13 @@ export class TypeGuards {
             return false
         }
         return Object.values(AuthProvider).map((p) => p as string).includes(item as string)
+    }
+
+    static isForbiddenAuthProvider(item: AuthProvider): item is AuthProvider {
+        if (!item) {
+            return false
+        }
+        return TypeGuards.FORBIDDEN_PROVIDERS.includes(item as ForbiddenSSO_AuthProviders)
     }
 
     static is_SSO_AuthProvider(item: unknown): item is AuthProvider {

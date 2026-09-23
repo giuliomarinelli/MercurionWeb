@@ -76,7 +76,7 @@ type CredentialForm = {
           class="relative bottom-[2px] mt-4 w-full rounded-md bg-light-accent-primary-hq py-2 text-white transition-colors duration-150 hover:bg-light-accent-primary-hc disabled:cursor-not-allowed disabled:bg-light-accent-primary-hq/60 disabled:hover:bg-light-accent-primary-hq/60 dark:bg-dark-accent-primary-btn dark:hover:bg-dark-accent-primary/80 dark:disabled:bg-dark-accent-primary/80 dark:disabled:hover:bg-dark-accent-primary/80"
           [attr.aria-disabled]="!canSubmit()"
           aria-label="Accedi al tuo account">
-          @if (pending()) { <m-progress-indicator [size]="24" /> } @else { Accedi }
+          @if (pending()) { <m-progress-indicator [size]="20" /> } @else { Accedi }
         </button>
         @if (!turnstileDisabled) {
           <m-turnstile
@@ -86,13 +86,15 @@ type CredentialForm = {
           />
         }
       }
-      <m-selection-control
-        class="text-sm text-gray-600 dark:text-gray-300"
-        label="Ricordami per 30 giorni"
-        name="setting"
-        mode="switch"
-        formControlName="remember"
-      />
+      <div class="flex justify-center">
+        <m-selection-control
+          class="text-sm text-gray-600 dark:text-gray-300"
+          label="Ricordami per 30 giorni"
+          name="setting"
+          mode="switch"
+          formControlName="remember"
+        />
+      </div>
     </form>
   `,
   styles: [`

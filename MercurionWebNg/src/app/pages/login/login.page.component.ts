@@ -29,6 +29,15 @@ import { adaptHttpFormError } from '../../utils/form-error.adapter'
         Piacere di averti qui.
       </h1>
       <div class="w-full max-w-sm space-y-6">
+        <m-login-sso-chooser
+          [redirectTo]="redirectTo()"
+        />
+        <div class="relative">
+          <div class="absolute inset-0 flex items-center"><div class="w-full border-t"></div></div>
+          <div class="relative flex justify-center text-sm">
+            <span class="bg-light-surface-main px-2 text-gray-500 dark:bg-neutral-950 dark:text-slate-300 uppercase">oppure</span>
+          </div>
+        </div>
         <m-login-credential-form
           (emailSubmitted)="checkEmail($event)"
           (credentialsSubmitted)="submit($event)"
@@ -54,12 +63,20 @@ import { adaptHttpFormError } from '../../utils/form-error.adapter'
           <span class="hidden text-[0.85rem] sm:block">Recupera account inaccessibile o hackerato</span>
           <span class="block text-xs sm:hidden">Recupera account</span>
         </a>
-        <m-login-sso-chooser
-          [redirectTo]="redirectTo()"
-        />
         @if (authError(); as error) {
           <p role="alert" aria-live="assertive">{{ error.message ?? 'Si è verificato un errore.' }}</p>
         }
+        <div class="mt-4 text-center text-xs text-slate-400">
+          <a routerLink="/privacy" class="hover:underline">Informativa sulla Privacy</a>
+          ·
+          <a routerLink="/terms-and-policies" class="hover:underline">Termini e Policy</a>
+        </div>
+        <p class="text-center text-[0.675rem] text-slate-600 dark:text-slate-300">
+        Continuando con un provider dichiari di aver letto e di accettare la
+        <a routerLink="/privacy" class="underline">Informativa sulla Privacy</a>,
+        i <a routerLink="/terms-and-policies" class="underline">Termini di Servizio</a>
+        e la <a routerLink="/terms-and-policies" fragment="aup" class="underline">Politica di Utilizzo Accettabile</a>.
+      </p>
       </div>
     </main>
   `,
