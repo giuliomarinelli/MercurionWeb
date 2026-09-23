@@ -6,7 +6,7 @@ import type { LoginSsoSelection } from './login-flow.models'
 @Component({
   selector: 'm-login-sso-chooser',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink],
+  imports: [],
   template: `
     <section aria-labelledby="sso-title" class="space-y-5 dark:text-slate-100">
       @for (provider of providers; track provider) {
