@@ -62,11 +62,13 @@ import { PaginationComponent } from '../../components/common/pagination/paginati
         (cleared)="doClear()"
       />
       <div class="flex gap-2 items-center relative -top-6">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-8 h-auto relative -top-2 shrink-[0.65]">
+        <a class="a relative z-20 -top-2 inline-flex items-center gap-2" routerLink="/molecules/collections">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-8 h-auto shrink-[0.65]" aria-hidden="true">
             <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
             <path d="M296.5 153.7C268.2 123 314.7 79.6 343.4 110.1C395.3 166.7 479.5 256.1 528.4 302C544.6 317.7 544.4 343.6 528.4 359.3C517.9 369.6 499.6 387.7 494.2 394.1C448.6 448.2 388.1 485.8 344.3 536.7C332.8 550.1 312.6 551.7 299.2 540.3C257.6 499.5 349.3 448.3 372.4 421.9C398.9 399.3 423.7 378 444.4 353.8C432 353.5 419.6 353.7 406.7 354C325.8 354.2 244.1 356.1 162.3 355.5C136.2 356.8 94.8 360.6 96 321.8C97.9 289.9 132.6 290.7 157.9 291.6C239.4 292.1 320.7 290.4 403.1 290.1C410 289.9 417.2 289.8 424.8 289.7C376.2 241.2 341.3 201.2 296.4 153.7z"/>
           </svg>
-          <a class="a relative -top-2" routerLink="/molecules/collections">Mostra tutte le mie collezioni molecolari</a>
+          <span>Mostra tutte le mie collezioni molecolari</span>
+        </a>
         </div>
       <div class="mt-px relative -top-16">
         @for (item of items; track item.id; let i = $index) {

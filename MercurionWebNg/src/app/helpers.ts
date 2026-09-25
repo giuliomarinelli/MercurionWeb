@@ -33,7 +33,11 @@ export class Helpers {
     return {
       id: mol.id,
       type: mol.type as 'chembl' | 'custom',
-      name: mol.type === 'chembl' ? (mol.chemblDetails as MoleculeDetail)?.preferredNameIt ?? (mol.chemblDetails as MoleculeDetail)?.preferredName ?? `Lead ${(mol.chemblDetails as MoleculeDetail)?.id}` : mol.name ?? 'Lead sconosciuto',
+      name: mol.type === 'chembl'
+        ? (mol.chemblDetails as MoleculeDetail)?.preferredNameIt
+        ?? (mol.chemblDetails as MoleculeDetail)?.preferredName
+          ?? `Lead ${mol.chemblMolregno}`
+        : mol.name ?? 'Lead sconosciuto',
       syn: mol.type === 'chembl' ? (mol.chemblDetails as MoleculeDetail)?.synonyms?.[0] ?? '' : '',
       mwFreebase: mol.type === 'chembl'
         ? (mol.chemblDetails as MoleculeDetail)?.properties.mwFreebase ?? 0

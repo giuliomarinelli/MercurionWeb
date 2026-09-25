@@ -15,6 +15,11 @@ import { IconButtonComponent } from '../icon-button/icon-button.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [IconButtonComponent],
   host: { class: 'block' },
+  styles: [`
+    input[type="search"]::-webkit-search-cancel-button {
+      display: none;
+    }
+  `],
   template: `
     <div class="relative flex items-center gap-2">
       <label class="sr-only" [attr.for]="fieldId()">{{ label() }}</label>

@@ -3,13 +3,14 @@ import {
   ChangeDetectionStrategy,
   Component,
   effect,
+  inject,
   input,
   model,
   output,
   signal
 } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { SelectionControlComponent } from '../../common/selection-control/selection-control.component';
 import { CollectionCardViewModel } from './collection-card.models';
 
@@ -41,6 +42,7 @@ import { CollectionCardViewModel } from './collection-card.models';
         [class.cursor-default]="_isReadonly() || _selectable()"
         [attr.aria-live]="!_isReadonly() ? 'polite' : 'off'"
         [class.disappear-card]="_triggerDisappear()"
+        (click)="openCard($event)"
       >
         <div class="flex items-start gap-3 w-full" [class.grid]="selectable()" [class.grid-cols-[28px_1fr]]="selectable()">
           @if (_selectable()) {
@@ -130,13 +132,21 @@ import { CollectionCardViewModel } from './collection-card.models';
                 @if (!_isReadonly() && !_hideActionButtons()) {
                   <div class="flex flex-wrap items-center gap-2 sm:gap-3 justify-start sm:justify-end w-full sm:w-auto">
                     <button type="button" class="relative z-20 p-1 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-150" title="Duplica collezione" (click)="onActionClick($event); doDuplicateCollection()" aria-label="Duplica collezione {{ _collection()?.name }}">
-                      <span aria-hidden="true">⧉</span>
+                      <svg class="size-4 text-slate-600 dark:text-slate-300" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path d="M4 4a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v1h-1V4a1 1 0 0 0-1-1H6a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h1v1H6a2 2 0 0 1-2-2V4z" />
+                        <path d="M8 6a2 2 0 0 1 2-2h5a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-5a2 2 0 0 1-2-2V6z" />
+                      </svg>
                     </button>
                     <button type="button" class="relative z-20 p-1 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-150" title="Elimina collezione" (click)="onActionClick($event); doDeleteCollection()" aria-label="Elimina collezione {{ _collection()?.name }}">
-                      <span aria-hidden="true">⌫</span>
+                      <svg class="size-4 text-light-error dark:text-dark-error" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M4.5 6h11M8 6V4.5h4V6m-6.5 0 .7 10h7.6l.7-10M8 9v4.5m4-4.5v4.5" />
+                      </svg>
                     </button>
                     <button type="button" class="flex items-center gap-2 relative z-20 px-3 py-1 rounded-md border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 text-xs font-medium hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-150" title="Aggiungi molecole" (click)="onActionClick($event); doAddMoleculesToCollection()" aria-label="Aggiungi molecole a {{ _collection()?.name }}">
-                      <span aria-hidden="true">＋</span><span>Aggiungi molecole</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-auto" aria-hidden="true">
+                        <path d="M336 112L336 96L304 96L304 304L96 304L96 336L304 336L304 544L336 544L336 336L544 336L544 304L336 304L336 112z" />
+                      </svg>
+                      <span>Aggiungi molecole</span>
                     </button>
                   </div>
                 }
@@ -149,6 +159,8 @@ import { CollectionCardViewModel } from './collection-card.models';
   `
 })
 export class CollectionCardComponent {
+  private readonly router = inject(Router);
+
   _collection = signal<CollectionCardViewModel | undefined>(undefined);
   _i = signal(0);
   pathToCollection = signal('');
@@ -184,6 +196,12 @@ export class CollectionCardComponent {
 
   setSelected(value: boolean): void {
     if (!this.selectionDisabled()) this.selected.set(value);
+  }
+
+  openCard(event: MouseEvent): void {
+    if (this._isReadonly() || this._selectable()) return;
+    if (event.target instanceof Element && event.target.closest('a, button, input, [role="button"]')) return;
+    void this.router.navigateByUrl(this.pathToCollection());
   }
 
   onActionClick(evt: Event): void {

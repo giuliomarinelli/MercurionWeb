@@ -183,7 +183,7 @@ import { SelectionControlComponent } from '../../components/common/selection-con
             <m-selection-control
               label="Mostra solo composti noti"
               description="Deselezionando questa opzione potrai vedere anche i lead sperimentali"
-              mode="switch"
+              mode="checkbox"
               [formControl]="onlyKnown"
             />
           </div>

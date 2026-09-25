@@ -7,7 +7,7 @@ import { MoleculeCollectionItemCardComponent } from '../../components/molecule-d
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MoleculeCollectionItemCardComponent],
   template: `
-    <div class="mt-px relative -top-8">
+    <div class="mt-px">
       @for (item of items(); track item.id; let i = $index) {
         <m-molecule-collection-item-card [molecule]="item" [i]="i" [collectionId]="collectionId()"
           (onDelete)="delete.emit($event)" (onRemoveFromCollection)="remove.emit($event)" />

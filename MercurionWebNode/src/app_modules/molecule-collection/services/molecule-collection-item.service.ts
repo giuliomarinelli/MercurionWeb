@@ -210,8 +210,7 @@ export class MoleculeCollectionItemService {
         const detailsMap: Record<string, MoleculeDetail> = {};
         if (this.isChemblItem(item)) {
             const chemblMolregno = String(item.chemblMolregno);
-            const detailsArr = await this.moleculeService.getDetailsByMolregnos([chemblMolregno]);
-            const details = detailsArr?.[0];
+            const details = (await this.moleculeService.getDetailsByMolregnosByKey([chemblMolregno])).get(chemblMolregno);
             if (details) {
                 detailsMap[chemblMolregno] = details;
             }
@@ -255,9 +254,8 @@ export class MoleculeCollectionItemService {
         let detailsMap: Record<string, MoleculeDetail> = {}
         if (fieldsMap.chemblDetails && chemblItems.length > 0) {
             const molregnos = chemblItems.map(item => String(item.chemblMolregno))
-            const details = await this.moleculeService.getDetailsByMolregnos(molregnos)
             detailsMap = Object.fromEntries(
-                details.map(detail => [String(detail.id), detail])
+                await this.moleculeService.getDetailsByMolregnosByKey(molregnos)
             )
         }
 
@@ -374,8 +372,9 @@ export class MoleculeCollectionItemService {
         let detailsMap: Record<string, MoleculeDetail> = {};
         if (chemblItems.length > 0) {
             const molregnos = chemblItems.map(i => String(i.chemblMolregno));
-            const detailsArray = await this.moleculeService.getDetailsByMolregnos(molregnos);
-            detailsMap = Object.fromEntries(detailsArray.map(d => [String(d.id), d]));
+            detailsMap = Object.fromEntries(
+                await this.moleculeService.getDetailsByMolregnosByKey(molregnos)
+            );
         }
 
         // Mapping finale ai DTO polimorfici (via metodo estratto)
@@ -452,8 +451,9 @@ export class MoleculeCollectionItemService {
         let detailsMap: Record<string, MoleculeDetail> = {};
         if (chemblItems.length > 0) {
             const molregnos = chemblItems.map(i => String(i.chemblMolregno));
-            const detailsArray = await this.moleculeService.getDetailsByMolregnos(molregnos);
-            detailsMap = Object.fromEntries(detailsArray.map(d => [String(d.id), d]));
+            detailsMap = Object.fromEntries(
+                await this.moleculeService.getDetailsByMolregnosByKey(molregnos)
+            );
         }
 
         // Mapping finale ai DTO polimorfici

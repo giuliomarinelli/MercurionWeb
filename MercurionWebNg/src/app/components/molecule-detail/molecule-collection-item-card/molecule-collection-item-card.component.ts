@@ -33,7 +33,6 @@ export class MoleculeCollectionItemCardComponent {
 
   readonly onDelete = output<string>();
   readonly onRemoveFromCollection = output<string>();
-  readonly onNavigate = output<void>();
 
   readonly viewModel = computed(() => moleculeCardToSummary(this.molecule(), {
     actions: this.hideActions() || this.isReadonly() ? [] : [
@@ -54,7 +53,6 @@ export class MoleculeCollectionItemCardComponent {
     queueMicrotask(() => {
       if (this.design.maxBk('sm')()) this.shellLayout.requestCloseOffCanvas();
       this.searchContext.close();
-      this.onNavigate.emit();
     });
   }
 }

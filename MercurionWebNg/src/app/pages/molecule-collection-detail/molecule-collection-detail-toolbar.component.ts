@@ -8,7 +8,7 @@ import { CustomDetailSaveModel } from '../../Models/custom-detail-save.model';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CustomDetailsComponent, PmSearchInputComponent],
   template: `
-    <div class="flex flex-col sm:flex-row sm:flex-wrap justify-between items-start sm:items-center pb-8 pt-2 relative -top-14 gap-y-4 sm:gap-y-2 sm:gap-x-4">
+    <div class="flex flex-col sm:flex-row sm:flex-wrap justify-between items-start sm:items-center pb-8 pt-2 gap-y-4 sm:gap-y-2 sm:gap-x-4">
       <m-custom-details [itemId]="collectionId()" type="name" [value]="name()" badgeName=""
         (onSaving)="rename.emit($event)" />
       <div class="flex flex-wrap items-center justify-start sm:justify-end gap-3 w-full sm:w-auto">
@@ -24,8 +24,8 @@ import { CustomDetailSaveModel } from '../../Models/custom-detail-save.model';
         <button type="button"
           class="relative p-1 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-150"
           title="Elimina collezione" aria-label="Elimina collezione" (click)="delete.emit()">
-          <svg class="size-7 text-light-error dark:text-dark-error" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-            <path fill-rule="evenodd" d="M6 8a1 1 0 0 1 1 1v7h6V9a1 1 0 1 1 2 0v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V9a1 1 0 0 1 1-1zM4 5a1 1 0 0 1 1-1h2V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1h2a1 1 0 0 1 1 1v1H4V5z" clip-rule="evenodd" />
+          <svg class="size-7 text-light-error dark:text-dark-error" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4.5 6h11M8 6V4.5h4V6m-6.5 0 .7 10h7.6l.7-10M8 9v4.5m4-4.5v4.5" />
           </svg>
         </button>
         <button type="button"

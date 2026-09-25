@@ -185,7 +185,12 @@ export const MERCURION_APOLLO_TYPE_POLICIES: TypePolicies = {
 };
 
 export function createMercurionApolloCache(): InMemoryCache {
-  return new InMemoryCache({ typePolicies: MERCURION_APOLLO_TYPE_POLICIES });
+  return new InMemoryCache({
+    possibleTypes: {
+      MoleculeCollectionItemUnion: ['ChEMBLMoleculeItemDTO', 'CustomMoleculeItemDTO']
+    },
+    typePolicies: MERCURION_APOLLO_TYPE_POLICIES
+  });
 }
 
 export function clearMercurionUserCache(cache: ApolloCache<unknown>): void {
