@@ -1,12 +1,14 @@
 import type { FastifyInstance, FastifyReply } from 'fastify'
 import {
   CONTRACT_VERSION_RESPONSE_HEADERS,
+  CONTRACT_VERSION_HEADER,
   CURRENT_CONTRACT_MAJOR,
   PUBLIC_CONTRACT_VERSION_METADATA,
   SUPPORTED_CONTRACT_MAJOR_RANGE,
   contractVersionDetails,
   contractVersionWarning,
   formatSupportedMajorRange,
+  negotiateContractMajor,
   restMajorFromPath
 } from '@mercurion/rest-contracts'
 import { createRestErrorResponse } from '../exception-handling/application-error-envelope'
@@ -46,7 +48,12 @@ export function registerRestContractVersioningHook(
       return
     }
 
-    const selection = restMajorFromPath(path)
+    // Versioned REST paths select their major directly. The legacy /api/... routes
+    // use the explicit client declaration when present; otherwise they retain the
+    // compatibility fallback and warning.
+    const selection = /^\/api\/v[^/]+(?:\/|$)/i.test(path)
+      ? restMajorFromPath(path)
+      : negotiateContractMajor(req.headers[CONTRACT_VERSION_HEADER])
     applyContractVersionResponseHeaders(reply)
     const warning = contractVersionWarning(selection)
     if (warning) {
