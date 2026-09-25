@@ -795,8 +795,8 @@ export class AddMoleculesToCollectionComponent
     this.multiselectItems().forEach(row => row.isChecked.set(false));
   }
 
-  doQuery(q: string): void { this.pagination.query(q); }
-  doClear(): void { this.pagination.clear(); }
+  doQuery(q: string): void { this.pageController.setQuery(q); }
+  doClear(): void { this.pageController.clear(); }
   private loadRows(): void {
     const existing = new Map(this.multiselectItems().map(row => [row.item.id, row]));
     this.multiselectItems.set(this.items.map(item => existing.get(item.id) ?? {

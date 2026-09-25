@@ -11,6 +11,7 @@ import { MoleculeCollectionItemCardComponent } from '../../components/molecule-d
     <div class="pt-4">
       @for (item of items(); track item.id; let i = $index) {
         <m-molecule-collection-item-card [molecule]="item" [i]="i" [collectionId]="collectionId()"
+          [triggerDisappear]="item.triggerDisappear()" [collapse]="item.collapse()"
           (onDelete)="delete.emit($event)" (onRemoveFromCollection)="remove.emit($event)" />
       }
     </div>

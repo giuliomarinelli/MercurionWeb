@@ -103,10 +103,11 @@ export class MoleculeCollectionDetailFacade {
 
     effect(() => {
       const event = this.invalidations.last();
+      const collectionId = this.collectionId();
       if (!event || event.domain !== 'molecule-collection' ||
-          event.collectionId !== this.collectionId() ||
+          event.collectionId !== collectionId ||
           (event.action !== 'molecules-added' && event.action !== 'items-changed')) return;
-      void this.reload();
+      queueMicrotask(() => void this.reload(collectionId));
     });
   }
 
@@ -174,7 +175,7 @@ export class MoleculeCollectionDetailFacade {
       next: ok => {
         if (!ok) return;
         this.history.triggerRemoveItemFromHistoryView(id);
-        this.publishItemsChanged();
+        this.animateRemoval(id);
       },
       error: () => this.toast.trigger('Si è verificato un errore.', 'error', 2500)
     });
@@ -189,7 +190,7 @@ export class MoleculeCollectionDetailFacade {
           return;
         }
         this.history.triggerRemoveItemFromHistoryView(id);
-        this.publishItemsChanged();
+        this.animateRemoval(id);
       },
       error: () => this.toast.trigger('Si è verificato un errore', 'error', 3000)
     });
@@ -243,11 +244,13 @@ export class MoleculeCollectionDetailFacade {
     }));
   }
 
-  private publishItemsChanged(): void {
-    this.invalidations.publish({
-      domain: 'molecule-collection',
-      action: 'items-changed',
-      collectionId: this.collectionId()
-    });
+  private animateRemoval(id: string): void {
+    const item = this.items().find(candidate => candidate.id === id);
+    if (!item) return;
+    item.triggerDisappear.set(true);
+    setTimeout(() => item.collapse.set(true), 120);
+    setTimeout(() => {
+      this.items.update(current => current.filter(candidate => candidate.id !== id));
+    }, 500);
   }
 }
