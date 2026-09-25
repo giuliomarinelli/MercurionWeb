@@ -100,6 +100,31 @@ describe('Mercurion Apollo cache policies', () => {
     })?.myMoleculeCollectionsPaginated.items.map(item => item.id)).toEqual(['beta']);
   });
 
+  it('returns one collection page per requested page instead of accumulated items', () => {
+    const cache = createMercurionApolloCache();
+    const variables = { limit: 25, q: '' };
+    const pageData = (currentPage: number, id: string) => ({
+      myMoleculeCollectionsPaginated: {
+        currentPage,
+        items: [{ id, name: id, createdAt: '', updatedAt: '', touchedAt: '', itemsCount: 0 }],
+        itemCount: 1,
+        totalPages: 2,
+        totalItems: 2,
+        itemsPerPage: 25
+      }
+    });
+
+    cache.writeQuery({ query: PaginatedCollectionsDocument, variables: { ...variables, page: 1 }, data: pageData(1, 'first') });
+    cache.writeQuery({ query: PaginatedCollectionsDocument, variables: { ...variables, page: 2 }, data: pageData(2, 'second') });
+
+    const readPage = (page: number) => cache.readQuery<{ myMoleculeCollectionsPaginated: { items: Array<{ id: string }> } }>({
+      query: PaginatedCollectionsDocument,
+      variables: { ...variables, page }
+    })?.myMoleculeCollectionsPaginated.items.map(item => item.id);
+    expect(readPage(1)).toEqual(['first']);
+    expect(readPage(2)).toEqual(['second']);
+  });
+
   it('resets accumulated pages when the first page of a filter is written', () => {
     const first = mergePaginatedResults(
       { currentPage: 2, items: [{ __typename: 'MoleculeCollection', id: 'old' }] },

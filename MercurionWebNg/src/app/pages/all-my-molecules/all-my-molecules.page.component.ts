@@ -1,5 +1,5 @@
 import { MoleculeCardItemModel } from './../../Models/graphql/molecule-collection/molecule-collection.types';
-import { AfterViewInit, Component, effect, ElementRef, inject, OnDestroy, OnInit, signal, ChangeDetectionStrategy, viewChild } from '@angular/core';
+import { Component, effect, ElementRef, inject, OnDestroy, OnInit, signal, ChangeDetectionStrategy, viewChild } from '@angular/core';
 import { MoleculeCollectionItemCardComponent } from '../../components/molecule-detail/molecule-collection-item-card/molecule-collection-item-card.component';
 import { delay, map, Subscription } from 'rxjs';
 import { MoleculeCollectionItemService } from '../../services/graphql/molecule-collection-item.service';
@@ -14,6 +14,7 @@ import { PmSearchInputComponent } from '../../components/common/pm-search-input/
 import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service';
 import { DomainInvalidationService } from '../../services/domain-invalidation.service';
 import { PaginationComponent } from '../../components/common/pagination/pagination.component';
+import { ScrollContextService } from '../../services/context/scroll-context.service';
 
 @Component({
   selector: 'm-all-my-molecules.page',
@@ -99,7 +100,7 @@ import { PaginationComponent } from '../../components/common/pagination/paginati
 
   `
 })
-export class AllMyMoleculesPageComponent implements OnInit, AfterViewInit, OnDestroy {
+export class AllMyMoleculesPageComponent implements OnInit, OnDestroy {
 
   // ======================= DEPS =======================
   private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService)
@@ -107,6 +108,7 @@ export class AllMyMoleculesPageComponent implements OnInit, AfterViewInit, OnDes
   private readonly toast = inject(ToastService)
   private readonly actionContext = inject(ActionOverlayContextService)
   private readonly invalidations = inject(DomainInvalidationService)
+  private readonly scrollContext = inject(ScrollContextService)
   private readonly pagination = new PaginationController<MoleculeCardItemModel>({
     fetch: (page, query) => this.moleculeCollectionItemService.getAllPaginatedItems(page, 25, query).pipe(
       delay(page === 1 ? 120 : 0),
@@ -133,6 +135,17 @@ export class AllMyMoleculesPageComponent implements OnInit, AfterViewInit, OnDes
 
   constructor() {
     effect(() => {
+      const sentinel = this.sentinel()?.nativeElement
+      const root = this.scrollContext.scrollRootRef()?.nativeElement ?? null
+      const canLoad = !this.pagination.loading() && !this.pagination.done() && !this.pagination.error()
+      this.observer?.disconnect()
+      if (!sentinel || !canLoad) return
+      this.observer = new IntersectionObserver(entries => {
+        if (entries[0]?.isIntersecting) void this.loadMore()
+      }, { root, rootMargin: '0px 0px 500px 0px' })
+      this.observer.observe(sentinel)
+    })
+    effect(() => {
       const t = this.tick()
       if (t === 0) {
         return
@@ -157,12 +170,6 @@ export class AllMyMoleculesPageComponent implements OnInit, AfterViewInit, OnDes
     queueMicrotask(() => void this.loadMore())
   }
 
-  ngAfterViewInit(): void {
-    queueMicrotask(() => {
-      this.startObserver()
-    })
-  }
-
   ngOnDestroy(): void {
     this.observer?.disconnect()
     this.pagination.dispose()
@@ -174,16 +181,6 @@ export class AllMyMoleculesPageComponent implements OnInit, AfterViewInit, OnDes
   resetPagination(): void { this.pagination.reset() }
   doQuery(q: string): void { this.pagination.setQuery(q) }
   doClear(): void { this.pagination.clear() }
-
-  private startObserver(): void {
-    const sentinel = this.sentinel()?.nativeElement
-    if (!sentinel) return
-    this.observer?.disconnect()
-    this.observer = new IntersectionObserver(entries => {
-      if (entries[0]?.isIntersecting) void this.loadMore()
-    }, { rootMargin: '0px 0px 500px 0px' })
-    this.observer.observe(sentinel)
-  }
 
   doDelete(id: string): void {
     const onError = () => queueMicrotask(() => this.toast.trigger('Si è verificato un errore.', 'error', 3000))

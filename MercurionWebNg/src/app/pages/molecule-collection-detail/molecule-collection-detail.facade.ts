@@ -118,11 +118,12 @@ export class MoleculeCollectionDetailFacade {
     this.done.set(false);
     this.error.set(false);
     this.pageError.set(undefined);
+    this.loading.set(false);
     await this.loadMore(expectedId, version);
   }
 
   async loadMore(expectedId = this.collectionId(), version = this.requestVersion): Promise<void> {
-    if (!expectedId || expectedId !== this.collectionId() || this.done() || (this.loading() && this.items().length > 0)) return;
+    if (!expectedId || expectedId !== this.collectionId() || this.done() || this.loading()) return;
     const requestedPage = this.page();
     this.loading.set(true);
     this.pageError.set(undefined);

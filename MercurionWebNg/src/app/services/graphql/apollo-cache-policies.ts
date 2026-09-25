@@ -108,6 +108,13 @@ const paginatedField = (keyArgs: readonly string[]): FieldPolicy<PaginatedResult
   merge: mergePaginatedResults
 });
 
+// Molecule and collection pages are appended by their UI controllers. Each
+// GraphQL response must remain a single page when Apollo reads it back.
+const pageSnapshotField = (keyArgs: readonly string[]): FieldPolicy<PaginatedResult> => ({
+  keyArgs: ['page', ...keyArgs],
+  merge: (_existing, incoming) => incoming
+});
+
 export const MERCURION_APOLLO_TYPE_POLICIES: TypePolicies = {
   MoleculeCollection: { keyFields: ['id'] },
   ChEMBLMoleculeItemDTO: { keyFields: ['id'] },
@@ -125,9 +132,9 @@ export const MERCURION_APOLLO_TYPE_POLICIES: TypePolicies = {
   MoleculeSearchResult: { keyFields: false },
   Query: {
     fields: {
-      myMoleculeCollectionsPaginated: paginatedField(['limit', 'q', 'excludeJoinedToMolecule', 'moleculeId']),
-      paginatedMoleculeCollectionItemsByCollection: paginatedField(['collectionId', 'limit', 'q']),
-      paginatedMoleculeCollectionItemsByUser: paginatedField(['collectionId', 'excludeJoinedToCollection', 'limit', 'q']),
+      myMoleculeCollectionsPaginated: pageSnapshotField(['limit', 'q', 'excludeJoinedToMolecule', 'moleculeId']),
+      paginatedMoleculeCollectionItemsByCollection: pageSnapshotField(['collectionId', 'limit', 'q']),
+      paginatedMoleculeCollectionItemsByUser: pageSnapshotField(['collectionId', 'excludeJoinedToCollection', 'limit', 'q']),
       myTickets: paginatedField(['limit']),
       myTicketMessages: paginatedField(['limit', 'ticketId']),
       ticketsAsSupport: paginatedField(['limit']),

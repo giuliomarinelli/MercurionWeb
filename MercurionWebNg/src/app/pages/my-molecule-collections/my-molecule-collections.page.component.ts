@@ -2,7 +2,7 @@ import { HistoryContextService } from './../../services/context/history-context.
 import { UiMoleculeCollection } from '../../Models/graphql/molecule-collection/molecule-collection.types';
 import { catchError, delay, EMPTY, firstValueFrom, map, of, Subscription, switchMap, tap } from 'rxjs';
 import { MyMoleculesHeadingComponent } from '../../components/molecule-detail/my-molecules-heading/my-molecules-heading.component';
-import { AfterViewInit, Component, ElementRef, inject, OnInit, effect, OnDestroy, signal, ChangeDetectionStrategy, viewChild } from '@angular/core';
+import { Component, ElementRef, inject, OnInit, effect, OnDestroy, signal, ChangeDetectionStrategy, viewChild } from '@angular/core';
 import { MoleculeCollectionService } from '../../services/graphql/molecule-collection.service';
 import { CollectionCardComponent } from '../../components/molecule-detail/collection-card/collection-card.component';
 import { SkeletonCollectionCardComponent } from '../../components/common/skeleton-card-loader/skeleton-card-loader.component';
@@ -105,7 +105,7 @@ import { PaginationComponent } from '../../components/common/pagination/paginati
 
   `
 })
-export class MyMoleculeCollectionsPageComponent implements OnInit, AfterViewInit, OnDestroy {
+export class MyMoleculeCollectionsPageComponent implements OnInit, OnDestroy {
 
   // ======================= DEPS =======================
   private readonly moleculeCollectionService = inject(MoleculeCollectionService)
@@ -154,6 +154,18 @@ export class MyMoleculeCollectionsPageComponent implements OnInit, AfterViewInit
   constructor() {
 
     effect(() => {
+      const sentinel = this.sentinel()?.nativeElement
+      const root = this.scrollContext.scrollRootRef()?.nativeElement ?? null
+      const canLoad = !this.pagination.loading() && !this.pagination.done() && !this.pagination.error()
+      this.observer?.disconnect()
+      if (!sentinel || !canLoad) return
+      this.observer = new IntersectionObserver(entries => {
+        if (entries[0]?.isIntersecting) void this.loadMore()
+      }, { root, rootMargin: '0px 0px 500px 0px' })
+      this.observer.observe(sentinel)
+    })
+
+    effect(() => {
       const event = this.invalidations.last()
       if (event?.domain !== 'molecule-collection' ||
           (event.action !== 'created' && event.action !== 'deleted')) {
@@ -185,10 +197,6 @@ export class MyMoleculeCollectionsPageComponent implements OnInit, AfterViewInit
     void this.loadMore()
   }
 
-  ngAfterViewInit(): void {
-    this.startObserver()
-  }
-
   ngOnDestroy(): void {
     this.observer?.disconnect()
     this.pagination.dispose()
@@ -201,16 +209,6 @@ export class MyMoleculeCollectionsPageComponent implements OnInit, AfterViewInit
   resetPagination(): void { this.pagination.reset() }
   doQuery(q: string): void { this.pagination.setQuery(q) }
   doClear(): void { this.pagination.clear() }
-
-  private startObserver(): void {
-    const sentinel = this.sentinel()?.nativeElement
-    if (!sentinel) return
-    this.observer?.disconnect()
-    this.observer = new IntersectionObserver(entries => {
-      if (entries[0]?.isIntersecting) void this.loadMore()
-    }, { rootMargin: '0px 0px 500px 0px' })
-    this.observer.observe(sentinel)
-  }
 
 
 
