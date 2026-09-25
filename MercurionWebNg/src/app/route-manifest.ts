@@ -100,7 +100,7 @@ export const routeManifest = {
   collectionDetail: parameterizedRoute<{ colId: string }>('collectionDetail', 'molecules/collections/detail/:colId', 'Molecole · Dettaglio collezione', { access: 'authenticated', shell: 'standard' }, ['colId'], { data: { titleManagedByComponent: true } }),
   register: staticRoute('register', 'register', 'Registrazione', { access: 'logged-out-only', shell: 'standard' }),
   accountActivate: staticRoute('accountActivate', 'account/activate', 'Account · Attivazione', { access: 'public', shell: 'standard' }),
-  myMolecules: staticRoute('myMolecules', 'molecules/all-my-molecules', 'Molecole · Tutte le mie molecole', { access: 'authenticated', shell: 'standard' }, { navigation: { group: 'features', label: 'Le mie molecole', icon: 'molecules' } }),
+  myMolecules: staticRoute('myMolecules', 'molecules', 'Molecole · Tutte le mie molecole', { access: 'authenticated', shell: 'standard' }, { navigation: { group: 'features', label: 'Le mie molecole', icon: 'molecules' } }),
   settings: staticRoute('settings', 'settings', 'Impostazioni', { access: 'authenticated', shell: 'standard' }),
   accountRecovery: staticRoute('accountRecovery', 'account-recovery', 'Account · Recupero', { access: 'logged-out-only', shell: 'standard' }),
   oauthCallback: staticRoute('oauthCallback', 'oauth2/callback', 'Login · SSO Callback', { access: 'public', shell: 'standard' }),
