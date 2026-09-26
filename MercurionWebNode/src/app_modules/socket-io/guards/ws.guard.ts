@@ -35,6 +35,8 @@ import {
 } from 'src/exception-handling/application-error-envelope';
 import { Environment } from 'src/config/config.schema';
 import type { AppConfiguration } from 'src/config/config.types';
+import { SecurityService } from 'src/app_modules/auth/services/security.service';
+
 
 type ApplicationSocket = Socket<ClientToServerEvents, ServerToClientEvents>
 
@@ -50,6 +52,7 @@ export class WsGuard implements CanActivate {
     private readonly secureCookieService: SecureCookieService,
     private readonly scopeService: ScopeService,
     private readonly configService: ConfigService,
+    private readonly securityService: SecurityService,
     loggerFactory: LoggerPort
   ) {
     this.logger = loggerFactory.forContext(WsGuard.name)
@@ -103,21 +106,21 @@ export class WsGuard implements CanActivate {
     try {
             
       const payload = await this.jwtTools.verifyTokenAndGetPayload(token, TokenType.ws_AccessToken)
-
-      await this.scopeService.scopeVerificationLayer(payload.sub, context, this.reflector, payload.scp)
+      const userId = this.securityService.decryptUserId(payload.sub)
+      await this.scopeService.scopeVerificationLayer(userId, context, this.reflector, payload.scp)
 
       if (sessionId !== payload.sid) {
         this.unauthorized(client, SessionInvalidationCause.InvalidSession)
         return false
       }
 
-      if (!await this.sessionService.validateSession(payload.sid, deviceId, payload.sub)) {
+      if (!await this.sessionService.validateSession(payload.sid, deviceId, userId)) {
         this.unauthorized(client, SessionInvalidationCause.InvalidSession)
         return false
       }
 
       // 🔹 Inietta lo userId e gli scope nei dati della socket
-      client.data.userId = payload.sub
+      client.data.userId = userId
       client.data.sessionId = payload.sid
       client.data.scopes = this.scopeService.generateScopesArrayFromJwtClaim(payload.scp)
       this.logger.debug?.(`Socket ${client.id} polling connection state: PRIVATE (Authenticated)`)

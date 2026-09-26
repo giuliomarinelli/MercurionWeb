@@ -6,7 +6,7 @@ import { TokenType } from "../enums/token-type.enum"
 export interface AppJwtPayload {
 
     iss: string
-    sub: UUID
+    sub: string
     jti: UUID
     sid: UUID
     typ: TokenType

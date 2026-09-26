@@ -8,6 +8,8 @@ import { AppTotpWrapper } from '../models/interfaces/app-totp-wrapper.interface'
 import * as qrcode from 'qrcode';
 import * as base32 from 'hi-base32'
 import { PasswordEncoderService } from './password-encoder.service';
+import { GeneralUtils } from 'src/utils/general-utils/general-utils';
+import { ApplicationError, ApplicationErrorCode } from 'src/exception-handling/application-error';
 
 @Injectable()
 export class SecurityService {
@@ -15,6 +17,7 @@ export class SecurityService {
     private readonly totpConf: Omit<TotpConfiguration, 'totpPepper'>
     private readonly totpPepper: string
     private readonly AES_secret: string
+    private readonly USER_ID_AES_ENCRYPTION_SECRET: string
     private readonly deviceIdSignatureSecret: string
 
     constructor(private readonly configService: ConfigService, private readonly pe: PasswordEncoderService) {
@@ -22,11 +25,12 @@ export class SecurityService {
         this.totpConf = totpConf
         this.totpPepper = totpPepper
         this.AES_secret = this.configService.get<string>('App.AES_secret')!
+        this.USER_ID_AES_ENCRYPTION_SECRET = this.configService.get<string>('App.userId_AES_encryptionSecret')!
         this.deviceIdSignatureSecret = this.configService.get<string>('App.deviceIdSignatureSecret')!
     }
 
-    encrypt_AES256(value: string) {
-        const key = Buffer.from(this.AES_secret, 'base64')
+    encrypt_AES256_GCM(value: string, secret?: string) {
+        const key = secret ? Buffer.from(secret, 'base64') : Buffer.from(this.AES_secret, 'base64')
         const iv = randomBytes(12)
         const cipher = createCipheriv('aes-256-gcm', key, iv)
         const encrypted = Buffer.concat([
@@ -37,8 +41,8 @@ export class SecurityService {
         return Buffer.concat([iv, tag, encrypted]).toString('hex')
     }
 
-    decrypt_AES256(payload: string) {
-        const key = Buffer.from(this.AES_secret, 'base64')
+    decrypt_AES256_GCM(payload: string, secret?: string) {
+        const key = secret ? Buffer.from(secret, 'base64') : Buffer.from(this.AES_secret, 'base64')
         const data = Buffer.from(payload, 'hex')
         const iv = data.subarray(0, 12)
         const tag = data.subarray(12, 28)
@@ -51,6 +55,29 @@ export class SecurityService {
             decipher.final()
         ])
         return decrypted.toString('utf8')
+    }
+
+    public decryptUserId(encryptedUserId: string): UUID {
+        const result = this.decrypt_AES256_GCM(encryptedUserId, this.USER_ID_AES_ENCRYPTION_SECRET)
+        if (!GeneralUtils.isValidUUID(result)) {
+            throw new ApplicationError(
+                ApplicationErrorCode.PUBLIC_ID_INVALID,
+                `Invalid UUID for userId`,
+                { field: 'userId' }
+            )
+        }
+        return result as UUID
+    }
+
+    public encryptUserId(userId: UUID): string {
+        if (!GeneralUtils.isValidUUID(userId)) {
+            throw new ApplicationError(
+                ApplicationErrorCode.PUBLIC_ID_INVALID,
+                `Invalid UUID for userId`,
+                { field: 'userId' }
+            )
+        }
+        return this.encrypt_AES256_GCM(userId, this.USER_ID_AES_ENCRYPTION_SECRET)
     }
 
     signDeviceId(deviceId: UUID): string {

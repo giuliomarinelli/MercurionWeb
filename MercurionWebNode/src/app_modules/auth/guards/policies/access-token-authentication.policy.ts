@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-
+import { SecurityService } from '../../services/security.service'
 import { ApplicationErrorCode, isApplicationError } from 'src/exception-handling/application-error'
 import { LoggerContext } from 'src/logging/logger.port'
 import { LoggerPort } from 'src/logging/logger.port'
@@ -18,6 +18,7 @@ export class AccessTokenAuthenticationPolicy {
   constructor(
     private readonly jwtToolsService: JwtToolsService,
     private readonly sessionService: SessionService,
+    private readonly securityService: SecurityService,
     loggerFactory: LoggerPort
   ) {
     this.logger = loggerFactory.forContext(AccessTokenAuthenticationPolicy.name)
@@ -54,7 +55,7 @@ export class AccessTokenAuthenticationPolicy {
 
   issueRefreshedToken(payload: AppJwtPayload): Promise<string> {
     return this.jwtToolsService.generateToken(
-      payload.sub,
+      this.securityService.decryptUserId(payload.sub),
       TokenType.AccessToken,
       payload.sid
     )

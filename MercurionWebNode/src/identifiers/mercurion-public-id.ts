@@ -17,6 +17,8 @@ export type MercurionPublicId = UUID & {
 const MERCURION_PUBLIC_ID_V7 =
   /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
+export const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
 export function isMercurionPublicId(value: unknown): value is MercurionPublicId {
   return typeof value === 'string' && MERCURION_PUBLIC_ID_V7.test(value)
 }

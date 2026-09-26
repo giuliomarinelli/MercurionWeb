@@ -11,6 +11,7 @@ import { AuthenticationTransportPolicy } from './policies/authentication-transpo
 import { CredentialExtractionPolicy } from './policies/credential-extraction.policy'
 import { ScopeAuthorizationPolicy } from './policies/scope-authorization.policy'
 import { SessionValidationPolicy } from './policies/session-validation.policy'
+import { SecurityService } from '../services/security.service'
 
 @Injectable()
 export class GlobalGuard implements CanActivate {
@@ -22,6 +23,7 @@ export class GlobalGuard implements CanActivate {
     private readonly scopePolicy: ScopeAuthorizationPolicy,
     private readonly sessionPolicy: SessionValidationPolicy,
     private readonly transportPolicy: AuthenticationTransportPolicy,
+    private readonly securityService: SecurityService,
     private readonly failurePolicy: AuthenticationFailurePolicy
   ) {}
 
@@ -51,7 +53,7 @@ export class GlobalGuard implements CanActivate {
         attempt.accessToken
       )
       attempt.payload = authentication.payload
-      attempt.userId = authentication.payload.sub
+      attempt.userId = this.securityService.decryptUserId(authentication.payload.sub)
 
       attempt.stage = 'authorization'
       await this.scopePolicy.authorize(requestContext, authentication.payload)
@@ -81,7 +83,7 @@ export class GlobalGuard implements CanActivate {
       attempt.stage = 'principal'
       this.transportPolicy.setAuthenticatedUser(
         requestContext,
-        authentication.payload.sub
+        this.securityService.decryptUserId(authentication.payload.sub)
       )
       this.transportPolicy.setScopes(
         requestContext,

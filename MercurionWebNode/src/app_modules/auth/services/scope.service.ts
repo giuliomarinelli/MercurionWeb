@@ -50,7 +50,7 @@ export class ScopeService {
         if (encryptedScopeVals.length === 0) {
             return []
         }
-        return encryptedScopeVals.map((es) => this.securityService.decrypt_AES256(es))
+        return encryptedScopeVals.map((es) => this.securityService.decrypt_AES256_GCM(es))
             .filter((ds) => (this.scopeValues).includes(ds as Scope))
             .map((strScopeVal) => strScopeVal as Scope)
     }
@@ -60,7 +60,7 @@ export class ScopeService {
             return []
         }
         return GeneralUtils.distinctArray(decryptedScopeVals).filter((ds) => this.scopeValues.includes(ds))
-            .map((ds) => this.securityService.encrypt_AES256(ds))
+            .map((ds) => this.securityService.encrypt_AES256_GCM(ds))
     }
 
     async scopeVerificationLayer(userId: UUID, context: ExecutionContext, reflector: Reflector, jwtScpClaim: string): Promise<void> {

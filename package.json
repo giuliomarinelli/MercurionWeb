@@ -100,7 +100,8 @@
     "ci:topology:negative": "node scripts/test-repository-topology-negative.mjs",
     "ng:start:dev": "npm run start:dev --workspace mercurion_web_ng",
     "nest:start:dev": "npm run start:dev --workspace mercurion_web_node",
-    "nest:start:debug": "npm run start:debug --workspace mercurion_web_node"
+    "nest:start:debug": "npm run start:debug --workspace mercurion_web_node",
+    "nest:test": "npm run test --workspace mercurion_web_node"
   },
   "devDependencies": {
     "@playwright/test": "1.55.0",

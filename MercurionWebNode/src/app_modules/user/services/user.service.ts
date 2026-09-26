@@ -121,7 +121,7 @@ export class UserService implements IdentityReadPort {
                 return null
             }
             return user.scopes
-                .map((encryptedScope) => this.securityService.decrypt_AES256(encryptedScope))
+                .map((encryptedScope) => this.securityService.decrypt_AES256_GCM(encryptedScope))
                 .filter((scope): scope is Scope => Object.values(Scope).includes(scope as Scope))
         } catch (e) {
             this.logger.warn(`Error in getScopesById, userId=${userId}`, e as object)
@@ -320,7 +320,7 @@ export class UserService implements IdentityReadPort {
 
         return (JSON.parse(user.mfaStrategies) as string[])
             .filter(Boolean)
-            .filter((s) => this.mfaStrategyVals.includes(this.securityService.decrypt_AES256(s) as MfaStrategy))
+            .filter((s) => this.mfaStrategyVals.includes(this.securityService.decrypt_AES256_GCM(s) as MfaStrategy))
 
     }
 
@@ -452,10 +452,10 @@ export class UserService implements IdentityReadPort {
 
     public async appendMfaStrategy(id: UUID, strategy: MfaStrategy): Promise<void> {
         const currentStrategies: MfaStrategy[] = (await this.getUserEncryptedEnabledMfaStrategies(id))
-            .map((s) => this.securityService.decrypt_AES256(s) as MfaStrategy)
+            .map((s) => this.securityService.decrypt_AES256_GCM(s) as MfaStrategy)
             .filter((s) => this.mfaStrategyVals.includes(s))
         const updatedStrategies = Array.from(new Set([...currentStrategies, strategy]))
-            .map((s) => this.securityService.encrypt_AES256(s))
+            .map((s) => this.securityService.encrypt_AES256_GCM(s))
         const mfaStrategies = JSON.stringify(updatedStrategies)
         const updatedUser = await this.updateUser(id, { mfaStrategies })
         if (!updatedUser) {
@@ -465,10 +465,10 @@ export class UserService implements IdentityReadPort {
 
     public async removeMfaStrategy(id: UUID, strategy: MfaStrategy): Promise<void> {
         const currentStrategies: MfaStrategy[] = (await this.getUserEncryptedEnabledMfaStrategies(id))
-            .map((s) => this.securityService.decrypt_AES256(s) as MfaStrategy)
+            .map((s) => this.securityService.decrypt_AES256_GCM(s) as MfaStrategy)
             .filter((s) => this.mfaStrategyVals.includes(s))
         const updated = currentStrategies.filter(s => s !== strategy)
-            .map((s) => this.securityService.encrypt_AES256(s))
+            .map((s) => this.securityService.encrypt_AES256_GCM(s))
         const userProps: UserUpdateCommand = {
             mfaStrategies: JSON.stringify(updated)
         }

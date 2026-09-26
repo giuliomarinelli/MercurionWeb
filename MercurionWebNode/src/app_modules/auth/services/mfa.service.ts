@@ -14,7 +14,6 @@ import { MailSenderService } from 'src/app_modules/notification/services/mail-se
 import { ConfigService } from '@nestjs/config';
 import { TokenType } from '../models/enums/token-type.enum';
 import { errorMessage, errorStack } from 'src/utils/errors/error-message'
-
 import { JwtToolsService } from './jwt-tools.service';
 import { TotpConfiguration } from 'src/config/config.types';
 import { SessionService } from './session.service';
@@ -88,7 +87,7 @@ export class MfaApplicationService {
 
     public async getEnabledMfaStrategies(userId: UUID): Promise<MfaStrategy[]> {
         return (await this.userService.getUserEncryptedEnabledMfaStrategies(userId))
-            .map((s) => this.securityService.decrypt_AES256(s) as MfaStrategy)
+            .map((s) => this.securityService.decrypt_AES256_GCM(s) as MfaStrategy)
     }
 
     private getBackupFailKey(userId: UUID) {
@@ -176,13 +175,13 @@ export class MfaApplicationService {
         }
 
         let decrypted = deserialized
-            .map(enc => this.securityService.decrypt_AES256(enc))
+            .map(enc => this.securityService.decrypt_AES256_GCM(enc))
             .filter((st) => TypeGuards.isMfaStrategy(st))
 
         decrypted.push(MfaStrategy.BACKUP_CODE)
         decrypted = GeneralUtils.distinctArray(decrypted)
 
-        const encrypted = decrypted.map(dec => this.securityService.encrypt_AES256(dec))
+        const encrypted = decrypted.map(dec => this.securityService.encrypt_AES256_GCM(dec))
         await manager.update(
             User,
             { id: userId },
@@ -199,11 +198,12 @@ export class MfaApplicationService {
 
         let userId: string = ''
         let jti: string = ''
+        let sub: string
 
         try {
 
-            ({ sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(preAuthorizationToken, TokenType.PreAuthorizationToken))
-
+            ({ sub, jti } = await this.jwtTools.verifyTokenAndGetPayload(preAuthorizationToken, TokenType.PreAuthorizationToken))
+            userId = this.securityService.decryptUserId(sub)
             await this.sessionService.revokeToken(jti)
 
             await this.ensureBackupNotLocked(userId as UUID)
@@ -269,13 +269,13 @@ export class MfaApplicationService {
             }
 
             let decrypted = deserialized
-                .map(enc => this.securityService.decrypt_AES256(enc))
+                .map(enc => this.securityService.decrypt_AES256_GCM(enc))
                 .filter((st) => TypeGuards.isMfaStrategy(st))
 
             decrypted.push(MfaStrategy.BACKUP_CODE)
             decrypted = GeneralUtils.distinctArray(decrypted)
 
-            const encrypted = decrypted.map(dec => this.securityService.encrypt_AES256(dec))
+            const encrypted = decrypted.map(dec => this.securityService.encrypt_AES256_GCM(dec))
             await manager.update(
                 User,
                 { id: userId },
@@ -346,9 +346,11 @@ export class MfaApplicationService {
     public async sendOtpToUser(preAuthorizationToken: string, strategy: MfaStrategy, trustVerify: boolean): Promise<TotpMetadata> {
 
         let userId: UUID
+        let sub: string
 
         try {
-            ({ sub: userId } = await this.jwtTools.verifyTokenAndGetPayload(preAuthorizationToken, TokenType.PreAuthorizationToken))
+            ({ sub } = await this.jwtTools.verifyTokenAndGetPayload(preAuthorizationToken, TokenType.PreAuthorizationToken))
+            userId = this.securityService.decryptUserId(sub)
         } catch {
             throw applicationError(ApplicationErrorCode.MFA_JWT_VALIDATION_INVALID)
         }
@@ -359,7 +361,7 @@ export class MfaApplicationService {
         }
         if (!user.otpSecret) throw applicationError(ApplicationErrorCode.MFA_OTP_SECRET_NOT_FOUND)
         let strategyError: boolean = true
-        if ((await this.userService.getUserEncryptedEnabledMfaStrategies(userId)).map((enc) => this.securityService.decrypt_AES256(enc)).includes(strategy)) {
+        if ((await this.userService.getUserEncryptedEnabledMfaStrategies(userId)).map((enc) => this.securityService.decrypt_AES256_GCM(enc)).includes(strategy)) {
             strategyError = false
         } else if (strategy === MfaStrategy.EMAIL_OTP && trustVerify) {
             strategyError = false
@@ -402,8 +404,9 @@ export class MfaApplicationService {
 
     public async verifyUserOtpOrAppTotp(totp: string, preAuthorizationToken: string, strategy: MfaStrategy): Promise<boolean> {
 
-        const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(preAuthorizationToken, TokenType.PreAuthorizationToken)
+        const { sub, jti } = await this.jwtTools.verifyTokenAndGetPayload(preAuthorizationToken, TokenType.PreAuthorizationToken)
         await this.sessionService.revokeToken(jti)
+        const userId = this.securityService.decryptUserId(sub)
         const context = MfaContext.VERIFY
         await this.ensureMfaNotLocked(userId, strategy, context)
         if (!await this.userService.existsUserById(userId)) {
@@ -564,7 +567,8 @@ export class MfaApplicationService {
                 throw applicationError(ApplicationErrorCode.MFA_STRATEGY_UNSUPPORTED, `UnsupportedMfaStrategy::${GeneralUtils.getEnumKeyByValue(MfaStrategy, strategy)}`)
         }
 
-        const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(secureToken, tokenType)
+        const { sub, jti } = await this.jwtTools.verifyTokenAndGetPayload(secureToken, tokenType)
+        const userId = this.securityService.decryptUserId(sub)
         await this.sessionService.revokeToken(jti.toString())
 
         if (!await this.userService.existsUserById(userId)) {
@@ -645,7 +649,7 @@ export class MfaApplicationService {
         }
 
         const encStrategies = await this.userService.getUserEncryptedEnabledMfaStrategies(userId)
-        const strategies = encStrategies.map((s) => this.securityService.decrypt_AES256(s) as MfaStrategy)
+        const strategies = encStrategies.map((s) => this.securityService.decrypt_AES256_GCM(s) as MfaStrategy)
         if (!strategies.includes(strategy)) {
             throw applicationError(ApplicationErrorCode.MFA_STRATEGY_NOT_ACTIVE, `InvalidMfaStrategy::${strategy} strategy not currently active`)
         }
@@ -728,7 +732,8 @@ export class MfaApplicationService {
                 throw applicationError(ApplicationErrorCode.MFA_STRATEGY_UNSUPPORTED, `UnsupportedMfaStrategy::${GeneralUtils.getEnumKeyByValue(MfaStrategy, strategy)}`)
         }
 
-        const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(secureToken, tokenType)
+        const { sub, jti } = await this.jwtTools.verifyTokenAndGetPayload(secureToken, tokenType)
+        const userId = this.securityService.decryptUserId(sub)
         await this.sessionService.revokeToken(jti.toString())
 
         const context = MfaContext.DISABLE_VERIFY
@@ -773,7 +778,7 @@ export class MfaApplicationService {
                 throw e
             }
             const mfaStrategiesWithoutJustDisabledStrategy = deserialized
-                .map((enc) => this.securityService.decrypt_AES256(enc))
+                .map((enc) => this.securityService.decrypt_AES256_GCM(enc))
                 .map(uuid => GeneralUtils.getEnumValue(MfaStrategy, uuid))
                 .filter((val): val is MfaStrategy => val !== undefined)
                 .filter(st => st !== strategy)
@@ -791,7 +796,7 @@ export class MfaApplicationService {
                 },
                 {
                     mfaStrategies: JSON.stringify(
-                        mfaStrategiesWithoutJustDisabledStrategy.map((uuid) => this.securityService.encrypt_AES256(uuid))
+                        mfaStrategiesWithoutJustDisabledStrategy.map((uuid) => this.securityService.encrypt_AES256_GCM(uuid))
                     ),
                     backupCodesGiven
 

@@ -6,6 +6,7 @@ import {
     assertMercurionPublicId,
     isMercurionPublicId,
     parseMercurionPublicId,
+    UUID_PATTERN,
     type MercurionPublicId,
 } from "src/identifiers/mercurion-public-id";
 
@@ -69,6 +70,10 @@ export class GeneralUtils {
 
     public static isValidUUIDv7(uuid: string): boolean {
         return isMercurionPublicId(uuid)
+    }
+
+    public static isValidUUID(uuid: string): boolean {
+        return typeof uuid === 'string' && UUID_PATTERN.test(uuid)
     }
 
     public static ensureValidUUIDv7(

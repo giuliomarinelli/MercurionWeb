@@ -32,6 +32,7 @@ import {
   createCorrelationId,
   presentApplicationError
 } from 'src/exception-handling/application-error-envelope';
+import { SecurityService } from '../auth/services/security.service';
 
 type ApplicationServer = Server<ClientToServerEvents, ServerToClientEvents>
 type ApplicationSocket = Socket<ClientToServerEvents, ServerToClientEvents>
@@ -86,6 +87,7 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
     private readonly configService: ConfigService,
     private readonly pubSubService: PubSubService,
     private readonly jwtTools: JwtToolsService,
+    private readonly securityService: SecurityService,
     loggerFactory: LoggerPort
   ) {
     this.logger = loggerFactory.forContext(SocketIOGateway.name)
@@ -131,10 +133,11 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
 
     try {
 
-      const { sub: userId, sid: sessionId } = await this.jwtTools.verifyTokenAndGetPayload(token, TokenType.ws_AccessToken);
+      const { sub, sid: sessionId } = await this.jwtTools.verifyTokenAndGetPayload(token, TokenType.ws_AccessToken);
+      const userId = this.securityService.decryptUserId(sub)
 
-      client.data.userId = userId;
-      client.data.sessionId = sessionId;
+      client.data.userId = userId
+      client.data.sessionId = sessionId
 
       this.joinUserRooms(client);  // idempotente, usa già .rooms.has(...)
       this.logger.log(
