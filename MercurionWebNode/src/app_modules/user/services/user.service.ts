@@ -23,7 +23,7 @@ import { AuthProvider } from 'src/app_modules/sso/models/enums/auth-provider.enu
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 import type { IdentityReadPort } from 'src/app_modules/auth/models/interfaces/identity-read.port'
 import { runInTransaction, transactionManager, type TransactionContext } from 'src/persistence/transaction-context'
-import { LOCAL_DUMMY_AUTH } from '@mercurion/rest-contracts'
+import { AccountIdKind, LOCAL_DUMMY_AUTH } from '@mercurion/rest-contracts'
 import { UserGender } from '../models/enums/user-gender.enum'
 import { ProfileReadModelService } from './profile-read-model.service'
 
@@ -419,20 +419,35 @@ export class UserService implements IdentityReadPort {
             .select(['u.email', 'u.sso'])
             .where('u.id = :id', { id })
             .leftJoin("u.authIdentities", "a")
-            .addSelect(["a.email", "a.provider"])
+            .addSelect(["a.email", "a.provider", "a.providerSubject"])
             .getOne()
+
         if (!userRow) {
             return null
         }
+
+        let accountId: string
+        let kind: AccountIdKind
+        let provider: AuthProvider = AuthProvider.Mercurion
+
         if (userRow.sso) {
-            return {
-                email: userRow.authIdentities[0]?.email ?? '',
-                provider: userRow.authIdentities[0]?.provider ?? ''
+            provider = userRow.authIdentities[0].provider
+            if (provider === AuthProvider.ORCID) {
+                accountId = userRow.authIdentities[0].providerSubject
+                kind = AccountIdKind.ORCID
+            } else {
+                accountId = userRow.authIdentities[0].email!
+                kind = AccountIdKind.EMAIL
             }
+        } else {
+            accountId = userRow.email!
+            kind = AccountIdKind.EMAIL
         }
+
         return {
-            email: userRow.email ?? '',
-            provider: AuthProvider.Mercurion
+            accountId,
+            provider,
+            kind
         }
     }
 

@@ -1,5 +1,5 @@
 import { Injectable, inject, signal } from '@angular/core'
-import { EMPTY, Subscription, catchError, forkJoin, map, of, switchMap } from 'rxjs'
+import { EMPTY, Subscription, catchError, forkJoin, map } from 'rxjs'
 import { AccountService } from '../../services/account.service'
 import { ToastService } from '../../services/toast.service'
 import type { AuthProvider } from '../../Models/auth/provider.models'
@@ -23,7 +23,7 @@ export class SettingsAccountFacade {
     this.request = forkJoin({
       version: this.account.getCurrentVersion(),
       profile: this.account.getProfileRegistry(false),
-      provider: this.account.getProvidedEmail(),
+      provider: this.account.getProvidedAccountId(),
     }).pipe(
       map(({ version, profile, provider }) => {
         this.version.set(version)

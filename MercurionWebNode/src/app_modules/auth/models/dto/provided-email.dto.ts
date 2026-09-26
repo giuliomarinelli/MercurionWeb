@@ -1,1 +1,1 @@
-export type { ProvidedEmailDTO } from '@mercurion/rest-contracts'
+export type { ProvidedAccountIdDTO as ProvidedEmailDTO } from '@mercurion/rest-contracts'

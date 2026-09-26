@@ -2563,16 +2563,16 @@
       }
     },
     {
-      "id": "MercurionWebNg/src/app/services/account.service.ts#AccountService.getMaskedEmail#0",
+      "id": "MercurionWebNg/src/app/services/account.service.ts#AccountService.getMaskedAccountId#0",
       "consumer": {
         "file": "MercurionWebNg/src/app/services/account.service.ts",
         "class": "AccountService",
-        "method": "getMaskedEmail",
+        "method": "getMaskedAccountId",
         "ordinal": 0,
         "verb": "GET",
-        "path": "/api/account/masked-email",
+        "path": "/api/account/masked-account-id",
         "urlVariants": [
-          "/api/account/masked-email"
+          "/api/account/masked-account-id"
         ],
         "pathParameters": [],
         "queryParameters": [],
@@ -2601,9 +2601,9 @@
       },
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
-        "handler": "getMaskedEmail",
+        "handler": "getMaskedAccountId",
         "verb": "GET",
-        "path": "/api/account/masked-email",
+        "path": "/api/account/masked-account-id",
         "parameters": [],
         "returnType": "string",
         "successStatus": 200,
@@ -2904,9 +2904,9 @@
         "method": "getProvidedEmail",
         "ordinal": 0,
         "verb": "GET",
-        "path": "/api/account/email",
+        "path": "/api/account/provided-account-id",
         "urlVariants": [
-          "/api/account/email"
+          "/api/account/provided-account-id"
         ],
         "pathParameters": [],
         "queryParameters": [],
@@ -2938,7 +2938,7 @@
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
         "handler": "getProvidedEmail",
         "verb": "GET",
-        "path": "/api/account/email",
+        "path": "/api/account/provided-account-id",
         "parameters": [],
         "returnType": "ProvidedEmailDTO",
         "successStatus": 200,

@@ -15,7 +15,6 @@ import { AuthUseCasesService } from '../../../services/auth-use-cases.service';
 import { SessionSyncService } from '../../../services/session-sync.service';
 import { PathService } from '../../../services/path.service';
 import { ToastService } from '../../../services/toast.service';
-import { ProvidedEmailDTO } from '../../../Models/account/account.models';
 import { environment } from '../../../../environments/environment';
 import { ShellLayoutService } from '../../../services/context/shell-layout.service';
 import { APP_CONFIG } from '../../../config/app-config';
@@ -27,6 +26,7 @@ import { HeaderAccountMenuComponent } from './header-account-menu.component';
 import { HeaderResponsiveMenuComponent } from './header-responsive-menu.component';
 import { HeaderSessionIndicatorComponent } from './header-session-indicator.component';
 import { IconButtonComponent } from '../icon-button/icon-button.component';
+import { ProvidedAccountIdDTO } from '@mercurion/rest-contracts';
 
 @Component({
   selector: 'm-header',
@@ -302,7 +302,7 @@ import { IconButtonComponent } from '../icon-button/icon-button.component';
       </svg>
     }
     @case ('ORCID') {
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-5 w-5 text-light-accent-secondary dark:text-dark-accent-primary">
+      <svg class="h-5 w-5" viewBox="1.5 1.5 21 21" aria-hidden="true" class="fill-current h-5 w-5 text-light-accent-secondary dark:text-dark-accent-primary">
         <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/>
         <text x="12" y="15" text-anchor="middle" font-size="8" font-weight="700" fill="currentColor">iD</text>
       </svg>
@@ -324,9 +324,9 @@ import { IconButtonComponent } from '../icon-button/icon-button.component';
         !avatarMenuVisible() }">
   <div class="z-[999]">
     <button
-      class="group truncate flex items-center w-full mb-2 pl-4 pr-6 py-4 gap-4 transition-colors duration-300 cursor-default border-slate-400/60 dark:border-slate-300 border-b-[0.5px]">
-        <ng-container [ngTemplateOutlet]="providerIcon" [ngTemplateOutletContext]="{ provider: providedEmail()?.provider }" />
-      <span class="text-sm text-green-900 dark:text-dark-accent-primary font-medium truncate">{{ providedEmail()?.email }}</span>
+      class="group truncate flex items-center w-full mb-2 pl-4 pr-6 py-4 gap-4 transition-colors duration-300 cursor-default border-slate-400/60 dark:border-slate-300 border-b-[0.5px] h-[52.5px]">
+        <ng-container [ngTemplateOutlet]="providerIcon" [ngTemplateOutletContext]="{ provider: providedAccountId()?.provider }" />
+      <span class="text-sm text-green-900 dark:text-dark-accent-primary font-medium truncate">{{ providedAccountId()?.accountId }}</span>
     </button>
     <a [routerLink]="routes.dashboard.build({})" (click)="closeAvatarMenu()"
       class="group flex items-center w-full pl-4 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300"
@@ -434,7 +434,7 @@ import { IconButtonComponent } from '../icon-button/icon-button.component';
     </button>
     <button (click)="toggleAvatarMobileMenu()"
       class="text-sm text-green-800 dark:text-dark-accent-primary font-medium truncate">
-      {{ providedEmail()?.email }}
+      {{ providedAccountId()?.accountId }}
     </button>
   </div>
   }
@@ -458,9 +458,9 @@ import { IconButtonComponent } from '../icon-button/icon-button.component';
         <!-- Header -->
         <button
           class="group flex items-center w-full mb-2 pl-3 pr-6 py-4 gap-4 transition-colors duration-300 cursor-default border-b-slate-400/60 dark:border-slate-300 border-b-[0.5px]">
-          <ng-container [ngTemplateOutlet]="providerIcon" [ngTemplateOutletContext]="{ provider: providedEmail()?.provider }" />
+          <ng-container [ngTemplateOutlet]="providerIcon" [ngTemplateOutletContext]="{ provider: providedAccountId()?.provider }" />
           <span class="text-sm text-green-900 dark:text-dark-accent-primary font-medium truncate">
-            {{ providedEmail()?.email }}
+            {{ providedAccountId()?.accountId }}
           </span>
         </button>
         <!-- Profilo -->
@@ -571,7 +571,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   readonly offCanvasMenuOpened = output<boolean>();
 
   private routeSub?: Subscription
-  private emailSub?: Subscription
+  private accountIdSub?: Subscription
   private logoutSub?: Subscription
 
   protected isLoginPath = signal<boolean>(false)
@@ -595,7 +595,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   private themeMenuTimeoutId: ReturnType<typeof setTimeout> | undefined
   private avatarMenuTimeoutId: ReturnType<typeof setTimeout> | undefined
   private avatarMobileMenuTimeoutId: ReturnType<typeof setTimeout> | undefined
-  protected providedEmail = signal<ProvidedEmailDTO | null>(null)
+  protected providedAccountId = signal<ProvidedAccountIdDTO | null>(null)
   protected isBeta = signal<boolean>(false)
   private _triggerOpenOffCanvas = signal<boolean>(false)
 
@@ -670,13 +670,13 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   protected toggleOffCanvasMenu(): void {
-    this.getProvidedEmail()
+    this.getProvidedAccountId()
     this.offCanvasMenuOpen.update(open => !open)
   }
 
   protected toggleAvatarMenu(): void {
     if (!this.avatarMenuOpen()) {
-      this.getProvidedEmail()
+      this.getProvidedAccountId()
     }
     if (this.themeMenuOpen()) {
       this.toggleThemeMenu()
@@ -686,7 +686,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   protected toggleAvatarMobileMenu(): void {
     if (!this.avatarMobileMenuOpen()) {
-      this.getProvidedEmail()
+      this.getProvidedAccountId()
     }
     if (this.themeMenuOpen()) {
       this.toggleThemeMenu()
@@ -772,12 +772,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.searchContextService.open()
   }
 
-  getProvidedEmail(): void {
+  getProvidedAccountId(): void {
     if (this.userContext.isLoggedIn()) {
-      this.emailSub = this.accountService
-        .getProvidedEmail()
+      this.accountIdSub = this.accountService
+        .getProvidedAccountId()
         .subscribe((dto) => {
-          this.providedEmail.set(dto)
+          this.providedAccountId.set(dto)
         })
     }
   }
@@ -820,7 +820,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     document.removeEventListener('click', this.handleDocumentClick, true)
     document.removeEventListener('keydown', this.handleEscape, true)
     this.routeSub?.unsubscribe()
-    this.emailSub?.unsubscribe()
+    this.accountIdSub?.unsubscribe()
     this.logoutSub?.unsubscribe()
     clearTimeout(this.themeMenuTimeoutId)
     clearTimeout(this.avatarMenuTimeoutId)

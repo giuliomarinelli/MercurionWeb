@@ -13,7 +13,7 @@ import { AccountService } from '../../../services/account.service'
 export class SensitiveDataChangeFacade {
   private readonly account = inject(AccountService)
 
-  readonly getProvidedEmail = () => this.account.getProvidedEmail()
+  readonly getProvidedAccountId = () => this.account.getProvidedAccountId()
   readonly getMaskedEmail = () => this.account.getMaskedEmail()
   readonly getMaskedPhone = () => this.account.getMaskedPhone()
   readonly getEnabledMfaStrategies = (preauth = false) => this.account.getEnabledMfaStrategies(preauth)

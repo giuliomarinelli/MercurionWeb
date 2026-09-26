@@ -1467,7 +1467,7 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
           this.changeEmailStep.set('OK_OR_ERROR')
         }))
       ).subscribe({
-        next: () => this.accountService.getProvidedEmail(),
+        next: () => this.accountService.getProvidedAccountId(),
         error: (e: HttpErrorResponse) => queueMicrotask(() => this.serverError.set(e.status))
       })
     }

@@ -191,9 +191,9 @@
     },
     {
       "method": "GET",
-      "path": "/api/account/email",
+      "path": "/api/account/provided-account-id",
       "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
-      "handler": "getProvidedEmail",
+      "handler": "getProvidedAccountId",
       "classification": "active product feature",
       "owner": "Mercurion Angular application",
       "evidence": [
@@ -257,9 +257,9 @@
     },
     {
       "method": "GET",
-      "path": "/api/account/masked-email",
+      "path": "/api/account/masked-account-id",
       "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
-      "handler": "getMaskedEmail",
+      "handler": "getMaskedAccountId",
       "classification": "active product feature",
       "owner": "Mercurion Angular application",
       "evidence": [

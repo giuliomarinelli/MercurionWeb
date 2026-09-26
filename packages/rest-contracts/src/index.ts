@@ -389,8 +389,9 @@ export interface SessionDTO {
   provider: AuthProvider
 }
 
-export interface ProvidedEmailDTO {
-  email: string
+export interface ProvidedAccountIdDTO {
+  accountId: string
+  kind: AccountIdKind
   provider: AuthProvider
 }
 

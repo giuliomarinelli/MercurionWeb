@@ -1,5 +1,5 @@
 import { ThemeChoice } from '../../../Models/theme.models';
-import { ProvidedEmailDTO } from '../../../Models/account/account.models';
+import { ProvidedAccountIdDTO } from '../../../Models/account/account.models';
 
 export interface HeaderNavigationItem {
   readonly label: string;
@@ -10,7 +10,7 @@ export interface HeaderNavigationItem {
 export interface HeaderSessionState {
   readonly loggedIn: boolean;
   readonly initials: string;
-  readonly email: ProvidedEmailDTO | null;
+  readonly email: ProvidedAccountIdDTO | null;
 }
 
 export interface HeaderViewModel {
