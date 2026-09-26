@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core'
-import { RouterLink } from '@angular/router'
-import type { SSO_AuthProvider } from '@mercurion/rest-contracts'
+import type { ActiveSSO_AuthProvider } from '@mercurion/rest-contracts'
+import { active_SSO_AuthProviders } from '@mercurion/rest-contracts'
 import type { LoginSsoSelection } from './login-flow.models'
 
 @Component({
@@ -22,7 +22,7 @@ import type { LoginSsoSelection } from './login-flow.models'
               </svg>
             }
             @case ('ORCID') {
-              <svg class="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
+              <svg class="h-5 w-5" viewBox="1.5 1.5 21 21" aria-hidden="true">
                 <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/>
                 <text x="12" y="15" text-anchor="middle" font-size="8" font-weight="700" fill="currentColor">iD</text>
               </svg>
@@ -45,15 +45,15 @@ import type { LoginSsoSelection } from './login-flow.models'
 export class LoginSsoChooserComponent {
 
   readonly redirectTo = input<string | null>(null)
-  readonly providers: readonly SSO_AuthProvider[] = ['Google', 'ORCID', 'Discord']
+  readonly providers: readonly ActiveSSO_AuthProvider[] = active_SSO_AuthProviders
 
-  hrefFor(provider: SSO_AuthProvider): string {
+  hrefFor(provider: ActiveSSO_AuthProvider): string {
     const redirectTo = this.redirectTo()
     const query = redirectTo ? `?redirect_to=${encodeURIComponent(redirectTo)}` : ''
     return `/api/oauth2/sso/${provider}/login${query}`
   }
 
-  select(provider: SSO_AuthProvider): LoginSsoSelection {
+  select(provider: ActiveSSO_AuthProvider): LoginSsoSelection {
     return { provider, redirectTo: this.redirectTo() }
   }
 }

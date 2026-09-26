@@ -215,6 +215,12 @@ export const AuthProvider = Object.freeze({
 } as const)
 export type AuthProvider = (typeof AuthProvider)[keyof typeof AuthProvider]
 export type SSO_AuthProvider = Exclude<AuthProvider, 'Mercurion'>
+export const active_SSO_AuthProviders = [
+  AuthProvider.Google,
+  AuthProvider.ORCID,
+  AuthProvider.Discord
+] as const satisfies readonly SSO_AuthProvider[]
+export type ActiveSSO_AuthProvider = (typeof active_SSO_AuthProviders)[number]
 export type ForbiddenSSO_AuthProviders = Extract<SSO_AuthProvider, 'GitHub' | 'LinkedIn'>
 
 export const MfaStrategy = Object.freeze({
