@@ -230,6 +230,12 @@ export const configurationBuilders = {
             clientId: environment.DISCORD_CLIENT_ID,
             clientSecret: environment.DISCORD_CLIENT_SECRET,
             redirectUri: environment.DISCORD_REDIRECT_URI
+        },
+        ORCID: {
+            clientId: environment.ORCID_CLIENT_ID,
+            clientSecret: environment.ORCID_CLIENT_SECRET,
+            redirectUri: environment.ORCID_REDIRECT_URI,
+            issuer: environment.ORCID_ISSUER
         }
     }),
 
