@@ -17,6 +17,7 @@ import { TabsModule } from 'primeng/tabs';
 import { TextFieldComponent } from '../components/common/text-field/text-field.component';
 import { TextareaComponent } from '../components/common/textarea/textarea.component';
 import { ToastComponent } from '../components/common/toast/toast.component';
+import { ThemeManagerService } from '../services/context/theme-manager.service';
 import { ToastService } from '../services/toast.service';
 import {
   blockingViolations,
@@ -165,6 +166,7 @@ describe('canonical UI accessibility coverage', () => {
   }
 
   beforeEach(async () => {
+    localStorage.clear()
     document.documentElement.classList.remove('dark')
     document.documentElement.removeAttribute('data-theme')
     document.body.classList.remove('dark')
@@ -173,12 +175,20 @@ describe('canonical UI accessibility coverage', () => {
       imports: [CanonicalUiFixtureComponent],
     }).compileComponents();
 
+    TestBed.inject(ThemeManagerService).chooseTheme('light')
     fixture = TestBed.createComponent(CanonicalUiFixtureComponent);
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
     await waitForRenderedStyles();
   });
+
+  afterEach(() => {
+    localStorage.clear()
+    document.documentElement.classList.remove('dark')
+    document.documentElement.removeAttribute('data-theme')
+    document.body.classList.remove('dark')
+  })
 
   async function expectNoBlockingViolations(): Promise<AxeResults> {
     const results = await runAxe(fixture.nativeElement);

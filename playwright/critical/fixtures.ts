@@ -77,7 +77,9 @@ async function mockCollections(page: Page): Promise<void> {
       lastName: 'Assurance',
       gender: 'Undefined',
       job: null,
-      obscuredEmail: 'q***@example.test',
+      obscuredAccountId: 'q***@example.test',
+      accountIdKind: 'email',
+      identityProvider: 'Mercurion',
       obscuredPhone: null,
       avatarId: null,
       recentHistory: [],
@@ -87,10 +89,10 @@ async function mockCollections(page: Page): Promise<void> {
       initials: 'QA'
     })
   }))
-  await page.route('**/api/account/email', route => route.fulfill({
+  await page.route('**/api/account/provided-account-id', route => route.fulfill({
     status: 200,
     contentType: 'application/json',
-    body: JSON.stringify({ email: 'qa@example.test', provider: 'Mercurion' })
+    body: JSON.stringify({ accountId: 'qa@example.test', kind: 'email', provider: 'Mercurion' })
   }))
   await page.route('**/api/history**', route => route.fulfill({
     status: 200,
@@ -155,6 +157,29 @@ async function mockCollections(page: Page): Promise<void> {
 
 export const test = base.extend<{ authenticatedPage: Page; mfaPage: Page }>({
   page: async ({ page }, use) => {
+    await page.addInitScript(() => {
+      let nextWidgetId = 0
+      const callbacks = new Map<number, (token: string) => void>()
+      Object.assign(window, {
+        turnstile: {
+          render: (selector: string, options: { callback: (token: string) => void }) => {
+            const widgetId = ++nextWidgetId
+            callbacks.set(widgetId, options.callback)
+            const container = document.querySelector(selector)
+            if (container) {
+              const widget = document.createElement('div')
+              widget.style.width = '300px'
+              widget.style.height = '65px'
+              container.replaceChildren(widget)
+            }
+            window.setTimeout(() => options.callback('ci-test-turnstile-token'), 0)
+            return widgetId
+          },
+          remove: (widgetId: number) => callbacks.delete(widgetId),
+          reset: (widgetId: number) => callbacks.get(widgetId)?.('ci-test-turnstile-token'),
+        },
+      })
+    })
     await page.routeWebSocket('**', () => {})
     await page.route('**/*', async route => {
       const url = new URL(route.request().url())
