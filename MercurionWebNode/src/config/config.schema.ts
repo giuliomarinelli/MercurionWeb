@@ -426,6 +426,10 @@ export const environmentSchema = defineEnvironmentSchema(
     required('DISCORD_CLIENT_ID', string()),
     required('DISCORD_CLIENT_SECRET', string()),
     required('DISCORD_REDIRECT_URI', string()),
+    required('ORCID_CLIENT_ID', string()),
+    required('ORCID_CLIENT_SECRET', string()),
+    required('ORCID_REDIRECT_URI', string()),
+    required('ORCID_ISSUER', string()),
 
     required('UM_FEEDBACK_ANON_AUTHOR_KEY', string())
 )
