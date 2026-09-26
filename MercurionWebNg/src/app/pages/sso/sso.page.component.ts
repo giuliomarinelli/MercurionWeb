@@ -96,9 +96,6 @@ export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
 
         const provider = p.get('provider') ?? ''
 
-        // redirect_to may be lost by provider; fallback to sessionStorage if needed
-        const redirectTo = this.redirects.captureQueryParam(p.get('redirect_to')) ?? this.redirects.peek()
-
         // fragment atteso: "t=<token>"
         const sso_pat = frag ? (new URLSearchParams(frag).get('t') ?? '') : ''
 

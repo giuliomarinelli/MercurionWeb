@@ -343,7 +343,7 @@ export class AuthStateStore {
   private identityFromTokenPair(accessToken: string | null, wsAccessToken: string | null): ClientSessionIdentity | null {
     const access = this.readIdentity(accessToken)
     const ws = this.readIdentity(wsAccessToken)
-    return access && ws && access.userId === ws.userId && access.sessionId === ws.sessionId
+    return access && ws && access.sessionId === ws.sessionId
       ? access
       : null
   }
