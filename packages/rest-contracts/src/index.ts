@@ -210,10 +210,12 @@ export const AuthProvider = Object.freeze({
   Google: 'Google',
   GitHub: 'GitHub',
   LinkedIn: 'LinkedIn',
-  Discord: 'Discord'
+  Discord: 'Discord',
+  ORCID: 'ORCID'
 } as const)
 export type AuthProvider = (typeof AuthProvider)[keyof typeof AuthProvider]
 export type SSO_AuthProvider = Exclude<AuthProvider, 'Mercurion'>
+export type ForbiddenSSO_AuthProviders = Extract<SSO_AuthProvider, 'GitHub' | 'LinkedIn'>
 
 export const MfaStrategy = Object.freeze({
   EMAIL_OTP: 'EMAIL_OTP',
