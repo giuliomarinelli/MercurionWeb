@@ -26,6 +26,9 @@ import { SessionValidationPolicy } from './session-validation.policy'
 const userId = '11111111-1111-4111-8111-111111111111' as UUID
 const sessionId = '22222222-2222-4222-8222-222222222222' as UUID
 const tokenJti = '33333333-3333-4333-8333-333333333333' as UUID
+const securityService = {
+  decryptUserId: jest.fn((encryptedUserId: string) => encryptedUserId as UUID)
+}
 
 function payload(overrides: Partial<AppJwtPayload> = {}): AppJwtPayload {
   return {
@@ -186,6 +189,7 @@ describe('AccessTokenAuthenticationPolicy', () => {
     const policy = new AccessTokenAuthenticationPolicy(
       jwtTools as never,
       {} as never,
+      securityService as never,
       loggerFactory().factory as never
     )
 
@@ -211,6 +215,7 @@ describe('AccessTokenAuthenticationPolicy', () => {
     const policy = new AccessTokenAuthenticationPolicy(
       jwtTools as never,
       {} as never,
+      securityService as never,
       loggerFactory().factory as never
     )
 
@@ -234,6 +239,7 @@ describe('AccessTokenAuthenticationPolicy', () => {
     const policy = new AccessTokenAuthenticationPolicy(
       jwtTools as never,
       {} as never,
+      securityService as never,
       loggerFactory().factory as never
     )
 
@@ -256,6 +262,7 @@ describe('AccessTokenAuthenticationPolicy', () => {
     const policy = new AccessTokenAuthenticationPolicy(
       jwtTools as never,
       {} as never,
+      securityService as never,
       loggerFactory().factory as never
     )
 
@@ -270,6 +277,7 @@ describe('AccessTokenAuthenticationPolicy', () => {
     const policy = new AccessTokenAuthenticationPolicy(
       jwtTools as never,
       sessionService as never,
+      securityService as never,
       loggerFactory().factory as never
     )
 
@@ -335,6 +343,7 @@ describe('SessionValidationPolicy', () => {
     }
     const policy = new SessionValidationPolicy(
       sessionService as never,
+      securityService as never,
       loggerFactory().factory as never
     )
 
@@ -351,6 +360,7 @@ describe('SessionValidationPolicy', () => {
       }
       const policy = new SessionValidationPolicy(
         sessionService as never,
+        securityService as never,
         loggerFactory().factory as never
       )
       const tokenPayload = payload()
@@ -381,6 +391,7 @@ describe('ScopeAuthorizationPolicy', () => {
     const reflector = {} as Reflector
     const policy = new ScopeAuthorizationPolicy(
       scopeService as never,
+      securityService as never,
       reflector
     )
     const context = requestContext()
@@ -448,6 +459,7 @@ describe('AuthenticationFailurePolicy', () => {
     const policy = new AuthenticationFailurePolicy(
       jwtTools as never,
       sessionService as never,
+      securityService as never,
       transportPolicy as never,
       logging.factory as never
     )

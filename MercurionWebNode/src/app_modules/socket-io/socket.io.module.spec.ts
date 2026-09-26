@@ -7,6 +7,7 @@ import { JwtToolsService } from '../auth/services/jwt-tools.service';
 import { ScopeService } from '../auth/services/scope.service';
 import { SecureCookieService } from '../auth/services/secure-cookie.service';
 import { SessionService } from '../auth/services/session.service';
+import { SecurityService } from '../auth/services/security.service';
 import { RedisModule } from '../redis/redis.module';
 import { PubSubService } from '../redis/services/pub-sub.service';
 import { SocketIOGateway } from './socket.io.gateway';
@@ -57,9 +58,13 @@ class SocketRedisProbeModule {}
       provide: ScopeService,
       useValue: {},
     },
+    {
+      provide: SecurityService,
+      useValue: { decryptUserId: jest.fn((encryptedUserId: string) => encryptedUserId) },
+    },
     Reflector,
   ],
-  exports: [JwtToolsService, SessionService, SecureCookieService, ScopeService, Reflector],
+  exports: [JwtToolsService, SessionService, SecureCookieService, ScopeService, SecurityService, Reflector],
 })
 class SocketAuthProbeModule {}
 

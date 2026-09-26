@@ -88,7 +88,10 @@ describe('MFA authentication handlers', () => {
         }
         const redisService = { get: jest.fn() }
         const userService = { getUserInitialsByUserId: jest.fn() }
-        const securityService = { signDeviceId: jest.fn() }
+        const securityService = {
+            decryptUserId: jest.fn((encryptedUserId: string) => encryptedUserId),
+            signDeviceId: jest.fn()
+        }
         const authenticationSession = {
             completeAuthenticatedSession: jest.fn()
         }

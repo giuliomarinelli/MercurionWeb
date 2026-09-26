@@ -36,6 +36,7 @@ import { SyntheticStepService } from 'src/app_modules/synth/services/synthetic-s
 import { SynthStepItemService } from 'src/app_modules/synth/services/synth-step-item.service'
 import { SynthesisPoolService } from 'src/app_modules/synth/services/synthesis-pool.service'
 import { IS_PUBLIC_KEY } from 'src/metadata/metadata'
+import { SecurityService } from 'src/app_modules/auth/services/security.service'
 
 const OWNER_ID = '11111111-1111-4111-8111-111111111111'
 
@@ -135,7 +136,8 @@ function policyProviders() {
     { provide: ScopeAuthorizationPolicy, useValue: { authorize: jest.fn().mockResolvedValue(undefined), resolveGrantedScopes: jest.fn().mockResolvedValue([]) } },
     { provide: SessionValidationPolicy, useValue: { validate: jest.fn().mockResolvedValue(undefined), touch: jest.fn().mockResolvedValue(undefined) } },
     { provide: AuthenticationTransportPolicy, useValue: { setAuthenticatedUser: jest.fn(), setScopes: jest.fn(), setRefreshedAccessToken: jest.fn() } },
-    { provide: AuthenticationFailurePolicy, useValue: failurePolicy }
+    { provide: AuthenticationFailurePolicy, useValue: failurePolicy },
+    { provide: SecurityService, useValue: { decryptUserId: jest.fn((encryptedUserId: string) => encryptedUserId) } }
   ]
 }
 

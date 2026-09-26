@@ -57,6 +57,29 @@ export class SecurityService {
         return decrypted.toString('utf8')
     }
 
+    /**
+     * Decifra il claim `sub` opaco contenuto nei JWT gestiti dall'applicazione e
+     * restituisce l'identificativo utente che il backend usa internamente.
+     *
+     * Il `sub` dei token Mercurion non è più lo `userId` in chiaro: è il risultato
+     * di `encryptUserId`, protetto con AES-256-GCM e con una chiave dedicata agli
+     * identificativi utente. Questa separazione mantiene lo userId nel perimetro
+     * backend e impedisce ai consumatori del JWT di leggerlo direttamente dal
+     * payload. Il token continua comunque a essere un JWT firmato e i suoi altri
+     * claim restano leggibili; questa cifratura non sostituisce la verifica della
+     * firma, del tipo, della sessione o delle autorizzazioni del token.
+     *
+     * Chiamare questo metodo solo dopo aver verificato il JWT e solo nel backend,
+     * prima di usare l'identificativo in query, autorizzazioni o operazioni di
+     * dominio. Token legacy con `sub` in chiaro non sono compatibili con questo
+     * formato e falliscono la decifratura o la validazione dell'UUID.
+     *
+     * @param encryptedUserId Claim `sub` cifrato estratto da un JWT verificato.
+     * @returns Lo userId UUID in chiaro, da mantenere nell'ambito backend.
+     * @throws ApplicationError Se il valore decifrato non è un UUID valido.
+     * @throws Error Se il payload non è cifrato correttamente o non supera
+     * l'autenticazione AES-GCM (inclusi chiave, IV o tag non validi).
+     */
     public decryptUserId(encryptedUserId: string): UUID {
         const result = this.decrypt_AES256_GCM(encryptedUserId, this.USER_ID_AES_ENCRYPTION_SECRET)
         if (!GeneralUtils.isValidUUID(result)) {
@@ -69,6 +92,28 @@ export class SecurityService {
         return result as UUID
     }
 
+    /**
+     * Converte lo userId interno nel valore opaco da inserire nel claim `sub`
+     * di ogni JWT emesso dall'applicazione.
+     *
+     * Questo metodo applica il cambio di paradigma del contratto d'identità:
+     * `sub` non rappresenta più lo userId in chiaro, ma un ciphertext AES-256-GCM
+     * prodotto con una chiave dedicata agli identificativi. Un IV casuale viene
+     * generato a ogni cifratura, perciò token diversi per lo stesso utente non
+     * espongono un `sub` stabile e direttamente confrontabile. Solo il backend,
+     * che conserva la chiave, può recuperare lo userId tramite `decryptUserId`.
+     *
+     * Passare lo userId solo al momento della firma del token; non persistere né
+     * riutilizzare il ciphertext come identità applicativa. Il JWT resta firmato
+     * secondo il proprio algoritmo: la cifratura del `sub` non cifra gli altri
+     * claim né sostituisce la firma. La chiave dedicata deve essere configurata
+     * come segreto server e mantenuta stabile per la durata dei token che devono
+     * ancora essere decifrati.
+     *
+     * @param userId Identificativo UUID in chiaro valido, interno al backend.
+     * @returns Il ciphertext codificato in esadecimale da usare come claim `sub`.
+     * @throws ApplicationError Se `userId` non è un UUID valido.
+     */
     public encryptUserId(userId: UUID): string {
         if (!GeneralUtils.isValidUUID(userId)) {
             throw new ApplicationError(

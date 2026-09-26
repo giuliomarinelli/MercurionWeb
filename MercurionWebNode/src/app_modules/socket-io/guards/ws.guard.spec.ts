@@ -7,6 +7,7 @@ import { SecureCookieService } from 'src/app_modules/auth/services/secure-cookie
 import { LoggerPort } from 'src/logging/logger.port';
 import { ScopeService } from 'src/app_modules/auth/services/scope.service';
 import { ConfigService } from '@nestjs/config';
+import { SecurityService } from 'src/app_modules/auth/services/security.service';
 
 describe('WsGuard', () => {
   let guard: WsGuard;
@@ -20,6 +21,7 @@ describe('WsGuard', () => {
         { provide: Reflector, useValue: { get: jest.fn() } },
         { provide: SecureCookieService, useValue: {} },
         { provide: ScopeService, useValue: { scopeVerificationLayer: jest.fn(), generateScopesArrayFromJwtClaim: jest.fn() } },
+        { provide: SecurityService, useValue: { decryptUserId: jest.fn((encryptedUserId: string) => encryptedUserId) } },
         { provide: ConfigService, useValue: { getOrThrow: jest.fn(() => ({ env: 'development' })) } },
         { provide: LoggerPort, useValue: { forContext: jest.fn().mockReturnValue({ log: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() }) } },
       ],

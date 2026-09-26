@@ -4,6 +4,10 @@ import { ConfigService } from '@nestjs/config';
 import { LoggerPort } from 'src/logging/logger.port';
 import { TokenType } from '../models/enums/token-type.enum';
 
+jest.mock('./password-encoder.service', () => ({
+  PasswordEncoderService: class PasswordEncoderService {}
+}));
+
 jest.mock('src/config/config', () => ({
   Environment: {
     Development: 'development',
@@ -31,6 +35,7 @@ const jwtKeysMock = {
 describe('JwtToolsService', () => {
   let service: JwtToolsService;
   let jwtService: { signAsync: jest.Mock; verifyAsync: jest.Mock; decode: jest.Mock };
+  let securityService: { encryptUserId: jest.Mock };
   let sessionService: {
     isTokenRevoked: jest.Mock;
     registerIssuedToken: jest.Mock;
@@ -62,6 +67,9 @@ describe('JwtToolsService', () => {
       registerIssuedToken: jest.fn(),
       revokeToken: jest.fn()
     };
+    securityService = {
+      encryptUserId: jest.fn((userId: string) => `encrypted:${userId}`)
+    };
 
     service = new JwtToolsService(
       jwtService as unknown as JwtService,
@@ -71,7 +79,8 @@ describe('JwtToolsService', () => {
       {
         forContext: jest.fn().mockReturnValue({ log: jest.fn(), warn: jest.fn() }),
       } as unknown as LoggerPort,
-      jwtKeysMock as any
+      jwtKeysMock as any,
+      securityService as any
     );
   });
 
@@ -90,6 +99,10 @@ describe('JwtToolsService', () => {
       sessionId,
       expect.any(String),
       3600
+    );
+    expect(jwtService.signAsync).toHaveBeenCalledWith(
+      expect.objectContaining({ sub: `encrypted:${userId}` }),
+      expect.objectContaining({ algorithm: 'RS256' })
     );
   });
 });
