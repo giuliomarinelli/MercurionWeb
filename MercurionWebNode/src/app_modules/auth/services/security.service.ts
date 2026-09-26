@@ -11,6 +11,7 @@ import { PasswordEncoderService } from './password-encoder.service';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 import { ApplicationError, ApplicationErrorCode } from 'src/exception-handling/application-error';
 
+
 @Injectable()
 export class SecurityService {
 
@@ -306,7 +307,9 @@ export class SecurityService {
         return phone.slice(0, 3) + '*'.repeat(8) + phone.slice(-2)
     }
 
-
+    mask_ORCID(orcid: string): string {
+        return  '****-'.repeat(3) + orcid.slice(-4)
+    }
 
 
 }

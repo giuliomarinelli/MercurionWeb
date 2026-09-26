@@ -23,7 +23,7 @@ import { adaptHttpFormError } from '../../utils/form-error.adapter'
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink, LoginCredentialFormComponent, LoginSsoChooserComponent],
   template: `
-    <main class="min-h-screen flex flex-col items-center px-4 pt-9" role="main" aria-live="polite">
+    <main class="flex flex-col items-center px-4 pt-9" role="main" aria-live="polite">
       <img [src]="logoSrc()" alt="Mercurion Logo" class="w-16 h-auto mb-6" />
       <h1 id="login-title" class="text-2xl font-semibold text-gray-900 mb-8 tracking-wider dark:text-slate-100 text-center">
         Piacere di averti qui.
@@ -72,10 +72,11 @@ import { adaptHttpFormError } from '../../utils/form-error.adapter'
           <a routerLink="/terms-and-policies" class="hover:underline">Termini e Policy</a>
         </div>
         <p class="text-center text-[0.675rem] text-slate-600 dark:text-slate-300">
-        Continuando con un provider dichiari di aver letto e di accettare la
-        <a routerLink="/privacy" class="underline">Informativa sulla Privacy</a>,
-        i <a routerLink="/terms-and-policies" class="underline">Termini di Servizio</a>
-        e la <a routerLink="/terms-and-policies" fragment="aup" class="underline">Politica di Utilizzo Accettabile</a>.
+        Continuando con un Google, ORCID o Discord, dichiari di aver letto e di accettare la
+        <a routerLink="/privacy" class="underline" target="_blank" rel="noopener noreferrer">Informativa sulla Privacy</a>,
+        i <a routerLink="/terms-and-policies" class="underline" target="_blank" rel="noopener noreferrer">Termini di Servizio</a>
+        e la <a routerLink="/terms-and-policies" fragment="aup" class="underline" target="_blank" rel="noopener noreferrer">Politica di Utilizzo Accettabile</a>.
+        <br />Verrà creata automaticamente una sessione di 30 giorni di durata.
       </p>
       </div>
     </main>

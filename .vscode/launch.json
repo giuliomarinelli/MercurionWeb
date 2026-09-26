@@ -6,8 +6,13 @@
     "configurations": [
         {
             "name": "Attach Nest Debugger",
+            "address": "127.0.0.1",
             "port": 9229,
             "request": "attach",
+            "cwd": "${workspaceFolder}/MercurionWebNode",
+            "outFiles": [
+                "${workspaceFolder}/MercurionWebNode/dist/**/*.js"
+            ],
             "skipFiles": [
                 "<node_internals>/**"
             ],

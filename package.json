@@ -101,10 +101,11 @@
     "ng:start:dev": "npm run start:dev --workspace mercurion_web_ng",
     "nest:start:dev": "npm run start:dev --workspace mercurion_web_node",
     "nest:start:debug": "npm run start:debug --workspace mercurion_web_node",
-    "nest:test": "npm run test --workspace mercurion_web_node"
+    "nest:test": "npm run test --workspace mercurion_web_node",
+    "rest-contracts:build": "npm run build --workspace @mercurion/rest-contracts"
   },
   "devDependencies": {
-    "@playwright/test": "1.55.0",
+    "@playwright/test": "1.55.1",
     "jscpd": "4.0.5",
     "patch-package": "8.0.1",
     "rxjs": "7.8.1"

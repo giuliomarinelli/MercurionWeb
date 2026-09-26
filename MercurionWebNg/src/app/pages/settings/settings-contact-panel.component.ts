@@ -10,7 +10,7 @@ import { SettingsAccountFacade } from './settings-account.facade'
     @if (account.profile(); as profile) {
       <div class="py-6 px-4 space-y-4">
         <h3 class="font-bold text-lg">Contatti</h3>
-        <div class="flex justify-between gap-2"><span>E-mail</span><strong>{{ profile.obscuredEmail }}</strong><button type="button" class="underline" (click)="changeEmail()">Modifica</button></div>
+        <div class="flex justify-between gap-2"><span>@if (profile.accountIdKind === 'email') { E-mail } @else { ORCID } </span><strong>{{ profile.obscuredAccountId }}</strong><button type="button" class="underline" (click)="changeEmail()">Modifica</button></div>
         @if (!account.isSso()) {
           <div class="flex justify-between gap-2"><span>Numero di telefono</span><strong>{{ profile.obscuredPhone ?? '―' }}</strong><button type="button" class="underline" (click)="changePhone()">{{ profile.obscuredPhone ? 'Modifica' : 'Aggiungi' }}</button></div>
         }

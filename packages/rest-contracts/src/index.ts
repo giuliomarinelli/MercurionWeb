@@ -339,12 +339,19 @@ export const HistoryItemEntity = Object.freeze({
 export type HistoryItemEntity = (typeof HistoryItemEntity)[keyof typeof HistoryItemEntity]
 export type TinyHistoryDTO = Pick<HistoryDTO, 'id' | 'itemEntity' | 'itemId' | 'touchedAt'>
 
+export const AccountIdKind = Object.freeze({
+  EMAIL: 'email',
+  ORCID: 'orcid'
+} as const)
+export type AccountIdKind = (typeof AccountIdKind)[keyof typeof AccountIdKind]
 export interface ProfileDTO {
   firstName: string
   lastName: string
   gender: UserGender
   job: string | null | undefined
-  obscuredEmail: string
+  obscuredAccountId: string
+  accountIdKind: AccountIdKind
+  identityProvider: AuthProvider
   obscuredPhone: string | null
   avatarId: string | null
   recentHistory: TinyHistoryDTO[]

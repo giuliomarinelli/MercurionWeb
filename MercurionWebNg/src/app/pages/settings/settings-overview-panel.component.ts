@@ -21,7 +21,7 @@ import { SettingsAccountFacade } from './settings-account.facade'
             <div class="text-sm mt-2 space-y-1">
               <div class="flex justify-between gap-2"><span>Ruolo</span><strong>{{ profile.job ?? 'Non specificato' }}</strong></div>
               <div class="flex justify-between gap-2"><span>Genere</span><strong>{{ profile.gender | gender }}</strong></div>
-              <div class="flex justify-between gap-2"><span>E-mail</span><strong class="font-mono text-xs">{{ profile.obscuredEmail }}</strong></div>
+              <div class="flex justify-between gap-2"><span>@if (profile.accountIdKind === 'email') { E-mail } @else { ORCID } </span><strong class="font-mono text-xs">{{ profile.obscuredAccountId }}</strong></div>
               <div class="flex justify-between gap-2"><span>Provider</span><strong class="font-mono text-xs">{{ account.authProvider() }}</strong></div>
             </div>
           </div>
