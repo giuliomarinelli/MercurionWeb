@@ -2,7 +2,7 @@ import { APIClientTicket, ClientTicketMessage, TicketMessage } from './../Models
 import { Injectable } from "@angular/core";
 import { MoleculeDetailSystem } from "../Models/graphql/molecule.detail.models";
 import { ChEMBLMoleculeItemEntity, CustomMoleculeItemEntity, MoleculeCollectionItemClient, MoleculeCollectionItemEntityShort, MoleculeDetailItem } from "../Models/graphql/molecule-collection/molecule-collection.types";
-import { SSO_AuthProvider } from "../Models/auth/provider.models";
+import { AuthProvider, type SSO_AuthProvider } from "@mercurion/rest-contracts";
 import { Ticket } from "../Models/graphql/help.models";
 import { MoleculeSearchResult } from '../Models/graphql/molecule-search/molecule-search-result.interface';
 import { PageModel } from '../Models/graphql/page.models';
@@ -69,10 +69,12 @@ export class TypeGuardsService {
   }
 
   is_SSO_AuthProvider(item: unknown): item is SSO_AuthProvider {
-    if (!item) {
+    if (typeof item !== 'string') {
       return false
     }
-    return ['Google', 'GitHub', 'LinkedIn', 'Discord'].includes(item as string)
+    return Object.values(AuthProvider).some(
+      provider => provider !== AuthProvider.Mercurion && provider === item
+    )
   }
 
   isTicketVsOmitUpdatedAt(item: Ticket | Omit<Ticket, 'updatedAt'>): item is Ticket {
