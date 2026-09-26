@@ -20,6 +20,10 @@ describe('LoginSsoChooserComponent', () => {
     expect(component.select('Google')).toEqual({ provider: 'Google', redirectTo: '/dashboard' })
   })
 
+  it('builds the ORCID SSO handoff URL', () => {
+    expect(component.hrefFor('ORCID')).toBe('/api/oauth2/sso/ORCID/login')
+  })
+
   it('renders every provider as a styled control with an icon', () => {
     const controls = fixture.nativeElement.querySelectorAll('section > a') as NodeListOf<HTMLAnchorElement>
 
