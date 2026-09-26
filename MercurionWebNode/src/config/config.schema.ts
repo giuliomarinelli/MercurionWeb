@@ -155,6 +155,35 @@ function natsHostParser(): EnvironmentValueParser<string> {
     }
 }
 
+function base64SecretParser(minimumBytes: number): EnvironmentValueParser<string> {
+    const constraint = `a Base64-encoded secret of at least ${minimumBytes} bytes`
+    return {
+        kind: 'string',
+        constraint,
+        example: Buffer.alloc(minimumBytes).toString('base64'),
+        parse(value, source) {
+            if (
+                typeof value !== 'string' ||
+                value.length === 0 ||
+                !/^[A-Za-z0-9+/]*={0,2}$/.test(value) ||
+                value.length % 4 === 1
+            ) {
+                return invalid(source, constraint)
+            }
+
+            const decoded = Buffer.from(value, 'base64')
+            const canonicalBase64 = decoded.toString('base64')
+            if (
+                (canonicalBase64 !== value && canonicalBase64.replace(/=+$/, '') !== value) ||
+                decoded.byteLength < minimumBytes
+            ) {
+                return invalid(source, constraint)
+            }
+            return value
+        }
+    }
+}
+
 function enumParser<const Value extends string>(
     values: readonly Value[]
 ): EnvironmentValueParser<Value> {
@@ -288,8 +317,8 @@ export const environmentSchema = defineEnvironmentSchema(
     required('APP_SESSION_SIGNATURE_SECRET', string()),
     required('APP_PASSWORD_PEPPER', string()),
     required('APP_REDIS_ID_HMAC_SECRET', string()),
-    required('APP_AES_SECRET', string()),
-    required('APP_USER_ID_AES_ENCRYPTION_SECRET', string()),
+    required('APP_AES_SECRET', base64SecretParser(32)),
+    required('APP_USER_ID_AES_ENCRYPTION_SECRET', base64SecretParser(32)),
     required('APP_DEVICE_ID_SIGNATURE_SECRET', string()),
     required('APP_SUPPORT_EMAIL', string()),
     required('APP_MAX_NATS_PAYLOAD_BYTES', positiveInteger()),

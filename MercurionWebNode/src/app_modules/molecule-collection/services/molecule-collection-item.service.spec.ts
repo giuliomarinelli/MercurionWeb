@@ -23,6 +23,7 @@ describe('MoleculeCollectionItemService', () => {
   };
   const moleculeServiceMock = {
     getDetailsByMolregnos: jest.fn(),
+    getDetailsByMolregnosByKey: jest.fn(),
     getDetailByMolregno: jest.fn(),
   };
   const managerMock = {
@@ -136,7 +137,9 @@ describe('MoleculeCollectionItemService', () => {
       preferredName: 'Example',
     };
     repoMock.createQueryBuilder.mockReturnValue(queryBuilderMock);
-    moleculeServiceMock.getDetailsByMolregnos.mockResolvedValue([chemblDetails]);
+    moleculeServiceMock.getDetailsByMolregnosByKey.mockResolvedValue(
+      new Map([['42', chemblDetails]])
+    );
 
     const result = await service.findAllByUser(MOCK_USER_ID, {
       id: {},
@@ -154,7 +157,7 @@ describe('MoleculeCollectionItemService', () => {
       'item.chemblMolregno',
     ]));
     expect(queryBuilderMock.leftJoinAndSelect).toHaveBeenCalledWith('item.joins', 'joins');
-    expect(moleculeServiceMock.getDetailsByMolregnos).toHaveBeenCalledWith(['42']);
+    expect(moleculeServiceMock.getDetailsByMolregnosByKey).toHaveBeenCalledWith(['42']);
     expect(result).toEqual([
       expect.objectContaining({
         id: MOCK_ITEM_ID,

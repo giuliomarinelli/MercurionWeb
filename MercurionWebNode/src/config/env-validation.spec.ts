@@ -89,6 +89,25 @@ describe('canonical environment validation', () => {
     expect(() => validateEnvironment(raw)).toThrow(source)
   })
 
+  it('requires the user ID AES secret to be Base64 encoding at least 32 bytes', () => {
+    const validRaw = validRawEnvironment(true)
+    validRaw.APP_USER_ID_AES_ENCRYPTION_SECRET = Buffer.alloc(32, 7).toString('base64')
+    expect(validateEnvironment(validRaw).APP_USER_ID_AES_ENCRYPTION_SECRET)
+      .toBe(validRaw.APP_USER_ID_AES_ENCRYPTION_SECRET)
+
+    for (const invalidSecret of [
+      Buffer.alloc(31, 7).toString('base64'),
+      'not-base64-with-punctuation!',
+      'abcd===='
+    ]) {
+      const raw = validRawEnvironment(true)
+      raw.APP_USER_ID_AES_ENCRYPTION_SECRET = invalidSecret
+      expect(() => validateEnvironment(raw)).toThrow(
+        'APP_USER_ID_AES_ENCRYPTION_SECRET: must be a Base64-encoded secret of at least 32 bytes'
+      )
+    }
+  })
+
   it.each([
     ['missing host', 'APP_NATS_HOST', undefined],
     ['missing port', 'APP_NATS_PORT', undefined],

@@ -19,6 +19,8 @@ describe('SecurityService', () => {
             };
           case 'App.AES_secret':
             return Buffer.alloc(32).toString('base64');
+          case 'App.userId_AES_encryptionSecret':
+            return Buffer.alloc(40, 7).toString('base64');
           case 'App.deviceIdSignatureSecret':
             return 'device-secret';
           case 'App.globalName':
@@ -41,5 +43,13 @@ describe('SecurityService', () => {
 
   it('should be defined', () => {
     expect(service).toBeDefined();
+  });
+
+  it('round-trips a user ID with an AES secret containing at least 32 bytes', () => {
+    const userId = '00000000-0000-4000-8000-000000000001';
+    const encryptedUserId = service.encryptUserId(userId as never);
+
+    expect(encryptedUserId).not.toBe(userId);
+    expect(service.decryptUserId(encryptedUserId)).toBe(userId);
   });
 });

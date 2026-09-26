@@ -30,7 +30,9 @@ export class SecurityService {
     }
 
     encrypt_AES256_GCM(value: string, secret?: string) {
-        const key = secret ? Buffer.from(secret, 'base64') : Buffer.from(this.AES_secret, 'base64')
+        const key = secret
+            ? Buffer.from(secret, 'base64').subarray(0, 32)
+            : Buffer.from(this.AES_secret, 'base64')
         const iv = randomBytes(12)
         const cipher = createCipheriv('aes-256-gcm', key, iv)
         const encrypted = Buffer.concat([
@@ -42,7 +44,9 @@ export class SecurityService {
     }
 
     decrypt_AES256_GCM(payload: string, secret?: string) {
-        const key = secret ? Buffer.from(secret, 'base64') : Buffer.from(this.AES_secret, 'base64')
+        const key = secret
+            ? Buffer.from(secret, 'base64').subarray(0, 32)
+            : Buffer.from(this.AES_secret, 'base64')
         const data = Buffer.from(payload, 'hex')
         const iv = data.subarray(0, 12)
         const tag = data.subarray(12, 28)
