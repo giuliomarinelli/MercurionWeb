@@ -18,12 +18,11 @@ import { LoggerContext } from 'src/logging/logger.port';
 import { Scope } from '../models/enums/scope.enum';
 import { HistoryService } from 'src/app_modules/history/services/history.service';
 import { AuthIdentity } from 'src/app_modules/sso/models/entities/auth-identity.entity';
-import { ProvidedEmailDTO } from 'src/app_modules/auth/models/dto/provided-email.dto';
 import { AuthProvider } from 'src/app_modules/sso/models/enums/auth-provider.enum';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 import type { IdentityReadPort } from 'src/app_modules/auth/models/interfaces/identity-read.port'
 import { runInTransaction, transactionManager, type TransactionContext } from 'src/persistence/transaction-context'
-import { AccountIdKind, LOCAL_DUMMY_AUTH } from '@mercurion/rest-contracts'
+import { AccountIdKind, LOCAL_DUMMY_AUTH, type ProvidedAccountIdDTO } from '@mercurion/rest-contracts'
 import { UserGender } from '../models/enums/user-gender.enum'
 import { ProfileReadModelService } from './profile-read-model.service'
 
@@ -414,7 +413,7 @@ export class UserService implements IdentityReadPort {
         return user.firstName
     }
 
-    public async getUserProvidedEmailById(id: UUID): Promise<ProvidedEmailDTO | null> {
+    public async getUserProvidedAccountIdById(id: UUID): Promise<ProvidedAccountIdDTO | null> {
         const userRow = await this.userRepository.createQueryBuilder('u')
             .select(['u.email', 'u.sso'])
             .where('u.id = :id', { id })
@@ -449,6 +448,23 @@ export class UserService implements IdentityReadPort {
             provider,
             kind
         }
+    }
+
+    public async getUserEmailById(id: UUID): Promise<string | null> {
+        const userRow = await this.userRepository.createQueryBuilder('u')
+            .select(['u.email', 'u.sso'])
+            .where('u.id = :id', { id })
+            .leftJoin('u.authIdentities', 'a')
+            .addSelect(['a.email'])
+            .getOne()
+
+        if (!userRow) {
+            return null
+        }
+
+        return userRow.sso
+            ? userRow.authIdentities[0]?.email ?? null
+            : userRow.email
     }
 
     public async getPhoneNumberById(id: UUID): Promise<string | nullish> {

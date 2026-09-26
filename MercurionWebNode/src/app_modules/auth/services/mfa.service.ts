@@ -27,7 +27,6 @@ import { SecurityAuditService } from 'src/app_modules/meilisearch/services/secur
 import { LoggerPort } from 'src/logging/logger.port';
 import { LoggerContext } from 'src/logging/logger.port';
 import { TypeGuards } from 'src/utils/type-guards/type-guards';
-import { ProvidedEmailDTO } from '../models/dto/provided-email.dto';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 import { MfaBackupCodeStore } from 'src/app_modules/user/services/mfa-backup-code.store'
 import { MfaPolicyService } from './mfa-policy.service'
@@ -451,7 +450,6 @@ export class MfaApplicationService {
         let completePhoneNumber: string
         let otpauth_url: string
         let secureToken: string = ''
-        let dto: ProvidedEmailDTO | null = null
 
         if (!await this.userService.existsUserById(userId)) {
             throw applicationError(ApplicationErrorCode.USER_NOT_FOUND)
@@ -474,7 +472,7 @@ export class MfaApplicationService {
         switch (strategy) {
             case MfaStrategy.EMAIL_OTP:
 
-                email = (await this.userService.getUserProvidedEmailById(userId))!.email 
+                email = (await this.userService.getUserEmailById(userId))!
                 totpSecret = await this.userService.getOtpSecretByUserId(userId)
                 if (!totpSecret) {
                     throw applicationError(ApplicationErrorCode.MFA_TOTP_SECRET_NOT_FOUND)
@@ -508,11 +506,11 @@ export class MfaApplicationService {
 
             case MfaStrategy.APP_TOTP:
 
-                dto = await this.userService.getUserProvidedEmailById(userId)
-                if (!dto) {
+                email = await this.userService.getUserEmailById(userId) ?? ''
+                if (!email) {
                     throw applicationError(ApplicationErrorCode.USER_NOT_FOUND)
-                }               
-                ({ totpSecret, otpauth_url } = this.securityService.generateAppTotpSecret(dto.email))
+                }
+                ({ totpSecret, otpauth_url } = this.securityService.generateAppTotpSecret(email))
                 metadata = {
                     generatedAt: Date.now(),
                     expiresAt: Date.now() + this.totpConfig.period * 1000
@@ -658,7 +656,7 @@ export class MfaApplicationService {
 
         switch (strategy) {
             case MfaStrategy.EMAIL_OTP:
-                email = (await this.userService.getUserProvidedEmailById(userId))!.email 
+                email = (await this.userService.getUserEmailById(userId))!
                 totpSecret = await this.userService.getOtpSecretByUserId(userId)
                 if (!totpSecret) {
                     throw applicationError(ApplicationErrorCode.MFA_TOTP_SECRET_NOT_FOUND)

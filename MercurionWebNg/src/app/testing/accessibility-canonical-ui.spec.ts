@@ -165,6 +165,10 @@ describe('canonical UI accessibility coverage', () => {
   }
 
   beforeEach(async () => {
+    document.documentElement.classList.remove('dark')
+    document.documentElement.removeAttribute('data-theme')
+    document.body.classList.remove('dark')
+
     await TestBed.configureTestingModule({
       imports: [CanonicalUiFixtureComponent],
     }).compileComponents();

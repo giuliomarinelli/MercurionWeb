@@ -108,7 +108,7 @@ export class AccountService {
       if (!refetch && pending?.owner === owner && pending.generation === generation) {
         return pending.value
       }
-      const request = this.http.get<ProvidedAccountIdDTO>('/api/account/email', {
+      const request = this.http.get<ProvidedAccountIdDTO>('/api/account/provided-account-id', {
         withCredentials: true
       }).pipe(
         tap(dto => this.setCachedProvidedEmail(dto, owner, generation)),
@@ -221,8 +221,8 @@ export class AccountService {
     })
   }
 
-  public getMaskedEmail(): Observable<string> {
-    return this.http.get('/api/account/masked-email', {
+  public getMaskedAccountId(): Observable<string> {
+    return this.http.get('/api/account/masked-account-id', {
       responseType: 'text',
       withCredentials: true
     })

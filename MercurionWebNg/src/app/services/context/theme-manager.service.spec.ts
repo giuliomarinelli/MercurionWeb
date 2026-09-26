@@ -33,6 +33,8 @@ describe('ThemeManagerService', () => {
 
   afterEach(() => {
     TestBed.resetTestingModule()
+    document.documentElement.className = ''
+    document.documentElement.removeAttribute('data-theme')
   })
 
   function createService(): ThemeManagerService {

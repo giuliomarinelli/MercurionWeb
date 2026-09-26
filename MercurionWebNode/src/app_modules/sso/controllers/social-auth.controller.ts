@@ -27,7 +27,7 @@ export class SocialAuthController {
 
   private readonly forbiddenRes = (reply: FastifyReply) => {
     reply.status(HttpStatus.FORBIDDEN)
-      .send({ error: 'Forbidden' })    
+      .send({ error: 'Forbidden' })
   }
 
   @Public()

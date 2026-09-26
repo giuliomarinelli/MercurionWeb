@@ -19,7 +19,7 @@ describe('route policy metadata', () => {
     ['molecules/collections/detail/:colId', 'authenticated', 'standard'],
     ['register', 'logged-out-only', 'standard'],
     ['account/activate', 'public', 'standard'],
-    ['molecules/all-my-molecules', 'authenticated', 'standard'],
+    ['molecules', 'authenticated', 'standard'],
     ['settings', 'authenticated', 'standard'],
     ['account-recovery', 'logged-out-only', 'standard'],
     ['oauth2/callback', 'public', 'standard'],

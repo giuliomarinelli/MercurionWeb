@@ -11,7 +11,7 @@ import { APP_CONFIG, AppConfig, RELEASE_BASE_VERSION, createAppConfig, releaseVe
 
 describe('Application configuration', () => {
   const environments = [
-    { config: developmentEnvironment, name: 'development', beta: true, feedbackEnv: 'staging', localDummyAuth: true, disableTurnstile: true, version: packageJson.version },
+    { config: developmentEnvironment, name: 'development', beta: true, feedbackEnv: 'staging', localDummyAuth: true, disableTurnstile: false, version: packageJson.version },
     { config: testingEnvironment, name: 'testing', beta: true, feedbackEnv: 'staging', localDummyAuth: false, disableTurnstile: false, version: packageJson.version },
     { config: stagingEnvironment, name: 'staging', beta: true, feedbackEnv: 'staging', localDummyAuth: false, disableTurnstile: false, version: packageJson.version },
     { config: productionEnvironment, name: 'production', beta: false, feedbackEnv: 'prod', localDummyAuth: false, disableTurnstile: false, version: packageJson.version }

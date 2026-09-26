@@ -25,12 +25,13 @@ describe('LoginCredentialFormComponent', () => {
       password: 'password',
       remember: false
     })
+    component.onTurnstileToken('turnstile-test-token')
     component.submitCredentials()
     expect(submit).toHaveBeenCalledWith({
       email: 'person@example.test',
       password: 'password',
       remember: false,
-      turnstileToken: ''
+      turnstileToken: 'turnstile-test-token'
     })
   })
 

@@ -23,6 +23,7 @@ import { HistoryContextService } from '../../../services/context/history-context
 import { NgClass } from '@angular/common';
 import { ScrollContextService } from '../../../services/context/scroll-context.service';
 import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
+import { routeManifest } from '../../../route-manifest';
 
 @Component({
   selector: 'm-history',
@@ -195,14 +196,10 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
           queueMicrotask(() => this.loadMore())
         }
         const rootRef = new ElementRef(this.findScrollContainer() ?? document.body)
-        const pathPrefixes = ['/molecules/collections', '/molecules/all-my-molecules', '/molecules/detail']
-        let scroll = false
-        for (const p of pathPrefixes) {
-          if (e.urlAfterRedirects.startsWith(p)) {
-            scroll = true
-            break
-          }
-        }
+        const currentPath = e.urlAfterRedirects.split(/[?#]/, 1)[0]
+        const pathPrefixes = ['/molecules/collections', '/molecules/detail']
+        const scroll = currentPath === `/${routeManifest.myMolecules.path}`
+          || pathPrefixes.some(path => currentPath.startsWith(path))
         if (scroll) {
           queueMicrotask(() => this.scrollContext.smoothToTop(rootRef, 400))
         }

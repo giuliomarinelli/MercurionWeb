@@ -1033,7 +1033,7 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
       }),
       switchMap(() => {
         return combineLatest([
-          this.accountService.getMaskedEmail(),
+          this.accountService.getMaskedAccountId(),
           this.accountService.getMaskedPhone()
         ]).pipe(
           tap(([maskedEmail, maskedPhone]) => {
@@ -1053,10 +1053,10 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
         switch (is) {
           case 'ChangeEmail':
             this.changeEmailStep.set('NEW_CONTACT_FORM')
-            return this.accountService.getMaskedEmail()
+            return this.accountService.getMaskedAccountId()
           case 'EnableMfa':
             this.enableMfaStep.set('CHOOSE_STRATEGY')
-            return this.accountService.getMaskedEmail()
+            return this.accountService.getMaskedAccountId()
           case 'ConfigMfa':
             this.enableMfaStep.set('CHOOSE_STRATEGY')
             this.disableMfaStep.set('CHOOSE_STRATEGY')

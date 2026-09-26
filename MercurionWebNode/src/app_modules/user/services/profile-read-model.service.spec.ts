@@ -7,7 +7,7 @@ describe('ProfileReadModelService', () => {
     function createService(profileRow: any, rawCounts = {
         personalMoleculeCount: '2',
         chemblMoleculeCount: '3',
-    }, collectionCount = 4, ssoIdentity: { email: string } | null = { email: 'sso@example.com' }) {
+    }, collectionCount = 4) {
         const queryBuilder = {
             select: jest.fn().mockReturnThis(),
             addSelect: jest.fn().mockReturnThis(),
@@ -17,7 +17,6 @@ describe('ProfileReadModelService', () => {
         }
         manager.findOne = jest.fn()
             .mockResolvedValueOnce(profileRow)
-            .mockResolvedValueOnce(profileRow?.sso ? ssoIdentity : null)
         manager.createQueryBuilder = jest.fn().mockReturnValue(queryBuilder)
         manager.count = jest.fn().mockResolvedValue(collectionCount)
         const history = {
@@ -25,6 +24,7 @@ describe('ProfileReadModelService', () => {
         }
         const security = {
             maskEmail: jest.fn((email: string) => `masked:${email}`),
+            mask_ORCID: jest.fn((orcid: string) => `masked:${orcid}`),
             maskPhone: jest.fn((phone: string) => `masked:${phone}`),
         }
         const dataSource = {
@@ -68,7 +68,7 @@ describe('ProfileReadModelService', () => {
         expect(Object.isFrozen(result)).toBe(true)
         expect(result).toMatchObject({
             firstName: 'Native',
-            obscuredEmail: 'masked:native@example.com',
+            obscuredAccountId: 'masked:native@example.com',
             obscuredPhone: 'masked:+391234567890',
             personalMoleculeCount: 2,
             chemblMoleculeCount: 3,
@@ -88,15 +88,46 @@ describe('ProfileReadModelService', () => {
             avatarId: null,
             sso: true,
             initials: 'SU',
+            authIdentities: [{ provider: 'Google', email: 'sso@example.com', providerSubject: 'google-subject' }],
         }
         const { service, security } = createService(profileRow)
 
         const result = await service.getVerifiedUserProfileById(userId, false)
 
-        expect(manager.findOne).toHaveBeenCalledTimes(2)
+        expect(manager.findOne).toHaveBeenCalledTimes(1)
         expect(security.maskEmail).toHaveBeenCalledWith('sso@example.com')
-        expect(result?.obscuredEmail).toBe('masked:sso@example.com')
+        expect(result?.obscuredAccountId).toBe('masked:sso@example.com')
         expect(result?.recentHistory).toEqual([])
+    })
+
+    it('masks an ORCID account identifier as an ORCID', async () => {
+        const profileRow = {
+            id: userId,
+            firstName: 'ORCID',
+            lastName: 'User',
+            gender: 'undefined',
+            job: null,
+            email: null,
+            completePhoneNumber: null,
+            avatarId: null,
+            sso: true,
+            initials: 'OU',
+            authIdentities: [{
+                provider: 'ORCID',
+                email: 'contact@example.com',
+                providerSubject: '0000-0002-1825-0097',
+            }],
+        }
+        const { service, security } = createService(profileRow)
+
+        const result = await service.getVerifiedUserProfileById(userId, false)
+
+        expect(security.mask_ORCID).toHaveBeenCalledWith('0000-0002-1825-0097')
+        expect(result).toMatchObject({
+            obscuredAccountId: 'masked:0000-0002-1825-0097',
+            accountIdKind: 'orcid',
+            identityProvider: 'ORCID',
+        })
     })
 
     it('returns null when an SSO identity is missing', async () => {
@@ -107,7 +138,7 @@ describe('ProfileReadModelService', () => {
             sso: true,
             email: null,
         }
-        const { service } = createService(profileRow, undefined, 4, null)
+        const { service } = createService(profileRow, undefined, 4)
 
         await expect(service.getVerifiedUserProfileById(userId)).resolves.toBeNull()
         expect(manager.createQueryBuilder).not.toHaveBeenCalled()

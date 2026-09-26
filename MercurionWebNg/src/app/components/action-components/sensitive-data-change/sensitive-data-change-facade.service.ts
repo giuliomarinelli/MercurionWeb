@@ -14,7 +14,7 @@ export class SensitiveDataChangeFacade {
   private readonly account = inject(AccountService)
 
   readonly getProvidedAccountId = () => this.account.getProvidedAccountId()
-  readonly getMaskedEmail = () => this.account.getMaskedEmail()
+  readonly getMaskedAccountId = () => this.account.getMaskedAccountId()
   readonly getMaskedPhone = () => this.account.getMaskedPhone()
   readonly getEnabledMfaStrategies = (preauth = false) => this.account.getEnabledMfaStrategies(preauth)
   readonly getRemainingBackupCodes = () => this.account.getRemainingBackupCodes()

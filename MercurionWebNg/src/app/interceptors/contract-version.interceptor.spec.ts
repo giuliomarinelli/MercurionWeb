@@ -1,4 +1,4 @@
-import { HttpHandler, HttpRequest, HttpResponse } from '@angular/common/http';
+import { HttpHandler, HttpHeaders, HttpRequest, HttpResponse } from '@angular/common/http';
 import { of } from 'rxjs';
 import { CONTRACT_VERSION_HEADER, CURRENT_CONTRACT_MAJOR } from '@mercurion/rest-contracts';
 import { ContractVersionInterceptor } from './contract-version.interceptor';
@@ -17,8 +17,8 @@ describe('ContractVersionInterceptor', () => {
   it('preserves an explicitly selected contract major', () => {
     const next = jasmine.createSpyObj<HttpHandler>('HttpHandler', ['handle']);
     next.handle.and.returnValue(of(new HttpResponse()));
-    const request = new HttpRequest('GET', '/api/health', {
-      headers: { [CONTRACT_VERSION_HEADER]: '99' }
+    const request = new HttpRequest('GET', '/api/health', null, {
+      headers: new HttpHeaders({ [CONTRACT_VERSION_HEADER]: '99' })
     });
 
     new ContractVersionInterceptor().intercept(request, next).subscribe();

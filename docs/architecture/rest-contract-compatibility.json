@@ -8,6 +8,7 @@
       "configuredInterceptors": [
         "AuthFallbackInterceptor",
         "AuthInterceptor",
+        "ContractVersionInterceptor",
         "CorrelationInterceptor"
       ],
       "interceptorUrlMutations": []
@@ -1841,7 +1842,7 @@
             "canonicalNames": [
               "SessionDTO"
             ],
-            "shapeHash": "2e557d439e81c91d554da6119735ca2dfa0f0cdeae202f8fc894a0727f80c9b2"
+            "shapeHash": "62d65b0f40d36ed357372d14ddd3575284f0d547f084344b4a4d44014ffc9d0b"
           }
         }
       },
@@ -1868,7 +1869,7 @@
         },
         "responseContract": {
           "displayType": "SessionDTO[]",
-          "shapeHash": "2e557d439e81c91d554da6119735ca2dfa0f0cdeae202f8fc894a0727f80c9b2",
+          "shapeHash": "62d65b0f40d36ed357372d14ddd3575284f0d547f084344b4a4d44014ffc9d0b",
           "canonicalNames": [
             "SessionDTO"
           ],
@@ -1909,8 +1910,8 @@
           "canonicalNames": [
             "SessionDTO"
           ],
-          "clientShapeHash": "2e557d439e81c91d554da6119735ca2dfa0f0cdeae202f8fc894a0727f80c9b2",
-          "serverShapeHash": "2e557d439e81c91d554da6119735ca2dfa0f0cdeae202f8fc894a0727f80c9b2"
+          "clientShapeHash": "62d65b0f40d36ed357372d14ddd3575284f0d547f084344b4a4d44014ffc9d0b",
+          "serverShapeHash": "62d65b0f40d36ed357372d14ddd3575284f0d547f084344b4a4d44014ffc9d0b"
         }
       }
     },
@@ -1949,7 +1950,7 @@
             "canonicalNames": [
               "AuthProvider"
             ],
-            "shapeHash": "55e1d78624d6de99cd0213dbf2eefaa58fb5b239d4ddeaa4a1980c19d57fa584"
+            "shapeHash": "48ab3e9407afd164ffb65ad21553c9db945618a0012845e4b1b2d51fd7259e46"
           }
         }
       },
@@ -1978,7 +1979,7 @@
         },
         "responseContract": {
           "displayType": "AuthProvider",
-          "shapeHash": "55e1d78624d6de99cd0213dbf2eefaa58fb5b239d4ddeaa4a1980c19d57fa584",
+          "shapeHash": "48ab3e9407afd164ffb65ad21553c9db945618a0012845e4b1b2d51fd7259e46",
           "canonicalNames": [
             "AuthProvider"
           ],
@@ -2019,8 +2020,8 @@
           "canonicalNames": [
             "AuthProvider"
           ],
-          "clientShapeHash": "55e1d78624d6de99cd0213dbf2eefaa58fb5b239d4ddeaa4a1980c19d57fa584",
-          "serverShapeHash": "55e1d78624d6de99cd0213dbf2eefaa58fb5b239d4ddeaa4a1980c19d57fa584"
+          "clientShapeHash": "48ab3e9407afd164ffb65ad21553c9db945618a0012845e4b1b2d51fd7259e46",
+          "serverShapeHash": "48ab3e9407afd164ffb65ad21553c9db945618a0012845e4b1b2d51fd7259e46"
         }
       }
     },
@@ -2812,7 +2813,7 @@
             "canonicalNames": [
               "ProfileDTO"
             ],
-            "shapeHash": "7d75514b9adf71bb1c7cdb6c57c829256ade11d15ac94777b2866b57666c2c7e"
+            "shapeHash": "f0b4c58c2f6ae544f8317ac698d3bb15a78f1dad8d5573a01832d00b6dbf0f37"
           }
         }
       },
@@ -2850,7 +2851,7 @@
         },
         "responseContract": {
           "displayType": "ProfileDTO",
-          "shapeHash": "7d75514b9adf71bb1c7cdb6c57c829256ade11d15ac94777b2866b57666c2c7e",
+          "shapeHash": "f0b4c58c2f6ae544f8317ac698d3bb15a78f1dad8d5573a01832d00b6dbf0f37",
           "canonicalNames": [
             "ProfileDTO"
           ],
@@ -2891,17 +2892,17 @@
           "canonicalNames": [
             "ProfileDTO"
           ],
-          "clientShapeHash": "7d75514b9adf71bb1c7cdb6c57c829256ade11d15ac94777b2866b57666c2c7e",
-          "serverShapeHash": "7d75514b9adf71bb1c7cdb6c57c829256ade11d15ac94777b2866b57666c2c7e"
+          "clientShapeHash": "f0b4c58c2f6ae544f8317ac698d3bb15a78f1dad8d5573a01832d00b6dbf0f37",
+          "serverShapeHash": "f0b4c58c2f6ae544f8317ac698d3bb15a78f1dad8d5573a01832d00b6dbf0f37"
         }
       }
     },
     {
-      "id": "MercurionWebNg/src/app/services/account.service.ts#AccountService.getProvidedEmail#0",
+      "id": "MercurionWebNg/src/app/services/account.service.ts#AccountService.getProvidedAccountId#0",
       "consumer": {
         "file": "MercurionWebNg/src/app/services/account.service.ts",
         "class": "AccountService",
-        "method": "getProvidedEmail",
+        "method": "getProvidedAccountId",
         "ordinal": 0,
         "verb": "GET",
         "path": "/api/account/provided-account-id",
@@ -2919,7 +2920,7 @@
           }
         },
         "response": {
-          "type": "ProvidedEmailDTO",
+          "type": "ProvidedAccountIdDTO",
           "mode": "json",
           "options": {
             "withCredentials": "true"
@@ -2928,19 +2929,19 @@
             "applicable": true,
             "compatible": true,
             "canonicalNames": [
-              "ProvidedEmailDTO"
+              "ProvidedAccountIdDTO"
             ],
-            "shapeHash": "b1628d9f3f700b17e0f0e341978c39e22f6d0ce96caaccb690e0457b1cbda8fe"
+            "shapeHash": "67797ed7fa00080ceae566514c0a880e7d0b424327ac6dd8114ad7bc32a28872"
           }
         }
       },
       "server": {
         "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
-        "handler": "getProvidedEmail",
+        "handler": "getProvidedAccountId",
         "verb": "GET",
         "path": "/api/account/provided-account-id",
         "parameters": [],
-        "returnType": "ProvidedEmailDTO",
+        "returnType": "ProvidedAccountIdDTO",
         "successStatus": 200,
         "errorStatuses": {
           "validation": [],
@@ -2958,10 +2959,10 @@
           "scopes": []
         },
         "responseContract": {
-          "displayType": "ProvidedEmailDTO",
-          "shapeHash": "b1628d9f3f700b17e0f0e341978c39e22f6d0ce96caaccb690e0457b1cbda8fe",
+          "displayType": "ProvidedAccountIdDTO",
+          "shapeHash": "67797ed7fa00080ceae566514c0a880e7d0b424327ac6dd8114ad7bc32a28872",
           "canonicalNames": [
-            "ProvidedEmailDTO"
+            "ProvidedAccountIdDTO"
           ],
           "applicable": true,
           "canonical": true
@@ -2998,10 +2999,10 @@
           "compatible": true,
           "canonical": true,
           "canonicalNames": [
-            "ProvidedEmailDTO"
+            "ProvidedAccountIdDTO"
           ],
-          "clientShapeHash": "b1628d9f3f700b17e0f0e341978c39e22f6d0ce96caaccb690e0457b1cbda8fe",
-          "serverShapeHash": "b1628d9f3f700b17e0f0e341978c39e22f6d0ce96caaccb690e0457b1cbda8fe"
+          "clientShapeHash": "67797ed7fa00080ceae566514c0a880e7d0b424327ac6dd8114ad7bc32a28872",
+          "serverShapeHash": "67797ed7fa00080ceae566514c0a880e7d0b424327ac6dd8114ad7bc32a28872"
         }
       }
     },

@@ -9,6 +9,7 @@ import { TinyHistoryDTO } from 'src/app_modules/history/models/dto/history.dto'
 import { HistoryService } from 'src/app_modules/history/services/history.service'
 import { SecurityService } from 'src/app_modules/auth/services/security.service'
 import { runInTransaction } from 'src/persistence/transaction-context'
+import { AuthProvider } from 'src/app_modules/sso/models/enums/auth-provider.enum'
 
 export type ProfileReadModel = Readonly<ProfileDTO>
 
@@ -59,15 +60,19 @@ export class ProfileReadModelService {
                 return null
             }
 
-            let accountId: string | null 
+            let accountId: string | null
             let isOrcid = false
 
+            const authIdentity = profileRow.authIdentities?.[0]
             if (profileRow.sso) {
-                if (profileRow.authIdentities[0].provider === 'ORCID') {
-                    accountId = profileRow.authIdentities[0].providerSubject
+                if (!authIdentity) {
+                    return null
+                }
+                if (authIdentity.provider === 'ORCID') {
+                    accountId = authIdentity.providerSubject
                     isOrcid = true
                 } else {
-                    accountId = profileRow.authIdentities[0].email
+                    accountId = authIdentity.email
                 }
             } else {
                 accountId = profileRow.email
@@ -89,7 +94,9 @@ export class ProfileReadModelService {
                 job: profileRow.job,
                 obscuredAccountId: isOrcid ? this.securityService.mask_ORCID(accountId) : this.securityService.maskEmail(accountId),
                 accountIdKind: isOrcid ? 'orcid' : 'email',
-                identityProvider: profileRow.authIdentities[0].provider,
+                identityProvider: profileRow.sso
+                    ? authIdentity.provider
+                    : AuthProvider.Mercurion,
                 obscuredPhone: profileRow.completePhoneNumber
                     ? this.securityService.maskPhone(profileRow.completePhoneNumber)
                     : null,

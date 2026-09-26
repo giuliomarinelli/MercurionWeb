@@ -3,14 +3,18 @@ import { UserService } from './user.service';
 describe('UserService', () => {
   const userId = '00000000-0000-0000-0000-000000000001' as any;
 
-  function createService(manager: any, transaction?: (work: (manager: any) => Promise<unknown>) => Promise<unknown>) {
+  function createService(
+    manager: any,
+    transaction?: (work: (manager: any) => Promise<unknown>) => Promise<unknown>,
+    userRepository: any = {},
+  ) {
     const dataSource = {
       transaction: jest.fn(transaction ?? (async (work) => work(manager))),
     } as any;
     const loggerMock = { warn: jest.fn() };
     return {
       service: new UserService(
-      {} as any,
+      userRepository as any,
       dataSource,
       {} as any,
       {} as any,
@@ -25,6 +29,34 @@ describe('UserService', () => {
   it('should be defined', () => {
     const { service } = createService({});
     expect(service).toBeDefined();
+  });
+
+  it('keeps the ORCID account identifier separate from its contact email', async () => {
+    const queryBuilder = {
+      select: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      leftJoin: jest.fn().mockReturnThis(),
+      addSelect: jest.fn().mockReturnThis(),
+      getOne: jest.fn().mockResolvedValue({
+        email: null,
+        sso: true,
+        authIdentities: [{
+          provider: 'ORCID',
+          providerSubject: '0000-0002-1825-0097',
+          email: 'contact@example.test',
+        }],
+      }),
+    };
+    const userRepository = { createQueryBuilder: jest.fn().mockReturnValue(queryBuilder) };
+    const { service } = createService({}, undefined, userRepository);
+
+    await expect(service.getUserProvidedAccountIdById(userId)).resolves.toEqual({
+      accountId: '0000-0002-1825-0097',
+      provider: 'ORCID',
+      kind: 'orcid',
+    });
+    await expect(service.getUserEmailById(userId)).resolves.toBe('contact@example.test');
+    expect(userRepository.createQueryBuilder).toHaveBeenCalledTimes(2);
   });
 
   it('updates and reads the user back through the transaction manager', async () => {

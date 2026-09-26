@@ -725,7 +725,7 @@ export class AccountFlowKernel {
             throw applicationError(ApplicationErrorCode.PASSWORD_CHANGE_CREDENTIALS_INVALID)
         }
         await this.clearPasswordFailures(userId, PasswordContext.CHANGE)
-        const email = (await this.userService.getUserProvidedEmailById(userId))!.email
+        const email = (await this.userService.getUserEmailById(userId))!
         const firstName = (await this.userService.getUserFirstNameById(userId))!
         const passwordChangeId = uuidv7() as UUID
         await this.unitOfWork.run(async (context, manager) => {
@@ -811,7 +811,7 @@ export class AccountFlowKernel {
         for (const s of sessions) {
             await this.sessionService.destroySessionByOwner(s.sessionId, s.userId)
         }
-        const email = (await this.userService.getUserProvidedEmailById(userId))!.email
+        const email = (await this.userService.getUserEmailById(userId))!
         const firstName = (await this.userService.getUserFirstNameById(userId))!
         const passwordResetId = uuidv7() as UUID
         await this.unitOfWork.run(async (context, manager) => {
