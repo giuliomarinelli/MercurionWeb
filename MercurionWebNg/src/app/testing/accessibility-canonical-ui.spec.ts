@@ -13,7 +13,7 @@ import { ProgressIndicatorComponent } from '../components/common/progress-indica
 import { SearchFieldComponent } from '../components/common/search-field/search-field.component';
 import { SelectionControlComponent } from '../components/common/selection-control/selection-control.component';
 import { SelectCoreComponent } from '../components/common/select-core/select-core.component';
-import { TabsComponent } from '../components/common/tabs/tabs.component';
+import { TabsModule } from 'primeng/tabs';
 import { TextFieldComponent } from '../components/common/text-field/text-field.component';
 import { TextareaComponent } from '../components/common/textarea/textarea.component';
 import { ToastComponent } from '../components/common/toast/toast.component';
@@ -43,7 +43,7 @@ interface SelectItem {
     SearchFieldComponent,
     SelectionControlComponent,
     SelectCoreComponent,
-    TabsComponent,
+    TabsModule,
     TextFieldComponent,
     TextareaComponent,
     ToastComponent,
@@ -86,17 +86,16 @@ interface SelectItem {
           label="Collection"
           hint="Choose a collection"
           [selected]="items[0]" />
-        <m-tabs
-          [tabs]="['Overview', 'History']"
-          [activeIndex]="activeTab"
-          ariaLabel="Molecule sections"
-          (tabChange)="activeTab = $event" />
-        <div id="m-tabs-tab-0-tabpanel" role="tabpanel" aria-labelledby="m-tabs-tab-0-tab">
-          Overview content
-        </div>
-        <div id="m-tabs-tab-1-tabpanel" role="tabpanel" aria-labelledby="m-tabs-tab-1-tab">
-          History content
-        </div>
+        <p-tabs [value]="activeTab" (valueChange)="selectTab($event)">
+          <p-tablist aria-label="Molecule sections">
+            <p-tab [value]="0">Overview</p-tab>
+            <p-tab [value]="1">History</p-tab>
+          </p-tablist>
+          <p-tabpanels>
+            <p-tabpanel [value]="0">Overview content</p-tabpanel>
+            <p-tabpanel [value]="1">History content</p-tabpanel>
+          </p-tabpanels>
+        </p-tabs>
         <m-disclosure
           label="Advanced options"
           id="advanced-options"
@@ -134,6 +133,9 @@ class CanonicalUiFixtureComponent {
   fieldError = '';
   dialogOpen = false;
   activeTab = 0;
+  selectTab(value: string | number | undefined): void {
+    this.activeTab = Number(value);
+  }
   disclosureExpanded = false;
   items: SelectItem[] = [
     { id: 'one', label: 'First collection' },
@@ -192,7 +194,7 @@ describe('canonical UI accessibility coverage', () => {
   it('keeps every interactive primitive keyboard reachable in deterministic order', () => {
     const controls = Array.from(
       (fixture.nativeElement as HTMLElement).querySelectorAll(
-        'button, input, textarea, [role="combobox"]',
+        'button, input, textarea, [role="combobox"], [role="tab"]',
       ),
     ) as HTMLElement[];
 
@@ -259,12 +261,12 @@ describe('canonical UI accessibility coverage', () => {
 
   it('tests tabs, disclosure and combobox keyboard activation', async () => {
     const tablist = nativeElement('[role="tablist"]');
-    const tabs = Array.from(tablist.querySelectorAll<HTMLButtonElement>('[role="tab"]'));
+    const tabs = Array.from(tablist.querySelectorAll<HTMLElement>('[role="tab"]'));
     tabs[0].focus();
-    tablist.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+    tabs[0].dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', code: 'ArrowRight', bubbles: true }));
     await fixture.whenStable();
     fixture.detectChanges();
-    expect(document.activeElement?.id).toBe('m-tabs-tab-1-tab');
+    expect(document.activeElement).toBe(tabs[1]);
 
     const disclosure = nativeElement('#advanced-options-trigger') as HTMLButtonElement;
     disclosure.click();

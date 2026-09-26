@@ -12,7 +12,7 @@ import { SearchFieldComponent } from '../app/components/common/search-field/sear
 import { SelectCoreComponent } from '../app/components/common/select-core/select-core.component';
 import { SelectionControlComponent } from '../app/components/common/selection-control/selection-control.component';
 import { SkeletonComponent } from '../app/components/common/skeleton/skeleton.component';
-import { TabsComponent } from '../app/components/common/tabs/tabs.component';
+import { TabsModule } from 'primeng/tabs';
 import { TextareaComponent } from '../app/components/common/textarea/textarea.component';
 import { TextFieldComponent } from '../app/components/common/text-field/text-field.component';
 import { ToastComponent } from '../app/components/common/toast/toast.component';
@@ -41,7 +41,7 @@ interface CatalogOption {
     SelectCoreComponent,
     SelectionControlComponent,
     SkeletonComponent,
-    TabsComponent,
+    TabsModule,
     TextareaComponent,
     TextFieldComponent,
     ToastComponent,
@@ -75,6 +75,11 @@ export class CatalogComponent {
 
   toggleTheme(): void {
     this.darkTheme.update(value => !value);
+  }
+
+  selectTab(value: string | number | undefined): void {
+    const index = Number(value);
+    if (index === 0 || index === 1) this.activeTab.set(index);
   }
 
   showToast(variant: 'success' | 'warn' | 'error'): void {

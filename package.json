@@ -105,7 +105,8 @@
   "devDependencies": {
     "@playwright/test": "1.55.0",
     "jscpd": "4.0.5",
-    "patch-package": "8.0.1"
+    "patch-package": "8.0.1",
+    "rxjs": "7.8.1"
   },
   "overrides": {
     "@nestjs/platform-fastify": {

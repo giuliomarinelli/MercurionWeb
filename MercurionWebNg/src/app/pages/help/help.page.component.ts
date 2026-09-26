@@ -12,6 +12,7 @@ import {
   viewChild
 } from '@angular/core'
 import { ActivatedRoute, Router } from '@angular/router'
+import { NgTemplateOutlet } from '@angular/common'
 import { Observable, Subscription, firstValueFrom, map, of, switchMap, take, tap } from 'rxjs'
 import { AuthSessionRepository } from '../../services/auth-session-repository.service'
 import { HelpService } from '../../services/graphql/help.service'
@@ -23,7 +24,9 @@ import {
   Ticket,
 } from '../../Models/graphql/help.models'
 import { TicketViewModel, toTicketViewModel } from '../../Models/graphql/help.view-models'
-import { TabsComponent } from '../../components/common/tabs/tabs.component'
+import { TabsModule } from 'primeng/tabs'
+import { PrimeNG } from 'primeng/config'
+import Aura from '@primeuix/themes/aura'
 import { TicketCardComponent } from '../../components/support/ticket-card/ticket-card.component'
 import { TicketCardSkeletonComponent } from '../../components/support/ticket-card-skeleton/ticket-card-skeleton.component'
 import { DomainInvalidationService } from '../../services/domain-invalidation.service'
@@ -38,7 +41,8 @@ import { PaginationComponent } from '../../components/common/pagination/paginati
 @Component({
   selector: 'm-help-page',
   imports: [
-    TabsComponent,
+    TabsModule,
+    NgTemplateOutlet,
     TicketCardComponent,
     TicketCardSkeletonComponent,
     PaginationComponent
@@ -52,9 +56,27 @@ import { PaginationComponent } from '../../components/common/pagination/paginati
       </h1>
 
       @if (handleTickets()) {
-        <m-tabs class="block mt-4" [tabs]="tabs" (tabChange)="switchTab($event)" [activeIndex]="activeTab()" aria-label="Seleziona la sezione dei ticket" />
+        <p-tabs class="block mt-4" [value]="activeTab()" (valueChange)="switchTab($event)"
+          style="--p-tabs-tablist-background: transparent; --p-tabs-tabpanel-background: transparent; --p-tabs-tab-active-color: var(--color-accent-primary); --p-tabs-tab-active-border-color: var(--color-accent-primary); --p-tabs-active-bar-background: var(--color-accent-primary)">
+          <p-tablist class="!bg-transparent" aria-label="Seleziona la sezione dei ticket">
+            @for (tab of tabs; track $index) {
+              <p-tab [value]="$index">{{ tab }}</p-tab>
+            }
+          </p-tablist>
+          <p-tabpanels class="!p-0 !bg-transparent">
+            <p-tabpanel class="!bg-transparent" [value]="0">
+              @if (activeTab() === 0) { <ng-container [ngTemplateOutlet]="ticketContent" /> }
+            </p-tabpanel>
+            <p-tabpanel class="!bg-transparent" [value]="1">
+              @if (activeTab() === 1) { <ng-container [ngTemplateOutlet]="ticketContent" /> }
+            </p-tabpanel>
+          </p-tabpanels>
+        </p-tabs>
+      } @else {
+        <ng-container [ngTemplateOutlet]="ticketContent" />
       }
 
+      <ng-template #ticketContent>
       <div [class.pt-4]="handleTickets()">
         <button
           type="button"
@@ -80,11 +102,7 @@ import { PaginationComponent } from '../../components/common/pagination/paginati
       </p>
 
       <div
-        class="mt-px relative -top-8"
-        role="tabpanel"
-        [id]="'m-tabs-tab-' + activeTab() + '-tabpanel'"
-        [attr.aria-labelledby]="'m-tabs-tab-' + activeTab() + '-tab'"
-        tabindex="0"
+        class="mt-px"
       >
         @for (item of items; track item.id; let i = $index) {
           <m-ticket-card
@@ -97,17 +115,14 @@ import { PaginationComponent } from '../../components/common/pagination/paginati
             (close)="onCloseFromCard($event)"
             (reopen)="onReopenFromCard($event)" />
         }
+        @if (loading && page === 1) {
+          @for (i of [0, 1, 2, 3, 4]; track i) {
+            <m-ticket-card-skeleton [i]="i" />
+          }
+        }
       </div>
 
       <div #sentinel class="h-px w-full"></div>
-
-      @if (loading && page === 1) {
-          <div class="relative -top-20">
-            @for (i of [0, 1, 2, 3, 4]; track i) {
-              <m-ticket-card-skeleton [i]="i" />
-            }
-          </div>
-      }
       <m-pagination
         [state]="paginationState()"
         (loadMoreRequested)="loadMore()"
@@ -117,6 +132,7 @@ import { PaginationComponent } from '../../components/common/pagination/paginati
           Non sono ancora presenti ticket&nbsp;<button class="a" type="button" aria-label="Apri adesso il tuo primo ticket" (click)="newTicket()">Apri adesso il tuo primo ticket</button>
         </p>
       }
+      </ng-template>
     </main>
 
   `
@@ -131,6 +147,7 @@ export class HelpPageComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly cdr = inject(ChangeDetectorRef)
   private readonly route = inject(ActivatedRoute)
   private readonly router = inject(Router)
+  private readonly primeNG = inject(PrimeNG)
   private readonly pagination = new PaginationController<TicketViewModel>({
     fetch: (page) => {
       const request = this.activeTab() === 1 && this.handleTickets()
@@ -164,6 +181,7 @@ export class HelpPageComponent implements OnInit, OnDestroy, AfterViewInit {
   totalItems = signal<number>(0)
 
   constructor() {
+    this.primeNG.setConfig({ theme: { preset: Aura, options: { darkModeSelector: '.dark' } } })
     effect(() => {
       const event = this.invalidations.last()
       if (event?.domain !== 'ticket' || event.action !== 'changed') return
@@ -254,13 +272,16 @@ export class HelpPageComponent implements OnInit, OnDestroy, AfterViewInit {
     this.pagination.dispose()
   }
 
-  switchTab(i: number): void {
+  switchTab(value: string | number | undefined): void {
+    const i = Number(value)
+    if (!Number.isInteger(i)) return
     if (i < 0 || i > 1) return
     if (i === 1 && !this.handleTickets()) return
 
     queueMicrotask(() => {
       this.activeTab.set(i as 0 | 1)
       this.resetPagination()
+      setTimeout(() => this.startObserver(), 0)
     })
   }
 

@@ -83,10 +83,18 @@
         <div><p class="catalog-kicker">Navigation</p><h2 id="navigation-heading">Tabs, disclosure and pagination</h2></div>
         <p>Roving tab focus, disabled options, disclosure regions and page state are documented together.</p>
       </div>
-      <m-tabs [tabs]="['Overview', 'History', 'Disabled']" [activeIndex]="activeTab()" ariaLabel="Catalog tabs" />
-      <div class="catalog-panel" role="tabpanel">
-        {{ activeTab() === 0 ? 'Overview content' : activeTab() === 1 ? 'History content' : 'Disabled content' }}
-      </div>
+      <p-tabs [value]="activeTab()" (valueChange)="selectTab($event)">
+        <p-tablist aria-label="Catalog tabs">
+          <p-tab [value]="0">Overview</p-tab>
+          <p-tab [value]="1">History</p-tab>
+          <p-tab [value]="2" [disabled]="true">Disabled</p-tab>
+        </p-tablist>
+        <p-tabpanels>
+          <p-tabpanel [value]="0"><div class="catalog-panel">Overview content</div></p-tabpanel>
+          <p-tabpanel [value]="1"><div class="catalog-panel">History content</div></p-tabpanel>
+          <p-tabpanel [value]="2"><div class="catalog-panel">Disabled content</div></p-tabpanel>
+        </p-tabpanels>
+      </p-tabs>
       <m-disclosure label="Keyboard and accessibility expectations" [expanded]="true">
         <p>Every interactive control must be reachable with Tab, expose its state and retain a visible focus indicator.</p>
       </m-disclosure>
