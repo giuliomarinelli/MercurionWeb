@@ -1,5 +1,5 @@
 import { NgOptimizedImage } from '@angular/common';
-import { ChangeDetectionStrategy, Component, effect, inject, OnInit, signal } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, effect, inject, OnInit, signal } from '@angular/core';
 import { ThemeManagerService } from '../../../services/context/theme-manager.service';
 import { PublicPipe } from '../../../pipes/public.pipe';
 import { environment } from '../../../../environments/environment';
@@ -54,10 +54,11 @@ import { APP_CONFIG } from '../../../config/app-config';
 </footer>
   `
 })
-export class FooterComponent implements OnInit {
+export class FooterComponent implements OnInit, AfterViewInit {
 
   private readonly themeManager = inject(ThemeManagerService)
   protected readonly appConfig = inject(APP_CONFIG)
+  private readonly cdr = inject(ChangeDetectorRef)
 
   protected year = new Date().getFullYear()
 
@@ -72,4 +73,7 @@ export class FooterComponent implements OnInit {
     this.year = new Date().getFullYear()
   }
 
+  ngAfterViewInit(): void {
+    this.cdr.markForCheck()
+  }
 }
