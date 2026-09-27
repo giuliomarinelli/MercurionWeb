@@ -87,7 +87,8 @@ interface SelectItem {
           label="Collection"
           hint="Choose a collection"
           [selected]="items[0]" />
-        <p-tabs [value]="activeTab" (valueChange)="selectTab($event)">
+        <p-tabs [value]="activeTab" (valueChange)="selectTab($event)"
+          style="--p-tabs-tab-active-color: var(--color-accent-primary); --p-tabs-tab-active-border-color: var(--color-accent-primary); --p-tabs-active-bar-background: var(--color-accent-primary)">
           <p-tablist aria-label="Molecule sections">
             <p-tab [value]="0">Overview</p-tab>
             <p-tab [value]="1">History</p-tab>
