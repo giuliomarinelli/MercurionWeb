@@ -16,6 +16,7 @@ import { LoginSsoChooserComponent } from './login-sso-chooser.component'
 import type { LoginCredentials } from './login-flow.models'
 import { environment } from '../../../environments/environment'
 import { adaptHttpFormError } from '../../utils/form-error.adapter'
+import { finalize } from 'rxjs'
 
 @Component({
   selector: 'm-login',
@@ -88,6 +89,7 @@ import { adaptHttpFormError } from '../../utils/form-error.adapter'
   `]
 })
 export class LoginPageComponent implements OnInit {
+
   private readonly route = inject(ActivatedRoute)
   private readonly router = inject(Router)
   private readonly theme = inject(ThemeManagerService)
@@ -131,19 +133,22 @@ export class LoginPageComponent implements OnInit {
     const form = this.credentialForm()
     form?.clearErrors()
     form?.setPending(true)
-    this.facade.login(credentials).subscribe({
-      error: error => {
-        const formError = adaptHttpFormError(error)
-        const category = this.errors.setFromHttp(error, 'login')?.category
-        if (category === 'invalid-credentials') {
-          form?.showCredentialError(formError.globalError ?? 'La password inserita non è corretta.')
-        } else if (category === 'rate-limited') {
-          form?.showCredentialError(formError.globalError ?? 'Troppi tentativi, riprova tra qualche minuto.')
-        }
-        form?.resetTurnstile()
-      },
-      complete: () => form?.setPending(false)
-    })
+    this.facade.login(credentials).pipe(
+      finalize(() => form?.setPending(false))
+    )
+      .subscribe({
+        error: error => {
+          const formError = adaptHttpFormError(error)
+          const category = this.errors.setFromHttp(error, 'login')?.category
+          if (category === 'invalid-credentials') {
+            form?.showCredentialError(formError.globalError ?? 'La password inserita non è corretta.')
+          } else if (category === 'rate-limited') {
+            form?.showCredentialError(formError.globalError ?? 'Troppi tentativi, riprova tra qualche minuto.')
+          }
+          form?.resetTurnstile()
+        },
+        complete: () => form?.setPending(false)
+      })
   }
 
   cancel(): void {

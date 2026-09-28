@@ -1,12 +1,10 @@
 import { Injectable, inject } from '@angular/core'
 import { Router } from '@angular/router'
-import { HttpErrorResponse } from '@angular/common/http'
 import { EMPTY, Observable, Subject, catchError, defer, filter, map, takeUntil, tap, throwError } from 'rxjs'
 import type { Confirm_Login_FirstStepDTO, EmailDTO } from '@mercurion/rest-contracts'
 import { AuthTransportService } from './auth-transport.service'
 import { AuthSessionRepository } from './auth-session-repository.service'
 import { AuthStateStore } from './auth-state.store'
-import { AuthSessionPersistenceService } from './auth-session-persistence.service'
 import { AuthErrorService } from './auth-error.service'
 import { AuthRedirectService } from './auth-redirect.service'
 import { FingerprintService } from './fingerprint.service'
@@ -18,7 +16,6 @@ export class AuthFacade {
   private readonly auth = inject(AuthTransportService)
   private readonly sessions = inject(AuthSessionRepository)
   private readonly authState = inject(AuthStateStore)
-  private readonly persistence = inject(AuthSessionPersistenceService)
   private readonly authErrors = inject(AuthErrorService)
   private readonly redirects = inject(AuthRedirectService)
   private readonly fingerprint = inject(FingerprintService)
@@ -70,6 +67,7 @@ export class AuthFacade {
       map(response => this.toResult(response)),
       catchError(error => {
         if (currentAttempt !== this.attempt) return EMPTY
+        if (this.authState.isAuthenticating()) this.authState.logout()
         this.authErrors.setFromHttp(error, 'login')
         return throwError(() => error)
       })

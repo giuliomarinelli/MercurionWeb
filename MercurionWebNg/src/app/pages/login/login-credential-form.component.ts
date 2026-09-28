@@ -4,7 +4,8 @@ import {
   DestroyRef,
   inject,
   output,
-  signal
+  signal,
+  viewChild
 } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import {
@@ -73,13 +74,13 @@ type CredentialForm = {
           [serverError]="credentialError()"
         />
         <button type="submit" [disabled]="!canSubmit()" [attr.aria-busy]="pending()"
-          class="relative bottom-[2px] mt-4 w-full rounded-md bg-light-accent-primary-hq py-2 text-white transition-colors duration-150 hover:bg-light-accent-primary-hc disabled:cursor-not-allowed disabled:bg-light-accent-primary-hq/60 disabled:hover:bg-light-accent-primary-hq/60 dark:bg-dark-accent-primary-btn dark:hover:bg-dark-accent-primary/80 dark:disabled:bg-dark-accent-primary/80 dark:disabled:hover:bg-dark-accent-primary/80"
+          class="flex justify-center items-center mt-4 w-full rounded-md bg-light-accent-primary-hq py-2 text-white transition-colors duration-150 hover:bg-light-accent-primary-hc disabled:cursor-not-allowed disabled:bg-light-accent-primary-hq/60 disabled:hover:bg-light-accent-primary-hq/60 dark:bg-dark-accent-primary-btn dark:hover:bg-dark-accent-primary/80 dark:disabled:bg-dark-accent-primary/80 dark:disabled:hover:bg-dark-accent-primary/80 h-10"
           [attr.aria-disabled]="!canSubmit()"
           aria-label="Accedi al tuo account">
           @if (pending()) { <m-progress-indicator [size]="20" /> } @else { Accedi }
         </button>
         @if (!turnstileDisabled) {
-          <div class="flex justify-center relative top-3">
+          <div class="flex justify-center relative top-3 mb-3">
             <div class="relative w-[300px] h-[71px]">
               @if (turnstileLoading()) {
                 <div
@@ -118,13 +119,17 @@ type CredentialForm = {
 export class LoginCredentialFormComponent {
   private readonly appConfig = inject(APP_CONFIG)
   private readonly destroyRef = inject(DestroyRef)
+  private readonly turnstileComponent = viewChild(TurnstileComponent)
 
   readonly form = new FormGroup<CredentialForm>({
-    email: new FormControl('', { nonNullable: true, validators: [
-      Validators.required,
-      Validators.email,
-      Validators.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)
-    ] }),
+    email: new FormControl('', {
+      nonNullable: true,
+      validators: [
+        Validators.required,
+        Validators.email,
+        Validators.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)
+      ]
+    }),
     password: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     remember: new FormControl(false, { nonNullable: true })
   })
@@ -163,10 +168,11 @@ export class LoginCredentialFormComponent {
     this.form.controls.password.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.credentialError.set(null))
+
   }
 
   canSubmit(): boolean {
-    return this.form.valid && (this.turnstileDisabled || Boolean(this.turnstileToken()))
+    return !this.pending() && this.form.valid && (this.turnstileDisabled || Boolean(this.turnstileToken()))
   }
 
   submitEmail(): void {
@@ -209,6 +215,7 @@ export class LoginCredentialFormComponent {
 
   resetTurnstile(): void {
     this.turnstileToken.set('')
+    if (this.step() === 2) this.turnstileComponent()?.reset()
   }
 
   onTurnstileToken(token: string): void {
