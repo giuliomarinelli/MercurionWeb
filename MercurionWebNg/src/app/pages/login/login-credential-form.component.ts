@@ -79,11 +79,24 @@ type CredentialForm = {
           @if (pending()) { <m-progress-indicator [size]="20" /> } @else { Accedi }
         </button>
         @if (!turnstileDisabled) {
-          <m-turnstile
-            (token)="onTurnstileToken($event)"
-            (widgetReady)="turnstileReady.emit()"
-            (refresh)="turnstileLoading.set(true)"
-          />
+          <div class="flex justify-center relative top-3">
+            <div class="relative w-[300px] h-[71px]">
+              @if (turnstileLoading()) {
+                <div
+                  class="absolute inset-0 overflow-hidden bg-neutral-200 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 animate-pulse skeleton-pulse"
+                >
+                  <span class="sr-only">Loading CAPTCHA…</span>
+                </div>
+              }
+              <m-turnstile
+                (token)="onTurnstileToken($event)"
+                (widgetReady)="onTurnstileReady()"
+                (refresh)="turnstileLoading.set(true)"
+                class="block h-[71px]"
+                [class.invisible]="turnstileLoading()"
+              />
+            </div>
+          </div>
         }
       }
       <div class="flex justify-center">
@@ -177,6 +190,7 @@ export class LoginCredentialFormComponent {
 
   showPasswordStep(): void {
     this.emailError.set(null)
+    this.turnstileLoading.set(true)
     this.step.set(2)
   }
 
@@ -200,5 +214,10 @@ export class LoginCredentialFormComponent {
   onTurnstileToken(token: string): void {
     this.turnstileToken.set(token)
     this.turnstile.emit(token)
+  }
+
+  onTurnstileReady(): void {
+    this.turnstileLoading.set(false)
+    this.turnstileReady.emit()
   }
 }
