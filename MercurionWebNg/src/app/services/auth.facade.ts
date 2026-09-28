@@ -4,6 +4,7 @@ import { EMPTY, Observable, Subject, catchError, defer, filter, map, takeUntil, 
 import type { Confirm_Login_FirstStepDTO, EmailDTO } from '@mercurion/rest-contracts'
 import { AuthTransportService } from './auth-transport.service'
 import { AuthSessionRepository } from './auth-session-repository.service'
+import { AuthSessionPersistenceService } from './auth-session-persistence.service'
 import { AuthStateStore } from './auth-state.store'
 import { AuthErrorService } from './auth-error.service'
 import { AuthRedirectService } from './auth-redirect.service'
@@ -15,6 +16,7 @@ import type { LoginCredentials, LoginDeviceContext, LoginFlowResult } from '../p
 export class AuthFacade {
   private readonly auth = inject(AuthTransportService)
   private readonly sessions = inject(AuthSessionRepository)
+  private readonly persistence = inject(AuthSessionPersistenceService)
   private readonly authState = inject(AuthStateStore)
   private readonly authErrors = inject(AuthErrorService)
   private readonly redirects = inject(AuthRedirectService)
@@ -44,10 +46,12 @@ export class AuthFacade {
 
   login(credentials: LoginCredentials): Observable<LoginFlowResult> {
     const currentAttempt = ++this.attempt
-    this.authErrors.beginAttempt()
-    this.authState.beginAuthentication('password')
     const device = this.device
     if (!device) return throwError(() => new Error('LoginDeviceNotReady'))
+    if (this.authState.isPreAuth()) this.authState.logout()
+    this.persistence.clearPreAuthData()
+    this.authErrors.beginAttempt()
+    this.authState.beginAuthentication('password')
 
     const request = {
       email: credentials.email,
@@ -97,7 +101,7 @@ export class AuthFacade {
     if (response.needsMfa) {
       const { statusCode, timestamp, message, ...preAuth } = response
       if (!this.sessions.savePreAuthState(preAuth)) {
-        this.authState.beginAuthentication('password')
+        this.authState.logout()
         void this.router.navigate(['/login'])
         return
       }

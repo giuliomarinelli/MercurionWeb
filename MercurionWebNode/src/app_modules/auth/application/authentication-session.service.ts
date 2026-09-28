@@ -40,10 +40,34 @@ export class AuthenticationSessionService {
             sessionId
         )
         const payload = this.jwtTools.decodeUnsafe(token)
+        const lifetime = Math.max(1, Math.ceil(payload.exp - Date.now() / 1000 + 60))
         await this.redisService.set(
             redisKeys.mfa.preAuthorizationDevice(payload.jti),
             deviceId,
-            redisDurations.seconds(300)
+            redisDurations.seconds(lifetime)
+        )
+        await this.redisService.eval(
+            `
+                local previous = redis.call('GET', KEYS[1])
+                if previous then
+                    local ttl = redis.call('TTL', ARGV[2] .. previous)
+                    if ttl < 1 then ttl = tonumber(ARGV[6])
+                    else ttl = ttl + tonumber(ARGV[6]) end
+                    redis.call('SET', ARGV[3] .. previous, '1', 'EX', ttl)
+                    redis.call('DEL', ARGV[5] .. previous)
+                end
+                redis.call('SET', KEYS[1], ARGV[1], 'EX', ARGV[4])
+                return previous
+            `,
+            [redisKeys.mfa.activePreAuthorization(userId)],
+            [
+                payload.jti,
+                redisKeys.token.issuedByJti(''),
+                redisKeys.token.revoked(''),
+                String(lifetime),
+                redisKeys.mfa.preAuthorizationDevice(''),
+                '60'
+            ]
         )
         return token
     }

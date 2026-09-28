@@ -35,7 +35,8 @@ const jwtKeysMock = {
 describe('JwtToolsService', () => {
   let service: JwtToolsService;
   let jwtService: { signAsync: jest.Mock; verifyAsync: jest.Mock; decode: jest.Mock };
-  let securityService: { encryptUserId: jest.Mock };
+  let securityService: { encryptUserId: jest.Mock; decryptUserId: jest.Mock };
+  let redisService: { get: jest.Mock };
   let sessionService: {
     isTokenRevoked: jest.Mock;
     registerIssuedToken: jest.Mock;
@@ -68,8 +69,10 @@ describe('JwtToolsService', () => {
       revokeToken: jest.fn()
     };
     securityService = {
-      encryptUserId: jest.fn((userId: string) => `encrypted:${userId}`)
+      encryptUserId: jest.fn((userId: string) => `encrypted:${userId}`),
+      decryptUserId: jest.fn(() => 'user-id')
     };
+    redisService = { get: jest.fn() };
 
     service = new JwtToolsService(
       jwtService as unknown as JwtService,
@@ -80,7 +83,8 @@ describe('JwtToolsService', () => {
         forContext: jest.fn().mockReturnValue({ log: jest.fn(), warn: jest.fn() }),
       } as unknown as LoggerPort,
       jwtKeysMock as any,
-      securityService as any
+      securityService as any,
+      redisService as any
     );
   });
 
@@ -104,5 +108,27 @@ describe('JwtToolsService', () => {
       expect.objectContaining({ sub: `encrypted:${userId}` }),
       expect.objectContaining({ algorithm: 'RS256' })
     );
+  });
+
+  it.each([
+    { activeJti: 'current', accepted: true },
+    { activeJti: 'replacement', accepted: false },
+    { activeJti: null, accepted: false }
+  ])('accepts only the active MFA pre-authorization token ($activeJti)', async ({ activeJti, accepted }) => {
+    const payload = {
+      typ: TokenType.PreAuthorizationToken,
+      sub: 'encrypted:user-id',
+      jti: 'current'
+    };
+    jwtService.decode.mockReturnValue(payload);
+    redisService.get.mockResolvedValue(activeJti);
+
+    const verification = service.verifyTokenAndGetPayload('pre-auth', TokenType.PreAuthorizationToken);
+    if (accepted) {
+      await expect(verification).resolves.toEqual(payload);
+    } else {
+      await expect(verification).rejects.toThrow();
+    }
+    expect(redisService.get).toHaveBeenCalledWith('mfa:pat:active:user-id');
   });
 });

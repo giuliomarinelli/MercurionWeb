@@ -17,6 +17,8 @@ import { errorMessage } from 'src/utils/errors/error-message'
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 import { IDENTITY_READ_PORT, IdentityReadPort } from '../models/interfaces/identity-read.port'
 import { SecurityService } from './security.service';
+import { RedisService } from 'src/app_modules/redis/services/redis.service';
+import { redisKeys } from 'src/app_modules/redis/contracts/redis-contracts';
 
 @Injectable()
 export class JwtToolsService {
@@ -55,7 +57,8 @@ export class JwtToolsService {
         private readonly sessionService: SessionService,
         loggerFactory: LoggerPort,
         private readonly jwtKeys: JwtKeysProvider,
-        private readonly securityService: SecurityService
+        private readonly securityService: SecurityService,
+        private readonly redisService: RedisService
     ) {
         this.logger = loggerFactory.forContext(JwtToolsService.name)
 
@@ -248,6 +251,13 @@ export class JwtToolsService {
             }
             if (!skipRevocationCheck && await this.sessionService.isTokenRevoked(payload.jti)) {
                 throw applicationError(ApplicationErrorCode.TOKEN_REVOKED, `Revoked${type}`, { tokenType: type })
+            }
+            if (type === TokenType.PreAuthorizationToken && !skipRevocationCheck) {
+                const userId = this.securityService.decryptUserId(payload.sub)
+                const activeJti = await this.redisService.get(redisKeys.mfa.activePreAuthorization(userId))
+                if (activeJti !== payload.jti) {
+                    throw applicationError(ApplicationErrorCode.TOKEN_REVOKED, `Revoked${type}`, { tokenType: type })
+                }
             }
             return payload
         } catch (e) {

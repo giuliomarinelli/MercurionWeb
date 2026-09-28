@@ -17,70 +17,77 @@ import type { LoginCredentials } from './login-flow.models'
 import { environment } from '../../../environments/environment'
 import { adaptHttpFormError } from '../../utils/form-error.adapter'
 import { finalize } from 'rxjs'
+import { ProgressIndicatorComponent } from '../../components/common/progress-indicator/progress-indicator.component';
 
 @Component({
   selector: 'm-login',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, LoginCredentialFormComponent, LoginSsoChooserComponent],
+  imports: [RouterLink, LoginCredentialFormComponent, LoginSsoChooserComponent, ProgressIndicatorComponent],
   template: `
-    <main class="flex flex-col items-center px-4 pt-9" role="main" aria-live="polite">
-      <img [src]="logoSrc()" alt="Mercurion Logo" class="w-16 h-auto mb-6" />
-      <h1 id="login-title" class="text-2xl font-semibold text-gray-900 mb-8 tracking-wider dark:text-slate-100 text-center">
-        Piacere di averti qui.
-      </h1>
-      <div class="w-full max-w-sm space-y-6">
-        <m-login-sso-chooser
-          [redirectTo]="redirectTo()"
-        />
-        <div class="relative">
-          <div class="absolute inset-0 flex items-center"><div class="w-full border-t"></div></div>
-          <div class="relative flex justify-center text-sm">
-            <span class="bg-light-surface-main px-2 text-gray-500 dark:bg-neutral-950 dark:text-slate-300 uppercase">oppure</span>
+    @if (!pageLoading()) {
+      <main class="flex flex-col items-center px-4 pt-9" role="main" aria-live="polite">
+        <img [src]="logoSrc()" alt="Mercurion Logo" class="w-16 h-auto mb-6" />
+        <h1 id="login-title" class="text-2xl font-semibold text-gray-900 mb-8 tracking-wider dark:text-slate-100 text-center">
+          Piacere di averti qui.
+        </h1>
+        <div class="w-full max-w-sm space-y-6">
+          <m-login-sso-chooser
+            [redirectTo]="redirectTo()"
+          />
+          <div class="relative">
+            <div class="absolute inset-0 flex items-center"><div class="w-full border-t"></div></div>
+            <div class="relative flex justify-center text-sm">
+              <span class="bg-light-surface-main px-2 text-gray-500 dark:bg-neutral-950 dark:text-slate-300 uppercase">oppure</span>
+            </div>
           </div>
-        </div>
-        <m-login-credential-form
-          (emailSubmitted)="checkEmail($event)"
-          (credentialsSubmitted)="submit($event)"
-        />
-        <div class="my-3 text-sm flex gap-3 justify-between items-center flex-col 2xs:flex-row">
-          <a routerLink="/forgot-password" class="login-secondary-link text-light-accent-primary-hc hover:underline dark:text-dark-accent-primary">Password dimenticata?</a>
-          <a routerLink="/register" class="login-secondary-link text-light-accent-primary-hc hover:underline dark:text-dark-accent-primary">Registrati</a>
-        </div>
-        <div class="relative py-2">
-          <div class="absolute inset-0 flex items-center"><div class="w-full border-t"></div></div>
-          <div class="relative flex justify-center text-sm">
-            <span class="bg-light-surface-main px-2 text-gray-500 dark:bg-neutral-950 dark:text-slate-300">IN CASO DI EMERGENZA</span>
+          <m-login-credential-form
+            (emailSubmitted)="checkEmail($event)"
+            (credentialsSubmitted)="submit($event)"
+          />
+          <div class="my-3 text-sm flex gap-3 justify-between items-center flex-col 2xs:flex-row">
+            <a routerLink="/forgot-password" class="login-secondary-link text-light-accent-primary-hc hover:underline dark:text-dark-accent-primary">Password dimenticata?</a>
+            <a routerLink="/register" class="login-secondary-link text-light-accent-primary-hc hover:underline dark:text-dark-accent-primary">Registrati</a>
           </div>
+          <div class="relative py-2">
+            <div class="absolute inset-0 flex items-center"><div class="w-full border-t"></div></div>
+            <div class="relative flex justify-center text-sm">
+              <span class="bg-light-surface-main px-2 text-gray-500 dark:bg-neutral-950 dark:text-slate-300">IN CASO DI EMERGENZA</span>
+            </div>
+          </div>
+          <a
+            title="Usa il codice di recupero mostrato all’attivazione per recuperare e ripristinare il tuo account"
+            routerLink="/account-recovery"
+            class="flex w-full items-center justify-center gap-3 rounded-md border bg-slate-200 py-2.5 text-sm transition-colors duration-150 hover:bg-slate-200/80 dark:bg-transparent dark:hover:bg-slate-100 dark:hover:text-neutral-900"
+          >
+            <svg viewBox="0 0 640 640" class="h-5 w-auto fill-current" aria-hidden="true">
+              <path d="M592 544H48L320 48l272 496zM292 420v56h56v-56h-56zm-4-196 12.8 160h38.4L352 224h-64z"/>
+            </svg>
+            <span class="hidden text-[0.85rem] sm:block">Recupera account inaccessibile o hackerato</span>
+            <span class="block text-xs sm:hidden">Recupera account</span>
+          </a>
+          @if (authError(); as error) {
+            <p role="alert" aria-live="assertive">{{ error.message ?? 'Si è verificato un errore.' }}</p>
+          }
+          <div class="mt-4 text-center text-xs text-slate-400">
+            <a routerLink="/privacy" class="hover:underline">Informativa sulla Privacy</a>
+            ·
+            <a routerLink="/terms-and-policies" class="hover:underline">Termini e Policy</a>
+          </div>
+          <p class="text-center text-[0.675rem] text-slate-600 dark:text-slate-300">
+          Continuando con un Google, ORCID o Discord, dichiari di aver letto e di accettare la
+          <a routerLink="/privacy" class="underline" target="_blank" rel="noopener noreferrer">Informativa sulla Privacy</a>,
+          i <a routerLink="/terms-and-policies" class="underline" target="_blank" rel="noopener noreferrer">Termini di Servizio</a>
+          e la <a routerLink="/terms-and-policies" fragment="aup" class="underline" target="_blank" rel="noopener noreferrer">Politica di Utilizzo Accettabile</a>.
+          <br />Verrà creata automaticamente una sessione di 30 giorni di durata.
+        </p>
         </div>
-        <a
-          title="Usa il codice di recupero mostrato all’attivazione per recuperare e ripristinare il tuo account"
-          routerLink="/account-recovery"
-          class="flex w-full items-center justify-center gap-3 rounded-md border bg-slate-200 py-2.5 text-sm transition-colors duration-150 hover:bg-slate-200/80 dark:bg-transparent dark:hover:bg-slate-100 dark:hover:text-neutral-900"
-        >
-          <svg viewBox="0 0 640 640" class="h-5 w-auto fill-current" aria-hidden="true">
-            <path d="M592 544H48L320 48l272 496zM292 420v56h56v-56h-56zm-4-196 12.8 160h38.4L352 224h-64z"/>
-          </svg>
-          <span class="hidden text-[0.85rem] sm:block">Recupera account inaccessibile o hackerato</span>
-          <span class="block text-xs sm:hidden">Recupera account</span>
-        </a>
-        @if (authError(); as error) {
-          <p role="alert" aria-live="assertive">{{ error.message ?? 'Si è verificato un errore.' }}</p>
-        }
-        <div class="mt-4 text-center text-xs text-slate-400">
-          <a routerLink="/privacy" class="hover:underline">Informativa sulla Privacy</a>
-          ·
-          <a routerLink="/terms-and-policies" class="hover:underline">Termini e Policy</a>
-        </div>
-        <p class="text-center text-[0.675rem] text-slate-600 dark:text-slate-300">
-        Continuando con un Google, ORCID o Discord, dichiari di aver letto e di accettare la
-        <a routerLink="/privacy" class="underline" target="_blank" rel="noopener noreferrer">Informativa sulla Privacy</a>,
-        i <a routerLink="/terms-and-policies" class="underline" target="_blank" rel="noopener noreferrer">Termini di Servizio</a>
-        e la <a routerLink="/terms-and-policies" fragment="aup" class="underline" target="_blank" rel="noopener noreferrer">Politica di Utilizzo Accettabile</a>.
-        <br />Verrà creata automaticamente una sessione di 30 giorni di durata.
-      </p>
-      </div>
-    </main>
+      </main>
+    } @else {
+      <main class="absolute inset-0 flex items-center justify-center">
+        <m-progress-indicator />
+      </main>
+    }
   `,
   styles: [`
     :host { display: block; }
@@ -104,6 +111,7 @@ export class LoginPageComponent implements OnInit {
     const { PICTOGRAM_LIGHT, PICTOGRAM_DARK } = environment.logoSrc
     return this.theme.theme() === 'light' ? PICTOGRAM_LIGHT : PICTOGRAM_DARK
   }
+  readonly pageLoading = signal<boolean>(false)
 
   ngOnInit(): void {
     const queryRedirect = this.route.snapshot.queryParamMap.get('redirect_to')
@@ -137,6 +145,7 @@ export class LoginPageComponent implements OnInit {
       finalize(() => form?.setPending(false))
     )
       .subscribe({
+        next: () => this.pageLoading.set(true),
         error: error => {
           const formError = adaptHttpFormError(error)
           const category = this.errors.setFromHttp(error, 'login')?.category
