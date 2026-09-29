@@ -140,7 +140,7 @@ import { ProvidedAccountIdDTO } from '@mercurion/rest-contracts';
         </button>
       </div>
       }
-      <div class="hidden sm:block" [ngClass]="{
+      <div class="hidden sm:flex items-center" [ngClass]="{
           'lg:hidden': userContext.isLoggedIn() || isLoginPath() || isWelcomePath() }">
         <m-icon-button
           size="sm"

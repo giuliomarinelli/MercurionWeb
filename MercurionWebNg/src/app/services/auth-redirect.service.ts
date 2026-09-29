@@ -78,18 +78,9 @@ export class AuthRedirectService {
     }
   }
 
-  /**
-   * Forza il redirect verso il route manifest login path, anche se sei già su una sotto-route
-   * come `/login/mfa/...`. Pulisce anche lo stato sessionStorage opzionalmente.
-   */
+  /** Return to the login route without passing through the public landing page. */
   async redirectToLogin(): Promise<void> {
     this.persistence.clearPreAuthData()
-
-
-    // Forza navigazione fuori da /login/...
-    await this.router.navigateByUrl('/', { skipLocationChange: true })
-
-    // Naviga poi a /login pulito
     await this.router.navigateByUrl(routeManifest.login.build({}), { replaceUrl: true })
   }
 }

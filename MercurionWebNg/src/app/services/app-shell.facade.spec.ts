@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core'
+import { ApplicationRef, Component, signal } from '@angular/core'
 import { TestBed } from '@angular/core/testing'
 import { NavigationCancel, NavigationEnd, NavigationError, NavigationStart, provideRouter, Router } from '@angular/router'
 import { AppShellFacade } from './app-shell.facade'
@@ -26,6 +26,8 @@ describe('AppShellFacade', () => {
   }
 
   beforeEach(() => {
+    authState.authenticated.set(false)
+    sessionSync.status.set('anonymous')
     authState.bootstrap.calls.reset()
     sessionSync.checkSession.calls.reset()
     redirects.capture.calls.reset()
@@ -41,6 +43,14 @@ describe('AppShellFacade', () => {
           path: 'welcome',
           component: TestRouteComponent,
           data: { routePolicy: { access: 'logged-out-only', shell: 'welcome' } }
+        }, {
+          path: 'dashboard',
+          component: TestRouteComponent,
+          data: { routePolicy: { access: 'authenticated', shell: 'standard' } }
+        }, {
+          path: 'login',
+          component: TestRouteComponent,
+          data: { routePolicy: { access: 'public', shell: 'minimal' } }
         }]),
         { provide: AuthStateStore, useValue: authState },
         { provide: SessionSyncService, useValue: sessionSync },
@@ -65,6 +75,29 @@ describe('AppShellFacade', () => {
     await router.navigateByUrl('/welcome')
 
     expect(facade.routePolicy()).toEqual({ access: 'logged-out-only', shell: 'welcome' })
+  })
+
+  it('sends a protected page directly to login when logout clears auth state', async () => {
+    authState.authenticated.set(true)
+    redirects.capture.and.returnValue('/dashboard')
+    const router = TestBed.inject(Router)
+    const facade = TestBed.inject(AppShellFacade)
+    const destinations: string[] = []
+    router.events.subscribe(event => {
+      if (event instanceof NavigationEnd) destinations.push(event.urlAfterRedirects)
+    })
+
+    await router.navigateByUrl('/dashboard')
+    TestBed.flushEffects()
+    authState.authenticated.set(false)
+    TestBed.flushEffects()
+    await TestBed.inject(ApplicationRef).whenStable()
+
+    expect(facade.routePolicy().access).toBe('public')
+    expect(router.parseUrl(router.url).root.children['primary'].segments[0].path).toBe('login')
+    expect(router.parseUrl(router.url).queryParams['redirect_to']).toBe('/dashboard')
+    expect(redirects.capture).toHaveBeenCalledWith('/dashboard')
+    expect(destinations).not.toContain('/welcome')
   })
 
   it('allows a repeated target after the prior transaction reaches a terminal event', () => {
