@@ -83,7 +83,7 @@ const ICON_POSITION_CLASSES = {
     }
 
     .m-button__control:focus-visible {
-      outline: 3px solid color-mix(in srgb, var(--color-focus) 45%, transparent);
+      outline: 3px solid var(--color-focus);
       outline-offset: var(--space-2);
     }
 
