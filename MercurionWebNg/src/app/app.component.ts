@@ -54,7 +54,7 @@ import { ToastComponent } from './components/common/toast/toast.component'
     }
     @if (routePolicy().shell === 'standard') {
       <div class="flex flex-col h-screen">
-        <m-header class="sticky top-0 z-30"
+        <m-header class="block sticky top-0 z-30"
           [triggerOpenOffCanvas]="_triggerOpenOffCanvas()"
           (onOffCanvasMenuOpen)="triggerOpenOffCanvas()" />
         <div class="drawer-container relative flex flex-1 overflow-hidden custom-scrollbar">
@@ -107,11 +107,6 @@ import { ToastComponent } from './components/common/toast/toast.component'
           </section>
         </div>
       </div>
-      @if (searchContextService.isMounted()) {
-        @defer (when searchContextService.isMounted()) {
-          <m-search-overlay />
-        }
-      }
       @if (saveOverlayContext.shouldMount() && authState.authenticated()) {
         @defer (when saveOverlayContext.shouldMount()) {
           <m-action-overlay />
@@ -120,10 +115,15 @@ import { ToastComponent } from './components/common/toast/toast.component'
     } @else {
       <div class="min-h-screen">
         @if (routePolicy().shell === 'welcome') {
-          <m-header class="sticky top-0 z-30" />
+          <m-header class="block sticky top-0 z-30" />
         }
         <router-outlet />
       </div>
+    }
+    @if (searchContextService.isMounted()) {
+      @defer (when searchContextService.isMounted()) {
+        <m-search-overlay />
+      }
     }
     <m-toast />
   `

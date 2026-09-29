@@ -106,7 +106,7 @@ import { ProvidedAccountIdDTO } from '@mercurion/rest-contracts';
       </span>
     </div>
     }
-    <div class="theme-menu-container flex gap-2 pr-2">
+    <div class="flex gap-2 pr-2">
       @if (!userContext.isLoggedIn() && !isLoginPath()) {
       <div
         class="hidden lg:flex items-center gap-3 text-sm xl:text-[0.925rem] font-medium text-light-on-surface-main dark:text-slate-100 tracking-wider mr-3 relative top-[1px]">
@@ -141,7 +141,7 @@ import { ProvidedAccountIdDTO } from '@mercurion/rest-contracts';
       </div>
       }
       <div class="hidden sm:flex items-center" [ngClass]="{
-          'lg:hidden': userContext.isLoggedIn() || isLoginPath() || isWelcomePath() }">
+          'lg:hidden': userContext.isLoggedIn() || isLoginPath() }">
         <m-icon-button
           size="sm"
           ariaLabel="Cerca molecola ChEMBL"
@@ -154,8 +154,10 @@ import { ProvidedAccountIdDTO } from '@mercurion/rest-contracts';
         </m-icon-button>
       </div>
 
-      <button class="flex items-center justify-center size-10 rounded-full theme-toggle-button mr-0 xs:mr-1 lg:mr-2 transition-all duration-500 hover:bg-slate-200/80 dark:hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-light-accent-primary-hq" [ngClass]="{
+      <div class="theme-menu-container relative mr-0 xs:mr-1 lg:mr-2" [ngClass]="{
           'xl:ml-1': userContext.isLoggedIn() || isLoginPath() }"
+      >
+      <button class="flex items-center justify-center size-10 rounded-full theme-toggle-button transition-all duration-500 hover:bg-slate-200/80 dark:hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-light-accent-primary-hq"
         (click)="toggleThemeMenu()"
         [attr.title]="themeMenuOpen() ? 'Chiudi il menù di selezione del tema' : 'Apri il menu di selezione del tema'"
         aria-label="Seleziona tema">
@@ -176,6 +178,8 @@ import { ProvidedAccountIdDTO } from '@mercurion/rest-contracts';
         </svg>
         }
       </button>
+      <ng-container [ngTemplateOutlet]="themeMenu" />
+      </div>
       @if (
       designService.minBk("md")() &&
       userContext.isLoggedIn() &&
@@ -193,9 +197,10 @@ import { ProvidedAccountIdDTO } from '@mercurion/rest-contracts';
 </header>
 <m-header-account-menu [session]="headerViewModel().session" />
 <!-- Menu cambio tema -->
+<ng-template #themeMenu>
 @if (themeMenuMounted()) {
 <div
-  class="theme-menu-container absolute -right-2 min-[350px]:right-8 sm:right-20 md:right-28 mt-2 z-50 w-64 text-base rounded-md shadow-lg bg-white text-light-on-surface-main dark:text-slate-100 dark:bg-neutral-800 transform transition-all duration-300 ease-out"
+  class="theme-menu-container absolute top-full right-3 mt-2 z-50 w-64 text-base rounded-md shadow-lg bg-white text-light-on-surface-main dark:text-slate-100 dark:bg-neutral-800 transform transition-all duration-300 ease-out"
   [ngClass]="{
       'opacity-100 translate-x-0 translate-y-0': themeMenuVisible(),
       'opacity-0 pointer-events-none translate-x-2 -translate-y-2':
@@ -278,6 +283,7 @@ import { ProvidedAccountIdDTO } from '@mercurion/rest-contracts';
   </div>
 </div>
 }
+</ng-template>
 <!-- Provider icon template (shared desktop + mobile avatar) -->
 <ng-template #providerIcon let-provider="provider">
   @switch (provider) {

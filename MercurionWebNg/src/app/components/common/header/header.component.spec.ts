@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 
 import { HeaderComponent } from './header.component';
 
@@ -20,6 +20,18 @@ describe('HeaderComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('aligns the theme menu right edge with its trigger', fakeAsync(() => {
+    const trigger = fixture.nativeElement.querySelector('.theme-toggle-button') as HTMLElement;
+    trigger.click();
+    fixture.detectChanges();
+    tick(0);
+    fixture.detectChanges();
+
+    const menu = fixture.nativeElement.querySelector('.theme-menu-container.absolute') as HTMLElement;
+    expect(menu).toBeTruthy();
+    expect(Math.abs(menu.getBoundingClientRect().right - trigger.getBoundingClientRect().right)).toBeLessThan(1);
+  }));
 
   describe('deterministic mount/visible timer ownership', () => {
     beforeEach(() => jasmine.clock().install());

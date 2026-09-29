@@ -95,7 +95,7 @@ import { DialogShellComponent } from '../../common/dialog-shell/dialog-shell.com
                   <m-search-result-skeleton-loader />
                 } @else if (chemblResults().length) {
                   @for (molecule of chemblResults(); track molecule.id) {
-                    <m-search-result [molecule]="molecule" [query]="query()" />
+                    <m-search-result [molecule]="molecule" [query]="query()" (navigated)="close()" />
                   }
                 } @else if (showChemblEmptyMessage()) {
                   <div class="text-sm text-slate-700 dark:text-slate-200 text-center py-8">
@@ -120,6 +120,7 @@ import { DialogShellComponent } from '../../common/dialog-shell/dialog-shell.com
                   @for (molecule of myItems(); track molecule.id; let i = $index) {
                     <m-molecule-summary-card
                       [viewModel]="savedSummary(molecule)"
+                      (navigate)="close()"
                       class="block w-full" />
                   }
                   @if (loading() && myItems().length) {
