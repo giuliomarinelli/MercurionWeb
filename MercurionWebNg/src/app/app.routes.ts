@@ -20,6 +20,7 @@ export const routes: Routes = [
   manifestRoute(routeManifest.dummyAuth, { loadComponent: () => import('./pages/local-dummy-auth/local-dummy-auth.page.component').then(m => m.LocalDummyAuthPageComponent) }),
   manifestRoute(routeManifest.profile, { redirectTo: routeManifest.dashboard.path }),
   manifestRoute(routeManifest.dashboard, { loadComponent: () => import('./pages/profile/dashboard.page.component').then(m => m.DashboardPageComponent), canActivate: [AuthGuard] }),
+  manifestRoute(routeManifest.buttonPlayground, { loadComponent: () => import('./pages/button-playground/button-playground.page.component').then(m => m.ButtonPlaygroundPageComponent), canActivate: [AuthGuard] }),
   manifestRoute(routeManifest.mfa, { loadComponent: () => import('./pages/login/mfa/mfa.page.component').then(m => m.MfaPageComponent) }),
   manifestRoute(routeManifest.mfa, { path: `${routeManifest.mfa.path}/:view`, loadComponent: () => import('./pages/login/mfa/mfa.page.component').then(m => m.MfaPageComponent) }),
   manifestRoute(routeManifest.moleculeDetail, { loadComponent: () => import('./pages/molecule-detail/molecule-detail.page.component').then(m => m.MoleculeDetailPageComponent) }),

@@ -13,6 +13,7 @@ export type ButtonVariant =
   | 'neutral'
   | 'ghost'
   | 'outline';
+
 export type ButtonSize = 'sm' | 'md' | 'lg';
 export type ButtonType = 'button' | 'submit' | 'reset';
 export type ButtonIconPosition = 'leading' | 'trailing';

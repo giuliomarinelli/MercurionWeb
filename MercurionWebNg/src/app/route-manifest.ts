@@ -7,6 +7,7 @@ export type RouteId =
   | 'dummyAuth'
   | 'profile'
   | 'dashboard'
+  | 'buttonPlayground'
   | 'mfa'
   | 'moleculeDetail'
   | 'moleculeEditor'
@@ -91,6 +92,7 @@ export const routeManifest = {
   dummyAuth: staticRoute('dummyAuth', '__local/dummy-auth', 'Autenticazione dummy locale', { access: 'public', shell: 'standard' }),
   profile: staticRoute('profile', 'profile', undefined, { access: 'authenticated', shell: 'standard' }),
   dashboard: staticRoute('dashboard', 'dashboard', 'Dashboard', { access: 'authenticated', shell: 'standard' }),
+  buttonPlayground: staticRoute('buttonPlayground', 'btn-playground', 'Button playground', { access: 'authenticated', shell: 'standard' }),
   mfa: staticRoute('mfa', 'login/mfa', 'Login · MFA', { access: 'public', shell: 'standard' }),
   moleculeDetail: parameterizedRoute<{ molId: string }>('moleculeDetail', 'molecules/detail/:molId', 'Molecole · Dettaglio', { access: 'public', shell: 'standard' }, ['molId'], { data: { titleManagedByComponent: true } }),
   moleculeEditor: staticRoute('moleculeEditor', 'molecules/editor', 'Molecole · Editor', { access: 'authenticated', shell: 'standard' }),

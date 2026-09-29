@@ -1,4 +1,5 @@
 import { routes } from './app.routes'
+import { AuthGuard } from './guards/auth.guard'
 import { routePolicyOf, RouteAccess, RouteShell } from './route-policy'
 
 describe('route policy metadata', () => {
@@ -9,6 +10,7 @@ describe('route policy metadata', () => {
     ['__local/dummy-auth', 'public', 'standard'],
     ['profile', 'authenticated', 'standard'],
     ['dashboard', 'authenticated', 'standard'],
+    ['btn-playground', 'authenticated', 'standard'],
     ['login/mfa', 'public', 'standard'],
     ['login/mfa/:view', 'public', 'standard'],
     ['molecules/detail/:molId', 'public', 'standard'],
@@ -62,5 +64,10 @@ describe('route policy metadata', () => {
         .toBeTrue()
       expect(routePolicyOf(route).access).toBe(access)
     }
+  })
+
+  it('requires authentication for the button playground', () => {
+    const route = routes.find(candidate => candidate.path === 'btn-playground')
+    expect(route?.canActivate).toContain(AuthGuard)
   })
 })
