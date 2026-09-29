@@ -63,7 +63,7 @@
   background: var(--color-control-primary);
   border: 0;
   border-radius: var(--radius-control);
-  color: var(--color-on-surface-main);
+  color: var(--color-on-control-filled);
   cursor: pointer;
   font: inherit;
   font-weight: 600;

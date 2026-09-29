@@ -33,6 +33,19 @@ class HostComponent {
   defaultPressed = false;
 }
 
+const luminance = (color: string): number => {
+  const channels = color.match(/[\d.]+/g)?.slice(0, 3).map(value => Number(value) / 255) ?? [];
+  return channels.reduce((sum, channel, index) => {
+    const linear = channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+    return sum + linear * [0.2126, 0.7152, 0.0722][index];
+  }, 0);
+};
+
+const contrastRatio = (foreground: string, background: string): number => {
+  const values = [luminance(foreground), luminance(background)];
+  return (Math.max(...values) + 0.05) / (Math.min(...values) + 0.05);
+};
+
 describe('ButtonComponent', () => {
   let fixture: ComponentFixture<HostComponent>;
 
@@ -102,6 +115,23 @@ describe('ButtonComponent', () => {
       host.size = size;
       fixture.detectChanges();
       expect(button.classList).toContain(`m-button__control--${size}`);
+    }
+  });
+
+  it('keeps filled button labels at enhanced text contrast in both themes', () => {
+    const host = fixture.componentInstance;
+    const button = fixture.debugElement.queryAll(By.css('button'))[0].nativeElement as HTMLButtonElement;
+
+    for (const dark of [false, true]) {
+      fixture.nativeElement.classList.toggle('dark', dark);
+      for (const variant of ['primary', 'secondary', 'destructive'] as const) {
+        host.variant = variant;
+        fixture.detectChanges();
+        const style = getComputedStyle(button);
+        expect(contrastRatio(style.color, style.backgroundColor))
+          .withContext(`${dark ? 'dark' : 'light'} ${variant}`)
+          .toBeGreaterThanOrEqual(7);
+      }
     }
   });
 });

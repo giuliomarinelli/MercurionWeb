@@ -1,4 +1,9 @@
+import { readFile } from 'node:fs/promises';
+import { createRequire } from 'node:module';
+
 import { validateSemanticColors } from './check-angular-semantic-colors.mjs';
+
+const require = createRequire(import.meta.url);
 
 const config = {
   theme: {
@@ -47,5 +52,18 @@ try {
   lowContrastRejected = errors.some(error => error.includes('body text contrast'));
 } catch {}
 if (!lowContrastRejected) throw new Error('Insufficient-contrast fixture was accepted.');
+
+const stylesheet = await readFile(new URL('../MercurionWebNg/src/styles.css', import.meta.url), 'utf8');
+const primary = stylesheet.match(/--color-control-primary:\s*(#[0-9a-f]{6});/i)?.[1];
+if (!primary) throw new Error('Missing primary control color in semantic stylesheet.');
+const unreadableLabel = stylesheet.replace(
+  /--color-on-control-filled:\s*#[0-9a-f]{6};/i,
+  `--color-on-control-filled: ${primary};`,
+);
+const projectConfig = require('../MercurionWebNg/tailwind.config.js');
+const unreadableErrors = validateSemanticColors({ tailwindConfig: projectConfig, cssSource: unreadableLabel });
+if (!unreadableErrors.some(error => error.includes('light primary control label contrast'))) {
+  throw new Error('Insufficient primary button label contrast was accepted.');
+}
 
 console.log('Angular semantic color negative checks passed.');

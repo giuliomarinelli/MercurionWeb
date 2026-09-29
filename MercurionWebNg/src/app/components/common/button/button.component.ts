@@ -115,7 +115,7 @@ const ICON_POSITION_CLASSES = {
 
     .m-button__control--primary {
       background: var(--color-control-primary);
-      color: var(--color-on-surface-main);
+      color: var(--color-on-control-filled);
     }
 
     .m-button__control--primary:hover:not(:disabled) {
@@ -124,7 +124,7 @@ const ICON_POSITION_CLASSES = {
 
     .m-button__control--secondary {
       background: var(--color-control-secondary);
-      color: var(--color-on-surface-main);
+      color: var(--color-on-control-filled);
     }
 
     .m-button__control--secondary:hover:not(:disabled) {
@@ -133,7 +133,7 @@ const ICON_POSITION_CLASSES = {
 
     .m-button__control--destructive {
       background: var(--color-control-destructive);
-      color: var(--color-on-surface-main);
+      color: var(--color-on-control-filled);
     }
 
     .m-button__control--destructive:hover:not(:disabled) {
@@ -146,39 +146,26 @@ const ICON_POSITION_CLASSES = {
     }
 
     .m-button__control--neutral:hover:not(:disabled) {
-      background: var(--color-border);
+      background: var(--color-control-neutral-hover);
     }
 
     .m-button__control--ghost {
       background: transparent;
-      color: var(--color-on-surface-secondary);
+      color: var(--color-on-surface-main);
     }
 
     .m-button__control--ghost:hover:not(:disabled) {
-      background: color-mix(in srgb, var(--color-on-surface-muted) 18%, transparent);
+      background: var(--color-control-ghost-hover);
     }
 
     .m-button__control--outline {
       background: transparent;
       border-color: var(--color-focus);
-      color: var(--color-accent-primary-hover);
+      color: var(--color-control-outline-text);
     }
 
     .m-button__control--outline:hover:not(:disabled) {
-      background: color-mix(in srgb, var(--color-focus) 12%, var(--color-surface-main));
-    }
-
-    :host-context(.dark) .m-button__control--neutral {
-      background: var(--color-surface-secondary);
-      color: var(--color-on-surface-main);
-    }
-
-    :host-context(.dark) .m-button__control--ghost {
-      color: var(--color-on-surface-secondary);
-    }
-
-    :host-context(.dark) .m-button__control--outline {
-      color: var(--color-focus);
+      background: var(--color-control-outline-hover);
     }
 
     .m-button__spinner {
@@ -212,6 +199,7 @@ const ICON_POSITION_CLASSES = {
   `,
 })
 export class ButtonComponent {
+
   readonly variant = input<ButtonVariant>('primary');
   readonly size = input<ButtonSize>('md');
   readonly type = input<ButtonType>('button');
