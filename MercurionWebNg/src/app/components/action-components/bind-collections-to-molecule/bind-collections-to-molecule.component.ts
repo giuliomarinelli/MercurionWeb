@@ -197,7 +197,7 @@ import { AbstractMultiselectItem } from '../../../Models/abstract.models';
       @if (step() === 1) {
         <m-button
         action-footer-secondary
-        variant="neutral"
+        variant="outline"
         (click)="close()"
         >
         Annulla

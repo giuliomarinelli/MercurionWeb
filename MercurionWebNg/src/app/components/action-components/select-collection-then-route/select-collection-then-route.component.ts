@@ -85,7 +85,7 @@ import { CollectionPickerFacade } from '../collection-picker/collection-picker.f
           </span>
         </p>
 
-        <div class="w-full max-w-3xl mx-auto">
+        <div class="w-full max-w-3xl mx-auto px-2">
           <m-select-core
             [items]="collections()"
             [displayFn]="displayCollection"
@@ -108,7 +108,7 @@ import { CollectionPickerFacade } from '../collection-picker/collection-picker.f
     <m-action-footer action-card-footer>
       <m-button
         action-footer-secondary
-        variant="neutral"
+        variant="outline"
         (click)="close()"
         aria-label="Annulla selezione collezione"
       >

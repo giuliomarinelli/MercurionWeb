@@ -839,7 +839,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     <m-action-footer action-card-footer>
         <m-button
           action-footer-secondary
-          variant="neutral"
+          variant="outline"
           [class.hidden]="
             enableMfaStep() === 'CHOOSE_STRATEGY'
             || disableMfaStep() === 'CHOOSE_STRATEGY'

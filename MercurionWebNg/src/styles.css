@@ -306,6 +306,14 @@ html {
     padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
   }
 
+  @media (max-width: 767px) {
+    m-action-footer [action-footer-secondary],
+    m-action-footer [action-footer-primary],
+    m-action-footer m-button .m-button__control {
+      width: 100%;
+    }
+  }
+
   .m-overscroll-touch {
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;

@@ -23,7 +23,7 @@ import {
 
       <section class="rounded-2xl border border-slate-300/70 bg-light-surface-main p-5 dark:border-slate-700 dark:bg-dark-surface-main sm:p-6" aria-labelledby="variants-title">
         <h2 id="variants-title" class="mb-1 text-xl font-semibold">Varianti e dimensioni</h2>
-        <p class="mb-5 text-sm text-light-on-surface-secondary dark:text-dark-on-surface-secondary">Tutte le sei varianti nelle tre dimensioni disponibili.</p>
+        <p class="mb-5 text-sm text-light-on-surface-secondary dark:text-dark-on-surface-secondary">Le varianti in uso nelle tre dimensioni disponibili.</p>
         <div class="overflow-x-auto">
           <table class="w-full min-w-[560px] border-collapse text-left">
             <thead>
@@ -81,7 +81,7 @@ import {
           <m-button variant="ghost" ariaLabel="Aggiungi elemento" type="button">
             <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
           </m-button>
-          <m-button variant="neutral" ariaCurrent="page">Pagina corrente</m-button>
+          <m-button variant="outline" ariaCurrent="page">Pagina corrente</m-button>
           <m-button variant="primary">Etichetta volutamente lunga per controllare spaziatura e ritorno a capo</m-button>
         </div>
       </section>
@@ -148,7 +148,7 @@ import {
   `
 })
 export class ButtonPlaygroundPageComponent {
-  readonly variants: readonly ButtonVariant[] = ['primary', 'secondary', 'destructive', 'neutral', 'ghost', 'outline']
+  readonly variants: readonly ButtonVariant[] = ['primary', 'secondary', 'destructive', 'ghost', 'outline']
   readonly sizes: readonly ButtonSize[] = ['sm', 'md', 'lg']
   readonly types: readonly ButtonType[] = ['button', 'submit', 'reset']
 

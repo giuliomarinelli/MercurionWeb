@@ -11,7 +11,7 @@ import { ButtonComponent } from '../button/button.component';
   template: `
     <m-action-footer>
       @if (hasSecondary) {
-        <m-button action-footer-secondary variant="neutral" (pressed)="secondaryPressed = true">
+        <m-button action-footer-secondary variant="outline" (pressed)="secondaryPressed = true">
           Cancel
         </m-button>
       }
@@ -53,6 +53,26 @@ describe('ActionFooterComponent', () => {
       'Cancel',
       'Save',
     ]);
+  });
+
+  it('groups secondary and primary actions on the right with the primary last', () => {
+    const actions = fixture.nativeElement.querySelector('.m-action-footer__actions') as HTMLElement;
+    const secondary = fixture.nativeElement.querySelector('.m-action-footer__secondary button') as HTMLButtonElement;
+    const primary = fixture.nativeElement.querySelector('.m-action-footer__primary button') as HTMLButtonElement;
+    const secondaryRect = secondary.getBoundingClientRect();
+    const primaryRect = primary.getBoundingClientRect();
+
+    expect(getComputedStyle(actions).justifyContent).toBe('flex-end');
+    expect(primaryRect.left).toBeGreaterThan(secondaryRect.right);
+    expect(primaryRect.left - secondaryRect.right).toBeLessThanOrEqual(20);
+    expect(Math.abs(primaryRect.right - actions.getBoundingClientRect().right)).toBeLessThan(1);
+
+    (fixture.nativeElement.querySelector('.m-action-footer') as HTMLElement).style.width = '240px';
+    const compactSecondary = secondary.getBoundingClientRect();
+    const compactPrimary = primary.getBoundingClientRect();
+    expect(Math.abs(compactSecondary.top - compactPrimary.top)).toBeLessThan(1);
+    expect(compactSecondary.right).toBeLessThan(compactPrimary.left);
+    expect(Math.abs(compactPrimary.right - actions.getBoundingClientRect().right)).toBeLessThan(1);
   });
 
   it('supports a single primary action', () => {

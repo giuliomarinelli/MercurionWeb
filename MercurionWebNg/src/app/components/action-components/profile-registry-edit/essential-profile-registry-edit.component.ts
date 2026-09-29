@@ -141,7 +141,7 @@ type RegistryFormValue = {
       @if (step() === 1) {
         <m-button
           action-footer-secondary
-          variant="neutral"
+          variant="outline"
           (click)="close()"
           aria-label="Annulla modifica anagrafica"
         >
@@ -153,7 +153,7 @@ type RegistryFormValue = {
       @if (step() === 1) {
         <m-button
           action-footer-secondary
-          variant="neutral"
+          variant="outline"
           size="sm"
           title="Resetta"
           [disabled]="isGroupValueTheSameAsInitialValueSig()"

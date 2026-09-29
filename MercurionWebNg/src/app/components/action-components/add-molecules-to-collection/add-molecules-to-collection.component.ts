@@ -605,7 +605,7 @@ export type { ChipItem } from './add-molecules-to-collection.flow';
       @if (step() === 1) {
         <m-button
           action-footer-secondary
-          variant="neutral"
+          variant="outline"
           (click)="close()"
         >
           Annulla

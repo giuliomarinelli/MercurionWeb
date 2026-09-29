@@ -248,7 +248,7 @@ import {
       <m-action-footer action-card-footer>
         <m-button
           action-footer-secondary
-          variant="neutral"
+          variant="outline"
           (click)="close()"
         >
           Annulla

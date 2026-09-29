@@ -31,8 +31,8 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
     .m-action-footer__actions {
       align-items: center;
       display: flex;
-      flex-wrap: wrap;
-      gap: 0.75rem;
+      flex-wrap: nowrap;
+      gap: clamp(0.5rem, 1.5vw, 1rem);
       justify-content: flex-end;
     }
 
@@ -41,11 +41,15 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
       align-items: center;
       display: flex;
       flex-wrap: wrap;
-      gap: 0.75rem;
+      gap: clamp(0.5rem, 1.5vw, 1rem);
     }
 
     .m-action-footer__secondary {
-      margin-right: auto;
+      min-width: 0;
+    }
+
+    .m-action-footer__primary {
+      flex-shrink: 0;
     }
 
     @media (max-width: 767px) {
@@ -55,7 +59,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 
       .m-action-footer__actions {
         align-items: stretch;
-        flex-direction: column;
+        flex-direction: column-reverse;
         gap: 0.5rem;
       }
 
@@ -64,8 +68,11 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
         align-items: stretch;
         flex-direction: column;
         gap: 0.5rem;
-        margin: 0;
         width: 100%;
+      }
+
+      .m-action-footer__secondary:empty {
+        display: none;
       }
     }
 

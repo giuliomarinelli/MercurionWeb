@@ -72,7 +72,7 @@ interface SelectItem {
           <m-action-footer>
             <m-button
               action-footer-secondary
-              variant="neutral"
+              variant="outline"
               (pressed)="cancelled = true; dialogOpen = false"
             >
               Cancel
