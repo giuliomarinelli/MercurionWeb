@@ -67,9 +67,9 @@ import { CollectionPickerFacade } from '../collection-picker/collection-picker.f
     </div>
     <!-- BODY -->
     <div action-card-body class="bg-light-surface-secondary dark:bg-dark-surface-secondary">
-      <div class="flex flex-col gap-6 min-h-[50vh]">
+      <div class="flex flex-col gap-6 min-h-[50dvh]">
         <p
-          class="my-4 px-2 sm:px-4 flex items-start gap-3 text-sm
+          class="mt-8 mb-2 px-2 sm:px-4 flex items-center gap-3 text-sm
                  text-light-on-surface-secondary dark:text-dark-on-surface-secondary"
           role="status"
           aria-live="polite"

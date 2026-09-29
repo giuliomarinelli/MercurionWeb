@@ -185,11 +185,14 @@ import { ProvidedAccountIdDTO } from '@mercurion/rest-contracts';
       userContext.isLoggedIn() &&
       isAllowedPath()
       ) {
-      <m-header-session-indicator
-        [session]="headerViewModel().session"
-        [expanded]="avatarMenuOpen()"
-        (toggled)="toggleAvatarMenu()">
-      </m-header-session-indicator>
+      <div class="avatar-menu-anchor relative flex items-center">
+        <m-header-session-indicator
+          [session]="headerViewModel().session"
+          [expanded]="avatarMenuOpen()"
+          (toggled)="toggleAvatarMenu()">
+        </m-header-session-indicator>
+        <ng-container [ngTemplateOutlet]="avatarMenu" />
+      </div>
       }
 
     </div>
@@ -200,7 +203,7 @@ import { ProvidedAccountIdDTO } from '@mercurion/rest-contracts';
 <ng-template #themeMenu>
 @if (themeMenuMounted()) {
 <div
-  class="theme-menu-container absolute top-full right-3 mt-2 z-50 w-64 text-base rounded-md shadow-lg bg-white text-light-on-surface-main dark:text-slate-100 dark:bg-neutral-800 transform transition-all duration-300 ease-out"
+  class="theme-menu-container absolute top-full right-0 mt-2 z-50 w-64 text-base rounded-md shadow-lg bg-white text-light-on-surface-main dark:text-slate-100 dark:bg-neutral-800 transform transition-all duration-300 ease-out"
   [ngClass]="{
       'opacity-100 translate-x-0 translate-y-0': themeMenuVisible(),
       'opacity-0 pointer-events-none translate-x-2 -translate-y-2':
@@ -321,9 +324,10 @@ import { ProvidedAccountIdDTO } from '@mercurion/rest-contracts';
   }
 </ng-template>
 <!-- Menu avatar -->
+<ng-template #avatarMenu>
 @if (avatarMenuMounted() && designService.minBk('sm')()) {
 <div
-  class="avatar-menu-container absolute xs:right-9 md:right-12 mt-2 z-50 w-72 text-base rounded-md shadow-lg bg-white text-light-on-surface-main dark:text-slate-100 dark:bg-neutral-800 transform transition-all duration-300 ease-out"
+  class="avatar-menu-container absolute top-full right-0 mt-2 z-50 w-72 text-base rounded-md shadow-lg bg-white text-light-on-surface-main dark:text-slate-100 dark:bg-neutral-800 transform transition-all duration-300 ease-out"
   [ngClass]="{
       'opacity-100 translate-x-0 translate-y-0': avatarMenuVisible(),
       'opacity-0 pointer-events-none translate-x-2 -translate-y-2':
@@ -395,6 +399,7 @@ import { ProvidedAccountIdDTO } from '@mercurion/rest-contracts';
   </div>
 </div>
 }
+</ng-template>
 <!-- Offcanvas backdrop -->
 <m-header-responsive-menu [open]="offCanvasMenuOpen()" />
 @if (offCanvasMenuOpen()) {
