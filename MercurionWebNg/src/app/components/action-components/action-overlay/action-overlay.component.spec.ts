@@ -59,6 +59,9 @@ describe('CollectionSaveOverlayComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('m-test-action')?.textContent).toContain('Azione caricata');
+    const panel = fixture.nativeElement.querySelector('[role="dialog"] > div > div') as HTMLElement;
+    expect(panel.classList).toContain('bg-transparent');
+    expect(panel.classList).toContain('overflow-visible');
   });
 
   it('exposes loading and error states for a failed action load', async () => {

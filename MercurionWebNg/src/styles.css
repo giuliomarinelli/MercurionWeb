@@ -301,10 +301,9 @@ html {
   .m-overlay-screen {
     min-height: 100vh;
     min-height: 100dvh;
-    min-height: calc(var(--app-vh, 1vh) * 100);
-    height: calc(var(--app-vh, 1vh) * 100);
-    padding-top: env(safe-area-inset-top, 0px);
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+    --m-action-card-available-height: calc(100dvh - max(0.5rem, env(safe-area-inset-top, 0px)) - max(0.5rem, env(safe-area-inset-bottom, 0px)));
+    padding-top: max(0.5rem, env(safe-area-inset-top, 0px));
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
   }
 
   .m-overscroll-touch {

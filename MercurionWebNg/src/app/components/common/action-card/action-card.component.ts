@@ -67,7 +67,7 @@ const SIZE_CLASSES: Record<ActionCardSize, string> = {
       color: var(--m-action-card-color, var(--color-on-surface-main));
       display: flex;
       flex-direction: column;
-      max-height: calc(100dvh - 2rem);
+      max-height: var(--m-action-card-available-height, calc(100dvh - 2rem));
       min-height: 0;
       overflow: hidden;
       width: 100%;
@@ -121,10 +121,6 @@ const SIZE_CLASSES: Record<ActionCardSize, string> = {
     }
 
     @media (max-width: 767px) {
-      .m-action-card {
-        max-height: calc(100dvh - 0.5rem);
-      }
-
       .m-action-card__header {
         padding: var(--space-3);
       }

@@ -96,15 +96,15 @@ let generatedSelectId = 0;
           autocomplete="off"
           (focus)="onFocus()"
           (blur)="onBlur()"
-          (click)="open()"
           (input)="onInput($event)"
           (keydown)="onKeydown($event)"
         />
 
         @if (isOpen()) {
           <div
-            class="mt-2 max-h-64 overflow-y-auto text-slate-800 dark:text-slate-50"
+            class="mt-2 overflow-y-auto text-slate-800 dark:text-slate-50"
             [id]="listboxId()"
+            [style.max-height]="listMaxHeight()"
             role="listbox"
             [attr.aria-label]="ariaLabel() || label() || 'Elenco elementi'"
             [attr.aria-multiselectable]="multiple() || null"
@@ -147,26 +147,39 @@ let generatedSelectId = 0;
                        dark:bg-slate-800"
               >
                 @if (creatingNew()) {
-                  <input
-                    #newInput
-                    class="w-2/3 rounded-md border border-slate-300 px-2 py-1 dark:border-slate-500
-                           dark:bg-slate-900 dark:text-slate-50"
-                    aria-label="Nome nuovo elemento"
-                    placeholder="Nome nuova..."
-                    [value]="newItemName()"
-                    (input)="onNewItemInput($event)"
-                    (keydown.enter)="confirmCreateNew()"
-                  />
-                  <button
-                    type="button"
-                    class="ml-2 rounded-md bg-emerald-600 px-2 py-1 text-white"
-                    aria-label="Conferma creazione"
-                    (click)="confirmCreateNew()"
-                  >
-                    Crea
-                  </button>
+                  <div class="flex flex-wrap items-center gap-2">
+                    <input
+                      #newInput
+                      class="min-w-40 flex-1 rounded-md border border-slate-300 bg-white px-2 py-1 text-slate-900
+                             placeholder-slate-500 dark:border-slate-500 dark:bg-slate-900
+                             dark:text-slate-50 dark:placeholder-slate-300"
+                      aria-label="Nome nuovo elemento"
+                      placeholder="Nome nuova..."
+                      [value]="newItemName()"
+                      (input)="onNewItemInput($event)"
+                      (keydown.enter)="confirmCreateNew()"
+                      (keydown.escape)="cancelCreateNew(); $event.stopPropagation()"
+                    />
+                    <button
+                      type="button"
+                      class="rounded-md bg-slate-200 px-2 py-1 text-slate-900 dark:bg-slate-700 dark:text-slate-50"
+                      aria-label="Annulla creazione"
+                      (click)="cancelCreateNew()"
+                    >
+                      Annulla
+                    </button>
+                    <button
+                      type="button"
+                      class="rounded-md bg-emerald-600 px-2 py-1 text-white"
+                      aria-label="Conferma creazione"
+                      (click)="confirmCreateNew()"
+                    >
+                      Crea
+                    </button>
+                  </div>
                 } @else {
                   <button
+                    #createTrigger
                     type="button"
                     class="font-semibold text-emerald-800 dark:text-emerald-200"
                     aria-label="Crea nuovo elemento"
@@ -222,6 +235,7 @@ export class SelectCoreComponent<TItem, TValue> {
   readonly searchPlaceholder = input('Cerca...');
   readonly hasMore = input(false);
   readonly canCreateNew = input(false);
+  readonly listMaxHeight = input('16rem');
 
   readonly selectionChange = output<SelectSelectionChange<TItem, TValue>>();
   readonly searchChange = output<string>();
@@ -229,7 +243,6 @@ export class SelectCoreComponent<TItem, TValue> {
   readonly createNew = output<string>();
 
   private readonly state = signal<SelectState>({
-    isOpen: false,
     activeIndex: -1,
     searchTerm: '',
     hasFocus: false
@@ -239,14 +252,14 @@ export class SelectCoreComponent<TItem, TValue> {
   readonly loadingMore = signal(false);
   readonly searchInput = viewChild<ElementRef<HTMLInputElement>>('searchInput');
   readonly newInput = viewChild<ElementRef<HTMLInputElement>>('newInput');
-  private suppressNextFocusOpen = false;
+  readonly createTrigger = viewChild<ElementRef<HTMLButtonElement>>('createTrigger');
 
   private readonly generatedId = `select-${++generatedSelectId}`;
   readonly controlId = computed(() => this.id() || this.generatedId);
   readonly listboxId = computed(() => `${this.controlId()}-listbox`);
   readonly hintId = computed(() => `${this.controlId()}-hint`);
   readonly errorId = computed(() => `${this.controlId()}-error`);
-  readonly isOpen = computed(() => this.state().isOpen);
+  readonly isOpen = computed(() => !this.disabled());
   readonly activeIndex = computed(() => this.state().activeIndex);
   readonly activeDescendant = computed(() =>
     this.activeIndex() >= 0 && this.isOpen() ? this.optionId(this.activeIndex()) : null
@@ -257,7 +270,7 @@ export class SelectCoreComponent<TItem, TValue> {
     return this.items().filter(item => this.displayFn()(item).toLowerCase().includes(term));
   });
   readonly inputValue = computed(() => {
-    if (this.multiple() || this.state().hasFocus) return this.state().searchTerm;
+    if (this.multiple() || this.state().hasFocus || this.state().searchTerm) return this.state().searchTerm;
     const selectedItem = this.items().find(item => this.sameValue(this.valueFn()(item), this.selected()));
     return selectedItem ? this.displayFn()(selectedItem) : '';
   });
@@ -270,30 +283,17 @@ export class SelectCoreComponent<TItem, TValue> {
 
   onFocus(): void {
     if (this.disabled()) return;
-    if (this.suppressNextFocusOpen) {
-      this.suppressNextFocusOpen = false;
-      this.updateState({ hasFocus: true });
-      return;
-    }
-    this.updateState({ hasFocus: true, isOpen: true, activeIndex: -1 });
+    this.updateState({ hasFocus: true, activeIndex: -1 });
   }
 
   onBlur(): void {
-    window.setTimeout(() => {
-      this.updateState({ hasFocus: false, isOpen: false, activeIndex: -1, searchTerm: '' });
-    });
-  }
-
-  open(): void {
-    if (this.disabled()) return;
-    this.updateState({ isOpen: true, activeIndex: -1 });
+    this.updateState({ hasFocus: false, activeIndex: -1 });
   }
 
   onInput(event: Event): void {
     const value = (event.target as HTMLInputElement).value;
     this.updateState({
       searchTerm: value,
-      isOpen: true,
       activeIndex: this.items().some(item => this.displayFn()(item).toLowerCase().includes(value.trim().toLowerCase()))
         ? 0
         : -1
@@ -306,13 +306,11 @@ export class SelectCoreComponent<TItem, TValue> {
     switch (event.key) {
       case 'ArrowDown':
         event.preventDefault();
-        this.open();
         if (this.activeIndex() < 0) this.setActiveIndex(0);
         else this.moveActive(1);
         break;
       case 'ArrowUp':
         event.preventDefault();
-        this.open();
         if (this.activeIndex() < 0) {
           this.setActiveIndex(Math.max(0, this.filteredItems().length - 1));
         } else {
@@ -332,22 +330,22 @@ export class SelectCoreComponent<TItem, TValue> {
         }
         break;
       case 'Enter':
-        if (this.isOpen() && this.activeIndex() >= 0) {
+        if (this.activeIndex() >= 0) {
           event.preventDefault();
           const item = this.filteredItems()[this.activeIndex()];
           if (item) this.selectItem(item);
-        } else {
-          this.open();
         }
         break;
       case 'Escape':
-        if (this.isOpen()) {
+        if (this.state().searchTerm || this.activeIndex() >= 0) {
           event.preventDefault();
-          this.closeAndRestoreFocus();
+          event.stopPropagation();
+          if (this.state().searchTerm) this.searchChange.emit('');
+          this.updateState({ activeIndex: -1, searchTerm: '' });
         }
         break;
       case 'Tab':
-        this.updateState({ isOpen: false, activeIndex: -1, searchTerm: '' });
+        this.updateState({ activeIndex: -1 });
         break;
     }
   }
@@ -367,11 +365,10 @@ export class SelectCoreComponent<TItem, TValue> {
         ? current.filter((_, index) => index !== existingIndex)
         : [...current, value];
       this.selectionChange.emit({ item, value, values });
-      this.updateState({ activeIndex: this.filteredItems().indexOf(item), isOpen: true, searchTerm: '' });
+      this.updateState({ activeIndex: this.filteredItems().indexOf(item), searchTerm: '' });
     } else {
       this.selectionChange.emit({ item, value, values: [value] });
-      this.updateState({ isOpen: false, activeIndex: -1, searchTerm: '' });
-      this.suppressNextFocusOpen = true;
+      this.updateState({ activeIndex: -1, searchTerm: '' });
       this.searchInput()?.nativeElement.focus();
     }
     this.creatingNew.set(false);
@@ -402,6 +399,12 @@ export class SelectCoreComponent<TItem, TValue> {
     this.creatingNew.set(false);
   }
 
+  cancelCreateNew(): void {
+    this.newItemName.set('');
+    this.creatingNew.set(false);
+    window.setTimeout(() => this.createTrigger()?.nativeElement.focus());
+  }
+
   removeValue(value: TValue): void {
     if (!this.multiple()) return;
     const values = this.selectedValues().filter(selected => !this.sameValue(selected, value));
@@ -428,12 +431,6 @@ export class SelectCoreComponent<TItem, TValue> {
 
   optionId(index: number): string {
     return `${this.listboxId()}-option-${index}`;
-  }
-
-  private closeAndRestoreFocus(): void {
-    this.updateState({ isOpen: false, activeIndex: -1, searchTerm: '' });
-    this.suppressNextFocusOpen = true;
-    this.searchInput()?.nativeElement.focus();
   }
 
   private moveActive(delta: number): void {

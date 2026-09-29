@@ -38,7 +38,7 @@ type RegistryFormValue = {
   ],
   template: `
 
-<div class="flex justify-center items-start md:items-center min-h-screen px-2 sm:px-4 pt-1 md:pt-6 m-overlay-screen">
+<div class="flex justify-center items-start md:items-center min-h-dvh px-2 sm:px-4 m-overlay-screen">
   <m-action-card
     size="standard"
     labelledBy="profileRegistryHeading"
@@ -114,7 +114,7 @@ type RegistryFormValue = {
           }
         } @else if (step() === 2 && error()) {
           <div
-            class="bg-light-surface-secondary dark:bg-dark-surface-secondary border my-16 border-light-border dark:border-dark-border relative px-4 py-3 mx-auto max-w-[1024px] rounded-lg text-sm flex gap-3 xs:gap-4 items-center flex-col xs:flex-row"
+            class="bg-light-surface-secondary dark:bg-dark-surface-secondary border my-16 border-light-border dark:border-dark-border relative px-4 py-3 mx-auto max-w-[1024px] rounded-lg text-sm flex gap-3 xs:gap-4 items-center flex-row"
             role="alert"
             aria-live="assertive"
           >

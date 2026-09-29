@@ -1,5 +1,4 @@
 export interface SelectState {
-  readonly isOpen: boolean;
   readonly activeIndex: number;
   readonly searchTerm: string;
   readonly hasFocus: boolean;

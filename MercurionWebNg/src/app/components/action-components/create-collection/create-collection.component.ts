@@ -74,7 +74,7 @@ import {
     `
   ],
   template: `
-  <div class="flex justify-center items-start md:items-center min-h-screen px-2 sm:px-4 pt-1 md:pt-6 m-overlay-screen">
+  <div class="flex justify-center items-start md:items-center min-h-dvh px-2 sm:px-4 m-overlay-screen">
       <m-action-card
         size="compact"
         labelledBy="createCollectionHeading"

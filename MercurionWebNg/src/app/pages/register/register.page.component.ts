@@ -36,7 +36,7 @@ import { adaptHttpFormError, type FormErrorState } from '../../utils/form-error.
   template: `
 
     @if (userContext.isLoggedOut()) {
-      <main class="main-container min-h-screen max-w-[425px] sm:max-w-4xl" role="main" aria-live="polite" [attr.aria-busy]="loading()">
+      <main class="main-container min-h-dvh max-w-[425px] sm:max-w-4xl" role="main" aria-live="polite" [attr.aria-busy]="loading()">
         <div class="flex flex-col items-center px-4">
           <img
             [src]="logoSrc() | public"

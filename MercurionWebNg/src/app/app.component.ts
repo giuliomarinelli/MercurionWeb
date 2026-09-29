@@ -113,7 +113,7 @@ import { ToastComponent } from './components/common/toast/toast.component'
         }
       }
     } @else {
-      <div class="min-h-screen">
+      <div class="min-h-dvh">
         @if (routePolicy().shell === 'welcome') {
           <m-header class="block sticky top-0 z-30" />
         }

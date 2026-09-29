@@ -300,7 +300,9 @@ describe('canonical UI accessibility coverage', () => {
 
     combobox.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
     fixture.detectChanges();
-    expect(combobox.getAttribute('aria-expanded')).toBe('false');
+    expect(combobox.getAttribute('aria-expanded')).toBe('true');
+    expect(combobox.getAttribute('aria-activedescendant')).toBeNull();
+    expect(nativeElement('[role="listbox"]')).toBeTruthy();
     expect(document.activeElement).toBe(combobox);
   });
 

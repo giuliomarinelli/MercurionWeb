@@ -9,7 +9,7 @@ import { SessionSyncService } from '../../services/session-sync.service'
   selector: 'app-local-dummy-auth-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <main class="min-h-screen grid place-items-center p-6">
+    <main class="min-h-dvh grid place-items-center p-6">
       <p role="status">{{ message() }}</p>
     </main>
   `

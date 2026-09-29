@@ -77,7 +77,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   template: `
 
 
-<div class="flex justify-center items-start md:items-center min-h-screen px-2 sm:px-4 pt-1 md:pt-6 m-overlay-screen">
+<div class="flex justify-center items-start md:items-center min-h-dvh px-2 sm:px-4 m-overlay-screen">
   <m-action-card
     size="standard"
     labelledBy="sensitiveDataHeading"
@@ -198,7 +198,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
           } @else if (enableMfaStep() === 'OK_OR_ERROR') {
             <div class="flex flex-col gap-y-4">
               <div
-                class="bg-light-surface-secondary dark:bg-dark-surface-secondary border my-12 border-light-border dark:border-dark-border relative px-4 py-3 mx-auto max-w-[1024px] rounded-lg text-sm flex gap-3 xs:gap-4 items-center flex-col xs:flex-row"
+                class="bg-light-surface-secondary dark:bg-dark-surface-secondary border my-12 border-light-border dark:border-dark-border relative px-4 py-3 mx-auto max-w-[1024px] rounded-lg text-sm flex gap-3 xs:gap-4 items-center flex-row"
                 [attr.role]="serverError() ? 'alert' : 'status'"
                 [attr.aria-live]="serverError() ? 'assertive' : 'polite'"
               >
@@ -390,7 +390,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
           </div>
           } @else if (disableMfaStep() === 'OK_OR_ERROR') {
               <div class="flex flex-col gap-y-4">
-                <div class="bg-light-surface-secondary dark:bg-dark-surface-secondary border my-12 border-light-border dark:border-dark-border relative px-4 py-3 mx-auto max-w-[1024px] rounded-lg text-sm flex gap-3 xs:gap-4 items-center flex-col xs:flex-row">
+                <div class="bg-light-surface-secondary dark:bg-dark-surface-secondary border my-12 border-light-border dark:border-dark-border relative px-4 py-3 mx-auto max-w-[1024px] rounded-lg text-sm flex gap-3 xs:gap-4 items-center flex-row">
                   @if (!serverError()) {
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="shrink-0 fill-current w-20 h-auto text-[#064e3b] dark:text-[#a7f3d0]">
                       <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
@@ -508,7 +508,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                 </div>
               }
               @case ('OK_OR_ERROR') {
-                <div class="bg-light-surface-secondary dark:bg-dark-surface-secondary border my-12 border-light-border dark:border-dark-border relative px-4 py-3 mx-auto max-w-[1024px] rounded-lg text-sm flex gap-3 xs:gap-4 items-center flex-col xs:flex-row">
+                <div class="bg-light-surface-secondary dark:bg-dark-surface-secondary border my-12 border-light-border dark:border-dark-border relative px-4 py-3 mx-auto max-w-[1024px] rounded-lg text-sm flex gap-3 xs:gap-4 items-center flex-row">
                   @if (!serverError()) {
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="shrink-0 fill-current w-20 h-auto text-[#064e3b] dark:text-[#a7f3d0]">
                       <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
@@ -631,7 +631,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
               </div>
             }
             @case ('OK_OR_ERROR') {
-                <div class="bg-light-surface-secondary dark:bg-dark-surface-secondary border my-12 border-light-border dark:border-dark-border relative px-4 py-3 mx-auto max-w-[1024px] rounded-lg text-sm flex gap-3 xs:gap-4 items-center flex-col xs:flex-row">
+                <div class="bg-light-surface-secondary dark:bg-dark-surface-secondary border my-12 border-light-border dark:border-dark-border relative px-4 py-3 mx-auto max-w-[1024px] rounded-lg text-sm flex gap-3 xs:gap-4 items-center flex-row">
                   @if (!serverError()) {
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="shrink-0 fill-current w-20 h-auto text-[#064e3b] dark:text-[#a7f3d0]">
                       <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
@@ -708,7 +708,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
               </div>
               }
               @case ('OK_OR_ERROR') {
-                <div class="bg-light-surface-secondary dark:bg-dark-surface-secondary border my-12 border-light-border dark:border-dark-border relative px-4 py-3 mx-auto max-w-[1024px] rounded-lg text-sm flex gap-3 xs:gap-4 items-center flex-col xs:flex-row">
+                <div class="bg-light-surface-secondary dark:bg-dark-surface-secondary border my-12 border-light-border dark:border-dark-border relative px-4 py-3 mx-auto max-w-[1024px] rounded-lg text-sm flex gap-3 xs:gap-4 items-center flex-row">
                   @if (!serverError()) {
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="shrink-0 fill-current w-20 h-auto text-[#064e3b] dark:text-[#a7f3d0]">
                       <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
@@ -799,7 +799,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
               </div>
             }
             @case ('OK_OR_ERROR') {
-              <div class="bg-light-surface-secondary dark:bg-dark-surface-secondary border my-12 border-light-border dark:border-dark-border relative px-4 py-3 mx-auto max-w-[1024px] rounded-lg text-sm flex gap-3 xs:gap-4 items-center flex-col xs:flex-row">
+              <div class="bg-light-surface-secondary dark:bg-dark-surface-secondary border my-12 border-light-border dark:border-dark-border relative px-4 py-3 mx-auto max-w-[1024px] rounded-lg text-sm flex gap-3 xs:gap-4 items-center flex-row">
                 @if (!serverError()) {
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="shrink-0 fill-current w-20 h-auto text-[#064e3b] dark:text-[#a7f3d0]">
                     <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->

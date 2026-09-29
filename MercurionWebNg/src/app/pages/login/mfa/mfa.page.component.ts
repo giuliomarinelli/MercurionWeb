@@ -36,7 +36,7 @@ import {
 ],
   template: `
     @if (canView()) {
-      <div class="min-h-screen flex flex-col items-center px-4 py-12 relative top-6">
+      <div class="min-h-dvh flex flex-col items-center px-4 py-12 relative top-6">
 
         <!-- icona ... (uguale a prima) -->
         <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-auto mb-6"
