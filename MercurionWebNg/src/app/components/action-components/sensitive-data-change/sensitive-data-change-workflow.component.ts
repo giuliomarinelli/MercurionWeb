@@ -832,7 +832,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
       }
     } @else {
       <div class="absolute inset-0 flex justify-center items-center z-[30] bg-white/60 dark:bg-black/40 backdrop-blur-sm min-h-[40vh]">
-        <m-progress-indicator [size]="45" />
+        <m-progress-indicator />
       </div>
     }
     </div>

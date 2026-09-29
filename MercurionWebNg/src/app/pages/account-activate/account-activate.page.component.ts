@@ -18,11 +18,7 @@ import { IconButtonComponent } from '../../components/common/icon-button/icon-bu
 
     @if (loading()) {
       <div class="absolute inset-0 flex justify-center items-center" role="status" aria-live="assertive">
-        @if (design.maxBk('md')()) {
-          <m-progress-indicator [size]="30" />
-        } @else if (design.minBk('md')()) {
-          <m-progress-indicator [size]="60" />
-        }
+        <m-progress-indicator />
       </div>
     } @else if (canView()) {
       <div class="mt-2 flex flex-col xs:flex-row justify-center items-center gap-3 xs:gap-4 text-light-accent-secondary dark:text-dark-accent-secondary mb-8 text-center xs:text-left" aria-live="polite">

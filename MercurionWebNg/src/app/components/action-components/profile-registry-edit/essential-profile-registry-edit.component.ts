@@ -69,7 +69,7 @@ type RegistryFormValue = {
               aria-live="polite"
               aria-busy="true"
             >
-              <m-progress-indicator [size]="45" />
+              <m-progress-indicator />
             </div>
           } @else {
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-12 w-full pt-9">

@@ -385,7 +385,7 @@ export type { ChipItem } from './add-molecules-to-collection.flow';
                     @if (loading) {
                       @if (page > 1) {
                         <div class="flex justify-center py-4" role="status" aria-live="polite" aria-busy="true">
-                          <m-progress-indicator [size]="60" />
+                          <m-progress-indicator />
                         </div>
                       } @else {
                         <div class="space-y-4" role="status" aria-live="polite" aria-busy="true">

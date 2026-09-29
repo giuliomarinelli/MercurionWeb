@@ -36,7 +36,7 @@ import { ViewportRuntimeService } from '../../services/context/viewport-runtime.
           [style.left.px]="spinnerLeft()"
           role="status"
         >
-          <m-progress-indicator [size]="60" />
+          <m-progress-indicator />
         </div>
       </div>
     </div>

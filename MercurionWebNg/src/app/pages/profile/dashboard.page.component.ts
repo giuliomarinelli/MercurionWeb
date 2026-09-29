@@ -53,7 +53,7 @@ import { ViewportRuntimeService } from '../../services/context/viewport-runtime.
             [style.left.px]="spinnerLeft()"
             role="status"
             aria-live="polite">
-            <m-progress-indicator [size]="60" />
+            <m-progress-indicator />
           </div>
         </div>
       } @else if (facade.state().status === 'error') {

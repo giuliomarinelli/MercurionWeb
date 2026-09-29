@@ -218,11 +218,7 @@ import { SelectionControlComponent } from '../../components/common/selection-con
         </section>
         } @else {
         <section class="max-w-5xl mx-auto h-full flex justify-center items-center" role="main" aria-busy="true" aria-live="polite">
-          @if (design.maxBk('md')()) {
-            <m-progress-indicator [size]="30" />
-          } @else if (design.minBk('md')()) {
-            <m-progress-indicator [size]="60" />
-          }
+          <m-progress-indicator />
         </section>
         }
   ` })

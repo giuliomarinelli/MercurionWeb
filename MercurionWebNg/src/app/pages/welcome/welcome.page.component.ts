@@ -93,11 +93,7 @@ import { DesignService } from '../../services/design.service'
       <div class="mercurion-bg-overlay"></div>
       @if (userContext.isLoggedIn()) {
         <main class="mercurion-page-shell flex justify-center items-center h-full">
-          @if (design.maxBk('md')()) {
-            <m-progress-indicator [size]="30" />
-          } @else if (design.minBk('md')()) {
-            <m-progress-indicator [size]="60" />
-          }
+          <m-progress-indicator />
         </main>
       } @else {
       <!-- Contenuto della pagina -->

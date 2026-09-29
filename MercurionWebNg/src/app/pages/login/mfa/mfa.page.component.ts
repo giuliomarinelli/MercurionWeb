@@ -207,11 +207,7 @@ import {
       </div>
     } @else {
       <div class="absolute inset-0 flex justify-center items-center">
-        @if (design.maxBk('md')()) {
-          <m-progress-indicator [size]="30" />
-        } @else if (design.minBk('md')()) {
-          <m-progress-indicator [size]="60" />
-        }
+        <m-progress-indicator />
       </div>
     }
   `
