@@ -58,7 +58,7 @@ import { adaptHttpFormError } from '../../utils/form-error.adapter'
                 Recupera
               } @else {
                 <div class="text-slate-200 flex items-center justify-center" aria-hidden="true">
-                  <m-progress-indicator [size]="24"></m-progress-indicator>
+                  <m-progress-indicator [size]="20" />
                 </div>
 
               }

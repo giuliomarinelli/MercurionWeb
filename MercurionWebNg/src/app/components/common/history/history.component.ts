@@ -60,7 +60,7 @@ import { routeManifest } from '../../../route-manifest';
 
     @if (loading) {
       <div class="flex justify-center pt-8">
-        <m-progress-indicator [size]="30" />
+        <m-progress-indicator />
       </div>
     }
 

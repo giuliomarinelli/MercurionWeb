@@ -312,12 +312,17 @@ export class AccountFlowKernel {
             const existing = await manager.findOne(ActivationReceipt, { where: { jti } })
             if (existing) {
                 if (String(existing.userId) !== String(userId)) {
-                    throw applicationError(ApplicationErrorCode.TOKEN_INVALID_OR_EXPIRED)
+                    throw applicationError(ApplicationErrorCode.TOKEN_INVALID_OR_EXPIRED, 'InvalidOrExpiredActivationToken')
                 }
                 return {
                     ...this._r.ok('Account activated successfully'),
                     recoveryCode: this.securityService.decrypt_AES256_GCM(existing.recoveryCode)
                 }
+            }
+
+            // Only a committed receipt may bypass revocation for an activation retry.
+            if (await this.sessionService.isTokenRevoked(jti)) {
+                throw applicationError(ApplicationErrorCode.TOKEN_INVALID_OR_EXPIRED, 'InvalidOrExpiredActivationToken')
             }
 
             const recoveryCode = this.securityService.generateAccountRecoveryReadableCode()
