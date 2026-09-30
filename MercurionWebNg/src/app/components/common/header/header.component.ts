@@ -27,6 +27,7 @@ import { HeaderResponsiveMenuComponent } from './header-responsive-menu.componen
 import { HeaderSessionIndicatorComponent } from './header-session-indicator.component';
 import { IconButtonComponent } from '../icon-button/icon-button.component';
 import { ProvidedAccountIdDTO } from '@mercurion/rest-contracts';
+import { NotificationButtonComponent } from '../notification-button/notification-button.component';
 
 @Component({
   selector: 'm-header',
@@ -43,7 +44,8 @@ import { ProvidedAccountIdDTO } from '@mercurion/rest-contracts';
     HeaderAccountMenuComponent,
     HeaderResponsiveMenuComponent,
     HeaderSessionIndicatorComponent,
-    IconButtonComponent
+    IconButtonComponent,
+    NotificationButtonComponent
   ],
   providers: [HeaderFacade],
   template: `
@@ -151,7 +153,7 @@ import { ProvidedAccountIdDTO } from '@mercurion/rest-contracts';
                     </svg>
                 </m-icon-button>
             </div>
-
+            <m-notification-button [unreadCount]="1" />
             <div class="theme-menu-container relative mr-0" [ngClass]="{
               'xl:ml-1': userContext.isLoggedIn() || isLoginPath() }">
                 <button

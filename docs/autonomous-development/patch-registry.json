@@ -29,6 +29,31 @@
           "+      var moduleRtn;"
         ]
       }
+    },
+    {
+      "package": "@nestjs-modules/mailer",
+      "resolvedVersion": "2.3.7",
+      "patchPath": "MercurionWebNode/patches/@nestjs-modules+mailer+2.3.7.patch",
+      "targetFiles": [
+        "node_modules/@nestjs-modules/mailer/dist/interfaces/mailer-options.interface.d.ts"
+      ],
+      "owner": "Notification backend",
+      "rationale": "Mailer 2.3.7 uses namespace imports as transport class types and declares message defaults as transport options, which conflicts with Nodemailer 10 types.",
+      "behavioralImpact": "Corrects declaration types for Nodemailer 10 without changing mail delivery at runtime.",
+      "upstreamReference": "https://github.com/nodemailer/nodemailer#i-have-an-issue-with-typescript-types",
+      "removalDeadline": "2027-03-31",
+      "removalCondition": "Remove when the selected mailer release supports Nodemailer 10 transport class imports and MailDefaults in its declarations.",
+      "regressionTest": "scripts/test-mailer-nodemailer10-patch-regression.mjs",
+      "delta": {
+        "before": [
+          "-import * as SMTPTransport from 'nodemailer/lib/smtp-transport';",
+          "-    defaults?: Options;"
+        ],
+        "after": [
+          "+import type SMTPTransport from 'nodemailer/lib/smtp-transport';",
+          "+    defaults?: MailDefaults;"
+        ]
+      }
     }
   ],
   "removedPatches": [
