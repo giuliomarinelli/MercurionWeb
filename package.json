@@ -138,18 +138,19 @@
     },
     "graphql-jit": {
       "fast-json-stringify": {
-        "fast-uri": "3.1.6"
+        "fast-uri": "3.1.8"
       }
     },
-    "mailparser": "3.9.24",
+    "mailparser": "3.9.32",
     "mercurius": {
       "ws": "8.21.3"
     },
+    "nodemailer": "10.0.13",
     "minimatch@3.1.5": {
-      "brace-expansion": "1.1.18"
+      "brace-expansion": "1.1.21"
     },
     "minimatch@>=10": {
-      "brace-expansion": "5.0.9"
+      "brace-expansion": "5.0.12"
     },
     "subscriptions-transport-ws": {
       "ws": "8.21.3"
