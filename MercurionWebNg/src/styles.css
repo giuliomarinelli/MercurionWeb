@@ -140,6 +140,10 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
+button{
+  @apply cursor-pointer;
+}
+
 @media (max-width: 768px) {
   input,
   textarea,

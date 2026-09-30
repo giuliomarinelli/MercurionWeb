@@ -12,7 +12,7 @@ import type { LoginSsoSelection } from './login-flow.models'
       @for (provider of providers; track provider) {
         <a
           [href]="hrefFor(provider)"
-          class="flex w-full items-center justify-center gap-3 rounded-md border border-light-accent-primary-hc dark:border-slate-50 text-light-accent-primary-hc dark:text-slate-50 py-2.5 text-sm transition-colors duration-150 hover:bg-accent-primary hover:text-slate-50 dark:bg-transparent dark:hover:bg-slate-100 dark:hover:text-neutral-900"
+          class="flex w-full items-center justify-center gap-3 rounded-md border border-blue-800 dark:border-slate-50 text-blue-800 dark:text-slate-50 py-2.5 text-sm transition-colors duration-150 hover:bg-blue-800 hover:text-slate-50 dark:bg-transparent dark:hover:bg-slate-100 dark:hover:text-neutral-900 font-medium dark:font-regular"
           [attr.aria-label]="'Continua con ' + provider"
         >
           @switch (provider) {

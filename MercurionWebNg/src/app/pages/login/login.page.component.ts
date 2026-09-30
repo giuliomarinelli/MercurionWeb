@@ -26,7 +26,7 @@ import { ProgressIndicatorComponent } from '../../components/common/progress-ind
   imports: [RouterLink, LoginCredentialFormComponent, LoginSsoChooserComponent, ProgressIndicatorComponent],
   template: `
     @if (!pageLoading()) {
-      <main class="flex flex-col items-center px-4 pt-9" role="main" aria-live="polite">
+      <main class="flex flex-col items-center px-4 py-6" role="main" aria-live="polite">
         <img [src]="logoSrc()" alt="Mercurion Logo" class="w-16 h-auto mb-6" />
         <h1 id="login-title" class="text-2xl font-semibold text-gray-900 mb-8 tracking-wider dark:text-slate-100 text-center">
           Piacere di averti qui.
@@ -58,9 +58,9 @@ import { ProgressIndicatorComponent } from '../../components/common/progress-ind
           <a
             title="Usa il codice di recupero mostrato all’attivazione per recuperare e ripristinare il tuo account"
             routerLink="/account-recovery"
-            class="flex w-full items-center justify-center gap-3 rounded-md border bg-slate-200 py-2.5 text-sm transition-colors duration-150 hover:bg-slate-200/80 dark:bg-transparent dark:hover:bg-slate-100 dark:hover:text-neutral-900"
+            class="flex w-full items-center justify-center gap-3 rounded-md border border-blue-800 dark:border-slate-50 text-blue-800 dark:text-slate-50 py-2.5 text-sm transition-colors duration-150 hover:bg-blue-800 hover:text-slate-50 dark:bg-transparent dark:hover:bg-slate-100 dark:hover:text-neutral-900 font-medium dark:font-regular"
           >
-            <svg viewBox="0 0 640 640" class="h-5 w-auto fill-current" aria-hidden="true">
+            <svg viewBox="0 0 640 640" class="size-5 fill-current" aria-hidden="true">
               <path d="M592 544H48L320 48l272 496zM292 420v56h56v-56h-56zm-4-196 12.8 160h38.4L352 224h-64z"/>
             </svg>
             <span class="hidden text-[0.85rem] sm:block">Recupera account inaccessibile o hackerato</span>
@@ -69,11 +69,6 @@ import { ProgressIndicatorComponent } from '../../components/common/progress-ind
           @if (authError(); as error) {
             <p role="alert" aria-live="assertive">{{ error.message ?? 'Si è verificato un errore.' }}</p>
           }
-          <div class="mt-4 text-center text-xs text-slate-400">
-            <a routerLink="/privacy" class="hover:underline">Informativa sulla Privacy</a>
-            ·
-            <a routerLink="/terms-and-policies" class="hover:underline">Termini e Policy</a>
-          </div>
           <p class="text-center text-[0.675rem] text-slate-600 dark:text-slate-300">
           Continuando con un Google, ORCID o Discord, dichiari di aver letto e di accettare la
           <a routerLink="/privacy" class="underline" target="_blank" rel="noopener noreferrer">Informativa sulla Privacy</a>,
@@ -90,9 +85,13 @@ import { ProgressIndicatorComponent } from '../../components/common/progress-ind
     }
   `,
   styles: [`
-    :host { display: block; }
-    a { color: inherit; }
-    .login-secondary-link { text-decoration: underline; }
+    @reference "../../../styles.css";
+    :host {
+      display: block;
+    }
+    .login-secondary-link {
+      @apply underline text-light-accent-primary-hc dark:text-dark-accent-primary;
+    }
   `]
 })
 export class LoginPageComponent implements OnInit {
