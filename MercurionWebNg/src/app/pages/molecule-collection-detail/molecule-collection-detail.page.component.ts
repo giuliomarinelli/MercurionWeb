@@ -20,16 +20,18 @@ import { ScrollContextService } from '../../services/context/scroll-context.serv
   template: `
     <main class="max-w-5xl mx-auto p-0 xs:p-4 sm:p-6 md:p-8 space-y-12" role="main"
       [attr.aria-busy]="facade.loading()" aria-live="polite">
-      <m-my-molecules-heading [breadcrumb]="breadcrumb" />
-
       @if (facade.error()) {
+        <m-my-molecules-heading class="block" [breadcrumb]="breadcrumb" [compact]="true" />
         <p role="alert">Impossibile caricare questa collezione.</p>
       } @else {
-        <m-molecule-collection-detail-toolbar
-          [collectionId]="facade.collectionId()" [name]="facade.collectionName()" [search]="facade.search()"
-          (rename)="facade.renameCollection($event)" (duplicate)="facade.duplicateCollection()"
-          (delete)="facade.deleteCollection()" (add)="facade.addToCollection()"
-          (searchChange)="facade.setSearch($event)" (clear)="facade.clearSearch()" />
+        <div class="space-y-6">
+          <m-my-molecules-heading class="block" [breadcrumb]="breadcrumb" [compact]="true" />
+          <m-molecule-collection-detail-toolbar
+            [collectionId]="facade.collectionId()" [name]="facade.collectionName()" [search]="facade.search()"
+            (rename)="facade.renameCollection($event)" (duplicate)="facade.duplicateCollection()"
+            (delete)="facade.deleteCollection()" (add)="facade.addToCollection()"
+            (searchChange)="facade.setSearch($event)" (clear)="facade.clearSearch()" />
+        </div>
 
         <m-molecule-collection-detail-grid
           [items]="facade.items()" [collectionId]="facade.collectionId()"

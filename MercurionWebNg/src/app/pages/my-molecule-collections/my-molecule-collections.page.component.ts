@@ -33,9 +33,10 @@ import { PaginationComponent } from '../../components/common/pagination/paginati
   template: `
 
   <main class="max-w-5xl mx-auto p-0 xs:p-4 sm:p-6 md:p-8 space-y-12" role="main" [attr.aria-busy]="loading" aria-live="polite">
-    <m-my-molecules-heading />
-    <div class="flex flex-col sm:flex-row sm:flex-wrap gap-y-3 sm:gap-y-3 sm:gap-x-4 justify-between items-start sm:items-center relative -top-12 pt-2">
-        <h2 class="h1 bg-slate-50 dark:bg-neutral-950 z-10 block sticky top-0 bottom-5" style="margin-block-start: 0; align-self: baseline;">
+    <div class="space-y-6">
+      <m-my-molecules-heading class="block" [compact]="true" />
+      <div class="flex flex-col sm:flex-row sm:flex-wrap gap-y-3 sm:gap-x-4 justify-between items-start sm:items-center">
+        <h2 class="text-xl md:text-2xl lg:text-[1.75rem] font-semibold tracking-wider text-light-accent-primary-hc dark:text-dark-accent-primary">
             Le mie collezioni molecolari
         </h2>
 
@@ -45,7 +46,7 @@ import { PaginationComponent } from '../../components/common/pagination/paginati
           class="flex items-center gap-2 relative px-3 py-1.5 rounded-md border border-slate-300 dark:border-slate-600
                  text-slate-700 dark:text-slate-200 text-xs font-medium
                  hover:bg-slate-200 dark:hover:bg-slate-700
-                 transition-colors duration-150 self-start top-[7px]"
+                 transition-colors duration-150 self-start sm:self-auto"
           title="Crea nuove collezioni."
           (click)="createNewCollection()"
           aria-label="Crea una o più nuove collezioni"
@@ -57,6 +58,7 @@ import { PaginationComponent } from '../../components/common/pagination/paginati
           <span>Crea una o più nuove collezioni</span>
         </button>
 
+      </div>
     </div>
     <m-search-input
       class="block relative"

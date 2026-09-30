@@ -21,17 +21,44 @@ import { APP_CONFIG } from '../../../config/app-config';
   <!-- classi tw rimosse per passaggio a footer minimalista bg-slate-100 dark:bg-slate-800/50 text-sm text-slate-600 dark:text-slate-200 border-t border-slate-400/40 dark:border-slate-400/65 -->
   <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-center sm:text-left">
     <!-- Brand + copyright -->
-    <p class="tracking-wide flex flex-col sm:flex-row md:flex-row items-center gap-4">
+    <p class="tracking-wide flex flex-col sm:flex-row md:flex-row items-center gap-3">
       <img [ngSrc]="logoSrc() | public" alt="Mercurion Pictogram" priority="true" width="186" height="234"
-        class="w-[23px] h-auto contrast-100" />
+        class="w-4.75 h-auto contrast-100 relative -top-0.5" />
       <span>
         &copy; {{year}} Mercurion. Tutti i diritti riservati ─
         <span>
-          <svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
-            class="relative -top-0.5 inline-block fill-current size-5 align-middle">
-            <!--!Font Awesome Pro v7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2026 Fonticons, Inc.-->
-            <path
-              d="M576 64L184.5 161.9L491.7 469.1L576 448L384 256L576 64zM148.3 170.9L64 192L256 384L64 576L455.5 478.1L148.3 170.9z" />
+          <svg
+            aria-hidden="true"
+            focusable="false"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 640 640"
+            class="relative -top-0.5 inline-block size-5 align-middle"
+          >
+            <!-- Parte destra / superiore -->
+            <path class="fill-current text-light-accent-secondary dark:text-dark-accent-secondary-hc"
+              d="
+                M576 64
+                L184.5 161.9
+                L491.7 469.1
+                L576 448
+                L384 256
+                L576 64
+                Z
+              "
+            />
+
+            <!-- Parte sinistra / inferiore -->
+            <path class="fill-current text-light-accent-primary dark:text-dark-accent-primary"
+              d="
+                M148.3 170.9
+                L64 192
+                L256 384
+                L64 576
+                L455.5 478.1
+                L148.3 170.9
+                Z
+              "
+            />
           </svg>
           <span class="pl-2">Powered by <a class="a" href="https://giuliomarinelli.com" target="_blank" rel="noopener noreferrer">GM Web Tech Lab</a></span>
 

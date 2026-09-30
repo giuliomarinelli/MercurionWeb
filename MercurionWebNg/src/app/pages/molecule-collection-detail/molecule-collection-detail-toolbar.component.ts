@@ -7,10 +7,10 @@ import { CustomDetailSaveModel } from '../../Models/custom-detail-save.model';
   selector: 'm-molecule-collection-detail-toolbar',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CustomDetailsComponent, PmSearchInputComponent],
-  host: { class: 'block space-y-[70px]' },
+  host: { class: 'block space-y-6' },
   template: `
-    <div class="relative -top-12 flex flex-col sm:flex-row sm:flex-wrap justify-between items-start sm:items-center pt-2 gap-y-4 sm:gap-y-2 sm:gap-x-4">
-      <m-custom-details [itemId]="collectionId()" type="name" [value]="name()" badgeName=""
+    <div class="flex flex-col sm:flex-row sm:flex-wrap justify-between items-start sm:items-center gap-y-4 sm:gap-y-2 sm:gap-x-4">
+      <m-custom-details [itemId]="collectionId()" type="name" [value]="name()" badgeName="" [compactHeading]="true"
         (onSaving)="rename.emit($event)" />
       <div class="flex flex-wrap items-center justify-start sm:justify-end gap-3 w-full sm:w-auto">
         <button type="button"

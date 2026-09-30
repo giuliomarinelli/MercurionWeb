@@ -6,16 +6,14 @@ import { Helpers } from '../../helpers';
 import { AccountService } from '../../services/account.service';
 import { UserContextService } from '../../services/context/user-context.service';
 import { ToastService } from '../../services/toast.service';
-import { CopyUiService } from '../../services/copy-ui.service';
 import { DesignService } from '../../services/design.service';
-import { IconButtonComponent } from '../../components/common/icon-button/icon-button.component';
+import { CopyButtonComponent } from '../../components/common/copy-button/copy-button.component';
 
 @Component({
   selector: 'm-account-activate.page',
-  imports: [ProgressIndicatorComponent, RouterLink, IconButtonComponent],
+  imports: [ProgressIndicatorComponent, RouterLink, CopyButtonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-
     @if (loading()) {
       <div class="absolute inset-0 flex justify-center items-center" role="status" aria-live="assertive">
         <m-progress-indicator />
@@ -41,23 +39,10 @@ import { IconButtonComponent } from '../../components/common/icon-button/icon-bu
             <p><span>Questo è il codice per recuperare l'account nel caso non riuscissi più ad accedere. Lo puoi visualizzare solo in questo momento. <br />Salvalo in un posto sicuro, come un Password Manager oppure stampalo e custodiscilo in un luogo inaccessibile ad altri:</span>.</p>
             <div class="flex items-center gap-2">
               <p class="text-light-warning dark:text-dark-warning font-semibold" aria-live="assertive">{{recoveryCode()}}</p>
-              <m-icon-button
-                size="sm"
+              <m-copy-button
+                [src]="recoveryCode()"
                 ariaLabel="Copia il codice di recupero"
-                (pressed)="copy()"
-              >
-                <svg
-                  class="shrink-0 size-5 text-slate-600 dark:text-slate-300"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  aria-hidden="true">
-                    <path
-                      d="M4 4a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v1h-1V4a1 1 0 0 0-1-1H6a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h1v1H6a2 2 0 0 1-2-2V4z"
-                    />
-                    <path
-                      d="M8 6a2 2 0 0 1 2-2h5a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-5a2 2 0 0 1-2-2V6z" />
-                </svg>
-              </m-icon-button>
+              />
             </div>
             <p><a class="a-hc" routerLink="/login">Vai al login</a></p>
           </div>
@@ -73,7 +58,6 @@ export class AccountActivatePageComponent implements OnInit, OnDestroy {
   private readonly accountService = inject(AccountService)
   private readonly userContext = inject(UserContextService)
   private readonly toast = inject(ToastService)
-  private readonly copyUiService = inject(CopyUiService)
   protected readonly design = inject(DesignService)
   // ====================================================
 
@@ -135,38 +119,5 @@ export class AccountActivatePageComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.qpSub?.unsubscribe()
   }
-
-  copy(): void {
-
-    const secret = this.recoveryCode()
-
-
-    if (!secret || !secret.trim()) {
-      this.toast.trigger(
-        'Nessun codice da copiare.',
-        'error',
-        2200
-      )
-      return
-    }
-
-    this.copyUiService
-      .copy(secret, {
-        successMessage: 'Codice copiato negli appunti ✅',
-        errorMessage: 'Impossibile copiare il codice. Copialo manualmente.',
-        successContext: 'success',
-        errorContext: 'error',
-        durationMs: 2200,
-        forceToast: true,
-      })
-      .catch(() => {
-        this.toast.trigger(
-          'Impossibile copiare il codice. Copialo manualmente.',
-          'error',
-          2500
-        )
-      })
-  }
-
 
 }

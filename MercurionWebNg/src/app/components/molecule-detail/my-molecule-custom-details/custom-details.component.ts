@@ -61,12 +61,14 @@ import { IconButtonComponent } from '../../common/icon-button/icon-button.compon
           <h2
             id="molecule-name"
             #value
-            class="outline-none text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider
+            class="outline-none font-semibold tracking-wider
                    text-center sm:text-left text-light-accent-primary-hc dark:text-dark-accent-primary
                    rounded-md border border-transparent
                    transition-[background-color,border-color,color] duration-300"
             [attr.contenteditable]="mode() === 'edit' ? 'true' : null"
             [ngClass]="{
+              'text-xl md:text-2xl lg:text-[1.75rem]': compactHeading(),
+              'text-3xl md:text-4xl lg:text-[2.65rem]': !compactHeading(),
               'bg-slate-300 dark:bg-slate-700 border-light-on-surface-main dark:border-dark-on-surface-main': mode() === 'edit',
               'bg-transparent': mode() === 'view'
             }">
@@ -198,6 +200,7 @@ export class CustomDetailsComponent {
   readonly value = input.required<string>()
   readonly itemId = input.required<string>()
   readonly badgeName = input('Personal')
+  readonly compactHeading = input(false)
   readonly isReadonly = input(false)
   readonly triggerRollback = input(false)
   readonly hideActions = input(false)

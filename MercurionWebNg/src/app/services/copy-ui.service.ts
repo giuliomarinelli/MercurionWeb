@@ -25,11 +25,6 @@ export class CopyUiService {
     const duration = opts.durationMs ?? 1800
 
     if (ok) {
-      this.safeToast(
-        opts.successMessage ?? 'Copiato negli appunti ✅',
-        opts.successContext ?? ('success' as ToastVariant),
-        duration,
-      )
       return true
     }
 
