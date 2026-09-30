@@ -126,6 +126,21 @@ export class WsGuard implements CanActivate {
       this.logger.debug?.(`Socket ${client.id} polling connection state: PRIVATE (Authenticated)`)
       return true
     } catch (e) {
+      if (isApplicationError(e, ApplicationErrorCode.TOKEN_INVALID_OR_EXPIRED)) {
+        // Il JWT WS può scadere mentre la sessione Redis resta valida.
+        // Il client rinnova il token con il cookie e ristabilisce l'handshake.
+        client.emit(socketEventRegistry.applicationError.name, createSocketApplicationError(
+          presentApplicationError({
+            code: ApplicationErrorCode.AUTHENTICATION_UNAUTHORIZED,
+            message: getApplicationErrorDefinition(ApplicationErrorCode.AUTHENTICATION_UNAUTHORIZED).defaultMessage ?? 'Unauthorized'
+          }, {
+            correlationId: createCorrelationId(client.id),
+            isProduction: this.isProduction(),
+            statusHint: getApplicationErrorDefinition(ApplicationErrorCode.AUTHENTICATION_UNAUTHORIZED).httpStatus
+          })
+        ))
+        return false
+      }
       if (isApplicationError(e, ApplicationErrorCode.PERMISSION_DENIED)) {
         client.emit(socketEventRegistry.applicationError.name, createSocketApplicationError(
           presentApplicationError(e, {

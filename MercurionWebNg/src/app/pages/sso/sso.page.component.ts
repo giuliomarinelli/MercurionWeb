@@ -100,18 +100,9 @@ export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
         const sso_pat = frag ? (new URLSearchParams(frag).get('t') ?? '') : ''
 
         if (this.typeGuards.is_SSO_AuthProvider(provider) && /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(sso_pat)) {
-          this.router.navigate([], {
-            relativeTo: this.route,
-            queryParams: { provider },
-            replaceUrl: true,
-            fragment: undefined
-          })
-
-          queueMicrotask(() => {
-            if (location.hash) {
-              history.replaceState({}, '', location.pathname + location.search)
-            }
-          })
+          if (location.hash) {
+            history.replaceState(history.state, '', location.pathname + location.search)
+          }
 
           this.authState.beginAuthentication('sso')
 
@@ -136,7 +127,7 @@ export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
           wsAccessToken: res.ws_accessToken
         })
         this.sessionSync.resumeSession(res.initials ?? 'U')
-        window.location.assign(this.redirects.consume())
+        void this.router.navigateByUrl(this.redirects.consume(), { replaceUrl: true })
       }
     })
   }

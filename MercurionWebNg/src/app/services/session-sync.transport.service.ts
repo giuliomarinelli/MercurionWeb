@@ -148,9 +148,8 @@ export class SessionSyncTransportService implements OnDestroy {
       this.zone.run(() => this.handleSessionExpired(payload.cause))
     ))
 
-    // bootstrap: parte PUBLIC, poi decide se uppare a PRIVATE
+    // AppShell avvia il controllo dopo il bootstrap dello stato locale.
     this.socket.connect()
-    void this.checkSession()
 
     window.addEventListener('storage', this.onStorage)
   }
@@ -200,7 +199,6 @@ export class SessionSyncTransportService implements OnDestroy {
 
   resumeSession(initials: string) {
     this.onExternalLogin(initials)
-    this._handshakeTick.update(x => x + 1)
   }
 
   requestHandshake() {
@@ -233,12 +231,21 @@ export class SessionSyncTransportService implements OnDestroy {
   /* ---------------- Handshake core ---------------- */
 
   async checkSession(force = false): Promise<void> {
+    if (this.loginInProgress()) return
     // se siamo già privati e marcati loggedIn, evita rumore
     if (!force && this._status() === 'loggedIn' && this.socket.getMode() === 'private') return
 
-    if (this.handshakePending) return this.handshakePending
+    if (this.handshakePending) {
+      await this.handshakePending
+      if (force && this._status() !== 'loggedIn' && !this.loginInProgress()) {
+        await this.checkSession(true)
+      }
+      return
+    }
 
     const now = Date.now()
+    const startingState = this.authState.state()
+    const startingSessionId = this.authState.refreshableSessionId()
     const initials = this.authState.getPersistedInitials() ?? ''
     const cookieLogged = this.hasClientLoginCookieTrue()
 
@@ -264,6 +271,11 @@ export class SessionSyncTransportService implements OnDestroy {
         if (targetIsPrivate) await this.socket.ensurePrivate()
         else await this.socket.ensurePublic()
 
+        if (targetIsPrivate && this.socket.getMode() !== 'private') {
+          this._status.set('disconnected')
+          return
+        }
+
         const connected = await this.socket.waitConnected(4000)
         if (!connected) {
           this._status.set(targetIsPrivate ? 'disconnected' : 'anonymous')
@@ -273,6 +285,8 @@ export class SessionSyncTransportService implements OnDestroy {
 
         await this.socket.waitStable()
 
+        if (this.loginInProgress() || this.sessionChanged(startingState, startingSessionId)) return
+
         // 🔹 Caso PUBLIC: WS attiva per eventi pubblici, ma niente handshake session_init
         if (!targetIsPrivate) {
           this._status.set('anonymous')
@@ -281,7 +295,7 @@ export class SessionSyncTransportService implements OnDestroy {
         }
 
         // 🔹 Caso PRIVATE: facciamo l’handshake forte via so.pub.session_init
-        await this.completePrivateHandshake()
+        await this.completePrivateHandshake(startingState, startingSessionId)
       } catch {
         this._status.set(targetIsPrivate ? 'disconnected' : 'error')
       }
@@ -291,8 +305,12 @@ export class SessionSyncTransportService implements OnDestroy {
     if (this.handshakePending === pending) this.handshakePending = undefined
   }
 
-  private async completePrivateHandshake(): Promise<void> {
+  private async completePrivateHandshake(
+    startingState: ReturnType<AuthStateStore['state']>,
+    startingSessionId: string | undefined
+  ): Promise<void> {
     const ack = await this.socket.emitSessionInit(1200)
+    if (this.loginInProgress() || this.sessionChanged(startingState, startingSessionId)) return
     if (this.protocol.classifySessionInit(ack).kind !== 'authenticated') {
       this._status.set('disconnected')
       return
@@ -386,6 +404,18 @@ export class SessionSyncTransportService implements OnDestroy {
   }
 
   private readCookie(name: string): string | null { return this.persistence.getCookieValue(name) }
+
+  private loginInProgress(): boolean {
+    const state = this.authState.state()
+    return state.kind === 'authenticating' && state.flow !== 'restore'
+  }
+
+  private sessionChanged(startingState: ReturnType<AuthStateStore['state']>, startingSessionId: string | undefined): boolean {
+    const currentSessionId = this.authState.refreshableSessionId()
+    return startingSessionId && currentSessionId
+      ? startingSessionId !== currentSessionId
+      : startingState !== this.authState.state()
+  }
 
   private becomeAnonymous(
     opts: {

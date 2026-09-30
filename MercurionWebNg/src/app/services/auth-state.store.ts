@@ -61,8 +61,6 @@ export class AuthStateStore {
   private readonly apolloCache = inject(MERCURION_APOLLO_CACHE, { optional: true })
   private readonly stateSignal = signal<AuthState>({ kind: 'bootstrap' })
   private readonly protocolSignal = signal<SessionProtocolSnapshot>(INITIAL_SESSION_PROTOCOL)
-  private readonly expiryTick = signal(0)
-  private expiryTimer?: ReturnType<typeof setTimeout>
 
   readonly state = this.stateSignal.asReadonly()
   /** Canonical validity/connection state shared with Nest. */
@@ -71,14 +69,13 @@ export class AuthStateStore {
   /**
    * The only semantic authentication predicate exposed to Angular consumers.
    * Persistence markers are restore hints; only an authenticated state backed
-   * by the canonical session protocol can satisfy this selector.
+   * by the canonical session protocol can satisfy this selector. A JWT expiry
+   * alone is not a session expiry: Nest can renew it while Redis remains valid.
    */
   readonly authenticated = computed(() => {
-    this.expiryTick()
     const state = this.state()
     return state.kind === 'authenticated' &&
-      this.sessionProtocol().state === 'authenticated' &&
-      !this.isExpired(state.accessToken)
+      this.sessionProtocol().state === 'authenticated'
   })
   /** Compatibility name for code that has not yet migrated to `authenticated`. */
   readonly isAuthenticated = this.authenticated
@@ -130,7 +127,9 @@ export class AuthStateStore {
       this.clearPersistence()
     }
     this.stateSignal.set({ kind: 'authenticating', flow })
-    this.applyProtocol(SessionTransition.BeginAuthentication)
+    if (this.sessionProtocol().state !== 'authenticating') {
+      this.applyProtocol(SessionTransition.BeginAuthentication)
+    }
   }
 
   enterPreAuthentication(preAuthorizationToken?: string): void {
@@ -191,30 +190,44 @@ export class AuthStateStore {
     this.setCachedScopes(scopes)
     this.stateSignal.set(next)
     this.applyProtocol(SessionTransition.AuthenticationSucceeded)
-    this.scheduleExpiry(accessToken)
   }
 
   rotateAccessToken(token: string, expectedSessionId?: string): boolean {
     const state = this.state()
-    if (state.kind !== 'authenticated' || !state.accessToken || !state.wsAccessToken) return false
-    const identity = this.identityFromTokenPair(token, state.wsAccessToken)
-    if (!identity || (expectedSessionId && identity.sessionId !== expectedSessionId)) return false
+    const restoring = state.kind === 'authenticating' && state.flow === 'restore'
+    if (state.kind !== 'authenticated' && !restoring) return false
+    if (restoring && !this.hasClientLoginCookie()) return false
+    const accessToken = state.kind === 'authenticated' ? state.accessToken : this.getAccessToken()
+    const wsAccessToken = state.kind === 'authenticated' ? state.wsAccessToken : this.getWsAccessToken()
+    const current = this.identityFromTokenPair(accessToken, wsAccessToken)
+    const identity = this.identityFromTokenPair(token, wsAccessToken)
+    if (!current || !identity || identity.sessionId !== current.sessionId ||
+      (expectedSessionId && identity.sessionId !== expectedSessionId)) return false
     const scopes = this.scopesFromAccessToken(token)
     this.persistence.commitRotatedAccessToken(token, scopes)
-    this.transition({ ...state, accessToken: token, scopes })
-    this.applyProtocol(SessionTransition.CredentialsRefreshed)
-    this.scheduleExpiry(token)
+    if (state.kind === 'authenticated') {
+      this.transition({ ...state, accessToken: token, scopes })
+      this.applyProtocol(SessionTransition.CredentialsRefreshed)
+    }
     return true
   }
 
   rotateWsAccessToken(token: string, expectedSessionId?: string): boolean {
     const state = this.state()
-    if (state.kind !== 'authenticated' || !state.accessToken || !state.wsAccessToken) return false
-    const identity = this.identityFromTokenPair(state.accessToken, token)
-    if (!identity || (expectedSessionId && identity.sessionId !== expectedSessionId)) return false
+    const restoring = state.kind === 'authenticating' && state.flow === 'restore'
+    if (state.kind !== 'authenticated' && !restoring) return false
+    if (restoring && !this.hasClientLoginCookie()) return false
+    const accessToken = state.kind === 'authenticated' ? state.accessToken : this.getAccessToken()
+    const wsAccessToken = state.kind === 'authenticated' ? state.wsAccessToken : this.getWsAccessToken()
+    const current = this.identityFromTokenPair(accessToken, wsAccessToken)
+    const identity = this.identityFromTokenPair(accessToken, token)
+    if (!current || !identity || identity.sessionId !== current.sessionId ||
+      (expectedSessionId && identity.sessionId !== expectedSessionId)) return false
     this.persistence.setWsAccessToken(token)
-    this.transition({ ...state, wsAccessToken: token })
-    this.applyProtocol(SessionTransition.CredentialsRefreshed)
+    if (state.kind === 'authenticated') {
+      this.transition({ ...state, wsAccessToken: token })
+      this.applyProtocol(SessionTransition.CredentialsRefreshed)
+    }
     return true
   }
 
@@ -244,7 +257,6 @@ export class AuthStateStore {
     this.setPersistedInitials(initials)
     this.stateSignal.set(next)
     this.applyProtocol(SessionTransition.AuthenticationSucceeded)
-    this.scheduleExpiry(accessToken)
   }
 
   syncExternalState(): void {
@@ -262,7 +274,6 @@ export class AuthStateStore {
   }
 
   invalidate(reason: SessionInvalidationCauseType = SessionInvalidationCause.InvalidSession): void {
-    this.clearExpiryTimer()
     this.clearLocalDummyMarker()
     this.clearPersistence()
     this.clearApolloUserCache()
@@ -272,7 +283,6 @@ export class AuthStateStore {
 
   logout(): void {
     this.authErrors.clear()
-    this.clearExpiryTimer()
     this.transition({ kind: 'logging-out' })
     this.clearLocalDummyMarker()
     this.clearPersistence()
@@ -287,7 +297,6 @@ export class AuthStateStore {
    * observing an authenticated session while recovery invalidates credentials.
    */
   beginRecovery(): void {
-    this.clearExpiryTimer()
     this.transition({ kind: 'anonymous' })
     this.clearLocalDummyMarker()
     this.persistence.clearAuthenticatedSession()
@@ -322,6 +331,15 @@ export class AuthStateStore {
 
   getWsAccessToken(): string | null {
     return this.persistence.getWsAccessToken()
+  }
+
+  refreshableSessionId(): string | undefined {
+    const state = this.state()
+    if (state.kind === 'authenticated') return this.clientSession()?.sessionId
+    if (state.kind !== 'authenticating' || state.flow !== 'restore' || !this.hasClientLoginCookie()) {
+      return undefined
+    }
+    return this.identityFromTokenPair(this.getAccessToken(), this.getWsAccessToken())?.sessionId
   }
 
   setWsAccessToken(token: string | null): void {
@@ -392,49 +410,11 @@ export class AuthStateStore {
     this.protocolSignal.update(snapshot => transitionSessionProtocol(snapshot, transition))
   }
 
-  private scheduleExpiry(token: string | null): void {
-    this.clearExpiryTimer()
-    const expiresAt = this.tokenExpiry(token)
-    if (expiresAt === null) return
-    const delay = Math.max(0, expiresAt - Date.now())
-    this.expiryTimer = setTimeout(() => {
-      this.expiryTick.update(value => value + 1)
-      const state = this.state()
-      if (state.kind === 'authenticated' && this.isExpired(state.accessToken)) {
-        this.invalidate(SessionInvalidationCause.SessionExpired)
-      }
-    }, delay)
-  }
-
-  private clearExpiryTimer(): void {
-    if (this.expiryTimer !== undefined) {
-      clearTimeout(this.expiryTimer)
-      this.expiryTimer = undefined
-    }
-  }
-
   private clearLocalDummyMarker(): void {
     this.storageRegistry.remove(storageDescriptor('localDummyAuth'))
     if (typeof document !== 'undefined') {
       document.cookie = '__logged_in=; Max-Age=0; path=/'
       document.cookie = '__logged_in_=; Max-Age=0; path=/'
-    }
-  }
-
-  private isExpired(token: string | null): boolean {
-    const expiresAt = this.tokenExpiry(token)
-    return expiresAt !== null && expiresAt <= Date.now()
-  }
-
-  private tokenExpiry(token: string | null): number | null {
-    if (!token) return null
-    const parts = token.split('.')
-    if (parts.length !== 3) return null
-    try {
-      const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')))
-      return typeof payload.exp === 'number' ? payload.exp * 1000 : null
-    } catch {
-      return null
     }
   }
 

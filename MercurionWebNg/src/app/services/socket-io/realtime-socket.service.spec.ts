@@ -1,7 +1,8 @@
-import { TestBed } from '@angular/core/testing';
+import { fakeAsync, TestBed, tick } from '@angular/core/testing';
 
 import { RealtimeSocketService } from './realtime-socket.service';
 import { socketEventRegistry } from '@mercurion/socket-contracts';
+import { AuthSessionRepository } from '../auth-session-repository.service';
 
 describe('RealtimeSocketService', () => {
   let service: RealtimeSocketService;
@@ -52,4 +53,24 @@ describe('RealtimeSocketService', () => {
     expect(socket.listeners('connect_error')).toHaveSize(0);
     expect(off).not.toHaveBeenCalledWith();
   });
+
+  it('renews a private WS token before its 30 second expiry', fakeAsync(() => {
+    const token = `header.${btoa(JSON.stringify({ exp: Math.floor(Date.now() / 1000) + 30 }))}.signature`;
+    spyOn(TestBed.inject(AuthSessionRepository), 'getWsAccessToken').and.returnValue(token);
+    const renew = spyOn(service, 'ensurePrivate').and.resolveTo();
+    const internals = service as unknown as {
+      mode: 'private'
+      socket: { connected: boolean }
+      onConnectCore: () => void
+    };
+    internals.mode = 'private';
+    internals.socket.connected = true;
+    internals.onConnectCore();
+
+    tick(30_000);
+
+    expect(renew).toHaveBeenCalledWith(undefined, { forceRefresh: true });
+    internals.socket.connected = false;
+    service.ngOnDestroy();
+  }));
 });
