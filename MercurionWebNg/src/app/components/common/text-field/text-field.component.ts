@@ -1,10 +1,13 @@
 import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
+  DestroyRef,
   ElementRef,
   inject,
   input,
+  OnInit,
   output,
   signal,
   viewChild
@@ -16,6 +19,7 @@ import {
   ReactiveFormsModule,
   Validators
 } from '@angular/forms';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 type ErrorMap = Record<string, string>;
 
@@ -108,7 +112,7 @@ let nextGeneratedId = 0;
     </div>
   `
 })
-export class TextFieldComponent implements ControlValueAccessor {
+export class TextFieldComponent implements ControlValueAccessor, OnInit {
   readonly label = input.required<string>();
   readonly id = input<string>();
   readonly name = input<string>();
@@ -127,6 +131,8 @@ export class TextFieldComponent implements ControlValueAccessor {
 
   readonly inputElement = viewChild.required<ElementRef<HTMLInputElement>>('inputElement');
   readonly ngControl = inject(NgControl, { self: true, optional: true });
+  private readonly changeDetector = inject(ChangeDetectorRef);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly value = signal('');
   readonly focused = signal(false);
@@ -140,6 +146,12 @@ export class TextFieldComponent implements ControlValueAccessor {
     if (this.ngControl) {
       this.ngControl.valueAccessor = this;
     }
+  }
+
+  ngOnInit(): void {
+    this.control?.statusChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.changeDetector.markForCheck();
+    });
   }
 
   get control(): FormControl<string> | null {

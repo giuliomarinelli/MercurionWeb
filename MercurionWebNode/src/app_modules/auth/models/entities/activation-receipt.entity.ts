@@ -11,7 +11,7 @@ export class ActivationReceipt {
   @Column({ type: 'uuid' })
   userId!: UUID
 
-  @ManyToOne(() => User, {
+  @ManyToOne(() => User, (user) => user.id, {
     onDelete: 'CASCADE',
     nullable: false
   })

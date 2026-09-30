@@ -20,6 +20,7 @@ import { UserContextService } from '../../services/context/user-context.service'
 import { ProgressIndicatorComponent } from '../../components/common/progress-indicator/progress-indicator.component'
 import { DesignService } from '../../services/design.service'
 import { AuthStateStore } from '../../services/auth-state.store'
+import { SessionSyncService } from '../../services/session-sync.service'
 
 @Component({
   selector: 'm-welcome-page',
@@ -82,6 +83,13 @@ import { AuthStateStore } from '../../services/auth-state.store'
       color: #020617;
     }
 
+    .mercurion-welcome-pending {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+    }
+
     :host-context(.dark) .mercurion-page-shell {
       background-color: rgba(2,6,23,0.87);      /* neutral-950 con alpha */
       color: #e5e7eb;
@@ -93,8 +101,8 @@ import { AuthStateStore } from '../../services/auth-state.store'
       <!-- Background molecolare (dietro a tutto) -->
       <div class="mercurion-bg-layer"></div>
       <div class="mercurion-bg-overlay"></div>
-      @if (isLoggedIn()) {
-        <main class="mercurion-page-shell flex justify-center items-center h-full">
+      @if (!showAnonymousContent()) {
+        <main class="mercurion-page-shell mercurion-welcome-pending">
           <m-progress-indicator />
         </main>
       } @else {
@@ -123,11 +131,18 @@ export class WelcomePageComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute)
   private readonly scrollContext = inject(ScrollContextService)
   private readonly authState = inject(AuthStateStore)
+  private readonly sessionSync = inject(SessionSyncService)
   protected readonly design = inject(DesignService)
 
   private fragSub?: Subscription
 
-  protected readonly isLoggedIn = computed(() => this.authState.authenticated())
+  protected readonly showAnonymousContent = computed(() => {
+    const kind = this.authState.kind()
+    const status = this.sessionSync.status()
+    return !this.authState.authenticated() &&
+      (kind === 'anonymous' || kind === 'session-expired') &&
+      status !== 'unknown' && status !== 'checking'
+  })
 
   ngOnInit(): void {
     this.fragSub = this.route.fragment.subscribe((frag) => {

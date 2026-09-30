@@ -1,6 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { of, throwError } from 'rxjs';
 
 import { RegisterPageComponent } from './register.page.component';
+import { AuthTransportService } from '../../services/auth-transport.service';
+import { ApplicationErrorCode } from '../../utils/application-error.util';
 
 describe('RegisterPageComponent', () => {
   let component: RegisterPageComponent;
@@ -77,5 +80,52 @@ describe('RegisterPageComponent', () => {
     expect(component.loadingTurnstile()).toBeFalse();
     expect(fixture.nativeElement.querySelector('[role="status"]')).toBeNull();
     expect(fixture.nativeElement.querySelector('m-turnstile').classList.contains('invisible')).toBeFalse();
+  });
+
+  it('shows the registered-email message from the asynchronous availability check', async () => {
+    const authService = TestBed.inject(AuthTransportService);
+    spyOn(authService, 'isUserAvailableByEmail').and.returnValue(of(false));
+    const emailField: HTMLElement = Array.from<HTMLElement>(fixture.nativeElement.querySelectorAll('m-text-field'))
+      .find(field => field.querySelector('label')?.textContent?.includes('E-mail'))!;
+    const input: HTMLInputElement = emailField.querySelector('input')!;
+
+    input.value = 'taken@example.com';
+    input.dispatchEvent(new Event('input'));
+    input.dispatchEvent(new Event('blur'));
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(authService.isUserAvailableByEmail).toHaveBeenCalledWith('taken@example.com');
+    expect(component.form.controls.email.hasError('emailTaken')).toBeTrue();
+    expect(emailField.querySelector('[role="alert"]')?.textContent).toContain('E-mail già registrata.');
+  });
+
+  it('shows a registration conflict on the email field even without API field details', async () => {
+    const authService = TestBed.inject(AuthTransportService);
+    spyOn(authService, 'isUserAvailableByEmail').and.returnValue(of(true));
+    spyOn(authService, 'registerUser').and.returnValue(throwError(() => ({
+      error: { code: ApplicationErrorCode.USER_REGISTRATION_EMAIL_CONFLICT }
+    })));
+    component.form.setValue({
+      firstName: 'Ada',
+      lastName: 'Lovelace',
+      email: 'ada@example.com',
+      job: null,
+      gender: 'F',
+      password: 'Ada1!pass',
+      confirmPassword: 'Ada1!pass'
+    });
+    await fixture.whenStable();
+    component.turnstileToken.set('challenge-token');
+
+    component.onSubmit();
+    fixture.detectChanges();
+
+    expect(authService.registerUser).toHaveBeenCalled();
+    expect(component.form.controls.email.hasError('emailTaken')).toBeTrue();
+    const emailField: HTMLElement = Array.from<HTMLElement>(fixture.nativeElement.querySelectorAll('m-text-field'))
+      .find(field => field.querySelector('label')?.textContent?.includes('E-mail'))!;
+    expect(emailField.querySelector('[role="alert"]')?.textContent).toContain('E-mail già registrata.');
   });
 });

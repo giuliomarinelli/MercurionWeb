@@ -852,8 +852,9 @@ export class AccountFlowKernel {
     }
 
     public async isUserAvailableByEmail(email: string): Promise<boolean> {
-        const existsVerified = await this.userService.existsUserByEmail(email)
-        const redisKey = this.getRegistrationLockRedisKey(email)
+        const normalizedEmail = email.trim().toLowerCase()
+        const existsVerified = await this.userService.existsUserByEmail(normalizedEmail)
+        const redisKey = this.getRegistrationLockRedisKey(normalizedEmail)
         const existsUnverified = await this.redisService.exists(redisKey)
         return !existsVerified && !existsUnverified
     }

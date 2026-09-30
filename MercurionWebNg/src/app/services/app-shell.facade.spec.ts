@@ -17,7 +17,7 @@ describe('AppShellFacade', () => {
   }
   const sessionSync = {
     handshakeTick: signal(0),
-    status: signal<'anonymous'>('anonymous'),
+    status: signal<'anonymous' | 'loggedIn'>('anonymous'),
     checkSession: jasmine.createSpy('checkSession').and.resolveTo()
   }
   const redirects = { capture: jasmine.createSpy('capture') }
@@ -75,6 +75,19 @@ describe('AppShellFacade', () => {
     await router.navigateByUrl('/welcome')
 
     expect(facade.routePolicy()).toEqual({ access: 'logged-out-only', shell: 'welcome' })
+  })
+
+  it('redirects an authenticated visitor from welcome through Angular Router', async () => {
+    authState.authenticated.set(true)
+    sessionSync.status.set('loggedIn')
+    const router = TestBed.inject(Router)
+    TestBed.inject(AppShellFacade)
+
+    await router.navigateByUrl('/welcome')
+    TestBed.flushEffects()
+    await TestBed.inject(ApplicationRef).whenStable()
+
+    expect(router.url).toBe('/dashboard')
   })
 
   it('sends a protected page directly to login when logout clears auth state', async () => {

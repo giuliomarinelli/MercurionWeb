@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
+import { Subject } from 'rxjs';
 
 import { TextFieldComponent } from './text-field.component';
 
@@ -27,6 +28,25 @@ class HostComponent {
   disabled = false;
   readonly form = new FormGroup({
     displayName: new FormControl('', { nonNullable: true, validators: Validators.required })
+  });
+}
+
+@Component({
+  imports: [ReactiveFormsModule, TextFieldComponent],
+  template: `
+    <form [formGroup]="form">
+      <m-text-field label="E-mail" formControlName="email" [errors]="{ emailTaken: 'E-mail già registrata.' }" />
+    </form>
+  `
+})
+class AsyncHostComponent {
+  readonly availability = new Subject<ValidationErrors | null>();
+  readonly form = new FormGroup({
+    email: new FormControl('', {
+      nonNullable: true,
+      validators: Validators.required,
+      asyncValidators: () => this.availability.asObservable()
+    })
   });
 }
 
@@ -83,5 +103,26 @@ describe('TextFieldComponent', () => {
     const input: HTMLInputElement = fixture.nativeElement.querySelector('input');
     expect(input.disabled).toBeTrue();
     expect(fixture.componentInstance.form.controls.displayName.disabled).toBeTrue();
+  });
+});
+
+describe('TextFieldComponent asynchronous validation', () => {
+  it('shows a late emailTaken result after the field loses focus', async () => {
+    await TestBed.configureTestingModule({ imports: [AsyncHostComponent] }).compileComponents();
+    const fixture = TestBed.createComponent(AsyncHostComponent);
+    fixture.detectChanges();
+    const input: HTMLInputElement = fixture.nativeElement.querySelector('input');
+
+    input.value = 'taken@example.com';
+    input.dispatchEvent(new Event('input'));
+    input.dispatchEvent(new Event('blur'));
+    fixture.detectChanges();
+
+    fixture.componentInstance.availability.next({ emailTaken: true });
+    fixture.componentInstance.availability.complete();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.form.controls.email.hasError('emailTaken')).toBeTrue();
+    expect(fixture.nativeElement.querySelector('[role="alert"]')?.textContent).toContain('E-mail già registrata.');
   });
 });

@@ -28,6 +28,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../user/models/entities/user.entity';
 import { CountryService } from './services/country.service';
 import { Country } from './models/entities/country.entity';
+import { ActivationReceipt } from './models/entities/activation-receipt.entity';
 import { CountryController } from './controllers/country.controller';
 import { RecoveryController } from './controllers/recovery.controller';
 import { JwtKeysProvider } from './providers/jwt-keys.provider';
@@ -77,7 +78,7 @@ import { SESSION_REPOSITORY } from './models/interfaces/session-repository.inter
     UserModule,
     RedisModule,
     ResponseModule,
-    TypeOrmModule.forFeature([User, Country])
+    TypeOrmModule.forFeature([User, Country, ActivationReceipt])
   ],
   providers: [
     JwtToolsService,

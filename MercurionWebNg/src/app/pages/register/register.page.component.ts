@@ -19,6 +19,7 @@ import { PmOption } from '../../Models/pm-option.model';
 import { RouterLink } from '@angular/router';
 import { TurnstileComponent } from '../../components/common/turnstile/turnstile.component';
 import { adaptHttpFormError, type FormErrorState } from '../../utils/form-error.adapter'
+import { ApplicationErrorCode, getApplicationErrorCode } from '../../utils/application-error.util';
 
 
 @Component({
@@ -88,7 +89,8 @@ import { adaptHttpFormError, type FormErrorState } from '../../utils/form-error.
                     required: this.emailRequired,
                     pattern: this.emailMalformed,
                     email: this.emailMalformed,
-                    emailTaken: 'E-mail già registrata.'
+                    emailTaken: 'E-mail già registrata.',
+                    serverError: 'Impossibile verificare la disponibilità dell’e-mail. Riprova.'
                   }"
               />
               <m-text-field
@@ -338,10 +340,10 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
             USER_REGISTRATION_EMAIL_CONFLICT: { email: 'email' }
           })
           this.serverError.set(formError)
-          if (formError.fieldErrors.email) {
+          if (getApplicationErrorCode(error) === ApplicationErrorCode.USER_REGISTRATION_EMAIL_CONFLICT || formError.fieldErrors.email) {
             this.form.controls.email.setErrors({
               ...this.form.controls.email.errors,
-              server: formError.fieldErrors.email
+              emailTaken: true
             })
             this.form.controls.email.markAsTouched()
           } else if (formError.globalError) {
