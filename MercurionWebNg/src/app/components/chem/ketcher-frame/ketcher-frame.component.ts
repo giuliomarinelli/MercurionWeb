@@ -43,24 +43,26 @@ import { ViewportRuntimeService } from '../../../services/context/viewport-runti
             </button>
           </div>
         } @else {
-          @if (ketcherUrl()) {
-            <iframe
-              #ketcherIframe
-              [src]="ketcherUrl()"
-              class="w-full lg:px-8 h-[70vh] min-h-[320px] max-h-[540px] sm:h-[500px] border-none max-w-[1380px] mx-auto"
-              title="Editor molecolare"
-              [attr.aria-busy]="editorState() === 'loading'"
-            ></iframe>
-          }
+          <div class="relative mx-auto h-[70vh] min-h-[320px] max-h-[540px] w-full max-w-[1380px] sm:h-[500px] lg:px-8">
+            @if (ketcherUrl()) {
+              <iframe
+                #ketcherIframe
+                [src]="ketcherUrl()"
+                class="block h-full w-full border-none shadow-[0_1px_12px_rgba(15,23,42,0.18)] dark:shadow-none"
+                title="Editor molecolare"
+                [attr.aria-busy]="editorState() === 'loading'"
+              ></iframe>
+            }
 
-          @if (editorState() === 'loading') {
-            <div
-              class="absolute inset-0 lg:inset-x-8 h-[70vh] min-h-[320px] max-h-[540px] sm:h-[500px] max-w-[1380px] mx-auto bg-gray-300 dark:bg-neutral-700 animate-pulse pointer-events-none"
-              role="status"
-              aria-live="polite"
-              aria-label="Caricamento editor in corso"
-            ></div>
-          }
+            @if (editorState() === 'loading') {
+              <div
+                class="pointer-events-none absolute inset-y-0 inset-x-0 animate-pulse bg-gray-300 dark:bg-neutral-700 lg:inset-x-8"
+                role="status"
+                aria-live="polite"
+                aria-label="Caricamento editor in corso"
+              ></div>
+            }
+          </div>
         }
       } @else {
         <div class="flex flex-col gap-9">

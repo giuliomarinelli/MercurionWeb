@@ -144,6 +144,10 @@ button{
   @apply cursor-pointer;
 }
 
+button:disabled {
+  @apply cursor-not-allowed;
+}
+
 @media (max-width: 768px) {
   input,
   textarea,
