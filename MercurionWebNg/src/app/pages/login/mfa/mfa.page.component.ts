@@ -116,7 +116,7 @@ import {
 
               <div class="relative">
                 <input #otp type="text" [formControl]="codeControl" id="otp"
-                  class="block py-4 px-4 w-full text-sm text-dark dark:text-light bg-transparent border-slate-300 border dark:border-slate-200 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-light-accent-primary-hq dark:focus:ring-dark-accent-primary focus:border-light-accent-primary-hq dark:focus:border-dark-accent-primary peer"
+                  class="block py-4 px-4 w-full text-sm text-light-on-surface-main dark:text-dark-on-surface-main bg-transparent border-slate-300 border dark:border-slate-200 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-light-accent-primary-hq dark:focus:ring-dark-accent-primary focus:border-light-accent-primary-hq dark:focus:border-dark-accent-primary peer"
                   placeholder=" " required
                   (focus)="isOtpFocused.set(true)"
                   (input)="serverError.set(false); onOtpInput()"

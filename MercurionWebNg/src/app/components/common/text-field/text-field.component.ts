@@ -41,7 +41,7 @@ let nextGeneratedId = 0;
 
         <input
           #inputElement
-          class="peer block min-h-12 w-full rounded-md bg-transparent px-4 py-3 text-base text-light-on-surface-main outline-none transition
+          class="peer block min-h-12 w-full rounded-md bg-transparent px-4 py-3.5 text-base text-light-on-surface-main outline-none transition
                  placeholder:text-transparent
                  disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500
                  dark:text-dark-on-surface-main dark:placeholder:text-transparent

@@ -1,10 +1,9 @@
 import { readFile } from 'node:fs/promises';
-import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
+import postcss from 'postcss';
 
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const require = createRequire(import.meta.url);
 
 export const semanticColorPairings = [
   { name: 'body text', foreground: 'on-surface-main', background: 'surface-main', minimum: 4.5 },
@@ -62,13 +61,15 @@ export function contrastRatio(foreground, background) {
 }
 
 function extractThemeVars(cssSource, selector) {
-  const start = cssSource.indexOf(selector);
-  if (start < 0) throw new Error(`Missing semantic theme selector ${selector}`);
-  const end = cssSource.indexOf('}', start);
-  if (end < 0) throw new Error(`Unclosed semantic theme selector ${selector}`);
+  const rule = postcss.parse(cssSource).nodes.find(
+    node => node.type === 'rule' && node.selector === selector,
+  );
+  if (!rule) throw new Error(`Missing semantic theme selector ${selector}`);
   const vars = {};
-  for (const match of cssSource.slice(start, end).matchAll(/--color-([\w-]+)\s*:\s*([^;]+);/g)) {
-    vars[match[1]] = parseHexColor(match[2].trim(), `${selector} --color-${match[1]}`);
+  for (const declaration of rule.nodes) {
+    if (declaration.type !== 'decl' || !declaration.prop.startsWith('--m-color-')) continue;
+    const role = declaration.prop.slice('--m-color-'.length);
+    vars[role] = parseHexColor(declaration.value.trim(), `${selector} ${declaration.prop}`);
   }
   return vars;
 }
@@ -85,18 +86,20 @@ function readSemanticCss(cssSource) {
   return { light, dark };
 }
 
-function readTailwindColors(config) {
-  const themes = { light: config.theme?.extend?.colors?.light, dark: config.theme?.extend?.colors?.dark };
-  for (const [theme, colors] of Object.entries(themes)) {
-    if (!colors) throw new Error(`Tailwind semantic ${theme} color palette is missing`);
-    for (const [name, value] of Object.entries(colors)) {
-      parseHexColor(value, `tailwind ${theme}.${name}`);
+function readTailwindColors(cssSource) {
+  const themeBlock = cssSource.match(/@theme\s+inline\s*{([\s\S]*?)}/)?.[1];
+  if (!themeBlock) throw new Error('Tailwind CSS theme is missing');
+  for (const palette of ['light', 'dark']) {
+    const colors = [...themeBlock.matchAll(new RegExp(`--color-${palette}-([\\w-]+)\\s*:\\s*([^;]+);`, 'g'))];
+    if (colors.length === 0) throw new Error(`Tailwind semantic ${palette} color palette is missing`);
+    for (const [, name, value] of colors) {
+      parseHexColor(value.trim(), `tailwind ${palette}.${name}`);
     }
   }
 }
 
-export function validateSemanticColors({ tailwindConfig, cssSource }) {
-  readTailwindColors(tailwindConfig);
+export function validateSemanticColors({ cssSource }) {
+  readTailwindColors(cssSource);
   const themes = readSemanticCss(cssSource);
   const errors = [];
   for (const [theme, colors] of Object.entries(themes)) {
@@ -117,9 +120,8 @@ export function validateSemanticColors({ tailwindConfig, cssSource }) {
 }
 
 export async function runSemanticColorCheck(root = repositoryRoot) {
-  const config = require(resolve(root, 'MercurionWebNg/tailwind.config.js'));
   const cssSource = await readFile(resolve(root, 'MercurionWebNg/src/styles.css'), 'utf8');
-  const errors = validateSemanticColors({ tailwindConfig: config, cssSource });
+  const errors = validateSemanticColors({ cssSource });
   if (errors.length) {
     console.error(`Angular semantic color check failed:\n${errors.join('\n')}`);
     return false;

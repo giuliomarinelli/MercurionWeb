@@ -52,12 +52,12 @@ interface SelectItem {
   template: `
     <main
       aria-label="Canonical UI accessibility fixture"
-      style="background: #ffffff; color: #11141d; --color-control-primary: #4338ca; --color-on-surface-main: #11141d; --color-control-primary-hover: #3730a3"
+      style="background: #ffffff; color: #11141d; --m-color-control-primary: #4338ca; --m-color-on-surface-main: #11141d; --m-color-control-primary-hover: #3730a3"
     >
       <h1>Canonical controls</h1>
       <form (submit)="$event.preventDefault()">
         <m-button
-          style="--color-on-surface-main: #ffffff"
+          style="--m-color-on-surface-main: #ffffff"
           ariaLabel="Save changes"
           [disabled]="saveDisabled"
           (pressed)="submitted = true">Save</m-button>
@@ -88,7 +88,7 @@ interface SelectItem {
           hint="Choose a collection"
           [selected]="items[0]" />
         <p-tabs [value]="activeTab" (valueChange)="selectTab($event)"
-          style="--p-tabs-tab-active-color: var(--color-accent-primary); --p-tabs-tab-active-border-color: var(--color-accent-primary); --p-tabs-active-bar-background: var(--color-accent-primary)">
+          style="--p-tabs-tab-active-color: var(--m-color-accent-primary); --p-tabs-tab-active-border-color: var(--m-color-accent-primary); --p-tabs-active-bar-background: var(--m-color-accent-primary)">
           <p-tablist aria-label="Molecule sections">
             <p-tab [value]="0">Overview</p-tab>
             <p-tab [value]="1">History</p-tab>
@@ -105,7 +105,7 @@ interface SelectItem {
           (toggled)="disclosureExpanded = $event">
           <p>Additional settings</p>
         </m-disclosure>
-        <m-button style="--color-on-surface-main: #ffffff" type="submit">Submit</m-button>
+        <m-button style="--m-color-on-surface-main: #ffffff" type="submit">Submit</m-button>
       </form>
       <m-action-card labelledBy="action-title" closeLabel="Close action">
         <h2 id="action-title" action-card-title>Action</h2>

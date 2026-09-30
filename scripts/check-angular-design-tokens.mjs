@@ -29,7 +29,7 @@ function stripComments(source) {
 }
 
 function isTokenDeclaration(line) {
-  return /--(?:color|shadow|space|radius|font)-[\w-]+\s*:/.test(line);
+  return /--m-(?:color|shadow|space|radius|font)-[\w-]+\s*:/.test(line);
 }
 
 function isAllowedMatch(source, matchIndex, matchText) {

@@ -57,7 +57,7 @@ import { PaginationComponent } from '../../components/common/pagination/paginati
 
       @if (handleTickets()) {
         <p-tabs class="block mt-4" [value]="activeTab()" (valueChange)="switchTab($event)"
-          style="--p-tabs-tablist-background: transparent; --p-tabs-tabpanel-background: transparent; --p-tabs-tab-active-color: var(--color-accent-primary); --p-tabs-tab-active-border-color: var(--color-accent-primary); --p-tabs-active-bar-background: var(--color-accent-primary)">
+          style="--p-tabs-tablist-background: transparent; --p-tabs-tabpanel-background: transparent; --p-tabs-tab-active-color: var(--m-color-accent-primary); --p-tabs-tab-active-border-color: var(--m-color-accent-primary); --p-tabs-active-bar-background: var(--m-color-accent-primary)">
           <p-tablist class="!bg-transparent" aria-label="Seleziona la sezione dei ticket">
             @for (tab of tabs; track $index) {
               <p-tab [value]="$index">{{ tab }}</p-tab>

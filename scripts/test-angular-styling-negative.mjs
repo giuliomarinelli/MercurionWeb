@@ -25,8 +25,8 @@ for (const [name, expectedText] of cases) {
           'scripts/check-angular-styling.mjs',
           '--root',
           temporaryRoot,
-          '--tailwind-config',
-          'MercurionWebNg/tailwind.config.js',
+          '--stylesheet',
+          'MercurionWebNg/src/styles.css',
         ],
         { cwd: repositoryRoot, stdio: 'pipe', encoding: 'utf8' },
       );

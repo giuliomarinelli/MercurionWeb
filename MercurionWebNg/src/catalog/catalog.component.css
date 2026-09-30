@@ -4,8 +4,8 @@
 
 .catalog-shell {
   --catalog-grid: minmax(0, 1fr);
-  background: var(--color-surface-main);
-  color: var(--color-on-surface-main);
+  background: var(--m-color-surface-main);
+  color: var(--m-color-on-surface-main);
   min-height: 100vh;
   padding: 2rem clamp(1rem, 4vw, 4rem) 4rem;
   transition: background-color 150ms ease, color 150ms ease;
@@ -39,7 +39,7 @@
 
 .catalog-eyebrow,
 .catalog-kicker {
-  color: var(--color-accent-primary);
+  color: var(--m-color-accent-primary);
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -47,7 +47,7 @@
 }
 
 .catalog-intro {
-  color: var(--color-on-surface-secondary);
+  color: var(--m-color-on-surface-secondary);
   margin-top: 0.75rem !important;
   max-width: 42rem;
 }
@@ -60,10 +60,10 @@
 }
 
 .catalog-theme-toggle {
-  background: var(--color-control-primary);
+  background: var(--m-color-control-primary);
   border: 0;
-  border-radius: var(--radius-control);
-  color: var(--color-on-control-filled);
+  border-radius: var(--m-radius-control);
+  color: var(--m-color-on-control-filled);
   cursor: pointer;
   font: inherit;
   font-weight: 600;
@@ -71,13 +71,13 @@
 }
 
 .catalog-theme-toggle:focus-visible {
-  outline: 3px solid var(--color-focus);
+  outline: 3px solid var(--m-color-focus);
   outline-offset: 3px;
 }
 
 .catalog-status,
 .catalog-note {
-  color: var(--color-on-surface-muted);
+  color: var(--m-color-on-surface-muted);
   font-size: 0.75rem;
 }
 
@@ -88,9 +88,9 @@
 }
 
 .catalog-section {
-  background: var(--color-surface-elevated);
-  border: 1px solid color-mix(in srgb, var(--color-border) 60%, transparent);
-  border-radius: var(--radius-surface);
+  background: var(--m-color-surface-elevated);
+  border: 1px solid color-mix(in srgb, var(--m-color-border) 60%, transparent);
+  border-radius: var(--m-radius-surface);
   display: grid;
   gap: 1.25rem;
   min-width: 0;
@@ -109,7 +109,7 @@
 }
 
 .catalog-section__heading > p {
-  color: var(--color-on-surface-secondary);
+  color: var(--m-color-on-surface-secondary);
   font-size: 0.8rem;
   max-width: 20rem;
   text-align: right;
@@ -135,8 +135,8 @@
 }
 
 .catalog-panel {
-  background: var(--color-surface-secondary);
-  border-radius: var(--radius-control);
+  background: var(--m-color-surface-secondary);
+  border-radius: var(--m-radius-control);
   min-height: 3rem;
   padding: 1rem;
 }

@@ -69,12 +69,12 @@ const ICON_POSITION_CLASSES = {
     .m-button__control {
       align-items: center;
       border: 1px solid transparent;
-      border-radius: var(--radius-control);
+      border-radius: var(--m-radius-control);
       cursor: pointer;
       display: inline-flex;
       font: inherit;
       font-weight: 600;
-      gap: var(--space-2);
+      gap: var(--m-space-2);
       justify-content: center;
       min-height: 2.5rem;
       position: relative;
@@ -83,8 +83,8 @@ const ICON_POSITION_CLASSES = {
     }
 
     .m-button__control:focus-visible {
-      outline: 3px solid var(--color-focus);
-      outline-offset: var(--space-2);
+      outline: 3px solid var(--m-color-focus);
+      outline-offset: var(--m-space-2);
     }
 
     .m-button__control:active:not(:disabled) {
@@ -98,81 +98,81 @@ const ICON_POSITION_CLASSES = {
 
     .m-button__control--sm {
       min-height: 2rem;
-      padding: 0.375rem var(--space-3);
+      padding: 0.375rem var(--m-space-3);
       font-size: 0.75rem;
     }
 
     .m-button__control--md {
-      padding: 0.625rem var(--space-4);
-      font-size: var(--font-body);
+      padding: 0.625rem var(--m-space-4);
+      font-size: var(--m-font-body);
     }
 
     .m-button__control--lg {
       min-height: 3rem;
-      padding: var(--space-3) var(--space-6);
+      padding: var(--m-space-3) var(--m-space-6);
       font-size: 1rem;
     }
 
     .m-button__control--primary {
-      background: var(--color-control-primary);
-      color: var(--color-on-control-filled);
+      background: var(--m-color-control-primary);
+      color: var(--m-color-on-control-filled);
     }
 
     .m-button__control--primary:hover:not(:disabled) {
-      background: var(--color-control-primary-hover);
+      background: var(--m-color-control-primary-hover);
     }
 
     .m-button__control--secondary {
-      background: var(--color-control-secondary);
-      color: var(--color-on-control-filled);
+      background: var(--m-color-control-secondary);
+      color: var(--m-color-on-control-filled);
     }
 
     .m-button__control--secondary:hover:not(:disabled) {
-      background: var(--color-control-secondary-hover);
+      background: var(--m-color-control-secondary-hover);
     }
 
     .m-button__control--destructive {
-      background: var(--color-control-destructive);
-      color: var(--color-on-control-filled);
+      background: var(--m-color-control-destructive);
+      color: var(--m-color-on-control-filled);
     }
 
     .m-button__control--destructive:hover:not(:disabled) {
-      background: var(--color-control-destructive-hover);
+      background: var(--m-color-control-destructive-hover);
     }
 
     .m-button__control--neutral {
-      background: var(--color-surface-secondary);
-      color: var(--color-on-surface-main);
+      background: var(--m-color-surface-secondary);
+      color: var(--m-color-on-surface-main);
     }
 
     .m-button__control--neutral:hover:not(:disabled) {
-      background: var(--color-control-neutral-hover);
+      background: var(--m-color-control-neutral-hover);
     }
 
     .m-button__control--ghost {
       background: transparent;
-      color: var(--color-on-surface-main);
+      color: var(--m-color-on-surface-main);
     }
 
     .m-button__control--ghost:hover:not(:disabled) {
-      background: var(--color-control-ghost-hover);
+      background: var(--m-color-control-ghost-hover);
     }
 
     .m-button__control--outline {
       background: transparent;
-      border-color: var(--color-focus);
-      color: var(--color-control-outline-text);
+      border-color: var(--m-color-focus);
+      color: var(--m-color-control-outline-text);
     }
 
     .m-button__control--outline:hover:not(:disabled) {
-      background: var(--color-control-outline-hover);
+      background: var(--m-color-control-outline-hover);
     }
 
     .m-button__spinner {
       animation: m-button-spin 700ms linear infinite;
       border: 2px solid currentColor;
       border-right-color: transparent;
-      border-radius: var(--radius-pill);
+      border-radius: var(--m-radius-pill);
       height: 1em;
       left: 50%;
       position: absolute;

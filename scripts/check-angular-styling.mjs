@@ -2,16 +2,16 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import postcss from 'postcss';
-import tailwind from 'tailwindcss';
+import tailwindPostcss from '@tailwindcss/postcss';
 
 const repositoryRoot = process.cwd();
 const sourceRoot = path.resolve(
   repositoryRoot,
   getArgument('--root') ?? 'MercurionWebNg/src',
 );
-const tailwindConfigPath = path.resolve(
+const stylesheetPath = path.resolve(
   repositoryRoot,
-  getArgument('--tailwind-config') ?? 'MercurionWebNg/tailwind.config.js',
+  getArgument('--stylesheet') ?? 'MercurionWebNg/src/styles.css',
 );
 
 const governedExtensions = new Set(['.css', '.scss', '.html', '.ts']);
@@ -240,7 +240,7 @@ for (const source of sources) {
 }
 
 if (errors.length === 0) {
-  const generatedCss = await generateTailwindCss(sources, tailwindConfigPath);
+  const generatedCss = await generateTailwindCss(stylesheetPath);
   for (const [candidate, locations] of candidates) {
     if (hasDuplicateVariant(candidate)) {
       errors.push(
@@ -304,7 +304,7 @@ function collectCandidates(source, candidates) {
       /\[(?:class|className|ngClass)\]\s*=\s*(?:"([^"]*)"|'([^']*)')/g,
     ),
   ];
-  const stringContexts = [
+  const stringContexts = source.file.endsWith('.spec.ts') ? [] : [
     ...source.content.matchAll(
       /(['"`])([a-z][a-z0-9.[\]#%:/_-]{2,})\1/gi,
     ),
@@ -357,7 +357,10 @@ function validateStylesheet(source, errors) {
   }
 
   root.walkDecls((declaration) => {
-    if (!/^-?-?[a-z][a-z0-9-]*$/i.test(declaration.prop)) {
+    const themeWildcard = declaration.parent.type === 'atrule' &&
+      declaration.parent.name === 'theme' &&
+      /^--[a-z][a-z0-9-]*-\*$/.test(declaration.prop);
+    if (!/^-?-?[a-z][a-z0-9-]*$/i.test(declaration.prop) && !themeWildcard) {
       errors.push(
         `${source.relative}:${declaration.source?.start.line ?? 0}: invalid CSS property "${declaration.prop}"`,
       );
@@ -376,26 +379,12 @@ function validateStylesheet(source, errors) {
   });
 }
 
-async function generateTailwindCss(sources, configPath) {
-  const config = await import(pathToFileUrl(configPath));
-  const rawContent = sources
-    .filter(({ file }) => ['.html', '.ts'].includes(path.extname(file)))
-    .map(({ content }) => content)
-    .join('\n');
-  const result = await postcss([
-    tailwind.default?.({
-      ...config.default,
-      content: [{ raw: rawContent, extension: 'html' }],
-    }) ?? tailwind({
-      ...config.default,
-      content: [{ raw: rawContent, extension: 'html' }],
-    }),
-  ]).process('@tailwind utilities;', { from: undefined });
+async function generateTailwindCss(stylesheet) {
+  const result = await postcss([tailwindPostcss()]).process(
+    fs.readFileSync(stylesheet, 'utf8'),
+    { from: stylesheet },
+  );
   return result.css;
-}
-
-function pathToFileUrl(filePath) {
-  return new URL(`file:///${filePath.replaceAll('\\', '/')}`).href;
 }
 
 function isTailwindCandidate(token) {

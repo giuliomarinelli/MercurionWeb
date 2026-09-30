@@ -80,9 +80,9 @@
     "@graphql-codegen/typed-document-node": "7.1.0",
     "@graphql-codegen/typescript": "6.1.0",
     "@graphql-codegen/typescript-operations": "6.1.6",
+    "@tailwindcss/postcss": "4.3.3",
     "@types/jasmine": "5.1.0",
     "angular-eslint": "20.7.0",
-    "autoprefixer": "10.4.21",
     "axe-core": "4.11.0",
     "eslint": "9.39.5",
     "jasmine-core": "5.6.0",
@@ -92,8 +92,7 @@
     "karma-jasmine": "5.1.0",
     "karma-jasmine-html-reporter": "2.1.0",
     "postcss": "8.5.24",
-    "postcss-import": "16.1.0",
-    "tailwindcss": "3.4.1",
+    "tailwindcss": "4.3.3",
     "typescript": "5.8.3",
     "typescript-eslint": "8.65.0"
   }

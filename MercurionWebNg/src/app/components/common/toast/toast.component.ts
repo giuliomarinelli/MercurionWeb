@@ -57,8 +57,8 @@ import { ToastService } from '../../../services/toast.service'
     `
       :host {
         position: fixed;
-        top: var(--space-4);
-        right: var(--space-4);
+        top: var(--m-space-4);
+        right: var(--m-space-4);
         z-index: 11000;
         pointer-events: none;
       }
@@ -66,9 +66,9 @@ import { ToastService } from '../../../services/toast.service'
       .toast-host {
         display: flex;
         flex-direction: column;
-        gap: var(--space-3);
-        width: min(24rem, calc(100vw - 2 * var(--space-4)));
-        max-height: calc(100dvh - 2 * var(--space-4));
+        gap: var(--m-space-3);
+        width: min(24rem, calc(100vw - 2 * var(--m-space-4)));
+        max-height: calc(100dvh - 2 * var(--m-space-4));
         overflow: clip;
       }
 
@@ -77,37 +77,37 @@ import { ToastService } from '../../../services/toast.service'
         display: grid;
         grid-template-columns: auto 1fr auto;
         align-items: center;
-        gap: var(--space-3);
+        gap: var(--m-space-3);
 
-        min-height: theme('spacing.16');
-        padding: 0.875rem theme('spacing.token-4');
+        min-height: 4rem;
+        padding: 0.875rem var(--m-space-4);
 
-        border-radius: var(--radius-surface);
+        border-radius: var(--m-radius-surface);
         border: 1px solid transparent;
 
         box-shadow:
-          var(--shadow-surface);
+          var(--m-shadow-surface);
 
         backdrop-filter: blur(10px);
         will-change: transform, opacity;
       }
 
       .toast--success {
-        color: var(--color-status-success);
-        background: color-mix(in srgb, var(--color-status-success) 18%, var(--color-surface-elevated));
-        border-color: color-mix(in srgb, var(--color-status-success) 35%, transparent);
+        color: var(--m-color-status-success);
+        background: color-mix(in srgb, var(--m-color-status-success) 18%, var(--m-color-surface-elevated));
+        border-color: color-mix(in srgb, var(--m-color-status-success) 35%, transparent);
       }
 
       .toast--error {
-        color: var(--color-status-error);
-        background: color-mix(in srgb, var(--color-status-error) 18%, var(--color-surface-elevated));
-        border-color: color-mix(in srgb, var(--color-status-error) 35%, transparent);
+        color: var(--m-color-status-error);
+        background: color-mix(in srgb, var(--m-color-status-error) 18%, var(--m-color-surface-elevated));
+        border-color: color-mix(in srgb, var(--m-color-status-error) 35%, transparent);
       }
 
       .toast--warn {
-        color: var(--color-status-warning);
-        background: color-mix(in srgb, var(--color-status-warning) 18%, var(--color-surface-elevated));
-        border-color: color-mix(in srgb, var(--color-status-warning) 40%, transparent);
+        color: var(--m-color-status-warning);
+        background: color-mix(in srgb, var(--m-color-status-warning) 18%, var(--m-color-surface-elevated));
+        border-color: color-mix(in srgb, var(--m-color-status-warning) 40%, transparent);
       }
 
       .toast__icon {
@@ -117,26 +117,26 @@ import { ToastService } from '../../../services/toast.service'
         width: 1.75rem;
         height: 1.75rem;
 
-        border-radius: var(--radius-pill);
+        border-radius: var(--m-radius-pill);
         font-weight: 800;
         line-height: 1;
       }
 
       .toast--success .toast__icon {
-        background: color-mix(in srgb, var(--color-status-success) 18%, transparent);
+        background: color-mix(in srgb, var(--m-color-status-success) 18%, transparent);
       }
 
       .toast--error .toast__icon {
-        background: color-mix(in srgb, var(--color-status-error) 18%, transparent);
+        background: color-mix(in srgb, var(--m-color-status-error) 18%, transparent);
       }
 
       .toast--warn .toast__icon {
-        background: color-mix(in srgb, var(--color-status-warning) 20%, transparent);
+        background: color-mix(in srgb, var(--m-color-status-warning) 20%, transparent);
       }
 
       .toast__message {
         margin: 0;
-        font-size: var(--font-body-sm);
+        font-size: var(--m-font-body-sm);
         font-weight: 600;
       }
 
@@ -150,7 +150,7 @@ import { ToastService } from '../../../services/toast.service'
         width: 1.75rem;
         height: 1.75rem;
 
-        border-radius: var(--radius-pill);
+        border-radius: var(--m-radius-pill);
 
         font-size: 1.35rem;
         line-height: 1;
@@ -159,7 +159,7 @@ import { ToastService } from '../../../services/toast.service'
 
       .toast__close:hover {
         opacity: 1;
-        background: color-mix(in srgb, var(--color-surface-elevated) 72%, currentColor);
+        background: color-mix(in srgb, var(--m-color-surface-elevated) 72%, currentColor);
         color: currentColor;
       }
 

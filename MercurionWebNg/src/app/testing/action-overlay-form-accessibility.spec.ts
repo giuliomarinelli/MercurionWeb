@@ -33,7 +33,7 @@ interface SelectItem {
   template: `
     <main
       aria-label="Action overlay accessibility fixture"
-      style="background: #ffffff; color: #11141d; --color-control-primary: #4338ca; --color-control-primary-hover: #3730a3; --color-surface-secondary: #e2e8f0; --color-border: #94a3b8; --color-on-surface-main: #11141d"
+      style="background: #ffffff; color: #11141d; --m-color-control-primary: #4338ca; --m-color-control-primary-hover: #3730a3; --m-color-surface-secondary: #e2e8f0; --m-color-border: #94a3b8; --m-color-on-surface-main: #11141d"
     >
       <form [formGroup]="form" (submit)="$event.preventDefault()">
       <m-text-field
