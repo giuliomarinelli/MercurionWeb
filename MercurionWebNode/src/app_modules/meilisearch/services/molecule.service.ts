@@ -1,4 +1,5 @@
 import { Inject, Injectable } from "@nestjs/common";
+import { InjectRepository } from '@nestjs/typeorm';
 import { MoleculeDetail } from "../models/dto/molecule-detail.gql.dtos";
 import { MeiliSearch } from "meilisearch";
 import { MoleculeSearchResult } from "../models/dto/molecule-search-result.cls";
@@ -6,6 +7,9 @@ import { MoleculeDetailModel } from "src/app_modules/chembl/models/dto/molecule-
 import { LoggerPort } from 'src/logging/logger.port';
 import { LoggerContext } from "src/logging/logger.port";
 import { errorMessage } from 'src/utils/errors/error-message'
+import { CustomMoleculeItemEntity } from 'src/app_modules/molecule-collection/models/entities/custom-molecule-item.entity';
+import { UUID } from "crypto";
+import { Repository } from 'typeorm';
 
 type Maybe<T> = T | null | undefined;
 type MoleculeDetailWithMolregno = MoleculeDetailModel & {
@@ -20,6 +24,8 @@ export class MoleculeService {
     constructor(
         @Inject("MEILISEARCH_CLIENT")
         private readonly meiliClient: MeiliSearch,
+        @InjectRepository(CustomMoleculeItemEntity)
+        private readonly customMoleculeRepo: Repository<CustomMoleculeItemEntity>,
         meiliLogger: LoggerPort
     ) {
         this.logger = meiliLogger.forContext(MoleculeService.name)
@@ -140,7 +146,28 @@ export class MoleculeService {
         return results;
     }
 
+    async getPreferredNameItByCanonicalSmilesFromChembleCoalesceCustomMolecule(canonicalSmiles: string, userId: UUID): Promise<string | null> {
+        const preferredNameItFromChembl = await this.getPreferredNameItByCanonicalSmiles(canonicalSmiles)
+        if (preferredNameItFromChembl) {
+            return preferredNameItFromChembl
+        }
+        const customMolecule = await this.customMoleculeRepo.findOne({
+            where: { userId, canonicalSmiles },
+            select: ['name']
+        })
+        return customMolecule?.name ?? null
+    }
     // ============= PRIVATE =============
+
+    private async getPreferredNameItByCanonicalSmiles(canonicalSmiles: string): Promise<string | null> {
+        const index = this.meiliClient.index("molecule_previews_chembl_36")
+        const result = await index.search('', {
+            filter: `smiles = ${this.quoteForMeiliFilter(canonicalSmiles)}`,
+            attributesToRetrieve: ['preferredNameIt'],
+            limit: 1,
+        })
+        return (result.hits as { preferredNameIt?: string }[])?.[0]?.preferredNameIt ?? null
+    }
 
     private async fetchFromChembl(
         molregno: string
@@ -235,4 +262,5 @@ export class MoleculeService {
         // altrimenti quotato con escape di eventuali doppi apici
         return `"${value.replace(/"/g, '\\"')}"`;
     }
+
 }
