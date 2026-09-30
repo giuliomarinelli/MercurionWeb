@@ -28,9 +28,7 @@ let nextGeneratedId = 0;
   host: { class: 'block' },
   template: `
     <div class="w-full">
-      <div
-        class="relative flex items-center rounded-md bg-light-surface-secondary dark:bg-dark-surface-secondary"
-      >
+      <div class="group relative flex min-w-0 items-center">
         <span
           class="pointer-events-none absolute left-3 z-10 flex items-center text-light-on-surface-secondary dark:text-dark-on-surface-secondary"
         >
@@ -39,12 +37,11 @@ let nextGeneratedId = 0;
 
         <input
           #inputElement
-          class="peer block min-h-12 w-full rounded-md border border-slate-400 bg-transparent px-4 py-3 text-light-on-surface-main outline-none transition
-                 placeholder:text-transparent focus:border-light-accent-primary focus:ring-2 focus:ring-light-accent-primary
-                 disabled:cursor-not-allowed disabled:border-slate-300 disabled:bg-slate-100 disabled:text-slate-500
-                 dark:border-slate-300 dark:text-dark-on-surface-main dark:placeholder:text-transparent
-                 dark:focus:border-dark-accent-primary dark:focus:ring-dark-accent-primary
-                 dark:disabled:border-slate-700 dark:disabled:bg-slate-900 dark:disabled:text-slate-500"
+          class="peer block min-h-12 w-full rounded-md bg-transparent px-4 py-3 text-base text-light-on-surface-main outline-none transition
+                 placeholder:text-transparent
+                 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500
+                 dark:text-dark-on-surface-main dark:placeholder:text-transparent
+                 dark:disabled:bg-slate-900 dark:disabled:text-slate-500"
           [attr.id]="fieldId()"
           [attr.name]="name() || null"
           [attr.type]="type()"
@@ -62,13 +59,20 @@ let nextGeneratedId = 0;
           (keyup.enter)="enter.emit()"
         />
 
+        <div class="pointer-events-none absolute inset-0 rounded-b-md border-x border-b border-slate-400 group-focus-within:border-2 group-focus-within:border-t-0 group-focus-within:border-light-accent-primary dark:border-slate-300 dark:group-focus-within:border-dark-accent-primary" style="clip-path: inset(6px 0 0 0)" aria-hidden="true"></div>
+        <div class="pointer-events-none absolute inset-x-0 top-0 flex h-px text-slate-400 group-focus-within:text-light-accent-primary dark:text-slate-300 dark:group-focus-within:text-dark-accent-primary" aria-hidden="true">
+          <span class="h-2 w-3 shrink-0 rounded-tl-md border-l border-t border-current group-focus-within:border-2 group-focus-within:border-b-0 group-focus-within:border-r-0"></span>
+          @if (focused() || !empty()) { <span class="shrink-0 px-1 text-base leading-none opacity-0">{{ label() }} @if (isRequired()) { * }</span> }
+          <span class="min-w-0 flex-1 border-t border-current group-focus-within:border-t-2"></span>
+          <span class="h-2 w-2 shrink-0 rounded-tr-md border-r border-t border-current group-focus-within:border-2 group-focus-within:border-b-0 group-focus-within:border-l-0"></span>
+        </div>
+
         <label
-          class="pointer-events-none absolute left-3 origin-left bg-light-surface-secondary px-1 text-light-on-surface-secondary transition-all
-                 peer-focus:-translate-y-6 peer-focus:scale-90 peer-focus:text-light-accent-secondary
-                 dark:bg-dark-surface-secondary dark:text-dark-on-surface-secondary
+          class="pointer-events-none absolute left-3 -translate-y-1/2 px-1 text-base text-light-on-surface-secondary transition-[top,color]
+                 peer-focus:text-light-accent-secondary
+                 dark:text-dark-on-surface-secondary
                  dark:peer-focus:text-dark-accent-secondary-hc"
-          [class.-translate-y-6]="focused() || !empty()"
-          [class.scale-90]="focused() || !empty()"
+          [style.top]="focused() || !empty() ? '0' : '50%'"
           [class.text-light-accent-secondary]="focused() || !empty()"
           [attr.for]="fieldId()"
         >

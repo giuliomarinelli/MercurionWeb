@@ -2,6 +2,7 @@ import { WelcomeHeroComponent } from './../../components/welcome/welcome-hero/we
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   ElementRef,
   inject,
   OnDestroy,
@@ -18,6 +19,7 @@ import { ActivatedRoute } from '@angular/router'
 import { UserContextService } from '../../services/context/user-context.service'
 import { ProgressIndicatorComponent } from '../../components/common/progress-indicator/progress-indicator.component'
 import { DesignService } from '../../services/design.service'
+import { AuthStateStore } from '../../services/auth-state.store'
 
 @Component({
   selector: 'm-welcome-page',
@@ -91,7 +93,7 @@ import { DesignService } from '../../services/design.service'
       <!-- Background molecolare (dietro a tutto) -->
       <div class="mercurion-bg-layer"></div>
       <div class="mercurion-bg-overlay"></div>
-      @if (userContext.isLoggedIn()) {
+      @if (isLoggedIn()) {
         <main class="mercurion-page-shell flex justify-center items-center h-full">
           <m-progress-indicator />
         </main>
@@ -120,10 +122,12 @@ export class WelcomePageComponent implements OnInit, OnDestroy {
 
   private readonly route = inject(ActivatedRoute)
   private readonly scrollContext = inject(ScrollContextService)
-  protected readonly userContext = inject(UserContextService)
+  private readonly authState = inject(AuthStateStore)
   protected readonly design = inject(DesignService)
 
   private fragSub?: Subscription
+
+  protected readonly isLoggedIn = computed(() => this.authState.authenticated())
 
   ngOnInit(): void {
     this.fragSub = this.route.fragment.subscribe((frag) => {
