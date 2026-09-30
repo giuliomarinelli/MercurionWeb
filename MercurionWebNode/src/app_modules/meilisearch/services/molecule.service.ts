@@ -146,15 +146,18 @@ export class MoleculeService {
         return results;
     }
 
-    async getPreferredNameItByCanonicalSmilesFromChembleCoalesceCustomMolecule(canonicalSmiles: string, userId: UUID): Promise<string | null> {
+    async getPreferredNameItByCanonicalSmilesFromChembleCoalesceCustomMolecule(canonicalSmiles: string, userId?: UUID): Promise<string | null> {
         const preferredNameItFromChembl = await this.getPreferredNameItByCanonicalSmiles(canonicalSmiles)
         if (preferredNameItFromChembl) {
             return preferredNameItFromChembl
         }
-        const customMolecule = await this.customMoleculeRepo.findOne({
-            where: { userId, canonicalSmiles },
-            select: ['name']
-        })
+        let customMolecule: CustomMoleculeItemEntity | null = null
+        if (userId) {
+            customMolecule = await this.customMoleculeRepo.findOne({
+                where: { userId, canonicalSmiles },
+                select: ['name']
+            })
+        }
         return customMolecule?.name ?? null
     }
     // ============= PRIVATE =============
