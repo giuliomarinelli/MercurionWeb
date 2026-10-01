@@ -116,14 +116,14 @@ import { SelectionControlComponent } from '../../components/common/selection-con
           </h2>
           <div class="overflow-x-auto flex justify-center sm:justify-start">
             <div class="
-                    flex-shrink-0
+                    shrink-0
                     w-auto
-                    h-[140px]
-                    2xs:h-[165px]
-                    xs:h-[185px]
-                    sm:h-[215px]
-                    md:h-[235px]
-                    lg:h-[300px]
+                    h-35
+                    2xs:h-41.25
+                    xs:h-46.25
+                    sm:h-53.75
+                    md:h-58.75
+                    lg:h-75
                     overflow-hidden
                     relative
 

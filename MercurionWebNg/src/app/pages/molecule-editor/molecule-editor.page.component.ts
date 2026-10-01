@@ -42,6 +42,12 @@ import { DescriptorCardContentComponent } from '../../components/common/descript
 import { DescriptorCardsGridComponent } from '../../components/common/descriptor-cards-grid/descriptor-cards-grid.component'
 import { MoleculeBadgeComponent } from '../../components/molecule-detail/molecule-badge/molecule-badge.component'
 import { MoleculeService } from '../../services/graphql/molecule.service'
+import { CopyButtonComponent } from '../../components/common/copy-button/copy-button.component';
+import { NgClass } from '@angular/common'
+import { T1PredictionCardComponent } from '../../components/molecule-detail/t1-prediction-card/t1-prediction-card.component'
+import { T1PredictionDTO } from '../../Models/notebook/t1-prediction-model'
+import { MercurionAiService } from '../../services/mercurion-ai.service'
+
 
 @Component({
   selector: 'm-molecule-editor',
@@ -52,128 +58,112 @@ import { MoleculeService } from '../../services/graphql/molecule.service'
     FormsModule,
     DescriptorCardContentComponent,
     DescriptorCardsGridComponent,
-    MoleculeBadgeComponent
+    MoleculeBadgeComponent,
+    CopyButtonComponent,
+    NgClass,
+    T1PredictionCardComponent
   ],
   template: `
-    <main
-      class="mt-2 mb-6"
-      role="main"
-      aria-live="polite"
-      [attr.aria-busy]="pendingAction() !== null || pendingTabChange() !== null"
-    >
-      <h2
-        class="text-center text-light-accent-primary-hc dark:text-dark-accent-primary font-semibold text-xl 2xs:text-2xl sm:text-4xl mb-6"
-      >
+<main class="mt-2 mb-6" role="main" aria-live="polite"
+    [attr.aria-busy]="pendingAction() !== null || pendingTabChange() !== null">
+    <h2
+        class="text-center text-light-accent-primary-hc dark:text-dark-accent-primary font-semibold text-xl 2xs:text-2xl sm:text-4xl mb-6">
         Editor Molecolare
-      </h2>
+    </h2>
 
-      @if (!error()) {
-        <div class="mb-5 flex justify-center">
-          <span id="moleculeEditorTabLabel" class="sr-only">Modalità editor molecolare</span>
-          <p-selectbutton
-            class="editor-tabs"
-            [options]="editorTabOptions()"
-            [ngModel]="tab()"
-            (ngModelChange)="onEditorTabChange($event)"
-            optionLabel="label"
-            optionValue="value"
-            [allowEmpty]="false"
+    @if (!error()) {
+    <div class="mb-5 flex justify-center">
+        <span id="moleculeEditorTabLabel" class="sr-only">Modalità editor molecolare</span>
+        <p-selectbutton class="editor-tabs" [options]="editorTabOptions()" [ngModel]="tab()"
+            (ngModelChange)="onEditorTabChange($event)" optionLabel="label" optionValue="value" [allowEmpty]="false"
             [disabled]="pendingAction() !== null || pendingTabChange() !== null"
-            ariaLabelledBy="moleculeEditorTabLabel"
-          />
-        </div>
-        <section class="max-w-6xl mx-auto my-4" aria-labelledby="editor-properties-heading">
-        <m-descriptor-cards-grid
-              [cardsData]="[
+            ariaLabelledBy="moleculeEditorTabLabel" />
+    </div>
+    <section class="max-w-6xl mx-auto my-4" aria-labelledby="editor-properties-heading">
+        <m-descriptor-cards-grid [cardsData]="[
                 { title: 'Nome della molecola', bg: 'primary', content: molecularName },
                 { title: 'Canonical SMILES', bg: 'secondary', content: canonicalSmilesContent },
-              ]"
-            />
+              ]" />
 
-            <ng-template #molecularName>
-              <m-descriptor-card-content>
+        <ng-template #molecularName>
+            <m-descriptor-card-content>
                 <div class="flex gap-3 items-center">
-                  {{ moleculeNameLoading() ? 'Ricerca…' : (currentMoleculeName() ?? 'ND') }}
-                  @if (!moleculeNameLoading() && currentMoleculeType() !== null) {
-                  <m-molecule-badge [name]="currentMoleculeType()!" />
-                  }
+                    {{ moleculeNameLoading() ? 'Ricerca…' : (currentMoleculeName() ?? 'ND') }}
+                    @if (!moleculeNameLoading() && currentMoleculeType() !== null) {
+                    <m-molecule-badge [name]="currentMoleculeType()!" />
+                    }
                 </div>
-              </m-descriptor-card-content>
-            </ng-template>
-            <ng-template #canonicalSmilesContent>
-              <m-descriptor-card-content>
-                <span class="font-mono text-sm break-all">
-                  {{ currentCanonicalSmiles() || 'ND' }}
-                </span>
-              </m-descriptor-card-content>
-            </ng-template>
-        </section>
+            </m-descriptor-card-content>
+        </ng-template>
+        <ng-template #canonicalSmilesContent>
+            <m-descriptor-card-content>
+                <div class="flex items-center gap-4">
+                    <span class="font-mono text-sm break-all">
+                        {{ currentCanonicalSmiles() || 'ND' }}
+                    </span>
+                    @if (currentCanonicalSmiles()) {
+                    <m-copy-button [src]="currentCanonicalSmiles() || ''" [disabled]="!currentCanonicalSmiles()"
+                        aria-label="Copia il Canonical SMILES negli appunti" />
+                    }
+                </div>
+            </m-descriptor-card-content>
+        </ng-template>
+    </section>
 
+    <div class="grid gap-4" [ngClass]="{
+      'grid-cols-1': tab() === 'std',
+      'grid-cols-2': tab() === 'live'
+    }">
+        <m-ketcher-frame [smiles]="smiles()" [baselineSmiles]="baselineSmiles()" [mode]="mode()" [tab]="tab()"
+            [triggerReset]="triggerReset()" [triggerGetSmiles]="triggerGetSmiles()"
+            (exportSmiles)="onSmilesExported($event)" (exportPolledSmiles)="onSmilesPollExported($event)"
+            (onReset)="handleReset()">
 
-        <m-ketcher-frame
-          [smiles]="smiles()"
-          [baselineSmiles]="baselineSmiles()"
-          [mode]="mode()"
-          [tab]="tab()"
-          [triggerReset]="triggerReset()"
-          [triggerGetSmiles]="triggerGetSmiles()"
-          (exportSmiles)="onSmilesExported($event)"
-          (exportPolledSmiles)="onSmilesPollExported($event)"
-          (onReset)="handleReset()"
-        >
-          <div class="flex flex-col 2xs:flex-row gap-3 mt-5 justify-end max-w-2xl mx-auto">
-            <button
-              class="relative bottom-0.5 w-full mt-4 py-2 text-white rounded-md transition-colors duration-150 bg-light-accent-primary-hq dark:bg-dark-accent-primary-btn hover:bg-light-accent-primary-hc dark:hover:bg-dark-accent-primary/80 disabled:bg-light-accent-primary-hq/60 disabled:dark:bg-dark-accent-primary/80 disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary-hq/60 disabled:hover:dark:bg-dark-accent-primary/80"
-              (click)="onReset()"
-              [disabled]="untouched()"
-              [attr.aria-disabled]="untouched()"
-              aria-label="Resetta la struttura"
-            >
-              Resetta
-            </button>
+            <div class="flex flex-col 2xs:flex-row gap-3 mt-5 justify-end max-w-2xl mx-auto">
+                <button
+                    class="relative bottom-0.5 w-full mt-4 py-2 text-white rounded-md transition-colors duration-150 bg-light-accent-primary-hq dark:bg-dark-accent-primary-btn hover:bg-light-accent-primary-hc dark:hover:bg-dark-accent-primary/80 disabled:bg-light-accent-primary-hq/60 disabled:dark:bg-dark-accent-primary/80 disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary-hq/60 disabled:hover:dark:bg-dark-accent-primary/80"
+                    (click)="onReset()" [disabled]="untouched()" [attr.aria-disabled]="untouched()"
+                    aria-label="Resetta la struttura">
+                    Resetta
+                </button>
 
-            @if (mode() === 'edit') {
-              <button
-                [disabled]="lock()"
-                class="relative bottom-0.5 w-full mt-4 py-2 bg-emerald-600 text-white rounded-md font-semibold shadow hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed transition-colors duration-150"
-                (click)="onSave()"
-                [attr.aria-disabled]="lock()"
-                aria-label="Salva molecola"
-              >
-                Salva
-              </button>
-            } @else {
-              <button
-                [disabled]="lock()"
-                class="relative bottom-0.5 w-full mt-4 py-2 bg-emerald-600 text-white rounded-md font-semibold shadow hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed transition-colors duration-150"
-                (click)="onSaveAsNew()"
-                [attr.aria-disabled]="lock()"
-                aria-label="Salva come nuova molecola"
-              >
-                Salva
-              </button>
-            }
-          </div>
+                @if (mode() === 'edit') {
+                <button [disabled]="lock()"
+                    class="relative bottom-0.5 w-full mt-4 py-2 bg-emerald-600 text-white rounded-md font-semibold shadow hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed transition-colors duration-150"
+                    (click)="onSave()" [attr.aria-disabled]="lock()" aria-label="Salva molecola">
+                    Salva
+                </button>
+                } @else {
+                <button [disabled]="lock()"
+                    class="relative bottom-0.5 w-full mt-4 py-2 bg-emerald-600 text-white rounded-md font-semibold shadow hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed transition-colors duration-150"
+                    (click)="onSaveAsNew()" [attr.aria-disabled]="lock()" aria-label="Salva come nuova molecola">
+                    Salva
+                </button>
+                }
+            </div>
         </m-ketcher-frame>
-        @if (tab() === 'live') {
-          <section class="mt-6" aria-labelledby="editor-properties-heading">
-            <h2
-              id="editor-properties-heading"
-              class="text-xl font-semibold mb-3 text-light-accent-primary-hc dark:text-dark-accent-primary text-center sm:text-left"
-            >
-              Proprietà chimico-fisiche
-            </h2>
-
-
-
-          </section>
+        @if (tab() === 'live' && currentT1Inference()) {
+            <m-t1-prediction-card [inference]="currentT1Inference()!" />
         }
-      } @else {
-        <h3 class="text-center text-5xl font-semibold text-light-error dark:text-dark-error" role="alert" aria-live="assertive">
-          Si è verificato un errore
-        </h3>
-      }
-    </main>
+    </div>
+    @if (tab() === 'live') {
+    <section class="mt-6" aria-labelledby="editor-properties-heading">
+        <h2 id="editor-properties-heading"
+            class="text-xl font-semibold mb-3 text-light-accent-primary-hc dark:text-dark-accent-primary text-center sm:text-left">
+            Proprietà chimico-fisiche
+        </h2>
+
+
+
+    </section>
+    }
+    } @else {
+    <h3 class="text-center text-5xl font-semibold text-light-error dark:text-dark-error" role="alert"
+        aria-live="assertive">
+        Si è verificato un errore
+    </h3>
+    }
+</main>
   `,
   styles: `
   .editor-tabs {
@@ -202,6 +192,7 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
   private readonly drafts = inject(MoleculeEditorDraftService)
   private readonly qpRegistry = signal<MoleculeEditorQp | null>(null)
   private readonly moleculeService = inject(MoleculeService)
+  private readonly ai = inject(MercurionAiService)
 
   private routeSub?: Subscription
   private molEdSub?: Subscription
@@ -226,6 +217,7 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
   readonly moleculeNameLoading = signal(false)
   readonly currentMoleculeName = signal<string | null>(null)
   readonly currentMoleculeType = signal<string | null>(null)
+  readonly currentT1Inference = signal<T1PredictionDTO | null>(null)
 
   readonly canUndo = this.drafts.canUndo
   readonly canRedo = this.drafts.canRedo
@@ -287,7 +279,21 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
           }
         })
 
-      onCleanup(() => sub.unsubscribe())
+      let infSub: Subscription | undefined
+
+      if (this.tab() === 'live') {
+        infSub = this.ai.t1Inference({ smiles: this.currentCanonicalSmiles() })
+          .subscribe({
+            next: (res) => {
+              this.currentT1Inference.set(res)
+            }
+          })
+
+        onCleanup(() => {
+          sub.unsubscribe()
+          infSub?.unsubscribe()
+        })
+      }
     })
   }
 
