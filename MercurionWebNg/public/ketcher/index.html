@@ -82,7 +82,7 @@
 
     let lastSmiles = "";
     let inFlight = false;
-    let dirty = true;
+    let dirty = false;
     let ketcherReadySent = false;
 
     let listenersAttached = false;
@@ -101,27 +101,14 @@
       try {
         const smiles = await window.ketcher.getSmiles();
         if (typeof smiles === "string") {
-          const changed = smiles !== lastSmiles;
           lastSmiles = smiles;
           dirty = false;
-
-          if (changed) {
-            window.parent.postMessage({ type: "smiles", payload: lastSmiles }, "*");
-            console.log('IFRAME -> PARENT', { type: 'smiles', payload: lastSmiles });
-          }
         }
       } catch (err) {
         console.error("Errore ottenendo SMILES:", err);
       } finally {
         inFlight = false;
       }
-    }
-
-    function startDirtyPolling() {
-      setInterval(() => {
-        if (!window.ketcher) return;
-        if (dirty) refreshSmilesIfNeeded();
-      }, 80);
     }
 
     function attachDirtyListenersOnce() {
@@ -166,8 +153,6 @@
         }
 
         attachDirtyListenersOnce();
-        startDirtyPolling();
-        refreshSmilesIfNeeded(true);
         return;
       }
 
@@ -189,10 +174,11 @@
         try {
           await window.ketcher.setMolecule(payload);
           markDirty();
-          refreshSmilesIfNeeded(true);
+          await refreshSmilesIfNeeded(true);
           window.parent.postMessage({ type: "moleculeSet" }, "*");
         } catch (err) {
           console.error("Errore caricando la molecola:", err);
+          window.parent.postMessage({ type: "moleculeSetError" }, "*");
         }
       }
 
