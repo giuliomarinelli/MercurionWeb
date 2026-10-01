@@ -80,8 +80,15 @@ export class MoleculeEditorDraftService {
         currentTab: init.tab
       })
       this.state.set(normalized)
+
+      const current = normalized.history.entries[normalized.history.cursor]
+      if (init.initialSmiles !== undefined && current.smiles !== init.initialSmiles) {
+        const reconciled = this.record(init.initialSmiles, init.tab)
+        if (reconciled) return reconciled
+      }
+
       this.persist(normalized)
-      return normalized.history.entries[normalized.history.cursor]
+      return current
     }
 
     const initialSmiles = init.initialSmiles ?? init.baselineSmiles
