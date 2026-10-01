@@ -15,30 +15,35 @@ import {
   map,
   auditTime,
   take,
-  combineLatest } from 'rxjs';
-
-import { ChemistryEditorMode } from '../../chemistry/chemistry-adapter.models';
+  combineLatest,
+  tap
+} from 'rxjs';
+import { SelectButtonModule } from 'primeng/selectbutton';
+import { ChemistryEditorMode, ChemistryEditorTab, MoleculeEditorCacheBaseItem, MoleculeEditorCacheItemOnCreate, MoleculeEditorCacheItemOnDuplicate, MoleculeEditorCacheItemOnEdit, MoleculeEditorQp, SESSION_STORAGE_MOLECULE_EDITOR_CREATE_CACHE_KEY, SESSION_STORAGE_MOLECULE_EDITOR_DUPLICATE_CACHE_KEY, SESSION_STORAGE_MOLECULE_EDITOR_EDIT_CACHE_KEY } from '../../chemistry/chemistry-adapter.models';
 import { KetcherFrameComponent } from '../../components/chem/ketcher-frame/ketcher-frame.component';
 import { MoleculeCollectionItemService } from '../../services/graphql/molecule-collection-item.service';
 import { MoleculeItemLookup } from '../../Models/graphql/molecule-collection/molecule-collection.types';
 import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service';
 import { ToastService } from '../../services/toast.service';
 import { RdKitApiService } from '../../services/rd-kit-api.service';
+import { TypeGuardsService } from '../../services/type-guards.service';
+import { BrowserStorageRegistry, StorageDescriptor } from '../../services/browser-storage-registry';
 
 @Component({
   selector: 'm-molecule-editor',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [KetcherFrameComponent],
+  imports: [KetcherFrameComponent, SelectButtonModule],
   template: `
     <main class="mt-2 mb-6" role="main" aria-live="polite" [attr.aria-busy]="pendingAction() !== null">
       <h2
         class="text-center text-light-accent-primary-hc dark:text-dark-accent-primary font-semibold text-xl 2xs:text-2xl sm:text-4xl mb-6"
       >
-        @switch (mode()) {
+        Editor Molecolare
+        <!-- @switch (mode()) {
           @case ('create') { Crea una nuova molecola }
           @case ('edit') { Modifica una molecola }
           @case ('duplicate') { Crea molecola da struttura (Duplica) }
-        }
+        } -->
       </h2>
 
     @if (!error()) {
@@ -94,13 +99,17 @@ import { RdKitApiService } from '../../services/rd-kit-api.service';
   ` })
 export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
   // deps
-  private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
-  private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService);
-  private readonly overlayContext = inject(ActionOverlayContextService);
-  private readonly toast = inject(ToastService);
-  private readonly RDKitAPI = inject(RdKitApiService);
-  private readonly logger = inject(LoggerService);
+  private readonly route = inject(ActivatedRoute)
+  private readonly router = inject(Router)
+  private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService)
+  private readonly overlayContext = inject(ActionOverlayContextService)
+  private readonly toast = inject(ToastService)
+  private readonly RDKitAPI = inject(RdKitApiService)
+  private readonly logger = inject(LoggerService)
+  private readonly typeGuards = inject(TypeGuardsService)
+  private readonly storage = inject(BrowserStorageRegistry)
+  private readonly qpRegistry = signal<MoleculeEditorQp | null>(null)
+  private readonly tab = signal<ChemistryEditorTab>('std')
 
   // subscriptions
   private routeSub?: Subscription;
@@ -275,74 +284,160 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
           this.toast.trigger('Struttura modificata correttamente.', 'success', 2000);
           this.router.navigateByUrl(`/molecules/detail/${res.id}`);
         },
-        error: () => this.toast.trigger('Si è verificato un errore.', 'error', 2000) });
+        error: () => this.toast.trigger('Si è verificato un errore.', 'error', 2000)
+      });
+  }
+
+  private addToCache(item: MoleculeEditorCacheBaseItem): void {
+    if (this.typeGuards.isMoleculeEditorCacheItemOnEdit(item)) {
+      const key = SESSION_STORAGE_MOLECULE_EDITOR_EDIT_CACHE_KEY
+      const val = this.readFromCache('edit')
+      val.push(item)
+      this.storage.set(key, JSON.stringify(val))
+    } else if (this.typeGuards.isMoleculeEditorCacheItemOnDuplicate(item)) {
+      const key = SESSION_STORAGE_MOLECULE_EDITOR_DUPLICATE_CACHE_KEY
+      const val = this.readFromCache('duplicate')
+      val.push(item)
+      this.storage.set(key, JSON.stringify(val))
+    } else if (this.typeGuards.isMoleculeEditorCacheItemOnCreate(item)) {
+      const key = SESSION_STORAGE_MOLECULE_EDITOR_CREATE_CACHE_KEY
+      const val = this.readFromCache('create')
+      val.push(item)
+      this.storage.set(key, JSON.stringify(val))
+    }
+  }
+
+  private readFromCache(mode: 'edit'): MoleculeEditorCacheItemOnEdit[]
+  private readFromCache(mode: 'duplicate'): MoleculeEditorCacheItemOnDuplicate[]
+  private readFromCache(mode: 'create'): MoleculeEditorCacheItemOnCreate[]
+  private readFromCache(mode: ChemistryEditorMode): (MoleculeEditorCacheItemOnEdit | MoleculeEditorCacheItemOnDuplicate | MoleculeEditorCacheItemOnCreate)[]
+  private readFromCache(mode: ChemistryEditorMode): (MoleculeEditorCacheItemOnEdit | MoleculeEditorCacheItemOnDuplicate | MoleculeEditorCacheItemOnCreate)[] {
+    switch (mode) {
+      case 'edit':
+        return this.readValidatedCache(SESSION_STORAGE_MOLECULE_EDITOR_EDIT_CACHE_KEY, item => this.typeGuards.isMoleculeEditorCacheItemOnEdit(item))
+      case 'duplicate':
+        return this.readValidatedCache(SESSION_STORAGE_MOLECULE_EDITOR_DUPLICATE_CACHE_KEY, item => this.typeGuards.isMoleculeEditorCacheItemOnDuplicate(item))
+      case 'create':
+        return this.readValidatedCache(SESSION_STORAGE_MOLECULE_EDITOR_CREATE_CACHE_KEY, item => this.typeGuards.isMoleculeEditorCacheItemOnCreate(item))
+    }
+  }
+
+  private readValidatedCache<T extends MoleculeEditorCacheBaseItem>(
+    key: StorageDescriptor<string>,
+    isItem: (item: unknown) => item is T
+  ): T[] {
+    const rawVal = this.storage.get(key)
+    if (!rawVal) return []
+    try {
+      const val: unknown = JSON.parse(rawVal)
+      if (!Array.isArray(val)) return []
+      const items: unknown[] = val
+      return items.every(isItem) ? items : []
+    } catch {
+      return []
+    }
   }
 
   // lifecycle
   ngOnInit(): void {
     // routing / init
-    this.routeSub = this.route.queryParams.pipe(
-      switchMap(qp => {
-        const mode = qp['mode'] as ChemistryEditorMode;
-        const mId = qp['m_id'] as string | undefined;
-        const smiles = qp['smiles'] as string | undefined;
-
+    this.routeSub = this.route.queryParamMap.pipe(
+      switchMap((qp) => {
+        const mode = qp.get('mode') as ChemistryEditorMode
+        const mId = qp.get('m_id') as string | undefined
+        const smiles = qp.get('smiles') as string | undefined
+        const tab = (qp.get('tab') ?? 'std') as ChemistryEditorTab
+        let destroyCache = qp.get('destroy_cache') ?? 'true'
+        if (!['true', 'false'].includes(destroyCache)) {
+          destroyCache = 'true'
+        }
+        this.qpRegistry.set({ mode, mId, smiles, tab, destroyCache: destroyCache as 'true' | 'false' })
+        this.tab.set(this.qpRegistry()!.tab ?? 'std')
+        if (destroyCache === 'true') {
+          this.storage.remove(SESSION_STORAGE_MOLECULE_EDITOR_EDIT_CACHE_KEY)
+          this.storage.remove(SESSION_STORAGE_MOLECULE_EDITOR_DUPLICATE_CACHE_KEY)
+          this.storage.remove(SESSION_STORAGE_MOLECULE_EDITOR_CREATE_CACHE_KEY)
+        }
         if (!['edit', 'create', 'duplicate'].includes(mode)) {
-          this.error.set(true);
-          return EMPTY;
+          this.error.set(true)
+          return EMPTY
+        }
+        if (mode === 'edit') {
+          this.mode.set('edit')
+          this.lock.set(true)
+          this.untouched.set(true)
+          this.firstCheck.set(false)
+          if (mId && !smiles) {
+            const cached = this.readFromCache('edit')
+            if (cached.length > 0) {
+              const lastCached = cached[cached.length - 1]
+              return of({ mId: lastCached.mId, mol: lastCached.mol, canon: lastCached.smiles })
+            }
+            return this.moleculeCollectionItemService.getCustomSmilesById(mId).pipe(
+              switchMap((mol) => combineLatest([
+                of(mol),
+                this.RDKitAPI.toCanonicalSmiles({ smiles: mol.canonicalSmiles }).pipe(
+                  catchError(e => {
+                    this.logger.error('RDKitAPI canonicalization init error', e);
+                    return of(mol.canonicalSmiles);
+                  })
+                ),
+              ])),
+              map(([mol, canon]) => ({ mId, mol, canon })),
+              tap(() => { })
+            );
+          } else if (smiles && mId) {
+            const cached = this.readFromCache('edit')
+            if (cached.length > 0) {
+              const lastCached = cached[cached.length - 1]
+              return of({ mId: lastCached.mId, mol: lastCached.mol, canon: lastCached.smiles })
+            }
+            return of({ mId, mol: { id: mId, canonicalSmiles: smiles, name: null, molFormula: null }, canon: smiles })
+          }
         }
 
-        if (mode === 'edit' && mId) {
-          this.mode.set('edit');
-          this.lock.set(true);
-          this.untouched.set(true);
-          this.firstCheck.set(false);
-
-          return this.moleculeCollectionItemService.getCustomSmilesById(mId).pipe(
-            switchMap(mol => combineLatest([
-              of(mol),
-              this.RDKitAPI.toCanonicalSmiles({ smiles: mol.canonicalSmiles }).pipe(
-                catchError(e => {
-                  this.logger.error('RDKitAPI canonicalization init error', e);
-                  return of(mol.canonicalSmiles);
-                })
-              ),
-            ])),
-            map(([mol, canon]) => ({ mId, mol, canon }))
-          );
-        }
-
-        if (mode === 'duplicate' && smiles) {
-          this.mode.set('duplicate');
-          this.smiles.set(smiles);
-          this.lock.set(true);
-          this.untouched.set(true);
-          this.firstCheck.set(false);
-          return EMPTY;
+        if (mode === 'duplicate') {
+          this.mode.set('duplicate')
+          const cached = this.readFromCache('duplicate')
+          let lastCached: MoleculeEditorCacheItemOnDuplicate | undefined
+          if (cached.length > 0) {
+            lastCached = cached[cached.length - 1]
+          }
+          this.smiles.set(this.qpRegistry()!.smiles ?? lastCached?.smiles ?? 'ERROR_MISSING_SMILES')
+          this.lock.set(true)
+          this.untouched.set(true)
+          this.firstCheck.set(false)
+          return EMPTY
         }
 
         if (mode === 'create') {
-          this.mode.set('create');
-          this.smiles.set('');
-          this.lock.set(true);
-          this.untouched.set(true);
-          this.firstCheck.set(true);
-          return EMPTY;
+          this.mode.set('create')
+          if (this.qpRegistry()!.smiles) {
+            this.addToCache({
+              mode: 'create',
+              smiles: this.qpRegistry()!.smiles!} as MoleculeEditorCacheItemOnCreate)
+          }
+          this.smiles.set('')
+          this.lock.set(true)
+          this.untouched.set(true)
+          this.firstCheck.set(true)
+          return EMPTY
         }
 
-        this.error.set(true);
-        return EMPTY;
+        this.error.set(true)
+        return EMPTY
       })
     ).subscribe({
       next: ({ mId, mol, canon }) => {
         if (!mol) {
-          this.error.set(true);
-          return;
+          this.error.set(true)
+          return
         }
-        this.smiles.set(canon);
-        this.mId.set(mId);
+        this.smiles.set(canon)
+        this.mId.set(mId)
       },
-      error: () => this.error.set(true) });
+      error: () => this.error.set(true)
+    });
 
     // dup-check stream (no HTTP raffiche, dedup su SMILES + canon)
     this.molDupSub = this.polledSmiles$
@@ -421,7 +516,8 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
               `Errore nella validazione unicità struttura. Se si ripresenta, contatta il supporto.`,
               'error'
             )
-          ) });
+          )
+      });
   }
 
   ngOnDestroy(): void {

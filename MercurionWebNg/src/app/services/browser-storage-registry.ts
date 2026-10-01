@@ -102,7 +102,10 @@ const descriptors = [
   ['authError', 'mercurion.v1.auth.error', 'session', ['authError'], textCodec, 'auth-session'],
   ['theme', 'mercurion.v1.ui.theme', 'local', ['tw_theme'], themeCodec, 'theme'],
   ['routeError', 'mercurion.v1.ui.route-error', 'session', ['RouteError'], textCodec, 'header'],
-  ['localDummyAuth', 'mercurion.v1.auth.local-dummy', 'local', [], textCodec, 'local-dummy']
+  ['localDummyAuth', 'mercurion.v1.auth.local-dummy', 'local', [], textCodec, 'local-dummy'],
+  ['mercurion.v1.molecule-editor-cache.edit', 'mercurion.v1.molecule-editor-cache.edit', 'session', [], textCodec, 'molecule-editor'],
+  ['mercurion.v1.molecule-editor-cache.create', 'mercurion.v1.molecule-editor-cache.create', 'session', [], textCodec, 'molecule-editor'],
+  ['mercurion.v1.molecule-editor-cache.duplicate', 'mercurion.v1.molecule-editor-cache.duplicate', 'session', [], textCodec, 'molecule-editor']
 ] as const
 
 export const STORAGE = Object.fromEntries(descriptors.map(([id, key]) => [id, key])) as {
@@ -191,8 +194,8 @@ export const storageDescriptors: readonly StorageDescriptor<unknown>[] =
     id, key, medium, legacyKeys, version: 1, owner, codec
   }))
 
-export function storageDescriptor<T = unknown>(id: string): StorageDescriptor<T> {
-  const descriptor = storageDescriptors.find(item => item.id === id)
-  if (!descriptor) throw new Error(`Unknown browser storage descriptor: ${id}`)
+export function storageDescriptor<T = unknown>(idOrKey: string): StorageDescriptor<T> {
+  const descriptor = storageDescriptors.find(item => item.id === idOrKey || item.key === idOrKey)
+  if (!descriptor) throw new Error(`Unknown browser storage descriptor: ${idOrKey}`)
   return descriptor as StorageDescriptor<T>
 }

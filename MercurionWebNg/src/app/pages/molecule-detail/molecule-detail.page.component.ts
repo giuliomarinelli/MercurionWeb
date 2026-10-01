@@ -101,12 +101,12 @@ import { SelectionControlComponent } from '../../components/common/selection-con
             <a class="cursor-pointer transition-colors duration-300 hover:transform hover:scale-[1.05]" title="Modifica Struttura"
               routerLink="/molecules/editor" [queryParams]="{
                       mode: 'edit',
-                      m_id: molId
+                      m_id: molId()
                     }"
               aria-label="Modifica struttura"
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
-                class="fill-current h-[22px] w-auto text-slate-800 hover:text-slate-800/75 dark:text-slate-200 dark:hover:text-slate-200/75"
+                class="fill-current h-5.5 w-auto text-slate-800 hover:text-slate-800/75 dark:text-slate-200 dark:hover:text-slate-200/75"
                 aria-hidden="true">
                 <path
                   d="M58.1 555.9L48 592C50.7 591.2 117.4 572.6 248 536L569.4 214.6L592 192C589.6 189.6 549.1 149.1 470.6 70.6L448 48L425.4 70.6L104 392L58.1 555.9zM252.7 486L154 387.3L347.4 193.9L446.1 292.6L252.7 486zM229.4 508L94.2 545.8L132 410.6L229.4 508zM546.7 192L468.6 270.1L369.9 171.4L448 93.3L546.7 192z" />
