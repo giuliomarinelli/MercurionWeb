@@ -45,6 +45,18 @@ describe('KetcherFrameComponent', () => {
     expect(session.dispose).toHaveBeenCalledTimes(1);
   });
 
+  it('keeps reset baseline independent from working structure changes', () => {
+    component.editorState.set('ready');
+    fixture.componentRef.setInput('baselineSmiles', 'CCO');
+    fixture.componentRef.setInput('smiles', 'CCN');
+    fixture.detectChanges();
+
+    session.setStructure.calls.reset();
+    component.resetMolecule();
+
+    expect(session.setStructure).toHaveBeenCalledOnceWith('CCO');
+  });
+
   it('shows a controlled state and permits retry when the lazy adapter fails', async () => {
     editor.createSession.and.rejectWith(new Error('vendor detail'));
 
