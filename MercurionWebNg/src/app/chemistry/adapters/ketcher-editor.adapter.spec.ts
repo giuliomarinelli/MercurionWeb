@@ -22,7 +22,15 @@ describe('Ketcher editor adapter', () => {
       data: { type: 'ketcherReady' },
       source: targetWindow
     }))
-    await session.setStructure('CC')
+
+    const setStructure = session.setStructure('CC')
+    await Promise.resolve()
+    window.dispatchEvent(new MessageEvent('message', {
+      data: { type: 'moleculeSet' },
+      source: targetWindow
+    }))
+    await setStructure
+
     const exported = session.exportStructure()
     await new Promise(resolve => setTimeout(resolve, 0))
     window.dispatchEvent(new MessageEvent('message', {
