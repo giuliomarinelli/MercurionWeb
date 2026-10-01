@@ -48,6 +48,29 @@ describe('MoleculeEditorDraftService', () => {
     expect(service.draft()?.mId).toBe('mol-b')
   })
 
+  it('uses an explicit route working snapshot to reconcile a stale cached current entry', () => {
+    service.initialize({
+      mode: 'create',
+      baselineSmiles: '',
+      tab: 'std',
+      destroyExisting: true
+    })
+    service.record('STALE', 'std')
+
+    const restored = service.initialize({
+      mode: 'create',
+      baselineSmiles: '',
+      initialSmiles: 'CCO',
+      tab: 'live',
+      destroyExisting: false
+    })
+
+    expect(restored.smiles).toBe('CCO')
+    expect(service.currentSmiles()).toBe('CCO')
+    expect(service.currentTab()).toBe('live')
+    expect(service.canUndo()).toBeTrue()
+  })
+
   it('rejects a stale edit draft if the server baseline changed', () => {
     service.initialize({
       mode: 'edit',
