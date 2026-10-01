@@ -216,6 +216,8 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
 
   private async startSession(): Promise<void> {
     const generation = ++this.sessionGeneration
+    clearTimeout(this.loadedTimeoutId)
+    this.teardownMobileKeyboardGuard()
     this.disposeSession()
     this.ketcherUrl.set(null)
     this.editorState.set('loading')
