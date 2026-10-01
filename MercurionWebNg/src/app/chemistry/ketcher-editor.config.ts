@@ -1,4 +1,4 @@
-import { ChemistryEditorTab } from './chemistry-adapter.models'
+import type { ChemistryEditorTab } from './chemistry-adapter.models'
 
 export interface KetcherEditorProfile {
   readonly disableMacromoleculesEditor: boolean
