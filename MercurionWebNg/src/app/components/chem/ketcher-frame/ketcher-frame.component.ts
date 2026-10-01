@@ -19,9 +19,11 @@ import {
 import {
   ChemistryAdapterError,
   ChemistryEditorMode,
-  ChemistryEditorSession
+  ChemistryEditorSession,
+  ChemistryEditorTab
 } from '../../../chemistry/chemistry-adapter.models'
 import { ChemistryEditorService } from '../../../chemistry/chemistry-editor.service'
+import { buildKetcherResourceUrl } from '../../../chemistry/ketcher-editor.config'
 import { PublicPipe } from '../../../pipes/public.pipe'
 import { ViewportRuntimeService } from '../../../services/context/viewport-runtime.service'
 
@@ -112,8 +114,10 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
   private pollSubscription?: Subscription
   private sessionGeneration = 0
   private destroyed = false
+  private activeSessionTab?: ChemistryEditorTab
 
-  readonly mode = input<ChemistryEditorMode>('create');
+  readonly mode = input<ChemistryEditorMode>('create')
+  readonly tab = input<ChemistryEditorTab>('std')
 
   readonly smiles = input<string | undefined>(undefined)
   readonly baselineSmiles = input<string | undefined>(undefined)
@@ -130,6 +134,12 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
   constructor() {
     effect(() => {
       this.initialSmiles = this.baselineSmiles() ?? this.smiles() ?? ''
+    })
+    effect(() => {
+      const tab = this.tab()
+      if (this.activeSessionTab !== undefined && this.activeSessionTab !== tab) {
+        void this.startSession()
+      }
     })
     effect(() => {
       const nextSmiles = this.smiles() ?? ''
@@ -211,7 +221,12 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
     this.editorState.set('loading')
 
     try {
-      const resourceUrl = this.publicPipe.transform('ketcher/index.html')
+      const tab = this.tab()
+      this.activeSessionTab = tab
+      const resourceUrl = buildKetcherResourceUrl(
+        this.publicPipe.transform('ketcher/index.html'),
+        tab
+      )
       const session = await this.editor.createSession(resourceUrl)
 
       if (this.destroyed || generation !== this.sessionGeneration) {
