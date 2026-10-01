@@ -51,10 +51,10 @@ import { NotificationButtonComponent } from '../notification-button/notification
   template: `
 
 <header
-    class="px-2 2xs:px-6 py-1.75 bg-light-surface-secondary border-b-[0.5px] border-slate-300/65 dark:border-slate-300/40 header-shadow"
+    class="px-[clamp(0.5rem,2vw,1.5rem)] py-1.75 bg-light-surface-secondary border-b-[0.5px] border-slate-300/65 dark:border-slate-300/40 header-shadow"
     [class.dark:bg-neutral-950]="!isWelcomePath()" [class.dark:bg-slate-950]="isWelcomePath()" role="banner">
     <div class="w-full flex justify-between items-center transition-colors duration-300 ease-out">
-        <div class="flex items-center gap-4">
+        <div class="flex min-w-0 items-center gap-[clamp(0.25rem,1vw,1rem)]">
             @if (designService.maxBk("lg")()) {
             <button
                 class="inline-flex items-center justify-center size-10 rounded-full hover:bg-slate-200/80 dark:hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-light-accent-primary-hq transition-colors"
@@ -68,9 +68,21 @@ import { NotificationButtonComponent } from '../notification-button/notification
                 </svg>
             </button>
             }
+            @if (designService.maxBk("sm")()) {
+            <div class="flex min-w-0 items-center gap-[clamp(0.25rem,0.75vw,0.75rem)]">
+                <a [routerLink]="routes.home.build({})" aria-label="Vai alla home" class="block shrink-0">
+                    <img [ngSrc]="logoSrc() | public" alt="Mercurion" width="927" height="234" priority="true"
+                        class="w-24 2xs:w-30 h-auto contrast-100" decoding="async" />
+                </a>
+                <span
+                    class="hidden 3xs:inline relative top-0.5 shrink-0 cursor-default px-2.5 py-0.75 rounded-full text-[10px] font-semibold uppercase tracking-tight leading-none bg-emerald-100/90 text-emerald-900 shadow-sm ring-1 ring-emerald-900/15 dark:bg-emerald-900/85 dark:text-emerald-50 dark:ring-emerald-200/20">
+                    Beta
+                </span>
+            </div>
+            }
             @if (designService.minBk("md")()) {
-            <div class="flex items-center gap-3 lg:gap-4">
-                <div class="flex items-center gap-3">
+            <div class="flex items-center gap-[clamp(0.25rem,1vw,1rem)]">
+                <div class="flex items-center gap-[clamp(0.25rem,0.75vw,0.75rem)]">
                     <a [routerLink]="routes.home.build({})" aria-label="Vai alla home" class="block">
                         <img [ngSrc]="logoSrc() | public" alt="Mercurion" width="927" height="234" title="Mercurion"
                             priority="true" class="w-30 h-auto contrast-100" decoding="async" />
@@ -94,22 +106,10 @@ import { NotificationButtonComponent } from '../notification-button/notification
             </m-header-navigation>
             }
         </div>
-        @if (designService.maxBk("sm")()) {
-        <div class="flex items-center gap-3">
-            <a [routerLink]="routes.home.build({})" aria-label="Vai alla home" class="block">
-                <img [ngSrc]="logoSrc() | public" alt="Mercurion" width="927" height="234" priority="true"
-                    class="w-30 h-auto contrast-100" decoding="async" />
-            </a>
-            <span
-                class="px-2.5 py-0.75 rounded-full text-[10px] font-semibold uppercase tracking-tight leading-none bg-emerald-100/90 text-emerald-900 shadow-sm ring-1 ring-emerald-900/15 dark:bg-emerald-900/85 dark:text-emerald-50 dark:ring-emerald-200/20">
-                Beta
-            </span>
-        </div>
-        }
-        <div class="flex items-center gap-2 pr-2">
+        <div class="flex shrink-0 items-center gap-[clamp(0.25rem,0.75vw,0.75rem)]">
             @if (!userContext.isLoggedIn() && !isLoginPath()) {
             <div
-                class="hidden lg:flex items-center gap-3 text-sm xl:text-[0.925rem] font-medium text-light-on-surface-main dark:text-slate-100 tracking-wider mr-1.25">
+                class="hidden lg:flex items-center gap-3 text-sm xl:text-[0.925rem] font-semibold dark:font-medium text-light-on-surface-main dark:text-slate-100 tracking-wider mr-1.25">
                 <a [routerLink]="routes.login.build({})"
                     class="hover:text-light-accent-primary-hc hover:dark:text-dark-accent-primary transition-colors duration-300">Accedi</a>
                 @if (!isRegisterPath()) {
@@ -141,21 +141,25 @@ import { NotificationButtonComponent } from '../notification-button/notification
             </div>
             }
             <div class="hidden sm:flex items-center" [ngClass]="{
-              'lg:hidden': userContext.isLoggedIn() || isLoginPath()
+              'lg:hidden': userContext.isLoggedIn() || isLoginPath(),
+              '-mr-1': isWelcomePath() && !userContext.isLoggedIn(),
+
+
              }">
                 <m-icon-button
                     class="[&_button:hover]:bg-slate-200/80 dark:[&_button:hover]:bg-white/10"
-                    size="sm" ariaLabel="Cerca molecola ChEMBL" (pressed)="openSearchOverlay()">
-                    <svg class="w-5 h-5 fill-current"
+                    size="md" ariaLabel="Cerca molecola ChEMBL" (pressed)="openSearchOverlay()">
+                    <svg class="size-6 fill-current scale-85"
                         xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
                         <path
                             d="M505 442.7L405.3 343c28.4-34.9 45.5-79 45.5-127.3C450.8 103.5 347.3 0 225.4 0S0 103.5 0 215.6s103.5 215.6 225.4 215.6c48.3 0 92.4-17.1 127.3-45.5l99.7 99.7c4.6 4.6 10.6 7 16.7 7s12.1-2.3 16.7-7c9.3-9.2 9.3-24.4 0-33.7zM225.4 367c-83.5 0-151.4-67.9-151.4-151.4s67.9-151.4 151.4-151.4 151.4 67.9 151.4 151.4-67.9 151.4-151.4 151.4z" />
                     </svg>
                 </m-icon-button>
             </div>
-            <m-notification-button [unreadCount]="1" />
-            <div class="theme-menu-container relative mr-0" [ngClass]="{
-              'xl:ml-1': userContext.isLoggedIn() || isLoginPath() }">
+            @if (userContext.isLoggedIn()) {
+              <m-notification-button [unreadCount]="1" />
+            }
+            <div class="theme-menu-container relative flex items-center">
                 <button
                     class="flex items-center justify-center size-10 rounded-full theme-toggle-button transition-all duration-500 hover:bg-slate-200/80 dark:hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-light-accent-primary-hq"
                     (click)="toggleThemeMenu()"
@@ -163,7 +167,7 @@ import { NotificationButtonComponent } from '../notification-button/notification
                     aria-label="Seleziona tema">
                     @if (themeManager.theme() === "dark") {
                     <svg xmlns="http://www.w3.org/2000/svg"
-                        class="size-5 min-[350px]:size-6 fill-current text-slate-100 hover:text-slate-300 transition-colors duration-300"
+                        class="size-6 fill-current text-slate-100 hover:text-slate-300 transition-colors duration-300"
                         viewBox="0 0 384 512">
                         <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
                         <path
