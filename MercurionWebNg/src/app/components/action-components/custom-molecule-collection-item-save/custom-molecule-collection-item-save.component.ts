@@ -8,6 +8,7 @@ import { MoleculeCollectionService } from '../../../services/graphql/molecule-co
 import { MoleculeJoinService } from '../../../services/graphql/molecule-collection-join.service';
 import { ToastService } from '../../../services/toast.service';
 import { ChemistryRendererService } from '../../../chemistry/chemistry-renderer.service';
+import { MoleculeEditorDraftService } from '../../../chemistry/molecule-editor-draft.service';
 import { Router } from '@angular/router';
 import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
 import { FormsModule } from '@angular/forms';
@@ -229,6 +230,7 @@ export class CustomMoleculeCollectionItemSaveComponent implements OnInit, OnDest
   private readonly moleculeJoinService = inject(MoleculeJoinService);
   private readonly toast = inject(ToastService);
   private readonly chemistryRenderer = inject(ChemistryRendererService);
+  private readonly editorDrafts = inject(MoleculeEditorDraftService);
   private readonly router = inject(Router);
 
   nameFocus = signal<boolean>(false);
@@ -361,6 +363,7 @@ export class CustomMoleculeCollectionItemSaveComponent implements OnInit, OnDest
       })
       .subscribe({
         next: reply => {
+          this.editorDrafts.clearCurrent();
           this.toast.trigger(`Molecola salvata correttamente.`, 'success');
           this.router.navigate([`/molecules/detail/${reply.id}`], {
             queryParams: {

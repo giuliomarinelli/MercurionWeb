@@ -116,6 +116,7 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
   readonly mode = input<ChemistryEditorMode>('create');
 
   readonly smiles = input<string | undefined>(undefined)
+  readonly baselineSmiles = input<string | undefined>(undefined)
   readonly triggerReset = input(false)
   readonly triggerGetSmiles = input(false)
 
@@ -128,9 +129,11 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
 
   constructor() {
     effect(() => {
+      this.initialSmiles = this.baselineSmiles() ?? this.smiles() ?? ''
+    })
+    effect(() => {
       const nextSmiles = this.smiles() ?? ''
       this.structureValue.set(nextSmiles)
-      this.initialSmiles = nextSmiles
       if (this.editorState() === 'ready') void this.updateEditorStructure(nextSmiles)
     })
     effect(() => this.triggerResetSignal.set(this.triggerReset()))
