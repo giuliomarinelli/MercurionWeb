@@ -427,9 +427,10 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
         ),
         filter(Boolean),
         distinctUntilChanged(),
-        tap((canon: string) => this.drafts.record(canon, this.tab())),
-        switchMap((canon: string) =>
-          this.moleculeCollectionItemService
+        switchMap((canon: string) => {
+          this.drafts.record(canon, this.tab())
+
+          return this.moleculeCollectionItemService
             .findOneCustomMoleculeByCanonicalSmiles_shortFetch(canon)
             .pipe(
               take(1),
@@ -439,7 +440,7 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
                 return of({ canon, res: null as MoleculeItemLookup | null })
               })
             )
-        )
+        })
       )
       .subscribe({
         next: ({ res, canon }: { res: MoleculeItemLookup | null; canon: string }) => {
