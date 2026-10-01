@@ -198,7 +198,11 @@ export class MoleculeEditorDraftService {
 
   private matchesContext(draft: MoleculeEditorDraftState, init: MoleculeEditorDraftInit): boolean {
     if (draft.mode !== init.mode) return false
-    if (draft.mode === 'edit') return !!init.mId && draft.mId === init.mId
+    if (draft.mode === 'edit') {
+      return !!init.mId &&
+        draft.mId === init.mId &&
+        draft.baselineSmiles === init.baselineSmiles
+    }
     if (draft.mode === 'duplicate') return draft.baselineSmiles === init.baselineSmiles
     return true
   }
