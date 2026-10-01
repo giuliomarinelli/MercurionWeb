@@ -44,7 +44,12 @@ import { ToastService } from '../../services/toast.service'
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [KetcherFrameComponent, SelectButtonModule, FormsModule],
   template: `
-    <main class="mt-2 mb-6" role="main" aria-live="polite" [attr.aria-busy]="pendingAction() !== null">
+    <main
+      class="mt-2 mb-6"
+      role="main"
+      aria-live="polite"
+      [attr.aria-busy]="pendingAction() !== null || pendingTabChange() !== null"
+    >
       <h2
         class="text-center text-light-accent-primary-hc dark:text-dark-accent-primary font-semibold text-xl 2xs:text-2xl sm:text-4xl mb-6"
       >
