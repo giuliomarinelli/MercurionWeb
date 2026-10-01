@@ -93,8 +93,8 @@ import { MoleculeService } from '../../services/graphql/molecule.service'
             <ng-template #molecularName>
               <m-descriptor-card-content>
                 <div class="flex gap-3 items-center">
-                  {{ currentMoleculeName() ?? 'ND' }}
-                  @if (currentMoleculeType() !== null) {
+                  {{ moleculeNameLoading() ? 'Ricerca…' : (currentMoleculeName() ?? 'ND') }}
+                  @if (!moleculeNameLoading() && currentMoleculeType() !== null) {
                   <m-molecule-badge [name]="currentMoleculeType()!" />
                   }
                 </div>
@@ -223,6 +223,7 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
   readonly lock = signal(true)
   readonly untouched = signal(true)
   readonly currentCanonicalSmiles = signal('')
+  readonly moleculeNameLoading = signal(false)
   readonly currentMoleculeName = signal<string | null>(null)
   readonly currentMoleculeType = signal<string | null>(null)
 
@@ -250,13 +251,20 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
       this.currentMoleculeName.set(null)
       this.currentMoleculeType.set(null)
 
-      if (!canonicalSmiles) return
+      if (!canonicalSmiles) {
+        this.moleculeNameLoading.set(false)
+        return
+      }
+
+      this.moleculeNameLoading.set(true)
 
       const sub = this.moleculeService
         .getPreferredNameItByCanonicalSmiles(canonicalSmiles)
         .subscribe({
           next: res => {
             if (this.currentCanonicalSmiles() !== canonicalSmiles) return
+
+            this.moleculeNameLoading.set(false)
 
             if (!res.preferredNameIt) {
               this.currentMoleculeName.set(null)
@@ -271,6 +279,8 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
           },
           error: error => {
             if (this.currentCanonicalSmiles() !== canonicalSmiles) return
+
+            this.moleculeNameLoading.set(false)
             this.logger.error('Molecule name lookup error', error)
             this.currentMoleculeName.set(null)
             this.currentMoleculeType.set(null)
