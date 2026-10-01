@@ -366,7 +366,12 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
     this.untouched.set(entry.smiles === init.baselineSmiles)
     this.lock.set(true)
 
-    this.tab.set(this.drafts.currentTab())
+    const restoredTab = this.drafts.currentTab()
+    this.tab.set(restoredTab)
+
+    if (this.pendingTabChange() === restoredTab) {
+      this.pendingTabChange.set(null)
+    }
   }
 
   private canonicalizeForEditor(smiles: string, logContext: string) {
@@ -465,7 +470,7 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
       const qp = this.qpRegistry()
       if (!qp) return
 
-      await this.router.navigate([], {
+      const navigated = await this.router.navigate([], {
         relativeTo: this.route,
         queryParams: {
           mode: qp.mode,
@@ -476,8 +481,13 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
         },
         replaceUrl: true
       })
-    } finally {
+
+      if (!navigated) {
+        this.pendingTabChange.set(null)
+      }
+    } catch (error) {
       this.pendingTabChange.set(null)
+      throw error
     }
   }
 
@@ -623,7 +633,10 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
         )
       })
     ).subscribe({
-      error: () => this.error.set(true)
+      error: () => {
+        this.pendingTabChange.set(null)
+        this.error.set(true)
+      }
     })
 
     this.molDupSub = this.polledSmiles$
