@@ -70,7 +70,7 @@ import { BrowserStorageRegistry, StorageDescriptor } from '../../services/browse
           @if (mode() === 'edit') {
             <button
               [disabled]="lock()"
-              class="relative bottom-[2px] w-full mt-4 py-2 bg-emerald-600 text-white rounded-md font-semibold shadow hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed transition-colors duration-150"
+              class="relative bottom-0.5 w-full mt-4 py-2 bg-emerald-600 text-white rounded-md font-semibold shadow hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed transition-colors duration-150"
               (click)="onSave()"
               [attr.aria-disabled]="lock()"
               aria-label="Salva molecola"
@@ -80,7 +80,7 @@ import { BrowserStorageRegistry, StorageDescriptor } from '../../services/browse
           } @else {
             <button
               [disabled]="lock()"
-              class="relative bottom-[2px] w-full mt-4 py-2 bg-emerald-600 text-white rounded-md font-semibold shadow hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed transition-colors duration-150"
+              class="relative bottom-0.5 w-full mt-4 py-2 bg-emerald-600 text-white rounded-md font-semibold shadow hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed transition-colors duration-150"
               (click)="onSaveAsNew()"
               [attr.aria-disabled]="lock()"
               aria-label="Salva come nuova molecola"
