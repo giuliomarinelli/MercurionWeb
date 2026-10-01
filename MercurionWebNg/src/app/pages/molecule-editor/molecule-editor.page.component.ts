@@ -1,5 +1,5 @@
 import { LoggerService } from '../../services/logger.service'
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core'
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, effect, inject, signal } from '@angular/core'
 import { ActivatedRoute, Router } from '@angular/router'
 import {
   EMPTY,
@@ -42,7 +42,6 @@ import { DescriptorCardContentComponent } from '../../components/common/descript
 import { DescriptorCardsGridComponent } from '../../components/common/descriptor-cards-grid/descriptor-cards-grid.component'
 import { MoleculeBadgeComponent } from '../../components/molecule-detail/molecule-badge/molecule-badge.component'
 import { MoleculeService } from '../../services/graphql/molecule.service'
-import { MoleculeNameByCanonicalSmilesDTO } from '../../services/graphql/molecule-name-by-canonical-smiles.dto'
 
 @Component({
   selector: 'm-molecule-editor',
@@ -207,7 +206,6 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
   private routeSub?: Subscription
   private molEdSub?: Subscription
   private molDupSub?: Subscription
-  private molNameSub?: Subscription
 
   private readonly destroy$ = new Subject<void>()
   private readonly polledSmiles$ = new Subject<string>()
@@ -245,6 +243,44 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
     }
   ])
 
+  constructor() {
+    effect(onCleanup => {
+      const canonicalSmiles = this.currentCanonicalSmiles()
+
+      this.currentMoleculeName.set(null)
+      this.currentMoleculeType.set(null)
+
+      if (!canonicalSmiles) return
+
+      const sub = this.moleculeService
+        .getPreferredNameItByCanonicalSmiles(canonicalSmiles)
+        .subscribe({
+          next: res => {
+            if (this.currentCanonicalSmiles() !== canonicalSmiles) return
+
+            if (!res.preferredNameIt) {
+              this.currentMoleculeName.set(null)
+              this.currentMoleculeType.set(null)
+              return
+            }
+
+            this.currentMoleculeName.set(res.preferredNameIt)
+            this.currentMoleculeType.set(
+              res.type === 'chembl' ? 'ChEMBL' : 'Personal'
+            )
+          },
+          error: error => {
+            if (this.currentCanonicalSmiles() !== canonicalSmiles) return
+            this.logger.error('Molecule name lookup error', error)
+            this.currentMoleculeName.set(null)
+            this.currentMoleculeType.set(null)
+          }
+        })
+
+      onCleanup(() => sub.unsubscribe())
+    })
+  }
+
   onSave(): void {
     this.pendingAction.set('save')
     this.triggerGetSmiles.set(true)
@@ -280,7 +316,7 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
 
     if (!trimmed) {
       this.drafts.record('', this.tab())
-      this.updateMoleculeDescriptor('')
+      this.setCurrentCanonicalSmiles('')
       this.untouched.set(this.baselineSmiles() === '')
       this.lock.set(true)
     }
@@ -288,41 +324,8 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
     this.polledSmiles$.next(smiles)
   }
 
-  private updateMoleculeDescriptor(canonicalSmiles: string): void {
-    const normalized = canonicalSmiles.trim()
-
-    // The route is re-evaluated when switching editor tab. Do not repeat the
-    // same name lookup if the molecular structure itself did not change.
-    if (this.currentCanonicalSmiles() === normalized && this.molNameSub) return
-
-    this.currentCanonicalSmiles.set(normalized)
-    this.molNameSub?.unsubscribe()
-    this.currentMoleculeName.set(null)
-    this.currentMoleculeType.set(null)
-
-    if (!normalized) return
-
-    this.molNameSub = this.moleculeService
-      .getPreferredNameItByCanonicalSmiles(normalized)
-      .subscribe({
-        next: (res: MoleculeNameByCanonicalSmilesDTO) => {
-          if (!res.preferredNameIt) {
-            this.currentMoleculeName.set(null)
-            this.currentMoleculeType.set(null)
-            return
-          }
-
-          this.currentMoleculeName.set(res.preferredNameIt)
-          this.currentMoleculeType.set(
-            res.type === 'chembl' ? 'ChEMBL' : 'Personal'
-          )
-        },
-        error: error => {
-          this.logger.error('Molecule name lookup error', error)
-          this.currentMoleculeName.set(null)
-          this.currentMoleculeType.set(null)
-        }
-      })
+  private setCurrentCanonicalSmiles(canonicalSmiles: string): void {
+    this.currentCanonicalSmiles.set(canonicalSmiles.trim())
   }
 
   handleReset(): void {
@@ -332,7 +335,7 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
     const baseline = this.baselineSmiles()
     const restoredSmiles = entry?.smiles ?? baseline
     this.smiles.set(restoredSmiles)
-    this.updateMoleculeDescriptor(restoredSmiles)
+    this.setCurrentCanonicalSmiles(restoredSmiles)
     this.untouched.set(true)
     this.lock.set(true)
 
@@ -343,7 +346,7 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
     if (!entry) return
 
     this.smiles.set(entry.smiles)
-    this.updateMoleculeDescriptor(entry.smiles)
+    this.setCurrentCanonicalSmiles(entry.smiles)
     this.untouched.set(entry.smiles === this.baselineSmiles())
 
     // La validazione di unicità viene rieseguita dal normale polling Ketcher.
@@ -362,7 +365,7 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
     // when its tab input changes, so structureValue must already contain the
     // recovered draft when the new iframe starts.
     this.smiles.set(entry.smiles)
-    this.updateMoleculeDescriptor(entry.smiles)
+    this.setCurrentCanonicalSmiles(entry.smiles)
     this.untouched.set(entry.smiles === init.baselineSmiles)
     this.lock.set(true)
 
@@ -464,7 +467,7 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
 
       this.drafts.record(currentStructure, this.tab())
       this.smiles.set(currentStructure)
-      this.updateMoleculeDescriptor(currentStructure)
+      this.setCurrentCanonicalSmiles(currentStructure)
       this.drafts.setTab(nextTab)
 
       const qp = this.qpRegistry()
@@ -475,7 +478,8 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
         queryParams: {
           mode: qp.mode,
           ...(qp.mId ? { m_id: qp.mId } : {}),
-          ...(qp.smiles ? { smiles: qp.smiles } : {}),
+          smiles: currentStructure,
+          baseline_smiles: this.baselineSmiles(),
           tab: nextTab,
           destroy_cache: 'false'
         },
@@ -556,11 +560,13 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
         const destroyExisting = destroyCache === 'true'
         const mId = qp.get('m_id') ?? undefined
         const routeSmiles = qp.get('smiles') ?? undefined
+        const routeBaselineSmiles = qp.get('baseline_smiles') ?? undefined
 
         this.qpRegistry.set({
           mode: rawMode,
           mId,
           smiles: routeSmiles,
+          baselineSmiles: routeBaselineSmiles,
           tab,
           destroyCache
         })
@@ -582,6 +588,7 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
                   mode: 'edit',
                   mId,
                   baselineSmiles: baseline,
+                  initialSmiles: routeSmiles,
                   tab,
                   destroyExisting
                 }))
@@ -596,23 +603,28 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
             return EMPTY
           }
 
+          const duplicateBaselineSource = routeBaselineSmiles ?? routeSmiles
+
           return this.canonicalizeForEditor(
-            routeSmiles,
+            duplicateBaselineSource,
             'RDKitAPI duplicate baseline canonicalization error'
           ).pipe(
             tap(baseline => this.initializeDraft({
               mode: 'duplicate',
               baselineSmiles: baseline,
+              initialSmiles: routeSmiles,
               tab,
               destroyExisting
             }))
           )
         }
 
+        const createBaseline = routeBaselineSmiles ?? ''
+
         if (!routeSmiles) {
           this.initializeDraft({
             mode: 'create',
-            baselineSmiles: '',
+            baselineSmiles: createBaseline,
             tab,
             destroyExisting
           })
@@ -625,7 +637,7 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
         ).pipe(
           tap(initialSmiles => this.initializeDraft({
             mode: 'create',
-            baselineSmiles: '',
+            baselineSmiles: createBaseline,
             initialSmiles,
             tab,
             destroyExisting
@@ -658,7 +670,7 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
         distinctUntilChanged(),
         switchMap((canon: string) => {
           this.drafts.record(canon, this.tab())
-          this.updateMoleculeDescriptor(canon)
+          this.setCurrentCanonicalSmiles(canon)
 
           return this.moleculeCollectionItemService
             .findOneCustomMoleculeByCanonicalSmiles_shortFetch(canon)
@@ -710,7 +722,6 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
     this.routeSub?.unsubscribe()
     this.molEdSub?.unsubscribe()
     this.molDupSub?.unsubscribe()
-    this.molNameSub?.unsubscribe()
     this.destroy$.next()
     this.destroy$.complete()
   }
