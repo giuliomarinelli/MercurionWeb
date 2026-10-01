@@ -65,6 +65,7 @@ export interface MoleculeEditorQp {
   mode: ChemistryEditorMode
   mId?: string
   smiles?: string
+  baselineSmiles?: string
   tab?: ChemistryEditorTab
   destroyCache: 'true' | 'false'
 }
