@@ -287,7 +287,7 @@ export class MoleculeEditorDraftService {
     const cursor = history['cursor']
 
     if (!Array.isArray(entries) || entries.length === 0) return false
-    if (!Number.isInteger(cursor) || typeof cursor !== 'number' || cursor < 0 || cursor >= entries.length) return false
+    if (typeof cursor !== 'number' || !Number.isInteger(cursor) || cursor < 0 || cursor >= entries.length) return false
 
     return entries.every(entry => this.isHistoryEntry(entry))
   }
