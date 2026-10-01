@@ -104,7 +104,6 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
   private initialSmiles = ''
   private readonly destroy$ = new Subject<void>()
   private readonly exporting = signal(false)
-  private readonly structureValue = signal('')
   private readonly triggerResetSignal = signal(false)
   private readonly triggerGetSmilesSignal = signal(false)
   private session?: ChemistryEditorSession
@@ -143,7 +142,6 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
     })
     effect(() => {
       const nextSmiles = this.smiles() ?? ''
-      this.structureValue.set(nextSmiles)
       if (this.editorState() === 'ready') void this.updateEditorStructure(nextSmiles)
     })
     effect(() => this.triggerResetSignal.set(this.triggerReset()))
@@ -242,7 +240,7 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
           this.editorState.set(state.status)
           if (state.error) this.editorError.set(state.error.message)
           if (state.status === 'ready') {
-            void this.updateEditorStructure(this.structureValue())
+            void this.updateEditorStructure(this.smiles() ?? '')
             this.loadedTimeoutId = setTimeout(() => this.installMobileKeyboardGuard(), 50)
           }
         })
