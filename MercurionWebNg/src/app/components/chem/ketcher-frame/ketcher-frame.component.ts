@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, ElementRef, NgZone, OnDestroy, OnInit, signal, input, output, inject, viewChild } from '@angular/core'
+import { ChangeDetectionStrategy, Component, effect, ElementRef, NgZone, OnDestroy, OnInit, signal, input, output, inject, untracked, viewChild } from '@angular/core'
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser'
 import {
   catchError,
@@ -142,7 +142,9 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
     })
     effect(() => {
       const nextSmiles = this.smiles() ?? ''
-      if (this.editorState() === 'ready') void this.updateEditorStructure(nextSmiles)
+      if (untracked(() => this.editorState()) === 'ready') {
+        void this.updateEditorStructure(nextSmiles)
+      }
     })
     effect(() => this.triggerResetSignal.set(this.triggerReset()))
     effect(() => this.triggerGetSmilesSignal.set(this.triggerGetSmiles()))
