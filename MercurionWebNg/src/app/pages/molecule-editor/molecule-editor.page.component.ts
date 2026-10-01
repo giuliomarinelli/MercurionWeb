@@ -330,7 +330,9 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
 
     const entry = this.drafts.resetToBaseline(this.tab())
     const baseline = this.baselineSmiles()
-    this.smiles.set(entry?.smiles ?? baseline)
+    const restoredSmiles = entry?.smiles ?? baseline
+    this.smiles.set(restoredSmiles)
+    this.updateMoleculeDescriptor(restoredSmiles)
     this.untouched.set(true)
     this.lock.set(true)
 
@@ -341,6 +343,7 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
     if (!entry) return
 
     this.smiles.set(entry.smiles)
+    this.updateMoleculeDescriptor(entry.smiles)
     this.untouched.set(entry.smiles === this.baselineSmiles())
 
     // La validazione di unicità viene rieseguita dal normale polling Ketcher.
