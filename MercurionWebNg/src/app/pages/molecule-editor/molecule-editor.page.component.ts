@@ -1,5 +1,5 @@
 import { LoggerService } from '../../services/logger.service'
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, inject, signal } from '@angular/core'
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core'
 import { ActivatedRoute, Router } from '@angular/router'
 import {
   EMPTY,
@@ -17,11 +17,13 @@ import {
   takeUntil,
   tap
 } from 'rxjs'
+import { FormsModule } from '@angular/forms'
 import { SelectButtonModule } from 'primeng/selectbutton'
 
 import {
   ChemistryEditorMode,
   ChemistryEditorTab,
+  MoleculeEditorQp,
   isChemistryEditorMode,
   isChemistryEditorTab
 } from '../../chemistry/chemistry-adapter.models'
@@ -40,7 +42,7 @@ import { ToastService } from '../../services/toast.service'
 @Component({
   selector: 'm-molecule-editor',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [KetcherFrameComponent, SelectButtonModule],
+  imports: [KetcherFrameComponent, SelectButtonModule, FormsModule],
   template: `
     <main class="mt-2 mb-6" role="main" aria-live="polite" [attr.aria-busy]="pendingAction() !== null">
       <h2
@@ -50,10 +52,26 @@ import { ToastService } from '../../services/toast.service'
       </h2>
 
       @if (!error()) {
+        <div class="mb-5 flex justify-center">
+          <span id="moleculeEditorTabLabel" class="sr-only">Modalità editor molecolare</span>
+          <p-selectbutton
+            [options]="editorTabOptions()"
+            [ngModel]="tab()"
+            (ngModelChange)="onEditorTabChange($event)"
+            optionLabel="label"
+            optionValue="value"
+            [allowEmpty]="false"
+            [disabled]="pendingAction() !== null || pendingTabChange() !== null"
+            ariaLabelledBy="moleculeEditorTabLabel"
+          />
+        </div>
+
+
         <m-ketcher-frame
           [smiles]="smiles()"
           [baselineSmiles]="baselineSmiles()"
           [mode]="mode()"
+          [tab]="tab()"
           [triggerReset]="triggerReset()"
           [triggerGetSmiles]="triggerGetSmiles()"
           (exportSmiles)="onSmilesExported($event)"
@@ -111,6 +129,7 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
   private readonly RDKitAPI = inject(RdKitApiService)
   private readonly logger = inject(LoggerService)
   private readonly drafts = inject(MoleculeEditorDraftService)
+  private readonly qpRegistry = signal<MoleculeEditorQp | null>(null)
 
   private routeSub?: Subscription
   private molEdSub?: Subscription
@@ -128,11 +147,26 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
   readonly triggerReset = signal(false)
   readonly triggerGetSmiles = signal(false)
   readonly pendingAction = signal<'save' | 'saveNew' | null>(null)
+  readonly pendingTabChange = signal<ChemistryEditorTab | null>(null)
   readonly lock = signal(true)
   readonly untouched = signal(true)
 
   readonly canUndo = this.drafts.canUndo
   readonly canRedo = this.drafts.canRedo
+  readonly editorTabOptions = computed(() => [
+    {
+      label: this.mode() === 'create'
+        ? 'Crea'
+        : this.mode() === 'edit'
+          ? 'Modifica'
+          : 'Duplica',
+      value: 'std' as ChemistryEditorTab
+    },
+    {
+      label: 'Analisi live',
+      value: 'live' as ChemistryEditorTab
+    }
+  ])
 
   onSave(): void {
     this.pendingAction.set('save')
@@ -146,6 +180,14 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
 
   onReset(): void {
     this.triggerReset.set(true)
+  }
+
+  onEditorTabChange(value: unknown): void {
+    if (!isChemistryEditorTab(value) || value === this.tab()) return
+    if (this.pendingAction() !== null || this.pendingTabChange() !== null) return
+
+    this.pendingTabChange.set(value)
+    this.triggerGetSmiles.set(true)
   }
 
   undoDraft(): void {
@@ -256,6 +298,12 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
   async onSmilesExported(smiles: string): Promise<void> {
     this.triggerGetSmiles.set(false)
 
+    const nextTab = this.pendingTabChange()
+    if (nextTab) {
+      await this.commitTabChange(smiles, nextTab)
+      return
+    }
+
     const canon = await this.checkDupe(smiles)
     if (!canon) {
       this.pendingAction.set(null)
@@ -271,6 +319,42 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
     }
 
     this.pendingAction.set(null)
+  }
+
+  private async commitTabChange(smiles: string, nextTab: ChemistryEditorTab): Promise<void> {
+    try {
+      const trimmed = smiles.trim()
+      const currentStructure = trimmed
+        ? await firstValueFrom(
+            this.canonicalizeForEditor(
+              trimmed,
+              'RDKitAPI tab-change canonicalization error'
+            )
+          )
+        : ''
+
+      this.drafts.record(currentStructure, this.tab())
+      this.smiles.set(currentStructure)
+      this.drafts.setTab(nextTab)
+      this.tab.set(nextTab)
+
+      const qp = this.qpRegistry()
+      if (!qp) return
+
+      await this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: {
+          mode: qp.mode,
+          ...(qp.mId ? { m_id: qp.mId } : {}),
+          ...(qp.smiles ? { smiles: qp.smiles } : {}),
+          tab: nextTab,
+          destroy_cache: 'false'
+        },
+        replaceUrl: true
+      })
+    } finally {
+      this.pendingTabChange.set(null)
+    }
   }
 
   doSaveNew(smiles: string): void {
@@ -334,10 +418,18 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
 
         const rawTab = qp.get('tab')
         const tab: ChemistryEditorTab = isChemistryEditorTab(rawTab) ? rawTab : 'std'
-        const destroyExisting = qp.get('destroy_cache') !== 'false'
+        const destroyCache: 'true' | 'false' = qp.get('destroy_cache') === 'false' ? 'false' : 'true'
+        const destroyExisting = destroyCache === 'true'
         const mId = qp.get('m_id') ?? undefined
         const routeSmiles = qp.get('smiles') ?? undefined
 
+        this.qpRegistry.set({
+          mode: rawMode,
+          mId,
+          smiles: routeSmiles,
+          tab,
+          destroyCache
+        })
         this.error.set(false)
 
         if (rawMode === 'edit') {
