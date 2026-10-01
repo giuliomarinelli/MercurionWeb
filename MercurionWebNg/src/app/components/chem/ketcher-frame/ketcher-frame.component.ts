@@ -236,19 +236,46 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
 
       this.session = session
       this.unsubscribeState = session.onStateChange(state => {
+        if (state.status === 'ready') {
+          void this.initializeReadySession(session, generation)
+          return
+        }
+
         this.zone.run(() => {
           this.editorState.set(state.status)
           if (state.error) this.editorError.set(state.error.message)
-          if (state.status === 'ready') {
-            void this.updateEditorStructure(this.smiles() ?? '')
-            this.loadedTimeoutId = setTimeout(() => this.installMobileKeyboardGuard(), 50)
-          }
         })
       })
       this.ketcherUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(session.resourceUrl))
       if (this.iframe) session.attach(this.iframe)
     } catch (error) {
       if (generation === this.sessionGeneration) this.showError(error)
+    }
+  }
+
+  private async initializeReadySession(
+    session: ChemistryEditorSession,
+    generation: number
+  ): Promise<void> {
+    try {
+      await session.setStructure(this.smiles() ?? '')
+
+      if (
+        this.destroyed ||
+        generation !== this.sessionGeneration ||
+        this.session !== session
+      ) {
+        return
+      }
+
+      this.zone.run(() => {
+        this.editorState.set('ready')
+        this.loadedTimeoutId = setTimeout(() => this.installMobileKeyboardGuard(), 50)
+      })
+    } catch (error) {
+      if (generation === this.sessionGeneration && this.session === session) {
+        this.showError(error)
+      }
     }
   }
 
