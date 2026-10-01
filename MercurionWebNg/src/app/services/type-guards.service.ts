@@ -6,7 +6,6 @@ import { AuthProvider, type SSO_AuthProvider } from "@mercurion/rest-contracts";
 import { Ticket } from "../Models/graphql/help.models";
 import { MoleculeSearchResult } from '../Models/graphql/molecule-search/molecule-search-result.interface';
 import { PageModel } from '../Models/graphql/page.models';
-import { MoleculeEditorCacheBaseItem, MoleculeEditorCacheItemOnCreate, MoleculeEditorCacheItemOnDuplicate, MoleculeEditorCacheItemOnEdit } from '../chemistry/chemistry-adapter.models';
 
 @Injectable({ providedIn: 'root' })
 export class TypeGuardsService {
@@ -204,29 +203,5 @@ export class TypeGuardsService {
     )
   }
 
-  private isMoleculeEditorCacheBaseItem(item: unknown): item is MoleculeEditorCacheBaseItem {
-    return !!item && typeof item === 'object' &&
-      'smiles' in item && typeof item.smiles === 'string' &&
-      'tab' in item && (item.tab === 'std' || item.tab === 'live')
-  }
-
-  isMoleculeEditorCacheItemOnEdit(item: unknown): item is MoleculeEditorCacheItemOnEdit {
-    if (!this.isMoleculeEditorCacheBaseItem(item) || !('mode' in item) || item.mode !== 'edit' ||
-      !('mId' in item) || typeof item.mId !== 'string' || !('mol' in item)) return false
-    const mol = item.mol
-    return !!mol && typeof mol === 'object' &&
-      'id' in mol && typeof mol.id === 'string' &&
-      'canonicalSmiles' in mol && typeof mol.canonicalSmiles === 'string' &&
-      'name' in mol && (mol.name === null || typeof mol.name === 'string') &&
-      'molFormula' in mol && (mol.molFormula === null || typeof mol.molFormula === 'string')
-  }
-
-  isMoleculeEditorCacheItemOnCreate(item: unknown): item is MoleculeEditorCacheItemOnCreate {
-    return this.isMoleculeEditorCacheBaseItem(item) && 'mode' in item && item.mode === 'create'
-  }
-
-  isMoleculeEditorCacheItemOnDuplicate(item: unknown): item is MoleculeEditorCacheItemOnDuplicate {
-    return this.isMoleculeEditorCacheBaseItem(item) && 'mode' in item && item.mode === 'duplicate'
-  }
 
 }
