@@ -26,8 +26,7 @@ class KetcherEditorSession implements ChemistryEditorSession {
   private pendingSmilesReject?: (error: ChemistryAdapterError) => void
   private pendingStructureResolve?: () => void
   private pendingStructureReject?: (error: ChemistryAdapterError) => void
-  private exportQueue = Promise.resolve()
-  private structureQueue = Promise.resolve()
+  private operationQueue = Promise.resolve()
 
   constructor(private readonly options: KetcherEditorAdapterOptions) {
     this.resourceUrl = options.resourceUrl
@@ -52,15 +51,15 @@ class KetcherEditorSession implements ChemistryEditorSession {
   }
 
   setStructure(structure: string): Promise<void> {
-    const operation = this.structureQueue.then(() => this.applyStructure(structure))
-    this.structureQueue = operation.then(() => undefined, () => undefined)
+    const operation = this.operationQueue.then(() => this.applyStructure(structure))
+    this.operationQueue = operation.then(() => undefined, () => undefined)
     return operation
   }
 
   exportStructure(): Promise<string> {
-    const exportOperation = this.exportQueue.then(() => this.requestSmiles())
-    this.exportQueue = exportOperation.then(() => undefined, () => undefined)
-    return exportOperation
+    const operation = this.operationQueue.then(() => this.requestSmiles())
+    this.operationQueue = operation.then(() => undefined, () => undefined)
+    return operation
   }
 
   dispose(): void {
