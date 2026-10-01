@@ -11,6 +11,7 @@ export class InAppNotificationService {
   private readonly _unreadCount = signal<number>(0)
   readonly unreadCount = this._unreadCount.asReadonly()
 
+
   private incrementUnreadCount() {
     this._unreadCount.update((count) => count + 1)
   }

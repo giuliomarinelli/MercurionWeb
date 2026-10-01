@@ -825,6 +825,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
     })
   }
 
+
+
   ngOnInit(): void {
     this.isBeta.set(this.appConfig.capabilities.beta)
     this.updatePathFlags(this.router.url)

@@ -22,10 +22,10 @@ import { NgClass } from '@angular/common';
       }
     }
     .fade-in {
-      animation: fade-in-kf 0.35s both ease-in-out;
+      animation: fade-in-kf 0.35s forward ease-in-out;
     }
     .fade-out {
-      animation: fade-out-kf 0.35s both ease-in-out;
+      animation: fade-out-kf 0.35s forward ease-in-out;
     }
   `,
   template: `
@@ -77,7 +77,7 @@ export class NotificationButtonComponent {
   private handleBadgeFadeOut(): void {
     requestAnimationFrame(() => {
       this.badgeClass.set('fade-out')
-      setTimeout(() =>this.badgeClass.set(''), this.FADING_DURATION + 50)
+      setTimeout(() =>this.badgeClass.set('hidden'), this.FADING_DURATION + 50)
     })
   }
 
