@@ -40,6 +40,31 @@ describe('KetcherFrameComponent', () => {
     expect(editor.createSession).toHaveBeenCalledTimes(1);
   });
 
+  it('creates the standalone editor with the standard Mercurion profile', () => {
+    const resourceUrl = editor.createSession.calls.mostRecent().args[0];
+    const url = new URL(resourceUrl, window.location.origin);
+
+    expect(url.searchParams.get('disableMacromoleculesEditor')).toBe('true');
+    expect(url.searchParams.get('hiddenControls')).toContain('open');
+    expect(url.searchParams.get('hiddenControls')).not.toContain('zoom-list');
+  });
+
+  it('recreates the session with the compact live-analysis profile when tab changes', async () => {
+    fixture.componentRef.setInput('tab', 'live');
+    fixture.detectChanges();
+    await Promise.resolve();
+
+    expect(editor.createSession).toHaveBeenCalledTimes(2);
+
+    const resourceUrl = editor.createSession.calls.mostRecent().args[0];
+    const url = new URL(resourceUrl, window.location.origin);
+    const hiddenControls = url.searchParams.get('hiddenControls')?.split(',') ?? [];
+
+    expect(hiddenControls).toContain('zoom-list');
+    expect(hiddenControls).toContain('copies');
+    expect(hiddenControls).not.toContain('clean');
+  });
+
   it('disposes the application editor session on destroy', () => {
     fixture.destroy();
     expect(session.dispose).toHaveBeenCalledTimes(1);
