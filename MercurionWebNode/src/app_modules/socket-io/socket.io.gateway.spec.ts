@@ -60,6 +60,10 @@ describe('SocketGateway', () => {
     expect(gateway).toBeInstanceOf(SocketIOGateway);
   });
 
+  it('fails startup when Nest silently skips gateway discovery', () => {
+    expect(() => gateway.onApplicationBootstrap()).toThrow('Socket.IO gateway was not initialized')
+  });
+
   it('registers middleware, Redis adapter, and PubSub binding only once', () => {
     const subClient = {};
     const pubClient = {
@@ -77,6 +81,7 @@ describe('SocketGateway', () => {
 
     gateway.afterInit(server as never);
     gateway.afterInit(server as never);
+    expect(() => gateway.onApplicationBootstrap()).not.toThrow();
 
     expect(use).toHaveBeenCalledTimes(1);
     expect(use).toHaveBeenCalledWith(expect.any(Function));

@@ -73,4 +73,28 @@ describe('RealtimeSocketService', () => {
     internals.socket.connected = false;
     service.ngOnDestroy();
   }));
+
+  for (const mode of ['public', 'private'] as const) {
+    it(`stops repeated ${mode} connection failures after the retry budget`, fakeAsync(() => {
+      const token = `header.${btoa(JSON.stringify({ exp: Math.floor(Date.now() / 1000) + 3600 }))}.signature`;
+      spyOn(TestBed.inject(AuthSessionRepository), 'getWsAccessToken').and.returnValue(token);
+      const internals = service as unknown as {
+        socket: { connect: () => void; connected: boolean }
+        onConnectErrorCore: (error: unknown) => Promise<void>
+      };
+      internals.socket.connected = false;
+      const connect = spyOn(internals.socket, 'connect').and.callFake(() => {
+        void internals.onConnectErrorCore(new Error('websocket endpoint returned 404'));
+      });
+
+      service.connect(mode);
+      tick(120_000);
+
+      expect(connect).toHaveBeenCalledTimes(7);
+      expect(service.state()).toEqual({ kind: 'degraded', mode, attempt: 7, reason: 'retry-exhausted' });
+      tick(120_000);
+      expect(connect).toHaveBeenCalledTimes(7);
+      service.ngOnDestroy();
+    }));
+  }
 });

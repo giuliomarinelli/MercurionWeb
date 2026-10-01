@@ -73,8 +73,8 @@ export function reduceRealtimeConnection(
     case 'transport-disconnected': {
       const mode = state.kind === 'private' || state.kind === 'authenticating'
         ? 'private'
-        : state.kind === 'public' || (state.kind === 'reconnecting' && state.mode === 'public')
-          ? 'public'
+        : state.kind === 'connecting' || state.kind === 'reconnecting' || state.kind === 'disconnected'
+          ? state.mode
           : 'public'
       const attempt = state.kind === 'reconnecting' ? state.attempt + 1 : 1
       return attempt > policy.maxAttempts

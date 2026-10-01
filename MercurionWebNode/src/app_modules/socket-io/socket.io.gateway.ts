@@ -1,5 +1,5 @@
 import { WebSocketGateway, WebSocketServer, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, MessageBody, ConnectedSocket } from '@nestjs/websockets';
-import { OnApplicationShutdown } from '@nestjs/common'
+import { OnApplicationBootstrap, OnApplicationShutdown } from '@nestjs/common'
 import { Server, Socket } from 'socket.io';
 import { UseGuards } from '@nestjs/common';
 import Redis from 'ioredis';
@@ -72,7 +72,7 @@ export function createSocketContractVersionMiddleware(
 
 @WebSocketGateway()
 @UseGuards(WsGuard)
-export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, OnApplicationShutdown {
+export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, OnApplicationBootstrap, OnApplicationShutdown {
 
   private readonly logger: LoggerContext
   private readonly redisConf: RedisConfiguration
@@ -110,6 +110,12 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
     this.pubSubService.setSocketServer(server)
     this.initialized = true
     this.logger.log('Socket.IO Redis Adapter e PubSubService pronti! 🚀')
+  }
+
+  onApplicationBootstrap(): void {
+    if (!this.initialized) {
+      throw new Error('Socket.IO gateway was not initialized. Check that @nestjs/core can load @nestjs/websockets from the workspace dependency tree.')
+    }
   }
 
   async onApplicationShutdown(): Promise<void> {

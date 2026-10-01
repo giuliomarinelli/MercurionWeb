@@ -52,4 +52,10 @@ describe('realtime connection state machine', () => {
     expect(reduceRealtimeConnection(retrying, { type: 'retry', now: 1000 }).kind)
       .toBe('authenticating')
   })
+
+  it('preserves private mode across repeated transport failures', () => {
+    const retrying: RealtimeConnectionState = { kind: 'reconnecting', mode: 'private', attempt: 2, retryAt: 0 }
+    expect(reduceRealtimeConnection(retrying, { type: 'transport-disconnected' }))
+      .toEqual({ kind: 'reconnecting', mode: 'private', attempt: 3, retryAt: 0 })
+  })
 })

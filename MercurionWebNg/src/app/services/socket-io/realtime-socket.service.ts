@@ -78,12 +78,13 @@ export class RealtimeSocketService implements OnDestroy {
   };
 
   private readonly onConnectErrorCore = async (err: unknown) => {
+    const myGeneration = this.generation;
     const isAuthErr =
       hasApplicationErrorCode(err, ApplicationErrorCode.ACCESS_TOKEN_INVALID_OR_EXPIRED) ||
       hasApplicationErrorCode(err, ApplicationErrorCode.AUTHENTICATION_UNAUTHORIZED)
     if (isAuthErr && this.mode === 'private') {
       await this.ensureFreshToken(true);
-      if (this.generation !== this.currentGeneration()) return;
+      if (myGeneration !== this.generation) return;
       const tok = this.auth.getWsAccessToken();
       if (tok && !this.jwt.isTokenExpired(tok)) this.socket.auth = { token: tok, contractMajor: SOCKET_CONTRACT_MAJOR };
     }
@@ -359,7 +360,13 @@ export class RealtimeSocketService implements OnDestroy {
   }
 
   private scheduleRetry(): void {
-    const next = reduceRealtimeConnection(this._state(), { type: 'transport-disconnected' });
+    if (this.stopped || this.retryTimer !== undefined) return;
+    // Connecting/authenticating states do not carry the attempt counter.
+    // Keep it across actual connection failures, not only consecutive reducer
+    // events, otherwise every failed attempt restarts the budget at one.
+    const next = reduceRealtimeConnection({
+      kind: 'reconnecting', mode: this.mode, attempt: this.retryAttempt, retryAt: 0
+    }, { type: 'transport-disconnected' });
     if (next.kind === 'degraded') {
       this._state.set(next);
       return;
@@ -372,6 +379,7 @@ export class RealtimeSocketService implements OnDestroy {
     this.cancelRetry();
     const myGeneration = this.generation;
     this.retryTimer = setTimeout(() => {
+      this.retryTimer = undefined;
       if (myGeneration !== this.generation || this.stopped) return;
       this._state.set(reduceRealtimeConnection(this._state(), { type: 'retry', now: Date.now() }));
       if (this.mode === 'private') void this.ensurePrivate();
@@ -403,8 +411,6 @@ export class RealtimeSocketService implements OnDestroy {
     if (this.tokenRefreshTimer !== undefined) clearTimeout(this.tokenRefreshTimer);
     this.tokenRefreshTimer = undefined;
   }
-
-  private currentGeneration(): number { return this.generation; }
 
   /** Se il token è assente o scaduto, prova a rinfrescarlo con lock cross-tab. */
   /** Se force=true, forza il refresh anche se il JWT non risulta scaduto. */

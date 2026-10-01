@@ -1,4 +1,6 @@
 import { inject, Injectable } from '@angular/core'
+import { toObservable } from '@angular/core/rxjs-interop'
+import { filter, from, map, Observable, switchMap, take } from 'rxjs'
 import {
   ActivatedRouteSnapshot,
   CanActivate,
@@ -18,8 +20,9 @@ export class AuthGuard implements CanActivate {
   private readonly authState = inject(AuthStateStore)
   private readonly redirects = inject(AuthRedirectService)
   private readonly sessionSync = inject(SessionSyncService)
+  private readonly authStateChanges = toObservable(this.authState.state)
 
-  canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean | UrlTree | Promise<boolean | UrlTree> {
+  canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean | UrlTree | Observable<boolean | UrlTree> {
     if (routePolicyOf(route).access !== 'authenticated') {
       return true
     }
@@ -35,9 +38,16 @@ export class AuthGuard implements CanActivate {
     return this.loginRedirect(state)
   }
 
-  private async waitForSessionRestore(state: RouterStateSnapshot): Promise<boolean | UrlTree> {
-    await this.sessionSync.checkSession()
-    return this.authState.authenticated() ? true : this.loginRedirect(state)
+  private waitForSessionRestore(state: RouterStateSnapshot): Observable<boolean | UrlTree> {
+    return from(this.sessionSync.checkSession()).pipe(
+      // A completed transport attempt may still leave restoration pending.
+      // Wait for a definitive auth state; Router unsubscribes if navigation
+      // is cancelled, so a late ACK cannot redirect a different navigation.
+      switchMap(() => this.authStateChanges),
+      filter(() => !this.authState.isAuthenticating()),
+      take(1),
+      map(() => this.authState.authenticated() ? true : this.loginRedirect(state))
+    )
   }
 
   private loginRedirect(state: RouterStateSnapshot): UrlTree {

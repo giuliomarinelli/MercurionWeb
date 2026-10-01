@@ -28,6 +28,7 @@ import { HeaderSessionIndicatorComponent } from './header-session-indicator.comp
 import { IconButtonComponent } from '../icon-button/icon-button.component';
 import { ProvidedAccountIdDTO } from '@mercurion/rest-contracts';
 import { NotificationButtonComponent } from '../notification-button/notification-button.component';
+import { InAppNotificationService } from '../../../services/in-app-notification.service';
 
 @Component({
   selector: 'm-header',
@@ -157,9 +158,11 @@ import { NotificationButtonComponent } from '../notification-button/notification
                 </m-icon-button>
             </div>
             @if (userContext.isLoggedIn()) {
-              <m-notification-button [unreadCount]="1" />
+              <m-notification-button [unreadCount]="unreadNotificationsCount()" />
             }
-            <div class="theme-menu-container relative flex items-center">
+            <div class="theme-menu-container relative flex items-center" [ngClass]="{
+              'lg:-ml-2': userContext.isLoggedIn()
+            }">
                 <button
                     class="flex items-center justify-center size-10 rounded-full theme-toggle-button transition-all duration-500 hover:bg-slate-200/80 dark:hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-light-accent-primary-hq"
                     (click)="toggleThemeMenu()"
@@ -189,7 +192,7 @@ import { NotificationButtonComponent } from '../notification-button/notification
             userContext.isLoggedIn() &&
             isAllowedPath()
             ) {
-            <div class="avatar-menu-anchor relative flex items-center">
+            <div class="avatar-menu-anchor relative flex items-center md:ml-2 lg:ml-0">
                 <m-header-session-indicator [session]="headerViewModel().session" [expanded]="avatarMenuOpen()"
                     (toggled)="toggleAvatarMenu()">
                 </m-header-session-indicator>
@@ -573,6 +576,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   private readonly shellLayout = inject(ShellLayoutService)
   private readonly appConfig = inject(APP_CONFIG)
   private readonly storageRegistry = inject(BrowserStorageRegistry)
+  private readonly inAppNotification = inject(InAppNotificationService)
 
   private updatePathFlags(currentPath: string) {
     const clean = (currentPath || '').split(/[?#]/)[0]
@@ -606,6 +610,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
   protected avatarMobileMenuOpen = signal<boolean>(false)
   protected avatarMobileMenuMounted = signal<boolean>(false)
   protected avatarMobileMenuVisible = signal<boolean>(false)
+
+  protected readonly unreadNotificationsCount = computed(() => this.inAppNotification.unreadCount())
 
   // Timer id per ciascuna transizione mount/visible: tracciati cosi' un
   // toggle rapido puo' annullare deterministicamente il timer residuo del
