@@ -181,6 +181,16 @@ type MoleculeDetail {
   synonyms: [String!]!
 }
 
+type MoleculeNameByCanonicalSmilesDTO {
+  preferredNameIt: String
+  type: MoleculeNameSource!
+}
+
+enum MoleculeNameSource {
+  chembl
+  custom
+}
+
 type MoleculeProperties {
   alogp: Float
   hba: Int
@@ -365,6 +375,7 @@ type Query {
   pagesBySection(sectionId: String!): [NotebookPage!]!
   paginatedMoleculeCollectionItemsByCollection(collectionId: String!, excluded: Boolean, limit: Int! = 20, page: Int! = 1, q: String!): PaginatedMoleculeCollectionItem!
   paginatedMoleculeCollectionItemsByUser(collectionId: ID, excludeJoinedToCollection: Boolean, limit: Int! = 20, page: Int! = 1, q: String!): PaginatedMoleculeCollectionItem!
+  preferredNameItByCanonicalSmiles(canonicalSmiles: String!): MoleculeNameByCanonicalSmilesDTO!
   searchMyCollections(limit: Float, query: String): [MoleculeCollection!]!
   sectionByChapterId(chapterId: ID!): NotebookSection!
   sectionById(id: ID!): NotebookSection!

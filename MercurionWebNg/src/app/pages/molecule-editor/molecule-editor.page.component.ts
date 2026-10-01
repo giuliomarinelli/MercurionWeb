@@ -38,11 +38,23 @@ import { ActionOverlayContextService } from '../../services/context/action-conte
 import { MoleculeCollectionItemService } from '../../services/graphql/molecule-collection-item.service'
 import { RdKitApiService } from '../../services/rd-kit-api.service'
 import { ToastService } from '../../services/toast.service'
+import { DescriptorCardContentComponent } from '../../components/common/descriptor-card-content/descriptor-card-content.component'
+import { DescriptorCardsGridComponent } from '../../components/common/descriptor-cards-grid/descriptor-cards-grid.component'
+import { MoleculeBadgeComponent } from '../../components/molecule-detail/molecule-badge/molecule-badge.component'
+import { MoleculeService } from '../../services/graphql/molecule.service'
+import { MoleculeNameByCanonicalSmilesDTO } from '../../services/graphql/molecule-name-by-canonical-smiles.dto'
 
 @Component({
   selector: 'm-molecule-editor',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [KetcherFrameComponent, SelectButtonModule, FormsModule],
+  imports: [
+    KetcherFrameComponent,
+    SelectButtonModule,
+    FormsModule,
+    DescriptorCardContentComponent,
+    DescriptorCardsGridComponent,
+    MoleculeBadgeComponent
+  ],
   template: `
     <main
       class="mt-2 mb-6"
@@ -60,6 +72,7 @@ import { ToastService } from '../../services/toast.service'
         <div class="mb-5 flex justify-center">
           <span id="moleculeEditorTabLabel" class="sr-only">Modalità editor molecolare</span>
           <p-selectbutton
+            class="editor-tabs"
             [options]="editorTabOptions()"
             [ngModel]="tab()"
             (ngModelChange)="onEditorTabChange($event)"
@@ -70,6 +83,28 @@ import { ToastService } from '../../services/toast.service'
             ariaLabelledBy="moleculeEditorTabLabel"
           />
         </div>
+        <section class="max-w-6xl mx-auto my-4" aria-labelledby="editor-properties-heading">
+        <m-descriptor-cards-grid
+              [cardsData]="[
+                { title: 'Nome della molecola', bg: 'primary', content: molecularName },
+                { title: 'logP', bg: 'secondary', content: logPContent },
+              ]"
+            />
+
+            <ng-template #molecularName>
+              <m-descriptor-card-content>
+                <div class="flex gap-3 items-center">
+                  {{ currentMoleculeName() ?? 'ND' }}
+                  @if (currentMoleculeType() !== null) {
+                  <m-molecule-badge [name]="currentMoleculeType()!" />
+                  }
+                </div>
+              </m-descriptor-card-content>
+            </ng-template>
+            <ng-template #logPContent>
+              <m-descriptor-card-content>ND</m-descriptor-card-content>
+            </ng-template>
+        </section>
 
 
         <m-ketcher-frame
@@ -117,13 +152,41 @@ import { ToastService } from '../../services/toast.service'
             }
           </div>
         </m-ketcher-frame>
+        @if (tab() === 'live') {
+          <section class="mt-6" aria-labelledby="editor-properties-heading">
+            <h2
+              id="editor-properties-heading"
+              class="text-xl font-semibold mb-3 text-light-accent-primary-hc dark:text-dark-accent-primary text-center sm:text-left"
+            >
+              Proprietà chimico-fisiche
+            </h2>
+
+
+
+          </section>
+        }
       } @else {
         <h3 class="text-center text-5xl font-semibold text-light-error dark:text-dark-error" role="alert" aria-live="assertive">
           Si è verificato un errore
         </h3>
       }
     </main>
-  `
+  `,
+  styles: `
+  .editor-tabs {
+    --p-togglebutton-background: transparent;
+    --p-togglebutton-color: #475569;
+    --p-togglebutton-hover-background: #f1f5f9;
+    --p-togglebutton-hover-color: #0f172a;
+
+    --p-togglebutton-checked-background: #2563eb;
+    --p-togglebutton-checked-color: white;
+    --p-togglebutton-content-checked-background: #2563eb;
+
+    --p-togglebutton-padding: 0.5rem;
+    --p-togglebutton-font-weight: 600;
+  }
+`
 })
 export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute)
@@ -135,10 +198,12 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
   private readonly logger = inject(LoggerService)
   private readonly drafts = inject(MoleculeEditorDraftService)
   private readonly qpRegistry = signal<MoleculeEditorQp | null>(null)
+  private readonly moleculeService = inject(MoleculeService)
 
   private routeSub?: Subscription
   private molEdSub?: Subscription
   private molDupSub?: Subscription
+  private molNameSub?: Subscription
 
   private readonly destroy$ = new Subject<void>()
   private readonly polledSmiles$ = new Subject<string>()
@@ -155,6 +220,8 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
   readonly pendingTabChange = signal<ChemistryEditorTab | null>(null)
   readonly lock = signal(true)
   readonly untouched = signal(true)
+  readonly currentMoleculeName = signal<string | null>(null)
+  readonly currentMoleculeType = signal<string | null>(null)
 
   readonly canUndo = this.drafts.canUndo
   readonly canRedo = this.drafts.canRedo
@@ -213,6 +280,22 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
     }
 
     this.polledSmiles$.next(smiles)
+  }
+
+  private getMoleculeNameByCanonicalSmiles(canonicalSmiles: string): void {
+    this.molNameSub = this.moleculeService.getPreferredNameItByCanonicalSmiles(canonicalSmiles).subscribe({
+      next: (res: MoleculeNameByCanonicalSmilesDTO) => {
+        this.currentMoleculeName.set(res.preferredNameIt ?? 'ND')
+        this.currentMoleculeType.update(() => {
+          switch (res.type) {
+            case 'chembl':
+              return 'ChEMBL'
+            case 'custom':
+              return 'Personal'
+          }
+        })
+      }
+    })
   }
 
   handleReset(): void {
@@ -331,11 +414,11 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
       const trimmed = smiles.trim()
       const currentStructure = trimmed
         ? await firstValueFrom(
-            this.canonicalizeForEditor(
-              trimmed,
-              'RDKitAPI tab-change canonicalization error'
-            )
+          this.canonicalizeForEditor(
+            trimmed,
+            'RDKitAPI tab-change canonicalization error'
           )
+        )
         : ''
 
       this.drafts.record(currentStructure, this.tab())
@@ -577,6 +660,7 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
     this.routeSub?.unsubscribe()
     this.molEdSub?.unsubscribe()
     this.molDupSub?.unsubscribe()
+    this.molNameSub?.unsubscribe()
     this.destroy$.next()
     this.destroy$.complete()
   }

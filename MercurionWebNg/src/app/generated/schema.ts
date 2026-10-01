@@ -197,6 +197,16 @@ export type MoleculeDetail = {
   synonyms: Array<Scalars['String']['output']>;
 };
 
+export type MoleculeNameByCanonicalSmilesDto = {
+  __typename?: 'MoleculeNameByCanonicalSmilesDTO';
+  preferredNameIt?: Maybe<Scalars['String']['output']>;
+  type: MoleculeNameSource;
+};
+
+export type MoleculeNameSource =
+  | 'chembl'
+  | 'custom';
+
 export type MoleculeProperties = {
   __typename?: 'MoleculeProperties';
   alogp?: Maybe<Scalars['Float']['output']>;
@@ -685,6 +695,7 @@ export type Query = {
   pagesBySection: Array<NotebookPage>;
   paginatedMoleculeCollectionItemsByCollection: PaginatedMoleculeCollectionItem;
   paginatedMoleculeCollectionItemsByUser: PaginatedMoleculeCollectionItem;
+  preferredNameItByCanonicalSmiles: MoleculeNameByCanonicalSmilesDto;
   searchMyCollections: Array<MoleculeCollection>;
   sectionByChapterId: NotebookSection;
   sectionById: NotebookSection;
@@ -836,6 +847,11 @@ export type QueryPaginatedMoleculeCollectionItemsByUserArgs = {
   limit?: Scalars['Int']['input'];
   page?: Scalars['Int']['input'];
   q: Scalars['String']['input'];
+};
+
+
+export type QueryPreferredNameItByCanonicalSmilesArgs = {
+  canonicalSmiles: Scalars['String']['input'];
 };
 
 

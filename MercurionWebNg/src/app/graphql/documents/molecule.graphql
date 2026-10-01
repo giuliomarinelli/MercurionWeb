@@ -53,3 +53,13 @@ query MoleculeSearch($input: MoleculeSearchInput!) {
     maxPhase
   }
 }
+
+query PreferredNameItByCanonicalSmiles($canonicalSmiles: String!) {
+    preferredNameItByCanonicalSmiles(
+        canonicalSmiles: $canonicalSmiles
+    ) {
+        preferredNameIt
+        type
+    }
+}
+

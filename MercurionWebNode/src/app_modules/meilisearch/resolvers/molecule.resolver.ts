@@ -5,6 +5,7 @@ import { AuthenticatedUserId, Public } from 'src/metadata/metadata'
 import { MoleculeSearchResult } from '../models/dto/molecule-search-result.cls'
 import { CanonicalSmilesArgs } from '../models/dto/canonical-smiles.args.cls'
 import { UUID } from 'crypto'
+import { MoleculeNameByCanonicalSmilesDTO } from '../models/dto/molecule-name-by-canonical-smiles.gql.dto'
 
 
 
@@ -42,11 +43,11 @@ export class MoleculeResolver {
         return this.moleculeService.getDetailByMolregno(normalizedMolregno)
     }
 
-    @Query(() => String, { nullable: true })
+    @Query(() => MoleculeNameByCanonicalSmilesDTO)
     async preferredNameItByCanonicalSmiles(
         @Args() csArgs: CanonicalSmilesArgs,
         @AuthenticatedUserId() userId: UUID
-    ): Promise<string | null> {
+    ): Promise<MoleculeNameByCanonicalSmilesDTO> {
         const normalizedCanonicalSmiles = typeof csArgs.canonicalSmiles === 'string' ? csArgs.canonicalSmiles.trim() : csArgs.canonicalSmiles
         return this.moleculeService.getPreferredNameItByCanonicalSmilesFromChembleCoalesceCustomMolecule(normalizedCanonicalSmiles, userId)
     }

@@ -10,6 +10,7 @@ import { errorMessage } from 'src/utils/errors/error-message'
 import { CustomMoleculeItemEntity } from 'src/app_modules/molecule-collection/models/entities/custom-molecule-item.entity';
 import { UUID } from "crypto";
 import { Repository } from 'typeorm';
+import { MoleculeNameByCanonicalSmilesDTO, MoleculeNameSource } from "../models/dto/molecule-name-by-canonical-smiles.gql.dto";
 
 type Maybe<T> = T | null | undefined;
 type MoleculeDetailWithMolregno = MoleculeDetailModel & {
@@ -146,10 +147,13 @@ export class MoleculeService {
         return results;
     }
 
-    async getPreferredNameItByCanonicalSmilesFromChembleCoalesceCustomMolecule(canonicalSmiles: string, userId?: UUID): Promise<string | null> {
+    async getPreferredNameItByCanonicalSmilesFromChembleCoalesceCustomMolecule(canonicalSmiles: string, userId?: UUID): Promise<MoleculeNameByCanonicalSmilesDTO> {
         const preferredNameItFromChembl = await this.getPreferredNameItByCanonicalSmiles(canonicalSmiles)
         if (preferredNameItFromChembl) {
-            return preferredNameItFromChembl
+            return {
+                type: 'chembl' as MoleculeNameSource,
+                preferredNameIt: preferredNameItFromChembl
+            }
         }
         let customMolecule: CustomMoleculeItemEntity | null = null
         if (userId) {
@@ -158,7 +162,10 @@ export class MoleculeService {
                 select: ['name']
             })
         }
-        return customMolecule?.name ?? null
+        return {
+            type: 'custom' as MoleculeNameSource,
+            preferredNameIt: customMolecule?.name ?? null
+        }
     }
     // ============= PRIVATE =============
 
