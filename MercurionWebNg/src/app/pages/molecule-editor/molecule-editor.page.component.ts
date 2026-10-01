@@ -87,7 +87,7 @@ import { MoleculeNameByCanonicalSmilesDTO } from '../../services/graphql/molecul
         <m-descriptor-cards-grid
               [cardsData]="[
                 { title: 'Nome della molecola', bg: 'primary', content: molecularName },
-                { title: 'logP', bg: 'secondary', content: logPContent },
+                { title: 'Canonical SMILES', bg: 'secondary', content: canonicalSmilesContent },
               ]"
             />
 
@@ -101,8 +101,12 @@ import { MoleculeNameByCanonicalSmilesDTO } from '../../services/graphql/molecul
                 </div>
               </m-descriptor-card-content>
             </ng-template>
-            <ng-template #logPContent>
-              <m-descriptor-card-content>ND</m-descriptor-card-content>
+            <ng-template #canonicalSmilesContent>
+              <m-descriptor-card-content>
+                <span class="font-mono text-sm break-all">
+                  {{ currentCanonicalSmiles() || 'ND' }}
+                </span>
+              </m-descriptor-card-content>
             </ng-template>
         </section>
 
@@ -220,6 +224,7 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
   readonly pendingTabChange = signal<ChemistryEditorTab | null>(null)
   readonly lock = signal(true)
   readonly untouched = signal(true)
+  readonly currentCanonicalSmiles = signal('')
   readonly currentMoleculeName = signal<string | null>(null)
   readonly currentMoleculeType = signal<string | null>(null)
 
@@ -275,6 +280,7 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
 
     if (!trimmed) {
       this.drafts.record('', this.tab())
+      this.updateMoleculeDescriptor('')
       this.untouched.set(this.baselineSmiles() === '')
       this.lock.set(true)
     }
@@ -282,20 +288,41 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
     this.polledSmiles$.next(smiles)
   }
 
-  private getMoleculeNameByCanonicalSmiles(canonicalSmiles: string): void {
-    this.molNameSub = this.moleculeService.getPreferredNameItByCanonicalSmiles(canonicalSmiles).subscribe({
-      next: (res: MoleculeNameByCanonicalSmilesDTO) => {
-        this.currentMoleculeName.set(res.preferredNameIt ?? 'ND')
-        this.currentMoleculeType.update(() => {
-          switch (res.type) {
-            case 'chembl':
-              return 'ChEMBL'
-            case 'custom':
-              return 'Personal'
+  private updateMoleculeDescriptor(canonicalSmiles: string): void {
+    const normalized = canonicalSmiles.trim()
+
+    // The route is re-evaluated when switching editor tab. Do not repeat the
+    // same name lookup if the molecular structure itself did not change.
+    if (this.currentCanonicalSmiles() === normalized && this.molNameSub) return
+
+    this.currentCanonicalSmiles.set(normalized)
+    this.molNameSub?.unsubscribe()
+    this.currentMoleculeName.set(null)
+    this.currentMoleculeType.set(null)
+
+    if (!normalized) return
+
+    this.molNameSub = this.moleculeService
+      .getPreferredNameItByCanonicalSmiles(normalized)
+      .subscribe({
+        next: (res: MoleculeNameByCanonicalSmilesDTO) => {
+          if (!res.preferredNameIt) {
+            this.currentMoleculeName.set(null)
+            this.currentMoleculeType.set(null)
+            return
           }
-        })
-      }
-    })
+
+          this.currentMoleculeName.set(res.preferredNameIt)
+          this.currentMoleculeType.set(
+            res.type === 'chembl' ? 'ChEMBL' : 'Personal'
+          )
+        },
+        error: error => {
+          this.logger.error('Molecule name lookup error', error)
+          this.currentMoleculeName.set(null)
+          this.currentMoleculeType.set(null)
+        }
+      })
   }
 
   handleReset(): void {
@@ -325,12 +352,18 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
     const entry = this.drafts.initialize(init)
 
     this.mode.set(init.mode)
-    this.tab.set(this.drafts.currentTab())
     this.mId.set(init.mId)
     this.baselineSmiles.set(init.baselineSmiles)
+
+    // Restore the working structure before changing tab. KetcherFrame reloads
+    // when its tab input changes, so structureValue must already contain the
+    // recovered draft when the new iframe starts.
     this.smiles.set(entry.smiles)
+    this.updateMoleculeDescriptor(entry.smiles)
     this.untouched.set(entry.smiles === init.baselineSmiles)
     this.lock.set(true)
+
+    this.tab.set(this.drafts.currentTab())
   }
 
   private canonicalizeForEditor(smiles: string, logContext: string) {
@@ -423,8 +456,8 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
 
       this.drafts.record(currentStructure, this.tab())
       this.smiles.set(currentStructure)
+      this.updateMoleculeDescriptor(currentStructure)
       this.drafts.setTab(nextTab)
-      this.tab.set(nextTab)
 
       const qp = this.qpRegistry()
       if (!qp) return
@@ -609,6 +642,7 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
         distinctUntilChanged(),
         switchMap((canon: string) => {
           this.drafts.record(canon, this.tab())
+          this.updateMoleculeDescriptor(canon)
 
           return this.moleculeCollectionItemService
             .findOneCustomMoleculeByCanonicalSmiles_shortFetch(canon)
