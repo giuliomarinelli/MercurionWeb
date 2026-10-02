@@ -137,8 +137,7 @@ describe('HeaderComponent avatar menu positioning', () => {
       imports: [HeaderComponent],
       providers: [
         { provide: UserContextService, useValue: { isLoggedIn: signal(true), initials: signal('AB') } },
-        { provide: AccountService, useValue: { getProvidedAccountId: () => of(null) } }
-,
+        { provide: AccountService, useValue: { getProvidedAccountId: () => of(null) } },
         {
           provide: InAppNotificationService,
           useValue: {
