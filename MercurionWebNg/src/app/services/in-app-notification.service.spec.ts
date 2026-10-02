@@ -10,6 +10,7 @@ import { NotificationApiService } from './notification-api.service'
 import { RealtimeSocketService } from './socket-io/realtime-socket.service'
 import { AuthStateStore } from './auth-state.store'
 import { ToastService } from './toast.service'
+import { NotificationNavigationService } from './notification-navigation.service'
 import type { RealtimeConnectionState } from './socket-io/realtime-connection-state-machine'
 
 describe('InAppNotificationService', () => {
@@ -87,6 +88,13 @@ describe('InAppNotificationService', () => {
           provide: ToastService,
           useValue: {
             trigger: toast
+          }
+        }
+,
+        {
+          provide: NotificationNavigationService,
+          useValue: {
+            openNotificationDetail: jasmine.createSpy()
           }
         }
       ]
