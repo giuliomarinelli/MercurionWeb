@@ -107,6 +107,38 @@ describe('MoleculeEditorLiveAnalysisFacade', () => {
     expect(molecules.getMoleculePreviewsByMolregnos).not.toHaveBeenCalled()
   })
 
+  it('ignores stale analysis responses after the canonical structure changes', () => {
+    const firstTox = new Subject<T1PredictionDTO>()
+    const secondTox = new Subject<T1PredictionDTO>()
+    const firstAnalogs = new Subject<number[]>()
+    const secondAnalogs = new Subject<number[]>()
+
+    ai.t1Inference.and.returnValues(firstTox, secondTox)
+    embedding.getSimilarBySmiles.and.returnValues(firstAnalogs, secondAnalogs)
+
+    facade.setContext('CCO', true)
+    TestBed.flushEffects()
+
+    facade.setContext('CCN', true)
+    TestBed.flushEffects()
+
+    firstTox.next(prediction)
+    firstTox.complete()
+    firstAnalogs.next([11])
+    firstAnalogs.complete()
+
+    expect(facade.toxPrediction()).toBeNull()
+    expect(facade.analogs()).toEqual([])
+
+    secondTox.next(prediction)
+    secondTox.complete()
+    secondAnalogs.next([22])
+    secondAnalogs.complete()
+
+    expect(facade.toxPrediction()).toEqual(prediction)
+    expect(molecules.getMoleculePreviewsByMolregnos).toHaveBeenCalledWith(['22'])
+  })
+
   it('reuses cached live analysis when returning to the same canonical structure', () => {
     facade.setContext('CCO', true)
     TestBed.flushEffects()
