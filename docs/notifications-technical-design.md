@@ -1389,3 +1389,46 @@ Not part of this alpha:
 - localization architecture for persisted historic message snapshots.
 
 These can be added without changing the core authority/recovery model defined here.
+
+
+---
+
+## 21. Implementation status
+
+Updated 2026-10-02 on `feature/6abfc9a4c1919d7ad547b3e9-notifications`.
+
+Implemented in the current branch:
+
+- canonical REST notification contracts;
+- typed Socket.IO notification wake-up contract;
+- PostgreSQL schema/trigger documentation;
+- TypeORM `UserNotification` entity;
+- notification catalog;
+- notification repository with revision-based recovery;
+- backend `InAppNotificationService`;
+- authenticated REST controller;
+- transactional outbox wake-up event;
+- `RealtimePublisherService` using the existing Socket.IO Redis adapter path;
+- Angular REST transport and notification reconciliation runtime;
+- degraded polling fallback and reconnect reconciliation;
+- actionable generic toast support;
+- authenticated `/notifications` route;
+- notification list, list item, detail and catch-up components;
+- header bell navigation and unseen catch-up bubble;
+- live notification toast deep-linking;
+- password-change notification producer, including successful password-reset completion;
+- support-reply notification producer.
+
+Still pending before alpha Definition of Done:
+
+- focused component/page tests for the notification center UI;
+- additional producer-level assertions for password/support transactional integration;
+- generated REST route ownership inventory refresh;
+- generated REST compatibility inventory refresh;
+- full repository CI execution;
+- dual-browser manual validation against an environment where
+  `user_notifications` schema has been applied;
+- visual polish after behavioral validation.
+
+The generated architecture inventories must be refreshed using their repository-owned
+`--write` commands rather than edited manually.
