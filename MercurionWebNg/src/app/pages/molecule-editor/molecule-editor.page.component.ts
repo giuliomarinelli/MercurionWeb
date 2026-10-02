@@ -81,7 +81,7 @@ import { MoleculeEditorLiveAnalysisFacade } from './molecule-editor-live-analysi
             [disabled]="pendingAction() !== null || pendingTabChange() !== null"
             ariaLabelledBy="moleculeEditorTabLabel" />
     </div>
-    <section class="max-w-6xl mx-auto my-4" aria-labelledby="editor-properties-heading">
+    <section class="max-w-6xl mx-auto my-4" aria-label="Identità molecolare">
         <m-descriptor-cards-grid [cardsData]="[
                 { title: 'Nome della molecola', bg: 'primary', content: molecularName },
                 { title: 'Canonical SMILES', bg: 'secondary', content: canonicalSmilesContent },
