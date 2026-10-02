@@ -1,4 +1,4 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import type { EmbeddingResponse, SmilesDTO } from '@mercurion/rest-contracts'
@@ -28,20 +28,12 @@ export class EmbeddingService {
     withNoName: boolean = false,
     onlyMolregnos: boolean = true
   ): Observable<EmbeddingResponse> {
-    const params = new HttpParams()
-      .set('n', n)
-      .set('with_no_name', withNoName)
-      .set('only_molregnos', onlyMolregnos)
-
     const body: SmilesDTO = { smiles }
 
     return this.http.post<EmbeddingResponse>(
-      '/api/embedding/get-similar-by-smiles',
+      `/api/embedding/get-similar-by-smiles?n=${n}&with_no_name=${withNoName}&only_molregnos=${onlyMolregnos}`,
       body,
-      {
-        params,
-        withCredentials: true
-      }
+      { withCredentials: true }
     )
   }
 }
