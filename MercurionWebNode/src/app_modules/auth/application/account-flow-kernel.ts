@@ -39,6 +39,8 @@ import { afterTransactionCommit, runInTransaction, transactionManager, UnitOfWor
 import { InitialWorkspaceService } from 'src/app_modules/molecule-collection/services/initial-workspace.service'
 import { ActivationReceipt } from '../models/entities/activation-receipt.entity'
 import { NotificationOutboxService } from 'src/app_modules/notification/services/outbox/notification-outbox.service'
+import { InAppNotificationService } from 'src/app_modules/notification/services/in-app-notification.service'
+import { InAppNotificationType } from 'src/app_modules/notification/models/in-app-notification-catalog'
 
 
 
@@ -72,6 +74,7 @@ export class AccountFlowKernel {
         private readonly unitOfWork: UnitOfWork,
         private readonly initialWorkspace: InitialWorkspaceService,
         private readonly notificationOutbox: NotificationOutboxService,
+        private readonly inAppNotifications: InAppNotificationService,
         meiliLogger: LoggerPort
     ) {
         this.CHANGE_PASSWORD_TOKEN_EXPIRATION_MS = this.configService.get<number>('Jwt.changePasswordToken.expiresInMs') ?? 300_000
@@ -744,6 +747,11 @@ export class AccountFlowKernel {
                 dedupeKey: `account:${userId}:password-changed:${passwordChangeId}`,
                 correlationId: passwordChangeId
             })
+            await this.inAppNotifications.create({
+                type: InAppNotificationType.PasswordChanged,
+                recipientUserId: userId,
+                dedupeKey: `security.password_changed:${passwordChangeId}`
+            }, context)
         })
     }
 
