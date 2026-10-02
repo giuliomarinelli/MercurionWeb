@@ -21,6 +21,7 @@ import { AuthStateStore } from './auth-state.store'
 import { NotificationApiService } from './notification-api.service'
 import { RealtimeSocketService } from './socket-io/realtime-socket.service'
 import { ToastService } from './toast.service'
+import { NotificationNavigationService } from './notification-navigation.service'
 import type { NotificationSyncState } from '../Models/notification.models'
 
 const FALLBACK_POLL_MS = 25_000
@@ -33,6 +34,7 @@ export class InAppNotificationService {
   private readonly api = inject(NotificationApiService)
   private readonly authState = inject(AuthStateStore)
   private readonly toast = inject(ToastService)
+  private readonly navigation = inject(NotificationNavigationService)
   private readonly destroyRef = inject(DestroyRef)
 
   private readonly _unreadCount = signal(0)
@@ -360,8 +362,16 @@ export class InAppNotificationService {
       this.toastedNotificationIds.add(change.notification.id)
       this.toast.trigger(
         change.notification.summary,
-        'success',
-        6000
+        'info',
+        6000,
+        {
+          label: 'Apri',
+          run: () => {
+            void this.navigation.openNotificationDetail(
+              change.notification.id
+            )
+          }
+        }
       )
     }
   }
