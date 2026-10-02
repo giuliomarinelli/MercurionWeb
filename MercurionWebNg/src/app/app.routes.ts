@@ -36,6 +36,7 @@ export const routes: Routes = [
   manifestRoute(routeManifest.accountRecovery, { loadComponent: () => import('./pages/account-recovery/account-recovery.page.component').then(m => m.AccountRecoveryPageComponent) }),
   manifestRoute(routeManifest.oauthCallback, { loadComponent: () => import('./pages/sso/sso.page.component').then(m => m.SsoPageComponent) }),
   manifestRoute(routeManifest.help, { loadComponent: () => import('./pages/help/help.page.component').then(m => m.HelpPageComponent), canActivate: [AuthGuard] }),
+  manifestRoute(routeManifest.notifications, { loadComponent: () => import('./pages/notifications/notifications.page.component').then(m => m.NotificationsPageComponent), canActivate: [AuthGuard] }),
   manifestRoute(routeManifest.feedback, { loadComponent: () => import('./pages/feedback/feedback.page.component').then(m => m.FeedbackPageComponent), canActivate: [AuthGuard] }),
   manifestRoute(routeManifest.notFound, { data: { statusPage: STATUS_PAGE_CONFIG[404] }, loadComponent: () => import('./pages/status-page/status-page.component').then(m => m.StatusPageComponent) }),
   manifestRoute(routeManifest.forbidden, { data: { statusPage: STATUS_PAGE_CONFIG[403] }, loadComponent: () => import('./pages/status-page/status-page.component').then(m => m.StatusPageComponent) }),
