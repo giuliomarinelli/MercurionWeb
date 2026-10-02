@@ -7,11 +7,13 @@ import { NotificationOutboxService } from './services/outbox/notification-outbox
 import { NotificationOutboxDispatcherService } from './services/outbox/notification-outbox-dispatcher.service';
 import { OutboxRepository } from '../../persistence/outbox/outbox-repository'
 import { InAppNotificationService } from './services/in-app-notification.service';
+import { UserNotification } from './models/entities/user-notification.entity';
+import { UserNotificationRepository } from './repositories/user-notification.repository';
 
 @Global()
 @Module({
     imports: [
-        TypeOrmModule.forFeature([NotificationOutboxEvent])
+        TypeOrmModule.forFeature([NotificationOutboxEvent, UserNotification])
     ],
     providers: [
         SmsSenderService,
@@ -19,13 +21,15 @@ import { InAppNotificationService } from './services/in-app-notification.service
         NotificationOutboxService,
         NotificationOutboxDispatcherService,
         OutboxRepository,
-        InAppNotificationService
+        InAppNotificationService,
+        UserNotificationRepository
     ],
     exports: [
         SmsSenderService,
         MailSenderService,
         NotificationOutboxService,
-        OutboxRepository
+        OutboxRepository,
+        InAppNotificationService
     ]
 })
 export class NotificationModule { }

@@ -57,6 +57,18 @@ export {
   utcInstantFromEpochMs
 } from './temporal'
 export type { UtcInstant } from './temporal'
+export type {
+  NotificationBulkThroughRequest,
+  NotificationChangeDTO,
+  NotificationChangeKind,
+  NotificationListCursor,
+  NotificationListState,
+  NotificationPageResponse,
+  NotificationRecoveryResponse,
+  NotificationSyncCursor,
+  SetNotificationReadRequest,
+  UserNotificationDTO
+} from './notifications'
 export {
   INITIAL_SESSION_PROTOCOL,
   SessionConnectionState,
