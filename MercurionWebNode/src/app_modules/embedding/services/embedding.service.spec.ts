@@ -3,6 +3,7 @@ import { getRepositoryToken } from '@nestjs/typeorm'
 import { DataSource } from 'typeorm'
 
 import { MoleculeEmbedding } from '../models/entities/molecule-embedding.entity'
+import { MoleculeService } from '../../meilisearch/services/molecule.service'
 import { EmbeddingService } from './embedding.service'
 
 describe('EmbeddingService', () => {
@@ -11,11 +12,17 @@ describe('EmbeddingService', () => {
     findOne: jest.Mock
     query: jest.Mock
   }
+  let moleculeService: {
+    getMolregnoByCanonicalSmiles: jest.Mock
+  }
 
   beforeEach(async () => {
     repository = {
       findOne: jest.fn(),
       query: jest.fn(),
+    }
+    moleculeService = {
+      getMolregnoByCanonicalSmiles: jest.fn(),
     }
 
     const module: TestingModule = await Test.createTestingModule({
@@ -26,6 +33,7 @@ describe('EmbeddingService', () => {
           useValue: repository,
         },
         { provide: DataSource, useValue: { query: jest.fn() } },
+        { provide: MoleculeService, useValue: moleculeService },
       ],
     }).compile()
 
@@ -33,14 +41,17 @@ describe('EmbeddingService', () => {
   })
 
   it('returns no live analogs when the canonical SMILES has no embedding seed', async () => {
-    repository.findOne.mockResolvedValue(null)
+    moleculeService.getMolregnoByCanonicalSmiles.mockResolvedValue(null)
 
     await expect(service.getSimilarBySmiles('CCO', 3, 'false')).resolves.toEqual([])
 
+    expect(moleculeService.getMolregnoByCanonicalSmiles).toHaveBeenCalledWith('CCO')
+    expect(repository.findOne).not.toHaveBeenCalled()
     expect(repository.query).not.toHaveBeenCalled()
   })
 
   it('reuses the ANN search for a canonical SMILES seed', async () => {
+    moleculeService.getMolregnoByCanonicalSmiles.mockResolvedValue(10)
     repository.findOne.mockResolvedValue({
       molregno: 10,
       embedding: [0.1, 0.2, 0.3],
@@ -57,8 +68,9 @@ describe('EmbeddingService', () => {
       { molregno: 40, distance: 0.3 },
     ])
 
+    expect(moleculeService.getMolregnoByCanonicalSmiles).toHaveBeenCalledWith('CCO')
     expect(repository.findOne).toHaveBeenCalledWith({
-      where: { smiles: 'CCO' },
+      where: { molregno: 10 },
       select: ['molregno', 'embedding'],
     })
     expect(repository.query).toHaveBeenCalledWith(
