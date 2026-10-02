@@ -33,6 +33,7 @@ import {
   presentApplicationError
 } from 'src/exception-handling/application-error-envelope';
 import { SecurityService } from '../auth/services/security.service';
+import { RealtimePublisherService } from './realtime-publisher.service';
 
 type ApplicationServer = Server<ClientToServerEvents, ServerToClientEvents>
 type ApplicationSocket = Socket<ClientToServerEvents, ServerToClientEvents>
@@ -88,6 +89,7 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
     private readonly pubSubService: PubSubService,
     private readonly jwtTools: JwtToolsService,
     private readonly securityService: SecurityService,
+    private readonly realtimePublisher: RealtimePublisherService,
     loggerFactory: LoggerPort
   ) {
     this.logger = loggerFactory.forContext(SocketIOGateway.name)
@@ -108,6 +110,7 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
     this.subClient = subClient
     server.adapter(createAdapter(pubClient, subClient))
     this.pubSubService.setSocketServer(server)
+    this.realtimePublisher.setServer(server)
     this.initialized = true
     this.logger.log('Socket.IO Redis Adapter e PubSubService pronti! 🚀')
   }

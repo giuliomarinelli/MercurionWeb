@@ -32,6 +32,9 @@ serverToClient[socketEventRegistry.sessionExpired.name]({
   state: 'invalid',
   cause: 'session-expired'
 })
+serverToClient[socketEventRegistry.notificationChanged.name]({
+  kind: 'notification-state-changed'
+})
 
 // @ts-expect-error Public test requests require string payloads.
 clientToServer[socketEventRegistry.publicTestRequest.name](123)

@@ -2,6 +2,7 @@ import {
   SOCKET_CONTRACT_VERSION,
   socketEventRegistry,
   type SocketApplicationError,
+  type SocketNotificationChangedPayload,
   type SocketSessionExpiredPayload,
   type SocketSessionInitAcknowledgement
 } from '@mercurion/socket-contracts'
@@ -37,6 +38,19 @@ describe('Socket.IO contract registry', () => {
     })
     expect(socketEventRegistry.sessionInit.acknowledgement(acknowledgement))
       .toEqual(acknowledgement)
+  })
+
+  it('defines the notification wake-up as a server event without authoritative state', () => {
+    const payload: SocketNotificationChangedPayload = {
+      kind: 'notification-state-changed'
+    }
+
+    expect(socketEventRegistry.notificationChanged).toMatchObject({
+      name: 'sv.pub.notification_changed',
+      direction: 'server-to-client',
+      version: SOCKET_CONTRACT_VERSION
+    })
+    expect(socketEventRegistry.notificationChanged.payload(payload)).toEqual(payload)
   })
 
   it('defines application errors and session expiration as server events', () => {

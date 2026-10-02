@@ -37,6 +37,10 @@ export interface SocketSessionExpiredPayload {
   cause: SessionInvalidationCauseType
 }
 
+export interface SocketNotificationChangedPayload {
+  readonly kind: 'notification-state-changed'
+}
+
 type TypeMarker<T> = (value: T) => T
 
 const typeMarker = <T>(): TypeMarker<T> => (value) => value
@@ -118,6 +122,16 @@ export const socketEventRegistry = {
     error: null,
     errorSemantics:
       'Terminal session notification caused by Redis expiration or deletion; no acknowledgement is expected.'
+  },
+  notificationChanged: {
+    name: 'sv.pub.notification_changed',
+    direction: 'server-to-client',
+    version: SOCKET_CONTRACT_VERSION,
+    payload: typeMarker<SocketNotificationChangedPayload>(),
+    acknowledgement: null,
+    error: null,
+    errorSemantics:
+      'Wake-up signal only. The client reconciles authoritative notification state through REST.'
   }
 } as const
 
