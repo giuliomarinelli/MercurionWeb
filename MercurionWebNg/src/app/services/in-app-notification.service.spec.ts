@@ -115,6 +115,7 @@ describe('InAppNotificationService', () => {
     expect(service.unreadCount()).toBe(2)
     expect(service.unseenCount()).toBe(1)
     expect(service.syncCursor()).toBe('n1.OA')
+    expect(service.catchUpCount()).toBe(1)
     expect(toast).not.toHaveBeenCalled()
   }))
 

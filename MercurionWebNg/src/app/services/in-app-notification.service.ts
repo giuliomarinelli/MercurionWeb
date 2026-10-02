@@ -44,6 +44,9 @@ export class InAppNotificationService {
   private readonly _syncState = signal<NotificationSyncState>('inactive')
   readonly syncState = this._syncState.asReadonly()
 
+  private readonly _catchUpCount = signal(0)
+  readonly catchUpCount = this._catchUpCount.asReadonly()
+
   private readonly _syncCursor = signal<string | null>(null)
   readonly syncCursor = this._syncCursor.asReadonly()
 
@@ -58,6 +61,8 @@ export class InAppNotificationService {
   private syncInFlight: Promise<boolean> | null = null
   private pollTimer: ReturnType<typeof setInterval> | undefined
   private recoveryErrorFallback = false
+  private catchUpCursor: string | null = null
+  private catchUpSeenCursor: string | null = null
   private readonly toastedNotificationIds = new Set<string>()
 
   constructor() {
@@ -118,6 +123,32 @@ export class InAppNotificationService {
     await this.requestRecovery()
   }
 
+  async acknowledgeCatchUpPresented(): Promise<void> {
+    const cursor = this.catchUpCursor
+    if (
+      !cursor ||
+      this._catchUpCount() < 1 ||
+      this.catchUpSeenCursor === cursor
+    ) {
+      return
+    }
+
+    this.catchUpSeenCursor = cursor
+    try {
+      await firstValueFrom(this.api.markAllSeen(cursor))
+      await this.requestRecovery()
+    } catch (error) {
+      if (this.catchUpSeenCursor === cursor) {
+        this.catchUpSeenCursor = null
+      }
+      throw error
+    }
+  }
+
+  dismissCatchUp(): void {
+    this._catchUpCount.set(0)
+  }
+
   async dismiss(notificationId: string): Promise<void> {
     await firstValueFrom(this.api.dismiss(notificationId))
     await this.requestRecovery()
@@ -140,6 +171,8 @@ export class InAppNotificationService {
     this.recoveryRequested = false
     this.baselineReady = false
     this.recoveryErrorFallback = false
+    this.catchUpCursor = null
+    this.catchUpSeenCursor = null
     this.toastedNotificationIds.clear()
 
     this.activeOwner = owner
@@ -147,6 +180,7 @@ export class InAppNotificationService {
     this._unseenCount.set(0)
     this._syncCursor.set(null)
     this._lastRecovery.set(null)
+    this._catchUpCount.set(0)
 
     if (!owner) {
       this._syncState.set('inactive')
@@ -243,6 +277,8 @@ export class InAppNotificationService {
       if (!this.isCurrentGeneration(generation)) return false
 
       this.applyRecoveryMetadata(response)
+      this.catchUpCursor = response.cursor
+      this._catchUpCount.set(response.unseenCount)
       this.baselineReady = true
       this.recoveryErrorFallback = false
       this.setSettledState()
