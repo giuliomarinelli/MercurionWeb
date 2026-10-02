@@ -2,7 +2,12 @@ import type { UtcInstant } from './temporal'
 
 export type NotificationSyncCursor = string
 export type NotificationListCursor = string
-export type NotificationListState = 'all' | 'unread'
+export const NotificationListState = Object.freeze({
+  All: 'all',
+  Unread: 'unread'
+} as const)
+export type NotificationListState =
+  (typeof NotificationListState)[keyof typeof NotificationListState]
 
 export interface UserNotificationDTO {
   id: string

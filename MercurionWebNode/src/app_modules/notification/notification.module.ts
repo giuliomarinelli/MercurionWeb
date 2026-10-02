@@ -10,6 +10,7 @@ import { InAppNotificationService } from './services/in-app-notification.service
 import { UserNotification } from './models/entities/user-notification.entity';
 import { UserNotificationRepository } from './repositories/user-notification.repository';
 import { RealtimeModule } from '../socket-io/realtime.module';
+import { InAppNotificationController } from './controllers/in-app-notification.controller';
 
 @Global()
 @Module({
@@ -26,6 +27,7 @@ import { RealtimeModule } from '../socket-io/realtime.module';
         InAppNotificationService,
         UserNotificationRepository
     ],
+    controllers: [InAppNotificationController],
     exports: [
         SmsSenderService,
         MailSenderService,
