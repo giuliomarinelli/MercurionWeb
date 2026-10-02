@@ -57,6 +57,7 @@ export {
   utcInstantFromEpochMs
 } from './temporal'
 export type { UtcInstant } from './temporal'
+export { NotificationListState } from './notifications'
 export type {
   NotificationBulkThroughRequest,
   NotificationChangeDTO,

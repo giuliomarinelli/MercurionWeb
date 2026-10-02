@@ -13,6 +13,7 @@ import {
   type SocketApplicationError,
   type SocketSessionExpiredPayload,
   type SocketSessionInitAcknowledgement,
+  type SocketNotificationChangedPayload,
 } from '@mercurion/socket-contracts';
 import { AuthSessionRepository } from '../auth-session-repository.service'
 import { AuthUseCasesService } from '../auth-use-cases.service'
@@ -307,7 +308,19 @@ export class RealtimeSocketService implements OnDestroy {
       const timer = setTimeout(() => { if (!settled) { settled = true; res(undefined); } }, timeout);
       try {
         this.socket.emit(socketEventRegistry.sessionInit.name, undefined, (ack) => {
-          if (!settled) { settled = true; clearTimeout(timer); res(ack); }
+          if (!settled) {
+            settled = true;
+            clearTimeout(timer);
+            if (ack.state === 'authenticated') {
+              this._state.set(
+                reduceRealtimeConnection(
+                  this._state(),
+                  { type: 'private-authenticated' }
+                )
+              );
+            }
+            res(ack);
+          }
         });
       } catch {
         if (!settled) { settled = true; clearTimeout(timer); res(undefined); }
@@ -329,6 +342,13 @@ export class RealtimeSocketService implements OnDestroy {
       const handler = (data: SocketSessionExpiredPayload) => observer.next(data);
       this.socket.on(socketEventRegistry.sessionExpired.name, handler);
       return () => this.socket.off(socketEventRegistry.sessionExpired.name, handler);
+    });
+  }
+  onNotificationChanged(): Observable<SocketNotificationChangedPayload> {
+    return new Observable<SocketNotificationChangedPayload>(observer => {
+      const handler = (data: SocketNotificationChangedPayload) => observer.next(data);
+      this.socket.on(socketEventRegistry.notificationChanged.name, handler);
+      return () => this.socket.off(socketEventRegistry.notificationChanged.name, handler);
     });
   }
   onConnect(): Observable<void> {
