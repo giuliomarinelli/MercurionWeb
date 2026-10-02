@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { MoleculeEmbedding } from '../models/entities/molecule-embedding.entity';
 import type { EmbeddingNeighbor } from '@mercurion/rest-contracts'
+import { MoleculeService } from '../../meilisearch/services/molecule.service';
 
 export type Neighbor = EmbeddingNeighbor
 
@@ -13,6 +14,7 @@ export class EmbeddingService implements OnModuleInit {
         @InjectRepository(MoleculeEmbedding)
         private readonly moleculeRepo: Repository<MoleculeEmbedding>,
         private readonly dataSource: DataSource,
+        private readonly moleculeService: MoleculeService,
     ) { }
 
     async onModuleInit() {
@@ -46,24 +48,16 @@ export class EmbeddingService implements OnModuleInit {
         n: number,
         with_no_name: string,
     ): Promise<Neighbor[]> {
-        const row = await this.moleculeRepo.findOne({
-            where: { smiles },
-            select: ['molregno', 'embedding'],
-        });
+        const molregno = await this.moleculeService.getMolregnoByCanonicalSmiles(smiles)
 
-        // A live editor may contain a perfectly valid but completely novel
-        // structure. That is an expected "no seed in corpus" condition, not an
-        // application error.
-        if (!row?.embedding) {
+        // A live editor may contain a valid but completely novel structure.
+        // Without an embedding inference path we cannot manufacture a seed;
+        // absence from the indexed corpus is therefore a normal empty result.
+        if (molregno == null) {
             return [];
         }
 
-        return this.getSimilarFromSeed(
-            this.normalizeEmbedding(row.embedding),
-            row.molregno,
-            n,
-            with_no_name,
-        );
+        return this.getSimilarMolregnos(molregno, n, with_no_name)
     }
 
     private async getSimilarFromSeed(
