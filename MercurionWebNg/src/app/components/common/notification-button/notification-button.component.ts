@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, input, output, signal } from '@angular/core';
 import { IconButtonComponent } from '../icon-button/icon-button.component';
 import { BadgeAppearanceClass } from '../../../Models/notification.models';
 import { NgClass } from '@angular/common';
@@ -36,6 +36,7 @@ import { NgClass } from '@angular/common';
       [size]="'md'"
       [ariaLabel]="'Notifiche'"
       [ariaLabelledby]="'notification-button-label'"
+      (pressed)="pressed.emit()"
     >
       <div class="relative">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current size-6 scale-125">
@@ -56,6 +57,7 @@ export class NotificationButtonComponent {
   private readonly FADING_DURATION = 350
 
   readonly unreadCount = input.required<number>()
+  readonly pressed = output<void>()
 
   protected readonly badgeClass = signal<BadgeAppearanceClass>('hidden')
 
