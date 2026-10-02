@@ -62,18 +62,18 @@ import { routeManifest } from '../../route-manifest'
       <div class="mt-6 flex gap-2" role="group" aria-label="Filtra notifiche">
         <button
           type="button"
-          class="rounded-full px-4 py-2 text-sm font-semibold"
-          [class.bg-slate-200]="filter() === listState.All"
-          [class.dark:bg-neutral-700]="filter() === listState.All"
+          [class]="filter() === listState.All
+            ? 'rounded-full bg-slate-200 px-4 py-2 text-sm font-semibold dark:bg-neutral-700'
+            : 'rounded-full px-4 py-2 text-sm font-semibold'"
           (click)="filter.set(listState.All)"
         >
           Tutte
         </button>
         <button
           type="button"
-          class="rounded-full px-4 py-2 text-sm font-semibold"
-          [class.bg-slate-200]="filter() === listState.Unread"
-          [class.dark:bg-neutral-700]="filter() === listState.Unread"
+          [class]="filter() === listState.Unread
+            ? 'rounded-full bg-slate-200 px-4 py-2 text-sm font-semibold dark:bg-neutral-700'
+            : 'rounded-full px-4 py-2 text-sm font-semibold'"
           (click)="filter.set(listState.Unread)"
         >
           Non lette
