@@ -151,11 +151,14 @@ export class MoleculeService {
         const index = this.meiliClient.index("molecule_previews_chembl_36")
         const result = await index.search('', {
             filter: `smiles = ${this.quoteForMeiliFilter(canonicalSmiles)}`,
-            attributesToRetrieve: ['molregno'],
+            attributesToRetrieve: ['id'],
             limit: 1,
         })
 
-        const rawMolregno = (result.hits as { molregno?: number | string }[])?.[0]?.molregno
+        // In molecule_previews_chembl_36 the primary key `id` is the ChEMBL
+        // molregno. Keep that mapping explicit instead of depending on a
+        // non-existent `molregno` preview attribute.
+        const rawMolregno = (result.hits as { id?: number | string }[])?.[0]?.id
         if (rawMolregno == null) return null
 
         const molregno = Number(rawMolregno)
