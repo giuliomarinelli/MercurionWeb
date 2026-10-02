@@ -839,6 +839,11 @@ export class AccountFlowKernel {
                 dedupeKey: `account:${userId}:password-reset:${passwordResetId}`,
                 correlationId: passwordResetId
             })
+            await this.inAppNotifications.create({
+                type: InAppNotificationType.PasswordChanged,
+                recipientUserId: userId,
+                dedupeKey: `security.password_changed:${passwordResetId}`
+            }, context)
         })
     }
 
