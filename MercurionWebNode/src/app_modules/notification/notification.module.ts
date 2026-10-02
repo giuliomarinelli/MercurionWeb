@@ -9,11 +9,13 @@ import { OutboxRepository } from '../../persistence/outbox/outbox-repository'
 import { InAppNotificationService } from './services/in-app-notification.service';
 import { UserNotification } from './models/entities/user-notification.entity';
 import { UserNotificationRepository } from './repositories/user-notification.repository';
+import { RealtimeModule } from '../socket-io/realtime.module';
 
 @Global()
 @Module({
     imports: [
-        TypeOrmModule.forFeature([NotificationOutboxEvent, UserNotification])
+        TypeOrmModule.forFeature([NotificationOutboxEvent, UserNotification]),
+        RealtimeModule
     ],
     providers: [
         SmsSenderService,

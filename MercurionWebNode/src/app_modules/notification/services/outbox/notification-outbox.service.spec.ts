@@ -5,10 +5,30 @@ import { HelpNotificationEventType } from '../../models/enums/help-notification-
 
 describe('NotificationOutboxService', () => {
   it('creates a pending versioned event with a stable dedupe key', async () => {
-    const save = jest.fn(async (event) => event)
+    const findOneByOrFail = jest.fn(async (criteria: { id?: string }) => ({
+      id: criteria.id,
+      aggregateId: '00000000-0000-0000-0000-000000000001',
+      eventType: HelpNotificationEventType.UserMessageAdded,
+      version: 1,
+      payload: { ticketId: '00000000-0000-0000-0000-000000000001' },
+      status: OutboxEventStatus.Pending,
+      attemptCount: 0,
+      availableAt: '123',
+      createdAt: '123',
+      claimedAt: null,
+      claimedBy: null,
+      processedAt: null,
+      lastError: null,
+      dedupeKey: 'help:ticket:message:user',
+      correlationId: null,
+      causationId: null,
+      occurredAt: '123'
+    }))
     const manager = {
-      create: jest.fn((_entity, value) => value),
-      save
+      query: jest.fn().mockResolvedValue([
+        { id: '018f0f12-3d4c-7abc-8def-0123456789ab' }
+      ]),
+      getRepository: jest.fn().mockReturnValue({ findOneByOrFail })
     } as unknown as EntityManager
 
     const service = new NotificationOutboxService()
@@ -30,7 +50,35 @@ describe('NotificationOutboxService', () => {
       createdAt: '123',
       dedupeKey: 'help:ticket:message:user'
     })
-    expect(event.id).toMatch(/[0-9a-f-]{36}/)
-    expect(save).toHaveBeenCalledWith(event)
+    expect(manager.query).toHaveBeenCalledWith(
+      expect.stringContaining('ON CONFLICT (dedupe_key) DO NOTHING'),
+      expect.arrayContaining(['help:ticket:message:user'])
+    )
+  })
+
+  it('reuses the dedupe winner without aborting the transaction', async () => {
+    const existing = {
+      id: '018f0f12-3d4c-7abc-8def-0123456789ab',
+      dedupeKey: 'same-event'
+    }
+    const findOneByOrFail = jest.fn().mockResolvedValue(existing)
+    const manager = {
+      query: jest.fn().mockResolvedValue([]),
+      getRepository: jest.fn().mockReturnValue({ findOneByOrFail })
+    } as unknown as EntityManager
+
+    const service = new NotificationOutboxService()
+    const event = await service.append(manager, {
+      aggregateId: '00000000-0000-0000-0000-000000000001',
+      eventType: HelpNotificationEventType.UserMessageAdded,
+      payload: {},
+      dedupeKey: 'same-event',
+      now: 123
+    })
+
+    expect(event).toBe(existing)
+    expect(findOneByOrFail).toHaveBeenCalledWith({
+      dedupeKey: 'same-event'
+    })
   })
 })
