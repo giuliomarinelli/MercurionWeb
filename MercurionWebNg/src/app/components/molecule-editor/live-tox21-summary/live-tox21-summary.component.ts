@@ -1,4 +1,4 @@
-import { PercentPipe } from '@angular/common'
+import { NgClass, PercentPipe } from '@angular/common'
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core'
 
 import type {
@@ -15,7 +15,7 @@ const LIVE_TOX21_ENDPOINTS = [
 
 @Component({
   selector: 'm-live-tox21-summary',
-  imports: [PercentPipe],
+  imports: [NgClass, PercentPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="pt-2" [attr.aria-busy]="loading()">
@@ -35,10 +35,9 @@ const LIVE_TOX21_ENDPOINTS = [
             <div class="grid grid-cols-[0.75rem_1fr_auto] items-center gap-2 py-2">
               <span
                 class="size-2.5 rounded-full"
-                [class.bg-light-error]="item.prediction.is_positive"
-                [class.dark:bg-dark-error]="item.prediction.is_positive"
-                [class.bg-emerald-600]="!item.prediction.is_positive"
-                [class.dark:bg-emerald-400]="!item.prediction.is_positive"
+                [ngClass]="item.prediction.is_positive
+                  ? 'bg-light-error dark:bg-dark-error'
+                  : 'bg-emerald-600 dark:bg-emerald-400'"
                 aria-hidden="true"
               ></span>
 
@@ -48,10 +47,9 @@ const LIVE_TOX21_ENDPOINTS = [
                 </span>
                 <span
                   class="text-[0.68rem] font-medium"
-                  [class.text-light-error]="item.prediction.is_positive"
-                  [class.dark:text-dark-error]="item.prediction.is_positive"
-                  [class.text-emerald-700]="!item.prediction.is_positive"
-                  [class.dark:text-emerald-300]="!item.prediction.is_positive"
+                  [ngClass]="item.prediction.is_positive
+                    ? 'text-light-error dark:text-dark-error'
+                    : 'text-emerald-700 dark:text-emerald-300'"
                 >
                   {{ item.prediction.is_positive ? 'Positivo' : 'Negativo' }}
                 </span>
