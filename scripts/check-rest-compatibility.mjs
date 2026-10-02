@@ -732,7 +732,7 @@ export function validateCompatibility(inventory, expected = inventory) {
     if (inventory.runtime?.angular?.interceptorUrlMutations?.length !== 0) failures.push('Angular interceptors must not rewrite REST paths without explicit compatibility support');
     if (inventory.runtime?.nginx?.location !== `${inventory.runtime?.nest?.globalPrefix}/`) failures.push('nginx API location and Nest global prefix differ');
     if (inventory.runtime?.nest?.validationPipe?.factory !== 'createGlobalValidationPipe') failures.push('global Nest ValidationPipe factory is not represented');
-    if (inventory.totalClientCalls !== 59) failures.push(`expected 59 Angular call sites, found ${inventory.totalClientCalls}`);
+    if (inventory.totalClientCalls !== 60) failures.push(`expected 60 Angular call sites, found ${inventory.totalClientCalls}`);
     if (inventory.matchedClientCalls !== inventory.totalClientCalls) failures.push(`expected every Angular call site to match, found ${inventory.matchedClientCalls}/${inventory.totalClientCalls}`);
     if ((inventory.entries ?? []).length !== inventory.totalClientCalls) failures.push(`entry count ${inventory.entries?.length ?? 0} differs from totalClientCalls ${inventory.totalClientCalls}`);
     const ids = (inventory.entries ?? []).map((entry) => entry.id);
