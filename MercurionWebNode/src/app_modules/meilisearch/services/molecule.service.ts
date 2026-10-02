@@ -147,6 +147,21 @@ export class MoleculeService {
         return results;
     }
 
+    async getMolregnoByCanonicalSmiles(canonicalSmiles: string): Promise<number | null> {
+        const index = this.meiliClient.index("molecule_previews_chembl_36")
+        const result = await index.search('', {
+            filter: `smiles = ${this.quoteForMeiliFilter(canonicalSmiles)}`,
+            attributesToRetrieve: ['molregno'],
+            limit: 1,
+        })
+
+        const rawMolregno = (result.hits as { molregno?: number | string }[])?.[0]?.molregno
+        if (rawMolregno == null) return null
+
+        const molregno = Number(rawMolregno)
+        return Number.isInteger(molregno) && molregno > 0 ? molregno : null
+    }
+
     async getPreferredNameItByCanonicalSmilesFromChembleCoalesceCustomMolecule(canonicalSmiles: string, userId?: UUID): Promise<MoleculeNameByCanonicalSmilesDTO> {
         const preferredNameItFromChembl = await this.getPreferredNameItByCanonicalSmiles(canonicalSmiles)
         if (preferredNameItFromChembl) {
