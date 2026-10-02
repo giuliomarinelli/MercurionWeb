@@ -49,7 +49,7 @@ import { IconButtonComponent } from '../../common/icon-button/icon-button.compon
           <m-molecule-badge class="shrink-0" [name]="_badgeName()" />
 
           @if (false) {
-            <div class="flex items-center justify-end w-[4.5rem] shrink-0">
+            <div class="flex items-center justify-end w-18 shrink-0">
               <!-- azioni disabilitate per ora -->
             </div>
           }
@@ -61,12 +61,14 @@ import { IconButtonComponent } from '../../common/icon-button/icon-button.compon
           <h2
             id="molecule-name"
             #value
-            class="outline-none text-3xl md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider
+            class="outline-none font-semibold tracking-wider
                    text-center sm:text-left text-light-accent-primary-hc dark:text-dark-accent-primary
                    rounded-md border border-transparent
                    transition-[background-color,border-color,color] duration-300"
             [attr.contenteditable]="mode() === 'edit' ? 'true' : null"
             [ngClass]="{
+              'text-xl md:text-2xl lg:text-[1.75rem]': compactHeading(),
+              'text-3xl md:text-4xl lg:text-[2.65rem]': !compactHeading(),
               'bg-slate-300 dark:bg-slate-700 border-light-on-surface-main dark:border-dark-on-surface-main': mode() === 'edit',
               'bg-transparent': mode() === 'view'
             }">
@@ -79,7 +81,7 @@ import { IconButtonComponent } from '../../common/icon-button/icon-button.compon
               class="block relative shrink-0 mx-auto sm:mx-0" />
           }
 
-          <div class="flex items-center w-[4.5rem] shrink-0">
+          <div class="flex items-center w-18 shrink-0">
             @if (mode() === 'view') {
               <m-icon-button
                 size="sm"
@@ -138,14 +140,14 @@ import { IconButtonComponent } from '../../common/icon-button/icon-button.compon
               [attr.aria-live]="mode() === 'edit' ? 'off' : 'polite'">
             </p>
 
-            <div class="flex items-center w-[4.5rem] shrink-0">
+            <div class="flex items-center w-18 shrink-0">
               @if (mode() === 'view') {
                 <m-icon-button
                   size="sm"
                   ariaLabel="Modifica"
                   (pressed)="onEdit($event)">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
-                       class="h-[22px] w-auto fill-current text-slate-800 hover:text-slate-800/75 dark:text-slate-200 dark:hover:text-slate-200/75">
+                       class="h-5.5 w-auto fill-current text-slate-800 hover:text-slate-800/75 dark:text-slate-200 dark:hover:text-slate-200/75">
                     <path d="M58.1 555.9L48 592C50.7 591.2 117.4 572.6 248 536L569.4 214.6L592 192C589.6 189.6 549.1 149.1 470.6 70.6L448 48L425.4 70.6L104 392L58.1 555.9zM252.7 486L154 387.3L347.4 193.9L446.1 292.6L252.7 486zM229.4 508L94.2 545.8L132 410.6L229.4 508zM546.7 192L468.6 270.1L369.9 171.4L448 93.3L546.7 192z"/>
                   </svg>
                 </m-icon-button>
@@ -155,7 +157,7 @@ import { IconButtonComponent } from '../../common/icon-button/icon-button.compon
                   ariaLabel="Annulla"
                   (pressed)="onCancel($event)">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
-                       class="h-[22px] w-auto fill-current text-light-error hover:text-light-error/75 dark:text-dark-error dark:hover:text-dark-error/75">
+                       class="h-5.5 w-auto fill-current text-light-error hover:text-light-error/75 dark:text-dark-error dark:hover:text-dark-error/75">
                     <path d="M507.4 155.3L518.8 144L496.1 121.4L484.8 132.7L320.1 297.4L155.4 132.7L144.1 121.4L121.5 144L132.8 155.3L297.5 320L132.8 484.7L121.5 496L144.1 518.6L155.4 507.3L320.1 342.6L484.8 507.3L496.1 518.6L518.8 496L507.4 484.7L342.8 320L507.4 155.3z"/>
                   </svg>
                 </m-icon-button>
@@ -198,6 +200,7 @@ export class CustomDetailsComponent {
   readonly value = input.required<string>()
   readonly itemId = input.required<string>()
   readonly badgeName = input('Personal')
+  readonly compactHeading = input(false)
   readonly isReadonly = input(false)
   readonly triggerRollback = input(false)
   readonly hideActions = input(false)

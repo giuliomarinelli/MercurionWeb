@@ -61,13 +61,13 @@ const SIZE_CLASSES: Record<ActionCardSize, string> = {
     }
 
     .m-action-card {
-      background: var(--m-action-card-background, var(--color-surface-elevated));
-      border: 1px solid var(--m-action-card-border, var(--color-border));
-      border-radius: var(--radius-surface);
-      color: var(--m-action-card-color, var(--color-on-surface-main));
+      background: var(--m-action-card-background, var(--m-color-surface-elevated));
+      border: 1px solid var(--m-action-card-border, var(--m-color-border));
+      border-radius: var(--m-radius-surface);
+      color: var(--m-action-card-color, var(--m-color-on-surface-main));
       display: flex;
       flex-direction: column;
-      max-height: calc(100dvh - 2rem);
+      max-height: var(--m-action-card-available-height, calc(100dvh - 2rem));
       min-height: 0;
       overflow: hidden;
       width: 100%;
@@ -91,13 +91,13 @@ const SIZE_CLASSES: Record<ActionCardSize, string> = {
 
     .m-action-card__header {
       align-items: center;
-      background: color-mix(in srgb, var(--color-surface-elevated) 92%, transparent);
-      border-bottom: 1px solid var(--color-border);
+      background: color-mix(in srgb, var(--m-color-surface-elevated) 92%, transparent);
+      border-bottom: 1px solid var(--m-color-border);
       display: flex;
       flex: 0 0 auto;
-      gap: var(--space-4);
+      gap: var(--m-space-4);
       justify-content: space-between;
-      padding: var(--space-4) var(--space-6);
+      padding: var(--m-space-4) var(--m-space-6);
       position: relative;
       z-index: 1;
     }
@@ -121,23 +121,19 @@ const SIZE_CLASSES: Record<ActionCardSize, string> = {
     }
 
     @media (max-width: 767px) {
-      .m-action-card {
-        max-height: calc(100dvh - 0.5rem);
-      }
-
       .m-action-card__header {
-        padding: var(--space-3);
+        padding: var(--m-space-3);
       }
     }
 
     :host-context(.dark) .m-action-card {
-      --m-action-card-background: var(--color-surface-elevated);
-      --m-action-card-border: var(--color-border);
+      --m-action-card-background: var(--m-color-surface-elevated);
+      --m-action-card-border: var(--m-color-border);
     }
 
     :host-context(.dark) .m-action-card__header {
-      background: color-mix(in srgb, var(--color-surface-elevated) 96%, transparent);
-      border-bottom-color: var(--color-border);
+      background: color-mix(in srgb, var(--m-color-surface-elevated) 96%, transparent);
+      border-bottom-color: var(--m-color-border);
     }
   `,
 })

@@ -6,8 +6,8 @@ import { ThemeManagerService } from '../../../services/context/theme-manager.ser
 import { UserContextService } from '../../../services/context/user-context.service';
 import { AccountService } from '../../../services/account.service';
 import { routeManifest } from '../../../route-manifest';
-import { ProvidedEmailDTO } from '../../../Models/account/account.models';
 import { HeaderViewModel } from './header.models';
+import { ProvidedAccountIdDTO } from '@mercurion/rest-contracts';
 
 /**
  * The header is a composition shell.  This facade is the only place where
@@ -22,7 +22,7 @@ export class HeaderFacade {
   private readonly userContext = inject(UserContextService);
   private readonly accountService = inject(AccountService);
   private readonly path = signal(this.router.url);
-  private readonly email = signal<ProvidedEmailDTO | null>(null);
+  private readonly email = signal<ProvidedAccountIdDTO | null>(null);
 
   readonly viewModel = computed<HeaderViewModel>(() => {
     const currentPath = this.cleanPath(this.path());
@@ -51,9 +51,9 @@ export class HeaderFacade {
     });
     effect(() => {
       if (this.userContext.isLoggedIn()) {
-        this.accountService.getProvidedEmail()
+        this.accountService.getProvidedAccountId()
           .pipe(takeUntilDestroyed(this.destroyRef))
-          .subscribe(value => this.email.set(value));
+          .subscribe(value => this.email.set(value))
       } else {
         this.email.set(null);
       }

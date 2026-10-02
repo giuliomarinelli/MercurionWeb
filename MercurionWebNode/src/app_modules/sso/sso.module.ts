@@ -8,6 +8,7 @@ import { GoogleProviderClient } from './providers/google-provider-client';
 import { GitHubProviderClient } from './providers/github-provider-client';
 import { LinkedInProviderClient } from './providers/linkedin-provider-client';
 import { DiscordProviderClient } from './providers/discord-provider-client';
+import { OrcidProviderClient } from './providers/orcid-provider-client';
 import { AuthModule } from '../auth/auth.module';
 import { RedisModule } from '../redis/redis.module';
 import { ResponseModule } from 'src/services/response.module';
@@ -27,7 +28,7 @@ import { OAuth2ClientModule } from '../oauth2-client/oauth2-client.module'
         ]),
     ],
     exports: [SocialAuthService],
-    providers: [SocialAuthService, SocialProviderRegistry, GoogleProviderClient, GitHubProviderClient, LinkedInProviderClient, DiscordProviderClient],
+    providers: [SocialAuthService, SocialProviderRegistry, GoogleProviderClient, GitHubProviderClient, LinkedInProviderClient, DiscordProviderClient, OrcidProviderClient],
     controllers: [SocialAuthController]
 })
 export class SSO_Module { }

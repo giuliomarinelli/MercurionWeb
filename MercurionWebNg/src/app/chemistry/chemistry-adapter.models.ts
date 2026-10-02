@@ -41,11 +41,33 @@ export interface ChemistryRendererAdapter {
 }
 
 export type ChemistryCapabilityStatus = 'loading' | 'ready' | 'unavailable'
-export type ChemistryEditorMode = 'create' | 'edit' | 'duplicate'
 
 export interface ChemistryCapabilityState {
   status: ChemistryCapabilityStatus
   error?: ChemistryAdapterError
+}
+
+export const chemistryEditorModes = ['create', 'edit', 'duplicate'] as const
+export type ChemistryEditorMode = typeof chemistryEditorModes[number]
+
+export function isChemistryEditorMode(value: unknown): value is ChemistryEditorMode {
+  return typeof value === 'string' && chemistryEditorModes.some(mode => mode === value)
+}
+
+export const chemistryEditorTabs = ['std', 'live'] as const
+export type ChemistryEditorTab = typeof chemistryEditorTabs[number]
+
+export function isChemistryEditorTab(value: unknown): value is ChemistryEditorTab {
+  return typeof value === 'string' && chemistryEditorTabs.some(tab => tab === value)
+}
+
+export interface MoleculeEditorQp {
+  mode: ChemistryEditorMode
+  mId?: string
+  smiles?: string
+  baselineSmiles?: string
+  tab?: ChemistryEditorTab
+  destroyCache: 'true' | 'false'
 }
 
 export interface ChemistryEditorSession {

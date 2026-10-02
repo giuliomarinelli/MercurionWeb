@@ -131,7 +131,31 @@ describe('AuthStateStore', () => {
     expect(store.sessionProtocol().state).toBe(SessionState.Authenticated)
   })
 
-  it('rejects an expired access token from the authenticated selector', () => {
+  it('keeps refreshed credentials for the same session during restore until server confirmation', () => {
+    const initial = session()
+    store.setAccessToken(initial.accessToken)
+    store.setWsAccessToken(initial.wsAccessToken)
+    store.setPersistedInitials(initial.initials)
+    store.bootstrap()
+
+    expect(store.refreshableSessionId()).toBe('session-a')
+    expect(store.rotateWsAccessToken(tokenWithScopes('new-ws', 'user-a', 'other-session'), 'session-a')).toBeFalse()
+    expect(store.getWsAccessToken()).toBe(initial.wsAccessToken)
+
+    const refreshedWsToken = tokenWithScopes('new-ws')
+    const refreshedAccessToken = tokenWithScopes('read')
+    expect(store.rotateWsAccessToken(refreshedWsToken, 'session-a')).toBeTrue()
+    expect(store.rotateAccessToken(refreshedAccessToken, 'session-a')).toBeTrue()
+    expect(store.state()).toEqual({ kind: 'authenticating', flow: 'restore' })
+    expect(store.authenticated()).toBeFalse()
+    expect(store.getWsAccessToken()).toBe(refreshedWsToken)
+    expect(store.getAccessToken()).toBe(refreshedAccessToken)
+
+    store.resumeFromServer(initial.initials)
+    expect(store.authenticated()).toBeTrue()
+  })
+
+  it('keeps a server-accepted session while an idle HTTP token expires', () => {
     store.bootstrap()
     store.beginAuthentication('password')
     const payload = btoa(JSON.stringify({
@@ -142,7 +166,8 @@ describe('AuthStateStore', () => {
       accessToken: `header.${payload}.signature`
     })
 
-    expect(store.authenticated()).toBeFalse()
+    expect(store.authenticated()).toBeTrue()
+    expect(store.getAccessToken()).toBeTruthy()
   })
 
   it('rejects authenticated state after explicit protocol invalidation', () => {

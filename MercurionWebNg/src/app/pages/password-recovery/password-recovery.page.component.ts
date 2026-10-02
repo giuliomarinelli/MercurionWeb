@@ -80,12 +80,12 @@ import {
                 } @else {
                   <div class="text-slate-200 flex items-center justify-center gap-3">
                     <span>Redirecting...</span>
-                    <m-progress-indicator [size]="24" aria-hidden="true" />
+                    <m-progress-indicator [size]="20" aria-hidden="true" />
                   </div>
                 }
               } @else {
                 <div class="text-slate-200 flex items-center justify-center" aria-hidden="true">
-                  <m-progress-indicator [size]="24" />
+                  <m-progress-indicator [size]="20" />
                 </div>
 
               }

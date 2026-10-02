@@ -180,7 +180,7 @@ export type { ChipItem } from './add-molecules-to-collection.flow';
     `
   ],
   template: `
-<div class="flex justify-center items-stretch md:items-center min-h-dvh h-dvh px-2 sm:px-4 pt-1 md:pt-6 m-overlay-screen">
+<div class="flex justify-center items-stretch md:items-center min-h-dvh h-dvh px-2 sm:px-4 m-overlay-screen">
   <m-action-card
     size="wide"
     labelledBy="addMolHeading"
@@ -191,9 +191,9 @@ export type { ChipItem } from './add-molecules-to-collection.flow';
     <!-- HEADER -->
       <h2 action-card-title
         id="addMolHeading"
-        class="flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-4 items-start sm:items-center text-lg font-semibold text-light-on-surface-main dark:text-dark-on-surface-main"
+        class="flex items-center gap-3 text-lg font-semibold text-light-on-surface-main dark:text-dark-on-surface-main"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current size-8">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current size-8 shrink-0">
           <path
             d="M288 96L352 144L576 144L576 512L64 512L64 96L288 96zM352 176L341.3 176L332.8 169.6L277.3 128L96 128L96 480L544 480L544 176L352 176zM304 408L304 336L232 336L232 304L304 304L304 232L336 232L336 304L408 304L408 336L336 336L336 408L304 408z"
           />
@@ -385,7 +385,7 @@ export type { ChipItem } from './add-molecules-to-collection.flow';
                     @if (loading) {
                       @if (page > 1) {
                         <div class="flex justify-center py-4" role="status" aria-live="polite" aria-busy="true">
-                          <m-progress-indicator [size]="60" />
+                          <m-progress-indicator />
                         </div>
                       } @else {
                         <div class="space-y-4" role="status" aria-live="polite" aria-busy="true">
@@ -605,7 +605,7 @@ export type { ChipItem } from './add-molecules-to-collection.flow';
       @if (step() === 1) {
         <m-button
           action-footer-secondary
-          variant="neutral"
+          variant="outline"
           (click)="close()"
         >
           Annulla
@@ -795,8 +795,8 @@ export class AddMoleculesToCollectionComponent
     this.multiselectItems().forEach(row => row.isChecked.set(false));
   }
 
-  doQuery(q: string): void { this.pagination.query(q); }
-  doClear(): void { this.pagination.clear(); }
+  doQuery(q: string): void { this.pageController.setQuery(q); }
+  doClear(): void { this.pageController.clear(); }
   private loadRows(): void {
     const existing = new Map(this.multiselectItems().map(row => [row.item.id, row]));
     this.multiselectItems.set(this.items.map(item => existing.get(item.id) ?? {

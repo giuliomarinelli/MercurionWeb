@@ -36,7 +36,7 @@ import {
 ],
   template: `
     @if (canView()) {
-      <div class="min-h-screen flex flex-col items-center px-4 py-12 relative top-6">
+      <div class="min-h-dvh flex flex-col items-center px-4 py-12 relative top-6">
 
         <!-- icona ... (uguale a prima) -->
         <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-auto mb-6"
@@ -116,7 +116,7 @@ import {
 
               <div class="relative">
                 <input #otp type="text" [formControl]="codeControl" id="otp"
-                  class="block py-4 px-4 w-full text-sm text-dark dark:text-light bg-transparent border-slate-300 border dark:border-slate-200 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-light-accent-primary-hq dark:focus:ring-dark-accent-primary focus:border-light-accent-primary-hq dark:focus:border-dark-accent-primary peer"
+                  class="block py-4 px-4 w-full text-sm text-light-on-surface-main dark:text-dark-on-surface-main bg-transparent border-slate-300 border dark:border-slate-200 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-light-accent-primary-hq dark:focus:ring-dark-accent-primary focus:border-light-accent-primary-hq dark:focus:border-dark-accent-primary peer"
                   placeholder=" " required
                   (focus)="isOtpFocused.set(true)"
                   (input)="serverError.set(false); onOtpInput()"
@@ -159,7 +159,7 @@ import {
                   <span>Verifica</span>
                 } @else {
                   <div class="text-slate-200 flex items-center justify-center">
-                    <m-progress-indicator [size]="24"></m-progress-indicator>
+                    <m-progress-indicator [size]="20" />
                   </div>
                 }
               </button>
@@ -207,11 +207,7 @@ import {
       </div>
     } @else {
       <div class="absolute inset-0 flex justify-center items-center">
-        @if (design.maxBk('md')()) {
-          <m-progress-indicator [size]="30" />
-        } @else if (design.minBk('md')()) {
-          <m-progress-indicator [size]="60" />
-        }
+        <m-progress-indicator />
       </div>
     }
   `

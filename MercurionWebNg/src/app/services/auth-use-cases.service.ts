@@ -27,10 +27,14 @@ export class AuthUseCasesService {
 
   refreshWsAccessToken(): Observable<string> {
     if (!this.refreshInFlight$) {
-      const sessionId = this.sessions.clientSessionId()
+      const sessionId = this.sessions.refreshableSessionId()
       this.refreshInFlight$ = this.transport.refreshWsAccessToken().pipe(
-        tap(token => { if (sessionId) this.sessions.rotateWsAccessToken(token, sessionId) }),
-        finalize(() => { this.refreshInFlight$ = undefined }),
+        tap((token) => {
+          if (sessionId) this.sessions.rotateWsAccessToken(token, sessionId)
+        }),
+        finalize(() => {
+          this.refreshInFlight$ = undefined
+        }),
         shareReplay(1)
       )
     }

@@ -12,7 +12,9 @@ describe('SocialProviderRegistryService', () => {
       mockClient as any,
       mockClient as any,
       mockClient as any,
+      mockClient as any,
     );
     expect(registry.get(AuthProvider.Google)).toBeDefined();
+    expect(registry.get(AuthProvider.ORCID)).toBe(mockClient);
   });
 });

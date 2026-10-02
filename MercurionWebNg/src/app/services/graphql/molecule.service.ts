@@ -9,13 +9,17 @@ import {
   GetMoleculeDetailQueryVariables,
   MoleculePreviewsByMolregnosDocument,
   MoleculePreviewsByMolregnosQuery,
-  MoleculePreviewsByMolregnosQueryVariables
+  MoleculePreviewsByMolregnosQueryVariables,
+  PreferredNameItByCanonicalSmilesDocument,
+  PreferredNameItByCanonicalSmilesQuery,
+  PreferredNameItByCanonicalSmilesQueryVariables
 } from '../../generated/graphql';
 import {
   ApplicationClientError,
   ApplicationErrorCode
 } from '../../utils/application-error.util';
 import { GRAPHQL_QUERY_FETCH_POLICY } from './graphql-query-policy';
+import { MoleculeNameByCanonicalSmilesDTO } from './molecule-name-by-canonical-smiles.dto';
 
 @Injectable({
   providedIn: 'root'
@@ -58,6 +62,26 @@ export class MoleculeService {
         }
       }).pipe(
         map(result => result.data.moleculePreviewsByMolregnos)
+      )
+  }
+
+  getPreferredNameItByCanonicalSmiles(
+    canonicalSmiles: string
+  ): Observable<MoleculeNameByCanonicalSmilesDTO> {
+    return this.apollo
+      .query<
+        PreferredNameItByCanonicalSmilesQuery,
+        PreferredNameItByCanonicalSmilesQueryVariables
+      >({
+        query: PreferredNameItByCanonicalSmilesDocument,
+        variables: { canonicalSmiles },
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.ephemeralLookup,
+        context: {
+          credentials: 'include'
+        }
+      })
+      .pipe(
+        map(result => result.data.preferredNameItByCanonicalSmiles ?? null)
       )
   }
 

@@ -6,6 +6,7 @@ import { GoogleProviderClient } from "../providers/google-provider-client";
 import { GitHubProviderClient } from "../providers/github-provider-client";
 import { LinkedInProviderClient } from "../providers/linkedin-provider-client";
 import { DiscordProviderClient } from "../providers/discord-provider-client";
+import { OrcidProviderClient } from "../providers/orcid-provider-client";
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 
 @Injectable()
@@ -18,12 +19,14 @@ export class SocialProviderRegistry {
         github: GitHubProviderClient,
         linkedIn: LinkedInProviderClient,       
         discord: DiscordProviderClient,
+        orcid: OrcidProviderClient,
     ) {
         this.map = {
             [AuthProvider.Google]: google,
             [AuthProvider.GitHub]: null,                   
             [AuthProvider.LinkedIn]: null,
             [AuthProvider.Discord]: discord,
+            [AuthProvider.ORCID]: orcid,
             [AuthProvider.Mercurion]: null
         }
     }

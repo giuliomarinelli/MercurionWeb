@@ -20,6 +20,7 @@ import type {
   AuthenticationAttemptState,
   AuthenticationRequestContext
 } from './authentication-policy.types'
+import { SecurityService } from '../../services/security.service'
 
 @Injectable()
 export class AuthenticationFailurePolicy {
@@ -28,6 +29,7 @@ export class AuthenticationFailurePolicy {
   constructor(
     private readonly jwtToolsService: JwtToolsService,
     private readonly sessionService: SessionService,
+    private readonly securityService: SecurityService,
     private readonly transportPolicy: AuthenticationTransportPolicy,
     loggerFactory: LoggerPort
   ) {
@@ -139,10 +141,11 @@ export class AuthenticationFailurePolicy {
     sessionId: string | undefined,
     payload: AppJwtPayload | null
   ): UUID | undefined {
-    const tokenSessionId = TypeGuards.isThruthyString(payload?.sid)
-      ? payload.sid
-      : ''
-    const tokenUserId = payload?.sub
+    if (!payload || !payload.sub || !payload.sid) {
+      return undefined
+    }
+    const tokenSessionId = payload.sid
+    const tokenUserId = this.securityService.decryptUserId(payload.sub)
 
     if (
       !tokenUserId

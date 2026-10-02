@@ -4,7 +4,7 @@
  *  - "LoggedIn" ⇢ userCtx.initials !== '' **E** cookie (__logged_in | __logged_in_) === 'true'
  *  - PUBLIC: WS attiva ma senza handshake session_init
  *  - PRIVATE: handshake so.pub.session_init → ACK ⇒ mantieni PRIVATE
- *  - No ACK in PRIVATE: degrada a anonimo/public
+ *  - No ACK in PRIVATE: ritenta, mantenendo la sessione in ripristino
  *  - Niente autologout da `storage` se il cookie è presente
  * ────────────────────────────────────────────────────────────── */
 import { DestroyRef, effect, inject, Injectable, NgZone, OnDestroy, signal } from '@angular/core'
@@ -91,6 +91,11 @@ export class SessionSyncTransportService implements OnDestroy {
   public readonly status = this._status.asReadonly()
 
   private handshakePending?: Promise<void>
+  private readonly privateCheckAttempts = 3
+  private restoreFailureToast?: string
+  private retryTimer?: ReturnType<typeof setTimeout>
+  private finishRetryDelay?: () => void
+  private destroyed = false
 
   private lastAnonHS = 0
   private readonly anonCooldown = 5_000
@@ -105,6 +110,14 @@ export class SessionSyncTransportService implements OnDestroy {
   private readonly voluntaryLogoutGraceMs = 12_000
 
   constructor() {
+
+    effect(() => {
+      const kind = this.authState.state().kind
+      if (kind === 'anonymous' || kind === 'session-expired' || kind === 'logging-out') {
+        this.cancelRetryDelay()
+        this.clearRestoreFailureToast()
+      }
+    })
 
     effect(() => {
       const t = this._voluntaryLogoutTick()
@@ -148,9 +161,8 @@ export class SessionSyncTransportService implements OnDestroy {
       this.zone.run(() => this.handleSessionExpired(payload.cause))
     ))
 
-    // bootstrap: parte PUBLIC, poi decide se uppare a PRIVATE
+    // AppShell avvia il controllo dopo il bootstrap dello stato locale.
     this.socket.connect()
-    void this.checkSession()
 
     window.addEventListener('storage', this.onStorage)
   }
@@ -184,6 +196,9 @@ export class SessionSyncTransportService implements OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.destroyed = true
+    this.cancelRetryDelay()
+    this.clearRestoreFailureToast()
     this.realtimeSubscriptions.unsubscribe()
     clearTimeout(this.storageDebounce)
     window.removeEventListener('storage', this.onStorage)
@@ -200,7 +215,6 @@ export class SessionSyncTransportService implements OnDestroy {
 
   resumeSession(initials: string) {
     this.onExternalLogin(initials)
-    this._handshakeTick.update(x => x + 1)
   }
 
   requestHandshake() {
@@ -219,6 +233,8 @@ export class SessionSyncTransportService implements OnDestroy {
 
   /** Finish navigation/realtime downgrade after AuthService owns the command. */
   completeVoluntaryLogout(): void {
+    this.cancelRetryDelay()
+    this.clearRestoreFailureToast()
     this._status.set('anonymous')
     void this.socket.reconnectPublicNow()
     if (!this.isPublicRoute(this.router.url)) {
@@ -233,12 +249,21 @@ export class SessionSyncTransportService implements OnDestroy {
   /* ---------------- Handshake core ---------------- */
 
   async checkSession(force = false): Promise<void> {
+    if (this.destroyed || this.loginInProgress()) return
     // se siamo già privati e marcati loggedIn, evita rumore
     if (!force && this._status() === 'loggedIn' && this.socket.getMode() === 'private') return
 
-    if (this.handshakePending) return this.handshakePending
+    if (this.handshakePending) {
+      await this.handshakePending
+      if (force && this._status() !== 'loggedIn' && !this.loginInProgress()) {
+        await this.checkSession(true)
+      }
+      return
+    }
 
     const now = Date.now()
+    const startingState = this.authState.state()
+    const startingSessionId = this.authState.refreshableSessionId()
     const initials = this.authState.getPersistedInitials() ?? ''
     const cookieLogged = this.hasClientLoginCookieTrue()
 
@@ -260,30 +285,29 @@ export class SessionSyncTransportService implements OnDestroy {
     this._status.set('checking')
 
     const pending = (async () => {
+      if (targetIsPrivate) {
+        await this.restorePrivateSession(startingState, startingSessionId)
+        return
+      }
       try {
-        if (targetIsPrivate) await this.socket.ensurePrivate()
-        else await this.socket.ensurePublic()
+        await this.socket.ensurePublic()
 
         const connected = await this.socket.waitConnected(4000)
         if (!connected) {
-          this._status.set(targetIsPrivate ? 'disconnected' : 'anonymous')
-          if (!targetIsPrivate) this.lastAnonHS = now
-          return
-        }
-
-        await this.socket.waitStable()
-
-        // 🔹 Caso PUBLIC: WS attiva per eventi pubblici, ma niente handshake session_init
-        if (!targetIsPrivate) {
           this._status.set('anonymous')
           this.lastAnonHS = now
           return
         }
 
-        // 🔹 Caso PRIVATE: facciamo l’handshake forte via so.pub.session_init
-        await this.completePrivateHandshake()
+        await this.socket.waitStable()
+
+        if (this.loginInProgress() || this.sessionChanged(startingState, startingSessionId)) return
+
+        // PUBLIC sockets do not perform an authenticated session handshake.
+        this._status.set('anonymous')
+        this.lastAnonHS = now
       } catch {
-        this._status.set(targetIsPrivate ? 'disconnected' : 'error')
+        this._status.set('error')
       }
     })()
     this.handshakePending = pending
@@ -291,8 +315,57 @@ export class SessionSyncTransportService implements OnDestroy {
     if (this.handshakePending === pending) this.handshakePending = undefined
   }
 
-  private async completePrivateHandshake(): Promise<void> {
-    const ack = await this.socket.emitSessionInit(1200)
+  private async restorePrivateSession(
+    startingState: ReturnType<AuthStateStore['state']>,
+    startingSessionId: string | undefined
+  ): Promise<void> {
+    const obsolete = () => this.destroyed || this.loginInProgress() ||
+      this.sessionChanged(startingState, startingSessionId)
+
+    for (let attempt = 0; attempt < this.privateCheckAttempts; attempt++) {
+      if (obsolete()) return
+      this._status.set('checking')
+      try {
+        await this.socket.ensurePrivate()
+        if (obsolete()) return
+        if (this.socket.getMode() === 'private' && await this.socket.waitConnected(4000)) {
+          if (obsolete()) return
+          await this.socket.waitStable()
+          if (obsolete()) return
+          // Allow a slower acknowledgement on each retry, without treating
+          // a transport timeout as evidence that the server session is invalid.
+          await this.completePrivateHandshake(startingState, startingSessionId, 1200 * 2 ** attempt)
+          if (obsolete() || this._status() === 'loggedIn') return
+        }
+      } catch {
+        // Network/transport failures leave credentials and validity untouched.
+      }
+      if (obsolete()) return
+      this._status.set('disconnected')
+      if (attempt + 1 < this.privateCheckAttempts) {
+        await new Promise<void>(resolve => {
+          this.finishRetryDelay = resolve
+          this.retryTimer = setTimeout(() => this.cancelRetryDelay(), 500 * 2 ** attempt)
+        })
+      }
+    }
+
+    if (!obsolete() && this.authState.isAuthenticating() && !this.restoreFailureToast) {
+      this.restoreFailureToast = this.toast.trigger(
+        'Impossibile verificare la sessione. Controlla la connessione e ricarica la pagina per riprovare.',
+        'warn',
+        0
+      )
+    }
+  }
+
+  private async completePrivateHandshake(
+    startingState: ReturnType<AuthStateStore['state']>,
+    startingSessionId: string | undefined,
+    timeoutMs: number
+  ): Promise<void> {
+    const ack = await this.socket.emitSessionInit(timeoutMs)
+    if (this.destroyed || this.loginInProgress() || this.sessionChanged(startingState, startingSessionId)) return
     if (this.protocol.classifySessionInit(ack).kind !== 'authenticated') {
       this._status.set('disconnected')
       return
@@ -309,6 +382,7 @@ export class SessionSyncTransportService implements OnDestroy {
     }
 
     this.verifiedOnce = true
+    this.clearRestoreFailureToast()
     this._status.set('loggedIn')
   }
 
@@ -335,6 +409,8 @@ export class SessionSyncTransportService implements OnDestroy {
   private handleSessionExpired(
     cause: SessionInvalidationCauseType = SessionInvalidationCause.InvalidSession
   ): void {
+    this.cancelRetryDelay()
+    this.clearRestoreFailureToast()
     const voluntary = this.isVoluntaryLogoutRecent()
     // evento di scadenza lato server → consideralo definitivo anche se il cookie esiste ancora
     const alreadyExpired = this._status() === 'sessionExpired'
@@ -387,6 +463,18 @@ export class SessionSyncTransportService implements OnDestroy {
 
   private readCookie(name: string): string | null { return this.persistence.getCookieValue(name) }
 
+  private loginInProgress(): boolean {
+    const state = this.authState.state()
+    return state.kind === 'authenticating' && state.flow !== 'restore'
+  }
+
+  private sessionChanged(startingState: ReturnType<AuthStateStore['state']>, startingSessionId: string | undefined): boolean {
+    const currentSessionId = this.authState.refreshableSessionId()
+    return startingSessionId && currentSessionId
+      ? startingSessionId !== currentSessionId
+      : startingState !== this.authState.state()
+  }
+
   private becomeAnonymous(
     opts: {
       toast?: string
@@ -398,6 +486,7 @@ export class SessionSyncTransportService implements OnDestroy {
   ) {
     const { toast, level = 'warn', navigateIfProtected } = opts
 
+    this.clearRestoreFailureToast()
     this.authState.logout()
     this._status.set('anonymous')
 
@@ -426,6 +515,19 @@ export class SessionSyncTransportService implements OnDestroy {
   private triggerToast(message: string, level: ToastVariant) {
     if (Date.now() < this.toastMutedUntil) return
     this.toast.trigger(message, level)
+  }
+
+  private clearRestoreFailureToast(): void {
+    if (this.restoreFailureToast) this.toast.close(this.restoreFailureToast)
+    this.restoreFailureToast = undefined
+  }
+
+  private cancelRetryDelay(): void {
+    clearTimeout(this.retryTimer)
+    this.retryTimer = undefined
+    const finish = this.finishRetryDelay
+    this.finishRetryDelay = undefined
+    finish?.()
   }
 
   private isVoluntaryLogoutRecent(): boolean {

@@ -8,6 +8,9 @@ import { AppTotpWrapper } from '../models/interfaces/app-totp-wrapper.interface'
 import * as qrcode from 'qrcode';
 import * as base32 from 'hi-base32'
 import { PasswordEncoderService } from './password-encoder.service';
+import { GeneralUtils } from 'src/utils/general-utils/general-utils';
+import { ApplicationError, ApplicationErrorCode } from 'src/exception-handling/application-error';
+
 
 @Injectable()
 export class SecurityService {
@@ -15,6 +18,7 @@ export class SecurityService {
     private readonly totpConf: Omit<TotpConfiguration, 'totpPepper'>
     private readonly totpPepper: string
     private readonly AES_secret: string
+    private readonly USER_ID_AES_ENCRYPTION_SECRET: string
     private readonly deviceIdSignatureSecret: string
 
     constructor(private readonly configService: ConfigService, private readonly pe: PasswordEncoderService) {
@@ -22,11 +26,14 @@ export class SecurityService {
         this.totpConf = totpConf
         this.totpPepper = totpPepper
         this.AES_secret = this.configService.get<string>('App.AES_secret')!
+        this.USER_ID_AES_ENCRYPTION_SECRET = this.configService.get<string>('App.userId_AES_encryptionSecret')!
         this.deviceIdSignatureSecret = this.configService.get<string>('App.deviceIdSignatureSecret')!
     }
 
-    encrypt_AES256(value: string) {
-        const key = Buffer.from(this.AES_secret, 'base64')
+    encrypt_AES256_GCM(value: string, secret?: string) {
+        const key = secret
+            ? Buffer.from(secret, 'base64').subarray(0, 32)
+            : Buffer.from(this.AES_secret, 'base64')
         const iv = randomBytes(12)
         const cipher = createCipheriv('aes-256-gcm', key, iv)
         const encrypted = Buffer.concat([
@@ -37,8 +44,10 @@ export class SecurityService {
         return Buffer.concat([iv, tag, encrypted]).toString('hex')
     }
 
-    decrypt_AES256(payload: string) {
-        const key = Buffer.from(this.AES_secret, 'base64')
+    decrypt_AES256_GCM(payload: string, secret?: string) {
+        const key = secret
+            ? Buffer.from(secret, 'base64').subarray(0, 32)
+            : Buffer.from(this.AES_secret, 'base64')
         const data = Buffer.from(payload, 'hex')
         const iv = data.subarray(0, 12)
         const tag = data.subarray(12, 28)
@@ -51,6 +60,74 @@ export class SecurityService {
             decipher.final()
         ])
         return decrypted.toString('utf8')
+    }
+
+    /**
+     * Decifra il claim `sub` opaco contenuto nei JWT gestiti dall'applicazione e
+     * restituisce l'identificativo utente che il backend usa internamente.
+     *
+     * Il `sub` dei token Mercurion non è più lo `userId` in chiaro: è il risultato
+     * di `encryptUserId`, protetto con AES-256-GCM e con una chiave dedicata agli
+     * identificativi utente. Questa separazione mantiene lo userId nel perimetro
+     * backend e impedisce ai consumatori del JWT di leggerlo direttamente dal
+     * payload. Il token continua comunque a essere un JWT firmato e i suoi altri
+     * claim restano leggibili; questa cifratura non sostituisce la verifica della
+     * firma, del tipo, della sessione o delle autorizzazioni del token.
+     *
+     * Chiamare questo metodo solo dopo aver verificato il JWT e solo nel backend,
+     * prima di usare l'identificativo in query, autorizzazioni o operazioni di
+     * dominio. Token legacy con `sub` in chiaro non sono compatibili con questo
+     * formato e falliscono la decifratura o la validazione dell'UUID.
+     *
+     * @param encryptedUserId Claim `sub` cifrato estratto da un JWT verificato.
+     * @returns Lo userId UUID in chiaro, da mantenere nell'ambito backend.
+     * @throws ApplicationError Se il valore decifrato non è un UUID valido.
+     * @throws Error Se il payload non è cifrato correttamente o non supera
+     * l'autenticazione AES-GCM (inclusi chiave, IV o tag non validi).
+     */
+    public decryptUserId(encryptedUserId: string): UUID {
+        const result = this.decrypt_AES256_GCM(encryptedUserId, this.USER_ID_AES_ENCRYPTION_SECRET)
+        if (!GeneralUtils.isValidUUID(result)) {
+            throw new ApplicationError(
+                ApplicationErrorCode.PUBLIC_ID_INVALID,
+                `Invalid UUID for userId`,
+                { field: 'userId' }
+            )
+        }
+        return result as UUID
+    }
+
+    /**
+     * Converte lo userId interno nel valore opaco da inserire nel claim `sub`
+     * di ogni JWT emesso dall'applicazione.
+     *
+     * Questo metodo applica il cambio di paradigma del contratto d'identità:
+     * `sub` non rappresenta più lo userId in chiaro, ma un ciphertext AES-256-GCM
+     * prodotto con una chiave dedicata agli identificativi. Un IV casuale viene
+     * generato a ogni cifratura, perciò token diversi per lo stesso utente non
+     * espongono un `sub` stabile e direttamente confrontabile. Solo il backend,
+     * che conserva la chiave, può recuperare lo userId tramite `decryptUserId`.
+     *
+     * Passare lo userId solo al momento della firma del token; non persistere né
+     * riutilizzare il ciphertext come identità applicativa. Il JWT resta firmato
+     * secondo il proprio algoritmo: la cifratura del `sub` non cifra gli altri
+     * claim né sostituisce la firma. La chiave dedicata deve essere configurata
+     * come segreto server e mantenuta stabile per la durata dei token che devono
+     * ancora essere decifrati.
+     *
+     * @param userId Identificativo UUID in chiaro valido, interno al backend.
+     * @returns Il ciphertext codificato in esadecimale da usare come claim `sub`.
+     * @throws ApplicationError Se `userId` non è un UUID valido.
+     */
+    public encryptUserId(userId: UUID): string {
+        if (!GeneralUtils.isValidUUID(userId)) {
+            throw new ApplicationError(
+                ApplicationErrorCode.PUBLIC_ID_INVALID,
+                `Invalid UUID for userId`,
+                { field: 'userId' }
+            )
+        }
+        return this.encrypt_AES256_GCM(userId, this.USER_ID_AES_ENCRYPTION_SECRET)
     }
 
     signDeviceId(deviceId: UUID): string {
@@ -230,7 +307,9 @@ export class SecurityService {
         return phone.slice(0, 3) + '*'.repeat(8) + phone.slice(-2)
     }
 
-
+    mask_ORCID(orcid: string): string {
+        return  '****-'.repeat(3) + orcid.slice(-4)
+    }
 
 
 }

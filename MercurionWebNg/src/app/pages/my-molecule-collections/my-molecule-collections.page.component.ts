@@ -2,7 +2,7 @@ import { HistoryContextService } from './../../services/context/history-context.
 import { UiMoleculeCollection } from '../../Models/graphql/molecule-collection/molecule-collection.types';
 import { catchError, delay, EMPTY, firstValueFrom, map, of, Subscription, switchMap, tap } from 'rxjs';
 import { MyMoleculesHeadingComponent } from '../../components/molecule-detail/my-molecules-heading/my-molecules-heading.component';
-import { AfterViewInit, Component, ElementRef, inject, OnInit, effect, OnDestroy, signal, ChangeDetectionStrategy, viewChild } from '@angular/core';
+import { Component, ElementRef, inject, OnInit, effect, OnDestroy, signal, ChangeDetectionStrategy, viewChild } from '@angular/core';
 import { MoleculeCollectionService } from '../../services/graphql/molecule-collection.service';
 import { CollectionCardComponent } from '../../components/molecule-detail/collection-card/collection-card.component';
 import { SkeletonCollectionCardComponent } from '../../components/common/skeleton-card-loader/skeleton-card-loader.component';
@@ -33,9 +33,10 @@ import { PaginationComponent } from '../../components/common/pagination/paginati
   template: `
 
   <main class="max-w-5xl mx-auto p-0 xs:p-4 sm:p-6 md:p-8 space-y-12" role="main" [attr.aria-busy]="loading" aria-live="polite">
-    <m-my-molecules-heading />
-    <div class="flex flex-col sm:flex-row sm:flex-wrap gap-y-3 sm:gap-y-3 sm:gap-x-4 justify-between items-start sm:items-center relative -top-12 pt-2">
-        <h2 class="h1 bg-slate-50 dark:bg-neutral-950 z-10 block sticky top-0 bottom-5" style="margin-block-start: 0; align-self: baseline;">
+    <div class="space-y-6">
+      <m-my-molecules-heading class="block" [compact]="true" />
+      <div class="flex flex-col sm:flex-row sm:flex-wrap gap-y-3 sm:gap-x-4 justify-between items-start sm:items-center">
+        <h2 class="text-xl md:text-2xl lg:text-[1.75rem] font-semibold tracking-wider text-light-accent-primary-hc dark:text-dark-accent-primary">
             Le mie collezioni molecolari
         </h2>
 
@@ -45,7 +46,7 @@ import { PaginationComponent } from '../../components/common/pagination/paginati
           class="flex items-center gap-2 relative px-3 py-1.5 rounded-md border border-slate-300 dark:border-slate-600
                  text-slate-700 dark:text-slate-200 text-xs font-medium
                  hover:bg-slate-200 dark:hover:bg-slate-700
-                 transition-colors duration-150 self-start top-[7px]"
+                 transition-colors duration-150 self-start sm:self-auto"
           title="Crea nuove collezioni."
           (click)="createNewCollection()"
           aria-label="Crea una o più nuove collezioni"
@@ -57,6 +58,7 @@ import { PaginationComponent } from '../../components/common/pagination/paginati
           <span>Crea una o più nuove collezioni</span>
         </button>
 
+      </div>
     </div>
     <m-search-input
       class="block relative"
@@ -74,7 +76,7 @@ import { PaginationComponent } from '../../components/common/pagination/paginati
           <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
           <path d="M296.5 153.7C268.2 123 314.7 79.6 343.4 110.1C395.3 166.7 479.5 256.1 528.4 302C544.6 317.7 544.4 343.6 528.4 359.3C517.9 369.6 499.6 387.7 494.2 394.1C448.6 448.2 388.1 485.8 344.3 536.7C332.8 550.1 312.6 551.7 299.2 540.3C257.6 499.5 349.3 448.3 372.4 421.9C398.9 399.3 423.7 378 444.4 353.8C432 353.5 419.6 353.7 406.7 354C325.8 354.2 244.1 356.1 162.3 355.5C136.2 356.8 94.8 360.6 96 321.8C97.9 289.9 132.6 290.7 157.9 291.6C239.4 292.1 320.7 290.4 403.1 290.1C410 289.9 417.2 289.8 424.8 289.7C376.2 241.2 341.3 201.2 296.4 153.7z"/>
         </svg>
-        <a class="a relative -top-2 text-light-accent-primary-hc dark:text-dark-accent-primary-btn-hc" routerLink="/molecules/all-my-molecules">Mostra tutte le mie molecole in un unico raggruppamento</a>
+        <a class="a relative -top-2 text-light-accent-primary-hc dark:text-dark-accent-primary-btn-hc" routerLink="/molecules">Mostra tutte le mie molecole in un unico raggruppamento</a>
       </div>
     }
     <div class="mt-px relative -top-16">
@@ -105,7 +107,7 @@ import { PaginationComponent } from '../../components/common/pagination/paginati
 
   `
 })
-export class MyMoleculeCollectionsPageComponent implements OnInit, AfterViewInit, OnDestroy {
+export class MyMoleculeCollectionsPageComponent implements OnInit, OnDestroy {
 
   // ======================= DEPS =======================
   private readonly moleculeCollectionService = inject(MoleculeCollectionService)
@@ -154,6 +156,18 @@ export class MyMoleculeCollectionsPageComponent implements OnInit, AfterViewInit
   constructor() {
 
     effect(() => {
+      const sentinel = this.sentinel()?.nativeElement
+      const root = this.scrollContext.scrollRootRef()?.nativeElement ?? null
+      const canLoad = !this.pagination.loading() && !this.pagination.done() && !this.pagination.error()
+      this.observer?.disconnect()
+      if (!sentinel || !canLoad) return
+      this.observer = new IntersectionObserver(entries => {
+        if (entries[0]?.isIntersecting) void this.loadMore()
+      }, { root, rootMargin: '0px 0px 500px 0px' })
+      this.observer.observe(sentinel)
+    })
+
+    effect(() => {
       const event = this.invalidations.last()
       if (event?.domain !== 'molecule-collection' ||
           (event.action !== 'created' && event.action !== 'deleted')) {
@@ -185,10 +199,6 @@ export class MyMoleculeCollectionsPageComponent implements OnInit, AfterViewInit
     void this.loadMore()
   }
 
-  ngAfterViewInit(): void {
-    this.startObserver()
-  }
-
   ngOnDestroy(): void {
     this.observer?.disconnect()
     this.pagination.dispose()
@@ -201,16 +211,6 @@ export class MyMoleculeCollectionsPageComponent implements OnInit, AfterViewInit
   resetPagination(): void { this.pagination.reset() }
   doQuery(q: string): void { this.pagination.setQuery(q) }
   doClear(): void { this.pagination.clear() }
-
-  private startObserver(): void {
-    const sentinel = this.sentinel()?.nativeElement
-    if (!sentinel) return
-    this.observer?.disconnect()
-    this.observer = new IntersectionObserver(entries => {
-      if (entries[0]?.isIntersecting) void this.loadMore()
-    }, { rootMargin: '0px 0px 500px 0px' })
-    this.observer.observe(sentinel)
-  }
 
 
 

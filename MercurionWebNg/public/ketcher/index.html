@@ -11,14 +11,16 @@
   <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16x16.png" />
   <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png" />
   <link rel="manifest" href="./manifest.json" />
-  <title>Ketcher v3.2.0</title>
-  <script defer="defer" src="./static/js/main.7d7d7a03.js"></script>
-  <link href="./static/css/main.aafe9c71.css" rel="stylesheet" />
+  <title>Ketcher v3.18.0</title>
+  <script defer="defer" src="./static/js/main.e47c48ad.js"></script>
+  <link href="./static/css/main.96b87be0.css" rel="stylesheet" />
 </head>
 
 <body>
   <noscript>You need to enable JavaScript to run this app.</noscript>
   <div id="root"></div>
+
+  <!-- Mercurion mobile keyboard compatibility guard -->
   <script>
     (function () {
       const isMobile = matchMedia('(pointer: coarse)').matches;
@@ -36,7 +38,7 @@
         el.setAttribute('aria-hidden', 'true');
         el.style.caretColor = 'transparent';
 
-        // ⚠️ kill-switch: se la lib chiama el.focus(), non succede niente
+        // kill-switch: se la lib chiama el.focus(), non succede niente
         try { el.focus = function () { }; } catch { }
         el.blur();
       }
@@ -67,69 +69,56 @@
     })();
   </script>
 
+  <!-- Mercurion Ketcher iframe bridge -->
   <script>
-
     if (matchMedia('(pointer: coarse)').matches) {
       document.body.removeAttribute('contenteditable');
       document.documentElement.removeAttribute('contenteditable');
     }
 
     if (window.top === window.self) {
-      window.location.href = '/'
+      window.location.href = '/';
     }
 
-    let lastSmiles = ""
-    let inFlight = false
-    let dirty = true
-    let ketcherReadySent = false
+    let lastSmiles = "";
+    let inFlight = false;
+    let dirty = false;
+    let ketcherReadySent = false;
 
-    let listenersAttached = false
-    let listenersAbort = null
+    let listenersAttached = false;
+    let listenersAbort = null;
 
     function markDirty() {
-      dirty = true
+      dirty = true;
     }
 
     async function refreshSmilesIfNeeded(force = false) {
-      if (!window.ketcher) return
-      if (inFlight) return
-      if (!force && !dirty) return
+      if (!window.ketcher) return;
+      if (inFlight) return;
+      if (!force && !dirty) return;
 
-      inFlight = true
+      inFlight = true;
       try {
-        const smiles = await window.ketcher.getSmiles()
+        const smiles = await window.ketcher.getSmiles();
         if (typeof smiles === "string") {
-          const changed = smiles !== lastSmiles
-          lastSmiles = smiles
-          dirty = false
-
-          if (changed) {
-            window.parent.postMessage({ type: "smiles", payload: lastSmiles }, "*")
-            console.log('IFRAME -> PARENT', { type: 'smiles', payload: lastSmiles })
-          }
+          lastSmiles = smiles;
+          dirty = false;
         }
       } catch (err) {
-        console.error("Errore ottenendo SMILES:", err)
+        console.error("Errore ottenendo SMILES:", err);
       } finally {
-        inFlight = false
+        inFlight = false;
       }
     }
 
-    function startDirtyPolling() {
-      setInterval(() => {
-        if (!window.ketcher) return
-        if (dirty) refreshSmilesIfNeeded()
-      }, 80)
-    }
-
     function attachDirtyListenersOnce() {
-      if (listenersAttached) return
-      listenersAttached = true
+      if (listenersAttached) return;
+      listenersAttached = true;
 
-      listenersAbort = new AbortController()
-      const { signal } = listenersAbort
+      listenersAbort = new AbortController();
+      const { signal } = listenersAbort;
 
-      const handler = () => markDirty()
+      const handler = () => markDirty();
 
       // tienili pochi e significativi
       const events = [
@@ -139,75 +128,70 @@
         "input",
         "paste",
         "drop"
-      ]
+      ];
 
       events.forEach(ev => {
         document.addEventListener(ev, handler, {
           capture: true,
           passive: true,
           signal
-        })
-      })
+        });
+      });
 
       // se il frame si scarica, abortisci tutto
       window.addEventListener("beforeunload", () => {
-        listenersAbort.abort()
-        listenersAttached = false
-      }, { once: true })
+        listenersAbort.abort();
+        listenersAttached = false;
+      }, { once: true });
     }
 
     function waitForKetcher() {
       if (window.ketcher) {
         if (!ketcherReadySent) {
-          window.parent.postMessage({ type: "ketcherReady" }, "*")
-          ketcherReadySent = true
+          window.parent.postMessage({ type: "ketcherReady" }, "*");
+          ketcherReadySent = true;
         }
 
-        attachDirtyListenersOnce()
-        startDirtyPolling()
-        refreshSmilesIfNeeded(true)
-        return
+        attachDirtyListenersOnce();
+        return;
       }
 
-      setTimeout(waitForKetcher, 100)
+      setTimeout(waitForKetcher, 100);
     }
 
-    waitForKetcher()
+    waitForKetcher();
 
     window.addEventListener("message", async function (event) {
-      if (!event.data) return
-      const { type, payload } = event.data
+      if (!event.data) return;
+      const { type, payload } = event.data;
 
       if (!window.ketcher) {
-        console.warn("Ketcher non ancora pronto per ricevere messaggi")
-        return
+        console.warn("Ketcher non ancora pronto per ricevere messaggi");
+        return;
       }
 
       if (type === "setMolecule") {
         try {
-          await window.ketcher.setMolecule(payload)
-          markDirty()
-          refreshSmilesIfNeeded(true)
-          window.parent.postMessage({ type: "moleculeSet" }, "*")
+          await window.ketcher.setMolecule(payload);
+          markDirty();
+          await refreshSmilesIfNeeded(true);
+          window.parent.postMessage({ type: "moleculeSet" }, "*");
         } catch (err) {
-          console.error("Errore caricando la molecola:", err)
+          console.error("Errore caricando la molecola:", err);
+          window.parent.postMessage({ type: "moleculeSetError" }, "*");
         }
       }
 
       if (type === "getSmiles") {
         try {
-          if (dirty) await refreshSmilesIfNeeded(true)
-          window.parent.postMessage({ type: "smiles", payload: lastSmiles }, "*")
+          if (dirty) await refreshSmilesIfNeeded(true);
+          window.parent.postMessage({ type: "smiles", payload: lastSmiles }, "*");
         } catch (err) {
-          console.error("Errore in risposta getSmiles:", err)
+          console.error("Errore in risposta getSmiles:", err);
         }
       }
-    })
+    });
   </script>
-
-
-
-
 </body>
 
 </html>

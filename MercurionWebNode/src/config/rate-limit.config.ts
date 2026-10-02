@@ -86,7 +86,7 @@ export function routeAwareMax(req: FastifyRequest): number {
 
     if (method === 'POST' && path === '/api/account/is-email-available') return scale(20)
 
-    if (method === 'GET' && path === '/api/account/email') return scale(60)
+    if (method === 'GET' && path === '/api/account/provided-account-id') return scale(60)
 
     if (method === 'GET' && path === '/api/account/active-sessions') return scale(40)
 

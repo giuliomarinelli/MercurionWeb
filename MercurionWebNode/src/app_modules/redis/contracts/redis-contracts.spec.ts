@@ -24,6 +24,7 @@ describe('Redis key and TTL contracts', () => {
             redisKeys.trust.device(userId),
             redisKeys.authentication.loginFailures('user@example.test'),
             redisKeys.authentication.loginLock('user@example.test'),
+            redisKeys.mfa.activePreAuthorization(userId),
             redisKeys.mfa.preAuthorizationDevice(jti),
             redisKeys.feedback.sendCount(userId),
             redisKeys.feedback.sendLock(userId),
@@ -38,6 +39,7 @@ describe('Redis key and TTL contracts', () => {
     it('preserves representative key formats and owner vocabulary', () => {
         expect(redisKeys.session.record('sid')).toBe('session:sid')
         expect(redisKeys.token.issued('sid', 'jti')).toBe('issued:sid:jti')
+        expect(redisKeys.mfa.activePreAuthorization('user')).toBe('mfa:pat:active:user')
         expect(redisKeys.mfa.preAuthorizationDevice('jti')).toBe('mfa:pat:dev:jti')
         expect(redisKeys.oauth.accessToken('dropbox')).toBe('access_token:dropbox')
         expect(redisKeys.sso.state('google', 'hash')).toBe('oauth2:state:google:hash')

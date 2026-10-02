@@ -19,7 +19,7 @@ export type DialogDismissalPolicy = {
 };
 
 export type DialogBackdropVariant = 'default' | 'action' | 'search';
-export type DialogPanelVariant = 'default' | 'search';
+export type DialogPanelVariant = 'default' | 'action' | 'search';
 
 const BACKDROP_CLASSES = {
   default: 'bg-black/60',
@@ -29,7 +29,14 @@ const BACKDROP_CLASSES = {
 
 const PANEL_CLASSES = {
   default: 'w-full max-w-lg rounded-2xl bg-white shadow-xl overflow-hidden dark:bg-slate-900',
+  action: 'w-full bg-transparent shadow-none overflow-visible',
   search: '!max-w-none !bg-transparent !shadow-none !rounded-none !overflow-visible',
+} satisfies Record<DialogPanelVariant, string>;
+
+const CONTENT_CLASSES = {
+  default: 'p-4',
+  action: 'p-0',
+  search: 'p-4',
 } satisfies Record<DialogPanelVariant, string>;
 
 @Component({
@@ -41,7 +48,7 @@ const PANEL_CLASSES = {
     @if (mounted()) {
       <div
         #dialog
-        class="fixed inset-0 z-[999] backdrop-blur-sm transition-all duration-300 m-dialog-backdrop"
+        class="fixed inset-0 z-[999] overflow-y-auto backdrop-blur-sm transition-all duration-300 m-dialog-backdrop"
         [class]="BACKDROP_CLASSES[backdropVariant()]"
         [class.opacity-0]="!open()"
         [class.opacity-100]="open()"
@@ -57,7 +64,7 @@ const PANEL_CLASSES = {
         (click)="onBackdropClick($event)"
         (keydown.escape)="onEscape($event)"
       >
-        <div class="min-h-full flex items-center justify-center p-4 m-overscroll-touch">
+        <div class="min-h-full flex items-center justify-center m-overscroll-touch" [class]="CONTENT_CLASSES[panelVariant()]">
           <div [class]="PANEL_CLASSES[panelVariant()]"
                (click)="$event.stopPropagation()">
             <ng-content />
@@ -87,6 +94,7 @@ export class DialogShellComponent {
 
   protected readonly BACKDROP_CLASSES = BACKDROP_CLASSES;
   protected readonly PANEL_CLASSES = PANEL_CLASSES;
+  protected readonly CONTENT_CLASSES = CONTENT_CLASSES;
 
   constructor() {
     effect(() => {

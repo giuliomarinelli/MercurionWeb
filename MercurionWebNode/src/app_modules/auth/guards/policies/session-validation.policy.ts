@@ -1,9 +1,8 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { timingSafeEqual } from 'node:crypto'
-
+import { SecurityService } from '../../services/security.service'
 import { LoggerContext } from 'src/logging/logger.port'
 import { LoggerPort } from 'src/logging/logger.port'
-
 import type { AppJwtPayload } from '../../models/interfaces/app-jwt-payload.interface'
 import { SessionService } from '../../services/session.service'
 import type {
@@ -17,6 +16,7 @@ export class SessionValidationPolicy {
 
   constructor(
     private readonly sessionService: SessionService,
+    private readonly securityService: SecurityService,
     loggerFactory: LoggerPort
   ) {
     this.logger = loggerFactory.forContext(SessionValidationPolicy.name)
@@ -32,6 +32,8 @@ export class SessionValidationPolicy {
       this.logger.warn(`${prefix} No provided deviceId`)
       throw new UnauthorizedException()
     }
+
+    const userId = this.securityService.decryptUserId(payload.sub)
 
     const sessionMatches = mode === 'refresh'
       ? this.matchesRefreshSession(context.sessionId, payload.sid)
@@ -49,7 +51,7 @@ export class SessionValidationPolicy {
     if (!(await this.sessionService.validateSession(
       payload.sid,
       context.deviceId,
-      payload.sub
+      userId
     ))) {
       this.logger.warn(
         mode === 'refresh'
@@ -61,7 +63,8 @@ export class SessionValidationPolicy {
   }
 
   touch(payload: AppJwtPayload): Promise<void> {
-    return this.sessionService.updateLastAccessed(payload.sid, payload.sub)
+    const userId = this.securityService.decryptUserId(payload.sub)
+    return this.sessionService.updateLastAccessed(payload.sid, userId)
   }
 
   private matchesRefreshSession(

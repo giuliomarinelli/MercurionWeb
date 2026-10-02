@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { MoleculeEmbedding } from '../models/entities/molecule-embedding.entity';
 import type { EmbeddingNeighbor } from '@mercurion/rest-contracts'
+import { MoleculeService } from '../../meilisearch/services/molecule.service';
 
 export type Neighbor = EmbeddingNeighbor
 
@@ -13,57 +14,68 @@ export class EmbeddingService implements OnModuleInit {
         @InjectRepository(MoleculeEmbedding)
         private readonly moleculeRepo: Repository<MoleculeEmbedding>,
         private readonly dataSource: DataSource,
+        private readonly moleculeService: MoleculeService,
     ) { }
 
-    // Set globale (puoi spostare su env). Tieni valori ragionevoli per HNSW.
     async onModuleInit() {
-        await this.dataSource.query('SET hnsw.ef_search = 80'); // tipico 60–120
+        await this.dataSource.query('SET hnsw.ef_search = 80');
     }
 
-    /**
-     * Ritorna i n vicini del molregno dato.
-     * - Se with_no_name === 'false' ⇒ solo con preferred_name NON NULL (query singola).
-     * - Altrimenti ⇒ UNA SOLA ANN query su tutti, poi merge lato app: prima con nome, poi senza.
-     *   Se non bastano (raro), fa un unico retry con oversampling maggiore.
-     */
     async getSimilarMolregnos(
         molregno: number,
         n: number,
         with_no_name: string,
     ): Promise<Neighbor[]> {
-        // 1) prendi l'embedding seed
         const row = await this.moleculeRepo.findOne({
             where: { molregno },
-            select: ['embedding'],
+            select: ['molregno', 'embedding'],
         });
+
         if (!row?.embedding) {
             throw new NotFoundException(`Embedding non trovato per molregno ${molregno}`);
         }
 
-        // 2) normalizza embedding (alcuni driver danno già number[])
-        const embedding: number[] = Array.isArray(row.embedding)
-            ? (row.embedding)
-            : String(row.embedding)
-                .replace(/^\[|\]$|^{|}$/g, '')
-                .split(',')
-                .map((x) => Number(x.replace(/^"(.*)"$/, '$1')))
-                .filter((v) => Number.isFinite(v));
+        return this.getSimilarFromSeed(
+            this.normalizeEmbedding(row.embedding),
+            row.molregno,
+            n,
+            with_no_name,
+        );
+    }
 
+    async getSimilarBySmiles(
+        smiles: string,
+        n: number,
+        with_no_name: string,
+    ): Promise<Neighbor[]> {
+        const molregno = await this.moleculeService.getMolregnoByCanonicalSmiles(smiles)
+
+        // A live editor may contain a valid but completely novel structure.
+        // Without an embedding inference path we cannot manufacture a seed;
+        // absence from the indexed corpus is therefore a normal empty result.
+        if (molregno == null) {
+            return [];
+        }
+
+        return this.getSimilarMolregnos(molregno, n, with_no_name)
+    }
+
+    private async getSimilarFromSeed(
+        embedding: number[],
+        excludedMolregno: number,
+        n: number,
+        with_no_name: string,
+    ): Promise<Neighbor[]> {
         if (!embedding.length) {
-            throw new NotFoundException(`Embedding vuoto per molregno ${molregno}`);
+            return [];
         }
 
         const EPS = 1e-12;
-
-        // 3) strategia veloce
         const allowUnnamed = with_no_name !== 'false';
-
-        // oversampling: più alto se accetti anche i senza nome (per assicurare abbastanza "con nome")
-        const baseK = this.oversample(n, allowUnnamed, /*first try*/ true);
-        const maxK = 2000; // tetto di sicurezza
+        const baseK = this.oversample(n, allowUnnamed, true);
+        const maxK = 2000;
 
         if (!allowUnnamed) {
-            // === SOLO CON NOME: una query, filtro su preferred_name IS NOT NULL ===
             const q = `
         SELECT molregno,
                (embedding <=> $1::float8[]::vector) AS distance
@@ -74,7 +86,7 @@ export class EmbeddingService implements OnModuleInit {
         LIMIT $3
       `;
             const rows: Array<{ molregno: number; distance: number }> =
-                await this.moleculeRepo.query(q, [embedding, molregno, baseK]);
+                await this.moleculeRepo.query(q, [embedding, excludedMolregno, baseK]);
 
             return rows
                 .map(r => ({ molregno: Number(r.molregno), distance: Number(r.distance) }))
@@ -82,7 +94,6 @@ export class EmbeddingService implements OnModuleInit {
                 .slice(0, n);
         }
 
-        // === CON FALLBACK AI SENZA NOME: una sola ANN query su tutti, merge lato app ===
         let k = baseK;
         for (let attempt = 0; attempt < 2; attempt++) {
             const qAll = `
@@ -95,9 +106,8 @@ export class EmbeddingService implements OnModuleInit {
         LIMIT $3
       `;
             const rows: Array<{ molregno: number; distance: number; has_name: boolean }> =
-                await this.moleculeRepo.query(qAll, [embedding, molregno, k]);
+                await this.moleculeRepo.query(qAll, [embedding, excludedMolregno, k]);
 
-            // normalizza e filtra EPS
             const cleaned = rows
                 .map(r => ({
                     molregno: Number(r.molregno),
@@ -106,7 +116,6 @@ export class EmbeddingService implements OnModuleInit {
                 }))
                 .filter(r => r.distance > EPS);
 
-            // split + merge (prima con nome)
             const named = cleaned.filter(r => r.has_name).slice(0, n);
             if (named.length >= n) {
                 return named.map(({ molregno, distance }) => ({ molregno, distance }));
@@ -121,29 +130,36 @@ export class EmbeddingService implements OnModuleInit {
                 return merged.slice(0, n);
             }
 
-            // se ancora non bastano (p.es. dataset scarno o molti a distanza ~0),
-            // fai UN solo retry con oversampling più grande.
-            const nextK = this.oversample(n, allowUnnamed, /*first try*/ false);
+            const nextK = this.oversample(n, allowUnnamed, false);
             if (k >= nextK || k >= maxK) {
-                return merged; // meglio tornare il massimo disponibile che fare altri round-trip
+                return merged;
             }
             k = Math.min(nextK, maxK);
         }
 
-        // fallback (praticamente mai qui)
         return [];
     }
 
-    /**
-     * Oversampling euristico:
-     * - Primo tentativo:  n + max(10, ceil(n*0.5)) se allowUnnamed, altrimenti n + max(8, ceil(n*0.25))
-     * - Secondo tentativo: scala ×2 (cap a 1000).
-     */
+    private normalizeEmbedding(embedding: number[] | string): number[] {
+        if (Array.isArray(embedding)) {
+            return embedding
+                .map(Number)
+                .filter(value => Number.isFinite(value));
+        }
+
+        return String(embedding)
+            .replace(/^\[|\]$|^{|}$/g, '')
+            .split(',')
+            .map(value => Number(value.replace(/^"(.*)"$/, '$1')))
+            .filter(value => Number.isFinite(value));
+    }
+
     private oversample(n: number, allowUnnamed: boolean, firstTry: boolean): number {
-        const add = allowUnnamed ? Math.max(10, Math.ceil(n * 0.5)) : Math.max(8, Math.ceil(n * 0.25));
+        const add = allowUnnamed
+            ? Math.max(10, Math.ceil(n * 0.5))
+            : Math.max(8, Math.ceil(n * 0.25));
         const k1 = n + add;
         if (firstTry) return Math.min(k1, 600);
-        // retry: raddoppia ma con tetto
         return Math.min(Math.max(n + add * 2, k1 * 2), 1000);
     }
 }

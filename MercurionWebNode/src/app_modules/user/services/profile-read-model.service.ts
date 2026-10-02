@@ -3,13 +3,13 @@ import { DataSource, EntityManager } from 'typeorm'
 import { UUID } from 'crypto'
 import { MoleculeCollection } from 'src/app_modules/molecule-collection/models/entities/molecule-collection.entity'
 import { MoleculeCollectionItemEntity } from 'src/app_modules/molecule-collection/models/entities/molecule-collection-item.entity'
-import { AuthIdentity } from 'src/app_modules/sso/models/entities/auth-identity.entity'
 import { User } from '../models/entities/user.entity'
 import { ProfileDTO } from 'src/app_modules/auth/models/dto/profile.dtos'
 import { TinyHistoryDTO } from 'src/app_modules/history/models/dto/history.dto'
 import { HistoryService } from 'src/app_modules/history/services/history.service'
 import { SecurityService } from 'src/app_modules/auth/services/security.service'
 import { runInTransaction } from 'src/persistence/transaction-context'
+import { AuthProvider } from 'src/app_modules/sso/models/enums/auth-provider.enum'
 
 export type ProfileReadModel = Readonly<ProfileDTO>
 
@@ -25,7 +25,7 @@ export class ProfileReadModelService {
         private readonly dataSource: DataSource,
         private readonly historyService: HistoryService,
         private readonly securityService: SecurityService,
-    ) {}
+    ) { }
 
     public getVerifiedUserProfileById(
         id: UUID,
@@ -45,15 +45,40 @@ export class ProfileReadModelService {
                     avatarId: true,
                     sso: true,
                     initials: true,
+                    authIdentities: {
+                        provider: true,
+                        email: true,
+                        providerSubject: true
+                    }
                 },
+                relations: {
+                    authIdentities: true
+                }
             })
 
             if (!profileRow) {
                 return null
             }
 
-            const email = await this.readProfileEmail(manager, profileRow)
-            if (email === null) {
+            let accountId: string | null
+            let isOrcid = false
+
+            const authIdentity = profileRow.authIdentities?.[0]
+            if (profileRow.sso) {
+                if (!authIdentity) {
+                    return null
+                }
+                if (authIdentity.provider === 'ORCID') {
+                    accountId = authIdentity.providerSubject
+                    isOrcid = true
+                } else {
+                    accountId = authIdentity.email
+                }
+            } else {
+                accountId = profileRow.email
+            }
+
+            if (accountId == null) {
                 return null
             }
 
@@ -67,7 +92,11 @@ export class ProfileReadModelService {
                 lastName: profileRow.lastName,
                 gender: profileRow.gender,
                 job: profileRow.job,
-                obscuredEmail: this.securityService.maskEmail(email),
+                obscuredAccountId: isOrcid ? this.securityService.mask_ORCID(accountId) : this.securityService.maskEmail(accountId),
+                accountIdKind: isOrcid ? 'orcid' : 'email',
+                identityProvider: profileRow.sso
+                    ? authIdentity.provider
+                    : AuthProvider.Mercurion,
                 obscuredPhone: profileRow.completePhoneNumber
                     ? this.securityService.maskPhone(profileRow.completePhoneNumber)
                     : null,
@@ -79,21 +108,6 @@ export class ProfileReadModelService {
                 initials: profileRow.initials,
             })
         })
-    }
-
-    private async readProfileEmail(
-        manager: EntityManager,
-        profileRow: Pick<User, 'id' | 'email' | 'sso'>,
-    ): Promise<string | null> {
-        if (!profileRow.sso) {
-            return profileRow.email
-        }
-
-        const identity = await manager.findOne(AuthIdentity, {
-            where: { userId: profileRow.id },
-            select: { email: true },
-        })
-        return identity?.email ?? null
     }
 
     private async readProfileMetrics(

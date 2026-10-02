@@ -20,7 +20,10 @@ describe('CompleteSsoAuthenticationHandler', () => {
         getUserInitialsByUserId: jest.fn()
     }
     const geoIpService = { getLocation: jest.fn() }
-    const securityService = { signDeviceId: jest.fn() }
+    const securityService = {
+        decryptUserId: jest.fn((encryptedUserId: string) => encryptedUserId),
+        signDeviceId: jest.fn()
+    }
     const authenticationSession = { generateFingerprint: jest.fn() }
 
     beforeEach(() => {

@@ -132,13 +132,15 @@ export class CompleteMfaLoginHandler {
         let userId: UUID
         let sessionId: UUID
         let jti: UUID
+        let sub: string
 
         try {
-            ({ sub: userId, sid: sessionId, jti } =
+            ({ sub, sid: sessionId, jti } =
                 await this.jwtTools.verifyTokenAndGetPayload(
                     command.preAuthorizationToken,
                     TokenType.PreAuthorizationToken
                 ))
+            userId = this.securityService.decryptUserId(sub)
         } catch {
             try {
                 await this.jwtTools.verifyTokenAndGetPayload(

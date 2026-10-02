@@ -1,6 +1,11 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
+import { signal } from '@angular/core';
+import { of } from 'rxjs';
 
 import { HeaderComponent } from './header.component';
+import { UserContextService } from '../../../services/context/user-context.service';
+import { AccountService } from '../../../services/account.service';
+import { DesignService } from '../../../services/design.service';
 
 describe('HeaderComponent', () => {
   let component: HeaderComponent;
@@ -20,6 +25,18 @@ describe('HeaderComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('aligns the theme menu right edge with its trigger', fakeAsync(() => {
+    const trigger = fixture.nativeElement.querySelector('.theme-toggle-button') as HTMLElement;
+    trigger.click();
+    fixture.detectChanges();
+    tick(0);
+    fixture.detectChanges();
+
+    const menu = fixture.nativeElement.querySelector('.theme-menu-container.absolute') as HTMLElement;
+    expect(menu).toBeTruthy();
+    expect(Math.abs(menu.getBoundingClientRect().right - trigger.getBoundingClientRect().right)).toBeLessThan(1);
+  }));
 
   describe('deterministic mount/visible timer ownership', () => {
     beforeEach(() => jasmine.clock().install());
@@ -100,4 +117,34 @@ describe('HeaderComponent', () => {
       expect(() => jasmine.clock().tick(500)).not.toThrow();
     });
   });
+});
+
+describe('HeaderComponent avatar menu positioning', () => {
+  it('aligns the menu right edge with its trigger', fakeAsync(() => {
+    TestBed.configureTestingModule({
+      imports: [HeaderComponent],
+      providers: [
+        { provide: UserContextService, useValue: { isLoggedIn: signal(true), initials: signal('AB') } },
+        { provide: AccountService, useValue: { getProvidedAccountId: () => of(null) } }
+      ]
+    });
+    spyOn(TestBed.inject(DesignService), 'minBk').and.returnValue(signal(true));
+    const fixture = TestBed.createComponent(HeaderComponent);
+    fixture.detectChanges();
+    (fixture.componentInstance as any).isAllowedPath.set(true);
+    fixture.detectChanges();
+
+    const trigger = fixture.nativeElement.querySelector('.avatar-toggle-button') as HTMLElement;
+    expect(trigger).toBeTruthy();
+    trigger.click();
+    fixture.detectChanges();
+    tick(0);
+    fixture.detectChanges();
+
+    const anchor = fixture.nativeElement.querySelector('.avatar-menu-anchor') as HTMLElement;
+    const menu = fixture.nativeElement.querySelector('.avatar-menu-container') as HTMLElement;
+    expect(anchor.contains(menu)).toBeTrue();
+    expect(Math.abs(menu.getBoundingClientRect().right - trigger.getBoundingClientRect().right)).toBeLessThan(1);
+    expect(menu.getBoundingClientRect().top).toBeGreaterThanOrEqual(trigger.getBoundingClientRect().bottom);
+  }));
 });

@@ -20,7 +20,7 @@ describe('MailSenderService', () => {
           provide: UserService,
           useValue: {
             getUserFirstNameById: jest.fn(),
-            getUserProvidedEmailById: jest.fn(),
+            getUserEmailById: jest.fn(),
           },
         },
         {

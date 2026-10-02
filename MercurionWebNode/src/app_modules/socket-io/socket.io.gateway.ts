@@ -1,5 +1,5 @@
 import { WebSocketGateway, WebSocketServer, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, MessageBody, ConnectedSocket } from '@nestjs/websockets';
-import { OnApplicationShutdown } from '@nestjs/common'
+import { OnApplicationBootstrap, OnApplicationShutdown } from '@nestjs/common'
 import { Server, Socket } from 'socket.io';
 import { UseGuards } from '@nestjs/common';
 import Redis from 'ioredis';
@@ -32,6 +32,7 @@ import {
   createCorrelationId,
   presentApplicationError
 } from 'src/exception-handling/application-error-envelope';
+import { SecurityService } from '../auth/services/security.service';
 
 type ApplicationServer = Server<ClientToServerEvents, ServerToClientEvents>
 type ApplicationSocket = Socket<ClientToServerEvents, ServerToClientEvents>
@@ -71,7 +72,7 @@ export function createSocketContractVersionMiddleware(
 
 @WebSocketGateway()
 @UseGuards(WsGuard)
-export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, OnApplicationShutdown {
+export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, OnApplicationBootstrap, OnApplicationShutdown {
 
   private readonly logger: LoggerContext
   private readonly redisConf: RedisConfiguration
@@ -86,6 +87,7 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
     private readonly configService: ConfigService,
     private readonly pubSubService: PubSubService,
     private readonly jwtTools: JwtToolsService,
+    private readonly securityService: SecurityService,
     loggerFactory: LoggerPort
   ) {
     this.logger = loggerFactory.forContext(SocketIOGateway.name)
@@ -110,6 +112,12 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
     this.logger.log('Socket.IO Redis Adapter e PubSubService pronti! 🚀')
   }
 
+  onApplicationBootstrap(): void {
+    if (!this.initialized) {
+      throw new Error('Socket.IO gateway was not initialized. Check that @nestjs/core can load @nestjs/websockets from the workspace dependency tree.')
+    }
+  }
+
   async onApplicationShutdown(): Promise<void> {
     await Promise.all([
       this.pubClient?.status !== 'end' ? this.pubClient?.quit() : undefined,
@@ -131,10 +139,11 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
 
     try {
 
-      const { sub: userId, sid: sessionId } = await this.jwtTools.verifyTokenAndGetPayload(token, TokenType.ws_AccessToken);
+      const { sub, sid: sessionId } = await this.jwtTools.verifyTokenAndGetPayload(token, TokenType.ws_AccessToken);
+      const userId = this.securityService.decryptUserId(sub)
 
-      client.data.userId = userId;
-      client.data.sessionId = sessionId;
+      client.data.userId = userId
+      client.data.sessionId = sessionId
 
       this.joinUserRooms(client);  // idempotente, usa già .rooms.has(...)
       this.logger.log(

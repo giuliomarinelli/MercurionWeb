@@ -19,6 +19,7 @@ import { PmOption } from '../../Models/pm-option.model';
 import { RouterLink } from '@angular/router';
 import { TurnstileComponent } from '../../components/common/turnstile/turnstile.component';
 import { adaptHttpFormError, type FormErrorState } from '../../utils/form-error.adapter'
+import { ApplicationErrorCode, getApplicationErrorCode } from '../../utils/application-error.util';
 
 
 @Component({
@@ -36,7 +37,7 @@ import { adaptHttpFormError, type FormErrorState } from '../../utils/form-error.
   template: `
 
     @if (userContext.isLoggedOut()) {
-      <main class="main-container min-h-screen max-w-[425px] sm:max-w-4xl" role="main" aria-live="polite" [attr.aria-busy]="loading()">
+      <main class="main-container min-h-dvh max-w-[425px] sm:max-w-4xl" role="main" aria-live="polite" [attr.aria-busy]="loading()">
         <div class="flex flex-col items-center px-4">
           <img
             [src]="logoSrc() | public"
@@ -58,7 +59,7 @@ import { adaptHttpFormError, type FormErrorState } from '../../utils/form-error.
             <form [formGroup]="form" (ngSubmit)="onSubmit()" aria-labelledby="register-heading" [attr.aria-busy]="loading()">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-8">
               <m-text-field
-                  label="Nome *"
+                  label="Nome"
                   type="text"
                   autocomplete="current-name"
                   formControlName="firstName"
@@ -68,7 +69,7 @@ import { adaptHttpFormError, type FormErrorState } from '../../utils/form-error.
                   }"
               />
               <m-text-field
-                  label="Cognome *"
+                  label="Cognome"
                   type="text"
                   autocomplete="current-surname"
                   formControlName="lastName"
@@ -80,7 +81,7 @@ import { adaptHttpFormError, type FormErrorState } from '../../utils/form-error.
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-6">
               <m-text-field
-                  label="E-mail *"
+                  label="E-mail"
                   type="email"
                   autocomplete="current-email"
                   formControlName="email"
@@ -88,7 +89,8 @@ import { adaptHttpFormError, type FormErrorState } from '../../utils/form-error.
                     required: this.emailRequired,
                     pattern: this.emailMalformed,
                     email: this.emailMalformed,
-                    emailTaken: 'E-mail già registrata.'
+                    emailTaken: 'E-mail già registrata.',
+                    serverError: 'Impossibile verificare la disponibilità dell’e-mail. Riprova.'
                   }"
               />
               <m-text-field
@@ -131,14 +133,13 @@ import { adaptHttpFormError, type FormErrorState } from '../../utils/form-error.
                   }"
               />
             </div>
-            <div class="flex gap-3 relative top-2 sm:top-4 justify-center sm:justify-start">
-              <div class="flex-col sm:flex-row flex h-6 shrink-0 justify-center gap-y-1 sm:items-center">
-                <!-- wrapper visivo -->
-                <label class="relative inline-flex items-center gap-2 cursor-pointer select-none">
+            <div class="relative top-2 sm:top-4 w-full">
+              <div class="w-full min-w-0">
+                <label class="relative flex w-full min-w-0 items-start gap-3  cursor-pointer select-none">
                   <input id="onlyKnown" type="checkbox" name="onlyKnown" aria-describedby="accept-terms-description"
                     class="peer sr-only" [formControl]="acceptCtrl" role="switch" aria-label="Accetto privacy e termini" [attr.aria-checked]="acceptCtrl.value" />
 
-                  <span class="inline-block size-4 rounded-sm border
+                  <span class="mt-0.5 inline-block size-4 shrink-0 rounded-sm border
                                      border-gray-300 bg-white
                                      peer-checked:bg-blue-600/80
                                      dark:border-white/10 dark:bg-white/5
@@ -146,37 +147,37 @@ import { adaptHttpFormError, type FormErrorState } from '../../utils/form-error.
                     aria-hidden="true"></span>
 
                   <svg viewBox="0 0 14 14" fill="none" class="pointer-events-none hidden peer-checked:block
-                                     absolute left-[2px] top-1/2 -translate-y-1/2 size-3.5 z-10" aria-hidden="true">
+                                     absolute left-[2px] top-[3px] size-3.5 z-10" aria-hidden="true">
                     <path d="M3 8L6 11L11 3.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                       class="stroke-white" />
                   </svg>
 
-                  <span id="accept-terms-description" class="inline-block text-sm font-medium text-gray-900 dark:text-white tracking-wider">
-                    Dichiaro di aver letto e di accettare l'<br />
-                    <a class="a" routerLink="/privacy">Informativa sulla Privacy</a>,<br />
-                    i <a class="a" routerLink="/terms-and-policies">Termini di Servizio</a><br />
-                    e la <a class="a" routerLink="/terms-and-policies" fragment="aup">Politica di Utilizzo Accettabile</a>.
+                  <span id="accept-terms-description" class="min-w-0 flex-1 break-words text-sm font-medium text-gray-900 dark:text-white tracking-wider">
+                    Dichiaro di aver letto e di accettare l'<a class="a" routerLink="/privacy">Informativa sulla Privacy</a>, i <a class="a" routerLink="/terms-and-policies">Termini di Servizio</a> e la <a class="a" routerLink="/terms-and-policies" fragment="aup">Politica di Utilizzo Accettabile</a>.
                   </span>
                 </label>
               </div>
             </div>
             <div class="flex justify-center mt-10">
-            @if (loadingTurnstile()) {
-              <div
-                class="w-[300px] h-[71px] overflow-hidden transition-all bg-neutral-200 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 animate-pulse skeleton-pulse"
-                role="status"
-                aria-live="polite"
-              >
-                <span class="sr-only">Loading CAPTCHA…</span>
+              <div class="relative top-9 h-[71px] w-[300px]">
+                @if (loadingTurnstile()) {
+                  <div
+                    class="absolute inset-0 overflow-hidden border border-neutral-300 bg-neutral-200 transition-all animate-pulse skeleton-pulse dark:border-neutral-700 dark:bg-neutral-800"
+                    role="status"
+                    aria-live="polite"
+                  >
+                    <span class="sr-only">Loading CAPTCHA…</span>
+                  </div>
+                }
+                <m-turnstile
+                  (token)="onTurnstileToken($event)"
+                  (widgetReady)="onTurnstileRender()"
+                  (refresh)="loadingTurnstile.set(true)"
+                  class="block h-[71px]"
+                  [class.invisible]="loadingTurnstile()"
+                />
               </div>
-            }
-            <m-turnstile
-              (token)="onTurnstileToken($event)"
-              (widgetReady)="onTurnstileRender()"
-              (refresh)="loadingTurnstile.set(true)"
-              class="block h-[71px] relative top-9"
-            />
-          </div>
+            </div>
             <div class="max-w-sm mx-auto mt-20">
               <button
                 type="submit"
@@ -190,7 +191,7 @@ import { adaptHttpFormError, type FormErrorState } from '../../utils/form-error.
                   Registrati
                 } @else {
                   <div class="text-slate-200 flex items-center justify-center" aria-hidden="true">
-                    <m-progress-indicator [size]="24"></m-progress-indicator>
+                    <m-progress-indicator [size]="20" />
                   </div>
                 }
               </button>
@@ -266,7 +267,7 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
         validators: [Validators.pattern(/^(?:[A-Za-zÀ-Ýà-ÿ]+(?:\s+[A-Za-zÀ-Ýà-ÿ]+)*)?$/)] }),
       gender: this.fb.control<UserGenderControl>('', { validators: [Validators.required] }),
       password: this.fb.control('', {
-        validators: [Validators.required, Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8 }$/)] }),
+        validators: [Validators.required, Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/)] }),
       confirmPassword: this.fb.control('', { validators: [Validators.required, matchPassword] }) },
     { validators: matchPassword }
   )
@@ -299,10 +300,11 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
   onSubmit(): void {
     if (this.form.valid) {
       if (!this.turnstileToken()) {
-        this.turnstileComponent()?.reset()
         this.turnstileToken.set('')
         this.loadingTurnstile.set(true)
+        this.turnstileComponent()?.reset()
         this.loading.set(false)
+        return
       }
       this.loading.set(true)
       const { confirmPassword: _omit, ...dto } = this.form.value as UserRegistrationFormValue
@@ -338,25 +340,25 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
             USER_REGISTRATION_EMAIL_CONFLICT: { email: 'email' }
           })
           this.serverError.set(formError)
-          if (formError.fieldErrors.email) {
+          if (getApplicationErrorCode(error) === ApplicationErrorCode.USER_REGISTRATION_EMAIL_CONFLICT || formError.fieldErrors.email) {
             this.form.controls.email.setErrors({
               ...this.form.controls.email.errors,
-              server: formError.fieldErrors.email
+              emailTaken: true
             })
             this.form.controls.email.markAsTouched()
           } else if (formError.globalError) {
             this.toast.trigger(formError.globalError, 'error', 3000)
           }
-          this.turnstileComponent()?.reset()
           this.turnstileToken.set('')
           this.loadingTurnstile.set(true)
+          this.turnstileComponent()?.reset()
           this.loading.set(false)
         }
       })
     } else {
-      this.turnstileComponent()?.reset()
       this.turnstileToken.set('')
       this.loadingTurnstile.set(true)
+      this.turnstileComponent()?.reset()
       this.settedDisabledBtn.set(true)
       this.toast.trigger('Errore: controlla i campi con le scritte in rosso!')
       this.markAll()
@@ -365,6 +367,7 @@ export class RegisterPageComponent implements OnInit, OnDestroy {
 
   onTurnstileToken(token: string): void {
     this.turnstileToken.set(token)
+    if (token) this.loadingTurnstile.set(false)
   }
 
   onTurnstileRender(): void {

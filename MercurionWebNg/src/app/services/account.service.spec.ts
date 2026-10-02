@@ -5,9 +5,9 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { firstValueFrom } from 'rxjs'
 import { AccountService } from './account.service'
 import { AuthStateStore, type AuthenticatedClientSession } from './auth-state.store'
-import { PROVIDED_EMAIL_CACHE_CLOCK } from './provided-email-cache.tokens'
+import { PROVIDED_ACCOUNT_ID_CACHE_CLOCK } from './provided-email-cache.tokens'
 
-describe('AccountService provided-email cache', () => {
+describe('AccountService provided-account-id cache', () => {
   let service: AccountService
   let http: HttpTestingController
   let now: number
@@ -34,7 +34,7 @@ describe('AccountService provided-email cache', () => {
           provide: AuthStateStore,
           useValue: { clientSession: activeSession.asReadonly() }
         },
-        { provide: PROVIDED_EMAIL_CACHE_CLOCK, useValue: () => now }
+        { provide: PROVIDED_ACCOUNT_ID_CACHE_CLOCK, useValue: () => now }
       ]
     })
     service = TestBed.inject(AccountService)
@@ -43,80 +43,82 @@ describe('AccountService provided-email cache', () => {
 
   afterEach(() => http.verify())
 
-  const flushEmail = (email: string) => {
-    http.expectOne('/api/account/email').flush({ email, provider: 'Mercurion' })
+  const flushAccountId = (accountId: string) => {
+    http.expectOne('/api/account/provided-account-id').flush({ accountId, kind: 'email', provider: 'Mercurion' })
   }
 
   it('hits once while the active owner and finite TTL are valid', async () => {
-    const first = firstValueFrom(service.getProvidedEmail())
-    flushEmail('a@example.test')
-    await expectAsync(first).toBeResolvedTo({ email: 'a@example.test', provider: 'Mercurion' })
+    const first = firstValueFrom(service.getProvidedAccountId())
+    flushAccountId('a@example.test')
+    await expectAsync(first).toBeResolvedTo({ accountId: 'a@example.test', kind: 'email', provider: 'Mercurion' })
 
-    await expectAsync(firstValueFrom(service.getProvidedEmail())).toBeResolvedTo({
-      email: 'a@example.test',
+    await expectAsync(firstValueFrom(service.getProvidedAccountId())).toBeResolvedTo({
+      accountId: 'a@example.test',
+      kind: 'email',
       provider: 'Mercurion'
     })
 
     now += AccountService.PROVIDED_EMAIL_CACHE_TTL_MS
-    const expired = firstValueFrom(service.getProvidedEmail())
-    flushEmail('a-fresh@example.test')
-    await expectAsync(expired).toBeResolvedTo({ email: 'a-fresh@example.test', provider: 'Mercurion' })
+    const expired = firstValueFrom(service.getProvidedAccountId())
+    flushAccountId('a-fresh@example.test')
+    await expectAsync(expired).toBeResolvedTo({ accountId: 'a-fresh@example.test', kind: 'email', provider: 'Mercurion' })
   })
 
   it('coalesces concurrent reads for the active owner', async () => {
-    const first = firstValueFrom(service.getProvidedEmail())
-    const second = firstValueFrom(service.getProvidedEmail())
+    const first = firstValueFrom(service.getProvidedAccountId())
+    const second = firstValueFrom(service.getProvidedAccountId())
 
-    flushEmail('a@example.test')
+    flushAccountId('a@example.test')
 
-    await expectAsync(first).toBeResolvedTo({ email: 'a@example.test', provider: 'Mercurion' })
-    await expectAsync(second).toBeResolvedTo({ email: 'a@example.test', provider: 'Mercurion' })
+    await expectAsync(first).toBeResolvedTo({ accountId: 'a@example.test', kind: 'email', provider: 'Mercurion' })
+    await expectAsync(second).toBeResolvedTo({ accountId: 'a@example.test', kind: 'email', provider: 'Mercurion' })
   })
 
   it('does not reuse data after logout or session replacement', async () => {
-    const first = firstValueFrom(service.getProvidedEmail())
-    flushEmail('a@example.test')
+    const first = firstValueFrom(service.getProvidedAccountId())
+    flushAccountId('a@example.test')
     await first
 
     activeSession.set(null)
-    const anonymous = firstValueFrom(service.getProvidedEmail())
-    flushEmail('anonymous@example.test')
+    const anonymous = firstValueFrom(service.getProvidedAccountId())
+    flushAccountId('anonymous@example.test')
     await anonymous
 
     activeSession.set(session('user-b', 'session-b'))
-    const replacement = firstValueFrom(service.getProvidedEmail())
-    flushEmail('b@example.test')
-    await expectAsync(replacement).toBeResolvedTo({ email: 'b@example.test', provider: 'Mercurion' })
+    const replacement = firstValueFrom(service.getProvidedAccountId())
+    flushAccountId('b@example.test')
+    await expectAsync(replacement).toBeResolvedTo({ accountId: 'b@example.test', kind: 'email', provider: 'Mercurion' })
   })
 
   it('invalidates after a successful email mutation', async () => {
-    const first = firstValueFrom(service.getProvidedEmail())
-    flushEmail('old@example.test')
+    const first = firstValueFrom(service.getProvidedAccountId())
+    flushAccountId('old@example.test')
     await first
 
     const mutation = firstValueFrom(service.changeEmail_secondStep('123456', 'secure'))
     http.expectOne('/api/account/email/2').flush({ confirmed: true })
     await mutation
 
-    const refreshed = firstValueFrom(service.getProvidedEmail())
-    flushEmail('new@example.test')
-    await expectAsync(refreshed).toBeResolvedTo({ email: 'new@example.test', provider: 'Mercurion' })
+    const refreshed = firstValueFrom(service.getProvidedAccountId())
+    flushAccountId('new@example.test')
+    await expectAsync(refreshed).toBeResolvedTo({ accountId: 'new@example.test', kind: 'email', provider: 'Mercurion' })
   })
 
   it('ignores a late response started by the previous session', async () => {
-    const oldRequest = firstValueFrom(service.getProvidedEmail())
-    const old = http.expectOne('/api/account/email')
+    const oldRequest = firstValueFrom(service.getProvidedAccountId())
+    const old = http.expectOne('/api/account/provided-account-id')
 
     activeSession.set(session('user-b', 'session-b'))
-    const newRequest = firstValueFrom(service.getProvidedEmail())
-    const current = http.expectOne('/api/account/email')
-    current.flush({ email: 'b@example.test', provider: 'Mercurion' })
+    const newRequest = firstValueFrom(service.getProvidedAccountId())
+    const current = http.expectOne('/api/account/provided-account-id')
+    current.flush({ accountId: 'b@example.test', kind: 'email', provider: 'Mercurion' })
     await newRequest
-    old.flush({ email: 'a@example.test', provider: 'Mercurion' })
+    old.flush({ accountId: 'a@example.test', kind: 'email', provider: 'Mercurion' })
     await oldRequest
 
-    await expectAsync(firstValueFrom(service.getProvidedEmail())).toBeResolvedTo({
-      email: 'b@example.test',
+    await expectAsync(firstValueFrom(service.getProvidedAccountId())).toBeResolvedTo({
+      accountId: 'b@example.test',
+      kind: 'email',
       provider: 'Mercurion'
     })
   })

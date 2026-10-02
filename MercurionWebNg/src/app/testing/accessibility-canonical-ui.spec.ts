@@ -13,10 +13,11 @@ import { ProgressIndicatorComponent } from '../components/common/progress-indica
 import { SearchFieldComponent } from '../components/common/search-field/search-field.component';
 import { SelectionControlComponent } from '../components/common/selection-control/selection-control.component';
 import { SelectCoreComponent } from '../components/common/select-core/select-core.component';
-import { TabsComponent } from '../components/common/tabs/tabs.component';
+import { TabsModule } from 'primeng/tabs';
 import { TextFieldComponent } from '../components/common/text-field/text-field.component';
 import { TextareaComponent } from '../components/common/textarea/textarea.component';
 import { ToastComponent } from '../components/common/toast/toast.component';
+import { ThemeManagerService } from '../services/context/theme-manager.service';
 import { ToastService } from '../services/toast.service';
 import {
   blockingViolations,
@@ -43,7 +44,7 @@ interface SelectItem {
     SearchFieldComponent,
     SelectionControlComponent,
     SelectCoreComponent,
-    TabsComponent,
+    TabsModule,
     TextFieldComponent,
     TextareaComponent,
     ToastComponent,
@@ -51,12 +52,12 @@ interface SelectItem {
   template: `
     <main
       aria-label="Canonical UI accessibility fixture"
-      style="background: #ffffff; color: #11141d; --color-control-primary: #4338ca; --color-on-surface-main: #11141d; --color-control-primary-hover: #3730a3"
+      style="background: #ffffff; color: #11141d; --m-color-control-primary: #4338ca; --m-color-on-surface-main: #11141d; --m-color-control-primary-hover: #3730a3"
     >
       <h1>Canonical controls</h1>
       <form (submit)="$event.preventDefault()">
         <m-button
-          style="--color-on-surface-main: #ffffff"
+          style="--m-color-on-surface-main: #ffffff"
           ariaLabel="Save changes"
           [disabled]="saveDisabled"
           (pressed)="submitted = true">Save</m-button>
@@ -86,17 +87,17 @@ interface SelectItem {
           label="Collection"
           hint="Choose a collection"
           [selected]="items[0]" />
-        <m-tabs
-          [tabs]="['Overview', 'History']"
-          [activeIndex]="activeTab"
-          ariaLabel="Molecule sections"
-          (tabChange)="activeTab = $event" />
-        <div id="m-tabs-tab-0-tabpanel" role="tabpanel" aria-labelledby="m-tabs-tab-0-tab">
-          Overview content
-        </div>
-        <div id="m-tabs-tab-1-tabpanel" role="tabpanel" aria-labelledby="m-tabs-tab-1-tab">
-          History content
-        </div>
+        <p-tabs [value]="activeTab" (valueChange)="selectTab($event)"
+          style="--p-tabs-tab-active-color: var(--m-color-accent-primary); --p-tabs-tab-active-border-color: var(--m-color-accent-primary); --p-tabs-active-bar-background: var(--m-color-accent-primary)">
+          <p-tablist aria-label="Molecule sections">
+            <p-tab [value]="0">Overview</p-tab>
+            <p-tab [value]="1">History</p-tab>
+          </p-tablist>
+          <p-tabpanels>
+            <p-tabpanel [value]="0">Overview content</p-tabpanel>
+            <p-tabpanel [value]="1">History content</p-tabpanel>
+          </p-tabpanels>
+        </p-tabs>
         <m-disclosure
           label="Advanced options"
           id="advanced-options"
@@ -104,7 +105,7 @@ interface SelectItem {
           (toggled)="disclosureExpanded = $event">
           <p>Additional settings</p>
         </m-disclosure>
-        <m-button style="--color-on-surface-main: #ffffff" type="submit">Submit</m-button>
+        <m-button style="--m-color-on-surface-main: #ffffff" type="submit">Submit</m-button>
       </form>
       <m-action-card labelledBy="action-title" closeLabel="Close action">
         <h2 id="action-title" action-card-title>Action</h2>
@@ -134,6 +135,9 @@ class CanonicalUiFixtureComponent {
   fieldError = '';
   dialogOpen = false;
   activeTab = 0;
+  selectTab(value: string | number | undefined): void {
+    this.activeTab = Number(value);
+  }
   disclosureExpanded = false;
   items: SelectItem[] = [
     { id: 'one', label: 'First collection' },
@@ -163,16 +167,29 @@ describe('canonical UI accessibility coverage', () => {
   }
 
   beforeEach(async () => {
+    localStorage.clear()
+    document.documentElement.classList.remove('dark')
+    document.documentElement.removeAttribute('data-theme')
+    document.body.classList.remove('dark')
+
     await TestBed.configureTestingModule({
       imports: [CanonicalUiFixtureComponent],
     }).compileComponents();
 
+    TestBed.inject(ThemeManagerService).chooseTheme('light')
     fixture = TestBed.createComponent(CanonicalUiFixtureComponent);
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
     await waitForRenderedStyles();
   });
+
+  afterEach(() => {
+    localStorage.clear()
+    document.documentElement.classList.remove('dark')
+    document.documentElement.removeAttribute('data-theme')
+    document.body.classList.remove('dark')
+  })
 
   async function expectNoBlockingViolations(): Promise<AxeResults> {
     const results = await runAxe(fixture.nativeElement);
@@ -192,7 +209,7 @@ describe('canonical UI accessibility coverage', () => {
   it('keeps every interactive primitive keyboard reachable in deterministic order', () => {
     const controls = Array.from(
       (fixture.nativeElement as HTMLElement).querySelectorAll(
-        'button, input, textarea, [role="combobox"]',
+        'button, input, textarea, [role="combobox"], [role="tab"]',
       ),
     ) as HTMLElement[];
 
@@ -259,12 +276,12 @@ describe('canonical UI accessibility coverage', () => {
 
   it('tests tabs, disclosure and combobox keyboard activation', async () => {
     const tablist = nativeElement('[role="tablist"]');
-    const tabs = Array.from(tablist.querySelectorAll<HTMLButtonElement>('[role="tab"]'));
+    const tabs = Array.from(tablist.querySelectorAll<HTMLElement>('[role="tab"]'));
     tabs[0].focus();
-    tablist.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+    tabs[0].dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', code: 'ArrowRight', bubbles: true }));
     await fixture.whenStable();
     fixture.detectChanges();
-    expect(document.activeElement?.id).toBe('m-tabs-tab-1-tab');
+    expect(document.activeElement).toBe(tabs[1]);
 
     const disclosure = nativeElement('#advanced-options-trigger') as HTMLButtonElement;
     disclosure.click();
@@ -283,7 +300,9 @@ describe('canonical UI accessibility coverage', () => {
 
     combobox.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
     fixture.detectChanges();
-    expect(combobox.getAttribute('aria-expanded')).toBe('false');
+    expect(combobox.getAttribute('aria-expanded')).toBe('true');
+    expect(combobox.getAttribute('aria-activedescendant')).toBeNull();
+    expect(nativeElement('[role="listbox"]')).toBeTruthy();
     expect(document.activeElement).toBe(combobox);
   });
 

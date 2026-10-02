@@ -1,0 +1,24 @@
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { NotificationButtonComponent } from './notification-button.component';
+
+describe('NotificationButtonComponent', () => {
+  let component: NotificationButtonComponent;
+  let fixture: ComponentFixture<NotificationButtonComponent>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [NotificationButtonComponent]
+    })
+    .compileComponents();
+
+    fixture = TestBed.createComponent(NotificationButtonComponent);
+    fixture.componentRef.setInput('unreadCount', 0);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});

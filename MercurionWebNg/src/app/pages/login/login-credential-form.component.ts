@@ -4,7 +4,8 @@ import {
   DestroyRef,
   inject,
   output,
-  signal
+  signal,
+  viewChild
 } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import {
@@ -73,26 +74,41 @@ type CredentialForm = {
           [serverError]="credentialError()"
         />
         <button type="submit" [disabled]="!canSubmit()" [attr.aria-busy]="pending()"
-          class="relative bottom-[2px] mt-4 w-full rounded-md bg-light-accent-primary-hq py-2 text-white transition-colors duration-150 hover:bg-light-accent-primary-hc disabled:cursor-not-allowed disabled:bg-light-accent-primary-hq/60 disabled:hover:bg-light-accent-primary-hq/60 dark:bg-dark-accent-primary-btn dark:hover:bg-dark-accent-primary/80 dark:disabled:bg-dark-accent-primary/80 dark:disabled:hover:bg-dark-accent-primary/80"
+          class="flex justify-center items-center mt-4 w-full rounded-md bg-light-accent-primary-hq py-2 text-white transition-colors duration-150 hover:bg-light-accent-primary-hc disabled:cursor-not-allowed disabled:bg-light-accent-primary-hq/60 disabled:hover:bg-light-accent-primary-hq/60 dark:bg-dark-accent-primary-btn dark:hover:bg-dark-accent-primary/80 dark:disabled:bg-dark-accent-primary/80 dark:disabled:hover:bg-dark-accent-primary/80 h-10"
           [attr.aria-disabled]="!canSubmit()"
           aria-label="Accedi al tuo account">
-          @if (pending()) { <m-progress-indicator [size]="24" /> } @else { Accedi }
+          @if (pending()) { <m-progress-indicator [size]="20" /> } @else { Accedi }
         </button>
         @if (!turnstileDisabled) {
-          <m-turnstile
-            (token)="onTurnstileToken($event)"
-            (widgetReady)="turnstileReady.emit()"
-            (refresh)="turnstileLoading.set(true)"
-          />
+          <div class="flex justify-center relative top-3 mb-3">
+            <div class="relative w-[300px] h-[71px]">
+              @if (turnstileLoading()) {
+                <div
+                  class="absolute inset-0 overflow-hidden bg-neutral-200 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 animate-pulse skeleton-pulse"
+                >
+                  <span class="sr-only">Loading CAPTCHA…</span>
+                </div>
+              }
+              <m-turnstile
+                (token)="onTurnstileToken($event)"
+                (widgetReady)="onTurnstileReady()"
+                (refresh)="turnstileLoading.set(true)"
+                class="block h-[71px]"
+                [class.invisible]="turnstileLoading()"
+              />
+            </div>
+          </div>
         }
       }
-      <m-selection-control
-        class="text-sm text-gray-600 dark:text-gray-300"
-        label="Ricordami per 30 giorni"
-        name="setting"
-        mode="switch"
-        formControlName="remember"
-      />
+      <div class="flex justify-center">
+        <m-selection-control
+          class="text-sm text-gray-600 dark:text-gray-300"
+          label="Ricordami per 30 giorni"
+          name="setting"
+          mode="switch"
+          formControlName="remember"
+        />
+      </div>
     </form>
   `,
   styles: [`
@@ -103,13 +119,17 @@ type CredentialForm = {
 export class LoginCredentialFormComponent {
   private readonly appConfig = inject(APP_CONFIG)
   private readonly destroyRef = inject(DestroyRef)
+  private readonly turnstileComponent = viewChild(TurnstileComponent)
 
   readonly form = new FormGroup<CredentialForm>({
-    email: new FormControl('', { nonNullable: true, validators: [
-      Validators.required,
-      Validators.email,
-      Validators.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)
-    ] }),
+    email: new FormControl('', {
+      nonNullable: true,
+      validators: [
+        Validators.required,
+        Validators.email,
+        Validators.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)
+      ]
+    }),
     password: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     remember: new FormControl(false, { nonNullable: true })
   })
@@ -148,10 +168,11 @@ export class LoginCredentialFormComponent {
     this.form.controls.password.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.credentialError.set(null))
+
   }
 
   canSubmit(): boolean {
-    return this.form.valid && (this.turnstileDisabled || Boolean(this.turnstileToken()))
+    return !this.pending() && this.form.valid && (this.turnstileDisabled || Boolean(this.turnstileToken()))
   }
 
   submitEmail(): void {
@@ -175,6 +196,7 @@ export class LoginCredentialFormComponent {
 
   showPasswordStep(): void {
     this.emailError.set(null)
+    this.turnstileLoading.set(true)
     this.step.set(2)
   }
 
@@ -193,10 +215,16 @@ export class LoginCredentialFormComponent {
 
   resetTurnstile(): void {
     this.turnstileToken.set('')
+    if (this.step() === 2) this.turnstileComponent()?.reset()
   }
 
   onTurnstileToken(token: string): void {
     this.turnstileToken.set(token)
     this.turnstile.emit(token)
+  }
+
+  onTurnstileReady(): void {
+    this.turnstileLoading.set(false)
+    this.turnstileReady.emit()
   }
 }

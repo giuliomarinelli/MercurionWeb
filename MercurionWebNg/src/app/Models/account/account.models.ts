@@ -17,7 +17,7 @@ export type {
   ProfileDTO,
   ProfileRegistryClientDTO,
   ProfileRegistryDTO,
-  ProvidedEmailDTO,
+  ProvidedAccountIdDTO,
   RecoverCredentialsDTO,
   RecoveryCodeDTO,
   SessionDTO,

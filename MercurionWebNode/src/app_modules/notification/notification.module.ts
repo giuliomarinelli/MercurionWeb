@@ -6,6 +6,7 @@ import { NotificationOutboxEvent } from './models/entities/notification-outbox-e
 import { NotificationOutboxService } from './services/outbox/notification-outbox.service';
 import { NotificationOutboxDispatcherService } from './services/outbox/notification-outbox-dispatcher.service';
 import { OutboxRepository } from '../../persistence/outbox/outbox-repository'
+import { InAppNotificationService } from './services/in-app-notification.service';
 
 @Global()
 @Module({
@@ -17,7 +18,8 @@ import { OutboxRepository } from '../../persistence/outbox/outbox-repository'
         MailSenderService,
         NotificationOutboxService,
         NotificationOutboxDispatcherService,
-        OutboxRepository
+        OutboxRepository,
+        InAppNotificationService
     ],
     exports: [
         SmsSenderService,

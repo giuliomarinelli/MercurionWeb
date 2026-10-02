@@ -1,8 +1,12 @@
 import { Args, Query, Resolver } from '@nestjs/graphql'
 import { MoleculeDetail } from '../models/dto/molecule-detail.gql.dtos'
 import { MoleculeService } from '../services/molecule.service'
-import { Public } from 'src/metadata/metadata'
+import { AuthenticatedUserId, Public } from 'src/metadata/metadata'
 import { MoleculeSearchResult } from '../models/dto/molecule-search-result.cls'
+import { CanonicalSmilesArgs } from '../models/dto/canonical-smiles.args.cls'
+import { UUID } from 'crypto'
+import { MoleculeNameByCanonicalSmilesDTO } from '../models/dto/molecule-name-by-canonical-smiles.gql.dto'
+
 
 
 @Resolver(() => MoleculeDetail)
@@ -37,6 +41,15 @@ export class MoleculeResolver {
     ): Promise<MoleculeDetail | null> {
         const normalizedMolregno = typeof molregno === 'string' ? molregno.trim() : molregno
         return this.moleculeService.getDetailByMolregno(normalizedMolregno)
+    }
+
+    @Query(() => MoleculeNameByCanonicalSmilesDTO)
+    async preferredNameItByCanonicalSmiles(
+        @Args() csArgs: CanonicalSmilesArgs,
+        @AuthenticatedUserId() userId: UUID
+    ): Promise<MoleculeNameByCanonicalSmilesDTO> {
+        const normalizedCanonicalSmiles = typeof csArgs.canonicalSmiles === 'string' ? csArgs.canonicalSmiles.trim() : csArgs.canonicalSmiles
+        return this.moleculeService.getPreferredNameItByCanonicalSmilesFromChembleCoalesceCustomMolecule(normalizedCanonicalSmiles, userId)
     }
 
 }

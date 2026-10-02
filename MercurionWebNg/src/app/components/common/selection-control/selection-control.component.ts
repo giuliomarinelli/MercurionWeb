@@ -137,12 +137,17 @@ let nextGeneratedId = 0;
       box-shadow: 0 0 0 3px rgb(99 102 241 / 0.35);
     }
 
+    .m-selection-control--switch {
+      align-items: center;
+    }
+
     .m-selection-control--switch .m-selection-control__visual {
       background: #cbd5e1;
       border: 0;
       border-radius: 9999px;
       height: 1.5rem;
       justify-content: flex-start;
+      order: 1;
       padding: 0.2rem;
       width: 2.75rem;
     }

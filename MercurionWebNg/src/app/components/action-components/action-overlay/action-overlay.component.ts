@@ -26,6 +26,7 @@ type ActionLoadState = 'idle' | 'loading' | 'loaded' | 'failed'
         [open]="ctx.isVisible()"
         [label]="dialogLabel()"
         backdropVariant="action"
+        panelVariant="action"
         [dismissalPolicy]="dismissalPolicy"
         (dismissed)="ctx.close()">
         <ng-container #actionHost />

@@ -52,6 +52,7 @@ export class AuthSessionRepository {
   clearCachedScopes(context: TokenType): void { this.setCachedScopes(null, context) }
 
   clientSessionId(): string | undefined { return this.state.clientSession()?.sessionId }
+  refreshableSessionId(): string | undefined { return this.state.refreshableSessionId() }
   logout(): void { this.state.logout() }
   activate(session: { initials: string; accessToken: string; wsAccessToken: string }): void {
     this.state.activateAuthenticatedSession(session)

@@ -95,8 +95,10 @@ export class AppShellFacade implements OnDestroy {
         safeNavigate('/welcome')
       } else if (!logged) {
         if (!isPublic) {
-          this.redirects.capture(this.router.url)
-          safeNavigate('/welcome')
+          const target = this.redirects.capture(this.router.url)
+          safeNavigate(this.router.serializeUrl(this.router.createUrlTree(['/login'], {
+            queryParams: target ? { redirect_to: target } : undefined
+          })))
         }
       } else if (isLoggedOutOnly) {
         safeNavigate('/dashboard')

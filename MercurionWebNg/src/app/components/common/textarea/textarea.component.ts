@@ -1,7 +1,9 @@
 import { CommonModule } from '@angular/common';
 import {
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   ElementRef,
   inject,
   input,
@@ -30,15 +32,14 @@ let nextGeneratedId = 0;
   host: { class: 'block' },
   template: `
     <div class="w-full">
-      <div class="relative">
+      <div class="group relative min-w-0">
         <textarea
           #textareaElement
-          class="peer block min-h-12 w-full rounded-md border border-slate-400 bg-light-surface-secondary px-4 py-3 text-light-on-surface-main outline-none transition
-                 placeholder:text-transparent focus:border-light-accent-primary focus:ring-2 focus:ring-light-accent-primary
-                 disabled:cursor-not-allowed disabled:border-slate-300 disabled:bg-slate-100 disabled:text-slate-500
-                 dark:border-slate-300 dark:bg-dark-surface-secondary dark:text-dark-on-surface-main dark:placeholder:text-transparent
-                 dark:focus:border-dark-accent-primary dark:focus:ring-dark-accent-primary
-                 dark:disabled:border-slate-700 dark:disabled:bg-slate-900 dark:disabled:text-slate-500"
+          class="peer block min-h-12 w-full rounded-md bg-transparent px-4 py-3 text-base text-light-on-surface-main outline-none transition
+                 placeholder:text-transparent
+                 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500
+                 dark:text-dark-on-surface-main dark:placeholder:text-transparent
+                 dark:disabled:bg-slate-900 dark:disabled:text-slate-500"
           [class.resize-none]="resizeMode() === 'none'"
           [class.resize-y]="resizeMode() === 'vertical'"
           [class.resize-x]="resizeMode() === 'horizontal'"
@@ -58,13 +59,20 @@ let nextGeneratedId = 0;
           (blur)="onBlur()"
         ></textarea>
 
+        <div class="pointer-events-none absolute inset-y-0 left-0 rounded-b-md border-x border-b border-slate-400 group-focus-within:border-2 group-focus-within:border-t-0 group-focus-within:border-light-accent-primary dark:border-slate-300 dark:group-focus-within:border-dark-accent-primary" [style.width]="outlineWidth() === null ? '100%' : outlineWidth() + 'px'" style="clip-path: inset(6px 0 0 0)" aria-hidden="true"></div>
+        <div class="pointer-events-none absolute left-0 top-0 flex h-px text-slate-400 group-focus-within:text-light-accent-primary dark:text-slate-300 dark:group-focus-within:text-dark-accent-primary" [style.width]="outlineWidth() === null ? '100%' : outlineWidth() + 'px'" aria-hidden="true">
+          <span class="h-2 w-3 shrink-0 rounded-tl-md border-l border-t border-current group-focus-within:border-2 group-focus-within:border-b-0 group-focus-within:border-r-0"></span>
+          @if (focused() || !empty()) { <span class="shrink-0 px-1 text-base leading-none opacity-0">{{ label() }} @if (isRequired()) { * }</span> }
+          <span class="min-w-0 flex-1 border-t border-current group-focus-within:border-t-2"></span>
+          <span class="h-2 w-2 shrink-0 rounded-tr-md border-r border-t border-current group-focus-within:border-2 group-focus-within:border-b-0 group-focus-within:border-l-0"></span>
+        </div>
+
         <label
-          class="pointer-events-none absolute left-3 top-3 origin-left bg-light-surface-secondary px-1 text-light-on-surface-secondary transition-all
-                 peer-focus:-translate-y-6 peer-focus:scale-90 peer-focus:text-light-accent-secondary
-                 dark:bg-dark-surface-secondary dark:text-dark-on-surface-secondary
+          class="pointer-events-none absolute left-3 -translate-y-1/2 px-1 text-base text-light-on-surface-secondary transition-[top,color]
+                 peer-focus:text-light-accent-secondary
+                 dark:text-dark-on-surface-secondary
                  dark:peer-focus:text-dark-accent-secondary-hc"
-          [class.-translate-y-6]="focused() || !empty()"
-          [class.scale-90]="focused() || !empty()"
+          [style.top]="focused() || !empty() ? '0' : '1.5rem'"
           [class.text-light-accent-secondary]="focused() || !empty()"
           [attr.for]="fieldId()"
         >
@@ -128,6 +136,8 @@ export class TextareaComponent implements ControlValueAccessor {
   readonly ngControl = inject(NgControl, { self: true, optional: true });
 
   readonly focused = signal(false);
+  readonly outlineWidth = signal<number | null>(null);
+  private readonly destroyRef = inject(DestroyRef);
   private disabledByForm = false;
   private readonly generatedId = `m-textarea-${++nextGeneratedId}`;
 
@@ -138,6 +148,13 @@ export class TextareaComponent implements ControlValueAccessor {
     if (this.ngControl) {
       this.ngControl.valueAccessor = this;
     }
+    afterNextRender(() => {
+      const observer = new ResizeObserver(() => {
+        this.outlineWidth.set(this.textareaElement().nativeElement.getBoundingClientRect().width);
+      });
+      observer.observe(this.textareaElement().nativeElement);
+      this.destroyRef.onDestroy(() => observer.disconnect());
+    });
   }
 
   get control(): FormControl<string> | null {

@@ -38,7 +38,7 @@ type RegistryFormValue = {
   ],
   template: `
 
-<div class="flex justify-center items-start md:items-center min-h-screen px-2 sm:px-4 pt-1 md:pt-6 m-overlay-screen">
+<div class="flex justify-center items-start md:items-center min-h-dvh px-2 sm:px-4 m-overlay-screen">
   <m-action-card
     size="standard"
     labelledBy="profileRegistryHeading"
@@ -69,7 +69,7 @@ type RegistryFormValue = {
               aria-live="polite"
               aria-busy="true"
             >
-              <m-progress-indicator [size]="45" />
+              <m-progress-indicator />
             </div>
           } @else {
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-12 w-full pt-9">
@@ -114,7 +114,7 @@ type RegistryFormValue = {
           }
         } @else if (step() === 2 && error()) {
           <div
-            class="bg-light-surface-secondary dark:bg-dark-surface-secondary border my-16 border-light-border dark:border-dark-border relative px-4 py-3 mx-auto max-w-[1024px] rounded-lg text-sm flex gap-3 xs:gap-4 items-center flex-col xs:flex-row"
+            class="bg-light-surface-secondary dark:bg-dark-surface-secondary border my-16 border-light-border dark:border-dark-border relative px-4 py-3 mx-auto max-w-[1024px] rounded-lg text-sm flex gap-3 xs:gap-4 items-center flex-row"
             role="alert"
             aria-live="assertive"
           >
@@ -141,7 +141,7 @@ type RegistryFormValue = {
       @if (step() === 1) {
         <m-button
           action-footer-secondary
-          variant="neutral"
+          variant="outline"
           (click)="close()"
           aria-label="Annulla modifica anagrafica"
         >
@@ -153,7 +153,7 @@ type RegistryFormValue = {
       @if (step() === 1) {
         <m-button
           action-footer-secondary
-          variant="neutral"
+          variant="outline"
           size="sm"
           title="Resetta"
           [disabled]="isGroupValueTheSameAsInitialValueSig()"

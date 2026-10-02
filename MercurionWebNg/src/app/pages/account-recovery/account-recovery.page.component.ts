@@ -28,7 +28,7 @@ import { adaptHttpFormError, type FormErrorState } from '../../utils/form-error.
   template: `
 
     <!-- login-placeholder-mercurion.component.html -->
-    <div class="min-h-screen flex flex-col items-center px-4 pt-9" role="main" aria-labelledby="account-recovery-heading">
+    <div class="min-h-dvh flex flex-col items-center px-4 pt-9" role="main" aria-labelledby="account-recovery-heading">
       <!-- Logo -->
       <img
         [src]="logoSrc() | public"
@@ -173,7 +173,7 @@ import { adaptHttpFormError, type FormErrorState } from '../../utils/form-error.
                     Continua
                   } @else {
                     <div class="text-slate-200 flex items-center justify-center">
-                      <m-progress-indicator [size]="24"></m-progress-indicator>
+                      <m-progress-indicator [size]="20" />
                     </div>
                   }
                 </button>

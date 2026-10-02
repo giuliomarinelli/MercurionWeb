@@ -15,9 +15,7 @@ export interface CopyUiOptions {
 
   // toast (opzionale)
   showToast?: boolean
-  successMessage?: string
   errorMessage?: string
-  successContext?: ToastVariant
   errorContext?: ToastVariant
   durationMs?: number
   forceToast?: boolean
@@ -38,3 +36,5 @@ export interface CopyOptions {
    */
   refuseEmpty?: boolean
 }
+
+export type CopyIconStatus = 'copy' | 'copied' | 'error'

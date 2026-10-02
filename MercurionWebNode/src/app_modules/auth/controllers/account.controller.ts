@@ -25,9 +25,8 @@ import { ProfileDTO, ProfileRegistryClientDTO, ProfileRegistryDTO } from '../mod
 import { SessionDTO } from '../models/dto/session.dto';
 import { BackupCodeStatusDTO } from 'src/app_modules/user/models/dto/backup-code-status.dto';
 import { ConfigService } from '@nestjs/config';
-import { ProvidedEmailDTO } from '../models/dto/provided-email.dto';
 import { BuildIdentityDTO } from '../models/dto/version.dto';
-import type { AuthProvider as WireAuthProvider, BackupCodesDTO, MfaStrategy as WireMfaStrategy } from '@mercurion/rest-contracts'
+import { type AuthProvider as WireAuthProvider, type BackupCodesDTO, type MfaStrategy as WireMfaStrategy, AccountIdKind, type ProvidedAccountIdDTO } from '@mercurion/rest-contracts'
 import {
     ApplicationErrorCode,
     applicationError,
@@ -178,11 +177,11 @@ export class AccountController {
         return this._r.ok(`MFA successfully disabled for strategy ${strategyKey}`)
     }
 
-    @Get('/email')
-    public async getProvidedEmail(@AuthenticatedUserId() userId: UUID): Promise<ProvidedEmailDTO> {
-        const dto = await this.userService.getUserProvidedEmailById(userId)
+    @Get('/provided-account-id')
+    public async getProvidedAccountId(@AuthenticatedUserId() userId: UUID): Promise<ProvidedAccountIdDTO> {
+        const dto = await this.userService.getUserProvidedAccountIdById(userId)
         if (dto == null) {
-            throw new NotFoundException('EmailNotFound')
+            throw new NotFoundException('AccountIdNotFound')
         }
         return dto
     }
@@ -339,13 +338,16 @@ export class AccountController {
         return buildIdentity
     }
 
-    @Get('/masked-email')
-    public async getMaskedEmail(@AuthenticatedUserId() userId: UUID): Promise<string> {
-        const dto = await this.userService.getUserProvidedEmailById(userId)
+    @Get('/masked-account-id')
+    public async getMaskedAccountId(@AuthenticatedUserId() userId: UUID): Promise<string> {
+        const dto = await this.userService.getUserProvidedAccountIdById(userId)
         if (!dto) {
-            throw new NotFoundException('Fatal::email not found')
+            throw new NotFoundException('Fatal::account ID not found')
         }
-        return this.securityService.maskEmail(dto.email)
+        return dto.kind === AccountIdKind.EMAIL ?
+            this.securityService.maskEmail(dto.accountId)
+            :
+            this.securityService.mask_ORCID(dto.accountId)
     }
 
     @Get('/masked-phone')

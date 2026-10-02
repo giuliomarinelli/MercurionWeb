@@ -40,9 +40,48 @@ describe('KetcherFrameComponent', () => {
     expect(editor.createSession).toHaveBeenCalledTimes(1);
   });
 
+  it('creates the standalone editor with the standard Mercurion profile', () => {
+    const resourceUrl = editor.createSession.calls.mostRecent().args[0];
+    const url = new URL(resourceUrl, window.location.origin);
+
+    const hiddenControls = url.searchParams.get('hiddenControls') ?? '';
+
+    expect(url.searchParams.get('disableMacromoleculesEditor')).toBe('true');
+    expect(hiddenControls).toContain('open');
+    expect(hiddenControls).not.toContain('zoom-list');
+  });
+
+  it('recreates the session with the compact live-analysis profile when tab changes', async () => {
+    fixture.componentRef.setInput('tab', 'live');
+    fixture.detectChanges();
+    await Promise.resolve();
+
+    expect(editor.createSession).toHaveBeenCalledTimes(2);
+
+    const resourceUrl = editor.createSession.calls.mostRecent().args[0];
+    const url = new URL(resourceUrl, window.location.origin);
+    const hiddenControls = url.searchParams.get('hiddenControls')?.split(',') ?? [];
+
+    expect(hiddenControls).toContain('zoom-list');
+    expect(hiddenControls).toContain('copies');
+    expect(hiddenControls).not.toContain('clean');
+  });
+
   it('disposes the application editor session on destroy', () => {
     fixture.destroy();
     expect(session.dispose).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps reset baseline independent from working structure changes', () => {
+    component.editorState.set('ready');
+    fixture.componentRef.setInput('baselineSmiles', 'CCO');
+    fixture.componentRef.setInput('smiles', 'CCN');
+    fixture.detectChanges();
+
+    session.setStructure.calls.reset();
+    component.resetMolecule();
+
+    expect(session.setStructure).toHaveBeenCalledOnceWith('CCO');
   });
 
   it('shows a controlled state and permits retry when the lazy adapter fails', async () => {

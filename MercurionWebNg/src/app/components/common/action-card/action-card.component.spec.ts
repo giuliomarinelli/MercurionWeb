@@ -3,6 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { ActionCardComponent } from './action-card.component';
 import { ActionFooterComponent } from '../action-footer/action-footer.component';
+import { DialogShellComponent } from '../dialog-shell/dialog-shell.component';
 
 @Component({
   standalone: true,
@@ -25,11 +26,28 @@ class HostComponent {
   closed = false;
 }
 
+@Component({
+  standalone: true,
+  imports: [ActionCardComponent, ActionFooterComponent, DialogShellComponent],
+  template: `
+    <m-dialog-shell [mounted]="true" [open]="true" panelVariant="action" backdropVariant="action" label="Layout test">
+      <div class="m-overlay-screen" style="display: flex; align-items: center; justify-content: center">
+        <m-action-card labelledBy="layout-title">
+          <h2 action-card-title id="layout-title">Layout test</h2>
+          <div action-card-body><div style="height: 1200px">Long content</div></div>
+          <m-action-footer action-card-footer><button action-footer-primary>Continue</button></m-action-footer>
+        </m-action-card>
+      </div>
+    </m-dialog-shell>
+  `,
+})
+class LayoutHostComponent {}
+
 describe('ActionCardComponent', () => {
   let fixture: ComponentFixture<HostComponent>;
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({ imports: [HostComponent] }).compileComponents();
+    await TestBed.configureTestingModule({ imports: [HostComponent, LayoutHostComponent] }).compileComponents();
     fixture = TestBed.createComponent(HostComponent);
     fixture.detectChanges();
   });
@@ -53,5 +71,19 @@ describe('ActionCardComponent', () => {
     fixture.debugElement.query(By.css('button[aria-label="Close card"]')).nativeElement.click();
     fixture.detectChanges();
     expect(fixture.componentInstance.closed).toBeTrue();
+  });
+
+  it('keeps the footer reachable while long action content scrolls', () => {
+    const layout = TestBed.createComponent(LayoutHostComponent);
+    layout.detectChanges();
+
+    const card = layout.nativeElement.querySelector('.m-action-card') as HTMLElement;
+    const body = layout.nativeElement.querySelector('.m-action-card__body') as HTMLElement;
+    const footer = layout.nativeElement.querySelector('.m-action-footer') as HTMLElement;
+    expect(card.getBoundingClientRect().top).toBeGreaterThanOrEqual(0);
+    expect(footer.getBoundingClientRect().bottom).toBeLessThanOrEqual(window.innerHeight + 1);
+    expect(body.scrollHeight).toBeGreaterThan(body.clientHeight);
+
+    layout.destroy();
   });
 });

@@ -3,7 +3,7 @@ import { effect, inject, Injectable, signal } from '@angular/core';
 import { finalize, map, Observable, of, shareReplay, switchMap, tap, throwError } from 'rxjs';
 import { TypeGuardsService } from './type-guards.service';
 import { AuthStateStore } from './auth-state.store';
-import { PROVIDED_EMAIL_CACHE_CLOCK, type ProvidedEmailCache } from './provided-email-cache.tokens';
+import { PROVIDED_ACCOUNT_ID_CACHE_CLOCK, type ProvidedEmailCache } from './provided-email-cache.tokens';
 import type {
   AuthProvider,
   BackupCodesDTO,
@@ -21,7 +21,7 @@ import type {
   ProfileDTO,
   ProfileRegistryClientDTO,
   ProfileRegistryDTO,
-  ProvidedEmailDTO,
+  ProvidedAccountIdDTO,
   SessionDTO,
   TotpDTO,
   BuildIdentityDTO
@@ -38,13 +38,13 @@ export class AccountService {
   private readonly http = inject(HttpClient)
   private readonly typeGuards = inject(TypeGuardsService)
   private readonly authState = inject(AuthStateStore)
-  private readonly now = inject(PROVIDED_EMAIL_CACHE_CLOCK)
+  private readonly now = inject(PROVIDED_ACCOUNT_ID_CACHE_CLOCK)
 
   private cachedProvidedEmail = signal<ProvidedEmailCache | null>(null)
   private providedEmailRequest: {
     owner: string | null
     generation: number
-    value: Observable<ProvidedEmailDTO>
+    value: Observable<ProvidedAccountIdDTO>
   } | null = null
   private cacheOwner: string | null = null
   private cacheGeneration = 0
@@ -56,7 +56,7 @@ export class AccountService {
     })
   }
 
-  private getCachedProvidedEmail(): ProvidedEmailDTO | null {
+  private getCachedProvidedAccountId(): ProvidedAccountIdDTO | null {
     this.syncCacheOwner()
     const cached = this.cachedProvidedEmail()
     if (!cached || cached.owner !== this.cacheOwner || cached.expiresAt <= this.now()) {
@@ -68,7 +68,7 @@ export class AccountService {
     return cached.value
   }
 
-  private setCachedProvidedEmail(dto: ProvidedEmailDTO, owner: string | null, generation: number): void {
+  private setCachedProvidedEmail(dto: ProvidedAccountIdDTO, owner: string | null, generation: number): void {
     if (!dto || owner === null || generation !== this.cacheGeneration) {
       return
     }
@@ -97,8 +97,8 @@ export class AccountService {
     return owner
   }
 
-  public getProvidedEmail(refetch = false): Observable<ProvidedEmailDTO> {
-    const cached = this.getCachedProvidedEmail()
+  public getProvidedAccountId(refetch = false): Observable<ProvidedAccountIdDTO> {
+    const cached = this.getCachedProvidedAccountId()
     if (cached && !refetch) {
       return of(cached)
     } else {
@@ -108,7 +108,7 @@ export class AccountService {
       if (!refetch && pending?.owner === owner && pending.generation === generation) {
         return pending.value
       }
-      const request = this.http.get<ProvidedEmailDTO>('/api/account/email', {
+      const request = this.http.get<ProvidedAccountIdDTO>('/api/account/provided-account-id', {
         withCredentials: true
       }).pipe(
         tap(dto => this.setCachedProvidedEmail(dto, owner, generation)),
@@ -221,8 +221,8 @@ export class AccountService {
     })
   }
 
-  public getMaskedEmail(): Observable<string> {
-    return this.http.get('/api/account/masked-email', {
+  public getMaskedAccountId(): Observable<string> {
+    return this.http.get('/api/account/masked-account-id', {
       responseType: 'text',
       withCredentials: true
     })

@@ -1,7 +1,8 @@
-import { TestBed } from '@angular/core/testing';
+import { fakeAsync, TestBed, tick } from '@angular/core/testing';
 
 import { RealtimeSocketService } from './realtime-socket.service';
 import { socketEventRegistry } from '@mercurion/socket-contracts';
+import { AuthSessionRepository } from '../auth-session-repository.service';
 
 describe('RealtimeSocketService', () => {
   let service: RealtimeSocketService;
@@ -52,4 +53,48 @@ describe('RealtimeSocketService', () => {
     expect(socket.listeners('connect_error')).toHaveSize(0);
     expect(off).not.toHaveBeenCalledWith();
   });
+
+  it('renews a private WS token before its 30 second expiry', fakeAsync(() => {
+    const token = `header.${btoa(JSON.stringify({ exp: Math.floor(Date.now() / 1000) + 30 }))}.signature`;
+    spyOn(TestBed.inject(AuthSessionRepository), 'getWsAccessToken').and.returnValue(token);
+    const renew = spyOn(service, 'ensurePrivate').and.resolveTo();
+    const internals = service as unknown as {
+      mode: 'private'
+      socket: { connected: boolean }
+      onConnectCore: () => void
+    };
+    internals.mode = 'private';
+    internals.socket.connected = true;
+    internals.onConnectCore();
+
+    tick(30_000);
+
+    expect(renew).toHaveBeenCalledWith(undefined, { forceRefresh: true });
+    internals.socket.connected = false;
+    service.ngOnDestroy();
+  }));
+
+  for (const mode of ['public', 'private'] as const) {
+    it(`stops repeated ${mode} connection failures after the retry budget`, fakeAsync(() => {
+      const token = `header.${btoa(JSON.stringify({ exp: Math.floor(Date.now() / 1000) + 3600 }))}.signature`;
+      spyOn(TestBed.inject(AuthSessionRepository), 'getWsAccessToken').and.returnValue(token);
+      const internals = service as unknown as {
+        socket: { connect: () => void; connected: boolean }
+        onConnectErrorCore: (error: unknown) => Promise<void>
+      };
+      internals.socket.connected = false;
+      const connect = spyOn(internals.socket, 'connect').and.callFake(() => {
+        void internals.onConnectErrorCore(new Error('websocket endpoint returned 404'));
+      });
+
+      service.connect(mode);
+      tick(120_000);
+
+      expect(connect).toHaveBeenCalledTimes(7);
+      expect(service.state()).toEqual({ kind: 'degraded', mode, attempt: 7, reason: 'retry-exhausted' });
+      tick(120_000);
+      expect(connect).toHaveBeenCalledTimes(7);
+      service.ngOnDestroy();
+    }));
+  }
 });

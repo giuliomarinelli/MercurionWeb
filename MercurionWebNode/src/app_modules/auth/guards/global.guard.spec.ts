@@ -110,6 +110,7 @@ function setup(metadata: { public?: boolean; soft?: boolean } = {}) {
     scopePolicy as never,
     sessionPolicy as never,
     transportPolicy as never,
+    { decryptUserId: jest.fn((encryptedUserId: string) => encryptedUserId as UUID) } as never,
     failurePolicy as never
   )
 

@@ -104,4 +104,12 @@ export class CustomMoleculeItemService {
         return a
     }
 
+    async getPreferredNameItByCanonicalSmiles(userId: UUID, cs: string): Promise<string | null> {
+        const item = await this.customRepo.findOne({
+            where: { userId, canonicalSmiles: cs },
+            select: ['name']
+        })
+        return item?.name ?? null
+    }
+
 }

@@ -81,7 +81,7 @@ import { AbstractMultiselectItem } from '../../../Models/abstract.models';
     `
   ],
   template: `
-<div class="flex justify-center items-start md:items-center min-h-screen px-2 sm:px-4 pt-1 md:pt-6 m-overlay-screen">
+<div class="flex justify-center items-start md:items-center min-h-dvh px-2 sm:px-4 m-overlay-screen">
   <m-action-card
     size="wide"
     labelledBy="bindCollectionsHeading"
@@ -151,7 +151,7 @@ import { AbstractMultiselectItem } from '../../../Models/abstract.models';
               @if (loading) {
                 @if (page > 1) {
                   <div class="flex justify-center py-4" role="status" aria-live="polite" aria-busy="true">
-                    <m-progress-indicator [size]="60" />
+                    <m-progress-indicator />
                   </div>
                 } @else {
                   <div class="space-y-4" role="status" aria-live="polite" aria-busy="true">
@@ -197,7 +197,7 @@ import { AbstractMultiselectItem } from '../../../Models/abstract.models';
       @if (step() === 1) {
         <m-button
         action-footer-secondary
-        variant="neutral"
+        variant="outline"
         (click)="close()"
         >
         Annulla

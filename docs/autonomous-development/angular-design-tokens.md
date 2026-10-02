@@ -1,9 +1,12 @@
 # Angular semantic design tokens
 
-The Angular UI uses Tailwind as its compile-time styling engine. Semantic
-roles are defined in `MercurionWebNg/tailwind.config.js` and mapped to CSS
-variables in `MercurionWebNg/src/styles.css` only where the light/dark theme
-must change at runtime.
+The Angular UI uses Tailwind 4 as its compile-time styling engine. Semantic
+roles, breakpoints, typography, spacing, radii, shadows and static palette
+values are defined in the `@theme inline` block of
+`MercurionWebNg/src/styles.css`. Theme-dependent role values live in the
+`:root` and `.dark` blocks of the same stylesheet. Runtime variables use the
+`--m-` prefix so they do not collide with Tailwind's reserved `@theme`
+namespaces such as `--color-*` and `--breakpoint-*`.
 
 ## Token taxonomy
 

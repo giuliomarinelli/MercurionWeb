@@ -279,6 +279,7 @@ import { DisclosureComponent, DisclosureTriggerDirective } from '../disclosure/d
     </nav>
   `,
   styles: [`
+    @reference "../../../../styles.css";
     .sidebar-link {
       @apply flex items-center -mx-px gap-3 px-3 py-2 rounded-md transition hover:bg-slate-50 dark:hover:bg-slate-800/70 w-full mb-1 text-sm;
     }

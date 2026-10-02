@@ -600,6 +600,26 @@ export const APPLICATION_ERROR_CATALOG = {
     defaultMessage: "LinkedIn: missing access token",
     exposeInProduction: false,
   },
+  SSO_ORCID_ACCESS_TOKEN_MISSING: {
+    httpStatus: 401,
+    defaultMessage: "SSO_Unauthorized::ORCID: missing access token",
+    exposeInProduction: true,
+  },
+  SSO_ORCID_ID_TOKEN_MISSING: {
+    httpStatus: 401,
+    defaultMessage: "SSO_Unauthorized::ORCID: missing id_token",
+    exposeInProduction: true,
+  },
+  SSO_ORCID_ID_TOKEN_INVALID: {
+    httpStatus: 401,
+    defaultMessage: "SSO_Unauthorized::ORCID: invalid id_token",
+    exposeInProduction: true,
+  },
+  SSO_ORCID_USERINFO_INVALID: {
+    httpStatus: 401,
+    defaultMessage: "SSO_Unauthorized::ORCID: invalid userinfo response",
+    exposeInProduction: true,
+  },
   SSO_CALLBACK_FAILED: {
     httpStatus: 500,
     defaultMessage: "SSO_Unauthorized::failed callback flow",

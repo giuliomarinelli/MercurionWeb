@@ -123,6 +123,10 @@
       ],
       "references": [
         {
+          "file": "MercurionWebNg/src/app/pages/login/login-sso-chooser.component.spec.ts",
+          "kind": "angular-source"
+        },
+        {
           "file": "MercurionWebNg/src/app/pages/login/login-sso-chooser.component.ts",
           "kind": "angular-source"
         },
@@ -132,6 +136,10 @@
         },
         {
           "file": "MercurionWebNode/src/app_modules/sso/providers/discord-provider-client.ts",
+          "kind": "server-source"
+        },
+        {
+          "file": "MercurionWebNode/src/app_modules/sso/providers/orcid-provider-client.spec.ts",
           "kind": "server-source"
         }
       ]
@@ -191,32 +199,6 @@
     },
     {
       "method": "GET",
-      "path": "/api/account/email",
-      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
-      "handler": "getProvidedEmail",
-      "classification": "active product feature",
-      "owner": "Mercurion Angular application",
-      "evidence": [
-        "MercurionWebNg/src/app/services/",
-        "MercurionWebNode/src/app_modules/"
-      ],
-      "references": [
-        {
-          "file": "MercurionWebNg/src/app/services/account.service.spec.ts",
-          "kind": "angular-source"
-        },
-        {
-          "file": "MercurionWebNg/src/app/services/account.service.ts",
-          "kind": "angular-source"
-        },
-        {
-          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
-          "kind": "server-source"
-        }
-      ]
-    },
-    {
-      "method": "GET",
       "path": "/api/account/is-authorized-to-recover-password",
       "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
       "handler": "isAuthorizedToRecoverPassword",
@@ -257,9 +239,9 @@
     },
     {
       "method": "GET",
-      "path": "/api/account/masked-email",
+      "path": "/api/account/masked-account-id",
       "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
-      "handler": "getMaskedEmail",
+      "handler": "getMaskedAccountId",
       "classification": "active product feature",
       "owner": "Mercurion Angular application",
       "evidence": [
@@ -364,6 +346,32 @@
         {
           "file": "MercurionWebNg/src/app/services/account.service.ts",
           "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/account/provided-account-id",
+      "controller": "MercurionWebNode/src/app_modules/auth/controllers/account.controller.ts",
+      "handler": "getProvidedAccountId",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/account.service.spec.ts",
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNg/src/app/services/account.service.ts",
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNode/src/config/rate-limit.config.ts",
+          "kind": "server-source"
         }
       ]
     },
@@ -634,6 +642,10 @@
         "docs/autonomous-development/RUNTIME.md: nginx health readiness check"
       ],
       "references": [
+        {
+          "file": "MercurionWebNg/src/app/interceptors/contract-version.interceptor.spec.ts",
+          "kind": "angular-source"
+        },
         {
           "file": "MercurionWebNode/src/app.module.ts",
           "kind": "server-source"
@@ -1286,6 +1298,28 @@
         {
           "file": "MercurionWebNode/src/config/rate-limit.config.ts",
           "kind": "server-source"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/embedding/get-similar-by-smiles",
+      "controller": "MercurionWebNode/src/app_modules/embedding/controllers/embedding.controller.ts",
+      "handler": "getSimilarBySmiles",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/embedding.service.spec.ts",
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNg/src/app/services/embedding.service.ts",
+          "kind": "angular-source"
         }
       ]
     },

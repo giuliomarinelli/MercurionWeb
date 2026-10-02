@@ -17,6 +17,7 @@ import { GeneralUtils } from 'src/utils/general-utils/general-utils'
 import { assertMercurionPublicId } from 'src/identifiers/mercurion-public-id'
 import { PaginatedTicketMessage } from '../models/dto/paginated-ticket-message.type.gql'
 import { PaginationArgs } from 'src/models/pagination/pagination.args'
+import { TicketMessagesArgs } from '../models/dto/ticket-messages.args'
 import { toFlatPagination } from 'src/models/pagination/pagination.utils'
 import { ownerActor, supportActor } from '../authorization/help-authorization.policy'
 
@@ -64,12 +65,12 @@ export class HelpResolver {
 
     @Query(() => PaginatedTicketMessage)
     async myTicketMessages(
-        @Args() pagination: PaginationArgs,
-        @Args('ticketId', { type: () => ID }) ticketId: UUID,
+        @Args() pagination: TicketMessagesArgs,
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo,
         @Scopes() scopes: Scope[]
     ): Promise<PaginatedTicketMessage> {
+        const ticketId = pagination.ticketId
         assertMercurionPublicId(ticketId, 'ticketId')
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         const result = await this.helpService.listTicketMessages(ticketId, ownerActor(userId, scopes), pagination, fieldsMap)
@@ -165,12 +166,12 @@ export class HelpResolver {
     @HasScopes(Scope.HandleTickets)
     @Query(() => PaginatedTicketMessage)
     async ticketMessagesAsSupport(
-        @Args() pagination: PaginationArgs,
-        @Args('ticketId', { type: () => ID }) ticketId: UUID,
+        @Args() pagination: TicketMessagesArgs,
         @AuthenticatedUserId() userId: UUID,
         @Info() info: GraphQLResolveInfo,
         @Scopes() scopes: Scope[]
     ): Promise<PaginatedTicketMessage> {
+        const ticketId = pagination.ticketId
         assertMercurionPublicId(ticketId, 'ticketId')
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         const result = await this.helpService.listTicketMessages(ticketId, supportActor(userId, scopes), pagination, fieldsMap)

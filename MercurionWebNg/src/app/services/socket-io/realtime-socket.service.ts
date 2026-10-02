@@ -41,6 +41,7 @@ export class RealtimeSocketService implements OnDestroy {
   readonly state = this._state.asReadonly();
   private generation = 0;
   private retryTimer?: ReturnType<typeof setTimeout>;
+  private tokenRefreshTimer?: ReturnType<typeof setTimeout>;
   private retryAttempt = 0;
   private stopped = false;
 
@@ -67,20 +68,23 @@ export class RealtimeSocketService implements OnDestroy {
     this.lastAuthTokenSent = this.mode === 'private'
       ? (this.auth.getWsAccessToken() ?? null)
       : null;
+    this.scheduleTokenRefresh();
   };
 
   private readonly onDisconnectCore = (reason: string) => {
+    this.clearTokenRefreshTimer();
     if (reason === 'io client disconnect' || this.stopped) return;
     this.scheduleRetry();
   };
 
   private readonly onConnectErrorCore = async (err: unknown) => {
+    const myGeneration = this.generation;
     const isAuthErr =
       hasApplicationErrorCode(err, ApplicationErrorCode.ACCESS_TOKEN_INVALID_OR_EXPIRED) ||
       hasApplicationErrorCode(err, ApplicationErrorCode.AUTHENTICATION_UNAUTHORIZED)
     if (isAuthErr && this.mode === 'private') {
       await this.ensureFreshToken(true);
-      if (this.generation !== this.currentGeneration()) return;
+      if (myGeneration !== this.generation) return;
       const tok = this.auth.getWsAccessToken();
       if (tok && !this.jwt.isTokenExpired(tok)) this.socket.auth = { token: tok, contractMajor: SOCKET_CONTRACT_MAJOR };
     }
@@ -93,9 +97,7 @@ export class RealtimeSocketService implements OnDestroy {
     if (this.mode !== 'private' || !this.socket.connected) return;
     const latest = this.auth.getWsAccessToken();
     if (latest && !this.jwt.isTokenExpired(latest)) {
-      this.socket.auth = { token: latest, contractMajor: SOCKET_CONTRACT_MAJOR };
-      this.lastAuthTokenSent = latest;
-      this.socket.emit(socketEventRegistry.authRefresh.name, latest);
+      void this.ensurePrivate(latest);
     }
   };
 
@@ -118,7 +120,7 @@ export class RealtimeSocketService implements OnDestroy {
     this.socket.on('disconnect', this.onDisconnectCore);
     this.socket.on('connect_error', this.onConnectErrorCore);
 
-    // cross-tab: se cambia il token ed è valido, aggiorna in-place (nessun reconnect)
+    // Un token di un'altra scheda richiede un nuovo handshake sul server.
     window.addEventListener('storage', this.onStorage);
   }
 
@@ -129,7 +131,7 @@ export class RealtimeSocketService implements OnDestroy {
   /**
    * Entra/rimani in modalità privata.
    * - Se sei connesso in public: **reconnect** con token in handshake (upgrade).
-   * - Se sei già private e il token non è cambiato: solo `auth_refresh(token)` (no reconnect).
+   * - Se sei già private e il token non è cambiato: mantieni la connessione.
    * - Se token assente/scaduto: resta/torna public e connettiti (no loop).
    */
   async ensurePrivate(
@@ -154,11 +156,13 @@ export class RealtimeSocketService implements OnDestroy {
       if (this.generation !== myGeneration) return;
       if (!tok || this.jwt.isTokenExpired(tok)) {
         // token non disponibile → fallback PUBLIC
+        this.clearTokenRefreshTimer();
         this.mode = 'public';
         this._state.set(reduceRealtimeConnection(this._state(), { type: 'connect-public' }));
         this.socket.auth = { contractMajor: SOCKET_CONTRACT_MAJOR };
         this.lastAuthTokenSent = null;
-        if (!this.socket.connected) this.safeConnect();
+        if (this.socket.connected) this.reconnectWithCurrentAuth();
+        else this.safeConnect();
         return;
       }
 
@@ -176,8 +180,7 @@ export class RealtimeSocketService implements OnDestroy {
 
       // 3) già connesso
       if (wasPrivate && this.lastAuthTokenSent === tok) {
-        // stesso token → refresh soft opzionale lato server
-        this.socket.emit(socketEventRegistry.authRefresh.name, tok);
+        this.scheduleTokenRefresh();
         return;
       }
 
@@ -191,10 +194,11 @@ export class RealtimeSocketService implements OnDestroy {
 
   /**
    * Entra/rimani in modalità pubblica.
-   * - Se eri private: **de-auth in-place**, nessun reconnect.
+   * - Se eri private: reconnect pubblico.
    * - Se sei già public e connesso: **NO-OP**.
    */
   async ensurePublic(): Promise<void> {
+    this.clearTokenRefreshTimer();
     const requestedGeneration = ++this.generation;
     this.cancelRetry();
     this.stopped = false;
@@ -214,8 +218,9 @@ export class RealtimeSocketService implements OnDestroy {
       }
 
       if (wasPrivate) {
-        // eri private → de-auth in-place, nessun reconnect
-        this.socket.emit(socketEventRegistry.authRefresh.name, '');
+        // Il guard legge il token di handshake: una nuova connessione rende
+        // effettivo il passaggio a PUBLIC anche sul server.
+        this.reconnectWithCurrentAuth();
         return;
       }
 
@@ -227,6 +232,7 @@ export class RealtimeSocketService implements OnDestroy {
 
   /** Downgrade immediato a PUBLIC con reconnect forzato (logout/scadenza). */
   async reconnectPublicNow(): Promise<void> {
+    this.clearTokenRefreshTimer();
     const requestedGeneration = ++this.generation;
     this.cancelRetry();
     this.stopped = false;
@@ -250,6 +256,7 @@ export class RealtimeSocketService implements OnDestroy {
   disconnect(): void {
     this.stopped = true;
     this.cancelRetry();
+    this.clearTokenRefreshTimer();
     ++this.generation;
     this._state.set({ kind: 'stopped' });
     this.socket.disconnect();
@@ -262,6 +269,7 @@ export class RealtimeSocketService implements OnDestroy {
   ngOnDestroy(): void {
     this.stopped = true;
     this.cancelRetry();
+    this.clearTokenRefreshTimer();
     ++this.generation;
     window.removeEventListener('storage', this.onStorage);
     this.socket.off('connect', this.onConnectCore);
@@ -352,7 +360,13 @@ export class RealtimeSocketService implements OnDestroy {
   }
 
   private scheduleRetry(): void {
-    const next = reduceRealtimeConnection(this._state(), { type: 'transport-disconnected' });
+    if (this.stopped || this.retryTimer !== undefined) return;
+    // Connecting/authenticating states do not carry the attempt counter.
+    // Keep it across actual connection failures, not only consecutive reducer
+    // events, otherwise every failed attempt restarts the budget at one.
+    const next = reduceRealtimeConnection({
+      kind: 'reconnecting', mode: this.mode, attempt: this.retryAttempt, retryAt: 0
+    }, { type: 'transport-disconnected' });
     if (next.kind === 'degraded') {
       this._state.set(next);
       return;
@@ -365,6 +379,7 @@ export class RealtimeSocketService implements OnDestroy {
     this.cancelRetry();
     const myGeneration = this.generation;
     this.retryTimer = setTimeout(() => {
+      this.retryTimer = undefined;
       if (myGeneration !== this.generation || this.stopped) return;
       this._state.set(reduceRealtimeConnection(this._state(), { type: 'retry', now: Date.now() }));
       if (this.mode === 'private') void this.ensurePrivate();
@@ -377,7 +392,25 @@ export class RealtimeSocketService implements OnDestroy {
     this.retryTimer = undefined;
   }
 
-  private currentGeneration(): number { return this.generation; }
+  private scheduleTokenRefresh(): void {
+    this.clearTokenRefreshTimer();
+    if (this.mode !== 'private' || !this.socket.connected) return;
+    const token = this.auth.getWsAccessToken();
+    const expiry = token ? this.jwt.getClaim<number>(token, 'exp') : null;
+    if (typeof expiry !== 'number' || !Number.isFinite(expiry)) return;
+    const remaining = expiry * 1000 - Date.now();
+    const lead = Math.min(30_000, Math.max(1_000, remaining * 0.2));
+    const delay = Math.max(1_000, remaining - lead);
+    this.tokenRefreshTimer = setTimeout(() => {
+      this.tokenRefreshTimer = undefined;
+      void this.ensurePrivate(undefined, { forceRefresh: true });
+    }, delay);
+  }
+
+  private clearTokenRefreshTimer(): void {
+    if (this.tokenRefreshTimer !== undefined) clearTimeout(this.tokenRefreshTimer);
+    this.tokenRefreshTimer = undefined;
+  }
 
   /** Se il token è assente o scaduto, prova a rinfrescarlo con lock cross-tab. */
   /** Se force=true, forza il refresh anche se il JWT non risulta scaduto. */

@@ -47,7 +47,8 @@ import { MoleculeCollectionItemCountLoader } from './services/molecule-collectio
     ],
     exports: [
         ChEMBLMoleculeItemService,
-        InitialWorkspaceService
+        InitialWorkspaceService,
+        CustomMoleculeItemService,
     ]
 })
 export class MoleculeCollectionModule { }

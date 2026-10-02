@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, ElementRef, NgZone, OnDestroy, OnInit, signal, input, output, inject, viewChild } from '@angular/core'
+import { ChangeDetectionStrategy, Component, effect, ElementRef, NgZone, OnDestroy, OnInit, signal, input, output, inject, untracked, viewChild } from '@angular/core'
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser'
 import {
   catchError,
@@ -19,9 +19,11 @@ import {
 import {
   ChemistryAdapterError,
   ChemistryEditorMode,
-  ChemistryEditorSession
+  ChemistryEditorSession,
+  ChemistryEditorTab
 } from '../../../chemistry/chemistry-adapter.models'
 import { ChemistryEditorService } from '../../../chemistry/chemistry-editor.service'
+import { buildKetcherResourceUrl } from '../../../chemistry/ketcher-editor.config'
 import { PublicPipe } from '../../../pipes/public.pipe'
 import { ViewportRuntimeService } from '../../../services/context/viewport-runtime.service'
 
@@ -43,24 +45,26 @@ import { ViewportRuntimeService } from '../../../services/context/viewport-runti
             </button>
           </div>
         } @else {
-          @if (ketcherUrl()) {
-            <iframe
-              #ketcherIframe
-              [src]="ketcherUrl()"
-              class="w-full lg:px-8 h-[70vh] min-h-[320px] max-h-[540px] sm:h-[500px] border-none max-w-[1380px] mx-auto"
-              title="Editor molecolare"
-              [attr.aria-busy]="editorState() === 'loading'"
-            ></iframe>
-          }
+          <div class="relative mx-auto h-[70vh] min-h-[320px] max-h-[540px] w-full max-w-[1380px] sm:h-[500px] lg:px-8">
+            @if (ketcherUrl()) {
+              <iframe
+                #ketcherIframe
+                [src]="ketcherUrl()"
+                class="block h-full w-full border-none shadow-[0_1px_12px_rgba(15,23,42,0.18)] dark:shadow-none"
+                title="Editor molecolare"
+                [attr.aria-busy]="editorState() === 'loading'"
+              ></iframe>
+            }
 
-          @if (editorState() === 'loading') {
-            <div
-              class="absolute inset-0 lg:inset-x-8 h-[70vh] min-h-[320px] max-h-[540px] sm:h-[500px] max-w-[1380px] mx-auto bg-gray-300 dark:bg-neutral-700 animate-pulse pointer-events-none"
-              role="status"
-              aria-live="polite"
-              aria-label="Caricamento editor in corso"
-            ></div>
-          }
+            @if (editorState() === 'loading') {
+              <div
+                class="pointer-events-none absolute inset-y-0 inset-x-0 animate-pulse bg-gray-300 dark:bg-neutral-700 lg:inset-x-8"
+                role="status"
+                aria-live="polite"
+                aria-label="Caricamento editor in corso"
+              ></div>
+            }
+          </div>
         }
       } @else {
         <div class="flex flex-col gap-9">
@@ -100,7 +104,6 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
   private initialSmiles = ''
   private readonly destroy$ = new Subject<void>()
   private readonly exporting = signal(false)
-  private readonly structureValue = signal('')
   private readonly triggerResetSignal = signal(false)
   private readonly triggerGetSmilesSignal = signal(false)
   private session?: ChemistryEditorSession
@@ -110,10 +113,13 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
   private pollSubscription?: Subscription
   private sessionGeneration = 0
   private destroyed = false
+  private activeSessionTab?: ChemistryEditorTab
 
-  readonly mode = input<ChemistryEditorMode>('create');
+  readonly mode = input<ChemistryEditorMode>('create')
+  readonly tab = input<ChemistryEditorTab>('std')
 
   readonly smiles = input<string | undefined>(undefined)
+  readonly baselineSmiles = input<string | undefined>(undefined)
   readonly triggerReset = input(false)
   readonly triggerGetSmiles = input(false)
 
@@ -126,10 +132,19 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
 
   constructor() {
     effect(() => {
+      this.initialSmiles = this.baselineSmiles() ?? this.smiles() ?? ''
+    })
+    effect(() => {
+      const tab = this.tab()
+      if (this.activeSessionTab !== undefined && this.activeSessionTab !== tab) {
+        void this.startSession()
+      }
+    })
+    effect(() => {
       const nextSmiles = this.smiles() ?? ''
-      this.structureValue.set(nextSmiles)
-      this.initialSmiles = nextSmiles
-      if (this.editorState() === 'ready') void this.updateEditorStructure(nextSmiles)
+      if (untracked(() => this.editorState()) === 'ready') {
+        void this.updateEditorStructure(nextSmiles)
+      }
     })
     effect(() => this.triggerResetSignal.set(this.triggerReset()))
     effect(() => this.triggerGetSmilesSignal.set(this.triggerGetSmiles()))
@@ -201,12 +216,19 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
 
   private async startSession(): Promise<void> {
     const generation = ++this.sessionGeneration
+    clearTimeout(this.loadedTimeoutId)
+    this.teardownMobileKeyboardGuard()
     this.disposeSession()
     this.ketcherUrl.set(null)
     this.editorState.set('loading')
 
     try {
-      const resourceUrl = this.publicPipe.transform('ketcher/index.html')
+      const tab = this.tab()
+      this.activeSessionTab = tab
+      const resourceUrl = buildKetcherResourceUrl(
+        this.publicPipe.transform('ketcher/index.html'),
+        tab
+      )
       const session = await this.editor.createSession(resourceUrl)
 
       if (this.destroyed || generation !== this.sessionGeneration) {
@@ -216,19 +238,46 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
 
       this.session = session
       this.unsubscribeState = session.onStateChange(state => {
+        if (state.status === 'ready') {
+          void this.initializeReadySession(session, generation)
+          return
+        }
+
         this.zone.run(() => {
           this.editorState.set(state.status)
           if (state.error) this.editorError.set(state.error.message)
-          if (state.status === 'ready') {
-            void this.updateEditorStructure(this.structureValue())
-            this.loadedTimeoutId = setTimeout(() => this.installMobileKeyboardGuard(), 50)
-          }
         })
       })
       this.ketcherUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(session.resourceUrl))
       if (this.iframe) session.attach(this.iframe)
     } catch (error) {
       if (generation === this.sessionGeneration) this.showError(error)
+    }
+  }
+
+  private async initializeReadySession(
+    session: ChemistryEditorSession,
+    generation: number
+  ): Promise<void> {
+    try {
+      await session.setStructure(this.smiles() ?? '')
+
+      if (
+        this.destroyed ||
+        generation !== this.sessionGeneration ||
+        this.session !== session
+      ) {
+        return
+      }
+
+      this.zone.run(() => {
+        this.editorState.set('ready')
+        this.loadedTimeoutId = setTimeout(() => this.installMobileKeyboardGuard(), 50)
+      })
+    } catch (error) {
+      if (generation === this.sessionGeneration && this.session === session) {
+        this.showError(error)
+      }
     }
   }
 

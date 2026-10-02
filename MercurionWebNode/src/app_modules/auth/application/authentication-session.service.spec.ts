@@ -18,7 +18,7 @@ describe('AuthenticationSessionService', () => {
         decodeUnsafe: jest.fn()
     }
     const geoIpService = { getLocation: jest.fn() }
-    const redisService = { set: jest.fn() }
+    const redisService = { set: jest.fn(), eval: jest.fn() }
     const service = new AuthenticationSessionService(
         sessionService as never,
         mfaService as never,
@@ -31,6 +31,7 @@ describe('AuthenticationSessionService', () => {
         jest.clearAllMocks()
         jwtTools.generateToken.mockReset()
         jwtTools.decodeUnsafe.mockReset()
+        redisService.eval.mockReset().mockResolvedValue(null)
         geoIpService.getLocation.mockReturnValue({
             city: null,
             country: null,
@@ -87,7 +88,10 @@ describe('AuthenticationSessionService', () => {
 
     it('binds an MFA pre-authorization token to the device', async () => {
         jwtTools.generateToken.mockResolvedValue('pre-auth')
-        jwtTools.decodeUnsafe.mockReturnValue({ jti: 'jti' })
+        jwtTools.decodeUnsafe.mockReturnValue({
+            jti: 'jti',
+            exp: Math.floor(Date.now() / 1000) + 300
+        })
 
         await expect(service.createMfaPreAuthorizationToken(
             '00000000-0000-4000-8000-000000000113',
@@ -97,7 +101,36 @@ describe('AuthenticationSessionService', () => {
         expect(redisService.set).toHaveBeenCalledWith(
             'mfa:pat:dev:jti',
             '00000000-0000-4000-8000-000000000115',
-            300
+            expect.any(Number)
         )
+        expect(redisService.eval).toHaveBeenCalledWith(
+            expect.stringContaining("redis.call('SET', ARGV[3] .. previous, '1', 'EX', ttl)"),
+            ['mfa:pat:active:00000000-0000-4000-8000-000000000113'],
+            ['jti', 'issued:', 'revoked:', expect.any(String), 'mfa:pat:dev:', '60']
+        )
+    })
+
+    it('waits for the previous token revocation before releasing a replacement', async () => {
+        jwtTools.generateToken.mockResolvedValue('replacement')
+        jwtTools.decodeUnsafe.mockReturnValue({
+            jti: 'new-jti',
+            exp: Math.floor(Date.now() / 1000) + 300
+        })
+        let finishRevocation: ((value: null) => void) | undefined
+        redisService.eval.mockImplementation(() => new Promise<null>(resolve => {
+            finishRevocation = resolve
+        }))
+        const result = service.createMfaPreAuthorizationToken(
+            '00000000-0000-4000-8000-000000000113',
+            '00000000-0000-4000-8000-000000000114',
+            '00000000-0000-4000-8000-000000000115'
+        )
+        await new Promise(resolve => setImmediate(resolve))
+        let released = false
+        void result.then(() => { released = true })
+        expect(released).toBe(false)
+        expect(finishRevocation).toBeDefined()
+        finishRevocation!(null)
+        await expect(result).resolves.toBe('replacement')
     })
 })

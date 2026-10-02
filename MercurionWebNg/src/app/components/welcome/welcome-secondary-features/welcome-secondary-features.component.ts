@@ -49,7 +49,7 @@ import { RouterLink } from '@angular/router';
                 </span>
               </dt>
               <dd class="text-xs sm:text-sm text-slate-700 dark:text-slate-200">
-                Accedi con <strong>Google, LinkedIn, GitHub o Discord</strong>,
+                Accedi con <strong>Google, ORCID o Discord</strong>,
                 oppure usa le credenziali Mercurion. Perfetto sia per test
                 veloci sia per un utilizzo continuativo.
               </dd>

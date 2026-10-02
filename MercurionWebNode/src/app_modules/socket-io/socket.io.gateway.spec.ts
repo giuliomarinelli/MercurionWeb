@@ -14,6 +14,7 @@ import { SecureCookieService } from 'src/app_modules/auth/services/secure-cookie
 import { LoggerPort } from 'src/logging/logger.port';
 import { ConfigService } from '@nestjs/config';
 import { ScopeService } from 'src/app_modules/auth/services/scope.service';
+import { SecurityService } from 'src/app_modules/auth/services/security.service';
 
 jest.mock('ioredis', () => ({
   __esModule: true,
@@ -43,6 +44,7 @@ describe('SocketGateway', () => {
         { provide: Reflector, useValue: { get: jest.fn() } },
         { provide: SecureCookieService, useValue: {} },
         { provide: ScopeService, useValue: { scopeVerificationLayer: jest.fn(), generateScopesArrayFromJwtClaim: jest.fn() } },
+        { provide: SecurityService, useValue: { decryptUserId: jest.fn((encryptedUserId: string) => encryptedUserId) } },
         { provide: LoggerPort, useValue: { forContext: jest.fn().mockReturnValue({ log: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() }) } },
       ],
     }).compile();
@@ -56,6 +58,10 @@ describe('SocketGateway', () => {
 
   it('should create the gateway with required services', () => {
     expect(gateway).toBeInstanceOf(SocketIOGateway);
+  });
+
+  it('fails startup when Nest silently skips gateway discovery', () => {
+    expect(() => gateway.onApplicationBootstrap()).toThrow('Socket.IO gateway was not initialized')
   });
 
   it('registers middleware, Redis adapter, and PubSub binding only once', () => {
@@ -75,6 +81,7 @@ describe('SocketGateway', () => {
 
     gateway.afterInit(server as never);
     gateway.afterInit(server as never);
+    expect(() => gateway.onApplicationBootstrap()).not.toThrow();
 
     expect(use).toHaveBeenCalledTimes(1);
     expect(use).toHaveBeenCalledWith(expect.any(Function));

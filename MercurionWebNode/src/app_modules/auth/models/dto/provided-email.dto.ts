@@ -1,1 +1,0 @@
-export type { ProvidedEmailDTO } from '@mercurion/rest-contracts'

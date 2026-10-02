@@ -18,12 +18,11 @@ import { LoggerContext } from 'src/logging/logger.port';
 import { Scope } from '../models/enums/scope.enum';
 import { HistoryService } from 'src/app_modules/history/services/history.service';
 import { AuthIdentity } from 'src/app_modules/sso/models/entities/auth-identity.entity';
-import { ProvidedEmailDTO } from 'src/app_modules/auth/models/dto/provided-email.dto';
 import { AuthProvider } from 'src/app_modules/sso/models/enums/auth-provider.enum';
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 import type { IdentityReadPort } from 'src/app_modules/auth/models/interfaces/identity-read.port'
 import { runInTransaction, transactionManager, type TransactionContext } from 'src/persistence/transaction-context'
-import { LOCAL_DUMMY_AUTH } from '@mercurion/rest-contracts'
+import { AccountIdKind, LOCAL_DUMMY_AUTH, type ProvidedAccountIdDTO } from '@mercurion/rest-contracts'
 import { UserGender } from '../models/enums/user-gender.enum'
 import { ProfileReadModelService } from './profile-read-model.service'
 
@@ -121,7 +120,7 @@ export class UserService implements IdentityReadPort {
                 return null
             }
             return user.scopes
-                .map((encryptedScope) => this.securityService.decrypt_AES256(encryptedScope))
+                .map((encryptedScope) => this.securityService.decrypt_AES256_GCM(encryptedScope))
                 .filter((scope): scope is Scope => Object.values(Scope).includes(scope as Scope))
         } catch (e) {
             this.logger.warn(`Error in getScopesById, userId=${userId}`, e as object)
@@ -320,7 +319,7 @@ export class UserService implements IdentityReadPort {
 
         return (JSON.parse(user.mfaStrategies) as string[])
             .filter(Boolean)
-            .filter((s) => this.mfaStrategyVals.includes(this.securityService.decrypt_AES256(s) as MfaStrategy))
+            .filter((s) => this.mfaStrategyVals.includes(this.securityService.decrypt_AES256_GCM(s) as MfaStrategy))
 
     }
 
@@ -414,26 +413,58 @@ export class UserService implements IdentityReadPort {
         return user.firstName
     }
 
-    public async getUserProvidedEmailById(id: UUID): Promise<ProvidedEmailDTO | null> {
+    public async getUserProvidedAccountIdById(id: UUID): Promise<ProvidedAccountIdDTO | null> {
         const userRow = await this.userRepository.createQueryBuilder('u')
             .select(['u.email', 'u.sso'])
             .where('u.id = :id', { id })
             .leftJoin("u.authIdentities", "a")
-            .addSelect(["a.email", "a.provider"])
+            .addSelect(["a.email", "a.provider", "a.providerSubject"])
             .getOne()
+
         if (!userRow) {
             return null
         }
+
+        let accountId: string
+        let kind: AccountIdKind
+        let provider: AuthProvider = AuthProvider.Mercurion
+
         if (userRow.sso) {
-            return {
-                email: userRow.authIdentities[0]?.email ?? '',
-                provider: userRow.authIdentities[0]?.provider ?? ''
+            provider = userRow.authIdentities[0].provider
+            if (provider === AuthProvider.ORCID) {
+                accountId = userRow.authIdentities[0].providerSubject
+                kind = AccountIdKind.ORCID
+            } else {
+                accountId = userRow.authIdentities[0].email!
+                kind = AccountIdKind.EMAIL
             }
+        } else {
+            accountId = userRow.email!
+            kind = AccountIdKind.EMAIL
         }
+
         return {
-            email: userRow.email ?? '',
-            provider: AuthProvider.Mercurion
+            accountId,
+            provider,
+            kind
         }
+    }
+
+    public async getUserEmailById(id: UUID): Promise<string | null> {
+        const userRow = await this.userRepository.createQueryBuilder('u')
+            .select(['u.email', 'u.sso'])
+            .where('u.id = :id', { id })
+            .leftJoin('u.authIdentities', 'a')
+            .addSelect(['a.email'])
+            .getOne()
+
+        if (!userRow) {
+            return null
+        }
+
+        return userRow.sso
+            ? userRow.authIdentities[0]?.email ?? null
+            : userRow.email
     }
 
     public async getPhoneNumberById(id: UUID): Promise<string | nullish> {
@@ -452,10 +483,10 @@ export class UserService implements IdentityReadPort {
 
     public async appendMfaStrategy(id: UUID, strategy: MfaStrategy): Promise<void> {
         const currentStrategies: MfaStrategy[] = (await this.getUserEncryptedEnabledMfaStrategies(id))
-            .map((s) => this.securityService.decrypt_AES256(s) as MfaStrategy)
+            .map((s) => this.securityService.decrypt_AES256_GCM(s) as MfaStrategy)
             .filter((s) => this.mfaStrategyVals.includes(s))
         const updatedStrategies = Array.from(new Set([...currentStrategies, strategy]))
-            .map((s) => this.securityService.encrypt_AES256(s))
+            .map((s) => this.securityService.encrypt_AES256_GCM(s))
         const mfaStrategies = JSON.stringify(updatedStrategies)
         const updatedUser = await this.updateUser(id, { mfaStrategies })
         if (!updatedUser) {
@@ -465,10 +496,10 @@ export class UserService implements IdentityReadPort {
 
     public async removeMfaStrategy(id: UUID, strategy: MfaStrategy): Promise<void> {
         const currentStrategies: MfaStrategy[] = (await this.getUserEncryptedEnabledMfaStrategies(id))
-            .map((s) => this.securityService.decrypt_AES256(s) as MfaStrategy)
+            .map((s) => this.securityService.decrypt_AES256_GCM(s) as MfaStrategy)
             .filter((s) => this.mfaStrategyVals.includes(s))
         const updated = currentStrategies.filter(s => s !== strategy)
-            .map((s) => this.securityService.encrypt_AES256(s))
+            .map((s) => this.securityService.encrypt_AES256_GCM(s))
         const userProps: UserUpdateCommand = {
             mfaStrategies: JSON.stringify(updated)
         }

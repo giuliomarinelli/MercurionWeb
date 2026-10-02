@@ -58,15 +58,12 @@ export class CompleteSsoAuthenticationHandler {
         }
 
         try {
-            const { sub: userId } = await this.jwtTools.verifyTokenAndGetPayload(
-                command.ssoPreAuthorizationToken,
-                TokenType.SSO_PreAuthorizationToken
-            )
-            const { sub: verifiedUserId, jti } =
+            const { sub, jti } =
                 await this.jwtTools.verifyTokenAndGetPayload(
                     command.ssoPreAuthorizationToken,
                     TokenType.SSO_PreAuthorizationToken
                 )
+            const verifiedUserId = this.securityService.decryptUserId(sub)
             await this.sessionService.revokeToken(jti)
             if (!await this.userService.existsUserById(verifiedUserId)) {
                 throw applicationError(
@@ -107,7 +104,7 @@ export class CompleteSsoAuthenticationHandler {
                     session.sessionId
                 ),
                 initials:
-                    await this.userService.getUserInitialsByUserId(userId) ?? '',
+                    await this.userService.getUserInitialsByUserId(verifiedUserId) ?? '',
                 signedDeviceId:
                     this.securityService.signDeviceId(command.deviceId)
             }

@@ -24,7 +24,9 @@ class KetcherEditorSession implements ChemistryEditorSession {
   private readonly stateListeners = new Set<(state: ChemistryCapabilityState) => void>()
   private pendingSmilesResolve?: (smiles: string) => void
   private pendingSmilesReject?: (error: ChemistryAdapterError) => void
-  private exportQueue = Promise.resolve()
+  private pendingStructureResolve?: () => void
+  private pendingStructureReject?: (error: ChemistryAdapterError) => void
+  private operationQueue = Promise.resolve()
 
   constructor(private readonly options: KetcherEditorAdapterOptions) {
     this.resourceUrl = options.resourceUrl
@@ -48,16 +50,16 @@ class KetcherEditorSession implements ChemistryEditorSession {
     return () => this.stateListeners.delete(listener)
   }
 
-  async setStructure(structure: string): Promise<void> {
-    await this.readyPromise
-    const molfile = await this.options.toMolfile(structure)
-    if (molfile) this.postMessage({ type: 'setMolecule', payload: molfile })
+  setStructure(structure: string): Promise<void> {
+    const operation = this.operationQueue.then(() => this.applyStructure(structure))
+    this.operationQueue = operation.then(() => undefined, () => undefined)
+    return operation
   }
 
   exportStructure(): Promise<string> {
-    const exportOperation = this.exportQueue.then(() => this.requestSmiles())
-    this.exportQueue = exportOperation.then(() => undefined, () => undefined)
-    return exportOperation
+    const operation = this.operationQueue.then(() => this.requestSmiles())
+    this.operationQueue = operation.then(() => undefined, () => undefined)
+    return operation
   }
 
   dispose(): void {
@@ -69,8 +71,50 @@ class KetcherEditorSession implements ChemistryEditorSession {
     const error = new ChemistryAdapterError('unavailable', 'La sessione editor non è più disponibile.', false)
     this.readyReject?.(error)
     this.pendingSmilesReject?.(error)
+    this.pendingStructureReject?.(error)
     this.stateListeners.clear()
     this.frame = undefined
+  }
+
+  private async applyStructure(structure: string): Promise<void> {
+    await this.readyPromise
+
+    if (this.disposed) {
+      throw new ChemistryAdapterError('unavailable', 'La sessione editor non è più disponibile.', false)
+    }
+
+    let payload = ''
+    if (structure.trim()) {
+      const molfile = await this.options.toMolfile(structure)
+      if (!molfile) {
+        throw new ChemistryAdapterError('invalid-structure', 'La struttura non può essere caricata nell’editor.')
+      }
+      payload = molfile
+    }
+
+    await new Promise<void>((resolve, reject) => {
+      const timeoutId = setTimeout(() => {
+        this.pendingStructureResolve = undefined
+        this.pendingStructureReject = undefined
+        reject(new ChemistryAdapterError('operation-failed', 'Ketcher non ha confermato il caricamento della struttura in tempo.'))
+      }, 3_000)
+
+      this.pendingStructureResolve = () => {
+        clearTimeout(timeoutId)
+        this.pendingStructureResolve = undefined
+        this.pendingStructureReject = undefined
+        resolve()
+      }
+
+      this.pendingStructureReject = error => {
+        clearTimeout(timeoutId)
+        this.pendingStructureResolve = undefined
+        this.pendingStructureReject = undefined
+        reject(error)
+      }
+
+      this.postMessage({ type: 'setMolecule', payload })
+    })
   }
 
   private requestSmiles(): Promise<string> {
@@ -108,6 +152,18 @@ class KetcherEditorSession implements ChemistryEditorSession {
       clearTimeout(this.readyTimeoutId)
       this.readyResolve?.()
       this.updateState({ status: 'ready' })
+      return
+    }
+
+    if (message.type === 'moleculeSet' && this.pendingStructureResolve) {
+      this.pendingStructureResolve()
+      return
+    }
+
+    if (message.type === 'moleculeSetError' && this.pendingStructureReject) {
+      this.pendingStructureReject(
+        new ChemistryAdapterError('operation-failed', 'Ketcher non è riuscito a caricare la struttura.')
+      )
       return
     }
 

@@ -38,6 +38,7 @@ export const configurationBuilders = {
         passwordPepper: environment.APP_PASSWORD_PEPPER,
         redisIdHmacSecret: environment.APP_REDIS_ID_HMAC_SECRET,
         AES_secret: environment.APP_AES_SECRET,
+        userId_AES_encryptionSecret: environment.APP_USER_ID_AES_ENCRYPTION_SECRET,
         version: buildIdentity.version,
         deviceIdSignatureSecret: environment.APP_DEVICE_ID_SIGNATURE_SECRET,
         supportEmail: environment.APP_SUPPORT_EMAIL,
@@ -229,6 +230,12 @@ export const configurationBuilders = {
             clientId: environment.DISCORD_CLIENT_ID,
             clientSecret: environment.DISCORD_CLIENT_SECRET,
             redirectUri: environment.DISCORD_REDIRECT_URI
+        },
+        ORCID: {
+            clientId: environment.ORCID_CLIENT_ID,
+            clientSecret: environment.ORCID_CLIENT_SECRET,
+            redirectUri: environment.ORCID_REDIRECT_URI,
+            issuer: environment.ORCID_ISSUER
         }
     }),
 

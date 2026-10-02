@@ -300,23 +300,29 @@ export class AccountFlowKernel {
         // A committed activation is replayable by its durable jti receipt.
         // Revocation is an after-commit optimization and must not turn a
         // successful retry into an ambiguous token failure.
-        const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(
+        const { sub, jti } = await this.jwtTools.verifyTokenAndGetPayload(
             activationToken,
             TokenType.ActivationToken,
             false,
             true
         )
+        const userId = this.securityService.decryptUserId(sub)
         return this.unitOfWork.run(async (context) => {
             const manager = transactionManager(context)
             const existing = await manager.findOne(ActivationReceipt, { where: { jti } })
             if (existing) {
                 if (String(existing.userId) !== String(userId)) {
-                    throw applicationError(ApplicationErrorCode.TOKEN_INVALID_OR_EXPIRED)
+                    throw applicationError(ApplicationErrorCode.TOKEN_INVALID_OR_EXPIRED, 'InvalidOrExpiredActivationToken')
                 }
                 return {
                     ...this._r.ok('Account activated successfully'),
-                    recoveryCode: this.securityService.decrypt_AES256(existing.recoveryCode)
+                    recoveryCode: this.securityService.decrypt_AES256_GCM(existing.recoveryCode)
                 }
+            }
+
+            // Only a committed receipt may bypass revocation for an activation retry.
+            if (await this.sessionService.isTokenRevoked(jti)) {
+                throw applicationError(ApplicationErrorCode.TOKEN_INVALID_OR_EXPIRED, 'InvalidOrExpiredActivationToken')
             }
 
             const recoveryCode = this.securityService.generateAccountRecoveryReadableCode()
@@ -327,7 +333,7 @@ export class AccountFlowKernel {
                 jti,
                 userId,
                 email: activation.email,
-                recoveryCode: this.securityService.encrypt_AES256(recoveryCode),
+                recoveryCode: this.securityService.encrypt_AES256_GCM(recoveryCode),
                 createdAt: Date.now()
             }))
             afterTransactionCommit(context, async () => {
@@ -396,9 +402,9 @@ export class AccountFlowKernel {
 
     public async changeEmail_secondStep_verifyTotp(totp: string, emailVerificationToken: string): Promise<ConfirmDTO> {
 
-        const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(emailVerificationToken, TokenType.EmailVerificationToken)
+        const { sub, jti } = await this.jwtTools.verifyTokenAndGetPayload(emailVerificationToken, TokenType.EmailVerificationToken)
         await this.sessionService.revokeToken(jti)
-
+        const userId = this.securityService.decryptUserId(sub)
         await this.ensureContactChangeNotLocked(userId, ContactChangeKind.EMAIL)
 
         const user = await this.userService.getUserById(userId)
@@ -502,7 +508,8 @@ export class AccountFlowKernel {
     }
 
     public async deletePhoneNumber_secondStep_verifyTotp(totp: string, secureToken: string): Promise<ConfirmWithPhoneMfaFeedback> {
-        const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(secureToken, TokenType.PhoneNumberVerificationToken)
+        const { sub, jti } = await this.jwtTools.verifyTokenAndGetPayload(secureToken, TokenType.PhoneNumberVerificationToken)
+        const userId = this.securityService.decryptUserId(sub)
         await this.ensureContactChangeNotLocked(userId, ContactChangeKind.PHONE)
 
         const result = await runInTransaction(this.dataSource, async (context, manager) => {
@@ -541,13 +548,13 @@ export class AccountFlowKernel {
                 deserialized = []
             }
 
-            let strategies = deserialized.map((enc) => this.securityService.decrypt_AES256(enc))
+            let strategies = deserialized.map((enc) => this.securityService.decrypt_AES256_GCM(enc))
                 .filter((dec) => TypeGuards.isMfaStrategy(dec))
 
             if (strategies.includes(MfaStrategy.SMS_OTP)) {
                 strategies = strategies.filter((s) => s !== MfaStrategy.SMS_OTP)
                 const encoded = GeneralUtils.distinctArray(strategies)
-                    .map((dec) => this.securityService.encrypt_AES256(dec))
+                    .map((dec) => this.securityService.encrypt_AES256_GCM(dec))
                 const serialized = JSON.stringify(encoded)
                 await manager.update(User, { id: userId }, {
                     mfaStrategies: serialized,
@@ -644,7 +651,8 @@ export class AccountFlowKernel {
 
     public async changePhoneNumber_secondStep_verifyTotp(totp: string, token: string): Promise<ConfirmDTO> {
 
-        const { sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(token, TokenType.PhoneNumberVerificationToken)
+        const { sub, jti } = await this.jwtTools.verifyTokenAndGetPayload(token, TokenType.PhoneNumberVerificationToken)
+        const userId = this.securityService.decryptUserId(sub)
 
         await this.sessionService.revokeToken(jti)
 
@@ -722,7 +730,7 @@ export class AccountFlowKernel {
             throw applicationError(ApplicationErrorCode.PASSWORD_CHANGE_CREDENTIALS_INVALID)
         }
         await this.clearPasswordFailures(userId, PasswordContext.CHANGE)
-        const email = (await this.userService.getUserProvidedEmailById(userId))!.email
+        const email = (await this.userService.getUserEmailById(userId))!
         const firstName = (await this.userService.getUserFirstNameById(userId))!
         const passwordChangeId = uuidv7() as UUID
         await this.unitOfWork.run(async (context, manager) => {
@@ -780,10 +788,11 @@ export class AccountFlowKernel {
     }
 
     public async forgottenPassword(newPassword: string, changePasswordToken: string): Promise<void> | never {
-        const { sub: userId } = await this.jwtTools.verifyTokenAndGetPayload(
+        const { sub } = await this.jwtTools.verifyTokenAndGetPayload(
             changePasswordToken,
             TokenType.ChangePasswordToken
         )
+        const userId = this.securityService.decryptUserId(sub)
         let locked: boolean
         try {
             ({ locked } = await this.dataSource.getRepository(User).findOneOrFail({
@@ -807,7 +816,7 @@ export class AccountFlowKernel {
         for (const s of sessions) {
             await this.sessionService.destroySessionByOwner(s.sessionId, s.userId)
         }
-        const email = (await this.userService.getUserProvidedEmailById(userId))!.email
+        const email = (await this.userService.getUserEmailById(userId))!
         const firstName = (await this.userService.getUserFirstNameById(userId))!
         const passwordResetId = uuidv7() as UUID
         await this.unitOfWork.run(async (context, manager) => {
@@ -848,8 +857,9 @@ export class AccountFlowKernel {
     }
 
     public async isUserAvailableByEmail(email: string): Promise<boolean> {
-        const existsVerified = await this.userService.existsUserByEmail(email)
-        const redisKey = this.getRegistrationLockRedisKey(email)
+        const normalizedEmail = email.trim().toLowerCase()
+        const existsVerified = await this.userService.existsUserByEmail(normalizedEmail)
+        const redisKey = this.getRegistrationLockRedisKey(normalizedEmail)
         const existsUnverified = await this.redisService.exists(redisKey)
         return !existsVerified && !existsUnverified
     }
@@ -947,9 +957,11 @@ export class AccountFlowKernel {
         const { newEmail, newPassword } = dto
         let userId: UUID
         let jti: UUID
+        let sub: string
 
         try {
-            ({ sub: userId, jti } = await this.jwtTools.verifyTokenAndGetPayload(secureToken, TokenType.AccountRecoveryToken))
+            ({ sub, jti } = await this.jwtTools.verifyTokenAndGetPayload(secureToken, TokenType.AccountRecoveryToken))
+            userId = this.securityService.decryptUserId(sub)
         } catch (e) {
             this.logger.debug(`recoverAccount_secondStep > error in secure_token validation: `, errorStack(e) ?? errorMessage(e))
             throw applicationError(ApplicationErrorCode.AUTHENTICATION_UNAUTHENTICATED)

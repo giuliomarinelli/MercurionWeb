@@ -173,6 +173,8 @@ export const redisKeys = {
             key(`changePasswordLock:${jti}`)
     },
     mfa: {
+        activePreAuthorization: (userId: string) =>
+            key(`mfa:pat:active:${userId}`),
         preAuthorizationDevice: (jti: string) =>
             key(`mfa:pat:dev:${jti}`),
         temporaryAppSecret: (userId: string) =>

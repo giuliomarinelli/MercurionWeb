@@ -21,7 +21,7 @@ import { TicketToolbarComponent } from './ticket-toolbar.component';
     :host ::ng-deep .ql-editor { min-height: 110px; font-size: .95rem; }
   `],
   template: `
-    <div class="flex justify-center items-start md:items-center min-h-screen px-2 pt-1 md:pt-6 m-overlay-screen">
+    <div class="flex justify-center items-start md:items-center min-h-dvh px-2 m-overlay-screen">
       <div class="w-full max-w-5xl bg-white dark:bg-dark-surface-main rounded-xl shadow-lg overflow-y-auto custom-scrollbar m-scroll-thin m-overlay-max-80 m-overscroll-touch h-full md:h-auto"
            role="region" aria-labelledby="ticketDetailHeading" [attr.aria-busy]="state().kind === 'loading'">
         <header class="flex items-center justify-between px-4 py-4 border-b border-b-slate-400 sticky top-0 z-50 rounded-t-xl bg-white dark:bg-dark-surface-main">

@@ -65,7 +65,7 @@ import { SettingsSecurityPanelComponent } from './settings-security-panel.compon
       <div #pageTop class="main-container h-full" role="main" aria-busy="true" aria-live="polite">
         <div class="fixed inset-0 pointer-events-none">
           <div class="fixed top-1/2 -translate-y-1/2" [style.left.px]="spinnerLeft()" role="status">
-            <m-progress-indicator [size]="60" />
+            <m-progress-indicator />
           </div>
         </div>
       </div>

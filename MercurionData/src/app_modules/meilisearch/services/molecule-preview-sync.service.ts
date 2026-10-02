@@ -113,17 +113,20 @@ export class MoleculePreviewSyncService {
         if (!exists) {
             this.logger.log(`🔵 Creating index ${uid}...`);
             await this.meiliClient.createIndex(uid, { primaryKey: 'id' });
-            await this.meiliClient.index(uid).updateSettings({
-                searchableAttributes: ['preferredNameIt', 'preferredName', 'synonyms', 'cmbId', 'smiles'],
-                filterableAttributes: [
-                    'maxPhase', 'mwFreebase', 'alogp', 'moleculeType',
-                    'oralAdmin', 'parenteralAdmin', 'topicalAdmin',
-                    'blackBoxWarningFlag', 'naturalProductFlag', 'prodrugFlag', 
-                ],
-            });
-            this.logger.log(`✅ Index ${uid} created & configured.`);
         } else {
-            this.logger.log(`🔵 Index ${uid} already exists.`);
+            this.logger.log(`🔵 Index ${uid} already exists; reconciling settings.`);
         }
+
+        await this.meiliClient.index(uid).updateSettings({
+            searchableAttributes: ['preferredNameIt', 'preferredName', 'synonyms', 'cmbId', 'smiles'],
+            filterableAttributes: [
+                'smiles',
+                'maxPhase', 'mwFreebase', 'alogp', 'moleculeType',
+                'oralAdmin', 'parenteralAdmin', 'topicalAdmin',
+                'blackBoxWarningFlag', 'naturalProductFlag', 'prodrugFlag',
+            ],
+        });
+
+        this.logger.log(`✅ Index ${uid} settings reconciled.`);
     }
 }

@@ -77,7 +77,7 @@ export class MailSenderService {
             return
         }
         const userFirstName = await this.userService.getUserFirstNameById((message.authorId))
-        const userEmail = (await this.userService.getUserProvidedEmailById(ticket.userId))?.email
+        const userEmail = await this.userService.getUserEmailById(ticket.userId)
         if (!userFirstName || !userEmail) {
             return
         }
@@ -112,7 +112,7 @@ export class MailSenderService {
             return
         }
         const userFirstName = await this.userService.getUserFirstNameById(userId)
-        const userEmail = (await this.userService.getUserProvidedEmailById(userId))?.email ?? ''
+        const userEmail = await this.userService.getUserEmailById(userId) ?? ''
         if (!userFirstName || !userEmail ) {
             return
         }

@@ -24,7 +24,7 @@ recovery contract in [OAuth provider credential policy](security/oauth-provider-
 | Dropbox | `DROPBOX_API_URL`, `DROPBOX_AUTH_URL`, `DROPBOX_APP_KEY`, `DROPBOX_APP_SECRET`, `DROPBOX_REDIRECT_URI`, `DROPBOX_TOKEN_URL` | yes | OAuth/object-store endpoints and credentials; app secret is secret. |
 | Search/edge | `MEILISEARCH_HOST`, `MEILISEARCH_MASTER_KEY`, `CLOUDFLARE_SECRET_KEY` | yes | Search endpoint/key and Cloudflare integration; keys are secret. |
 | Redis | `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD` | yes | Session/cache store; password is secret. |
-| SSO | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `GITHUB_REDIRECT_URI`, `LINKEDIN_CLIENT_ID`, `LINKEDIN_CLIENT_SECRET`, `LINKEDIN_REDIRECT_URI`, `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `DISCORD_REDIRECT_URI` | yes | OAuth client configuration; client secrets are secret and redirect URIs are environment-specific. |
+| SSO | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `GITHUB_REDIRECT_URI`, `LINKEDIN_CLIENT_ID`, `LINKEDIN_CLIENT_SECRET`, `LINKEDIN_REDIRECT_URI`, `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `DISCORD_REDIRECT_URI`, `ORCID_CLIENT_ID`, `ORCID_CLIENT_SECRET`, `ORCID_REDIRECT_URI`, `ORCID_ISSUER` | yes | OAuth/OIDC client configuration; client secrets are secret, redirect URIs are environment-specific, and `ORCID_ISSUER` selects sandbox or production. |
 | Feedback | `UM_FEEDBACK_ANON_AUTHOR_KEY` | yes | Anonymous feedback attribution key; secret. |
 
 Development service defaults are PostgreSQL `localhost:5431`, Redis `localhost:6378`, NATS

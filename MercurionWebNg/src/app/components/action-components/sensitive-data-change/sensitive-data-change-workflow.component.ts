@@ -28,11 +28,10 @@ import { TextFieldComponent } from "../../common/text-field/text-field.component
 import { Router, RouterLink } from '@angular/router';
 import { PmSelectComponent } from '../../common/pm-select/pm-select.component';
 import { PmOption } from '../../../Models/pm-option.model';
-import { CopyUiService } from '../../../services/copy-ui.service';
 import { ActionCardComponent } from '../../common/action-card/action-card.component';
-import { IconButtonComponent } from '../../common/icon-button/icon-button.component';
 import { ActionFooterComponent } from '../../common/action-footer/action-footer.component';
 import { ButtonComponent } from '../../common/button/button.component';
+import { CopyButtonComponent } from '../../common/copy-button/copy-button.component';
 
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -48,7 +47,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     RouterLink,
     PmSelectComponent,
     ActionCardComponent,
-    IconButtonComponent,
+    CopyButtonComponent,
     ActionFooterComponent,
     ButtonComponent
   ],
@@ -77,7 +76,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   template: `
 
 
-<div class="flex justify-center items-start md:items-center min-h-screen px-2 sm:px-4 pt-1 md:pt-6 m-overlay-screen">
+<div class="flex justify-center items-start md:items-center min-h-dvh px-2 sm:px-4 m-overlay-screen">
   <m-action-card
     size="standard"
     labelledBy="sensitiveDataHeading"
@@ -198,7 +197,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
           } @else if (enableMfaStep() === 'OK_OR_ERROR') {
             <div class="flex flex-col gap-y-4">
               <div
-                class="bg-light-surface-secondary dark:bg-dark-surface-secondary border my-12 border-light-border dark:border-dark-border relative px-4 py-3 mx-auto max-w-[1024px] rounded-lg text-sm flex gap-3 xs:gap-4 items-center flex-col xs:flex-row"
+                class="bg-light-surface-secondary dark:bg-dark-surface-secondary border my-12 border-light-border dark:border-dark-border relative px-4 py-3 mx-auto max-w-[1024px] rounded-lg text-sm flex gap-3 xs:gap-4 items-center flex-row"
                 [attr.role]="serverError() ? 'alert' : 'status'"
                 [attr.aria-live]="serverError() ? 'assertive' : 'polite'"
               >
@@ -241,26 +240,12 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                   <div class="relative -top-6">
                     <h4 class="flex items-center gap-4 my-3 pt-6 font-semibold justify-center">
                       <span class="text-center">Codici di backup</span>
-                      <m-icon-button
-                       type="button"
-                       class="relative p-1.5 rounded-md hover:bg-slate-200 dark:hover:bg-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary dark:focus-visible:ring-offset-dark-surface-secondary transition-colors duration-150"
-                       ariaLabel="Copia i codici di backup"
-                       (pressed)="copy('BackupCodes')"
-                     >
-                       <svg
-                         class="shrink-0 size-5 text-slate-600 dark:text-slate-300"
-                         viewBox="0 0 20 20"
-                         fill="currentColor"
-                         aria-hidden="true">
-                           <path
-                             d="M4 4a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v1h-1V4a1 1 0 0 0-1-1H6a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h1v1H6a2 2 0 0 1-2-2V4z"
-                           />
-                           <path
-                             d="M8 6a2 2 0 0 1 2-2h5a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-5a2 2 0 0 1-2-2V6z" />
-                       </svg>
-                     </m-icon-button>
+                      <m-copy-button
+                        [src]="backupCodes().join('\n')"
+                        ariaLabel="Copia i codici di backup"
+                      />
                     </h4>
-                    <p class="text-sm text-center mb-6 text-[#374151] dark:text-dark-on-surface-secondary">Copia questi codici in un password manager o stampali e custodiscili in un posto sicuro. Ti permetteranno di accedere nel caso in cui perdessi l'accesso al tuo dispositivo.</p>
+                    <p class="text-sm text-center mb-6 text-dark-surface-secondary dark:text-dark-on-surface-secondary">Copia questi codici in un password manager o stampali e custodiscili in un posto sicuro. Ti permetteranno di accedere nel caso in cui perdessi l'accesso al tuo dispositivo.</p>
                     <div class="flex flex-col sm:flex-row sm:flex-wrap justify-center items-center gap-3 sm:gap-4 text-center sm:text-left">
                       @for (code of backupCodes(); track code) {
                         <span class="text-light-accent-primary-hc dark:text-dark-accent-primary-btn-hc font-bold">{{code}}</span>
@@ -283,24 +268,10 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
             <img class="w-52 mt-5 mx-auto rounded-lg border border-slate-300 dark:border-dark-border/70" [src]="qrCode()" alt="QR Code">
             <div class="mt-4 flex justify-center items-center gap-4">
               <p class="font-bold tracking-[0.08em] text-light-on-surface-main dark:text-dark-on-surface-main">{{appSecret()}}</p>
-              <m-icon-button
-                type="button"
-                class="relative p-1.5 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary dark:focus-visible:ring-offset-dark-surface-secondary transition-colors duration-150"
-                ariaLabel="Copia il segreto dell'app"
-                (pressed)="copy('AppSecret')"
-              >
-                <svg
-                  class="shrink-0 size-7 text-slate-600 dark:text-slate-300"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  aria-hidden="true">
-                    <path
-                      d="M4 4a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v1h-1V4a1 1 0 0 0-1-1H6a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h1v1H6a2 2 0 0 1-2-2V4z"
-                    />
-                    <path
-                      d="M8 6a2 2 0 0 1 2-2h5a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-5a2 2 0 0 1-2-2V6z" />
-                </svg>
-              </m-icon-button>
+              <m-copy-button
+                [src]="appSecret()"
+                ariaLabel="Copia il codice segreto dell'app di autenticazione"
+              />
             </div>
           } @else if (disableMfaStep() === 'OTP_VERIFICATION') {
             <div class="px-5 sm:px-6 py-4 border border-amber-200 dark:border-dark-border bg-yellow-50 dark:bg-slate-700 flex gap-4 sm:gap-6 items-center rounded-lg">
@@ -390,7 +361,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
           </div>
           } @else if (disableMfaStep() === 'OK_OR_ERROR') {
               <div class="flex flex-col gap-y-4">
-                <div class="bg-light-surface-secondary dark:bg-dark-surface-secondary border my-12 border-light-border dark:border-dark-border relative px-4 py-3 mx-auto max-w-[1024px] rounded-lg text-sm flex gap-3 xs:gap-4 items-center flex-col xs:flex-row">
+                <div class="bg-light-surface-secondary dark:bg-dark-surface-secondary border my-12 border-light-border dark:border-dark-border relative px-4 py-3 mx-auto max-w-[1024px] rounded-lg text-sm flex gap-3 xs:gap-4 items-center flex-row">
                   @if (!serverError()) {
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="shrink-0 fill-current w-20 h-auto text-[#064e3b] dark:text-[#a7f3d0]">
                       <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
@@ -479,14 +450,14 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                         <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                         <path d="M80 128L64 128L64 512L321.4 512C316.7 501.8 312.9 491.1 310 480L96 480L96 239.6L307.6 394.8C309.8 383.5 313 372.6 317.1 362.1L96 199.9L96 160L544 160L544 246C555.1 248.9 565.8 252.7 576 257.4L576 128L80 128zM496 320C557.9 320 608 370.1 608 432C608 493.9 557.9 544 496 544C434.1 544 384 493.9 384 432C384 370.1 434.1 320 496 320zM496 576C575.5 576 640 511.5 640 432C640 352.5 575.5 288 496 288C416.5 288 352 352.5 352 432C352 511.5 416.5 576 496 576zM566.4 380.5L540.5 361.7L531.1 374.6L478.1 447.5C457.7 427 445 414.3 440 409.4L417.4 432C420.2 434.8 437.3 451.9 468.7 483.3L481.9 496.5L492.9 481.4L556.9 393.4L566.3 380.5z"/>
                       </svg>
-                      <div class="text-[0.925rem] leading-[1.25rem] text-[#374151] dark:text-dark-on-surface-secondary pr-4">
+                      <div class="text-[0.925rem] leading-5 text-dark-surface-secondary dark:text-dark-on-surface-secondary pr-4">
                         <ul class="list-disc list-inside mb-2 font-semibold">
                           <li class="list-item py-2">E-mail corrente:&nbsp;<strong class="text-[#1147BB] dark:text-dark-accent-primary-btn-hc">{{obscuredEmail()}}</strong></li>
                           <li class="list-item py-2">Nuova e-mail da confermare:&nbsp;<strong class="text-light-error dark:text-dark-error-hc">{{tempObscuredEmail()}}</strong></li>
                         </ul>
                       </div>
                     </div>
-                    <span class="text-sm text-[#374151] dark:text-dark-on-surface-secondary">Abbiamo inviato un codice monouso a&nbsp;<strong class="text-light-error dark:text-dark-error-hc">{{tempObscuredEmail()}}</strong>. Inserisci il codice monouso nel campo di input seguente per confermare il cambio di indirizzo e-mail.</span>
+                    <span class="text-sm text-dark-surface-secondary dark:text-dark-on-surface-secondary">Abbiamo inviato un codice monouso a&nbsp;<strong class="text-light-error dark:text-dark-error-hc">{{tempObscuredEmail()}}</strong>. Inserisci il codice monouso nel campo di input seguente per confermare il cambio di indirizzo e-mail.</span>
                   </div>
                   <div class="relative min-h-[25vh] rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
                     <div class="absolute inset-0 flex justify-center items-center px-6">
@@ -508,7 +479,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                 </div>
               }
               @case ('OK_OR_ERROR') {
-                <div class="bg-light-surface-secondary dark:bg-dark-surface-secondary border my-12 border-light-border dark:border-dark-border relative px-4 py-3 mx-auto max-w-[1024px] rounded-lg text-sm flex gap-3 xs:gap-4 items-center flex-col xs:flex-row">
+                <div class="bg-light-surface-secondary dark:bg-dark-surface-secondary border my-12 border-light-border dark:border-dark-border relative px-4 py-3 mx-auto max-w-[1024px] rounded-lg text-sm flex gap-3 xs:gap-4 items-center flex-row">
                   @if (!serverError()) {
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="shrink-0 fill-current w-20 h-auto text-[#064e3b] dark:text-[#a7f3d0]">
                       <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
@@ -517,7 +488,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                     <span class="inline-block pr-4">L'indirizzo e-mail è stato correttamente cambiato da
                       &nbsp;<strong class="text-light-error dark:text-dark-error-hc">{{obscuredEmail()}}</strong>
                       a
-                      &nbsp;<strong class="text-[#1147BB] dark:text-dark-accent-primary-btn-hc">{{tempObscuredEmail()}}</strong>.
+                      &nbsp;<strong class="text-light-accent-primary-hc dark:text-dark-accent-primary-btn-hc">{{tempObscuredEmail()}}</strong>.
                     </span>
                   } @else {
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="shrink-0 fill-current w-20 h-auto text-light-error dark:text-dark-error-hc">
@@ -631,7 +602,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
               </div>
             }
             @case ('OK_OR_ERROR') {
-                <div class="bg-light-surface-secondary dark:bg-dark-surface-secondary border my-12 border-light-border dark:border-dark-border relative px-4 py-3 mx-auto max-w-[1024px] rounded-lg text-sm flex gap-3 xs:gap-4 items-center flex-col xs:flex-row">
+                <div class="bg-light-surface-secondary dark:bg-dark-surface-secondary border my-12 border-light-border dark:border-dark-border relative px-4 py-3 mx-auto max-w-[1024px] rounded-lg text-sm flex gap-3 xs:gap-4 items-center flex-row">
                   @if (!serverError()) {
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="shrink-0 fill-current w-20 h-auto text-[#064e3b] dark:text-[#a7f3d0]">
                       <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
@@ -708,7 +679,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
               </div>
               }
               @case ('OK_OR_ERROR') {
-                <div class="bg-light-surface-secondary dark:bg-dark-surface-secondary border my-12 border-light-border dark:border-dark-border relative px-4 py-3 mx-auto max-w-[1024px] rounded-lg text-sm flex gap-3 xs:gap-4 items-center flex-col xs:flex-row">
+                <div class="bg-light-surface-secondary dark:bg-dark-surface-secondary border my-12 border-light-border dark:border-dark-border relative px-4 py-3 mx-auto max-w-[1024px] rounded-lg text-sm flex gap-3 xs:gap-4 items-center flex-row">
                   @if (!serverError()) {
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="shrink-0 fill-current w-20 h-auto text-[#064e3b] dark:text-[#a7f3d0]">
                       <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
@@ -754,7 +725,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                     <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                     <path d="M256 240C256 160.5 320.5 96 400 96C479.5 96 544 160.5 544 240C544 319.5 479.5 384 400 384C388.9 384 378 382.7 367.6 380.4L359 378.4L352.7 384.7L321.3 416.1L255.9 416.1L255.9 480.1L191.9 480.1L191.9 544.1L95.9 544.1L95.9 462.7L258.7 299.9L265.6 293L262.7 283.7C258.3 269.9 256 255.3 256 240zM400 64C302.8 64 224 142.8 224 240C224 255.1 225.9 269.8 229.5 283.9L68.7 444.7L64 449.4L64 576L224 576L224 512L288 512L288 448L334.6 448L339.3 443.3L369.3 413.3C379.3 415.1 389.5 416 400 416C497.2 416 576 337.2 576 240C576 142.8 497.2 64 400 64zM432 232C445.3 232 456 221.3 456 208C456 194.7 445.3 184 432 184C418.7 184 408 194.7 408 208C408 221.3 418.7 232 432 232z"/>
                   </svg>
-                    <span class="text-[#374151] dark:text-dark-on-surface-secondary inline-block pr-4">Inserisci di seguito la password corrente e la nuova password che vuoi impostare. Ricordati che non puoi impostare password già usate impassato.</span>
+                    <span class="text-dark-surface-secondary dark:text-dark-on-surface-secondary inline-block pr-4">Inserisci di seguito la password corrente e la nuova password che vuoi impostare. Ricordati che non puoi impostare password già usate impassato.</span>
                 </div>
                 <div class="relative min-h-[30vh] rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
                   <div class="flex justify-center items-center px-6 py-6" [formGroup]="passwordForm">
@@ -799,7 +770,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
               </div>
             }
             @case ('OK_OR_ERROR') {
-              <div class="bg-light-surface-secondary dark:bg-dark-surface-secondary border my-12 border-light-border dark:border-dark-border relative px-4 py-3 mx-auto max-w-[1024px] rounded-lg text-sm flex gap-3 xs:gap-4 items-center flex-col xs:flex-row">
+              <div class="bg-light-surface-secondary dark:bg-dark-surface-secondary border my-12 border-light-border dark:border-dark-border relative px-4 py-3 mx-auto max-w-[1024px] rounded-lg text-sm flex gap-3 xs:gap-4 items-center flex-row">
                 @if (!serverError()) {
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="shrink-0 fill-current w-20 h-auto text-[#064e3b] dark:text-[#a7f3d0]">
                     <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
@@ -832,14 +803,14 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
       }
     } @else {
       <div class="absolute inset-0 flex justify-center items-center z-[30] bg-white/60 dark:bg-black/40 backdrop-blur-sm min-h-[40vh]">
-        <m-progress-indicator [size]="45" />
+        <m-progress-indicator />
       </div>
     }
     </div>
     <m-action-footer action-card-footer>
         <m-button
           action-footer-secondary
-          variant="neutral"
+          variant="outline"
           [class.hidden]="
             enableMfaStep() === 'CHOOSE_STRATEGY'
             || disableMfaStep() === 'CHOOSE_STRATEGY'
@@ -923,7 +894,6 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
   private readonly mfaCatalog = inject(AuthMfaCatalogService)
   private readonly countryService = inject(CountryService)
   private readonly router = inject(Router)
-  private readonly copyUiService = inject(CopyUiService)
   private readonly emailUseCase = inject(SensitiveEmailUseCase)
   private readonly phoneUseCase = inject(SensitivePhoneUseCase)
   private readonly passwordUseCase = inject(SensitivePasswordUseCase)
@@ -1033,7 +1003,7 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
       }),
       switchMap(() => {
         return combineLatest([
-          this.accountService.getMaskedEmail(),
+          this.accountService.getMaskedAccountId(),
           this.accountService.getMaskedPhone()
         ]).pipe(
           tap(([maskedEmail, maskedPhone]) => {
@@ -1053,10 +1023,10 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
         switch (is) {
           case 'ChangeEmail':
             this.changeEmailStep.set('NEW_CONTACT_FORM')
-            return this.accountService.getMaskedEmail()
+            return this.accountService.getMaskedAccountId()
           case 'EnableMfa':
             this.enableMfaStep.set('CHOOSE_STRATEGY')
-            return this.accountService.getMaskedEmail()
+            return this.accountService.getMaskedAccountId()
           case 'ConfigMfa':
             this.enableMfaStep.set('CHOOSE_STRATEGY')
             this.disableMfaStep.set('CHOOSE_STRATEGY')
@@ -1467,7 +1437,7 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
           this.changeEmailStep.set('OK_OR_ERROR')
         }))
       ).subscribe({
-        next: () => this.accountService.getProvidedEmail(),
+        next: () => this.accountService.getProvidedAccountId(),
         error: (e: HttpErrorResponse) => queueMicrotask(() => this.serverError.set(e.status))
       })
     }
@@ -1559,31 +1529,6 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
         error: (e: HttpErrorResponse) => this.serverError.set(e.status)
       })
     }
-  }
-
-  copy(scope: 'AppSecret' | 'BackupCodes'): void {
-
-    let secret = ''
-
-    switch (scope) {
-      case 'AppSecret':
-        secret = this.appSecret()
-        break
-      case 'BackupCodes':
-        secret = this.backupCodes()?.join(' \n')
-        break
-    }
-
-    this.copyUiService
-      .copy(secret, {
-        successMessage: 'Codice copiato negli appunti ✅',
-        errorMessage: 'Impossibile copiare il codice. Copialo manualmente.',
-        successContext: 'success',
-        errorContext: 'error',
-        durationMs: 2200,
-        forceToast: false
-      })
-
   }
 
 }

@@ -1,7 +1,8 @@
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 
 import { AuthRedirectService } from './auth-redirect.service';
+import { AuthSessionPersistenceService } from './auth-session-persistence.service';
 
 describe('AuthRedirectService', () => {
   let service: AuthRedirectService;
@@ -44,5 +45,16 @@ describe('AuthRedirectService', () => {
     sessionStorage.setItem('authRedirectIntent', '//evil.example')
     expect(service.consume()).toBe('/dashboard')
     expect(sessionStorage.getItem('authRedirectIntent')).toBeNull()
+  })
+
+  it('returns directly to login and clears pre-auth data', async () => {
+    const persistence = TestBed.inject(AuthSessionPersistenceService)
+    persistence.setPreAuthorizationData('pending')
+    const navigate = spyOn(TestBed.inject(Router), 'navigateByUrl').and.resolveTo(true)
+
+    await service.redirectToLogin()
+
+    expect(persistence.getPreAuthorizationData()).toBeNull()
+    expect(navigate).toHaveBeenCalledOnceWith('/login', { replaceUrl: true })
   })
 });

@@ -13,7 +13,11 @@ import type {
 } from '../../Models/graphql/molecule-collection/molecule-collection.types';
 
 function toNumber(value: string | number): number {
-  return typeof value === 'number' ? value : Number(value);
+  const number = typeof value === 'number' ? value : Number(value);
+  if (!Number.isFinite(number) || number <= 0) {
+    throw new Error('Invalid ChEMBL molregno in molecule item response');
+  }
+  return number;
 }
 
 function mapJoins(joins: MoleculeItemDTO['joins']): MoleculeCollectionJoin[] {
@@ -25,6 +29,9 @@ function mapJoins(joins: MoleculeItemDTO['joins']): MoleculeCollectionJoin[] {
 export function mapMoleculeItemDtoToClient(
   node: MoleculeItemDTO
 ): MoleculeCollectionItemClient {
+  if (!node.id) {
+    throw new Error('Missing molecule item id in GraphQL response');
+  }
   const common = {
     id: node.id,
     label: node.label ?? null,

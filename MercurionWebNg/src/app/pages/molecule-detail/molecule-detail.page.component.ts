@@ -2,7 +2,6 @@ import { CustomDetailSaveModel } from '../../Models/custom-detail-save.model'
 import { toSignal } from '@angular/core/rxjs-interop'
 import { SimilarsComponent } from '../../components/molecule-detail/similars/similars.component'
 import { Component, computed, effect, inject, Signal, signal, ChangeDetectionStrategy } from '@angular/core'
-import { RouterLink } from '@angular/router'
 import type { Observable } from 'rxjs'
 import { AsyncPipe } from '@angular/common'
 import { MoleculeHeaderComponent } from '../../components/molecule-detail/molecule-header/molecule-header.component'
@@ -24,8 +23,9 @@ import { LinkModel } from '../../Models/link.model'
 import { DesignService } from '../../services/design.service'
 import { MoleculeDetailFacade } from './molecule-detail.facade'
 import { SelectionControlComponent } from '../../components/common/selection-control/selection-control.component'
-
-
+import { IconButtonComponent } from '../../components/common/icon-button/icon-button.component'
+import { Router } from '@angular/router'
+import { CopyButtonComponent } from '../../components/common/copy-button/copy-button.component'
 
 
 @Component({
@@ -46,9 +46,10 @@ import { SelectionControlComponent } from '../../components/common/selection-con
     ProgressIndicatorComponent,
     CustomDetailsComponent,
     MyMoleculeJoinComponent,
-    RouterLink,
     MyMoleculesHeadingComponent,
-    SelectionControlComponent
+    SelectionControlComponent,
+    IconButtonComponent,
+    CopyButtonComponent
   ],
   template: `
 
@@ -84,46 +85,48 @@ import { SelectionControlComponent } from '../../components/common/selection-con
         <section class="relative -top-4">
            <p class="flex gap-4 items-center font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary mt-6 mb-4 text-center sm:text-left text-xl">
             <span class="shrink-0">Canonical smiles</span>
-            <span class="shrink-0 text-sm text-neutral-950 dark:text-slate-200">
+            <span class="shrink-0 text-sm text-neutral-950 dark:text-slate-200 font-mono pl-3">
               @if (typeGuards.isSystemMolecule(molecule)) {
-                {{molecule.canonicalSmiles}}
+                {{ molecule.canonicalSmiles }}
               } @else if (typeGuards.isChemblMolecule(molecule)) {
-                {{molecule.chemblDetails.canonicalSmiles}}
+                {{ molecule.chemblDetails.canonicalSmiles }}
               } @else if (typeGuards.isCustomMolecule(molecule)) {
-                {{molecule.canonicalSmiles}}
+                {{ molecule.canonicalSmiles }}
               }
             </span>
+            @if (typeGuards.isSystemMolecule(molecule)) {
+              <m-copy-button [src]="molecule.canonicalSmiles ?? ''" />
+            } @else if (typeGuards.isChemblMolecule(molecule)) {
+              <m-copy-button [src]="molecule.chemblDetails.canonicalSmiles ?? ''" />
+            } @else if (typeGuards.isCustomMolecule(molecule)) {
+              <m-copy-button [src]="molecule.canonicalSmiles" />
+            }
           </p>
           <h2
             class="flex gap-3 items-center justify-center sm:justify-start font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary mt-6 mb-4 text-center sm:text-left text-xl">
             <span>Struttura</span>
             @if (typeGuards.isCustomMolecule(molecule)) {
-            <a class="cursor-pointer transition-colors duration-300 hover:transform hover:scale-[1.05]" title="Modifica Struttura"
-              routerLink="/molecules/editor" [queryParams]="{
-                      mode: 'edit',
-                      m_id: molId
-                    }"
-              aria-label="Modifica struttura"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
-                class="fill-current h-[22px] w-auto text-slate-800 hover:text-slate-800/75 dark:text-slate-200 dark:hover:text-slate-200/75"
-                aria-hidden="true">
-                <path
-                  d="M58.1 555.9L48 592C50.7 591.2 117.4 572.6 248 536L569.4 214.6L592 192C589.6 189.6 549.1 149.1 470.6 70.6L448 48L425.4 70.6L104 392L58.1 555.9zM252.7 486L154 387.3L347.4 193.9L446.1 292.6L252.7 486zM229.4 508L94.2 545.8L132 410.6L229.4 508zM546.7 192L468.6 270.1L369.9 171.4L448 93.3L546.7 192z" />
-              </svg>
-            </a>
+              <m-icon-button
+                size="sm"
+                ariaLabel="Modifica Struttura"
+                (pressed)="doEditStructure(molecule.id)">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
+                     class="h-7 w-auto fill-current text-slate-800 hover:text-slate-800/75 dark:text-slate-200 dark:hover:text-slate-200/75">
+                  <path d="M58.1 555.9L48 592C50.7 591.2 117.4 572.6 248 536L569.4 214.6L592 192C589.6 189.6 549.1 149.1 470.6 70.6L448 48L425.4 70.6L104 392L58.1 555.9zM252.7 486L154 387.3L347.4 193.9L446.1 292.6L252.7 486zM229.4 508L94.2 545.8L132 410.6L229.4 508zM546.7 192L468.6 270.1L369.9 171.4L448 93.3L546.7 192z"/>
+                </svg>
+              </m-icon-button>
             }
           </h2>
           <div class="overflow-x-auto flex justify-center sm:justify-start">
             <div class="
-                    flex-shrink-0
+                    shrink-0
                     w-auto
-                    h-[140px]
-                    2xs:h-[165px]
-                    xs:h-[185px]
-                    sm:h-[215px]
-                    md:h-[235px]
-                    lg:h-[300px]
+                    h-35
+                    2xs:h-41.25
+                    xs:h-46.25
+                    sm:h-53.75
+                    md:h-58.75
+                    lg:h-75
                     overflow-hidden
                     relative
 
@@ -183,7 +186,7 @@ import { SelectionControlComponent } from '../../components/common/selection-con
             <m-selection-control
               label="Mostra solo composti noti"
               description="Deselezionando questa opzione potrai vedere anche i lead sperimentali"
-              mode="switch"
+              mode="checkbox"
               [formControl]="onlyKnown"
             />
           </div>
@@ -218,20 +221,17 @@ import { SelectionControlComponent } from '../../components/common/selection-con
         </section>
         } @else {
         <section class="max-w-5xl mx-auto h-full flex justify-center items-center" role="main" aria-busy="true" aria-live="polite">
-          @if (design.maxBk('md')()) {
-            <m-progress-indicator [size]="30" />
-          } @else if (design.minBk('md')()) {
-            <m-progress-indicator [size]="60" />
-          }
+          <m-progress-indicator />
         </section>
         }
   ` })
 export class MoleculeDetailPageComponent {
-  private readonly facade = inject(MoleculeDetailFacade)
 
+  private readonly facade = inject(MoleculeDetailFacade)
   protected readonly userContext = inject(UserContextService)
   protected readonly typeGuards = inject(TypeGuardsService)
   protected readonly design = inject(DesignService)
+  private readonly router = inject(Router)
 
   molecule$: Observable<MoleculeDetailItem | null> = this.facade.molecule$
   viewerReady = signal<boolean>(false)
@@ -263,12 +263,12 @@ export class MoleculeDetailPageComponent {
       const collectionName = this.facade.collectionName()
       this.breadcrumb = collectionId && collectionName
         ? [
-            { label: 'Collezioni Molecolari', path: '/molecules/collections' },
-            {
-              label: collectionName,
-              path: `/molecules/collections/detail/${collectionId}`
-            }
-          ]
+          { label: 'Collezioni Molecolari', path: '/molecules/collections' },
+          {
+            label: collectionName,
+            path: `/molecules/collections/detail/${collectionId}`
+          }
+        ]
         : [{ label: 'Collezioni Molecolari', path: '/molecules/collections' }]
     })
   }
@@ -283,6 +283,15 @@ export class MoleculeDetailPageComponent {
 
   doAddToManyCollections(): void {
     this.facade.bindCollections()
+  }
+
+  doEditStructure(molId: string): void {
+    this.router.navigate(['molecules', 'editor'], {
+      queryParams: {
+        mode: 'edit',
+        m_id: molId
+      }
+    })
   }
 
 }

@@ -133,7 +133,7 @@ import { ProgressIndicatorComponent } from "../progress-indicator/progress-indic
         </div>
       } @else {
         <div class="min-h-64 flex justify-center items-center">
-          <m-progress-indicator [size]="30" />
+          <m-progress-indicator />
         </div>
       }
     </div>
