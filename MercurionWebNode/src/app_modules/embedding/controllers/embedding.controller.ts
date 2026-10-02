@@ -15,7 +15,7 @@ import {
 import { EmbeddingService } from '../services/embedding.service';
 import { Public } from 'src/metadata/metadata';
 import type { EmbeddingResponse } from '@mercurion/rest-contracts'
-import { EmbeddingSmilesDTO } from '../models/dto/embedding-smiles.dto';
+import { SmilesDTO } from '../models/dto/embedding-smiles.dto';
 
 @Controller('embedding')
 export class EmbeddingController {
@@ -42,7 +42,7 @@ export class EmbeddingController {
     @HttpCode(HttpStatus.OK)
     @Post('/get-similar-by-smiles')
     async getSimilarBySmiles(
-        @Body(new ValidationPipe({ transform: true })) body: EmbeddingSmilesDTO,
+        @Body(new ValidationPipe({ transform: true })) body: SmilesDTO,
         @Query('n', new DefaultValuePipe(3), ParseIntPipe) n: number,
         @Query('only_molregnos', new DefaultValuePipe(true), ParseBoolPipe) onlyMolregnos: boolean,
         @Query('with_no_name', new DefaultValuePipe(false), ParseBoolPipe) withNoName: boolean
