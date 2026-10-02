@@ -296,8 +296,9 @@ export class InAppNotificationService {
   }
 
   private async recoverChanges(generation: number): Promise<boolean> {
-    let cursor = this._syncCursor()
-    if (!cursor) return false
+    const initialCursor = this._syncCursor()
+    if (!initialCursor) return false
+    let cursor: string = initialCursor
 
     this._syncState.set(
       this.needsSocketFallback() || this.recoveryErrorFallback
