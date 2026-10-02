@@ -44,9 +44,9 @@ import { MoleculeBadgeComponent } from '../../components/molecule-detail/molecul
 import { MoleculeService } from '../../services/graphql/molecule.service'
 import { CopyButtonComponent } from '../../components/common/copy-button/copy-button.component';
 import { NgClass } from '@angular/common'
-import { T1PredictionCardComponent } from '../../components/molecule-detail/t1-prediction-card/t1-prediction-card.component'
-import { T1PredictionDTO } from '../../Models/notebook/t1-prediction-model'
-import { MercurionAiService } from '../../services/mercurion-ai.service'
+import { LiveTox21SummaryComponent } from '../../components/molecule-editor/live-tox21-summary/live-tox21-summary.component'
+import { LiveMoleculeAnalogsComponent } from '../../components/molecule-editor/live-molecule-analogs/live-molecule-analogs.component'
+import { MoleculeEditorLiveAnalysisFacade } from './molecule-editor-live-analysis.facade'
 
 
 @Component({
@@ -61,8 +61,10 @@ import { MercurionAiService } from '../../services/mercurion-ai.service'
     MoleculeBadgeComponent,
     CopyButtonComponent,
     NgClass,
-    T1PredictionCardComponent
+    LiveTox21SummaryComponent,
+    LiveMoleculeAnalogsComponent
   ],
+  providers: [MoleculeEditorLiveAnalysisFacade],
   template: `
 <main class="mt-2 mb-6" role="main" aria-live="polite"
     [attr.aria-busy]="pendingAction() !== null || pendingTabChange() !== null">
@@ -110,9 +112,8 @@ import { MercurionAiService } from '../../services/mercurion-ai.service'
         </ng-template>
     </section>
 
-    <div class="grid gap-4" [ngClass]="{
-      'grid-cols-1': tab() === 'std',
-      'grid-cols-2': tab() === 'live'
+    <div class="grid grid-cols-1 gap-4" [ngClass]="{
+      'xl:grid-cols-[minmax(0,3fr)_minmax(22rem,2fr)]': tab() === 'live'
     }">
         <m-ketcher-frame [smiles]="smiles()" [baselineSmiles]="baselineSmiles()" [mode]="mode()" [tab]="tab()"
             [triggerReset]="triggerReset()" [triggerGetSmiles]="triggerGetSmiles()"
@@ -142,21 +143,36 @@ import { MercurionAiService } from '../../services/mercurion-ai.service'
                 }
             </div>
         </m-ketcher-frame>
-        @if (tab() === 'live' && currentT1Inference()) {
-            <m-t1-prediction-card [inference]="currentT1Inference()!" />
+        @if (tab() === 'live') {
+          <aside class="min-w-0" aria-label="Analisi molecolare live">
+            <m-descriptor-cards-grid
+              [columns]="1"
+              density="compact"
+              [cardsData]="[
+                { title: 'Predizione Tox21', bg: 'primary', content: tox21Live },
+                { title: 'Analoghi più simili', bg: 'secondary', content: analogsLive }
+              ]"
+            />
+
+            <ng-template #tox21Live>
+              <m-live-tox21-summary
+                [inference]="liveAnalysis.toxPrediction()"
+                [loading]="liveAnalysis.toxLoading()"
+                [error]="liveAnalysis.toxError()"
+              />
+            </ng-template>
+
+            <ng-template #analogsLive>
+              <m-live-molecule-analogs
+                [molecules]="liveAnalysis.analogs()"
+                [loading]="liveAnalysis.analogsLoading()"
+                [error]="liveAnalysis.analogsError()"
+                [unavailable]="liveAnalysis.analogsUnavailable()"
+              />
+            </ng-template>
+          </aside>
         }
     </div>
-    @if (tab() === 'live') {
-    <section class="mt-6" aria-labelledby="editor-properties-heading">
-        <h2 id="editor-properties-heading"
-            class="text-xl font-semibold mb-3 text-light-accent-primary-hc dark:text-dark-accent-primary text-center sm:text-left">
-            Proprietà chimico-fisiche
-        </h2>
-
-
-
-    </section>
-    }
     } @else {
     <h3 class="text-center text-5xl font-semibold text-light-error dark:text-dark-error" role="alert"
         aria-live="assertive">
@@ -192,7 +208,7 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
   private readonly drafts = inject(MoleculeEditorDraftService)
   private readonly qpRegistry = signal<MoleculeEditorQp | null>(null)
   private readonly moleculeService = inject(MoleculeService)
-  private readonly ai = inject(MercurionAiService)
+  readonly liveAnalysis = inject(MoleculeEditorLiveAnalysisFacade)
 
   private routeSub?: Subscription
   private molEdSub?: Subscription
@@ -217,7 +233,6 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
   readonly moleculeNameLoading = signal(false)
   readonly currentMoleculeName = signal<string | null>(null)
   readonly currentMoleculeType = signal<string | null>(null)
-  readonly currentT1Inference = signal<T1PredictionDTO | null>(null)
 
   readonly canUndo = this.drafts.canUndo
   readonly canRedo = this.drafts.canRedo
@@ -279,21 +294,14 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
           }
         })
 
-      let infSub: Subscription | undefined
+      onCleanup(() => sub.unsubscribe())
+    })
 
-      if (this.tab() === 'live') {
-        infSub = this.ai.t1Inference({ smiles: this.currentCanonicalSmiles() })
-          .subscribe({
-            next: (res) => {
-              this.currentT1Inference.set(res)
-            }
-          })
-
-        onCleanup(() => {
-          sub.unsubscribe()
-          infSub?.unsubscribe()
-        })
-      }
+    effect(() => {
+      this.liveAnalysis.setContext(
+        this.currentCanonicalSmiles(),
+        this.tab() === 'live'
+      )
     })
   }
 
