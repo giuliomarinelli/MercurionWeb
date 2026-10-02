@@ -37,7 +37,7 @@ import { NgClass } from '@angular/common';
       [ariaLabelledby]="'notification-button-label'"
     >
       <div class="relative">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current size-6 scale-130">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current size-6 scale-125">
           <!--!Font Awesome Pro v7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2026 Fonticons, Inc.-->
           <path d="M352 64L288 64L288 99.2C215 114 160 178.6 160 256L160 352L80 480L560 480L480 352L480 256C480 178.6 425 114 352 99.2L352 64zM258 528C265.1 555.6 290.2 576 320 576C349.8 576 374.9 555.6 382 528L258 528z"/>
         </svg>
@@ -56,7 +56,7 @@ export class NotificationButtonComponent {
 
   readonly unreadCount = input.required<number>()
 
-  protected badgeClass = signal<BadgeAppearanceClass>('hidden')
+  protected readonly badgeClass = signal<BadgeAppearanceClass>('hidden')
 
   private readonly handleBadgeApppearanceEfxRef = effect(() => {
     const c = this.unreadCount()

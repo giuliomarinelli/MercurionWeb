@@ -8,7 +8,7 @@ export class InAppNotificationService {
 
   private readonly realtime = inject(RealtimeSocketService)
 
-  private readonly _unreadCount = signal<number>(0)
+  private readonly _unreadCount = signal<number>(1)
   readonly unreadCount = this._unreadCount.asReadonly()
 
 

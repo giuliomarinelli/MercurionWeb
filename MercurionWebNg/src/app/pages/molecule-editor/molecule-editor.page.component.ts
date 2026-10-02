@@ -181,19 +181,39 @@ import { MoleculeEditorLiveAnalysisFacade } from './molecule-editor-live-analysi
 </main>
   `,
   styles: `
-  .editor-tabs {
-    --p-togglebutton-background: transparent;
-    --p-togglebutton-color: #475569;
-    --p-togglebutton-hover-background: #f1f5f9;
-    --p-togglebutton-hover-color: #0f172a;
 
-    --p-togglebutton-checked-background: #2563eb;
-    --p-togglebutton-checked-color: white;
-    --p-togglebutton-content-checked-background: #2563eb;
+    .editor-tabs {
+      --p-togglebutton-background: #cad5e2;
+      --p-togglebutton-color: #0f172a;
+      --p-togglebutton-hover-background: rgba(206, 217, 230, 0.864);
+      --p-togglebutton-hover-color: #0f172a;
 
-    --p-togglebutton-padding: 0.5rem;
-    --p-togglebutton-font-weight: 600;
-  }
+      --p-togglebutton-checked-background: #1147bb;
+      --p-togglebutton-checked-color: white;
+      --p-togglebutton-content-checked-background: #1147bb;
+
+      --p-togglebutton-padding: 0.5rem;
+      --p-togglebutton-font-weight: 600;
+
+      --p-selectbutton-border-radius: 0.375rem;
+      --p-togglebutton-content-padding: 0.25rem 0.5rem;
+      --p-togglebutton-padding: 0.33rem;
+
+      transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;
+
+    }
+
+    :host-context(html.dark) .editor-tabs {
+    --p-togglebutton-background: #314158;
+    --p-togglebutton-color: #f8fafc;
+
+    --p-togglebutton-hover-background: rgba(53, 69, 91, 0.847);
+    --p-togglebutton-hover-color: #f8fafc;
+
+    --p-togglebutton-checked-background: #60a5fa;
+    --p-togglebutton-checked-color: #0f172a;
+    --p-togglebutton-content-checked-background: #60a5fa;
+}
 `
 })
 export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
@@ -238,10 +258,10 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
   readonly editorTabOptions = computed(() => [
     {
       label: this.mode() === 'create'
-        ? 'Crea'
+        ? 'Crea una molecola'
         : this.mode() === 'edit'
-          ? 'Modifica'
-          : 'Duplica',
+          ? 'Modifica una molecola'
+          : 'Duplica una molecola',
       value: 'std' as ChemistryEditorTab
     },
     {
