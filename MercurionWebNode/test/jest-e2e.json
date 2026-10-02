@@ -5,7 +5,8 @@
   "testRegex": ".e2e-spec.ts$",
   "moduleNameMapper": {
     "^src/(.*)$": "<rootDir>/../src/$1",
-    "^jose$": "<rootDir>/../src/test-utils/mocks/jose.ts"
+    "^jose$": "<rootDir>/../src/test-utils/mocks/jose.ts",
+    "^content-disposition$": "<rootDir>/content-disposition.cjs"
   },
   "setupFilesAfterEnv": ["<rootDir>/jest.setup.ts"],
   "transform": {

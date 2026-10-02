@@ -5825,174 +5825,6 @@
       }
     },
     {
-      "id": "MercurionWebNg/src/app/services/embedding.service.ts#EmbeddingService.getSimilarMolregnos#0",
-      "consumer": {
-        "file": "MercurionWebNg/src/app/services/embedding.service.ts",
-        "class": "EmbeddingService",
-        "method": "getSimilarMolregnos",
-        "ordinal": 0,
-        "verb": "GET",
-        "path": "/api/embedding/get-similar-molregnos",
-        "urlVariants": [
-          "/api/embedding/get-similar-molregnos?molregno=:molregno&n=:n&with_no_name=:with_no_name&only_molregnos=:only_molregnos"
-        ],
-        "pathParameters": [],
-        "queryParameters": [
-          {
-            "name": "molregno",
-            "wireType": "string",
-            "sourceTypes": [
-              "string"
-            ],
-            "optional": false
-          },
-          {
-            "name": "n",
-            "wireType": "string",
-            "sourceTypes": [
-              "number"
-            ],
-            "optional": false
-          },
-          {
-            "name": "only_molregnos",
-            "wireType": "string",
-            "sourceTypes": [
-              "boolean"
-            ],
-            "optional": false
-          },
-          {
-            "name": "with_no_name",
-            "wireType": "string",
-            "sourceTypes": [
-              "boolean"
-            ],
-            "optional": false
-          }
-        ],
-        "body": {
-          "contract": {
-            "applicable": false,
-            "compatible": true,
-            "canonicalNames": [],
-            "shapeHash": null
-          }
-        },
-        "response": {
-          "type": "EmbeddingResponse",
-          "mode": "json",
-          "options": {
-            "withCredentials": "true"
-          },
-          "contract": {
-            "applicable": true,
-            "compatible": true,
-            "canonicalNames": [
-              "EmbeddingNeighbor",
-              "EmbeddingResponse"
-            ],
-            "shapeHash": "e83d3fb676df3af56855f5ce594222dc655aba5d74c79ed99ac07b024de3a7a7"
-          }
-        }
-      },
-      "server": {
-        "controller": "MercurionWebNode/src/app_modules/embedding/controllers/embedding.controller.ts",
-        "handler": "getSimilarMolregnos",
-        "verb": "GET",
-        "path": "/api/embedding/get-similar-molregnos",
-        "parameters": [
-          {
-            "source": "query",
-            "name": "molregno",
-            "type": "number",
-            "optional": false
-          },
-          {
-            "source": "query",
-            "name": "n",
-            "type": "number",
-            "optional": false
-          },
-          {
-            "source": "query",
-            "name": "only_molregnos",
-            "type": "boolean",
-            "optional": false
-          },
-          {
-            "source": "query",
-            "name": "with_no_name",
-            "type": "boolean",
-            "optional": false
-          }
-        ],
-        "returnType": "EmbeddingResponse",
-        "successStatus": 200,
-        "errorStatuses": {
-          "validation": [
-            400
-          ],
-          "authentication": [],
-          "authorization": [],
-          "declared": []
-        },
-        "authentication": {
-          "public": true,
-          "guards": [],
-          "scopes": []
-        },
-        "responseContract": {
-          "displayType": "EmbeddingResponse",
-          "shapeHash": "e83d3fb676df3af56855f5ce594222dc655aba5d74c79ed99ac07b024de3a7a7",
-          "canonicalNames": [
-            "EmbeddingNeighbor",
-            "EmbeddingResponse"
-          ],
-          "applicable": true,
-          "canonical": true
-        }
-      },
-      "matching": {
-        "status": "matched",
-        "path": {
-          "compatible": true,
-          "failures": []
-        },
-        "pathParameters": {
-          "compatible": true,
-          "failures": []
-        },
-        "query": {
-          "compatible": true,
-          "failures": []
-        },
-        "request": {
-          "compatible": true,
-          "canonical": true,
-          "canonicalNames": [],
-          "clientShapeHash": null,
-          "serverShapeHash": null
-        },
-        "validation": {
-          "compatible": true,
-          "policy": "not-applicable",
-          "properties": [],
-          "failures": []
-        },
-        "response": {
-          "compatible": true,
-          "canonical": true,
-          "canonicalNames": [
-            "EmbeddingNeighbor",
-            "EmbeddingResponse"
-          ],
-          "clientShapeHash": "e83d3fb676df3af56855f5ce594222dc655aba5d74c79ed99ac07b024de3a7a7",
-          "serverShapeHash": "e83d3fb676df3af56855f5ce594222dc655aba5d74c79ed99ac07b024de3a7a7"
-        }
-      }
-    },
-    {
       "id": "MercurionWebNg/src/app/services/embedding.service.ts#EmbeddingService.getSimilarBySmiles#0",
       "consumer": {
         "file": "MercurionWebNg/src/app/services/embedding.service.ts",
@@ -6163,6 +5995,174 @@
               ]
             }
           ],
+          "failures": []
+        },
+        "response": {
+          "compatible": true,
+          "canonical": true,
+          "canonicalNames": [
+            "EmbeddingNeighbor",
+            "EmbeddingResponse"
+          ],
+          "clientShapeHash": "e83d3fb676df3af56855f5ce594222dc655aba5d74c79ed99ac07b024de3a7a7",
+          "serverShapeHash": "e83d3fb676df3af56855f5ce594222dc655aba5d74c79ed99ac07b024de3a7a7"
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/embedding.service.ts#EmbeddingService.getSimilarMolregnos#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/embedding.service.ts",
+        "class": "EmbeddingService",
+        "method": "getSimilarMolregnos",
+        "ordinal": 0,
+        "verb": "GET",
+        "path": "/api/embedding/get-similar-molregnos",
+        "urlVariants": [
+          "/api/embedding/get-similar-molregnos?molregno=:molregno&n=:n&with_no_name=:with_no_name&only_molregnos=:only_molregnos"
+        ],
+        "pathParameters": [],
+        "queryParameters": [
+          {
+            "name": "molregno",
+            "wireType": "string",
+            "sourceTypes": [
+              "string"
+            ],
+            "optional": false
+          },
+          {
+            "name": "n",
+            "wireType": "string",
+            "sourceTypes": [
+              "number"
+            ],
+            "optional": false
+          },
+          {
+            "name": "only_molregnos",
+            "wireType": "string",
+            "sourceTypes": [
+              "boolean"
+            ],
+            "optional": false
+          },
+          {
+            "name": "with_no_name",
+            "wireType": "string",
+            "sourceTypes": [
+              "boolean"
+            ],
+            "optional": false
+          }
+        ],
+        "body": {
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "canonicalNames": [],
+            "shapeHash": null
+          }
+        },
+        "response": {
+          "type": "EmbeddingResponse",
+          "mode": "json",
+          "options": {
+            "withCredentials": "true"
+          },
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "canonicalNames": [
+              "EmbeddingNeighbor",
+              "EmbeddingResponse"
+            ],
+            "shapeHash": "e83d3fb676df3af56855f5ce594222dc655aba5d74c79ed99ac07b024de3a7a7"
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/embedding/controllers/embedding.controller.ts",
+        "handler": "getSimilarMolregnos",
+        "verb": "GET",
+        "path": "/api/embedding/get-similar-molregnos",
+        "parameters": [
+          {
+            "source": "query",
+            "name": "molregno",
+            "type": "number",
+            "optional": false
+          },
+          {
+            "source": "query",
+            "name": "n",
+            "type": "number",
+            "optional": false
+          },
+          {
+            "source": "query",
+            "name": "only_molregnos",
+            "type": "boolean",
+            "optional": false
+          },
+          {
+            "source": "query",
+            "name": "with_no_name",
+            "type": "boolean",
+            "optional": false
+          }
+        ],
+        "returnType": "EmbeddingResponse",
+        "successStatus": 200,
+        "errorStatuses": {
+          "validation": [
+            400
+          ],
+          "authentication": [],
+          "authorization": [],
+          "declared": []
+        },
+        "authentication": {
+          "public": true,
+          "guards": [],
+          "scopes": []
+        },
+        "responseContract": {
+          "displayType": "EmbeddingResponse",
+          "shapeHash": "e83d3fb676df3af56855f5ce594222dc655aba5d74c79ed99ac07b024de3a7a7",
+          "canonicalNames": [
+            "EmbeddingNeighbor",
+            "EmbeddingResponse"
+          ],
+          "applicable": true,
+          "canonical": true
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": {
+          "compatible": true,
+          "failures": []
+        },
+        "pathParameters": {
+          "compatible": true,
+          "failures": []
+        },
+        "query": {
+          "compatible": true,
+          "failures": []
+        },
+        "request": {
+          "compatible": true,
+          "canonical": true,
+          "canonicalNames": [],
+          "clientShapeHash": null,
+          "serverShapeHash": null
+        },
+        "validation": {
+          "compatible": true,
+          "policy": "not-applicable",
+          "properties": [],
           "failures": []
         },
         "response": {

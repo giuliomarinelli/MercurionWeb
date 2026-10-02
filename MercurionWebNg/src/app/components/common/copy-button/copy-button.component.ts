@@ -1,4 +1,4 @@
-import { Component, effect, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, input, signal } from '@angular/core';
 import { IconButtonComponent } from '../icon-button/icon-button.component';
 import { CopyUiService } from '../../../services/copy-ui.service';
 import { CopyIconStatus } from '../../../Models/copy.models';
@@ -6,6 +6,7 @@ import { CopyIconStatus } from '../../../Models/copy.models';
 @Component({
   selector: 'm-copy-button',
   imports: [IconButtonComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
   <m-icon-button
     [ariaLabelledby]="ariaLabelledby()"

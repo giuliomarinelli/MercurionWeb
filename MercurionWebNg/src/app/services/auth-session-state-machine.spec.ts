@@ -282,7 +282,7 @@ describe('Angular auth/session state-machine contract', () => {
       .toEqual(loggedOut)
   })
 
-  it('expires authenticated state using controlled time and owns its expiry timer', fakeAsync(() => {
+  it('keeps the session authenticated when its access token expires and awaits server invalidation', fakeAsync(() => {
     clock.install()
     store.bootstrap()
     store.beginAuthentication('password')
@@ -290,6 +290,10 @@ describe('Angular auth/session state-machine contract', () => {
     expect(store.authenticated()).toBeTrue()
 
     clock.advance(3_601_000)
+    expect(store.state().kind).toBe('authenticated')
+    expect(store.authenticated()).toBeTrue()
+
+    store.invalidate(SessionInvalidationCause.SessionExpired)
     expect(store.state().kind).toBe('session-expired')
     expect(store.authenticated()).toBeFalse()
     clock.uninstall()

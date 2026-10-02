@@ -4,6 +4,7 @@ module.exports = {
   moduleNameMapper: {
     '^src/(.*)$': '<rootDir>/$1',
     '^jose$': '<rootDir>/test-utils/mocks/jose.ts',
+    '^content-disposition$': '<rootDir>/../test/content-disposition.cjs',
   },
   testRegex: '.*\\.spec\\.ts$',
   transform: {

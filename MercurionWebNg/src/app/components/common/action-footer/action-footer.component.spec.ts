@@ -55,24 +55,29 @@ describe('ActionFooterComponent', () => {
     ]);
   });
 
-  it('groups secondary and primary actions on the right with the primary last', () => {
+  it('groups actions on the right on desktop and stacks the primary first on mobile', () => {
     const actions = fixture.nativeElement.querySelector('.m-action-footer__actions') as HTMLElement;
     const secondary = fixture.nativeElement.querySelector('.m-action-footer__secondary button') as HTMLButtonElement;
     const primary = fixture.nativeElement.querySelector('.m-action-footer__primary button') as HTMLButtonElement;
-    const secondaryRect = secondary.getBoundingClientRect();
-    const primaryRect = primary.getBoundingClientRect();
-
-    expect(getComputedStyle(actions).justifyContent).toBe('flex-end');
-    expect(primaryRect.left).toBeGreaterThan(secondaryRect.right);
-    expect(primaryRect.left - secondaryRect.right).toBeLessThanOrEqual(20);
-    expect(Math.abs(primaryRect.right - actions.getBoundingClientRect().right)).toBeLessThan(1);
+    const assertLayout = () => {
+      const secondaryRect = secondary.getBoundingClientRect();
+      const primaryRect = primary.getBoundingClientRect();
+      expect(getComputedStyle(actions).justifyContent).toBe('flex-end');
+      if (window.matchMedia('(max-width: 767px)').matches) {
+        expect(getComputedStyle(actions).flexDirection).toBe('column-reverse');
+        expect(secondaryRect.top).toBeGreaterThan(primaryRect.bottom);
+        expect(Math.abs(secondaryRect.left - primaryRect.left)).toBeLessThan(1);
+      } else {
+        expect(primaryRect.left).toBeGreaterThan(secondaryRect.right);
+        expect(primaryRect.left - secondaryRect.right).toBeLessThanOrEqual(20);
+        expect(Math.abs(secondaryRect.top - primaryRect.top)).toBeLessThan(1);
+      }
+      expect(Math.abs(primaryRect.right - actions.getBoundingClientRect().right)).toBeLessThan(1);
+    };
+    assertLayout();
 
     (fixture.nativeElement.querySelector('.m-action-footer') as HTMLElement).style.width = '240px';
-    const compactSecondary = secondary.getBoundingClientRect();
-    const compactPrimary = primary.getBoundingClientRect();
-    expect(Math.abs(compactSecondary.top - compactPrimary.top)).toBeLessThan(1);
-    expect(compactSecondary.right).toBeLessThan(compactPrimary.left);
-    expect(Math.abs(compactPrimary.right - actions.getBoundingClientRect().right)).toBeLessThan(1);
+    assertLayout();
   });
 
   it('supports a single primary action', () => {

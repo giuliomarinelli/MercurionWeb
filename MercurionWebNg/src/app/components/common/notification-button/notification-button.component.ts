@@ -1,4 +1,4 @@
-import { Component, effect, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, input, signal } from '@angular/core';
 import { IconButtonComponent } from '../icon-button/icon-button.component';
 import { BadgeAppearanceClass } from '../../../Models/notification.models';
 import { NgClass } from '@angular/common';
@@ -6,6 +6,7 @@ import { NgClass } from '@angular/common';
 @Component({
   selector: 'm-notification-button',
   imports: [IconButtonComponent, NgClass],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styles: `
     @keyframes fade-in-kf {
       from {

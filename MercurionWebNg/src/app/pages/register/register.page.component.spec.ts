@@ -4,12 +4,14 @@ import { of, throwError } from 'rxjs';
 import { RegisterPageComponent } from './register.page.component';
 import { AuthTransportService } from '../../services/auth-transport.service';
 import { ApplicationErrorCode } from '../../utils/application-error.util';
+import { TurnstileComponent } from '../../components/common/turnstile/turnstile.component';
 
 describe('RegisterPageComponent', () => {
   let component: RegisterPageComponent;
   let fixture: ComponentFixture<RegisterPageComponent>;
 
   beforeEach(async () => {
+    spyOn(TurnstileComponent.prototype, 'ngOnInit').and.stub();
     await TestBed.configureTestingModule({
       imports: [RegisterPageComponent]
     })

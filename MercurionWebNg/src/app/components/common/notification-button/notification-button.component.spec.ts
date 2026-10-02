@@ -13,6 +13,7 @@ describe('NotificationButtonComponent', () => {
     .compileComponents();
 
     fixture = TestBed.createComponent(NotificationButtonComponent);
+    fixture.componentRef.setInput('unreadCount', 0);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

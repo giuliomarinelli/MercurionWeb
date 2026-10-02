@@ -41,10 +41,10 @@ import type { MoleculeSearchResult } from '../../../Models/graphql/molecule-sear
                 </span>
 
                 <span class="block truncate text-[0.68rem] text-slate-500 dark:text-slate-400">
-                  @if (molecule.mwFreebase != null) {
+                  @if (molecule.mwFreebase !== null && molecule.mwFreebase !== undefined) {
                     MW {{ molecule.mwFreebase | number:'1.0-1' }}
                   }
-                  @if (molecule.maxPhase != null) {
+                  @if (molecule.maxPhase !== null && molecule.maxPhase !== undefined) {
                     · Fase {{ molecule.maxPhase }}
                   }
                 </span>

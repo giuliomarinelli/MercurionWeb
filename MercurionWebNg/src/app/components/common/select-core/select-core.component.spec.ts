@@ -102,15 +102,27 @@ describe('SelectCoreComponent', () => {
     fixture.detectChanges();
     const input = fixture.nativeElement.querySelector('[aria-label="Nome nuovo elemento"]') as HTMLInputElement;
 
-    expect(getComputedStyle(input).backgroundColor).toBe('rgb(255, 255, 255)');
-    expect(getComputedStyle(input).color).toBe('rgb(15, 23, 42)');
-
-    document.documentElement.classList.add('dark');
+    const rootWasDark = document.documentElement.classList.contains('dark');
+    const bodyWasDark = document.body.classList.contains('dark');
+    const reference = document.createElement('span');
+    fixture.nativeElement.appendChild(reference);
     try {
-      expect(getComputedStyle(input).backgroundColor).toBe('rgb(15, 23, 42)');
-      expect(getComputedStyle(input).color).toBe('rgb(248, 250, 252)');
-    } finally {
       document.documentElement.classList.remove('dark');
+      document.body.classList.remove('dark');
+      reference.style.backgroundColor = 'var(--color-white)';
+      reference.style.color = 'var(--color-slate-900)';
+      expect(getComputedStyle(input).backgroundColor).toBe(getComputedStyle(reference).backgroundColor);
+      expect(getComputedStyle(input).color).toBe(getComputedStyle(reference).color);
+
+      document.documentElement.classList.add('dark');
+      reference.style.backgroundColor = 'var(--color-slate-900)';
+      reference.style.color = 'var(--color-slate-50)';
+      expect(getComputedStyle(input).backgroundColor).toBe(getComputedStyle(reference).backgroundColor);
+      expect(getComputedStyle(input).color).toBe(getComputedStyle(reference).color);
+    } finally {
+      document.documentElement.classList.toggle('dark', rootWasDark);
+      document.body.classList.toggle('dark', bodyWasDark);
+      reference.remove();
     }
   });
 

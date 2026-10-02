@@ -16,8 +16,8 @@ describe('ButtonPlaygroundPageComponent', () => {
     const matrix = element.querySelectorAll('#variants-title ~ div tbody tr')
     const stateGroups = element.querySelectorAll('#states-title ~ div > div')
 
-    expect(matrix).toHaveSize(6)
-    expect(stateGroups).toHaveSize(6)
+    expect(matrix).toHaveSize(5)
+    expect(stateGroups).toHaveSize(5)
     for (const row of matrix) {
       const buttons = row.querySelectorAll<HTMLButtonElement>('button')
       expect(buttons).toHaveSize(3)
