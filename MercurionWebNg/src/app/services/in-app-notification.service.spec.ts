@@ -89,8 +89,7 @@ describe('InAppNotificationService', () => {
           useValue: {
             trigger: toast
           }
-        }
-,
+        },
         {
           provide: NotificationNavigationService,
           useValue: {
