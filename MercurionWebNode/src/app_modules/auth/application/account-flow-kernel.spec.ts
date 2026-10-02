@@ -68,6 +68,7 @@ describe('AccountFlowKernel', () => {
       unitOfWork, // unitOfWork
       initialWorkspaceMock as any, // initialWorkspace
       {} as any, // notificationOutbox
+      {} as any, // inAppNotifications
       meiliLoggerMock as any, // meiliLogger
     );
   });
