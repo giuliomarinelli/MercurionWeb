@@ -20,6 +20,9 @@ import { ApplicationErrorCode, applicationError } from 'src/exception-handling/a
 import { runInTransaction } from 'src/persistence/transaction-context'
 import { NotificationOutboxService } from 'src/app_modules/notification/services/outbox/notification-outbox.service'
 import { HelpNotificationEventType } from 'src/app_modules/notification/models/enums/help-notification-event-type.enum'
+import { InAppNotificationService } from 'src/app_modules/notification/services/in-app-notification.service'
+import { InAppNotificationType } from 'src/app_modules/notification/models/in-app-notification-catalog'
+import { formatHelpPublicId } from '../models/value-objects/help-public-id'
 import {
   authorizeHelpOperation,
   type HelpActor,
@@ -43,6 +46,7 @@ export class HelpService {
     private readonly msgRepo: Repository<TicketMessage>,
     private readonly users: UserService,
     private readonly outbox: NotificationOutboxService,
+    private readonly inAppNotifications: InAppNotificationService,
   ) { }
 
   // -----------------------------
@@ -171,7 +175,7 @@ export class HelpService {
       throw applicationError(ApplicationErrorCode.TICKET_HANDLING_FORBIDDEN)
     }
 
-    await runInTransaction(this.dataSource, async (_context, manager) => {
+    await runInTransaction(this.dataSource, async (context, manager) => {
 
       const now = Date.now()
 
@@ -206,8 +210,15 @@ export class HelpService {
         aggregateId: ticket.id,
         eventType: HelpNotificationEventType.SupportReplied,
         payload: { ticketId: ticket.id, userId: ticket.userId },
-        dedupeKey: `help:${ticket.id}:message:${now}:support`
+        dedupeKey: `help:${ticket.id}:message:${msg.id}:support`
       })
+      await this.inAppNotifications.create({
+        type: InAppNotificationType.SupportReplyReceived,
+        recipientUserId: ticket.userId,
+        ticketId: ticket.id,
+        ticketPublicId: formatHelpPublicId(ticket.publicId, 'Ticket'),
+        dedupeKey: `support.reply_received:${msg.id}:${ticket.userId}`
+      }, context)
 
     })
 
