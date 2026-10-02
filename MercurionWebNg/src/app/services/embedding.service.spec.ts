@@ -25,15 +25,12 @@ describe('EmbeddingService', () => {
   it('requests similar molecules from a canonical SMILES seed', () => {
     service.getSimilarBySmiles('CCO', 3, false, true).subscribe()
 
-    const request = http.expectOne(req =>
-      req.method === 'POST' &&
-      req.url === '/api/embedding/get-similar-by-smiles'
+    const request = http.expectOne(
+      '/api/embedding/get-similar-by-smiles?n=3&with_no_name=false&only_molregnos=true'
     )
 
+    expect(request.request.method).toBe('POST')
     expect(request.request.body).toEqual({ smiles: 'CCO' })
-    expect(request.request.params.get('n')).toBe('3')
-    expect(request.request.params.get('with_no_name')).toBe('false')
-    expect(request.request.params.get('only_molregnos')).toBe('true')
     expect(request.request.withCredentials).toBeTrue()
 
     request.flush([1, 2, 3])
