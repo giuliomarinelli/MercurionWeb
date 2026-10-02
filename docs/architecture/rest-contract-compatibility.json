@@ -36,9 +36,9 @@
       }
     }
   },
-  "totalClientCalls": 59,
-  "matchedClientCalls": 59,
-  "uniqueNestRoutes": 58,
+  "totalClientCalls": 60,
+  "matchedClientCalls": 60,
+  "uniqueNestRoutes": 59,
   "entries": [
     {
       "id": "MercurionWebNg/src/app/services/account.service.ts#AccountService.activateAccount#0",
@@ -5978,6 +5978,191 @@
           "compatible": true,
           "policy": "not-applicable",
           "properties": [],
+          "failures": []
+        },
+        "response": {
+          "compatible": true,
+          "canonical": true,
+          "canonicalNames": [
+            "EmbeddingNeighbor",
+            "EmbeddingResponse"
+          ],
+          "clientShapeHash": "e83d3fb676df3af56855f5ce594222dc655aba5d74c79ed99ac07b024de3a7a7",
+          "serverShapeHash": "e83d3fb676df3af56855f5ce594222dc655aba5d74c79ed99ac07b024de3a7a7"
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/embedding.service.ts#EmbeddingService.getSimilarBySmiles#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/embedding.service.ts",
+        "class": "EmbeddingService",
+        "method": "getSimilarBySmiles",
+        "ordinal": 0,
+        "verb": "POST",
+        "path": "/api/embedding/get-similar-by-smiles",
+        "urlVariants": [
+          "/api/embedding/get-similar-by-smiles?n=:n&with_no_name=:with_no_name&only_molregnos=:only_molregnos"
+        ],
+        "pathParameters": [],
+        "queryParameters": [
+          {
+            "name": "n",
+            "wireType": "string",
+            "sourceTypes": [
+              "number"
+            ],
+            "optional": false
+          },
+          {
+            "name": "only_molregnos",
+            "wireType": "string",
+            "sourceTypes": [
+              "boolean"
+            ],
+            "optional": false
+          },
+          {
+            "name": "with_no_name",
+            "wireType": "string",
+            "sourceTypes": [
+              "boolean"
+            ],
+            "optional": false
+          }
+        ],
+        "body": {
+          "expression": "body",
+          "type": "SmilesDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "canonicalNames": [
+              "SmilesDTO"
+            ],
+            "shapeHash": "3b478cac2d0fc577a480b856d9b699d3c62e166a71caa257e7f7fda7d2bba462"
+          }
+        },
+        "response": {
+          "type": "EmbeddingResponse",
+          "mode": "json",
+          "options": {
+            "withCredentials": "true"
+          },
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "canonicalNames": [
+              "EmbeddingNeighbor",
+              "EmbeddingResponse"
+            ],
+            "shapeHash": "e83d3fb676df3af56855f5ce594222dc655aba5d74c79ed99ac07b024de3a7a7"
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/embedding/controllers/embedding.controller.ts",
+        "handler": "getSimilarBySmiles",
+        "verb": "POST",
+        "path": "/api/embedding/get-similar-by-smiles",
+        "parameters": [
+          {
+            "source": "body",
+            "type": "SmilesDTO",
+            "optional": false
+          },
+          {
+            "source": "query",
+            "name": "n",
+            "type": "number",
+            "optional": false
+          },
+          {
+            "source": "query",
+            "name": "only_molregnos",
+            "type": "boolean",
+            "optional": false
+          },
+          {
+            "source": "query",
+            "name": "with_no_name",
+            "type": "boolean",
+            "optional": false
+          }
+        ],
+        "returnType": "EmbeddingResponse",
+        "successStatus": 200,
+        "errorStatuses": {
+          "validation": [
+            400
+          ],
+          "authentication": [],
+          "authorization": [],
+          "declared": []
+        },
+        "authentication": {
+          "public": true,
+          "guards": [],
+          "scopes": []
+        },
+        "bodyContract": {
+          "displayType": "SmilesDTO",
+          "shapeHash": "3b478cac2d0fc577a480b856d9b699d3c62e166a71caa257e7f7fda7d2bba462",
+          "canonicalNames": [
+            "SmilesDTO"
+          ],
+          "applicable": true,
+          "canonical": true
+        },
+        "responseContract": {
+          "displayType": "EmbeddingResponse",
+          "shapeHash": "e83d3fb676df3af56855f5ce594222dc655aba5d74c79ed99ac07b024de3a7a7",
+          "canonicalNames": [
+            "EmbeddingNeighbor",
+            "EmbeddingResponse"
+          ],
+          "applicable": true,
+          "canonical": true
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": {
+          "compatible": true,
+          "failures": []
+        },
+        "pathParameters": {
+          "compatible": true,
+          "failures": []
+        },
+        "query": {
+          "compatible": true,
+          "failures": []
+        },
+        "request": {
+          "compatible": true,
+          "canonical": true,
+          "canonicalNames": [
+            "SmilesDTO"
+          ],
+          "clientShapeHash": "3b478cac2d0fc577a480b856d9b699d3c62e166a71caa257e7f7fda7d2bba462",
+          "serverShapeHash": "3b478cac2d0fc577a480b856d9b699d3c62e166a71caa257e7f7fda7d2bba462"
+        },
+        "validation": {
+          "compatible": true,
+          "policy": "global ValidationPipe plus DTO property decorators",
+          "properties": [
+            {
+              "name": "smiles",
+              "optional": false,
+              "decorators": [
+                "IsString",
+                "Matches",
+                "MaxLength",
+                "Transform"
+              ]
+            }
+          ],
           "failures": []
         },
         "response": {
