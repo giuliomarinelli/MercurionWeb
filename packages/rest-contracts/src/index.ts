@@ -63,7 +63,6 @@ export type {
   NotificationChangeDTO,
   NotificationChangeKind,
   NotificationListCursor,
-  NotificationListState,
   NotificationPageResponse,
   NotificationRecoveryResponse,
   NotificationSyncCursor,
