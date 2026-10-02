@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { UUID } from 'node:crypto'
+import type { EntityManager } from 'typeorm'
 import {
   NotificationChangeDTO,
   NotificationListState,
@@ -16,12 +17,14 @@ import {
 import { UserNotification } from '../models/entities/user-notification.entity'
 import {
   NotificationListBoundary,
+  NotificationMutationResult,
   UserNotificationRepository
 } from '../repositories/user-notification.repository'
 import {
   TransactionContext,
   UnitOfWork
 } from '../../../persistence/transaction-context'
+import { NotificationOutboxService } from './outbox/notification-outbox.service'
 
 const DEFAULT_RECOVERY_LIMIT = 50
 const MAX_RECOVERY_LIMIT = 100
@@ -37,11 +40,21 @@ interface ListCursorPayload {
   id: UUID
 }
 
+type NotificationMutationKind =
+  | 'created'
+  | 'read'
+  | 'unread'
+  | 'read-all'
+  | 'seen-all'
+  | 'dismissed'
+  | 'dismissed-all'
+
 @Injectable()
 export class InAppNotificationService {
   constructor(
     private readonly notifications: UserNotificationRepository,
-    private readonly unitOfWork: UnitOfWork
+    private readonly unitOfWork: UnitOfWork,
+    private readonly notificationOutbox: NotificationOutboxService
   ) {}
 
   async create(
@@ -50,8 +63,16 @@ export class InAppNotificationService {
   ): Promise<UserNotificationDTO> {
     const draft = buildInAppNotification(input)
     const notification = await this.unitOfWork.run(
-      async (_transactionContext, manager) =>
-        this.notifications.insert(manager, draft),
+      async (_transactionContext, manager) => {
+        const created = await this.notifications.insert(manager, draft)
+        await this.appendStateWakeup(
+          manager,
+          draft.recipientUserId,
+          'created',
+          created.revision
+        )
+        return created
+      },
       context
     )
     return this.toDto(notification)
@@ -158,48 +179,122 @@ export class InAppNotificationService {
     notificationId: UUID,
     read: boolean
   ): Promise<boolean> {
-    return this.unitOfWork.run(async (_context, manager) =>
-      this.notifications.setRead(manager, userId, notificationId, read)
-    )
+    return this.unitOfWork.run(async (_context, manager) => {
+      const mutation = await this.notifications.setRead(
+        manager,
+        userId,
+        notificationId,
+        read
+      )
+      await this.appendMutationWakeup(
+        manager,
+        userId,
+        read ? 'read' : 'unread',
+        mutation
+      )
+      return mutation.affected > 0
+    })
   }
 
   markAllReadThrough(userId: UUID, cursor: string): Promise<number> {
     const throughRevision = this.decodeSyncCursor(cursor)
-    return this.unitOfWork.run(async (_context, manager) =>
-      this.notifications.markAllReadThrough(
+    return this.unitOfWork.run(async (_context, manager) => {
+      const mutation = await this.notifications.markAllReadThrough(
         manager,
         userId,
         throughRevision
       )
-    )
+      await this.appendMutationWakeup(
+        manager,
+        userId,
+        'read-all',
+        mutation
+      )
+      return mutation.affected
+    })
   }
 
   markSeenThrough(userId: UUID, cursor: string): Promise<number> {
     const throughRevision = this.decodeSyncCursor(cursor)
-    return this.unitOfWork.run(async (_context, manager) =>
-      this.notifications.markSeenThrough(
+    return this.unitOfWork.run(async (_context, manager) => {
+      const mutation = await this.notifications.markSeenThrough(
         manager,
         userId,
         throughRevision
       )
-    )
+      await this.appendMutationWakeup(
+        manager,
+        userId,
+        'seen-all',
+        mutation
+      )
+      return mutation.affected
+    })
   }
 
   dismiss(userId: UUID, notificationId: UUID): Promise<boolean> {
-    return this.unitOfWork.run(async (_context, manager) =>
-      this.notifications.dismiss(manager, userId, notificationId)
-    )
+    return this.unitOfWork.run(async (_context, manager) => {
+      const mutation = await this.notifications.dismiss(
+        manager,
+        userId,
+        notificationId
+      )
+      await this.appendMutationWakeup(
+        manager,
+        userId,
+        'dismissed',
+        mutation
+      )
+      return mutation.affected > 0
+    })
   }
 
   dismissAllThrough(userId: UUID, cursor: string): Promise<number> {
     const throughRevision = this.decodeSyncCursor(cursor)
-    return this.unitOfWork.run(async (_context, manager) =>
-      this.notifications.dismissAllThrough(
+    return this.unitOfWork.run(async (_context, manager) => {
+      const mutation = await this.notifications.dismissAllThrough(
         manager,
         userId,
         throughRevision
       )
+      await this.appendMutationWakeup(
+        manager,
+        userId,
+        'dismissed-all',
+        mutation
+      )
+      return mutation.affected
+    })
+  }
+
+  private async appendMutationWakeup(
+    manager: EntityManager,
+    userId: UUID,
+    kind: NotificationMutationKind,
+    mutation: NotificationMutationResult
+  ): Promise<void> {
+    if (!mutation.revision || mutation.affected < 1) {
+      return
+    }
+
+    await this.appendStateWakeup(
+      manager,
+      userId,
+      kind,
+      mutation.revision
     )
+  }
+
+  private async appendStateWakeup(
+    manager: EntityManager,
+    userId: UUID,
+    kind: NotificationMutationKind,
+    revision: string
+  ): Promise<void> {
+    await this.notificationOutbox.appendNotificationStateChanged(manager, {
+      recipientUserId: userId,
+      dedupeKey: `notification-state:${userId}:${kind}:${revision}`
+    })
   }
 
   private toDto(notification: UserNotification): UserNotificationDTO {

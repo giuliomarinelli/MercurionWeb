@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { uuidv7 } from '@kripod/uuidv7'
 import { UUID } from 'node:crypto'
-import { EntityManager, Repository } from 'typeorm'
+import { EntityManager, Repository, UpdateResult } from 'typeorm'
 
 import { UserNotificationDraft } from '../models/in-app-notification-catalog'
 import { UserNotification } from '../models/entities/user-notification.entity'
@@ -19,6 +19,11 @@ export interface NotificationRecoverySnapshot {
   unseenCount: number
   rows: UserNotification[]
   hasMore: boolean
+}
+
+export interface NotificationMutationResult {
+  affected: number
+  revision: string | null
 }
 
 interface RecoveryRawRow {
@@ -245,17 +250,20 @@ export class UserNotificationRepository {
     notificationId: UUID,
     read: boolean,
     now = Date.now()
-  ): Promise<boolean> {
-    const result = await manager
+  ): Promise<NotificationMutationResult> {
+    const qb = manager
       .createQueryBuilder()
       .update(UserNotification)
       .set({ readAt: read ? String(now) : null })
       .where('"id" = :notificationId', { notificationId })
       .andWhere('"recipient_user_id" = :userId', { userId })
       .andWhere('"dismissed_at" IS NULL')
-      .execute()
 
-    return (result.affected ?? 0) > 0
+    qb.andWhere(read ? '"read_at" IS NULL' : '"read_at" IS NOT NULL')
+
+    return this.toMutationResult(
+      await qb.returning(['revision']).execute()
+    )
   }
 
   async markAllReadThrough(
@@ -263,7 +271,7 @@ export class UserNotificationRepository {
     userId: UUID,
     throughRevision: string,
     now = Date.now()
-  ): Promise<number> {
+  ): Promise<NotificationMutationResult> {
     const result = await manager
       .createQueryBuilder()
       .update(UserNotification)
@@ -272,9 +280,10 @@ export class UserNotificationRepository {
       .andWhere('"dismissed_at" IS NULL')
       .andWhere('"read_at" IS NULL')
       .andWhere('"created_revision" <= :throughRevision', { throughRevision })
+      .returning(['revision'])
       .execute()
 
-    return result.affected ?? 0
+    return this.toMutationResult(result)
   }
 
   async markSeenThrough(
@@ -282,7 +291,7 @@ export class UserNotificationRepository {
     userId: UUID,
     throughRevision: string,
     now = Date.now()
-  ): Promise<number> {
+  ): Promise<NotificationMutationResult> {
     const result = await manager
       .createQueryBuilder()
       .update(UserNotification)
@@ -291,9 +300,10 @@ export class UserNotificationRepository {
       .andWhere('"dismissed_at" IS NULL')
       .andWhere('"seen_at" IS NULL')
       .andWhere('"created_revision" <= :throughRevision', { throughRevision })
+      .returning(['revision'])
       .execute()
 
-    return result.affected ?? 0
+    return this.toMutationResult(result)
   }
 
   async dismiss(
@@ -301,7 +311,7 @@ export class UserNotificationRepository {
     userId: UUID,
     notificationId: UUID,
     now = Date.now()
-  ): Promise<boolean> {
+  ): Promise<NotificationMutationResult> {
     const result = await manager
       .createQueryBuilder()
       .update(UserNotification)
@@ -309,9 +319,10 @@ export class UserNotificationRepository {
       .where('"id" = :notificationId', { notificationId })
       .andWhere('"recipient_user_id" = :userId', { userId })
       .andWhere('"dismissed_at" IS NULL')
+      .returning(['revision'])
       .execute()
 
-    return (result.affected ?? 0) > 0
+    return this.toMutationResult(result)
   }
 
   async dismissAllThrough(
@@ -319,7 +330,7 @@ export class UserNotificationRepository {
     userId: UUID,
     throughRevision: string,
     now = Date.now()
-  ): Promise<number> {
+  ): Promise<NotificationMutationResult> {
     const result = await manager
       .createQueryBuilder()
       .update(UserNotification)
@@ -327,9 +338,38 @@ export class UserNotificationRepository {
       .where('"recipient_user_id" = :userId', { userId })
       .andWhere('"dismissed_at" IS NULL')
       .andWhere('"created_revision" <= :throughRevision', { throughRevision })
+      .returning(['revision'])
       .execute()
 
-    return result.affected ?? 0
+    return this.toMutationResult(result)
+  }
+
+  private toMutationResult(result: UpdateResult): NotificationMutationResult {
+    const rows = Array.isArray(result.raw)
+      ? result.raw as Array<Record<string, unknown>>
+      : []
+
+    let revision: string | null = null
+    for (const row of rows) {
+      const candidate = row.revision
+      if (
+        typeof candidate !== 'string' &&
+        typeof candidate !== 'number' &&
+        typeof candidate !== 'bigint'
+      ) {
+        continue
+      }
+
+      const normalized = BigInt(candidate).toString()
+      if (revision === null || BigInt(normalized) > BigInt(revision)) {
+        revision = normalized
+      }
+    }
+
+    return {
+      affected: result.affected ?? rows.length,
+      revision
+    }
   }
 
   private fromRecoveryRow(row: RecoveryRawRow & { id: string }): UserNotification {
