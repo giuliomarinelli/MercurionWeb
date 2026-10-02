@@ -1303,6 +1303,28 @@
     },
     {
       "method": "POST",
+      "path": "/api/embedding/get-similar-by-smiles",
+      "controller": "MercurionWebNode/src/app_modules/embedding/controllers/embedding.controller.ts",
+      "handler": "getSimilarBySmiles",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/",
+        "MercurionWebNode/src/app_modules/"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/embedding.service.spec.ts",
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNg/src/app/services/embedding.service.ts",
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "POST",
       "path": "/api/feedback",
       "controller": "MercurionWebNode/src/app_modules/feedback/controllers/feedback.controller.ts",
       "handler": "create",
