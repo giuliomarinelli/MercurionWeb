@@ -204,19 +204,23 @@ import { MoleculeEditorLiveAnalysisFacade } from './molecule-editor-live-analysi
     }
 
     :host-context(html.dark) .editor-tabs {
-    --p-togglebutton-background: #314158;
-    --p-togglebutton-color: #f8fafc;
+      --p-togglebutton-background: #314158;
+      --p-togglebutton-color: #f8fafc;
 
-    --p-togglebutton-hover-background: rgba(53, 69, 91, 0.847);
-    --p-togglebutton-hover-color: #f8fafc;
+      --p-togglebutton-hover-background: rgba(53, 69, 91, 0.847);
+      --p-togglebutton-hover-color: #f8fafc;
 
-    --p-togglebutton-checked-background: #60a5fa;
-    --p-togglebutton-checked-color: #0f172a;
-    --p-togglebutton-content-checked-background: #60a5fa;
-}
+      --p-togglebutton-checked-background: #60a5fa;
+      --p-togglebutton-checked-color: #0f172a;
+      --p-togglebutton-content-checked-background: #60a5fa;
+
+
+    }
+
 `
 })
 export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
+
   private readonly route = inject(ActivatedRoute)
   private readonly router = inject(Router)
   private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService)
