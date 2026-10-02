@@ -31,12 +31,12 @@ describe('MoleculeService', () => {
   });
 
   it('resolves the molregno for a canonical SMILES from the preview index', async () => {
-    search.mockResolvedValue({ hits: [{ molregno: 123 }] });
+    search.mockResolvedValue({ hits: [{ id: 123 }] });
 
     await expect(service.getMolregnoByCanonicalSmiles('CCO')).resolves.toBe(123);
     expect(search).toHaveBeenCalledWith('', {
       filter: 'smiles = "CCO"',
-      attributesToRetrieve: ['molregno'],
+      attributesToRetrieve: ['id'],
       limit: 1,
     });
   });
