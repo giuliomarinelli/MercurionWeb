@@ -42,12 +42,11 @@ import { DescriptorCardContentComponent } from '../../components/common/descript
 import { DescriptorCardsGridComponent } from '../../components/common/descriptor-cards-grid/descriptor-cards-grid.component'
 import { MoleculeBadgeComponent } from '../../components/molecule-detail/molecule-badge/molecule-badge.component'
 import { MoleculeService } from '../../services/graphql/molecule.service'
-import { CopyButtonComponent } from '../../components/common/copy-button/copy-button.component';
+import { CopyButtonComponent } from '../../components/common/copy-button/copy-button.component'
 import { NgClass } from '@angular/common'
 import { LiveTox21SummaryComponent } from '../../components/molecule-editor/live-tox21-summary/live-tox21-summary.component'
 import { LiveMoleculeAnalogsComponent } from '../../components/molecule-editor/live-molecule-analogs/live-molecule-analogs.component'
 import { MoleculeEditorLiveAnalysisFacade } from './molecule-editor-live-analysis.facade'
-
 
 @Component({
   selector: 'm-molecule-editor',
