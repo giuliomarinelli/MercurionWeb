@@ -30,11 +30,28 @@ describe('MoleculeService', () => {
     expect(service).toBeDefined();
   });
 
+  it('resolves the molregno for a canonical SMILES from the preview index', async () => {
+    search.mockResolvedValue({ hits: [{ molregno: 123 }] });
+
+    await expect(service.getMolregnoByCanonicalSmiles('CCO')).resolves.toBe(123);
+    expect(search).toHaveBeenCalledWith('', {
+      filter: 'smiles = "CCO"',
+      attributesToRetrieve: ['molregno'],
+      limit: 1,
+    });
+  });
+
+  it('returns null when the canonical SMILES is outside the indexed corpus', async () => {
+    search.mockResolvedValue({ hits: [] });
+
+    await expect(service.getMolregnoByCanonicalSmiles('N#N')).resolves.toBeNull();
+  });
+
   it('prefers the ChEMBL name without querying custom molecules', async () => {
     search.mockResolvedValue({ hits: [{ preferredNameIt: 'Nome ChEMBL' }] });
 
     await expect(service.getPreferredNameItByCanonicalSmilesFromChembleCoalesceCustomMolecule('C', '00000000-0000-0000-0000-000000000001' as UUID))
-      .resolves.toBe('Nome ChEMBL');
+      .resolves.toEqual({ type: 'chembl', preferredNameIt: 'Nome ChEMBL' });
     expect(findOne).not.toHaveBeenCalled();
   });
 
@@ -44,7 +61,7 @@ describe('MoleculeService', () => {
     findOne.mockResolvedValue({ name: 'Nome custom' });
 
     await expect(service.getPreferredNameItByCanonicalSmilesFromChembleCoalesceCustomMolecule('C', userId))
-      .resolves.toBe('Nome custom');
+      .resolves.toEqual({ type: 'custom', preferredNameIt: 'Nome custom' });
     expect(findOne).toHaveBeenCalledWith({
       where: { userId, canonicalSmiles: 'C' },
       select: ['name']
