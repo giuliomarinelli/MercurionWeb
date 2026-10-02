@@ -25,13 +25,13 @@ export class EmbeddingService {
   getSimilarBySmiles(
     smiles: string,
     n: number = 3,
-    withNoName: boolean = false,
-    onlyMolregnos: boolean = true
+    with_no_name: boolean = false,
+    only_molregnos: boolean = true
   ): Observable<EmbeddingResponse> {
     const body: SmilesDTO = { smiles }
 
     return this.http.post<EmbeddingResponse>(
-      `/api/embedding/get-similar-by-smiles?n=${n}&with_no_name=${withNoName}&only_molregnos=${onlyMolregnos}`,
+      `/api/embedding/get-similar-by-smiles?n=${n}&with_no_name=${with_no_name}&only_molregnos=${only_molregnos}`,
       body,
       { withCredentials: true }
     )
