@@ -29,6 +29,7 @@ import { IconButtonComponent } from '../icon-button/icon-button.component';
 import { ProvidedAccountIdDTO } from '@mercurion/rest-contracts';
 import { NotificationButtonComponent } from '../notification-button/notification-button.component';
 import { InAppNotificationService } from '../../../services/in-app-notification.service';
+import { NotificationCatchUpComponent } from '../../notifications/notification-catch-up.component';
 
 @Component({
   selector: 'm-header',
@@ -46,7 +47,8 @@ import { InAppNotificationService } from '../../../services/in-app-notification.
     HeaderResponsiveMenuComponent,
     HeaderSessionIndicatorComponent,
     IconButtonComponent,
-    NotificationButtonComponent
+    NotificationButtonComponent,
+    NotificationCatchUpComponent
   ],
   providers: [HeaderFacade],
   template: `
@@ -158,7 +160,20 @@ import { InAppNotificationService } from '../../../services/in-app-notification.
                 </m-icon-button>
             </div>
             @if (userContext.isLoggedIn()) {
-              <m-notification-button [unreadCount]="unreadNotificationsCount()" />
+              <div class="relative flex items-center">
+                <m-notification-button
+                  [unreadCount]="unreadNotificationsCount()"
+                  (pressed)="openNotifications()"
+                />
+                @if (catchUpNotificationsCount() > 0) {
+                  <m-notification-catch-up
+                    [count]="catchUpNotificationsCount()"
+                    (presented)="onNotificationCatchUpPresented()"
+                    (opened)="openNotifications()"
+                    (dismissed)="dismissNotificationCatchUp()"
+                  />
+                }
+              </div>
             }
             <div class="theme-menu-container relative flex items-center" [ngClass]="{
               'lg:-ml-2': userContext.isLoggedIn()
@@ -612,6 +627,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   protected avatarMobileMenuVisible = signal<boolean>(false)
 
   protected readonly unreadNotificationsCount = computed(() => this.inAppNotification.unreadCount())
+  protected readonly catchUpNotificationsCount = computed(() => this.inAppNotification.catchUpCount())
 
   // Timer id per ciascuna transizione mount/visible: tracciati cosi' un
   // toggle rapido puo' annullare deterministicamente il timer residuo del
@@ -826,6 +842,19 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
 
+
+  protected openNotifications(): void {
+    this.inAppNotification.dismissCatchUp()
+    void this.router.navigate([routeManifest.notifications.build({})])
+  }
+
+  protected onNotificationCatchUpPresented(): void {
+    void this.inAppNotification.acknowledgeCatchUpPresented()
+  }
+
+  protected dismissNotificationCatchUp(): void {
+    this.inAppNotification.dismissCatchUp()
+  }
 
   ngOnInit(): void {
     this.isBeta.set(this.appConfig.capabilities.beta)
