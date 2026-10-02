@@ -172,6 +172,7 @@ With a valid existing user ID:
 
 ```sql
 INSERT INTO user_notifications (
+    id,
     recipient_user_id,
     type,
     version,
@@ -182,6 +183,7 @@ INSERT INTO user_notifications (
     dedupe_key
 )
 VALUES (
+    '<NOTIFICATION_UUIDV7>',
     '<USER_UUID>',
     'security.password_changed',
     1,
