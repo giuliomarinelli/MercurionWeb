@@ -127,14 +127,8 @@ export class MoleculeEditorLiveAnalysisFacade {
   }
 
   setContext(canonicalSmiles: string, enabled: boolean): void {
-    const normalized = canonicalSmiles.trim()
-
-    if (this.enabled() !== enabled) {
-      this.enabled.set(enabled)
-    }
-    if (this.canonicalSmiles() !== normalized) {
-      this.canonicalSmiles.set(normalized)
-    }
+    this.canonicalSmiles.set(canonicalSmiles.trim())
+    this.enabled.set(enabled)
   }
 
   private resetVisibleState(): void {
