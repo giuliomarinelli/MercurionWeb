@@ -29,12 +29,15 @@ export class SettingsAccountFacade {
         event.remote === true
       const reconnect = event?.domain === 'realtime' && event.action === 'reconcile'
       if (!profileChanged && !reconnect) return
-      queueMicrotask(() => this.load())
+      queueMicrotask(() => this.load(true))
     })
   }
 
-  load(): void {
-    if (this.request && !this.request.closed) return
+  load(force = false): void {
+    if (this.request && !this.request.closed) {
+      if (!force) return
+      this.request.unsubscribe()
+    }
     this.loading.set(true)
     this.error.set(false)
     this.request = forkJoin({
