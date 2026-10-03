@@ -60,6 +60,11 @@
       "reason": "Notebook feature tree is management-deferred and excluded from the active program."
     },
     {
+      "file": "src/app/services/pcp-api.service.ts",
+      "category": "deferred-feature",
+      "reason": "PubChem REST client retained for planned future Angular consumers; current molecule-name lookups use GraphQL. Remove this entry when a production consumer is added."
+    },
+    {
       "file": "src/environments/environment.development.ts",
       "category": "build-entrypoint",
       "reason": "Angular development file replacement entrypoint."
