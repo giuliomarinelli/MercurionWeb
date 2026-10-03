@@ -1,12 +1,11 @@
 import { Injectable } from '@angular/core'
+import { AuthSessionPersistenceService } from './auth-session-persistence.service'
 
 @Injectable({ providedIn: 'root' })
 export class ClientInstanceIdService {
-  private readonly value =
-    globalThis.crypto?.randomUUID?.() ??
-    `ci_${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}`
+  constructor(private readonly persistence: AuthSessionPersistenceService) {}
 
   get(): string {
-    return this.value
+    return this.persistence.getTabId()
   }
 }
