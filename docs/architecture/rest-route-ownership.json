@@ -112,6 +112,60 @@
     },
     {
       "method": "DELETE",
+      "path": "/api/notifications",
+      "controller": "MercurionWebNode/src/app_modules/notification/controllers/in-app-notification.controller.ts",
+      "handler": "dismissAll",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/notification-api.service.ts",
+        "MercurionWebNode/src/app_modules/notification/controllers/in-app-notification.controller.ts",
+        "docs/notifications-technical-design.md"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/notification-api.service.spec.ts",
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNg/src/app/services/notification-api.service.ts",
+          "kind": "angular-source"
+        },
+        {
+          "file": "scripts/test-rest-compatibility-negative.mjs",
+          "kind": "tooling"
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/notifications/:notificationId",
+      "controller": "MercurionWebNode/src/app_modules/notification/controllers/in-app-notification.controller.ts",
+      "handler": "dismiss",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/notification-api.service.ts",
+        "MercurionWebNode/src/app_modules/notification/controllers/in-app-notification.controller.ts",
+        "docs/notifications-technical-design.md"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/notification-api.service.spec.ts",
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNg/src/app/services/notification-api.service.ts",
+          "kind": "angular-source"
+        },
+        {
+          "file": "scripts/test-rest-compatibility-negative.mjs",
+          "kind": "tooling"
+        }
+      ]
+    },
+    {
+      "method": "DELETE",
       "path": "/api/oauth2/:provider",
       "controller": "MercurionWebNode/src/app_modules/oauth2-client/controllers/o-auth2-client.controller.ts",
       "handler": "disconnect",
@@ -540,6 +594,87 @@
         {
           "file": "MercurionWebNg/src/app/services/history.service.ts",
           "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/notifications",
+      "controller": "MercurionWebNode/src/app_modules/notification/controllers/in-app-notification.controller.ts",
+      "handler": "list",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/notification-api.service.ts",
+        "MercurionWebNode/src/app_modules/notification/controllers/in-app-notification.controller.ts",
+        "docs/notifications-technical-design.md"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/notification-api.service.spec.ts",
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNg/src/app/services/notification-api.service.ts",
+          "kind": "angular-source"
+        },
+        {
+          "file": "scripts/test-rest-compatibility-negative.mjs",
+          "kind": "tooling"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/notifications/:notificationId",
+      "controller": "MercurionWebNode/src/app_modules/notification/controllers/in-app-notification.controller.ts",
+      "handler": "get",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/notification-api.service.ts",
+        "MercurionWebNode/src/app_modules/notification/controllers/in-app-notification.controller.ts",
+        "docs/notifications-technical-design.md"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/notification-api.service.spec.ts",
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNg/src/app/services/notification-api.service.ts",
+          "kind": "angular-source"
+        },
+        {
+          "file": "scripts/test-rest-compatibility-negative.mjs",
+          "kind": "tooling"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/notifications/recovery",
+      "controller": "MercurionWebNode/src/app_modules/notification/controllers/in-app-notification.controller.ts",
+      "handler": "recover",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/notification-api.service.ts",
+        "MercurionWebNode/src/app_modules/notification/controllers/in-app-notification.controller.ts",
+        "docs/notifications-technical-design.md"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/notification-api.service.spec.ts",
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNg/src/app/services/notification-api.service.ts",
+          "kind": "angular-source"
+        },
+        {
+          "file": "scripts/test-rest-compatibility-negative.mjs",
+          "kind": "tooling"
         }
       ]
     },
@@ -1076,6 +1211,63 @@
       "references": [
         {
           "file": "MercurionWebNg/src/app/services/feedback.service.ts",
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/notifications/:notificationId/read",
+      "controller": "MercurionWebNode/src/app_modules/notification/controllers/in-app-notification.controller.ts",
+      "handler": "setRead",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/notification-api.service.ts",
+        "MercurionWebNode/src/app_modules/notification/controllers/in-app-notification.controller.ts",
+        "docs/notifications-technical-design.md"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/notification-api.service.ts",
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/notifications/read-all",
+      "controller": "MercurionWebNode/src/app_modules/notification/controllers/in-app-notification.controller.ts",
+      "handler": "markAllRead",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/notification-api.service.ts",
+        "MercurionWebNode/src/app_modules/notification/controllers/in-app-notification.controller.ts",
+        "docs/notifications-technical-design.md"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/notification-api.service.ts",
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/notifications/seen-all",
+      "controller": "MercurionWebNode/src/app_modules/notification/controllers/in-app-notification.controller.ts",
+      "handler": "markAllSeen",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/notification-api.service.ts",
+        "MercurionWebNode/src/app_modules/notification/controllers/in-app-notification.controller.ts",
+        "docs/notifications-technical-design.md"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/notification-api.service.ts",
           "kind": "angular-source"
         }
       ]

@@ -6,6 +6,10 @@ import { Ticket } from '../models/entities/ticket.entity';
 import { TicketMessage } from '../models/entities/ticket-message.entity';
 import { UserService } from 'src/app_modules/user/services/user.service';
 import { NotificationOutboxService } from 'src/app_modules/notification/services/outbox/notification-outbox.service';
+import { InAppNotificationService } from 'src/app_modules/notification/services/in-app-notification.service';
+import { ScopeService } from 'src/app_modules/auth/services/scope.service';
+import { Scope } from 'src/app_modules/user/models/enums/scope.enum';
+import { RealtimeStateSyncService } from 'src/app_modules/socket-io/realtime-state-sync.service';
 
 describe('HelpService', () => {
   let service: HelpService;
@@ -13,8 +17,13 @@ describe('HelpService', () => {
   const dataSourceMock = { transaction: jest.fn() };
   const ticketRepoMock = { findOneByOrFail: jest.fn(), update: jest.fn() };
   const msgRepoMock = {};
-  const userServiceMock = { getUserFullNames: jest.fn() };
+  const userServiceMock = {
+    getUserFullNames: jest.fn(),
+    getVerifiedUserIds: jest.fn().mockResolvedValue([])
+  };
+  const scopeServiceMock = { verifyUserHasScopes: jest.fn() };
   const outboxMock = { append: jest.fn() };
+  const inAppNotificationMock = { create: jest.fn() };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -24,7 +33,10 @@ describe('HelpService', () => {
         { provide: getRepositoryToken(Ticket), useValue: ticketRepoMock },
         { provide: getRepositoryToken(TicketMessage), useValue: msgRepoMock },
         { provide: UserService, useValue: userServiceMock },
+        { provide: ScopeService, useValue: scopeServiceMock },
         { provide: NotificationOutboxService, useValue: outboxMock },
+        { provide: InAppNotificationService, useValue: inAppNotificationMock },
+        { provide: RealtimeStateSyncService, useValue: { publishAfterCommit: jest.fn() } },
       ],
     }).compile();
 
@@ -33,5 +45,63 @@ describe('HelpService', () => {
 
   it('should be defined', () => {
     expect(service).toBeDefined();
+  });
+
+  it('selects realtime support recipients by HandleTickets alone', async () => {
+    const eligibleId = '018f0f12-3d4c-7abc-8def-0123456789a2';
+    const ineligibleId = '018f0f12-3d4c-7abc-8def-0123456789a3';
+
+    userServiceMock.getVerifiedUserIds.mockResolvedValue([eligibleId, ineligibleId]);
+    scopeServiceMock.verifyUserHasScopes.mockImplementation(
+      async (userId: string, ...scopes: Scope[]) =>
+        userId === eligibleId && scopes.length === 1 && scopes[0] === Scope.HandleTickets
+    );
+
+    const recipients = await (service as any).resolveSupportRealtimeRecipients();
+
+    expect(recipients).toEqual([eligibleId]);
+    expect(scopeServiceMock.verifyUserHasScopes).toHaveBeenCalledWith(
+      eligibleId,
+      Scope.HandleTickets
+    );
+    expect(scopeServiceMock.verifyUserHasScopes).toHaveBeenCalledWith(
+      ineligibleId,
+      Scope.HandleTickets
+    );
+  });
+
+  it('selects only support recipients with ViewUsers and HandleTickets', async () => {
+    const authorId = '018f0f12-3d4c-7abc-8def-0123456789a1';
+    const eligibleId = '018f0f12-3d4c-7abc-8def-0123456789a2';
+    const ineligibleId = '018f0f12-3d4c-7abc-8def-0123456789a3';
+
+    userServiceMock.getVerifiedUserIds.mockResolvedValue([
+      authorId,
+      eligibleId,
+      ineligibleId
+    ]);
+    scopeServiceMock.verifyUserHasScopes.mockImplementation(
+      async (userId: string) => userId === eligibleId
+    );
+
+    const recipients = await (service as any)
+      .resolveSupportNotificationRecipients(authorId);
+
+    expect(recipients).toEqual([eligibleId]);
+    expect(scopeServiceMock.verifyUserHasScopes).not.toHaveBeenCalledWith(
+      authorId,
+      Scope.ViewUsers,
+      Scope.HandleTickets
+    );
+    expect(scopeServiceMock.verifyUserHasScopes).toHaveBeenCalledWith(
+      eligibleId,
+      Scope.ViewUsers,
+      Scope.HandleTickets
+    );
+    expect(scopeServiceMock.verifyUserHasScopes).toHaveBeenCalledWith(
+      ineligibleId,
+      Scope.ViewUsers,
+      Scope.HandleTickets
+    );
   });
 });

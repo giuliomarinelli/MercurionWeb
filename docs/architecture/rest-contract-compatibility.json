@@ -8,6 +8,7 @@
       "configuredInterceptors": [
         "AuthFallbackInterceptor",
         "AuthInterceptor",
+        "ClientInstanceInterceptor",
         "ContractVersionInterceptor",
         "CorrelationInterceptor"
       ],
@@ -36,9 +37,9 @@
       }
     }
   },
-  "totalClientCalls": 61,
-  "matchedClientCalls": 61,
-  "uniqueNestRoutes": 60,
+  "totalClientCalls": 69,
+  "matchedClientCalls": 69,
+  "uniqueNestRoutes": 68,
   "entries": [
     {
       "id": "MercurionWebNg/src/app/services/account.service.ts#AccountService.activateAccount#0",
@@ -7512,6 +7513,1040 @@
           ],
           "clientShapeHash": "3f3e22ee4df0899fee20bb37e042d9b26f838b2a02d8a47e7b1d76198c6398ac",
           "serverShapeHash": "3f3e22ee4df0899fee20bb37e042d9b26f838b2a02d8a47e7b1d76198c6398ac"
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/notification-api.service.ts#NotificationApiService.dismiss#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/notification-api.service.ts",
+        "class": "NotificationApiService",
+        "method": "dismiss",
+        "ordinal": 0,
+        "verb": "DELETE",
+        "path": "/api/notifications/:notificationId",
+        "urlVariants": [
+          "/api/notifications/:notificationId"
+        ],
+        "pathParameters": [
+          {
+            "name": "notificationId",
+            "wireType": "string",
+            "sourceType": "string"
+          }
+        ],
+        "queryParameters": [],
+        "body": {
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "canonicalNames": [],
+            "shapeHash": null
+          }
+        },
+        "response": {
+          "type": "void",
+          "mode": "void",
+          "options": {
+            "withCredentials": "true"
+          },
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "canonicalNames": [],
+            "shapeHash": "c2e5c8fecef3fdf83d8d14e086289fc89aca9b96725214a5da08cae40cb83a9c"
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/notification/controllers/in-app-notification.controller.ts",
+        "handler": "dismiss",
+        "verb": "DELETE",
+        "path": "/api/notifications/:notificationId",
+        "parameters": [
+          {
+            "source": "param",
+            "name": "notificationId",
+            "type": "UUID",
+            "optional": false
+          }
+        ],
+        "returnType": "void",
+        "successStatus": 204,
+        "errorStatuses": {
+          "validation": [
+            400
+          ],
+          "authentication": [
+            401
+          ],
+          "authorization": [],
+          "declared": []
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": []
+        },
+        "responseContract": {
+          "displayType": "void",
+          "shapeHash": "c2e5c8fecef3fdf83d8d14e086289fc89aca9b96725214a5da08cae40cb83a9c",
+          "canonicalNames": [],
+          "applicable": false,
+          "canonical": true
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": {
+          "compatible": true,
+          "failures": []
+        },
+        "pathParameters": {
+          "compatible": true,
+          "failures": []
+        },
+        "query": {
+          "compatible": true,
+          "failures": []
+        },
+        "request": {
+          "compatible": true,
+          "canonical": true,
+          "canonicalNames": [],
+          "clientShapeHash": null,
+          "serverShapeHash": null
+        },
+        "validation": {
+          "compatible": true,
+          "policy": "not-applicable",
+          "properties": [],
+          "failures": []
+        },
+        "response": {
+          "compatible": true,
+          "canonical": true,
+          "canonicalNames": [],
+          "clientShapeHash": "c2e5c8fecef3fdf83d8d14e086289fc89aca9b96725214a5da08cae40cb83a9c",
+          "serverShapeHash": "c2e5c8fecef3fdf83d8d14e086289fc89aca9b96725214a5da08cae40cb83a9c"
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/notification-api.service.ts#NotificationApiService.dismissAll#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/notification-api.service.ts",
+        "class": "NotificationApiService",
+        "method": "dismissAll",
+        "ordinal": 0,
+        "verb": "DELETE",
+        "path": "/api/notifications",
+        "urlVariants": [
+          "/api/notifications"
+        ],
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "expression": "dto",
+          "type": "NotificationBulkThroughRequest",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "canonicalNames": [
+              "NotificationBulkThroughRequest"
+            ],
+            "shapeHash": "ac1071388e806d0c1b096719f097663ced61565a7aef3d719fece1e394c1afcf"
+          }
+        },
+        "response": {
+          "type": "void",
+          "mode": "void",
+          "options": {
+            "withCredentials": "true"
+          },
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "canonicalNames": [],
+            "shapeHash": "c2e5c8fecef3fdf83d8d14e086289fc89aca9b96725214a5da08cae40cb83a9c"
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/notification/controllers/in-app-notification.controller.ts",
+        "handler": "dismissAll",
+        "verb": "DELETE",
+        "path": "/api/notifications",
+        "parameters": [
+          {
+            "source": "body",
+            "type": "NotificationBulkThroughDTO",
+            "optional": false
+          }
+        ],
+        "returnType": "void",
+        "successStatus": 204,
+        "errorStatuses": {
+          "validation": [
+            400
+          ],
+          "authentication": [
+            401
+          ],
+          "authorization": [],
+          "declared": []
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": []
+        },
+        "bodyContract": {
+          "displayType": "NotificationBulkThroughDTO",
+          "shapeHash": "ac1071388e806d0c1b096719f097663ced61565a7aef3d719fece1e394c1afcf",
+          "canonicalNames": [
+            "NotificationBulkThroughRequest"
+          ],
+          "applicable": true,
+          "canonical": true
+        },
+        "responseContract": {
+          "displayType": "void",
+          "shapeHash": "c2e5c8fecef3fdf83d8d14e086289fc89aca9b96725214a5da08cae40cb83a9c",
+          "canonicalNames": [],
+          "applicable": false,
+          "canonical": true
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": {
+          "compatible": true,
+          "failures": []
+        },
+        "pathParameters": {
+          "compatible": true,
+          "failures": []
+        },
+        "query": {
+          "compatible": true,
+          "failures": []
+        },
+        "request": {
+          "compatible": true,
+          "canonical": true,
+          "canonicalNames": [
+            "NotificationBulkThroughRequest"
+          ],
+          "clientShapeHash": "ac1071388e806d0c1b096719f097663ced61565a7aef3d719fece1e394c1afcf",
+          "serverShapeHash": "ac1071388e806d0c1b096719f097663ced61565a7aef3d719fece1e394c1afcf"
+        },
+        "validation": {
+          "compatible": true,
+          "policy": "global ValidationPipe plus DTO property decorators",
+          "properties": [
+            {
+              "name": "throughCursor",
+              "optional": false,
+              "decorators": [
+                "IsString",
+                "MaxLength"
+              ]
+            }
+          ],
+          "failures": []
+        },
+        "response": {
+          "compatible": true,
+          "canonical": true,
+          "canonicalNames": [],
+          "clientShapeHash": "c2e5c8fecef3fdf83d8d14e086289fc89aca9b96725214a5da08cae40cb83a9c",
+          "serverShapeHash": "c2e5c8fecef3fdf83d8d14e086289fc89aca9b96725214a5da08cae40cb83a9c"
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/notification-api.service.ts#NotificationApiService.get#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/notification-api.service.ts",
+        "class": "NotificationApiService",
+        "method": "get",
+        "ordinal": 0,
+        "verb": "GET",
+        "path": "/api/notifications/:notificationId",
+        "urlVariants": [
+          "/api/notifications/:notificationId"
+        ],
+        "pathParameters": [
+          {
+            "name": "notificationId",
+            "wireType": "string",
+            "sourceType": "string"
+          }
+        ],
+        "queryParameters": [],
+        "body": {
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "canonicalNames": [],
+            "shapeHash": null
+          }
+        },
+        "response": {
+          "type": "UserNotificationDTO",
+          "mode": "json",
+          "options": {
+            "withCredentials": "true"
+          },
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "canonicalNames": [
+              "UserNotificationDTO"
+            ],
+            "shapeHash": "f2608358ef796336f3abe4e5bcec978f6aea6dfb86c8828cd223b64e115bc9aa"
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/notification/controllers/in-app-notification.controller.ts",
+        "handler": "get",
+        "verb": "GET",
+        "path": "/api/notifications/:notificationId",
+        "parameters": [
+          {
+            "source": "param",
+            "name": "notificationId",
+            "type": "UUID",
+            "optional": false
+          }
+        ],
+        "returnType": "UserNotificationDTO",
+        "successStatus": 200,
+        "errorStatuses": {
+          "validation": [
+            400
+          ],
+          "authentication": [
+            401
+          ],
+          "authorization": [],
+          "declared": [
+            404
+          ]
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": []
+        },
+        "responseContract": {
+          "displayType": "UserNotificationDTO",
+          "shapeHash": "f2608358ef796336f3abe4e5bcec978f6aea6dfb86c8828cd223b64e115bc9aa",
+          "canonicalNames": [
+            "UserNotificationDTO"
+          ],
+          "applicable": true,
+          "canonical": true
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": {
+          "compatible": true,
+          "failures": []
+        },
+        "pathParameters": {
+          "compatible": true,
+          "failures": []
+        },
+        "query": {
+          "compatible": true,
+          "failures": []
+        },
+        "request": {
+          "compatible": true,
+          "canonical": true,
+          "canonicalNames": [],
+          "clientShapeHash": null,
+          "serverShapeHash": null
+        },
+        "validation": {
+          "compatible": true,
+          "policy": "not-applicable",
+          "properties": [],
+          "failures": []
+        },
+        "response": {
+          "compatible": true,
+          "canonical": true,
+          "canonicalNames": [
+            "UserNotificationDTO"
+          ],
+          "clientShapeHash": "f2608358ef796336f3abe4e5bcec978f6aea6dfb86c8828cd223b64e115bc9aa",
+          "serverShapeHash": "f2608358ef796336f3abe4e5bcec978f6aea6dfb86c8828cd223b64e115bc9aa"
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/notification-api.service.ts#NotificationApiService.list#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/notification-api.service.ts",
+        "class": "NotificationApiService",
+        "method": "list",
+        "ordinal": 0,
+        "verb": "GET",
+        "path": "/api/notifications",
+        "urlVariants": [
+          "/api/notifications"
+        ],
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "canonicalNames": [],
+            "shapeHash": null
+          }
+        },
+        "response": {
+          "type": "NotificationPageResponse",
+          "mode": "json",
+          "options": {
+            "withCredentials": "true"
+          },
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "canonicalNames": [
+              "NotificationPageResponse"
+            ],
+            "shapeHash": "307741d379894a735e7e7b4bf65ca9124f2032518459dccede6bc392ef4f7118"
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/notification/controllers/in-app-notification.controller.ts",
+        "handler": "list",
+        "verb": "GET",
+        "path": "/api/notifications",
+        "parameters": [
+          {
+            "source": "query",
+            "name": "cursor",
+            "type": "string",
+            "optional": true
+          },
+          {
+            "source": "query",
+            "name": "limit",
+            "optional": true,
+            "defaultValue": "25"
+          },
+          {
+            "source": "query",
+            "name": "state",
+            "type": "string",
+            "optional": true,
+            "defaultValue": "NotificationListState.All"
+          }
+        ],
+        "returnType": "NotificationPageResponse",
+        "successStatus": 200,
+        "errorStatuses": {
+          "validation": [
+            400
+          ],
+          "authentication": [
+            401
+          ],
+          "authorization": [],
+          "declared": []
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": []
+        },
+        "responseContract": {
+          "displayType": "NotificationPageResponse",
+          "shapeHash": "307741d379894a735e7e7b4bf65ca9124f2032518459dccede6bc392ef4f7118",
+          "canonicalNames": [
+            "NotificationPageResponse"
+          ],
+          "applicable": true,
+          "canonical": true
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": {
+          "compatible": true,
+          "failures": []
+        },
+        "pathParameters": {
+          "compatible": true,
+          "failures": []
+        },
+        "query": {
+          "compatible": true,
+          "failures": []
+        },
+        "request": {
+          "compatible": true,
+          "canonical": true,
+          "canonicalNames": [],
+          "clientShapeHash": null,
+          "serverShapeHash": null
+        },
+        "validation": {
+          "compatible": true,
+          "policy": "not-applicable",
+          "properties": [],
+          "failures": []
+        },
+        "response": {
+          "compatible": true,
+          "canonical": true,
+          "canonicalNames": [
+            "NotificationPageResponse"
+          ],
+          "clientShapeHash": "307741d379894a735e7e7b4bf65ca9124f2032518459dccede6bc392ef4f7118",
+          "serverShapeHash": "307741d379894a735e7e7b4bf65ca9124f2032518459dccede6bc392ef4f7118"
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/notification-api.service.ts#NotificationApiService.markAllRead#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/notification-api.service.ts",
+        "class": "NotificationApiService",
+        "method": "markAllRead",
+        "ordinal": 0,
+        "verb": "PATCH",
+        "path": "/api/notifications/read-all",
+        "urlVariants": [
+          "/api/notifications/read-all"
+        ],
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "expression": "dto",
+          "type": "NotificationBulkThroughRequest",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "canonicalNames": [
+              "NotificationBulkThroughRequest"
+            ],
+            "shapeHash": "ac1071388e806d0c1b096719f097663ced61565a7aef3d719fece1e394c1afcf"
+          }
+        },
+        "response": {
+          "type": "void",
+          "mode": "void",
+          "options": {
+            "withCredentials": "true"
+          },
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "canonicalNames": [],
+            "shapeHash": "c2e5c8fecef3fdf83d8d14e086289fc89aca9b96725214a5da08cae40cb83a9c"
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/notification/controllers/in-app-notification.controller.ts",
+        "handler": "markAllRead",
+        "verb": "PATCH",
+        "path": "/api/notifications/read-all",
+        "parameters": [
+          {
+            "source": "body",
+            "type": "NotificationBulkThroughDTO",
+            "optional": false
+          }
+        ],
+        "returnType": "void",
+        "successStatus": 204,
+        "errorStatuses": {
+          "validation": [
+            400
+          ],
+          "authentication": [
+            401
+          ],
+          "authorization": [],
+          "declared": []
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": []
+        },
+        "bodyContract": {
+          "displayType": "NotificationBulkThroughDTO",
+          "shapeHash": "ac1071388e806d0c1b096719f097663ced61565a7aef3d719fece1e394c1afcf",
+          "canonicalNames": [
+            "NotificationBulkThroughRequest"
+          ],
+          "applicable": true,
+          "canonical": true
+        },
+        "responseContract": {
+          "displayType": "void",
+          "shapeHash": "c2e5c8fecef3fdf83d8d14e086289fc89aca9b96725214a5da08cae40cb83a9c",
+          "canonicalNames": [],
+          "applicable": false,
+          "canonical": true
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": {
+          "compatible": true,
+          "failures": []
+        },
+        "pathParameters": {
+          "compatible": true,
+          "failures": []
+        },
+        "query": {
+          "compatible": true,
+          "failures": []
+        },
+        "request": {
+          "compatible": true,
+          "canonical": true,
+          "canonicalNames": [
+            "NotificationBulkThroughRequest"
+          ],
+          "clientShapeHash": "ac1071388e806d0c1b096719f097663ced61565a7aef3d719fece1e394c1afcf",
+          "serverShapeHash": "ac1071388e806d0c1b096719f097663ced61565a7aef3d719fece1e394c1afcf"
+        },
+        "validation": {
+          "compatible": true,
+          "policy": "global ValidationPipe plus DTO property decorators",
+          "properties": [
+            {
+              "name": "throughCursor",
+              "optional": false,
+              "decorators": [
+                "IsString",
+                "MaxLength"
+              ]
+            }
+          ],
+          "failures": []
+        },
+        "response": {
+          "compatible": true,
+          "canonical": true,
+          "canonicalNames": [],
+          "clientShapeHash": "c2e5c8fecef3fdf83d8d14e086289fc89aca9b96725214a5da08cae40cb83a9c",
+          "serverShapeHash": "c2e5c8fecef3fdf83d8d14e086289fc89aca9b96725214a5da08cae40cb83a9c"
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/notification-api.service.ts#NotificationApiService.markAllSeen#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/notification-api.service.ts",
+        "class": "NotificationApiService",
+        "method": "markAllSeen",
+        "ordinal": 0,
+        "verb": "PATCH",
+        "path": "/api/notifications/seen-all",
+        "urlVariants": [
+          "/api/notifications/seen-all"
+        ],
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "expression": "dto",
+          "type": "NotificationBulkThroughRequest",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "canonicalNames": [
+              "NotificationBulkThroughRequest"
+            ],
+            "shapeHash": "ac1071388e806d0c1b096719f097663ced61565a7aef3d719fece1e394c1afcf"
+          }
+        },
+        "response": {
+          "type": "void",
+          "mode": "void",
+          "options": {
+            "withCredentials": "true"
+          },
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "canonicalNames": [],
+            "shapeHash": "c2e5c8fecef3fdf83d8d14e086289fc89aca9b96725214a5da08cae40cb83a9c"
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/notification/controllers/in-app-notification.controller.ts",
+        "handler": "markAllSeen",
+        "verb": "PATCH",
+        "path": "/api/notifications/seen-all",
+        "parameters": [
+          {
+            "source": "body",
+            "type": "NotificationBulkThroughDTO",
+            "optional": false
+          }
+        ],
+        "returnType": "void",
+        "successStatus": 204,
+        "errorStatuses": {
+          "validation": [
+            400
+          ],
+          "authentication": [
+            401
+          ],
+          "authorization": [],
+          "declared": []
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": []
+        },
+        "bodyContract": {
+          "displayType": "NotificationBulkThroughDTO",
+          "shapeHash": "ac1071388e806d0c1b096719f097663ced61565a7aef3d719fece1e394c1afcf",
+          "canonicalNames": [
+            "NotificationBulkThroughRequest"
+          ],
+          "applicable": true,
+          "canonical": true
+        },
+        "responseContract": {
+          "displayType": "void",
+          "shapeHash": "c2e5c8fecef3fdf83d8d14e086289fc89aca9b96725214a5da08cae40cb83a9c",
+          "canonicalNames": [],
+          "applicable": false,
+          "canonical": true
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": {
+          "compatible": true,
+          "failures": []
+        },
+        "pathParameters": {
+          "compatible": true,
+          "failures": []
+        },
+        "query": {
+          "compatible": true,
+          "failures": []
+        },
+        "request": {
+          "compatible": true,
+          "canonical": true,
+          "canonicalNames": [
+            "NotificationBulkThroughRequest"
+          ],
+          "clientShapeHash": "ac1071388e806d0c1b096719f097663ced61565a7aef3d719fece1e394c1afcf",
+          "serverShapeHash": "ac1071388e806d0c1b096719f097663ced61565a7aef3d719fece1e394c1afcf"
+        },
+        "validation": {
+          "compatible": true,
+          "policy": "global ValidationPipe plus DTO property decorators",
+          "properties": [
+            {
+              "name": "throughCursor",
+              "optional": false,
+              "decorators": [
+                "IsString",
+                "MaxLength"
+              ]
+            }
+          ],
+          "failures": []
+        },
+        "response": {
+          "compatible": true,
+          "canonical": true,
+          "canonicalNames": [],
+          "clientShapeHash": "c2e5c8fecef3fdf83d8d14e086289fc89aca9b96725214a5da08cae40cb83a9c",
+          "serverShapeHash": "c2e5c8fecef3fdf83d8d14e086289fc89aca9b96725214a5da08cae40cb83a9c"
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/notification-api.service.ts#NotificationApiService.recover#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/notification-api.service.ts",
+        "class": "NotificationApiService",
+        "method": "recover",
+        "ordinal": 0,
+        "verb": "GET",
+        "path": "/api/notifications/recovery",
+        "urlVariants": [
+          "/api/notifications/recovery"
+        ],
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "canonicalNames": [],
+            "shapeHash": null
+          }
+        },
+        "response": {
+          "type": "NotificationRecoveryResponse",
+          "mode": "json",
+          "options": {
+            "withCredentials": "true"
+          },
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "canonicalNames": [
+              "NotificationRecoveryResponse"
+            ],
+            "shapeHash": "2e4cc82f3057c150dde26ef12e726c3a8edb7936bc8a936533d4a2d828b35b5d"
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/notification/controllers/in-app-notification.controller.ts",
+        "handler": "recover",
+        "verb": "GET",
+        "path": "/api/notifications/recovery",
+        "parameters": [
+          {
+            "source": "query",
+            "name": "cursor",
+            "type": "string",
+            "optional": true
+          },
+          {
+            "source": "query",
+            "name": "limit",
+            "optional": true,
+            "defaultValue": "50"
+          }
+        ],
+        "returnType": "NotificationRecoveryResponse",
+        "successStatus": 200,
+        "errorStatuses": {
+          "validation": [
+            400
+          ],
+          "authentication": [
+            401
+          ],
+          "authorization": [],
+          "declared": []
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": []
+        },
+        "responseContract": {
+          "displayType": "NotificationRecoveryResponse",
+          "shapeHash": "2e4cc82f3057c150dde26ef12e726c3a8edb7936bc8a936533d4a2d828b35b5d",
+          "canonicalNames": [
+            "NotificationRecoveryResponse"
+          ],
+          "applicable": true,
+          "canonical": true
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": {
+          "compatible": true,
+          "failures": []
+        },
+        "pathParameters": {
+          "compatible": true,
+          "failures": []
+        },
+        "query": {
+          "compatible": true,
+          "failures": []
+        },
+        "request": {
+          "compatible": true,
+          "canonical": true,
+          "canonicalNames": [],
+          "clientShapeHash": null,
+          "serverShapeHash": null
+        },
+        "validation": {
+          "compatible": true,
+          "policy": "not-applicable",
+          "properties": [],
+          "failures": []
+        },
+        "response": {
+          "compatible": true,
+          "canonical": true,
+          "canonicalNames": [
+            "NotificationRecoveryResponse"
+          ],
+          "clientShapeHash": "2e4cc82f3057c150dde26ef12e726c3a8edb7936bc8a936533d4a2d828b35b5d",
+          "serverShapeHash": "2e4cc82f3057c150dde26ef12e726c3a8edb7936bc8a936533d4a2d828b35b5d"
+        }
+      }
+    },
+    {
+      "id": "MercurionWebNg/src/app/services/notification-api.service.ts#NotificationApiService.setRead#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/notification-api.service.ts",
+        "class": "NotificationApiService",
+        "method": "setRead",
+        "ordinal": 0,
+        "verb": "PATCH",
+        "path": "/api/notifications/:notificationId/read",
+        "urlVariants": [
+          "/api/notifications/:notificationId/read"
+        ],
+        "pathParameters": [
+          {
+            "name": "notificationId",
+            "wireType": "string",
+            "sourceType": "string"
+          }
+        ],
+        "queryParameters": [],
+        "body": {
+          "expression": "dto",
+          "type": "SetNotificationReadRequest",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "canonicalNames": [
+              "SetNotificationReadRequest"
+            ],
+            "shapeHash": "a1114106056a8282979893b9a916b6461cb04b25bbf87fc86dc54cc57d7c2e99"
+          }
+        },
+        "response": {
+          "type": "void",
+          "mode": "void",
+          "options": {
+            "withCredentials": "true"
+          },
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "canonicalNames": [],
+            "shapeHash": "c2e5c8fecef3fdf83d8d14e086289fc89aca9b96725214a5da08cae40cb83a9c"
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/notification/controllers/in-app-notification.controller.ts",
+        "handler": "setRead",
+        "verb": "PATCH",
+        "path": "/api/notifications/:notificationId/read",
+        "parameters": [
+          {
+            "source": "param",
+            "name": "notificationId",
+            "type": "UUID",
+            "optional": false
+          },
+          {
+            "source": "body",
+            "type": "SetNotificationReadDTO",
+            "optional": false
+          }
+        ],
+        "returnType": "void",
+        "successStatus": 204,
+        "errorStatuses": {
+          "validation": [
+            400
+          ],
+          "authentication": [
+            401
+          ],
+          "authorization": [],
+          "declared": []
+        },
+        "authentication": {
+          "public": false,
+          "guards": [],
+          "scopes": []
+        },
+        "bodyContract": {
+          "displayType": "SetNotificationReadDTO",
+          "shapeHash": "a1114106056a8282979893b9a916b6461cb04b25bbf87fc86dc54cc57d7c2e99",
+          "canonicalNames": [
+            "SetNotificationReadRequest"
+          ],
+          "applicable": true,
+          "canonical": true
+        },
+        "responseContract": {
+          "displayType": "void",
+          "shapeHash": "c2e5c8fecef3fdf83d8d14e086289fc89aca9b96725214a5da08cae40cb83a9c",
+          "canonicalNames": [],
+          "applicable": false,
+          "canonical": true
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": {
+          "compatible": true,
+          "failures": []
+        },
+        "pathParameters": {
+          "compatible": true,
+          "failures": []
+        },
+        "query": {
+          "compatible": true,
+          "failures": []
+        },
+        "request": {
+          "compatible": true,
+          "canonical": true,
+          "canonicalNames": [
+            "SetNotificationReadRequest"
+          ],
+          "clientShapeHash": "a1114106056a8282979893b9a916b6461cb04b25bbf87fc86dc54cc57d7c2e99",
+          "serverShapeHash": "a1114106056a8282979893b9a916b6461cb04b25bbf87fc86dc54cc57d7c2e99"
+        },
+        "validation": {
+          "compatible": true,
+          "policy": "global ValidationPipe plus DTO property decorators",
+          "properties": [
+            {
+              "name": "read",
+              "optional": false,
+              "decorators": [
+                "IsBoolean"
+              ]
+            }
+          ],
+          "failures": []
+        },
+        "response": {
+          "compatible": true,
+          "canonical": true,
+          "canonicalNames": [],
+          "clientShapeHash": "c2e5c8fecef3fdf83d8d14e086289fc89aca9b96725214a5da08cae40cb83a9c",
+          "serverShapeHash": "c2e5c8fecef3fdf83d8d14e086289fc89aca9b96725214a5da08cae40cb83a9c"
         }
       }
     },

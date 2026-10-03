@@ -17,6 +17,7 @@ describe('AuthenticationController', () => {
     const refreshWsAccessToken = { execute: jest.fn() }
     const completeSsoAuthentication = { execute: jest.fn() }
     const localDummyLoginHandler = { execute: jest.fn() }
+    const stateSync = { publishToUser: jest.fn() }
     const response = {
         ok: jest.fn((message: string) => ({
             statusCode: 200,
@@ -60,6 +61,7 @@ describe('AuthenticationController', () => {
             refreshWsAccessToken as never,
             completeSsoAuthentication as never,
             localDummyLoginHandler as never,
+            stateSync as never,
             response,
             secureCookieService as never,
             configService as never

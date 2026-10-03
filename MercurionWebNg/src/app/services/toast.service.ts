@@ -1,5 +1,5 @@
 import { Injectable, OnDestroy, signal } from '@angular/core';
-import { ToastMessage, ToastVariant } from '../Models/toast.models';
+import { ToastAction, ToastMessage, ToastVariant } from '../Models/toast.models';
 
 
 @Injectable({ providedIn: 'root' })
@@ -15,7 +15,12 @@ export class ToastService implements OnDestroy {
   private _hideTimeoutId: ReturnType<typeof setTimeout> | undefined
 
 
-  trigger(message: string, variant: ToastVariant = 'error', duration = this._defaultDurationMs): string {
+  trigger(
+    message: string,
+    variant: ToastVariant = 'error',
+    duration = this._defaultDurationMs,
+    action?: ToastAction
+  ): string {
 
     const toast: ToastMessage = {
       id: this.createId(),
@@ -23,6 +28,7 @@ export class ToastService implements OnDestroy {
       variant,
       durationMs: duration,
       createdAt: Date.now(),
+      action,
     }
 
     this._messagesState.update((current) => [toast, ...current])

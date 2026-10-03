@@ -15,10 +15,12 @@ import { TurnstileService } from '../services/turnstile.service';
 import { SecurityService } from '../services/security.service';
 import { ListActiveSessionsHandler } from '../application/session-authentication.handlers';
 import { ConfigService } from '@nestjs/config';
+import { RealtimeStateSyncService } from 'src/app_modules/socket-io/realtime-state-sync.service';
 
 describe('AccountController', () => {
   let controller: AccountController;
   const listActiveSessions = { execute: jest.fn() };
+  const stateSync = { publishToUser: jest.fn() };
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -41,6 +43,7 @@ describe('AccountController', () => {
         { provide: TurnstileService, useValue: {} },
         { provide: SecurityService, useValue: { maskEmail: jest.fn() } },
         { provide: ListActiveSessionsHandler, useValue: listActiveSessions },
+        { provide: RealtimeStateSyncService, useValue: stateSync },
         {
           provide: ConfigService,
           useValue: {

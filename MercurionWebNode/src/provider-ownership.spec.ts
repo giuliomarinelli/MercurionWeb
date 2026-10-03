@@ -16,6 +16,7 @@ import { JwtToolsService } from './app_modules/auth/services/jwt-tools.service';
 import { SessionService } from './app_modules/auth/services/session.service';
 import { SESSION_REPOSITORY } from './app_modules/auth/models/interfaces/session-repository.interface';
 import { LoggerPort } from 'src/logging/logger.port';
+import { LoggingModule } from 'src/logging/logging.module';
 import { RedisModule } from './app_modules/redis/redis.module';
 import { PubSubService } from './app_modules/redis/services/pub-sub.service';
 import { RedisService } from './app_modules/redis/services/redis.service';
@@ -170,7 +171,9 @@ describe('core Nest provider ownership', () => {
         GuardConsumerProbeModule,
         FeatureConsumerProbeModule,
       ],
-    });
+    })
+      .overrideModule(LoggingModule)
+      .useModule(ProviderDependencyProbeModule);
     const governedProviders = new Set<unknown>([
       GlobalGuard,
       JwtService,

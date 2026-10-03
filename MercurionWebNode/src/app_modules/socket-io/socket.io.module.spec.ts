@@ -13,6 +13,7 @@ import { PubSubService } from '../redis/services/pub-sub.service';
 import { SocketIOGateway } from './socket.io.gateway';
 import { SocketIoModule } from './socket.io.module';
 import { LoggerPort } from 'src/logging/logger.port';
+import { LoggingModule } from 'src/logging/logging.module';
 
 const logger = {
   debug: jest.fn(),
@@ -93,6 +94,8 @@ describe('SocketIoModule', () => {
       .useModule(SocketRedisProbeModule)
       .overrideModule(AuthModule)
       .useModule(SocketAuthProbeModule)
+      .overrideModule(LoggingModule)
+      .useModule(SocketLoggerProbeModule)
       .compile();
 
     const gateway = moduleRef.get(SocketIOGateway);

@@ -2,6 +2,7 @@ import { Inject, Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/commo
 import { DataSource } from 'typeorm'
 import { MeiliSearch } from 'meilisearch'
 import { UUID } from 'node:crypto'
+import { socketEventRegistry } from '@mercurion/socket-contracts'
 import { NotificationOutboxEvent } from '../../models/entities/notification-outbox-event.entity'
 import { OutboxEventType } from '../../models/enums/outbox-event-type.enum'
 import { HelpNotificationEventType } from '../../models/enums/help-notification-event-type.enum'
@@ -15,6 +16,7 @@ import { OutboxEventEnvelope } from '../../../../persistence/outbox/outbox-event
 import { OutboxMetricsService } from '../../../../persistence/outbox/outbox-metrics.service'
 import { LoggerContext, LoggerPort } from '../../../../logging/logger.port'
 import { errorMessage, errorStack } from '../../../../utils/errors/error-message'
+import { RealtimePublisherService } from '../../../socket-io/realtime-publisher.service'
 
 const POLL_MS = 1_000
 
@@ -34,6 +36,7 @@ export class NotificationOutboxDispatcherService implements OnModuleInit, OnModu
     private readonly registry: OutboxConsumerRegistry,
     private readonly outbox: OutboxRepository,
     private readonly metrics: OutboxMetricsService,
+    private readonly realtimePublisher: RealtimePublisherService,
     loggerFactory: LoggerPort
   ) {
     this.logger = loggerFactory.forContext(NotificationOutboxDispatcherService.name)
@@ -98,6 +101,11 @@ export class NotificationOutboxDispatcherService implements OnModuleInit, OnModu
     }
     this.registry.register(OutboxEventType.MeilisearchDelete, 1, event => this.deliverIndexDelete(event))
     this.registry.register(OutboxEventType.EmailSend, 1, event => this.deliverEmail(event))
+    this.registry.register(
+      OutboxEventType.NotificationStateChanged,
+      1,
+      event => this.deliverNotificationWakeup(event)
+    )
     this.registry.register(HelpNotificationEventType.TicketOpenedSupport, 1, event => this.deliverHelpMail(event))
     this.registry.register(HelpNotificationEventType.TicketOpenedUser, 1, event => this.deliverHelpMail(event))
     this.registry.register(HelpNotificationEventType.UserMessageAdded, 1, event => this.deliverHelpMail(event))
@@ -125,6 +133,24 @@ export class NotificationOutboxDispatcherService implements OnModuleInit, OnModu
       payload.context as Parameters<MailSenderService['send']>[2],
       event.id
     )
+  }
+
+  private deliverNotificationWakeup(
+    event: OutboxEventEnvelope<OutboxPayload>
+  ): Promise<void> {
+    const recipientUserId = event.payload.recipientUserId
+    if (typeof recipientUserId !== 'string') {
+      return Promise.reject(
+        new Error('Notification wake-up payload is missing recipientUserId')
+      )
+    }
+
+    this.realtimePublisher.emitToUser(
+      recipientUserId,
+      socketEventRegistry.notificationChanged.name,
+      { kind: 'notification-state-changed' }
+    )
+    return Promise.resolve()
   }
 
   private async deliverHelpMail(event: OutboxEventEnvelope<OutboxPayload>): Promise<void> {

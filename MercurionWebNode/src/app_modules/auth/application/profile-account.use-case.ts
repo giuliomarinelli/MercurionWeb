@@ -2,10 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { UUID } from 'crypto';
 import { UserService } from 'src/app_modules/user/services/user.service';
 import { ProfileDTO, ProfileRegistryClientDTO, ProfileRegistryDTO } from '../models/dto/profile.dtos';
+import { RealtimeStateSyncService } from 'src/app_modules/socket-io/realtime-state-sync.service';
 
 @Injectable()
 export class ProfileAccountUseCase {
-  constructor(private readonly users: UserService) {}
+  constructor(
+    private readonly users: UserService,
+    private readonly stateSync: RealtimeStateSyncService
+  ) {}
 
   async getProfile(userId: UUID, includeRecentHistory: boolean): Promise<ProfileDTO | null> {
     const result = await this.users.getVerifiedUserProfileById(userId, includeRecentHistory);
@@ -18,6 +22,13 @@ export class ProfileAccountUseCase {
 
   async updateProfile(userId: UUID, input: ProfileRegistryDTO): Promise<ProfileRegistryClientDTO | null> {
     const result = await this.users.updateVerifiedUserProfileRegistryById(userId, input);
+    if (result) {
+      this.stateSync.publishToUser(userId, {
+        kind: 'resource-state-changed',
+        domain: 'profile',
+        change: 'updated'
+      })
+    }
     return result;
   }
 }

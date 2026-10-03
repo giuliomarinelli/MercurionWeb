@@ -43,6 +43,7 @@ describe('MfaApplicationService', () => {
       {} as any, // redisService
       {} as any, // securityAuditService
       policyMock as any,
+      { publishToUser: jest.fn(), publishAfterCommit: jest.fn() } as any, // stateSync
       { forContext: jest.fn().mockReturnValue(loggerMock) } as any // meiliLogger
     );
   });

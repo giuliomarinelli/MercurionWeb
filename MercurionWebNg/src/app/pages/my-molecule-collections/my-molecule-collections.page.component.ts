@@ -16,6 +16,7 @@ import { CreateCollectionContextService } from '../../services/context/action-co
 import { ToastService } from '../../services/toast.service';
 import { ScrollContextService } from '../../services/context/scroll-context.service';
 import { DomainInvalidationService } from '../../services/domain-invalidation.service';
+import { RealtimeSyncStatusService } from '../../services/realtime-sync-status.service';
 import { PaginationComponent } from '../../components/common/pagination/pagination.component';
 
 
@@ -117,6 +118,7 @@ export class MyMoleculeCollectionsPageComponent implements OnInit, OnDestroy {
   private readonly historyContext = inject(HistoryContextService)
   private readonly scrollContext = inject(ScrollContextService)
   private readonly invalidations = inject(DomainInvalidationService)
+  private readonly syncStatus = inject(RealtimeSyncStatusService)
   private readonly pagination = new PaginationController<UiMoleculeCollection>({
     fetch: (page, query) => this.moleculeCollectionService.getPaginatedCollections(page, 25, query).pipe(
       delay(page === 1 ? 120 : 0),
@@ -181,6 +183,18 @@ export class MyMoleculeCollectionsPageComponent implements OnInit, OnDestroy {
       if (event?.domain !== 'molecule-collection' || event.action !== 'molecules-added') {
         return
       }
+      queueMicrotask(() => this.resetPagination())
+    })
+
+    effect(() => {
+      const event = this.invalidations.last()
+      const remoteCollectionChanged =
+        event?.domain === 'molecule-collection' &&
+        event.action === 'changed' &&
+        event.remote === true
+      const reconnect = event?.domain === 'realtime' && event.action === 'reconcile'
+      if (!remoteCollectionChanged && !reconnect) return
+      if (remoteCollectionChanged) this.syncStatus.markSynchronized()
       queueMicrotask(() => this.resetPagination())
     })
 

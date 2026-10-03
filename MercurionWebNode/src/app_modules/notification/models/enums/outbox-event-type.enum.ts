@@ -7,5 +7,6 @@ export enum OutboxEventType {
   MeilisearchDelete = 'MEILISEARCH_DELETE',
   SecurityAuditRecorded = 'SECURITY_AUDIT_RECORDED',
   LogRecorded = 'LOG_RECORDED',
-  EmailSend = 'EMAIL_SEND'
+  EmailSend = 'EMAIL_SEND',
+  NotificationStateChanged = 'NOTIFICATION_STATE_CHANGED'
 }

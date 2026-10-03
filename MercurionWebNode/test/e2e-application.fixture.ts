@@ -33,6 +33,7 @@ import { HelpService } from '../src/app_modules/help/services/help.service'
 import { HttpExceptionFilter } from '../src/exception-handling/http-exception-filter'
 import { createGlobalValidationPipe } from '../src/config/validation-pipe'
 import { LoggerPort, type LoggerContext } from '../src/logging/logger.port'
+import { RealtimeStateSyncService } from '../src/app_modules/socket-io/realtime-state-sync.service'
 
 export interface E2eApplicationFixture {
   readonly app: NestFastifyApplication
@@ -96,6 +97,7 @@ export async function createE2eApplicationFixture(): Promise<E2eApplicationFixtu
     providers: [
       HelpResolver,
       { provide: HelpService, useValue: { listTickets } },
+      { provide: RealtimeStateSyncService, useValue: { publishToUser: jest.fn() } },
       { provide: ResponseService, useClass: ResponseService },
       { provide: VerifyEmailHandler, useValue: verifyEmail },
       { provide: CredentialLoginHandler, useValue: { execute: jest.fn() } },

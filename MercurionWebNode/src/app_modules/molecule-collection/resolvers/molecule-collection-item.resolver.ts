@@ -17,13 +17,15 @@ import {
     MoleculeItemsByCollectionArgs,
     MoleculeItemsByUserArgs
 } from '../models/dto/molecule-collection-item-pagination.args';
+import { RealtimeStateSyncService } from 'src/app_modules/socket-io/realtime-state-sync.service';
 
 @Resolver()
 export class MoleculeCollectionItemResolver {
 
     constructor(
         private readonly itemService: MoleculeCollectionItemService,
-        private readonly joinService: MoleculeCollectionItemJoinService
+        private readonly joinService: MoleculeCollectionItemJoinService,
+        private readonly stateSync: RealtimeStateSyncService
     ) { }
 
     @Query(() => [MoleculeCollectionItemUnion])
@@ -85,6 +87,12 @@ export class MoleculeCollectionItemResolver {
         if (!dto) {
             throw new Error('Created molecule item could not be reloaded')
         }
+        this.stateSync.publishToUser(userId, {
+            kind: 'resource-state-changed',
+            domain: 'molecule',
+            change: 'created',
+            resourceId: created.id
+        })
         return dto
     }
 
@@ -98,9 +106,15 @@ export class MoleculeCollectionItemResolver {
         assertMercurionPublicId(id, 'id')
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         const updated = await this.itemService.update(id, userId, input, fieldsMap)
-        return updated
-            ? this.itemService.findOneDTO(id, userId, fieldsMap)
-            : null
+        if (!updated) return null
+        const dto = await this.itemService.findOneDTO(id, userId, fieldsMap)
+        this.stateSync.publishToUser(userId, {
+            kind: 'resource-state-changed',
+            domain: 'molecule',
+            change: 'updated',
+            resourceId: id
+        })
+        return dto
     }
 
     @Mutation(() => Boolean)
@@ -109,7 +123,21 @@ export class MoleculeCollectionItemResolver {
         @AuthenticatedUserId() userId: UUID
     ): Promise<boolean> {
         assertMercurionPublicId(id, 'id')
-        return this.itemService.delete(id, userId)
+        const deleted = await this.itemService.delete(id, userId)
+        if (deleted) {
+            this.stateSync.publishToUser(userId, {
+                kind: 'resource-state-changed',
+                domain: 'molecule',
+                change: 'deleted',
+                resourceId: id
+            })
+            this.stateSync.publishToUser(userId, {
+                kind: 'resource-state-changed',
+                domain: 'molecule-collection',
+                change: 'content-changed'
+            })
+        }
+        return deleted
     }
 
     @Mutation(() => Boolean)
@@ -135,6 +163,28 @@ export class MoleculeCollectionItemResolver {
         itemIds.forEach((itemId) => assertMercurionPublicId(itemId, 'itemIds'))
         try {
             await this.joinService.addManyMoleculesToCollection(userId, collectionId, itemIds, selectAll, snapshotAt)
+            this.stateSync.publishToUser(userId, {
+                kind: 'resource-state-changed',
+                domain: 'molecule-collection',
+                change: 'content-changed',
+                resourceId: collectionId
+            })
+            if (selectAll || itemIds.length > 20) {
+                this.stateSync.publishToUser(userId, {
+                    kind: 'resource-state-changed',
+                    domain: 'molecule',
+                    change: 'content-changed'
+                })
+            } else {
+                for (const itemId of itemIds) {
+                    this.stateSync.publishToUser(userId, {
+                        kind: 'resource-state-changed',
+                        domain: 'molecule',
+                        change: 'content-changed',
+                        resourceId: itemId
+                    })
+                }
+            }
             return true
         } catch {
             return false
@@ -150,7 +200,22 @@ export class MoleculeCollectionItemResolver {
     ): Promise<boolean> {
         assertMercurionPublicId(collectionId, 'collectionId')
         assertMercurionPublicId(itemId, 'itemId')
-        return this.joinService.removeMoleculeFromCollection(userId, collectionId, itemId, deleteCollectionIfEmpty ?? false)
+        const removed = await this.joinService.removeMoleculeFromCollection(userId, collectionId, itemId, deleteCollectionIfEmpty ?? false)
+        if (removed) {
+            this.stateSync.publishToUser(userId, {
+                kind: 'resource-state-changed',
+                domain: 'molecule-collection',
+                change: 'content-changed',
+                resourceId: collectionId
+            })
+            this.stateSync.publishToUser(userId, {
+                kind: 'resource-state-changed',
+                domain: 'molecule',
+                change: 'content-changed',
+                resourceId: itemId
+            })
+        }
+        return removed
     }
 
 

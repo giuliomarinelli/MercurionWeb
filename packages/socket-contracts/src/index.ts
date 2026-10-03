@@ -18,6 +18,7 @@ export type SocketContractMajor = ContractMajor
 export interface SocketHandshakeAuth {
   readonly token?: string
   readonly contractMajor?: SocketContractMajor
+  readonly clientInstanceId?: string
 }
 export type SocketEventDirection = 'client-to-server' | 'server-to-client'
 
@@ -35,6 +36,32 @@ export interface SocketSessionExpiredPayload {
   detail: 'session expired'
   state: Extract<SessionStateType, 'invalid'>
   cause: SessionInvalidationCauseType
+}
+
+export interface SocketNotificationChangedPayload {
+  readonly kind: 'notification-state-changed'
+}
+
+export type SocketStateSyncDomain =
+  | 'molecule'
+  | 'molecule-collection'
+  | 'profile'
+  | 'account-security'
+  | 'sessions'
+  | 'ticket'
+  | 'history'
+
+export type SocketStateChangeKind =
+  | 'created'
+  | 'updated'
+  | 'deleted'
+  | 'content-changed'
+
+export interface SocketStateChangedPayload {
+  readonly kind: 'resource-state-changed'
+  readonly domain: SocketStateSyncDomain
+  readonly change: SocketStateChangeKind
+  readonly resourceId?: string
 }
 
 type TypeMarker<T> = (value: T) => T
@@ -118,6 +145,26 @@ export const socketEventRegistry = {
     error: null,
     errorSemantics:
       'Terminal session notification caused by Redis expiration or deletion; no acknowledgement is expected.'
+  },
+  notificationChanged: {
+    name: 'sv.pub.notification_changed',
+    direction: 'server-to-client',
+    version: SOCKET_CONTRACT_VERSION,
+    payload: typeMarker<SocketNotificationChangedPayload>(),
+    acknowledgement: null,
+    error: null,
+    errorSemantics:
+      'Wake-up signal only. The client reconciles authoritative notification state through REST.'
+  },
+  stateChanged: {
+    name: 'sv.pub.state_changed',
+    direction: 'server-to-client',
+    version: SOCKET_CONTRACT_VERSION,
+    payload: typeMarker<SocketStateChangedPayload>(),
+    acknowledgement: null,
+    error: null,
+    errorSemantics:
+      'Best-effort state invalidation only. The client refetches authoritative state through REST or GraphQL.'
   }
 } as const
 

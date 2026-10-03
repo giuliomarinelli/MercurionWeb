@@ -1,4 +1,9 @@
-export type ToastVariant = 'error' | 'warn' | 'success'
+export type ToastVariant = 'error' | 'warn' | 'success' | 'info'
+
+export interface ToastAction {
+  label: string
+  run: () => void
+}
 
 export interface ToastMessage {
   id: string
@@ -6,4 +11,5 @@ export interface ToastMessage {
   variant: ToastVariant
   durationMs: number
   createdAt: number
+  action?: ToastAction
 }

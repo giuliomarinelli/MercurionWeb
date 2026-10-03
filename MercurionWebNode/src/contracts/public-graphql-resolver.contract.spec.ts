@@ -37,6 +37,7 @@ import { SynthStepItemService } from 'src/app_modules/synth/services/synth-step-
 import { SynthesisPoolService } from 'src/app_modules/synth/services/synthesis-pool.service'
 import { IS_PUBLIC_KEY } from 'src/metadata/metadata'
 import { SecurityService } from 'src/app_modules/auth/services/security.service'
+import { RealtimeStateSyncService } from 'src/app_modules/socket-io/realtime-state-sync.service'
 
 const OWNER_ID = '11111111-1111-4111-8111-111111111111'
 
@@ -163,6 +164,7 @@ describe('public GraphQL resolver contracts', () => {
         SynthStepItemResolver,
         SynthesisPoolResolver,
         { provide: HelpService, useValue: serviceMock() },
+        { provide: RealtimeStateSyncService, useValue: { publishToUser: jest.fn() } },
         { provide: MoleculeCollectionService, useValue: serviceMock() },
         { provide: MoleculeCollectionItemService, useValue: serviceMock() },
         { provide: MoleculeCollectionItemJoinService, useValue: serviceMock() },

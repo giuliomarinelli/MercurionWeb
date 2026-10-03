@@ -33,6 +33,23 @@ describe('RealtimeSocketService', () => {
     expect(socket.listeners(socketEventRegistry.applicationError.name)).toHaveSize(0);
   });
 
+  it('owns notification wake-up listeners independently', () => {
+    const socket = (service as unknown as {
+      socket: { listeners: (event: string) => unknown[] }
+    }).socket;
+
+    const first = service.onNotificationChanged().subscribe();
+    const second = service.onNotificationChanged().subscribe();
+
+    expect(socket.listeners(socketEventRegistry.notificationChanged.name)).toHaveSize(2);
+
+    first.unsubscribe();
+    expect(socket.listeners(socketEventRegistry.notificationChanged.name)).toHaveSize(1);
+
+    second.unsubscribe();
+    expect(socket.listeners(socketEventRegistry.notificationChanged.name)).toHaveSize(0);
+  });
+
   it('keeps core ownership idempotent and releases it without broad off()', () => {
     const socket = (service as unknown as {
       socket: {

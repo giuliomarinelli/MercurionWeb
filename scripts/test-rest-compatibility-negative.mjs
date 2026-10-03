@@ -15,6 +15,18 @@ if (!baseline.entries.some(entry => entry.consumer.class === 'PcpApiService'
     && entry.consumer.method === 'getIupacNameFromSmiles')) {
     throw new Error('REST inventory omitted the standalone PCP client outside the Angular entry-point import graph');
 }
+for (const [method, path] of [
+    ['recover', '/api/notifications/recovery'],
+    ['get', '/api/notifications/:notificationId'],
+    ['setRead', '/api/notifications/:notificationId/read'],
+    ['dismiss', '/api/notifications/:notificationId'],
+]) {
+    const entry = baseline.entries.find(candidate => candidate.consumer.class === 'NotificationApiService'
+        && candidate.consumer.method === method);
+    if (!entry || entry.consumer.path !== path || entry.server?.handler !== method) {
+        throw new Error(`Notification ${method} did not match its exact static or URI-encoded parameter route`);
+    }
+}
 if (baseline.schemaVersion !== 4) {
     throw new Error(`expected line-independent schemaVersion 4, found ${baseline.schemaVersion}`);
 }

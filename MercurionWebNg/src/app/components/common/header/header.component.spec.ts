@@ -6,6 +6,7 @@ import { HeaderComponent } from './header.component';
 import { UserContextService } from '../../../services/context/user-context.service';
 import { AccountService } from '../../../services/account.service';
 import { DesignService } from '../../../services/design.service';
+import { InAppNotificationService } from '../../../services/in-app-notification.service';
 
 describe('HeaderComponent', () => {
   let component: HeaderComponent;
@@ -13,7 +14,18 @@ describe('HeaderComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [HeaderComponent]
+      imports: [HeaderComponent],
+      providers: [
+        {
+          provide: InAppNotificationService,
+          useValue: {
+            unreadCount: signal(0),
+            catchUpCount: signal(0),
+            dismissCatchUp: jasmine.createSpy(),
+            acknowledgeCatchUpPresented: jasmine.createSpy()
+          }
+        }
+      ]
     })
     .compileComponents();
 
@@ -125,7 +137,16 @@ describe('HeaderComponent avatar menu positioning', () => {
       imports: [HeaderComponent],
       providers: [
         { provide: UserContextService, useValue: { isLoggedIn: signal(true), initials: signal('AB') } },
-        { provide: AccountService, useValue: { getProvidedAccountId: () => of(null) } }
+        { provide: AccountService, useValue: { getProvidedAccountId: () => of(null) } },
+        {
+          provide: InAppNotificationService,
+          useValue: {
+            unreadCount: signal(0),
+            catchUpCount: signal(0),
+            dismissCatchUp: jasmine.createSpy(),
+            acknowledgeCatchUpPresented: jasmine.createSpy()
+          }
+        }
       ]
     });
     spyOn(TestBed.inject(DesignService), 'minBk').and.returnValue(signal(true));

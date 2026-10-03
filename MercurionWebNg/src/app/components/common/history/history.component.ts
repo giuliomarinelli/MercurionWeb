@@ -23,6 +23,7 @@ import { HistoryContextService } from '../../../services/context/history-context
 import { NgClass } from '@angular/common';
 import { ScrollContextService } from '../../../services/context/scroll-context.service';
 import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
+import { RealtimeSyncStatusService } from '../../../services/realtime-sync-status.service';
 import { routeManifest } from '../../../route-manifest';
 
 @Component({
@@ -85,6 +86,7 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly hostRef = inject(ElementRef<HTMLElement>)
   private readonly scrollContext = inject(ScrollContextService)
   private readonly invalidation = inject(DomainInvalidationService)
+  private readonly syncStatus = inject(RealtimeSyncStatusService)
   // ====================================================
 
   readonly sentinel = viewChild.required<ElementRef<HTMLElement>
@@ -115,6 +117,7 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
   loading = false
   done = false
   protected page = 1
+  private loadGeneration = 0
 
   constructor() {
 
@@ -169,6 +172,18 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
           this.emptyChange.emit(true)
         }, 600)
       }
+    })
+
+    effect(() => {
+      const event = this.invalidation.last()
+      const historyChanged =
+        event?.domain === 'history' &&
+        event.action === 'changed' &&
+        event.remote === true
+      const reconnect = event?.domain === 'realtime' && event.action === 'reconcile'
+      if (!historyChanged && !reconnect) return
+      if (historyChanged) this.syncStatus.markSynchronized()
+      queueMicrotask(() => this.reloadHistory())
     })
 
     effect(() => {
@@ -268,14 +283,26 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
     this.observer.observe(this.sentinel().nativeElement)
   }
 
+  private reloadHistory(): void {
+    this.loadGeneration++
+    this.page = 1
+    this.done = false
+    this.loading = false
+    this.serverError.set(false)
+    this.items.set([])
+    void this.loadMore()
+  }
+
   async loadMore() {
 
     if (this.loading || this.done) return
 
     this.loading = true
+    const generation = this.loadGeneration
+    const requestedPage = this.page
 
     const newPage = await firstValueFrom(
-      this.historyService.getHistory(this.page, 25).pipe(
+      this.historyService.getHistory(requestedPage, 25).pipe(
         debounce(() => interval(80)),
         distinctUntilChanged(),
         catchError(() => {
@@ -285,6 +312,8 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
         })
       )
     )
+
+    if (generation !== this.loadGeneration) return
 
     if (!newPage || !newPage.items || newPage.items.length === 0) {
       if (this.items().length === 0) {

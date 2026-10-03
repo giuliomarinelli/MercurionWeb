@@ -31,6 +31,7 @@ import { ScrollContextService } from './services/context/scroll-context.service'
 import { ShellLayoutService } from './services/context/shell-layout.service'
 import { DOCUMENT, isPlatformBrowser } from '@angular/common'
 import { ToastComponent } from './components/common/toast/toast.component'
+import { RealtimeStateSyncService } from './services/realtime-state-sync.service'
 
 @Component({
   selector: 'm-root',
@@ -125,7 +126,9 @@ import { ToastComponent } from './components/common/toast/toast.component'
         <m-search-overlay />
       }
     }
-    <m-toast />
+    @defer (when toastService.messages().length > 0; prefetch on idle) {
+      <m-toast />
+    }
   `
 })
 export class AppComponent implements AfterViewInit, OnDestroy {
@@ -145,6 +148,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   private readonly doc = inject(DOCUMENT)
   private readonly platformId = inject(PLATFORM_ID)
   private readonly isBrowser = isPlatformBrowser(this.platformId)
+  private readonly realtimeStateSync = inject(RealtimeStateSyncService)
 
   isDarkTheme: Signal<boolean> = computed(() => this.themeManagerService.theme() === 'dark')
   readonly routePolicy = this.shell.routePolicy
@@ -161,6 +165,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     this.isSafari = isBrowser && /safari\//i.test(navigator.userAgent) && !/chrome\//i.test(navigator.userAgent)
     if (isBrowser) {
       this.doc.documentElement.classList.add('m-scroll-thin')
+      this.realtimeStateSync.start()
     }
     effect(() => {
       this.scrollHostRef = this.scrollHost()
@@ -189,6 +194,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   ngOnDestroy() {
     if (this.isBrowser) {
       this.doc.documentElement.classList.remove('m-scroll-thin')
+      this.realtimeStateSync.stop()
     }
   }
 

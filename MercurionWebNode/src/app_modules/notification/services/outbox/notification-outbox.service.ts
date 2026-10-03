@@ -37,6 +37,27 @@ export class NotificationOutboxService {
     })
   }
 
+  async appendNotificationStateChanged(
+    manager: EntityManager,
+    input: {
+      recipientUserId: UUID
+      dedupeKey: string
+      correlationId?: UUID
+      causationId?: UUID
+    }
+  ): Promise<NotificationOutboxEvent> {
+    return this.append(manager, {
+      aggregateId: input.recipientUserId,
+      eventType: OutboxEventType.NotificationStateChanged,
+      payload: {
+        recipientUserId: input.recipientUserId
+      },
+      dedupeKey: input.dedupeKey,
+      correlationId: input.correlationId,
+      causationId: input.causationId
+    })
+  }
+
   async appendMeilisearchUpsert(
     manager: EntityManager,
     input: {
@@ -95,34 +116,49 @@ export class NotificationOutboxService {
     }
   ): Promise<NotificationOutboxEvent> {
     const now = input.now ?? Date.now()
-    const event = manager.create(NotificationOutboxEvent, {
-      id: uuidv7() as UUID,
-      aggregateId: input.aggregateId,
-      eventType: input.eventType,
-      version: 1,
-      payload: input.payload,
-      status: OutboxEventStatus.Pending,
-      attemptCount: 0,
-      availableAt: String(now),
-      createdAt: String(now),
-      claimedAt: null,
-      claimedBy: null,
-      processedAt: null,
-      lastError: null,
-      dedupeKey: input.dedupeKey,
-      correlationId: input.correlationId ?? null,
-      causationId: input.causationId ?? null,
-      occurredAt: String(now)
-    })
-    try {
-      return await manager.save(event)
-    } catch (error) {
-      if (!String(error).toLowerCase().includes('dedupe')) throw error
-      const existing = await manager.findOneBy(NotificationOutboxEvent, {
-        dedupeKey: input.dedupeKey
-      })
-      if (!existing) throw error
-      return existing
+    const id = uuidv7() as UUID
+
+    const inserted = await manager.query(
+      [
+        'INSERT INTO outbox_events (',
+        '  id, aggregate_id, event_type, version, payload, status, attempt_count,',
+        '  available_at, created_at, claimed_at, claimed_by, processed_at,',
+        '  last_error, dedupe_key, correlation_id, causation_id, occurred_at',
+        ') VALUES (',
+        '  $1, $2, $3, $4, $5::jsonb, $6, $7, $8, $9, $10, $11, $12, $13,',
+        '  $14, $15, $16, $17',
+        ')',
+        'ON CONFLICT (dedupe_key) DO NOTHING',
+        'RETURNING id'
+      ].join('\n'),
+      [
+        id,
+        input.aggregateId,
+        input.eventType,
+        1,
+        JSON.stringify(input.payload),
+        OutboxEventStatus.Pending,
+        0,
+        String(now),
+        String(now),
+        null,
+        null,
+        null,
+        null,
+        input.dedupeKey,
+        input.correlationId ?? null,
+        input.causationId ?? null,
+        String(now)
+      ]
+    ) as Array<{ id: UUID }>
+
+    const repository = manager.getRepository(NotificationOutboxEvent)
+    if (inserted[0]?.id) {
+      return repository.findOneByOrFail({ id: inserted[0].id })
     }
+
+    return repository.findOneByOrFail({
+      dedupeKey: input.dedupeKey
+    })
   }
 }

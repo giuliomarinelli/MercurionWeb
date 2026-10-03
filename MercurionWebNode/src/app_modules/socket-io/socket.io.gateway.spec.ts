@@ -15,6 +15,7 @@ import { LoggerPort } from 'src/logging/logger.port';
 import { ConfigService } from '@nestjs/config';
 import { ScopeService } from 'src/app_modules/auth/services/scope.service';
 import { SecurityService } from 'src/app_modules/auth/services/security.service';
+import { RealtimePublisherService } from './realtime-publisher.service';
 
 jest.mock('ioredis', () => ({
   __esModule: true,
@@ -45,6 +46,7 @@ describe('SocketGateway', () => {
         { provide: SecureCookieService, useValue: {} },
         { provide: ScopeService, useValue: { scopeVerificationLayer: jest.fn(), generateScopesArrayFromJwtClaim: jest.fn() } },
         { provide: SecurityService, useValue: { decryptUserId: jest.fn((encryptedUserId: string) => encryptedUserId) } },
+        { provide: RealtimePublisherService, useValue: { setServer: jest.fn() } },
         { provide: LoggerPort, useValue: { forContext: jest.fn().mockReturnValue({ log: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() }) } },
       ],
     }).compile();

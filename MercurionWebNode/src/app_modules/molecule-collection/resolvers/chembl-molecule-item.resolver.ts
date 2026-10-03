@@ -8,6 +8,7 @@ import { GraphQLUtils } from "src/utils/graphql-utils/graphql-utils";
 import { AddManyChEMBLItemDTO } from "../models/dto/add-many-chembl-items.dto";
 import { GeneralUtils } from "src/utils/general-utils/general-utils";
 import { assertMercurionPublicId } from "src/identifiers/mercurion-public-id";
+import { RealtimeStateSyncService } from "src/app_modules/socket-io/realtime-state-sync.service";
 
 
 
@@ -15,7 +16,10 @@ import { assertMercurionPublicId } from "src/identifiers/mercurion-public-id";
 @Resolver(() => ChEMBLMoleculeItemEntity)
 export class ChEMBLMoleculeItemResolver {
 
-    constructor(private readonly service: ChEMBLMoleculeItemService) { }
+    constructor(
+        private readonly service: ChEMBLMoleculeItemService,
+        private readonly stateSync: RealtimeStateSyncService
+    ) { }
 
     @Query(() => [ChEMBLMoleculeItemEntity])
     async chemblMoleculesByCollection(
@@ -66,7 +70,20 @@ export class ChEMBLMoleculeItemResolver {
         assertMercurionPublicId(collectionId, 'collectionId')
         const normalizedLabel = typeof label === 'string' ? GeneralUtils.normalizeSpaces(label) : label
         const normalizedNotes = typeof notes === 'string' ? notes.trim() : notes
-        return this.service.addToCollection(userId, collectionId, chemblMolregno, normalizedLabel, normalizedNotes)
+        const item = await this.service.addToCollection(userId, collectionId, chemblMolregno, normalizedLabel, normalizedNotes)
+        this.stateSync.publishToUser(userId, {
+            kind: 'resource-state-changed',
+            domain: 'molecule',
+            change: 'created',
+            resourceId: item.id
+        })
+        this.stateSync.publishToUser(userId, {
+            kind: 'resource-state-changed',
+            domain: 'molecule-collection',
+            change: 'content-changed',
+            resourceId: collectionId
+        })
+        return item
     }
 
     @Mutation(() => Boolean)
@@ -77,7 +94,22 @@ export class ChEMBLMoleculeItemResolver {
     ) {
         assertMercurionPublicId(collectionId, 'collectionId')
         assertMercurionPublicId(itemId, 'itemId')
-        return this.service.removeFromCollection(userId, collectionId, itemId)
+        const removed = await this.service.removeFromCollection(userId, collectionId, itemId)
+        if (removed) {
+            this.stateSync.publishToUser(userId, {
+                kind: 'resource-state-changed',
+                domain: 'molecule',
+                change: 'content-changed',
+                resourceId: itemId
+            })
+            this.stateSync.publishToUser(userId, {
+                kind: 'resource-state-changed',
+                domain: 'molecule-collection',
+                change: 'content-changed',
+                resourceId: collectionId
+            })
+        }
+        return removed
     }
 
     @Mutation(() => Boolean)
@@ -87,7 +119,21 @@ export class ChEMBLMoleculeItemResolver {
         @Args('input', { type: () => [AddManyChEMBLItemDTO] }) dtos: AddManyChEMBLItemDTO[]
     ): Promise<boolean> {
         assertMercurionPublicId(collectionId, 'collectionId')
-        return this.service.addManyChemblItemsToCollection(userId, collectionId, dtos)
+        const added = await this.service.addManyChemblItemsToCollection(userId, collectionId, dtos)
+        if (added) {
+            this.stateSync.publishToUser(userId, {
+                kind: 'resource-state-changed',
+                domain: 'molecule',
+                change: 'content-changed'
+            })
+            this.stateSync.publishToUser(userId, {
+                kind: 'resource-state-changed',
+                domain: 'molecule-collection',
+                change: 'content-changed',
+                resourceId: collectionId
+            })
+        }
+        return added
     }
 
 }

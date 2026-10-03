@@ -22,6 +22,7 @@ export type RouteId =
   | 'accountRecovery'
   | 'oauthCallback'
   | 'help'
+  | 'notifications'
   | 'feedback'
   | 'notFound'
   | 'forbidden'
@@ -107,6 +108,7 @@ export const routeManifest = {
   accountRecovery: staticRoute('accountRecovery', 'account-recovery', 'Account · Recupero', { access: 'logged-out-only', shell: 'standard' }),
   oauthCallback: staticRoute('oauthCallback', 'oauth2/callback', 'Login · SSO Callback', { access: 'public', shell: 'standard' }),
   help: staticRoute('help', 'help', 'Help', { access: 'authenticated', shell: 'standard' }),
+  notifications: staticRoute('notifications', 'notifications', 'Notifiche', { access: 'authenticated', shell: 'standard' }),
   feedback: staticRoute('feedback', 'feedback', 'Feedback', { access: 'authenticated', shell: 'standard' }),
   notFound: staticRoute('notFound', '404-not-found', '404 Pagina non trovata', { access: 'public', shell: 'minimal' }),
   forbidden: staticRoute('forbidden', '403-forbidden', '403 Accesso negato', { access: 'public', shell: 'minimal' }),

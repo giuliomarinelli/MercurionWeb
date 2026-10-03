@@ -13,6 +13,8 @@ import {
   type SocketApplicationError,
   type SocketSessionExpiredPayload,
   type SocketSessionInitAcknowledgement,
+  type SocketNotificationChangedPayload,
+  type SocketStateChangedPayload,
 } from '@mercurion/socket-contracts';
 import { AuthSessionRepository } from '../auth-session-repository.service'
 import { AuthUseCasesService } from '../auth-use-cases.service'
@@ -29,6 +31,7 @@ import {
   type RealtimeConnectionState,
 } from './realtime-connection-state-machine';
 import { BrowserStorageRegistry } from '../browser-storage-registry';
+import { ClientInstanceIdService } from '../client-instance-id.service';
 
 export type SocketMode = 'public' | 'private';
 
@@ -47,6 +50,7 @@ export class RealtimeSocketService implements OnDestroy {
 
   private readonly appConfig = inject(APP_CONFIG);
   private readonly storageRegistry = inject(BrowserStorageRegistry);
+  private readonly clientInstance = inject(ClientInstanceIdService);
 
   // serializza transizioni (evita race ensurePrivate/ensurePublic sovrapposte)
   private modeOp: Promise<void> = Promise.resolve();
@@ -86,7 +90,7 @@ export class RealtimeSocketService implements OnDestroy {
       await this.ensureFreshToken(true);
       if (myGeneration !== this.generation) return;
       const tok = this.auth.getWsAccessToken();
-      if (tok && !this.jwt.isTokenExpired(tok)) this.socket.auth = { token: tok, contractMajor: SOCKET_CONTRACT_MAJOR };
+      if (tok && !this.jwt.isTokenExpired(tok)) this.socket.auth = { token: tok, contractMajor: SOCKET_CONTRACT_MAJOR, clientInstanceId: this.clientInstance.get() };
     }
     if (!this.stopped) this.scheduleRetry();
   };
@@ -159,7 +163,7 @@ export class RealtimeSocketService implements OnDestroy {
         this.clearTokenRefreshTimer();
         this.mode = 'public';
         this._state.set(reduceRealtimeConnection(this._state(), { type: 'connect-public' }));
-        this.socket.auth = { contractMajor: SOCKET_CONTRACT_MAJOR };
+        this.socket.auth = { contractMajor: SOCKET_CONTRACT_MAJOR, clientInstanceId: this.clientInstance.get() };
         this.lastAuthTokenSent = null;
         if (this.socket.connected) this.reconnectWithCurrentAuth();
         else this.safeConnect();
@@ -169,7 +173,7 @@ export class RealtimeSocketService implements OnDestroy {
       // 2) abbiamo un token valido → configuriamo auth per handshake
       this.mode = 'private';
       this._state.set(reduceRealtimeConnection(this._state(), { type: 'connect-private' }));
-      this.socket.auth = { token: tok, contractMajor: SOCKET_CONTRACT_MAJOR };
+      this.socket.auth = { token: tok, contractMajor: SOCKET_CONTRACT_MAJOR, clientInstanceId: this.clientInstance.get() };
 
       if (!this.socket.connected) {
         // non connesso → connettiti con auth
@@ -208,7 +212,7 @@ export class RealtimeSocketService implements OnDestroy {
 
       this.mode = 'public';
       this._state.set(reduceRealtimeConnection(this._state(), { type: 'connect-public' }));
-      this.socket.auth = { contractMajor: SOCKET_CONTRACT_MAJOR };
+      this.socket.auth = { contractMajor: SOCKET_CONTRACT_MAJOR, clientInstanceId: this.clientInstance.get() };
       this.lastAuthTokenSent = null;
 
       if (!this.socket.connected) {
@@ -240,7 +244,7 @@ export class RealtimeSocketService implements OnDestroy {
       if (requestedGeneration !== this.generation) return;
       this.mode = 'public';
       this._state.set(reduceRealtimeConnection(this._state(), { type: 'connect-public' }));
-      this.socket.auth = { contractMajor: SOCKET_CONTRACT_MAJOR };
+      this.socket.auth = { contractMajor: SOCKET_CONTRACT_MAJOR, clientInstanceId: this.clientInstance.get() };
       this.lastAuthTokenSent = null;
       this.reconnectWithCurrentAuth();
     });
@@ -307,7 +311,19 @@ export class RealtimeSocketService implements OnDestroy {
       const timer = setTimeout(() => { if (!settled) { settled = true; res(undefined); } }, timeout);
       try {
         this.socket.emit(socketEventRegistry.sessionInit.name, undefined, (ack) => {
-          if (!settled) { settled = true; clearTimeout(timer); res(ack); }
+          if (!settled) {
+            settled = true;
+            clearTimeout(timer);
+            if (ack.state === 'authenticated') {
+              this._state.set(
+                reduceRealtimeConnection(
+                  this._state(),
+                  { type: 'private-authenticated' }
+                )
+              );
+            }
+            res(ack);
+          }
         });
       } catch {
         if (!settled) { settled = true; clearTimeout(timer); res(undefined); }
@@ -329,6 +345,20 @@ export class RealtimeSocketService implements OnDestroy {
       const handler = (data: SocketSessionExpiredPayload) => observer.next(data);
       this.socket.on(socketEventRegistry.sessionExpired.name, handler);
       return () => this.socket.off(socketEventRegistry.sessionExpired.name, handler);
+    });
+  }
+  onNotificationChanged(): Observable<SocketNotificationChangedPayload> {
+    return new Observable<SocketNotificationChangedPayload>(observer => {
+      const handler = (data: SocketNotificationChangedPayload) => observer.next(data);
+      this.socket.on(socketEventRegistry.notificationChanged.name, handler);
+      return () => this.socket.off(socketEventRegistry.notificationChanged.name, handler);
+    });
+  }
+  onStateChanged(): Observable<SocketStateChangedPayload> {
+    return new Observable<SocketStateChangedPayload>(observer => {
+      const handler = (data: SocketStateChangedPayload) => observer.next(data);
+      this.socket.on(socketEventRegistry.stateChanged.name, handler);
+      return () => this.socket.off(socketEventRegistry.stateChanged.name, handler);
     });
   }
   onConnect(): Observable<void> {

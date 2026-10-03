@@ -10,6 +10,7 @@ import {
 } from '@angular/core'
 import { ViewportRuntimeService } from '../../../services/context/viewport-runtime.service'
 import { ToastService } from '../../../services/toast.service'
+import type { ToastMessage } from '../../../Models/toast.models'
 
 @Component({
   selector: 'm-toast',
@@ -23,6 +24,7 @@ import { ToastService } from '../../../services/toast.service'
           [class.toast--success]="toast.variant === 'success'"
           [class.toast--warn]="toast.variant === 'warn'"
           [class.toast--error]="toast.variant === 'error'"
+          [class.toast--info]="toast.variant === 'info'"
           [attr.data-toast-id]="toast.id"
           animate.enter="toast-enter"
           animate.leave="toast-leave"
@@ -30,8 +32,8 @@ import { ToastService } from '../../../services/toast.service'
           <div class="toast__icon" aria-hidden="true">
             @if (toast.variant === 'success') {
               ✓
-            } @else if (toast.variant === 'warn') {
-              !
+            } @else if (toast.variant === 'info') {
+              i
             } @else {
               !
             }
@@ -40,6 +42,16 @@ import { ToastService } from '../../../services/toast.service'
           <p class="toast__message">
             {{ toast.message }}
           </p>
+
+          @if (toast.action; as action) {
+            <button
+              type="button"
+              class="toast__action"
+              (click)="runAction(toast)"
+            >
+              {{ action.label }}
+            </button>
+          }
 
           <button
             type="button"
@@ -75,7 +87,7 @@ import { ToastService } from '../../../services/toast.service'
       .toast {
         pointer-events: auto;
         display: grid;
-        grid-template-columns: auto 1fr auto;
+        grid-template-columns: auto 1fr auto auto;
         align-items: center;
         gap: var(--m-space-3);
 
@@ -96,6 +108,12 @@ import { ToastService } from '../../../services/toast.service'
         color: var(--m-color-status-success);
         background: color-mix(in srgb, var(--m-color-status-success) 18%, var(--m-color-surface-elevated));
         border-color: color-mix(in srgb, var(--m-color-status-success) 35%, transparent);
+      }
+
+      .toast--info {
+        color: var(--m-color-accent-primary, currentColor);
+        background: color-mix(in srgb, var(--m-color-surface-elevated) 88%, currentColor);
+        border-color: color-mix(in srgb, currentColor 22%, transparent);
       }
 
       .toast--error {
@@ -134,10 +152,30 @@ import { ToastService } from '../../../services/toast.service'
         background: color-mix(in srgb, var(--m-color-status-warning) 20%, transparent);
       }
 
+      .toast--info .toast__icon {
+        background: color-mix(in srgb, currentColor 14%, transparent);
+      }
+
       .toast__message {
         margin: 0;
         font-size: var(--m-font-body-sm);
         font-weight: 600;
+      }
+
+      .toast__action {
+        appearance: none;
+        border: 0;
+        background: transparent;
+        color: currentColor;
+        cursor: pointer;
+        font: inherit;
+        font-weight: 700;
+        text-decoration: underline;
+        text-underline-offset: 0.2em;
+      }
+
+      .toast__action:hover {
+        opacity: 0.8;
       }
 
       .toast__close {
@@ -286,6 +324,11 @@ export class ToastComponent {
 
       this.previousRects = nextRects
     })
+  }
+
+  runAction(toast: ToastMessage): void {
+    this.toastService.close(toast.id)
+    toast.action?.run()
   }
 
   close(id: string): void {

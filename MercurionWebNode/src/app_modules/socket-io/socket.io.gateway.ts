@@ -25,6 +25,7 @@ import {
 import {
   contractVersionDetails,
   contractVersionWarning,
+  isValidClientInstanceId,
   negotiateContractMajor
 } from '@mercurion/rest-contracts';
 import {
@@ -33,6 +34,7 @@ import {
   presentApplicationError
 } from 'src/exception-handling/application-error-envelope';
 import { SecurityService } from '../auth/services/security.service';
+import { RealtimePublisherService } from './realtime-publisher.service';
 
 type ApplicationServer = Server<ClientToServerEvents, ServerToClientEvents>
 type ApplicationSocket = Socket<ClientToServerEvents, ServerToClientEvents>
@@ -88,6 +90,7 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
     private readonly pubSubService: PubSubService,
     private readonly jwtTools: JwtToolsService,
     private readonly securityService: SecurityService,
+    private readonly realtimePublisher: RealtimePublisherService,
     loggerFactory: LoggerPort
   ) {
     this.logger = loggerFactory.forContext(SocketIOGateway.name)
@@ -108,6 +111,7 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
     this.subClient = subClient
     server.adapter(createAdapter(pubClient, subClient))
     this.pubSubService.setSocketServer(server)
+    this.realtimePublisher.setServer(server)
     this.initialized = true
     this.logger.log('Socket.IO Redis Adapter e PubSubService pronti! 🚀')
   }
@@ -145,9 +149,17 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
       client.data.userId = userId
       client.data.sessionId = sessionId
 
+      const clientInstanceId = client.handshake.auth?.clientInstanceId
+      if (isValidClientInstanceId(clientInstanceId)) {
+        client.data.clientInstanceId = clientInstanceId
+      } else {
+        this.logger.warn(`Socket ${client.id} private senza clientInstanceId valido; self-echo exclusion non disponibile`)
+      }
+
       this.joinUserRooms(client);  // idempotente, usa già .rooms.has(...)
       this.logger.log(
-        `Socket ${client.id} autenticato onConnect, bind ws_session:${sessionId}, ws_user:${userId}`
+        `Socket ${client.id} autenticato onConnect, bind ws_session:${sessionId}, ws_user:${userId}` +
+        (client.data.clientInstanceId ? `, ws_client:${client.data.clientInstanceId}` : '')
       );
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : String(e)
@@ -169,6 +181,7 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
 
     const sessionId = client.data?.sessionId as string | undefined
     const userId = client.data?.userId?.toString() as string | undefined
+    const clientInstanceId = client.data?.clientInstanceId as string | undefined
 
     if (sessionId && userId) {
       if (!client.rooms.has(`ws_session:${sessionId}`)) {
@@ -178,6 +191,11 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
       if (!client.rooms.has(`ws_user:${userId}`)) {
         void client.join(`ws_user:${userId}`);
         this.logger.debug(`Socket ${client.id} joinato a ws_user:${userId}`)
+      }
+
+      if (clientInstanceId && !client.rooms.has(`ws_client:${clientInstanceId}`)) {
+        void client.join(`ws_client:${clientInstanceId}`)
+        this.logger.debug(`Socket ${client.id} joinato a ws_client:${clientInstanceId}`)
       }
 
     } else {
