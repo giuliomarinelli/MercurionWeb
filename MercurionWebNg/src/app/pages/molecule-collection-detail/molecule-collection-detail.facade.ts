@@ -105,8 +105,8 @@ export class MoleculeCollectionDetailFacade {
       const event = this.invalidations.last();
       const collectionId = this.collectionId();
       if (!event || event.domain !== 'molecule-collection' ||
-          event.collectionId !== collectionId ||
-          (event.action !== 'molecules-added' && event.action !== 'items-changed')) return;
+          (event.action !== 'molecules-added' && event.action !== 'items-changed') ||
+          event.collectionId !== collectionId) return;
       queueMicrotask(() => void this.reload(collectionId));
     });
 
