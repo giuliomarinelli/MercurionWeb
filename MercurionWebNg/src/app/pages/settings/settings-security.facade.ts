@@ -33,12 +33,15 @@ export class SettingsSecurityFacade {
         event.remote === true
       const reconnect = event?.domain === 'realtime' && event.action === 'reconcile'
       if (!securityChanged && !reconnect) return
-      queueMicrotask(() => this.load())
+      queueMicrotask(() => this.load(true))
     })
   }
 
-  load(): void {
-    if (this.loadSubscription && !this.loadSubscription.closed) return
+  load(force = false): void {
+    if (this.loadSubscription && !this.loadSubscription.closed) {
+      if (!force) return
+      this.loadSubscription.unsubscribe()
+    }
     this.loading.set(true)
     this.loadSubscription = this.account.isMfaEnabled().pipe(
       switchMap(enabled => {
