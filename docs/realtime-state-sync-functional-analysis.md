@@ -1146,3 +1146,46 @@ The state-sync feature is functionally complete when:
 - the existing durable notification protocol remains separate;
 - passive `markAsTouched` traffic is intentionally excluded from v1;
 - notebook/synthesis remain documented but deferred until their read models are active.
+
+
+---
+
+# 27. First implementation status
+
+Implemented on the reference branch:
+
+- dedicated in-memory `clientInstanceId` shared by HTTP/GraphQL and Socket.IO for one Angular application runtime;
+- `X-Mercurion-Client-Instance` request header and backend request-context propagation;
+- authenticated `ws_client:<clientInstanceId>` room membership;
+- typed `sv.pub.state_changed` Socket.IO contract with domain/change/resource metadata only;
+- user-room broadcasting with `EXCEPT ws_client:<originClientInstanceId>`;
+- best-effort `RealtimeStateSyncService` that never turns a successful mutation into a failure because Socket.IO delivery failed;
+- post-commit publication for explicit transactional flows;
+- Angular realtime bridge into `DomainInvalidationService`;
+- reconnect reconciliation for mounted realtime-aware read models;
+- transient global `Sincronizzato` badge for remote state activity;
+- explicit explanatory UX before redirect when an open molecule or collection is deleted remotely;
+- molecule CRUD/content invalidations;
+- collection CRUD and molecule/collection membership invalidations;
+- profile/contact invalidations;
+- MFA/security invalidations;
+- active-session invalidations centralized at the session lifecycle boundary;
+- ticket invalidations routed to the owner plus all users with `HandleTickets`;
+- explicit history-clear invalidation;
+- active consumers for molecule lists/details, collection lists/details, dashboard, settings account/security, Help lists, ticket detail and history.
+
+Deliberately deferred:
+
+- visual diff/highlight of individual list rows/cards;
+- per-consumer placement/styling refinements for the `Sincronizzato` badge;
+- stale/conflict banner and explicit reload workflow inside MoleculeEditor;
+- collaborative editing or merge semantics;
+- passive `markAsTouched` propagation;
+- notebook/synthesis realtime until those read models are active;
+- optimization of support-recipient lookup if the `HandleTickets` population becomes large.
+
+Validation note:
+
+- source and contract hardening tests were added where practical;
+- no GitHub Actions run was available for the branch at the time of implementation;
+- full npm/typecheck/build/browser validation still has to be executed in a checked-out development workspace.
