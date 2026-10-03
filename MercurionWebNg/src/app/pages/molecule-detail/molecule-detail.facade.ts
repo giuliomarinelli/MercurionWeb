@@ -17,6 +17,7 @@ import { EmbeddingService } from '../../services/embedding.service';
 import { AppTitleService } from '../../services/app-title.service';
 import { AuthSessionPersistenceService } from '../../services/auth-session-persistence.service';
 import { DomainInvalidationService } from '../../services/domain-invalidation.service';
+import { RealtimeSyncStatusService } from '../../services/realtime-sync-status.service';
 import { HistoryContextService } from '../../services/context/history-context.service';
 import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service';
 import { ToastService } from '../../services/toast.service';
@@ -101,6 +102,7 @@ export class MoleculeDetailFacade {
   private readonly title = inject(AppTitleService);
   private readonly persistence = inject(AuthSessionPersistenceService);
   private readonly invalidations = inject(DomainInvalidationService);
+  private readonly syncStatus = inject(RealtimeSyncStatusService);
   private readonly history = inject(HistoryContextService);
   private readonly overlay = inject(ActionOverlayContextService);
   private readonly toast = inject(ToastService);
@@ -184,6 +186,7 @@ export class MoleculeDetailFacade {
         return;
       }
 
+      if (remoteMoleculeChanged) this.syncStatus.markSynchronized()
       queueMicrotask(() => this.refresh$.next());
     });
 
