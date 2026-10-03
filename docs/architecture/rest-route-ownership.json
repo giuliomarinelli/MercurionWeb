@@ -1361,6 +1361,28 @@
     },
     {
       "method": "POST",
+      "path": "/api/pcp-api/get-iupac-name-from-smiles",
+      "controller": "MercurionWebNode/src/app_modules/mercurion-ai/controllers/pcp.controller.ts",
+      "handler": "getIupacName",
+      "classification": "active product feature",
+      "owner": "Mercurion Angular application",
+      "evidence": [
+        "MercurionWebNg/src/app/services/pcp-api.service.ts:PcpApiService.getIupacNameFromSmiles",
+        "MercurionWebNode/src/app_modules/mercurion-ai/controllers/pcp.controller.ts:PcpController.getIupacName"
+      ],
+      "references": [
+        {
+          "file": "MercurionWebNg/src/app/services/pcp-api.service.spec.ts",
+          "kind": "angular-source"
+        },
+        {
+          "file": "MercurionWebNg/src/app/services/pcp-api.service.ts",
+          "kind": "angular-source"
+        }
+      ]
+    },
+    {
+      "method": "POST",
       "path": "/api/rdkit-api/are-same-structure",
       "controller": "MercurionWebNode/src/app_modules/mercurion-ai/controllers/rd-kit.controller.ts",
       "handler": "areSameStructure",

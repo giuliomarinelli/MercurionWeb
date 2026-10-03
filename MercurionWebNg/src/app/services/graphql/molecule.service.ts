@@ -74,7 +74,6 @@ export class MoleculeService {
   ): Observable<MoleculeNameByCanonicalSmilesDTO> {
     const options = {
       variables: { canonicalSmiles },
-      fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.ephemeralLookup,
       context: {
         credentials: 'include'
       }
@@ -85,6 +84,7 @@ export class MoleculeService {
         MoleculeNameByCanonicalSmilesPublicQueryVariables
       >({
         ...options,
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.ephemeralLookup,
         query: MoleculeNameByCanonicalSmilesPublicDocument
       }).pipe(map(result => result.data.moleculeNameByCanonicalSmilesPublic))
       : this.apollo.query<
@@ -92,6 +92,7 @@ export class MoleculeService {
         MoleculeNameByCanonicalSmilesQueryVariables
       >({
         ...options,
+        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.ephemeralLookup,
         query: MoleculeNameByCanonicalSmilesDocument
       }).pipe(map(result => result.data.moleculeNameByCanonicalSmiles));
 

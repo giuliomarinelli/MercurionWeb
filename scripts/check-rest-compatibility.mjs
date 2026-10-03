@@ -353,12 +353,14 @@ function extractCalls() {
     const configPath = path.join(root, 'MercurionWebNg', 'tsconfig.app.json');
     const configFile = ts.readConfigFile(configPath, ts.sys.readFile);
     const parsed = ts.parseJsonConfigFileContent(configFile.config, ts.sys, path.dirname(configPath));
-    const program = ts.createProgram(parsed.fileNames, parsed.options);
+    const files = sourceFiles();
+    const program = ts.createProgram([...new Set([...parsed.fileNames, ...files])], parsed.options);
     const checker = program.getTypeChecker();
     const calls = [];
 
-    for (const file of sourceFiles()) {
-        const sourceFile = program.getSourceFile(file) ?? ts.createSourceFile(file, fs.readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true);
+    for (const file of files) {
+        const sourceFile = program.getSourceFile(file);
+        if (!sourceFile) throw new Error(`Cannot load Angular REST source ${relative(file)} into the type-checker program.`);
         function visitClass(classNode) {
             if (!classNode.name) return;
             for (const method of classNode.members) {
@@ -732,7 +734,7 @@ export function validateCompatibility(inventory, expected = inventory) {
     if (inventory.runtime?.angular?.interceptorUrlMutations?.length !== 0) failures.push('Angular interceptors must not rewrite REST paths without explicit compatibility support');
     if (inventory.runtime?.nginx?.location !== `${inventory.runtime?.nest?.globalPrefix}/`) failures.push('nginx API location and Nest global prefix differ');
     if (inventory.runtime?.nest?.validationPipe?.factory !== 'createGlobalValidationPipe') failures.push('global Nest ValidationPipe factory is not represented');
-    if (inventory.totalClientCalls !== 60) failures.push(`expected 60 Angular call sites, found ${inventory.totalClientCalls}`);
+    if (inventory.totalClientCalls !== 61) failures.push(`expected 61 Angular call sites, found ${inventory.totalClientCalls}`);
     if (inventory.matchedClientCalls !== inventory.totalClientCalls) failures.push(`expected every Angular call site to match, found ${inventory.matchedClientCalls}/${inventory.totalClientCalls}`);
     if ((inventory.entries ?? []).length !== inventory.totalClientCalls) failures.push(`entry count ${inventory.entries?.length ?? 0} differs from totalClientCalls ${inventory.totalClientCalls}`);
     const ids = (inventory.entries ?? []).map((entry) => entry.id);

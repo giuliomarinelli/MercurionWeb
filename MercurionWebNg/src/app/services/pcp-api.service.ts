@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import type { PcpGetIupacNameFromSmilesDTO } from '@mercurion/rest-contracts';
 
 @Injectable({
   providedIn: 'root',
@@ -9,10 +10,9 @@ export class PcpApiService {
 
   private readonly http = inject(HttpClient)
 
-  private readonly BASE = '/api/pcp-api/'
-
   getIupacNameFromSmiles(smiles: string): Observable<string> {
-    return this.http.post(`${this.BASE}get-iupac-name-from-smiles`, { smiles }, {
+    const dto: PcpGetIupacNameFromSmilesDTO = { smiles };
+    return this.http.post('/api/pcp-api/get-iupac-name-from-smiles', dto, {
       withCredentials: true,
       responseType: 'text'
     })

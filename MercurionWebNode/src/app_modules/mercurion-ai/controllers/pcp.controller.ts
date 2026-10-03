@@ -1,7 +1,7 @@
 import { Controller, HttpCode, HttpStatus, Post, Body, ValidationPipe } from '@nestjs/common';
 import { PcpService } from '../services/pcp.service';
 import { Public } from 'src/metadata/metadata';
-import type { PcpGetIupacNameFromSmilesDTO } from '@mercurion/rest-contracts';
+import { PcpGetIupacNameFromSmilesDTO } from '../models/dto/pcp-get-iupac-name-from-smiles.dto';
 
 
 @Controller('pcp-api')
