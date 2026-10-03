@@ -2,7 +2,8 @@ import { UUID } from 'node:crypto'
 
 export const InAppNotificationType = Object.freeze({
   PasswordChanged: 'security.password_changed',
-  SupportReplyReceived: 'support.reply_received'
+  SupportReplyReceived: 'support.reply_received',
+  SupportUserReplyReceived: 'support.user_reply_received'
 } as const)
 
 export type InAppNotificationType =
@@ -31,9 +32,16 @@ export interface SupportReplyReceivedNotificationInput extends BaseNotificationI
   ticketPublicId: string
 }
 
+export interface SupportUserReplyReceivedNotificationInput extends BaseNotificationInput {
+  type: typeof InAppNotificationType.SupportUserReplyReceived
+  ticketId: string
+  ticketPublicId: string
+}
+
 export type CreateInAppNotificationInput =
   | PasswordChangedNotificationInput
   | SupportReplyReceivedNotificationInput
+  | SupportUserReplyReceivedNotificationInput
 
 export interface UserNotificationDraft {
   recipientUserId: UUID
@@ -79,6 +87,26 @@ export function buildInAppNotification(
         summary: 'Il ticket ' + input.ticketPublicId + ' ha ricevuto una nuova risposta.',
         body:
           'Il team di supporto ha pubblicato una nuova risposta nel ticket ' +
+          input.ticketPublicId +
+          '.',
+        payload: {
+          ticketPublicId: input.ticketPublicId
+        },
+        resourceType: 'help_ticket',
+        resourceId: input.ticketId,
+        dedupeKey: input.dedupeKey
+      }
+
+    case InAppNotificationType.SupportUserReplyReceived:
+      return {
+        recipientUserId: input.recipientUserId,
+        type: input.type,
+        version: 1,
+        category: InAppNotificationCategory.Support,
+        title: 'Nuova risposta utente',
+        summary: 'Il ticket ' + input.ticketPublicId + ' ha ricevuto una nuova risposta dall’utente.',
+        body:
+          'L’utente ha pubblicato una nuova risposta nel ticket ' +
           input.ticketPublicId +
           '.',
         payload: {
