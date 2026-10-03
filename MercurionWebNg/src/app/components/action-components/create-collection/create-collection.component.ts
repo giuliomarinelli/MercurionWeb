@@ -191,7 +191,7 @@ import {
                            shadow-sm"
                     title="{{ c }}"
                   >
-                    <span class="truncate max-w-[10rem] sm:max-w-[16rem] text-[10px] sm:text-sm font-medium">
+                    <span class="truncate max-w-40 sm:max-w-[16rem] text-[10px] sm:text-sm font-medium">
                       {{ c }}
                     </span>
 
@@ -357,8 +357,9 @@ export class CreateCollectionComponent implements OnInit, AfterViewInit, OnDestr
       takeUntilDestroyed(this.destroyRef)
     ).subscribe({
       next: () => {
-        this.invalidation.publish({ domain: 'molecule-collection', action: 'created' });
-        this.overlayContext.close(this.sessionId);
+        this.invalidation.publish({ domain: 'molecule-collection', action: 'created' })
+        this.overlayContext.close(this.sessionId)
+        this.toast.trigger('Collezioni create con successo.', 'success', 3000)
       },
       error: () => {
         this.toast.trigger('Si è verificato un errore.', 'error', 3000);

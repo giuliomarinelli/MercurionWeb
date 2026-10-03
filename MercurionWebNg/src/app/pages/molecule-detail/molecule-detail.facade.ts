@@ -111,7 +111,8 @@ export class MoleculeDetailFacade {
   private readonly destroyRef = inject(DestroyRef);
   private readonly uuidV7 = /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   private cached?: MoleculeDetailItem;
-  readonly currentId = signal('');
+  readonly currentId = signal('')
+  readonly currentName = signal('')
   private currentType: 'system' | 'chembl' | 'custom' | undefined;
   private touchedId = '';
   private readonly refresh$ = new Subject<void>();
@@ -142,9 +143,10 @@ export class MoleculeDetailFacade {
     switchMap((id): Observable<MoleculeDetailItem | null> => this.resolveDetail(id)),
     tap((item) => {
       if (!item) return;
-      this.currentType = item.type;
-      this.loadSimilar(item);
-      this.markTouched();
+      this.currentType = item.type
+      this.loadSimilar(item)
+      this.markTouched()
+      this.currentName.set(this.toViewModel(item).name)
     }),
     switchMap((item): Observable<MoleculeDetailItem | null> => item ? this.withInference(item) : of(null)),
     tap(item => {
@@ -319,9 +321,10 @@ export class MoleculeDetailFacade {
   }
 
   bindCollections(): void {
-    const currentId = this.currentId();
-    if (!currentId) return;
-    queueMicrotask(() => this.overlay.open('BindCollectionsToMolecule', { moleculeId: currentId }));
+    const currentId = this.currentId()
+    if (!currentId) return
+    const moleculeName = this.currentName()
+    queueMicrotask(() => this.overlay.open('BindCollectionsToMolecule', { moleculeId: currentId, moleculeName }));
   }
 
   markTouched(): void {

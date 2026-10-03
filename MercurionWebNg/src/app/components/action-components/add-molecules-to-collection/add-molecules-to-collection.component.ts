@@ -726,7 +726,7 @@ export class AddMoleculesToCollectionComponent
     });
   }
 
-  private _rearmOnStep = effect(() => {
+  private readonly _rearmOnStep = effect(() => {
     if (this.step() === 1) {
       queueMicrotask(() => this.startObserver());
     } else {
@@ -751,7 +751,7 @@ export class AddMoleculesToCollectionComponent
       this.colSub = this.moleculeCollectionService.getCollectionById(collectionId).pipe(
         takeUntilDestroyed(this.destroyRef)
       ).subscribe({
-        next: col => this.collection.set(col),
+        next: (col) => this.collection.set(col),
         error: () =>
           queueMicrotask(() => {
             this.close();
@@ -852,26 +852,27 @@ export class AddMoleculesToCollectionComponent
         )
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
-          next: ok => {
-            this.step_12_loading.set(false);
+          next: (ok) => {
+            this.step_12_loading.set(false)
             if (ok) {
               this.invalidation.publish({
                 domain: 'molecule-collection',
                 action: 'molecules-added',
                 collectionId: this.addContext.collectionId()!
-              });
+              })
+              this.toast.trigger(`Molecole aggiunte con successo alla collezione${this.collection()?.name ? " '" + this.collection()?.name + "'" : ''}`, 'success')
             }
-            this.error.set(!ok);
-            const cId = this.addContext.collectionId();
+            this.error.set(!ok)
+            const cId = this.addContext.collectionId()
             if (this.addContext.redirectToCollectionPath()) {
-              this.router.navigateByUrl(`/molecules/collections/detail/${cId}`);
+              void this.router.navigateByUrl(`/molecules/collections/detail/${cId}`);
             }
-            this.actionOverlayContext.close(this.sessionId);
+            this.actionOverlayContext.close(this.sessionId)
           },
           error: () => {
-            this.step_12_loading.set(false);
-            this.error.set(true);
-            this.step.set(2);
+            this.step_12_loading.set(false)
+            this.error.set(true)
+            this.step.set(2)
           }
         });
     } else {

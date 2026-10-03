@@ -73,25 +73,25 @@ describe('ActionOverlayContextService', () => {
   }));
 
   it('gives every open a fresh session id and typed immutable input even for the same scope', fakeAsync(() => {
-    const first = service.open('BindCollectionsToMolecule', { moleculeId: 'mol-1' });
+    const first = service.open('BindCollectionsToMolecule', { moleculeId: 'mol-1', moleculeName: 'Ethanol' });
     tick(10);
     expect(service.session('BindCollectionsToMolecule')).toEqual({
       id: first,
       scope: 'BindCollectionsToMolecule',
-      input: { moleculeId: 'mol-1' }
+      input: { moleculeId: 'mol-1', moleculeName: 'Ethanol' }
     });
 
     service.close(first);
     tick(500);
 
-    const second = service.open('BindCollectionsToMolecule', { moleculeId: 'mol-2' });
+    const second = service.open('BindCollectionsToMolecule', { moleculeId: 'mol-2', moleculeName: 'Methanol' });
     tick(10);
 
     expect(second).not.toBe(first);
     expect(service.session('BindCollectionsToMolecule')).toEqual({
       id: second,
       scope: 'BindCollectionsToMolecule',
-      input: { moleculeId: 'mol-2' }
+      input: { moleculeId: 'mol-2', moleculeName: 'Methanol' }
     });
   }));
 

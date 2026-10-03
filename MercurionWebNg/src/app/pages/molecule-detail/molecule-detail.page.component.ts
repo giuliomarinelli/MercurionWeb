@@ -262,6 +262,7 @@ export class MoleculeDetailPageComponent {
   collectionId = this.facade.collectionId
   protected molId = this.facade.currentId
   protected iupacName = signal<string>('__LOADING__')
+  protected currentName = this.facade.currentName
   private readonly iupacSmiles = computed(() => {
     const molecule = this.facade.molecule()
     return molecule ? this.facade.toViewModel(molecule).smiles : ''

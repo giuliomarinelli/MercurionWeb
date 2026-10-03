@@ -54,7 +54,7 @@ import { RealtimeStateSyncService } from './services/realtime-state-sync.service
           (onOffCanvasMenuOpen)="triggerOpenOffCanvas()" />
         <div class="drawer-container relative flex flex-1 overflow-hidden custom-scrollbar">
           @if (authState.authenticated() && design.minBk('xl')()) {
-            <div class="absolute top-4 left-[10px] z-30 group">
+            <div class="absolute top-4 left-2.5 z-30 group">
               <button class="cursor-pointer hover:transform hover:scale-[1.05] transition-transform duration-300" (click)="sidenavContext.toggle()" aria-label="Sidebar">
                 @if (sidenavContext.isVisible()) {
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-auto text-light-on-surface-main hover:text-light-on-surface-secondary dark:text-dark-on-surface-main hover:dark:text-dark-on-surface-secondary transition-colors duration-150">
@@ -85,7 +85,7 @@ import { RealtimeStateSyncService } from './services/realtime-state-sync.service
           @if (sidenavContext.isMounted() && authState.authenticated() && design.minBk('xl')()) {
             <aside
               class="drawer absolute inset-y-0 left-0 w-64
-                transition-transform duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]
+                transition-transform duration-500 ease-in-out
                 -translate-x-full"
               [class.translate-x-0]="sidenavContext.isVisible()"
               [class.-translate-x-full]="!sidenavContext.isVisible()">

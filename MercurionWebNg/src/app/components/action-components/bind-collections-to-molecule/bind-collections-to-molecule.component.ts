@@ -17,8 +17,7 @@ import { PaginationController } from '../../../services/pagination/pagination-co
 import { UiMoleculeCollection } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
 import { MoleculeCollectionService } from '../../../services/graphql/molecule-collection.service';
-import { debounceTime, map, Observable, Subscription } from 'rxjs';
-import { PageModel } from '../../../Models/graphql/page.models';
+import { debounceTime, map, Subscription } from 'rxjs';
 import { ProgressIndicatorComponent } from '../../common/progress-indicator/progress-indicator.component';
 import { PmSearchInputComponent } from '../../common/pm-search-input/pm-search-input.component';
 import { CollectionCardComponent } from '../../molecule-detail/collection-card/collection-card.component';
@@ -31,6 +30,7 @@ import { ButtonComponent } from '../../common/button/button.component';
 import { CollectionPickerFacade } from '../collection-picker/collection-picker.facade';
 import { AbstractMultiselectItem } from '../../../Models/abstract.models';
 import { SelectionControlComponent } from '../../common/selection-control/selection-control.component';
+import { ToastService } from '../../../services/toast.service';
 
 @Component({
   selector: 'm-bind-collections-to-molecule',
@@ -97,7 +97,7 @@ import { SelectionControlComponent } from '../../common/selection-control/select
         id="bindCollectionsHeading"
         class="text-lg font-semibold text-light-on-surface-main dark:text-dark-on-surface-main"
       >
-        Collega molecola a nuove collezioni
+        Collega <span class="italic truncate">{{ moleculeName() }}</span> a nuove collezioni
       </h2>
 
       <!-- BODY -->
@@ -237,20 +237,28 @@ export class BindCollectionsToMoleculeComponent implements OnInit, AfterViewInit
     pageSize: 20
   });
   private readonly router = inject(Router);
+  private readonly toast = inject(ToastService)
+
+
+
+
   private readonly sessionId = this.actionOverlayContext.session('BindCollectionsToMolecule')?.id ?? -1;
   private readonly pagination = new PaginationController<UiMoleculeCollection>({
     fetch: page => this.picker.fetchPage$(page, this.searchTerm()).pipe(
       debounceTime(100),
-      map(result => ({ ...result, items: result.items.map(item => ({
-        ...item,
-        triggerDisappear: signal(false),
-        collapse: signal(false)
-      })) }))
+      map(result => ({
+        ...result, items: result.items.map(item => ({
+          ...item,
+          triggerDisappear: signal(false),
+          collapse: signal(false)
+        }))
+      }))
     )
   })
   private observer?: IntersectionObserver
 
-  private suSub?: Subscription;
+  private suSub?: Subscription
+  private mSub?: Subscription
 
   step = signal<1 | 2>(1);
   step_12_loading = signal<boolean>(false);
@@ -268,6 +276,7 @@ export class BindCollectionsToMoleculeComponent implements OnInit, AfterViewInit
   readonly isPartiallySelected = computed(() => {
     return this.bulkIntent() === 'all' ? this.excludedIdSet().size > 0 : this.selectedIdSet().size > 0;
   });
+  readonly moleculeName = this.bindContext.moleculeName
   get items(): UiMoleculeCollection[] { return this.pagination.items() }
   get loading(): boolean { return this.pagination.loading() }
   get done(): boolean { return this.pagination.done() }
@@ -276,8 +285,12 @@ export class BindCollectionsToMoleculeComponent implements OnInit, AfterViewInit
   get empty(): ReturnType<typeof signal<boolean>> { return this.pagination.empty }
   get searchTerm(): ReturnType<typeof signal<string>> { return this.pagination.query }
 
+
+
   ngOnInit(): void {
-    queueMicrotask(() => void this.loadMore());
+    queueMicrotask(() => {
+      void this.loadMore()
+    })
   }
 
   ngAfterViewInit(): void {
@@ -395,7 +408,8 @@ export class BindCollectionsToMoleculeComponent implements OnInit, AfterViewInit
                 domain: 'molecule',
                 action: 'collections-bound',
                 moleculeId
-              });
+              })
+              this.toast.trigger(`La molecola ${"'" + this.moleculeName() + "'"} è stata aggiunta con successo alle collezioni selezionate`, 'success')
             }
             this.error.set(!ok);
             queueMicrotask(() => {

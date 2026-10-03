@@ -15,4 +15,8 @@ export class BindCollectionsToMoleculeContextService {
     this.overlay.session('BindCollectionsToMolecule')?.input.moleculeId ?? null
   )
 
+  readonly moleculeName = computed<string | null>(() =>
+    this.overlay.session('BindCollectionsToMolecule')?.input.moleculeName ?? null
+  )
+
 }
