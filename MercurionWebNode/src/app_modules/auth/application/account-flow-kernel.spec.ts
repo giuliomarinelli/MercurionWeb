@@ -69,6 +69,7 @@ describe('AccountFlowKernel', () => {
       initialWorkspaceMock as any, // initialWorkspace
       {} as any, // notificationOutbox
       {} as any, // inAppNotifications
+      { publishToUser: jest.fn(), publishAfterCommit: jest.fn() } as any, // stateSync
       meiliLoggerMock as any, // meiliLogger
     );
   });
