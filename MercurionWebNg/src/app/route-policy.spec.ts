@@ -26,6 +26,7 @@ describe('route policy metadata', () => {
     ['account-recovery', 'logged-out-only', 'standard'],
     ['oauth2/callback', 'public', 'standard'],
     ['help', 'authenticated', 'standard'],
+    ['notifications', 'authenticated', 'standard'],
     ['feedback', 'authenticated', 'standard'],
     ['404-not-found', 'public', 'minimal'],
     ['403-forbidden', 'public', 'minimal'],

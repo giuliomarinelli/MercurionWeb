@@ -40,7 +40,7 @@ describe('TicketDetailFacade', () => {
         TicketDetailFacade,
         { provide: TicketDetailContextService, useValue: { ticketId, innerScope: scope } },
         { provide: HelpService, useValue: help },
-        { provide: DomainInvalidationService, useValue: { publish: jasmine.createSpy('publish') } },
+        { provide: DomainInvalidationService, useValue: { last: signal(null), publish: jasmine.createSpy('publish') } },
       ],
     });
     facade = TestBed.inject(TicketDetailFacade);
