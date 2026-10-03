@@ -23,6 +23,8 @@ import { HelpNotificationEventType } from 'src/app_modules/notification/models/e
 import { InAppNotificationService } from 'src/app_modules/notification/services/in-app-notification.service'
 import { InAppNotificationType } from 'src/app_modules/notification/models/in-app-notification-catalog'
 import { formatHelpPublicId } from '../models/value-objects/help-public-id'
+import { ScopeService } from 'src/app_modules/auth/services/scope.service'
+import { Scope } from 'src/app_modules/user/models/enums/scope.enum'
 import {
   authorizeHelpOperation,
   type HelpActor,
@@ -45,6 +47,7 @@ export class HelpService {
     @InjectRepository(TicketMessage)
     private readonly msgRepo: Repository<TicketMessage>,
     private readonly users: UserService,
+    private readonly scopeService: ScopeService,
     private readonly outbox: NotificationOutboxService,
     private readonly inAppNotifications: InAppNotificationService,
   ) { }
@@ -123,8 +126,9 @@ export class HelpService {
     }
 
     let msg: TicketMessage
+    const supportRecipients = await this.resolveSupportNotificationRecipients(actor.userId)
 
-    await runInTransaction(this.dataSource, async (_context, manager) => {
+    await runInTransaction(this.dataSource, async (context, manager) => {
       const now = Date.now()
 
       const ticket = await manager.findOne(Ticket, {
@@ -160,6 +164,17 @@ export class HelpService {
         payload: { ticketId: ticket.id, messageId: msg.id },
         dedupeKey: `help:${ticket.id}:message:${msg.id}:user`
       })
+
+      const ticketPublicId = formatHelpPublicId(ticket.publicId, 'Ticket')
+      for (const recipientUserId of supportRecipients) {
+        await this.inAppNotifications.create({
+          type: InAppNotificationType.SupportUserReplyReceived,
+          recipientUserId,
+          ticketId: ticket.id,
+          ticketPublicId,
+          dedupeKey: `support.user_reply_received:${msg.id}:${recipientUserId}`
+        }, context)
+      }
     })
 
     return { ok: true }
@@ -426,6 +441,28 @@ export class HelpService {
   // -----------------------------
   // Private helpers
   // -----------------------------
+
+  private async resolveSupportNotificationRecipients(
+    excludedUserId: UUID
+  ): Promise<UUID[]> {
+    const candidateIds = await this.users.getVerifiedUserIds()
+    const eligible = await Promise.all(
+      candidateIds.map(async (userId) => ({
+        userId,
+        allowed:
+          userId !== excludedUserId &&
+          await this.scopeService.verifyUserHasScopes(
+            userId,
+            Scope.ViewUsers,
+            Scope.HandleTickets
+          )
+      }))
+    )
+
+    return eligible
+      .filter((candidate) => candidate.allowed)
+      .map((candidate) => candidate.userId)
+  }
 
   private buildColumns(
     scalarFields: string[],
