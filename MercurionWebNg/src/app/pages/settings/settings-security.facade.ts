@@ -7,6 +7,7 @@ import { UserContextService } from '../../services/context/user-context.service'
 import { ToastService } from '../../services/toast.service'
 import type { MfaStrategy, SessionDTOExt } from '../../Models/account/account.models'
 import { DomainInvalidationService } from '../../services/domain-invalidation.service'
+import { RealtimeSyncStatusService } from '../../services/realtime-sync-status.service'
 
 @Injectable()
 export class SettingsSecurityFacade {
@@ -16,6 +17,7 @@ export class SettingsSecurityFacade {
   private readonly user = inject(UserContextService)
   private readonly toast = inject(ToastService)
   private readonly invalidations = inject(DomainInvalidationService)
+  private readonly syncStatus = inject(RealtimeSyncStatusService)
   private loadSubscription?: Subscription
   private logoutSubscription?: Subscription
 
@@ -33,6 +35,7 @@ export class SettingsSecurityFacade {
         event.remote === true
       const reconnect = event?.domain === 'realtime' && event.action === 'reconcile'
       if (!securityChanged && !reconnect) return
+      if (securityChanged) this.syncStatus.markSynchronized()
       queueMicrotask(() => this.load(true))
     })
   }
