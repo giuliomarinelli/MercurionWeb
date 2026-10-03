@@ -20,8 +20,9 @@ describe('NotificationOutboxDispatcherService', () => {
   } as unknown as LoggerPort
   const mailer = {} as MailSenderService
   const meiliClient = {} as MeiliSearch
+  const emitToUser = jest.fn()
   const realtimePublisher = {
-    emitToUser: jest.fn()
+    emitToUser
   } as unknown as RealtimePublisherService
 
   beforeEach(() => jest.clearAllMocks())
@@ -130,7 +131,7 @@ describe('NotificationOutboxDispatcherService', () => {
       lastError: null
     })
 
-    expect(realtimePublisher.emitToUser).toHaveBeenCalledWith(
+    expect(emitToUser).toHaveBeenCalledWith(
       '018f0f12-3d4c-7abc-8def-0123456789ab',
       socketEventRegistry.notificationChanged.name,
       { kind: 'notification-state-changed' }

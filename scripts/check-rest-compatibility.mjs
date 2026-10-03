@@ -255,6 +255,11 @@ function evaluateVariants(node, context, stack = new Set()) {
     if (ts.isPropertyAccessExpression(node) && ts.isThis(node.expression)) {
         return evaluateVariants(node.name, context, stack);
     }
+    if (ts.isCallExpression(node) && ts.isIdentifier(node.expression)
+        && node.expression.text === 'encodeURIComponent' && node.arguments.length === 1) {
+        return evaluateVariants(node.arguments[0], context, stack)
+            .map(value => value.startsWith(':') ? value : encodeURIComponent(value));
+    }
     context.placeholderTypes.set(node.getText(), typeText(context.checker, node) ?? 'unknown');
     return [`:${node.getText()}`];
 }
@@ -345,7 +350,8 @@ function routePathMatches(clientPath, serverPath) {
     if (client.length !== server.length) return false;
     return client.every((part, index) => {
         if (part.startsWith(':') && server[index].startsWith(':')) return part.slice(1) === server[index].slice(1);
-        return part.startsWith(':') || server[index].startsWith(':') || part === server[index];
+        if (part.startsWith(':')) return false;
+        return server[index].startsWith(':') || part === server[index];
     });
 }
 
@@ -656,7 +662,9 @@ export function buildInventory() {
     const nestContext = createProgramFromConfig(path.join(root, 'MercurionWebNode', 'tsconfig.json'));
     const handlers = nestHandlerIndex(nestContext);
     const entries = calls.map((call) => {
-        const candidates = routes.filter((route) => route.method === call.verb && routePathMatches(call.path, route.path));
+        const matchingRoutes = routes.filter((route) => route.method === call.verb && routePathMatches(call.path, route.path));
+        const exactRoutes = matchingRoutes.filter(route => pathOnly(route.path) === pathOnly(call.path));
+        const candidates = exactRoutes.length ? exactRoutes : matchingRoutes;
         const server = candidates.length === 1 ? candidates[0] : undefined;
         const serverQueries = server?.parameters?.filter((parameter) => parameter.source === 'query') ?? [];
         const serverPathParameters = server?.parameters?.filter((parameter) => parameter.source === 'param') ?? [];
@@ -734,7 +742,7 @@ export function validateCompatibility(inventory, expected = inventory) {
     if (inventory.runtime?.angular?.interceptorUrlMutations?.length !== 0) failures.push('Angular interceptors must not rewrite REST paths without explicit compatibility support');
     if (inventory.runtime?.nginx?.location !== `${inventory.runtime?.nest?.globalPrefix}/`) failures.push('nginx API location and Nest global prefix differ');
     if (inventory.runtime?.nest?.validationPipe?.factory !== 'createGlobalValidationPipe') failures.push('global Nest ValidationPipe factory is not represented');
-    if (inventory.totalClientCalls !== 61) failures.push(`expected 61 Angular call sites, found ${inventory.totalClientCalls}`);
+    if (inventory.totalClientCalls !== 69) failures.push(`expected 69 Angular call sites, found ${inventory.totalClientCalls}`);
     if (inventory.matchedClientCalls !== inventory.totalClientCalls) failures.push(`expected every Angular call site to match, found ${inventory.matchedClientCalls}/${inventory.totalClientCalls}`);
     if ((inventory.entries ?? []).length !== inventory.totalClientCalls) failures.push(`entry count ${inventory.entries?.length ?? 0} differs from totalClientCalls ${inventory.totalClientCalls}`);
     const ids = (inventory.entries ?? []).map((entry) => entry.id);

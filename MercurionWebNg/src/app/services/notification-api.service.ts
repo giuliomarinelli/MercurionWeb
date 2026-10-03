@@ -3,6 +3,8 @@ import { inject, Injectable } from '@angular/core'
 import { Observable } from 'rxjs'
 import {
   NotificationListState,
+  type NotificationBulkThroughRequest,
+  type SetNotificationReadRequest,
   type NotificationListState as NotificationListStateType,
   type NotificationPageResponse,
   type NotificationRecoveryResponse,
@@ -59,25 +61,28 @@ export class NotificationApiService {
   }
 
   setRead(notificationId: string, read: boolean): Observable<void> {
+    const dto: SetNotificationReadRequest = { read }
     return this.http.patch<void>(
       `/api/notifications/${encodeURIComponent(notificationId)}/read`,
-      { read },
+      dto,
       { withCredentials: true }
     )
   }
 
   markAllRead(throughCursor: string): Observable<void> {
+    const dto: NotificationBulkThroughRequest = { throughCursor }
     return this.http.patch<void>(
       '/api/notifications/read-all',
-      { throughCursor },
+      dto,
       { withCredentials: true }
     )
   }
 
   markAllSeen(throughCursor: string): Observable<void> {
+    const dto: NotificationBulkThroughRequest = { throughCursor }
     return this.http.patch<void>(
       '/api/notifications/seen-all',
-      { throughCursor },
+      dto,
       { withCredentials: true }
     )
   }
@@ -90,10 +95,11 @@ export class NotificationApiService {
   }
 
   dismissAll(throughCursor: string): Observable<void> {
+    const dto: NotificationBulkThroughRequest = { throughCursor }
     return this.http.delete<void>(
       '/api/notifications',
       {
-        body: { throughCursor },
+        body: dto,
         withCredentials: true
       }
     )

@@ -1,8 +1,9 @@
 import { fakeAsync, flushMicrotasks, TestBed, tick } from '@angular/core/testing'
 import { signal } from '@angular/core'
 import { of, Subject } from 'rxjs'
-import type {
-  NotificationRecoveryResponse
+import {
+  parseUtcInstant,
+  type NotificationRecoveryResponse
 } from '@mercurion/rest-contracts'
 
 import { InAppNotificationService } from './in-app-notification.service'
@@ -35,7 +36,7 @@ describe('InAppNotificationService', () => {
     overrides: Partial<NotificationRecoveryResponse> = {}
   ): NotificationRecoveryResponse => ({
     cursor: 'n1.OA',
-    snapshotAt: '2026-10-02T20:00:00.000Z',
+    snapshotAt: parseUtcInstant('2026-10-02T20:00:00.000Z'),
     unreadCount: 2,
     unseenCount: 1,
     changes: [],
@@ -146,8 +147,8 @@ describe('InAppNotificationService', () => {
             payload: {},
             resourceType: 'help_ticket',
             resourceId: 'ticket-1',
-            createdAt: '2026-10-02T20:01:00.000Z',
-            updatedAt: '2026-10-02T20:01:00.000Z',
+            createdAt: parseUtcInstant('2026-10-02T20:01:00.000Z'),
+            updatedAt: parseUtcInstant('2026-10-02T20:01:00.000Z'),
             seenAt: null,
             readAt: null,
             dismissedAt: null

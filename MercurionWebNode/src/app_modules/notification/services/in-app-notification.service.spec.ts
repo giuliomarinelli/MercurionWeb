@@ -54,10 +54,10 @@ describe('InAppNotificationService', () => {
 
     const outbox = {
       appendNotificationStateChanged: jest.fn().mockResolvedValue({})
-    } as unknown as NotificationOutboxService
+    }
 
     return {
-      service: new InAppNotificationService(repository, unitOfWork, outbox),
+      service: new InAppNotificationService(repository, unitOfWork, outbox as unknown as NotificationOutboxService),
       repository,
       outbox
     }

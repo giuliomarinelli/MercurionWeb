@@ -24,10 +24,11 @@ describe('NotificationOutboxService', () => {
       causationId: null,
       occurredAt: '123'
     }))
+    const query = jest.fn().mockResolvedValue([
+      { id: '018f0f12-3d4c-7abc-8def-0123456789ab' }
+    ])
     const manager = {
-      query: jest.fn().mockResolvedValue([
-        { id: '018f0f12-3d4c-7abc-8def-0123456789ab' }
-      ]),
+      query,
       getRepository: jest.fn().mockReturnValue({ findOneByOrFail })
     } as unknown as EntityManager
 
@@ -50,7 +51,7 @@ describe('NotificationOutboxService', () => {
       createdAt: '123',
       dedupeKey: 'help:ticket:message:user'
     })
-    expect(manager.query).toHaveBeenCalledWith(
+    expect(query).toHaveBeenCalledWith(
       expect.stringContaining('ON CONFLICT (dedupe_key) DO NOTHING'),
       expect.arrayContaining(['help:ticket:message:user'])
     )
