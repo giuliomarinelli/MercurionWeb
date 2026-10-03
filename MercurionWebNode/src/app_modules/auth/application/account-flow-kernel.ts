@@ -575,6 +575,21 @@ export class AccountFlowKernel {
 
             const oldNotificationBody = 'Mercurion: il numero di telefono del tuo account è stato eliminato. Se non sei stato tu, reimposta subito la password e contatta il supporto Mercurion.'
 
+            // Register best-effort state invalidations before secondary post-commit
+            // effects so Redis/SMS/audit failures cannot suppress reconciliation.
+            this.stateSync.publishAfterCommit(context, [userId], {
+                kind: 'resource-state-changed',
+                domain: 'profile',
+                change: 'updated'
+            })
+            if (phoneMfaDisabled) {
+                this.stateSync.publishAfterCommit(context, [userId], {
+                    kind: 'resource-state-changed',
+                    domain: 'account-security',
+                    change: 'updated'
+                })
+            }
+
             afterTransactionCommit(context, async () => {
                 await this.sessionService.revokeToken(jti)
                 await this.redisService.del(
@@ -591,18 +606,6 @@ export class AccountFlowKernel {
                     })
                 }
             })
-            this.stateSync.publishAfterCommit(context, [userId], {
-                kind: 'resource-state-changed',
-                domain: 'profile',
-                change: 'updated'
-            })
-            if (phoneMfaDisabled) {
-                this.stateSync.publishAfterCommit(context, [userId], {
-                    kind: 'resource-state-changed',
-                    domain: 'account-security',
-                    change: 'updated'
-                })
-            }
 
             return {
                 ...this._r.ok('Phone number successfully deleted'),
