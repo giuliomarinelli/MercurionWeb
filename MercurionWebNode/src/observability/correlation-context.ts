@@ -7,6 +7,7 @@ export const CORRELATION_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/
 export interface CorrelationContext {
   readonly correlationId: string
   readonly parentCorrelationId?: string
+  readonly clientInstanceId?: string
   readonly transport: 'http' | 'graphql' | 'socket.io' | 'nats' | 'background'
 }
 
@@ -27,12 +28,15 @@ export function resolveCorrelationId(value: unknown): string {
 export function createCorrelationContext(
   transport: CorrelationContext['transport'],
   inboundId?: unknown,
-  parentCorrelationId?: string
+  parentCorrelationId?: string,
+  clientInstanceId?: string
 ): CorrelationContext {
   const correlationId = resolveCorrelationId(inboundId)
-  return parentCorrelationId && isValidCorrelationId(parentCorrelationId)
-    ? { correlationId, parentCorrelationId, transport }
-    : { correlationId, transport }
+  const parent = parentCorrelationId && isValidCorrelationId(parentCorrelationId)
+    ? { parentCorrelationId }
+    : {}
+  const client = clientInstanceId ? { clientInstanceId } : {}
+  return { correlationId, transport, ...parent, ...client }
 }
 
 export function getCorrelationContext(): CorrelationContext | undefined {
@@ -41,6 +45,10 @@ export function getCorrelationContext(): CorrelationContext | undefined {
 
 export function getCorrelationId(): string | undefined {
   return getCorrelationContext()?.correlationId
+}
+
+export function getClientInstanceId(): string | undefined {
+  return getCorrelationContext()?.clientInstanceId
 }
 
 export function runWithCorrelationContext<T>(
