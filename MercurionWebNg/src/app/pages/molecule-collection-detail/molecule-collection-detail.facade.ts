@@ -5,6 +5,7 @@ import { catchError, distinctUntilChanged, filter, firstValueFrom, map, of, swit
 import { MoleculeCollectionService } from '../../services/graphql/molecule-collection.service';
 import { MoleculeCollectionItemService } from '../../services/graphql/molecule-collection-item.service';
 import { DomainInvalidationService } from '../../services/domain-invalidation.service';
+import { RealtimeSyncStatusService } from '../../services/realtime-sync-status.service';
 import { HistoryContextService } from '../../services/context/history-context.service';
 import { ToastService } from '../../services/toast.service';
 import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service';
@@ -29,6 +30,7 @@ export class MoleculeCollectionDetailFacade {
   private readonly collections = inject(MoleculeCollectionService);
   private readonly itemsService = inject(MoleculeCollectionItemService);
   private readonly invalidations = inject(DomainInvalidationService);
+  private readonly syncStatus = inject(RealtimeSyncStatusService);
   private readonly history = inject(HistoryContextService);
   private readonly toast = inject(ToastService);
   private readonly overlay = inject(ActionOverlayContextService);
@@ -134,10 +136,12 @@ export class MoleculeCollectionDetailFacade {
       }
 
       if (remoteCollectionChanged || reconnect) {
+        if (remoteCollectionChanged) this.syncStatus.markSynchronized()
         queueMicrotask(() => void this.refreshCollection(collectionId));
         return;
       }
       if (remoteDisplayedMoleculeChanged) {
+        this.syncStatus.markSynchronized()
         queueMicrotask(() => void this.reload(collectionId));
       }
     });
