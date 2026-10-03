@@ -78,9 +78,11 @@ EXCEPT
 ws_client:<clientInstanceId>
 ```
 
-The client-instance identity is tab/application-instance scoped, not session scoped.
+The client-instance identity is application-instance scoped, not session scoped.
 
-A browser tab should keep one stable `clientInstanceId` for its lifetime. The existing frontend `tabId` can initially back this identity.
+Mercurion uses a dedicated in-memory `clientInstanceId` generated once per Angular application instance. The same value is used by HTTP/GraphQL requests and by the Socket.IO handshake, so it remains stable across Socket.IO reconnects.
+
+It is intentionally **not persisted in sessionStorage**. Browser tab duplication can clone sessionStorage in some environments; reusing a persisted `tabId` could therefore cause two tabs to share one exclusion room and both miss an invalidation. A full page reload creates a new client instance, which is acceptable because the previous socket instance is being replaced and the page will load authoritative state again.
 
 Existing rooms retain their current responsibilities:
 
