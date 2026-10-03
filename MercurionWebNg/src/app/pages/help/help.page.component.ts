@@ -184,14 +184,10 @@ export class HelpPageComponent implements OnInit, OnDestroy, AfterViewInit {
     this.primeNG.setConfig({ theme: { preset: Aura, options: { darkModeSelector: '.dark' } } })
     effect(() => {
       const event = this.invalidations.last()
-      if (event?.domain !== 'ticket' || event.action !== 'changed') return
-      this.resetAndReload()
-    })
-
-    effect(() => {
-      const event = this.invalidations.last()
-      if (event?.domain !== 'ticket' || event.action !== 'changed' ||
-          event.scope !== 'User' || this.activeTab() !== 0) return
+      if (!event) return
+      const ticketChanged = event.domain === 'ticket' && event.action === 'changed'
+      const reconnect = event.domain === 'realtime' && event.action === 'reconcile'
+      if (!ticketChanged && !reconnect) return
       this.resetAndReload()
     })
   }
