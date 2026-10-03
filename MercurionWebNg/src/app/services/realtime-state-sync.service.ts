@@ -55,23 +55,34 @@ export class RealtimeStateSyncService {
     const base = { action: 'changed' as const, remote: true as const }
     switch (payload.domain) {
       case 'molecule':
+        return {
+          domain: 'molecule',
+          ...base,
+          change: payload.change,
+          ...(payload.resourceId ? { resourceId: payload.resourceId } : {})
+        }
       case 'molecule-collection':
+        return {
+          domain: 'molecule-collection',
+          ...base,
+          change: payload.change,
+          ...(payload.resourceId ? { resourceId: payload.resourceId } : {})
+        }
       case 'ticket':
         return {
-          domain: payload.domain,
+          domain: 'ticket',
           ...base,
           change: payload.change,
           ...(payload.resourceId ? { resourceId: payload.resourceId } : {})
         }
       case 'profile':
+        return { domain: 'profile', ...base }
       case 'account-security':
+        return { domain: 'account-security', ...base }
       case 'sessions':
+        return { domain: 'sessions', ...base }
       case 'history':
-        return { domain: payload.domain, ...base }
-      default: {
-        const unreachable: never = payload.domain
-        throw new Error(`Unsupported realtime state domain: ${String(unreachable)}`)
-      }
+        return { domain: 'history', ...base }
     }
   }
 }
