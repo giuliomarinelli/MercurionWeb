@@ -501,10 +501,6 @@ molecule changed
 
 ## MoleculeDetail
 
-Current state:
-
-- imports `DomainInvalidationService` but currently does not consume it.
-
 Target:
 
 ```text
@@ -515,7 +511,20 @@ molecule changed without resourceId
     -> refetch current detail
 ```
 
-A deleted molecule will naturally resolve through the existing not-found behavior.
+For a remote delete, show an explicit explanatory message before navigating away rather than allowing the view to appear/disappear without context.
+
+## MoleculeEditor
+
+The editor is intentionally **not** an automatic refetch consumer for remote molecule changes.
+
+A remote refetch while the user has an unsaved draft could silently overwrite local work. Until an explicit conflict/stale-editor UX is implemented, the safe rule is:
+
+```text
+remote molecule change while editing
+    -> do not replace the editor draft automatically
+```
+
+A later UX pass should surface a contextual “modified in another session” state with an explicit reload/reconcile action. This is a conflict-awareness concern, not collaborative editing.
 
 ## MyMoleculeCollectionsPage
 
