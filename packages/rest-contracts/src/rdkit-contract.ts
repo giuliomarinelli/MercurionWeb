@@ -1,4 +1,4 @@
-export const RDKIT_SMILES_MAX_LENGTH = 4096 as const
+export const RDKIT_SMILES_MAX_LENGTH = 1024 as const
 
 export const RDKIT_OPERATIONS = Object.freeze({
   getMoleculeProperties: 'get_molecule_properties',
@@ -24,11 +24,17 @@ export interface RdkitAreSameStructureDTO extends RdkitBaseDTO {
 
 export interface RdkitToCanonicalSmilesDTO extends RdkitBaseDTO {
   smiles: string
-  opts?: RdkitToCanonicalSmilesOptsDTO
+  opts?: RdkitToCanonicalSmilesOptsDTO | null
 }
 
 export interface RdkitGetMoleculePropertiesDTO extends RdkitBaseDTO {
   smiles: string
+}
+
+export type PcpGetIupacNameFromSmilesDTO = RdkitGetMoleculePropertiesDTO
+
+export interface PcpGetIupacNameFromSmilesResult {
+  iupac_name: string
 }
 
 export interface RdkitGetMoleculePropertiesResult {
@@ -44,6 +50,10 @@ export interface RdkitUpstreamError {
   error: string
   data?: never
 }
+
+export type PcpGetIupacNameFromSmilesWire =
+  | { data: PcpGetIupacNameFromSmilesResult; error?: never }
+  | RdkitUpstreamError
 
 export type RdkitGetMoleculePropertiesWire =
   | { data: RdkitGetMoleculePropertiesResult; error?: never }

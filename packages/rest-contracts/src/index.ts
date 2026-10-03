@@ -110,6 +110,9 @@ export type {
   Tox21Prediction as NatsTox21Prediction
 } from './nats-contract-registry'
 export type {
+  PcpGetIupacNameFromSmilesDTO,
+  PcpGetIupacNameFromSmilesResult,
+  PcpGetIupacNameFromSmilesWire,
   RdkitAreSameStructureDTO,
   RdkitAreSameStructureResponse,
   RdkitAreSameStructureWire,
