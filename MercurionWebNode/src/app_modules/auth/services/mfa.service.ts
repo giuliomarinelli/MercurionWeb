@@ -31,6 +31,7 @@ import { ApplicationErrorCode, applicationError } from 'src/exception-handling/a
 import { MfaBackupCodeStore } from 'src/app_modules/user/services/mfa-backup-code.store'
 import { MfaPolicyService } from './mfa-policy.service'
 import { runInTransaction } from 'src/persistence/transaction-context'
+import { RealtimeStateSyncService } from 'src/app_modules/socket-io/realtime-state-sync.service'
 
 @Injectable()
 /**
@@ -73,6 +74,7 @@ export class MfaApplicationService {
         private readonly redisService: RedisService,
         private readonly securityAuditService: SecurityAuditService,
         private readonly policy: MfaPolicyService,
+        private readonly stateSync: RealtimeStateSyncService,
         meiliLogger: LoggerPort
     ) {
         this.logger = meiliLogger.forContext(MfaApplicationService.name)
@@ -244,7 +246,7 @@ export class MfaApplicationService {
 
         await this.throttleBackupRegeneration(userId)
 
-        return runInTransaction(this.dataSource, async (_context, manager) => {
+        return runInTransaction(this.dataSource, async (context, manager) => {
 
             const row = await manager.findOne(User, {
                 where: { id: userId },
@@ -281,7 +283,13 @@ export class MfaApplicationService {
                 { mfaStrategies: JSON.stringify(encrypted) }
             )
 
-            return this.generateBackupCodes(userId, manager)
+            const codes = await this.generateBackupCodes(userId, manager)
+            this.stateSync.publishAfterCommit(context, [userId], {
+                kind: 'resource-state-changed',
+                domain: 'account-security',
+                change: 'updated'
+            })
+            return codes
         })
     }
 
@@ -610,6 +618,12 @@ export class MfaApplicationService {
 
         await this.securityAuditService.mfaEnabled(userId, GeneralUtils.getEnumKeyByValue(MfaStrategy, strategy) ?? 'unknown')
 
+        this.stateSync.publishToUser(userId, {
+            kind: 'resource-state-changed',
+            domain: 'account-security',
+            change: 'updated'
+        })
+
         return true
     }
 
@@ -814,6 +828,11 @@ export class MfaApplicationService {
                 undefined,
                 transactionContext
             )
+            this.stateSync.publishAfterCommit(transactionContext, [userId], {
+                kind: 'resource-state-changed',
+                domain: 'account-security',
+                change: 'updated'
+            })
         })
 
         await this.clearMfaFailures(userId, strategy, context)
