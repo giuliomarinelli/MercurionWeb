@@ -192,7 +192,7 @@ export class HelpPageComponent implements OnInit, OnDestroy, AfterViewInit {
       const reconnect = event.domain === 'realtime' && event.action === 'reconcile'
       if (!ticketChanged && !reconnect) return
       if (remoteTicketChanged) this.syncStatus.markSynchronized()
-      this.resetAndReload()
+      queueMicrotask(() => this.resetAndReload())
     })
   }
 
