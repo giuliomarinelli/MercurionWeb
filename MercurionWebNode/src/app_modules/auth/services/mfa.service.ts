@@ -616,13 +616,13 @@ export class MfaApplicationService {
 
         await this.userService.appendMfaStrategy(userId, strategy)
 
-        await this.securityAuditService.mfaEnabled(userId, GeneralUtils.getEnumKeyByValue(MfaStrategy, strategy) ?? 'unknown')
-
         this.stateSync.publishToUser(userId, {
             kind: 'resource-state-changed',
             domain: 'account-security',
             change: 'updated'
         })
+
+        await this.securityAuditService.mfaEnabled(userId, GeneralUtils.getEnumKeyByValue(MfaStrategy, strategy) ?? 'unknown')
 
         return true
     }
