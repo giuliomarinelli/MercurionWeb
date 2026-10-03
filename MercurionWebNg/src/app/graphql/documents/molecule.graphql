@@ -54,12 +54,20 @@ query MoleculeSearch($input: MoleculeSearchInput!) {
   }
 }
 
-query PreferredNameItByCanonicalSmiles($canonicalSmiles: String!) {
-    preferredNameItByCanonicalSmiles(
-        canonicalSmiles: $canonicalSmiles
-    ) {
-        preferredNameIt
+query MoleculeNameByCanonicalSmiles($canonicalSmiles: String!) {
+    moleculeNameByCanonicalSmiles(canonicalSmiles: $canonicalSmiles) {
+        name
         type
     }
 }
+
+query MoleculeNameByCanonicalSmilesPublic($canonicalSmiles: String!) {
+    moleculeNameByCanonicalSmilesPublic(canonicalSmiles: $canonicalSmiles) {
+        name
+        type
+    }
+}
+
+
+
 

@@ -50,7 +50,7 @@ describe('MoleculeService', () => {
   it('prefers the ChEMBL name without querying custom molecules', async () => {
     search.mockResolvedValue({ hits: [{ preferredNameIt: 'Nome ChEMBL' }] });
 
-    await expect(service.getPreferredNameItByCanonicalSmilesFromChembleCoalesceCustomMolecule('C', '00000000-0000-0000-0000-000000000001' as UUID))
+    await expect(service.getMoleculeName('C', '00000000-0000-0000-0000-000000000001' as UUID))
       .resolves.toEqual({ type: 'chembl', preferredNameIt: 'Nome ChEMBL' });
     expect(findOne).not.toHaveBeenCalled();
   });
@@ -60,7 +60,7 @@ describe('MoleculeService', () => {
     search.mockResolvedValue({ hits: [] });
     findOne.mockResolvedValue({ name: 'Nome custom' });
 
-    await expect(service.getPreferredNameItByCanonicalSmilesFromChembleCoalesceCustomMolecule('C', userId))
+    await expect(service.getMoleculeName('C', userId))
       .resolves.toEqual({ type: 'custom', preferredNameIt: 'Nome custom' });
     expect(findOne).toHaveBeenCalledWith({
       where: { userId, canonicalSmiles: 'C' },

@@ -10,6 +10,7 @@ import { MercurionAiService } from '../../services/mercurion-ai.service'
 
 @Injectable()
 export class MoleculeEditorLiveAnalysisFacade {
+
   private readonly ai = inject(MercurionAiService)
   private readonly embedding = inject(EmbeddingService)
   private readonly molecules = inject(MoleculeService)

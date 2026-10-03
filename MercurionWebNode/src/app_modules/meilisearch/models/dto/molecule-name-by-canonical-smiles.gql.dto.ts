@@ -3,6 +3,7 @@ import { Field, ObjectType, registerEnumType } from "@nestjs/graphql";
 export enum MoleculeNameSource {
   chembl = 'chembl',
   custom = 'custom',
+  iupac = 'iupac',
 }
 
 registerEnumType(MoleculeNameSource, {
@@ -15,5 +16,5 @@ export class MoleculeNameByCanonicalSmilesDTO {
     type!: MoleculeNameSource
 
     @Field(() => String, { nullable: true })
-    preferredNameIt!: string | null
+    name!: string | null
 }
