@@ -3,6 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
 import { AccountService } from '../../../services/account.service';
 import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
+import { RealtimeSyncStatusService } from '../../../services/realtime-sync-status.service';
 import { ProfileDTO } from '../../../Models/account/account.models';
 import {
   toActivityViewModel,
@@ -15,6 +16,7 @@ import { DashboardViewModel, DashboardWidgetState } from './dashboard-widget.mod
 export class DashboardFacade {
   private readonly accountService = inject(AccountService);
   private readonly invalidations = inject(DomainInvalidationService);
+  private readonly syncStatus = inject(RealtimeSyncStatusService);
   private readonly destroyRef = inject(DestroyRef);
   private profileSubscription?: Subscription;
 
@@ -35,7 +37,9 @@ export class DashboardFacade {
         event.domain === 'molecule-collection' ||
         event.domain === 'history';
       const reconnect = event.domain === 'realtime' && event.action === 'reconcile';
-      if (legacy || (remoteDomain && 'remote' in event && event.remote === true) || reconnect) this.load();
+      const remote = remoteDomain && 'remote' in event && event.remote === true;
+      if (remote) this.syncStatus.markSynchronized();
+      if (legacy || remote || reconnect) this.load();
     });
   }
 
