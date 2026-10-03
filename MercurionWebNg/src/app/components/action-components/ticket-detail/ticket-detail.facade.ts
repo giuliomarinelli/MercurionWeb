@@ -111,6 +111,21 @@ export class TicketDetailFacade {
       this.activeKey.set(key);
       this.resetAndLoad(ticketId, scope);
     });
+
+    effect(() => {
+      const event = this.invalidation.last();
+      const ticketId = this.context.ticketId();
+      if (!event || !ticketId) return;
+      const reconnect = event.domain === 'realtime' && event.action === 'reconcile';
+      const remoteTicketChanged =
+        event.domain === 'ticket' &&
+        event.action === 'changed' &&
+        'remote' in event &&
+        event.remote === true &&
+        (!('resourceId' in event) || !event.resourceId || event.resourceId === ticketId);
+      if (!remoteTicketChanged && !reconnect) return;
+      queueMicrotask(() => this.resetAndLoad(ticketId, this.scope()));
+    });
   }
 
   private resetAndLoad(ticketId: string, scope: TicketDetailInnerScope): void {
