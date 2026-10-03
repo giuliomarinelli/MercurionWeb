@@ -709,6 +709,12 @@ export class AccountFlowKernel {
             throw applicationError(ApplicationErrorCode.CHANGE_PHONE_USER_NOT_FOUND)
         }
 
+        this.stateSync.publishToUser(userId, {
+            kind: 'resource-state-changed',
+            domain: 'profile',
+            change: 'updated'
+        })
+
         await this.redisService.del(
             redisKeys.account.phoneChangeLock(this.hmacKey(newCompletePhoneNumber))
         )
@@ -727,12 +733,6 @@ export class AccountFlowKernel {
 
         this.smsService.sendSms(newCompletePhoneNumber, newNotificationBody).catch((e) => {
             this.logger.warn(`Errore durante l'invio sms phone changed, newPhone=${this.hmacKey(newCompletePhoneNumber)}, userId=${userId}`, e as string | object)
-        })
-
-        this.stateSync.publishToUser(userId, {
-            kind: 'resource-state-changed',
-            domain: 'profile',
-            change: 'updated'
         })
 
         return this._r.ok('Phone number successfully updated')
