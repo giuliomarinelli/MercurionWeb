@@ -30,6 +30,7 @@ import { ProvidedAccountIdDTO } from '@mercurion/rest-contracts';
 import { NotificationButtonComponent } from '../notification-button/notification-button.component';
 import { InAppNotificationService } from '../../../services/in-app-notification.service';
 import { NotificationCatchUpComponent } from '../../notifications/notification-catch-up.component';
+import { RealtimeSyncBadgeComponent } from '../realtime-sync-badge/realtime-sync-badge.component';
 
 @Component({
   selector: 'm-header',
@@ -48,7 +49,8 @@ import { NotificationCatchUpComponent } from '../../notifications/notification-c
     HeaderSessionIndicatorComponent,
     IconButtonComponent,
     NotificationButtonComponent,
-    NotificationCatchUpComponent
+    NotificationCatchUpComponent,
+    RealtimeSyncBadgeComponent
   ],
   providers: [HeaderFacade],
   template: `
@@ -160,6 +162,7 @@ import { NotificationCatchUpComponent } from '../../notifications/notification-c
                 </m-icon-button>
             </div>
             @if (userContext.isLoggedIn()) {
+              <m-realtime-sync-badge />
               <div class="relative flex items-center">
                 <m-notification-button
                   [unreadCount]="unreadNotificationsCount()"
