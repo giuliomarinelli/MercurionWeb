@@ -1,6 +1,6 @@
 # Realtime state synchronization — Functional analysis
 
-**Status:** pre-implementation functional analysis  
+**Status:** implementation in progress  
 **Reference branch:** `feature/6abfc9a4c1919d7ad547b3e9-notifications`  
 **Reference Trello card:** `6abfc9a4c1919d7ad547b3e9`  
 **Date:** 2026-10-03
@@ -16,6 +16,21 @@ Mercurion already has durable in-app notifications. This document covers the oth
 The realtime message is **not authoritative state**. It is a best-effort invalidation hint.
 
 The producer does not care whether another client is currently on the relevant page. It emits after the mutation commits. If an interested consumer is mounted, that consumer reacts. Otherwise the event is allowed to disappear.
+
+---
+
+## UX feedback for remote synchronization
+
+Remote synchronization must be understandable without becoming noisy.
+
+Rules:
+
+- a non-destructive remote change that is relevant to the currently mounted view triggers the normal refetch and briefly shows the global **“↻ Sincronizzato”** badge;
+- the badge is activated by the interested consumer, not by the raw socket listener, so unrelated events do not produce visible feedback;
+- reconnect-only reconciliation does not show the badge by itself;
+- destructive changes to the resource currently being viewed use an explicit contextual message (for example “Questa molecola è stata eliminata da un’altra sessione”) and redirect/fallback instead of silently disappearing;
+- ordinary remote updates do not create generic toast spam;
+- the `change` field (`created | updated | deleted | content-changed`) exists partly to let the frontend choose the appropriate UX while authoritative data is still refetched from REST/GraphQL.
 
 ---
 
