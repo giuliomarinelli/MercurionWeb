@@ -23,6 +23,7 @@ import { HistoryContextService } from '../../../services/context/history-context
 import { NgClass } from '@angular/common';
 import { ScrollContextService } from '../../../services/context/scroll-context.service';
 import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
+import { RealtimeSyncStatusService } from '../../../services/realtime-sync-status.service';
 import { routeManifest } from '../../../route-manifest';
 
 @Component({
@@ -85,6 +86,7 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly hostRef = inject(ElementRef<HTMLElement>)
   private readonly scrollContext = inject(ScrollContextService)
   private readonly invalidation = inject(DomainInvalidationService)
+  private readonly syncStatus = inject(RealtimeSyncStatusService)
   // ====================================================
 
   readonly sentinel = viewChild.required<ElementRef<HTMLElement>
@@ -180,6 +182,7 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
         event.remote === true
       const reconnect = event?.domain === 'realtime' && event.action === 'reconcile'
       if (!historyChanged && !reconnect) return
+      if (historyChanged) this.syncStatus.markSynchronized()
       queueMicrotask(() => this.reloadHistory())
     })
 
