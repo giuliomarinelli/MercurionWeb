@@ -68,6 +68,7 @@ import { SessionIdentityService } from './services/session-identity.service';
 import { SessionRedisCodec } from './repositories/session-redis.codec';
 import { RedisSessionRepository } from './repositories/redis-session.repository';
 import { SESSION_REPOSITORY } from './models/interfaces/session-repository.interface';
+import { RealtimeModule } from '../socket-io/realtime.module';
 
 
 
@@ -78,6 +79,7 @@ import { SESSION_REPOSITORY } from './models/interfaces/session-repository.inter
     UserModule,
     RedisModule,
     ResponseModule,
+    RealtimeModule,
     TypeOrmModule.forFeature([User, Country, ActivationReceipt])
   ],
   providers: [
