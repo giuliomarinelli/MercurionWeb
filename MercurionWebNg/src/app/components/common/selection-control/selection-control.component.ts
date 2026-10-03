@@ -25,6 +25,7 @@ let nextGeneratedId = 0;
       class="m-selection-control"
       [class.m-selection-control--switch]="mode() === 'switch'"
       [class.m-selection-control--disabled]="isDisabled()"
+      [class.m-selection-control--card]="layout() === 'card'"
     >
       <input
         #control
@@ -46,7 +47,7 @@ let nextGeneratedId = 0;
       <span class="m-selection-control__visual" aria-hidden="true">
         <span class="m-selection-control__mark"></span>
       </span>
-      <span class="m-selection-control__content">
+      <span class="m-selection-control__content" [class.sr-only]="labelHidden()">
         <span class="m-selection-control__label">{{ label() }}</span>
         @if (description()) {
           <span class="m-selection-control__description" [attr.id]="descriptionId()">
@@ -77,6 +78,18 @@ let nextGeneratedId = 0;
       inline-size: 1px;
       opacity: 0;
       position: absolute;
+    }
+
+    .m-selection-control--card {
+      align-items: center;
+      display: flex;
+      width: 100%;
+      height: 100%;
+      padding: 0;
+    }
+
+    .m-selection-control--card .m-selection-control__visual {
+      margin-top: 0;
     }
 
     .m-selection-control__visual {
@@ -196,6 +209,8 @@ let nextGeneratedId = 0;
 })
 export class SelectionControlComponent implements ControlValueAccessor {
   readonly label = input.required<string>();
+  readonly labelHidden = input(false);
+  readonly layout = input<'inline' | 'card'>('inline');
   readonly description = input<string>();
   readonly id = input<string>();
   readonly name = input<string>();

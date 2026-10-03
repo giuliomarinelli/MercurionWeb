@@ -2,6 +2,7 @@ import {
   AfterViewInit,
   Component,
   ChangeDetectionStrategy,
+  DestroyRef,
   ElementRef,
   OnDestroy,
   OnInit,
@@ -13,8 +14,9 @@ import {
   output,
   viewChild
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HistoryService } from '../../../services/history.service';
-import { catchError, debounce, distinctUntilChanged, EMPTY, filter, firstValueFrom, interval, Subscription } from 'rxjs';
+import { debounce, distinctUntilChanged, filter, firstValueFrom, interval, Subscription } from 'rxjs';
 import { HistoryDTOExt } from '../../../Models/history.models';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { HistoryItemComponent } from '../history-item/history-item.component';
@@ -66,8 +68,9 @@ import { routeManifest } from '../../../route-manifest';
     }
 
     @if (serverError()) {
-      <div class="flex justify-center pt-8 text-sm">
+      <div class="flex flex-col items-center gap-2 pt-8 text-sm">
         <p class="text-light-error dark:text-dark-error">Si è verificato un errore.</p>
+        <button type="button" class="underline" (click)="retry()">Riprova</button>
       </div>
     }
 
@@ -79,6 +82,7 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // ======================= DEPS =======================
   private readonly historyService = inject(HistoryService)
+  private readonly destroyRef = inject(DestroyRef)
   private readonly router = inject(Router)
   private readonly route = inject(ActivatedRoute)
   private readonly historyContext = inject(HistoryContextService)
@@ -239,6 +243,7 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnDestroy(): void {
+    this.loadGeneration++
     this.rSub?.unsubscribe();
     if (this.observer) this.observer.disconnect()
     clearTimeout(this.deleteTimeoutId)
@@ -263,6 +268,7 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private startObserver() {
+    if (this.destroyRef.destroyed) return;
     if (this.observer) this.observer.disconnect();
 
     this.observer = new IntersectionObserver(
@@ -284,6 +290,7 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private reloadHistory(): void {
+    if (this.destroyRef.destroyed) return
     this.loadGeneration++
     this.page = 1
     this.done = false
@@ -295,42 +302,48 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
 
   async loadMore() {
 
-    if (this.loading || this.done) return
+    if (this.destroyRef.destroyed || this.loading || this.done || this.serverError()) return
 
     this.loading = true
     const generation = this.loadGeneration
     const requestedPage = this.page
 
-    const newPage = await firstValueFrom(
-      this.historyService.getHistory(requestedPage, 25).pipe(
-        debounce(() => interval(80)),
-        distinctUntilChanged(),
-        catchError(() => {
-          this.serverError.set(true)
-          this.loading = false
-          return EMPTY
-        })
+    try {
+      const newPage = await firstValueFrom(
+        this.historyService.getHistory(requestedPage, 25).pipe(
+          debounce(() => interval(80)),
+          distinctUntilChanged(),
+          takeUntilDestroyed(this.destroyRef)
+        )
       )
-    )
 
-    if (generation !== this.loadGeneration) return
+      if (generation !== this.loadGeneration) return
 
-    if (!newPage || !newPage.items || newPage.items.length === 0) {
-      if (this.items().length === 0) {
-        this.emptyChange.emit(true)
+      if (!newPage || !newPage.items || newPage.items.length === 0) {
+        if (this.items().length === 0) {
+          this.emptyChange.emit(true)
+        }
+        this.done = true
+      } else {
+        this.emptyChange.emit(false)
+        this.items.update(items => [...items, ...newPage.items])
+        const selectedItemId = this.items().find((item) => item.itemId === this.selectedItemId())?.itemId ?? ''
+        if (selectedItemId) {
+          this.selectedItemId.set(selectedItemId)
+        }
+        this.page++
       }
-      this.done = true
-    } else {
-      this.emptyChange.emit(false)
-      this.items.update(items => [...items, ...newPage.items])
-      const selectedItemId = this.items().find((item) => item.itemId === this.selectedItemId())?.itemId ?? ''
-      if (selectedItemId) {
-        this.selectedItemId.set(selectedItemId)
-      }
-      this.page++
+
+    } catch {
+      if (generation === this.loadGeneration) this.serverError.set(true)
+    } finally {
+      if (generation === this.loadGeneration) this.loading = false
     }
+  }
 
-    this.loading = false
+  retry(): Promise<void> {
+    this.serverError.set(false)
+    return this.loadMore()
   }
 
   setItemAsSelected(itemId: string): void {

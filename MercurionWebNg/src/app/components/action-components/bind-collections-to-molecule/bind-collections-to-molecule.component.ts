@@ -3,6 +3,7 @@ import {
   AfterViewInit,
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   effect,
   computed,
   ElementRef,
@@ -29,6 +30,7 @@ import { ActionFooterComponent } from '../../common/action-footer/action-footer.
 import { ButtonComponent } from '../../common/button/button.component';
 import { CollectionPickerFacade } from '../collection-picker/collection-picker.facade';
 import { AbstractMultiselectItem } from '../../../Models/abstract.models';
+import { SelectionControlComponent } from '../../common/selection-control/selection-control.component';
 
 @Component({
   selector: 'm-bind-collections-to-molecule',
@@ -40,7 +42,8 @@ import { AbstractMultiselectItem } from '../../../Models/abstract.models';
     SkeletonCollectionCardComponent,
     ActionCardComponent,
     ActionFooterComponent,
-    ButtonComponent
+    ButtonComponent,
+    SelectionControlComponent
   ],
   styles: [
     `
@@ -122,16 +125,14 @@ import { AbstractMultiselectItem } from '../../../Models/abstract.models';
 
               <div class="pt-2 sm:pt-4">
                 @if (multiselectItems().length !== 0) {
-                  <div class="flex items-center gap-3 mb-6">
-                    <button
-                      type="button"
-                      class="block w-full select-none font-semibold ml-[2px] text-left"
-                      (click)="onSelectAllChange(!isSelectedAll())"
-                      aria-label="Seleziona tutte le collezioni"
-                    >
-                      {{ isSelectedAll() ? 'DESELEZIONA TUTTI' : 'SELEZIONA TUTTI' }}
-                    </button>
-                  </div>
+                  <m-selection-control
+                    class="block mb-6 font-semibold"
+                    label="SELEZIONA TUTTI"
+                    ariaLabel="Seleziona tutte le collezioni"
+                    [checked]="isSelectedAll()"
+                    [indeterminate]="isPartiallySelected()"
+                    (changed)="onSelectAllChange($event)"
+                  />
                 }
 
                 @for (row of multiselectItems(); track row.item.id; let i = $index) {
@@ -225,6 +226,8 @@ import { AbstractMultiselectItem } from '../../../Models/abstract.models';
 })
 export class BindCollectionsToMoleculeComponent implements OnInit, AfterViewInit, OnDestroy {
 
+  private readonly destroyRef = inject(DestroyRef);
+
   private readonly actionOverlayContext = inject(ActionOverlayContextService);
   private readonly bindContext = inject(BindCollectionsToMoleculeContextService);
   private readonly invalidation = inject(DomainInvalidationService);
@@ -260,12 +263,10 @@ export class BindCollectionsToMoleculeComponent implements OnInit, AfterViewInit
   readonly excludedIdSet = signal<Set<string>>(new Set());
   readonly bulkIntent = signal<'none' | 'all' | 'unselect'>('none');
   readonly selectionSnapshotAt = signal<string | null>(null);
-  readonly isSelectedAll = computed(() => this.bulkIntent() === 'all');
+  readonly isSelectedAll = computed(() => this.bulkIntent() === 'all' && this.excludedIdSet().size === 0);
   readonly isSelectedNothing = computed(() => this.bulkIntent() !== 'all' && this.selectedIdSet().size === 0);
   readonly isPartiallySelected = computed(() => {
-    const visible = this.multiselectItems();
-    const checked = visible.filter(item => item.isChecked()).length;
-    return checked > 0 && checked < visible.length;
+    return this.bulkIntent() === 'all' ? this.excludedIdSet().size > 0 : this.selectedIdSet().size > 0;
   });
   get items(): UiMoleculeCollection[] { return this.pagination.items() }
   get loading(): boolean { return this.pagination.loading() }
@@ -300,13 +301,22 @@ export class BindCollectionsToMoleculeComponent implements OnInit, AfterViewInit
 
   loadMore(): Promise<void> {
     return this.pagination.loadMore().then(() => {
-      const existing = new Map(this.multiselectItems().map(row => [row.item.id, row]));
-      const rows = this.items.map(item => existing.get(item.id) ?? {
-        item,
-        isChecked: signal(this.isSelectedAll() ? !this.excludedIdSet().has(item.id) : this.selectedIdSet().has(item.id))
-      });
-      this.multiselectItems.set(rows);
+      if (this.destroyRef.destroyed) return;
+      this.loadRows();
     });
+  }
+  private readonly syncLoadedRows = effect(() => {
+    this.pagination.items();
+    queueMicrotask(() => {
+      if (!this.destroyRef.destroyed) this.loadRows();
+    });
+  });
+  private loadRows(): void {
+    const existing = new Map(this.multiselectItems().map(row => [row.item.id, row]));
+    this.multiselectItems.set(this.items.map(item => existing.get(item.id) ?? {
+      item,
+      isChecked: signal(this.bulkIntent() === 'all' ? !this.excludedIdSet().has(item.id) : this.selectedIdSet().has(item.id))
+    }));
   }
   retryPagination(): void { this.pagination.retry(); }
   resetPagination(): void { this.pagination.reset(); this.multiselectItems.set([]); }
@@ -314,11 +324,12 @@ export class BindCollectionsToMoleculeComponent implements OnInit, AfterViewInit
   doClear(): void { this.pagination.clear(); this.multiselectItems.set([]); }
   paginationState() { return this.pagination.paginationState(); }
   private startObserver(): void {
+    if (this.destroyRef.destroyed || this.step() !== 1) return;
     const sentinel = this.sentinel()?.nativeElement;
     if (!sentinel) return;
     this.observer?.disconnect();
     this.observer = new IntersectionObserver(entries => {
-      if (entries[0]?.isIntersecting) void this.loadMore();
+      if (entries[0]?.isIntersecting && this.step() === 1) void this.loadMore();
     }, { root: this.root()?.nativeElement ?? null, rootMargin: '0px 0px 500px 0px' });
     this.observer.observe(sentinel);
   }
@@ -363,10 +374,9 @@ export class BindCollectionsToMoleculeComponent implements OnInit, AfterViewInit
       }
       this.step_12_loading.set(true);
       let collectionIds: string[] = [];
-      if (this.isSelectedAll()) {
-        collectionIds = this.multiselectItems()
-          .filter(w => !w.isChecked())
-          .map(w => w.item.id);
+      const selectAll = this.bulkIntent() === 'all';
+      if (selectAll) {
+        collectionIds = Array.from(this.excludedIdSet());
       } else {
         collectionIds = Array.from(this.selectedIdSet());
       }
@@ -374,7 +384,7 @@ export class BindCollectionsToMoleculeComponent implements OnInit, AfterViewInit
         .bindManyCollectionsToMolecule(
           moleculeId,
           collectionIds,
-          this.isSelectedAll(),
+          selectAll,
           this.selectionSnapshotAt()
         )
         .subscribe({

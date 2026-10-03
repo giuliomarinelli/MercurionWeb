@@ -3,7 +3,8 @@ import {
   effect,
   inject,
   Injectable,
-  signal
+  signal,
+  untracked
 } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import {
@@ -83,12 +84,20 @@ export class InAppNotificationService {
         ? `${session.userId}:${session.sessionId}`
         : null
 
-      this.syncOwner(owner)
+      untracked(() => this.syncOwner(owner))
     })
 
     effect(() => {
       const state = this.realtime.state()
-      this.handleRealtimeState(state)
+      // Advancing the recovery cursor must not request another recovery.
+      untracked(() => this.handleRealtimeState(state))
+    })
+
+    this.destroyRef.onDestroy(() => {
+      this.generation++
+      this.activeOwner = null
+      this.recoveryRequested = false
+      this.stopPolling()
     })
   }
 
@@ -237,12 +246,14 @@ export class InAppNotificationService {
     const task = this.runSync(generation)
     this.syncInFlight = task
 
-    void task.finally(() => {
+    void task.then(success => {
       if (this.syncInFlight === task) {
         this.syncInFlight = null
       }
 
       if (
+        // Failures are retried by polling, not by an immediate promise chain.
+        success &&
         this.isCurrentGeneration(generation) &&
         this.recoveryRequested
       ) {
@@ -275,7 +286,7 @@ export class InAppNotificationService {
     this._syncState.set('baselining')
 
     try {
-      const response = await firstValueFrom(this.api.recover())
+      const response = await firstValueFrom(this.api.recover().pipe(takeUntilDestroyed(this.destroyRef)))
       if (!this.isCurrentGeneration(generation)) return false
 
       this.applyRecoveryMetadata(response)
@@ -309,7 +320,7 @@ export class InAppNotificationService {
     try {
       for (;;) {
         const response = await firstValueFrom(
-          this.api.recover(cursor)
+          this.api.recover(cursor).pipe(takeUntilDestroyed(this.destroyRef))
         )
         if (!this.isCurrentGeneration(generation)) return false
 

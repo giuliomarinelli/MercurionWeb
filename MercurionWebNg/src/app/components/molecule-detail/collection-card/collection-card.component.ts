@@ -38,16 +38,19 @@ import { CollectionCardViewModel } from './collection-card.models';
     @if (_collection()) {
       <article
         class="relative isolate group focus-within:outline-none transition-transform duration-200 hover:-translate-y-0.5 max-h-fit"
-        [class.cursor-pointer]="!_isReadonly() && !_selectable()"
-        [class.cursor-default]="_isReadonly() || _selectable()"
+        [class.cursor-pointer]="_selectable() ? !selectionDisabled() : !_isReadonly()"
+        [class.cursor-default]="_selectable() ? selectionDisabled() : _isReadonly()"
+        [class.mb-3]="_selectable()"
         [attr.aria-live]="!_isReadonly() ? 'polite' : 'off'"
         [class.disappear-card]="_triggerDisappear()"
         (click)="openCard($event)"
       >
-        <div class="flex items-start gap-3 w-full" [class.grid]="selectable()" [class.grid-cols-[28px_1fr]]="selectable()">
+        <div class="w-full" [ngClass]="{ 'grid grid-cols-[1.25rem_minmax(0,1fr)] gap-4 items-center': _selectable() }">
           @if (_selectable()) {
             <m-selection-control
-              class="pt-5"
+              class="absolute inset-0 z-20"
+              layout="card"
+              [labelHidden]="true"
               [label]="'Seleziona collezione ' + _collection()?.name"
               [checked]="selected()"
               [disabled]="selectionDisabled()"
@@ -56,7 +59,7 @@ import { CollectionCardViewModel } from './collection-card.models';
             />
           }
 
-          <div class="min-w-0 w-full">
+          <div class="min-w-0 w-full" [class.col-start-2]="_selectable()">
             <div
               class="
                 relative z-10
@@ -65,11 +68,14 @@ import { CollectionCardViewModel } from './collection-card.models';
                 bg-slate-100 dark:bg-slate-800/50 backdrop-blur-sm
                 border-slate-200/70 dark:border-slate-700/60
                 transition-all duration-200
-                hover:shadow-md
-                hover:border-indigo-300/50 dark:hover:border-indigo-400/30
-                focus-within:ring-2 focus-within:ring-indigo-500/70
+                group-hover:shadow-md
+                group-hover:border-indigo-300/50 dark:group-hover:border-indigo-400/30
+                group-focus-within:ring-2 group-focus-within:ring-indigo-500/70
               "
               [ngClass]="{ 'bg-slate-100/45 dark:bg-slate-800/40': _i() % 2 !== 0 }"
+              [class.rounded-2xl]="_selectable()"
+              [class.ring-2]="_selectable() && selected()"
+              [class.ring-indigo-500]="_selectable() && selected()"
             >
               <div class="md:col-span-8 flex items-start gap-3 min-w-0">
                 <div
@@ -129,7 +135,7 @@ import { CollectionCardViewModel } from './collection-card.models';
                   </span>
                 </div>
 
-                @if (!_isReadonly() && !_hideActionButtons()) {
+                @if (!_isReadonly() && !_selectable() && !_hideActionButtons()) {
                   <div class="flex flex-wrap items-center gap-2 sm:gap-3 justify-start sm:justify-end w-full sm:w-auto">
                     <button type="button" class="relative z-20 p-1 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-150" title="Duplica collezione" (click)="onActionClick($event); doDuplicateCollection()" aria-label="Duplica collezione {{ _collection()?.name }}">
                       <svg class="size-4 text-slate-600 dark:text-slate-300" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">

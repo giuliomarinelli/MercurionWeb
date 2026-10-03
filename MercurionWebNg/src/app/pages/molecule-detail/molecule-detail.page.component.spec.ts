@@ -13,17 +13,22 @@ describe('MoleculeDetailComponent', () => {
   let component: MoleculeDetailPageComponent;
   let fixture: ComponentFixture<MoleculeDetailPageComponent>;
   let similar: WritableSignal<MoleculeSearchResult[]>;
+  let currentId: WritableSignal<string>;
+  let loading: WritableSignal<boolean>;
 
   beforeEach(async () => {
     similar = signal<MoleculeSearchResult[]>([]);
+    currentId = signal('first-molecule');
+    loading = signal(false);
     const facade = {
       molecule$: of(null),
-      loading: signal(false),
+      loading,
       error: signal(false),
       similar,
+      similarLoading: signal(false),
       collectionId: signal(''),
       collectionName: signal(null),
-      currentId: signal(''),
+      currentId,
       save: jasmine.createSpy('save'),
       delete: jasmine.createSpy('delete'),
       bindCollections: jasmine.createSpy('bindCollections')
@@ -58,6 +63,7 @@ describe('MoleculeDetailComponent', () => {
 
     fixture = TestBed.createComponent(MoleculeDetailPageComponent);
     component = fixture.componentInstance;
+    fixture.detectChanges();
   });
 
   it('should create', () => {
@@ -76,5 +82,26 @@ describe('MoleculeDetailComponent', () => {
 
     expect(component.similarMols()).toEqual([known, unknown]);
     expect(similar()).toEqual([known, unknown]);
+  });
+
+  it('resets the filter on a new molecule while preserving the choice during the current fetch', () => {
+    component.onlyKnown.setValue(false);
+    fixture.detectChanges();
+    expect(component.onlyKnownSig()).toBeFalse();
+
+    loading.set(true);
+    fixture.detectChanges();
+    loading.set(false);
+    fixture.detectChanges();
+    expect(component.onlyKnownSig()).toBeFalse();
+
+    currentId.set('second-molecule');
+    fixture.detectChanges();
+    expect(component.onlyKnown.value).toBeTrue();
+    expect(component.onlyKnownSig()).toBeTrue();
+
+    component.onlyKnown.setValue(false);
+    fixture.detectChanges();
+    expect(component.onlyKnownSig()).toBeFalse();
   });
 });

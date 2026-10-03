@@ -76,8 +76,7 @@ describe('CollectionSaveOverlayComponent', () => {
     await new Promise(resolve => setTimeout(resolve, 20));
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('[role="status"]')?.textContent)
-      .toContain('Caricamento azione');
+    expect(fixture.nativeElement.querySelector('m-progress-indicator')).not.toBeNull();
 
     rejectLoad(new Error('load failed'));
     await fixture.whenStable();
@@ -85,5 +84,40 @@ describe('CollectionSaveOverlayComponent', () => {
 
     expect(fixture.nativeElement.querySelector('[role="alert"]')?.textContent)
       .toContain('Impossibile caricare questa azione');
+  });
+
+  it('keeps the mounted action when only the session phase changes', async () => {
+    const load = spyOn(ACTION_REGISTRY.CreateCollection, 'load').and.resolveTo(TestActionComponent);
+    const session = context.open('CreateCollection');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const action = fixture.nativeElement.querySelector('m-test-action');
+    context.beginSubmit(session);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('m-test-action')).toBe(action);
+    expect(load).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the previous action visible until the next action finishes loading', async () => {
+    spyOn(ACTION_REGISTRY.CreateCollection, 'load').and.resolveTo(TestActionComponent);
+    context.open('CreateCollection');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    let resolveLoad!: (component: typeof TestActionComponent) => void;
+    spyOn(ACTION_REGISTRY.SelectCollectionThenRoute, 'load').and.returnValue(new Promise(resolve => {
+      resolveLoad = resolve;
+    }));
+    context.switchToScope('SelectCollectionThenRoute', { importFromChembl: false });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('m-test-action')).not.toBeNull();
+    expect(fixture.nativeElement.textContent).not.toContain('Caricamento azione');
+    resolveLoad(TestActionComponent);
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelectorAll('m-test-action').length).toBe(1);
   });
 });

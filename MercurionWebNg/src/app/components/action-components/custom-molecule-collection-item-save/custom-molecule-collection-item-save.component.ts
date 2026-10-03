@@ -53,6 +53,7 @@ import { CollectionPickerFacade } from '../collection-picker/collection-picker.f
             [displayFn]="displayCollection"
             [valueFn]="valueCollection"
             [hasMore]="hasMore()"
+            [loading]="loading()"
             [canCreateNew]="true"
             [searchPlaceholder]="'Cerca collezione...'"
             [selected]="saveCtx.selectedCollectionId()"

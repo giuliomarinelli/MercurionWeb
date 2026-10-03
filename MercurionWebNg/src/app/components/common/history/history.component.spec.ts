@@ -1,6 +1,10 @@
 import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 
 import { HistoryComponent } from './history.component';
+import { HistoryService } from '../../../services/history.service';
+import { of, Subject, throwError } from 'rxjs';
+import type { HistoryDTOExt } from '../../../Models/history.models';
+import type { PageModel } from '@mercurion/rest-contracts';
 
 describe('HistoryComponent', () => {
   let component: HistoryComponent;
@@ -61,4 +65,43 @@ describe('HistoryComponent', () => {
     tick(300);
     expect(itemsSetSpy).toHaveBeenCalledTimes(1);
   }));
+});
+
+describe('HistoryComponent request lifecycle', () => {
+  let fixture: ComponentFixture<HistoryComponent>;
+  let getHistory: jasmine.Spy;
+
+  beforeEach(() => {
+    getHistory = jasmine.createSpy('getHistory');
+    TestBed.configureTestingModule({
+      imports: [HistoryComponent],
+      providers: [{ provide: HistoryService, useValue: { getHistory } }]
+    });
+    fixture = TestBed.createComponent(HistoryComponent);
+  });
+
+  it('settles a failed request and blocks automatic retries from the sentinel', async () => {
+    getHistory.and.returnValue(throwError(() => new Error('offline')));
+    await expectAsync(fixture.componentInstance.loadMore()).toBeResolved();
+    expect(fixture.componentInstance.serverError()).toBeTrue();
+    expect(fixture.componentInstance.loading).toBeFalse();
+    await fixture.componentInstance.loadMore();
+    expect(getHistory).toHaveBeenCalledTimes(1);
+    getHistory.and.returnValue(of({ items: [], currentPage: 1, totalPages: 0 }));
+    await fixture.componentInstance.retry();
+    expect(getHistory).toHaveBeenCalledTimes(2);
+    expect(fixture.componentInstance.serverError()).toBeFalse();
+  });
+
+  it('cancels history loading and refuses a queued load after destruction', async () => {
+    const response = new Subject<PageModel<HistoryDTOExt>>();
+    getHistory.and.returnValue(response);
+    const pending = fixture.componentInstance.loadMore();
+    expect(response.observed).toBeTrue();
+    fixture.destroy();
+    await pending;
+    await fixture.componentInstance.loadMore();
+    expect(response.observed).toBeFalse();
+    expect(getHistory).toHaveBeenCalledTimes(1);
+  });
 });

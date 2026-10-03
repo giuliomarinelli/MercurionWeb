@@ -1,7 +1,7 @@
 import { CustomDetailSaveModel } from '../../Models/custom-detail-save.model'
 import { toSignal } from '@angular/core/rxjs-interop'
 import { SimilarsComponent } from '../../components/molecule-detail/similars/similars.component'
-import { Component, computed, effect, inject, Signal, signal, ChangeDetectionStrategy } from '@angular/core'
+import { Component, computed, effect, inject, Signal, signal, ChangeDetectionStrategy, untracked } from '@angular/core'
 import type { Observable } from 'rxjs'
 import { AsyncPipe } from '@angular/common'
 import { MoleculeHeaderComponent } from '../../components/molecule-detail/molecule-header/molecule-header.component'
@@ -65,8 +65,6 @@ import { CopyButtonComponent } from '../../components/common/copy-button/copy-bu
           }
         }
 
-
-
         @if (typeGuards.isSystemMolecule(molecule)) {
           <m-molecule-header [nameInput]="molecule.preferredNameIt ?? molecule.preferredName ?? ''" [chemblIdInput]="molecule.cmbId"
             [molId]="molecule.id.toString()" [isSystemMolecule]="true" [smiles]="molecule.canonicalSmiles ?? ''" [isLoggedIn]="userContext.isLoggedIn()"
@@ -82,8 +80,27 @@ import { CopyButtonComponent } from '../../components/common/copy-button/copy-bu
             [isLoggedIn]="userContext.isLoggedIn()" (onDelete)="doDelete($event)"
             (onAddToCollection)="doAddToManyCollections()" />
         }
-        <section class="relative -top-4">
-           <p class="flex gap-4 items-center font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary mt-6 mb-4 text-center sm:text-left text-xl">
+        <section>
+           <p class="flex gap-4 items-center font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary mt-6 my-4 text-center sm:text-left text-xl">
+            <span class="shrink-0">Canonical smiles</span>
+            <span class="shrink-0 text-sm text-neutral-950 dark:text-slate-200 font-mono pl-3">
+              @if (typeGuards.isSystemMolecule(molecule)) {
+                {{ molecule.canonicalSmiles }}
+              } @else if (typeGuards.isChemblMolecule(molecule)) {
+                {{ molecule.chemblDetails.canonicalSmiles }}
+              } @else if (typeGuards.isCustomMolecule(molecule)) {
+                {{ molecule.canonicalSmiles }}
+              }
+            </span>
+            @if (typeGuards.isSystemMolecule(molecule)) {
+              <m-copy-button [src]="molecule.canonicalSmiles ?? ''" />
+            } @else if (typeGuards.isChemblMolecule(molecule)) {
+              <m-copy-button [src]="molecule.chemblDetails.canonicalSmiles ?? ''" />
+            } @else if (typeGuards.isCustomMolecule(molecule)) {
+              <m-copy-button [src]="molecule.canonicalSmiles" />
+            }
+          </p>
+          <p class="flex gap-4 items-center font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary mt-6 my-4 text-center sm:text-left text-xl">
             <span class="shrink-0">Canonical smiles</span>
             <span class="shrink-0 text-sm text-neutral-950 dark:text-slate-200 font-mono pl-3">
               @if (typeGuards.isSystemMolecule(molecule)) {
@@ -193,7 +210,7 @@ import { CopyButtonComponent } from '../../components/common/copy-button/copy-bu
 
 
           <section class="rounded-md border border-slate-300 dark:border-slate-600 relative bottom-4">
-            <m-similars [molecules]="similarMols()" [onlyKnown]="onlyKnownSig()" />
+            <m-similars [molecules]="similarMols()" [onlyKnown]="onlyKnownSig()" [loading]="similarLoading()" />
           </section>
           }
 
@@ -241,6 +258,7 @@ export class MoleculeDetailPageComponent {
     return this.onlyKnownSig() ? similar.filter(mol => mol.known) : similar
   })
   fetchMolLoading = this.facade.loading
+  similarLoading = this.facade.similarLoading
   collectionId = this.facade.collectionId
   protected molId = this.facade.currentId
   protected breadcrumb: LinkModel[] = [
@@ -258,6 +276,12 @@ export class MoleculeDetailPageComponent {
   )
 
   constructor() {
+    effect(() => {
+      this.facade.currentId()
+      untracked(() => {
+        this.onlyKnown.reset(true)
+      })
+    })
     effect(() => {
       const collectionId = this.facade.collectionId()
       const collectionName = this.facade.collectionName()

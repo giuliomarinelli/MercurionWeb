@@ -66,8 +66,8 @@ import { CollectionPickerFacade } from '../collection-picker/collection-picker.f
         }
     </div>
     <!-- BODY -->
-    <div action-card-body class="bg-light-surface-secondary dark:bg-dark-surface-secondary">
-      <div class="flex flex-col gap-6 min-h-[50dvh]">
+    <div action-card-body class="bg-light-surface-secondary dark:bg-dark-surface-secondary min-h-76.5">
+      <div class="flex flex-col gap-6">
         <p
           class="mt-8 mb-2 px-2 sm:px-4 flex items-center gap-3 text-sm
                  text-light-on-surface-secondary dark:text-dark-on-surface-secondary"
@@ -85,12 +85,13 @@ import { CollectionPickerFacade } from '../collection-picker/collection-picker.f
           </span>
         </p>
 
-        <div class="w-full max-w-3xl mx-auto px-2">
+        <div class="w-full max-w-3xl mx-auto px-2 pb-8">
           <m-select-core
             [items]="collections()"
             [displayFn]="displayCollection"
             [valueFn]="valueCollection"
             [hasMore]="hasMore()"
+            [loading]="loadingCombo()"
             [canCreateNew]="true"
             [searchPlaceholder]="'Cerca collezione...'"
             [selected]="selectedCollectionId()"

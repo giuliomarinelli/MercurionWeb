@@ -1,7 +1,7 @@
 import { DestroyRef, Injectable, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Observable, EMPTY, Subject, combineLatest, defer, of, throwError } from 'rxjs';
+import { Observable, EMPTY, Subject, Subscription, combineLatest, defer, of, throwError } from 'rxjs';
 import { catchError, distinctUntilChanged, filter, map, mergeMap, shareReplay, startWith, switchMap, tap } from 'rxjs/operators';
 import { MoleculeService } from '../../services/graphql/molecule.service';
 import { MoleculeCollectionItemService } from '../../services/graphql/molecule-collection-item.service';
@@ -24,6 +24,7 @@ import { ToastService } from '../../services/toast.service';
 import { LoggerService } from '../../services/logger.service';
 import { CustomDetailSaveModel } from '../../Models/custom-detail-save.model';
 import { ApplicationErrorCode, hasApplicationErrorCode } from '../../utils/application-error.util';
+import { PcpApiService } from '../../services/pcp-api.service';
 
 export type MoleculeDetailViewModel = Readonly<{
   item: MoleculeDetailItem;
@@ -98,6 +99,7 @@ export class MoleculeDetailFacade {
   private readonly typeGuards = inject(TypeGuardsService);
   private readonly userContext = inject(UserContextService);
   private readonly ai = inject(MercurionAiService);
+  private readonly pcp = inject(PcpApiService);
   private readonly embedding = inject(EmbeddingService);
   private readonly title = inject(AppTitleService);
   private readonly persistence = inject(AuthSessionPersistenceService);
@@ -114,6 +116,7 @@ export class MoleculeDetailFacade {
   private currentType: 'system' | 'chembl' | 'custom' | undefined;
   private touchedId = '';
   private readonly refresh$ = new Subject<void>();
+  private similarSubscription?: Subscription;
 
   readonly loading = signal(true);
   readonly error = signal(false);
@@ -122,19 +125,24 @@ export class MoleculeDetailFacade {
   readonly collectionId = signal('');
   readonly collectionName = signal<string | null>(null);
 
+  readonly iupacName = signal<string>('')
+
   readonly molecule$: Observable<MoleculeDetailItem | null> = combineLatest([
     this.route.paramMap,
     this.refresh$.pipe(startWith(undefined))
   ]).pipe(
     map(([params]) => params.get('molId')),
     tap(id => {
-      this.currentId.set(id ?? '');
-      this.loading.set(true);
-      this.error.set(false);
+      this.currentId.set(id ?? '')
+      this.similarSubscription?.unsubscribe()
+      this.similar.set([])
+      this.similarLoading.set(true)
+      this.loading.set(true)
+      this.error.set(false)
     }),
     filter((id): id is string => !!id),
     switchMap((id): Observable<MoleculeDetailItem | null> => this.resolveDetail(id)),
-    tap(item => {
+    tap((item) => {
       if (!item) return;
       this.currentType = item.type;
       this.loadSimilar(item);
@@ -142,18 +150,25 @@ export class MoleculeDetailFacade {
     }),
     switchMap((item): Observable<MoleculeDetailItem | null> => item ? this.withInference(item) : of(null)),
     tap(item => {
-      this.loading.set(false);
-      if (!item) this.error.set(true);
+      this.loading.set(false)
+      if (!item) this.error.set(true)
     }),
-    catchError((error) => {
-      this.error.set(true);
-      this.loading.set(false);
-      return of(null);
+    catchError(() => {
+      this.error.set(true)
+      this.loading.set(false)
+      this.similarLoading.set(false)
+      return of(null)
     }),
-    map(item => item as MoleculeDetailItem | null),
+    map((item) => item as MoleculeDetailItem | null),
     takeUntilDestroyed(),
-    shareReplay({ bufferSize: 1, refCount: true })
-  ) as Observable<MoleculeDetailItem | null>;
+    // switchMap((item: MoleculeDetailItem | null) => {
+    //   if (!item) {
+    //     return of(null)
+    //   }
+    //   if (this.typeGuards.is)
+    // }),
+    shareReplay({ bufferSize: 1, refCount: true }),
+  ) as Observable<MoleculeDetailItem | null>
 
   constructor() {
     this.route.queryParamMap.pipe(
@@ -165,7 +180,7 @@ export class MoleculeDetailFacade {
       }),
       filter(id => !!id && this.userContext.isLoggedIn()),
       switchMap(id => this.collectionService.getCollectionById(id)),
-      takeUntilDestroyed()
+      takeUntilDestroyed(),
     ).subscribe(collection => this.collectionName.set(collection?.name ?? null));
 
     effect(() => {
@@ -251,6 +266,7 @@ export class MoleculeDetailFacade {
   }
 
   private loadSimilar(item: MoleculeDetailItem): void {
+    this.similarSubscription?.unsubscribe();
     this.similarLoading.set(true);
     const vm = this.toViewModel(item);
     const molregno = vm.kind === 'system'
@@ -263,7 +279,7 @@ export class MoleculeDetailFacade {
       this.similarLoading.set(false);
       return;
     }
-    this.embedding.getSimilarMolregnos(molregno, 65).pipe(
+    this.similarSubscription = this.embedding.getSimilarMolregnos(molregno, 65).pipe(
       switchMap(results => this.moleculeService.getMoleculePreviewsByMolregnos(
         results.map(result => typeof result === 'number' ? String(result) : String(result.molregno))
       )),

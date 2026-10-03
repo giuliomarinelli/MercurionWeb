@@ -55,7 +55,8 @@ export class MoleculeRoutesComponent {
   readonly adminRoutes = this.routeSignal.asReadonly()
 
   protected noItem = computed(() => {
-    return Object.values(this.adminRoutes()).every(r => !r)
+    const { oral, parenteral, topical } = this.adminRoutes()
+    return !oral && !parenteral && !topical
   })
 
 }

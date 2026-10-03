@@ -1,6 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { signal } from '@angular/core';
+import { Subject } from 'rxjs';
+import { MoleculeCollectionItemService } from '../../../services/graphql/molecule-collection-item.service';
 
 import { SearchOverlayComponent } from './search-overlay.component';
 import { SearchContextService } from '../../../services/context/search-context.service';
@@ -91,5 +93,27 @@ describe('SearchOverlayComponent', () => {
     card.componentInstance.navigate.emit();
 
     expect(search.isOpenedSearchOverlay()).toBeFalse();
+  });
+
+  it('does not rearm pagination after an error or a radio change', async () => {
+    const search = TestBed.inject(SearchContextService);
+    const request = new Subject<any>();
+    const fetch = spyOn(TestBed.inject(MoleculeCollectionItemService), 'getAllPaginatedItems').and.returnValue(request);
+    search.open();
+    fixture.detectChanges();
+    const observe = spyOn(component['observer']!, 'observe').and.callThrough();
+    component.handleViewClick('my');
+    fixture.detectChanges();
+    expect(fetch).toHaveBeenCalledTimes(1);
+    request.error(new Error('Request failed'));
+    await Promise.resolve();
+    fixture.detectChanges();
+    expect(observe).not.toHaveBeenCalled();
+    expect(fetch).toHaveBeenCalledTimes(1);
+
+    component.handleViewClick('chembl');
+    fixture.detectChanges();
+    expect(component['_viewMode']()).toBe('chembl');
+    expect(observe).not.toHaveBeenCalled();
   });
 });

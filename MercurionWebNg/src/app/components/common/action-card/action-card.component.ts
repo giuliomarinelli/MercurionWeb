@@ -6,6 +6,7 @@ import {
   output,
 } from '@angular/core';
 import { IconButtonComponent } from '../icon-button/icon-button.component';
+import { SmoothResizeDirective } from '../smooth-resize/smooth-resize.directive';
 
 export type ActionCardSize = 'compact' | 'standard' | 'wide' | 'full';
 
@@ -19,11 +20,14 @@ const SIZE_CLASSES: Record<ActionCardSize, string> = {
 @Component({
   selector: 'm-action-card',
   standalone: true,
-  imports: [IconButtonComponent],
+  imports: [IconButtonComponent, SmoothResizeDirective],
+  host: { '[class]': 'classes()' },
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section
       class="m-action-card"
+      mSmoothResize="both"
+      resizeKey="action-card"
       [class]="classes()"
       [attr.aria-labelledby]="labelledBy() || null"
       [attr.aria-busy]="busy() ? 'true' : null"
@@ -58,6 +62,7 @@ const SIZE_CLASSES: Record<ActionCardSize, string> = {
     :host {
       display: block;
       min-width: 0;
+      width: 100%;
     }
 
     .m-action-card {
@@ -67,25 +72,26 @@ const SIZE_CLASSES: Record<ActionCardSize, string> = {
       color: var(--m-action-card-color, var(--m-color-on-surface-main));
       display: flex;
       flex-direction: column;
+      height: var(--m-action-card-height, auto);
       max-height: var(--m-action-card-available-height, calc(100dvh - 2rem));
       min-height: 0;
       overflow: hidden;
       width: 100%;
     }
 
-    .m-action-card--compact {
+    :host(.m-action-card--compact) {
       max-width: 32rem;
     }
 
-    .m-action-card--standard {
+    :host(.m-action-card--standard) {
       max-width: 42rem;
     }
 
-    .m-action-card--wide {
+    :host(.m-action-card--wide) {
       max-width: 64rem;
     }
 
-    .m-action-card--full {
+    :host(.m-action-card--full) {
       max-width: 80rem;
     }
 
@@ -135,6 +141,7 @@ const SIZE_CLASSES: Record<ActionCardSize, string> = {
       background: color-mix(in srgb, var(--m-color-surface-elevated) 96%, transparent);
       border-bottom-color: var(--m-color-border);
     }
+
   `,
 })
 export class ActionCardComponent {

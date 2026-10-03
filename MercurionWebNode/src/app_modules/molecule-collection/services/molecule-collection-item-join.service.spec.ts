@@ -89,4 +89,20 @@ describe('MoleculeCollectionItemJoinService', () => {
     await expect(plan(manager, userId, [], true)).rejects.toThrow('BULK_SELECTION_SNAPSHOT_REQUIRED');
     await expect(plan(manager, userId, [], true, '1700000000000')).rejects.toBeInstanceOf(BulkJoinLimitExceededError);
   });
+
+  it('selects collections from the full owned snapshot, including IDs absent from the client page', async () => {
+    const ids = Array.from({ length: 40 }, (_, index) =>
+      `00000000-0000-7000-8000-${String(index + 1).padStart(12, '0')}` as UUID);
+    const manager = { find: jest.fn().mockResolvedValue(ids.map(id => ({ id }))) };
+    const plan = (service as unknown as {
+      planCollectionCandidates(manager: unknown, userId: UUID, ids: UUID[], selectAll: boolean, snapshotAt?: string): Promise<{ candidateIds: UUID[] }>
+    }).planCollectionCandidates.bind(service);
+    const userId = '00000000-0000-7000-8000-000000000099' as UUID;
+
+    const result = await plan(manager, userId, [ids[0]], true, '1700000000000');
+
+    expect(result.candidateIds).toEqual(ids.slice(1));
+    expect(result.candidateIds).toContain(ids[39]);
+    expect(manager.find.mock.calls[0][1].where.userId).toBe(userId);
+  });
 });

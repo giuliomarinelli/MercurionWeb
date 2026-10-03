@@ -1,4 +1,4 @@
-import { ElementRef, Injectable, OnDestroy, effect, inject, signal } from '@angular/core'
+import { ElementRef, Injectable, OnDestroy, effect, inject, signal, untracked } from '@angular/core'
 import { Event as RouterEvent, NavigationCancel, NavigationEnd, NavigationError, NavigationStart, Router } from '@angular/router'
 import { Subscription } from 'rxjs'
 import { AuthStateStore } from './auth-state.store'
@@ -42,7 +42,8 @@ export class AppShellFacade implements OnDestroy {
 
     effect(() => {
       const tick = this.sessionSync.handshakeTick()
-      if (tick !== 0) void this.sessionSync.checkSession(true)
+      // The handshake reads and updates session state; only its request tick is a trigger.
+      if (tick !== 0) untracked(() => void this.sessionSync.checkSession(true))
     })
 
     this.currentPath.set(this.normalize(this.router.url))

@@ -1,10 +1,11 @@
-import { DestroyRef, Injectable, computed, effect, inject, signal } from '@angular/core';
+import { DestroyRef, Injectable, computed, effect, inject, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs';
 import { ThemeManagerService } from '../../../services/context/theme-manager.service';
 import { UserContextService } from '../../../services/context/user-context.service';
 import { AccountService } from '../../../services/account.service';
+import { AuthStateStore } from '../../../services/auth-state.store';
 import { routeManifest } from '../../../route-manifest';
 import { HeaderViewModel } from './header.models';
 import { ProvidedAccountIdDTO } from '@mercurion/rest-contracts';
@@ -21,6 +22,11 @@ export class HeaderFacade {
   private readonly themeManager = inject(ThemeManagerService);
   private readonly userContext = inject(UserContextService);
   private readonly accountService = inject(AccountService);
+  private readonly authState = inject(AuthStateStore);
+  private readonly accountOwner = computed(() => {
+    const session = this.authState.clientSession();
+    return session ? `${session.userId}:${session.sessionId}` : null;
+  });
   private readonly path = signal(this.router.url);
   private readonly email = signal<ProvidedAccountIdDTO | null>(null);
 
@@ -49,11 +55,12 @@ export class HeaderFacade {
     ).subscribe(event => {
       this.path.set((event as NavigationEnd).urlAfterRedirects);
     });
-    effect(() => {
+    effect(onCleanup => {
+      this.accountOwner();
       if (this.userContext.isLoggedIn()) {
-        this.accountService.getProvidedAccountId()
-          .pipe(takeUntilDestroyed(this.destroyRef))
-          .subscribe(value => this.email.set(value))
+        const request = untracked(() => this.accountService.getProvidedAccountId()
+          .subscribe(value => this.email.set(value)));
+        onCleanup(() => request.unsubscribe());
       } else {
         this.email.set(null);
       }

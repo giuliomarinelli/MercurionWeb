@@ -13,7 +13,7 @@ describe('AddMoleculesSelectionController', () => {
     selection.toggle('molecule-b', true);
 
     expect(selection.isSelected('molecule-a')).toBeTrue();
-    expect(selection.buildExistingMoleculePayload(['molecule-b', 'molecule-c'])).toEqual({
+    expect(selection.buildExistingMoleculePayload()).toEqual({
       itemIds: ['molecule-a', 'molecule-b'],
       selectAll: false,
       snapshotAt: null
@@ -39,11 +39,28 @@ describe('AddMoleculesSelectionController', () => {
     selection.selectAll();
     selection.toggle('molecule-b', false);
 
-    expect(selection.buildExistingMoleculePayload(['molecule-a', 'molecule-b'])).toEqual({
+    expect(selection.buildExistingMoleculePayload()).toEqual({
       itemIds: ['molecule-b'],
       selectAll: true,
       snapshotAt: jasmine.any(String) as unknown as string
     });
+  });
+
+  it('selects future pages and preserves exclusions after the visible datasource changes', () => {
+    const selection = new AddMoleculesSelectionController();
+    selection.selectAll();
+    expect(selection.isSelected('not-loaded-yet')).toBeTrue();
+    expect(selection.isPartiallySelected()).toBeFalse();
+    selection.toggle('no-longer-visible', false);
+
+    expect(selection.isSelected('another-page')).toBeTrue();
+    expect(selection.isSelected('no-longer-visible')).toBeFalse();
+    expect(selection.isPartiallySelected()).toBeTrue();
+    expect(selection.buildExistingMoleculePayload().itemIds).toEqual(['no-longer-visible']);
+
+    selection.clearVisibleSelection();
+    expect(selection.isSelected('another-page')).toBeFalse();
+    expect(selection.isNothingSelected()).toBeTrue();
   });
 });
 
@@ -75,7 +92,7 @@ describe('AddMoleculesSubmitController', () => {
     };
     const submit = new AddMoleculesSubmitController();
 
-    submit.submitExisting(service, 'collection-1', selection, ['item-1']).subscribe();
+    submit.submitExisting(service, 'collection-1', selection).subscribe();
 
     expect(service.addManyMoleculesToCollection).toHaveBeenCalledWith(
       'collection-1',

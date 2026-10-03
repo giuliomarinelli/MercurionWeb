@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { Subject, of } from 'rxjs';
 import { CollectionPickerFacade } from './collection-picker.facade';
 import { MoleculeCollectionService } from '../../../services/graphql/molecule-collection.service';
 
@@ -42,12 +42,20 @@ describe('CollectionPickerFacade', () => {
       initialSelection: ['one']
     }));
 
-    facade.selectAllVisible();
+    facade.selectAllCollections();
     facade.toggle('two', false);
 
     expect(facade.selected().selectAll).toBeTrue();
     expect(facade.selected().excludedIds).toEqual(['two']);
     expect(service.getPaginatedCollections).not.toHaveBeenCalled();
+    expect(facade.isSelected('not-loaded-yet')).toBeTrue();
+    facade.collections.set([first]);
+    expect(facade.selected().collections).toEqual([first]);
+    facade.collections.set([second]);
+    expect(facade.isSelected('two')).toBeFalse();
+    expect(facade.selected().excludedIds).toEqual(['two']);
+    facade.clearSelection();
+    expect(facade.isSelected('not-loaded-yet')).toBeFalse();
   });
 
   it('tears down in-flight streams and keeps caller mutations outside the picker', () => {
@@ -61,6 +69,26 @@ describe('CollectionPickerFacade', () => {
 
     expect(facade.selected().ids).toEqual(['three']);
     expect(service.createCollection).toHaveBeenCalledWith('Three');
+  });
+
+  it('cancels an earlier search and releases loading after a failed request', () => {
+    const oldRequest = new Subject<any>();
+    const newRequest = new Subject<any>();
+    service.getPaginatedCollections.and.returnValues(oldRequest, newRequest);
+    const facade = TestBed.runInInjectionContext(() => new CollectionPickerFacade({
+      mode: { kind: 'single', operation: 'route', allowCreate: true }
+    }));
+    facade.search('old');
+    facade.search('new');
+    expect(oldRequest.observed).toBeFalse();
+    expect(facade.loading()).toBeTrue();
+    oldRequest.next({ items: [first], currentPage: 1, totalPages: 1 });
+    expect(facade.collections()).toEqual([]);
+    newRequest.error(new Error('Request failed'));
+    expect(facade.loading()).toBeFalse();
+    facade.destroy();
+    facade.load(true);
+    expect(service.getPaginatedCollections).toHaveBeenCalledTimes(2);
   });
 });
 

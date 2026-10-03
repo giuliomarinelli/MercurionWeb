@@ -30,7 +30,7 @@ const BACKDROP_CLASSES = {
 const PANEL_CLASSES = {
   default: 'w-full max-w-lg rounded-2xl bg-white shadow-xl overflow-hidden dark:bg-slate-900',
   action: 'w-full bg-transparent shadow-none overflow-visible',
-  search: '!max-w-none !bg-transparent !shadow-none !rounded-none !overflow-visible',
+  search: 'w-full min-w-0 !max-w-none !bg-transparent !shadow-none !rounded-none !overflow-visible',
 } satisfies Record<DialogPanelVariant, string>;
 
 const CONTENT_CLASSES = {

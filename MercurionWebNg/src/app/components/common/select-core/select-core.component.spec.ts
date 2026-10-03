@@ -26,7 +26,7 @@ describe('SelectCoreComponent', () => {
       if (change.value !== undefined) changes.push(change.value);
     });
 
-    input.dispatchEvent(new Event('focus'));
+    input.focus();
     input.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown' }));
     fixture.detectChanges();
 
@@ -40,7 +40,45 @@ describe('SelectCoreComponent', () => {
     expect(changes).toEqual(['alpha']);
     expect(input.getAttribute('aria-expanded')).toBe('true');
     expect(fixture.nativeElement.querySelector('[role="listbox"]')).not.toBeNull();
-    expect(document.activeElement).toBe(input);
+    expect(document.activeElement).not.toBe(input);
+  });
+
+  it('renders four item-shaped skeletons during loading and hides the empty message', () => {
+    fixture.componentRef.setInput('items', []);
+    fixture.componentRef.setInput('loading', true);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelectorAll('.m-select-skeleton').length).toBe(4);
+    expect(fixture.nativeElement.textContent).not.toContain('Nessun risultato');
+    expect(fixture.nativeElement.querySelector('[role="listbox"]').getAttribute('aria-busy')).toBe('true');
+
+    fixture.componentRef.setInput('loading', false);
+    fixture.componentRef.setInput('items', ['Alpha']);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelectorAll('.m-select-skeleton').length).toBe(0);
+    expect(fixture.nativeElement.querySelectorAll('[role="option"]').length).toBe(1);
+  });
+
+  it('matches option geometry and uses different skeleton colours in light and dark themes', () => {
+    const optionHeight = fixture.nativeElement.querySelector('[role="option"]').getBoundingClientRect().height;
+    fixture.componentRef.setInput('items', []);
+    fixture.componentRef.setInput('loading', true);
+    fixture.detectChanges();
+    const row = fixture.nativeElement.querySelector('.m-select-skeleton') as HTMLElement;
+    const fill = row.firstElementChild as HTMLElement;
+    const wasDark = document.documentElement.classList.contains('dark');
+    const bodyWasDark = document.body.classList.contains('dark');
+    try {
+      document.documentElement.classList.remove('dark');
+      document.body.classList.remove('dark');
+      const light = getComputedStyle(fill).backgroundColor;
+      document.documentElement.classList.add('dark');
+      const dark = getComputedStyle(fill).backgroundColor;
+      expect(light).not.toBe(dark);
+      expect(row.getBoundingClientRect().height).toBe(optionHeight);
+    } finally {
+      document.documentElement.classList.toggle('dark', wasDark);
+      document.body.classList.toggle('dark', bodyWasDark);
+    }
   });
 
   it('shares deterministic filtering and no-results state', () => {

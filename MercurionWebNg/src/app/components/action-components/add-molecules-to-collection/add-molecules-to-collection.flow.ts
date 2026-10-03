@@ -82,10 +82,8 @@ export class AddMoleculesSelectionController {
     return this.mode() !== 'all' && this.selectedIds().size === 0;
   }
 
-  isPartiallySelected(ids: string[]): boolean {
-    if (ids.length === 0) return false;
-    const checked = ids.filter(id => this.isSelected(id)).length;
-    return checked > 0 && checked < ids.length;
+  isPartiallySelected(): boolean {
+    return this.mode() === 'all' ? this.excludedIds().size > 0 : this.selectedIds().size > 0;
   }
 
   addChip(chip: ChipItem): void {
@@ -105,10 +103,10 @@ export class AddMoleculesSelectionController {
     return this.chips().map(chip => chip.id);
   }
 
-  buildExistingMoleculePayload(visibleIds: string[]): { itemIds: string[]; selectAll: boolean; snapshotAt: string | null } {
+  buildExistingMoleculePayload(): { itemIds: string[]; selectAll: boolean; snapshotAt: string | null } {
     if (this.mode() === 'all') {
       return {
-        itemIds: visibleIds.filter(id => this.excludedIds().has(id)),
+        itemIds: [...this.excludedIds()],
         selectAll: true,
         snapshotAt: this.snapshotAt()
       };
@@ -213,10 +211,9 @@ export class AddMoleculesSubmitController {
   submitExisting(
     service: AddMoleculesSubmitPort,
     collectionId: string,
-    selection: AddMoleculesSelectionController,
-    visibleIds: string[]
+    selection: AddMoleculesSelectionController
   ): Observable<boolean> {
-    const payload = selection.buildExistingMoleculePayload(visibleIds);
+    const payload = selection.buildExistingMoleculePayload();
     return service.addManyMoleculesToCollection(collectionId, payload.itemIds, payload.selectAll, payload.snapshotAt);
   }
 

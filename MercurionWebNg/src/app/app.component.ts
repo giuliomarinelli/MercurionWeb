@@ -47,12 +47,6 @@ import { RealtimeStateSyncService } from './services/realtime-state-sync.service
     ActionOverlayComponent
   ],
   template: `
-    @if (isSafari) {
-      <div class="bg-amber-200/90 text-amber-900 px-3 py-2 text-sm flex items-center justify-center gap-2">
-        <span class="font-semibold">Avviso Safari</span>
-        <span>Safari mobile può non rispettare gli standard web: se riscontri problemi, prova un browser differente. Allineeremo il supporto a Safari appena possibile.</span>
-      </div>
-    }
     @if (routePolicy().shell === 'standard') {
       <div class="flex flex-col h-screen">
         <m-header class="block sticky top-0 z-30"

@@ -1,5 +1,5 @@
 import { signal } from '@angular/core';
-import { Observable, firstValueFrom } from 'rxjs';
+import { Observable, Subject, firstValueFrom, takeUntil } from 'rxjs';
 import { PageModel } from '../../Models/graphql/page.models';
 
 export interface PaginationControllerOptions<T> {
@@ -25,6 +25,9 @@ export class PaginationController<T> {
   readonly page = signal(1);
 
   private generation = 0;
+  private disposed = false;
+  private suspended = false;
+  private readonly cancelled$ = new Subject<void>();
   private readonly merge: (current: T[], incoming: T[]) => T[];
 
   constructor(private readonly options: PaginationControllerOptions<T>) {
@@ -42,14 +45,14 @@ export class PaginationController<T> {
   }
 
   async loadMore(): Promise<void> {
-    if (this.loading() || this.done()) return;
+    if (this.disposed || this.suspended || this.loading() || this.done() || this.error()) return;
     const generation = this.generation;
     const requestedPage = this.page();
     this.loading.set(true);
     this.error.set(undefined);
 
     try {
-      const result = await firstValueFrom(this.options.fetch(requestedPage, this.query()));
+      const result = await firstValueFrom(this.options.fetch(requestedPage, this.query()).pipe(takeUntil(this.cancelled$)));
       if (generation !== this.generation) return;
 
       if (result.items.length === 0) {
@@ -75,7 +78,10 @@ export class PaginationController<T> {
   }
 
   reset(query = this.query()): void {
+    if (this.disposed) return;
+    this.suspended = false;
     this.generation++;
+    this.cancelled$.next();
     this.query.set(query);
     this.items.set([]);
     this.page.set(1);
@@ -99,7 +105,16 @@ export class PaginationController<T> {
     this.items.set(items);
   }
 
-  dispose(): void {
+  /** Cancel pending work while a screen is hidden; reset can resume it. */
+  suspend(): void {
+    this.suspended = true;
     this.generation++;
+    this.cancelled$.next();
+    this.loading.set(false);
+  }
+
+  dispose(): void {
+    this.disposed = true;
+    this.suspend();
   }
 }

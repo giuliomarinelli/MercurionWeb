@@ -48,4 +48,27 @@ describe('CollectionCardComponent', () => {
     expect(fixture.nativeElement.querySelector('a')).toBeNull();
     expect(fixture.nativeElement.querySelector('article')?.getAttribute('role')).toBeNull();
   });
+
+  it('selects from the full card label without repeating its name in a visible checkbox label', () => {
+    fixture.componentRef.setInput('selectable', true);
+    fixture.componentRef.setInput('isReadonly', true);
+    fixture.detectChanges();
+    const control = fixture.nativeElement.querySelector('input') as HTMLInputElement;
+    const label = control.closest('label')!;
+    expect(label.classList).toContain('m-selection-control--card');
+    expect(label.querySelector('.m-selection-control__content')?.classList).toContain('sr-only');
+    label.click();
+    fixture.detectChanges();
+    expect(component.selected()).toBeTrue();
+    control.click();
+    expect(component.selected()).toBeFalse();
+  });
+
+  it('does not select a disabled card', () => {
+    fixture.componentRef.setInput('selectable', true);
+    fixture.componentRef.setInput('selectionDisabled', true);
+    fixture.detectChanges();
+    fixture.nativeElement.querySelector('label').click();
+    expect(component.selected()).toBeFalse();
+  });
 });

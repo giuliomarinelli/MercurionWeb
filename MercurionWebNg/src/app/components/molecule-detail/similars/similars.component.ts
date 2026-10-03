@@ -1,63 +1,45 @@
-import { Component, ChangeDetectionStrategy, effect, computed, input, OnInit, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input } from '@angular/core';
 import { MoleculeSearchResult } from '../../../Models/graphql/molecule-search/molecule-search-result.interface';
 import { SimilarItemComponent } from '../similar-item/similar-item.component';
 import { SkeletonCollectionCardComponent } from '../../common/skeleton-card-loader/skeleton-card-loader.component';
+import { SmoothResizeDirective } from '../../common/smooth-resize/smooth-resize.directive';
 
 @Component({
   selector: 'm-similars',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [SimilarItemComponent, SkeletonCollectionCardComponent],
+  imports: [SimilarItemComponent, SkeletonCollectionCardComponent, SmoothResizeDirective],
+  host: { class: 'block min-w-0' },
   template: `
-
-    <div class="relative overflow-y-auto border max-h-[272px] min-h-[90px] transition-[max-height] duration-300 ease-in-out m-scroll-thin"
-    [class.max-h-[181px]]="_onlyKnown()"
-    [class.max-h-[272px]]="!_onlyKnown()"
-    role="region"
-    aria-label="Molecole simili"
-    [attr.aria-busy]="loading()">
-      @if (_molecules().length) {
-        @for (molecule of _molecules(); track molecule; let i = $index) {
-          <m-similar-item [molecule]="molecule" [i]="i" />
-            @if (i !== _molecules().length - 1) {
-              <hr class="border-slate-300 dark:border-slate-600" />
-              }
-        }
-      } @else if (loading()) {
+    <div mSmoothResize="height" class="overflow-hidden">
+      <div class="relative overflow-y-auto min-h-[90px] m-scroll-thin"
+        [style.max-height.px]="onlyKnown() ? 181 : 272" role="region"
+        aria-label="Molecole simili" [attr.aria-busy]="loading()" style="scrollbar-gutter: stable">
+        @if (loading()) {
           @for (i of [0, 1]; track i) {
             <m-skeleton-collection-card [height]="'45px'" />
           }
-      } @else {
-        <div class="absolute inset-0 flex items-center justify-center p-3">
-          <p class="text-xs xs:text-sm text-center leading-snug whitespace-normal break-words max-w-[32rem]">
-            Nessun analogo noto trovato... Deseleziona
-            <strong class="block sm:inline font-semibold">
-              Mostra solo composti noti
-            </strong>
-            per vedere i lead sperimentali più simili.
-          </p>
-        </div>
-
-      }
+        } @else if (molecules().length) {
+          @for (molecule of molecules(); track molecule; let i = $index) {
+            <m-similar-item [molecule]="molecule" [i]="i" />
+            @if (i !== molecules().length - 1) {
+              <hr class="border-slate-300 dark:border-slate-600" />
+            }
+          }
+        } @else {
+          <div class="min-h-[90px] flex items-center justify-center p-3">
+            <p class="text-xs xs:text-sm text-center leading-snug whitespace-normal break-words max-w-[32rem]">
+              Nessun analogo noto trovato... Deseleziona
+              <strong class="block sm:inline font-semibold">Mostra solo composti noti</strong>
+              per vedere i lead sperimentali più simili.
+            </p>
+          </div>
+        }
+      </div>
     </div>
   `
-
 })
-export class SimilarsComponent implements OnInit {
-
-  _molecules = signal<MoleculeSearchResult[]>([])
-  _onlyKnown = signal<boolean>(true)
-  loading = signal<boolean>(true)
-
+export class SimilarsComponent {
   readonly molecules = input.required<MoleculeSearchResult[]>()
   readonly onlyKnown = input.required<boolean>()
-
-  constructor() {
-    effect(() => this._molecules.set(this.molecules()))
-    effect(() => this._onlyKnown.set(this.onlyKnown()))
-  }
-
-  ngOnInit(): void {
-    setTimeout(() => this.loading.set(false), 2000)
-  }
-
+  readonly loading = input(false)
 }

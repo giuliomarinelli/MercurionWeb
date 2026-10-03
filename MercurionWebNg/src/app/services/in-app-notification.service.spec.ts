@@ -1,6 +1,6 @@
 import { fakeAsync, flushMicrotasks, TestBed, tick } from '@angular/core/testing'
 import { signal } from '@angular/core'
-import { of, Subject } from 'rxjs'
+import { of, Subject, throwError } from 'rxjs'
 import {
   parseUtcInstant,
   type NotificationRecoveryResponse
@@ -210,5 +210,66 @@ describe('InAppNotificationService', () => {
 
     expect(recover.calls.count()).toBeGreaterThan(callsAfterDegradation)
     expect(service.syncState()).toBe('degraded')
+    TestBed.resetTestingModule()
+  }))
+
+  it('does not recover again just because a recovery advances the cursor', fakeAsync(() => {
+    let sequence = 0
+    recover.and.callFake(() => of(baseline({ cursor: `cursor-${Math.min(++sequence, 5)}` })))
+    clientSession.set({ userId: 'user-1', sessionId: 'session-1' })
+    authenticated.set(true)
+    TestBed.flushEffects()
+    flushMicrotasks()
+
+    realtimeState.set({ kind: 'private' })
+    TestBed.flushEffects()
+    flushMicrotasks()
+    const callsAfterConnection = recover.calls.count()
+
+    for (let i = 0; i < 3; i++) {
+      TestBed.flushEffects()
+      flushMicrotasks()
+    }
+    expect(recover.calls.count()).toBe(callsAfterConnection)
+    expect(service.syncState()).toBe('ready')
+  }))
+
+  it('waits for the polling interval after a failed baseline instead of retrying immediately', fakeAsync(() => {
+    recover.and.returnValues(
+      throwError(() => new Error('offline')),
+      of(baseline()),
+      of(baseline())
+    )
+    clientSession.set({ userId: 'user-1', sessionId: 'session-1' })
+    authenticated.set(true)
+    realtimeState.set({ kind: 'private' })
+    TestBed.flushEffects()
+    flushMicrotasks()
+    expect(recover).toHaveBeenCalledTimes(1)
+    expect(service.syncState()).toBe('degraded')
+
+    tick(24_999)
+    expect(recover).toHaveBeenCalledTimes(1)
+    tick(1)
+    flushMicrotasks()
+    expect(recover).toHaveBeenCalledTimes(3)
+    expect(service.syncState()).toBe('ready')
+    TestBed.resetTestingModule()
+  }))
+
+  it('cancels pending recovery and stops polling when the service is destroyed', fakeAsync(() => {
+    const response = new Subject<NotificationRecoveryResponse>()
+    recover.and.returnValue(response)
+    clientSession.set({ userId: 'user-1', sessionId: 'session-1' })
+    authenticated.set(true)
+    realtimeState.set({ kind: 'degraded', mode: 'private', attempt: 7, reason: 'retry-exhausted' })
+    TestBed.flushEffects()
+    expect(response.observed).toBeTrue()
+
+    TestBed.resetTestingModule()
+    flushMicrotasks()
+    tick(50_000)
+    expect(response.observed).toBeFalse()
+    expect(recover).toHaveBeenCalledTimes(1)
   }))
 })

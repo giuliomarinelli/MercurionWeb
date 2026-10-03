@@ -7,6 +7,7 @@ import {
   inject,
   signal,
   effect,
+  untracked,
   viewChild
 } from '@angular/core'
 
@@ -52,9 +53,9 @@ import { DialogShellComponent } from '../../common/dialog-shell/dialog-shell.com
       backdropVariant="search"
       panelVariant="search"
       (dismissed)="close()">
-      <div class="flex justify-center md:justify-center items-stretch md:items-center px-2 sm:px-4 pt-1 md:pt-16 m-overlay-screen h-full">
+      <div class="flex w-full min-w-0 justify-center md:justify-center items-stretch md:items-center px-2 sm:px-4 pt-1 md:pt-16 m-overlay-screen h-full">
         <div
-          class="w-full max-w-3xl space-y-6 flex flex-col h-full md:h-[75vh]
+          class="w-full min-w-0 max-w-3xl space-y-6 flex flex-col h-full md:h-[75vh]
           bg-light-surface-main/90 dark:bg-dark-surface-main/90
            p-4 md:p-6 lg:p-10
            rounded-2xl shadow-2xl ring-1 ring-black/5 dark:ring-white/5">
@@ -77,7 +78,7 @@ import { DialogShellComponent } from '../../common/dialog-shell/dialog-shell.com
             (onEmpty)="handleEmpty()" />
 
           <div
-          class="relative bg-light-surface-secondary dark:bg-slate-50/10 flex-1 min-h-0 rounded-xl text-light-on-surface-main dark:text-sm dark:text-slate-50/90 overflow-y-auto border border-spacing-px border-slate-300/50 max-h-none md:max-h-[70vh] m-overscroll-touch m-scroll-thin"
+          class="relative bg-light-surface-secondary dark:bg-slate-50/10 flex-1 min-h-0 min-w-0 rounded-xl text-light-on-surface-main dark:text-sm dark:text-slate-50/90 overflow-y-auto border border-spacing-px border-slate-300/50 max-h-none md:max-h-[70vh] m-overscroll-touch m-scroll-thin"
             #scrollRoot>
               @if (userContext.isLoggedIn()) {
                 <div class="sticky top-0 z-30
@@ -149,6 +150,7 @@ import { DialogShellComponent } from '../../common/dialog-shell/dialog-shell.com
   styles: [`
     /* Scrollbar sottile per l'area dei risultati */
     .m-scroll-thin {
+      scrollbar-gutter: stable;
       scrollbar-width: thin; /* Firefox */
       scrollbar-color: #64748b transparent; /* thumb, track */
     }
@@ -217,17 +219,24 @@ export class SearchOverlayComponent implements AfterViewInit, OnDestroy {
   private mySub?: Subscription
 
   private observer?: IntersectionObserver
+  private destroyed = false
 
   constructor() {
     effect(() => {
-      if (this.searchContextService.isOpenedSearchOverlay()) {
-        this._viewMode.set('chembl')
-        this.query.set('')
-        this.loading.set(false)
-        this.error.set(null)
-        this.chemblResults.set([])
-        this.myItems.set([])
-      }
+      const opened = this.searchContextService.isOpenedSearchOverlay()
+      untracked(() => {
+        this.observer?.disconnect()
+        this.chemblSub?.unsubscribe()
+        this.mySub?.unsubscribe()
+        if (opened) {
+          this._viewMode.set('chembl')
+          this.query.set('')
+          this.loading.set(false)
+          this.error.set(null)
+          this.chemblResults.set([])
+          this.resetMyState()
+        }
+      })
     })
   }
 
@@ -236,6 +245,7 @@ export class SearchOverlayComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.destroyed = true
     this.observer?.disconnect()
     this.chemblSub?.unsubscribe()
     this.mySub?.unsubscribe()
@@ -250,7 +260,7 @@ export class SearchOverlayComponent implements AfterViewInit, OnDestroy {
       const entry = entries[0]
       if (!entry.isIntersecting) return
       if (this._viewMode() !== 'my') return
-      if (this.loading() || this.myDone()) return
+      if (!this.searchContextService.isOpenedSearchOverlay() || this.loading() || this.myDone() || this.error()) return
 
       // stacco subito, così non resta "incollato" intersecting
       this.observer?.unobserve(sentinelEl)
@@ -274,6 +284,7 @@ export class SearchOverlayComponent implements AfterViewInit, OnDestroy {
 
     if (this._viewMode() === 'chembl') {
       if (trimmed.length < 2) {
+        this.chemblSub?.unsubscribe()
         this.loading.set(false)
         this.chemblResults.set([])
         return
@@ -299,6 +310,7 @@ export class SearchOverlayComponent implements AfterViewInit, OnDestroy {
     if (this._viewMode() === mode) return
 
     this._viewMode.set(mode)
+    this.observer?.disconnect()
     this.error.set(null)
     this.loading.set(false)
 
@@ -366,7 +378,7 @@ export class SearchOverlayComponent implements AfterViewInit, OnDestroy {
 
   protected loadNextMyPage(): void {
     if (this._viewMode() !== 'my') return
-    if (this.loading() || this.myDone()) return
+    if (this.loading() || this.myDone() || this.destroyed) return
 
     const nextPage = this.myPage() + 1
     const q = this.query().trim()
@@ -399,6 +411,8 @@ export class SearchOverlayComponent implements AfterViewInit, OnDestroy {
 
           // riattacco dopo che Angular ha renderizzato i nuovi items
           queueMicrotask(() => {
+            if (this.destroyed || this._viewMode() !== 'my' || this.myDone() ||
+              !this.searchContextService.isOpenedSearchOverlay()) return
             const sentinelEl = this.sentinel()?.nativeElement
             if (sentinelEl) this.observer?.observe(sentinelEl)
           })
@@ -407,10 +421,6 @@ export class SearchOverlayComponent implements AfterViewInit, OnDestroy {
           this.error.set(err)
           this.loading.set(false)
 
-          queueMicrotask(() => {
-            const sentinelEl = this.sentinel()?.nativeElement
-            if (sentinelEl) this.observer?.observe(sentinelEl)
-          })
         }
       })
   }

@@ -1,4 +1,4 @@
-import { computed, DestroyRef, effect, inject, Injectable, signal } from '@angular/core';
+import { computed, DestroyRef, effect, inject, Injectable, signal, untracked } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, distinctUntilChanged, filter, firstValueFrom, map, of, switchMap, tap } from 'rxjs';
@@ -127,7 +127,8 @@ export class MoleculeCollectionDetailFacade {
         event.domain === 'molecule' &&
         event.action === 'changed' &&
         event.remote === true &&
-        (!event.resourceId || this.items().some(item => item.id === event.resourceId));
+        // Membership is a snapshot; replacing the list must not replay this event.
+        (!event.resourceId || untracked(() => this.items().some(item => item.id === event.resourceId)));
 
       if (remoteCollectionChanged && event.change === 'deleted') {
         this.toast.trigger('Questa collezione è stata eliminata da un’altra sessione.', 'info', 4500);
@@ -148,9 +149,10 @@ export class MoleculeCollectionDetailFacade {
   }
 
   private async refreshCollection(expectedId = this.collectionId()): Promise<void> {
-    if (!expectedId || expectedId !== this.collectionId()) return
+    if (this.destroyRef.destroyed || !expectedId || expectedId !== this.collectionId()) return
     try {
-      const collection = await firstValueFrom(this.collections.getCollectionById(expectedId))
+      const collection = await firstValueFrom(this.collections.getCollectionById(expectedId).pipe(takeUntilDestroyed(this.destroyRef)))
+      if (this.destroyRef.destroyed || expectedId !== this.collectionId()) return
       if (!collection) {
         this.toast.trigger('Questa collezione non è più disponibile.', 'info', 4500)
         void this.router.navigateByUrl('/molecules/collections')
@@ -160,12 +162,12 @@ export class MoleculeCollectionDetailFacade {
       this.title.setSection('Dettaglio Collezione', collection.name)
       await this.reload(expectedId)
     } catch {
-      if (expectedId === this.collectionId()) this.error.set(true)
+      if (!this.destroyRef.destroyed && expectedId === this.collectionId()) this.error.set(true)
     }
   }
 
   async reload(expectedId = this.collectionId()): Promise<void> {
-    if (!expectedId || expectedId !== this.collectionId()) return;
+    if (this.destroyRef.destroyed || !expectedId || expectedId !== this.collectionId()) return;
     const version = ++this.requestVersion;
     this.items.set([]);
     this.page.set(1);
@@ -177,12 +179,12 @@ export class MoleculeCollectionDetailFacade {
   }
 
   async loadMore(expectedId = this.collectionId(), version = this.requestVersion): Promise<void> {
-    if (!expectedId || expectedId !== this.collectionId() || this.done() || this.loading()) return;
+    if (this.destroyRef.destroyed || !expectedId || expectedId !== this.collectionId() || this.done() || this.loading()) return;
     const requestedPage = this.page();
     this.loading.set(true);
     this.pageError.set(undefined);
     try {
-      const result = await firstValueFrom(this.fetchPage(expectedId, requestedPage));
+      const result = await firstValueFrom(this.fetchPage(expectedId, requestedPage).pipe(takeUntilDestroyed(this.destroyRef)));
       if (version !== this.requestVersion || expectedId !== this.collectionId()) return;
       if (!result.items.length) {
         this.done.set(true);
@@ -192,11 +194,11 @@ export class MoleculeCollectionDetailFacade {
       this.done.set(result.currentPage >= result.totalPages);
       this.page.update(value => value + 1);
     } catch {
-      if (version === this.requestVersion && expectedId === this.collectionId()) {
+      if (!this.destroyRef.destroyed && version === this.requestVersion && expectedId === this.collectionId()) {
         this.pageError.set('Unable to load results.');
       }
     } finally {
-      if (version === this.requestVersion && expectedId === this.collectionId()) this.loading.set(false);
+      if (!this.destroyRef.destroyed && version === this.requestVersion && expectedId === this.collectionId()) this.loading.set(false);
     }
   }
 

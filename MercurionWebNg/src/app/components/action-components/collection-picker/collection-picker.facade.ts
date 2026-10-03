@@ -1,5 +1,5 @@
 import { computed, inject, signal } from '@angular/core';
-import { Observable, Subject, map, takeUntil } from 'rxjs';
+import { Observable, Subject, Subscription, finalize, map, takeUntil } from 'rxjs';
 import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
 import { PageModel } from '../../../Models/graphql/page.models';
 import { MoleculeCollectionService } from '../../../services/graphql/molecule-collection.service';
@@ -14,6 +14,8 @@ export class CollectionPickerFacade {
   private readonly collectionService = inject(MoleculeCollectionService);
   private readonly destroyed$ = new Subject<void>();
   private readonly input: CollectionPickerInput;
+  private request?: Subscription;
+  private destroyed = false;
 
   readonly query = signal('');
   readonly page = signal(1);
@@ -30,7 +32,7 @@ export class CollectionPickerFacade {
     const excluded = this.excludedIds();
     return {
       ids: [...selected],
-      collections: this.collections().filter(collection => selected.has(collection.id)),
+      collections: this.collections().filter(collection => this.isSelected(collection.id)),
       selectAll: this.selectAll(),
       excludedIds: [...excluded]
     };
@@ -42,11 +44,17 @@ export class CollectionPickerFacade {
   }
 
   load(reset = false): void {
-    if (this.loading()) return;
+    if (this.destroyed) return;
+    if (reset) {
+      this.request?.unsubscribe();
+      this.collections.set([]);
+    } else if (this.loading() || !this.hasMore()) return;
     this.loading.set(true);
     this.error.set(null);
     const requestedPage = reset ? 1 : this.page();
-    this.fetchPage$(requestedPage, this.query()).subscribe({
+    this.request = this.fetchPage$(requestedPage, this.query()).pipe(
+      finalize(() => this.loading.set(false))
+    ).subscribe({
       next: result => {
         const previous = reset ? [] : this.collections();
         const seen = new Set<string>();
@@ -58,8 +66,7 @@ export class CollectionPickerFacade {
         this.page.set(result.currentPage + 1);
         this.hasMore.set(result.currentPage < result.totalPages);
       },
-      error: error => this.error.set(error),
-      complete: () => this.loading.set(false)
+      error: error => this.error.set(error)
     });
   }
 
@@ -97,7 +104,12 @@ export class CollectionPickerFacade {
     this.selectAll.set(false);
   }
 
-  selectAllVisible(): void {
+  isSelected(id: string): boolean {
+    return this.selectAll() ? !this.excludedIds().has(id) : this.selectedIds().has(id);
+  }
+
+  selectAllCollections(): void {
+    this.selectedIds.set(new Set());
     this.selectAll.set(true);
     this.excludedIds.set(new Set());
   }
@@ -136,6 +148,8 @@ export class CollectionPickerFacade {
   }
 
   destroy(): void {
+    this.destroyed = true;
+    this.request?.unsubscribe();
     this.destroyed$.next();
     this.destroyed$.complete();
   }

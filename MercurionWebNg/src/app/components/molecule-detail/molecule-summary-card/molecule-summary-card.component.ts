@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MoleculeViewerComponent } from '../../chem/molecule-viewer/molecule-viewer.component';
@@ -15,20 +15,28 @@ import { MoleculeSummaryAction, MoleculeSummaryViewModel } from './molecule-summ
       class="relative grid grid-cols-1 items-center gap-3 overflow-hidden rounded-2xl border p-4 md:p-5
         bg-slate-100 dark:bg-slate-800/50 border-slate-200/70 dark:border-slate-700/60
         transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-300/50 hover:shadow-md
-        dark:hover:border-indigo-400/30 focus-within:ring-2 focus-within:ring-indigo-500/70"
+        dark:hover:border-indigo-400/30 focus-within:ring-2 focus-within:ring-indigo-500/70
+        group-hover/selection:border-indigo-300/50 group-hover/selection:shadow-md
+        dark:group-hover/selection:border-indigo-400/30
+        group-focus-within/selection:ring-2 group-focus-within/selection:ring-indigo-500/70"
       [class.grid-cols-[3rem_1fr]]="viewModel().compact"
       [class.md:grid-cols-12]="!viewModel().compact"
       [class.fade-out]="disappearing()"
       [class.collapse]="collapsed()"
       [attr.aria-label]="'Molecola ' + viewModel().name">
+      @if (cardSelectable()) {
+        <button type="button" class="absolute inset-0 z-10 w-full h-full rounded-2xl cursor-pointer"
+          [attr.aria-label]="'Seleziona molecola ' + viewModel().name"
+          (click)="actionSelected.emit('select')"></button>
+      } @else if (!viewModel().selectable) {
       <a
         class="absolute inset-0 z-10 rounded-2xl"
-        [class.pointer-events-none]="viewModel().selectable"
         [class.hidden]="disappearing()"
         [routerLink]="detailUrl()"
         [queryParams]="detailQueryParams()"
         (click)="navigate.emit()"
         [attr.aria-label]="'Apri molecola ' + viewModel().name"></a>
+      }
 
       <div class="pointer-events-none relative min-w-0"
         [class.order-2]="viewModel().compact"
@@ -46,6 +54,12 @@ import { MoleculeSummaryAction, MoleculeSummaryViewModel } from './molecule-summ
           @if (viewModel().molecularWeight) { <span class="rounded-full border px-2 py-1">MW: {{ viewModel().molecularWeight | number:'1.0-1' }}</span> }
           @if (viewModel().phase) { <span class="rounded-full border border-amber-200/70 bg-amber-50 px-2 py-1 text-amber-800 dark:border-amber-700/40 dark:bg-amber-900/20 dark:text-amber-200">Phase {{ viewModel().phase }}</span> }
         </div>
+        @if (cardSelectable()) {
+          <p class="mt-2 text-xs text-slate-600 dark:text-slate-300">
+            <span class="sm:hidden">Tocca per selezionare</span>
+            <span class="hidden sm:inline">Clicca per selezionare</span>
+          </p>
+        }
       </div>
 
       <div class="pointer-events-none relative shrink-0 justify-self-end overflow-hidden rounded-xl border border-slate-200/70 bg-white/40 dark:border-slate-700/60 dark:bg-slate-900/30"
@@ -69,7 +83,7 @@ import { MoleculeSummaryAction, MoleculeSummaryViewModel } from './molecule-summ
             </div>
           }
           <div class="pointer-events-auto flex flex-wrap items-center justify-end gap-3">
-          @for (action of viewModel().actions; track action.label) {
+          @for (action of visibleActions(); track action.label) {
             @if (action.kind === 'link') {
               <a class="rounded-md p-1 transition-colors duration-150 hover:bg-slate-200 dark:hover:bg-slate-700"
                 [routerLink]="action.href" [queryParams]="action.queryParams" [title]="action.label" [attr.aria-label]="action.label">
@@ -80,7 +94,7 @@ import { MoleculeSummaryAction, MoleculeSummaryViewModel } from './molecule-summ
                   </svg>
                 } @else { <span>{{ action.label }}</span> }
               </a>
-            } @else {
+            } @else if (action.action !== 'select') {
               <button type="button"
                 class="rounded-md p-1 transition-colors duration-150 hover:bg-slate-200 dark:hover:bg-slate-700"
                 [class.flex]="action.icon === 'remove'" [class.items-center]="action.icon === 'remove'" [class.gap-2]="action.icon === 'remove'"
@@ -99,10 +113,10 @@ import { MoleculeSummaryAction, MoleculeSummaryViewModel } from './molecule-summ
           }
           </div>
         </div>
-      } @else if (viewModel().actions.length) {
+      } @else if (visibleActions().length) {
         <div class="relative z-20 order-3 flex flex-wrap items-center justify-end gap-2">
-          @for (action of viewModel().actions; track action.label) {
-            @if (action.kind === 'button') {
+          @for (action of visibleActions(); track action.label) {
+            @if (action.kind === 'button' && action.action !== 'select') {
               <button type="button" class="rounded-md px-2 py-1 text-xs hover:bg-slate-200 dark:hover:bg-slate-700"
                 [attr.aria-label]="action.label" (click)="actionSelected.emit(action.action)">{{ action.label }}</button>
             }
@@ -120,6 +134,10 @@ export class MoleculeSummaryCardComponent {
   readonly actionSelected = output<'delete' | 'remove' | 'select'>();
   readonly navigate = output<void>();
   readonly viewerReady = signal(false);
+  readonly cardSelectable = computed(() => this.viewModel().selectable &&
+    this.viewModel().actions.some(action => action.kind === 'button' && action.action === 'select'));
+  readonly visibleActions = computed(() => this.viewModel().actions.filter(action =>
+    action.kind !== 'button' || action.action !== 'select'));
 
   detailUrl(): string {
     return `/molecules/detail/${this.viewModel().id}`;

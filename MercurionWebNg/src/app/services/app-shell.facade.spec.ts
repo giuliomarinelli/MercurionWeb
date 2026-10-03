@@ -27,6 +27,7 @@ describe('AppShellFacade', () => {
 
   beforeEach(() => {
     authState.authenticated.set(false)
+    sessionSync.handshakeTick.set(0)
     sessionSync.status.set('anonymous')
     authState.bootstrap.calls.reset()
     sessionSync.checkSession.calls.reset()
@@ -66,6 +67,29 @@ describe('AppShellFacade', () => {
     expect(facade).toBeTruthy()
     expect(authState.bootstrap).toHaveBeenCalled()
     expect(sessionSync.checkSession).toHaveBeenCalled()
+  })
+
+  it('requests one handshake per tick without reacting to state read by the handshake', () => {
+    sessionSync.checkSession.and.callFake(async () => {
+      sessionSync.status()
+      authState.authenticated()
+    })
+    TestBed.inject(AppShellFacade)
+    TestBed.flushEffects()
+    sessionSync.checkSession.calls.reset()
+    sessionSync.checkSession.and.resolveTo()
+
+    sessionSync.handshakeTick.set(1)
+    TestBed.flushEffects()
+    expect(sessionSync.checkSession).toHaveBeenCalledTimes(1)
+    sessionSync.status.set('loggedIn')
+    authState.authenticated.set(true)
+    TestBed.flushEffects()
+    expect(sessionSync.checkSession).toHaveBeenCalledTimes(1)
+
+    sessionSync.handshakeTick.set(2)
+    TestBed.flushEffects()
+    expect(sessionSync.checkSession).toHaveBeenCalledTimes(2)
   })
 
   it('exposes route metadata as the shell layout source of truth', async () => {

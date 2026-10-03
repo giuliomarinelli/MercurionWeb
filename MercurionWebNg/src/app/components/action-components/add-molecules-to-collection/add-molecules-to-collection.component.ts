@@ -9,6 +9,7 @@ import {
   inject,
   signal,
   effect,
+  untracked,
   ChangeDetectionStrategy,
   viewChild
 } from '@angular/core';
@@ -183,6 +184,7 @@ export type { ChipItem } from './add-molecules-to-collection.flow';
 <div class="flex justify-center items-stretch md:items-center min-h-dvh h-dvh px-2 sm:px-4 m-overlay-screen">
   <m-action-card
     size="wide"
+    style="--m-action-card-height: min(40rem, var(--m-action-card-available-height, calc(100dvh - 2rem)))"
     labelledBy="addMolHeading"
     closeLabel="Chiudi pannello aggiungi molecole"
     [busy]="step_12_loading()"
@@ -229,14 +231,14 @@ export type { ChipItem } from './add-molecules-to-collection.flow';
                        border border-gray-300 bg-white
                        before:absolute before:inset-1 before:rounded-full before:bg-white
                        checked:border-indigo-600 checked:bg-indigo-600
-                       focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600
+                       focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600
                        disabled:border-gray-300 disabled:bg-gray-100 disabled:before:bg-gray-400
                        dark:border-white/10 dark:bg-white/5
                        dark:checked:border-indigo-500 dark:checked:bg-indigo-500
                        dark:focus-visible:outline-indigo-500
                        dark:disabled:border-white/5 dark:disabled:bg-white/10 dark:disabled:before:bg-white/20
                        forced-colors:appearance-auto forced-colors:before:hidden
-                       [&:not(:checked)]:before:hidden"
+                       not-checked:before:hidden"
               />
               <label for="my" class="cursor-pointer ml-3 block text-sm/6 font-medium text-gray-900 dark:text-white">
                 Seleziona da <span class="italic">Le mie molecole</span>
@@ -256,14 +258,14 @@ export type { ChipItem } from './add-molecules-to-collection.flow';
                        border border-gray-300 bg-white
                        before:absolute before:inset-1 before:rounded-full before:bg-white
                        checked:border-indigo-600 checked:bg-indigo-600
-                       focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600
+                       focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600
                        disabled:border-gray-300 disabled:bg-gray-100 disabled:before:bg-gray-400
                        dark:border-white/10 dark:bg-white/5
                        dark:checked:border-indigo-500 dark:checked:bg-indigo-500
                        dark:focus-visible:outline-indigo-500
                        dark:disabled:border-white/5 dark:disabled:bg-white/10 dark:disabled:before:bg-white/20
                        forced-colors:appearance-auto forced-colors:before:hidden
-                       [&:not(:checked)]:before:hidden"
+                       not-checked:before:hidden"
               />
               <label for="chembl" class="cursor-pointer ml-3 block text-sm/6 font-medium text-gray-900 dark:text-white">
                 Cerca e seleziona da ChEMBL DB
@@ -285,14 +287,14 @@ export type { ChipItem } from './add-molecules-to-collection.flow';
                        border border-gray-300 bg-white
                        before:absolute before:inset-1 before:rounded-full before:bg-white
                        checked:border-indigo-600 checked:bg-indigo-600
-                       focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600
+                       focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600
                        disabled:border-gray-300 disabled:bg-gray-100 disabled:before:bg-gray-400
                        dark:border-white/10 dark:bg-white/5
                        dark:checked:border-indigo-500 dark:checked:bg-indigo-500
                        dark:focus-visible:outline-indigo-500
                        dark:disabled:border-white/5 dark:disabled:bg-white/10 dark:disabled:before:bg-white/20
                        forced-colors:appearance-auto forced-colors:before:hidden
-                       [&:not(:checked)]:before:hidden"
+                       not-checked:before:hidden"
               />
               <label for="my" class="cursor-not-allowed ml-3 block text-sm/6 font-medium text-gray-900 dark:text-white">
                 Seleziona da <span class="italic">Le mie molecole</span>
@@ -314,14 +316,14 @@ export type { ChipItem } from './add-molecules-to-collection.flow';
                        border border-gray-300 bg-white
                        before:absolute before:inset-1 before:rounded-full before:bg-white
                        checked:border-indigo-600 checked:bg-indigo-600
-                       focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600
+                       focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600
                        disabled:border-gray-300 disabled:bg-gray-100 disabled:before:bg-gray-400
                        dark:border-white/10 dark:bg-white/5
                        dark:checked:border-indigo-500 dark:checked:bg-indigo-500
                        dark:focus-visible:outline-indigo-500
                        dark:disabled:border-white/5 dark:disabled:bg-white/10 dark:disabled:before:bg-white/20
                        forced-colors:appearance-auto forced-colors:before:hidden
-                       [&:not(:checked)]:before:hidden"
+                       not-checked:before:hidden"
               />
               <label for="chembl" class="cursor-not-allowed ml-3 block text-sm/6 font-medium text-gray-900 dark:text-white">
                 Cerca e seleziona da ChEMBL DB
@@ -667,9 +669,9 @@ export class AddMoleculesToCollectionComponent
     clear: () => this.clear()
   };
   readonly multiselectItems = signal<AbstractMultiselectItem<MoleculeCardItemModel>[]>([]);
-  readonly isSelectedAll = computed(() => this.selection.mode() === 'all');
+  readonly isSelectedAll = computed(() => this.selection.mode() === 'all' && this.selection.excludedIds().size === 0);
   readonly isSelectedNothing = computed(() => this.selection.isNothingSelected());
-  readonly isPartiallySelected = computed(() => this.selection.isPartiallySelected(this.multiselectItems().map(row => row.item.id)));
+  readonly isPartiallySelected = computed(() => this.selection.isPartiallySelected());
   get items(): MoleculeCardItemModel[] { return this.pageController.items() }
   get loading(): boolean { return this.pageController.loading() }
   get done(): boolean { return this.pageController.done() }
@@ -698,30 +700,29 @@ export class AddMoleculesToCollectionComponent
   constructor() {
     effect(() => {
       this.pageController.items();
-      queueMicrotask(() => this.loadRows());
+      queueMicrotask(() => {
+        if (!this.destroyRef.destroyed && this.method() === 'my') this.loadRows();
+      });
     });
     effect(() => {
-      if (this.method() === 'my') {
-        queueMicrotask(() => {
-          this.step.set(1);
-          this.clearChips();
-          this.pagination.reset();
-          this.startObserver();
-          this.pagination.loadMore();
-        });
-      } else if (this.method() === 'chembl') {
+      const method = this.method();
+      untracked(() => {
+        this.observer?.disconnect();
+        this.chemblSearch.clear();
         this.clearSelections();
         this.clearChips();
-        this.multiselectItems.set([]);
-        this.pageController.reset();
-        this.selection.mode.set('none');
         this.step.set(1);
-        this.chemblEmpty.set(true);
-        this.chemblError.set(null);
-        this.chemblLoading.set(false);
-        this.chemblQuery.set('');
-        this.chemblResults.set([]);
-      }
+        if (method === 'my') {
+          queueMicrotask(() => {
+            if (this.destroyRef.destroyed || this.method() !== 'my') return;
+            this.pagination.reset();
+            this.startObserver();
+          });
+        } else {
+          this.multiselectItems.set([]);
+          this.pageController.suspend();
+        }
+      });
     });
   }
 
@@ -757,7 +758,6 @@ export class AddMoleculesToCollectionComponent
             this.toast.trigger('Si è verificato un errore. Se si ripete, contatta il supporto', 'error', 3000);
           })
       });
-      void this.pagination.loadMore();
     });
   }
 
@@ -805,7 +805,9 @@ export class AddMoleculesToCollectionComponent
     }));
   }
   loadMore(): Promise<void> {
-    return this.pageController.loadMore().then(() => this.loadRows());
+    return this.pageController.loadMore().then(() => {
+      if (!this.destroyRef.destroyed && this.method() === 'my') this.loadRows();
+    });
   }
   resetPagination(): void { this.pageController.reset(); this.multiselectItems.set([]); }
   query(q: string): void { this.doQuery(q); }
@@ -813,11 +815,14 @@ export class AddMoleculesToCollectionComponent
   paginationState() { return this.pageController.paginationState(); }
   retryPagination(): void { this.pageController.retry(); }
   private startObserver(): void {
+    if (this.destroyRef.destroyed || this.method() !== 'my' || this.step() !== 1) return;
     const sentinel = this.sentinel()?.nativeElement;
     if (!sentinel) return;
     this.observer?.disconnect();
     this.observer = new IntersectionObserver(entries => {
-      if (entries[0]?.isIntersecting) void this.loadMore();
+      if (entries[0]?.isIntersecting && this.method() === 'my' && this.step() === 1 && !this.pageController.error()) {
+        void this.loadMore();
+      }
     }, { root: this.root()?.nativeElement ?? null, rootMargin: '0px 0px 500px 0px' });
     this.observer.observe(sentinel);
   }
@@ -843,8 +848,7 @@ export class AddMoleculesToCollectionComponent
         .submitExisting(
           this.moleculeCollectionItemService,
           collectionId,
-          this.selection,
-          this.multiselectItems().map(w => w.item.id)
+          this.selection
         )
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({

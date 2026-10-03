@@ -33,6 +33,7 @@ describe('PaginationController', () => {
 
     const stale = controller.loadMore();
     controller.setQuery('new');
+    expect(first.observed).toBeFalse();
     await Promise.resolve();
     await Promise.resolve();
     expect(controller.items()).toEqual(['new']);
@@ -71,5 +72,54 @@ describe('PaginationController', () => {
     expect(controller.error()).toBe('Unable to load results.');
     controller.retry();
     expect(controller.error()).toBeUndefined();
+  });
+
+  it('unsubscribes a pending request on disposal without publishing an error', async () => {
+    const request = new Subject<PageModel<string>>();
+    const controller = new PaginationController<string>({ fetch: () => request });
+    const pending = controller.loadMore();
+    expect(request.observed).toBeTrue();
+    controller.dispose();
+    await pending;
+    expect(request.observed).toBeFalse();
+    expect(controller.loading()).toBeFalse();
+    expect(controller.error()).toBeUndefined();
+    expect(controller.items()).toEqual([]);
+  });
+
+  it('requires an explicit retry after failure even if an observer fires again', async () => {
+    const fetch = jasmine.createSpy('fetch').and.returnValue(throwError(() => new Error('offline')));
+    const controller = new PaginationController<string>({ fetch });
+    await controller.loadMore();
+    await controller.loadMore();
+    await controller.loadMore();
+    expect(fetch).toHaveBeenCalledTimes(1);
+    controller.retry();
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not restart disposed pagination through a queued load or reset', async () => {
+    const fetch = jasmine.createSpy('fetch').and.returnValue(of({ items: [], currentPage: 1, totalPages: 0 }));
+    const controller = new PaginationController<string>({ fetch });
+    controller.dispose();
+    controller.reset();
+    controller.retry();
+    await controller.loadMore();
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it('can resume suspended pagination when returning to the previous screen', async () => {
+    const response = new Subject<PageModel<string>>();
+    const fetch = jasmine.createSpy('fetch').and.returnValue(response);
+    const controller = new PaginationController<string>({ fetch });
+    const pending = controller.loadMore();
+    controller.suspend();
+    await pending;
+    await controller.loadMore();
+    expect(response.observed).toBeFalse();
+    expect(fetch).toHaveBeenCalledTimes(1);
+    controller.reset();
+    expect(fetch).toHaveBeenCalledTimes(2);
+    controller.dispose();
   });
 });

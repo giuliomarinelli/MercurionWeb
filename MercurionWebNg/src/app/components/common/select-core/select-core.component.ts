@@ -11,6 +11,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { SelectSelectionChange, SelectState } from './select-core.types';
+import { SmoothResizeDirective } from '../smooth-resize/smooth-resize.directive';
 
 let generatedSelectId = 0;
 
@@ -22,9 +23,9 @@ let generatedSelectId = 0;
 @Component({
   selector: 'm-select-core',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, NgClass],
+  imports: [FormsModule, NgClass, SmoothResizeDirective],
   template: `
-    <div class="relative w-full">
+    <div class="relative w-full" mSmoothResize="height">
       @if (label()) {
         <label
           class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-200"
@@ -102,12 +103,14 @@ let generatedSelectId = 0;
 
         @if (isOpen()) {
           <div
-            class="mt-2 overflow-y-auto text-slate-800 dark:text-slate-50"
+            class="mt-2 overflow-y-auto custom-scrollbar text-slate-800 dark:text-slate-50"
             [id]="listboxId()"
             [style.max-height]="listMaxHeight()"
+            [style.min-height]="'min(10rem, ' + listMaxHeight() + ')'"
             role="listbox"
             [attr.aria-label]="ariaLabel() || label() || 'Elenco elementi'"
             [attr.aria-multiselectable]="multiple() || null"
+            [attr.aria-busy]="loading() || null"
             (scroll)="onScroll($event)"
           >
             @if (filteredItems().length) {
@@ -131,13 +134,23 @@ let generatedSelectId = 0;
                   {{ displayFn()(item) }}
                 </div>
               }
-            } @else {
+            } @else if (!loading()) {
               <div
                 class="px-3 py-2 text-slate-600 dark:text-slate-300"
                 role="status"
                 aria-live="polite"
               >
                 Nessun risultato
+              </div>
+            }
+
+            @if (loading()) {
+              <div role="status" aria-live="polite" aria-label="Caricamento elementi">
+                @for (row of [0, 1, 2, 3]; track row) {
+                  <div class="m-select-skeleton rounded-md px-3 py-2" aria-hidden="true">
+                    <span class="block h-6 rounded bg-slate-200 dark:bg-slate-700 motion-safe:animate-pulse"></span>
+                  </div>
+                }
               </div>
             }
 
@@ -191,11 +204,6 @@ let generatedSelectId = 0;
               </div>
             }
 
-            @if (loadingMore()) {
-              <div class="px-3 py-2 text-sm text-slate-600 dark:text-slate-300">
-                Caricamento...
-              </div>
-            }
           </div>
         }
       </div>
@@ -234,6 +242,7 @@ export class SelectCoreComponent<TItem, TValue> {
   readonly invalid = input(false);
   readonly searchPlaceholder = input('Cerca...');
   readonly hasMore = input(false);
+  readonly loading = input(false);
   readonly canCreateNew = input(false);
   readonly listMaxHeight = input('16rem');
 
@@ -249,7 +258,6 @@ export class SelectCoreComponent<TItem, TValue> {
   });
   readonly creatingNew = signal(false);
   readonly newItemName = signal('');
-  readonly loadingMore = signal(false);
   readonly searchInput = viewChild<ElementRef<HTMLInputElement>>('searchInput');
   readonly newInput = viewChild<ElementRef<HTMLInputElement>>('newInput');
   readonly createTrigger = viewChild<ElementRef<HTMLButtonElement>>('createTrigger');
@@ -357,6 +365,7 @@ export class SelectCoreComponent<TItem, TValue> {
 
   selectItem(item: TItem): void {
     if (this.disabled()) return;
+    this.searchInput()?.nativeElement.blur();
     const value = this.valueFn()(item);
     if (this.multiple()) {
       const current = [...this.selectedValues()];
@@ -369,7 +378,6 @@ export class SelectCoreComponent<TItem, TValue> {
     } else {
       this.selectionChange.emit({ item, value, values: [value] });
       this.updateState({ activeIndex: -1, searchTerm: '' });
-      this.searchInput()?.nativeElement.focus();
     }
     this.creatingNew.set(false);
   }
@@ -422,10 +430,8 @@ export class SelectCoreComponent<TItem, TValue> {
 
   onScroll(event: Event): void {
     const target = event.target as HTMLElement;
-    if (this.hasMore() && target.scrollTop + target.clientHeight >= target.scrollHeight - 10 && !this.loadingMore()) {
-      this.loadingMore.set(true);
+    if (this.hasMore() && !this.loading() && target.scrollTop + target.clientHeight >= target.scrollHeight - 10) {
       this.loadMore.emit();
-      window.setTimeout(() => this.loadingMore.set(false), 800);
     }
   }
 
