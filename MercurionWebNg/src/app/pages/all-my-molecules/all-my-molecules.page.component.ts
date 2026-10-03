@@ -165,6 +165,16 @@ export class AllMyMoleculesPageComponent implements OnInit, OnDestroy {
         this.resetPagination()
       })
     })
+    effect(() => {
+      const event = this.invalidations.last()
+      const remoteMoleculeChanged =
+        event?.domain === 'molecule' &&
+        event.action === 'changed' &&
+        event.remote === true
+      const reconnect = event?.domain === 'realtime' && event.action === 'reconcile'
+      if (!remoteMoleculeChanged && !reconnect) return
+      queueMicrotask(() => this.resetPagination())
+    })
   }
 
 
