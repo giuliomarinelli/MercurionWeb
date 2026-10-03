@@ -115,6 +115,7 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
   loading = false
   done = false
   protected page = 1
+  private loadGeneration = 0
 
   constructor() {
 
@@ -280,6 +281,7 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private reloadHistory(): void {
+    this.loadGeneration++
     this.page = 1
     this.done = false
     this.loading = false
@@ -293,9 +295,11 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.loading || this.done) return
 
     this.loading = true
+    const generation = this.loadGeneration
+    const requestedPage = this.page
 
     const newPage = await firstValueFrom(
-      this.historyService.getHistory(this.page, 25).pipe(
+      this.historyService.getHistory(requestedPage, 25).pipe(
         debounce(() => interval(80)),
         distinctUntilChanged(),
         catchError(() => {
@@ -305,6 +309,8 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
         })
       )
     )
+
+    if (generation !== this.loadGeneration) return
 
     if (!newPage || !newPage.items || newPage.items.length === 0) {
       if (this.items().length === 0) {
