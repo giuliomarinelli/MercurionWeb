@@ -10,9 +10,12 @@ import {
   MoleculePreviewsByMolregnosDocument,
   MoleculePreviewsByMolregnosQuery,
   MoleculePreviewsByMolregnosQueryVariables,
-  PreferredNameItByCanonicalSmilesDocument,
-  PreferredNameItByCanonicalSmilesQuery,
-  PreferredNameItByCanonicalSmilesQueryVariables
+  MoleculeNameByCanonicalSmilesDocument,
+  MoleculeNameByCanonicalSmilesPublicDocument,
+  MoleculeNameByCanonicalSmilesPublicQuery,
+  MoleculeNameByCanonicalSmilesPublicQueryVariables,
+  MoleculeNameByCanonicalSmilesQueryVariables,
+  MoleculeNameByCanonicalSmilesQuery
 } from '../../generated/graphql';
 import {
   ApplicationClientError,
@@ -66,23 +69,33 @@ export class MoleculeService {
   }
 
   getPreferredNameItByCanonicalSmiles(
-    canonicalSmiles: string
+    canonicalSmiles: string,
+    isPublicMode = false
   ): Observable<MoleculeNameByCanonicalSmilesDTO> {
-    return this.apollo
-      .query<
-        PreferredNameItByCanonicalSmilesQuery,
-        PreferredNameItByCanonicalSmilesQueryVariables
+    const options = {
+      variables: { canonicalSmiles },
+      fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.ephemeralLookup,
+      context: {
+        credentials: 'include'
+      }
+    };
+    const lookup = isPublicMode
+      ? this.apollo.query<
+        MoleculeNameByCanonicalSmilesPublicQuery,
+        MoleculeNameByCanonicalSmilesPublicQueryVariables
       >({
-        query: PreferredNameItByCanonicalSmilesDocument,
-        variables: { canonicalSmiles },
-        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.ephemeralLookup,
-        context: {
-          credentials: 'include'
-        }
-      })
-      .pipe(
-        map(result => result.data.preferredNameItByCanonicalSmiles ?? null)
-      )
+        ...options,
+        query: MoleculeNameByCanonicalSmilesPublicDocument
+      }).pipe(map(result => result.data.moleculeNameByCanonicalSmilesPublic))
+      : this.apollo.query<
+        MoleculeNameByCanonicalSmilesQuery,
+        MoleculeNameByCanonicalSmilesQueryVariables
+      >({
+        ...options,
+        query: MoleculeNameByCanonicalSmilesDocument
+      }).pipe(map(result => result.data.moleculeNameByCanonicalSmiles));
+
+    return lookup
   }
 
 }

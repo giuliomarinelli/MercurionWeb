@@ -1,4 +1,4 @@
-export interface MoleculeNameByCanonicalSmilesDTO {
-    type: 'chembl' | 'custom'
-    preferredNameIt: string | null
-}
+import { MoleculeNameByCanonicalSmilesQuery } from '../../generated/graphql';
+
+export type MoleculeNameByCanonicalSmilesDTO =
+    MoleculeNameByCanonicalSmilesQuery['moleculeNameByCanonicalSmiles'];
