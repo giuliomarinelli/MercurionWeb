@@ -1,4 +1,4 @@
-import { effect, inject, Injectable } from '@angular/core'
+import { effect, inject, Injectable, signal } from '@angular/core'
 import { Subscription } from 'rxjs'
 import type { SocketStateChangedPayload } from '@mercurion/socket-contracts'
 import { DomainInvalidationService, type DomainInvalidation } from './domain-invalidation.service'
@@ -11,14 +11,14 @@ export class RealtimeStateSyncService {
   private readonly invalidations = inject(DomainInvalidationService)
   private readonly status = inject(RealtimeSyncStatusService)
   private subscription?: Subscription
-  private started = false
+  private readonly started = signal(false)
   private privateConnectionSeen = false
   private privateGapSeen = false
 
   constructor() {
     effect(() => {
       const state = this.socket.state()
-      if (!this.started) return
+      if (!this.started()) return
       if ((state.kind === 'reconnecting' || state.kind === 'degraded') && state.mode === 'private') {
         this.privateGapSeen = true
         return
@@ -34,8 +34,8 @@ export class RealtimeStateSyncService {
   }
 
   start(): void {
-    if (this.started) return
-    this.started = true
+    if (this.started()) return
+    this.started.set(true)
     this.subscription = this.socket.onStateChanged().subscribe(payload => {
       this.invalidations.publish(this.toDomainInvalidation(payload))
       this.status.markSynchronized()
@@ -45,7 +45,7 @@ export class RealtimeStateSyncService {
   stop(): void {
     this.subscription?.unsubscribe()
     this.subscription = undefined
-    this.started = false
+    this.started.set(false)
     this.privateConnectionSeen = false
     this.privateGapSeen = false
     this.status.clear()
