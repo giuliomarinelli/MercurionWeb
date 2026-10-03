@@ -41,6 +41,7 @@ import { ActivationReceipt } from '../models/entities/activation-receipt.entity'
 import { NotificationOutboxService } from 'src/app_modules/notification/services/outbox/notification-outbox.service'
 import { InAppNotificationService } from 'src/app_modules/notification/services/in-app-notification.service'
 import { InAppNotificationType } from 'src/app_modules/notification/models/in-app-notification-catalog'
+import { RealtimeStateSyncService } from 'src/app_modules/socket-io/realtime-state-sync.service'
 
 
 
@@ -75,6 +76,7 @@ export class AccountFlowKernel {
         private readonly initialWorkspace: InitialWorkspaceService,
         private readonly notificationOutbox: NotificationOutboxService,
         private readonly inAppNotifications: InAppNotificationService,
+        private readonly stateSync: RealtimeStateSyncService,
         meiliLogger: LoggerPort
     ) {
         this.CHANGE_PASSWORD_TOKEN_EXPIRATION_MS = this.configService.get<number>('Jwt.changePasswordToken.expiresInMs') ?? 300_000
@@ -457,6 +459,11 @@ export class AccountFlowKernel {
                 dedupeKey: `account:${userId}:email-changed-new:${jti}`,
                 correlationId: jti
             })
+            this.stateSync.publishAfterCommit(context, [userId], {
+                kind: 'resource-state-changed',
+                domain: 'profile',
+                change: 'updated'
+            })
         })
 
         return this._r.ok('Email successfully changed and verified')
@@ -584,6 +591,18 @@ export class AccountFlowKernel {
                     })
                 }
             })
+            this.stateSync.publishAfterCommit(context, [userId], {
+                kind: 'resource-state-changed',
+                domain: 'profile',
+                change: 'updated'
+            })
+            if (phoneMfaDisabled) {
+                this.stateSync.publishAfterCommit(context, [userId], {
+                    kind: 'resource-state-changed',
+                    domain: 'account-security',
+                    change: 'updated'
+                })
+            }
 
             return {
                 ...this._r.ok('Phone number successfully deleted'),
@@ -708,6 +727,12 @@ export class AccountFlowKernel {
 
         this.smsService.sendSms(newCompletePhoneNumber, newNotificationBody).catch((e) => {
             this.logger.warn(`Errore durante l'invio sms phone changed, newPhone=${this.hmacKey(newCompletePhoneNumber)}, userId=${userId}`, e as string | object)
+        })
+
+        this.stateSync.publishToUser(userId, {
+            kind: 'resource-state-changed',
+            domain: 'profile',
+            change: 'updated'
         })
 
         return this._r.ok('Phone number successfully updated')
