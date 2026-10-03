@@ -5,6 +5,7 @@ import { SessionDTO } from '../models/dto/session.dto'
 import { TokenType } from '../models/enums/token-type.enum'
 import { JwtToolsService } from '../services/jwt-tools.service'
 import { SessionService } from '../services/session.service'
+import { RealtimeStateSyncService } from 'src/app_modules/socket-io/realtime-state-sync.service'
 
 export interface LogoutCommand {
     sessionId: UUID
@@ -49,7 +50,10 @@ export interface RevokeSessionResult {
 
 @Injectable()
 export class RevokeSessionHandler {
-    constructor(private readonly sessionService: SessionService) { }
+    constructor(
+        private readonly sessionService: SessionService,
+        private readonly stateSync: RealtimeStateSyncService
+    ) { }
 
     public async execute(
         command: RevokeSessionCommand
@@ -59,6 +63,11 @@ export class RevokeSessionHandler {
             command.userId
         )
         const [targetSessionId] = command.signedSessionId.split('.')
+        this.stateSync.publishToUser(command.userId, {
+            kind: 'resource-state-changed',
+            domain: 'sessions',
+            change: 'updated'
+        })
         return {
             revokedCurrentSession: targetSessionId === command.currentSessionId
         }
