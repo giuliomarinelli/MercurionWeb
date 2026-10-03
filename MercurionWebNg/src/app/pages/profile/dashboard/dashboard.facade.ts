@@ -27,7 +27,15 @@ export class DashboardFacade {
     this.load();
     effect(() => {
       const event = this.invalidations.last();
-      if (event?.domain === 'dashboard' && event.action === 'profile-changed') this.load();
+      if (!event) return;
+      const legacy = event.domain === 'dashboard' && event.action === 'profile-changed';
+      const remoteDomain =
+        event.domain === 'profile' ||
+        event.domain === 'molecule' ||
+        event.domain === 'molecule-collection' ||
+        event.domain === 'history';
+      const reconnect = event.domain === 'realtime' && event.action === 'reconcile';
+      if (legacy || (remoteDomain && 'remote' in event && event.remote === true) || reconnect) this.load();
     });
   }
 
