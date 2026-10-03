@@ -172,6 +172,17 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
     })
 
     effect(() => {
+      const event = this.invalidation.last()
+      const historyChanged =
+        event?.domain === 'history' &&
+        event.action === 'changed' &&
+        event.remote === true
+      const reconnect = event?.domain === 'realtime' && event.action === 'reconcile'
+      if (!historyChanged && !reconnect) return
+      queueMicrotask(() => this.reloadHistory())
+    })
+
+    effect(() => {
       const i = this.items()
       if (i.length === 0) {
         this.emptyChange.emit(true)
@@ -266,6 +277,15 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
     )
 
     this.observer.observe(this.sentinel().nativeElement)
+  }
+
+  private reloadHistory(): void {
+    this.page = 1
+    this.done = false
+    this.loading = false
+    this.serverError.set(false)
+    this.items.set([])
+    void this.loadMore()
   }
 
   async loadMore() {
