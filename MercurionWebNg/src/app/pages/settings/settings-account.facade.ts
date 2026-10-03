@@ -5,12 +5,14 @@ import { ToastService } from '../../services/toast.service'
 import type { AuthProvider } from '../../Models/auth/provider.models'
 import type { BuildIdentityDTO, ProfileDTO } from '../../Models/account/account.models'
 import { DomainInvalidationService } from '../../services/domain-invalidation.service'
+import { RealtimeSyncStatusService } from '../../services/realtime-sync-status.service'
 
 @Injectable()
 export class SettingsAccountFacade {
   private readonly account = inject(AccountService)
   private readonly toast = inject(ToastService)
   private readonly invalidations = inject(DomainInvalidationService)
+  private readonly syncStatus = inject(RealtimeSyncStatusService)
   private request?: Subscription
 
   readonly loading = signal(true)
@@ -29,6 +31,7 @@ export class SettingsAccountFacade {
         event.remote === true
       const reconnect = event?.domain === 'realtime' && event.action === 'reconcile'
       if (!profileChanged && !reconnect) return
+      if (profileChanged) this.syncStatus.markSynchronized()
       queueMicrotask(() => this.load(true))
     })
   }
