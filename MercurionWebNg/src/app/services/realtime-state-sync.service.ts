@@ -17,8 +17,8 @@ export class RealtimeStateSyncService {
 
   constructor() {
     effect(() => {
-      if (!this.started) return
       const state = this.socket.state()
+      if (!this.started) return
       if ((state.kind === 'reconnecting' || state.kind === 'degraded') && state.mode === 'private') {
         this.privateGapSeen = true
         return
