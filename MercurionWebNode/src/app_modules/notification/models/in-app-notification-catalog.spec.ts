@@ -45,4 +45,25 @@ describe('in-app notification catalog', () => {
       }
     })
   })
+
+  it('builds a user-reply notification for support recipients', () => {
+    const notification = buildInAppNotification({
+      type: InAppNotificationType.SupportUserReplyReceived,
+      recipientUserId: userId,
+      dedupeKey: 'support.user_reply_received:message-2:' + userId,
+      ticketId: '018f0f12-3d4c-7abc-8def-0123456789ac',
+      ticketPublicId: 'T-123'
+    })
+
+    expect(notification).toMatchObject({
+      type: InAppNotificationType.SupportUserReplyReceived,
+      category: InAppNotificationCategory.Support,
+      resourceType: 'help_ticket',
+      resourceId: '018f0f12-3d4c-7abc-8def-0123456789ac',
+      payload: {
+        ticketPublicId: 'T-123'
+      }
+    })
+    expect(notification.summary).toContain('risposta')
+  })
 })
