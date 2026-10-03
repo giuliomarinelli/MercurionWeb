@@ -185,6 +185,17 @@ export class MyMoleculeCollectionsPageComponent implements OnInit, OnDestroy {
     })
 
     effect(() => {
+      const event = this.invalidations.last()
+      const remoteCollectionChanged =
+        event?.domain === 'molecule-collection' &&
+        event.action === 'changed' &&
+        event.remote === true
+      const reconnect = event?.domain === 'realtime' && event.action === 'reconcile'
+      if (!remoteCollectionChanged && !reconnect) return
+      queueMicrotask(() => this.resetPagination())
+    })
+
+    effect(() => {
       const t = this.tick()
       if (t === 0) {
         return
