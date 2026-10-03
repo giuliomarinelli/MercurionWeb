@@ -11,6 +11,7 @@ import { CustomMoleculeItemEntity } from 'src/app_modules/molecule-collection/mo
 import { UUID } from "crypto";
 import { Repository } from 'typeorm';
 import { MoleculeNameByCanonicalSmilesDTO, MoleculeNameSource } from "../models/dto/molecule-name-by-canonical-smiles.gql.dto";
+import { PcpService } from "src/app_modules/mercurion-ai/services/pcp.service";
 
 type Maybe<T> = T | null | undefined;
 type MoleculeDetailWithMolregno = MoleculeDetailModel & {
@@ -27,7 +28,8 @@ export class MoleculeService {
         private readonly meiliClient: MeiliSearch,
         @InjectRepository(CustomMoleculeItemEntity)
         private readonly customMoleculeRepo: Repository<CustomMoleculeItemEntity>,
-        meiliLogger: LoggerPort
+        private readonly pcpService: PcpService,
+        meiliLogger: LoggerPort,
     ) {
         this.logger = meiliLogger.forContext(MoleculeService.name)
     }
@@ -165,24 +167,29 @@ export class MoleculeService {
         return Number.isInteger(molregno) && molregno > 0 ? molregno : null
     }
 
-    async getPreferredNameItByCanonicalSmilesFromChembleCoalesceCustomMolecule(canonicalSmiles: string, userId?: UUID): Promise<MoleculeNameByCanonicalSmilesDTO> {
+    async getMoleculeName(canonicalSmiles: string, userId?: UUID): Promise<MoleculeNameByCanonicalSmilesDTO> {
         const preferredNameItFromChembl = await this.getPreferredNameItByCanonicalSmiles(canonicalSmiles)
         if (preferredNameItFromChembl) {
             return {
                 type: 'chembl' as MoleculeNameSource,
-                preferredNameIt: preferredNameItFromChembl
+                name: preferredNameItFromChembl
             }
         }
-        let customMolecule: CustomMoleculeItemEntity | null = null
         if (userId) {
-            customMolecule = await this.customMoleculeRepo.findOne({
+            const customMolecule = await this.customMoleculeRepo.findOne({
                 where: { userId, canonicalSmiles },
                 select: ['name']
             })
+            if (customMolecule) {
+                return {
+                    type: 'custom' as MoleculeNameSource,
+                    name: customMolecule?.name ?? null
+                }
+            }
         }
         return {
-            type: 'custom' as MoleculeNameSource,
-            preferredNameIt: customMolecule?.name ?? null
+            type: 'iupac' as MoleculeNameSource,
+            name: await this.pcpService.getIupacNameFromSmiles({ smiles: canonicalSmiles })
         }
     }
     // ============= PRIVATE =============

@@ -1,4 +1,6 @@
 import type {
+  PcpGetIupacNameFromSmilesDTO,
+  PcpGetIupacNameFromSmilesWire,
   RdkitAreSameStructureDTO,
   RdkitAreSameStructureWire,
   RdkitCanonicalSmilesWire,
@@ -16,7 +18,7 @@ export type NatsEnvironment = 'development' | 'test' | 'staging' | 'production' 
 
 export interface MercurionInferenceRequest {
   smiles: string
-  accessToken: string
+  accessToken?: string
 }
 
 export interface Tox21Inference {
@@ -100,43 +102,56 @@ const isInferenceResponse = (value: unknown): value is MercurionInferenceRespons
 }
 
 const isInferenceRequest = (value: unknown): value is MercurionInferenceRequest =>
-  isRecord(value) &&
-  typeof value.smiles === 'string' &&
-  value.smiles.trim().length > 0 &&
-  value.smiles.length <= 1024 &&
-  typeof value.accessToken === 'string' &&
-  value.accessToken.trim().length >= 10 &&
-  value.accessToken.length <= 4096 &&
-  Object.keys(value).every((key) => ['smiles', 'accessToken'].includes(key))
+  isSingleSmilesRequest(value)
 
 const hasBoundedAccessToken = (value: Record<string, unknown>): boolean =>
-  typeof value.accessToken === 'string' &&
-  value.accessToken.trim().length >= 10 &&
-  value.accessToken.length <= 4096
+  value.accessToken === undefined || (
+    typeof value.accessToken === 'string' && value.accessToken.trim().length <= 4096
+  )
 
 const isBoundedSmiles = (value: unknown): value is string =>
-  typeof value === 'string' && value.trim().length > 0 && value.length <= RDKIT_SMILES_MAX_LENGTH
+  typeof value === 'string' && value.trim().length > 0 && value.trim().length <= RDKIT_SMILES_MAX_LENGTH
 
-const isRdkitSingleSmilesRequest = <T>(value: unknown): value is T =>
+const isSingleSmilesRequest = (value: unknown): value is RdkitGetMoleculePropertiesDTO =>
   isRecord(value) && hasBoundedAccessToken(value) && isBoundedSmiles(value.smiles) &&
-  Object.keys(value).every((key) => ['accessToken', 'smiles', 'opts'].includes(key))
+  Object.keys(value).every((key) => ['accessToken', 'smiles'].includes(key))
 
-const isRdkitSameStructureRequest = <T>(value: unknown): value is T =>
+const isRdkitCanonicalRequest = (value: unknown): value is RdkitToCanonicalSmilesDTO =>
+  isRecord(value) && hasBoundedAccessToken(value) && isBoundedSmiles(value.smiles) &&
+  Object.keys(value).every((key) => ['accessToken', 'smiles', 'opts'].includes(key)) &&
+  (value.opts === undefined || value.opts === null || (
+    isRecord(value.opts) && Object.entries(value.opts).every(([key, option]) =>
+      ['isomeric', 'kekule'].includes(key) && (option === undefined || typeof option === 'boolean')
+    )
+  ))
+
+const isRdkitSameStructureRequest = (value: unknown): value is RdkitAreSameStructureDTO =>
   isRecord(value) && hasBoundedAccessToken(value) &&
   isBoundedSmiles(value.a) && isBoundedSmiles(value.b) &&
   Object.keys(value).every((key) => ['accessToken', 'a', 'b'].includes(key))
 
-const isRdkitResponse = <T>(value: unknown): value is T => {
+const isDataResponse = (value: unknown): value is { data: unknown } =>
+  isRecord(value) && Object.keys(value).length === 1 && 'data' in value
+
+const isRdkitPropertiesResponse = (value: unknown): value is RdkitGetMoleculePropertiesWire => {
   if (hasError(value)) return true
-  if (!isRecord(value) || Object.keys(value).length !== 1 || !('data' in value)) return false
+  if (!isDataResponse(value)) return false
   const data = value.data
-  return typeof data === 'string' || typeof data === 'boolean' || (
-    isRecord(data) && Object.keys(data).length === 6 &&
+  return isRecord(data) && Object.keys(data).length === 6 &&
     ['mwFreebase', 'alogp', 'hba', 'hbd', 'psa', 'rtb'].every((key) =>
       data[key] === null || (typeof data[key] === 'number' && Number.isFinite(data[key]))
     )
-  )
 }
+
+const isRdkitCanonicalResponse = (value: unknown): value is RdkitCanonicalSmilesWire =>
+  hasError(value) || (isDataResponse(value) && typeof value.data === 'string')
+
+const isRdkitSameStructureResponse = (value: unknown): value is RdkitAreSameStructureWire =>
+  hasError(value) || (isDataResponse(value) && typeof value.data === 'boolean')
+
+const isPcpResponse = (value: unknown): value is PcpGetIupacNameFromSmilesWire =>
+  hasError(value) || (isDataResponse(value) && isRecord(value.data) &&
+    Object.keys(value.data).length === 1 && typeof value.data.iupac_name === 'string')
 
 const errorContract: NatsErrorContract = Object.freeze({
   wireShape: 'error-string',
@@ -154,10 +169,13 @@ const errorContract: NatsErrorContract = Object.freeze({
   ])
 })
 
-const inferenceRequestSchema = schema({
-  smiles: stringProperty(),
-  accessToken: stringProperty(10)
-}, ['smiles', 'accessToken'])
+const smilesProperty = { ...stringProperty(), maxLength: RDKIT_SMILES_MAX_LENGTH, pattern: '\\S' }
+const accessTokenProperty = { ...stringProperty(0), maxLength: 4096 }
+
+const singleSmilesRequestSchema = schema({
+  smiles: smilesProperty,
+  accessToken: accessTokenProperty
+}, ['smiles'])
 
 const inferenceResponseSchema: NatsJsonSchema = {
   $schema: 'https://json-schema.org/draft/2020-12/schema',
@@ -173,22 +191,49 @@ const inferenceResponseSchema: NatsJsonSchema = {
   ]
 }
 
-const rdkitRequestSchema = schema({
-  accessToken: stringProperty(10),
-  smiles: stringProperty(),
-  a: stringProperty(),
-  b: stringProperty(),
-  opts: { type: 'object' }
-}, ['accessToken'])
+const canonicalRequestSchema = schema({
+  accessToken: accessTokenProperty,
+  smiles: smilesProperty,
+  opts: {
+    type: ['object', 'null'],
+    additionalProperties: false,
+    properties: {
+      isomeric: { type: 'boolean', default: true },
+      kekule: { type: 'boolean', default: false }
+    }
+  }
+}, ['smiles'])
 
-const rdkitResponseSchema: NatsJsonSchema = {
+const sameStructureRequestSchema = schema({
+  accessToken: accessTokenProperty,
+  a: smilesProperty,
+  b: smilesProperty
+}, ['a', 'b'])
+
+const responseSchema = (data: Readonly<Record<string, unknown>>): NatsJsonSchema => ({
   $schema: 'https://json-schema.org/draft/2020-12/schema',
   type: 'object',
   anyOf: [
-    { required: ['error'], properties: { error: stringProperty() } },
-    { required: ['data'] }
+    { additionalProperties: false, required: ['error'], properties: { error: { ...stringProperty(), pattern: '\\S' } } },
+    { additionalProperties: false, required: ['data'], properties: { data } }
   ]
-}
+})
+
+const rdkitPropertiesResponseSchema = responseSchema({
+  type: 'object',
+  additionalProperties: false,
+  required: ['mwFreebase', 'alogp', 'hba', 'hbd', 'psa', 'rtb'],
+  properties: Object.fromEntries(
+    ['mwFreebase', 'alogp', 'hba', 'hbd', 'psa', 'rtb'].map((key) => [key, { type: ['number', 'null'] }])
+  )
+})
+
+const pcpResponseSchema = responseSchema({
+  type: 'object',
+  additionalProperties: false,
+  required: ['iupac_name'],
+  properties: { iupac_name: { type: 'string' } }
+})
 
 const contract = <Request, Response>(
   id: string,
@@ -214,7 +259,7 @@ export const NATS_CONTRACT_REGISTRY = Object.freeze({
   inferenceTop4: contract<MercurionInferenceRequest, MercurionInferenceResponse>(
     'mercurion.inference.top4',
     'inference.tox21.smiles',
-    inferenceRequestSchema,
+    singleSmilesRequestSchema,
     inferenceResponseSchema,
     isInferenceRequest,
     isInferenceResponse
@@ -222,26 +267,34 @@ export const NATS_CONTRACT_REGISTRY = Object.freeze({
   rdkitGetMoleculeProperties: contract<RdkitGetMoleculePropertiesDTO, RdkitGetMoleculePropertiesWire>(
     'mercurion.rdkit.get-molecule-properties',
     'rdkit_api.get_molecule_properties',
-    rdkitRequestSchema,
-    rdkitResponseSchema,
-    isRdkitSingleSmilesRequest,
-    isRdkitResponse
+    singleSmilesRequestSchema,
+    rdkitPropertiesResponseSchema,
+    isSingleSmilesRequest,
+    isRdkitPropertiesResponse
   ),
   rdkitToCanonicalSmiles: contract<RdkitToCanonicalSmilesDTO, RdkitCanonicalSmilesWire>(
     'mercurion.rdkit.to-canonical-smiles',
     'rdkit_api.to_canonical_smiles',
-    rdkitRequestSchema,
-    rdkitResponseSchema,
-    isRdkitSingleSmilesRequest,
-    isRdkitResponse
+    canonicalRequestSchema,
+    responseSchema({ type: 'string' }),
+    isRdkitCanonicalRequest,
+    isRdkitCanonicalResponse
   ),
   rdkitAreSameStructure: contract<RdkitAreSameStructureDTO, RdkitAreSameStructureWire>(
     'mercurion.rdkit.are-same-structure',
     'rdkit_api.are_same_structure',
-    rdkitRequestSchema,
-    rdkitResponseSchema,
+    sameStructureRequestSchema,
+    responseSchema({ type: 'boolean' }),
     isRdkitSameStructureRequest,
-    isRdkitResponse
+    isRdkitSameStructureResponse
+  ),
+  pcpGetIupacNameFromSmiles: contract<PcpGetIupacNameFromSmilesDTO, PcpGetIupacNameFromSmilesWire>(
+    'mercurion.pcp.get-iupac-name-from-smiles',
+    'pcp_api.get_iupac_name_from_smiles',
+    singleSmilesRequestSchema,
+    pcpResponseSchema,
+    isSingleSmilesRequest,
+    isPcpResponse
   )
 } as const)
 

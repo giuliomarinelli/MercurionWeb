@@ -8,6 +8,7 @@ import {
   catchError,
   debounceTime,
   distinctUntilChanged,
+  exhaustMap,
   filter,
   firstValueFrom,
   map,
@@ -288,23 +289,25 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
 
       this.moleculeNameLoading.set(true)
 
-      const sub = this.moleculeService
-        .getPreferredNameItByCanonicalSmiles(canonicalSmiles)
+      const sub = of(null)
+        .pipe(
+          exhaustMap(() => this.moleculeService.getPreferredNameItByCanonicalSmiles(canonicalSmiles))
+        )
         .subscribe({
           next: res => {
             if (this.currentCanonicalSmiles() !== canonicalSmiles) return
 
             this.moleculeNameLoading.set(false)
 
-            if (!res.preferredNameIt) {
+            if (!res.name) {
               this.currentMoleculeName.set(null)
               this.currentMoleculeType.set(null)
               return
             }
 
-            this.currentMoleculeName.set(res.preferredNameIt)
+            this.currentMoleculeName.set(res.name)
             this.currentMoleculeType.set(
-              res.type === 'chembl' ? 'ChEMBL' : 'Personal'
+              { chembl: 'ChEMBL', custom: 'Personal', iupac: 'IUPAC' }[res.type]
             )
           },
           error: error => {

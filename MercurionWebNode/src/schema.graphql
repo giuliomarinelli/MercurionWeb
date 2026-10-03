@@ -182,13 +182,14 @@ type MoleculeDetail {
 }
 
 type MoleculeNameByCanonicalSmilesDTO {
-  preferredNameIt: String
+  name: String
   type: MoleculeNameSource!
 }
 
 enum MoleculeNameSource {
   chembl
   custom
+  iupac
 }
 
 type MoleculeProperties {
@@ -359,6 +360,8 @@ type Query {
   moleculeByMolregno(molregno: String): MoleculeDetail!
   moleculeCollection(id: ID!): MoleculeCollection
   moleculeItem(id: ID!): MoleculeCollectionItemUnion
+  moleculeNameByCanonicalSmiles(canonicalSmiles: String!): MoleculeNameByCanonicalSmilesDTO!
+  moleculeNameByCanonicalSmilesPublic(canonicalSmiles: String!): MoleculeNameByCanonicalSmilesDTO!
   moleculePreviewsByMolregnos(molregnos: [String!]!): [MoleculeSearchResult!]!
   moleculeSearch(input: MoleculeSearchInput!): [MoleculeSearchResult!]!
   moleculeSearch_excludeAlreadyAdded(collectionId: ID!, input: MoleculeSearchInput!): [MoleculeSearchResult!]!
@@ -375,7 +378,6 @@ type Query {
   pagesBySection(sectionId: String!): [NotebookPage!]!
   paginatedMoleculeCollectionItemsByCollection(collectionId: String!, excluded: Boolean, limit: Int! = 20, page: Int! = 1, q: String!): PaginatedMoleculeCollectionItem!
   paginatedMoleculeCollectionItemsByUser(collectionId: ID, excludeJoinedToCollection: Boolean, limit: Int! = 20, page: Int! = 1, q: String!): PaginatedMoleculeCollectionItem!
-  preferredNameItByCanonicalSmiles(canonicalSmiles: String!): MoleculeNameByCanonicalSmilesDTO!
   searchMyCollections(limit: Float, query: String): [MoleculeCollection!]!
   sectionByChapterId(chapterId: ID!): NotebookSection!
   sectionById(id: ID!): NotebookSection!

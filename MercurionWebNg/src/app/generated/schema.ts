@@ -199,13 +199,14 @@ export type MoleculeDetail = {
 
 export type MoleculeNameByCanonicalSmilesDto = {
   __typename?: 'MoleculeNameByCanonicalSmilesDTO';
-  preferredNameIt?: Maybe<Scalars['String']['output']>;
+  name?: Maybe<Scalars['String']['output']>;
   type: MoleculeNameSource;
 };
 
 export type MoleculeNameSource =
   | 'chembl'
-  | 'custom';
+  | 'custom'
+  | 'iupac';
 
 export type MoleculeProperties = {
   __typename?: 'MoleculeProperties';
@@ -679,6 +680,8 @@ export type Query = {
   moleculeByMolregno: MoleculeDetail;
   moleculeCollection?: Maybe<MoleculeCollection>;
   moleculeItem?: Maybe<MoleculeCollectionItemUnion>;
+  moleculeNameByCanonicalSmiles: MoleculeNameByCanonicalSmilesDto;
+  moleculeNameByCanonicalSmilesPublic: MoleculeNameByCanonicalSmilesDto;
   moleculePreviewsByMolregnos: Array<MoleculeSearchResult>;
   moleculeSearch: Array<MoleculeSearchResult>;
   moleculeSearch_excludeAlreadyAdded: Array<MoleculeSearchResult>;
@@ -695,7 +698,6 @@ export type Query = {
   pagesBySection: Array<NotebookPage>;
   paginatedMoleculeCollectionItemsByCollection: PaginatedMoleculeCollectionItem;
   paginatedMoleculeCollectionItemsByUser: PaginatedMoleculeCollectionItem;
-  preferredNameItByCanonicalSmiles: MoleculeNameByCanonicalSmilesDto;
   searchMyCollections: Array<MoleculeCollection>;
   sectionByChapterId: NotebookSection;
   sectionById: NotebookSection;
@@ -766,6 +768,16 @@ export type QueryMoleculeCollectionArgs = {
 
 export type QueryMoleculeItemArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type QueryMoleculeNameByCanonicalSmilesArgs = {
+  canonicalSmiles: Scalars['String']['input'];
+};
+
+
+export type QueryMoleculeNameByCanonicalSmilesPublicArgs = {
+  canonicalSmiles: Scalars['String']['input'];
 };
 
 
@@ -847,11 +859,6 @@ export type QueryPaginatedMoleculeCollectionItemsByUserArgs = {
   limit?: Scalars['Int']['input'];
   page?: Scalars['Int']['input'];
   q: Scalars['String']['input'];
-};
-
-
-export type QueryPreferredNameItByCanonicalSmilesArgs = {
-  canonicalSmiles: Scalars['String']['input'];
 };
 
 

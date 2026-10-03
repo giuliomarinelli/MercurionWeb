@@ -10,6 +10,11 @@ if (normalizeSourceText(windowsSourceText) !== normalizeSourceText(linuxSourceTe
 console.log('determinism check passed: CRLF and LF source text normalize identically');
 
 const baseline = buildInventory();
+validateCompatibility(baseline);
+if (!baseline.entries.some(entry => entry.consumer.class === 'PcpApiService'
+    && entry.consumer.method === 'getIupacNameFromSmiles')) {
+    throw new Error('REST inventory omitted the standalone PCP client outside the Angular entry-point import graph');
+}
 if (baseline.schemaVersion !== 4) {
     throw new Error(`expected line-independent schemaVersion 4, found ${baseline.schemaVersion}`);
 }
