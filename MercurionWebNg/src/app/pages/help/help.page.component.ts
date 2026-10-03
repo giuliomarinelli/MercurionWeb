@@ -30,6 +30,7 @@ import Aura from '@primeuix/themes/aura'
 import { TicketCardComponent } from '../../components/support/ticket-card/ticket-card.component'
 import { TicketCardSkeletonComponent } from '../../components/support/ticket-card-skeleton/ticket-card-skeleton.component'
 import { DomainInvalidationService } from '../../services/domain-invalidation.service'
+import { RealtimeSyncStatusService } from '../../services/realtime-sync-status.service'
 import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service'
 import { GqlV2Error } from '../../services/graphql/graphql-helpers/v2/gql-v2.error'
 import {
@@ -143,6 +144,7 @@ export class HelpPageComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly helpService = inject(HelpService)
   protected readonly typeGuards = inject(TypeGuardsService)
   private readonly invalidations = inject(DomainInvalidationService)
+  private readonly syncStatus = inject(RealtimeSyncStatusService)
   private readonly overlayContext = inject(ActionOverlayContextService)
   private readonly cdr = inject(ChangeDetectorRef)
   private readonly route = inject(ActivatedRoute)
@@ -184,14 +186,12 @@ export class HelpPageComponent implements OnInit, OnDestroy, AfterViewInit {
     this.primeNG.setConfig({ theme: { preset: Aura, options: { darkModeSelector: '.dark' } } })
     effect(() => {
       const event = this.invalidations.last()
-      if (event?.domain !== 'ticket' || event.action !== 'changed') return
-      this.resetAndReload()
-    })
-
-    effect(() => {
-      const event = this.invalidations.last()
-      if (event?.domain !== 'ticket' || event.action !== 'changed' ||
-          event.scope !== 'User' || this.activeTab() !== 0) return
+      if (!event) return
+      const ticketChanged = event.domain === 'ticket' && event.action === 'changed'
+      const remoteTicketChanged = ticketChanged && 'remote' in event && event.remote === true
+      const reconnect = event.domain === 'realtime' && event.action === 'reconcile'
+      if (!ticketChanged && !reconnect) return
+      if (remoteTicketChanged) this.syncStatus.markSynchronized()
       this.resetAndReload()
     })
   }

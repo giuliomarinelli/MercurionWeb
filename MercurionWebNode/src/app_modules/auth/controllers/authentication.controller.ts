@@ -71,6 +71,7 @@ import { VerifyBodyDTO } from '../models/dto/verify-body.cls.dto.'
 import { TurnstileGuard } from '../guards/turnstile.guard'
 import { SecureCookieService } from '../services/secure-cookie.service'
 import { VerifyBodyPipe } from '../validation-pipes/verify-body.pipe'
+import { RealtimeStateSyncService } from 'src/app_modules/socket-io/realtime-state-sync.service'
 
 @Controller('authentication')
 export class AuthenticationController {
@@ -88,6 +89,7 @@ export class AuthenticationController {
         private readonly refreshWsAccessToken: RefreshWsAccessTokenHandler,
         private readonly completeSsoAuthentication: CompleteSsoAuthenticationHandler,
         private readonly localDummyLoginHandler: LocalDummyLoginHandler,
+        private readonly stateSync: RealtimeStateSyncService,
         private readonly response: ResponseService,
         private readonly secureCookieService: SecureCookieService,
         configService: ConfigService
@@ -321,6 +323,11 @@ export class AuthenticationController {
             this.secureCookieService.clearCookie(reply, '__node_session_id')
             this.secureCookieService.clearCookie(reply, '__logged_in')
         }
+        this.stateSync.publishToUser(userId, {
+            kind: 'resource-state-changed',
+            domain: 'sessions',
+            change: 'updated'
+        })
         return this.response.ok('Action performed successfully')
     }
 

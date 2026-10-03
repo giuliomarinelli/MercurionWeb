@@ -34,6 +34,7 @@ import {
 } from 'src/exception-handling/application-error'
 import { ListActiveSessionsHandler } from '../application/session-authentication.handlers';
 import { buildIdentity } from 'src/generated/build-identity';
+import { RealtimeStateSyncService } from 'src/app_modules/socket-io/realtime-state-sync.service';
 
 
 
@@ -56,6 +57,7 @@ export class AccountController {
         private readonly userService: UserService,
         private readonly securityService: SecurityService,
         private readonly listActiveSessions: ListActiveSessionsHandler,
+        private readonly stateSync: RealtimeStateSyncService,
         private readonly configService: ConfigService
     ) { }
 
@@ -140,7 +142,8 @@ export class AccountController {
     @Patch('/mfa/enable/:strategy/2')
     public async enableMfa_secondStep(
         @Param('strategy') strategyKey: string | undefined,
-        @Body(new ValidationPipe({ transform: true })) totpDTO: TotpDTO
+        @Body(new ValidationPipe({ transform: true })) totpDTO: TotpDTO,
+        @AuthenticatedUserId() userId: UUID
     ): Promise<ConfirmDTO> {
         const strategy: MfaStrategy = GeneralUtils.validateMfaStrategy(strategyKey)
         const { totp, secureToken } = totpDTO
@@ -148,6 +151,11 @@ export class AccountController {
         if (!isValid) {
             throw new UnauthorizedException('Invalid MFA Code')
         }
+        this.stateSync.publishToUser(userId, {
+            kind: 'resource-state-changed',
+            domain: 'account-security',
+            change: 'updated'
+        })
         return this._r.ok(`MFA successfully enabled for strategy ${strategyKey}`)
     }
 
@@ -166,7 +174,8 @@ export class AccountController {
     @Patch('/mfa/disable/:strategy/2')
     public async disableMfa_secondStep(
         @Param('strategy') strategyKey: string | undefined,
-        @Body(new ValidationPipe({ transform: true })) totpDTO: TotpDTO
+        @Body(new ValidationPipe({ transform: true })) totpDTO: TotpDTO,
+        @AuthenticatedUserId() userId: UUID
     ): Promise<ConfirmDTO> {
         const strategy: MfaStrategy = GeneralUtils.validateMfaStrategy(strategyKey)
         const { totp, secureToken } = totpDTO
@@ -174,6 +183,11 @@ export class AccountController {
         if (!isValid) {
             throw new UnauthorizedException('Invalid MFA Code')
         }
+        this.stateSync.publishToUser(userId, {
+            kind: 'resource-state-changed',
+            domain: 'account-security',
+            change: 'updated'
+        })
         return this._r.ok(`MFA successfully disabled for strategy ${strategyKey}`)
     }
 
@@ -274,6 +288,11 @@ export class AccountController {
         if (!result) {
             throw new NotFoundException('UserNotFound::{updated: false}')
         }
+        this.stateSync.publishToUser(userId, {
+            kind: 'resource-state-changed',
+            domain: 'profile',
+            change: 'updated'
+        })
         return result
     }
 
@@ -314,6 +333,12 @@ export class AccountController {
         }
 
         const codes = await this.mfaBackupCodes.regenerate(userId)
+
+        this.stateSync.publishToUser(userId, {
+            kind: 'resource-state-changed',
+            domain: 'account-security',
+            change: 'updated'
+        })
 
         // volendo si può anche loggare un evento di sicurezza tramite il canale del SecurityAuditService
         // TODO maybe

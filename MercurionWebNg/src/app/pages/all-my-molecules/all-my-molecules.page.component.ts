@@ -13,6 +13,7 @@ import { PaginationController } from '../../services/pagination/pagination-contr
 import { PmSearchInputComponent } from '../../components/common/pm-search-input/pm-search-input.component';
 import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service';
 import { DomainInvalidationService } from '../../services/domain-invalidation.service';
+import { RealtimeSyncStatusService } from '../../services/realtime-sync-status.service';
 import { PaginationComponent } from '../../components/common/pagination/pagination.component';
 import { ScrollContextService } from '../../services/context/scroll-context.service';
 
@@ -110,6 +111,7 @@ export class AllMyMoleculesPageComponent implements OnInit, OnDestroy {
   private readonly toast = inject(ToastService)
   private readonly actionContext = inject(ActionOverlayContextService)
   private readonly invalidations = inject(DomainInvalidationService)
+  private readonly syncStatus = inject(RealtimeSyncStatusService)
   private readonly scrollContext = inject(ScrollContextService)
   private readonly pagination = new PaginationController<MoleculeCardItemModel>({
     fetch: (page, query) => this.moleculeCollectionItemService.getAllPaginatedItems(page, 25, query).pipe(
@@ -164,6 +166,17 @@ export class AllMyMoleculesPageComponent implements OnInit, OnDestroy {
       queueMicrotask(() => {
         this.resetPagination()
       })
+    })
+    effect(() => {
+      const event = this.invalidations.last()
+      const remoteMoleculeChanged =
+        event?.domain === 'molecule' &&
+        event.action === 'changed' &&
+        event.remote === true
+      const reconnect = event?.domain === 'realtime' && event.action === 'reconcile'
+      if (!remoteMoleculeChanged && !reconnect) return
+      if (remoteMoleculeChanged) this.syncStatus.markSynchronized()
+      queueMicrotask(() => this.resetPagination())
     })
   }
 

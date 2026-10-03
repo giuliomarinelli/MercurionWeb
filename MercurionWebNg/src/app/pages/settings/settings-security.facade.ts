@@ -1,4 +1,4 @@
-import { Injectable, inject, signal } from '@angular/core'
+import { Injectable, effect, inject, signal } from '@angular/core'
 import { Subscription, switchMap } from 'rxjs'
 import { AccountService } from '../../services/account.service'
 import { AuthUseCasesService } from '../../services/auth-use-cases.service'
@@ -6,6 +6,8 @@ import { SessionSyncService } from '../../services/session-sync.service'
 import { UserContextService } from '../../services/context/user-context.service'
 import { ToastService } from '../../services/toast.service'
 import type { MfaStrategy, SessionDTOExt } from '../../Models/account/account.models'
+import { DomainInvalidationService } from '../../services/domain-invalidation.service'
+import { RealtimeSyncStatusService } from '../../services/realtime-sync-status.service'
 
 @Injectable()
 export class SettingsSecurityFacade {
@@ -14,6 +16,8 @@ export class SettingsSecurityFacade {
   private readonly sessionSync = inject(SessionSyncService)
   private readonly user = inject(UserContextService)
   private readonly toast = inject(ToastService)
+  private readonly invalidations = inject(DomainInvalidationService)
+  private readonly syncStatus = inject(RealtimeSyncStatusService)
   private loadSubscription?: Subscription
   private logoutSubscription?: Subscription
 
@@ -22,8 +26,26 @@ export class SettingsSecurityFacade {
   readonly strategies = signal<MfaStrategy[]>([])
   readonly sessions = signal<SessionDTOExt[]>([])
 
-  load(): void {
-    if (this.loadSubscription && !this.loadSubscription.closed) return
+  constructor() {
+    effect(() => {
+      const event = this.invalidations.last()
+      const securityChanged =
+        (event?.domain === 'account-security' || event?.domain === 'sessions') &&
+        event.action === 'changed' &&
+        event.remote === true
+      const reconnect = event?.domain === 'realtime' && event.action === 'reconcile'
+      if (!securityChanged && !reconnect) return
+      if (securityChanged) this.syncStatus.markSynchronized()
+      queueMicrotask(() => this.load(true))
+    })
+  }
+
+  load(force = false): void {
+    if (this.loadSubscription && !this.loadSubscription.closed) {
+      if (!force) return
+      this.loadSubscription.unsubscribe()
+    }
+    this.loading.set(true)
     this.loadSubscription = this.account.isMfaEnabled().pipe(
       switchMap(enabled => {
         this.enabledMfa.set(enabled)

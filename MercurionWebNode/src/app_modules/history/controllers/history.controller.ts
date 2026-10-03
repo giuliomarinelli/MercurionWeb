@@ -7,6 +7,7 @@ import { HistoryService } from '../services/history.service';
 import { LoggerContext } from 'src/logging/logger.port';
 import { LoggerPort } from 'src/logging/logger.port';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
+import { RealtimeStateSyncService } from 'src/app_modules/socket-io/realtime-state-sync.service';
 
 @Controller('history')
 export class HistoryController {
@@ -15,6 +16,7 @@ export class HistoryController {
 
     constructor(
         private readonly historyService: HistoryService,
+        private readonly stateSync: RealtimeStateSyncService,
         loggerFactory: LoggerPort
     ) {
         this.logger = loggerFactory.forContext(HistoryController.name)
@@ -46,7 +48,15 @@ export class HistoryController {
 
     @Delete()
     async deleteHistory(@AuthenticatedUserId() userId: UUID): Promise<boolean> {
-        return this.historyService.deleteHistory(userId)
+        const deleted = await this.historyService.deleteHistory(userId)
+        if (deleted) {
+            this.stateSync.publishToUser(userId, {
+                kind: 'resource-state-changed',
+                domain: 'history',
+                change: 'deleted'
+            })
+        }
+        return deleted
     }
 
 }

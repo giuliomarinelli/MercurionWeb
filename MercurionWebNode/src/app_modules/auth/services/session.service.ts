@@ -19,6 +19,7 @@ import type { SessionDTO } from '../models/dto/session.dto'
 import type { GeoLocation } from './geo-ip.service'
 import { SessionIdentityService } from './session-identity.service'
 import { utcInstantFromEpochMs } from 'src/utils/temporal/temporal'
+import { RealtimeStateSyncService } from 'src/app_modules/socket-io/realtime-state-sync.service'
 
 @Injectable()
 export class SessionService {
@@ -30,6 +31,7 @@ export class SessionService {
         @Inject(SESSION_REPOSITORY)
         private readonly repository: SessionRepository,
         private readonly identity: SessionIdentityService,
+        private readonly stateSync: RealtimeStateSyncService,
         configService: ConfigService
     ) {
         this.shortSessionTtl = configService.get<number>('Session.shortSessionLasting')!
@@ -91,6 +93,7 @@ export class SessionService {
             throw applicationError(ApplicationErrorCode.SESSION_NOT_FOUND)
         }
         await this.repository.activateSession(sessionId, userId, ssoData)
+        this.publishSessionsChanged(userId)
     }
 
     public async isSessionLongTerm(sessionId: UUID, userId: UUID): Promise<boolean> {
@@ -185,10 +188,12 @@ export class SessionService {
             throw applicationHttpException(ApplicationErrorCode.ACTION_NOT_ALLOWED)
         }
         await this.repository.deleteSessionByOwner(sessionId, owner)
+        this.publishSessionsChanged(owner)
     }
 
     public async destroySessionByOwner(sessionId: string, userId: string): Promise<void> {
         await this.repository.deleteSessionByOwner(sessionId, userId)
+        this.publishSessionsChanged(userId)
     }
 
     public async destroyAllSessionsAndRevokeAllTokensByUserId(
@@ -228,6 +233,7 @@ export class SessionService {
 
         await this.revokeAllTokensBySessionId(sessionId)
         await this.repository.deleteSessionByOwner(sessionId, owner)
+        this.publishSessionsChanged(owner)
     }
 
     public async addFingerprintToWhiteList(
@@ -264,6 +270,14 @@ export class SessionService {
 
     public async getTrustedLocations(userId: UUID): Promise<GeoLocation[]> {
         return this.repository.getTrustedLocations(userId)
+    }
+
+    private publishSessionsChanged(userId: string): void {
+        this.stateSync.publishToUser(userId, {
+            kind: 'resource-state-changed',
+            domain: 'sessions',
+            change: 'updated'
+        })
     }
 
     public async setDeviceIdAsKnown(deviceId: string, userId: string): Promise<void> {

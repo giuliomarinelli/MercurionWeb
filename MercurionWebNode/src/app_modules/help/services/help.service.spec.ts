@@ -9,6 +9,7 @@ import { NotificationOutboxService } from 'src/app_modules/notification/services
 import { InAppNotificationService } from 'src/app_modules/notification/services/in-app-notification.service';
 import { ScopeService } from 'src/app_modules/auth/services/scope.service';
 import { Scope } from 'src/app_modules/user/models/enums/scope.enum';
+import { RealtimeStateSyncService } from 'src/app_modules/socket-io/realtime-state-sync.service';
 
 describe('HelpService', () => {
   let service: HelpService;
@@ -35,6 +36,7 @@ describe('HelpService', () => {
         { provide: ScopeService, useValue: scopeServiceMock },
         { provide: NotificationOutboxService, useValue: outboxMock },
         { provide: InAppNotificationService, useValue: inAppNotificationMock },
+        { provide: RealtimeStateSyncService, useValue: { publishAfterCommit: jest.fn() } },
       ],
     }).compile();
 
@@ -43,6 +45,29 @@ describe('HelpService', () => {
 
   it('should be defined', () => {
     expect(service).toBeDefined();
+  });
+
+  it('selects realtime support recipients by HandleTickets alone', async () => {
+    const eligibleId = '018f0f12-3d4c-7abc-8def-0123456789a2';
+    const ineligibleId = '018f0f12-3d4c-7abc-8def-0123456789a3';
+
+    userServiceMock.getVerifiedUserIds.mockResolvedValue([eligibleId, ineligibleId]);
+    scopeServiceMock.verifyUserHasScopes.mockImplementation(
+      async (userId: string, ...scopes: Scope[]) =>
+        userId === eligibleId && scopes.length === 1 && scopes[0] === Scope.HandleTickets
+    );
+
+    const recipients = await (service as any).resolveSupportRealtimeRecipients();
+
+    expect(recipients).toEqual([eligibleId]);
+    expect(scopeServiceMock.verifyUserHasScopes).toHaveBeenCalledWith(
+      eligibleId,
+      Scope.HandleTickets
+    );
+    expect(scopeServiceMock.verifyUserHasScopes).toHaveBeenCalledWith(
+      ineligibleId,
+      Scope.HandleTickets
+    );
   });
 
   it('selects only support recipients with ViewUsers and HandleTickets', async () => {

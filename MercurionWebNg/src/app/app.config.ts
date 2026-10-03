@@ -10,6 +10,7 @@ import { AuthInterceptor } from './interceptors/auth.interceptor';
 import { AuthFallbackInterceptor } from './interceptors/auth-fallback.interceptor';
 import { CorrelationInterceptor } from './interceptors/correlation.interceptor';
 import { ContractVersionInterceptor } from './interceptors/contract-version.interceptor';
+import { ClientInstanceInterceptor } from './interceptors/client-instance.interceptor';
 import { MercurionTitleStrategy } from './mercurion-title-strategy';
 import { CONTRACT_VERSION_HEADER, CURRENT_CONTRACT_MAJOR } from '@mercurion/rest-contracts';
 import { GRAPHQL_QUERY_FETCH_POLICY } from './services/graphql/graphql-query-policy';
@@ -65,6 +66,11 @@ export const appConfig: ApplicationConfig = {
     {
       provide: HTTP_INTERCEPTORS,
       useClass: ContractVersionInterceptor,
+      multi: true
+    },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: ClientInstanceInterceptor,
       multi: true
     },
     {

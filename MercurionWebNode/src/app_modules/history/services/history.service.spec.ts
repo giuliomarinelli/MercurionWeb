@@ -41,6 +41,7 @@ describe('HistoryService', () => {
       historyRepo as any,
       dataSource as any,
       moleculeService as any,
+      { publishToUser: jest.fn() } as any,
       loggerFactory as any,
     )
 

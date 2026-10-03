@@ -36,6 +36,13 @@ serverToClient[socketEventRegistry.notificationChanged.name]({
   kind: 'notification-state-changed'
 })
 
+serverToClient[socketEventRegistry.stateChanged.name]({
+  kind: 'resource-state-changed',
+  domain: 'molecule',
+  change: 'updated',
+  resourceId: '018f0f12-3d4c-7abc-8def-0123456789ab'
+})
+
 // @ts-expect-error Public test requests require string payloads.
 clientToServer[socketEventRegistry.publicTestRequest.name](123)
 

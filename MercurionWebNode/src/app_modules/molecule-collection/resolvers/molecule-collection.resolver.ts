@@ -13,6 +13,7 @@ import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 import { assertMercurionPublicId } from 'src/identifiers/mercurion-public-id';
 import { toFlatPagination } from 'src/models/pagination/pagination.utils';
 import { MoleculeCollectionPaginationArgs } from '../models/dto/molecule-collection-pagination.args';
+import { RealtimeStateSyncService } from 'src/app_modules/socket-io/realtime-state-sync.service';
 
 
 @Resolver(() => MoleculeCollection)
@@ -22,6 +23,7 @@ export class MoleculeCollectionResolver {
         private readonly collectionService: MoleculeCollectionService,
         private readonly joinService: MoleculeCollectionItemJoinService,
         private readonly itemCountLoader: MoleculeCollectionItemCountLoader,
+        private readonly stateSync: RealtimeStateSyncService,
     ) { }
 
     @ResolveField(() => Int)
@@ -75,7 +77,16 @@ export class MoleculeCollectionResolver {
         // prima versione minimale, non chiede di creare con un nuovo nome, Duplica direttamente Vecchio Nome => Vecchio nome (1) ...
         // supporto per scelta del nuovo nome in versioni successive alla 1.0 beta 1
         assertMercurionPublicId(srcCollectionId, 'srcCollectionId')
-        return this.collectionService.duplicate(userId, srcCollectionId)
+        const duplicated = await this.collectionService.duplicate(userId, srcCollectionId)
+        if (duplicated) {
+            this.stateSync.publishToUser(userId, {
+                kind: 'resource-state-changed',
+                domain: 'molecule-collection',
+                change: 'created',
+                resourceId: duplicated.id
+            })
+        }
+        return duplicated
     }
 
     @Mutation(() => MoleculeCollection)
@@ -84,7 +95,14 @@ export class MoleculeCollectionResolver {
         @AuthenticatedUserId() userId: UUID
     ): Promise<MoleculeCollection> {
         const normalizedName = GeneralUtils.normalizeSpaces(name)
-        return this.collectionService.create(userId, normalizedName)
+        const created = await this.collectionService.create(userId, normalizedName)
+        this.stateSync.publishToUser(userId, {
+            kind: 'resource-state-changed',
+            domain: 'molecule-collection',
+            change: 'created',
+            resourceId: created.id
+        })
+        return created
     }
 
     @Mutation(() => Boolean)
@@ -93,7 +111,15 @@ export class MoleculeCollectionResolver {
         @AuthenticatedUserId() userId: UUID
     ): Promise<boolean> {
         const normalizedNames = names.map((n) => GeneralUtils.normalizeSpaces(n))
-        return this.collectionService.createMany(userId, normalizedNames)
+        const created = await this.collectionService.createMany(userId, normalizedNames)
+        if (created) {
+            this.stateSync.publishToUser(userId, {
+                kind: 'resource-state-changed',
+                domain: 'molecule-collection',
+                change: 'created'
+            })
+        }
+        return created
     }
 
     @Mutation(() => MoleculeCollection)
@@ -106,7 +132,16 @@ export class MoleculeCollectionResolver {
         assertMercurionPublicId(id, 'id')
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
         const normalizedName = GeneralUtils.normalizeSpaces(name)
-        return this.collectionService.update(id, userId, { name: normalizedName }, fieldsMap)
+        const updated = await this.collectionService.update(id, userId, { name: normalizedName }, fieldsMap)
+        if (updated) {
+            this.stateSync.publishToUser(userId, {
+                kind: 'resource-state-changed',
+                domain: 'molecule-collection',
+                change: 'updated',
+                resourceId: id
+            })
+        }
+        return updated
     }
 
     @Mutation(() => Boolean)
@@ -115,7 +150,21 @@ export class MoleculeCollectionResolver {
         @AuthenticatedUserId() userId: UUID
     ): Promise<boolean> {
         assertMercurionPublicId(id, 'id')
-        return this.collectionService.delete(id, userId)
+        const deleted = await this.collectionService.delete(id, userId)
+        if (deleted) {
+            this.stateSync.publishToUser(userId, {
+                kind: 'resource-state-changed',
+                domain: 'molecule-collection',
+                change: 'deleted',
+                resourceId: id
+            })
+            this.stateSync.publishToUser(userId, {
+                kind: 'resource-state-changed',
+                domain: 'molecule',
+                change: 'content-changed'
+            })
+        }
+        return deleted
     }
 
     @Mutation(() => Boolean)
@@ -152,7 +201,30 @@ export class MoleculeCollectionResolver {
         @Args('snapshotAt', { type: () => String, nullable: true }) snapshotAt?: string
     ): Promise<BindManyCollectionsToMoleculeDTO> {
         collectionIds.forEach((collectionId) => assertMercurionPublicId(collectionId, 'collectionIds'))
-        return this.joinService.bindManyCollectionsToMolecule(userId, moleculeId, collectionIds, selectAll, snapshotAt)
+        const result = await this.joinService.bindManyCollectionsToMolecule(userId, moleculeId, collectionIds, selectAll, snapshotAt)
+        this.stateSync.publishToUser(userId, {
+            kind: 'resource-state-changed',
+            domain: 'molecule',
+            change: 'content-changed',
+            resourceId: moleculeId
+        })
+        if (selectAll || collectionIds.length > 20) {
+            this.stateSync.publishToUser(userId, {
+                kind: 'resource-state-changed',
+                domain: 'molecule-collection',
+                change: 'content-changed'
+            })
+        } else {
+            for (const collectionId of collectionIds) {
+                this.stateSync.publishToUser(userId, {
+                    kind: 'resource-state-changed',
+                    domain: 'molecule-collection',
+                    change: 'content-changed',
+                    resourceId: collectionId
+                })
+            }
+        }
+        return result
     }
 
 

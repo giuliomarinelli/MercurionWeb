@@ -1,14 +1,18 @@
-import { Injectable, inject, signal } from '@angular/core'
+import { Injectable, effect, inject, signal } from '@angular/core'
 import { EMPTY, Subscription, catchError, forkJoin, map } from 'rxjs'
 import { AccountService } from '../../services/account.service'
 import { ToastService } from '../../services/toast.service'
 import type { AuthProvider } from '../../Models/auth/provider.models'
 import type { BuildIdentityDTO, ProfileDTO } from '../../Models/account/account.models'
+import { DomainInvalidationService } from '../../services/domain-invalidation.service'
+import { RealtimeSyncStatusService } from '../../services/realtime-sync-status.service'
 
 @Injectable()
 export class SettingsAccountFacade {
   private readonly account = inject(AccountService)
   private readonly toast = inject(ToastService)
+  private readonly invalidations = inject(DomainInvalidationService)
+  private readonly syncStatus = inject(RealtimeSyncStatusService)
   private request?: Subscription
 
   readonly loading = signal(true)
@@ -18,8 +22,27 @@ export class SettingsAccountFacade {
   readonly isSso = signal(false)
   readonly error = signal(false)
 
-  load(): void {
-    if (this.request && !this.request.closed) return
+  constructor() {
+    effect(() => {
+      const event = this.invalidations.last()
+      const profileChanged =
+        event?.domain === 'profile' &&
+        event.action === 'changed' &&
+        event.remote === true
+      const reconnect = event?.domain === 'realtime' && event.action === 'reconcile'
+      if (!profileChanged && !reconnect) return
+      if (profileChanged) this.syncStatus.markSynchronized()
+      queueMicrotask(() => this.load(true))
+    })
+  }
+
+  load(force = false): void {
+    if (this.request && !this.request.closed) {
+      if (!force) return
+      this.request.unsubscribe()
+    }
+    this.loading.set(true)
+    this.error.set(false)
     this.request = forkJoin({
       version: this.account.getCurrentVersion(),
       profile: this.account.getProfileRegistry(false),

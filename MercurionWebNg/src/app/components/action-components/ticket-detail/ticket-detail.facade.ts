@@ -10,6 +10,7 @@ import {
 } from '../../../Models/graphql/help.view-models';
 import { TicketDetailContextService } from '../../../services/context/action-context/ticket-detail-context.service';
 import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
+import { RealtimeSyncStatusService } from '../../../services/realtime-sync-status.service';
 import { HelpService } from '../../../services/graphql/help.service';
 
 export interface TicketCapabilities {
@@ -56,6 +57,7 @@ export class TicketDetailFacade {
   private readonly context = inject(TicketDetailContextService);
   private readonly help = inject(HelpService);
   private readonly invalidation = inject(DomainInvalidationService);
+  private readonly syncStatus = inject(RealtimeSyncStatusService);
   private readonly ticket = signal<TicketViewModel | null>(null);
   private readonly messages = signal<readonly TicketMessageViewModel[]>([]);
   private readonly detailPending = signal(false);
@@ -110,6 +112,22 @@ export class TicketDetailFacade {
       if (!key || key === this.activeKey()) return;
       this.activeKey.set(key);
       this.resetAndLoad(ticketId, scope);
+    });
+
+    effect(() => {
+      const event = this.invalidation.last();
+      const ticketId = this.context.ticketId();
+      if (!event || !ticketId) return;
+      const reconnect = event.domain === 'realtime' && event.action === 'reconcile';
+      const remoteTicketChanged =
+        event.domain === 'ticket' &&
+        event.action === 'changed' &&
+        'remote' in event &&
+        event.remote === true &&
+        (!('resourceId' in event) || !event.resourceId || event.resourceId === ticketId);
+      if (!remoteTicketChanged && !reconnect) return;
+      if (remoteTicketChanged) this.syncStatus.markSynchronized();
+      queueMicrotask(() => this.resetAndLoad(ticketId, this.scope()));
     });
   }
 
