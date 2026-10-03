@@ -1,7 +1,7 @@
-import { DestroyRef, Injectable, inject, signal } from '@angular/core';
+import { DestroyRef, Injectable, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Observable, EMPTY, defer, of, throwError } from 'rxjs';
+import { Observable, EMPTY, Subject, combineLatest, defer, of, throwError } from 'rxjs';
 import { catchError, distinctUntilChanged, filter, map, mergeMap, shareReplay, startWith, switchMap, tap } from 'rxjs/operators';
 import { MoleculeService } from '../../services/graphql/molecule.service';
 import { MoleculeCollectionItemService } from '../../services/graphql/molecule-collection-item.service';
@@ -100,6 +100,7 @@ export class MoleculeDetailFacade {
   private readonly embedding = inject(EmbeddingService);
   private readonly title = inject(AppTitleService);
   private readonly persistence = inject(AuthSessionPersistenceService);
+  private readonly invalidations = inject(DomainInvalidationService);
   private readonly history = inject(HistoryContextService);
   private readonly overlay = inject(ActionOverlayContextService);
   private readonly toast = inject(ToastService);
@@ -110,6 +111,7 @@ export class MoleculeDetailFacade {
   readonly currentId = signal('');
   private currentType: 'system' | 'chembl' | 'custom' | undefined;
   private touchedId = '';
+  private readonly refresh$ = new Subject<void>();
 
   readonly loading = signal(true);
   readonly error = signal(false);
@@ -118,9 +120,11 @@ export class MoleculeDetailFacade {
   readonly collectionId = signal('');
   readonly collectionName = signal<string | null>(null);
 
-  readonly molecule$: Observable<MoleculeDetailItem | null> = this.route.paramMap.pipe(
-    map(params => params.get('molId')),
-    distinctUntilChanged(),
+  readonly molecule$: Observable<MoleculeDetailItem | null> = combineLatest([
+    this.route.paramMap,
+    this.refresh$.pipe(startWith(undefined))
+  ]).pipe(
+    map(([params]) => params.get('molId')),
     tap(id => {
       this.currentId.set(id ?? '');
       this.loading.set(true);
@@ -161,6 +165,27 @@ export class MoleculeDetailFacade {
       switchMap(id => this.collectionService.getCollectionById(id)),
       takeUntilDestroyed()
     ).subscribe(collection => this.collectionName.set(collection?.name ?? null));
+
+    effect(() => {
+      const event = this.invalidations.last();
+      const currentId = this.currentId();
+      if (!event || !currentId) return;
+      const reconnect = event.domain === 'realtime' && event.action === 'reconcile';
+      const remoteMoleculeChanged =
+        event.domain === 'molecule' &&
+        event.action === 'changed' &&
+        event.remote === true &&
+        (!event.resourceId || event.resourceId === currentId);
+      if (!remoteMoleculeChanged && !reconnect) return;
+
+      if (remoteMoleculeChanged && event.change === 'deleted') {
+        this.toast.trigger('Questa molecola è stata eliminata da un’altra sessione.', 'info', 4500);
+        void this.router.navigateByUrl('/molecules');
+        return;
+      }
+
+      queueMicrotask(() => this.refresh$.next());
+    });
 
   }
 
