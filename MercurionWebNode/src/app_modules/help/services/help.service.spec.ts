@@ -7,6 +7,7 @@ import { TicketMessage } from '../models/entities/ticket-message.entity';
 import { UserService } from 'src/app_modules/user/services/user.service';
 import { NotificationOutboxService } from 'src/app_modules/notification/services/outbox/notification-outbox.service';
 import { InAppNotificationService } from 'src/app_modules/notification/services/in-app-notification.service';
+import { ScopeService } from 'src/app_modules/auth/services/scope.service';
 
 describe('HelpService', () => {
   let service: HelpService;
@@ -14,7 +15,11 @@ describe('HelpService', () => {
   const dataSourceMock = { transaction: jest.fn() };
   const ticketRepoMock = { findOneByOrFail: jest.fn(), update: jest.fn() };
   const msgRepoMock = {};
-  const userServiceMock = { getUserFullNames: jest.fn() };
+  const userServiceMock = {
+    getUserFullNames: jest.fn(),
+    getVerifiedUserIds: jest.fn().mockResolvedValue([])
+  };
+  const scopeServiceMock = { verifyUserHasScopes: jest.fn() };
   const outboxMock = { append: jest.fn() };
   const inAppNotificationMock = { create: jest.fn() };
 
@@ -26,6 +31,7 @@ describe('HelpService', () => {
         { provide: getRepositoryToken(Ticket), useValue: ticketRepoMock },
         { provide: getRepositoryToken(TicketMessage), useValue: msgRepoMock },
         { provide: UserService, useValue: userServiceMock },
+        { provide: ScopeService, useValue: scopeServiceMock },
         { provide: NotificationOutboxService, useValue: outboxMock },
         { provide: InAppNotificationService, useValue: inAppNotificationMock },
       ],
