@@ -2,6 +2,7 @@ import type { ApplicationErrorEnvelope } from './application-error-envelope'
 import type { UtcInstant } from './temporal'
 
 export { LOCAL_DUMMY_AUTH } from './local-dummy-auth'
+export { CLIENT_INSTANCE_ID_HEADER, CLIENT_INSTANCE_ID_PATTERN, isValidClientInstanceId } from './client-instance'
 export type { LocalDummyAuthMarker } from './local-dummy-auth'
 
 export type RestContractVersion = '1.0.0'
