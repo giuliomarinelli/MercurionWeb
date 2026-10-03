@@ -12,6 +12,7 @@ import { MoleculeService } from 'src/app_modules/meilisearch/services/molecule.s
 import { LoggerPort, LoggerContext } from 'src/logging/logger.port'
 import { utcInstantFromEpochMs } from 'src/utils/temporal/temporal'
 import { runInTransaction, transactionManager, type TransactionContext } from 'src/persistence/transaction-context'
+import { RealtimeStateSyncService } from 'src/app_modules/socket-io/realtime-state-sync.service'
 import {
     HistoryCollectionNameProjection,
     HistoryItemNameProjection,
@@ -28,6 +29,7 @@ export class HistoryService {
         private readonly historyRepo: Repository<History>,
         private readonly dataSource: DataSource,
         private readonly moleculeService: MoleculeService,
+        private readonly stateSync: RealtimeStateSyncService,
         loggerFactory: LoggerPort,
     ) {
         this.logger = loggerFactory.forContext(HistoryService.name)
@@ -248,6 +250,11 @@ export class HistoryService {
     async deleteHistory(userId: UUID): Promise<boolean> {
         try {
             await this.historyRepo.delete({ userId })
+            this.stateSync.publishToUser(userId, {
+                kind: 'resource-state-changed',
+                domain: 'history',
+                change: 'content-changed'
+            })
             return true
         } catch (e) {
             this.logger.warn(`Error trying to delete history, userId=${userId}`, e as object)
