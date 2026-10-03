@@ -155,8 +155,7 @@ export const socketEventRegistry = {
     error: null,
     errorSemantics:
       'Wake-up signal only. The client reconciles authoritative notification state through REST.'
-  }
-,
+  },
   stateChanged: {
     name: 'sv.pub.state_changed',
     direction: 'server-to-client',
