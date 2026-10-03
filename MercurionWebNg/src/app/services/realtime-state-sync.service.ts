@@ -68,6 +68,10 @@ export class RealtimeStateSyncService {
       case 'sessions':
       case 'history':
         return { domain: payload.domain, ...base }
+      default: {
+        const unreachable: never = payload.domain
+        throw new Error(`Unsupported realtime state domain: ${String(unreachable)}`)
+      }
     }
   }
 }
