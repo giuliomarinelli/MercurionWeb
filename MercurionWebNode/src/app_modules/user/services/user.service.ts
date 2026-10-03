@@ -267,6 +267,14 @@ export class UserService implements IdentityReadPort {
         return this.userRepository.exists({ where: { email, sso: false } })
     }
 
+    public async getVerifiedUserIds(): Promise<UUID[]> {
+        const users = await this.userRepository.find({
+            where: { isVerified: true },
+            select: ['id']
+        })
+        return users.map((user) => user.id)
+    }
+
     public async getUserFullNames(ids: readonly UUID[]): Promise<Map<string, string>> {
         if (ids.length === 0) return new Map()
         const users = await this.userRepository.find({
