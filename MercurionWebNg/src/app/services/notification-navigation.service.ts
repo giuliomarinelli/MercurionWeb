@@ -20,12 +20,17 @@ export class NotificationNavigationService {
       notification.resourceType === 'help_ticket' &&
       notification.resourceId
     ) {
+      const mode =
+        notification.type === 'support.user_reply_received'
+          ? 'support'
+          : 'user'
+
       return this.router.navigate(
         [routeManifest.help.build({})],
         {
           queryParams: {
             t_id: notification.resourceId,
-            m: 'user'
+            m: mode
           }
         }
       )
