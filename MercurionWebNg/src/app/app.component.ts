@@ -126,7 +126,9 @@ import { RealtimeStateSyncService } from './services/realtime-state-sync.service
         <m-search-overlay />
       }
     }
-    <m-toast />
+    @defer (when toastService.messages().length > 0; prefetch on idle) {
+      <m-toast />
+    }
   `
 })
 export class AppComponent implements AfterViewInit, OnDestroy {

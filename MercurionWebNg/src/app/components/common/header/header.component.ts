@@ -27,10 +27,7 @@ import { HeaderResponsiveMenuComponent } from './header-responsive-menu.componen
 import { HeaderSessionIndicatorComponent } from './header-session-indicator.component';
 import { IconButtonComponent } from '../icon-button/icon-button.component';
 import { ProvidedAccountIdDTO } from '@mercurion/rest-contracts';
-import { NotificationButtonComponent } from '../notification-button/notification-button.component';
-import { InAppNotificationService } from '../../../services/in-app-notification.service';
-import { NotificationCatchUpComponent } from '../../notifications/notification-catch-up.component';
-import { RealtimeSyncBadgeComponent } from '../realtime-sync-badge/realtime-sync-badge.component';
+import { HeaderNotificationsComponent } from './header-notifications.component';
 
 @Component({
   selector: 'm-header',
@@ -48,9 +45,7 @@ import { RealtimeSyncBadgeComponent } from '../realtime-sync-badge/realtime-sync
     HeaderResponsiveMenuComponent,
     HeaderSessionIndicatorComponent,
     IconButtonComponent,
-    NotificationButtonComponent,
-    NotificationCatchUpComponent,
-    RealtimeSyncBadgeComponent
+    HeaderNotificationsComponent
   ],
   providers: [HeaderFacade],
   template: `
@@ -162,21 +157,9 @@ import { RealtimeSyncBadgeComponent } from '../realtime-sync-badge/realtime-sync
                 </m-icon-button>
             </div>
             @if (userContext.isLoggedIn()) {
-              <m-realtime-sync-badge />
-              <div class="relative flex items-center">
-                <m-notification-button
-                  [unreadCount]="unreadNotificationsCount()"
-                  (pressed)="openNotifications()"
-                />
-                @if (catchUpNotificationsCount() > 0) {
-                  <m-notification-catch-up
-                    [count]="catchUpNotificationsCount()"
-                    (presented)="onNotificationCatchUpPresented()"
-                    (opened)="openNotifications()"
-                    (dismissed)="dismissNotificationCatchUp()"
-                  />
-                }
-              </div>
+              @defer (when userContext.isLoggedIn(); prefetch on idle) {
+                <m-header-notifications />
+              }
             }
             <div class="theme-menu-container relative flex items-center" [ngClass]="{
               'lg:-ml-2': userContext.isLoggedIn()
@@ -594,7 +577,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
   private readonly shellLayout = inject(ShellLayoutService)
   private readonly appConfig = inject(APP_CONFIG)
   private readonly storageRegistry = inject(BrowserStorageRegistry)
-  private readonly inAppNotification = inject(InAppNotificationService)
 
   private updatePathFlags(currentPath: string) {
     const clean = (currentPath || '').split(/[?#]/)[0]
@@ -629,8 +611,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
   protected avatarMobileMenuMounted = signal<boolean>(false)
   protected avatarMobileMenuVisible = signal<boolean>(false)
 
-  protected readonly unreadNotificationsCount = computed(() => this.inAppNotification.unreadCount())
-  protected readonly catchUpNotificationsCount = computed(() => this.inAppNotification.catchUpCount())
 
   // Timer id per ciascuna transizione mount/visible: tracciati cosi' un
   // toggle rapido puo' annullare deterministicamente il timer residuo del
@@ -845,19 +825,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
 
-
-  protected openNotifications(): void {
-    this.inAppNotification.dismissCatchUp()
-    void this.router.navigate([routeManifest.notifications.build({})])
-  }
-
-  protected onNotificationCatchUpPresented(): void {
-    void this.inAppNotification.acknowledgeCatchUpPresented()
-  }
-
-  protected dismissNotificationCatchUp(): void {
-    this.inAppNotification.dismissCatchUp()
-  }
 
   ngOnInit(): void {
     this.isBeta.set(this.appConfig.capabilities.beta)
