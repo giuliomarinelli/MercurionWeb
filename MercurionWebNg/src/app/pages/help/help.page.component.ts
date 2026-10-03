@@ -219,6 +219,11 @@ export class HelpPageComponent implements OnInit, OnDestroy, AfterViewInit {
         }
 
         const innerScope = mode === 'support' ? 'Support' as const : 'User' as const
+
+        if (innerScope === 'Support') {
+          return of({ ticketId, innerScope, exists: true })
+        }
+
         return this.helpService.existsUserTicketById(ticketId).pipe(
           take(1),
           map(exists => ({ ticketId, innerScope, exists }))
