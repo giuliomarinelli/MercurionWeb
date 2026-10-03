@@ -26,6 +26,8 @@ import { SelectionControlComponent } from '../../components/common/selection-con
 import { IconButtonComponent } from '../../components/common/icon-button/icon-button.component'
 import { Router } from '@angular/router'
 import { CopyButtonComponent } from '../../components/common/copy-button/copy-button.component'
+import { PcpApiService } from '../../services/pcp-api.service'
+import { LoggerService } from '../../services/logger.service'
 
 
 @Component({
@@ -56,7 +58,6 @@ import { CopyButtonComponent } from '../../components/common/copy-button/copy-bu
     @if (molecule$ | async; as molecule) {
 
       <section class="main-container" role="main" [attr.aria-busy]="fetchMolLoading()" aria-live="polite">
-
         @if (!typeGuards.isSystemMolecule(molecule)) {
           @if (collectionId()) {
             <m-my-molecules-heading [breadcrumb]="breadcrumb" />
@@ -64,7 +65,6 @@ import { CopyButtonComponent } from '../../components/common/copy-button/copy-bu
             <m-my-molecules-heading />
           }
         }
-
         @if (typeGuards.isSystemMolecule(molecule)) {
           <m-molecule-header [nameInput]="molecule.preferredNameIt ?? molecule.preferredName ?? ''" [chemblIdInput]="molecule.cmbId"
             [molId]="molecule.id.toString()" [isSystemMolecule]="true" [smiles]="molecule.canonicalSmiles ?? ''" [isLoggedIn]="userContext.isLoggedIn()"
@@ -100,25 +100,23 @@ import { CopyButtonComponent } from '../../components/common/copy-button/copy-bu
               <m-copy-button [src]="molecule.canonicalSmiles" />
             }
           </p>
-          <p class="flex gap-4 items-center font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary mt-6 my-4 text-center sm:text-left text-xl">
-            <span class="shrink-0">Canonical smiles</span>
-            <span class="shrink-0 text-sm text-neutral-950 dark:text-slate-200 font-mono pl-3">
-              @if (typeGuards.isSystemMolecule(molecule)) {
-                {{ molecule.canonicalSmiles }}
-              } @else if (typeGuards.isChemblMolecule(molecule)) {
-                {{ molecule.chemblDetails.canonicalSmiles }}
-              } @else if (typeGuards.isCustomMolecule(molecule)) {
-                {{ molecule.canonicalSmiles }}
+          <div class="flex flex-wrap gap-4 items-center font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary mt-6 my-4 text-center sm:text-left text-xl max-w-4xl">
+            <span class="shrink-0">Nome IUPAC Internazionale</span>
+            <p class="shrink-0 text-sm text-neutral-950 dark:text-slate-200 font-mono pl-3 inline-flex items-center">
+            @if (iupacName(); as name) {
+              @if (name === '__LOADING__') {
+                <m-progress-indicator [size]="16" />
+              } @else {
+                {{ name }}
               }
-            </span>
-            @if (typeGuards.isSystemMolecule(molecule)) {
-              <m-copy-button [src]="molecule.canonicalSmiles ?? ''" />
-            } @else if (typeGuards.isChemblMolecule(molecule)) {
-              <m-copy-button [src]="molecule.chemblDetails.canonicalSmiles ?? ''" />
-            } @else if (typeGuards.isCustomMolecule(molecule)) {
-              <m-copy-button [src]="molecule.canonicalSmiles" />
+            } @else {
+              ND
             }
-          </p>
+            </p>
+            @if (iupacName() && iupacName() !== '__LOADING__') {
+              <m-copy-button [src]="iupacName()" />
+            }
+          </div>
           <h2
             class="flex gap-3 items-center justify-center sm:justify-start font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary mt-6 mb-4 text-center sm:text-left text-xl">
             <span>Struttura</span>
@@ -249,6 +247,8 @@ export class MoleculeDetailPageComponent {
   protected readonly typeGuards = inject(TypeGuardsService)
   protected readonly design = inject(DesignService)
   private readonly router = inject(Router)
+  private readonly pcp = inject(PcpApiService)
+  private readonly logger = inject(LoggerService)
 
   molecule$: Observable<MoleculeDetailItem | null> = this.facade.molecule$
   viewerReady = signal<boolean>(false)
@@ -261,6 +261,11 @@ export class MoleculeDetailPageComponent {
   similarLoading = this.facade.similarLoading
   collectionId = this.facade.collectionId
   protected molId = this.facade.currentId
+  protected iupacName = signal<string>('__LOADING__')
+  private readonly iupacSmiles = computed(() => {
+    const molecule = this.facade.molecule()
+    return molecule ? this.facade.toViewModel(molecule).smiles : ''
+  })
   protected breadcrumb: LinkModel[] = [
     {
       label: 'Collezioni Molecolari',
@@ -276,6 +281,26 @@ export class MoleculeDetailPageComponent {
   )
 
   constructor() {
+    effect((onCleanup) => {
+      const canonicalSmiles = this.iupacSmiles()
+      this.iupacName.set('__LOADING__')
+      if (!canonicalSmiles) {
+        this.iupacName.set('ND')
+        return
+      }
+
+      const sub = untracked(() => this.pcp.getIupacNameFromSmiles(canonicalSmiles).subscribe({
+        next: (iupacName) => this.iupacName.set(iupacName || 'ND'),
+        error: error => {
+          this.logger.error('Failed to load IUPAC name', error)
+          this.iupacName.set('ND')
+        }
+      }))
+
+      onCleanup(() => {
+        sub.unsubscribe()
+      })
+    })
     effect(() => {
       this.facade.currentId()
       untracked(() => {

@@ -1,6 +1,6 @@
 import { DestroyRef, Injectable, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { Observable, EMPTY, Subject, Subscription, combineLatest, defer, of, throwError } from 'rxjs';
 import { catchError, distinctUntilChanged, filter, map, mergeMap, shareReplay, startWith, switchMap, tap } from 'rxjs/operators';
 import { MoleculeService } from '../../services/graphql/molecule.service';
@@ -99,7 +99,6 @@ export class MoleculeDetailFacade {
   private readonly typeGuards = inject(TypeGuardsService);
   private readonly userContext = inject(UserContextService);
   private readonly ai = inject(MercurionAiService);
-  private readonly pcp = inject(PcpApiService);
   private readonly embedding = inject(EmbeddingService);
   private readonly title = inject(AppTitleService);
   private readonly persistence = inject(AuthSessionPersistenceService);
@@ -123,9 +122,8 @@ export class MoleculeDetailFacade {
   readonly similar = signal<MoleculeSearchResult[]>([]);
   readonly similarLoading = signal(false);
   readonly collectionId = signal('');
-  readonly collectionName = signal<string | null>(null);
+  readonly collectionName = signal<string | null>(null)
 
-  readonly iupacName = signal<string>('')
 
   readonly molecule$: Observable<MoleculeDetailItem | null> = combineLatest([
     this.route.paramMap,
@@ -161,12 +159,6 @@ export class MoleculeDetailFacade {
     }),
     map((item) => item as MoleculeDetailItem | null),
     takeUntilDestroyed(),
-    // switchMap((item: MoleculeDetailItem | null) => {
-    //   if (!item) {
-    //     return of(null)
-    //   }
-    //   if (this.typeGuards.is)
-    // }),
     shareReplay({ bufferSize: 1, refCount: true }),
   ) as Observable<MoleculeDetailItem | null>
 
@@ -206,6 +198,8 @@ export class MoleculeDetailFacade {
     });
 
   }
+
+  readonly molecule = toSignal<MoleculeDetailItem | null>(this.molecule$)
 
   toViewModel(item: MoleculeDetailItem): MoleculeDetailViewModel {
     return mapMoleculeDetail(item, this.typeGuards);
