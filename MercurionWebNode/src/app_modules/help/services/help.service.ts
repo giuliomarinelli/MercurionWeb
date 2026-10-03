@@ -25,6 +25,7 @@ import { InAppNotificationType } from 'src/app_modules/notification/models/in-ap
 import { formatHelpPublicId } from '../models/value-objects/help-public-id'
 import { ScopeService } from 'src/app_modules/auth/services/scope.service'
 import { Scope } from 'src/app_modules/user/models/enums/scope.enum'
+import { RealtimeStateSyncService } from 'src/app_modules/socket-io/realtime-state-sync.service'
 import {
   authorizeHelpOperation,
   type HelpActor,
@@ -50,6 +51,7 @@ export class HelpService {
     private readonly scopeService: ScopeService,
     private readonly outbox: NotificationOutboxService,
     private readonly inAppNotifications: InAppNotificationService,
+    private readonly stateSync: RealtimeStateSyncService,
   ) { }
 
   // -----------------------------
@@ -73,8 +75,9 @@ export class HelpService {
     this.stampTicket(ticket, now)
 
     let firstMsg: TicketMessage | null = null
+    const supportRealtimeRecipients = await this.resolveSupportRealtimeRecipients()
 
-    await runInTransaction(this.dataSource, async (_context, manager) => {
+    await runInTransaction(this.dataSource, async (context, manager) => {
       await manager.save(ticket)
 
       const message = this.makeUserMessage({
@@ -99,6 +102,16 @@ export class HelpService {
         payload: { ticketId: ticket.id, messageId: message.id },
         dedupeKey: `help:${ticket.id}:ticket-opened-user`
       })
+      this.stateSync.publishAfterCommit(
+        context,
+        [ticket.userId, ...supportRealtimeRecipients],
+        {
+          kind: 'resource-state-changed',
+          domain: 'ticket',
+          change: 'created',
+          resourceId: ticket.id
+        }
+      )
     })
 
     if (!firstMsg) {
@@ -127,6 +140,7 @@ export class HelpService {
 
     let msg: TicketMessage
     const supportRecipients = await this.resolveSupportNotificationRecipients(actor.userId)
+    const supportRealtimeRecipients = await this.resolveSupportRealtimeRecipients()
 
     await runInTransaction(this.dataSource, async (context, manager) => {
       const now = Date.now()
@@ -175,6 +189,16 @@ export class HelpService {
           dedupeKey: `support.user_reply_received:${msg.id}:${recipientUserId}`
         }, context)
       }
+      this.stateSync.publishAfterCommit(
+        context,
+        [ticket.userId, ...supportRealtimeRecipients],
+        {
+          kind: 'resource-state-changed',
+          domain: 'ticket',
+          change: 'content-changed',
+          resourceId: ticket.id
+        }
+      )
     })
 
     return { ok: true }
@@ -189,6 +213,8 @@ export class HelpService {
     if (!isSupportActor(actor)) {
       throw applicationError(ApplicationErrorCode.TICKET_HANDLING_FORBIDDEN)
     }
+
+    const supportRealtimeRecipients = await this.resolveSupportRealtimeRecipients()
 
     await runInTransaction(this.dataSource, async (context, manager) => {
 
@@ -234,6 +260,16 @@ export class HelpService {
         ticketPublicId: formatHelpPublicId(ticket.publicId, 'Ticket'),
         dedupeKey: `support.reply_received:${msg.id}:${ticket.userId}`
       }, context)
+      this.stateSync.publishAfterCommit(
+        context,
+        [ticket.userId, ...supportRealtimeRecipients],
+        {
+          kind: 'resource-state-changed',
+          domain: 'ticket',
+          change: 'content-changed',
+          resourceId: ticket.id
+        }
+      )
 
     })
 
@@ -408,7 +444,8 @@ export class HelpService {
     ticketId: UUID,
     status: TicketStatus,
   ): Promise<{ ok: boolean }> {
-    return runInTransaction(this.dataSource, async (_context, manager) => {
+    const supportRealtimeRecipients = await this.resolveSupportRealtimeRecipients()
+    return runInTransaction(this.dataSource, async (context, manager) => {
       const now = Date.now()
       const qb = manager.createQueryBuilder()
         .update(Ticket)
@@ -423,6 +460,25 @@ export class HelpService {
       if (!result.affected) {
         throw applicationError(ApplicationErrorCode.TICKET_NOT_FOUND)
       }
+
+      const ticket = await manager.findOne(Ticket, {
+        where: { id: ticketId },
+        select: { id: true, userId: true }
+      })
+      if (!ticket) {
+        throw applicationError(ApplicationErrorCode.TICKET_NOT_FOUND)
+      }
+
+      this.stateSync.publishAfterCommit(
+        context,
+        [ticket.userId, ...supportRealtimeRecipients],
+        {
+          kind: 'resource-state-changed',
+          domain: 'ticket',
+          change: 'updated',
+          resourceId: ticketId
+        }
+      )
       return { ok: true }
     })
   }
@@ -441,6 +497,23 @@ export class HelpService {
   // -----------------------------
   // Private helpers
   // -----------------------------
+
+  private async resolveSupportRealtimeRecipients(): Promise<UUID[]> {
+    const candidateIds = await this.users.getVerifiedUserIds()
+    const eligible = await Promise.all(
+      candidateIds.map(async (userId) => ({
+        userId,
+        allowed: await this.scopeService.verifyUserHasScopes(
+          userId,
+          Scope.HandleTickets
+        )
+      }))
+    )
+
+    return eligible
+      .filter((candidate) => candidate.allowed)
+      .map((candidate) => candidate.userId)
+  }
 
   private async resolveSupportNotificationRecipients(
     excludedUserId: UUID
