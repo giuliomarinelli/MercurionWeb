@@ -690,6 +690,30 @@ Publish:
 account-security changed
 ```
 
+## Session activation / login
+
+Any successful transition that activates a new authenticated session changes the active-session read model, including credential login, MFA completion, SSO and local-dummy authentication.
+
+Publish:
+
+```text
+sessions changed
+```
+
+to the user's already-connected clients. The newly authenticating client is not yet a member of the private user room in the common case, and its request still carries the originating client-instance id.
+
+## Normal logout
+
+Removing the current session also changes the active-session read model.
+
+Publish:
+
+```text
+sessions changed
+```
+
+to the user's other clients. The logging-out client is excluded through its `ws_client:<clientInstanceId>` room and then proceeds through the normal auth/session teardown.
+
 ## Revoke one session
 
 ```text
@@ -718,10 +742,6 @@ logoutFromAllSessions
 Existing auth/session invalidation is authoritative because all sessions are being terminated.
 
 A separate state-sync event is not required for clients that are about to become anonymous.
-
-## Normal logout
-
-No state-sync invalidation is required. Session lifecycle already owns the behavior.
 
 ---
 
@@ -977,7 +997,6 @@ The following should **not** create ephemeral state-sync events in the first imp
 - login/auth handshakes;
 - token refresh;
 - password change merely for displaying a password state;
-- normal logout;
 - revoke-all where auth/session invalidation already removes every active client;
 - molecule/collection passive `markAsTouched`;
 - feedback submission with no shared read model;
@@ -1008,6 +1027,8 @@ The following should **not** create ephemeral state-sync events in the first imp
 | phone confirmed deletion | `profile changed` | owner |
 | MFA enabled/disabled | `account-security changed` | owner |
 | backup codes regenerated | `account-security changed` | owner |
+| session activated/login | `sessions changed` | owner; existing clients receive |
+| normal logout | `sessions changed` | owner, excluding origin |
 | one session revoked | `sessions changed` | owner, excluding origin; target session separately invalidated |
 | create ticket | `ticket changed <id>` | owner + HandleTickets users |
 | user ticket reply | `ticket changed <id>` | owner + HandleTickets users |
