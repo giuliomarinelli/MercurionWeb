@@ -3,13 +3,11 @@ import { Subscription } from 'rxjs'
 import type { SocketStateChangedPayload } from '@mercurion/socket-contracts'
 import { DomainInvalidationService, type DomainInvalidation } from './domain-invalidation.service'
 import { RealtimeSocketService } from './socket-io/realtime-socket.service'
-import { RealtimeSyncStatusService } from './realtime-sync-status.service'
 
 @Injectable({ providedIn: 'root' })
 export class RealtimeStateSyncService {
   private readonly socket = inject(RealtimeSocketService)
   private readonly invalidations = inject(DomainInvalidationService)
-  private readonly status = inject(RealtimeSyncStatusService)
   private subscription?: Subscription
   private readonly started = signal(false)
   private privateConnectionSeen = false
@@ -27,7 +25,6 @@ export class RealtimeStateSyncService {
       if (this.privateConnectionSeen && this.privateGapSeen) {
         this.privateGapSeen = false
         this.invalidations.publish({ domain: 'realtime', action: 'reconcile', remote: true })
-        this.status.markSynchronized()
       }
       this.privateConnectionSeen = true
     })
@@ -38,7 +35,6 @@ export class RealtimeStateSyncService {
     this.started.set(true)
     this.subscription = this.socket.onStateChanged().subscribe(payload => {
       this.invalidations.publish(this.toDomainInvalidation(payload))
-      this.status.markSynchronized()
     })
   }
 
@@ -48,7 +44,6 @@ export class RealtimeStateSyncService {
     this.started.set(false)
     this.privateConnectionSeen = false
     this.privateGapSeen = false
-    this.status.clear()
   }
 
   private toDomainInvalidation(payload: SocketStateChangedPayload): DomainInvalidation {
