@@ -1,4 +1,4 @@
-import { ElementRef, Injectable, OnDestroy, effect, inject, signal, untracked } from '@angular/core'
+import { Injectable, OnDestroy, effect, inject, signal, untracked } from '@angular/core'
 import { Event as RouterEvent, NavigationCancel, NavigationEnd, NavigationError, NavigationStart, Router } from '@angular/router'
 import { Subscription } from 'rxjs'
 import { AuthStateStore } from './auth-state.store'
@@ -27,7 +27,6 @@ export class AppShellFacade implements OnDestroy {
   private readonly currentPath = signal('')
   private readonly firstNavigationDone = signal(false)
   private readonly routeSub: Subscription
-  private scrollHostRef?: ElementRef<HTMLElement>
   private programmaticNavigation?: {
     readonly token: number
     readonly target: string
@@ -92,8 +91,8 @@ export class AppShellFacade implements OnDestroy {
         })
       }
 
-      if (url === '/') {
-        safeNavigate('/welcome')
+      if (url === '/' && logged) {
+        safeNavigate('/dashboard')
       } else if (!logged) {
         if (!isPublic) {
           const target = this.redirects.capture(this.router.url)
@@ -107,10 +106,6 @@ export class AppShellFacade implements OnDestroy {
     })
   }
 
-  registerScrollHost(host?: ElementRef<HTMLElement>): void {
-    this.scrollHostRef = host
-  }
-
   ngOnDestroy(): void {
     this.routeSub.unsubscribe()
   }
@@ -119,7 +114,7 @@ export class AppShellFacade implements OnDestroy {
     const previousPath = this.currentPath()
     const url = this.normalize(event.urlAfterRedirects)
     if (previousPath !== url && url !== '/settings' && url !== '/terms-and-policies') {
-      this.scrollContext.smoothToTop(this.scrollHostRef, 400)
+      this.scrollContext.smoothToTop(undefined, 400)
     }
 
     this.routePolicy.set(activeRoutePolicy(this.router.routerState.snapshot.root))

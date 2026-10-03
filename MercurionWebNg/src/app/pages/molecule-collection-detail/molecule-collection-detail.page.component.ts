@@ -61,7 +61,7 @@ export class MoleculeCollectionDetailPageComponent implements OnDestroy {
       const sentinel = this.sentinel()?.nativeElement;
       const canLoad = !!this.facade.collectionId() && !this.facade.loading() &&
         !this.facade.done() && !this.facade.error() && !this.facade.pageError();
-      const root = this.scrollContext.scrollRootRef()?.nativeElement ?? null;
+      const root = this.scrollContext.intersectionRoot();
       this.observer?.disconnect();
       if (!sentinel || !canLoad) return;
       this.observer = new IntersectionObserver(entries => {

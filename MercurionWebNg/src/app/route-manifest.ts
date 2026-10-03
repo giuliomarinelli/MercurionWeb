@@ -87,7 +87,7 @@ const parameterizedRoute = <T extends Record<string, string>>(
 })
 
 export const routeManifest = {
-  home: staticRoute('home', '', undefined, { access: 'public', shell: 'welcome' }),
+  home: staticRoute('home', '', 'Next Generation Chemistry Platform', { access: 'public', shell: 'home' }),
   welcome: staticRoute('welcome', 'welcome', 'Next Generation Chemistry Platform', { access: 'logged-out-only', shell: 'welcome' }),
   login: staticRoute('login', 'login', 'Login', { access: 'logged-out-only', shell: 'standard' }),
   dummyAuth: staticRoute('dummyAuth', '__local/dummy-auth', 'Autenticazione dummy locale', { access: 'public', shell: 'standard' }),

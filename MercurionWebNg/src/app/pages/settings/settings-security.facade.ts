@@ -1,4 +1,4 @@
-import { Injectable, effect, inject, signal } from '@angular/core'
+import { Injectable, computed, effect, inject, signal } from '@angular/core'
 import { Subscription, switchMap } from 'rxjs'
 import { AccountService } from '../../services/account.service'
 import { AuthUseCasesService } from '../../services/auth-use-cases.service'
@@ -25,6 +25,7 @@ export class SettingsSecurityFacade {
   readonly enabledMfa = signal(false)
   readonly strategies = signal<MfaStrategy[]>([])
   readonly sessions = signal<SessionDTOExt[]>([])
+  readonly currentSession = computed(() => this.sessions().find(session => session.current))
 
   constructor() {
     effect(() => {
@@ -57,7 +58,16 @@ export class SettingsSecurityFacade {
       }),
     ).subscribe({
       next: sessions => {
-        this.sessions.set(sessions.map(session => ({ ...session, triggerDisappear: signal(false), isBeingDeleted: false })))
+        this.sessions.update(items => {
+          // Realtime invalidation can arrive before the logout HTTP response.
+          const pending = new Map(items.filter(item => item.isBeingDeleted).map(item => [item.id, item]))
+          const refreshed = sessions.map(session => {
+            const deleting = pending.get(session.id)
+            pending.delete(session.id)
+            return deleting ?? { ...session, triggerDisappear: signal(false), isBeingDeleted: false }
+          })
+          return [...refreshed, ...pending.values()]
+        })
         this.loading.set(false)
       },
       error: () => this.toast.trigger('Si è verificato un errore nel caricamento delle sessioni.', 'error'),
@@ -66,7 +76,8 @@ export class SettingsSecurityFacade {
 
   logoutSession(id: string): void {
     const session = this.sessions().find(item => item.id === id)
-    if (!session) return
+    if (!session || session.isBeingDeleted) return
+    this.sessions.update(items => items.map(item => item.id === id ? { ...item, isBeingDeleted: true } : item))
     this.logoutSubscription = this.auth.logoutFromSession(id, session.current).subscribe({
       next: () => {
         if (session.current) {
@@ -75,7 +86,10 @@ export class SettingsSecurityFacade {
         }
         this.sessions.update(items => items.filter(item => item.id !== id))
       },
-      error: () => this.toast.trigger('La sessione non è stata eliminata.', 'error'),
+      error: () => {
+        this.sessions.update(items => items.map(item => item.id === id ? { ...item, isBeingDeleted: false } : item))
+        this.toast.trigger('La sessione non è stata eliminata.', 'error')
+      },
     })
   }
 

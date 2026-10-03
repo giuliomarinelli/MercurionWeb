@@ -1,5 +1,4 @@
 import {
-  AfterViewInit,
   Component,
   ChangeDetectionStrategy,
   CUSTOM_ELEMENTS_SCHEMA,
@@ -48,13 +47,13 @@ import { RealtimeStateSyncService } from './services/realtime-state-sync.service
   ],
   template: `
     @if (routePolicy().shell === 'standard') {
-      <div class="flex flex-col h-screen">
+      <div class="flex min-h-dvh flex-col">
         <m-header class="block sticky top-0 z-30"
           [triggerOpenOffCanvas]="_triggerOpenOffCanvas()"
           (onOffCanvasMenuOpen)="triggerOpenOffCanvas()" />
-        <div class="drawer-container relative flex flex-1 overflow-hidden custom-scrollbar">
+        <div class="drawer-container relative flex flex-1">
           @if (authState.authenticated() && design.minBk('xl')()) {
-            <div class="absolute top-4 left-2.5 z-30 group">
+            <div class="fixed left-2.5 z-30 group" [style.top.px]="shellLayout.headerHeight() + 16">
               <button class="cursor-pointer hover:transform hover:scale-[1.05] transition-transform duration-300" (click)="sidenavContext.toggle()" aria-label="Sidebar">
                 @if (sidenavContext.isVisible()) {
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-auto text-light-on-surface-main hover:text-light-on-surface-secondary dark:text-dark-on-surface-main hover:dark:text-dark-on-surface-secondary transition-colors duration-150">
@@ -84,16 +83,17 @@ import { RealtimeStateSyncService } from './services/realtime-state-sync.service
           }
           @if (sidenavContext.isMounted() && authState.authenticated() && design.minBk('xl')()) {
             <aside
-              class="drawer absolute inset-y-0 left-0 w-64
+              class="drawer fixed bottom-0 left-0 w-64
                 transition-transform duration-500 ease-in-out
                 -translate-x-full"
+              [style.top.px]="shellLayout.headerHeight()"
               [class.translate-x-0]="sidenavContext.isVisible()"
               [class.-translate-x-full]="!sidenavContext.isVisible()">
               <m-sidenav />
             </aside>
           }
-          <section #scrollHost
-            class="content flex flex-col flex-1 overflow-y-auto transition-[margin] duration-500 m-scroll-thin"
+          <section
+            class="content flex min-w-0 flex-col flex-1 transition-[margin] duration-500"
             [class.ml-64]="sidenavContext.isOpen() && authState.authenticated() && design.minBk('xl')()">
             <main class="flex-1 p-4 block">
               <router-outlet />
@@ -107,6 +107,10 @@ import { RealtimeStateSyncService } from './services/realtime-state-sync.service
           <m-action-overlay />
         }
       }
+    } @else if (routePolicy().shell === 'home') {
+      <div class="min-h-dvh">
+        <router-outlet />
+      </div>
     } @else {
       <div class="min-h-dvh">
         @if (routePolicy().shell === 'welcome') {
@@ -125,7 +129,7 @@ import { RealtimeStateSyncService } from './services/realtime-state-sync.service
     }
   `
 })
-export class AppComponent implements AfterViewInit, OnDestroy {
+export class AppComponent implements OnDestroy {
 
   protected readonly isSafari: boolean
 
@@ -138,7 +142,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   protected readonly design = inject(DesignService)
   protected readonly saveOverlayContext = inject(ActionOverlayContextService)
   private readonly scrollContext = inject(ScrollContextService)
-  private readonly shellLayout = inject(ShellLayoutService)
+  protected readonly shellLayout = inject(ShellLayoutService)
   private readonly doc = inject(DOCUMENT)
   private readonly platformId = inject(PLATFORM_ID)
   private readonly isBrowser = isPlatformBrowser(this.platformId)
@@ -149,40 +153,26 @@ export class AppComponent implements AfterViewInit, OnDestroy {
 
   _triggerOpenOffCanvas = signal<boolean>(false)
 
-  readonly scrollHost = viewChild<ElementRef<HTMLElement>>('scrollHost')
-  private scrollHostRef?: ElementRef<HTMLElement>
-
-  readonly headerRef = viewChild.required(HeaderComponent, { read: ElementRef });
+  readonly headerRef = viewChild(HeaderComponent, { read: ElementRef });
 
   constructor() {
     const isBrowser = this.isBrowser
     this.isSafari = isBrowser && /safari\//i.test(navigator.userAgent) && !/chrome\//i.test(navigator.userAgent)
     if (isBrowser) {
       this.doc.documentElement.classList.add('m-scroll-thin')
+      this.scrollContext.registerScrollRootRef(
+        new ElementRef(this.doc.scrollingElement as HTMLElement ?? this.doc.documentElement)
+      )
       this.realtimeStateSync.start()
     }
     effect(() => {
-      this.scrollHostRef = this.scrollHost()
-      this.shell.registerScrollHost(this.scrollHostRef)
-      // wait a tick so the view is stable before registering the new root
-      queueMicrotask(() => this.ensureScrollRootRef())
-    })
-    effect(() => {
-      this.routePolicy()
-      queueMicrotask(() => this.ensureScrollRootRef())
+      const header = this.headerRef()
+      queueMicrotask(() => this.shellLayout.setHeaderHeight(header?.nativeElement?.offsetHeight ?? 0))
     })
   }
 
   triggerOpenOffCanvas(): void {
     this._triggerOpenOffCanvas.set(true)
-  }
-
-  ngAfterViewInit() {
-    queueMicrotask(() => {
-      this.ensureScrollRootRef()
-      const h = this.headerRef()?.nativeElement?.offsetHeight ?? 64
-      this.shellLayout.setHeaderHeight(h)
-    })
   }
 
   ngOnDestroy() {
@@ -192,20 +182,4 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  private ensureScrollRootRef(): void {
-    if (!this.isBrowser) return
-
-    const docEl = this.doc?.documentElement as HTMLElement | null
-    const scrollHostRef = this.scrollHostRef
-    const shouldUseScrollHost = this.routePolicy().shell === 'standard' && !!scrollHostRef
-
-    if (scrollHostRef && shouldUseScrollHost) {
-      this.scrollContext.registerScrollRootRef(scrollHostRef)
-      return
-    }
-
-    if (docEl) {
-      this.scrollContext.registerScrollRootRef(new ElementRef<HTMLElement>(docEl))
-    }
-  }
 }

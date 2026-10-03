@@ -11,7 +11,7 @@ import { SmoothResizeDirective } from '../../common/smooth-resize/smooth-resize.
   host: { class: 'block min-w-0' },
   template: `
     <div mSmoothResize="height" class="overflow-hidden">
-      <div class="relative overflow-y-auto min-h-[90px] m-scroll-thin"
+      <div class="relative overflow-y-auto min-h-22.5 m-scroll-thin"
         [style.max-height.px]="onlyKnown() ? 181 : 272" role="region"
         aria-label="Molecole simili" [attr.aria-busy]="loading()" style="scrollbar-gutter: stable">
         @if (loading()) {
@@ -26,8 +26,8 @@ import { SmoothResizeDirective } from '../../common/smooth-resize/smooth-resize.
             }
           }
         } @else {
-          <div class="min-h-[90px] flex items-center justify-center p-3">
-            <p class="text-xs xs:text-sm text-center leading-snug whitespace-normal break-words max-w-[32rem]">
+          <div class="min-h-22.5 flex items-center justify-center p-3">
+            <p class="text-xs xs:text-sm text-center leading-snug whitespace-normal wrap-break-word max-w-lg">
               Nessun analogo noto trovato... Deseleziona
               <strong class="block sm:inline font-semibold">Mostra solo composti noti</strong>
               per vedere i lead sperimentali più simili.

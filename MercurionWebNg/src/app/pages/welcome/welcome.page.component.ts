@@ -16,7 +16,6 @@ import { WelcomeSecondaryFeaturesComponent } from '../../components/welcome/welc
 import { Subscription } from 'rxjs'
 import { ScrollContextService } from '../../services/context/scroll-context.service'
 import { ActivatedRoute } from '@angular/router'
-import { UserContextService } from '../../services/context/user-context.service'
 import { ProgressIndicatorComponent } from '../../components/common/progress-indicator/progress-indicator.component'
 import { DesignService } from '../../services/design.service'
 import { AuthStateStore } from '../../services/auth-state.store'

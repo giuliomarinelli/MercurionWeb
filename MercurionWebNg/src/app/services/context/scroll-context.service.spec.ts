@@ -30,6 +30,14 @@ describe('ScrollContextService', () => {
     expect(service.scrollRootRef()).toBe(host);
   });
 
+  it('uses the viewport for document-root intersection observers', () => {
+    service.registerScrollRootRef(new ElementRef(document.documentElement));
+    expect(service.intersectionRoot()).toBeNull();
+    const element = document.createElement('div');
+    service.registerScrollRootRef(new ElementRef(element));
+    expect(service.intersectionRoot()).toBe(element);
+  });
+
   it('bounds resolution when no scroll host is available', () => {
     service.smoothTo(undefined, 0, 100);
     for (let i = 0; i < 200; i++) flushRaf();

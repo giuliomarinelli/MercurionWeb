@@ -140,7 +140,7 @@ export class AllMyMoleculesPageComponent implements OnInit, OnDestroy {
   constructor() {
     effect(() => {
       const sentinel = this.sentinel()?.nativeElement
-      const root = this.scrollContext.scrollRootRef()?.nativeElement ?? null
+      const root = this.scrollContext.intersectionRoot()
       const canLoad = !this.pagination.loading() && !this.pagination.done() && !this.pagination.error()
       this.observer?.disconnect()
       if (!sentinel || !canLoad) return

@@ -14,7 +14,7 @@ const manifestRoute = <TParams extends Record<string, string>>(
 })
 
 export const routes: Routes = [
-  manifestRoute(routeManifest.home, { pathMatch: 'full', redirectTo: routeManifest.welcome.build({}) }),
+  manifestRoute(routeManifest.home, { pathMatch: 'full', loadComponent: () => import('./pages/home.page/home.page.component').then(m => m.HomePageComponent) }),
   manifestRoute(routeManifest.welcome, { loadComponent: () => import('./pages/welcome/welcome.page.component').then(m => m.WelcomePageComponent) }),
   manifestRoute(routeManifest.login, { loadComponent: () => import('./pages/login/login.page.component').then(m => m.LoginPageComponent) }),
   manifestRoute(routeManifest.dummyAuth, { loadComponent: () => import('./pages/local-dummy-auth/local-dummy-auth.page.component').then(m => m.LocalDummyAuthPageComponent) }),

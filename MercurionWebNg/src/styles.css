@@ -375,11 +375,11 @@ html {
   }
 
   .content {
-    @apply flex flex-col flex-1 overflow-y-auto;
+    @apply flex flex-col flex-1;
   }
 
   .drawer-container {
-    @apply relative flex flex-1 overflow-hidden;
+    @apply relative flex flex-1;
   }
 
 

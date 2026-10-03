@@ -2,7 +2,7 @@ import { ActivatedRouteSnapshot, Data, Route } from '@angular/router'
 import { StatusPageConfig } from './pages/status-page/status-page.models'
 
 export type RouteAccess = 'public' | 'authenticated' | 'logged-out-only'
-export type RouteShell = 'standard' | 'welcome' | 'minimal'
+export type RouteShell = 'standard' | 'welcome' | 'home' | 'minimal'
 
 export interface RoutePolicy {
   readonly access: RouteAccess
@@ -55,6 +55,7 @@ function isRoutePolicy(value: unknown): value is RoutePolicy {
       policy.access === 'logged-out-only') &&
     (policy.shell === 'standard' ||
       policy.shell === 'welcome' ||
+      policy.shell === 'home' ||
       policy.shell === 'minimal')
   )
 }

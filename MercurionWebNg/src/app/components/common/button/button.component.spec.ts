@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
+import { provideRouter, Router, RouterLink } from '@angular/router';
 
 import { ButtonComponent, ButtonSize, ButtonVariant } from './button.component';
 
@@ -12,8 +13,13 @@ import { ButtonComponent, ButtonSize, ButtonVariant } from './button.component';
       <m-button
         [variant]="variant"
         [size]="size"
+        [fullWidth]="fullWidth"
         [loading]="loading"
         [disabled]="disabled"
+        [routerLink]="routerLink"
+        [queryParams]="queryParams"
+        [fragment]="fragment"
+        [target]="target"
         type="submit"
         (pressed)="pressed = true"
       >
@@ -26,11 +32,28 @@ import { ButtonComponent, ButtonSize, ButtonVariant } from './button.component';
 class HostComponent {
   variant: ButtonVariant = 'primary';
   size: ButtonSize = 'md';
+  fullWidth = false;
   loading = false;
   disabled = false;
   pressed = false;
   submitted = false;
   defaultPressed = false;
+  routerLink: RouterLink['routerLink'] = null;
+  queryParams: RouterLink['queryParams'];
+  fragment: RouterLink['fragment'];
+  target: RouterLink['target'];
+}
+
+@Component({ standalone: true, template: '' })
+class DestinationComponent {}
+
+@Component({
+  standalone: true,
+  imports: [ButtonComponent, RouterLink],
+  template: `<m-button routerLink="/destination/42" [disabled]="disabled">Go</m-button>`,
+})
+class RouterLinkHostComponent {
+  disabled = false;
 }
 
 const luminance = (color: string): number => {
@@ -52,6 +75,7 @@ describe('ButtonComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [HostComponent],
+      providers: [provideRouter([{ path: 'destination/:id', component: DestinationComponent }])],
     }).compileComponents();
     fixture = TestBed.createComponent(HostComponent);
     fixture.detectChanges();
@@ -62,6 +86,21 @@ describe('ButtonComponent', () => {
     expect(button.classList).toContain('m-button__control--primary');
     expect(button.classList).toContain('m-button__control--md');
     expect(button.type).toBe('submit');
+  });
+
+  it('fills the host with both a button and a link only when requested', () => {
+    const host = fixture.componentInstance;
+    const element = fixture.nativeElement.querySelector('m-button') as HTMLElement;
+    element.style.width = '320px';
+    expect(element.querySelector('button')!.getBoundingClientRect().width).toBeLessThan(320);
+
+    host.fullWidth = true;
+    fixture.detectChanges();
+    expect(element.querySelector('button')!.getBoundingClientRect().width).toBeCloseTo(320, 0);
+
+    host.routerLink = '/destination/42';
+    fixture.detectChanges();
+    expect(element.querySelector('a')!.getBoundingClientRect().width).toBeCloseTo(320, 0);
   });
 
   it('keeps the native control disabled and busy while loading', () => {
@@ -116,6 +155,106 @@ describe('ButtonComponent', () => {
       fixture.detectChanges();
       expect(button.classList).toContain(`m-button__control--${size}`);
     }
+  });
+
+  it('renders a real link with projected content and navigates without submitting', async () => {
+    const host = fixture.componentInstance;
+    host.routerLink = ['/destination', 42];
+    host.queryParams = { source: 'home' };
+    host.fragment = 'details';
+    fixture.detectChanges();
+    const link = fixture.debugElement.query(By.css('a')).nativeElement as HTMLAnchorElement;
+
+    expect(link.getAttribute('href')).toBe('/destination/42?source=home#details');
+    expect(link.textContent?.trim()).toBe('Save');
+    expect(link.classList).toContain('m-button__control--primary');
+    expect(link.hasAttribute('type')).toBeFalse();
+    link.click();
+    await fixture.whenStable();
+
+    expect(TestBed.inject(Router).url).toBe('/destination/42?source=home#details');
+    expect(host.pressed).toBeTrue();
+    expect(host.submitted).toBeFalse();
+  });
+
+  it('prevents navigation and activation while a link is disabled or loading', () => {
+    const host = fixture.componentInstance;
+    host.routerLink = '/destination/42';
+    const navigate = spyOn(TestBed.inject(Router), 'navigateByUrl');
+
+    for (const state of ['disabled', 'loading'] as const) {
+      host.disabled = state === 'disabled';
+      host.loading = state === 'loading';
+      fixture.detectChanges();
+      const link = fixture.debugElement.query(By.css('a')).nativeElement as HTMLAnchorElement;
+      expect(link.hasAttribute('href')).toBeFalse();
+      expect(link.tabIndex).toBe(-1);
+      expect(link.getAttribute('aria-disabled')).toBe('true');
+      link.click();
+      expect(navigate).not.toHaveBeenCalled();
+      expect(host.pressed).toBeFalse();
+    }
+
+    host.loading = false;
+    fixture.detectChanges();
+    const link = fixture.debugElement.query(By.css('a')).nativeElement as HTMLAnchorElement;
+    expect(link.getAttribute('href')).toBe('/destination/42');
+    expect(link.hasAttribute('tabindex')).toBeFalse();
+    expect(link.textContent?.trim()).toBe('Save');
+  });
+
+  it('preserves browser handling of modified clicks and target blank', () => {
+    const host = fixture.componentInstance;
+    host.routerLink = '/destination/42';
+    fixture.detectChanges();
+    const navigate = spyOn(TestBed.inject(Router), 'navigateByUrl');
+    const link = fixture.debugElement.query(By.css('a'));
+
+    link.triggerEventHandler('click', new MouseEvent('click', { ctrlKey: true }));
+    expect(navigate).not.toHaveBeenCalled();
+
+    host.target = '_blank';
+    fixture.detectChanges();
+    expect(link.nativeElement.getAttribute('target')).toBe('_blank');
+    link.triggerEventHandler('click', new MouseEvent('click'));
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it('switches back to a button when routerLink is removed', () => {
+    const host = fixture.componentInstance;
+    host.routerLink = '/destination/42';
+    fixture.detectChanges();
+    host.routerLink = null;
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('a'))).toBeNull();
+    const button = fixture.debugElement.query(By.css('button')).nativeElement as HTMLButtonElement;
+    expect(button.type).toBe('submit');
+    expect(button.textContent?.trim()).toBe('Save');
+  });
+
+  it('handles navigation only once when the consumer also imports RouterLink', () => {
+    const linkFixture = TestBed.createComponent(RouterLinkHostComponent);
+    linkFixture.detectChanges();
+    const navigate = spyOn(TestBed.inject(Router), 'navigateByUrl').and.returnValue(Promise.resolve(true));
+    const link = linkFixture.debugElement.query(By.css('a')).nativeElement as HTMLAnchorElement;
+    const host = linkFixture.debugElement.query(By.css('m-button')).nativeElement as HTMLElement;
+    expect(host.tabIndex).toBe(-1);
+
+    link.click();
+    expect(navigate).toHaveBeenCalledTimes(1);
+
+    navigate.calls.reset();
+    // Cancel the browser default to avoid opening a real tab in this test.
+    link.addEventListener('click', event => event.preventDefault(), { once: true });
+    link.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, ctrlKey: true }));
+    expect(navigate).not.toHaveBeenCalled();
+
+    linkFixture.componentInstance.disabled = true;
+    linkFixture.detectChanges();
+    link.click();
+    expect(navigate).not.toHaveBeenCalled();
+    linkFixture.destroy();
   });
 
   it('keeps filled button labels at enhanced text contrast in both themes', () => {

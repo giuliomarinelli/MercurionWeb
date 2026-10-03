@@ -93,7 +93,7 @@ import { CollectionPickerFacade } from '../collection-picker/collection-picker.f
               <label
                 (click)="onFocus('name')"
                 for="name"
-                class="peer-focus:font-medium absolute transition-all duration-300 bg-light-surface-secondary dark:bg-dark-surface-secondary px-1 top-[13px] left-4 origin-[0] cursor-text"
+                class="peer-focus:font-medium absolute transition-all duration-300 bg-light-surface-secondary dark:bg-dark-surface-secondary px-1 top-3.25 left-4 origin-left cursor-text"
                 [ngClass]="{
                   'text-light-accent-secondary dark:text-dark-accent-secondary-hc scale-110 -translate-y-6 text-sm': nameFocus() || nameModel,
                   'text-light-on-surface-secondary dark:text-dark-on-surface-secondary text-lg scale-100 translate-y-0': !nameFocus() && !nameModel
@@ -126,7 +126,7 @@ import { CollectionPickerFacade } from '../collection-picker/collection-picker.f
               <label
                 (click)="onFocus('label')"
                 for="label"
-                class="peer-focus:font-medium absolute transition-all duration-300 bg-light-surface-secondary dark:bg-dark-surface-secondary px-1 top-[13px] left-4 origin-[0] cursor-text"
+                class="peer-focus:font-medium absolute transition-all duration-300 bg-light-surface-secondary dark:bg-dark-surface-secondary px-1 top-3.25 left-4 origin-left cursor-text"
                 [ngClass]="{
                   'text-light-accent-secondary dark:text-dark-accent-secondary-hc scale-110 -translate-y-6 text-sm': labelFocus() || labelModel,
                   'text-light-on-surface-secondary dark:text-dark-on-surface-secondary text-lg scale-100 translate-y-0': !labelFocus() && !labelModel

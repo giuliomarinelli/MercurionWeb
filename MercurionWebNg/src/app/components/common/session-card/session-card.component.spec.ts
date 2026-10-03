@@ -34,4 +34,22 @@ describe('SessionCardComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('keeps the card visible with a spinner while logout is pending', () => {
+    fixture.componentRef.setInput('session', { ...component.session(), isBeingDeleted: true });
+    fixture.detectChanges();
+
+    const card = fixture.nativeElement.querySelector('[role="region"]');
+    expect(card).not.toBeNull();
+    expect(card.getAttribute('aria-busy')).toBe('true');
+    expect(card.querySelector('m-progress-indicator')).not.toBeNull();
+    expect(card.querySelector('button')).toBeNull();
+
+    fixture.componentRef.setInput('session', { ...component.session(), isBeingDeleted: false });
+    fixture.detectChanges();
+
+    expect(card.getAttribute('aria-busy')).toBe('false');
+    expect(card.querySelector('m-progress-indicator')).toBeNull();
+    expect(card.querySelector('button[aria-label="Esci da questa sessione"]')).not.toBeNull();
+  });
 });

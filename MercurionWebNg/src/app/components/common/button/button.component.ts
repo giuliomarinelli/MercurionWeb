@@ -2,9 +2,12 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  inject,
   input,
   output,
 } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
+import { RouterLink } from '@angular/router';
 
 export type ButtonVariant =
   | 'primary'
@@ -41,29 +44,65 @@ const ICON_POSITION_CLASSES = {
 @Component({
   selector: 'm-button',
   standalone: true,
+  imports: [NgTemplateOutlet, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '[attr.tabindex]': 'hostRouterLink ? -1 : null',
+    '[class.m-button--full-width]': 'fullWidth()',
+  },
   template: `
-    <button
-      [class]="classes()"
-      [attr.type]="type()"
-      [disabled]="disabled() || loading()"
-      [attr.aria-label]="ariaLabel()"
-      [attr.aria-current]="ariaCurrent()"
-      [attr.aria-busy]="loading() ? 'true' : null"
-      [attr.aria-disabled]="disabled() || loading() ? 'true' : null"
-      (click)="onClick($event)"
-    >
+    @if (routerLink() !== null && routerLink() !== undefined) {
+      <a
+        [class]="classes()"
+        [routerLink]="disabled() || loading() ? null : routerLink()"
+        [queryParams]="queryParams()"
+        [fragment]="fragment()"
+        [queryParamsHandling]="queryParamsHandling()"
+        [target]="target()"
+        [attr.tabindex]="disabled() || loading() ? -1 : null"
+        [attr.aria-label]="ariaLabel()"
+        [attr.aria-current]="ariaCurrent()"
+        [attr.aria-busy]="loading() ? 'true' : null"
+        [attr.aria-disabled]="disabled() || loading() ? 'true' : null"
+        (click)="onClick($event)"
+      >
+        <ng-container [ngTemplateOutlet]="content" />
+      </a>
+    } @else {
+      <button
+        [class]="classes()"
+        [attr.type]="type()"
+        [disabled]="disabled() || loading()"
+        [attr.aria-label]="ariaLabel()"
+        [attr.aria-current]="ariaCurrent()"
+        [attr.aria-busy]="loading() ? 'true' : null"
+        [attr.aria-disabled]="disabled() || loading() ? 'true' : null"
+        (click)="onClick($event)"
+      >
+        <ng-container [ngTemplateOutlet]="content" />
+      </button>
+    }
+    <ng-template #content>
       @if (loading()) {
         <span class="m-button__spinner" aria-hidden="true"></span>
       }
       <span class="m-button__content" [class.m-button__content--loading]="loading()">
         <ng-content></ng-content>
       </span>
-    </button>
+    </ng-template>
   `,
   styles: `
     :host {
       display: inline-flex;
+    }
+
+    :host(.m-button--full-width) {
+      width: 100%;
+      min-width: 0;
+    }
+
+    :host(.m-button--full-width) .m-button__control {
+      width: 100%;
     }
 
     .m-button__control {
@@ -78,6 +117,7 @@ const ICON_POSITION_CLASSES = {
       justify-content: center;
       min-height: 2.5rem;
       position: relative;
+      text-decoration: none;
       transition: background-color 150ms ease, border-color 150ms ease,
         color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
     }
@@ -87,11 +127,12 @@ const ICON_POSITION_CLASSES = {
       outline-offset: var(--m-space-2);
     }
 
-    .m-button__control:active:not(:disabled) {
+    .m-button__control:active:not(:disabled):not([aria-disabled='true']) {
       transform: translateY(1px);
     }
 
-    .m-button__control:disabled {
+    .m-button__control:disabled,
+    .m-button__control[aria-disabled='true'] {
       cursor: not-allowed;
       opacity: 0.55;
     }
@@ -118,7 +159,7 @@ const ICON_POSITION_CLASSES = {
       color: var(--m-color-on-control-filled);
     }
 
-    .m-button__control--primary:hover:not(:disabled) {
+    .m-button__control--primary:hover:not(:disabled):not([aria-disabled='true']) {
       background: var(--m-color-control-primary-hover);
     }
 
@@ -127,7 +168,7 @@ const ICON_POSITION_CLASSES = {
       color: var(--m-color-on-control-filled);
     }
 
-    .m-button__control--secondary:hover:not(:disabled) {
+    .m-button__control--secondary:hover:not(:disabled):not([aria-disabled='true']) {
       background: var(--m-color-control-secondary-hover);
     }
 
@@ -136,7 +177,7 @@ const ICON_POSITION_CLASSES = {
       color: var(--m-color-on-control-filled);
     }
 
-    .m-button__control--destructive:hover:not(:disabled) {
+    .m-button__control--destructive:hover:not(:disabled):not([aria-disabled='true']) {
       background: var(--m-color-control-destructive-hover);
     }
 
@@ -145,7 +186,7 @@ const ICON_POSITION_CLASSES = {
       color: var(--m-color-on-surface-main);
     }
 
-    .m-button__control--neutral:hover:not(:disabled) {
+    .m-button__control--neutral:hover:not(:disabled):not([aria-disabled='true']) {
       background: var(--m-color-control-neutral-hover);
     }
 
@@ -154,7 +195,7 @@ const ICON_POSITION_CLASSES = {
       color: var(--m-color-on-surface-main);
     }
 
-    .m-button__control--ghost:hover:not(:disabled) {
+    .m-button__control--ghost:hover:not(:disabled):not([aria-disabled='true']) {
       background: var(--m-color-control-ghost-hover);
     }
 
@@ -164,7 +205,7 @@ const ICON_POSITION_CLASSES = {
       color: var(--m-color-control-outline-text);
     }
 
-    .m-button__control--outline:hover:not(:disabled) {
+    .m-button__control--outline:hover:not(:disabled):not([aria-disabled='true']) {
       background: var(--m-color-control-outline-hover);
     }
 
@@ -200,9 +241,17 @@ const ICON_POSITION_CLASSES = {
 })
 export class ButtonComponent {
 
+  protected readonly hostRouterLink = inject(RouterLink, { self: true, optional: true });
+
   readonly variant = input<ButtonVariant>('primary');
   readonly size = input<ButtonSize>('md');
+  readonly fullWidth = input(false);
   readonly type = input<ButtonType>('button');
+  readonly routerLink = input<RouterLink['routerLink']>(null);
+  readonly queryParams = input<RouterLink['queryParams']>();
+  readonly fragment = input<RouterLink['fragment']>();
+  readonly queryParamsHandling = input<RouterLink['queryParamsHandling']>();
+  readonly target = input<RouterLink['target']>();
   readonly disabled = input(false);
   readonly loading = input(false);
   readonly ariaLabel = input<string | null>(null);
@@ -221,8 +270,16 @@ export class ButtonComponent {
   );
 
   protected onClick(event: MouseEvent): void {
-    if (!this.disabled() && !this.loading()) {
-      this.pressed.emit(event);
+    // A consumer importing RouterLink also applies it to the m-button host.
+    // Only the inner anchor should handle navigation and modified clicks.
+    if (this.hostRouterLink) {
+      event.stopPropagation();
     }
+    if (this.disabled() || this.loading()) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      return;
+    }
+    this.pressed.emit(event);
   }
 }

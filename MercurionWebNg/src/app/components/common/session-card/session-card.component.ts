@@ -23,6 +23,7 @@ import { ProgressIndicatorComponent } from "../progress-indicator/progress-indic
       "
       role="region"
       [attr.aria-label]="ariaLabel()"
+      [attr.aria-busy]="session().isBeingDeleted"
     >
 
       @if (!session().isBeingDeleted) {

@@ -1,4 +1,4 @@
-import { ElementRef, Injectable, NgZone, inject, signal } from '@angular/core';
+import { ElementRef, Injectable, NgZone, computed, inject, signal } from '@angular/core';
 import { BrowserResourceOwner, injectBrowserResourceOwner } from '../../utils/browser-resource-owner.util';
 
 const SCROLL_TARGET_MAX_WAIT_FRAMES = 60;
@@ -15,6 +15,11 @@ export class ScrollContextService {
   private readonly _scrollRootRef = signal<ElementRef<HTMLElement> | null>(null);
 
   readonly scrollRootRef = this._scrollRootRef.asReadonly();
+  readonly intersectionRoot = computed(() => {
+    const root = this._scrollRootRef()?.nativeElement;
+    if (!root || root === root.ownerDocument.scrollingElement || root === root.ownerDocument.documentElement || root === root.ownerDocument.body) return null;
+    return root;
+  });
 
   registerScrollRootRef(ref: ElementRef<HTMLElement>): void {
     this._scrollRootRef.set(ref);
@@ -40,7 +45,7 @@ export class ScrollContextService {
       !!doc && (scrollRoot === doc.documentElement || scrollRoot === doc.body);
 
     if (isDocumentRoot) {
-      return elRect.top + scrollRoot.scrollTop;
+      return elRect.top + (doc.scrollingElement?.scrollTop ?? scrollRoot.scrollTop);
     }
 
     return (elRect.top - rootRect.top) + scrollRoot.scrollTop;
@@ -74,13 +79,18 @@ export class ScrollContextService {
       const start = el.scrollTop;
       const delta = targetY - start;
       if (delta === 0) return;
+      if (duration <= 0 || el.ownerDocument.defaultView?.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        el.scrollTo({ top: targetY, behavior: 'instant' });
+        return;
+      }
 
       const startTime = performance.now();
       const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
       const step = (now: number) => {
         if (this.scrollGenerations.get(el) !== generation) return;
         const progress = Math.min(1, (now - startTime) / duration);
-        el.scrollTop = start + delta * easeOutCubic(progress);
+        // Override CSS scroll-behavior: smooth while this RAF animation owns scrolling.
+        el.scrollTo({ top: start + delta * easeOutCubic(progress), behavior: 'instant' });
         if (progress < 1) this.resources.requestAnimationFrame(step);
       };
 

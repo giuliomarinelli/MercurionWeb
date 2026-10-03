@@ -39,7 +39,7 @@ describe('AppShellFacade', () => {
         provideRouter([{
           path: '',
           component: TestRouteComponent,
-          data: { routePolicy: { access: 'authenticated', shell: 'standard' } }
+          data: { routePolicy: { access: 'public', shell: 'home' } }
         }, {
           path: 'welcome',
           component: TestRouteComponent,
@@ -99,6 +99,39 @@ describe('AppShellFacade', () => {
     await router.navigateByUrl('/welcome')
 
     expect(facade.routePolicy()).toEqual({ access: 'logged-out-only', shell: 'welcome' })
+  })
+
+  it('keeps an anonymous visitor on the public home', async () => {
+    const router = TestBed.inject(Router)
+    const facade = TestBed.inject(AppShellFacade)
+    const navigate = spyOn(router, 'navigateByUrl').and.callThrough()
+
+    await router.navigateByUrl('/')
+    TestBed.flushEffects()
+    await TestBed.inject(ApplicationRef).whenStable()
+
+    expect(router.url).toBe('/')
+    expect(facade.routePolicy()).toEqual({ access: 'public', shell: 'home' })
+    expect(navigate).toHaveBeenCalledTimes(1)
+    expect(redirects.capture).not.toHaveBeenCalled()
+  })
+
+  it('redirects an authenticated visitor directly from home to dashboard', async () => {
+    authState.authenticated.set(true)
+    sessionSync.status.set('loggedIn')
+    const router = TestBed.inject(Router)
+    TestBed.inject(AppShellFacade)
+    const destinations: string[] = []
+    router.events.subscribe(event => {
+      if (event instanceof NavigationEnd) destinations.push(event.urlAfterRedirects)
+    })
+
+    await router.navigateByUrl('/')
+    TestBed.flushEffects()
+    await TestBed.inject(ApplicationRef).whenStable()
+
+    expect(router.url).toBe('/dashboard')
+    expect(destinations).not.toContain('/welcome')
   })
 
   it('redirects an authenticated visitor from welcome through Angular Router', async () => {
