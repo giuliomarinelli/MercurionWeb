@@ -17,5 +17,5 @@ export class RdkitToCanonicalSmilesDTO extends RdkitBaseDTO implements RdkitCano
   @IsOptional()
   @ValidateNested()
   @Type(() => RdkitToCanonicalSmilesOptsDTO)
-  opts?: RdkitToCanonicalSmilesOptsDTO
+  opts?: RdkitToCanonicalSmilesOptsDTO | null
 }

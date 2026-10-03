@@ -2,7 +2,7 @@ import { Body, Controller, HttpCode, HttpStatus, Post, ValidationPipe } from '@n
 import { MercurionAIService } from '../services/mercurion-ai.service';
 import { SmilesDTO } from '../models/dto/smiles.cls.dto';
 import { MercurionInferDataDTO } from '../models/dto/mt21/mercurion-infer-res.dto';
-import { Authorization } from 'src/metadata/metadata';
+import { Public } from 'src/metadata/metadata';
 
 @Controller('mercurion-ai')
 export class MercurionAIController {
@@ -11,16 +11,16 @@ export class MercurionAIController {
         private readonly mercurionService: MercurionAIService
     ) { }
 
+    @Public()
     @HttpCode(HttpStatus.OK)
     @Post('/tox-21/infer')
     public async inferTox21Top4Smiles(
-        @Body(new ValidationPipe({ transform: true })) smilesDTO: SmilesDTO,
-        @Authorization() accessToken: string
+        @Body(new ValidationPipe({ transform: true })) smilesDTO: SmilesDTO        
     ): Promise<MercurionInferDataDTO> {
         const { smiles } = smilesDTO
         return await this.mercurionService.getInferenceFromTop4MercurionTox21({
             smiles,
-            accessToken
+            accessToken: ''
         })
     }
 

@@ -33,6 +33,13 @@ describe('RDKit REST contract runtime parity', () => {
     expect(dto.smiles).toBe('CCO')
   })
 
+  it('accepts null canonical options as the Pydantic default-options case', async () => {
+    const dto = plainToInstance(RdkitToCanonicalSmilesDTO, { smiles: 'CCO', opts: null })
+
+    expect(await validate(dto)).toEqual([])
+    expect(dto.opts).toBeNull()
+  })
+
   it.each(invalidRequests)('rejects invalid RDKit request input', async (Dto, input) => {
     const errors = await validate(plainToInstance<RdkitRequestDto, object>(Dto, input))
 

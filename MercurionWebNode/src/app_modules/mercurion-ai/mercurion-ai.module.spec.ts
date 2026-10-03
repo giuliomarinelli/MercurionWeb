@@ -1,4 +1,6 @@
 import { Transport } from '@nestjs/microservices';
+import { MODULE_METADATA } from '@nestjs/common/constants';
+import { PcpService } from './services/pcp.service';
 
 import type { NatsServerUrl } from '../../config/nats-endpoint';
 import { createNatsTransportOptions } from '../../nats-transport';
@@ -10,6 +12,11 @@ import {
 describe('MercurionAIModule', () => {
   it('should be defined', () => {
     expect(new MercurionAIModule()).toBeDefined();
+  });
+
+  it('provides and exports PcpService for other application modules', () => {
+    expect(Reflect.getMetadata(MODULE_METADATA.PROVIDERS, MercurionAIModule)).toContain(PcpService);
+    expect(Reflect.getMetadata(MODULE_METADATA.EXPORTS, MercurionAIModule)).toContain(PcpService);
   });
 
   it('uses the same canonical NATS server URL as application bootstrap', async () => {

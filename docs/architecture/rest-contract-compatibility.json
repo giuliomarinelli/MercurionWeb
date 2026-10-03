@@ -36,9 +36,9 @@
       }
     }
   },
-  "totalClientCalls": 60,
-  "matchedClientCalls": 60,
-  "uniqueNestRoutes": 59,
+  "totalClientCalls": 61,
+  "matchedClientCalls": 61,
+  "uniqueNestRoutes": 60,
   "entries": [
     {
       "id": "MercurionWebNg/src/app/services/account.service.ts#AccountService.activateAccount#0",
@@ -7436,14 +7436,12 @@
           "validation": [
             400
           ],
-          "authentication": [
-            401
-          ],
+          "authentication": [],
           "authorization": [],
           "declared": []
         },
         "authentication": {
-          "public": false,
+          "public": true,
           "guards": [],
           "scopes": []
         },
@@ -7518,6 +7516,150 @@
       }
     },
     {
+      "id": "MercurionWebNg/src/app/services/pcp-api.service.ts#PcpApiService.getIupacNameFromSmiles#0",
+      "consumer": {
+        "file": "MercurionWebNg/src/app/services/pcp-api.service.ts",
+        "class": "PcpApiService",
+        "method": "getIupacNameFromSmiles",
+        "ordinal": 0,
+        "verb": "POST",
+        "path": "/api/pcp-api/get-iupac-name-from-smiles",
+        "urlVariants": [
+          "/api/pcp-api/get-iupac-name-from-smiles"
+        ],
+        "pathParameters": [],
+        "queryParameters": [],
+        "body": {
+          "expression": "dto",
+          "type": "RdkitGetMoleculePropertiesDTO",
+          "contract": {
+            "applicable": true,
+            "compatible": true,
+            "canonicalNames": [
+              "RdkitBaseDTO",
+              "RdkitGetMoleculePropertiesDTO"
+            ],
+            "shapeHash": "e9be940f6389fc522a6f81cb5b77a6c07864b037f0f677dcb94223ea6451fcfa"
+          }
+        },
+        "response": {
+          "type": "string",
+          "mode": "text",
+          "options": {
+            "withCredentials": "true",
+            "responseType": "text"
+          },
+          "contract": {
+            "applicable": false,
+            "compatible": true,
+            "canonicalNames": [],
+            "shapeHash": "bd57216d2522b3afa3edbb43f2966cc496090dc05348b572c5bfc51d2fea15e4"
+          }
+        }
+      },
+      "server": {
+        "controller": "MercurionWebNode/src/app_modules/mercurion-ai/controllers/pcp.controller.ts",
+        "handler": "getIupacName",
+        "verb": "POST",
+        "path": "/api/pcp-api/get-iupac-name-from-smiles",
+        "parameters": [
+          {
+            "source": "body",
+            "type": "PcpGetIupacNameFromSmilesDTO",
+            "optional": false
+          }
+        ],
+        "returnType": "string",
+        "successStatus": 200,
+        "errorStatuses": {
+          "validation": [
+            400
+          ],
+          "authentication": [],
+          "authorization": [],
+          "declared": []
+        },
+        "authentication": {
+          "public": true,
+          "guards": [],
+          "scopes": []
+        },
+        "bodyContract": {
+          "displayType": "PcpGetIupacNameFromSmilesDTO",
+          "shapeHash": "e9be940f6389fc522a6f81cb5b77a6c07864b037f0f677dcb94223ea6451fcfa",
+          "canonicalNames": [
+            "RdkitBaseDTO",
+            "RdkitGetMoleculePropertiesDTO"
+          ],
+          "applicable": true,
+          "canonical": true
+        },
+        "responseContract": {
+          "displayType": "string",
+          "shapeHash": "bd57216d2522b3afa3edbb43f2966cc496090dc05348b572c5bfc51d2fea15e4",
+          "canonicalNames": [],
+          "applicable": false,
+          "canonical": true
+        }
+      },
+      "matching": {
+        "status": "matched",
+        "path": {
+          "compatible": true,
+          "failures": []
+        },
+        "pathParameters": {
+          "compatible": true,
+          "failures": []
+        },
+        "query": {
+          "compatible": true,
+          "failures": []
+        },
+        "request": {
+          "compatible": true,
+          "canonical": true,
+          "canonicalNames": [
+            "RdkitBaseDTO",
+            "RdkitGetMoleculePropertiesDTO"
+          ],
+          "clientShapeHash": "e9be940f6389fc522a6f81cb5b77a6c07864b037f0f677dcb94223ea6451fcfa",
+          "serverShapeHash": "e9be940f6389fc522a6f81cb5b77a6c07864b037f0f677dcb94223ea6451fcfa"
+        },
+        "validation": {
+          "compatible": true,
+          "policy": "global ValidationPipe plus DTO property decorators",
+          "properties": [
+            {
+              "name": "accessToken",
+              "optional": true,
+              "decorators": [
+                "IsOptional"
+              ]
+            },
+            {
+              "name": "smiles",
+              "optional": false,
+              "decorators": [
+                "IsString",
+                "Matches",
+                "MaxLength",
+                "Transform"
+              ]
+            }
+          ],
+          "failures": []
+        },
+        "response": {
+          "compatible": true,
+          "canonical": true,
+          "canonicalNames": [],
+          "clientShapeHash": "bd57216d2522b3afa3edbb43f2966cc496090dc05348b572c5bfc51d2fea15e4",
+          "serverShapeHash": "bd57216d2522b3afa3edbb43f2966cc496090dc05348b572c5bfc51d2fea15e4"
+        }
+      }
+    },
+    {
       "id": "MercurionWebNg/src/app/services/rd-kit-api.service.ts#RdKitApiService.areSameStructure#0",
       "consumer": {
         "file": "MercurionWebNg/src/app/services/rd-kit-api.service.ts",
@@ -7576,14 +7718,12 @@
           "validation": [
             400
           ],
-          "authentication": [
-            401
-          ],
+          "authentication": [],
           "authorization": [],
           "declared": []
         },
         "authentication": {
-          "public": false,
+          "public": true,
           "guards": [],
           "scopes": []
         },
@@ -7733,14 +7873,12 @@
           "validation": [
             400
           ],
-          "authentication": [
-            401
-          ],
+          "authentication": [],
           "authorization": [],
           "declared": []
         },
         "authentication": {
-          "public": false,
+          "public": true,
           "guards": [],
           "scopes": []
         },
@@ -7847,7 +7985,7 @@
               "RdkitBaseDTO",
               "RdkitToCanonicalSmilesDTO"
             ],
-            "shapeHash": "56185c44ead569e37e6d2c0dba5a5947e3a8fdc0362393460d683ec02df192b1"
+            "shapeHash": "8d132ff76539740ed3bb886bc491084a40388df477802536c8b83ee931209af1"
           }
         },
         "response": {
@@ -7883,20 +8021,18 @@
           "validation": [
             400
           ],
-          "authentication": [
-            401
-          ],
+          "authentication": [],
           "authorization": [],
           "declared": []
         },
         "authentication": {
-          "public": false,
+          "public": true,
           "guards": [],
           "scopes": []
         },
         "bodyContract": {
           "displayType": "RdkitToCanonicalSmilesDTO",
-          "shapeHash": "56185c44ead569e37e6d2c0dba5a5947e3a8fdc0362393460d683ec02df192b1",
+          "shapeHash": "8d132ff76539740ed3bb886bc491084a40388df477802536c8b83ee931209af1",
           "canonicalNames": [
             "RdkitBaseDTO",
             "RdkitToCanonicalSmilesDTO"
@@ -7933,8 +8069,8 @@
             "RdkitBaseDTO",
             "RdkitToCanonicalSmilesDTO"
           ],
-          "clientShapeHash": "56185c44ead569e37e6d2c0dba5a5947e3a8fdc0362393460d683ec02df192b1",
-          "serverShapeHash": "56185c44ead569e37e6d2c0dba5a5947e3a8fdc0362393460d683ec02df192b1"
+          "clientShapeHash": "8d132ff76539740ed3bb886bc491084a40388df477802536c8b83ee931209af1",
+          "serverShapeHash": "8d132ff76539740ed3bb886bc491084a40388df477802536c8b83ee931209af1"
         },
         "validation": {
           "compatible": true,

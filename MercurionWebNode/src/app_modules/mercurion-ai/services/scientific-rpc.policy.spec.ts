@@ -1,5 +1,5 @@
 import { ConfigService } from '@nestjs/config'
-import { NATS_CONTRACT_REGISTRY } from '@mercurion/rest-contracts'
+import { NATS_CONTRACT_REGISTRY, type MercurionInferenceRequest } from '@mercurion/rest-contracts'
 import { NEVER, Subject, of, throwError } from 'rxjs'
 import { InMemoryMetrics } from 'src/observability/metrics'
 import { ScientificRpcPolicy } from './scientific-rpc.policy'
@@ -27,7 +27,7 @@ describe('ScientificRpcPolicy', () => {
 
   afterEach(() => jest.useRealTimers())
 
-  const execute = (send: jest.Mock, payload = request) => policy.execute({
+  const execute = (send: jest.Mock, payload: MercurionInferenceRequest = request) => policy.execute({
     operation: 'mercurion.inference.top4',
     client: { send },
     subject: 'development.inference.tox21.smiles',
@@ -41,6 +41,14 @@ describe('ScientificRpcPolicy', () => {
       expect.objectContaining({ name: 'count', outcome: 'success', operation: 'mercurion.inference.top4' }),
     ]))
   })
+
+  it.each([{ smiles: 'CCO' }, { smiles: 'CCO', accessToken: undefined }, { smiles: 'CCO', accessToken: '' }])(
+    'dispatches public inference requests with optional or empty tokens', async (payload) => {
+      const send = jest.fn(() => of(response))
+      await expect(execute(send, payload)).resolves.toEqual(response)
+      expect(send).toHaveBeenCalledWith('development.inference.tox21.smiles', payload)
+    }
+  )
 
   it('rejects oversized and semantically invalid requests before dispatch', async () => {
     const send = jest.fn()

@@ -44,12 +44,20 @@ export class MoleculeResolver {
     }
 
     @Query(() => MoleculeNameByCanonicalSmilesDTO)
-    async preferredNameItByCanonicalSmiles(
+    async moleculeNameByCanonicalSmiles(
         @Args() csArgs: CanonicalSmilesArgs,
         @AuthenticatedUserId() userId: UUID
     ): Promise<MoleculeNameByCanonicalSmilesDTO> {
         const normalizedCanonicalSmiles = typeof csArgs.canonicalSmiles === 'string' ? csArgs.canonicalSmiles.trim() : csArgs.canonicalSmiles
-        return this.moleculeService.getPreferredNameItByCanonicalSmilesFromChembleCoalesceCustomMolecule(normalizedCanonicalSmiles, userId)
+        return this.moleculeService.getMoleculeName(normalizedCanonicalSmiles, userId)
+    }
+    
+    @Query(() => MoleculeNameByCanonicalSmilesDTO)
+    async moleculeNameByCanonicalSmilesPublic(
+        @Args() csArgs: CanonicalSmilesArgs        
+    ): Promise<MoleculeNameByCanonicalSmilesDTO> {
+        const normalizedCanonicalSmiles = typeof csArgs.canonicalSmiles === 'string' ? csArgs.canonicalSmiles.trim() : csArgs.canonicalSmiles
+        return this.moleculeService.getMoleculeName(normalizedCanonicalSmiles)
     }
 
 }
