@@ -109,6 +109,55 @@ export class MoleculeCollectionDetailFacade {
           (event.action !== 'molecules-added' && event.action !== 'items-changed')) return;
       queueMicrotask(() => void this.reload(collectionId));
     });
+
+    effect(() => {
+      const event = this.invalidations.last();
+      const collectionId = this.collectionId();
+      if (!event || !collectionId) return;
+
+      const reconnect = event.domain === 'realtime' && event.action === 'reconcile';
+      const remoteCollectionChanged =
+        event.domain === 'molecule-collection' &&
+        event.action === 'changed' &&
+        event.remote === true &&
+        (!event.resourceId || event.resourceId === collectionId);
+      const remoteDisplayedMoleculeChanged =
+        event.domain === 'molecule' &&
+        event.action === 'changed' &&
+        event.remote === true &&
+        (!event.resourceId || this.items().some(item => item.id === event.resourceId));
+
+      if (remoteCollectionChanged && event.change === 'deleted') {
+        this.toast.trigger('Questa collezione è stata eliminata da un’altra sessione.', 'info', 4500);
+        void this.router.navigateByUrl('/molecules/collections');
+        return;
+      }
+
+      if (remoteCollectionChanged || reconnect) {
+        queueMicrotask(() => void this.refreshCollection(collectionId));
+        return;
+      }
+      if (remoteDisplayedMoleculeChanged) {
+        queueMicrotask(() => void this.reload(collectionId));
+      }
+    });
+  }
+
+  private async refreshCollection(expectedId = this.collectionId()): Promise<void> {
+    if (!expectedId || expectedId !== this.collectionId()) return
+    try {
+      const collection = await firstValueFrom(this.collections.getCollectionById(expectedId))
+      if (!collection) {
+        this.toast.trigger('Questa collezione non è più disponibile.', 'info', 4500)
+        void this.router.navigateByUrl('/molecules/collections')
+        return
+      }
+      this.collectionName.set(collection.name)
+      this.title.setSection('Dettaglio Collezione', collection.name)
+      await this.reload(expectedId)
+    } catch {
+      if (expectedId === this.collectionId()) this.error.set(true)
+    }
   }
 
   async reload(expectedId = this.collectionId()): Promise<void> {
