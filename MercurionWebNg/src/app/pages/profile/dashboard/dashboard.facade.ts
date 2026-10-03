@@ -39,7 +39,7 @@ export class DashboardFacade {
       const reconnect = event.domain === 'realtime' && event.action === 'reconcile';
       const remote = remoteDomain && 'remote' in event && event.remote === true;
       if (remote) this.syncStatus.markSynchronized();
-      if (legacy || remote || reconnect) this.load();
+      if (legacy || remote || reconnect) queueMicrotask(() => this.load());
     });
   }
 
