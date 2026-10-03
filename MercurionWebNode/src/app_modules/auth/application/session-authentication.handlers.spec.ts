@@ -60,8 +60,7 @@ describe('session authentication handlers', () => {
                 : jest.fn().mockResolvedValue(undefined)
         }
         const operation = new RevokeSessionHandler(
-            sessionService as never,
-            { publishToUser: jest.fn() } as never
+            sessionService as never
         ).execute({
             userId: '00000000-0000-4000-8000-000000000305',
             signedSessionId: `${target}.${'a'.repeat(64)}`,
