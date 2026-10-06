@@ -433,7 +433,7 @@ import { HeaderNotificationsComponent } from './header-notifications.component';
 
 <!-- Offcanvas Navigation Sidebar -->
 @if (designService.maxBk("xl")()) {
-<div class="off-canvas-menu-container offcanvas-menu-container fixed top-0 left-0 h-full z-[9999] bg-slate-200 dark:bg-neutral-900 shadow-lg transform transition-transform duration-300 ease-in-out w-full 2xs:w-[74%] xs:w-[64%] sm:w-[50%] md:w-[40%] lg:w-[40%] xl:w-[30%] -translate-x-full"
+<div class="off-canvas-menu-container offcanvas-menu-container fixed top-0 left-0 h-full z-[9999] bg-slate-200 dark:bg-neutral-900 shadow-lg transform transition-transform duration-300 ease-in-out w-full sm:w-[50%] md:w-[40%] lg:w-[40%] xl:w-[30%] -translate-x-full"
     [ngClass]="{
       'translate-x-0': offCanvasMenuOpen(),
       '-translate-x-full': !offCanvasMenuOpen() }">

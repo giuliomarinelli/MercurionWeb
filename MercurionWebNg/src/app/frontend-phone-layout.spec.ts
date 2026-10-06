@@ -110,4 +110,19 @@ describe('Shared frontend layouts on a small phone', () => {
         .withContext('navigation stays accessible until the persistent sidebar replaces it').toBe(viewport.width < 1280);
     });
   }
+
+  for (const width of [375, 393, 432]) {
+    it(`uses the entire phone width for the open sidebar at ${width}px`, async () => {
+      const doc = await render(width, 900);
+      const trigger = doc.querySelector<HTMLButtonElement>('button[aria-label="Apri o chiudi menu laterale"]')!;
+      trigger.click();
+      fixture.detectChanges();
+      const sidebar = doc.querySelector<HTMLElement>('.off-canvas-menu-container')!;
+      sidebar.style.transition = 'none';
+      const availableWidth = doc.documentElement.clientWidth;
+      expect(sidebar.getBoundingClientRect().width).toBeCloseTo(availableWidth, 0);
+      expect(sidebar.getBoundingClientRect().left).toBeCloseTo(0, 0);
+      expect(sidebar.getBoundingClientRect().right).toBeCloseTo(availableWidth, 0);
+    });
+  }
 });

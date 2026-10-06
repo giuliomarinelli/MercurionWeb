@@ -238,7 +238,7 @@ export class PmSelectComponent implements ControlValueAccessor {
     if (e.key === 'ArrowDown') { e.preventDefault(); this.highlighted = Math.min(this.options().length - 1, this.highlighted + 1); }
     if (e.key === 'ArrowUp') { e.preventDefault(); this.highlighted = Math.max(0, this.highlighted - 1); }
     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.choose(this.highlighted); }
-    if (e.key === 'Escape') { e.preventDefault(); this.opened = false; }
+    if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); this.opened = false; }
   }
 
   @HostListener('document:click', ['$event'])

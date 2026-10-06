@@ -85,7 +85,7 @@ import { LoggerService } from '../../services/logger.service'
             <div class="flex flex-col gap-2 min-w-0 sm:contents">
               <h2 class="font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary text-lg sm:text-xl sm:shrink-0">Canonical smiles</h2>
               <div class="flex items-center gap-3 min-w-0 sm:flex-1">
-                <p class="min-w-0 [overflow-wrap:anywhere] text-sm text-neutral-950 dark:text-slate-200 font-mono font-semibold">
+                <p class="min-w-0 wrap-anywhere text-sm text-neutral-950 dark:text-slate-200 font-mono font-semibold">
                   @if (typeGuards.isSystemMolecule(molecule)) {
                     {{ molecule.canonicalSmiles }}
                   } @else if (typeGuards.isChemblMolecule(molecule)) {
@@ -106,7 +106,7 @@ import { LoggerService } from '../../services/logger.service'
             <div class="flex flex-col gap-2 min-w-0 sm:contents">
               <h2 class="font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary text-lg sm:text-xl sm:shrink-0">Nome IUPAC Internazionale</h2>
               <div class="flex items-center gap-3 min-w-0 sm:flex-1">
-                <p class="min-w-0 [overflow-wrap:anywhere] text-sm text-neutral-950 dark:text-slate-200 font-mono font-semibold">
+                <p class="min-w-0 wrap-anywhere text-sm text-neutral-950 dark:text-slate-200 font-mono font-semibold">
                   @if (iupacName(); as name) {
                     @if (name === '__LOADING__') {
                       <m-progress-indicator [size]="16" />

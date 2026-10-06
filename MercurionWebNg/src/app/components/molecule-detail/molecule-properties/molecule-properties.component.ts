@@ -23,7 +23,7 @@ const EMPTY_MOLECULE_PROPERTIES: MoleculeProperties = {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="mt-6" aria-labelledby="molecule-properties-heading">
-      <h2 class="text-xl font-semibold mb-3 text-light-accent-primary-hc dark:text-dark-accent-primary text-center sm:text-left">
+      <h2 class="text-xl font-semibold mb-3 text-light-accent-primary-hc dark:text-dark-accent-primary text-left">
         <span id="molecule-properties-heading">Proprietà chimico-fisiche</span>
       </h2>
 

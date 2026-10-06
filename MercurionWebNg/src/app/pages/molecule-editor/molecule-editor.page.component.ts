@@ -240,6 +240,7 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
 
   private readonly destroy$ = new Subject<void>()
   private readonly polledSmiles$ = new Subject<string>()
+  private validationRevision = 0
 
   readonly mode = signal<ChemistryEditorMode>('edit')
   readonly tab = signal<ChemistryEditorTab>('std')
@@ -379,6 +380,7 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
   }
 
   handleReset(): void {
+    this.validationRevision += 1
     this.triggerReset.set(false)
 
     const entry = this.drafts.resetToBaseline(this.tab())
@@ -394,6 +396,7 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
 
   private applyHistoryEntry(entry: MoleculeEditorHistoryEntry | null): void {
     if (!entry) return
+    this.validationRevision += 1
 
     this.smiles.set(entry.smiles)
     this.setCurrentCanonicalSmiles(entry.smiles)
@@ -405,6 +408,7 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
   }
 
   private initializeDraft(init: MoleculeEditorDraftInit): void {
+    this.validationRevision += 1
     const entry = this.drafts.initialize(init)
 
     this.mode.set(init.mode)
@@ -704,21 +708,23 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
     this.molDupSub = this.polledSmiles$
       .pipe(
         takeUntil(this.destroy$),
-        map(smiles => smiles.trim()),
-        distinctUntilChanged(),
-        filter(Boolean),
+        // A restored draft must be revalidated even when its SMILES are unchanged.
+        map(smiles => ({ smiles: smiles.trim(), revision: this.validationRevision })),
+        distinctUntilChanged((a, b) => a.smiles === b.smiles && a.revision === b.revision),
+        filter(value => !!value.smiles),
         debounceTime(300),
         switchMap(raw =>
-          this.RDKitAPI.toCanonicalSmiles({ smiles: raw }).pipe(
+          this.RDKitAPI.toCanonicalSmiles({ smiles: raw.smiles }).pipe(
             catchError(e => {
               this.logger.error('RDKitAPI canonical poll error', e)
               return EMPTY
-            })
+            }),
+            map(canon => ({ canon, revision: raw.revision }))
           )
         ),
-        filter(Boolean),
-        distinctUntilChanged(),
-        switchMap((canon: string) => {
+        filter(value => !!value.canon),
+        distinctUntilChanged((a, b) => a.canon === b.canon && a.revision === b.revision),
+        switchMap(({ canon }) => {
           this.drafts.record(canon, this.tab())
           this.setCurrentCanonicalSmiles(canon)
 

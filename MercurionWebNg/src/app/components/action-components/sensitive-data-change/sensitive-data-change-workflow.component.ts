@@ -73,6 +73,12 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
       useFactory: () => new SensitiveBackupCodesUseCase(inject(SensitiveDataChangeFacade)),
     },
   ],
+  styles: `
+    .sensitive-data-notice { padding: 16px; gap: 12px; align-items: flex-start; }
+    .sensitive-data-notice svg { width: 24px; height: 24px; flex-shrink: 0; }
+    .sensitive-data-notice > div { min-width: 0; }
+    .sensitive-data-notice span, .sensitive-data-notice p { overflow-wrap: anywhere; padding-right: 0; line-height: 1.55; }
+  `,
   template: `
 
 
@@ -115,7 +121,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
         }
       </h2>
     <!-- Body -->
-    <div action-card-body>
+    <div action-card-body class="sensitive-data-body relative min-h-[40vh] p-4 sm:p-6">
     @if (!loading()) {
         @if ((innerScope() === 'EnableMfa' || innerScope() === 'ConfigMfa')) {
           @if ((enableMfaStep() === 'CHOOSE_STRATEGY' || disableMfaStep() === 'CHOOSE_STRATEGY')) {
@@ -138,7 +144,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
             </div>
           } @else if (enableMfaStep() === 'OTP_VERIFICATION') {
             <div
-              class="px-5 sm:px-6 py-4 border border-amber-200 dark:border-dark-border bg-yellow-50 dark:bg-slate-700 flex gap-4 sm:gap-6 items-center rounded-lg"
+              class="sensitive-data-notice px-5 sm:px-6 py-4 border border-amber-200 dark:border-dark-border bg-yellow-50 dark:bg-slate-700 flex gap-4 sm:gap-6 items-center rounded-lg"
               role="status"
               aria-live="polite"
             >
@@ -165,8 +171,8 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
               }
             </div>
             <div class="flex flex-col gap-y-6" aria-live="polite">
-              <div class="relative min-h-[25vh] rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
-                <div class="absolute inset-0 flex justify-center items-center px-6">
+              <div class="relative rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
+                <div class="flex justify-center items-center px-4 sm:px-6 py-8">
                   <m-text-field
                     class="w-full max-w-md"
                     label="Codice monouso"
@@ -183,7 +189,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                 </div>
               </div>
               <div
-                class="px-5 sm:px-6 py-4 border border-amber-200 dark:border-dark-border bg-yellow-50 dark:bg-slate-700 flex gap-4 sm:gap-6 items-center rounded-lg"
+                class="sensitive-data-notice px-5 sm:px-6 py-4 border border-amber-200 dark:border-dark-border bg-yellow-50 dark:bg-slate-700 flex gap-4 sm:gap-6 items-center rounded-lg"
                 role="status"
                 aria-live="polite"
               >
@@ -236,7 +242,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                 }
               </div>
               @if (backupCodes().length !== 0) {
-                <div class="px-5 sm:px-6 py-4 border border-amber-200 dark:border-dark-border bg-yellow-50 dark:bg-slate-700 flex gap-4 sm:gap-6 items-center rounded-lg">
+                <div class="sensitive-data-notice px-5 sm:px-6 py-4 border border-amber-200 dark:border-dark-border bg-yellow-50 dark:bg-slate-700 flex gap-4 sm:gap-6 items-center rounded-lg">
                   <div class="relative -top-6">
                     <h4 class="flex items-center gap-4 my-3 pt-6 font-semibold justify-center">
                       <span class="text-center">Codici di backup</span>
@@ -256,7 +262,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
               }
             </div>
           } @else if (enableMfaStep() === 'APP:SCAN_QR_CODE_OR_COPY_SECRET') {
-            <div class="px-5 sm:px-6 py-4 border border-amber-200 dark:border-dark-border bg-yellow-50 dark:bg-slate-700 flex gap-4 sm:gap-6 items-center rounded-lg">
+            <div class="sensitive-data-notice px-5 sm:px-6 py-4 border border-amber-200 dark:border-dark-border bg-yellow-50 dark:bg-slate-700 flex gap-4 sm:gap-6 items-center rounded-lg">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="shrink-0 fill-current h-12 w-auto">
                 <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                 <path d="M256 240C256 160.5 320.5 96 400 96C479.5 96 544 160.5 544 240C544 319.5 479.5 384 400 384C388.9 384 378 382.7 367.6 380.4L359 378.4L352.7 384.7L321.3 416.1L255.9 416.1L255.9 480.1L191.9 480.1L191.9 544.1L95.9 544.1L95.9 462.7L258.7 299.9L265.6 293L262.7 283.7C258.3 269.9 256 255.3 256 240zM400 64C302.8 64 224 142.8 224 240C224 255.1 225.9 269.8 229.5 283.9L68.7 444.7L64 449.4L64 576L224 576L224 512L288 512L288 448L334.6 448L339.3 443.3L369.3 413.3C379.3 415.1 389.5 416 400 416C497.2 416 576 337.2 576 240C576 142.8 497.2 64 400 64zM432 232C445.3 232 456 221.3 456 208C456 194.7 445.3 184 432 184C418.7 184 408 194.7 408 208C408 221.3 418.7 232 432 232z"/>
@@ -274,7 +280,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
               />
             </div>
           } @else if (disableMfaStep() === 'OTP_VERIFICATION') {
-            <div class="px-5 sm:px-6 py-4 border border-amber-200 dark:border-dark-border bg-yellow-50 dark:bg-slate-700 flex gap-4 sm:gap-6 items-center rounded-lg">
+            <div class="sensitive-data-notice px-5 sm:px-6 py-4 border border-amber-200 dark:border-dark-border bg-yellow-50 dark:bg-slate-700 flex gap-4 sm:gap-6 items-center rounded-lg">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="shrink-0 fill-current h-12 w-auto">
                 <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                 <path d="M256 240C256 160.5 320.5 96 400 96C479.5 96 544 160.5 544 240C544 319.5 479.5 384 400 384C388.9 384 378 382.7 367.6 380.4L359 378.4L352.7 384.7L321.3 416.1L255.9 416.1L255.9 480.1L191.9 480.1L191.9 544.1L95.9 544.1L95.9 462.7L258.7 299.9L265.6 293L262.7 283.7C258.3 269.9 256 255.3 256 240zM400 64C302.8 64 224 142.8 224 240C224 255.1 225.9 269.8 229.5 283.9L68.7 444.7L64 449.4L64 576L224 576L224 512L288 512L288 448L334.6 448L339.3 443.3L369.3 413.3C379.3 415.1 389.5 416 400 416C497.2 416 576 337.2 576 240C576 142.8 497.2 64 400 64zM432 232C445.3 232 456 221.3 456 208C456 194.7 445.3 184 432 184C418.7 184 408 194.7 408 208C408 221.3 418.7 232 432 232z"/>
@@ -298,8 +304,8 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
               }
             </div>
             <div class="flex flex-col gap-y-6">
-              <div class="relative min-h-[25vh] rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
-                <div class="absolute inset-0 flex justify-center items-center px-6">
+              <div class="relative rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
+                <div class="flex justify-center items-center px-4 sm:px-6 py-8">
                   <div class="flex flex-col items-center gap-y-4">
                     <m-text-field
                       class="w-full max-w-md"
@@ -351,7 +357,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                 </div>
               </div>
             </div>
-            <div class="px-5 sm:px-6 py-4 border border-amber-200 dark:border-dark-border bg-yellow-50 dark:bg-slate-700 flex gap-4 sm:gap-6 items-center rounded-lg">
+            <div class="sensitive-data-notice px-5 sm:px-6 py-4 border border-amber-200 dark:border-dark-border bg-yellow-50 dark:bg-slate-700 flex gap-4 sm:gap-6 items-center rounded-lg">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="shrink-0 fill-current h-12 w-auto text-light-warning dark:text-dark-warning">
                 <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                 <path d="M338.2 81.3L574.4 512L592 544L48 544L65.6 512L301.8 81.3L320 48L338.2 81.3zM102 512L538 512L320 114.6L102 512zM340 460L300 460L300 420L340 420L340 460zM331.2 384L308.8 384L296 240L344 240L331.2 384z"/>
@@ -397,7 +403,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                 }
               </div>
               @if (enabledMfaStrategies().length === 0) {
-                <div class="px-5 sm:px-6 py-4 border border-amber-200 dark:border-dark-border bg-yellow-50 dark:bg-slate-700 flex gap-4 sm:gap-6 items-center rounded-lg">
+                <div class="sensitive-data-notice px-5 sm:px-6 py-4 border border-amber-200 dark:border-dark-border bg-yellow-50 dark:bg-slate-700 flex gap-4 sm:gap-6 items-center rounded-lg">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="shrink-0 fill-current h-12 w-auto text-light-warning dark:text-dark-warning">
                     <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                     <path d="M338.2 81.3L574.4 512L592 544L48 544L65.6 512L301.8 81.3L320 48L338.2 81.3zM102 512L538 512L320 114.6L102 512zM340 460L300 460L300 420L340 420L340 460zM331.2 384L308.8 384L296 240L344 240L331.2 384z"/>
@@ -411,18 +417,18 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
           @switch (changeEmailStep()) {
               @case ('NEW_CONTACT_FORM') {
                 <div class="flex flex-col gap-y-6">
-                  <div class="relative py-8 px-4 sm:px-6 flex items-center gap-6 rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
+                  <div class="sensitive-data-notice relative py-8 px-4 sm:px-6 flex items-center gap-6 rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-12 w-auto shrink-0">
                       <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                       <path d="M80 128L64 128L64 512L321.4 512C316.7 501.8 312.9 491.1 310 480L96 480L96 239.6L307.6 394.8C309.8 383.5 313 372.6 317.1 362.1L96 199.9L96 160L544 160L544 246C555.1 248.9 565.8 252.7 576 257.4L576 128L80 128zM496 320C557.9 320 608 370.1 608 432C608 493.9 557.9 544 496 544C434.1 544 384 493.9 384 432C384 370.1 434.1 320 496 320zM496 576C575.5 576 640 511.5 640 432C640 352.5 575.5 288 496 288C416.5 288 352 352.5 352 432C352 511.5 416.5 576 496 576zM566.4 380.5L540.5 361.7L531.1 374.6L478.1 447.5C457.7 427 445 414.3 440 409.4L417.4 432C420.2 434.8 437.3 451.9 468.7 483.3L481.9 496.5L492.9 481.4L556.9 393.4L566.3 380.5z"/>
                     </svg>
-                    <span class="text-[0.925rem] leading-[1.25rem] text-[#374151] dark:text-dark-on-surface-secondary inline-block pr-4">E-mail corrente:&nbsp;
+                    <span class="min-w-0 break-words text-[0.925rem] leading-[1.25rem] text-[#374151] dark:text-dark-on-surface-secondary inline-block pr-4">E-mail corrente:&nbsp;
                       <strong class="text-[#1147BB] dark:text-dark-accent-primary-btn-hc">{{obscuredEmail()}}</strong>
-                      .&nbsp; Inserisci nel campo di input la nuova e-mail che vuoi impostare. Una volta confermato il cambio, dovrai accedere a Mercurion con il nuovo indirizzo e tutte le notifiche arriveranno al nuovo indirizzo.
+                      . Inserisci il nuovo indirizzo. Dopo la conferma lo userai per accedere e ricevere le notifiche.
                     </span>
                   </div>
-                  <div class="relative min-h-[25vh] rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
-                    <div class="absolute inset-0 flex justify-center items-center px-6">
+                  <div class="relative rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
+                    <div class="flex justify-center items-center px-4 sm:px-6 py-8">
                       <m-text-field
                         class="w-full max-w-md"
                         label="Nuova e-mail"
@@ -444,7 +450,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
               }
               @case ('OTP_VERIFICATION') {
                 <div class="flex flex-col gap-y-6">
-                  <div class="relative py-8 px-4 sm:px-6 rounded-lg flex flex-col gap-y-2 border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
+                  <div class="sensitive-data-notice relative py-8 px-4 sm:px-6 rounded-lg flex flex-col gap-y-2 border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
                     <div class="flex items-center gap-6">
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-12 w-auto shrink-0 relative -top-1">
                         <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
@@ -459,8 +465,8 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                     </div>
                     <span class="text-sm text-dark-surface-secondary dark:text-dark-on-surface-secondary">Abbiamo inviato un codice monouso a&nbsp;<strong class="text-light-error dark:text-dark-error-hc">{{tempObscuredEmail()}}</strong>. Inserisci il codice monouso nel campo di input seguente per confermare il cambio di indirizzo e-mail.</span>
                   </div>
-                  <div class="relative min-h-[25vh] rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
-                    <div class="absolute inset-0 flex justify-center items-center px-6">
+                  <div class="relative rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
+                    <div class="flex justify-center items-center px-4 sm:px-6 py-8">
                         <m-text-field
                           class="w-full max-w-md"
                           label="Codice monouso"
@@ -517,7 +523,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
           @switch (changeOrAddPhoneStep()) {
             @case ('NEW_CONTACT_FORM') {
               <div class="flex flex-col gap-y-6">
-                <div class="relative py-8 px-4 sm:px-6 flex items-center gap-6 rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
+                <div class="sensitive-data-notice relative py-8 px-4 sm:px-6 flex items-center gap-6 rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-12 w-auto shrink-0">
                     <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                     <path d="M256 96L256 160L384 160L384 96L464 96L464 544L176 544L176 96L256 96zM256 64L144 64L144 576L496 576L496 64L256 64zM288 96L352 96L352 128L288 128L288 96zM272 464L272 496L368 496L368 464L272 464z"/>
@@ -528,12 +534,12 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                         .&nbsp; Inserisci di seguito il nuovo numero di telefono che vuoi impostare. Una volta confermato il cambio, l'autenticazione a più fattori e le notifiche faranno riferimento al nuovo numero.
                       </span>
                     } @else {
-                      <span class="text-[0.925rem] leading-[1.25rem] text-[#374151] dark:text-dark-on-surface-secondary inline-block pr-4">Inserisci di seguito il nuovo numero di telefono che vuoi impostare. Una volta confermato il numero, l'autenticazione a più fattori via SMS potrà essere attivata per quel numero e le notifiche faranno riferimento al nuovo numero.</span>
+                      <span class="text-[0.925rem] leading-[1.25rem] text-[#374151] dark:text-dark-on-surface-secondary inline-block pr-4">Inserisci il numero da associare al tuo account. Dopo la conferma potrai usarlo per l'autenticazione via SMS e le notifiche.</span>
                     }
                 </div>
-                <div class="relative min-h-[25vh] rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
-                  <div class="absolute inset-0 flex justify-center items-center px-6">
-                    <div class="flex w-full max-w-2xl items-center gap-4" [formGroup]="phoneForm">
+                <div class="relative rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
+                  <div class="flex justify-center items-center px-4 sm:px-6 py-8">
+                    <div class="grid w-full max-w-2xl min-w-0 grid-cols-1 sm:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] items-start gap-6" [formGroup]="phoneForm">
                       <m-select
                           id="settings-change-phone-prefix"
                           label="Prefisso internazionale"
@@ -543,7 +549,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                           [maxHeight]="200"
                           tone="highContrast" />
                       <m-text-field
-                        class="w-full max-w-md relative top-7"
+                        class="w-full min-w-0 sm:pt-8"
                         label="Nuovo numero"
                         type="tel"
                         autocomplete="tel"
@@ -561,7 +567,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
             }
             @case ('OTP_VERIFICATION') {
               <div class="flex flex-col gap-y-6">
-                <div class="relative py-8 px-4 sm:px-6 rounded-lg flex flex-col gap-y-2 border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
+                <div class="sensitive-data-notice relative py-8 px-4 sm:px-6 rounded-lg flex flex-col gap-y-2 border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
                   <div class="flex items-center gap-6">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-12 w-auto shrink-0  relative -top-1">
                       <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
@@ -582,8 +588,8 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                     <span class="text-sm text-[#374151] dark:text-dark-on-surface-secondary">Abbiamo inviato via SMS un codice monouso a&nbsp;<strong class="text-light-error dark:text-dark-error-hc">{{tempObscuredPhone()}}</strong>. Inserisci il codice monouso nel campo di input seguente per confermare l'aggiunta del nuovo numero di telefono.</span>
                   }
                 </div>
-                <div class="relative min-h-[25vh] rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
-                  <div class="absolute inset-0 flex justify-center items-center px-6">
+                <div class="relative rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
+                  <div class="flex justify-center items-center px-4 sm:px-6 py-8">
                       <m-text-field
                         class="w-full max-w-md"
                         label="Codice monouso"
@@ -648,7 +654,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
           @switch (deletePhoneStep()) {
               @case ('OTP_VERIFICATION') {
                 <div class="flex flex-col gap-y-6">
-                <div class="relative py-8 px-4 sm:px-6 rounded-lg flex flex-col gap-y-2 border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
+                <div class="sensitive-data-notice relative py-8 px-4 sm:px-6 rounded-lg flex flex-col gap-y-2 border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
                   <div class="flex items-center gap-6">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-12 w-auto shrink-0 relative -top-1">
                       <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
@@ -659,8 +665,8 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                     </div>
                   </div>
                 </div>
-                <div class="relative min-h-[25vh] rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
-                  <div class="absolute inset-0 flex justify-center items-center px-6">
+                <div class="relative rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
+                  <div class="flex justify-center items-center px-4 sm:px-6 py-8">
                     <m-text-field
                       class="w-full max-w-md"
                       label="Codice monouso"
@@ -720,12 +726,12 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
           @switch (changePasswordStep()) {
             @case ('CHANGE_PASSWORD_FORM') {
               <div class="flex flex-col gap-y-6">
-                <div class="relative py-8 px-4 sm:px-6 flex items-center gap-6 rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
+                <div class="sensitive-data-notice relative py-8 px-4 sm:px-6 flex items-center gap-6 rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-12 w-auto shrink-0">
                     <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                     <path d="M256 240C256 160.5 320.5 96 400 96C479.5 96 544 160.5 544 240C544 319.5 479.5 384 400 384C388.9 384 378 382.7 367.6 380.4L359 378.4L352.7 384.7L321.3 416.1L255.9 416.1L255.9 480.1L191.9 480.1L191.9 544.1L95.9 544.1L95.9 462.7L258.7 299.9L265.6 293L262.7 283.7C258.3 269.9 256 255.3 256 240zM400 64C302.8 64 224 142.8 224 240C224 255.1 225.9 269.8 229.5 283.9L68.7 444.7L64 449.4L64 576L224 576L224 512L288 512L288 448L334.6 448L339.3 443.3L369.3 413.3C379.3 415.1 389.5 416 400 416C497.2 416 576 337.2 576 240C576 142.8 497.2 64 400 64zM432 232C445.3 232 456 221.3 456 208C456 194.7 445.3 184 432 184C418.7 184 408 194.7 408 208C408 221.3 418.7 232 432 232z"/>
                   </svg>
-                    <span class="text-dark-surface-secondary dark:text-dark-on-surface-secondary inline-block pr-4">Inserisci di seguito la password corrente e la nuova password che vuoi impostare. Ricordati che non puoi impostare password già usate impassato.</span>
+                    <span class="text-dark-surface-secondary dark:text-dark-on-surface-secondary inline-block pr-4">Inserisci la password corrente e scegli una nuova password, diversa da quelle già usate.</span>
                 </div>
                 <div class="relative min-h-[30vh] rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
                   <div class="flex justify-center items-center px-6 py-6" [formGroup]="passwordForm">
@@ -734,7 +740,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                         class="block w-full max-w-lg"
                         label="Password corrente"
                         type="password"
-                        autocomplete="password"
+                        autocomplete="current-password"
                         formControlName="oldPassword"
                         [errors]="{
                             required: 'La password corrente è un campo obbligatorio.'
@@ -745,7 +751,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                         class="block w-full max-w-lg"
                         label="Nuova password"
                         type="password"
-                        autocomplete="password"
+                        autocomplete="new-password"
                         formControlName="password"
                         [errors]="{
                             required: 'Nuova password è un campo obbligatorio.',
@@ -755,9 +761,9 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                       />
                       <m-text-field
                         class="block w-full max-w-lg"
-                        label="Reinserisci la nuova password"
+                        label="Conferma nuova password"
                         type="password"
-                        autocomplete="password"
+                        autocomplete="new-password"
                         formControlName="confirmPassword"
                         [errors]="{
                             required: 'Il campo di conferma password è obbligatorio.',
@@ -802,7 +808,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
           }
       }
     } @else {
-      <div class="absolute inset-0 flex justify-center items-center z-[30] bg-white/60 dark:bg-black/40 backdrop-blur-sm min-h-[40vh]">
+      <div class="absolute inset-0 flex justify-center items-center z-[30] bg-white/60 dark:bg-black/40 backdrop-blur-sm">
         <m-progress-indicator />
       </div>
     }
@@ -1392,10 +1398,10 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
   }
 
   private sendNewEmail(): void {
-    this.loading.set(true)
     this.otpCtrl.updateValueAndValidity()
     this.emailCtrl.markAsTouched()
     if (this.emailCtrl.valid) {
+      this.loading.set(true)
       this.sendNewEmailSub = this.emailUseCase.requestChange(this.emailCtrl.value).pipe(
         tap(() => {
           this.serverError.set(0)
@@ -1422,10 +1428,10 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
   }
 
   private confirmNewEmail(): void {
-    this.loading.set(true)
     this.otpCtrl.markAllAsTouched()
     this.otpCtrl.updateValueAndValidity()
     if (this.otpCtrl.valid && this.secureToken()) {
+      this.loading.set(true)
       this.verifyNewEmailSub = this.emailUseCase.confirmChange(this.otpCtrl.value, this.secureToken()).pipe(
         tap(() => {
           this.serverError.set(0)
@@ -1479,8 +1485,8 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
   private deleteCurrentPhone_verifyTotp(): void {
     this.otpCtrl.markAsTouched()
     this.otpCtrl.updateValueAndValidity()
-    this.loading.set(true)
     if (this.otpCtrl.valid) {
+      this.loading.set(true)
       this.delPhoneSub = this.phoneUseCase.confirmRemoval(this.otpCtrl.value, this.secureToken()).pipe(
         finalize(() => queueMicrotask(() => {
           this.deletePhoneStep.set('OK_OR_ERROR')
@@ -1496,8 +1502,8 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
 
   private verifyNewPhone(): void {
     this.otpCtrl.markAsTouched()
-    this.loading.set(true)
     if (this.otpCtrl.valid) {
+      this.loading.set(true)
       this.verifyNewPhoneSub = this.phoneUseCase.confirmChange(this.otpCtrl.value, this.secureToken()).pipe(
         finalize(() => queueMicrotask(() => {
           this.loading.set(false)
@@ -1513,8 +1519,8 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
   private changePassword(): void {
     this.passwordForm.markAllAsTouched()
     this.passwordForm.updateValueAndValidity()
-    this.loading.set(true)
     if (this.passwordForm.valid) {
+      this.loading.set(true)
       const dto: ChangePasswordDTO = {
         oldPassword: this.passwordForm.controls['oldPassword'].value,
         newPassword: this.passwordForm.controls['password'].value

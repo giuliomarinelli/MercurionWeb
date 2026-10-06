@@ -84,8 +84,10 @@ import { ButtonComponent } from '../button/button.component';
           >
             {{ _strategy()?.enabled ? 'Attiva' : 'Non attiva' }}
           </span>
-          @if (_strategy()?.strategy === 'SMS_OTP' && noPhone()) {
-              <div class="flex items-center gap-4 flex-wrap text-sm">
+        }
+      </div>
+      @if (_strategy()?.strategy === 'SMS_OTP' && noPhone() && (choose() || config())) {
+              <div class="flex w-full sm:w-auto sm:max-w-[15rem] items-center gap-4 flex-wrap text-sm">
                 <span >Per attivare questa strategia</span>
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-auto">
                     <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
@@ -94,8 +96,6 @@ import { ButtonComponent } from '../button/button.component';
                 <button class="a" (click)="doAddNewPhone()">Aggiungi un numero di telefono</button>
               </div>
             }
-        }
-      </div>
       @if (showActions() && !(noPhone() && _strategy()?.strategy === 'SMS_OTP') && _strategy()?.strategy !== 'BACKUP_CODE') {
         <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto items-stretch sm:items-center justify-end sm:justify-start">
           <m-button

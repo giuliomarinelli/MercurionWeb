@@ -53,9 +53,9 @@ type RegistryFormValue = {
         Modifica l'anagrafica del profilo
       </h2>
 
-    <div action-card-body class="bg-light-surface-secondary dark:bg-dark-surface-secondary">
+    <div action-card-body class="p-4 sm:p-6 bg-light-surface-secondary dark:bg-dark-surface-secondary">
       <div
-        class="relative border-b border-light-border dark:border-dark-border min-h-60 transition-[min-height] bg-light-surface-secondary dark:bg-dark-surface-secondary"
+        class="relative min-h-60 transition-[min-height] bg-light-surface-secondary dark:bg-dark-surface-secondary"
         [formGroup]="registryGroup"
         role="form"
         aria-live="polite"
@@ -72,9 +72,9 @@ type RegistryFormValue = {
               <m-progress-indicator />
             </div>
           } @else {
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-12 w-full pt-9">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-6 w-full">
               <m-text-field
-                label="Nome *"
+                label="Nome"
                 type="text"
                 autocomplete="given-name"
                 formControlName="firstName"
@@ -85,7 +85,7 @@ type RegistryFormValue = {
               />
 
               <m-text-field
-                label="Cognome *"
+                label="Cognome"
                 type="text"
                 autocomplete="family-name"
                 formControlName="lastName"
@@ -96,7 +96,7 @@ type RegistryFormValue = {
               />
 
               <m-select
-                class="relative -top-[30px]"
+                class="min-w-0"
                 label="Genere *"
                 [options]="options"
                 formControlName="gender"
@@ -104,6 +104,7 @@ type RegistryFormValue = {
               />
 
               <m-text-field
+                class="sm:pt-8"
                 label="Il tuo lavoro"
                 type="text"
                 autocomplete="organization-title"
@@ -135,6 +136,23 @@ type RegistryFormValue = {
           </div>
         }
       </div>
+      <div class="flex justify-end mt-4">
+      @if (step() === 1) {
+        <m-button
+          variant="ghost"
+          size="sm"
+          title="Reimposta i campi"
+          [disabled]="isGroupValueTheSameAsInitialValueSig()"
+          (click)="reset()"
+          aria-label="Reimposta i campi"
+        >
+          <span>Reimposta i campi</span>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current size-5">
+            <path d="M544 64L544 183.8L507 144.7C458.5 93.2 390.8 64 320 64C180.3 64 64.1 180.4 64 320C63.9 459.3 180.3 575.9 320 576C420.1 576.1 513.4 515.5 554 424.1L524.8 411.1C489.4 491 407.6 544.1 320.1 544C198 543.9 96 441.6 96.1 320C96.2 198.1 198.1 96 320.1 96C382.1 96 441.3 121.5 483.9 166.6L523 208L400.1 208L400.1 240L576.1 240L576.1 64L544.1 64z"/>
+          </svg>
+        </m-button>
+      }
+      </div>
     </div>
 
     <m-action-footer action-card-footer>
@@ -150,22 +168,7 @@ type RegistryFormValue = {
 
       }
 
-      @if (step() === 1) {
-        <m-button
-          action-footer-secondary
-          variant="outline"
-          size="sm"
-          title="Resetta"
-          [disabled]="isGroupValueTheSameAsInitialValueSig()"
-          (click)="reset()"
-          aria-label="Reimposta i campi"
-        >
-          <span class="sr-only">Reimposta</span>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current size-5">
-            <path d="M544 64L544 183.8L507 144.7C458.5 93.2 390.8 64 320 64C180.3 64 64.1 180.4 64 320C63.9 459.3 180.3 575.9 320 576C420.1 576.1 513.4 515.5 554 424.1L524.8 411.1C489.4 491 407.6 544.1 320.1 544C198 543.9 96 441.6 96.1 320C96.2 198.1 198.1 96 320.1 96C382.1 96 441.3 121.5 483.9 166.6L523 208L400.1 208L400.1 240L576.1 240L576.1 64L544.1 64z"/>
-          </svg>
-        </m-button>
-      }
+
 
       <m-button
         action-footer-primary

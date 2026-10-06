@@ -1,0 +1,22 @@
+.settings-page { padding-top: 24px; }
+.settings-page-heading { margin-bottom: 28px; }
+.settings-page-heading h1 { font-size: clamp(28px, 3vw, 36px); font-weight: 600; line-height: 1.2; letter-spacing: -.025em; }
+.settings-page-heading p, .settings-help { color: var(--m-color-on-surface-secondary); font-size: 14px; line-height: 1.6; margin-top: 8px; }
+.settings-sections { display: grid; gap: 12px; }
+.settings-section { border: 1px solid var(--settings-divider); border-radius: 12px; background: var(--m-color-surface-elevated); }
+.settings-section--expanded { border-color: color-mix(in srgb, var(--m-color-accent-primary) 45%, var(--settings-divider)); }
+.settings-trigger-wrapper { margin: -16px; flex: 1; min-width: 0; }
+.settings-trigger { padding: 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; text-align: start; border-radius: 12px; }
+.settings-trigger:hover { background: var(--m-color-surface-secondary); }
+.settings-trigger-label { display: flex; align-items: center; gap: 16px; min-width: 0; }
+.settings-trigger-label > svg { flex-shrink: 0; color: var(--m-color-accent-primary); }
+.settings-trigger > svg { flex-shrink: 0; width: 20px; color: var(--m-color-on-surface-muted); }
+.settings-trigger-title { display: block; font-size: 16px; font-weight: 600; line-height: 1.4; }
+.settings-trigger-description { display: block; margin-top: 3px; font-size: 13px; font-weight: 400; line-height: 1.45; color: var(--m-color-on-surface-secondary); }
+.settings-panel { border-top: 1px solid var(--settings-divider); }
+
+@media (max-width: 639px) {
+  .settings-page { padding: 20px 16px; }
+  .settings-trigger { padding: 16px; }
+  .settings-trigger-label { gap: 12px; }
+}

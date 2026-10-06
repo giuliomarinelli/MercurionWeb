@@ -31,6 +31,7 @@ import { Subscription } from 'rxjs'
 import { map } from 'rxjs/operators'
 import { DialogShellComponent } from '../../common/dialog-shell/dialog-shell.component'
 import { ViewportRuntimeService } from '../../../services/context/viewport-runtime.service'
+import { ShellLayoutService } from '../../../services/context/shell-layout.service'
 
 
 @Component({
@@ -101,7 +102,7 @@ import { ViewportRuntimeService } from '../../../services/context/viewport-runti
                   <m-search-result-skeleton-loader />
                 } @else if (chemblResults().length) {
                   @for (molecule of chemblResults(); track molecule.id) {
-                    <m-search-result [molecule]="molecule" [query]="query()" (navigated)="close()" />
+                    <m-search-result [molecule]="molecule" [query]="query()" (navigated)="onResultNavigate()" />
                   }
                 } @else if (showChemblEmptyMessage()) {
                   <div class="text-sm text-slate-700 dark:text-slate-200 text-center py-8">
@@ -126,7 +127,7 @@ import { ViewportRuntimeService } from '../../../services/context/viewport-runti
                   @for (molecule of myItems(); track molecule.id; let i = $index) {
                     <m-molecule-summary-card
                       [viewModel]="savedSummary(molecule)"
-                      (navigate)="close()"
+                      (navigate)="onResultNavigate()"
                       class="block w-full" />
                   }
                   @if (loading() && myItems().length) {
@@ -233,6 +234,7 @@ import { ViewportRuntimeService } from '../../../services/context/viewport-runti
 })
 export class SearchOverlayComponent implements AfterViewInit, OnDestroy {
   protected readonly viewport = inject(ViewportRuntimeService)
+  private readonly shellLayout = inject(ShellLayoutService)
 
   protected readonly searchContextService = inject(SearchContextService)
   protected readonly userContext = inject(UserContextService)
@@ -288,6 +290,11 @@ export class SearchOverlayComponent implements AfterViewInit, OnDestroy {
 
   close(): void {
     this.searchContextService.close()
+  }
+
+  onResultNavigate(): void {
+    this.close()
+    this.shellLayout.requestCloseOffCanvas()
   }
 
   ngOnDestroy(): void {

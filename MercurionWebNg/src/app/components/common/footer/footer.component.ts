@@ -16,23 +16,22 @@ import { APP_CONFIG } from '../../../config/app-config';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-<footer class="relative isolate pl-[max(1.5rem,env(safe-area-inset-left))] pr-[max(1.5rem,env(safe-area-inset-right))] py-4 text-xs sm:text-sm" role="contentinfo">
+<footer class="mt-8 relative isolate pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] text-sm sm:pl-[max(1.5rem,env(safe-area-inset-left))] sm:pr-[max(1.5rem,env(safe-area-inset-right))]" role="contentinfo">
   <div aria-hidden="true" class="pointer-events-none absolute inset-0 -z-10 bg-slate-300/30 dark:bg-slate-800/50 backdrop-blur-md"></div>
-  <!-- classi tw rimosse per passaggio a footer minimalista bg-slate-100 dark:bg-slate-800/50 text-sm text-slate-600 dark:text-slate-200 border-t border-slate-400/40 dark:border-slate-400/65 -->
-  <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-center sm:text-left">
+  <div class="max-w-7xl mx-auto flex min-w-0 flex-col gap-3 text-left md:flex-row md:flex-wrap md:items-center md:justify-between md:gap-x-6">
     <!-- Brand + copyright -->
-    <p class="tracking-wide flex flex-col sm:flex-row md:flex-row items-center gap-3">
+    <div class="flex min-w-0 items-start gap-3 sm:items-center md:flex-1 md:basis-96">
       <img [ngSrc]="logoSrc() | public" alt="Mercurion Pictogram" priority="true" width="186" height="234"
-        class="w-4.75 h-auto contrast-100 relative -top-0.5" />
-      <span>
-        &copy; {{year}} Mercurion. Tutti i diritti riservati ─
-        <span>
+        class="w-6 h-auto shrink-0 contrast-100" />
+      <div class="flex min-w-0 flex-col gap-1 leading-relaxed sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-3">
+        <p>&copy; {{year}} Mercurion. Tutti i diritti riservati.</p>
+        <p class="inline-flex items-center gap-2">
           <svg
             aria-hidden="true"
             focusable="false"
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 640 640"
-            class="relative -top-0.5 inline-block size-5 align-middle"
+            class="size-4 shrink-0"
           >
             <!-- Parte destra / superiore -->
             <path class="fill-current text-light-accent-secondary dark:text-dark-accent-secondary-hc"
@@ -60,24 +59,23 @@ import { APP_CONFIG } from '../../../config/app-config';
               "
             />
           </svg>
-          <span class="pl-2">Powered by <a class="a" href="https://giuliomarinelli.com" target="_blank" rel="noopener noreferrer">GM Web Tech Lab</a></span>
+          <span>Powered by <a class="a whitespace-nowrap" href="https://giuliomarinelli.com" target="_blank" rel="noopener noreferrer">GM Web Tech Lab</a></span>
 
-        </span>
-      </span>
+        </p>
+      </div>
 
-    </p>
+    </div>
 
     <!-- Link essenziali -->
-    <div
-      class="flex flex-col xs:flex-row flex-wrap justify-center sm:justify-end items-center gap-y-2 xs:gap-y-2 gap-x-6">
+    <nav aria-label="Informazioni e documenti" class="flex flex-wrap items-center gap-x-4 gap-y-1 text-on-surface-main">
       <a routerLink="/privacy"
-        class="hover:underline dark:hover:no-underline hover:text-slate-600 dark:hover:text-slate-50/70 transition">Privacy</a>
+        class="inline-flex min-h-11 items-center py-2 hover:underline dark:hover:no-underline hover:text-slate-600 dark:hover:text-slate-50/70 transition">Privacy</a>
       <a routerLink="/terms-and-policies"
-        class="hover:underline dark:hover:no-underline hover:text-slate-600 dark:hover:text-slate-50/70 transition">Termini
+        class="inline-flex min-h-11 items-center py-2 hover:underline dark:hover:no-underline hover:text-slate-600 dark:hover:text-slate-50/70 transition">Termini
         e Policy</a>
       <a routerLink="/contacts"
-        class="hover:underline dark:hover:no-underline hover:text-slate-600 dark:hover:text-slate-50/70 transition">Contatti</a>
-    </div>
+        class="inline-flex min-h-11 items-center py-2 hover:underline dark:hover:no-underline hover:text-slate-600 dark:hover:text-slate-50/70 transition">Contatti</a>
+    </nav>
   </div>
 </footer>
   `

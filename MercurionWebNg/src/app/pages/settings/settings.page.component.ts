@@ -35,6 +35,7 @@ import { SettingsSecurityPanelComponent } from './settings-security-panel.compon
 @Component({
   selector: 'm-settings.page',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  styleUrls: ['./settings-panel.styles.css', './settings-page.styles.css'],
   imports: [
     DisclosureComponent,
     DisclosureTriggerDirective,
@@ -46,16 +47,21 @@ import { SettingsSecurityPanelComponent } from './settings-security-panel.compon
   ],
   template: `
     @if (!account.loading()) {
-      <section #pageTop class="main-container" role="main" aria-live="polite" aria-labelledby="settings-heading">
-        <h1 id="settings-heading" class="h1-underline">Impostazioni</h1>
+      <section #pageTop class="main-container settings-page" role="main" aria-live="polite" aria-labelledby="settings-heading">
+        <header class="settings-page-heading">
+          <h1 id="settings-heading">Impostazioni</h1>
+          <p>Gestisci profilo, contatti e sicurezza del tuo account.</p>
+        </header>
         <div
           class="transition-[padding-bottom] duration-200 ease-out"
           #bottomSpacer
           [style.padding-bottom]="bottomSpacerPx()"
         >
-          <div class="flex flex-col w-full border border-slate-300 dark:border-slate-500">
+          <div class="settings-sections">
             @for (item of items; track item; let i = $index) {
               <m-disclosure
+                class="settings-section"
+                [class.settings-section--expanded]="expandedIndex() === i"
                 [id]="computeId(i)"
                 [label]="item"
                 [expanded]="expandedIndex() === i"
@@ -63,18 +69,12 @@ import { SettingsSecurityPanelComponent } from './settings-security-panel.compon
               >
                 <ng-template mDisclosureTrigger>
                   <div
-                    class="-m-4 flex-1 border-b border-slate-300 dark:border-slate-500"
-                    [class.border-b-0]="i === items.length - 1"
+                    class="settings-trigger-wrapper"
                   >
                     <div
-                      class="
-                      w-full p-4 bg-slate-200 dark:bg-slate-800
-                      text-start flex items-center justify-between
-                      hover:bg-slate-200/75 dark:hover:bg-slate-800/75
-                      transition-colors duration-300
-                      "
+                      class="settings-trigger"
                     >
-                      <div class="flex items-center gap-2">
+                      <div class="settings-trigger-label">
                         @switch (i) {
                           @case (0) {
                             <svg
@@ -129,7 +129,7 @@ import { SettingsSecurityPanelComponent } from './settings-security-panel.compon
                             </svg>
                           }
                         }
-                        <span>{{ item }}</span>
+                        <span><span class="settings-trigger-title">{{ item }}</span><span class="settings-trigger-description">{{ descriptions[i] }}</span></span>
                       </div>
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -147,7 +147,7 @@ import { SettingsSecurityPanelComponent } from './settings-security-panel.compon
                     </div>
                   </div>
                 </ng-template>
-                <div class="bg-slate-100 dark:bg-slate-700 settings-panel" animate.enter="settings-panel-enter">
+                <div class="settings-panel" animate.enter="settings-panel-enter">
                   @defer (when expandedIndex() === i) {
                     @switch (i) {
                       @case (0) {
@@ -222,6 +222,7 @@ export class SettingsPageComponent implements OnInit, OnDestroy, AfterViewInit {
   readonly pageTop = viewChild<ElementRef<HTMLElement>>('pageTop')
   readonly bottomSpacer = viewChild<ElementRef<HTMLElement>>('bottomSpacer')
   readonly items = ['Generali', 'Anagrafica', 'Contatti', 'Sicurezza']
+  readonly descriptions = ['Panoramica del tuo account', 'Informazioni personali e professionali', 'Indirizzo e-mail e numero di telefono', 'Password, sessioni e autenticazione']
   readonly expandedIndex = signal<number | null>(null)
   readonly spinnerLeft = signal(0)
   readonly bottomSpacerPx = signal('0px')

@@ -8,10 +8,11 @@ import { SettingsAccountFacade } from './settings-account.facade'
   selector: 'm-settings-overview-panel',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  styleUrl: './settings-panel.styles.css',
   imports: [GenderPipe],
   template: `
     @if (account.profile(); as profile) {
-      <div class="py-6 px-4">
+      <div class="settings-panel-content settings-overview">
 <div class="space-y-6">
 
   <!-- Titolo -->
@@ -29,8 +30,7 @@ import { SettingsAccountFacade } from './settings-account.facade'
 
     <!-- Card profilo -->
     <div
-      class="rounded-md border border-slate-300 dark:border-slate-600
-             bg-slate-50 dark:bg-slate-800/70 px-4 py-3 flex flex-col gap-2"
+      class="settings-summary-card flex flex-col gap-3"
     >
       <div class="flex items-center justify-between gap-3 mb-1">
         <div>
@@ -53,38 +53,38 @@ import { SettingsAccountFacade } from './settings-account.facade'
       </div>
 
       <div class="text-sm space-y-1">
-        <div class="flex justify-between gap-2">
+        <div class="settings-summary-row">
           <span class="text-slate-700 dark:text-slate-200">Ruolo</span>
           <span class="font-medium text-slate-800 dark:text-slate-100">
             {{ profile.job ?? 'Non specificato' }}
           </span>
         </div>
-        <div class="flex justify-between gap-2">
+        <div class="settings-summary-row">
           <span class="text-slate-700 dark:text-slate-200">Genere</span>
           <span class="font-medium text-slate-800 dark:text-slate-100">
             {{ profile.gender | gender}}
           </span>
         </div>
-        <div class="flex justify-between gap-2">
+        <div class="settings-summary-row">
           <span class="text-slate-700 dark:text-slate-200">@if (profile.accountIdKind === 'email') { E-mail } @else { ORCID }</span>
           <span class="font-mono text-xs text-slate-700 dark:text-slate-200">
             {{ profile.obscuredAccountId }}
           </span>
         </div>
-        <div class="flex justify-between gap-2">
+        <div class="settings-summary-row">
           <span class="text-slate-700 dark:text-slate-200">Provider di autenticazione</span>
           <span class="font-mono text-xs text-slate-700 dark:text-slate-200">
             {{ account.authProvider() }}
           </span>
         </div>
-        <div class="flex justify-between gap-2">
+        <div class="settings-summary-row">
           <span class="text-slate-700 dark:text-slate-200">Provider di autorizzazione</span>
           <span class="font-mono text-xs text-slate-700 dark:text-slate-200">
             Mercurion
           </span>
         </div>
           @if (!account.isSso()) {
-            <div class="flex justify-between gap-2">
+            <div class="settings-summary-row">
               <span class="text-slate-700 dark:text-slate-200">Telefono</span>
               <span class="font-mono text-xs text-slate-700 dark:text-slate-200">
                 {{ profile.obscuredPhone ?? '—' }}
@@ -96,8 +96,7 @@ import { SettingsAccountFacade } from './settings-account.facade'
 
     <!-- Card sicurezza -->
     <div
-      class="rounded-md border border-slate-300 dark:border-slate-600
-             bg-slate-50 dark:bg-slate-800/70 px-4 py-3 flex flex-col gap-3"
+      class="settings-summary-card flex flex-col gap-3"
     >
       <div class="flex items-center justify-between mb-1">
         <div>
@@ -111,7 +110,7 @@ import { SettingsAccountFacade } from './settings-account.facade'
       </div>
 
       <div class="space-y-2 text-sm">
-        <div class="flex items-center justify-between gap-2">
+        <div class="settings-summary-row">
           <span class="text-slate-700 dark:text-slate-200">
             Autenticazione a più fattori
           </span>
@@ -132,7 +131,7 @@ import { SettingsAccountFacade } from './settings-account.facade'
           </span>
         </div>
 
-        <div class="flex items-center justify-between gap-2">
+        <div class="settings-summary-row">
           <span class="text-slate-700 dark:text-slate-200">
             Sessioni attive
           </span>
@@ -141,7 +140,7 @@ import { SettingsAccountFacade } from './settings-account.facade'
           </span>
         </div>
         @if (security.sessions().length) {
-          <div class="flex items-center justify-between gap-2">
+          <div class="settings-summary-row">
             <span class="text-slate-700 dark:text-slate-200">
               Sessione corrente
             </span>

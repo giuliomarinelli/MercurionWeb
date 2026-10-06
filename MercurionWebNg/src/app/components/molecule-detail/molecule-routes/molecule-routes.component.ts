@@ -7,8 +7,11 @@ import { AdministrationRoutes } from '../../../Models/graphql/molecule.detail.mo
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="my-4" aria-labelledby="routes-heading">
-      <h2 id="routes-heading" class="font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary mb-6 text-center sm:text-left text-xl">Vie di somministrazione</h2>
-      <div class="mx-auto flex max-w-44 sm:max-w-none flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-2 text-sm justify-center sm:justify-start">
+      <h2 id="routes-heading" class="font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary mb-6 text-left text-xl">Vie di somministrazione</h2>
+      @if (noItem()) {
+        <p class="text-left text-sm text-gray-500 dark:text-gray-400 relative -top-3">Nessuna via di somministrazione disponibile.</p>
+      } @else {
+      <div class="mx-auto flex max-w-44 sm:max-w-none flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-2 text-sm">
         @if (adminRoutes().oral) {
           <div class="flex items-center rounded bg-indigo-500 text-blue-100 px-2 py-1 gap-1 cursor-default hover:transform hover:scale-[1.03] transition-transform duration-300">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-6 w-auto">
@@ -36,10 +39,8 @@ import { AdministrationRoutes } from '../../../Models/graphql/molecule.detail.mo
             <span>Topica</span>
           </div>
         }
-        @if (noItem()) {
-          <p class="text-sm text-gray-500 dark:text-gray-400 relative -top-3">Nessuna via di somministrazione disponibile.</p>
-        }
       </div>
+      }
     </section>
   ` })
 export class MoleculeRoutesComponent {

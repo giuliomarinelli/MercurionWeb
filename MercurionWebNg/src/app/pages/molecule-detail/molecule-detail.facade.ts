@@ -259,11 +259,11 @@ export class MoleculeDetailFacade {
   private withInference(item: MoleculeDetailItem): Observable<MoleculeDetailItem> {
     const vm = this.toViewModel(item);
     this.title.setSection('Molecole', vm.name);
-    if (!this.userContext.isLoggedIn()) return of(item);
+    if (!this.userContext.isLoggedIn()) return of(vm.item);
     return this.ai.t1Inference({ smiles: vm.smiles }).pipe(
-      map(t1Inference => ({ ...item, t1Inference }) as MoleculeDetailItem),
-      catchError(() => of(item)),
-      startWith(item)
+      map(t1Inference => ({ ...vm.item, t1Inference }) as MoleculeDetailItem),
+      catchError(() => of(vm.item)),
+      startWith(vm.item)
     );
   }
 
@@ -335,7 +335,7 @@ export class MoleculeDetailFacade {
 
   markTouched(): void {
     const currentId = this.currentId();
-    if (!currentId || currentId === this.touchedId || !this.userContext.isLoggedIn()) return;
+    if (!this.uuidV7.test(currentId) || currentId === this.touchedId || !this.userContext.isLoggedIn()) return;
     this.touchedId = currentId;
     const collectionId = this.route.snapshot.queryParamMap.get('c_id') ?? '';
     const flags = this.uuidV7.test(currentId) && this.uuidV7.test(collectionId)

@@ -35,6 +35,18 @@ describe('SessionCardComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('keeps the session identity and logout available while technical details are collapsed', () => {
+    const card: HTMLElement = fixture.nativeElement;
+    const details = card.querySelector('details');
+    expect(details?.open).toBeFalse();
+    expect(details?.querySelector('p')?.textContent).toContain('session-id');
+    expect(card.querySelector('p')?.textContent).toContain('Test');
+    const emitted = jasmine.createSpy('logout');
+    component.onLoggingOutFromSession.subscribe(emitted);
+    card.querySelector<HTMLButtonElement>('button[aria-label="Esci da questa sessione"]')?.click();
+    expect(emitted).toHaveBeenCalledOnceWith('session-id.0123456789abcdef');
+  });
+
   it('keeps the card visible with a spinner while logout is pending', () => {
     fixture.componentRef.setInput('session', { ...component.session(), isBeingDeleted: true });
     fixture.detectChanges();

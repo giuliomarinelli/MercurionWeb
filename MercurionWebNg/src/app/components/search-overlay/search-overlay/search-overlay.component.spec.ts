@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, fakeAsync, flushMicrotasks, TestBed, tick } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { signal } from '@angular/core';
 import { Subject } from 'rxjs';
@@ -8,6 +8,9 @@ import { SearchOverlayComponent } from './search-overlay.component';
 import { SearchContextService } from '../../../services/context/search-context.service';
 import { SearchResultComponent } from '../search-result/search-result.component';
 import { MoleculeSummaryCardComponent } from '../../molecule-detail/molecule-summary-card/molecule-summary-card.component';
+import { HeaderComponent } from '../../common/header/header.component';
+import { InAppNotificationService } from '../../../services/in-app-notification.service';
+import { Router } from '@angular/router';
 
 describe('SearchOverlayComponent', () => {
   let component: SearchOverlayComponent;
@@ -15,7 +18,11 @@ describe('SearchOverlayComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [SearchOverlayComponent]
+      imports: [SearchOverlayComponent, HeaderComponent],
+      providers: [{ provide: InAppNotificationService, useValue: {
+        unreadCount: signal(0), catchUpCount: signal(0),
+        dismissCatchUp: jasmine.createSpy(), acknowledgeCatchUpPresented: jasmine.createSpy()
+      } }]
     })
     .compileComponents();
 
@@ -50,7 +57,18 @@ describe('SearchOverlayComponent', () => {
     expect(c.mySub.unsubscribe).toHaveBeenCalledTimes(1);
   });
 
-  it('closes the overlay when a ChEMBL result navigates', () => {
+  function openSidebar(): ComponentFixture<HeaderComponent> {
+    const header = TestBed.createComponent(HeaderComponent);
+    header.detectChanges();
+    (header.nativeElement.querySelector('button[aria-label="Apri o chiudi menu laterale"]') as HTMLButtonElement).click();
+    header.detectChanges();
+    expect(header.componentInstance['offCanvasMenuOpen']()).toBeTrue();
+    return header;
+  }
+
+  it('closes search and sidebar on a ChEMBL card click even without a new route', fakeAsync(() => {
+    const header = openSidebar();
+    spyOn(TestBed.inject(Router), 'navigateByUrl').and.resolveTo(false);
     const search = TestBed.inject(SearchContextService);
     search.open();
     fixture.detectChanges();
@@ -64,12 +82,20 @@ describe('SearchOverlayComponent', () => {
 
     const result = fixture.debugElement.query(By.directive(SearchResultComponent));
     expect(result).toBeTruthy();
-    result.componentInstance.navigated.emit();
+    (result.nativeElement.querySelector('a') as HTMLAnchorElement).click();
+    header.detectChanges();
+    flushMicrotasks();
+    header.detectChanges();
 
     expect(search.isOpenedSearchOverlay()).toBeFalse();
-  });
+    expect(header.componentInstance['offCanvasMenuOpen']()).toBeFalse();
+    tick(350);
+    header.destroy();
+  }));
 
-  it('closes the overlay when a saved molecule card navigates', () => {
+  it('closes search and sidebar on a saved card click even without a new route', fakeAsync(() => {
+    const header = openSidebar();
+    spyOn(TestBed.inject(Router), 'navigateByUrl').and.resolveTo(false);
     const search = TestBed.inject(SearchContextService);
     search.open();
     fixture.detectChanges();
@@ -90,10 +116,29 @@ describe('SearchOverlayComponent', () => {
 
     const card = fixture.debugElement.query(By.directive(MoleculeSummaryCardComponent));
     expect(card).toBeTruthy();
-    card.componentInstance.navigate.emit();
+    (card.nativeElement.querySelector('a') as HTMLAnchorElement).click();
+    header.detectChanges();
+    flushMicrotasks();
+    header.detectChanges();
 
     expect(search.isOpenedSearchOverlay()).toBeFalse();
-  });
+    expect(header.componentInstance['offCanvasMenuOpen']()).toBeFalse();
+    tick(350);
+    header.destroy();
+  }));
+
+  it('preserves the sidebar when the user dismisses search without choosing a result', fakeAsync(() => {
+    const header = openSidebar();
+    const search = TestBed.inject(SearchContextService);
+    search.open();
+    fixture.detectChanges();
+    component.close();
+    header.detectChanges();
+    flushMicrotasks();
+    expect(header.componentInstance['offCanvasMenuOpen']()).toBeTrue();
+    tick(350);
+    header.destroy();
+  }));
 
   it('does not rearm pagination after an error or a radio change', async () => {
     const search = TestBed.inject(SearchContextService);

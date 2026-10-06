@@ -56,14 +56,15 @@ type QuillContentChange = {
     `,
   ],
   template: `
+    <div class="flex justify-center items-start md:items-center px-2 sm:px-4 m-overlay-screen">
     <div
-      class="w-full max-w-3xl mx-auto bg-white dark:bg-dark-surface-main rounded-xl shadow-lg"
+      class="w-full max-w-3xl mx-auto max-h-[var(--m-action-card-available-height)] overflow-y-auto m-overscroll-touch bg-white dark:bg-dark-surface-main rounded-xl shadow-lg"
       role="region"
       aria-labelledby="newTicketHeading"
       [attr.aria-busy]="loading()"
     >
       <div
-        class="flex items-center justify-between px-4 py-4 border-b border-slate-200/70 dark:border-slate-700/60"
+        class="sticky top-0 z-10 flex items-center justify-between gap-3 px-4 py-4 bg-white dark:bg-dark-surface-main border-b border-slate-200/70 dark:border-slate-700/60"
       >
         <h2 id="newTicketHeading" class="text-lg font-semibold">Nuovo ticket di supporto</h2>
         <m-icon-button
@@ -126,6 +127,7 @@ type QuillContentChange = {
           </button>
         </div>
       </div>
+    </div>
     </div>
   `,
 })

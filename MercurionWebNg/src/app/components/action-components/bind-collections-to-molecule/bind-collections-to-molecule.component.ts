@@ -104,7 +104,7 @@ import { ToastService } from '../../../services/toast.service';
         id="bindCollectionsHeading"
         class="text-lg font-semibold text-light-on-surface-main dark:text-dark-on-surface-main"
       >
-        Collega <span class="italic truncate">{{ moleculeName() }}</span> a nuove collezioni
+        Collega <span class="italic break-words">{{ moleculeName() }}</span> a nuove collezioni
       </h2>
 
       <!-- BODY -->

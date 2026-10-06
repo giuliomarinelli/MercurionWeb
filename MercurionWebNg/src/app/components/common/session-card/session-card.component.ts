@@ -15,7 +15,7 @@ import { ProgressIndicatorComponent } from "../progress-indicator/progress-indic
 
     <div
       class="
-        w-full min-w-0 [overflow-wrap:anywhere] rounded-md border p-4 mb-3
+        w-full min-w-0 [overflow-wrap:anywhere] rounded-md border p-4
         bg-slate-100 dark:bg-slate-800
         border-slate-300 dark:border-slate-600
         transition-all max-h-fit duration-150 ease-linear
@@ -33,14 +33,15 @@ import { ProgressIndicatorComponent } from "../progress-indicator/progress-indic
             <span class="text-sm font-semibold text-slate-700 dark:text-slate-200 whitespace-nowrap">
               Sessione {{ session().current ? '(attuale)' : '' }}
             </span>
-            <button
-              class="text-xs leading-snug text-slate-500 dark:text-slate-400 cursor-default select-all break-all min-w-0 max-w-full text-left px-2 py-1 rounded border border-transparent bg-transparent"
-              [attr.title]="'ID: ' + session().id">
-              ID: {{ breakHex(session().id) }}
-            </button>
+
           </div>
         </div>
 
+        <p class="text-sm mb-2 font-medium">{{ session().browser }} @if (session().location) { · {{ session().location }} }</p>
+        <p class="text-sm text-slate-600 dark:text-slate-300 mb-4">Ultimo accesso: {{ session().lastAccessedAt | date:'dd/MM/yyyy HH:mm' }}</p>
+        <details class="mb-4">
+          <summary class="cursor-pointer py-2 text-sm font-medium rounded focus-visible:outline-2 focus-visible:outline-token-focus">Dettagli sessione</summary>
+          <p class="text-xs leading-relaxed text-slate-600 dark:text-slate-300 select-all break-all my-3">ID: {{ breakHex(session().id) }}</p>
         <!-- BODY -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm mb-4">
 
@@ -108,12 +109,14 @@ import { ProgressIndicatorComponent } from "../progress-indicator/progress-indic
 
         </div>
 
+        </details>
+
         <!-- FOOTER Buttons -->
         <div class="flex justify-end">
           <button
             type="button"
             class="
-              flex items-center gap-2 px-3 py-1 rounded-md
+              flex items-center gap-2 px-3 py-2 min-h-11 rounded-md
               border border-slate-300 dark:border-slate-600
               text-slate-600 dark:text-slate-300 text-xs font-medium
               hover:bg-slate-200 dark:hover:bg-slate-700
