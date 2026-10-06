@@ -36,4 +36,13 @@ describe('SearchResultComponent', () => {
     button.click();
     expect(select).toHaveBeenCalledOnceWith({ id: 'molecule-1', name: 'Lead molecule-1' });
   });
+  it('marks a selected result and prevents duplicate selection or unintended navigation', () => {
+    fixture.componentRef.setInput('search_excludeAlreadyAdded', true);
+    fixture.componentRef.setInput('selected', true);
+    const select = jasmine.createSpy('select'); component.onChipItem.subscribe(select);
+    fixture.detectChanges(); component.doEmitChipItem();
+    expect(fixture.nativeElement.textContent).toContain('Selezionata');
+    expect(fixture.nativeElement.querySelector('a, button')).toBeNull();
+    expect(select).not.toHaveBeenCalled();
+  });
 });

@@ -17,18 +17,21 @@ export class SearchResultComponent {
   readonly molecule = input.required<MoleculeSearchResult>();
   readonly query = input('');
   readonly search_excludeAlreadyAdded = input(false);
+  readonly selected = input(false);
   readonly onChipItem = output<ChipItem>();
   readonly navigated = output<void>();
 
   readonly viewModel = computed(() => searchResultToSummary(this.molecule(), {
-    actions: this.search_excludeAlreadyAdded()
+    actions: this.search_excludeAlreadyAdded() && !this.selected()
       ? [{ kind: 'button', label: 'Seleziona', action: 'select' }]
       : [],
     selectable: this.search_excludeAlreadyAdded(),
+    ...(this.selected() ? { badge: 'Selezionata' } : {}),
     compact: true
   }));
 
   doEmitChipItem(): void {
+    if (this.selected()) return;
     const molecule = this.molecule();
     this.onChipItem.emit({
       id: String(molecule.id),

@@ -1,0 +1,288 @@
+:host {
+  display: block;
+  color: var(--m-color-on-surface-main);
+}
+.add-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+.add-heading svg {
+  width: 1.75rem;
+  height: 1.75rem;
+  fill: currentColor;
+  flex-shrink: 0;
+}
+.add-body {
+  padding: 1.25rem 1.5rem;
+  min-height: 20rem;
+}
+.add-destination {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--m-color-border);
+  border-radius: 0.75rem;
+  background: var(--m-color-surface-secondary);
+}
+.add-destination strong {
+  overflow-wrap: anywhere;
+  font-weight: 600;
+}
+.add-eyebrow,
+.add-hint,
+.add-intro,
+.add-results-count {
+  color: var(--m-color-on-surface-secondary);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+.add-eyebrow {
+  font-size: 0.75rem;
+}
+.add-intro {
+  margin: 1rem 0;
+}
+.add-source {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  border: 0;
+  padding: 0;
+  margin: 0 0 1.25rem;
+  min-width: 0;
+}
+.add-label {
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.add-source label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 4.25rem;
+  padding: 0.75rem;
+  border: 1px solid var(--m-color-border);
+  border-radius: 0.75rem;
+  cursor: pointer;
+}
+.add-source span {
+  display: grid;
+  gap: 0.125rem;
+  min-width: 0;
+}
+.add-source strong {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.add-source small {
+  color: var(--m-color-on-surface-secondary);
+  font-size: 0.75rem;
+}
+.add-source input {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex-shrink: 0;
+  accent-color: var(--m-color-control-primary);
+}
+.add-source label.add-source-active {
+  background: var(--m-color-surface-secondary);
+  border-color: var(--m-color-control-primary);
+}
+.add-source label:focus-within,
+.add-text-button:focus-visible,
+.add-chips button:focus-visible,
+.add-selected summary:focus-visible {
+  outline: 2px solid var(--m-color-focus);
+  outline-offset: 3px;
+}
+.add-workspace {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.add-workspace m-search-input {
+  display: block;
+}
+.add-selection-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+.add-selection-bar m-molecule-collection-item-select-card {
+  width: auto;
+}
+.add-text-button {
+  min-height: 2.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--m-color-control-primary);
+  cursor: pointer;
+}
+.add-text-button:hover,
+.add-chips button:hover {
+  background: var(--m-color-surface-secondary);
+}
+.add-hint {
+  margin: 0.5rem 0 1rem;
+}
+.add-results {
+  min-height: 9rem;
+}
+.add-state {
+  display: grid;
+  justify-items: start;
+  align-content: center;
+  gap: 0.5rem;
+  min-height: 9rem;
+  padding: 1.25rem;
+  border: 1px dashed var(--m-color-border);
+  border-radius: 0.75rem;
+  background: var(--m-color-surface-secondary);
+}
+.add-state strong {
+  font-weight: 500;
+}
+.add-state p {
+  color: var(--m-color-on-surface-secondary);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+.add-error,
+.add-error-message {
+  color: var(--m-color-control-destructive);
+}
+.add-sentinel {
+  height: 1px;
+}
+.add-selected {
+  border: 1px solid var(--m-color-border);
+  border-radius: 0.75rem;
+  padding: 0.25rem 0.75rem;
+  margin-bottom: 1rem;
+}
+.add-selected summary {
+  cursor: pointer;
+  padding: 0.625rem 0;
+  min-height: 2.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+.add-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  max-height: 10rem;
+  overflow: auto;
+  padding: 0.25rem;
+  margin: 0.25rem 0;
+  list-style: none;
+}
+.add-chips li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  max-width: 100%;
+  padding-left: 0.75rem;
+  border: 1px solid var(--m-color-border);
+  border-radius: 0.625rem;
+  background: var(--m-color-surface-secondary);
+  font-size: 0.875rem;
+}
+.add-chips span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.add-chips button {
+  display: grid;
+  place-items: center;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+.add-chips svg {
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+}
+.add-result {
+  margin: 0.75rem 0;
+  border: 2px solid transparent;
+  border-radius: 1rem;
+}
+.add-result-selected {
+  border-color: var(--m-color-control-primary);
+}
+.add-results-count {
+  margin: 0.75rem 0;
+}
+.add-footer-info {
+  padding: 0.75rem 1.5rem;
+  border-top: 1px solid var(--m-color-border);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+.add-error-message {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  margin: 0.5rem 1.5rem;
+}
+@media (max-width: 639px) {
+  .add-body {
+    padding: 1rem;
+  }
+  .add-source {
+    gap: 0.5rem;
+  }
+  .add-source label {
+    padding: 0.625rem;
+    gap: 0.5rem;
+    min-height: 3rem;
+  }
+  .add-source small {
+    display: none;
+  }
+}
+:host-context(.m-dialog--compact) .add-body {
+  padding: 0.75rem 1rem;
+}
+:host-context(.m-dialog--compact) .add-intro {
+  margin: 0.75rem 0;
+}
+
+.add-footer {
+  flex-shrink: 0;
+  background: var(--m-color-surface-elevated);
+}
+@media (max-width: 767px) {
+  .add-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 3;
+  }
+  .add-footer-info {
+    padding: 0.625rem 1rem;
+  }
+}
+:host-context(.m-dialog--compact) .add-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 3;
+}
+
+.add-results > m-molecule-collection-item-select-card,
+.add-result {
+  position: relative;
+  isolation: isolate;
+}

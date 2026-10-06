@@ -51,7 +51,7 @@ La priorità indica il valore della rifinitura per il portfolio, non la gravità
 | PX-04 | Ricerca molecolare | P1 | S, B | Da affrontare |
 | PX-05 | Liste, card e selezione | P1 | S, B | Da affrontare |
 | PX-06 | Dettaglio collezione | P1 | S, B | Da affrontare |
-| PX-07 | Overlay di gestione collezioni | P1 | S, B | Creazione, destinazione e associazione implementate, in review; aggiunta molecole da affrontare |
+| PX-07 | Overlay di gestione collezioni | P1 | S, B | Creazione, destinazione, associazione e aggiunta molecole implementate, in review |
 | PX-08 | Editor molecolare | P1 | S, B | Da affrontare |
 | PX-09 | Salvataggio della molecola | P1 | S, B | Da affrontare |
 | PX-10 | Dettaglio molecola e informazioni scientifiche | P1 | S, B | Da affrontare |
@@ -186,9 +186,9 @@ La priorità indica il valore della rifinitura per il portfolio, non la gravità
 **Interventi:**
 
 - `CreateCollection`: form, anteprima nomi e stati rifiniti nel blocco del 6 ottobre; **implementato, in review**. Il flusso esistente crea collezioni vuote: l'aggiunta delle molecole avviene successivamente in `AddMoleculesToCollection`, senza introdurre una nuova selezione iniziale.
-- `AddMoleculesToCollection`: gerarchia della scelta sorgente, ricerca, selezioni e conteggio; footer prevedibile mentre la lista scorre.
+- `AddMoleculesToCollection`: destinazione separata dal titolo, sorgenti con radio native, selezioni conservate tra sorgenti e ricerche, risultati selezionati riconoscibili, footer persistente e retry rifiniti nel blocco 03; **implementato, in review**. La conferma riguarda solo la sorgente attiva; selezione globale, esclusioni e DTO restano invariati.
 - `BindCollectionsToMolecule`: righe compatte, nomi lunghi, riepilogo, selezione totale/parziale e retry rifiniti nel blocco 02; **implementato, in review**. Selezione globale ed esclusioni mantengono il contratto esistente.
-- `SelectCollectionThenRoute`: destinazione esplicita, creazione inline recuperabile e passaggio ai due metodi verificati nel blocco 02; **implementato, in review**. Il flusso interno dell'overlay successivo resta nel blocco 03.
+- `SelectCollectionThenRoute`: destinazione esplicita, creazione inline recuperabile e passaggio ai due metodi verificati nel blocco 02; **implementato, in review**. Il flusso interno dell'overlay successivo è stato rifinito nel blocco 03.
 - Uniformare gutter, titoli, close, avvisi, caricamenti e disposizione delle azioni, rispettando il comportamento di ogni flusso.
 
 **Accettazione:** l'utente comprende oggetto, destinazione e quantità prima di confermare; annullamento e ritorno non causano perdite inattese; footer raggiungibile con lista lunga e tastiera virtuale aperta.
@@ -445,7 +445,7 @@ Il registro corrente contiene nove azioni. Nessuna viene esclusa dalla roadmap.
 | Scope registrato | Blocco | Lavoro residuo |
 |---|---|---|
 | `CreateCollection` | PX-07 | Form, anteprima nomi, azioni e stati: implementato, in review |
-| `AddMoleculesToCollection` | PX-07 | Sorgenti, ricerca, selezione, lista, conteggio e footer |
+| `AddMoleculesToCollection` | PX-07 | Sorgenti, ricerca, selezioni, lista, conteggio e footer: implementato, in review |
 | `BindCollectionsToMolecule` | PX-07 | Destinazioni, nomi lunghi, selezione e conferma: implementato, in review |
 | `SelectCollectionThenRoute` | PX-07 | Scelta e passaggio tra overlay: implementato, in review |
 | `MoleculeCollectionItemSave` | PX-09 | Destinazione, metadati, creazione/modifica e risultato |

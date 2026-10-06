@@ -1,6 +1,6 @@
 import { signal } from '@angular/core';
-import { Observable, Subject, of } from 'rxjs';
-import { catchError, debounceTime, distinctUntilChanged, switchMap, takeUntil } from 'rxjs/operators';
+import { Observable, Subject, of, timer } from 'rxjs';
+import { catchError, switchMap, takeUntil } from 'rxjs/operators';
 import { AddManyChEMBLItemDTO } from '../../../Models/graphql/add-many-chembl-item.dto';
 import { MoleculeSearchResult } from '../../../Models/graphql/molecule-search/molecule-search-result.interface';
 
@@ -140,8 +140,6 @@ export class AddMoleculesSearchController {
     private readonly search: (query: string) => Observable<MoleculeSearchResult[]>
   ) {
     this.query$.pipe(
-      debounceTime(100),
-      distinctUntilChanged(),
       switchMap(query => {
         if (query.trim().length < 2) {
           this.loading.set(false);
@@ -153,7 +151,8 @@ export class AddMoleculesSearchController {
         this.loading.set(true);
         this.empty.set(false);
         this.error.set(null);
-        return this.search(query).pipe(
+        return timer(100).pipe(
+          switchMap(() => this.search(query)),
           catchError(error => {
             this.error.set(error);
             return of<MoleculeSearchResult[]>([]);
@@ -169,8 +168,20 @@ export class AddMoleculesSearchController {
   }
 
   setQuery(query: string): void {
-    this.query.set(query ?? '');
-    this.query$.next(query ?? '');
+    const next = query ?? '';
+    if (next === this.query()) return;
+    this.query.set(next);
+    this.requestQuery(next.trim());
+  }
+
+  retry(): void { this.requestQuery(this.query().trim()); }
+
+  private requestQuery(query: string): void {
+    this.results.set([]);
+    this.error.set(null);
+    this.empty.set(query.length < 2);
+    this.loading.set(query.length >= 2);
+    this.query$.next(query);
   }
 
   setResults(results: MoleculeSearchResult[]): void {
@@ -187,7 +198,8 @@ export class AddMoleculesSearchController {
   }
 
   clear(): void {
-    this.setQuery('');
+    this.query.set('');
+    this.requestQuery('');
     this.loading.set(false);
     this.results.set([]);
     this.empty.set(true);

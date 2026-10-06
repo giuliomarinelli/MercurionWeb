@@ -11,22 +11,24 @@ import {
   effect,
   untracked,
   ChangeDetectionStrategy,
-  viewChild
+  viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PaginationController } from '../../../services/pagination/pagination-controller';
-import { debounceTime, map, Observable, Subscription } from 'rxjs';
+import { debounceTime, map, Subscription, take } from 'rxjs';
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
 import { MoleculeCollectionItemService } from '../../../services/graphql/molecule-collection-item.service';
 import { Helpers } from '../../../helpers';
-import { MoleculeCardItemModel, MoleculeCollection } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
+import {
+  MoleculeCardItemModel,
+  MoleculeCollection,
+} from '../../../Models/graphql/molecule-collection/molecule-collection.types';
 import { PageModel } from '../../../Models/graphql/page.models';
 import { PmSearchInputComponent } from '../../common/pm-search-input/pm-search-input.component';
 import { MoleculeCollectionItemSelectCardComponent } from '../../molecule-detail/molecule-collection-item-select-card/molecule-collection-item-select-card.component';
 import { ProgressIndicatorComponent } from '../../common/progress-indicator/progress-indicator.component';
 import { SkeletonMoleculeCardComponent } from '../../molecule-detail/skeleton-molecule-card/skeleton-molecule-card.component';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { SearchInputComponent } from '../../search-overlay/search-input/search-input.component';
 import { MoleculeSearchResult } from '../../../Models/graphql/molecule-search/molecule-search-result.interface';
 import { SearchResultSkeletonLoaderComponent } from '../../search-overlay/search-result-skeleton-loader/search-result-skeleton-loader.component';
 import { SearchResultComponent } from '../../search-overlay/search-result/search-result.component';
@@ -41,7 +43,7 @@ import {
   AddMoleculesPaginationPort,
   AddMoleculesSelectionController,
   AddMoleculesSubmitController,
-  type ChipItem
+  type ChipItem,
 } from './add-molecules-to-collection.flow';
 import { AbstractMultiselectItem } from '../../../Models/abstract.models';
 import { ActionCardComponent } from '../../common/action-card/action-card.component';
@@ -59,642 +61,414 @@ export type { ChipItem } from './add-molecules-to-collection.flow';
     ProgressIndicatorComponent,
     SkeletonMoleculeCardComponent,
     ReactiveFormsModule,
-    SearchInputComponent,
     SearchResultSkeletonLoaderComponent,
     SearchResultComponent,
     ActionCardComponent,
     ActionFooterComponent,
-    ButtonComponent
+    ButtonComponent,
   ],
-  styles: [
-    `
-    .m-add-heading-compact { display: none; }
-    :host-context(.m-dialog--compact) { --m-action-card-header-height: 4.5rem; }
-    :host-context(.m-dialog--compact) .m-add-heading-full { display: none; }
-    :host-context(.m-dialog--compact) .m-add-heading-compact { display: block; }
-    :host-context(.m-dialog--compact) .m-add-chembl-content { padding-block: 0.5rem; gap: 0.25rem; }
-    :host-context(.m-dialog--compact) .m-add-search { padding-bottom: 0; }
-    :host-context(.m-dialog--compact) .m-add-instructions { display: none; }
-    :host-context(.m-dialog--compact) .m-add-selections .m-chip-stack { max-height: 4rem; }
-
-    :host-context(.m-dialog--compact) .m-add-body,
-    :host-context(.m-dialog--compact) .m-add-content,
-    :host-context(.m-dialog--compact) .m-add-list,
-    :host-context(.m-dialog--compact) .m-add-results,
-    :host-context(.m-dialog--compact) .m-add-chembl-content { flex: 0 0 auto; height: auto; overflow: visible; }
-    :host-context(.m-dialog--compact) .m-add-search { position: sticky; top: 4.5rem; z-index: 2; }
-    @media (max-width: 767px) {
-      .m-add-body, .m-add-content, .m-add-list, .m-add-results, .m-add-chembl-content { flex: 0 0 auto; height: auto; overflow: visible; }
-    }
-
-    /* Scrollbar sottile cross-browser */
-
-    .m-scroll-thin {
-      scrollbar-width: thin; /* Firefox */
-      scrollbar-color: #64748b transparent; /* thumb, track */
-    }
-
-    :host-context(.dark) .m-scroll-thin {
-      scrollbar-color: #94a3b8 transparent;
-    }
-
-    .m-scroll-thin::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    .m-scroll-thin::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    .m-scroll-thin::-webkit-scrollbar-thumb {
-      background-color: #cbd5e1; /* slate-300-ish */
-      border-radius: 9999px;
-    }
-
-    :host-context(.dark) .m-scroll-thin::-webkit-scrollbar-thumb {
-      background-color: #475569; /* slate-600-ish */
-    }
-
-    .m-scroll-thin::-webkit-scrollbar-thumb:hover {
-      background-color: #94a3b8;
-    }
-
-    :host-context(.dark) .m-scroll-thin::-webkit-scrollbar-thumb:hover {
-      background-color: #e2e8f0;
-    }
-
-    /* Shared layout utilities for action components */
-    .m-ac-pad {
-      padding-left: 0.75rem;
-      padding-right: 0.75rem;
-    }
-    @media (min-width: 640px) {
-      .m-ac-pad {
-        padding-left: 0.75rem;
-        padding-right: 0.75rem;
-      }
-    }
-    .m-search-center {
-      display: flex;
-      justify-content: center;
-      width: 100%;
-    }
-    @media (min-width: 640px) {
-      .m-search-center {
-        justify-content: flex-start;
-      }
-    }
-    .m-chip-stack {
-      max-height: 5rem;
-      overflow-y: auto;
-      overflow-x: hidden;
-      padding-right: 0.5rem;
-    }
-    @media (min-width: 640px) {
-      .m-chip-stack {
-        height: auto;
-        max-height: 7rem;
-      }
-    }
-    .m-chip {
-      padding: 1px 4px;
-      font-size: 12px;
-      gap: 2px;
-      border-radius: 9999px;
-      line-height: 1.1;
-    }
-    .m-chip button {
-      width: 28px;
-      height: 28px;
-    }
-    @media (min-width: 640px) {
-      .m-chip {
-        padding: 6px 12px;
-        font-size: 14px;
-        gap: 8px;
-      }
-      .m-chip button {
-        width: 20px;
-        height: 20px;
-      }
-    }
-    .m-chip-text {
-      max-width: 6.5rem;
-    }
-    @media (min-width: 640px) {
-      .m-chip-text {
-        max-width: 16rem;
-      }
-    }
-    .m-chip-clear {
-      padding: 1px 5px;
-      font-size: 12px;
-      border-radius: 9999px;
-      line-height: 1.1;
-    }
-    @media (min-width: 640px) {
-      .m-chip-clear {
-        padding: 6px 12px;
-        font-size: 14px;
-      }
-    }
-    `
-  ],
-  template: `
-<div class="flex justify-center items-stretch md:items-center px-2 sm:px-4 m-overlay-screen">
-  <m-action-card
-    size="wide"
-    [bodyScroll]="false"
-    style="--m-action-card-height: min(40rem, var(--m-action-card-available-height, calc(100dvh - 2rem)))"
-    labelledBy="addMolHeading"
-    closeLabel="Chiudi pannello aggiungi molecole"
-    [busy]="step_12_loading()"
-    (closed)="close()"
+  styleUrl: './add-molecules-to-collection.component.css',
+  template: ` <div
+    class="m-overlay-screen flex justify-center items-stretch md:items-center px-2 sm:px-4"
   >
-    <!-- HEADER -->
-      <h2 action-card-title
-        id="addMolHeading"
-        class="flex items-center gap-3 text-lg font-semibold text-light-on-surface-main dark:text-dark-on-surface-main"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current size-8 shrink-0">
+    <m-action-card
+      size="wide"
+      labelledBy="addMolHeading"
+      closeLabel="Chiudi pannello aggiungi molecole"
+      [busy]="step_12_loading()"
+      [closeDisabled]="step_12_loading()"
+      (closed)="close()"
+    >
+      <h2 action-card-title id="addMolHeading" class="add-heading">
+        <svg viewBox="0 0 640 640" aria-hidden="true">
           <path
             d="M288 96L352 144L576 144L576 512L64 512L64 96L288 96zM352 176L341.3 176L332.8 169.6L277.3 128L96 128L96 480L544 480L544 176L352 176zM304 408L304 336L232 336L232 304L304 304L304 232L336 232L336 304L408 304L408 336L336 336L336 408L304 408z"
-          />
-        </svg>
-        <span class="m-add-heading-full">
-          Aggiungi nuove molecole alla collezione
-          <em>{{ collection()?.name }}</em>
-        </span>
-        <span class="m-add-heading-compact min-w-0">Aggiungi molecole<em class="block truncate text-base font-normal">{{ collection()?.name }}</em></span>
+          /></svg
+        >Aggiungi molecole
       </h2>
-
-    <!-- BODY -->
-    <div action-card-body class="m-add-body bg-white dark:bg-dark-surface-main flex flex-col flex-1 min-h-0 overflow-hidden">
-      <!-- Scelta metodo -->
-      <div class="mx-auto shrink-0 w-full">
+      <div action-card-body class="add-body" #scrollRoot>
+        <div class="add-destination">
+          <span class="add-eyebrow">Collezione di destinazione</span
+          ><strong>{{
+            collection()?.name || 'Caricamento collezione…'
+          }}</strong>
+        </div>
+        <p class="add-intro">
+          Le selezioni sono conservate tra le sorgenti. Aggiungi solo quelle
+          della sorgente attiva.
+        </p>
+        <fieldset class="add-source" [disabled]="step_12_loading()">
+          <legend class="add-label">Sorgente</legend>
+          <label [class.add-source-active]="method() === 'my'"
+            ><input
+              type="radio"
+              name="method"
+              value="my"
+              [formControl]="methodControl"
+            /><span
+              ><strong>Le mie molecole</strong
+              ><small>Già salvate nel tuo spazio</small></span
+            ></label
+          >
+          <label [class.add-source-active]="method() === 'chembl'"
+            ><input
+              type="radio"
+              name="method"
+              value="chembl"
+              [formControl]="methodControl"
+            /><span
+              ><strong>ChEMBL</strong
+              ><small>Cerca nel database scientifico</small></span
+            ></label
+          >
+        </fieldset>
+        <fieldset
+          class="add-workspace"
+          [disabled]="step_12_loading()"
+          [attr.inert]="step_12_loading() ? '' : null"
+        >
+          <legend class="sr-only">Ricerca e selezione molecole</legend>
+          @if (method() === 'my') {
+            <m-search-input
+              [value]="searchTerm()"
+              ariaLabel="Cerca tra le mie molecole"
+              placeholder="Cerca tra le mie molecole…"
+              [disabled]="step_12_loading()"
+              (valueChange)="doQuery($event)"
+              (cleared)="doClear()"
+            />
+            <div class="add-selection-bar">
+              @if (multiselectItems().length) {
+                <m-molecule-collection-item-select-card
+                  [isSelectAll]="true"
+                  [value]="isSelectedAll()"
+                  [indeterminate]="isPartiallySelected()"
+                  (selectedAll)="onSelectAllChange($event)"
+                />
+              }
+              @if (!isSelectedNothing()) {
+                <button
+                  class="add-text-button"
+                  type="button"
+                  (click)="clearSelections()"
+                >
+                  Azzera selezione
+                </button>
+              }
+            </div>
+            <p class="add-hint">
+              “Seleziona tutti” include tutte le molecole disponibili, anche
+              fuori dai risultati della ricerca. Quelle già presenti nella
+              collezione sono escluse.
+            </p>
+            <div
+              class="add-results"
+              aria-label="Molecole disponibili"
+              [attr.aria-busy]="loading"
+            >
+              @for (
+                row of multiselectItems();
+                track row.item.id;
+                let i = $index
+              ) {
+                <m-molecule-collection-item-select-card
+                  [molecule]="row.item"
+                  [i]="i"
+                  [value]="row.isChecked()"
+                  (valueChange)="row.isChecked.set($event); toggleOne(row)"
+                />
+              }
+              @if (loading) {
+                <div role="status">
+                  <span class="sr-only">Caricamento molecole…</span>
+                  @if (page > 1) {
+                    <m-progress-indicator />
+                  } @else {
+                    @for (i of [0, 1]; track i) {
+                      <m-skeleton-molecule-card />
+                    }
+                  }
+                </div>
+              } @else if (paginationState().error) {
+                <div class="add-state add-error" role="alert">
+                  <strong>Impossibile caricare le molecole.</strong>
+                  <p>Le selezioni sono conservate. Riprova per continuare.</p>
+                  <m-button variant="secondary" (click)="retryPagination()"
+                    >Riprova caricamento</m-button
+                  >
+                </div>
+              } @else if (empty() && (earlyDone || done)) {
+                <div class="add-state" role="status">
+                  <strong>{{
+                    searchTerm()
+                      ? 'Nessuna molecola corrisponde alla ricerca.'
+                      : 'Nessuna molecola da aggiungere.'
+                  }}</strong>
+                  <p>
+                    {{
+                      searchTerm()
+                        ? 'Prova un altro nome o cancella la ricerca.'
+                        : 'Le molecole salvate sono già presenti qui. Puoi cercarne altre su ChEMBL.'
+                    }}
+                  </p>
+                  @if (searchTerm()) {
+                    <m-button variant="secondary" (click)="doClear()"
+                      >Cancella ricerca</m-button
+                    >
+                  }
+                </div>
+              }
+            </div>
+            <div #sentinel class="add-sentinel"></div>
+            @if (
+              !done &&
+              !loading &&
+              !paginationState().error &&
+              multiselectItems().length
+            ) {
+              <m-button variant="secondary" (click)="loadMore()"
+                >Carica altre molecole</m-button
+              >
+            }
+          } @else {
+            <m-search-input
+              [value]="chemblQuery()"
+              ariaLabel="Cerca molecole su ChEMBL"
+              placeholder="Nome, identificativo o SMILES…"
+              [disabled]="step_12_loading()"
+              (valueChange)="onChemblQuery($event)"
+              (cleared)="onEmpty()"
+            />
+            <p class="add-hint">
+              Scrivi almeno 2 caratteri. Le molecole già presenti nella
+              collezione sono escluse dai risultati.
+            </p>
+            @if (selectedMolecules.length) {
+              <details class="add-selected" [open]="!viewport.overlayCompact()">
+                <summary>
+                  {{ selectedMolecules.length }}
+                  {{
+                    selectedMolecules.length === 1
+                      ? 'molecola selezionata'
+                      : 'molecole selezionate'
+                  }}
+                  su ChEMBL
+                </summary>
+                <ul class="add-chips" aria-label="Molecole selezionate">
+                  @for (m of selectedMolecules; track m.id) {
+                    <li>
+                      <span>{{ m.name }}</span
+                      ><button
+                        type="button"
+                        (click)="removeChip(m.id)"
+                        [attr.aria-label]="'Rimuovi ' + m.name"
+                      >
+                        <svg viewBox="0 0 20 20" aria-hidden="true">
+                          <path d="M6 6l8 8M14 6l-8 8" />
+                        </svg>
+                      </button>
+                    </li>
+                  }
+                </ul>
+                <button
+                  type="button"
+                  class="add-text-button"
+                  (click)="clearChips()"
+                >
+                  Azzera selezione ChEMBL
+                </button>
+              </details>
+            }
+            <div
+              class="add-results"
+              aria-label="Risultati ricerca ChEMBL"
+              [attr.aria-busy]="chemblLoading()"
+            >
+              @if (chemblLoading()) {
+                <div role="status">
+                  <span class="sr-only">Ricerca su ChEMBL in corso…</span
+                  ><m-search-result-skeleton-loader />
+                </div>
+              } @else if (chemblError()) {
+                <div class="add-state add-error" role="alert">
+                  <strong>Ricerca ChEMBL non disponibile.</strong>
+                  <p>Le selezioni sono conservate. Riprova tra un momento.</p>
+                  <m-button variant="secondary" (click)="retryChembl()"
+                    >Riprova ricerca</m-button
+                  >
+                </div>
+              } @else if (chemblEmpty()) {
+                <div class="add-state" role="status">
+                  <strong>Trova le prossime molecole.</strong>
+                  <p>
+                    Cerca su ChEMBL, poi seleziona i risultati da aggiungere.
+                  </p>
+                </div>
+              } @else if (!chemblResults().length) {
+                <div class="add-state" role="status">
+                  <strong>Nessun risultato per “{{ chemblQuery() }}”.</strong>
+                  <p>
+                    Prova un altro nome, identificativo o una struttura SMILES.
+                  </p>
+                </div>
+              } @else {
+                <p class="add-results-count">
+                  {{ chemblResults().length }} risultati · Seleziona una scheda
+                  per aggiungerla alla selezione
+                </p>
+                @for (mol of chemblResults(); track mol.id) {
+                  <div
+                    class="add-result"
+                    [class.add-result-selected]="isChemblSelected(mol.id)"
+                  >
+                    <m-search-result
+                      [molecule]="mol"
+                      [query]="chemblQuery()"
+                      [search_excludeAlreadyAdded]="true"
+                      [selected]="isChemblSelected(mol.id)"
+                      (onChipItem)="addChip($event)"
+                    />
+                  </div>
+                }
+              }
+            </div>
+          }
+        </fieldset>
+      </div>
+      <div action-card-footer class="add-footer">
         <div
-          class="m-overlay-methods mt-6 space-y-6 sm:flex sm:items-center sm:space-x-10 sm:space-y-0
-                 px-6 pb-6 border-b border-light-border dark:border-dark-border"
-          role="radiogroup"
-          aria-label="Scegli il metodo per aggiungere molecole"
+          action-footer-info
+          class="add-footer-info"
+          role="status"
           aria-live="polite"
         >
-          @if (step() === 1) {
-            <div class="flex items-center">
-              <input
-                id="my"
-                type="radio"
-                name="method"
-                value="my"
-                [formControl]="methodControl"
-                aria-label="Usa le mie molecole"
-                [attr.aria-checked]="method() === 'my'"
-                class="cursor-pointer relative size-4 appearance-none rounded-full
-                       border border-gray-300 bg-white
-                       before:absolute before:inset-1 before:rounded-full before:bg-white
-                       checked:border-indigo-600 checked:bg-indigo-600
-                       focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600
-                       disabled:border-gray-300 disabled:bg-gray-100 disabled:before:bg-gray-400
-                       dark:border-white/10 dark:bg-white/5
-                       dark:checked:border-indigo-500 dark:checked:bg-indigo-500
-                       dark:focus-visible:outline-indigo-500
-                       dark:disabled:border-white/5 dark:disabled:bg-white/10 dark:disabled:before:bg-white/20
-                       forced-colors:appearance-auto forced-colors:before:hidden
-                       not-checked:before:hidden"
-              />
-              <label for="my" aria-label="Seleziona da Le mie molecole" class="cursor-pointer ml-3 block text-base/6 font-medium text-gray-900 dark:text-white">
-                <span class="m-overlay-method-full">Seleziona da <span class="italic">Le mie molecole</span></span><span class="m-overlay-method-short">Le mie</span>
-              </label>
-            </div>
-
-            <div class="flex items-center">
-              <input
-                id="chembl"
-                type="radio"
-                name="method"
-                value="chembl"
-                [formControl]="methodControl"
-                aria-label="Cerca e seleziona da ChEMBL DB"
-                [attr.aria-checked]="method() === 'chembl'"
-                class="cursor-pointer relative size-4 appearance-none rounded-full
-                       border border-gray-300 bg-white
-                       before:absolute before:inset-1 before:rounded-full before:bg-white
-                       checked:border-indigo-600 checked:bg-indigo-600
-                       focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600
-                       disabled:border-gray-300 disabled:bg-gray-100 disabled:before:bg-gray-400
-                       dark:border-white/10 dark:bg-white/5
-                       dark:checked:border-indigo-500 dark:checked:bg-indigo-500
-                       dark:focus-visible:outline-indigo-500
-                       dark:disabled:border-white/5 dark:disabled:bg-white/10 dark:disabled:before:bg-white/20
-                       forced-colors:appearance-auto forced-colors:before:hidden
-                       not-checked:before:hidden"
-              />
-              <label for="chembl" aria-label="Cerca e seleziona da ChEMBL DB" class="cursor-pointer ml-3 block text-base/6 font-medium text-gray-900 dark:text-white">
-                <span class="m-overlay-method-full">Cerca e seleziona da ChEMBL DB</span><span class="m-overlay-method-short">ChEMBL</span>
-              </label>
-            </div>
-          } @else if (step() === 2) {
-            <div class="flex items-center">
-              <input
-                [attr.disabled]="true"
-                id="my"
-                type="radio"
-                name="method"
-                value="my"
-                [formControl]="methodControl"
-                aria-label="Usa le mie molecole"
-                [attr.aria-checked]="method() === 'my'"
-                aria-disabled="true"
-                class="cursor-not-allowed relative size-4 appearance-none rounded-full
-                       border border-gray-300 bg-white
-                       before:absolute before:inset-1 before:rounded-full before:bg-white
-                       checked:border-indigo-600 checked:bg-indigo-600
-                       focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600
-                       disabled:border-gray-300 disabled:bg-gray-100 disabled:before:bg-gray-400
-                       dark:border-white/10 dark:bg-white/5
-                       dark:checked:border-indigo-500 dark:checked:bg-indigo-500
-                       dark:focus-visible:outline-indigo-500
-                       dark:disabled:border-white/5 dark:disabled:bg-white/10 dark:disabled:before:bg-white/20
-                       forced-colors:appearance-auto forced-colors:before:hidden
-                       not-checked:before:hidden"
-              />
-              <label for="my" aria-label="Seleziona da Le mie molecole" class="cursor-not-allowed ml-3 block text-base/6 font-medium text-gray-900 dark:text-white">
-                <span class="m-overlay-method-full">Seleziona da <span class="italic">Le mie molecole</span></span><span class="m-overlay-method-short">Le mie</span>
-              </label>
-            </div>
-
-            <div class="flex items-center">
-              <input
-                [attr.disabled]="true"
-                id="chembl"
-                type="radio"
-                name="method"
-                value="chembl"
-                [formControl]="methodControl"
-                aria-label="Cerca e seleziona da ChEMBL DB"
-                [attr.aria-checked]="method() === 'chembl'"
-                aria-disabled="true"
-                class="cursor-not-allowed relative size-4 appearance-none rounded-full
-                       border border-gray-300 bg-white
-                       before:absolute before:inset-1 before:rounded-full before:bg-white
-                       checked:border-indigo-600 checked:bg-indigo-600
-                       focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600
-                       disabled:border-gray-300 disabled:bg-gray-100 disabled:before:bg-gray-400
-                       dark:border-white/10 dark:bg-white/5
-                       dark:checked:border-indigo-500 dark:checked:bg-indigo-500
-                       dark:focus-visible:outline-indigo-500
-                       dark:disabled:border-white/5 dark:disabled:bg-white/10 dark:disabled:before:bg-white/20
-                       forced-colors:appearance-auto forced-colors:before:hidden
-                       not-checked:before:hidden"
-              />
-              <label for="chembl" aria-label="Cerca e seleziona da ChEMBL DB" class="cursor-not-allowed ml-3 block text-base/6 font-medium text-gray-900 dark:text-white">
-                <span class="m-overlay-method-full">Cerca e seleziona da ChEMBL DB</span><span class="m-overlay-method-short">ChEMBL</span>
-              </label>
-            </div>
-          }
+          {{
+            step_12_loading()
+              ? 'Aggiunta in corso. Attendi la conferma…'
+              : selectionSummary()
+          }}
         </div>
-      </div>
-
-      <!-- AREA CONTENUTO (deve poter restringersi con tastiera) -->
-      <div class="m-add-content flex-1 min-h-0 overflow-hidden">
-        @switch (method()) {
-
-          @case ('my') {
-            <div
-              #scrollRoot
-              class="m-add-list h-full min-h-0 overflow-y-auto py-6 m-ac-pad flex flex-col gap-4 m-scroll-thin"
-            >
-              @switch (step()) {
-
-                @case (1) {
-                  <div class="m-ac-pad space-y-3 sm:space-y-4">
-                    <h2 class="font-semibold text-center sm:text-left">
-                      Scegli le molecole da aggiungere alla collezione:
-                    </h2>
-
-                    <div class="m-search-center">
-                      <m-search-input
-                        class="block w-full max-w-[20rem] sm:max-w-none"
-                        [value]="searchTerm()"
-                        [useAltDarkStyle]="true"
-                        (valueChange)="doQuery($event)"
-                        (submitted)="doQuery($event)"
-                        (cleared)="doClear()"
-                      />
-                    </div>
-
-                    <div class="pt-2 sm:pt-4">
-                      @if (multiselectItems().length !== 0) {
-                        <m-molecule-collection-item-select-card
-                          class="block mb-6"
-                          [isSelectAll]="true"
-                          [value]="isSelectedAll()"
-                          [indeterminate]="isPartiallySelected()"
-                          (selectedAll)="onSelectAllChange($event)"
-                        />
-                      }
-
-                      @for (row of multiselectItems(); track row.item.id; let i = $index) {
-                        <m-molecule-collection-item-select-card
-                          [molecule]="row.item"
-                          [i]="i"
-                          [value]="row.isChecked()"
-                          (valueChange)="row.isChecked.set($event); toggleOne(row)"
-                        />
-                      }
-                    </div>
-
-                    <div #sentinel class="h-1 w-full"></div>
-
-                    @if (loading) {
-                      @if (page > 1) {
-                        <div class="flex justify-center py-4" role="status" aria-live="polite" aria-busy="true">
-                          <m-progress-indicator />
-                        </div>
-                      } @else {
-                        <div class="space-y-4" role="status" aria-live="polite" aria-busy="true">
-                          @for (i of [0,1,2,3,4]; track i) {
-                            <m-skeleton-molecule-card />
-                          }
-                        </div>
-                      }
-                    } @else if (empty() && (earlyDone || done)) {
-                      <p class="text-slate-700 dark:text-slate-200 py-6" role="status" aria-live="polite">
-                        Nessuna molecola disponibile tra
-                        <em>Le mie molecole</em>.
-                      </p>
-                    }
-                  </div>
-                }
-
-                @case (2) {
-                  <div class="px-6 py-6">
-                    @if (error()) {
-                      <span
-                        id="addMolStatus"
-                        class="text-light-error dark:text-dark-error"
-                        role="alert"
-                        aria-live="assertive"
-                      >
-                        Si è verificato un errore
-                      </span>
-                    } @else {
-                      <span
-                        id="addMolStatus"
-                        class="text-light-accent-primary-hc dark:text-dark-accent-secondary"
-                        role="status"
-                        aria-live="polite"
-                      >
-                        Molecole aggiunte con successo!
-                      </span>
-                    }
-                  </div>
-                }
-
-              }
-            </div>
-          }
-
-          @case ('chembl') {
-            @switch (step()) {
-
-              @case (1) {
-                <div class="m-add-chembl-content h-full min-h-0 flex flex-col py-4 m-ac-pad gap-3">
-                  <!-- SEARCH (fuori dallo scroll risultati, così sticky è stabile) -->
-                  <div class="m-add-search shrink-0 bg-white dark:bg-dark-surface-main pb-2 space-y-2 text-center sm:text-left m-ac-pad">
-                    <div class="m-add-instructions font-medium">Cerca su ChEMBL e seleziona:</div>
-                    <div class="m-search-center">
-                      <m-molecule-search-input
-                        class="block w-full max-w-[20rem] sm:max-w-none"
-                        [search_excludeAlreadyAdded]="true"
-                        (onLoading)="chemblLoading.set($event)"
-                        (onResult)="handleResults($event)"
-                        (onError)="handleError($event)"
-                        (onQuery)="onChemblQuery($event)"
-                        (onEmpty)="chemblEmpty.set(true)"
-                      />
-                    </div>
-                  </div>
-
-                  <!-- CHIPS -->
-                  @if (selectedMolecules.length) {
-                  <details class="m-add-selections shrink-0 border-b" [open]="!viewport.overlayCompact()">
-                    <summary class="cursor-pointer py-1 text-sm" aria-live="polite">{{ selectedMolecules.length }} molecole selezionate</summary>
-
-                    <div
-                      class="relative flex flex-col xs:flex-row xs:flex-wrap items-start xs:items-center gap-1 sm:gap-3 py-1 sm:py-3 px-1 m-chip-stack m-scroll-thin m-overscroll-touch"
-                      role="list"
-                      aria-label="Molecole selezionate"
-                      aria-live="polite"
-                    >
-                      @for (m of selectedMolecules; track m.id) {
-                        <span
-                          role="listitem"
-                          class="group inline-flex items-center max-w-full m-chip
-                                 rounded-full
-                                 bg-indigo-50 text-light-accent-primary-hc ring-1 ring-inset ring-light-accent-primary-hq/70
-                                 dark:bg-indigo-500/20 dark:text-indigo-100 dark:ring-indigo-400/40
-                                 shadow-sm"
-                          title="{{ m.name }}"
-                        >
-                          <span class="truncate m-chip-text text-xs sm:text-sm font-medium">
-                            {{ m.name }}
-                          </span>
-
-                          <button
-                            type="button"
-                            (click)="removeChip(m.id)"
-                            class="shrink-0 inline-flex items-center justify-center rounded-full
-                                   hover:bg-indigo-100 dark:hover:bg-indigo-400/30
-                                   focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-1
-                                   dark:focus:ring-offset-gray-900"
-                            aria-label="Rimuovi {{ m.name }}"
-                          >
-                            <svg viewBox="0 0 20 20" fill="none" class="size-3.5">
-                              <path
-                                d="M6 6l8 8M14 6l-8 8"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                                stroke-linecap="round"
-                              />
-                            </svg>
-                          </button>
-                        </span>
-                      }
-
-                      @if (selectedMolecules.length > 0) {
-                        <span class="grow"></span>
-                        <button
-                          type="button"
-                          (click)="clearChips()"
-                          class="inline-flex items-center m-chip-clear gap-1 sm:gap-2 rounded-full
-                                 ring-1 ring-inset ring-indigo-300 text-indigo-700 hover:bg-indigo-50
-                                 dark:ring-indigo-400/40 dark:text-indigo-100 dark:hover:bg-indigo-500/20
-                                 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-1
-                                 dark:focus:ring-offset-gray-900"
-                        >
-                          Pulisci tutto
-                          <svg viewBox="0 0 20 20" fill="none" class="size-3.5">
-                            <path
-                              d="M5 10h10M10 5v10"
-                              stroke="currentColor"
-                              stroke-width="1.6"
-                              stroke-linecap="round"
-                            />
-                          </svg>
-                        </button>
-                      }
-                    </div>
-                  </details>
-                  }
-
-                  <!-- RESULTS (unico scroll “vero”) -->
-                  <div
-                    class="m-add-results relative flex-1 min-h-0 overflow-y-auto overscroll-contain"
-                    role="region"
-                    aria-label="Risultati ricerca ChEMBL"
-                    [attr.aria-busy]="chemblLoading()"
-                    aria-live="polite"
-                  >
-                    @if (chemblLoading()) {
-                      <div role="status" aria-live="polite" aria-busy="true">
-                        <m-search-result-skeleton-loader />
-                      </div>
-                    } @else if (chemblResults().length) {
-                      @for (molecule of chemblResults(); track molecule.id) {
-                        <m-search-result
-                          [molecule]="molecule"
-                          [query]="chemblQuery()"
-                          [search_excludeAlreadyAdded]="true"
-                          (onChipItem)="addChip($event)"
-                        />
-                      }
-                    } @else if (!chemblResults().length && !chemblError() && !chemblEmpty()) {
-                      <div class="text-sm text-slate-700 dark:text-slate-200 text-center py-8" role="status" aria-live="polite">
-                        Nessun risultato trovato.
-                      </div>
-                    } @else if (chemblError()) {
-                      <div
-                        class="text-sm text-red-500 bg-red-50 dark:bg-red-950 rounded px-4 py-2 text-center"
-                        role="alert"
-                        aria-live="assertive"
-                      >
-                        Errore nella ricerca. Riprova.
-                      </div>
-                    }
-                  </div>
-                </div>
-              }
-
-              @case (2) {
-                <div class="flex-1 min-h-0 py-6 px-3 flex flex-col gap-4">
-                  @if (error()) {
-                    <span
-                      id="addMolStatus"
-                      class="text-light-error dark:text-dark-error"
-                      role="alert"
-                      aria-live="assertive"
-                    >
-                      Si è verificato un errore
-                    </span>
-                  } @else {
-                    <span
-                      id="addMolStatus"
-                      class="text-light-accent-primary-hc dark:text-dark-accent-secondary"
-                      role="status"
-                      aria-live="polite"
-                    >
-                      Molecole aggiunte con successo!
-                    </span>
-                  }
-                </div>
-              }
-
-            }
-          }
-
+        @if (error()) {
+          <p action-footer-info class="add-error-message" role="alert">
+            Non è stato possibile aggiungere le molecole. Le selezioni sono
+            conservate: puoi riprovare.
+          </p>
         }
+        <m-action-footer
+          ><m-button
+            action-footer-secondary
+            variant="secondary"
+            [disabled]="step_12_loading()"
+            (click)="close()"
+            >Annulla</m-button
+          >
+          <m-button
+            action-footer-primary
+            variant="primary"
+            [disabled]="!canSubmit()"
+            [loading]="step_12_loading()"
+            ariaLabel="Aggiungi molecole selezionate"
+            (click)="dispatchSubmit()"
+            >{{ error() ? 'Riprova aggiunta' : 'Aggiungi molecole' }}</m-button
+          >
+        </m-action-footer>
       </div>
-    </div>
-
-    <!-- FOOTER -->
-    <m-action-footer action-card-footer>
-      @if (step() === 1) {
-        <m-button
-          action-footer-secondary
-          variant="outline"
-          (click)="close()"
-        >
-          Annulla
-        </m-button>
-      }
-
-      <m-button
-        action-footer-primary
-        [disabled]="(isSelectedNothing() && this.method() === 'my') || (this.selectedIds.length === 0 && this.method() === 'chembl' || step_12_loading())"
-        [loading]="step_12_loading()"
-        (click)="step() === 1 ? dispatchSubmit() : close()"
-        [attr.aria-label]="step() === 1 ? 'Aggiungi molecole' : 'Chiudi conferma'"
-      >
-        @if (step() === 1) {
-          Aggiungi
-        } @else if (step() === 2) {
-          Ok
-        }
-      </m-button>
-    </m-action-footer>
-  </m-action-card>
-</div>
-`
-
+    </m-action-card>
+  </div>`,
 })
 export class AddMoleculesToCollectionComponent
-  implements OnInit, AfterViewInit, OnDestroy {
-
+  implements OnInit, AfterViewInit, OnDestroy
+{
   private readonly actionOverlayContext = inject(ActionOverlayContextService);
   private readonly addContext = inject(AddMoleculesToCollectionContextService);
   protected readonly viewport = inject(ViewportRuntimeService);
-  private readonly sessionId = this.actionOverlayContext.session('AddMoleculesToCollection')?.id ?? -1;
+  private readonly sessionId =
+    this.actionOverlayContext.session('AddMoleculesToCollection')?.id ?? -1;
   private readonly invalidation = inject(DomainInvalidationService);
-  private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService);
-  private readonly moleculeCollectionService = inject(MoleculeCollectionService);
+  private readonly moleculeCollectionItemService = inject(
+    MoleculeCollectionItemService,
+  );
+  private readonly moleculeCollectionService = inject(
+    MoleculeCollectionService,
+  );
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
   private readonly moleculeSearchService = inject(MoleculeSearchService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly selection = new AddMoleculesSelectionController();
-  private readonly pageController = new PaginationController<MoleculeCardItemModel>({
-    fetch: (page, query) => this.moleculeCollectionItemService
-      .getAllPaginatedItems(page, 20, query, true, this.addContext.collectionId())
-      .pipe(
-        debounceTime(100),
-        map(result => ({ ...result, items: result.items.map(mol => Helpers.moleculeClientToCardConverter(mol)) }))
-      )
-  });
+  private readonly pageController =
+    new PaginationController<MoleculeCardItemModel>({
+      fetch: (page, query) =>
+        this.moleculeCollectionItemService
+          .getAllPaginatedItems(
+            page,
+            20,
+            query,
+            true,
+            this.addContext.collectionId(),
+          )
+          .pipe(
+            debounceTime(100),
+            map((result) => ({
+              ...result,
+              items: result.items.map((mol) =>
+                Helpers.moleculeClientToCardConverter(mol),
+              ),
+            })),
+          ),
+    });
   private readonly submitController = new AddMoleculesSubmitController();
-  private readonly chemblSearch = new AddMoleculesSearchController(query => {
+  private readonly chemblSearch = new AddMoleculesSearchController((query) => {
     const collectionId = this.addContext.collectionId();
     return collectionId
-      ? this.moleculeCollectionItemService.searchChemblMolecules_excludeAlreadyAdded(query, collectionId, 100)
+      ? this.moleculeCollectionItemService.searchChemblMolecules_excludeAlreadyAdded(
+          query,
+          collectionId,
+          100,
+        )
       : this.moleculeSearchService.searchMolecule(query, 100);
   });
   readonly pagination: AddMoleculesPaginationPort = {
     loadMore: () => this.loadMore(),
     reset: () => this.resetPagination(),
-    query: query => this.query(query),
-    clear: () => this.clear()
+    query: (query) => this.query(query),
+    clear: () => this.clear(),
   };
-  readonly multiselectItems = signal<AbstractMultiselectItem<MoleculeCardItemModel>[]>([]);
-  readonly isSelectedAll = computed(() => this.selection.mode() === 'all' && this.selection.excludedIds().size === 0);
-  readonly isSelectedNothing = computed(() => this.selection.isNothingSelected());
-  readonly isPartiallySelected = computed(() => this.selection.isPartiallySelected());
-  get items(): MoleculeCardItemModel[] { return this.pageController.items() }
-  get loading(): boolean { return this.pageController.loading() }
-  get done(): boolean { return this.pageController.done() }
-  get earlyDone(): boolean { return this.pageController.earlyDone() }
-  get page(): number { return this.pageController.page() }
-  get empty(): ReturnType<typeof signal<boolean>> { return this.pageController.empty }
-  get searchTerm(): ReturnType<typeof signal<string>> { return this.pageController.query }
+  readonly multiselectItems = signal<
+    AbstractMultiselectItem<MoleculeCardItemModel>[]
+  >([]);
+  readonly isSelectedAll = computed(
+    () =>
+      this.selection.mode() === 'all' &&
+      this.selection.excludedIds().size === 0,
+  );
+  readonly isSelectedNothing = computed(() =>
+    this.selection.isNothingSelected(),
+  );
+  readonly isPartiallySelected = computed(() =>
+    this.selection.isPartiallySelected(),
+  );
+  get items(): MoleculeCardItemModel[] {
+    return this.pageController.items();
+  }
+  get loading(): boolean {
+    return this.pageController.loading();
+  }
+  get done(): boolean {
+    return this.pageController.done();
+  }
+  get earlyDone(): boolean {
+    return this.pageController.earlyDone();
+  }
+  get page(): number {
+    return this.pageController.page();
+  }
+  get empty(): ReturnType<typeof signal<boolean>> {
+    return this.pageController.empty;
+  }
+  get searchTerm(): ReturnType<typeof signal<string>> {
+    return this.pageController.query;
+  }
 
   private ctrlSub?: Subscription;
   private suSub1?: Subscription;
@@ -710,14 +484,16 @@ export class AddMoleculesToCollectionComponent
   collection = signal<MoleculeCollection | null>(null);
 
   protected readonly root = viewChild<ElementRef<HTMLDivElement>>('scrollRoot');
-  protected readonly sentinel = viewChild<ElementRef<HTMLDivElement>>('sentinel');
+  protected readonly sentinel =
+    viewChild<ElementRef<HTMLDivElement>>('sentinel');
   private observer?: IntersectionObserver;
 
   constructor() {
     effect(() => {
       this.pageController.items();
       queueMicrotask(() => {
-        if (!this.destroyRef.destroyed && this.method() === 'my') this.loadRows();
+        if (!this.destroyRef.destroyed && this.method() === 'my')
+          this.loadRows();
       });
     });
     effect(() => {
@@ -725,8 +501,6 @@ export class AddMoleculesToCollectionComponent
       untracked(() => {
         this.observer?.disconnect();
         this.chemblSearch.clear();
-        this.clearSelections();
-        this.clearChips();
         this.step.set(1);
         if (method === 'my') {
           queueMicrotask(() => {
@@ -756,26 +530,33 @@ export class AddMoleculesToCollectionComponent
     const ifc = this.addContext.importFromChembl();
     const defaultMethod = ifc ? 'chembl' : 'my';
     this.method.set(defaultMethod);
-    this.methodControl = new FormControl<'my' | 'chembl'>(defaultMethod, { nonNullable: true });
-    this.metCtrlSub = this.methodControl.valueChanges.pipe(
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe(val => this.method.set(val));
+    this.methodControl = new FormControl<'my' | 'chembl'>(defaultMethod, {
+      nonNullable: true,
+    });
+    this.metCtrlSub = this.methodControl.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((val) => this.method.set(val));
     queueMicrotask(() => {
       const collectionId = this.addContext.collectionId();
       if (!collectionId) {
         this.close();
         return;
       }
-      this.colSub = this.moleculeCollectionService.getCollectionById(collectionId).pipe(
-        takeUntilDestroyed(this.destroyRef)
-      ).subscribe({
-        next: (col) => this.collection.set(col),
-        error: () =>
-          queueMicrotask(() => {
-            this.close();
-            this.toast.trigger('Si è verificato un errore. Se si ripete, contatta il supporto', 'error', 3000);
-          })
-      });
+      this.colSub = this.moleculeCollectionService
+        .getCollectionById(collectionId)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (col) => this.collection.set(col),
+          error: () =>
+            queueMicrotask(() => {
+              this.close();
+              this.toast.trigger(
+                'Si è verificato un errore. Se si ripete, contatta il supporto',
+                'error',
+                3000,
+              );
+            }),
+        });
     });
   }
 
@@ -796,52 +577,95 @@ export class AddMoleculesToCollectionComponent
   }
 
   toggleOne(visibleItem: AbstractMultiselectItem<MoleculeCardItemModel>): void {
+    if (this.step_12_loading()) return;
     this.selection.toggle(visibleItem.item.id, visibleItem.isChecked());
   }
 
   onSelectAllChange(checked: boolean): void {
+    if (this.step_12_loading()) return;
     if (checked) {
       this.selection.selectAll();
     } else {
       this.selection.clearVisibleSelection();
     }
-    this.multiselectItems().forEach(row => row.isChecked.set(checked));
+    this.multiselectItems().forEach((row) => row.isChecked.set(checked));
   }
 
   clearSelections(): void {
-    this.selection.reset();
-    this.multiselectItems().forEach(row => row.isChecked.set(false));
+    if (this.step_12_loading()) return;
+    this.selection.clearVisibleSelection();
+    this.multiselectItems().forEach((row) => row.isChecked.set(false));
   }
 
-  doQuery(q: string): void { this.pageController.setQuery(q); }
-  doClear(): void { this.pageController.clear(); }
+  doQuery(q: string): void {
+    if (this.step_12_loading() || q === this.searchTerm()) return;
+    this.multiselectItems.set([]);
+    this.pageController.setQuery(q);
+  }
+  doClear(): void {
+    if (this.step_12_loading() || !this.searchTerm()) return;
+    this.multiselectItems.set([]);
+    this.pageController.clear();
+  }
   private loadRows(): void {
-    const existing = new Map(this.multiselectItems().map(row => [row.item.id, row]));
-    this.multiselectItems.set(this.items.map(item => existing.get(item.id) ?? {
-      item,
-      isChecked: signal(this.selection.isSelected(item.id))
-    }));
+    const existing = new Map(
+      this.multiselectItems().map((row) => [row.item.id, row]),
+    );
+    this.multiselectItems.set(
+      this.items.map(
+        (item) =>
+          existing.get(item.id) ?? {
+            item,
+            isChecked: signal(this.selection.isSelected(item.id)),
+          },
+      ),
+    );
   }
   loadMore(): Promise<void> {
     return this.pageController.loadMore().then(() => {
       if (!this.destroyRef.destroyed && this.method() === 'my') this.loadRows();
     });
   }
-  resetPagination(): void { this.pageController.reset(); this.multiselectItems.set([]); }
-  query(q: string): void { this.doQuery(q); }
-  clear(): void { this.doClear(); }
-  paginationState() { return this.pageController.paginationState(); }
-  retryPagination(): void { this.pageController.retry(); }
+  resetPagination(): void {
+    this.pageController.reset();
+    this.multiselectItems.set([]);
+  }
+  query(q: string): void {
+    this.doQuery(q);
+  }
+  clear(): void {
+    this.doClear();
+  }
+  paginationState() {
+    return this.pageController.paginationState();
+  }
+  retryPagination(): void {
+    this.pageController.retry();
+  }
   private startObserver(): void {
-    if (this.destroyRef.destroyed || this.method() !== 'my' || this.step() !== 1) return;
+    if (
+      this.destroyRef.destroyed ||
+      this.step_12_loading() ||
+      this.method() !== 'my' ||
+      this.step() !== 1
+    )
+      return;
     const sentinel = this.sentinel()?.nativeElement;
     if (!sentinel) return;
     this.observer?.disconnect();
-    this.observer = new IntersectionObserver(entries => {
-      if (entries[0]?.isIntersecting && this.method() === 'my' && this.step() === 1 && !this.pageController.error()) {
-        void this.loadMore();
-      }
-    }, { root: this.paginationScrollRoot(), rootMargin: '0px 0px 500px 0px' });
+    this.observer = new IntersectionObserver(
+      (entries) => {
+        if (
+          entries[0]?.isIntersecting &&
+          this.method() === 'my' &&
+          this.step() === 1 &&
+          !this.pageController.error()
+        ) {
+          void this.loadMore();
+        }
+      },
+      { root: this.paginationScrollRoot(), rootMargin: '0px 0px 500px 0px' },
+    );
     this.observer.observe(sentinel);
   }
 
@@ -849,60 +673,13 @@ export class AddMoleculesToCollectionComponent
     const root = this.root()?.nativeElement;
     const state = this.viewport.state();
     return state.visualWidth < 768 || this.viewport.overlayCompact()
-      ? root?.closest<HTMLElement>('.m-action-card') ?? null : root ?? null;
+      ? (root?.closest<HTMLElement>('.m-action-card') ?? null)
+      : (root?.closest<HTMLElement>('.m-action-card__body') ?? null);
   }
 
   close(): void {
-    this.actionOverlayContext.close(this.sessionId);
-  }
-
-  private doSubmit(): void {
-    const collectionId = this.addContext.collectionId();
-    if (!collectionId) {
-      this.error.set(true);
-      return;
-    }
-    if (this.step() === 1) {
-      if (this.isSelectedNothing()) {
-        return;
-      }
-
-      this.step_12_loading.set(true);
-
-      this.suSub1 = this.submitController
-        .submitExisting(
-          this.moleculeCollectionItemService,
-          collectionId,
-          this.selection
-        )
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe({
-          next: (ok) => {
-            this.step_12_loading.set(false)
-            if (ok) {
-              this.invalidation.publish({
-                domain: 'molecule-collection',
-                action: 'molecules-added',
-                collectionId: this.addContext.collectionId()!
-              })
-              this.toast.trigger(`Molecole aggiunte con successo alla collezione${this.collection()?.name ? " '" + this.collection()?.name + "'" : ''}`, 'success')
-            }
-            this.error.set(!ok)
-            const cId = this.addContext.collectionId()
-            if (this.addContext.redirectToCollectionPath()) {
-              void this.router.navigateByUrl(`/molecules/collections/detail/${cId}`);
-            }
-            this.actionOverlayContext.close(this.sessionId)
-          },
-          error: () => {
-            this.step_12_loading.set(false)
-            this.error.set(true)
-            this.step.set(2)
-          }
-        });
-    } else {
+    if (!this.step_12_loading())
       this.actionOverlayContext.close(this.sessionId);
-    }
   }
 
   // ============= ChEMBL search selection
@@ -928,26 +705,28 @@ export class AddMoleculesToCollectionComponent
   }
 
   addChip(chip: ChipItem) {
-    this.selection.addChip(chip);
+    if (!this.step_12_loading()) this.selection.addChip(chip);
   }
 
   onChemblQuery(raw: string) {
-    this.chemblSearch.setQuery(raw);
+    if (!this.step_12_loading()) this.chemblSearch.setQuery(raw);
   }
 
   removeChip(id: string) {
-    this.selection.removeChip(id);
+    if (!this.step_12_loading()) this.selection.removeChip(id);
   }
 
   clearChips() {
-    this.selection.clearChips();
+    if (!this.step_12_loading()) this.selection.clearChips();
   }
 
   onEmpty(): void {
     this.chemblSearch.clear();
   }
 
-  handleResults(results: MoleculeSearchResult[] | PageModel<MoleculeCardItemModel>): void {
+  handleResults(
+    results: MoleculeSearchResult[] | PageModel<MoleculeCardItemModel>,
+  ): void {
     if (Array.isArray(results)) {
       this.chemblSearch.setResults(results);
       return;
@@ -959,50 +738,86 @@ export class AddMoleculesToCollectionComponent
     this.chemblSearch.setError(err);
   }
 
-  private doSubmitChembl(): void {
-    const collectionId = this.addContext.collectionId();
-    if (!collectionId) {
-      this.error.set(true);
-      return;
+  readonly canSubmit = computed(
+    () =>
+      !this.step_12_loading() &&
+      !!this.collection() &&
+      (this.method() === 'my'
+        ? !this.isSelectedNothing()
+        : this.selectedIds.length > 0),
+  );
+  readonly selectionSummary = computed(() => {
+    if (this.method() === 'chembl')
+      return `${this.selectedIds.length} ${this.selectedIds.length === 1 ? 'molecola selezionata' : 'molecole selezionate'} su ChEMBL`;
+    if (this.selection.mode() === 'all') {
+      const excluded = this.selection.excludedIds().size;
+      return excluded
+        ? `Tutte le molecole disponibili, tranne ${excluded}`
+        : 'Tutte le molecole disponibili selezionate';
     }
-    this.suSub2 = this.submitController
-      .submitChembl(
-        this.moleculeCollectionItemService,
-        collectionId,
-        this.selection
-      )
-      .pipe(takeUntilDestroyed(this.destroyRef))
+    const count = this.selection.selectedIds().size;
+    return `${count} ${count === 1 ? 'molecola selezionata' : 'molecole selezionate'} tra le mie molecole`;
+  });
+  isChemblSelected(id: string | number): boolean {
+    return this.selectedIds.includes(String(id));
+  }
+  retryChembl(): void {
+    if (!this.step_12_loading()) this.chemblSearch.retry();
+  }
+  dispatchSubmit(): void {
+    if (!this.canSubmit()) return;
+    const collectionId = this.addContext.collectionId();
+    if (!collectionId) return;
+    const redirect = this.addContext.redirectToCollectionPath();
+    this.error.set(false);
+    this.step_12_loading.set(true);
+    this.methodControl.disable({ emitEvent: false });
+    this.actionOverlayContext.beginSubmit(this.sessionId);
+    this.observer?.disconnect();
+    const request =
+      this.method() === 'my'
+        ? this.submitController.submitExisting(
+            this.moleculeCollectionItemService,
+            collectionId,
+            this.selection,
+          )
+        : this.submitController.submitChembl(
+            this.moleculeCollectionItemService,
+            collectionId,
+            this.selection,
+          );
+    this.suSub1 = request
+      .pipe(take(1), takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: ok => {
-          this.step_12_loading.set(false);
-          if (ok) {
-            this.invalidation.publish({
-              domain: 'molecule-collection',
-              action: 'molecules-added',
-              collectionId
-            });
+        next: (ok) => {
+          if (!ok) {
+            this.submissionFailed();
+            return;
           }
-          this.error.set(!ok);
-          const cId = this.addContext.collectionId();
-          const shouldRedirect = this.addContext.redirectToCollectionPath();
-          if (shouldRedirect) {
-            this.router.navigateByUrl(`/molecules/collections/detail/${cId}`);
-          }
-          this.actionOverlayContext.close(this.sessionId);
+          this.actionOverlayContext.submitSucceeded(this.sessionId);
+          this.invalidation.publish({
+            domain: 'molecule-collection',
+            action: 'molecules-added',
+            collectionId,
+          });
+          this.toast.trigger('Molecole aggiunte alla collezione.', 'success');
+          queueMicrotask(() => {
+            if (this.destroyRef.destroyed) return;
+            this.actionOverlayContext.close(this.sessionId);
+            if (redirect)
+              void this.router.navigateByUrl(
+                `/molecules/collections/detail/${collectionId}`,
+              );
+          });
         },
-        error: () => {
-          this.step_12_loading.set(false);
-          this.error.set(true);
-          this.step.set(2);
-        }
+        error: () => this.submissionFailed(),
       });
   }
-
-  dispatchSubmit(): void {
-    if (this.method() === 'my') {
-      queueMicrotask(() => this.doSubmit());
-    } else if (this.method() === 'chembl') {
-      queueMicrotask(() => this.doSubmitChembl());
-    }
+  private submissionFailed(): void {
+    this.step_12_loading.set(false);
+    this.methodControl.enable({ emitEvent: false });
+    this.error.set(true);
+    this.actionOverlayContext.submitFailed(this.sessionId);
+    queueMicrotask(() => this.startObserver());
   }
 }

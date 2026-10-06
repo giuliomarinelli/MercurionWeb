@@ -142,12 +142,14 @@ describe('CollectionSaveOverlayComponent', () => {
     expect(context.state().phase).toBe('closing');
   });
 
-  for (const scope of ['SelectCollectionThenRoute', 'BindCollectionsToMolecule'] as const) {
+  for (const scope of ['SelectCollectionThenRoute', 'BindCollectionsToMolecule', 'AddMoleculesToCollection'] as const) {
     it('blocks dismissal while ' + scope + ' is submitting', async () => {
       spyOn(ACTION_REGISTRY[scope], 'load').and.resolveTo(TestActionComponent);
       const session = scope === 'SelectCollectionThenRoute'
         ? context.open(scope, { importFromChembl: true })
-        : context.open(scope, { moleculeId: 'mol-1', moleculeName: 'Molecola' });
+        : scope === 'AddMoleculesToCollection'
+          ? context.open(scope, { collectionId: 'collection-1', importFromChembl: true, redirectToCollectionPath: false })
+          : context.open(scope, { moleculeId: 'mol-1', moleculeName: 'Molecola' });
       fixture.detectChanges();
       await fixture.whenStable();
       await new Promise(resolve => setTimeout(resolve, 20));

@@ -79,6 +79,34 @@ Usare una voce per ogni blocco affrontato, anche quando la giornata produce solt
 
 **Prossimo blocco:** ordine 03, PX-07 — `AddMoleculesToCollection`, scelta sorgente, risultati e selezione delle molecole.
 
+### 2026-10-06 — PX-07 — Aggiunta molecole (blocco 03)
+
+**Stato:** Implementato, in review.
+
+**Obiettivo:** rendere chiari destinazione, sorgente e selezione prima della conferma, mantenendo utilizzabili ricerca e azioni con liste lunghe.
+
+**Evidenze iniziali:** overlay osservato dalla collezione di prova con nome lungo. Titolo e destinazione mescolati, radio con ampi spazi, chips con rimozione di 20 px su desktop, nessun conteggio per le molecole personali. Cambiare sorgente azzerava le selezioni. La ricerca ChEMBL passava sia dal componente di ricerca con servizio proprio sia dal controller locale. Invio ChEMBL senza pending; risposta negativa chiudeva il pannello e poteva reindirizzare, errore di trasporto sostituiva la selezione con uno stato generico. La verifica mobile ha inoltre mostrato azioni alla fine della lista e controlli delle schede sovrapposti a header/footer durante lo scroll.
+
+**Interventi:** titolo breve con icona, destinazione a capo in un riepilogo separato, due sorgenti con radio native e target di almeno 48 px. Ricerca ChEMBL gestita da un solo controller: debounce, cancellazione immediata delle richieste precedenti, deduplicazione della query e retry della stessa ricerca. Le selezioni per sorgente sopravvivono a cambio sorgente e ricerca; la conferma invia soltanto la sorgente attiva. Conteggio e spiegazione della selezione globale, azzeramento, chips con rimozione di 44 px, schede ChEMBL selezionate riconoscibili e senza nuova selezione o navigazione involontaria. Stati iniziale, caricamento, nessun risultato ed errore recuperabile. Footer persistente su mobile e viewport compatte; stacking delle schede confinato alla lista. Paginazione collegata al contenitore di scroll effettivo, con pulsante di caricamento come alternativa all'observer. Invio unico per entrambe le sorgenti, editing e chiusura bloccati durante pending, errori con draft conservato e retry, invalidazione e toast soltanto dopo successo. Cancellare la ricerca non duplica il caricamento quando il campo emette entrambi gli eventi.
+
+**File:** componente, CSS locale e controller di `AddMoleculesToCollection`, suite relative, `SearchResultComponent` con input `selected` opzionale e test, dismissal policy del contenitore e test. Il comportamento degli altri consumatori di `SearchResultComponent` conserva il default precedente. Nessuna modifica al backend, ai DTO generati, ai controlli comuni, a settings o al dettaglio sinonimi.
+
+**Controlli locali:** 36 test mirati superati: componente, controller di selezione/ricerca/invio, contenitore overlay, risultati ricerca e controlli comuni inclusi dall'ambiente di test. ESLint, styling, colori semantici e `git diff --check` superati. Build Angular con gate bundle e lazy chemistry verificata; resta l'avviso della soglia indicativa di 500 kB. Nessuna certificazione CI remota dichiarata.
+
+**Verifica browser:** Chrome tramite Computer Use, runtime esistenti autorizzati, edge `http://localhost:8888`. Molecole personali: ricerca ASPIRINA, selezione, cancellazione della ricerca, lista di otto schede e selezione conservata; ricerca senza corrispondenze con conferma ancora disponibile per la molecola selezionata. ChEMBL: ricerca `aspirin`, risultati scientifici con viewer, selezione, rimozione e reinserimento, ricerca senza risultati con chip conservato. Cambiando sorgente, ciascuna selezione viene recuperata; la scheda ChEMBL selezionata mostra il badge e non espone un link al dettaglio.
+
+**Operazioni reali:** aggiunta ChEMBL di ESTERE ASPIRINA-EUGENOLO alla fixture del blocco 02, poi aggiunta di ASPIRINA da Le mie molecole. Entrambe confermate dal toast e dall'appartenenza visibile sulla pagina collezione. La selezione ChEMBL di ASPIRINA TRELAMINA usata durante la verifica del tema chiaro non è stata inviata quando si è confermata la sorgente personale. La collezione `01a1125c-ee21-7000-b460-f697bf0bd529` ora contiene ASPIRINA ed ESTERE ASPIRINA-EUGENOLO; nessuna eliminazione di dati.
+
+**Responsive e tastiera:** 28 misure, due sorgenti in due temi per sette viewport: 360×800, 390×844, 430×932, 768×1024, 1024×768, 1366×768, 1920×1080. Nessun overflow orizzontale; pannello e footer dentro la viewport. Scrolling sul card mobile e sul body desktop. A 360×500, navigazione con Tab attraverso ricerca, selezione e azioni; ritorno con Shift+Tab al campo, visibile sopra il footer. Escape chiude il draft inattivo e ritorna al contesto precedente; protezione Escape durante invio verificata nei test del contenitore. Tema automatico e viewport originale ripristinati.
+
+**Prove:** `C:/Users/giuli/.codex/artifacts/mercurion-portfolio-ux-2026-10-06/PX-07-add-molecules/`: `before-my.png`, `before-chembl.png`, otto schermate dopo nei temi/dimensioni desktop e mobile, `responsive.json`, `keyboard-short.json`, `keyboard-short.png`, `keyboard-search-short.png`, `chembl-empty-selection.png`, `chembl-success.png`, `my-success.png`, `tests.log`, `build.log`. Le immagini includono fixture locali e non sono materiale portfolio pubblico. Le misure di focus nel file JSON sono campionate subito dopo ciascun Tab: i pulsanti del footer sono dentro il footer, non nella regione del contenuto; la visibilità del campo è stata confermata separatamente dopo l'assestamento dello scroll.
+
+**Limiti:** errori di trasporto, risposta negativa, retry, pending prolungato, cancellazione delle risposte tardive e selezione globale/esclusioni verificati con Observable controllati nei test, senza provocare guasti al backend. La lista personale osservata occupa una sola pagina: nessuna paginazione su molte pagine dichiarata verificata dal vivo. Viewport ridotta non equivale a tastiera virtuale o Safari su dispositivo fisico. Errori preesistenti del renderer molecolare restano fuori da questo blocco; non si dichiara una console globale priva di errori.
+
+**Review manuale:** da eseguire; nessun commit, merge o deploy effettuato. Lo stato non equivale ad accettazione della roadmap complessiva.
+
+**Prossimo blocco:** ordine 04, PX-09 — `MoleculeCollectionItemSave`, form, destinazione, metadati e conferma del salvataggio.
+
 ## Modello per le voci successive
 
 ### AAAA-MM-GG — PX-XX — Sottoarea

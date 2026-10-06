@@ -1,5 +1,5 @@
 import { fakeAsync, tick } from '@angular/core/testing';
-import { of, throwError } from 'rxjs';
+import { of, throwError, Subject } from 'rxjs';
 import {
   AddMoleculesSearchController,
   AddMoleculesSelectionController,
@@ -65,6 +65,30 @@ describe('AddMoleculesSelectionController', () => {
 });
 
 describe('AddMoleculesSearchController', () => {
+  it('cancels old responses immediately on query changes and clear, and deduplicates identical queries', fakeAsync(() => {
+    const old = new Subject<never[]>();
+    const current = new Subject<never[]>();
+    const search = jasmine.createSpy('search').and.returnValues(old, current);
+    const controller = new AddMoleculesSearchController(search);
+    controller.setQuery('aspirin'); tick(100);
+    controller.setQuery('caffeine');
+    old.next([{} as never]);
+    expect(controller.results()).toEqual([]);
+    expect(controller.loading()).toBeTrue();
+    controller.setQuery('caffeine'); tick(100);
+    expect(search.calls.count()).toBe(2);
+    controller.clear(); current.next([{} as never]);
+    expect(controller.results()).toEqual([]); expect(controller.empty()).toBeTrue(); expect(controller.loading()).toBeFalse();
+    controller.destroy();
+  }));
+  it('retries the same failed query without changing the selected draft', fakeAsync(() => {
+    const search = jasmine.createSpy('search').and.returnValues(throwError(() => new Error('network')), of([]));
+    const controller = new AddMoleculesSearchController(search);
+    controller.setQuery('aspirin'); tick(100); expect(controller.error()).toBeTruthy();
+    controller.retry(); expect(controller.loading()).toBeTrue(); tick(100);
+    expect(search.calls.count()).toBe(2); expect(controller.error()).toBeNull(); expect(controller.empty()).toBeFalse();
+    controller.destroy();
+  }));
   it('clears short queries and reports search errors', fakeAsync(() => {
     const search = jasmine.createSpy('search').and.returnValue(
       throwError(() => new Error('search failed'))
