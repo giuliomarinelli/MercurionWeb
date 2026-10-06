@@ -30,7 +30,7 @@ type ActionLoadState = 'idle' | 'loading' | 'loaded' | 'failed'
         [label]="dialogLabel()"
         backdropVariant="action"
         panelVariant="action"
-        [dismissalPolicy]="dismissalPolicy"
+        [dismissalPolicy]="dismissalPolicy()"
         (dismissed)="ctx.close()">
         <ng-container #actionHost />
 
@@ -71,7 +71,11 @@ export class ActionOverlayComponent {
     return scope ? ACTION_REGISTRY[scope].label : 'Pannello azioni'
   })
 
-  protected readonly dismissalPolicy: DialogDismissalPolicy = { escape: true, backdrop: true }
+  protected readonly dismissalPolicy = computed<DialogDismissalPolicy>(() => {
+    const state = this.ctx.state()
+    const creating = state.phase === 'submitting' && state.scope === 'CreateCollection'
+    return { escape: !creating, backdrop: !creating }
+  })
 
   constructor() {
     effect((onCleanup) => {

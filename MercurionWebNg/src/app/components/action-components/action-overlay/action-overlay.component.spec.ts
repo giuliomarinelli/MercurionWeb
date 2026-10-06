@@ -1,5 +1,7 @@
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
+import { DialogShellComponent } from '../../common/dialog-shell/dialog-shell.component';
 
 import { ActionOverlayComponent } from './action-overlay.component';
 import { ACTION_REGISTRY } from './action-overlay.registry';
@@ -119,5 +121,24 @@ describe('CollectionSaveOverlayComponent', () => {
     await fixture.whenStable();
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelectorAll('m-test-action').length).toBe(1);
+  });
+
+  it('blocks dismissal during collection creation and restores it after failure', async () => {
+    spyOn(ACTION_REGISTRY.CreateCollection, 'load').and.resolveTo(TestActionComponent);
+    const session = context.open('CreateCollection');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise(resolve => setTimeout(resolve, 20));
+    context.beginSubmit(session);
+    fixture.detectChanges();
+    const shell = fixture.debugElement.query(By.directive(DialogShellComponent)).componentInstance as DialogShellComponent;
+    expect(shell.dismissalPolicy()).toEqual({ escape: false, backdrop: false });
+    shell.onEscape(new Event('keydown'));
+    expect(context.state().phase).toBe('submitting');
+    context.submitFailed(session);
+    fixture.detectChanges();
+    expect(shell.dismissalPolicy()).toEqual({ escape: true, backdrop: true });
+    shell.onEscape(new Event('keydown'));
+    expect(context.state().phase).toBe('closing');
   });
 });
