@@ -6,6 +6,7 @@ import { AuthRedirectService } from './auth-redirect.service'
 import { AuthStateStore } from './auth-state.store'
 import { SessionSyncService } from './session-sync.service'
 import { ScrollContextService } from './context/scroll-context.service'
+import { BrowserStorageRegistry, storageDescriptor } from './browser-storage-registry'
 
 @Component({ standalone: true, template: '' })
 class TestRouteComponent {}
@@ -26,6 +27,7 @@ describe('AppShellFacade', () => {
   }
 
   beforeEach(() => {
+    new BrowserStorageRegistry().remove(storageDescriptor('mercurion.v1.is-first-visit'))
     authState.authenticated.set(false)
     sessionSync.handshakeTick.set(0)
     sessionSync.status.set('anonymous')
@@ -67,6 +69,29 @@ describe('AppShellFacade', () => {
     expect(facade).toBeTruthy()
     expect(authState.bootstrap).toHaveBeenCalled()
     expect(sessionSync.checkSession).toHaveBeenCalled()
+  })
+
+  afterEach(() => {
+    new BrowserStorageRegistry().remove(storageDescriptor('mercurion.v1.is-first-visit'))
+  })
+
+  it('persists the home animation flag only after reaching one of the three destinations', () => {
+    const facade = TestBed.inject(AppShellFacade)
+    const events = TestBed.inject(Router).events as import('rxjs').Subject<import('@angular/router').Event>
+    const descriptor = storageDescriptor<string>('mercurion.v1.is-first-visit')
+    const storage = TestBed.inject(BrowserStorageRegistry)
+
+    events.next(new NavigationEnd(1, '/', '/'))
+    expect(storage.get(descriptor)).toBeNull()
+    events.next(new NavigationCancel(2, '/login', 'cancelled'))
+    expect(storage.get(descriptor)).toBeNull()
+
+    for (const [index, path] of ['/welcome', '/login', '/register'].entries()) {
+      storage.remove(descriptor)
+      events.next(new NavigationEnd(index + 3, path, `${path}?from=home`))
+      expect(localStorage.getItem(descriptor.key)).toBe('true')
+      expect(facade.shouldSkipHomeAnimations()).toBeTrue()
+    }
   })
 
   it('requests one handshake per tick without reacting to state read by the handshake', () => {

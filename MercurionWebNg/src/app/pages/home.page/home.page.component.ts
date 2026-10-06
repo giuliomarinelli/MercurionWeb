@@ -5,6 +5,7 @@ import { ButtonComponent } from '../../components/common/button/button.component
 import { UserContextService } from '../../services/context/user-context.service';
 import { ThemeManagerService } from '../../services/context/theme-manager.service';
 import { environment } from '../../../environments/environment';
+import { AppShellFacade } from '../../services/app-shell.facade';
 
 
 @Component({
@@ -40,23 +41,23 @@ import { environment } from '../../../environments/environment';
   `,
   template: `
     <main class="bg min-h-dvh flex justify-center items-center px-6 py-12">
-      @if (isLoggedIn()) {
+      @if (showProgress()) {
         <m-progress-indicator />
       } @else {
         <section class="flex w-full max-w-3xl flex-col items-center gap-6">
           <h1 class="tracking-widest text-center font-semibold text-[clamp(1.75rem,7vw,6rem)]">
             @for (letter of mercurionLetters; track $index; let i = $index) {
-              <span class="letter-appears inline-block" [style.animation-delay.ms]="i * 750" [ngClass]="{
+              <span class="inline-block" [class.letter-appears]="!skipAnimations" [style.animation-delay.ms]="skipAnimations ? null : i * 750" [ngClass]="{
                 'text-light-accent-primary-hq dark:text-dark-accent-primary': i === 0,
                 'text-light-accent-primary-hq dark:text-slate-50': i > 0 && i < mercurionLetters.length - 1,
                 'text-light-accent-secondary dark:text-dark-accent-secondary': i === mercurionLetters.length - 1
               }">{{ letter }}</span>
             }
           </h1>
-          <span class="letter-appears flex justify-center" [style.animation-delay.ms]="mercurionLetters.length * 750">
+          <span class="flex justify-center" [class.letter-appears]="!skipAnimations" [style.animation-delay.ms]="skipAnimations ? null : mercurionLetters.length * 750">
             <img [src]="logoSrc()" alt="Mercurion Logo" class="w-20 h-auto mb-6" />
           </span>
-          <div class="grid w-full max-w-2xl grid-cols-1 sm:grid-cols-3 gap-4 letter-appears" [style.animation-delay.ms]="(mercurionLetters.length + 1) * 750">
+          <div class="grid w-full max-w-2xl grid-cols-1 sm:grid-cols-3 gap-4" [class.letter-appears]="!skipAnimations" [style.animation-delay.ms]="skipAnimations ? null : (mercurionLetters.length + 1) * 750">
             <m-button variant="outline" size="lg" [fullWidth]="true" routerLink="/welcome">
               Scopri Mercurion
             </m-button>
@@ -80,9 +81,10 @@ export class HomePageComponent {
 
   private readonly userCtx = inject(UserContextService)
   private readonly themeManager = inject(ThemeManagerService)
+  protected readonly skipAnimations = inject(AppShellFacade).shouldSkipHomeAnimations()
 
   protected readonly mercurionLetters = [...'Mercurion.']
-  protected readonly isLoggedIn = computed(() => this.userCtx.isLoggedIn())
+  protected readonly showProgress = computed(() => this.userCtx.isLoggedIn() || this.userCtx.isRestoringSession())
   readonly logoSrc = () => {
     const { PICTOGRAM_LIGHT, PICTOGRAM_DARK } = environment.logoSrc
     return this.themeManager.theme() === 'light' ? PICTOGRAM_LIGHT : PICTOGRAM_DARK

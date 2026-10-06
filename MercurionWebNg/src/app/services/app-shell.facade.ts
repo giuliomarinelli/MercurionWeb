@@ -1,4 +1,5 @@
 import { Injectable, OnDestroy, effect, inject, signal, untracked } from '@angular/core'
+import { BrowserStorageRegistry, storageDescriptor } from './browser-storage-registry'
 import { Event as RouterEvent, NavigationCancel, NavigationEnd, NavigationError, NavigationStart, Router } from '@angular/router'
 import { Subscription } from 'rxjs'
 import { AuthStateStore } from './auth-state.store'
@@ -16,12 +17,15 @@ import { activeRoutePolicy, DEFAULT_ROUTE_POLICY, RoutePolicy } from '../route-p
  */
 @Injectable({ providedIn: 'root' })
 export class AppShellFacade implements OnDestroy {
+
   private readonly router = inject(Router)
   private readonly authState = inject(AuthStateStore)
   private readonly sessionSync = inject(SessionSyncService)
   private readonly redirects = inject(AuthRedirectService)
   private readonly pathService = inject(PathService)
   private readonly scrollContext = inject(ScrollContextService)
+  private readonly storage = inject(BrowserStorageRegistry)
+  private readonly firstVisitDescriptor = storageDescriptor<string>('mercurion.v1.is-first-visit')
 
   readonly routePolicy = signal<RoutePolicy>(DEFAULT_ROUTE_POLICY)
   private readonly currentPath = signal('')
@@ -47,9 +51,9 @@ export class AppShellFacade implements OnDestroy {
 
     this.currentPath.set(this.normalize(this.router.url))
     this.pathService.setPath(this.currentPath())
-    this.routeSub = this.router.events.subscribe(event => {
-      this.onProgrammaticNavigationEvent(event)
-      if (event instanceof NavigationEnd) this.onNavigation(event)
+    this.routeSub = this.router.events.subscribe((e) => {
+      this.onProgrammaticNavigationEvent(e)
+      if (e instanceof NavigationEnd) this.onNavigation(e)
     })
 
     effect(() => {
@@ -110,9 +114,21 @@ export class AppShellFacade implements OnDestroy {
     this.routeSub.unsubscribe()
   }
 
+  shouldSkipHomeAnimations(): boolean {
+    return this.storage.get(this.firstVisitDescriptor) === 'true'
+  }
+
+  private handleFirstVisit(url: string): void {
+    if (url === '/welcome' || url === '/login' || url === '/register') {
+      this.storage.set(this.firstVisitDescriptor, 'true')
+    }
+  }
+
   private onNavigation(event: NavigationEnd): void {
+
     const previousPath = this.currentPath()
     const url = this.normalize(event.urlAfterRedirects)
+    this.handleFirstVisit(url)
     if (previousPath !== url && url !== '/settings' && url !== '/terms-and-policies') {
       this.scrollContext.smoothToTop(undefined, 400)
     }
