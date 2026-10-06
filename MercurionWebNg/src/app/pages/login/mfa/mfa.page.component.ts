@@ -1,5 +1,6 @@
+import { ButtonPendingContentComponent } from '../../../components/common/button/button-pending-content.component';
 import { NgClass } from '@angular/common'
-import { Component, ElementRef, inject, OnDestroy, OnInit, signal, ChangeDetectionStrategy, viewChild } from '@angular/core'
+import { Component, ElementRef, inject, OnDestroy, OnInit, signal, ChangeDetectionStrategy, viewChild, computed } from '@angular/core'
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms'
 import { ActivatedRoute, Router, RouterLink } from '@angular/router'
 import { combineLatest, debounceTime, distinctUntilChanged, EMPTY, filter, map, Subscription, switchMap } from 'rxjs'
@@ -27,7 +28,7 @@ import {
 @Component({
   selector: 'm-mfa',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
+  imports: [ButtonPendingContentComponent,
     ReactiveFormsModule,
     NgClass,
     ProgressIndicatorComponent,
@@ -116,14 +117,15 @@ import {
 
               <div class="relative">
                 <input #otp type="text" [formControl]="codeControl" id="otp"
-                  class="block py-4 px-4 w-full text-sm text-light-on-surface-main dark:text-dark-on-surface-main bg-transparent border-slate-300 border dark:border-slate-200 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-light-accent-primary-hq dark:focus:ring-dark-accent-primary focus:border-light-accent-primary-hq dark:focus:border-dark-accent-primary peer"
+                  autocomplete="one-time-code" [attr.inputmode]="view() === 'BACKUP_CODE' ? 'text' : 'numeric'"
+                  class="block py-4 px-4 w-full text-base text-light-on-surface-main dark:text-dark-on-surface-main bg-transparent border-slate-300 border dark:border-slate-200 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-light-accent-primary-hq dark:focus:ring-dark-accent-primary focus:border-light-accent-primary-hq dark:focus:border-dark-accent-primary peer"
                   placeholder=" " required
                   (focus)="isOtpFocused.set(true)"
-                  (input)="serverError.set(false); onOtpInput()"
+                  (input)="serverError.set(null); onOtpInput()"
                   (blur)="onOtpBlur()" />
 
                 <label for="otp" [ngClass]="{
-                    'text-light-accent-secondary dark:text-dark-accent-secondary/90 scale-110 -translate-y-6 text-sm': isOtpFocused() || !isOtpEmpty(),
+                    'text-light-accent-secondary dark:text-dark-accent-secondary/90 scale-110 -translate-y-6 text-base': isOtpFocused() || !isOtpEmpty(),
                     'text-slate-400 text-lg scale-100 translate-y-0 cursor-text': !isOtpFocused() && isOtpEmpty()
                   }"
                   class="peer-focus:font-medium absolute transition-all duration-300 bg-light-surface-main dark:bg-neutral-950 px-1 top-[13px] left-4 origin-[0]"
@@ -141,27 +143,23 @@ import {
                       Il campo codice è vuoto.
                     }
                   } @else if (serverError()) {
-                    L'e-mail inserita non è corretta.
+                    {{ serverError() }}
                   }
                 </div>
               </div>
 
               <button
                 type="submit"
-                [disabled]="codeControl.invalid || loading()"
-                class="relative bottom-[10px] w-full mt-4 py-2 text-white rounded-md transition-colors duration-150
+                aria-label="Verifica"
+                [disabled]="codeControl.invalid || loading() || state().kind === 'initializing'"
+                [attr.aria-busy]="loading()"
+                class="relative bottom-2.5 w-full mt-4 py-2 text-white rounded-md transition-colors duration-150
                        bg-light-accent-primary-hq dark:bg-dark-accent-primary-btn
                        hover:bg-light-accent-primary-hc dark:hover:bg-dark-accent-primary/80
                        disabled:bg-light-accent-primary-hq/60 disabled:dark:bg-dark-accent-primary/80
                        disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary-hq/60 disabled:hover:dark:bg-dark-accent-primary/80"
               >
-                @if (!loading()) {
-                  <span>Verifica</span>
-                } @else {
-                  <div class="text-slate-200 flex items-center justify-center">
-                    <m-progress-indicator [size]="20" />
-                  </div>
-                }
+                <m-button-pending-content [pending]="loading()">Verifica</m-button-pending-content>
               </button>
 
             }
@@ -235,7 +233,7 @@ export class MfaPageComponent implements OnInit, OnDestroy {
   private strategySession?: MfaStrategySession
 
   protected view = signal<MfaView>('')
-  protected serverError = signal<boolean>(false)
+  protected serverError = signal<string | null>(null)
   protected unTrusted = signal<boolean>(false)
 
   private readonly viewList: MfaView[] = ['EMAIL_OTP', 'SMS_OTP', 'APP_TOTP', 'BACKUP_CODE', 'CHOOSE_METHOD', '']
@@ -245,9 +243,9 @@ export class MfaPageComponent implements OnInit, OnDestroy {
   protected phoneControl: FormControl<string> = new FormControl('', { nonNullable: true })
   protected isOtpFocused = signal<boolean>(false)
   protected isOtpEmpty = signal<boolean>(true)
-  protected loading = signal<boolean>(false)
   protected canView = signal<boolean>(false)
   protected state = signal<MfaFlowState>({ kind: 'initializing' })
+  protected readonly loading = computed(() => this.state().kind === 'submitting' || this.state().kind === 'completed')
 
   protected loginFirstStepData: PersistedPreAuthState | null | undefined
 
@@ -269,22 +267,11 @@ export class MfaPageComponent implements OnInit, OnDestroy {
   }
 
 
-  private storageListener = (e: StorageEvent) => {
-    if (e.key === 'login' && e.newValue) {
-      if (this.router.url.startsWith('/login')) {
-        this.authState.syncExternalState()
-        window.location.assign(this.resolveRedirectTarget())
-      }
-    }
-  }
-
-
   async ngOnInit(): Promise<void> {
-    window.addEventListener('storage', this.storageListener)
     this.pollInterval = setInterval(() => {
       if (document.hidden) return
       if (!this.router.url.startsWith('/login')) return
-      if (this.persistence.getInitials()) {
+      if (this.authState.authenticated()) {
         this.router.navigateByUrl(this.resolveRedirectTarget())
       }
     }, 1000)
@@ -314,6 +301,7 @@ export class MfaPageComponent implements OnInit, OnDestroy {
         const trustVerify = (query.get('trust_verify') ?? 'false') === 'true'
         return { view, trustVerify }
       }),
+      distinctUntilChanged((previous, current) => previous.view === current.view && previous.trustVerify === current.trustVerify),
       switchMap(({ view, trustVerify }) => {
         this.redirects.captureQueryParam(this.route.snapshot.queryParamMap.get('redirect_to'))
         if (!view || !this.viewList.includes(view)) {
@@ -322,10 +310,17 @@ export class MfaPageComponent implements OnInit, OnDestroy {
           return EMPTY
         }
         this.view.set(view)
+        this.strategySession?.cancel()
+        this.otpStateSub?.unsubscribe()
+        this.otpVerifySub?.unsubscribe()
+        this.codeControl.reset('', { emitEvent: false })
+        this.isOtpEmpty.set(true)
+        this.isOtpFocused.set(false)
+        this.serverError.set(null)
         if (view === 'CHOOSE_METHOD') {
           this.enabledMfaStrategies.set(preAuth.state.enabledMfaStrategies)
           this.state.set({ kind: 'challenge-ready', strategy: preAuth.state.enabledMfaStrategies[0] })
-          this.loading.set(false)
+
           this.canView.set(true)
           return EMPTY
         }
@@ -340,14 +335,11 @@ export class MfaPageComponent implements OnInit, OnDestroy {
           this.router.navigateByUrl('/403-forbidden')
           return EMPTY
         }
-        this.strategySession?.cancel()
         this.strategySession = strategy
         this.unTrusted.set(view === 'EMAIL_OTP' && trustVerify)
         this.state.set({ kind: 'initializing', strategy: strategy.strategy })
-        this.loading.set(true)
-        this.otpStateSub?.unsubscribe()
         this.otpStateSub = this.codeControl.valueChanges.pipe(
-          filter(value => typeof value === 'string' && value.length === strategy.codeLength),
+          filter(value => value.length === strategy.codeLength),
           debounceTime(300),
           distinctUntilChanged()
         ).subscribe(() => this.verifyCode())
@@ -357,7 +349,7 @@ export class MfaPageComponent implements OnInit, OnDestroy {
       next: () => {
         const strategy = this.strategySession
         if (strategy) this.state.set({ kind: 'challenge-ready', strategy: strategy.strategy })
-        this.loading.set(false)
+
         this.canView.set(true)
       },
       error: (e) => {
@@ -387,7 +379,7 @@ export class MfaPageComponent implements OnInit, OnDestroy {
             message: 'Non è stato possibile preparare la verifica.'
           })
         }
-        this.loading.set(false)
+
         this.canView.set(true)
       }
     })
@@ -446,14 +438,16 @@ export class MfaPageComponent implements OnInit, OnDestroy {
 
   verifyCode(): void {
     const strategy = this.strategySession
-    if (!strategy || this.state().kind === 'submitting' || this.state().kind === 'completed') {
+    if (!strategy || this.codeControl.invalid || !this.codeControl.value.trim() ||
+      !['challenge-ready', 'recoverable-error'].includes(this.state().kind)) {
       return
     }
     const code = strategy.strategy === 'BACKUP_CODE'
-      ? { code: this.codeControl.value }
-      : { totp: this.codeControl.value }
+      ? { code: this.codeControl.value.trim() }
+      : { totp: this.codeControl.value.trim() }
     this.state.set({ kind: 'submitting', strategy: strategy.strategy })
-    this.loading.set(true)
+    this.serverError.set(null)
+
     this.otpVerifySub = strategy.submit(code).subscribe({
       next: (res) => {
         this.authErrors.clear()
@@ -481,10 +475,10 @@ export class MfaPageComponent implements OnInit, OnDestroy {
           strategy: strategy.strategy,
           message: authError?.message ?? 'Si è verificato un errore.'
         })
-        this.serverError.set(true)
+        this.serverError.set(authError?.message ?? 'Non è stato possibile verificare il codice. Riprova.')
         this.toast.trigger(authError?.message ?? 'Si è verificato un errore.', 'error', 3000)
         this.authErrors.consume()
-        this.loading.set(false)
+
       }
     })
   }
@@ -494,7 +488,6 @@ export class MfaPageComponent implements OnInit, OnDestroy {
     this.paramsSub?.unsubscribe()
     this.otpStateSub?.unsubscribe()
     this.otpVerifySub?.unsubscribe()
-    window.removeEventListener('storage', this.storageListener)
     if (this.pollInterval) clearInterval(this.pollInterval)
   }
 }

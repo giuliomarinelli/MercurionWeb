@@ -48,6 +48,7 @@ import { ScrollContextService } from '../../services/context/scroll-context.serv
   `
 })
 export class MoleculeCollectionDetailPageComponent implements OnDestroy {
+
   readonly facade = inject(MoleculeCollectionDetailFacade);
   private readonly scrollContext = inject(ScrollContextService);
   private readonly sentinel = viewChild<ElementRef<HTMLDivElement>>('sentinel');

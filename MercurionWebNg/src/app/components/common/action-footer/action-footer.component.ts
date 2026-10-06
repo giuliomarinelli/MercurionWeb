@@ -19,6 +19,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
   styles: `
     :host {
       display: block;
+      flex: 0 0 auto;
     }
 
     .m-action-footer {
@@ -74,6 +75,25 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
       .m-action-footer__secondary:empty {
         display: none;
       }
+    }
+
+    :host-context(.m-dialog--compact) .m-action-footer {
+      padding: 0.5rem 0.75rem calc(0.5rem + env(safe-area-inset-bottom, 0px));
+    }
+
+    :host-context(.m-dialog--compact) .m-action-footer__actions {
+      align-items: center;
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
+
+    :host-context(.m-dialog--compact) .m-action-footer__secondary,
+    :host-context(.m-dialog--compact) .m-action-footer__primary {
+      align-items: center;
+      flex-direction: row;
+      flex-wrap: wrap;
+      min-width: 0;
+      width: auto;
     }
 
     :host-context(.dark) .m-action-footer {

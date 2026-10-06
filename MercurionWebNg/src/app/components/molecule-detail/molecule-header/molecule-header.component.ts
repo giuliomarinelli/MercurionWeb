@@ -15,24 +15,24 @@ import { RouterLink } from '@angular/router';
   ],
   template: `
     <header
-      class="flex flex-col sm:flex-row sm:flex-wrap sm:items-start sm:justify-between gap-4 sm:gap-6"
+      class="flex flex-wrap items-start justify-between gap-4 sm:gap-6"
       aria-labelledby="molecule-name"
       role="banner">
 
-      <div class="flex-1 space-y-2 w-full">
+      <div class="flex-[1_1_28rem] min-w-0 space-y-2 max-w-full">
         @if (_myMol()) {
           @if (!_isCustom()) {
-            <div class="flex flex-col items-center sm:flex-row sm:items-center gap-3 sm:gap-4">
+            <div class="flex flex-wrap items-center gap-3 sm:gap-4">
               <h2
                 id="molecule-name"
-                class="text-3xl w-full sm:w-auto md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider
-                       text-center sm:text-left text-light-accent-primary-hc dark:text-dark-accent-primary">
+                class="text-2xl sm:text-3xl min-w-0 [overflow-wrap:anywhere] w-full sm:w-auto md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider
+                       text-left text-light-accent-primary-hc dark:text-dark-accent-primary">
                 {{ name() }}
               </h2>
 
               <m-molecule-badge
                 [name]="_badgeName()"
-                class="relative shrink-0 mx-auto sm:mx-0" />
+                class="relative shrink-0 " />
             </div>
           } @else {
             <m-custom-details
@@ -43,24 +43,24 @@ import { RouterLink } from '@angular/router';
               (onSaving)="doSave($event)" />
           }
         } @else {
-          <div class="flex flex-col items-center sm:flex-row sm:items-center justify-center xs:justify-start gap-2 sm:gap-4">
+          <div class="flex flex-wrap items-center justify-start gap-2 sm:gap-4">
             <h1
               id="molecule-name"
-              class="text-3xl w-full sm:w-auto md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider
-                     text-center sm:text-left text-light-accent-primary-hc dark:text-dark-accent-primary">
+              class="text-2xl sm:text-3xl min-w-0 [overflow-wrap:anywhere] w-full sm:w-auto md:text-4xl lg:text-[2.65rem] font-semibold tracking-wider
+                     text-left text-light-accent-primary-hc dark:text-dark-accent-primary">
               {{ name() }}
             </h1>
 
             <m-molecule-badge
               [name]="'ChEMBL'"
-              class="relative shrink-0 mx-auto sm:mx-0 justify-self-center" />
+              class="relative shrink-0 " />
           </div>
         }
 
         @if (_chemblIdSignal()) {
-          <div class="mt-1 sm:mt-2 flex justify-center sm:justify-start">
+          <div class="mt-1 sm:mt-2 flex justify-start">
             <p
-              class="text-xs sm:text-sm font-semibold tracking-wide text-center sm:text-left
+              class="text-xs sm:text-sm font-semibold tracking-wide text-left
                      text-light-accent-primary-hc dark:text-dark-accent-primary">
               ChEMBL ID:
               <span
@@ -74,8 +74,8 @@ import { RouterLink } from '@angular/router';
 
       @if (_isLoggedIn()) {
         <div
-          class="mt-3 sm:mt-0 sm:ml-6 flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3
-                 justify-start sm:justify-end w-full sm:w-auto">
+          class="flex flex-wrap items-center gap-2 sm:gap-3 min-w-0 max-w-full
+                 justify-start w-fit">
 
           <!-- Duplica -->
           <a
@@ -122,12 +122,7 @@ import { RouterLink } from '@angular/router';
           <!-- Aggiungi ad una o più collezioni -->
           <button
             type="button"
-            class="flex items-center gap-2 flex-wrap sm:flex-nowrap relative
-                   px-3 py-1 rounded-md border border-slate-300 dark:border-slate-600
-                   text-slate-600 dark:text-slate-300 text-xs sm:text-sm font-medium
-                   hover:bg-slate-200 dark:hover:bg-slate-700
-                   transition-colors durata-150
-                   w-fit sm:w-auto justify-center sm:justify-start text-left shrink-0"
+            class="flex items-center gap-2 flex-nowrap relative px-3 py-2 sm:py-1 rounded-md border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 font-medium hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-150 w-fit max-w-full min-w-0 justify-start text-left text-xs"
             title="Aggiungi ad una o più collezioni molecolari"
             (click)="doAddToCollection()
 "
@@ -135,7 +130,7 @@ import { RouterLink } from '@angular/router';
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 640 640"
-              class="fill-current h-5 w-auto"
+              class="fill-current w-4 h-auto shrink-0"
               aria-hidden="true">
               <path d="M336 112L336 96L304 96L304 304L96 304L96 336L304 336L304 544L336 544L336 336L544 336L544 304L336 304L336 112z" />
             </svg>

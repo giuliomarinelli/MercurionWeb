@@ -51,11 +51,11 @@ import { HeaderNotificationsComponent } from './header-notifications.component';
   template: `
 
 <header
-    class="px-[clamp(0.5rem,2vw,1.5rem)] py-1.75 bg-light-surface-secondary border-b-[0.5px] border-slate-300/65 dark:border-slate-300/40 header-shadow"
+    class="pl-[max(clamp(0.5rem,2vw,1.5rem),env(safe-area-inset-left))] pr-[max(clamp(0.5rem,2vw,1.5rem),env(safe-area-inset-right))] py-1.75 bg-light-surface-secondary border-b-[0.5px] border-slate-300/65 dark:border-slate-300/40 header-shadow"
     [class.dark:bg-neutral-950]="!isWelcomePath()" [class.dark:bg-slate-950]="isWelcomePath()" role="banner">
     <div class="w-full flex justify-between items-center transition-colors duration-300 ease-out">
         <div class="flex min-w-0 items-center gap-[clamp(0.25rem,1vw,1rem)]">
-            @if (designService.maxBk("lg")()) {
+            @if (designService.maxBk("xl")()) {
             <button
                 class="inline-flex items-center justify-center size-10 rounded-full hover:bg-slate-200/80 dark:hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-light-accent-primary-hq transition-colors"
                 (click)="noToast(); toggleOffCanvasMenu()" aria-label="Apri o chiudi menu laterale">
@@ -68,11 +68,11 @@ import { HeaderNotificationsComponent } from './header-notifications.component';
                 </svg>
             </button>
             }
-            @if (designService.maxBk("sm")()) {
+            @if (designService.maxBk("md")()) {
             <div class="flex min-w-0 items-center gap-[clamp(0.25rem,0.75vw,0.75rem)]">
                 <a [routerLink]="routes.home.build({})" aria-label="Vai alla home" class="block shrink-0">
                     <img [ngSrc]="logoSrc() | public" alt="Mercurion" width="927" height="234" priority="true"
-                        class="w-24 2xs:w-30 h-auto contrast-100" decoding="async" />
+                        class="w-24 min-[350px]:w-30 h-auto contrast-100" decoding="async" />
                 </a>
                 <span
                     class="hidden 3xs:inline relative top-0.5 shrink-0 cursor-default px-2.5 py-0.75 rounded-full text-[10px] font-semibold uppercase tracking-tight leading-none bg-emerald-100/90 text-emerald-900 shadow-sm ring-1 ring-emerald-900/15 dark:bg-emerald-900/85 dark:text-emerald-50 dark:ring-emerald-200/20">
@@ -340,21 +340,27 @@ import { HeaderNotificationsComponent } from './header-notifications.component';
     }
 </ng-template>
 <!-- Menu avatar -->
-<ng-template #avatarMenu>
-    @if (avatarMenuMounted() && designService.minBk('sm')()) {
-    <div class="avatar-menu-container absolute top-full right-0 mt-2 z-50 w-72 text-base rounded-md shadow-lg bg-white text-light-on-surface-main dark:text-slate-100 dark:bg-neutral-800 transform transition-all duration-300 ease-out"
+<ng-template #avatarMenu let-mobile="mobile">
+    @if (avatarMenuMounted() && userContext.isLoggedIn() && (mobile || designService.minBk('sm')())) {
+    <div class="avatar-menu-container absolute z-50 max-h-[calc(100dvh-6rem)] overflow-y-auto text-base rounded-md shadow-lg bg-white text-light-on-surface-main dark:text-slate-100 dark:bg-neutral-800 transform transition-all duration-300 ease-out"
         [ngClass]="{
+      'top-full right-0 mt-2 w-72': !mobile,
+      'bottom-full left-0 mb-2 w-full': mobile,
       'opacity-100 translate-x-0 translate-y-0': avatarMenuVisible(),
       'opacity-0 pointer-events-none translate-x-2 -translate-y-2':
         !avatarMenuVisible() }">
         <div class="z-999">
-            <button
+            <div
                 class="group truncate flex items-center w-full mb-2 pl-4 pr-6 py-4 gap-4 transition-colors duration-300 cursor-default border-slate-400/60 dark:border-slate-300 border-b-[0.5px] h-[52.5px]">
                 <ng-container [ngTemplateOutlet]="providerIcon"
                     [ngTemplateOutletContext]="{ provider: providedAccountId()?.provider }" />
-                <span class="text-sm text-green-900 dark:text-dark-accent-primary font-medium truncate">{{
+                <span class="min-w-0 flex-1 text-sm text-green-900 dark:text-dark-accent-primary font-medium truncate">{{
                     providedAccountId()?.accountId }}</span>
-            </button>
+                @if (mobile) {
+                  <m-icon-button class="shrink-0" size="sm" icon="close" ariaLabel="Chiudi menu utente"
+                      (pressed)="avatarMenuOpen.set(false)" />
+                }
+            </div>
             <a [routerLink]="routes.dashboard.build({})" (click)="closeAvatarMenu()"
                 class="group flex items-center w-full pl-4 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300"
                 [ngClass]="{ 'bg-slate-200 dark:bg-slate-500': isAvatarMenuItemActive('/dashboard') }">
@@ -426,7 +432,7 @@ import { HeaderNotificationsComponent } from './header-notifications.component';
 }
 
 <!-- Offcanvas Navigation Sidebar -->
-@if (designService.maxBk("lg")()) {
+@if (designService.maxBk("xl")()) {
 <div class="off-canvas-menu-container offcanvas-menu-container fixed top-0 left-0 h-full z-[9999] bg-slate-200 dark:bg-neutral-900 shadow-lg transform transition-transform duration-300 ease-in-out w-full 2xs:w-[74%] xs:w-[64%] sm:w-[50%] md:w-[40%] lg:w-[40%] xl:w-[30%] -translate-x-full"
     [ngClass]="{
       'translate-x-0': offCanvasMenuOpen(),
@@ -447,110 +453,22 @@ import { HeaderNotificationsComponent } from './header-notifications.component';
     <!-- Menu items -->
     <m-sidenav (menuItemClick)="closeOffCanvasMenu()" />
 
-    <!-- Sezione avatar -->
-    @if (userContext.isLoggedIn() && designService.maxBk("sm")()) {
-    <div
-        class="sticky bottom-0 border-t py-3 px-5 bg-slate-100 dark:bg-neutral-800 border-slate-400 dark:border-dark-border flex gap-3 items-center">
-        <button (click)="toggleAvatarMobileMenu()" [innerHTML]="userContext.initials()"
-            class="avatar-toggle-button inline-flex items-center justify-center size-10 rounded-full cursor-pointer bg-emerald-500 text-slate-100 dark:bg-dark-accent-primary-btn hover:bg-emerald-900/60 hover:text-slate-100 dark:hover:bg-blue-400/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-light-accent-primary-hq text-sm font-semibold transition-colors duration-300"
-            [attr.aria-label]="avatarMobileMenuOpen() ? 'Chiudi il menù utente' : 'Apri il menu utente'"
-            [attr.title]="avatarMobileMenuOpen() ? 'Chiudi il menù utente' : 'Apri il menu utente'">
-        </button>
-        <button (click)="toggleAvatarMobileMenu()"
-            class="text-sm text-green-800 dark:text-dark-accent-primary font-medium truncate">
+    <!-- Shared avatar trigger and menu, anchored above the mobile footer. -->
+    @if (userContext.isLoggedIn() && designService.maxBk("md")()) {
+    <div class="avatar-menu-anchor sticky bottom-0 border-t py-3 px-5 bg-slate-100 dark:bg-neutral-800 border-slate-400 dark:border-dark-border flex gap-3 items-center">
+        <m-header-session-indicator [session]="headerViewModel().session" [expanded]="avatarMenuOpen()"
+            (toggled)="toggleAvatarMenu()" />
+        <button type="button" (click)="toggleAvatarMenu()"
+            class="avatar-toggle-button min-w-0 text-sm text-accent-secondary font-medium truncate"
+            [attr.aria-expanded]="avatarMenuOpen()"
+            aria-label="Apri o chiudi il menu utente">
             {{ providedAccountId()?.accountId }}
         </button>
-    </div>
-    }
-    <!-- Modal avatar mobile (solo <= sm) -->
-    @if (avatarMobileMenuMounted() && userContext.isLoggedIn()) {
-    <button type="button" aria-label="Chiudi menu utente"
-        class="fixed inset-0 z-[10000] bg-black/50 flex items-end sm:hidden transition-opacity duration-300 m-overscroll-touch border-0 p-0"
-        [ngClass]="{
-          'opacity-100 pointer-events-auto': avatarMobileMenuVisible(),
-          'opacity-0 pointer-events-none': !avatarMobileMenuVisible() }" (click)="closeAvatarMobileMenu()">
-    </button>
-    <div class="w-full h-[100dvh] max-h-[100dvh] bg-slate-100 dark:bg-neutral-900 rounded-t-2xl shadow-2xl p-6 pb-10 relative overflow-y-auto transition-transform duration-300 m-overscroll-touch m-scroll-thin"
-        [ngClass]="{
-            'translate-y-0': avatarMobileMenuVisible(),
-            'translate-y-full': !avatarMobileMenuVisible() }" (click)="$event.stopPropagation()">
-        <button class="absolute top-3 right-6 text-2xl" (click)="closeAvatarMobileMenu()">
-            ✕
-        </button>
-        <div class="z-[999]">
-            <!-- Header -->
-            <button
-                class="group flex items-center w-full mb-2 pl-3 pr-6 py-4 gap-4 transition-colors duration-300 cursor-default border-b-slate-400/60 dark:border-slate-300 border-b-[0.5px]">
-                <ng-container [ngTemplateOutlet]="providerIcon"
-                    [ngTemplateOutletContext]="{ provider: providedAccountId()?.provider }" />
-                <span class="text-sm text-green-900 dark:text-dark-accent-primary font-medium truncate">
-                    {{ providedAccountId()?.accountId }}
-                </span>
-            </button>
-            <!-- Profilo -->
-            <a [routerLink]="routes.dashboard.build({})" (click)="closeAvatarMobileMenu(); closeOffCanvasMenu()"
-                class="group flex items-center w-full pl-3 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300"
-                [ngClass]="{ 'bg-slate-200 dark:bg-slate-500': isAvatarMenuItemActive('/dashboard') }">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
-                    class="fill-current h-5 w-5 text-gray-600 dark:text-slate-200 ">
-                    <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-                    <path
-                        d="M64 128L64 192L576 192L576 128L64 128zM32 208L32 96L608 96L608 544L32 544L32 208zM576 224L64 224L64 512L117.3 512L144 432L304 432L330.7 512L576 512L576 224zM296.9 512L280.9 464L167 464L151 512L296.9 512zM224 368C241.7 368 256 353.7 256 336C256 318.3 241.7 304 224 304C206.3 304 192 318.3 192 336C192 353.7 206.3 368 224 368zM224 272C259.3 272 288 300.7 288 336C288 371.3 259.3 400 224 400C188.7 400 160 371.3 160 336C160 300.7 188.7 272 224 272zM368 288L528 288L528 320L368 320L368 288zM368 384L528 384L528 416L368 416L368 384z" />
-                </svg>
-
-                <span>Dashboard</span>
-            </a>
-            <!-- Impostazioni -->
-            <a (click)="closeAvatarMobileMenu(); closeOffCanvasMenu()" [routerLink]="routes.settings.build({})"
-                class="group flex items-center w-full pl-3 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300"
-                [ngClass]="{ 'bg-slate-200 dark:bg-slate-500': isAvatarMenuItemActive('/settings') }">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
-                    class="fill-current h-5 w-5 text-gray-600 dark:text-slate-200 ">
-                    <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-                    <path
-                        d="M384.1 48L404.6 147.5C412.4 151.3 420 155.7 427.2 160.6L523.7 128.6L587.7 239.5L511.7 307C512.3 315.6 512.3 324.5 511.7 333L587.7 400.5L523.7 511.4L427.2 479.4C420 484.2 412.5 488.6 404.6 492.5L384.1 592L256.1 592L235.6 492.5C227.8 488.7 220.2 484.3 213 479.4L116.5 511.4L52.5 400.5L128.5 333C127.9 324.4 127.9 315.5 128.5 307L52.5 239.4L116.5 128.5L213 160.5C220.2 155.7 227.7 151.3 235.6 147.4L256.1 47.9L384.1 47.9zM437.3 191L422.4 196L409.4 187.2C403.4 183.2 397.1 179.5 390.6 176.3L376.5 169.4L373.3 154L358.1 80L282.3 80C270.1 139.1 264 168.9 263.9 169.4L249.8 176.3C243.3 179.5 237 183.1 231 187.2L218 196C217.5 195.8 188.7 186.3 131.4 167.2L93.3 232.8C138.4 272.9 161.2 293.1 161.5 293.4L160.5 309C160 316.2 160 323.6 160.5 330.8L161.5 346.4L149.8 356.8L93.3 407L131.2 472.7L202.9 448.9L217.8 443.9L230.8 452.7C236.8 456.7 243.1 460.4 249.6 463.6L263.7 470.5C263.8 471 269.9 500.7 282.1 559.9L357.9 559.9L373.1 485.9L376.3 470.5L390.4 463.6C396.9 460.4 403.2 456.8 409.2 452.7L422.2 443.9L437.1 448.9L508.8 472.7L546.7 407L490.2 356.8L478.5 346.4L479.5 330.8C480 323.6 480 316.2 479.5 309L478.5 293.4L490.2 283L546.7 232.8L508.8 167.1L437.1 190.9zM264.1 320C264.1 350.9 289.1 376 320.1 376C351 376 376 350.9 376 320C376 289.1 351 264.1 320.1 264.1C289.1 264.1 264.1 289.1 264.1 320zM320 408C271.4 408 232 368.6 232.1 320C232.1 271.3 271.5 232 320.1 232C368.7 232 408.1 271.4 408.1 320.1C408 368.7 368.6 408 320 408z" />
-                </svg>
-                <span>Impostazioni</span>
-            </a>
-            <!-- Assistenza -->
-            <a (click)="closeAvatarMobileMenu(); closeOffCanvasMenu()" [routerLink]="routes.help.build({})"
-                class="group flex items-center w-full pl-3 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300"
-                [ngClass]="{ 'bg-slate-200 dark:bg-slate-500': isAvatarMenuItemActive('/help') }">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
-                    class="fill-current h-5 w-5 text-gray-600 dark:text-slate-200 ">
-                    <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-                    <path
-                        d="M152.6 443.4C150.9 447.6 140.1 474.1 120.2 522.9L206.1 493.4L217.6 489.5L228.8 494.1C256.6 505.6 287.4 512.1 320 512.1C445.7 512.1 544 417.1 544 304.1C544 191.1 445.7 96 320 96C194.3 96 96 191 96 304C96 350.6 112.5 393.8 140.7 428.7L152.6 443.4zM104.2 562.2L64 576C71.4 557.9 88.7 515.4 115.8 448.8C83.3 408.6 64 358.4 64 304C64 171.5 178.6 64 320 64C461.4 64 576 171.5 576 304C576 436.5 461.4 544 320 544C283.2 544 248.1 536.7 216.5 523.6L104.2 562.2z" />
-                </svg>
-                <span>Supporto</span>
-            </a>
-            <!-- Feedback -->
-            <a [routerLink]="routes.feedback.build({})" (click)="closeAvatarMobileMenu(); closeOffCanvasMenu()"
-                class="group flex items-center w-full mb-2 pl-3 pr-6 py-3 gap-4 dark:hover:bg-slate-300/30 hover:bg-slate-300/50 transition-colors duration-300"
-                [ngClass]="{ 'bg-slate-200 dark:bg-slate-500': isAvatarMenuItemActive('/feedback') }">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
-                    class="fill-current h-5 w-5 text-gray-600 dark:text-slate-200">
-                    <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-                    <path
-                        d="M416 64L416 144L496 144L496 176L416 176L416 256L384 256L384 176L304 176L304 144L384 144L384 64L416 64zM528 224L528 272L576 272L576 304L528 304L528 352L496 352L496 304L448 304L448 272L496 272L496 224L528 224zM275.3 244.2L317.2 329.2C388.7 339.6 433.3 346.1 450.9 348.6C438.2 361 405.9 392.5 354.2 442.9C366.4 514.1 374 558.5 377 576C361.2 567.7 321.4 546.8 257.4 513.1C193.4 546.7 153.6 567.7 137.8 576C140.8 558.5 148.4 514.1 160.6 442.9C108.9 392.5 76.6 361 63.9 348.6C81.5 346 126.1 339.6 197.6 329.2C229.6 264.4 249.5 224 257.4 208.1L275.2 244.3zM312.6 360.9L296 358.4C295 356.3 282.1 330.3 257.5 280.3C232.8 330.3 220 356.3 219 358.4C216.7 358.7 188 362.9 132.8 370.9C172.7 409.8 193.5 430.1 195.2 431.7C194.8 434 189.9 462.6 180.5 517.5C229.8 491.6 255.5 478.1 257.6 477C259.6 478.1 285.3 491.6 334.7 517.5C325.3 462.6 320.4 434 320 431.7C321.7 430.1 342.4 409.8 382.4 370.9L312.9 360.8z" />
-                </svg>
-                <span>Feedback</span>
-            </a>
-            <div
-                class="hover:bg-slate-200/40 transition-colors duration-300 border-slate-400/60 dark:border-slate-300 border-t-[0.5px]">
-            </div>
-            <!-- Esci -->
-            <button (click)="logout(); closeAvatarMobileMenu(); closeOffCanvasMenu()"
-                class="group flex items-center w-full my-1 pl-3 pr-6 py-3 gap-4 hover:bg-slate-300/50 transition-colors duration-300 dark:hover:bg-slate-300/30">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
-                    class="fill-current h-5 w-5 text-gray-600 dark:text-slate-200">
-                    <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-                    <path
-                        d="M416.5 384L416.5 352L256.5 352L256.5 288L416.5 288L416.5 202.6L540.8 320L416.5 437.4L416.5 384zM224.5 384L384.5 384L384.5 511.7C418.6 479.5 443.2 456.3 564.2 342C565.1 341.1 572.9 333.8 587.5 320C577.6 310.7 543.9 278.8 425 166.6C423.3 165 409.8 152.2 384.5 128.4L384.5 256.1L224.5 256.1L224.5 384.1zM240.5 128L256.5 128L256.5 96L64.5 96L64.5 544L256.5 544L256.5 512L96.5 512L96.5 128L240.5 128z" />
-                </svg>
-                <span>Esci</span>
-            </button>
-        </div>
+        @if (avatarMenuMounted()) {
+          <button type="button" aria-label="Chiudi menu utente" class="avatar-menu-backdrop fixed inset-0 z-40 h-dvh w-screen border-0 bg-black/40 p-0"
+              (click)="avatarMenuOpen.set(false); $event.stopPropagation()"></button>
+        }
+        <ng-container [ngTemplateOutlet]="avatarMenu" [ngTemplateOutletContext]="{ mobile: true }" />
     </div>
     }
 </div>
@@ -607,9 +525,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
   protected avatarMenuOpen = signal<boolean>(false)
   protected avatarMenuMounted = signal<boolean>(false)
   protected avatarMenuVisible = signal<boolean>(false)
-  protected avatarMobileMenuOpen = signal<boolean>(false)
-  protected avatarMobileMenuMounted = signal<boolean>(false)
-  protected avatarMobileMenuVisible = signal<boolean>(false)
 
 
   // Timer id per ciascuna transizione mount/visible: tracciati cosi' un
@@ -617,7 +532,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
   // toggle precedente invece di lasciarlo scattare in una race condition.
   private themeMenuTimeoutId: ReturnType<typeof setTimeout> | undefined
   private avatarMenuTimeoutId: ReturnType<typeof setTimeout> | undefined
-  private avatarMobileMenuTimeoutId: ReturnType<typeof setTimeout> | undefined
   protected providedAccountId = signal<ProvidedAccountIdDTO | null>(null)
   protected isBeta = signal<boolean>(false)
   private _triggerOpenOffCanvas = signal<boolean>(false)
@@ -670,16 +584,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
         this.avatarMenuTimeoutId = setTimeout(() => this.avatarMenuMounted.set(false), 200)
       }
     })
-    effect(() => {
-      clearTimeout(this.avatarMobileMenuTimeoutId)
-      if (this.avatarMobileMenuOpen()) {
-        this.avatarMobileMenuMounted.set(true)
-        this.avatarMobileMenuTimeoutId = setTimeout(() => this.avatarMobileMenuVisible.set(true))
-      } else {
-        this.avatarMobileMenuVisible.set(false)
-        this.avatarMobileMenuTimeoutId = setTimeout(() => this.avatarMobileMenuMounted.set(false), 200)
-      }
-    })
+
   }
 
   protected onThemeChange(theme: ThemeChoice): void {
@@ -707,17 +612,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.avatarMenuOpen.update(open => !open)
   }
 
-  protected toggleAvatarMobileMenu(): void {
-    if (!this.avatarMobileMenuOpen()) {
-      this.getProvidedAccountId()
-    }
-    if (this.themeMenuOpen()) {
-      this.toggleThemeMenu()
-    }
-    this.avatarMobileMenuOpen.update(open => !open)
-  }
-
   protected closeOffCanvasMenu(): void {
+    this.closeAvatarMenu()
     this.offCanvasMenuOpen.set(false)
   }
 
@@ -727,10 +623,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   protected closeAvatarMenu(): void {
     this.avatarMenuOpen.set(false)
-  }
-
-  protected closeAvatarMobileMenu(): void {
-    this.avatarMobileMenuOpen.set(false)
+    if (this.designService.maxBk('md')()) this.offCanvasMenuOpen.set(false)
   }
 
   protected isAvatarMenuItemActive(pathPrefix: string): boolean {
@@ -750,10 +643,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
   protected handleDocumentClick = (event: MouseEvent): void => {
 
     if (this.searchContextService.isOpenedSearchOverlay()) {
-      return
-    }
-
-    if (this.avatarMobileMenuMounted()) {
       return
     }
 
@@ -787,7 +676,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
         this.offCanvasMenuOpen.set(false)
       }
       this.avatarMenuOpen.set(false)
-      this.avatarMobileMenuVisible.set(false)
     }
   }
 
@@ -849,7 +737,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.logoutSub?.unsubscribe()
     clearTimeout(this.themeMenuTimeoutId)
     clearTimeout(this.avatarMenuTimeoutId)
-    clearTimeout(this.avatarMobileMenuTimeoutId)
   }
 
 }

@@ -41,15 +41,12 @@ import { ScrollContextService } from '../../services/context/scroll-context.serv
             <!-- 🧩 Aggiungi nuove molecole -->
             <button
               type="button"
-              class="flex items-center gap-2 px-3 py-1 rounded-md border border-slate-400 dark:border-slate-500
-                     text-slate-700 dark:text-slate-200 text-xs font-medium
-                     hover:bg-slate-200 dark:hover:bg-slate-700
-                     transition-colors duration-150"
+              class="flex items-center gap-2 px-3 py-1 rounded-md border border-slate-400 dark:border-slate-500 text-slate-700 dark:text-slate-200 font-medium hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-150 text-xs"
               title="Aggiungi nuove molecole alla collezione"
               (click)="doAddMolecules()"
               aria-label="Aggiungi nuove molecole alla collezione"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-5 w-auto">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-4 h-auto shrink-0">
                 <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                 <path d="M336 112L336 96L304 96L304 304L96 304L96 336L304 336L304 544L336 544L336 336L544 336L544 304L336 304L336 112z"/>
               </svg>

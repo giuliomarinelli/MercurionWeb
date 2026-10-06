@@ -20,6 +20,7 @@ import {
   Validators
 } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { CdkAutofill, type AutofillEvent } from '@angular/cdk/text-field';
 
 type ErrorMap = Record<string, string>;
 
@@ -28,7 +29,7 @@ let nextGeneratedId = 0;
 @Component({
   selector: 'm-text-field',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, CdkAutofill],
   host: { class: 'block' },
   template: `
     <div class="w-full">
@@ -47,7 +48,7 @@ let nextGeneratedId = 0;
                  dark:text-dark-on-surface-main dark:placeholder:text-transparent
                  dark:disabled:bg-slate-900 dark:disabled:text-slate-500"
           [attr.id]="fieldId()"
-          [attr.name]="name() || null"
+          [attr.name]="fieldName()"
           [attr.type]="type()"
           [attr.autocomplete]="autocomplete() || null"
           [attr.inputmode]="inputmode() || null"
@@ -58,7 +59,9 @@ let nextGeneratedId = 0;
           [attr.aria-required]="isRequired() ? 'true' : null"
           [attr.aria-describedby]="describedBy()"
           (input)="onInput($event)"
-          (focus)="focused.set(true)"
+          (change)="onInput($event)"
+          (cdkAutofill)="onAutofill($event)"
+          (focus)="onFocus()"
           (blur)="onBlur()"
           (keyup.enter)="enter.emit()"
         />
@@ -166,6 +169,10 @@ export class TextFieldComponent implements ControlValueAccessor, OnInit {
     return this.id() || this.generatedId;
   }
 
+  fieldName(): string {
+    return this.name() || this.ngControl?.name?.toString() || this.fieldId();
+  }
+
   hintId(): string {
     return `${this.fieldId()}-hint`;
   }
@@ -225,12 +232,27 @@ export class TextFieldComponent implements ControlValueAccessor, OnInit {
   onInput(event: Event): void {
     const target = event.target;
     if (!(target instanceof HTMLInputElement)) return;
-    const value = target.value;
+    this.syncInputValue(target);
+  }
+
+  onAutofill(event: AutofillEvent): void {
+    if (event.target instanceof HTMLInputElement) this.syncInputValue(event.target);
+  }
+
+  private syncInputValue(input: HTMLInputElement): void {
+    const value = input.value;
+    if (value === this.value()) return;
     this.value.set(value);
     this.onChange(value);
   }
 
+  onFocus(): void {
+    this.focused.set(true);
+    this.syncInputValue(this.inputElement().nativeElement);
+  }
+
   onBlur(): void {
+    this.syncInputValue(this.inputElement().nativeElement);
     this.focused.set(false);
     this.onTouched();
   }

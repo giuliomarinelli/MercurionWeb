@@ -140,6 +140,66 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
+html.m-dialog-open,
+html.m-dialog-open body {
+  overflow: hidden !important;
+  overscroll-behavior: none;
+}
+
+/* Short visual viewports include the space left above a phone keyboard. */
+.m-overlay-method-short {
+  display: none;
+}
+
+.m-dialog--compact {
+  backdrop-filter: none;
+}
+
+.m-dialog--compact .m-overlay-methods {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  column-gap: 1rem;
+  row-gap: 0;
+  margin: 0;
+  padding: 0.25rem 0.75rem;
+}
+
+.m-dialog--compact .m-overlay-methods > div {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  margin: 0;
+}
+
+.m-dialog--compact .m-overlay-method-full {
+  display: none;
+}
+
+.m-dialog--compact .m-overlay-method-short {
+  display: inline;
+}
+
+.m-dialog--compact m-action-footer [action-footer-secondary],
+.m-dialog--compact m-action-footer [action-footer-primary],
+.m-dialog--compact m-action-footer .m-button__control {
+  width: auto;
+}
+
+.m-dialog--compact m-action-footer button,
+.m-dialog--compact .m-action-card__close button,
+.m-search-header button {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+@layer base {
+  /* Labels must stay readable even inside containers with smaller body text. */
+  label {
+    font-size: max(16px, 1rem);
+  }
+}
+
 button{
   @apply cursor-pointer;
 }
@@ -151,8 +211,7 @@ button:disabled {
 @media (max-width: 768px) {
   input,
   textarea,
-  select,
-  button {
+  select {
     font-size: 16px;
   }
 }
@@ -390,8 +449,8 @@ html {
 
   .m-overlay-screen {
     min-height: 100vh;
-    min-height: 100dvh;
-    --m-action-card-available-height: calc(100dvh - max(0.5rem, env(safe-area-inset-top, 0px)) - max(0.5rem, env(safe-area-inset-bottom, 0px)));
+    min-height: calc(var(--m-overlay-vh, 1dvh) * 100);
+    --m-action-card-available-height: calc(var(--m-overlay-vh, 1dvh) * 100 - max(0.5rem, env(safe-area-inset-top, 0px)) - max(0.5rem, env(safe-area-inset-bottom, 0px)));
     padding-top: max(0.5rem, env(safe-area-inset-top, 0px));
     padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
   }
@@ -412,41 +471,40 @@ html {
   .m-overlay-results {
     min-height: 30vh;
     min-height: 30dvh;
-    min-height: calc(var(--app-vh, 1vh) * 30);
+    min-height: calc(var(--m-overlay-vh, 1dvh) * 30);
     max-height: 60vh;
     max-height: 60dvh;
-    max-height: calc(var(--app-vh, 1vh) * 60);
+    max-height: calc(var(--m-overlay-vh, 1dvh) * 60);
   }
 
   .m-overlay-max-80 {
     max-height: 80vh;
     max-height: 80dvh;
-    max-height: calc(var(--app-vh, 1vh) * 80);
+    max-height: calc(var(--m-overlay-vh, 1dvh) * 80);
   }
 
   .m-overlay-max-60 {
     max-height: 60vh;
     max-height: 60dvh;
-    max-height: calc(var(--app-vh, 1vh) * 60);
+    max-height: calc(var(--m-overlay-vh, 1dvh) * 60);
   }
 
   .m-overlay-panel {
     height: 60vh;
     height: 60dvh;
-    height: calc(var(--app-vh, 1vh) * 60);
+    height: calc(var(--m-overlay-vh, 1dvh) * 60);
   }
 
   .m-overlay-body {
-    max-height: calc(var(--app-vh, 1vh) * 100 - 14rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
-    min-height: calc(var(--app-vh, 1vh) * 35);
-    -webkit-overflow-scrolling: touch;
+    max-height: none;
+    min-height: 0;
     overscroll-behavior: contain;
   }
 
   .m-overlay-scroll {
     max-height: 38vh;
     max-height: 38dvh;
-    max-height: calc(var(--app-vh, 1vh) * 38);
+    max-height: calc(var(--m-overlay-vh, 1dvh) * 38);
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
   }
@@ -461,7 +519,7 @@ html {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    max-height: calc(var(--app-vh, 1vh) * 100 - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 16px);
+    max-height: calc(var(--m-overlay-vh, 1dvh) * 100 - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 16px);
     padding-bottom: env(safe-area-inset-bottom, 0px);
     font-size: 0.96rem;
     line-height: 1.45;
@@ -477,8 +535,8 @@ html {
 
   @media (max-width: 767px) {
     .action-card {
-      height: calc(var(--app-vh, 1vh) * 100 - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 8px);
-      max-height: calc(var(--app-vh, 1vh) * 100 - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 8px);
+      height: calc(var(--m-overlay-vh, 1dvh) * 100 - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 8px);
+      max-height: calc(var(--m-overlay-vh, 1dvh) * 100 - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 8px);
       width: 100%;
     }
 

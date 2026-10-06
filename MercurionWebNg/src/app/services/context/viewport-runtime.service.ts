@@ -1,5 +1,5 @@
 import { DOCUMENT } from '@angular/common';
-import { DestroyRef, Injectable, inject, signal } from '@angular/core';
+import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
 import { BrowserResourceOwner } from '../../utils/browser-resource-owner.util';
 
 export interface ViewportRuntimeState {
@@ -7,6 +7,8 @@ export interface ViewportRuntimeState {
   readonly height: number;
   readonly visualWidth: number;
   readonly visualHeight: number;
+  readonly visualOffsetTop: number;
+  readonly visualOffsetLeft: number;
   readonly scale: number;
   readonly scrollY: number;
   readonly landscape: boolean;
@@ -39,6 +41,10 @@ export class ViewportRuntimeService {
   readonly visualHeight = this._visualHeight.asReadonly();
   readonly scale = this._scale.asReadonly();
   readonly scrollY = this._scrollY.asReadonly();
+  readonly overlayCompact = computed(() => {
+    const viewport = this.state();
+    return viewport.visualWidth < 1024 && viewport.visualHeight < 500;
+  });
 
   constructor() {
     this.syncState();
@@ -93,6 +99,8 @@ export class ViewportRuntimeService {
       height,
       visualWidth,
       visualHeight,
+      visualOffsetTop: visual?.offsetTop ?? 0,
+      visualOffsetLeft: visual?.offsetLeft ?? 0,
       scale: visual?.scale ?? 1,
       scrollY,
       landscape: height > 0 ? width >= height : false,
@@ -112,6 +120,11 @@ export class ViewportRuntimeService {
     const win = this.document.defaultView;
     const root = this.document.documentElement;
     if (!win || !root) return;
+
+    root.style.setProperty('--m-overlay-vh', `${state.visualHeight * 0.01}px`);
+    root.style.setProperty('--m-overlay-viewport-top', `${state.visualOffsetTop}px`);
+    root.style.setProperty('--m-overlay-viewport-left', `${state.visualOffsetLeft}px`);
+    root.style.setProperty('--m-overlay-viewport-width', `${state.visualWidth}px`);
 
     const ua = win.navigator.userAgent;
     const isIOS = /iPad|iPhone|iPod/.test(ua) || (ua.includes('Mac') && 'ontouchend' in this.document);

@@ -74,7 +74,7 @@ import {
     `
   ],
   template: `
-  <div class="flex justify-center items-start md:items-center min-h-dvh px-2 sm:px-4 m-overlay-screen">
+  <div class="flex justify-center items-start md:items-center px-2 sm:px-4 m-overlay-screen">
       <m-action-card
         size="compact"
         labelledBy="createCollectionHeading"
@@ -93,7 +93,7 @@ import {
       <!-- BODY -->
       <div action-card-body class="bg-white dark:bg-dark-surface-main">
         <div class="py-6 px-3 sm:px-4 flex flex-col gap-3 sm:gap-4">
-          <label for="nameInput" class="ml-px text-sm font-semibold block text-light-on-surface-main dark:text-dark-on-surface-main">
+          <label for="nameInput" class="ml-px text-base font-semibold block text-light-on-surface-main dark:text-dark-on-surface-main">
             Nome della nuova collezione
           </label>
 

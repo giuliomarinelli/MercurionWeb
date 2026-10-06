@@ -29,6 +29,7 @@ describe('AuthStateStore', () => {
   beforeEach(() => {
     localStorage.clear()
     document.cookie = '__logged_in=; Max-Age=0; path=/'
+    document.cookie = '__logged_in_=; Max-Age=0; path=/'
     TestBed.configureTestingModule({})
     store = TestBed.inject(AuthStateStore)
   })
@@ -36,6 +37,38 @@ describe('AuthStateStore', () => {
   it('bootstraps anonymously without persisted session markers', () => {
     expect(store.bootstrap()).toEqual({ kind: 'anonymous' })
     expect(store.isAuthenticated()).toBeFalse()
+  })
+
+  for (const marker of ['pending_short', 'pending_long']) {
+    it(`does not restore an abandoned MFA login with ${marker} and stale credentials`, () => {
+      document.cookie = `__logged_in=${marker}; path=/`
+      document.cookie = '__logged_in_=true; path=/'
+      localStorage.setItem('login', 'OLD')
+      localStorage.setItem('accessToken', tokenWithScopes())
+      localStorage.setItem('ws_accessToken', tokenWithScopes())
+      expect(store.bootstrap()).toEqual({ kind: 'anonymous' })
+      expect(store.authenticated()).toBeFalse()
+      expect(store.getAccessToken()).toBeNull()
+      expect(store.getPersistedInitials()).toBeNull()
+      store.syncExternalState()
+      store.resumeFromServer('OLD')
+      expect(store.state().kind).toBe('anonymous')
+      document.cookie = '__logged_in_=; Max-Age=0; path=/'
+    })
+  }
+
+  it('cannot complete MFA from a realtime acknowledgement', () => {
+    store.bootstrap()
+    store.beginAuthentication()
+    store.enterPreAuthentication('pat')
+    document.cookie = '__logged_in=true; path=/'
+    store.setAccessToken(tokenWithScopes())
+    store.setWsAccessToken(tokenWithScopes())
+    store.resumeFromServer('AB')
+    expect(store.isPreAuth()).toBeTrue()
+    expect(store.authenticated()).toBeFalse()
+    store.completeAuthentication(session())
+    expect(store.authenticated()).toBeTrue()
   })
 
   it('restores persisted markers as authentication-in-progress without trusting them as authenticated', () => {

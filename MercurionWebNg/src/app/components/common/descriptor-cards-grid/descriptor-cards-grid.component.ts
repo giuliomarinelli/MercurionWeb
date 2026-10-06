@@ -23,7 +23,7 @@ export type DescriptorCardsGridDensity = 'default' | 'compact'
         <section
           class="rounded-lg border relative min-w-0"
           [ngClass]="{
-            'py-8 px-4 text-2xl font-medium': density() === 'default',
+            'flex flex-col justify-center min-h-24 pt-8 pb-4 px-6 text-2xl font-medium': density() === 'default',
             'py-5 px-4 text-base font-medium': density() === 'compact',
             'bg-light-accent-primary/10 dark:bg-dark-accent-primary/10 border-light-accent-primary dark:border-dark-accent-primary': data.bg === 'primary',
             'bg-light-accent-secondary/10 dark:bg-dark-accent-secondary/10 border-light-accent-secondary dark:border-dark-accent-secondary': data.bg === 'secondary'

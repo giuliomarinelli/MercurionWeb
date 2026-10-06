@@ -47,6 +47,7 @@ import { AbstractMultiselectItem } from '../../../Models/abstract.models';
 import { ActionCardComponent } from '../../common/action-card/action-card.component';
 import { ActionFooterComponent } from '../../common/action-footer/action-footer.component';
 import { ButtonComponent } from '../../common/button/button.component';
+import { ViewportRuntimeService } from '../../../services/context/viewport-runtime.service';
 export type { ChipItem } from './add-molecules-to-collection.flow';
 
 @Component({
@@ -67,6 +68,25 @@ export type { ChipItem } from './add-molecules-to-collection.flow';
   ],
   styles: [
     `
+    .m-add-heading-compact { display: none; }
+    :host-context(.m-dialog--compact) { --m-action-card-header-height: 4.5rem; }
+    :host-context(.m-dialog--compact) .m-add-heading-full { display: none; }
+    :host-context(.m-dialog--compact) .m-add-heading-compact { display: block; }
+    :host-context(.m-dialog--compact) .m-add-chembl-content { padding-block: 0.5rem; gap: 0.25rem; }
+    :host-context(.m-dialog--compact) .m-add-search { padding-bottom: 0; }
+    :host-context(.m-dialog--compact) .m-add-instructions { display: none; }
+    :host-context(.m-dialog--compact) .m-add-selections .m-chip-stack { max-height: 4rem; }
+
+    :host-context(.m-dialog--compact) .m-add-body,
+    :host-context(.m-dialog--compact) .m-add-content,
+    :host-context(.m-dialog--compact) .m-add-list,
+    :host-context(.m-dialog--compact) .m-add-results,
+    :host-context(.m-dialog--compact) .m-add-chembl-content { flex: 0 0 auto; height: auto; overflow: visible; }
+    :host-context(.m-dialog--compact) .m-add-search { position: sticky; top: 4.5rem; z-index: 2; }
+    @media (max-width: 767px) {
+      .m-add-body, .m-add-content, .m-add-list, .m-add-results, .m-add-chembl-content { flex: 0 0 auto; height: auto; overflow: visible; }
+    }
+
     /* Scrollbar sottile cross-browser */
 
     .m-scroll-thin {
@@ -125,7 +145,7 @@ export type { ChipItem } from './add-molecules-to-collection.flow';
       }
     }
     .m-chip-stack {
-      height: 2.3rem;
+      max-height: 5rem;
       overflow-y: auto;
       overflow-x: hidden;
       padding-right: 0.5rem;
@@ -138,14 +158,14 @@ export type { ChipItem } from './add-molecules-to-collection.flow';
     }
     .m-chip {
       padding: 1px 4px;
-      font-size: 9px;
+      font-size: 12px;
       gap: 2px;
       border-radius: 9999px;
       line-height: 1.1;
     }
     .m-chip button {
-      width: 10px;
-      height: 10px;
+      width: 28px;
+      height: 28px;
     }
     @media (min-width: 640px) {
       .m-chip {
@@ -168,7 +188,7 @@ export type { ChipItem } from './add-molecules-to-collection.flow';
     }
     .m-chip-clear {
       padding: 1px 5px;
-      font-size: 9px;
+      font-size: 12px;
       border-radius: 9999px;
       line-height: 1.1;
     }
@@ -181,9 +201,10 @@ export type { ChipItem } from './add-molecules-to-collection.flow';
     `
   ],
   template: `
-<div class="flex justify-center items-stretch md:items-center min-h-dvh h-dvh px-2 sm:px-4 m-overlay-screen">
+<div class="flex justify-center items-stretch md:items-center px-2 sm:px-4 m-overlay-screen">
   <m-action-card
     size="wide"
+    [bodyScroll]="false"
     style="--m-action-card-height: min(40rem, var(--m-action-card-available-height, calc(100dvh - 2rem)))"
     labelledBy="addMolHeading"
     closeLabel="Chiudi pannello aggiungi molecole"
@@ -200,18 +221,19 @@ export type { ChipItem } from './add-molecules-to-collection.flow';
             d="M288 96L352 144L576 144L576 512L64 512L64 96L288 96zM352 176L341.3 176L332.8 169.6L277.3 128L96 128L96 480L544 480L544 176L352 176zM304 408L304 336L232 336L232 304L304 304L304 232L336 232L336 304L408 304L408 336L336 336L336 408L304 408z"
           />
         </svg>
-        <span>
+        <span class="m-add-heading-full">
           Aggiungi nuove molecole alla collezione
           <em>{{ collection()?.name }}</em>
         </span>
+        <span class="m-add-heading-compact min-w-0">Aggiungi molecole<em class="block truncate text-base font-normal">{{ collection()?.name }}</em></span>
       </h2>
 
     <!-- BODY -->
-    <div action-card-body class="bg-white dark:bg-dark-surface-main flex flex-col flex-1 min-h-0 overflow-hidden">
+    <div action-card-body class="m-add-body bg-white dark:bg-dark-surface-main flex flex-col flex-1 min-h-0 overflow-hidden">
       <!-- Scelta metodo -->
       <div class="mx-auto shrink-0 w-full">
         <div
-          class="mt-6 space-y-6 sm:flex sm:items-center sm:space-x-10 sm:space-y-0
+          class="m-overlay-methods mt-6 space-y-6 sm:flex sm:items-center sm:space-x-10 sm:space-y-0
                  px-6 pb-6 border-b border-light-border dark:border-dark-border"
           role="radiogroup"
           aria-label="Scegli il metodo per aggiungere molecole"
@@ -240,8 +262,8 @@ export type { ChipItem } from './add-molecules-to-collection.flow';
                        forced-colors:appearance-auto forced-colors:before:hidden
                        not-checked:before:hidden"
               />
-              <label for="my" class="cursor-pointer ml-3 block text-sm/6 font-medium text-gray-900 dark:text-white">
-                Seleziona da <span class="italic">Le mie molecole</span>
+              <label for="my" aria-label="Seleziona da Le mie molecole" class="cursor-pointer ml-3 block text-base/6 font-medium text-gray-900 dark:text-white">
+                <span class="m-overlay-method-full">Seleziona da <span class="italic">Le mie molecole</span></span><span class="m-overlay-method-short">Le mie</span>
               </label>
             </div>
 
@@ -267,8 +289,8 @@ export type { ChipItem } from './add-molecules-to-collection.flow';
                        forced-colors:appearance-auto forced-colors:before:hidden
                        not-checked:before:hidden"
               />
-              <label for="chembl" class="cursor-pointer ml-3 block text-sm/6 font-medium text-gray-900 dark:text-white">
-                Cerca e seleziona da ChEMBL DB
+              <label for="chembl" aria-label="Cerca e seleziona da ChEMBL DB" class="cursor-pointer ml-3 block text-base/6 font-medium text-gray-900 dark:text-white">
+                <span class="m-overlay-method-full">Cerca e seleziona da ChEMBL DB</span><span class="m-overlay-method-short">ChEMBL</span>
               </label>
             </div>
           } @else if (step() === 2) {
@@ -296,8 +318,8 @@ export type { ChipItem } from './add-molecules-to-collection.flow';
                        forced-colors:appearance-auto forced-colors:before:hidden
                        not-checked:before:hidden"
               />
-              <label for="my" class="cursor-not-allowed ml-3 block text-sm/6 font-medium text-gray-900 dark:text-white">
-                Seleziona da <span class="italic">Le mie molecole</span>
+              <label for="my" aria-label="Seleziona da Le mie molecole" class="cursor-not-allowed ml-3 block text-base/6 font-medium text-gray-900 dark:text-white">
+                <span class="m-overlay-method-full">Seleziona da <span class="italic">Le mie molecole</span></span><span class="m-overlay-method-short">Le mie</span>
               </label>
             </div>
 
@@ -325,8 +347,8 @@ export type { ChipItem } from './add-molecules-to-collection.flow';
                        forced-colors:appearance-auto forced-colors:before:hidden
                        not-checked:before:hidden"
               />
-              <label for="chembl" class="cursor-not-allowed ml-3 block text-sm/6 font-medium text-gray-900 dark:text-white">
-                Cerca e seleziona da ChEMBL DB
+              <label for="chembl" aria-label="Cerca e seleziona da ChEMBL DB" class="cursor-not-allowed ml-3 block text-base/6 font-medium text-gray-900 dark:text-white">
+                <span class="m-overlay-method-full">Cerca e seleziona da ChEMBL DB</span><span class="m-overlay-method-short">ChEMBL</span>
               </label>
             </div>
           }
@@ -334,13 +356,13 @@ export type { ChipItem } from './add-molecules-to-collection.flow';
       </div>
 
       <!-- AREA CONTENUTO (deve poter restringersi con tastiera) -->
-      <div class="flex-1 min-h-0 overflow-hidden">
+      <div class="m-add-content flex-1 min-h-0 overflow-hidden">
         @switch (method()) {
 
           @case ('my') {
             <div
               #scrollRoot
-              class="h-full min-h-0 overflow-y-auto py-6 m-ac-pad flex flex-col gap-4 m-scroll-thin m-overscroll-touch m-overlay-body"
+              class="m-add-list h-full min-h-0 overflow-y-auto py-6 m-ac-pad flex flex-col gap-4 m-scroll-thin"
             >
               @switch (step()) {
 
@@ -437,10 +459,10 @@ export type { ChipItem } from './add-molecules-to-collection.flow';
             @switch (step()) {
 
               @case (1) {
-                <div class="h-full min-h-0 flex flex-col py-4 m-ac-pad gap-3 transition duration-150 m-overlay-body">
+                <div class="m-add-chembl-content h-full min-h-0 flex flex-col py-4 m-ac-pad gap-3">
                   <!-- SEARCH (fuori dallo scroll risultati, così sticky è stabile) -->
-                  <div class="shrink-0 sticky top-0 z-10 bg-white/70 dark:bg-dark-surface-main/70 backdrop-blur pb-2 space-y-2 text-center sm:text-left m-ac-pad">
-                    <div class="font-medium">Cerca su ChEMBL e seleziona:</div>
+                  <div class="m-add-search shrink-0 bg-white dark:bg-dark-surface-main pb-2 space-y-2 text-center sm:text-left m-ac-pad">
+                    <div class="m-add-instructions font-medium">Cerca su ChEMBL e seleziona:</div>
                     <div class="m-search-center">
                       <m-molecule-search-input
                         class="block w-full max-w-[20rem] sm:max-w-none"
@@ -455,16 +477,9 @@ export type { ChipItem } from './add-molecules-to-collection.flow';
                   </div>
 
                   <!-- CHIPS -->
-                  <div class="shrink-0 border-b min-h-24 relative">
-                    @if (selectedMolecules.length === 0) {
-                      <div
-                        class="absolute inset-0 flex justify-center items-center text-sm text-slate-700 dark:text-slate-200"
-                        role="status"
-                        aria-live="polite"
-                      >
-                        Qui vedrai le molecole selezionate.
-                      </div>
-                    }
+                  @if (selectedMolecules.length) {
+                  <details class="m-add-selections shrink-0 border-b" [open]="!viewport.overlayCompact()">
+                    <summary class="cursor-pointer py-1 text-sm" aria-live="polite">{{ selectedMolecules.length }} molecole selezionate</summary>
 
                     <div
                       class="relative flex flex-col xs:flex-row xs:flex-wrap items-start xs:items-center gap-1 sm:gap-3 py-1 sm:py-3 px-1 m-chip-stack m-scroll-thin m-overscroll-touch"
@@ -482,7 +497,7 @@ export type { ChipItem } from './add-molecules-to-collection.flow';
                                  shadow-sm"
                           title="{{ m.name }}"
                         >
-                          <span class="truncate m-chip-text text-[10px] sm:text-sm font-medium">
+                          <span class="truncate m-chip-text text-xs sm:text-sm font-medium">
                             {{ m.name }}
                           </span>
 
@@ -530,12 +545,12 @@ export type { ChipItem } from './add-molecules-to-collection.flow';
                         </button>
                       }
                     </div>
-                  </div>
+                  </details>
+                  }
 
                   <!-- RESULTS (unico scroll “vero”) -->
                   <div
-                    class="relative flex-1 min-h-0 overflow-y-auto overscroll-contain"
-                    style="-webkit-overflow-scrolling: touch;"
+                    class="m-add-results relative flex-1 min-h-0 overflow-y-auto overscroll-contain"
                     role="region"
                     aria-label="Risultati ricerca ChEMBL"
                     [attr.aria-busy]="chemblLoading()"
@@ -638,6 +653,7 @@ export class AddMoleculesToCollectionComponent
 
   private readonly actionOverlayContext = inject(ActionOverlayContextService);
   private readonly addContext = inject(AddMoleculesToCollectionContextService);
+  protected readonly viewport = inject(ViewportRuntimeService);
   private readonly sessionId = this.actionOverlayContext.session('AddMoleculesToCollection')?.id ?? -1;
   private readonly invalidation = inject(DomainInvalidationService);
   private readonly moleculeCollectionItemService = inject(MoleculeCollectionItemService);
@@ -727,6 +743,8 @@ export class AddMoleculesToCollectionComponent
   }
 
   private readonly _rearmOnStep = effect(() => {
+    this.viewport.visualWidth();
+    this.viewport.overlayCompact();
     if (this.step() === 1) {
       queueMicrotask(() => this.startObserver());
     } else {
@@ -823,8 +841,15 @@ export class AddMoleculesToCollectionComponent
       if (entries[0]?.isIntersecting && this.method() === 'my' && this.step() === 1 && !this.pageController.error()) {
         void this.loadMore();
       }
-    }, { root: this.root()?.nativeElement ?? null, rootMargin: '0px 0px 500px 0px' });
+    }, { root: this.paginationScrollRoot(), rootMargin: '0px 0px 500px 0px' });
     this.observer.observe(sentinel);
+  }
+
+  private paginationScrollRoot(): HTMLElement | null {
+    const root = this.root()?.nativeElement;
+    const state = this.viewport.state();
+    return state.visualWidth < 768 || this.viewport.overlayCompact()
+      ? root?.closest<HTMLElement>('.m-action-card') ?? null : root ?? null;
   }
 
   close(): void {

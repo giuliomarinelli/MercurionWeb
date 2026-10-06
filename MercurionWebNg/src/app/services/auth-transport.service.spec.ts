@@ -31,13 +31,15 @@ describe('AuthTransportService', () => {
   })
 
   it('maps the MFA verification contract and bearer token', () => {
-    service.loginThirdStep('EMAIL_OTP', { code: '123456' }, {
+    service.loginThirdStep('EMAIL_OTP', { totp: '001234' }, {
       fingerprintBase64: 'fingerprint',
       sessionDeviceInfo: { browser: {} }
     }, 'preauthorization-token').subscribe()
     const request = http.expectOne('/api/authentication/login/EMAIL_OTP/3')
     expect(request.request.headers.get('X-Fingerprint')).toBe('fingerprint')
     expect(request.request.headers.get('Authorization')).toBe('Bearer preauthorization-token')
+    expect(request.request.body).toEqual({ kind: 'totp', payload: { totp: '001234' } })
+    expect(request.request.withCredentials).toBeTrue()
     expect(request.request.headers.has('X-Mock-IP')).toBeFalse()
     request.flush({})
   })

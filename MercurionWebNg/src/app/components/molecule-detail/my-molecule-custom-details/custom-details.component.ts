@@ -57,18 +57,19 @@ import { IconButtonComponent } from '../../common/icon-button/icon-button.compon
       }
 
       @case ('name') {
-        <div class="flex flex-col items-center sm:flex-row sm:items-center gap-3 sm:gap-4 min-w-0">
+        <div class="gap-3 sm:gap-4 min-w-0 max-w-full"
+            [ngClass]="compactHeading() ? 'flex items-center' : 'grid grid-cols-[minmax(0,1fr)_auto] items-center sm:grid-cols-[minmax(0,1fr)_auto_auto]'">
           <h2
             id="molecule-name"
             #value
-            class="outline-none font-semibold tracking-wider
-                   text-center sm:text-left text-light-accent-primary-hc dark:text-dark-accent-primary
+            class="min-w-0 [overflow-wrap:anywhere] outline-none font-semibold tracking-wider
+                   text-left text-light-accent-primary-hc dark:text-dark-accent-primary
                    rounded-md border border-transparent
                    transition-[background-color,border-color,color] duration-300"
             [attr.contenteditable]="mode() === 'edit' ? 'true' : null"
             [ngClass]="{
               'text-xl md:text-2xl lg:text-[1.75rem]': compactHeading(),
-              'text-3xl md:text-4xl lg:text-[2.65rem]': !compactHeading(),
+              'text-2xl sm:text-3xl md:text-4xl lg:text-[2.65rem]': !compactHeading(),
               'bg-slate-300 dark:bg-slate-700 border-light-on-surface-main dark:border-dark-on-surface-main': mode() === 'edit',
               'bg-transparent': mode() === 'view'
             }">
@@ -78,10 +79,12 @@ import { IconButtonComponent } from '../../common/icon-button/icon-button.compon
           @if (_badgeName()) {
             <m-molecule-badge
               [name]="_badgeName()"
-              class="block relative shrink-0 mx-auto sm:mx-0" />
+              class="block relative shrink-0"
+              [ngClass]="compactHeading() ? '' : 'col-start-1 row-start-2 sm:col-start-2 sm:row-start-1'" />
           }
 
-          <div class="flex items-center w-18 shrink-0">
+          <div class="flex items-center shrink-0"
+            [ngClass]="compactHeading() ? 'w-18' : 'col-start-2 row-start-1 sm:col-start-3'">
             @if (mode() === 'view') {
               <m-icon-button
                 size="sm"
@@ -118,16 +121,16 @@ import { IconButtonComponent } from '../../common/icon-button/icon-button.compon
       }
 
       @default {
-        <div class="flex justify-center sm:justify-start text-center sm:text-left gap-3 items-start mb-4">
+        <div class="flex flex-col sm:flex-row text-left gap-2 sm:gap-3 items-start mb-4 min-w-0">
           <h2
             [innerHTML]="_label()"
-            class="mt-1 font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary text-xl shrink-0">
+            class="mt-1 font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary text-lg sm:text-xl shrink-0">
           </h2>
 
-          <div class="flex items-center gap-3 min-w-0">
+          <div class="flex items-start gap-3 min-w-0 w-full sm:w-auto sm:flex-1">
             <p
               #value
-              class="outline-none py-1 rounded-md border min-w-0
+              class="outline-none py-1 rounded-md border min-w-0 [overflow-wrap:anywhere]
                      text-light-on-surface-main dark:text-dark-on-surface-main
                      transition-[background-color,border-color,color] duration-300"
               [attr.contenteditable]="mode() === 'edit' ? 'true' : null"
@@ -140,7 +143,7 @@ import { IconButtonComponent } from '../../common/icon-button/icon-button.compon
               [attr.aria-live]="mode() === 'edit' ? 'off' : 'polite'">
             </p>
 
-            <div class="flex items-center w-18 shrink-0">
+            <div class="flex items-center shrink-0">
               @if (mode() === 'view') {
                 <m-icon-button
                   size="sm"

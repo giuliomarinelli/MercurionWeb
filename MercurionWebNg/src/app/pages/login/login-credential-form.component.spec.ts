@@ -50,4 +50,28 @@ describe('LoginCredentialFormComponent', () => {
     expect(component.form.controls.password.value).toBe('')
     expect(component.credentialError()).toBeNull()
   })
+
+  it('preserves the native username field between steps and identifies the password for autofill', () => {
+    const email: HTMLInputElement = fixture.nativeElement.querySelector('input[type="email"]')
+    expect(email.id).toBe('login-email')
+    expect(email.name).toBe('email')
+    expect(email.autocomplete).toBe('username')
+    email.value = 'person@example.test'
+    email.dispatchEvent(new AnimationEvent('animationstart', { animationName: 'cdk-text-field-autofill-start' }))
+    fixture.detectChanges()
+    expect(component.form.controls.email.value).toBe('person@example.test')
+
+    component.showPasswordStep()
+    fixture.detectChanges()
+    expect(fixture.nativeElement.querySelector('input[type="email"]')).toBe(email)
+    const password: HTMLInputElement = fixture.nativeElement.querySelector('input[type="password"]')
+    expect(password.name).toBe('password')
+    expect(password.autocomplete).toBe('current-password')
+    password.value = 'saved-password'
+    password.dispatchEvent(new AnimationEvent('animationstart', { animationName: 'cdk-text-field-autofill-start' }))
+    email.dispatchEvent(new Event('change'))
+    fixture.detectChanges()
+    expect(component.step()).toBe(2)
+    expect(component.form.controls.password.value).toBe('saved-password')
+  })
 })

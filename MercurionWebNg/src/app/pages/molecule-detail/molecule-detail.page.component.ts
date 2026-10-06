@@ -57,7 +57,7 @@ import { LoggerService } from '../../services/logger.service'
 
     @if (molecule$ | async; as molecule) {
 
-      <section class="main-container" role="main" [attr.aria-busy]="fetchMolLoading()" aria-live="polite">
+      <section class="main-container min-w-0" role="main" [attr.aria-busy]="fetchMolLoading()" aria-live="polite">
         @if (!typeGuards.isSystemMolecule(molecule)) {
           @if (collectionId()) {
             <m-my-molecules-heading [breadcrumb]="breadcrumb" />
@@ -81,44 +81,50 @@ import { LoggerService } from '../../services/logger.service'
             (onAddToCollection)="doAddToManyCollections()" />
         }
         <section>
-           <p class="flex gap-4 items-center font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary mt-6 my-4 text-center sm:text-left text-xl">
-            <span class="shrink-0">Canonical smiles</span>
-            <span class="shrink-0 text-sm text-neutral-950 dark:text-slate-200 font-mono pl-3">
-              @if (typeGuards.isSystemMolecule(molecule)) {
-                {{ molecule.canonicalSmiles }}
-              } @else if (typeGuards.isChemblMolecule(molecule)) {
-                {{ molecule.chemblDetails.canonicalSmiles }}
-              } @else if (typeGuards.isCustomMolecule(molecule)) {
-                {{ molecule.canonicalSmiles }}
-              }
-            </span>
-            @if (typeGuards.isSystemMolecule(molecule)) {
-              <m-copy-button [src]="molecule.canonicalSmiles ?? ''" />
-            } @else if (typeGuards.isChemblMolecule(molecule)) {
-              <m-copy-button [src]="molecule.chemblDetails.canonicalSmiles ?? ''" />
-            } @else if (typeGuards.isCustomMolecule(molecule)) {
-              <m-copy-button [src]="molecule.canonicalSmiles" />
-            }
-          </p>
-          <div class="flex flex-wrap gap-4 items-center font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary mt-6 my-4 text-center sm:text-left text-xl max-w-4xl">
-            <span class="shrink-0">Nome IUPAC Internazionale</span>
-            <p class="shrink-0 text-sm text-neutral-950 dark:text-slate-200 font-mono pl-3 inline-flex items-center">
-            @if (iupacName(); as name) {
-              @if (name === '__LOADING__') {
-                <m-progress-indicator [size]="16" />
-              } @else {
-                {{ name }}
-              }
-            } @else {
-              ND
-            }
-            </p>
-            @if (iupacName() && iupacName() !== '__LOADING__') {
-              <m-copy-button [src]="iupacName()" />
-            }
+          <div class="mt-6 mb-4 min-w-0 text-left space-y-6 sm:space-y-0 sm:grid sm:grid-cols-[max-content_minmax(0,1fr)] sm:gap-x-4 sm:gap-y-6 sm:items-center">
+            <div class="flex flex-col gap-2 min-w-0 sm:contents">
+              <h2 class="font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary text-lg sm:text-xl sm:shrink-0">Canonical smiles</h2>
+              <div class="flex items-center gap-3 min-w-0 sm:flex-1">
+                <p class="min-w-0 [overflow-wrap:anywhere] text-sm text-neutral-950 dark:text-slate-200 font-mono font-semibold">
+                  @if (typeGuards.isSystemMolecule(molecule)) {
+                    {{ molecule.canonicalSmiles }}
+                  } @else if (typeGuards.isChemblMolecule(molecule)) {
+                    {{ molecule.chemblDetails.canonicalSmiles }}
+                  } @else if (typeGuards.isCustomMolecule(molecule)) {
+                    {{ molecule.canonicalSmiles }}
+                  }
+                </p>
+                @if (typeGuards.isSystemMolecule(molecule)) {
+                  <m-copy-button class="shrink-0" [src]="molecule.canonicalSmiles ?? ''" />
+                } @else if (typeGuards.isChemblMolecule(molecule)) {
+                  <m-copy-button class="shrink-0" [src]="molecule.chemblDetails.canonicalSmiles ?? ''" />
+                } @else if (typeGuards.isCustomMolecule(molecule)) {
+                  <m-copy-button class="shrink-0" [src]="molecule.canonicalSmiles" />
+                }
+              </div>
+            </div>
+            <div class="flex flex-col gap-2 min-w-0 sm:contents">
+              <h2 class="font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary text-lg sm:text-xl sm:shrink-0">Nome IUPAC Internazionale</h2>
+              <div class="flex items-center gap-3 min-w-0 sm:flex-1">
+                <p class="min-w-0 [overflow-wrap:anywhere] text-sm text-neutral-950 dark:text-slate-200 font-mono font-semibold">
+                  @if (iupacName(); as name) {
+                    @if (name === '__LOADING__') {
+                      <m-progress-indicator [size]="16" />
+                    } @else {
+                      {{ name }}
+                    }
+                  } @else {
+                    ND
+                  }
+                </p>
+                @if (iupacName() && iupacName() !== '__LOADING__') {
+                  <m-copy-button class="shrink-0" [src]="iupacName()" />
+                }
+              </div>
+            </div>
           </div>
           <h2
-            class="flex gap-3 items-center justify-center sm:justify-start font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary mt-6 mb-4 text-center sm:text-left text-xl">
+            class="flex gap-3 items-center justify-start font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary mt-6 mb-4 text-left text-lg sm:text-xl">
             <span>Struttura</span>
             @if (typeGuards.isCustomMolecule(molecule)) {
               <m-icon-button
@@ -132,10 +138,10 @@ import { LoggerService } from '../../services/logger.service'
               </m-icon-button>
             }
           </h2>
-          <div class="overflow-x-auto flex justify-center sm:justify-start">
+          <div class="flex min-w-0 max-w-full justify-start">
             <div class="
-                    shrink-0
-                    w-auto
+                    min-w-0 max-w-full
+                    w-full sm:w-auto
                     h-35
                     2xs:h-41.25
                     xs:h-46.25
@@ -182,7 +188,7 @@ import { LoggerService } from '../../services/logger.service'
           }
           @if (!typeGuards.isSystemMolecule(molecule) && molecule.joins) {
             <h2
-              class="font-semibold mt-8 mb-3 sm:top-14 text-light-accent-primary-hc dark:text-dark-accent-primary text-center sm:text-left text-xl">
+              class="font-semibold mt-8 mb-3 sm:top-14 text-light-accent-primary-hc dark:text-dark-accent-primary text-left text-lg sm:text-xl">
               Questa molecola fa parte delle seguenti collezioni:
             </h2>
             <section class="rounded-md border border-slate-300 dark:border-slate-600">
@@ -192,7 +198,7 @@ import { LoggerService } from '../../services/logger.service'
         </section>
         @if (typeGuards.isSystemMolecule(molecule) || typeGuards.isChemblMolecule(molecule)) {
           <h2
-            class="font-semibold relative top-10 sm:top-14 text-light-accent-primary-hc dark:text-dark-accent-primary text-center sm:text-left text-xl"
+            class="font-semibold relative top-10 sm:top-14 text-light-accent-primary-hc dark:text-dark-accent-primary text-left text-lg sm:text-xl"
             style="margin-block-start: -38px">
             Analoghi suggeriti
           </h2>

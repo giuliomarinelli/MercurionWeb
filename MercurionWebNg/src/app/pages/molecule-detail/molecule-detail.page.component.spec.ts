@@ -22,6 +22,8 @@ describe('MoleculeDetailComponent', () => {
     loading = signal(false);
     const facade = {
       molecule$: of(null),
+      molecule: signal(null),
+      currentName: signal(''),
       loading,
       error: signal(false),
       similar,

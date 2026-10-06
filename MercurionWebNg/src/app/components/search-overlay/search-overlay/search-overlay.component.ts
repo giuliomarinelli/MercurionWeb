@@ -30,6 +30,7 @@ import { Helpers } from '../../../helpers'
 import { Subscription } from 'rxjs'
 import { map } from 'rxjs/operators'
 import { DialogShellComponent } from '../../common/dialog-shell/dialog-shell.component'
+import { ViewportRuntimeService } from '../../../services/context/viewport-runtime.service'
 
 
 @Component({
@@ -53,14 +54,16 @@ import { DialogShellComponent } from '../../common/dialog-shell/dialog-shell.com
       backdropVariant="search"
       panelVariant="search"
       (dismissed)="close()">
-      <div class="flex w-full min-w-0 justify-center md:justify-center items-stretch md:items-center px-2 sm:px-4 pt-1 md:pt-16 m-overlay-screen h-full">
+      <div class="flex w-full min-w-0 justify-center items-center px-2 sm:px-4 m-overlay-screen">
         <div
-          class="w-full min-w-0 max-w-3xl space-y-6 flex flex-col h-full md:h-[75vh]
-          bg-light-surface-main/90 dark:bg-dark-surface-main/90
+          [class.m-search-panel--compact]="viewport.overlayCompact()"
+          [class.m-search-panel--short]="viewport.visualHeight() < 260"
+          class="m-search-panel w-full min-w-0 max-w-3xl flex flex-col
+          bg-light-surface-main dark:bg-dark-surface-main
            p-4 md:p-6 lg:p-10
            rounded-2xl shadow-2xl ring-1 ring-black/5 dark:ring-white/5">
           <!-- HEADER -->
-          <div class="flex justify-between items-center mb-3 relative md:-top-2 lg:-top-4">
+          <div class="m-search-header flex shrink-0 justify-between items-center gap-2">
             <h2 class="text-2xl font-medium tracking-wide">Ricerca molecolare</h2>
             <m-icon-button
               size="sm"
@@ -72,23 +75,25 @@ import { DialogShellComponent } from '../../common/dialog-shell/dialog-shell.com
           </div>
 
           <m-molecule-search-input
+            class="block shrink-0"
             [viewMode]="_viewMode()"
             [search_excludeAlreadyAdded]="false"
             (onQuery)="handleQuery($event)"
             (onEmpty)="handleEmpty()" />
 
           <div
-          class="relative bg-light-surface-secondary dark:bg-slate-50/10 flex-1 min-h-0 min-w-0 rounded-xl text-light-on-surface-main dark:text-sm dark:text-slate-50/90 overflow-y-auto border border-spacing-px border-slate-300/50 max-h-none md:max-h-[70vh] m-overscroll-touch m-scroll-thin"
-            #scrollRoot>
+          class="relative bg-light-surface-secondary dark:bg-slate-50/10 flex flex-col flex-1 min-h-0 min-w-0 rounded-xl text-light-on-surface-main dark:text-slate-50/90 overflow-hidden border border-slate-300/50">
               @if (userContext.isLoggedIn()) {
-                <div class="sticky top-0 z-30
-                     bg-light-surface-secondary/95 dark:bg-slate-800/95 backdrop-blur
+                <div class="shrink-0
+                     bg-light-surface-secondary dark:bg-slate-800
                      px-6 pt-5 pb-4
                      border-b border-slate-200/60 dark:border-white/10
-                     overflow-y-auto scrollbar-thin scrollbar-thumb-slate-400/40 dark:scrollbar-thumb-white/20 scrollbar-track-transparent">
+                     m-search-methods">
                   <m-search-type-selector (onViewClick)="handleViewClick($event)" />
                 </div>
               }
+
+            <div #scrollRoot class="flex-1 min-h-0 min-w-0 overflow-y-auto overscroll-contain m-scroll-thin">
 
             @switch (_viewMode()) {
               @case ('chembl') {
@@ -142,12 +147,53 @@ import { DialogShellComponent } from '../../common/dialog-shell/dialog-shell.com
             }
 
             <div #sentinel class="h-1 w-full"></div>
+            </div>
           </div>
         </div>
       </div>
     </m-dialog-shell>
   `,
   styles: [`
+    .m-search-panel {
+      position: relative;
+      height: min(48rem, var(--m-action-card-available-height));
+      min-height: 0;
+      gap: 1rem;
+    }
+
+    .m-search-panel--compact {
+      padding: 0.75rem;
+      gap: 0.5rem;
+    }
+
+    .m-search-panel--compact .m-search-header h2 {
+      font-size: 1.25rem;
+      line-height: 1.2;
+    }
+
+    .m-search-panel--compact .m-search-methods {
+      padding: 0;
+    }
+
+    .m-search-panel--short {
+      padding: 0.5rem;
+      gap: 0.125rem;
+    }
+
+    .m-search-panel--short .m-search-header {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+    }
+
+    .m-search-panel--short .m-search-header h2 {
+      display: none;
+    }
+
+    .m-search-panel--short m-molecule-search-input {
+      margin-right: 3.25rem;
+    }
+
     /* Scrollbar sottile per l'area dei risultati */
     .m-scroll-thin {
       scrollbar-gutter: stable;
@@ -186,8 +232,8 @@ import { DialogShellComponent } from '../../common/dialog-shell/dialog-shell.com
   `]
 })
 export class SearchOverlayComponent implements AfterViewInit, OnDestroy {
+  protected readonly viewport = inject(ViewportRuntimeService)
 
-  // TODO: Medium priority - align Safari/iOS viewport/keyboard handling here with action overlays if issues reappear.
   protected readonly searchContextService = inject(SearchContextService)
   protected readonly userContext = inject(UserContextService)
   private readonly chemblService = inject(MoleculeSearchService)

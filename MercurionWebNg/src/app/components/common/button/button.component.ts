@@ -94,6 +94,8 @@ const ICON_POSITION_CLASSES = {
   styles: `
     :host {
       display: inline-flex;
+      min-width: 0;
+      max-width: 100%;
     }
 
     :host(.m-button--full-width) {
@@ -116,6 +118,8 @@ const ICON_POSITION_CLASSES = {
       gap: var(--m-space-2);
       justify-content: center;
       min-height: 2.5rem;
+      min-width: 0;
+      max-width: 100%;
       position: relative;
       text-decoration: none;
       transition: background-color 150ms ease, border-color 150ms ease,
@@ -226,6 +230,8 @@ const ICON_POSITION_CLASSES = {
       align-items: center;
       display: inline-flex;
       gap: inherit;
+      min-width: 0;
+      overflow-wrap: anywhere;
     }
 
     .m-button__content--loading {

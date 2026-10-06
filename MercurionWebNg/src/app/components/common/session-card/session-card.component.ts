@@ -15,7 +15,7 @@ import { ProgressIndicatorComponent } from "../progress-indicator/progress-indic
 
     <div
       class="
-        w-full rounded-md border p-4 mb-3
+        w-full min-w-0 [overflow-wrap:anywhere] rounded-md border p-4 mb-3
         bg-slate-100 dark:bg-slate-800
         border-slate-300 dark:border-slate-600
         transition-all max-h-fit duration-150 ease-linear

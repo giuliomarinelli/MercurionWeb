@@ -16,7 +16,7 @@ import {
 } from '@angular/forms'
 import { TextFieldComponent } from '../../components/common/text-field/text-field.component'
 import { SelectionControlComponent } from '../../components/common/selection-control/selection-control.component'
-import { ProgressIndicatorComponent } from '../../components/common/progress-indicator/progress-indicator.component'
+import { ButtonPendingContentComponent } from '../../components/common/button/button-pending-content.component'
 import { TurnstileComponent } from '../../components/common/turnstile/turnstile.component'
 import { APP_CONFIG } from '../../config/app-config'
 import type { LoginCredentials } from './login-flow.models'
@@ -34,21 +34,24 @@ type CredentialForm = {
     ReactiveFormsModule,
     TextFieldComponent,
     SelectionControlComponent,
-    ProgressIndicatorComponent,
+    ButtonPendingContentComponent,
     TurnstileComponent
   ],
   template: `
-    <form [formGroup]="form" (ngSubmit)="submitCredentials()" aria-labelledby="login-title" [attr.aria-busy]="pending()">
-      @if (step() === 1) {
+    <form id="login-form" name="login" autocomplete="on" [formGroup]="form" (ngSubmit)="submitCredentials()" aria-labelledby="login-title" [attr.aria-busy]="pending()">
         <m-text-field
+          id="login-email"
+          name="email"
           label="Indirizzo e-mail"
           type="email"
-          autocomplete="email"
+          autocomplete="username"
           formControlName="email"
           [errors]="emailErrors"
           [serverError]="emailError()"
-          (enter)="submitEmail()"
+          [disabled]="step() === 2 && pending()"
+          (enter)="step() === 1 ? submitEmail() : null"
         />
+      @if (step() === 1) {
         <button type="button" (click)="submitEmail()" [disabled]="form.controls.email.invalid"
           class="relative bottom-[10px] mt-1 w-full rounded-md bg-light-accent-primary-hq py-2 text-white transition-colors duration-150 hover:bg-light-accent-primary-hc disabled:cursor-not-allowed disabled:bg-light-accent-primary-hq/60 disabled:hover:bg-light-accent-primary-hq/60 dark:bg-dark-accent-primary-btn dark:disabled:bg-dark-accent-primary/80 dark:disabled:hover:bg-dark-accent-primary/80"
           [attr.aria-disabled]="form.controls.email.invalid"
@@ -57,15 +60,8 @@ type CredentialForm = {
         </button>
       } @else {
         <m-text-field
-          label="Indirizzo e-mail"
-          type="email"
-          autocomplete="email"
-          formControlName="email"
-          [errors]="emailErrors"
-          [serverError]="emailError()"
-          [disabled]="pending()"
-        />
-        <m-text-field
+          id="login-password"
+          name="password"
           label="Password"
           type="password"
           autocomplete="current-password"
@@ -77,7 +73,7 @@ type CredentialForm = {
           class="flex justify-center items-center mt-4 w-full rounded-md bg-light-accent-primary-hq py-2 text-white transition-colors duration-150 hover:bg-light-accent-primary-hc disabled:cursor-not-allowed disabled:bg-light-accent-primary-hq/60 disabled:hover:bg-light-accent-primary-hq/60 dark:bg-dark-accent-primary-btn dark:hover:bg-dark-accent-primary/80 dark:disabled:bg-dark-accent-primary/80 dark:disabled:hover:bg-dark-accent-primary/80 h-10"
           [attr.aria-disabled]="!canSubmit()"
           aria-label="Accedi al tuo account">
-          @if (pending()) { <m-progress-indicator [size]="20" /> } @else { Accedi }
+          <m-button-pending-content [pending]="pending()">Accedi</m-button-pending-content>
         </button>
         @if (!turnstileDisabled) {
           <div class="flex justify-center relative top-3 mb-3">

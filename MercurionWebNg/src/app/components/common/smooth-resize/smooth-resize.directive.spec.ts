@@ -1,6 +1,7 @@
 import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { SmoothResizeDirective, SmoothResizeState } from './smooth-resize.directive';
+import { ViewportRuntimeService } from '../../../services/context/viewport-runtime.service';
 
 @Component({
   imports: [SmoothResizeDirective],
@@ -28,6 +29,36 @@ class ShellHost {
 const nextFrame = () => new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
 
 describe('SmoothResizeDirective', () => {
+  it('cancels an active content animation when the keyboard changes the viewport and keeps content scrollable', async () => {
+    const state = signal({ width: 375, height: 812, visualWidth: 375, visualHeight: 812, scale: 1 });
+    TestBed.configureTestingModule({ providers: [{ provide: ViewportRuntimeService, useValue: { state } }] });
+    const fixture = TestBed.createComponent(ResizeHost);
+    fixture.detectChanges();
+    const element = fixture.nativeElement.firstElementChild as HTMLElement;
+    await nextFrame();
+    await nextFrame();
+    fixture.componentInstance.height.set(160);
+    fixture.detectChanges();
+    await nextFrame();
+    await nextFrame();
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      expect(element.getAnimations().length).toBe(1);
+    }
+    state.update(value => ({ ...value, visualHeight: 300 }));
+    fixture.detectChanges();
+    await nextFrame();
+    expect(element.getAnimations().length).toBe(0);
+    expect(element.style.overflow).toBe('');
+    expect(element.getBoundingClientRect().height).toBe(160);
+    fixture.componentInstance.height.set(240);
+    fixture.detectChanges();
+    await nextFrame();
+    await nextFrame();
+    expect(element.getAnimations().length).toBe(0);
+    expect(element.getBoundingClientRect().height).toBe(240);
+    fixture.destroy();
+  });
+
   it('preserves the previous shell size and animates both axes when its action is replaced', async () => {
     const fixture = TestBed.createComponent(ShellHost);
     fixture.detectChanges();

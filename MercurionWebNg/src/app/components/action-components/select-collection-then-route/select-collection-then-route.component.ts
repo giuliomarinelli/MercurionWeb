@@ -21,7 +21,7 @@ import { CollectionPickerFacade } from '../collection-picker/collection-picker.f
   ],
   template: `
 
-<div class="flex justify-center items-start md:items-center min-h-dvh px-2 sm:px-4 m-overlay-screen">
+<div class="flex justify-center items-start md:items-center px-2 sm:px-4 m-overlay-screen">
   <m-action-card
       size="standard"
       labelledBy="selectCollectionHeading"

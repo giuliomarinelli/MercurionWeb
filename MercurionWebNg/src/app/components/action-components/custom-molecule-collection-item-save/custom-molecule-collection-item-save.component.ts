@@ -24,7 +24,7 @@ import { CollectionPickerFacade } from '../collection-picker/collection-picker.f
   imports: [NgClass, SelectCoreComponent, FormsModule, ActionCardComponent, TextareaComponent],
   template: `
 
-    <div class="flex justify-center items-start md:items-center min-h-dvh px-2 sm:px-4 m-overlay-screen">
+    <div class="flex justify-center items-start md:items-center px-2 sm:px-4 m-overlay-screen">
       <m-action-card
         size="compact"
         labelledBy="saveMoleculeHeading"
@@ -41,7 +41,7 @@ import { CollectionPickerFacade } from '../collection-picker/collection-picker.f
           </h2>
 
         <!-- Body -->
-        <div action-card-body class="bg-light-surface-secondary dark:bg-dark-surface-secondary space-y-5 transition-all">
+        <div action-card-body class="bg-light-surface-secondary dark:bg-dark-surface-secondary space-y-5 transition-all px-3 py-4">
 
           <h2 class="font-semibold mt-2 text-light-on-surface-main dark:text-dark-on-surface-main">
             Scegli la collezione di destinazione:
@@ -79,7 +79,7 @@ import { CollectionPickerFacade } from '../collection-picker/collection-picker.f
                 #name
                 id="name"
                 type="text"
-                class="block py-4 px-4 w-full text-sm bg-light-surface-secondary dark:bg-dark-surface-secondary border border-slate-400 dark:border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-light-accent-primary-hq focus:border-light-accent-primary-hq dark:focus:ring-dark-accent-primary-btn-hc dark:focus:border-dark-accent-primary-btn-hc peer text-light-on-surface-main dark:text-dark-on-surface-main"
+                class="block py-4 px-4 w-full text-base bg-light-surface-secondary dark:bg-dark-surface-secondary border border-slate-400 dark:border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-light-accent-primary-hq focus:border-light-accent-primary-hq dark:focus:ring-dark-accent-primary-btn-hc dark:focus:border-dark-accent-primary-btn-hc peer text-light-on-surface-main dark:text-dark-on-surface-main"
                 placeholder=" "
                 required
                 name="name"
@@ -95,7 +95,7 @@ import { CollectionPickerFacade } from '../collection-picker/collection-picker.f
                 for="name"
                 class="peer-focus:font-medium absolute transition-all duration-300 bg-light-surface-secondary dark:bg-dark-surface-secondary px-1 top-3.25 left-4 origin-left cursor-text"
                 [ngClass]="{
-                  'text-light-accent-secondary dark:text-dark-accent-secondary-hc scale-110 -translate-y-6 text-sm': nameFocus() || nameModel,
+                  'text-light-accent-secondary dark:text-dark-accent-secondary-hc scale-110 -translate-y-6 text-base': nameFocus() || nameModel,
                   'text-light-on-surface-secondary dark:text-dark-on-surface-secondary text-lg scale-100 translate-y-0': !nameFocus() && !nameModel
                 }"
               >
@@ -116,7 +116,7 @@ import { CollectionPickerFacade } from '../collection-picker/collection-picker.f
                 #label
                 id="label"
                 type="text"
-                class="block py-4 px-4 w-full text-sm bg-light-surface-secondary dark:bg-dark-surface-secondary border border-slate-400 dark:border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-light-accent-primary focus:border-light-accent-primary dark:focus:ring-dark-accent-primary-btn-hc dark:focus:border-dark-accent-primary-btn-hc peer text-light-on-surface-main dark:text-dark-on-surface-main"
+                class="block py-4 px-4 w-full text-base bg-light-surface-secondary dark:bg-dark-surface-secondary border border-slate-400 dark:border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-light-accent-primary focus:border-light-accent-primary dark:focus:ring-dark-accent-primary-btn-hc dark:focus:border-dark-accent-primary-btn-hc peer text-light-on-surface-main dark:text-dark-on-surface-main"
                 placeholder=" "
                 name="label"
                 [(ngModel)]="labelModel"
@@ -128,7 +128,7 @@ import { CollectionPickerFacade } from '../collection-picker/collection-picker.f
                 for="label"
                 class="peer-focus:font-medium absolute transition-all duration-300 bg-light-surface-secondary dark:bg-dark-surface-secondary px-1 top-3.25 left-4 origin-left cursor-text"
                 [ngClass]="{
-                  'text-light-accent-secondary dark:text-dark-accent-secondary-hc scale-110 -translate-y-6 text-sm': labelFocus() || labelModel,
+                  'text-light-accent-secondary dark:text-dark-accent-secondary-hc scale-110 -translate-y-6 text-base': labelFocus() || labelModel,
                   'text-light-on-surface-secondary dark:text-dark-on-surface-secondary text-lg scale-100 translate-y-0': !labelFocus() && !labelModel
                 }"
               >

@@ -1,4 +1,5 @@
-import { computed, Injectable, Signal, signal, WritableSignal } from '@angular/core'
+import { computed, Injectable, Signal, signal } from '@angular/core'
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { ViewportRuler } from '@angular/cdk/scrolling'
 
 // ✅ Enum con valori stringa
@@ -47,7 +48,8 @@ export class DesignService {
     '2xl': 'ultra widescreen laptop'
   }
 
-  private readonly __currentBk: WritableSignal<Breakpoints> = signal(Breakpoints.SM)
+  private readonly viewportWidth = signal(0)
+  private readonly __currentBk = signal(Breakpoints.ZERO)
 
   constructor(private viewportRuler: ViewportRuler) {
     this.updateCurrentBreakpoint()
@@ -69,48 +71,14 @@ export class DesignService {
     return this.bkVerboseMap[this.currentBreakpoint] ?? 'Unknown'
   }
 
-  // ✅ Verifica se il breakpoint corrente è >= di quello passato (in pixel)
+  // Match Tailwind's min-width and exclusive max-width variants exactly.
   public minBk(breakpoint: Breakpoint): Signal<boolean> {
-    const ordered: Breakpoints[] = [
-      Breakpoints._3XS,
-      Breakpoints._2XS,
-      Breakpoints.XS,
-      Breakpoints.SM,
-      Breakpoints.MD,
-      Breakpoints.LG,
-      Breakpoints.XL,
-      Breakpoints._2XL
-    ]
-
-    return computed(() => {
-      const current = this.__currentBk() // 💡 trigger reattività
-      const currentIdx = ordered.indexOf(current)
-      const targetIdx = ordered.indexOf(breakpoint as Breakpoints)
-      return currentIdx >= targetIdx
-    })
+    return computed(() => this.viewportWidth() >= this.bkMap.get(breakpoint as Breakpoints)!)
   }
 
-  // ✅ Verifica se il breakpoint corrente è <= di quello passato (in pixel)
-public maxBk(breakpoint: Breakpoint): Signal<boolean> {
-  const ordered: Breakpoints[] = [
-    Breakpoints._3XS,
-    Breakpoints._2XS,
-    Breakpoints.XS,
-    Breakpoints.SM,
-    Breakpoints.MD,
-    Breakpoints.LG,
-    Breakpoints.XL,
-    Breakpoints._2XL
-  ]
-
-  return computed(() => {
-    const current = this.__currentBk()
-    const currentIdx = ordered.indexOf(current)
-    const targetIdx = ordered.indexOf(breakpoint as Breakpoints)
-    return currentIdx <= targetIdx
-  })
-}
-
+  public maxBk(breakpoint: Breakpoint): Signal<boolean> {
+    return computed(() => this.viewportWidth() < this.bkMap.get(breakpoint as Breakpoints)!)
+  }
 
   // ✅ Utility: è mobile?
   public isMobile(): boolean {
@@ -121,13 +89,14 @@ public maxBk(breakpoint: Breakpoint): Signal<boolean> {
   // ✅ Update corrente
   private updateCurrentBreakpoint(): void {
     const viewportWidth = this.viewportRuler.getViewportSize().width
-    let detectedBreakpoint: Breakpoints = Breakpoints._2XL
+    this.viewportWidth.set(viewportWidth)
+    let detectedBreakpoint: Breakpoints = Breakpoints.ZERO
 
     for (const [breakpoint, width] of this.bkMap.entries()) {
       if (viewportWidth < width) {
-        detectedBreakpoint = breakpoint
         break
       }
+      detectedBreakpoint = breakpoint
     }
 
     if (this.__currentBk() !== detectedBreakpoint) {
@@ -137,7 +106,7 @@ public maxBk(breakpoint: Breakpoint): Signal<boolean> {
 
   // ✅ Listener resize con debounce (CDK scrolling)
   private listenToViewportChanges(): void {
-    this.viewportRuler.change(10).subscribe(() => this.updateCurrentBreakpoint())
+    this.viewportRuler.change(10).pipe(takeUntilDestroyed()).subscribe(() => this.updateCurrentBreakpoint())
   }
 
 }

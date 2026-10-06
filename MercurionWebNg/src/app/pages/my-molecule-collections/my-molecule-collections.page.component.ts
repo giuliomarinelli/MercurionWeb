@@ -1,6 +1,6 @@
 import { HistoryContextService } from './../../services/context/history-context.service';
 import { UiMoleculeCollection } from '../../Models/graphql/molecule-collection/molecule-collection.types';
-import { catchError, delay, EMPTY, firstValueFrom, map, of, Subscription, switchMap, tap } from 'rxjs';
+import { catchError, delay, EMPTY, map, of, Subscription, switchMap, tap } from 'rxjs';
 import { MyMoleculesHeadingComponent } from '../../components/molecule-detail/my-molecules-heading/my-molecules-heading.component';
 import { Component, ElementRef, inject, OnInit, effect, OnDestroy, signal, ChangeDetectionStrategy, viewChild } from '@angular/core';
 import { MoleculeCollectionService } from '../../services/graphql/molecule-collection.service';
@@ -9,8 +9,6 @@ import { SkeletonCollectionCardComponent } from '../../components/common/skeleto
 import { RouterLink } from '@angular/router';
 import { PmSearchInputComponent } from '../../components/common/pm-search-input/pm-search-input.component';
 import { PaginationController } from '../../services/pagination/pagination-controller';
-import { Observable } from 'rxjs';
-import { PageModel } from '../../Models/graphql/page.models';
 import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service';
 import { CreateCollectionContextService } from '../../services/context/action-context/create-collection-context.service';
 import { ToastService } from '../../services/toast.service';
@@ -44,15 +42,12 @@ import { PaginationComponent } from '../../components/common/pagination/paginati
         <!-- 🧩 Crea una o più nuove collezioni -->
         <button
           type="button"
-          class="flex items-center gap-2 relative px-3 py-1.5 rounded-md border border-slate-300 dark:border-slate-600
-                 text-slate-700 dark:text-slate-200 text-xs font-medium
-                 hover:bg-slate-200 dark:hover:bg-slate-700
-                 transition-colors duration-150 self-start sm:self-auto"
+          class="flex items-center gap-2 relative px-3 py-1.5 rounded-md border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 font-medium hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-150 self-start sm:self-auto text-xs"
           title="Crea nuove collezioni."
           (click)="createNewCollection()"
           aria-label="Crea una o più nuove collezioni"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-4 w-auto" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-4 h-auto shrink-0" aria-hidden="true">
             <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
             <path d="M336 112L336 96L304 96L304 304L96 304L96 336L304 336L304 544L336 544L336 336L544 336L544 304L336 304L336 112z"/>
           </svg>

@@ -312,7 +312,7 @@ export class MoleculeViewerComponent implements OnInit, OnChanges {
           svgEl.setAttribute('width', '100%');
           svgEl.setAttribute('height', '100%');
         } else {
-          svgEl.setAttribute('style', 'height:100%;width:auto;display:block');
+          svgEl.setAttribute('style', 'height:100%;width:auto;max-width:100%;display:block');
         }
         raw = svgEl.outerHTML;
       }

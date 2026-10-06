@@ -12,11 +12,12 @@ import {
   PaginationState,
 } from '../../../Models/graphql/page.models';
 import { ButtonComponent } from '../button/button.component';
+import { ProgressIndicatorComponent } from '../progress-indicator/progress-indicator.component';
 
 @Component({
   selector: 'm-pagination',
   standalone: true,
-  imports: [ButtonComponent],
+  imports: [ButtonComponent, ProgressIndicatorComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (state().mode === 'page') {
@@ -63,17 +64,10 @@ import { ButtonComponent } from '../button/button.component';
             Retry
           </m-button>
         </div>
-      } @else if (infiniteState().hasMore) {
-        <m-button
-          variant="outline"
-          [loading]="infiniteState().pending"
-          [disabled]="infiniteState().pending"
-          ariaLabel="Load more results"
-          (pressed)="loadMore()">
-          {{ infiniteState().pending ? 'Loading…' : 'Load more' }}
-        </m-button>
-      } @else if (!infiniteState().empty) {
-        <p class="m-pagination__end" role="status" aria-live="polite">End of results</p>
+      } @else if (infiniteState().hasMore && infiniteState().pending) {
+        <div class="flex justify-center" role="status" aria-live="polite">
+          <m-progress-indicator />
+        </div>
       }
     }
   `,

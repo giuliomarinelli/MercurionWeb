@@ -28,7 +28,7 @@ let generatedSelectId = 0;
     <div class="relative w-full" mSmoothResize="height">
       @if (label()) {
         <label
-          class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-200"
+          class="mb-1 block text-base font-medium text-slate-700 dark:text-slate-200"
           [for]="controlId()"
         >
           {{ label() }} @if (required()) { <span aria-hidden="true">*</span> }
@@ -163,7 +163,7 @@ let generatedSelectId = 0;
                   <div class="flex flex-wrap items-center gap-2">
                     <input
                       #newInput
-                      class="min-w-40 flex-1 rounded-md border border-slate-300 bg-white px-2 py-1 text-slate-900
+                      class="min-w-0 basis-40 flex-1 rounded-md border border-slate-300 bg-white px-2 py-1 text-slate-900
                              placeholder-slate-500 dark:border-slate-500 dark:bg-slate-900
                              dark:text-slate-50 dark:placeholder-slate-300"
                       aria-label="Nome nuovo elemento"
@@ -173,22 +173,24 @@ let generatedSelectId = 0;
                       (keydown.enter)="confirmCreateNew()"
                       (keydown.escape)="cancelCreateNew(); $event.stopPropagation()"
                     />
-                    <button
-                      type="button"
-                      class="rounded-md bg-slate-200 px-2 py-1 text-slate-900 dark:bg-slate-700 dark:text-slate-50"
-                      aria-label="Annulla creazione"
-                      (click)="cancelCreateNew()"
-                    >
-                      Annulla
-                    </button>
-                    <button
-                      type="button"
-                      class="rounded-md bg-emerald-600 px-2 py-1 text-white"
-                      aria-label="Conferma creazione"
-                      (click)="confirmCreateNew()"
-                    >
-                      Crea
-                    </button>
+                    <div class="ml-auto flex shrink-0 items-center gap-2">
+                      <button
+                        type="button"
+                        class="rounded-md bg-slate-200 px-2 py-1 text-slate-900 dark:bg-slate-700 dark:text-slate-50"
+                        aria-label="Annulla creazione"
+                        (click)="cancelCreateNew()"
+                      >
+                        Annulla
+                      </button>
+                      <button
+                        type="button"
+                        class="rounded-md bg-emerald-600 px-2 py-1 text-white"
+                        aria-label="Conferma creazione"
+                        (click)="confirmCreateNew()"
+                      >
+                        Crea
+                      </button>
+                    </div>
                   </div>
                 } @else {
                   <button

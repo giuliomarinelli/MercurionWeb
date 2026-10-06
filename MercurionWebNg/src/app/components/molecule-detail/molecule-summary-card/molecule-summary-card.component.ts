@@ -62,7 +62,7 @@ import { MoleculeSummaryAction, MoleculeSummaryViewModel } from './molecule-summ
         }
       </div>
 
-      <div class="pointer-events-none relative shrink-0 justify-self-end overflow-hidden rounded-xl border border-slate-200/70 bg-white/40 dark:border-slate-700/60 dark:bg-slate-900/30"
+      <div class="pointer-events-none relative shrink-0 justify-self-start md:justify-self-end overflow-hidden rounded-xl border border-slate-200/70 bg-white/40 dark:border-slate-700/60 dark:bg-slate-900/30"
         [class.order-1]="viewModel().compact"
         [class.size-12]="viewModel().compact"
         [class.size-24]="!viewModel().compact"
@@ -77,15 +77,15 @@ import { MoleculeSummaryAction, MoleculeSummaryViewModel } from './molecule-summ
       @if (!viewModel().compact && viewModel().source === 'saved') {
         <div class="pointer-events-none relative z-20 mt-1 flex flex-col items-start justify-between gap-3 text-xs text-slate-700 dark:text-slate-200 sm:flex-row sm:items-center md:col-span-12">
           @if (viewModel().createdAt && viewModel().updatedAt) {
-            <div class="flex flex-wrap items-center gap-3">
-              <span>Creata {{ viewModel().createdAt | date:'dd/MM/yyyy HH:mm:ss' }}</span>
-              <span>Aggiornata {{ viewModel().updatedAt | date:'dd/MM/yyyy HH:mm:ss' }}</span>
-            </div>
+            <span class="inline-flex items-center">
+              <svg class="size-3.5 mr-1.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M6 2a1 1 0 0 1 1 1v1h6V3a1 1 0 1 1 2 0v1h1a2 2 0 0 1 2 2v1H3V6a2 2 0 0 1 2-2h1V3a1 1 0 0 1 1-1z"/><path d="M3 8h14v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8z"/></svg>
+              <span>{{ viewModel().createdAt | date :'dd/MM/yyyy HH:mm:ss' }}</span>
+            </span>
           }
-          <div class="pointer-events-auto flex flex-wrap items-center justify-end gap-3">
+          <div class="pointer-events-auto flex flex-wrap items-center justify-start gap-3 sm:justify-end">
           @for (action of visibleActions(); track action.label) {
             @if (action.kind === 'link') {
-              <a class="rounded-md p-1 transition-colors duration-150 hover:bg-slate-200 dark:hover:bg-slate-700"
+              <a class="rounded-md p-1 first:pl-0 transition-colors duration-150 hover:bg-slate-200 dark:hover:bg-slate-700"
                 [routerLink]="action.href" [queryParams]="action.queryParams" [title]="action.label" [attr.aria-label]="action.label">
                 @if (action.icon === 'duplicate') {
                   <svg class="size-4 text-slate-700 dark:text-slate-200" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -96,7 +96,7 @@ import { MoleculeSummaryAction, MoleculeSummaryViewModel } from './molecule-summ
               </a>
             } @else if (action.action !== 'select') {
               <button type="button"
-                class="rounded-md p-1 transition-colors duration-150 hover:bg-slate-200 dark:hover:bg-slate-700"
+                class="rounded-md p-1 text-xs transition-colors duration-150 hover:bg-slate-200 dark:hover:bg-slate-700"
                 [class.flex]="action.icon === 'remove'" [class.items-center]="action.icon === 'remove'" [class.gap-2]="action.icon === 'remove'"
                 [class.border]="action.icon === 'remove'" [class.px-3]="action.icon === 'remove'"
                 [title]="action.label" [attr.aria-label]="action.label" (click)="actionSelected.emit(action.action)">
@@ -105,7 +105,7 @@ import { MoleculeSummaryAction, MoleculeSummaryViewModel } from './molecule-summ
                     <path fill-rule="evenodd" d="M6 8a1 1 0 0 1 1 1v7h6V9a1 1 0 1 1 2 0v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V9a1 1 0 0 1 1-1zM4 5a1 1 0 0 1 1-1h2V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1h2a1 1 0 0 1 1 1v1H4V5z" clip-rule="evenodd" />
                   </svg>
                 } @else if (action.icon === 'remove') {
-                  <svg class="size-4 fill-current" viewBox="0 0 640 640" aria-hidden="true"><path d="M96 304L544 304L544 336L96 336L96 304z" /></svg>
+                  <svg class="w-4 h-auto shrink-0 fill-current" viewBox="0 0 640 640" aria-hidden="true"><path d="M96 304L544 304L544 336L96 336L96 304z" /></svg>
                   <span>{{ action.label }}</span>
                 } @else { <span>{{ action.label }}</span> }
               </button>

@@ -71,7 +71,7 @@ export class AppShellFacade implements OnDestroy {
       const policy = this.routePolicy()
       const isPublic = policy.access !== 'authenticated'
       const isLoggedOutOnly = policy.access === 'logged-out-only'
-      const safeNavigate = (target: string) => {
+      const safeNavigate = (target: string, requiresAuthentication = false) => {
         if (!target) return
         const active = this.programmaticNavigation
         if (active?.target === target) return
@@ -83,6 +83,10 @@ export class AppShellFacade implements OnDestroy {
         this.programmaticNavigation = transaction
         queueMicrotask(() => {
           if (this.programmaticNavigation !== transaction) return
+          if (requiresAuthentication && !this.authState.authenticated()) {
+            this.programmaticNavigation = undefined
+            return
+          }
           if (this.normalize(this.router.url).toLowerCase() === url) {
             void this.router.navigateByUrl(target).finally(() => {
               if (this.programmaticNavigation === transaction) {
@@ -96,7 +100,7 @@ export class AppShellFacade implements OnDestroy {
       }
 
       if (url === '/' && logged) {
-        safeNavigate('/dashboard')
+        safeNavigate('/dashboard', true)
       } else if (!logged) {
         if (!isPublic) {
           const target = this.redirects.capture(this.router.url)
@@ -105,7 +109,7 @@ export class AppShellFacade implements OnDestroy {
           })))
         }
       } else if (isLoggedOutOnly) {
-        safeNavigate('/dashboard')
+        safeNavigate('/dashboard', true)
       }
     })
   }

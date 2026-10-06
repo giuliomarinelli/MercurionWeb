@@ -21,6 +21,12 @@ describe('AuthErrorService', () => {
     expect(service.error()).toBeNull()
   })
 
+  it('maps a status-only MFA rejection to the code instead of login credentials', () => {
+    const rejection = new HttpErrorResponse({ status: 401 })
+    expect(service.setFromHttp(rejection, 'mfa')?.message).toBe('Il codice inserito non è corretto.')
+    expect(service.setFromHttp(rejection, 'login')?.category).toBe('invalid-credentials')
+  })
+
   it('maps stable codes once and consumes the MFA handoff without replay', () => {
     service.setFromHttp(failure(ApplicationErrorCode.MFA_CODE_INVALID), 'mfa')
 

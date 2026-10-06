@@ -10,6 +10,7 @@ import { HeaderSessionState } from './header.models';
       <button type="button"
               [attr.aria-label]="label()"
               [attr.title]="label()"
+              [attr.aria-expanded]="expanded()"
               (click)="toggled.emit()"
               class="text-[1.185rem] leading-6 avatar-toggle-button inline-flex items-center justify-center size-8 rounded-full cursor-pointer bg-light-accent-secondary/85 text-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2">
         {{ session().initials.slice(0, 1) }}

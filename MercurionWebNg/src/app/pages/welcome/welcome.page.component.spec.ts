@@ -6,7 +6,7 @@ import { SessionSyncService } from '../../services/session-sync.service';
 import { WelcomePageComponent } from './welcome.page.component';
 
 describe('WelcomePageComponent', () => {
-  const kind = signal<'bootstrap' | 'authenticating' | 'anonymous' | 'authenticated'>('bootstrap');
+  const kind = signal<'bootstrap' | 'authenticating' | 'anonymous' | 'authenticated' | 'pre-auth'>('bootstrap');
   const authenticated = signal(false);
   const status = signal<'unknown' | 'checking' | 'anonymous' | 'loggedIn'>('unknown');
   let component: WelcomePageComponent;
@@ -52,6 +52,14 @@ describe('WelcomePageComponent', () => {
     status.set('anonymous');
     fixture.detectChanges();
 
+    expect(fixture.nativeElement.querySelector('m-welcome-hero')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.mercurion-welcome-pending')).toBeNull();
+  });
+
+  it('shows public content after leaving an incomplete MFA login', () => {
+    kind.set('pre-auth');
+    status.set('anonymous');
+    fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('m-welcome-hero')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('.mercurion-welcome-pending')).toBeNull();
   });

@@ -38,7 +38,7 @@ export class AuthErrorService {
   setFromHttp(error: unknown, flow: AuthErrorFlow): EphemeralAuthError | null {
     const response = error instanceof HttpErrorResponse ? error : null
     const code = getApplicationErrorCode(response?.error)
-    const category = categoryFor(code, response?.status)
+    const category = categoryFor(code, response?.status, flow)
     if (!category) return null
 
     const next: EphemeralAuthError = {
@@ -60,11 +60,12 @@ export class AuthErrorService {
 
 function categoryFor(
   code: ApplicationErrorEnvelopeCode | undefined,
-  status: number | undefined
+  status: number | undefined,
+  flow: AuthErrorFlow
 ): AuthErrorCategory | null {
   switch (code) {
     case ApplicationErrorCode.AUTHENTICATION_INVALID_CREDENTIALS:
-      return 'invalid-credentials'
+      return flow === 'mfa' ? 'mfa-code-invalid' : 'invalid-credentials'
     case ApplicationErrorCode.AUTHENTICATION_TOO_MANY_ATTEMPTS:
     case ApplicationErrorCode.MFA_TOO_MANY_ATTEMPTS:
     case ApplicationErrorCode.MFA_SEND_TOO_MANY_REQUESTS:
@@ -80,7 +81,7 @@ function categoryFor(
       // Status-only fallbacks are limited to the authentication forms.  An
       // arbitrary HTTP error must never become auth UI state.
       if (status === 429) return 'rate-limited'
-      if (status === 401) return 'invalid-credentials'
+      if (status === 401) return flow === 'mfa' ? 'mfa-code-invalid' : 'invalid-credentials'
       return null
   }
 }

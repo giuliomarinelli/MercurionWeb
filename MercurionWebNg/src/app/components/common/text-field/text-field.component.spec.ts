@@ -68,6 +68,7 @@ describe('TextFieldComponent', () => {
     const hint = fixture.nativeElement.querySelector('#display-name-hint');
 
     expect(input.id).toBe('display-name');
+    expect(input.name).toBe('displayName');
     expect(label.htmlFor).toBe('display-name');
     expect(input.getAttribute('aria-describedby')).toBe('display-name-hint');
     expect(hint.textContent).toContain('Use your public name');
@@ -83,6 +84,29 @@ describe('TextFieldComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.componentInstance.form.controls.displayName.value).toBe('Ada');
+  });
+
+  it('synchronizes silent browser autofill with the form and floating label without duplicate changes', () => {
+    const input: HTMLInputElement = fixture.nativeElement.querySelector('input');
+    const changes = jasmine.createSpy('changes');
+    fixture.componentInstance.form.controls.displayName.valueChanges.subscribe(changes);
+    input.value = 'Ada';
+    input.dispatchEvent(new AnimationEvent('animationstart', { animationName: 'cdk-text-field-autofill-start' }));
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.form.controls.displayName.value).toBe('Ada');
+    expect(fixture.nativeElement.querySelector('label').style.top).toBe('0px');
+    input.dispatchEvent(new Event('input'));
+    input.dispatchEvent(new Event('change'));
+    expect(changes).toHaveBeenCalledOnceWith('Ada');
+  });
+
+  it('accepts browser changes even when no input event is dispatched', () => {
+    const input: HTMLInputElement = fixture.nativeElement.querySelector('input');
+    input.value = 'Grace';
+    input.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+    expect(fixture.componentInstance.form.controls.displayName.value).toBe('Grace');
   });
 
   it('exposes invalid state and the associated error message after blur', () => {

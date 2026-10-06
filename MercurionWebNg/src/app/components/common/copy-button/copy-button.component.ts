@@ -7,8 +7,10 @@ import { CopyIconStatus } from '../../../Models/copy.models';
   selector: 'm-copy-button',
   imports: [IconButtonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'inline-flex items-center' },
   template: `
   <m-icon-button
+    class="flex"
     [ariaLabelledby]="ariaLabelledby()"
     [ariaDescribedby]="ariaDescribedby()"
     [ariaLabel]="ariaLabel()"

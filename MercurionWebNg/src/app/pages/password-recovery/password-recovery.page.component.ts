@@ -1,3 +1,4 @@
+import { ButtonPendingContentComponent } from '../../components/common/button/button-pending-content.component';
 import { LoggerService } from '../../services/logger.service';
 import { Component, ChangeDetectionStrategy, DestroyRef, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -19,7 +20,7 @@ import {
 @Component({
   selector: 'm-password-recovery',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
+  imports: [ButtonPendingContentComponent,
     ReactiveFormsModule,
     TextFieldComponent,
     ProgressIndicatorComponent,
@@ -74,21 +75,11 @@ import {
                 [attr.aria-busy]="step_12_loading()"
                 aria-label="Conferma nuova password"
               >
-              @if (!step_12_loading()) {
-                @if (!serverError()) {
-                  Cambia password
-                } @else {
-                  <div class="text-slate-200 flex items-center justify-center gap-3">
-                    <span>Redirecting...</span>
-                    <m-progress-indicator [size]="20" aria-hidden="true" />
-                  </div>
+              <m-button-pending-content [pending]="step_12_loading()">
+                @if (!serverError()) { Cambia password } @else {
+                  <span class="inline-flex items-center gap-3">Redirecting...<m-progress-indicator [size]="20" aria-hidden="true" /></span>
                 }
-              } @else {
-                <div class="text-slate-200 flex items-center justify-center" aria-hidden="true">
-                  <m-progress-indicator [size]="20" />
-                </div>
-
-              }
+              </m-button-pending-content>
               </button>
               @if (serverError()) {
                 <p class="mt-3 text-sm text-red-700 dark:text-red-400" role="alert" aria-live="assertive">

@@ -74,7 +74,7 @@ import { ProgressIndicatorComponent } from '../../components/common/progress-ind
           <a routerLink="/privacy" class="underline" target="_blank" rel="noopener noreferrer">Informativa sulla Privacy</a>,
           i <a routerLink="/terms-and-policies" class="underline" target="_blank" rel="noopener noreferrer">Termini di Servizio</a>
           e la <a routerLink="/terms-and-policies" fragment="aup" class="underline" target="_blank" rel="noopener noreferrer">Politica di Utilizzo Accettabile</a>.
-          <br />Verrà creata automaticamente una sessione di 30 giorni di durata.
+          &nbsp;Verrà creata automaticamente una sessione di 30 giorni di durata.
         </p>
         </div>
       </main>
@@ -144,14 +144,17 @@ export class LoginPageComponent implements OnInit {
       finalize(() => form?.setPending(false))
     )
       .subscribe({
-        next: () => this.pageLoading.set(true),
+        next: result => this.pageLoading.set(result.kind === 'authenticated'),
         error: error => {
+          this.pageLoading.set(false)
           const formError = adaptHttpFormError(error)
           const category = this.errors.setFromHttp(error, 'login')?.category
           if (category === 'invalid-credentials') {
             form?.showCredentialError(formError.globalError ?? 'La password inserita non è corretta.')
           } else if (category === 'rate-limited') {
             form?.showCredentialError(formError.globalError ?? 'Troppi tentativi, riprova tra qualche minuto.')
+          } else {
+            form?.showCredentialError('Non è stato possibile completare l’accesso. Riprova.')
           }
           form?.resetTurnstile()
         },

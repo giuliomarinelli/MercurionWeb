@@ -16,7 +16,7 @@ import { SkeletonCollectionCardComponent } from '../../common/skeleton-card-load
       </div>
     } @else if (!loaded() && !notFound()) {
       @for (i of [0, 1]; track i) {
-        <m-skeleton-collection-card [height]="'112px'" />
+        <m-skeleton-collection-card [isReadonly]="true" />
       }
     } @else if (notFound()) {
       <div class="flex items-center justify-center min-h-[112px] text-sm text-light-on-surface-secondary dark:text-dark-on-surface-secondary">

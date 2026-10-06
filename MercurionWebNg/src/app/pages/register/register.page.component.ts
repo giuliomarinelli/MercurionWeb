@@ -1,3 +1,4 @@
+import { ButtonPendingContentComponent } from '../../components/common/button/button-pending-content.component';
 import { Component, ChangeDetectionStrategy, computed, DestroyRef, inject, OnDestroy, OnInit, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PublicPipe } from '../../pipes/public.pipe';
@@ -11,7 +12,6 @@ import { TextFieldComponent } from '../../components/common/text-field/text-fiel
 import { PmSelectComponent } from '../../components/common/pm-select/pm-select.component';
 import { emailAvailabilityValidator, matchPassword } from '../../custom-validators';
 import { UserGenderControl, UserRegisterDTO, UserRegistrationFormControls, UserRegistrationFormValue } from '../../Models/auth/user.models';
-import { ProgressIndicatorComponent } from '../../components/common/progress-indicator/progress-indicator.component';
 import { Helpers } from '../../helpers';
 import { ToastService } from '../../services/toast.service';
 import { ScrollContextService } from '../../services/context/scroll-context.service';
@@ -25,12 +25,12 @@ import { ApplicationErrorCode, getApplicationErrorCode } from '../../utils/appli
 @Component({
   selector: 'm-register.page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
+  imports: [ButtonPendingContentComponent,
     PublicPipe,
     ReactiveFormsModule,
     TextFieldComponent,
     PmSelectComponent,
-    ProgressIndicatorComponent,
+
     RouterLink,
     TurnstileComponent
   ],
@@ -61,7 +61,7 @@ import { ApplicationErrorCode, getApplicationErrorCode } from '../../utils/appli
               <m-text-field
                   label="Nome"
                   type="text"
-                  autocomplete="current-name"
+                  autocomplete="given-name"
                   formControlName="firstName"
                   [errors]="{
                     required: 'Il nome è obbligatorio.',
@@ -71,7 +71,7 @@ import { ApplicationErrorCode, getApplicationErrorCode } from '../../utils/appli
               <m-text-field
                   label="Cognome"
                   type="text"
-                  autocomplete="current-surname"
+                  autocomplete="family-name"
                   formControlName="lastName"
                   [errors]="{
                     required: 'Il cognome è obbligatorio.',
@@ -83,7 +83,7 @@ import { ApplicationErrorCode, getApplicationErrorCode } from '../../utils/appli
               <m-text-field
                   label="E-mail"
                   type="email"
-                  autocomplete="current-email"
+                  autocomplete="email"
                   formControlName="email"
                   [errors]="{
                     required: this.emailRequired,
@@ -96,7 +96,7 @@ import { ApplicationErrorCode, getApplicationErrorCode } from '../../utils/appli
               <m-text-field
                   label="Il tuo lavoro"
                   type="text"
-                  autocomplete="current-job"
+                  autocomplete="organization-title"
                   formControlName="job"
                   [errors]="{}"
               />
@@ -115,7 +115,7 @@ import { ApplicationErrorCode, getApplicationErrorCode } from '../../utils/appli
               <m-text-field
                   label="Password"
                   type="password"
-                  autocomplete="current-password"
+                  autocomplete="new-password"
                   formControlName="password"
                   [errors]="{
                     required: 'La password è obbligatoria.',
@@ -125,7 +125,7 @@ import { ApplicationErrorCode, getApplicationErrorCode } from '../../utils/appli
               <m-text-field
                   label="Inserisci di nuovo la password"
                   type="password"
-                  autocomplete="current-password"
+                  autocomplete="new-password"
                   formControlName="confirmPassword"
                   [errors]="{
                     required: 'Il campo di conferma password è obbligatorio.',
@@ -152,7 +152,7 @@ import { ApplicationErrorCode, getApplicationErrorCode } from '../../utils/appli
                       class="stroke-white" />
                   </svg>
 
-                  <span id="accept-terms-description" class="min-w-0 flex-1 break-words text-sm font-medium text-gray-900 dark:text-white tracking-wider">
+                  <span id="accept-terms-description" class="min-w-0 flex-1 break-words text-base font-medium text-gray-900 dark:text-white tracking-wider">
                     Dichiaro di aver letto e di accettare l'<a class="a" routerLink="/privacy">Informativa sulla Privacy</a>, i <a class="a" routerLink="/terms-and-policies">Termini di Servizio</a> e la <a class="a" routerLink="/terms-and-policies" fragment="aup">Politica di Utilizzo Accettabile</a>.
                   </span>
                 </label>
@@ -187,13 +187,7 @@ import { ApplicationErrorCode, getApplicationErrorCode } from '../../utils/appli
                 [attr.aria-busy]="loading()"
                 aria-label="Completa la registrazione"
               >
-                @if (!loading()) {
-                  Registrati
-                } @else {
-                  <div class="text-slate-200 flex items-center justify-center" aria-hidden="true">
-                    <m-progress-indicator [size]="20" />
-                  </div>
-                }
+                <m-button-pending-content [pending]="loading()">Registrati</m-button-pending-content>
               </button>
             </div>
           </form>

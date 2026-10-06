@@ -51,6 +51,18 @@ describe('MoleculeSummaryCardComponent', () => {
     expect(fixture.nativeElement.querySelector('.pointer-events-none')).not.toBeNull();
   });
 
+  it('renders the remove action at text-xs with a 16px icon', () => {
+    fixture.componentRef.setInput('viewModel', model('saved', {
+      actions: [{ kind: 'button', label: 'Rimuovi dalla collezione', icon: 'remove', action: 'remove' }]
+    }));
+    fixture.detectChanges();
+    const button = fixture.nativeElement.querySelector('button[aria-label="Rimuovi dalla collezione"]') as HTMLButtonElement;
+    expect(getComputedStyle(button).fontSize).toBe('12px');
+    expect(getComputedStyle(button.querySelector('span')!).fontSize).toBe('12px');
+    expect(getComputedStyle(button.querySelector('svg')!).width).toBe('16px');
+    expect(getComputedStyle(button.querySelector('svg')!).height).toBe('16px');
+  });
+
   it('applies disappearance and collapse states supplied by the collection wrapper', () => {
     fixture.componentRef.setInput('viewModel', model('saved'));
     fixture.componentRef.setInput('disappearing', true);

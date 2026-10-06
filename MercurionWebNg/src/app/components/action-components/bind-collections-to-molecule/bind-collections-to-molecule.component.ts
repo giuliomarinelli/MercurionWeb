@@ -1,3 +1,4 @@
+import { ViewportRuntimeService } from '../../../services/context/viewport-runtime.service';
 import { BindCollectionsToMoleculeContextService } from './../../../services/context/action-context/bind-collections-to-molecule-context.service';
 import {
   AfterViewInit,
@@ -47,6 +48,11 @@ import { ToastService } from '../../../services/toast.service';
   ],
   styles: [
     `
+    :host-context(.m-dialog--compact) .m-bind-list,
+    :host-context(.m-dialog--compact) .m-bind-body { flex: 0 0 auto; overflow: visible; }
+    @media (max-width: 767px) {
+      .m-bind-list, .m-bind-body { flex: 0 0 auto; overflow: visible; }
+    }
     /* Scrollbar sottile cross-browser */
     .m-scroll-thin {
       scrollbar-width: thin; /* Firefox */
@@ -84,9 +90,10 @@ import { ToastService } from '../../../services/toast.service';
     `
   ],
   template: `
-<div class="flex justify-center items-start md:items-center min-h-dvh px-2 sm:px-4 m-overlay-screen">
+<div class="flex justify-center items-start md:items-center px-2 sm:px-4 m-overlay-screen">
   <m-action-card
     size="wide"
+    [bodyScroll]="false"
     labelledBy="bindCollectionsHeading"
     closeLabel="Chiudi pannello collega collezioni"
     [busy]="step_12_loading()"
@@ -101,10 +108,10 @@ import { ToastService } from '../../../services/toast.service';
       </h2>
 
       <!-- BODY -->
-      <div action-card-body class="bg-white dark:bg-dark-surface-main">
+      <div action-card-body class="m-bind-body bg-white dark:bg-dark-surface-main flex flex-col flex-1 min-h-0 overflow-hidden">
       <div
         #scrollRoot
-        class="py-6 px-2 sm:px-3 overflow-y-auto flex flex-col gap-4 m-scroll-thin m-overscroll-touch m-overlay-body"
+        class="m-bind-list flex-1 min-h-0 py-6 px-2 sm:px-3 overflow-y-auto flex flex-col gap-4 m-scroll-thin"
       >
         @switch (step()) {
           @case (1) {
@@ -304,7 +311,10 @@ export class BindCollectionsToMoleculeComponent implements OnInit, AfterViewInit
     this.picker.destroy();
   }
 
+  protected readonly viewport = inject(ViewportRuntimeService);
   private _rearmOnStep = effect(() => {
+    this.viewport.visualWidth();
+    this.viewport.overlayCompact();
     if (this.step() === 1) {
       queueMicrotask(() => this.startObserver());
     } else {
@@ -343,7 +353,9 @@ export class BindCollectionsToMoleculeComponent implements OnInit, AfterViewInit
     this.observer?.disconnect();
     this.observer = new IntersectionObserver(entries => {
       if (entries[0]?.isIntersecting && this.step() === 1) void this.loadMore();
-    }, { root: this.root()?.nativeElement ?? null, rootMargin: '0px 0px 500px 0px' });
+    }, { root: this.viewport.state().visualWidth < 768 || this.viewport.overlayCompact()
+      ? this.root()?.nativeElement.closest('.m-action-card') ?? null : this.root()?.nativeElement ?? null,
+      rootMargin: '0px 0px 500px 0px' });
     this.observer.observe(sentinel);
   }
   toggleOne(row: AbstractMultiselectItem<UiMoleculeCollection>): void {

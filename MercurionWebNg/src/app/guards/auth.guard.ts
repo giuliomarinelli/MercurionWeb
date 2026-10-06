@@ -31,7 +31,8 @@ export class AuthGuard implements CanActivate {
       return true
     }
 
-    if (this.authState.isAuthenticating()) {
+    const auth = this.authState.state()
+    if (auth.kind === 'authenticating' && auth.flow === 'restore') {
       return this.waitForSessionRestore(state)
     }
 

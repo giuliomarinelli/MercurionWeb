@@ -26,7 +26,6 @@ describe('CopyButtonComponent', () => {
     const wrapper = fixture.nativeElement.querySelector('m-icon-button') as HTMLElement;
     const button = wrapper.querySelector('button') as HTMLButtonElement;
 
-    expect(wrapper.classList.length).toBe(0);
     expect(button.classList).toContain('hover:bg-slate-100');
     expect(button.classList).toContain('focus-visible:ring-2');
   });

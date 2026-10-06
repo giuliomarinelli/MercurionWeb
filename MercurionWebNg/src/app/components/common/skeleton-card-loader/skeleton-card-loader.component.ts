@@ -51,9 +51,9 @@ import { SkeletonComponent } from '../skeleton/skeleton.component';
       </div>
 
       <!-- Footer: meta + (azioni placeholder se non readonly) -->
-      <div class="md:col-span-12 mt-1 md:mt-0 flex items-center justify-between">
+      <div class="md:col-span-12 mt-1 md:mt-0 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 min-w-0">
         <!-- Meta left -->
-        <div class="flex items-center gap-3">
+        <div class="flex flex-wrap items-center gap-3 min-w-0">
           <m-skeleton width="9rem" height=".75rem" />
           <span class="size-1 rounded-full bg-slate-300 dark:bg-slate-600"></span>
           <m-skeleton width="8rem" height=".75rem" />
@@ -61,7 +61,7 @@ import { SkeletonComponent } from '../skeleton/skeleton.component';
 
         <!-- Azioni right (solo se !readonly) -->
         @if (!_isReadonly()) {
-          <div class="flex items-center gap-3">
+          <div class="flex flex-wrap items-center gap-3 min-w-0">
             <!-- Duplica (icona) -->
             <m-skeleton shape="rect" width="1.75rem" height="1.75rem" />
 

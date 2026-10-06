@@ -8,7 +8,8 @@ import { MessageItemComponent } from '../message-item/message-item.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MessageItemComponent],
   template: `
-    <div #scrollRoot class="py-6 px-3 overflow-y-auto flex flex-col gap-4 m-overscroll-touch m-overlay-body m-scroll-thin"
+    <div #scrollRoot class="py-6 px-3 overflow-y-auto flex flex-col gap-4 m-scroll-thin"
+         style="max-height: calc(var(--m-overlay-vh, 1dvh) * 40)"
          role="list" aria-label="Messaggi del ticket" aria-live="polite" (scroll)="onScroll()">
       @if (pageError()) {
         <button type="button" class="mx-auto text-sm underline" (click)="retry.emit()">Riprova caricamento</button>

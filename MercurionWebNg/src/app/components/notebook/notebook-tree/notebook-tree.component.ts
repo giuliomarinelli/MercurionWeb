@@ -23,7 +23,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
     <li>
       <div class="font-bold flex items-center gap-2">
         {{ nb.title }}
-        <button (click)="addChapter(nb.id)">+ Capitolo</button>
+        <button type="button" class="inline-flex items-center gap-1 text-xs" (click)="addChapter(nb.id)"><svg class="w-4 h-auto shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg><span>Capitolo</span></button>
       </div>
       <ul>
         @for (chapter of nb.chapters; track chapter) {
@@ -39,7 +39,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
               {{ chapter.title }}
               <button (click)="renameChapter(chapter.id, chapter.title)">✏️</button>
               <button (click)="deleteChapter(chapter.id)">🗑️</button>
-              <button (click)="addSection(chapter.id)">+ Sezione</button>
+              <button type="button" class="inline-flex items-center gap-1 text-xs" (click)="addSection(chapter.id)"><svg class="w-4 h-auto shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg><span>Sezione</span></button>
             </div>
             @if (expandedChapters()[chapter.id]) {
               <ul>
@@ -57,7 +57,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
                         {{ section.title }}
                         <button (click)="renameSection(section.id, section.title)">✏️</button>
                         <button (click)="deleteSection(section.id)">🗑️</button>
-                        <button (click)="addPage(section)">+ pagina</button>
+                        <button type="button" class="inline-flex items-center gap-1 text-xs" (click)="addPage(section)"><svg class="w-4 h-auto shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg><span>pagina</span></button>
                       </div>
                       <!-- Pagine -->
                       @if (expandedSections()[section.id]) {

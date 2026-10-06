@@ -18,7 +18,9 @@ describe('BindCollectionsToMoleculeComponent', () => {
     await TestBed.configureTestingModule({
       imports: [BindCollectionsToMoleculeComponent],
       providers: [
-        { provide: BindCollectionsToMoleculeContextService, useValue: { moleculeId: signal('molecule-1') } },
+        { provide: BindCollectionsToMoleculeContextService, useValue: {
+          moleculeId: signal('molecule-1'), moleculeName: signal('Molecola')
+        } },
         { provide: MoleculeCollectionService, useValue: {
           getPaginatedCollections: getPage, bindManyCollectionsToMolecule: bind
         } }

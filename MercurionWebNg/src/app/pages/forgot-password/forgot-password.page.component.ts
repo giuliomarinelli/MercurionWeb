@@ -1,3 +1,4 @@
+import { ButtonPendingContentComponent } from '../../components/common/button/button-pending-content.component';
 import { Component, ChangeDetectionStrategy, DestroyRef, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TextFieldComponent } from '../../components/common/text-field/text-field.component'
@@ -5,13 +6,12 @@ import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AccountService } from '../../services/account.service';
 import { Subscription } from 'rxjs';
 import { TurnstileComponent } from '../../components/common/turnstile/turnstile.component';
-import { ProgressIndicatorComponent } from '../../components/common/progress-indicator/progress-indicator.component';
 import { adaptHttpFormError } from '../../utils/form-error.adapter'
 
 @Component({
   selector: 'm-forgot-password',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [  TextFieldComponent, ReactiveFormsModule, TurnstileComponent, ProgressIndicatorComponent],
+  imports: [ButtonPendingContentComponent,  TextFieldComponent, ReactiveFormsModule, TurnstileComponent],
   template: `
 
     <main class="block" role="main" aria-live="polite" aria-busy="{{ step_12_loading() }}">
@@ -54,14 +54,7 @@ import { adaptHttpFormError } from '../../utils/form-error.adapter'
               [attr.aria-busy]="step_12_loading()"
               aria-label="Recupera password"
             >
-              @if (!step_12_loading()) {
-                Recupera
-              } @else {
-                <div class="text-slate-200 flex items-center justify-center" aria-hidden="true">
-                  <m-progress-indicator [size]="20" />
-                </div>
-
-              }
+              <m-button-pending-content [pending]="step_12_loading()">Recupera</m-button-pending-content>
             </button>
             <div class="flex justify-center mt-10">
               @if (loadingTurnstile()) {

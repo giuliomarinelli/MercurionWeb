@@ -139,7 +139,7 @@ export class WelcomePageComponent implements OnInit, OnDestroy {
     const kind = this.authState.kind()
     const status = this.sessionSync.status()
     return !this.authState.authenticated() &&
-      (kind === 'anonymous' || kind === 'session-expired') &&
+      (kind === 'anonymous' || kind === 'session-expired' || kind === 'pre-auth') &&
       status !== 'unknown' && status !== 'checking'
   })
 

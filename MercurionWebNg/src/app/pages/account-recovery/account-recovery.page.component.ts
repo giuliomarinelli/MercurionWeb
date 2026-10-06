@@ -1,3 +1,4 @@
+import { ButtonPendingContentComponent } from '../../components/common/button/button-pending-content.component';
 import { Component, ChangeDetectionStrategy, computed, DestroyRef, inject, OnDestroy, OnInit, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TextFieldComponent } from '../../components/common/text-field/text-field.component'
@@ -17,7 +18,7 @@ import { adaptHttpFormError, type FormErrorState } from '../../utils/form-error.
 @Component({
   selector: 'm-account-recovery.page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
+  imports: [ButtonPendingContentComponent,
     TextFieldComponent,
     TurnstileComponent,
     ReactiveFormsModule,
@@ -167,15 +168,11 @@ import { adaptHttpFormError, type FormErrorState } from '../../utils/form-error.
                   type="submit"
                   [disabled]="loading() || !turnstileToken() || recoveryGroup.invalid"
                   [attr.aria-disabled]="loading() || !turnstileToken() || recoveryGroup.invalid"
+                  [attr.aria-busy]="loading()"
+                  aria-label="Continua"
                   class="relative bottom-[2px] w-full mt-4 py-2 text-white rounded-md transition-colors duration-150 bg-light-accent-primary-hq dark:bg-dark-accent-primary-btn hover:bg-light-accent-primary-hc dark:hover:bg-dark-accent-primary/80 disabled:bg-light-accent-primary-hq/60 disabled:dark:bg-dark-accent-primary/80 disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary-hq/60 disabled:hover:dark:bg-dark-accent-primary/80"
                 >
-                  @if (!loading()) {
-                    Continua
-                  } @else {
-                    <div class="text-slate-200 flex items-center justify-center">
-                      <m-progress-indicator [size]="20" />
-                    </div>
-                  }
+                  <m-button-pending-content [pending]="loading()">Continua</m-button-pending-content>
                 </button>
               </div>
               <div class="flex justify-center relative top-3">

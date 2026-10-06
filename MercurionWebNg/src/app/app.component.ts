@@ -95,7 +95,7 @@ import { RealtimeStateSyncService } from './services/realtime-state-sync.service
           <section
             class="content flex min-w-0 flex-col flex-1 transition-[margin] duration-500"
             [class.ml-64]="sidenavContext.isOpen() && authState.authenticated() && design.minBk('xl')()">
-            <main class="flex-1 p-4 block">
+            <main class="flex-1 p-4 pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] min-w-0 block">
               <router-outlet />
             </main>
             <m-footer class="shrink-0" />

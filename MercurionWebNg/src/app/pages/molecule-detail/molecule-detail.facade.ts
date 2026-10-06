@@ -187,7 +187,11 @@ export class MoleculeDetailFacade {
         event.action === 'changed' &&
         event.remote === true &&
         (!event.resourceId || event.resourceId === currentId);
-      if (!remoteMoleculeChanged && !reconnect) return;
+      const collectionsBound =
+        event.domain === 'molecule' &&
+        event.action === 'collections-bound' &&
+        event.moleculeId === currentId;
+      if (!remoteMoleculeChanged && !collectionsBound && !reconnect) return;
 
       if (remoteMoleculeChanged && event.change === 'deleted') {
         this.toast.trigger('Questa molecola è stata eliminata da un’altra sessione.', 'info', 4500);
@@ -196,7 +200,9 @@ export class MoleculeDetailFacade {
       }
 
       if (remoteMoleculeChanged) this.syncStatus.markSynchronized()
-      queueMicrotask(() => this.refresh$.next());
+      queueMicrotask(() => {
+        if (this.currentId() === currentId) this.refresh$.next();
+      });
     });
 
   }

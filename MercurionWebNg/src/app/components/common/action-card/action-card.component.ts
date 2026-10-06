@@ -51,7 +51,7 @@ const SIZE_CLASSES: Record<ActionCardSize, string> = {
         </div>
       </header>
 
-      <div class="m-action-card__body">
+      <div class="m-action-card__body" [class.m-action-card__body--managed]="!bodyScroll()">
         <ng-content select="[action-card-body]" />
       </div>
 
@@ -73,9 +73,10 @@ const SIZE_CLASSES: Record<ActionCardSize, string> = {
       display: flex;
       flex-direction: column;
       height: var(--m-action-card-height, auto);
-      max-height: var(--m-action-card-available-height, calc(100dvh - 2rem));
+      max-height: var(--m-action-card-available-height, calc(var(--m-overlay-vh, 1dvh) * 100 - 2rem));
       min-height: 0;
-      overflow: hidden;
+      overflow-y: auto;
+      overscroll-behavior: contain;
       width: 100%;
     }
 
@@ -120,16 +121,51 @@ const SIZE_CLASSES: Record<ActionCardSize, string> = {
       display: flex;
       flex: 1 1 auto;
       flex-direction: column;
-      min-height: 0;
+      min-height: 4rem;
       overflow-y: auto;
       overscroll-behavior: contain;
-      -webkit-overflow-scrolling: touch;
+    }
+
+    .m-action-card__body--managed {
+      min-height: 0;
+      overflow: hidden;
     }
 
     @media (max-width: 767px) {
       .m-action-card__header {
         padding: var(--m-space-3);
+        position: sticky;
+        top: 0;
+        background: var(--m-color-surface-elevated);
       }
+
+      .m-action-card__body {
+        flex: 0 0 auto;
+        min-height: 0;
+        overflow: visible;
+      }
+    }
+
+    :host-context(.m-dialog--compact) .m-action-card__header {
+      gap: 0.5rem;
+      padding: 0.5rem 0.75rem;
+      min-height: 4.5rem;
+      height: var(--m-action-card-header-height, auto);
+      position: sticky;
+      top: 0;
+      background: var(--m-color-surface-elevated);
+    }
+
+    :host-context(.m-dialog--compact) .m-action-card__body {
+      flex: 0 0 auto;
+      min-height: 0;
+      overflow: visible;
+    }
+
+    :host-context(.m-dialog--short) .m-action-card__header {
+      position: sticky;
+      top: 0;
+      background: var(--m-color-surface-elevated);
     }
 
     :host-context(.dark) .m-action-card {
@@ -148,6 +184,7 @@ export class ActionCardComponent {
   readonly size = input<ActionCardSize>('standard');
   readonly labelledBy = input<string | null>(null);
   readonly busy = input(false);
+  readonly bodyScroll = input(true);
   readonly closeLabel = input<string | null>(null);
   readonly closeDisabled = input(false);
   readonly closed = output<MouseEvent>();

@@ -88,23 +88,23 @@ import { MoleculeEditorLiveAnalysisFacade } from './molecule-editor-live-analysi
               ]" />
 
         <ng-template #molecularName>
-            <m-descriptor-card-content>
-                <div class="flex gap-3 items-center">
-                    {{ moleculeNameLoading() ? 'Ricerca…' : (currentMoleculeName() ?? 'ND') }}
+            <m-descriptor-card-content class="block w-full min-w-0">
+                <div class="flex gap-3 items-center min-w-0">
+                    <span class="min-w-0 wrap-break-word">{{ moleculeNameLoading() ? 'Ricerca…' : (currentMoleculeName() ?? 'ND') }}</span>
                     @if (!moleculeNameLoading() && currentMoleculeType() !== null) {
-                    <m-molecule-badge [name]="currentMoleculeType()!" />
+                    <m-molecule-badge class="shrink-0" [name]="currentMoleculeType()!" />
                     }
                 </div>
             </m-descriptor-card-content>
         </ng-template>
         <ng-template #canonicalSmilesContent>
-            <m-descriptor-card-content>
-                <div class="flex items-center gap-4">
-                    <span class="font-mono text-sm break-all">
+            <m-descriptor-card-content class="block w-full min-w-0">
+                <div class="flex items-center gap-4 min-w-0">
+                    <span class="min-w-0 font-mono text-sm break-all">
                         {{ currentCanonicalSmiles() || 'ND' }}
                     </span>
                     @if (currentCanonicalSmiles()) {
-                    <m-copy-button [src]="currentCanonicalSmiles() || ''" [disabled]="!currentCanonicalSmiles()"
+                    <m-copy-button class="shrink-0" [src]="currentCanonicalSmiles() || ''" [disabled]="!currentCanonicalSmiles()"
                         aria-label="Copia il Canonical SMILES negli appunti" />
                     }
                 </div>
@@ -122,7 +122,7 @@ import { MoleculeEditorLiveAnalysisFacade } from './molecule-editor-live-analysi
 
             <div class="flex flex-col 2xs:flex-row gap-3 mt-5 justify-end max-w-2xl mx-auto">
                 <button
-                    class="relative bottom-0.5 w-full mt-4 py-2 text-white rounded-md transition-colors duration-150 bg-light-accent-primary-hq dark:bg-dark-accent-primary-btn hover:bg-light-accent-primary-hc dark:hover:bg-dark-accent-primary/80 disabled:bg-light-accent-primary-hq/60 disabled:dark:bg-dark-accent-primary/80 disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary-hq/60 disabled:hover:dark:bg-dark-accent-primary/80"
+                    class="2xs:order-1 order-2 relative bottom-0.5 w-full mt-4 py-2 text-white rounded-md transition-colors duration-150 bg-light-accent-primary-hq dark:bg-dark-accent-primary-btn hover:bg-light-accent-primary-hc dark:hover:bg-dark-accent-primary/80 disabled:bg-light-accent-primary-hq/60 disabled:dark:bg-dark-accent-primary/80 disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary-hq/60 disabled:hover:dark:bg-dark-accent-primary/80"
                     (click)="onReset()" [disabled]="untouched()" [attr.aria-disabled]="untouched()"
                     aria-label="Resetta la struttura">
                     Resetta
@@ -130,13 +130,13 @@ import { MoleculeEditorLiveAnalysisFacade } from './molecule-editor-live-analysi
 
                 @if (mode() === 'edit') {
                 <button [disabled]="lock()"
-                    class="relative bottom-0.5 w-full mt-4 py-2 bg-emerald-600 text-white rounded-md font-semibold shadow hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed transition-colors duration-150"
+                    class="2xs:order-2 order-1 relative bottom-0.5 w-full mt-4 py-2 bg-emerald-600 text-white rounded-md font-semibold shadow hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed transition-colors duration-150"
                     (click)="onSave()" [attr.aria-disabled]="lock()" aria-label="Salva molecola">
                     Salva
                 </button>
                 } @else {
                 <button [disabled]="lock()"
-                    class="relative bottom-0.5 w-full mt-4 py-2 bg-emerald-600 text-white rounded-md font-semibold shadow hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed transition-colors duration-150"
+                    class="2xs:order-2 order-1 relative bottom-0.5 w-full mt-4 py-2 bg-emerald-600 text-white rounded-md font-semibold shadow hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed transition-colors duration-150"
                     (click)="onSaveAsNew()" [attr.aria-disabled]="lock()" aria-label="Salva come nuova molecola">
                     Salva
                 </button>

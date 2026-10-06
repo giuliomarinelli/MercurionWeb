@@ -16,7 +16,7 @@ import { APP_CONFIG } from '../../../config/app-config';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-<footer class="relative isolate px-6 py-4 text-xs sm:text-sm" role="contentinfo">
+<footer class="relative isolate pl-[max(1.5rem,env(safe-area-inset-left))] pr-[max(1.5rem,env(safe-area-inset-right))] py-4 text-xs sm:text-sm" role="contentinfo">
   <div aria-hidden="true" class="pointer-events-none absolute inset-0 -z-10 bg-slate-300/30 dark:bg-slate-800/50 backdrop-blur-md"></div>
   <!-- classi tw rimosse per passaggio a footer minimalista bg-slate-100 dark:bg-slate-800/50 text-sm text-slate-600 dark:text-slate-200 border-t border-slate-400/40 dark:border-slate-400/65 -->
   <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-center sm:text-left">

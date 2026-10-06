@@ -202,6 +202,60 @@ describe('SelectCoreComponent', () => {
     expect(listbox.style.maxHeight).toBe('12rem');
   });
 
+  for (const width of [320, 375, 812]) {
+    it(`keeps creation buttons together inside a padded dialog at ${width}px`, async () => {
+      fixture.componentRef.setInput('canCreateNew', true);
+      fixture.detectChanges();
+      const frame = document.createElement('iframe');
+      frame.style.cssText = `width:${width}px;height:600px;border:0;display:block`;
+      document.body.appendChild(frame);
+      try {
+        const doc = frame.contentDocument!;
+        const style = doc.createElement('style');
+        style.textContent = Array.from(document.styleSheets)
+          .flatMap(sheet => Array.from(sheet.cssRules).map(rule => rule.cssText)).join('\n');
+        doc.head.appendChild(style);
+        doc.body.style.cssText = 'margin:0;padding:20px';
+        doc.body.appendChild(fixture.nativeElement);
+        (fixture.nativeElement.querySelector('[aria-label="Crea nuovo elemento"]') as HTMLButtonElement).click();
+        fixture.detectChanges();
+        await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+
+        const name = doc.querySelector<HTMLInputElement>('[aria-label="Nome nuovo elemento"]')!;
+        const cancel = doc.querySelector<HTMLButtonElement>('[aria-label="Annulla creazione"]')!;
+        const create = doc.querySelector<HTMLButtonElement>('[aria-label="Conferma creazione"]')!;
+        const nameBounds = name.getBoundingClientRect();
+        const cancelBounds = cancel.getBoundingClientRect();
+        const createBounds = create.getBoundingClientRect();
+        expect(Math.abs(cancelBounds.top - createBounds.top)).withContext('buttons share a row').toBeLessThan(1);
+        expect(createBounds.left).toBeGreaterThan(cancelBounds.right);
+        expect(nameBounds.width).withContext('usable name field').toBeGreaterThanOrEqual(160);
+        expect(doc.documentElement.scrollWidth).withContext('no horizontal overflow').toBeLessThanOrEqual(width);
+        for (const bounds of [nameBounds, cancelBounds, createBounds]) {
+          expect(bounds.left).toBeGreaterThanOrEqual(20);
+          expect(bounds.right).toBeLessThanOrEqual(width - 20);
+        }
+        if (width < 640) {
+          expect(cancelBounds.top).withContext('both actions move below the name').toBeGreaterThanOrEqual(nameBounds.bottom);
+        } else {
+          expect(Math.abs(cancelBounds.top + cancelBounds.height / 2 - nameBounds.top - nameBounds.height / 2))
+            .withContext('wide layout stays inline and vertically centered').toBeLessThan(1);
+        }
+
+        const created: string[] = [];
+        component.createNew.subscribe(value => created.push(value));
+        name.value = 'Nuova collezione';
+        name.dispatchEvent(new Event('input'));
+        create.click();
+        fixture.detectChanges();
+        expect(created).toEqual(['Nuova collezione']);
+      } finally {
+        fixture.destroy();
+        frame.remove();
+      }
+    });
+  }
+
   it('supports typed multi-selection toggling and chip removal', () => {
     fixture.componentRef.setInput('multiple', true);
     fixture.componentRef.setInput('selectedValues', ['alpha']);
