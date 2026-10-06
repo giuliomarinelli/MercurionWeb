@@ -4,7 +4,7 @@ import { ChangeDetectionStrategy, Component, effect, input, Signal, computed, si
   selector: 'm-molecule-cta-chembl',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <section class="mt-6 flex justify-center sm:justify-start">
+    <section class="mt-6 flex">
       <a
         [href]="url()"
         target="_blank"

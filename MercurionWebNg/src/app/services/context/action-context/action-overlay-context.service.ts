@@ -35,7 +35,8 @@ export function transitionActionOverlay(
         ? { phase: 'active', scope: state.scope, generation: state.generation, input: state.input }
         : state
     case 'SUBMIT':
-      return (state.phase === 'active' || state.phase === 'failed') && state.generation === event.sessionId
+      return (state.phase === 'active' || state.phase === 'failed' ||
+        (state.phase === 'succeeded' && state.scope === 'SelectCollectionThenRoute')) && state.generation === event.sessionId
         ? { phase: 'submitting', scope: state.scope, generation: state.generation, input: state.input }
         : state
     case 'SUBMIT_SUCCEEDED':

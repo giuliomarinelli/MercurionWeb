@@ -72,6 +72,16 @@ describe('ActionOverlayContextService', () => {
     expect(service.state()).toEqual(jasmine.objectContaining({ phase: 'active', scope: 'TicketDetail' }));
   }));
 
+  it('allows another inline creation in the same session after success', fakeAsync(() => {
+    const id = service.open('SelectCollectionThenRoute', { importFromChembl: true });
+    tick(10);
+    service.beginSubmit(id);
+    service.submitSucceeded(id);
+    service.beginSubmit(id);
+    expect(service.state().phase).toBe('submitting');
+    expect(service.session('SelectCollectionThenRoute')?.id).toBe(id);
+  }));
+
   it('gives every open a fresh session id and typed immutable input even for the same scope', fakeAsync(() => {
     const first = service.open('BindCollectionsToMolecule', { moleculeId: 'mol-1', moleculeName: 'Ethanol' });
     tick(10);

@@ -51,7 +51,7 @@ La priorità indica il valore della rifinitura per il portfolio, non la gravità
 | PX-04 | Ricerca molecolare | P1 | S, B | Da affrontare |
 | PX-05 | Liste, card e selezione | P1 | S, B | Da affrontare |
 | PX-06 | Dettaglio collezione | P1 | S, B | Da affrontare |
-| PX-07 | Overlay di gestione collezioni | P1 | S, B | Creazione implementata, in review; altri overlay da affrontare |
+| PX-07 | Overlay di gestione collezioni | P1 | S, B | Creazione, destinazione e associazione implementate, in review; aggiunta molecole da affrontare |
 | PX-08 | Editor molecolare | P1 | S, B | Da affrontare |
 | PX-09 | Salvataggio della molecola | P1 | S, B | Da affrontare |
 | PX-10 | Dettaglio molecola e informazioni scientifiche | P1 | S, B | Da affrontare |
@@ -187,8 +187,8 @@ La priorità indica il valore della rifinitura per il portfolio, non la gravità
 
 - `CreateCollection`: form, anteprima nomi e stati rifiniti nel blocco del 6 ottobre; **implementato, in review**. Il flusso esistente crea collezioni vuote: l'aggiunta delle molecole avviene successivamente in `AddMoleculesToCollection`, senza introdurre una nuova selezione iniziale.
 - `AddMoleculesToCollection`: gerarchia della scelta sorgente, ricerca, selezioni e conteggio; footer prevedibile mentre la lista scorre.
-- `BindCollectionsToMolecule`: leggibilità della destinazione, selezione totale/parziale, nomi lunghi e risultato finale.
-- `SelectCollectionThenRoute`: scelta della destinazione e passaggio all'importazione senza sensazione di chiusura/riapertura casuale.
+- `BindCollectionsToMolecule`: righe compatte, nomi lunghi, riepilogo, selezione totale/parziale e retry rifiniti nel blocco 02; **implementato, in review**. Selezione globale ed esclusioni mantengono il contratto esistente.
+- `SelectCollectionThenRoute`: destinazione esplicita, creazione inline recuperabile e passaggio ai due metodi verificati nel blocco 02; **implementato, in review**. Il flusso interno dell'overlay successivo resta nel blocco 03.
 - Uniformare gutter, titoli, close, avvisi, caricamenti e disposizione delle azioni, rispettando il comportamento di ogni flusso.
 
 **Accettazione:** l'utente comprende oggetto, destinazione e quantità prima di confermare; annullamento e ritorno non causano perdite inattese; footer raggiungibile con lista lunga e tastiera virtuale aperta.
@@ -446,8 +446,8 @@ Il registro corrente contiene nove azioni. Nessuna viene esclusa dalla roadmap.
 |---|---|---|
 | `CreateCollection` | PX-07 | Form, anteprima nomi, azioni e stati: implementato, in review |
 | `AddMoleculesToCollection` | PX-07 | Sorgenti, ricerca, selezione, lista, conteggio e footer |
-| `BindCollectionsToMolecule` | PX-07 | Destinazioni, nomi lunghi, selezione e conferma |
-| `SelectCollectionThenRoute` | PX-07 | Scelta e passaggio tra overlay |
+| `BindCollectionsToMolecule` | PX-07 | Destinazioni, nomi lunghi, selezione e conferma: implementato, in review |
+| `SelectCollectionThenRoute` | PX-07 | Scelta e passaggio tra overlay: implementato, in review |
 | `MoleculeCollectionItemSave` | PX-09 | Destinazione, metadati, creazione/modifica e risultato |
 | `EssentialProfileRegistryEdit` | PX-13 | Review del riferimento e stati successivi |
 | `SensitiveDataChange` | PX-13 | OTP, QR, backup, varianti account e stati finali |

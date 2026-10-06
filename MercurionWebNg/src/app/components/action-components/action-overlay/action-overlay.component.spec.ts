@@ -141,4 +141,25 @@ describe('CollectionSaveOverlayComponent', () => {
     shell.onEscape(new Event('keydown'));
     expect(context.state().phase).toBe('closing');
   });
+
+  for (const scope of ['SelectCollectionThenRoute', 'BindCollectionsToMolecule'] as const) {
+    it('blocks dismissal while ' + scope + ' is submitting', async () => {
+      spyOn(ACTION_REGISTRY[scope], 'load').and.resolveTo(TestActionComponent);
+      const session = scope === 'SelectCollectionThenRoute'
+        ? context.open(scope, { importFromChembl: true })
+        : context.open(scope, { moleculeId: 'mol-1', moleculeName: 'Molecola' });
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await new Promise(resolve => setTimeout(resolve, 20));
+      context.beginSubmit(session);
+      fixture.detectChanges();
+      const shell = fixture.debugElement.query(By.directive(DialogShellComponent)).componentInstance as DialogShellComponent;
+      expect(shell.dismissalPolicy()).toEqual({ escape: false, backdrop: false });
+      shell.onEscape(new Event('keydown'));
+      expect(context.state().phase).toBe('submitting');
+      context.submitFailed(session);
+      fixture.detectChanges();
+      expect(shell.dismissalPolicy()).toEqual({ escape: true, backdrop: true });
+    });
+  }
 });
