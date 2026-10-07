@@ -107,6 +107,37 @@ Usare una voce per ogni blocco affrontato, anche quando la giornata produce solt
 
 **Prossimo blocco:** ordine 04, PX-09 — `MoleculeCollectionItemSave`, form, destinazione, metadati e conferma del salvataggio.
 
+### 2026-10-06 — PX-09 — Salvataggio della molecola (blocco 04)
+
+**Stato:** Implementato, in review.
+
+**Obiettivo:** concludere editor → nuova molecola con destinazione chiara, metadati ordinati e conferma verificabile.
+
+**Evidenze iniziali:** osservato in Chrome con `CCOCC`: selettore sempre esteso e offset `-top-3`, focus manuale dei campi, proprietà senza stato di calcolo, azioni nel contenuto, errori solo con toast e richieste duplicate non protette. Il metodo dell’overlay crea sempre una nuova molecola; la modifica dell’originale avviene in un altro percorso dell’editor.
+
+**Interventi:** titolo e istruzioni espliciti; riepilogo della destinazione conservato durante la ricerca; selettore richiudibile con focus restituito al disclosure. Metadati su due colonne desktop e una mobile, descrizioni collegate, nome composto da soli spazi rifiutato, note accessibili senza ID duplicati. Proprietà con unità, arrotondamento solo visivo, spazio riservato al calcolo, errore recuperabile e possibilità di salvare senza valori dopo un fallimento. SMILES consultabile; footer persistente e spazio dello scroll che mantiene i campi raggiunti con Tab sopra le azioni.
+
+**Affidabilità:** creazione inline con validazione, pending, conferma e retry del nome conservato. Invio unico, editing e chiusura bloccati durante pending; payload e destinazione acquisiti prima della richiesta. Errori inline con dati e draft conservati; messaggio specifico per struttura già presente. Cancellazione del draft, invalidazione, toast e navigazione soltanto dopo successo; risposte tardive ignorate dopo la distruzione del pannello.
+
+**File:** componente, nuovo CSS locale e test del salvataggio; dismissal policy del contenitore e test; contesto e test per consentire il salvataggio dopo creazione inline. `ActionCardComponent` aggiunge due variabili CSS opzionali dello scroll, usate solo dal form e con default zero. Il suo test di contenuto lungo verifica il contenitore effettivamente scrollabile nelle viewport desktop o mobili/corte. Nessuna modifica a backend, DTO generati, settings, sinonimi o altri flussi dell’editor.
+
+**Controlli locali:** 47 test mirati superati: salvataggio, contenitore overlay, contesto, ActionCard e controlli comuni inclusi dal runner. ESLint, styling, colori semantici e `git diff --check` superati. Build Angular e lazy chemistry superate; bundle iniziale 990448 byte su 1000000. Il gate bundle resta sotto il limite obbligatorio di 1 MB; restano gli avvisi indicativi di 500 kB iniziali e di 4 kB sul CSS di `AddMoleculesToCollection`. Nessuna certificazione CI remota dichiarata.
+
+**Browser:** Chrome Computer Use, runtime esistenti autorizzati, edge `http://localhost:8888`. Selezione di una destinazione con nome lungo, metadati, ricerca senza risultati e creazione inline con dati conservati. Validazione da tastiera, focus dopo selezione ed Escape sul pannello inattivo con ritorno al comando dell’editor verificati.
+
+**Operazioni reali:** creata `UX PX-09 — Salvataggio molecola con metadati e destinazione`, ID `01a112b4-54e1-7000-a1ee-f95db572d2a2`. La prima richiesta, inviata con Invio, ha restituito un errore; form conservato e collezione ancora vuota verificati. La causa della prima risposta non è stata isolata: non viene attribuita a una regressione frontend né dichiarata risolta. Una prova successiva ha salvato `UX PX-09 — Etere di prova`, ID `01a112cd-9bad-7000-b3d2-01ce0973deac`, nella stessa collezione. Verificati nel dettaglio nome, etichetta `Riferimento UX`, note, SMILES `CCOCC`, proprietà originali, appartenenza e query `c_id` corretta. Toast coerente; nessuna eliminazione.
+
+**Responsive e tastiera:** 14 misure, due temi e sette viewport: 360×800, 390×844, 430×932, 768×1024, 1024×768, 1366×768, 1920×1080. Nessun overflow orizzontale del pannello; footer dentro la viewport. Le misure dopo il resize possono includere l’animazione; schermate desktop/mobile osservate separatamente dopo l’assestamento. A 360×500, Tab su etichetta, note, ricalcolo, struttura, Annulla, Salva e chiusura: contenuto sopra il footer e focus nel dialog. Tema automatico e viewport originale ripristinati.
+
+**Prove:** `C:/Users/giuli/.codex/artifacts/mercurion-portfolio-ux-2026-10-06/PX-09-molecule-save/`: `before.png`, `after-dark-desktop.png`, `after-dark-mobile.png`, `after-light-desktop.png`, `after-light-mobile.png`, `responsive.json`, `keyboard-short.json`, `keyboard-short.png`, `save-error-draft.png`, `success.png`, `success.txt`, `tests.log`, `build.log`. Fixture locali, non materiale portfolio pubblico.
+
+**Limiti:** pending prolungato, errori controllati, retry senza distruzione del componente, risposte tardive, errore del calcolo e conflitto di struttura coperti nei test. Nel browser: caricamento delle collezioni, errore reale e successivo salvataggio riuscito, senza provocare guasti ai servizi. Collezioni su una pagina: paginazione estesa non verificata dal vivo. Viewport corta non equivale a tastiera virtuale o Safari fisico. Modalità edit coperta dal test dell’overlay; percorso completo di modifica nei blocchi 12–13. Nessuna dichiarazione di console globale priva di errori.
+
+**Review manuale:** da eseguire; nessun commit, merge o deploy effettuato.
+
+**Prossimo blocco:** ordine 05, PX-04 — ricerca: percorso ricerca → risultato nei due temi.
+
+
 ## Modello per le voci successive
 
 ### AAAA-MM-GG — PX-XX — Sottoarea

@@ -1,388 +1,253 @@
-import { CustomMoleculeCollectionItemSaveContextService } from './../../../services/context/action-context/custom-molecule-collection-item-save-context.service';
-import { NgClass } from '@angular/common';
-import { Component, ElementRef, HostListener, inject, signal, ChangeDetectionStrategy, OnDestroy, OnInit, viewChild } from '@angular/core';
-import { SelectCoreComponent } from '../../common/select-core/select-core.component';
-import { SelectSelectionChange } from '../../common/select-core/select-core.types';
-import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
-import { MoleculeCollectionService } from '../../../services/graphql/molecule-collection.service';
-import { MoleculeJoinService } from '../../../services/graphql/molecule-collection-join.service';
-import { ToastService } from '../../../services/toast.service';
+import { DecimalPipe } from '@angular/common';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, ElementRef, inject, OnDestroy, OnInit, signal, viewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { ChemistryRendererService } from '../../../chemistry/chemistry-renderer.service';
 import { MoleculeEditorDraftService } from '../../../chemistry/molecule-editor-draft.service';
-import { Router } from '@angular/router';
 import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
-import { FormsModule } from '@angular/forms';
 import { MoleculeProperties } from '../../../Models/graphql/molecule-properties.model';
-import { SaveOverlayFormItem } from '../../../Models/action/action-overlay.models';
+import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
+import { CustomMoleculeCollectionItemSaveContextService } from '../../../services/context/action-context/custom-molecule-collection-item-save-context.service';
+import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
+import { MoleculeJoinService } from '../../../services/graphql/molecule-collection-join.service';
+import { ToastService } from '../../../services/toast.service';
+import { ApplicationErrorCode, getApplicationErrorCode } from '../../../utils/application-error.util';
 import { ActionCardComponent } from '../../common/action-card/action-card.component';
+import { ActionFooterComponent } from '../../common/action-footer/action-footer.component';
+import { ButtonComponent } from '../../common/button/button.component';
+import { SelectCoreComponent } from '../../common/select-core/select-core.component';
+import { SelectSelectionChange } from '../../common/select-core/select-core.types';
 import { TextareaComponent } from '../../common/textarea/textarea.component';
 import { CollectionPickerFacade } from '../collection-picker/collection-picker.facade';
+import { validateCollectionName } from '../collection-picker/collection-rules';
 
 @Component({
   selector: 'm-custom-molecule-collection-item-save',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgClass, SelectCoreComponent, FormsModule, ActionCardComponent, TextareaComponent],
+  imports: [DecimalPipe, FormsModule, ActionCardComponent, ActionFooterComponent, ButtonComponent, SelectCoreComponent, TextareaComponent],
+  styleUrl: './custom-molecule-collection-item-save.component.css',
   template: `
-
     <div class="flex justify-center items-start md:items-center px-2 sm:px-4 m-overlay-screen">
-      <m-action-card
-        size="compact"
-        labelledBy="saveMoleculeHeading"
-        closeLabel="Chiudi pannello salva molecola"
-        (closed)="close()"
-      >
-
-        <!-- Header -->
-          <h2 action-card-title
-            id="saveMoleculeHeading"
-            class="text-lg font-semibold text-light-on-surface-main dark:text-dark-on-surface-main"
-          >
-            Salva molecola
-          </h2>
-
-        <!-- Body -->
-        <div action-card-body class="bg-light-surface-secondary dark:bg-dark-surface-secondary space-y-5 transition-all px-3 py-4">
-
-          <h2 class="font-semibold mt-2 text-light-on-surface-main dark:text-dark-on-surface-main">
-            Scegli la collezione di destinazione:
-          </h2>
-
-          <!-- ComboBox Collezioni -->
-          <m-select-core class="block relative -top-3"
-            [items]="collections()"
-            [displayFn]="displayCollection"
-            [valueFn]="valueCollection"
-            [hasMore]="hasMore()"
-            [loading]="loading()"
-            [canCreateNew]="true"
-            [searchPlaceholder]="'Cerca collezione...'"
-            [selected]="saveCtx.selectedCollectionId()"
-            (searchChange)="onSearchChange($event)"
-            (loadMore)="onScrollEnd()"
-            (selectionChange)="onSelectionChange($event)"
-            (createNew)="onCreateNew($event)"
-            [ariaLabel]="'Seleziona o crea collezione di destinazione'"
-          />
-
-          <!-- FORM CUSTOM MOLECULE -->
-          <form
-            class="mt-8 space-y-5"
-            autocomplete="off"
-            (ngSubmit)="onConfirm()"
-            novalidate
-            role="form"
-            aria-labelledby="saveMoleculeHeading"
-          >
-            <!-- NOME MOLECOLA -->
-            <div class="relative">
-              <input
-                #name
-                id="name"
-                type="text"
-                class="block py-4 px-4 w-full text-base bg-light-surface-secondary dark:bg-dark-surface-secondary border border-slate-400 dark:border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-light-accent-primary-hq focus:border-light-accent-primary-hq dark:focus:ring-dark-accent-primary-btn-hc dark:focus:border-dark-accent-primary-btn-hc peer text-light-on-surface-main dark:text-dark-on-surface-main"
-                placeholder=" "
-                required
-                name="name"
-                [(ngModel)]="nameModel"
-                (blur)="onBlur('name')"
-                (focus)="onFocus('name')"
-                [attr.aria-required]="true"
-                [attr.aria-invalid]="!nameModel && nameTouched"
-                [attr.aria-describedby]="!nameModel && nameTouched ? 'nameError' : null"
-              />
-              <label
-                (click)="onFocus('name')"
-                for="name"
-                class="peer-focus:font-medium absolute transition-all duration-300 bg-light-surface-secondary dark:bg-dark-surface-secondary px-1 top-3.25 left-4 origin-left cursor-text"
-                [ngClass]="{
-                  'text-light-accent-secondary dark:text-dark-accent-secondary-hc scale-110 -translate-y-6 text-base': nameFocus() || nameModel,
-                  'text-light-on-surface-secondary dark:text-dark-on-surface-secondary text-lg scale-100 translate-y-0': !nameFocus() && !nameModel
-                }"
-              >
-                Nome molecola*
-              </label>
-              <div class="text-sm text-light-error dark:text-dark-error-hc mt-1 min-h-2">
-                @if (!nameModel && nameTouched) {
-                  <span id="nameError" role="alert" aria-live="assertive">
-                    Il nome è obbligatorio.
-                  </span>
-                }
-              </div>
-            </div>
-
-            <!-- LABEL -->
-            <div class="relative">
-              <input
-                #label
-                id="label"
-                type="text"
-                class="block py-4 px-4 w-full text-base bg-light-surface-secondary dark:bg-dark-surface-secondary border border-slate-400 dark:border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-light-accent-primary focus:border-light-accent-primary dark:focus:ring-dark-accent-primary-btn-hc dark:focus:border-dark-accent-primary-btn-hc peer text-light-on-surface-main dark:text-dark-on-surface-main"
-                placeholder=" "
-                name="label"
-                [(ngModel)]="labelModel"
-                (blur)="onBlur('label')"
-                (focus)="onFocus('label')"
-              />
-              <label
-                (click)="onFocus('label')"
-                for="label"
-                class="peer-focus:font-medium absolute transition-all duration-300 bg-light-surface-secondary dark:bg-dark-surface-secondary px-1 top-3.25 left-4 origin-left cursor-text"
-                [ngClass]="{
-                  'text-light-accent-secondary dark:text-dark-accent-secondary-hc scale-110 -translate-y-6 text-base': labelFocus() || labelModel,
-                  'text-light-on-surface-secondary dark:text-dark-on-surface-secondary text-lg scale-100 translate-y-0': !labelFocus() && !labelModel
-                }"
-              >
-                Etichetta (facoltativa)
-              </label>
-            </div>
-
-            <!-- NOTE -->
-            <m-textarea
-              id="notes"
-              name="notes"
-              label="Note (facoltative)"
-              [(ngModel)]="notesModel"
-              [rows]="2"
-              resizeMode="vertical"
-            />
-
-            <!-- Proprietà calcolate -->
-            <div
-              class="px-5 sm:px-6 py-4 border border-light-border dark:border-dark-border bg-light-surface-main dark:bg-dark-surface-main rounded-lg text-sm text-light-on-surface-secondary dark:text-dark-on-surface-secondary mb-2 mt-2"
-            >
-              <div class="font-semibold mb-2 text-light-on-surface-main dark:text-dark-on-surface-main flex items-center justify-between gap-3">
-                <span>Proprietà calcolate</span>
-                <button
-                  type="button"
-                  class="rounded-md text-sm px-3 py-2 bg-light-accent-primary text-white font-semibold shadow-sm hover:bg-light-accent-primary-hc transition-colors focus:outline-none focus:ring-2 focus:ring-light-accent-primary-hq focus:ring-offset-2 focus:ring-offset-light-surface-main dark:focus:ring-offset-dark-surface-main"
-                  (click)="computeProps()"
-                  aria-label="Calcola proprietà"
-                >
-                  Calcola
-                </button>
-              </div>
-              <div class="grid grid-cols-2 gap-y-1 gap-x-6">
-                <div>
-                  <span class="font-semibold">MW:</span>
-                  {{ properties()?.mwFreebase ?? '-' }}
+      <form class="save-form" autocomplete="off" novalidate aria-labelledby="saveMoleculeHeading" (ngSubmit)="onConfirm()">
+        <m-action-card size="standard" labelledBy="saveMoleculeHeading" closeLabel="Chiudi salvataggio molecola"
+          [busy]="busy() || propertiesLoading()" [closeDisabled]="busy()" (closed)="close()">
+          <h2 action-card-title id="saveMoleculeHeading" class="text-lg font-semibold">Salva come nuova molecola</h2>
+          <div action-card-body class="save-body">
+            <p class="save-help">{{ saveCtx.mode() === 'edit' ? 'Crea una nuova molecola senza modificare quella di origine.' : 'Scegli una destinazione e dai un nome alla tua molecola.' }} Nome e collezione sono obbligatori.</p>
+            <fieldset [disabled]="busy()" class="save-fields">
+              <legend class="sr-only">Destinazione e dati della nuova molecola</legend>
+              <section class="save-destination" aria-label="Destinazione del salvataggio">
+                <span class="save-eyebrow">{{ creatingCollection() ? 'Creazione collezione in corso…' : 'Destinazione' }}</span>
+                <strong class="save-destination-name" role="status">{{ selectedCollectionName() || 'Nessuna collezione selezionata' }}</strong>
+                <details [open]="destinationExpanded()" (toggle)="onDestinationToggle($event)">
+                  <summary #destinationSummary>{{ saveCtx.selectedCollectionId() ? 'Cambia collezione' : 'Scegli o crea una collezione' }}</summary>
+                  <m-select-core [items]="collections()" [displayFn]="displayCollection" [valueFn]="valueCollection"
+                    label="Collezione di destinazione" ariaLabel="Collezione di destinazione" [required]="true"
+                    [hasMore]="hasMore()" [loading]="loading()" [disabled]="busy()" [canCreateNew]="!loadError()"
+                    searchPlaceholder="Cerca una collezione…" listMaxHeight="10rem" [selected]="saveCtx.selectedCollectionId()"
+                    (searchChange)="onSearchChange($event)" (loadMore)="onScrollEnd()"
+                    (selectionChange)="onSelectionChange($event)" (createNew)="onCreateNew($event)" />
+                  @if (loadError()) {
+                    <div class="save-error" role="alert"><p>Non è stato possibile caricare le collezioni.</p>
+                      <m-button variant="outline" (click)="loadCollections(!collections().length)" [disabled]="busy()">Riprova caricamento</m-button>
+                    </div>
+                  }
+                  @if (creationError()) {
+                    <div class="save-error" role="alert"><p>{{ creationError() }}</p>
+                      @if (failedCreationName()) {
+                        <strong>{{ failedCreationName() }}</strong>
+                        <m-button variant="outline" (click)="onCreateNew(failedCreationName())" [disabled]="busy()">Riprova creazione</m-button>
+                      }
+                    </div>
+                  }
+                </details>
+              </section>
+              <div class="save-metadata">
+                <div class="save-field">
+                  <label for="save-molecule-name">Nome molecola <span aria-hidden="true">*</span></label>
+                  <input id="save-molecule-name" name="name" type="text" required aria-required="true"
+                    [(ngModel)]="nameModel" (blur)="nameTouched = true" [attr.aria-invalid]="nameTouched && !nameModel.trim()"
+                    [attr.aria-describedby]="nameTouched && !nameModel.trim() ? 'save-name-error' : 'save-name-hint'" />
+                  @if (nameTouched && !nameModel.trim()) { <p id="save-name-error" class="save-validation" role="alert">Inserisci un nome per la molecola.</p> }
+                  @else { <p id="save-name-hint" class="save-help">Il nome con cui la ritroverai nella collezione.</p> }
                 </div>
-                <div>
-                  <span class="font-semibold">LogP:</span>
-                  {{ properties()?.alogp ?? '-' }}
-                </div>
-                <div>
-                  <span class="font-semibold">HBA:</span>
-                  {{ properties()?.hba ?? '-' }}
-                </div>
-                <div>
-                  <span class="font-semibold">HBD:</span>
-                  {{ properties()?.hbd ?? '-' }}
-                </div>
-                <div>
-                  <span class="font-semibold">PSA:</span>
-                  {{ properties()?.psa ?? '-' }}
-                </div>
-                <div>
-                  <span class="font-semibold">RTB:</span>
-                  {{ properties()?.rtb ?? '-' }}
+                <div class="save-field">
+                  <label for="save-molecule-label">Etichetta <span class="save-optional">(facoltativa)</span></label>
+                  <input id="save-molecule-label" name="label" type="text" [(ngModel)]="labelModel" aria-describedby="save-label-hint" />
+                  <p id="save-label-hint" class="save-help">Un riferimento breve per riconoscerla.</p>
                 </div>
               </div>
-            </div>
-
-            <!-- Bottoni -->
-            <div class="mt-8 flex justify-end gap-2">
-              <button
-                type="button"
-                class="px-4 py-2 rounded-lg bg-light-surface-secondary text-light-on-surface-main dark:bg-slate-200 dark:text-light-on-surface-main hover:bg-white dark:hover:bg-slate-300/80 border border-light-border dark:border-dark-border/80 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary dark:focus-visible:ring-offset-dark-surface-secondary transition-colors duration-200"
-                (click)="close()"
-                aria-label="Annulla salvataggio molecola"
-              >
-                Annulla
-              </button>
-
-              <button
-                type="submit"
-                class="relative inline-flex items-center justify-center px-4 py-2 rounded-lg bg-light-accent-primary text-white font-semibold shadow-md hover:bg-light-accent-primary-hc dark:bg-dark-accent-primary-btn dark:hover:bg-dark-accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq focus-visible:ring-offset-2 focus-visible:ring-offset-light-surface-secondary dark:focus-visible:ring-offset-dark-surface-secondary disabled:bg-light-accent-primary/50 disabled:cursor-not-allowed transition-colors duration-200 dark:shadow-btn-dark disabled:hover:bg-light-accent-primary-hc/50"
-                [disabled]="!saveCtx.selectedCollectionId() || !nameModel"
-                [attr.aria-disabled]="!saveCtx.selectedCollectionId() || !nameModel"
-                aria-label="Salva molecola nella collezione selezionata"
-              >
-                Salva
-              </button>
-            </div>
-          </form>
-        </div>
-      </m-action-card>
+              <m-textarea [id]="'save-molecule-notes'" name="notes" label="Note (facoltative)" [(ngModel)]="notesModel"
+                [disabled]="busy()" [rows]="2" resizeMode="vertical" />
+              <section class="save-properties" aria-labelledby="save-properties-heading" [attr.aria-busy]="propertiesLoading()">
+                <div class="save-properties-header">
+                  <h3 id="save-properties-heading">Proprietà calcolate</h3>
+                  <m-button variant="ghost" size="sm" [disabled]="busy()" [loading]="propertiesLoading()" (click)="computeProps()">{{ properties() ? 'Ricalcola' : 'Calcola' }}</m-button>
+                </div>
+                <div class="save-properties-content">
+                  @if (propertiesLoading()) { <p class="save-help" role="status">Calcolo delle proprietà in corso…</p> }
+                  @else if (propertiesError()) { <p class="save-help" role="status">Proprietà non disponibili. Puoi riprovare il calcolo oppure salvare senza questi valori.</p> }
+                  @else {
+                    <dl class="save-property-grid">
+                      <div><dt>Peso molecolare</dt><dd>{{ (properties()?.mwFreebase | number:'1.0-2') ?? 'N/D' }} <span>g/mol</span></dd></div>
+                      <div><dt>LogP</dt><dd>{{ (properties()?.alogp | number:'1.0-2') ?? 'N/D' }}</dd></div>
+                      <div><dt>Superficie polare</dt><dd>{{ (properties()?.psa | number:'1.0-2') ?? 'N/D' }} <span>Å²</span></dd></div>
+                      <div><dt>Accettori H (HBA)</dt><dd>{{ properties()?.hba ?? 'N/D' }}</dd></div>
+                      <div><dt>Donatori H (HBD)</dt><dd>{{ properties()?.hbd ?? 'N/D' }}</dd></div>
+                      <div><dt>Legami rotabili</dt><dd>{{ properties()?.rtb ?? 'N/D' }}</dd></div>
+                    </dl>
+                  }
+                </div>
+                <details class="save-structure"><summary>Struttura da salvare (SMILES)</summary><code>{{ saveCtx.smiles() }}</code></details>
+              </section>
+            </fieldset>
+            @if (saveError()) { <div class="save-error" role="alert"><p>{{ saveError() }}</p></div> }
+            <p class="save-help save-outcome" role="status">{{ saving() ? 'Salvataggio in corso. Attendi la conferma…' : 'Dopo il salvataggio aprirai il dettaglio della nuova molecola nella collezione scelta.' }}</p>
+          </div>
+          <m-action-footer action-card-footer>
+            <m-button action-footer-secondary variant="outline" [disabled]="busy()" (click)="close()">Annulla</m-button>
+            <m-button action-footer-primary type="submit" [disabled]="!canSave()" [loading]="saving()">{{ saving() ? 'Salvataggio…' : 'Salva molecola' }}</m-button>
+          </m-action-footer>
+        </m-action-card>
+      </form>
     </div>
   `
 })
 export class CustomMoleculeCollectionItemSaveComponent implements OnInit, OnDestroy {
-  private readonly nameRef = viewChild.required<ElementRef<HTMLInputElement>>('name');
-
-  private readonly labelRef = viewChild.required<ElementRef<HTMLInputElement>>('label');
-
   protected readonly overlayCtx = inject(ActionOverlayContextService);
-  private readonly sessionId = this.overlayCtx.session('MoleculeCollectionItemSave')?.id ?? -1;
   protected readonly saveCtx = inject(CustomMoleculeCollectionItemSaveContextService);
-  private readonly collectionService = inject(MoleculeCollectionService);
-  private readonly picker = new CollectionPickerFacade({
-    mode: { kind: 'single', operation: 'save', allowCreate: true }
-  });
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly destinationSummary = viewChild.required<ElementRef<HTMLElement>>('destinationSummary');
+  private readonly sessionId = this.overlayCtx.session('MoleculeCollectionItemSave')?.id ?? -1;
+  private readonly picker = new CollectionPickerFacade({ mode: { kind: 'single', operation: 'save', allowCreate: true } });
   private readonly moleculeJoinService = inject(MoleculeJoinService);
   private readonly toast = inject(ToastService);
   private readonly chemistryRenderer = inject(ChemistryRendererService);
   private readonly editorDrafts = inject(MoleculeEditorDraftService);
   private readonly router = inject(Router);
-
-  nameFocus = signal<boolean>(false);
-  labelFocus = signal<boolean>(false);
-  collections = this.picker.collections;
-  hasMore = this.picker.hasMore;
-  loading = this.picker.loading;
-
-  // ngModel fields
-  nameModel: string = '';
-  nameTouched: boolean = false;
-  labelModel: string = '';
-  labelTouched: boolean = false;
-  notesModel: string = '';
-  properties = signal<MoleculeProperties | null>(null);
-
-  ngOnInit() {
-    this.picker.load(true);
-    this.loadProperties();
+  private readonly invalidations = inject(DomainInvalidationService);
+  readonly collections = this.picker.collections;
+  readonly hasMore = this.picker.hasMore;
+  readonly loading = this.picker.loading;
+  readonly loadError = computed(() => Boolean(this.picker.error()));
+  readonly selectedCollectionName = signal('');
+  readonly destinationExpanded = signal(true);
+  readonly creatingCollection = signal(false);
+  readonly saving = signal(false);
+  readonly busy = computed(() => this.creatingCollection() || this.saving());
+  readonly creationError = signal('');
+  readonly failedCreationName = signal('');
+  readonly saveError = signal('');
+  readonly properties = signal<MoleculeProperties | null>(null);
+  readonly propertiesLoading = signal(false);
+  readonly propertiesError = signal(false);
+  nameModel = '';
+  nameTouched = false;
+  labelModel = '';
+  notesModel = '';
+  ngOnInit(): void {
+    queueMicrotask(() => {
+      if (!this.destroyRef.destroyed) { this.picker.load(true); void this.loadProperties(); }
+    });
   }
-
-  ngOnDestroy() {
-    this.picker.destroy();
-  }
-
-  async loadProperties() {
+  ngOnDestroy(): void { this.picker.destroy(); }
+  async loadProperties(): Promise<void> {
+    if (this.propertiesLoading() || this.busy() || this.destroyRef.destroyed) return;
+    this.propertiesLoading.set(true);
+    this.propertiesError.set(false);
     try {
-      this.properties.set(
-        await this.chemistryRenderer.getMoleculeProperties(this.saveCtx.smiles())
-      );
+      const properties = await this.chemistryRenderer.getMoleculeProperties(this.saveCtx.smiles());
+      if (!this.destroyRef.destroyed) { this.properties.set(properties); this.propertiesError.set(!properties); }
     } catch {
-      this.properties.set(null);
-      this.toast.trigger('Proprietà molecolari temporaneamente non disponibili.', 'error', 2500);
+      if (!this.destroyRef.destroyed) { this.properties.set(null); this.propertiesError.set(true); }
+    } finally {
+      if (!this.destroyRef.destroyed) this.propertiesLoading.set(false);
     }
   }
-
-  computeProps(): void {
-    // recompute properties on demand
-    this.loadProperties();
-  }
-
-  displayCollection(item: Pick<MoleculeCollection, 'name'>) {
-    return item.name;
-  }
-
-  valueCollection(item: Pick<MoleculeCollection, 'id'>) {
-    return item.id;
-  }
-
-  loadCollections(reset = false) {
-    this.picker.load(reset);
-  }
-
-  onSearchChange(term: string) {
+  computeProps(): void { void this.loadProperties(); }
+  displayCollection(item: Pick<MoleculeCollection, 'name'>): string { return item.name; }
+  valueCollection(item: Pick<MoleculeCollection, 'id'>): string { return item.id; }
+  loadCollections(reset = false): void { if (!this.busy()) this.picker.load(reset); }
+  onSearchChange(term: string): void {
+    if (this.busy()) return;
     this.saveCtx.searchTerm.set(term);
     this.picker.search(term);
   }
-
-  onScrollEnd() {
-    if (this.hasMore() && !this.loading()) {
-      this.picker.load();
-    }
-  }
-
-  onSelect(item: Pick<MoleculeCollection, 'id'>) {
+  onScrollEnd(): void { if (!this.busy() && this.hasMore() && !this.loading()) this.picker.load(); }
+  onDestinationToggle(event: Event): void { this.destinationExpanded.set((event.target as HTMLDetailsElement).open); }
+  onSelect(item: Pick<MoleculeCollection, 'id' | 'name'>): void {
+    if (this.busy()) return;
     this.picker.setSingleSelection(item.id);
     this.saveCtx.selectedCollectionId.set(item.id);
+    this.selectedCollectionName.set(item.name);
+    this.destinationExpanded.set(false);
+    queueMicrotask(() => { if (!this.destroyRef.destroyed) this.destinationSummary().nativeElement.focus(); });
   }
-
-  onSelectionChange(change: SelectSelectionChange<MoleculeCollection, string>) {
+  onSelectionChange(change: SelectSelectionChange<MoleculeCollection, string>): void {
+    if (this.busy()) return;
     if (change.item) this.onSelect(change.item);
+    else { this.picker.setSingleSelection(null); this.saveCtx.selectedCollectionId.set(null); this.selectedCollectionName.set(''); }
   }
-
-  onCreateNew(name: string) {
-    this.picker.create(name).subscribe(newColl => this.saveCtx.selectedCollectionId.set(newColl.id));
+  onCreateNew(name: string): void {
+    if (this.busy()) return;
+    const result = validateCollectionName(name);
+    this.destinationExpanded.set(true);
+    if (!result.ok) { this.creationError.set(result.message ?? 'Controlla il nome della collezione.'); this.failedCreationName.set(''); return; }
+    this.creationError.set('');
+    this.failedCreationName.set('');
+    this.creatingCollection.set(true);
+    this.overlayCtx.beginSubmit(this.sessionId);
+    this.picker.create(result.normalized).subscribe({
+      next: collection => {
+        this.creatingCollection.set(false);
+        this.overlayCtx.submitSucceeded(this.sessionId);
+        this.onSelect(collection);
+        this.invalidations.publish({ domain: 'molecule-collection', action: 'created', collectionId: collection.id });
+        this.toast.trigger('Collezione “' + collection.name + '” creata e selezionata.', 'success');
+      },
+      error: () => {
+        this.creatingCollection.set(false);
+        this.overlayCtx.submitFailed(this.sessionId);
+        this.failedCreationName.set(result.normalized);
+        this.creationError.set('La collezione non è stata creata. Puoi riprovare senza riscrivere il nome.');
+      }
+    });
   }
-
-  onFocus(item: SaveOverlayFormItem): void {
-    const labelRef = this.labelRef();
-    const nameRef = this.nameRef();
-    switch (item) {
-      case 'label':
-        document.activeElement !== labelRef.nativeElement && labelRef.nativeElement.focus();
-        this.labelFocus.set(true);
-        break;
-      case 'name':
-        document.activeElement !== nameRef.nativeElement && nameRef.nativeElement.focus();
-        this.nameFocus.set(true);
-        break;
-    }
+  canSave(): boolean {
+    return Boolean(this.saveCtx.selectedCollectionId() && this.nameModel.trim() && this.saveCtx.smiles().trim()) && !this.busy() && !this.propertiesLoading();
   }
-
-  onBlur(item: SaveOverlayFormItem): void {
-    switch (item) {
-      case 'label':
-        this.labelTouched = true;
-        this.labelFocus.set(false);
-        break;
-      case 'name':
-        this.nameFocus.set(false);
-        this.nameTouched = true;
-        break;
-    }
+  onConfirm(): void {
+    if (this.busy() || this.propertiesLoading()) return;
+    this.nameTouched = true;
+    if (!this.canSave()) return;
+    const collectionId = this.saveCtx.selectedCollectionId()!;
+    const destination = this.selectedCollectionName();
+    this.saveError.set('');
+    this.saving.set(true);
+    this.overlayCtx.beginSubmit(this.sessionId);
+    this.moleculeJoinService.addCustomMoleculeToCollection({ collectionId, input: {
+      canonicalSmiles: this.saveCtx.smiles(), propertiesJson: JSON.stringify(this.properties()),
+      name: this.nameModel.trim(), label: this.labelModel.trim() || undefined, notes: this.notesModel.trim() || undefined
+    } }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: reply => {
+        this.saving.set(false);
+        this.overlayCtx.submitSucceeded(this.sessionId);
+        this.editorDrafts.clearCurrent();
+        this.invalidations.publish({ domain: 'molecule-collection', action: 'molecules-added', collectionId });
+        this.toast.trigger('Molecola salvata in “' + destination + '”.', 'success');
+        void this.router.navigate(['/molecules/detail/' + reply.id], { queryParams: { c_id: collectionId } });
+        this.overlayCtx.close(this.sessionId);
+      },
+      error: (error: unknown) => {
+        this.saving.set(false);
+        this.overlayCtx.submitFailed(this.sessionId);
+        const code = getApplicationErrorCode(error);
+        this.saveError.set(code === ApplicationErrorCode.MOLECULE_SMILES_CONFLICT
+          ? 'Questa struttura è già presente tra le tue molecole. Puoi associarla a un’altra collezione dal suo dettaglio. I dati inseriti sono conservati.'
+          : 'La molecola non è stata salvata. I dati inseriti sono ancora qui: riprova il salvataggio.');
+      }
+    });
   }
-
-  async onConfirm() {
-    const collectionId = this.saveCtx.selectedCollectionId();
-    if (!collectionId) {
-      this.toast.trigger('Seleziona una collezione', 'error');
-      return;
-    }
-    if (!this.nameModel) {
-      this.nameTouched = true;
-      this.toast.trigger('Il nome è obbligatorio!', 'error');
-      return;
-    }
-
-    const propertiesJson = JSON.stringify(this.properties());
-
-    this.moleculeJoinService
-      .addCustomMoleculeToCollection({
-        collectionId,
-        input: {
-          canonicalSmiles: this.saveCtx.smiles(),
-          propertiesJson,
-          name: this.nameModel,
-          label: this.labelModel || undefined,
-          notes: this.notesModel || undefined
-        }
-      })
-      .subscribe({
-        next: reply => {
-          this.editorDrafts.clearCurrent();
-          this.toast.trigger(`Molecola salvata correttamente.`, 'success');
-          this.router.navigate([`/molecules/detail/${reply.id}`], {
-            queryParams: {
-              c_id: this.saveCtx.selectedCollectionId()
-            }
-          });
-          this.overlayCtx.close(this.sessionId);
-        },
-        error: () => this.toast.trigger('Si è verificato un errore!', 'error')
-      });
-  }
-
-  close() {
-    this.overlayCtx.close(this.sessionId);
-  }
-
-  @HostListener('document:keydown.escape')
-  onEscape() {
-    if (this.overlayCtx.isOpened()) this.close();
-  }
+  close(): void { if (!this.busy()) this.overlayCtx.close(this.sessionId); }
 }

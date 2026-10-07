@@ -81,8 +81,16 @@ describe('ActionCardComponent', () => {
     const body = layout.nativeElement.querySelector('.m-action-card__body') as HTMLElement;
     const footer = layout.nativeElement.querySelector('.m-action-footer') as HTMLElement;
     expect(card.getBoundingClientRect().top).toBeGreaterThanOrEqual(0);
-    expect(footer.getBoundingClientRect().bottom).toBeLessThanOrEqual(window.innerHeight + 1);
-    expect(body.scrollHeight).toBeGreaterThan(body.clientHeight);
+    expect(getComputedStyle(card).scrollPaddingBlockEnd).toBe('0px');
+    if (getComputedStyle(body).overflowY === 'auto') {
+      expect(footer.getBoundingClientRect().bottom).toBeLessThanOrEqual(window.innerHeight + 1);
+      expect(body.scrollHeight).toBeGreaterThan(body.clientHeight);
+    } else {
+      // Mobile/short dialogs scroll the card, rather than its body.
+      expect(card.scrollHeight).toBeGreaterThan(card.clientHeight);
+      card.scrollTop = card.scrollHeight;
+      expect(footer.getBoundingClientRect().bottom).toBeLessThanOrEqual(card.getBoundingClientRect().bottom + 1);
+    }
 
     layout.destroy();
   });

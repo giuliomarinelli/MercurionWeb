@@ -2,6 +2,8 @@
 
 Data iniziale: 6 ottobre 2026. Stato: pianificazione per lavoro incrementale e review manuale.
 
+Ultima revisione del perimetro: 7 ottobre 2026. Notifiche ampliate e chiusura QA esplicitata; sviluppo di Notebook e Synthesis e migrazione Angular 22 pianificati dopo il merge della fase corrente.
+
 ## Obiettivo
 
 Portare Mercurion da applicazione utilizzabile a prodotto professionale, piacevole da vedere e da usare, capace di dimostrare competenze avanzate nella realizzazione di interfacce per applicazioni complesse. La qualità deve emergere anche durante un'interazione reale: ricerca, selezione, modifica, caricamento, errore e ritorno al lavoro.
@@ -53,7 +55,7 @@ La priorità indica il valore della rifinitura per il portfolio, non la gravità
 | PX-06 | Dettaglio collezione | P1 | S, B | Da affrontare |
 | PX-07 | Overlay di gestione collezioni | P1 | S, B | Creazione, destinazione, associazione e aggiunta molecole implementate, in review |
 | PX-08 | Editor molecolare | P1 | S, B | Da affrontare |
-| PX-09 | Salvataggio della molecola | P1 | S, B | Da affrontare |
+| PX-09 | Salvataggio della molecola | P1 | S, B | Implementato, in review |
 | PX-10 | Dettaglio molecola e informazioni scientifiche | P1 | S, B | Da affrontare |
 | PX-11 | Predizione Tox21 e comunicazione dei risultati | P1 | S, B, V | Da affrontare |
 | PX-12 | Dashboard | P2 | S, B | Da affrontare |
@@ -66,6 +68,23 @@ La priorità indica il valore della rifinitura per il portfolio, non la gravità
 | PX-19 | Componenti, stati e accessibilità trasversali | P1 | S, B, V | Da applicare progressivamente |
 | PX-20 | Reattività percepita e movimento | P2 | S, B, V | Da misurare sui percorsi principali |
 | PX-21 | Dati e percorso dimostrativo portfolio | P3 | B, V | Da preparare dopo il percorso centrale |
+| PX-22 | Regressione funzionale dei percorsi completi | P1 | B, V | Da applicare progressivamente; passaggio finale aperto |
+| PX-23 | Sessioni, realtime e continuità del lavoro | P1 | S, V | Da verificare tra le aree |
+| PX-24 | Compatibilità, review finale e preparazione del merge | P1 | V | Da eseguire dopo la rifinitura |
+
+## Fasi fino al completamento del prodotto
+
+La chiusura di questa roadmap certifica il perimetro attuale sottoposto a QA e review. Notebook e Synthesis estenderanno quel perimetro: richiederanno prove proprie e una nuova regressione dei flussi esistenti.
+
+| Fase | Perimetro | Risultato necessario per avanzare |
+|---|---|---|
+| A — Qualità attuale | PX-01–PX-24, rifinitura e QA funzionale | Evidenze raccolte, limiti e difetti residui classificati, review manuale completata |
+| B — Integrazione | Merge della fase A, dopo autorizzazione | Modifiche integrate e verifiche del repository riuscite sul risultato integrato |
+| C — Macro-feature | Notebook e Synthesis, a partire dai moduli backend esistenti | Contratti e scope verificati, frontend completo, prove funzionali/UX proprie e regressione dei percorsi attuali |
+| D — Migrazione | Aggiornamento ad Angular 22 dopo le macro-feature | Compatibilità delle dipendenze verificata, migrazione controllata e nuova verifica del prodotto completo |
+| E — Chiusura finale | Applicazione con entrambe le macro-feature e Angular 22 | Review finale, regressione superata e demo/documentazione aggiornate al prodotto effettivo |
+
+Il completamento della fase A non autorizza automaticamente il merge. Le fasi C–E sono pianificazione successiva, non nuovi task da iniziare durante la rifinitura corrente.
 
 ## Lista dettagliata degli interventi
 
@@ -116,6 +135,7 @@ La priorità indica il valore della rifinitura per il portfolio, non la gravità
 - Uniformare larghezza dei form, distanze tra label, campi, errori, suggerimenti e azioni.
 - Rendere chiari progressione e ritorno tra inserimento e-mail e password.
 - Bilanciare SSO e accesso tradizionale senza cambiare i metodi disponibili.
+- Verificare anche il passaggio MFA durante il login: codice, eventuale alternativa prevista, errore, scadenza e ritorno. La configurazione MFA in settings resta in PX-13.
 - Rifinire caricamento della verifica di sicurezza, invio in corso e messaggi del server.
 - Verificare tastiera, autofill, password manager e conservazione dei valori dopo errore.
 
@@ -217,7 +237,7 @@ La priorità indica il valore della rifinitura per il portfolio, non la gravità
 
 **Perché conta:** conclude un flusso complesso e deve trasmettere certezza sul risultato.
 
-**Base S/B:** overlay con scelta/creazione della collezione, form e proprietà; il selettore ha anche un offset `-top-3` nel template corrente.
+**Base S/B prima del blocco 04:** overlay con scelta/creazione della collezione, form e proprietà; il selettore aveva un offset `-top-3`, rimosso nella rifinitura.
 
 **Interventi:**
 
@@ -228,6 +248,8 @@ La priorità indica il valore della rifinitura per il portfolio, non la gravità
 - Mantenere i dati del draft e rendere evidente dove trovare l'elemento salvato.
 
 **Accettazione:** destinazione e azione finale sono inequivocabili; nessuna perdita di input durante errore o cambio destinazione; conferma coerente con i dati effettivamente persistiti.
+
+**Blocco 04 implementato, in review:** destinazione persistente, selettore richiudibile, metadati e proprietà ordinati, footer visibile e focus verificato. Creazione inline e salvataggio protetti con errori recuperabili. Prova locale fino al dettaglio e ai dati persistiti; evidenze e limiti nel [diario](DAILY-LOG.md). Questo overlay crea sempre una nuova molecola; la modifica dell’originale resta un altro percorso dell’editor.
 
 **Sorgente:** [salvataggio molecola](../../src/app/components/action-components/custom-molecule-collection-item-save/custom-molecule-collection-item-save.component.ts).
 
@@ -324,18 +346,24 @@ La priorità indica il valore della rifinitura per il portfolio, non la gravità
 
 **Perché conta:** una gestione leggibile degli eventi dimostra cura dell'esperienza anche oltre il percorso principale.
 
-**Base S/B/V:** nell'audit l'account non aveva notifiche. Item pieni, dettaglio, lettura e caricamento successivo richiedono dati rappresentativi.
+**Base S/B/V:** nell'audit l'account non aveva notifiche. Nel sorgente riletto il 7 ottobre il pulsante dell'header apre la pagina notifiche; l'avviso catch-up comunica gli eventi recuperati. La pagina ha filtri Tutte/Non lette, caricamento a cursore, dettaglio selezionato tramite query `notification`, azioni individuali e globali e apertura della risorsa collegata. Questa lettura non sostituisce una prova con notifiche reali rappresentative.
 
 **Interventi:**
 
-- Coerenza tra popover dell'header e pagina completa.
-- Gerarchia di titolo, data, tipo, anteprima e stato letto/non letto.
-- Chiarezza di filtri e azioni globali, soprattutto eliminazione.
-- Verificare testi lunghi, eventi numerosi, empty state, aggiornamenti realtime ed errori.
+- **PX-15A — Header e recupero eventi:** badge a zero, uno e molti eventi; distinzione tra non viste e non lette; avviso catch-up, chiusura, apertura della pagina, ancoraggio mobile, focus e annunci accessibili. Coordinare il badge di sincronizzazione con PX-23.
+- **PX-15B — Lista e dettaglio:** gerarchia di titolo, categoria, anteprima, corpo e data; testi lunghi e notifiche prive di risorsa collegata; filtri e contatori; dettaglio affiancato desktop e raggiungibile su mobile; apertura da URL diretto, refresh, Indietro/Avanti e chiusura del dettaglio.
+- **PX-15C — Azioni e consistenza:** segna letta/non letta, segna tutte lette, eliminazione singola/globale, pending, invio ripetuto, errore e retry. Chiarire conseguenze e recuperabilità delle eliminazioni secondo il contratto esistente, prima di eseguirle su fixture autorizzate.
+- Verificare caricamento iniziale e successivo, nessuna notifica, filtro senza risultati, molte pagine, errori, notifiche arrivate durante la lettura, recupero dopo disconnessione e coerenza tra schede/sessioni. Controllare assenza di duplicati, perdita della selezione o spostamenti inattesi dello scroll.
+- Verificare apertura del contenuto collegato anche quando è eliminato, non disponibile o non più accessibile; offrire un esito comprensibile senza inventare permessi o nuove destinazioni.
+- **PX-15D — Comunicazioni e-mail esistenti:** inventariare template e collegamenti per attivazione, recupero, cambi account e supporto; controllare impaginazione, copy, mittente, date, URL e stati scaduti nei flussi PX-03/PX-13/PX-14/PX-16. Usare rendering locale e destinatari di test esplicitamente autorizzati per le prove di invio. Distinguere conferma UI, persistenza della notifica e consegna e-mail; non assumere che un toast provi la consegna.
 
-**Accettazione:** contenuto e destinazione della notifica sono riconoscibili; il conteggio resta coerente tra header e pagina; gli aggiornamenti non spostano in modo inatteso ciò che si sta leggendo.
+**Fixture necessarie:** dataset locale ripetibile con notifiche lette/non lette, titoli e corpi lunghi, categorie effettivamente supportate, risorsa disponibile e non disponibile e quantità sufficiente per più pagine. Definire separatamente le prove con effetti di lettura/eliminazione/invio. Non aggiungere push di sistema o nuovi tipi di notifica come semplice rifinitura.
+
+**Accettazione:** evento, stato di lettura e destinazione sono riconoscibili; contatori, lista e dettaglio restano coerenti dopo azioni, reload e riconnessione; aggiornamenti e caricamenti non interrompono la lettura. Nessun errore diventa un falso empty state o un falso successo. Template e-mail esistenti verificati e limiti di consegna registrati separatamente.
 
 **Sorgenti:** [pagina notifiche](../../src/app/pages/notifications/notifications.page.component.ts), [lista](../../src/app/components/notifications/notification-list.component.ts), [item](../../src/app/components/notifications/notification-list-item.component.ts), [header](../../src/app/components/common/header/header-notifications.component.ts).
+
+**Altre sorgenti:** [dettaglio](../../src/app/components/notifications/notification-detail.component.ts), [catch-up](../../src/app/components/notifications/notification-catch-up.component.ts), [stato notifiche](../../src/app/services/in-app-notification.service.ts), [navigazione](../../src/app/services/notification-navigation.service.ts), [template e-mail backend](../../../MercurionWebNode/src/app_modules/notification/email-templates/).
 
 ### PX-16 — Supporto, ticket e conversazioni
 
@@ -401,6 +429,7 @@ La priorità indica il valore della rifinitura per il portfolio, non la gravità
 - Curare dropdown, tooltip, dialog e toast: ancoraggio, layering, Escape, focus iniziale e ritorno.
 - Verificare errori di form associati ai campi, gerarchia delle heading e messaggi live non ridondanti.
 - Provare zoom 200%, tastiera, contenuti lunghi e target touch; usare 44 px come riferimento per le azioni mobili importanti.
+- Controllare copy, categorie e messaggi tecnici esposti, singolari/plurali, date/fusi orari e formati numerici. Distinguere zero da dato mancante; preservare unità e significato dei valori scientifici quando si rifinisce la visualizzazione.
 
 **Accettazione:** le azioni non dipendono solo da colore, hover o tooltip; l'ordine di focus segue quello visivo; modifiche a un componente condiviso vengono verificate anche negli altri consumatori.
 
@@ -438,6 +467,51 @@ La priorità indica il valore della rifinitura per il portfolio, non la gravità
 
 **Accettazione:** la demo si può ripetere con esito prevedibile e dati non sensibili; screenshot corrispondono al prodotto reale; limiti del modello e funzionalità ancora incomplete non vengono nascosti o inventati.
 
+### PX-22 — Regressione funzionale dei percorsi completi
+
+**Perché conta:** pagine singolarmente curate possono ancora perdere dati o contesto quando vengono usate insieme. La QA deve verificare anche comportamento e persistenza.
+
+**Interventi:**
+
+- Preparare scenari ripetibili: ricerca → dettaglio → associazione; collezione → aggiunta → dettaglio; editor → salvataggio → riapertura; modifica → conferma/annullamento → rilettura dei dati persistiti.
+- Includere duplicazione, rinomina, rimozione da collezione ed eliminazioni previste, distinguendone le conseguenze. Usare fixture e autorizzazioni appropriate per le azioni distruttive.
+- Provare URL diretto, refresh, Indietro/Avanti, frammenti e query, annullamento degli overlay e ritorno al lavoro. Registrare quali filtri, selezioni e draft devono conservarsi secondo il comportamento previsto.
+- Verificare attese, invio ripetuto, fallimento e retry senza falsa conferma, perdita di input o risposta tardiva applicata a un'altra sessione/risorsa.
+- Riesaminare su runtime assestato le anomalie non isolate nei blocchi precedenti, incluso il primo errore di salvataggio PX-09. Documentare riproducibilità, classificazione e decisione finale; un retry riuscito non dimostra che la causa sia stata corretta.
+- Mantenere un elenco dei difetti con scenario, gravità, evidenza, correzione e nuova prova; separare bug confermati, limiti dell'ambiente e osservazioni non riprodotte.
+
+**Accettazione:** gli scenari concordati si completano con dati coerenti dopo la riapertura; nessun difetto critico o perdita di dati resta aperto; i residui hanno una valutazione esplicita nella review.
+
+### PX-23 — Sessioni, realtime e continuità del lavoro
+
+**Perché conta:** sessione scaduta, riconnessione e modifiche da un'altra scheda sono condizioni normali per un'applicazione con stato condiviso.
+
+**Base S/V:** il frontend contiene sincronizzazione realtime, notifiche recuperate e gestione delle sessioni; la qualità complessiva di questi passaggi va verificata tra pagine e overlay.
+
+**Interventi:**
+
+- Verificare perdita/ripristino della connessione, recupero degli eventi e badge di sincronizzazione: messaggi comprensibili, niente falsi successi o annunci ripetuti.
+- Provare modifiche da un'altra scheda/sessione su risorse di test; verificare liste, dettagli, conteggi e selezioni senza sovrascrivere input in corso.
+- Verificare scadenza della sessione, refresh, logout e revoca di una sessione di test: ritorno al login, pulizia dei dati del precedente account e destino del draft secondo le regole esistenti.
+- Coordinare errori REST/GraphQL, toast, errori inline e notifiche: una singola causa non deve produrre messaggi contraddittori o ripetuti.
+- Verificare comportamento con servizi scientifici non disponibili tramite prove controllate, senza alterare contratti o requisiti di sicurezza.
+
+**Accettazione:** lo stato visibile torna coerente dopo riconnessione e cambio sessione; non compaiono dati di un precedente account; l'utente comprende quali operazioni sono riuscite e come riprendere il lavoro.
+
+### PX-24 — Compatibilità, review finale e preparazione del merge
+
+**Perché conta:** il passaggio alla review finale richiede un bilancio verificabile del prodotto, non soltanto la conclusione degli interventi di layout.
+
+**Interventi:**
+
+- Definire e registrare la matrice dei browser supportati; verificare i percorsi principali anche oltre Chrome desktop, includendo una prova mobile reale con tastiera virtuale e Safari/iOS se rientra nel supporto dichiarato. Non equiparare una viewport ridotta a un dispositivo fisico.
+- Eseguire una verifica trasversale di tastiera, focus, zoom, reduced motion, contrasto e un campione con lettore di schermo. Le verifiche automatiche non sostituiscono queste prove e non certificano da sole conformità completa.
+- Ripercorrere i flussi principali su build di produzione locale o ambiente di test assestato, distinguendo comportamento reale da hot reload, diagnostica e ricompilazioni dello sviluppo.
+- Concludere la review manuale estesa dei diff; verificare copertura di route, azioni e stati, assenza di placeholder presentati come funzionalità complete e pertinenza delle modifiche.
+- Riepilogare prove, difetti chiusi/aperti, limiti accettati, fixture e controlli del repository. Solo dopo autorizzazione procedere al merge e verificare il risultato integrato secondo le regole del repository.
+
+**Accettazione prima del merge:** scope concordato coperto; review manuale accettata; nessun difetto critico, perdita di dati o problema di isolamento degli account aperto; limiti residui espliciti; validazioni pertinenti riuscite. Il merge resta un'azione successiva autorizzata, non un effetto automatico dello stato della roadmap.
+
 ## Copertura esplicita degli ActionComponents
 
 Il registro corrente contiene nove azioni. Nessuna viene esclusa dalla roadmap.
@@ -448,7 +522,7 @@ Il registro corrente contiene nove azioni. Nessuna viene esclusa dalla roadmap.
 | `AddMoleculesToCollection` | PX-07 | Sorgenti, ricerca, selezioni, lista, conteggio e footer: implementato, in review |
 | `BindCollectionsToMolecule` | PX-07 | Destinazioni, nomi lunghi, selezione e conferma: implementato, in review |
 | `SelectCollectionThenRoute` | PX-07 | Scelta e passaggio tra overlay: implementato, in review |
-| `MoleculeCollectionItemSave` | PX-09 | Destinazione, metadati, creazione/modifica e risultato |
+| `MoleculeCollectionItemSave` | PX-09 | Creazione di una nuova molecola, destinazione, metadati e risultato: implementato, in review |
 | `EssentialProfileRegistryEdit` | PX-13 | Review del riferimento e stati successivi |
 | `SensitiveDataChange` | PX-13 | OTP, QR, backup, varianti account e stati finali |
 | `NewTicket` | PX-16 | Rich text, validazione e invio |
@@ -481,14 +555,54 @@ Ogni riga è un'unità di lavoro, non una promessa di completamento in un giorno
 | 17 | PX-03/PX-14 — Registrazione e recupero | Stati e token verificati con fixture appropriate |
 | 18 | PX-12 — Dashboard | Metriche, grafici e stati rifiniti |
 | 19 | PX-13 — Settings: fasi successive | Stati OTP/MFA e varianti account completati con perimetro sicuro |
-| 20 | PX-15 — Notifiche | Dataset rappresentativo e percorso lista/dettaglio |
+| 20A | PX-15A/PX-15B — Notifiche: header, lista e dettaglio | Dataset su più pagine; contatori, filtri, mobile e apertura diretta |
+| 20B | PX-15C — Notifiche: azioni e recupero | Lettura, eliminazioni, errori, risorse indisponibili e riconnessione |
+| 20C | PX-15D — E-mail transazionali | Template e collegamenti dei flussi esistenti verificati con fixture appropriate |
 | 21 | PX-16 — Supporto e nuovo ticket | Lista e composizione del messaggio rifinite |
 | 22 | PX-16 — Conversazione ticket | Storico, composer e scrolling verificati |
 | 23 | PX-17/PX-18 — Pagine complementari | Tono, leggibilità e azioni coerenti |
 | 24 | PX-20 — Reattività | Misure e interventi sui soli punti dimostrati |
 | 25 | PX-21 — Demo portfolio | Dataset, percorso e schermate finali verificati |
+| 26 | PX-22 — Regressione dei percorsi completi | Persistenza, navigazione e errori verificati tra le aree |
+| 27 | PX-23 — Continuità tra sessioni e connessioni | Riconnessione, scadenza e coerenza dello stato verificate |
+| 28 | PX-24 — Chiusura QA e review | Matrice di compatibilità, review manuale e bilancio prima del merge |
 
 PX-19 accompagna ogni blocco. Non aspettare la fine per curare focus, errori, nomi accessibili e stati di caricamento. Se home o accesso devono essere mostrati subito a un cliente, anticipare i blocchi 15–16 senza aprire un redesign globale.
+
+PX-22 e PX-23 accompagnano gli interventi pertinenti; le righe 26–27 sono il passaggio di regressione finale, non il primo momento in cui verificare questi comportamenti. Il prossimo blocco di implementazione resta **05 — PX-04, ricerca**.
+
+## Lavoro successivo al merge
+
+### MF-01 — Notebook
+
+Macro-feature indicata dall'utente il 7 ottobre. Nel repository sono presenti il modulo backend `lab-notebook` e componenti, servizio e documenti GraphQL frontend; questi elementi non dimostrano che il percorso prodotto sia completo.
+
+- Rileggere API, modello dati, permessi e contratti effettivamente implementati; definire lo scope frontend prima di scrivere i task.
+- Completare navigazione e flussi previsti usando il backend esistente, verificando salvataggio, annullamento, contenuti lunghi, errori e integrazioni già supportate.
+- Applicare i criteri UX/QA della fase corrente e verificare le regressioni delle aree collegate.
+
+**Sorgenti da analizzare:** [backend Notebook](../../../MercurionWebNode/src/app_modules/lab-notebook/), [frontend esistente](../../src/app/pages/notebook/), [documenti GraphQL](../../src/app/graphql/documents/notebook.graphql).
+
+### MF-02 — Synthesis
+
+Macro-feature indicata dall'utente il 7 ottobre. Nel repository sono presenti servizi, resolver e modelli del modulo backend `synth`; la disponibilità e completezza dei flussi esposti vanno verificate prima della progettazione frontend.
+
+- Inventariare i contratti e le operazioni disponibili e definire il percorso utente senza presumere nuove capacità scientifiche o nuove regole di prodotto.
+- Implementare il frontend concordato con stati, validazione, risultati e collegamenti alle risorse previsti dal backend.
+- Verificare il flusso completo, significato dei dati scientifici, eventuali limiti e regressioni su molecole, collezioni e Notebook dove effettivamente collegati.
+
+**Sorgenti da analizzare:** [backend Synthesis](../../../MercurionWebNode/src/app_modules/synth/).
+
+L'ordine e le dipendenze tra MF-01 e MF-02 saranno stabiliti dopo l'analisi dei contratti; non sono dedotti dai soli nomi delle feature.
+
+### UP-01 — Migrazione ad Angular 22
+
+Target indicato dall'utente, da affrontare dopo le due macro-feature. La versione precisa di destinazione e i requisiti saranno verificati al momento della migrazione nella documentazione ufficiale e nelle dipendenze installate.
+
+- Fotografare la baseline del prodotto completo, verificare percorso di aggiornamento e compatibilità di Angular, Node.js, TypeScript e librerie effettivamente utilizzate, incluse UI, GraphQL, editor rich text e integrazioni chimiche.
+- Separare la migrazione dai redesign e dalle nuove funzionalità; aggiornare codice/configurazione soltanto dove richiesto e mantenere verificabili i cambiamenti.
+- Rieseguire controlli del repository, build e confini lazy, regressione funzionale, browser e accessibilità; verificare in particolare form, overlay, focus, temi, editor e viewer.
+- Aggiornare documentazione, dataset e demo dopo l'ultima regressione. La QA precedente rimane una baseline, non una certificazione della versione aggiornata.
 
 ## Criterio comune di completamento
 

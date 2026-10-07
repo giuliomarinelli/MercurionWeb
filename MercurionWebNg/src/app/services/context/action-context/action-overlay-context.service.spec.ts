@@ -72,6 +72,16 @@ describe('ActionOverlayContextService', () => {
     expect(service.state()).toEqual(jasmine.objectContaining({ phase: 'active', scope: 'TicketDetail' }));
   }));
 
+  it('allows saving a molecule after inline collection creation succeeds', fakeAsync(() => {
+    const id = service.open('MoleculeCollectionItemSave', { mode: 'create', smiles: 'CCOCC' });
+    tick(10);
+    service.beginSubmit(id);
+    service.submitSucceeded(id);
+    service.beginSubmit(id);
+    expect(service.state().phase).toBe('submitting');
+    expect(service.session('MoleculeCollectionItemSave')?.id).toBe(id);
+  }));
+
   it('allows another inline creation in the same session after success', fakeAsync(() => {
     const id = service.open('SelectCollectionThenRoute', { importFromChembl: true });
     tick(10);

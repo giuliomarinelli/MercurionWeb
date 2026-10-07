@@ -77,6 +77,8 @@ const SIZE_CLASSES: Record<ActionCardSize, string> = {
       min-height: 0;
       overflow-y: auto;
       overscroll-behavior: contain;
+      scroll-padding-block-start: var(--m-action-card-scroll-padding-top, 0px);
+      scroll-padding-block-end: var(--m-action-card-scroll-padding-bottom, 0px);
       width: 100%;
     }
 
