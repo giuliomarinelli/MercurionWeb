@@ -1,0 +1,24 @@
+:host { display: block; margin-top: 1.5rem; min-width: 0; text-align: left; }
+.m-tox-panel { margin-top: .75rem; padding: 1rem; border: 1px solid var(--m-color-border); border-radius: 1rem; background: var(--m-color-surface-elevated); color: var(--m-color-on-surface-main); }
+.m-tox-header { display: flex; align-items: baseline; flex-wrap: wrap; gap: .5rem 1rem; justify-content: space-between; }
+.m-tox-header a { min-height: 44px; display: inline-flex; align-items: center; }
+.m-tox-description, .m-tox-state, .m-tox-guide { font-size: .875rem; line-height: 1.6; color: var(--m-color-on-surface-secondary); }
+.m-tox-state { margin-block: .75rem; min-height: 1.4rem; }
+.m-tox-results { display: grid; gap: .75rem; list-style: none; margin: 0; padding: 0; }
+.m-tox-row { display: grid; gap: .75rem; padding: 1rem; border: 1px solid var(--m-color-border); border-radius: .75rem; min-width: 0; }
+.m-tox-endpoint { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .5rem; min-height: 1.75rem; }
+.m-tox-outcome { border: 1px solid var(--m-color-border); border-radius: 999px; padding: .125rem .625rem; font-size: .8125rem; font-weight: 600; }
+.m-tox-outcome--positive { color: var(--m-color-status-error); border-color: currentColor; }
+.m-tox-missing { font-size: .8125rem; color: var(--m-color-on-surface-secondary); }
+.m-tox-values { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin: 0; }
+.m-tox-values dt { font-size: .8125rem; color: var(--m-color-on-surface-secondary); }
+.m-tox-values dd { margin: .25rem 0 0; min-height: 1.5rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.m-tox-placeholder { display: inline-block; width: 4.5rem; height: 1.25rem; border-radius: .25rem; background: var(--m-color-border); vertical-align: middle; }
+.m-tox-guide { border-top: 1px solid var(--m-color-border); margin-top: 1rem; padding-top: 1rem; }
+.m-tox-guide p + p { margin-top: .5rem; }
+.m-tox-retry { min-height: 44px; margin-top: 1rem; padding: .5rem 1rem; border: 1px solid var(--m-color-border); border-radius: .5rem; font-weight: 600; }
+.m-tox-retry:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+@media (min-width: 640px) {
+  .m-tox-panel { padding: 1.5rem; }
+  .m-tox-row { grid-template-columns: minmax(0, 1fr) minmax(15rem, 1fr); align-items: center; gap: 2rem; }
+}

@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { MoleculeDetailPageComponent } from './molecule-detail.page.component';
 import { MoleculeDetailFacade } from './molecule-detail.facade';
 import { MoleculeDetailItem } from '../../Models/graphql/molecule-collection/molecule-collection.types';
@@ -24,7 +24,7 @@ describe('Molecule detail in phone and tablet viewports', () => {
     frame?.remove();
   });
 
-  async function render(type: 'custom' | 'chembl' | 'system', width: number, height = 800) {
+  async function render(type: 'custom' | 'chembl' | 'system', width: number, height = 800, iupac = longIupac) {
     const details = {
       id: 1714574, preferredName: 'TERCONAZOLO', preferredNameIt: null, cmbId: 'CHEMBL1714574',
       canonicalSmiles: longSmiles, synonyms: [], moleculeType: null, maxPhase: 4,
@@ -39,6 +39,8 @@ describe('Molecule detail in phone and tablet viewports', () => {
     const molecule: MoleculeDetailItem = type === 'system' ? { ...details, type }
       : type === 'chembl' ? { ...base, type, chemblMolregno: 1714574, chemblDetails: details }
       : { ...base, type, name: 'Prova 1', canonicalSmiles: longSmiles };
+    const getIupac = jasmine.createSpy('getIupac').and.returnValue(of(iupac));
+    if (iupac === '__ERROR__') getIupac.and.returnValues(throwError(() => new Error('offline')), of('Recovered IUPAC'));
     deleteSpy = jasmine.createSpy('delete');
     bindSpy = jasmine.createSpy('bindCollections');
     const facade = {
@@ -46,13 +48,13 @@ describe('Molecule detail in phone and tablet viewports', () => {
       currentName: signal('Prova 1'), currentId: signal('molecule-1'),
       loading: signal(false), error: signal(false), similar: signal([]), similarLoading: signal(false),
       collectionId: signal('collection-1'), collectionName: signal('Collezione'.repeat(20)),
-      save: jasmine.createSpy('save'), delete: deleteSpy, bindCollections: bindSpy
+      save: jasmine.createSpy('save'), deletePending: signal(false), deleteError: signal(''), delete: deleteSpy, bindCollections: bindSpy
     };
     await TestBed.configureTestingModule({
       imports: [MoleculeDetailPageComponent],
       providers: [
         { provide: UserContextService, useValue: { isLoggedIn: () => true } },
-        { provide: PcpApiService, useValue: { getIupacNameFromSmiles: () => of(longIupac) } },
+        { provide: PcpApiService, useValue: { getIupacNameFromSmiles: getIupac } },
         { provide: ChemistryRendererService, useValue: { createSession: async () => ({
           renderSvg: async () => '<svg xmlns="http://www.w3.org/2000/svg"><path d="M0 0 L1000 100" /></svg>',
           dispose: () => undefined
@@ -127,7 +129,7 @@ describe('Molecule detail in phone and tablet viewports', () => {
         assertContained();
         const title = element('#molecule-name');
         expect(frame.contentWindow!.getComputedStyle(title).textAlign).toBe('left');
-        const smiles = Array.from(frameDocument.querySelectorAll('h2')).find(node => node.textContent === 'Canonical smiles')!;
+        const smiles = Array.from(frameDocument.querySelectorAll('h2')).find(node => node.textContent === 'SMILES canonico')!;
         const value = smiles.nextElementSibling!;
         expect(value.getBoundingClientRect().top).toBeGreaterThanOrEqual(smiles.getBoundingClientRect().bottom);
         const add = element<HTMLButtonElement>('button[title="Aggiungi ad una o più collezioni molecolari"]');
@@ -139,7 +141,10 @@ describe('Molecule detail in phone and tablet viewports', () => {
           expect(edit.getBoundingClientRect().top).toBeLessThan(title.getBoundingClientRect().bottom);
           expect(edit.getBoundingClientRect().left).toBeGreaterThanOrEqual(title.getBoundingClientRect().right);
           element<HTMLButtonElement>('button[title="Elimina da tutte le collezioni"]').click();
-          expect(deleteSpy).toHaveBeenCalledWith('molecule-1');
+          expect(deleteSpy).not.toHaveBeenCalled();
+          fixture.detectChanges();
+          element<HTMLButtonElement>('button[cdkFocusInitial]').click();
+          fixture.detectChanges();
         }
       });
     }
@@ -161,7 +166,7 @@ describe('Molecule detail in phone and tablet viewports', () => {
     it(`keeps identifier columns and row centers aligned at ${width}px`, async () => {
       await render('chembl', width);
       assertContained();
-      const smiles = Array.from(frameDocument.querySelectorAll('h2')).find(node => node.textContent === 'Canonical smiles')!;
+      const smiles = Array.from(frameDocument.querySelectorAll('h2')).find(node => node.textContent === 'SMILES canonico')!;
       const iupac = Array.from(frameDocument.querySelectorAll('h2')).find(node => node.textContent === 'Nome IUPAC Internazionale')!;
       const smilesValue = smiles.nextElementSibling!.getBoundingClientRect();
       const iupacValue = iupac.nextElementSibling!.getBoundingClientRect();
@@ -173,4 +178,22 @@ describe('Molecule detail in phone and tablet viewports', () => {
       }
     });
   }
+  it('does not expose a copy action for unavailable IUPAC data', async () => {
+    await render('custom', 375, 800, '');
+    expect(frameDocument.body.textContent).toContain('Non disponibile');
+    expect(frameDocument.querySelector('button[aria-label="Copia nome IUPAC"]')).toBeNull();
+    expect(frameDocument.querySelector('button[aria-label="Copia SMILES canonico"]')).not.toBeNull();
+  });
+
+  it('distinguishes an IUPAC transport error and recovers on retry', async () => {
+    await render('custom', 375, 800, '__ERROR__');
+    const identifiers = element('.m-detail-identifiers');
+    expect(identifiers.textContent).toContain('Impossibile recuperare il nome IUPAC');
+    expect(identifiers.querySelector('button[aria-label="Copia nome IUPAC"]')).toBeNull();
+    const retry = Array.from(identifiers.querySelectorAll('button')).find(button => button.textContent?.trim() === 'Riprova')!;
+    retry.click(); fixture.detectChanges(); await fixture.whenStable(); fixture.detectChanges();
+    expect(identifiers.textContent).toContain('Recovered IUPAC');
+    expect(identifiers.querySelector('button[aria-label="Copia nome IUPAC"]')).not.toBeNull();
+  });
+
 });

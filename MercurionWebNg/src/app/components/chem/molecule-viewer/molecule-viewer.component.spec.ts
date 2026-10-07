@@ -200,6 +200,20 @@ describe('MoleculeViewerComponent', () => {
     expect(fixture.nativeElement.querySelector('[role="alert"]')).not.toBeNull()
   })
 
+  it('shows recoverable errors and a successful retry in detail mode', async () => {
+    renderer.createSession.and.rejectWith(new Error('offline'));
+    await createViewer('CC'); fixture.componentRef.setInput('mode', 'detail'); fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[role=alert] button')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('[aria-label="Caricamento struttura molecolare"]')).toBeNull();
+    renderer.createSession.and.resolveTo(session);
+    fixture.nativeElement.querySelector('button').click(); fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[aria-label="Caricamento struttura molecolare"]')).not.toBeNull();
+    await fixture.whenStable();
+    scheduled.shift()?.callback(); await fixture.whenStable(); fixture.detectChanges();
+    expect(component.renderState()).toBe('ready');
+    expect(fixture.nativeElement.querySelector('[role=alert]')).toBeNull();
+  });
+
   it('repeatedly mounts and unmounts without retaining sessions or scheduled work', async () => {
     const sessions: jasmine.SpyObj<ChemistryRendererSession>[] = []
     renderer.createSession.and.callFake(() => {

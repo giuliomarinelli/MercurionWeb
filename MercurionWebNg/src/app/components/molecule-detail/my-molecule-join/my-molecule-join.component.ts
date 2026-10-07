@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, effect, input, OnInit, computed, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, computed } from '@angular/core';
 import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
 import { CollectionCardComponent } from '../collection-card/collection-card.component';
 import { SkeletonCollectionCardComponent } from '../../common/skeleton-card-loader/skeleton-card-loader.component';
@@ -7,43 +7,30 @@ import { SkeletonCollectionCardComponent } from '../../common/skeleton-card-load
   selector: 'm-my-molecule-join',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CollectionCardComponent, SkeletonCollectionCardComponent],
+  host: { class: 'block min-w-0' },
   template: `
-    @if (collections().length) {
-      <div class="overflow-y-auto relative max-h-[224px] min-h-[112px] transition-[max-height] duration-300 ease-in-out border m-scroll-thin" role="list" aria-label="Collezioni associate">
-        @for (c of collections(); track c; let i = $index) {
-          <m-collection-card [collection]="c" [i]="i" [hideActionButtons]="true" />
+    @if (joins() === null) {
+      <div class="grid gap-3" role="status" aria-label="Caricamento collezioni associate" aria-busy="true">
+        @for (i of [0, 1]; track i) { <m-skeleton-collection-card [isReadonly]="true" /> }
+      </div>
+    } @else if (collections().length) {
+      <p class="mb-3 text-left text-sm text-light-on-surface-secondary dark:text-dark-on-surface-secondary">
+        {{ collections().length }} {{ collections().length === 1 ? 'collezione' : 'collezioni' }}
+      </p>
+      <div class="grid gap-3 overflow-y-auto max-h-none sm:max-h-96 m-scroll-thin" style="scrollbar-gutter: stable"
+        role="list" aria-label="Collezioni associate" tabindex="0">
+        @for (c of collections(); track c.id; let i = $index) {
+          <div role="listitem"><m-collection-card [collection]="c" [i]="i" [hideActionButtons]="true" /></div>
         }
       </div>
-    } @else if (!loaded() && !notFound()) {
-      @for (i of [0, 1]; track i) {
-        <m-skeleton-collection-card [isReadonly]="true" />
-      }
-    } @else if (notFound()) {
-      <div class="flex items-center justify-center min-h-[112px] text-sm text-light-on-surface-secondary dark:text-dark-on-surface-secondary">
-        Nessuna collezione.
-      </div>
+    } @else {
+      <p class="rounded-xl border border-token-border p-4 text-left text-sm text-light-on-surface-secondary dark:text-dark-on-surface-secondary">
+        Questa molecola non appartiene ancora a una collezione. Usa “Aggiungi alle collezioni” per organizzarla.
+      </p>
     }
   `
 })
-export class MyMoleculeJoinComponent implements OnInit {
-
-  // Stato
-  collections = signal<MoleculeCollection[]>([]);
-  loaded = computed(() => this.collections().length > 0);
-  notFound = signal<boolean>(false);
-
-  readonly joins = input.required<{ id: string; collection: MoleculeCollection }[] | null>()
-  private readonly syncJoins = effect(() => {
-    const joins = this.joins()
-    if (joins) this.collections.set(joins.map(join => join.collection))
-  })
-
-  ngOnInit(): void {
-    // Finestra di “loading” di 2s: se allo scadere non c’è nulla, mostra empty state
-    setTimeout(() => {
-      if (!this.loaded()) {
-        this.notFound.set(true);
-      }
-    }, 2000);
-  }
+export class MyMoleculeJoinComponent {
+  readonly joins = input.required<{ id: string; collection: MoleculeCollection }[] | null>();
+  readonly collections = computed(() => (this.joins() ?? []).map(join => join.collection));
 }

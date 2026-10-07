@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, effect, inject, input, signal } from '@angular/core';
-import { IconButtonComponent } from '../icon-button/icon-button.component';
+import { IconButtonComponent, IconButtonSize } from '../icon-button/icon-button.component';
 import { CopyUiService } from '../../../services/copy-ui.service';
 import { CopyIconStatus } from '../../../Models/copy.models';
 
@@ -11,6 +11,7 @@ import { CopyIconStatus } from '../../../Models/copy.models';
   template: `
   <m-icon-button
     class="flex"
+    [size]="size()"
     [ariaLabelledby]="ariaLabelledby()"
     [ariaDescribedby]="ariaDescribedby()"
     [ariaLabel]="ariaLabel()"
@@ -48,6 +49,7 @@ export class CopyButtonComponent {
 
   private readonly copyUiService = inject(CopyUiService)
 
+  readonly size = input<IconButtonSize>('md')
   readonly src = input.required<string>()
   readonly ariaLabelledby = input<string>()
   readonly ariaDescribedby = input<string>()

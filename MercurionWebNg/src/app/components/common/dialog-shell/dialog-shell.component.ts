@@ -25,7 +25,7 @@ export type DialogPanelVariant = 'default' | 'action' | 'search';
 const BACKDROP_CLASSES = {
   default: 'bg-black/60',
   action: 'bg-slate-300/75 dark:bg-slate-900/90 action-overlay-backdrop',
-  search: 'bg-black/70 text-light-on-surface-main dark:text-slate-50',
+  search: 'm-dialog-backdrop--search bg-black/70 text-light-on-surface-main dark:text-slate-50',
 } satisfies Record<DialogBackdropVariant, string>;
 
 const PANEL_CLASSES = {
@@ -87,6 +87,11 @@ const CONTENT_CLASSES = {
       width: var(--m-overlay-viewport-width, 100%);
       height: calc(var(--m-overlay-vh, 1dvh) * 100);
       transition-property: opacity;
+    }
+
+    .m-dialog-backdrop--search {
+      -webkit-backdrop-filter: blur(4px);
+      backdrop-filter: blur(4px);
     }
 
     .m-dialog-content {

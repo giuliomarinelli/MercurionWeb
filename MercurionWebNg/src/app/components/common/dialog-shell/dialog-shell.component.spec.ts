@@ -87,4 +87,16 @@ describe('DialogShellComponent', () => {
     fixture.destroy();
   }));
 
+  it('keeps the search backdrop blurred even in the compact viewport variant', () => {
+    const shell = TestBed.createComponent(DialogShellComponent);
+    shell.componentRef.setInput('mounted', true);
+    shell.componentRef.setInput('open', true);
+    shell.componentRef.setInput('backdropVariant', 'search');
+    shell.detectChanges();
+    const dialog = shell.nativeElement.querySelector('[role="dialog"]') as HTMLElement;
+    dialog.classList.add('m-dialog--compact');
+    expect(getComputedStyle(dialog).backdropFilter).toBe('blur(4px)');
+    shell.destroy();
+  });
+
 });

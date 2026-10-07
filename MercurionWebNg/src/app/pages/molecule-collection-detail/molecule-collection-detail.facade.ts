@@ -13,7 +13,6 @@ import { AppTitleService } from '../../services/app-title.service';
 import { Helpers } from '../../helpers';
 import { MoleculeCardItemModel } from '../../Models/graphql/molecule-collection/molecule-collection.types';
 import { PageModel } from '../../Models/graphql/page.models';
-import { CustomDetailSaveModel } from '../../Models/custom-detail-save.model';
 import { ApplicationErrorCode, hasApplicationErrorCode } from '../../utils/application-error.util';
 
 export type CollectionDetailPageState =
@@ -37,6 +36,11 @@ export class MoleculeCollectionDetailFacade {
   private readonly title = inject(AppTitleService);
   private readonly destroyRef = inject(DestroyRef);
 
+  readonly renamePending = signal(false);
+  readonly renameError = signal('');
+  readonly renameRevision = signal(0);
+  readonly actionPending = signal(false);
+  readonly actionError = signal('');
   readonly collectionId = signal('');
   readonly collectionName = signal('');
   readonly search = signal('');
@@ -66,6 +70,8 @@ export class MoleculeCollectionDetailFacade {
         this.requestVersion++;
         this.collectionId.set(id);
         this.collectionName.set('');
+        this.search.set('');
+        this.renameError.set('');
         this.items.set([]);
         this.page.set(1);
         this.done.set(false);
@@ -195,7 +201,7 @@ export class MoleculeCollectionDetailFacade {
       this.page.update(value => value + 1);
     } catch {
       if (!this.destroyRef.destroyed && version === this.requestVersion && expectedId === this.collectionId()) {
-        this.pageError.set('Unable to load results.');
+        this.pageError.set('Impossibile caricare le molecole. Riprova.');
       }
     } finally {
       if (!this.destroyRef.destroyed && version === this.requestVersion && expectedId === this.collectionId()) this.loading.set(false);
@@ -217,7 +223,9 @@ export class MoleculeCollectionDetailFacade {
   }
 
   setSearch(value: string): void {
-    this.search.set(value);
+    const query = value.trim();
+    if (query === this.search()) return;
+    this.search.set(query);
     void this.reload();
   }
 
@@ -225,71 +233,95 @@ export class MoleculeCollectionDetailFacade {
     this.setSearch('');
   }
 
-  deleteItem(id: string): void {
-    this.itemsService.deleteItem(id).subscribe({
-      next: ok => {
-        if (!ok) return;
-        this.history.triggerRemoveItemFromHistoryView(id);
-        this.animateRemoval(id);
-      },
-      error: () => this.toast.trigger('Si è verificato un errore.', 'error', 2500)
+  async deleteItem(id: string): Promise<boolean> {
+    return this.runAction(async () => {
+      const ok = await firstValueFrom(this.itemsService.deleteItem(id).pipe(takeUntilDestroyed(this.destroyRef)));
+      if (!ok) throw new Error('Delete failed');
+      this.history.triggerRemoveItemFromHistoryView(id);
+      this.animateRemoval(id);
+      this.toast.trigger('Molecola eliminata.', 'success', 3000);
     });
   }
 
-  removeItem(id: string): void {
+  async removeItem(id: string): Promise<boolean> {
     const collectionId = this.collectionId();
-    this.itemsService.removeMoleculeFromCollection(collectionId, id).subscribe({
-      next: ok => {
-        if (!ok) {
-          this.toast.trigger('Si è verificato un errore', 'error', 3000);
-          return;
-        }
-        this.history.triggerRemoveItemFromHistoryView(id);
-        this.animateRemoval(id);
-      },
-      error: () => this.toast.trigger('Si è verificato un errore', 'error', 3000)
+    return this.runAction(async () => {
+      const ok = await firstValueFrom(this.itemsService.removeMoleculeFromCollection(collectionId, id).pipe(takeUntilDestroyed(this.destroyRef)));
+      if (!ok) throw new Error('Remove failed');
+      this.history.triggerRemoveItemFromHistoryView(id);
+      if (collectionId === this.collectionId()) this.animateRemoval(id);
+      this.toast.trigger('Molecola rimossa dalla collezione.', 'success', 3000);
     });
   }
 
-  renameCollection(detail: CustomDetailSaveModel): void {
-    this.collections.updateCollectionName(this.collectionId(), detail.value).pipe(
-      tap(() => this.collectionName.set(detail.value)),
-      switchMap(() => this.history.pollNewItem()),
-      catchError(error => {
-        if (hasApplicationErrorCode(error, ApplicationErrorCode.MOLECULE_COLLECTION_NAME_CONFLICT)) {
-          this.toast.trigger('Questo nome esiiste già. Impossibile rinominare!', 'error', 3000);
-          return of(null);
-        }
-        this.toast.trigger('Si è verificato un errore.', 'error', 2500);
-        return of(null);
-      }),
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe();
+  async renameCollection(value: string): Promise<void> {
+    const name = value.trim();
+    if (this.renamePending() || !name || name === this.collectionName()) return;
+    const id = this.collectionId();
+    this.renamePending.set(true);
+    this.renameError.set('');
+    try {
+      const result = await firstValueFrom(this.collections.updateCollectionName(id, name).pipe(takeUntilDestroyed(this.destroyRef)));
+      if (this.destroyRef.destroyed || id !== this.collectionId()) return;
+      this.collectionName.set(result.name);
+      this.title.setSection('Dettaglio Collezione', result.name);
+      this.renameRevision.update(revision => revision + 1);
+      this.toast.trigger('Nome della collezione aggiornato.', 'success', 3000);
+      this.history.pollNewItem().pipe(catchError(() => of(null)), takeUntilDestroyed(this.destroyRef)).subscribe();
+    } catch (error) {
+      if (!this.destroyRef.destroyed && id === this.collectionId()) {
+        this.renameError.set(hasApplicationErrorCode(error, ApplicationErrorCode.MOLECULE_COLLECTION_NAME_CONFLICT)
+          ? 'Esiste già una collezione con questo nome. Scegli un nome diverso.'
+          : 'Impossibile salvare il nome. La modifica resta disponibile: riprova.');
+      }
+    } finally {
+      if (!this.destroyRef.destroyed) this.renamePending.set(false);
+    }
   }
 
-  duplicateCollection(): void {
-    this.collections.duplicateCollection(this.collectionId()).subscribe({
-      next: result => {
-        void this.router.navigateByUrl('molecules/collections');
-        this.toast.trigger(`Collezione duplicata con successo. Nuova collezione: '${result.name}'`, 'success');
-      },
-      error: () => this.toast.trigger('Si è verificato un errore inaspettato. Se si ripete, contatta il supporto.', 'error')
+  retryCollection(): void {
+    this.error.set(false);
+    this.loading.set(true);
+    void this.refreshCollection().finally(() => {
+      if (!this.destroyRef.destroyed) this.loading.set(false);
     });
   }
 
-  deleteCollection(): void {
-    this.collections.deleteCollection(this.collectionId()).subscribe({
-      next: ok => {
-        if (!ok) {
-          this.toast.trigger('Si è verificato un errore.', 'error', 3000);
-          return;
-        }
-        this.history.triggerRemoveItemFromHistoryView(this.collectionId());
-        this.invalidations.publish({ domain: 'molecule-collection', action: 'deleted', collectionId: this.collectionId() });
-        this.toast.trigger('Collezione eliminata con successo.', 'success', 3000);
-        void this.router.navigateByUrl('/molecules/collections');
-      },
-      error: () => this.toast.trigger('Si è verificato un errore.', 'error', 3000)
+  private async runAction(action: () => Promise<void>): Promise<boolean> {
+    if (this.actionPending()) return false;
+    this.actionPending.set(true);
+    this.actionError.set('');
+    try {
+      await action();
+      return true;
+    } catch {
+      if (!this.destroyRef.destroyed) this.actionError.set('Operazione non completata. Riprova.');
+      return false;
+    } finally {
+      if (!this.destroyRef.destroyed) this.actionPending.set(false);
+    }
+  }
+
+  async duplicateCollection(): Promise<void> {
+    if (this.actionPending()) return;
+    const id = this.collectionId();
+    const ok = await this.runAction(async () => {
+      const result = await firstValueFrom(this.collections.duplicateCollection(id).pipe(takeUntilDestroyed(this.destroyRef)));
+      this.toast.trigger(`Collezione duplicata: '${result.name}'.`, 'success');
+      await this.router.navigateByUrl('/molecules/collections');
+    });
+    if (!ok && !this.destroyRef.destroyed) this.toast.trigger('Impossibile duplicare la collezione. Riprova.', 'error', 3000);
+  }
+
+  async deleteCollection(): Promise<boolean> {
+    const id = this.collectionId();
+    return this.runAction(async () => {
+      const ok = await firstValueFrom(this.collections.deleteCollection(id).pipe(takeUntilDestroyed(this.destroyRef)));
+      if (!ok) throw new Error('Delete failed');
+      this.history.triggerRemoveItemFromHistoryView(id);
+      this.invalidations.publish({ domain: 'molecule-collection', action: 'deleted', collectionId: id });
+      this.toast.trigger('Collezione eliminata.', 'success', 3000);
+      await this.router.navigateByUrl('/molecules/collections');
     });
   }
 

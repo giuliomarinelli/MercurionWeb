@@ -1,3 +1,5 @@
+import { signal } from '@angular/core';
+import { ViewportRuntimeService } from '../../../services/context/viewport-runtime.service';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { SimilarsComponent } from './similars.component';
@@ -12,10 +14,14 @@ describe('SimilarsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [SimilarsComponent]
+      imports: [SimilarsComponent],
+      // Isolate content animation from document scrollbar-induced viewport changes.
+      providers: [{ provide: ViewportRuntimeService, useValue: { state: signal({
+        width: 1024, height: 768, visualWidth: 1024, visualHeight: 768, scale: 1
+      }) } }]
     })
     .overrideComponent(SimilarItemComponent, {
-      set: { imports: [], template: '<div style="height: 300px"></div>' }
+      set: { imports: [], template: '<div style="height: 500px"></div>' }
     })
     .compileComponents();
 
@@ -26,7 +32,17 @@ describe('SimilarsComponent', () => {
     fixture.detectChanges();
   });
 
-  it('should create', () => {
+  it('distinguishes filter-empty results from request errors and exposes retry', () => {
+    fixture.componentRef.setInput('onlyKnown', true); fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Deseleziona');
+    fixture.componentRef.setInput('error', true); fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[role="alert"]')).not.toBeNull();
+    const retry = jasmine.createSpy(); component.retry.subscribe(retry);
+    fixture.nativeElement.querySelector('button').click(); expect(retry).toHaveBeenCalledTimes(1);
+    expect(fixture.nativeElement.textContent).not.toContain('Deseleziona');
+  });
+
+  it('should create' , () => {
     expect(component).toBeTruthy();
   });
 
@@ -34,18 +50,18 @@ describe('SimilarsComponent', () => {
     fixture.componentRef.setInput('loading', true);
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('[role="region"]').getAttribute('aria-busy')).toBe('true');
-    expect(fixture.nativeElement.querySelectorAll('m-skeleton-collection-card').length).toBe(2);
+    expect(fixture.nativeElement.querySelectorAll('m-skeleton-molecule-card').length).toBe(2);
     expect(fixture.nativeElement.querySelector('p')).toBeNull();
 
     fixture.componentRef.setInput('loading', false);
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('[role="region"]').getAttribute('aria-busy')).toBe('false');
-    expect(fixture.nativeElement.querySelectorAll('m-skeleton-collection-card').length).toBe(0);
-    expect(fixture.nativeElement.querySelector('p')?.textContent).toContain('Nessun analogo noto trovato');
+    expect(fixture.nativeElement.querySelectorAll('m-skeleton-molecule-card').length).toBe(0);
+    expect(fixture.nativeElement.querySelector('p')?.textContent).toContain('Nessun analogo suggerito disponibile');
 
     fixture.componentRef.setInput('loading', true);
     fixture.detectChanges();
-    expect(fixture.nativeElement.querySelectorAll('m-skeleton-collection-card').length).toBe(2);
+    expect(fixture.nativeElement.querySelectorAll('m-skeleton-molecule-card').length).toBe(2);
   });
 
   it('animates expansion and contraction with the scroll limits inside the animated wrapper', async () => {
@@ -68,10 +84,10 @@ describe('SimilarsComponent', () => {
     expect(wrapper.getBoundingClientRect().height).toBe(90);
 
     fixture.componentRef.setInput('molecules', [{} as MoleculeSearchResult]);
-    await settle(90, 272);
+    await settle(90, 420);
     fixture.componentRef.setInput('onlyKnown', true);
-    await settle(272, 181);
+    await settle(420, 320);
     fixture.componentRef.setInput('molecules', []);
-    await settle(181, 90);
+    await settle(320, 90);
   });
 });

@@ -7,8 +7,9 @@ import { MoleculeCollectionItemCardComponent } from '../../components/molecule-d
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MoleculeCollectionItemCardComponent],
   host: { class: 'block' },
+  styleUrls: ['../molecule-list-page.css'],
   template: `
-    <div class="pt-4">
+    <div class="m-list-results">
       @for (item of items(); track item.id; let i = $index) {
         <m-molecule-collection-item-card [molecule]="item" [i]="i" [collectionId]="collectionId()"
           [triggerDisappear]="item.triggerDisappear()" [collapse]="item.collapse()"

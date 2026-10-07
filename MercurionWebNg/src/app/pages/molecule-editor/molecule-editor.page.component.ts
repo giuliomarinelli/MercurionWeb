@@ -39,12 +39,10 @@ import { ActionOverlayContextService } from '../../services/context/action-conte
 import { MoleculeCollectionItemService } from '../../services/graphql/molecule-collection-item.service'
 import { RdKitApiService } from '../../services/rd-kit-api.service'
 import { ToastService } from '../../services/toast.service'
-import { DescriptorCardContentComponent } from '../../components/common/descriptor-card-content/descriptor-card-content.component'
 import { DescriptorCardsGridComponent } from '../../components/common/descriptor-cards-grid/descriptor-cards-grid.component'
 import { MoleculeBadgeComponent } from '../../components/molecule-detail/molecule-badge/molecule-badge.component'
 import { MoleculeService } from '../../services/graphql/molecule.service'
 import { CopyButtonComponent } from '../../components/common/copy-button/copy-button.component'
-import { NgClass } from '@angular/common'
 import { LiveTox21SummaryComponent } from '../../components/molecule-editor/live-tox21-summary/live-tox21-summary.component'
 import { LiveMoleculeAnalogsComponent } from '../../components/molecule-editor/live-molecule-analogs/live-molecule-analogs.component'
 import { MoleculeEditorLiveAnalysisFacade } from './molecule-editor-live-analysis.facade'
@@ -56,95 +54,77 @@ import { MoleculeEditorLiveAnalysisFacade } from './molecule-editor-live-analysi
     KetcherFrameComponent,
     SelectButtonModule,
     FormsModule,
-    DescriptorCardContentComponent,
     DescriptorCardsGridComponent,
     MoleculeBadgeComponent,
     CopyButtonComponent,
-    NgClass,
     LiveTox21SummaryComponent,
     LiveMoleculeAnalogsComponent
   ],
   providers: [MoleculeEditorLiveAnalysisFacade],
   template: `
-<main class="mt-2 mb-6" role="main" aria-live="polite"
+<main class="m-editor-page" aria-labelledby="editor-heading"
     [attr.aria-busy]="pendingAction() !== null || pendingTabChange() !== null">
-    <h2
-        class="text-center text-light-accent-primary-hc dark:text-dark-accent-primary font-semibold text-xl 2xs:text-2xl sm:text-4xl mb-6">
-        Editor Molecolare
-    </h2>
+    <header class="m-editor-header">
+      <p class="m-editor-eyebrow">Editor molecolare</p>
+      <h1 id="editor-heading" class="text-2xl sm:text-3xl font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary">{{ modeTitle() }}</h1>
+      <p class="m-editor-description">{{ modeDescription() }}</p>
+    </header>
 
     @if (!error()) {
-    <div class="mb-5 flex justify-center">
-        <span id="moleculeEditorTabLabel" class="sr-only">Modalità editor molecolare</span>
+    <div class="m-editor-view-selector">
+        <span id="moleculeEditorTabLabel" class="sr-only">Vista dell’editor</span>
         <p-selectbutton class="editor-tabs" [options]="editorTabOptions()" [ngModel]="tab()"
             (ngModelChange)="onEditorTabChange($event)" optionLabel="label" optionValue="value" [allowEmpty]="false"
             [disabled]="pendingAction() !== null || pendingTabChange() !== null"
             ariaLabelledBy="moleculeEditorTabLabel" />
     </div>
-    <section class="max-w-6xl mx-auto my-4" aria-label="Identità molecolare">
-        <m-descriptor-cards-grid [cardsData]="[
-                { title: 'Nome della molecola', bg: 'primary', content: molecularName },
-                { title: 'Canonical SMILES', bg: 'secondary', content: canonicalSmilesContent },
-              ]" />
-
-        <ng-template #molecularName>
-            <m-descriptor-card-content class="block w-full min-w-0">
-                <div class="flex gap-3 items-center min-w-0">
-                    <span class="min-w-0 wrap-break-word">{{ moleculeNameLoading() ? 'Ricerca…' : (currentMoleculeName() ?? 'ND') }}</span>
-                    @if (!moleculeNameLoading() && currentMoleculeType() !== null) {
-                    <m-molecule-badge class="shrink-0" [name]="currentMoleculeType()!" />
-                    }
-                </div>
-            </m-descriptor-card-content>
-        </ng-template>
-        <ng-template #canonicalSmilesContent>
-            <m-descriptor-card-content class="block w-full min-w-0">
-                <div class="flex items-center gap-4 min-w-0">
-                    <span class="min-w-0 font-mono text-sm break-all">
-                        {{ currentCanonicalSmiles() || 'ND' }}
-                    </span>
-                    @if (currentCanonicalSmiles()) {
-                    <m-copy-button class="shrink-0" [src]="currentCanonicalSmiles() || ''" [disabled]="!currentCanonicalSmiles()"
-                        aria-label="Copia il Canonical SMILES negli appunti" />
-                    }
-                </div>
-            </m-descriptor-card-content>
-        </ng-template>
-    </section>
-
-    <div class="grid grid-cols-1 gap-4" [ngClass]="{
-      'xl:grid-cols-[minmax(0,3fr)_minmax(22rem,2fr)]': tab() === 'live'
-    }">
+    <div class="m-editor-layout" [class.m-editor-layout--live]="tab() === 'live'">
+      <section class="m-editor-workspace" aria-label="Disegno e identità molecolare">
+        <dl class="m-editor-identity" aria-label="Identità molecolare">
+          <div class="m-editor-name">
+            <dt>Nome della molecola</dt>
+            <dd>
+              <span>{{ moleculeNameLoading() ? 'Ricerca del nome…' : (currentMoleculeName() ?? (currentCanonicalSmiles() ? 'Molecola non identificata' : 'Nessuna struttura disegnata')) }}</span>
+              @if (!moleculeNameLoading() && currentMoleculeType() !== null) {
+                <m-molecule-badge [name]="currentMoleculeType()!" />
+              }
+            </dd>
+          </div>
+          <div class="m-editor-smiles">
+            <dt>SMILES canonico</dt>
+            <dd>
+              <span class="m-editor-smiles-value" [class.font-mono]="currentCanonicalSmiles()">{{ currentCanonicalSmiles() || 'Disponibile dopo il disegno della struttura' }}</span>
+              @if (currentCanonicalSmiles()) {
+                <m-copy-button [src]="currentCanonicalSmiles()" ariaLabel="Copia SMILES canonico" />
+              }
+            </dd>
+          </div>
+        </dl>
         <m-ketcher-frame [smiles]="smiles()" [baselineSmiles]="baselineSmiles()" [mode]="mode()" [tab]="tab()"
             [triggerReset]="triggerReset()" [triggerGetSmiles]="triggerGetSmiles()"
             (exportSmiles)="onSmilesExported($event)" (exportPolledSmiles)="onSmilesPollExported($event)"
             (onReset)="handleReset()">
 
-            <div class="flex flex-col 2xs:flex-row gap-3 mt-5 justify-end max-w-2xl mx-auto">
-                <button
-                    class="2xs:order-1 order-2 relative bottom-0.5 w-full mt-4 py-2 text-white rounded-md transition-colors duration-150 bg-light-accent-primary-hq dark:bg-dark-accent-primary-btn hover:bg-light-accent-primary-hc dark:hover:bg-dark-accent-primary/80 disabled:bg-light-accent-primary-hq/60 disabled:dark:bg-dark-accent-primary/80 disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary-hq/60 disabled:hover:dark:bg-dark-accent-primary/80"
-                    (click)="onReset()" [disabled]="untouched()" [attr.aria-disabled]="untouched()"
-                    aria-label="Resetta la struttura">
-                    Resetta
-                </button>
-
+            <div class="m-editor-actions" role="group" aria-label="Azioni sul disegno">
+                <button type="button" class="m-editor-action m-editor-action--secondary"
+                    (click)="onReset()" [disabled]="untouched() || pendingAction() !== null || pendingTabChange() !== null"
+                    aria-label="Resetta la struttura">{{ baselineSmiles() ? 'Ripristina struttura' : 'Svuota disegno' }}</button>
                 @if (mode() === 'edit') {
-                <button [disabled]="lock()"
-                    class="2xs:order-2 order-1 relative bottom-0.5 w-full mt-4 py-2 bg-emerald-600 text-white rounded-md font-semibold shadow hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed transition-colors duration-150"
-                    (click)="onSave()" [attr.aria-disabled]="lock()" aria-label="Salva molecola">
-                    Salva
-                </button>
+                  <button type="button" class="m-editor-action m-editor-action--primary"
+                    [disabled]="lock() || pendingAction() !== null || pendingTabChange() !== null"
+                    (click)="onSave()" aria-label="Salva molecola">Salva modifiche</button>
                 } @else {
-                <button [disabled]="lock()"
-                    class="2xs:order-2 order-1 relative bottom-0.5 w-full mt-4 py-2 bg-emerald-600 text-white rounded-md font-semibold shadow hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed transition-colors duration-150"
-                    (click)="onSaveAsNew()" [attr.aria-disabled]="lock()" aria-label="Salva come nuova molecola">
-                    Salva
-                </button>
+                  <button type="button" class="m-editor-action m-editor-action--primary"
+                    [disabled]="lock() || pendingAction() !== null || pendingTabChange() !== null"
+                    (click)="onSaveAsNew()" aria-label="Salva come nuova molecola">Salva nuova molecola</button>
                 }
             </div>
         </m-ketcher-frame>
+      </section>
         @if (tab() === 'live') {
-          <aside class="min-w-0" aria-label="Analisi molecolare live">
+          <aside class="m-editor-analysis" aria-labelledby="live-analysis-heading">
+            <h2 id="live-analysis-heading" class="text-lg font-semibold">Analisi live</h2>
+            <p class="m-editor-description">Risultati aggiornati sulla struttura disegnata.</p>
             <m-descriptor-cards-grid
               [columns]="1"
               density="compact"
@@ -174,51 +154,14 @@ import { MoleculeEditorLiveAnalysisFacade } from './molecule-editor-live-analysi
         }
     </div>
     } @else {
-    <h3 class="text-center text-5xl font-semibold text-light-error dark:text-dark-error" role="alert"
+    <h2 class="text-lg font-semibold text-light-error dark:text-dark-error" role="alert"
         aria-live="assertive">
-        Si è verificato un errore
-    </h3>
+        Impossibile aprire questo editor. Verifica il collegamento alla molecola.
+    </h2>
     }
 </main>
   `,
-  styles: `
-
-    .editor-tabs {
-      --p-togglebutton-background: #cad5e2;
-      --p-togglebutton-color: #0f172a;
-      --p-togglebutton-hover-background: rgba(206, 217, 230, 0.864);
-      --p-togglebutton-hover-color: #0f172a;
-
-      --p-togglebutton-checked-background: #1147bb;
-      --p-togglebutton-checked-color: white;
-      --p-togglebutton-content-checked-background: #1147bb;
-
-      --p-togglebutton-padding: 0.5rem;
-      --p-togglebutton-font-weight: 600;
-
-      --p-selectbutton-border-radius: 0.375rem;
-      --p-togglebutton-content-padding: 0.25rem 0.5rem;
-      --p-togglebutton-padding: 0.33rem;
-
-      transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;
-
-    }
-
-    :host-context(html.dark) .editor-tabs {
-      --p-togglebutton-background: #314158;
-      --p-togglebutton-color: #f8fafc;
-
-      --p-togglebutton-hover-background: rgba(53, 69, 91, 0.847);
-      --p-togglebutton-hover-color: #f8fafc;
-
-      --p-togglebutton-checked-background: #60a5fa;
-      --p-togglebutton-checked-color: #0f172a;
-      --p-togglebutton-content-checked-background: #60a5fa;
-
-
-    }
-
-`
+  styleUrl: './molecule-editor.page.component.css'
 })
 export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
 
@@ -261,19 +204,15 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
 
   readonly canUndo = this.drafts.canUndo
   readonly canRedo = this.drafts.canRedo
+  readonly modeTitle = computed(() => this.mode() === 'create' ? 'Crea una molecola' : this.mode() === 'edit' ? 'Modifica la struttura' : 'Duplica una molecola')
+  readonly modeDescription = computed(() => this.mode() === 'create'
+    ? 'Disegna una struttura e salvala nelle tue collezioni.'
+    : this.mode() === 'edit'
+      ? 'Le modifiche verranno applicate alla molecola personale originale.'
+      : 'Parti dalla struttura esistente per creare una nuova molecola. L’originale resta invariato.')
   readonly editorTabOptions = computed(() => [
-    {
-      label: this.mode() === 'create'
-        ? 'Crea una molecola'
-        : this.mode() === 'edit'
-          ? 'Modifica una molecola'
-          : 'Duplica una molecola',
-      value: 'std' as ChemistryEditorTab
-    },
-    {
-      label: 'Analisi live',
-      value: 'live' as ChemistryEditorTab
-    }
+    { label: 'Disegno', value: 'std' as ChemistryEditorTab },
+    { label: 'Analisi live', value: 'live' as ChemistryEditorTab }
   ])
 
   constructor() {

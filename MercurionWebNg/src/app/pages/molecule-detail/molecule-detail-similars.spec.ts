@@ -91,4 +91,13 @@ describe('MoleculeDetailFacade similar requests', () => {
     TestBed.resetTestingModule();
     expect(secondSimilar.observed).toBeFalse();
   });
+  it('distinguishes request failures from empty results and retries the current molecule', () => {
+    firstSimilar.error(new Error('offline'));
+    expect(facade.similarError()).toBeTrue(); expect(facade.similarLoading()).toBeFalse();
+    firstSimilar = new Subject<MoleculeSearchResult[]>();
+    facade.retrySimilar(); expect(facade.similarError()).toBeFalse(); expect(facade.similarLoading()).toBeTrue();
+    firstSimilar.next([preview]); expect(facade.similar()).toEqual([preview]);
+    expect(facade.similarLoading()).toBeFalse();
+  });
+
 });

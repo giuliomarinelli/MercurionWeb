@@ -38,10 +38,17 @@ type IdleWindow = Window & {
   selector: 'm-molecule-viewer',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    @if (renderState() === 'unavailable') {
+    @if (!structure()) {
+      <div class="wrap flex items-center justify-center" role="status">Struttura non disponibile.</div>
+    } @else if (renderState() === 'unavailable') {
       <div class="wrap flex flex-col items-center justify-center gap-2 text-center" role="alert">
         <span>{{ renderError() }}</span>
-        <button type="button" class="underline" (click)="retry()">Riprova</button>
+        <button type="button" class="min-h-12 rounded-md px-4 underline focus-visible:outline-2" (click)="retry()">Riprova</button>
+      </div>
+    } @else if (renderState() === 'loading' && mode() === 'detail') {
+      <div class="wrap flex flex-col items-center justify-center gap-3" role="status" aria-label="Caricamento struttura molecolare">
+        <span class="size-6 animate-spin rounded-full border-2 border-current border-t-transparent" aria-hidden="true"></span>
+        <span>Caricamento struttura...</span>
       </div>
     } @else {
       <div
@@ -59,7 +66,7 @@ type IdleWindow = Window & {
     `.wrap svg{display:block}`,
     /* ---------------- Variant overrides ---------------- */
     /* detail → altezza 100%, larghezza auto  */
-    `:host(.detail) .wrap svg{height:100%;width:auto}`,
+    `:host(.detail) .wrap svg{height:100%;width:100%}`,
     /* preview (default) → 100% su entrambi gli assi        */
     `:host(:not(.detail)) .wrap svg{height:100%;width:100%}`,
   ],
@@ -312,7 +319,7 @@ export class MoleculeViewerComponent implements OnInit, OnChanges {
           svgEl.setAttribute('width', '100%');
           svgEl.setAttribute('height', '100%');
         } else {
-          svgEl.setAttribute('style', 'height:100%;width:auto;max-width:100%;display:block');
+          svgEl.setAttribute('style', 'height:100%;width:100%;max-width:100%;display:block');
         }
         raw = svgEl.outerHTML;
       }

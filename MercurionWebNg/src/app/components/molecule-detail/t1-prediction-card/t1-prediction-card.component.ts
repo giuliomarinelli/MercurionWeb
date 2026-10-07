@@ -1,96 +1,81 @@
-import { Component, ChangeDetectionStrategy, effect, input, signal } from '@angular/core';
-import { T1PredictionDTO, T1PredictionItem } from '../../../Models/notebook/t1-prediction-model';
+import { Component, ChangeDetectionStrategy, computed, input, output } from '@angular/core';
 import { PercentPipe } from '@angular/common';
+import { T1PredictionDTO, InferenceDTO } from '../../../Models/notebook/t1-prediction-model';
 
+export const TOX21_ENDPOINTS = ['SR-ATAD5', 'NR-AhR', 'SR-MMP', 'SR-p53'] as const;
+
+function validPrediction(value: InferenceDTO | undefined): value is InferenceDTO {
+  return !!value && typeof value.is_positive === 'boolean' &&
+    Number.isFinite(value.probability) && value.probability >= 0 && value.probability <= 1 &&
+    Number.isFinite(value.threshold) && value.threshold >= 0 && value.threshold <= 1;
+}
 
 @Component({
   selector: 'm-t1-prediction-card',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [PercentPipe],
+  styleUrl: './t1-prediction-card.component.css',
   template: `
-
-  @if (_inference()) {
-    <section class="mt-6" aria-labelledby="tox-heading">
-      <h2 id="tox-heading" class="font-semibold text-emerald-600 dark:text-emerald-400 xs:text-lg mb-2 text-left text-xl">Predizione Tossicologica</h2>
-      <div class="rounded-xl border-2 border-emerald-400/70 bg-emerald-50/60 dark:bg-gray-900/80 shadow p-6 space-y-4">
-        <h3 class="flex gap-1 font-bold text-sm text-emerald-600 dark:text-emerald-400 xs:text-lg mb-2">
-          MercurionAI MT-21
-        </h3>
-        <p class="text-xs tracking-wide my-4">
-          <a
-            href="https://github.com/giuliomarinelli/MercurionTox21"
-            title="Clicca qui per vedere il codice sorgente."
-            class="a font-semibold text-emerald-600 dark:text-dark-accent-secondary-hc"
-            target="_blank">
-            MT-21
-          </a> è un modello di predizione tossicologica basato su fingerprint molecolari e intelligenza artificiale, addestrato sul dataset open-source <em>Tox21</em>.
+    <section aria-labelledby="tox-heading" [attr.aria-busy]="loading()">
+      <h2 id="tox-heading" class="text-xl font-semibold text-light-accent-secondary dark:text-dark-accent-secondary-hc">Predizione Tox21</h2>
+      <div class="m-tox-panel">
+        <header class="m-tox-header">
+          <h3 class="font-semibold">MercurionAI MT-21</h3>
+          <a class="a text-sm" href="https://github.com/giuliomarinelli/MercurionTox21" target="_blank" rel="noopener noreferrer">Codice del modello<span class="sr-only"> (si apre in una nuova scheda)</span></a>
+        </header>
+        <p class="m-tox-description">Modello basato su fingerprint molecolari, addestrato sul dataset Tox21. Ogni esito riguarda un singolo endpoint.</p>
+        <p class="m-tox-state" role="status">
+          @if (loading()) { Predizione in corso… }
+          @else if (error()) { Predizione non disponibile. Riprova senza lasciare la scheda. }
+          @else if (available() === 4) { 4 endpoint disponibili }
+          @else if (available()) { Risultato parziale: {{ available() }} di 4 endpoint disponibili }
+          @else { Nessun risultato disponibile per questa molecola. }
         </p>
-          <div class="flex flex-col gap-3 border-b border-t border-l-4 border-slate-400 bg-slate-200/40 dark:bg-neutral-800/40 p-2">
-            <div class="flex gap-3">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-5 h-auto text-light-error dark:text-dark-error">
-                  <!--!Font Awesome Pro v7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-                  <path d="M320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM404.4 276.7L324.4 404.7C320.2 411.4 313 415.6 305.1 416C297.2 416.4 289.6 412.8 284.9 406.4L236.9 342.4C228.9 331.8 231.1 316.8 241.7 308.8C252.3 300.8 267.3 303 275.3 313.6L302.3 349.6L363.7 251.3C370.7 240.1 385.5 236.6 396.8 243.7C408.1 250.8 411.5 265.5 404.4 276.8z"/>
-              </svg>
-              <span>=</span>
-              <span class="text-light-error dark:text-dark-error font-medium">Tossico</span>
-            </div>
-            <div class="flex gap-3">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-5 h-auto text-green-800 dark:text-green-300">
-                <!--!Font Awesome Pro v7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-                <path d="M320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM266.6 216.8L320 282.1L373.4 216.8C381.8 206.5 396.9 205 407.2 213.4C417.5 221.8 419 236.9 410.6 247.2L351 320L410.6 392.8C419 403.1 417.5 418.2 407.2 426.6C396.9 435 381.8 433.5 373.4 423.2L320 357.9L266.6 423.2C258.2 433.5 243.1 435 232.8 426.6C222.5 418.2 221 403.1 229.4 392.8L289 320L229.4 247.2C221 236.9 222.5 221.8 232.8 213.4C243.1 205 258.2 206.5 266.6 216.8z"/>
-              </svg>
-              <span>=</span>
-              <span class="text-green-800 dark:text-green-300 font-medium">NON Tossico</span>
-            </div>
-          </div>
-          @for (predWrapper of predictions(); track predWrapper) {
-            <div class="flex flex-col md:flex-row md:justify-between lg:items-center gap-3">
-              <div class="flex gap-3">
-              @if (predWrapper.prediction.is_positive) {
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-5 h-auto text-light-error dark:text-dark-error">
-                  <!--!Font Awesome Pro v7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-                  <path d="M320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM404.4 276.7L324.4 404.7C320.2 411.4 313 415.6 305.1 416C297.2 416.4 289.6 412.8 284.9 406.4L236.9 342.4C228.9 331.8 231.1 316.8 241.7 308.8C252.3 300.8 267.3 303 275.3 313.6L302.3 349.6L363.7 251.3C370.7 240.1 385.5 236.6 396.8 243.7C408.1 250.8 411.5 265.5 404.4 276.8z"/>
-                </svg>
-              } @else {
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-5 h-auto text-green-800 dark:text-green-300 ">
-                  <!--!Font Awesome Pro v7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-                  <path d="M320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM266.6 216.8L320 282.1L373.4 216.8C381.8 206.5 396.9 205 407.2 213.4C417.5 221.8 419 236.9 410.6 247.2L351 320L410.6 392.8C419 403.1 417.5 418.2 407.2 426.6C396.9 435 381.8 433.5 373.4 423.2L320 357.9L266.6 423.2C258.2 433.5 243.1 435 232.8 426.6C222.5 418.2 221 403.1 229.4 392.8L289 320L229.4 247.2C221 236.9 222.5 221.8 232.8 213.4C243.1 205 258.2 206.5 266.6 216.8z"/>
-                </svg>
-              }
-              <span class="font-semibold">{{ predWrapper.label }}</span>
-              <span class="text-sm text-gray-500 ml-2">({{ predWrapper.prediction.probability | percent:'1.0-2' }})</span>
+        <ul class="m-tox-results" aria-label="Risultati per endpoint Tox21">
+          @for (row of rows(); track row.label) {
+            <li class="m-tox-row">
+              <div class="m-tox-endpoint">
+                <strong>{{ row.label }}</strong>
+                @if (loading()) {
+                  <span class="m-tox-placeholder" aria-hidden="true"></span>
+                } @else if (!error() && row.prediction; as prediction) {
+                  <span class="m-tox-outcome" [class.m-tox-outcome--positive]="prediction.is_positive">{{ prediction.is_positive ? 'Positivo' : 'Negativo' }}</span>
+                } @else { <span class="m-tox-missing">Non disponibile</span> }
               </div>
-              <span class="text-xs md:text-[0.6rem] lg:text-xs italic text-slate-400">Soglia: {{ predWrapper.prediction.threshold }}</span>
-            </div>
+              <dl class="m-tox-values">
+                <div><dt>Probabilità</dt><dd>
+                  @if (loading()) { <span class="m-tox-placeholder" aria-hidden="true"></span> }
+                  @else if (!error() && row.prediction; as prediction) { {{ prediction.probability | percent:'1.2-2' }} }
+                  @else { — }
+                </dd></div>
+                <div><dt>Soglia</dt><dd>
+                  @if (loading()) { <span class="m-tox-placeholder" aria-hidden="true"></span> }
+                  @else if (!error() && row.prediction; as prediction) { {{ prediction.threshold | percent:'1.2-2' }} }
+                  @else { — }
+                </dd></div>
+              </dl>
+            </li>
+          }
+        </ul>
+        @if (!loading() && (error() || available() < 4)) {
+          <button class="m-tox-retry" type="button" (click)="retry.emit()">Riprova predizione</button>
         }
-        <p class="text-light-warning dark:text-dark-warning text-[0.66rem] 2xs:text-xs font-light relative top-3">
-          MercurionAI può sbagliare, approfondisci sempre!
-        </p>
+        <div class="m-tox-guide">
+          <p><strong>Come leggere gli esiti.</strong> Positivo indica che la probabilità supera la soglia dell’endpoint; negativo che non la supera. Gli esiti sono quelli restituiti dal modello, prima dell’arrotondamento dei valori visualizzati.</p>
+          <p>Una predizione non è una misura sperimentale. Un esito negativo non dimostra che la molecola sia sicura.</p>
+        </div>
       </div>
     </section>
-  }
-
   `
 })
 export class T1PredictionCardComponent {
-
-
-  protected _inference = signal<T1PredictionDTO | undefined>(undefined)
-
-  readonly inference = input<T1PredictionDTO | undefined>(undefined)
-
-  protected predictions = signal<T1PredictionItem[]>([])
-
-  constructor() {
-    effect(() => this._inference.set(this.inference()))
-    effect(() => {
-      if (!this._inference()) {
-        return
-      }
-      this.predictions.set(Object.entries(this._inference() as T1PredictionDTO)
-        .filter(([, val]) => !!val)
-        .map(([label, val]) => ({ label, prediction: val })))
-    })
-  }
-
+  readonly inference = input<T1PredictionDTO | undefined>(undefined);
+  readonly loading = input(false);
+  readonly error = input(false);
+  readonly retry = output<void>();
+  protected readonly rows = computed(() => TOX21_ENDPOINTS.map(label => {
+    const prediction = this.inference()?.[label];
+    return { label, prediction: validPrediction(prediction) ? prediction : undefined };
+  }));
+  protected readonly available = computed(() => this.rows().filter(row => row.prediction).length);
 }

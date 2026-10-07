@@ -30,10 +30,11 @@ import { ViewportRuntimeService } from '../../../services/context/viewport-runti
 @Component({
   selector: 'm-ketcher-frame',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  styleUrl: './ketcher-frame.component.css',
   template: `
     <div class="relative w-full" role="region" aria-label="Editor molecolare">
       @if (editorState() === 'unavailable') {
-        <div class="flex min-h-[320px] flex-col items-center justify-center gap-4 px-4 text-center" role="alert">
+        <div class="m-ketcher-stage m-ketcher-unavailable" role="alert">
           <p class="font-semibold text-light-error dark:text-dark-error">{{ editorError() }}</p>
           <button
             type="button"
@@ -44,12 +45,12 @@ import { ViewportRuntimeService } from '../../../services/context/viewport-runti
           </button>
         </div>
       } @else {
-        <div class="relative mx-auto h-[70vh] min-h-[320px] max-h-[540px] w-full max-w-[1380px] sm:h-[500px] lg:px-8">
+        <div class="m-ketcher-stage">
           @if (ketcherUrl()) {
             <iframe
               #ketcherIframe
               [src]="ketcherUrl()"
-              class="block h-full w-full border-none shadow-[0_1px_12px_rgba(15,23,42,0.18)] dark:shadow-none"
+              class="m-ketcher-iframe"
               title="Editor molecolare"
               [attr.aria-busy]="editorState() === 'loading'"
             ></iframe>
@@ -57,7 +58,7 @@ import { ViewportRuntimeService } from '../../../services/context/viewport-runti
 
           @if (editorState() === 'loading') {
             <div
-              class="pointer-events-none absolute inset-y-0 inset-x-0 animate-pulse bg-gray-300 dark:bg-neutral-700 lg:inset-x-8"
+              class="pointer-events-none absolute inset-y-0 inset-x-0 animate-pulse bg-gray-300 dark:bg-neutral-700"
               role="status"
               aria-live="polite"
               aria-label="Caricamento editor in corso"

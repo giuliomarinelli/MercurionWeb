@@ -1,0 +1,10 @@
+.m-detail-page { max-width: 64rem; margin-inline: auto; min-width: 0; padding: 0; color: var(--m-color-on-surface-main); }
+.m-detail-page > * + * { margin-block-start: 1.5rem; }
+.m-detail-identifiers { padding: 1.25rem; border: 1px solid var(--color-light-border); border-radius: 1rem; background: var(--color-light-surface-secondary); }
+:host-context(.dark) .m-detail-identifiers { border-color: var(--color-dark-border); background: var(--color-dark-surface-secondary); }
+.m-detail-structure { width: 100%; height: clamp(240px, 38vw, 400px); min-width: 0; padding: 1rem; border: 1px solid var(--color-light-border); border-radius: 1rem; overflow: hidden; background: var(--color-light-surface-main); }
+:host-context(.dark) .m-detail-structure { border-color: var(--color-dark-border); background: var(--color-dark-surface-main); }
+@media (min-width: 480px) { .m-detail-page { padding: 1rem; } }
+@media (min-width: 768px) { .m-detail-page { padding: 2rem; } }
+
+.m-detail-analogues { display: grid; gap: 1rem; min-width: 0; text-align: left; }

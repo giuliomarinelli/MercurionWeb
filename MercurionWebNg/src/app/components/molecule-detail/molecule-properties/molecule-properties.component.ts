@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, effect, input, computed, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, computed } from '@angular/core';
 
 type MoleculeProperties = {
   mwFreebase: number | string | null
@@ -9,55 +9,41 @@ type MoleculeProperties = {
   rtb: number | string | null
 }
 
-const EMPTY_MOLECULE_PROPERTIES: MoleculeProperties = {
-  mwFreebase: null,
-  alogp: null,
-  hba: null,
-  hbd: null,
-  psa: null,
-  rtb: null
-};
-
 @Component({
   selector: 'm-molecule-properties',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  styleUrl: './molecule-properties.component.css',
   template: `
     <section class="mt-6" aria-labelledby="molecule-properties-heading">
       <h2 class="text-xl font-semibold mb-3 text-light-accent-primary-hc dark:text-dark-accent-primary text-left">
         <span id="molecule-properties-heading">Proprietà chimico-fisiche</span>
       </h2>
 
-      <div class="rounded-xl border border-token-border bg-gray-200/40 dark:bg-gray-700/40 p-4 shadow-sm">
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4 text-sm">
-          @for (item of propertiesList(); track item.label) {
-            <div>
-              <span class="text-light-on-surface-secondary dark:text-dark-on-surface-secondary">{{ item.label }}:&nbsp;</span>
-              <span class="font-medium">{{ item.value }}</span>
-            </div>
-          }
-        </div>
-      </div>
+      <dl class="m-properties-grid">
+        @for (item of propertiesList(); track item.label) {
+          <div class="m-property">
+            <dt>{{ item.label }}</dt>
+            <dd [class.m-property--missing]="item.missing">{{ item.value }}</dd>
+          </div>
+        }
+      </dl>
     </section>
   ` })
 export class MoleculePropertiesComponent {
-  private readonly propsSignal = signal<MoleculeProperties>(EMPTY_MOLECULE_PROPERTIES);
-
-  readonly properties = input<MoleculeProperties | undefined>(undefined)
-  private readonly syncProperties = effect(() =>
-    this.propsSignal.set(this.properties() ?? EMPTY_MOLECULE_PROPERTIES)
-  )
-
-  readonly props = this.propsSignal.asReadonly();
-
+  readonly properties = input<Partial<MoleculeProperties> | undefined>(undefined);
+  readonly props = computed(() => this.properties() ?? {});
   readonly propertiesList = computed(() => {
     const props = this.props();
     return [
-      { label: 'Peso molecolare', value: props.mwFreebase ?? 'ND' },
-      { label: 'logP', value: props.alogp ?? 'ND' },
-      { label: 'H-bond donor', value: props.hbd ?? 'ND' },
-      { label: 'H-bond acceptor', value: props.hba ?? 'ND' },
-      { label: 'PSA', value: props.psa ?? 'ND' },
-      { label: 'Rotatable bonds', value: props.rtb ?? 'ND' },
-    ]
-  })
+      ['Massa molare (g/mol)', props.mwFreebase],
+      ['logP', props.alogp],
+      ['Donatori di legami a idrogeno', props.hbd],
+      ['Accettori di legami a idrogeno', props.hba],
+      ['Superficie polare (PSA, Å²)', props.psa],
+      ['Legami ruotabili', props.rtb]
+    ].map(([label, value]) => {
+      const missing = value == null || String(value).trim() === '';
+      return { label, value: missing ? 'Non disponibile' : value, missing };
+    });
+  });
 }

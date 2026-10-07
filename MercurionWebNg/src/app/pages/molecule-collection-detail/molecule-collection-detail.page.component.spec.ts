@@ -10,6 +10,8 @@ describe('MoleculeCollectionDetailComponent', () => {
 
   beforeEach(async () => {
     const facade = {
+      renamePending: signal(false), renameError: signal(''), renameRevision: signal(0),
+      actionPending: signal(false), actionError: signal(''), retryCollection: jasmine.createSpy(),
       collectionId: signal('collection-1'),
       collectionName: signal('Test collection'),
       search: signal(''),
@@ -44,5 +46,23 @@ describe('MoleculeCollectionDetailComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+  it('requires an explicit confirmation and cancel never deletes', () => {
+    component.ask('collection'); fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('presenti soltanto in questa collezione');
+    expect(component.facade.deleteCollection).not.toHaveBeenCalled();
+    component.cancelConfirmation();
+    expect(component.confirmation()).toBeNull();
+    expect(component.facade.deleteCollection).not.toHaveBeenCalled();
+  });
+  it('keeps the confirmation available when a mutation fails', async () => {
+    (component.facade.deleteCollection as jasmine.Spy).and.resolveTo(false);
+    component.ask('collection'); await component.confirm();
+    expect(component.confirmation()).not.toBeNull();
+  });
+  it('dismisses only after successful mutation', async () => {
+    (component.facade.deleteCollection as jasmine.Spy).and.resolveTo(true);
+    component.ask('collection'); await component.confirm();
+    expect(component.confirmation()).toBeNull();
   });
 });

@@ -52,12 +52,12 @@ La priorità indica il valore della rifinitura per il portfolio, non la gravità
 | PX-03 | Accesso e registrazione | P1 | S, B, V | Da affrontare |
 | PX-04 | Ricerca molecolare | P1 | S, B | Implementato, in review; QA iPhone aperta |
 | PX-05 | Liste, card e selezione | P1 | S, B | Card, selezione e liste implementate, in review |
-| PX-06 | Dettaglio collezione | P1 | S, B | Da affrontare |
+| PX-06 | Dettaglio collezione | P1 | S, B | Implementato, in review |
 | PX-07 | Overlay di gestione collezioni | P1 | S, B | Creazione, destinazione, associazione e aggiunta molecole implementate, in review |
-| PX-08 | Editor molecolare | P1 | S, B | Da affrontare |
+| PX-08 | Editor molecolare | P1 | S, B | Blocco 12 implementato, in review; blocco 13 da affrontare |
 | PX-09 | Salvataggio della molecola | P1 | S, B | Implementato, in review |
-| PX-10 | Dettaglio molecola e informazioni scientifiche | P1 | S, B | Da affrontare |
-| PX-11 | Predizione Tox21 e comunicazione dei risultati | P1 | S, B, V | Da affrontare |
+| PX-10 | Dettaglio molecola e informazioni scientifiche | P1 | S, B | Blocchi 09–10 implementati, in review |
+| PX-11 | Predizione Tox21 e comunicazione dei risultati | P1 | S, B, V | Blocco 11 implementato, in review |
 | PX-12 | Dashboard | P2 | S, B | Da affrontare |
 | PX-13 | Settings: fasi e stati ancora non conclusi | P2 | S, B, V | Riferimento iniziale implementato; completamento aperto |
 | PX-14 | Recupero, attivazione e callback SSO | P2 | S, V | Da affrontare |
@@ -101,6 +101,8 @@ Il completamento della fase A non autorizza automaticamente il merge. Le fasi C�
 - Rifinire cronologia: nomi lunghi, date, icone, stato vuoto e spazio occupato.
 - Verificare menu utente, tema e notifiche: ancoraggio, chiusura, focus e target touch.
 - Rendere coerenti le versioni mobile e desktop senza riprogettare la navigazione del prodotto.
+- Riprodurre il cambio di breakpoint senza reload: durante la QA il gutter della shell può conservare una geometria precedente; controllare contenuto e sidebar dopo resize/rotazione. Le viste finali desktop sono state verificate dopo reload.
+- Verificare apertura diretta di una molecola salvata durante il ripristino della sessione: in una prova il reload ha portato alla variante pubblica, mentre la navigazione interna dopo il ripristino ha aperto quella salvata. Isolare la causa tra PX-01 e PX-23 prima del merge.
 
 **Accettazione:** un utente identifica dove si trova e come tornare indietro; nessun menu nasconde il controllo necessario per chiuderlo; focus e collegamenti restano funzionanti dopo cambi route e breakpoint.
 
@@ -199,6 +201,8 @@ Il completamento della fase A non autorizza automaticamente il merge. Le fasi C�
 
 **Accettazione:** le azioni principali sono riconoscibili su mobile; nessuna icona richiede il tooltip per essere interpretabile; il risultato del comando resta visibile nel contesto corretto.
 
+**Blocco 08, 7 ottobre:** implementato, in review. Nome con editor nativo, bozza conservata su errore, salvataggio reale prima della chiusura e titolo aggiornato; CTA principale e comandi leggibili da 48–50 px. Ricerca con debounce, contatore degli elementi visualizzati, empty distinto dal filtro senza corrispondenze e retry localizzato. Card e skeleton in flusso normale, stesso gap e variante con rimozione. Conferme separate per collezione, eliminazione molecola e rimozione del solo collegamento; conseguenze coerenti con il backend, focus iniziale su Annulla e invii ripetuti bloccati. La selezione multipla resta nell'overlay di aggiunta già esistente: non introdotta una nuova funzione bulk nella pagina. 39 test mirati, build e controlli locali superati; verifiche Chrome e limiti in [DAILY-LOG.md](DAILY-LOG.md). Rimangono review manuale, Safari fisico e ultime tre dimensioni desktop del tema scuro.
+
 **Sorgenti:** [pagina](../../src/app/pages/molecule-collection-detail/molecule-collection-detail.page.component.ts), [toolbar](../../src/app/pages/molecule-collection-detail/molecule-collection-detail-toolbar.component.ts), [paginazione](../../src/app/pages/molecule-collection-detail/molecule-collection-detail-pagination.component.ts).
 
 ### PX-07 — Overlay di gestione collezioni
@@ -220,6 +224,8 @@ Il completamento della fase A non autorizza automaticamente il merge. Le fasi C�
 **Sorgenti:** [creazione](../../src/app/components/action-components/create-collection/create-collection.component.ts), [aggiunta](../../src/app/components/action-components/add-molecules-to-collection/add-molecules-to-collection.component.ts), [associazione](../../src/app/components/action-components/bind-collections-to-molecule/bind-collections-to-molecule.component.ts), [scelta destinazione](../../src/app/components/action-components/select-collection-then-route/select-collection-then-route.component.ts).
 
 ### PX-08 — Editor molecolare
+
+**Blocco 12 implementato, in review (7 ottobre):** contesto creazione/modifica/duplicazione persistente nel titolo e nella descrizione, selettore Disegno/Analisi live distinto dalla modalità operativa. Identità compatta sopra il canvas, azioni esplicite da almeno 48 px, area Ketcher condivisa per caricamento/contenuto/errore e colonne live basate sulla larghezza realmente disponibile. 37 test mirati, controlli locali e browser Chrome nei due temi superati; limiti nel diario. Il blocco 13 resta aperto per validazione, draft, errori asincroni e percorso finale. Includere la leggibilità dei widget live: soglia oggi nel tooltip e testo molto piccolo, da riallineare al criterio Tox21 del blocco 11.
 
 **Perché conta:** è una delle parti più distintive del portfolio: integra strumenti specialistici, analisi asincrona e gestione del draft.
 
@@ -273,9 +279,15 @@ Il completamento della fase A non autorizza automaticamente il merge. Le fasi C�
 
 **Accettazione:** la scheda si può scorrere e comprendere per gruppi; non si tronca informazione scientifica essenziale; dati non disponibili e caricamenti sono distinti; tutte le varianti restano coerenti.
 
+**Blocco 09, 7 ottobre:** implementato, in review. Identità e azioni in una griglia comune alle tre varianti; aggiunta primaria, duplicazione come link nativo e comando elimina leggibile con conferma, pending e errore recuperabile. Identificativi in un gruppo distinto, copia contestuale da 48 px, IUPAC mancante distinto da errore e caricamento, Riprova senza azzerare il dettaglio. Viewer da 240–400 px, struttura intera in modalità meet, loading/errore gestiti dal renderer senza il placeholder della pagina che copriva Riprova. 66 test, build e controlli locali superati; evidenze e limiti in [DAILY-LOG.md](DAILY-LOG.md). Restano nel blocco 10 note/metadati e comportamento del loro salvataggio, proprietà, associazioni e sezioni lunghe; Tox21 resta nel blocco 11.
+
+**Blocco 10, 7 ottobre:** implementato, in review. Proprietà in un elenco descrittivo responsive, unità di massa molare/superficie polare esplicite, valori originali senza arrotondamenti e Non disponibile distinto da zero. Etichetta e note in superfici leggibili; nome/metadati attendono l'esito della mutazione, conservano la bozza su errore e bloccano invii duplicati. Escape annulla, Ctrl/Cmd+Invio salva, focus restituito alla modifica; cambio di risorsa cancella la richiesta e la bozza precedenti. Nessun caricamento temporizzato delle collezioni, lista distanziata con contatore e scrollbar thin su desktop, scorrimento normale su telefono. Analoghi in flusso normale, skeleton di molecole compatte, filtro/empty/errore/retry distinti; sinonimi lunghi a capo senza restringere la lista. Prove, controlli e limiti in [DAILY-LOG.md](DAILY-LOG.md). Salvataggi live e tastiera fisica Safari non certificati; Tox21 resta nel blocco 11.
+
 **Sorgenti:** [pagina](../../src/app/pages/molecule-detail/molecule-detail.page.component.ts), [proprietà](../../src/app/components/molecule-detail/molecule-properties/molecule-properties.component.ts), [sinonimi](../../src/app/components/molecule-detail/molecule-synonyms/molecule-synonyms.component.ts), [vie](../../src/app/components/molecule-detail/molecule-routes/molecule-routes.component.ts).
 
 ### PX-11 — Predizione Tox21 e comunicazione dei risultati
+
+**Blocco 11 implementato, in review (7 ottobre):** quattro endpoint del contratto corrente, esiti testuali Positivo/Negativo, probabilità e soglie in percentuale. Loading con righe stabili, risultati parziali e dati mancanti distinti dagli esiti negativi, errore recuperabile con retry della sola inferenza. La classificazione rimane quella del backend, senza ricalcolarla dai valori arrotondati; spiegazione e provenienza leggibili. Verificati 72 test mirati, build/controlli locali e Chrome nei due temi; Safari fisico resta aperto. Dettagli e limiti nel diario.
 
 **Perché conta:** dimostra la capacità di presentare una funzionalità AI scientifica con chiarezza e responsabilità.
 
@@ -573,7 +585,7 @@ Ogni riga è un'unità di lavoro, non una promessa di completamento in un giorno
 
 PX-19 accompagna ogni blocco. Non aspettare la fine per curare focus, errori, nomi accessibili e stati di caricamento. Se home o accesso devono essere mostrati subito a un cliente, anticipare i blocchi 15–16 senza aprire un redesign globale.
 
-PX-22 e PX-23 accompagnano gli interventi pertinenti; le righe 26–27 sono il passaggio di regressione finale, non il primo momento in cui verificare questi comportamenti. Il prossimo blocco previsto è **08 — PX-06, dettaglio collezione**. La verifica fisica della tastiera secondo [KEYBOARD-QA.md](KEYBOARD-QA.md) resta aperta prima dell'accettazione e del merge; i blocchi 01–07 restano in review. L'utente ha autorizzato il proseguimento della roadmap durante questa QA.
+PX-22 e PX-23 accompagnano gli interventi pertinenti; le righe 26–27 sono il passaggio di regressione finale, non il primo momento in cui verificare questi comportamenti. Il prossimo blocco previsto è **13 — PX-08, editor: stati e percorso finale**. La verifica fisica della tastiera secondo [KEYBOARD-QA.md](KEYBOARD-QA.md) resta aperta prima dell'accettazione e del merge; i blocchi 01–12 restano in review. L'utente ha autorizzato il proseguimento della roadmap durante questa QA.
 
 ## Lavoro successivo al merge
 

@@ -32,7 +32,7 @@ describe('MoleculeDetailComponent', () => {
       collectionName: signal(null),
       currentId,
       save: jasmine.createSpy('save'),
-      delete: jasmine.createSpy('delete'),
+      deletePending: signal(false), deleteError: signal(''), delete: jasmine.createSpy('delete'),
       bindCollections: jasmine.createSpy('bindCollections')
     };
     await TestBed.configureTestingModule({

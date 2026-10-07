@@ -24,12 +24,12 @@ describe('MoleculeCollectionDetailFacade invalidations', () => {
     TestBed.configureTestingModule({ providers: [
       MoleculeCollectionDetailFacade,
       { provide: ActivatedRoute, useValue: { paramMap: EMPTY } },
-      { provide: MoleculeCollectionService, useValue: {} },
+      { provide: MoleculeCollectionService, useValue: { updateCollectionName: jasmine.createSpy('rename') } },
       { provide: MoleculeCollectionItemService, useValue: { getPaginatedItemsForCollection: fetchPage } },
-      { provide: HistoryContextService, useValue: {} },
-      { provide: ToastService, useValue: {} },
+      { provide: HistoryContextService, useValue: { pollNewItem: () => of(null) } },
+      { provide: ToastService, useValue: { trigger: jasmine.createSpy() } },
       { provide: ActionOverlayContextService, useValue: {} },
-      { provide: AppTitleService, useValue: {} }
+      { provide: AppTitleService, useValue: { setSection: jasmine.createSpy() } }
     ] });
     facade = TestBed.inject(MoleculeCollectionDetailFacade);
     facade.collectionId.set('collection-1');
@@ -74,4 +74,22 @@ describe('MoleculeCollectionDetailFacade invalidations', () => {
     void facade.reload();
     expect(fetchPage).toHaveBeenCalledTimes(1);
   }));
+  it('keeps the saved name until the rename response and exposes recoverable failure', fakeAsync(() => {
+    const response = new Subject<{ id: string; name: string }>();
+    const rename = TestBed.inject(MoleculeCollectionService).updateCollectionName as jasmine.Spy;
+    rename.and.returnValue(response); facade.collectionName.set('Original');
+    void facade.renameCollection('  Updated  ');
+    expect(rename).toHaveBeenCalledWith('collection-1', 'Updated');
+    expect(facade.collectionName()).toBe('Original'); expect(facade.renamePending()).toBeTrue();
+    void facade.renameCollection('Duplicate'); expect(rename).toHaveBeenCalledTimes(1);
+    response.error(new Error('Offline')); flushMicrotasks();
+    expect(facade.collectionName()).toBe('Original'); expect(facade.renameError()).toBeTruthy();
+    expect(facade.renameRevision()).toBe(0); expect(facade.renamePending()).toBeFalse();
+    rename.and.returnValue(of({ id: 'collection-1', name: 'Updated' }));
+    void facade.renameCollection('Updated'); flushMicrotasks();
+    expect(facade.collectionName()).toBe('Updated'); expect(facade.renameError()).toBe('');
+    expect(facade.renameRevision()).toBe(1);
+    expect(TestBed.inject(AppTitleService).setSection).toHaveBeenCalledWith('Dettaglio Collezione', 'Updated');
+  }));
+
 });

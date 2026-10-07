@@ -1,7 +1,9 @@
+import type { Observable } from 'rxjs';
 import { CustomDetailSaveModel } from '../../../Models/custom-detail-save.model';
-import { Component, computed, input, ChangeDetectionStrategy, output } from '@angular/core';
+import { Component, computed, input, ChangeDetectionStrategy, output, signal, effect } from '@angular/core';
 import { CustomDetailsComponent } from '../my-molecule-custom-details/custom-details.component';
 import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.component';
+import { DialogShellComponent } from '../../common/dialog-shell/dialog-shell.component';
 import { RouterLink } from '@angular/router';
 
 
@@ -11,17 +13,16 @@ import { RouterLink } from '@angular/router';
   imports: [
     CustomDetailsComponent,
     MoleculeBadgeComponent,
-    RouterLink
+    RouterLink, DialogShellComponent
   ],
+  styleUrls: ['./molecule-header.component.css'],
   template: `
     <header
-      class="flex flex-wrap justify-between gap-4 sm:gap-6"
-      [class.items-center]="_isCustom()"
-      [class.items-start]="!_isCustom()"
+      class="m-molecule-heading"
       aria-labelledby="molecule-name"
-      role="banner">
+>
 
-      <div class="flex-[1_1_28rem] min-w-0 space-y-2 max-w-full">
+      <div class="m-molecule-identity min-w-0 space-y-2 max-w-full">
         @if (_myMol()) {
           @if (!_isCustom()) {
             <div class="flex flex-wrap items-center gap-3 sm:gap-4">
@@ -38,7 +39,7 @@ import { RouterLink } from '@angular/router';
             </div>
           } @else {
             <m-custom-details
-              [type]="'name'"
+              [type]="'name'" actionSize="lg" [saveRequest]="saveRequest()"
               [value]="name()"
               [badgeName]="_badgeName()"
               [itemId]="_molId()"
@@ -75,76 +76,55 @@ import { RouterLink } from '@angular/router';
       </div>
 
       @if (_isLoggedIn()) {
-        <div
-          class="flex flex-wrap items-center gap-2 sm:gap-3 min-w-0 max-w-full
-                 justify-start w-fit">
-
-          <!-- Duplica -->
-          <a
-            class="relative p-1 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700
-                   transition-colors duration-150"
-            title="Crea una nuova molecola da questa struttura (Duplica)"
-            [routerLink]="pathToDuplicate().url"
-            [queryParams]="pathToDuplicate().queryParams"
-            aria-label="Duplica molecola {{ name() }}">
-            <svg
-              class="size-7 text-slate-600 dark:text-slate-300"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              aria-hidden="true">
-              <path
-                d="M4 4a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v1h-1V4a1 1 0 0 0-1-1H6a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h1v1H6a2 2 0 0 1-2-2V4z" />
-              <path
-                d="M8 6a2 2 0 0 1 2-2h5a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-5a2 2 0 0 1-2-2V6z" />
-            </svg>
-          </a>
-
-          @if (!_isSystemMolecule()) {
-            <!-- Elimina -->
-            <button
-              type="button"
-              class="relative p-1 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700
-                     transition-colors duration-150"
-              title="Elimina da tutte le collezioni"
-              (click)="doDelete()"
-              aria-label="Elimina molecola {{ name() }}">
-              <svg
-                class="size-7 text-light-error dark:text-dark-error"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                aria-hidden="true">
-                <path
-                  fill-rule="evenodd"
-                  d="M6 8a1 1 0 0 1 1 1v7h6V9a1 1 0 1 1 2 0v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V9a1 1 0 0 1 1-1zM4 5a1 1 0 0 1 1-1h2V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1h2a1 1 0 0 1 1 1v1H4V5z"
-                  clip-rule="evenodd" />
-              </svg>
-            </button>
-          }
-
-          <!-- Aggiungi ad una o più collezioni -->
-          <button
-            type="button"
-            class="flex items-center gap-2 flex-nowrap relative px-3 py-2 sm:py-1 rounded-md border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 font-medium hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-150 w-fit max-w-full min-w-0 justify-start text-left text-xs"
+        <nav class="m-molecule-actions" aria-label="Azioni molecola">
+          <button type="button" class="m-molecule-action m-molecule-action-primary"
             title="Aggiungi ad una o più collezioni molecolari"
-            (click)="doAddToCollection()
-"
+            [disabled]="deletePending()" (click)="doAddToCollection()"
             aria-label="Aggiungi molecola {{ name() }} ad una o più collezioni">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 640 640"
-              class="fill-current w-4 h-auto shrink-0"
-              aria-hidden="true">
-              <path d="M336 112L336 96L304 96L304 304L96 304L96 336L304 336L304 544L336 544L336 336L544 336L544 304L336 304L336 112z" />
-            </svg>
-            <span>Aggiungi ad una o più collezioni</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M12 4v16M4 12h16" stroke-width="1.5" /></svg>
+            Aggiungi alle collezioni
           </button>
-        </div>
+          <div class="m-molecule-secondary-actions">
+            <a class="m-molecule-action" [routerLink]="pathToDuplicate().url" [queryParams]="pathToDuplicate().queryParams"
+              [attr.aria-disabled]="deletePending() ? 'true' : null" [attr.tabindex]="deletePending() ? -1 : null"
+              (click)="deletePending() && $event.preventDefault()" aria-label="Duplica molecola {{ name() }}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><rect x="8" y="8" width="12" height="13" rx="2" /><path d="M5 16H4V3h12v2" /></svg>Duplica
+            </a>
+            @if (!_isSystemMolecule()) {
+              <button type="button" class="m-molecule-action" title="Elimina da tutte le collezioni"
+                [disabled]="deletePending()" (click)="doDelete()" aria-label="Elimina molecola {{ name() }}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" class="text-light-error dark:text-dark-error" aria-hidden="true"><path d="M4 6h16M9 6V3h6v3M6 6l1 15h10l1-15M10 10v7M14 10v7" stroke-width="1.5" /></svg>Elimina
+              </button>
+            }
+          </div>
+        </nav>
       }
     </header>
+    <m-dialog-shell [mounted]="confirmingDelete()" [open]="confirmingDelete()"
+      labelledBy="molecule-delete-title" describedBy="molecule-delete-description"
+      [dismissalPolicy]="{ escape: !deletePending(), backdrop: !deletePending() }" (dismissed)="cancelDelete()">
+      <section class="m-molecule-confirm" [attr.aria-busy]="deletePending()">
+        <h2 id="molecule-delete-title">Elimina molecola?</h2>
+        <p><strong>{{ name() }}</strong></p>
+        <p id="molecule-delete-description">La molecola verrà eliminata da tutte le collezioni. Questa operazione non può essere annullata.</p>
+        @if (deleteError()) { <p role="alert">{{ deleteError() }}</p> }
+        <div class="m-molecule-secondary-actions">
+          <button type="button" cdkFocusInitial class="m-molecule-action" [disabled]="deletePending()" (click)="cancelDelete()">Annulla</button>
+          <button type="button" class="m-molecule-action m-molecule-action-danger" [disabled]="deletePending()" (click)="confirmDelete()">{{ deletePending() ? 'Eliminazione in corso...' : 'Elimina definitivamente' }}</button>
+        </div>
+      </section>
+    </m-dialog-shell>
   `
 })
 export class MoleculeHeaderComponent {
 
+  readonly saveRequest = input<((detail: CustomDetailSaveModel) => Observable<boolean>) | undefined>();
+  readonly deletePending = input(false);
+  readonly deleteError = input('');
+  readonly confirmingDelete = signal(false);
+  constructor() { effect(() => { this.molId(); this.confirmingDelete.set(false); }); }
+  cancelDelete(): void { if (!this.deletePending()) this.confirmingDelete.set(false); }
+  confirmDelete(): void { if (!this.deletePending() && this.confirmingDelete()) this.onDelete.emit(this.molId()); }
   readonly nameInput = input('')
   readonly chemblIdInput = input<string | undefined>(undefined)
   readonly myMol = input(false)
@@ -188,6 +168,6 @@ export class MoleculeHeaderComponent {
   }
 
   doDelete(): void {
-    this.onDelete.emit(this._molId());
+    this.confirmingDelete.set(true);
   }
 }

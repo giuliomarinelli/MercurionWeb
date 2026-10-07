@@ -4,18 +4,18 @@ import { Component, ChangeDetectionStrategy, input } from '@angular/core';
   selector: 'm-molecule-synonyms',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <section class="mt-4 mb-8" aria-labelledby="synonyms-heading">
-      <h2 id="synonyms-heading" class="text-xl font-semibold pb-4 text-light-accent-primary-hc dark:text-dark-accent-primary text-left">Sinonimi</h2>
+    <section class="mt-6 mb-6" aria-labelledby="synonyms-heading">
+      <h2 id="synonyms-heading" class="text-xl font-semibold mb-3 text-light-accent-primary-hc dark:text-dark-accent-primary text-left">Sinonimi</h2>
       @if (synonymsInput().length > 0) {
-        <ul class="max-w-44 sm:max-w-none mx-0 sm:mx-auto flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-2 items-start sm:items-center">
+        <ul class="flex flex-wrap gap-2 items-start min-w-0">
           @for (syn of synonymsInput(); track syn) {
-            <li class="px-3 py-1 rounded-full bg-gray-200 dark:bg-gray-700 text-sm text-gray-800 dark:text-gray-100 cursor-default hover:transform hover:scale-[1.05] transition-transform duration-300">
+            <li class="max-w-full wrap-anywhere px-3 py-2 rounded-xl border border-token-border bg-light-surface-secondary dark:bg-dark-surface-secondary text-sm text-light-on-surface-main dark:text-dark-on-surface-main">
               {{ syn }}
             </li>
           }
         </ul>
       } @else {
-        <p class="text-sm text-gray-500 dark:text-gray-400 relative -top-2">Nessun sinonimo disponibile.</p>
+        <p class="text-sm text-light-on-surface-secondary dark:text-dark-on-surface-secondary">Nessun sinonimo disponibile.</p>
       }
     </section>
   `

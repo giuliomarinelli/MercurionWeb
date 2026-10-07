@@ -1,0 +1,17 @@
+.m-molecule-heading { display: grid; grid-template-columns: minmax(0,1fr); align-items: start; gap: 1.5rem; }
+.m-molecule-identity { min-width: 0; }
+.m-molecule-actions { display: flex; flex-direction: column; align-items: flex-start; gap: .5rem; min-width: 0; }
+.m-molecule-secondary-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+.m-molecule-action { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; min-height: 48px; max-width: 100%; padding: .625rem 1rem; border: 1px solid transparent; border-radius: var(--m-radius-control); background: transparent; color: var(--m-color-on-surface-main); font: inherit; font-size: .875rem; font-weight: 600; text-decoration: none; cursor: pointer; overflow-wrap: anywhere; }
+.m-molecule-action svg { width: 20px; height: 20px; flex-shrink: 0; }
+.m-molecule-action:hover:not(:disabled) { background: var(--m-color-control-ghost-hover); }
+.m-molecule-action-primary { background: var(--m-color-control-primary); color: var(--m-color-on-control-filled); }
+.m-molecule-action-primary:hover:not(:disabled) { background: var(--m-color-control-primary-hover); }
+.m-molecule-action-danger { background: var(--m-color-control-destructive); color: var(--m-color-on-control-filled); }
+.m-molecule-action-danger:hover:not(:disabled) { background: var(--m-color-control-destructive-hover); }
+.m-molecule-action:focus-visible { outline: 3px solid var(--m-color-focus); outline-offset: 3px; }
+.m-molecule-action:disabled, .m-molecule-action[aria-disabled=true] { opacity: .55; cursor: not-allowed; }
+.m-molecule-confirm { padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; color: var(--m-color-on-surface-main); }
+.m-molecule-confirm h2 { font-size: 1.25rem; font-weight: 600; }
+.m-molecule-confirm p { overflow-wrap: anywhere; }
+@media (min-width: 1200px) { .m-molecule-heading { grid-template-columns: minmax(0,1fr) auto; gap: 2rem; } }

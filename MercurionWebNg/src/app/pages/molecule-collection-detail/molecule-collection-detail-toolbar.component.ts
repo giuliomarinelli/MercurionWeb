@@ -1,57 +1,104 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
-import { CustomDetailsComponent } from '../../components/molecule-detail/my-molecule-custom-details/custom-details.component';
-import { PmSearchInputComponent } from '../../components/common/pm-search-input/pm-search-input.component';
-import { CustomDetailSaveModel } from '../../Models/custom-detail-save.model';
+import { ChangeDetectionStrategy, Component, DestroyRef, effect, ElementRef, inject, input, output, signal, viewChild } from '@angular/core';
+import { ButtonComponent } from '../../components/common/button/button.component';
+import { SearchFieldComponent } from '../../components/common/search-field/search-field.component';
 
 @Component({
   selector: 'm-molecule-collection-detail-toolbar',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CustomDetailsComponent, PmSearchInputComponent],
-  host: { class: 'block space-y-6' },
+  imports: [ButtonComponent, SearchFieldComponent],
+  host: { class: 'block' },
+  styleUrls: ['../molecule-list-page.css', './molecule-collection-detail.css'],
   template: `
-    <div class="flex flex-col sm:flex-row sm:flex-wrap justify-between items-start sm:items-center gap-y-4 sm:gap-y-2 sm:gap-x-4">
-      <m-custom-details [itemId]="collectionId()" type="name" [value]="name()" badgeName="" [compactHeading]="true"
-        (onSaving)="rename.emit($event)" />
-      <div class="flex flex-wrap items-center justify-start sm:justify-end gap-3 w-full sm:w-auto">
-        <button type="button"
-          class="relative p-1 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-150"
-          title="Crea una nuova collezione a partire da questa (Duplica)"
-          aria-label="Duplica collezione" (click)="duplicate.emit()">
-          <svg class="size-6 sm:size-7 text-slate-700 dark:text-slate-200" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-            <path d="M4 4a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v1h-1V4a1 1 0 0 0-1-1H6a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h1v1H6a2 2 0 0 1-2-2V4z" />
-            <path d="M8 6a2 2 0 0 1 2-2h5a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-5a2 2 0 0 1-2-2V6z" />
-          </svg>
-        </button>
-        <button type="button"
-          class="relative p-1 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-150"
-          title="Elimina collezione" aria-label="Elimina collezione" (click)="delete.emit()">
-          <svg class="size-6 sm:size-7 text-light-error dark:text-dark-error" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-            <path fill-rule="evenodd" d="M6 8a1 1 0 0 1 1 1v7h6V9a1 1 0 1 1 2 0v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V9a1 1 0 0 1 1-1zM4 5a1 1 0 0 1 1-1h2V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1h2a1 1 0 0 1 1 1v1H4V5z" clip-rule="evenodd" />
-          </svg>
-        </button>
-        <button type="button"
-          class="flex items-center gap-2 relative px-3 py-1 rounded-md border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 font-medium hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-150 text-xs"
-          title="Aggiungi nuove molecole alla collezione" aria-label="Aggiungi nuove molecole alla collezione"
-          (click)="add.emit()">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-4 h-auto shrink-0" aria-hidden="true">
-            <path d="M336 112L336 96L304 96L304 304L96 304L96 336L304 336L304 544L336 544L336 336L544 336L544 304L336 304L336 112z" />
-          </svg>
-          <span>Aggiungi nuove molecole</span>
-        </button>
+    <section class="m-detail-toolbar" aria-label="Gestisci collezione">
+      @if (editing()) {
+        <form class="m-detail-editor" (submit)="save($event)" (keydown.escape)="cancel($event)">
+          <label for="collection-name">Nome della collezione</label>
+          <input #nameInput id="collection-name" class="m-detail-name-input" type="text" autocomplete="off"
+            [value]="draft()" [disabled]="renamePending()" [attr.aria-invalid]="renameError() ? 'true' : null"
+            [attr.aria-describedby]="renameError() ? 'collection-name-error' : null" (input)="changeName($event)" />
+          @if (renameError()) { <p id="collection-name-error" role="alert">{{ renameError() }}</p> }
+          <div class="m-detail-actions">
+            <m-button type="submit" size="lg" [loading]="renamePending()" [disabled]="!draft().trim()">Salva nome</m-button>
+            <m-button size="lg" variant="ghost" [disabled]="renamePending()" (pressed)="cancel()">Annulla</m-button>
+          </div>
+        </form>
+      } @else {
+        <div class="m-detail-heading">
+          <h2>{{ name() }}</h2>
+          <m-button #renameButton size="lg" variant="ghost" [disabled]="busy()" (pressed)="edit()"><svg viewBox="0 0 24 24" class="size-5 shrink-0" fill="none" stroke="currentColor" aria-hidden="true"><path d="m16 3 5 5-12 12-6 1 1-6L16 3Z" stroke-width="1.5" /></svg>Rinomina</m-button>
+        </div>
+      }
+      <div class="m-detail-actions">
+        <m-button size="lg" [disabled]="busy() || renamePending()" (pressed)="add.emit()"><svg viewBox="0 0 24 24" class="size-5 shrink-0" fill="none" stroke="currentColor" aria-hidden="true"><path d="M12 4v16M4 12h16" stroke-width="1.5" /></svg>Aggiungi molecole</m-button>
+        <m-button size="lg" variant="outline" ariaLabel="Duplica collezione" [disabled]="busy() || renamePending()" (pressed)="duplicate.emit()">Duplica</m-button>
+        <button type="button" class="m-detail-delete" [disabled]="busy() || renamePending()" (click)="delete.emit()"><svg viewBox="0 0 24 24" class="size-5 shrink-0 text-light-error dark:text-dark-error" fill="none" stroke="currentColor" aria-hidden="true"><path d="M4 6h16M9 6V3h6v3M6 6l1 15h10l1-15M10 10v7M14 10v7" stroke-width="1.5" /></svg>Elimina collezione</button>
       </div>
-    </div>
-    <m-search-input class="block" [value]="search()" (valueChange)="searchChange.emit($event)"
-      (submitted)="searchChange.emit($event)" (cleared)="clear.emit()" />
+      <m-search-field [value]="queryDraft()" [pending]="pending()" label="Cerca nella collezione"
+        placeholder="Cerca nella collezione..." (valueChange)="changeSearch($event)" (submitted)="submitSearch($event)" />
+    </section>
   `
 })
 export class MoleculeCollectionDetailToolbarComponent {
   readonly collectionId = input('');
   readonly name = input('');
   readonly search = input('');
-  readonly rename = output<CustomDetailSaveModel>();
+  readonly pending = input(false);
+  readonly busy = input(false);
+  readonly renamePending = input(false);
+  readonly renameError = input('');
+  readonly renameRevision = input(0);
+  readonly rename = output<string>();
   readonly duplicate = output<void>();
   readonly delete = output<void>();
   readonly add = output<void>();
   readonly searchChange = output<string>();
-  readonly clear = output<void>();
+  readonly editing = signal(false);
+  readonly draft = signal('');
+  readonly queryDraft = signal('');
+  private readonly nameInput = viewChild<ElementRef<HTMLInputElement>>('nameInput');
+  private readonly renameButton = viewChild('renameButton', { read: ElementRef });
+  private timer?: ReturnType<typeof setTimeout>;
+  private seenRevision = 0;
+  constructor() {
+    inject(DestroyRef).onDestroy(() => clearTimeout(this.timer));
+    effect(() => { this.queryDraft.set(this.search()); });
+    effect(() => {
+      const revision = this.renameRevision();
+      if (revision !== this.seenRevision) {
+        this.seenRevision = revision;
+        this.closeEditor();
+      }
+    });
+    effect(() => { this.collectionId(); this.editing.set(false); });
+  }
+  edit(): void {
+    this.draft.set(this.name());
+    this.editing.set(true);
+    requestAnimationFrame(() => { this.nameInput()?.nativeElement.focus(); this.nameInput()?.nativeElement.select(); });
+  }
+  changeName(event: Event): void { this.draft.set((event.target as HTMLInputElement).value); }
+  save(event: Event): void {
+    event.preventDefault();
+    if (this.renamePending() || !this.draft().trim()) return;
+    if (this.draft().trim() === this.name()) { this.closeEditor(); return; }
+    this.rename.emit(this.draft().trim());
+  }
+  cancel(event?: Event): void {
+    event?.preventDefault(); event?.stopPropagation();
+    if (!this.renamePending()) this.closeEditor();
+  }
+  private closeEditor(): void {
+    this.editing.set(false);
+    requestAnimationFrame(() => this.renameButton()?.nativeElement.querySelector('button')?.focus());
+  }
+  changeSearch(value: string): void {
+    this.queryDraft.set(value);
+    clearTimeout(this.timer);
+    if (!value) { this.submitSearch(value); return; }
+    this.timer = setTimeout(() => this.submitSearch(value), 250);
+  }
+  submitSearch(value: string): void {
+    clearTimeout(this.timer);
+    if (value.trim() !== this.search()) this.searchChange.emit(value.trim());
+  }
 }

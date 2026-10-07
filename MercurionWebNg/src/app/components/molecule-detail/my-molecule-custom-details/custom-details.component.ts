@@ -1,7 +1,11 @@
+import { Observable, Subscription, defer, of } from 'rxjs';
+import { catchError, defaultIfEmpty, finalize, take } from 'rxjs/operators';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CustomDetailSaveModel } from '../../../Models/custom-detail-save.model';
 import { NgClass } from '@angular/common';
 import {
   ChangeDetectionStrategy,
+  DestroyRef,
   Component,
   computed,
   ElementRef,
@@ -11,10 +15,11 @@ import {
   input,
   signal,
   output,
-  viewChild
+  viewChild,
+  untracked
 } from '@angular/core';
 import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.component';
-import { IconButtonComponent } from '../../common/icon-button/icon-button.component';
+import { IconButtonComponent, IconButtonSize } from '../../common/icon-button/icon-button.component';
 
 @Component({
   selector: 'm-custom-details',
@@ -22,9 +27,7 @@ import { IconButtonComponent } from '../../common/icon-button/icon-button.compon
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NgClass, MoleculeBadgeComponent, IconButtonComponent],
   host: { class: 'contents' },
-  styles: [`
-    :host { display: contents; }
-  `],
+  styleUrl: './custom-details.component.css',
   template: `
     @switch (_type()) {
 
@@ -35,7 +38,10 @@ import { IconButtonComponent } from '../../common/icon-button/icon-button.compon
             class="text-base md:text-lg font-semibold text-slate-800 dark:text-slate-100 truncate min-w-0
                    py-0.5 rounded-md border border-transparent bg-transparent outline-none
                    transition-[background-color,border-color,color] duration-150"
-            [attr.contenteditable]="mode() === 'edit' ? 'true' : null"
+            [attr.contenteditable]="mode() === 'edit' && !pending() ? 'true' : null"
+            [attr.role]="mode() === 'edit' ? 'textbox' : null"
+            [attr.aria-busy]="pending()"
+            (keydown)="onKeydown($event)"
             [ngClass]="{
               'bg-slate-100 dark:bg-slate-700 border-light-on-surface-main dark:border-dark-on-surface-main':
                 mode() === 'edit'
@@ -61,12 +67,16 @@ import { IconButtonComponent } from '../../common/icon-button/icon-button.compon
             [ngClass]="compactHeading() ? 'flex items-center' : 'grid grid-cols-[minmax(0,1fr)_auto] items-center sm:grid-cols-[minmax(0,1fr)_auto_auto]'">
           <h2
             id="molecule-name"
+            [attr.aria-label]="mode() === 'edit' ? 'Modifica nome molecola' : null"
             #value
             class="min-w-0 [overflow-wrap:anywhere] outline-none font-semibold tracking-wider
                    text-left text-light-accent-primary-hc dark:text-dark-accent-primary
                    rounded-md border border-transparent
                    transition-[background-color,border-color,color] duration-300"
-            [attr.contenteditable]="mode() === 'edit' ? 'true' : null"
+            [attr.contenteditable]="mode() === 'edit' && !pending() ? 'true' : null"
+            [attr.role]="mode() === 'edit' ? 'textbox' : null"
+            [attr.aria-busy]="pending()"
+            (keydown)="onKeydown($event)"
             [ngClass]="{
               'text-xl md:text-2xl lg:text-[1.75rem]': compactHeading(),
               'text-2xl sm:text-3xl md:text-4xl lg:text-[2.65rem]': !compactHeading(),
@@ -87,7 +97,7 @@ import { IconButtonComponent } from '../../common/icon-button/icon-button.compon
             [ngClass]="compactHeading() ? 'w-18' : 'col-start-2 row-start-1 sm:col-start-3'">
             @if (mode() === 'view') {
               <m-icon-button
-                size="sm"
+                [size]="actionSize()" [disabled]="pending()"
                 ariaLabel="Modifica"
                 (pressed)="doEdit()">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
@@ -97,7 +107,7 @@ import { IconButtonComponent } from '../../common/icon-button/icon-button.compon
               </m-icon-button>
             } @else {
               <m-icon-button
-                size="sm"
+                [size]="actionSize()" [disabled]="pending()"
                 ariaLabel="Annulla"
                 (pressed)="doCancel()">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
@@ -106,7 +116,7 @@ import { IconButtonComponent } from '../../common/icon-button/icon-button.compon
                 </svg>
               </m-icon-button>
               <m-icon-button
-                size="sm"
+                [size]="actionSize()" [disabled]="pending()"
                 variant="neutral"
                 ariaLabel="Salva"
                 (pressed)="doSave()">
@@ -121,24 +131,28 @@ import { IconButtonComponent } from '../../common/icon-button/icon-button.compon
       }
 
       @default {
-        <div class="flex flex-col sm:flex-row text-left gap-2 sm:gap-3 items-start mb-4 min-w-0">
+        <div class="m-metadata-row">
           <h2
             [innerHTML]="_label()"
-            class="mt-1 font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary text-lg sm:text-xl shrink-0">
+            class="m-metadata-label font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary text-lg">
           </h2>
 
-          <div class="flex items-start gap-3 min-w-0 w-full sm:w-auto sm:flex-1">
+          <div class="m-metadata-content">
             <p
               #value
-              class="outline-none py-1 rounded-md border min-w-0 [overflow-wrap:anywhere]
+              [attr.aria-multiline]="_type() === 'notes' && mode() === 'edit' ? 'true' : null"
+              class="m-metadata-value outline-none py-1 rounded-md border min-w-0 [overflow-wrap:anywhere]
                      text-light-on-surface-main dark:text-dark-on-surface-main
                      transition-[background-color,border-color,color] duration-300"
-              [attr.contenteditable]="mode() === 'edit' ? 'true' : null"
+              [attr.contenteditable]="mode() === 'edit' && !pending() ? 'true' : null"
+            [attr.role]="mode() === 'edit' ? 'textbox' : null"
+            [attr.aria-busy]="pending()"
+            (keydown)="onKeydown($event)"
               [ngClass]="{
                 'bg-slate-200 dark:bg-slate-700 border-light-on-surface-main dark:border-dark-on-surface-main': mode() === 'edit',
                 'border-transparent bg-transparent': mode() === 'view'
               }"
-              [innerHTML]="_value()"
+              [innerHTML]="mode() === 'view' && !_value().trim() ? (_type() === 'notes' ? 'Nessuna nota. Aggiungi informazioni utili alla tua ricerca.' : 'Nessuna etichetta.') : _value()"
               [attr.aria-label]="mode() === 'edit' ? 'Modifica ' + _label().replace(':','') : _label().replace(':','') + ' ' + _value()"
               [attr.aria-live]="mode() === 'edit' ? 'off' : 'polite'">
             </p>
@@ -146,8 +160,8 @@ import { IconButtonComponent } from '../../common/icon-button/icon-button.compon
             <div class="flex items-center shrink-0">
               @if (mode() === 'view') {
                 <m-icon-button
-                  size="sm"
-                  ariaLabel="Modifica"
+                  [size]="actionSize()" [disabled]="pending()"
+                  [ariaLabel]="'Modifica ' + _label().replace(':', '').toLowerCase()"
                   (pressed)="onEdit($event)">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
                        class="h-5.5 w-auto fill-current text-slate-800 hover:text-slate-800/75 dark:text-slate-200 dark:hover:text-slate-200/75">
@@ -156,7 +170,7 @@ import { IconButtonComponent } from '../../common/icon-button/icon-button.compon
                 </m-icon-button>
               } @else {
                 <m-icon-button
-                  size="sm"
+                  [size]="actionSize()" [disabled]="pending()"
                   ariaLabel="Annulla"
                   (pressed)="onCancel($event)">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
@@ -165,7 +179,7 @@ import { IconButtonComponent } from '../../common/icon-button/icon-button.compon
                   </svg>
                 </m-icon-button>
                 <m-icon-button
-                  size="sm"
+                  [size]="actionSize()" [disabled]="pending()"
                   variant="neutral"
                   ariaLabel="Salva"
                   (pressed)="onSave($event)">
@@ -180,10 +194,17 @@ import { IconButtonComponent } from '../../common/icon-button/icon-button.compon
         </div>
       }
     }
+    @if (pending()) { <p class="m-metadata-status" role="status">Salvataggio in corso...</p> }
+    @if (saveError()) { <p class="m-metadata-status" role="alert">{{ saveError() }}</p> }
   `
 })
 export class CustomDetailsComponent {
+  private saveSubscription?: Subscription;
   private readonly r = inject(Renderer2);
+  private readonly destroyRef = inject(DestroyRef);
+  readonly pending = signal(false);
+  readonly saveError = signal('');
+  readonly saveRequest = input<((detail: CustomDetailSaveModel) => Observable<boolean>) | undefined>();
 
   _label = signal<string>('');
   _value = signal<string>('');
@@ -203,6 +224,7 @@ export class CustomDetailsComponent {
   readonly value = input.required<string>()
   readonly itemId = input.required<string>()
   readonly badgeName = input('Personal')
+  readonly actionSize = input<IconButtonSize>('sm')
   readonly compactHeading = input(false)
   readonly isReadonly = input(false)
   readonly triggerRollback = input(false)
@@ -216,11 +238,19 @@ export class CustomDetailsComponent {
     effect(() => {
       const type = this.type()
       const value = this.value()
+      const itemId = this.itemId()
+      if (itemId !== untracked(this._itemId)) {
+        this.saveSubscription?.unsubscribe();
+        this.mode.set('view');
+        this.saveError.set('');
+      }
       this._type.set(type)
       this._label.set(type === 'label' ? 'Etichetta:' : type === 'notes' ? 'Note:' : '')
-      this._value.set(value)
-      this.startValue.set(value)
-      this._itemId.set(this.itemId())
+      if (untracked(this.mode) === 'view') {
+        this._value.set(value)
+        this.startValue.set(value)
+      }
+      this._itemId.set(itemId)
       this._isReadonly.set(this.isReadonly())
       this._triggerRollback.set(this.triggerRollback())
       this._hideActions.set(this.hideActions())
@@ -243,6 +273,8 @@ export class CustomDetailsComponent {
   }
 
   doEdit(): void {
+    if (this.pending()) return;
+    this.saveError.set('');
     this.mode.set('edit');
     const el = this.valueRef().nativeElement;
     this.r.setAttribute(el, 'contenteditable', 'true');
@@ -250,6 +282,7 @@ export class CustomDetailsComponent {
     el.textContent = this._value();
 
     requestAnimationFrame(() => {
+      if (this.destroyRef.destroyed || this.mode() !== 'edit') return;
       el.focus();
       const range = document.createRange();
       range.selectNodeContents(el);
@@ -261,30 +294,65 @@ export class CustomDetailsComponent {
   }
 
   doCancel(): void {
+    if (this.pending()) return;
+    this.saveError.set('');
     const el = this.valueRef().nativeElement;
     el.textContent = this.startValue();
-    this._value.set(this.lastValue() ?? this.startValue());
+    this._value.set(this.startValue());
     this.mode.set('view');
     this.r.removeAttribute(el, 'contenteditable');
     this.r.removeAttribute(el, 'tabindex');
+    this.restoreEditFocus();
   }
 
   doSave(): void {
+    if (this.pending() || this.mode() !== 'edit') return;
     const el = this.valueRef().nativeElement;
     const newValue = el.innerText;
-    this.startValue.set(newValue);
-    this.lastValue.set(this._value());
-    this._value.set(newValue);
-    this.mode.set('view');
-    this.r.removeAttribute(el, 'contenteditable');
-    this.r.removeAttribute(el, 'tabindex');
-
-    this.onSaving.emit({
-      label: this._label(),
-      value: newValue,
-      type: this._type() as 'label' | 'notes' | 'name' | 'cardName',
-      id: this._itemId()
+    if (this._type() === 'name' && !newValue.trim()) {
+      this.saveError.set('Inserisci un nome per la molecola.');
+      el.focus();
+      return;
+    }
+    const detail: CustomDetailSaveModel = {
+      label: this._label(), value: newValue, type: this._type(), id: this._itemId()
+    };
+    const commit = () => {
+      this.lastValue.set(this._value());
+      this.startValue.set(newValue);
+      this._value.set(newValue);
+      this.mode.set('view');
+      this.r.removeAttribute(el, 'contenteditable');
+      this.r.removeAttribute(el, 'tabindex');
+      this.restoreEditFocus();
+    };
+    const request = this.saveRequest();
+    if (!request) { commit(); this.onSaving.emit(detail); return; }
+    this.pending.set(true);
+    this.saveError.set('');
+    this.saveSubscription = defer(() => request(detail)).pipe(
+      take(1), defaultIfEmpty(false), catchError(() => of(false)),
+      takeUntilDestroyed(this.destroyRef), finalize(() => this.pending.set(false))
+    ).subscribe(ok => {
+      if (this.itemId() !== detail.id) return;
+      if (ok) commit();
+      else this.saveError.set('Salvataggio non riuscito. La modifica è ancora qui: riprova o annulla.');
     });
+  }
+
+  private restoreEditFocus(): void {
+    requestAnimationFrame(() => {
+      if (this.destroyRef.destroyed || this.mode() !== 'view') return;
+      this.valueRef().nativeElement.parentElement?.querySelector<HTMLButtonElement>('button')?.focus();
+    });
+  }
+
+  onKeydown(event: KeyboardEvent): void {
+    if (this.mode() !== 'edit') return;
+    if (event.key === 'Escape') { event.preventDefault(); this.doCancel(); }
+    if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+      event.preventDefault(); this.doSave();
+    }
   }
 
   onEdit(ev: MouseEvent): void {

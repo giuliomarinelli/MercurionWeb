@@ -2,7 +2,7 @@ import { DestroyRef, Injectable, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { Observable, EMPTY, Subject, Subscription, combineLatest, defer, of, throwError } from 'rxjs';
-import { catchError, distinctUntilChanged, filter, map, mergeMap, shareReplay, startWith, switchMap, tap } from 'rxjs/operators';
+import { catchError, distinctUntilChanged, filter, map, finalize, mergeMap, shareReplay, startWith, switchMap, tap } from 'rxjs/operators';
 import { MoleculeService } from '../../services/graphql/molecule.service';
 import { MoleculeCollectionItemService } from '../../services/graphql/molecule-collection-item.service';
 import { MoleculeCollectionService } from '../../services/graphql/molecule-collection.service';
@@ -111,6 +111,8 @@ export class MoleculeDetailFacade {
   private readonly destroyRef = inject(DestroyRef);
   private readonly uuidV7 = /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   private cached?: MoleculeDetailItem;
+  readonly deletePending = signal(false);
+  readonly deleteError = signal('');
   readonly currentId = signal('')
   readonly currentName = signal('')
   private currentType: 'system' | 'chembl' | 'custom' | undefined;
@@ -122,6 +124,10 @@ export class MoleculeDetailFacade {
   readonly error = signal(false);
   readonly similar = signal<MoleculeSearchResult[]>([]);
   readonly similarLoading = signal(false);
+  readonly similarError = signal(false);
+  readonly inferenceLoading = signal(false);
+  readonly inferenceError = signal(false);
+  private readonly inferenceRetry$ = new Subject<void>();
   readonly collectionId = signal('');
   readonly collectionName = signal<string | null>(null)
 
@@ -140,15 +146,16 @@ export class MoleculeDetailFacade {
       this.error.set(false)
     }),
     filter((id): id is string => !!id),
-    switchMap((id): Observable<MoleculeDetailItem | null> => this.resolveDetail(id)),
-    tap((item) => {
-      if (!item) return;
-      this.currentType = item.type
-      this.loadSimilar(item)
-      this.markTouched()
-      this.currentName.set(this.toViewModel(item).name)
-    }),
-    switchMap((item): Observable<MoleculeDetailItem | null> => item ? this.withInference(item) : of(null)),
+    switchMap((id): Observable<MoleculeDetailItem | null> => this.resolveDetail(id).pipe(
+      tap(item => {
+        if (!item) return;
+        this.currentType = item.type;
+        this.loadSimilar(item);
+        this.markTouched();
+        this.currentName.set(this.toViewModel(item).name);
+      }),
+      switchMap(item => item ? this.withInference(item) : of(null))
+    )),
     tap(item => {
       this.loading.set(false)
       if (!item) this.error.set(true)
@@ -260,16 +267,34 @@ export class MoleculeDetailFacade {
     const vm = this.toViewModel(item);
     this.title.setSection('Molecole', vm.name);
     if (!this.userContext.isLoggedIn()) return of(vm.item);
-    return this.ai.t1Inference({ smiles: vm.smiles }).pipe(
-      map(t1Inference => ({ ...vm.item, t1Inference }) as MoleculeDetailItem),
-      catchError(() => of(vm.item)),
-      startWith(vm.item)
+    return this.inferenceRetry$.pipe(
+      startWith(undefined),
+      switchMap(() => defer(() => {
+        this.inferenceLoading.set(true);
+        this.inferenceError.set(false);
+        return this.ai.t1Inference({ smiles: vm.smiles }).pipe(
+          map(t1Inference => ({ ...vm.item, t1Inference }) as MoleculeDetailItem),
+          catchError(() => {
+            this.inferenceError.set(true);
+            return of(vm.item);
+          }),
+          finalize(() => this.inferenceLoading.set(false)),
+          startWith(vm.item)
+        );
+      }))
     );
+  }
+
+  retryInference(): void {
+    if (!this.inferenceLoading() && this.userContext.isLoggedIn() && this.molecule()) {
+      this.inferenceRetry$.next();
+    }
   }
 
   private loadSimilar(item: MoleculeDetailItem): void {
     this.similarSubscription?.unsubscribe();
     this.similarLoading.set(true);
+    this.similarError.set(false);
     const vm = this.toViewModel(item);
     const molregno = vm.kind === 'system'
       ? this.currentId()
@@ -287,6 +312,7 @@ export class MoleculeDetailFacade {
       )),
       catchError(error => {
         this.logger.error('Failed to load similar molecules', error);
+        this.similarError.set(true);
         return of([] as MoleculeSearchResult[]);
       }),
       takeUntilDestroyed(this.destroyRef)
@@ -296,33 +322,57 @@ export class MoleculeDetailFacade {
     });
   }
 
+  retrySimilar(): void {
+    const item = this.molecule();
+    if (item && !this.similarLoading()) this.loadSimilar(item);
+  }
+
   save(detail: CustomDetailSaveModel): void {
-    const currentId = this.currentId();
-    const currentType = this.currentType;
-    if (!currentId || !currentType || currentType === 'system') return;
-    if (detail.type === 'name' && currentType !== 'custom') return;
-    const request: Observable<unknown> = detail.type === 'label'
-      ? this.itemService.updateItemLabel(currentId, detail.value, currentType)
-      : detail.type === 'notes'
-        ? this.itemService.updateItemNotes(currentId, detail.value, currentType)
-        : this.itemService.updateItemName(currentId, detail.value, 'custom').pipe(
-          switchMap(() => this.history.pollNewItem())
-        );
-    request.subscribe({
-      next: () => this.toast.trigger('Aggiornato correttamente', 'success', 1500),
-      error: () => this.toast.trigger('Si è verificato un errore', 'error', 1500)
+    this.saveDetail(detail).subscribe();
+  }
+
+  saveDetail(detail: CustomDetailSaveModel): Observable<boolean> {
+    return defer(() => {
+      const id = this.currentId();
+      const type = this.currentType;
+      if (!id || detail.id !== id || !type || type === 'system' ||
+        (detail.type !== 'label' && detail.type !== 'notes' && detail.type !== 'name') ||
+        (detail.type === 'name' && (type !== 'custom' || !detail.value.trim()))) return of(false);
+      const request = detail.type === 'label'
+        ? this.itemService.updateItemLabel(id, detail.value, type)
+        : detail.type === 'notes'
+          ? this.itemService.updateItemNotes(id, detail.value, type)
+          : this.itemService.updateItemName(id, detail.value, 'custom');
+      return request.pipe(
+        map(item => !!item),
+        tap(ok => {
+          if (!ok) return;
+          this.toast.trigger('Aggiornato correttamente', 'success', 1500);
+          if (detail.type === 'name') {
+            this.currentName.set(detail.value);
+            this.history.pollNewItem().pipe(catchError(() => EMPTY), takeUntilDestroyed(this.destroyRef)).subscribe();
+          }
+        }),
+        catchError(() => of(false)), takeUntilDestroyed(this.destroyRef)
+      );
     });
   }
 
   delete(id: string): void {
-    this.itemService.deleteItem(id).subscribe({
+    if (this.deletePending() || !id || id !== this.currentId() || this.currentType === 'system') return;
+    this.deletePending.set(true);
+    this.deleteError.set('');
+    this.itemService.deleteItem(id).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      finalize(() => this.deletePending.set(false))
+    ).subscribe({
       next: ok => {
-        if (!ok) return;
+        if (!ok) { this.deleteError.set('Impossibile eliminare la molecola. Riprova.'); return; }
         this.history.triggerRemoveItemFromHistoryView(id);
         this.toast.trigger('Molecola eliminata con successo.', 'success', 2500);
         void this.router.navigateByUrl('/molecules/collections');
       },
-      error: () => this.toast.trigger('Si è verificato un errore.', 'error', 2500)
+      error: () => this.deleteError.set('Impossibile eliminare la molecola. Riprova.')
     });
   }
 
