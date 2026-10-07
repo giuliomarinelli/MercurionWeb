@@ -51,7 +51,7 @@ La priorità indica il valore della rifinitura per il portfolio, non la gravità
 | PX-02 | Home e presentazione pubblica | P1 | S, B, V | Da affrontare |
 | PX-03 | Accesso e registrazione | P1 | S, B, V | Da affrontare |
 | PX-04 | Ricerca molecolare | P1 | S, B | Implementato, in review; QA iPhone aperta |
-| PX-05 | Liste, card e selezione | P1 | S, B | Card e selezione implementate, in review; liste da affrontare |
+| PX-05 | Liste, card e selezione | P1 | S, B | Card, selezione e liste implementate, in review |
 | PX-06 | Dettaglio collezione | P1 | S, B | Da affrontare |
 | PX-07 | Overlay di gestione collezioni | P1 | S, B | Creazione, destinazione, associazione e aggiunta molecole implementate, in review |
 | PX-08 | Editor molecolare | P1 | S, B | Da affrontare |
@@ -573,7 +573,7 @@ Ogni riga è un'unità di lavoro, non una promessa di completamento in un giorno
 
 PX-19 accompagna ogni blocco. Non aspettare la fine per curare focus, errori, nomi accessibili e stati di caricamento. Se home o accesso devono essere mostrati subito a un cliente, anticipare i blocchi 15–16 senza aprire un redesign globale.
 
-PX-22 e PX-23 accompagnano gli interventi pertinenti; le righe 26–27 sono il passaggio di regressione finale, non il primo momento in cui verificare questi comportamenti. Il prossimo blocco previsto è **07 — PX-05, liste**. La verifica fisica della tastiera secondo [KEYBOARD-QA.md](KEYBOARD-QA.md) resta aperta prima dell'accettazione e del merge; i blocchi 01–06 restano in review. L'utente ha autorizzato il proseguimento del blocco 06 durante questa QA.
+PX-22 e PX-23 accompagnano gli interventi pertinenti; le righe 26–27 sono il passaggio di regressione finale, non il primo momento in cui verificare questi comportamenti. Il prossimo blocco previsto è **08 — PX-06, dettaglio collezione**. La verifica fisica della tastiera secondo [KEYBOARD-QA.md](KEYBOARD-QA.md) resta aperta prima dell'accettazione e del merge; i blocchi 01–07 restano in review. L'utente ha autorizzato il proseguimento della roadmap durante questa QA.
 
 ## Lavoro successivo al merge
 

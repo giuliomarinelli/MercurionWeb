@@ -7,7 +7,8 @@ import { MoleculeCollectionService } from '../../services/graphql/molecule-colle
 import { CollectionCardComponent } from '../../components/molecule-detail/collection-card/collection-card.component';
 import { SkeletonCollectionCardComponent } from '../../components/common/skeleton-card-loader/skeleton-card-loader.component';
 import { RouterLink } from '@angular/router';
-import { PmSearchInputComponent } from '../../components/common/pm-search-input/pm-search-input.component';
+import { SearchFieldComponent } from '../../components/common/search-field/search-field.component';
+import { ButtonComponent } from '../../components/common/button/button.component';
 import { PaginationController } from '../../services/pagination/pagination-controller';
 import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service';
 import { CreateCollectionContextService } from '../../services/context/action-context/create-collection-context.service';
@@ -15,7 +16,6 @@ import { ToastService } from '../../services/toast.service';
 import { ScrollContextService } from '../../services/context/scroll-context.service';
 import { DomainInvalidationService } from '../../services/domain-invalidation.service';
 import { RealtimeSyncStatusService } from '../../services/realtime-sync-status.service';
-import { PaginationComponent } from '../../components/common/pagination/pagination.component';
 
 
 @Component({
@@ -26,81 +26,69 @@ import { PaginationComponent } from '../../components/common/pagination/paginati
     CollectionCardComponent,
     SkeletonCollectionCardComponent,
     RouterLink,
-    PmSearchInputComponent,
-    PaginationComponent
+    SearchFieldComponent,
+    ButtonComponent
   ],
+  styleUrl: '../molecule-list-page.css',
   template: `
-
-  <main class="max-w-5xl mx-auto p-0 xs:p-4 sm:p-6 md:p-8 space-y-12" role="main" [attr.aria-busy]="loading" aria-live="polite">
-    <div class="space-y-6">
-      <m-my-molecules-heading class="block" [compact]="true" />
-      <div class="flex flex-col sm:flex-row sm:flex-wrap gap-y-3 sm:gap-x-4 justify-between items-start sm:items-center">
-        <h2 class="text-xl md:text-2xl lg:text-[1.75rem] font-semibold tracking-wider text-light-accent-primary-hc dark:text-dark-accent-primary">
-            Le mie collezioni molecolari
-        </h2>
-
-        <!-- 🧩 Crea una o più nuove collezioni -->
-        <button
-          type="button"
-          class="flex items-center gap-2 relative px-3 py-1.5 rounded-md border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 font-medium hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-150 self-start sm:self-auto text-xs"
-          title="Crea nuove collezioni."
-          (click)="createNewCollection()"
-          aria-label="Crea una o più nuove collezioni"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-4 h-auto shrink-0" aria-hidden="true">
-            <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-            <path d="M336 112L336 96L304 96L304 304L96 304L96 336L304 336L304 544L336 544L336 336L544 336L544 304L336 304L336 112z"/>
-          </svg>
-          <span>Crea una o più nuove collezioni</span>
-        </button>
-
-      </div>
-    </div>
-    <m-search-input
-      class="block relative"
-      [placeholder]="'Cerca collezione...'"
-      [value]="searchTerm()"
-      (valueChange)="doQuery($event)"
-      (submitted)="doQuery($event)"
-      (cleared)="doClear()"
-    />
-    @if (empty() && (earlyDone || done)) {
-      <p class="mt-5 text-slate-700 dark:text-slate-200" role="status" aria-live="polite">Nessuna collezione molecolare.</p>
-    } @else {
-      <div class="flex gap-2 items-center relative -top-6">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current w-8 h-auto relative -top-2 srink-[0.65]" aria-hidden="true">
-          <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-          <path d="M296.5 153.7C268.2 123 314.7 79.6 343.4 110.1C395.3 166.7 479.5 256.1 528.4 302C544.6 317.7 544.4 343.6 528.4 359.3C517.9 369.6 499.6 387.7 494.2 394.1C448.6 448.2 388.1 485.8 344.3 536.7C332.8 550.1 312.6 551.7 299.2 540.3C257.6 499.5 349.3 448.3 372.4 421.9C398.9 399.3 423.7 378 444.4 353.8C432 353.5 419.6 353.7 406.7 354C325.8 354.2 244.1 356.1 162.3 355.5C136.2 356.8 94.8 360.6 96 321.8C97.9 289.9 132.6 290.7 157.9 291.6C239.4 292.1 320.7 290.4 403.1 290.1C410 289.9 417.2 289.8 424.8 289.7C376.2 241.2 341.3 201.2 296.4 153.7z"/>
-        </svg>
-        <a class="a relative -top-2 text-light-accent-primary-hc dark:text-dark-accent-primary-btn-hc" routerLink="/molecules">Mostra tutte le mie molecole in un unico raggruppamento</a>
-      </div>
-    }
-    <div class="mt-px relative -top-16">
-      @for (item of items; track item.id; let i = $index) {
-        <m-collection-card
-          [collection]="item"
-          [i]="i"
-          [triggerDisappear]="item.triggerDisappear()"
-          [collapse]="item.collapse()"
-          (onDuplicate)="doDuplicateCollection($event)"
-          (onDelete)="doDeleteCollection($event)"
-          (onAddMolecules)="doAddMoleculesToCollection($event)"  />
-      }
-    </div>
-    <div #sentinel class="sentinel"></div>
-    @if (loading && page === 1) {
-        <div class="relative -top-16">
-          @for (i of [0, 1, 2, 3, 4]; track i) {
-            <m-skeleton-collection-card />
-          }
+    <section class="molecule-list-page" role="main" aria-labelledby="my-collections-heading">
+      <m-my-molecules-heading [compact]="true" />
+      <header class="m-list-heading">
+        <div>
+          <h2 id="my-collections-heading">Le mie collezioni molecolari</h2>
+          <p>Organizza le tue molecole e ritrova ogni progetto.</p>
         </div>
-    }
-    <m-pagination
-      [state]="paginationState()"
-      (loadMoreRequested)="loadMore()"
-      (retry)="retryPagination()" />
-  </main>
-
+        <m-button size="lg" (pressed)="createNewCollection()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" class="size-4 shrink-0" aria-hidden="true"><path d="M12 4v16M4 12h16" stroke-width="1.5" /></svg>
+          Crea collezioni
+        </m-button>
+      </header>
+      <div class="m-list-tools">
+        <m-search-field label="Cerca nelle mie collezioni" placeholder="Cerca collezione..."
+          [value]="searchInput()" [pending]="loading && page === 1"
+          (valueChange)="doQuery($event)" (submitted)="submitQuery($event)" />
+        <div class="m-list-context">
+          <p role="status" aria-live="polite" aria-atomic="true">
+            @if (loading && page === 1) { Ricerca in corso… }
+            @else if (paginationState().error && !items.length) { Risultati non disponibili }
+            @else { {{ items.length }} {{ items.length === 1 ? 'collezione visualizzata' : 'collezioni visualizzate' }} }
+          </p>
+          <a class="m-list-link" routerLink="/molecules">Tutte le mie molecole<span aria-hidden="true">→</span></a>
+        </div>
+      </div>
+      <div class="m-list-results" [attr.aria-busy]="loading" aria-label="Collezioni salvate">
+        @for (item of items; track item.id; let i = $index) {
+          <m-collection-card [collection]="item" (onDuplicate)="doDuplicateCollection($event)" (onDelete)="doDeleteCollection($event)" (onAddMolecules)="doAddMoleculesToCollection($event)" [i]="i"
+            [triggerDisappear]="item.triggerDisappear()" [collapse]="item.collapse()" />
+        }
+        @if (loading && page === 1) {
+          <div class="m-list-skeletons" aria-hidden="true">
+            @for (i of [0, 1, 2, 3, 4]; track i) { <m-skeleton-collection-card [i]="i" /> }
+          </div>
+        }
+        @if (!loading && !paginationState().error && !items.length && done) {
+          <div class="m-list-empty">
+            <h3>{{ searchTerm() ? 'Nessun risultato' : 'Crea la tua prima collezione' }}</h3>
+            <p>{{ searchTerm() ? 'Prova un altro nome oppure cancella la ricerca.' : 'Raggruppa le molecole per progetto, famiglia o argomento.' }}</p>
+            @if (searchTerm()) { <m-button size="lg" variant="outline" (pressed)="doClear()">Cancella ricerca</m-button> }
+            @else { <m-button size="lg" (pressed)="createNewCollection()">Crea collezioni</m-button> }
+          </div>
+        }
+      </div>
+      <div #sentinel class="m-list-sentinel" aria-hidden="true"></div>
+      <div class="m-list-pagination">
+        @if (paginationState().error) {
+          <div class="m-list-error" role="alert">
+            <p>{{ items.length ? 'Non siamo riusciti a caricare altri risultati. Quelli già caricati restano disponibili.' : 'Non siamo riusciti a caricare le collezioni. Riprova tra poco.' }}</p>
+            <m-button size="lg" variant="outline" (pressed)="retryPagination()">Riprova</m-button>
+          </div>
+        } @else if (items.length && !done) {
+          <m-button size="lg" variant="outline" [loading]="loading" (pressed)="loadMore()">Carica altre collezioni</m-button>
+        } @else if (items.length && done) {
+          <p class="m-list-end">Hai visualizzato tutte le collezioni{{ searchTerm() ? ' corrispondenti alla ricerca' : '' }}.</p>
+        }
+      </div>
+    </section>
   `
 })
 export class MyMoleculeCollectionsPageComponent implements OnInit, OnDestroy {
@@ -132,6 +120,8 @@ export class MyMoleculeCollectionsPageComponent implements OnInit, OnDestroy {
       })
     }
   })
+  readonly searchInput = signal('')
+  private queryTimer?: ReturnType<typeof setTimeout>
   private observer?: IntersectionObserver
   // ====================================================
 
@@ -209,6 +199,7 @@ export class MyMoleculeCollectionsPageComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    clearTimeout(this.queryTimer)
     this.observer?.disconnect()
     this.pagination.dispose()
     this.delColSub?.unsubscribe()
@@ -218,8 +209,18 @@ export class MyMoleculeCollectionsPageComponent implements OnInit, OnDestroy {
   loadMore(): Promise<void> { return this.pagination.loadMore() }
   retryPagination(): void { this.pagination.retry() }
   resetPagination(): void { this.pagination.reset() }
-  doQuery(q: string): void { this.pagination.setQuery(q) }
-  doClear(): void { this.pagination.clear() }
+  doQuery(q: string): void {
+    this.searchInput.set(q)
+    clearTimeout(this.queryTimer)
+    if (!q.trim()) { this.submitQuery(q); return }
+    this.queryTimer = setTimeout(() => this.submitQuery(q), 250)
+  }
+  submitQuery(q: string): void {
+    clearTimeout(this.queryTimer)
+    this.searchInput.set(q)
+    if (q.trim() !== this.searchTerm()) this.pagination.setQuery(q.trim())
+  }
+  doClear(): void { this.submitQuery('') }
 
 
 

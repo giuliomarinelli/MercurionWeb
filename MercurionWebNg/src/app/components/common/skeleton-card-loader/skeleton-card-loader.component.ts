@@ -1,80 +1,32 @@
 import { ChangeDetectionStrategy, Component, effect, input, signal } from '@angular/core';
-import { NgClass, NgStyle } from '@angular/common';
+import { NgStyle } from '@angular/common';
 import { SkeletonComponent } from '../skeleton/skeleton.component';
 
 @Component({
   selector: 'm-skeleton-collection-card',
-  imports: [NgClass, NgStyle, SkeletonComponent],
+  imports: [NgStyle, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div
-      class="
-        group focus-visible:outline-none
-        grid grid-cols-1 md:grid-cols-12 items-center gap-3 md:gap-4
-        border p-4 md:p-5
-        bg-white/70 dark:bg-slate-800/50 backdrop-blur-sm
-        border-slate-200/70 dark:border-slate-700/60
-        transition-all duration-200
-        animate-pulse
-      "
-      [ngClass]="{
-        'bg-slate-50/60 dark:bg-slate-800/40': _i() % 2 !== 0
-      }"
-      [ngStyle]="{ height: _height() }"
-      role="status"
-      aria-busy="true"
-      aria-live="polite"
-    >
-      <!-- Colonna sinistra: 8/12 -->
+    <div class="grid grid-cols-1 md:grid-cols-12 items-center gap-5 sm:gap-4 border rounded-2xl p-4 md:p-5 bg-slate-100 dark:bg-slate-800/50 border-slate-200/70 dark:border-slate-700/60"
+      [ngStyle]="{ height: _height() }" aria-hidden="true">
       <div class="md:col-span-8 flex items-start gap-3 min-w-0">
-        <!-- Avatar placeholder -->
-        <m-skeleton class="hidden sm:block shrink-0" shape="rect" width="2.25rem" height="2.25rem" />
-
-        <div class="min-w-0 w-full">
-          <!-- Titolo placeholder -->
-          <m-skeleton width="66.666667%" height="1.25rem" />
-
-          <!-- Meta (mobile) -->
-          <div class="mt-2 flex md:hidden items-center gap-2">
-            <m-skeleton width="6rem" height=".75rem" />
-            <span class="h-1 w-1 rounded-full bg-slate-300 dark:bg-slate-600"></span>
-            <m-skeleton width="5rem" height=".75rem" />
-          </div>
-        </div>
+        <div class="hidden sm:block shrink-0"><m-skeleton shape="rect" width="2.25rem" height="2.25rem" /></div>
+        <div class="w-full min-w-0 h-6 md:h-7 flex items-center"><m-skeleton class="w-2/3" width="100%" height="1.25rem" /></div>
       </div>
-
-      <!-- Colonna destra: 4/12 -->
       <div class="md:col-span-4 flex md:justify-end items-center gap-3 md:gap-4">
-        <m-skeleton shape="rect" width="7rem" height="1.5rem" />
-
-        <m-skeleton class="hidden md:block" width="1rem" height="1rem" />
+        <m-skeleton width="7rem" height="1.625rem" />
+        <div class="hidden md:block"><m-skeleton width="1rem" height="1rem" /></div>
       </div>
-
-      <!-- Footer: meta + (azioni placeholder se non readonly) -->
-      <div class="md:col-span-12 mt-1 md:mt-0 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 min-w-0">
-        <!-- Meta left -->
-        <div class="flex flex-wrap items-center gap-3 min-w-0">
-          <m-skeleton width="9rem" height=".75rem" />
-          <span class="size-1 rounded-full bg-slate-300 dark:bg-slate-600"></span>
-          <m-skeleton width="8rem" height=".75rem" />
-        </div>
-
-        <!-- Azioni right (solo se !readonly) -->
+      <div class="md:col-span-12 mt-1 md:mt-0 flex flex-col sm:flex-row gap-6 sm:gap-3 items-start sm:items-center justify-between w-full">
+        <m-skeleton width="10rem" height="1rem" />
         @if (!_isReadonly()) {
-          <div class="flex flex-wrap items-center gap-3 min-w-0">
-            <!-- Duplica (icona) -->
-            <m-skeleton shape="rect" width="1.75rem" height="1.75rem" />
-
-            <!-- Elimina (icona) -->
-            <m-skeleton shape="rect" width="1.75rem" height="1.75rem" />
-
-            <!-- Aggiungi molecole (pill) -->
-            <m-skeleton shape="rect" width="7rem" height="1.75rem" />
+          <div class="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
+            <m-skeleton shape="rect" width="2.75rem" height="2.75rem" />
+            <m-skeleton shape="rect" width="2.75rem" height="2.75rem" />
+            <m-skeleton shape="rect" width="9.25rem" height="2.75rem" />
           </div>
         }
       </div>
-
-      <span class="sr-only">Caricamento collezione…</span>
     </div>
   `
 })
