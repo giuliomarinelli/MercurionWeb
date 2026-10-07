@@ -36,7 +36,7 @@ describe('MoleculeSummaryCardComponent', () => {
 
     expect(fixture.nativeElement.textContent).toContain('ChEMBL');
     expect(fixture.nativeElement.textContent).toContain('MW:');
-    expect(fixture.nativeElement.textContent).toContain('Phase 3');
+    expect(fixture.nativeElement.textContent).toContain('Fase 3');
     expect(fixture.nativeElement.querySelector('button[aria-label="Elimina"]')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('a[aria-label="Duplica"] svg')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('button[aria-label="Elimina"] svg')).not.toBeNull();
@@ -83,6 +83,19 @@ describe('MoleculeSummaryCardComponent', () => {
     fixture.componentRef.setInput('viewModel', model('external', { compact: true }));
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('article')).not.toBeNull();
+  });
+
+  it('shows numeric zero metadata instead of treating it as missing', () => {
+    fixture.componentRef.setInput('viewModel', model('saved', { molecularWeight: 0, phase: 0 }));
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('MW: 0');
+    expect(fixture.nativeElement.textContent).toContain('Fase 0');
+  });
+
+  it('does not present the negative phase sentinel as a clinical phase', () => {
+    fixture.componentRef.setInput('viewModel', model('saved', { phase: -1 }));
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).not.toContain('Fase -1');
   });
 
   it('emits semantic action events without changing the view model', () => {

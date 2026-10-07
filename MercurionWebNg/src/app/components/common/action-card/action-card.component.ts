@@ -25,7 +25,7 @@ const SIZE_CLASSES: Record<ActionCardSize, string> = {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section
-      class="m-action-card"
+      class="m-action-card m-scroll-thin"
       mSmoothResize="both"
       resizeKey="action-card"
       [class]="classes()"
@@ -51,7 +51,7 @@ const SIZE_CLASSES: Record<ActionCardSize, string> = {
         </div>
       </header>
 
-      <div class="m-action-card__body" [class.m-action-card__body--managed]="!bodyScroll()">
+      <div class="m-action-card__body m-scroll-thin" [class.m-action-card__body--managed]="!bodyScroll()">
         <ng-content select="[action-card-body]" />
       </div>
 

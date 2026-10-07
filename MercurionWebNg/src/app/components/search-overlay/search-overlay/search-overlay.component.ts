@@ -122,7 +122,7 @@ import { ShellLayoutService } from '../../../services/context/shell-layout.servi
               @case ('my') {
                 @if (loading() && !myItems().length) {
                   @for (i of [0,1,2,3,4,5]; track i) {
-                    <m-skeleton-molecule-card />
+                    <m-skeleton-molecule-card class="block mb-2 last:mb-0" [compact]="viewport.overlayCompact()" />
                   }
                 } @else if (myItems().length) {
                   @for (molecule of myItems(); track molecule.id; let i = $index) {
@@ -133,7 +133,7 @@ import { ShellLayoutService } from '../../../services/context/shell-layout.servi
                   }
                   @if (loading() && myItems().length) {
                     <div class="mt-3">
-                      <m-skeleton-molecule-card />
+                      <m-skeleton-molecule-card class="block mb-2 last:mb-0" [compact]="viewport.overlayCompact()" />
                     </div>
                   }
                 } @else if (showMyEmptyMessage()) {

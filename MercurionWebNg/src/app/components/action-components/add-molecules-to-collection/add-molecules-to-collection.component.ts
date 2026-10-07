@@ -189,7 +189,7 @@ export type { ChipItem } from './add-molecules-to-collection.flow';
                     <m-progress-indicator />
                   } @else {
                     @for (i of [0, 1]; track i) {
-                      <m-skeleton-molecule-card />
+                      <div class="mb-3 grid grid-cols-[1.25rem_minmax(0,1fr)] gap-4 items-center"><span class="size-5 rounded border border-token-border" aria-hidden="true"></span><m-skeleton-molecule-card [compact]="viewport.overlayCompact()" /></div>
                     }
                   }
                 </div>
@@ -258,7 +258,7 @@ export type { ChipItem } from './add-molecules-to-collection.flow';
                   }}
                   su ChEMBL
                 </summary>
-                <ul class="add-chips" aria-label="Molecole selezionate">
+                <ul class="add-chips m-scroll-thin" aria-label="Molecole selezionate">
                   @for (m of selectedMolecules; track m.id) {
                     <li>
                       <span>{{ m.name }}</span
@@ -291,7 +291,7 @@ export type { ChipItem } from './add-molecules-to-collection.flow';
               @if (chemblLoading()) {
                 <div role="status">
                   <span class="sr-only">Ricerca su ChEMBL in corso…</span
-                  ><m-search-result-skeleton-loader />
+                  ><m-search-result-skeleton-loader [selectionHint]="true" />
                 </div>
               } @else if (chemblError()) {
                 <div class="add-state add-error" role="alert">

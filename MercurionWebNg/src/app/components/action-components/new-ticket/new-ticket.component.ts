@@ -58,7 +58,7 @@ type QuillContentChange = {
   template: `
     <div class="flex justify-center items-start md:items-center px-2 sm:px-4 m-overlay-screen">
     <div
-      class="w-full max-w-3xl mx-auto max-h-[var(--m-action-card-available-height)] overflow-y-auto m-overscroll-touch bg-white dark:bg-dark-surface-main rounded-xl shadow-lg"
+      class="w-full max-w-3xl mx-auto max-h-(--m-action-card-available-height) overflow-y-auto m-scroll-thin m-overscroll-touch bg-white dark:bg-dark-surface-main rounded-xl shadow-lg"
       role="region"
       aria-labelledby="newTicketHeading"
       [attr.aria-busy]="loading()"

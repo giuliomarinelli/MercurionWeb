@@ -52,7 +52,7 @@ import { normalizeCollectionName, validateCollectionName } from '../collection-p
             @if (!selectedChips().length) {
               <div class="collection-empty"><span aria-hidden="true">＋</span><p>Le tue nuove collezioni compariranno qui.</p><p class="collection-help">Potrai aggiungere le molecole dopo la creazione.</p></div>
             } @else {
-              <ul class="collection-list" aria-label="Collezioni da creare">
+              <ul class="collection-list m-scroll-thin" aria-label="Collezioni da creare">
                 @for (c of selectedChips(); track c) {
                   <li><span class="collection-name">{{ c }}</span>
                     <button type="button" class="collection-remove" [disabled]="pending()"

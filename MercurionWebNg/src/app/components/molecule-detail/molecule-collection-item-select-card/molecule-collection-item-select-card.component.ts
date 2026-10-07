@@ -23,7 +23,7 @@ import { SelectionControlComponent } from '../../common/selection-control/select
       (changed)="setValue($event)"
     />
   } @else if (molecule(); as item) {
-    <div class="group/selection relative mb-3 grid grid-cols-[1.25rem_minmax(0,1fr)] gap-4 items-center w-full transition-transform duration-300 hover:-translate-y-0.5">
+    <div class="group/selection relative mb-3 grid grid-cols-[1.25rem_minmax(0,1fr)] gap-4 items-center w-full">
       <m-selection-control
         class="absolute inset-0 z-20"
         layout="card"
@@ -32,7 +32,7 @@ import { SelectionControlComponent } from '../../common/selection-control/select
         [checked]="value()"
         (changed)="setValue($event)"
       />
-      <div class="col-start-2 min-w-0 rounded-2xl" [class.ring-2]="value()" [class.ring-indigo-500]="value()">
+      <div class="col-start-2 min-w-0 rounded-2xl" [class.ring-2]="value()" [style.--tw-ring-color]="'var(--m-color-focus)'">
         <m-molecule-collection-item-card [molecule]="item" [i]="i()" [isReadonly]="true" [compact]="compact()" />
       </div>
     </div>

@@ -49,7 +49,7 @@ const CONTENT_CLASSES = {
     @if (mounted()) {
       <div
         #dialog
-        class="fixed inset-0 z-[999] overflow-y-auto transition-opacity duration-300 m-dialog-backdrop"
+        class="fixed inset-0 z-[999] overflow-y-auto m-scroll-thin transition-opacity duration-300 m-dialog-backdrop"
         [class]="BACKDROP_CLASSES[backdropVariant()]"
         [class.opacity-0]="!open()"
         [class.opacity-100]="open()"
@@ -69,7 +69,7 @@ const CONTENT_CLASSES = {
         (focusin)="scheduleFocusedControlVisibility()"
       >
         <div class="m-dialog-content min-h-full flex items-center justify-center" [class]="CONTENT_CLASSES[panelVariant()]">
-          <div class="m-dialog-panel" [class]="PANEL_CLASSES[panelVariant()]"
+          <div class="m-dialog-panel m-scroll-thin" [class]="PANEL_CLASSES[panelVariant()]"
                [class.m-dialog-panel--default]="panelVariant() === 'default'"
                (click)="$event.stopPropagation()">
             <ng-content />

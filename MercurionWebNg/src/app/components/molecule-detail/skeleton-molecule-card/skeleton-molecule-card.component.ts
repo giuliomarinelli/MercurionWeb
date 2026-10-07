@@ -1,62 +1,45 @@
-import { ChangeDetectionStrategy, Component, effect, input, signal } from '@angular/core';
-import { NgClass, NgStyle } from '@angular/common';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { SkeletonComponent } from '../../common/skeleton/skeleton.component';
 
 @Component({
   selector: 'm-skeleton-molecule-card',
-  imports: [NgClass, NgStyle, SkeletonComponent],
+  imports: [SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'block w-full' },
+  styleUrl: '../molecule-summary-card/molecule-summary-card.component.css',
   template: `
-    <div
-      class="
-        grid grid-cols-1 md:grid-cols-12 items-center gap-3 md:gap-4
-        rounded-2xl border p-4 md:p-5
-        bg-white/70 dark:bg-slate-800/50 backdrop-blur-sm
-        border-slate-200/70 dark:border-slate-700/60
-        transition-all duration-200
-        animate-pulse
-      "
-      [ngClass]="{
-        'bg-slate-50/60 dark:bg-slate-800/40': _i() % 2 !== 0
-      }"
-      [ngStyle]="{ height: _height() }"
-      role="status"
-      aria-busy="true"
-      aria-live="polite"
-      aria-label="Caricamento dati molecola"
-    >
-      <!-- Colonna sinistra: 8/12 - testo -->
-      <div class="md:col-span-8 min-w-0">
-        <m-skeleton width="66.666667%" height="1.25rem" />
-        <m-skeleton class="mt-2" width="33.333333%" height="1rem" />
-
-        <div class="mt-3 flex items-center gap-2">
-          <m-skeleton shape="rect" width="6rem" height="1.25rem" />
-          <m-skeleton shape="rect" width="5rem" height="1.25rem" />
+    <div class="m-summary-card relative grid items-center gap-3 overflow-hidden rounded-2xl border p-4"
+      [class.m-summary-card--compact]="compact()" [style.height]="height()"
+      role="status" aria-label="Caricamento dati molecola" aria-busy="true">
+      <div class="min-w-0" [class.order-2]="compact()">
+        <div class="m-summary-card__heading gap-2">
+          <div class="m-summary-card__name"><m-skeleton width="80%" height="1rem" /></div>
+          <m-skeleton width="3.5rem" height="1.5rem" />
         </div>
-      </div>
-
-      <!-- Colonna destra: 4/12 - viewer -->
-      <div class="md:col-span-4 flex md:justify-end items-center">
-        <div class="size-24 md:size-28 overflow-hidden rounded-xl border border-slate-200/70 dark:border-slate-700/60 bg-white/40 dark:bg-slate-900/30">
-          <m-skeleton shape="rect" width="100%" height="100%" />
+        <div class="m-summary-card__synonym"><m-skeleton width="60%" height="0.75rem" /></div>
+        <div class="m-summary-card__metrics mt-2 flex items-center gap-2">
+          <m-skeleton width="4rem" height="1.5rem" /><m-skeleton width="3rem" height="1.5rem" />
         </div>
+        @if (selectionHint()) { <p class="mt-2 text-xs"><m-skeleton width="8rem" height="1rem" /></p> }
       </div>
-
+      <div class="m-summary-card__viewer relative overflow-hidden rounded-xl border" [class.order-1]="compact()">
+        <m-skeleton shape="rect" width="100%" height="100%" />
+      </div>
+      @if (!compact() && footer()) {
+        <div class="m-summary-card__footer mt-1 flex flex-wrap items-center justify-between gap-2 text-xs">
+          <m-skeleton width="5rem" height="1rem" />
+          <div class="m-summary-card__actions flex flex-wrap gap-3"><div class="m-summary-card__action"><m-skeleton width="1rem" height="1rem" /></div><div class="m-summary-card__action"><m-skeleton width="1rem" height="1rem" /></div>@if (removeAction()) { <div class="m-summary-card__action m-summary-card__action--remove"><m-skeleton width="10rem" height="1rem" /></div> }</div>
+        </div>
+      }
       <span class="sr-only">Caricamento molecola…</span>
     </div>
   `
 })
 export class SkeletonMoleculeCardComponent {
-  private _index = signal(0);
-  private _heightSig = signal<string>('auto');
-
-  readonly i = input(0)
-  private readonly syncIndex = effect(() => this._index.set(this.i()))
-  _i = this._index;
-
-  /** E.g. "180px", "12rem", "20vh", ecc. */
-  readonly height = input<string | null>('auto')
-  private readonly syncHeight = effect(() => this._heightSig.set(this.height() || 'auto'))
-  _height = this._heightSig;
+  readonly i = input(0);
+  readonly height = input<string | null>('auto');
+  readonly compact = input(false);
+  readonly footer = input(true);
+  readonly removeAction = input(false);
+  readonly selectionHint = input(false);
 }

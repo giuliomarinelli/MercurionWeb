@@ -8,19 +8,13 @@ import { MoleculeSummaryAction, MoleculeSummaryViewModel } from './molecule-summ
   selector: 'm-molecule-summary-card',
   standalone: true,
   imports: [DatePipe, DecimalPipe, RouterLink, MoleculeViewerComponent],
+  styleUrl: './molecule-summary-card.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block w-full' },
   template: `
     <article
-      class="relative grid grid-cols-1 items-center gap-3 overflow-hidden rounded-2xl border p-4 md:p-5
-        bg-slate-100 dark:bg-slate-800/50 border-slate-200/70 dark:border-slate-700/60
-        transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-300/50 hover:shadow-md
-        dark:hover:border-indigo-400/30 focus-within:ring-2 focus-within:ring-indigo-500/70
-        group-hover/selection:border-indigo-300/50 group-hover/selection:shadow-md
-        dark:group-hover/selection:border-indigo-400/30
-        group-focus-within/selection:ring-2 group-focus-within/selection:ring-indigo-500/70"
-      [class.grid-cols-[3rem_1fr]]="viewModel().compact"
-      [class.md:grid-cols-12]="!viewModel().compact"
+      class="m-summary-card relative grid items-center gap-3 overflow-hidden rounded-2xl border p-4"
+      [class.m-summary-card--compact]="viewModel().compact"
       [class.fade-out]="disappearing()"
       [class.collapse]="collapsed()"
       [attr.aria-label]="'Molecola ' + viewModel().name">
@@ -38,54 +32,51 @@ import { MoleculeSummaryAction, MoleculeSummaryViewModel } from './molecule-summ
         [attr.aria-label]="'Apri molecola ' + viewModel().name"></a>
       }
 
-      <div class="pointer-events-none relative min-w-0"
-        [class.order-2]="viewModel().compact"
-        [class.md:col-span-8]="!viewModel().compact">
-        <div class="flex items-center gap-2 text-base font-semibold text-slate-800 dark:text-slate-100 md:text-lg">
-          <span class="truncate" [title]="viewModel().name">{{ viewModel().name }}</span>
+      <div class="pointer-events-none m-summary-card__identity relative min-w-0"
+        [class.order-2]="viewModel().compact">
+        <div class="m-summary-card__heading flex flex-wrap items-start gap-2 text-base font-semibold">
+          <span class="m-summary-card__name min-w-0" [title]="viewModel().name">{{ viewModel().name }}</span>
           @if (viewModel().badge) {
-            <span class="shrink-0 rounded-full border border-indigo-200/70 bg-indigo-50 px-2 py-0.5 text-xs text-indigo-700 dark:border-indigo-700/40 dark:bg-indigo-900/30 dark:text-indigo-300">
+            <span class="m-summary-card__badge shrink-0 rounded-full border px-2 py-0.5 text-xs">
               {{ viewModel().badge }}
             </span>
           }
         </div>
-        <div class="truncate text-xs text-slate-700 dark:text-slate-200 md:text-sm" [title]="viewModel().synonym">{{ viewModel().synonym }}</div>
-        <div class="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-700 dark:text-slate-200">
-          @if (viewModel().molecularWeight) { <span class="rounded-full border px-2 py-1">MW: {{ viewModel().molecularWeight | number:'1.0-1' }}</span> }
-          @if (viewModel().phase) { <span class="rounded-full border border-amber-200/70 bg-amber-50 px-2 py-1 text-amber-800 dark:border-amber-700/40 dark:bg-amber-900/20 dark:text-amber-200">Phase {{ viewModel().phase }}</span> }
+        <div class="m-summary-card__synonym truncate text-xs" [title]="viewModel().synonym">{{ viewModel().synonym }}</div>
+        <div class="m-summary-card__metrics mt-2 flex flex-wrap items-center gap-2 text-xs">
+          @if (viewModel().molecularWeight !== undefined && viewModel().molecularWeight !== null) { <span class="rounded-full border px-2 py-1">MW: {{ viewModel().molecularWeight | number:'1.0-1' }}</span> }
+          @if (viewModel().phase !== undefined && viewModel().phase !== null && viewModel().phase! >= 0) { <span class="rounded-full border px-2 py-1">Fase {{ viewModel().phase }}</span> }
         </div>
-        @if (cardSelectable()) {
+        @if (viewModel().selectable && viewModel().source !== 'saved') {
           <p class="mt-2 text-xs text-slate-600 dark:text-slate-300">
-            <span class="sm:hidden">Tocca per selezionare</span>
-            <span class="hidden sm:inline">Clicca per selezionare</span>
+            @if (cardSelectable()) {
+              <span class="sm:hidden">Tocca per selezionare</span>
+              <span class="hidden sm:inline">Clicca per selezionare</span>
+            } @else { <span>Già selezionata</span> }
           </p>
         }
       </div>
 
-      <div class="pointer-events-none relative shrink-0 justify-self-start md:justify-self-end overflow-hidden rounded-xl border border-slate-200/70 bg-white/40 dark:border-slate-700/60 dark:bg-slate-900/30"
-        [class.order-1]="viewModel().compact"
-        [class.size-12]="viewModel().compact"
-        [class.size-24]="!viewModel().compact"
-        [class.md:col-span-4]="!viewModel().compact"
-        [class.md:size-28]="!viewModel().compact">
+      <div class="m-summary-card__viewer pointer-events-none relative shrink-0 overflow-hidden rounded-xl border"
+        [class.order-1]="viewModel().compact">
         @if (!viewerReady()) {
-          <div class="absolute inset-0 z-20 animate-pulse bg-slate-200/80 dark:bg-slate-700/70"></div>
+          <div class="absolute inset-0 z-20 animate-pulse m-summary-card__skeleton"></div>
         }
         <m-molecule-viewer class="absolute inset-0 size-full" [structure]="viewModel().smiles" (rendered)="viewerReady.set(true)" />
       </div>
 
       @if (!viewModel().compact && viewModel().source === 'saved') {
-        <div class="pointer-events-none relative z-20 mt-1 flex flex-col items-start justify-between gap-3 text-xs text-slate-700 dark:text-slate-200 sm:flex-row sm:items-center md:col-span-12">
-          @if (viewModel().createdAt && viewModel().updatedAt) {
-            <span class="inline-flex items-center">
+        <div class="pointer-events-none relative z-20 m-summary-card__footer mt-1 flex flex-wrap items-center justify-between gap-2 text-xs">
+          @if (viewModel().createdAt) {
+            <span class="inline-flex items-center" [title]="'Creata il ' + (viewModel().createdAt | date :'dd/MM/yyyy HH:mm:ss')">
               <svg class="size-3.5 mr-1.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M6 2a1 1 0 0 1 1 1v1h6V3a1 1 0 1 1 2 0v1h1a2 2 0 0 1 2 2v1H3V6a2 2 0 0 1 2-2h1V3a1 1 0 0 1 1-1z"/><path d="M3 8h14v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8z"/></svg>
-              <span>{{ viewModel().createdAt | date :'dd/MM/yyyy HH:mm:ss' }}</span>
+              <span>{{ viewModel().createdAt | date :'dd/MM/yyyy' }}</span>
             </span>
           }
-          <div class="pointer-events-auto flex flex-wrap items-center justify-start gap-3 sm:justify-end">
+          <div class="m-summary-card__actions pointer-events-auto flex flex-wrap items-center justify-start gap-3 sm:justify-end">
           @for (action of visibleActions(); track action.label) {
             @if (action.kind === 'link') {
-              <a class="rounded-md p-1 first:pl-0 transition-colors duration-150 hover:bg-slate-200 dark:hover:bg-slate-700"
+              <a class="m-summary-card__action rounded-md"
                 [routerLink]="action.href" [queryParams]="action.queryParams" [title]="action.label" [attr.aria-label]="action.label">
                 @if (action.icon === 'duplicate') {
                   <svg class="size-4 text-slate-700 dark:text-slate-200" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -96,7 +87,8 @@ import { MoleculeSummaryAction, MoleculeSummaryViewModel } from './molecule-summ
               </a>
             } @else if (action.action !== 'select') {
               <button type="button"
-                class="rounded-md p-1 text-xs transition-colors duration-150 hover:bg-slate-200 dark:hover:bg-slate-700"
+                class="m-summary-card__action rounded-md text-xs"
+                [class.m-summary-card__action--remove]="action.icon === 'remove'"
                 [class.flex]="action.icon === 'remove'" [class.items-center]="action.icon === 'remove'" [class.gap-2]="action.icon === 'remove'"
                 [class.border]="action.icon === 'remove'" [class.px-3]="action.icon === 'remove'"
                 [title]="action.label" [attr.aria-label]="action.label" (click)="actionSelected.emit(action.action)">
@@ -117,7 +109,7 @@ import { MoleculeSummaryAction, MoleculeSummaryViewModel } from './molecule-summ
         <div class="relative z-20 order-3 flex flex-wrap items-center justify-end gap-2">
           @for (action of visibleActions(); track action.label) {
             @if (action.kind === 'button' && action.action !== 'select') {
-              <button type="button" class="rounded-md px-2 py-1 text-xs hover:bg-slate-200 dark:hover:bg-slate-700"
+              <button type="button" class="m-summary-card__action rounded-md text-xs"
                 [attr.aria-label]="action.label" (click)="actionSelected.emit(action.action)">{{ action.label }}</button>
             }
           }

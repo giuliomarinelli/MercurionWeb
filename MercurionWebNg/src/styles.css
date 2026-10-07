@@ -430,7 +430,7 @@ html {
   }
 
   .drawer {
-    @apply bg-slate-200/50 dark:bg-neutral-900/75 transition-colors transition-transform duration-200 ease-in-out;
+    @apply bg-slate-200/50 dark:bg-neutral-900/75 transition-colors duration-200 ease-in-out;
   }
 
   .content {
@@ -510,7 +510,7 @@ html {
   }
 
   .action-overlay-backdrop {
-    @apply fixed inset-0 z-[999] backdrop-blur-sm bg-slate-300/75 dark:bg-slate-900/90 transition-opacity duration-300;
+    @apply fixed inset-0 z-999 backdrop-blur-sm bg-slate-300/75 dark:bg-slate-900/90 transition-opacity duration-300;
     overscroll-behavior: contain;
   }
 

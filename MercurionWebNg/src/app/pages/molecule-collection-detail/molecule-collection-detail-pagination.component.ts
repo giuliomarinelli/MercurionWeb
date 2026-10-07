@@ -9,7 +9,7 @@ import { SkeletonMoleculeCardComponent } from '../../components/molecule-detail/
   imports: [PaginationComponent, SkeletonMoleculeCardComponent],
   template: `
     @if (loading() && !hasItems()) {
-      <div class="relative -top-20">@for (i of [0,1,2,3,4]; track i) { <m-skeleton-molecule-card /> }</div>
+      <div class="relative -top-20">@for (i of [0,1,2,3,4]; track i) { <m-skeleton-molecule-card [removeAction]="true" /> }</div>
     } @else {
       <m-pagination
         [state]="paginationState()"

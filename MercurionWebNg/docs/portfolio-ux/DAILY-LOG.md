@@ -176,6 +176,28 @@ Il nuovo tentativo browser di preparare una bozza duplicata non ha raggiunto un 
 
 **Prove:** `C:/Users/giuli/.codex/artifacts/mercurion-portfolio-ux-2026-10-07/custom-header/`: `before.png`, `after-desktop.png`, `after-mobile.png`, `tests.log`. Viewport originale ripristinata e sola scheda agente chiusa. PX-10 resta da affrontare per la revisione completa; questa regressione specifica è corretta, in review.
 
+## 2026-10-07 — PX-05, blocco 06: card, selezione e skeleton
+
+**Stato:** implementato, in review. Liste, toolbar e paginazione complete restano nel blocco 07.
+
+**Evidenze:** card molecolari condivise con viewer sotto il testo su mobile, azioni secondarie piccole e badge che andava a capo a distanze variabili dal sinonimo. Screenshot iPhone IMG_9688 dell'utente conferma l'asimmetria su TERT-BUTILAMMINA rispetto a VERAPAMIL. Skeleton standard e ricerca usavano strutture e altezze diverse dalle card finali.
+
+**Card:** griglia stabile nome/badge, nome con spazio per due righe standard e una compatta, viewer a fianco anche su mobile, righe sinonimo/metadati riservate anche quando mancano valori. Badge Personal anche nelle card custom salvate; bordi, superfici e focus su token semantici. Azioni duplicate/delete/remove con bersaglio minimo 44 px e footer distinto dall'apertura del dettaglio. Data breve visibile con timestamp completo nel titolo. Fase zero conservata; valore negativo non mostrato come fase clinica. Selezione nativa e segno di spunta conservati, ring semantico; eliminata la traslazione hover della selezione. Mantiene link del dettaglio e query della collezione, output, viewer loading e classi/tempi fade-out/collapse. Nessuna eliminazione reale eseguita.
+
+**Skeleton e shift:** stesso foglio CSS e stessa griglia delle card finali; varianti standard, compatta e con suggerimento di selezione. Skeleton personale nell'aggiunta include la colonna del checkbox. Il dettaglio collezione riserva anche la riga mobile dell'azione Rimuovi. Il suggerimento ChEMBL conserva spazio dopo la selezione. Comparatore geometrico in iframe a 360, 390, 768 e 1366 px: 12 combinazioni reali di card/skeleton standard, compatta e con azioni della collezione, scarto di altezza inferiore a 1 px e larghezza coincidente. Viewer sostituito nel solo test geometrico per misurare il layout senza caricare RDKit. Questi test non costituiscono una misura globale del CLS della pagina; loading con conteggio di risultati diverso e altri elementi della lista restano da verificare nel blocco 07.
+
+**Scrollbar richieste:** `m-scroll-thin` ripristinata sullo scroll della ActionCard e del corpo, sul contenitore dialog e sul pannello, sulla lista di creazione, sui chip dell'aggiunta e sul nuovo ticket. Ticket e thread avevano già la classe. SelectCore conserva la propria scrollbar thin. Nel browser: computed `scrollbar-width: thin` sullo scroll della card e del corpo dell'aggiunta. Copertura condivisa per profilo e workflow sensitive-data, senza inviare modifiche all'account.
+
+**Controlli finali:** 83 test mirati superati, inclusi metadati zero/negativi, card, skeleton, ricerca, selezione, aggiunta, dialog e ActionCard. ESLint, styling (566 file), colori semantici, build produzione, bundle e confine lazy chemistry superati. Bundle 984465/1000000 byte. Restano avvisi indicativi di 500 kB iniziali e CSS aggiunta 5.29 kB/creazione 4.12 kB oltre la soglia indicativa 4 kB. Nessuna CI remota dichiarata.
+
+**Browser:** Chrome Computer Use all'edge locale, runtime esterni autorizzati. Due temi e sette viewport ordinarie: 14 misure, nessun overflow interno delle card e azioni 44×44 px. Controllo dedicato a 375×812: nome TERT-BUTILAMMINA e badge sulla stessa griglia, sinonimo e viewer allineati. Apertura del dettaglio dal link della card riuscita. Selezione nativa di TERT-BUTILAMMINA nell'aggiunta, contatore a uno e azione abilitata; dopo resize a 375×350 e filtro la selezione resta conservata. Nessuna aggiunta/importazione o eliminazione inviata.
+
+**Limiti del browser:** durante il filtro personale il servizio ha restituito errore; retry eseguito senza recupero confermato. Anche ricerca ChEMBL aspirin nell'aggiunta ha mostrato errore. La causa non è stata isolata o attribuita alla patch visuale; non dichiarato il percorso live ChEMBL riuscito in questa sessione. Errori e selezione conservata osservati dal vivo; stati e comportamento delle card coperti dai test. Matrice standard precede le ultime rifiniture dello skeleton/variante collezione: loro geometria verificata nei test, screenshot mobile finale assestato. Conferma fisica Safari ancora aperta. Nella nuova scheda finale a viewport ridotta, la shell conservava la sidebar desktop aperta: chiusa temporaneamente per isolare la card (333 px disponibili, nessun overflow), poi ripristinata; comportamento del resize da rivedere in PX-01. Il confronto visivo mobile ordinario è disponibile anche in `dark-390x844.png`. Tema automatico e viewport originale ripristinati; sola scheda agente chiusa.
+
+**Prove:** `C:/Users/giuli/.codex/artifacts/mercurion-portfolio-ux-2026-10-07/PX-05-cards/`: `before.png`, screenshot light/dark delle sette viewport, `responsive.json`, `after-iphone-width.png`, `selected-mobile.png`, `selected-compact.png` (errore del filtro con selezione conservata), `loading-compact.png`, `tests.log`, `skeleton-tests.log`, `build.log`. Materiale locale di QA.
+
+**Review:** manuale ancora aperta. Modifiche contemporanee dell'utente in `styles.css` preservate; nessun commit, merge o deploy. Prossimo blocco previsto: **07 / PX-05 — liste**, inclusa la continuità geometrica della pagina durante caricamento e cambio query.
+
 ## Modello per le voci successive
 
 ### AAAA-MM-GG — PX-XX — Sottoarea

@@ -55,7 +55,7 @@ export function moleculeCardToSummary(
     phase: molecule.maxPhase,
     createdAt: molecule.createdAt,
     updatedAt: molecule.updatedAt,
-    badge: molecule.type === 'chembl' ? 'ChEMBL' : undefined,
+    badge: molecule.type === 'chembl' ? 'ChEMBL' : 'Personal',
     ...options
   };
 }
