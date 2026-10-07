@@ -50,7 +50,7 @@ La priorità indica il valore della rifinitura per il portfolio, non la gravità
 | PX-01 | Shell, navigazione e orientamento | P1 | S, B | Da affrontare |
 | PX-02 | Home e presentazione pubblica | P1 | S, B, V | Da affrontare |
 | PX-03 | Accesso e registrazione | P1 | S, B, V | Da affrontare |
-| PX-04 | Ricerca molecolare | P1 | S, B | Da affrontare |
+| PX-04 | Ricerca molecolare | P1 | S, B | Implementato, in review; QA iPhone aperta |
 | PX-05 | Liste, card e selezione | P1 | S, B | Da affrontare |
 | PX-06 | Dettaglio collezione | P1 | S, B | Da affrontare |
 | PX-07 | Overlay di gestione collezioni | P1 | S, B | Creazione, destinazione, associazione e aggiunta molecole implementate, in review |
@@ -144,6 +144,8 @@ Il completamento della fase A non autorizza automaticamente il merge. Le fasi C�
 **Sorgenti:** [login](../../src/app/pages/login/login.page.component.ts), [form credenziali](../../src/app/pages/login/login-credential-form.component.ts), [scelta SSO](../../src/app/pages/login/login-sso-chooser.component.ts), [registrazione](../../src/app/pages/register/register.page.component.ts).
 
 ### PX-04 — Ricerca molecolare
+
+**Stato al 2026-10-07:** implementato, in review. Ricerca e regressione dei blocchi 01–04 documentate nel [diario](DAILY-LOG.md) e nella [matrice tastiera](KEYBOARD-QA.md). La prova fisica su iPhone 13 mini / Safari resta aperta.
 
 **Perché conta:** è uno dei primi flussi da mostrare nella demo e rappresenta il collegamento tra esplorazione e dati.
 
@@ -569,7 +571,7 @@ Ogni riga è un'unità di lavoro, non una promessa di completamento in un giorno
 
 PX-19 accompagna ogni blocco. Non aspettare la fine per curare focus, errori, nomi accessibili e stati di caricamento. Se home o accesso devono essere mostrati subito a un cliente, anticipare i blocchi 15–16 senza aprire un redesign globale.
 
-PX-22 e PX-23 accompagnano gli interventi pertinenti; le righe 26–27 sono il passaggio di regressione finale, non il primo momento in cui verificare questi comportamenti. Il prossimo blocco di implementazione resta **05 — PX-04, ricerca**.
+PX-22 e PX-23 accompagnano gli interventi pertinenti; le righe 26–27 sono il passaggio di regressione finale, non il primo momento in cui verificare questi comportamenti. Il prossimo blocco previsto è **06 — PX-05, card e selezione**. Prima di proseguire, chiudere la verifica fisica della tastiera secondo [KEYBOARD-QA.md](KEYBOARD-QA.md); i blocchi 01–05 restano in review.
 
 ## Lavoro successivo al merge
 

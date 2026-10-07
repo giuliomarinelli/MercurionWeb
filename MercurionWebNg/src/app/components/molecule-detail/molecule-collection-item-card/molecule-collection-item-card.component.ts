@@ -26,6 +26,7 @@ export class MoleculeCollectionItemCardComponent {
   readonly molecule = input.required<MoleculeCardItemModel>();
   readonly i = input.required<number>();
   readonly collectionId = input<string | null>(null);
+  readonly compact = input(false);
   readonly isReadonly = input(false);
   readonly hideActions = input(false);
   readonly triggerDisappear = input(false);
@@ -41,7 +42,7 @@ export class MoleculeCollectionItemCardComponent {
       ...(this.collectionId() ? [{ kind: 'button' as const, label: 'Rimuovi dalla collezione', icon: 'remove' as const, action: 'remove' as const }] : [])
     ],
     selectable: this.isReadonly(),
-    compact: false
+    compact: this.compact()
   }));
 
   handleAction(action: 'delete' | 'remove' | 'select'): void {

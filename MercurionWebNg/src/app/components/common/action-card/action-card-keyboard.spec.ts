@@ -100,6 +100,8 @@ describe('Action card with a reduced visual viewport', () => {
     const header = fixture.nativeElement.querySelector('.m-action-card__header') as HTMLElement;
     expect(document.activeElement).toBe(input);
     expect(input.getBoundingClientRect().top).toBeGreaterThanOrEqual(header.getBoundingClientRect().bottom - 1);
+    const footer = fixture.nativeElement.querySelector('m-action-footer') as HTMLElement;
+    expect(input.getBoundingClientRect().bottom).toBeLessThanOrEqual(footer.getBoundingClientRect().top - 3);
     expect(input.getBoundingClientRect().bottom).toBeLessThanOrEqual(card.getBoundingClientRect().bottom + 1);
   });
 

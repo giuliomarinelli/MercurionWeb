@@ -177,7 +177,13 @@ export class DialogShellComponent {
             const header = parent.querySelector<HTMLElement>(':scope > header');
             const top = header && win.getComputedStyle(header).position === 'sticky'
               ? Math.max(bounds.top, header.getBoundingClientRect().bottom) : bounds.top;
-            if (field.bottom > bounds.bottom) parent.scrollTop += field.bottom - bounds.bottom + 4;
+            const footer = parent.querySelector<HTMLElement>(':scope > m-action-footer');
+            const bottom = footer && win.getComputedStyle(footer).position === 'sticky'
+              ? Math.min(bounds.bottom, footer.getBoundingClientRect().top) : bounds.bottom;
+            if (this.viewport.overlayCompact() && active.matches('input[type="search"], input[role="combobox"]') && field.top > top + 4) {
+              // Search needs room for its answers below the focused field.
+              parent.scrollTop += field.top - top - 4;
+            } else if (field.bottom > bottom) parent.scrollTop += field.bottom - bottom + 4;
             else if (field.top < top) parent.scrollTop -= top - field.top + 4;
           }
           if (parent === dialog) break;
@@ -195,9 +201,9 @@ export class DialogShellComponent {
 
   private focusInitialElement(): void {
     if (!this.open()) return;
-    const target = this.element.nativeElement.querySelector(
+    const target = this.element.nativeElement.querySelector<HTMLElement>('[cdkFocusInitial]') ?? this.element.nativeElement.querySelector<HTMLElement>(
       '[autofocus], button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    ) as HTMLElement | null;
+    );
     target?.focus({ preventScroll: true });
   }
 

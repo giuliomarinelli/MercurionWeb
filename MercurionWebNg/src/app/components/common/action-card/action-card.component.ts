@@ -151,7 +151,7 @@ const SIZE_CLASSES: Record<ActionCardSize, string> = {
     :host-context(.m-dialog--compact) .m-action-card__header {
       gap: 0.5rem;
       padding: 0.5rem 0.75rem;
-      min-height: 4.5rem;
+      min-height: 3.5rem;
       height: var(--m-action-card-header-height, auto);
       position: sticky;
       top: 0;

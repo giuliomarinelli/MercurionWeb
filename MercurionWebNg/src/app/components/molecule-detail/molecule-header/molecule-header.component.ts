@@ -15,7 +15,9 @@ import { RouterLink } from '@angular/router';
   ],
   template: `
     <header
-      class="flex flex-wrap items-start justify-between gap-4 sm:gap-6"
+      class="flex flex-wrap justify-between gap-4 sm:gap-6"
+      [class.items-center]="_isCustom()"
+      [class.items-start]="!_isCustom()"
       aria-labelledby="molecule-name"
       role="banner">
 

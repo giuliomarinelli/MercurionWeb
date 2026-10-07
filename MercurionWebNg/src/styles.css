@@ -639,3 +639,16 @@ html {
 
 
 }
+
+/* Keep dialog fields readable on touch devices without focus-induced zoom. */
+@media (pointer: coarse) {
+  .m-dialog-backdrop input:not([type]),
+  .m-dialog-backdrop input[type="text"],
+  .m-dialog-backdrop input[type="search"],
+  .m-dialog-backdrop input[type="email"],
+  .m-dialog-backdrop input[type="password"],
+  .m-dialog-backdrop input[type="tel"],
+  .m-dialog-backdrop input[type="number"],
+  .m-dialog-backdrop textarea,
+  .m-dialog-backdrop select { font-size: max(16px, 1rem); }
+}

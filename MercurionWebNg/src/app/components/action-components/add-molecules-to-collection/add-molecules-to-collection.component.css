@@ -286,3 +286,22 @@
   position: relative;
   isolation: isolate;
 }
+
+:host-context(.m-dialog--compact) .add-body { min-height: 0; }
+:host-context(.m-dialog--compact) .add-intro { display: none; }
+:host-context(.m-dialog--compact) .add-destination { padding: 0.5rem 0.75rem; }
+:host-context(.m-dialog--compact) .add-source { margin-bottom: 0.5rem; }
+:host-context(.m-dialog--compact) .add-source label { min-height: 2.75rem; padding: 0.5rem; }
+:host-context(.m-dialog--compact) .add-source small { display: none; }
+
+.add-bulk-tools > summary { display: none; }
+:host-context(.m-dialog--compact) .add-bulk-tools > summary {
+  display: list-item;
+  min-height: 2.75rem;
+  padding: 0.625rem 0;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.add-bulk-tools > summary:focus-visible { outline: 3px solid var(--m-color-focus); outline-offset: 2px; }
+:host-context(.m-dialog--compact) .add-destination .add-eyebrow { display: none; }

@@ -35,3 +35,9 @@ summary:focus-visible { outline: 3px solid var(--m-color-focus); outline-offset:
   .save-properties-content { min-height: 11rem; }
   .save-destination, .save-properties { padding: 0.75rem; }
 }
+
+:host-context(.m-dialog--compact) .save-body { padding: 0.75rem; }
+:host-context(.m-dialog--compact) .save-body > .save-help:first-child { display: none; }
+:host-context(.m-dialog--compact) .save-fields { gap: 0.75rem; margin: 0.5rem 0; }
+:host-context(.m-dialog--compact) .save-destination,
+:host-context(.m-dialog--compact) .save-properties { padding: 0.5rem 0.75rem; }

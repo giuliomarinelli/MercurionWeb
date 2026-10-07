@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, fakeAsync, flushMicrotasks, TestBed } from '@angular/core/testing';
 import { DialogShellComponent, DialogDismissalPolicy } from './dialog-shell.component';
 
 @Component({
@@ -15,11 +15,13 @@ import { DialogShellComponent, DialogDismissalPolicy } from './dialog-shell.comp
       (dismissed)="open = false">
       <h2>Title</h2>
       <button>Confirm</button>
+      @if (focusSearch) { <input cdkFocusInitial aria-label="Search" /> }
     </m-dialog-shell>
   `
 })
 class HostComponent {
   open = false;
+  focusSearch = false;
   policy: DialogDismissalPolicy = { escape: true, backdrop: true };
 }
 
@@ -76,4 +78,13 @@ describe('DialogShellComponent', () => {
     host.open = false;
     fixture.detectChanges();
   });
+  it('prioritizes the explicit initial focus target over the first button', fakeAsync(() => {
+    host.focusSearch = true;
+    host.open = true;
+    fixture.detectChanges();
+    flushMicrotasks();
+    expect(document.activeElement).toBe(fixture.nativeElement.querySelector('input'));
+    fixture.destroy();
+  }));
+
 });

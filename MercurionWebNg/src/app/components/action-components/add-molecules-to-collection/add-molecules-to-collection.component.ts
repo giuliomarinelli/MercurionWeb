@@ -137,6 +137,8 @@ export type { ChipItem } from './add-molecules-to-collection.flow';
               (valueChange)="doQuery($event)"
               (cleared)="doClear()"
             />
+            <details class="add-bulk-tools" [open]="!viewport.overlayCompact()">
+              <summary>Selezione multipla</summary>
             <div class="add-selection-bar">
               @if (multiselectItems().length) {
                 <m-molecule-collection-item-select-card
@@ -161,6 +163,7 @@ export type { ChipItem } from './add-molecules-to-collection.flow';
               fuori dai risultati della ricerca. Quelle già presenti nella
               collezione sono escluse.
             </p>
+            </details>
             <div
               class="add-results"
               aria-label="Molecole disponibili"
@@ -173,6 +176,7 @@ export type { ChipItem } from './add-molecules-to-collection.flow';
               ) {
                 <m-molecule-collection-item-select-card
                   [molecule]="row.item"
+                  [compact]="viewport.overlayCompact()"
                   [i]="i"
                   [value]="row.isChecked()"
                   (valueChange)="row.isChecked.set($event); toggleOne(row)"

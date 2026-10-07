@@ -54,6 +54,8 @@ import { ToastService } from '../../../services/toast.service';
           <p class="collection-action-intro">Scegli una o più destinazioni. Le collezioni che contengono già questa molecola sono escluse dall’elenco.</p>
           <m-search-input [value]="searchTerm()" placeholder="Cerca una collezione…"
             [disabled]="pending()" (valueChange)="doQuery($event)" (submitted)="doQuery($event)" (cleared)="doClear()" />
+          <details class="bind-tools" [open]="!viewport.overlayCompact()">
+            <summary>Selezione multipla</summary>
           <div class="bind-toolbar">
             @if (multiselectItems().length) {
               <m-selection-control label="Seleziona tutte le collezioni disponibili"
@@ -66,6 +68,7 @@ import { ToastService } from '../../../services/toast.service';
               <button type="button" class="bind-reset" [disabled]="pending()" (click)="onSelectAllChange(false)">Azzera selezione</button>
             }
           </div>
+          </details>
           <div class="bind-results" role="group" aria-label="Collezioni disponibili">
             @for (row of multiselectItems(); track row.item.id) {
               <m-selection-control class="bind-row" layout="card"

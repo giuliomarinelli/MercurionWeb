@@ -12,7 +12,8 @@ import {
 } from '@angular/core'
 
 import { SearchContextService } from '../../../services/context/search-context.service'
-import { SearchInputComponent } from '../search-input/search-input.component'
+import { SearchFieldComponent } from '../../common/search-field/search-field.component'
+import { ButtonComponent } from '../../common/button/button.component'
 import { SearchResultComponent } from '../search-result/search-result.component'
 import { SearchResultSkeletonLoaderComponent } from '../search-result-skeleton-loader/search-result-skeleton-loader.component'
 import { SearchTypeSelectorComponent } from '../search-type-selector/search-type-selector.component'
@@ -38,7 +39,8 @@ import { ShellLayoutService } from '../../../services/context/shell-layout.servi
   selector: 'm-search-overlay',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    SearchInputComponent,
+    SearchFieldComponent,
+    ButtonComponent,
     SearchResultComponent,
     SearchTypeSelectorComponent,
     IconButtonComponent,
@@ -75,26 +77,27 @@ import { ShellLayoutService } from '../../../services/context/shell-layout.servi
             </m-icon-button>
           </div>
 
-          <m-molecule-search-input
-            class="block shrink-0"
-            [viewMode]="_viewMode()"
-            [search_excludeAlreadyAdded]="false"
-            (onQuery)="handleQuery($event)"
-            (onEmpty)="handleEmpty()" />
-
-          <div
-          class="relative bg-light-surface-secondary dark:bg-slate-50/10 flex flex-col flex-1 min-h-0 min-w-0 rounded-xl text-light-on-surface-main dark:text-slate-50/90 overflow-hidden border border-slate-300/50">
-              @if (userContext.isLoggedIn()) {
-                <div class="shrink-0
-                     bg-light-surface-secondary dark:bg-slate-800
-                     px-6 pt-5 pb-4
-                     border-b border-slate-200/60 dark:border-white/10
-                     m-search-methods">
-                  <m-search-type-selector (onViewClick)="handleViewClick($event)" />
-                </div>
-              }
-
-            <div #scrollRoot class="flex-1 min-h-0 min-w-0 overflow-y-auto overscroll-contain m-scroll-thin">
+          @if (userContext.isLoggedIn()) {
+            <m-search-type-selector class="block shrink-0" [value]="_viewMode()" [compact]="viewport.overlayCompact()" (onViewClick)="handleViewClick($event)" />
+          }
+          <div class="m-search-query shrink-0 min-w-0">
+            <m-search-field
+              [value]="query()"
+              [initialFocus]="true"
+              [label]="_viewMode() === 'my' ? 'Cerca nelle tue molecole' : 'Cerca su ChEMBL'"
+              [placeholder]="_viewMode() === 'my' ? 'Nome della molecola…' : 'Nome o identificativo ChEMBL…'"
+              [hint]="_viewMode() === 'my' ? 'Lascia vuoto per vedere tutte le tue molecole.' : 'Inserisci almeno 2 caratteri.'"
+              (valueChange)="handleInput($event)"
+              (submitted)="handleQuery($event)" />
+            <p class="m-search-hint mt-2 text-xs text-on-surface-secondary">
+              {{ _viewMode() === 'my' ? 'Le molecole salvate nel tuo spazio di lavoro.' : 'Esplora ChEMBL: cerca per nome o identificativo, con almeno 2 caratteri.' }}
+            </p>
+          </div>
+          <div class="m-search-results relative bg-surface-secondary flex flex-col flex-1 min-h-0 min-w-0 rounded-xl text-on-surface-main overflow-hidden border border-token-border">
+            <div [class.sr-only]="viewport.overlayCompact()" class="m-search-status shrink-0 px-4 py-2 border-b border-token-border text-xs text-on-surface-secondary" role="status" aria-live="polite" aria-atomic="true">
+              {{ loading() ? 'Ricerca in corso…' : resultCount() ? resultCount() === 1 ? '1 molecola visualizzata' : resultCount() + ' molecole visualizzate' : 'Risultati della ricerca' }}
+            </div>
+            <div #scrollRoot class="flex-1 min-h-0 min-w-0 overflow-y-auto overscroll-contain m-scroll-thin p-2 sm:p-3">
 
             @switch (_viewMode()) {
               @case ('chembl') {
@@ -102,19 +105,17 @@ import { ShellLayoutService } from '../../../services/context/shell-layout.servi
                   <m-search-result-skeleton-loader />
                 } @else if (chemblResults().length) {
                   @for (molecule of chemblResults(); track molecule.id) {
-                    <m-search-result [molecule]="molecule" [query]="query()" (navigated)="onResultNavigate()" />
+                    <m-search-result class="block mb-2 last:mb-0" [molecule]="molecule" [query]="query()" (navigated)="onResultNavigate()" />
                   }
                 } @else if (showChemblEmptyMessage()) {
-                  <div class="text-sm text-slate-700 dark:text-slate-200 text-center py-8">
-                    Nessun risultato trovato.
+                  <div class="m-search-state text-sm text-on-surface-secondary text-center px-4 py-8">
+                    Nessuna molecola trovata. Prova un altro nome o modifica la ricerca.
                   </div>
-                } @else if (error()) {
-                  <div class="text-sm text-light-error dark:text-dark-error rounded px-4 py-2 text-center">
-                    Errore nella ricerca. Riprova.
-                  </div>
-                } @else {
-                  <div class="text-sm text-slate-700 dark:text-slate-200 text-center py-8">
-                    Qui compariranno i risultati quando digiterai.
+
+                } @else if (!error()) {
+                  <div class="m-search-state text-sm text-on-surface-secondary text-center px-4 py-8">
+                    <strong class="block mb-2 text-base text-on-surface-main">Trova la tua prossima molecola</strong>
+                    Cerca su ChEMBL e apri un risultato per esplorarne la struttura e i dati.
                   </div>
                 }
               }
@@ -128,7 +129,7 @@ import { ShellLayoutService } from '../../../services/context/shell-layout.servi
                     <m-molecule-summary-card
                       [viewModel]="savedSummary(molecule)"
                       (navigate)="onResultNavigate()"
-                      class="block w-full" />
+                      class="block w-full mb-2 last:mb-0" />
                   }
                   @if (loading() && myItems().length) {
                     <div class="mt-3">
@@ -136,17 +137,29 @@ import { ShellLayoutService } from '../../../services/context/shell-layout.servi
                     </div>
                   }
                 } @else if (showMyEmptyMessage()) {
-                  <div class="text-sm text-slate-700 dark:text-slate-200 text-center py-8">
-                    Nessun risultato trovato.
+                  <div class="m-search-state text-sm text-on-surface-secondary text-center px-4 py-8">
+                    Nessuna molecola trovata. Prova un altro nome o modifica la ricerca.
                   </div>
-                } @else if (error()) {
-                  <div class="text-sm text-light-error dark:text-dark-error rounded px-4 py-2 text-center">
-                    Errore nella ricerca. Riprova.
-                  </div>
+
                 }
               }
             }
 
+            @if (error()) {
+              <div class="m-search-state text-center px-4 py-6" role="alert">
+                <p class="font-medium text-on-surface-main">
+                  {{ myItems().length ? 'Non siamo riusciti a caricare altre molecole.' : 'La ricerca non è riuscita.' }}
+                </p>
+                <p class="mt-2 mb-4 text-sm text-on-surface-secondary">La tua ricerca è conservata. Puoi riprovare.</p>
+                <m-button size="sm" variant="outline" (pressed)="retry()">Riprova</m-button>
+              </div>
+            } @else if (_viewMode() === 'my' && myItems().length && !myDone()) {
+              <div class="text-center py-3">
+                <m-button size="sm" variant="outline" [disabled]="loading()" (pressed)="loadNextMyPage()">{{ loading() ? 'Caricamento…' : 'Carica altre molecole' }}</m-button>
+              </div>
+            } @else if (_viewMode() === 'chembl' && chemblResults().length === 100) {
+              <p class="text-center px-4 py-3 text-xs text-on-surface-secondary">Sono mostrati fino a 100 risultati. Affina la ricerca per trovare la molecola desiderata.</p>
+            }
             <div #sentinel class="h-1 w-full"></div>
             </div>
           </div>
@@ -160,40 +173,24 @@ import { ShellLayoutService } from '../../../services/context/shell-layout.servi
       height: min(48rem, var(--m-action-card-available-height));
       min-height: 0;
       gap: 1rem;
+      padding: clamp(1rem, 2.5vw, 1.75rem);
     }
 
+    /* Short visual viewports need the working controls, not a second title row. */
     .m-search-panel--compact {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-rows: auto auto minmax(0, 1fr);
       padding: 0.75rem;
       gap: 0.5rem;
     }
-
-    .m-search-panel--compact .m-search-header h2 {
-      font-size: 1.25rem;
-      line-height: 1.2;
-    }
-
-    .m-search-panel--compact .m-search-methods {
-      padding: 0;
-    }
-
-    .m-search-panel--short {
-      padding: 0.5rem;
-      gap: 0.125rem;
-    }
-
-    .m-search-panel--short .m-search-header {
-      position: absolute;
-      top: 0.5rem;
-      right: 0.5rem;
-    }
-
-    .m-search-panel--short .m-search-header h2 {
-      display: none;
-    }
-
-    .m-search-panel--short m-molecule-search-input {
-      margin-right: 3.25rem;
-    }
+    .m-search-panel--compact .m-search-header { grid-column: 2; grid-row: 2; }
+    .m-search-panel--compact .m-search-header h2,
+    .m-search-panel--compact .m-search-hint { display: none; }
+    .m-search-panel--compact m-search-type-selector { grid-column: 1 / -1; grid-row: 1; }
+    .m-search-panel--compact .m-search-query { grid-column: 1; grid-row: 2; }
+    .m-search-panel--compact .m-search-results { grid-column: 1 / -1; grid-row: 3; }
+    .m-search-panel--short { padding: 0.5rem; gap: 0.25rem; }
 
     /* Scrollbar sottile per l'area dei risultati */
     .m-scroll-thin {
@@ -259,20 +256,22 @@ export class SearchOverlayComponent implements AfterViewInit, OnDestroy {
   savedSummary = (molecule: MoleculeCardItemModel) => moleculeCardToSummary(molecule, {
     actions: [],
     selectable: false,
-    compact: false
+    compact: this.viewport.overlayCompact()
   })
   private myPage = signal<number>(0)
   private myTotalPages = signal<number | null>(null)
-  private myDone = signal<boolean>(false)
+  protected myDone = signal<boolean>(false)
   private mySub?: Subscription
 
   private observer?: IntersectionObserver
   private destroyed = false
+  private queryTimer?: ReturnType<typeof setTimeout>
 
   constructor() {
     effect(() => {
       const opened = this.searchContextService.isOpenedSearchOverlay()
       untracked(() => {
+        clearTimeout(this.queryTimer)
         this.observer?.disconnect()
         this.chemblSub?.unsubscribe()
         this.mySub?.unsubscribe()
@@ -289,6 +288,10 @@ export class SearchOverlayComponent implements AfterViewInit, OnDestroy {
   }
 
   close(): void {
+    clearTimeout(this.queryTimer)
+    this.observer?.disconnect()
+    this.chemblSub?.unsubscribe()
+    this.mySub?.unsubscribe()
     this.searchContextService.close()
   }
 
@@ -299,6 +302,7 @@ export class SearchOverlayComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.destroyed = true
+    clearTimeout(this.queryTimer)
     this.observer?.disconnect()
     this.chemblSub?.unsubscribe()
     this.mySub?.unsubscribe()
@@ -315,7 +319,7 @@ export class SearchOverlayComponent implements AfterViewInit, OnDestroy {
       if (this._viewMode() !== 'my') return
       if (!this.searchContextService.isOpenedSearchOverlay() || this.loading() || this.myDone() || this.error()) return
 
-      // stacco subito, così non resta "incollato" intersecting
+      // stacco subito, cosÃƒÂ¬ non resta "incollato" intersecting
       this.observer?.unobserve(sentinelEl)
       this.loadNextMyPage()
     }, {
@@ -329,11 +333,39 @@ export class SearchOverlayComponent implements AfterViewInit, OnDestroy {
 
   // ======= HANDLERS =======
 
+  protected resultCount(): number {
+    return this._viewMode() === 'my' ? this.myItems().length : this.chemblResults().length
+  }
+
+  handleInput(raw: string): void {
+    clearTimeout(this.queryTimer)
+    this.observer?.disconnect()
+    this.chemblSub?.unsubscribe()
+    this.mySub?.unsubscribe()
+    this.query.set(raw)
+    this.loading.set(false)
+    this.error.set(null)
+    this.chemblResults.set([])
+    this.resetMyState()
+    if (this._viewMode() === 'chembl' && raw.trim().length < 2) return
+    this.loading.set(true)
+    this.queryTimer = setTimeout(() => this.handleQuery(raw), 300)
+  }
+
+  protected retry(): void {
+    if (this._viewMode() === 'my') this.loadNextMyPage()
+    else this.handleQuery(this.query())
+  }
+
   handleQuery(raw: string): void {
+    clearTimeout(this.queryTimer)
+    this.observer?.disconnect()
     this.query.set(raw ?? '')
+    this.loading.set(false)
     this.error.set(null)
 
     const trimmed = this.query().trim()
+    this.scrollRoot().nativeElement.scrollTop = 0
 
     if (this._viewMode() === 'chembl') {
       if (trimmed.length < 2) {
@@ -353,6 +385,7 @@ export class SearchOverlayComponent implements AfterViewInit, OnDestroy {
 
   handleEmpty(): void {
     if (this._viewMode() === 'chembl') {
+      this.chemblSub?.unsubscribe()
       this.chemblResults.set([])
       this.loading.set(false)
       this.error.set(null)
@@ -362,8 +395,10 @@ export class SearchOverlayComponent implements AfterViewInit, OnDestroy {
   handleViewClick(mode: 'my' | 'chembl'): void {
     if (this._viewMode() === mode) return
 
+    clearTimeout(this.queryTimer)
     this._viewMode.set(mode)
     this.observer?.disconnect()
+    this.scrollRoot().nativeElement.scrollTop = 0
     this.error.set(null)
     this.loading.set(false)
 
@@ -451,7 +486,8 @@ export class SearchOverlayComponent implements AfterViewInit, OnDestroy {
       )
       .subscribe({
         next: page => {
-          const merged = [...this.myItems(), ...page.items]
+          const existingIds = new Set(this.myItems().map(item => item.id))
+          const merged = [...this.myItems(), ...page.items.filter(item => !existingIds.has(item.id))]
           this.myItems.set(merged)
           this.myPage.set(page.currentPage)
           this.myTotalPages.set(page.totalPages)

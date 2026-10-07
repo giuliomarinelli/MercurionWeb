@@ -33,13 +33,14 @@ import { SelectionControlComponent } from '../../common/selection-control/select
         (changed)="setValue($event)"
       />
       <div class="col-start-2 min-w-0 rounded-2xl" [class.ring-2]="value()" [class.ring-indigo-500]="value()">
-        <m-molecule-collection-item-card [molecule]="item" [i]="i()" [isReadonly]="true" />
+        <m-molecule-collection-item-card [molecule]="item" [i]="i()" [isReadonly]="true" [compact]="compact()" />
       </div>
     </div>
   }
   `
 })
 export class MoleculeCollectionItemSelectCardComponent {
+  readonly compact = input(false);
   readonly indeterminate = input(false);                // per lo stato parziale
   readonly molecule = input<MoleculeCardItemModel | null>(null)
   readonly i = input(-1)

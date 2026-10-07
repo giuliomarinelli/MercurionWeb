@@ -138,6 +138,44 @@ Usare una voce per ogni blocco affrontato, anche quando la giornata produce solt
 **Prossimo blocco:** ordine 05, PX-04 — ricerca: percorso ricerca → risultato nei due temi.
 
 
+## 2026-10-07 — PX-04 e regressione tastiera dei blocchi 01–04
+
+**Stato:** implementato, in review; accettazione su Safari fisico ancora aperta.
+
+**Problema osservato:** screenshot dell'utente su iPhone 13 mini, iOS 18.7.1, Safari: con tastiera aperta titolo, sorgente, istruzioni e contatore lasciano spazio a una sola card. La geometria del contenitore era già sensibile alla visual viewport, ma la composizione conservava troppo contenuto fisso.
+
+**Ricerca:** sorgente controllata prima del campo, SearchField comune con focus iniziale esplicito; stati iniziale/loading/empty/error, retry con risultati conservati, caricamento manuale oltre allo scroll, deduplicazione e annullamento immediato delle richieste obsolete. Invio non duplica la ricerca in debounce; chiusura annulla timer e richieste. Sotto 500 px di altezza visuale su mobile, titolo e istruzioni visive cedono spazio ai risultati mantenendo nomi e descrizioni accessibili; sorgente, campo e chiusura restano disponibili. A 375×350 misurati 204 px per i risultati.
+
+**Regressione trasversale:** header compatto di ActionCard, footer persistente salvo altezze estreme, campo attivo mantenuto sopra il footer nello scroll effettivo. Ricerca/combobox vengono portati sotto l'header per lasciare spazio alle risposte. Ridotte le introduzioni decorative in creazione, destinazione, associazione, aggiunta e salvataggio; selezione multipla espandibile negli overlay di associazione e aggiunta. Card compatta opzionale nell'aggiunta, con default invariato per gli altri consumatori. Campi touch almeno 16 px, senza disabilitare lo zoom.
+
+**Controlli:** 112 test mirati superati, inclusa contrazione della sola visual viewport con layout viewport invariata, focus iniziale, footer e ricerca. ESLint mirato, styling (565 file), colori semantici (23 coppie nei due temi), build produzione, bundle e confine lazy chemistry superati. Bundle iniziale 987423/1000000 byte. Avvisi build: soglia indicativa iniziale 500 kB, CSS aggiunta 5.29 kB e creazione 4.12 kB oltre la soglia indicativa 4 kB. Nessuna CI remota dichiarata.
+
+**Browser:** Chrome Computer Use all'edge locale, runtime esistenti autorizzati. Percorso ChEMBL aspirin/CHEMBL25 verso dettaglio ASPIRINA; sorgente personale, paginazione e filtro ROSARAMICINA; Escape, riapertura con query pulita e sorgente iniziale, empty senza corrispondenze verificato dal vivo. Tema automatico e viewport originale ripristinati; sola scheda agente chiusa. Matrice ricerca: due temi e sette dimensioni ordinarie, 14 misure senza overflow orizzontale dei risultati. Dopo le rifiniture tastiera osservati separatamente creazione, destinazione, associazione, aggiunta e salvataggio a 375×350. A 375×220 note del salvataggio visibili (top 111, bottom 183) con font 16 px. Solo bozze e selezioni locali, nessuna creazione/importazione/salvataggio inviati in questo giro.
+
+**Limiti:** viewport Chrome corta non riproduce la tastiera Safari. Errori/retry, risposta tardiva e deduplicazione coperti nei test; nessun guasto ai servizi provocato nel browser. La matrice standard precede le ultime rifiniture della composizione compatta, verificate nelle schermate corte dedicate. La segnalazione del dispositivo riapre la QA tastiera dei blocchi precedenti: seguire [KEYBOARD-QA.md](KEYBOARD-QA.md) prima dell'accettazione.
+
+**Osservazione per PX-10:** il comando di associazione di una molecola ChEMBL non salvata non ha aperto il pannello durante la prova; verificare nel blocco dettaglio la disponibilità dell'ID locale e il feedback del comando. Nessuna causa backend attribuita o correzione fuori ambito.
+
+**Prove:** `C:/Users/giuli/.codex/artifacts/mercurion-portfolio-ux-2026-10-07/PX-04-search/`: `responsive.json`, screenshot light/dark delle sette dimensioni, `keyboard-search-375x350.png`, `keyboard-create-375x350.png`, `keyboard-destination-375x350.png`, `keyboard-bind-375x350.png`, `keyboard-add-375x350.png`, `keyboard-save-375x350.png`, `keyboard-save-375x220.png`, `keyboard-regression-tests.log`, `lint.log`, `build.log`. Screenshot iniziale fornito dall'utente; nessun file before locale dichiarato.
+
+**Review:** manuale ancora da eseguire. Nessun commit, merge o deploy. Prossimo blocco previsto: 06 / PX-05, dopo il riscontro sul dispositivo.
+
+### 2026-10-07 — Seconda segnalazione Safari: footer sopra il campo nome
+
+IMG_9685 mostra il campo nome occultato dal footer, con cursore visibile sotto le azioni. Rafforzato il test della visual viewport: il campo già attivo prima dell'apertura tastiera deve terminare almeno 3 px sopra il footer sticky, oltre a restare sotto l'header. Suite mirata ActionCard tastiera: 10 test superati sul codice corrente. Nessuna ulteriore modifica runtime applicata sulla sola base della foto: questa conserva l'introduzione rimossa nella modalità compatta corrente; l'utente ha confermato che lo screenshot precede le ultime correzioni. Non classificato come nuova regressione della patch corrente. Aggiornata [KEYBOARD-QA.md](KEYBOARD-QA.md).
+
+Il nuovo tentativo browser di preparare una bozza duplicata non ha raggiunto un salvataggio abilitato; dopo reload l'editor non era ancora disponibile nella snapshot. Non dichiarata una nuova prova browser passata e non attribuito questo comportamento alla patch del footer. Nessun invio dati. Viewport ripristinata e sola scheda di verifica chiusa; processo runtime esterno lasciato attivo.
+
+### 2026-10-07 — PX-10: allineamento intestazione custom
+
+**Segnalazione e causa:** sulla molecola salvata `test_____`, gruppo nome/badge/matita e toolbar destra avevano centri verticali distanti 6.55 px. L'header usava `items-start` per entrambe le varianti, pur avendo gruppi di altezza diversa.
+
+**Correzione:** `MoleculeHeaderComponent` centra gli elementi flex soltanto per la variante custom; ChEMBL conserva l'allineamento superiore e la seconda riga identificativa. Nessun offset manuale, modifica ai dati o redesign completo di PX-10.
+
+**Verifiche:** Chrome a 1920×1080: nome, matita e toolbar hanno tutti centro verticale 199.16 px; anche editing e annullamento del nome conservano l'allineamento, senza salvataggio. A 375×812 toolbar su riga propria e nessun overflow orizzontale. Variante salvata ChEMBL ROSARAMICINA osservata con `flex-start` conservato. 28 test esistenti mirati superati (header, custom details e layout responsive del dettaglio), ESLint e `git diff --check` superati. Nessun nuovo build/CI completo necessario per questa sola modifica di allineamento nel template.
+
+**Prove:** `C:/Users/giuli/.codex/artifacts/mercurion-portfolio-ux-2026-10-07/custom-header/`: `before.png`, `after-desktop.png`, `after-mobile.png`, `tests.log`. Viewport originale ripristinata e sola scheda agente chiusa. PX-10 resta da affrontare per la revisione completa; questa regressione specifica è corretta, in review.
+
 ## Modello per le voci successive
 
 ### AAAA-MM-GG — PX-XX — Sottoarea

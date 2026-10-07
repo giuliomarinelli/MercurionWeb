@@ -16,6 +16,7 @@ import { IconButtonComponent } from '../icon-button/icon-button.component';
   imports: [IconButtonComponent],
   host: { class: 'block' },
   styles: [`
+    input[type="search"] { font-size: max(16px, 1rem); }
     input[type="search"]::-webkit-search-cancel-button {
       display: none;
     }
@@ -35,6 +36,7 @@ import { IconButtonComponent } from '../icon-button/icon-button.component';
           #inputElement
           class="w-full rounded-md border border-slate-400/70 bg-light-surface-secondary py-2.5 pl-10 pr-12 text-light-on-surface-main outline-none transition focus:border-light-accent-primary focus:ring-2 focus:ring-light-accent-primary disabled:cursor-not-allowed disabled:opacity-60 dark:border-dark-border dark:bg-dark-surface-secondary dark:text-dark-on-surface-main dark:focus:border-dark-accent-primary"
           [attr.id]="fieldId()"
+          [attr.cdkFocusInitial]="initialFocus() ? '' : null"
           type="search"
           [value]="value()"
           [placeholder]="placeholder()"
@@ -68,6 +70,7 @@ import { IconButtonComponent } from '../icon-button/icon-button.component';
 })
 export class SearchFieldComponent {
   readonly value = input('');
+  readonly initialFocus = input(false);
   readonly label = input('Cerca');
   readonly placeholder = input('Cerca...');
   readonly hint = input('');

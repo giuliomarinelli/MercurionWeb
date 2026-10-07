@@ -138,3 +138,23 @@
     padding: 1rem;
   }
 }
+
+:host-context(.m-dialog--compact) .collection-action-body { min-height: 0; padding: 0.75rem; }
+:host-context(.m-dialog--compact) .collection-action-intro { display: none; }
+:host-context(.m-dialog--compact) .collection-action-summary { margin-top: 0.5rem; padding: 0.75rem; }
+:host-context(.m-dialog--compact) .bind-molecule { margin-bottom: 0.5rem; }
+:host-context(.m-dialog--compact) .bind-toolbar { margin-top: 0.5rem; }
+:host-context(.m-dialog--compact) .bind-selection { position: static; padding: 0.5rem; }
+
+.bind-tools > summary { display: none; }
+:host-context(.m-dialog--compact) .bind-tools > summary {
+  display: list-item;
+  min-height: 2.75rem;
+  padding: 0.625rem 0;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.bind-tools > summary:focus-visible { outline: 3px solid var(--m-color-focus); outline-offset: 2px; }
+:host-context(.m-dialog--compact) .bind-molecule .collection-action-eyebrow { display: none; }
+:host-context(.m-dialog--compact) .bind-row { min-height: 3.75rem; padding: 0.5rem; }

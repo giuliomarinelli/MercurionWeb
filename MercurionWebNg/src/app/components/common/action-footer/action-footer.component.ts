@@ -77,6 +77,15 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
       }
     }
 
+    :host-context(.m-dialog--compact) {
+      position: sticky;
+      bottom: 0;
+      z-index: 2;
+      background: var(--m-color-surface-elevated);
+    }
+    /* If both bars cannot fit, let every control be reached by scrolling. */
+    :host-context(.m-dialog--short) { position: static; }
+
     :host-context(.m-dialog--compact) .m-action-footer {
       padding: 0.5rem 0.75rem calc(0.5rem + env(safe-area-inset-bottom, 0px));
     }

@@ -1,33 +1,48 @@
-import { Component, ChangeDetectionStrategy, output } from '@angular/core';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
 
 @Component({
   selector: 'm-search-type-selector',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule],
+  styles: `
+    input[type="radio"] {
+      appearance: none;
+      border: 2px solid var(--m-color-border);
+      border-radius: 50%;
+      background: var(--m-color-surface-main);
+    }
+    input[type="radio"]:checked {
+      border-color: var(--m-color-accent-primary);
+      background: var(--m-color-accent-primary);
+      box-shadow: inset 0 0 0 3px var(--m-color-surface-main);
+    }
+    input[type="radio"]:focus-visible { outline-color: var(--m-color-focus); }
+    @media (forced-colors: active) {
+      input[type="radio"] { appearance: auto; box-shadow: none; }
+    }
+  `,
   template: `
-
-      <div class="m-overlay-methods space-y-6 sm:flex sm:items-center sm:space-x-10 sm:space-y-0" role="radiogroup" aria-label="Scegli dove cercare le molecole">
-        <div class="flex items-center" (change)="handleViewSwitch()">
-          <input id="my" type="radio" name="method" value="my" [formControl]="viewCtrl" class="cursor-pointer relative size-4 appearance-none rounded-full border border-slate-400 bg-white before:absolute before:inset-1 before:rounded-full before:bg-white checked:border-light-accent-primary-hq checked:bg-light-accent-primary-hq focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-light-accent-primary-hq disabled:border-slate-300 disabled:bg-gray-100 disabled:before:bg-gray-400 dark:border-white/10 dark:bg-white/5 dark:checked:border-indigo-500 dark:checked:bg-indigo-500 dark:focus-visible:outline-indigo-500 dark:disabled:border-white/5 dark:disabled:bg-white/10 dark:disabled:before:bg-white/20 forced-colors:appearance-auto forced-colors:before:hidden [&:not(:checked)]:before:hidden" />
-          <label for="my" aria-label="Cerca in Le mie molecole" class="cursor-pointer ml-3 block text-base/6 font-medium text-slate-700 dark:text-white"><span class="m-overlay-method-full">Cerca in <span class="italic">Le mie molecole</span></span><span class="m-overlay-method-short">Le mie</span></label>
-        </div>
-        <div class="flex items-center" (change)="handleViewSwitch()">
-          <input id="chembl" type="radio" name="method" value="chembl" [formControl]="viewCtrl" class="cursor-pointer relative size-4 appearance-none rounded-full border border-slate-400 bg-white before:absolute before:inset-1 before:rounded-full before:bg-white checked:border-light-accent-primary-hq checked:bg-light-accent-primary-hq focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-light-accent-primary-hq disabled:border-slate-300 disabled:bg-gray-100 disabled:before:bg-gray-400 dark:border-white/10 dark:bg-white/5 dark:checked:border-indigo-500 dark:checked:bg-indigo-500 dark:focus-visible:outline-indigo-500 dark:disabled:border-white/5 dark:disabled:bg-white/10 dark:disabled:before:bg-white/20 forced-colors:appearance-auto forced-colors:before:hidden [&:not(:checked)]:before:hidden" />
-          <label for="chembl" aria-label="Cerca su ChEMBL DB" class="cursor-pointer ml-3 block text-base/6 font-medium text-slate-700 dark:text-white"><span class="m-overlay-method-full">Cerca su ChEMBL DB</span><span class="m-overlay-method-short">ChEMBL</span></label>
-        </div>
-      </div>
-
+    <div class="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Scegli dove cercare le molecole">
+      @for (option of options; track option.value) {
+        <label class="flex min-w-0 cursor-pointer items-center gap-2 rounded-lg border px-3 py-2.5 text-sm font-medium transition-colors border-token-border text-on-surface-main"
+          [class.bg-light-surface-secondary]="value() === option.value"
+          [class.dark:bg-dark-surface-secondary]="value() === option.value">
+          <input type="radio" class="size-4 shrink-0 accent-light-accent-primary dark:accent-dark-accent-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+            [attr.aria-label]="option.label" [name]="groupName" [value]="option.value" [checked]="value() === option.value"
+            (change)="onViewClick.emit(option.value)" />
+          <span>{{ compact() && option.value === 'my' ? 'Le mie' : option.label }}</span>
+        </label>
+      }
+    </div>
   `
 })
 export class SearchTypeSelectorComponent {
-
+  readonly compact = input(false);
+  readonly value = input<'my' | 'chembl'>('chembl');
   readonly onViewClick = output<'my' | 'chembl'>();
-
-  viewCtrl = new FormControl<'my' | 'chembl'>('chembl', { nonNullable: true })
-
-  handleViewSwitch(): void {
-    this.onViewClick.emit(this.viewCtrl.value)
-  }
-
+  private static nextId = 0;
+  readonly groupName = `m-search-source-${++SearchTypeSelectorComponent.nextId}`;
+  readonly options = [
+    { value: 'chembl', label: 'ChEMBL' },
+    { value: 'my', label: 'Le mie molecole' }
+  ] as const;
 }

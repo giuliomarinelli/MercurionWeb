@@ -196,3 +196,9 @@ h3 {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+:host-context(.m-dialog--compact) .collection-body { padding: 0.75rem; }
+:host-context(.m-dialog--compact) .collection-intro { display: none; }
+:host-context(.m-dialog--compact) .collection-preview { margin-top: 0.5rem; padding-top: 0.5rem; }
+:host-context(.m-dialog--compact) .collection-empty { min-height: 4rem; padding: 0.5rem; }
+:host-context(.m-dialog--compact) .collection-list { min-height: 0; max-height: none; overflow-y: visible; }
