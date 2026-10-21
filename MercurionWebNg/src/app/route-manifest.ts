@@ -15,6 +15,9 @@ export type RouteId =
   | 'passwordRecovery'
   | 'collections'
   | 'collectionDetail'
+  | 'notebook'
+  | 'notebookReader'
+  | 'notebookEditor'
   | 'register'
   | 'accountActivate'
   | 'myMolecules'
@@ -101,6 +104,9 @@ export const routeManifest = {
   passwordRecovery: staticRoute('passwordRecovery', 'password-recovery', 'Password · Reset', { access: 'public', shell: 'standard' }),
   collections: staticRoute('collections', 'molecules/collections', 'Molecole · Collezioni', { access: 'authenticated', shell: 'standard' }, { navigation: { group: 'features', label: 'Le mie collezioni', icon: 'collections' } }),
   collectionDetail: parameterizedRoute<{ colId: string }>('collectionDetail', 'molecules/collections/detail/:colId', 'Molecole · Dettaglio collezione', { access: 'authenticated', shell: 'standard' }, ['colId'], { data: { titleManagedByComponent: true } }),
+  notebook: staticRoute('notebook', 'notebook', 'Quaderno di laboratorio', { access: 'authenticated', shell: 'standard' }, { navigation: { group: 'features', label: 'Notebook', icon: 'document' } }),
+  notebookReader: parameterizedRoute<{ notebookId: string }>('notebookReader', 'notebook/:notebookId/read', 'Notebook · Lettura', { access: 'authenticated', shell: 'standard' }, ['notebookId']),
+  notebookEditor: parameterizedRoute<{ notebookId: string }>('notebookEditor', 'notebook/:notebookId/edit', 'Notebook · Modifica', { access: 'authenticated', shell: 'standard' }, ['notebookId']),
   register: staticRoute('register', 'register', 'Registrazione', { access: 'logged-out-only', shell: 'standard' }),
   accountActivate: staticRoute('accountActivate', 'account/activate', 'Account · Attivazione', { access: 'public', shell: 'standard' }),
   myMolecules: staticRoute('myMolecules', 'molecules', 'Molecole · Tutte le mie molecole', { access: 'authenticated', shell: 'standard' }, { navigation: { group: 'features', label: 'Le mie molecole', icon: 'molecules' } }),
