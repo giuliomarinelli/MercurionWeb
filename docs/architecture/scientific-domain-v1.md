@@ -66,21 +66,26 @@ Le revisioni con esecuzioni storiche richiedono conservazione; per l'utente pref
 A: specifica e audit DB/TypeORM -> B: SQL PostgreSQL 16 con preflight + backup + migrazione di dati -> C: servizi backend e vincoli (resolver custom, revisioni, synthesis pool) -> D: editor Molecule, Notebook, Synthesis -> E: unit/integration/E2E + review.
 I DDL sono di tipo expand/validate/cutover: NON eseguire renames, DROP o conversioni cieche mentre il codice legacy e attivo.
 
-## Implementation checkpoint (2026-10-21)
+## Implementation checkpoint (2026-10-21, after local DB cutover)
 
-This document is the **approved domain contract**, not a declaration of feature completion.
+**SQL validation**
+- SQL 20/21 validated on an isolated PostgreSQL 16.15 fixture by the operator: 11/11 postflight OK, 54/54 rollback-only behavioral checks PASS; see `MercurionWebNode/sql/scientific-domain/VALIDATION-PG16.md`.
+- The operator also ran **both SQL 20 and SQL 21 on the local application database**: screenshot shows 11/11 `OK`, with 13 new tables, 3 integrity triggers, expected live CASCADE FKs and no composite scientific FK. `lab_notebooks_old` remains.
+- This is confirmation of database DDL, not evidence that the Nest app, GraphQL schema or Angular routes are operational yet.
+- The 307 historical ChEMBL cross-owner links were repaired separately, confirmed by postflight: 0 remaining anomalies, 1,341 valid links.
 
-Completed/staged on the current feature branch:
-- Legacy ChEMBL cross-owner repair **was applied by the database operator**. PostgreSQL postflight verified 0 cross-owner joins, 1341 valid joins, 0 duplicate triplets and removal of trg_purge_orphan_items (see incident-chembl-cross-owner-2026-10-21.md).
-- DB-first candidate DDL and postflight are committed at MercurionWebNode/sql/scientific-domain/20_reset_notebook_synthesis_pg16.sql and 21_verify_scientific_domain_pg16.sql. Schema script has exactly 8 legacy DROP TABLE statements (no CASCADE), 13 CREATE TABLE statements and 3 integrity triggers. It **has not yet been applied to PostgreSQL**.
-- Source-only corrections of collection join FK metadata (single-column) and synthesis CASCADE metadata have been committed.
-- New, **not yet registered**, v1 Notebook entities are staged at lab-notebook/scientific-domain/entities; the legacy Notebook module is still the runtime provider until coordinated cutover.
-- A shared CustomMoleculeResolutionService is implemented and integrated into CustomMoleculeItemService.addToCollection. It preserves existing molecule identity and metadata on reuse. A partial UNIQUE(user_id,canonical_smiles) index is still required before relying on uniqueness across all writers.
-- Separate SQL 30_custom_identity_guard_pg16_NOT_YET_APPLY.sql enforces M1/M2 on the DB, but must NOT be applied until Ketcher and all generic update/create mutations implement copy-on-write and safe duplicate reuse.
+**Nest implementation in branch**
+- `LabNotebookModule` now registers v1 `LabNotebook`, `NotebookSection`, `NotebookExperiment`, `ExperimentExecution`, `ExperimentProtocolRevision`; old chapter/page resolvers were removed because the SDL generator discovers all `*.resolver.ts` files, even if their classes are absent from module providers.
+- `NotebookDomainService` handles owner-scoped CRUD, archival, creation and atomic sibling reorders. It verifies ancestor ownership explicitly because the DB intentionally has single-column foreign keys.
+- `ExperimentProtocolService` freezes snapshot revisions on execution start, reuses the current version only if SHA-256 matches, retries serialization conflicts and tracks execution states. It snapshots live synthesis steps, items, roles and molecule canonical SMILES. Provides owner-scoped experiment/synthesis and execution/synthesis/molecule links.
+- Quill Delta v1 validation accepts full insert-only documents, never trusts supplied plain text or arbitrary HTML, and derives searchable text server-side.
+- Scientific Notebook GraphQL queries/mutations and nested field resolvers are staged. New API is a breaking refactor of the unused legacy Notebook operations; regenerate `src/schema.graphql`.
+- Unit tests were added for Quill validation and protocol freeze, plus rollback-only SQL smoke test `22_smoke_rollback_scientific_domain_pg16.sql`.
 
-Pending / deployment blockers:
-- PostgreSQL 16 actual DDL execution and schema postflight on an isolated staging copy.
-- Full Nest Notebook domain switchover: services, DTOs, resolvers, Quill Delta persistence, ownership, revision freezes, synthesis/step references.
-- Generic MoleculeCollectionItemService.create/update and Ketcher workflow still need copy-on-write semantics; failing to update them before applying guard SQL 30 will break structural editing.
-- Synthesis UI, Notebook Angular reader/editor, GraphQL generated clients and integration/E2E checks.
-- No CI or local Nest typecheck/test success is claimed for these branch changes. Do not deploy this partial branch as feature complete.
+**Unverified/remaining**
+- No local Node dependencies or project checkout are accessible to the assistant's execution environment; no Nest `npm run typecheck`, Jest or GraphQL SDL update/check has been executed after these commits. **Treat this branch as unverified code until these pass.**
+- Run in `MercurionWebNode`: `npm run typecheck`, `npx jest --config ./jest.config.js --runInBand notebook-delta experiment-protocol molecule-collection`, then `npm run graphql:schema:update` and `npm run graphql:schema:check`. Review the regenerated `src/schema.graphql` and commit it with the backend.
+- The new schema is already active on the operator's local PostgreSQL. Do not launch the old Nest Notebook runtime against it.
+- SQL `30_custom_identity_guard_pg16_NOT_YET_APPLY.sql` is **not** deployed; generic molecule create/update and Ketcher still need copy-on-write/duplicate-reuse end-to-end before it may be applied.
+- Notebook Angular reader/editor and linear synthesis route builder are pending; old page/chapter TypeScript service sources remain in Git history/source for later removal.
+- Test GraphQL owner-negative paths, race conditions, body-size limits, status mutations, CASCADE impact and snapshots on a test database before declaring feature complete.
