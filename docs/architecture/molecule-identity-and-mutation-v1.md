@@ -47,7 +47,11 @@ I vincoli di ownership e l'unicita sono autorita del DB; validazione e messaggi 
 
 ## Conservazione e cancellazione
 
-Il record molecolare non e il proprietario dei link o dei documenti; una cancellazione va impedita o gestita con operazione esplicita se la molecola e utilizzata da una sintesi, documento o protocollo storico. Revisionare il trigger legacy trg_purge_orphan_items: essere orfana dalle collezioni non implica essere orfana dal resto del prodotto.
+La cancellazione definitiva di una molecola e' esplicita: prima il backend mostra il numero di sintesi, step e link live che saranno rimossi, poi richiede conferma informata e verifica nuovamente le dipendenze al commit.
+
+L'utente ha scelto ON DELETE CASCADE per i riferimenti live alla molecola: cancellazione molecule -> pool -> step items e cancellazione dei link execution/molecule. Le versioni immutabili dei protocolli conservano i propri snapshot e non perdono il contenuto storico.
+
+La rimozione dell'ultima appartenenza a una collezione NON equivale alla cancellazione della molecola: rimuovere sia trg_purge_orphan_items sia il cleanup automatico equivalente nel codice Nest prima di attivare i CASCADE. CASCADE automatico attivato da un trigger sul join sarebbe una cancellazione senza conferma UX e va evitato. Il backend non deve nascondere fallimenti di cancellazione dietro Boolean false generici.
 
 ## Tests richiesti
 

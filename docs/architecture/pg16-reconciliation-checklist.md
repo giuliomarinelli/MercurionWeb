@@ -22,7 +22,7 @@ Questa autorizzazione NON si estende a molecule_collection_items, molecule_colle
 - La FK legacy synth_step_molecule_refs.step_id usa ON DELETE SET NULL nonostante la colonna NOT NULL.
 - DB legacy Notebook: capitoli/sezioni/pagine riflettono terminologia abbandonata; gerarchia canonica: LabNotebook -> NotebookSection -> NotebookExperiment -> ExperimentExecution.
 - Su molecule_collection_items manca una UNIQUE parziale(owner,canonical_smiles) per custom; il solo controllo del servizio Nest non è atomicamente sufficiente.
-- molecule_collection_items_join usa il trigger purge_orphan_items, potenzialmente in conflitto con nuove referenze persistenti alla stessa molecola.
+- Il trigger purge_orphan_items e' attivo e cancella una molecola quando perde l'ultima appartenenza a collezioni: incompatibile con la scelta di cancellazione esplicita e CASCADE controllato.
 
 ## Sequenza di lavoro
 
@@ -41,3 +41,34 @@ Questa autorizzazione NON si estende a molecule_collection_items, molecule_colle
 - Risorse esterne con FK verso le tabelle legacy: il rebuild deve fermarsi fino a un piano mirato.
 - Pool molecule e step items: prima attivazione deve rifiutare riferimenti cross-owner/cross-synthesis e molecole non custom tramite servizi e test.
 - Coerenza tra ExperimentExecution.experiment_id e la revisione, e tra step e sintesi quando il link include step_id.
+
+## Audit associazioni Molecule Collection — 21/10/2026
+
+I CSV ottenuti dal PostgreSQL reale contengono 1.511 join: 1.204 coerenti e **307 cross-owner**. Tutte le anomalie sono ChEMBL, con system_key null sia per item sia per collection:
+- 184 join con owner = proprietario collection != proprietario item: 39 item, 7 collections, un join owner.
+- 123 join con owner = proprietario item != proprietario collection: 6 item, 55 collections, tre join owners.
+- Nessuna anomalia custom. I timestamp desumibili dagli ID UUIDv7 collocano la generazione fra 27/10 e 30/11/2025.
+
+GitHub commit ff1c5d8b055dcb01c1d96ca97666d113595507e8 (01/12/2025) ha corretto controlli owner assenti in addMoleculeToCollectionWithManager, candidate selection addMany/bindMany e filtri selectAll sovrascritti da .where. E' una spiegazione fortemente supportata dei dati, non una prova forense definitiva senza log di produzione.
+
+L'attuale codice che duplica una collezione copia gli item_id dai join sorgenti senza riconsultare l'ownership degli item; deve essere protetto per non propagare dati corrotti.
+
+### Rimedi consentiti e limiti
+
+- Nessuna ownership condivisa e' prevista: questi 307 link sono illegittimi.
+- Per i 184 join proprietario-collection: preferire remap a ChEMBL item del medesimo proprietario e medesimo molregno, oppure creare item locale con UUIDv7 lato app, **senza** copiare note/private metadata altrui; decidere eventuali duplicati del join.
+- Per i 123 join proprietario-item: la collection e' estranea, quindi non e' possibile inferire una nuova collection destinazione; proposta rimozione dei link errati dopo backup/review.
+- La precedente autorizzazione DROP si limita a Notebook/Synthesis: **nessuna riparazione distruttiva delle 307 join e' stata approvata o eseguita**.
+- Prima di qualsiasi DELETE di join correggere l'autopurge: il trigger oggi potrebbe cancellare la molecola sottostante, anche se l'utente non ha richiesto tale operazione.
+- Eseguire analisi read-only di quanti record sono gia' remappabili e quanti richiedono creazione custom per proprietario ChEMBL (script 00c), poi preparare una riparazione transazionale verificabile.
+
+### Decisione ON DELETE CASCADE
+
+Il proprietario preferisce CASCADE per la **cancellazione definitiva ed esplicita** di una molecola con anteprima impatto e conferma UX. Non usare CASCADE su DROP TABLE. Nel DDL target:
+- molecule_collection_items -> synthesis_pool_molecules: ON DELETE CASCADE;
+- synthesis_pool_molecules -> synth_step_items: ON DELETE CASCADE;
+- molecule_collection_items -> experiment_execution_molecule_links: ON DELETE CASCADE (collegamenti live).
+- Lo storico immutabile ExperimentProtocolRevision deve sopravvivere tramite snapshot con struttura/condizioni autonome, indipendente dalle FK verso entita' live.
+- Rimuovi da collezione = DELETE join, **senza DELETE implicito della molecola**. Eliminazione molecola = mutation distinta, owner-scoped, anteprima dipendenze, conferma, recheck in transazione.
+- Il trigger legacy purge_orphan_items e il raw SQL di MoleculeCollectionService che elimina molecole orfane devono essere dismessi/coordinati col nuovo backend, altrimenti una semplice disassociazione potrebbe innescare un CASCADE non confermato.
+- Solo FK singole, senza user_id: verifiche owner restano responsabilita' dell'applicazione.
