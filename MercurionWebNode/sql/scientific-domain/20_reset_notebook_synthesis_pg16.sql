@@ -252,10 +252,11 @@ CREATE TABLE public.lab_notebook_executions (
   updated_at bigint NOT NULL,
   CONSTRAINT ck_execution_status CHECK (
     status IN ('DRAFT','IN_PROGRESS','COMPLETED','CANCELLED')),
-  CONSTRAINT ck_execution_revision_required CHECK (
-    status='DRAFT' OR (protocol_revision_id IS NOT NULL AND started_at IS NOT NULL)),
-  CONSTRAINT ck_execution_completion_time CHECK (
-    status <> 'COMPLETED' OR completed_at IS NOT NULL),
+  CONSTRAINT ck_execution_lifecycle CHECK (
+    (status='DRAFT' AND protocol_revision_id IS NULL AND started_at IS NULL AND completed_at IS NULL)
+    OR (status='IN_PROGRESS' AND protocol_revision_id IS NOT NULL AND started_at IS NOT NULL AND completed_at IS NULL)
+    OR (status='COMPLETED' AND protocol_revision_id IS NOT NULL AND started_at IS NOT NULL AND completed_at IS NOT NULL)
+    OR (status='CANCELLED' AND protocol_revision_id IS NOT NULL AND started_at IS NOT NULL AND completed_at IS NULL)),
   CONSTRAINT ck_execution_delta CHECK (
     content_delta IS NULL OR jsonb_typeof(content_delta)='object'),
   CONSTRAINT ck_execution_order CHECK(execution_order >= 0),
@@ -278,6 +279,11 @@ BEGIN
     END IF;
     RETURN OLD;
   END IF;
+  IF OLD.status = 'DRAFT' AND NEW.status NOT IN ('DRAFT','IN_PROGRESS') THEN
+    RAISE EXCEPTION USING ERRCODE='23514',
+      MESSAGE='Draft executions must be started before completion or cancellation',
+      CONSTRAINT='ck_execution_start_required';
+  END IF;
   IF OLD.status <> 'DRAFT' THEN
     IF NEW.protocol_revision_id IS DISTINCT FROM OLD.protocol_revision_id
        OR NEW.experiment_id IS DISTINCT FROM OLD.experiment_id
@@ -290,6 +296,8 @@ BEGIN
     IF OLD.status IN ('COMPLETED','CANCELLED') AND (
         NEW.content_delta IS DISTINCT FROM OLD.content_delta
         OR NEW.sanitized_text IS DISTINCT FROM OLD.sanitized_text
+        OR NEW.title IS DISTINCT FROM OLD.title
+        OR NEW.completed_at IS DISTINCT FROM OLD.completed_at
         OR NEW.status IS DISTINCT FROM OLD.status) THEN
       RAISE EXCEPTION USING ERRCODE='23514',
         MESSAGE='Completed or cancelled execution content is immutable',
