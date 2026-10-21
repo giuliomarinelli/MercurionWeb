@@ -32,18 +32,26 @@ export class NotebookDomainService {
   async ownedSection(manager: EntityManager, userId: UUID, id: UUID): Promise<NotebookSection> {
     const row = await manager.findOne(NotebookSection, { where: { id, userId } })
     if (!row) throw new NotFoundException('NOTEBOOK_SECTION_NOT_FOUND')
+    // Weak FKs are intentional, but must not let a child from one user
+    // point at a parent from a different user.
+    const parent = await manager.exists(LabNotebook, {
+      where: { id: row.notebookId, userId }
+    })
+    if (!parent) throw new NotFoundException('NOTEBOOK_SECTION_NOT_FOUND')
     return row
   }
 
   async ownedExperiment(manager: EntityManager, userId: UUID, id: UUID): Promise<NotebookExperiment> {
     const row = await manager.findOne(NotebookExperiment, { where: { id, userId } })
     if (!row) throw new NotFoundException('NOTEBOOK_EXPERIMENT_NOT_FOUND')
+    await this.ownedSection(manager, userId, row.sectionId)
     return row
   }
 
   async ownedExecution(manager: EntityManager, userId: UUID, id: UUID): Promise<ExperimentExecution> {
     const row = await manager.findOne(ExperimentExecution, { where: { id, userId } })
     if (!row) throw new NotFoundException('EXPERIMENT_EXECUTION_NOT_FOUND')
+    await this.ownedExperiment(manager, userId, row.experimentId)
     return row
   }
 
@@ -305,6 +313,7 @@ export class NotebookDomainService {
       where: { id, userId }
     })
     if (!revision) throw new NotFoundException('EXPERIMENT_PROTOCOL_REVISION_NOT_FOUND')
+    await this.ownedExperiment(this.dataSource.manager, userId, revision.experimentId)
     return revision
   }
 
