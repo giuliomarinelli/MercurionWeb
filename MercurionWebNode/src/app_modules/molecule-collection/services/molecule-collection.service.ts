@@ -276,7 +276,7 @@ FROM final_rows;
   ): Promise<MoleculeCollection | null> {
     try {
 
-      return runInTransaction(this.dataSource, async (_context, manager) => {
+      return await runInTransaction(this.dataSource, async (_context, manager) => {
 
         const srcCollection = await manager.findOneOrFail(MoleculeCollection, {
           where: {

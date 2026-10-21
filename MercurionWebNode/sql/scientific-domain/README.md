@@ -2,7 +2,7 @@
 
 ## Status (2026-10-21)
 
-**SQL schema candidate ready for review and a staging execution. Not yet executed or verified on PostgreSQL.** Application Nest/GraphQL remains on the legacy Notebook domain until the coordinated cutover.
+**SQL 20/21 executed successfully on ephemeral PostgreSQL 16.15 (2026-10-21), using a synthetic legacy fixture and the non-superuser app role.** Postflight: 11/11 OK; behavioral checks: 54/54 PASS; six expected rejection/rollback scenarios verified. Container removed, pg_sl untouched. See [VALIDATION-PG16.md](VALIDATION-PG16.md) for inputs, evidence and limits. A real database clone and a coordinated matching Nest/GraphQL cutover are still required; this SQL test does not certify application integration or remote CI.
 
 * 20_reset_notebook_synthesis_pg16.sql: one-time, transactional rebuild. Precisely eight DROP TABLE statements, only legacy Notebook/Synthesis. Existing lab_notebooks_old and all molecule, user and other tables are kept. No DROP CASCADE. Stops if new tables already exist, or if a legacy source table is missing.
 * 21_verify_scientific_domain_pg16.sql: read-only postflight that emits one resultset of OK/BLOCKER checks in pgAdmin.
