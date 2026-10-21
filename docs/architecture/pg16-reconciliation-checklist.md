@@ -72,3 +72,23 @@ Il proprietario preferisce CASCADE per la **cancellazione definitiva ed esplicit
 - Rimuovi da collezione = DELETE join, **senza DELETE implicito della molecola**. Eliminazione molecola = mutation distinta, owner-scoped, anteprima dipendenze, conferma, recheck in transazione.
 - Il trigger legacy purge_orphan_items e il raw SQL di MoleculeCollectionService che elimina molecole orfane devono essere dismessi/coordinati col nuovo backend, altrimenti una semplice disassociazione potrebbe innescare un CASCADE non confermato.
 - Solo FK singole, senza user_id: verifiche owner restano responsabilita' dell'applicazione.
+
+
+## 00c ownership repair feasibility — CSV 21/10/2026
+
+Report ottenuto da PostgreSQL 16.10, solo lettura:
+- Anomalie 307 totali, tutte ChEMBL, 0 molregno mancanti, 0 molecole originali senza altra membership valida.
+- JOIN_OWNER_EQUALS_COLLECTION = 184 associazioni: 66 hanno gia' un elemento ChEMBL locale del proprietario della collezione, 118 richiedono 19 nuove coppie (user_id, chembl_molregno).
+- Tra le 66 gia' risolvibili, 43 collidono con un join esistente verso l'item corretto: eliminare il collegamento corrotto ridondante, non creare un secondo join.
+- JOIN_OWNER_EQUALS_MOLECULE = 123: la collezione e' di un altro utente e manca una destinazione lecita determinabile; proposta DELETE soltanto del join corrotto.
+- Gli altri 23 fra le 66 sono candidati UPDATE, non il conteggio definitivo: possono esistere collisioni *fra righe corrotte* che convergono alla stessa tripla owner/collection/molregno. Analogamente le 118 possono richiedere deduplica dopo la creazione delle 19 molecole.
+
+Un file SQL read-only ulteriore (`00d_cross_owner_final_repair_plan_pg16.sql`) classifica preventivamente tutte le 307 righe per azione, includendo le collisioni fra destinazioni convergenti. La vera riparazione deve:
+1. esigere nuovo preflight di stato invariato e un backup ripristinabile;
+2. generare 19 UUIDv7 **lato applicazione**, non tramite funzioni DB, uno per coppia owner/molregno mancante;
+3. creare le molecole locali ChEMBL senza copiare metadati privati dell'altro proprietario;
+4. riassociare le righe che non collidono e rimuovere le sole righe illegittime/ridondanti;
+5. disattivare coerentemente l'autopurge nei trigger e nel codice Nest prima della modifica, per evitare cascades impliciti;
+6. verificare zero cross-owner, zero duplicati di join, nessuna cancellazione involontaria di molecole e che l'operazione sia atomica.
+
+Non e' stata ancora concessa autorizzazione distruttiva per le join di Molecule Collection, e il CSV non include identificatori sufficienti a predisporre un fix statico completo. Nessun DELETE/UPDATE/INSERT e' stato eseguito.
