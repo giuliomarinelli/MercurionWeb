@@ -1,157 +1,97 @@
 import { Apollo } from 'apollo-angular';
 import { DocumentNode, Kind, OperationDefinitionNode } from 'graphql';
-import { firstValueFrom, Observable, of } from 'rxjs';
-import type {
-  DeleteChapterMutationVariables,
-  DeleteLabNotebookMutationVariables,
-  DeleteSectionMutationVariables,
-} from '../../generated/graphql';
+import { firstValueFrom, of } from 'rxjs';
 import { GRAPHQL_QUERY_FETCH_POLICY } from './graphql-query-policy';
 import { NotebookService } from './notebook.service';
 
-describe('NotebookService', () => {
-  let service: NotebookService;
-  let mutateSpy: jasmine.Spy;
+function operationOf(document: DocumentNode): OperationDefinitionNode {
+  const operation = document.definitions.find(
+    (definition): definition is OperationDefinitionNode =>
+      definition.kind === Kind.OPERATION_DEFINITION,
+  );
+  if (!operation) throw new Error('Missing operation definition');
+  return operation;
+}
 
-  beforeEach(() => {
-    mutateSpy = jasmine.createSpy('mutate').and.returnValue(of({
-      data: {
-        deleteLabNotebook: true,
-        deleteChapter: true,
-        deleteSection: true,
-      },
-    }));
-    service = new NotebookService({ mutate: mutateSpy } as unknown as Apollo);
-  });
-
-  it('should be created', () => {
-    expect(service).toBeTruthy();
-  });
-
-  const headerQueryCases: ReadonlyArray<{
-    label: string;
-    operationName: string;
-    fieldName: string;
-    execute: (notebookService: NotebookService, id: string) => Observable<unknown>;
-  }> = [
-    {
-      label: 'chapter',
-      operationName: 'GetChapterById',
-      fieldName: 'chapterById',
-      execute: (notebookService, id) => notebookService.getChapterById(id),
-    },
-    {
-      label: 'section',
-      operationName: 'GetSectionById',
-      fieldName: 'sectionById',
-      execute: (notebookService, id) => notebookService.getSectionById(id),
-    },
-    {
-      label: 'page header',
-      operationName: 'GetPageHeaderById',
-      fieldName: 'pageById',
-      execute: (notebookService, id) => notebookService.getPageByIdHeader(id),
-    },
-  ];
-
-  for (const queryCase of headerQueryCases) {
-    it(`uses a semantic operation name for the ${queryCase.label} query`, () => {
-      const querySpy = jasmine.createSpy('query').and.returnValue(of({}));
-      const queryService = new NotebookService({
-        query: querySpy,
-      } as unknown as Apollo);
-      const id = '01990f17-0ff8-7b75-83d7-2c995ae7e2b1';
-
-      queryCase.execute(queryService, id);
-
-      expect(querySpy).toHaveBeenCalledOnceWith(jasmine.objectContaining({
-        variables: { id },
-        fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot,
-      }));
-
-      const query = querySpy.calls.mostRecent().args[0].query as DocumentNode;
-      const operation = query.definitions.find(
-        (definition): definition is OperationDefinitionNode =>
-          definition.kind === Kind.OPERATION_DEFINITION,
-      );
-      const selectedField = operation?.selectionSet.selections[0];
-
-      expect(operation?.name?.value).toBe(queryCase.operationName);
-      expect(
-        selectedField?.kind === Kind.FIELD ? selectedField.name.value : undefined,
-      ).toBe(queryCase.fieldName);
-    });
-  }
-
-  const deleteCases: ReadonlyArray<{
-    label: string;
-    operationName: string;
-    fieldName: string;
-    execute: (notebookService: NotebookService, id: string) => Observable<boolean>;
-  }> = [
-    {
-      label: 'notebook',
-      operationName: 'DeleteLabNotebook',
-      fieldName: 'deleteLabNotebook',
-      execute: (notebookService, id) => notebookService.deleteNotebook(id),
-    },
-    {
-      label: 'chapter',
-      operationName: 'DeleteChapter',
-      fieldName: 'deleteChapter',
-      execute: (notebookService, id) => notebookService.deleteChapter(id),
-    },
-    {
-      label: 'section',
-      operationName: 'DeleteSection',
-      fieldName: 'deleteSection',
-      execute: (notebookService, id) => notebookService.deleteSection(id),
-    },
-  ];
-
-  for (const deleteCase of deleteCases) {
-    it(`executes the ${deleteCase.label} delete with an ID! string variable`, async () => {
-      const id = '01990f17-0ff8-7b75-83d7-2c995ae7e2b1';
-
-      await expectAsync(firstValueFrom(deleteCase.execute(service, id)))
-        .toBeResolvedTo(true);
-
-      expect(mutateSpy).toHaveBeenCalledOnceWith(jasmine.objectContaining({
-        variables: { id },
-      }));
-
-      const mutation = mutateSpy.calls.mostRecent().args[0].mutation as DocumentNode;
-      const operation = mutation.definitions.find(
-        (definition): definition is OperationDefinitionNode =>
-          definition.kind === Kind.OPERATION_DEFINITION,
-      );
-      const variableDefinition = operation?.variableDefinitions?.[0];
-      const selectedField = operation?.selectionSet.selections[0];
-
-      expect(operation?.name?.value).toBe(deleteCase.operationName);
-      expect(variableDefinition?.variable.name.value).toBe('id');
-      expect(variableDefinition?.type.kind).toBe(Kind.NON_NULL_TYPE);
-      expect(
-        variableDefinition?.type.kind === Kind.NON_NULL_TYPE
-          && variableDefinition.type.type.kind === Kind.NAMED_TYPE
-          ? variableDefinition.type.type.name.value
-          : undefined,
-      ).toBe('ID');
-      expect(
-        selectedField?.kind === Kind.FIELD ? selectedField.name.value : undefined,
-      ).toBe(deleteCase.fieldName);
-    });
-  }
-
-  it('keeps generated delete argument types compatible with string UUID values', () => {
+describe('NotebookService — scientific-domain GraphQL contract', () => {
+  it('reads NotebookSection/NotebookExperiment/ExperimentExecution from the new schema', () => {
+    const querySpy = jasmine.createSpy('query').and.returnValue(of({ data: {} }));
+    const notebook = new NotebookService({ query: querySpy } as unknown as Apollo);
     const id = '01990f17-0ff8-7b75-83d7-2c995ae7e2b1';
-    const generatedVariables: [
-      DeleteLabNotebookMutationVariables,
-      DeleteChapterMutationVariables,
-      DeleteSectionMutationVariables,
-    ] = [{ id }, { id }, { id }];
 
-    expect(generatedVariables.map(variables => variables.id))
-      .toEqual([id, id, id]);
+    const checks = [
+      { call: () => notebook.getSectionById(id), field: 'notebookSection', operation: 'GetNotebookSection' },
+      { call: () => notebook.getExperimentById(id), field: 'notebookExperiment', operation: 'GetNotebookExperiment' },
+      { call: () => notebook.getExecutionById(id), field: 'experimentExecution', operation: 'GetExperimentExecution' },
+    ];
+
+    for (const testCase of checks) {
+      testCase.call();
+      const argument = querySpy.calls.mostRecent().args[0] as {
+        query: DocumentNode;
+        variables: { id: string };
+        fetchPolicy: string;
+      };
+      const definition = operationOf(argument.query);
+      const first = definition.selectionSet.selections[0];
+      expect(definition.name?.value).toBe(testCase.operation);
+      expect(first.kind === Kind.FIELD ? first.name.value : undefined).toBe(testCase.field);
+      expect(argument.variables).toEqual({ id });
+      expect(argument.fetchPolicy).toBe(GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot);
+    }
+  });
+
+  it('creates a notebook using ScientificNotebookCreateInput rather than a title argument', async () => {
+    const mutateSpy = jasmine.createSpy('mutate').and.returnValue(of({
+      data: { createLabNotebook: { id: 'notebook-id', title: 'Ricerca' } }
+    }));
+    const notebook = new NotebookService({ mutate: mutateSpy } as unknown as Apollo);
+
+    const result = await firstValueFrom(notebook.createNotebook('Ricerca'));
+    expect(result).toEqual({ id: 'notebook-id', title: 'Ricerca' });
+
+    const options = mutateSpy.calls.mostRecent().args[0] as {
+      mutation: DocumentNode; variables: unknown
+    };
+    expect(options.variables).toEqual({ input: { title: 'Ricerca' } });
+    expect(operationOf(options.mutation).name?.value).toBe('CreateLabNotebook');
+  });
+
+  it('archives instead of calling removed notebook delete operations', async () => {
+    const mutateSpy = jasmine.createSpy('mutate').and.returnValue(of({
+      data: { archiveLabNotebook: { id: 'notebook-id', archivedAt: '1792580000000' } }
+    }));
+    const notebook = new NotebookService({ mutate: mutateSpy } as unknown as Apollo);
+
+    const result = await firstValueFrom(notebook.archiveNotebook('notebook-id'));
+    expect(result.archivedAt).toBe('1792580000000');
+    const options = mutateSpy.calls.mostRecent().args[0] as {
+      mutation: DocumentNode; variables: unknown
+    };
+    expect(options.variables).toEqual({ id: 'notebook-id' });
+    expect(operationOf(options.mutation).name?.value).toBe('ArchiveLabNotebook');
+  });
+
+  it('uses a Delta JSON object for an execution update', async () => {
+    const mutateSpy = jasmine.createSpy('mutate').and.returnValue(of({
+      data: { updateExperimentExecution: { id: 'run', title: 'E1', status: 'DRAFT' } }
+    }));
+    const notebook = new NotebookService({ mutate: mutateSpy } as unknown as Apollo);
+    const delta = { ops: [{ insert: 'Risultati dell’esperimento\n' }] };
+    await firstValueFrom(notebook.updateExecution('run', { contentDelta: delta }));
+    expect(mutateSpy.calls.mostRecent().args[0].variables).toEqual({
+      input: { id: 'run', contentDelta: delta }
+    });
+  });
+
+  it('starts an execution through an explicit scientific-domain mutation', async () => {
+    const mutateSpy = jasmine.createSpy('mutate').and.returnValue(of({
+      data: { startExperimentExecution: { id: 'run', status: 'IN_PROGRESS' } }
+    }));
+    const notebook = new NotebookService({ mutate: mutateSpy } as unknown as Apollo);
+    const result = await firstValueFrom(notebook.startExecution('run'));
+    expect(result.status).toBe('IN_PROGRESS');
+    expect(operationOf(mutateSpy.calls.mostRecent().args[0].mutation).name?.value)
+      .toBe('StartExperimentExecution');
   });
 });
