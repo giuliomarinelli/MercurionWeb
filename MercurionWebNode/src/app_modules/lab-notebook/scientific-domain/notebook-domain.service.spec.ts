@@ -1,7 +1,6 @@
 import { UUID } from 'crypto'
 import { DataSource, EntityManager } from 'typeorm'
 import { NotebookDomainService } from './notebook-domain.service'
-import { NotebookSection } from './entities/notebook-section.entity'
 import { LabNotebook } from './entities/lab-notebook.entity'
 
 describe('NotebookDomainService - owner isolation and reorder', () => {
