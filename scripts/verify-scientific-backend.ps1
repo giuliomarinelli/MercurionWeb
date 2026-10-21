@@ -22,17 +22,17 @@ function Run-Required {
 
 Push-Location $nodeRoot
 try {
-    Run-Required 'TypeScript typecheck' 'npm' @('run', 'typecheck')
-    Run-Required 'Scientific-domain and custom molecule Jest regressions' 'npm' @(
+    Run-Required 'TypeScript typecheck' 'npm.cmd' @('run', 'typecheck')
+    Run-Required 'Scientific-domain and custom molecule Jest regressions' 'npm.cmd' @(
         'run', 'test', '--', '--runInBand', 'scientific-domain|custom-molecule-resolution'
     )
-    Run-Required 'Regenerate committed GraphQL schema' 'npm' @(
+    Run-Required 'Regenerate committed GraphQL schema' 'npm.cmd' @(
         'run', 'graphql:schema:update'
     )
-    Run-Required 'Check GraphQL schema consistency' 'npm' @(
+    Run-Required 'Check GraphQL schema consistency' 'npm.cmd' @(
         'run', 'graphql:schema:check'
     )
-    Run-Required 'Compile NestJS application' 'npm' @('run', 'build')
+    Run-Required 'Compile NestJS application' 'npm.cmd' @('run', 'build')
     Write-Host ''
     Write-Host 'Scientific backend checks passed. Review src/schema.graphql and git diff.' -ForegroundColor Green
 } finally {
