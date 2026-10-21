@@ -260,6 +260,13 @@ export class NotebookDomainService {
   async patchExecution(userId: UUID, input: ExperimentExecutionPatchInput): Promise<ExperimentExecution> {
     const id = input.id as UUID
     return this.dataSource.transaction(async manager => {
+      // Serialize edits with complete/cancel/start; avoids converting a
+      // predictable conflict into a database trigger error (SQLSTATE 23514).
+      await manager.query(
+        `SELECT id FROM public.lab_notebook_executions
+         WHERE id=$1::uuid AND user_id=$2::uuid FOR UPDATE`,
+        [id, userId]
+      )
       const execution = await this.ownedExecution(manager, userId, id)
       if (execution.archivedAt != null ||
           execution.status === 'COMPLETED' || execution.status === 'CANCELLED') {
