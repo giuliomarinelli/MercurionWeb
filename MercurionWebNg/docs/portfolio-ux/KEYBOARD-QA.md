@@ -1,6 +1,6 @@
 # QA tastiera mobile — regressione trasversale
 
-Aggiornato: 7 ottobre 2026. Riferimento reale: iPhone 13 mini, iOS 18.7.1, Safari. Stato: correzioni implementate, verifica fisica aperta.
+Aggiornato: 21 ottobre 2026. Riferimento reale: iPhone 13 mini, iOS 18.7.1, Safari. Stato: correzioni implementate, verifica fisica aperta.
 
 ## Regola di composizione
 
@@ -41,6 +41,6 @@ L'utente ha confermato che la foto precede le ultime correzioni; non costituisce
 
 ## Chiusura e continuità
 
-La review manuale resta necessaria. Il prossimo blocco previsto è PX-05; il controllo tastiera entra anche nell'accettazione dei futuri blocchi con form, ricerca e overlay. Prima del merge, tutte le righe applicabili devono avere esito verificato, inclusi gli overlay settings. Il riscontro fisico va fatto sulla build che contiene queste modifiche, senza affidarsi a una scheda Safari rimasta sulla versione precedente.
+La review manuale resta necessaria. Le prossime priorità sono Notebook/Synthesis, object store/R2 e refactor navigazione/offcanvas/sidebar, secondo [ROADMAP.md](ROADMAP.md). Il controllo tastiera resta parte dell’accettazione dei futuri blocchi con form, ricerca e overlay e delle nuove feature applicabili. Nel refactor della navigazione verificare anche scroll dell’intero elenco, elementi sticky, chiusura dell’offcanvas e raggiungibilità delle voci con poco spazio verticale. Prima del merge, tutte le righe applicabili devono avere esito verificato, inclusi gli overlay settings. Il riscontro fisico va fatto sulla build che contiene queste modifiche, senza affidarsi a una scheda Safari rimasta sulla versione precedente.
 
 Prove e limiti della sessione: [DAILY-LOG.md](DAILY-LOG.md). Fonte sul comportamento delle viewport: [MDN VisualViewport](https://developer.mozilla.org/en-US/docs/Web/API/VisualViewport).

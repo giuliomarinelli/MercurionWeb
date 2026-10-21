@@ -320,6 +320,20 @@ Collezioni: null significa loading, [] empty immediato, niente timer o dati prec
 
 **Prossimo blocco:** 13 — PX-08, editor: stati e percorso finale.
 
+### 2026-10-21 — Revisione del metodo e delle prossime priorità
+
+**Stato:** pianificazione aggiornata su istruzione dell’utente; nessuna implementazione o operazione Git eseguita in questa revisione.
+
+**Decisione:** Notebook e Synthesis anticipati prima del merge finale. L’utente sviluppa le due feature su branch `feature/**` creati dal branch corrente e le reintegra su questo stesso branch. Il precedente vincolo di attendere il merge della sola fase UX è superato.
+
+**Nuovo ordine:** N1 Notebook e Synthesis; N2 refactor backend dell’object store e porting Dropbox → Cloudflare R2; N3 refactor navigazione/offcanvas/sidebar. Segue la ripresa dei blocchi UX residui dal 13, con regressione della shell al blocco 14 dopo il refactor anticipato, senza duplicarlo.
+
+**Navigazione richiesta:** area scrollabile dall’inizio dell’elenco, comprendente la cronologia; navigazione sticky con eventuali uno/due elementi fissi e densità da valutare. Offcanvas mobile senza dropdown Funzionalità. Sidebar desktop collassata come colonna di icone con tooltip/title, comandi di espansione e collasso in flusso invece del toggle absolute. Stile e colori allineati al frontend rifinito. Conservati i follow-up su gutter, cambi breakpoint e ripristino sessione.
+
+**Documenti aggiornati:** ROADMAP.md (metodo, fasi, priorità, MF-01/MF-02, nuova INF-01, perimetro PX-01 e sequenza residua) e richiamo corrente in KEYBOARD-QA.md. I blocchi 01–12 restano implementati, in review. QA fisica Safari, review manuale e regressione finale restano aperte e copriranno anche feature e refactor aggiunti. Angular 22 rimane successivo alle macro-feature. Le voci del 7 ottobre conservano il prossimo blocco previsto a quella data come registro storico.
+
+**Verifica:** coerenza dei riferimenti e diff documentale; nessun test applicativo necessario per questo aggiornamento. Nessun branch creato, commit, merge, deploy o migrazione dati.
+
 ## Modello per le voci successive
 
 ### AAAA-MM-GG — PX-XX — Sottoarea

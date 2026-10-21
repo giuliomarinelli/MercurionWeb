@@ -2,7 +2,7 @@
 
 Data iniziale: 6 ottobre 2026. Stato: pianificazione per lavoro incrementale e review manuale.
 
-Ultima revisione del perimetro: 7 ottobre 2026. Notifiche ampliate e chiusura QA esplicitata; sviluppo di Notebook e Synthesis e migrazione Angular 22 pianificati dopo il merge della fase corrente.
+Ultima revisione del perimetro: 21 ottobre 2026. Notebook e Synthesis anticipati prima del merge finale, su branch feature gestiti dall’utente e reintegrati nel branch corrente. Seguono refactor backend dell’object store con passaggio Dropbox → Cloudflare R2 e refactor della navigazione. La rifinitura UX e la QA residue proseguono sul prodotto integrato; Angular 22 resta pianificato dopo le macro-feature.
 
 ## Obiettivo
 
@@ -47,7 +47,7 @@ La priorità indica il valore della rifinitura per il portfolio, non la gravità
 
 | ID | Area | Priorità | Evidenze | Stato iniziale |
 |---|---|---|---|---|
-| PX-01 | Shell, navigazione e orientamento | P1 | S, B | Da affrontare |
+| PX-01 | Shell, navigazione, sidebar e offcanvas | P1 | S, B | Refactor anticipato tra i prossimi interventi; da affrontare |
 | PX-02 | Home e presentazione pubblica | P1 | S, B, V | Da affrontare |
 | PX-03 | Accesso e registrazione | P1 | S, B, V | Da affrontare |
 | PX-04 | Ricerca molecolare | P1 | S, B | Implementato, in review; QA iPhone aperta |
@@ -72,19 +72,36 @@ La priorità indica il valore della rifinitura per il portfolio, non la gravità
 | PX-23 | Sessioni, realtime e continuità del lavoro | P1 | S, V | Da verificare tra le aree |
 | PX-24 | Compatibilità, review finale e preparazione del merge | P1 | V | Da eseguire dopo la rifinitura |
 
-## Fasi fino al completamento del prodotto
+## Metodo di lavoro e prossime priorità
 
-La chiusura di questa roadmap certifica il perimetro attuale sottoposto a QA e review. Notebook e Synthesis estenderanno quel perimetro: richiederanno prove proprie e una nuova regressione dei flussi esistenti.
+Aggiornamento concordato il 21 ottobre 2026. Il branch corrente è la base di lavoro e il punto di reintegrazione di Notebook e Synthesis: non è più previsto un merge preliminare della sola rifinitura UX per iniziare le due feature.
+
+- L’utente gestisce lo sviluppo di **Notebook (MF-01)** e **Synthesis (MF-02)** su branch `feature/**` creati dal branch corrente e rimergiati su questo stesso branch.
+- I nomi effettivi dei branch, la loro creazione e i merge sono gestiti dall’utente; questo documento non esegue operazioni Git e non presume che siano già avvenute.
+- Le verifiche delle feature e delle integrazioni accompagnano lo sviluppo; la QA complessiva e la review manuale prima del merge finale includeranno il perimetro ampliato.
+- Altri aggiornamenti saranno inseriti progressivamente, con stato, dipendenze e criteri di accettazione espliciti. I blocchi UX 01–12 rimangono implementati, in review; il lavoro residuo non viene scartato.
+
+| Priorità immediata | Intervento | Gestione / risultato atteso |
+|---|---|---|
+| N1 | MF-01 e MF-02 — Notebook e Synthesis | Sviluppo dell’utente su branch feature derivati dal corrente; reintegrazione sul medesimo branch e verifica delle aree collegate |
+| N2 | INF-01 — Object store backend: Dropbox → Cloudflare R2 | Refactor e porting con contratti, accesso ai file e gestione degli oggetti esistenti verificati |
+| N3 | PX-01 — Navigazione, sidebar e offcanvas | Scroll dell’intera navigazione, sidebar collassata con icone, comandi in flusso e stile coerente |
+| Ripresa UX | Blocco 13 e successivi ancora aperti | Stati/percorso finale dell’editor e rifiniture residue sul prodotto ampliato; il blocco 14 verifica la shell già rifatta in N3 |
+
+N1 raggruppa le due feature senza imporre parallelismo o una dipendenza tecnica tra Notebook e Synthesis: sequenza e integrazioni concrete restano sotto il controllo dell’utente.
+
+## Fasi fino al completamento del prodotto
 
 | Fase | Perimetro | Risultato necessario per avanzare |
 |---|---|---|
-| A — Qualità attuale | PX-01–PX-24, rifinitura e QA funzionale | Evidenze raccolte, limiti e difetti residui classificati, review manuale completata |
-| B — Integrazione | Merge della fase A, dopo autorizzazione | Modifiche integrate e verifiche del repository riuscite sul risultato integrato |
-| C — Macro-feature | Notebook e Synthesis, a partire dai moduli backend esistenti | Contratti e scope verificati, frontend completo, prove funzionali/UX proprie e regressione dei percorsi attuali |
-| D — Migrazione | Aggiornamento ad Angular 22 dopo le macro-feature | Compatibilità delle dipendenze verificata, migrazione controllata e nuova verifica del prodotto completo |
-| E — Chiusura finale | Applicazione con entrambe le macro-feature e Angular 22 | Review finale, regressione superata e demo/documentazione aggiornate al prodotto effettivo |
+| A — Macro-feature sul branch corrente | Notebook e Synthesis su branch feature gestiti dall’utente | Feature reintegrate nel branch di partenza, contratti e flussi verificati, regressioni collegate affrontate |
+| B — Refactor prioritari | Object store/R2 e navigazione/sidebar/offcanvas | Integrazioni backend e nuova navigazione funzionanti, con prove proprie e regressione delle aree coinvolte |
+| C — Qualità e QA del perimetro ampliato | PX-01–PX-24 e verifiche trasversali delle nuove feature e dei refactor | Evidenze aggiornate, QA fisica applicabile, difetti residui classificati e review manuale completata |
+| D — Integrazione finale | Merge del risultato complessivo dopo autorizzazione | Modifiche integrate e verifiche del repository riuscite sul risultato integrato |
+| E — Migrazione | Aggiornamento ad Angular 22 dopo le macro-feature | Compatibilità verificata, migrazione controllata e nuova verifica del prodotto completo |
+| F — Chiusura finale | Prodotto completo e aggiornato | Review finale, regressione superata e demo/documentazione aggiornate |
 
-Il completamento della fase A non autorizza automaticamente il merge. Le fasi C–E sono pianificazione successiva, non nuovi task da iniziare durante la rifinitura corrente.
+La reintegrazione dei branch feature nel branch corrente e il merge finale del lavoro complessivo sono passaggi distinti. Gli stati della roadmap non autorizzano automaticamente nessuno dei due.
 
 ## Lista dettagliata degli interventi
 
@@ -92,7 +109,9 @@ Il completamento della fase A non autorizza automaticamente il merge. Le fasi C�
 
 **Perché conta:** header e navigazione accompagnano quasi tutte le schermate e fanno percepire immediatamente quanto il prodotto sia coerente.
 
-**Base:** shell, sidebar desktop e menu mobile già esplorati; header, cronologia e contenuto principale hanno esigenze di densità diverse. Evitare di alterare lo scrolling del documento e i collegamenti a frammento già ripristinati.
+**Stato:** refactor anticipato in N3, dopo Notebook/Synthesis e object store/R2, secondo la revisione del 21 ottobre.
+
+**Base:** shell, sidebar desktop e menu mobile già esplorati; header, cronologia e contenuto principale hanno esigenze di densità diverse. Separare lo scroll della navigazione dallo scroll del documento e preservare i collegamenti a frammento già ripristinati.
 
 **Interventi:**
 
@@ -100,11 +119,15 @@ Il completamento della fase A non autorizza automaticamente il merge. Le fasi C�
 - Chiarire pagina attiva, percorso di ritorno e differenza tra navigazione e azioni che aprono overlay.
 - Rifinire cronologia: nomi lunghi, date, icone, stato vuoto e spazio occupato.
 - Verificare menu utente, tema e notifiche: ancoraggio, chiusura, focus e target touch.
-- Rendere coerenti le versioni mobile e desktop senza riprogettare la navigazione del prodotto.
+- Spostare il proprietario dello scroll all’inizio dell’elenco di navigazione: l’area scrollabile comprende voci e cronologia, invece di iniziare soltanto dalla cronologia. Mantenere la navigazione sticky nella shell; valutare al massimo uno o due elementi fissi e una densità minore delle voci, senza decidere ora quali fissare.
+- Su mobile eliminare il dropdown «Funzionalità» e mostrare le relative voci direttamente nell’offcanvas. Verificare che tutte le destinazioni restino raggiungibili anche con elenchi lunghi e poco spazio verticale.
+- Su desktop, la sidebar collassata rimane visibile come colonna di icone con tooltip/title e nomi accessibili. Preservare riconoscibilità della destinazione attiva e uso da tastiera; i tooltip devono essere fruibili anche con focus.
+- Sostituire il toggle absolute con un comando in flusso: espansione nella sidebar collassata, collasso in quella espansa. Verificare ingombro, focus e aggiornamento del gutter nei due stati.
+- Allineare stile, colori, superfici, densità e stati hover/focus/attivo ai token e al linguaggio visivo emersi dai refactor già eseguiti, nei due temi. Ridurre gli ingombri dove utile mantenendo target touch utilizzabili e testo leggibile.
 - Riprodurre il cambio di breakpoint senza reload: durante la QA il gutter della shell può conservare una geometria precedente; controllare contenuto e sidebar dopo resize/rotazione. Le viste finali desktop sono state verificate dopo reload.
 - Verificare apertura diretta di una molecola salvata durante il ripristino della sessione: in una prova il reload ha portato alla variante pubblica, mentre la navigazione interna dopo il ripristino ha aperto quella salvata. Isolare la causa tra PX-01 e PX-23 prima del merge.
 
-**Accettazione:** un utente identifica dove si trova e come tornare indietro; nessun menu nasconde il controllo necessario per chiuderlo; focus e collegamenti restano funzionanti dopo cambi route e breakpoint.
+**Accettazione:** navigazione e cronologia condividono un proprietario dello scroll dall’inizio dell’elenco; eventuali elementi fissi non sottraggono spazio eccessivo. Sidebar collassata visibile con icone e tooltip/title; espansione/collasso in flusso, gutter corretto e nessuna sovrapposizione. Offcanvas mobile senza dropdown Funzionalità, con destinazioni e chiusura sempre raggiungibili. Pagina attiva, focus, collegamenti e stile restano coerenti nei due temi, dopo cambi route, resize e rotazione.
 
 **Sorgenti:** [app.component.ts](../../src/app/app.component.ts), [header](../../src/app/components/common/header/header.component.ts), [sidenav](../../src/app/components/common/sidenav/sidenav.component.ts), [footer](../../src/app/components/common/footer/footer.component.ts).
 
@@ -548,7 +571,7 @@ Fonti: [registro azioni](../../src/app/components/action-components/action-overl
 
 ## Ordine di lavoro a piccoli blocchi
 
-Ogni riga è un'unità di lavoro, non una promessa di completamento in un giorno. Una giornata può contenere soltanto osservazione e proposta, oppure implementazione e verifica di un sottoinsieme. Non accumulare più aree incompiute per rispettare il calendario.
+Le priorità N1–N3 precedono ora la sequenza residua qui sotto. I numeri storici dei blocchi sono mantenuti per non invalidare i riferimenti del diario. Ogni riga è un'unità di lavoro, non una promessa di completamento in un giorno. Una giornata può contenere soltanto osservazione e proposta, oppure implementazione e verifica di un sottoinsieme. Non accumulare più aree incompiute per rispettare il calendario.
 
 | Ordine | Blocco | Risultato concreto da portare alla review |
 |---|---|---|
@@ -565,7 +588,7 @@ Ogni riga è un'unità di lavoro, non una promessa di completamento in un giorno
 | 11 | PX-11 — Tox21 | Risultati e stati comunicati senza ambiguità |
 | 12 | PX-08 — Editor: layout e modalità | Canvas e modalità integrati nella gerarchia della pagina |
 | 13 | PX-08 — Editor: stati e percorso finale | Draft, validazione e salvataggio verificati insieme |
-| 14 | PX-01 — Shell | Navigazione, menu, cronologia e gutter allineati al percorso centrale |
+| 14 | PX-01 — Regressione shell dopo N3 | Verificare navigazione rifatta, menu, cronologia e gutter sul percorso centrale, senza duplicare il refactor anticipato |
 | 15 | PX-02 — Home e welcome | Prima impressione allineata a schermate reali già curate |
 | 16 | PX-03 — Accesso | Percorso e-mail/password/SSO coerente |
 | 17 | PX-03/PX-14 — Registrazione e recupero | Stati e token verificati con fixture appropriate |
@@ -585,11 +608,13 @@ Ogni riga è un'unità di lavoro, non una promessa di completamento in un giorno
 
 PX-19 accompagna ogni blocco. Non aspettare la fine per curare focus, errori, nomi accessibili e stati di caricamento. Se home o accesso devono essere mostrati subito a un cliente, anticipare i blocchi 15–16 senza aprire un redesign globale.
 
-PX-22 e PX-23 accompagnano gli interventi pertinenti; le righe 26–27 sono il passaggio di regressione finale, non il primo momento in cui verificare questi comportamenti. Il prossimo blocco previsto è **13 — PX-08, editor: stati e percorso finale**. La verifica fisica della tastiera secondo [KEYBOARD-QA.md](KEYBOARD-QA.md) resta aperta prima dell'accettazione e del merge; i blocchi 01–12 restano in review. L'utente ha autorizzato il proseguimento della roadmap durante questa QA.
+PX-22 e PX-23 accompagnano gli interventi pertinenti; le righe 26–27 sono il passaggio di regressione finale, non il primo momento in cui verificare questi comportamenti. I prossimi interventi sono **N1 — Notebook e Synthesis**, **N2 — object store/R2** e **N3 — navigazione/sidebar/offcanvas**. Il blocco **13 — PX-08, editor: stati e percorso finale** resta il punto di ripresa della sequenza UX dopo queste priorità. La verifica fisica della tastiera secondo [KEYBOARD-QA.md](KEYBOARD-QA.md) resta aperta prima dell'accettazione e del merge; i blocchi 01–12 restano in review. L'utente ha autorizzato il proseguimento della roadmap durante questa QA.
 
-## Lavoro successivo al merge
+## Macro-feature e refactor anticipati
 
 ### MF-01 — Notebook
+
+**Priorità N1; sviluppo gestito dall’utente su un branch `feature/**` creato dal corrente e reintegrato nel corrente prima del merge finale.**
 
 Macro-feature indicata dall'utente il 7 ottobre. Nel repository sono presenti il modulo backend `lab-notebook` e componenti, servizio e documenti GraphQL frontend; questi elementi non dimostrano che il percorso prodotto sia completo.
 
@@ -601,6 +626,8 @@ Macro-feature indicata dall'utente il 7 ottobre. Nel repository sono presenti il
 
 ### MF-02 — Synthesis
 
+**Priorità N1; sviluppo gestito dall’utente su un branch `feature/**` creato dal corrente e reintegrato nel corrente prima del merge finale.**
+
 Macro-feature indicata dall'utente il 7 ottobre. Nel repository sono presenti servizi, resolver e modelli del modulo backend `synth`; la disponibilità e completezza dei flussi esposti vanno verificate prima della progettazione frontend.
 
 - Inventariare i contratti e le operazioni disponibili e definire il percorso utente senza presumere nuove capacità scientifiche o nuove regole di prodotto.
@@ -609,7 +636,20 @@ Macro-feature indicata dall'utente il 7 ottobre. Nel repository sono presenti se
 
 **Sorgenti da analizzare:** [backend Synthesis](../../../MercurionWebNode/src/app_modules/synth/).
 
-L'ordine e le dipendenze tra MF-01 e MF-02 saranno stabiliti dopo l'analisi dei contratti; non sono dedotti dai soli nomi delle feature.
+L’utente gestisce ordine e reintegrazione di MF-01 e MF-02. Eventuali dipendenze saranno confermate dai contratti; entrambe fanno parte del perimetro precedente al merge finale.
+
+### INF-01 — Refactor object store backend e porting Dropbox → Cloudflare R2
+
+**Priorità N2; da affrontare dopo N1 e prima del refactor della navigazione.** Intervento aggiunto il 21 ottobre; implementazione non avviata da questo aggiornamento documentale.
+
+- Inventariare l’object store esistente, i contratti e tutti i consumatori backend/frontend, comprese le nuove feature dove effettivamente collegate.
+- Rifattorizzare l’integrazione backend e portare le operazioni oggi basate su Dropbox a Cloudflare R2, mantenendo espliciti i comportamenti applicativi attesi.
+- Definire gestione degli oggetti e dei riferimenti esistenti, eventuale trasferimento dati, configurazione degli ambienti e passaggio al nuovo provider prima dell’esecuzione. Questo piano non autorizza trasferimenti, eliminazioni o modifiche di infrastruttura.
+- Verificare isolamento degli account, autorizzazioni, caricamento, lettura/download, aggiornamento ed eliminazione dove previsti, oltre a errori e riferimenti non disponibili. Usare dati di test rappresentativi e controllare le regressioni dei consumatori.
+
+**Accettazione:** operazioni e contratti previsti funzionanti su R2, riferimenti ai file coerenti e gestione dei contenuti esistenti documentata e verificata nel perimetro concordato. Nessuna perdita di dati o modifica involontaria dell’accesso ai file. Dettagli tecnici e piano di passaggio da definire dopo l’inventario, senza introdurre qui nuove decisioni architetturali.
+
+## Migrazione successiva
 
 ### UP-01 — Migrazione ad Angular 22
 
@@ -649,7 +689,7 @@ Lo stato **Accettato** richiede la review manuale dell'utente. Non equivale a me
 
 - `/__local/dummy-auth` e `/btn-playground`: strumenti locali/interni; utili per verifica, non tappe del portfolio cliente.
 - `/admin/maintenance/:token`: percorso operativo con requisiti specifici; rifinitura separata soltanto se entra nel perimetro di una demo autorizzata.
-- Componenti notebook presenti nei sorgenti ma non collegati al routing principale esaminato: non presentarli come funzionalità complete. Decidere prima se debbano far parte del prodotto dimostrato.
+- Componenti Notebook ancora non collegati al routing principale: non presentarli come funzionalità complete finché MF-01 non ne ha completato e verificato l’integrazione nel percorso prodotto.
 - Redirect `/profile`, wildcard e callback SSO non richiedono una nuova pagina decorativa: verificare destinazione, attesa ed errori pertinenti.
 
 ## Decisioni da definire quando servono
