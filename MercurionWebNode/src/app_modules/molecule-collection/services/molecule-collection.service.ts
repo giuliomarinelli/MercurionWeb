@@ -1,6 +1,6 @@
 import { errorMessage } from 'src/utils/errors/error-message'
 /* eslint-disable no-useless-escape */
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, EntityManager, In, QueryFailedError, Repository } from 'typeorm';
 import { UUID } from 'crypto';
@@ -14,6 +14,7 @@ import { uuidv7 } from '@kripod/uuidv7';
 import { GeneralUtils } from 'src/utils/general-utils/general-utils';
 import { MoleculeCollectionItemJoin } from '../models/entities/molecule-collection-item-join.entity';
 import { ChEMBLMoleculeItemEntity } from '../models/entities/chembl-molecule-item.entity';
+import { MoleculeCollectionItemEntity } from '../models/entities/molecule-collection-item.entity';
 import { LoggerPort } from 'src/logging/logger.port';
 import { LoggerContext } from 'src/logging/logger.port';
 import { pruneNullCollectionJoins } from '../utils/prune-molecule-collection-joins.util';
@@ -126,27 +127,6 @@ INSERT INTO public.molecule_collections
   (id, user_id, name, created_at, updated_at, touched_at)
 SELECT id, user_id, name, created_at, updated_at, touched_at
 FROM final_rows;
-`
-
-  private readonly DELETE_COLLECTION_AND_ORPHAN_MOLECULES_QUERY = `WITH candidates AS (
-  SELECT DISTINCT j.item_id
-  FROM molecule_collection_items_join j
-  WHERE j.collection_id = $1::uuid
-    AND j.user_id      = $2::uuid
-),
-del_coll AS (
-  DELETE FROM molecule_collections c
-  WHERE c.id      = $1::uuid
-    AND c.user_id = $2::uuid
-  RETURNING c.id
-)
-DELETE FROM molecule_collection_items i
-WHERE i.user_id = $2::uuid
-  AND i.id IN (SELECT item_id FROM candidates)
-  AND NOT EXISTS (
-    SELECT 1 FROM molecule_collection_items_join j2
-    WHERE j2.item_id = i.id
-  );
 `
 
   private readonly logger: LoggerContext
@@ -305,6 +285,26 @@ WHERE i.user_id = $2::uuid
           }
         })
 
+        // Refuse a partial clone of historical cross-owner associations.
+        // The join.userId alone is not a proof that both parents are owned.
+        const srcJoins = await manager.find(MoleculeCollectionItemJoin, {
+          where: { collectionId: srcCollectionId },
+          select: { itemId: true, userId: true }
+        })
+        if (srcJoins.some(join => join.userId !== userId)) {
+          throw new ForbiddenException('CollectionMembershipOwnershipConflict')
+        }
+        const sourceItemIds = Array.from(new Set(srcJoins.map(join => join.itemId)))
+        if (sourceItemIds.length > 0) {
+          const ownedItems = await manager.find(MoleculeCollectionItemEntity, {
+            where: { userId, id: In(sourceItemIds) },
+            select: { id: true }
+          })
+          if (ownedItems.length !== sourceItemIds.length) {
+            throw new ForbiddenException('CollectionMembershipOwnershipConflict')
+          }
+        }
+
         const now = Date.now()
         const uqName = await this.resolveUniqueCollectionName(
           manager,
@@ -322,13 +322,6 @@ WHERE i.user_id = $2::uuid
         })
 
         const newCollectionPers = await manager.save(MoleculeCollection, newCollection)
-
-        const srcJoins = await manager.find(MoleculeCollectionItemJoin, {
-          where: { userId, collectionId: srcCollectionId },
-          select: {
-            item: true
-          }
-        })
 
         const rows = srcJoins.map(j => ({
           id: uuidv7() as UUID,
@@ -441,7 +434,10 @@ WHERE i.user_id = $2::uuid
   async delete(collectionId: UUID, userId: UUID): Promise<boolean> {
     try {
       return await runInTransaction(this.dataSource, async (_context, manager) => {
-        await manager.query(this.DELETE_COLLECTION_AND_ORPHAN_MOLECULES_QUERY, [collectionId, userId])
+        // Deleting a collection removes its memberships, not the molecules.
+        // The legacy trg_purge_orphan_items must be removed before deployment.
+        const deleted = await manager.delete(MoleculeCollection, { id: collectionId, userId })
+        if ((deleted.affected ?? 0) === 0) return false
         await manager.delete(History, {
           itemId: collectionId,
           itemEntity: HistoryItemEntity.MoleculeCollection,
