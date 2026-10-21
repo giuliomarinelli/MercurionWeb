@@ -2,6 +2,7 @@ import { BadRequestException, ConflictException, Injectable, NotFoundException }
 import { InjectDataSource } from '@nestjs/typeorm'
 import { UUID } from 'crypto'
 import { DataSource, EntityManager } from 'typeorm'
+import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity'
 import { LabNotebook } from './entities/lab-notebook.entity'
 import { NotebookSection } from './entities/notebook-section.entity'
 import { NotebookExperiment } from './entities/notebook-experiment.entity'
@@ -114,11 +115,12 @@ export class NotebookDomainService {
     return this.dataSource.transaction(async manager => {
       const existing = await this.ownedNotebook(manager, userId, id)
       if (existing.archivedAt != null) throw new ConflictException('LAB_NOTEBOOK_ARCHIVED')
-      const patch: Partial<LabNotebook> = { updatedAt: Date.now() }
+      const patch: QueryDeepPartialEntity<LabNotebook> = { updatedAt: Date.now() }
       if (input.title !== undefined) patch.title = requireNotebookTitle(input.title)
       if (input.premiseDelta !== undefined) {
         const value = validateNotebookDelta(input.premiseDelta)
-        patch.premiseDelta = value.delta
+        // TypeORM recursively maps unknown JSON values, but jsonb is written as a whole.
+        patch.premiseDelta = value.delta as QueryDeepPartialEntity<LabNotebook>['premiseDelta']
         patch.premiseText = value.sanitizedText
       }
       await manager.update(LabNotebook, { id, userId }, patch)
@@ -168,11 +170,11 @@ export class NotebookDomainService {
     const id = input.id as UUID
     return this.dataSource.transaction(async manager => {
       await this.ownedSection(manager, userId, id)
-      const patch: Partial<NotebookSection> = { updatedAt: Date.now() }
+      const patch: QueryDeepPartialEntity<NotebookSection> = { updatedAt: Date.now() }
       if (input.title !== undefined) patch.title = requireNotebookTitle(input.title)
       if (input.contentDelta !== undefined) {
         const value = validateNotebookDelta(input.contentDelta)
-        patch.contentDelta = value.delta
+        patch.contentDelta = value.delta as QueryDeepPartialEntity<NotebookSection>['contentDelta']
         patch.sanitizedText = value.sanitizedText
       }
       await manager.update(NotebookSection, { id, userId }, patch)
@@ -213,11 +215,11 @@ export class NotebookDomainService {
     return this.dataSource.transaction(async manager => {
       const experiment = await this.ownedExperiment(manager, userId, id)
       if (experiment.archivedAt != null) throw new ConflictException('NOTEBOOK_EXPERIMENT_ARCHIVED')
-      const patch: Partial<NotebookExperiment> = { updatedAt: Date.now() }
+      const patch: QueryDeepPartialEntity<NotebookExperiment> = { updatedAt: Date.now() }
       if (input.title !== undefined) patch.title = requireNotebookTitle(input.title)
       if (input.contentDelta !== undefined) {
         const value = validateNotebookDelta(input.contentDelta)
-        patch.contentDelta = value.delta
+        patch.contentDelta = value.delta as QueryDeepPartialEntity<NotebookExperiment>['contentDelta']
         patch.sanitizedText = value.sanitizedText
       }
       await manager.update(NotebookExperiment, { id, userId }, patch)
@@ -280,11 +282,11 @@ export class NotebookDomainService {
           execution.status === 'COMPLETED' || execution.status === 'CANCELLED') {
         throw new ConflictException('EXPERIMENT_EXECUTION_FINALIZED')
       }
-      const patch: Partial<ExperimentExecution> = { updatedAt: Date.now() }
+      const patch: QueryDeepPartialEntity<ExperimentExecution> = { updatedAt: Date.now() }
       if (input.title !== undefined) patch.title = requireNotebookTitle(input.title)
       if (input.contentDelta !== undefined) {
         const value = validateNotebookDelta(input.contentDelta)
-        patch.contentDelta = value.delta
+        patch.contentDelta = value.delta as QueryDeepPartialEntity<ExperimentExecution>['contentDelta']
         patch.sanitizedText = value.sanitizedText
       }
       await manager.update(ExperimentExecution, { id, userId }, patch)

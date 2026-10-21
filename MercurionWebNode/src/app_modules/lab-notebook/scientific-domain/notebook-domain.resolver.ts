@@ -78,14 +78,14 @@ export class LabNotebookDomainResolver {
 
 @Resolver(() => NotebookSection)
 export class NotebookSectionDomainResolver {
-  constructor(private readonly notebook: NotebookDomainService) {}
+  constructor(private readonly notebookService: NotebookDomainService) {}
 
   @Query(() => [NotebookSection])
   async notebookSections(
     @AuthenticatedUserId() userId: UUID,
     @Args('notebookId', { type: () => ID }) notebookId: string
   ): Promise<NotebookSection[]> {
-    return this.notebook.listSections(userId, ownerId(notebookId, 'notebookId'))
+    return this.notebookService.listSections(userId, ownerId(notebookId, 'notebookId'))
   }
 
   @Query(() => NotebookSection, { nullable: true })
@@ -93,7 +93,7 @@ export class NotebookSectionDomainResolver {
     @AuthenticatedUserId() userId: UUID,
     @Args('id', { type: () => ID }) id: string
   ): Promise<NotebookSection> {
-    return this.notebook.findSection(userId, ownerId(id))
+    return this.notebookService.findSection(userId, ownerId(id))
   }
 
   @Mutation(() => NotebookSection)
@@ -102,7 +102,7 @@ export class NotebookSectionDomainResolver {
     @Args('input') input: NotebookSectionCreateInput
   ): Promise<NotebookSection> {
     ownerId(input.notebookId, 'notebookId')
-    return this.notebook.createSection(userId, input)
+    return this.notebookService.createSection(userId, input)
   }
 
   @Mutation(() => NotebookSection)
@@ -111,7 +111,7 @@ export class NotebookSectionDomainResolver {
     @Args('input') input: NotebookSectionPatchInput
   ): Promise<NotebookSection> {
     ownerId(input.id)
-    return this.notebook.patchSection(userId, input)
+    return this.notebookService.patchSection(userId, input)
   }
 
   @Mutation(() => Boolean)
@@ -119,17 +119,17 @@ export class NotebookSectionDomainResolver {
     @AuthenticatedUserId() userId: UUID,
     @Args('input') input: NotebookOrderInput
   ): Promise<boolean> {
-    return this.notebook.reorderSections(userId, ownerId(input.parentId, 'parentId'), reorderedIds(input))
+    return this.notebookService.reorderSections(userId, ownerId(input.parentId, 'parentId'), reorderedIds(input))
   }
 
   @ResolveField(() => LabNotebook)
   async notebook(@Parent() section: NotebookSection): Promise<LabNotebook> {
-    return this.notebook.findNotebook(section.userId, section.notebookId)
+    return this.notebookService.findNotebook(section.userId, section.notebookId)
   }
 
   @ResolveField(() => [NotebookExperiment])
   async experiments(@Parent() section: NotebookSection): Promise<NotebookExperiment[]> {
-    return this.notebook.listExperiments(section.userId, section.id)
+    return this.notebookService.listExperiments(section.userId, section.id)
   }
 }
 
