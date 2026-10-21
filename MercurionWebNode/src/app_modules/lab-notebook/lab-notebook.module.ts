@@ -1,38 +1,43 @@
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { LabNotebookLink } from './models/dto/lab-notebook-link.entity';
-import { NotebookChapter } from './models/entities/lab-notebook-chapter.entity';
-import { NotebookPage } from './models/entities/lab-notebook-page.entity';
-import { NotebookSection } from './models/entities/lab-notebook-section.entity';
-import { LabNotebook } from './models/entities/lab-notebook.entity';
-import { LabNotebookService } from './services/lab-notebook.service';
-import { NotebookPageService } from './services/notebook-page.service';
-import { NotebookChapterService } from './services/notebook-chapter.service';
-import { NotebookSectionService } from './services/notebook-section.service';
-import { NotebookPagePageResolver } from './resolvers/page.resolver';
-import { NotebookChapterResolver } from './resolvers/notebook-chapter.resolver';
-import { NotebookSectionResolver } from './resolvers/notebook-section.resolver';
-import { LabNotebookResolver } from './resolvers/lab-notebook.resolver';
+import { Module } from '@nestjs/common'
+import { TypeOrmModule } from '@nestjs/typeorm'
+import { LabNotebook } from './scientific-domain/entities/lab-notebook.entity'
+import { NotebookSection } from './scientific-domain/entities/notebook-section.entity'
+import { NotebookExperiment } from './scientific-domain/entities/notebook-experiment.entity'
+import { ExperimentExecution } from './scientific-domain/entities/experiment-execution.entity'
+import { ExperimentProtocolRevision } from './scientific-domain/entities/experiment-protocol-revision.entity'
+import { NotebookDomainService } from './scientific-domain/notebook-domain.service'
+import { ExperimentProtocolService } from './scientific-domain/experiment-protocol.service'
+import {
+  LabNotebookDomainResolver,
+  NotebookSectionDomainResolver,
+  NotebookExperimentDomainResolver,
+  ExperimentExecutionDomainResolver,
+  ExperimentProtocolRevisionDomainResolver
+} from './scientific-domain/notebook-domain.resolver'
 
+/**
+ * DB-first scientific Notebook v1.
+ * The legacy chapter/section/page GraphQL resolvers are intentionally not
+ * registered: those tables no longer exist after PostgreSQL 16 cutover.
+ */
 @Module({
-    imports: [
-        TypeOrmModule.forFeature([
-            LabNotebookLink,
-            NotebookChapter,
-            NotebookPage,
-            NotebookSection,
-            LabNotebook 
-        ])
-    ],
-    providers: [
-        LabNotebookService,
-        NotebookPageService,
-        NotebookChapterService,
-        NotebookSectionService,
-        NotebookPagePageResolver,
-        NotebookChapterResolver,
-        NotebookSectionResolver,
-        LabNotebookResolver
-    ]
+  imports: [
+    TypeOrmModule.forFeature([
+      LabNotebook,
+      NotebookSection,
+      NotebookExperiment,
+      ExperimentExecution,
+      ExperimentProtocolRevision
+    ])
+  ],
+  providers: [
+    NotebookDomainService,
+    ExperimentProtocolService,
+    LabNotebookDomainResolver,
+    NotebookSectionDomainResolver,
+    NotebookExperimentDomainResolver,
+    ExperimentExecutionDomainResolver,
+    ExperimentProtocolRevisionDomainResolver
+  ]
 })
-export class LabNotebookModule { }
+export class LabNotebookModule {}
