@@ -12,8 +12,8 @@ WITH expected_tables(name) AS (
   SELECT count(*) AS present FROM expected_tables
   WHERE to_regclass(format('public.%I',name)) IS NOT NULL
 ), fk_state AS (
-  SELECT conrelid::regclass::text AS from_table,
-         confrelid::regclass::text AS to_table,
+  SELECT conrelid AS from_table,
+         confrelid AS to_table,
          confdeltype AS delete_action
   FROM pg_constraint
   WHERE contype='f'
@@ -36,11 +36,11 @@ WITH expected_tables(name) AS (
       'trg_experiment_execution_history',
       'trg_synthesis_pool_custom_only')) AS integrity_triggers,
     (SELECT count(*) FROM fk_state
-       WHERE from_table='synthesis_pool_molecules' AND to_table='molecule_collection_items' AND delete_action='c') AS cascade_molecule_pool,
+       WHERE from_table='public.synthesis_pool_molecules'::regclass AND to_table='public.molecule_collection_items'::regclass AND delete_action='c') AS cascade_molecule_pool,
     (SELECT count(*) FROM fk_state
-       WHERE from_table='synth_step_items' AND to_table='synthesis_pool_molecules' AND delete_action='c') AS cascade_pool_step,
+       WHERE from_table='public.synth_step_items'::regclass AND to_table='public.synthesis_pool_molecules'::regclass AND delete_action='c') AS cascade_pool_step,
     (SELECT count(*) FROM fk_state
-       WHERE from_table='experiment_execution_molecule_links' AND to_table='molecule_collection_items' AND delete_action='c') AS cascade_molecule_live_link,
+       WHERE from_table='public.experiment_execution_molecule_links'::regclass AND to_table='public.molecule_collection_items'::regclass AND delete_action='c') AS cascade_molecule_live_link,
     (SELECT count(*) FROM pg_constraint
        WHERE conrelid='public.lab_experiment_protocol_revisions'::regclass AND contype='f'
          AND confrelid='public.lab_notebook_experiments'::regclass AND confdeltype='r') AS restrict_protocol_experiment,
