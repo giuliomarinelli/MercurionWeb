@@ -92,3 +92,31 @@ Un file SQL read-only ulteriore (`00d_cross_owner_final_repair_plan_pg16.sql`) c
 6. verificare zero cross-owner, zero duplicati di join, nessuna cancellazione involontaria di molecole e che l'operazione sia atomica.
 
 Non e' stata ancora concessa autorizzazione distruttiva per le join di Molecule Collection, e il CSV non include identificatori sufficienti a predisporre un fix statico completo. Nessun DELETE/UPDATE/INSERT e' stato eseguito.
+
+## Piano di riparazione definitivo: diagnostico 00d (21/10/2026)
+
+L'ultimo CSV autorizza precisamente le seguenti azioni:
+- DELETE_FOREIGN_COLLECTION_LINK: 123
+- DELETE_REDUNDANT_EXISTING_TARGET: 43
+- DELETE_DUPLICATE_TARGET: 4
+- UPDATE_TO_EXISTING_LOCAL_ITEM: 23
+- REMAP_AFTER_CREATE_LOCAL_ITEM: 114
+- REQUIRES_MANUAL_REVIEW: 0
+- Nuove molecole ChEMBL locali necessarie: 19.
+- Totale link modificati: 307; DELETE 170, UPDATE 137, CREATE ChEMBL item 19. Nessun DELETE intenzionale di molecole o collezioni.
+
+L'utente ha autorizzato la rimozione dei join invalidi e ridondanti; tale autorizzazione NON comprende la cancellazione delle molecule items preesistenti.
+
+È stato preparato un pacchetto operativo esterno al repository, con UUIDv7 generati fuori dal database e ricondotti a una specifica immagine del DB reale, per evitare di pubblicare UUID personali nel sorgente:
+- 10_repair_cross_owner_chembl_pg16.sql (transazione, 307 IDs/owner fingerprint, lock e validazione fail-closed; rimuove trg_purge_orphan_items)
+- 11_postrepair_validation_readonly.sql (verifica in sessione distinta)
+- manifest_uuidv7.csv e README.md.
+
+Tali script NON sono stati eseguiti dall'assistente su PostgreSQL; la validazione finora è statica, e il cutover deve essere eseguito manualmente con backup + maintenance window e verifica a posteriori.
+
+Correzioni Nest preparate nel branch della feature:
+- MoleculeCollectionService.delete elimina la collezione e quindi le membership in cascata, senza cancellare le molecole.
+- MoleculeCollectionService.duplicate verifica che tutti i join e tutti i molecule items sorgenti appartengano al proprietario; un dato legacy incoerente causa fallimento prima della creazione della copia.
+- Unit test di regressione per questi comportamenti.
+
+Prima di consentire nuovi DELETE di collezioni in ambiente attivo, è indispensabile sincronizzare il codice Nest con l'eliminazione del trigger: una versione vecchia del backend contiene anche una query esplicita che cancella le molecole orfane. Le FK DB attualmente semplici restano intenzionali; gli @JoinColumn TypeORM più restrittivi verranno analizzati nel successivo audit dei modelli.
