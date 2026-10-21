@@ -11,6 +11,7 @@ import { MoleculeCollectionResolver } from './resolvers/molecule-collection.reso
 import { MoleculeCollectionItemResolver } from './resolvers/molecule-collection-item.resolver';
 import { MoleculeCollectionItemJoinService } from './services/molecule-collection-item-join.service';
 import { CustomMoleculeItemService } from './services/custom-molecule-item.service';
+import { CustomMoleculeResolutionService } from './services/custom-molecule-resolution.service';
 import { ChEMBLMoleculeItemResolver } from './resolvers/chembl-molecule-item.resolver';
 import { CustomMoleculeItemResolver } from './resolvers/custom-molecule-item.resolver';
 import { ChEMBLMoleculeItemService } from './services/chembl-molecule-item.service';
@@ -38,6 +39,7 @@ import { MoleculeCollectionItemCountLoader } from './services/molecule-collectio
         MoleculeCollectionItemResolver,
         MoleculeCollectionItemJoinService,
         CustomMoleculeItemService,
+        CustomMoleculeResolutionService,
         ChEMBLMoleculeItemResolver,
         CustomMoleculeItemResolver,
         ChEMBLMoleculeItemService,
@@ -49,6 +51,7 @@ import { MoleculeCollectionItemCountLoader } from './services/molecule-collectio
         ChEMBLMoleculeItemService,
         InitialWorkspaceService,
         CustomMoleculeItemService,
+        CustomMoleculeResolutionService,
     ]
 })
 export class MoleculeCollectionModule { }
