@@ -1,6 +1,6 @@
-import { Field, ID, InputType, Int } from '@nestjs/graphql'
+import { Field, ID, InputType } from '@nestjs/graphql'
 import { GraphQLJSONObject } from 'graphql-type-json'
-import { ArrayUnique, IsArray, IsInt, IsOptional, IsString, MaxLength, Min } from 'class-validator'
+import { ArrayUnique, IsArray, IsOptional, IsString, MaxLength } from 'class-validator'
 
 @InputType()
 export class ScientificNotebookCreateInput {
