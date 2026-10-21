@@ -1,35 +1,43 @@
-# PostgreSQL 16 reconciliation — runbook
+# PostgreSQL 16 — riconciliazione DB-first Notebook e Synthesis
 
-## Avvertenza operativa
+Stato: decisioni utente confermate il 21 ottobre 2026. Documento di pianificazione; NON conferma che il DDL sia stato applicato.
 
-La fonte di verita e il database PostgreSQL reale, non le decorazioni TypeORM. Questo runbook e basato sui DDL forniti il 21/10/2026. Non prova che tabelle e contenuti siano invariati al momento dell'esecuzione.
+## Autorità dello schema
 
-Il repository mantiene documenti storici sul workflow TypeORM migrations: per questa attivita prevale la decisione DB-first approvata dall'utente. Applicare SQL versionati e revisionati, NON TypeORM synchronize o migration:run.
+- PostgreSQL 16 è la fonte della verità; TypeORM entity/DTO/service devono aderirvi.
+- In questo programma NON utilizzare TypeORM migrations né TypeORM synchronize per modificare lo schema.
+- La generazione degli UUID (UUIDv7) resta lato applicazione.
+- Le FK su identificatori singoli (senza user_id) sono INTENZIONALI: minor accoppiamento sullo schema. L'ownership del proprietario e la coerenza delle relazioni cross-owner/cross-synthesis vanno verificate dai servizi con query owner-scoped e test negativi, non inferite dalle sole FK.
 
-## Differenze osservate
+## Ambito delle operazioni distruttive autorizzate
 
-- PostgreSQL: synth_steps, synth_step_molecule_refs con main_substrate_id/main_product_id e conditions JSONB; mancano synth_step_items, synthesis_pool_molecules, synthesis_pool_collections.
-- Entity Nest: sintetizzatore a pool custom e items tipizzati, con FKs alle nuove tabelle. Il backend corrente non e quindi pronto per i DDL legacy.
-- PostgreSQL: nessuna UNIQUE(user_id,canonical_smiles) per type=custom; esiste UNIQUE(user_id,chembl_molregno).
-- Vecchi LabNotebook chapters/sections/pages hanno significato diverso dai nomi del dominio approvato. Il rename richiede anche refactor dei contratti GraphQL/Angular.
-- Join molecule_collection_items_join ha trigger AFTER DELETE trg_purge_orphan_items da ispezionare prima di attivare nuovi legami persistenti alle sintesi.
-- Legacy synth_steps_main_substrate_molecule_collection_items_fk punta a main_product_id (anomalia reale nel DDL).
-- Legacy synth_step_molecule_refs.step_id NOT NULL con FK ON DELETE SET NULL (incoerente).
-- lab_notebook_links non espone user_id o vincolo di unicita per coppia; coinvolge risorse owner-scoped.
+Notebook e Synthesis sono stati prototipi senza un workflow e2e utilizzato. Il proprietario autorizza esplicitamente a perdere eventuali dati legacy di QUESTI due domini, inclusi gli oggetti lab_notebook_chapters, lab_notebook_sections, lab_notebook_pages, lab_notebook_links e synth_step_molecule_refs, anche tramite DROP e CREATE ex novo.
 
-## Fasi di cutover
+Questa autorizzazione NON si estende a molecule_collection_items, molecule_collection_items_join, molecule_collections, users, documents, o altri domini. Vietato usare CASCADE indiscriminato: un DROP RESTRICT che fallisce su dipendenze esterne deve bloccare la procedura e far esaminare il vincolo.
 
-0. Backup verificato/ripristinabile e snapshot dello schema; misurare il numero di righe di ciascuna tabella e i riferimenti legacy.
-1. Eseguire SQL preflight in sola lettura; arrestarsi su duplicati custom o ownership cross-user.
-2. Aggiungere invarianti custom (UNIQUE parziale, struttura immutabile), rimuovendo prima gli update illegittimi dalle mutation del backend.
-3. Creare in modo additivo il nuovo modello Synthesis e del Notebook, senza DROP o rename prematuri.
-4. Migrare eventuali dati legacy di sintesi secondo mapping revisionato; i riferimenti ChEMBL non si possono convertire con sola SQL senza struttura canonica. Non cancellare la tabella legacy fino a che mapping e conteggi non tornino.
-5. Deploy coordinato dei contratti Nest, GraphQL generati, Angular e scripts di rename/compatibilita. Rifiutare richieste se il livello schema non e compatibile.
-6. Validare integrita con query, test PostgreSQL reali, e2e e backup. Eliminazione dei vecchi artefatti solo in una fase contract successiva e approvata.
+## Differenze concrete osservate nei DDL forniti
 
-## Prerequisiti non disponibili in chat
+- DB legacy synth_steps contiene main_substrate_id, main_product_id e conditions, e synth_step_molecule_refs; il backend più recente si aspetta synth_step_items, synthesis_pool_molecules e synthesis_pool_collections.
+- La FK legacy "synth_steps_main_substrate_molecule_collection_items_fk" punta per errore a main_product_id.
+- La FK legacy synth_step_molecule_refs.step_id usa ON DELETE SET NULL nonostante la colonna NOT NULL.
+- DB legacy Notebook: capitoli/sezioni/pagine riflettono terminologia abbandonata; gerarchia canonica: LabNotebook -> NotebookSection -> NotebookExperiment -> ExperimentExecution.
+- Su molecule_collection_items manca una UNIQUE parziale(owner,canonical_smiles) per custom; il solo controllo del servizio Nest non è atomicamente sufficiente.
+- molecule_collection_items_join usa il trigger purge_orphan_items, potenzialmente in conflitto con nuove referenze persistenti alla stessa molecola.
 
-- Nessuna connessione diretta al PostgreSQL dell'utente: non e possibile attestare che gli script siano stati eseguiti.
-- DDL della funzione purge_orphan_items() e conteggi delle righe non forniti.
-- Non sono note le distribuzioni e la semantica storica dei ruoli nella tabella synth_step_molecule_refs.
-- Non sono stati ispezionati snapshot di dati/Quill Delta reali, pertanto i contenuti testuali vanno preservati senza backfill automatico.
+## Sequenza di lavoro
+
+0. Salvare backup ripristinabile e verificare un database di test. NON eseguire il rebuild su un DB usato dal backend attivo.
+1. Eseguire il preflight pgAdmin corretto: un unico SELECT finale con risultato a righe per check, inclusa definizione di purge_orphan_items.
+2. Progettare e revisionare lo schema target con FK semplici, ordered-tree, revisioni dei protocolli e pool molecolare.
+3. Preparare DROP/CREATE TRANSAZIONALE **solo** sulle tabelle Notebook/Synthesis; NO CASCADE e precheck sui FK esterni.
+4. Rifattorizzare Nest/GraphQL e i guardrail sulle mutazioni. Il trigger M1 va attivato solo in coordinamento con la disabilitazione dell'update dello SMILES canonico sui record custom.
+5. Validare DDL e backend contemporaneamente in ambiente di test, poi eseguire il cutover e il frontend.
+6. Verificare integrità, molteplicità, versioning immutabile, ownership (servizi), cancellazioni, reorder concorrente ed E2E.
+
+## Segnaposto da investigare
+
+- Definizione SQL effettiva di purge_orphan_items(); potrebbe cancellare molecole ancora associate ad altre risorse, oppure far fallire DELETE a causa di FK RESTRICT.
+- Dati duplicati di molecole custom esistenti: vanno riconciliati, NON eliminati sulla base dell'autorizzazione riguardante Notebook/Synthesis.
+- Risorse esterne con FK verso le tabelle legacy: il rebuild deve fermarsi fino a un piano mirato.
+- Pool molecule e step items: prima attivazione deve rifiutare riferimenti cross-owner/cross-synthesis e molecole non custom tramite servizi e test.
+- Coerenza tra ExperimentExecution.experiment_id e la revisione, e tra step e sintesi quando il link include step_id.
