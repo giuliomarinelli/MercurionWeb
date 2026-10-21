@@ -65,3 +65,22 @@ Le revisioni con esecuzioni storiche richiedono conservazione; per l'utente pref
 
 A: specifica e audit DB/TypeORM -> B: SQL PostgreSQL 16 con preflight + backup + migrazione di dati -> C: servizi backend e vincoli (resolver custom, revisioni, synthesis pool) -> D: editor Molecule, Notebook, Synthesis -> E: unit/integration/E2E + review.
 I DDL sono di tipo expand/validate/cutover: NON eseguire renames, DROP o conversioni cieche mentre il codice legacy e attivo.
+
+## Implementation checkpoint (2026-10-21)
+
+This document is the **approved domain contract**, not a declaration of feature completion.
+
+Completed/staged on the current feature branch:
+- Legacy ChEMBL cross-owner repair **was applied by the database operator**. PostgreSQL postflight verified 0 cross-owner joins, 1341 valid joins, 0 duplicate triplets and removal of trg_purge_orphan_items (see incident-chembl-cross-owner-2026-10-21.md).
+- DB-first candidate DDL and postflight are committed at MercurionWebNode/sql/scientific-domain/20_reset_notebook_synthesis_pg16.sql and 21_verify_scientific_domain_pg16.sql. Schema script has exactly 8 legacy DROP TABLE statements (no CASCADE), 13 CREATE TABLE statements and 3 integrity triggers. It **has not yet been applied to PostgreSQL**.
+- Source-only corrections of collection join FK metadata (single-column) and synthesis CASCADE metadata have been committed.
+- New, **not yet registered**, v1 Notebook entities are staged at lab-notebook/scientific-domain/entities; the legacy Notebook module is still the runtime provider until coordinated cutover.
+- A shared CustomMoleculeResolutionService is implemented and integrated into CustomMoleculeItemService.addToCollection. It preserves existing molecule identity and metadata on reuse. A partial UNIQUE(user_id,canonical_smiles) index is still required before relying on uniqueness across all writers.
+- Separate SQL 30_custom_identity_guard_pg16_NOT_YET_APPLY.sql enforces M1/M2 on the DB, but must NOT be applied until Ketcher and all generic update/create mutations implement copy-on-write and safe duplicate reuse.
+
+Pending / deployment blockers:
+- PostgreSQL 16 actual DDL execution and schema postflight on an isolated staging copy.
+- Full Nest Notebook domain switchover: services, DTOs, resolvers, Quill Delta persistence, ownership, revision freezes, synthesis/step references.
+- Generic MoleculeCollectionItemService.create/update and Ketcher workflow still need copy-on-write semantics; failing to update them before applying guard SQL 30 will break structural editing.
+- Synthesis UI, Notebook Angular reader/editor, GraphQL generated clients and integration/E2E checks.
+- No CI or local Nest typecheck/test success is claimed for these branch changes. Do not deploy this partial branch as feature complete.
