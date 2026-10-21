@@ -1,90 +1,60 @@
-import { Component, ChangeDetectionStrategy, signal, effect, input, output, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, input, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { QuillStylesService } from '../../../services/quill-styles.service';
 import { QuillModule } from 'ngx-quill';
+import { NotebookDelta } from '../../../Models/graphql/notebook/notebook.models';
+import { QuillStylesService } from '../../../services/quill-styles.service';
 
-
+/** A full Quill Delta is the only persisted document format (not HTML). */
 @Component({
   selector: 'm-lab-notebook-editor',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [QuillModule, FormsModule],
+  imports: [FormsModule, QuillModule],
   template: `
-
-    <quill-editor
-      [modules]="modules"
-      [theme]="'snow'"
-      [style]="{height: '400px'}"
-      [placeholder]="placeholder"
-      [ngModel]="_content()"
-      (ngModelChange)="onModelChange($event)"
-      [attr.aria-label]="ariaLabel() || placeholder"
-      aria-live="polite">
-    </quill-editor>
-  `,
-  styles: [`
-    .dark quill-editor,
-    .dark .ql-container {
-      background: oklch(20.5% 0 0) !important;
-      color: yellow !important;
+    @if (readOnly()) {
+      <quill-view [content]="content()" format="object" class="block rounded-md border p-3" />
+    } @else {
+      <quill-editor [ngModel]="content()" [ngModelOptions]="{standalone:true}"
+        format="object" theme="snow" [modules]="modules"
+        [placeholder]="placeholder()" [readOnly]="false"
+        [attr.aria-label]="ariaLabel()"
+        (onContentChanged)="onContentChanged($event)"
+        class="block min-h-72" />
     }
-  `]
+  `,
 })
 export class LabNotebookEditorComponent implements OnInit {
+  private readonly quillStyles = inject(QuillStylesService);
 
-  private readonly quillStyles = inject(QuillStylesService)
+  readonly content = input<NotebookDelta | null>(null);
+  readonly readOnly = input(false);
+  readonly ariaLabel = input('Editor del quaderno di laboratorio');
+  readonly placeholder = input('Documenta la pianificazione o i risultati…');
+  readonly contentChanged = output<NotebookDelta>();
 
-  readonly triggerContentEmission = input(false)
-  readonly content = input('')
-
-  readonly ariaLabel = input('Editor di note di laboratorio');
-
-  readonly emitContent = output<string>();
-
-  private _triggerContentEmission = signal<boolean>(false)
-  protected _content = signal<string>('')
-
-
-  placeholder = 'Scrivi qui la tua nota di laboratorio...';
-
-  modules = {
+  protected readonly modules = {
     toolbar: [
       ['bold', 'italic', 'underline', 'strike'],
       ['blockquote', 'code-block'],
-      [{ 'header': 1 }, { 'header': 2 }],
-      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-      [{ 'script': 'sub' }, { 'script': 'super' }],
-      [{ 'indent': '-1' }, { 'indent': '+1' }],
-      [{ 'direction': 'rtl' }],
-      [{ 'size': ['small', false, 'large', 'huge'] }],
-      [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-      [{ 'color': [] }, { 'background': [] }],
-      [{ 'font': [] }],
-      [{ 'align': [] }],
-      ['link', 'image', 'video'],
+      [{ header: [1, 2, 3, false] }],
+      [{ list: 'ordered' }, { list: 'bullet' }],
+      [{ script: 'sub' }, { script: 'super' }],
+      ['link', 'image'],
       ['clean']
     ]
-  }
+  };
 
   ngOnInit(): void {
-    this.quillStyles.load()
+    this.quillStyles.load();
   }
 
-  constructor() {
-    effect(() => {
-      if (this.triggerContentEmission()) this._triggerContentEmission.set(true)
-    })
-    effect(() => this._content.set(this.content()))
-    effect(() => {
-      if (this._triggerContentEmission()) {
-        this.emitContent.emit(this._content())
-        this._triggerContentEmission.set(false)
-      }
-    })
+  onContentChanged(event: unknown): void {
+    if (this.readOnly() || !event || typeof event !== 'object') return;
+    const change = event as { source?: string; content?: unknown };
+    // Programmatic updates/initialization must not generate autosave writes.
+    if (change.source !== 'user') return;
+    const document = change.content;
+    if (document === null || typeof document !== 'object' || Array.isArray(document)
+        || !('ops' in document) || !Array.isArray(document.ops)) return;
+    this.contentChanged.emit(document as NotebookDelta);
   }
-
-  onModelChange(value: string) {
-    this._content.set(value)
-    this.emitContent.emit(value)
-  }
-
 }
