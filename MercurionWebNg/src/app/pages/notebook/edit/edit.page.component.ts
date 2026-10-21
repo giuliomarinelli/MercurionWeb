@@ -5,7 +5,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import {
-  BehaviorSubject, EMPTY, Observable, Subject, catchError, combineLatest,
+  BehaviorSubject, Observable, Subject, catchError, combineLatest,
   concatMap, debounceTime, finalize, forkJoin, map, merge, of, switchMap, tap
 } from 'rxjs';
 import {
