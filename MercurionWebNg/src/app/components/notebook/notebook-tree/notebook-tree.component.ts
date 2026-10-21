@@ -112,7 +112,7 @@ type DraftState = {
     </ul>
 
     <button type="button" class="mt-3 text-sm underline"
-      [attr.aria-pressed]="showArchived()" (click)="showArchived.update(value => !value)">
+      [attr.aria-pressed]="showArchived()" (click)="showArchived.set(!showArchived())">
       {{ showArchived() ? 'Nascondi archiviati' : 'Mostra archiviati' }}
     </button>
   </nav>
