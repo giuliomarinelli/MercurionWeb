@@ -1,201 +1,219 @@
-import { Component, ChangeDetectionStrategy, DestroyRef, effect, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { NotebookTree, SectionTree, PageTree } from '../../../Models/graphql/notebook/notebook.models';
+import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
+import { Observable, finalize } from 'rxjs';
+import { NotebookTree, NotebookNodeKind } from '../../../Models/graphql/notebook/notebook.models';
 import { NotebookService } from '../../../services/graphql/notebook.service';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { routeManifest } from '../../../route-manifest';
+
+type DraftAction = 'create' | 'rename';
+type DraftState = {
+  action: DraftAction;
+  kind: NotebookNodeKind;
+  parentId: string;
+  id?: string;
+  value: string;
+};
 
 @Component({
   selector: 'm-notebook-tree',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink],
-  styles: `
-    .selectable {
-      cursor: pointer; border-radius: 4px; padding: 2px 4px;
-    }
-    .selected {
-      background: oklch(0.92 0 70); font-weight: bold;
-    }
-
-  `,
+  imports: [FormsModule, RouterLink],
   template: `
-  <ul role="tree" aria-label="Struttura notebook">
-  @for (nb of _notebooks(); track nb) {
-    <li>
-      <div class="font-bold flex items-center gap-2">
-        {{ nb.title }}
-        <button type="button" class="inline-flex items-center gap-1 text-xs" (click)="addChapter(nb.id)"><svg class="w-4 h-auto shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg><span>Capitolo</span></button>
-      </div>
-      <ul>
-        @for (chapter of nb.chapters; track chapter) {
-          <li>
-            <div class="flex items-center gap-2">
-              <button (click)="toggleChapter(chapter.id)" [attr.aria-expanded]="expandedChapters()[chapter.id]">
-                @if (expandedChapters()[chapter.id]) {
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="fill-current w-auto h-5"><path d="M256 429.3l22.6-22.6 192-192L493.3 192 448 146.7l-22.6 22.6L256 338.7 86.6 169.4 64 146.7 18.7 192l22.6 22.6 192 192L256 429.3z"/></svg>
-                } @else {
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="fill-current w-auto h-5"><path d="M317.3 256l-22.6 22.6-192 192L80 493.3 34.7 448l22.6-22.6L226.7 256 57.4 86.6 34.7 64 80 18.7l22.6 22.6 192 192L317.3 256z"/></svg>
-                }
-              </button>
-              {{ chapter.title }}
-              <button (click)="renameChapter(chapter.id, chapter.title)">✏️</button>
-              <button (click)="deleteChapter(chapter.id)">🗑️</button>
-              <button type="button" class="inline-flex items-center gap-1 text-xs" (click)="addSection(chapter.id)"><svg class="w-4 h-auto shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg><span>Sezione</span></button>
-            </div>
-            @if (expandedChapters()[chapter.id]) {
-              <ul>
-                @for (section of chapter.sections; track section) {
-                  <li>
-                    <div class="flex flex-col ml-4">
-                      <div class="flex items-center gap-2">
-                        <button (click)="toggleSection(section.id)" [attr.aria-expanded]="expandedSections()[section.id]">
-                          @if (expandedSections()[section.id]) {
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="fill-current w-auto h-5"><path d="M256 429.3l22.6-22.6 192-192L493.3 192 448 146.7l-22.6 22.6L256 338.7 86.6 169.4 64 146.7 18.7 192l22.6 22.6 192 192L256 429.3z"/></svg>
-                          } @else {
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="fill-current w-auto h-5"><path d="M317.3 256l-22.6 22.6-192 192L80 493.3 34.7 448l22.6-22.6L226.7 256 57.4 86.6 34.7 64 80 18.7l22.6 22.6 192 192L317.3 256z"/></svg>
-                          }
-                        </button>
-                        {{ section.title }}
-                        <button (click)="renameSection(section.id, section.title)">✏️</button>
-                        <button (click)="deleteSection(section.id)">🗑️</button>
-                        <button type="button" class="inline-flex items-center gap-1 text-xs" (click)="addPage(section)"><svg class="w-4 h-auto shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg><span>pagina</span></button>
-                      </div>
-                      <!-- Pagine -->
-                      @if (expandedSections()[section.id]) {
-                        <ul>
-                          @for (page of section.pages; track page) {
-                            <li class="flex items-center gap-2 ml-7">
-                              <button type="button" class="selectable text-left"
-                                [class.selected]="isSelected('page', page.id)"
-                                (click)="select('page', chapter.id, section.id, page.id)">
-                                  {{ page.title }}
-                              </button>
+  <nav aria-label="Indice dei quaderni di laboratorio">
+    @if (mode() === 'edit') {
+      <button type="button" class="rounded-md border px-3 py-1.5 text-sm mb-3"
+        (click)="startCreate('notebook', '')">Nuovo quaderno</button>
+    }
 
-                              <button (click)="renamePage(page, section)">✏️</button>
-                              <button (click)="deletePage(page.id, section)">🗑️</button>
-                              <a [routerLink]="generateUrlToNotebook('edit', nb.id)" [queryParams]="{c_id: chapter.id, s_id: section.id, p_id: page.id}">
-                                Modifica
-                              </a>
-                            </li>
-                          }
-                        </ul>
+    @if (draft(); as editor) {
+      <form (ngSubmit)="saveDraft()" class="mb-4 flex flex-wrap gap-2 items-center rounded-md border p-3">
+        <label class="text-sm font-medium" for="notebook-node-title">
+          {{ editor.action === 'create' ? 'Crea' : 'Rinomina' }} {{ kindLabel(editor.kind) }}
+        </label>
+        <input id="notebook-node-title" name="title" required maxlength="255" class="rounded-md border px-2 py-1"
+          [disabled]="pending()" [ngModel]="editor.value"
+          (ngModelChange)="updateDraft($event)">
+        <button type="submit" class="rounded-md border px-3 py-1" [disabled]="pending() || !editor.value.trim()">Salva</button>
+        <button type="button" class="rounded-md px-3 py-1" [disabled]="pending()" (click)="draft.set(null)">Annulla</button>
+      </form>
+    }
+
+    @if (error()) {
+      <p role="alert" class="mb-3 text-red-700 dark:text-red-300">{{ error() }}</p>
+    }
+
+    <ul class="space-y-3">
+      @for (notebook of notebooks(); track notebook.id) {
+        @if (!notebook.archivedAt || showArchived()) {
+          <li class="rounded-lg border p-3">
+            <div class="flex flex-wrap items-center gap-2">
+              <a class="font-semibold underline underline-offset-2"
+                [routerLink]="readUrl(notebook.id)">{{ notebook.title }}</a>
+              @if (notebook.archivedAt) { <span class="text-xs italic">Archiviato</span> }
+              @if (mode() === 'edit' && !notebook.archivedAt) {
+                <button class="rounded border px-2 py-1 text-xs" (click)="startCreate('section', notebook.id)">+ Sezione</button>
+                <button class="rounded border px-2 py-1 text-xs" (click)="startRename('notebook', notebook.id, notebook.title)">Rinomina</button>
+                <button class="rounded border px-2 py-1 text-xs" (click)="archive('notebook', notebook.id)">Archivia</button>
+              }
+              <a class="text-xs underline" [routerLink]="editUrl(notebook.id)">Apri editor</a>
+            </div>
+            <ul class="mt-2 ml-3 space-y-2 border-l pl-3">
+              @for (section of notebook.sections; track section.id) {
+                <li>
+                  <div class="flex flex-wrap items-center gap-2">
+                    <a class="font-medium underline" [routerLink]="readUrl(notebook.id)"
+                      [queryParams]="{s_id: section.id}">{{ section.title }}</a>
+                    @if (mode() === 'edit' && !notebook.archivedAt) {
+                      <button class="rounded border px-2 py-1 text-xs" (click)="startCreate('experiment', section.id)">+ Esperimento</button>
+                      <button class="rounded border px-2 py-1 text-xs" (click)="startRename('section', section.id, section.title)">Rinomina</button>
+                    }
+                  </div>
+                  <ul class="ml-3 mt-1 space-y-2 border-l pl-3">
+                    @for (experiment of section.experiments; track experiment.id) {
+                      @if (!experiment.archivedAt || showArchived()) {
+                        <li>
+                          <div class="flex flex-wrap items-center gap-2">
+                            <a class="underline" [routerLink]="readUrl(notebook.id)"
+                              [queryParams]="{s_id:section.id,e_id:experiment.id}">{{ experiment.title }}</a>
+                            @if (experiment.archivedAt) { <span class="text-xs italic">Archiviato</span> }
+                            @if (mode() === 'edit' && !experiment.archivedAt && !notebook.archivedAt) {
+                              <button class="rounded border px-2 py-1 text-xs" (click)="startCreate('execution', experiment.id)">+ Esecuzione</button>
+                              <button class="rounded border px-2 py-1 text-xs" (click)="startRename('experiment', experiment.id, experiment.title)">Rinomina</button>
+                              <button class="rounded border px-2 py-1 text-xs" (click)="archive('experiment', experiment.id)">Archivia</button>
+                            }
+                          </div>
+                          <ul class="ml-3 mt-1 space-y-1 border-l pl-3">
+                            @for (execution of experiment.executions; track execution.id) {
+                              @if (!execution.archivedAt || showArchived()) {
+                                <li class="flex flex-wrap items-center gap-2">
+                                  <a class="underline" [routerLink]="readUrl(notebook.id)"
+                                    [queryParams]="{s_id:section.id,e_id:experiment.id,x_id:execution.id}">{{ execution.title }}</a>
+                                  <span class="text-xs text-slate-600 dark:text-slate-300">{{ execution.status }}</span>
+                                  @if (mode() === 'edit' && !execution.archivedAt && !experiment.archivedAt && !notebook.archivedAt) {
+                                    <button class="rounded border px-2 py-1 text-xs" (click)="startRename('execution', execution.id, execution.title)">Rinomina</button>
+                                    <button class="rounded border px-2 py-1 text-xs" (click)="archive('execution', execution.id)">Archivia</button>
+                                  }
+                                </li>
+                              }
+                            }
+                          </ul>
+                        </li>
                       }
-                    </div>
-                  </li>
-                }
-              </ul>
-            }
+                    }
+                  </ul>
+                </li>
+              }
+            </ul>
           </li>
         }
-      </ul>
-    </li>
-  }
-  </ul>
-  `
+      }
+    </ul>
+
+    <button type="button" class="mt-3 text-sm underline"
+      [attr.aria-pressed]="showArchived()" (click)="showArchived.update(value => !value)">
+      {{ showArchived() ? 'Nascondi archiviati' : 'Mostra archiviati' }}
+    </button>
+  </nav>
+  `,
 })
 export class NotebookTreeComponent {
   private readonly notebookService = inject(NotebookService);
-  private readonly router = inject(Router);
-  private readonly route = inject(ActivatedRoute);
-
   private readonly destroyRef = inject(DestroyRef);
-  _notebooks = signal<NotebookTree[]>([]);
 
-  readonly notebooks = input<NotebookTree[]>([])
+  readonly notebooks = input<NotebookTree[]>([]);
+  readonly mode = input<'read' | 'edit'>('read');
+  readonly changed = output<void>();
+  readonly draft = signal<DraftState | null>(null);
+  readonly error = signal<string | null>(null);
+  readonly pending = signal(false);
+  readonly showArchived = signal(false);
 
-  expandedChapters = signal<{ [id: string]: boolean }>({});
-  expandedSections = signal<{ [id: string]: boolean }>({});
-
-  constructor() {
-    effect(() => this._notebooks.set(this.notebooks()))
-  }
-
-  toggleChapter(id: string) {
-    this.expandedChapters.update(state => ({ ...state, [id]: !state[id] }));
-  }
-  toggleSection(id: string) {
-    this.expandedSections.update(state => ({ ...state, [id]: !state[id] }));
+  readUrl(notebookId: string): string {
+    return routeManifest.notebookReader.build({ notebookId });
   }
 
-  // === CRUD CHAPTER
-  addChapter(notebookId: string) {
-    const title = prompt('Nome nuovo capitolo?');
-    if (title) this.notebookService.createChapter(notebookId, title).pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
-  }
-  renameChapter(id: string, oldTitle: string) {
-    const title = prompt('Nuovo nome capitolo:', oldTitle);
-    if (title && title.trim() && title !== oldTitle) {
-      this.notebookService.updateChapter(id, title.trim()).pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
-    }
-  }
-  deleteChapter(id: string) {
-    if (confirm('Eliminare capitolo?')) {
-      this.notebookService.deleteChapter(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
-    }
+  editUrl(notebookId: string): string {
+    return routeManifest.notebookEditor.build({ notebookId });
   }
 
-  // === CRUD SECTION
-  addSection(chapterId: string) {
-    const title = prompt('Nome nuova sezione?');
-    if (title) this.notebookService.createSection(chapterId, title).pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
-  }
-  renameSection(id: string, oldTitle: string) {
-    const title = prompt('Nuovo nome sezione:', oldTitle);
-    if (title && title.trim() && title !== oldTitle) {
-      this.notebookService.updateSection(id, title.trim()).pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
-    }
-  }
-  deleteSection(id: string) {
-    if (confirm('Eliminare sezione?')) {
-      this.notebookService.deleteSection(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
-    }
+  kindLabel(kind: NotebookNodeKind): string {
+    return ({
+      notebook: 'quaderno', section: 'sezione',
+      experiment: 'esperimento', execution: 'esecuzione'
+    } as const)[kind];
   }
 
-  // === CRUD PAGINE
-  addPage(section: SectionTree) {
-    const title = prompt('Titolo pagina?');
+  startCreate(kind: NotebookNodeKind, parentId: string): void {
+    this.error.set(null);
+    this.draft.set({ action: 'create', kind, parentId, value: '' });
+  }
+
+  startRename(kind: NotebookNodeKind, id: string, title: string): void {
+    this.error.set(null);
+    this.draft.set({ action: 'rename', kind, parentId: '', id, value: title });
+  }
+
+  updateDraft(value: string): void {
+    this.draft.update(draft => draft ? { ...draft, value } : null);
+  }
+
+  saveDraft(): void {
+    const form = this.draft();
+    if (!form || this.pending()) return;
+    const title = form.value.trim();
     if (!title) return;
-    const content = prompt('Contenuto (opzionale)?') ?? '';
-    this.notebookService.createPage(section.id, title, content).pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
-  }
-  renamePage(page: PageTree, section: SectionTree) {
-    const newTitle = prompt('Nuovo titolo pagina:', page.title) ?? page.title;
-    if (!newTitle || newTitle === page.title) return;
-    // Qui potresti volere anche edit del contenuto (non solo titolo)
-    this.notebookService.updatePage(page.id, newTitle, page.title ?? '').pipe(takeUntilDestroyed(this.destroyRef)).subscribe()
-  }
-  deletePage(pageId: string, section: SectionTree) {
-    if (confirm('Eliminare pagina?')) {
-      this.notebookService.deletePage(pageId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe()
+
+    let request: Observable<unknown>;
+    if (form.action === 'create') {
+      switch (form.kind) {
+        case 'notebook': request = this.notebookService.createNotebook(title); break;
+        case 'section': request = this.notebookService.createSection(form.parentId, title); break;
+        case 'experiment': request = this.notebookService.createExperiment(form.parentId, title); break;
+        case 'execution': request = this.notebookService.createExecution(form.parentId, title); break;
+      }
+    } else {
+      if (!form.id) return;
+      switch (form.kind) {
+        case 'notebook': request = this.notebookService.updateNotebook(form.id, { title }); break;
+        case 'section': request = this.notebookService.updateSection(form.id, { title }); break;
+        case 'experiment': request = this.notebookService.updateExperiment(form.id, { title }); break;
+        case 'execution': request = this.notebookService.updateExecution(form.id, { title }); break;
+      }
     }
-  }
 
-  // ==================== Selection and Routing =====================
-
-  select(level: 'chapter' | 'section' | 'page', chapterId: string, sectionId?: string, pageId?: string) {
-    // Imposta i query param in base al livello selezionato
-    const queryParams: Record<string, string | undefined> = {};
-    if (level === 'chapter') queryParams['c_id'] = chapterId;
-    if (level === 'section') { queryParams['c_id'] = chapterId; queryParams['s_id'] = sectionId; }
-    if (level === 'page') { queryParams['c_id'] = chapterId; queryParams['s_id'] = sectionId; queryParams['p_id'] = pageId; }
-    this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams,
-      queryParamsHandling: 'merge'
+    this.pending.set(true);
+    this.error.set(null);
+    request.pipe(
+      finalize(() => this.pending.set(false)),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe({
+      next: () => { this.draft.set(null); this.changed.emit(); },
+      error: (error: unknown) => this.error.set(this.errorMessage(error)),
     });
   }
 
-  isSelected(type: 'chapter' | 'section' | 'page', id: string): boolean {
-    // Qui prendi i parametri dall’URL con ActivatedRoute.snapshot.queryParams
-    // e li confronti, esempio:
-    const params = this.route.snapshot.queryParams;
-    if (type === 'chapter') return params['c_id'] === id && !params['s_id'];
-    if (type === 'section') return params['s_id'] === id && !params['p_id'];
-    if (type === 'page') return params['p_id'] === id;
-    return false;
+  archive(kind: 'notebook' | 'experiment' | 'execution', id: string): void {
+    if (this.pending()) return;
+    if (!confirm(`Archiviare ${this.kindLabel(kind)}? I contenuti non saranno eliminati.`)) return;
+    const request = kind === 'notebook'
+      ? this.notebookService.archiveNotebook(id)
+      : kind === 'experiment'
+        ? this.notebookService.archiveExperiment(id)
+        : this.notebookService.archiveExecution(id);
+    this.pending.set(true);
+    this.error.set(null);
+    request.pipe(
+      finalize(() => this.pending.set(false)),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe({
+      next: () => this.changed.emit(),
+      error: (error: unknown) => this.error.set(this.errorMessage(error)),
+    });
   }
 
-  protected generateUrlToNotebook(mode: 'edit' | 'read', notebookId: string): string {
-    return `${notebookId}/${mode}`
+  private errorMessage(error: unknown): string {
+    return error instanceof Error ? error.message : 'Operazione non riuscita. Riprova.';
   }
-
 }
