@@ -39,7 +39,7 @@ export class SynthesisPoolMolecule {
     synthesisId!: UUID
 
     @Field(() => CustomMoleculeItemEntity)
-    @ManyToOne(() => CustomMoleculeItemEntity, { onDelete: 'RESTRICT' })
+    @ManyToOne(() => CustomMoleculeItemEntity, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'molecule_id' })
     molecule!: CustomMoleculeItemEntity
 

@@ -21,6 +21,7 @@ import { SynthesisPoolMolecule } from './synthesis-pool-molecule.entity';
 @Entity('synth_step_items')
 @Unique('uq_synth_step_item_position_order', ['stepId', 'position', 'order'])
 @Check('ck_synth_step_item_order_non_negative', '"item_order" >= 0')
+@Check('ck_synth_step_item_nonempty', 'pool_molecule_id IS NOT NULL OR NULLIF(BTRIM(text), \'\') IS NOT NULL')
 @Check('ck_synth_step_item_position', '"position" IN (\'BeforeArrow\', \'OnArrow\', \'AfterArrow\')')
 @Check('ck_synth_step_item_kind', '"kind" IN (\'Reactant\', \'Reagent\', \'Solvent\', \'Condition\', \'Catalyst\', \'Product\', \'Byproduct\', \'Other\')')
 export class SynthStepItem {
@@ -46,7 +47,7 @@ export class SynthStepItem {
     @Field(() => SynthesisPoolMolecule, { nullable: true })
     @ManyToOne(() => SynthesisPoolMolecule, poolMolecule => poolMolecule.stepItems, {
         nullable: true,
-        onDelete: 'RESTRICT'
+        onDelete: 'CASCADE'
     })
     @JoinColumn({ name: 'pool_molecule_id' })
     poolMolecule!: SynthesisPoolMolecule | null
