@@ -89,3 +89,35 @@ I DDL sono di tipo expand/validate/cutover: NON eseguire renames, DROP o convers
 - SQL `30_custom_identity_guard_pg16_NOT_YET_APPLY.sql` is **not** deployed; generic molecule create/update and Ketcher still need copy-on-write/duplicate-reuse end-to-end before it may be applied.
 - Notebook Angular reader/editor and linear synthesis route builder are pending; old page/chapter TypeScript service sources remain in Git history/source for later removal.
 - Test GraphQL owner-negative paths, race conditions, body-size limits, status mutations, CASCADE impact and snapshots on a test database before declaring feature complete.
+
+## Angular Notebook adapter checkpoint (2026-10-21)
+
+The Angular source was migrated to the new Nest GraphQL contract **after** the operator verified the local PostgreSQL 16 schema and Nest TypeScript/Jest/build.
+
+- Canonical catalog: `MercurionWebNg/src/app/graphql/documents/notebook.graphql` now uses NotebookSection, NotebookExperiment, ExperimentExecution, ExperimentProtocolRevision, and only currently supported v1 mutations.
+- GraphQL scalar `JSONObject` maps to the existing `JsonObject` type in codegen.yml.
+- `NotebookService` issues one-shot `network-only` Apollo reads, manages scientific-domain CRUD, archives, execution lifecycle actions, reorders, molecule/synthesis links. No old Chapter/Page client methods.
+- `NotebookTreeComponent`, `NotebookTocComponent` and the landing/edit pages use the v1 hierarchy and `s_id`, `e_id`, `x_id` query params (NOT legacy c_id/p_id).
+- Registered authenticated Angular routes: `/notebook`, `/notebook/:notebookId/read`, `/notebook/:notebookId/edit`.
+- Editor uses `ngx-quill` with `format="object"`; only user-originated complete Quill Deltas are autosaved. An explicit Save Now/retry is available, and the editor route protects against navigation with unsaved changes.
+- Execution UI provides Start/Complete/Cancel with explicit protocol revision indication. Historical revisions can be fetched as immutable snapshot resources.
+- Angular unit specs were updated for the new GraphQL operations, route manifest and main components. These specs were **not executed** by the assistant.
+- The committed schema.graphql is source-of-truth for client codegen. **The Angular generated files have not been regenerated in this repository by the assistant**: until `npm run graphql:generate` executes locally and generated artifacts are committed, the branch is expected to fail Angular typecheck due to stale operation exports.
+
+### Windows verification
+
+From repository root (PowerShell 7):
+
+```powershell
+git pull --ff-only
+.\scripts\verify-scientific-frontend.ps1
+```
+
+This runs GraphQL catalog validation, regenerates generated schema/operations, checks codegen drift, typechecks, lints and builds Angular. `-RunTests` optionally enables focused Karma tests if a browser is available. Review and commit `MercurionWebNg/src/app/generated/schema.ts` and `MercurionWebNg/src/app/generated/graphql.ts` after passing.
+
+### Remaining work
+
+- Angular integration build and browser tests, responsive UX/accessibility audit, robust offline draft recovery and loading skeletons.
+- Separate Synthesis linear route builder and molecule-selection/copy-on-write UX.
+- Copy-on-write enforcement for generic Ketcher update paths and DB SQL 30 identity trigger; do not apply 30 prematurely.
+- E2E scientific user journeys, version review and rich snapshot presentation.
