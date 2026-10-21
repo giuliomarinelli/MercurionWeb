@@ -31,7 +31,7 @@ export const routes: Routes = [
   manifestRoute(routeManifest.collectionDetail, { loadComponent: () => import('./pages/molecule-collection-detail/molecule-collection-detail.page.component').then(m => m.MoleculeCollectionDetailPageComponent), canActivate: [AuthGuard] }),
   manifestRoute(routeManifest.notebook, { loadComponent: () => import('./pages/notebook/notebook-landing/notebook-landing.component').then(m => m.NotebookLandingComponent), canActivate: [AuthGuard] }),
   manifestRoute(routeManifest.notebookReader, { loadComponent: () => import('./pages/notebook/edit/edit.page.component').then(m => m.NotebookEditPageComponent), canActivate: [AuthGuard], data: { notebookMode: 'read' } }),
-  manifestRoute(routeManifest.notebookEditor, { loadComponent: () => import('./pages/notebook/edit/edit.page.component').then(m => m.NotebookEditPageComponent), canActivate: [AuthGuard], data: { notebookMode: 'edit' } }),
+  manifestRoute(routeManifest.notebookEditor, { loadComponent: () => import('./pages/notebook/edit/edit.page.component').then(m => m.NotebookEditPageComponent), canActivate: [AuthGuard], canDeactivate: [(component: { canDeactivate(): boolean }) => component.canDeactivate()], data: { notebookMode: 'edit' } }),
   manifestRoute(routeManifest.register, { loadComponent: () => import('./pages/register/register.page.component').then(m => m.RegisterPageComponent) }),
   manifestRoute(routeManifest.accountActivate, { loadComponent: () => import('./pages/account-activate/account-activate.page.component').then(m => m.AccountActivatePageComponent) }),
   manifestRoute(routeManifest.myMolecules, { loadComponent: () => import('./pages/all-my-molecules/all-my-molecules.page.component').then(m => m.AllMyMoleculesPageComponent), canActivate: [AuthGuard] }),
