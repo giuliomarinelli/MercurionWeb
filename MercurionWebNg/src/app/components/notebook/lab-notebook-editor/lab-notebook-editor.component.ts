@@ -10,16 +10,13 @@ import { QuillStylesService } from '../../../services/quill-styles.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, QuillModule],
   template: `
-    @if (readOnly()) {
-      <quill-view [content]="content()" format="object" class="block rounded-md border p-3" />
-    } @else {
-      <quill-editor [ngModel]="content()" [ngModelOptions]="{standalone:true}"
-        format="object" theme="snow" [modules]="modules"
-        [placeholder]="placeholder()" [readOnly]="false"
-        [attr.aria-label]="ariaLabel()"
-        (onContentChanged)="onContentChanged($event)"
-        class="block min-h-72" />
-    }
+    <quill-editor [ngModel]="content()" [ngModelOptions]="{standalone:true}"
+      format="object" theme="snow"
+      [modules]="readOnly() ? readOnlyModules : modules"
+      [placeholder]="placeholder()" [readOnly]="readOnly()"
+      [attr.aria-label]="ariaLabel()"
+      (onContentChanged)="onContentChanged($event)"
+      class="block min-h-72" />
   `,
 })
 export class LabNotebookEditorComponent implements OnInit {
@@ -30,6 +27,8 @@ export class LabNotebookEditorComponent implements OnInit {
   readonly ariaLabel = input('Editor del quaderno di laboratorio');
   readonly placeholder = input('Documenta la pianificazione o i risultati…');
   readonly contentChanged = output<NotebookDelta>();
+
+  protected readonly readOnlyModules = { toolbar: false };
 
   protected readonly modules = {
     toolbar: [
