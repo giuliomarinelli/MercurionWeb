@@ -39,3 +39,12 @@ FKs refer to single IDs deliberately; the Nest layer must enforce owner equality
 6. Only after green tests + matching backend deployment, repeat on the intended application DB.
 
 **There is no automated rollback after commit** because legacy test data is intentionally dropped. Rollback is either the open transaction on failure, or restore from the verified backup.
+## Local cutover confirmation (21 October 2026)
+
+The operator reported that both SQL 20 and SQL 21 were executed sequentially on the **local application PostgreSQL** after successful isolated-container testing. The pgAdmin postflight screenshot shows **11 / 11 OK**: 13 feature tables, three integrity triggers, the expected CASCADE/RESTRICT decisions, no composite feature FK, preservation of lab_notebooks_old and removal of the targeted legacy tables.
+
+The Nest LabNotebookModule has subsequently been switched in this feature branch to the v1 scientific Notebook entities/services/resolvers. This branch is a **development integration checkpoint**, not a tested release. Runtime GraphQL remains to be regenerated/verified, and the Angular Notebook/Synthesis UI is not implemented.
+
+Do **not** rerun SQL 20: it is intentionally a one-time, fail-closed script. SQL 21 is safe to repeat as a read-only inspection. Additional behavior checks are in rollback-only SQL 22, preferably run first on the isolated database clone.
+
+A Windows PowerShell verification runner is available at `scripts/verify-scientific-backend.ps1` (repository root). It runs the Nest TypeScript typecheck, focused Jest suite, GraphQL schema regeneration/check and build. It does not touch the database; review its SDL diff.
