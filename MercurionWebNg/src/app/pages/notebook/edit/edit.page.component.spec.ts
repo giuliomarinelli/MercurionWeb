@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { ActivatedRoute, convertToParamMap } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { NotebookEditPageComponent } from './edit.page.component';
 import { NotebookService } from '../../../services/graphql/notebook.service';
@@ -9,6 +9,7 @@ describe('NotebookEditPageComponent', () => {
     await TestBed.configureTestingModule({
       imports: [NotebookEditPageComponent],
       providers: [
+        provideRouter([]),
         {
           provide: ActivatedRoute,
           useValue: {
