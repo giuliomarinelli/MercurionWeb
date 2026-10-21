@@ -165,7 +165,7 @@ export class NotebookTreeComponent {
     const title = form.value.trim();
     if (!title) return;
 
-    let request: Observable<unknown>;
+    let request: Observable<unknown> | null = null;
     if (form.action === 'create') {
       switch (form.kind) {
         case 'notebook': request = this.notebookService.createNotebook(title); break;
@@ -183,6 +183,7 @@ export class NotebookTreeComponent {
       }
     }
 
+    if (!request) return;
     this.pending.set(true);
     this.error.set(null);
     request.pipe(

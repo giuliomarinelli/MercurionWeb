@@ -65,7 +65,7 @@ export class NotebookService {
     field: K,
     variables?: Record<string, unknown>,
   ): Observable<T[K]> {
-    return this.apollo.query<T>({
+    return this.apollo.query<T, Record<string, unknown>>({
       query, variables,
       fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot,
     }).pipe(map(result => extractGqlData<T, K>(result, field, true) as T[K]));
@@ -76,7 +76,7 @@ export class NotebookService {
     field: K,
     variables: Record<string, unknown>,
   ): Observable<NonNullable<T[K]>> {
-    return this.apollo.mutate<T>({
+    return this.apollo.mutate<T, Record<string, unknown>>({
       mutation, variables,
     }).pipe(map(result => extractGqlData<T, K>(result, field)));
   }
