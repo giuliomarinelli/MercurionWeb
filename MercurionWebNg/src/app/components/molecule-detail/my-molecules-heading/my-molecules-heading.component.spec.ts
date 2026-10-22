@@ -26,15 +26,20 @@ describe('MyMoleculesHeadingComponent', () => {
     expect(getComputedStyle(fixture.nativeElement.querySelector('h1')).textAlign).toBe('left');
   });
 
-  it('renders the add button at text-xs with a 16px square plus', () => {
+  it('renders the shared large add action with a 20px square plus', () => {
     const toolbar = TestBed.createComponent(MoleculeCollectionDetailToolbarComponent);
     toolbar.detectChanges();
-    const button = toolbar.nativeElement.querySelector('button[aria-label="Aggiungi nuove molecole alla collezione"]') as HTMLButtonElement;
-    expect(getComputedStyle(button).fontSize).toBe('12px');
-    expect(getComputedStyle(button.querySelector('span')!).fontSize).toBe('12px');
+    const buttons = toolbar.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>;
+    const button = Array.from(buttons).find(control => control.textContent?.trim() === 'Aggiungi molecole')!;
+    expect(button).toBeDefined();
+    expect(getComputedStyle(button).fontSize).toBe('16px');
     const svg = button.querySelector('svg')!;
-    expect(getComputedStyle(svg).width).toBe('16px');
-    expect(getComputedStyle(svg).height).toBe('16px');
+    expect(getComputedStyle(svg).width).toBe('20px');
+    expect(getComputedStyle(svg).height).toBe('20px');
+    const add = jasmine.createSpy('add');
+    toolbar.componentInstance.add.subscribe(add);
+    button.click();
+    expect(add).toHaveBeenCalledTimes(1);
     toolbar.destroy();
   });
 });

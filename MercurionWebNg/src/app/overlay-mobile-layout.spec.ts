@@ -94,11 +94,13 @@ describe('Mobile overlay scrolling with the keyboard viewport', () => {
         expect(doc.documentElement.scrollWidth).toBeLessThanOrEqual(viewport.width);
         const search = doc.querySelector<HTMLInputElement>('input:not([type=radio])')!;
         expect(search.getBoundingClientRect().height).toBeGreaterThanOrEqual(40);
-        const methods = doc.querySelector<HTMLElement>('.m-overlay-methods')!;
+        const methods = doc.querySelector<HTMLElement>(kind === 'search'
+          ? '[role="radiogroup"][aria-label="Scegli dove cercare le molecole"]'
+          : 'fieldset.add-source')!;
         const choices = methods.querySelectorAll('label');
         expect(choices[0].getBoundingClientRect().top).withContext('sources share one row')
           .toBeCloseTo(choices[1].getBoundingClientRect().top, 0);
-        expect(methods.getBoundingClientRect().height).toBeLessThanOrEqual(54);
+        for (const choice of choices) expect(choice.getBoundingClientRect().height).toBeLessThanOrEqual(54);
         const scroll = doc.querySelector<HTMLElement>(kind === 'search' ? '.m-search-panel [class*="overflow-y-auto"]' : 'section.m-action-card')!;
         const header = doc.querySelector<HTMLElement>(kind === 'search' ? '.m-search-header' : '.m-action-card__header')!;
         const headerTop = header.getBoundingClientRect().top;
@@ -109,19 +111,19 @@ describe('Mobile overlay scrolling with the keyboard viewport', () => {
           expect(scroll.clientHeight).withContext('usable results area').toBeGreaterThanOrEqual(viewport.width < 640 ? 96 : 64);
           expect(search.getBoundingClientRect().bottom).toBeLessThan(scroll.getBoundingClientRect().top);
         } else {
-          const submit = doc.querySelector<HTMLButtonElement>('[aria-label="Aggiungi molecole"]')!;
+          const submit = doc.querySelector<HTMLButtonElement>('[aria-label="Aggiungi molecole selezionate"]')!;
           expect(submit.getBoundingClientRect().bottom).withContext('submit reachable by scrolling').toBeLessThanOrEqual(scroll.getBoundingClientRect().bottom + 1);
-          expect(doc.querySelector('.m-add-selections')).toBeNull();
+          expect(doc.querySelector('.add-selected')).toBeNull();
           const component = (fixture.componentInstance as AddHost).add();
           component.addChip({ id: '1', name: 'Molecule 0' });
           fixture.detectChanges();
-          const selections = doc.querySelector<HTMLDetailsElement>('.m-add-selections')!;
+          const selections = doc.querySelector<HTMLDetailsElement>('.add-selected')!;
           expect(selections.open).toBeFalse();
           expect(selections.querySelector('summary')!.textContent).toContain('1');
           selections.open = true;
           (selections.querySelector('button') as HTMLButtonElement).click();
           fixture.detectChanges();
-          expect(doc.querySelector('.m-add-selections')).toBeNull();
+          expect(doc.querySelector('.add-selected')).toBeNull();
         }
         visual.height = 700;
         visual.offsetTop = 0;

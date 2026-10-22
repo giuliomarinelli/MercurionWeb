@@ -76,21 +76,22 @@ test.describe("critical molecule and collection workflow", () => {
       }),
     ).toBeVisible();
     await expect(
-      authenticatedPage.getByText("Nessuna collezione molecolare."),
+      authenticatedPage.getByRole("heading", { name: "Crea la tua prima collezione" }),
     ).toBeVisible();
 
     await authenticatedPage
-      .getByRole("button", { name: "Crea una o più nuove collezioni" })
+      .getByRole("button", { name: "Crea collezioni", exact: true }).first()
       .click();
     await authenticatedPage
-      .getByLabel("Nome nuova collezione")
+      .getByLabel("Nome della collezione")
       .fill("QA smoke collection");
-    await authenticatedPage.getByRole("button", { name: "Aggiungi" }).click();
+    await authenticatedPage.getByRole("button", { name: "Aggiungi nome", exact: true }).click();
     await expect(
-      authenticatedPage.getByRole("listitem", { name: "QA smoke collection" }),
+      authenticatedPage.getByRole("list", { name: "Collezioni da creare" })
+        .getByRole("listitem").filter({ hasText: "QA smoke collection" }),
     ).toBeVisible();
     await authenticatedPage
-      .getByRole("button", { name: "Crea", exact: true })
+      .getByRole("button", { name: "Crea collezione", exact: true })
       .click();
 
     await expect(

@@ -58,20 +58,23 @@ describe('PaginationComponent', () => {
     expect(host.selectedPage).toBe(3);
   });
 
-  it('handles load-more pending, terminal, error and retry states', () => {
+  it('shows infinite-scroll progress, keeps idle/terminal states quiet and offers error retry', () => {
     host.state = { mode: 'infinite', hasMore: true, pending: false };
     fixture.detectChanges();
-    fixture.debugElement.query(By.css('button')).nativeElement.click();
-    expect(host.loads).toBe(1);
+    expect(fixture.nativeElement.querySelector('button')).toBeNull();
+    expect(fixture.nativeElement.querySelector('[role="status"]')).toBeNull();
 
     host.state = { mode: 'infinite', hasMore: true, pending: true };
     fixture.detectChanges();
-    fixture.debugElement.query(By.css('button')).nativeElement.click();
-    expect(host.loads).toBe(1);
+    expect(fixture.nativeElement.querySelector('m-progress-indicator')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('[role="status"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('button')).toBeNull();
+    expect(host.loads).toBe(0);
 
     host.state = { mode: 'infinite', hasMore: false, pending: false };
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('End of results');
+    expect(fixture.nativeElement.querySelector('[role="status"]')).toBeNull();
+    expect(fixture.nativeElement.querySelector('button')).toBeNull();
 
     host.state = { mode: 'infinite', hasMore: true, pending: false, error: 'Could not load results' };
     fixture.detectChanges();
