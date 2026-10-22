@@ -5,6 +5,7 @@ import {
 import { AuthenticatedUserId } from 'src/metadata/metadata'
 import { assertMercurionPublicId } from 'src/identifiers/mercurion-public-id'
 import { NotebookDomainService } from './notebook-domain.service'
+import { RequiresFeatures } from 'src/feature-flags/feature-access.decorator'
 import { ExperimentProtocolService } from './experiment-protocol.service'
 import { LabNotebook } from './entities/lab-notebook.entity'
 import { NotebookSection } from './entities/notebook-section.entity'
@@ -28,6 +29,7 @@ function reorderedIds(input: NotebookOrderInput): UUID[] {
   return input.orderedIds.map((id, i) => ownerId(id, `orderedIds[${i}]`))
 }
 
+@RequiresFeatures('notebook')
 @Resolver(() => LabNotebook)
 export class LabNotebookDomainResolver {
   constructor(private readonly notebook: NotebookDomainService) {}
@@ -76,6 +78,7 @@ export class LabNotebookDomainResolver {
   }
 }
 
+@RequiresFeatures('notebook')
 @Resolver(() => NotebookSection)
 export class NotebookSectionDomainResolver {
   constructor(private readonly notebookService: NotebookDomainService) {}
@@ -133,6 +136,7 @@ export class NotebookSectionDomainResolver {
   }
 }
 
+@RequiresFeatures('notebook')
 @Resolver(() => NotebookExperiment)
 export class NotebookExperimentDomainResolver {
   constructor(
@@ -190,6 +194,7 @@ export class NotebookExperimentDomainResolver {
     return this.notebook.reorderExperiments(userId, ownerId(input.parentId, 'parentId'), reorderedIds(input))
   }
 
+  @RequiresFeatures('synthesis')
   @Mutation(() => Boolean)
   async linkSynthesisToExperiment(
     @AuthenticatedUserId() userId: UUID,
@@ -200,6 +205,7 @@ export class NotebookExperimentDomainResolver {
     return this.protocols.linkSynthesisToExperiment(userId, input)
   }
 
+  @RequiresFeatures('synthesis')
   @Mutation(() => Boolean)
   async unlinkSynthesisFromExperiment(
     @AuthenticatedUserId() userId: UUID,
@@ -226,6 +232,7 @@ export class NotebookExperimentDomainResolver {
   }
 }
 
+@RequiresFeatures('notebook')
 @Resolver(() => ExperimentExecution)
 export class ExperimentExecutionDomainResolver {
   constructor(
@@ -307,6 +314,7 @@ export class ExperimentExecutionDomainResolver {
     return this.notebook.reorderExecutions(userId, ownerId(input.parentId, 'parentId'), reorderedIds(input))
   }
 
+  @RequiresFeatures('synthesis')
   @Mutation(() => Boolean)
   async linkSynthesisToExecution(
     @AuthenticatedUserId() userId: UUID,
@@ -340,6 +348,7 @@ export class ExperimentExecutionDomainResolver {
   }
 }
 
+@RequiresFeatures('notebook')
 @Resolver(() => ExperimentProtocolRevision)
 export class ExperimentProtocolRevisionDomainResolver {
   constructor(private readonly notebook: NotebookDomainService) {}
