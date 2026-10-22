@@ -57,9 +57,13 @@ export function validateNotebookDelta(value: unknown): ValidatedDelta {
 
   return {
     delta: document,
-    sanitizedText: fragments.join('')
-      .replace(/\u0000/g, '')
-      .replace(/[\u0001-\u0008\u000b\u000c\u000e-\u001f]/g, '')
+    sanitizedText: Array.from(fragments.join(''))
+      .filter(character => {
+        const code = character.charCodeAt(0)
+        // Retain printable text and the whitespace supported by Quill documents.
+        return code >= 32 || code === 9 || code === 10 || code === 13
+      })
+      .join('')
   }
 }
 

@@ -1,3 +1,4 @@
+import { runInTransaction } from 'src/persistence/transaction-context'
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common'
 import { InjectDataSource } from '@nestjs/typeorm'
 import { UUID } from 'crypto'
@@ -112,7 +113,7 @@ export class NotebookDomainService {
 
   async patchNotebook(userId: UUID, input: ScientificNotebookPatchInput): Promise<LabNotebook> {
     const id = input.id as UUID
-    return this.dataSource.transaction(async manager => {
+    return runInTransaction(this.dataSource, async (_context, manager) => {
       const existing = await this.ownedNotebook(manager, userId, id)
       if (existing.archivedAt != null) throw new ConflictException('LAB_NOTEBOOK_ARCHIVED')
       const patch: QueryDeepPartialEntity<LabNotebook> = { updatedAt: Date.now() }
@@ -152,7 +153,7 @@ export class NotebookDomainService {
     const notebookId = input.notebookId as UUID
     const title = requireNotebookTitle(input.title)
     const value = validateNotebookDelta(input.contentDelta)
-    return this.dataSource.transaction(async manager => {
+    return runInTransaction(this.dataSource, async (_context, manager) => {
       await this.lockedParent(manager, 'lab_notebooks', notebookId, userId)
       const notebook = await this.ownedNotebook(manager, userId, notebookId)
       if (notebook.archivedAt != null) throw new ConflictException('LAB_NOTEBOOK_ARCHIVED')
@@ -168,7 +169,7 @@ export class NotebookDomainService {
 
   async patchSection(userId: UUID, input: NotebookSectionPatchInput): Promise<NotebookSection> {
     const id = input.id as UUID
-    return this.dataSource.transaction(async manager => {
+    return runInTransaction(this.dataSource, async (_context, manager) => {
       await this.ownedSection(manager, userId, id)
       const patch: QueryDeepPartialEntity<NotebookSection> = { updatedAt: Date.now() }
       if (input.title !== undefined) patch.title = requireNotebookTitle(input.title)
@@ -198,7 +199,7 @@ export class NotebookDomainService {
     const sectionId = input.sectionId as UUID
     const title = requireNotebookTitle(input.title)
     const value = validateNotebookDelta(input.contentDelta)
-    return this.dataSource.transaction(async manager => {
+    return runInTransaction(this.dataSource, async (_context, manager) => {
       await this.lockedParent(manager, 'lab_notebook_sections', sectionId, userId)
       const experimentOrder = await this.nextOrder(
         manager, 'lab_notebook_experiments', 'section_id', 'experiment_order', sectionId, userId
@@ -212,7 +213,7 @@ export class NotebookDomainService {
 
   async patchExperiment(userId: UUID, input: NotebookExperimentPatchInput): Promise<NotebookExperiment> {
     const id = input.id as UUID
-    return this.dataSource.transaction(async manager => {
+    return runInTransaction(this.dataSource, async (_context, manager) => {
       const experiment = await this.ownedExperiment(manager, userId, id)
       if (experiment.archivedAt != null) throw new ConflictException('NOTEBOOK_EXPERIMENT_ARCHIVED')
       const patch: QueryDeepPartialEntity<NotebookExperiment> = { updatedAt: Date.now() }
@@ -251,7 +252,7 @@ export class NotebookDomainService {
     const experimentId = input.experimentId as UUID
     const title = requireNotebookTitle(input.title)
     const value = validateNotebookDelta(input.contentDelta)
-    return this.dataSource.transaction(async manager => {
+    return runInTransaction(this.dataSource, async (_context, manager) => {
       await this.lockedParent(manager, 'lab_notebook_experiments', experimentId, userId)
       const experiment = await this.ownedExperiment(manager, userId, experimentId)
       if (experiment.archivedAt != null) throw new ConflictException('NOTEBOOK_EXPERIMENT_ARCHIVED')
@@ -269,7 +270,7 @@ export class NotebookDomainService {
 
   async patchExecution(userId: UUID, input: ExperimentExecutionPatchInput): Promise<ExperimentExecution> {
     const id = input.id as UUID
-    return this.dataSource.transaction(async manager => {
+    return runInTransaction(this.dataSource, async (_context, manager) => {
       // Serialize edits with complete/cancel/start; avoids converting a
       // predictable conflict into a database trigger error (SQLSTATE 23514).
       await manager.query(
@@ -330,7 +331,7 @@ export class NotebookDomainService {
     if (new Set(ids).size !== ids.length) {
       throw new BadRequestException('NOTEBOOK_REORDER_DUPLICATES')
     }
-    return this.dataSource.transaction(async manager => {
+    return runInTransaction(this.dataSource, async (_context, manager) => {
       await this.lockedParent(manager, parentTable, parentId, userId)
       const existing: Array<{ id: UUID }> = await manager.query(
         `SELECT id FROM public.${table}

@@ -1,3 +1,4 @@
+import { runInTransaction } from 'src/persistence/transaction-context'
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common'
 import { InjectDataSource } from '@nestjs/typeorm'
 import { UUID, createHash } from 'crypto'
@@ -171,7 +172,7 @@ export class ExperimentProtocolService {
     // route edits; a serialization failure is retried from a fresh snapshot.
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
-        return await this.dataSource.transaction('REPEATABLE READ', work)
+        return await runInTransaction(this.dataSource, (_context, manager) => work(manager), undefined, 'REPEATABLE READ')
       } catch (error) {
         const dbError = error as { code?: string; driverError?: { code?: string } }
         const code = dbError.driverError?.code ?? dbError.code
@@ -267,7 +268,7 @@ export class ExperimentProtocolService {
   private async changeRunStatus(
     userId: UUID, executionId: UUID, status: 'COMPLETED' | 'CANCELLED'
   ): Promise<ExperimentExecution> {
-    return this.dataSource.transaction(async manager => {
+    return runInTransaction(this.dataSource, async (_context, manager) => {
       await manager.query(
         `SELECT id FROM public.lab_notebook_executions
          WHERE id=$1::uuid AND user_id=$2::uuid FOR UPDATE`,
@@ -289,7 +290,7 @@ export class ExperimentProtocolService {
   async linkSynthesisToExperiment(
     userId: UUID, input: ExperimentSynthesisLinkInput
   ): Promise<boolean> {
-    return this.dataSource.transaction(async manager => {
+    return runInTransaction(this.dataSource, async (_context, manager) => {
       const experiment = await this.notebooks.ownedExperiment(manager, userId, input.experimentId as UUID)
       if (experiment.archivedAt != null) throw new ConflictException('NOTEBOOK_EXPERIMENT_ARCHIVED')
       const owned = await manager.query(
@@ -311,7 +312,7 @@ export class ExperimentProtocolService {
   async unlinkSynthesisFromExperiment(
     userId: UUID, input: ExperimentSynthesisLinkInput
   ): Promise<boolean> {
-    return this.dataSource.transaction(async manager => {
+    return runInTransaction(this.dataSource, async (_context, manager) => {
       await this.notebooks.ownedExperiment(manager, userId, input.experimentId as UUID)
       await manager.query(
         `DELETE FROM public.notebook_experiment_synthesis_links
@@ -325,7 +326,7 @@ export class ExperimentProtocolService {
   async linkSynthesisToExecution(
     userId: UUID, input: ExecutionSynthesisLinkInput
   ): Promise<boolean> {
-    return this.dataSource.transaction(async manager => {
+    return runInTransaction(this.dataSource, async (_context, manager) => {
       const execution = await this.notebooks.ownedExecution(manager, userId, input.executionId as UUID)
       if (execution.status === 'COMPLETED' || execution.status === 'CANCELLED') {
         throw new ConflictException('EXPERIMENT_EXECUTION_FINALIZED')
@@ -357,7 +358,7 @@ export class ExperimentProtocolService {
   async linkMoleculeToExecution(
     userId: UUID, input: ExecutionMoleculeLinkInput
   ): Promise<boolean> {
-    return this.dataSource.transaction(async manager => {
+    return runInTransaction(this.dataSource, async (_context, manager) => {
       const execution = await this.notebooks.ownedExecution(manager, userId, input.executionId as UUID)
       if (execution.status === 'COMPLETED' || execution.status === 'CANCELLED') {
         throw new ConflictException('EXPERIMENT_EXECUTION_FINALIZED')

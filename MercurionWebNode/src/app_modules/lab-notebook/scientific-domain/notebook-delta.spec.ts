@@ -35,4 +35,10 @@ describe('Quill Delta persistence safety', () => {
     expect(requireNotebookTitle('  Chemical   research  ')).toBe('Chemical research')
     expect(() => requireNotebookTitle('  ')).toThrow()
   })
+
+  it('removes C0 controls while preserving tabs, line endings and Unicode text', () => {
+    const controls = Array.from({ length: 32 }, (_, code) => String.fromCharCode(code)).join('')
+    expect(validateNotebookDelta({ ops: [{ insert: `Caffè 🧪${controls}\u007f` }] }).sanitizedText)
+      .toBe('Caffè 🧪\t\n\r\u007f')
+  })
 })

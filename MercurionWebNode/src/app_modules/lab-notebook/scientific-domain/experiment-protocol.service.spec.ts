@@ -97,6 +97,15 @@ describe('ExperimentProtocolService - historical freeze', () => {
     expect(executions.get(firstExecutionId)?.protocolRevisionId).toBe(revisions[0].id)
   })
 
+  it.each(['40001', '40P01'])('retries %s with a fresh Repeatable Read transaction', async code => {
+    const { service, datasource, revisions } = setup()
+    datasource.transaction.mockRejectedValueOnce(Object.assign(new Error('retry'), { code }))
+    await expect(service.start(userId, firstExecutionId)).resolves.toMatchObject({ status: 'IN_PROGRESS' })
+    expect(datasource.transaction).toHaveBeenCalledTimes(2)
+    for (const call of datasource.transaction.mock.calls) expect(call[0]).toBe('REPEATABLE READ')
+    expect(revisions).toHaveLength(1)
+  })
+
   it('reuses the last revision when the planned protocol has not changed', async () => {
     const { service, revisions } = setup()
     await service.start(userId, firstExecutionId)
