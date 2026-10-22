@@ -30,7 +30,7 @@ let nextGeneratedId = 0;
   selector: 'm-text-field',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, ReactiveFormsModule, CdkAutofill],
-  host: { class: 'block' },
+  host: { class: 'block', '[attr.id]': 'null' },
   template: `
     <div class="w-full">
       <div class="group relative flex min-w-0 items-center">

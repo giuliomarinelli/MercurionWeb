@@ -70,6 +70,8 @@ describe('TextFieldComponent', () => {
     expect(input.id).toBe('display-name');
     expect(input.name).toBe('displayName');
     expect(label.htmlFor).toBe('display-name');
+    expect(fixture.nativeElement.querySelectorAll('#display-name').length).toBe(1);
+    expect(label.control).toBe(input);
     expect(input.getAttribute('aria-describedby')).toBe('display-name-hint');
     expect(hint.textContent).toContain('Use your public name');
     expect(fixture.nativeElement.querySelector('[mtextfieldprefix]')).toBeTruthy();

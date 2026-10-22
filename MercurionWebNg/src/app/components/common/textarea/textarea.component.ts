@@ -29,7 +29,7 @@ let nextGeneratedId = 0;
   selector: 'm-textarea',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, ReactiveFormsModule],
-  host: { class: 'block' },
+  host: { class: 'block', '[attr.id]': 'null' },
   template: `
     <div class="w-full">
       <div class="group relative min-w-0">
