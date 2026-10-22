@@ -2,7 +2,7 @@ import { ExecutionContext, ForbiddenException } from '@nestjs/common'
 import { MODULE_METADATA } from '@nestjs/common/constants'
 import { ConfigService } from '@nestjs/config'
 import { Reflector } from '@nestjs/core'
-import { buildSchema } from 'graphql'
+import { buildSchema, getNamedType, isObjectType } from 'graphql'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { Environment } from 'src/config/config.schema'
@@ -174,6 +174,30 @@ describe('Mercurion beta feature boundary coverage', () => {
         expect(Reflect.getMetadata(REQUIRED_FEATURES_METADATA, owners[0])).toContain(feature)
       }
     }
+  })
+
+  it('prevents nested access to scientific types through an unrelated GraphQL root', () => {
+    // Class guards protect root operations; GraphQL does not enable
+    // fieldResolverEnhancers by default. Reject accidental cross-domain fields.
+    const schema = buildSchema(readFileSync(resolve(__dirname, '../schema.graphql'), 'utf8'))
+    const deferredTypes = new Set([
+      'LabNotebook', 'NotebookSection', 'NotebookExperiment',
+      'ExperimentExecution', 'ExperimentProtocolRevision',
+      'Synthesis', 'SynthStep', 'SynthStepItem',
+      'SynthesisPoolMolecule', 'SynthesisPoolCollection'
+    ])
+    const unguardedReferences: string[] = []
+    for (const type of Object.values(schema.getTypeMap())) {
+      if (!isObjectType(type) || type.name.startsWith('__') ||
+          type.name === 'Query' || type.name === 'Mutation' ||
+          deferredTypes.has(type.name)) continue
+      for (const [name, field] of Object.entries(type.getFields())) {
+        if (deferredTypes.has(getNamedType(field.type).name)) {
+          unguardedReferences.push(`${type.name}.${name}`)
+        }
+      }
+    }
+    expect(unguardedReferences).toEqual([])
   })
 
   it('covers exactly four public DocumentController handlers', () => {
