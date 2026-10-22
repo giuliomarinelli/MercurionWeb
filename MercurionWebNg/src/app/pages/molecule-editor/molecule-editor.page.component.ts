@@ -6,9 +6,7 @@ import {
   Subject,
   Subscription,
   catchError,
-  debounceTime,
-  distinctUntilChanged,
-  exhaustMap,
+  auditTime,
   filter,
   firstValueFrom,
   map,
@@ -16,7 +14,8 @@ import {
   switchMap,
   take,
   takeUntil,
-  tap
+  tap,
+  timeout
 } from 'rxjs'
 import { FormsModule } from '@angular/forms'
 import { SelectButtonModule } from 'primeng/selectbutton'
@@ -34,7 +33,6 @@ import {
   MoleculeEditorHistoryEntry
 } from '../../chemistry/molecule-editor-draft.service'
 import { KetcherFrameComponent } from '../../components/chem/ketcher-frame/ketcher-frame.component'
-import { MoleculeItemLookup } from '../../Models/graphql/molecule-collection/molecule-collection.types'
 import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service'
 import { MoleculeCollectionItemService } from '../../services/graphql/molecule-collection-item.service'
 import { RdKitApiService } from '../../services/rd-kit-api.service'
@@ -46,6 +44,8 @@ import { CopyButtonComponent } from '../../components/common/copy-button/copy-bu
 import { LiveTox21SummaryComponent } from '../../components/molecule-editor/live-tox21-summary/live-tox21-summary.component'
 import { LiveMoleculeAnalogsComponent } from '../../components/molecule-editor/live-molecule-analogs/live-molecule-analogs.component'
 import { MoleculeEditorLiveAnalysisFacade } from './molecule-editor-live-analysis.facade'
+import { EditorRequestScheduler } from '../../chemistry/editor-request-scheduler.service'
+import { ProgressIndicatorComponent } from '../../components/common/progress-indicator/progress-indicator.component'
 
 @Component({
   selector: 'm-molecule-editor',
@@ -58,7 +58,8 @@ import { MoleculeEditorLiveAnalysisFacade } from './molecule-editor-live-analysi
     MoleculeBadgeComponent,
     CopyButtonComponent,
     LiveTox21SummaryComponent,
-    LiveMoleculeAnalogsComponent
+    LiveMoleculeAnalogsComponent,
+    ProgressIndicatorComponent
   ],
   providers: [MoleculeEditorLiveAnalysisFacade],
   template: `
@@ -84,16 +85,40 @@ import { MoleculeEditorLiveAnalysisFacade } from './molecule-editor-live-analysi
           <div class="m-editor-name">
             <dt>Nome della molecola</dt>
             <dd>
-              <span>{{ moleculeNameLoading() ? 'Ricerca del nome…' : (currentMoleculeName() ?? (currentCanonicalSmiles() ? 'Molecola non identificata' : 'Nessuna struttura disegnata')) }}</span>
-              @if (!moleculeNameLoading() && currentMoleculeType() !== null) {
-                <m-molecule-badge [name]="currentMoleculeType()!" />
+              @if (hasStructure()) {
+                @if (validationFailed()) {
+                  <span>Verifica necessaria</span>
+                } @else if (moleculeNameFailed()) {
+                  <span class="italic">Ricerca del nome non riuscita</span>
+                } @else if (identityChecking() || !currentCanonicalSmiles() || moleculeNameLoading()) {
+                  <m-progress-indicator [size]="16" ariaLabel="Ricerca del nome della molecola" />
+                } @else if (!currentMoleculeName()) {
+                  <span class="italic">Nome non disponibile</span>
+                } @else {
+                  <span>{{ currentMoleculeName() }}</span>
+                }
+                @if (!moleculeNameLoading() && currentMoleculeType() !== null) {
+                  <m-molecule-badge [name]="currentMoleculeType()!" />
+                }
+              } @else {
+                <span class="italic">Nessuna struttura disegnata</span>
               }
             </dd>
           </div>
           <div class="m-editor-smiles">
             <dt>SMILES canonico</dt>
             <dd>
-              <span class="m-editor-smiles-value" [class.font-mono]="currentCanonicalSmiles()">{{ currentCanonicalSmiles() || 'Disponibile dopo il disegno della struttura' }}</span>
+              <span class="m-editor-smiles-value" [class.font-mono]="currentCanonicalSmiles()" [class.italic]="!currentCanonicalSmiles() && !hasStructure()">
+                @if (currentCanonicalSmiles()) {
+                  {{ currentCanonicalSmiles() }}
+                } @else if (hasStructure() && !validationFailed()) {
+                  <m-progress-indicator [size]="16" ariaLabel="Aggiornamento SMILES canonico" />
+                } @else if (hasStructure()) {
+                  Verifica necessaria
+                } @else {
+                  Disponibile dopo il disegno della struttura
+                }
+              </span>
               @if (currentCanonicalSmiles()) {
                 <m-copy-button [src]="currentCanonicalSmiles()" ariaLabel="Copia SMILES canonico" />
               }
@@ -103,7 +128,30 @@ import { MoleculeEditorLiveAnalysisFacade } from './molecule-editor-live-analysi
         <m-ketcher-frame [smiles]="smiles()" [baselineSmiles]="baselineSmiles()" [mode]="mode()" [tab]="tab()"
             [triggerReset]="triggerReset()" [triggerGetSmiles]="triggerGetSmiles()"
             (exportSmiles)="onSmilesExported($event)" (exportPolledSmiles)="onSmilesPollExported($event)"
-            (onReset)="handleReset()">
+            (structureChanged)="invalidateStructure()" (exportFailed)="handleExportFailure()" (onReset)="handleReset()">
+
+            <div class="m-editor-status" [class.m-editor-status--error]="editorStatus().kind === 'error'"
+                [class.m-editor-status--duplicate]="editorStatus().kind === 'duplicate'"
+                [class.m-editor-status--ready]="editorStatus().kind === 'ready'">
+              <span class="m-editor-status-icon" aria-hidden="true">
+                @if (editorStatus().kind === 'busy') {
+                  <m-progress-indicator [size]="16" />
+                } @else {
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" focusable="false">
+                    @if (editorStatus().kind === 'ready') {
+                      <path d="m5 12 4 4L19 6" />
+                    } @else {
+                      <circle cx="12" cy="12" r="9" />
+                      <path d="M12 7v6m0 3v1" />
+                    }
+                  </svg>
+                }
+              </span>
+              <p class="m-editor-status-text" role="status" aria-live="polite" aria-atomic="true" [title]="editorStatus().text">{{ editorStatus().text }}</p>
+              <button type="button" class="m-editor-status-retry" [disabled]="!canRetryIdentity()"
+                  [style.visibility]="canRetryIdentity() ? 'visible' : 'hidden'"
+                  aria-label="Riprova aggiornamento" (click)="retryIdentity()">Riprova</button>
+            </div>
 
             <div class="m-editor-actions" role="group" aria-label="Azioni sul disegno">
                 <button type="button" class="m-editor-action m-editor-action--secondary"
@@ -111,11 +159,11 @@ import { MoleculeEditorLiveAnalysisFacade } from './molecule-editor-live-analysi
                     aria-label="Resetta la struttura">{{ baselineSmiles() ? 'Ripristina struttura' : 'Svuota disegno' }}</button>
                 @if (mode() === 'edit') {
                   <button type="button" class="m-editor-action m-editor-action--primary"
-                    [disabled]="lock() || pendingAction() !== null || pendingTabChange() !== null"
+                    [disabled]="lock() || saveUnconfirmed() || pendingAction() !== null || pendingTabChange() !== null"
                     (click)="onSave()" aria-label="Salva molecola">Salva modifiche</button>
                 } @else {
                   <button type="button" class="m-editor-action m-editor-action--primary"
-                    [disabled]="lock() || pendingAction() !== null || pendingTabChange() !== null"
+                    [disabled]="lock() || saveUnconfirmed() || pendingAction() !== null || pendingTabChange() !== null"
                     (click)="onSaveAsNew()" aria-label="Salva come nuova molecola">Salva nuova molecola</button>
                 }
             </div>
@@ -175,19 +223,31 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
   private readonly drafts = inject(MoleculeEditorDraftService)
   private readonly qpRegistry = signal<MoleculeEditorQp | null>(null)
   private readonly moleculeService = inject(MoleculeService)
+  private readonly requests = inject(EditorRequestScheduler)
   readonly liveAnalysis = inject(MoleculeEditorLiveAnalysisFacade)
 
   private routeSub?: Subscription
-  private molEdSub?: Subscription
   private molDupSub?: Subscription
+  private saveInFlight = false
+  private unconfirmedMoleculeId?: string
 
   private readonly destroy$ = new Subject<void>()
-  private readonly polledSmiles$ = new Subject<string>()
+  private readonly polledSmiles$ = new Subject<{ smiles: string; revision: number }>()
   private validationRevision = 0
+  private lastRawSmiles: string | undefined
+  private lastPolledRevision = -1
+  private destroyed = false
+  readonly validationFailed = signal(false)
+  readonly moleculeNameFailed = signal(false)
+  readonly validationMessage = signal('')
+  readonly identityChecking = signal(false)
+  readonly duplicateFound = signal(false)
+  private snapshotUnavailable = false
 
   readonly mode = signal<ChemistryEditorMode>('edit')
   readonly tab = signal<ChemistryEditorTab>('std')
   readonly smiles = signal('')
+  readonly hasStructure = signal(false)
   readonly baselineSmiles = signal('')
   readonly mId = signal<string | undefined>(undefined)
   readonly error = signal(false)
@@ -201,6 +261,26 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
   readonly moleculeNameLoading = signal(false)
   readonly currentMoleculeName = signal<string | null>(null)
   readonly currentMoleculeType = signal<string | null>(null)
+  readonly saveUnconfirmed = signal(false)
+  readonly canRetryIdentity = computed(() => !this.saveUnconfirmed() && (this.validationFailed() || this.moleculeNameFailed()))
+  readonly editorStatus = computed<{ kind: 'idle' | 'busy' | 'ready' | 'duplicate' | 'error'; text: string }>(() => {
+    if (this.saveUnconfirmed() && !this.pendingAction()) return { kind: 'error', text: 'Salvataggio non confermato: verifica la molecola' }
+    const waiting = this.requests.waiting()
+    if (waiting && (this.pendingAction() || this.hasStructure() && !this.validationFailed() && !this.moleculeNameFailed())) {
+      const text = waiting.kind === 'cooldown'
+        ? `Pausa richieste. Ripresa alle ${new Date(waiting.resumeAt).toLocaleTimeString('it-IT')}`
+        : waiting.kind === 'lock' ? 'In attesa di un’altra scheda…' : 'Richiesta in coda…'
+      return { kind: 'busy', text }
+    }
+    if (this.pendingAction() || this.pendingTabChange()) return { kind: 'busy', text: 'Operazione in corso…' }
+    if (!this.hasStructure()) return { kind: 'idle', text: 'Disegna una struttura' }
+    if (this.validationFailed()) return { kind: 'error', text: this.snapshotUnavailable ? 'Lettura del disegno non riuscita' : 'Verifica non riuscita' }
+    if (this.duplicateFound()) return { kind: 'duplicate', text: 'Struttura già presente' }
+    if (this.identityChecking() || !this.currentCanonicalSmiles()) return { kind: 'busy', text: 'Verifica della struttura…' }
+    if (this.moleculeNameFailed()) return { kind: 'error', text: 'Ricerca del nome non riuscita' }
+    if (this.moleculeNameLoading()) return { kind: 'busy', text: 'Ricerca del nome…' }
+    return { kind: 'ready', text: this.mode() === 'edit' && this.untouched() ? 'Nessuna modifica da salvare' : 'Struttura pronta' }
+  })
 
   readonly canUndo = this.drafts.canUndo
   readonly canRedo = this.drafts.canRedo
@@ -218,9 +298,11 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
   constructor() {
     effect(onCleanup => {
       const canonicalSmiles = this.currentCanonicalSmiles()
+      const revision = this.validationRevision
 
       this.currentMoleculeName.set(null)
       this.currentMoleculeType.set(null)
+      this.moleculeNameFailed.set(false)
 
       if (!canonicalSmiles) {
         this.moleculeNameLoading.set(false)
@@ -229,13 +311,10 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
 
       this.moleculeNameLoading.set(true)
 
-      const sub = of(null)
-        .pipe(
-          exhaustMap(() => this.moleculeService.getPreferredNameItByCanonicalSmiles(canonicalSmiles))
-        )
+      const sub = this.requests.run('/api/graphql', () => this.moleculeService.getPreferredNameItByCanonicalSmiles(canonicalSmiles), 1)
         .subscribe({
           next: res => {
-            if (this.currentCanonicalSmiles() !== canonicalSmiles) return
+            if (!this.isCurrent(revision) || this.currentCanonicalSmiles() !== canonicalSmiles) return
 
             this.moleculeNameLoading.set(false)
 
@@ -251,12 +330,13 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
             )
           },
           error: error => {
-            if (this.currentCanonicalSmiles() !== canonicalSmiles) return
+            if (!this.isCurrent(revision) || this.currentCanonicalSmiles() !== canonicalSmiles) return
 
             this.moleculeNameLoading.set(false)
             this.logger.error('Molecule name lookup error', error)
             this.currentMoleculeName.set(null)
             this.currentMoleculeType.set(null)
+            this.moleculeNameFailed.set(true)
           }
         })
 
@@ -272,16 +352,19 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
   }
 
   onSave(): void {
+    if (this.lock() || this.saveUnconfirmed() || this.pendingAction() || this.pendingTabChange() || this.saveInFlight) return
     this.pendingAction.set('save')
     this.triggerGetSmiles.set(true)
   }
 
   onSaveAsNew(): void {
+    if (this.lock() || this.saveUnconfirmed() || this.pendingAction() || this.pendingTabChange() || this.saveInFlight) return
     this.pendingAction.set('saveNew')
     this.triggerGetSmiles.set(true)
   }
 
   onReset(): void {
+    if (this.pendingAction() || this.pendingTabChange()) return
     this.triggerReset.set(true)
   }
 
@@ -302,16 +385,52 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
   }
 
   onSmilesPollExported(smiles: string): void {
+    this.snapshotUnavailable = false
     const trimmed = smiles.trim()
+    this.hasStructure.set(!!trimmed)
+    if (trimmed === this.lastRawSmiles && this.lastPolledRevision === this.validationRevision) return
+    this.invalidateStructure()
+    this.lastRawSmiles = trimmed
+    this.lastPolledRevision = this.validationRevision
+    this.drafts.record(trimmed, this.tab())
+    this.untouched.set(trimmed === this.baselineSmiles())
+    this.validationMessage.set(trimmed ? 'Aggiornamento della struttura in corso…' : '')
+    this.polledSmiles$.next({ smiles: trimmed, revision: this.validationRevision })
+  }
 
-    if (!trimmed) {
-      this.drafts.record('', this.tab())
-      this.setCurrentCanonicalSmiles('')
-      this.untouched.set(this.baselineSmiles() === '')
-      this.lock.set(true)
+  invalidateStructure(): void {
+    this.validationRevision++
+    this.lock.set(true)
+    this.validationFailed.set(false)
+    this.identityChecking.set(this.hasStructure())
+    this.duplicateFound.set(false)
+    this.setCurrentCanonicalSmiles('')
+    // Empty is an invalidation event, not a value to filter before cancellation.
+    this.polledSmiles$.next({ smiles: '', revision: this.validationRevision })
+  }
+
+  retryIdentity(): void {
+    if (this.snapshotUnavailable) {
+      this.triggerGetSmiles.set(true)
+      return
     }
+    this.lastPolledRevision = -1
+    if (this.lastRawSmiles !== undefined) this.onSmilesPollExported(this.lastRawSmiles)
+  }
 
-    this.polledSmiles$.next(smiles)
+  handleExportFailure(): void {
+    this.snapshotUnavailable = true
+    this.invalidateStructure()
+    if (!this.saveInFlight) this.pendingAction.set(null)
+    this.pendingTabChange.set(null)
+    this.triggerGetSmiles.set(false)
+    this.validationFailed.set(true)
+    this.identityChecking.set(false)
+    this.validationMessage.set('Lettura del disegno non riuscita. Il disegno è conservato; nuovo tentativo in corso…')
+  }
+
+  private isCurrent(revision: number): boolean {
+    return !this.destroyed && revision === this.validationRevision
   }
 
   private setCurrentCanonicalSmiles(canonicalSmiles: string): void {
@@ -319,14 +438,15 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
   }
 
   handleReset(): void {
-    this.validationRevision += 1
+    this.invalidateStructure()
     this.triggerReset.set(false)
 
     const entry = this.drafts.resetToBaseline(this.tab())
     const baseline = this.baselineSmiles()
     const restoredSmiles = entry?.smiles ?? baseline
     this.smiles.set(restoredSmiles)
-    this.setCurrentCanonicalSmiles(restoredSmiles)
+    this.hasStructure.set(!!restoredSmiles.trim())
+    this.identityChecking.set(this.hasStructure())
     this.untouched.set(true)
     this.lock.set(true)
 
@@ -335,10 +455,11 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
 
   private applyHistoryEntry(entry: MoleculeEditorHistoryEntry | null): void {
     if (!entry) return
-    this.validationRevision += 1
+    this.invalidateStructure()
 
     this.smiles.set(entry.smiles)
-    this.setCurrentCanonicalSmiles(entry.smiles)
+    this.hasStructure.set(!!entry.smiles.trim())
+    this.identityChecking.set(this.hasStructure())
     this.untouched.set(entry.smiles === this.baselineSmiles())
 
     // La validazione di unicità viene rieseguita dal normale polling Ketcher.
@@ -347,7 +468,7 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
   }
 
   private initializeDraft(init: MoleculeEditorDraftInit): void {
-    this.validationRevision += 1
+    this.invalidateStructure()
     const entry = this.drafts.initialize(init)
 
     this.mode.set(init.mode)
@@ -358,7 +479,8 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
     // when its tab input changes, so structureValue must already contain the
     // recovered draft when the new iframe starts.
     this.smiles.set(entry.smiles)
-    this.setCurrentCanonicalSmiles(entry.smiles)
+    this.hasStructure.set(!!entry.smiles.trim())
+    this.identityChecking.set(this.hasStructure())
     this.untouched.set(entry.smiles === init.baselineSmiles)
     this.lock.set(true)
 
@@ -371,26 +493,24 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
   }
 
   private canonicalizeForEditor(smiles: string, logContext: string) {
-    return this.RDKitAPI.toCanonicalSmiles({ smiles }).pipe(
-      map(canon => canon?.trim() ? canon : smiles),
-      catchError(error => {
-        this.logger.error(logContext, error)
-        return of(smiles)
-      })
+    return this.requests.run('/api/rdkit-api/to-canonical-smiles', () => this.RDKitAPI.toCanonicalSmiles({ smiles })).pipe(
+      map(canon => {
+        if (!canon?.trim()) throw new Error('SMILES vuota o non valida')
+        return canon.trim()
+      }),
+      tap({ error: error => this.logger.error(logContext, error) })
     )
   }
 
   private async checkDupe(smiles: string): Promise<string> {
-    const canon = await firstValueFrom(
-      this.RDKitAPI.toCanonicalSmiles({ smiles }).pipe(
-        catchError(e => {
-          this.logger.error('RDKitAPI canonicalization error', e)
-          this.toast.trigger('Errore RDKit API nella canonicalizzazione della struttura della molecola.', 'error', 2500)
-          return of('')
-        })
+    const revision = this.validationRevision
+    const canon = this.currentCanonicalSmiles() || await firstValueFrom(
+      this.canonicalizeForEditor(smiles, 'Canonicalization before save').pipe(
+        takeUntil(this.destroy$)
       )
     )
 
+    if (!this.isCurrent(revision)) return ''
     if (!canon || !canon.trim().length) {
       this.toast.trigger('SMILES vuota o non valida', 'error', 2500)
       this.pendingAction.set(null)
@@ -398,17 +518,15 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
     }
 
     const dupeRes = await firstValueFrom(
-      this.moleculeCollectionItemService
-        .findOneCustomMoleculeByCanonicalSmiles_shortFetch(canon)
+      this.requests.run('/api/graphql', () => this.moleculeCollectionItemService.findOneCustomMoleculeByCanonicalSmiles_shortFetch(canon))
         .pipe(
-          catchError(e => {
-            this.logger.error('Duplicate check save error', e)
-            return of(null)
-          })
+          takeUntil(this.destroy$)
         )
     )
 
+    if (!this.isCurrent(revision)) return ''
     if (dupeRes) {
+      this.duplicateFound.set(true)
       this.lock.set(true)
       this.toast.trigger(
         `Questa struttura è già associata alla molecola '${dupeRes.name}'. Impossibile salvare una struttura duplicata`,
@@ -429,42 +547,54 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
       return
     }
 
-    const canon = await this.checkDupe(smiles)
-    if (!canon) {
+    const action = this.pendingAction()
+    if (this.saveInFlight) return
+    if (!action) {
+      this.onSmilesPollExported(smiles)
+      return
+    }
+    if (smiles.trim() !== this.lastRawSmiles) {
+      this.onSmilesPollExported(smiles)
       this.pendingAction.set(null)
       return
     }
-
-    const action = this.pendingAction()
-
-    if (action === 'saveNew') {
-      this.doSaveNew(canon)
-    } else if (action === 'save') {
-      await this.doSaveEdit(canon)
+    this.onSmilesPollExported(smiles)
+    const revision = this.validationRevision
+    this.saveInFlight = true
+    try {
+      const canon = await this.checkDupe(smiles)
+      if (!canon || !this.isCurrent(revision)) return
+      if (action === 'saveNew') this.doSaveNew(canon)
+      else await this.doSaveEdit(canon)
+    } catch (error) {
+      if (this.isCurrent(revision)) {
+        this.lock.set(true)
+        this.validationFailed.set(true)
+        this.validationMessage.set('Verifica non riuscita. Il disegno è conservato; riprova prima di salvare.')
+        this.logger.error('Editor save validation failed', error)
+      }
+    } finally {
+      this.saveInFlight = false
+      this.pendingAction.set(null)
     }
-
-    this.pendingAction.set(null)
   }
 
   private async commitTabChange(smiles: string, nextTab: ChemistryEditorTab): Promise<void> {
     try {
-      const trimmed = smiles.trim()
-      const currentStructure = trimmed
-        ? await firstValueFrom(
-          this.canonicalizeForEditor(
-            trimmed,
-            'RDKitAPI tab-change canonicalization error'
-          )
-        )
-        : ''
+      // Switching views preserves the exported drawing, not a claimed canonical identity.
+      const currentStructure = smiles.trim()
 
       this.drafts.record(currentStructure, this.tab())
       this.smiles.set(currentStructure)
-      this.setCurrentCanonicalSmiles(currentStructure)
+      this.hasStructure.set(!!currentStructure)
+      this.invalidateStructure()
       this.drafts.setTab(nextTab)
 
       const qp = this.qpRegistry()
-      if (!qp) return
+      if (!qp) {
+        this.pendingTabChange.set(null)
+        return
+      }
 
       const navigated = await this.router.navigate([], {
         relativeTo: this.route,
@@ -484,7 +614,8 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
       }
     } catch (error) {
       this.pendingTabChange.set(null)
-      throw error
+      this.logger.error('Editor view change failed', error)
+      this.toast.trigger('Impossibile cambiare vista. Il disegno è conservato.', 'error')
     }
   }
 
@@ -498,6 +629,7 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
   }
 
   async doSaveEdit(smiles: string): Promise<void> {
+    const revision = this.validationRevision
     const moleculeId = this.mId()
     if (!moleculeId) {
       this.logger.error('Cannot update molecule without an id')
@@ -506,7 +638,8 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
     }
 
     const props = await firstValueFrom(
-      this.RDKitAPI.getMoleculeProperties({ smiles }).pipe(
+      this.requests.run('/api/rdkit-api/get-molecule-properties', () => this.RDKitAPI.getMoleculeProperties({ smiles })).pipe(
+        takeUntil(this.destroy$),
         catchError(e => {
           this.logger.error('RDKitAPI props error', e)
           this.toast.trigger('Errore RDKit API nelle proprietà', 'error', 2500)
@@ -515,32 +648,50 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
       )
     )
 
-    this.molEdSub = this.moleculeCollectionItemService
-      .updateItemCanonicalSmiles(
+    if (!this.isCurrent(revision) || !props) return
+
+    try {
+      // A write is never retried by the read scheduler. Keep the action pending
+      // through its response, not just through the preceding properties lookup.
+      const res = await firstValueFrom(this.moleculeCollectionItemService.updateItemCanonicalSmiles(
         moleculeId,
         smiles,
         'custom',
         JSON.stringify(props ?? {})
-      )
-      .subscribe({
-        next: res => {
-          if (!res) {
-            this.logger.error('Molecule update returned no item')
-            this.toast.trigger('Si è verificato un errore.', 'error', 2000)
-            return
-          }
-
-          this.drafts.clearCurrent()
-          this.toast.trigger('Struttura modificata correttamente.', 'success', 2000)
-          this.router.navigateByUrl(`/molecules/detail/${res.id}`)
-        },
-        error: () => this.toast.trigger('Si è verificato un errore.', 'error', 2000)
+      ).pipe(timeout(15_000), takeUntil(this.destroy$)))
+      if (this.destroyed || this.mode() !== 'edit' || this.mId() !== moleculeId) return
+      if (!res) throw new Error('Molecule update returned no item')
+      const savedCurrentRevision = this.isCurrent(revision)
+      this.drafts.acceptSavedBaseline(moleculeId, smiles)
+      this.baselineSmiles.set(smiles)
+      this.untouched.set(this.currentCanonicalSmiles() === smiles)
+      if (this.untouched()) this.lock.set(true)
+      if (!savedCurrentRevision) {
+        this.toast.trigger('Versione inviata salvata. Le modifiche successive sono conservate.', 'success')
+        return
+      }
+      this.drafts.clearCurrent()
+      this.lock.set(true)
+      this.toast.trigger('Struttura modificata correttamente.', 'success', 2000)
+      await this.router.navigateByUrl(`/molecules/detail/${res.id}`).catch(error => {
+        this.logger.error('Navigation after molecule update failed', error)
+        this.toast.trigger('Struttura salvata. Impossibile aprire il dettaglio.', 'error')
       })
+    } catch (error) {
+      if (this.destroyed || this.mode() !== 'edit' || this.mId() !== moleculeId) return
+      // A failed/expired transport does not prove the write was rolled back.
+      // Preserve the draft and prevent another write in this editor context.
+      this.saveUnconfirmed.set(true)
+      this.unconfirmedMoleculeId = moleculeId
+      this.logger.error('Molecule update outcome unconfirmed', error)
+      this.toast.trigger('Salvataggio non confermato. Il disegno è conservato; verifica la molecola prima di un nuovo invio.', 'error')
+    }
   }
 
   ngOnInit(): void {
     this.routeSub = this.route.queryParamMap.pipe(
       switchMap(qp => {
+        this.invalidateStructure()
         const rawMode = qp.get('mode')
         if (!isChemistryEditorMode(rawMode)) {
           this.error.set(true)
@@ -564,6 +715,7 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
           destroyCache
         })
         this.error.set(false)
+        this.saveUnconfirmed.set(rawMode === 'edit' && !!this.unconfirmedMoleculeId && mId === this.unconfirmedMoleculeId)
 
         if (rawMode === 'edit') {
           if (!mId) {
@@ -572,70 +724,31 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
           }
 
           return this.moleculeCollectionItemService.getCustomSmilesById(mId).pipe(
-            switchMap(mol =>
-              this.canonicalizeForEditor(
-                mol.canonicalSmiles,
-                'RDKitAPI canonicalization init error'
-              ).pipe(
-                tap(baseline => this.initializeDraft({
-                  mode: 'edit',
-                  mId,
-                  baselineSmiles: baseline,
-                  initialSmiles: routeSmiles,
-                  tab,
-                  destroyExisting
-                }))
-              )
-            )
+            tap(mol => this.initializeDraft({
+              mode: 'edit', mId, baselineSmiles: mol.canonicalSmiles,
+              initialSmiles: routeSmiles, tab, destroyExisting
+            })),
+            catchError(error => {
+              this.pendingTabChange.set(null)
+              this.error.set(true)
+              this.logger.error('Editor molecule loading failed', error)
+              return EMPTY
+            })
           )
         }
 
-        if (rawMode === 'duplicate') {
-          if (!routeSmiles) {
-            this.error.set(true)
-            return EMPTY
-          }
-
-          const duplicateBaselineSource = routeBaselineSmiles ?? routeSmiles
-
-          return this.canonicalizeForEditor(
-            duplicateBaselineSource,
-            'RDKitAPI duplicate baseline canonicalization error'
-          ).pipe(
-            tap(baseline => this.initializeDraft({
-              mode: 'duplicate',
-              baselineSmiles: baseline,
-              initialSmiles: routeSmiles,
-              tab,
-              destroyExisting
-            }))
-          )
-        }
-
-        const createBaseline = routeBaselineSmiles ?? ''
-
-        if (!routeSmiles) {
-          this.initializeDraft({
-            mode: 'create',
-            baselineSmiles: createBaseline,
-            tab,
-            destroyExisting
-          })
+        if (rawMode === 'duplicate' && !routeSmiles) {
+          this.error.set(true)
           return EMPTY
         }
-
-        return this.canonicalizeForEditor(
-          routeSmiles,
-          'RDKitAPI create initial structure canonicalization error'
-        ).pipe(
-          tap(initialSmiles => this.initializeDraft({
-            mode: 'create',
-            baselineSmiles: createBaseline,
-            initialSmiles,
-            tab,
-            destroyExisting
-          }))
-        )
+        // Load raw drafts immediately. Only the revision pipeline publishes a
+        // remotely confirmed canonical value; initialization does not compete.
+        this.initializeDraft({
+          mode: rawMode,
+          baselineSmiles: routeBaselineSmiles ?? (rawMode === 'duplicate' ? routeSmiles ?? '' : ''),
+          initialSmiles: routeSmiles, tab, destroyExisting
+        })
+        return EMPTY
       })
     ).subscribe({
       error: () => {
@@ -644,78 +757,44 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
       }
     })
 
-    this.molDupSub = this.polledSmiles$
-      .pipe(
-        takeUntil(this.destroy$),
-        // A restored draft must be revalidated even when its SMILES are unchanged.
-        map(smiles => ({ smiles: smiles.trim(), revision: this.validationRevision })),
-        distinctUntilChanged((a, b) => a.smiles === b.smiles && a.revision === b.revision),
-        filter(value => !!value.smiles),
-        debounceTime(300),
-        switchMap(raw =>
-          this.RDKitAPI.toCanonicalSmiles({ smiles: raw.smiles }).pipe(
-            catchError(e => {
-              this.logger.error('RDKitAPI canonical poll error', e)
-              return EMPTY
-            }),
-            map(canon => ({ canon, revision: raw.revision }))
-          )
-        ),
-        filter(value => !!value.canon),
-        distinctUntilChanged((a, b) => a.canon === b.canon && a.revision === b.revision),
-        switchMap(({ canon }) => {
-          this.drafts.record(canon, this.tab())
-          this.setCurrentCanonicalSmiles(canon)
-
-          return this.moleculeCollectionItemService
-            .findOneCustomMoleculeByCanonicalSmiles_shortFetch(canon)
-            .pipe(
-              take(1),
-              map(res => ({ canon, res })),
-              catchError(e => {
-                this.logger.error('Duplicate check stream error', e)
-                return of({ canon, res: null as MoleculeItemLookup | null })
-              })
-            )
-        })
-      )
-      .subscribe({
-        next: ({ res, canon }: { res: MoleculeItemLookup | null; canon: string }) => {
-          const isBaseline = canon === this.baselineSmiles()
-          this.untouched.set(isBaseline)
-
-          if (this.mode() === 'edit' && isBaseline) {
+    this.molDupSub = this.polledSmiles$.pipe(
+      // Bounded coalescing also emits while drawing continuously. Invalidation
+      // below cancels obsolete consumers immediately, before this trailing tick.
+      auditTime(300),
+      switchMap(raw => !raw.smiles ? EMPTY : this.canonicalizeForEditor(raw.smiles, 'Editor canonicalization failed').pipe(
+        filter(() => this.isCurrent(raw.revision)),
+        tap(canon => this.setCurrentCanonicalSmiles(canon)),
+        switchMap(canon => this.requests.run('/api/graphql', () =>
+          this.moleculeCollectionItemService.findOneCustomMoleculeByCanonicalSmiles_shortFetch(canon)
+        ).pipe(map(res => ({ canon, res, revision: raw.revision })))),
+        catchError(error => {
+          if (this.isCurrent(raw.revision)) {
             this.lock.set(true)
-            return
+            this.validationFailed.set(true)
+            this.identityChecking.set(false)
+            this.validationMessage.set('Aggiornamento non riuscito. Il disegno è conservato: riprova.')
+            this.logger.error('Editor identity validation failed', error)
           }
-
-          if (res) {
-            this.lock.set(true)
-
-            // Lo stato iniziale può legittimamente essere già presente nel
-            // catalogo: non mostriamo un toast finché l'utente non lo modifica.
-            if (!isBaseline) {
-              this.toast.trigger(
-                `Questa struttura è già associata alla molecola '${res.name}'. Impossibile salvare una struttura duplicata`,
-                'error'
-              )
-            }
-            return
-          }
-
-          this.lock.set(false)
-        },
-        error: () =>
-          this.toast.trigger(
-            'Errore nella validazione unicità struttura. Se si ripresenta, contatta il supporto.',
-            'error'
-          )
-      })
+          return EMPTY
+        }),
+        takeUntil(this.polledSmiles$)
+      )),
+      takeUntil(this.destroy$)
+    ).subscribe(({ canon, res, revision }) => {
+      if (!this.isCurrent(revision)) return
+      const isBaseline = canon === this.baselineSmiles()
+      this.untouched.set(isBaseline)
+      this.identityChecking.set(false)
+      this.duplicateFound.set(!!res)
+      this.validationMessage.set(res ? 'Questa struttura è già presente nelle tue molecole.' : '')
+      this.lock.set(!!res || (this.mode() === 'edit' && isBaseline))
+    })
   }
 
   ngOnDestroy(): void {
+    this.destroyed = true
+    this.validationRevision++
     this.routeSub?.unsubscribe()
-    this.molEdSub?.unsubscribe()
     this.molDupSub?.unsubscribe()
     this.destroy$.next()
     this.destroy$.complete()

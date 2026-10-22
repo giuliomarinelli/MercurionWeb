@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { Apollo } from 'apollo-angular';
 import { print } from 'graphql';
-import { of } from 'rxjs';
+import { firstValueFrom, of } from 'rxjs';
 
 import type {
   MoleculeItemBasicDataQuery
@@ -38,6 +38,19 @@ describe('MoleculeCollectionItemService', () => {
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
+
+  it('accepts only an explicit null as a successful duplicate lookup without a match', async () => {
+    apollo.query.and.returnValue(of({ data: { findOneCustomMoleculeByCanonicalSmiles: null }, loading: false, networkStatus: 7 }));
+    await expectAsync(firstValueFrom(service.findOneCustomMoleculeByCanonicalSmiles_shortFetch('CC'))).toBeResolvedTo(null);
+  });
+
+  for (const payload of [{}, { data: {} }, { data: { findOneCustomMoleculeByCanonicalSmiles: undefined } }, { data: { findOneCustomMoleculeByCanonicalSmiles: false } },
+    { data: { findOneCustomMoleculeByCanonicalSmiles: {} } }, { errors: [{ message: 'Lookup failed' }] }]) {
+    it(`fails duplicate validation closed for malformed or failed payload ${JSON.stringify(payload)}`, async () => {
+      apollo.query.and.returnValue(of({ data: undefined, ...payload, loading: false, networkStatus: 7 }));
+      await expectAsync(firstValueFrom(service.findOneCustomMoleculeByCanonicalSmiles_shortFetch('CC'))).toBeRejected();
+    });
+  }
 
   it('maps a generated custom DTO variant without a cast', () => {
     const dto = {

@@ -37,7 +37,7 @@
     "ci:typecheck:angular": "npm run typecheck --workspace mercurion_web_ng",
     "ci:typecheck:nest": "npm run typecheck --workspace mercurion_web_node",
     "ci:typecheck": "npm run ci:typecheck:angular && npm run ci:typecheck:nest",
-    "ci:test:angular": "npm run test:coverage --workspace mercurion_web_ng",
+    "ci:test:angular": "node scripts/test-ketcher-bridge.mjs && npm run test:coverage --workspace mercurion_web_ng",
     "ci:test:accessibility": "npm run test:accessibility --workspace mercurion_web_ng",
     "ci:test:nest": "npm run test:coverage --workspace mercurion_web_node",
     "ci:test:nest:e2e": "npm run test:e2e:ci --workspace mercurion_web_node",

@@ -80,116 +80,158 @@
       window.location.href = '/';
     }
 
-    let lastSmiles = "";
-    let inFlight = false;
-    let dirty = false;
-    let ketcherReadySent = false;
+    let revision = 0;
+    let sessionId;
+    let subscription;
+    let operationQueue = Promise.resolve();
+    let exporting;
+    let committedSnapshot;
+    let convertedSnapshot;
+    const CONVERSION_TIMEOUT_MS = 2000;
+    const COMMAND_TIMEOUT_MS = 2500;
 
-    let listenersAttached = false;
-    let listenersAbort = null;
-
-    function markDirty() {
-      dirty = true;
-    }
-
-    async function refreshSmilesIfNeeded(force = false) {
-      if (!window.ketcher) return;
-      if (inFlight) return;
-      if (!force && !dirty) return;
-
-      inFlight = true;
-      try {
-        const smiles = await window.ketcher.getSmiles();
-        if (typeof smiles === "string") {
-          lastSmiles = smiles;
-          dirty = false;
-        }
-      } catch (err) {
-        console.error("Errore ottenendo SMILES:", err);
-      } finally {
-        inFlight = false;
-      }
-    }
-
-    function attachDirtyListenersOnce() {
-      if (listenersAttached) return;
-      listenersAttached = true;
-
-      listenersAbort = new AbortController();
-      const { signal } = listenersAbort;
-
-      const handler = () => markDirty();
-
-      // tienili pochi e significativi
-      const events = [
-        "pointerup",
-        "pointerdown",
-        "keyup",
-        "input",
-        "paste",
-        "drop"
-      ];
-
-      events.forEach(ev => {
-        document.addEventListener(ev, handler, {
-          capture: true,
-          passive: true,
-          signal
+    function within(promise, milliseconds, expired = () => {}) {
+      return new Promise((resolve, reject) => {
+        const timer = setTimeout(() => {
+          expired();
+          reject(new Error('Ketcher operation timed out'));
+        }, milliseconds);
+        Promise.resolve(promise).then(value => {
+          clearTimeout(timer);
+          resolve(value);
+        }, error => {
+          clearTimeout(timer);
+          reject(error);
         });
       });
+    }
 
-      // se il frame si scarica, abortisci tutto
-      window.addEventListener("beforeunload", () => {
-        listenersAbort.abort();
-        listenersAttached = false;
-      }, { once: true });
+    function serializeConversions() {
+      const service = window.ketcher.structService;
+      const convert = service.convert.bind(service);
+      let tail = Promise.resolve();
+      // The bundled standalone service uses EE.once(Convert) before checking
+      // inputData. Concurrent conversions consume each other's reply listeners.
+      // Guard the shared service, including conversions started by Ketcher UI.
+      service.convert = (...args) => {
+        const result = tail.then(() => within(convert(...args), CONVERSION_TIMEOUT_MS));
+        tail = result.then(() => {}, () => {});
+        return result;
+      };
+    }
+
+    function hasPreview() {
+      const structure = window.ketcher.editor.struct();
+      return Array.from(structure.atoms.values()).some(atom => atom.isPreview) ||
+        Array.from(structure.bonds.values()).some(bond => bond.isPreview);
+    }
+
+    function captureCommittedSnapshot() {
+      // getKet serializes synchronously without invoking the Indigo worker.
+      // Capture before the tool adds another preview; convert only when read.
+      let ket;
+      try { ket = Promise.resolve(window.ketcher.getKet()); }
+      catch (error) { ket = Promise.reject(error); }
+      committedSnapshot = { revision, ket };
+      void ket.catch(() => {});
+      return committedSnapshot;
+    }
+
+    function convertSnapshot(ket) {
+      if (convertedSnapshot?.ket === ket) return convertedSnapshot.result;
+      const entry = { ket };
+      entry.result = window.ketcher.structService.convert({
+        struct: ket, output_format: 'chemical/x-daylight-smiles'
+      }, window.ketcher.editor.serverSettings).then(result => {
+        if (typeof result.struct !== 'string') throw new Error('Invalid Ketcher export');
+        return result.struct;
+      });
+      convertedSnapshot = entry;
+      void entry.result.catch(() => {
+        if (convertedSnapshot === entry) convertedSnapshot = undefined;
+      });
+      return entry.result;
+    }
+
+    function notifyChange() {
+      if (hasPreview()) return;
+      revision++;
+      captureCommittedSnapshot();
+      if (sessionId) window.parent.postMessage({ type: 'structureChanged', sessionId, revision }, location.origin);
+    }
+
+    async function exportCurrent() {
+      if (exporting) return exporting;
+      const attempt = { expired: false };
+      const operation = (async () => {
+        // The live vendor model also contains the template under the cursor,
+        // including connected previews that temporarily modify existing bonds.
+        // Never publish it or remove it from the interactive canvas to export.
+        let snapshot = hasPreview() ? committedSnapshot : captureCommittedSnapshot();
+        for (;;) {
+          const startedAt = revision;
+          if (!snapshot) throw new Error('Committed Ketcher structure unavailable');
+          try {
+            const ket = await snapshot.ket;
+            if (attempt.expired) throw new Error('Export expired');
+            const smiles = await convertSnapshot(ket);
+            if (attempt.expired) throw new Error('Export expired');
+            if (startedAt === revision) return { smiles, revision: startedAt };
+          } catch (error) {
+            if (attempt.expired || startedAt === revision) throw error;
+          }
+          // A change during export must not be overwritten by its completion.
+          snapshot = committedSnapshot;
+        }
+      })();
+      const pending = within(operation, COMMAND_TIMEOUT_MS, () => { attempt.expired = true; });
+      exporting = pending;
+      try { return await pending; }
+      finally { if (exporting === pending) exporting = undefined; }
     }
 
     function waitForKetcher() {
-      if (window.ketcher) {
-        if (!ketcherReadySent) {
-          window.parent.postMessage({ type: "ketcherReady" }, "*");
-          ketcherReadySent = true;
-        }
-
-        attachDirtyListenersOnce();
+      if (!window.ketcher?.editor) {
+        setTimeout(waitForKetcher, 100);
         return;
       }
-
-      setTimeout(waitForKetcher, 100);
+      serializeConversions();
+      subscription = window.ketcher.editor.subscribe('change', notifyChange);
+      window.parent.postMessage({ type: 'ketcherReady' }, location.origin);
     }
-
     waitForKetcher();
 
-    window.addEventListener("message", async function (event) {
-      if (!event.data) return;
-      const { type, payload } = event.data;
+    window.addEventListener('beforeunload', () => {
+      if (subscription) window.ketcher?.editor.unsubscribe('change', subscription);
+    }, { once: true });
 
-      if (!window.ketcher) {
-        console.warn("Ketcher non ancora pronto per ricevere messaggi");
-        return;
-      }
-
-      if (type === "setMolecule") {
+    window.addEventListener('message', event => {
+      if (event.source !== window.parent || event.origin !== location.origin) return;
+      const message = event.data;
+      if (!message || !['setMolecule', 'getSmiles'].includes(message.type) ||
+          typeof message.sessionId !== 'string' || !Number.isInteger(message.requestId)) return;
+      if (sessionId && sessionId !== message.sessionId) return;
+      sessionId = message.sessionId;
+      const reply = (type, payload) => window.parent.postMessage({
+        type, payload, sessionId: message.sessionId, requestId: message.requestId, revision
+      }, location.origin);
+      operationQueue = operationQueue.then(async () => {
         try {
-          await window.ketcher.setMolecule(payload);
-          markDirty();
-          await refreshSmilesIfNeeded(true);
-          window.parent.postMessage({ type: "moleculeSet" }, "*");
-        } catch (err) {
-          console.error("Errore caricando la molecola:", err);
-          window.parent.postMessage({ type: "moleculeSetError" }, "*");
+          if (!window.ketcher) throw new Error('Ketcher unavailable');
+          if (message.type === 'setMolecule') {
+            const previousRevision = revision;
+            await within(window.ketcher.setMolecule(message.payload), COMMAND_TIMEOUT_MS);
+            if (revision === previousRevision) notifyChange();
+            reply('moleculeSet');
+          } else {
+            // Reconcile against the vendor only outside a transient preview.
+            const current = await exportCurrent();
+            reply('smiles', current.smiles);
+          }
+        } catch {
+          reply(message.type === 'setMolecule' ? 'moleculeSetError' : 'smilesError');
         }
-      }
-
-      if (type === "getSmiles") {
-        try {
-          if (dirty) await refreshSmilesIfNeeded(true);
-          window.parent.postMessage({ type: "smiles", payload: lastSmiles }, "*");
-        } catch (err) {
-          console.error("Errore in risposta getSmiles:", err);
-        }
-      }
+      });
     });
   </script>
 </body>

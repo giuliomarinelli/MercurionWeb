@@ -106,6 +106,7 @@ const descriptors = [
   ['mercurion.v1.molecule-editor-cache.edit', 'mercurion.v1.molecule-editor-cache.edit', 'session', [], textCodec, 'molecule-editor'],
   ['mercurion.v1.molecule-editor-cache.create', 'mercurion.v1.molecule-editor-cache.create', 'session', [], textCodec, 'molecule-editor'],
   ['mercurion.v1.molecule-editor-cache.duplicate', 'mercurion.v1.molecule-editor-cache.duplicate', 'session', [], textCodec, 'molecule-editor'],
+  ['moleculeEditorRequestBudget', 'mercurion.v1.molecule-editor-request-budget', 'local', [], textCodec, 'molecule-editor'],
   ['mercurion.v1.is-first-visit', 'mercurion.v1.is-first-visit', 'local', [], textCodec, 'app-shell']
 ] as const
 
