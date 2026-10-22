@@ -79,7 +79,7 @@
     "ci:logger-boundary": "node scripts/check-logger-boundary.mjs && node scripts/test-logger-boundary-negative.mjs",
     "ci:tracked-artifacts": "node scripts/check-tracked-artifacts.mjs && node scripts/test-tracked-artifacts-negative.mjs",
     "ci:redis:architecture": "node scripts/check-redis-key-contracts.mjs",
-    "ci:angular:interactive-semantics": "node scripts/check-angular-interactive-semantics.mjs",
+    "ci:angular:interactive-semantics": "node scripts/check-angular-interactive-semantics.mjs && node scripts/test-angular-interactive-semantics-negative.mjs",
     "ci:angular:graphql-query-policy": "node scripts/check-angular-graphql-query-policy.mjs && node scripts/test-angular-graphql-query-policy-negative.mjs",
     "ci:check": "npm run ci:validate:autonomous && npm run ci:lint && npm run ci:typecheck && npm run ci:test && npm run ci:build && npm run ci:graphql && npm run ci:angular:graphql-query-policy && npm run ci:static && npm run ci:supply-chain",
     "ci:angular:console-debugger": "node scripts/check-angular-console-debugger-policy.mjs && node scripts/test-angular-console-debugger-policy-negative.mjs",
