@@ -1,4 +1,4 @@
-import { ExecutionContext, ForbiddenException } from '@nestjs/common'
+import { ExecutionContext, ForbiddenException, type Type } from '@nestjs/common'
 import { MODULE_METADATA } from '@nestjs/common/constants'
 import { ConfigService } from '@nestjs/config'
 import { Reflector } from '@nestjs/core'
@@ -25,6 +25,7 @@ import { presentApplicationError, graphQLStatusForPresentation } from 'src/excep
 import { FeatureAccessGuard } from './feature-access.guard'
 import { REQUIRED_FEATURES_METADATA } from './feature-access.decorator'
 import { FEATURE_FLAGS, type FeatureName } from './feature-flags'
+import * as featureFlags from './feature-flags'
 
 const notebookResolvers = [
   LabNotebookDomainResolver,
@@ -39,22 +40,27 @@ const synthesisResolvers = [
   SynthesisPoolResolver,
   SynthStepItemResolver
 ]
-const groups: ReadonlyArray<{ feature: FeatureName; classes: Array<Function> }> = [
+const groups: ReadonlyArray<{ feature: FeatureName; classes: Array<Type<unknown>> }> = [
   { feature: 'notebook', classes: notebookResolvers },
   { feature: 'synthesis', classes: synthesisResolvers },
   { feature: 'documents', classes: [DocumentController] }
 ]
+const synthesisLinks = [
+  [NotebookExperimentDomainResolver, 'linkSynthesisToExperiment'],
+  [NotebookExperimentDomainResolver, 'unlinkSynthesisFromExperiment'],
+  [ExperimentExecutionDomainResolver, 'linkSynthesisToExecution']
+] as const
 
-function ownMethods(target: Function): string[] {
+function ownMethods(target: Type<unknown>): string[] {
   return Object.getOwnPropertyNames(target.prototype).filter(name =>
     name !== 'constructor' && typeof target.prototype[name] === 'function'
   )
 }
 
-function contextFor(target: Function, method: string): ExecutionContext {
+function contextFor(target: Type<unknown>, method: string): ExecutionContext {
   return {
     getClass: () => target,
-    getHandler: () => target.prototype[method]
+    getHandler: () => Object.getOwnPropertyDescriptor(target.prototype, method)?.value
   } as unknown as ExecutionContext
 }
 
@@ -66,6 +72,8 @@ function guardFor(environment: Environment): FeatureAccessGuard {
 }
 
 describe('Mercurion beta feature boundary coverage', () => {
+  afterEach(() => jest.restoreAllMocks())
+
   it('keeps all three features disabled in all four validated backend environments', () => {
     expect(Object.values(Environment)).toHaveLength(4)
     for (const environment of Object.values(Environment)) {
@@ -76,8 +84,8 @@ describe('Mercurion beta feature boundary coverage', () => {
   })
 
   it('has exactly five Notebook and four Synthesis resolver classes registered', () => {
-    const providerNames = (module: Function) =>
-      (Reflect.getMetadata(MODULE_METADATA.PROVIDERS, module) as Function[])
+    const providerNames = (module: Type<unknown>) =>
+      (Reflect.getMetadata(MODULE_METADATA.PROVIDERS, module) as Type<unknown>[])
         .filter(provider => provider.name.endsWith('Resolver'))
         .map(provider => provider.name)
         .sort()
@@ -85,7 +93,7 @@ describe('Mercurion beta feature boundary coverage', () => {
     expect(providerNames(SynthModule)).toEqual(synthesisResolvers.map(x => x.name).sort())
     const controllers = Reflect.getMetadata(
       MODULE_METADATA.CONTROLLERS, DropboxObjectStoreModule
-    ) as Function[]
+    ) as Type<unknown>[]
     expect(controllers).toEqual([DocumentController])
   })
 
@@ -116,17 +124,37 @@ describe('Mercurion beta feature boundary coverage', () => {
 
   it('enforces BOTH flags for Notebook mutations that reference synthesis', () => {
     const reflector = new Reflector()
-    for (const [target, method] of [
-      [NotebookExperimentDomainResolver, 'linkSynthesisToExperiment'],
-      [NotebookExperimentDomainResolver, 'unlinkSynthesisFromExperiment'],
-      [ExperimentExecutionDomainResolver, 'linkSynthesisToExecution']
-    ] as const) {
+    for (const [target, method] of synthesisLinks) {
       const required = reflector.getAllAndMerge<string[]>(
         REQUIRED_FEATURES_METADATA,
-        [target, target.prototype[method]]
+        [target, contextFor(target, method).getHandler()]
       )
       expect(required).toEqual(['notebook', 'synthesis'])
     }
+  })
+
+  it.each([
+    [false, false], [true, false], [false, true], [true, true]
+  ])('requires notebook=%s AND synthesis=%s for every synthesis link', (notebook, synthesis) => {
+    // Simulate future partial activation without changing either compiled flag map.
+    jest.spyOn(featureFlags, 'isFeatureEnabled').mockImplementation((_env, feature) =>
+      feature === 'notebook' ? notebook : synthesis)
+    const guard = guardFor(Environment.Production)
+    for (const [target, method] of synthesisLinks) {
+      const context = contextFor(target, method)
+      if (notebook && synthesis) {
+        expect(guard.canActivate(context)).toBe(true)
+      } else {
+        expect(() => guard.canActivate(context)).toThrow(ForbiddenException)
+      }
+    }
+  })
+
+  it('fails closed for an unknown environment or feature', () => {
+    expect(() => guardFor('unknown' as Environment).canActivate(
+      contextFor(LabNotebookDomainResolver, 'labNotebook')
+    )).toThrow(ForbiddenException)
+    expect(featureFlags.isFeatureEnabled(Environment.Production, 'unknown' as FeatureName)).toBe(false)
   })
 
   it('maps disabled GraphQL feature errors to HTTP status 403 using the canonical formatter', () => {
@@ -142,8 +170,11 @@ describe('Mercurion beta feature boundary coverage', () => {
 
   it('does not block unrelated product operations', () => {
     class ActiveProductService { run(): void {} }
+    const getOrThrow = jest.fn()
+    const guard = new FeatureAccessGuard(new Reflector(), { getOrThrow } as unknown as ConfigService)
     const context = contextFor(ActiveProductService, 'run')
-    expect(guardFor(Environment.Production).canActivate(context)).toBe(true)
+    expect(guard.canActivate(context)).toBe(true)
+    expect(getOrThrow).not.toHaveBeenCalled()
   })
 
   it('pins all 46 GraphQL root operations to protected resolvers', () => {
@@ -163,6 +194,16 @@ describe('Mercurion beta feature boundary coverage', () => {
     expect(notebookMutations).toHaveLength(21)
     expect(synthQueries).toHaveLength(5)
     expect(synthMutations).toHaveLength(10)
+
+    const documentation = readFileSync(resolve(
+      __dirname, '../../../docs/architecture/mercurion-beta-deferred-feature-flags.md'
+    ), 'utf8')
+    const documentedRoots = documentation.split('\n')
+      .filter(line => /^\| (Notebook|Synthesis) \(/.test(line))
+      .flatMap(line => Array.from(line.matchAll(/`([^`]+)`/g), match => match[1]))
+    expect(documentedRoots.sort()).toEqual([
+      ...notebookQueries, ...notebookMutations, ...synthQueries, ...synthMutations
+    ].sort())
 
     for (const [names, targets, feature] of [
       [[...notebookQueries, ...notebookMutations], notebookResolvers, 'notebook'],

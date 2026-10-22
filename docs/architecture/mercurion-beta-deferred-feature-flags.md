@@ -68,11 +68,33 @@ The upload transport also accepts `ChangeProfileImage`; **that action is deliber
 
 Automated test coverage:
 
-- `MercurionWebNode/src/feature-flags/feature-access.guard.spec.ts`: all 12 flag values false, registered resolver/controller classes, every handler rejected with 403 in four environments, cross-feature metadata and all 46 GraphQL root names.
-- `MercurionWebNode/src/feature-flags/feature-access.http.spec.ts`: all four Documents REST routes return 403 without calling their command service.
+- `MercurionWebNode/src/feature-flags/feature-access.guard.spec.ts`: all 12 flag values false, registered resolver/controller classes, every handler rejected with 403 in four environments, all four Notebook/Synthesis activation combinations on the three cross-feature mutations, unknown-environment/feature rejection, no configuration lookup for unannotated handlers, and all 46 GraphQL root names.
+- `MercurionWebNode/src/feature-flags/feature-access.graphql.spec.ts`: all 46 scientific root operations executed through Nest/Mercurius in each of the four environments (184 requests), using the canonical GraphQL formatter; every request returns HTTP 403 and the `FORBIDDEN` envelope without calling domain services. The fixture uses real resolvers and mock services, without database or storage access.
+- `MercurionWebNode/src/feature-flags/feature-access.http.spec.ts`: all four Documents REST routes return 403 in each of the four environments (16 requests), without parsing multipart uploads or calling their command service.
 - `MercurionWebNg/src/app/feature-flags/feature-flags.spec.ts`: 12 values false, all three Notebook routes omitted, navigation absent, no other deferred routes.
 
 Locally, run Nest typecheck and Jest `feature-access` specs, then Angular typecheck/route tests/build. Existing scientific unit tests should remain valid: inner logic is deliberately retained and test fixtures that do not register the global beta guard may still exercise it.
+
+From the repository root in PowerShell, direct CLI invocation preserves the Jest/Karma arguments:
+
+```powershell
+Push-Location MercurionWebNode
+try {
+  npm run typecheck
+  ..\node_modules\.bin\jest.cmd --config ./jest.config.js --runInBand feature-access
+} finally {
+  Pop-Location
+}
+
+Push-Location MercurionWebNg
+try {
+  npm run typecheck
+  npm run build
+  ..\node_modules\.bin\ng.cmd test --watch=false --karma-config=karma.conf.js --include=src/app/feature-flags/feature-flags.spec.ts --include=src/app/route-manifest.spec.ts --include=src/app/route-policy.spec.ts --include=src/app/services/app-shell.facade.spec.ts
+} finally {
+  Pop-Location
+}
+```
 
 **No PostgreSQL reset or DDL changes are required.** Existing scientific tables and historical protocol data remain.
 
