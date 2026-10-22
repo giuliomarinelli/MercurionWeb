@@ -1,5 +1,5 @@
 import { environment } from '../../environments/environment'
-import type { EnvironmentName } from '../../environments/environment.config'
+import type { EnvironmentName } from '../config/app-config'
 
 export type FeatureName = 'notebook' | 'synthesis' | 'documents'
 

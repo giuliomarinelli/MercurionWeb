@@ -5,6 +5,16 @@
   ],
   "allowlistedNonProductionFiles": [
     {
+      "file": "src/app/components/common/descriptor-card-content/descriptor-card-content.component.ts",
+      "category": "legacy-compatibility",
+      "reason": "Superseded descriptor slot wrapper has no application consumers; retained with its isolated component tests."
+    },
+    {
+      "file": "src/app/components/search-overlay/search-input/search-input.component.ts",
+      "category": "legacy-compatibility",
+      "reason": "Superseded molecule-search wrapper has no application consumers; current search flows use their shared search field directly. Retained with its isolated compatibility tests."
+    },
+    {
       "file": "src/catalog/catalog.component.ts",
       "category": "development-only",
       "reason": "Interactive UI catalog component is compiled only by the development catalog target."

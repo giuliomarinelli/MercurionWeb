@@ -31,6 +31,8 @@ For authenticated calls, disabled REST endpoints produce HTTP 403; GraphQL is pr
 
 The GraphQL schema/SDL is intentionally preserved (operations may still be discoverable through introspection). This is **execution blocking**, not schema removal.
 
+The pre-cutover Notebook chapter/section/page implementation remains in source for compatibility tests and historical reference. Its 19 files under `lab-notebook/models` and `lab-notebook/services` are individually classified in `MercurionWebNode/nest-reachability.config.json` as non-production legacy code. The orphan gate rejects production imports of any declared non-production file, as well as unclassified orphans; the canonical `scientific-domain` implementation remains in the production graph behind its feature guard.
+
 ### GraphQL inventory: 46 blocked root operations
 
 | Feature | Query operations | Mutation operations |
@@ -53,7 +55,7 @@ All in `DocumentController`, annotated at the controller class:
 | GET | `/api/documents/:id` |
 | DELETE | `/api/documents/:id` |
 
-The upload transport also accepts `ChangeProfileImage`; **that action is deliberately unavailable while Documents is off**. The REST route-ownership generated inventory historically classified the POST as active and the other three as inactive; beta flagging supersedes that old operational classification, without deleting or rewriting the generated inventory.
+The upload transport also accepts `ChangeProfileImage`; **that action is deliberately unavailable while Documents is off**. The REST route-ownership generated inventory historically classified the POST as active and the other three as inactive; beta flagging supersedes that old operational classification. Regenerate source/documentation references with the standard inventory tool when they change, preserving the existing ownership classifications and evidence.
 
 ## Angular accessibility
 
