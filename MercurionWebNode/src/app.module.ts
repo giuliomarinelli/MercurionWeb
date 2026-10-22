@@ -7,6 +7,7 @@ import { UserModule } from './app_modules/user/user.module';
 import { AuthModule } from './app_modules/auth/auth.module';
 import { APP_GUARD } from '@nestjs/core';
 import { GlobalGuard } from './app_modules/auth/guards/global.guard';
+import { FeatureAccessGuard } from './feature-flags/feature-access.guard';
 import { SocketIoModule } from './app_modules/socket-io/socket.io.module';
 import { NotificationModule } from './app_modules/notification/notification.module';
 import { MeilisearchModule } from './app_modules/meilisearch/meilisearch.module';
@@ -78,6 +79,10 @@ import { ObservabilityModule } from './observability/observability.module'
     {
       provide: APP_GUARD,
       useExisting: GlobalGuard
+    },
+    {
+      provide: APP_GUARD,
+      useClass: FeatureAccessGuard
     }
   ],
   controllers: [HealthController, AssetController]
