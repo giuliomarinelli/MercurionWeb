@@ -1,5 +1,6 @@
 import { readdir, readFile } from 'node:fs/promises';
-import { join, relative } from 'node:path';
+import { join, relative, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const sourceRoot = join(process.cwd(), 'MercurionWebNg', 'src');
 const violations = [];
@@ -13,6 +14,18 @@ const genericButtonRole = new RegExp(
   'g',
 );
 const anchorCommand = /<a\b[^>]*\(click\)[^>]*>/g;
+
+export function isTextEditingSurface(element) {
+  // contenteditable is native text editing. It does not make a generic click target a button.
+  if (/\(click\)/.test(element)) return false;
+  const editable = /\scontenteditable\s*=\s*["'](?:true|plaintext-only)["']/i.test(element) ||
+    /\s\[(?:attr\.)?contenteditable\]\s*=\s*"[^"]*'(?:true|plaintext-only)'[^"]*"/i.test(element);
+  const textbox = /\srole\s*=\s*["']textbox["']/.test(element) ||
+    /\s\[attr\.role\]\s*=\s*"[^"]*'textbox'[^"]*"/.test(element);
+  const labelled = /\saria-label\s*=\s*["'][^"']+["']/.test(element) ||
+    /\s\[attr\.aria-label\]\s*=\s*"[^"]+"/.test(element);
+  return editable && textbox && labelled;
+}
 
 async function scanDirectory(directory) {
   for (const entry of await readdir(directory, { withFileTypes: true })) {
@@ -43,7 +56,8 @@ function scanSource(file, source) {
     'generic elements must use native interactive semantics',
     match =>
       !/\(click\)\s*=\s*"\$event\.stopPropagation\(\)"/.test(match) &&
-      !/\brole\s*=\s*["'](?:dialog|option|tablist)["']/.test(match),
+      !/\brole\s*=\s*["'](?:dialog|option|tablist)["']/.test(match) &&
+      !isTextEditingSurface(match),
   );
   reportMatches(
     file,
@@ -63,11 +77,11 @@ function scanSource(file, source) {
   );
 }
 
-await scanDirectory(sourceRoot);
-
-if (violations.length > 0) {
-  console.error('Angular interactive semantics policy failed:\n' + violations.join('\n'));
-  process.exit(1);
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  await scanDirectory(sourceRoot);
+  if (violations.length > 0) {
+    console.error('Angular interactive semantics policy failed:\n' + violations.join('\n'));
+    process.exit(1);
+  }
+  console.log('Angular interactive semantics policy passed.');
 }
-
-console.log('Angular interactive semantics policy passed.');

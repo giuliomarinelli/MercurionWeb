@@ -12,6 +12,8 @@ describe('route manifest', () => {
     expect(routeManifest.moleculeDetail.build({ molId: 'chembl/123' })).toBe('/molecules/detail/chembl%2F123')
     expect(routeManifest.collectionDetail.build({ colId: 'collection 123' })).toBe('/molecules/collections/detail/collection%20123')
     expect(routeManifest.adminMaintenance.build({ token: 'maintenance token' })).toBe('/admin/maintenance/maintenance%20token')
+    expect(routeManifest.notebookReader.build({ notebookId: 'notebook x' })).toBe('/notebook/notebook%20x/read')
+    expect(routeManifest.notebookEditor.build({ notebookId: 'notebook x' })).toBe('/notebook/notebook%20x/edit')
   })
 
   it('rejects missing parameter values', () => {

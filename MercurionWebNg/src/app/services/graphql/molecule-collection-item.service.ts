@@ -3,8 +3,8 @@ import { NormalizedMoleculeCollectionBasicData } from './../../Models/graphql/mo
 import { PageModel } from '../../Models/graphql/page.models';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Apollo } from 'apollo-angular';
-import { Observable, of, throwError } from 'rxjs';
-import { catchError, map, tap } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { map, tap } from 'rxjs/operators';
 
 import {
   MoleculeCollectionItemClient,
@@ -261,16 +261,20 @@ export class MoleculeCollectionItemService {
         },
         fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot
       }).pipe(
-        map(res => extractGqlData<
-          FindOneCustomMoleculeByCanonicalSmilesQuery,
-          'findOneCustomMoleculeByCanonicalSmiles'
-        >(res, 'findOneCustomMoleculeByCanonicalSmiles', true)),
-        map(node => node ? mapCustomMoleculeLookup(node) : null),
-        catchError((e) => {
-          if (e instanceof GqlDataError && e.kind === 'NoData') {
-            return of(null)
+        map(res => {
+          const node = extractGqlData<
+            FindOneCustomMoleculeByCanonicalSmilesQuery,
+            'findOneCustomMoleculeByCanonicalSmiles'
+          >(res, 'findOneCustomMoleculeByCanonicalSmiles', true)
+          if (res.data?.findOneCustomMoleculeByCanonicalSmiles === undefined) throw new GqlDataError('NoData')
+          return node
+        }),
+        map(node => {
+          if (node === null) return null
+          if (!node || typeof node.id !== 'string' || !node.id || typeof node.canonicalSmiles !== 'string' || !node.canonicalSmiles.trim()) {
+            throw new GqlDataError('NoData')
           }
-          return throwError(() => e)
+          return mapCustomMoleculeLookup(node)
         })
       )
   }

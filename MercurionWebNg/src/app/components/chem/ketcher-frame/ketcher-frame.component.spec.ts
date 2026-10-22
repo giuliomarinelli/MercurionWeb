@@ -97,6 +97,39 @@ describe('KetcherFrameComponent', () => {
     expect(fixture.nativeElement.querySelector('[role="alert"]')).not.toBeNull();
   });
 
+  it('discards an export started before a programmatic reset', async () => {
+    component.editorState.set('ready');
+    let complete!: (smiles: string) => void;
+    session.exportStructure.and.returnValue(new Promise(resolve => { complete = resolve; }));
+    const exported = jasmine.createSpy('exported');
+    component.exportSmiles.subscribe(exported);
+    component.requestExportSmiles();
+    component.resetMolecule();
+    complete('OLD');
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(exported).not.toHaveBeenCalled();
+  });
+
+  it('reports an export failure without destroying the drawing and accepts a later successful export', async () => {
+    component.editorState.set('ready');
+    session.exportStructure.and.rejectWith(new Error('export failed'));
+    const failed = jasmine.createSpy('failed');
+    const exported = jasmine.createSpy('exported');
+    component.exportFailed.subscribe(failed);
+    component.exportSmiles.subscribe(exported);
+    component.requestExportSmiles();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(failed).toHaveBeenCalledTimes(1);
+    expect(component.editorState()).toBe('ready');
+    expect(session.dispose).not.toHaveBeenCalled();
+    session.exportStructure.and.resolveTo('CCO');
+    component.requestExportSmiles();
+    await Promise.resolve();
+    expect(exported).toHaveBeenCalledOnceWith('CCO');
+  });
+
   describe('mobile keyboard guard idempotency', () => {
     let fakeDoc: any;
     let addEventListenerSpy: jasmine.Spy;

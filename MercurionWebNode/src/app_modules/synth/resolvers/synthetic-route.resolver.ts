@@ -1,3 +1,4 @@
+import { RequiresFeatures } from 'src/feature-flags/feature-access.decorator';
 import { Resolver, Query, Mutation, Args, ID, Info } from "@nestjs/graphql";
 import { AuthenticatedUserId } from "src/metadata/metadata";
 import { UUID } from "crypto";
@@ -9,6 +10,7 @@ import { SynthesisInput } from "../models/dto/synthesis.input";
 import { assertMercurionPublicId } from "src/identifiers/mercurion-public-id";
 import { SynthCommandResult } from "../models/dto/synth-command-result";
 
+@RequiresFeatures('synthesis')
 @Resolver(() => Synthesis)
 export class SyntheticRouteResolver {
 

@@ -196,6 +196,14 @@ export class MoleculeEditorDraftService {
     this.state.set(null)
   }
 
+  acceptSavedBaseline(mId: string, canonicalSmiles: string): void {
+    const draft = this.state()
+    if (draft?.mode !== 'edit' || draft.mId !== mId) return
+    const next = { ...draft, baselineSmiles: canonicalSmiles }
+    this.state.set(next)
+    this.persist(next)
+  }
+
   clearAll(): void {
     this.storage.remove(EDIT_DRAFT)
     this.storage.remove(CREATE_DRAFT)

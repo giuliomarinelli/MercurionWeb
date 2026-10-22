@@ -36,6 +36,101 @@
       "file": "src/test.controller.ts",
       "category": "test-entrypoint",
       "reason": "TestController is registered only by the explicit test application module."
+    },
+    {
+      "file": "src/app_modules/lab-notebook/models/dto/create-lab-notebook-input.ts",
+      "category": "legacy-notebook-compatibility",
+      "reason": "Legacy chapter/section/page implementation retained after the scientific-domain v1 cutover, including compatibility tests. LabNotebookModule registers only scientific-domain entities, services and guarded resolvers; this file must remain outside the production import graph."
+    },
+    {
+      "file": "src/app_modules/lab-notebook/models/dto/create-notebook-chapter-input.ts",
+      "category": "legacy-notebook-compatibility",
+      "reason": "Legacy chapter/section/page implementation retained after the scientific-domain v1 cutover, including compatibility tests. LabNotebookModule registers only scientific-domain entities, services and guarded resolvers; this file must remain outside the production import graph."
+    },
+    {
+      "file": "src/app_modules/lab-notebook/models/dto/create-page-input.ts",
+      "category": "legacy-notebook-compatibility",
+      "reason": "Legacy chapter/section/page implementation retained after the scientific-domain v1 cutover, including compatibility tests. LabNotebookModule registers only scientific-domain entities, services and guarded resolvers; this file must remain outside the production import graph."
+    },
+    {
+      "file": "src/app_modules/lab-notebook/models/dto/create-section-input.ts",
+      "category": "legacy-notebook-compatibility",
+      "reason": "Legacy chapter/section/page implementation retained after the scientific-domain v1 cutover, including compatibility tests. LabNotebookModule registers only scientific-domain entities, services and guarded resolvers; this file must remain outside the production import graph."
+    },
+    {
+      "file": "src/app_modules/lab-notebook/models/dto/lab-notebook-link.entity.ts",
+      "category": "legacy-notebook-compatibility",
+      "reason": "Legacy chapter/section/page implementation retained after the scientific-domain v1 cutover, including compatibility tests. LabNotebookModule registers only scientific-domain entities, services and guarded resolvers; this file must remain outside the production import graph."
+    },
+    {
+      "file": "src/app_modules/lab-notebook/models/dto/lab-notebook-link.type.ts",
+      "category": "legacy-notebook-compatibility",
+      "reason": "Legacy chapter/section/page implementation retained after the scientific-domain v1 cutover, including compatibility tests. LabNotebookModule registers only scientific-domain entities, services and guarded resolvers; this file must remain outside the production import graph."
+    },
+    {
+      "file": "src/app_modules/lab-notebook/models/dto/notebook-mutation.commands.ts",
+      "category": "legacy-notebook-compatibility",
+      "reason": "Legacy chapter/section/page implementation retained after the scientific-domain v1 cutover, including compatibility tests. LabNotebookModule registers only scientific-domain entities, services and guarded resolvers; this file must remain outside the production import graph."
+    },
+    {
+      "file": "src/app_modules/lab-notebook/models/dto/update-chapter-input.ts",
+      "category": "legacy-notebook-compatibility",
+      "reason": "Legacy chapter/section/page implementation retained after the scientific-domain v1 cutover, including compatibility tests. LabNotebookModule registers only scientific-domain entities, services and guarded resolvers; this file must remain outside the production import graph."
+    },
+    {
+      "file": "src/app_modules/lab-notebook/models/dto/update-lab-notebook-input.ts",
+      "category": "legacy-notebook-compatibility",
+      "reason": "Legacy chapter/section/page implementation retained after the scientific-domain v1 cutover, including compatibility tests. LabNotebookModule registers only scientific-domain entities, services and guarded resolvers; this file must remain outside the production import graph."
+    },
+    {
+      "file": "src/app_modules/lab-notebook/models/dto/update-page-input.ts",
+      "category": "legacy-notebook-compatibility",
+      "reason": "Legacy chapter/section/page implementation retained after the scientific-domain v1 cutover, including compatibility tests. LabNotebookModule registers only scientific-domain entities, services and guarded resolvers; this file must remain outside the production import graph."
+    },
+    {
+      "file": "src/app_modules/lab-notebook/models/dto/update-section-input.ts",
+      "category": "legacy-notebook-compatibility",
+      "reason": "Legacy chapter/section/page implementation retained after the scientific-domain v1 cutover, including compatibility tests. LabNotebookModule registers only scientific-domain entities, services and guarded resolvers; this file must remain outside the production import graph."
+    },
+    {
+      "file": "src/app_modules/lab-notebook/models/entities/lab-notebook-chapter.entity.ts",
+      "category": "legacy-notebook-compatibility",
+      "reason": "Legacy chapter/section/page implementation retained after the scientific-domain v1 cutover, including compatibility tests. LabNotebookModule registers only scientific-domain entities, services and guarded resolvers; this file must remain outside the production import graph."
+    },
+    {
+      "file": "src/app_modules/lab-notebook/models/entities/lab-notebook-page.entity.ts",
+      "category": "legacy-notebook-compatibility",
+      "reason": "Legacy chapter/section/page implementation retained after the scientific-domain v1 cutover, including compatibility tests. LabNotebookModule registers only scientific-domain entities, services and guarded resolvers; this file must remain outside the production import graph."
+    },
+    {
+      "file": "src/app_modules/lab-notebook/models/entities/lab-notebook-section.entity.ts",
+      "category": "legacy-notebook-compatibility",
+      "reason": "Legacy chapter/section/page implementation retained after the scientific-domain v1 cutover, including compatibility tests. LabNotebookModule registers only scientific-domain entities, services and guarded resolvers; this file must remain outside the production import graph."
+    },
+    {
+      "file": "src/app_modules/lab-notebook/models/entities/lab-notebook.entity.ts",
+      "category": "legacy-notebook-compatibility",
+      "reason": "Legacy chapter/section/page implementation retained after the scientific-domain v1 cutover, including compatibility tests. LabNotebookModule registers only scientific-domain entities, services and guarded resolvers; this file must remain outside the production import graph."
+    },
+    {
+      "file": "src/app_modules/lab-notebook/services/lab-notebook.service.ts",
+      "category": "legacy-notebook-compatibility",
+      "reason": "Legacy chapter/section/page implementation retained after the scientific-domain v1 cutover, including compatibility tests. LabNotebookModule registers only scientific-domain entities, services and guarded resolvers; this file must remain outside the production import graph."
+    },
+    {
+      "file": "src/app_modules/lab-notebook/services/notebook-chapter.service.ts",
+      "category": "legacy-notebook-compatibility",
+      "reason": "Legacy chapter/section/page implementation retained after the scientific-domain v1 cutover, including compatibility tests. LabNotebookModule registers only scientific-domain entities, services and guarded resolvers; this file must remain outside the production import graph."
+    },
+    {
+      "file": "src/app_modules/lab-notebook/services/notebook-page.service.ts",
+      "category": "legacy-notebook-compatibility",
+      "reason": "Legacy chapter/section/page implementation retained after the scientific-domain v1 cutover, including compatibility tests. LabNotebookModule registers only scientific-domain entities, services and guarded resolvers; this file must remain outside the production import graph."
+    },
+    {
+      "file": "src/app_modules/lab-notebook/services/notebook-section.service.ts",
+      "category": "legacy-notebook-compatibility",
+      "reason": "Legacy chapter/section/page implementation retained after the scientific-domain v1 cutover, including compatibility tests. LabNotebookModule registers only scientific-domain entities, services and guarded resolvers; this file must remain outside the production import graph."
     }
   ]
 }

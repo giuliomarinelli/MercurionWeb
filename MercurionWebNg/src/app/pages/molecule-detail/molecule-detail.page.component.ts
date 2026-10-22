@@ -84,7 +84,7 @@ import { LoggerService } from '../../services/logger.service'
         <section>
           <div class="m-detail-identifiers min-w-0 text-left space-y-6 sm:space-y-0 sm:grid sm:grid-cols-[max-content_minmax(0,1fr)] sm:gap-x-4 sm:gap-y-6 sm:items-center">
             <div class="flex flex-col gap-2 min-w-0 sm:contents">
-              <h2 class="font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary text-lg sm:text-xl sm:shrink-0">SMILES canonico</h2>
+              <h2 class="font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary-btn-hc text-lg sm:text-xl sm:shrink-0">SMILES canonico</h2>
               <div class="flex items-center gap-3 min-w-0 sm:flex-1">
                 <p class="min-w-0 wrap-anywhere text-sm text-neutral-950 dark:text-slate-200 font-mono font-semibold">
                   @if (typeGuards.isSystemMolecule(molecule)) {
@@ -105,7 +105,7 @@ import { LoggerService } from '../../services/logger.service'
               </div>
             </div>
             <div class="flex flex-col gap-2 min-w-0 sm:contents">
-              <h2 class="font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary text-lg sm:text-xl sm:shrink-0">Nome IUPAC Internazionale</h2>
+              <h2 class="font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary-btn-hc text-lg sm:text-xl sm:shrink-0">Nome IUPAC Internazionale</h2>
               <div class="flex items-center gap-3 min-w-0 sm:flex-1">
                 <p class="min-w-0 wrap-anywhere text-sm text-neutral-950 dark:text-slate-200 font-mono font-semibold">
                   @if (iupacFailed()) {

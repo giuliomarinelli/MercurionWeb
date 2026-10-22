@@ -2,6 +2,7 @@ import { Route, Routes } from '@angular/router'
 import { AuthGuard } from './guards/auth.guard'
 import { routeData, routeManifest, RouteDescriptor } from './route-manifest'
 import { STATUS_PAGE_CONFIG } from './pages/status-page/status-page.models'
+import { isFeatureEnabled } from './feature-flags/feature-flags'
 
 const manifestRoute = <TParams extends Record<string, string>>(
   descriptor: RouteDescriptor<TParams>,
@@ -29,6 +30,12 @@ export const routes: Routes = [
   manifestRoute(routeManifest.passwordRecovery, { loadComponent: () => import('./pages/password-recovery/password-recovery.page.component').then(m => m.PasswordRecoveryPageComponent) }),
   manifestRoute(routeManifest.collections, { loadComponent: () => import('./pages/my-molecule-collections/my-molecule-collections.page.component').then(m => m.MyMoleculeCollectionsPageComponent), canActivate: [AuthGuard] }),
   manifestRoute(routeManifest.collectionDetail, { loadComponent: () => import('./pages/molecule-collection-detail/molecule-collection-detail.page.component').then(m => m.MoleculeCollectionDetailPageComponent), canActivate: [AuthGuard] }),
+  // Deferred beta feature: no Notebook URL can reach its lazy component if disabled.
+  ...(isFeatureEnabled('notebook') ? [
+    manifestRoute(routeManifest.notebook, { loadComponent: () => import('./pages/notebook/notebook-landing/notebook-landing.component').then(m => m.NotebookLandingComponent), canActivate: [AuthGuard] }),
+    manifestRoute(routeManifest.notebookReader, { loadComponent: () => import('./pages/notebook/edit/edit.page.component').then(m => m.NotebookEditPageComponent), canActivate: [AuthGuard], data: { notebookMode: 'read' } }),
+    manifestRoute(routeManifest.notebookEditor, { loadComponent: () => import('./pages/notebook/edit/edit.page.component').then(m => m.NotebookEditPageComponent), canActivate: [AuthGuard], canDeactivate: [(component: { canDeactivate(): boolean }) => component.canDeactivate()], data: { notebookMode: 'edit' } }),
+  ] : []),
   manifestRoute(routeManifest.register, { loadComponent: () => import('./pages/register/register.page.component').then(m => m.RegisterPageComponent) }),
   manifestRoute(routeManifest.accountActivate, { loadComponent: () => import('./pages/account-activate/account-activate.page.component').then(m => m.AccountActivatePageComponent) }),
   manifestRoute(routeManifest.myMolecules, { loadComponent: () => import('./pages/all-my-molecules/all-my-molecules.page.component').then(m => m.AllMyMoleculesPageComponent), canActivate: [AuthGuard] }),

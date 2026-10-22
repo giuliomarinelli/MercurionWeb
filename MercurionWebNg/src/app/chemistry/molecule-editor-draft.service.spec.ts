@@ -15,6 +15,19 @@ describe('MoleculeEditorDraftService', () => {
     service.clearAll()
   })
 
+  it('retains edits and their history when an earlier saved revision becomes the server baseline', () => {
+    service.initialize({ mode: 'edit', mId: 'mol-a', baselineSmiles: 'CC', tab: 'std', destroyExisting: true })
+    service.record('CCC')
+    service.record('CCCC')
+    service.acceptSavedBaseline('mol-b', 'WRONG')
+    expect(service.draft()?.baselineSmiles).toBe('CC')
+    service.acceptSavedBaseline('mol-a', 'CCC')
+    expect(service.currentSmiles()).toBe('CCCC')
+    expect(service.canUndo()).toBeTrue()
+    const restored = service.initialize({ mode: 'edit', mId: 'mol-a', baselineSmiles: 'CCC', tab: 'std', destroyExisting: false })
+    expect(restored.smiles).toBe('CCCC')
+  })
+
   it('restores a persisted draft only for the same edit molecule and baseline', () => {
     service.initialize({
       mode: 'edit',

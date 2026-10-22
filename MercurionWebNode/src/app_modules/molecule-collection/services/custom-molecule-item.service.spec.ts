@@ -3,7 +3,7 @@ import { CustomMoleculeItemService } from './custom-molecule-item.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { CustomMoleculeItemEntity } from '../models/entities/custom-molecule-item.entity';
 import { MoleculeCollectionItemJoinService } from './molecule-collection-item-join.service';
-import { RDKitService } from 'src/app_modules/mercurion-ai/services/rd-kit.service';
+import { CustomMoleculeResolutionService } from './custom-molecule-resolution.service';
 import { MoleculeOwnershipPolicy } from './molecule-ownership.policy';
 
 describe('CustomMoleculeItemService', () => {
@@ -23,11 +23,10 @@ describe('CustomMoleculeItemService', () => {
           },
         },
         {
-          provide: RDKitService,
+          provide: CustomMoleculeResolutionService,
           useValue: {
-            getMoleculeProperties: jest.fn(),
-            toCanonicalSmiles: jest.fn(),
-            areSameStructure: jest.fn(),
+            canonicalize: jest.fn(),
+            resolveCanonicalWithManager: jest.fn()
           },
         },
         {

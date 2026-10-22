@@ -1,106 +1,79 @@
-import { Component, ChangeDetectionStrategy, input } from '@angular/core';
-import { NotebookTree, ChapterTree, SectionTree, PageTree } from '../../../Models/graphql/notebook/notebook.models';
-import { RouterModule } from '@angular/router';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { NotebookTree } from '../../../Models/graphql/notebook/notebook.models';
+import { routeManifest } from '../../../route-manifest';
 
-type TocMode = 'edit' | 'read';
+type TocMode = 'read' | 'edit';
+export type NotebookSelection = { s_id?: string; e_id?: string; x_id?: string };
 
 @Component({
   selector: 'm-notebook-toc',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterModule],
+  imports: [RouterLink],
   template: `
-    <nav aria-label="Indice notebook">
-    <ul class="flex flex-col xs:flex-row xs:flex-wrap gap-2 xs:gap-3 text-xs px-2 py-2 border-b">
-      @if (notebook()) {
+  @if (notebook(); as nb) {
+    <nav aria-label="Indice del quaderno" class="rounded-lg border p-3">
+      <h2 class="mb-3 text-sm font-semibold">Indice</h2>
+      <ul class="space-y-2 text-sm">
         <li>
-          <a [routerLink]="['/notebook', notebook().id, mode()]"
-             class="font-bold underline underline-offset-2"
-             [class.text-sky-800]="isSelected('notebook', notebook().id)">
-            {{ truncate(notebook().title) }}
-          </a>
-          @if (notebook().chapters.length) {
-            <ul class="ml-3">
-              @for (chapter of notebook().chapters; track chapter.id) {
-                <li>
-                  <a [routerLink]="['/notebook', notebook().id, mode()]"
-                     [queryParams]="{ c_id: chapter.id }"
-                     class="font-semibold"
-                     [class.text-sky-700]="isSelected('chapter', chapter.id)">
-                    {{ truncate(chapter.title) }}
-                  </a>
-                  @if (chapter.sections.length) {
-                    <ul class="ml-3">
-                      @for (section of chapter.sections; track section.id) {
-                        <li>
-                          <a [routerLink]="['/notebook', notebook().id,mode()]"
-                             [queryParams]="{ c_id: chapter.id, s_id: section.id }"
-                             [class.text-sky-600]="isSelected('section', section.id)">
-                            {{ truncate(section.title) }}
-                          </a>
-                          @if (section.pages.length) {
-                            <ul class="ml-3">
-                              @for (page of section.pages; track page.id) {
-                                <li>
-                                  <a [routerLink]="['/notebook', notebook().id, mode()]"
-                                     [queryParams]="{ c_id: chapter.id, s_id: section.id, p_id: page.id }"
-                                     [class.text-sky-500]="isSelected('page', page.id)">
-                                    {{ truncate(page.title) }}
-                                  </a>
-                                </li>
-                              }
-                            </ul>
+          <a [routerLink]="notebookUrl(nb.id)" class="font-semibold underline underline-offset-2"
+            [attr.aria-current]="isSelected('notebook', nb.id) ? 'page' : null">{{ nb.title }}</a>
+          <ul class="ml-3 mt-2 space-y-2 border-l pl-3">
+            @for (section of nb.sections; track section.id) {
+              <li>
+                <a [routerLink]="notebookUrl(nb.id)" [queryParams]="{s_id:section.id}"
+                  [attr.aria-current]="isSelected('section', section.id) ? 'page' : null"
+                  class="underline underline-offset-2">{{ section.title }}</a>
+                <ul class="ml-3 mt-2 space-y-2 border-l pl-3">
+                  @for (experiment of section.experiments; track experiment.id) {
+                    @if (!experiment.archivedAt) {
+                      <li>
+                        <a [routerLink]="notebookUrl(nb.id)"
+                          [queryParams]="{s_id:section.id,e_id:experiment.id}"
+                          [attr.aria-current]="isSelected('experiment', experiment.id) ? 'page' : null"
+                          class="underline underline-offset-2">{{ experiment.title }}</a>
+                        <ul class="ml-3 mt-1 space-y-1 border-l pl-3">
+                          @for (execution of experiment.executions; track execution.id) {
+                            @if (!execution.archivedAt) {
+                              <li>
+                                <a [routerLink]="notebookUrl(nb.id)"
+                                  [queryParams]="{s_id:section.id,e_id:experiment.id,x_id:execution.id}"
+                                  [attr.aria-current]="isSelected('execution', execution.id) ? 'page' : null"
+                                  class="underline underline-offset-2">{{ execution.title }}</a>
+                                <span class="ml-1 text-xs text-slate-500">{{ execution.status }}</span>
+                              </li>
+                            }
                           }
-                        </li>
-                      }
-                    </ul>
+                        </ul>
+                      </li>
+                    }
                   }
-                </li>
-              }
-            </ul>
-          }
+                </ul>
+              </li>
+            }
+          </ul>
         </li>
-      }
-    </ul>
+      </ul>
     </nav>
+  }
   `,
-  styles: [`
-    a {
-      cursor: pointer; transition: color .13s
-    }
-    .font-bold, .font-semibold {
-      display: inline-block;
-      max-width: 180px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      vertical-align: bottom;
-    }
-  `]
 })
 export class NotebookTocComponent {
-
-  readonly notebook = input<NotebookTree>();
-  readonly chapter = input<ChapterTree>();
-  readonly section = input<SectionTree>();
+  readonly notebook = input<NotebookTree | null>(null);
   readonly mode = input<TocMode>('read');
-  readonly selectedIds = input<{
-    c_id?: string;
-    s_id?: string;
-    p_id?: string;
-}>();
+  readonly selectedIds = input<NotebookSelection>({});
 
-  truncate(str: string, n = 22): string {
-    return str.length > n ? str.slice(0, n - 1) + '…' : str
+  notebookUrl(notebookId: string): string {
+    return this.mode() === 'edit'
+      ? routeManifest.notebookEditor.build({ notebookId })
+      : routeManifest.notebookReader.build({ notebookId });
   }
 
-  isSelected(type: 'notebook' | 'chapter' | 'section' | 'page', id: string): boolean {
-    const selectedIds = this.selectedIds();
-    if (!selectedIds) return false
-    const notebook = this.notebook();
-    if (type === 'notebook') return !!notebook && notebook.id === id
-    if (type === 'chapter') return selectedIds.c_id === id && !selectedIds.s_id
-    if (type === 'section') return selectedIds.s_id === id && !selectedIds.p_id
-    if (type === 'page') return selectedIds.p_id === id
-    return false
+  isSelected(kind: 'notebook' | 'section' | 'experiment' | 'execution', id: string): boolean {
+    const selected = this.selectedIds();
+    if (kind === 'notebook') return this.notebook()?.id === id && !selected.s_id;
+    if (kind === 'section') return selected.s_id === id && !selected.e_id;
+    if (kind === 'experiment') return selected.e_id === id && !selected.x_id;
+    return selected.x_id === id;
   }
 }

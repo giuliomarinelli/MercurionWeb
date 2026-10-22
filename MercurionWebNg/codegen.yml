@@ -11,6 +11,9 @@ config:
     JSON:
       input: ../Models/json.models#JsonValue
       output: ../Models/json.models#JsonValue
+    JSONObject:
+      input: ../Models/json.models#JsonObject
+      output: ../Models/json.models#JsonObject
 generates:
   src/app/generated/schema.ts:
     plugins:

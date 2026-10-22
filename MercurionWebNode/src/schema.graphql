@@ -50,11 +50,6 @@ type ChEMBLMoleculeItemEntity implements MoleculeCollectionItemEntity {
   updatedAt: String!
 }
 
-input CreateChapterInput {
-  notebookId: String!
-  title: String!
-}
-
 input CreateMoleculeItemInput {
   canonicalSmiles: String
   chemblMolregno: Float
@@ -64,18 +59,6 @@ input CreateMoleculeItemInput {
   notes: String
   propertiesJson: String
   type: String!
-}
-
-input CreatePageInput {
-  content: String
-  sectionId: ID!
-  title: String
-}
-
-input CreateSectionInput {
-  chapterId: ID!
-  description: String
-  title: String!
 }
 
 type CustomMoleculeItemDTO {
@@ -117,23 +100,82 @@ input CustomMoleculeItemInput {
   propertiesJson: String
 }
 
+input ExecutionMoleculeLinkInput {
+  executionId: ID!
+  moleculeId: ID!
+}
+
+input ExecutionSynthesisLinkInput {
+  executionId: ID!
+  stepId: ID
+  synthesisId: ID!
+}
+
+type ExperimentExecution {
+  archivedAt: String
+  completedAt: String
+  contentDelta: JSONObject
+  createdAt: String!
+  executionOrder: Int!
+  experiment: NotebookExperiment!
+  experimentId: ID!
+  id: ID!
+  protocolRevision: ExperimentProtocolRevision
+  protocolRevisionId: ID
+  sanitizedText: String!
+  startedAt: String
+  status: String!
+  title: String!
+  updatedAt: String!
+}
+
+input ExperimentExecutionCreateInput {
+  contentDelta: JSONObject
+  experimentId: ID!
+  title: String!
+}
+
+input ExperimentExecutionPatchInput {
+  contentDelta: JSONObject
+  id: ID!
+  title: String
+}
+
+type ExperimentProtocolRevision {
+  checksumSha256: String!
+  createdAt: String!
+  experiment: NotebookExperiment!
+  experimentId: ID!
+  id: ID!
+  revisionNumber: Int!
+  snapshot: JSONObject!
+  snapshotSchemaVersion: Int!
+}
+
+input ExperimentSynthesisLinkInput {
+  experimentId: ID!
+  synthesisId: ID!
+}
+
 """
 The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
 """
 scalar JSON
 
-type LabNotebook {
-  chapters: [NotebookChapter!]!
-  createdAt: String
-  id: ID!
-  title: String!
-  updatedAt: String
-}
+"""
+The `JSONObject` scalar type represents JSON objects as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSONObject
 
-type LabNotebookLinkType {
+type LabNotebook {
+  archivedAt: String
+  createdAt: String!
   id: ID!
-  itemId: ID!
-  noteId: ID!
+  premiseDelta: JSONObject
+  premiseText: String!
+  sections: [NotebookSection!]!
+  title: String!
+  updatedAt: String!
 }
 
 type MoleculeCollection {
@@ -230,84 +272,111 @@ type Mutation {
   addSupportTicketMessage(contentDelta: JSON!, contentHtml: String!, ticketId: ID!): Boolean!
   addSynthStepItem(input: SynthStepItemInput!): SynthStepItem!
   addTicketMessage(contentDelta: JSON!, contentHtml: String!, ticketId: ID!): Boolean!
+  archiveExperimentExecution(id: ID!): ExperimentExecution!
+  archiveLabNotebook(id: ID!): LabNotebook!
+  archiveNotebookExperiment(id: ID!): NotebookExperiment!
   bindManyCollectionsToMolecule(collectionIds: [ID!]!, moleculeId: ID!, selectAll: Boolean!, snapshotAt: String): BindManyCollectionsToMoleculeDTO!
+  cancelExperimentExecution(id: ID!): ExperimentExecution!
   closeMyTicket(ticketId: ID!): Boolean!
   closeTicketAsSupport(ticketId: ID!): Boolean!
+  completeExperimentExecution(id: ID!): ExperimentExecution!
   configureSynthesisPool(input: SynthesisPoolInput!): Synthesis!
-  createChapter(input: CreateChapterInput!): NotebookChapter!
-  createLabNotebook(title: String!): LabNotebook!
+  createExperimentExecution(input: ExperimentExecutionCreateInput!): ExperimentExecution!
+  createLabNotebook(input: ScientificNotebookCreateInput!): LabNotebook!
   createManyMoleculeCollections(names: [String!]!): Boolean!
   createMoleculeCollection(name: String!): MoleculeCollection!
   createMoleculeItem(input: CreateMoleculeItemInput!): MoleculeCollectionItemUnion!
-  createPage(input: CreatePageInput!): NotebookPage!
-  createSection(input: CreateSectionInput!): NotebookSection!
+  createNotebookExperiment(input: NotebookExperimentCreateInput!): NotebookExperiment!
+  createNotebookSection(input: NotebookSectionCreateInput!): NotebookSection!
   createSyntheticRoute(input: SynthesisInput!): Synthesis!
   createSyntheticStep(input: SynthStepInput!): SynthStep!
   createTicket(contentDelta: JSON!, contentHtml: String!, subject: String!): Ticket!
-  deleteChapter(id: ID!): Boolean!
-  deleteLabNotebook(id: ID!): Boolean!
   deleteMoleculeCollection(id: ID!): Boolean!
   deleteMoleculeItem(id: ID!): Boolean!
-  deletePage(id: String!): Boolean!
-  deleteSection(id: ID!): Boolean!
   deleteSyntheticRoute(id: ID!): SynthCommandResult!
   deleteSyntheticStep(id: ID!): SynthCommandResult!
   duplicateCollection(srcCollectionId: ID!): MoleculeCollection
+  linkMoleculeToExecution(input: ExecutionMoleculeLinkInput!): Boolean!
+  linkSynthesisToExecution(input: ExecutionSynthesisLinkInput!): Boolean!
+  linkSynthesisToExperiment(input: ExperimentSynthesisLinkInput!): Boolean!
   markMoleculeCollectionAsTouched(id: ID!): Boolean!
   markMoleculeCollectionItemAsTouched(flagIds: String!, id: ID!): Boolean!
-  moveChapter(chapterId: ID!, direction: String!): Boolean!
-  movePage(direction: String!, pageId: ID!): Boolean!
-  moveSection(direction: String!, sectionId: ID!): Boolean!
   removeChemblMoleculeFromCollection(collectionId: ID!, itemId: ID!): Boolean!
   removeCustomMoleculeFromCollection(collectionId: ID!, itemId: ID!): Boolean!
   removeMoleculeFromCollection(collectionId: ID!, deleteCollectionIfEmpty: Boolean, itemId: ID!): Boolean!
   removeSynthStepItem(id: ID!): Boolean!
   reopenTicketAsSupport(ticketId: ID!): Boolean!
-  reorderChapters(notebookId: ID!, orderedIds: [ID!]!): Boolean!
-  reorderPages(orderedIds: [ID!]!, sectionId: ID!): Boolean!
-  reorderSections(chapterId: ID!, orderedIds: [ID!]!): Boolean!
-  updateChapter(input: UpdateChapterInput!): NotebookChapter!
-  updateLabNotebook(input: UpdateLabNotebookInput!): LabNotebook!
+  reorderExperimentExecutions(input: NotebookOrderInput!): Boolean!
+  reorderNotebookExperiments(input: NotebookOrderInput!): Boolean!
+  reorderNotebookSections(input: NotebookOrderInput!): Boolean!
+  startExperimentExecution(id: ID!): ExperimentExecution!
+  unlinkSynthesisFromExperiment(input: ExperimentSynthesisLinkInput!): Boolean!
+  updateExperimentExecution(input: ExperimentExecutionPatchInput!): ExperimentExecution!
+  updateLabNotebook(input: ScientificNotebookPatchInput!): LabNotebook!
   updateMoleculeCollection(id: ID!, name: String!): MoleculeCollection!
   updateMoleculeItem(id: ID!, input: CreateMoleculeItemInput!): MoleculeCollectionItemUnion
-  updatePage(input: UpdatePageInput!): NotebookPage
-  updateSection(input: UpdateSectionInput!): NotebookSection!
+  updateNotebookExperiment(input: NotebookExperimentPatchInput!): NotebookExperiment!
+  updateNotebookSection(input: NotebookSectionPatchInput!): NotebookSection!
   updateSynthStepItem(id: ID!, input: SynthStepItemInput!): SynthStepItem!
   updateSyntheticRoute(id: ID!, input: SynthesisInput!): Synthesis!
   updateSyntheticStep(id: ID!, input: SynthStepInput!): SynthStep!
 }
 
-type NotebookChapter {
-  createdAt: String
+type NotebookExperiment {
+  archivedAt: String
+  contentDelta: JSONObject
+  createdAt: String!
+  executions: [ExperimentExecution!]!
+  experimentOrder: Int!
   id: ID!
-  notebook: LabNotebook!
-  order: Int!
-  sections: [NotebookSection!]
+  protocolRevisions: [ExperimentProtocolRevision!]!
+  sanitizedText: String!
+  section: NotebookSection!
+  sectionId: ID!
   title: String!
-  updatedAt: String
+  updatedAt: String!
 }
 
-type NotebookPage {
-  content: String
-  createdAt: String
+input NotebookExperimentCreateInput {
+  contentDelta: JSONObject
+  sectionId: ID!
+  title: String!
+}
+
+input NotebookExperimentPatchInput {
+  contentDelta: JSONObject
   id: ID!
-  links: [LabNotebookLinkType!]!
-  order: Int!
-  sanitizedText: String
-  section: NotebookSection!
   title: String
-  updatedAt: String
+}
+
+input NotebookOrderInput {
+  orderedIds: [ID!]!
+  parentId: ID!
 }
 
 type NotebookSection {
-  chapter: NotebookChapter!
-  createdAt: String
-  description: String
+  contentDelta: JSONObject
+  createdAt: String!
+  experiments: [NotebookExperiment!]!
   id: ID!
-  order: Int!
-  pages: [NotebookPage!]
+  notebook: LabNotebook!
+  notebookId: ID!
+  sanitizedText: String!
+  sectionOrder: Int!
   title: String!
-  updatedAt: String
+  updatedAt: String!
+}
+
+input NotebookSectionCreateInput {
+  contentDelta: JSONObject
+  notebookId: ID!
+  title: String!
+}
+
+input NotebookSectionPatchInput {
+  contentDelta: JSONObject
+  id: ID!
+  title: String
 }
 
 type PaginatedMoleculeCollection {
@@ -347,11 +416,13 @@ type PaginatedTicketMessage {
 }
 
 type Query {
-  chapterById(id: ID!): NotebookChapter!
-  chaptersByNotebook(notebookId: ID!): [NotebookChapter!]!
   chemblMoleculesByCollection(collectionId: ID!): [ChEMBLMoleculeItemEntity!]!
   existsChEMBLMoleculeByUUIDThenGetMolregno(_uuid_: String!): String
   existsUserTicketById(ticketId: ID!): Boolean!
+  experimentExecution(id: ID!): ExperimentExecution
+  experimentExecutions(experimentId: ID!): [ExperimentExecution!]!
+  experimentProtocolRevision(id: ID!): ExperimentProtocolRevision
+  experimentProtocolRevisions(experimentId: ID!): [ExperimentProtocolRevision!]!
   findOneChemblMoleculeById(itemId: ID!): ChEMBLMoleculeItemEntity
   findOneCustomMoleculeByCanonicalSmiles(canonicalSmiles: String!): CustomMoleculeItemEntity
   hasUserChEMBLMoleculeByMolregnoThenGetUUID(molregno: Int!): String
@@ -373,14 +444,13 @@ type Query {
   myTicketDetail(ticketId: ID!): TicketDetailDTO!
   myTicketMessages(limit: Int! = 20, page: Int! = 1, ticketId: ID!): PaginatedTicketMessage!
   myTickets(limit: Int! = 20, page: Int! = 1): PaginatedTicket!
-  page(id: String!): NotebookPage
-  pageById(id: ID!): NotebookPage!
-  pagesBySection(sectionId: String!): [NotebookPage!]!
+  notebookExperiment(id: ID!): NotebookExperiment
+  notebookExperiments(sectionId: ID!): [NotebookExperiment!]!
+  notebookSection(id: ID!): NotebookSection
+  notebookSections(notebookId: ID!): [NotebookSection!]!
   paginatedMoleculeCollectionItemsByCollection(collectionId: String!, excluded: Boolean, limit: Int! = 20, page: Int! = 1, q: String!): PaginatedMoleculeCollectionItem!
   paginatedMoleculeCollectionItemsByUser(collectionId: ID, excludeJoinedToCollection: Boolean, limit: Int! = 20, page: Int! = 1, q: String!): PaginatedMoleculeCollectionItem!
   searchMyCollections(limit: Float, query: String): [MoleculeCollection!]!
-  sectionByChapterId(chapterId: ID!): NotebookSection!
-  sectionById(id: ID!): NotebookSection!
   synthStepItems(stepId: ID!): [SynthStepItem!]!
   syntheticRoute(id: ID!): Synthesis
   syntheticStepById(id: ID!): SynthStep
@@ -388,6 +458,17 @@ type Query {
   ticketDetailAsSupport(ticketId: ID!): TicketDetailDTO!
   ticketMessagesAsSupport(limit: Int! = 20, page: Int! = 1, ticketId: ID!): PaginatedTicketMessage!
   ticketsAsSupport(limit: Int! = 20, page: Int! = 1): PaginatedTicket!
+}
+
+input ScientificNotebookCreateInput {
+  premiseDelta: JSONObject
+  title: String!
+}
+
+input ScientificNotebookPatchInput {
+  id: ID!
+  premiseDelta: JSONObject
+  title: String
 }
 
 enum SynthCommandOutcome {
@@ -528,28 +609,4 @@ enum TicketStatus {
   Open
   WaitingSupport
   WaitingUser
-}
-
-input UpdateChapterInput {
-  id: ID!
-  order: Int
-  title: String
-}
-
-input UpdateLabNotebookInput {
-  id: String!
-  title: String
-}
-
-input UpdatePageInput {
-  content: String
-  id: ID!
-  order: Int
-  title: String
-}
-
-input UpdateSectionInput {
-  description: String
-  id: ID!
-  title: String
 }

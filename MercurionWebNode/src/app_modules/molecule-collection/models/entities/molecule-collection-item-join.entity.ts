@@ -7,8 +7,8 @@ import { Field, ID, ObjectType } from "@nestjs/graphql";
 
 @ObjectType()
 @Entity('molecule_collection_items_join')
-@Unique('uq_molecule_collection_join_owner', ['userId', 'collectionId', 'itemId'])
-@Index('idx_molecule_collection_join_owner_item', ['userId', 'itemId', 'collectionId'])
+@Unique('molecule_collection_items_join_user_id_collection_id_item_id_ke', ['userId', 'collectionId', 'itemId'])
+@Index('idx_mci_join_user_item_collection', ['userId', 'itemId', 'collectionId'])
 export class MoleculeCollectionItemJoin {
 
     @Field(() => ID)
@@ -21,18 +21,12 @@ export class MoleculeCollectionItemJoin {
 
     @Field(() => MoleculeCollection, { nullable: true })
     @ManyToOne(() => MoleculeCollection, collection => collection.items, { onDelete: 'CASCADE' })
-    @JoinColumn([
-        { name: 'collection_id', referencedColumnName: 'id', foreignKeyConstraintName: 'fk_molecule_join_owned_collection' },
-        { name: 'user_id', referencedColumnName: 'userId', foreignKeyConstraintName: 'fk_molecule_join_owned_collection' }
-    ])
+    @JoinColumn({ name: 'collection_id', referencedColumnName: 'id' })
     collection!: MoleculeCollection
 
     @Field(() => MoleculeCollectionItemEntity, { nullable: true })
     @ManyToOne(() => MoleculeCollectionItemEntity, item => item.joins, { onDelete: 'CASCADE' })
-    @JoinColumn([
-        { name: 'item_id', referencedColumnName: 'id', foreignKeyConstraintName: 'fk_molecule_join_owned_item' },
-        { name: 'user_id', referencedColumnName: 'userId', foreignKeyConstraintName: 'fk_molecule_join_owned_item' }
-    ])
+    @JoinColumn({ name: 'item_id', referencedColumnName: 'id' })
     item!: MoleculeCollectionItemEntity
 
     @Column({ type: 'uuid' })

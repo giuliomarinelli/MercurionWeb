@@ -51,6 +51,8 @@ describe('TextareaComponent', () => {
 
     expect(textarea.id).toBe('description');
     expect(label.htmlFor).toBe('description');
+    expect(fixture.nativeElement.querySelectorAll('#description').length).toBe(1);
+    expect(label.control).toBe(textarea);
     expect(textarea.getAttribute('aria-describedby')).toBe('description-hint description-count');
     expect(hint.textContent).toContain('Describe the item');
     expect(count.textContent.trim()).toBe('0 / 20');

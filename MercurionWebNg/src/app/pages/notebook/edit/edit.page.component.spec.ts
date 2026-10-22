@@ -1,23 +1,37 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-
+import { TestBed } from '@angular/core/testing';
+import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
+import { of } from 'rxjs';
 import { NotebookEditPageComponent } from './edit.page.component';
+import { NotebookService } from '../../../services/graphql/notebook.service';
 
-describe('EditComponent', () => {
-  let component: NotebookEditPageComponent;
-  let fixture: ComponentFixture<NotebookEditPageComponent>;
-
+describe('NotebookEditPageComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [NotebookEditPageComponent]
-    })
-    .compileComponents();
-
-    fixture = TestBed.createComponent(NotebookEditPageComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
+      imports: [NotebookEditPageComponent],
+      providers: [
+        provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            paramMap: of(convertToParamMap({ notebookId: '01990f17-0ff8-7b75-83d7-2c995ae7e2b1' })),
+            queryParamMap: of(convertToParamMap({})),
+            data: of({ notebookMode: 'read' }),
+          },
+        },
+        {
+          provide: NotebookService,
+          useValue: {
+            getNotebookById: () => of(null),
+          },
+        },
+      ],
+    }).compileComponents();
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
+  it('renders a recoverable error for a missing notebook', () => {
+    const fixture = TestBed.createComponent(NotebookEditPageComponent);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[role="alert"]')).not.toBeNull();
+    fixture.destroy();
   });
 });

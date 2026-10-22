@@ -1,0 +1,122 @@
+# PostgreSQL 16 — riconciliazione DB-first Notebook e Synthesis
+
+Stato: decisioni utente confermate il 21 ottobre 2026. Documento di pianificazione; NON conferma che il DDL sia stato applicato.
+
+## Autorità dello schema
+
+- PostgreSQL 16 è la fonte della verità; TypeORM entity/DTO/service devono aderirvi.
+- In questo programma NON utilizzare TypeORM migrations né TypeORM synchronize per modificare lo schema.
+- La generazione degli UUID (UUIDv7) resta lato applicazione.
+- Le FK su identificatori singoli (senza user_id) sono INTENZIONALI: minor accoppiamento sullo schema. L'ownership del proprietario e la coerenza delle relazioni cross-owner/cross-synthesis vanno verificate dai servizi con query owner-scoped e test negativi, non inferite dalle sole FK.
+
+## Ambito delle operazioni distruttive autorizzate
+
+Notebook e Synthesis sono stati prototipi senza un workflow e2e utilizzato. Il proprietario autorizza esplicitamente a perdere eventuali dati legacy di QUESTI due domini, inclusi gli oggetti lab_notebook_chapters, lab_notebook_sections, lab_notebook_pages, lab_notebook_links e synth_step_molecule_refs, anche tramite DROP e CREATE ex novo.
+
+Questa autorizzazione NON si estende a molecule_collection_items, molecule_collection_items_join, molecule_collections, users, documents, o altri domini. Vietato usare CASCADE indiscriminato: un DROP RESTRICT che fallisce su dipendenze esterne deve bloccare la procedura e far esaminare il vincolo.
+
+## Differenze concrete osservate nei DDL forniti
+
+- DB legacy synth_steps contiene main_substrate_id, main_product_id e conditions, e synth_step_molecule_refs; il backend più recente si aspetta synth_step_items, synthesis_pool_molecules e synthesis_pool_collections.
+- La FK legacy "synth_steps_main_substrate_molecule_collection_items_fk" punta per errore a main_product_id.
+- La FK legacy synth_step_molecule_refs.step_id usa ON DELETE SET NULL nonostante la colonna NOT NULL.
+- DB legacy Notebook: capitoli/sezioni/pagine riflettono terminologia abbandonata; gerarchia canonica: LabNotebook -> NotebookSection -> NotebookExperiment -> ExperimentExecution.
+- Su molecule_collection_items manca una UNIQUE parziale(owner,canonical_smiles) per custom; il solo controllo del servizio Nest non è atomicamente sufficiente.
+- Il trigger purge_orphan_items e' attivo e cancella una molecola quando perde l'ultima appartenenza a collezioni: incompatibile con la scelta di cancellazione esplicita e CASCADE controllato.
+
+## Sequenza di lavoro
+
+0. Salvare backup ripristinabile e verificare un database di test. NON eseguire il rebuild su un DB usato dal backend attivo.
+1. Eseguire il preflight pgAdmin corretto: un unico SELECT finale con risultato a righe per check, inclusa definizione di purge_orphan_items.
+2. Progettare e revisionare lo schema target con FK semplici, ordered-tree, revisioni dei protocolli e pool molecolare.
+3. Preparare DROP/CREATE TRANSAZIONALE **solo** sulle tabelle Notebook/Synthesis; NO CASCADE e precheck sui FK esterni.
+4. Rifattorizzare Nest/GraphQL e i guardrail sulle mutazioni. Il trigger M1 va attivato solo in coordinamento con la disabilitazione dell'update dello SMILES canonico sui record custom.
+5. Validare DDL e backend contemporaneamente in ambiente di test, poi eseguire il cutover e il frontend.
+6. Verificare integrità, molteplicità, versioning immutabile, ownership (servizi), cancellazioni, reorder concorrente ed E2E.
+
+## Segnaposto da investigare
+
+- Definizione SQL effettiva di purge_orphan_items(); potrebbe cancellare molecole ancora associate ad altre risorse, oppure far fallire DELETE a causa di FK RESTRICT.
+- Dati duplicati di molecole custom esistenti: vanno riconciliati, NON eliminati sulla base dell'autorizzazione riguardante Notebook/Synthesis.
+- Risorse esterne con FK verso le tabelle legacy: il rebuild deve fermarsi fino a un piano mirato.
+- Pool molecule e step items: prima attivazione deve rifiutare riferimenti cross-owner/cross-synthesis e molecole non custom tramite servizi e test.
+- Coerenza tra ExperimentExecution.experiment_id e la revisione, e tra step e sintesi quando il link include step_id.
+
+## Audit associazioni Molecule Collection — 21/10/2026
+
+I CSV ottenuti dal PostgreSQL reale contengono 1.511 join: 1.204 coerenti e **307 cross-owner**. Tutte le anomalie sono ChEMBL, con system_key null sia per item sia per collection:
+- 184 join con owner = proprietario collection != proprietario item: 39 item, 7 collections, un join owner.
+- 123 join con owner = proprietario item != proprietario collection: 6 item, 55 collections, tre join owners.
+- Nessuna anomalia custom. I timestamp desumibili dagli ID UUIDv7 collocano la generazione fra 27/10 e 30/11/2025.
+
+GitHub commit ff1c5d8b055dcb01c1d96ca97666d113595507e8 (01/12/2025) ha corretto controlli owner assenti in addMoleculeToCollectionWithManager, candidate selection addMany/bindMany e filtri selectAll sovrascritti da .where. E' una spiegazione fortemente supportata dei dati, non una prova forense definitiva senza log di produzione.
+
+L'attuale codice che duplica una collezione copia gli item_id dai join sorgenti senza riconsultare l'ownership degli item; deve essere protetto per non propagare dati corrotti.
+
+### Rimedi consentiti e limiti
+
+- Nessuna ownership condivisa e' prevista: questi 307 link sono illegittimi.
+- Per i 184 join proprietario-collection: preferire remap a ChEMBL item del medesimo proprietario e medesimo molregno, oppure creare item locale con UUIDv7 lato app, **senza** copiare note/private metadata altrui; decidere eventuali duplicati del join.
+- Per i 123 join proprietario-item: la collection e' estranea, quindi non e' possibile inferire una nuova collection destinazione; proposta rimozione dei link errati dopo backup/review.
+- La precedente autorizzazione DROP si limita a Notebook/Synthesis: **nessuna riparazione distruttiva delle 307 join e' stata approvata o eseguita**.
+- Prima di qualsiasi DELETE di join correggere l'autopurge: il trigger oggi potrebbe cancellare la molecola sottostante, anche se l'utente non ha richiesto tale operazione.
+- Eseguire analisi read-only di quanti record sono gia' remappabili e quanti richiedono creazione custom per proprietario ChEMBL (script 00c), poi preparare una riparazione transazionale verificabile.
+
+### Decisione ON DELETE CASCADE
+
+Il proprietario preferisce CASCADE per la **cancellazione definitiva ed esplicita** di una molecola con anteprima impatto e conferma UX. Non usare CASCADE su DROP TABLE. Nel DDL target:
+- molecule_collection_items -> synthesis_pool_molecules: ON DELETE CASCADE;
+- synthesis_pool_molecules -> synth_step_items: ON DELETE CASCADE;
+- molecule_collection_items -> experiment_execution_molecule_links: ON DELETE CASCADE (collegamenti live).
+- Lo storico immutabile ExperimentProtocolRevision deve sopravvivere tramite snapshot con struttura/condizioni autonome, indipendente dalle FK verso entita' live.
+- Rimuovi da collezione = DELETE join, **senza DELETE implicito della molecola**. Eliminazione molecola = mutation distinta, owner-scoped, anteprima dipendenze, conferma, recheck in transazione.
+- Il trigger legacy purge_orphan_items e il raw SQL di MoleculeCollectionService che elimina molecole orfane devono essere dismessi/coordinati col nuovo backend, altrimenti una semplice disassociazione potrebbe innescare un CASCADE non confermato.
+- Solo FK singole, senza user_id: verifiche owner restano responsabilita' dell'applicazione.
+
+
+## 00c ownership repair feasibility — CSV 21/10/2026
+
+Report ottenuto da PostgreSQL 16.10, solo lettura:
+- Anomalie 307 totali, tutte ChEMBL, 0 molregno mancanti, 0 molecole originali senza altra membership valida.
+- JOIN_OWNER_EQUALS_COLLECTION = 184 associazioni: 66 hanno gia' un elemento ChEMBL locale del proprietario della collezione, 118 richiedono 19 nuove coppie (user_id, chembl_molregno).
+- Tra le 66 gia' risolvibili, 43 collidono con un join esistente verso l'item corretto: eliminare il collegamento corrotto ridondante, non creare un secondo join.
+- JOIN_OWNER_EQUALS_MOLECULE = 123: la collezione e' di un altro utente e manca una destinazione lecita determinabile; proposta DELETE soltanto del join corrotto.
+- Gli altri 23 fra le 66 sono candidati UPDATE, non il conteggio definitivo: possono esistere collisioni *fra righe corrotte* che convergono alla stessa tripla owner/collection/molregno. Analogamente le 118 possono richiedere deduplica dopo la creazione delle 19 molecole.
+
+Un file SQL read-only ulteriore (`00d_cross_owner_final_repair_plan_pg16.sql`) classifica preventivamente tutte le 307 righe per azione, includendo le collisioni fra destinazioni convergenti. La vera riparazione deve:
+1. esigere nuovo preflight di stato invariato e un backup ripristinabile;
+2. generare 19 UUIDv7 **lato applicazione**, non tramite funzioni DB, uno per coppia owner/molregno mancante;
+3. creare le molecole locali ChEMBL senza copiare metadati privati dell'altro proprietario;
+4. riassociare le righe che non collidono e rimuovere le sole righe illegittime/ridondanti;
+5. disattivare coerentemente l'autopurge nei trigger e nel codice Nest prima della modifica, per evitare cascades impliciti;
+6. verificare zero cross-owner, zero duplicati di join, nessuna cancellazione involontaria di molecole e che l'operazione sia atomica.
+
+Non e' stata ancora concessa autorizzazione distruttiva per le join di Molecule Collection, e il CSV non include identificatori sufficienti a predisporre un fix statico completo. Nessun DELETE/UPDATE/INSERT e' stato eseguito.
+
+## Piano di riparazione definitivo: diagnostico 00d (21/10/2026)
+
+L'ultimo CSV autorizza precisamente le seguenti azioni:
+- DELETE_FOREIGN_COLLECTION_LINK: 123
+- DELETE_REDUNDANT_EXISTING_TARGET: 43
+- DELETE_DUPLICATE_TARGET: 4
+- UPDATE_TO_EXISTING_LOCAL_ITEM: 23
+- REMAP_AFTER_CREATE_LOCAL_ITEM: 114
+- REQUIRES_MANUAL_REVIEW: 0
+- Nuove molecole ChEMBL locali necessarie: 19.
+- Totale link modificati: 307; DELETE 170, UPDATE 137, CREATE ChEMBL item 19. Nessun DELETE intenzionale di molecole o collezioni.
+
+L'utente ha autorizzato la rimozione dei join invalidi e ridondanti; tale autorizzazione NON comprende la cancellazione delle molecule items preesistenti.
+
+È stato preparato un pacchetto operativo esterno al repository, con UUIDv7 generati fuori dal database e ricondotti a una specifica immagine del DB reale, per evitare di pubblicare UUID personali nel sorgente:
+- 10_repair_cross_owner_chembl_pg16.sql (transazione, 307 IDs/owner fingerprint, lock e validazione fail-closed; rimuove trg_purge_orphan_items)
+- 11_postrepair_validation_readonly.sql (verifica in sessione distinta)
+- manifest_uuidv7.csv e README.md.
+
+Tali script NON sono stati eseguiti dall'assistente su PostgreSQL; la validazione finora è statica, e il cutover deve essere eseguito manualmente con backup + maintenance window e verifica a posteriori.
+
+Correzioni Nest preparate nel branch della feature:
+- MoleculeCollectionService.delete elimina la collezione e quindi le membership in cascata, senza cancellare le molecole.
+- MoleculeCollectionService.duplicate verifica che tutti i join e tutti i molecule items sorgenti appartengano al proprietario; un dato legacy incoerente causa fallimento prima della creazione della copia.
+- Unit test di regressione per questi comportamenti.
+
+Prima di consentire nuovi DELETE di collezioni in ambiente attivo, è indispensabile sincronizzare il codice Nest con l'eliminazione del trigger: una versione vecchia del backend contiene anche una query esplicita che cancella le molecole orfane. Le FK DB attualmente semplici restano intenzionali; gli @JoinColumn TypeORM più restrittivi verranno analizzati nel successivo audit dei modelli.

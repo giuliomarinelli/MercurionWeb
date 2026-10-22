@@ -92,9 +92,12 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
   private session?: ChemistryEditorSession
   private iframe?: HTMLIFrameElement
   private unsubscribeState?: () => void
+  private unsubscribeChange?: () => void
   private exportSubscription?: Subscription
   private pollSubscription?: Subscription
   private sessionGeneration = 0
+  private structureGeneration = 0
+  private settingStructure = false
   private destroyed = false
   private activeSessionTab?: ChemistryEditorTab
 
@@ -110,6 +113,8 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
   readonly exportSmiles = output<string>();
   readonly exportPolledSmiles = output<string>();
   readonly onReset = output<void>();
+  readonly structureChanged = output<void>();
+  readonly exportFailed = output<void>();
 
   readonly iframeRef = viewChild<ElementRef<HTMLIFrameElement>>('ketcherIframe')
 
@@ -164,7 +169,7 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
       .pipe(
         takeUntil(this.destroy$),
         filter(() => this.editorState() === 'ready'),
-        filter(() => !this.exporting()),
+        filter(() => !this.exporting() && !this.settingStructure),
         exhaustMap(() => this.requestExportSmiles$('poll').pipe(catchError(() => EMPTY)))
       )
       .subscribe()
@@ -198,6 +203,7 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
 
   private async startSession(): Promise<void> {
     const generation = ++this.sessionGeneration
+    this.settingStructure = false
     clearTimeout(this.loadedTimeoutId)
     this.teardownMobileKeyboardGuard()
     this.disposeSession()
@@ -219,6 +225,11 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
       }
 
       this.session = session
+      this.unsubscribeChange = session.onStructureChange?.(() => {
+        if (this.session === session && generation === this.sessionGeneration) {
+          this.zone.run(() => this.structureChanged.emit())
+        }
+      })
       this.unsubscribeState = session.onStateChange(state => {
         if (state.status === 'ready') {
           void this.initializeReadySession(session, generation)
@@ -264,6 +275,8 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
   }
 
   private disposeSession(): void {
+    this.unsubscribeChange?.()
+    this.unsubscribeChange = undefined
     this.unsubscribeState?.()
     this.unsubscribeState = undefined
     this.session?.dispose()
@@ -274,11 +287,15 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
   private requestExportSmiles$(kind: 'explicit' | 'poll') {
     return defer(() => {
       const session = this.session
+      const generation = this.sessionGeneration
+      const structureGeneration = this.structureGeneration
       if (!session) {
         throw new ChemistryAdapterError('unavailable', 'L’editor molecolare non è disponibile.')
       }
 
       return from(session.exportStructure()).pipe(
+        filter(() => !this.destroyed && generation === this.sessionGeneration && session === this.session &&
+          structureGeneration === this.structureGeneration && !this.settingStructure),
         tap(smiles => {
           this.zone.run(() => {
             if (kind === 'explicit') {
@@ -288,16 +305,30 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
               this.molChange.emit(smiles)
             }
           })
+        }),
+        catchError(() => {
+          if (!this.destroyed && generation === this.sessionGeneration && session === this.session &&
+              structureGeneration === this.structureGeneration) {
+            // Preserve the drawing and let the next poll recover; recreating the
+            // iframe on an export failure would discard the user's current work.
+            this.zone.run(() => this.exportFailed.emit())
+          }
+          return EMPTY
         })
       )
     })
   }
 
   private async updateEditorStructure(smiles: string): Promise<void> {
+    const session = this.session
+    const generation = ++this.structureGeneration
+    this.settingStructure = true
     try {
-      await this.session?.setStructure(smiles)
+      await session?.setStructure(smiles)
     } catch (error) {
-      this.showError(error)
+      if (!this.destroyed && session === this.session && generation === this.structureGeneration) this.showError(error)
+    } finally {
+      if (generation === this.structureGeneration) this.settingStructure = false
     }
   }
 

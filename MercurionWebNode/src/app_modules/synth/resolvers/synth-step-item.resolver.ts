@@ -1,3 +1,4 @@
+import { RequiresFeatures } from 'src/feature-flags/feature-access.decorator';
 import { Args, ID, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { UUID } from 'crypto';
 import { AuthenticatedUserId } from '../../../metadata/metadata';
@@ -6,6 +7,7 @@ import { SynthStepItemInput } from '../models/dto/synth-step-item.input';
 import { SynthStepItem } from '../models/entities/synth-step-item.entity';
 import { SynthStepItemService } from '../services/synth-step-item.service';
 
+@RequiresFeatures('synthesis')
 @Resolver(() => SynthStepItem)
 export class SynthStepItemResolver {
 
