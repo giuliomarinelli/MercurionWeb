@@ -21,6 +21,7 @@ import { SynthStepItemResolver } from 'src/app_modules/synth/resolvers/synth-ste
 import { SynthesisPoolResolver } from 'src/app_modules/synth/resolvers/synthesis-pool.resolver'
 import { DropboxObjectStoreModule } from 'src/app_modules/dropbox-object-store/dropbox-object-store.module'
 import { DocumentController } from 'src/app_modules/dropbox-object-store/controllers/document.controller'
+import { presentApplicationError, graphQLStatusForPresentation } from 'src/exception-handling/application-error-envelope'
 import { FeatureAccessGuard } from './feature-access.guard'
 import { REQUIRED_FEATURES_METADATA } from './feature-access.decorator'
 import { FEATURE_FLAGS, type FeatureName } from './feature-flags'
@@ -126,6 +127,17 @@ describe('Mercurion beta feature boundary coverage', () => {
       )
       expect(required).toEqual(['notebook', 'synthesis'])
     }
+  })
+
+  it('maps disabled GraphQL feature errors to HTTP status 403 using the canonical formatter', () => {
+    const error = new ForbiddenException('FEATURE_DISABLED')
+    const normalized = presentApplicationError(error, {
+      correlationId: 'feature-disabled-contract-test',
+      isProduction: true
+    })
+    expect(normalized.status).toBe(403)
+    expect(normalized.code).toBe('FORBIDDEN')
+    expect(graphQLStatusForPresentation(normalized)).toBe(403)
   })
 
   it('does not block unrelated product operations', () => {
