@@ -65,7 +65,7 @@ La priorità indica il valore della rifinitura per il portfolio, non la gravità
 | PX-16 | Supporto, ticket e conversazioni | P2 | S, B | Da affrontare |
 | PX-17 | Feedback e contatti | P2 | S, B | Da affrontare |
 | PX-18 | Pagine di stato e documenti | P3 | S, V | Da affrontare |
-| PX-19 | Componenti, stati e accessibilità trasversali | P1 | S, B, V | Da applicare progressivamente |
+| PX-19 | Componenti, stati e accessibilità trasversali | P1 | S, B, V | Da applicare progressivamente; bug grafico PX-19A da pianificare |
 | PX-20 | Reattività percepita e movimento | P2 | S, B, V | Da misurare sui percorsi principali |
 | PX-21 | Dati e percorso dimostrativo portfolio | P3 | B, V | Da preparare dopo il percorso centrale |
 | PX-22 | Regressione funzionale dei percorsi completi | P1 | B, V | Da applicare progressivamente; passaggio finale aperto |
@@ -381,6 +381,7 @@ La reintegrazione dei branch feature nel branch corrente e il merge della beta s
 - Verificare profilo SSO e account con/senza telefono e MFA.
 - Controllare successi, errori, loading prolungato e sessioni multiple/realtime.
 - Confermare min-height, focus di ritorno, annullamento e link diretti alle sezioni.
+- Riprendere il bug grafico [PX-19A](#px-19a--allineamento-dei-select-negli-overlay): centratura del contenuto e coerenza tra select del prefisso telefonico e floating input adiacente; intervento futuro, non eseguito con questa annotazione.
 
 **Accettazione:** ogni stato conserva una geometria utilizzabile e indica il passo successivo; nessun dato sensibile appare nelle prove pubbliche del portfolio. Predisporre account/fixture adeguati prima delle verifiche con effetti reali.
 
@@ -499,6 +500,25 @@ La reintegrazione dei branch feature nel branch corrente e il merge della beta s
 **Accettazione:** le azioni non dipendono solo da colore, hover o tooltip; l'ordine di focus segue quello visivo; modifiche a un componente condiviso vengono verificate anche negli altri consumatori.
 
 **Sorgenti:** [token](../../src/styles.css), [ActionCard](../../src/app/components/common/action-card/action-card.component.ts), [ActionFooter](../../src/app/components/common/action-footer/action-footer.component.ts), [DialogShell](../../src/app/components/common/dialog-shell/dialog-shell.component.ts), [toast](../../src/app/components/common/toast/toast.component.ts).
+
+#### PX-19A — Allineamento dei select negli overlay
+
+**Stato:** bug grafico e incoerenza di stile segnalati dall’utente il 23 ottobre 2026; **da correggere in un intervento futuro, da pianificare**. Questa annotazione non avvia la correzione e non modifica l’ordine corrente della roadmap.
+
+**Evidenza:** screenshot fornito dall’utente dell’overlay «Aggiungi un numero di telefono», in tema scuro. Il caso mostra il select custom «Prefisso internazionale» (`IT +39`) affiancato al floating input «Nuovo numero». La segnalazione riguarda gli overlay che usano il select condiviso; l’estensione agli altri consumatori andrà verificata, senza assumere che siano già stati controllati nel browser.
+
+![Overlay «Aggiungi un numero di telefono»: select del prefisso più alto, bordo disomogeneo e contenuto da riallineare rispetto al floating input «Nuovo numero».](assets/2026-10-23-overlay-select-floating-input.png)
+
+**Correzione richiesta:**
+
+- Sistemare la centratura del contenuto negli overlay interessati e l’allineamento della riga composta da select e input; verificare anche bandiera, valore selezionato e freccia all’interno del select.
+- Uniformare l’altezza del controllo select al floating input adiacente: nello screenshot il select è troppo alto e i bordi inferiori non coincidono. Distinguere l’ingombro del controllo da quello di label e messaggi di supporto.
+- Rendere coerenti bordo, spessore, raggio e spaziatura con il floating input del design system. Verificare separatamente bordo e ring/outline di focus, preservando un focus chiaramente visibile.
+- Applicare la futura correzione ai consumatori pertinenti del componente condiviso, evitando aggiustamenti isolati sul solo overlay del telefono.
+
+**Accettazione futura:** confronto prima/dopo sul caso dello screenshot e sugli altri overlay interessati; contenuto centrato secondo il layout previsto, select e floating input di altezza coerente e allineati, bordi uniformi nei rispettivi stati. Verificare tema chiaro/scuro, desktop/mobile, focus da tastiera, apertura del menu, label flottante ed errori, senza regressioni di selezione o leggibilità. Il solo screenshot allegato documenta il difetto, non una verifica runtime della correzione.
+
+**Sorgenti da esaminare alla ripresa:** [select custom `m-select`](../../src/app/components/common/pm-select/pm-select.component.ts), [floating input `m-text-field`](../../src/app/components/common/text-field/text-field.component.ts), [overlay dati sensibili/telefono](../../src/app/components/action-components/sensitive-data-change/sensitive-data-change-workflow.component.ts).
 
 ### PX-20 — Reattività percepita e movimento
 
