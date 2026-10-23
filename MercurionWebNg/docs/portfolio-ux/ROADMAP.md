@@ -2,7 +2,7 @@
 
 Data iniziale: 6 ottobre 2026. Stato: pianificazione per lavoro incrementale e review manuale.
 
-Ultima revisione del perimetro: 22 ottobre 2026. Notebook e Synthesis anticipati prima del merge finale, su branch feature gestiti dall’utente e reintegrati nel branch corrente. Seguono refactor backend dell’object store con passaggio Dropbox → Cloudflare R2 e refactor della navigazione. La rifinitura UX e la QA residue proseguono sul prodotto integrato; Angular 22 è previsto a completamento dell’applicazione, mantenendo inizialmente Zone.js e Karma. L’installazione di Node.js 26 è rinviata a dopo il completamento e la validazione della migrazione Angular, mantenendo NestJS 11 come descritto in UP-02.
+Ultima revisione del perimetro: 23 ottobre 2026. Notebook, Synthesis e integrazione object store/Cloudflare R2 sono rinviati insieme, fuori dal percorso corrente della beta. Il codice scientifico reintegrato resta conservato ma disabilitato; il flag Documents blocca anche il DocumentController Nest. La priorità immediata è il refactor navigazione/sidebar/offcanvas, seguito dalla ripresa UX dal blocco 13 e dalla QA del perimetro attivo. Restano le decisioni di piattaforma del 22 ottobre: Angular 20 → 21 → 22 mantenendo inizialmente Zone.js e Karma, poi Node.js 26 con NestJS 11, secondo UP-01/UP-02.
 
 ## Obiettivo
 
@@ -47,7 +47,7 @@ La priorità indica il valore della rifinitura per il portfolio, non la gravità
 
 | ID | Area | Priorità | Evidenze | Stato iniziale |
 |---|---|---|---|---|
-| PX-01 | Shell, navigazione, sidebar e offcanvas | P1 | S, B | Refactor anticipato tra i prossimi interventi; da affrontare |
+| PX-01 | Shell, navigazione, sidebar e offcanvas | P1 | S, B | Prossimo intervento attivo (N3); da affrontare |
 | PX-02 | Home e presentazione pubblica | P1 | S, B, V | Da affrontare |
 | PX-03 | Accesso e registrazione | P1 | S, B, V | Da affrontare |
 | PX-04 | Ricerca molecolare | P1 | S, B | Implementato, in review; QA iPhone aperta |
@@ -74,34 +74,39 @@ La priorità indica il valore della rifinitura per il portfolio, non la gravità
 
 ## Metodo di lavoro e prossime priorità
 
-Aggiornamento concordato il 21 ottobre 2026. Il branch corrente è la base di lavoro e il punto di reintegrazione di Notebook e Synthesis: non è più previsto un merge preliminare della sola rifinitura UX per iniziare le due feature.
+Aggiornamento concordato il 23 ottobre 2026. Il branch feature Notebook/Synthesis è stato reintegrato nel branch di lavoro il 22 ottobre (`c8dc4f3f1`); questo non equivale al completamento end-to-end o all’abilitazione delle funzionalità.
 
-- L’utente gestisce lo sviluppo di **Notebook (MF-01)** e **Synthesis (MF-02)** su branch `feature/**` creati dal branch corrente e rimergiati su questo stesso branch.
-- I nomi effettivi dei branch, la loro creazione e i merge sono gestiti dall’utente; questo documento non esegue operazioni Git e non presume che siano già avvenute.
-- Le verifiche delle feature e delle integrazioni accompagnano lo sviluppo; la QA complessiva e la review manuale prima del merge finale includeranno il perimetro ampliato.
-- Altri aggiornamenti saranno inseriti progressivamente, con stato, dipendenze e criteri di accettazione espliciti. I blocchi UX 01–12 rimangono implementati, in review; il lavoro residuo non viene scartato.
+- **Notebook (MF-01), Synthesis (MF-02) e object store/R2 (INF-01) sono rinviati insieme.** Non sono prerequisiti per proseguire la rifinitura e preparare il merge della beta con il perimetro attualmente attivo.
+- Notebook, Synthesis e Documents rimangono disabilitati nei quattro ambienti. Il flag `documents` protegge l’intero `DocumentController` Nest tramite `@RequiresFeatures('documents')`: gli endpoint documentali sono bloccati a backend, oltre alla mancata esposizione frontend. Il rinvio di R2 è una decisione di pianificazione coerente con questo perimetro, non un ulteriore flag tecnico.
+- La prima attività è **N3 / PX-01: refactor navigazione, sidebar e offcanvas**. A seguire si riprende il lavoro UX dal **blocco 13 / PX-08**, conservando i numeri storici.
+- Il codice già sviluppato resta conservato. La ripresa delle feature rinviate e la loro abilitazione richiederanno una decisione esplicita e verifiche dedicate. Per i futuri sviluppi resta il metodo dei branch `feature/**` derivati dal branch di lavoro e reintegrati nello stesso, gestiti dall’utente.
+- I blocchi UX 01–12 restano implementati, in review. QA fisica Safari, regressione dei percorsi attivi e review manuale rimangono aperte; le feature rinviate riceveranno QA propria quando riprese.
 
-| Priorità immediata | Intervento | Gestione / risultato atteso |
+Riferimento del comportamento dei flag: [funzionalità rinviate nella beta](../../../docs/architecture/mercurion-beta-deferred-feature-flags.md).
+
+| Ordine corrente | Intervento | Stato / risultato atteso |
 |---|---|---|
-| N1 | MF-01 e MF-02 — Notebook e Synthesis | Sviluppo dell’utente su branch feature derivati dal corrente; reintegrazione sul medesimo branch e verifica delle aree collegate |
-| N2 | INF-01 — Object store backend: Dropbox → Cloudflare R2 | Refactor e porting con contratti, accesso ai file e gestione degli oggetti esistenti verificati |
-| N3 | PX-01 — Navigazione, sidebar e offcanvas | Scroll dell’intera navigazione, sidebar collassata con icone, comandi in flusso e stile coerente |
-| Ripresa UX | Blocco 13 e successivi ancora aperti | Stati/percorso finale dell’editor e rifiniture residue sul prodotto ampliato; il blocco 14 verifica la shell già rifatta in N3 |
+| 1 | N3 / PX-01 — Navigazione, sidebar e offcanvas | Prossimo intervento attivo: scroll dell’intera navigazione, sidebar collassata con icone, comandi in flusso e stile coerente |
+| 2 | Blocco 13 / PX-08 e successivi UX | Ripresa di stati/percorso finale dell’editor e rifiniture residue; il blocco 14 verifica la shell dopo N3 senza duplicarne il refactor |
+| 3 | QA, review e preparazione del merge beta | Validare il perimetro attivo e il blocco degli accessi alle funzionalità rinviate |
+| Rinviato | N1 / MF-01 e MF-02 — Notebook e Synthesis | Codice reintegrato, completamento end-to-end e abilitazione rinviati |
+| Rinviato | N2 / INF-01 — Object store: Dropbox → Cloudflare R2 | Refactor/porting rinviato insieme a Notebook e Synthesis |
 
-N1 raggruppa le due feature senza imporre parallelismo o una dipendenza tecnica tra Notebook e Synthesis: sequenza e integrazioni concrete restano sotto il controllo dell’utente.
+N1/N2/N3 restano identificativi di tracciamento, non rappresentano più l’ordine di esecuzione. Nessuna data di ripresa delle attività rinviate viene fissata da questo aggiornamento.
 
 ## Fasi fino al completamento del prodotto
 
 | Fase | Perimetro | Risultato necessario per avanzare |
 |---|---|---|
-| A — Macro-feature sul branch corrente | Notebook e Synthesis su branch feature gestiti dall’utente | Feature reintegrate nel branch di partenza, contratti e flussi verificati, regressioni collegate affrontate |
-| B — Refactor prioritari | Object store/R2 e navigazione/sidebar/offcanvas | Integrazioni backend e nuova navigazione funzionanti, con prove proprie e regressione delle aree coinvolte |
-| C — Qualità e QA del perimetro ampliato | PX-01–PX-24 e verifiche trasversali delle nuove feature e dei refactor | Evidenze aggiornate, QA fisica applicabile, difetti residui classificati e review manuale completata |
-| D — Integrazione finale | Merge del risultato complessivo dopo autorizzazione | Modifiche integrate e verifiche del repository riuscite sul risultato integrato |
-| E — Migrazione | Aggiornamento Angular 20 → 21 → 22 a completamento dell’applicazione, mantenendo inizialmente Zone.js e Karma | Dipendenze e runtime compatibili, migrazione controllata e nuova verifica del prodotto completo |
-| F — Chiusura finale | Prodotto completo e aggiornato | Review finale, regressione superata e demo/documentazione aggiornate |
+| A — Navigazione | N3 / PX-01, sidebar e offcanvas | Nuova navigazione verificata nei due temi, su desktop/mobile e nei cambi di breakpoint |
+| B — Qualità del perimetro beta attivo | Ripresa dal blocco 13, UX residua, QA e review manuale | Evidenze aggiornate, QA fisica applicabile e difetti residui classificati; accessi alle feature rinviate ancora bloccati |
+| C — Integrazione beta | Merge del risultato corrente dopo autorizzazione | Modifiche integrate e verifiche del repository riuscite sul risultato integrato |
+| Rinviata — Feature e storage | Notebook, Synthesis e refactor object store/R2 | Ripresa esplicita, completamento dei flussi, verifiche proprie e regressione prima dell’abilitazione |
+| Piattaforma — UP-01 | Angular 20 → 21 → 22, inizialmente Zone.js e Karma | Tempistiche e criteri restano quelli della sezione UP-01, senza avviare la migrazione con questa revisione |
+| Piattaforma — UP-02 | Node.js 26 mantenendo NestJS 11 | UP-01 completata e validata, poi verifica e aggiornamento del runtime |
+| Chiusura finale | Prodotto completo e aggiornato | Review finale, regressione superata e demo/documentazione allineate al perimetro effettivamente disponibile |
 
-La reintegrazione dei branch feature nel branch corrente e il merge finale del lavoro complessivo sono passaggi distinti. Gli stati della roadmap non autorizzano automaticamente nessuno dei due.
+La reintegrazione dei branch feature nel branch corrente e il merge della beta sono passaggi distinti. Gli stati della roadmap non autorizzano automaticamente operazioni Git o abilitazioni delle feature.
 
 ## Lista dettagliata degli interventi
 
@@ -109,7 +114,7 @@ La reintegrazione dei branch feature nel branch corrente e il merge finale del l
 
 **Perché conta:** header e navigazione accompagnano quasi tutte le schermate e fanno percepire immediatamente quanto il prodotto sia coerente.
 
-**Stato:** refactor anticipato in N3, dopo Notebook/Synthesis e object store/R2, secondo la revisione del 21 ottobre.
+**Stato:** prossimo intervento attivo N3, per decisione del 23 ottobre. Notebook/Synthesis e object store/R2 sono rinviati e non ne costituiscono prerequisiti.
 
 **Base:** shell, sidebar desktop e menu mobile già esplorati; header, cronologia e contenuto principale hanno esigenze di densità diverse. Separare lo scroll della navigazione dallo scroll del documento e preservare i collegamenti a frammento già ripristinati.
 
@@ -571,7 +576,7 @@ Fonti: [registro azioni](../../src/app/components/action-components/action-overl
 
 ## Ordine di lavoro a piccoli blocchi
 
-Le priorità N1–N3 precedono ora la sequenza residua qui sotto. I numeri storici dei blocchi sono mantenuti per non invalidare i riferimenti del diario. Ogni riga è un'unità di lavoro, non una promessa di completamento in un giorno. Una giornata può contenere soltanto osservazione e proposta, oppure implementazione e verifica di un sottoinsieme. Non accumulare più aree incompiute per rispettare il calendario.
+Il refactor N3 / PX-01 precede la sequenza residua qui sotto, che riprende dal blocco 13. N1 e N2 sono rinviati insieme e non bloccano il percorso UX/beta. I numeri storici dei blocchi sono mantenuti per non invalidare i riferimenti del diario. Ogni riga è un'unità di lavoro, non una promessa di completamento in un giorno. Una giornata può contenere soltanto osservazione e proposta, oppure implementazione e verifica di un sottoinsieme. Non accumulare più aree incompiute per rispettare il calendario.
 
 | Ordine | Blocco | Risultato concreto da portare alla review |
 |---|---|---|
@@ -608,13 +613,13 @@ Le priorità N1–N3 precedono ora la sequenza residua qui sotto. I numeri stori
 
 PX-19 accompagna ogni blocco. Non aspettare la fine per curare focus, errori, nomi accessibili e stati di caricamento. Se home o accesso devono essere mostrati subito a un cliente, anticipare i blocchi 15–16 senza aprire un redesign globale.
 
-PX-22 e PX-23 accompagnano gli interventi pertinenti; le righe 26–27 sono il passaggio di regressione finale, non il primo momento in cui verificare questi comportamenti. I prossimi interventi sono **N1 — Notebook e Synthesis**, **N2 — object store/R2** e **N3 — navigazione/sidebar/offcanvas**. Il blocco **13 — PX-08, editor: stati e percorso finale** resta il punto di ripresa della sequenza UX dopo queste priorità. La verifica fisica della tastiera secondo [KEYBOARD-QA.md](KEYBOARD-QA.md) resta aperta prima dell'accettazione e del merge; i blocchi 01–12 restano in review. L'utente ha autorizzato il proseguimento della roadmap durante questa QA.
+PX-22 e PX-23 accompagnano gli interventi pertinenti; le righe 26–27 sono il passaggio di regressione finale, non il primo momento in cui verificare questi comportamenti. Il prossimo intervento è **N3 — navigazione/sidebar/offcanvas**; subito dopo si riprende dal blocco **13 — PX-08, editor: stati e percorso finale**. **Notebook, Synthesis e object store/R2 sono rinviati insieme**, fuori dal percorso corrente della beta. La verifica fisica della tastiera secondo [KEYBOARD-QA.md](KEYBOARD-QA.md) resta aperta prima dell'accettazione e del merge; i blocchi 01–12 restano in review. L'utente ha autorizzato il proseguimento della roadmap durante questa QA.
 
-## Macro-feature e refactor anticipati
+## Macro-feature e object store rinviati
 
 ### MF-01 — Notebook
 
-**Priorità N1; sviluppo gestito dall’utente su un branch `feature/**` creato dal corrente e reintegrato nel corrente prima del merge finale.**
+**Rinviato (N1), insieme a object store/R2.** Codice reintegrato nel branch corrente il 22 ottobre; completamento end-to-end e abilitazione rinviati. Il flag resta disabilitato nei quattro ambienti; ripresa esplicita e QA dedicate prima dell’esposizione.
 
 Macro-feature indicata dall'utente il 7 ottobre. Nel repository sono presenti il modulo backend `lab-notebook` e componenti, servizio e documenti GraphQL frontend; questi elementi non dimostrano che il percorso prodotto sia completo.
 
@@ -626,7 +631,7 @@ Macro-feature indicata dall'utente il 7 ottobre. Nel repository sono presenti il
 
 ### MF-02 — Synthesis
 
-**Priorità N1; sviluppo gestito dall’utente su un branch `feature/**` creato dal corrente e reintegrato nel corrente prima del merge finale.**
+**Rinviato (N1), insieme a object store/R2.** Codice reintegrato nel branch corrente il 22 ottobre; completamento end-to-end e abilitazione rinviati. Il flag resta disabilitato nei quattro ambienti; ripresa esplicita e QA dedicate prima dell’esposizione.
 
 Macro-feature indicata dall'utente il 7 ottobre. Nel repository sono presenti servizi, resolver e modelli del modulo backend `synth`; la disponibilità e completezza dei flussi esposti vanno verificate prima della progettazione frontend.
 
@@ -636,11 +641,11 @@ Macro-feature indicata dall'utente il 7 ottobre. Nel repository sono presenti se
 
 **Sorgenti da analizzare:** [backend Synthesis](../../../MercurionWebNode/src/app_modules/synth/).
 
-L’utente gestisce ordine e reintegrazione di MF-01 e MF-02. Eventuali dipendenze saranno confermate dai contratti; entrambe fanno parte del perimetro precedente al merge finale.
+L’utente gestisce la futura ripresa di MF-01 e MF-02. Le due feature restano conservate e rinviate insieme a INF-01; il loro completamento non è richiesto per il merge della beta attualmente pianificata. Eventuali dipendenze della ripresa saranno confermate dai contratti.
 
 ### INF-01 — Refactor object store backend e porting Dropbox → Cloudflare R2
 
-**Priorità N2; da affrontare dopo N1 e prima del refactor della navigazione.** Intervento aggiunto il 21 ottobre; implementazione non avviata da questo aggiornamento documentale.
+**Rinviato (N2), alla pari di Notebook e Synthesis, per decisione del 23 ottobre.** Il flag Documents blocca anche il DocumentController Nest; il refactor backend dell’object store e il porting R2 escono quindi dai prossimi interventi attivi. Restano pianificati per una futura ripresa esplicita, senza modificare provider, flag o infrastruttura con questo aggiornamento.
 
 - Inventariare l’object store esistente, i contratti e tutti i consumatori backend/frontend, comprese le nuove feature dove effettivamente collegate.
 - Rifattorizzare l’integrazione backend e portare le operazioni oggi basate su Dropbox a Cloudflare R2, mantenendo espliciti i comportamenti applicativi attesi.

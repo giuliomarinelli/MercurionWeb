@@ -334,6 +334,22 @@ Collezioni: null significa loading, [] empty immediato, niente timer o dati prec
 
 **Verifica:** coerenza dei riferimenti e diff documentale; nessun test applicativo necessario per questo aggiornamento. Nessun branch creato, commit, merge, deploy o migrazione dati.
 
+### 2026-10-23 — Priorità navigazione e rinvio condiviso di feature/storage
+
+**Stato:** decisione di pianificazione registrata su istruzione dell’utente; refactor della navigazione ancora da eseguire.
+
+**Aggiornamento:** anche il refactor dell’object store e il porting Dropbox → Cloudflare R2 (INF-01 / N2) sono rinviati, alla pari di Notebook e Synthesis (MF-01/MF-02 / N1). Il codice scientifico è stato reintegrato il 22 ottobre (`c8dc4f3f1`), ma completamento end-to-end e abilitazione restano rinviati. Il completamento di queste attività non è un prerequisito per il merge della beta corrente.
+
+**Motivazione verificata nei sorgenti:** `DocumentController` ha `@RequiresFeatures('documents')` a livello di classe; il guard globale rifiuta le richieste quando la feature è disabilitata e le mappe attuali mantengono Documents, Notebook e Synthesis false nei quattro ambienti. R2 è rinviato come attività di roadmap, non tramite un nuovo flag.
+
+**Nuovo ordine attivo:** N3 / PX-01, refactor sidebar/navigazione/offcanvas; quindi ripresa UX dal blocco 13 / PX-08 e successivi. Il blocco 14 resta la regressione della shell dopo N3, senza duplicarne il refactor. Restano i requisiti concordati su scroll dell’intera navigazione, sticky, eventuali pochi elementi fissi, icone nella sidebar collassata, tooltip/title, toggle in flusso, rimozione dropdown mobile e stile coerente.
+
+**Continuità:** blocchi 01–12 ancora implementati/in review; QA Safari fisica, regressione dei percorsi attivi e review manuale ancora aperte. Verificare che le feature rinviate restino inaccessibili. Pianificazione Angular/Node del 22 ottobre preservata; nessuna data fissata per la ripresa delle attività rinviate.
+
+**Verifica e perimetro:** ROADMAP.md, DAILY-LOG.md e KEYBOARD-QA.md allineati; lettura statica di controller, guard e mappe, senza una nuova prova HTTP/runtime. Aggiornamento solo documentale: nessuna modifica a flag, codice applicativo o infrastruttura, nessuna operazione Git. Le voci precedenti conservano il piano valido alla rispettiva data.
+
+**Prossimo intervento:** N3 / PX-01 — sidebar, navigazione e offcanvas.
+
 ## Modello per le voci successive
 
 ### AAAA-MM-GG — PX-XX — Sottoarea
