@@ -687,6 +687,7 @@ html {
   .m-navigation-content { transition: margin-left 250ms ease; }
 }
 .m-navigation-tooltip {
+  --p-tooltip-gutter: .375rem;
   --p-tooltip-background: var(--m-nav-tooltip-bg);
   --p-tooltip-color: var(--m-nav-tooltip-text);
   --p-tooltip-max-width: 16rem;

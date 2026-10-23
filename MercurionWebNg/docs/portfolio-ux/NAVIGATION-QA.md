@@ -50,6 +50,7 @@ Le 24 misure finali passano gli assert di larghezza (tolleranza 1 px), assenza d
 Ulteriori prove:
 
 - Tooltip light: testo bianco su `rgb(34,43,59)`; dark: testo `rgb(21,26,39)` su `rgb(240,243,248)`. Padding 8×12 px; tooltip rimosso tornando expanded.
+- Review del 23 ottobre: esplicitato `--p-tooltip-gutter: .375rem`, necessario alla freccia nativa PrimeNG e al relativo spazio. Il fumetto resta a destra dell'icona, con punta sul lato sinistro. Verifica Chrome nei due temi: triangolo largo 6 px, bordo sinistro 0, base coincidente con l'inizio del testo e colore uguale alla superficie. Prove `tooltip-arrow-light.jpg` e `tooltip-arrow-dark.jpg`; styling e diff check superati. Nessuna modifica alla logica o alle altre istanze di tooltip.
 - Rail conservata durante la navigazione alle collezioni, con selezione aggiornata e nessuna history montata.
 - Tab/Shift+Tab ciclici nel drawer; ricerca aperta da Strumenti con focus nel campo; chiusura ricerca con ritorno al comando; Escape del drawer con ritorno al trigger e pannello inert.
 - Menu account mobile sopra il footer, quattro link previsti e backdrop. Nessun logout eseguito nella sessione condivisa.
