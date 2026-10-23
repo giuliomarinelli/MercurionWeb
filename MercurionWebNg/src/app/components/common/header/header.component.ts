@@ -1,5 +1,6 @@
-import { NgClass, NgOptimizedImage, NgTemplateOutlet } from '@angular/common';
-import { Component, computed, effect, inject, input, OnDestroy, OnInit, Signal, signal, ChangeDetectionStrategy, output } from '@angular/core';
+import { DOCUMENT, NgClass, NgOptimizedImage, NgTemplateOutlet } from '@angular/common';
+import { CdkTrapFocus } from '@angular/cdk/a11y';
+import { Component, computed, effect, inject, input, OnDestroy, OnInit, Signal, signal, ChangeDetectionStrategy, output, ElementRef, viewChild } from '@angular/core';
 import { ThemeManagerService } from '../../../services/context/theme-manager.service';
 import { ThemeChoice } from '../../../Models/theme.models';
 import { DesignService } from '../../../services/design.service';
@@ -28,11 +29,13 @@ import { HeaderSessionIndicatorComponent } from './header-session-indicator.comp
 import { IconButtonComponent } from '../icon-button/icon-button.component';
 import { ProvidedAccountIdDTO } from '@mercurion/rest-contracts';
 import { HeaderNotificationsComponent } from './header-notifications.component';
+import { DialogScrollLockService } from '../dialog-shell/dialog-scroll-lock.service';
 
 @Component({
   selector: 'm-header',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    CdkTrapFocus,
     NgOptimizedImage,
     NgClass,
     NavComponent,
@@ -57,7 +60,8 @@ import { HeaderNotificationsComponent } from './header-notifications.component';
         <div class="flex min-w-0 items-center gap-[clamp(0.25rem,1vw,1rem)]">
             @if (designService.maxBk("xl")()) {
             <button
-                class="inline-flex items-center justify-center size-10 rounded-full hover:bg-slate-200/80 dark:hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-light-accent-primary-hq transition-colors"
+                #navigationTrigger type="button" aria-controls="mercurion-navigation-drawer" [attr.aria-expanded]="offCanvasMenuOpen()"
+                class="off-canvas-menu-button inline-flex items-center justify-center size-10 rounded-full hover:bg-slate-200/80 dark:hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-light-accent-primary-hq transition-colors"
                 (click)="noToast(); toggleOffCanvasMenu()" aria-label="Apri o chiudi menu laterale">
                 <svg xmlns="http://www.w3.org/2000/svg"
                     class="size-5 fill-current text-slate-700 dark:text-slate-100 off-canvas-menu-button"
@@ -141,11 +145,8 @@ import { HeaderNotificationsComponent } from './header-notifications.component';
             </div>
             }
             <div class="hidden sm:flex items-center" [ngClass]="{
-              'lg:hidden': userContext.isLoggedIn() || isLoginPath(),
-              '-mr-1': isWelcomePath() && !userContext.isLoggedIn(),
-
-
-             }">
+              'lg:hidden': userContext.isLoggedIn() || isLoginPath()
+            }">
                 <m-icon-button
                     class="[&_button:hover]:bg-slate-200/80 dark:[&_button:hover]:bg-white/10"
                     size="md" ariaLabel="Cerca molecola ChEMBL" (pressed)="openSearchOverlay()">
@@ -161,9 +162,7 @@ import { HeaderNotificationsComponent } from './header-notifications.component';
                 <m-header-notifications />
               }
             }
-            <div class="theme-menu-container relative flex items-center" [ngClass]="{
-              'lg:-ml-2': userContext.isLoggedIn()
-            }">
+            <div class="theme-menu-container relative flex items-center">
                 <button
                     class="flex items-center justify-center size-10 rounded-full theme-toggle-button transition-all duration-500 hover:bg-slate-200/80 dark:hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-light-accent-primary-hq"
                     (click)="toggleThemeMenu()"
@@ -193,7 +192,7 @@ import { HeaderNotificationsComponent } from './header-notifications.component';
             userContext.isLoggedIn() &&
             isAllowedPath()
             ) {
-            <div class="avatar-menu-anchor relative flex items-center md:ml-2 lg:ml-0">
+            <div class="avatar-menu-anchor relative flex items-center">
                 <m-header-session-indicator [session]="headerViewModel().session" [expanded]="avatarMenuOpen()"
                     (toggled)="toggleAvatarMenu()">
                 </m-header-session-indicator>
@@ -433,7 +432,12 @@ import { HeaderNotificationsComponent } from './header-notifications.component';
 
 <!-- Offcanvas Navigation Sidebar -->
 @if (designService.maxBk("xl")()) {
-<div class="off-canvas-menu-container offcanvas-menu-container fixed top-0 left-0 h-full z-[9999] bg-slate-200 dark:bg-neutral-900 shadow-lg transform transition-transform duration-300 ease-in-out w-full sm:w-[50%] md:w-[40%] lg:w-[40%] xl:w-[30%] -translate-x-full"
+<div #navigationPanel id="mercurion-navigation-drawer"
+    class="m-offcanvas-navigation off-canvas-menu-container offcanvas-menu-container fixed top-0 left-0 z-[9999] shadow-lg transform transition-transform duration-300 ease-in-out w-full sm:w-[50%] md:w-[40%] lg:w-[40%] -translate-x-full"
+    [attr.inert]="offCanvasMenuOpen() ? null : ''" [attr.aria-hidden]="!offCanvasMenuOpen()"
+    [attr.role]="offCanvasMenuOpen() ? 'dialog' : null" [attr.aria-modal]="offCanvasMenuOpen() ? true : null"
+    aria-label="Menu di navigazione"
+    [cdkTrapFocus]="offCanvasMenuOpen() && !searchContextService.isOpenedSearchOverlay()"
     [ngClass]="{
       'translate-x-0': offCanvasMenuOpen(),
       '-translate-x-full': !offCanvasMenuOpen() }">
@@ -451,11 +455,17 @@ import { HeaderNotificationsComponent } from './header-notifications.component';
     </div>
 
     <!-- Menu items -->
-    <m-sidenav (menuItemClick)="closeOffCanvasMenu()" />
+    <div class="m-offcanvas-body">
+      @defer (when offCanvasMenuOpen(); prefetch on idle) {
+        <m-sidenav (menuItemClick)="closeOffCanvasMenu()" />
+      } @placeholder {
+        <nav class="h-full p-4 text-sm" aria-label="Navigazione laterale" aria-busy="true">Caricamento navigazione…</nav>
+      }
+    </div>
 
     <!-- Shared avatar trigger and menu, anchored above the mobile footer. -->
     @if (userContext.isLoggedIn() && designService.maxBk("md")()) {
-    <div class="avatar-menu-anchor sticky bottom-0 border-t py-3 px-5 bg-slate-100 dark:bg-neutral-800 border-slate-400 dark:border-dark-border flex gap-3 items-center">
+    <div class="avatar-menu-anchor relative border-t py-3 px-5 border-slate-400 dark:border-dark-border flex gap-3 items-center">
         <m-header-session-indicator [session]="headerViewModel().session" [expanded]="avatarMenuOpen()"
             (toggled)="toggleAvatarMenu()" />
         <button type="button" (click)="toggleAvatarMenu()"
@@ -495,6 +505,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
   private readonly shellLayout = inject(ShellLayoutService)
   private readonly appConfig = inject(APP_CONFIG)
   private readonly storageRegistry = inject(BrowserStorageRegistry)
+  private readonly document = inject(DOCUMENT)
+  private readonly scrollLock = inject(DialogScrollLockService)
+  private readonly navigationTrigger = viewChild<ElementRef<HTMLButtonElement>>('navigationTrigger')
+  private readonly navigationPanel = viewChild<ElementRef<HTMLElement>>('navigationPanel')
+  private navigationLocked = false
 
   private updatePathFlags(currentPath: string) {
     const clean = (currentPath || '').split(/[?#]/)[0]
@@ -548,6 +563,29 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
 
   constructor() {
+    effect(() => {
+      if (this.designService.minBk('xl')() && this.offCanvasMenuOpen()) this.closeOffCanvasMenu()
+    })
+    effect(() => {
+      const open = this.offCanvasMenuOpen()
+      if (open && !this.navigationLocked) {
+        this.scrollLock.lock()
+        this.navigationLocked = true
+        queueMicrotask(() => {
+          if (this.offCanvasMenuOpen() && !this.searchContextService.isOpenedSearchOverlay()) {
+            this.navigationPanel()?.nativeElement.querySelector<HTMLElement>('a[href], button:not([disabled])')?.focus({ preventScroll: true })
+          }
+        })
+      } else if (!open && this.navigationLocked) {
+        this.scrollLock.unlock()
+        this.navigationLocked = false
+        const active = this.document.activeElement
+        if (!this.searchContextService.isOpenedSearchOverlay() &&
+            (active === this.document.body || this.navigationPanel()?.nativeElement.contains(active))) {
+          this.navigationTrigger()?.nativeElement.focus({ preventScroll: true })
+        }
+      }
+    })
     effect(() => this._triggerOpenOffCanvas.set(this.triggerOpenOffCanvas()))
     effect(() => {
       const t = this.shellLayout.closeOffCanvasRequest()
@@ -730,6 +768,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    if (this.navigationLocked) this.scrollLock.unlock()
     document.removeEventListener('click', this.handleDocumentClick, true)
     document.removeEventListener('keydown', this.handleEscape, true)
     this.routeSub?.unsubscribe()

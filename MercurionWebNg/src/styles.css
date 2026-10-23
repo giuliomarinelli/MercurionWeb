@@ -652,3 +652,76 @@ html {
   .m-dialog-backdrop textarea,
   .m-dialog-backdrop select { font-size: max(16px, 1rem); }
 }
+
+/* Navigation follows the page surface, which differs from surface-main in dark mode. */
+:root {
+  --m-nav-surface: #f9fafb;
+  --m-nav-text: #151c29;
+  --m-nav-muted: #637086;
+  --m-nav-border: rgb(203 213 225 / .65);
+  --m-nav-hover: #e9edf3;
+  --m-nav-selected: #dbe2ee;
+  --m-nav-tooltip-bg: #222b3b;
+  --m-nav-tooltip-text: #fff;
+}
+.dark {
+  --m-nav-surface: #0a0a0a;
+  --m-nav-text: #edf0f6;
+  --m-nav-muted: #a2a9b8;
+  --m-nav-border: rgb(203 213 225 / .4);
+  --m-nav-hover: #1d2433;
+  --m-nav-selected: #293346;
+  --m-nav-tooltip-bg: #f0f3f8;
+  --m-nav-tooltip-text: #151a27;
+}
+.m-desktop-navigation {
+  width: var(--m-navigation-width);
+  background: var(--m-nav-surface);
+  border-right: .5px solid var(--m-nav-border);
+  transition: width 250ms ease;
+}
+.m-navigation-content {
+  margin-left: var(--m-navigation-width);
+}
+@media (min-width: 1280px) {
+  .m-navigation-content { transition: margin-left 250ms ease; }
+}
+.m-navigation-tooltip {
+  --p-tooltip-background: var(--m-nav-tooltip-bg);
+  --p-tooltip-color: var(--m-nav-tooltip-text);
+  --p-tooltip-max-width: 16rem;
+  --p-tooltip-padding: .5rem .75rem;
+  --p-tooltip-border-radius: .5rem;
+  --p-tooltip-shadow: 0 4px 12px rgb(0 0 0 / .15);
+}
+.m-navigation-tooltip .p-tooltip-text { font-size: .875rem; }
+.m-offcanvas-navigation {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  background: var(--m-nav-surface);
+  color: var(--m-nav-text);
+  border-right: .5px solid var(--m-nav-border);
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.m-offcanvas-navigation > .m-offcanvas-body { flex: 1; min-height: 0; }
+.m-offcanvas-navigation > :not(.m-offcanvas-body) { flex-shrink: 0; }
+.m-navigation-scroll { scrollbar-color: var(--m-nav-muted) transparent; }
+.m-navigation-scroll::-webkit-scrollbar-track { background: transparent; }
+m-history-item a:hover { background: var(--m-nav-hover); }
+m-history-item a.m-navigation-selected { position: relative; background: var(--m-nav-selected); }
+m-history-item a.m-navigation-selected::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: .5rem;
+  bottom: .5rem;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--m-color-accent-primary);
+}
+m-history-item a:focus-visible { outline: 2px solid var(--m-color-focus); outline-offset: -2px; }
+@media (prefers-reduced-motion: reduce) {
+  .m-desktop-navigation, .m-navigation-content, .m-offcanvas-navigation { transition: none; }
+}

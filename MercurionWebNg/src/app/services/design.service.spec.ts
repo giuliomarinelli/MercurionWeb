@@ -1,4 +1,4 @@
-import { TestBed } from '@angular/core/testing';
+import { fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { ViewportRuler } from '@angular/cdk/scrolling';
 import { Subject } from 'rxjs';
 
@@ -65,4 +65,28 @@ describe('DesignService CSS breakpoint alignment', () => {
     expect(tablet()).toBeFalse();
     expect(desktop()).toBeFalse();
   });
+});
+
+describe('DesignService with the real CDK viewport cache', () => {
+  it('updates on a single resize after CDK invalidates its cached dimensions', fakeAsync(() => {
+    const descriptor = Object.getOwnPropertyDescriptor(window, 'innerWidth');
+    let width = 375;
+    Object.defineProperty(window, 'innerWidth', { configurable: true, get: () => width });
+    try {
+      const service = TestBed.inject(DesignService);
+      const desktop = service.minBk('xl');
+      expect(desktop()).toBeFalse();
+      width = 1536;
+      window.dispatchEvent(new Event('resize'));
+      tick(30);
+      expect(desktop()).toBeTrue();
+      width = 375;
+      window.dispatchEvent(new Event('resize'));
+      tick(30);
+      expect(desktop()).toBeFalse();
+    } finally {
+      if (descriptor) Object.defineProperty(window, 'innerWidth', descriptor);
+      else Reflect.deleteProperty(window, 'innerWidth');
+    }
+  }));
 });

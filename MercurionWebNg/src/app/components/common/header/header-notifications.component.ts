@@ -12,7 +12,7 @@ import { RealtimeSyncBadgeComponent } from '../realtime-sync-badge/realtime-sync
   host: { class: 'contents' },
   imports: [NotificationButtonComponent, NotificationCatchUpComponent, RealtimeSyncBadgeComponent],
   template: `
-    <m-realtime-sync-badge />
+    <m-realtime-sync-badge class="contents" />
     <div class="relative flex items-center">
       <m-notification-button [unreadCount]="notifications.unreadCount()" (pressed)="openNotifications()" />
       @if (notifications.catchUpCount() > 0) {

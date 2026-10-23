@@ -13,9 +13,9 @@ import { DatePipe } from '@angular/common';
         [routerLink]="pathToItem()"
         [queryParams]="queryParams()"
         class="grid grid-cols-[auto_1fr] gap-3 items-center py-2 px-3 rounded-xl transition
-                   hover:bg-slate-50 dark:hover:bg-slate-800/70"
-        [class.bg-slate-300/65]="_selected()"
-        [class.dark:bg-slate-700/80]="_selected()"
+                   "
+        [class.m-navigation-selected]="_selected()"
+        [attr.aria-current]="_selected() ? 'page' : null"
         (click)="notifyClick()"
         role="link"
         [attr.aria-label]="ariaLabel()"

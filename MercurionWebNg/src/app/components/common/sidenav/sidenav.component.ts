@@ -1,5 +1,5 @@
 import { NgClass } from '@angular/common';
-import { Component, inject, OnDestroy, OnInit, signal, ChangeDetectionStrategy, output } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, computed, input, signal, ChangeDetectionStrategy, output } from '@angular/core';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { UserContextService } from '../../../services/context/user-context.service';
 import { HistoryComponent } from '../history/history.component';
@@ -12,7 +12,8 @@ import { SearchContextService } from '../../../services/context/search-context.s
 import { SelectionService } from '../../../services/selection.service';
 import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
 import { routeManifest } from '../../../route-manifest';
-import { DisclosureComponent, DisclosureTriggerDirective } from '../disclosure/disclosure.component';
+import { TooltipModule } from 'primeng/tooltip';
+import { SidenavContextService } from '../../../services/context/sidenav-context.service';
 
 
 @Component({
@@ -23,11 +24,19 @@ import { DisclosureComponent, DisclosureTriggerDirective } from '../disclosure/d
     HistoryComponent,
     ProgressIndicatorComponent,
     NgClass,
-    DisclosureComponent,
-    DisclosureTriggerDirective
+    TooltipModule
   ],
   template: `
-    <nav class="flex flex-col h-full bg-transparent z-50 select-none pt-4 lg:pt-12" aria-label="Navigazione laterale">
+    <nav class="m-navigation-scroll m-scroll-thin" [class.m-navigation--desktop]="desktop()" [class.m-navigation--collapsed]="rail()" aria-label="Navigazione laterale">
+      @if (desktop()) {
+        <div class="m-navigation-toggle-row">
+          <button type="button" class="m-navigation-toggle" (click)="sidenavContext.toggle()" [attr.aria-label]="rail() ? 'Espandi sidebar' : 'Collassa sidebar'" [attr.aria-expanded]="!rail()">
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" width="20" height="20">
+              <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/><path [attr.d]="rail() ? 'm13 9 3 3-3 3' : 'm16 9-3 3 3 3'"/>
+            </svg>
+          </button>
+        </div>
+      }
       @if (designService.maxBk('sm')()) {
       @if (!isWelcomePath()) {
       <h6 class="detail">Strumenti</h6>
@@ -57,27 +66,9 @@ import { DisclosureComponent, DisclosureTriggerDirective } from '../disclosure/d
       }
       @if (userContext.isLoggedIn()) {
         <!-- Macro Area Menu -->
-        <m-disclosure
-          id="sidenav-features"
-          [expanded]="featuresOpen() || designService.minBk('xl')()"
-          panelClass="m-disclosure__panel"
-          (toggled)="setFeaturesExpanded($event)">
-          <ng-template mDisclosureTrigger>
-            <span class="flex items-center xl:px-0 cursor-pointer xl:cursor-default select-none w-full text-left">
-              <span class="detail mb-0">Funzionalità</span>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 640 640"
-                class="h-4 w-4 fill-current transition-transform duration-300 xl:hidden relative -top-0.5"
-                [class.rotate-180]="featuresOpen()"
-              >
-                <path d="M320.1 438.6L331.4 427.3L491.4 267.3L502.7 256L480.1 233.4L468.8 244.7L320.1 393.4L171.4 244.7L160.1 233.4L137.5 256L148.8 267.3L308.8 427.3L320.1 438.6z"/>
-              </svg>
-            </span>
-          </ng-template>
-          <a class="sidebar-link" [routerLink]="routes.myMolecules.build({})" (click)="handleMenuItemClick()"
-              [class.bg-slate-300/65]="s.getActiveHeaderSelection('my-molecules')"
-              [class.dark:bg-slate-700/80]="s.getActiveHeaderSelection('my-molecules')">
+        @if (!rail()) { <h6 class="detail">Funzionalità</h6> }
+          <a class="sidebar-link" [routerLink]="routes.myMolecules.build({})" aria-label="Le mie molecole" [pTooltip]="'Le mie molecole'" [tooltipDisabled]="!rail()" tooltipEvent="both" tooltipPosition="right" appendTo="body" tooltipStyleClass="m-navigation-tooltip" [attr.aria-current]="s.getActiveHeaderSelection('my-molecules') ? 'page' : null" (click)="handleMenuItemClick()"
+              [class.m-navigation-selected]="s.getActiveHeaderSelection('my-molecules')">
             <div
               class="flex size-9 shrink-0 items-center justify-center
                      rounded-xl border border-slate-400/70 dark:border-slate-500/60
@@ -92,10 +83,9 @@ import { DisclosureComponent, DisclosureTriggerDirective } from '../disclosure/d
             <span class="sidebar-item-text">Le mie molecole</span>
           </a>
           <a class="sidebar-link"
-              [routerLink]="routes.collections.build({})"
+              [routerLink]="routes.collections.build({})" aria-label="Le mie collezioni" [pTooltip]="'Le mie collezioni'" [tooltipDisabled]="!rail()" tooltipEvent="both" tooltipPosition="right" appendTo="body" tooltipStyleClass="m-navigation-tooltip" [attr.aria-current]="s.getActiveHeaderSelection('my-collections') ? 'page' : null"
               (click)="handleMenuItemClick()"
-              [class.bg-slate-300/65]="s.getActiveHeaderSelection('my-collections')"
-              [class.dark:bg-slate-700/80]="s.getActiveHeaderSelection('my-collections')">
+              [class.m-navigation-selected]="s.getActiveHeaderSelection('my-collections')">
             <div
               class="flex size-9 shrink-0 items-center justify-center
                      rounded-xl border border-slate-400/70 dark:border-slate-500/60
@@ -109,7 +99,7 @@ import { DisclosureComponent, DisclosureTriggerDirective } from '../disclosure/d
             <span class="sidebar-item-text">Le mie collezioni</span>
           </a>
           <hr class="border-slate-300 dark:border-slate-600 my-2" />
-          <button class="sidebar-link" (click)="handleMenuItemClick(); importFromChembl()">
+          <button type="button" class="sidebar-link" aria-label="Importa da ChEMBL" pTooltip="Importa da ChEMBL" [tooltipDisabled]="!rail()" tooltipEvent="both" tooltipPosition="right" appendTo="body" tooltipStyleClass="m-navigation-tooltip" (click)="handleMenuItemClick(); importFromChembl()">
             <div
               class="flex size-9 shrink-0 items-center justify-center
                      rounded-xl border border-slate-400/70 dark:border-slate-500/60
@@ -124,13 +114,12 @@ import { DisclosureComponent, DisclosureTriggerDirective } from '../disclosure/d
             <span class="sidebar-item-text">Importa da ChEMBL</span>
           </button>
           <!-- ...altre macro aree -->
-        </m-disclosure>
+
         <a class="sidebar-link"
-           [routerLink]="routes.moleculeEditor.build({})"
+           [routerLink]="routes.moleculeEditor.build({})" aria-label="Disegna una molecola" [pTooltip]="'Disegna una molecola'" [tooltipDisabled]="!rail()" tooltipEvent="both" tooltipPosition="right" appendTo="body" tooltipStyleClass="m-navigation-tooltip" [attr.aria-current]="s.getActiveHeaderSelection('edit-molecule') ? 'page' : null"
            [queryParams]="{ mode: 'create' }"
            (click)="handleMenuItemClick()"
-           [class.bg-slate-300/65]="s.getActiveHeaderSelection('edit-molecule')"
-           [class.dark:bg-slate-700/80]="s.getActiveHeaderSelection('edit-molecule')">
+           [class.m-navigation-selected]="s.getActiveHeaderSelection('edit-molecule')">
           <div
               class="flex size-9 shrink-0 items-center justify-center
                      rounded-xl border border-slate-400/70 dark:border-slate-500/60
@@ -148,7 +137,8 @@ import { DisclosureComponent, DisclosureTriggerDirective } from '../disclosure/d
         <hr class="border-slate-300 dark:border-slate-600 mb-2"/>
 
         <!-- Cronologia dinamica -->
-        <div class="flex-1 overflow-y-auto custom-scrollbar m-scroll-thin">
+        @if (!rail()) {
+        <div class="m-navigation-history">
           <div class="flex justify-between items-center">
             <h6 class="detail">Cronologia</h6>
             @if (triggerDelete()) {
@@ -196,6 +186,7 @@ import { DisclosureComponent, DisclosureTriggerDirective } from '../disclosure/d
             (emptyChange)="handleEmptyChange($event)"
             (itemClick)="handleMenuItemClick()" />
         </div>
+        }
       } @else {
         <!-- Menu per utente non loggato -->
         <h6 class="detail">Piacere di averti qui.</h6>
@@ -278,24 +269,7 @@ import { DisclosureComponent, DisclosureTriggerDirective } from '../disclosure/d
       }
     </nav>
   `,
-  styles: [`
-    @reference "../../../../styles.css";
-    .sidebar-link {
-      @apply flex items-center -mx-px gap-3 px-3 py-2 rounded-md transition hover:bg-slate-50 dark:hover:bg-slate-800/70 w-full mb-1 text-sm;
-    }
-    .sidebar-item-text {
-      @apply text-base;
-    }
-    .sidebar-history-link {
-      @apply flex items-center px-4 py-1 rounded-md hover:bg-slate-300/30 dark:hover:bg-slate-800/40 text-sm w-full;
-    }
-    .icon {
-      width: 1.2em; display: inline-block;
-    }
-    .detail {
-      @apply text-sm font-semibold text-light-slate-detail dark:text-dark-slate-detail mt-1 lg:mt-2 mb-2 px-2 ml-2;
-    }
-  `]
+  styleUrl: './sidenav.component.css'
 })
 export class SidenavComponent implements OnInit, OnDestroy {
   protected readonly routes = routeManifest
@@ -317,7 +291,10 @@ export class SidenavComponent implements OnInit, OnDestroy {
   isHistoryEmpty = signal<boolean>(false)
   triggerEmptyCheck = signal<boolean>(true)
   isWelcomePath = signal<boolean>(false)
-  featuresOpen = signal<boolean>(false)
+  readonly desktop = input(false)
+  readonly collapsed = input(false)
+  readonly rail = computed(() => this.desktop() && this.collapsed())
+  protected readonly sidenavContext = inject(SidenavContextService)
 
   private delSub?: Subscription
   private routeSub?: Subscription
@@ -358,11 +335,6 @@ export class SidenavComponent implements OnInit, OnDestroy {
     this.delSub?.unsubscribe()
     this.routeSub?.unsubscribe()
     this.s.clearHeaderSelections()
-  }
-
-  setFeaturesExpanded(expanded: boolean): void {
-    if (this.designService.minBk('xl')()) return
-    this.featuresOpen.set(expanded)
   }
 
   doDeleteHistory(): void {

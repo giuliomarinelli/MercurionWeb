@@ -9,6 +9,7 @@ import { HeaderNotificationsComponent } from './header-notifications.component';
 describe('HeaderNotificationsComponent', () => {
   const unreadCount = signal(3);
   const catchUpCount = signal(0);
+  const synchronized = signal(false);
   let dismissCatchUp: jasmine.Spy;
   let acknowledgeCatchUpPresented: jasmine.Spy;
   let navigate: jasmine.Spy;
@@ -16,6 +17,7 @@ describe('HeaderNotificationsComponent', () => {
   beforeEach(() => {
     unreadCount.set(3);
     catchUpCount.set(0);
+    synchronized.set(false);
     dismissCatchUp = jasmine.createSpy('dismissCatchUp');
     acknowledgeCatchUpPresented = jasmine.createSpy('acknowledgeCatchUpPresented').and.resolveTo();
     navigate = jasmine.createSpy('navigate').and.resolveTo(true);
@@ -23,7 +25,7 @@ describe('HeaderNotificationsComponent', () => {
       imports: [HeaderNotificationsComponent],
       providers: [
         { provide: Router, useValue: { navigate } },
-        { provide: RealtimeSyncStatusService, useValue: { visible: signal(false) } },
+        { provide: RealtimeSyncStatusService, useValue: { visible: synchronized } },
         {
           provide: InAppNotificationService,
           useValue: { unreadCount, catchUpCount, dismissCatchUp, acknowledgeCatchUpPresented }
@@ -40,6 +42,30 @@ describe('HeaderNotificationsComponent', () => {
     button.click();
     expect(dismissCatchUp).toHaveBeenCalled();
     expect(navigate).toHaveBeenCalledWith([routeManifest.notifications.build({})]);
+  });
+
+  it('leaves one flex gap between controls when the sync badge has no content', () => {
+    const fixture = TestBed.createComponent(HeaderNotificationsComponent);
+    fixture.detectChanges();
+    const group = document.createElement('div');
+    group.style.cssText = 'display:flex;align-items:center;gap:8px';
+    const search = document.createElement('button');
+    const theme = document.createElement('button');
+    search.style.cssText = theme.style.cssText = 'width:40px;height:40px';
+    group.append(search, fixture.nativeElement, theme);
+    document.body.appendChild(group);
+    try {
+      const bell = group.querySelector('m-notification-button button')!;
+      expect(bell.getBoundingClientRect().left - search.getBoundingClientRect().right).toBeCloseTo(8, 1);
+      expect(theme.getBoundingClientRect().left - bell.getBoundingClientRect().right).toBeCloseTo(8, 1);
+      synchronized.set(true);
+      fixture.detectChanges();
+      expect(group.querySelector('[role="status"]')).not.toBeNull();
+      expect(theme.getBoundingClientRect().left - bell.getBoundingClientRect().right).toBeCloseTo(8, 1);
+    } finally {
+      fixture.destroy();
+      group.remove();
+    }
   });
 
   it('acknowledges catch-up only after it is rendered and allows dismissing it', () => {

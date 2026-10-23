@@ -106,7 +106,8 @@ export class DesignService {
 
   // ✅ Listener resize con debounce (CDK scrolling)
   private listenToViewportChanges(): void {
-    this.viewportRuler.change(10).pipe(takeUntilDestroyed()).subscribe(() => this.updateCurrentBreakpoint())
+    // Match CDK's throttle so its cached size is invalidated before we read it.
+    this.viewportRuler.change().pipe(takeUntilDestroyed()).subscribe(() => this.updateCurrentBreakpoint())
   }
 
 }

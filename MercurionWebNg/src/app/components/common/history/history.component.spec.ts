@@ -5,6 +5,11 @@ import { HistoryService } from '../../../services/history.service';
 import { of, Subject, throwError } from 'rxjs';
 import type { HistoryDTOExt } from '../../../Models/history.models';
 import type { PageModel } from '@mercurion/rest-contracts';
+import { ActivatedRoute } from '@angular/router';
+import { signal } from '@angular/core';
+import { utcInstantFromEpochMs } from '@mercurion/rest-contracts';
+import { HistoryContextService } from '../../../services/context/history-context.service';
+import { ScrollContextService } from '../../../services/context/scroll-context.service';
 
 describe('HistoryComponent', () => {
   let component: HistoryComponent;
@@ -93,6 +98,13 @@ describe('HistoryComponent request lifecycle', () => {
     expect(fixture.componentInstance.serverError()).toBeFalse();
   });
 
+  it('restores the current route selection when history is recreated after expanding the rail', () => {
+    spyOn(TestBed.inject(ActivatedRoute).root.snapshot.paramMap, 'get')
+      .and.callFake(key => key === 'molId' ? 'saved-molecule-id' : null);
+    fixture.componentInstance.ngOnInit();
+    expect(fixture.componentInstance.selectedItemId()).toBe('saved-molecule-id');
+  });
+
   it('cancels history loading and refuses a queued load after destruction', async () => {
     const response = new Subject<PageModel<HistoryDTOExt>>();
     getHistory.and.returnValue(response);
@@ -103,5 +115,77 @@ describe('HistoryComponent request lifecycle', () => {
     await fixture.componentInstance.loadMore();
     expect(response.observed).toBeFalse();
     expect(getHistory).toHaveBeenCalledTimes(1);
+  });
+
+  it('observes the whole navigation root and disconnects when the rail removes history', fakeAsync(() => {
+    const disconnect = jasmine.createSpy('disconnect');
+    const observe = jasmine.createSpy('observe');
+    let observerRoot: Element | Document | null | undefined;
+    spyOn(window, 'IntersectionObserver').and.callFake(function (_callback, options) {
+      observerRoot = options?.root;
+      return { observe, disconnect } as unknown as IntersectionObserver;
+    });
+    getHistory.and.returnValue(of({ items: [], currentPage: 1, totalPages: 0 }));
+    const navigation = document.createElement('nav');
+    navigation.style.overflowY = 'auto';
+    document.body.appendChild(navigation);
+    navigation.appendChild(fixture.nativeElement);
+    try {
+      fixture.detectChanges();
+      tick(100);
+      expect(observerRoot).toBe(navigation);
+      expect(observe).toHaveBeenCalledTimes(1);
+      expect(getHistory).toHaveBeenCalledOnceWith(1, 25);
+      fixture.destroy();
+      expect(disconnect).toHaveBeenCalledTimes(1);
+    } finally {
+      navigation.remove();
+    }
+  }));
+
+  it('scrolls only the navigation after a clicked history item is moved to the rendered head', async () => {
+    const item = (id: string): HistoryDTOExt => ({
+      id, itemId: id, itemName: id, itemEntity: 'molecule_collection_items', flagIds: '{}',
+      touchedAt: utcInstantFromEpochMs(Date.parse('2026-10-23T10:00:00Z')), selected: signal(false)
+    });
+    const first = item('first');
+    const selected = item('selected');
+    const update = signal<HistoryDTOExt | null>(null);
+    spyOn(TestBed.inject(HistoryContextService), 'newHistoryItem').and.callFake(update);
+    const scroll = spyOn(TestBed.inject(ScrollContextService), 'smoothToTop');
+    getHistory.and.returnValue(of({ items: [], currentPage: 1, totalPages: 0 }));
+    const navigation = document.createElement('nav');
+    navigation.style.overflowY = 'auto';
+    document.body.appendChild(navigation);
+    navigation.appendChild(fixture.nativeElement);
+    try {
+      fixture.componentInstance.items.set([first, selected]);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.componentInstance.handleItemClick('selected');
+      fixture.detectChanges();
+      expect(scroll).not.toHaveBeenCalled();
+      scroll.and.callFake(host => {
+        expect(host?.nativeElement).toBe(navigation);
+        expect(navigation.querySelector('m-history-item a')?.textContent).toContain('selected');
+      });
+      update.set(selected);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+      expect(scroll).toHaveBeenCalledTimes(1);
+
+      // An unrelated refresh may prepend another item without moving the panel.
+      update.set(first);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+      expect(scroll).toHaveBeenCalledTimes(1);
+    } finally {
+      fixture.destroy();
+      navigation.remove();
+    }
   });
 });

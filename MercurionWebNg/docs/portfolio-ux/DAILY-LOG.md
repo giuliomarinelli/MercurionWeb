@@ -362,6 +362,34 @@ Collezioni: null significa loading, [] empty immediato, niente timer o dati prec
 
 **Verifica:** lettura del codice e coerenza del diff documentale; nessuna prova runtime, invio SMS, lettura di segreti, modifica a servizio/env/dipendenze o operazione Git. ROADMAP.md e diario aggiornati.
 
+### 2026-10-23 — N3 / PX-01 — Navigazione responsive
+
+**Stato:** implementato, in review; QA fisica Safari e zoom browser reale 200%/400% ancora aperti. Report: [NAVIGATION-QA.md](NAVIGATION-QA.md).
+
+**Interventi:** sidebar permanente 256/64 px, quattro funzioni nella rail con tooltip PrimeNG al focus/hover, toggle sticky integrato, unico scroll per funzioni e cronologia. Drawer con header e account fuori dallo scroll, contenitore stabile anche durante il caricamento, trap del focus, chiusura con Escape e ritorno al trigger. Superfici e stati coerenti nei due temi. Riutilizzati DesignService, ShellLayoutService e DialogScrollLockService; allineato il throttle di DesignService all’invalidazione della cache CDK per evitare breakpoint fermi sulla misura precedente; scroll globale del documento preservato.
+
+**Caricamento:** navigazione differita immediatamente su desktop; drawer attivato all’apertura con prefetch idle. Il contenitore riserva lo spazio prima del caricamento. Questa separazione mantiene i tooltip richiesti e il bundle iniziale sotto il gate esistente di 1 MB, senza modificare soglie o dipendenze.
+
+**Verifiche:** typecheck/template Angular, ESLint mirato, build production, gate bundle/lazy, styling/colori/semantica interattiva e 52 test mirati. Chrome tramite controllo browser di Computer Use su localhost:8888: 12 larghezze per tema, resize continuo, rail, tooltip, tastiera, account, ricerca, apertura selettore ChEMBL e cronologia 25→50. Selezione storica inizializzata dalla route anche dopo la ricreazione uscendo dalla rail. Viewport 375×320: nav scrollabile e account separato. Nessuna certificazione CI remota o accettazione finale dichiarata.
+
+**Correzioni dalla review:** selezionando una voce storica si attende il riordino/rendering e si esegue smooth-to-top del solo pannello; prova sidebar 679→0 px e drawer 625→0, documento fermo. Aggiornamenti in background senza scroll automatico. Eliminata la fessura sopra la zona sticky, incluso il mezzo pixel dovuto all'altezza arrotondata dell'header; bordo e superficie allineati a 54,5 px nei due temi. Eliminato il gap doppio generato dal badge realtime vuoto e rimossi i margini compensativi dell'header: 16 misure ai breakpoint nei due temi con distanze uniformi. Transizione del margine limitata al desktop, senza offset residuo quando subentra il drawer. Prove aggiuntive in `queued-fixes.json`; tema automatico e viewport originale ripristinati.
+
+**Perimetro:** codice Angular della navigazione e relativi test; nessuna modifica a backend, route, flag o dipendenze. Nessun commit, merge, push o arresto dei runtime riutilizzati.
+
+**Rimane:** review manuale del codice/icone, Safari fisico con safe-area/tastiera e zoom reale 200%/400%; conservati gli altri punti PX-01/PX-23 già aperti. Nessun logout o cancellazione dei dati eseguito nella verifica live. Il blocco 14 rimane la regressione trasversale della shell.
+
+**Prossimo blocco:** 13 / PX-08 — editor: stati e percorso finale. Notebook, Synthesis e R2 restano rinviati; INF-02 / SMS Hosting resta attivo da pianificare.
+
+### 2026-10-23 — PX-02 — Home, benvenuto e aggiornamento welcome
+
+**Stato:** pianificato; nessuna modifica al codice applicativo in questo aggiornamento.
+
+**Richiesta:** migliorare presentabilità della home, sfondo e animazione di benvenuto al primo ingresso, conservando la persistenza localStorage che evita replay; rivedere `/welcome`, i cui screenshot mostrano componenti precedenti ai refactor.
+
+**Riscontro statico:** ingresso a lettere con intervalli di 750 ms e CTA con delay di 8.250 ms più 650 ms di animazione. Sfondo uniforme slate. Il flag locale attuale viene scritto navigando a welcome/login/register, quindi va verificato anche il reload della home prima di queste route. Welcome usa coppie light/dark di immagini ricerca e predizione. Nessuna nuova verifica browser svolta per questa voce; le osservazioni distinguono codice esistente e segnalazione visiva dell'utente.
+
+**Roadmap:** ampliato PX-02 e suddiviso il blocco 15 in 15A (home, composizione, gradiente da valutare, benvenuto coordinato e breve, reduced motion e persistenza) e 15B (welcome, aggiornamento immagini reali, perimetro beta, responsive e stabilità del caricamento). Sequenza attiva invariata: ripresa UX dal blocco 13. Nessun redesign delle pagine interne, modifica ai flag o operazione Git autorizzati da questa pianificazione.
+
 ## Modello per le voci successive
 
 ### AAAA-MM-GG — PX-XX — Sottoarea

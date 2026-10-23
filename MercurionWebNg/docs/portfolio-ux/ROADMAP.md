@@ -2,7 +2,7 @@
 
 Data iniziale: 6 ottobre 2026. Stato: pianificazione per lavoro incrementale e review manuale.
 
-Ultima revisione del perimetro: 23 ottobre 2026. Notebook, Synthesis e integrazione object store/Cloudflare R2 sono rinviati insieme, fuori dal percorso corrente della beta. Il codice scientifico reintegrato resta conservato ma disabilitato; il flag Documents blocca anche il DocumentController Nest. La priorità immediata è il refactor navigazione/sidebar/offcanvas, seguito dalla ripresa UX dal blocco 13 e dalla QA del perimetro attivo. Restano le decisioni di piattaforma del 22 ottobre: Angular 20 → 21 → 22 mantenendo inizialmente Zone.js e Karma, poi Node.js 26 con NestJS 11, secondo UP-01/UP-02. Aggiunto INF-02: porting SMS Twilio → SMS Hosting, con revisione configurazione/env e verifica dei flussi OTP/MFA coinvolti; il precedente account Twilio è chiuso, secondo la segnalazione dell’utente.
+Ultima revisione del perimetro: 23 ottobre 2026. Notebook, Synthesis e integrazione object store/Cloudflare R2 sono rinviati insieme, fuori dal percorso corrente della beta. Il codice scientifico reintegrato resta conservato ma disabilitato; il flag Documents blocca anche il DocumentController Nest. Il refactor navigazione/sidebar/offcanvas N3 è implementato e in review; restano QA fisica Safari, zoom browser e accettazione manuale. Segue la ripresa UX dal blocco 13 e la QA del perimetro attivo. Prove e limiti: [NAVIGATION-QA.md](NAVIGATION-QA.md). Restano le decisioni di piattaforma del 22 ottobre: Angular 20 → 21 → 22 mantenendo inizialmente Zone.js e Karma, poi Node.js 26 con NestJS 11, secondo UP-01/UP-02. Aggiunto INF-02: porting SMS Twilio → SMS Hosting, con revisione configurazione/env e verifica dei flussi OTP/MFA coinvolti; il precedente account Twilio è chiuso, secondo la segnalazione dell’utente.
 
 ## Obiettivo
 
@@ -47,7 +47,7 @@ La priorità indica il valore della rifinitura per il portfolio, non la gravità
 
 | ID | Area | Priorità | Evidenze | Stato iniziale |
 |---|---|---|---|---|
-| PX-01 | Shell, navigazione, sidebar e offcanvas | P1 | S, B | Prossimo intervento attivo (N3); da affrontare |
+| PX-01 | Shell, navigazione, sidebar e offcanvas | P1 | S, B | Navigazione N3 implementata, in review; restante shell da verificare |
 | PX-02 | Home e presentazione pubblica | P1 | S, B, V | Da affrontare |
 | PX-03 | Accesso e registrazione | P1 | S, B, V | Da affrontare |
 | PX-04 | Ricerca molecolare | P1 | S, B | Implementato, in review; QA iPhone aperta |
@@ -79,8 +79,8 @@ Aggiornamento concordato il 23 ottobre 2026. Il branch feature Notebook/Synthesi
 
 - **Notebook (MF-01), Synthesis (MF-02) e object store/R2 (INF-01) sono rinviati insieme.** Non sono prerequisiti per proseguire la rifinitura e preparare il merge della beta con il perimetro attualmente attivo.
 - Notebook, Synthesis e Documents rimangono disabilitati nei quattro ambienti. Il flag `documents` protegge l’intero `DocumentController` Nest tramite `@RequiresFeatures('documents')`: gli endpoint documentali sono bloccati a backend, oltre alla mancata esposizione frontend. Il rinvio di R2 è una decisione di pianificazione coerente con questo perimetro, non un ulteriore flag tecnico.
-- La prima attività è **N3 / PX-01: refactor navigazione, sidebar e offcanvas**. A seguire si riprende il lavoro UX dal **blocco 13 / PX-08**, conservando i numeri storici.
-- **INF-02 / SMS Hosting resta nel perimetro attivo**, distinto dal rinvio di object store/R2. L’account Twilio è stato chiuso dall’utente e l’invio attuale dipende ancora dal vecchio provider: pianificare il porting prima della verifica finale dei percorsi SMS. N3 resta il prossimo intervento; il lavoro SMS va coordinato con la successiva ripresa UX e con PX-03/PX-13/PX-14/PX-15.
+- **N3 / PX-01: refactor navigazione, sidebar e offcanvas** è implementato, in review (vedi [NAVIGATION-QA.md](NAVIGATION-QA.md)). A seguire si riprende il lavoro UX dal **blocco 13 / PX-08**, conservando i numeri storici.
+- **INF-02 / SMS Hosting resta nel perimetro attivo**, distinto dal rinvio di object store/R2. L’account Twilio è stato chiuso dall’utente e l’invio attuale dipende ancora dal vecchio provider: pianificare il porting prima della verifica finale dei percorsi SMS. N3 è in review; il lavoro SMS va coordinato con la successiva ripresa UX e con PX-03/PX-13/PX-14/PX-15.
 - Il codice già sviluppato resta conservato. La ripresa delle feature rinviate e la loro abilitazione richiederanno una decisione esplicita e verifiche dedicate. Per i futuri sviluppi resta il metodo dei branch `feature/**` derivati dal branch di lavoro e reintegrati nello stesso, gestiti dall’utente.
 - I blocchi UX 01–12 restano implementati, in review. QA fisica Safari, regressione dei percorsi attivi e review manuale rimangono aperte; le feature rinviate riceveranno QA propria quando riprese.
 
@@ -88,7 +88,7 @@ Riferimento del comportamento dei flag: [funzionalità rinviate nella beta](../.
 
 | Ordine corrente | Intervento | Stato / risultato atteso |
 |---|---|---|
-| 1 | N3 / PX-01 — Navigazione, sidebar e offcanvas | Prossimo intervento attivo: scroll dell’intera navigazione, sidebar collassata con icone, comandi in flusso e stile coerente |
+| 1 | N3 / PX-01 — Navigazione, sidebar e offcanvas | Implementato, in review: scroll unico, rail 256/64 px, comandi sticky e tooltip a tema; QA fisica e zoom ancora aperti |
 | 2 | Blocco 13 / PX-08 e successivi UX | Ripresa di stati/percorso finale dell’editor e rifiniture residue; il blocco 14 verifica la shell dopo N3 senza duplicarne il refactor |
 | Da pianificare nella ripresa UX | INF-02 — Porting SMS Hosting | Adeguare servizio/env e ripristinare gli invii prima dell’accettazione dei flussi SMS; non rinviato con R2 |
 | 3 | QA, review e preparazione del merge beta | Validare il perimetro attivo e il blocco degli accessi alle funzionalità rinviate |
@@ -117,7 +117,7 @@ La reintegrazione dei branch feature nel branch corrente e il merge della beta s
 
 **Perché conta:** header e navigazione accompagnano quasi tutte le schermate e fanno percepire immediatamente quanto il prodotto sia coerente.
 
-**Stato:** prossimo intervento attivo N3, per decisione del 23 ottobre. Notebook/Synthesis e object store/R2 sono rinviati e non ne costituiscono prerequisiti.
+**Stato:** navigazione N3 implementata, in review il 23 ottobre; dettagli e limiti in [NAVIGATION-QA.md](NAVIGATION-QA.md). Incluse le correzioni segnalate in review: smooth-to-top del pannello dopo selezione/riordino della cronologia, spaziatura uniforme della ricerca nell'header e superficie sticky senza fessura superiore. Restano la regressione shell del blocco 14 e gli altri interventi PX-01. Notebook/Synthesis e object store/R2 sono rinviati e non ne costituiscono prerequisiti.
 
 **Base:** shell, sidebar desktop e menu mobile già esplorati; header, cronologia e contenuto principale hanno esigenze di densità diverse. Separare lo scroll della navigazione dallo scroll del documento e preservare i collegamenti a frammento già ripristinati.
 
@@ -143,17 +143,27 @@ La reintegrazione dei branch feature nel branch corrente e il merge della beta s
 
 **Perché conta:** è la prima impressione e deve spiegare il valore prima di richiedere attenzione o registrazione.
 
-**Base S:** la home introduce lettere con ritardi di 750 ms e mostra le CTA dopo ulteriori passaggi; welcome compone hero, feature, loghi e screenshot. Il tempo fino alla prima azione utile va misurato, non dedotto dalla sola fluidità dell'animazione.
+**Stato:** da affrontare; requisiti ampliati il 23 ottobre su richiesta dell'utente. Il blocco 15 si articola in 15A (home e benvenuto iniziale) e 15B (welcome e immagini), senza rinumerare i blocchi successivi. L'aggiornamento registra il lavoro richiesto; nessuna nuova grafica o animazione è ancora implementata.
 
-**Interventi:**
+**Base S:** la home introduce dieci caratteri con intervalli di 750 ms, poi pittogramma e CTA. Dal template, il gruppo delle CTA ha un delay di 8.250 ms e una durata di ingresso di 650 ms: sono tempi configurati, non misure runtime. Lo sfondo della home è uniforme slate nei due temi. Welcome compone hero, feature, loghi e screenshot: l'utente segnala che le immagini rappresentano componenti precedenti ai refactor. Le coppie attualmente referenziate sono `prediction-light/dark.png` nell'hero e `search-light/dark.png` nella screenshot band. Il tempo fino alla prima azione utile va misurato, non dedotto dalla sola fluidità dell'animazione.
 
-- Rendere chiaro cosa permette di fare Mercurion e quali competenze dimostra.
-- Valutare durata e sequenza dell'introduzione; rendere tempestivamente disponibili le azioni essenziali.
-- Rifinire gerarchia delle CTA, ritmo tra sezioni, larghezza dei testi e allineamento delle feature.
-- Aggiornare le schermate dimostrative dopo la rifinitura del prodotto.
-- Verificare reduced motion, primo accesso, ritorno alla home e comportamento autenticato.
+**15A — Home, identità visiva e benvenuto al primo ingresso:**
 
-**Accettazione:** la pagina comunica utilità e azione successiva senza attendere una lunga introduzione; screenshot e promesse corrispondono a funzionalità realmente disponibili. Una modifica sostanziale del messaggio commerciale richiede prima la definizione del segmento clienti.
+- Proporre una composizione più curata di logo/pittogramma, titolo e CTA, coerente con i token e il linguaggio visivo introdotto dai refactor. Valutare uno sfondo a gradiente discreto nei due temi, con profondità e contrasto controllati; la soluzione visiva definitiva resta da confrontare nella review.
+- Progettare una breve sequenza di benvenuto più articolata: coordinare pittogramma, nome e dettagli decorativi con un ritmo comune. Complessità visiva e durata sono scelte distinte: ridurre l'attesa attuale e rendere subito utilizzabili le azioni essenziali, evitando un'animazione di ingresso che nasconda link già raggiungibili da tastiera.
+- Conservare la persistenza in **localStorage** tramite `BrowserStorageRegistry` e `AppShellFacade`, senza accessi diretti nei componenti e senza reset dei valori già salvati. Il contratto attuale salta l'animazione con il valore esatto `'true'` di `mercurion.v1.is-first-visit`; viene scritto entrando in `/welcome`, `/login` o `/register`. Verificare anche reload della home prima di queste route, nuova scheda e riapertura del browser: non dichiarare già coperto questo caso dal solo nome del flag. Qualunque adeguamento necessario a garantire il benvenuto una sola volta deve preservare gli utenti già marcati.
+- Per chi ritorna, mostrare immediatamente la composizione finale, senza delay residui o replay. Con `prefers-reduced-motion`, presentazione statica completa e nessuna attesa. Animazioni finite, preferibilmente opacity/transform; verificare fluidità su telefono e costo di gradienti/blur, senza aggiungere dipendenze per il solo effetto decorativo.
+- Preservare ripristino sessione, progress indicator, percorso autenticato verso dashboard e scroll del documento. Verificare primo ingresso, ritorno, refresh, tastiera, focus, due temi e viewport basse; nessuno spostamento del layout provocato dall'ingresso di logo o CTA.
+
+**15B — `/welcome`, presentazione e immagini aggiornate:**
+
+- Rifinire hero, gerarchia delle CTA, ritmo tra sezioni, larghezza dei testi, allineamento delle feature e trattamento dello sfondo, mantenendo continuità con home e prodotto.
+- Riesaminare immagini, didascalie e promesse: mostrare soltanto funzioni disponibili nel perimetro beta attivo. Notebook, Synthesis e Documents/R2 rinviati non devono apparire come già utilizzabili.
+- Preparare un inventario delle immagini da sostituire e acquisire screenshot reali aggiornati, a partire dalle coppie ricerca/predizione, dopo l'assestamento visivo dei relativi componenti e della navigazione. Usare dati dimostrativi adatti al portfolio, senza informazioni personali o contenuti privati. Non usare mockup inventati come prova dell'interfaccia reale.
+- Curare taglio, dimensioni intrinseche/aspect ratio, nitidezza e peso delle immagini, testo alternativo e caricamento differito delle sezioni sotto la piega. Su mobile il contenuto dimostrativo deve rimanere comprensibile; verificare anche entrambi i temi e l'assenza di layout shift durante il caricamento.
+- Rendere chiaro cosa permette di fare Mercurion e quali competenze dimostra. Una riscrittura sostanziale del messaggio commerciale resta legata alla definizione del segmento clienti; la rifinitura grafica e l'aggiornamento delle immagini possono procedere sul contenuto attuale.
+
+**Accettazione:** primo ingresso con benvenuto riconoscibile, breve e non bloccante; visite successive con stato finale immediato e persistenza verificata. Reduced motion completo, azioni leggibili e utilizzabili senza attendere l'introduzione, nessun overflow o shift introdotto. Home e welcome coerenti nei due temi; screenshot e promesse corrispondono all'interfaccia e alle funzionalità effettivamente disponibili. Conservare prove prima/dopo e tempi misurati su desktop e telefono.
 
 **Sorgenti:** [home](../../src/app/pages/home.page/home.page.component.ts), [welcome](../../src/app/pages/welcome/welcome.page.component.ts), [hero](../../src/app/components/welcome/welcome-hero/welcome-hero.component.ts), [screenshot band](../../src/app/components/welcome/welcome-screenshot-band/welcome-screenshot-band.component.ts).
 
@@ -605,7 +615,8 @@ Il refactor N3 / PX-01 precede la sequenza residua qui sotto, che riprende dal b
 | 12 | PX-08 — Editor: layout e modalità | Canvas e modalità integrati nella gerarchia della pagina |
 | 13 | PX-08 — Editor: stati e percorso finale | Draft, validazione e salvataggio verificati insieme |
 | 14 | PX-01 — Regressione shell dopo N3 | Verificare navigazione rifatta, menu, cronologia e gutter sul percorso centrale, senza duplicare il refactor anticipato |
-| 15 | PX-02 — Home e welcome | Prima impressione allineata a schermate reali già curate |
+| 15A | PX-02 — Home e benvenuto | Identità visiva, gradiente da valutare, introduzione breve al primo ingresso e stato finale immediato ai ritorni |
+| 15B | PX-02 — Welcome e screenshot | Presentazione coerente con il prodotto; immagini reali aggiornate nei due temi e caricamento senza shift |
 | 16 | PX-03 — Accesso | Percorso e-mail/password/SSO coerente |
 | 17 | PX-03/PX-14 — Registrazione e recupero | Stati e token verificati con fixture appropriate |
 | 18 | PX-12 — Dashboard | Metriche, grafici e stati rifiniti |
@@ -624,7 +635,7 @@ Il refactor N3 / PX-01 precede la sequenza residua qui sotto, che riprende dal b
 
 PX-19 accompagna ogni blocco. Non aspettare la fine per curare focus, errori, nomi accessibili e stati di caricamento. Se home o accesso devono essere mostrati subito a un cliente, anticipare i blocchi 15–16 senza aprire un redesign globale.
 
-PX-22 e PX-23 accompagnano gli interventi pertinenti; le righe 26–27 sono il passaggio di regressione finale, non il primo momento in cui verificare questi comportamenti. Il prossimo intervento è **N3 — navigazione/sidebar/offcanvas**; subito dopo si riprende dal blocco **13 — PX-08, editor: stati e percorso finale**. **Notebook, Synthesis e object store/R2 sono rinviati insieme**, fuori dal percorso corrente della beta. **INF-02 / SMS Hosting resta attivo da pianificare** prima dell’accettazione dei flussi SMS, senza sostituire N3 come prossimo intervento. La verifica fisica della tastiera secondo [KEYBOARD-QA.md](KEYBOARD-QA.md) resta aperta prima dell'accettazione e del merge; i blocchi 01–12 restano in review. L'utente ha autorizzato il proseguimento della roadmap durante questa QA.
+PX-22 e PX-23 accompagnano gli interventi pertinenti; le righe 26–27 sono il passaggio di regressione finale, non il primo momento in cui verificare questi comportamenti. **N3 — navigazione/sidebar/offcanvas** è implementato, in review; dopo questa consegna si riprende dal blocco **13 — PX-08, editor: stati e percorso finale**. QA fisica Safari e zoom reale 200%/400% restano da completare prima dell’accettazione N3. **Notebook, Synthesis e object store/R2 sono rinviati insieme**, fuori dal percorso corrente della beta. **INF-02 / SMS Hosting resta attivo da pianificare** prima dell’accettazione dei flussi SMS, senza sostituire la ripresa UX dal blocco 13. La verifica fisica della tastiera secondo [KEYBOARD-QA.md](KEYBOARD-QA.md) resta aperta prima dell'accettazione e del merge; i blocchi 01–12 restano in review. L'utente ha autorizzato il proseguimento della roadmap durante questa QA.
 
 ## Macro-feature e object store rinviati
 
@@ -669,7 +680,7 @@ L’utente gestisce la futura ripresa di MF-01 e MF-02. Le due feature restano c
 
 ### INF-02 — Porting invio SMS: Twilio → SMS Hosting
 
-**Stato: da affrontare; priorità P1 nel perimetro beta.** Aggiunto il 23 ottobre 2026. L’utente utilizza SMS Hosting e ha chiuso l’account Twilio: il percorso attuale non è operativo con le vecchie credenziali. Questo intervento **non è rinviato insieme a Notebook, Synthesis e R2**. Il refactor navigazione resta il prossimo lavoro, poi ripresa UX; INF-02 va pianificato prima della QA/accettazione dei percorsi SMS interessati.
+**Stato: da affrontare; priorità P1 nel perimetro beta.** Aggiunto il 23 ottobre 2026. L’utente utilizza SMS Hosting e ha chiuso l’account Twilio: il percorso attuale non è operativo con le vecchie credenziali. Questo intervento **non è rinviato insieme a Notebook, Synthesis e R2**. La navigazione N3 è implementata e in review, poi ripresa UX; INF-02 va pianificato prima della QA/accettazione dei percorsi SMS interessati.
 
 **Evidenza dal codice corrente:** `SmsSenderService.sendSms(to, body)` nel modulo Nest `notification` istanzia `Twilio` e chiama `messages.create`. Il risultato è tipizzato come `MessageInstance` dell’SDK Twilio. `ConfigKey.Sms` mappa `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_NUMBER`, `TWILIO_FROM`; lo schema di configurazione le richiede ancora. I chiamanti includono `MfaService` e `account-flow-kernel`: il porting riguarda quindi anche flussi account/OTP/MFA, oltre alle notifiche.
 

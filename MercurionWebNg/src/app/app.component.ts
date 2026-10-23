@@ -51,50 +51,17 @@ import { RealtimeStateSyncService } from './services/realtime-state-sync.service
         <m-header class="block sticky top-0 z-30"
           [triggerOpenOffCanvas]="_triggerOpenOffCanvas()"
           (onOffCanvasMenuOpen)="triggerOpenOffCanvas()" />
-        <div class="drawer-container relative flex flex-1">
+        <div class="drawer-container relative flex flex-1" [style.--m-navigation-width]="navigationWidth()">
           @if (authState.authenticated() && design.minBk('xl')()) {
-            <div class="fixed left-2.5 z-30 group" [style.top.px]="shellLayout.headerHeight() + 16">
-              <button class="cursor-pointer hover:transform hover:scale-[1.05] transition-transform duration-300" (click)="sidenavContext.toggle()" aria-label="Sidebar">
-                @if (sidenavContext.isVisible()) {
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-auto text-light-on-surface-main hover:text-light-on-surface-secondary dark:text-dark-on-surface-main hover:dark:text-dark-on-surface-secondary transition-colors duration-150">
-                    <rect width="18" height="18" x="3" y="3" rx="2" />
-                    <path d="M9 3v18" />
-                  </svg>
-                } @else {
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-auto text-light-on-surface-main hover:text-light-on-surface-secondary dark:text-dark-on-surface-main hover:dark:text-dark-on-surface-secondary transition-colors duration-150">
-                    <rect width="18" height="18" x="3" y="3" rx="2" />
-                    <rect x="3" y="3" width="6" height="18" rx="2" fill="currentColor" stroke="none"/>
-                  </svg>
-                }
-              </button>
-              <span
-                class="absolute left-20 top-full mt-2 -translate-x-1/2 whitespace-nowrap rounded
-                       bg-neutral-900/90 dark:bg-neutral-100/90 px-2 py-1 text-xs text-neutral-50
-                       dark:text-neutral-900 opacity-0 group-hover:opacity-100
-                       transition-opacity duration-150 pointer-events-none z-40 shadow-lg"
-                role="tooltip">
-                @if (sidenavContext.isVisible()) {
-                  Nascondi barra laterale
-                } @else {
-                  Mostra barra laterale
-                }
-              </span>
-            </div>
-          }
-          @if (sidenavContext.isMounted() && authState.authenticated() && design.minBk('xl')()) {
-            <aside
-              class="drawer fixed bottom-0 left-0 w-64
-                transition-transform duration-500 ease-in-out
-                -translate-x-full"
-              [style.top.px]="shellLayout.headerHeight()"
-              [class.translate-x-0]="sidenavContext.isVisible()"
-              [class.-translate-x-full]="!sidenavContext.isVisible()">
-              <m-sidenav />
+            <aside class="m-desktop-navigation fixed bottom-0 left-0" [style.top.px]="shellLayout.headerHeight()">
+              @defer (on immediate) {
+                <m-sidenav [desktop]="true" [collapsed]="!sidenavContext.isOpen()" />
+              } @placeholder {
+                <nav aria-label="Navigazione laterale" aria-busy="true"><span class="sr-only">Caricamento navigazione…</span></nav>
+              }
             </aside>
           }
-          <section
-            class="content flex min-w-0 flex-col flex-1 transition-[margin] duration-500"
-            [class.ml-64]="sidenavContext.isOpen() && authState.authenticated() && design.minBk('xl')()">
+          <section class="content m-navigation-content flex min-w-0 flex-col flex-1">
             <main class="flex-1 p-4 pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] min-w-0 block">
               <router-outlet />
             </main>
@@ -150,6 +117,8 @@ export class AppComponent implements OnDestroy {
 
   isDarkTheme: Signal<boolean> = computed(() => this.themeManagerService.theme() === 'dark')
   readonly routePolicy = this.shell.routePolicy
+  readonly navigationWidth = computed(() => this.authState.authenticated() && this.design.minBk('xl')()
+    ? (this.sidenavContext.isOpen() ? '256px' : '64px') : '0px')
 
   _triggerOpenOffCanvas = signal<boolean>(false)
 
@@ -167,7 +136,7 @@ export class AppComponent implements OnDestroy {
     }
     effect(() => {
       const header = this.headerRef()
-      queueMicrotask(() => this.shellLayout.setHeaderHeight(header?.nativeElement?.offsetHeight ?? 0))
+      queueMicrotask(() => this.shellLayout.setHeaderHeight(header?.nativeElement?.getBoundingClientRect().height ?? 0))
     })
   }
 

@@ -188,6 +188,29 @@ describe('HeaderComponent shared mobile avatar menu', () => {
     expect(trigger.getAttribute('aria-expanded')).toBe('true');
   }
 
+  it('excludes the closed drawer from focus and restores the navigation trigger after Escape', fakeAsync(() => {
+    const component = fixture.componentInstance as any;
+    component.closeOffCanvasMenu();
+    fixture.detectChanges();
+    tick();
+    const panel = fixture.nativeElement.querySelector('.off-canvas-menu-container') as HTMLElement;
+    const trigger = fixture.nativeElement.querySelector('button[aria-controls="mercurion-navigation-drawer"]') as HTMLButtonElement;
+    expect(panel.hasAttribute('inert')).toBeTrue();
+    expect(trigger.getAttribute('aria-expanded')).toBe('false');
+    trigger.focus();
+    trigger.click();
+    fixture.detectChanges();
+    tick();
+    expect(panel.hasAttribute('inert')).toBeFalse();
+    expect(panel.contains(document.activeElement)).toBeTrue();
+    expect(panel.getAttribute('aria-modal')).toBe('true');
+    panel.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    fixture.detectChanges();
+    tick();
+    expect(panel.hasAttribute('inert')).toBeTrue();
+    expect(document.activeElement).toBe(trigger);
+  }));
+
   it('opens the shared menu above the footer and exposes the same account actions', fakeAsync(() => {
     openMenu();
     const menu = fixture.nativeElement.querySelector('.avatar-menu-container') as HTMLElement;
@@ -203,7 +226,7 @@ describe('HeaderComponent shared mobile avatar menu', () => {
     const firstLink = menu.querySelector('a') as HTMLAnchorElement;
     const linkRect = firstLink.getBoundingClientRect();
     const hit = document.elementFromPoint(linkRect.left + linkRect.width / 2, linkRect.top + linkRect.height / 2);
-    expect(hit === firstLink || firstLink.contains(hit)).toBeTrue();
+    expect(hit === firstLink || firstLink.contains(hit)).withContext(JSON.stringify({ menu: rect.toJSON(), link: linkRect.toJSON(), footer: footer.getBoundingClientRect().toJSON(), hit: hit?.outerHTML.slice(0,200) })).toBeTrue();
     expect(Array.from(menu.querySelectorAll('a')).map(link => link.textContent?.trim())).toEqual([
       'Dashboard', 'Impostazioni', 'Supporto', 'Feedback'
     ]);
@@ -257,7 +280,7 @@ describe('HeaderComponent shared mobile avatar menu', () => {
     const backdrop = fixture.nativeElement.querySelector('.avatar-menu-backdrop') as HTMLButtonElement;
     expect(backdrop).not.toBeNull();
     const hit = document.elementFromPoint(20, 20);
-    expect(hit).toBe(backdrop);
+    expect(hit).withContext(JSON.stringify({ sidebar: sidebar.getBoundingClientRect().toJSON(), backdrop: backdrop.getBoundingClientRect().toJSON(), hit: hit?.outerHTML.slice(0,200) })).toBe(backdrop);
     const underlyingClick = jasmine.createSpy('underlyingClick');
     sidebar.querySelector('a')!.addEventListener('click', underlyingClick);
     (hit as HTMLElement).click();
