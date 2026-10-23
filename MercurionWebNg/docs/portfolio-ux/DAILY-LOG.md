@@ -350,6 +350,18 @@ Collezioni: null significa loading, [] empty immediato, niente timer o dati prec
 
 **Prossimo intervento:** N3 / PX-01 — sidebar, navigazione e offcanvas.
 
+### 2026-10-23 — Porting SMS Twilio → SMS Hosting (INF-02)
+
+**Stato:** pianificato, implementazione non avviata. L’utente segnala di avere chiuso l’account Twilio e di utilizzare SMS Hosting; l’invio attuale va quindi adeguato.
+
+**Riscontro statico:** `notification/services/sms-sender/sms-sender.service.ts` contiene `SmsSenderService.sendSms(to, body)`, client Twilio, `messages.create` e tipo restituito `MessageInstance`. Mapping `Sms` e schema env usano ancora `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_NUMBER`, `TWILIO_FROM`. Individuati chiamanti in `MfaService` e `account-flow-kernel`; inclusa regressione dei flussi account/OTP/MFA interessati.
+
+**Pianificazione:** nuova voce INF-02 con verifica preventiva della documentazione ufficiale SMS Hosting, scelta del trasporto soltanto dopo tale verifica, revisione tipi/configurazione/env e dipendenza Twilio, test positivi/negativi e prova reale solo nel perimetro concordato. Nessuna disponibilità SDK o REST API assunta come confermata. Riferimenti aggiunti a PX-03/PX-13/PX-14/PX-15.
+
+**Ordine:** N3 / navigazione resta il prossimo intervento, poi ripresa UX dal blocco 13. INF-02 è nel perimetro attivo e va pianificato prima dell’accettazione dei flussi SMS; non è rinviato con Notebook, Synthesis e R2.
+
+**Verifica:** lettura del codice e coerenza del diff documentale; nessuna prova runtime, invio SMS, lettura di segreti, modifica a servizio/env/dipendenze o operazione Git. ROADMAP.md e diario aggiornati.
+
 ## Modello per le voci successive
 
 ### AAAA-MM-GG — PX-XX — Sottoarea

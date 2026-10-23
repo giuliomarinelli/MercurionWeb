@@ -2,7 +2,7 @@
 
 Data iniziale: 6 ottobre 2026. Stato: pianificazione per lavoro incrementale e review manuale.
 
-Ultima revisione del perimetro: 23 ottobre 2026. Notebook, Synthesis e integrazione object store/Cloudflare R2 sono rinviati insieme, fuori dal percorso corrente della beta. Il codice scientifico reintegrato resta conservato ma disabilitato; il flag Documents blocca anche il DocumentController Nest. La priorità immediata è il refactor navigazione/sidebar/offcanvas, seguito dalla ripresa UX dal blocco 13 e dalla QA del perimetro attivo. Restano le decisioni di piattaforma del 22 ottobre: Angular 20 → 21 → 22 mantenendo inizialmente Zone.js e Karma, poi Node.js 26 con NestJS 11, secondo UP-01/UP-02.
+Ultima revisione del perimetro: 23 ottobre 2026. Notebook, Synthesis e integrazione object store/Cloudflare R2 sono rinviati insieme, fuori dal percorso corrente della beta. Il codice scientifico reintegrato resta conservato ma disabilitato; il flag Documents blocca anche il DocumentController Nest. La priorità immediata è il refactor navigazione/sidebar/offcanvas, seguito dalla ripresa UX dal blocco 13 e dalla QA del perimetro attivo. Restano le decisioni di piattaforma del 22 ottobre: Angular 20 → 21 → 22 mantenendo inizialmente Zone.js e Karma, poi Node.js 26 con NestJS 11, secondo UP-01/UP-02. Aggiunto INF-02: porting SMS Twilio → SMS Hosting, con revisione configurazione/env e verifica dei flussi OTP/MFA coinvolti; il precedente account Twilio è chiuso, secondo la segnalazione dell’utente.
 
 ## Obiettivo
 
@@ -71,6 +71,7 @@ La priorità indica il valore della rifinitura per il portfolio, non la gravità
 | PX-22 | Regressione funzionale dei percorsi completi | P1 | B, V | Da applicare progressivamente; passaggio finale aperto |
 | PX-23 | Sessioni, realtime e continuità del lavoro | P1 | S, V | Da verificare tra le aree |
 | PX-24 | Compatibilità, review finale e preparazione del merge | P1 | V | Da eseguire dopo la rifinitura |
+| INF-02 | Invio SMS: Twilio → SMS Hosting | P1 | S, V | Da affrontare nel perimetro beta; prima della QA finale dei flussi SMS |
 
 ## Metodo di lavoro e prossime priorità
 
@@ -79,6 +80,7 @@ Aggiornamento concordato il 23 ottobre 2026. Il branch feature Notebook/Synthesi
 - **Notebook (MF-01), Synthesis (MF-02) e object store/R2 (INF-01) sono rinviati insieme.** Non sono prerequisiti per proseguire la rifinitura e preparare il merge della beta con il perimetro attualmente attivo.
 - Notebook, Synthesis e Documents rimangono disabilitati nei quattro ambienti. Il flag `documents` protegge l’intero `DocumentController` Nest tramite `@RequiresFeatures('documents')`: gli endpoint documentali sono bloccati a backend, oltre alla mancata esposizione frontend. Il rinvio di R2 è una decisione di pianificazione coerente con questo perimetro, non un ulteriore flag tecnico.
 - La prima attività è **N3 / PX-01: refactor navigazione, sidebar e offcanvas**. A seguire si riprende il lavoro UX dal **blocco 13 / PX-08**, conservando i numeri storici.
+- **INF-02 / SMS Hosting resta nel perimetro attivo**, distinto dal rinvio di object store/R2. L’account Twilio è stato chiuso dall’utente e l’invio attuale dipende ancora dal vecchio provider: pianificare il porting prima della verifica finale dei percorsi SMS. N3 resta il prossimo intervento; il lavoro SMS va coordinato con la successiva ripresa UX e con PX-03/PX-13/PX-14/PX-15.
 - Il codice già sviluppato resta conservato. La ripresa delle feature rinviate e la loro abilitazione richiederanno una decisione esplicita e verifiche dedicate. Per i futuri sviluppi resta il metodo dei branch `feature/**` derivati dal branch di lavoro e reintegrati nello stesso, gestiti dall’utente.
 - I blocchi UX 01–12 restano implementati, in review. QA fisica Safari, regressione dei percorsi attivi e review manuale rimangono aperte; le feature rinviate riceveranno QA propria quando riprese.
 
@@ -88,6 +90,7 @@ Riferimento del comportamento dei flag: [funzionalità rinviate nella beta](../.
 |---|---|---|
 | 1 | N3 / PX-01 — Navigazione, sidebar e offcanvas | Prossimo intervento attivo: scroll dell’intera navigazione, sidebar collassata con icone, comandi in flusso e stile coerente |
 | 2 | Blocco 13 / PX-08 e successivi UX | Ripresa di stati/percorso finale dell’editor e rifiniture residue; il blocco 14 verifica la shell dopo N3 senza duplicarne il refactor |
+| Da pianificare nella ripresa UX | INF-02 — Porting SMS Hosting | Adeguare servizio/env e ripristinare gli invii prima dell’accettazione dei flussi SMS; non rinviato con R2 |
 | 3 | QA, review e preparazione del merge beta | Validare il perimetro attivo e il blocco degli accessi alle funzionalità rinviate |
 | Rinviato | N1 / MF-01 e MF-02 — Notebook e Synthesis | Codice reintegrato, completamento end-to-end e abilitazione rinviati |
 | Rinviato | N2 / INF-01 — Object store: Dropbox → Cloudflare R2 | Refactor/porting rinviato insieme a Notebook e Synthesis |
@@ -99,7 +102,7 @@ N1/N2/N3 restano identificativi di tracciamento, non rappresentano più l’ordi
 | Fase | Perimetro | Risultato necessario per avanzare |
 |---|---|---|
 | A — Navigazione | N3 / PX-01, sidebar e offcanvas | Nuova navigazione verificata nei due temi, su desktop/mobile e nei cambi di breakpoint |
-| B — Qualità del perimetro beta attivo | Ripresa dal blocco 13, UX residua, QA e review manuale | Evidenze aggiornate, QA fisica applicabile e difetti residui classificati; accessi alle feature rinviate ancora bloccati |
+| B — Qualità del perimetro beta attivo | Ripresa dal blocco 13, porting SMS INF-02, UX residua, QA e review manuale | Evidenze aggiornate, QA fisica applicabile e difetti residui classificati; accessi alle feature rinviate ancora bloccati |
 | C — Integrazione beta | Merge del risultato corrente dopo autorizzazione | Modifiche integrate e verifiche del repository riuscite sul risultato integrato |
 | Rinviata — Feature e storage | Notebook, Synthesis e refactor object store/R2 | Ripresa esplicita, completamento dei flussi, verifiche proprie e regressione prima dell’abilitazione |
 | Piattaforma — UP-01 | Angular 20 → 21 → 22, inizialmente Zone.js e Karma | Tempistiche e criteri restano quelli della sezione UP-01, senza avviare la migrazione con questa revisione |
@@ -155,6 +158,8 @@ La reintegrazione dei branch feature nel branch corrente e il merge della beta s
 **Sorgenti:** [home](../../src/app/pages/home.page/home.page.component.ts), [welcome](../../src/app/pages/welcome/welcome.page.component.ts), [hero](../../src/app/components/welcome/welcome-hero/welcome-hero.component.ts), [screenshot band](../../src/app/components/welcome/welcome-screenshot-band/welcome-screenshot-band.component.ts).
 
 ### PX-03 — Accesso e registrazione
+
+**Dipendenza SMS:** per i flussi che inviano SMS, coordinare implementazione e QA con [INF-02](#inf-02--porting-invio-sms-twilio--sms-hosting). Il porting a SMS Hosting deve essere verificato prima della loro accettazione; non utilizzare l’account Twilio chiuso.
 
 **Perché conta:** un percorso di ingresso ordinato comunica affidabilità e cura dei form.
 
@@ -353,6 +358,8 @@ La reintegrazione dei branch feature nel branch corrente e il merge della beta s
 
 ### PX-13 — Settings: completamento degli stati
 
+**Dipendenza SMS:** per i flussi che inviano SMS, coordinare implementazione e QA con [INF-02](#inf-02--porting-invio-sms-twilio--sms-hosting). Il porting a SMS Hosting deve essere verificato prima della loro accettazione; non utilizzare l’account Twilio chiuso.
+
 **Perché conta:** il riferimento iniziale va completato nelle fasi meno frequenti, senza riaprire indiscriminatamente il layout appena rifinito.
 
 **Base B/V:** quattro pannelli e cinque overlay iniziali verificati nei due temi; OTP, QR, attivazione MFA, cambio/rimozione telefono e stati successivi non sono tutti percorsi con effetti reali.
@@ -371,6 +378,8 @@ La reintegrazione dei branch feature nel branch corrente e il merge della beta s
 
 ### PX-14 — Recupero, attivazione e callback SSO
 
+**Dipendenza SMS:** per i flussi che inviano SMS, coordinare implementazione e QA con [INF-02](#inf-02--porting-invio-sms-twilio--sms-hosting). Il porting a SMS Hosting deve essere verificato prima della loro accettazione; non utilizzare l’account Twilio chiuso.
+
 **Perché conta:** la qualità si vede anche quando l'utente deve recuperare un accesso o gestire un link scaduto.
 
 **Base S/V:** percorsi presenti nel routing ma non interamente verificati con token e stati rappresentativi.
@@ -387,6 +396,8 @@ La reintegrazione dei branch feature nel branch corrente e il merge della beta s
 **Sorgenti:** [password dimenticata](../../src/app/pages/forgot-password/forgot-password.page.component.ts), [reset](../../src/app/pages/password-recovery/password-recovery.page.component.ts), [recupero account](../../src/app/pages/account-recovery/account-recovery.page.component.ts), [attivazione](../../src/app/pages/account-activate/account-activate.page.component.ts), [callback SSO](../../src/app/pages/sso/sso.page.component.ts).
 
 ### PX-15 — Notifiche
+
+**Dipendenza SMS:** per i flussi che inviano SMS, coordinare implementazione e QA con [INF-02](#inf-02--porting-invio-sms-twilio--sms-hosting). Il porting a SMS Hosting deve essere verificato prima della loro accettazione; non utilizzare l’account Twilio chiuso.
 
 **Perché conta:** una gestione leggibile degli eventi dimostra cura dell'esperienza anche oltre il percorso principale.
 
@@ -613,7 +624,7 @@ Il refactor N3 / PX-01 precede la sequenza residua qui sotto, che riprende dal b
 
 PX-19 accompagna ogni blocco. Non aspettare la fine per curare focus, errori, nomi accessibili e stati di caricamento. Se home o accesso devono essere mostrati subito a un cliente, anticipare i blocchi 15–16 senza aprire un redesign globale.
 
-PX-22 e PX-23 accompagnano gli interventi pertinenti; le righe 26–27 sono il passaggio di regressione finale, non il primo momento in cui verificare questi comportamenti. Il prossimo intervento è **N3 — navigazione/sidebar/offcanvas**; subito dopo si riprende dal blocco **13 — PX-08, editor: stati e percorso finale**. **Notebook, Synthesis e object store/R2 sono rinviati insieme**, fuori dal percorso corrente della beta. La verifica fisica della tastiera secondo [KEYBOARD-QA.md](KEYBOARD-QA.md) resta aperta prima dell'accettazione e del merge; i blocchi 01–12 restano in review. L'utente ha autorizzato il proseguimento della roadmap durante questa QA.
+PX-22 e PX-23 accompagnano gli interventi pertinenti; le righe 26–27 sono il passaggio di regressione finale, non il primo momento in cui verificare questi comportamenti. Il prossimo intervento è **N3 — navigazione/sidebar/offcanvas**; subito dopo si riprende dal blocco **13 — PX-08, editor: stati e percorso finale**. **Notebook, Synthesis e object store/R2 sono rinviati insieme**, fuori dal percorso corrente della beta. **INF-02 / SMS Hosting resta attivo da pianificare** prima dell’accettazione dei flussi SMS, senza sostituire N3 come prossimo intervento. La verifica fisica della tastiera secondo [KEYBOARD-QA.md](KEYBOARD-QA.md) resta aperta prima dell'accettazione e del merge; i blocchi 01–12 restano in review. L'utente ha autorizzato il proseguimento della roadmap durante questa QA.
 
 ## Macro-feature e object store rinviati
 
@@ -653,6 +664,27 @@ L’utente gestisce la futura ripresa di MF-01 e MF-02. Le due feature restano c
 - Verificare isolamento degli account, autorizzazioni, caricamento, lettura/download, aggiornamento ed eliminazione dove previsti, oltre a errori e riferimenti non disponibili. Usare dati di test rappresentativi e controllare le regressioni dei consumatori.
 
 **Accettazione:** operazioni e contratti previsti funzionanti su R2, riferimenti ai file coerenti e gestione dei contenuti esistenti documentata e verificata nel perimetro concordato. Nessuna perdita di dati o modifica involontaria dell’accesso ai file. Dettagli tecnici e piano di passaggio da definire dopo l’inventario, senza introdurre qui nuove decisioni architetturali.
+
+## Integrazioni attive da ripristinare
+
+### INF-02 — Porting invio SMS: Twilio → SMS Hosting
+
+**Stato: da affrontare; priorità P1 nel perimetro beta.** Aggiunto il 23 ottobre 2026. L’utente utilizza SMS Hosting e ha chiuso l’account Twilio: il percorso attuale non è operativo con le vecchie credenziali. Questo intervento **non è rinviato insieme a Notebook, Synthesis e R2**. Il refactor navigazione resta il prossimo lavoro, poi ripresa UX; INF-02 va pianificato prima della QA/accettazione dei percorsi SMS interessati.
+
+**Evidenza dal codice corrente:** `SmsSenderService.sendSms(to, body)` nel modulo Nest `notification` istanzia `Twilio` e chiama `messages.create`. Il risultato è tipizzato come `MessageInstance` dell’SDK Twilio. `ConfigKey.Sms` mappa `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_NUMBER`, `TWILIO_FROM`; lo schema di configurazione le richiede ancora. I chiamanti includono `MfaService` e `account-flow-kernel`: il porting riguarda quindi anche flussi account/OTP/MFA, oltre alle notifiche.
+
+**Interventi:**
+
+- Consultare la documentazione ufficiale aggiornata di SMS Hosting prima dell’implementazione: verificare API disponibili, eventuale SDK ufficiale, autenticazione, mittente, formato dei destinatari, risposte ed errori. L’uso di una REST API è un’ipotesi dell’utente da confermare; non fissare ora endpoint o nomi di credenziali.
+- Adattare `SmsSenderService.sendSms` al nuovo provider, verificando prima il contratto richiesto dai consumatori e rimuovendo l’accoppiamento del risultato al tipo Twilio dove necessario. Non modificare significato, scadenza o controlli dei codici OTP per effetto del cambio provider.
+- Rivedere `SmsConfiguration`, `ConfigKey.Sms` e validazione env; definire chiavi per SMS Hosting in base al contratto verificato e aggiornare esempi, fixture/test e configurazioni di build/runtime/CI che dipendono dai nomi precedenti. Verificare il ruolo effettivo di `number` e `from`; non mantenere requisiti Twilio inutilizzati. Non riportare segreti nei documenti o nei log.
+- Gestire timeout, risposte negative, autenticazione fallita e limiti del provider secondo la sua API; preservare la propagazione degli errori ai chiamanti ed evitare invii duplicati nei percorsi di recupero. Non confondere accettazione della richiesta con consegna effettiva dell’SMS.
+- Inventariare e verificare tutti i chiamanti SMS, con particolare attenzione a OTP/MFA e modifiche dei recapiti/account nei flussi esistenti; collegare la regressione a PX-03, PX-13, PX-14 e PX-15 dove applicabile. Le notifiche in-app/e-mail restano percorsi distinti.
+- Aggiornare test del servizio e dei flussi coinvolti con risposte simulate del nuovo provider; eseguire una prova reale soltanto nel perimetro concordato per destinatario e invio. Rimuovere dipendenza SDK, tipi e riferimenti Twilio rimasti senza consumatori dopo il porting, aggiornando il lockfile con il flusso del repository.
+
+**Accettazione:** applicazione avviabile con la configurazione SMS Hosting validata, senza richiedere credenziali dell’account Twilio chiuso; contratto di invio e gestione degli errori verificati; flussi SMS applicabili testati senza aggirare OTP/MFA o inviare notifiche impreviste. Registrare separatamente esito dei test simulati, eventuale invio reale concordato e limiti rimasti. La presenza di dati di configurazione non costituisce prova di funzionamento.
+
+**Sorgenti:** [servizio SMS](../../../MercurionWebNode/src/app_modules/notification/services/sms-sender/sms-sender.service.ts), [mapping configurazione](../../../MercurionWebNode/src/config/config.model.ts), [schema env](../../../MercurionWebNode/src/config/config.schema.ts), [tipi configurazione](../../../MercurionWebNode/src/config/config.types.ts), [MFA](../../../MercurionWebNode/src/app_modules/auth/services/mfa.service.ts), [flussi account](../../../MercurionWebNode/src/app_modules/auth/application/account-flow-kernel.ts).
 
 ## Aggiornamenti di piattaforma pianificati
 
