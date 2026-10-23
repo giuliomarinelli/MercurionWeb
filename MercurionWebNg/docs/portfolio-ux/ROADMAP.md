@@ -2,7 +2,7 @@
 
 Data iniziale: 6 ottobre 2026. Stato: pianificazione per lavoro incrementale e review manuale.
 
-Ultima revisione del perimetro: 21 ottobre 2026. Notebook e Synthesis anticipati prima del merge finale, su branch feature gestiti dall’utente e reintegrati nel branch corrente. Seguono refactor backend dell’object store con passaggio Dropbox → Cloudflare R2 e refactor della navigazione. La rifinitura UX e la QA residue proseguono sul prodotto integrato; Angular 22 resta pianificato dopo le macro-feature.
+Ultima revisione del perimetro: 22 ottobre 2026. Notebook e Synthesis anticipati prima del merge finale, su branch feature gestiti dall’utente e reintegrati nel branch corrente. Seguono refactor backend dell’object store con passaggio Dropbox → Cloudflare R2 e refactor della navigazione. La rifinitura UX e la QA residue proseguono sul prodotto integrato; Angular 22 è previsto a completamento dell’applicazione, mantenendo inizialmente Zone.js e Karma. L’installazione di Node.js 26 è rinviata a dopo il completamento e la validazione della migrazione Angular, mantenendo NestJS 11 come descritto in UP-02.
 
 ## Obiettivo
 
@@ -98,7 +98,7 @@ N1 raggruppa le due feature senza imporre parallelismo o una dipendenza tecnica 
 | B — Refactor prioritari | Object store/R2 e navigazione/sidebar/offcanvas | Integrazioni backend e nuova navigazione funzionanti, con prove proprie e regressione delle aree coinvolte |
 | C — Qualità e QA del perimetro ampliato | PX-01–PX-24 e verifiche trasversali delle nuove feature e dei refactor | Evidenze aggiornate, QA fisica applicabile, difetti residui classificati e review manuale completata |
 | D — Integrazione finale | Merge del risultato complessivo dopo autorizzazione | Modifiche integrate e verifiche del repository riuscite sul risultato integrato |
-| E — Migrazione | Aggiornamento ad Angular 22 dopo le macro-feature | Compatibilità verificata, migrazione controllata e nuova verifica del prodotto completo |
+| E — Migrazione | Aggiornamento Angular 20 → 21 → 22 a completamento dell’applicazione, mantenendo inizialmente Zone.js e Karma | Dipendenze e runtime compatibili, migrazione controllata e nuova verifica del prodotto completo |
 | F — Chiusura finale | Prodotto completo e aggiornato | Review finale, regressione superata e demo/documentazione aggiornate |
 
 La reintegrazione dei branch feature nel branch corrente e il merge finale del lavoro complessivo sono passaggi distinti. Gli stati della roadmap non autorizzano automaticamente nessuno dei due.
@@ -649,16 +649,77 @@ L’utente gestisce ordine e reintegrazione di MF-01 e MF-02. Eventuali dipenden
 
 **Accettazione:** operazioni e contratti previsti funzionanti su R2, riferimenti ai file coerenti e gestione dei contenuti esistenti documentata e verificata nel perimetro concordato. Nessuna perdita di dati o modifica involontaria dell’accesso ai file. Dettagli tecnici e piano di passaggio da definire dopo l’inventario, senza introdurre qui nuove decisioni architetturali.
 
-## Migrazione successiva
+## Aggiornamenti di piattaforma pianificati
+
+Decisioni aggiornate il 22 ottobre 2026. Questa sezione registra il lavoro futuro; non avvia aggiornamenti di dipendenze, engine, runtime o CI.
 
 ### UP-01 — Migrazione ad Angular 22
 
-Target indicato dall'utente, da affrontare dopo le due macro-feature. La versione precisa di destinazione e i requisiti saranno verificati al momento della migrazione nella documentazione ufficiale e nelle dipendenze installate.
+**Da affrontare a completamento dell’applicazione.** Il supporto LTS di Angular 20 termina il **28 novembre 2026**, secondo il [calendario ufficiale](https://angular.dev/reference/releases) consultato il 22 ottobre. Confrontare il completamento del prodotto con questa scadenza e sottoporre all’utente un eventuale conflitto di calendario.
+
+**Vincoli concordati:**
+
+- Mantenere inizialmente la change detection basata su **Zone.js**, incluso `provideZoneChangeDetection({ eventCoalescing: true })` e i polyfill applicativi e di test compatibili. Il progetto contiene consumatori di `NgZone`, tra cui viewer molecolare, Turnstile e sincronizzazione della sessione. La migrazione zoneless richiederà un intervento successivo dedicato; la sola iniezione di `NgZone` non dimostra incompatibilità. Angular 21+ usa zoneless come default, ma consente l’opt-in esplicito a Zone.js: [documentazione Angular](https://angular.dev/guide/zoneless).
+- Conservare **Karma/Jasmine** e la copertura esistente; rinviare il passaggio a Vitest. Verificare il builder/configurazione richiesto dalla versione di destinazione: mantenere il runner non implica lasciare invariato `angular.json`. [Karma resta supportato da Angular](https://angular.dev/guide/testing/karma).
+- Eseguire le migrazioni **20 → 21 → 22**, una major per volta, secondo il [percorso ufficiale](https://angular.dev/reference/releases#update-to-the-latest-version-of-angular). Verificare le versioni precise di CLI, framework, builder, TypeScript e Zone.js prima di ogni passaggio.
+
+**Inventario iniziale dal manifest e dal lockfile correnti (22 ottobre; da aggiornare prima dell’esecuzione):**
+
+| Area | Baseline | Lavoro da verificare |
+|---|---|---|
+| Angular e toolchain | Angular/CLI/build 20.3.33; TypeScript frontend 5.8.3 | Allineare framework, CLI, builder e lint; Angular 22.0 richiede TypeScript `>=6.0.0 <6.1.0`, da riconfermare per la minor scelta |
+| Client GraphQL | `apollo-angular` 10.0.3; `@apollo/client` 3.13.8; GraphQL 16.11.0 | Il peer di Apollo Angular 10 arriva ad Angular 19; root e frontend usano già `legacy-peer-deps=true`. Selezionare una coppia supportata per Angular 22 e migrare gli adattatori applicativi |
+| UI | PrimeNG 20.4.0 e CDK 20.2.14 | I peer attuali non ammettono Angular 22; aggiornare le versioni e verificare temi, overlay, form, focus e accessibilità |
+| Rich text | `ngx-quill` 28.0.2 e Quill 2.0.2 | `ngx-quill` richiede Angular 20; scegliere una versione compatibile e verificare editor, contenuti e salvataggi |
+| Altri consumatori | `ngx-skeleton-loader` 11.0.0, RxJS 7.8.1, integrazioni scientifiche e librerie browser | Controllare peer, API e comportamento effettivo; un intervallo peer permissivo non certifica il funzionamento |
+
+**Attenzione specifica al client GraphQL:** le [release ufficiali di Apollo Angular](https://github.com/the-guild-org/apollo-angular/releases) dichiarano supporto ad Angular 22 dalla 14.1. Il percorso attraversa le breaking change della 12 legate ad Apollo Client 4 e quelle della 14 sugli errori HTTP (`ServerError` al posto di `HttpErrorResponse`). Verificare import/tipi, observable, risultati parziali, error policy, autenticazione/refresh/retry, cache e paginazione, mutazioni e aggiornamenti realtime. Il Codegen corrente produce tipi e `TypedDocumentNode`, non servizi generati Apollo Angular: valutare le breaking change sui consumatori effettivi e rigenerare gli artefatti senza modificarli a mano. La rimozione di `legacy-peer-deps` richiede la verifica dell’intero albero, non soltanto del client.
+
+**Approfondimento sulla tipizzazione Apollo 4 (lettura statica del 22 ottobre; nessuna compilazione contro la nuova versione):**
+
+- La pipeline `codegen.yml` legge lo schema Nest e genera tipi di operazione e `TypedDocumentNode`. Questo formato è previsto anche nella [configurazione Codegen documentata da Apollo 4](https://www.apollographql.com/docs/react/development-testing/graphql-codegen): non è emersa un’incompatibilità generale dello schema o la necessità di riscrivere i documenti GraphQL. Rivedere comunque configurazione, scalari, nullabilità e `__typename`, poi rigenerare e verificare contro le versioni scelte.
+- Gli helper `graphql-helpers/v1` e `v2` modellano i risultati con `data` e `errors[]` e leggono `res.errors`. Adeguarli al [modello di errori Apollo 4](https://www.apollographql.com/docs/react/data/error-handling), che espone `error` nei risultati pertinenti e classi come `CombinedGraphQLErrors`. I campi opzionali del modello locale potrebbero permettere la compilazione pur ignorando il nuovo errore: coprire esplicitamente errori GraphQL, dati assenti e dati parziali secondo l’error policy effettiva.
+- `molecule.service.ts` accede direttamente a `result.data.<campo>`: verificare la possibilità di dato assente e il tipo restituito dall’API Angular scelta. Dove applicabili, gli stati di completezza e i risultati parziali richiedono narrowing; non trasferire automaticamente le firme degli hook React ai servizi Angular. Consultare la [guida TypeScript Apollo](https://www.apollographql.com/docs/react/data/typescript) e le firme effettive di Apollo Angular.
+- I wrapper `read`/`write` di `notebook.service.ts` ricevono `DocumentNode` e `Record<string, unknown>`, perdendo la relazione generata tra operazione e variabili. Preservare tale relazione durante l’adeguamento; verificare anche le query alternative con/senza elementi e i cast ai modelli applicativi di `molecule-collection.service.ts`. Sono punti da rafforzare, non errori di compilazione già dimostrati.
+- `apollo-cache-policies.ts` contiene tre usi di `ApolloCache<unknown>`; il tipo della cache nella nuova API non mantiene quel parametro generico. Adeguare queste firme insieme agli import e ai tipi delle policy.
+- Trattare questo lavoro come parte esplicita della migrazione: prima Codegen e adattatori condivisi, poi servizi e modelli applicativi, infine regressione dei consumatori. La lettura corrente individua rischi e cambi API, ma non quantifica ancora tutti gli errori TS; non risolverli con cast indiscriminati o modifiche manuali ai file generati.
+
+**Equivalenza funzionale con il legacy e idempotenza delle scritture:**
+
+La migrazione avverrà su un branch dedicato. L’isolamento Git consente review e ritorno alla versione precedente, ma non dimostra che i comportamenti siano equivalenti. Qui equivalenza significa conservare risultati osservabili e contratti applicativi nei casi concordati; idempotenza significa che ripetere una stessa operazione logica non produce effetti aggiuntivi, dove il contratto lo richiede. Non presumere che tutte le mutazioni siano già idempotenti.
+
+1. **Baseline identificabile.** Prima degli aggiornamenti fissare lo SHA legacy di riferimento, le versioni della toolchain e del backend, le fixture e le configurazioni rilevanti. Eseguire le verifiche esistenti e completare i test di caratterizzazione dei comportamenti sensibili. Registrare i difetti preesistenti separatamente dai comportamenti da preservare. Se la baseline riceve hotfix, riallineare esplicitamente riferimento e prove.
+2. **Confronto ripetibile.** Eseguire gli stessi scenari su legacy e migrato con identici dati iniziali e versione backend, controllando tempo e risposte asincrone quando rilevanti. Nei test con risposte simulate usare le stesse fixture; nelle prove integrate ripristinare database e altri stati modificabili prima di ciascuna versione. Non far scrivere le due versioni in sequenza sugli stessi dati già alterati e non duplicare operazioni reali per confrontarle. Normalizzare soltanto differenze non funzionali dichiarate, come ID generati e timestamp, preservando relazioni e significato.
+3. **Matrice Apollo e prodotto.** Coprire successo, `null`, dato assente, errori GraphQL/HTTP, risultati parziali e policy effettive; cache fredda/calda, paginazione e invalidazione dopo mutazioni; logout/cambio account senza dati del precedente utente; refresh dell’autenticazione; risposte fuori ordine, navigazione e teardown; editor, salvataggi, collezioni e feature effettivamente disponibili nella baseline. Confrontare operazioni/variabili GraphQL, risultati applicativi, errori, stati UI e stato finale persistito. Definire limiti al traffico e ai retry, evitando nuove richieste o watcher involontari; non richiedere identità degli oggetti interni Apollo.
+4. **Effetti ripetuti e concorrenza.** Verificare doppio clic, retry e timeout, incluso il caso in cui il server abbia completato la scrittura ma il client non abbia ricevuto la risposta. Controllare record, relazioni ed effetti collaterali previsti tramite backend/database di test; il solo conteggio delle richieste o una risposta intercettata nel browser non prova idempotenza persistente. Ripetizioni della stessa operazione logica e nuove operazioni intenzionali devono restare distinguibili. Eventuali garanzie mancanti nel legacy sono gap da sottoporre all’utente, non autorizzazione implicita ad ampliare il backend durante l’upgrade.
+5. **Prove indipendenti dall’implementazione.** Riutilizzare test dei servizi, contratti GraphQL, regressioni di salvataggio e percorsi Playwright già presenti, dopo verifica della copertura. Mantenere le stesse aspettative funzionali tra le versioni; adeguare il test harness alle API nuove senza cambiare le aspettative soltanto per ottenere il verde. La caratterizzazione del legacy va verificata anche rispetto al contratto atteso, per non cristallizzare bug.
+6. **Criterio di integrazione.** Validare ogni passaggio della migrazione e l’esatto SHA finale con controlli locali mirati, CI canonica Windows/Linux e browser nel runtime previsto. Consegnare una matrice caso/esito legacy/esito migrato/evidenza, con differenze spiegate e accettate, limiti di copertura e procedura di ritorno al rilascio precedente. Nessuna differenza funzionale inspiegata o regressione critica aperta; compilazione e CI verdi da sole non certificano equivalenza. Una garanzia assoluta su tutte le esecuzioni non è dimostrabile con questa matrice: la conclusione riguarda i contratti e gli scenari verificati.
+
+**Ipotesi Beta 1 su Angular 20 oltre la fine del supporto:**
+
+Il [calendario ufficiale Angular](https://angular.dev/reference/releases) colloca la fine LTS della 20 al 28 novembre 2026. La scadenza riguarda la manutenzione del framework: non introduce un arresto automatico del frontend distribuito. Build e applicazione possono continuare a funzionare, ma dopo la fine LTS non si può fare affidamento sui normali aggiornamenti ufficiali della major per nuove vulnerabilità o regressioni di compatibilità. L’etichetta beta non modifica questo stato; fine supporto non significa di per sé vulnerabilità già presente, e CI verde non ripristina il supporto upstream. Angular raccomanda di [mantenere aggiornate le librerie anche per le correzioni di sicurezza](https://angular.dev/best-practices/security).
+
+Un eventuale rilascio Beta 1 dopo tale data richiede una decisione esplicita dell’utente sul rischio residuo, valutata sul pubblico e sui dati effettivi della beta, sulle vulnerabilità note al momento e sul piano di migrazione. Come proposta da valutare, limitare l’eventuale periodo fuori supporto, indicare responsabile e data obiettivo del passaggio ad Angular 22, e prevedere una risposta alle vulnerabilità applicabili, fino alla limitazione o sospensione dei percorsi esposti se non correggibili. Non è stata approvata qui un’eccezione, una data di rilascio o un cambio della sequenza concordata. Il controllo di sicurezza applicabile prima del rilascio rimane necessario anche per una beta.
+
+**Esecuzione e accettazione:**
 
 - Fotografare la baseline del prodotto completo, verificare percorso di aggiornamento e compatibilità di Angular, Node.js, TypeScript e librerie effettivamente utilizzate, incluse UI, GraphQL, editor rich text e integrazioni chimiche.
 - Separare la migrazione dai redesign e dalle nuove funzionalità; aggiornare codice/configurazione soltanto dove richiesto e mantenere verificabili i cambiamenti.
-- Rieseguire controlli del repository, build e confini lazy, regressione funzionale, browser e accessibilità; verificare in particolare form, overlay, focus, temi, editor e viewer.
+- Eseguire controlli locali mirati con le dipendenze esistenti; la CI canonica verifica installazione pulita e aggregato completo su Windows/Linux. Verificare tutti i test Karma, GraphQL/Codegen e build, oltre a confini lazy, regressione funzionale, browser e accessibilità; includere form, overlay, focus, temi, editor e viewer.
 - Aggiornare documentazione, dataset e demo dopo l'ultima regressione. La QA precedente rimane una baseline, non una certificazione della versione aggiornata.
+
+### UP-02 — Node.js 26 mantenendo NestJS 11
+
+**Prerequisito: UP-01 completata e validata.** Per decisione dell’utente del 22 ottobre 2026, attendere la migrazione ad Angular 22 prima di installare Node.js 26; l’obiettivo precedente di fine ottobre è superato. Mantenere **NestJS 11**, aggiornandone patch/minor e integrazioni compatibili quando necessario; NestJS 12 resta fuori da questo intervento.
+
+**Sequenza concordata:** la [matrice ufficiale Angular](https://angular.dev/reference/versions) ammette Node 26 per Angular 22, ma non per Angular 20/21. Il Node 22.16.0 oggi fissato nel repository è inferiore al minimo 22.22.3 indicato per Angular 22.0: durante UP-01 adeguare la patch di Node 22 a una versione supportata dalle major attraversate. Completare e validare Angular 20 → 21 → 22 su tale runtime; soltanto dopo installare Node 26 ed eseguire UP-02. Anche le prove dedicate del backend su Node 26 sono rinviate a questa fase.
+
+- Inventariare e allineare `engines.node`, `engines.npm`, `packageManager`, metadati del lockfile, workflow CI, immagini Docker di build/runtime, controlli di policy, script e istruzioni di sviluppo. Oggi root, frontend e backend fissano Node 22.16.0 e npm 10.9.2; scegliere versioni precise Node/npm e tipi `@types/node` durante la migrazione, dopo la verifica di compatibilità.
+- Verificare Nest 11 (baseline 11.2.7), Fastify e plugin, Mercurius/GraphQL, TypeORM/PostgreSQL, Redis, NATS e Socket.IO. Non dedurre compatibilità dal solo campo `engines` di Nest e non introdurre un aggiornamento major del framework per conseguenza.
+- Verificare installazione e caricamento delle dipendenze native, in particolare `argon2` e `@css-inline/css-inline`, su Windows e Linux/container Alpine; includere gli script di installazione e i dati richiesti da `geoip-lite`.
+- Eseguire typecheck, lint, build, test Jest unit/E2E e gate contrattuali pertinenti, quindi prove runtime di avvio/arresto, autenticazione, GraphQL, realtime, accesso ai servizi e percorsi email/scientifici con dipendenze non di produzione. Certificare installazione pulita e aggregato completo nella CI canonica sull’esatto SHA finale.
+
+**Accettazione:** UP-01 è già completata e validata; dichiarazioni di engine, CI, container e runtime concordano sulle versioni validate; Nest resta nella major 11 e il frontend usa una combinazione ufficialmente supportata. Registrare evidenze e limiti delle verifiche Node 26 sull’intero workspace.
 
 ## Criterio comune di completamento
 
