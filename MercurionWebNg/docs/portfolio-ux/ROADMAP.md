@@ -219,6 +219,7 @@ La reintegrazione dei branch feature nel branch corrente e il merge della beta s
 **Interventi:**
 
 - Coerenza di titolo, ricerca, contatori, CTA e paginazione tra le due liste.
+- Aggiungere a «Le mie molecole» le pill **Tutte / Personal / ChEMBL**, con filtro semplice lato client secondo [PX-19B](#px-19b--filtri-semplici-lato-client-con-pill).
 - Bilanciare struttura molecolare, nome, badge e metadati nelle card.
 - Distinguere chiaramente apertura del dettaglio, selezione e azioni secondarie.
 - Rifinire hover, focus, selezionato, pending e rimozione senza perdere le animazioni esistenti.
@@ -239,6 +240,7 @@ La reintegrazione dei branch feature nel branch corrente e il merge della beta s
 - Dare priorità al nome e all'aggiunta; separare visivamente azioni distruttive e di gestione.
 - Rifinire modifica inline, conferma, annullamento e feedback del salvataggio.
 - Allineare filtro, risultati, contatore e paginazione.
+- Applicare alle molecole della collezione le stesse pill **Tutte / Personal / ChEMBL** di «Le mie molecole», secondo [PX-19B](#px-19b--filtri-semplici-lato-client-con-pill).
 - Verificare nome lungo, collezione vuota e filtro senza corrispondenze.
 - Curare selezione multipla e conferme con conseguenze esplicite.
 
@@ -440,6 +442,7 @@ La reintegrazione dei branch feature nel branch corrente e il merge della beta s
 **Interventi:**
 
 - Rifinire elenco ticket, stato, data, oggetto e azione di apertura.
+- Aggiungere alla pagina Help le pill **Tutti / Non chiusi** (equivalente a nascondere i chiusi), con filtro lato client secondo [PX-19B](#px-19b--filtri-semplici-lato-client-con-pill). Eventuali pill per altri stati restano da valutare.
 - `NewTicket`: gerarchia di oggetto e messaggio, toolbar Quill, errori e azioni finali.
 - `TicketDetail`: separare informazioni del ticket, conversazione e composer; curare mittente, orari, messaggi lunghi e stato chiuso.
 - Verificare storico lungo, caricamento precedente, posizione di lettura e arrivo di nuovi messaggi.
@@ -519,6 +522,28 @@ La reintegrazione dei branch feature nel branch corrente e il merge della beta s
 **Accettazione futura:** confronto prima/dopo sul caso dello screenshot e sugli altri overlay interessati; contenuto centrato secondo il layout previsto, select e floating input di altezza coerente e allineati, bordi uniformi nei rispettivi stati. Verificare tema chiaro/scuro, desktop/mobile, focus da tastiera, apertura del menu, label flottante ed errori, senza regressioni di selezione o leggibilità. Il solo screenshot allegato documenta il difetto, non una verifica runtime della correzione.
 
 **Sorgenti da esaminare alla ripresa:** [select custom `m-select`](../../src/app/components/common/pm-select/pm-select.component.ts), [floating input `m-text-field`](../../src/app/components/common/text-field/text-field.component.ts), [overlay dati sensibili/telefono](../../src/app/components/action-components/sensitive-data-change/sensitive-data-change-workflow.component.ts).
+
+#### PX-19B — Filtri semplici lato client con pill
+
+**Stato:** intervento richiesto dall’utente il 23 ottobre 2026, **da implementare nella rifinitura della beta** insieme alle aree PX-05/PX-06/PX-16. Questa annotazione registra il requisito e non avvia l’implementazione.
+
+**Riferimento grafico:** le due pill «Tutte / Non lette» della [pagina Notifiche](../../src/app/pages/notifications/notifications.page.component.ts). Riprenderne lo stile semplice e pulito, con selezione riconoscibile, nei due temi e su mobile.
+
+| Pagina | Pill previste | Criterio |
+|---|---|---|
+| Le mie molecole | Tutte / Personal / ChEMBL | Tutti gli elementi oppure la sola tipologia scelta, usando i tipi già presenti nei dati |
+| Dettaglio collezione: elenco molecole | Tutte / Personal / ChEMBL | Stesso comportamento e stessa presentazione di «Le mie molecole» |
+| Help: elenco ticket | Tutti / Non chiusi | Tutti i ticket oppure esclusione di quelli chiusi; eventuali pill per altri stati esistenti da valutare, non obbligatorie per la prima implementazione |
+
+**Perimetro concordato per la beta:** una sola pill attiva per gruppo, con «Tutte/Tutti» come stato iniziale. Applicare il filtro nel componente all’array dei dati caricati, tramite `Array.filter`, mantenendo intatto l’elenco originale. Nessun costruttore di filtri o combinazione logica AND/OR/NOR/NOT/IN, nessun nuovo filtro lato server o modifica a API, query e contratti per realizzare queste pill.
+
+**Paginazione e limiti:** le liste esistenti caricano i dati progressivamente; il filtro client riguarda soltanto gli elementi già caricati, non l’intero insieme sul server. Chiarire questo limite nell’interfaccia quando necessario, mantenere disponibile il caricamento successivo e applicare la pill attiva anche ai nuovi elementi. Un filtro senza corrispondenze nei dati caricati non dimostra che non esistano risultati nelle pagine successive; contatori e messaggi non devono presentarlo come un totale globale. Evitare il caricamento preventivo di tutto il dataset per simulare un filtro server.
+
+**Accettazione futura:** pill coerenti con Notifiche, utilizzabili da tastiera e touch, stato selezionato accessibile; risultati e contatori visibili aggiornati senza perdere dati o selezioni. «Tutte/Tutti» ripristina l’elenco caricato; gli aggiornamenti e le nuove pagine rispettano il filtro attivo. Distinguere lista vuota da assenza di corrispondenze al filtro e verificare le tre pagine con dataset misti e più pagine.
+
+**Evoluzione dopo la beta:** valutare lo spostamento della logica di filtro sul server, mantenendo la stessa grafica e gli stessi comandi. Tale evoluzione è rinviata e non è un prerequisito per questa prima versione.
+
+**Sorgenti da esaminare alla ripresa:** [Le mie molecole](../../src/app/pages/all-my-molecules/all-my-molecules.page.component.ts), [dettaglio collezione](../../src/app/pages/molecule-collection-detail/molecule-collection-detail.page.component.ts), [Help](../../src/app/pages/help/help.page.component.ts), [riferimento Notifiche](../../src/app/pages/notifications/notifications.page.component.ts).
 
 ### PX-20 — Reattività percepita e movimento
 
