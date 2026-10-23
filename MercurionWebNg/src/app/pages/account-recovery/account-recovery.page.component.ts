@@ -133,7 +133,9 @@ import { adaptHttpFormError, type FormErrorState } from '../../utils/form-error.
                   [errors]="{
                     required: 'E-mail obbligatoria.',
                     email: 'Formato e-mail non corretto',
-                    pattern: 'Formato e-mail non corretto'
+                    pattern: 'Formato e-mail non corretto',
+                    emailTaken: 'E-mail già registrata.',
+                    serverError: 'Impossibile verificare la disponibilità dell’e-mail. Riprova.'
                   }"
                   [disabled]="loading()"
               />
@@ -166,8 +168,8 @@ import { adaptHttpFormError, type FormErrorState } from '../../utils/form-error.
               <div class="relative mb-3 mt-2">
                 <button
                   type="submit"
-                  [disabled]="loading() || !turnstileToken() || recoveryGroup.invalid"
-                  [attr.aria-disabled]="loading() || !turnstileToken() || recoveryGroup.invalid"
+                  [disabled]="loading() || !turnstileToken() || !recoveryGroup.valid"
+                  [attr.aria-disabled]="loading() || !turnstileToken() || !recoveryGroup.valid"
                   [attr.aria-busy]="loading()"
                   aria-label="Continua"
                   class="relative bottom-[2px] w-full mt-4 py-2 text-white rounded-md transition-colors duration-150 bg-light-accent-primary-hq dark:bg-dark-accent-primary-btn hover:bg-light-accent-primary-hc dark:hover:bg-dark-accent-primary/80 disabled:bg-light-accent-primary-hq/60 disabled:dark:bg-dark-accent-primary/80 disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary-hq/60 disabled:hover:dark:bg-dark-accent-primary/80"
@@ -278,21 +280,18 @@ export class AccountRecoveryPageComponent implements OnInit, OnDestroy {
           [Validators.required, Validators.email, Validators.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)],
           emailAvailabilityValidator(this.authService)
         ),
-        password: this.fb.control('', [Validators.required, Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8 }$/)]),
+        password: this.fb.control('', [Validators.required, Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/)]),
         confirmPassword: this.fb.control('', [Validators.required, matchPassword])
-      },
-      { validators: matchPassword })
+      })
     this.codeCtrlSub = this.codeCtrl.valueChanges.pipe(
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(() => {
       this.resetServerError()
-      this.codeCtrl.updateValueAndValidity()
     })
     this.recoveryGroupSub = this.recoveryGroup.valueChanges.pipe(
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(() => {
       this.resetServerError()
-      this.recoveryGroup.updateValueAndValidity()
     })
     const passwordCtrl = this.recoveryGroup.get('password')
     const confirmPasswordCtrl = this.recoveryGroup.get('confirmPassword')
