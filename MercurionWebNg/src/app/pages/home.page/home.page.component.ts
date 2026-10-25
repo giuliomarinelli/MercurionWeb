@@ -1,5 +1,4 @@
-import { Component, computed, inject, ChangeDetectionStrategy } from '@angular/core';
-import { NgClass } from '@angular/common';
+import { Component, computed, effect, inject, ChangeDetectionStrategy } from '@angular/core';
 import { ProgressIndicatorComponent } from '../../components/common/progress-indicator/progress-indicator.component';
 import { ButtonComponent } from '../../components/common/button/button.component';
 import { UserContextService } from '../../services/context/user-context.service';
@@ -11,53 +10,30 @@ import { AppShellFacade } from '../../services/app-shell.facade';
 @Component({
   selector: 'm-home-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgClass, ProgressIndicatorComponent, ButtonComponent],
-  styles: `
-    @reference "../../../styles.css";
-    @keyframes letter-appears-kf {
-      from {
-        opacity: 0;
-        transform: translateY(-30px) translateX(-18px) rotateX(-40deg);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0) translateX(0) rotateX(0);
-      }
-    }
-    @keyframes scale-up-kf {
-      from {
-        transform: scale(1);
-      }
-      to {
-        transform: scale(1.2);
-      }
-    }
-    .letter-appears {
-      animation: letter-appears-kf 0.65s ease both;
-    }
-    .bg {
-      @apply bg-slate-300 dark:bg-slate-900;
-    }
-  `,
+  imports: [ProgressIndicatorComponent, ButtonComponent],
+  styleUrl: './home.page.component.css',
   template: `
-    <main class="bg min-h-dvh flex justify-center items-center px-6 py-12">
+    <main class="home">
       @if (showProgress()) {
         <m-progress-indicator />
       } @else {
-        <section class="flex w-full max-w-3xl flex-col items-center gap-6">
-          <h1 class="tracking-widest text-center font-semibold text-[clamp(1.75rem,7vw,6rem)]">
+        <section class="home__content" aria-labelledby="home-title" [class.home--intro]="!skipAnimations">
+          <div class="home__identity" aria-hidden="true">
+            <svg class="home__orbit" viewBox="0 0 200 200" fill="none" focusable="false">
+              <path d="M100 16 173 58v84l-73 42-73-42V58Z" />
+              <path d="m100 36 55 32v64l-55 32-55-32V68Z" />
+              <circle cx="100" cy="16" r="4" /><circle cx="173" cy="142" r="4" /><circle cx="27" cy="142" r="4" />
+            </svg>
+            <img [src]="logoSrc()" alt="" width="80" height="104" class="home__logo" />
+          </div>
+          <p class="home__eyebrow">Next Gen Chemistry.</p>
+          <h1 id="home-title" class="home__title" aria-label="Mercurion">
             @for (letter of mercurionLetters; track $index; let i = $index) {
-              <span class="inline-block" [class.letter-appears]="!skipAnimations" [style.animation-delay.ms]="skipAnimations ? null : i * 750" [ngClass]="{
-                'text-light-accent-primary-hq dark:text-dark-accent-primary': i === 0,
-                'text-light-accent-primary-hq dark:text-slate-50': i > 0 && i < mercurionLetters.length - 1,
-                'text-light-accent-secondary dark:text-dark-accent-secondary': i === mercurionLetters.length - 1
-              }">{{ letter }}</span>
+              <span aria-hidden="true" [style.animation-delay.ms]="skipAnimations ? null : i * 35">{{ letter }}</span>
             }
           </h1>
-          <span class="flex justify-center" [class.letter-appears]="!skipAnimations" [style.animation-delay.ms]="skipAnimations ? null : mercurionLetters.length * 750">
-            <img [src]="logoSrc()" alt="Mercurion Logo" class="w-20 h-auto mb-6" />
-          </span>
-          <div class="grid w-full max-w-2xl grid-cols-1 sm:grid-cols-3 gap-4" [class.letter-appears]="!skipAnimations" [style.animation-delay.ms]="skipAnimations ? null : (mercurionLetters.length + 1) * 750">
+          <p class="home__description">Esplora e disegna strutture molecolari, costruisci le tue collezioni.</p>
+          <div class="home__actions">
             <m-button variant="outline" size="lg" [fullWidth]="true" routerLink="/welcome">
               Scopri Mercurion
             </m-button>
@@ -70,21 +46,23 @@ import { AppShellFacade } from '../../services/app-shell.facade';
           </div>
         </section>
       }
-
-
-
     </main>
-
   `,
 })
 export class HomePageComponent {
 
   private readonly userCtx = inject(UserContextService)
   private readonly themeManager = inject(ThemeManagerService)
-  protected readonly skipAnimations = inject(AppShellFacade).shouldSkipHomeAnimations()
+  private readonly shell = inject(AppShellFacade)
+  protected readonly skipAnimations = this.shell.shouldSkipHomeAnimations()
 
   protected readonly mercurionLetters = [...'Mercurion.']
   protected readonly showProgress = computed(() => this.userCtx.isLoggedIn() || this.userCtx.isRestoringSession())
+  constructor() {
+    effect(() => {
+      if (!this.showProgress()) this.shell.markHomePresented()
+    })
+  }
   readonly logoSrc = () => {
     const { PICTOGRAM_LIGHT, PICTOGRAM_DARK } = environment.logoSrc
     return this.themeManager.theme() === 'light' ? PICTOGRAM_LIGHT : PICTOGRAM_DARK

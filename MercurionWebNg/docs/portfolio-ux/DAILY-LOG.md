@@ -462,6 +462,26 @@ Collezioni: null significa loading, [] empty immediato, niente timer o dati prec
 
 **Prossimo blocco:** 15A / PX-02 — Home e benvenuto; chiarire il messaggio prima di riscrivere il copy.
 
+### 2026-10-25 — INF-03 — Pianificazione verifica log Meilisearch
+
+**Stato:** pianificato, non implementato/testato. Aggiunta alla roadmap la separazione degli indici log per ambiente e la prova logger → outbox → indicizzazione → frontend Docker tramite forwarding SSH.
+
+**Evidenza statica:** indice `logs` fisso nel payload di MeiliLoggerService; configurazione con host/chiave e test esistenti insufficienti a dimostrare isolamento o consegna reale. Registrati gestione dei task asincroni, retry, eventi pendenti, redazione e prove con log sintetici. Le immagini individuate dall’utente e i dettagli di connessione vanno confermati prima dell’esecuzione.
+
+**Verifica:** controllo documentale e lettura dei sorgenti; nessun runtime, container o accesso remoto avviato. La prossima attività UX rimane 15A / PX-02.
+
+### 2026-10-25 — PX-02 / Blocco 15A — Home e benvenuto
+
+**Stato:** implementato, in review. [Prove e limiti](HOME-QA.md).
+
+**Interventi:** composizione con pittogramma e cornice molecolare, gradienti a tema, animazione finita entro un secondo; CTA visibili e utilizzabili dal primo frame. Il flag locale viene scritto anche alla presentazione della home anonima, senza consumare l’introduzione durante il ripristino sessione. Conservati route e marking precedente; CSS locale e token esistenti.
+
+**Verifica:** baseline 26 test, finale 33; typecheck, lint, policy, build e bundle/lazy riusciti. Chrome: 18 combinazioni responsive light/dark, primo ingresso, reload, nuova scheda, reduced motion effettivo, focus e tre destinazioni verificati. Azioni ferme durante l’ingresso; un piccolo shift nel footer della shell di avvio resta nel seguito PX-01. Logout effettuato dall’utente, nessun login/modulo inviato dall’agente.
+
+**Rimane:** review manuale, Safari fisico, reduced motion nativo al caricamento e riavvio completo del browser. Nessuna CI remota o operazione Git. Prove in `C:/Users/giuli/.codex/artifacts/mercurion-home-15a-2026-10-25/`.
+
+**Prossimo blocco:** 15B — Welcome e screenshot aggiornati; messaggio commerciale sostanziale ancora subordinato al segmento clienti.
+
 ## Modello per le voci successive
 
 ### AAAA-MM-GG — PX-XX — Sottoarea

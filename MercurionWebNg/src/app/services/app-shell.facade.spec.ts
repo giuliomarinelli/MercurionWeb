@@ -75,7 +75,7 @@ describe('AppShellFacade', () => {
     new BrowserStorageRegistry().remove(storageDescriptor('mercurion.v1.is-first-visit'))
   })
 
-  it('persists the home animation flag only after reaching one of the three destinations', () => {
+  it('preserves destination-based marking and ignores cancelled navigation', () => {
     const facade = TestBed.inject(AppShellFacade)
     const events = TestBed.inject(Router).events as import('rxjs').Subject<import('@angular/router').Event>
     const descriptor = storageDescriptor<string>('mercurion.v1.is-first-visit')
@@ -92,6 +92,14 @@ describe('AppShellFacade', () => {
       expect(localStorage.getItem(descriptor.key)).toBe('true')
       expect(facade.shouldSkipHomeAnimations()).toBeTrue()
     }
+  })
+
+  it('persists a presented public home independently of destination navigation', () => {
+    const facade = TestBed.inject(AppShellFacade)
+    expect(facade.shouldSkipHomeAnimations()).toBeFalse()
+    facade.markHomePresented()
+    expect(facade.shouldSkipHomeAnimations()).toBeTrue()
+    expect(TestBed.inject(BrowserStorageRegistry).get(storageDescriptor('mercurion.v1.is-first-visit'))).toBe('true')
   })
 
   it('requests one handshake per tick without reacting to state read by the handshake', () => {

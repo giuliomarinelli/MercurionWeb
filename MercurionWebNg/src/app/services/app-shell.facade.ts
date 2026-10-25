@@ -122,6 +122,11 @@ export class AppShellFacade implements OnDestroy {
     return this.storage.get(this.firstVisitDescriptor) === 'true'
   }
 
+  /** Called when the public home is presented, after session restoration. */
+  markHomePresented(): void {
+    this.storage.set(this.firstVisitDescriptor, 'true')
+  }
+
   private handleFirstVisit(url: string): void {
     if (url === '/welcome' || url === '/login' || url === '/register') {
       this.storage.set(this.firstVisitDescriptor, 'true')

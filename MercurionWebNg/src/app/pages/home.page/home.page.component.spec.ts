@@ -22,7 +22,10 @@ describe('HomePageComponent', () => {
       imports: [HomePageComponent],
       providers: [
         { provide: UserContextService, useValue: { isLoggedIn, isRestoringSession } },
-        { provide: AppShellFacade, useValue: { shouldSkipHomeAnimations: () => storage.get(descriptor) === 'true' } }
+        { provide: AppShellFacade, useValue: {
+          shouldSkipHomeAnimations: () => storage.get(descriptor) === 'true',
+          markHomePresented: () => storage.set(descriptor, 'true')
+        } }
       ]
     })
     .compileComponents();
@@ -38,14 +41,14 @@ describe('HomePageComponent', () => {
 
   afterEach(() => storage.remove(descriptor));
 
-  it('shows letters, logo and links without animation or delay when the local flag is true', () => {
+  it('shows the final composition without animation or delay when the local flag is true', () => {
     fixture.destroy();
     storage.set(descriptor, 'true');
     fixture = TestBed.createComponent(HomePageComponent);
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('.letter-appears')).toBeNull();
-    const elements = Array.from(fixture.nativeElement.querySelectorAll('h1 span, section > span, section > div')) as HTMLElement[];
+    expect(fixture.nativeElement.querySelector('.home--intro')).toBeNull();
+    const elements = Array.from(fixture.nativeElement.querySelectorAll('h1 span, .home__logo, .home__orbit')) as HTMLElement[];
     expect(elements.length).toBe(12);
     for (const element of elements) {
       expect(getComputedStyle(element).animationName).toBe('none');
@@ -60,54 +63,51 @@ describe('HomePageComponent', () => {
       storage.set(descriptor, value);
       fixture = TestBed.createComponent(HomePageComponent);
       fixture.detectChanges();
-      expect(fixture.nativeElement.querySelectorAll('.letter-appears').length).toBe(12);
+      expect(fixture.nativeElement.querySelector('.home--intro')).not.toBeNull();
     }
   });
 
-  it('renders the title with staggered entrance animations', () => {
+  it('completes the title entrance within one second', () => {
     const letters = Array.from(fixture.nativeElement.querySelectorAll('h1 span')) as HTMLElement[];
     expect(letters.map(letter => letter.textContent).join('')).toBe('Mercurion.');
     expect(letters.length).toBe(10);
-    letters.forEach((letter, index) => {
+    letters.forEach(letter => {
       const style = getComputedStyle(letter);
       expect(style.animationName).not.toBe('none');
-      expect(parseFloat(style.animationDelay)).toBeCloseTo(index * 0.75);
+      expect(parseFloat(style.animationDelay) + parseFloat(style.animationDuration)).toBeLessThanOrEqual(1);
       expect(style.animationFillMode).toBe('both');
     });
   });
 
-  it('keeps the logo hidden until its entrance delay ends', () => {
-    const logo = fixture.nativeElement.querySelector('img') as HTMLImageElement;
-    const container = logo.parentElement!;
-    expect(getComputedStyle(container).animationDelay).toBe('7.5s');
-    const animation = container.getAnimations()[0];
-    expect(animation).toBeDefined();
-    animation.pause();
-    animation.currentTime = 7499;
-    expect(getComputedStyle(container).opacity).toBe('0');
-    animation.currentTime = 8150;
-    expect(getComputedStyle(container).opacity).toBe('1');
+  it('keeps all actions visible and outside the animated elements from the first frame', () => {
+    const actions = fixture.nativeElement.querySelector('.home__actions') as HTMLElement;
+    expect(getComputedStyle(actions).opacity).toBe('1');
+    expect(actions.getAnimations({ subtree: true }).length).toBe(0);
+    const links = Array.from(actions.querySelectorAll('a'));
+    expect(links.map(link => link.getAttribute('href'))).toEqual(['/welcome', '/login', '/register']);
+    links[0].focus();
+    expect(document.activeElement).toBe(links[0]);
   });
 
-  it('applies translation and rotation to the letters and logo during entrance', () => {
-    const letter = fixture.nativeElement.querySelector('h1 span') as HTMLElement;
-    const logo = (fixture.nativeElement.querySelector('img') as HTMLImageElement).parentElement!;
-    for (const element of [letter, logo]) {
-      const animation = element.getAnimations()[0];
-      animation.pause();
-      const delay = parseFloat(getComputedStyle(element).animationDelay) * 1000;
-      animation.currentTime = delay;
-      const start = new DOMMatrix(getComputedStyle(element).transform);
-      expect(start.m41).toBeCloseTo(-18);
-      expect(start.m42).toBeCloseTo(-30);
-      expect(start.m22).toBeCloseTo(Math.cos(40 * Math.PI / 180));
-      animation.currentTime = delay + 325;
-      const middle = new DOMMatrix(getComputedStyle(element).transform);
-      expect(middle.m41).toBeGreaterThan(-18);
-      expect(middle.m41).toBeLessThan(0);
-      animation.currentTime = delay + 650;
-      expect(new DOMMatrix(getComputedStyle(element).transform).isIdentity).toBeTrue();
-    }
+  it('marks the anonymous home as presented and skips the introduction on recreation', () => {
+    expect(storage.get(descriptor)).toBe('true');
+    fixture.destroy();
+    fixture = TestBed.createComponent(HomePageComponent);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.home--intro')).toBeNull();
+  });
+
+  it('does not consume the introduction while the session is restoring', () => {
+    fixture.destroy();
+    storage.remove(descriptor);
+    isRestoringSession.set(true);
+    fixture = TestBed.createComponent(HomePageComponent);
+    fixture.detectChanges();
+    expect(storage.get(descriptor)).toBeNull();
+    isRestoringSession.set(false);
+    fixture.detectChanges();
+    expect(storage.get(descriptor)).toBe('true');
+    expect(fixture.nativeElement.querySelector('.home--intro')).not.toBeNull();
   });
 
   it('shows the progress indicator for logged-in users', () => {
@@ -142,4 +142,38 @@ describe('HomePageComponent', () => {
     expect(fixture.nativeElement.querySelector('m-progress-indicator')).toBeNull();
     expect(fixture.nativeElement.querySelector('section')).not.toBeNull();
   });
+
+  for (const viewport of [{ width: 320, height: 568 }, { width: 375, height: 812 },
+    { width: 639, height: 320 }, { width: 640, height: 375 }, { width: 1440, height: 900 }]) {
+    it(`contains the home and all actions at ${viewport.width}×${viewport.height} without animation shifts`, async () => {
+      const frame = document.createElement('iframe');
+      frame.style.cssText = `width:${viewport.width}px;height:${viewport.height}px;border:0;display:block`;
+      document.body.appendChild(frame);
+      try {
+        const doc = frame.contentDocument!;
+        const style = doc.createElement('style');
+        style.textContent = Array.from(document.styleSheets)
+          .flatMap(sheet => Array.from(sheet.cssRules).map(rule => rule.cssText)).join('\n');
+        doc.head.appendChild(style);
+        doc.body.style.margin = '0';
+        doc.body.appendChild(fixture.nativeElement);
+        const main = doc.querySelector('main')!;
+        const links = Array.from(main.querySelectorAll('a'));
+        const bounds = links.map(link => link.getBoundingClientRect());
+        for (const animation of main.getAnimations({ subtree: true })) animation.finish();
+        await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+        expect(doc.documentElement.scrollWidth).toBeLessThanOrEqual(doc.documentElement.clientWidth);
+        links.forEach((link, index) => {
+          const rect = link.getBoundingClientRect();
+          expect(rect.left).toBeGreaterThanOrEqual(0);
+          expect(rect.right).toBeLessThanOrEqual(doc.documentElement.clientWidth + 1);
+          expect(rect.height).toBeGreaterThanOrEqual(44);
+          expect(rect.top).toBeCloseTo(bounds[index].top, 0);
+          expect(rect.width).toBeCloseTo(bounds[index].width, 0);
+        });
+      } finally {
+        frame.remove();
+      }
+    });
+  }
 });
