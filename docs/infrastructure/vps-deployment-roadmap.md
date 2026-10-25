@@ -1,6 +1,6 @@
 # Mercurion VPS infrastructure & deployment roadmap
 
-> **Version:** 0.1.0 (initial planning baseline)  
+> **Version:** 0.2.0 (exploratory secret-management planning)  
 > **Updated:** 2026-10-25  
 > **Status:** PLANNING — no VPS purchase, provisioning, migration, or production deployment is recorded by this document.  
 > **Repository branch at creation:** `bugfix/6abfd27de7c18baf04198c71-technical-debt-recovery-2`  
@@ -8,7 +8,7 @@
 
 ## 1. Purpose, boundaries, and working method
 
-This is the **infrastructure roadmap**, deliberately separate from the repository's application/product roadmap (`roadmap.md`). It covers VPS procurement, operating system, network security, Docker Compose deployment, data migration, operational tooling, staging/production rollout, and later RustDesk integration. It is **not** an autonomous task recipe, a deployment runbook, or a claim that any step has been completed.
+This is the **infrastructure roadmap**, deliberately separate from the repository's application/product roadmap (`roadmap.md`). It covers VPS procurement, operating system, network security, **runtime configuration/secret management**, Docker Compose deployment, data migration, operational tooling, staging/production rollout, and later RustDesk integration. It is **not** an autonomous task recipe, a deployment runbook, or a claim that any step has been completed.
 
 - Scope: **one unmanaged VPS** hosting Mercurion **production**, a low-load **staging** environment, a shared **core** layer, and subsequently RustDesk; allow modest future backends if capacity remains.
 - Local **development stays on the developer workstation by default**. A third always-on VPS environment is **not included** in the baseline: if required later, revisit RAM/storage sizing before deploying it.
@@ -41,6 +41,9 @@ Checkboxes below start unchecked. Check off a phase **only after** its acceptanc
 | D-09 | Private Meilisearch log viewer, **SSH local port forwarding**, no public dashboard hostname or API exposure. | Preferred, validate end-to-end forwarding |
 | D-10 | RustDesk **must fit on the same VPS**. Transport and public-inbound security policy are a separate pre-activation decision. **No second VPS** in the baseline. | Reserved capacity, transport OPEN |
 | D-11 | Production readiness requires restore testing (especially HNSW), external backup + restore evidence, resource telemetry, and direct-origin-block tests. | Required gate |
+| D-12 | **Staging and production must obtain runtime configuration/secrets without persistent `.env`, plaintext `.pem`, or secrets baked into images/repository/Compose metadata.** RSA JWT private/public keys are Base64-encoded inputs and decoded in application memory. | Security invariant; mechanism OPEN |
+| D-13 | **External hosted Free-tier Secret Manager** is the leading approach: **Infisical** (promising for multi-environment identities) and **Bitwarden Secrets Manager** (viable alternative). Target **€0/month incremental recurring cost**; exclude Google Cloud Secret Manager from this evaluation. | Exploratory, provider not selected |
+| D-14 | Preserve autonomous recovery after reboot **only if machine identity/bootstrap can be secured**; if strict zero persistent credential material is required, evaluate operator-unlock or provable hardware/federated identity instead of claiming automatic bootstrap. | OPEN |
 
 **Important network distinction.** “Mercurion cannot be reached by public IP” is compatible with **native RustDesk-only ingress ports** on the same IP, because those ports do not expose Mercurion. “The public IP must accept **no** direct inbound connections of any kind” is **not** compatible with public RustDesk OSS native TCP/UDP ports. Resolve this policy distinction before RustDesk activation; do not assume OSS WSS-only clients can replace native ports without license/protocol testing. A DNS-only RustDesk record would reveal the VPS origin IP, which must **not** permit a Cloudflare bypass of Mercurion.
 
@@ -58,6 +61,11 @@ Single Netcup VPS
   staging:  Nginx -> Angular/NestJS -> independent PG, Redis, NATS, Tox21
   admin:    protected SSH transport -> local port forwarding -> private log viewer/API
   rustdesk: future isolated hbbs/hbbr stack; ingress design remains gated
+
+External secrets control plane (not a second VPS):
+  hosted Free-tier Infisical or Bitwarden Secrets Manager, candidate TBD
+  -> authenticated, environment-scoped runtime retrieval and validation
+  -> no persistent production/staging dotenv, PEM files, or image-baked credentials
 
 Public VPS 80/443: CLOSED. Database/Redis/NATS/Meilisearch ports: NOT PUBLIC.
 RustDesk native ports: CLOSED until separately approved, tested, and activated.
@@ -81,6 +89,42 @@ RustDesk native ports: CLOSED until separately approved, tested, and activated.
 - Keep PostgreSQL, Redis, NATS, Meilisearch, and private viewers unbound to the public host interfaces. Prefer no `ports` entries; if administrative port forwarding requires a host binding, use **127.0.0.1 only**, with firewall and external reachability verification.
 - Keep RustDesk's networks, secrets, container privileges, and volumes independent. Do not use `network_mode: host` casually if strict separation is a requirement; test a bridge-mode native RustDesk deployment and its NAT traversal/relay before accepting it.
 - The VPS remains a **single failure domain**, not high availability; off-host backup and tested recovery are mandatory.
+
+### Runtime configuration and secret management (EXPLORATORY)
+
+**Contract:** local `development` and local `test` may load file-based dotenv and local PEM material; `staging` and `production` must receive their configuration **at runtime**. Do not place production/staging `.env` files, raw `.pem` key files, tokens, application passwords, or decrypted secret snapshots in persistent VPS storage, Git, CI artifacts, container images, shell history, log output, or Compose YAML. Treat public/nonsecret configuration separately from confidential values but resolve both through the deliberate runtime-configuration mechanism. **Base64 is an encoding, not encryption.**
+
+The current application already implements part of this contract:
+
+- [ConfigurationModule](../../MercurionWebNode/src/config/configuration.module.ts) sets `ignoreEnvFile` outside local development/test; [environment helpers](../../MercurionWebNode/src/utils/env-helpers.ts) explicitly restrict dotenv loading to those two environments.
+- [JwtKeysProvider](../../MercurionWebNode/src/app_modules/auth/providers/jwt-keys.provider.ts) decodes `JWT_RS256_PRIVATE_KEY_B64`, `JWT_RS256_PUBLIC_KEY_B64`, `JWT_WS_RS256_PRIVATE_KEY_B64` and `JWT_WS_RS256_PUBLIC_KEY_B64` to PEM strings **in memory** for production/staging. It currently also accepts raw-PEM env fallbacks; **remove that prod-like fallback** when enforcing the stricter contract, without breaking local file-based development/test behavior.
+- [Configuration schema](../../MercurionWebNode/src/config/config.schema.ts) must be extended to declare/validate the four RSA `_B64` values for prod-like deployments, including Base64 decoding, expected PEM type and keypair coherence; currently `JwtKeysProvider` can look up names not represented in the canonical validated schema. Confirm the values remain available if using the explicit `ConfigurationModuleOptions.environment` injection path rather than `process.env`.
+- `createApplicationModule({ configuration: { environment: ... } })` already allows supplying a raw environment map to the canonical validation flow, but **asynchronous external retrieval before NestJS bootstrap requires implementation/validation**; no provider integration exists yet.
+- Additional long-lived crypto secrets (e.g., `APP_AES_SECRET`, `APP_USER_ID_AES_ENCRYPTION_SECRET`, session, HMAC, cookie, OAuth2 credential-encryption roots) need recovery/rotation procedures; careless rotation may invalidate existing tokens or make stored encrypted data unreadable.
+
+**Candidate comparison — planning snapshot, revalidate at decision time:**
+
+| Hosted candidate | Free-tier snapshot | Why explore it | Blockers to test |
+| --- | --- | --- | --- |
+| [Infisical](https://infisical.com/pricing) | `$0`; currently **5 total human+machine identities**, unlimited projects and **3 environments per project** | Promising structured environments and machine identities, likely extensible for future backends | Verify Free-tier project/environment-level *effective* access isolation, permitted auth methods, API/SDK availability and rate limits. Advanced **Access Controls** are listed on paid plans: do **not** assume fine-grained policy capabilities in Free. |
+| [Bitwarden Secrets Manager](https://bitwarden.com/help/secrets-manager-plans/) | `$0`; currently **2 users, 3 projects, 3 machine accounts**, unlimited stored secrets | Straightforward machine-account/project model and JavaScript SDK/CLI | Three machine accounts are a tight ceiling for core+staging+prod if deployment/CI, RustDesk or extra services require separate identities; verify least-privilege isolation, token lifecycle and runtime client compatibility. |
+
+**Neither provider is approved yet.** Prefer a short **Infisical-first proof of concept** because of the stated interest in future environment/service growth, with **Bitwarden as a fully valid fallback**, and select from evidence rather than vendor preference. No Google Cloud Secret Manager or new paid SaaS subscription is in scope. Both candidates are external hosted control planes **without another VPS**; do not add an embedded Vault/Infisical/Bitwarden server to the application VPS by default. Free-tier availability, terms and limits can change; actual cost cannot be guaranteed indefinitely.
+
+**Deployment and threat-model constraints:**
+
+1. **Do not substitute Docker `environment:` interpolation for secure injection.** Values passed as Docker container environment variables can be revealed by Docker metadata/`docker inspect` to privileged administrators and can persist in Docker state, even when no dotenv file is present. No RSA keys, DB passwords or provider tokens in ordinary Compose environment, labels, build args, command lines or image layers.
+2. Standalone Compose `secrets` are exposed as **files** (`/run/secrets/...`), with `file` or `environment` sources; they are **not equivalent to a fully managed encrypted Swarm secret store**. A RAM-backed `tmpfs` handoff might avoid persistent disk but still violates a literal "**no files at all**" policy. Decide explicitly whether ephemeral RAM-only secret files are permitted for third-party services; do not silently weaken the requirement.
+3. **NestJS preferred path:** obtain secrets using an authenticated SDK/API during application startup (before validated `ConfigService` initialization), keep secret material in process memory, preserve staging/production separation, and fail closed on missing/invalid values. This avoids writing app secrets to Compose metadata and avoids on-disk PEM creation. A startup dependency on the external provider must be monitored and rehearsed.
+4. **Other processes require their own solution:** PostgreSQL entrypoint/DB credentials, Redis, Meilisearch, `cloudflared` Tunnel credentials, and later RustDesk may not support the same in-process SDK flow. Evaluate native provider auth, a privileged launcher, IPC or RAM-only mounts **per service**; validate persistence/inspect/log exposure and reboot behavior. Never assume a NestJS integration secures the entire stack.
+5. **Machine identity bootstrap remains unresolved:** Bitwarden machine access tokens and Infisical Universal Auth client secrets are themselves credentials. GitHub Actions OIDC (where available) identifies a workflow, **not automatically the running unmanaged VPS**. Define how the VPS gains/re-gains a restricted identity after reboot without storing a recoverable plaintext token on disk; explicitly assess **protected/encrypted host bootstrap material vs operator unlock vs provider-supported attestation/federation**. A static long-lived token in Compose or `systemd` unit files is not an acceptable substitute.
+6. **Security boundary:** possession of root/Docker-admin rights or a compromised live process may expose secrets held in memory. Secret Manager use reduces uncontrolled persistence, accidental leaks and cross-environment blast radius; it does **not** make a compromised root host trustworthy. Limit identity scopes and administrative access; design token revocation and incident recovery.
+7. **Rotation and recovery:** distinguish signing-key overlap/verification from revoking active JWTs; plan separate access/WS keypairs and staging/prod identities. Preserve necessary decryption keys for encrypted historical data; record secret names/owners and rotation procedures **without recording values**.
+8. **CI/CD:** build images **without** production secrets, pass only short-lived deployment identity where possible, and let each workload retrieve its own scoped runtime secrets. Ensure `docker inspect`, `docker compose config`, logs, crash reports and runtime debug endpoints cannot inadvertently disclose them.
+
+**Acceptance experiment:** create synthetic (never real) RSA access/WS keys and representative database/API credentials in the candidate provider; retrieve via an identity limited to staging; inject into an isolated NestJS test bootstrap; verify Base64 decode, schema validation, `JwtKeysProvider` behavior, failed cross-environment reads, Docker inspection, zero persistence after restart, a rotation/revocation drill, and clean host reboot/recovery. Repeat/extend for production and non-Nest services before authorizing actual deployment. Record limitations and comparative results; do not commit tokens or test secret values.
+
+**Official reference points:** [Infisical pricing](https://infisical.com/pricing), [Infisical machine identities](https://infisical.com/blog/introducing-machine-identities), [Bitwarden plans](https://bitwarden.com/help/secrets-manager-plans/), [Bitwarden machine accounts](https://bitwarden.com/help/machine-accounts/), [Docker Compose secrets](https://docs.docker.com/compose/how-tos/use-secrets/).
 
 ## 4. Capacity baseline and measurable gates
 
@@ -164,19 +208,35 @@ Each phase is a separate go/no-go checkpoint. Later work must not mark an earlie
 - [ ] Establish a **private or Cloudflare Access-protected SSH path** suitable for emergency administration and the later Meilisearch viewer forwarding. Keep provider console as independent recovery.
 - [ ] Install/verify inbound deny-by-default provider + host firewall for IPv4 **and IPv6**; allow only documented outbound tunnel, update, registry, DNS and time traffic.
 - [ ] Define unattended security patch policy, SSH/audit logs, disk alerts, time sync, and restoreable encrypted admin configuration.
+- [ ] Establish the trust boundary and recovery procedure for later Secret Manager machine-identity bootstrap; do not place credentials in systemd units or shell history.
 - **Acceptance:** SSH recovery works through the chosen private path; direct unsolicited incoming application/SSH traffic is rejected; recovery console works.
+
+### INF-01A — Runtime configuration and Secret Manager proof of concept | OPEN
+
+This is a **new exploratory checkpoint inserted without renumbering INF-02 through INF-09**. It must pass before deploying any real staging/production credentials.
+
+- [ ] Inventory **all** runtime variables by service/environment, mark secret vs nonsecret, identify consumers, required formats and recovery/rotation owners using [the configuration reference](../configuration.md) and canonical schema.
+- [ ] Compare hosted **Infisical Free** and **Bitwarden Secrets Manager Free** on current cost/terms, project and machine identities, effective Free-tier isolation, API/SDK support and room for RustDesk/future small services. **Exclude Google Cloud Secret Manager.**
+- [ ] Run an **Infisical-first sandbox PoC**, then Bitwarden if capability/cost/security trade-offs warrant it. No live production keys in experiments.
+- [ ] Design a secure **post-reboot identity bootstrap**: make an explicit choice between acceptable protected host identity material, an operator-unlock procedure, or a supported nonpersistent attested/federated method. Record any downtime/availability trade-off.
+- [ ] Implement/test asynchronous runtime retrieval and canonical schema validation for NestJS; enforce four RSA `_B64` key entries in staging/prod, removing raw PEM fallback there while preserving local file-based development/test.
+- [ ] Confirm credentials never appear in Docker `environment:` values/`docker inspect`, persisted dotenv/PEM, image layers, process arguments, CI artifacts or logs; separately evaluate `/proc` and root privilege exposure.
+- [ ] Prove compatible injection/secret retrieval for PostgreSQL, Redis, Meilisearch, `cloudflared` and later RustDesk, including whether RAM-only file mounts are an **explicitly approved exception** or forbidden.
+- [ ] Run credential isolation, invalid-base64 fail-closed, reboot/restart, manager outage, revocation/rotation and recovery tests using synthetic secrets.
+- [ ] Record provider selection (or `BLOCKED` state), decision rationale, exact pricing limits, residual risks and tested operational runbook.
+- **Acceptance:** documented, executable zero-additional-subscription approach demonstrates environment isolation, no forbidden persistent secrets, correct RSA key handling and a deliberately chosen automatic-vs-manual restart trade-off. **No purchase or deployment authorization is implied.**
 
 ### INF-02 — Docker Engine, Compose, storage and networks | PLANNED
 
 - [ ] Install supported Docker Engine and Compose plugin; pin release/image policy and establish log rotation.
 - [ ] Define Compose projects `mercurion-core`, `mercurion-staging`, `mercurion-prod`, `rustdesk` (last one reserved).
-- [ ] Implement isolated frontend/backend networks, narrow Meilisearch sharing, non-public ports, least-privilege containers and distinct secrets/volumes.
+- [ ] Implement isolated frontend/backend networks, narrow Meilisearch sharing, non-public ports, least-privilege containers and distinct runtime credentials/volumes following INF-01A; **never** assume Compose interpolated environment secrets are protected.
 - [ ] Mount persistent storage, establish disk usage metrics, and test restart/power-cycle behavior.
 - **Acceptance:** explicit network isolation tests pass; no `0.0.0.0` / `[::]` host mappings for private application/database services.
 
 ### INF-03 — Cloudflare ingress and HTTP-only Nginx | PLANNED
 
-- [ ] Configure production and staging hostnames, Tunnel identities, constrained connector networks and Cloudflare Access on staging **before public availability**.
+- [ ] Configure production and staging hostnames, Tunnel identities, constrained connector networks and Cloudflare Access on staging **before public availability**; retrieve connector credentials through the validated runtime-secret flow.
 - [ ] Adapt Nginx edge to internal port 80 only; move public TLS, Always Use HTTPS and HSTS ownership to Cloudflare.
 - [ ] Verify external HTTPS semantics in NestJS, secure cookies, forwarded scheme/IP, OAuth callbacks, GraphQL and Socket.IO upgrades.
 - [ ] From **an external network**, test direct IPv4/IPv6, port 80/443, and IP+Host/SNI attempts; no direct-origin bypass may succeed.
@@ -185,14 +245,14 @@ Each phase is a separate go/no-go checkpoint. Later work must not mark an earlie
 ### INF-04 — Persistence and shared core data | PLANNED
 
 - [ ] Deploy shared Meilisearch and its molecular index data once; do not overwrite its indexed corpus from staging jobs.
-- [ ] Deploy separate staging and production PostgreSQL/pgvector, Redis and NATS with distinct volumes, secrets and backups.
+- [ ] Deploy separate staging and production PostgreSQL/pgvector, Redis and NATS with distinct volumes, runtime-fetched secrets and backups; verify how non-Nest services consume secrets without forbidden persisted files or Docker metadata.
 - [ ] Run/record the HNSW restore comparison and chosen safe workflow (Section 4).
 - [ ] Establish consistent, encrypted off-host PostgreSQL/core backup, retention, and **at least one demonstrated restore**.
 - **Acceptance:** both environments have consistent, isolated data; shared molecular search works; restore can be repeated without OOM/data loss.
 
 ### INF-05 — Least-privilege logging and private diagnostics | PLANNED
 
-- [ ] Implement/test the environment-specific Meilisearch log/audit indexes and restricted credentials.
+- [ ] Implement/test the environment-specific Meilisearch log/audit indexes and restricted credentials delivered through INF-01A; do not provide the master key to generic runtime clients.
 - [ ] Deploy one private viewer and confirm SSH local forwarding for viewer and API (or an equivalent same-origin private proxy).
 - [ ] Verify search/filter by timestamp, level, environment and context; test log/audit retention and disk alerts.
 - **Acceptance:** staging cannot write production logs or molecular indexes; private logs are readable only through authorized administration.
@@ -200,7 +260,7 @@ Each phase is a separate go/no-go checkpoint. Later work must not mark an earlie
 ### INF-06 — Low-load staging deployment | PLANNED
 
 - [ ] Translate canonical runtime/deployment contract to Compose with **smaller staging CPU/RAM budgets**.
-- [ ] Deploy stage-specific Angular/NestJS/Tox21/Nginx, health checks and tested config/secrets; preserve core contracts.
+- [ ] Deploy stage-specific Angular/NestJS/Tox21/Nginx, health checks and **runtime-fetched** configuration/secrets; verify Base64 access/WS RSA keys and preserve core contracts.
 - [ ] Smoke-test auth, search, HNSW queries, scientific RPC, error pages, WebSocket and outgoing integrations.
 - [ ] Keep staging behind Cloudflare Access; onboard only authorized beta testers.
 - **Acceptance:** staging is stable and private; expected end-to-end flows succeed without starving shared services.
@@ -208,21 +268,21 @@ Each phase is a separate go/no-go checkpoint. Later work must not mark an earlie
 ### INF-07 — Production release pipeline and launch | PLANNED
 
 - [ ] Extend existing GitHub Actions CI to publish immutable, scanned/tagged container images; do not bypass existing tests/audit.
-- [ ] Define reproducible deploy, secrets injection, health gates, migrations, backup-before-change and rollback strategy (DB migration rollback is separate from image rollback).
+- [ ] Define reproducible deploy, **Secret Manager-backed runtime retrieval (not secrets baked into CI artifacts/Compose metadata)**, health gates, migrations, backup-before-change and rollback strategy (DB migration rollback is separate from image rollback).
 - [ ] Promote a validated staging artifact to production with explicit approval; configure public Cloudflare policies.
 - [ ] Run external origin-bypass tests and load/smoke tests again after the production switch.
 - **Acceptance:** versioned release is live only through Cloudflare, healthy, observable and rollback/recovery procedures are documented.
 
 ### INF-08 — Operations, recovery and sustained capacity | PLANNED
 
-- [ ] Verify off-host backup schedule, restore drill, incident checklist, OS/container patch process, retention and alert routing.
+- [ ] Verify off-host backup schedule, restore drill, incident checklist, OS/container patch process, retention and alert routing; include Secret Manager outages, identity revocation, rotation, and secure restoration of required decryption roots.
 - [ ] Track CPU steal, RAM/pressure/OOM, cache, HNSW maintenance performance, disk/IOPS, WAN throughput and TLS/tunnel errors.
 - [ ] Record monthly actual spend and measured headroom; set specific conditions for upgrading the existing VPS rather than pre-buying more resources.
 - **Acceptance:** documented recovery point/time targets and successful drill; no unmonitored capacity risks.
 
 ### INF-09 — RustDesk on the **same VPS** | PLANNED / TRANSPORT OPEN
 
-- [ ] Reserve capacity, an isolated Compose project, keys/volumes, firewall policy and DNS naming **without** opening any RustDesk port at this stage.
+- [ ] Reserve capacity, an isolated Compose project, keys/volumes, firewall policy and DNS naming **without** opening any RustDesk port at this stage; keep RustDesk's runtime-secret identity independent from Mercurion.
 - [ ] Evaluate OSS native ID/relay transport and the required TCP/UDP ports vs the strict all-inbound-closed policy. Verify whether supported WebSocket-only alternatives need Pro licenses or other client constraints; **do not assume** Cloudflare standard HTTP proxy transports arbitrary native RustDesk traffic.
 - [ ] If native RustDesk ports are approved, expose only their specific transport ports via a DNS-only hostname and strict firewall isolation; **never** expose Mercurion's HTTP(S) ports. If zero direct inbound is absolute, prove a compatible alternate transport **on this VPS** before activation.
 - [ ] Test Windows/macOS client onboarding, consent-driven support, relay/NAT behavior, bandwidth, logging, credential protection and no network pivot into Mercurion.
@@ -241,6 +301,10 @@ Each phase is a separate go/no-go checkpoint. Later work must not mark an earlie
 | G-06 Ingress | Forwarded HTTPS/client-IP semantics, Cloudflare HSTS scope, Socket.IO, external bypass tests. | Recorded successful test suite. |
 | G-07 Backup | One VPS is a single failure domain. | Off-host backup and successful clean restore. |
 | G-08 RustDesk ingress | Native public ports conflict with an absolute ban on inbound connections to the VPS IP. | Explicit documented policy choice and tested same-host solution. |
+| G-09 Free-tier secrets provider | Plan limits, machine identity count, access scopes and cost for prod/staging/core/future services unconfirmed in practice. | Infisical-vs-Bitwarden PoC, effective ACL denial tests, current terms and selected cost-neutral plan. |
+| G-10 Identity bootstrap / recovery | An unmanaged VPS does not automatically have a managed-cloud workload identity; auto-restart with absolutely no persistent bootstrap credentials is not assured. | Explicit bootstrap trust model, compromise/rotation policy and tested reboot/manager outage recovery. |
+| G-11 Runtime secret transport | Compose env interpolation exposes secret values through Docker metadata; Compose secrets use file mounts, contrary to a strict no-files policy. | Test demonstrates no forbidden persistence/inspect exposure for **every** service; document any explicitly approved RAM-only exception. |
+| G-12 RSA key/schema contract | Prod-like provider supports Base64 and raw-PEM fallbacks but schema does not declare the four `_B64` key names. | Canonical validation + keypair tests with secret-provider input; prod/staging fail closed without valid Base64 pairs. |
 
 ## 8. Evidence and revision register
 
@@ -249,6 +313,7 @@ For every completed phase, record at least: date, operator, relevant commit/conf
 | Version | Date | Change | Status |
 | --- | --- | --- | --- |
 | 0.1.0 | 2026-10-25 | Initial roadmap: one-VPS topology, Cloudflare-only Mercurion ingress, capacity/HNSW gates, shared Meilisearch logging/viewer, staging/prod rollout, and future same-VPS RustDesk. | Planning |
+| 0.2.0 | 2026-10-25 | Exploratory Free-tier Secret Manager design: Infisical vs Bitwarden, runtime-only staging/prod config, Base64 RSA contract, INF-01A, identity bootstrap, non-Nest secret transport, and new release gates. Google Cloud excluded. | Planning |
 
 ### Repository references
 
@@ -257,5 +322,8 @@ For every completed phase, record at least: date, operator, relevant commit/conf
 - [Local Docker dependencies](../../docker_sl/docker-compose.yml)
 - [Repository overview and CI interface](../../readme.md)
 - [Application observability policy](../observability-performance-policy.md)
+- [Environment schema and validation](../../MercurionWebNode/src/config/config.schema.ts)
+- [Runtime configuration module](../../MercurionWebNode/src/config/configuration.module.ts)
+- [RSA JWT keys provider](../../MercurionWebNode/src/app_modules/auth/providers/jwt-keys.provider.ts)
 
 **Change control:** this roadmap expresses planned infrastructure work only. Updating it does not authorize purchasing services, modifying secrets, changing deployment configs or deploying production. Those actions require their own reviewed execution step.
