@@ -482,6 +482,18 @@ Collezioni: null significa loading, [] empty immediato, niente timer o dati prec
 
 **Prossimo blocco:** 15B — Welcome e screenshot aggiornati; messaggio commerciale sostanziale ancora subordinato al segmento clienti.
 
+### 2026-10-25 — PX-02 / Blocco 15B — Welcome, screenshot ed editor Analisi live
+
+**Stato:** implementato, in review. [Prove e limiti](WELCOME-QA.md).
+
+**Interventi:** sei catture reali light/dark di ricerca, predizione ed editor sull’aspirina pubblica; nuova sezione Analisi live. Screenshot con dimensioni riservate, variante tema singola, lazy loading e apertura a dimensione intera. CTA uniformate e descrizioni allineate alle funzioni disponibili. Immagini di sfondo, veli e CSS della pagina contenitore conservati.
+
+**Verifica:** baseline 17 test, finale 20; typecheck, lint, policy, build e bundle/lazy riusciti. Browser: 18 combinazioni responsive nei due temi senza overflow; caricamento PNG ritardato con variazione geometrica delle immagini pari a 0 px; link full-size e frammento funzionalità verificati. Login/logout effettuati dall’utente, nessuna molecola salvata. Tema e viewport ripristinati, chiusa soltanto la scheda dell’agente.
+
+**Rimane:** review manuale e QA fisica Safari/zoom trasversale. Nessuna operazione Git o CI remota. Artefatti in `C:/Users/giuli/.codex/artifacts/mercurion-welcome-15b-2026-10-25/`.
+
+**Prossimo blocco:** 16 / PX-03 — Accesso.
+
 ## Modello per le voci successive
 
 ### AAAA-MM-GG — PX-XX — Sottoarea

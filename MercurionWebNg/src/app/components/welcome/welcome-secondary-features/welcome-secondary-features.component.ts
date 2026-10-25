@@ -1,10 +1,11 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { ButtonComponent } from '../../common/button/button.component';
 
 @Component({
   selector: 'm-welcome-secondary-features',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink],
+  imports: [RouterLink, ButtonComponent],
   template: `
     <section
       id="cta"
@@ -81,7 +82,7 @@ import { RouterLink } from '@angular/router';
                 </span>
               </dt>
               <dd class="text-xs sm:text-sm text-slate-700 dark:text-slate-200">
-                Collezioni, annotazioni e molecole preferite sempre nello stesso posto,
+                Collezioni personali e strutture molecolari sempre nello stesso posto,
                 con un’interfaccia che privilegia leggibilità e contesto.
               </dd>
             </div>
@@ -125,25 +126,22 @@ import { RouterLink } from '@angular/router';
             <p
               class="mt-2 text-sm text-slate-700 dark:text-slate-200"
             >
-              Entra subito nell’app: puoi usare un provider come Google,
-              LinkedIn, GitHub o Discord, oppure effettuare l’accesso con il tuo
+              Entra subito nell’app: puoi usare Google,
+              ORCID o Discord, oppure effettuare l’accesso con il tuo
               account Mercurion.
             </p>
 
             <div class="mt-4">
-              <a
-                [routerLink]="['/login']"
-                class="inline-flex w-full items-center justify-center rounded-lg bg-light-accent-primary px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-sky-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500 dark:bg-dark-accent-primary-btn transition-colors duration-150"
-              >
+              <m-button routerLink="/login" variant="primary" size="lg" [fullWidth]="true">
                 Accedi alla preview di Mercurion
-              </a>
+              </m-button>
             </div>
 
             <p
               class="mt-3 text-[11px] text-slate-600 dark:text-slate-300"
             >
-              Non hai ancora un account? Potrai registrarti direttamente dalla
-              pagina di accesso, in pochi passaggi.
+              Non hai ancora un account?
+              <a routerLink="/register" class="inline-flex min-h-11 items-center rounded underline text-light-accent-primary-hc focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-primary dark:text-dark-accent-primary-btn-hc">Crea il tuo account.</a>
             </p>
           </div>
         </div>

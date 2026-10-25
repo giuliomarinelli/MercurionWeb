@@ -61,7 +61,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
             </p>
             <ul class="mt-1 space-y-1.5 text-xs text-slate-600 dark:text-slate-300">
               <li>• Focus sulla molecola corrente, con i dettagli davvero essenziali.</li>
-              <li>• Pannelli strutturati per proprietà, annotazioni e log di lavoro.</li>
+              <li>• Disegno e analisi live con predizioni e analoghi affiancati.</li>
             </ul>
           </article>
 
@@ -87,12 +87,12 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
             </h3>
             <p class="text-sm text-slate-700 dark:text-slate-200">
               Raggruppa molecole in collezioni tematiche
-              per serie, progetti o linee di ricerca, mantenendo metadati coerenti.
+              per serie, progetti o linee di ricerca.
               Duplica una collezione, aggiungi nuove molecole oppure collega
               la stessa molecola a più collezioni in un solo passaggio.
             </p>
             <ul class="mt-1 space-y-1.5 text-xs text-slate-600 dark:text-slate-300">
-              <li>• Collezioni personali con descrizioni, tag e note contestuali.</li>
+              <li>• Collezioni personali da creare, rinominare e duplicare.</li>
               <li>• Riferimenti ordinati a dataset pubblici (es. ChEMBL).</li>
             </ul>
           </article>
@@ -128,7 +128,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
               <li>• Pannello di dettaglio con probabilità per i target selezionati.</li>
             </ul>
             <p class="mt-2 text-[11px] text-slate-600 dark:text-slate-300">
-              * Valori indicativi, pensati per uso esplorativo e non clinico.
+              Valori indicativi, pensati per uso esplorativo e non clinico.
             </p>
           </article>
         </div>

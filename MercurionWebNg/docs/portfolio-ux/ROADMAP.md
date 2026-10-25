@@ -2,7 +2,7 @@
 
 Data iniziale: 6 ottobre 2026. Stato: pianificazione per lavoro incrementale e review manuale.
 
-Ultima revisione del perimetro: 25 ottobre 2026. Notebook, Synthesis e integrazione object store/Cloudflare R2 sono rinviati insieme, fuori dal percorso corrente della beta. Il codice scientifico reintegrato resta conservato ma disabilitato; il flag Documents blocca anche il DocumentController Nest. Il refactor navigazione/sidebar/offcanvas N3 è implementato e in review; restano QA fisica Safari, zoom browser e accettazione manuale. I blocchi 13 e 14 sono implementati, in review; anche 15A / PX-02 è implementato, in review ([HOME-QA.md](HOME-QA.md)); segue 15B / PX-02. Prove shell: [SHELL-QA.md](SHELL-QA.md). Prove editor: [EDITOR-STATES-QA.md](EDITOR-STATES-QA.md). Prove e limiti: [NAVIGATION-QA.md](NAVIGATION-QA.md). Restano le decisioni di piattaforma del 22 ottobre: Angular 20 → 21 → 22 mantenendo inizialmente Zone.js e Karma, poi Node.js 26 con NestJS 11, secondo UP-01/UP-02. Aggiunto INF-02: porting SMS Twilio → SMS Hosting, con revisione configurazione/env e verifica dei flussi OTP/MFA coinvolti; il precedente account Twilio è chiuso, secondo la segnalazione dell’utente.
+Ultima revisione del perimetro: 25 ottobre 2026. Notebook, Synthesis e integrazione object store/Cloudflare R2 sono rinviati insieme, fuori dal percorso corrente della beta. Il codice scientifico reintegrato resta conservato ma disabilitato; il flag Documents blocca anche il DocumentController Nest. Il refactor navigazione/sidebar/offcanvas N3 è implementato e in review; restano QA fisica Safari, zoom browser e accettazione manuale. I blocchi 13 e 14 sono implementati, in review; anche 15A e 15B / PX-02 sono implementati, in review ([home](HOME-QA.md), [welcome](WELCOME-QA.md)); segue 16 / PX-03. Prove shell: [SHELL-QA.md](SHELL-QA.md). Prove editor: [EDITOR-STATES-QA.md](EDITOR-STATES-QA.md). Prove e limiti: [NAVIGATION-QA.md](NAVIGATION-QA.md). Restano le decisioni di piattaforma del 22 ottobre: Angular 20 → 21 → 22 mantenendo inizialmente Zone.js e Karma, poi Node.js 26 con NestJS 11, secondo UP-01/UP-02. Aggiunto INF-02: porting SMS Twilio → SMS Hosting, con revisione configurazione/env e verifica dei flussi OTP/MFA coinvolti; il precedente account Twilio è chiuso, secondo la segnalazione dell’utente.
 
 ## Obiettivo
 
@@ -52,7 +52,7 @@ La priorità indica il valore della rifinitura per il portfolio, non la gravità
 | ID | Area | Priorità | Evidenze | Stato iniziale |
 |---|---|---|---|---|
 | PX-01 | Shell, navigazione, sidebar e offcanvas | P1 | S, B | N3 e regressione shell del blocco 14 implementati, in review; QA residua in SHELL-QA.md |
-| PX-02 | Home e presentazione pubblica | P1 | S, B, V | 15A implementato, in review; segue 15B welcome e screenshot. Prove in HOME-QA.md |
+| PX-02 | Home e presentazione pubblica | P1 | S, B, V | 15A e 15B implementati, in review; prove in HOME-QA.md e WELCOME-QA.md |
 | PX-03 | Accesso e registrazione | P1 | S, B, V | Da affrontare |
 | PX-04 | Ricerca molecolare | P1 | S, B | Implementato, in review; QA iPhone aperta |
 | PX-05 | Liste, card e selezione | P1 | S, B | Card, selezione e liste implementate, in review |
@@ -86,7 +86,7 @@ Aggiornamento concordato il 23 ottobre 2026. Il branch feature Notebook/Synthesi
 
 - **Notebook (MF-01), Synthesis (MF-02) e object store/R2 (INF-01) sono rinviati insieme.** Non sono prerequisiti per proseguire la rifinitura e preparare il merge della beta con il perimetro attualmente attivo.
 - Notebook, Synthesis e Documents rimangono disabilitati nei quattro ambienti. Il flag `documents` protegge l’intero `DocumentController` Nest tramite `@RequiresFeatures('documents')`: gli endpoint documentali sono bloccati a backend, oltre alla mancata esposizione frontend. Il rinvio di R2 è una decisione di pianificazione coerente con questo perimetro, non un ulteriore flag tecnico.
-- **N3 / PX-01: refactor navigazione, sidebar e offcanvas** è implementato, in review (vedi [NAVIGATION-QA.md](NAVIGATION-QA.md)). Anche i blocchi **13 / PX-08** ([editor](EDITOR-STATES-QA.md)) e **14 / PX-01** ([shell](SHELL-QA.md)) sono implementati, in review; il **15A / PX-02** è implementato, in review ([home](HOME-QA.md)); segue **15B / PX-02**, conservando i numeri storici.
+- **N3 / PX-01: refactor navigazione, sidebar e offcanvas** è implementato, in review (vedi [NAVIGATION-QA.md](NAVIGATION-QA.md)). Anche i blocchi **13 / PX-08** ([editor](EDITOR-STATES-QA.md)) e **14 / PX-01** ([shell](SHELL-QA.md)) sono implementati, in review; i blocchi **15A e 15B / PX-02** sono implementati, in review ([home](HOME-QA.md), [welcome](WELCOME-QA.md)); segue **16 / PX-03**, conservando i numeri storici.
 - **INF-02 / SMS Hosting resta nel perimetro attivo**, distinto dal rinvio di object store/R2. L’account Twilio è stato chiuso dall’utente e l’invio attuale dipende ancora dal vecchio provider: pianificare il porting prima della verifica finale dei percorsi SMS. N3 è in review; il lavoro SMS va coordinato con la successiva ripresa UX e con PX-03/PX-13/PX-14/PX-15.
 - **INF-03 / MeiliLoggerService entra nel perimetro attivo:** verificare separazione degli indici log per ambiente e consegna effettiva tramite outbox. L’utente ha individuato frontend Docker per staging/produzione, da consultare via forwarding SSH; immagini e configurazioni sono da acquisire prima della prova. La pianificazione non avvia container o accessi remoti.
 - Il codice già sviluppato resta conservato. La ripresa delle feature rinviate e la loro abilitazione richiederanno una decisione esplicita e verifiche dedicate. Per i futuri sviluppi resta il metodo dei branch `feature/**` derivati dal branch di lavoro e reintegrati nello stesso, gestiti dall’utente.
@@ -97,7 +97,7 @@ Riferimento del comportamento dei flag: [funzionalità rinviate nella beta](../.
 | Ordine corrente | Intervento | Stato / risultato atteso |
 |---|---|---|
 | 1 | N3 / PX-01 — Navigazione, sidebar e offcanvas | Implementato, in review: scroll unico, rail 256/64 px, comandi sticky e tooltip a tema; QA fisica e zoom ancora aperti |
-| 2 | Blocco 15B / PX-02 e successivi UX | Blocchi 13–15A implementati, in review; segue welcome e screenshot; QA residua documentata |
+| 2 | Blocco 16 / PX-03 e successivi UX | Blocchi 13–15B implementati, in review; segue accesso; QA residua documentata |
 | Da pianificare nella ripresa UX | INF-02 — Porting SMS Hosting | Adeguare servizio/env e ripristinare gli invii prima dell’accettazione dei flussi SMS; non rinviato con R2 |
 | Da pianificare nella ripresa UX | INF-03 — Log Meilisearch per ambiente | Verificare logger/outbox, indici separati e consultazione con frontend Docker via forwarding SSH prima della QA finale |
 | 3 | QA, review e preparazione del merge beta | Validare il perimetro attivo e il blocco degli accessi alle funzionalità rinviate |
@@ -153,9 +153,9 @@ La reintegrazione dei branch feature nel branch corrente e il merge della beta s
 
 **Perché conta:** è la prima impressione e deve spiegare il valore prima di richiedere attenzione o registrazione.
 
-**Stato:** 15A implementato, in review il 25 ottobre: composizione e gradienti a tema, introduzione di un secondo con azioni immediate, marking della home anonima e persistenza del ritorno. Prove e limiti in [HOME-QA.md](HOME-QA.md). Segue 15B su welcome e immagini, senza rinumerare i blocchi successivi.
+**Stato:** 15A e 15B implementati, in review il 25 ottobre. Home: composizione e introduzione di un secondo con azioni immediate, marking della home anonima e persistenza ([HOME-QA.md](HOME-QA.md)). Welcome: schermate reali aggiornate, sezione editor Analisi live e rifiniture CTA/contenuti, preservando immagini e livelli di sfondo ([WELCOME-QA.md](WELCOME-QA.md)). Segue blocco 16 / PX-03, accesso.
 
-**Base S:** la home introduce dieci caratteri con intervalli di 750 ms, poi pittogramma e CTA. Dal template, il gruppo delle CTA ha un delay di 8.250 ms e una durata di ingresso di 650 ms: sono tempi configurati, non misure runtime. Lo sfondo della home è uniforme slate nei due temi. Welcome compone hero, feature, loghi e screenshot: l'utente segnala che le immagini rappresentano componenti precedenti ai refactor. Le coppie attualmente referenziate sono `prediction-light/dark.png` nell'hero e `search-light/dark.png` nella screenshot band. Il tempo fino alla prima azione utile va misurato, non dedotto dalla sola fluidità dell'animazione.
+**Base S iniziale, prima dei blocchi 15A/15B:** la home introduce dieci caratteri con intervalli di 750 ms, poi pittogramma e CTA. Dal template, il gruppo delle CTA ha un delay di 8.250 ms e una durata di ingresso di 650 ms: sono tempi configurati, non misure runtime. Lo sfondo della home è uniforme slate nei due temi. Welcome compone hero, feature, loghi e screenshot: l'utente segnala che le immagini rappresentano componenti precedenti ai refactor. Le coppie attualmente referenziate sono `prediction-light/dark.png` nell'hero e `search-light/dark.png` nella screenshot band. Il tempo fino alla prima azione utile va misurato, non dedotto dalla sola fluidità dell'animazione.
 
 **15A — Home, identità visiva e benvenuto al primo ingresso:**
 
@@ -167,9 +167,10 @@ La reintegrazione dei branch feature nel branch corrente e il merge della beta s
 
 **15B — `/welcome`, presentazione e immagini aggiornate:**
 
-- Rifinire hero, gerarchia delle CTA, ritmo tra sezioni, larghezza dei testi, allineamento delle feature e trattamento dello sfondo, mantenendo continuità con home e prodotto.
+- Rifinire hero, gerarchia delle CTA, ritmo tra sezioni, larghezza dei testi e allineamento delle feature, mantenendo continuità con home e prodotto. Per richiesta del 25 ottobre, conservare immagini di sfondo, veli e stacking context esistenti: non fanno parte del redesign.
 - Riesaminare immagini, didascalie e promesse: mostrare soltanto funzioni disponibili nel perimetro beta attivo. Notebook, Synthesis e Documents/R2 rinviati non devono apparire come già utilizzabili.
 - Preparare un inventario delle immagini da sostituire e acquisire screenshot reali aggiornati, a partire dalle coppie ricerca/predizione, dopo l'assestamento visivo dei relativi componenti e della navigazione. Usare dati dimostrativi adatti al portfolio, senza informazioni personali o contenuti privati. Non usare mockup inventati come prova dell'interfaccia reale.
+- Aggiungere una sezione che mostri l’editor molecolare in modalità Analisi live, con catture reali nei due temi di disegno, predizioni Tox21 e analoghi affiancati. Richiesta aggiunta il 25 ottobre e implementata nel blocco 15B.
 - Curare taglio, dimensioni intrinseche/aspect ratio, nitidezza e peso delle immagini, testo alternativo e caricamento differito delle sezioni sotto la piega. Su mobile il contenuto dimostrativo deve rimanere comprensibile; verificare anche entrambi i temi e l'assenza di layout shift durante il caricamento.
 - Rendere chiaro cosa permette di fare Mercurion e quali competenze dimostra. Una riscrittura sostanziale del messaggio commerciale resta legata alla definizione del segmento clienti; la rifinitura grafica e l'aggiornamento delle immagini possono procedere sul contenuto attuale.
 
@@ -675,7 +676,7 @@ Il refactor N3 / PX-01 precede la sequenza residua qui sotto, che riprende dal b
 | 13 | PX-08 — Editor: stati e percorso finale | Implementato, in review: cache identità, stati e Tox21; QA residua in EDITOR-STATES-QA.md |
 | 14 | PX-01 — Regressione shell dopo N3 | Implementato, in review: corretta la misura viewport; navigazione, menu, cronologia e gutter verificati. Limiti in SHELL-QA.md |
 | 15A | PX-02 — Home e benvenuto | Implementato, in review: composizione/gradienti, introduzione di un secondo e persistenza. Prove e limiti in HOME-QA.md |
-| 15B | PX-02 — Welcome e screenshot | Presentazione coerente con il prodotto; immagini reali aggiornate nei due temi e caricamento senza shift |
+| 15B | PX-02 — Welcome e screenshot | Implementato, in review: sei catture reali, editor Analisi live, CTA e immagini senza shift al caricamento; sfondi conservati. Prove in WELCOME-QA.md |
 | 16 | PX-03 — Accesso | Percorso e-mail/password/SSO coerente |
 | 16K | AUTH-02 — Rotazione chiavi JWT | A: architettura e stima; B: multi-chiave Nest e gestione manuale; C: coordinamento consumer, rollout e regressione HTTP/WS/HS512 |
 | 16P | AUTH-01 — Passkey, opzionale | Analisi, policy MFA e stima; se sostenibile, enrollment in settings e login WebAuthn prima della relativa QA finale |
@@ -696,7 +697,7 @@ Il refactor N3 / PX-01 precede la sequenza residua qui sotto, che riprende dal b
 
 PX-19 accompagna ogni blocco. Non aspettare la fine per curare focus, errori, nomi accessibili e stati di caricamento. Se home o accesso devono essere mostrati subito a un cliente, anticipare i blocchi 15–16 senza aprire un redesign globale.
 
-PX-22 e PX-23 accompagnano gli interventi pertinenti; le righe 26–27 sono il passaggio di regressione finale, non il primo momento in cui verificare questi comportamenti. **N3 — navigazione/sidebar/offcanvas** è implementato, in review; il blocco **13 — PX-08, editor: stati e percorso finale** è implementato, in review; anche il **14 — regressione shell** è implementato, in review ([SHELL-QA.md](SHELL-QA.md)); anche il **15A — Home e benvenuto** è implementato, in review ([HOME-QA.md](HOME-QA.md)); segue il **15B — Welcome e screenshot**. Prove e QA residua in [EDITOR-STATES-QA.md](EDITOR-STATES-QA.md). QA fisica Safari e zoom reale 200%/400% restano da completare prima dell’accettazione N3. **Notebook, Synthesis e object store/R2 sono rinviati insieme**, fuori dal percorso corrente della beta. **INF-02 / SMS Hosting resta attivo da pianificare** prima dell’accettazione dei flussi SMS, senza sostituire la ripresa UX dal blocco 13. La verifica fisica della tastiera secondo [KEYBOARD-QA.md](KEYBOARD-QA.md) resta aperta prima dell'accettazione e del merge; i blocchi 01–12 restano in review. L'utente ha autorizzato il proseguimento della roadmap durante questa QA.
+PX-22 e PX-23 accompagnano gli interventi pertinenti; le righe 26–27 sono il passaggio di regressione finale, non il primo momento in cui verificare questi comportamenti. **N3 — navigazione/sidebar/offcanvas** è implementato, in review; il blocco **13 — PX-08, editor: stati e percorso finale** è implementato, in review; anche il **14 — regressione shell** è implementato, in review ([SHELL-QA.md](SHELL-QA.md)); anche il **15A — Home e benvenuto** è implementato, in review ([HOME-QA.md](HOME-QA.md)); anche il **15B — Welcome e screenshot** è implementato, in review ([WELCOME-QA.md](WELCOME-QA.md)); segue il **16 — PX-03, accesso**. Prove e QA residua in [EDITOR-STATES-QA.md](EDITOR-STATES-QA.md). QA fisica Safari e zoom reale 200%/400% restano da completare prima dell’accettazione N3. **Notebook, Synthesis e object store/R2 sono rinviati insieme**, fuori dal percorso corrente della beta. **INF-02 / SMS Hosting resta attivo da pianificare** prima dell’accettazione dei flussi SMS, senza sostituire la ripresa UX dal blocco 13. La verifica fisica della tastiera secondo [KEYBOARD-QA.md](KEYBOARD-QA.md) resta aperta prima dell'accettazione e del merge; i blocchi 01–12 restano in review. L'utente ha autorizzato il proseguimento della roadmap durante questa QA.
 
 ## Macro-feature e object store rinviati
 
@@ -760,7 +761,7 @@ L’utente gestisce la futura ripresa di MF-01 e MF-02. Le due feature restano c
 
 ### INF-03 — MeiliLoggerService: indici per ambiente e consultazione via SSH
 
-**Stato: da verificare; priorità P1 nel perimetro beta.** Aggiunto il 25 ottobre 2026. Richiesta: salvare i log su un indice Meilisearch differente per ambiente e dimostrare il funzionamento dell’intero percorso. L’utente ha già individuato frontend con immagine Docker per staging e produzione, consultabili attraverso forwarding SSH; nomi delle immagini, versioni e dettagli di connessione restano da fornire/confermare. Il prossimo blocco UX è ora 15B; 15A è implementato, in review.
+**Stato: da verificare; priorità P1 nel perimetro beta.** Aggiunto il 25 ottobre 2026. Richiesta: salvare i log su un indice Meilisearch differente per ambiente e dimostrare il funzionamento dell’intero percorso. L’utente ha già individuato frontend con immagine Docker per staging e produzione, consultabili attraverso forwarding SSH; nomi delle immagini, versioni e dettagli di connessione restano da fornire/confermare. Il prossimo blocco UX è ora 16 / PX-03; 15A e 15B sono implementati, in review.
 
 **Evidenza statica corrente:** `MeiliLoggerService.sendToMeili` accoda un evento `LogRecorded` con `payload.indexName: 'logs'` fisso. `NotificationOutboxDispatcherService` usa quel nome per `addDocuments`; la configurazione Meilisearch mappa host e master key, senza un indice log configurabile. I test del logger coprono creazione, redazione di dati strutturati e contenimento degli errori outbox; non dimostrano isolamento fra ambienti o indicizzazione reale. Questa lettura non prova che i log attuali siano mescolati: anche le istanze effettive dei diversi ambienti vanno inventariate. Nessun test runtime eseguito con questo aggiornamento documentale.
 

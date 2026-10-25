@@ -53,7 +53,26 @@ describe('WelcomePageComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('m-welcome-hero')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('m-welcome-editor-showcase')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('.mercurion-welcome-pending')).toBeNull();
+  });
+
+  it('reserves all three screenshot ratios and keeps the editor showcase labelled in anonymous content', () => {
+    kind.set('anonymous');
+    status.set('anonymous');
+    fixture.detectChanges();
+    const images = Array.from(fixture.nativeElement.querySelectorAll('m-welcome-screenshot img')) as HTMLImageElement[];
+    expect(images.length).toBe(3);
+    expect(images.filter(image => image.loading === 'eager').length).toBe(1);
+    images.forEach(image => {
+      expect(Number(image.getAttribute('width'))).toBeGreaterThan(0);
+      expect(Number(image.getAttribute('height'))).toBeGreaterThan(0);
+      expect(image.alt).toBeTruthy();
+    });
+    const editor = fixture.nativeElement.querySelector('section#editor') as HTMLElement;
+    expect(editor.querySelector('#' + editor.getAttribute('aria-labelledby'))?.textContent).toContain('Disegna');
+    expect(fixture.nativeElement.querySelectorAll('.mercurion-bg-layer').length).toBe(1);
+    expect(fixture.nativeElement.querySelectorAll('.mercurion-bg-overlay').length).toBe(1);
   });
 
   it('shows public content after leaving an incomplete MFA login', () => {

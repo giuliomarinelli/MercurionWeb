@@ -1,13 +1,15 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { PublicPipe } from '../../../pipes/public.pipe';
 import { RouterLink } from '@angular/router';
+import { ButtonComponent } from '../../common/button/button.component';
+import { WelcomeScreenshotComponent } from '../welcome-screenshot/welcome-screenshot.component';
 
 
 @Component({
   selector: 'm-welcome-hero',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    PublicPipe,
+    WelcomeScreenshotComponent,
+    ButtonComponent,
     RouterLink
   ],
   template: `
@@ -138,16 +140,15 @@ import { RouterLink } from '@angular/router';
           <div
             class="mt-8 flex flex-col gap-6 sm:flex-row sm:items-center"
           >
-            <a
+            <m-button variant="primary" size="lg"
               routerLink="/login"
-              class="inline-flex items-center justify-center rounded-lg bg-light-accent-primary dark:bg-dark-accent-primary-btn px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-sky-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500"
             >
               Accedi alla preview di Mercurion
-            </a>
+            </m-button>
             <a
               [routerLink]="[]"
               fragment="features"
-              class="inline-flex items-center justify-center text-sm font-semibold text-slate-900 hover:text-sky-700 dark:text-slate-100 dark:hover:text-sky-300"
+              class="inline-flex min-h-11 items-center justify-center rounded-lg text-sm font-semibold text-slate-900 hover:text-sky-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent-primary dark:text-slate-100 dark:hover:text-sky-300"
             >
               Guarda cosa puoi fare
               <span aria-hidden="true" class="ml-1">→</span>
@@ -171,18 +172,9 @@ import { RouterLink } from '@angular/router';
             <div
               class="relative overflow-hidden rounded-3xl border border-slate-200/80 bg-slate-50/90 shadow-xl shadow-slate-900/10 dark:border-slate-700/70 dark:bg-slate-900/80 dark:shadow-black/40"
             >
-              <img
-                [src]="'/welcome/prediction-light.png' | public"
-                alt="Anteprima dell’interfaccia di Mercurion"
-                class="w-full dark:hidden"
-                loading="lazy"
-              />
-              <img
-                [src]="'/welcome/prediction-dark.png' | public"
-                alt="Anteprima dell’interfaccia di Mercurion"
-                class="hidden w-full dark:block"
-                loading="lazy"
-              />
+              <m-welcome-screenshot lightSrc="/welcome/prediction-light.png" darkSrc="/welcome/prediction-dark.png"
+                alt="Predizione Tox21 dell’aspirina con probabilità, soglie ed esiti per quattro endpoint."
+                [width]="960" [height]="672" loading="eager" />
             </div>
 
             <div
@@ -190,14 +182,13 @@ import { RouterLink } from '@angular/router';
                 pointer-events-none relative mx-auto mt-4 w-full max-w-[300px]
                 rounded-2xl border border-slate-200/70 bg-white/80 p-3 text-xs shadow-lg shadow-slate-900/10 backdrop-blur
                 dark:border-slate-700/70 dark:bg-slate-900/90 dark:text-slate-100
-                2xs:absolute 2xs:mx-0 xs:mt-0 2xs:max-w-none 2xs:w-52 2xs:-bottom-6 2xs:right-4
               "
             >
               <div class="flex items-center justify-between">
                 <span class="font-semibold"
                   >Tox21 · modello multilabel</span
                 >
-                <span class="text-[10px] text-light-accent-secondary dark:text-dark-accent-secondary-hc">AUC ~0.89*</span>
+                <span class="text-[10px] text-light-accent-secondary dark:text-dark-accent-secondary-hc">4 endpoint</span>
               </div>
               <p
                 class="mt-1 text-[11px] text-slate-700 dark:text-slate-200"

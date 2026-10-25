@@ -105,10 +105,10 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
               </span>
               <p>
                 <span class="font-semibold text-neutral-950 dark:text-slate-50">
-                  Workspace separati.
+                  Collezioni personali.
                 </span>
                 <span class="ml-1">
-                  Collezioni, note e dataset organizzati per progetto.
+                  Molecole organizzate per serie e progetti.
                 </span>
               </p>
             </div>
@@ -130,7 +130,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
                   Login veloce.
                 </span>
                 <span class="ml-1">
-                  Accesso con Google, GitHub, LinkedIn, Discord
+                  Accesso con Google, ORCID o Discord
                   oppure account Mercurion classico.
                 </span>
               </p>

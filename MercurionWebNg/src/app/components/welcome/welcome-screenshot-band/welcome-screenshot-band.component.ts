@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { PublicPipe } from '../../../pipes/public.pipe';
+import { WelcomeScreenshotComponent } from '../welcome-screenshot/welcome-screenshot.component';
 
 @Component({
   selector: 'm-welcome-screenshot-band',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [PublicPipe],
+  imports: [WelcomeScreenshotComponent],
   template: `
     <section
       class="px-6 pb-12 sm:pb-16 lg:pb-20"
@@ -85,8 +85,8 @@ import { PublicPipe } from '../../../pipes/public.pipe';
                     </span>
                   </dt>
                   <dd>
-                    Salva tutto in collezioni curate, con annotazioni e metadati
-                    coerenti per serie, target o linea di ricerca.
+                    Organizza le molecole in collezioni personali e ritrovale
+                    per serie, progetti o linee di ricerca.
                   </dd>
                 </div>
 
@@ -118,18 +118,9 @@ import { PublicPipe } from '../../../pipes/public.pipe';
                 <div
                   class="relative overflow-hidden rounded-3xl border border-slate-200/80 bg-slate-50/95 shadow-lg shadow-slate-900/15 dark:border-slate-700/70 dark:bg-slate-950/90 dark:shadow-black/40"
                 >
-                  <img
-                    [src]="'/welcome/search-light.png' | public"
-                    alt="Workspace di Mercurion con molecole, collezioni e risultati di predizione"
-                    class="w-full dark:hidden"
-                    loading="lazy"
-                  />
-                  <img
-                    [src]="'/welcome/search-dark.png' | public"
-                    alt="Workspace di Mercurion in modalità scura"
-                    class="hidden w-full dark:block"
-                    loading="lazy"
-                  />
+                  <m-welcome-screenshot lightSrc="/welcome/search-light.png" darkSrc="/welcome/search-dark.png"
+                    alt="Ricerca ChEMBL di aspirina con cinque risultati e anteprime delle strutture molecolari."
+                    [width]="768" [height]="768" />
                 </div>
 
                 <!-- Badge flottante -->
@@ -138,7 +129,6 @@ import { PublicPipe } from '../../../pipes/public.pipe';
                     pointer-events-none relative mx-auto mt-4 w-full max-w-[300px]
                     rounded-2xl border border-slate-200/80 bg-white/90 px-3 py-2 text-xs shadow-md shadow-slate-900/10 backdrop-blur
                     dark:border-slate-700/70 dark:bg-slate-900/95 dark:text-slate-100
-                    sm:absolute sm:mx-0 sm:mt-0 sm:max-w-[230px] sm:-bottom-5 sm:left-4
                   "
                 >
                   <p class="font-semibold">

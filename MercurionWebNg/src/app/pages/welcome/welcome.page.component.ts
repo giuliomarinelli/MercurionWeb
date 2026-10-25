@@ -20,6 +20,7 @@ import { ProgressIndicatorComponent } from '../../components/common/progress-ind
 import { DesignService } from '../../services/design.service'
 import { AuthStateStore } from '../../services/auth-state.store'
 import { SessionSyncService } from '../../services/session-sync.service'
+import { WelcomeEditorShowcaseComponent } from '../../components/welcome/welcome-editor-showcase/welcome-editor-showcase.component'
 
 @Component({
   selector: 'm-welcome-page',
@@ -28,6 +29,7 @@ import { SessionSyncService } from '../../services/session-sync.service'
     WelcomeCloudLogoComponent,
     WelcomeFeatureGridComponent,
     WelcomeScreenshotBandComponent,
+    WelcomeEditorShowcaseComponent,
     WelcomeSecondaryFeaturesComponent,
     FooterComponent,
     ProgressIndicatorComponent
@@ -115,6 +117,7 @@ import { SessionSyncService } from '../../services/session-sync.service'
           <m-welcome-feature-grid />
           <!-- Screenshot section -->
           <m-welcome-screenshot-band />
+          <m-welcome-editor-showcase />
           <!-- Feature secondary -->
           <m-welcome-secondary-features />
           <!-- Footer -->
