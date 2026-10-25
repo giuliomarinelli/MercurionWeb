@@ -2,9 +2,13 @@
 
 Data iniziale: 6 ottobre 2026. Stato: pianificazione per lavoro incrementale e review manuale.
 
-Ultima revisione del perimetro: 23 ottobre 2026. Notebook, Synthesis e integrazione object store/Cloudflare R2 sono rinviati insieme, fuori dal percorso corrente della beta. Il codice scientifico reintegrato resta conservato ma disabilitato; il flag Documents blocca anche il DocumentController Nest. Il refactor navigazione/sidebar/offcanvas N3 è implementato e in review; restano QA fisica Safari, zoom browser e accettazione manuale. Segue la ripresa UX dal blocco 13 e la QA del perimetro attivo. Prove e limiti: [NAVIGATION-QA.md](NAVIGATION-QA.md). Restano le decisioni di piattaforma del 22 ottobre: Angular 20 → 21 → 22 mantenendo inizialmente Zone.js e Karma, poi Node.js 26 con NestJS 11, secondo UP-01/UP-02. Aggiunto INF-02: porting SMS Twilio → SMS Hosting, con revisione configurazione/env e verifica dei flussi OTP/MFA coinvolti; il precedente account Twilio è chiuso, secondo la segnalazione dell’utente.
+Ultima revisione del perimetro: 25 ottobre 2026. Notebook, Synthesis e integrazione object store/Cloudflare R2 sono rinviati insieme, fuori dal percorso corrente della beta. Il codice scientifico reintegrato resta conservato ma disabilitato; il flag Documents blocca anche il DocumentController Nest. Il refactor navigazione/sidebar/offcanvas N3 è implementato e in review; restano QA fisica Safari, zoom browser e accettazione manuale. Segue la ripresa UX dal blocco 13 e la QA del perimetro attivo. Prove e limiti: [NAVIGATION-QA.md](NAVIGATION-QA.md). Restano le decisioni di piattaforma del 22 ottobre: Angular 20 → 21 → 22 mantenendo inizialmente Zone.js e Karma, poi Node.js 26 con NestJS 11, secondo UP-01/UP-02. Aggiunto INF-02: porting SMS Twilio → SMS Hosting, con revisione configurazione/env e verifica dei flussi OTP/MFA coinvolti; il precedente account Twilio è chiuso, secondo la segnalazione dell’utente.
 
 ## Obiettivo
+
+**Aggiornamento del 25 ottobre 2026:** aggiunta [AUTH-01 — Accesso con passkey](#auth-01--accesso-con-passkey-webauthn), disponibile indipendentemente dall'attivazione MFA. Feature opzionale da dimensionare prima dell'implementazione, coordinata con login e settings; non sostituisce la ripresa UX dal blocco 13 e non diventa automaticamente un requisito del merge corrente.
+
+**Ulteriore intervento pianificato il 25 ottobre:** [AUTH-02 — Rotazione e revoca delle chiavi JWT](#auth-02--rotazione-e-revoca-delle-chiavi-jwt), per RS256 HTTP/WS e HS512, con chiavi multiple, amministrazione manuale e `kid` nell'header. Coordinamento Nest/Tox21 e piano operativo in [JWT-KEY-ROTATION.md](JWT-KEY-ROTATION.md); nessuna rotazione reale o modifica di codice avviata.
 
 Portare Mercurion da applicazione utilizzabile a prodotto professionale, piacevole da vedere e da usare, capace di dimostrare competenze avanzate nella realizzazione di interfacce per applicazioni complesse. La qualità deve emergere anche durante un'interazione reale: ricerca, selezione, modifica, caricamento, errore e ritorno al lavoro.
 
@@ -72,6 +76,8 @@ La priorità indica il valore della rifinitura per il portfolio, non la gravità
 | PX-23 | Sessioni, realtime e continuità del lavoro | P1 | S, V | Da verificare tra le aree |
 | PX-24 | Compatibilità, review finale e preparazione del merge | P1 | V | Da eseguire dopo la rifinitura |
 | INF-02 | Invio SMS: Twilio → SMS Hosting | P1 | S, V | Da affrontare nel perimetro beta; prima della QA finale dei flussi SMS |
+| AUTH-01 | Accesso con passkey, indipendente dall'abilitazione MFA | P2 | S, V | Proposta opzionale; analisi e stima prima dell'implementazione |
+| AUTH-02 | Rotazione e revoca manuale delle chiavi JWT, header `kid` | P1 | S, V | Pianificato; inventario e coordinamento architetturale prima dell'implementazione |
 
 ## Metodo di lavoro e prossime priorità
 
@@ -180,6 +186,7 @@ La reintegrazione dei branch feature nel branch corrente e il merge della beta s
 - Uniformare larghezza dei form, distanze tra label, campi, errori, suggerimenti e azioni.
 - Rendere chiari progressione e ritorno tra inserimento e-mail e password.
 - Bilanciare SSO e accesso tradizionale senza cambiare i metodi disponibili.
+- Coordinare l'eventuale nuovo accesso con passkey con [AUTH-01](#auth-01--accesso-con-passkey-webauthn): è una feature distinta dalla rifinitura di questi form, utilizzabile anche senza MFA attiva.
 - Verificare anche il passaggio MFA durante il login: codice, eventuale alternativa prevista, errore, scadenza e ritorno. La configurazione MFA in settings resta in PX-13.
 - Rifinire caricamento della verifica di sicurezza, invio in corso e messaggi del server.
 - Verificare tastiera, autofill, password manager e conservazione dei valori dopo errore.
@@ -603,6 +610,7 @@ La reintegrazione dei branch feature nel branch corrente e il merge della beta s
 - Verificare perdita/ripristino della connessione, recupero degli eventi e badge di sincronizzazione: messaggi comprensibili, niente falsi successi o annunci ripetuti.
 - Provare modifiche da un'altra scheda/sessione su risorse di test; verificare liste, dettagli, conteggi e selezioni senza sovrascrivere input in corso.
 - Verificare scadenza della sessione, refresh, logout e revoca di una sessione di test: ritorno al login, pulizia dei dati del precedente account e destino del draft secondo le regole esistenti.
+- Coordinare con [AUTH-02](JWT-KEY-ROTATION.md) la rotazione delle chiavi e la revoca per `kid`: distinguere queste operazioni dalla revoca di JTI/sessioni e provare anche socket già autenticati e consumer scientifici.
 - Coordinare errori REST/GraphQL, toast, errori inline e notifiche: una singola causa non deve produrre messaggi contraddittori o ripetuti.
 - Verificare comportamento con servizi scientifici non disponibili tramite prove controllate, senza alterare contratti o requisiti di sicurezza.
 
@@ -663,6 +671,8 @@ Il refactor N3 / PX-01 precede la sequenza residua qui sotto, che riprende dal b
 | 15A | PX-02 — Home e benvenuto | Identità visiva, gradiente da valutare, introduzione breve al primo ingresso e stato finale immediato ai ritorni |
 | 15B | PX-02 — Welcome e screenshot | Presentazione coerente con il prodotto; immagini reali aggiornate nei due temi e caricamento senza shift |
 | 16 | PX-03 — Accesso | Percorso e-mail/password/SSO coerente |
+| 16K | AUTH-02 — Rotazione chiavi JWT | A: architettura e stima; B: multi-chiave Nest e gestione manuale; C: coordinamento consumer, rollout e regressione HTTP/WS/HS512 |
+| 16P | AUTH-01 — Passkey, opzionale | Analisi, policy MFA e stima; se sostenibile, enrollment in settings e login WebAuthn prima della relativa QA finale |
 | 17 | PX-03/PX-14 — Registrazione e recupero | Stati e token verificati con fixture appropriate |
 | 18 | PX-12 — Dashboard | Metriche, grafici e stati rifiniti |
 | 19 | PX-13 — Settings: fasi successive | Stati OTP/MFA e varianti account completati con perimetro sicuro |
@@ -741,6 +751,49 @@ L’utente gestisce la futura ripresa di MF-01 e MF-02. Le due feature restano c
 **Accettazione:** applicazione avviabile con la configurazione SMS Hosting validata, senza richiedere credenziali dell’account Twilio chiuso; contratto di invio e gestione degli errori verificati; flussi SMS applicabili testati senza aggirare OTP/MFA o inviare notifiche impreviste. Registrare separatamente esito dei test simulati, eventuale invio reale concordato e limiti rimasti. La presenza di dati di configurazione non costituisce prova di funzionamento.
 
 **Sorgenti:** [servizio SMS](../../../MercurionWebNode/src/app_modules/notification/services/sms-sender/sms-sender.service.ts), [mapping configurazione](../../../MercurionWebNode/src/config/config.model.ts), [schema env](../../../MercurionWebNode/src/config/config.schema.ts), [tipi configurazione](../../../MercurionWebNode/src/config/config.types.ts), [MFA](../../../MercurionWebNode/src/app_modules/auth/services/mfa.service.ts), [flussi account](../../../MercurionWebNode/src/app_modules/auth/application/account-flow-kernel.ts).
+
+## Feature di autenticazione proposte
+
+### AUTH-01 — Accesso con passkey (WebAuthn)
+
+**Stato: proposta opzionale, da dimensionare.** Aggiunta il 25 ottobre 2026 su richiesta dell'utente. Priorità P2 per il portfolio. Non avvia implementazione, installazioni, migrazioni o modifiche alle impostazioni di sicurezza; non è un nuovo prerequisito implicito del merge corrente. Collocazione proposta: analisi a fianco del blocco 16, coordinamento con settings PX-13 e recupero PX-14; mantenuta la sequenza UX già concordata.
+
+**Requisito:** offrire «Accedi con una passkey» come metodo primario alternativo alla password, disponibile sia con MFA attiva sia con MFA disattiva. Non richiedere l'attivazione MFA per registrare o usare una passkey e non cambiare implicitamente lo stato MFA dell'account.
+
+**Riscontro statico e impegno:** la ricerca nei sorgenti Angular/Nest e nei rispettivi manifest non rileva un'integrazione passkey/WebAuthn già presente. Il login esistente separa verifica credenziali, challenge MFA e completamento della sessione; il lavoro coinvolge quindi frontend, backend, persistenza delle credenziali pubbliche, contratti e test di sicurezza. **Impegno preliminare medio, superiore a un ritocco UI**; giorni/costo da stimare dopo l'analisi del flusso e dei test. Suddividere l'eventuale attuazione in gestione delle credenziali e accesso, senza aprire contestualmente un refactor generale dell'autenticazione.
+
+**Prima fase — analisi e decisioni:**
+
+- Definire matrice dei casi: account locale/SSO, MFA on/off, account attivo/non attivo, sessione già autenticata, dispositivo nuovo e recupero. Il supporto dei diversi tipi di account va esplicitato prima di prometterlo nell'interfaccia.
+- Proposta tecnica da verificare: WebAuthn con user verification richiesta e controllo server del relativo flag, challenge casuali monouso con scadenza e consumo atomico, verifica di firma, origin, RP ID e appartenenza della credenziale. Riutilizzare kernel sessioni, contratti e meccanismi di limitazione dei tentativi già presenti; scegliere una libreria mantenuta dopo averne verificato compatibilità e manutenzione, senza implementare crittografia ad hoc.
+- **Policy MFA da decidere prima del codice:** stabilire se una passkey con user verification soddisfa il livello richiesto dall'account oppure se resta un ulteriore challenge in determinati casi. La disponibilità del metodo è indipendente dall'interruttore MFA; questa indipendenza non autorizza a bypassare i controlli esistenti né a marcare automaticamente un dispositivo come affidabile. Conservare le verifiche aggiuntive per operazioni sensibili secondo la policy concordata.
+- Definire RP ID e origin per sviluppo, test e ambienti pubblici, e predisporre HTTPS per le prove su dispositivi reali. Non assumere che l'HTTP sull'indirizzo LAN usato per le prove UI sia sufficiente per WebAuthn; configurazione degli ambienti e dominio delle credenziali fanno parte dell'analisi.
+
+**MVP proposto, se l'impegno è sostenibile:**
+
+- Settings → Sicurezza: aggiungere una passkey a un account esistente dopo autenticazione recente adeguata, elencare le proprie passkey con nome comprensibile, data di creazione/ultimo utilizzo quando disponibili e revoca esplicita. Consentire più credenziali per non legare l'accesso a un solo dispositivo. Memorizzare sul server materiale pubblico e metadati necessari, mai chiavi private o dati biometrici.
+- Login con comando esplicito e flusso WebAuthn. Per contenere il primo intervento, valutare il riuso della fase identificazione account già esistente; accesso senza identificativo e autofill condizionale possono essere un seguito, senza forzare ora una scelta architetturale.
+- Stati chiari per browser non compatibile, nessuna credenziale disponibile, annullamento, scadenza e richiesta in corso; ritorno ai metodi di accesso esistenti senza perdere lo stato utile e senza rivelare informazioni sugli account.
+- Conservare password/SSO e recupero previsti: niente rimozione automatica dei metodi precedenti, enrollment obbligatorio al primo login o account soltanto passkey nel primo perimetro. Gestire perdita del dispositivo e revoca dell'ultima passkey senza bloccare involontariamente l'utente.
+- Reintegrare correttamente emissione token, cookie, remember me, sessioni/revoche e canale realtime nel percorso esistente; nessuna sessione completa prima dell'esito positivo di tutti i controlli richiesti.
+
+**Accettazione, se inclusa nell'implementazione:** test backend su challenge scaduta/riutilizzata, firma o origin/RP ID errati, credenziale revocata o di altro account, verifica utente mancante e operazioni di gestione non autorizzate. Matrice MFA on/off coerente con la policy esplicita; regressione login tradizionale, SSO, recupero e sessioni. Prove reali Safari/iPhone e Chrome con un autenticatore disponibile, oltre ai test automatizzati: enrollment, login, annullamento, più passkey e revoca. L'eventuale indisponibilità di un autenticatore o di HTTPS resta un limite di QA dichiarato, non una prova di accettazione.
+
+**Fuori dal primo perimetro:** nuova registrazione interamente passwordless, migrazione forzata degli utenti, dismissione di password/OTP, rifacimento del recupero account e autenticazione aziendale. AUTH-01 non dipende da Notebook/Synthesis/R2 e non sostituisce INF-02: i percorsi SMS esistenti vanno comunque mantenuti e verificati.
+
+**Fonti tecniche consultate per la pianificazione:** [FIDO Alliance — Passkeys](https://fidoalliance.org/passkeys/), [W3C — Web Authentication Level 3](https://www.w3.org/TR/webauthn-3/). Passkey come alternativa alla password e verifica locale dell'utente sono proprietà dello standard; la politica di accesso Mercurion resta da concordare.
+
+**Sorgenti da approfondire:** [login Angular](../../src/app/pages/login/login.page.component.ts), [settings sicurezza](../../src/app/pages/settings/settings-security-panel.component.ts), [login Nest](../../../MercurionWebNode/src/app_modules/auth/application/credential-authentication.handlers.ts), [completamento sessione](../../../MercurionWebNode/src/app_modules/auth/application/authentication-session.service.ts), [modulo auth](../../../MercurionWebNode/src/app_modules/auth/auth.module.ts).
+
+### AUTH-02 — Rotazione e revoca delle chiavi JWT
+
+**Stato: pianificato, da implementare.** Aggiunto il 25 ottobre 2026. Piano dedicato: [JWT-KEY-ROTATION.md](JWT-KEY-ROTATION.md). Priorità P1 per continuità e gestione operativa; nessuna compromissione o debolezza di chiavi reali dichiarata. Impegno preliminare medio e circoscrivibile, con stima dopo il censimento dei consumer.
+
+Mantenere RS256 per HTTP e WS con coppie distinte e HS512 per gli altri token, preservando i segreti/scopi oggi separati per tipo. Registro versionato delle chiavi, una versione attiva per dominio, precedenti in sola verifica e revoca manuale; `kid` come parametro dell'header JOSE. Rotazione ordinaria senza terminare sessioni valide, revoca d'emergenza distinta da quella di un singolo JTI e comportamento dei socket esistenti esplicitamente definito.
+
+Il codice Nest concentra già firma/verifica e provider RSA, ma non gestisce più versioni. Tox21 verifica con una sola chiave pubblica caricata al bootstrap: la compatibilità del consumer è parte del coordinamento, da attuare nel suo repository con perimetro separato. Prevedere migrazione dei token senza `kid`, distribuzione delle chiavi ai verificatori prima dell'attivazione, audit amministrativo e prove crittografiche reali con chiavi sintetiche. Le decisioni su fonte del registro, reload/riavvio, propagazione e mezzo di amministrazione sono elencate nel piano.
+
+Collocazione proposta 16K, prima o insieme alle estensioni dell'autenticazione e prima della loro QA finale; prossimo blocco UX invariato. Il piano non autorizza rotazioni sugli ambienti, lettura di segreti, nuove esposizioni amministrative o operazioni Git.
 
 ## Aggiornamenti di piattaforma pianificati
 
@@ -852,5 +905,7 @@ Lo stato **Accettato** richiede la review manuale dell'utente. Non equivale a me
 2. Eventuali differenze di enfasi tra esperienza desktop specialistica e mobile consultiva, senza eliminare le operazioni oggi disponibili.
 3. Account e dataset dedicati alle prove di notifiche, OTP, recupero e ticket.
 4. Percorso pubblico della demo e modalità di accesso: non introdurre credenziali condivise o nuove esposizioni senza una decisione esplicita.
+5. AUTH-01: perimetro sostenibile, tipi di account ammessi, RP ID/origin e policy del login passkey quando MFA è attiva, prima di implementare la feature.
+6. AUTH-02: autorità del registro chiavi, gestione dei segreti, propagazione delle revoche, transizione senza `kid`, operazioni manuali e coordinamento Tox21, secondo [piano dedicato](JWT-KEY-ROTATION.md).
 
 Queste decisioni non impediscono di iniziare il blocco 01: la creazione delle collezioni può essere rifinita mantenendo l'identità attuale e i comportamenti esistenti.

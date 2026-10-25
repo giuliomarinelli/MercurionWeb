@@ -390,6 +390,28 @@ Collezioni: null significa loading, [] empty immediato, niente timer o dati prec
 
 **Roadmap:** ampliato PX-02 e suddiviso il blocco 15 in 15A (home, composizione, gradiente da valutare, benvenuto coordinato e breve, reduced motion e persistenza) e 15B (welcome, aggiornamento immagini reali, perimetro beta, responsive e stabilità del caricamento). Sequenza attiva invariata: ripresa UX dal blocco 13. Nessun redesign delle pagine interne, modifica ai flag o operazione Git autorizzati da questa pianificazione.
 
+### 2026-10-25 — AUTH-01 — Proposta accesso con passkey
+
+**Stato:** proposta opzionale, da dimensionare; nessuna implementazione o modifica ai metodi di accesso.
+
+**Richiesta:** aggiungere alla roadmap la possibilità di accedere con passkey, sia con MFA attiva sia disattiva, se l'impegno è sostenibile.
+
+**Riscontro e pianificazione:** nessuna integrazione WebAuthn/passkey rilevata nei sorgenti Angular/Nest o nei relativi manifest. L'autenticazione corrente separa credenziali, challenge MFA e completamento della sessione. Aggiunta AUTH-01, impegno preliminare medio da stimare dopo analisi; collocazione opzionale 16P, con enrollment/gestione in settings e login esplicito. Prima dell'implementazione vanno definiti policy MFA, account ammessi e RP ID/origin/HTTPS. MVP limitato agli account esistenti, con più credenziali, revoca e metodi precedenti conservati; registrazione interamente passwordless e migrazioni forzate escluse.
+
+**Verifica:** consultati FIDO Alliance e W3C WebAuthn; controllati riferimenti e diff della documentazione. Nessun test applicativo o browser eseguito per questo aggiornamento documentale. La proposta non modifica il prossimo blocco UX e non aggiunge automaticamente un requisito al merge corrente.
+
+### 2026-10-25 — AUTH-02 — Rotazione e revoca chiavi JWT
+
+**Stato:** pianificato; nessuna modifica applicativa, rotazione reale o operazione Git.
+
+**Richiesta:** gestire più chiavi e revoca anche manuale, mantenendo RS256 per access token HTTP/WS e HS512 per gli altri token, con `kid` nell'header JWT.
+
+**Riscontro statico:** Nest usa due coppie RSA e configurazioni HS512 per tipo; provider e servizio JWT caricano una sola versione e contengono già il TODO sulla rotazione. Tox21, letto senza modifiche, verifica con una singola chiave pubblica al bootstrap. Non letti PEM, env o altri segreti. Il controllo minimo attuale HS512 va rivalutato sul materiale decodificato secondo RFC 7518; non dedotta la qualità dei segreti realmente configurati.
+
+**Pianificazione:** aggiunti AUTH-02 e blocco 16K, con [piano architetturale](JWT-KEY-ROTATION.md): registro versionato, chiave di emissione attiva, precedenti in sola verifica, revoca manuale con audit, algoritmo/scopo vincolati, transizione per token senza `kid`, propagazione fra consumer e trattamento dei socket già autenticati. Distinte rotazione, revoca chiave e revoca JTI/sessione. Fasi: analisi/stima, Nest/operazioni, integrazione/QA. Gestione dei segreti, fonte autorevole del registro e modalità di reload restano decisioni esplicite prima del codice.
+
+**Verifica:** fonti RFC 7515, 8725 e 7518; controlli documentali e diff. Nessun test applicativo o browser eseguito per questa pianificazione. Prossimo blocco UX invariato; adeguamento Tox21 da coordinare con un intervento separato nel relativo repository.
+
 ## Modello per le voci successive
 
 ### AAAA-MM-GG — PX-XX — Sottoarea
