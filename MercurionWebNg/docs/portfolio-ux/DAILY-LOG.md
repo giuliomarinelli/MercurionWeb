@@ -426,6 +426,30 @@ Collezioni: null significa loading, [] empty immediato, niente timer o dati prec
 
 **Prossimo blocco:** 14 / PX-01 — regressione shell dopo N3, partendo da resize e gutter.
 
+### 2026-10-25 — Review PX-08 — Scroll editor
+
+**Stato:** regressione segnalata dall'utente riprodotta e corretta; blocco 14 sospeso durante questa correzione.
+
+**Causa e intervento:** il focus della textarea nascosta Ketcher poteva spostare il documento al fondo dopo la navigazione. Focus desktop conservato con preventScroll per il solo controllo cliparea. All'avvio della sessione, scroll del workspace sotto l'header con 16 px di spazio, tramite i servizi esistenti; nessun calcolo basato sul fondo della pagina.
+
+**Verifica:** prima 341/341 px e workspace fuori schermo; dopo 192 px e bordo workspace 70,4 px rispetto all'header 54,5 px, in creazione, passaggio live e duplicazione. 96 test Angular e 10 test bridge superati; typecheck, lint, build e gate bundle/lazy superati. Nessuna scrittura di molecole. QA fisica Safari e modalità modifica con fixture restano da completare. Dettagli in [EDITOR-STATES-QA.md](EDITOR-STATES-QA.md).
+
+**Prossimo intervento:** riprendere il blocco 14, gutter e resize; nessun commit o merge eseguito.
+
+### 2026-10-25 — Seconda review PX-08 — Identità tra viste
+
+**Stato:** corretti reset visivo dell'identità e cache miss sulle serializzazioni SMILES riordinate da Ketcher. La prima verifica con ALCOOL non copriva il caso aromatico VENLAFAXINA segnalato durante la review.
+
+**Intervento e prove:** identità preservata durante export/cambio route/primo polling; separati ripristino e modifiche interattive. Abbinamento in sessionStorage della serializzazione esportata al termine di un ripristino confermato e senza modifiche intervenute, senza euristiche chimiche. Risposte nome legate alla revisione corrente. Nel percorso VENLAFAXINA Disegno → live → Disegno: nessuno spinner di identità, zero nuove richieste nome/canonicalizzazione, due controlli duplicati. 104 test Angular, typecheck, lint, build e gate locali superati. Dettagli in [EDITOR-STATES-QA.md](EDITOR-STATES-QA.md).
+
+**Continuità:** nessuna scrittura di molecole, operazione Git o modifica ai runtime dell'utente. QA Safari e blocco 14 restano aperti.
+
+### 2026-10-25 — Review PX-08 — Colonna analisi live
+
+**Intervento:** Tox21 e analoghi compattati per restare entrambi visibili accanto al canvas desktop. Esiti e probabilità nel pannello; soglie e avvertenze nel tooltip PrimeNG dell'icona info fornita dall'utente, con hover/focus/click ed Escape. Spaziature ridotte senza rimpicciolire i valori; metadati analoghi riallineati a 12 px e spazio stabile per gli stati asincroni.
+
+**Verifica:** colonna di circa 582 px a 1366×768 e 1600×775, entro il workspace; entrambi i temi, tre analoghi reali e stato senza analoghi verificati. Telefono 375×812 senza overflow e tooltip dentro il viewport. 106 test, typecheck, lint, build e gate locali superati. [Report e limiti](EDITOR-STATES-QA.md), incluse prove locali e QA fisica Safari ancora aperta. Nessun commit/merge; blocco 14 ancora da riprendere.
+
 ## Modello per le voci successive
 
 ### AAAA-MM-GG — PX-XX — Sottoarea

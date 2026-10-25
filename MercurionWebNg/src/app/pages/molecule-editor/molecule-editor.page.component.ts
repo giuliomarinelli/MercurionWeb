@@ -1,5 +1,5 @@
 import { LoggerService } from '../../services/logger.service'
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, effect, inject, signal, untracked } from '@angular/core'
+import { ChangeDetectionStrategy, Component, ElementRef, OnDestroy, OnInit, computed, effect, inject, signal, untracked, viewChild } from '@angular/core'
 import { ActivatedRoute, Router } from '@angular/router'
 import {
   EMPTY,
@@ -46,6 +46,9 @@ import { LiveMoleculeAnalogsComponent } from '../../components/molecule-editor/l
 import { MoleculeEditorLiveAnalysisFacade } from './molecule-editor-live-analysis.facade'
 import { EditorRequestScheduler } from '../../chemistry/editor-request-scheduler.service'
 import { ProgressIndicatorComponent } from '../../components/common/progress-indicator/progress-indicator.component'
+import { ScrollContextService } from '../../services/context/scroll-context.service'
+import { ShellLayoutService } from '../../services/context/shell-layout.service'
+import { injectBrowserResourceOwner } from '../../utils/browser-resource-owner.util'
 
 @Component({
   selector: 'm-molecule-editor',
@@ -80,7 +83,7 @@ import { ProgressIndicatorComponent } from '../../components/common/progress-ind
             ariaLabelledBy="moleculeEditorTabLabel" />
     </div>
     <div class="m-editor-layout" [class.m-editor-layout--live]="tab() === 'live'">
-      <section class="m-editor-workspace" aria-label="Disegno e identità molecolare">
+      <section #editorWorkspace class="m-editor-workspace" aria-label="Disegno e identità molecolare">
         <dl class="m-editor-identity" aria-label="Identità molecolare">
           <div class="m-editor-name">
             <dt>Nome della molecola</dt>
@@ -128,7 +131,8 @@ import { ProgressIndicatorComponent } from '../../components/common/progress-ind
         <m-ketcher-frame [smiles]="smiles()" [baselineSmiles]="baselineSmiles()" [mode]="mode()" [tab]="tab()"
             [triggerReset]="triggerReset()" [triggerGetSmiles]="triggerGetSmiles()"
             (exportSmiles)="onSmilesExported($event)" (exportPolledSmiles)="onSmilesPollExported($event)"
-            (structureChanged)="invalidateStructure()" (exportFailed)="handleExportFailure()" (onReset)="handleReset()">
+            (structureChanged)="invalidateStructure()" (exportFailed)="handleExportFailure()" (onReset)="handleReset()"
+            (editorReady)="alignEditor()" (structureRestored)="restoreIdentity($event)">
 
             <div class="m-editor-status" [class.m-editor-status--error]="editorStatus().kind === 'error'"
                 [class.m-editor-status--duplicate]="editorStatus().kind === 'duplicate'"
@@ -224,6 +228,10 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
   private readonly qpRegistry = signal<MoleculeEditorQp | null>(null)
   private readonly moleculeService = inject(MoleculeService)
   private readonly requests = inject(EditorRequestScheduler)
+  private readonly scrolling = inject(ScrollContextService)
+  private readonly shellLayout = inject(ShellLayoutService)
+  private readonly resources = injectBrowserResourceOwner()
+  private readonly workspace = viewChild<ElementRef<HTMLElement>>('editorWorkspace')
   readonly liveAnalysis = inject(MoleculeEditorLiveAnalysisFacade)
 
   private routeSub?: Subscription
@@ -234,6 +242,7 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>()
   private readonly polledSmiles$ = new Subject<{ smiles: string; revision: number }>()
   private validationRevision = 0
+  private readonly nameRequestRevision = signal(0)
   private lastRawSmiles: string | undefined
   private lastPolledRevision = -1
   private destroyed = false
@@ -299,7 +308,7 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
   constructor() {
     effect(onCleanup => {
       const canonicalSmiles = this.currentCanonicalSmiles()
-      const revision = this.validationRevision
+      const revision = this.nameRequestRevision()
 
       this.currentMoleculeName.set(null)
       this.currentMoleculeType.set(null)
@@ -361,6 +370,21 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
     })
   }
 
+  alignEditor(): void {
+    this.resources.requestAnimationFrame(() => {
+      const workspace = this.workspace()?.nativeElement
+      const root = this.scrolling.scrollRootRef()
+      if (!workspace || !root) return
+      const target = this.scrolling.getScrollYRelativeToRoot(workspace, root.nativeElement)
+        - this.shellLayout.headerHeight() - 16
+      this.scrolling.smoothTo(root, Math.max(0, target), 240)
+    })
+  }
+
+  restoreIdentity(restored: { loadedSmiles: string; exportedSmiles: string }): void {
+    this.drafts.cacheRestoredIdentity(restored.loadedSmiles, restored.exportedSmiles)
+  }
+
   onSave(): void {
     if (this.lock() || this.saveUnconfirmed() || this.pendingAction() || this.pendingTabChange() || this.saveInFlight) return
     this.pendingAction.set('save')
@@ -399,22 +423,24 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
     const trimmed = smiles.trim()
     this.hasStructure.set(!!trimmed)
     if (trimmed === this.lastRawSmiles && this.lastPolledRevision === this.validationRevision) return
-    this.invalidateStructure()
+    this.drafts.record(trimmed, this.tab())
+    this.invalidateStructure(trimmed)
     this.lastRawSmiles = trimmed
     this.lastPolledRevision = this.validationRevision
-    this.drafts.record(trimmed, this.tab())
     this.untouched.set(trimmed === this.baselineSmiles())
     this.validationMessage.set(trimmed ? 'Aggiornamento della struttura in corso…' : '')
     this.polledSmiles$.next({ smiles: trimmed, revision: this.validationRevision })
   }
 
-  invalidateStructure(): void {
+  invalidateStructure(unchangedSmiles?: string): void {
     this.validationRevision++
     this.lock.set(true)
     this.validationFailed.set(false)
     this.identityChecking.set(this.hasStructure())
     this.duplicateFound.set(false)
-    this.setCurrentCanonicalSmiles('')
+    const cached = unchangedSmiles ? this.drafts.getCachedIdentity(unchangedSmiles) : undefined
+    this.setCurrentCanonicalSmiles(cached?.canonicalSmiles ?? '')
+    this.nameRequestRevision.set(this.validationRevision)
     // Empty is an invalidation event, not a value to filter before cancellation.
     this.polledSmiles$.next({ smiles: '', revision: this.validationRevision })
   }
@@ -478,8 +504,8 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
   }
 
   private initializeDraft(init: MoleculeEditorDraftInit): void {
-    this.invalidateStructure()
     const entry = this.drafts.initialize(init)
+    this.invalidateStructure(entry.smiles)
 
     this.mode.set(init.mode)
     this.mId.set(init.mId)
@@ -496,9 +522,6 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
 
     const restoredTab = this.drafts.currentTab()
     this.tab.set(restoredTab)
-
-    const cached = this.drafts.getCachedIdentity(entry.smiles)
-    if (cached) this.setCurrentCanonicalSmiles(cached.canonicalSmiles)
 
     if (this.pendingTabChange() === restoredTab) {
       this.pendingTabChange.set(null)
@@ -602,7 +625,7 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
       this.drafts.record(currentStructure, this.tab())
       this.smiles.set(currentStructure)
       this.hasStructure.set(!!currentStructure)
-      this.invalidateStructure()
+      this.invalidateStructure(currentStructure)
       this.drafts.setTab(nextTab)
 
       const qp = this.qpRegistry()
@@ -706,9 +729,9 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.routeSub = this.route.queryParamMap.pipe(
       switchMap(qp => {
-        this.invalidateStructure()
         const rawMode = qp.get('mode')
         if (!isChemistryEditorMode(rawMode)) {
+          this.invalidateStructure()
           this.error.set(true)
           return EMPTY
         }
@@ -720,6 +743,9 @@ export class MoleculeEditorPageComponent implements OnInit, OnDestroy {
         const mId = qp.get('m_id') ?? undefined
         const routeSmiles = qp.get('smiles') ?? undefined
         const routeBaselineSmiles = qp.get('baseline_smiles') ?? undefined
+        const sameContext = !destroyExisting && rawMode === this.mode() && mId === this.mId() &&
+          (routeBaselineSmiles === undefined || routeBaselineSmiles === this.baselineSmiles())
+        this.invalidateStructure(sameContext ? routeSmiles : undefined)
 
         this.qpRegistry.set({
           mode: rawMode,

@@ -32,7 +32,7 @@
 .m-editor-action:disabled { opacity: .55; cursor: not-allowed; }
 .m-editor-action:focus-visible { outline: 2px solid var(--m-color-focus); outline-offset: 3px; }
 .m-editor-analysis { min-width: 0; }
-.m-editor-analysis > .m-editor-description { margin-bottom: 1rem; }
+.m-editor-analysis > .m-editor-description { margin-top: .25rem; margin-bottom: .5rem; font-size: .75rem; }
 @media (min-width: 640px) {
   .m-editor-workspace { padding: 1rem; }
   .m-editor-identity { grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); gap: 1.5rem; }

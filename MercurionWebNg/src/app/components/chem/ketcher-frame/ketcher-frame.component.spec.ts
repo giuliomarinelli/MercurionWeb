@@ -40,6 +40,56 @@ describe('KetcherFrameComponent', () => {
     expect(editor.createSession).toHaveBeenCalledTimes(1);
   });
 
+  it('ignores vendor changes while loading/restoring but reports interactive changes', async () => {
+    let changed!: () => void;
+    session.onStructureChange = listener => { changed = listener; return () => undefined; };
+    component.retry();
+    await Promise.resolve();
+    const emitted = jasmine.createSpy('interactive change');
+    component.structureChanged.subscribe(emitted);
+    changed();
+    expect(emitted).not.toHaveBeenCalled();
+    component.editorState.set('ready');
+    changed();
+    expect(emitted).toHaveBeenCalledTimes(1);
+    let restored!: () => void;
+    session.setStructure.and.returnValue(new Promise(resolve => { restored = resolve; }));
+    fixture.componentRef.setInput('smiles', 'CCO');
+    fixture.detectChanges();
+    changed();
+    expect(emitted).toHaveBeenCalledTimes(1);
+    restored();
+    await Promise.resolve();
+    changed();
+    expect(emitted).toHaveBeenCalledTimes(2);
+  });
+
+  for (const editedDuringExport of [false, true]) {
+    it(`binds a restored serialization only without intervening edits (${editedDuringExport})`, async () => {
+      let state!: Parameters<ChemistryEditorSession['onStateChange']>[0];
+      let changed!: () => void;
+      let exported!: (smiles: string) => void;
+      session.onStateChange.and.callFake(listener => { state = listener; return () => undefined; });
+      session.onStructureChange = listener => { changed = listener; return () => undefined; };
+      session.setStructure.and.resolveTo();
+      session.exportStructure.and.returnValue(new Promise(resolve => { exported = resolve; }));
+      fixture.componentRef.setInput('smiles', 'OCC');
+      fixture.detectChanges();
+      component.retry();
+      await Promise.resolve();
+      const restored = jasmine.createSpy('restored identity');
+      component.structureRestored.subscribe(restored);
+      state({ status: 'ready' });
+      await Promise.resolve();
+      if (editedDuringExport) changed();
+      exported('C(C)O');
+      await Promise.resolve();
+      expect(component.editorState()).toBe('ready');
+      if (editedDuringExport) expect(restored).not.toHaveBeenCalled();
+      else expect(restored).toHaveBeenCalledOnceWith({ loadedSmiles: 'OCC', exportedSmiles: 'C(C)O' });
+    });
+  }
+
   it('creates the standalone editor with the standard Mercurion profile', () => {
     const resourceUrl = editor.createSession.calls.mostRecent().args[0];
     const url = new URL(resourceUrl, window.location.origin);

@@ -1,11 +1,13 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { MoleculeEditorPageComponent } from './molecule-editor.page.component';
 import { KetcherFrameComponent } from '../../components/chem/ketcher-frame/ketcher-frame.component';
 import { Observable, Subject } from 'rxjs';
 import { MoleculeService } from '../../services/graphql/molecule.service';
 import { EditorRequestScheduler } from '../../chemistry/editor-request-scheduler.service';
 import { LoggerService } from '../../services/logger.service';
-import { signal } from '@angular/core';
+import { ElementRef, signal } from '@angular/core';
+import { ScrollContextService } from '../../services/context/scroll-context.service';
+import { ShellLayoutService } from '../../services/context/shell-layout.service';
 
 describe('Molecule editor layout and mode context', () => {
   let fixture: ComponentFixture<MoleculeEditorPageComponent>;
@@ -41,6 +43,26 @@ describe('Molecule editor layout and mode context', () => {
     expect(component.editorStatus().text).toBe('Nessuna modifica da salvare');
     expect(fixture.nativeElement.querySelector('[aria-label="Salva molecola"]').getAttribute('aria-describedby')).toBe('editor-state-message');
   });
+  it('aligns the workspace below the sticky header, independently of the analysis height', fakeAsync(() => {
+    const scrolling = TestBed.inject(ScrollContextService);
+    const root = new ElementRef(document.documentElement);
+    scrolling.registerScrollRootRef(root);
+    TestBed.inject(ShellLayoutService).setHeaderHeight(56);
+    spyOn(scrolling, 'getScrollYRelativeToRoot').and.returnValue(280);
+    const smooth = spyOn(scrolling, 'smoothTo');
+    fixture.componentInstance.alignEditor();
+    tick(17);
+    expect(smooth).toHaveBeenCalledOnceWith(root, 208, 240);
+  }));
+  it('cancels a pending alignment when leaving the editor', fakeAsync(() => {
+    const scrolling = TestBed.inject(ScrollContextService);
+    scrolling.registerScrollRootRef(new ElementRef(document.documentElement));
+    const smooth = spyOn(scrolling, 'smoothTo');
+    fixture.componentInstance.alignEditor();
+    fixture.destroy();
+    tick(17);
+    expect(smooth).not.toHaveBeenCalled();
+  }));
   afterEach(() => { fixture.destroy(); frame?.remove(); });
   it('renders admission waits in the reserved footer and clears them on completion', () => {
     const component = fixture.componentInstance;

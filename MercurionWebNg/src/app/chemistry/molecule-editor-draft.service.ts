@@ -221,6 +221,17 @@ export class MoleculeEditorDraftService {
     this.persist(next)
   }
 
+  cacheRestoredIdentity(loadedSmiles: string, exportedSmiles: string): void {
+    const identity = this.getCachedIdentity(loadedSmiles)
+    if (!identity || identity !== this.getCachedIdentity(this.currentSmiles()) || !exportedSmiles.trim()) return
+    this.record(exportedSmiles)
+    const draft = this.state()
+    if (!draft) return
+    const next = { ...draft, identity: { ...identity, rawSmiles: exportedSmiles.trim() } }
+    this.state.set(next)
+    this.persist(next)
+  }
+
   clearCurrent(): void {
     const draft = this.state()
     if (!draft) return

@@ -1,7 +1,7 @@
 import { signal } from '@angular/core'
-import { fakeAsync, TestBed, tick } from '@angular/core/testing'
+import { fakeAsync, flushMicrotasks, TestBed, tick } from '@angular/core/testing'
 import { ActivatedRoute, convertToParamMap, Router } from '@angular/router'
-import { BehaviorSubject, Observable, of, throwError } from 'rxjs'
+import { BehaviorSubject, Observable, of, Subject, throwError } from 'rxjs'
 import { EditorRequestScheduler } from '../../chemistry/editor-request-scheduler.service'
 import { MoleculeEditorDraftService } from '../../chemistry/molecule-editor-draft.service'
 import { MoleculeCollectionItemService } from '../../services/graphql/molecule-collection-item.service'
@@ -64,6 +64,69 @@ describe('Editor identity cache across views', () => {
     draw('CCC')
     expect(canonical).toHaveBeenCalledTimes(2)
     expect(name).toHaveBeenCalledTimes(2)
+  }))
+
+  it('keeps resolved identity visible during export, route initialization and the first poll of the other view', fakeAsync(() => {
+    draw()
+    component.onEditorTabChange('live')
+    void component.onSmilesExported('OCC')
+    flushMicrotasks()
+    TestBed.flushEffects()
+    expect(component.currentCanonicalSmiles()).toBe('CCO')
+    expect(component.currentMoleculeName()).toBe('Etanolo')
+    params.next(convertToParamMap({ mode: 'create', smiles: 'OCC', tab: 'live', destroy_cache: 'false' }))
+    TestBed.flushEffects()
+    expect(component.currentCanonicalSmiles()).toBe('CCO')
+    expect(component.currentMoleculeName()).toBe('Etanolo')
+    expect(component.moleculeNameLoading()).toBeFalse()
+    component.onSmilesPollExported('CCO')
+    TestBed.flushEffects()
+    expect(component.currentCanonicalSmiles()).toBe('CCO')
+    expect(component.currentMoleculeName()).toBe('Etanolo')
+    expect(component.lock()).toBeTrue()
+    tick(301)
+    expect(component.lock()).toBeFalse()
+    expect(canonical).toHaveBeenCalledTimes(1)
+    expect(name).toHaveBeenCalledTimes(1)
+    expect(duplicate).toHaveBeenCalledTimes(2)
+  }))
+
+  it('restarts an unresolved name request for the current revision when canonical identity is preserved', fakeAsync(() => {
+    const staleName = new Subject<{ name: string; type: 'iupac' }>()
+    name.and.returnValue(staleName)
+    draw()
+    expect(component.moleculeNameLoading()).toBeTrue()
+    name.and.returnValue(of({ name: 'Current name', type: 'iupac' }))
+    switchView()
+    staleName.next({ name: 'Stale name', type: 'iupac' })
+    TestBed.flushEffects()
+    expect(component.currentMoleculeName()).toBe('Current name')
+    expect(component.moleculeNameLoading()).toBeFalse()
+    expect(name).toHaveBeenCalledTimes(2)
+  }))
+
+  it('immediately clears the previous identity for a genuine structure change', fakeAsync(() => {
+    draw()
+    component.invalidateStructure()
+    TestBed.flushEffects()
+    expect(component.currentCanonicalSmiles()).toBe('')
+    expect(component.currentMoleculeName()).toBeNull()
+    draw('CCC')
+    expect(component.currentCanonicalSmiles()).toBe('CCC')
+    expect(canonical).toHaveBeenCalledTimes(2)
+  }))
+
+  it('retains identity when a restored editor reorders its SMILES serialization', fakeAsync(() => {
+    draw()
+    switchView()
+    component.restoreIdentity({ loadedSmiles: 'OCC', exportedSmiles: 'C(C)O' })
+    component.onSmilesPollExported('C(C)O')
+    TestBed.flushEffects()
+    expect(component.currentCanonicalSmiles()).toBe('CCO')
+    expect(component.currentMoleculeName()).toBe('Etanolo')
+    tick(301)
+    expect(canonical).toHaveBeenCalledTimes(1)
+    expect(name).toHaveBeenCalledTimes(1)
   }))
 
   it('does not cache uniqueness or unlock save when the fresh duplicate check fails', fakeAsync(() => {

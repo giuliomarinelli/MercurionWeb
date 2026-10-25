@@ -20,6 +20,19 @@
   <noscript>You need to enable JavaScript to run this app.</noscript>
   <div id="root"></div>
 
+  <!-- Keep Ketcher's hidden keyboard target from scrolling the parent page. -->
+  <script>
+    (function () {
+      const focus = HTMLElement.prototype.focus;
+      HTMLElement.prototype.focus = function (options) {
+        if (this instanceof HTMLTextAreaElement && this.classList.contains('cliparea')) {
+          return focus.call(this, { ...options, preventScroll: true });
+        }
+        return focus.call(this, options);
+      };
+    })();
+  </script>
+
   <!-- Mercurion mobile keyboard compatibility guard -->
   <script>
     (function () {

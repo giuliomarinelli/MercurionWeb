@@ -9,11 +9,11 @@ import type { MoleculeSearchResult } from '../../../Models/graphql/molecule-sear
   imports: [DecimalPipe, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="pt-2" [attr.aria-busy]="loading()">
+    <div class="pt-2 min-h-40" [attr.aria-busy]="loading()">
       @if (loading()) {
-        <div class="space-y-2" role="status" aria-label="Ricerca analoghi molecolari in corso">
+        <div role="status" aria-label="Ricerca analoghi molecolari in corso">
           @for (index of [0, 1, 2]; track index) {
-            <div class="h-12 rounded-md bg-slate-200/70 dark:bg-slate-700/60 animate-pulse"></div>
+            <div class="h-12 flex items-center"><span class="block h-8 w-full rounded-md bg-slate-200/70 dark:bg-slate-700/60 animate-pulse" aria-hidden="true"></span></div>
           }
         </div>
       } @else if (error()) {
@@ -24,7 +24,7 @@ import type { MoleculeSearchResult } from '../../../Models/graphql/molecule-sear
         <div class="divide-y divide-slate-200/80 dark:divide-slate-700/70">
           @for (molecule of items(); track molecule.id; let index = $index) {
             <a
-              class="group grid grid-cols-[1.5rem_1fr_auto] items-center gap-2 py-2.5"
+              class="group grid min-h-12 grid-cols-[1.5rem_1fr_auto] items-center gap-2 py-1.5 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-light-accent-primary dark:focus-visible:outline-dark-accent-primary"
               [routerLink]="['/molecules/detail', molecule.id]"
               [attr.aria-label]="'Apri analogo ' + moleculeName(molecule)"
             >
@@ -40,7 +40,7 @@ import type { MoleculeSearchResult } from '../../../Models/graphql/molecule-sear
                   {{ moleculeName(molecule) }}
                 </span>
 
-                <span class="block truncate text-[0.68rem] text-slate-500 dark:text-slate-400">
+                <span class="block truncate text-xs text-light-on-surface-secondary dark:text-dark-on-surface-secondary">
                   @if (molecule.mwFreebase !== null && molecule.mwFreebase !== undefined) {
                     MW {{ molecule.mwFreebase | number:'1.0-1' }}
                   }

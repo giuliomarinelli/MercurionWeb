@@ -8,6 +8,27 @@ const script = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].find(match =>
 assert.ok(script, 'Missing production bridge')
 const microtasks = async () => { for (let i = 0; i < 20; i++) await Promise.resolve() }
 
+test('hidden keyboard focus preserves shortcuts without scrolling; ordinary fields retain native focus', () => {
+  const focusGuard = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)]
+    .find(match => match[1].includes('preventScroll: true'))?.[1]
+  assert.ok(focusGuard, 'Missing hidden keyboard focus guard')
+  const calls = []
+  class HTMLElement { focus(options) { calls.push({ element: this, options }) } }
+  class HTMLTextAreaElement extends HTMLElement {
+    constructor(hidden) { super(); this.classList = { contains: name => hidden && name === 'cliparea' } }
+  }
+  vm.runInNewContext(focusGuard, { HTMLElement, HTMLTextAreaElement })
+  const hidden = new HTMLTextAreaElement(true)
+  hidden.focus({ preventScroll: false, focusVisible: true })
+  assert.equal(calls[0].element, hidden)
+  assert.equal(calls[0].options.preventScroll, true)
+  assert.equal(calls[0].options.focusVisible, true)
+  const ordinary = new HTMLTextAreaElement(false)
+  const options = { preventScroll: false }
+  ordinary.focus(options)
+  assert.equal(calls[1].options, options)
+})
+
 function bridge({ read = () => '', convert = async ({ struct }) => ({ struct }), setMolecule = async () => {},
   structure = { atoms: new Map(), bonds: new Map() } } = {}) {
   const replies = [], handlers = {}

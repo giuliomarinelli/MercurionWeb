@@ -44,4 +44,18 @@ describe('LiveMoleculeAnalogsComponent', () => {
 
     expect(fixture.nativeElement.textContent).toContain('non è ancora rappresentata nel corpus di embedding')
   })
+
+  it('reserves the same compact area for loading, results and unavailable states', () => {
+    fixture.nativeElement.style.cssText = 'display:block;width:320px'
+    fixture.componentRef.setInput('molecules', [1, 2, 3].map(id => ({ id, preferredName: `Analog ${id}` })))
+    const heights: number[] = []
+    for (const state of ['results', 'loading', 'unavailable']) {
+      fixture.componentRef.setInput('loading', state === 'loading')
+      if (state === 'unavailable') fixture.componentRef.setInput('molecules', [])
+      fixture.componentRef.setInput('unavailable', state === 'unavailable')
+      fixture.detectChanges()
+      heights.push(fixture.nativeElement.firstElementChild.getBoundingClientRect().height)
+    }
+    expect(Math.max(...heights) - Math.min(...heights)).toBeLessThanOrEqual(1)
+  })
 })

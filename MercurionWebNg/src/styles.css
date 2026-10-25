@@ -696,6 +696,11 @@ html {
   --p-tooltip-shadow: 0 4px 12px rgb(0 0 0 / .15);
 }
 .m-navigation-tooltip .p-tooltip-text { font-size: .875rem; }
+.m-editor-info-tooltip { --p-tooltip-max-width: min(22rem, calc(100vw - 2rem)); width: 22rem; }
+@media (max-width: 639px) {
+  .m-editor-info-tooltip { left: 1rem !important; width: calc(100% - 2rem); }
+  .m-editor-info-tooltip .p-tooltip-arrow { left: auto !important; right: 2.5rem; }
+}
 .m-offcanvas-navigation {
   display: flex;
   flex-direction: column;

@@ -97,6 +97,7 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
   private pollSubscription?: Subscription
   private sessionGeneration = 0
   private structureGeneration = 0
+  private vendorRevision = 0
   private settingStructure = false
   private destroyed = false
   private activeSessionTab?: ChemistryEditorTab
@@ -115,6 +116,8 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
   readonly onReset = output<void>();
   readonly structureChanged = output<void>();
   readonly exportFailed = output<void>();
+  readonly editorReady = output<void>();
+  readonly structureRestored = output<{ loadedSmiles: string; exportedSmiles: string }>();
 
   readonly iframeRef = viewChild<ElementRef<HTMLIFrameElement>>('ketcherIframe')
 
@@ -226,7 +229,12 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
 
       this.session = session
       this.unsubscribeChange = session.onStructureChange?.(() => {
-        if (this.session === session && generation === this.sessionGeneration) {
+        if (this.session !== session || generation !== this.sessionGeneration) return
+        this.vendorRevision++
+        // Loading/restoring a structure also emits vendor change events. Only
+        // interactive changes invalidate the identity already resolved for it.
+        if (this.session === session && generation === this.sessionGeneration &&
+            this.editorState() === 'ready' && !this.settingStructure) {
           this.zone.run(() => this.structureChanged.emit())
         }
       })
@@ -253,7 +261,14 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
     generation: number
   ): Promise<void> {
     try {
-      await session.setStructure(this.smiles() ?? '')
+      const loadedSmiles = this.smiles() ?? ''
+      await session.setStructure(loadedSmiles)
+
+      // The importer may reorder atoms/bonds in its SMILES serialization.
+      // Bind that serialization only to this confirmed, unchanged restoration.
+      const restoredRevision = this.vendorRevision
+      let exportedSmiles: string | undefined
+      try { exportedSmiles = await session.exportStructure() } catch { /* Normal polling can retry. */ }
 
       if (
         this.destroyed ||
@@ -264,7 +279,14 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
       }
 
       this.zone.run(() => {
+        if (restoredRevision === this.vendorRevision && loadedSmiles === (this.smiles() ?? '') &&
+            typeof exportedSmiles === 'string') {
+          this.structureRestored.emit({ loadedSmiles, exportedSmiles })
+        } else if (restoredRevision !== this.vendorRevision) {
+          this.structureChanged.emit()
+        }
         this.editorState.set('ready')
+        this.editorReady.emit()
         this.loadedTimeoutId = setTimeout(() => this.installMobileKeyboardGuard(), 50)
       })
     } catch (error) {
