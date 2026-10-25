@@ -8,11 +8,12 @@ import type { LoginSsoSelection } from './login-flow.models'
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [],
   template: `
-    <section aria-labelledby="sso-title" class="space-y-5 dark:text-slate-100">
+    <section aria-labelledby="sso-title" class="grid gap-3">
+      <h2 id="sso-title" class="sr-only">Accedi con un altro account</h2>
       @for (provider of providers; track provider) {
         <a
           [href]="hrefFor(provider)"
-          class="flex w-full items-center justify-center gap-3 rounded-md border border-blue-800 dark:border-slate-50 text-blue-800 dark:text-slate-50 py-2.5 text-sm transition-colors duration-150 hover:bg-blue-800 hover:text-slate-50 dark:bg-transparent dark:hover:bg-slate-100 dark:hover:text-neutral-900 font-medium dark:font-regular"
+          class="auth-option"
           [attr.aria-label]="'Continua con ' + provider"
         >
           @switch (provider) {
@@ -38,9 +39,7 @@ import type { LoginSsoSelection } from './login-flow.models'
       }
     </section>
   `,
-  styles: [`
-    :host { display: block; }
-  `]
+  styleUrl: './auth-entry.css'
 })
 export class LoginSsoChooserComponent {
 

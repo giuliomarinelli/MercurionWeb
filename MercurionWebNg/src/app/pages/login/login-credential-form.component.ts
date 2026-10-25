@@ -2,6 +2,8 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  Injector,
+  afterNextRender,
   inject,
   output,
   signal,
@@ -38,8 +40,16 @@ type CredentialForm = {
     TurnstileComponent
   ],
   template: `
-    <form id="login-form" name="login" autocomplete="on" [formGroup]="form" (ngSubmit)="submitCredentials()" aria-labelledby="login-title" [attr.aria-busy]="pending()">
+    <form id="login-form" name="login" autocomplete="on" [formGroup]="form" (ngSubmit)="step() === 1 ? submitEmail() : submitCredentials()" aria-labelledby="login-title" [attr.aria-busy]="pending()">
+      <fieldset class="credential-fields" [disabled]="pending()" aria-label="Credenziali di accesso">
+      <div class="credential-step">
+        <p role="status">{{ step() === 1 ? 'Credenziali · E-mail' : 'Credenziali · Password' }}</p>
+        @if (step() === 2) {
+          <button type="button" (click)="editEmail()" [disabled]="pending()">Cambia e-mail</button>
+        }
+      </div>
         <m-text-field
+          #emailField
           id="login-email"
           name="email"
           label="Indirizzo e-mail"
@@ -48,18 +58,17 @@ type CredentialForm = {
           formControlName="email"
           [errors]="emailErrors"
           [serverError]="emailError()"
-          [disabled]="step() === 2 && pending()"
-          (enter)="step() === 1 ? submitEmail() : null"
         />
       @if (step() === 1) {
-        <button type="button" (click)="submitEmail()" [disabled]="form.controls.email.invalid"
-          class="relative bottom-[10px] mt-1 w-full rounded-md bg-light-accent-primary-hq py-2 text-white transition-colors duration-150 hover:bg-light-accent-primary-hc disabled:cursor-not-allowed disabled:bg-light-accent-primary-hq/60 disabled:hover:bg-light-accent-primary-hq/60 dark:bg-dark-accent-primary-btn dark:disabled:bg-dark-accent-primary/80 dark:disabled:hover:bg-dark-accent-primary/80"
-          [attr.aria-disabled]="form.controls.email.invalid"
+        <button type="submit" [disabled]="pending() || form.controls.email.invalid"
+          class="credential-submit" [attr.aria-busy]="pending()"
+          [attr.aria-disabled]="pending() || form.controls.email.invalid"
           aria-label="Continua con l'e-mail inserita">
-          Continua
+          <m-button-pending-content [pending]="pending()">Continua</m-button-pending-content>
         </button>
       } @else {
         <m-text-field
+          #passwordField
           id="login-password"
           name="password"
           label="Password"
@@ -70,26 +79,26 @@ type CredentialForm = {
           [serverError]="credentialError()"
         />
         <button type="submit" [disabled]="!canSubmit()" [attr.aria-busy]="pending()"
-          class="flex justify-center items-center mt-4 w-full rounded-md bg-light-accent-primary-hq py-2 text-white transition-colors duration-150 hover:bg-light-accent-primary-hc disabled:cursor-not-allowed disabled:bg-light-accent-primary-hq/60 disabled:hover:bg-light-accent-primary-hq/60 dark:bg-dark-accent-primary-btn dark:hover:bg-dark-accent-primary/80 dark:disabled:bg-dark-accent-primary/80 dark:disabled:hover:bg-dark-accent-primary/80 h-10"
+          class="credential-submit"
           [attr.aria-disabled]="!canSubmit()"
           aria-label="Accedi al tuo account">
           <m-button-pending-content [pending]="pending()">Accedi</m-button-pending-content>
         </button>
         @if (!turnstileDisabled) {
-          <div class="flex justify-center relative top-3 mb-3">
-            <div class="relative w-[300px] h-[71px]">
+          <div class="credential-security">
+            <div class="credential-security-slot">
               @if (turnstileLoading()) {
                 <div
                   class="absolute inset-0 overflow-hidden bg-neutral-200 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 animate-pulse skeleton-pulse"
                 >
-                  <span class="sr-only">Loading CAPTCHA…</span>
+                  <span class="sr-only" role="status">Caricamento della verifica di sicurezza…</span>
                 </div>
               }
               <m-turnstile
                 (token)="onTurnstileToken($event)"
                 (widgetReady)="onTurnstileReady()"
                 (refresh)="turnstileLoading.set(true)"
-                class="block h-[71px]"
+                class="block min-h-[71px]"
                 [class.invisible]="turnstileLoading()"
               />
             </div>
@@ -105,17 +114,18 @@ type CredentialForm = {
           formControlName="remember"
         />
       </div>
+      </fieldset>
     </form>
   `,
-  styles: [`
-    :host { display: block; }
-    form { display: grid; gap: 1rem; }
-  `]
+  styleUrl: './login-credential-form.component.css'
 })
 export class LoginCredentialFormComponent {
   private readonly appConfig = inject(APP_CONFIG)
   private readonly destroyRef = inject(DestroyRef)
+  private readonly injector = inject(Injector)
   private readonly turnstileComponent = viewChild(TurnstileComponent)
+  private readonly emailField = viewChild<TextFieldComponent>('emailField')
+  private readonly passwordField = viewChild<TextFieldComponent>('passwordField')
 
   readonly form = new FormGroup<CredentialForm>({
     email: new FormControl('', {
@@ -155,6 +165,7 @@ export class LoginCredentialFormComponent {
         this.emailError.set(null)
         this.credentialError.set(null)
         if (this.step() === 2) {
+          this.passwordField()?.inputElement().nativeElement.blur()
           this.step.set(1)
           this.form.controls.password.reset()
           this.resetTurnstile()
@@ -172,7 +183,7 @@ export class LoginCredentialFormComponent {
   }
 
   submitEmail(): void {
-    if (this.form.controls.email.invalid) return
+    if (this.pending() || this.form.controls.email.invalid) return
     this.emailSubmitted.emit(this.form.controls.email.value)
   }
 
@@ -194,6 +205,18 @@ export class LoginCredentialFormComponent {
     this.emailError.set(null)
     this.turnstileLoading.set(true)
     this.step.set(2)
+    afterNextRender(() => this.passwordField()?.focus(), { injector: this.injector })
+  }
+
+  editEmail(): void {
+    if (this.pending()) return
+    // Flush the field's native blur synchronization before clearing its control.
+    this.passwordField()?.inputElement().nativeElement.blur()
+    this.resetTurnstile()
+    this.step.set(1)
+    this.form.controls.password.reset()
+    this.clearErrors()
+    afterNextRender(() => this.emailField()?.focus(), { injector: this.injector })
   }
 
   showEmailError(message: string): void {

@@ -1,5 +1,4 @@
 import { ButtonPendingContentComponent } from '../../../components/common/button/button-pending-content.component';
-import { NgClass } from '@angular/common'
 import { Component, ElementRef, inject, OnDestroy, OnInit, signal, ChangeDetectionStrategy, viewChild, computed } from '@angular/core'
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms'
 import { ActivatedRoute, Router, RouterLink } from '@angular/router'
@@ -15,7 +14,6 @@ import { ProgressIndicatorComponent } from '../../../components/common/progress-
 import { HttpErrorResponse } from '@angular/common/http'
 import { MfaStrategy, MfaView } from '../../../Models/account/account.models'
 import { MfaStrategyCardComponent } from '../../../components/common/mfa-strategy-card/mfa-strategy-card.component'
-import { ɵɵRouterLink } from "@angular/router/testing";
 import { DesignService } from '../../../services/design.service'
 import { AuthRedirectService } from '../../../services/auth-redirect.service'
 import { AuthErrorService } from '../../../services/auth-error.service'
@@ -30,17 +28,18 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ButtonPendingContentComponent,
     ReactiveFormsModule,
-    NgClass,
     ProgressIndicatorComponent,
     MfaStrategyCardComponent,
-    ɵɵRouterLink
+    RouterLink
 ],
   template: `
     @if (canView()) {
-      <div class="min-h-dvh flex flex-col items-center px-4 py-12 relative top-6">
+      <main class="auth-page" aria-labelledby="mfa-title">
+        <section class="auth-card">
+          <header class="auth-header">
 
         <!-- icona ... (uguale a prima) -->
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-auto mb-6"
+        <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true"
           viewBox="0 0 512 512">
           <path class="fill-current text-light-accent-primary-hc dark:text-slate-400"
             d="M63.8 384l50.1 0c9.3-33.5 14.1-68.2 14.1-103.1l0-24.9c0-31.1 11.1-59.7 29.6-81.9l-31.6-36.8C97.5 168.6 80 210.3 80 256l0 24.9c0 35-5.5 69.8-16.2 103.1zM163 106.6l31.7 37c18.2-9.9 39.1-15.6 61.3-15.6c70.7 0 128 57.3 128 128l0 24.9c0 34.6-2.8 69.1-8.4 103.1l48.6 0c5.2-34 7.8-68.5 7.8-103.1l0-24.9c0-97.2-78.8-176-176-176c-34.2 0-66 9.7-93 26.6zM190.3 480l51.4 0 2.6-6.7C267.9 411.9 280 346.7 280 280.9l0-24.9-48 0 0 24.9c0 59.9-11 119.3-32.5 175.2l-5.9 15.3-3.3 8.6z" />
@@ -48,24 +47,25 @@ import {
             d="M48 256C48 141.1 141.1 48 256 48c63.1 0 119.6 28.1 157.8 72.5l15.6 18.2 36.4-31.3L450.2 89.2C403.3 34.6 333.7 0 256 0C114.6 0 0 114.6 0 256l0 40 0 24 48 0 0-24 0-40zm458.5-52.9l-4.9-23.5-47 9.9 4.9 23.5c2.9 13.9 4.5 28.3 4.5 43.1l0 40 0 24 48 0 0-24 0-40c0-18.1-1.9-35.8-5.5-52.9zM352 256c0-53-43-96-96-96s-96 43-96 96l0 24.9c0 46-7.6 91.6-22.5 135.1l46.3 0c13.4-43.7 20.3-89.2 20.3-135.1l0-24.9c0-28.7 23.3-52 52-52s52 23.3 52 52l0 24.9c0 45.6-5.5 91-16.4 135.1l45.2 0c10.1-44.2 15.2-89.5 15.2-135.1l0-24.9z" />
         </svg>
 
-        <h1 class="text-2xl font-semibold text-gray-900 mb-8 dark:text-slate-100 text-center tracking-wider">
+        <h1 id="mfa-title" class="auth-title">
           Verifica la tua identità.
         </h1>
+          </header>
 
-        <form class="w-full max-w-sm space-y-6" (submit)="$event.preventDefault(); verifyCode()">
+        <form class="auth-form" (submit)="$event.preventDefault(); verifyCode()" aria-labelledby="mfa-title" [attr.aria-busy]="loading()">
 
           @switch (true) {
 
             @case (view() === 'CHOOSE_METHOD') {
-              <p class="text-sm text-center relative bottom-2 mt-4 mb-8">
+              <p class="auth-description">
                 Scegli un metodo di autenticazione a più fattori:
               </p>
 
-              <div class="flex flex-col relative top-2 gap-y-6">
+              <div class="grid gap-3">
                 @for (s of enabledMfaStrategies(); track s) {
                   <button
                     type="button"
-                    class="w-full"
+                    class="w-full rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent-primary"
                     (click)="goToFromStrategy(s)"
                   >
                     <m-mfa-strategy-card
@@ -80,7 +80,7 @@ import {
 
             @case (['EMAIL_OTP', 'SMS_OTP', 'APP_TOTP', 'BACKUP_CODE'].includes(view())) {
 
-              <p class="text-sm text-center relative bottom-2">
+              <p class="auth-description">
                 @if (unTrusted() && view() === 'EMAIL_OTP') {
                   <span class="tracking-wider text-light-warning dark:text-dark-warning font-semibold">
                     Abbiamo rilevato un accesso insolito.
@@ -115,29 +115,17 @@ import {
                 }
               </p>
 
-              <div class="relative">
+              <div class="auth-code">
+                <label for="otp">{{ view() === 'BACKUP_CODE' ? 'Codice di backup' : 'Codice monouso' }}</label>
                 <input #otp type="text" [formControl]="codeControl" id="otp"
                   autocomplete="one-time-code" [attr.inputmode]="view() === 'BACKUP_CODE' ? 'text' : 'numeric'"
-                  class="block py-4 px-4 w-full text-base text-light-on-surface-main dark:text-dark-on-surface-main bg-transparent border-slate-300 border dark:border-slate-200 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-light-accent-primary-hq dark:focus:ring-dark-accent-primary focus:border-light-accent-primary-hq dark:focus:border-dark-accent-primary peer"
-                  placeholder=" " required
+                  aria-describedby="mfa-code-error" [attr.aria-invalid]="serverError() || codeControl.invalid && codeControl.touched ? 'true' : null"
+                  required
                   (focus)="isOtpFocused.set(true)"
                   (input)="serverError.set(null); onOtpInput()"
                   (blur)="onOtpBlur()" />
 
-                <label for="otp" [ngClass]="{
-                    'text-light-accent-secondary dark:text-dark-accent-secondary/90 scale-110 -translate-y-6 text-base': isOtpFocused() || !isOtpEmpty(),
-                    'text-slate-400 text-lg scale-100 translate-y-0 cursor-text': !isOtpFocused() && isOtpEmpty()
-                  }"
-                  class="peer-focus:font-medium absolute transition-all duration-300 bg-light-surface-main dark:bg-neutral-950 px-1 top-[13px] left-4 origin-[0]"
-                  (click)="!isOtpFocused() && isOtpFocused.set(true); forceFocusOnOtp()">
-                  @if (view() !== 'BACKUP_CODE') {
-                    Codice monouso
-                  } @else {
-                    Codice di backup
-                  }
-                </label>
-
-                <div class="text-sm text-light-error dark:text-dark-error mt-1 min-h-5">
+                <div id="mfa-code-error" class="auth-code-error" role="status" aria-live="polite">
                   @if (codeControl.invalid && codeControl.touched && !serverError()) {
                     @if (isOtpEmpty()) {
                       Il campo codice è vuoto.
@@ -153,11 +141,7 @@ import {
                 aria-label="Verifica"
                 [disabled]="codeControl.invalid || loading() || state().kind === 'initializing'"
                 [attr.aria-busy]="loading()"
-                class="relative bottom-2.5 w-full mt-4 py-2 text-white rounded-md transition-colors duration-150
-                       bg-light-accent-primary-hq dark:bg-dark-accent-primary-btn
-                       hover:bg-light-accent-primary-hc dark:hover:bg-dark-accent-primary/80
-                       disabled:bg-light-accent-primary-hq/60 disabled:dark:bg-dark-accent-primary/80
-                       disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary-hq/60 disabled:hover:dark:bg-dark-accent-primary/80"
+                class="mfa-submit"
               >
                 <m-button-pending-content [pending]="loading()">Verifica</m-button-pending-content>
               </button>
@@ -166,19 +150,12 @@ import {
           }
 
           <!-- resto del template sotto (OPPURE, help, ecc.) identico al tuo -->
-          <div class="relative py-2">
-            <div class="absolute inset-0 flex items-center">
-              <div class="w-full border-t"></div>
-            </div>
-            <div class="relative flex justify-center text-sm">
-              <span class="bg-light-surface-main dark:bg-neutral-950 px-2 text-gray-500 dark:text-slate-300">OPPURE</span>
-            </div>
-          </div>
+          <div class="auth-separator"><span>Hai bisogno di aiuto?</span></div>
 
           <div class="space-y-3 dark:text-slate-100">
             @if (!unTrusted() && !(view() === 'CHOOSE_METHOD')) {
               <button type="button"
-                class="w-full flex items-center justify-center border rounded-md py-2.5 text-sm dark:hover:bg-slate-100 gap-3 dark:hover:text-neutral-900 hover:bg-slate-200/80 bg-slate-200 dark:bg-transparent transition-colors duration-150"
+                class="auth-option"
                 (click)="goTo('CHOOSE_METHOD')">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-auto fill-current"
                   viewBox="0 0 512 512">
@@ -188,7 +165,7 @@ import {
               </button>
             }
             <a href="mailto:mercurion.app@gmail.com"
-              class="w-full flex items-center justify-center border rounded-md py-2.5 text-sm dark:hover:bg-slate-100 gap-3 dark:hover:text-neutral-900 hover:bg-slate-200/80 bg-slate-200 dark:bg-transparent transition-colors duration-150">
+              class="auth-option">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" class="h-5 w-auto fill-current">
                 <path d="M544 248l0 3.3 69.7-69.7c21.9-21.9 21.9-57.3 0-79.2L535.6 24.4c-21.9-21.9-57.3-21.9-79.2 0L416.3 64.5c-2.7-.3-5.5-.5-8.3-.5L296 64c-37.1 0-67.6 28-71.6 64l-.4 0 0 120c0 22.1 17.9 40 40 40s40-17.9 40-40l0-72c0 0 0-.1 0-.1l0-15.9 16 0 136 0c0 0 0 0 .1 0l7.9 0c44.2 0 80 35.8 80 80l0 8zM336 192l0 56c0 39.8-32.2 72-72 72s-72-32.2-72-72l0-118.6c-35.9 6.2-65.8 32.3-76 68.2L99.5 255.2 26.3 328.4c-21.9 21.9-21.9 57.3 0 79.2l78.1 78.1c21.9 21.9 57.3 21.9 79.2 0l37.7-37.7c.9 0 1.8 .1 2.7 .1l160 0c26.5 0 48-21.5 48-48c0-5.6-1-11-2.7-16l2.7 0c26.5 0 48-21.5 48-48c0-12.8-5-24.4-13.2-33c25.7-5 45.1-27.6 45.2-54.8l0-.4c-.1-30.8-25.1-55.8-56-55.8c0 0 0 0 0 0l-120 0z" />
               </svg>
@@ -196,19 +173,21 @@ import {
             </a>
           </div>
 
-          <div class="text-xs text-center text-gray-400 mt-4">
-            <a routerLink="/privacy" class="hover:underline">Informativa sulla privacy</a>
+          <div class="auth-links">
+            <a routerLink="/privacy" class="auth-link">Informativa sulla privacy</a>
              ·
-            <a routerLink="/terms-and-policies" class="hover:underline">Termini e Policy</a>
+            <a routerLink="/terms-and-policies" class="auth-link">Termini e Policy</a>
           </div>
         </form>
-      </div>
+        </section>
+      </main>
     } @else {
-      <div class="absolute inset-0 flex justify-center items-center">
+      <main class="auth-page auth-page--pending" aria-label="Preparazione della verifica">
         <m-progress-indicator />
-      </div>
+      </main>
     }
-  `
+  `,
+  styleUrls: ['../auth-entry.css', './mfa.page.component.css']
 })
 export class MfaPageComponent implements OnInit, OnDestroy {
   private readonly persistence = inject(AuthSessionPersistenceService)

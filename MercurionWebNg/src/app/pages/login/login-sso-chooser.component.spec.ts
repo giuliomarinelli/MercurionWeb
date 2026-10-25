@@ -30,8 +30,16 @@ describe('LoginSsoChooserComponent', () => {
     expect(controls.length).toBe(3)
     controls.forEach(control => {
       expect(control.querySelector('svg')).not.toBeNull()
-      expect(control.classList).toContain('rounded-md')
-      expect(control.classList).toContain('border')
+      expect(control.getAttribute('aria-label')).toContain('Continua con ')
+      expect(control.getBoundingClientRect().height).toBeGreaterThanOrEqual(48)
     })
+  })
+
+  it('preserves the encoded return destination for every provider', () => {
+    fixture.componentRef.setInput('redirectTo', '/molecules/editor?mode=create&tab=live')
+    fixture.detectChanges()
+    for (const link of fixture.nativeElement.querySelectorAll('a') as NodeListOf<HTMLAnchorElement>) {
+      expect(new URL(link.href).searchParams.get('redirect_to')).toBe('/molecules/editor?mode=create&tab=live')
+    }
   })
 })

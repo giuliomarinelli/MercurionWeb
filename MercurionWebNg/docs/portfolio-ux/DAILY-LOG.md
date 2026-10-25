@@ -494,6 +494,20 @@ Collezioni: null significa loading, [] empty immediato, niente timer o dati prec
 
 **Prossimo blocco:** 16 / PX-03 — Accesso.
 
+### 2026-10-25 — PX-03 / Blocco 16 — Accesso
+
+**Stato:** implementato, in review. [Prove e limiti](LOGIN-QA.md).
+
+**Interventi:** composizione condivisa login/SSO/MFA, progressione e ritorno e-mail/password espliciti, focus e azioni coerenti. Pending della verifica e-mail rilasciato anche dopo errore, retry senza invii duplicati; corretto il blur che poteva ripristinare la password cancellata nel ritorno al primo passo. Presentazione MFA con label/errori associati e senza offset manuali. Policy e strategie di autenticazione conservate.
+
+**Review utente:** rimossa la scrollbar del contenitore Turnstile passando da altezza fissa a intrinseca e rimuovendo overflow scrollabile; aggiunti 8 px di separazione oltre al gap tra «Accedi» e widget. Utente: confermato il widget intero e senza scrollbar dopo reload.
+
+**Verifica:** baseline 30 test, finale 49; typecheck/template, lint mirato, policy, build production e gate bundle/lazy riusciti. Login anonimo Chrome nei due temi e a viewport basse; controlli contenuti, nessun overflow persistente dopo assestamento shell. Fixture geometriche per form/password/errori, widget 300×78 px e stati MFA senza servizi esterni. Nessuna password/codice o richiesta SMS/e-mail inviati dall’agente.
+
+**Rimane:** login/MFA end-to-end, handoff SSO, password manager reali, Safari fisico e zoom. SMS subordinati a INF-02. Nessuna CI remota o operazione Git. Artefatti in `C:/Users/giuli/.codex/artifacts/mercurion-login-16-2026-10-25/`.
+
+**Prossimo blocco:** 16K / AUTH-02 — architettura e stima per rotazione/revoca chiavi JWT; nessuna rotazione reale avviata.
+
 ## Modello per le voci successive
 
 ### AAAA-MM-GG — PX-XX — Sottoarea
