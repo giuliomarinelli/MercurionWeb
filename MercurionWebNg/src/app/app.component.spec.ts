@@ -8,6 +8,7 @@ import { AuthStateStore } from './services/auth-state.store';
 import { AppShellFacade } from './services/app-shell.facade';
 import { DesignService } from './services/design.service';
 import { SidenavContextService } from './services/context/sidenav-context.service';
+import { ViewportRuntimeService } from './services/context/viewport-runtime.service';
 
 describe('AppComponent', () => {
   beforeEach(async () => {
@@ -51,5 +52,22 @@ describe('AppComponent', () => {
     expect(component.navigationWidth()).toBe('64px');
     authenticated.set(false);
     expect(component.navigationWidth()).toBe('0px');
+  });
+
+  it('updates the shell gutter from the live viewport signal without a separate window resize notification', () => {
+    const width = signal(375);
+    TestBed.overrideProvider(ViewportRuntimeService, { useValue: { width } });
+    TestBed.overrideProvider(AuthStateStore, { useValue: { authenticated: signal(true) } });
+    TestBed.overrideProvider(AppShellFacade, { useValue: { routePolicy: signal({ shell: 'standard' }) } });
+    const component = TestBed.createComponent(AppComponent).componentInstance;
+    expect(component.navigationWidth()).toBe('0px');
+    width.set(1366);
+    expect(component.navigationWidth()).toBe('256px');
+    TestBed.inject(SidenavContextService).close();
+    expect(component.navigationWidth()).toBe('64px');
+    width.set(375);
+    expect(component.navigationWidth()).toBe('0px');
+    width.set(1366);
+    expect(component.navigationWidth()).toBe('64px');
   });
 });

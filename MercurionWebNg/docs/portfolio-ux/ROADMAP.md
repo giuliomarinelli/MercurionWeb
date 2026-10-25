@@ -2,7 +2,7 @@
 
 Data iniziale: 6 ottobre 2026. Stato: pianificazione per lavoro incrementale e review manuale.
 
-Ultima revisione del perimetro: 25 ottobre 2026. Notebook, Synthesis e integrazione object store/Cloudflare R2 sono rinviati insieme, fuori dal percorso corrente della beta. Il codice scientifico reintegrato resta conservato ma disabilitato; il flag Documents blocca anche il DocumentController Nest. Il refactor navigazione/sidebar/offcanvas N3 è implementato e in review; restano QA fisica Safari, zoom browser e accettazione manuale. Il blocco 13 è implementato, in review; segue il blocco 14 e la QA del perimetro attivo. Prove editor: [EDITOR-STATES-QA.md](EDITOR-STATES-QA.md). Prove e limiti: [NAVIGATION-QA.md](NAVIGATION-QA.md). Restano le decisioni di piattaforma del 22 ottobre: Angular 20 → 21 → 22 mantenendo inizialmente Zone.js e Karma, poi Node.js 26 con NestJS 11, secondo UP-01/UP-02. Aggiunto INF-02: porting SMS Twilio → SMS Hosting, con revisione configurazione/env e verifica dei flussi OTP/MFA coinvolti; il precedente account Twilio è chiuso, secondo la segnalazione dell’utente.
+Ultima revisione del perimetro: 25 ottobre 2026. Notebook, Synthesis e integrazione object store/Cloudflare R2 sono rinviati insieme, fuori dal percorso corrente della beta. Il codice scientifico reintegrato resta conservato ma disabilitato; il flag Documents blocca anche il DocumentController Nest. Il refactor navigazione/sidebar/offcanvas N3 è implementato e in review; restano QA fisica Safari, zoom browser e accettazione manuale. I blocchi 13 e 14 sono implementati, in review; segue il blocco 15A / PX-02. Prove shell: [SHELL-QA.md](SHELL-QA.md). Prove editor: [EDITOR-STATES-QA.md](EDITOR-STATES-QA.md). Prove e limiti: [NAVIGATION-QA.md](NAVIGATION-QA.md). Restano le decisioni di piattaforma del 22 ottobre: Angular 20 → 21 → 22 mantenendo inizialmente Zone.js e Karma, poi Node.js 26 con NestJS 11, secondo UP-01/UP-02. Aggiunto INF-02: porting SMS Twilio → SMS Hosting, con revisione configurazione/env e verifica dei flussi OTP/MFA coinvolti; il precedente account Twilio è chiuso, secondo la segnalazione dell’utente.
 
 ## Obiettivo
 
@@ -51,7 +51,7 @@ La priorità indica il valore della rifinitura per il portfolio, non la gravità
 
 | ID | Area | Priorità | Evidenze | Stato iniziale |
 |---|---|---|---|---|
-| PX-01 | Shell, navigazione, sidebar e offcanvas | P1 | S, B | Navigazione N3 implementata, in review; restante shell da verificare |
+| PX-01 | Shell, navigazione, sidebar e offcanvas | P1 | S, B | N3 e regressione shell del blocco 14 implementati, in review; QA residua in SHELL-QA.md |
 | PX-02 | Home e presentazione pubblica | P1 | S, B, V | Da affrontare |
 | PX-03 | Accesso e registrazione | P1 | S, B, V | Da affrontare |
 | PX-04 | Ricerca molecolare | P1 | S, B | Implementato, in review; QA iPhone aperta |
@@ -85,7 +85,7 @@ Aggiornamento concordato il 23 ottobre 2026. Il branch feature Notebook/Synthesi
 
 - **Notebook (MF-01), Synthesis (MF-02) e object store/R2 (INF-01) sono rinviati insieme.** Non sono prerequisiti per proseguire la rifinitura e preparare il merge della beta con il perimetro attualmente attivo.
 - Notebook, Synthesis e Documents rimangono disabilitati nei quattro ambienti. Il flag `documents` protegge l’intero `DocumentController` Nest tramite `@RequiresFeatures('documents')`: gli endpoint documentali sono bloccati a backend, oltre alla mancata esposizione frontend. Il rinvio di R2 è una decisione di pianificazione coerente con questo perimetro, non un ulteriore flag tecnico.
-- **N3 / PX-01: refactor navigazione, sidebar e offcanvas** è implementato, in review (vedi [NAVIGATION-QA.md](NAVIGATION-QA.md)). Il **blocco 13 / PX-08** è ora implementato, in review ([EDITOR-STATES-QA.md](EDITOR-STATES-QA.md)); segue il **blocco 14**, conservando i numeri storici.
+- **N3 / PX-01: refactor navigazione, sidebar e offcanvas** è implementato, in review (vedi [NAVIGATION-QA.md](NAVIGATION-QA.md)). Anche i blocchi **13 / PX-08** ([editor](EDITOR-STATES-QA.md)) e **14 / PX-01** ([shell](SHELL-QA.md)) sono implementati, in review; segue il **15A / PX-02**, conservando i numeri storici.
 - **INF-02 / SMS Hosting resta nel perimetro attivo**, distinto dal rinvio di object store/R2. L’account Twilio è stato chiuso dall’utente e l’invio attuale dipende ancora dal vecchio provider: pianificare il porting prima della verifica finale dei percorsi SMS. N3 è in review; il lavoro SMS va coordinato con la successiva ripresa UX e con PX-03/PX-13/PX-14/PX-15.
 - Il codice già sviluppato resta conservato. La ripresa delle feature rinviate e la loro abilitazione richiederanno una decisione esplicita e verifiche dedicate. Per i futuri sviluppi resta il metodo dei branch `feature/**` derivati dal branch di lavoro e reintegrati nello stesso, gestiti dall’utente.
 - I blocchi UX 01–12 restano implementati, in review. QA fisica Safari, regressione dei percorsi attivi e review manuale rimangono aperte; le feature rinviate riceveranno QA propria quando riprese.
@@ -95,7 +95,7 @@ Riferimento del comportamento dei flag: [funzionalità rinviate nella beta](../.
 | Ordine corrente | Intervento | Stato / risultato atteso |
 |---|---|---|
 | 1 | N3 / PX-01 — Navigazione, sidebar e offcanvas | Implementato, in review: scroll unico, rail 256/64 px, comandi sticky e tooltip a tema; QA fisica e zoom ancora aperti |
-| 2 | Blocco 14 / PX-01 e successivi UX | Blocco 13 implementato, in review; il blocco 14 verifica la shell dopo N3, inclusi gutter e resize, senza duplicarne il refactor |
+| 2 | Blocco 15A / PX-02 e successivi UX | Blocchi 13–14 implementati, in review; segue home e benvenuto, poi welcome; QA residua editor/shell documentata |
 | Da pianificare nella ripresa UX | INF-02 — Porting SMS Hosting | Adeguare servizio/env e ripristinare gli invii prima dell’accettazione dei flussi SMS; non rinviato con R2 |
 | 3 | QA, review e preparazione del merge beta | Validare il perimetro attivo e il blocco degli accessi alle funzionalità rinviate |
 | Rinviato | N1 / MF-01 e MF-02 — Notebook e Synthesis | Codice reintegrato, completamento end-to-end e abilitazione rinviati |
@@ -123,7 +123,7 @@ La reintegrazione dei branch feature nel branch corrente e il merge della beta s
 
 **Perché conta:** header e navigazione accompagnano quasi tutte le schermate e fanno percepire immediatamente quanto il prodotto sia coerente.
 
-**Stato:** navigazione N3 implementata, in review il 23 ottobre; dettagli e limiti in [NAVIGATION-QA.md](NAVIGATION-QA.md). Incluse le correzioni segnalate in review: smooth-to-top del pannello dopo selezione/riordino della cronologia, spaziatura uniforme della ricerca nell'header e superficie sticky senza fessura superiore. Restano la regressione shell del blocco 14 e gli altri interventi PX-01. Notebook/Synthesis e object store/R2 sono rinviati e non ne costituiscono prerequisiti.
+**Stato:** navigazione N3 implementata, in review il 23 ottobre; dettagli e limiti in [NAVIGATION-QA.md](NAVIGATION-QA.md). Incluse le correzioni segnalate in review: smooth-to-top del pannello dopo selezione/riordino della cronologia, spaziatura uniforme della ricerca nell'header e superficie sticky senza fessura superiore. Anche la regressione shell del blocco 14 è implementata, in review il 25 ottobre: misura viewport unificata e resize verificato nei due temi ([SHELL-QA.md](SHELL-QA.md)). Restano Safari fisico, zoom reale e il seguito PX-01/PX-23 sul ripristino delle route UUID. Notebook/Synthesis e object store/R2 sono rinviati e non ne costituiscono prerequisiti.
 
 **Base:** shell, sidebar desktop e menu mobile già esplorati; header, cronologia e contenuto principale hanno esigenze di densità diverse. Separare lo scroll della navigazione dallo scroll del documento e preservare i collegamenti a frammento già ripristinati.
 
@@ -138,7 +138,7 @@ La reintegrazione dei branch feature nel branch corrente e il merge della beta s
 - Su desktop, la sidebar collassata rimane visibile come colonna di icone con tooltip/title e nomi accessibili. Preservare riconoscibilità della destinazione attiva e uso da tastiera; i tooltip devono essere fruibili anche con focus.
 - Sostituire il toggle absolute con un comando in flusso: espansione nella sidebar collassata, collasso in quella espansa. Verificare ingombro, focus e aggiornamento del gutter nei due stati.
 - Allineare stile, colori, superfici, densità e stati hover/focus/attivo ai token e al linguaggio visivo emersi dai refactor già eseguiti, nei due temi. Ridurre gli ingombri dove utile mantenendo target touch utilizzabili e testo leggibile.
-- Riprodurre il cambio di breakpoint senza reload: durante la QA il gutter della shell può conservare una geometria precedente; controllare contenuto e sidebar dopo resize/rotazione. Le viste finali desktop sono state verificate dopo reload.
+- Corretto il 25 ottobre il cambio di breakpoint senza reload: DesignService usa la misura live di ViewportRuntimeService, eliminando la cache viewport concorrente. Verificati gutter, drawer e rail durante resize nei due temi; prove e limiti in [SHELL-QA.md](SHELL-QA.md).
 - Verificare apertura diretta di una molecola salvata durante il ripristino della sessione: in una prova il reload ha portato alla variante pubblica, mentre la navigazione interna dopo il ripristino ha aperto quella salvata. Isolare la causa tra PX-01 e PX-23 prima del merge.
 
 **Accettazione:** navigazione e cronologia condividono un proprietario dello scroll dall’inizio dell’elenco; eventuali elementi fissi non sottraggono spazio eccessivo. Sidebar collassata visibile con icone e tooltip/title; espansione/collasso in flusso, gutter corretto e nessuna sovrapposizione. Offcanvas mobile senza dropdown Funzionalità, con destinazioni e chiusura sempre raggiungibili. Pagina attiva, focus, collegamenti e stile restano coerenti nei due temi, dopo cambi route, resize e rotazione.
@@ -669,7 +669,7 @@ Il refactor N3 / PX-01 precede la sequenza residua qui sotto, che riprende dal b
 | 11 | PX-11 — Tox21 | Risultati e stati comunicati senza ambiguità |
 | 12 | PX-08 — Editor: layout e modalità | Canvas e modalità integrati nella gerarchia della pagina |
 | 13 | PX-08 — Editor: stati e percorso finale | Implementato, in review: cache identità, stati e Tox21; QA residua in EDITOR-STATES-QA.md |
-| 14 | PX-01 — Regressione shell dopo N3 | Verificare navigazione rifatta, menu, cronologia e gutter sul percorso centrale, senza duplicare il refactor anticipato |
+| 14 | PX-01 — Regressione shell dopo N3 | Implementato, in review: corretta la misura viewport; navigazione, menu, cronologia e gutter verificati. Limiti in SHELL-QA.md |
 | 15A | PX-02 — Home e benvenuto | Identità visiva, gradiente da valutare, introduzione breve al primo ingresso e stato finale immediato ai ritorni |
 | 15B | PX-02 — Welcome e screenshot | Presentazione coerente con il prodotto; immagini reali aggiornate nei due temi e caricamento senza shift |
 | 16 | PX-03 — Accesso | Percorso e-mail/password/SSO coerente |
@@ -692,7 +692,7 @@ Il refactor N3 / PX-01 precede la sequenza residua qui sotto, che riprende dal b
 
 PX-19 accompagna ogni blocco. Non aspettare la fine per curare focus, errori, nomi accessibili e stati di caricamento. Se home o accesso devono essere mostrati subito a un cliente, anticipare i blocchi 15–16 senza aprire un redesign globale.
 
-PX-22 e PX-23 accompagnano gli interventi pertinenti; le righe 26–27 sono il passaggio di regressione finale, non il primo momento in cui verificare questi comportamenti. **N3 — navigazione/sidebar/offcanvas** è implementato, in review; il blocco **13 — PX-08, editor: stati e percorso finale** è implementato, in review; segue il **14 — regressione shell**. Prove e QA residua in [EDITOR-STATES-QA.md](EDITOR-STATES-QA.md). QA fisica Safari e zoom reale 200%/400% restano da completare prima dell’accettazione N3. **Notebook, Synthesis e object store/R2 sono rinviati insieme**, fuori dal percorso corrente della beta. **INF-02 / SMS Hosting resta attivo da pianificare** prima dell’accettazione dei flussi SMS, senza sostituire la ripresa UX dal blocco 13. La verifica fisica della tastiera secondo [KEYBOARD-QA.md](KEYBOARD-QA.md) resta aperta prima dell'accettazione e del merge; i blocchi 01–12 restano in review. L'utente ha autorizzato il proseguimento della roadmap durante questa QA.
+PX-22 e PX-23 accompagnano gli interventi pertinenti; le righe 26–27 sono il passaggio di regressione finale, non il primo momento in cui verificare questi comportamenti. **N3 — navigazione/sidebar/offcanvas** è implementato, in review; il blocco **13 — PX-08, editor: stati e percorso finale** è implementato, in review; anche il **14 — regressione shell** è implementato, in review ([SHELL-QA.md](SHELL-QA.md)); segue il **15A — PX-02, Home e benvenuto**. Prove e QA residua in [EDITOR-STATES-QA.md](EDITOR-STATES-QA.md). QA fisica Safari e zoom reale 200%/400% restano da completare prima dell’accettazione N3. **Notebook, Synthesis e object store/R2 sono rinviati insieme**, fuori dal percorso corrente della beta. **INF-02 / SMS Hosting resta attivo da pianificare** prima dell’accettazione dei flussi SMS, senza sostituire la ripresa UX dal blocco 13. La verifica fisica della tastiera secondo [KEYBOARD-QA.md](KEYBOARD-QA.md) resta aperta prima dell'accettazione e del merge; i blocchi 01–12 restano in review. L'utente ha autorizzato il proseguimento della roadmap durante questa QA.
 
 ## Macro-feature e object store rinviati
 

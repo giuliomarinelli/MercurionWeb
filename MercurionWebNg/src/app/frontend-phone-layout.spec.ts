@@ -1,8 +1,8 @@
 import { Component, signal } from '@angular/core';
 import { utcInstantFromEpochMs } from '@mercurion/rest-contracts';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ViewportRuler } from '@angular/cdk/scrolling';
-import { of, Subject } from 'rxjs';
+import { of } from 'rxjs';
+import { ViewportRuntimeService } from './services/context/viewport-runtime.service';
 import { HeaderComponent } from './components/common/header/header.component';
 import { FooterComponent } from './components/common/footer/footer.component';
 import { ButtonComponent } from './components/common/button/button.component';
@@ -45,7 +45,6 @@ describe('Shared frontend layouts on a small phone', () => {
   let fixture: ComponentFixture<PhoneLayoutHost>;
   let frame: HTMLIFrameElement;
   let width: number;
-  let changes: Subject<Event>;
 
   afterEach(() => {
     fixture?.destroy();
@@ -54,11 +53,10 @@ describe('Shared frontend layouts on a small phone', () => {
 
   async function render(viewportWidth: number, height: number) {
     width = viewportWidth;
-    changes = new Subject<Event>();
     await TestBed.configureTestingModule({
       imports: [PhoneLayoutHost],
       providers: [
-        { provide: ViewportRuler, useValue: { getViewportSize: () => ({ width, height }), change: () => changes } },
+        { provide: ViewportRuntimeService, useValue: { width: signal(width) } },
         { provide: UserContextService, useValue: { isLoggedIn: signal(true), isLoggedOut: signal(false), initials: signal('AB') } },
         { provide: AccountService, useValue: { getProvidedAccountId: () => of(null) } },
         { provide: InAppNotificationService, useValue: {

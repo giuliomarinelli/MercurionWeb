@@ -1,6 +1,6 @@
-import { fakeAsync, TestBed, tick } from '@angular/core/testing';
-import { ViewportRuler } from '@angular/cdk/scrolling';
-import { Subject } from 'rxjs';
+import { fakeAsync, flushMicrotasks, TestBed } from '@angular/core/testing';
+import { signal } from '@angular/core';
+import { ViewportRuntimeService } from './context/viewport-runtime.service';
 
 import { Breakpoint, Breakpoints, DesignService } from './design.service';
 
@@ -22,16 +22,12 @@ describe('DesignService CSS breakpoint alignment', () => {
     ['0', 0], ['3xs', 321], ['2xs', 376], ['xs', 426], ['sm', 640],
     ['md', 768], ['lg', 1024], ['xl', 1280], ['2xl', 1536]
   ];
-  let width: number;
-  let changes: Subject<Event>;
+  const measuredWidth = signal(375);
   let service: DesignService;
 
   beforeEach(() => {
-    width = 375;
-    changes = new Subject<Event>();
-    TestBed.configureTestingModule({ providers: [{ provide: ViewportRuler, useValue: {
-      getViewportSize: () => ({ width, height: 812 }), change: () => changes
-    } }] });
+    measuredWidth.set(375);
+    TestBed.configureTestingModule({ providers: [{ provide: ViewportRuntimeService, useValue: { width: measuredWidth } }] });
     service = TestBed.inject(DesignService);
   });
 
@@ -40,8 +36,8 @@ describe('DesignService CSS breakpoint alignment', () => {
       threshold, min: service.minBk(breakpoint), max: service.maxBk(breakpoint)
     }));
     for (const [, threshold] of thresholds) {
-      for (width of [Math.max(0, threshold - 1), threshold, threshold + 1]) {
-        changes.next(new Event('resize'));
+      for (const width of [Math.max(0, threshold - 1), threshold, threshold + 1]) {
+        measuredWidth.set(width);
         for (const query of queries) {
           expect(query.min()).withContext(`min ${query.threshold} at ${width}`).toBe(width >= query.threshold);
           expect(query.max()).withContext(`max ${query.threshold} at ${width}`).toBe(width < query.threshold);
@@ -55,20 +51,18 @@ describe('DesignService CSS breakpoint alignment', () => {
     const tablet = service.minBk('md');
     expect(service.currentBreakpointEnum).toBe(Breakpoints._3XS);
     expect(tablet()).toBeFalse();
-    width = 812;
-    changes.next(new Event('resize'));
+    measuredWidth.set(812);
     expect(service.currentBreakpointEnum).toBe(Breakpoints.MD);
     expect(tablet()).toBeTrue();
     expect(desktop()).toBeFalse();
-    width = 375;
-    changes.next(new Event('resize'));
+    measuredWidth.set(375);
     expect(tablet()).toBeFalse();
     expect(desktop()).toBeFalse();
   });
 });
 
-describe('DesignService with the real CDK viewport cache', () => {
-  it('updates on a single resize after CDK invalidates its cached dimensions', fakeAsync(() => {
+describe('DesignService with the application viewport owner', () => {
+  it('tracks layout width through resize and visual viewport events without a second cache', fakeAsync(() => {
     const descriptor = Object.getOwnPropertyDescriptor(window, 'innerWidth');
     let width = 375;
     Object.defineProperty(window, 'innerWidth', { configurable: true, get: () => width });
@@ -78,12 +72,15 @@ describe('DesignService with the real CDK viewport cache', () => {
       expect(desktop()).toBeFalse();
       width = 1536;
       window.dispatchEvent(new Event('resize'));
-      tick(30);
+      flushMicrotasks();
       expect(desktop()).toBeTrue();
+      expect(service.currentBreakpointEnum).toBe(Breakpoints._2XL);
+      expect(service.isMobile()).toBeFalse();
       width = 375;
-      window.dispatchEvent(new Event('resize'));
-      tick(30);
+      (window.visualViewport ?? window).dispatchEvent(new Event('resize'));
+      flushMicrotasks();
       expect(desktop()).toBeFalse();
+      expect(service.isMobile()).toBeTrue();
     } finally {
       if (descriptor) Object.defineProperty(window, 'innerWidth', descriptor);
       else Reflect.deleteProperty(window, 'innerWidth');

@@ -97,4 +97,4 @@ Le schermate comprendono fixture e dati dell’account locale: sono prove di rev
 - Riprodotto il punto PX-01/PX-23 già registrato: ricaricando direttamente un dettaglio salvato UUID si può arrivare alla route numerica ChEMBL. La navigazione interna apre il dettaglio salvato. La causa nel ripristino/auth non è stata investigata in N3; routing e autenticazione non sono stati modificati.
 - Review manuale delle icone collapse/expand e del codice; regressione finale della shell e punti PX-01/PX-23 già aperti nella roadmap.
 
-Prossimo blocco di implementazione: **13 / PX-08 — editor: stati e percorso finale**. Nessuna accettazione, merge o rilascio impliciti.
+Seguito del 25 ottobre: blocchi 13 e 14 implementati, in review. La strategia CDK descritta in questa prova storica è sostituita nel blocco 14 dalla larghezza di ViewportRuntimeService; prove e limiti aggiornati in [SHELL-QA.md](SHELL-QA.md). Prossimo blocco: **15A / PX-02 — Home e benvenuto**. Nessuna accettazione, merge o rilascio impliciti.

@@ -1,6 +1,5 @@
-import { computed, Injectable, Signal, signal } from '@angular/core'
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
-import { ViewportRuler } from '@angular/cdk/scrolling'
+import { computed, inject, Injectable, Signal } from '@angular/core'
+import { ViewportRuntimeService } from './context/viewport-runtime.service'
 
 // ✅ Enum con valori stringa
 export enum Breakpoints {
@@ -48,13 +47,16 @@ export class DesignService {
     '2xl': 'ultra widescreen laptop'
   }
 
-  private readonly viewportWidth = signal(0)
-  private readonly __currentBk = signal(Breakpoints.ZERO)
-
-  constructor(private viewportRuler: ViewportRuler) {
-    this.updateCurrentBreakpoint()
-    this.listenToViewportChanges()
-  }
+  private readonly viewportWidth = inject(ViewportRuntimeService).width
+  private readonly __currentBk = computed(() => {
+    const width = this.viewportWidth()
+    let detected = Breakpoints.ZERO
+    for (const [breakpoint, threshold] of this.bkMap) {
+      if (width < threshold) break
+      detected = breakpoint
+    }
+    return detected
+  })
 
   // ✅ Getter corrente "enum"
   public get currentBreakpointEnum(): Breakpoints {
@@ -82,32 +84,7 @@ export class DesignService {
 
   // ✅ Utility: è mobile?
   public isMobile(): boolean {
-    const currentWidth = this.viewportRuler.getViewportSize().width
-    return currentWidth < this.bkMap.get(Breakpoints.MD)!
-  }
-
-  // ✅ Update corrente
-  private updateCurrentBreakpoint(): void {
-    const viewportWidth = this.viewportRuler.getViewportSize().width
-    this.viewportWidth.set(viewportWidth)
-    let detectedBreakpoint: Breakpoints = Breakpoints.ZERO
-
-    for (const [breakpoint, width] of this.bkMap.entries()) {
-      if (viewportWidth < width) {
-        break
-      }
-      detectedBreakpoint = breakpoint
-    }
-
-    if (this.__currentBk() !== detectedBreakpoint) {
-      this.__currentBk.set(detectedBreakpoint)
-    }
-  }
-
-  // ✅ Listener resize con debounce (CDK scrolling)
-  private listenToViewportChanges(): void {
-    // Match CDK's throttle so its cached size is invalidated before we read it.
-    this.viewportRuler.change().pipe(takeUntilDestroyed()).subscribe(() => this.updateCurrentBreakpoint())
+    return this.viewportWidth() < this.bkMap.get(Breakpoints.MD)!
   }
 
 }

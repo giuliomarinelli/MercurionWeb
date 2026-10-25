@@ -450,6 +450,18 @@ Collezioni: null significa loading, [] empty immediato, niente timer o dati prec
 
 **Verifica:** colonna di circa 582 px a 1366×768 e 1600×775, entro il workspace; entrambi i temi, tre analoghi reali e stato senza analoghi verificati. Telefono 375×812 senza overflow e tooltip dentro il viewport. 106 test, typecheck, lint, build e gate locali superati. [Report e limiti](EDITOR-STATES-QA.md), incluse prove locali e QA fisica Safari ancora aperta. Nessun commit/merge; blocco 14 ancora da riprendere.
 
+### 2026-10-25 — PX-01 / Blocco 14 — Regressione shell
+
+**Stato:** implementato, in review. [Prove e limiti](SHELL-QA.md).
+
+**Difetto:** durante il resize con drawer aperto, il viewport live misurava 1366 px ma DesignService/CDK restavano a 375; drawer e lock rimanevano attivi, gutter errato. DesignService ora deriva i breakpoint da ViewportRuntimeService, conservando le soglie e rimuovendo cache/listener duplicati.
+
+**Verifica:** 22 misure nei due temi senza reload, incluse soglie 640/768/1280; sidebar 256/64 px e gutter coerenti, niente overflow. Drawer → desktop chiude/rilascia il lock; tastiera/Escape, backdrop ricerca, cronologia 25→50 e ritorno in cima dopo selezione verificati. Account/menu contenuti anche a 375×320. 63 test, typecheck, lint, build e gate locali superati.
+
+**Rimane:** review manuale, Safari fisico e zoom reale; il precedente redirect UUID durante il ripristino della sessione resta nel seguito PX-23, senza modifiche all'autenticazione. Nessuna CI remota, operazione Git o modifica dei processi dell'utente. Prove in `C:/Users/giuli/.codex/artifacts/mercurion-shell-block14-2026-10-25/`.
+
+**Prossimo blocco:** 15A / PX-02 — Home e benvenuto; chiarire il messaggio prima di riscrivere il copy.
+
 ## Modello per le voci successive
 
 ### AAAA-MM-GG — PX-XX — Sottoarea

@@ -1,4 +1,4 @@
-import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
+import { ComponentFixture, fakeAsync, flushMicrotasks, TestBed, tick } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { of } from 'rxjs';
 import { Router } from '@angular/router';
@@ -38,6 +38,37 @@ describe('HeaderComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('closes an open drawer and releases scroll lock when the live viewport crosses to desktop', fakeAsync(() => {
+    const descriptor = Object.getOwnPropertyDescriptor(window, 'innerWidth');
+    let width = 375;
+    Object.defineProperty(window, 'innerWidth', { configurable: true, get: () => width });
+    const resize = () => {
+      (window.visualViewport ?? window).dispatchEvent(new Event('resize'));
+      flushMicrotasks();
+      fixture.detectChanges();
+      tick(0);
+      fixture.detectChanges();
+    };
+    try {
+      resize();
+      const trigger = fixture.nativeElement.querySelector('button[aria-controls="mercurion-navigation-drawer"]') as HTMLButtonElement;
+      trigger.click();
+      fixture.detectChanges();
+      tick(0);
+      expect(document.documentElement.classList.contains('m-dialog-open')).toBeTrue();
+      width = 1366;
+      resize();
+      expect(fixture.nativeElement.querySelector('[role="dialog"][aria-label="Menu di navigazione"]')).toBeNull();
+      expect(document.documentElement.classList.contains('m-dialog-open')).toBeFalse();
+      expect(document.body.style.position).not.toBe('fixed');
+      tick(200);
+    } finally {
+      if (descriptor) Object.defineProperty(window, 'innerWidth', descriptor);
+      else Reflect.deleteProperty(window, 'innerWidth');
+      resize();
+    }
+  }));
 
   it('aligns the theme menu right edge with its trigger', fakeAsync(() => {
     const trigger = fixture.nativeElement.querySelector('.theme-toggle-button') as HTMLElement;
