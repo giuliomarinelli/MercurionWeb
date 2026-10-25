@@ -31,5 +31,37 @@ describe('LiveTox21SummaryComponent', () => {
     expect(text.indexOf('SR-MMP')).toBeLessThan(text.indexOf('SR-p53'))
     expect(text).toContain('Positivo')
     expect(text).toContain('Negativo')
+    expect(fixture.nativeElement.querySelectorAll('dt').length).toBe(8)
+    expect(text).toContain('Probabilità')
+    expect(text).toContain('Soglia')
+  })
+
+  it('shows zero as a value and explains partial results without displaying invalid probabilities', () => {
+    fixture.componentRef.setInput('inference', {
+      'SR-ATAD5': { probability: 0, threshold: 0.5, is_positive: false },
+      'NR-AhR': { probability: NaN, threshold: 0.5, is_positive: false }
+    })
+    fixture.detectChanges()
+    const text = fixture.nativeElement.textContent as string
+    expect(text).toContain('1 di 4 endpoint')
+    expect(text).toMatch(/0[.,]00\s*%/)
+    expect(text).not.toContain('NaN')
+    expect(text).toContain('Non disponibile')
+    expect(fixture.nativeElement.querySelectorAll('li').length).toBe(4)
+  })
+
+  it('keeps the results geometry stable across loading, partial data, errors and empty state', () => {
+    fixture.nativeElement.style.cssText = 'display:block;width:320px'
+    fixture.componentRef.setInput('inference', { 'SR-ATAD5': { probability: 0, threshold: 0.5, is_positive: false } })
+    const heights: number[] = []
+    for (const state of ['partial', 'loading', 'error', 'empty']) {
+      fixture.componentRef.setInput('loading', state === 'loading')
+      fixture.componentRef.setInput('error', state === 'error')
+      if (state === 'empty') fixture.componentRef.setInput('inference', null)
+      fixture.detectChanges()
+      heights.push(fixture.nativeElement.getBoundingClientRect().height)
+      expect(fixture.nativeElement.querySelectorAll('li').length).toBe(4)
+    }
+    expect(Math.max(...heights) - Math.min(...heights)).toBeLessThanOrEqual(1)
   })
 })

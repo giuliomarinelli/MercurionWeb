@@ -11,6 +11,7 @@ import {
   StorageDescriptor,
   storageDescriptor
 } from '../services/browser-storage-registry'
+import type { MoleculeNameByCanonicalSmilesDTO } from '../services/graphql/molecule-name-by-canonical-smiles.dto'
 
 const MAX_HISTORY_ENTRIES = 100
 
@@ -35,6 +36,13 @@ export interface MoleculeEditorDraftState {
   baselineSmiles: string
   currentTab: ChemistryEditorTab
   history: MoleculeEditorHistoryState
+  identity?: MoleculeEditorCachedIdentity
+}
+
+export interface MoleculeEditorCachedIdentity {
+  rawSmiles: string
+  canonicalSmiles: string
+  name?: MoleculeNameByCanonicalSmilesDTO
 }
 
 export interface MoleculeEditorDraftInit {
@@ -128,6 +136,7 @@ export class MoleculeEditorDraftService {
 
     const next: MoleculeEditorDraftState = {
       ...draft,
+      identity: this.getCachedIdentity(smiles),
       currentTab: tab,
       history: {
         entries: cappedEntries,
@@ -189,6 +198,29 @@ export class MoleculeEditorDraftService {
     this.persist(next)
   }
 
+  getCachedIdentity(smiles: string): MoleculeEditorCachedIdentity | undefined {
+    const identity = this.state()?.identity
+    return identity && this.matchesIdentity(identity, smiles) ? identity : undefined
+  }
+
+  cacheCanonicalSmiles(rawSmiles: string, canonicalSmiles: string): void {
+    const draft = this.state()
+    if (!draft || !canonicalSmiles.trim() || this.currentSmiles().trim() !== rawSmiles.trim()) return
+    if (this.getCachedIdentity(rawSmiles)?.canonicalSmiles === canonicalSmiles) return
+    const next = { ...draft, identity: { rawSmiles: rawSmiles.trim(), canonicalSmiles: canonicalSmiles.trim() } }
+    this.state.set(next)
+    this.persist(next)
+  }
+
+  cacheMoleculeName(canonicalSmiles: string, name: MoleculeNameByCanonicalSmilesDTO): void {
+    const draft = this.state()
+    const identity = this.getCachedIdentity(this.currentSmiles())
+    if (!draft || !identity || identity.canonicalSmiles !== canonicalSmiles || !this.isCachedName(name)) return
+    const next = { ...draft, identity: { ...identity, name: { name: name.name, type: name.type } } }
+    this.state.set(next)
+    this.persist(next)
+  }
+
   clearCurrent(): void {
     const draft = this.state()
     if (!draft) return
@@ -245,9 +277,13 @@ export class MoleculeEditorDraftService {
   }
 
   private normalizeDraft(draft: MoleculeEditorDraftState): MoleculeEditorDraftState {
+    const identity = this.isCachedIdentity(draft.identity) &&
+      this.matchesIdentity(draft.identity, draft.history.entries[draft.history.cursor].smiles)
+      ? draft.identity : undefined
     if (draft.history.entries.length <= MAX_HISTORY_ENTRIES) {
       return {
         ...draft,
+        identity,
         history: {
           entries: [...draft.history.entries],
           cursor: draft.history.cursor
@@ -266,6 +302,7 @@ export class MoleculeEditorDraftService {
 
     return {
       ...draft,
+      identity,
       history: {
         entries,
         cursor: draft.history.cursor - start
@@ -311,6 +348,22 @@ export class MoleculeEditorDraftService {
     return this.isRecord(value) &&
       typeof value['smiles'] === 'string' &&
       isChemistryEditorTab(value['tab'])
+  }
+
+  private matchesIdentity(identity: MoleculeEditorCachedIdentity, smiles: string): boolean {
+    const trimmed = smiles.trim()
+    return !!trimmed && (identity.rawSmiles === trimmed || identity.canonicalSmiles === trimmed)
+  }
+
+  private isCachedIdentity(value: unknown): value is MoleculeEditorCachedIdentity {
+    return this.isRecord(value) && typeof value['rawSmiles'] === 'string' && !!value['rawSmiles'].trim() &&
+      typeof value['canonicalSmiles'] === 'string' && !!value['canonicalSmiles'].trim() &&
+      (value['name'] === undefined || this.isCachedName(value['name']))
+  }
+
+  private isCachedName(value: unknown): value is MoleculeNameByCanonicalSmilesDTO {
+    return this.isRecord(value) && (value['name'] === null || typeof value['name'] === 'string') &&
+      ['chembl', 'custom', 'iupac'].includes(String(value['type']))
   }
 
   private isRecord(value: unknown): value is Record<string, unknown> {

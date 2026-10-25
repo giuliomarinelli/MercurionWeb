@@ -215,4 +215,45 @@ describe('MoleculeEditorDraftService', () => {
     expect(restored.smiles).toBe('CCC')
     expect(service.canUndo()).toBeFalse()
   })
+
+  for (const name of ['Etanolo', null]) {
+    it(`restores canonical identity and the resolved name ${name} from session storage in a new service`, () => {
+      service.initialize({ mode: 'create', baselineSmiles: '', tab: 'std', destroyExisting: true })
+      service.record('OCC')
+      service.cacheCanonicalSmiles('OCC', 'CCO')
+      service.cacheMoleculeName('CCO', { name, type: 'iupac' })
+      const restored = TestBed.runInInjectionContext(() => new MoleculeEditorDraftService())
+      restored.initialize({ mode: 'create', baselineSmiles: '', tab: 'live', destroyExisting: false })
+      expect(restored.getCachedIdentity('OCC')).toEqual({ rawSmiles: 'OCC', canonicalSmiles: 'CCO', name: { name, type: 'iupac' } })
+      expect(restored.getCachedIdentity('CCO')?.canonicalSmiles).toBe('CCO')
+      expect(restored.getCachedIdentity('CCC')).toBeUndefined()
+      restored.record('CCC')
+      expect(restored.getCachedIdentity('OCC')).toBeUndefined()
+      restored.cacheMoleculeName('CCO', { name: 'Late name', type: 'iupac' })
+      restored.cacheCanonicalSmiles('OCC', 'CCO')
+      expect(restored.getCachedIdentity('CCC')).toBeUndefined()
+    })
+  }
+
+  it('drops malformed cached identity without losing a valid drawing or history', () => {
+    service.initialize({ mode: 'create', baselineSmiles: '', tab: 'std', destroyExisting: true })
+    service.record('CCO')
+    sessionStorage.setItem('mercurion.v1.molecule-editor-cache.create', JSON.stringify({
+      ...service.draft(), identity: { rawSmiles: 'CCO', canonicalSmiles: 42 }
+    }))
+    service.initialize({ mode: 'create', baselineSmiles: '', tab: 'live', destroyExisting: false })
+    expect(service.currentSmiles()).toBe('CCO')
+    expect(service.canUndo()).toBeTrue()
+    expect(service.getCachedIdentity('CCO')).toBeUndefined()
+  })
+
+  it('does not reuse identity for another edit context or after clearing drafts', () => {
+    service.initialize({ mode: 'edit', mId: 'a', baselineSmiles: 'CCO', tab: 'std', destroyExisting: true })
+    service.cacheCanonicalSmiles('CCO', 'CCO')
+    service.initialize({ mode: 'edit', mId: 'b', baselineSmiles: 'CCO', tab: 'std', destroyExisting: false })
+    expect(service.getCachedIdentity('CCO')).toBeUndefined()
+    service.cacheCanonicalSmiles('CCO', 'CCO')
+    service.clearCurrent()
+    expect(service.getCachedIdentity('CCO')).toBeUndefined()
+  })
 })

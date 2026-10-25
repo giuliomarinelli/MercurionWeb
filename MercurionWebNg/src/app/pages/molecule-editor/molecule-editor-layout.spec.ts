@@ -27,6 +27,20 @@ describe('Molecule editor layout and mode context', () => {
     fixture.componentInstance.mode.set('create');
     fixture.detectChanges();
   });
+
+  it('explains unchanged edits and connects the save control to its status', () => {
+    const component = fixture.componentInstance;
+    component.mode.set('edit');
+    component.hasStructure.set(true);
+    component.currentCanonicalSmiles.set('CC');
+    component.duplicateFound.set(true);
+    component.untouched.set(true);
+    fixture.detectChanges();
+    nameResult.next({ name: 'Test', type: 'iupac' });
+    fixture.detectChanges();
+    expect(component.editorStatus().text).toBe('Nessuna modifica da salvare');
+    expect(fixture.nativeElement.querySelector('[aria-label="Salva molecola"]').getAttribute('aria-describedby')).toBe('editor-state-message');
+  });
   afterEach(() => { fixture.destroy(); frame?.remove(); });
   it('renders admission waits in the reserved footer and clears them on completion', () => {
     const component = fixture.componentInstance;

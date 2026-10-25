@@ -40,6 +40,7 @@ describe('Editor validation after restoring an unchanged structure', () => {
       { provide: MoleculeService, useValue: { getPreferredNameItByCanonicalSmiles: () => of({ name: null }) } },
       { provide: MoleculeEditorLiveAnalysisFacade, useValue: { setContext: jasmine.createSpy() } },
       { provide: MoleculeEditorDraftService, useValue: {
+        getCachedIdentity: () => undefined, cacheCanonicalSmiles: jasmine.createSpy(), cacheMoleculeName: jasmine.createSpy(),
         canUndo: signal(false), canRedo: signal(false),
         initialize: (init: MoleculeEditorDraftInit) => { draft = init; return { smiles: init.initialSmiles ?? init.baselineSmiles } },
         currentTab: () => draft.tab,

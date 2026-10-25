@@ -412,6 +412,20 @@ Collezioni: null significa loading, [] empty immediato, niente timer o dati prec
 
 **Verifica:** fonti RFC 7515, 8725 e 7518; controlli documentali e diff. Nessun test applicativo o browser eseguito per questa pianificazione. Prossimo blocco UX invariato; adeguamento Tox21 da coordinare con un intervento separato nel relativo repository.
 
+### 2026-10-25 — PX-08 / Blocco 13 — Stati editor e cache identità
+
+**Stato:** implementato, in review. Report: [EDITOR-STATES-QA.md](EDITOR-STATES-QA.md).
+
+**Interventi:** nome e canonical SMILES conservati nel draft in sessionStorage, su richiesta dell'utente, evitando nuove risoluzioni al cambio vista. Riusati BrowserStorageRegistry e descrittori esistenti; invalidazione legata alla struttura e al contesto. Controllo duplicati sempre aggiornato e canonicalizzazione remota delle nuove strutture. Stati di salvataggio/cambio vista più espliciti e collegati al pulsante; baseline invariata non descritta come duplicato. Widget Tox21 con soglie visibili, percentuali leggibili e quattro righe stabili negli stati asincroni.
+
+**Verifica:** 84 test mirati, typecheck/template, ESLint, build production, gate bundle/lazy e controlli statici superati. Nel browser, dopo il caricamento iniziale, due cambi vista hanno generato zero nuove richieste nome/canonicalizzazione e due controlli duplicati. Apertura/annullamento dell'overlay conserva il draft. Controllati entrambi i temi e ingombri mobile/tablet/desktop; limiti della matrice nel report.
+
+**Rimane:** QA fisica Safari, zoom, review e salvataggio reale su fixture. Riprodotto il gutter desktop conservato dopo resize mobile, recuperato con reload: seguito nel blocco 14. Un timeout Ketcher e un 504 main.js sono stati recuperati senza modifiche all'infrastruttura. Nessuna CI remota dichiarata.
+
+**Prove:** `C:/Users/giuli/.codex/artifacts/mercurion-editor-block13-2026-10-25/`. Tema automatico/viewport ripristinati, scheda agente chiusa, runtime esistenti preservati. Nessun commit, merge, push o deploy.
+
+**Prossimo blocco:** 14 / PX-01 — regressione shell dopo N3, partendo da resize e gutter.
+
 ## Modello per le voci successive
 
 ### AAAA-MM-GG — PX-XX — Sottoarea
