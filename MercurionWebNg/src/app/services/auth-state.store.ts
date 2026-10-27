@@ -146,6 +146,16 @@ export class AuthStateStore {
     }
   }
 
+  /** Abandon only the pending MFA flow, preserving an already accepted session. */
+  cancelPreAuthentication(): void {
+    this.persistence.clearPreAuthData()
+    if (!this.isPreAuth()) return
+    this.clearClientCredentialsForPreAuth()
+    this.persistence.removeLoginMarkers()
+    this.transition({ kind: 'anonymous' })
+    this.applyProtocol(SessionTransition.Logout)
+  }
+
   completeAuthentication(completion: AuthCompletion): void {
     this.activateAuthenticatedSession(completion)
   }

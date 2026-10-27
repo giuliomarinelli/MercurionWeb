@@ -684,6 +684,16 @@ Collezioni: null significa loading, [] empty immediato, niente timer o dati prec
 
 **Perimetro:** policy integrate dall’utente e validazione DTO +39 non modificate; nessun segreto letto e nessun commit. L’intero blocco 19 e la QA Safari fisica restano aperti.
 
+### 2026-10-27 — Blocco 19 / PX-13 — OTP/MFA e preautenticazione login
+
+**Intervento:** recupero esplicito degli errori, reinvio con token nuovo, countdown condiviso, focus OTP e spaziature, QR/chiave manuale e backup senza overflow. Distinti attivazione MFA riuscita e fallimento della successiva generazione dei backup. Annullamento/distruzione impediscono aggiornamenti tardivi e cancellano i dati temporanei dal componente. Corretto il validatore della nuova password.
+
+**Integrazioni richieste durante la review:** countdown anche nel login e gestione di scadenza/revoca del preAuthorizationToken. La preautorizzazione termina in modo esplicito, preservando l'intento di destinazione. Il backend consuma il token anche sul codice errato: serve quindi un nuovo login, senza modificare la regola server. Revoca remota accertata alla richiesta successiva, nessun nuovo push/polling.
+
+**Verifica finale:** 186 test mirati superati in un'unica esecuzione, typecheck/template, lint, build production, gate bundle/lazy, styling con fixture negative e documentazione superati. Bundle iniziale 953.040 / 1.000.000 byte. Icone originali confrontate con HEAD: tutti i 24 tracciati del workflow e i 4 del login MFA conservati. Browser Chrome: selettore mobile chiaro e desktop scuro, Escape e focus di ritorno; ripristinati tema automatico e viewport originale.
+
+**Prove e residui:** [SETTINGS-STATES-QA.md](SETTINGS-STATES-QA.md). Casi automatici con trasporti sintetici distinti dal browser autenticato e dalle prove reali. Smoke test dei singoli flussi, varianti SSO/sessioni e Safari fisico ancora aperti. Nessun invio o modifica di credenziali reali eseguiti dall'agente; nessuna operazione Git o modifica dei segreti. Il successivo blocco pianificato resta 20A / Notifiche.
+
 ## Modello per le voci successive
 
 ### AAAA-MM-GG — PX-XX — Sottoarea

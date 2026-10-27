@@ -34,6 +34,19 @@ describe('AuthStateStore', () => {
     store = TestBed.inject(AuthStateStore)
   })
 
+  it('abandons a pending MFA token without invalidating an accepted session', () => {
+    store.enterPreAuthentication('synthetic-pending-token')
+    store.cancelPreAuthentication()
+    expect(store.isAnonymous()).toBeTrue()
+    expect(store.isPreAuth()).toBeFalse()
+    store.beginAuthentication()
+    store.activateAuthenticatedSession(session())
+    const accepted = store.state()
+    store.cancelPreAuthentication()
+    expect(store.state()).toBe(accepted)
+    expect(store.authenticated()).toBeTrue()
+  })
+
   it('bootstraps anonymously without persisted session markers', () => {
     expect(store.bootstrap()).toEqual({ kind: 'anonymous' })
     expect(store.isAuthenticated()).toBeFalse()

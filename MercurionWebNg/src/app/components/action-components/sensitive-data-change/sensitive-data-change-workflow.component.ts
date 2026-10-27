@@ -1,12 +1,34 @@
-import { ChangePasswordDTO, MfaStrategy } from './../../../Models/account/account.models';
-import { SensitiveDataChangeInnerScope } from './../../../Models/action/action-overlay.models';
-import { SensitiveDataChangeContextService } from './../../../services/context/action-context/sensitive-data-change-context.service';
-import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
-import { Component, inject, OnDestroy, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
-import { ProgressIndicatorComponent } from '../../common/progress-indicator/progress-indicator.component';
-import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
-import { combineLatest, EMPTY, Observable, of, Subscription, switchMap, tap, finalize, filter, catchError } from 'rxjs';
-import { SensitiveDataChangeFacade } from './sensitive-data-change-facade.service';
+import { ChangePasswordDTO, MfaStrategy } from './../../../Models/account/account.models'
+import { SensitiveDataChangeInnerScope } from './../../../Models/action/action-overlay.models'
+import { SensitiveDataChangeContextService } from './../../../services/context/action-context/sensitive-data-change-context.service'
+import { DomainInvalidationService } from '../../../services/domain-invalidation.service'
+import {
+  afterRenderEffect,
+  Component,
+  ElementRef,
+  inject,
+  OnDestroy,
+  OnInit,
+  signal,
+  viewChild,
+  untracked,
+  ChangeDetectionStrategy,
+} from '@angular/core'
+import { ProgressIndicatorComponent } from '../../common/progress-indicator/progress-indicator.component'
+import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service'
+import {
+  combineLatest,
+  EMPTY,
+  Observable,
+  of,
+  Subscription,
+  switchMap,
+  tap,
+  finalize,
+  filter,
+  catchError,
+} from 'rxjs'
+import { SensitiveDataChangeFacade } from './sensitive-data-change-facade.service'
 import {
   SensitiveBackupCodesUseCase,
   SensitiveEmailUseCase,
@@ -14,26 +36,34 @@ import {
   SensitivePasswordUseCase,
   SensitivePhoneUseCase,
   cancelSensitiveDataUseCases,
-} from './sensitive-data-change.use-cases';
-import { HttpErrorResponse } from '@angular/common/http';
-import { ToastService } from '../../../services/toast.service';
-import { FormControl, FormGroup, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { emailAvailabilityValidator, matchPassword } from '../../../custom-validators';
-import { AuthTransportService } from '../../../services/auth-transport.service';
-import { AuthMfaCatalogService } from '../../../services/auth-mfa-catalog.service';
-import { PhonePrefixWithEmojiUrlDTO } from '../../../Models/country.models';
-import { CountryService } from '../../../services/country.service';
-import { MfaStrategyCardComponent } from '../../common/mfa-strategy-card/mfa-strategy-card.component';
-import { TextFieldComponent } from "../../common/text-field/text-field.component";
-import { Router, RouterLink } from '@angular/router';
-import { PmSelectComponent } from '../../common/pm-select/pm-select.component';
-import { PmOption } from '../../../Models/pm-option.model';
-import { ActionCardComponent } from '../../common/action-card/action-card.component';
-import { ActionFooterComponent } from '../../common/action-footer/action-footer.component';
-import { ButtonComponent } from '../../common/button/button.component';
-import { CopyButtonComponent } from '../../common/copy-button/copy-button.component';
+} from './sensitive-data-change.use-cases'
+import { HttpErrorResponse } from '@angular/common/http'
+import {
+  FormControl,
+  FormGroup,
+  NonNullableFormBuilder,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms'
+import { emailAvailabilityValidator, matchPassword } from '../../../custom-validators'
+import { AuthTransportService } from '../../../services/auth-transport.service'
+import { AuthMfaCatalogService } from '../../../services/auth-mfa-catalog.service'
+import { PhonePrefixWithEmojiUrlDTO } from '../../../Models/country.models'
+import { CountryService } from '../../../services/country.service'
+import { MfaStrategyCardComponent } from '../../common/mfa-strategy-card/mfa-strategy-card.component'
+import { TextFieldComponent } from '../../common/text-field/text-field.component'
+import { Router, RouterLink } from '@angular/router'
+import { PmSelectComponent } from '../../common/pm-select/pm-select.component'
+import { PmOption } from '../../../Models/pm-option.model'
+import { ActionCardComponent } from '../../common/action-card/action-card.component'
+import { ActionFooterComponent } from '../../common/action-footer/action-footer.component'
+import { ButtonComponent } from '../../common/button/button.component'
+import { CopyButtonComponent } from '../../common/copy-button/copy-button.component'
 import { TooltipModule } from 'primeng/tooltip'
-
+import {
+  OtpChallengeClockComponent,
+  otpDeadlineFromResponse,
+} from '../../common/otp-challenge-clock/otp-challenge-clock.component'
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -51,7 +81,8 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     CopyButtonComponent,
     ActionFooterComponent,
     ButtonComponent,
-    TooltipModule
+    TooltipModule,
+    OtpChallengeClockComponent,
   ],
   providers: [
     {
@@ -76,10 +107,25 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     },
   ],
   styles: `
-    .sensitive-data-notice { padding: 16px; gap: 12px; align-items: flex-start; }
-    .sensitive-data-notice svg { width: 24px; height: 24px; flex-shrink: 0; }
-    .sensitive-data-notice > div { min-width: 0; }
-    .sensitive-data-notice span, .sensitive-data-notice p { overflow-wrap: anywhere; padding-right: 0; line-height: 1.55; }
+    .sensitive-data-notice {
+      padding: 16px;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .sensitive-data-notice svg {
+      width: 24px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+    .sensitive-data-notice > div {
+      min-width: 0;
+    }
+    .sensitive-data-notice span,
+    .sensitive-data-notice p {
+      overflow-wrap: anywhere;
+      padding-right: 0;
+      line-height: 1.55;
+    }
   `,
   template: `
 
@@ -96,6 +142,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     <!-- Header sticky fuori dallo scroll -->
       <h2 action-card-title
         id="sensitiveDataHeading"
+        tabindex="-1"
         class="text-lg font-semibold text-light-on-surface-main dark:text-dark-on-surface-main"
       >
         @switch(innerScope()) {
@@ -172,14 +219,16 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                 }
               }
             </div>
-            <div class="flex flex-col gap-y-6" aria-live="polite">
+            <div class="flex flex-col gap-y-6 mt-4" aria-live="polite">
               <div class="relative rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
                 <div class="flex justify-center items-center px-4 sm:px-6 py-8">
                   <m-text-field
                     class="w-full max-w-md"
                     label="Codice monouso"
                     type="text"
-                    autocomplete="text"
+                    #otpInput
+                    autocomplete="one-time-code"
+                    inputmode="numeric"
                     [formControl]="otpCtrl"
                     [errors]="{
                          required: 'Il codice monouso è obbligatorio.',
@@ -243,6 +292,19 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                     }
                 }
               </div>
+              @if (backupCodesError()) {
+                <div
+                  data-backup-codes-warning
+                  role="alert"
+                  class="rounded-md border border-token-border p-4 text-sm leading-relaxed"
+                >
+                  Il metodo MFA è attivo, ma non è stato possibile mostrare i codici di backup.
+                  Controlla lo stato dei metodi prima di uscire.
+                  <m-button class="mt-3 block" variant="outline" (pressed)="restartWorkflow()"
+                    >Controlla i metodi</m-button
+                  >
+                </div>
+              }
               @if (backupCodes().length !== 0) {
                 <div class="sensitive-data-notice px-5 sm:px-6 py-4 border border-amber-200 dark:border-dark-border bg-yellow-50 dark:bg-slate-700 flex gap-4 sm:gap-6 items-center rounded-lg">
                   <div class="relative -top-6">
@@ -254,9 +316,9 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                       />
                     </h4>
                     <p class="text-sm text-center mb-6 text-dark-surface-secondary dark:text-dark-on-surface-secondary">Copia questi codici in un password manager o stampali e custodiscili in un posto sicuro. Ti permetteranno di accedere nel caso in cui perdessi l'accesso al tuo dispositivo.</p>
-                    <div class="flex flex-col sm:flex-row sm:flex-wrap justify-center items-center gap-3 sm:gap-4 text-center sm:text-left">
+                    <div class="grid grid-cols-1 min-[375px]:grid-cols-2 gap-3 sm:gap-4 text-center">
                       @for (code of backupCodes(); track code) {
-                        <span class="text-light-accent-primary-hc dark:text-dark-accent-primary-btn-hc font-bold">{{code}}</span>
+                        <span class="min-w-0 break-all font-mono text-light-accent-primary-hc dark:text-dark-accent-primary-btn-hc font-bold">{{code}}</span>
                       }
                     </div>
                   </div>
@@ -273,9 +335,9 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                 Scansiona il QR Code con la tua app di autenticazione per configurare l'autenticazione a più fattori, oppure copia nella tua app di autenticazione il codice qui riportato.
               </p>
             </div>
-            <img class="w-52 mt-5 mx-auto rounded-lg border border-slate-300 dark:border-dark-border/70" [src]="qrCode()" alt="QR Code">
-            <div class="mt-4 flex justify-center items-center gap-4">
-              <p class="font-bold tracking-[0.08em] text-light-on-surface-main dark:text-dark-on-surface-main">{{appSecret()}}</p>
+            <img class="w-52 max-w-full mt-5 mx-auto rounded-lg border border-slate-300 dark:border-dark-border/70" [src]="qrCode()" alt="QR Code">
+            <div class="mt-4 flex min-w-0 flex-wrap justify-center items-center gap-4">
+              <p class="min-w-0 break-all text-center font-bold tracking-[0.08em] text-light-on-surface-main dark:text-dark-on-surface-main">{{appSecret()}}</p>
               <m-copy-button
                 [src]="appSecret()"
                 ariaLabel="Copia il codice segreto dell'app di autenticazione"
@@ -305,7 +367,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                 }
               }
             </div>
-            <div class="flex flex-col gap-y-6">
+            <div class="flex flex-col gap-y-6 my-4">
               <div class="relative rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
                 <div class="flex justify-center items-center px-4 sm:px-6 py-8">
                   <div class="flex flex-col items-center gap-y-4">
@@ -313,7 +375,9 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                       class="w-full max-w-md"
                       label="Codice monouso"
                       type="text"
-                      autocomplete="text"
+                      #otpInput
+                      autocomplete="one-time-code"
+                      inputmode="numeric"
                       [formControl]="otpCtrl"
                       [errors]="{
                              required: 'Il codice monouso è obbligatorio.',
@@ -473,7 +537,9 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                           class="w-full max-w-md"
                           label="Codice monouso"
                           type="text"
-                          autocomplete="text"
+                          #otpInput
+                          autocomplete="one-time-code"
+                          inputmode="numeric"
                           [formControl]="otpCtrl"
                           [errors]="{
                                required: 'Il codice monouso è obbligatorio.',
@@ -627,7 +693,9 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                         class="w-full max-w-md"
                         label="Codice monouso"
                         type="text"
-                        autocomplete="text"
+                        #otpInput
+                        autocomplete="one-time-code"
+                        inputmode="numeric"
                         [formControl]="otpCtrl"
                         [errors]="{
                              required: 'Il codice monouso è obbligatorio.',
@@ -704,7 +772,9 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                       class="w-full max-w-md"
                       label="Codice monouso"
                       type="text"
-                      autocomplete="text"
+                      #otpInput
+                      autocomplete="one-time-code"
+                      inputmode="numeric"
                       [formControl]="otpCtrl"
                       [errors]="{
                            required: 'Il codice monouso è obbligatorio.',
@@ -840,6 +910,33 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
             }
           }
       }
+      @if (isOtpVerification()) {
+        <section class="mt-4 space-y-3" aria-label="Opzioni del codice di verifica">
+          @if (!usesAuthenticatorApp()) {
+            <m-otp-challenge-clock [deadline]="otpDeadline()" />
+          }
+          <div class="flex flex-wrap gap-3">
+            <m-button variant="outline" [disabled]="loading()" (pressed)="previousStep()">
+              Indietro
+            </m-button>
+            @if (!usesAuthenticatorApp()) {
+              <m-button variant="outline" [disabled]="loading()" (pressed)="resendChallenge()">
+                Invia di nuovo il codice
+              </m-button>
+            }
+          </div>
+        </section>
+      }
+      @if (serverError() && isRecoverableResult()) {
+        <m-button
+          class="mt-4 block"
+          variant="outline"
+          [disabled]="loading()"
+          (pressed)="restartWorkflow()"
+        >
+          Ricomincia
+        </m-button>
+      }
     } @else {
       <div class="absolute inset-0 flex justify-center items-center z-[30] bg-white/60 dark:bg-black/40 backdrop-blur-sm">
         <m-progress-indicator />
@@ -917,17 +1014,18 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     </m-action-footer>
   </m-action-card>
 </div>
-`
-
+`,
 })
 export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
-
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef)
+  private readonly otpInput = viewChild<TextFieldComponent, ElementRef<HTMLElement>>('otpInput', {
+    read: ElementRef,
+  })
   private readonly actionContext = inject(ActionOverlayContextService)
   private readonly dataChangeContext = inject(SensitiveDataChangeContextService)
   private readonly sessionId = this.actionContext.session('SensitiveDataChange')?.id ?? -1
   private readonly invalidation = inject(DomainInvalidationService)
   private readonly accountService = inject(SensitiveDataChangeFacade)
-  private readonly toast = inject(ToastService)
   private readonly fb = inject(NonNullableFormBuilder)
   private readonly authService = inject(AuthTransportService)
   private readonly mfaCatalog = inject(AuthMfaCatalogService)
@@ -946,7 +1044,7 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
     phone: FormControl<string>
   }> = new FormGroup({
     prefix: new FormControl({ value: 107, disabled: true }, { nonNullable: true }),
-    phone: new FormControl('', { nonNullable: true })
+    phone: new FormControl('', { nonNullable: true }),
   })
   otpCtrl: FormControl<string> = new FormControl('', { nonNullable: true })
   passwordForm: FormGroup<{
@@ -956,7 +1054,7 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
   }> = new FormGroup({
     oldPassword: new FormControl('', { nonNullable: true }),
     password: new FormControl('', { nonNullable: true }),
-    confirmPassword: new FormControl('', { nonNullable: true })
+    confirmPassword: new FormControl('', { nonNullable: true }),
   })
 
   private fetchSub?: Subscription
@@ -977,14 +1075,16 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
 
   innerScope = signal<SensitiveDataChangeInnerScope>('')
 
-  readonly serverErrorMsg = ''//'Si è verificato un errore.'
+  readonly serverErrorMsg = '' //'Si è verificato un errore.'
 
   readonly allMfaStrategies: MfaStrategy[] = ['EMAIL_OTP', 'SMS_OTP', 'APP_TOTP', 'BACKUP_CODE']
 
   changeOrAddPhoneStep = signal<'NEW_CONTACT_FORM' | 'OTP_VERIFICATION' | 'OK_OR_ERROR' | ''>('')
   deletePhoneStep = signal<'OTP_VERIFICATION' | 'OK_OR_ERROR' | ''>('')
   changeEmailStep = signal<'NEW_CONTACT_FORM' | 'OTP_VERIFICATION' | 'OK_OR_ERROR' | ''>('')
-  enableMfaStep = signal<'CHOOSE_STRATEGY' | 'APP:SCAN_QR_CODE_OR_COPY_SECRET' | 'OTP_VERIFICATION' | 'OK_OR_ERROR' | ''>('')
+  enableMfaStep = signal<
+    'CHOOSE_STRATEGY' | 'APP:SCAN_QR_CODE_OR_COPY_SECRET' | 'OTP_VERIFICATION' | 'OK_OR_ERROR' | ''
+  >('')
   disableMfaStep = signal<'CHOOSE_STRATEGY' | 'OTP_VERIFICATION' | 'OK_OR_ERROR' | ''>('')
   changePasswordStep = signal<'CHANGE_PASSWORD_FORM' | 'OK_OR_ERROR' | ''>('')
 
@@ -1008,6 +1108,11 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
 
   loading = signal<boolean>(false)
 
+  private destroyed = false
+  private closed = false
+  readonly otpDeadline = signal<number | null>(null)
+  readonly backupCodesError = signal(false)
+
   private secureToken = signal<string>('')
   private otpauthUrl = signal<string>('')
   appSecret = signal<string>('')
@@ -1015,151 +1120,204 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
 
   mfaStrategiesDescrMap = new Map<MfaStrategy, string>()
 
+  constructor() {
+    afterRenderEffect(() => {
+      const otpInput = this.otpInput()
+      if (this.loading() || this.destroyed || this.closed) return
+      const target = this.isOtpVerification()
+        ? otpInput?.nativeElement.querySelector<HTMLElement>('input')
+        : this.host.nativeElement.querySelector<HTMLElement>('#sensitiveDataHeading')
+      untracked(() => target?.focus({ preventScroll: true }))
+    })
+  }
+
   ngOnInit(): void {
-    this.fetchSub = this.fluxStarter$.pipe(
-      tap(() => {
-        this.mfaStrategiesDescrMap = this.mfaCatalog.getStrategiesDescriptionMap()
-        this.emailCtrl = this.fb.control('', {
-          validators: [Validators.required, Validators.email, Validators.pattern(EMAIL_PATTERN)],
-          asyncValidators: [emailAvailabilityValidator(this.authService)]
-        })
-        this.emailCtrlSub = this.emailCtrl.valueChanges.pipe(
-          filter(() => !this.emailCtrl.touched)
-        ).subscribe((val: string) => {
-          if (val.length !== 0) {
-            this.emailCtrl.markAsTouched()
-          }
-        })
-        this.phoneForm = this.fb.group({
-          prefix: this.fb.control({ value: 107, disabled: true }),
-          phone: this.fb.control('', [Validators.required, Validators.pattern(/^\d{6,15}$/)])
-        })
-        this.otpCtrl = this.fb.control('', [Validators.required, Validators.pattern(/^\d{6}$/)])
-        this.passwordForm = this.fb.group({
-          oldPassword: this.fb.control('', Validators.required),
-          password: this.fb.control('', [Validators.required, Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8, }$/)]),
-          confirmPassword: this.fb.control('', [Validators.required, matchPassword])
-        }, { validators: matchPassword })
-      }),
-      switchMap(() => {
-        return combineLatest([
-          this.accountService.getMaskedAccountId(),
-          this.accountService.getMaskedPhone()
-        ]).pipe(
-          tap(([maskedEmail, maskedPhone]) => {
-            this.obscuredEmail.set(maskedEmail)
-            const normalizedPhone = maskedPhone?.trim()
-            this.obscuredPhone.set(normalizedPhone && normalizedPhone !== 'null' && normalizedPhone !== 'undefined' ? normalizedPhone : null)
+    this.loadWorkflow(this.dataChangeContext.innerScope())
+  }
+
+  private loadWorkflow(scope: SensitiveDataChangeInnerScope): void {
+    if (this.destroyed) return
+    this.innerScope.set(scope)
+    this.fetchSub?.unsubscribe()
+    this.emailCtrlSub?.unsubscribe()
+    this.loading.set(true)
+    this.serverError.set(0)
+    this.clearSetup()
+    this.backupCodes.set([])
+    this.backupCodesError.set(false)
+    this.phoneMfaDisabled.set(false)
+    this.currentMfaStrategy.set('')
+    this.enableMfaStep.set('')
+    this.disableMfaStep.set('')
+    this.changeEmailStep.set('')
+    this.changeOrAddPhoneStep.set('')
+    this.deletePhoneStep.set('')
+    this.changePasswordStep.set('')
+    this.fetchSub = this.fluxStarter$
+      .pipe(
+        tap(() => {
+          this.mfaStrategiesDescrMap = this.mfaCatalog.getStrategiesDescriptionMap()
+          this.emailCtrl = this.fb.control('', {
+            validators: [Validators.required, Validators.email, Validators.pattern(EMAIL_PATTERN)],
+            asyncValidators: [emailAvailabilityValidator(this.authService)],
           })
-        )
-      }),
-      switchMap(() => {
-        const is = this.dataChangeContext.innerScope()
-        if (!is) {
-          this.close()
-          return EMPTY
-        }
-        this.innerScope.set(is)
-        switch (is) {
-          case 'ChangeEmail':
-            this.changeEmailStep.set('NEW_CONTACT_FORM')
-            return this.accountService.getMaskedAccountId()
-          case 'EnableMfa':
-            this.enableMfaStep.set('CHOOSE_STRATEGY')
-            return this.accountService.getMaskedAccountId()
-          case 'ConfigMfa':
-            this.enableMfaStep.set('CHOOSE_STRATEGY')
-            this.disableMfaStep.set('CHOOSE_STRATEGY')
-            return combineLatest([
-              this.accountService.getEnabledMfaStrategies(),
-              this.accountService.getRemainingBackupCodes().pipe(
-                catchError(() => of(null))
-              )
-            ])
-          case 'AddPhone':
-          case 'ChangePhone':
-            this.changeOrAddPhoneStep.set('NEW_CONTACT_FORM')
-            return this.accountService.getMaskedPhone()
-          case 'ChangePassword':
-            this.changePasswordStep.set('CHANGE_PASSWORD_FORM')
-            return of(null)
-          case 'RemovePhone':
-            this.deletePhoneStep.set('OTP_VERIFICATION')
-            return this.accountService.getMaskedPhone()
-          default:
-            this.close()
-            return EMPTY
-        }
-      }),
-      tap((res) => {
-        switch (this.innerScope()) {
-          case 'ConfigMfa':
+          this.emailCtrlSub = this.emailCtrl.valueChanges
+            .pipe(filter(() => !this.emailCtrl.touched))
+            .subscribe((val: string) => {
+              if (val.length !== 0) {
+                this.emailCtrl.markAsTouched()
+              }
+            })
+          this.phoneForm = this.fb.group({
+            prefix: this.fb.control({ value: 107, disabled: true }),
+            phone: this.fb.control('', [Validators.required, Validators.pattern(/^\d{6,15}$/)]),
+          })
+          this.otpCtrl = this.fb.control('', [Validators.required, Validators.pattern(/^\d{6}$/)])
+          this.passwordForm = this.fb.group(
             {
-              const [mfaStrategies, remainingBackupCodes] = res as [MfaStrategy[], number | null]
-              this.enabledMfaStrategies.set((mfaStrategies) ?? [])
-              this.remainingBackupCodes.set(remainingBackupCodes ?? -1)
-            }
-            break
-          case 'EnableMfa':
-          case 'ChangeEmail':
-            this.obscuredEmail.set((res as string) ?? '')
-            break
-          case 'AddPhone':
-          case 'ChangePhone':
-          case 'RemovePhone': {
-            const phone = (res as string | null | undefined)?.trim() ?? ''
-            this.obscuredPhone.set(phone ? phone : null)
-            break
-          }
-          case 'ChangePassword':
-            // pass
-            break
-          default:
-            this.close()
-            return
-        }
-      }),
-      switchMap(() => {
-        if (this.innerScope() === 'RemovePhone' && this.deletePhoneStep() === 'OTP_VERIFICATION') {
-          return this.phoneUseCase.requestRemoval().pipe(
-            catchError((e: HttpErrorResponse) => {
-              this.serverError.set(e.status)
-              this.deletePhoneStep.set('OK_OR_ERROR')
-              return of(null)
+              oldPassword: this.fb.control('', Validators.required),
+              password: this.fb.control('', [
+                Validators.required,
+                Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/),
+              ]),
+              confirmPassword: this.fb.control('', [Validators.required, matchPassword]),
+            },
+            { validators: matchPassword }
+          )
+        }),
+        switchMap(() => {
+          return combineLatest([
+            this.accountService.getMaskedAccountId(),
+            this.accountService.getMaskedPhone(),
+          ]).pipe(
+            tap(([maskedEmail, maskedPhone]) => {
+              this.obscuredEmail.set(maskedEmail)
+              const normalizedPhone = maskedPhone?.trim()
+              this.obscuredPhone.set(
+                normalizedPhone && normalizedPhone !== 'null' && normalizedPhone !== 'undefined'
+                  ? normalizedPhone
+                  : null
+              )
             })
           )
-        }
-        return of(null)
-      }),
-      switchMap((res) => {
-        if (res && res.phoneNumberVerificationToken) {
-          this.secureToken.set(res.phoneNumberVerificationToken)
-        }
-        if (['ConfigMfa', 'EnableMfa', 'AddPhone', 'ChangePhone'].includes(this.innerScope())) {
-          return this.countryService.getAllPhonePrefixes()
-        }
-        return of(null)
-      })
-    ).subscribe({
-      next: (res) => {
-        if (res != null) {
-          this.phonePrefixes.set(res)
-          const italy = res.find(prefix => prefix.iso2 === 'IT' && prefix.phonecode === '+39')
-          if (italy) {
-            this.phoneForm.controls.prefix.setValue(italy.id)
+        }),
+        switchMap(() => {
+          const is = scope
+          if (!is) {
+            this.close()
+            return EMPTY
           }
-        }
-      },
-      error: (e: HttpErrorResponse) => {
-        queueMicrotask(() => {
-          this.onError(e.status)
+          this.innerScope.set(is)
+          switch (is) {
+            case 'ChangeEmail':
+              this.changeEmailStep.set('NEW_CONTACT_FORM')
+              return this.accountService.getMaskedAccountId()
+            case 'EnableMfa':
+            case 'ConfigMfa':
+              this.enableMfaStep.set('CHOOSE_STRATEGY')
+              this.disableMfaStep.set('CHOOSE_STRATEGY')
+              return combineLatest([
+                this.accountService.getEnabledMfaStrategies(),
+                this.accountService.getRemainingBackupCodes().pipe(catchError(() => of(null))),
+              ])
+            case 'AddPhone':
+            case 'ChangePhone':
+              this.changeOrAddPhoneStep.set('NEW_CONTACT_FORM')
+              return this.accountService.getMaskedPhone()
+            case 'ChangePassword':
+              this.changePasswordStep.set('CHANGE_PASSWORD_FORM')
+              return of(null)
+            case 'RemovePhone':
+              this.deletePhoneStep.set('OTP_VERIFICATION')
+              return this.accountService.getMaskedPhone()
+            default:
+              this.close()
+              return EMPTY
+          }
+        }),
+        tap((res) => {
+          switch (this.innerScope()) {
+            case 'EnableMfa':
+            case 'ConfigMfa':
+              {
+                const [mfaStrategies, remainingBackupCodes] = res as [MfaStrategy[], number | null]
+                this.enabledMfaStrategies.set(mfaStrategies ?? [])
+                this.remainingBackupCodes.set(remainingBackupCodes ?? -1)
+              }
+              break
+            case 'ChangeEmail':
+              this.obscuredEmail.set((res as string) ?? '')
+              break
+            case 'AddPhone':
+            case 'ChangePhone':
+            case 'RemovePhone': {
+              const phone = (res as string | null | undefined)?.trim() ?? ''
+              this.obscuredPhone.set(phone ? phone : null)
+              break
+            }
+            case 'ChangePassword':
+              // pass
+              break
+            default:
+              this.close()
+              return
+          }
+        }),
+        switchMap(() => {
+          if (
+            this.innerScope() === 'RemovePhone' &&
+            this.deletePhoneStep() === 'OTP_VERIFICATION'
+          ) {
+            return this.phoneUseCase.requestRemoval().pipe(
+              catchError((e: HttpErrorResponse) => {
+                this.serverError.set(e.status)
+                this.deletePhoneStep.set('OK_OR_ERROR')
+                return of(null)
+              })
+            )
+          }
+          return of(null)
+        }),
+        switchMap((res) => {
+          if (res && res.phoneNumberVerificationToken) {
+            this.secureToken.set(res.phoneNumberVerificationToken)
+            this.otpDeadline.set(otpDeadlineFromResponse(res))
+          }
+          if (['ConfigMfa', 'EnableMfa', 'AddPhone', 'ChangePhone'].includes(this.innerScope())) {
+            return this.countryService.getAllPhonePrefixes()
+          }
+          return of(null)
+        }),
+        finalize(() => {
+          if (!this.destroyed) this.loading.set(false)
         })
-      }
-    })
-
+      )
+      .subscribe({
+        next: (res) => {
+          if (res != null) {
+            this.phonePrefixes.set(res)
+            const italy = res.find((prefix) => prefix.iso2 === 'IT' && prefix.phonecode === '+39')
+            if (italy) {
+              this.phoneForm.controls.prefix.setValue(italy.id)
+            }
+          }
+        },
+        error: (e: HttpErrorResponse) => {
+          this.queueState(() => {
+            this.onError(e.status)
+          })
+        },
+      })
   }
 
   ngOnDestroy(): void {
+    this.destroyed = true
+    this.clearSetup()
+    this.backupCodes.set([])
+    this.cancelPendingRequests()
+  }
+
+  private cancelPendingRequests(): void {
     cancelSensitiveDataUseCases({
       email: this.emailUseCase,
       phone: this.phoneUseCase,
@@ -1183,11 +1341,12 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
   }
 
   private onError(code = 500): void {
+    this.clearSetup()
     this.serverError.set(code)
     switch (this.innerScope()) {
       case 'EnableMfa':
       case 'ConfigMfa':
-        if (this.enableMfaStep()) {
+        if (!this.disableMfaStep() || this.enableMfaStep()) {
           this.disableMfaStep.set('')
           this.enableMfaStep.set('OK_OR_ERROR')
         } else if (this.disableMfaStep()) {
@@ -1195,15 +1354,30 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
           this.disableMfaStep.set('OK_OR_ERROR')
         }
         break
+      case 'ChangeEmail':
+        this.changeEmailStep.set('OK_OR_ERROR')
+        break
+      case 'AddPhone':
+      case 'ChangePhone':
+        this.changeOrAddPhoneStep.set('OK_OR_ERROR')
+        break
+      case 'RemovePhone':
+        this.deletePhoneStep.set('OK_OR_ERROR')
+        break
+      case 'ChangePassword':
+        this.changePasswordStep.set('OK_OR_ERROR')
+        break
       default:
-        queueMicrotask(() => {
-          this.close()
-          this.toast.trigger('Si è verificato un errore inaspettato. Se si ripete contatta il supporto.', 'error', 3000)
-        })
+        this.close()
     }
   }
 
   close(fragment?: 'general' | 'personal_details' | 'contact_details' | 'security'): void {
+    if (this.closed) return
+    this.closed = true
+    this.cancelPendingRequests()
+    this.clearSetup()
+    this.backupCodes.set([])
     if (fragment) {
       this.router.navigate(['/settings'], { fragment })
     }
@@ -1212,81 +1386,192 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
   }
 
   computePrefixValues(): PmOption[] {
-
     return this.phonePrefixes()
-      .filter(item => item.iso2 === 'IT' && item.phonecode === '+39')
-      .map(item => ({
+      .filter((item) => item.iso2 === 'IT' && item.phonecode === '+39')
+      .map((item) => ({
         label: `${item.iso2} ${item.phonecode}`,
         value: item.id,
         iconUrl: item.emojiUrl,
-        iconAlt: `${item.iso2} flag`
+        iconAlt: `${item.iso2} flag`,
       }))
+  }
 
+  private queueState(update: () => void): void {
+    queueMicrotask(() => {
+      if (!this.destroyed && !this.closed) update()
+    })
+  }
+
+  private clearSetup(): void {
+    this.secureToken.set('')
+    this.otpauthUrl.set('')
+    this.appSecret.set('')
+    this.qrCode.set('')
+    this.otpDeadline.set(null)
+    this.otpCtrl.reset('')
+  }
+
+  isOtpVerification(): boolean {
+    return [
+      this.enableMfaStep(),
+      this.disableMfaStep(),
+      this.changeEmailStep(),
+      this.changeOrAddPhoneStep(),
+      this.deletePhoneStep(),
+    ].includes('OTP_VERIFICATION')
+  }
+
+  usesAuthenticatorApp(): boolean {
+    return (
+      this.currentMfaStrategy() === 'APP_TOTP' &&
+      (this.enableMfaStep() === 'OTP_VERIFICATION' || this.disableMfaStep() === 'OTP_VERIFICATION')
+    )
+  }
+
+  isRecoverableResult(): boolean {
+    return [
+      this.enableMfaStep(),
+      this.disableMfaStep(),
+      this.changeEmailStep(),
+      this.changeOrAddPhoneStep(),
+      this.deletePhoneStep(),
+      this.changePasswordStep(),
+    ].includes('OK_OR_ERROR')
+  }
+
+  restartWorkflow(): void {
+    if (this.loading() || this.destroyed) return
+    this.loadWorkflow(this.innerScope())
+  }
+
+  previousStep(): void {
+    if (this.loading() || this.destroyed) return
+    this.serverError.set(0)
+    this.otpCtrl.reset('')
+    if (this.enableMfaStep() === 'OTP_VERIFICATION' && this.usesAuthenticatorApp()) {
+      this.enableMfaStep.set('APP:SCAN_QR_CODE_OR_COPY_SECRET')
+      return
+    }
+    if (this.changeEmailStep() === 'OTP_VERIFICATION') {
+      this.clearSetup()
+      this.changeEmailStep.set('NEW_CONTACT_FORM')
+      return
+    }
+    if (this.changeOrAddPhoneStep() === 'OTP_VERIFICATION') {
+      this.clearSetup()
+      this.changeOrAddPhoneStep.set('NEW_CONTACT_FORM')
+      return
+    }
+    if (this.deletePhoneStep() === 'OTP_VERIFICATION') {
+      this.close('contact_details')
+      return
+    }
+    this.restartWorkflow()
+  }
+
+  resendChallenge(): void {
+    if (this.loading() || this.destroyed || this.usesAuthenticatorApp()) return
+    this.otpCtrl.reset('')
+    this.serverError.set(0)
+    this.clearSetup()
+    if (this.enableMfaStep() === 'OTP_VERIFICATION' && this.currentMfaStrategy()) {
+      this.handleEnableMfa(this.currentMfaStrategy() as MfaStrategy)
+    } else if (this.disableMfaStep() === 'OTP_VERIFICATION' && this.currentMfaStrategy()) {
+      this.handleDisableMfa(this.currentMfaStrategy() as MfaStrategy)
+    } else if (this.changeEmailStep() === 'OTP_VERIFICATION') {
+      this.sendNewEmail()
+    } else if (this.changeOrAddPhoneStep() === 'OTP_VERIFICATION') {
+      this.sendNewPhone()
+    } else if (this.deletePhoneStep() === 'OTP_VERIFICATION') {
+      this.restartWorkflow()
+    }
   }
 
   handleEnableMfa(s: MfaStrategy): void {
+    if (this.loading() || this.destroyed || s === 'BACKUP_CODE') return
+    this.currentMfaStrategy.set(s)
+    this.disableMfaStep.set('')
+    this.serverError.set(0)
+    this.clearSetup()
+    this.backupCodes.set([])
+    this.backupCodesError.set(false)
     this.loading.set(true)
-    this.enMfaSub = this.mfaUseCase.enableFirstStep(s).pipe(
-      tap(() => {
-        this.serverError.set(0)
-        this.otpCtrl.setValue('')
-      }),
-      finalize(() => this.loading.set(false))
-    ).subscribe({
-      next: (res) => {
-        if (!res.secureToken) {
-          this.onError(403)
-          return
-        }
-        if (s === 'APP_TOTP' && (!res.qrCode || !res.otpauthUrl || !res.secret)) {
-          this.onError()
-          return
-        }
-        queueMicrotask(() => {
-          this.currentMfaStrategy.set(s)
-          this.disableMfaStep.set('')
-          this.enableMfaStep.set(s === 'APP_TOTP' ? 'APP:SCAN_QR_CODE_OR_COPY_SECRET' : 'OTP_VERIFICATION')
-          if (s === 'APP_TOTP') {
-            if (!res.qrCode || !res.otpauthUrl || !res.secret) {
-              this.onError()
-              return
-            }
-            this.qrCode.set(res.qrCode)
-            this.otpauthUrl.set(res.otpauthUrl)
-            this.appSecret.set(res.secret)
+    this.enMfaSub = this.mfaUseCase
+      .enableFirstStep(s)
+      .pipe(
+        tap(() => {
+          this.serverError.set(0)
+          this.otpCtrl.setValue('')
+        }),
+        finalize(() => this.queueState(() => this.loading.set(false)))
+      )
+      .subscribe({
+        next: (res) => {
+          if (!res.secureToken) {
+            this.onError(403)
+            return
           }
-          this.secureToken.set(res.secureToken)
-        })
-      },
-      error: (e: HttpErrorResponse) => this.onError(e.status)
-    })
+          if (s === 'APP_TOTP' && (!res.qrCode || !res.otpauthUrl || !res.secret)) {
+            this.onError()
+            return
+          }
+          this.queueState(() => {
+            this.currentMfaStrategy.set(s)
+            this.disableMfaStep.set('')
+            this.enableMfaStep.set(
+              s === 'APP_TOTP' ? 'APP:SCAN_QR_CODE_OR_COPY_SECRET' : 'OTP_VERIFICATION'
+            )
+            if (s === 'APP_TOTP') {
+              if (!res.qrCode || !res.otpauthUrl || !res.secret) {
+                this.onError()
+                return
+              }
+              this.qrCode.set(res.qrCode)
+              this.otpauthUrl.set(res.otpauthUrl)
+              this.appSecret.set(res.secret)
+            }
+            this.secureToken.set(res.secureToken)
+            this.otpDeadline.set(otpDeadlineFromResponse(res))
+          })
+        },
+        error: (e: HttpErrorResponse) => this.onError(e.status),
+      })
   }
 
   handleDisableMfa(s: MfaStrategy): void {
+    if (this.loading() || this.destroyed || s === 'BACKUP_CODE') return
+    this.currentMfaStrategy.set(s)
+    this.enableMfaStep.set('')
+    this.serverError.set(0)
+    this.clearSetup()
     this.loading.set(true)
-    this.disMfaSub = this.mfaUseCase.disableFirstStep(s).pipe(
-      tap(() => {
-        this.serverError.set(0)
-        this.otpCtrl.setValue('')
-      }),
-      finalize(() => this.loading.set(false))
-    ).subscribe({
-      next: (res) => {
-        if (!res.secureToken) {
-          this.onError(403)
-          return
-        }
-        this.currentMfaStrategy.set(s)
-        this.secureToken.set(res.secureToken)
-        this.enableMfaStep.set('')
-        this.disableMfaStep.set('OTP_VERIFICATION')
-      },
-      error: (e: HttpErrorResponse) => this.onError(e.status)
-    })
+    this.disMfaSub = this.mfaUseCase
+      .disableFirstStep(s)
+      .pipe(
+        tap(() => {
+          this.serverError.set(0)
+          this.otpCtrl.setValue('')
+        }),
+        finalize(() => this.queueState(() => this.loading.set(false)))
+      )
+      .subscribe({
+        next: (res) => {
+          if (!res.secureToken) {
+            this.onError(403)
+            return
+          }
+          this.currentMfaStrategy.set(s)
+          this.secureToken.set(res.secureToken)
+          this.otpDeadline.set(otpDeadlineFromResponse(res))
+          this.enableMfaStep.set('')
+          this.disableMfaStep.set('OTP_VERIFICATION')
+        },
+        error: (e: HttpErrorResponse) => this.onError(e.status),
+      })
   }
 
   switchToAddNewPhone(): void {
-    queueMicrotask(() => {
+    this.queueState(() => {
       this.innerScope.set('AddPhone')
       this.serverError.set(0)
       this.deletePhoneStep.set('')
@@ -1299,6 +1584,7 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
   }
 
   routeAction(): void {
+    if (this.loading() || this.destroyed) return
     if (this.enableMfaStep() === 'OTP_VERIFICATION' && this.currentMfaStrategy()) {
       this.verifyTotpForEnablingMfa(this.currentMfaStrategy() as MfaStrategy)
       return
@@ -1368,30 +1654,44 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
       return
     }
     this.loading.set(true)
-    this.enMfaTotpSub = this.mfaUseCase.enableSecondStep(s, this.otpCtrl.value, this.secureToken()).pipe(
-      switchMap(() => {
-        if (this.enabledMfaStrategies().length === 0) {
-          return this.backupCodesUseCase.regenerate()
-        }
-        return of(null)
-      }),
-      tap(() => {
-        this.serverError.set(0)
-        this.otpCtrl.setValue('')
-      }),
-      finalize(() => queueMicrotask(() => this.loading.set(false)))
-    ).subscribe({
-      next: (codes) => queueMicrotask(() => {
-        if (codes != null && Array.isArray(codes)) {
-          this.backupCodes.set(codes)
-        }
-        this.enableMfaStep.set('OK_OR_ERROR')
-      }),
-      error: (e: HttpErrorResponse) => queueMicrotask(() => {
-        this.serverError.set(e.status)
-        this.enableMfaStep.set('OK_OR_ERROR')
+    this.enMfaTotpSub = this.mfaUseCase
+      .enableSecondStep(s, this.otpCtrl.value, this.secureToken())
+      .pipe(
+        switchMap(() => {
+          const needsBackupCodes = this.enabledMfaStrategies().length === 0
+          this.enabledMfaStrategies.update((strategies) => [...new Set([...strategies, s])])
+          if (needsBackupCodes) {
+            return this.backupCodesUseCase.regenerate().pipe(
+              catchError(() => {
+                this.backupCodesError.set(true)
+                return of(null)
+              })
+            )
+          }
+          return of(null)
+        }),
+        tap(() => {
+          this.serverError.set(0)
+          this.otpCtrl.setValue('')
+        }),
+        finalize(() => this.queueState(() => this.loading.set(false)))
+      )
+      .subscribe({
+        next: (codes) =>
+          this.queueState(() => {
+            if (codes != null && Array.isArray(codes)) {
+              this.backupCodes.set(codes)
+            }
+            this.clearSetup()
+            this.enableMfaStep.set('OK_OR_ERROR')
+          }),
+        error: (e: HttpErrorResponse) =>
+          this.queueState(() => {
+            this.clearSetup()
+            this.serverError.set(e.status)
+            this.enableMfaStep.set('OK_OR_ERROR')
+          }),
       })
-    })
   }
 
   private verifyTotpForDisablingMfa(s: MfaStrategy): void {
@@ -1400,22 +1700,32 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
       return
     }
     this.loading.set(true)
-    this.disMfaTotpSub = this.mfaUseCase.disableSecondStep(s, this.otpCtrl.value, this.secureToken()).pipe(
-      tap(() => {
-        this.serverError.set(0)
-        this.otpCtrl.setValue('')
-      }),
-      finalize(() => queueMicrotask(() => this.loading.set(false)))
-    ).subscribe({
-      next: () => queueMicrotask(() => {
-        this.enabledMfaStrategies.set(this.enabledMfaStrategies().filter((strategy) => strategy !== s))
-        this.disableMfaStep.set('OK_OR_ERROR')
-      }),
-      error: (e: HttpErrorResponse) => queueMicrotask(() => {
-        this.serverError.set(e.status)
-        this.disableMfaStep.set('OK_OR_ERROR')
+    this.disMfaTotpSub = this.mfaUseCase
+      .disableSecondStep(s, this.otpCtrl.value, this.secureToken())
+      .pipe(
+        tap(() => {
+          this.serverError.set(0)
+          this.otpCtrl.setValue('')
+        }),
+        finalize(() => this.queueState(() => this.loading.set(false)))
+      )
+      .subscribe({
+        next: () =>
+          this.queueState(() => {
+            const remaining = this.enabledMfaStrategies().filter((strategy) => strategy !== s)
+            this.enabledMfaStrategies.set(
+              remaining.every((strategy) => strategy === 'BACKUP_CODE') ? [] : remaining
+            )
+            this.clearSetup()
+            this.disableMfaStep.set('OK_OR_ERROR')
+          }),
+        error: (e: HttpErrorResponse) =>
+          this.queueState(() => {
+            this.clearSetup()
+            this.serverError.set(e.status)
+            this.disableMfaStep.set('OK_OR_ERROR')
+          }),
       })
-    })
   }
 
   private sendNewEmail(): void {
@@ -1423,28 +1733,34 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
     this.emailCtrl.markAsTouched()
     if (this.emailCtrl.valid) {
       this.loading.set(true)
-      this.sendNewEmailSub = this.emailUseCase.requestChange(this.emailCtrl.value).pipe(
-        tap(() => {
-          this.serverError.set(0)
-          this.otpCtrl.setValue('')
-        }),
-        finalize(() => this.loading.set(false))
-      ).subscribe({
-        next: (res) => queueMicrotask(() => {
-          if (!res.obscuredEmail || !res.emailVerificationToken) {
-            this.onError()
-            return
-          }
-          this.tempObscuredEmail.set(res.obscuredEmail)
-          this.secureToken.set(res.emailVerificationToken)
-          this.changeEmailStep.set('OTP_VERIFICATION')
-        }),
-        error: (e: (HttpErrorResponse & { obscuredEmail: string })) => queueMicrotask(() => {
-          this.serverError.set(e.status)
-          this.tempObscuredEmail.set(e.obscuredEmail)
-          this.changeEmailStep.set('OK_OR_ERROR')
+      this.sendNewEmailSub = this.emailUseCase
+        .requestChange(this.emailCtrl.value)
+        .pipe(
+          tap(() => {
+            this.serverError.set(0)
+            this.otpCtrl.setValue('')
+          }),
+          finalize(() => this.queueState(() => this.loading.set(false)))
+        )
+        .subscribe({
+          next: (res) =>
+            this.queueState(() => {
+              if (!res.obscuredEmail || !res.emailVerificationToken) {
+                this.onError()
+                return
+              }
+              this.tempObscuredEmail.set(res.obscuredEmail)
+              this.secureToken.set(res.emailVerificationToken)
+              this.otpDeadline.set(otpDeadlineFromResponse(res))
+              this.changeEmailStep.set('OTP_VERIFICATION')
+            }),
+          error: (e: HttpErrorResponse & { obscuredEmail: string }) =>
+            this.queueState(() => {
+              this.serverError.set(e.status)
+              this.tempObscuredEmail.set(e.obscuredEmail)
+              this.changeEmailStep.set('OK_OR_ERROR')
+            }),
         })
-      })
     }
   }
 
@@ -1453,48 +1769,53 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
     this.otpCtrl.updateValueAndValidity()
     if (this.otpCtrl.valid && this.secureToken()) {
       this.loading.set(true)
-      this.verifyNewEmailSub = this.emailUseCase.confirmChange(this.otpCtrl.value, this.secureToken()).pipe(
-        tap(() => {
-          this.serverError.set(0)
-          this.otpCtrl.setValue('')
-        }),
-        finalize(() => queueMicrotask(() => {
-          this.loading.set(false)
-          this.secureToken.set('')
-          this.changeEmailStep.set('OK_OR_ERROR')
-        }))
-      ).subscribe({
-        next: () => this.accountService.getProvidedAccountId(),
-        error: (e: HttpErrorResponse) => queueMicrotask(() => this.serverError.set(e.status))
-      })
+      this.verifyNewEmailSub = this.emailUseCase
+        .confirmChange(this.otpCtrl.value, this.secureToken())
+        .pipe(
+          tap(() => {
+            this.serverError.set(0)
+            this.otpCtrl.setValue('')
+          }),
+          finalize(() =>
+            this.queueState(() => {
+              this.loading.set(false)
+              this.clearSetup()
+              this.changeEmailStep.set('OK_OR_ERROR')
+            })
+          )
+        )
+        .subscribe({
+          next: () => this.accountService.getProvidedAccountId(),
+          error: (e: HttpErrorResponse) => this.queueState(() => this.serverError.set(e.status)),
+        })
     }
-
   }
 
   private sendNewPhone(): void {
     this.phoneForm.markAllAsTouched()
     if (this.phoneForm.valid) {
       this.loading.set(true)
-      this.sendNewPhoneSub = this.phoneUseCase.requestChange(
-        '+39', this.phoneForm.controls['phone'].value
-      ).pipe(
-        finalize(() => this.loading.set(false))
-      ).subscribe({
-        next: (res) => queueMicrotask(() => {
-          if (!res.obscuredPhoneNumber || !res.phoneNumberVerificationToken) {
-            this.onError()
-            return
-          }
-          this.tempObscuredPhone.set(res.obscuredPhoneNumber)
-          this.secureToken.set(res.phoneNumberVerificationToken)
-          this.changeOrAddPhoneStep.set('OTP_VERIFICATION')
-        }),
-        error: (e: HttpErrorResponse) => queueMicrotask(() => {
-          this.serverError.set(e.status)
-          this.changeOrAddPhoneStep.set('OK_OR_ERROR')
+      this.sendNewPhoneSub = this.phoneUseCase
+        .requestChange('+39', this.phoneForm.controls['phone'].value)
+        .pipe(finalize(() => this.queueState(() => this.loading.set(false))))
+        .subscribe({
+          next: (res) =>
+            this.queueState(() => {
+              if (!res.obscuredPhoneNumber || !res.phoneNumberVerificationToken) {
+                this.onError()
+                return
+              }
+              this.tempObscuredPhone.set(res.obscuredPhoneNumber)
+              this.secureToken.set(res.phoneNumberVerificationToken)
+              this.otpDeadline.set(otpDeadlineFromResponse(res))
+              this.changeOrAddPhoneStep.set('OTP_VERIFICATION')
+            }),
+          error: (e: HttpErrorResponse) =>
+            this.queueState(() => {
+              this.serverError.set(e.status)
+              this.changeOrAddPhoneStep.set('OK_OR_ERROR')
+            }),
         })
-      })
-
     }
   }
 
@@ -1503,16 +1824,21 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
     this.otpCtrl.updateValueAndValidity()
     if (this.otpCtrl.valid) {
       this.loading.set(true)
-      this.delPhoneSub = this.phoneUseCase.confirmRemoval(this.otpCtrl.value, this.secureToken()).pipe(
-        finalize(() => queueMicrotask(() => {
-          this.deletePhoneStep.set('OK_OR_ERROR')
-          this.loading.set(false)
-        }))
-      ).subscribe({
-        next: (res) => this.phoneMfaDisabled.set(res.phoneMfaDisabled),
-        error: (e: HttpErrorResponse) => this.serverError.set(e.status)
-      })
-
+      this.delPhoneSub = this.phoneUseCase
+        .confirmRemoval(this.otpCtrl.value, this.secureToken())
+        .pipe(
+          finalize(() =>
+            this.queueState(() => {
+              this.clearSetup()
+              this.deletePhoneStep.set('OK_OR_ERROR')
+              this.loading.set(false)
+            })
+          )
+        )
+        .subscribe({
+          next: (res) => this.phoneMfaDisabled.set(res.phoneMfaDisabled),
+          error: (e: HttpErrorResponse) => this.serverError.set(e.status),
+        })
     }
   }
 
@@ -1520,15 +1846,23 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
     this.otpCtrl.markAsTouched()
     if (this.otpCtrl.valid) {
       this.loading.set(true)
-      this.verifyNewPhoneSub = this.phoneUseCase.confirmChange(this.otpCtrl.value, this.secureToken()).pipe(
-        finalize(() => queueMicrotask(() => {
-          this.loading.set(false)
-          this.changeOrAddPhoneStep.set('OK_OR_ERROR')
-        }))
-      ).subscribe({
-        next: () => { /* pass */ },
-        error: (e: HttpErrorResponse) => this.serverError.set(e.status)
-      })
+      this.verifyNewPhoneSub = this.phoneUseCase
+        .confirmChange(this.otpCtrl.value, this.secureToken())
+        .pipe(
+          finalize(() =>
+            this.queueState(() => {
+              this.clearSetup()
+              this.loading.set(false)
+              this.changeOrAddPhoneStep.set('OK_OR_ERROR')
+            })
+          )
+        )
+        .subscribe({
+          next: () => {
+            /* pass */
+          },
+          error: (e: HttpErrorResponse) => this.serverError.set(e.status),
+        })
     }
   }
 
@@ -1539,18 +1873,24 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
       this.loading.set(true)
       const dto: ChangePasswordDTO = {
         oldPassword: this.passwordForm.controls['oldPassword'].value,
-        newPassword: this.passwordForm.controls['password'].value
+        newPassword: this.passwordForm.controls['password'].value,
       }
-      this.chPwdSub = this.passwordUseCase.change(dto).pipe(
-        finalize(() => queueMicrotask(() => {
-          this.loading.set(false)
-          this.changePasswordStep.set('OK_OR_ERROR')
-        }))
-      ).subscribe({
-        next: () => { /* pass */ },
-        error: (e: HttpErrorResponse) => this.serverError.set(e.status)
-      })
+      this.chPwdSub = this.passwordUseCase
+        .change(dto)
+        .pipe(
+          finalize(() =>
+            this.queueState(() => {
+              this.loading.set(false)
+              this.changePasswordStep.set('OK_OR_ERROR')
+            })
+          )
+        )
+        .subscribe({
+          next: () => {
+            /* pass */
+          },
+          error: (e: HttpErrorResponse) => this.serverError.set(e.status),
+        })
     }
   }
-
 }

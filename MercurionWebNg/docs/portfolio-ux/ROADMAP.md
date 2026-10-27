@@ -43,7 +43,7 @@ Questi documenti non sono task eseguibili del sistema autonomous-development e n
 
 ## Aggiornamento del 27 ottobre — ripresa UX
 
-Il blocco **17 / PX-03 e PX-14** è implementato, in review: registrazione, recupero, attivazione e callback, con [prove e limiti](REGISTRATION-RECOVERY-QA.md). Anche il **18 / PX-12 — Dashboard** è implementato, in review: metriche, grafici accessibili, skeleton e recupero degli errori, con [prove e limiti](DASHBOARD-QA.md). **Prossimo blocco: 19 / PX-13 — Settings: fasi successive**, coordinando i flussi SMS con INF-02 prima della loro accettazione. L’attivazione/migrazione JWT sui dati dello sviluppo locale è rinviata per richiesta dell’utente; il codice implementato resta conservato e non blocca il lavoro UX. Provider/bootstrap VPS e consumer Tox21 restano nel loro percorso separato.
+Il blocco **17 / PX-03 e PX-14** è implementato, in review: registrazione, recupero, attivazione e callback, con [prove e limiti](REGISTRATION-RECOVERY-QA.md). Anche il **18 / PX-12 — Dashboard** è implementato, in review: metriche, grafici accessibili, skeleton e recupero degli errori, con [prove e limiti](DASHBOARD-QA.md). **Blocco corrente: 19 / PX-13 — Settings:** interventi OTP/MFA e gestione della preautorizzazione login implementati, in review; [prove e accettazione residua](SETTINGS-STATES-QA.md). Restano smoke test reali, varianti account e Safari fisico. Il blocco seguente resta 20A / PX-15A e PX-15B — Notifiche. L’attivazione/migrazione JWT sui dati dello sviluppo locale è rinviata per richiesta dell’utente; il codice implementato resta conservato e non blocca il lavoro UX. Provider/bootstrap VPS e consumer Tox21 restano nel loro percorso separato.
 
 ## Priorità
 
@@ -67,7 +67,7 @@ La priorità indica il valore della rifinitura per il portfolio, non la gravità
 | PX-10 | Dettaglio molecola e informazioni scientifiche | P1 | S, B | Blocchi 09–10 implementati, in review |
 | PX-11 | Predizione Tox21 e comunicazione dei risultati | P1 | S, B, V | Blocco 11 implementato, in review |
 | PX-12 | Dashboard | P2 | S, B | Blocco 18 implementato, in review; prove e limiti in DASHBOARD-QA.md |
-| PX-13 | Settings: fasi e stati ancora non conclusi | P2 | S, B, V | Riferimento iniziale implementato; completamento aperto |
+| PX-13 | Settings: fasi e stati ancora non conclusi | P2 | S, B, V | OTP/MFA e preautorizzazione login implementati, in review; accettazione residua in SETTINGS-STATES-QA.md |
 | PX-14 | Recupero, attivazione e callback SSO | P2 | S, B, V | Blocco 17 implementato, in review; verifica reale con token/account ancora aperta |
 | PX-15 | Notifiche | P2 | S, B, V | Da affrontare |
 | PX-16 | Supporto, ticket e conversazioni | P2 | S, B | Da affrontare |
@@ -391,6 +391,8 @@ La reintegrazione dei branch feature nel branch corrente e il merge della beta s
 **Sorgenti:** [dashboard](../../src/app/pages/profile/dashboard.page.component.ts), [metriche](../../src/app/pages/profile/dashboard/dashboard-metrics-widget.component.ts), [grafici](../../src/app/pages/profile/dashboard/dashboard-charts-widget.component.ts).
 
 ### PX-13 — Settings: completamento degli stati
+
+**Aggiornamento del 27 ottobre:** OTP/MFA, QR/backup, focus, recupero errori e scadenza/revoca della preautorizzazione login implementati, in review. [Prove e limiti](SETTINGS-STATES-QA.md). Restano le verifiche reali dei singoli percorsi, SSO, sessioni multiple e Safari fisico; il blocco non è certificato interamente concluso.
 
 **Dipendenza SMS:** prima dell’accettazione dei flussi che inviano SMS, verificare la configurazione e gli invii con il nuovo account Twilio previsto in [INF-02](#inf-02--invio-sms-nuovo-account-twilio). Il porting a SMS Hosting è superato; non utilizzare l’account Twilio chiuso.
 
@@ -782,7 +784,7 @@ L’utente gestisce la futura ripresa di MF-01 e MF-02. Le due feature restano c
 - Distinguere test simulati, accettazione della richiesta dal provider e ricezione effettiva del messaggio. Una prova reale richiede destinatario e invio concordati.
 - Verificare la presentazione degli errori, inclusa l’assenza di dettagli tecnici del provider nelle risposte staging/produzione.
 
-Il blocco 19 / PX-13 resta il prossimo intervento UX. Gli stati indipendenti dall’invio possono essere verificati con fixture; la prova diretta SMS in sviluppo è superata secondo conferma dell’utente; resta la QA dei singoli percorsi OTP/MFA e degli altri ambienti. Le annotazioni precedenti nel diario e nei rapporti QA rimangono come storico e sono superate da questo aggiornamento.
+Il blocco 19 / PX-13 è ora in review per gli interventi OTP/MFA; prove e accettazione residua in [SETTINGS-STATES-QA.md](SETTINGS-STATES-QA.md). Gli stati indipendenti dall’invio possono essere verificati con fixture; la prova diretta SMS in sviluppo è superata secondo conferma dell’utente; resta la QA dei singoli percorsi OTP/MFA e degli altri ambienti. Le annotazioni precedenti nel diario e nei rapporti QA rimangono come storico e sono superate da questo aggiornamento.
 
 **Sorgenti:** [servizio SMS](../../../MercurionWebNode/src/app_modules/notification/services/sms-sender/sms-sender.service.ts), [mapping configurazione](../../../MercurionWebNode/src/config/config.model.ts), [schema env](../../../MercurionWebNode/src/config/config.schema.ts), [MFA](../../../MercurionWebNode/src/app_modules/auth/services/mfa.service.ts), [flussi account](../../../MercurionWebNode/src/app_modules/auth/application/account-flow-kernel.ts).
 

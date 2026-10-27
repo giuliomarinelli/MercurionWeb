@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core'
-import { Observable, Subject, defer, finalize, map, of, takeUntil, throwError } from 'rxjs'
+import { Observable, Subject, defer, finalize, of, takeUntil, throwError } from 'rxjs'
 import type {
   BackupCodeDTO,
   ConfirmWithAccessTokenAndInitialsDTO,
+  ConfirmWithTotpMetaDTO,
   MfaStrategy,
   SessionDeviceInfo,
   TotpBodyDTO
@@ -59,7 +60,7 @@ export interface MfaStrategySession {
   readonly strategy: MfaStrategy
   readonly codeLength: number
   readonly challengeLabel: string
-  initialize(): Observable<void>
+  initialize(): Observable<ConfirmWithTotpMetaDTO | undefined>
   submit(code: MfaCode): Observable<ConfirmWithAccessTokenAndInitialsDTO>
   cancel(): void
 }
@@ -77,7 +78,7 @@ abstract class BaseMfaStrategy implements MfaStrategySession {
     protected readonly context: MfaStrategyContext
   ) {}
 
-  initialize(): Observable<void> {
+  initialize(): Observable<ConfirmWithTotpMetaDTO | undefined> {
     return of(undefined)
   }
 
@@ -112,12 +113,12 @@ class EmailOtpStrategy extends BaseMfaStrategy {
   readonly codeLength = 6
   readonly challengeLabel = 'Codice monouso'
 
-  override initialize(): Observable<void> {
+  override initialize(): Observable<ConfirmWithTotpMetaDTO> {
     return this.auth.loginSecondStep(
       'EMAIL_OTP',
       this.context.preAuth.preAuthorizationToken,
       this.context.trustVerify
-    ).pipe(takeUntil(this.cancelled$), map(() => undefined))
+    ).pipe(takeUntil(this.cancelled$))
   }
 }
 
@@ -125,12 +126,12 @@ class SmsOtpStrategy extends BaseMfaStrategy {
   readonly codeLength = 6
   readonly challengeLabel = 'Codice monouso'
 
-  override initialize(): Observable<void> {
+  override initialize(): Observable<ConfirmWithTotpMetaDTO> {
     return this.auth.loginSecondStep(
       'SMS_OTP',
       this.context.preAuth.preAuthorizationToken,
       false
-    ).pipe(takeUntil(this.cancelled$), map(() => undefined))
+    ).pipe(takeUntil(this.cancelled$))
   }
 }
 
