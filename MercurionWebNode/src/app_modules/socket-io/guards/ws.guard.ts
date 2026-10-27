@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { Socket } from 'socket.io';
@@ -36,6 +36,8 @@ import {
 import { Environment } from 'src/config/config.schema';
 import type { AppConfiguration } from 'src/config/config.types';
 import { SecurityService } from 'src/app_modules/auth/services/security.service';
+import { JwtKeyRuntimeError } from 'src/app_modules/auth/keys/jwt-key-runtime-error';
+import { bindSocketKey } from '../socket-key-binding';
 
 
 type ApplicationSocket = Socket<ClientToServerEvents, ServerToClientEvents>
@@ -120,12 +122,21 @@ export class WsGuard implements CanActivate {
       }
 
       // 🔹 Inietta lo userId e gli scope nei dati della socket
+      await bindSocketKey(client, token, this.jwtTools)
       client.data.userId = userId
       client.data.sessionId = payload.sid
       client.data.scopes = this.scopeService.generateScopesArrayFromJwtClaim(payload.scp)
       this.logger.debug?.(`Socket ${client.id} polling connection state: PRIVATE (Authenticated)`)
       return true
     } catch (e) {
+      if (e instanceof JwtKeyRuntimeError && e.operational) {
+        client.emit(socketEventRegistry.applicationError.name, createSocketApplicationError(
+          presentApplicationError(new InternalServerErrorException('Authentication key service unavailable'), {
+            correlationId: createCorrelationId(client.id), isProduction: this.isProduction()
+          })
+        ))
+        return false
+      }
       if (isApplicationError(e, ApplicationErrorCode.TOKEN_INVALID_OR_EXPIRED)) {
         // Il JWT WS può scadere mentre la sessione Redis resta valida.
         // Il client rinnova il token con il cookie e ristabilisce l'handshake.

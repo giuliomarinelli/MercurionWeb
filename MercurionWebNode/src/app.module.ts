@@ -36,6 +36,7 @@ import {
 import { PersistenceModule } from './persistence/persistence.module'
 import { LoggingModule } from './logging/logging.module'
 import { ObservabilityModule } from './observability/observability.module'
+import { JwtKeyRuntimeModule, type JwtKeyRuntimeOptions } from './app_modules/auth/keys/jwt-key-runtime.module'
 
 @Module({
   imports: [
@@ -94,6 +95,7 @@ class ApplicationBootstrapModule {}
 
 export interface ApplicationModuleOptions {
   readonly configuration?: ConfigurationModuleOptions
+  readonly jwtKeys?: JwtKeyRuntimeOptions
 }
 
 export function createApplicationModule(
@@ -103,6 +105,7 @@ export function createApplicationModule(
     module: ApplicationBootstrapModule,
     imports: [
       createConfigurationModule(options.configuration),
+      options.jwtKeys === undefined ? JwtKeyRuntimeModule.registerLocal() : JwtKeyRuntimeModule.register(options.jwtKeys),
       AppModule
     ]
   }

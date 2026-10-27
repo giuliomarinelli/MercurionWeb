@@ -32,7 +32,7 @@ import { routeManifest } from '../../route-manifest'
     <main class="main-container" role="main">
       <div class="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 class="h1-underline">Notifiche</h1>
+          <h1 class="h1-underline">Centro Notifiche</h1>
           <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">
             {{ notifications.unreadCount() }}
             {{ notifications.unreadCount() === 1 ? 'notifica non letta' : 'notifiche non lette' }}

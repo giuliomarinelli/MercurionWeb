@@ -35,6 +35,7 @@ import {
 } from 'src/exception-handling/application-error-envelope';
 import { SecurityService } from '../auth/services/security.service';
 import { RealtimePublisherService } from './realtime-publisher.service';
+import { bindSocketKey } from './socket-key-binding';
 
 type ApplicationServer = Server<ClientToServerEvents, ServerToClientEvents>
 type ApplicationSocket = Socket<ClientToServerEvents, ServerToClientEvents>
@@ -146,6 +147,8 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
       const { sub, sid: sessionId } = await this.jwtTools.verifyTokenAndGetPayload(token, TokenType.ws_AccessToken);
       const userId = this.securityService.decryptUserId(sub)
 
+      await bindSocketKey(client, token, this.jwtTools)
+
       client.data.userId = userId
       client.data.sessionId = sessionId
 
@@ -178,6 +181,8 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
   }
 
   private joinUserRooms(client: ApplicationSocket): void {
+
+    if (client.connected === false) return
 
     const sessionId = client.data?.sessionId as string | undefined
     const userId = client.data?.userId?.toString() as string | undefined

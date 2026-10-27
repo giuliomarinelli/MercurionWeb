@@ -1,7 +1,7 @@
 # Mercurion VPS infrastructure & deployment roadmap
 
-> **Version:** 0.2.0 (exploratory secret-management planning)  
-> **Updated:** 2026-10-25  
+> **Version:** 0.3.4 (local JWT adapter and explicit development bootstrap)
+> **Updated:** 2026-10-27
 > **Status:** PLANNING — no VPS purchase, provisioning, migration, or production deployment is recorded by this document.  
 > **Repository branch at creation:** `bugfix/6abfd27de7c18baf04198c71-technical-debt-recovery-2`  
 > **Ownership:** human-led infrastructure planning; execution and acceptance require explicit review.
@@ -126,6 +126,28 @@ The current application already implements part of this contract:
 
 **Official reference points:** [Infisical pricing](https://infisical.com/pricing), [Infisical machine identities](https://infisical.com/blog/introducing-machine-identities), [Bitwarden plans](https://bitwarden.com/help/secrets-manager-plans/), [Bitwarden machine accounts](https://bitwarden.com/help/machine-accounts/), [Docker Compose secrets](https://docs.docker.com/compose/how-tos/use-secrets/).
 
+### JWT key rotation coordination (AUTH-02 / 16K)
+
+Coordinate INF-01A with the application [JWT rotation plan](../../MercurionWebNg/docs/portfolio-ux/JWT-KEY-ROTATION.md) and [analysis](../../MercurionWebNg/docs/portfolio-ux/JWT-KEY-ROTATION-ANALYSIS.md). The user approved a persistent **nonsecret manifest** on a volume, atomic administrative CLI updates, hot revocation and removal from private rooms/disconnection of affected WebSockets within **5 seconds**. One NestJS and one Tox21 instance per environment are planned. Application implementation has local synthetic evidence; deployment acceptance remains open.
+
+**Application progress (2026-10-25):** B1a/B1b implement schema, source ports, memory-only material validation/cache and multi-key signing/verification through explicit application composition. Startup validates configured material; state is rechecked before/after each operation. Local synthetic validation: 17 suites/271 tests. The normal bootstrap still uses existing configuration and keys. This is not INF-01A acceptance: no real provider adapter, pre-bootstrap secret retrieval, canonical configuration migration, persistent manifest reader/CLI or inactive-WebSocket 5-second revocation proof yet. Details and limits: [runtime contract](../../MercurionWebNode/docs/jwt-key-manifest.md).
+
+**B2 progress (2026-10-27):** persistent current/history directories, immutable revision chain/tombstones, expected-revision writer lock, atomic publication, explicit forward recovery and metadata-only CLI are implemented locally. Verified private sockets are reconciled without provider calls; local real-file/real-timer fixture evicted an idle connection in 1016 ms during provider outage. Validation: 19 suites/301 tests. [Operations and limits](../../MercurionWebNode/docs/jwt-key-operations.md). Production requires readonly mounts and writer ACLs, separate history retention during backup/restore, Linux fsync/Compose/WS acceptance, and the real INF-01A adapter/bootstrap. The standalone CLI applies revoke/retire without the manager; prepare/activate application requires a trusted in-memory materialSource and does not simulate provider availability. No deployment or real key rotation performed.
+
+**Local development update (2026-10-27):** the local material adapter, controlled legacy import and `JWT_LOCAL_KEYS_CONFIG` opt-in bootstrap are implemented in review. The dedicated local HMAC dotenv is parsed privately; legacy `.env`/PEM input is preserved, and no real user material was migrated. See [development procedure](../../MercurionWebNode/docs/jwt-local-development.md). Standalone administration can prepare/activate through `--local-config` in development/test only. Latest isolated Linux QA: 27 checks, including local migration/rotation in tmpfs; idle WS revoked in 543 ms. This does not satisfy INF-01A provider selection, machine identity, secret-free pre-bootstrap configuration or deployment acceptance. The local flag is rejected in staging/production.
+
+**Isolated Linux/Compose QA (2026-10-27):** [26 integration checks passed](../../MercurionWebNode/docs/jwt-linux-qa.md) on the public Node 22.16.0 base with current dependency versions: real Redis sessions/Socket.IO Redis adapter, separate UIDs, readonly/POSIX write rejection, ordinary HTTP/WS rotation, HS512 revocation, provider outage, process restart and actual writer SIGKILL between durable audit publication and current replacement. Idle WS eviction measured 697 ms in the final run. Task-owned containers/network/volumes/image removed. This closes the isolated Linux fixture gate, not INF-01A provider/machine identity or final VPS/full-bootstrap acceptance. [Environment/secret/kid contract](../../MercurionWebNode/docs/jwt-environment-and-secrets.md): ordinary development remains unchanged, kid/state belong to the nonsecret manifest, secret material is retrieved in memory by the future adapter; canonical configuration/process.env migration remains open.
+
+- **Two separate authorities:** Secret Manager owns confidential material; the local manifest owns JWT key admission/revocation, active kid and legacy windows. Keep private RSA/HMAC, manager credentials and decrypted snapshots out of the manifest, its history and CLI logs. Public verification keys and noncredential references may persist there.
+- In staging/production retrieve material into process memory through a provider-independent asynchronous boundary. No persistent secret directory/PEM or Compose environment substitute. Keep local development/test file behavior separate. Bind each environment/purpose/kid to a deliberate immutable version or distinct logical secret entry; verify actual version/isolation support in the selected provider rather than assuming Free-tier capabilities.
+- **Startup and live changes differ:** retrieve/validate canonical application configuration before Nest bootstrap; prepare and validate new key material before activating its kid. Removing a provider secret or revoking its machine identity does not revoke JWTs signed by an already cached key: update the local revocation manifest explicitly. Do not make the local revocation/WS deadline wait on a provider SDK request.
+- **Outage contract:** cold start without required valid configuration/material fails closed. A running process may use already loaded material only while the fresh local manifest permits it; missing new material fails without fallback. No decrypted disk cache for restart. Prove revocation and the WS bound while the external provider is unavailable.
+- Audit the current Nest configuration integration: installed ConfigModule.forRoot copies validated values into process.env. Supplying ConfigurationModuleOptions.environment alone is not proof of DI-only handling. Inspect/correct inheritance into child processes, SDK disk caches and debug/crash/log exposure; process-local environment and Docker creation metadata are distinct surfaces.
+- Tox21 needs only public HTTP verification material from the manifest for JWT validation. Its other runtime credentials still need the per-service INF-01A solution. Its existing authentication bypass/public scientific RPC contract remains a separate application decision; do not flip that behavior as an infrastructure side effect.
+- **Delivery boundary:** 16K-B1 can implement manifest/schema, material-source boundary and signing/verification using synthetic fixtures before vendor selection. The real provider adapter, machine bootstrap, isolation, no-persistence and reboot/outage acceptance remain INF-01A gates before staging/production. The application's 4–6-day JWT-core estimate excludes this provider/bootstrap PoC and integration effort.
+
+This coordination does not select Infisical/Bitwarden or approve an identity-bootstrap mechanism. VPS INF-01A is unrelated to the deferred portfolio INF-01 / R2 work.
+
 ## 4. Capacity baseline and measurable gates
 
 The existing Kubernetes YAML is **sizing evidence**, not observed consumption and not Compose limits to copy unchanged.
@@ -220,6 +242,7 @@ This is a **new exploratory checkpoint inserted without renumbering INF-02 throu
 - [ ] Run an **Infisical-first sandbox PoC**, then Bitwarden if capability/cost/security trade-offs warrant it. No live production keys in experiments.
 - [ ] Design a secure **post-reboot identity bootstrap**: make an explicit choice between acceptable protected host identity material, an operator-unlock procedure, or a supported nonpersistent attested/federated method. Record any downtime/availability trade-off.
 - [ ] Implement/test asynchronous runtime retrieval and canonical schema validation for NestJS; enforce four RSA `_B64` key entries in staging/prod, removing raw PEM fallback there while preserving local file-based development/test.
+- [ ] Validate the AUTH-02 material-source boundary and immutable kid bindings; prove that the nonsecret manifest drives hot revocation/WS disconnection within 5 seconds even during provider outage, with no secret snapshots on its volume. Review ConfigModule process.env copying and child-process/SDK-cache exposure.
 - [ ] Confirm credentials never appear in Docker `environment:` values/`docker inspect`, persisted dotenv/PEM, image layers, process arguments, CI artifacts or logs; separately evaluate `/proc` and root privilege exposure.
 - [ ] Prove compatible injection/secret retrieval for PostgreSQL, Redis, Meilisearch, `cloudflared` and later RustDesk, including whether RAM-only file mounts are an **explicitly approved exception** or forbidden.
 - [ ] Run credential isolation, invalid-base64 fail-closed, reboot/restart, manager outage, revocation/rotation and recovery tests using synthetic secrets.
@@ -314,6 +337,12 @@ For every completed phase, record at least: date, operator, relevant commit/conf
 | --- | --- | --- | --- |
 | 0.1.0 | 2026-10-25 | Initial roadmap: one-VPS topology, Cloudflare-only Mercurion ingress, capacity/HNSW gates, shared Meilisearch logging/viewer, staging/prod rollout, and future same-VPS RustDesk. | Planning |
 | 0.2.0 | 2026-10-25 | Exploratory Free-tier Secret Manager design: Infisical vs Bitwarden, runtime-only staging/prod config, Base64 RSA contract, INF-01A, identity bootstrap, non-Nest secret transport, and new release gates. Google Cloud excluded. | Planning |
+| 0.3.0 | 2026-10-25 | Coordinate AUTH-02 hot JWT rotation with INF-01A: nonsecret manifest vs in-memory secret material, provider-independent B1 boundary, outage/revocation/WS acceptance and ConfigModule environment-copy audit. Provider and machine-bootstrap choices remain open. | Planning |
+| 0.3.1 | 2026-10-25 | Record synthetic B1a/B1b implementation and explicit-composition boundary; preserve INF-01A real-provider/bootstrap gates and B2 persistent-manifest/WS work. | Application implementation in review; infrastructure gates open |
+| 0.3.2 | 2026-10-27 | Record local B2 registry/CLI/idle-WS implementation, forward-recovery trust boundary, synthetic measurements and remaining Linux/Compose/provider gates. | Local implementation in review; deployment acceptance open |
+| 0.3.3 | 2026-10-27 | Record successful isolated Linux/Compose QA, reproducible public-base runner, cleanup and env/secret/kid contract. Provider/bootstrap and final VPS acceptance remain open. | Isolated QA in review; INF-01A open |
+
+| 0.3.4 | 2026-10-27 | Record local adapter, controlled migration and development/test opt-in bootstrap; preserve INF-01A provider and machine-identity gates. | Local implementation in review; no real activation |
 
 ### Repository references
 

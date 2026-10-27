@@ -1,6 +1,10 @@
 # AUTH-02 — Rotazione e revoca delle chiavi JWT
 
-25 ottobre 2026 — piano architetturale, da implementare. Riferimento: [roadmap](ROADMAP.md#auth-02--rotazione-e-revoca-delle-chiavi-jwt).
+27 ottobre 2026 — implementazione incrementale. **B1a/B1b, B2 e adapter/bootstrap locale implementati, in review:** schema/port, loader e runtime firma/verifica con kid, validazione all’avvio e regressioni sintetiche; [contratto e limiti](../../../MercurionWebNode/docs/jwt-key-manifest.md). Attivazione tramite composizione esplicita oppure, in development/test, opt-in JWT_LOCAL_KEYS_CONFIG dopo [migrazione controllata](../../../MercurionWebNode/docs/jwt-local-development.md). Senza flag resta il percorso precedente; nessuna chiave reale migrata. B2 aggiunge registro/CLI e riconciliazione WS: [runbook](../../../MercurionWebNode/docs/jwt-key-operations.md). La [QA Linux/Compose isolata](../../../MercurionWebNode/docs/jwt-linux-qa.md) ha superato 27 controlli; restano provider/bootstrap VPS INF-01A, prova del deployment completo e consumer coordinati. Analisi e stima in [JWT-KEY-ROTATION-ANALYSIS.md](JWT-KEY-ROTATION-ANALYSIS.md). Riferimento: [roadmap](ROADMAP.md#auth-02--rotazione-e-revoca-delle-chiavi-jwt).
+
+**Decisioni confermate:** revoca a caldo; una istanza Nest e una Tox21 per ambiente su VPS/Docker Compose, senza repliche; manifest persistente senza segreti su volume, aggiornato atomicamente tramite CLI e letto a caldo dai servizi; rimozione dalle room private e disconnessione dei WS con chiave revocata entro 5 secondi. Limite coperto da test sintetici e QA Linux/Compose isolata con WS/Redis reali (543 ms nell’ultima prova); misura sulla VPS finale ancora da eseguire. Stima del nucleo JWT: 4–6 giornate tecniche; esclusi nuova policy scientifica e PoC/integrazione del Secret Manager infrastrutturale.
+
+**Coordinamento VPS:** applicare D-12–D-14 e INF-01A del [piano infrastrutturale](../../../docs/infrastructure/vps-deployment-roadmap.md). In staging/production il Secret Manager esterno conserva private RSA/HMAC; il materiale arriva a runtime e resta in memoria, senza .env/PEM persistenti, valori segreti in Compose o snapshot nel manifest. Infisical/Bitwarden sono candidati, non una scelta già fatta. Il manifest resta l’autorità di stato/revoca; la revoca e il limite WS non dipendono dalla disponibilità del provider. Contratti, outage e confine B1/PoC nell’[analisi aggiornata](JWT-KEY-ROTATION-ANALYSIS.md#coordinamento-con-secret-manager-e-bootstrap-vps).
 
 ## Obiettivo e perimetro
 
@@ -8,7 +12,7 @@ Gestire più versioni di chiave, scegliere quella di emissione tramite configura
 
 L'implementazione riguarda Nest, configurazione e gestione operativa delle chiavi, contratti con i verificatori esterni e regressione dei percorsi Angular. Nessun nuovo algoritmo, modifica dei feature flag o rifacimento generale di login/MFA. L'eventuale adeguamento Tox21 richiede un intervento esplicitamente coordinato nel relativo repository: questo piano non autorizza modifiche al repository sibling.
 
-**Impegno preliminare: medio e circoscrivibile.** La selezione tramite `kid` è concentrata nel servizio JWT, mentre distribuzione, compatibilità e revoca richiedono una prova end-to-end. Non stimare l'intervento come il solo inserimento di un header; produrre la stima dopo il primo blocco di analisi. Nessuna modifica applicativa, rotazione reale, accesso a materiale segreto o operazione sugli ambienti viene eseguita da questo documento.
+**Impegno preliminare: medio e circoscrivibile.** La selezione tramite `kid` è concentrata nel servizio JWT, mentre distribuzione, compatibilità e revoca richiedono una prova end-to-end. Non stimare l'intervento come il solo inserimento di un header; stima nell’analisi. B1a introduce contratti e validazione; B1b collega il runtime multi-chiave attraverso sorgenti esplicite, conservando il bootstrap ordinario. Nessuna rotazione reale, accesso a materiale segreto o operazione sugli ambienti eseguita.
 
 ## Riscontri dal codice corrente
 
@@ -18,11 +22,11 @@ L'implementazione riguarda Nest, configurazione e gestione operativa delle chiav
 | `ws_AccessToken` | RS256, seconda coppia RSA, audience WS | Separazione da HTTP |
 | Altri `TokenType` | HS512, configurazione/secret specifici del tipo, audience auth | Isolamento dei diversi scopi; nessun unico secret globale |
 
-`JwtKeysProvider` restituisce una sola coppia per ciascun dominio RSA; `JwtToolsService` la conserva al bootstrap. I segreti HS512 provengono dalle configurazioni dei singoli tipi. Firma e verifica non selezionano versioni tramite `kid`; esiste già un TODO per la rotazione. Sono presenti controlli su algoritmo, issuer, audience, tipo di token, JTI revocato e PAT MFA corrente: restano necessari.
+`JwtKeysProvider` restituisce una sola coppia per ciascun dominio RSA; `JwtToolsService` la conserva al bootstrap. I segreti HS512 provengono dalle configurazioni dei singoli tipi. Senza opt-in il bootstrap continua con una sola coppia e senza kid; il runtime B1b seleziona versioni tramite kid quando composto esplicitamente o abilitato tramite adapter locale. Sono presenti controlli su algoritmo, issuer, audience, tipo di token, JTI revocato e PAT MFA corrente: restano necessari.
 
 La configurazione attuale HS512 controlla la lunghezza testuale minima di 48 caratteri. Nel nuovo caricamento verificare materiale decodificato e requisiti crittografici: RFC 7518 richiede almeno 512 bit di chiave per HS512. Questo riscontro sul validatore non dimostra che i segreti reali siano deboli: non sono stati letti.
 
-Nel repository Tox21, esaminato soltanto in lettura, `main.py` carica una singola `PUBLIC_KEY` all'avvio e verifica RS256 con audience `mercurion-api`. Va censito come consumatore della chiave HTTP e coinvolto nel rollout. L'inventario deve cercare anche eventuali altri verificatori e chiamate dirette alle librerie JWT.
+Nel repository Tox21, esaminato soltanto in lettura, `main.py` contiene un verificatore con singola `PUBLIC_KEY` all'avvio e RS256 con audience `mercurion-api`. **Nel sorgente locale GLOBAL_SKIP_AUTH_FLAG è True:** il percorso RPC corrente non dimostra l'applicazione della verifica/revoca. I controller scientifici Nest hanno inoltre flussi pubblici con token vuoto/omesso. Coordinare il verificatore senza attivare indiscriminatamente l'autenticazione e interrompere quei flussi; distinzione e limite di accettazione in [analisi 16K-A](JWT-KEY-ROTATION-ANALYSIS.md#4-tox21-non-può-essere-dichiarato-protetto-dalla-revoca-oggi).
 
 ## Modello proposto da validare nell'analisi
 
@@ -37,7 +41,7 @@ Un servizio di selezione delle chiavi condiviso dagli emettitori/verificatori Ne
 
 Il solo stato «preparata» non basta a fidarsi di una chiave: la sua ammissione alla verifica deve derivare dalla configurazione amministrata, non dalla ricezione di un token. La rimozione del materiale dopo il periodo di verifica è un'operazione distinta dalla revoca; conservare i metadati necessari all'audit. Una chiave compromessa/revocata non va riattivata per effettuare un rollback.
 
-**Decisioni da chiudere nel primo blocco:** fonte autorevole dei metadati e dello stato di revoca, conservazione dei segreti, aggiornamento a caldo oppure procedura di riavvio coordinata, numero di istanze/verificatori e tempo massimo di propagazione. Riutilizzare infrastruttura e gestione dei segreti esistenti quando adeguate; nessun obbligo introdotto qui di aggiungere KMS, database, servizio esterno o endpoint JWKS pubblico.
+**Decisioni del primo blocco:** aggiornamento a caldo, topologia singola Compose, manifest su volume e limite WS di 5 secondi confermati dall'utente. In B1 definire binding/versioni del materiale attraverso una port asincrona indipendente dal vendor, schema e compatibilità; le finestre operative per ambiente richiedono verifica prima del rollout. Il Secret Manager esterno è pianificato da VPS INF-01A, non da un nuovo servizio sulla VPS. Nessun nuovo database o endpoint JWKS pubblico richiesto dal registro; provider/bootstrap e prove reali restano gate infrastrutturali prima del rollout.
 
 ## Emissione e verifica
 
@@ -49,9 +53,9 @@ Il solo stato «preparata» non basta a fidarsi di una chiave: la sua ammissione
 
 ## Rotazione ordinaria, revoca e sessioni
 
-**Rotazione ordinaria:** distribuire prima la nuova chiave di verifica a tutti i consumer; verificarne la disponibilità; attivare quindi la nuova chiave di emissione; portare la precedente in sola verifica. La finestra di mantenimento deriva dall'ultima emissione effettiva con la vecchia chiave, dal TTL massimo configurato dei token interessati e dal clock skew ammesso. Non rimuovere una chiave finché qualche emettitore può ancora usarla; TTL e date non si ricavano fidandosi di payload non verificati.
+**Rotazione ordinaria:** distribuire prima la nuova chiave di verifica a tutti i consumer; verificarne la disponibilità; attivare quindi la nuova chiave di emissione; portare la precedente in sola verifica. La finestra deriva dall'ultima emissione effettiva, dal TTL massimo dei token interessati, dal clock skew e da tutti gli usi di rinnovo autorizzati. **Per HTTP il solo TTL JWT non basta:** il protocollo corrente verifica anche firme scadute per rinnovare una sessione valida; occorre coprire la massima durata delle sessioni già emesse, come dettagliato nell'analisi 16K-A. Non rimuovere una chiave finché qualche emettitore può ancora usarla; TTL e date non si ricavano fidandosi di payload non verificati.
 
-**Revoca manuale/emergenza:** comando operativo esplicito per ambiente, dominio e `kid`, autorizzato e tracciato, con motivo e anteprima del perimetro. La revoca esclude subito la chiave nello stato autorevole e deve raggiungere tutte le istanze/cache entro un limite documentato e verificato. Se è revocata la chiave attiva, predisporre una sostituta oppure interrompere l'emissione di quel dominio; nessun fallback silenzioso su chiavi revocate. Definire comportamento durante indisponibilità o disallineamento del registro, evitando accettazione indefinita da cache obsolete. Il mezzo amministrativo concreto, per esempio CLI/runbook o controllo interno già esistente, è da scegliere; una nuova console grafica non è necessaria al primo perimetro.
+**Revoca manuale/emergenza:** comando operativo esplicito per ambiente, dominio e `kid`, autorizzato e tracciato, con motivo e anteprima del perimetro. La revoca esclude subito la chiave nello stato autorevole e deve raggiungere tutte le istanze/cache entro un limite documentato e verificato. Se è revocata la chiave attiva, predisporre una sostituta oppure interrompere l'emissione di quel dominio; nessun fallback silenzioso su chiavi revocate. Definire comportamento durante indisponibilità o disallineamento del registro, evitando accettazione indefinita da cache obsolete. Il mezzo amministrativo implementato in B2 è la CLI con anteprima/digest e revisione attesa; nessuna nuova console grafica.
 
 Revocare una chiave invalida l'intera classe di JWT firmati con quella versione; revocare un JTI o una sessione resta un'azione distinta. La normale rotazione non deve terminare sessioni Redis valide. Per una compromissione, definire esplicitamente se invalidare anche sessioni o altri artefatti: non assumere che cambiare chiave revochi automaticamente tutto lo stato dell'account, né che una sessione associata a un JWT compromesso possa sempre essere riutilizzata per il rinnovo.
 
@@ -70,7 +74,7 @@ Inventariare handshake WS, controlli durante la connessione, rinnovo e riconness
 | Blocco | Risultato verificabile |
 |---|---|
 | 16K-A — Architettura | Inventario completo, modello/autorità del registro, policy legacy e revoca, contratto Tox21, piano di distribuzione e stima |
-| 16K-B — Nest e gestione operativa | Firma/verifica multi-chiave per ogni tipo di token, header `kid`, configurazione validata, operazioni manuali e audit |
+| 16K-B — Nest e gestione operativa | Firma/verifica multi-chiave, header `kid`, port del materiale compatibile con Secret Manager, configurazione validata, operazioni manuali e audit; B1 testabile con fixture sintetiche |
 | 16K-C — Integrazione e QA | Consumer allineati, prove HTTP/WS/Tox21, gestione connessioni esistenti, regressione dei flussi HS512 e runbook di rotazione/revoca |
 
 Usare chiavi sintetiche e test che eseguono davvero firma e verifica, oltre ai mock di orchestrazione. Coprire almeno:
@@ -82,7 +86,7 @@ Usare chiavi sintetiche e test che eseguono davvero firma e verifica, oltre ai m
 - Compatibilità e revoca legacy; JTI/sessioni e PAT MFA continuano a funzionare. La revoca di chiave non viene saltata da `ignoreExpiration` o `skipRevocationCheck`.
 - Login, rinnovo HTTP/WS, logout, recupero, attivazione, verifiche recapiti e MFA: nessun flusso HS512 dimenticato. Sessioni valide conservate durante rotazione normale; revoca d'emergenza e socket già aperti gestiti secondo la policy esplicita.
 
-La consegna comprende test, configurazione documentata senza segreti, procedura amministrativa con tempi di propagazione verificati e limiti residui. Non dichiarare il supporto completo finché un verificatore reale mantiene una sola chiave o non applica la revoca.
+La consegna comprende test, configurazione documentata senza segreti, procedura amministrativa con tempi di propagazione verificati e limiti residui. Non dichiarare il supporto completo finché un verificatore reale mantiene una sola chiave o non applica la revoca. Il completamento locale con fake del materiale non certifica VPS INF-01A: prima di staging/production provare provider, bootstrap, non persistenza, isolamento e recovery reali.
 
 ## Sorgenti e riferimenti
 

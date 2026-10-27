@@ -62,6 +62,21 @@ describe('SocketGateway', () => {
     expect(gateway).toBeInstanceOf(SocketIOGateway);
   });
 
+  it('registers verified private connections for key revocation before joining user rooms', async () => {
+    const verifier = moduleRef.get(JwtToolsService) as unknown as { verifyTokenAndGetPayload: jest.Mock; watchVerifiedConnection: jest.Mock };
+    verifier.verifyTokenAndGetPayload = jest.fn().mockResolvedValue({ sub: 'user-a', sid: 'session-a' });
+    verifier.watchVerifiedConnection = jest.fn().mockResolvedValue(jest.fn());
+    const rooms = new Set<string>();
+    const client = { id: 'socket-a', connected: true, data: {}, rooms,
+      handshake: { auth: { token: 'verified-token' } }, once: jest.fn(), leave: jest.fn(), disconnect: jest.fn(),
+      join: jest.fn((room: string) => { rooms.add(room); }) };
+
+    await gateway.handleConnection(client as never);
+
+    expect(verifier.watchVerifiedConnection).toHaveBeenCalledWith('socket-a', 'verified-token', expect.any(Function));
+    expect(rooms).toEqual(new Set(['ws_session:session-a', 'ws_user:user-a']));
+  });
+
   it('fails startup when Nest silently skips gateway discovery', () => {
     expect(() => gateway.onApplicationBootstrap()).toThrow('Socket.IO gateway was not initialized')
   });

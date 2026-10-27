@@ -508,6 +508,96 @@ Collezioni: null significa loading, [] empty immediato, niente timer o dati prec
 
 **Prossimo blocco:** 16K / AUTH-02 — architettura e stima per rotazione/revoca chiavi JWT; nessuna rotazione reale avviata.
 
+### 2026-10-25 — AUTH-02 / Blocco 16K-A — Analisi rotazione JWT
+
+**Stato:** inventario e proposta in review; nessuna implementazione applicativa. [Analisi e stima](JWT-KEY-ROTATION-ANALYSIS.md), [piano aggiornato](JWT-KEY-ROTATION.md).
+
+**Confermato dall’utente:** revoca a caldo; VPS Docker Compose con una istanza Nest e una Tox21 per ambiente, senza repliche. Manifest Kubernetes mantenuti come case study.
+
+**Riscontri:** 15 domini (2 RSA, 13 HMAC), firma/verifica Nest centralizzate. Il rinnovo HTTP usa anche token scaduti con sessione valida: ritiro della chiave e finestra senza kid non si dimensionano sul solo TTL JWT. Il guard WS non basta per interrompere push a socket passivi. Tox21 ha un verificatore a chiave singola ma GLOBAL_SKIP_AUTH_FLAG=True nel sorgente locale; controller scientifici Nest pubblici con token vuoto/omesso. Nessun flag cambiato.
+
+**Proposta:** registro persistente senza segreti su directory condivisa in sola lettura, CLI con aggiornamento atomico/revisioni/audit, materiale di firma separato, lettura dello stato per ogni operazione e riconciliazione WS entro 5 secondi. Modello, limite WS e politiche di continuità restano da concordare. Stima condizionata: 4–6 giornate tecniche; autenticazione dei flussi scientifici pubblici esclusa e da definire separatamente.
+
+**Verifica:** baseline invariata 7 suite Jest/78 test superati; 10 controlli con librerie JWT installate e chiavi casuali solo in memoria. Fonti RFC primarie ricontrollate, documentazione e diff check. Nessun .env/PEM letto, nessun runtime/container/accesso VPS/CI remota, nessuna operazione Git o modifica a Tox21. Log in `C:/Users/giuli/.codex/artifacts/mercurion-jwt-16ka-2026-10-25/`.
+
+**Aggiornamento decisionale:** l’utente ha confermato «Manifest su volume e limite WS di 5 secondi». Registrati manifest senza segreti persistente, aggiornamento atomico tramite CLI, lettura a caldo e rimozione dalle room private/disconnessione dei WS con chiave revocata entro il limite. Requisiti concordati, non ancora implementati o misurati; finestre operative e contratto scientifico restano da definire.
+
+**Prossimo blocco:** 16K-B1 (schema/loader e firma/verifica multi-chiave con compatibilità), sul modello di registro confermato. Nessuna abilitazione implicita del consumer scientifico.
+
+### 2026-10-25 — AUTH-02 / VPS INF-01A — Coordinamento Secret Manager
+
+**Stato:** pianificazione allineata; nessun adapter o deployment implementato. Fonte: nuova v0.2.0 della [roadmap VPS](../../../docs/infrastructure/vps-deployment-roadmap.md), D-12–D-14 e checkpoint INF-01A.
+
+**Aggiornamento:** manifest JWT su volume confermato come sola autorità di metadati/revoche. Rimossa l’ipotesi di una directory segreta persistente in staging/production: private RSA/HMAC dal Secret Manager a runtime, in memoria; Base64 non rende persistibili i segreti. Provider e bootstrap macchina ancora da selezionare/provare. Local development/test conservano il percorso file previsto. B1 sviluppa port asincrona e core con fixture sintetiche; integrazione vendor e bootstrap pre-Nest coordinati con VPS INF-01A prima del rollout. Il limite WS di 5 secondi resta applicabile anche durante outage del manager.
+
+**Riscontro aggiuntivo:** il ConfigModule installato copia il risultato della validazione in process.env; il solo oggetto configuration.environment non dimostra che i segreti restino esclusivamente nella DI. Aggiunta prova/correzione di questa superficie, cache SDK, processi figli e persistenza ai gate di integrazione. Nessun dato d’ambiente letto.
+
+**Verifica:** lettura statica di roadmap, bootstrap/configurazione e libreria installata; controlli documentali, link locali e diff. Baseline JWT 78 test/10 controlli del blocco precedente non rieseguita né presentata come prova del Secret Manager. Stima JWT 4–6 giornate distinta dal PoC/integrazione infrastrutturale, ancora da stimare. Nessuna scelta provider, chiamata al manager, acquisto, modifica applicativa o operazione Git.
+
+**Prossimo blocco:** 16K-B1 con contratto del materiale indipendente dal provider; POC reale e bootstrap restano nel percorso VPS INF-01A.
+
+### 2026-10-25 — AUTH-02 / B1a — Schema manifest e material-source port
+
+**Stato:** implementato, in review. [Contratto v1 e limiti](../../../MercurionWebNode/docs/jwt-key-manifest.md). Nessuna emissione/verifica con kid nel percorso corrente; .env e PEM locali invariati.
+
+**Intervento:** policy esaustiva per i 15 TokenType; manifest chiuso con revisione/ambiente, riferimenti logici versionati, stati, cronologia e finestre legacy; parser senza I/O o orologio, snapshot scollegato/immutabile ed errori senza valori sensibili. SPKI RSA pubblico valido ≥2048 bit, divieto di riuso tra kid/domini, nessun campo inline per private/HMAC. Port asincrona indipendente dal vendor con encoding espliciti ed errori sanitizzati. JwtKeysProvider.validateManifest vincola il parser all’App.env fidato; metodi di caricamento RSA attuali e bootstrap invariati. Nessuna allowlist architetturale aggiunta.
+
+**Verifica:** baseline mirata 2 suite/7 test; finale 9 suite/156 test, inclusi 78 nuovi e regressioni guard/sessione/WS/configurazione. Typecheck Nest, lint mirato senza warning, build Nest, policy architettura/raggiungibilità/naming/errori e controlli documentali riusciti. RSA sintetiche solo in memoria; nessun .env/PEM reale letto, adapter remoto, chiamata provider, runtime/browser/container, operazione Git o CI remota.
+
+**Limiti:** parser e contratto non dimostrano selezione/verifica JWT, disponibilità del materiale, anti-rollback tra revisioni, lettura live del file o disconnessione WS. Questi comportamenti restano nei blocchi successivi; Secret Manager reale e bootstrap in VPS INF-01A. Log locali in `C:/Users/giuli/.codex/artifacts/mercurion-jwt-b1a-2026-10-25/`.
+
+**Prossimo blocco:** B1b — loader e integrazione di firma/verifica con kid, legacy e continuità del rinnovo HTTP.
+
+### 2026-10-25 — AUTH-02 / B1b — Loader e firma/verifica multi-chiave
+
+**Stato:** implementato, in review. [Contratto aggiornato](../../../MercurionWebNode/docs/jwt-key-manifest.md). Attivazione tramite sorgenti esplicite in createApplicationModule; il bootstrap ordinario mantiene .env/PEM e JWT precedenti senza kid. Nessuna configurazione locale da cambiare per questa consegna.
+
+**Intervento:** JwtKeyRing collega manifest e materiale a JwtToolsService per tutti i 15 TokenType. Header kid protetto, algoritmo/scopo vincolati, verifica crittografica e claim obbligatori, lookup limitata senza URL/percorsi dal token. Loader con validazione RSA/coppie/encoding e HMAC ≥64 byte, cache in memoria, deduplicazione e timeout. Validazione e preriscaldamento del materiale all’inizializzazione Nest; nessun fallback legacy dopo aver configurato le nuove sorgenti. Lettura dello stato prima/dopo firma/verifica, revoca anche con cache calda e flag diagnostici, rifiuto di rollback/modifiche delle identità osservate nel processo. Continuità vecchia/nuova chiave e mapping legacy con finestre separate per rinnovo HTTP. Conservati JTI, PAT corrente, sub cifrato e sessione/device.
+
+**Errori:** fault del registro/provider distinti da token invalidi; HTTP non elimina cookie/sessioni per questi fault, WS nega l’evento senza sessionExpired/disconnessione. Rimossa la distruzione delle sessioni fondata soltanto su decodeUnsafe: serve il principal verificato. Questo non implementa il timer dei socket inattivi.
+
+**Verifica:** baseline B1b 9 suite/156 test; finale **17 suite/271 test superati**, incluse firme RSA/HMAC reali con materiale sintetico, race di revoca, timeout, inizializzazione, cache/outage, guard HTTP/WS, composizione, login/MFA/SSO/sessione e relativo contratto. Esecuzione diretta Jest --runInBand --runTestsByPath sui percorsi elencati nel log. Typecheck Nest (--noEmit --incremental false), ESLint mirato senza warning, build Nest, policy architettura/raggiungibilità/naming/errori e controlli documentali riusciti. Log in `C:/Users/giuli/.codex/artifacts/mercurion-jwt-b1b-2026-10-25/`.
+
+**Limiti:** nessun adapter file/provider reale; configurazione canonica e recupero pre-bootstrap Secret Manager ancora da integrare con VPS INF-01A. Storia di revisioni/revoche solo nel processo, non prova durevole dopo riavvio. Nessuna finestra legacy reale definita, deroga automatica per segreti legacy corti, rotazione reale, lettura di .env/PEM reali, modifica Tox21/flag, prova runtime/browser/Compose o CI remota. Nessuna operazione Git.
+
+**Prossimo blocco:** B2 — lettura del manifest su volume, CLI atomica, audit/tombstone durevoli e revoca dei WS già aperti entro 5 secondi, anche con manager indisponibile. Provider e bootstrap macchina restano nel percorso VPS INF-01A.
+
+### 2026-10-27 — AUTH-02 / B2 — Registro persistente, CLI e socket inattivi
+
+**Stato:** implementazione locale in review. [Runbook e confine operativo](../../../MercurionWebNode/docs/jwt-key-operations.md). Il bootstrap ordinario conserva la configurazione precedente; nessuna rotazione o nuovo requisito per avviare lo sviluppo.
+
+**Intervento:** JwtKeyFileRegistry con directory current/history separate, revisioni immutabili concatenate, lock del writer, expectedRevision e pubblicazione atomica con flush. Reader senza fallback a snapshot obsoleti, replay di identità/tombstone dopo riavvio e recovery esplicito soltanto in avanti. JwtKeyAdministration e CLI con anteprima/digest, argomenti chiusi e operazioni prepare/activate/revoke/retire; source del materiale validata in memoria prima di prepare/activate. La CLI standalone non finge un adapter: applica revoke/retire senza provider, mentre prepare/activate richiedono composizione fidata INF-01A. Nuovo entrypoint CLI registrato nel grafo di produzione, nessuna eccezione per nascondere codice orfano e nessuna nuova dipendenza.
+
+**WS:** gateway e guard collegano le connessioni verificate alla chiave; timer per lotto ogni secondo, lettura con timeout e un retry breve, nessuna chiamata al manager. Rimozione dalle room private e disconnessione, cleanup a rebind/disconnect/shutdown. Rotazione ordinaria e semplice scadenza JWT conservano le sessioni; fault persistente del registro esclude i socket privati senza invalidare Redis/JTI. Pubblicazioni brevemente interrotte non causano disconnessioni spurie.
+
+**Verifica:** baseline mirata 4 suite/149 test; finale **19 suite/301 test superati**. Test con filesystem reale e chiavi sintetiche, concorrenza, crash audit/current, recovery, corruzione, rollback, riuso di pubbliche ritirate, preflight/guasto materiale, guard/gateway e regressioni login/MFA/SSO/sessione. Timer reali: esclusione della connessione inattiva in **1016 ms** durante outage del manager; lettura integrale di 20 revisioni/15 domini/34 chiavi in **53 ms**. È una fixture locale, non una prova di rete Socket.IO/Redis/Compose. Typecheck, ESLint mirato senza warning, build e avvio del solo entrypoint CLI su argomenti invalidi riusciti; policy architettura/naming/errori, documentazione e diff check riusciti. Log: `C:/Users/giuli/.codex/artifacts/mercurion-jwt-b2-2026-10-27/`.
+
+**Preservato:** modifiche manuali già presenti al bootstrap e quelle concorrenti alla pagina notifiche. Nessun .env/PEM reale letto, accesso VPS/provider, modifica a Tox21/flag, servizio utente fermato o operazione Git.
+
+**Limiti e prossimo passaggio:** gate Linux/Compose per readonly/ACL, fsync e restore, misura WS reale e integrazione HTTP; provider/bootstrap INF-01A e consumer/contratto Tox21 16K-C da coordinare. Finestre legacy reali ancora da definire. La cronologia protegge dal restore del solo current, non da un amministratore che riscriva entrambi gli archivi; niente compattazione automatica, massimo 512 revisioni/256 KiB per documento. HMAC storiche eliminate dal provider non hanno fingerprint persistito: nuovo materiale e binding immutabili restano requisiti del provisioning. Nessuna certificazione CI remota o accettazione di rollout dichiarata.
+
+### 2026-10-27 — AUTH-02 — QA Linux/Compose e modello env/segreti
+
+**Stato:** QA isolata completata, in review; non è il rollout o il bootstrap completo dell’app. [Report e comando ripetibile](../../../MercurionWebNode/docs/jwt-linux-qa.md); [gestione di variabili, segreti e kid](../../../MercurionWebNode/docs/jwt-environment-and-secrets.md).
+
+**Intervento:** runner PowerShell con contesto allowlist, immagine pubblica Node 22.16.0 bookworm-slim, dipendenze allineate a manifest/lock senza installare nel workspace, Compose con rete interna e Redis dedicato. Writer/reader separati con UID 10002/10001, directory RW/readonly e permessi POSIX. Sorgente del materiale sintetica in memoria tramite IPC, niente chiavi in env/argv/volumi. Il codice applicativo compilato esercita guard e policy HTTP, sessioni/repository Redis, Socket.IO gateway/guard/Redis adapter, registro e amministrazione delle chiavi. Nessun frontend, account o database utente coinvolto.
+
+**Verifica:** **26/26 controlli d’integrazione riusciti** sulla base Node pubblica. Nest common/core 11.2.7, JwtService 11.0.2, Socket.IO 4.8.1 e ioredis 5.8.2. Rinnovo di JWT HTTP realmente scaduto verso nuovo kid senza perdere sessione/cookie; rotazione e revoca RS256/HS512 con cache e manager offline; WS inattivo rimosso dalle room reali e disconnesso in **697 ms** nell’ultima prova. Pubbliche/nuove chiavi restano connesse; zero chiamate al provider nella riconciliazione. Restore del solo current rifiutato; reader riavviato conserva revoche; SIGKILL reale del writer dopo fsync dell’audit e prima del rename, recovery in avanti riuscito. Nessun secret nei tredici documenti persistenti controllati. Readonly EROFS e permessi EACCES verificati separatamente.
+
+**Validazione/risorse:** build Nest, sintassi CJS, parsing PowerShell e controlli statici/documentali riusciti. Rimossi immagine, container, rete e volumi del progetto di QA; verifica finale con zero container/volumi/reti residui. Evidenze: `C:/Users/giuli/.codex/artifacts/mercurion-jwt-linux-2026-10-27/`. Nessun npm ci/ci:check locale, installazione nel workspace, Git write, chiave reale letta o servizio dell’utente fermato. Le modifiche manuali restano preservate.
+
+**Env e prossimo passo:** oggi .env/PEM ordinari e bootstrap legacy restano invariati. Il kid/stato/binding vive nel manifest, non in JWT_ACTIVE_KID; il nuovo adapter recupererà private/HMAC versionate dal manager in memoria. Restano INF-01A (provider, adapter, configurazione pre-bootstrap senza copia in process.env e identità/reboot VPS), finestre reali e consumer Tox21. Il provider della fixture non è un’implementazione del Secret Manager e il trasporto HTTP di prova non certifica login/GraphQL/nginx o RBAC completo. La prova di crash non simula perdita di alimentazione del filesystem.
+
+### 2026-10-27 — AUTH-02 — Adapter e bootstrap di sviluppo
+
+**Stato:** implementato, in review. [Guida operativa locale](../../../MercurionWebNode/docs/jwt-local-development.md). Nessun input reale migrato o flag attivato dall’agente.
+
+**Intervento:** adapter development/test con mapping reference/version immutabile, PEM versionati e HMAC in dotenv privato senza copia in process.env. Opt-in canonico JWT_LOCAL_KEYS_CONFIG; assente/vuoto conserva il percorso legacy. Con opt-in non sono più obbligatori i 13 JWT_SECRETS_* principali. Staging/produzione rifiutano il flag. CLI jwt:local init con anteprima/digest legato ai byte importati, validazione reale di 15 domini, finestre legacy/rinnovo HTTP e pubblicazione da staging privato senza sovrascrivere input esistenti. HMAC legacy preservate come UTF-8 letterale; materiale corto rifiutato senza reset automatici. Generazione di nuove versioni e amministrazione prepare/activate tramite --local-config, senza riavviare la sorgente e senza segreti in argv/output. CLI registrata come entrypoint; nessuna nuova dipendenza o eccezione architetturale.
+
+**Verifica:** **22 suite/362 test superati**, inclusi 32 test dedicati: firme legacy di tutti i 15 scopi, bootstrap Nest con configurazione canonica senza i vecchi JWT_SECRETS_*, fail-closed senza fallback, rifiuto destinazioni in workspace tracciati e rotazione RSA/HS512 a caldo. QA Linux/Compose estesa a **27/27 controlli**, con importazione/rotazione locale su tmpfs indipendente dal provider sintetico; WS revocato in **543 ms**. Typecheck, lint, build e policy locali registrati nelle evidenze finali: `C:/Users/giuli/.codex/artifacts/mercurion-jwt-local-2026-10-27/`. La prova è isolata: non certifica login/nginx/database reali o CI remota.
+
+**Risorse e seguito:** container, rete e volumi del progetto QA rimossi e assenza verificata; lockfile del workspace invariato. Preservati file .env/PEM e modifiche manuali, nessuna operazione Git o servizio utente fermato. L’attivazione locale reale segue la guida con migrazione esplicita; per il resto del capitolo rimangono INF-01A (provider, identità VPS e pre-bootstrap), finestre operative degli ambienti e consumer Tox21.
+
 ## Modello per le voci successive
 
 ### AAAA-MM-GG — PX-XX — Sottoarea

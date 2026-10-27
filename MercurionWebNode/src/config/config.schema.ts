@@ -26,6 +26,14 @@ export enum ConfigKey {
     Feedback = 'Feedback'
 }
 
+export const legacyJwtSecretSources = [
+    'JWT_SECRETS_PRE_AUTHORIZATION_TOKEN', 'JWT_SECRETS_ACTIVATION_TOKEN', 'JWT_SECRETS_PHONE_NUMBER_VERIFICATION_TOKEN',
+    'JWT_SECRETS_EMAIL_VERIFICATION_TOKEN', 'JWT_SECRETS_EMAIL_MFA_ACTIVATION', 'JWT_SECRETS_SMS_MFA_ACTIVATION',
+    'JWT_SECRETS_APP_MFA_ACTIVATION', 'JWT_SECRETS_EMAIL_MFA_INACTIVATION', 'JWT_SECRETS_SMS_MFA_INACTIVATION',
+    'JWT_SECRETS_APP_MFA_INACTIVATION', 'JWT_SECRETS_CHANGE_PASSWORD', 'JWT_SECRETS_ACCOUNT_RECOVERY',
+    'JWT_SECRETS_SSO_PRE_AUTHORIZATION_TOKEN'
+] as const
+
 export type RawEnvironment = Record<string, string | number | boolean | undefined>
 
 export interface EnvironmentValueParser<T> {
@@ -299,6 +307,7 @@ const nonEmptyString = () => stringParser({ nonEmpty: true })
 const positiveInteger = () => integerParser(1)
 
 export const environmentSchema = defineEnvironmentSchema(
+    defaulted('JWT_LOCAL_KEYS_CONFIG', stringParser({ example: '' }), ''),
     defaulted('APP_ENV', enumParser(Object.values(Environment)), Environment.Development),
     defaulted('LOCAL_DUMMY_AUTH', booleanParser(), false),
     defaulted('DISABLE_TURNSTILE', booleanParser(), false),
@@ -342,19 +351,19 @@ export const environmentSchema = defineEnvironmentSchema(
         'advanced-console'
     ] as const)),
 
-    required('JWT_SECRETS_PRE_AUTHORIZATION_TOKEN', string()),
-    required('JWT_SECRETS_ACTIVATION_TOKEN', string()),
-    required('JWT_SECRETS_PHONE_NUMBER_VERIFICATION_TOKEN', string()),
-    required('JWT_SECRETS_EMAIL_VERIFICATION_TOKEN', string()),
-    required('JWT_SECRETS_EMAIL_MFA_ACTIVATION', string()),
-    required('JWT_SECRETS_SMS_MFA_ACTIVATION', string()),
-    required('JWT_SECRETS_APP_MFA_ACTIVATION', string()),
-    required('JWT_SECRETS_EMAIL_MFA_INACTIVATION', string()),
-    required('JWT_SECRETS_SMS_MFA_INACTIVATION', string()),
-    required('JWT_SECRETS_APP_MFA_INACTIVATION', string()),
-    required('JWT_SECRETS_CHANGE_PASSWORD', string()),
-    required('JWT_SECRETS_ACCOUNT_RECOVERY', string()),
-    required('JWT_SECRETS_SSO_PRE_AUTHORIZATION_TOKEN', string()),
+    optional('JWT_SECRETS_PRE_AUTHORIZATION_TOKEN', string()),
+    optional('JWT_SECRETS_ACTIVATION_TOKEN', string()),
+    optional('JWT_SECRETS_PHONE_NUMBER_VERIFICATION_TOKEN', string()),
+    optional('JWT_SECRETS_EMAIL_VERIFICATION_TOKEN', string()),
+    optional('JWT_SECRETS_EMAIL_MFA_ACTIVATION', string()),
+    optional('JWT_SECRETS_SMS_MFA_ACTIVATION', string()),
+    optional('JWT_SECRETS_APP_MFA_ACTIVATION', string()),
+    optional('JWT_SECRETS_EMAIL_MFA_INACTIVATION', string()),
+    optional('JWT_SECRETS_SMS_MFA_INACTIVATION', string()),
+    optional('JWT_SECRETS_APP_MFA_INACTIVATION', string()),
+    optional('JWT_SECRETS_CHANGE_PASSWORD', string()),
+    optional('JWT_SECRETS_ACCOUNT_RECOVERY', string()),
+    optional('JWT_SECRETS_SSO_PRE_AUTHORIZATION_TOKEN', string()),
 
     required('JWT_EXPIRATION_ACCESS_TOKEN', positiveInteger()),
     required('JWT_EXPIRATION_WS_ACCESS_TOKEN', positiveInteger()),

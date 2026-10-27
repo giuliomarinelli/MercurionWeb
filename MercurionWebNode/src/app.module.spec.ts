@@ -12,6 +12,7 @@ import {
 import { TestApplicationModule } from './test-utils/test-application.module';
 import { TestController } from './test.controller';
 import { ResponseModule } from './services/response.module';
+import { JwtKeyRuntimeModule } from './app_modules/auth/keys/jwt-key-runtime.module';
 
 describe('AppModule', () => {
   it('should be defined', () => {
@@ -38,6 +39,20 @@ describe('AppModule', () => {
     });
 
     expect(rootModule.imports).toContain(AppModule);
+  });
+
+  it('composes local discovery while preserving explicitly supplied runtime sources', () => {
+    const configuration = { environment: buildTestEnvironment() };
+    const jwtKeys = {
+      manifestSource: { read: jest.fn() },
+      materialSource: { resolve: jest.fn() }
+    };
+    const hasKeyRuntime = (value: unknown) => !!value && typeof value === 'object'
+      && 'module' in value && value.module === JwtKeyRuntimeModule;
+
+    expect(createApplicationModule({ configuration }).imports?.some(hasKeyRuntime)).toBe(true);
+    expect(createApplicationModule({ configuration, jwtKeys }).imports?.some(hasKeyRuntime)).toBe(true);
+    expect(() => createApplicationModule({ configuration, jwtKeys: null as never })).toThrow();
   });
 
   it('keeps test-only controllers out of the production graph', () => {

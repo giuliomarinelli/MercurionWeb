@@ -11,6 +11,8 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
+    "jwt:local": "node -r ts-node/register -r tsconfig-paths/register src/jwt-local.cli.ts",
+    "jwt:keys": "node -r ts-node/register -r tsconfig-paths/register src/jwt-keys.cli.ts",
     "prebuild": "node ../scripts/build-identity.mjs",
     "build": "nest build",
     "check:email-assets": "node ../scripts/check-email-template-assets.mjs",

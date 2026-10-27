@@ -1,4 +1,6 @@
 import {
+    Environment,
+    legacyJwtSecretSources,
     databaseEnvironmentSources,
     environmentSchema,
     environmentProperty,
@@ -94,6 +96,13 @@ export function validateEnvironment(raw: RawEnvironment): ValidatedEnvironment {
         }
     }
 
+    const localKeys = !!result.JWT_LOCAL_KEYS_CONFIG && (result.APP_ENV === Environment.Development || result.APP_ENV === Environment.Test)
+    if (!localKeys) for (const source of legacyJwtSecretSources) {
+        if (result[source] === undefined) diagnostics.push({ source, message: 'is required without the local key runtime' })
+    }
+    if (result.JWT_LOCAL_KEYS_CONFIG && !localKeys) {
+        diagnostics.push({ source: 'JWT_LOCAL_KEYS_CONFIG', message: 'is only allowed in development or test' })
+    }
     if (diagnostics.length > 0) {
         throw new ConfigurationError(diagnostics)
     }

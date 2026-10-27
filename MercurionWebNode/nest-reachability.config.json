@@ -2,7 +2,9 @@
   "version": 1,
   "entrypoints": [
     "src/main.ts",
-    "src/app.module.ts"
+    "src/app.module.ts",
+    "src/jwt-keys.cli.ts",
+    "src/jwt-local.cli.ts"
   ],
   "dynamicEntrypoints": [
     {

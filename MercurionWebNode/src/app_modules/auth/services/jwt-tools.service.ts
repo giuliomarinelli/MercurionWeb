@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Optional, type OnModuleInit, type OnModuleDestroy } from '@nestjs/common';
 import { JwtService, JwtSignOptions, JwtVerifyOptions } from '@nestjs/jwt';
 import { JwtAudience, JwtConfiguration } from 'src/config/config.types';
 import { ConfigService } from '@nestjs/config';
@@ -19,9 +19,13 @@ import { IDENTITY_READ_PORT, IdentityReadPort } from '../models/interfaces/ident
 import { SecurityService } from './security.service';
 import { RedisService } from 'src/app_modules/redis/services/redis.service';
 import { redisKeys } from 'src/app_modules/redis/contracts/redis-contracts';
+import { Environment } from 'src/config/config.schema';
+import { JwtKeyRing } from '../keys/jwt-key-ring';
+import { JwtKeyRuntimeError } from '../keys/jwt-key-runtime-error';
+import { JWT_KEY_RUNTIME_OPTIONS, type JwtKeyRuntimeOptions } from '../keys/jwt-key-runtime.module';
 
 @Injectable()
-export class JwtToolsService {
+export class JwtToolsService implements OnModuleInit, OnModuleDestroy {
 
     private readonly logger: LoggerContext
 
@@ -44,10 +48,11 @@ export class JwtToolsService {
     private readonly jwtIssuer: string
     private readonly jwtAudience: JwtAudience
 
-    private readonly privateKey: string
-    private readonly publicKey: string
-    private readonly ws_privateKey: string
-    private readonly ws_publicKey: string
+    private readonly privateKey: string = ''
+    private readonly publicKey: string = ''
+    private readonly ws_privateKey: string = ''
+    private readonly ws_publicKey: string = ''
+    private readonly keyRing: JwtKeyRing | null
 
     constructor(
         private readonly jwtService: JwtService,
@@ -58,7 +63,8 @@ export class JwtToolsService {
         loggerFactory: LoggerPort,
         private readonly jwtKeys: JwtKeysProvider,
         private readonly securityService: SecurityService,
-        private readonly redisService: RedisService
+        private readonly redisService: RedisService,
+        @Optional() @Inject(JWT_KEY_RUNTIME_OPTIONS) keyOptions?: JwtKeyRuntimeOptions
     ) {
         this.logger = loggerFactory.forContext(JwtToolsService.name)
 
@@ -88,6 +94,13 @@ export class JwtToolsService {
         if (!this.jwtAudience?.access || !this.jwtAudience?.ws || !this.jwtAudience?.auth) {
             throw new Error('Missing Jwt.audience in config')
         }
+
+        this.keyRing = keyOptions === undefined ? null : new JwtKeyRing(
+            keyOptions, this.configService.getOrThrow<Environment>('App.env'), this.jwtService
+        )
+        // The existing bootstrap remains available until the runtime sources are explicitly composed.
+        // Configured runtimes never fall back to these legacy keys on any source/registry error.
+        if (this.keyRing) return
 
         const minLen = 48 // 384 bit per HS512
             ;[
@@ -119,6 +132,16 @@ export class JwtToolsService {
         this.ws_publicKey = wsKeys.publicKey
     }
 
+    async onModuleInit(): Promise<void> {
+        await this.keyRing?.initialize()
+    }
+
+    onModuleDestroy(): void { this.keyRing?.close() }
+
+    async watchVerifiedConnection(id: string, token: string, deny: () => void): Promise<(() => void) | null> {
+        return this.keyRing ? this.keyRing.watchVerifiedConnection(id, token, deny) : null
+    }
+
     private getJwtConfigurationFromTokenType(type: TokenType): JwtConfiguration {
         switch (type) {
             case TokenType.AccessToken: return this.accessTokenConfig
@@ -139,7 +162,6 @@ export class JwtToolsService {
         }
     }
 
-    // TODO: valutare la necessità di implementazione del claim kid per rotazione secrets => Previsto per Mercurion 1.x
     public async generateToken(userId: UUID, type: TokenType, sessionId?: UUID): Promise<string> {
         const jwtConfig = this.getJwtConfigurationFromTokenType(type)
         const scopes: Scope[] = await this.identityRead.getUserScopesById(userId) ?? []
@@ -167,8 +189,7 @@ export class JwtToolsService {
         const expiresAt = Math.floor(Date.now() / 1000) + (jwtConfig.expiresInMs / 1000)
 
         // 🔹 Generazione del Token
-        const token: string = await this.jwtService.signAsync(
-            {
+        const claims = {
                 iss: this.jwtIssuer,
                 aud,
                 sub: this.securityService.encryptUserId(userId),
@@ -178,9 +199,9 @@ export class JwtToolsService {
                 iat: Math.floor(Date.now() / 1000),
                 exp: expiresAt,
                 scp
-            },
-            signOptions
-        )
+            }
+        const token: string = this.keyRing ? await this.keyRing.sign(claims, type)
+            : await this.jwtService.signAsync(claims, signOptions)
 
         // 🔹 Se è un AccessToken, memorizziamo il JTI tra i token emessi
         if (type === TokenType.AccessToken || type === TokenType.ws_AccessToken || type === TokenType.PreAuthorizationToken) {
@@ -244,8 +265,12 @@ export class JwtToolsService {
                 }
             }
 
-            await this.jwtService.verifyAsync(token, verifyOptions)
-            const payload: AppJwtPayload = this.jwtService.decode<AppJwtPayload>(token)
+            const payload: AppJwtPayload = this.keyRing
+                ? await this.keyRing.verify(token, type, { issuer: this.jwtIssuer,
+                    audience: type === TokenType.AccessToken ? this.jwtAudience.access
+                        : type === TokenType.ws_AccessToken ? this.jwtAudience.ws : this.jwtAudience.auth,
+                    clockTolerance: 60, ignoreExpiration })
+                : await this.verifyLegacy(token, verifyOptions)
             if (payload.typ !== type) {
                 throw applicationError(ApplicationErrorCode.TOKEN_TYPE_INVALID)
             }
@@ -261,9 +286,15 @@ export class JwtToolsService {
             }
             return payload
         } catch (e) {
+            if (e instanceof JwtKeyRuntimeError && e.operational) throw e
             this.logger.warn(' > verifyTokenAndGetPayload > Error: ', errorMessage(e))
             throw applicationError(type === TokenType.AccessToken ? ApplicationErrorCode.ACCESS_TOKEN_INVALID_OR_EXPIRED : type === TokenType.ChangePasswordToken ? ApplicationErrorCode.PASSWORD_CHANGE_TOKEN_INVALID_OR_EXPIRED : ApplicationErrorCode.TOKEN_INVALID_OR_EXPIRED, `InvalidOrExpired${type}`, { tokenType: type })
         }
+    }
+
+    private async verifyLegacy(token: string, options: JwtVerifyOptions): Promise<AppJwtPayload> {
+        await this.jwtService.verifyAsync(token, options)
+        return this.jwtService.decode<AppJwtPayload>(token)
     }
 
     public decodeUnsafe(token: string): AppJwtPayload {

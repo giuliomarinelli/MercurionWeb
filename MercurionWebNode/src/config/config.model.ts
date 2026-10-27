@@ -61,6 +61,7 @@ export const configurationBuilders = {
     }),
 
     [ConfigKey.Jwt]: (environment: ValidatedEnvironment) => ({
+        localKeysConfig: environment.JWT_LOCAL_KEYS_CONFIG,
         accessToken: {
             expiresInMs: environment.JWT_EXPIRATION_ACCESS_TOKEN
         },

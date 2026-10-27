@@ -16,6 +16,7 @@ import { TokenType } from '../../models/enums/token-type.enum'
 import type { AppJwtPayload } from '../../models/interfaces/app-jwt-payload.interface'
 import { AccessTokenAuthenticationPolicy } from './access-token-authentication.policy'
 import { AuthenticationFailurePolicy } from './authentication-failure.policy'
+import { JwtKeyRuntimeError } from '../../keys/jwt-key-runtime-error'
 import type { AuthenticationRequestContext } from './authentication-policy.types'
 import { AuthenticationRequestContextFactory } from './authentication-request-context.factory'
 import { AuthenticationTransportPolicy } from './authentication-transport.policy'
@@ -542,7 +543,7 @@ describe('AuthenticationFailurePolicy', () => {
     expect(transportPolicy.clearAuthenticationCookies).not.toHaveBeenCalled()
   })
 
-  it('uses an unsafe payload user only when its session matches the request', async () => {
+  it('never uses an unsafe payload to revoke a session even when its session matches', async () => {
     const { policy, sessionService } = setup(payload())
     await expect(policy.deny(
       requestContext(),
@@ -551,7 +552,17 @@ describe('AuthenticationFailurePolicy', () => {
     )).rejects.toBeInstanceOf(HttpException)
 
     expect(sessionService.destroySessionAndRevokeAllTokensByPlainSessionId)
-      .toHaveBeenCalledWith(sessionId, userId)
+      .not.toHaveBeenCalled()
+  })
+
+  it('preserves sessions and cookies when key infrastructure is unavailable', async () => {
+    const { policy, sessionService, transportPolicy } = setup(payload())
+    const error = await policy.deny(requestContext(), { stage: 'authentication', accessToken: 'token', userId },
+      new JwtKeyRuntimeError('REGISTRY_UNAVAILABLE')).catch((caught: unknown) => caught)
+    expect(error).toBeInstanceOf(HttpException)
+    expect((error as HttpException).getStatus()).toBe(500)
+    expect(sessionService.destroySessionAndRevokeAllTokensByPlainSessionId).not.toHaveBeenCalled()
+    expect(transportPolicy.clearAuthenticationCookies).not.toHaveBeenCalled()
   })
 
   it('does not trust an unsafe payload user when its session differs', async () => {
