@@ -1,241 +1,283 @@
-import { ButtonPendingContentComponent } from '../../components/common/button/button-pending-content.component';
-import { Component, ChangeDetectionStrategy, computed, DestroyRef, inject, OnDestroy, OnInit, signal, viewChild } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ButtonPendingContentComponent } from '../../components/common/button/button-pending-content.component'
+import {
+  afterNextRender,
+  ElementRef,
+  Injector,
+  Component,
+  ChangeDetectionStrategy,
+  DestroyRef,
+  inject,
+  OnDestroy,
+  OnInit,
+  signal,
+  viewChild,
+} from '@angular/core'
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { TextFieldComponent } from '../../components/common/text-field/text-field.component'
-import { TurnstileComponent } from '../../components/common/turnstile/turnstile.component';
-import { FormControl, FormGroup, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { finalize, Subscription } from 'rxjs';
-import { RecoveryService } from '../../services/recovery.service';
-import { ProgressIndicatorComponent } from '../../components/common/progress-indicator/progress-indicator.component';
-import { PublicPipe } from '../../pipes/public.pipe';
-import { ThemeManagerService } from '../../services/context/theme-manager.service';
-import { environment } from '../../../environments/environment';
-import { emailAvailabilityValidator, matchPassword } from '../../custom-validators';
-import { AuthTransportService } from '../../services/auth-transport.service';
-import { Router, RouterLink } from '@angular/router';
+import { TurnstileComponent } from '../../components/common/turnstile/turnstile.component'
+import {
+  FormControl,
+  FormGroup,
+  NonNullableFormBuilder,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms'
+import { finalize, Subscription } from 'rxjs'
+import { RecoveryService } from '../../services/recovery.service'
+import { CopyButtonComponent } from '../../components/common/copy-button/copy-button.component'
+import { emailAvailabilityValidator, matchPassword } from '../../custom-validators'
+import { AuthTransportService } from '../../services/auth-transport.service'
+import { RouterLink } from '@angular/router'
 import { adaptHttpFormError, type FormErrorState } from '../../utils/form-error.adapter'
 
 @Component({
   selector: 'm-account-recovery.page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonPendingContentComponent,
+  imports: [
+    ButtonPendingContentComponent,
     TextFieldComponent,
     TurnstileComponent,
     ReactiveFormsModule,
-    ProgressIndicatorComponent,
-    PublicPipe,
-    RouterLink
+    CopyButtonComponent,
+    RouterLink,
   ],
   template: `
-
-    <!-- login-placeholder-mercurion.component.html -->
-    <div class="min-h-dvh flex flex-col items-center px-4 pt-9" role="main" aria-labelledby="account-recovery-heading">
-      <!-- Logo -->
-      <img
-        [src]="logoSrc() | public"
-        alt="Mercurion Logo"
-        class="w-16 h-auto mb-6"
-      />
-
-      <!-- Welcome Message -->
-      <h1
-        id="account-recovery-heading"
-        class="text-2xl font-semibold text-gray-900 mb-8 tracking-wider dark:text-slate-100 text-center flex items-center gap-4"
-      >
-        <span>Recupero dell'account.</span>
-      </h1>
-      <div class="w-full max-w-sm bg-slate-200 dark:bg-slate-800 border mb-8 border-slate-300 dark:border-slate-600 relative p-3 rounded-md text-sm flex gap-2 xs:gap-4 items-center flex-col xs:flex-row" aria-live="polite">
-        @if ([1, 2].includes(step())) {
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current text-amber-950 dark:text-dark-warning size-12 shrink-0">
-            <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-            <path d="M592 544L48 544L320 48L592 544zM292 420L292 476L348 476L348 420L292 420zM288 224L300.8 384L339.2 384L352 224L288 224z"/>
-          </svg>
-        } @else if (step() === 3) {
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current text-light-accent-secondary dark:text-dark-accent-secondary size-12 shrink-0">
-            <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-            <path d="M320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576zM320 96C196.3 96 96 196.3 96 320C96 443.7 196.3 544 320 544C443.7 544 544 443.7 544 320C544 196.3 443.7 96 320 96zM438.3 236.5L428.9 249.4L300.9 425.4L289.9 440.6L201.3 352L223.9 329.4L286 391.5L403 230.7L412.4 217.8L438.3 236.6z"/>
-          </svg>
-        }
-        <div class="flex flex-col gap-y-2 min-w-0 break-words">
-          @switch (step()) {
-              @case (1) {
-                <span>Inserisci il codice di recupero dell'account che ti abbiamo fornito al momento dell'attivazione e clicca su <span class="font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary-btn-hc">Continua</span></span>
-              }
-              @case (2) {
-                <span>L'account è stato bloccato e ogni sessione è stata invalidata. Inserisci un indirizzo e-mail a cui hai accesso sicuro e una password complessa per reimpostare il tuo account e sbloccarlo, poi clicca su <span class="font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary-btn-hc">Continua</span> per procedere.</span>
-              }
-              @case (3) {
-                <p class="font-semibold">L'account è stato ripristinato con successo.</p>
-                <p><span>Questo è il codice per recuperare l'account nel caso non riuscissi più ad accedere. Lo puoi visualizzare solo in questo momento. <br />Salvalo in un posto sicuro, come un Password Manager oppure stampalo e custodiscilo in un luogo inaccessibile ad altri:</span>.</p>
-                <p class="text-amber-950 dark:text-dark-warning font-semibold" aria-live="assertive">{{recoveryCode()}}</p>
-                <p><a class="a" routerLink="/login">Vai al login</a></p>
-              }
-          }
-        </div>
-      </div>
-        <div class="w-full max-w-sm space-y-6">
-          <!-- Step 1: Email -->
-          @if (step() === 1) {
-            <!-- STEP 1: CODE -->
-            <div class="mt-2">
-              <m-text-field
-                label="Codice di recupero"
-                type="text"
-                autocomplete="text"
-                [formControl]="codeCtrl"
-                (enter)="goToSecondStep()"
-                [errors]="{
-                  required: 'Il codice è obbligatorio.'
-                }"
-                [disabled]="loading()"
-                [serverError]="computeServerErrorMsg(this.serverErrorStep())"
-                (enter)="goToSecondStep()"
-              />
+    <main class="auth-page" aria-labelledby="account-recovery-heading" [attr.aria-busy]="loading()">
+      <div class="auth-container">
+        <a routerLink="/login" class="auth-link mb-3">
+          <span aria-hidden="true">←</span>
+          Torna all’accesso
+        </a>
+        <section class="auth-card">
+          <header class="auth-header">
+            <span class="shrink-0">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 640 640"
+                class="fill-current text-amber-950 dark:text-dark-warning size-12 shrink-0"
+                aria-hidden="true"
+              >
+                <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                <path
+                  d="M592 544L48 544L320 48L592 544zM292 420L292 476L348 476L348 420L292 420zM288 224L300.8 384L339.2 384L352 224L288 224z"
+                />
+              </svg>
+            </span>
+            <div>
+              <h1 id="account-recovery-heading" class="auth-title">Recupera il tuo account</h1>
+              <p class="auth-description">Usa il codice ricevuto al momento dell’attivazione.</p>
             </div>
-              <button
-                type="submit"
-                [disabled]="loading() || !turnstileToken() || codeCtrl.invalid"
-                [attr.aria-disabled]="loading() || !turnstileToken() || codeCtrl.invalid"
-                (click)="goToSecondStep()"
-                class="relative bottom-[2px] w-full mt-4 py-2 text-white rounded-md transition-colors duration-150 bg-light-accent-primary-hq dark:bg-dark-accent-primary-btn hover:bg-light-accent-primary-hc dark:hover:bg-dark-accent-primary/80 disabled:bg-light-accent-primary-hq/60 disabled:dark:bg-dark-accent-primary/80 disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary-hq/60 disabled:hover:dark:bg-dark-accent-primary/80">
-                @if (!loading()) {
-                  Continua
-                } @else {
-                  <div class="text-slate-200 flex items-center justify-center">
-                    <m-progress-indicator [size]="24"></m-progress-indicator>
-                  </div>
+          </header>
+          <div class="auth-stack">
+            <p class="auth-step" aria-live="polite">
+              {{
+                step() === 1
+                  ? '1 di 3 · Verifica del codice'
+                  : step() === 2
+                    ? '2 di 3 · Nuove credenziali'
+                    : '3 di 3 · Account ripristinato'
+              }}
+            </p>
+            @if (step() === 1) {
+              <div class="auth-notice">
+                Questo percorso è dedicato a un account inaccessibile: la verifica del codice
+                <strong>blocca l’account e invalida tutte le sessioni</strong>. Se hai dimenticato
+                solo la password,
+                <a routerLink="/forgot-password" class="a">richiedi un link di recupero password</a
+                >.
+              </div>
+              <form class="auth-form" [formGroup]="codeForm" (ngSubmit)="goToSecondStep()">
+                <fieldset class="auth-fields" [disabled]="loading()">
+                  <m-text-field
+                    label="Codice di recupero"
+                    type="text"
+                    autocomplete="off"
+                    [formControl]="codeCtrl"
+                    [errors]="{ required: 'Il codice è obbligatorio.' }"
+                  />
+                </fieldset>
+                @if (computeServerErrorMsg(serverErrorStep()); as error) {
+                  <p class="auth-error" role="alert">{{ error }}</p>
                 }
-              </button>
-            <div class="flex justify-center">
-              @if (loadingTurnstile()) {
-                <div
-                  class="w-[300px] h-[71px] overflow-hidden transition-all bg-neutral-200 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 animate-pulse skeleton-pulse"
-                >
-                  <span class="sr-only">Loading CAPTCHA…</span>
-                </div>
-              }
-              <m-turnstile
-                (token)="onTurnstileToken($event)"
-                (widgetReady)="onTurnstileRender()"
-                (refresh)="loadingTurnstile.set(true)"
-                class="block h-[71px] mt-1"
-              />
-            </div>
-          } @else if (step() === 2) {
-            <!-- STEP 2: NUOVE CREDENZIALI -->
-            <form [formGroup]="recoveryGroup" (ngSubmit)="goToThirdStep()">
-              <div class="relative mb-6 mt-2">
-                <m-text-field
-                  label="Nuova e-mail"
-                  type="email"
-                  autocomplete="email"
-                  formControlName="email"
-                  [errors]="{
-                    required: 'E-mail obbligatoria.',
-                    email: 'Formato e-mail non corretto',
-                    pattern: 'Formato e-mail non corretto',
-                    emailTaken: 'E-mail già registrata.',
-                    serverError: 'Impossibile verificare la disponibilità dell’e-mail. Riprova.'
-                  }"
-                  [disabled]="loading()"
-              />
-              </div>
-              <div class="relative mb-6 mt-2">
-                <m-text-field
-                label="Nuova password"
-                type="password"
-                autocomplete="current-password"
-                formControlName="password"
-                [errors]="{
-                    required: 'Password obbligatoria.',
-                    pattern: 'La password deve essere di almeno 8 caratteri: almeno uno minuscolo, uno maiuscolo, un numero e un carattere speciale.'
-                  }"
-              />
-              </div>
-              <div class="relative mb-6 mt-2">
-                <m-text-field
-                  label="Reinserisci la nuova password"
-                  type="password"
-                  autocomplete="current-password"
-                  formControlName="confirmPassword"
-                  [errors]="{
-                      required: 'Il campo di conferma password è obbligatorio.',
-                      matchPassword: 'Le due password non corrispondono.'
-                    }"
-                  [serverError]="computeServerErrorMsg(this.serverErrorStep())"
-              />
-              </div>
-              <div class="relative mb-3 mt-2">
                 <button
                   type="submit"
+                  class="auth-submit"
+                  [disabled]="loading() || !turnstileToken() || codeCtrl.invalid"
+                  [attr.aria-busy]="loading()"
+                >
+                  <m-button-pending-content [pending]="loading()">
+                    Continua
+                  </m-button-pending-content>
+                </button>
+              </form>
+            } @else if (step() === 2) {
+              <h2 #stateHeading tabindex="-1" class="auth-section-title">
+                Imposta le nuove credenziali
+              </h2>
+              <div class="auth-notice">
+                L’account è bloccato e le sessioni sono state invalidate. Scegli un’e-mail a cui hai
+                accesso sicuro e una password complessa per ripristinarlo.
+              </div>
+              <form class="auth-form" [formGroup]="recoveryGroup" (ngSubmit)="goToThirdStep()">
+                <fieldset class="auth-fields" [disabled]="loading()">
+                  <m-text-field
+                    label="Nuova e-mail"
+                    type="email"
+                    autocomplete="email"
+                    formControlName="email"
+                    [hint]="
+                      recoveryGroup.controls.email.pending
+                        ? 'Verifica della disponibilità…'
+                        : undefined
+                    "
+                    [errors]="{
+                      required: 'E-mail obbligatoria.',
+                      email: 'Formato e-mail non corretto',
+                      pattern: 'Formato e-mail non corretto',
+                      emailTaken: 'E-mail già registrata.',
+                      serverError: 'Impossibile verificare la disponibilità dell’e-mail. Riprova.',
+                    }"
+                  />
+                  <p class="auth-description auth-flow-copy">
+                    Almeno 8 caratteri, con una maiuscola, una minuscola, un numero e un carattere
+                    speciale.
+                  </p>
+                  <m-text-field
+                    label="Nuova password"
+                    type="password"
+                    autocomplete="new-password"
+                    formControlName="password"
+                    [errors]="{
+                      required: 'Password obbligatoria.',
+                      pattern:
+                        'La password deve essere di almeno 8 caratteri: almeno uno minuscolo, uno maiuscolo, un numero e un carattere speciale.',
+                    }"
+                  />
+                  <m-text-field
+                    label="Conferma password"
+                    type="password"
+                    autocomplete="new-password"
+                    formControlName="confirmPassword"
+                    [errors]="{
+                      required: 'Il campo di conferma password è obbligatorio.',
+                      matchPassword: 'Le due password non corrispondono.',
+                    }"
+                  />
+                </fieldset>
+                @if (computeServerErrorMsg(serverErrorStep()); as error) {
+                  <p class="auth-error" role="alert">{{ error }}</p>
+                }
+                <button
+                  type="submit"
+                  class="auth-submit"
                   [disabled]="loading() || !turnstileToken() || !recoveryGroup.valid"
-                  [attr.aria-disabled]="loading() || !turnstileToken() || !recoveryGroup.valid"
                   [attr.aria-busy]="loading()"
                   aria-label="Continua"
-                  class="relative bottom-[2px] w-full mt-4 py-2 text-white rounded-md transition-colors duration-150 bg-light-accent-primary-hq dark:bg-dark-accent-primary-btn hover:bg-light-accent-primary-hc dark:hover:bg-dark-accent-primary/80 disabled:bg-light-accent-primary-hq/60 disabled:dark:bg-dark-accent-primary/80 disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary-hq/60 disabled:hover:dark:bg-dark-accent-primary/80"
                 >
-                  <m-button-pending-content [pending]="loading()">Continua</m-button-pending-content>
+                  <m-button-pending-content [pending]="loading()">
+                    Ripristina account
+                  </m-button-pending-content>
                 </button>
-              </div>
-              <div class="flex justify-center relative top-3">
-                @if (loadingTurnstile()) {
-                  <div
-                    class="w-[300px] h-[71px] overflow-hidden transition-all bg-neutral-200 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 animate-pulse skeleton-pulse"
-                  >
-                    <span class="sr-only">Loading CAPTCHA…</span>
-                  </div>
-                }
-                <m-turnstile
-                  (token)="onTurnstileToken($event)"
-                  (widgetReady)="onTurnstileRender()"
-                  (refresh)="loadingTurnstile.set(true)"
-                  class="block h-[71px] mt-1"
-                />
-              </div>
-            </form>
-
-          }
-          <div class="relative py-2 -top-1">
-            <div class="absolute inset-0 flex items-center">
-              <div class="w-full border-t"></div>
-            </div>
-            <div class="relative flex justify-center text-sm">
-              <span class="bg-light-surface-main dark:bg-neutral-950 px-2 text-slate-700 dark:text-slate-200">OPPURE</span>
-            </div>
-          </div>
-          <div class="space-y-3 dark:text-slate-100">
-            <a href="mailto:mercurion.app@gmail.com"
-              class="w-full flex items-center justify-center border rounded-md py-2.5 text-sm dark:hover:bg-slate-100 gap-3 dark:hover:text-neutral-900 hover:bg-slate-200/80 bg-slate-200 dark:bg-transparent transition-colors duration-150">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" class="h-5 w-auto fill-current">
-                <path d="M544 248l0 3.3 69.7-69.7c21.9-21.9 21.9-57.3 0-79.2L535.6 24.4c-21.9-21.9-57.3-21.9-79.2 0L416.3 64.5c-2.7-.3-5.5-.5-8.3-.5L296 64c-37.1 0-67.6 28-71.6 64l-.4 0 0 120c0 22.1 17.9 40 40 40s40-17.9 40-40l0-72c0 0 0-.1 0-.1l0-15.9 16 0 136 0c0 0 0 0 .1 0l7.9 0c44.2 0 80 35.8 80 80l0 8zM336 192l0 56c0 39.8-32.2 72-72 72s-72-32.2-72-72l0-118.6c-35.9 6.2-65.8 32.3-76 68.2L99.5 255.2 26.3 328.4c-21.9 21.9-21.9 57.3 0 79.2l78.1 78.1c21.9 21.9 57.3 21.9 79.2 0l37.7-37.7c.9 0 1.8 .1 2.7 .1l160 0c26.5 0 48-21.5 48-48c0-5.6-1-11-2.7-16l2.7 0c26.5 0 48-21.5 48-48c0-12.8-5-24.4-13.2-33c25.7-5 45.1-27.6 45.2-54.8l0-.4c-.1-30.8-25.1-55.8-56-55.8c0 0 0 0 0 0l-120 0z" />
-              </svg>
-              <span>Richiedi assistenza</span>
-            </a>
-            @if ([1, 2].includes(step())) {
-              <a routerLink="/login"
-                class="w-full flex items-center justify-center border rounded-md py-2.5 text-sm dark:hover:bg-slate-100 gap-3 dark:hover:text-neutral-900 hover:bg-slate-200/80 bg-slate-200 dark:bg-transparent transition-colors duration-150">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="h-5 w-auto fill-current">
+              </form>
+            } @else {
+              <div class="flex flex-col items-start gap-4 sm:flex-row">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 640 640"
+                  class="fill-current text-light-accent-secondary dark:text-dark-accent-secondary size-12 shrink-0"
+                  aria-hidden="true"
+                >
                   <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
-                  <path d="M320 96C355.3 96 384 124.7 384 160L384 224L256 224L256 160C256 124.7 284.7 96 320 96zM192 160L192 224L128 224L128 576L512 576L512 224L448 224L448 160C448 89.3 390.7 32 320 32C249.3 32 192 89.3 192 160zM344 360L344 464L296 464L296 336L344 336L344 360z"/>
+                  <path
+                    d="M320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576zM320 96C196.3 96 96 196.3 96 320C96 443.7 196.3 544 320 544C443.7 544 544 443.7 544 320C544 196.3 443.7 96 320 96zM438.3 236.5L428.9 249.4L300.9 425.4L289.9 440.6L201.3 352L223.9 329.4L286 391.5L403 230.7L412.4 217.8L438.3 236.6z"
+                  />
                 </svg>
-                <span>Vai al Login</span>
-              </a>
+                <div class="grid min-w-0 gap-2">
+                  <h2 #stateHeading tabindex="-1" class="auth-section-title">
+                    Account ripristinato
+                  </h2>
+                  <p class="auth-description auth-flow-copy">
+                    Questo è il nuovo codice per recuperare l’account. Puoi visualizzarlo soltanto
+                    ora: salvalo in un password manager oppure stampalo e custodiscilo in un luogo
+                    sicuro.
+                  </p>
+                </div>
+              </div>
+              <div class="auth-recovery-code">
+                <code>{{ recoveryCode() }}</code>
+                <m-copy-button [src]="recoveryCode()" ariaLabel="Copia il codice di recupero" />
+              </div>
+              <a routerLink="/login" class="auth-option">Vai all’accesso</a>
             }
+            @if (step() !== 3) {
+              <div class="auth-security">
+                <div class="auth-security-slot">
+                  @if (loadingTurnstile()) {
+                    <div class="auth-security-placeholder skeleton-pulse" role="status">
+                      <span class="sr-only">Caricamento verifica di sicurezza…</span>
+                    </div>
+                  }
+                  <m-turnstile
+                    (token)="onTurnstileToken($event)"
+                    (widgetReady)="onTurnstileRender()"
+                    (refresh)="onTurnstileRefresh()"
+                  />
+                </div>
+              </div>
+            }
+            <div class="auth-support">
+              <a href="mailto:mercurion.app@gmail.com" class="auth-option">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 640 512"
+                  class="h-5 w-auto fill-current"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M544 248l0 3.3 69.7-69.7c21.9-21.9 21.9-57.3 0-79.2L535.6 24.4c-21.9-21.9-57.3-21.9-79.2 0L416.3 64.5c-2.7-.3-5.5-.5-8.3-.5L296 64c-37.1 0-67.6 28-71.6 64l-.4 0 0 120c0 22.1 17.9 40 40 40s40-17.9 40-40l0-72c0 0 0-.1 0-.1l0-15.9 16 0 136 0c0 0 0 0 .1 0l7.9 0c44.2 0 80 35.8 80 80l0 8zM336 192l0 56c0 39.8-32.2 72-72 72s-72-32.2-72-72l0-118.6c-35.9 6.2-65.8 32.3-76 68.2L99.5 255.2 26.3 328.4c-21.9 21.9-21.9 57.3 0 79.2l78.1 78.1c21.9 21.9 57.3 21.9 79.2 0l37.7-37.7c.9 0 1.8 .1 2.7 .1l160 0c26.5 0 48-21.5 48-48c0-5.6-1-11-2.7-16l2.7 0c26.5 0 48-21.5 48-48c0-12.8-5-24.4-13.2-33c25.7-5 45.1-27.6 45.2-54.8l0-.4c-.1-30.8-25.1-55.8-56-55.8c0 0 0 0 0 0l-120 0z"
+                  />
+                </svg>
+                <span>Richiedi assistenza</span>
+              </a>
+              @if (step() !== 3) {
+                <a routerLink="/login" class="auth-option mt-3">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 640 640"
+                    class="h-5 w-auto fill-current"
+                    aria-hidden="true"
+                  >
+                    <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                    <path
+                      d="M320 96C355.3 96 384 124.7 384 160L384 224L256 224L256 160C256 124.7 284.7 96 320 96zM192 160L192 224L128 224L128 576L512 576L512 224L448 224L448 160C448 89.3 390.7 32 320 32C249.3 32 192 89.3 192 160zM344 360L344 464L296 464L296 336L344 336L344 360z"
+                    />
+                  </svg>
+                  <span>Vai al Login</span>
+                </a>
+              }
+            </div>
           </div>
-        </div>
-
-  `
+        </section>
+      </div>
+    </main>
+  `,
+  styleUrls: ['../login/auth-entry.css', '../login/account-flow.css'],
 })
 export class AccountRecoveryPageComponent implements OnInit, OnDestroy {
-
-  private readonly turnstileComponent = viewChild(TurnstileComponent);
+  private readonly turnstileComponent = viewChild(TurnstileComponent)
 
   private readonly recoveryService = inject(RecoveryService)
   private readonly authService = inject(AuthTransportService)
-  private readonly themeManager = inject(ThemeManagerService)
   private readonly fb = inject(NonNullableFormBuilder)
-  private readonly router = inject(Router)
   private readonly destroyRef = inject(DestroyRef)
+  private readonly injector = inject(Injector)
+  private readonly stateHeading = viewChild<ElementRef<HTMLElement>>('stateHeading')
+
+  private focusState(): void {
+    afterNextRender(() => this.stateHeading()?.nativeElement.focus({ preventScroll: true }), {
+      injector: this.injector,
+    })
+  }
 
   private firstStepSub?: Subscription
   private secondStepSub?: Subscription
@@ -244,6 +286,7 @@ export class AccountRecoveryPageComponent implements OnInit, OnDestroy {
   private passwordValueChangesSub?: Subscription
 
   codeCtrl: FormControl<string> = new FormControl('', { nonNullable: true })
+  codeForm = new FormGroup({ code: this.codeCtrl })
   recoveryGroup: FormGroup<{
     email: FormControl<string>
     password: FormControl<string>
@@ -251,17 +294,12 @@ export class AccountRecoveryPageComponent implements OnInit, OnDestroy {
   }> = new FormGroup({
     email: new FormControl('', { nonNullable: true }),
     password: new FormControl('', { nonNullable: true }),
-    confirmPassword: new FormControl('', { nonNullable: true })
+    confirmPassword: new FormControl('', { nonNullable: true }),
   })
 
-  logoSrc = computed<string>(() => {
-    const { PICTOGRAM_LIGHT, PICTOGRAM_DARK } = environment.logoSrc
-    return this.themeManager.theme() === 'light' ? PICTOGRAM_LIGHT : PICTOGRAM_DARK
-  })
-
-  serverErrorStep = signal<{ step: 0 | 1 | 2 | 3, error: FormErrorState }>({
+  serverErrorStep = signal<{ step: 0 | 1 | 2 | 3; error: FormErrorState }>({
     step: 0,
-    error: { fieldErrors: {}, globalError: null }
+    error: { fieldErrors: {}, globalError: null },
   })
 
   turnstileToken = signal<string>('')
@@ -273,34 +311,37 @@ export class AccountRecoveryPageComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.codeCtrl = this.fb.control('', [Validators.required])
-    this.recoveryGroup = this.fb.group(
-      {
-        email: this.fb.control(
-          '',
-          [Validators.required, Validators.email, Validators.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)],
-          emailAvailabilityValidator(this.authService)
-        ),
-        password: this.fb.control('', [Validators.required, Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/)]),
-        confirmPassword: this.fb.control('', [Validators.required, matchPassword])
+    this.codeForm.setControl('code', this.codeCtrl)
+    this.recoveryGroup = this.fb.group({
+      email: this.fb.control(
+        '',
+        [Validators.required, Validators.email, Validators.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)],
+        emailAvailabilityValidator(this.authService)
+      ),
+      password: this.fb.control('', [
+        Validators.required,
+        Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/),
+      ]),
+      confirmPassword: this.fb.control('', [Validators.required, matchPassword]),
+    })
+    this.codeCtrlSub = this.codeCtrl.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.resetServerError()
       })
-    this.codeCtrlSub = this.codeCtrl.valueChanges.pipe(
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe(() => {
-      this.resetServerError()
-    })
-    this.recoveryGroupSub = this.recoveryGroup.valueChanges.pipe(
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe(() => {
-      this.resetServerError()
-    })
+    this.recoveryGroupSub = this.recoveryGroup.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.resetServerError()
+      })
     const passwordCtrl = this.recoveryGroup.get('password')
     const confirmPasswordCtrl = this.recoveryGroup.get('confirmPassword')
     if (passwordCtrl && confirmPasswordCtrl) {
-      this.passwordValueChangesSub = passwordCtrl.valueChanges.pipe(
-        takeUntilDestroyed(this.destroyRef)
-      ).subscribe(() => {
-        confirmPasswordCtrl.updateValueAndValidity({ onlySelf: true })
-      })
+      this.passwordValueChangesSub = passwordCtrl.valueChanges
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => {
+          confirmPasswordCtrl.updateValueAndValidity({ onlySelf: true })
+        })
     }
   }
 
@@ -313,57 +354,96 @@ export class AccountRecoveryPageComponent implements OnInit, OnDestroy {
   }
 
   goToSecondStep(): void {
+    if (this.loading()) {
+      return
+    }
     this.codeCtrl.markAsTouched()
     if (this.codeCtrl.valid && this.turnstileToken()) {
       this.loading.set(true)
-      this.firstStepSub = this.recoveryService.accountRecovery_firstStep(this.codeCtrl.value, this.turnstileToken()).pipe(
-        finalize(() => {
-          this.turnstileToken.set('')
-          this.loading.set(false)
-          queueMicrotask(() => this.resetTurnstileWidget())
-        }),
-        takeUntilDestroyed(this.destroyRef)
-      ).subscribe({
-        next: (res) => {
-          this.recoveryToken.set(res.recoveryToken)
-          this.resetServerError()
-          this.step.set(2)
-        },
-        error: e => this.serverErrorStep.set({
-          step: 1,
-          error: adaptHttpFormError(e, { ACCOUNT_RECOVERY_CODE_INVALID: { code: 'code' } })
+      this.firstStepSub = this.recoveryService
+        .accountRecovery_firstStep(this.codeCtrl.value, this.turnstileToken())
+        .pipe(
+          finalize(() => {
+            this.turnstileToken.set('')
+            this.loading.set(false)
+            queueMicrotask(() => this.resetTurnstileWidget())
+          }),
+          takeUntilDestroyed(this.destroyRef)
+        )
+        .subscribe({
+          next: (res) => {
+            if (!res.recoveryToken) {
+              this.serverErrorStep.set({
+                step: 1,
+                error: {
+                  fieldErrors: {},
+                  globalError: 'Non è stato possibile verificare il codice. Riprova.',
+                },
+              })
+              return
+            }
+            this.recoveryToken.set(res.recoveryToken)
+            this.resetServerError()
+            this.step.set(2)
+            this.focusState()
+          },
+          error: (e) =>
+            this.serverErrorStep.set({
+              step: 1,
+              error: adaptHttpFormError(e, { ACCOUNT_RECOVERY_CODE_INVALID: { code: 'code' } }),
+            }),
         })
-      })
     }
   }
 
   goToThirdStep(): void {
+    if (this.loading()) {
+      return
+    }
     this.recoveryGroup.markAllAsTouched()
     if (this.recoveryGroup.valid && this.turnstileToken()) {
       this.loading.set(true)
-      this.secondStepSub = this.recoveryService.accountRecovery_secondStep(
-        this.recoveryGroup.controls['email'].value,
-        this.recoveryGroup.controls['password'].value,
-        this.recoveryToken(),
-        this.turnstileToken()
-      ).pipe(
-        finalize(() => {
-          this.turnstileToken.set('')
-          this.loading.set(false)
-          queueMicrotask(() => this.resetTurnstileWidget())
-        }),
-        takeUntilDestroyed(this.destroyRef)
-      ).subscribe({
-        next: (res) => {
-          this.recoveryCode.set(res.recoveryCode)
-          this.resetServerError()
-          this.step.set(3)
-        },
-        error: e => this.serverErrorStep.set({
-          step: 2,
-          error: adaptHttpFormError(e, { PASSWORD_CHANGE_CREDENTIALS_INVALID: { email: 'email' } })
+      this.secondStepSub = this.recoveryService
+        .accountRecovery_secondStep(
+          this.recoveryGroup.controls['email'].value,
+          this.recoveryGroup.controls['password'].value,
+          this.recoveryToken(),
+          this.turnstileToken()
+        )
+        .pipe(
+          finalize(() => {
+            this.turnstileToken.set('')
+            this.loading.set(false)
+            queueMicrotask(() => this.resetTurnstileWidget())
+          }),
+          takeUntilDestroyed(this.destroyRef)
+        )
+        .subscribe({
+          next: (res) => {
+            if (!res.recoveryCode) {
+              this.serverErrorStep.set({
+                step: 2,
+                error: {
+                  fieldErrors: {},
+                  globalError:
+                    'Non è stato possibile confermare il ripristino. Richiedi assistenza.',
+                },
+              })
+              return
+            }
+            this.recoveryCode.set(res.recoveryCode)
+            this.resetServerError()
+            this.step.set(3)
+            this.focusState()
+          },
+          error: (e) =>
+            this.serverErrorStep.set({
+              step: 2,
+              error: adaptHttpFormError(e, {
+                PASSWORD_CHANGE_CREDENTIALS_INVALID: { email: 'email' },
+              }),
+            }),
         })
-      })
     }
   }
 
@@ -371,16 +451,24 @@ export class AccountRecoveryPageComponent implements OnInit, OnDestroy {
     this.turnstileToken.set(token)
   }
 
+  onTurnstileRefresh(): void {
+    this.turnstileToken.set('')
+    this.loadingTurnstile.set(true)
+  }
+
   onTurnstileRender(): void {
     this.loadingTurnstile.set(false)
   }
 
-  computeServerErrorMsg(input: { step: 0 | 1 | 2 | 3, error: FormErrorState }): string | null {
+  computeServerErrorMsg(input: { step: 0 | 1 | 2 | 3; error: FormErrorState }): string | null {
     return input.step === 0 ? null : input.error.globalError
   }
 
   private resetTurnstileWidget(): void {
-    const turnstileComponent = this.turnstileComponent();
+    if (this.destroyRef.destroyed) {
+      return
+    }
+    const turnstileComponent = this.turnstileComponent()
     if (!turnstileComponent) {
       this.loadingTurnstile.set(false)
       return
@@ -392,8 +480,7 @@ export class AccountRecoveryPageComponent implements OnInit, OnDestroy {
   private resetServerError(): void {
     this.serverErrorStep.set({
       step: 0,
-      error: { fieldErrors: {}, globalError: null }
+      error: { fieldErrors: {}, globalError: null },
     })
   }
-
 }

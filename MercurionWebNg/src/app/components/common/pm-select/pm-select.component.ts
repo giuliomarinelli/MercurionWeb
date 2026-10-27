@@ -78,7 +78,7 @@ const FOCUS_CLASSES = {
                  focus-visible:outline-light-accent-primary dark:bg-transparent dark:text-slate-400
                  focus:border-light-accent-primary
                  hover:bg-slate-200/60 dark:hover:bg-neutral-800/50
-                 block px-4 py-3 border-[2px] border-slate-300 dark:border-slate-200 rounded-md transition duration-300
+                 block px-4 py-3 border-2 border-slate-300 dark:border-slate-200 rounded-md transition duration-300
                  focus:outline-none focus:ring-2 focus:ring-light-accent-primary cursor-pointer
                  text-left pr-10"
           [class]="FOCUS_CLASSES[tone()]">

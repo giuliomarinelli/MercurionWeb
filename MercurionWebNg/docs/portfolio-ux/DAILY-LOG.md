@@ -598,6 +598,46 @@ Collezioni: null significa loading, [] empty immediato, niente timer o dati prec
 
 **Risorse e seguito:** container, rete e volumi del progetto QA rimossi e assenza verificata; lockfile del workspace invariato. Preservati file .env/PEM e modifiche manuali, nessuna operazione Git o servizio utente fermato. L’attivazione locale reale segue la guida con migrazione esplicita; per il resto del capitolo rimangono INF-01A (provider, identità VPS e pre-bootstrap), finestre operative degli ambienti e consumer Tox21.
 
+### 2026-10-27 — Blocco 17 / PX-03 e PX-14 — Registrazione e recupero
+
+**Stato:** implementato, in review. [Risultato, prove e limiti](REGISTRATION-RECOVERY-QA.md).
+
+**Intervento:** layout comune al login per sei pagine, form e fieldset nativi, distanze regolari e slot di sicurezza senza affiancamenti/offset. Invii ripetuti impediti, richieste annullate in uscita, errori pertinenti e valori conservati. Distinti recupero password e account; link incompleti con spiegazione e uscita, nessun form prima dell’autorizzazione server. Password frontend allineata alla regola forte backend già esistente. Percorso SSO e informative conservati.
+
+**Correzioni durante la review:** l’utente ha richiesto codice leggibile per tutti i file; preservata la sua formattazione CSS e formattati template/TypeScript/test con blocchi espliciti. Corretta la regressione della checkbox nativa scura in light e priva di pointer: superficie, spunta, focus e stato disabilitato espliciti e provati. La prima opzione vuota del genere ora mostra «Seleziona il genere», mantenendo required e valore vuoto.
+
+**Verifica:** baseline 32 test; finale **117 test superati**, incluse regressioni login/MFA e 24 casi di geometria delle sei pagine. Chrome anonimo: 23 misure nei due temi senza overflow, registrazione a 320–1280 px e con viewport bassa, menu Genere ed Escape, pointer/focus della checkbox. Typecheck, lint, formattazione, styling/negative, colori/token, policy e production build/gate riusciti. Iniziale 947.699 byte, soglie invariate. Le prove di stato sono sintetiche; nessun flusso reale di invio/cambio credenziali eseguito. Artefatti: `C:/Users/giuli/.codex/artifacts/mercurion-account-17-2026-10-27/`.
+
+**Rimane:** QA con link/codici/account autorizzati, Safari fisico e password manager. Backend, flag, segreti e processi dell’utente preservati; nessuna operazione Git. Migrazione JWT locale rinviata per richiesta dell’utente.
+
+**Prossimo blocco:** 18 / PX-12 — Dashboard.
+
+### 2026-10-27 — Blocco 17 — Revisione dopo regressioni
+
+**Correzione dell'esito precedente:** i 117 test e il contenimento non certificavano la fedeltà grafica. Ripetuta la revisione dei sei componenti e dei test nel worktree; nessuna accettazione del blocco.
+
+**Riparazioni:** checkbox originale 16 px con spunta SVG 14 px centrata, Tailwind e focus tastiera; punteggiatura delle informative e conferme; tutti i 12 tracciati originali conservati nei template. Avviso recupero nell'intestazione, icone affiancate al testo nelle card larghe e compressione involontaria eliminata. Protette microtask di conferma/redirect/pulizia URL dopo distruzione. Preservati intervento manuale sulla select e formattazione CSS dell'utente.
+
+**Verifiche corrette:** cinque fallimenti prima del fix checkbox, uno prima del fix SSO e quattro per le dimensioni delle icone. Test del reset riscritti attraverso form e risposte autorizzate, senza sostituire membri privati. Suite finale **124/124**, typecheck/template, lint, styling/fixture negative, colori/token e build con gate bundle/lazy riusciti. Browser anonimo e limiti distinti dalle fixture di successo: [rapporto aggiornato](REGISTRATION-RECOVERY-QA.md). Le precedenti evidenze sono conservate come storico, non come certificazione grafica.
+
+**Review residua:** accettazione manuale del design, percorsi reali di attivazione/recupero/SSO, Safari fisico e password manager. Nessuna operazione Git o sui dati/account reali. Artefatti e backup: `C:/Users/giuli/.codex/artifacts/mercurion-account-17-2026-10-27/worktree-review/`.
+
+### 2026-10-27 — Verifica del rollback SSO richiesto dall'utente
+
+**Scelta dell'utente:** mantenere la versione originale con il solo spinner. Componente e relativo spec coincidono con HEAD e non sono stati modificati durante il controllo; hash SHA-256 del componente invariato: `918d6549360928ee56f523e31a57f5c59743aa312f546ab7776824094c354b7b`.
+
+**Verifica:** typecheck/template e lint riusciti. Quattro test di layout aggiunti nel refactor fallivano perché imponevano il tag `main`; ora riconoscono anche il ruolo nativo equivalente `[role="main"]`. Fixture SSO isolata dalla raccolta reale del fingerprint. **34/34 test mirati superati**, comprendenti SSO, layout dei flussi e accessibilità canonica. Nessuna modifica della grafica o della logica SSO, nessun commit.
+
+**Osservazioni statiche da discutere separatamente:** callback senza frammento lascia lo spinner, errore iniziale del fingerprint non gestito e redirect da errore accodato senza guardia dopo distruzione. Questi comportamenti appartengono alla versione ripristinata; il normale successo SSO e il ritorno al percorso richiesto sono coperti dai test esistenti. L'esito di 124 test della voce precedente è storico e precede il rollback.
+
+### 2026-10-27 — SSO — Casi limite senza modifiche grafiche
+
+**Autorizzazione:** gestire i casi limite emersi nella verifica del rollback, mantenendo esattamente il solo spinner scelto dall'utente.
+
+**Intervento:** validazione del callback prima del fingerprint, senza attesa infinita se manca il token; stesso percorso 404 già esistente per input non valido. Errori del fingerprint intercettati dallo stesso percorso di errore dell'autorizzazione SSO verso il login. Microtask di redirect e riallineamento dello spinner ignorate dopo distruzione; conservati unsubscribe, cleanup e normale successo della sessione/redirect.
+
+**Verifica:** template originale confrontato esattamente e hash SHA-256 invariato `61c9a45fc702a514802e16772241a8f6db7d373b174fda3cdff137ab450635e4`; nessuno stile aggiunto. Test per callback assente/malformato, provider sconosciuto, fingerprint fallito, errore dell'autorizzazione, navigazione tardiva e risoluzione del fingerprint dopo distruzione; contratto grafico del solo spinner esplicito. **45 test mirati superati**, typecheck/template e lint riusciti. Nessun provider SSO reale o CI remota certificati. Evidenze in `C:/Users/giuli/.codex/artifacts/mercurion-account-17-2026-10-27/sso-edge-cases/`. Nessun commit.
+
 ## Modello per le voci successive
 
 ### AAAA-MM-GG — PX-XX — Sottoarea

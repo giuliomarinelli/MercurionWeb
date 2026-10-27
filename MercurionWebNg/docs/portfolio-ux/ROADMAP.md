@@ -41,6 +41,10 @@ Settings è un **riferimento implementato da sottoporre alla review manuale**, n
 
 Questi documenti non sono task eseguibili del sistema autonomous-development e non autorizzano commit, merge, deploy o operazioni sugli account. Gli identificativi PX servono soltanto al tracciamento del lavoro UX.
 
+## Aggiornamento del 27 ottobre — ripresa UX
+
+Il blocco **17 / PX-03 e PX-14** è implementato, in review: registrazione, recupero, attivazione e callback, con [prove e limiti](REGISTRATION-RECOVERY-QA.md). **Prossimo blocco: 18 / PX-12 — Dashboard.** L’attivazione/migrazione JWT sui dati dello sviluppo locale è rinviata per richiesta dell’utente; il codice implementato resta conservato e non blocca il lavoro UX. Provider/bootstrap VPS e consumer Tox21 restano nel loro percorso separato.
+
 ## Priorità
 
 - **P1**: esperienza centrale e schermate che mostrano maggiormente il valore del progetto.
@@ -53,7 +57,7 @@ La priorità indica il valore della rifinitura per il portfolio, non la gravità
 |---|---|---|---|---|
 | PX-01 | Shell, navigazione, sidebar e offcanvas | P1 | S, B | N3 e regressione shell del blocco 14 implementati, in review; QA residua in SHELL-QA.md |
 | PX-02 | Home e presentazione pubblica | P1 | S, B, V | 15A e 15B implementati, in review; prove in HOME-QA.md e WELCOME-QA.md |
-| PX-03 | Accesso e registrazione | P1 | S, B, V | Accesso implementato, in review; registrazione/recupero nel blocco 17 |
+| PX-03 | Accesso e registrazione | P1 | S, B, V | Blocchi 16 e 17 implementati, in review; LOGIN-QA.md e REGISTRATION-RECOVERY-QA.md |
 | PX-04 | Ricerca molecolare | P1 | S, B | Implementato, in review; QA iPhone aperta |
 | PX-05 | Liste, card e selezione | P1 | S, B | Card, selezione e liste implementate, in review |
 | PX-06 | Dettaglio collezione | P1 | S, B | Implementato, in review |
@@ -64,7 +68,7 @@ La priorità indica il valore della rifinitura per il portfolio, non la gravità
 | PX-11 | Predizione Tox21 e comunicazione dei risultati | P1 | S, B, V | Blocco 11 implementato, in review |
 | PX-12 | Dashboard | P2 | S, B | Da affrontare |
 | PX-13 | Settings: fasi e stati ancora non conclusi | P2 | S, B, V | Riferimento iniziale implementato; completamento aperto |
-| PX-14 | Recupero, attivazione e callback SSO | P2 | S, V | Da affrontare |
+| PX-14 | Recupero, attivazione e callback SSO | P2 | S, B, V | Blocco 17 implementato, in review; verifica reale con token/account ancora aperta |
 | PX-15 | Notifiche | P2 | S, B, V | Da affrontare |
 | PX-16 | Supporto, ticket e conversazioni | P2 | S, B | Da affrontare |
 | PX-17 | Feedback e contatti | P2 | S, B | Da affrontare |
@@ -180,7 +184,7 @@ La reintegrazione dei branch feature nel branch corrente e il merge della beta s
 
 ### PX-03 — Accesso e registrazione
 
-**Stato al 25 ottobre:** blocco 16 accesso implementato, in review ([LOGIN-QA.md](LOGIN-QA.md)). Uniformati login/SSO e presentazione MFA; corretti pending della verifica e-mail, ritorno tra passi e ingombro Turnstile. L’utente ha confermato il widget senza scrollbar dopo reload. 49 test e controlli locali riusciti; login/MFA end-to-end, provider esterni e Safari fisico restano da verificare. Registrazione e recupero seguono nel blocco 17; AUTH-02 / B2 locale implementato, in review dopo B1a/B1b; QA Compose isolata completata; restano integrazione provider/bootstrap e consumer.
+**Stato al 25 ottobre:** blocco 16 accesso implementato, in review ([LOGIN-QA.md](LOGIN-QA.md)). Uniformati login/SSO e presentazione MFA; corretti pending della verifica e-mail, ritorno tra passi e ingombro Turnstile. L’utente ha confermato il widget senza scrollbar dopo reload. 49 test e controlli locali riusciti; login/MFA end-to-end, provider esterni e Safari fisico restano da verificare. Registrazione e recupero del blocco 17 sono implementati, in review il 27 ottobre ([prove](REGISTRATION-RECOVERY-QA.md)); AUTH-02 / B2 locale implementato, in review dopo B1a/B1b; QA Compose isolata completata; restano integrazione provider/bootstrap e consumer.
 
 **Dipendenza SMS:** per i flussi che inviano SMS, coordinare implementazione e QA con [INF-02](#inf-02--porting-invio-sms-twilio--sms-hosting). Il porting a SMS Hosting deve essere verificato prima della loro accettazione; non utilizzare l’account Twilio chiuso.
 
@@ -406,6 +410,8 @@ La reintegrazione dei branch feature nel branch corrente e il merge della beta s
 **Sorgenti:** [settings](../../src/app/pages/settings/settings.page.component.ts), [workflow dati sensibili](../../src/app/components/action-components/sensitive-data-change/sensitive-data-change-workflow.component.ts), [anagrafica](../../src/app/components/action-components/profile-registry-edit/essential-profile-registry-edit.component.ts).
 
 ### PX-14 — Recupero, attivazione e callback SSO
+
+**Stato al 27 ottobre:** blocco 17 implementato, in review; [prove e verifiche residue](REGISTRATION-RECOVERY-QA.md). I percorsi reali con token, e-mail e credenziali restano da verificare con account autorizzati.
 
 **Dipendenza SMS:** per i flussi che inviano SMS, coordinare implementazione e QA con [INF-02](#inf-02--porting-invio-sms-twilio--sms-hosting). Il porting a SMS Hosting deve essere verificato prima della loro accettazione; non utilizzare l’account Twilio chiuso.
 
@@ -639,6 +645,20 @@ La reintegrazione dei branch feature nel branch corrente e il merge della beta s
 
 **Accettazione prima del merge:** scope concordato coperto; review manuale accettata; nessun difetto critico, perdita di dati o problema di isolamento degli account aperto; limiti residui espliciti; validazioni pertinenti riuscite. Il merge resta un'azione successiva autorizzata, non un effetto automatico dello stato della roadmap.
 
+### TS-01 — Pulizia finale dei punti e virgola TypeScript
+
+**Stato: pianificato, da eseguire alla fine dei refactor e prima della chiusura QA/merge.** Richiesta del 27 ottobre 2026. Lo stile dell'utente prevede TypeScript senza punti e virgola opzionali; anche il nuovo codice deve rispettarlo da subito. Questa voce pianifica la pulizia retroattiva, senza avviarla ora.
+
+**Obiettivo:** eliminare il **100% dei punti e virgola superflui** aggiunti nei refactor ai file TypeScript mantenuti manualmente nel repository, conservando comportamento, leggibilità e modifiche dell'utente.
+
+- Inventariare i file coinvolti nei refactor: sorgenti Angular e Nest, test e configurazioni TypeScript pertinenti. Escludere dipendenze, output di build, copie esterne e artefatti generati: questi ultimi restano sotto il controllo dei rispettivi generatori.
+- Usare strumenti consapevoli della sintassi TypeScript, evitando sostituzioni globali con regex. Conservare i separatori sintatticamente necessari, per esempio nei cicli `for`, e le protezioni necessarie contro ambiguità dell'inserimento automatico dei terminatori (ASI). Non alterare stringhe, commenti, template Angular o CSS/SQL incorporati.
+- Allineare le configurazioni di formatter/lint interessate alla convenzione senza terminatori opzionali, per esempio `semi: false` dove viene usato Prettier, così che i salvataggi e i refactor successivi non li reintroducano. Limitare il diff alla pulizia richiesta, senza riformattazioni o modifiche funzionali estranee.
+- Preferire tooling deterministico per la trasformazione; è possibile usare un **modello lightweight** per la passata meccanica o la revisione del diff, come suggerito dall'utente. La scelta non riduce i controlli richiesti.
+- Verificare il risultato con controlli sintattici, typecheck/template, lint, test pertinenti e build delle aree interessate. Riesaminare in particolare i punti sensibili all'ASI e le eccezioni rimaste.
+
+**Accettazione:** nessun terminatore opzionale residuo nel perimetro concordato, eccezioni sintattiche motivate, comportamento invariato e controlli pertinenti superati. La pulizia precede la review finale del blocco 28; non autorizza commit, merge o modifiche agli ambienti.
+
 ## Copertura esplicita degli ActionComponents
 
 Il registro corrente contiene nove azioni. Nessuna viene esclusa dalla roadmap.
@@ -682,7 +702,7 @@ Il refactor N3 / PX-01 precede la sequenza residua qui sotto, che riprende dal b
 | 16 | PX-03 — Accesso | Implementato, in review: login/SSO/MFA, 49 test; prove e limiti in [LOGIN-QA.md](LOGIN-QA.md) |
 | 16K | AUTH-02 — Rotazione chiavi JWT | B1a/B1b, B2 e adapter/bootstrap locale implementati, in review: registro/CLI/tombstone e revoca dei WS inattivi ([runbook](../../../MercurionWebNode/docs/jwt-key-operations.md)). 27 controlli QA Linux/Compose superati; adapter/bootstrap locale con migrazione esplicita implementati, provider VPS e consumer ancora aperti |
 | 16P | AUTH-01 — Passkey, opzionale | Analisi, policy MFA e stima; se sostenibile, enrollment in settings e login WebAuthn prima della relativa QA finale |
-| 17 | PX-03/PX-14 — Registrazione e recupero | Stati e token verificati con fixture appropriate |
+| 17 | PX-03/PX-14 — Registrazione e recupero | Revisionato dopo regressioni; SSO ripristinato dall’utente al solo spinner. Prove e limiti aggiornati; review e flussi reali aperti ([prove](REGISTRATION-RECOVERY-QA.md)) |
 | 18 | PX-12 — Dashboard | Metriche, grafici e stati rifiniti |
 | 19 | PX-13 — Settings: fasi successive | Stati OTP/MFA e varianti account completati con perimetro sicuro |
 | 20A | PX-15A/PX-15B — Notifiche: header, lista e dettaglio | Dataset su più pagine; contatori, filtri, mobile e apertura diretta |
@@ -695,6 +715,7 @@ Il refactor N3 / PX-01 precede la sequenza residua qui sotto, che riprende dal b
 | 25 | PX-21 — Demo portfolio | Dataset, percorso e schermate finali verificati |
 | 26 | PX-22 — Regressione dei percorsi completi | Persistenza, navigazione e errori verificati tra le aree |
 | 27 | PX-23 — Continuità tra sessioni e connessioni | Riconnessione, scadenza e coerenza dello stato verificate |
+| 27S | TS-01 — Pulizia finale TypeScript | Eliminato il 100% dei punti e virgola superflui nei file mantenuti manualmente coinvolti nei refactor; formatter/lint allineati e regressioni verificate; possibile supporto lightweight |
 | 28 | PX-24 — Chiusura QA e review | Matrice di compatibilità, review manuale e bilancio prima del merge |
 
 PX-19 accompagna ogni blocco. Non aspettare la fine per curare focus, errori, nomi accessibili e stati di caricamento. Se home o accesso devono essere mostrati subito a un cliente, anticipare i blocchi 15–16 senza aprire un redesign globale.
