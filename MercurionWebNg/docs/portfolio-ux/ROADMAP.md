@@ -73,7 +73,7 @@ La priorità indica il valore della rifinitura per il portfolio, non la gravità
 | PX-16 | Supporto, ticket e conversazioni | P2 | S, B | Da affrontare |
 | PX-17 | Feedback e contatti | P2 | S, B | Da affrontare |
 | PX-18 | Pagine di stato e documenti | P3 | S, V | Da affrontare |
-| PX-19 | Componenti, stati e accessibilità trasversali | P1 | S, B, V | Da applicare progressivamente; bug grafico PX-19A da pianificare |
+| PX-19 | Componenti, stati e accessibilità trasversali | P1 | S, B, V | Da applicare progressivamente; PX-19A telefono corretto in review; altri consumatori da verificare |
 | PX-20 | Reattività percepita e movimento | P2 | S, B, V | Da misurare sui percorsi principali |
 | PX-21 | Dati e percorso dimostrativo portfolio | P3 | B, V | Da preparare dopo il percorso centrale |
 | PX-22 | Regressione funzionale dei percorsi completi | P1 | B, V | Da applicare progressivamente; passaggio finale aperto |
@@ -405,7 +405,7 @@ La reintegrazione dei branch feature nel branch corrente e il merge della beta s
 - Verificare profilo SSO e account con/senza telefono e MFA.
 - Controllare successi, errori, loading prolungato e sessioni multiple/realtime.
 - Confermare min-height, focus di ritorno, annullamento e link diretti alle sezioni.
-- Riprendere il bug grafico [PX-19A](#px-19a--allineamento-dei-select-negli-overlay): centratura del contenuto e coerenza tra select del prefisso telefonico e floating input adiacente; intervento futuro, non eseguito con questa annotazione.
+- Riprendere il bug grafico [PX-19A](#px-19a--allineamento-dei-select-negli-overlay): centratura del contenuto e coerenza tra select del prefisso telefonico e floating input adiacente; caso telefono corretto il 27 ottobre, in review; altri consumatori ancora da verificare.
 
 **Accettazione:** ogni stato conserva una geometria utilizzabile e indica il passo successivo; nessun dato sensibile appare nelle prove pubbliche del portfolio. Predisporre account/fixture adeguati prima delle verifiche con effetti reali.
 
@@ -530,7 +530,7 @@ La reintegrazione dei branch feature nel branch corrente e il merge della beta s
 
 #### PX-19A — Allineamento dei select negli overlay
 
-**Stato:** bug grafico e incoerenza di stile segnalati dall’utente il 23 ottobre 2026; **da correggere in un intervento futuro, da pianificare**. Questa annotazione non avvia la correzione e non modifica l’ordine corrente della roadmap.
+**Stato al 27 ottobre:** caso Aggiungi/Modifica telefono corretto, in review, dopo la nuova segnalazione dell’utente. Classi locali al form, select condiviso conservato; altri consumatori restano da verificare prima della chiusura generale di PX-19A. [Prove, inclusa la correzione del refresh locale Settings](SMS-ITALY-QA.md).
 
 **Evidenza:** screenshot fornito dall’utente dell’overlay «Aggiungi un numero di telefono», in tema scuro. Il caso mostra il select custom «Prefisso internazionale» (`IT +39`) affiancato al floating input «Nuovo numero». La segnalazione riguarda gli overlay che usano il select condiviso; l’estensione agli altri consumatori andrà verificata, senza assumere che siano già stati controllati nel browser.
 

@@ -39,7 +39,11 @@ describe('SettingsSecurityFacade selective logout', () => {
     response = new Subject<unknown>()
     auth = jasmine.createSpyObj('AuthUseCasesService', ['logoutFromSession'])
     auth.logoutFromSession.and.returnValue(response)
-    account = jasmine.createSpyObj('AccountService', ['isMfaEnabled', 'getActiveSessions'])
+    account = jasmine.createSpyObj('AccountService', [
+      'isMfaEnabled',
+      'getEnabledMfaStrategies',
+      'getActiveSessions',
+    ])
     account.isMfaEnabled.and.returnValue(of(false))
     toast = jasmine.createSpyObj('ToastService', ['trigger'])
     user = jasmine.createSpyObj('UserContextService', ['logout'])
@@ -52,7 +56,6 @@ describe('SettingsSecurityFacade selective logout', () => {
         { provide: ToastService, useValue: toast },
         { provide: UserContextService, useValue: user },
         { provide: SessionSyncService, useValue: sessionSync },
-        { provide: DomainInvalidationService, useValue: { last: signal(undefined) } },
         { provide: RealtimeSyncStatusService, useValue: { markSynchronized: jasmine.createSpy() } },
       ],
     })
@@ -63,7 +66,7 @@ describe('SettingsSecurityFacade selective logout', () => {
   it('retains the pending session and removes only that card after HTTP success', () => {
     facade.logoutSession('remote')
 
-    expect(facade.sessions().map(item => item.id)).toEqual(['remote', 'current'])
+    expect(facade.sessions().map((item) => item.id)).toEqual(['remote', 'current'])
     expect(facade.sessions()[0].isBeingDeleted).toBeTrue()
     expect(facade.sessions()[1].isBeingDeleted).toBeFalse()
     expect(auth.logoutFromSession).toHaveBeenCalledOnceWith('remote', false)
@@ -71,16 +74,30 @@ describe('SettingsSecurityFacade selective logout', () => {
     response.next({ success: true })
     response.complete()
 
-    expect(facade.sessions().map(item => item.id)).toEqual(['current'])
+    expect(facade.sessions().map((item) => item.id)).toEqual(['current'])
     expect(user.logout).not.toHaveBeenCalled()
     expect(sessionSync.notifyVoluntaryLogout).not.toHaveBeenCalled()
+  })
+
+  it('refreshes SMS MFA after the local phone-removal overlay closes', async () => {
+    account.isMfaEnabled.and.returnValue(of(true))
+    account.getEnabledMfaStrategies.and.returnValue(of(['SMS_OTP']))
+    account.getActiveSessions.and.returnValue(of([]))
+    facade.load()
+    expect(facade.strategies()).toEqual(['SMS_OTP'])
+    account.isMfaEnabled.and.returnValue(of(false))
+    TestBed.inject(DomainInvalidationService).publish({ domain: 'profile', action: 'changed' })
+    TestBed.tick()
+    await Promise.resolve()
+    expect(facade.enabledMfa()).toBeFalse()
+    expect(facade.strategies()).toEqual([])
   })
 
   it('restores the card on HTTP error and allows retrying', () => {
     facade.logoutSession('remote')
     response.error(new Error('HTTP failed'))
 
-    expect(facade.sessions().map(item => item.id)).toEqual(['remote', 'current'])
+    expect(facade.sessions().map((item) => item.id)).toEqual(['remote', 'current'])
     expect(facade.sessions()[0].isBeingDeleted).toBeFalse()
     expect(toast.trigger).toHaveBeenCalledWith('La sessione non è stata eliminata.', 'error')
 
@@ -102,10 +119,10 @@ describe('SettingsSecurityFacade selective logout', () => {
     account.getActiveSessions.and.returnValue(of([session('current', true)]))
     facade.load(true)
 
-    expect(facade.sessions().find(item => item.id === 'remote')?.isBeingDeleted).toBeTrue()
+    expect(facade.sessions().find((item) => item.id === 'remote')?.isBeingDeleted).toBeTrue()
 
     response.next({ success: true })
-    expect(facade.sessions().map(item => item.id)).toEqual(['current'])
+    expect(facade.sessions().map((item) => item.id)).toEqual(['current'])
   })
 
   it('preserves the spinner when a refresh still contains the pending session', () => {
@@ -117,18 +134,17 @@ describe('SettingsSecurityFacade selective logout', () => {
   })
 
   it('refreshes other sessions while preserving only the pending logout card', () => {
-    facade.sessions.update(items => [...items, session('expired')])
+    facade.sessions.update((items) => [...items, session('expired')])
     facade.logoutSession('remote')
-    account.getActiveSessions.and.returnValue(of([
-      { ...session('current', true), browser: 'Updated browser' },
-      session('new'),
-    ]))
+    account.getActiveSessions.and.returnValue(
+      of([{ ...session('current', true), browser: 'Updated browser' }, session('new')])
+    )
     facade.load(true)
 
-    expect(facade.sessions().find(item => item.id === 'remote')?.isBeingDeleted).toBeTrue()
-    expect(facade.sessions().find(item => item.id === 'current')?.browser).toBe('Updated browser')
-    expect(facade.sessions().find(item => item.id === 'new')?.isBeingDeleted).toBeFalse()
-    expect(facade.sessions().some(item => item.id === 'expired')).toBeFalse()
+    expect(facade.sessions().find((item) => item.id === 'remote')?.isBeingDeleted).toBeTrue()
+    expect(facade.sessions().find((item) => item.id === 'current')?.browser).toBe('Updated browser')
+    expect(facade.sessions().find((item) => item.id === 'new')?.isBeingDeleted).toBeFalse()
+    expect(facade.sessions().some((item) => item.id === 'expired')).toBeFalse()
   })
 
   it('logs out the current user only after HTTP success for the current session', () => {
@@ -141,6 +157,6 @@ describe('SettingsSecurityFacade selective logout', () => {
     expect(auth.logoutFromSession).toHaveBeenCalledOnceWith('current', true)
     expect(user.logout).toHaveBeenCalledTimes(1)
     expect(sessionSync.notifyVoluntaryLogout).toHaveBeenCalledTimes(1)
-    expect(facade.sessions().map(item => item.id)).toEqual(['remote'])
+    expect(facade.sessions().map((item) => item.id)).toEqual(['remote'])
   })
 })

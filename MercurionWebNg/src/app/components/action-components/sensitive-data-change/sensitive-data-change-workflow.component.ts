@@ -541,9 +541,22 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                 </div>
                 <div class="relative rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
                   <div class="flex justify-center items-center px-4 sm:px-6 py-8">
-                    <div class="grid w-full max-w-2xl min-w-0 grid-cols-1 sm:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] items-start gap-6" [formGroup]="phoneForm">
+                    <div class="grid w-full max-w-2xl min-w-0 grid-cols-1 sm:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] items-start gap-x-6 gap-y-2" [formGroup]="phoneForm">
+                      <label
+                        for="settings-change-phone-prefix-btn"
+                        class="ml-0.5 text-base text-light-accent-secondary dark:text-dark-accent-secondary-hc sm:col-span-2"
+                      >
+                        Prefisso internazionale
+                      </label>
                       <div
-                        class="min-w-0 rounded-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-token-focus [&_button:disabled]:cursor-not-allowed"
+                        class="min-w-0 rounded-md focus-visible:outline-none
+                          [&_button]:flex [&_button]:h-13 [&_button]:items-center
+                          [&_button]:border [&_button]:border-slate-400 [&_button]:py-0
+                          [&_button]:text-base [&_button]:outline-none
+                          dark:[&_button]:border-slate-300 [&_button:disabled]:cursor-not-allowed
+                          [&:focus-visible_button]:border-2
+                          [&:focus-visible_button]:border-light-accent-primary
+                          dark:[&:focus-visible_button]:border-dark-accent-primary"
                         tabindex="0"
                         role="group"
                         aria-label="Prefisso internazionale fisso: Italia (+39)"
@@ -557,7 +570,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                       >
                         <m-select
                           id="settings-change-phone-prefix"
-                          label="Prefisso internazionale"
+                          placeholder="Prefisso internazionale"
                           formControlName="prefix"
                           [options]="computePrefixValues()"
                           layout="fullWidth"
@@ -566,7 +579,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                         />
                       </div>
                       <m-text-field
-                        class="w-full min-w-0 sm:pt-8"
+                        class="mt-4 w-full min-w-0 sm:mt-0"
                         label="Nuovo numero"
                         type="tel"
                         autocomplete="tel"
@@ -577,7 +590,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                         [serverError]="serverErrorMsg"
                         (enter)="routeAction()"
                   />
-                      <p id="settings-phone-country-note" class="text-sm leading-relaxed text-on-surface-secondary sm:col-span-2">
+                      <p id="settings-phone-country-note" class="mt-4 text-sm leading-relaxed text-on-surface-secondary sm:col-span-2">
                         {{ phoneCountryNotice }} Inserisci il numero senza il prefisso internazionale.
                       </p>
                     </div>

@@ -106,6 +106,7 @@ describe('Sensitive phone Italian prefix', () => {
   it('anchors the tooltip to the control when the overlay freezes a scrolled body', fakeAsync(() => {
     const previousStyle = document.body.style.cssText
     try {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
       document.body.style.position = 'fixed'
       document.body.style.top = '-200px'
       document.body.style.width = '100%'
@@ -122,4 +123,59 @@ describe('Sensitive phone Italian prefix', () => {
       document.body.style.cssText = previousStyle
     }
   }))
+
+  for (const width of [375, 640, 768, 1280]) {
+    for (const theme of ['light', 'dark']) {
+      it(`matches the phone input geometry and border at ${width}px in ${theme}`, () => {
+        const frame = document.createElement('iframe')
+        frame.style.cssText = `position:fixed;top:0;left:0;width:${width}px;height:900px;border:0;display:block`
+        document.body.appendChild(frame)
+        try {
+          const doc = frame.contentDocument!
+          doc.documentElement.classList.toggle('dark', theme === 'dark')
+          doc.body.style.margin = '0'
+          const style = doc.createElement('style')
+          style.textContent = Array.from(document.styleSheets)
+            .flatMap((sheet) => Array.from(sheet.cssRules).map((rule) => rule.cssText))
+            .join('\n')
+          doc.head.appendChild(style)
+          doc.body.appendChild(fixture.nativeElement)
+          for (const scope of ['AddPhone', 'ChangePhone'] as const) {
+            fixture.componentInstance.innerScope.set(scope)
+            fixture.detectChanges()
+            const select = doc.querySelector('m-select button') as HTMLButtonElement
+            const input = doc.querySelector('input[type="tel"]') as HTMLInputElement
+            const inputBorder = input.parentElement!.querySelector('[style*="clip-path"]')!
+            const selectBox = select.getBoundingClientRect()
+            const inputBox = input.getBoundingClientRect()
+            expect(Math.abs(selectBox.height - inputBox.height))
+              .withContext(scope)
+              .toBeLessThanOrEqual(1)
+            if (width >= 640) {
+              expect(Math.abs(selectBox.top - inputBox.top))
+                .withContext(scope)
+                .toBeLessThanOrEqual(1)
+              expect(Math.abs(selectBox.bottom - inputBox.bottom))
+                .withContext(scope)
+                .toBeLessThanOrEqual(1)
+            }
+            const selectStyle = doc.defaultView!.getComputedStyle(select)
+            const inputStyle = doc.defaultView!.getComputedStyle(inputBorder)
+            expect(selectStyle.borderBottomWidth).toBe(inputStyle.borderBottomWidth)
+            expect(selectStyle.borderBottomColor).toBe(inputStyle.borderBottomColor)
+            expect(selectStyle.outlineStyle).toBe('none')
+            const flag = select.querySelector('img')!.getBoundingClientRect()
+            expect(Math.abs((flag.top + flag.bottom - selectBox.top - selectBox.bottom) / 2))
+              .withContext('flag vertical centering')
+              .toBeLessThanOrEqual(1)
+            expect(doc.documentElement.scrollWidth).toBeLessThanOrEqual(
+              doc.documentElement.clientWidth
+            )
+          }
+        } finally {
+          frame.remove()
+        }
+      })
+    }
+  }
 })

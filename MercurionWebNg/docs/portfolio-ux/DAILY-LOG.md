@@ -674,6 +674,16 @@ Collezioni: null significa loading, [] empty immediato, niente timer o dati prec
 
 **Seguito:** ripresa del blocco 19 / Settings. Restano la verifica dei singoli flussi OTP/MFA, gli altri ambienti, la QA fisica e l’attribuzione pubblica ditta/sender prima del deployment. La prova diretta non costituisce accettazione dell’intero blocco.
 
+### 2026-10-27 — Telefono — Select e invalidazione locale Settings
+
+**Segnalazioni:** dopo il merge delle policy, select del prefisso disomogenea rispetto all’input e pannello Contatti non aggiornato alla chiusura dopo aggiunta/rimozione del telefono.
+
+**Correzioni:** select e input da 52 px, bordi e allineamento coerenti, label su riga condivisa e focus sul solo controllo. Classi Tailwind locali, bandiera/freccia e select condiviso conservati. Settings ora consuma l’evento locale profile/changed già emesso dall’overlay, aggiorna il template senza ricreare il pannello e riallinea la sicurezza/MFA dopo la rimozione del numero. Cleanup delle letture e microtask alla distruzione.
+
+**Verifica:** 59 test mirati superati, con geometria a quattro larghezze e due temi, template reale prima/dopo aggiunta/modifica/rimozione, remote sync e cancellazione delle letture. Sottoinsieme sicurezza rieseguito: 15 test superati. Typecheck, lint, styling e build/gate bundle/lazy riusciti; iniziale 952.698 byte. Screenshot Chrome nei due temi ispezionati, misure allineate a 375/640/1280 px. Mutazioni provate con fixture, nessun SMS reale o modifica dei numeri eseguiti dall’agente. [Prove e limiti](SMS-ITALY-QA.md).
+
+**Perimetro:** policy integrate dall’utente e validazione DTO +39 non modificate; nessun segreto letto e nessun commit. L’intero blocco 19 e la QA Safari fisica restano aperti.
+
 ## Modello per le voci successive
 
 ### AAAA-MM-GG — PX-XX — Sottoarea
