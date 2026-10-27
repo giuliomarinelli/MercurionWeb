@@ -1,103 +1,80 @@
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
+import { ButtonComponent } from '../../components/common/button/button.component'
+import { DashboardChartsWidgetComponent } from './dashboard/dashboard-charts-widget.component'
+import { DashboardFacade } from './dashboard/dashboard.facade'
+import { DashboardMetricsWidgetComponent } from './dashboard/dashboard-metrics-widget.component'
 import {
-  AfterViewInit,
-  ChangeDetectionStrategy,
-  Component,
-  ElementRef,
-  OnDestroy,
-  effect,
-  inject,
-  signal,
-  viewChild
-} from '@angular/core';
-import { ProgressIndicatorComponent } from '../../components/common/progress-indicator/progress-indicator.component';
-import { SidenavContextService } from '../../services/context/sidenav-context.service';
-import { DashboardChartsWidgetComponent } from './dashboard/dashboard-charts-widget.component';
-import { DashboardFacade } from './dashboard/dashboard.facade';
-import { DashboardMetricsWidgetComponent } from './dashboard/dashboard-metrics-widget.component';
-import { ViewportRuntimeService } from '../../services/context/viewport-runtime.service';
+  DashboardChartsPlaceholderComponent,
+  DashboardLoadingComponent,
+} from './dashboard/dashboard-loading.component'
 
 @Component({
   selector: 'm-dashboard',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    ProgressIndicatorComponent,
+    ButtonComponent,
     DashboardMetricsWidgetComponent,
-    DashboardChartsWidgetComponent
+    DashboardChartsWidgetComponent,
+    DashboardChartsPlaceholderComponent,
+    DashboardLoadingComponent,
   ],
   providers: [DashboardFacade],
   template: `
-    <section
-      #mainHost
-      class="main-container py-8 cursor-default"
-      role="main"
-      aria-live="polite"
-      [attr.aria-busy]="facade.state().status === 'loading'">
-      @if (facade.state().status === 'content' && facade.state().value; as dashboard) {
-        <div class="mx-auto max-w-5xl grid gap-8
-                    lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] items-start">
-          <m-dashboard-metrics-widget class="min-w-0" [metrics]="dashboard.metrics" />
-          @defer (on viewport) {
-            <m-dashboard-charts-widget
-              class="min-w-0"
-              [composition]="dashboard.composition"
-              [activity]="dashboard.activity" />
-          } @placeholder {
-            <div class="h-[260px] rounded-lg border border-slate-300/70 dark:border-slate-700/70"
-                 aria-label="Caricamento grafici"></div>
+    <main
+      class="main-container w-full min-w-0 space-y-0 py-6 text-on-surface-main"
+      aria-label="Dashboard"
+      [attr.aria-busy]="facade.state().status === 'loading'"
+    >
+      @if (facade.state().value; as dashboard) {
+        <m-dashboard-metrics-widget class="block min-w-0" [metrics]="dashboard.metrics" />
+        <div
+          class="flex min-h-10 items-center text-sm text-on-surface-secondary"
+          role="status"
+          aria-live="polite"
+        >
+          @if (facade.state().status === 'loading') {
+            Aggiornamento della dashboard…
           }
         </div>
-      } @else if (facade.state().status === 'loading') {
-        <div class="fixed inset-0 pointer-events-none">
+        @if (facade.state().status === 'error') {
           <div
-            class="fixed top-1/2 -translate-y-1/2"
-            [style.left.px]="spinnerLeft()"
-            role="status"
-            aria-live="polite">
-            <m-progress-indicator />
+            class="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-token-control border border-status-error/50 p-4"
+            role="alert"
+          >
+            <p class="min-w-0 flex-1 text-sm leading-relaxed">
+              Non è stato possibile aggiornare i dati. Restano visibili gli ultimi valori caricati.
+            </p>
+            <m-button variant="outline" (pressed)="facade.reload()">Riprova</m-button>
           </div>
-        </div>
+        }
+        @defer (on viewport) {
+          <m-dashboard-charts-widget
+            [composition]="dashboard.composition"
+            [activity]="dashboard.activity"
+          />
+        } @placeholder {
+          <div role="status" aria-label="Caricamento dei grafici">
+            <m-dashboard-charts-placeholder />
+          </div>
+        }
+      } @else if (facade.state().status === 'loading') {
+        <m-dashboard-loading />
       } @else if (facade.state().status === 'error') {
-        <p class="text-light-error dark:text-dark-error" role="alert">
-          Si è verificato un errore nel caricamento della dashboard.
-        </p>
+        <section
+          class="rounded-token-surface border border-token-border/50 bg-surface-elevated p-6"
+          role="alert"
+        >
+          <h1 class="text-2xl font-semibold">Dashboard non disponibile</h1>
+          <p class="mt-3 mb-5 max-w-prose text-sm leading-relaxed text-on-surface-secondary">
+            Si è verificato un errore nel caricamento della dashboard. Puoi riprovare senza lasciare
+            questa pagina.
+          </p>
+          <m-button variant="outline" (pressed)="facade.reload()">Riprova</m-button>
+        </section>
       }
-    </section>
-  `
+    </main>
+  `,
 })
-export class DashboardPageComponent implements AfterViewInit, OnDestroy {
-  readonly facade = inject(DashboardFacade);
-  private readonly sidenavContext = inject(SidenavContextService);
-  private readonly viewportRuntime = inject(ViewportRuntimeService);
-  readonly mainHost = viewChild<ElementRef<HTMLElement>>('mainHost');
-  readonly spinnerLeft = signal(0);
-  private resizeObserver?: ResizeObserver;
-
-  constructor() {
-    effect(() => {
-      this.sidenavContext.isOpen();
-      this.viewportRuntime.width();
-      this.viewportRuntime.height();
-      queueMicrotask(() => {
-        this.updateSpinnerLeft();
-      });
-    });
-  }
-
-  ngAfterViewInit(): void {
-    this.updateSpinnerLeft();
-    const host = this.mainHost()?.nativeElement;
-    if (host) {
-      this.resizeObserver = new ResizeObserver(() => this.updateSpinnerLeft());
-      this.resizeObserver.observe(host);
-    }
-  }
-
-  ngOnDestroy(): void {
-    this.resizeObserver?.disconnect();
-  }
-
-  private updateSpinnerLeft = (): void => {
-    const rect = this.mainHost()?.nativeElement.getBoundingClientRect();
-    if (rect) this.spinnerLeft.set(rect.left + rect.width / 2);
-  };
+export class DashboardPageComponent {
+  readonly facade = inject(DashboardFacade)
 }

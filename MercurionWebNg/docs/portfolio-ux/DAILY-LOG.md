@@ -638,6 +638,18 @@ Collezioni: null significa loading, [] empty immediato, niente timer o dati prec
 
 **Verifica:** template originale confrontato esattamente e hash SHA-256 invariato `61c9a45fc702a514802e16772241a8f6db7d373b174fda3cdff137ab450635e4`; nessuno stile aggiunto. Test per callback assente/malformato, provider sconosciuto, fingerprint fallito, errore dell'autorizzazione, navigazione tardiva e risoluzione del fingerprint dopo distruzione; contratto grafico del solo spinner esplicito. **45 test mirati superati**, typecheck/template e lint riusciti. Nessun provider SSO reale o CI remota certificati. Evidenze in `C:/Users/giuli/.codex/artifacts/mercurion-account-17-2026-10-27/sso-edge-cases/`. Nessun commit.
 
+### 2026-10-27 — Blocco 18 / PX-12 — Dashboard
+
+**Stato:** implementato, in review. [Prove, comandi e limiti](DASHBOARD-QA.md).
+
+**Intervento:** saluto/avatar e palette conservati; contatori descritti, grafici affiancati desktop e impilati mobile, legende native da tastiera e tabella dei dati giornalieri. Chiarito il significato delle risorse distinte nella cronologia. Stati vuoti indipendenti, skeleton allineati e retry senza perdere i dati già caricati. Chart.js resta differito; cleanup e preferenze di visibilità delle serie verificati. Tailwind 4 e token esistenti, nessun CSS aggiunto.
+
+**Verifica:** baseline 12 test, finale **29 test superati**; geometria reale in iframe a 320/375/768/1280 px nei due temi, nomi lunghi e grandi contatori. Rilevate e corrette differenze di 6 px degli skeleton e overflow transitorio dei canvas durante il resize, con prove fallite conservate. Chrome autenticato: stessi quattro breakpoint nei due temi, screenshot ispezionati, legenda e tabella da tastiera. Typecheck, lint, formattazione, styling/negative, colori/token e build con gate bundle/lazy superati. Iniziale 951.540 byte, soglie invariate.
+
+**Limiti:** stati di errore/account vuoto coperti da fixture; Safari fisico, zoom reale e accettazione manuale aperti. Nessuna CI remota, operazione Git o modifica ai dati/account. SSO e runtime dell’utente preservati. Artefatti: `C:/Users/giuli/.codex/artifacts/mercurion-dashboard-18-2026-10-27/`.
+
+**Prossimo blocco:** 19 / PX-13 — Settings: fasi successive, coordinando l’accettazione dei flussi SMS con INF-02.
+
 ## Modello per le voci successive
 
 ### AAAA-MM-GG — PX-XX — Sottoarea

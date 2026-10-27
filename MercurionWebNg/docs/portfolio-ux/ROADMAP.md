@@ -43,7 +43,7 @@ Questi documenti non sono task eseguibili del sistema autonomous-development e n
 
 ## Aggiornamento del 27 ottobre — ripresa UX
 
-Il blocco **17 / PX-03 e PX-14** è implementato, in review: registrazione, recupero, attivazione e callback, con [prove e limiti](REGISTRATION-RECOVERY-QA.md). **Prossimo blocco: 18 / PX-12 — Dashboard.** L’attivazione/migrazione JWT sui dati dello sviluppo locale è rinviata per richiesta dell’utente; il codice implementato resta conservato e non blocca il lavoro UX. Provider/bootstrap VPS e consumer Tox21 restano nel loro percorso separato.
+Il blocco **17 / PX-03 e PX-14** è implementato, in review: registrazione, recupero, attivazione e callback, con [prove e limiti](REGISTRATION-RECOVERY-QA.md). Anche il **18 / PX-12 — Dashboard** è implementato, in review: metriche, grafici accessibili, skeleton e recupero degli errori, con [prove e limiti](DASHBOARD-QA.md). **Prossimo blocco: 19 / PX-13 — Settings: fasi successive**, coordinando i flussi SMS con INF-02 prima della loro accettazione. L’attivazione/migrazione JWT sui dati dello sviluppo locale è rinviata per richiesta dell’utente; il codice implementato resta conservato e non blocca il lavoro UX. Provider/bootstrap VPS e consumer Tox21 restano nel loro percorso separato.
 
 ## Priorità
 
@@ -66,7 +66,7 @@ La priorità indica il valore della rifinitura per il portfolio, non la gravità
 | PX-09 | Salvataggio della molecola | P1 | S, B | Implementato, in review |
 | PX-10 | Dettaglio molecola e informazioni scientifiche | P1 | S, B | Blocchi 09–10 implementati, in review |
 | PX-11 | Predizione Tox21 e comunicazione dei risultati | P1 | S, B, V | Blocco 11 implementato, in review |
-| PX-12 | Dashboard | P2 | S, B | Da affrontare |
+| PX-12 | Dashboard | P2 | S, B | Blocco 18 implementato, in review; prove e limiti in DASHBOARD-QA.md |
 | PX-13 | Settings: fasi e stati ancora non conclusi | P2 | S, B, V | Riferimento iniziale implementato; completamento aperto |
 | PX-14 | Recupero, attivazione e callback SSO | P2 | S, B, V | Blocco 17 implementato, in review; verifica reale con token/account ancora aperta |
 | PX-15 | Notifiche | P2 | S, B, V | Da affrontare |
@@ -371,6 +371,8 @@ La reintegrazione dei branch feature nel branch corrente e il merge della beta s
 **Sorgente:** [card predizione](../../src/app/components/molecule-detail/t1-prediction-card/t1-prediction-card.component.ts).
 
 ### PX-12 — Dashboard
+
+**Stato del 27 ottobre:** blocco 18 implementato, in review. [DASHBOARD-QA.md](DASHBOARD-QA.md) distingue browser con dati reali, fixture degli stati e limiti residui. Nessuna accettazione manuale o CI remota dichiarata.
 
 **Perché conta:** deve orientare il lavoro e mostrare dati utili, non soltanto riempire spazio con grafici.
 
@@ -703,7 +705,7 @@ Il refactor N3 / PX-01 precede la sequenza residua qui sotto, che riprende dal b
 | 16K | AUTH-02 — Rotazione chiavi JWT | B1a/B1b, B2 e adapter/bootstrap locale implementati, in review: registro/CLI/tombstone e revoca dei WS inattivi ([runbook](../../../MercurionWebNode/docs/jwt-key-operations.md)). 27 controlli QA Linux/Compose superati; adapter/bootstrap locale con migrazione esplicita implementati, provider VPS e consumer ancora aperti |
 | 16P | AUTH-01 — Passkey, opzionale | Analisi, policy MFA e stima; se sostenibile, enrollment in settings e login WebAuthn prima della relativa QA finale |
 | 17 | PX-03/PX-14 — Registrazione e recupero | Revisionato dopo regressioni; SSO ripristinato dall’utente al solo spinner. Prove e limiti aggiornati; review e flussi reali aperti ([prove](REGISTRATION-RECOVERY-QA.md)) |
-| 18 | PX-12 — Dashboard | Metriche, grafici e stati rifiniti |
+| 18 | PX-12 — Dashboard | Implementato, in review: contatori, legende da tastiera, tabella giornaliera, skeleton e retry; [prove e limiti](DASHBOARD-QA.md) |
 | 19 | PX-13 — Settings: fasi successive | Stati OTP/MFA e varianti account completati con perimetro sicuro |
 | 20A | PX-15A/PX-15B — Notifiche: header, lista e dettaglio | Dataset su più pagine; contatori, filtri, mobile e apertura diretta |
 | 20B | PX-15C — Notifiche: azioni e recupero | Lettura, eliminazioni, errori, risorse indisponibili e riconnessione |
