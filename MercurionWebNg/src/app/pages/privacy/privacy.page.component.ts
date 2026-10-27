@@ -24,7 +24,8 @@ import { ChangeDetectionStrategy, Component } from '@angular/core'
       <section aria-label="Titolare del trattamento">
         <h2 class="h2">1. Titolare del trattamento</h2>
         <p>
-          <strong>{{ dataControllerName }}</strong><br />
+          <strong>{{ dataControllerName }}</strong>, ditta individuale operante con il brand
+          <strong>Giulio Marinelli Web Tech Lab</strong> e gestore della piattaforma Mercurion.<br />
           <strong>Sede:</strong>&nbsp;{{ dataControllerLocation }}<br />
           <strong>Partita IVA:</strong>&nbsp;{{ dataControllerVatCode }}<br />
           <strong>Email di contatto:</strong>&nbsp;
@@ -68,6 +69,9 @@ import { ChangeDetectionStrategy, Component } from '@angular/core'
             </ul>
             Il numero <strong>non</strong> è utilizzato per marketing, comunicazioni promozionali o profilazione
             e <strong>non</strong> è ceduto a terzi per finalità commerciali.
+            Per l'invio di SMS transazionali il numero telefonico e il contenuto del messaggio
+            vengono comunicati al provider SMS. Gli SMS sono destinati esclusivamente a numerazioni italiane
+            e possono riportare il mittente alfanumerico <strong>Mercurion</strong>.
             Il conferimento è facoltativo e la mancata fornitura non pregiudica l’uso del Servizio.
             L’utente può rimuovere il numero in qualsiasi momento dal profilo, disabilitando le relative funzionalità.
           </li>
@@ -157,7 +161,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core'
           <li><strong>Cloudflare</strong> – CDN e sicurezza</li>
           <li><strong>Hosting provider:</strong>&nbsp;{{ hostingProviderName }}</li>
           <li><strong>Provider email di servizio:</strong>&nbsp;{{ emailProviderName }}</li>
-          <li><strong>Provider SMS:</strong>&nbsp;{{ smsProviderName }}</li>
+          <li><strong>Provider SMS:</strong>&nbsp;{{ smsProviderName }}, per la consegna di OTP e notifiche di sicurezza</li>
         </ul>
       </section>
 
@@ -185,7 +189,7 @@ export class PrivacyPageComponent {
   lastUpdated = '27/10/2026'
 
   dataControllerName = 'Giulio Marinelli'
-  dataControllerLocation = 'Italia'
+  dataControllerLocation = 'Via Altan 28, 33053 Latisana (UD), Italia'
   dataControllerVatCode = '03198070306'
   dataControllerEmail = 'mercurion.app@gmail.com'
   dataControllerPec = 'giuliomarinelli25@pec.it'

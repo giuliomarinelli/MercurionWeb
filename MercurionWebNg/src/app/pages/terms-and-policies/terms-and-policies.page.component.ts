@@ -38,12 +38,28 @@ import { injectBrowserResourceOwner } from '../../utils/browser-resource-owner.u
         </p>
       </section>
 
+      <section aria-label="Identificazione del gestore">
+        <h2 class="h2">Gestore del Servizio</h2>
+        <p>
+          Mercurion è sviluppato e gestito dalla ditta individuale <strong>Marinelli Giulio</strong>,
+          operante con il brand <strong>Giulio Marinelli Web Tech Lab</strong>, con sede in
+          <strong>Via Altan 28, 33053 Latisana (UD), Italia</strong>.
+          Mercurion è il nome della piattaforma software, non un soggetto giuridico distinto dal gestore.
+        </p>
+        <p class="mt-4">
+          Per le informazioni identificative e i recapiti del titolare, inclusi partita IVA,
+          indirizzo email e PEC, si rinvia all'
+          <a class="a" routerLink="/privacy">Informativa sulla Privacy</a>.
+        </p>
+      </section>
+
       <section aria-label="Oggetto del servizio">
         <h2 class="h2">1. Oggetto del Servizio</h2>
         <p>
-          Mercurion è una piattaforma software che consente di organizzare, gestire e analizzare dati e progetti tecnici,
-          con particolare attenzione all’ambito chimico e molecolare. Il Servizio è destinato a utenti maggiorenni e a
-          scopi professionali, di studio o di ricerca.
+          Mercurion è una piattaforma software gratuita e non commerciale, realizzata anche come
+          case study tecnico. Consente di organizzare, gestire e analizzare dati e progetti tecnici,
+          con particolare attenzione all’ambito chimico e molecolare. Il Servizio è destinato a utenti maggiorenni
+          e a scopi professionali, di studio o di ricerca.
         </p>
         <p class="mt-4">
           Mercurion non fornisce consulenza medica, farmaceutica, regolatoria o legale. Le informazioni e i dati trattati
@@ -112,8 +128,31 @@ import { injectBrowserResourceOwner } from '../../utils/browser-resource-owner.u
           </li>
         </ul>
         <p>
-          Il Servizio può essere offerto in forma gratuita o a pagamento. L’eventuale introduzione di piani a pagamento
-          o cambiamenti sostanziali delle condizioni economiche sarà comunicata all’utente con congruo preavviso.
+          L'accesso al Servizio è gratuito e non sono previsti piani di abbonamento a pagamento.
+          La disponibilità pubblica del codice sorgente è disciplinata separatamente dalla licenza
+          proprietaria source-available pubblicata nel repository del progetto. Tale licenza consente,
+          nei limiti ivi specificati, lo studio e l'esecuzione locale, ma non autorizza la distribuzione
+          pubblica di fork, cloni o servizi equivalenti.
+        </p>
+      </section>
+
+      <section aria-label="Comunicazioni SMS">
+        <h2 class="h2">Comunicazioni SMS transazionali</h2>
+        <p>
+          Quando l'utente utilizza le funzionalità che richiedono un numero telefonico, Mercurion
+          può inviare SMS esclusivamente per autenticazione, codici temporanei (OTP),
+          verifica del numero e notifiche di sicurezza. Non vengono inviati SMS promozionali.
+        </p>
+        <p class="mt-4">
+          Il mittente alfanumerico <strong>Mercurion</strong> identifica la piattaforma ed è
+          riconducibile alla ditta individuale Marinelli Giulio. Il servizio di invio SMS è
+          configurato per destinatari con numerazione italiana. L'uso del mittente è soggetto
+          alla disciplina applicabile, inclusa la delibera AGCOM n. 12/23/CIR.
+        </p>
+        <p class="mt-4">
+          Ulteriori informazioni sul trattamento del numero di telefono e sul fornitore
+          di invio SMS sono disponibili nell'
+          <a class="a" routerLink="/privacy">Informativa sulla Privacy</a>.
         </p>
       </section>
 
