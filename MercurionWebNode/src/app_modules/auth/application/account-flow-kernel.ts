@@ -623,6 +623,12 @@ export class AccountFlowKernel {
 
 
         const { internationalPrefix, phoneNumber } = dto
+        if (internationalPrefix !== '+39') {
+            throw applicationError(
+                ApplicationErrorCode.UNPROCESSABLE_ENTITY,
+                'Sono supportati solo numeri italiani con prefisso +39.'
+            )
+        }
         const user = await this.userService.getUserById(userId)
         if (!user) {
             throw applicationError(ApplicationErrorCode.CHANGE_PHONE_USER_NOT_FOUND)

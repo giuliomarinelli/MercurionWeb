@@ -59,6 +59,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core'
           <li>
             <strong>Numero di telefono (facoltativo):</strong>
             fornito solo se l’utente desidera abilitare funzionalità aggiuntive di sicurezza.
+            Sono accettati solo numeri italiani con prefisso internazionale <strong>+39</strong>.
             Il numero è utilizzato esclusivamente per:
             <ul class="list-disc pl-6 mt-2">
               <li>invio di codici di accesso temporanei (OTP) o verifiche aggiuntive;</li>
@@ -181,7 +182,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core'
   `
 })
 export class PrivacyPageComponent {
-  lastUpdated = '02/01/2026'
+  lastUpdated = '27/10/2026'
 
   dataControllerName = 'Giulio Marinelli'
   dataControllerLocation = 'Italia'

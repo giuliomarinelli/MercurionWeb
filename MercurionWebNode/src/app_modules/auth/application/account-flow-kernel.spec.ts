@@ -78,6 +78,17 @@ describe('AccountFlowKernel', () => {
     expect(service).toBeDefined();
   });
 
+  it.each(['+1', '+44', '+390'])(
+    'rejects a direct phone change with %s before touching account or OTP state',
+    async internationalPrefix => {
+      await expect(service.changePhoneNumber_firstStep_requestTotp('00000000-0000-4000-8000-000000000001', {
+        internationalPrefix, phoneNumber: '3123456789',
+      })).rejects.toMatchObject({ code: ApplicationErrorCode.UNPROCESSABLE_ENTITY })
+      expect(redisServiceMock.exists).not.toHaveBeenCalled()
+      expect(jwtToolsMock.verifyTokenAndGetPayload).not.toHaveBeenCalled()
+    }
+  )
+
   it.each([
     ['registered user', true, false, false],
     ['two-hour Redis lock', false, true, false],

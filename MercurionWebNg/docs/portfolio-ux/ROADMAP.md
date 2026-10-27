@@ -2,7 +2,7 @@
 
 Data iniziale: 6 ottobre 2026. Stato: pianificazione per lavoro incrementale e review manuale.
 
-Ultima revisione del perimetro: 27 ottobre 2026. Notebook, Synthesis e integrazione object store/Cloudflare R2 sono rinviati insieme, fuori dal percorso corrente della beta. Il codice scientifico reintegrato resta conservato ma disabilitato; il flag Documents blocca anche il DocumentController Nest. Il refactor navigazione/sidebar/offcanvas N3 è implementato e in review; restano QA fisica Safari, zoom browser e accettazione manuale. I blocchi 13 e 14 sono implementati, in review; anche 15A e 15B / PX-02 sono implementati, in review ([home](HOME-QA.md), [welcome](WELCOME-QA.md)); anche 16 / PX-03 è implementato, in review ([accesso](LOGIN-QA.md)); AUTH-02 / B1a/B1b, B2 e adapter/bootstrap locale sono implementati, in review; QA Compose isolata completata (27 controlli); restano provider/bootstrap VPS INF-01A e consumer coordinati. Prove shell: [SHELL-QA.md](SHELL-QA.md). Prove editor: [EDITOR-STATES-QA.md](EDITOR-STATES-QA.md). Prove e limiti: [NAVIGATION-QA.md](NAVIGATION-QA.md). Restano le decisioni di piattaforma del 22 ottobre: Angular 20 → 21 → 22 mantenendo inizialmente Zone.js e Karma, poi Node.js 26 con NestJS 11, secondo UP-01/UP-02. Aggiunto INF-02: porting SMS Twilio → SMS Hosting, con revisione configurazione/env e verifica dei flussi OTP/MFA coinvolti; il precedente account Twilio è chiuso, secondo la segnalazione dell’utente.
+Ultima revisione del perimetro: 27 ottobre 2026. Notebook, Synthesis e integrazione object store/Cloudflare R2 sono rinviati insieme, fuori dal percorso corrente della beta. Il codice scientifico reintegrato resta conservato ma disabilitato; il flag Documents blocca anche il DocumentController Nest. Il refactor navigazione/sidebar/offcanvas N3 è implementato e in review; restano QA fisica Safari, zoom browser e accettazione manuale. I blocchi 13 e 14 sono implementati, in review; anche 15A e 15B / PX-02 sono implementati, in review ([home](HOME-QA.md), [welcome](WELCOME-QA.md)); anche 16 / PX-03 è implementato, in review ([accesso](LOGIN-QA.md)); AUTH-02 / B1a/B1b, B2 e adapter/bootstrap locale sono implementati, in review; QA Compose isolata completata (27 controlli); restano provider/bootstrap VPS INF-01A e consumer coordinati. Prove shell: [SHELL-QA.md](SHELL-QA.md). Prove editor: [EDITOR-STATES-QA.md](EDITOR-STATES-QA.md). Prove e limiti: [NAVIGATION-QA.md](NAVIGATION-QA.md). Restano le decisioni di piattaforma del 22 ottobre: Angular 20 → 21 → 22 mantenendo inizialmente Zone.js e Karma, poi Node.js 26 con NestJS 11, secondo UP-01/UP-02. Aggiornamento INF-02: porting a SMS Hosting superato per decisione dell’utente del 27 ottobre; resta Twilio; l’utente ha configurato le nuove credenziali e confermato il superamento della prova diretta SMS in sviluppo. Restano configurazione e verifica degli invii OTP/MFA prima dell’accettazione dei flussi SMS.
 
 ## Obiettivo
 
@@ -79,7 +79,7 @@ La priorità indica il valore della rifinitura per il portfolio, non la gravità
 | PX-22 | Regressione funzionale dei percorsi completi | P1 | B, V | Da applicare progressivamente; passaggio finale aperto |
 | PX-23 | Sessioni, realtime e continuità del lavoro | P1 | S, V | Da verificare tra le aree |
 | PX-24 | Compatibilità, review finale e preparazione del merge | P1 | V | Da eseguire dopo la rifinitura |
-| INF-02 | Invio SMS: Twilio → SMS Hosting | P1 | S, V | Da affrontare nel perimetro beta; prima della QA finale dei flussi SMS |
+| INF-02 | Invio SMS: nuovo account Twilio | P1 | S, V | Porting SMS Hosting superato; prova diretta SMS in sviluppo superata secondo conferma dell’utente; QA dei flussi aperta |
 | INF-03 | MeiliLoggerService: indici per ambiente e consultazione log via SSH | P1 | S, V | Da verificare nel perimetro beta; indice attuale `logs` fisso, isolamento e prova end-to-end aperti |
 | AUTH-01 | Accesso con passkey, indipendente dall'abilitazione MFA | P2 | S, V | Proposta opzionale; analisi e stima prima dell'implementazione |
 | AUTH-02 | Rotazione e revoca manuale delle chiavi JWT, header `kid` | P1 | S, V | B1a/B1b, B2 e adapter/bootstrap locale implementati, in review; QA Compose isolata completata; restano provider/bootstrap VPS INF-01A e integrazione |
@@ -91,7 +91,7 @@ Aggiornamento concordato il 23 ottobre 2026. Il branch feature Notebook/Synthesi
 - **Notebook (MF-01), Synthesis (MF-02) e object store/R2 (INF-01) sono rinviati insieme.** Non sono prerequisiti per proseguire la rifinitura e preparare il merge della beta con il perimetro attualmente attivo.
 - Notebook, Synthesis e Documents rimangono disabilitati nei quattro ambienti. Il flag `documents` protegge l’intero `DocumentController` Nest tramite `@RequiresFeatures('documents')`: gli endpoint documentali sono bloccati a backend, oltre alla mancata esposizione frontend. Il rinvio di R2 è una decisione di pianificazione coerente con questo perimetro, non un ulteriore flag tecnico.
 - **N3 / PX-01: refactor navigazione, sidebar e offcanvas** è implementato, in review (vedi [NAVIGATION-QA.md](NAVIGATION-QA.md)). Anche i blocchi **13 / PX-08** ([editor](EDITOR-STATES-QA.md)) e **14 / PX-01** ([shell](SHELL-QA.md)) sono implementati, in review; i blocchi **15A e 15B / PX-02** sono implementati, in review ([home](HOME-QA.md), [welcome](WELCOME-QA.md)); anche **16 / PX-03** è implementato, in review ([accesso](LOGIN-QA.md)); AUTH-02 / B1a/B1b, B2 e adapter/bootstrap locale sono implementati, in review; restano integrazione e QA, conservando i numeri storici.
-- **INF-02 / SMS Hosting resta nel perimetro attivo**, distinto dal rinvio di object store/R2. L’account Twilio è stato chiuso dall’utente e l’invio attuale dipende ancora dal vecchio provider: pianificare il porting prima della verifica finale dei percorsi SMS. N3 è in review; il lavoro SMS va coordinato con la successiva ripresa UX e con PX-03/PX-13/PX-14/PX-15.
+- **INF-02 / porting SMS Hosting superato:** l’utente ha deciso di creare un nuovo account Twilio. Il provider resta Twilio; il successivo aggiornamento dell’utente richiede esclusivamente destinatari italiani (+39), con sender alfanumerico abilitato per l’Italia. Restano configurazione del nuovo account e verifica degli invii, coordinate con PX-03/PX-13/PX-14/PX-15 prima dell’accettazione dei percorsi SMS.
 - **INF-03 / MeiliLoggerService entra nel perimetro attivo:** verificare separazione degli indici log per ambiente e consegna effettiva tramite outbox. L’utente ha individuato frontend Docker per staging/produzione, da consultare via forwarding SSH; immagini e configurazioni sono da acquisire prima della prova. La pianificazione non avvia container o accessi remoti.
 - Il codice già sviluppato resta conservato. La ripresa delle feature rinviate e la loro abilitazione richiederanno una decisione esplicita e verifiche dedicate. Per i futuri sviluppi resta il metodo dei branch `feature/**` derivati dal branch di lavoro e reintegrati nello stesso, gestiti dall’utente.
 - I blocchi UX 01–12 restano implementati, in review. QA fisica Safari, regressione dei percorsi attivi e review manuale rimangono aperte; le feature rinviate riceveranno QA propria quando riprese.
@@ -102,7 +102,7 @@ Riferimento del comportamento dei flag: [funzionalità rinviate nella beta](../.
 |---|---|---|
 | 1 | N3 / PX-01 — Navigazione, sidebar e offcanvas | Implementato, in review: scroll unico, rail 256/64 px, comandi sticky e tooltip a tema; QA fisica e zoom ancora aperti |
 | 2 | Blocco 16K / AUTH-02 e successivi | Blocchi 13–16 implementati, in review; B1a/B1b, B2 e adapter/bootstrap locale implementati, in review; QA/infrastruttura residue documentate |
-| Da pianificare nella ripresa UX | INF-02 — Porting SMS Hosting | Adeguare servizio/env e ripristinare gli invii prima dell’accettazione dei flussi SMS; non rinviato con R2 |
+| Prima della QA dei flussi SMS | INF-02 — Nuovo account Twilio | Account a cura dell’utente; configurazione e invii da verificare. Porting a SMS Hosting superato |
 | Da pianificare nella ripresa UX | INF-03 — Log Meilisearch per ambiente | Verificare logger/outbox, indici separati e consultazione con frontend Docker via forwarding SSH prima della QA finale |
 | 3 | QA, review e preparazione del merge beta | Validare il perimetro attivo e il blocco degli accessi alle funzionalità rinviate |
 | Rinviato | N1 / MF-01 e MF-02 — Notebook e Synthesis | Codice reintegrato, completamento end-to-end e abilitazione rinviati |
@@ -115,7 +115,7 @@ N1/N2/N3 restano identificativi di tracciamento, non rappresentano più l’ordi
 | Fase | Perimetro | Risultato necessario per avanzare |
 |---|---|---|
 | A — Navigazione | N3 / PX-01, sidebar e offcanvas | Nuova navigazione verificata nei due temi, su desktop/mobile e nei cambi di breakpoint |
-| B — Qualità del perimetro beta attivo | Ripresa dal blocco 13, porting SMS INF-02, verifica log INF-03, UX residua, QA e review manuale | Evidenze aggiornate, QA fisica applicabile e difetti residui classificati; accessi alle feature rinviate ancora bloccati |
+| B — Qualità del perimetro beta attivo | Ripresa dal blocco 13, verifica SMS con nuovo account Twilio INF-02, verifica log INF-03, UX residua, QA e review manuale | Evidenze aggiornate, QA fisica applicabile e difetti residui classificati; accessi alle feature rinviate ancora bloccati |
 | C — Integrazione beta | Merge del risultato corrente dopo autorizzazione | Modifiche integrate e verifiche del repository riuscite sul risultato integrato |
 | Rinviata — Feature e storage | Notebook, Synthesis e refactor object store/R2 | Ripresa esplicita, completamento dei flussi, verifiche proprie e regressione prima dell’abilitazione |
 | Piattaforma — UP-01 | Angular 20 → 21 → 22, inizialmente Zone.js e Karma | Tempistiche e criteri restano quelli della sezione UP-01, senza avviare la migrazione con questa revisione |
@@ -186,7 +186,7 @@ La reintegrazione dei branch feature nel branch corrente e il merge della beta s
 
 **Stato al 25 ottobre:** blocco 16 accesso implementato, in review ([LOGIN-QA.md](LOGIN-QA.md)). Uniformati login/SSO e presentazione MFA; corretti pending della verifica e-mail, ritorno tra passi e ingombro Turnstile. L’utente ha confermato il widget senza scrollbar dopo reload. 49 test e controlli locali riusciti; login/MFA end-to-end, provider esterni e Safari fisico restano da verificare. Registrazione e recupero del blocco 17 sono implementati, in review il 27 ottobre ([prove](REGISTRATION-RECOVERY-QA.md)); AUTH-02 / B2 locale implementato, in review dopo B1a/B1b; QA Compose isolata completata; restano integrazione provider/bootstrap e consumer.
 
-**Dipendenza SMS:** per i flussi che inviano SMS, coordinare implementazione e QA con [INF-02](#inf-02--porting-invio-sms-twilio--sms-hosting). Il porting a SMS Hosting deve essere verificato prima della loro accettazione; non utilizzare l’account Twilio chiuso.
+**Dipendenza SMS:** prima dell’accettazione dei flussi che inviano SMS, verificare la configurazione e gli invii con il nuovo account Twilio previsto in [INF-02](#inf-02--invio-sms-nuovo-account-twilio). Il porting a SMS Hosting è superato; non utilizzare l’account Twilio chiuso.
 
 **Perché conta:** un percorso di ingresso ordinato comunica affidabilità e cura dei form.
 
@@ -392,7 +392,7 @@ La reintegrazione dei branch feature nel branch corrente e il merge della beta s
 
 ### PX-13 — Settings: completamento degli stati
 
-**Dipendenza SMS:** per i flussi che inviano SMS, coordinare implementazione e QA con [INF-02](#inf-02--porting-invio-sms-twilio--sms-hosting). Il porting a SMS Hosting deve essere verificato prima della loro accettazione; non utilizzare l’account Twilio chiuso.
+**Dipendenza SMS:** prima dell’accettazione dei flussi che inviano SMS, verificare la configurazione e gli invii con il nuovo account Twilio previsto in [INF-02](#inf-02--invio-sms-nuovo-account-twilio). Il porting a SMS Hosting è superato; non utilizzare l’account Twilio chiuso.
 
 **Perché conta:** il riferimento iniziale va completato nelle fasi meno frequenti, senza riaprire indiscriminatamente il layout appena rifinito.
 
@@ -415,7 +415,7 @@ La reintegrazione dei branch feature nel branch corrente e il merge della beta s
 
 **Stato al 27 ottobre:** blocco 17 implementato, in review; [prove e verifiche residue](REGISTRATION-RECOVERY-QA.md). I percorsi reali con token, e-mail e credenziali restano da verificare con account autorizzati.
 
-**Dipendenza SMS:** per i flussi che inviano SMS, coordinare implementazione e QA con [INF-02](#inf-02--porting-invio-sms-twilio--sms-hosting). Il porting a SMS Hosting deve essere verificato prima della loro accettazione; non utilizzare l’account Twilio chiuso.
+**Dipendenza SMS:** prima dell’accettazione dei flussi che inviano SMS, verificare la configurazione e gli invii con il nuovo account Twilio previsto in [INF-02](#inf-02--invio-sms-nuovo-account-twilio). Il porting a SMS Hosting è superato; non utilizzare l’account Twilio chiuso.
 
 **Perché conta:** la qualità si vede anche quando l'utente deve recuperare un accesso o gestire un link scaduto.
 
@@ -434,7 +434,7 @@ La reintegrazione dei branch feature nel branch corrente e il merge della beta s
 
 ### PX-15 — Notifiche
 
-**Dipendenza SMS:** per i flussi che inviano SMS, coordinare implementazione e QA con [INF-02](#inf-02--porting-invio-sms-twilio--sms-hosting). Il porting a SMS Hosting deve essere verificato prima della loro accettazione; non utilizzare l’account Twilio chiuso.
+**Dipendenza SMS:** prima dell’accettazione dei flussi che inviano SMS, verificare la configurazione e gli invii con il nuovo account Twilio previsto in [INF-02](#inf-02--invio-sms-nuovo-account-twilio). Il porting a SMS Hosting è superato; non utilizzare l’account Twilio chiuso.
 
 **Perché conta:** una gestione leggibile degli eventi dimostra cura dell'esperienza anche oltre il percorso principale.
 
@@ -722,7 +722,7 @@ Il refactor N3 / PX-01 precede la sequenza residua qui sotto, che riprende dal b
 
 PX-19 accompagna ogni blocco. Non aspettare la fine per curare focus, errori, nomi accessibili e stati di caricamento. Se home o accesso devono essere mostrati subito a un cliente, anticipare i blocchi 15–16 senza aprire un redesign globale.
 
-PX-22 e PX-23 accompagnano gli interventi pertinenti; le righe 26–27 sono il passaggio di regressione finale, non il primo momento in cui verificare questi comportamenti. **N3 — navigazione/sidebar/offcanvas** è implementato, in review; il blocco **13 — PX-08, editor: stati e percorso finale** è implementato, in review; anche il **14 — regressione shell** è implementato, in review ([SHELL-QA.md](SHELL-QA.md)); anche il **15A — Home e benvenuto** è implementato, in review ([HOME-QA.md](HOME-QA.md)); anche il **15B — Welcome e screenshot** è implementato, in review ([WELCOME-QA.md](WELCOME-QA.md)); anche il **16 — PX-03, accesso** è implementato, in review ([LOGIN-QA.md](LOGIN-QA.md)); AUTH-02 / B1a/B1b, B2 e adapter/bootstrap locale sono implementati, in review; QA Linux/Compose isolata completata; restano **provider/bootstrap VPS INF-01A e consumer coordinati**. Prove e QA residua in [EDITOR-STATES-QA.md](EDITOR-STATES-QA.md). QA fisica Safari e zoom reale 200%/400% restano da completare prima dell’accettazione N3. **Notebook, Synthesis e object store/R2 sono rinviati insieme**, fuori dal percorso corrente della beta. **INF-02 / SMS Hosting resta attivo da pianificare** prima dell’accettazione dei flussi SMS, senza sostituire la ripresa UX dal blocco 13. La verifica fisica della tastiera secondo [KEYBOARD-QA.md](KEYBOARD-QA.md) resta aperta prima dell'accettazione e del merge; i blocchi 01–12 restano in review. L'utente ha autorizzato il proseguimento della roadmap durante questa QA.
+PX-22 e PX-23 accompagnano gli interventi pertinenti; le righe 26–27 sono il passaggio di regressione finale, non il primo momento in cui verificare questi comportamenti. **N3 — navigazione/sidebar/offcanvas** è implementato, in review; il blocco **13 — PX-08, editor: stati e percorso finale** è implementato, in review; anche il **14 — regressione shell** è implementato, in review ([SHELL-QA.md](SHELL-QA.md)); anche il **15A — Home e benvenuto** è implementato, in review ([HOME-QA.md](HOME-QA.md)); anche il **15B — Welcome e screenshot** è implementato, in review ([WELCOME-QA.md](WELCOME-QA.md)); anche il **16 — PX-03, accesso** è implementato, in review ([LOGIN-QA.md](LOGIN-QA.md)); AUTH-02 / B1a/B1b, B2 e adapter/bootstrap locale sono implementati, in review; QA Linux/Compose isolata completata; restano **provider/bootstrap VPS INF-01A e consumer coordinati**. Prove e QA residua in [EDITOR-STATES-QA.md](EDITOR-STATES-QA.md). QA fisica Safari e zoom reale 200%/400% restano da completare prima dell’accettazione N3. **Notebook, Synthesis e object store/R2 sono rinviati insieme**, fuori dal percorso corrente della beta. **INF-02 / porting SMS Hosting superato:** resta Twilio; nuovo account a cura dell’utente e verifica degli invii prima dell’accettazione dei flussi SMS. La verifica fisica della tastiera secondo [KEYBOARD-QA.md](KEYBOARD-QA.md) resta aperta prima dell'accettazione e del merge; i blocchi 01–12 restano in review. L'utente ha autorizzato il proseguimento della roadmap durante questa QA.
 
 ## Macro-feature e object store rinviati
 
@@ -765,24 +765,26 @@ L’utente gestisce la futura ripresa di MF-01 e MF-02. Le due feature restano c
 
 ## Integrazioni attive da ripristinare o verificare
 
-### INF-02 — Porting invio SMS: Twilio → SMS Hosting
+### INF-02 — Invio SMS: nuovo account Twilio
 
-**Stato: da affrontare; priorità P1 nel perimetro beta.** Aggiunto il 23 ottobre 2026. L’utente utilizza SMS Hosting e ha chiuso l’account Twilio: il percorso attuale non è operativo con le vecchie credenziali. Questo intervento **non è rinviato insieme a Notebook, Synthesis e R2**. La navigazione N3 è implementata e in review, poi ripresa UX; INF-02 va pianificato prima della QA/accettazione dei percorsi SMS interessati.
+**Stato aggiornato il 27 ottobre 2026: porting a SMS Hosting superato per decisione dell’utente.** L’utente rinuncia a SMS Hosting per le difficoltà burocratiche incontrate nell’approvazione dell’alias alfanumerico e prevede di creare un nuovo account Twilio. Il precedente piano di cambio provider, introdotto il 23 ottobre, non va eseguito. Il successivo aggiornamento dell’utente conferma invece il vincolo ai soli numeri italiani (+39), indipendente dalla scelta del provider: il sender alfanumerico è abilitato soltanto per l’Italia.
 
-**Evidenza dal codice corrente:** `SmsSenderService.sendSms(to, body)` nel modulo Nest `notification` istanzia `Twilio` e chiama `messages.create`. Il risultato è tipizzato come `MessageInstance` dell’SDK Twilio. `ConfigKey.Sms` mappa `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_NUMBER`, `TWILIO_FROM`; lo schema di configurazione le richiede ancora. I chiamanti includono `MfaService` e `account-flow-kernel`: il porting riguarda quindi anche flussi account/OTP/MFA, oltre alle notifiche.
+**Responsabilità:** creazione del nuovo account a cura dell’utente. Nessuna modifica automatica alle credenziali o ai file delle variabili d’ambiente. Il refactor richiesto applica il vincolo +39 nei form e sul backend; il parametro legacy TWILIO_NUMBER diventa facoltativo, mentre il mittente resta TWILIO_FROM. Il codice esistente resta basato su `SmsSenderService.sendSms`, Twilio e configurazione `TWILIO_*`; l’utente ha inserito le nuove credenziali e confermato il superamento della prova diretta SMS in sviluppo. Si tratta di evidenza riferita dall’utente, non di un invio eseguito dall’agente o di una verifica di tutti i workflow.
 
-**Interventi:**
+**Vincolo Italia — implementato, in review:** select del prefisso conservata e bloccata su Italia (+39), tooltip accessibile da hover/focus su un contenitore focalizzabile e testo visibile; validazione backend del prefisso e controllo centralizzato prima di ogni invio Twilio, anche per destinatari già salvati. Nessuna conversione automatica di numeri o modifica delle strategie MFA. Restrizione esplicitata anche in Settings, Termini e Privacy. [Prove e limiti](SMS-ITALY-QA.md).
 
-- Consultare la documentazione ufficiale aggiornata di SMS Hosting prima dell’implementazione: verificare API disponibili, eventuale SDK ufficiale, autenticazione, mittente, formato dei destinatari, risposte ed errori. L’uso di una REST API è un’ipotesi dell’utente da confermare; non fissare ora endpoint o nomi di credenziali.
-- Adattare `SmsSenderService.sendSms` al nuovo provider, verificando prima il contratto richiesto dai consumatori e rimuovendo l’accoppiamento del risultato al tipo Twilio dove necessario. Non modificare significato, scadenza o controlli dei codici OTP per effetto del cambio provider.
-- Rivedere `SmsConfiguration`, `ConfigKey.Sms` e validazione env; definire chiavi per SMS Hosting in base al contratto verificato e aggiornare esempi, fixture/test e configurazioni di build/runtime/CI che dipendono dai nomi precedenti. Verificare il ruolo effettivo di `number` e `from`; non mantenere requisiti Twilio inutilizzati. Non riportare segreti nei documenti o nei log.
-- Gestire timeout, risposte negative, autenticazione fallita e limiti del provider secondo la sua API; preservare la propagazione degli errori ai chiamanti ed evitare invii duplicati nei percorsi di recupero. Non confondere accettazione della richiesta con consegna effettiva dell’SMS.
-- Inventariare e verificare tutti i chiamanti SMS, con particolare attenzione a OTP/MFA e modifiche dei recapiti/account nei flussi esistenti; collegare la regressione a PX-03, PX-13, PX-14 e PX-15 dove applicabile. Le notifiche in-app/e-mail restano percorsi distinti.
-- Aggiornare test del servizio e dei flussi coinvolti con risposte simulate del nuovo provider; eseguire una prova reale soltanto nel perimetro concordato per destinatario e invio. Rimuovere dipendenza SDK, tipi e riferimenti Twilio rimasti senza consumatori dopo il porting, aggiornando il lockfile con il flusso del repository.
+**Prima del deployment:** pubblicare l’attribuzione esplicita di Mercurion alla ditta individuale dell’utente e il collegamento con l’esatto sender alfanumerico configurato, nelle pagine informative/policy pertinenti. Ragione sociale completa, denominazione del sender e testo definitivo da confermare; non inventare questi dati e non assumere che una sola dicitura dimostri conformità. Coordinamento con [roadmap VPS](../../../docs/infrastructure/vps-deployment-roadmap.md).
 
-**Accettazione:** applicazione avviabile con la configurazione SMS Hosting validata, senza richiedere credenziali dell’account Twilio chiuso; contratto di invio e gestione degli errori verificati; flussi SMS applicabili testati senza aggirare OTP/MFA o inviare notifiche impreviste. Registrare separatamente esito dei test simulati, eventuale invio reale concordato e limiti rimasti. La presenza di dati di configurazione non costituisce prova di funzionamento.
+**Rimane prima dell’accettazione dei flussi SMS:**
 
-**Sorgenti:** [servizio SMS](../../../MercurionWebNode/src/app_modules/notification/services/sms-sender/sms-sender.service.ts), [mapping configurazione](../../../MercurionWebNode/src/config/config.model.ts), [schema env](../../../MercurionWebNode/src/config/config.schema.ts), [tipi configurazione](../../../MercurionWebNode/src/config/config.types.ts), [MFA](../../../MercurionWebNode/src/app_modules/auth/services/mfa.service.ts), [flussi account](../../../MercurionWebNode/src/app_modules/auth/application/account-flow-kernel.ts).
+- Configurare il nuovo account e il mittente negli ambienti interessati, senza esporre segreti e senza riutilizzare l’account chiuso.
+- Verificare gli invii nei percorsi OTP/MFA e di modifica dei recapiti, senza cambiare generazione, scadenza o controlli dei codici.
+- Distinguere test simulati, accettazione della richiesta dal provider e ricezione effettiva del messaggio. Una prova reale richiede destinatario e invio concordati.
+- Verificare la presentazione degli errori, inclusa l’assenza di dettagli tecnici del provider nelle risposte staging/produzione.
+
+Il blocco 19 / PX-13 resta il prossimo intervento UX. Gli stati indipendenti dall’invio possono essere verificati con fixture; la prova diretta SMS in sviluppo è superata secondo conferma dell’utente; resta la QA dei singoli percorsi OTP/MFA e degli altri ambienti. Le annotazioni precedenti nel diario e nei rapporti QA rimangono come storico e sono superate da questo aggiornamento.
+
+**Sorgenti:** [servizio SMS](../../../MercurionWebNode/src/app_modules/notification/services/sms-sender/sms-sender.service.ts), [mapping configurazione](../../../MercurionWebNode/src/config/config.model.ts), [schema env](../../../MercurionWebNode/src/config/config.schema.ts), [MFA](../../../MercurionWebNode/src/app_modules/auth/services/mfa.service.ts), [flussi account](../../../MercurionWebNode/src/app_modules/auth/application/account-flow-kernel.ts).
 
 ### INF-03 — MeiliLoggerService: indici per ambiente e consultazione via SSH
 

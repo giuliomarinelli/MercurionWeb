@@ -32,6 +32,7 @@ import { ActionCardComponent } from '../../common/action-card/action-card.compon
 import { ActionFooterComponent } from '../../common/action-footer/action-footer.component';
 import { ButtonComponent } from '../../common/button/button.component';
 import { CopyButtonComponent } from '../../common/copy-button/copy-button.component';
+import { TooltipModule } from 'primeng/tooltip'
 
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -49,7 +50,8 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     ActionCardComponent,
     CopyButtonComponent,
     ActionFooterComponent,
-    ButtonComponent
+    ButtonComponent,
+    TooltipModule
   ],
   providers: [
     {
@@ -540,14 +542,29 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                 <div class="relative rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
                   <div class="flex justify-center items-center px-4 sm:px-6 py-8">
                     <div class="grid w-full max-w-2xl min-w-0 grid-cols-1 sm:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] items-start gap-6" [formGroup]="phoneForm">
-                      <m-select
+                      <div
+                        class="min-w-0 rounded-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-token-focus [&_button:disabled]:cursor-not-allowed"
+                        tabindex="0"
+                        role="group"
+                        aria-label="Prefisso internazionale fisso: Italia (+39)"
+                        aria-describedby="settings-phone-country-note"
+                        [pTooltip]="phoneCountryNotice"
+                        tooltipEvent="both"
+                        tooltipPosition="top"
+                        positionStyle="fixed"
+                        tooltipStyleClass="m-navigation-tooltip"
+                        appendTo="body"
+                      >
+                        <m-select
                           id="settings-change-phone-prefix"
                           label="Prefisso internazionale"
                           formControlName="prefix"
                           [options]="computePrefixValues()"
                           layout="fullWidth"
                           [maxHeight]="200"
-                          tone="highContrast" />
+                          tone="highContrast"
+                        />
+                      </div>
                       <m-text-field
                         class="w-full min-w-0 sm:pt-8"
                         label="Nuovo numero"
@@ -560,6 +577,9 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                         [serverError]="serverErrorMsg"
                         (enter)="routeAction()"
                   />
+                      <p id="settings-phone-country-note" class="text-sm leading-relaxed text-on-surface-secondary sm:col-span-2">
+                        {{ phoneCountryNotice }} Inserisci il numero senza il prefisso internazionale.
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -907,11 +927,12 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
   private readonly backupCodesUseCase = inject(SensitiveBackupCodesUseCase)
 
   emailCtrl: FormControl<string> = new FormControl('', { nonNullable: true })
+  readonly phoneCountryNotice = 'Sono accettati solo numeri italiani (+39).'
   phoneForm: FormGroup<{
     prefix: FormControl<number>
     phone: FormControl<string>
   }> = new FormGroup({
-    prefix: new FormControl(107, { nonNullable: true }),
+    prefix: new FormControl({ value: 107, disabled: true }, { nonNullable: true }),
     phone: new FormControl('', { nonNullable: true })
   })
   otpCtrl: FormControl<string> = new FormControl('', { nonNullable: true })
@@ -997,7 +1018,7 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
           }
         })
         this.phoneForm = this.fb.group({
-          prefix: this.fb.control(107),
+          prefix: this.fb.control({ value: 107, disabled: true }),
           phone: this.fb.control('', [Validators.required, Validators.pattern(/^\d{6,15}$/)])
         })
         this.otpCtrl = this.fb.control('', [Validators.required, Validators.pattern(/^\d{6}$/)])
@@ -1110,6 +1131,10 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
       next: (res) => {
         if (res != null) {
           this.phonePrefixes.set(res)
+          const italy = res.find(prefix => prefix.iso2 === 'IT' && prefix.phonecode === '+39')
+          if (italy) {
+            this.phoneForm.controls.prefix.setValue(italy.id)
+          }
         }
       },
       error: (e: HttpErrorResponse) => {
@@ -1175,31 +1200,14 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
 
   computePrefixValues(): PmOption[] {
 
-    const arr = [...this.phonePrefixes()]
-
-    const toNum = (code: string) => Number(String(code).replace(/[^\d]/g, ''))
-
-    arr.sort((a, b) => {
-      const diff = toNum(a.phonecode) - toNum(b.phonecode)
-      if (diff !== 0) {
-        return diff
-      }
-      return a.iso2.localeCompare(b.iso2)
-    })
-
-    const IT = arr.find((el) => el.iso2 === 'IT')
-    if (IT) {
-      const i = arr.indexOf(IT)
-      arr.splice(i, 1)
-      arr.unshift(IT)
-    }
-
-    return arr.map(item => ({
-      label: `${item.iso2} ${item.phonecode}`,
-      value: item.id,
-      iconUrl: item.emojiUrl,
-      iconAlt: `${item.iso2} flag`
-    }))
+    return this.phonePrefixes()
+      .filter(item => item.iso2 === 'IT' && item.phonecode === '+39')
+      .map(item => ({
+        label: `${item.iso2} ${item.phonecode}`,
+        value: item.id,
+        iconUrl: item.emojiUrl,
+        iconAlt: `${item.iso2} flag`
+      }))
 
   }
 
@@ -1454,13 +1462,8 @@ export class SensitiveDataChangeWorkflowComponent implements OnInit, OnDestroy {
     this.phoneForm.markAllAsTouched()
     if (this.phoneForm.valid) {
       this.loading.set(true)
-      const prefix = this.phonePrefixes().find((pr) => pr.id === this.phoneForm.controls['prefix'].value)
-      if (!prefix) {
-        this.onError()
-        return
-      }
       this.sendNewPhoneSub = this.phoneUseCase.requestChange(
-        prefix.phonecode, this.phoneForm.controls['phone'].value
+        '+39', this.phoneForm.controls['phone'].value
       ).pipe(
         finalize(() => this.loading.set(false))
       ).subscribe({

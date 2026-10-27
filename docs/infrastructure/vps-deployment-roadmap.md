@@ -296,6 +296,14 @@ This is a **new exploratory checkpoint inserted without renumbering INF-02 throu
 - [ ] Run external origin-bypass tests and load/smoke tests again after the production switch.
 - **Acceptance:** versioned release is live only through Cloudflare, healthy, observable and rollback/recovery procedures are documented.
 
+### SMS sender identity before public release | OPEN
+
+- [ ] Retain Twilio with the new account prepared by the user; the SMS Hosting migration is superseded. The alphanumeric sender is enabled for Italian destinations only; the application must accept only Italian numbers with international prefix +39.
+- [ ] Verify the configured sender and authorized Italian delivery path in staging before acceptance of SMS OTP/MFA. Do not change real credentials or send messages as part of roadmap maintenance.
+- [ ] Before public deployment, identify the user's sole proprietorship as the operator/creator of Mercurion and explicitly connect that identity with the actual alphanumeric SMS sender on the relevant public information/policy pages. Confirm the exact business identity and sender with the user; do not publish invented names or placeholders.
+- [ ] Review the final wording and applicable sender requirements separately; this attribution is a user-requested release prerequisite, not a legal-compliance certification.
+- **Coordination:** [portfolio INF-02 and application QA](../../MercurionWebNg/docs/portfolio-ux/ROADMAP.md#inf-02--invio-sms-nuovo-account-twilio). The user reported a successful direct SMS test in local development on 2026-10-27 after updating Twilio credentials. Staging/production configuration, sender attribution and workflow acceptance remain open; this is user-reported evidence, not an agent-executed delivery test.
+
 ### INF-08 — Operations, recovery and sustained capacity | PLANNED
 
 - [ ] Verify off-host backup schedule, restore drill, incident checklist, OS/container patch process, retention and alert routing; include Secret Manager outages, identity revocation, rotation, and secure restoration of required decryption roots.
@@ -343,6 +351,8 @@ For every completed phase, record at least: date, operator, relevant commit/conf
 | 0.3.3 | 2026-10-27 | Record successful isolated Linux/Compose QA, reproducible public-base runner, cleanup and env/secret/kid contract. Provider/bootstrap and final VPS acceptance remain open. | Isolated QA in review; INF-01A open |
 
 | 0.3.4 | 2026-10-27 | Record local adapter, controlled migration and development/test opt-in bootstrap; preserve INF-01A provider and machine-identity gates. | Local implementation in review; no real activation |
+
+| 0.3.5 | 2026-10-27 | Record Twilio retention, Italy-only alphanumeric SMS sender and public business/sender attribution prerequisite. Exact identity, sender and real delivery acceptance remain open. | Planning; no real activation |
 
 ### Repository references
 

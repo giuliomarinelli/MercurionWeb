@@ -30,7 +30,12 @@ import { SettingsAccountFacade } from './settings-account.facade'
         </div>
         @if (!account.isSso()) {
           <div class="settings-data-row">
-            <div class="settings-data-label">Numero di telefono</div>
+            <div class="settings-data-label">
+              Numero di telefono
+              <p class="mt-2 text-sm font-normal leading-relaxed text-on-surface-secondary">
+                Solo numeri italiani (+39).
+              </p>
+            </div>
             <div class="settings-contact-value">
               <strong class="settings-value">{{ profile.obscuredPhone ?? 'Non aggiunto' }}</strong>
               @if (profile.obscuredPhone) {

@@ -396,7 +396,7 @@ export const environmentSchema = defineEnvironmentSchema(
 
     required('TWILIO_ACCOUNT_SID', string()),
     required('TWILIO_AUTH_TOKEN', string()),
-    required('TWILIO_NUMBER', string()),
+    optional('TWILIO_NUMBER', string()), // Legacy input; the SMS sender uses TWILIO_FROM.
     required('TWILIO_FROM', string()),
 
     required('TOTP_CONFIG_BYTES', positiveInteger()),

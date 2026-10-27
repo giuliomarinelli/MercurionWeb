@@ -70,6 +70,10 @@ import { injectBrowserResourceOwner } from '../../utils/browser-resource-owner.u
 
       <section aria-label="Sicurezza account">
         <h2 class="h2">3. Sicurezza dell’account</h2>
+        <p class="mb-4">
+          Le comunicazioni di sicurezza via SMS sono disponibili esclusivamente per numeri italiani
+          con prefisso internazionale <strong>+39</strong>.
+        </p>
         <p>
           L’utente è responsabile della riservatezza delle proprie credenziali di accesso e di ogni attività svolta tramite
           il proprio account. È vietato condividere deliberatamente le credenziali con terzi o consentire l’uso del proprio
@@ -416,7 +420,7 @@ import { injectBrowserResourceOwner } from '../../utils/browser-resource-owner.u
   `
 })
 export class TermsAndPoliciesPageComponent implements AfterViewInit, OnDestroy {
-  lastUpdated = '02/02/2026'
+  lastUpdated = '27/10/2026'
 
   private readonly route = inject(ActivatedRoute)
   private readonly scrollContext = inject(ScrollContextService)

@@ -650,6 +650,30 @@ Collezioni: null significa loading, [] empty immediato, niente timer o dati prec
 
 **Prossimo blocco:** 19 / PX-13 — Settings: fasi successive, coordinando l’accettazione dei flussi SMS con INF-02.
 
+### 2026-10-27 — INF-02 — Permanenza su Twilio
+
+**Decisione dell’utente:** rinuncia a SMS Hosting per le difficoltà burocratiche nell’approvazione dell’alias; creerà un nuovo account Twilio. Porting a SMS Hosting superato e nessun refactor per limitare i destinatari all’Italia da eseguire.
+
+**Aggiornamento:** riallineati stato, priorità e dipendenze SMS della roadmap. Restano configurazione del nuovo account e verifica degli invii OTP/MFA prima dell’accettazione dei relativi flussi. Il nuovo account non è ancora dichiarato operativo. Le precedenti indicazioni di porting nei rapporti e nel diario restano storiche.
+
+**Perimetro:** solo documentazione; nessun codice, segreto, variabile d’ambiente o dipendenza modificati. Prossimo blocco UX invariato: 19 / PX-13 — Settings.
+
+### 2026-10-27 — INF-02 — Vincolo Italia per il sender Twilio
+
+**Aggiornamento dell’utente:** il ritorno a Twilio non elimina il vincolo geografico: sender alfanumerico abilitato solo per l’Italia e accettazione dei soli numeri +39. Questa decisione supera la frase «nessun refactor per limitare i destinatari all’Italia» della voce precedente.
+
+**Intervento:** select e bandiera conservate, prefisso Italia fisso e controllo disabilitato dal form reattivo; tooltip PrimeNG da focus/hover con testo visibile. Il payload usa sempre +39. Validazione DTO e controllo del kernel prima dello stato OTP; controllo di ogni destinatario prima della chiamata Twilio. TWILIO_NUMBER diventa facoltativo e il mittente resta TWILIO_FROM. Restrizione indicata in Settings, Termini e Privacy. Attribuzione pubblica Mercurion–ditta–sender aggiunta come requisito prima del deployment nella roadmap VPS, con dati esatti ancora da confermare.
+
+**Verifica:** 46 test backend e 44 Angular superati; typecheck, lint, styling/negative e build Nest/Angular con gate bundle/lazy riusciti (iniziale 951.620 byte). Chrome a 375 e 1280 px nei due temi: screenshot ispezionati, +39 bloccato e tooltip allineato al controllo anche con body fissato dopo lo scroll. Prova supplementare a viewport bassa non conclusiva per il focus; QA fisica ancora aperta. Prove del workflow e delle regressioni collegate nella [QA dedicata](SMS-ITALY-QA.md). Il browser ha fatto emergere un tooltip senza superficie: riprodotto con test sul background e corretto usando lo stile esistente. Tracciati SVG del workflow e pannello contatti identici a HEAD. Nessun CSS aggiunto, file env o credenziale letti/modificati, SMS reale inviato, dato account cambiato o operazione Git eseguita.
+
+**Rimane:** account/sender operativo e consegna reale, gestione esplicita di eventuali numeri esteri preesistenti, Safari fisico e review manuale. L’intero blocco 19 / Settings resta da svolgere; questo è il solo intervento circoscritto sul prefisso.
+
+### 2026-10-27 — INF-02 — Prova diretta SMS superata dall’utente
+
+**Esito riferito dall’utente:** inserite le nuove credenziali Twilio nell’ambiente di sviluppo, eseguita una prova diretta SMS e comunicato «test superato». Registrato separatamente dalle prove automatiche e browser dell’agente; nessun segreto letto e nessun SMS inviato dall’agente.
+
+**Seguito:** ripresa del blocco 19 / Settings. Restano la verifica dei singoli flussi OTP/MFA, gli altri ambienti, la QA fisica e l’attribuzione pubblica ditta/sender prima del deployment. La prova diretta non costituisce accettazione dell’intero blocco.
+
 ## Modello per le voci successive
 
 ### AAAA-MM-GG — PX-XX — Sottoarea
