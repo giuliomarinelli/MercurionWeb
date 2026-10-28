@@ -43,7 +43,7 @@ Questi documenti non sono task eseguibili del sistema autonomous-development e n
 
 ## Aggiornamento del 27 ottobre — ripresa UX
 
-Il blocco **17 / PX-03 e PX-14** è implementato, in review: registrazione, recupero, attivazione e callback, con [prove e limiti](REGISTRATION-RECOVERY-QA.md). Anche il **18 / PX-12 — Dashboard** è implementato, in review: metriche, grafici accessibili, skeleton e recupero degli errori, con [prove e limiti](DASHBOARD-QA.md). **Blocco corrente: 19 / PX-13 — Settings:** interventi OTP/MFA e gestione della preautorizzazione login implementati, in review; [prove e accettazione residua](SETTINGS-STATES-QA.md). Restano smoke test reali, varianti account e Safari fisico. Il blocco seguente resta 20A / PX-15A e PX-15B — Notifiche. L’attivazione/migrazione JWT sui dati dello sviluppo locale è rinviata per richiesta dell’utente; il codice implementato resta conservato e non blocca il lavoro UX. Provider/bootstrap VPS e consumer Tox21 restano nel loro percorso separato.
+Il blocco **17 / PX-03 e PX-14** è implementato, in review: registrazione, recupero, attivazione e callback, con [prove e limiti](REGISTRATION-RECOVERY-QA.md). Anche il **18 / PX-12 — Dashboard** è implementato, in review: metriche, grafici accessibili, skeleton e recupero degli errori, con [prove e limiti](DASHBOARD-QA.md). **Blocco corrente: 19 / PX-13 — Settings:** interventi OTP/MFA e gestione della preautorizzazione login implementati, in review; [prove e accettazione residua](SETTINGS-STATES-QA.md). Restano smoke test reali, varianti account e Safari fisico. Il **blocco 20A / PX-15A e PX-15B — Notifiche** è implementato, in review: [prove e limiti](NOTIFICATIONS-20A-QA.md). Il prossimo blocco è 20B / PX-15C — azioni e recupero; 20C resta dedicato alle e-mail transazionali. L’attivazione/migrazione JWT sui dati dello sviluppo locale è rinviata per richiesta dell’utente; il codice implementato resta conservato e non blocca il lavoro UX. Provider/bootstrap VPS e consumer Tox21 restano nel loro percorso separato.
 
 ## Priorità
 
@@ -69,7 +69,7 @@ La priorità indica il valore della rifinitura per il portfolio, non la gravità
 | PX-12 | Dashboard | P2 | S, B | Blocco 18 implementato, in review; prove e limiti in DASHBOARD-QA.md |
 | PX-13 | Settings: fasi e stati ancora non conclusi | P2 | S, B, V | OTP/MFA e preautorizzazione login implementati, in review; accettazione residua in SETTINGS-STATES-QA.md |
 | PX-14 | Recupero, attivazione e callback SSO | P2 | S, B, V | Blocco 17 implementato, in review; verifica reale con token/account ancora aperta |
-| PX-15 | Notifiche | P2 | S, B, V | Da affrontare |
+| PX-15 | Notifiche | P2 | S, B, V | 20A implementato, in review; 20B aperto; NOTIFICATIONS-20A-QA.md |
 | PX-16 | Supporto, ticket e conversazioni | P2 | S, B | Da affrontare |
 | PX-17 | Feedback e contatti | P2 | S, B | Da affrontare |
 | PX-18 | Pagine di stato e documenti | P3 | S, V | Da affrontare |
@@ -436,6 +436,8 @@ La reintegrazione dei branch feature nel branch corrente e il merge della beta s
 
 ### PX-15 — Notifiche
 
+**Aggiornamento del 27 ottobre:** blocco 20A implementato, in review. Header, catch-up, lista/dettaglio responsive, recupero errori, selezione e paginazione con risposte obsolete protette. [Prove e limiti](NOTIFICATIONS-20A-QA.md). Il blocco 20B rimane aperto; nessuna certificazione generale di consegna o consistenza multi-sessione.
+
 **Dipendenza SMS:** prima dell’accettazione dei flussi che inviano SMS, verificare la configurazione e gli invii con il nuovo account Twilio previsto in [INF-02](#inf-02--invio-sms-nuovo-account-twilio). Il porting a SMS Hosting è superato; non utilizzare l’account Twilio chiuso.
 
 **Perché conta:** una gestione leggibile degli eventi dimostra cura dell'esperienza anche oltre il percorso principale.
@@ -709,7 +711,7 @@ Il refactor N3 / PX-01 precede la sequenza residua qui sotto, che riprende dal b
 | 17 | PX-03/PX-14 — Registrazione e recupero | Revisionato dopo regressioni; SSO ripristinato dall’utente al solo spinner. Prove e limiti aggiornati; review e flussi reali aperti ([prove](REGISTRATION-RECOVERY-QA.md)) |
 | 18 | PX-12 — Dashboard | Implementato, in review: contatori, legende da tastiera, tabella giornaliera, skeleton e retry; [prove e limiti](DASHBOARD-QA.md) |
 | 19 | PX-13 — Settings: fasi successive | Stati OTP/MFA e varianti account completati con perimetro sicuro |
-| 20A | PX-15A/PX-15B — Notifiche: header, lista e dettaglio | Dataset su più pagine; contatori, filtri, mobile e apertura diretta |
+| 20A | PX-15A/PX-15B — Notifiche: header, lista e dettaglio | Implementato, in review; [prove e limiti](NOTIFICATIONS-20A-QA.md) |
 | 20B | PX-15C — Notifiche: azioni e recupero | Lettura, eliminazioni, errori, risorse indisponibili e riconnessione |
 | 20C | PX-15D — E-mail transazionali | Template e collegamenti dei flussi esistenti verificati con fixture appropriate |
 | 21 | PX-16 — Supporto e nuovo ticket | Lista e composizione del messaggio rifinite |

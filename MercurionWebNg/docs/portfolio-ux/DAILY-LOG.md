@@ -694,6 +694,14 @@ Collezioni: null significa loading, [] empty immediato, niente timer o dati prec
 
 **Prove e residui:** [SETTINGS-STATES-QA.md](SETTINGS-STATES-QA.md). Casi automatici con trasporti sintetici distinti dal browser autenticato e dalle prove reali. Smoke test dei singoli flussi, varianti SSO/sessioni e Safari fisico ancora aperti. Nessun invio o modifica di credenziali reali eseguiti dall'agente; nessuna operazione Git o modifica dei segreti. Il successivo blocco pianificato resta 20A / Notifiche.
 
+### 2026-10-27 — Blocco 20A / PX-15A e PX-15B — Centro notifiche
+
+**Intervento:** gerarchia e superfici coerenti con i refactor precedenti, categoria/data/stato leggibili, dettaglio affiancato desktop e dedicato mobile, errori/retry espliciti e skeleton allineato. Facade locale con protezioni per risposte obsolete, cambio filtro e paginazione; nuove notifiche recuperate proposte tramite aggiornamento esplicito. Badge accessibile, conteggio 99+, animazioni fade-in/out conservate con cleanup dei callback. Catch-up contenuto su mobile, retry acknowledgement, Escape e focus di ritorno. Campanella originale conservata; Tailwind 4, nessun nuovo CSS vanilla.
+
+**Verifiche:** 47 test mirati superati, compresi 7 canonici. Tre regressioni riprodotte prima del fix. Geometria lista/dettaglio e testi lunghi a 320/375/640/1280 px nei due temi, card/skeleton e catch-up mobile. Axe senza violazioni gravi/critiche. Typecheck/template, lint, build production e gate bundle/lazy/styling/documentazione superati; iniziale 954.487 / 1.000.000 byte. [Rapporto e limiti](NOTIFICATIONS-20A-QA.md).
+
+**Perimetro:** browser sullo sviluppo, con dettaglio già letto; nessuna azione di lettura/cancellazione/invio eseguita dall'agente. Nessuna modifica backend, dei segreti o operazione Git. L'aggiornamento è in review; prossimo blocco 20B — azioni e recupero; e-mail transazionali nel successivo 20C. QA fisica e prova estesa multi-sessione restano aperte.
+
 ## Modello per le voci successive
 
 ### AAAA-MM-GG — PX-XX — Sottoarea

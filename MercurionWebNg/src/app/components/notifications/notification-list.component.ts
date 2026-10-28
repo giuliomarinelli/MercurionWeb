@@ -12,6 +12,8 @@ import { NotificationListItemComponent } from './notification-list-item.componen
       @for (notification of notifications(); track notification.id) {
         <m-notification-list-item
           [notification]="notification"
+          [selected]="notification.id === selectedId()"
+          [pending]="pending()"
           (opened)="opened.emit($event)"
           (dismissed)="dismissed.emit($event)"
           (readChanged)="readChanged.emit($event)"
@@ -22,10 +24,12 @@ import { NotificationListItemComponent } from './notification-list-item.componen
         </p>
       }
     </section>
-  `
+  `,
 })
 export class NotificationListComponent {
   readonly notifications = input.required<UserNotificationDTO[]>()
+  readonly selectedId = input<string | null>(null)
+  readonly pending = input(false)
   readonly opened = output<UserNotificationDTO>()
   readonly dismissed = output<UserNotificationDTO>()
   readonly readChanged = output<{

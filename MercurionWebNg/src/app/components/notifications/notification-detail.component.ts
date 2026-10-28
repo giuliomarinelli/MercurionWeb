@@ -1,79 +1,80 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core'
 import { DatePipe } from '@angular/common'
 import type { UserNotificationDTO } from '@mercurion/rest-contracts'
+import { ButtonComponent } from '../common/button/button.component'
+import { notificationCategoryLabel } from './notification-presentation'
 
 @Component({
   selector: 'm-notification-detail',
-  imports: [DatePipe],
+  imports: [DatePipe, ButtonComponent],
+  host: { class: 'block min-w-0' },
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (notification(); as item) {
       <section
-        class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-neutral-900"
+        class="min-w-0 rounded-token-surface border border-token-border/50 bg-surface-elevated p-4 sm:p-6"
         aria-labelledby="notification-detail-title"
       >
-        <div class="flex items-start justify-between gap-4">
-          <div>
-            <p class="m-0 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              {{ item.category }}
-            </p>
-            <h2 id="notification-detail-title" class="mt-1 mb-0 text-xl font-semibold">
-              {{ item.title }}
-            </h2>
-          </div>
-          <button
-            type="button"
-            class="text-sm underline underline-offset-2"
-            (click)="closed.emit()"
-          >
-            Chiudi
-          </button>
+        <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
+          <p class="text-xs font-semibold text-on-surface-secondary [overflow-wrap:anywhere]">
+            {{ categoryLabel(item.category) }}
+          </p>
+          <m-button size="sm" variant="ghost" (pressed)="closed.emit()">
+            <span class="xl:hidden">Torna alle notifiche</span
+            ><span class="hidden xl:inline">Chiudi</span>
+          </m-button>
         </div>
-
-        <p class="mt-5 whitespace-pre-line text-sm leading-relaxed text-slate-700 dark:text-slate-200">
+        <h2
+          id="notification-detail-title"
+          tabindex="-1"
+          class="focus:outline-none scroll-mt-24 text-xl font-semibold leading-snug [overflow-wrap:anywhere]"
+        >
+          {{ item.title }}
+        </h2>
+        <div
+          class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-on-surface-secondary"
+        >
+          <time [attr.datetime]="item.createdAt">{{
+            item.createdAt | date: 'dd/MM/yyyy, HH:mm'
+          }}</time>
+          <span>{{ item.readAt ? 'Letta' : 'Non letta' }}</span>
+        </div>
+        <p
+          class="mt-6 whitespace-pre-wrap text-sm leading-7 text-on-surface-main [overflow-wrap:anywhere]"
+        >
           {{ item.body }}
         </p>
-
-        <time class="mt-4 block text-xs text-slate-500 dark:text-slate-400">
-          {{ item.createdAt | date:'medium' }}
-        </time>
-
-        <div class="mt-5 flex flex-wrap gap-3">
-          @if (item.resourceType && item.resourceId) {
-            <button
-              type="button"
-              class="rounded-md bg-light-accent-primary-hq px-4 py-2 text-sm font-semibold text-white dark:bg-dark-accent-primary-btn"
-              (click)="targetOpened.emit(item)"
+        <div class="mt-6 flex flex-wrap gap-2 border-t border-token-border/40 pt-5">
+          @if (item.resourceType === 'help_ticket' && item.resourceId) {
+            <m-button variant="primary" [disabled]="pending()" (pressed)="targetOpened.emit(item)"
+              >Apri contenuto collegato</m-button
             >
-              Apri contenuto collegato
-            </button>
           }
-          <button
-            type="button"
-            class="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold dark:border-slate-600"
-            (click)="readChanged.emit({ notification: item, read: !!item.readAt })"
+          <m-button
+            variant="outline"
+            [disabled]="pending()"
+            (pressed)="readChanged.emit({ notification: item, read: !!item.readAt })"
           >
             {{ item.readAt ? 'Segna non letta' : 'Segna letta' }}
-          </button>
-          <button
-            type="button"
-            class="rounded-md border border-light-error px-4 py-2 text-sm font-semibold text-light-error dark:border-dark-error dark:text-dark-error"
-            (click)="dismissed.emit(item)"
+          </m-button>
+          <m-button
+            variant="ghost"
+            [disabled]="pending()"
+            class="[&_button]:text-light-error dark:[&_button]:text-dark-error-hc"
+            (pressed)="dismissed.emit(item)"
+            >Elimina</m-button
           >
-            Elimina
-          </button>
         </div>
       </section>
     }
-  `
+  `,
 })
 export class NotificationDetailComponent {
   readonly notification = input.required<UserNotificationDTO | null>()
+  readonly pending = input(false)
   readonly closed = output<void>()
   readonly targetOpened = output<UserNotificationDTO>()
   readonly dismissed = output<UserNotificationDTO>()
-  readonly readChanged = output<{
-    notification: UserNotificationDTO
-    read: boolean
-  }>()
+  readonly readChanged = output<{ notification: UserNotificationDTO; read: boolean }>()
+  protected readonly categoryLabel = notificationCategoryLabel
 }
