@@ -752,6 +752,16 @@ Collezioni: null significa loading, [] empty immediato, niente timer o dati prec
 
 **Review residua:** client di posta reali, eventuali invii esplicitamente autorizzati, CI e confronto fra riferimento frontend alle 2 ore e TTL per ambiente. Nessuna e-mail/SMS inviata, account modificato, segreto letto o operazione Git di scrittura. Scheda utente e runtime preservati. Prossimo blocco pianificato: **21 / PX-16 — supporto e nuovo ticket**.
 
+### 2026-10-29 — 21 / PX-16 — Supporto e nuovo ticket
+
+**Stato:** Implementato, in review.
+
+**Intervento:** Help con conteggio, pill Tutti/Non chiusi sui dati caricati, paginazione manuale alternativa e stati vuoti/errori distinti. Card e skeleton allineati, quattro tracciati SVG originali conservati, pending/errori per chiusura e riapertura. Nuovo ticket su componenti condivisi; corretto l’invio del documento Quill completo al posto dell’ultima modifica. Bozza conservata su invio non confermato, chiusura bloccata in pending e risposte tardive vincolate alla sessione.
+
+**Verifiche:** cinque test nuovi fallivano prima delle correzioni; esecuzione finale di 53 test mirati superata, inclusi i 7 del setup e Axe sull’editor inizializzato. Otto prove geometriche con CSS reali coprono 64 combinazioni di card/skeleton. Typecheck, lint, build production, gate bundle/lazy e styling superati; iniziale 952.033 byte.
+
+**Browser e limiti:** Playwright MCP, payload/errore/pending su API intercettate senza invio reale. Frame e resize della scheda autenticata instabili: quei tentativi non certificano animazioni, focus o tastiera. Ispezionate copie statiche della UI QA nei due temi e in 12 combinazioni di viewport, con footer raggiungibile. Restano smoke test visibile, Safari fisico e CI. [Resoconto completo](SUPPORT-21-QA.md). Nessun backend, segreto o Git di scrittura; runtime e schede dell’utente preservati. Prossimo blocco: **22 / conversazione ticket**.
+
 ## Modello per le voci successive
 
 ### AAAA-MM-GG — PX-XX — Sottoarea

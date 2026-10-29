@@ -166,4 +166,21 @@ describe('CollectionSaveOverlayComponent', () => {
       expect(shell.dismissalPolicy()).toEqual({ escape: true, backdrop: true });
     });
   }
+  it('blocks Escape and backdrop while a new ticket is being submitted', async () => {
+    spyOn(ACTION_REGISTRY.NewTicket, 'load').and.resolveTo(TestActionComponent)
+    const session = context.open('NewTicket', { innerScope: 'User' })
+    fixture.detectChanges()
+    await fixture.whenStable()
+    await new Promise(resolve => setTimeout(resolve, 20))
+    context.beginSubmit(session)
+    fixture.detectChanges()
+    const shell = fixture.debugElement.query(By.directive(DialogShellComponent)).componentInstance as DialogShellComponent
+    expect(shell.dismissalPolicy()).toEqual({ escape: false, backdrop: false })
+    shell.onEscape(new Event('keydown'))
+    expect(context.state().phase).toBe('submitting')
+    context.submitFailed(session)
+    fixture.detectChanges()
+    expect(shell.dismissalPolicy()).toEqual({ escape: true, backdrop: true })
+  })
+
 });

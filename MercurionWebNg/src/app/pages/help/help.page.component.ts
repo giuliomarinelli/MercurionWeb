@@ -9,20 +9,18 @@ import {
   effect,
   inject,
   signal,
+  computed,
+  DestroyRef,
   viewChild
 } from '@angular/core'
 import { ActivatedRoute, Router } from '@angular/router'
 import { NgTemplateOutlet } from '@angular/common'
-import { Observable, Subscription, firstValueFrom, map, of, switchMap, take, tap } from 'rxjs'
+import { map, of, switchMap, take, tap } from 'rxjs'
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { AuthSessionRepository } from '../../services/auth-session-repository.service'
 import { HelpService } from '../../services/graphql/help.service'
 import { TypeGuardsService } from '../../services/type-guards.service'
 import { PaginationController } from '../../services/pagination/pagination-controller'
-import { PageModel } from '../../Models/graphql/page.models'
-import {
-  ClientTicket,
-  Ticket,
-} from '../../Models/graphql/help.models'
 import { TicketViewModel, toTicketViewModel } from '../../Models/graphql/help.view-models'
 import { TabsModule } from 'primeng/tabs'
 import { PrimeNG } from 'primeng/config'
@@ -38,6 +36,7 @@ import {
   hasApplicationErrorCode
 } from '../../utils/application-error.util'
 import { PaginationComponent } from '../../components/common/pagination/pagination.component'
+import { ButtonComponent } from '../../components/common/button/button.component'
 
 @Component({
   selector: 'm-help-page',
@@ -46,7 +45,8 @@ import { PaginationComponent } from '../../components/common/pagination/paginati
     NgTemplateOutlet,
     TicketCardComponent,
     TicketCardSkeletonComponent,
-    PaginationComponent
+    PaginationComponent,
+    ButtonComponent
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -78,61 +78,79 @@ import { PaginationComponent } from '../../components/common/pagination/paginati
       }
 
       <ng-template #ticketContent>
-      <div [class.pt-4]="handleTickets()">
-        <button
-          type="button"
-          (click)="newTicket()"
-          class="relative bottom-[10px] w-fit mx-auto text-xs min-[374px]:text-base sm:mx-0 mt-1 py-2.5 px-8 text-white rounded-md transition-colors duration-150 bg-light-accent-primary-hq dark:bg-dark-accent-primary-btn hover:bg-light-accent-primary-hc dark:hover:bg-dark-accent-primary/80 disabled:bg-light-accent-primary-hq/60 disabled:dark:bg-dark-accent-primary/80 disabled:cursor-not-allowed disabled:hover:bg-light-accent-primary-hq/60 disabled:hover:dark:bg-dark-accent-primary/80 flex justify-center items-center gap-2"
-          aria-label="Apri un nuovo ticket di supporto"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current size-7 relative -left-1.5" aria-hidden="true">
+      <section class="mt-6 space-y-6" aria-label="Elenco delle richieste di supporto">
+        <div class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+          <div class="min-w-0">
+            <h2 class="m-0 text-xl font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary">{{ activeTab() === 1 ? 'Richieste degli utenti' : 'Le tue richieste' }}</h2>
+            <p class="mt-2 mb-0 text-sm text-on-surface-secondary">Consulta i ticket e segui le risposte del supporto.</p>
+          </div>
+          @if (activeTab() === 0) {
+            <m-button ariaLabel="Apri un nuovo ticket di supporto" (pressed)="newTicket()">
+              <span class="flex items-center justify-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="size-5 shrink-0 fill-current" aria-hidden="true">
             <path d="M145.5 460.9L152.6 443.4L140.7 428.7C112.5 393.8 96 350.6 96 304C96 191 194.3 96 320 96C445.7 96 544 191 544 304C544 417 445.7 512 320 512C287.4 512 256.6 505.6 228.8 494L217.6 489.4L206.1 493.3L120.2 522.8L145.4 460.8zM64 576C78.8 570.9 129.6 553.4 216.5 523.6C248.1 536.7 283.2 544 320 544C461.4 544 576 436.5 576 304C576 171.5 461.4 64 320 64C178.6 64 64 171.5 64 304C64 358.4 83.3 408.6 115.8 448.8C88.7 515.5 71.4 557.9 64 576zM320 224C340.6 224 357.2 240.7 357.2 261.2C357.2 276.9 348.8 285.7 338.7 291.3C328.1 297.3 317.7 298.6 306.1 300L304 300.3L304 352L336 352L336 327.1C341.3 325.4 347.8 323 354.5 319.2C371 309.9 389.3 292.1 389.3 261.2C389.3 223 358.3 192 320.1 192C281.9 192 250.9 223 250.9 261.2L282.9 261.2C282.9 240.6 299.6 224 320.1 224zM300 420L340 420L340 380L300 380L300 420z"/>
-          </svg>
-          <span>
-            Apri un nuovo ticket di suporto
-          </span>
-        </button>
-      </div>
-
-      <p class="my-4 font-medium">
-        @if (handleTickets() && activeTab() === 1) {
-          Gli utenti hanno creato complessivamente&nbsp;<strong class="text-light-accent-primary-hc dark:text-dark-accent-primary">{{totalItems()}}</strong>&nbsp;ticket
+          </svg><span>Nuovo ticket</span></span>
+            </m-button>
+          }
+        </div>
+        <div class="space-y-3">
+          <div class="flex flex-wrap gap-2" role="group" aria-label="Filtra i ticket caricati">
+            @for (option of filters; track option.value) {
+              <button type="button" class="min-h-11 rounded-full border border-transparent px-4 py-2 text-sm font-medium transition-colors hover:bg-surface-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-light-accent-primary-hq"
+                [class.bg-surface-secondary]="filter() === option.value" [class.border-token-border]="filter() === option.value"
+                [attr.aria-pressed]="filter() === option.value" (click)="filter.set(option.value)">{{ option.label }}</button>
+            }
+          </div>
+          <p class="m-0 text-sm text-on-surface-secondary" role="status" aria-live="polite">
+            @if (loading && items.length === 0) {
+              Caricamento dei ticket…
+            } @else if (items.length > 0) {
+              {{ visibleItems().length }} {{ filter() === 'open' ? 'non chiusi tra i' : 'visibili su' }} {{ items.length }} ticket caricati
+              <span> · {{ totalItems() }} in totale</span>
+            } @else if (!paginationError() && done) {
+              Nessun ticket presente.
+            }
+          </p>
+          @if (filter() === 'open') {
+            <p class="m-0 text-xs text-on-surface-secondary">Il filtro riguarda soltanto i ticket già caricati. Le pagine successive possono contenere altre richieste non chiuse.</p>
+          }
+        </div>
+        <div class="space-y-4">
+          @for (item of visibleItems(); track item.id; let i = $index) {
+            <m-ticket-card class="block" [ticket]="item" [i]="i"
+              [cardMode]="activeTab() === 1 ? 'support' : 'user'" [triggerDisappear]="item.triggerDisappear()" [collapse]="item.collapse()"
+              [actionPending]="!!pendingActions()[item.id]" [actionError]="actionErrors()[item.id] || ''"
+              (onOpenDetail)="openTicketDetail($event)" (close)="onCloseFromCard($event)" (reopen)="onReopenFromCard($event)" />
+          }
+          @if (loading && page === 1) {
+            @for (i of [0, 1, 2, 3, 4]; track i) {
+              <m-ticket-card-skeleton class="block" [i]="i" [support]="activeTab() === 1" />
+            }
+          }
+        </div>
+        @if (!loading && !paginationError() && visibleItems().length === 0) {
+          <div class="rounded-2xl border border-token-border bg-surface-elevated p-5">
+            <h3 class="m-0 text-base font-semibold">{{ items.length ? 'Nessuna richiesta non chiusa tra quelle caricate' : 'Le tue richieste saranno raccolte qui' }}</h3>
+            <p class="mt-2 mb-4 text-sm text-on-surface-secondary">{{ items.length ? 'Puoi mostrare tutti i ticket o caricare le pagine successive, se disponibili.' : 'Quando avrai bisogno di assistenza, apri un ticket con un oggetto e un messaggio.' }}</p>
+            @if (items.length) {
+              <m-button variant="outline" size="sm" (pressed)="filter.set('all')">Mostra tutti</m-button>
+            } @else if (activeTab() === 0) {
+              <m-button variant="outline" (pressed)="newTicket()">Apri il primo ticket</m-button>
+            }
+          </div>
+        }
+        <div #sentinel class="h-px w-full" aria-hidden="true"></div>
+        @if (paginationError()) {
+          <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-token-border p-4">
+            <p role="alert" class="m-0 text-sm text-red-700 dark:text-red-300">Non è stato possibile caricare i ticket. Le richieste già caricate restano disponibili.</p>
+            <m-button variant="outline" size="sm" (pressed)="retryPagination()">Riprova</m-button>
+          </div>
         } @else {
-          Ci sono un totale di&nbsp;<strong class="text-light-accent-primary-hc dark:text-dark-accent-primary">{{totalItems()}}</strong>&nbsp;ticket
-        }
-      </p>
-
-      <div
-        class="mt-px"
-      >
-        @for (item of items; track item.id; let i = $index) {
-          <m-ticket-card
-            [ticket]="item"
-            [i]="i"
-            [cardMode]="typeGuards.isClientTicket(item) ? 'user' : (typeGuards.isTicket(item) ? 'support' : 'user')"
-            [triggerDisappear]="item.triggerDisappear()"
-            [collapse]="item.collapse()"
-            (onOpenDetail)="openTicketDetail($event)"
-            (close)="onCloseFromCard($event)"
-            (reopen)="onReopenFromCard($event)" />
-        }
-        @if (loading && page === 1) {
-          @for (i of [0, 1, 2, 3, 4]; track i) {
-            <m-ticket-card-skeleton [i]="i" />
+          <m-pagination [state]="paginationState()" />
+          @if (!done && !loading) {
+            <div class="flex justify-center"><m-button variant="outline" (pressed)="loadMore()">Carica altri ticket</m-button></div>
           }
         }
-      </div>
-
-      <div #sentinel class="h-px w-full"></div>
-      <m-pagination
-        [state]="paginationState()"
-        (loadMoreRequested)="loadMore()"
-        (retry)="retryPagination()" />
-      @if (empty() && (earlyDone)) {
-        <p class="relative -top-8 text-slate-700 dark:text-slate-200" role="status" aria-live="polite">
-          Non sono ancora presenti ticket&nbsp;<button class="a" type="button" aria-label="Apri adesso il tuo primo ticket" (click)="newTicket()">Apri adesso il tuo primo ticket</button>
-        </p>
-      }
+      </section>
       </ng-template>
     </main>
 
@@ -147,10 +165,21 @@ export class HelpPageComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly syncStatus = inject(RealtimeSyncStatusService)
   private readonly overlayContext = inject(ActionOverlayContextService)
   private readonly cdr = inject(ChangeDetectorRef)
+  private readonly destroyRef = inject(DestroyRef)
   private readonly route = inject(ActivatedRoute)
   private readonly router = inject(Router)
   private readonly primeNG = inject(PrimeNG)
   private readonly pagination = new PaginationController<TicketViewModel>({
+    merge: (current, incoming) => {
+      const merged = new Map(current.map(item => [item.id, item]))
+      for (const item of incoming) {
+        const previous = merged.get(item.id)
+        merged.set(item.id, previous
+          ? { ...item, triggerDisappear: previous.triggerDisappear, collapse: previous.collapse }
+          : item)
+      }
+      return [...merged.values()]
+    },
     fetch: (page) => {
       const request = this.activeTab() === 1 && this.handleTickets()
         ? this.helpService.ticketsAsSupport(page, this.ITEMS_PER_PAGE)
@@ -163,7 +192,7 @@ export class HelpPageComponent implements OnInit, OnDestroy, AfterViewInit {
   })
   private observer?: IntersectionObserver
 
-  protected readonly sentinel = viewChild<ElementRef<HTMLDivElement>>('sentinel');
+  protected readonly sentinel = viewChild<ElementRef<HTMLDivElement>>('sentinel')
   get items(): TicketViewModel[] { return this.pagination.items() }
   get loading(): boolean { return this.pagination.loading() }
   get done(): boolean { return this.pagination.done() }
@@ -175,8 +204,12 @@ export class HelpPageComponent implements OnInit, OnDestroy, AfterViewInit {
   protected readonly tabs = ['Sezione utente', 'Sezione admin']
   private readonly ITEMS_PER_PAGE = 25
 
-  private clsSub?: Subscription
-  private ropSub?: Subscription
+  readonly filter = signal<'all' | 'open'>('all')
+  readonly filters = [{ value: 'all' as const, label: 'Tutti' }, { value: 'open' as const, label: 'Non chiusi' }]
+  readonly visibleItems = computed(() => this.items.filter(item => this.filter() === 'all' || item.status !== 'Closed'))
+  readonly pendingActions = signal<Record<string, boolean>>({})
+  readonly actionErrors = signal<Record<string, string>>({})
+  readonly paginationError = this.pagination.error
 
   handleTickets = signal<boolean>(false)
   activeTab = signal<0 | 1>(0)
@@ -209,6 +242,7 @@ export class HelpPageComponent implements OnInit, OnDestroy, AfterViewInit {
     const initialFullUrl = this.getInitialFullUrl()
 
     this.route.queryParamMap.pipe(
+      takeUntilDestroyed(this.destroyRef),
       take(1),
       switchMap(p => {
         const ticketId = p.get('t_id') ?? ''
@@ -271,8 +305,6 @@ export class HelpPageComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnDestroy(): void {
-    this.clsSub?.unsubscribe()
-    this.ropSub?.unsubscribe()
     this.observer?.disconnect()
     this.pagination.dispose()
   }
@@ -285,6 +317,7 @@ export class HelpPageComponent implements OnInit, OnDestroy, AfterViewInit {
 
     queueMicrotask(() => {
       this.activeTab.set(i as 0 | 1)
+      this.filter.set('all')
       this.resetPagination()
       setTimeout(() => this.startObserver(), 0)
     })
@@ -324,42 +357,41 @@ export class HelpPageComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   onCloseFromCard(ticketId: string): void {
-    this.clsSub = of(null).pipe(
-      switchMap(() =>
-        this.activeTab() === 0 || !this.handleTickets()
-          ? this.helpService.closeMyTicket(ticketId)
-          : this.helpService.closeTicketAsSupport(ticketId)
-      )
-    ).subscribe({
-      next: ok => {
-        if (!ok) return
-
-        this.pagination.replaceItems(this.items.map(t =>
-          t.id === ticketId
-            ? { ...t, status: 'Closed' as const }
-            : t
-        ))
-
-        this.cdr.markForCheck()
-      }
-    })
+    this.changeTicketStatus(ticketId, false)
   }
 
   onReopenFromCard(ticketId: string): void {
-    if (this.activeTab() !== 1 || !this.handleTickets()) return
+    if (this.activeTab() === 1 && this.handleTickets()) this.changeTicketStatus(ticketId, true)
+  }
 
-    this.ropSub = this.helpService.reopenTicketAsSupport(ticketId).subscribe({
+  private changeTicketStatus(ticketId: string, reopen: boolean): void {
+    if (this.pendingActions()[ticketId]) return
+    const tab = this.activeTab()
+    this.pendingActions.update(value => ({ ...value, [ticketId]: true }))
+    this.actionErrors.update(value => ({ ...value, [ticketId]: '' }))
+    const request = reopen
+      ? this.helpService.reopenTicketAsSupport(ticketId)
+      : tab === 0 || !this.handleTickets()
+        ? this.helpService.closeMyTicket(ticketId)
+        : this.helpService.closeTicketAsSupport(ticketId)
+    request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: ok => {
-        if (!ok) return
-
-        this.pagination.replaceItems(this.items.map(t =>
-          t.id === ticketId
-            ? { ...t, status: 'Open' as const }
-            : t
-        ))
-
-        this.cdr.markForCheck()
-      }
+        this.pendingActions.update(value => ({ ...value, [ticketId]: false }))
+        if (tab !== this.activeTab()) return
+        if (!ok) {
+          this.actionErrors.update(value => ({ ...value, [ticketId]: 'La modifica non è stata confermata. Riprova.' }))
+          return
+        }
+        this.pagination.replaceItems(this.items.map(item => item.id === ticketId
+          ? { ...item, status: reopen ? 'Open' as const : 'Closed' as const }
+          : item))
+      },
+      error: () => {
+        this.pendingActions.update(value => ({ ...value, [ticketId]: false }))
+        if (tab === this.activeTab()) {
+          this.actionErrors.update(value => ({ ...value, [ticketId]: 'Impossibile confermare la modifica del ticket. Riprova o aggiorna l’elenco.' }))
+        }
+      },
     })
   }
 
