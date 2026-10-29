@@ -45,6 +45,10 @@ Questi documenti non sono task eseguibili del sistema autonomous-development e n
 
 Il blocco **17 / PX-03 e PX-14** è implementato, in review: registrazione, recupero, attivazione e callback, con [prove e limiti](REGISTRATION-RECOVERY-QA.md). Anche il **18 / PX-12 — Dashboard** è implementato, in review: metriche, grafici accessibili, skeleton e recupero degli errori, con [prove e limiti](DASHBOARD-QA.md). **Blocco corrente: 19 / PX-13 — Settings:** interventi OTP/MFA e gestione della preautorizzazione login implementati, in review; [prove e accettazione residua](SETTINGS-STATES-QA.md). Restano smoke test reali, varianti account e Safari fisico. Il **blocco 20A / PX-15A e PX-15B — Notifiche** è implementato, in review: [prove e limiti](NOTIFICATIONS-20A-QA.md). Il **blocco 20B / PX-15C — azioni e recupero** è implementato e verificato in Chrome/Playwright nei casi documentati, in review: [prove e limiti](NOTIFICATIONS-20B-QA.md). Il successivo blocco pianificato è 20C / PX-15D — e-mail transazionali, dopo la review delle notifiche. L’attivazione/migrazione JWT sui dati dello sviluppo locale è rinviata per richiesta dell’utente; il codice implementato resta conservato e non blocca il lavoro UX. Provider/bootstrap VPS e consumer Tox21 restano nel loro percorso separato.
 
+## Aggiornamento del 29 ottobre — e-mail transazionali
+
+L’utente ha eseguito smoke test delle notifiche con esito positivo e autorizzato il passaggio al **20C / PX-15D**, ora implementato e in review: 13 template, inlining, contrasto/OTP, copy e collegamenti, anteprime locali senza SMTP. [Inventario, verifiche e limiti](EMAILS-20C-QA.md). Restano prove nei client di posta reali, eventuali invii autorizzati e verifica del riferimento frontend alle 2 ore rispetto al TTL configurato. Prossimo blocco pianificato: **21 / PX-16 — supporto e nuovo ticket**. I residui fisici, di sessioni indipendenti e di CI dei blocchi precedenti restano espliciti nei relativi report.
+
 ## Priorità
 
 - **P1**: esperienza centrale e schermate che mostrano maggiormente il valore del progetto.
@@ -69,7 +73,7 @@ La priorità indica il valore della rifinitura per il portfolio, non la gravità
 | PX-12 | Dashboard | P2 | S, B | Blocco 18 implementato, in review; prove e limiti in DASHBOARD-QA.md |
 | PX-13 | Settings: fasi e stati ancora non conclusi | P2 | S, B, V | OTP/MFA e preautorizzazione login implementati, in review; accettazione residua in SETTINGS-STATES-QA.md |
 | PX-14 | Recupero, attivazione e callback SSO | P2 | S, B, V | Blocco 17 implementato, in review; verifica reale con token/account ancora aperta |
-| PX-15 | Notifiche | P2 | S, B, V | 20A/20B implementati, QA finale e review aperte; NOTIFICATIONS-20A-QA.md e NOTIFICATIONS-20B-QA.md |
+| PX-15 | Notifiche | P2 | S, B, V | 20A/20B/20C implementati, in review; prove e limiti in NOTIFICATIONS-20A-QA.md, NOTIFICATIONS-20B-QA.md e EMAILS-20C-QA.md |
 | PX-16 | Supporto, ticket e conversazioni | P2 | S, B | Da affrontare |
 | PX-17 | Feedback e contatti | P2 | S, B | Da affrontare |
 | PX-18 | Pagine di stato e documenti | P3 | S, V | Da affrontare |
@@ -713,7 +717,7 @@ Il refactor N3 / PX-01 precede la sequenza residua qui sotto, che riprende dal b
 | 19 | PX-13 — Settings: fasi successive | Stati OTP/MFA e varianti account completati con perimetro sicuro |
 | 20A | PX-15A/PX-15B — Notifiche: header, lista e dettaglio | Implementato, in review; [prove e limiti](NOTIFICATIONS-20A-QA.md) |
 | 20B | PX-15C — Notifiche: azioni e recupero | Implementato; Playwright con API simulate e backend reale, due client dello stesso login; review, Safari e login indipendenti residui; [prove e limiti](NOTIFICATIONS-20B-QA.md) |
-| 20C | PX-15D — E-mail transazionali | Template e collegamenti dei flussi esistenti verificati con fixture appropriate |
+| 20C | PX-15D — E-mail transazionali | Implementato, in review; 13 template e collegamenti verificati senza SMTP; prove client reali residue; [prove e limiti](EMAILS-20C-QA.md) |
 | 21 | PX-16 — Supporto e nuovo ticket | Lista e composizione del messaggio rifinite |
 | 22 | PX-16 — Conversazione ticket | Storico, composer e scrolling verificati |
 | 23 | PX-17/PX-18 — Pagine complementari | Tono, leggibilità e azioni coerenti |

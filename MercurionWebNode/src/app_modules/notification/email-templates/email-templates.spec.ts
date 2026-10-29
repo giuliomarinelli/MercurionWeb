@@ -1,8 +1,8 @@
-import { readFileSync, readdirSync } from 'node:fs';
-import { join } from 'node:path';
-import { DeterministicHandlebarsAdapter } from './deterministic-handlebars.adapter';
+import { readFileSync, readdirSync } from 'node:fs'
+import { join } from 'node:path'
+import { DeterministicHandlebarsAdapter } from './deterministic-handlebars.adapter'
 
-const templateDirectory = join(__dirname);
+const templateDirectory = join(__dirname)
 const messageTemplates = [
   'confirmation.hbs',
   'email-changed-new-contact.hbs',
@@ -17,9 +17,9 @@ const messageTemplates = [
   'support---notify-support-new-message.hbs',
   'support---notify-support-new-ticket.hbs',
   'support---notify-user-support-replied.hbs',
-] as const;
+] as const
 
-type Fixture = Record<string, string>;
+type Fixture = Record<string, string>
 
 const fixtures: Record<(typeof messageTemplates)[number], Fixture> = {
   'confirmation.hbs': { firstName: 'Ada', url: 'https://example.test/confirm?a=1&b=2' },
@@ -52,13 +52,13 @@ const fixtures: Record<(typeof messageTemplates)[number], Fixture> = {
     ticketMessageBody: '<b>Reply</b>',
     url: 'https://example.test/help?m=user&t_id=123',
   },
-};
+}
 
 function render(template: string, context: Fixture): Promise<string> {
-  const adapter = new DeterministicHandlebarsAdapter(templateDirectory);
+  const adapter = new DeterministicHandlebarsAdapter(templateDirectory)
   const mail: { data: { template: string; context: Fixture; html?: string } } = {
     data: { template, context },
-  };
+  }
   return new Promise((resolve, reject) => {
     adapter.compile(
       mail,
@@ -72,47 +72,74 @@ function render(template: string, context: Fixture): Promise<string> {
           partials: { dir: templateDirectory },
         },
       },
-    );
-  });
+    )
+  })
 }
 
 describe('notification email templates', () => {
   it.each(messageTemplates)('renders %s through the canonical shell', async (template) => {
-    const html = await render(template, fixtures[template]);
+    const html = await render(template, fixtures[template])
 
-    expect(html).toContain('<!DOCTYPE html>');
-    expect(html).toContain('class="email-wrapper"');
-    expect(html).toContain('class="logo"');
-    expect(html).toContain('class="footer"');
-    expect(html).not.toContain('{{');
-    expect(html).not.toContain('<script>alert');
-  });
+    expect(html).toContain('<!DOCTYPE html>')
+    expect(html).toContain('class="email-wrapper"')
+    expect(html).toContain('class="logo"')
+    expect(html).toContain('class="footer"')
+    expect(html).not.toContain('{{')
+    expect(html).not.toContain('<script>alert')
+  })
 
   it('preserves escaped URLs and message bodies', async () => {
-    const html = await render('confirmation.hbs', fixtures['confirmation.hbs']);
-    expect(html).toContain('https://example.test/confirm?a&#x3D;1&amp;b&#x3D;2');
+    const html = await render('confirmation.hbs', fixtures['confirmation.hbs'])
+    expect(html).toContain('href="https://example.test/confirm?a=1&amp;b=2"')
 
     const supportHtml = await render(
       'support---notify-support-new-message.hbs',
       fixtures['support---notify-support-new-message.hbs'],
-    );
-    expect(supportHtml).toContain('&lt;script&gt;alert(&quot;x&quot;)&lt;/script&gt;');
-  });
+    )
+    expect(supportHtml).toContain('&lt;script&gt;')
+    expect(supportHtml).toContain('&lt;/script&gt;')
+    expect(supportHtml).not.toContain('<script>')
+  })
 
   it('keeps strict rendering for missing required context', async () => {
-    await expect(render('confirmation.hbs', { firstName: 'Ada' })).rejects.toThrow();
-  });
+    await expect(render('confirmation.hbs', { firstName: 'Ada' })).rejects.toThrow()
+  })
+
+  it.each(messageTemplates.filter(template => template.startsWith('support---')))(
+    'uses an assistance title rather than an MFA title in %s',
+    async template => {
+      const html = await render(template, fixtures[template])
+      expect(html).toContain('<title>Mercurion: assistenza</title>')
+    },
+  )
+
+  it('announces a new ticket rather than a reply to support', async () => {
+    const html = await render(
+      'support---notify-support-new-ticket.hbs',
+      fixtures['support---notify-support-new-ticket.hbs'],
+    )
+    expect(html).toContain('È stato aperto il ticket')
+    expect(html).not.toContain('ha ricevuto una nuova risposta')
+  })
+
+  it('inlines the CTA style and retains responsive and dark-mode rules', async () => {
+    const html = await render('confirmation.hbs', fixtures['confirmation.hbs'])
+    const button = html.match(/<a\b[^>]*class="btn-primary"[^>]*>/)?.[0]
+    expect(button).toMatch(/style="[^"]*background-color:/)
+    expect(html).toContain('name="viewport"')
+    expect(html).toContain('prefers-color-scheme: dark')
+  })
 
   it('guards the 13 message templates against full-layout duplication', () => {
-    const files = readdirSync(templateDirectory).filter((file) => file.endsWith('.hbs'));
-    expect(files.sort()).toEqual([...messageTemplates].sort());
+    const files = readdirSync(templateDirectory).filter((file) => file.endsWith('.hbs'))
+    expect(files.sort()).toEqual([...messageTemplates].sort())
 
     for (const file of files) {
-      const source = readFileSync(join(templateDirectory, file), 'utf8');
-      expect(source).toMatch(/^\{\{#> layouts\/email-shell/);
-      expect(source).not.toContain('<!DOCTYPE html>');
-      expect(source).not.toContain('<style>');
-      expect(source).not.toContain('<svg');
+      const source = readFileSync(join(templateDirectory, file), 'utf8')
+      expect(source).toMatch(/^\{\{#> layouts\/email-shell/)
+      expect(source).not.toContain('<!DOCTYPE html>')
+      expect(source).not.toContain('<style>')
+      expect(source).not.toContain('<svg')
     }
-  });
-});
+  })
+})

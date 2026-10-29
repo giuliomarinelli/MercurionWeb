@@ -164,12 +164,12 @@ export const EMAIL_TEMPLATE_REGISTRY = {
   },
   'help-message-added': {
     asset: 'support---notify-support-new-message.hbs',
-    subject: context => `Un nuovo ticket messaggio è stato pubblicato nel ticket #${context.ticketPublicId}`,
+    subject: context => `Supporto Mercurion: nuovo messaggio nel ticket #${context.ticketPublicId}`,
     isValidContext: isHelp,
   },
   'help-support-replied': {
     asset: 'support---notify-user-support-replied.hbs',
-    subject: context => `Supporto Mercurion: Il ticket #${context.ticketPublicId} ha ricevuto una nuova risposta`,
+    subject: context => `Supporto Mercurion: nuova risposta al ticket #${context.ticketPublicId}`,
     isValidContext: isHelp,
   },
 } satisfies { [K in EmailTemplateKey]: EmailTemplateDefinition<K> }

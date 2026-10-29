@@ -34,8 +34,31 @@ export class MailSenderService {
     }
 
     private generateUrl(mode: 'user' | 'support', ticketId: UUID): string {
-        const base = this.configService.get<string>('App.activationOrigin')!
-        return `${base}/help?m=${mode}&t_id=${ticketId}`
+        const base = this.configService.get<string>('App.activationOrigin')!.replace(/\/+$/, '')
+        const url = new URL(`${base}/help`)
+        url.searchParams.set('m', mode)
+        url.searchParams.set('t_id', ticketId)
+        return url.toString()
+    }
+
+    private messageText(message: TicketMessage): string | null {
+        let delta: unknown = message.contentDelta
+        if (typeof delta === 'string') {
+            try {
+                delta = JSON.parse(delta)
+            } catch {
+                return null
+            }
+        }
+        if (!delta || typeof delta !== 'object' || !('ops' in delta) || !Array.isArray(delta.ops)) {
+            return null
+        }
+        // Text insertions are escaped by Handlebars. Embeds stay in the linked ticket.
+        const text = delta.ops.flatMap((operation: unknown) => {
+            if (!operation || typeof operation !== 'object' || !('insert' in operation)) return []
+            return typeof operation.insert === 'string' ? [operation.insert] : []
+        }).join('').trim()
+        return text || null
     }
 
     public async send<K extends EmailTemplateKey>(
@@ -65,7 +88,7 @@ export class MailSenderService {
         }
         const context: SupportContext = {
             ticketPublicId,
-            ticketMessageBody: message.contentHtml,
+            ticketMessageBody: this.messageText(message),
             userFirstName,
             url: this.generateUrl('support', ticket.id)
         }
@@ -83,7 +106,7 @@ export class MailSenderService {
         }
         const context: SupportContext = {
             ticketPublicId,
-            ticketMessageBody: message.contentHtml,
+            ticketMessageBody: this.messageText(message),
             userFirstName,
             url: this.generateUrl('user', ticket.id)
         }
@@ -100,7 +123,7 @@ export class MailSenderService {
         }
         const context: SupportContext = {
             ticketPublicId,
-            ticketMessageBody: message.contentHtml,
+            ticketMessageBody: this.messageText(message),
             userFirstName,
             url: this.generateUrl('support', ticket.id)
         }

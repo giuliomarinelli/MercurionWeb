@@ -742,6 +742,16 @@ Collezioni: null significa loading, [] empty immediato, niente timer o dati prec
 
 **Evidenze e limiti:** [resoconto completo](NOTIFICATIONS-20B-QA.md), inclusi click forzati dopo controllo del target nei passaggi hidden/visible. Backup locale fuori repository. Gate documentazione e controllo whitespace; nessuna ripetizione delle suite applicative per le sole aggiunte documentali. Restano review manuale, Safari fisico, login indipendenti e CI sul commit finale. Prossimo blocco pianificato: **20C / e-mail transazionali**.
 
+### 2026-10-29 — 20C / PX-15D — E-mail transazionali
+
+**Stato:** Implementato, in review. Avvio dopo smoke test positivo delle notifiche comunicato dall’utente.
+
+**Intervento:** inventariate le 13 chiavi esistenti; corretti titoli MFA nei messaggi assistenza, copy del nuovo ticket e oggetti. CSS centralizzato e inlining tramite adapter esistente, contrasto OTP/footer nei due temi, larghezze e wrapping mobile, istruzioni per scadenza senza TTL fissi nelle e-mail. Anteprime ticket ricavate dal testo Delta con escaping; URL Help normalizzati conservando modalità e ID. Logo conservato; nessuna modifica a segreti, policy o durate server.
+
+**Prove:** cinque test nuovi fallivano prima delle correzioni. Esecuzione finale di 50 test Nest in sei suite superata, incluso MailerModule reale con trasporto JSON e dati sintetici. Typecheck, lint mirato, build Nest e controllo degli asset compilati superati. Playwright MCP: 117 casi di rendering/fallback, focus da tastiera e rilevazione di due fixture negative; 11 test browser aggiunti alla suite critical e caricati con `--list`, senza avviare un browser via CLI. Screenshot ispezionati. [Inventario, comandi e limiti](EMAILS-20C-QA.md).
+
+**Review residua:** client di posta reali, eventuali invii esplicitamente autorizzati, CI e confronto fra riferimento frontend alle 2 ore e TTL per ambiente. Nessuna e-mail/SMS inviata, account modificato, segreto letto o operazione Git di scrittura. Scheda utente e runtime preservati. Prossimo blocco pianificato: **21 / PX-16 — supporto e nuovo ticket**.
+
 ## Modello per le voci successive
 
 ### AAAA-MM-GG — PX-XX — Sottoarea

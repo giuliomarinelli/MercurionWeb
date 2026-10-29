@@ -48,6 +48,15 @@ Root CI wrappers are `npm run ci:lint:nest`, `npm run ci:typecheck:nest`,
 `npm run ci:test:nest`, `npm run ci:test:nest:e2e` and `npm run ci:build:nest`.
 Unit/E2E diagnostics are written to `coverage` and `test-results` by the CI variants.
 
+## Transactional email previews
+
+After `npm run build`, run `npm run check:email-assets` to validate the compiled
+templates through the production adapter, then `npm run preview:emails` to render
+all 13 templates with synthetic data. Open `test-results/email-previews/index.html`.
+The preview command does not configure SMTP or send messages. It preserves inline
+styles plus responsive/dark-mode rules; actual mail-client rendering and delivery
+require separate checks. See the [email QA report](../MercurionWebNg/docs/portfolio-ux/EMAILS-20C-QA.md).
+
 ## Contracts
 
 - REST controllers are under `src/app_modules` and `src/*.controller.ts`; route ownership,
