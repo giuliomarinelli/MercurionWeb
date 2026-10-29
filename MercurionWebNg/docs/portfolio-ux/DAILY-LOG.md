@@ -762,6 +762,16 @@ Collezioni: null significa loading, [] empty immediato, niente timer o dati prec
 
 **Browser e limiti:** Playwright MCP, payload/errore/pending su API intercettate senza invio reale. Frame e resize della scheda autenticata instabili: quei tentativi non certificano animazioni, focus o tastiera. Ispezionate copie statiche della UI QA nei due temi e in 12 combinazioni di viewport, con footer raggiungibile. Restano smoke test visibile, Safari fisico e CI. [Resoconto completo](SUPPORT-21-QA.md). Nessun backend, segreto o Git di scrittura; runtime e schede dell’utente preservati. Prossimo blocco: **22 / conversazione ticket**.
 
+### 2026-10-29 — 22 / PX-16 — Conversazione ticket
+
+**Stato:** Implementato, in review.
+
+**Intervento:** dettaglio su componenti condivisi, storico paginato con posizione di lettura conservata e nuove risposte senza trascinamento al fondo. Composer con documento Quill completo e bozza cancellata solo alla conferma; realtime/refresh conservano il componente, pending ed errori sono espliciti. Chiusura/riapertura serializzate, risposte obsolete ignorate e focus ripristinato dopo il cambio di comando. Icone originali e nove azioni Quill conservate; Tailwind per il layout, CSS limitato al DOM Quill.
+
+**Verifica:** 69 test mirati superati su stato, documento, bozza, scrolling geometrico e focus, incluso il ritorno alla card ricreata; Axe nei due temi, lint, typecheck, build e gate bundle/lazy/styling. Bundle iniziale 954.595 byte. Playwright sul runtime reale con fixture e mutazioni intercettate: errore/conferma, pending/Escape, storico e refresh, scope supporto e 12 combinazioni tema/viewport. [Comandi, prove e limiti](SUPPORT-22-QA.md).
+
+**Residui:** invii e persistenza reali autorizzati, client indipendenti, Safari fisico con tastiera e review/CI. Nessun invio reale, modifica backend/segreti o Git di scrittura. Prossimo blocco: **23 / PX-17 e PX-18 — pagine complementari**.
+
 ## Modello per le voci successive
 
 ### AAAA-MM-GG — PX-XX — Sottoarea

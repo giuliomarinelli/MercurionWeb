@@ -5,6 +5,7 @@ import { HelpService } from '../../services/graphql/help.service'
 import { ClientTicket } from '../../Models/graphql/help.models'
 import { PageModel } from '../../Models/graphql/page.models'
 import { AuthSessionRepository } from '../../services/auth-session-repository.service'
+import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service'
 
 export function ticketFixture(id: string, status: ClientTicket['status'] = 'Open'): ClientTicket {
   return { id, publicId: 'MTCK-000000123', subject: 'Richiesta di assistenza', status,
@@ -109,6 +110,24 @@ describe('HelpPageComponent list states', () => {
     expect(component.activeTab()).toBe(0)
     expect(help.reopenTicketAsSupport).not.toHaveBeenCalled()
     expect(help.ticketsAsSupport).not.toHaveBeenCalled()
+  })
+
+  it('returns focus to the replacement card after the list refreshes during a conversation', async () => {
+    component.openTicketDetail('a')
+    await settle()
+    const overlay = TestBed.inject(ActionOverlayContextService)
+    component.resetPagination()
+    await settle()
+    const replacement = fixture.nativeElement.querySelector('[data-ticket-id="a"] button[aria-label^="Apri ticket"]') as HTMLButtonElement
+    const other = document.createElement('button')
+    document.body.append(other)
+    other.focus()
+    other.remove()
+    overlay.close()
+    await new Promise(resolve => setTimeout(resolve, 510))
+    fixture.detectChanges()
+    await settle()
+    expect(document.activeElement).toBe(replacement)
   })
   it('deduplicates overlapping pages without resetting the active filter', async () => {
     help.myTickets.and.callFake((page: number) => of(pageOf([ticketFixture('same')], page, 2)))

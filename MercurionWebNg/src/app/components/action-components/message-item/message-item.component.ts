@@ -16,10 +16,10 @@ type AnyMsg = TicketMessage | ClientTicketMessage;
          [ngClass]="isSent() ? 'justify-end' : 'justify-start'"
          role="listitem">
 
-      <div class="max-w-[85%] sm:max-w-[70%] md:max-w-[60%]">
+      <div class="min-w-0 max-w-[92%] sm:max-w-[80%] md:max-w-[75%]">
 
           <!-- optional meta line (name + time) -->
-        <div class="mb-1 flex items-center gap-1">
+        <div class="mb-1 flex flex-wrap items-center gap-1 [overflow-wrap:anywhere]">
           <div
             class="text-[11px] sm:text-xs text-slate-700 dark:text-slate-200"
             [ngClass]="isSent() ? 'text-right' : 'text-left'"
@@ -46,16 +46,16 @@ type AnyMsg = TicketMessage | ClientTicketMessage;
             relative rounded-2xl px-3.5 py-2.5 text-sm sm:text-[0.95rem] leading-relaxed
             border shadow-sm
             transition-all duration-200
-            whitespace-normal break-words
+            whitespace-normal [overflow-wrap:anywhere]
+            outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq focus-visible:ring-offset-2
           "
           [ngClass]="bubbleClass()"
           role="article"
           tabindex="0"
-          aria-live="polite"
           [attr.aria-label]="(isSent() ? 'Messaggio inviato' : 'Messaggio ricevuto') + ' da ' + authorName() + ' il ' + (_msg()?.createdAt | date :'dd/MM/yyyy HH:mm:ss')"
         >
           <!-- contenuto HTML da quill -->
-          <div class="prose prose-sm dark:prose-invert max-w-none"
+          <div class="max-w-none text-inherit [&_a]:underline [&_pre]:whitespace-pre-wrap [&_img]:max-w-full [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5"
                [innerHTML]="_msg()?.contentHtml">
           </div>
         </div>

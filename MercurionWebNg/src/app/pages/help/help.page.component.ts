@@ -11,7 +11,9 @@ import {
   signal,
   computed,
   DestroyRef,
-  viewChild
+  viewChild,
+  afterNextRender,
+  Injector
 } from '@angular/core'
 import { ActivatedRoute, Router } from '@angular/router'
 import { NgTemplateOutlet } from '@angular/common'
@@ -52,7 +54,7 @@ import { ButtonComponent } from '../../components/common/button/button.component
   template: `
 
     <main class="main-container" role="main" [attr.aria-busy]="loading">
-      <h1 id="help-heading" class="h1-underline">
+      <h1 id="help-heading" class="h1-underline" tabindex="-1">
         Supporto
       </h1>
 
@@ -116,7 +118,7 @@ import { ButtonComponent } from '../../components/common/button/button.component
         </div>
         <div class="space-y-4">
           @for (item of visibleItems(); track item.id; let i = $index) {
-            <m-ticket-card class="block" [ticket]="item" [i]="i"
+            <m-ticket-card class="block" [attr.data-ticket-id]="item.id" [ticket]="item" [i]="i"
               [cardMode]="activeTab() === 1 ? 'support' : 'user'" [triggerDisappear]="item.triggerDisappear()" [collapse]="item.collapse()"
               [actionPending]="!!pendingActions()[item.id]" [actionError]="actionErrors()[item.id] || ''"
               (onOpenDetail)="openTicketDetail($event)" (close)="onCloseFromCard($event)" (reopen)="onReopenFromCard($event)" />
@@ -169,6 +171,9 @@ export class HelpPageComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly route = inject(ActivatedRoute)
   private readonly router = inject(Router)
   private readonly primeNG = inject(PrimeNG)
+  private readonly element = inject<ElementRef<HTMLElement>>(ElementRef)
+  private readonly injector = inject(Injector)
+  private readonly returnToTicket = signal<string | null>(null)
   private readonly pagination = new PaginationController<TicketViewModel>({
     merge: (current, incoming) => {
       const merged = new Map(current.map(item => [item.id, item]))
@@ -217,6 +222,23 @@ export class HelpPageComponent implements OnInit, OnDestroy, AfterViewInit {
 
   constructor() {
     this.primeNG.setConfig({ theme: { preset: Aura, options: { darkModeSelector: '.dark' } } })
+    effect(() => {
+      const ticketId = this.returnToTicket()
+      const mounted = this.overlayContext.isMounted()
+      const loading = this.pagination.loading()
+      this.visibleItems()
+      if (!ticketId || mounted || loading) return
+      this.returnToTicket.set(null)
+      afterNextRender(() => {
+        const host = this.element.nativeElement
+        if (host.ownerDocument.activeElement !== host.ownerDocument.body) return
+        const card = [...host.querySelectorAll<HTMLElement>('[data-ticket-id]')]
+          .find(item => item.dataset['ticketId'] === ticketId)
+        const target = card?.querySelector<HTMLButtonElement>('button[aria-label^="Apri ticket"]')
+          ?? host.querySelector<HTMLElement>('#help-heading')
+        target?.focus({ preventScroll: true })
+      }, { injector: this.injector })
+    })
     effect(() => {
       const event = this.invalidations.last()
       if (!event) return
@@ -346,6 +368,7 @@ export class HelpPageComponent implements OnInit, OnDestroy, AfterViewInit {
     queueMicrotask(() => {
       const scope = this.activeTab() === 0 ? 'User' : 'Support'
       this.overlayContext.open('TicketDetail', { ticketId, innerScope: scope })
+      this.returnToTicket.set(ticketId)
     })
   }
 

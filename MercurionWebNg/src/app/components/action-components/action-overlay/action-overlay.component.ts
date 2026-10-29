@@ -74,7 +74,7 @@ export class ActionOverlayComponent {
   protected readonly dismissalPolicy = computed<DialogDismissalPolicy>(() => {
     const state = this.ctx.state()
     const submittingCollection = state.phase === 'submitting' &&
-      ['CreateCollection', 'SelectCollectionThenRoute', 'BindCollectionsToMolecule', 'AddMoleculesToCollection', 'MoleculeCollectionItemSave', 'NewTicket'].includes(state.scope)
+      ['CreateCollection', 'SelectCollectionThenRoute', 'BindCollectionsToMolecule', 'AddMoleculesToCollection', 'MoleculeCollectionItemSave', 'NewTicket', 'TicketDetail'].includes(state.scope)
     return { escape: !submittingCollection, backdrop: !submittingCollection }
   })
 

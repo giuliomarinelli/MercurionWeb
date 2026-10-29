@@ -53,6 +53,10 @@ L’utente ha eseguito smoke test delle notifiche con esito positivo e autorizza
 
 Il **21 / PX-16** è implementato, in review: Help, pill Tutti/Non chiusi sui dati caricati, card/skeleton allineati e nuovo ticket con documento Quill completo, pending ed errori espliciti. [Prove e limiti](SUPPORT-21-QA.md). Restano smoke test del runtime visibile, focus/animazioni, Safari fisico e CI; le prove browser con mutazioni sono sintetiche. Prossimo blocco: **22 / PX-16 — conversazione ticket**.
 
+## Aggiornamento del 29 ottobre — conversazione ticket
+
+Il **22 / PX-16** è implementato, in review: documento Quill completo, bozza conservata fino alla conferma, refresh senza smontare il composer, storico paginato e posizione di lettura preservata. Pending, errori di stato e focus dei comandi coordinati con l’overlay. [Prove e limiti](SUPPORT-22-QA.md). Le prove browser usano risposte intercettate, senza messaggi reali; restano persistenza end-to-end, Safari fisico e review/CI. Prossimo blocco: **23 / PX-17 e PX-18 — pagine complementari**.
+
 ## Priorità
 
 - **P1**: esperienza centrale e schermate che mostrano maggiormente il valore del progetto.
@@ -723,7 +727,7 @@ Il refactor N3 / PX-01 precede la sequenza residua qui sotto, che riprende dal b
 | 20B | PX-15C — Notifiche: azioni e recupero | Implementato; Playwright con API simulate e backend reale, due client dello stesso login; review, Safari e login indipendenti residui; [prove e limiti](NOTIFICATIONS-20B-QA.md) |
 | 20C | PX-15D — E-mail transazionali | Implementato, in review; 13 template e collegamenti verificati senza SMTP; prove client reali residue; [prove e limiti](EMAILS-20C-QA.md) |
 | 21 | PX-16 — Supporto e nuovo ticket | Implementato, in review; [prove e limiti](SUPPORT-21-QA.md) |
-| 22 | PX-16 — Conversazione ticket | Storico, composer e scrolling verificati |
+| 22 | PX-16 — Conversazione ticket | Implementato, in review; storico, composer, refresh e scrolling; [prove e limiti](SUPPORT-22-QA.md) |
 | 23 | PX-17/PX-18 — Pagine complementari | Tono, leggibilità e azioni coerenti |
 | 24 | PX-20 — Reattività | Misure e interventi sui soli punti dimostrati |
 | 25 | PX-21 — Demo portfolio | Dataset, percorso e schermate finali verificati |
