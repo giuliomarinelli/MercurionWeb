@@ -53,14 +53,15 @@ import { notificationCategoryLabel } from './notification-presentation'
           <m-button
             variant="outline"
             [disabled]="pending()"
+            [loading]="readPending()"
+            [ariaLabel]="item.readAt ? 'Segna non letta' : 'Segna letta'"
             (pressed)="readChanged.emit({ notification: item, read: !!item.readAt })"
           >
             {{ item.readAt ? 'Segna non letta' : 'Segna letta' }}
           </m-button>
           <m-button
-            variant="ghost"
+            variant="destructive"
             [disabled]="pending()"
-            class="[&_button]:text-light-error dark:[&_button]:text-dark-error-hc"
             (pressed)="dismissed.emit(item)"
             >Elimina</m-button
           >
@@ -72,6 +73,7 @@ import { notificationCategoryLabel } from './notification-presentation'
 export class NotificationDetailComponent {
   readonly notification = input.required<UserNotificationDTO | null>()
   readonly pending = input(false)
+  readonly readPending = input(false)
   readonly closed = output<void>()
   readonly targetOpened = output<UserNotificationDTO>()
   readonly dismissed = output<UserNotificationDTO>()

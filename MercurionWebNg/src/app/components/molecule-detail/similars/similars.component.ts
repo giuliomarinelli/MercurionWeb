@@ -28,8 +28,8 @@ import { SmoothResizeDirective } from '../../common/smooth-resize/smooth-resize.
             <m-similar-item [molecule]="molecule" [i]="i" />
           }
         } @else {
-          <div class="min-h-22.5 flex items-center justify-center p-3">
-            <p class="text-xs xs:text-sm text-center leading-snug whitespace-normal wrap-break-word max-w-lg">
+          <div class="min-h-22.5 flex items-center p-3">
+            <p class="text-xs xs:text-sm leading-snug whitespace-normal wrap-break-word max-w-lg">
               @if (onlyKnown()) {
                 Nessun analogo noto trovato. Deseleziona <strong>Mostra solo composti noti</strong> per includere i lead sperimentali.
               } @else { Nessun analogo suggerito disponibile per questa molecola. }

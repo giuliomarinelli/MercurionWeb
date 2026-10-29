@@ -1,21 +1,11 @@
-import {
-  DestroyRef,
-  effect,
-  inject,
-  Injectable,
-  signal,
-  untracked
-} from '@angular/core'
+import { DestroyRef, effect, inject, Injectable, signal, untracked } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
-import {
-  firstValueFrom,
-  type Observable
-} from 'rxjs'
+import { firstValueFrom, Subject, type Observable } from 'rxjs'
 import type {
   NotificationListState,
   NotificationPageResponse,
   NotificationRecoveryResponse,
-  UserNotificationDTO
+  UserNotificationDTO,
 } from '@mercurion/rest-contracts'
 
 import { AuthStateStore } from './auth-state.store'
@@ -53,9 +43,10 @@ export class InAppNotificationService {
   private readonly _syncCursor = signal<string | null>(null)
   readonly syncCursor = this._syncCursor.asReadonly()
 
-  private readonly _lastRecovery =
-    signal<NotificationRecoveryResponse | null>(null)
+  private readonly _lastRecovery = signal<NotificationRecoveryResponse | null>(null)
   readonly lastRecovery = this._lastRecovery.asReadonly()
+  private readonly recoveryEvents = new Subject<NotificationRecoveryResponse>()
+  readonly recoveryApplied = this.recoveryEvents.asObservable()
 
   private activeOwner: string | null = null
   private generation = 0
@@ -69,7 +60,8 @@ export class InAppNotificationService {
   private readonly toastedNotificationIds = new Set<string>()
 
   constructor() {
-    this.realtime.onNotificationChanged()
+    this.realtime
+      .onNotificationChanged()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
         if (this.activeOwner) {
@@ -80,9 +72,7 @@ export class InAppNotificationService {
     effect(() => {
       const authenticated = this.authState.authenticated()
       const session = this.authState.clientSession()
-      const owner = authenticated && session
-        ? `${session.userId}:${session.sessionId}`
-        : null
+      const owner = authenticated && session ? `${session.userId}:${session.sessionId}` : null
 
       untracked(() => this.syncOwner(owner))
     })
@@ -98,14 +88,17 @@ export class InAppNotificationService {
       this.activeOwner = null
       this.recoveryRequested = false
       this.stopPolling()
+      this.recoveryEvents.complete()
     })
   }
 
-  list(options: {
-    cursor?: string
-    limit?: number
-    state?: NotificationListState
-  } = {}): Observable<NotificationPageResponse> {
+  list(
+    options: {
+      cursor?: string
+      limit?: number
+      state?: NotificationListState
+    } = {}
+  ): Observable<NotificationPageResponse> {
     return this.api.list(options)
   }
 
@@ -118,9 +111,8 @@ export class InAppNotificationService {
     await this.requestRecovery()
   }
 
-  async markAllReadThroughCurrentCursor(): Promise<void> {
-    const cursor = this._syncCursor()
-    if (!cursor) return
+  async markAllReadThroughCurrentCursor(cursor = this._syncCursor()): Promise<void> {
+    if (!cursor) throw new Error('Notification synchronization is not ready')
 
     await firstValueFrom(this.api.markAllRead(cursor))
     await this.requestRecovery()
@@ -136,11 +128,7 @@ export class InAppNotificationService {
 
   async acknowledgeCatchUpPresented(): Promise<void> {
     const cursor = this.catchUpCursor
-    if (
-      !cursor ||
-      this._catchUpCount() < 1 ||
-      this.catchUpSeenCursor === cursor
-    ) {
+    if (!cursor || this._catchUpCount() < 1 || this.catchUpSeenCursor === cursor) {
       return
     }
 
@@ -165,12 +153,15 @@ export class InAppNotificationService {
     await this.requestRecovery()
   }
 
-  async dismissAllThroughCurrentCursor(): Promise<void> {
-    const cursor = this._syncCursor()
-    if (!cursor) return
+  async dismissAllThroughCurrentCursor(cursor = this._syncCursor()): Promise<void> {
+    if (!cursor) throw new Error('Notification synchronization is not ready')
 
     await firstValueFrom(this.api.dismissAll(cursor))
     await this.requestRecovery()
+  }
+
+  refresh(): Promise<boolean> {
+    return this.requestRecovery()
   }
 
   private syncOwner(owner: string | null): void {
@@ -202,18 +193,12 @@ export class InAppNotificationService {
     void this.ensureSync()
   }
 
-  private handleRealtimeState(
-    state: ReturnType<RealtimeSocketService['state']>
-  ): void {
+  private handleRealtimeState(state: ReturnType<RealtimeSocketService['state']>): void {
     if (!this.activeOwner) return
 
     if (state.kind === 'private') {
-      void this.requestRecovery().then(success => {
-        if (
-          success &&
-          this.activeOwner &&
-          this.realtime.state().kind === 'private'
-        ) {
+      void this.requestRecovery().then((success) => {
+        if (success && this.activeOwner && this.realtime.state().kind === 'private') {
           this.recoveryErrorFallback = false
           this.stopPolling()
           this._syncState.set('ready')
@@ -222,10 +207,7 @@ export class InAppNotificationService {
       return
     }
 
-    if (
-      (state.kind === 'reconnecting' || state.kind === 'degraded') &&
-      state.mode === 'private'
-    ) {
+    if ((state.kind === 'reconnecting' || state.kind === 'degraded') && state.mode === 'private') {
       this._syncState.set('degraded')
       this.startPolling()
       void this.requestRecovery()
@@ -246,7 +228,7 @@ export class InAppNotificationService {
     const task = this.runSync(generation)
     this.syncInFlight = task
 
-    void task.then(success => {
+    void task.then((success) => {
       if (this.syncInFlight === task) {
         this.syncInFlight = null
       }
@@ -270,10 +252,7 @@ export class InAppNotificationService {
       if (!baselineSucceeded) return false
     }
 
-    while (
-      this.recoveryRequested &&
-      this.isCurrentGeneration(generation)
-    ) {
+    while (this.recoveryRequested && this.isCurrentGeneration(generation)) {
       this.recoveryRequested = false
       const recoverySucceeded = await this.recoverChanges(generation)
       if (!recoverySucceeded) return false
@@ -286,7 +265,9 @@ export class InAppNotificationService {
     this._syncState.set('baselining')
 
     try {
-      const response = await firstValueFrom(this.api.recover().pipe(takeUntilDestroyed(this.destroyRef)))
+      const response = await firstValueFrom(
+        this.api.recover().pipe(takeUntilDestroyed(this.destroyRef))
+      )
       if (!this.isCurrentGeneration(generation)) return false
 
       this.applyRecoveryMetadata(response)
@@ -312,9 +293,7 @@ export class InAppNotificationService {
     let cursor: string = initialCursor
 
     this._syncState.set(
-      this.needsSocketFallback() || this.recoveryErrorFallback
-        ? 'degraded'
-        : 'recovering'
+      this.needsSocketFallback() || this.recoveryErrorFallback ? 'degraded' : 'recovering'
     )
 
     try {
@@ -325,9 +304,7 @@ export class InAppNotificationService {
         if (!this.isCurrentGeneration(generation)) return false
 
         if (response.hasMore && response.cursor === cursor) {
-          throw new Error(
-            'Notification recovery cursor did not advance while hasMore=true'
-          )
+          throw new Error('Notification recovery cursor did not advance while hasMore=true')
         }
 
         this.applyRecoveryMetadata(response)
@@ -355,36 +332,28 @@ export class InAppNotificationService {
     }
   }
 
-  private applyRecoveryMetadata(
-    response: NotificationRecoveryResponse
-  ): void {
+  private applyRecoveryMetadata(response: NotificationRecoveryResponse): void {
     this._syncCursor.set(response.cursor)
     this._unreadCount.set(response.unreadCount)
     this._unseenCount.set(response.unseenCount)
     this._lastRecovery.set(response)
+    // Signals can coalesce successive recovery pages in one render turn.
+    // Consumers reconciling records must receive every page, in order.
+    this.recoveryEvents.next(response)
   }
 
-  private presentLiveNotifications(
-    response: NotificationRecoveryResponse
-  ): void {
+  private presentLiveNotifications(response: NotificationRecoveryResponse): void {
     for (const change of response.changes) {
       if (change.kind !== 'created') continue
       if (this.toastedNotificationIds.has(change.notification.id)) continue
 
       this.toastedNotificationIds.add(change.notification.id)
-      this.toast.trigger(
-        change.notification.summary,
-        'info',
-        6000,
-        {
-          label: 'Apri',
-          run: () => {
-            void this.navigation.openNotificationDetail(
-              change.notification.id
-            )
-          }
-        }
-      )
+      this.toast.trigger(change.notification.summary, 'info', 6000, {
+        label: 'Apri',
+        run: () => {
+          void this.navigation.openNotificationDetail(change.notification.id)
+        },
+      })
     }
   }
 
@@ -395,18 +364,13 @@ export class InAppNotificationService {
     }
 
     this._syncState.set(
-      this.needsSocketFallback() || this.recoveryErrorFallback
-        ? 'degraded'
-        : 'ready'
+      this.needsSocketFallback() || this.recoveryErrorFallback ? 'degraded' : 'ready'
     )
   }
 
   private needsSocketFallback(): boolean {
     const state = this.realtime.state()
-    return (
-      (state.kind === 'reconnecting' || state.kind === 'degraded') &&
-      state.mode === 'private'
-    )
+    return (state.kind === 'reconnecting' || state.kind === 'degraded') && state.mode === 'private'
   }
 
   private startPolling(): void {

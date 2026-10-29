@@ -89,7 +89,7 @@ describe('HistoryComponent request lifecycle', () => {
     getHistory.and.returnValue(throwError(() => new Error('offline')));
     await expectAsync(fixture.componentInstance.loadMore()).toBeResolved();
     expect(fixture.componentInstance.serverError()).toBeTrue();
-    expect(fixture.componentInstance.loading).toBeFalse();
+    expect(fixture.componentInstance.loading()).toBeFalse();
     await fixture.componentInstance.loadMore();
     expect(getHistory).toHaveBeenCalledTimes(1);
     getHistory.and.returnValue(of({ items: [], currentPage: 1, totalPages: 0 }));
@@ -97,6 +97,53 @@ describe('HistoryComponent request lifecycle', () => {
     expect(getHistory).toHaveBeenCalledTimes(2);
     expect(fixture.componentInstance.serverError()).toBeFalse();
   });
+
+  it('renders the next-page spinner from a sentinel callback without forcing change detection', async () => {
+    let intersect!: () => void
+    spyOn(window, 'IntersectionObserver').and.callFake(function (callback) {
+      const observer = {
+        observe: (target: Element) => {
+          intersect = () => callback([{
+            target,
+            isIntersecting: true,
+            intersectionRatio: 1,
+            boundingClientRect: target.getBoundingClientRect(),
+            intersectionRect: target.getBoundingClientRect(),
+            rootBounds: null,
+            time: performance.now(),
+          }], observer)
+        },
+        disconnect: () => undefined,
+      } as IntersectionObserver
+      return observer
+    })
+    const first: HistoryDTOExt = {
+      id: 'first', itemId: 'first', itemName: 'Prima attività',
+      itemEntity: 'molecule_collection_items', flagIds: '{}',
+      touchedAt: utcInstantFromEpochMs(Date.parse('2026-10-29T09:00:00Z')),
+      selected: signal(false),
+    }
+    const nextPage = new Subject<PageModel<HistoryDTOExt>>()
+    getHistory.and.returnValues(
+      of({ items: [first], currentPage: 1, totalPages: 2 }),
+      nextPage
+    )
+    fixture.autoDetectChanges()
+    await fixture.whenStable()
+    expect(fixture.nativeElement.querySelector('m-progress-indicator')).toBeNull()
+    intersect()
+    await fixture.whenStable()
+    expect(getHistory).toHaveBeenCalledWith(2, 25)
+    expect(fixture.nativeElement.querySelector('m-progress-indicator')).not.toBeNull()
+    expect(fixture.nativeElement.querySelector('m-history-item')).not.toBeNull()
+    nextPage.next({
+      items: [], currentPage: 2, totalPages: 2,
+      itemCount: 0, totalItems: 1, itemsPerPage: 25,
+    })
+    nextPage.complete()
+    await fixture.whenStable()
+    expect(fixture.nativeElement.querySelector('m-progress-indicator')).toBeNull()
+  })
 
   it('restores the current route selection when history is recreated after expanding the rail', () => {
     spyOn(TestBed.inject(ActivatedRoute).root.snapshot.paramMap, 'get')

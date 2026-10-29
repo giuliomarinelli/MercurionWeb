@@ -43,7 +43,7 @@ Questi documenti non sono task eseguibili del sistema autonomous-development e n
 
 ## Aggiornamento del 27 ottobre — ripresa UX
 
-Il blocco **17 / PX-03 e PX-14** è implementato, in review: registrazione, recupero, attivazione e callback, con [prove e limiti](REGISTRATION-RECOVERY-QA.md). Anche il **18 / PX-12 — Dashboard** è implementato, in review: metriche, grafici accessibili, skeleton e recupero degli errori, con [prove e limiti](DASHBOARD-QA.md). **Blocco corrente: 19 / PX-13 — Settings:** interventi OTP/MFA e gestione della preautorizzazione login implementati, in review; [prove e accettazione residua](SETTINGS-STATES-QA.md). Restano smoke test reali, varianti account e Safari fisico. Il **blocco 20A / PX-15A e PX-15B — Notifiche** è implementato, in review: [prove e limiti](NOTIFICATIONS-20A-QA.md). Il prossimo blocco è 20B / PX-15C — azioni e recupero; 20C resta dedicato alle e-mail transazionali. L’attivazione/migrazione JWT sui dati dello sviluppo locale è rinviata per richiesta dell’utente; il codice implementato resta conservato e non blocca il lavoro UX. Provider/bootstrap VPS e consumer Tox21 restano nel loro percorso separato.
+Il blocco **17 / PX-03 e PX-14** è implementato, in review: registrazione, recupero, attivazione e callback, con [prove e limiti](REGISTRATION-RECOVERY-QA.md). Anche il **18 / PX-12 — Dashboard** è implementato, in review: metriche, grafici accessibili, skeleton e recupero degli errori, con [prove e limiti](DASHBOARD-QA.md). **Blocco corrente: 19 / PX-13 — Settings:** interventi OTP/MFA e gestione della preautorizzazione login implementati, in review; [prove e accettazione residua](SETTINGS-STATES-QA.md). Restano smoke test reali, varianti account e Safari fisico. Il **blocco 20A / PX-15A e PX-15B — Notifiche** è implementato, in review: [prove e limiti](NOTIFICATIONS-20A-QA.md). Il **blocco 20B / PX-15C — azioni e recupero** è implementato e verificato in Chrome/Playwright nei casi documentati, in review: [prove e limiti](NOTIFICATIONS-20B-QA.md). Il successivo blocco pianificato è 20C / PX-15D — e-mail transazionali, dopo la review delle notifiche. L’attivazione/migrazione JWT sui dati dello sviluppo locale è rinviata per richiesta dell’utente; il codice implementato resta conservato e non blocca il lavoro UX. Provider/bootstrap VPS e consumer Tox21 restano nel loro percorso separato.
 
 ## Priorità
 
@@ -69,7 +69,7 @@ La priorità indica il valore della rifinitura per il portfolio, non la gravità
 | PX-12 | Dashboard | P2 | S, B | Blocco 18 implementato, in review; prove e limiti in DASHBOARD-QA.md |
 | PX-13 | Settings: fasi e stati ancora non conclusi | P2 | S, B, V | OTP/MFA e preautorizzazione login implementati, in review; accettazione residua in SETTINGS-STATES-QA.md |
 | PX-14 | Recupero, attivazione e callback SSO | P2 | S, B, V | Blocco 17 implementato, in review; verifica reale con token/account ancora aperta |
-| PX-15 | Notifiche | P2 | S, B, V | 20A implementato, in review; 20B aperto; NOTIFICATIONS-20A-QA.md |
+| PX-15 | Notifiche | P2 | S, B, V | 20A/20B implementati, QA finale e review aperte; NOTIFICATIONS-20A-QA.md e NOTIFICATIONS-20B-QA.md |
 | PX-16 | Supporto, ticket e conversazioni | P2 | S, B | Da affrontare |
 | PX-17 | Feedback e contatti | P2 | S, B | Da affrontare |
 | PX-18 | Pagine di stato e documenti | P3 | S, V | Da affrontare |
@@ -436,7 +436,7 @@ La reintegrazione dei branch feature nel branch corrente e il merge della beta s
 
 ### PX-15 — Notifiche
 
-**Aggiornamento del 27 ottobre:** blocco 20A implementato, in review. Header, catch-up, lista/dettaglio responsive, recupero errori, selezione e paginazione con risposte obsolete protette. [Prove e limiti](NOTIFICATIONS-20A-QA.md). Il blocco 20B rimane aperto; nessuna certificazione generale di consegna o consistenza multi-sessione.
+**Aggiornamento del 27 ottobre:** blocco 20A implementato, in review. Header, catch-up, lista/dettaglio responsive, recupero errori, selezione e paginazione con risposte obsolete protette. [Prove e limiti](NOTIFICATIONS-20A-QA.md). **28 ottobre:** 20B implementato con conferme, cursore globale fisso, retry e recovery senza perdita delle pagine intermedie; [prove e limiti](NOTIFICATIONS-20B-QA.md). **29 ottobre:** completate le prove Playwright documentate su conferme, focus, responsive, pending ed errori; pulsanti Elimina in variante danger/destructive. Corretto anche lo spinner della history ([prova](NAVIGATION-QA.md)). Verificate inoltre sul backend reale lettura/non lettura, eliminazione singola, azioni globali e conservazione di una notifica arrivata dopo l’apertura della conferma. Due client dello stesso login coerenti; stati originali dell’account ripristinati e fixture rimosse dalle liste attive. Restano review, Safari fisico e sessioni di accesso indipendenti; nessuna certificazione generale di consegna o consistenza multi-sessione.
 
 **Dipendenza SMS:** prima dell’accettazione dei flussi che inviano SMS, verificare la configurazione e gli invii con il nuovo account Twilio previsto in [INF-02](#inf-02--invio-sms-nuovo-account-twilio). Il porting a SMS Hosting è superato; non utilizzare l’account Twilio chiuso.
 
@@ -712,7 +712,7 @@ Il refactor N3 / PX-01 precede la sequenza residua qui sotto, che riprende dal b
 | 18 | PX-12 — Dashboard | Implementato, in review: contatori, legende da tastiera, tabella giornaliera, skeleton e retry; [prove e limiti](DASHBOARD-QA.md) |
 | 19 | PX-13 — Settings: fasi successive | Stati OTP/MFA e varianti account completati con perimetro sicuro |
 | 20A | PX-15A/PX-15B — Notifiche: header, lista e dettaglio | Implementato, in review; [prove e limiti](NOTIFICATIONS-20A-QA.md) |
-| 20B | PX-15C — Notifiche: azioni e recupero | Lettura, eliminazioni, errori, risorse indisponibili e riconnessione |
+| 20B | PX-15C — Notifiche: azioni e recupero | Implementato; Playwright con API simulate e backend reale, due client dello stesso login; review, Safari e login indipendenti residui; [prove e limiti](NOTIFICATIONS-20B-QA.md) |
 | 20C | PX-15D — E-mail transazionali | Template e collegamenti dei flussi esistenti verificati con fixture appropriate |
 | 21 | PX-16 — Supporto e nuovo ticket | Lista e composizione del messaggio rifinite |
 | 22 | PX-16 — Conversazione ticket | Storico, composer e scrolling verificati |

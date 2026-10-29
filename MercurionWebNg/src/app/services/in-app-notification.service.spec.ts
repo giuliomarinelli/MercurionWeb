@@ -1,10 +1,7 @@
 import { fakeAsync, flushMicrotasks, TestBed, tick } from '@angular/core/testing'
 import { signal } from '@angular/core'
 import { of, Subject, throwError } from 'rxjs'
-import {
-  parseUtcInstant,
-  type NotificationRecoveryResponse
-} from '@mercurion/rest-contracts'
+import { parseUtcInstant, type NotificationRecoveryResponse } from '@mercurion/rest-contracts'
 
 import { InAppNotificationService } from './in-app-notification.service'
 import { NotificationApiService } from './notification-api.service'
@@ -22,7 +19,7 @@ describe('InAppNotificationService', () => {
   } | null>(null)
   const realtimeState = signal<RealtimeConnectionState>({
     kind: 'authenticating',
-    generation: 1
+    generation: 1,
   })
   const notificationChanged = new Subject<{
     kind: 'notification-state-changed'
@@ -41,7 +38,7 @@ describe('InAppNotificationService', () => {
     unseenCount: 1,
     changes: [],
     hasMore: false,
-    ...overrides
+    ...overrides,
   })
 
   beforeEach(() => {
@@ -49,7 +46,7 @@ describe('InAppNotificationService', () => {
     clientSession.set(null)
     realtimeState.set({
       kind: 'authenticating',
-      generation: 1
+      generation: 1,
     })
 
     recover = jasmine.createSpy().and.returnValue(of(baseline()))
@@ -68,36 +65,36 @@ describe('InAppNotificationService', () => {
             markAllRead: jasmine.createSpy(),
             markAllSeen: jasmine.createSpy(),
             dismiss: jasmine.createSpy(),
-            dismissAll: jasmine.createSpy()
-          }
+            dismissAll: jasmine.createSpy(),
+          },
         },
         {
           provide: RealtimeSocketService,
           useValue: {
             state: realtimeState.asReadonly(),
-            onNotificationChanged: () => notificationChanged.asObservable()
-          }
+            onNotificationChanged: () => notificationChanged.asObservable(),
+          },
         },
         {
           provide: AuthStateStore,
           useValue: {
             authenticated: authenticated.asReadonly(),
-            clientSession: clientSession.asReadonly()
-          }
+            clientSession: clientSession.asReadonly(),
+          },
         },
         {
           provide: ToastService,
           useValue: {
-            trigger: toast
-          }
+            trigger: toast,
+          },
         },
         {
           provide: NotificationNavigationService,
           useValue: {
-            openNotificationDetail: jasmine.createSpy()
-          }
-        }
-      ]
+            openNotificationDetail: jasmine.createSpy(),
+          },
+        },
+      ],
     })
 
     service = TestBed.inject(InAppNotificationService)
@@ -105,15 +102,13 @@ describe('InAppNotificationService', () => {
   })
 
   afterEach(() => {
-    notificationChanged.observers.slice().forEach(observer =>
-      observer.complete()
-    )
+    notificationChanged.observers.slice().forEach((observer) => observer.complete())
   })
 
   it('establishes counts without replaying historical toasts', fakeAsync(() => {
     clientSession.set({
       userId: 'user-1',
-      sessionId: 'session-1'
+      sessionId: 'session-1',
     })
     authenticated.set(true)
 
@@ -130,48 +125,54 @@ describe('InAppNotificationService', () => {
   it('recovers and presents a post-baseline created notification once', fakeAsync(() => {
     recover.and.returnValues(
       of(baseline()),
-      of(baseline({
-        cursor: 'n1.OQ',
-        unreadCount: 3,
-        unseenCount: 2,
-        changes: [{
-          kind: 'created',
-          notification: {
-            id: 'notification-1',
-            type: 'support.reply_received',
-            version: 1,
-            category: 'support',
-            title: 'Nuova risposta',
-            summary: 'Il supporto ha risposto.',
-            body: 'Dettaglio',
-            payload: {},
-            resourceType: 'help_ticket',
-            resourceId: 'ticket-1',
-            createdAt: parseUtcInstant('2026-10-02T20:01:00.000Z'),
-            updatedAt: parseUtcInstant('2026-10-02T20:01:00.000Z'),
-            seenAt: null,
-            readAt: null,
-            dismissedAt: null
-          }
-        }]
-      })),
-      of(baseline({
-        cursor: 'n1.OQ',
-        unreadCount: 3,
-        unseenCount: 2
-      }))
+      of(
+        baseline({
+          cursor: 'n1.OQ',
+          unreadCount: 3,
+          unseenCount: 2,
+          changes: [
+            {
+              kind: 'created',
+              notification: {
+                id: 'notification-1',
+                type: 'support.reply_received',
+                version: 1,
+                category: 'support',
+                title: 'Nuova risposta',
+                summary: 'Il supporto ha risposto.',
+                body: 'Dettaglio',
+                payload: {},
+                resourceType: 'help_ticket',
+                resourceId: 'ticket-1',
+                createdAt: parseUtcInstant('2026-10-02T20:01:00.000Z'),
+                updatedAt: parseUtcInstant('2026-10-02T20:01:00.000Z'),
+                seenAt: null,
+                readAt: null,
+                dismissedAt: null,
+              },
+            },
+          ],
+        })
+      ),
+      of(
+        baseline({
+          cursor: 'n1.OQ',
+          unreadCount: 3,
+          unseenCount: 2,
+        })
+      )
     )
 
     clientSession.set({
       userId: 'user-1',
-      sessionId: 'session-1'
+      sessionId: 'session-1',
     })
     authenticated.set(true)
     TestBed.flushEffects()
     flushMicrotasks()
 
     notificationChanged.next({
-      kind: 'notification-state-changed'
+      kind: 'notification-state-changed',
     })
     flushMicrotasks()
 
@@ -179,7 +180,7 @@ describe('InAppNotificationService', () => {
     expect(toast).toHaveBeenCalledTimes(1)
 
     notificationChanged.next({
-      kind: 'notification-state-changed'
+      kind: 'notification-state-changed',
     })
     flushMicrotasks()
 
@@ -189,7 +190,7 @@ describe('InAppNotificationService', () => {
   it('polls while the private realtime path is degraded', fakeAsync(() => {
     clientSession.set({
       userId: 'user-1',
-      sessionId: 'session-1'
+      sessionId: 'session-1',
     })
     authenticated.set(true)
     TestBed.flushEffects()
@@ -199,7 +200,7 @@ describe('InAppNotificationService', () => {
       kind: 'degraded',
       mode: 'private',
       attempt: 7,
-      reason: 'retry-exhausted'
+      reason: 'retry-exhausted',
     })
     TestBed.flushEffects()
     flushMicrotasks()
@@ -271,5 +272,71 @@ describe('InAppNotificationService', () => {
     tick(50_000)
     expect(response.observed).toBeFalse()
     expect(recover).toHaveBeenCalledTimes(1)
+  }))
+
+  it('uses the explicit bulk cursor rather than the latest synchronized cursor', fakeAsync(() => {
+    clientSession.set({ userId: 'user-1', sessionId: 'session-1' })
+    authenticated.set(true)
+    TestBed.flushEffects()
+    flushMicrotasks()
+    const api = TestBed.inject(NotificationApiService)
+    const dismissAll = api.dismissAll as jasmine.Spy
+    const markAllRead = api.markAllRead as jasmine.Spy
+    dismissAll.and.returnValue(of(undefined))
+    markAllRead.and.returnValue(of(undefined))
+    void service.dismissAllThroughCurrentCursor('confirmation-cursor')
+    flushMicrotasks()
+    void service.markAllReadThroughCurrentCursor('read-cursor')
+    flushMicrotasks()
+    expect(dismissAll).toHaveBeenCalledOnceWith('confirmation-cursor')
+    expect(markAllRead).toHaveBeenCalledOnceWith('read-cursor')
+  }))
+
+  it('rejects unavailable bulk boundaries instead of reporting a silent success', async () => {
+    await expectAsync(service.dismissAllThroughCurrentCursor()).toBeRejected()
+    await expectAsync(service.markAllReadThroughCurrentCursor()).toBeRejected()
+    expect(TestBed.inject(NotificationApiService).dismissAll).not.toHaveBeenCalled()
+  })
+
+  it('delivers every recovery page and retains authoritative counts from the final page', fakeAsync(() => {
+    recover.and.returnValues(
+      of(baseline()),
+      of(baseline({ cursor: 'page-one', hasMore: true, unreadCount: 1 })),
+      of(baseline({ cursor: 'page-two', unreadCount: 0 }))
+    )
+    const cursors: string[] = []
+    service.recoveryApplied.subscribe((page) => cursors.push(page.cursor))
+    clientSession.set({ userId: 'user-1', sessionId: 'session-1' })
+    authenticated.set(true)
+    TestBed.flushEffects()
+    flushMicrotasks()
+    void service.refresh()
+    flushMicrotasks()
+    expect(cursors).toEqual(['n1.OA', 'page-one', 'page-two'])
+    expect(service.unreadCount()).toBe(0)
+    expect(recover.calls.allArgs()).toEqual([[], ['n1.OA'], ['page-one']])
+  }))
+
+  it('keeps a successful write separate from failed recovery and does not resend the write', fakeAsync(() => {
+    clientSession.set({ userId: 'user-1', sessionId: 'session-1' })
+    authenticated.set(true)
+    TestBed.flushEffects()
+    flushMicrotasks()
+    const api = TestBed.inject(NotificationApiService)
+    const setRead = api.setRead as jasmine.Spy
+    setRead.and.returnValue(of(undefined))
+    recover.and.returnValue(throwError(() => new Error('offline')))
+    let completed = false
+    void service.setRead('A', true).then(() => {
+      completed = true
+    })
+    flushMicrotasks()
+    expect(completed).toBeTrue()
+    expect(service.syncState()).toBe('degraded')
+    expect(setRead).toHaveBeenCalledOnceWith('A', true)
+    tick(25_000)
+    flushMicrotasks()
+    expect(setRead).toHaveBeenCalledTimes(1)
+    TestBed.resetTestingModule()
   }))
 })

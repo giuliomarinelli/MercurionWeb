@@ -58,11 +58,11 @@ import { injectBrowserResourceOwner } from '../../../utils/browser-resource-owne
         }
       </div>
     }
-    @if (!items().length && !loading) {
+    @if (!items().length && !loading()) {
       <p class="text-xs opacity-60 px-6 py-4">Nessuna attività recente.</p>
     }
 
-    @if (loading) {
+    @if (loading()) {
       <div class="flex justify-center pt-8">
         <m-progress-indicator />
       </div>
@@ -121,7 +121,7 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
   selectedItemId = signal<string>('')
 
   items = signal<HistoryDTOExt[]>([])
-  loading = false
+  readonly loading = signal(false)
   done = false
   protected page = 1
   private loadGeneration = 0
@@ -253,7 +253,7 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngOnDestroy(): void {
     this.loadGeneration++
-    this.rSub?.unsubscribe();
+    this.rSub?.unsubscribe()
     if (this.observer) this.observer.disconnect()
     clearTimeout(this.deleteTimeoutId)
   }
@@ -303,7 +303,7 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
     this.loadGeneration++
     this.page = 1
     this.done = false
-    this.loading = false
+    this.loading.set(false)
     this.serverError.set(false)
     this.items.set([])
     void this.loadMore()
@@ -311,9 +311,9 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
 
   async loadMore() {
 
-    if (this.destroyRef.destroyed || this.loading || this.done || this.serverError()) return
+    if (this.destroyRef.destroyed || this.loading() || this.done || this.serverError()) return
 
-    this.loading = true
+    this.loading.set(true)
     const generation = this.loadGeneration
     const requestedPage = this.page
 
@@ -346,7 +346,7 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
     } catch {
       if (generation === this.loadGeneration) this.serverError.set(true)
     } finally {
-      if (generation === this.loadGeneration) this.loading = false
+      if (generation === this.loadGeneration) this.loading.set(false)
     }
   }
 

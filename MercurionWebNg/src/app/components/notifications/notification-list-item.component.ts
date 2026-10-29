@@ -11,7 +11,7 @@ import { notificationCategoryLabel } from './notification-presentation'
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <article
-      class="flex min-h-56 min-w-0 flex-col rounded-token-surface border border-token-border/50 bg-surface-elevated p-4 transition-colors sm:p-5"
+      class="flex min-h-56 min-w-0 flex-col rounded-token-surface border border-token-border/50 bg-surface-elevated p-4 transition-colors sm:p-5 md:scroll-mt-24"
       [class.border-light-accent-primary-hc]="selected()"
       [class.dark:border-dark-accent-primary]="selected()"
     >
@@ -56,6 +56,8 @@ import { notificationCategoryLabel } from './notification-presentation'
             variant="ghost"
             size="sm"
             [disabled]="pending()"
+            [loading]="readPending()"
+            [ariaLabel]="notification().readAt ? 'Segna non letta' : 'Segna letta'"
             (pressed)="
               readChanged.emit({ notification: notification(), read: !!notification().readAt })
             "
@@ -63,10 +65,9 @@ import { notificationCategoryLabel } from './notification-presentation'
             {{ notification().readAt ? 'Segna non letta' : 'Segna letta' }}
           </m-button>
           <m-button
-            variant="ghost"
+            variant="destructive"
             size="sm"
             [disabled]="pending()"
-            class="[&_button]:text-light-error dark:[&_button]:text-dark-error-hc"
             (pressed)="dismissed.emit(notification())"
             >Elimina</m-button
           >
@@ -79,6 +80,7 @@ export class NotificationListItemComponent {
   readonly notification = input.required<UserNotificationDTO>()
   readonly selected = input(false)
   readonly pending = input(false)
+  readonly readPending = input(false)
   readonly opened = output<UserNotificationDTO>()
   readonly dismissed = output<UserNotificationDTO>()
   readonly readChanged = output<{ notification: UserNotificationDTO; read: boolean }>()

@@ -1,6 +1,6 @@
 import { ApplicationRef, signal } from '@angular/core'
 import { TestBed } from '@angular/core/testing'
-import { provideRouter, Router } from '@angular/router'
+import { NavigationEnd, provideRouter, Router, Scroll } from '@angular/router'
 import { RouterTestingHarness } from '@angular/router/testing'
 import { HttpErrorResponse } from '@angular/common/http'
 import { of, Subject, throwError } from 'rxjs'
@@ -13,11 +13,22 @@ import { NotificationsPageComponent } from './notifications.page.component'
 import { InAppNotificationService } from '../../services/in-app-notification.service'
 import { NotificationNavigationService } from '../../services/notification-navigation.service'
 import { notificationFixture } from './notifications.testing'
-import { blockingViolations, formatAxeViolations, runAxe } from '../../testing/accessibility-test.helpers.spec'
+import {
+  blockingViolations,
+  formatAxeViolations,
+  runAxe,
+} from '../../testing/accessibility-test.helpers.spec'
 
 describe('Notification center navigation and requests', () => {
   let service: jasmine.SpyObj<InAppNotificationService>
   const recovery = signal<NotificationRecoveryResponse | null>(null)
+
+  const recoveryEvents = new Subject<NotificationRecoveryResponse>()
+
+  function publishRecovery(value: NotificationRecoveryResponse): void {
+    recovery.set(value)
+    recoveryEvents.next(value)
+  }
 
   beforeEach(() => {
     recovery.set(null)
@@ -30,10 +41,14 @@ describe('Notification center navigation and requests', () => {
         'markAllReadThroughCurrentCursor',
         'dismiss',
         'dismissAllThroughCurrentCursor',
+        'refresh',
       ],
       {
         unreadCount: signal(3),
         lastRecovery: recovery,
+        recoveryApplied: recoveryEvents.asObservable(),
+        syncCursor: signal('baseline'),
+        syncState: signal('ready'),
       }
     )
     service.list.and.returnValue(of({ items: [notificationFixture('A')], nextCursor: 'page-2' }))
@@ -94,7 +109,12 @@ describe('Notification center navigation and requests', () => {
       options?.cursor
         ? more
         : of({
-            items: [notificationFixture(options?.state === 'unread' ? 'unread' : 'all')],
+            items: [
+              notificationFixture(
+                options?.state === 'unread' ? 'unread' : 'all',
+                options?.state === 'unread' ? { readAt: null } : {}
+              ),
+            ],
             nextCursor: options?.state === 'unread' ? null : 'page-2',
           })
     )
@@ -204,7 +224,7 @@ describe('Notification center navigation and requests', () => {
 
   it('offers new recovered items without inserting them ahead of the current reading position', async () => {
     const first = notificationFixture('A')
-    recovery.set({
+    publishRecovery({
       cursor: 'baseline',
       snapshotAt: first.createdAt,
       unreadCount: 0,
@@ -218,7 +238,7 @@ describe('Notification center navigation and requests', () => {
       '#notification-detail-title'
     ) as HTMLElement
     heading.focus()
-    recovery.set({
+    publishRecovery({
       cursor: 'next',
       snapshotAt: first.createdAt,
       unreadCount: 1,
@@ -245,7 +265,7 @@ describe('Notification center navigation and requests', () => {
 
   it('keeps an explicit unavailable detail when recovery dismisses the selected notification', async () => {
     const first = notificationFixture('A')
-    recovery.set({
+    publishRecovery({
       cursor: 'baseline',
       snapshotAt: first.createdAt,
       unreadCount: 0,
@@ -255,7 +275,7 @@ describe('Notification center navigation and requests', () => {
     })
     const harness = await RouterTestingHarness.create('/notifications?notification=A')
     await settle(harness)
-    recovery.set({
+    publishRecovery({
       cursor: 'next',
       snapshotAt: first.createdAt,
       unreadCount: 0,
@@ -290,13 +310,92 @@ describe('Notification center navigation and requests', () => {
   it('restores list focus after closing the selected detail and exposes the selected filter', async () => {
     const harness = await RouterTestingHarness.create('/notifications?notification=A')
     await settle(harness)
-    const close = harness.routeNativeElement!.querySelector('m-notification-detail button') as HTMLButtonElement
+    const close = harness.routeNativeElement!.querySelector(
+      'm-notification-detail button'
+    ) as HTMLButtonElement
     close.click()
     await settle(harness)
-    await new Promise(resolve => requestAnimationFrame(resolve))
-    expect(document.activeElement).toBe(harness.routeNativeElement!.querySelector('[data-notification-open="A"]'))
-    expect(harness.routeNativeElement!.querySelector('#notifications-filter-all')?.getAttribute('aria-pressed')).toBe('true')
-    expect(harness.routeNativeElement!.querySelector('#notifications-filter-unread')?.getAttribute('aria-pressed')).toBe('false')
+    await new Promise((resolve) => requestAnimationFrame(resolve))
+    expect(document.activeElement).toBe(
+      harness.routeNativeElement!.querySelector('[data-notification-open="A"]')
+    )
+    expect(
+      harness
+        .routeNativeElement!.querySelector('#notifications-filter-all')
+        ?.getAttribute('aria-pressed')
+    ).toBe('true')
+    expect(
+      harness
+        .routeNativeElement!.querySelector('#notifications-filter-unread')
+        ?.getAttribute('aria-pressed')
+    ).toBe('false')
+  })
+
+  it('keeps the sticky detail and return card aligned after a late native Router smooth-to-zero', async () => {
+    service.get.and.returnValue(
+      of(notificationFixture('A', { body: 'Contenuto lungo. '.repeat(500) }))
+    )
+    const harness = await RouterTestingHarness.create('/notifications')
+    await settle(harness)
+    const root = harness.routeNativeElement!
+    const parent = root.parentElement!
+    const frame = document.createElement('iframe')
+    frame.style.cssText = 'position:fixed;top:0;left:0;width:1600px;height:600px;border:0'
+    document.body.appendChild(frame)
+    const media = spyOn(window, 'matchMedia').and.callFake((query) =>
+      frame.contentWindow!.matchMedia(query)
+    )
+    try {
+      const doc = frame.contentDocument!
+      doc.body.style.margin = '0'
+      const styles = doc.createElement('style')
+      styles.textContent = Array.from(document.styleSheets)
+        .flatMap((sheet) => Array.from(sheet.cssRules).map((rule) => rule.cssText))
+        .join('\n')
+      doc.head.appendChild(styles)
+      const wrapper = doc.createElement('div')
+      wrapper.style.paddingBlock = '1500px'
+      doc.body.appendChild(wrapper)
+      wrapper.appendChild(root)
+      await harness.navigateByUrl('/notifications?notification=A')
+      await settle(harness)
+      await new Promise(resolve => setTimeout(resolve, 400))
+      const events = TestBed.inject(Router).events
+      if (!(events instanceof Subject)) throw new Error('Router event stream unavailable')
+      // Reproduce the configured router restoration after the first render.
+      frame.contentWindow!.scrollTo({ top: 0, behavior: 'smooth' })
+      events.next(
+        new Scroll(
+          new NavigationEnd(50, '/notifications?notification=A', '/notifications?notification=A'),
+          null,
+          null
+        )
+      )
+      await settle(harness)
+      await new Promise((resolve) => setTimeout(resolve, 400))
+      const detail = doc.querySelector('m-notification-detail section') as HTMLElement
+      expect(detail.getBoundingClientRect().top).toBeGreaterThanOrEqual(95)
+      expect(detail.getBoundingClientRect().top).toBeLessThanOrEqual(97)
+      expect(doc.activeElement?.id).toBe('notification-detail-title')
+      const close = detail.querySelector('button') as HTMLButtonElement
+      close.click()
+      await settle(harness)
+      await new Promise(resolve => setTimeout(resolve, 400))
+      frame.contentWindow!.scrollTo({ top: 0, behavior: 'smooth' })
+      events.next(new Scroll(new NavigationEnd(51, '/notifications', '/notifications'), null, null))
+      await settle(harness)
+      await new Promise((resolve) => setTimeout(resolve, 400))
+      const opener = doc.querySelector('[data-notification-open="A"]') as HTMLElement
+      const card = opener.closest('article')!
+      expect(card.getBoundingClientRect().top).toBeGreaterThanOrEqual(95)
+      expect(card.getBoundingClientRect().top).toBeLessThanOrEqual(97)
+      expect(opener.getBoundingClientRect().bottom).toBeLessThanOrEqual(600)
+      expect(doc.activeElement).toBe(opener)
+    } finally {
+      media.and.callThrough()
+      parent.appendChild(root)
+      frame.remove()
+    }
   })
 
   it('has no serious or critical accessibility violations in the populated center', async () => {
@@ -304,6 +403,95 @@ describe('Notification center navigation and requests', () => {
     await settle(harness)
     const violations = blockingViolations(await runAxe(harness.routeNativeElement!))
     expect(violations).withContext(formatAxeViolations(violations)).toEqual([])
+  })
+
+  it('uses the destructive button variant for deletion in the list, detail and global action', async () => {
+    const harness = await RouterTestingHarness.create('/notifications?notification=A')
+    await settle(harness)
+    const root = harness.routeNativeElement!
+    const deletionButtons = Array.from(root.querySelectorAll('button')).filter((button) =>
+      ['Elimina', 'Elimina tutte'].includes(button.textContent?.trim() ?? '')
+    )
+    expect(deletionButtons.length).toBe(3)
+    for (const button of deletionButtons) {
+      expect(button.classList).toContain('m-button__control--destructive')
+      const style = getComputedStyle(button)
+      const surface = getComputedStyle(root)
+        .getPropertyValue('--m-color-control-destructive')
+        .trim()
+      const probe = document.createElement('span')
+      probe.style.backgroundColor = surface
+      root.appendChild(probe)
+      expect(style.backgroundColor).toBe(getComputedStyle(probe).backgroundColor)
+      probe.remove()
+    }
+  })
+
+  it('opens an accessible confirmation with safe initial focus and Escape restores its opener', async () => {
+    const harness = await RouterTestingHarness.create('/notifications')
+    await settle(harness)
+    const opener = Array.from(
+      harness.routeNativeElement!.querySelectorAll('m-notification-list button')
+    ).find((button) => button.textContent?.trim() === 'Elimina') as HTMLButtonElement
+    opener.focus()
+    opener.click()
+    await settle(harness)
+    const dialog = harness.routeNativeElement!.querySelector('[role="dialog"]') as HTMLElement
+    expect(dialog.getAttribute('aria-labelledby')).toBe('notification-confirm-title')
+    expect(dialog.textContent).toContain('Il contenuto collegato non verrà eliminato')
+    expect(service.dismiss).not.toHaveBeenCalled()
+    expect(document.activeElement?.textContent?.trim()).toBe('Annulla')
+    expect(blockingViolations(await runAxe(dialog))).toEqual([])
+    dialog.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+    await settle(harness)
+    expect(harness.routeNativeElement!.querySelector('[role="dialog"]')).toBeNull()
+    expect(document.activeElement).toBe(opener)
+    expect(service.dismiss).not.toHaveBeenCalled()
+  })
+
+  it('keeps a failed deletion in its confirmation and guards double submission until completion', async () => {
+    service.dismiss.and.rejectWith(new Error('offline'))
+    const harness = await RouterTestingHarness.create('/notifications')
+    await settle(harness)
+    const buttons = (root: Element) => Array.from(root.querySelectorAll('button'))
+    const opener = buttons(harness.routeNativeElement!).find(
+      (button) => button.textContent?.trim() === 'Elimina'
+    )!
+    opener.focus()
+    opener.click()
+    await settle(harness)
+    let dialog = harness.routeNativeElement!.querySelector('[role="dialog"]')!
+    buttons(dialog)
+      .find((button) => button.textContent?.trim() === 'Elimina notifica')!
+      .click()
+    await settle(harness)
+    expect(dialog.querySelector('[role="alert"]')?.textContent).toContain('confermare')
+    let complete!: () => void
+    service.dismiss.and.returnValue(
+      new Promise<void>((resolve) => {
+        complete = resolve
+      })
+    )
+    const retry = buttons(dialog).find(
+      (button) => button.textContent?.trim() === 'Riprova eliminazione'
+    )!
+    retry.click()
+    retry.click()
+    harness.detectChanges()
+    expect(retry.disabled).toBeTrue()
+    expect(retry.getAttribute('aria-label')).toBe('Elimina notifica')
+    expect(blockingViolations(await runAxe(dialog))).toEqual([])
+    dialog.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+    harness.detectChanges()
+    expect(service.dismiss).toHaveBeenCalledTimes(2)
+    expect(harness.routeNativeElement!.querySelector('[role="dialog"]')).not.toBeNull()
+    complete()
+    await settle(harness)
+    await new Promise((resolve) => requestAnimationFrame(resolve))
+    dialog = harness.routeNativeElement!.querySelector('[role="dialog"]')!
+    expect(dialog).toBeNull()
+    expect(harness.routeNativeElement!.querySelectorAll('m-notification-list-item').length).toBe(0)
+    expect(document.activeElement?.id).toBe('notifications-filter-all')
   })
 
   for (const width of [320, 375, 640, 1280]) {

@@ -5,18 +5,29 @@ import {
   Component,
   ElementRef,
   inject,
+  signal,
   untracked,
 } from '@angular/core'
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
+import { NavigationEnd, Router, Scroll } from '@angular/router'
+import { filter } from 'rxjs'
 import { NotificationListState } from '@mercurion/rest-contracts'
 import { NotificationDetailComponent } from '../../components/notifications/notification-detail.component'
 import { NotificationListComponent } from '../../components/notifications/notification-list.component'
 import { ButtonComponent } from '../../components/common/button/button.component'
 import { NotificationsFacade } from './notifications.facade'
 import { injectBrowserResourceOwner } from '../../utils/browser-resource-owner.util'
+import { DialogShellComponent } from '../../components/common/dialog-shell/dialog-shell.component'
+import { ScrollContextService } from '../../services/context/scroll-context.service'
 
 @Component({
   selector: 'm-notifications-page',
-  imports: [NotificationDetailComponent, NotificationListComponent, ButtonComponent],
+  imports: [
+    NotificationDetailComponent,
+    NotificationListComponent,
+    ButtonComponent,
+    DialogShellComponent,
+  ],
   providers: [NotificationsFacade],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -49,28 +60,80 @@ import { injectBrowserResourceOwner } from '../../utils/browser-resource-owner.u
           <m-button
             variant="outline"
             size="sm"
-            [disabled]="vm.mutationPending() || vm.notifications.unreadCount() === 0"
+            [disabled]="
+              vm.mutationPending() ||
+              !vm.notifications.syncCursor() ||
+              vm.notifications.unreadCount() === 0
+            "
+            [loading]="vm.pendingAction()?.kind === 'readAll'"
+            ariaLabel="Segna tutte come lette"
             (pressed)="vm.markAllRead()"
             >Segna tutte come lette</m-button
           >
           <m-button
-            variant="ghost"
+            variant="destructive"
             size="sm"
-            class="[&_button]:text-light-error dark:[&_button]:text-dark-error-hc"
-            [disabled]="vm.mutationPending() || vm.items().length === 0"
-            (pressed)="vm.dismissAll()"
+            [disabled]="
+              vm.mutationPending() || !vm.notifications.syncCursor() || vm.items().length === 0
+            "
+            (pressed)="vm.askDismissAll()"
             >Elimina tutte</m-button
           >
         </div>
       </header>
+      <p
+        class="mt-3 text-xs leading-relaxed text-on-surface-secondary"
+        [class]="vm.selectedId() ? 'hidden xl:block' : ''"
+      >
+        Le azioni su tutte le notifiche includono anche quelle non ancora caricate, fino all’ultimo
+        aggiornamento ricevuto.
+      </p>
 
-      @if (vm.actionError(); as error) {
-        <p
-          class="mt-5 rounded-token-control border border-status-error/50 p-4 text-sm"
-          role="alert"
+      @if (vm.notifications.syncState() === 'degraded') {
+        <div
+          class="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-token-control border border-token-border/50 bg-surface-elevated p-4"
         >
-          {{ error }}
-        </p>
+          <p class="text-sm leading-relaxed" role="status">
+            Gli aggiornamenti possono arrivare in ritardo. Il recupero automatico è attivo.
+          </p>
+          <m-button
+            size="sm"
+            variant="outline"
+            [loading]="vm.syncPending()"
+            ariaLabel="Riprova sincronizzazione"
+            (pressed)="vm.retrySync()"
+          >
+            Riprova sincronizzazione
+          </m-button>
+          @if (vm.syncError(); as error) {
+            <p class="w-full text-sm" role="alert">{{ error }}</p>
+          }
+        </div>
+      }
+      <div role="status" aria-live="polite" aria-atomic="true">
+        @if (vm.mutationPending()) {
+          <p class="mt-4 text-sm text-on-surface-secondary">Operazione in corso…</p>
+        } @else if (vm.actionMessage(); as message) {
+          <p class="mt-4 text-sm text-on-surface-secondary">{{ message }}</p>
+        }
+      </div>
+      @if (!vm.confirmation() && vm.actionError(); as error) {
+        <div class="mt-5 space-y-3 rounded-token-control border border-status-error/50 p-4 text-sm">
+          <p role="alert">{{ error }}</p>
+          @if (vm.retryAvailable()) {
+            <m-button
+              variant="outline"
+              size="sm"
+              [disabled]="vm.mutationPending()"
+              (pressed)="vm.retryAction()"
+              >Riprova operazione</m-button
+            >
+          } @else {
+            <m-button variant="outline" size="sm" [disabled]="vm.loading()" (pressed)="vm.reload()"
+              >Aggiorna elenco</m-button
+            >
+          }
+        </div>
       }
       <div
         class="mt-6 flex flex-wrap items-center justify-between gap-3"
@@ -81,7 +144,7 @@ import { injectBrowserResourceOwner } from '../../utils/browser-resource-owner.u
             <button
               type="button"
               [id]="'notifications-filter-' + option.value"
-              class="min-h-11 cursor-pointer rounded-full border border-transparent px-4 py-2 text-sm font-semibold transition-colors hover:bg-surface-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-token-focus"
+              class="min-h-11 cursor-pointer rounded-full border border-transparent px-4 py-2 text-sm font-semibold transition-colors hover:bg-surface-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-token-focus md:scroll-mt-24"
               [class.bg-surface-secondary]="vm.filter() === option.value"
               [class.border-token-border]="vm.filter() === option.value"
               [attr.aria-pressed]="vm.filter() === option.value"
@@ -96,8 +159,14 @@ import { injectBrowserResourceOwner } from '../../utils/browser-resource-owner.u
           {{ vm.items().length === 1 ? 'notifica caricata' : 'notifiche caricate' }}
         </p>
       </div>
-      <div class="mt-5 grid min-w-0 items-start gap-6"
-        [class]="vm.selectedId() || vm.items().length || vm.loading() ? 'xl:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]' : ''">
+      <div
+        class="mt-5 grid min-w-0 items-start gap-6"
+        [class]="
+          vm.selectedId() || vm.items().length || vm.loading()
+            ? 'xl:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]'
+            : ''
+        "
+      >
         <section
           class="min-w-0"
           [class]="vm.selectedId() ? 'hidden xl:block' : ''"
@@ -147,9 +216,10 @@ import { injectBrowserResourceOwner } from '../../utils/browser-resource-owner.u
               [notifications]="vm.items()"
               [selectedId]="vm.selectedId()"
               [pending]="vm.mutationPending()"
+              [readPendingId]="vm.pendingAction()?.kind === 'read' ? vm.pendingItemId() : null"
               (opened)="vm.openNotification($event)"
               (readChanged)="vm.setRead($event.notification, !$event.read)"
-              (dismissed)="vm.dismiss($event)"
+              (dismissed)="vm.askDismiss($event)"
             />
           } @else if (!vm.listError()) {
             <div
@@ -209,7 +279,11 @@ import { injectBrowserResourceOwner } from '../../utils/browser-resource-owner.u
               <div
                 class="space-y-4 rounded-token-surface border border-token-border/50 bg-surface-elevated p-5"
               >
-                <h2 id="notification-detail-error" tabindex="-1" class="focus:outline-none text-lg font-semibold">
+                <h2
+                  id="notification-detail-error"
+                  tabindex="-1"
+                  class="focus:outline-none text-lg font-semibold"
+                >
                   Notifica non disponibile
                 </h2>
                 <p class="text-sm leading-relaxed text-on-surface-secondary" role="alert">
@@ -226,10 +300,13 @@ import { injectBrowserResourceOwner } from '../../utils/browser-resource-owner.u
               <m-notification-detail
                 [notification]="vm.selected()"
                 [pending]="vm.mutationPending()"
+                [readPending]="
+                  vm.pendingAction()?.kind === 'read' && vm.pendingItemId() === vm.selectedId()
+                "
                 (closed)="vm.closeDetail()"
                 (targetOpened)="vm.openTarget($event)"
                 (readChanged)="vm.setRead($event.notification, !$event.read)"
-                (dismissed)="vm.dismiss($event)"
+                (dismissed)="vm.askDismiss($event)"
               />
             }
           } @else {
@@ -245,6 +322,77 @@ import { injectBrowserResourceOwner } from '../../utils/browser-resource-owner.u
         </aside>
       </div>
     </main>
+    <m-dialog-shell
+      [open]="!!vm.confirmation()"
+      [mounted]="!!vm.confirmation()"
+      labelledBy="notification-confirm-title"
+      describedBy="notification-confirm-description"
+      [dismissalPolicy]="{ escape: !vm.mutationPending(), backdrop: !vm.mutationPending() }"
+      (dismissed)="vm.cancelConfirmation()"
+    >
+      @if (vm.confirmation(); as confirmation) {
+        <section
+          class="space-y-5 p-5 text-on-surface-main sm:p-6"
+          [attr.aria-busy]="vm.mutationPending()"
+        >
+          <h2 id="notification-confirm-title" class="text-xl font-semibold leading-snug">
+            {{
+              confirmation.kind === 'dismiss'
+                ? 'Elimina questa notifica?'
+                : 'Elimina tutte le notifiche?'
+            }}
+          </h2>
+          @if (confirmation.kind === 'dismiss') {
+            <p
+              class="max-h-24 overflow-y-auto m-scroll-thin text-sm font-semibold [overflow-wrap:anywhere]"
+            >
+              {{ confirmation.item.title }}
+            </p>
+          }
+          <p
+            id="notification-confirm-description"
+            class="text-sm leading-relaxed text-on-surface-secondary"
+          >
+            @if (confirmation.kind === 'dismissAll') {
+              Saranno rimosse dalla tua lista tutte le notifiche fino all’aggiornamento ricevuto
+              prima di aprire questa conferma, anche quelle non caricate o escluse dal filtro. Le
+              notifiche successive resteranno disponibili.
+            } @else {
+              La notifica sarà rimossa dalla tua lista.
+            }
+            Il contenuto collegato non verrà eliminato. Non è disponibile un ripristino.
+          </p>
+          @if (vm.actionError(); as error) {
+            <p class="text-sm leading-relaxed" role="alert">{{ error }}</p>
+          }
+          <div class="flex flex-wrap justify-end gap-3">
+            <button
+              type="button"
+              cdkFocusInitial
+              class="min-h-11 cursor-pointer rounded-token-control border border-token-focus px-4 py-2.5 text-sm font-semibold text-(--m-color-control-outline-text) transition-colors hover:bg-(--m-color-control-outline-hover) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-token-focus disabled:cursor-not-allowed disabled:opacity-55"
+              [disabled]="vm.mutationPending()"
+              (click)="vm.cancelConfirmation()"
+            >
+              Annulla
+            </button>
+            <m-button
+              variant="destructive"
+              [loading]="vm.mutationPending()"
+              [ariaLabel]="confirmation.kind === 'dismiss' ? 'Elimina notifica' : 'Elimina tutte'"
+              (pressed)="vm.confirmDismiss()"
+            >
+              {{
+                vm.actionError()
+                  ? 'Riprova eliminazione'
+                  : confirmation.kind === 'dismiss'
+                    ? 'Elimina notifica'
+                    : 'Elimina tutte'
+              }}
+            </m-button>
+          </div>
+        </section>
+      }
+    </m-dialog-shell>
   `,
 })
 export class NotificationsPageComponent {
@@ -256,10 +404,32 @@ export class NotificationsPageComponent {
   ]
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef)
   private readonly resources = injectBrowserResourceOwner()
+  private readonly router = inject(Router)
+  private readonly scrolling = inject(ScrollContextService)
+  private readonly routerScrollTick = signal(0)
+  private lastRouterSelection: string | null | undefined
   private previousSelection: string | null = null
   private focusedSelection: string | null = null
+  private confirmationWasOpen = false
+  private returnSelection: string | null = null
+  private returnScrollTick = 0
 
   constructor() {
+    this.router.events
+      .pipe(
+        filter((event): event is Scroll => event instanceof Scroll),
+        takeUntilDestroyed()
+      )
+      .subscribe((event) => {
+        const url =
+          event.routerEvent instanceof NavigationEnd
+            ? event.routerEvent.urlAfterRedirects
+            : event.routerEvent.url
+        const selection = this.router.parseUrl(url).queryParams['notification'] ?? null
+        if (selection === this.lastRouterSelection) return
+        this.lastRouterSelection = selection
+        this.routerScrollTick.update((tick) => tick + 1)
+      })
     afterNextRender(() =>
       this.host.nativeElement
         .querySelector<HTMLElement>('#notifications-heading')
@@ -270,35 +440,85 @@ export class NotificationsPageComponent {
       const loading = this.vm.detailLoading()
       this.vm.selected()
       this.vm.detailError()
+      const confirming = this.vm.confirmation() !== null
+      const scrollTick = this.routerScrollTick()
       untracked(() => {
         const root = this.host.nativeElement
-        const focusKey = id + ':' + (this.vm.detailError() ? 'error' : 'ready')
+        const confirmationClosed = this.confirmationWasOpen && !confirming
+        this.confirmationWasOpen = confirming
+        if (confirming) return
+        if (confirmationClosed) {
+          this.resources.requestAnimationFrame(() => {
+            if (this.vm.confirmation() || document.activeElement !== document.body) return
+            root.querySelector<HTMLElement>('#notifications-filter-' + this.vm.filter())?.focus()
+          })
+        }
+        const desktop = window.matchMedia('(min-width: 768px)').matches
+        const focusKey =
+          id + ':' + (this.vm.detailError() ? 'error' : 'ready') + ':' + (desktop ? scrollTick : 0)
         if (loading) this.focusedSelection = null
         if (id && !loading && this.focusedSelection !== focusKey) {
+          this.returnSelection = null
           const heading = root.querySelector<HTMLElement>(
             '#notification-detail-title, #notification-detail-error'
           )
           heading?.focus({ preventScroll: true })
-          if (window.matchMedia('(max-width: 1279px)').matches) {
+          if (desktop) {
+            this.resources.requestAnimationFrame(() => {
+              if (this.vm.selectedId() !== id || this.vm.detailLoading() || this.vm.confirmation())
+                return
+              const detail = root.querySelector<HTMLElement>(
+                'aside[aria-label="Dettaglio notifica"]'
+              )
+              // A sticky aside moves with scrolling; its grid is the stable document anchor.
+              if (detail) this.alignDesktopCard(detail.parentElement ?? detail)
+            })
+          } else {
             heading?.scrollIntoView({ block: 'start', behavior: 'instant' })
           }
           this.focusedSelection = focusKey
         } else if (!id && this.previousSelection) {
-          const previousId = this.previousSelection
-          this.resources.requestAnimationFrame(() => {
-            if (this.vm.selectedId()) return
-            const opener = root.querySelector<HTMLElement>(
-              '[data-notification-open="' + CSS.escape(previousId) + '"]'
-            )
-            const fallback = root.querySelector<HTMLElement>('#notifications-filter-' + this.vm.filter())
-            const target = opener ?? fallback
-            target?.focus({ preventScroll: true })
-            target?.scrollIntoView({ block: 'nearest', behavior: 'instant' })
-          })
+          this.returnSelection = this.previousSelection
+          this.returnScrollTick = scrollTick
+          this.restoreListFocus(this.previousSelection)
           this.focusedSelection = null
+        } else if (desktop && !id && this.returnSelection && this.returnScrollTick !== scrollTick) {
+          this.returnScrollTick = scrollTick
+          this.restoreListFocus(this.returnSelection)
         }
         this.previousSelection = id
       })
     })
+  }
+
+  private restoreListFocus(id: string): void {
+    this.resources.requestAnimationFrame(() => {
+      if (this.vm.selectedId() || this.vm.confirmation()) return
+      const root = this.host.nativeElement
+      const opener = root.querySelector<HTMLElement>(
+        '[data-notification-open="' + CSS.escape(id) + '"]'
+      )
+      const target =
+        opener ?? root.querySelector<HTMLElement>('#notifications-filter-' + this.vm.filter())
+      target?.focus({ preventScroll: true })
+      if (!target) return
+      if (window.matchMedia('(min-width: 768px)').matches) {
+        this.alignDesktopCard(opener?.closest<HTMLElement>('article') ?? target)
+      } else {
+        target.scrollIntoView({ block: 'nearest', behavior: 'instant' })
+      }
+    })
+  }
+
+  private alignDesktopCard(target: HTMLElement): void {
+    const scrollRoot =
+      this.scrolling.scrollRootRef() ??
+      new ElementRef(this.host.nativeElement.ownerDocument.scrollingElement as HTMLElement)
+    const margin = Number.parseFloat(getComputedStyle(target).scrollMarginTop) || 96
+    // Cancel the router's native CSS smooth scroll even when our target equals the current position.
+    scrollRoot.nativeElement.scrollTo({ top: scrollRoot.nativeElement.scrollTop, behavior: 'instant' })
+    const y = this.scrolling.getScrollYRelativeToRoot(target, scrollRoot.nativeElement) - margin
+    // Run after Router Scroll restoration and own the animation so CSS smooth-to-zero cannot win later.
+    this.scrolling.smoothTo(scrollRoot, Math.max(0, y), 240)
   }
 }

@@ -98,3 +98,12 @@ Le schermate comprendono fixture e dati dell’account locale: sono prove di rev
 - Review manuale delle icone collapse/expand e del codice; regressione finale della shell e punti PX-01/PX-23 già aperti nella roadmap.
 
 Seguito del 25 ottobre: blocchi 13 e 14 implementati, in review. La strategia CDK descritta in questa prova storica è sostituita nel blocco 14 dalla larghezza di ViewportRuntimeService; prove e limiti aggiornati in [SHELL-QA.md](SHELL-QA.md). Prossimo blocco: **15A / PX-02 — Home e benvenuto**. Nessuna accettazione, merge o rilascio impliciti.
+
+
+## 29 ottobre 2026 — Spinner dell’infinite scroll nella history
+
+Riprodotto con Playwright MCP e API history intercettata: 25 elementi presenti, richiesta della pagina 2 trattenuta, spinner assente. `loading` era un booleano ordinario in un componente OnPush; il suo cambiamento dalla callback della sentinel non notificava la vista. Convertito in signal, aggiornando letture, guard e cleanup; mantenuti observer, root di scroll, prefetch, paginazione, selezione e protezione delle generazioni obsolete.
+
+Aggiunto un test che usa la callback dell’IntersectionObserver e il rendering automatico, senza `fixture.detectChanges()` dopo la callback: falliva prima della correzione e passa dopo. La prova Playwright finale mostra **pagina 2 pendente / spinner 1 / 25 righe conservate**; rilasciando la risposta mostra **spinner 0 / 25 righe conservate**. Nessuna scrittura della cronologia reale.
+
+Suite unica notifiche + history: 76 test superati, inclusi i 7 del setup; typecheck/template, lint e build production superati. Screenshot `history-spinner-after.png` in `C:/Users/giuli/.codex/artifacts/mercurion-notifications-20b-2026-10-29/`. I runtime erano già attivi e non sono stati avviati o arrestati dall’agente. Restano le verifiche fisiche e la review elencate nelle sezioni precedenti.

@@ -702,6 +702,46 @@ Collezioni: null significa loading, [] empty immediato, niente timer o dati prec
 
 **Perimetro:** browser sullo sviluppo, con dettaglio già letto; nessuna azione di lettura/cancellazione/invio eseguita dall'agente. Nessuna modifica backend, dei segreti o operazione Git. L'aggiornamento è in review; prossimo blocco 20B — azioni e recupero; e-mail transazionali nel successivo 20C. QA fisica e prova estesa multi-sessione restano aperte.
 
+### 2026-10-28 — Blocco 20B / PX-15C — Azioni sulle notifiche
+
+**Intervento:** conferme di eliminazione con focus iniziale su Annulla, cursore globale acquisito all’apertura e invariato nei retry; pending e doppio invio protetti. Letture ed eliminazioni singole conservano pagine e cursori caricati. Errori di scrittura distinti da errori del successivo refresh. Recovery pubblicato pagina per pagina, riconciliazione delle risposte obsolete e protezione delle rimozioni remote. Stato degradato con retry della sincronizzazione. Icone e animazioni del badge conservate; Tailwind 4 e TypeScript senza terminatori opzionali.
+
+**Verifiche:** due regressioni nuove fallivano sul codice iniziale. Suite finale: 66 test mirati superati, inclusi i 7 del setup; conferme anche in pending verificate con Axe. Typecheck/template, lint, build production, bundle/lazy, styling con fixture negative e documentazione superati. Bundle iniziale 955.003 / 1.000.000 byte. Nessuna modifica backend, ai segreti o operazione Git di scrittura.
+
+**Limiti:** Playwright MCP collegato al browser autenticato; baseline con 14 notifiche non lette. Chrome minimizzato espone il documento come hidden e non completa il rendering delle conferme: QA browser finale ancora aperta, senza dichiararla superata. Richiesto di lasciare visibile Chrome. Nessuna mutazione delle notifiche reali eseguita; restano fixture end-to-end autorizzate, vere sessioni concorrenti e Safari fisico. [Prove e limiti](NOTIFICATIONS-20B-QA.md). Il successivo blocco pianificato è 20C / e-mail transazionali, dopo la review delle notifiche.
+
+### 2026-10-29 — Chiusura verifiche 20B e spinner history
+
+**Intervento:** ripresa con il solo Playwright MCP. Conferme e focus verificati su account locale senza inviare scritture; lettura, pending, errore e retry globale provati su API intercettate. Elimina in lista, dettaglio e azione globale usa ora la variante condivisa destructive/danger, come richiesto. Verificati cinque viewport, compreso 375×320, nei due temi. Tema automatico ripristinato.
+
+**Correzione aggiuntiva richiesta:** spinner history assente durante l’attesa della pagina successiva. Riprodotto nel browser; loading convertito da booleano a signal per notificare la vista OnPush. Test della callback sentinel falliva prima e passa dopo. Browser: spinner presente durante la richiesta trattenuta, rimosso dopo la risposta, 25 righe conservate.
+
+**Verifiche:** 76 test mirati superati in una sola esecuzione, typecheck/template, lint, build production e gate bundle/lazy/styling. Iniziale 954.866 byte. [Notifiche: prove e limiti](NOTIFICATIONS-20B-QA.md); [history](NAVIGATION-QA.md). Nessun commit, segreto o modifica backend; runtime preesistenti riutilizzati e preservati. Restano QA fisica/manuale e prove backend dedicate; prossimo blocco pianificato 20C / e-mail transazionali.
+
+### 2026-10-29 — Offset desktop del dettaglio notifiche
+
+**Correzione su segnalazione:** in apertura/chiusura il margine riguarda il bordo della card, non il titolo interno. Ritorno alla card con 96 px di margine desktop e focus sul titolo; colonna singola desktop allineata al contenitore del dettaglio. Mobile, scroll generale della route e sidebar preservati.
+
+**Verifica:** Playwright prima/dopo, bordo card da −45,25 a 95,75 px rispetto al viewport, header a 54,5 px. Test geometrico con CSS reali; 44 test mirati superati, typecheck/template, lint e styling. [Misure e limiti](NOTIFICATIONS-20B-QA.md). Nessun commit o mutazione reale.
+
+### 2026-10-29 — Seguito: ripristino Router delle notifiche
+
+**Causa mancata nel controllo precedente:** il Router effettua uno scroll tardivo a `[0,0]` al cambio della query; il dettaglio sticky non offre una coordinata documentale stabile. La prima verifica dell’offset non bastava per considerare risolta la segnalazione.
+
+**Correzione:** allineamento desktop dopo Scroll/render, ancorato alla griglia statica in apertura e alla card al ritorno, con cancellazione dello smooth nativo concorrente e animazione del servizio esistente. Configurazione globale del Router e sidebar non modificate; layout mobile preservato.
+
+**Prova:** Playwright dopo 1,2 secondi, apertura/chiusura a 1600 e 1100 px: bordo a circa 96 px, scroll documento diverso da zero e focus ripristinato. Mobile a 375 px senza overflow. Test con reset smooth tardivo: 44 casi mirati superati; typecheck/template, lint e styling. [Dettaglio e limiti](NOTIFICATIONS-20B-QA.md). Nessun commit o mutazione reale.
+
+### 2026-10-29 — 20B: azioni sul backend reale e ripristino account
+
+**Stato:** Implementato, in review.
+
+**Verifica autorizzata:** usato l’account correntemente autenticato, come richiesto dall’utente, con backup degli stati e fixture tecniche locali. Playwright MCP ha eseguito lettura/non lettura, eliminazione singola e azioni globali sulle API reali; caricate entrambe le pagine di 26 record. Inserita una nuova notifica dopo l’apertura della conferma globale: DELETE con il cursore originale, nuovo arrivo conservato. Recupero coerente nelle due schede dello stesso login; nessuna prova di sessioni di accesso indipendenti o invio e-mail/SMS implicita.
+
+**Ripristino:** stati originali dei 23 record verificati dopo transazione con controllo delle revisioni; tutte le 13 fixture soft-dismissed, zero fixture attive. Reload finale: entrambe le schede mostrano i 14 record originali attivi/non letti e sincronizzazione ready. Chiuse soltanto le schede QA; preservati browser dell’utente, runtime e modifiche locali, inclusa quella manuale a similars. Nessuna modifica al codice applicativo o operazione Git di scrittura in questa verifica.
+
+**Evidenze e limiti:** [resoconto completo](NOTIFICATIONS-20B-QA.md), inclusi click forzati dopo controllo del target nei passaggi hidden/visible. Backup locale fuori repository. Gate documentazione e controllo whitespace; nessuna ripetizione delle suite applicative per le sole aggiunte documentali. Restano review manuale, Safari fisico, login indipendenti e CI sul commit finale. Prossimo blocco pianificato: **20C / e-mail transazionali**.
+
 ## Modello per le voci successive
 
 ### AAAA-MM-GG — PX-XX — Sottoarea
