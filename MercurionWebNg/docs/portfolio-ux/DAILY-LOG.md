@@ -822,6 +822,12 @@ Ricerca ChEMBL di ASPIRINA → dettaglio → nuova collezione QA → associazion
 
 97 test mirati iniziali; 42 test dopo la correzione del portal, lint/build e gate bundle/lazy/styling superati. Browser: annullamenti, focus/Escape, viewport compatta nei due temi, errore indotto e retry con eliminazione reale della sola collezione vuota QA. Nessuna revoca delle sessioni dell’utente. Prossimo lavoro: Giorno 2, continuità realtime e sessioni indipendenti.
 
+### 2026-11-05 — Giorno 2 — Realtime fra schede
+
+**Stato:** Avviato, accettazione parziale. Creazione/rinomina di una collezione vuota propagate via WebSocket e letture reali fra due schede della stessa sessione. Bozza locale preservata durante una rinomina remota; annullamento mostra il nome corrente. Eliminazione confermata della sola fixture riporta l’altra scheda alla lista. [Matrice e blocchi](DAY-2-QA.md).
+
+34 test mirati di socket/macchina a stati/session sync superati. Non eseguite riconnessione controllata e sessioni indipendenti: errori del collegamento Playwright su `Target.createBrowserContext` e `Runtime.addBinding`. Nessuna revoca degli accessi dell’utente; nessun evento di supporto/SMS/e-mail generato. Schede QA chiuse e servizi dell’utente lasciati attivi. Riprendere i casi aperti con un collegamento browser compatibile; non dichiarare completato il Giorno 2.
+
 ## Modello per le voci successive
 
 ### AAAA-MM-GG — PX-XX — Sottoarea

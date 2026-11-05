@@ -19,6 +19,8 @@ Il programma riguarda l’applicazione e la sua QA. La [VM locale](../../../docs
 - Provare disconnessione/riconnessione, recupero eventi e stato visibile, evitando perdita di lavoro o falsi successi. Verificare scadenza, logout/revoca e ritorno al login con account e dati di prova appropriati.
 - **Consegna:** matrice delle prove effettive e uno scenario dimostrativo realtime con limiti dichiarati. Isolamento account e perdita di dati precedono le rifiniture estetiche.
 
+**Ripresa del 5 novembre:** [Giorno 2 avviato](DAY-2-QA.md). Creazione, rinomina, conservazione della bozza ed eliminazione propagate fra due schede della stessa sessione. Contesti indipendenti e controllo WebSocket rifiutati dal collegamento Playwright corrente: riconnessione, scadenza e revoca fra sessioni restano da eseguire.
+
 ## Giorno 3 — Flussi account, supporto e QA aperta
 
 - Riprendere i residui pertinenti di login/MFA, aggiunta e rimozione telefono, supporto/ticket e pagine complementari del blocco 23. Verificare errori, focus e ritorno al lavoro.
