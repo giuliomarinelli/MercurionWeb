@@ -1,18 +1,18 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { EmbeddingSyncStreamService } from './embedding-sync-stream.service';
+import { Test, TestingModule } from '@nestjs/testing'
+import { EmbeddingSyncStreamService } from './embedding-sync-stream.service'
 
 describe('EmbeddingSyncStreamService', () => {
-  let service: EmbeddingSyncStreamService;
+  let service: EmbeddingSyncStreamService
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [EmbeddingSyncStreamService],
-    }).compile();
+    }).compile()
 
-    service = module.get<EmbeddingSyncStreamService>(EmbeddingSyncStreamService);
-  });
+    service = module.get<EmbeddingSyncStreamService>(EmbeddingSyncStreamService)
+  })
 
   it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
-});
+    expect(service).toBeDefined()
+  })
+})

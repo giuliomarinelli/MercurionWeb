@@ -1,9 +1,9 @@
 export interface ApplicationErrorDefinition {
-  readonly httpStatus: number;
+  readonly httpStatus: number
   readonly graphQlStatus?: number
-  readonly defaultMessage?: string;
-  readonly publicMessage?: string;
-  readonly exposeInProduction: boolean;
+  readonly defaultMessage?: string
+  readonly publicMessage?: string
+  readonly exposeInProduction: boolean
 }
 
 export const APPLICATION_ERROR_CATALOG = {
@@ -634,47 +634,47 @@ export const APPLICATION_ERROR_CATALOG = {
     defaultMessage: "PersistenceError",
     exposeInProduction: false,
   },
-} as const satisfies Record<string, ApplicationErrorDefinition>;
+} as const satisfies Record<string, ApplicationErrorDefinition>
 
-export type ApplicationErrorCode = keyof typeof APPLICATION_ERROR_CATALOG;
+export type ApplicationErrorCode = keyof typeof APPLICATION_ERROR_CATALOG
 
 export const ApplicationErrorCode = Object.freeze(
   Object.fromEntries(
     Object.keys(APPLICATION_ERROR_CATALOG).map((code) => [code, code]),
   ),
-) as { readonly [Code in ApplicationErrorCode]: Code };
+) as { readonly [Code in ApplicationErrorCode]: Code }
 
 export interface ApplicationErrorPayload {
-  readonly code: ApplicationErrorCode;
-  readonly message: string;
-  readonly details?: Readonly<Record<string, unknown>>;
+  readonly code: ApplicationErrorCode
+  readonly message: string
+  readonly details?: Readonly<Record<string, unknown>>
 }
 
 const applicationErrorCodes = new Set<string>(
   Object.keys(APPLICATION_ERROR_CATALOG),
-);
+)
 
 export function isApplicationErrorCode(
   value: unknown,
 ): value is ApplicationErrorCode {
-  return typeof value === "string" && applicationErrorCodes.has(value);
+  return typeof value === "string" && applicationErrorCodes.has(value)
 }
 
 export function isApplicationErrorPayload(
   value: unknown,
 ): value is ApplicationErrorPayload {
   if (!value || typeof value !== "object") {
-    return false;
+    return false
   }
 
-  const payload = value as Partial<ApplicationErrorPayload>;
+  const payload = value as Partial<ApplicationErrorPayload>
   return (
     isApplicationErrorCode(payload.code) && typeof payload.message === "string"
-  );
+  )
 }
 
 export function getApplicationErrorDefinition(
   code: ApplicationErrorCode,
 ): ApplicationErrorDefinition {
-  return APPLICATION_ERROR_CATALOG[code];
+  return APPLICATION_ERROR_CATALOG[code]
 }

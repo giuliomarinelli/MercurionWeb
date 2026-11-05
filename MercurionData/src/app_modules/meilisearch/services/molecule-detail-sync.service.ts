@@ -1,10 +1,10 @@
 // src/app_modules/chembl_36/services/molecule-details-sync.service.ts
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { Inject, Injectable, Logger } from '@nestjs/common';
-import { Subject, Observable } from 'rxjs';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, MoreThan } from 'typeorm';
-import { Index, EnqueuedTask, RecordAny, MeiliSearch } from 'meilisearch';
+import { Inject, Injectable, Logger } from '@nestjs/common'
+import { Subject, Observable } from 'rxjs'
+import { InjectRepository } from '@nestjs/typeorm'
+import { Repository, MoreThan } from 'typeorm'
+import { Index, EnqueuedTask, RecordAny, MeiliSearch } from 'meilisearch'
 import {
     readCheckpoint,
     writeCheckpoint,
@@ -12,17 +12,17 @@ import {
     isUuid,
     ZERO_UUID,
     CHECKPOINT_FILEPATH,
-} from '../utils/sync-checkpoint.util';
-import { MoleculeIndexView } from 'src/app_modules/chembl_36/Models/entities/molecule-index-mv';
-import type { MoleculeDoc } from 'src/app_modules/chembl_36/Models/DTO/molecule-detail.dtos';
+} from '../utils/sync-checkpoint.util'
+import { MoleculeIndexView } from 'src/app_modules/chembl_36/Models/entities/molecule-index-mv'
+import type { MoleculeDoc } from 'src/app_modules/chembl_36/Models/DTO/molecule-detail.dtos'
 
-type TaskStatus = 'enqueued' | 'processing' | 'succeeded' | 'failed' | 'canceled';
+type TaskStatus = 'enqueued' | 'processing' | 'succeeded' | 'failed' | 'canceled'
 
 @Injectable()
 export class MoleculeDetailSyncService {
-    private readonly logger = new Logger(MoleculeDetailSyncService.name);
-    private index: Index<RecordAny>;
-    private readonly indexUid = 'molecule_details_chembl_36';
+    private readonly logger = new Logger(MoleculeDetailSyncService.name)
+    private index: Index<RecordAny>
+    private readonly indexUid = 'molecule_details_chembl_36'
 
     constructor(
         @InjectRepository(MoleculeIndexView)
@@ -32,8 +32,8 @@ export class MoleculeDetailSyncService {
     ) { }
 
     async onModuleInit() {
-        await this.createIndexIfNotExists();
-        this.index = this.meiliClient.index(this.indexUid);
+        await this.createIndexIfNotExists()
+        this.index = this.meiliClient.index(this.indexUid)
     }
 
     /** Polling minimale dello stato task Meili */
@@ -42,46 +42,46 @@ export class MoleculeDetailSyncService {
         timeoutMs = 10 * 60_000,
         intervalMs = 500
     ): Promise<{ status: TaskStatus; uid: number; error?: any }> {
-        const c: any = this.meiliClient;
-        const i: any = this.index;
-        const start = Date.now();
+        const c: any = this.meiliClient
+        const i: any = this.index
+        const start = Date.now()
 
-        const canGetFromClient = typeof c?.getTask === 'function';
-        const canGetFromIndex = typeof i?.getTask === 'function';
-        const canGetFromNS = typeof c?.tasks?.getTask === 'function';
+        const canGetFromClient = typeof c?.getTask === 'function'
+        const canGetFromIndex = typeof i?.getTask === 'function'
+        const canGetFromNS = typeof c?.tasks?.getTask === 'function'
         if (!canGetFromClient && !canGetFromIndex && !canGetFromNS) {
-            throw new Error('Nessuna API task disponibile (né client.getTask, né index.getTask, né client.tasks.getTask).');
+            throw new Error('Nessuna API task disponibile (né client.getTask, né index.getTask, né client.tasks.getTask).')
         }
 
         // eslint-disable-next-line no-constant-condition
         while (true) {
             const t = canGetFromClient
                 ? await c.getTask(taskUid)
-                : (canGetFromNS ? await c.tasks.getTask(taskUid) : await i.getTask(taskUid));
+                : (canGetFromNS ? await c.tasks.getTask(taskUid) : await i.getTask(taskUid))
 
-            const status: TaskStatus = t.status;
+            const status: TaskStatus = t.status
             if (status === 'succeeded' || status === 'failed' || status === 'canceled') {
-                return { status, uid: taskUid, error: t?.error };
+                return { status, uid: taskUid, error: t?.error }
             }
 
             if (Date.now() - start > timeoutMs) {
-                throw new Error(`Timeout in attesa del task ${taskUid} (status=${status})`);
+                throw new Error(`Timeout in attesa del task ${taskUid} (status=${status})`)
             }
-            await new Promise(r => setTimeout(r, intervalMs));
+            await new Promise(r => setTimeout(r, intervalMs))
         }
     }
 
     /** Determina il punto di partenza: checkpoint → primo UUID reale → ZERO_UUID (per includerlo nel primo batch) */
     private async getStartKeyDeterministic(restart: boolean): Promise<string> {
         if (!restart) {
-            const ck = await readCheckpoint();
+            const ck = await readCheckpoint()
             if (ck?.lastKey && isUuid(ck.lastKey)) {
-                this.logger.log(`🟡 Ripartenza da checkpoint: ${ck.lastKey}`);
-                return ck.lastKey;
+                this.logger.log(`🟡 Ripartenza da checkpoint: ${ck.lastKey}`)
+                return ck.lastKey
             }
         } else {
-            await resetCheckpoint();
-            this.logger.log('🧹 Restart: checkpoint azzerato.');
+            await resetCheckpoint()
+            this.logger.log('🧹 Restart: checkpoint azzerato.')
         }
 
         const first = await this.moleculeRepo
@@ -89,15 +89,15 @@ export class MoleculeDetailSyncService {
             .select(['v.stableUuid'])
             .orderBy('v.stableUuid', 'ASC')
             .limit(1)
-            .getOne();
+            .getOne()
 
         if (!first?.stableUuid) {
-            this.logger.warn('⚠️ molecule_index_mv è vuota: nulla da sincronizzare.');
-            return ZERO_UUID;
+            this.logger.warn('⚠️ molecule_index_mv è vuota: nulla da sincronizzare.')
+            return ZERO_UUID
         }
 
-        this.logger.log(`🟢 Primo UUID deterministico rilevato: ${first.stableUuid}. Parto da ZERO_UUID per includerlo.`);
-        return ZERO_UUID;
+        this.logger.log(`🟢 Primo UUID deterministico rilevato: ${first.stableUuid}. Parto da ZERO_UUID per includerlo.`)
+        return ZERO_UUID
     }
 
     /**
@@ -111,77 +111,77 @@ export class MoleculeDetailSyncService {
         const subject = new Subject<{ synced: number; total: number; lastKey: string }>();
 
         (async () => {
-            let lastKey = await this.getStartKeyDeterministic(restart);
+            let lastKey = await this.getStartKeyDeterministic(restart)
 
-            const total = await this.moleculeRepo.count();
+            const total = await this.moleculeRepo.count()
             if (total === 0) {
-                this.logger.warn('⚠️ Nessuna riga nella view. Fine.');
-                subject.complete();
-                return;
+                this.logger.warn('⚠️ Nessuna riga nella view. Fine.')
+                subject.complete()
+                return
             }
-            this.logger.log(`🔵 Total molecules to sync: ${total}`);
+            this.logger.log(`🔵 Total molecules to sync: ${total}`)
 
-            let synced = 0;
+            let synced = 0
 
             while (true) {
                 const batch = await this.moleculeRepo.find({
                     where: { stableUuid: MoreThan(lastKey) },
                     order: { stableUuid: 'ASC' },
                     take: batchSize,
-                });
-                if (batch.length === 0) break;
+                })
+                if (batch.length === 0) break
 
                 const docs = batch.map(row => {
-                    const d = (row as any).doc as MoleculeDoc;
+                    const d = (row as any).doc as MoleculeDoc
                     return {
                         stableUuid: row.stableUuid, // primaryKey in Meili
                         molregno: d.id,             // utile per filtri/joins
                         ...d,                       // flatten del JSON doc
-                    };
-                });
+                    }
+                })
 
                 try {
-                    const task: EnqueuedTask = await this.index.addDocuments(docs, { primaryKey: 'stableUuid' });
-                    const res = await this.waitForTaskPortable(task.taskUid);
+                    const task: EnqueuedTask = await this.index.addDocuments(docs, { primaryKey: 'stableUuid' })
+                    const res = await this.waitForTaskPortable(task.taskUid)
                     if (res.status !== 'succeeded') {
-                        this.logger.error(`❌ Task ${res.uid} ${res.status}. Error: ${JSON.stringify(res.error)}`);
-                        break; // non aggiorno checkpoint: al riavvio riparto da lastKey precedente
+                        this.logger.error(`❌ Task ${res.uid} ${res.status}. Error: ${JSON.stringify(res.error)}`)
+                        break // non aggiorno checkpoint: al riavvio riparto da lastKey precedente
                     }
 
                     // OK → aggiorna checkpoint e prosegui
-                    this.logger.log(`📦 Task ${res.uid} OK — batch=${batch.length}`);
-                    lastKey = batch[batch.length - 1].stableUuid;
+                    this.logger.log(`📦 Task ${res.uid} OK — batch=${batch.length}`)
+                    lastKey = batch[batch.length - 1].stableUuid
 
                     try {
-                        await writeCheckpoint({ lastKey, updatedAt: new Date().toISOString() });
-                        this.logger.log(`💾 Checkpoint aggiornato: lastKey=${lastKey} → ${CHECKPOINT_FILEPATH}`);
+                        await writeCheckpoint({ lastKey, updatedAt: new Date().toISOString() })
+                        this.logger.log(`💾 Checkpoint aggiornato: lastKey=${lastKey} → ${CHECKPOINT_FILEPATH}`)
                     } catch (ioErr: any) {
-                        this.logger.error(`❌ Checkpoint write fallita: ${ioErr?.message || ioErr}`);
+                        this.logger.error(`❌ Checkpoint write fallita: ${ioErr?.message || ioErr}`)
                     }
 
-                    synced += batch.length;
-                    subject.next({ synced, total, lastKey });
+                    synced += batch.length
+                    subject.next({ synced, total, lastKey })
                 } catch (e: any) {
-                    this.logger.error(`❌ Enqueue/wait failed at lastKey=${lastKey}: ${e?.message || e}`);
-                    break;
+                    this.logger.error(`❌ Enqueue/wait failed at lastKey=${lastKey}: ${e?.message || e}`)
+                    break
                 }
             }
 
-            this.logger.log(`✅ Sync completed. Total synced: ${synced}`);
-            subject.complete();
-        })().catch(err => subject.error(err));
+            this.logger.log(`✅ Sync completed. Total synced: ${synced}`)
+            subject.complete()
+        })().catch(err => subject.error(err))
 
-        return subject.asObservable();
+        return subject.asObservable()
     }
 
     private async createIndexIfNotExists() {
-        const uid = this.indexUid;
-        const indexes = await this.meiliClient.getIndexes();
-        const exists = indexes.results.some(i => i.uid === uid);
+        const uid = this.indexUid
+        const indexes = await this.meiliClient.getIndexes()
+        const exists = indexes.results.some(i => i.uid === uid)
 
         if (!exists) {
-            this.logger.log(`🔵 Creating index ${uid}...`);
-            await this.meiliClient.createIndex(uid, { primaryKey: 'stableUuid' });
+            this.logger.log(`🔵 Creating index ${uid}...`)
+            await this.meiliClient.createIndex(uid, { primaryKey: 'stableUuid' })
             await this.meiliClient.index(uid).updateSettings({
                 searchableAttributes: [
                     'preferredName', 'synonyms', 'cmbId', 'canonicalSmiles',
@@ -195,10 +195,10 @@ export class MoleculeDetailSyncService {
                     'administrationRoutes.oral', 'administrationRoutes.parenteral', 'administrationRoutes.topical',
                     'properties.mwFreebase', 'properties.alogp', 'properties.hba', 'properties.hbd', 'properties.psa', 'properties.rtb',
                 ],
-            });
-            this.logger.log(`✅ Index ${uid} created & configured.`);
+            })
+            this.logger.log(`✅ Index ${uid} created & configured.`)
         } else {
-            this.logger.log(`🔵 Index ${uid} already exists.`);
+            this.logger.log(`🔵 Index ${uid} already exists.`)
         }
     }
 }

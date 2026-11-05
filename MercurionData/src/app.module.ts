@@ -1,12 +1,12 @@
-import { TranslationModule } from './app_modules/translation/translation.module';
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Chembl36Module } from './app_modules/chembl_36/chembl_36.module';
-import { MeilisearchModule } from './app_modules/meilisearch/meilisearch.module';
-import { EmbeddingsModule } from './app_modules/embeddings/embeddings.module';
-import { ConfigModule } from '@nestjs/config';
-import { join } from 'path';
-import { ReleaseVersionModule } from './app_modules/release-version/release-version.module';
+import { TranslationModule } from './app_modules/translation/translation.module'
+import { Module } from '@nestjs/common'
+import { TypeOrmModule } from '@nestjs/typeorm'
+import { Chembl36Module } from './app_modules/chembl_36/chembl_36.module'
+import { MeilisearchModule } from './app_modules/meilisearch/meilisearch.module'
+import { EmbeddingsModule } from './app_modules/embeddings/embeddings.module'
+import { ConfigModule } from '@nestjs/config'
+import { join } from 'path'
+import { ReleaseVersionModule } from './app_modules/release-version/release-version.module'
 
 
 

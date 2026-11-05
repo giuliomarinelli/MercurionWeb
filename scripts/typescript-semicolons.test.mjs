@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { removeOptionalSemicolons } from './typescript-semicolons.mjs'
+import { exclusionReason, removeOptionalSemicolons } from './typescript-semicolons.mjs'
 
 test('removes terminators without changing embedded text or line endings', () => {
   const input = '// keep ;\r\nconst sql = "SELECT 1;";\r\nconst html = `<p>; CSS: color:red;</p>`;\r\n'
@@ -39,4 +39,19 @@ test('does not treat type punctuation inside JSDoc as source punctuation', () =>
   const comment = '/** @type {{a: string; b: number;}} */\n'
   assert.equal(removeOptionalSemicolons(comment + 'const x = 1;\n').output,
     comment + 'const x = 1\n')
+})
+
+test('excludes generated artifacts and tooling fixtures across repository projects', () => {
+  assert.equal(exclusionReason('MercurionWebNg/src/app/generated/graphql.ts'), 'generated artifact')
+  assert.equal(exclusionReason('MercurionWebNg/scripts/fixtures/inline-executable-gql.ts'), 'tooling fixture')
+  assert.equal(exclusionReason('scripts/fixtures/nest-orphan/src/used.ts'), 'tooling fixture')
+  for (const file of ['MercurionData/src/main.ts', 'MercurionLandingFactory/src/main.ts',
+    'packages/rest-contracts/src/index.ts', 'playwright/critical/login.spec.ts', 'playwright.config.ts']) {
+    assert.equal(exclusionReason(file), null)
+  }
+})
+
+test('does not expose trailing whitespace when removing a spaced terminator', () => {
+  assert.equal(removeOptionalSemicolons('const a = 1 \t;  \r\nconst b = 2; // keep\n').output,
+    'const a = 1\r\nconst b = 2 // keep\n')
 })

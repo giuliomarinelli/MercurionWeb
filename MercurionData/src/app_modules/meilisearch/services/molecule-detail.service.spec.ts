@@ -1,18 +1,18 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { MoleculeDetailSyncService } from './molecule-detail-sync.service';
+import { Test, TestingModule } from '@nestjs/testing'
+import { MoleculeDetailSyncService } from './molecule-detail-sync.service'
 
 describe('MoleculeDetailService', () => {
-  let service: MoleculeDetailSyncService;
+  let service: MoleculeDetailSyncService
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [MoleculeDetailSyncService],
-    }).compile();
+    }).compile()
 
-    service = module.get<MoleculeDetailSyncService>(MoleculeDetailSyncService);
-  });
+    service = module.get<MoleculeDetailSyncService>(MoleculeDetailSyncService)
+  })
 
   it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
-});
+    expect(service).toBeDefined()
+  })
+})

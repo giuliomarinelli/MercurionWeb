@@ -51,7 +51,18 @@ export function removeOptionalSemicolons(text, filename = 'input.ts') {
     return !source.parseDiagnostics.length && shape(source) === expected
   }
   let output = text
-  const allRemoved = positions.reduce((value, pos) => value.slice(0, pos) + value.slice(pos + 1), text)
+  const withoutTerminator = (value, pos) => {
+    let start = pos
+    let end = pos + 1
+    while (value[end] === ' ' || value[end] === '\t') end++
+    if (end === value.length || value[end] === '\r' || value[end] === '\n') {
+      // A spaced terminator must not leave newly exposed trailing whitespace.
+      while (value[start - 1] === ' ' || value[start - 1] === '\t') start--
+      return value.slice(0, start) + value.slice(end)
+    }
+    return value.slice(0, pos) + value.slice(pos + 1)
+  }
+  const allRemoved = positions.reduce(withoutTerminator, text)
   let removed = 0
   const retained = []
   if (equivalent(allRemoved)) {
@@ -60,7 +71,7 @@ export function removeOptionalSemicolons(text, filename = 'input.ts') {
   } else {
     // Descending offsets remain valid after edits to the right.
     for (const pos of positions) {
-      const next = output.slice(0, pos) + output.slice(pos + 1)
+      const next = withoutTerminator(output, pos)
       if (equivalent(next)) {
         output = next
         removed++
@@ -74,10 +85,16 @@ export function removeOptionalSemicolons(text, filename = 'input.ts') {
   return { output, removed, retained }
 }
 
+export function exclusionReason(file) {
+  if (file.split('/').includes('generated')) return 'generated artifact'
+  if (file.split('/').includes('fixtures')) return 'tooling fixture'
+  return null
+}
+
 export function inventory() {
-  const tracked = execFileSync('git', ['ls-files', '-z', '--', 'MercurionWebNg', 'MercurionWebNode'], { encoding: 'utf8' }).split('\0').filter(Boolean)
-  const typescript = tracked.filter(file => file.endsWith('.ts'))
-  const excluded = typescript.filter(file => file.includes('/generated/'))
+  const tracked = execFileSync('git', ['ls-files', '-z'], { encoding: 'utf8' }).split('\0').filter(Boolean)
+  const typescript = tracked.filter(file => /\.(?:ts|tsx|mts|cts)$/.test(file))
+  const excluded = typescript.filter(file => exclusionReason(file))
   const files = typescript.filter(file => !excluded.includes(file))
   return { files, excluded }
 }
@@ -94,6 +111,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
     mode: write ? 'write' : 'check',
     scanned: files.length,
     excluded,
+    exclusions: excluded.map(file => ({ file, reason: exclusionReason(file) })),
     changed: results.filter(row => row.removed).length,
     removed: results.reduce((sum, row) => sum + row.removed, 0),
     files: results.map(({ before, output, ...row }) => row)

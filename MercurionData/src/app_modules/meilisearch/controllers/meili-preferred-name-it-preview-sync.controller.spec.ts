@@ -1,18 +1,18 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { MeiliPreferredNameItPreviewSyncController } from './meili-preferred-name-it-preview-sync.controller';
+import { Test, TestingModule } from '@nestjs/testing'
+import { MeiliPreferredNameItPreviewSyncController } from './meili-preferred-name-it-preview-sync.controller'
 
 describe('MeiliPreferredNameItPreviewSyncController', () => {
-  let controller: MeiliPreferredNameItPreviewSyncController;
+  let controller: MeiliPreferredNameItPreviewSyncController
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [MeiliPreferredNameItPreviewSyncController],
-    }).compile();
+    }).compile()
 
-    controller = module.get<MeiliPreferredNameItPreviewSyncController>(MeiliPreferredNameItPreviewSyncController);
-  });
+    controller = module.get<MeiliPreferredNameItPreviewSyncController>(MeiliPreferredNameItPreviewSyncController)
+  })
 
   it('should be defined', () => {
-    expect(controller).toBeDefined();
-  });
-});
+    expect(controller).toBeDefined()
+  })
+})

@@ -1,4 +1,4 @@
-    import { Column, Entity, PrimaryColumn } from 'typeorm';
+    import { Column, Entity, PrimaryColumn } from 'typeorm'
 
 @Entity({ name: 'molecule_name_i18n' })
 export class MoleculeNameI18n {

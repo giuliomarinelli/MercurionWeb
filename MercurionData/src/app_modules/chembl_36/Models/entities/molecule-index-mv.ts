@@ -1,5 +1,5 @@
-import { ViewEntity, ViewColumn, PrimaryColumn } from 'typeorm';
-import type { MoleculeDoc } from '../DTO/molecule-detail.dtos';
+import { ViewEntity, ViewColumn, PrimaryColumn } from 'typeorm'
+import type { MoleculeDoc } from '../DTO/molecule-detail.dtos'
 
 
 @ViewEntity({
@@ -8,8 +8,8 @@ import type { MoleculeDoc } from '../DTO/molecule-detail.dtos';
 })
 export class MoleculeIndexView {
     @PrimaryColumn('uuid', { name: 'stable_uuid' })
-    stableUuid: string;
+    stableUuid: string
 
     @ViewColumn({ name: 'doc' })
-    doc: MoleculeDoc;
+    doc: MoleculeDoc
 }

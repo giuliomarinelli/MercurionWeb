@@ -4,9 +4,9 @@ import {
     Column,
     CreateDateColumn,
     Index,
-} from 'typeorm';
-import { ReleaseContext } from '../enums/release-context.enum';
-import { ReleaseNote } from '../DTO/release-note.dtos';
+} from 'typeorm'
+import { ReleaseContext } from '../enums/release-context.enum'
+import { ReleaseNote } from '../DTO/release-note.dtos'
 
 @Entity({ name: 'release_versions' })
 @Index('ux_release_versions_version_string', ['versionString'], { unique: true })

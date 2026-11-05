@@ -1,12 +1,12 @@
-import { BadRequestException, Body, Controller, Get, HttpStatus, Param, Post, Query, Res, ValidationPipe } from '@nestjs/common';
-import { ReleaseService } from '../services/release.service';
-import { FlatPagination } from '../Models/DTO/flat-pagination.dto';
-import { ReleaseVersion } from '../Models/entities/release-version.entity';
-import { paginationToFlatPaginationConverter } from '../helpers/pagination-to-flat-pagination.converter';
-import { CreateReleaseVersionDTO } from '../Models/DTO/create-release-version.dto';
-import { ReleaseResponseDTO } from '../Models/DTO/release-and-path.dto';
-import { ReleaseContext } from '../Models/enums/release-context.enum';
-import { type Response } from 'express';
+import { BadRequestException, Body, Controller, Get, HttpStatus, Param, Post, Query, Res, ValidationPipe } from '@nestjs/common'
+import { ReleaseService } from '../services/release.service'
+import { FlatPagination } from '../Models/DTO/flat-pagination.dto'
+import { ReleaseVersion } from '../Models/entities/release-version.entity'
+import { paginationToFlatPaginationConverter } from '../helpers/pagination-to-flat-pagination.converter'
+import { CreateReleaseVersionDTO } from '../Models/DTO/create-release-version.dto'
+import { ReleaseResponseDTO } from '../Models/DTO/release-and-path.dto'
+import { ReleaseContext } from '../Models/enums/release-context.enum'
+import { type Response } from 'express'
 
 @Controller('release')
 export class ReleaseController {

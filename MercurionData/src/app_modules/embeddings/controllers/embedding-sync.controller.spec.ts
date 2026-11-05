@@ -1,18 +1,18 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { EmbeddingSyncController } from './embedding-sync.controller';
+import { Test, TestingModule } from '@nestjs/testing'
+import { EmbeddingSyncController } from './embedding-sync.controller'
 
 describe('EmbeddingSyncController', () => {
-  let controller: EmbeddingSyncController;
+  let controller: EmbeddingSyncController
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [EmbeddingSyncController],
-    }).compile();
+    }).compile()
 
-    controller = module.get<EmbeddingSyncController>(EmbeddingSyncController);
-  });
+    controller = module.get<EmbeddingSyncController>(EmbeddingSyncController)
+  })
 
   it('should be defined', () => {
-    expect(controller).toBeDefined();
-  });
-});
+    expect(controller).toBeDefined()
+  })
+})

@@ -10,6 +10,7 @@
     "serve:ssr:MercurionLandingFactory": "node dist/MercurionLandingFactory/server/server.mjs"
   },
   "prettier": {
+    "semi": false,
     "printWidth": 100,
     "singleQuote": true,
     "overrides": [
