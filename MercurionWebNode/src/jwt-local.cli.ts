@@ -2,7 +2,7 @@ import 'reflect-metadata'
 import { NestFactory } from '@nestjs/core'
 import { ConfigService } from '@nestjs/config'
 import { resolve, relative, isAbsolute, sep, dirname, join } from 'node:path'
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { createConfigurationModule } from './config/configuration.module'
 import { ConfigurationError } from './config/env-validation'
 import { resolveAppEnv } from './utils/env-helpers'
@@ -20,7 +20,24 @@ function assertSafeLocalDestination(target: string): void {
         while (!existsSync(join(directory, '.git')) && dirname(directory) !== directory) directory = dirname(directory)
         return existsSync(join(directory, '.git')) ? directory : undefined
     }
-    const repository = gitRoot(process.cwd()), destinationRepository = gitRoot(target)
+    // Container builds retain workspace manifests but deliberately omit .git.
+    const workspaceRoot = (start: string): string | undefined => {
+        let directory = resolve(start)
+        while (true) {
+            const manifest = join(directory, 'package.json')
+            if (existsSync(manifest)) {
+                const value: unknown = JSON.parse(readFileSync(manifest, 'utf8'))
+                if (typeof value === 'object' && value !== null && 'workspaces' in value
+                    && Array.isArray(value.workspaces) && value.workspaces.includes('MercurionWebNode')
+                    && value.workspaces.includes('MercurionWebNg')) return directory
+            }
+            const parent = dirname(directory)
+            if (parent === directory) return undefined
+            directory = parent
+        }
+    }
+    const repositoryRoot = (start: string) => gitRoot(start) ?? workspaceRoot(start)
+    const repository = repositoryRoot(process.cwd()), destinationRepository = repositoryRoot(target)
     if (destinationRepository !== undefined && destinationRepository !== repository) throw new JwtLocalKeyError('INVALID_CONFIGURATION')
     const root = repository ?? process.cwd()
     const inside = (parent: string, child: string) => { const distance = relative(parent, child); return !isAbsolute(distance) && distance !== '..' && !distance.startsWith(`..${sep}`) }

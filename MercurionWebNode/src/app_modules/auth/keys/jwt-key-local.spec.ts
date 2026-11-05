@@ -2,7 +2,7 @@ import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
 import { Test } from '@nestjs/testing'
 import { generateKeyPairSync, randomBytes, randomUUID } from 'node:crypto'
-import { mkdtemp, readFile, rm, writeFile, lstat, unlink } from 'node:fs/promises'
+import { mkdtemp, readFile, rm, writeFile, lstat, unlink, mkdir } from 'node:fs/promises'
 import { dirname, join, resolve } from 'node:path'
 import { tmpdir } from 'node:os'
 import { Environment, legacyJwtSecretSources } from 'src/config/config.schema'
@@ -246,5 +246,32 @@ describe('Local JWT setup, source and canonical bootstrap composition', () => {
         expect(await runJwtLocalCli(['init', '--directory', sibling], { out, error }, async () => config)).toBe(1)
         expect(readKeys).not.toHaveBeenCalled()
         expect(out).not.toHaveBeenCalled()
+    })
+
+    it('rejects sibling destinations without Git metadata, as in the test container', async () => {
+        const root = join(directory, 'workspace'), app = join(root, 'MercurionWebNode')
+        await mkdir(app, { recursive: true })
+        await writeFile(join(app, 'package.json'), JSON.stringify({ name: 'mercurion_web_node' }))
+        await writeFile(join(root, 'package.json'), JSON.stringify({ workspaces: ['MercurionWebNg', 'MercurionWebNode'] }))
+        jest.spyOn(process, 'cwd').mockReturnValue(app)
+        const readKeys = jest.spyOn(JwtKeysProvider.prototype, 'getAccessKeyPair')
+        const output = { out: jest.fn(), error: jest.fn() }
+        expect(await runJwtLocalCli(['init', '--directory', join(root, 'MercurionWebNg/untracked-secret-output')], output, async () => config)).toBe(1)
+        expect(readKeys).not.toHaveBeenCalled()
+        expect(output.out).not.toHaveBeenCalled()
+    })
+
+    it('allows the dedicated local destination without Git metadata', async () => {
+        const root = join(directory, 'workspace'), app = join(root, 'MercurionWebNode')
+        await mkdir(app, { recursive: true })
+        await writeFile(join(app, 'package.json'), JSON.stringify({ name: 'mercurion_web_node' }))
+        await writeFile(join(root, 'package.json'), JSON.stringify({ workspaces: ['MercurionWebNg', 'MercurionWebNode'] }))
+        jest.spyOn(process, 'cwd').mockReturnValue(app)
+        jest.spyOn(JwtKeysProvider.prototype, 'getAccessKeyPair').mockReturnValue(http)
+        jest.spyOn(JwtKeysProvider.prototype, 'getWsKeyPair').mockReturnValue(ws)
+        const output = { out: jest.fn(), error: jest.fn() }
+        expect(await runJwtLocalCli(['init', '--directory', join(app, '.local/jwt-keys/test'), '--at', at], output, async () => config)).toBe(0)
+        expect(output.error).not.toHaveBeenCalled()
+        expect(output.out).toHaveBeenCalledTimes(1)
     })
 })

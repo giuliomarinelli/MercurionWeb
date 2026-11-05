@@ -174,6 +174,7 @@ function main() {
     ['nest-provider-ownership', 'check-nest-provider-ownership.mjs', ['--root=MercurionWebNode']],
     ['nest-provider-ownership-negative', 'test-nest-provider-ownership-negative.mjs'],
     ['nest-test-route-policy', 'check-nest-test-route-policy.mjs'],
+    ['nest-test-route-policy-negative', 'test-nest-test-route-policy.mjs'],
     ['architecture-layers-negative', 'test-architecture-policy-negative.mjs'],
   ];
   for (const [label, script, args] of checks) {

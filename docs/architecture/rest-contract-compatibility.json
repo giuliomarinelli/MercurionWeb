@@ -749,8 +749,8 @@
               "name": "internationalPrefix",
               "optional": false,
               "decorators": [
+                "Equals",
                 "IsString",
-                "Matches",
                 "Transform"
               ]
             },
@@ -3569,8 +3569,8 @@
               "name": "internationalPrefix",
               "optional": false,
               "decorators": [
+                "Equals",
                 "IsString",
-                "Matches",
                 "Transform"
               ]
             },
