@@ -1,15 +1,33 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core'
+import { RouterLink } from '@angular/router'
+
+import { DocumentNavigationDirective } from '../../components/common/document-navigation/document-navigation.directive'
 
 @Component({
   selector: 'm-privacy-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [],
+  imports: [RouterLink, DocumentNavigationDirective],
   template: `
-    <main class="main-container leading-7" role="main" aria-labelledby="privacy-heading">
+    <main class="main-container max-w-4xl text-on-surface-main text-base leading-7 [overflow-wrap:anywhere]
+      [&>section]:mt-8 [&_.h2]:mb-3 [&_.h2]:pb-0 [&_.h2]:bottom-0 [&_.h2]:text-left [&_.h2]:text-xl [&_.h2]:leading-7 [&_.h2]:tracking-normal
+      [&_.h3]:mt-5 [&_.h3]:mb-2 [&_.h3]:bottom-0 [&_.h3]:text-left [&_.h3]:text-lg [&_.h3]:tracking-normal
+      [&_.h1-underline]:text-2xl sm:[&_.h1-underline]:text-3xl"
+      mDocumentNavigation="privacy" #documentNav="mDocumentNavigation" aria-labelledby="privacy-heading">
       <header>
         <h1 id="privacy-heading" class="h1-underline">Informativa sulla Privacy di Mercurion</h1>
         <p><strong>Ultimo aggiornamento:</strong> {{ lastUpdated }}</p>
       </header>
+
+      <nav class="my-6 rounded-xl border border-token-border bg-surface-elevated p-4 text-sm text-on-surface-main" aria-label="Sommario del documento">
+        <details>
+          <summary class="cursor-pointer rounded-lg py-2 font-semibold outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq">Sommario</summary>
+          <ol class="mt-3 grid gap-x-6 sm:grid-cols-2">
+            @for (section of documentNav.sections(); track section.id) {
+              <li><a class="a underline underline-offset-4 inline-block py-2" [routerLink]="[]" [fragment]="section.id">{{ section.title }}</a></li>
+            }
+          </ol>
+        </details>
+      </nav>
 
       <section aria-label="Introduzione">
         <p>
@@ -29,7 +47,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core'
           <strong>Sede:</strong>&nbsp;{{ dataControllerLocation }}<br />
           <strong>Partita IVA:</strong>&nbsp;{{ dataControllerVatCode }}<br />
           <strong>Email di contatto:</strong>&nbsp;
-          <a class="a" [href]="'mailto:' + dataControllerEmail">{{ dataControllerEmail }}</a><br />
+          <a class="a underline underline-offset-4" [href]="'mailto:' + dataControllerEmail">{{ dataControllerEmail }}</a><br />
           <strong>PEC:</strong>&nbsp;{{ dataControllerPec }}
         </p>
       </section>
@@ -171,7 +189,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core'
           L’utente può esercitare i diritti previsti dal GDPR (accesso, rettifica,
           cancellazione, limitazione, opposizione e portabilità)
           contattando il Titolare all’indirizzo:
-          <a class="a" [href]="'mailto:' + dataControllerEmail">{{ dataControllerEmail }}</a>.
+          <a class="a underline underline-offset-4" [href]="'mailto:' + dataControllerEmail">{{ dataControllerEmail }}</a>.
         </p>
       </section>
 

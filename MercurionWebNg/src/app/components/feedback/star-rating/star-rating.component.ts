@@ -1,142 +1,116 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  HostListener,
-  computed,
-  input,
-  model,
-  signal
-} from '@angular/core'
+import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, input, model, signal } from '@angular/core'
+import { injectBrowserResourceOwner } from '../../../utils/browser-resource-owner.util'
 
 @Component({
   selector: 'm-star-rating',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { '(keydown)': 'onKeydown($event)' },
   template: `
-    <div
-      class="inline-flex items-center gap-1 select-none outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq/70 dark:focus-visible:ring-sky-300/60 focus-visible:rounded-xl focus-visible:px-2 focus-visible:py-1"
-      role="slider"
-      [attr.aria-label]="label()"
-      [attr.aria-valuemin]="1"
-      [attr.aria-valuemax]="max()"
-      [attr.aria-valuenow]="value() ?? 0"
-      [attr.tabindex]="disabled() ? -1 : 0"
-      [class.opacity-60]="disabled()"
-      (mouseleave)="onLeave()"
-    >
-      @for (s of stars(); track $index) {
-        <button
-          type="button"
-          class="p-0 bg-transparent border-0 cursor-pointer disabled:cursor-default leading-none"
-          [disabled]="disabled()"
-          [attr.aria-label]="'Rate ' + ($index + 1)"
-          (mouseenter)="onHover($index + 1)"
-          (click)="set($index + 1)"
-        >
-          <span class="relative inline-block max-[348px]:w-[1.5rem] max-[348px]:h-[1.5rem] max-[348px]:text-[1.5rem] w-[2rem] h-[2rem] text-[2rem]">
-            <span class="absolute inset-0 text-slate-500/60 dark:text-slate-400/40">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current">
+    <div class="flex flex-wrap items-center gap-2">
+      <div class="inline-flex shrink-0 items-center gap-1" role="radiogroup" [attr.aria-label]="label()" [attr.aria-disabled]="disabled()">
+        @for (star of stars(); track $index) {
+          <button type="button" role="radio" class="flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq disabled:cursor-default disabled:opacity-60"
+            [disabled]="disabled()" [attr.aria-checked]="value() === $index + 1"
+            [attr.aria-label]="($index + 1) + ' su ' + max() + ': ' + label()"
+            [attr.tabindex]="(value() ?? 1) === $index + 1 ? 0 : -1"
+            (mouseenter)="onHover($index + 1)" (mouseleave)="onLeave()" (click)="set($index + 1)">
+            <span class="relative inline-block size-8">
+              <span class="absolute inset-0 text-slate-500 dark:text-slate-400">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current" aria-hidden="true">
                 <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                 <path d="M320.2 11.2L227.6 192.6L26.5 224.6L170.4 368.7L138.7 569.9L320.2 477.6L501.7 569.9L470 368.7L613.9 224.6L412.8 192.6L320.2 11.2z"/>
               </svg>
-            </span>
-
-            <span
-              class="absolute inset-0 overflow-hidden text-light-accent-primary-hc dark:text-sky-300 drop-shadow-[0_0_10px_rgba(56,189,248,0.18)] transition-[width,transform,filter] duration-150 ease-out origin-[50%_60%]"
-              [style.width.%]="fillPercentFor($index)"
-              [class.scale-125]="$index === poppedIndex()"
-              [class.drop-shadow-[0_0_18px_rgba(56,189,248,0.38)]]="$index === poppedIndex()"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current">
+              </span>
+              <span class="absolute inset-0 overflow-hidden text-light-accent-primary-hc transition-[width,transform] duration-150 ease-out dark:text-sky-300 motion-reduce:transform-none motion-reduce:transition-none"
+                [style.width.%]="fillPercentFor($index)" [class.scale-125]="$index === poppedIndex()">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current" aria-hidden="true">
                 <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                 <path d="M320.2 11.2L227.6 192.6L26.5 224.6L170.4 368.7L138.7 569.9L320.2 477.6L501.7 569.9L470 368.7L613.9 224.6L412.8 192.6L320.2 11.2z"/>
               </svg>
+              </span>
             </span>
-          </span>
-        </button>
-      }
-
-      @if (allowClear() && !disabled() && (value() ?? 0) > 0) {
-        <button
-          type="button"
-          class="ml-3 w-[22px] h-[22px] rounded-lg border border-slate-600 bg-zinc-200/80 text-slate-800 hover:bg-zinc-200/60 dark:border-slate-400/15 dark:bg-zinc-800/80 dark:text-slate-200 dark:hover:bg-zinc-700/80 transform hover:scale-110 leading-none transition-transform"
-          aria-label="Clear rating"
-          (click)="clear()"
-        >
-          ×
-        </button>
+          </button>
+        }
+      </div>
+      @if (allowClear()) {
+        <button type="button" class="size-11 shrink-0 cursor-pointer rounded-lg border border-token-border text-xl text-on-surface-secondary outline-none hover:bg-surface-secondary focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq disabled:cursor-default disabled:opacity-40"
+          [attr.aria-label]="'Rimuovi valutazione: ' + label()" [disabled]="disabled() || value() === null" (click)="clear()">×</button>
       }
     </div>
-  `
+  `,
 })
 export class StarRatingComponent {
+  readonly label = input('Valutazione')
+  readonly max = input(5)
+  readonly disabled = input(false)
+  readonly allowClear = input(true)
+  readonly value = model<number | null>(null)
+  readonly hovered = signal<number | null>(null)
+  readonly poppedIndex = signal<number | null>(null)
+  readonly stars = computed(() => Array.from({ length: this.max() }))
+  private readonly element = inject<ElementRef<HTMLElement>>(ElementRef)
+  private readonly resources = injectBrowserResourceOwner()
+  private popTimer?: ReturnType<typeof setTimeout>
 
-  label = input<string>('Rating')
-  max = input<number>(5)
-  disabled = input<boolean>(false)
-  allowClear = input<boolean>(true)
-
-  value = model<number | null>(null)
-
-  hovered = signal<number | null>(null)
-  poppedIndex = signal<number | null>(null)
-
-  stars = computed(() => Array.from({ length: this.max() }))
-
-  onHover(v: number) {
-    if (this.disabled()) return
-    this.hovered.set(v)
+  onHover(value: number): void {
+    if (!this.disabled()) this.hovered.set(value)
   }
 
-  onLeave() {
+  onLeave(): void {
     this.hovered.set(null)
   }
 
-  set(v: number) {
-    if (this.disabled()) return
-    this.value.set(v)
-
-    this.poppedIndex.set(v - 1)
-    setTimeout(() => {
+  set(value: number): void {
+    if (this.disabled() || !Number.isInteger(value) || value < 1 || value > this.max()) return
+    this.value.set(value)
+    this.hovered.set(null)
+    this.poppedIndex.set(value - 1)
+    this.resources.clearTimeout(this.popTimer)
+    this.popTimer = this.resources.setTimeout(() => {
       this.poppedIndex.set(null)
     }, 170)
   }
 
-  clear() {
-    if (this.disabled()) {
-      return
-    }
+  clear(): void {
+    if (this.disabled() || !this.allowClear()) return
     this.value.set(null)
+    this.hovered.set(null)
+    this.poppedIndex.set(null)
   }
 
   fillPercentFor(index: number): number {
-    const active = this.hovered() ?? this.value() ?? 0
-    return active >= index + 1 ? 100 : 0
+    return (this.hovered() ?? this.value() ?? 0) >= index + 1 ? 100 : 0
   }
 
-  @HostListener('keydown', ['$event'])
-  onKeydown(e: KeyboardEvent) {
-
-    if (this.disabled()) {
-      return
-    }
-
+  onKeydown(event: KeyboardEvent): void {
+    if (this.disabled() || !(event.target instanceof HTMLElement) || event.target.getAttribute('role') !== 'radio') return
     const current = this.value() ?? 0
-
-    if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
-      e.preventDefault()
-      const next = Math.min(this.max(), current + 1)
-      this.set(next)
+    let next: number
+    switch (event.key) {
+      case 'ArrowRight':
+      case 'ArrowUp':
+        next = Math.min(this.max(), current + 1)
+        break
+      case 'ArrowLeft':
+      case 'ArrowDown':
+        next = Math.max(1, current - 1)
+        break
+      case 'Home':
+        next = 1
+        break
+      case 'End':
+        next = this.max()
+        break
+      case 'Delete':
+      case 'Backspace':
+        event.preventDefault()
+        this.clear()
+        this.element.nativeElement.querySelector<HTMLButtonElement>('[role="radio"]')?.focus()
+        return
+      default: return
     }
-
-    if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
-      e.preventDefault()
-      const next = Math.max(0, current - 1)
-      next === 0 ? this.clear() : this.set(next)
-    }
-
-    if (e.key === 'Backspace' || e.key === 'Delete') {
-      e.preventDefault()
-      this.clear()
-    }
+    event.preventDefault()
+    this.set(next)
+    this.element.nativeElement.querySelectorAll<HTMLButtonElement>('[role="radio"]')[next - 1]?.focus()
   }
 }

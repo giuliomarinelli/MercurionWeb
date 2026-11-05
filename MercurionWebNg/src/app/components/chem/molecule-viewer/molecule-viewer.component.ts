@@ -47,7 +47,7 @@ type IdleWindow = Window & {
       </div>
     } @else if (renderState() === 'loading' && mode() === 'detail') {
       <div class="wrap flex flex-col items-center justify-center gap-3" role="status" aria-label="Caricamento struttura molecolare">
-        <span class="size-6 animate-spin rounded-full border-2 border-current border-t-transparent" aria-hidden="true"></span>
+        <span class="size-6 animate-spin rounded-full border-2 border-current border-t-transparent motion-reduce:animate-none" aria-hidden="true"></span>
         <span>Caricamento struttura...</span>
       </div>
     } @else {

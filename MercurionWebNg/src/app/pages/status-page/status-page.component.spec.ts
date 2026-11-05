@@ -4,10 +4,13 @@ import { ActivatedRoute, Router } from '@angular/router'
 import { UserContextService } from '../../services/context/user-context.service'
 import { StatusPageComponent } from './status-page.component'
 import { STATUS_PAGE_CONFIG } from './status-page.models'
+import { routeManifest } from '../../route-manifest'
+
+let authenticated = false
 
 class UserContextStub {
   isLoggedIn(): boolean {
-    return false
+    return authenticated
   }
 }
 
@@ -27,6 +30,8 @@ class RouterStub {
 describe('StatusPageComponent', () => {
   let fixture: ComponentFixture<StatusPageComponent>
   let router: RouterStub
+
+  beforeEach(() => { authenticated = false })
 
   async function createFor(config: typeof STATUS_PAGE_CONFIG[403] | typeof STATUS_PAGE_CONFIG[404]): Promise<void> {
     router = new RouterStub()
@@ -67,5 +72,15 @@ describe('StatusPageComponent', () => {
     await Promise.resolve()
 
     expect(router.destinations).toEqual(['/'])
+  })
+
+  it('returns an authenticated user to the dashboard', async () => {
+    authenticated = true
+    await createFor(STATUS_PAGE_CONFIG[403])
+    const button = fixture.nativeElement.querySelectorAll('button')[1] as HTMLButtonElement
+    expect(button.textContent).toContain('Vai alla Dashboard')
+    button.click()
+    await Promise.resolve()
+    expect(router.destinations).toEqual([routeManifest.dashboard.build({})])
   })
 })

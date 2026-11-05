@@ -1,30 +1,33 @@
-import {
-  AfterViewInit,
-  ChangeDetectionStrategy,
-  Component,
-  ElementRef,
-  OnDestroy,
-  effect,
-  inject,
-  viewChild
-} from '@angular/core'
-import { RouterLink, ActivatedRoute } from '@angular/router'
-import { Subscription, startWith } from 'rxjs'
-import { ScrollContextService } from '../../services/context/scroll-context.service'
-import { ShellLayoutService } from '../../services/context/shell-layout.service'
-import { injectBrowserResourceOwner } from '../../utils/browser-resource-owner.util'
+import { ChangeDetectionStrategy, Component } from '@angular/core'
+import { RouterLink } from '@angular/router'
+import { DocumentNavigationDirective } from '../../components/common/document-navigation/document-navigation.directive'
 
 @Component({
   selector: 'm-terms-and-policies-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink],
+  imports: [RouterLink, DocumentNavigationDirective],
   template: `
-    <main class="main-container leading-7" role="main" aria-labelledby="terms-heading">
+    <main class="main-container max-w-4xl text-on-surface-main text-base leading-7 [overflow-wrap:anywhere]
+      [&>section]:mt-8 [&_.h2]:mb-3 [&_.h2]:pb-0 [&_.h2]:bottom-0 [&_.h2]:text-left [&_.h2]:text-xl [&_.h2]:leading-7 [&_.h2]:tracking-normal
+      [&_.h3]:mt-5 [&_.h3]:mb-2 [&_.h3]:bottom-0 [&_.h3]:text-left [&_.h3]:text-lg [&_.h3]:tracking-normal
+      [&_.h1-underline]:text-2xl sm:[&_.h1-underline]:text-3xl"
+      mDocumentNavigation="terms" #documentNav="mDocumentNavigation" aria-labelledby="terms-heading">
       <!-- TERMINI DI SERVIZIO -->
-      <header #termsHeader id="terms">
+      <header id="terms">
         <h1 id="terms-heading" class="h1-underline">Termini di Servizio di Mercurion</h1>
         <p><strong>Ultimo aggiornamento:</strong> {{ lastUpdated }}</p>
       </header>
+
+      <nav class="my-6 rounded-xl border border-token-border bg-surface-elevated p-4 text-sm text-on-surface-main" aria-label="Sommario del documento">
+        <details>
+          <summary class="cursor-pointer rounded-lg py-2 font-semibold outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq">Sommario</summary>
+          <ol class="mt-3 grid gap-x-6 sm:grid-cols-2">
+            @for (section of documentNav.sections(); track section.id) {
+              <li><a class="a underline underline-offset-4 inline-block py-2" [routerLink]="[]" [fragment]="section.id">{{ section.title }}</a></li>
+            }
+          </ol>
+        </details>
+      </nav>
 
       <section aria-label="Introduzione Termini di Servizio">
         <p>
@@ -34,7 +37,7 @@ import { injectBrowserResourceOwner } from '../../utils/browser-resource-owner.u
         </p>
         <p class="mt-4">
           Utilizzando Mercurion, l’utente dichiara di aver letto, compreso e accettato i presenti Termini di Servizio e
-          l’<a class="a" routerLink="/privacy"><strong>Informativa sulla Privacy</strong></a> relativa al trattamento dei dati personali.
+          l’<a class="a underline underline-offset-4" routerLink="/privacy"><strong>Informativa sulla Privacy</strong></a> relativa al trattamento dei dati personali.
         </p>
       </section>
 
@@ -49,7 +52,7 @@ import { injectBrowserResourceOwner } from '../../utils/browser-resource-owner.u
         <p class="mt-4">
           Per le informazioni identificative e i recapiti del titolare, inclusi partita IVA,
           indirizzo email e PEC, si rinvia all'
-          <a class="a" routerLink="/privacy">Informativa sulla Privacy</a>.
+          <a class="a underline underline-offset-4" routerLink="/privacy">Informativa sulla Privacy</a>.
         </p>
       </section>
 
@@ -152,7 +155,7 @@ import { injectBrowserResourceOwner } from '../../utils/browser-resource-owner.u
         <p class="mt-4">
           Ulteriori informazioni sul trattamento del numero di telefono e sul fornitore
           di invio SMS sono disponibili nell'
-          <a class="a" routerLink="/privacy">Informativa sulla Privacy</a>.
+          <a class="a underline underline-offset-4" routerLink="/privacy">Informativa sulla Privacy</a>.
         </p>
       </section>
 
@@ -269,7 +272,7 @@ import { injectBrowserResourceOwner } from '../../utils/browser-resource-owner.u
         </ul>
         <p>
           In caso di chiusura dell’account, il trattamento e la conservazione dei dati seguiranno quanto descritto
-          nell’<a class="a" routerLink="/privacy">Informativa sulla Privacy di Mercurion</a>.
+          nell’<a class="a underline underline-offset-4" routerLink="/privacy">Informativa sulla Privacy di Mercurion</a>.
         </p>
       </section>
 
@@ -302,7 +305,7 @@ import { injectBrowserResourceOwner } from '../../utils/browser-resource-owner.u
         <h2 class="h2">14. Informativa sulla Privacy</h2>
         <p>
           Per informazioni dettagliate sul trattamento dei dati personali degli utenti, inclusi diritti, finalità e
-          modalità del trattamento, si rinvia all’<strong><a class="a" routerLink="/privacy">Informativa sulla Privacy di Mercurion</a></strong>, disponibile
+          modalità del trattamento, si rinvia all’<strong><a class="a underline underline-offset-4" routerLink="/privacy">Informativa sulla Privacy di Mercurion</a></strong>, disponibile
           nell’apposita sezione dell’Applicazione.
         </p>
       </section>
@@ -311,7 +314,7 @@ import { injectBrowserResourceOwner } from '../../utils/browser-resource-owner.u
       <hr class="my-12 border-slate-300 dark:border-slate-700" />
 
       <!-- POLITICA DI UTILIZZO ACCETTABILE -->
-      <header #aupHeader id="aup">
+      <header id="aup">
         <h2 class="h1-sm">Politica di Utilizzo Accettabile di Mercurion</h2>
       </header>
 
@@ -423,7 +426,7 @@ import { injectBrowserResourceOwner } from '../../utils/browser-resource-owner.u
         <h2 class="h2">6. Segnalazioni e misure in caso di violazione</h2>
         <p>
           Il Titolare può monitorare l’utilizzo del Servizio nella misura strettamente necessaria a garantire la sicurezza
-          dell’infrastruttura, prevenire abusi e adempiere agli obblighi di legge, nel rispetto dell’<a class="a" routerLink="/privacy">Informativa sulla
+          dell’infrastruttura, prevenire abusi e adempiere agli obblighi di legge, nel rispetto dell’<a class="a underline underline-offset-4" routerLink="/privacy">Informativa sulla
           Privacy</a>.
         </p>
         <p class="mt-4">
@@ -458,96 +461,6 @@ import { injectBrowserResourceOwner } from '../../utils/browser-resource-owner.u
     </main>
   `
 })
-export class TermsAndPoliciesPageComponent implements AfterViewInit, OnDestroy {
+export class TermsAndPoliciesPageComponent {
   lastUpdated = '27/10/2026'
-
-  private readonly route = inject(ActivatedRoute)
-  private readonly scrollContext = inject(ScrollContextService)
-  private readonly shellLayout = inject(ShellLayoutService)
-  private readonly resources = injectBrowserResourceOwner()
-
-  readonly termsHeaderRef = viewChild<ElementRef<HTMLElement>>('termsHeader');
-  readonly aupHeaderRef = viewChild<ElementRef<HTMLElement>>('aupHeader');
-
-  private scrollRootRef?: ElementRef<HTMLElement>
-  private fragmentSub?: Subscription
-  private viewReady = false
-  private pendingFragment: string | null = null
-
-  constructor() {
-    effect(() => {
-      const rootRef = this.scrollContext.scrollRootRef()
-      if (!rootRef) return
-
-      this.scrollRootRef = rootRef
-
-      if (this.viewReady && this.pendingFragment !== null) {
-        const frag = this.pendingFragment
-        this.pendingFragment = null
-        queueMicrotask(() => this.applyFragment(frag))
-      }
-    })
-  }
-
-  ngAfterViewInit(): void {
-    this.viewReady = true
-
-    this.fragmentSub = this.route.fragment
-      .pipe(startWith(this.route.snapshot.fragment))
-      .subscribe(frag => {
-        if (!this.scrollRootRef) {
-          this.pendingFragment = frag ?? null
-          return
-        }
-        this.applyFragment(frag)
-      })
-
-    if (this.scrollRootRef && this.pendingFragment !== null) {
-      const frag = this.pendingFragment
-      this.pendingFragment = null
-      queueMicrotask(() => this.applyFragment(frag))
-    }
-  }
-
-  ngOnDestroy(): void {
-    this.fragmentSub?.unsubscribe()
-  }
-
-  private applyFragment(frag: string | null | undefined): void {
-    if (!this.scrollRootRef) return
-
-    // aspetta che l'altezza dell'header sia disponibile per evitare offset errati (bounded: mai polling infinito)
-    this.resources.waitForCondition(
-      () => {
-        const hh = this.shellLayout.headerHeight()
-        return hh > 0 ? hh : null
-      },
-      (hh) => {
-        // due fasi: rAF per layout stabilizzato, setTimeout per lasciare finire lo scroll restoration del router
-        this.resources.requestAnimationFrame(() => {
-          this.resources.setTimeout(() => {
-            if (!this.scrollRootRef) return
-            const rootEl = this.scrollRootRef.nativeElement
-            const headerOffset = Math.max(0, hh) + 10
-
-            let targetEl: HTMLElement | null = null
-
-            if (!frag || frag === 'terms') {
-              targetEl = this.termsHeaderRef()?.nativeElement ?? null
-            } else if (frag === 'aup') {
-              targetEl = this.aupHeaderRef()?.nativeElement ?? null
-            } else {
-              targetEl = this.termsHeaderRef()?.nativeElement ?? null
-            }
-
-            if (!targetEl) return
-
-            const y = Math.max(0, this.scrollContext.getScrollYRelativeToRoot(targetEl, rootEl) - headerOffset)
-            this.scrollContext.smoothTo(this.scrollRootRef, y, 240)
-          }, 20)
-        })
-      }
-    )
-  }
-
 }

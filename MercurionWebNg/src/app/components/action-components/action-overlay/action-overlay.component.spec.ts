@@ -116,12 +116,33 @@ describe('CollectionSaveOverlayComponent', () => {
     context.switchToScope('SelectCollectionThenRoute', { importFromChembl: false });
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('m-test-action')).not.toBeNull();
-    expect(fixture.nativeElement.textContent).not.toContain('Caricamento azione');
+    expect(fixture.nativeElement.querySelector('[inert] m-test-action')).not.toBeNull()
+    expect(fixture.nativeElement.textContent).toContain('Caricamento azione')
     resolveLoad(TestActionComponent);
     await fixture.whenStable();
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelectorAll('m-test-action').length).toBe(1);
+    expect(fixture.nativeElement.querySelector('[inert]')).toBeNull()
   });
+
+  it('retries a failed implementation load in the same session without executing an action', async () => {
+    const loader = spyOn(ACTION_REGISTRY.CreateCollection, 'load')
+      .and.returnValues(Promise.reject(new Error('chunk failed')), Promise.resolve(TestActionComponent))
+    const session = context.open('CreateCollection')
+    fixture.detectChanges()
+    await fixture.whenStable()
+    fixture.detectChanges()
+    const retry = [...fixture.nativeElement.querySelectorAll('button')]
+      .find((button: unknown) => (button as HTMLButtonElement).textContent?.includes('Riprova caricamento')) as HTMLButtonElement
+    retry.click()
+    fixture.detectChanges()
+    await fixture.whenStable()
+    fixture.detectChanges()
+    expect(loader.calls.count()).toBe(2)
+    expect(context.session('CreateCollection')?.id).toBe(session)
+    expect(fixture.nativeElement.querySelector('m-test-action')).not.toBeNull()
+    expect(fixture.nativeElement.querySelector('[role="alert"]')).toBeNull()
+  })
 
   it('blocks dismissal during collection creation and restores it after failure', async () => {
     spyOn(ACTION_REGISTRY.CreateCollection, 'load').and.resolveTo(TestActionComponent);
@@ -141,6 +162,22 @@ describe('CollectionSaveOverlayComponent', () => {
     shell.onEscape(new Event('keydown'));
     expect(context.state().phase).toBe('closing');
   });
+
+  it('keeps keyboard focus on recovery after a replacement action fails', async () => {
+    spyOn(ACTION_REGISTRY.CreateCollection, 'load').and.resolveTo(TestActionComponent)
+    context.open('CreateCollection')
+    fixture.detectChanges()
+    await fixture.whenStable()
+    await new Promise(resolve => setTimeout(resolve, 20))
+    spyOn(ACTION_REGISTRY.SelectCollectionThenRoute, 'load').and.rejectWith(new Error('offline'))
+    context.switchToScope('SelectCollectionThenRoute', { importFromChembl: false })
+    fixture.detectChanges()
+    await fixture.whenStable()
+    fixture.detectChanges()
+    const retry = fixture.nativeElement.querySelector('[data-action-retry] button') as HTMLButtonElement
+    expect(retry).not.toBeNull()
+    expect(document.activeElement).toBe(retry)
+  })
 
   for (const scope of ['SelectCollectionThenRoute', 'BindCollectionsToMolecule', 'AddMoleculesToCollection', 'MoleculeCollectionItemSave'] as const) {
     it('blocks dismissal while ' + scope + ' is submitting', async () => {

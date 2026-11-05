@@ -58,7 +58,7 @@ import { ViewportRuntimeService } from '../../../services/context/viewport-runti
 
           @if (editorState() === 'loading') {
             <div
-              class="pointer-events-none absolute inset-y-0 inset-x-0 animate-pulse bg-gray-300 dark:bg-neutral-700"
+              class="pointer-events-none absolute inset-y-0 inset-x-0 animate-pulse bg-gray-300 dark:bg-neutral-700 motion-reduce:animate-none"
               role="status"
               aria-live="polite"
               aria-label="Caricamento editor in corso"

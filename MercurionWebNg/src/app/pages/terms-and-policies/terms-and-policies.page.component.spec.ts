@@ -1,105 +1,19 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ElementRef } from '@angular/core';
+import { TestBed } from '@angular/core/testing'
+import { TermsAndPoliciesPageComponent } from './terms-and-policies.page.component'
 
-import { TermsAndPoliciesPageComponent } from './terms-and-policies.page.component';
-import { ScrollContextService } from '../../services/context/scroll-context.service';
-import { ShellLayoutService } from '../../services/context/shell-layout.service';
-
-describe('TermsAndPoliciesPageComponent', () => {
-  let component: TermsAndPoliciesPageComponent;
-  let fixture: ComponentFixture<TermsAndPoliciesPageComponent>;
-  let scrollContext: ScrollContextService;
-  let shellLayout: ShellLayoutService;
-
-  let rafCallbacks: FrameRequestCallback[];
-  let rafHandle: number;
-  let timeoutCallbacks: Array<() => void>;
-
-  function flushRaf(): void {
-    const pending = rafCallbacks;
-    rafCallbacks = [];
-    pending.forEach(cb => cb(0));
-  }
-
-  function flushTimeouts(): void {
-    const pending = timeoutCallbacks;
-    timeoutCallbacks = [];
-    pending.forEach(cb => cb());
-  }
-
-  beforeEach(async () => {
-    rafCallbacks = [];
-    rafHandle = 0;
-    timeoutCallbacks = [];
-    spyOn(window, 'requestAnimationFrame').and.callFake((cb: FrameRequestCallback) => {
-      rafCallbacks.push(cb);
-      return ++rafHandle;
-    });
-    spyOn(window, 'setTimeout').and.callFake(((cb: () => void) => {
-      timeoutCallbacks.push(cb);
-      return 0 as any;
-    }) as any);
-
-    await TestBed.configureTestingModule({
-      imports: [TermsAndPoliciesPageComponent]
-    })
-    .compileComponents();
-
-    fixture = TestBed.createComponent(TermsAndPoliciesPageComponent);
-    component = fixture.componentInstance;
-    scrollContext = TestBed.inject(ScrollContextService);
-    shellLayout = TestBed.inject(ShellLayoutService);
-    fixture.detectChanges();
-  });
-
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
-
-  it('applies the fragment scroll once the header height becomes available (bounded, single owned RAF chain)', () => {
-    const c = component as any;
-    const fakeRoot = new ElementRef(document.createElement('div'));
-    c.scrollRootRef = fakeRoot;
-
-    shellLayout.setHeaderHeight(0);
-    const smoothToSpy = spyOn(scrollContext, 'smoothTo');
-    spyOn(scrollContext, 'getScrollYRelativeToRoot').and.returnValue(100);
-
-    c.applyFragment('terms');
-
-    // first owned frame: header height still 0, must reschedule exactly one more bounded frame
-    flushRaf();
-    expect(smoothToSpy).not.toHaveBeenCalled();
-
-    shellLayout.setHeaderHeight(40);
-    // second owned frame: predicate now truthy, schedules the layout-settle frame
-    flushRaf();
-    // layout-settle frame: schedules the owned 20ms timeout
-    flushRaf();
-    flushTimeouts();
-
-    expect(smoothToSpy).toHaveBeenCalledTimes(1);
-  });
-
-  it('cancels any pending owned frame/timer once destroyed, so a late header-height update can never trigger a scroll', () => {
-    const c = component as any;
-    const fakeRoot = new ElementRef(document.createElement('div'));
-    c.scrollRootRef = fakeRoot;
-
-    shellLayout.setHeaderHeight(0);
-    const smoothToSpy = spyOn(scrollContext, 'smoothTo');
-
-    c.applyFragment('terms');
-    expect(rafCallbacks.length).toBe(1);
-
-    fixture.destroy();
-
-    // even if the header height becomes available after destroy, no further frame/timer may fire
-    shellLayout.setHeaderHeight(48);
-    flushRaf();
-    flushRaf();
-    flushTimeouts();
-
-    expect(smoothToSpy).not.toHaveBeenCalled();
-  });
-});
+describe('TermsAndPoliciesPageComponent document navigation', () => {
+  it('keeps the existing terms/AUP deep links and exposes valid outline destinations', async () => {
+    TestBed.configureTestingModule({ imports: [TermsAndPoliciesPageComponent] })
+    const fixture = TestBed.createComponent(TermsAndPoliciesPageComponent)
+    fixture.detectChanges()
+    await fixture.whenStable()
+    fixture.detectChanges()
+    const host = fixture.nativeElement as HTMLElement
+    expect(host.querySelector('#terms')).not.toBeNull()
+    expect(host.querySelector('#aup')).not.toBeNull()
+    const links = [...host.querySelectorAll<HTMLAnchorElement>('nav a')]
+    expect(links.length).toBeGreaterThan(20)
+    expect(links.every(link => [...host.querySelectorAll('[id]')].some(target => '#' + target.id === link.hash))).toBeTrue()
+    expect(host.textContent).toContain('27/10/2026')
+  })
+})

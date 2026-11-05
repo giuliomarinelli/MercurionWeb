@@ -31,6 +31,7 @@ import { ShellLayoutService } from './services/context/shell-layout.service'
 import { DOCUMENT, isPlatformBrowser } from '@angular/common'
 import { ToastComponent } from './components/common/toast/toast.component'
 import { RealtimeStateSyncService } from './services/realtime-state-sync.service'
+import { DeferredOverlayStateComponent } from './components/common/deferred-overlay-state/deferred-overlay-state.component'
 
 @Component({
   selector: 'm-root',
@@ -43,7 +44,8 @@ import { RealtimeStateSyncService } from './services/realtime-state-sync.service
     FooterComponent,
     ToastComponent,
     SidenavComponent,
-    ActionOverlayComponent
+    ActionOverlayComponent,
+    DeferredOverlayStateComponent
   ],
   template: `
     @if (routePolicy().shell === 'standard') {
@@ -72,6 +74,11 @@ import { RealtimeStateSyncService } from './services/realtime-state-sync.service
       @if (saveOverlayContext.shouldMount() && authState.authenticated()) {
         @defer (when saveOverlayContext.shouldMount()) {
           <m-action-overlay />
+        } @loading {
+          <m-deferred-overlay-state label="Pannello azioni" [open]="saveOverlayContext.isVisible()" (closed)="saveOverlayContext.close()" />
+        } @error {
+          <m-deferred-overlay-state label="Pannello azioni" [open]="saveOverlayContext.isVisible()" [failed]="true"
+            (closed)="saveOverlayContext.close()" (reloadRequested)="reloadPage()" />
         }
       }
     } @else if (routePolicy().shell === 'home') {
@@ -89,6 +96,11 @@ import { RealtimeStateSyncService } from './services/realtime-state-sync.service
     @if (searchContextService.isMounted()) {
       @defer (when searchContextService.isMounted()) {
         <m-search-overlay />
+      } @loading {
+        <m-deferred-overlay-state label="Ricerca molecolare" [open]="searchContextService.isVisible()" (closed)="searchContextService.close()" />
+      } @error {
+        <m-deferred-overlay-state label="Ricerca molecolare" [open]="searchContextService.isVisible()" [failed]="true"
+          (closed)="searchContextService.close()" (reloadRequested)="reloadPage()" />
       }
     }
     @defer (when toastService.messages().length > 0; prefetch on idle) {
@@ -142,6 +154,10 @@ export class AppComponent implements OnDestroy {
 
   triggerOpenOffCanvas(): void {
     this._triggerOpenOffCanvas.set(true)
+  }
+
+  protected reloadPage(): void {
+    this.doc.defaultView?.location.reload()
   }
 
   ngOnDestroy() {
