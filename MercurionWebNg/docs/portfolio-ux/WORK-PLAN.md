@@ -45,6 +45,8 @@ Il programma riguarda l’applicazione e la sua QA. La [VM locale](../../../docs
 - Fare il bilancio dei diff e delle prove, rieseguire i controlli pertinenti dopo l’ultima modifica e preparare la review manuale estesa dell’utente. Distinguere gate locali e risultati CI effettivamente verificati.
 - **Consegna:** difetti aperti, limiti da decidere insieme, documentazione aggiornata e risultato pronto per la review; nessun merge implicito.
 
+**Ripresa del 5 novembre:** [Giorno 5, prima passata TS-01 e bilancio](DAY-5-QA.md). Pulizia di 627 file Angular/Nest con confronto sintattico e formatter allineati. Suite complete: 1.282 test Angular, 1.105 unitari Nest e 6 E2E; corretta la fixture di contrasto notifiche nei due temi. La chiusura TS-01 complessiva resta aperta per le aree escluse (F-09); review manuale e CI remota restano distinte dai controlli locali.
+
 ## Cosa resta fuori da queste giornate
 
 Notebook e Synthesis restano rinviati e disabilitati; anche l’integrazione object store/R2 è rinviata. Il loro eventuale completamento richiede attività e QA dedicate. Passkey è una proposta opzionale. Rotazione JWT e MeiliLogger hanno residui applicativi/di integrazione da rivalutare in base al perimetro dimostrativo concordato; la progettazione del loro deployment non viene anticipata qui. L’aggiornamento Angular/Node segue la sequenza già concordata dopo le macro-feature, salvo una nuova decisione dell’utente.

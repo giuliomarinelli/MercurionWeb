@@ -679,7 +679,7 @@ La reintegrazione dei branch feature nel branch corrente e il merge della beta s
 
 ### TS-01 — Pulizia finale dei punti e virgola TypeScript
 
-**Stato: pianificato, da eseguire alla fine dei refactor e prima della chiusura QA/merge.** Richiesta del 27 ottobre 2026. Lo stile dell'utente prevede TypeScript senza punti e virgola opzionali; anche il nuovo codice deve rispettarlo da subito. Questa voce pianifica la pulizia retroattiva, senza avviarla ora.
+**Stato: prima passata Angular/Nest implementata, in review; chiusura complessiva ancora aperta.** Richiesta del 27 ottobre 2026. Lo stile dell'utente prevede TypeScript senza punti e virgola opzionali; anche il nuovo codice deve rispettarlo da subito. Nel [Giorno 5](DAY-5-QA.md) rimossi 15.403 terminatori in 627 file manuali, con albero sintattico invariato, formatter allineati e suite Angular/Nest complete verdi. Restano la review e le aree fuori dalla prima passata, inventariate in F-09; non è dichiarato completato il 100% dell’intero repository.
 
 **Obiettivo:** eliminare il **100% dei punti e virgola superflui** aggiunti nei refactor ai file TypeScript mantenuti manualmente nel repository, conservando comportamento, leggibilità e modifiche dell'utente.
 

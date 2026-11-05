@@ -398,12 +398,34 @@ describe('Notification center navigation and requests', () => {
     }
   })
 
-  it('has no serious or critical accessibility violations in the populated center', async () => {
-    const harness = await RouterTestingHarness.create('/notifications?notification=A')
-    await settle(harness)
-    const violations = blockingViolations(await runAxe(harness.routeNativeElement!))
-    expect(violations).withContext(formatAxeViolations(violations)).toEqual([])
-  })
+  for (const theme of ['light', 'dark']) {
+    it(`has no serious or critical accessibility violations in the populated center in ${theme}`, async () => {
+      const harness = await RouterTestingHarness.create('/notifications?notification=A')
+      await settle(harness)
+      const htmlDark = document.documentElement.classList.contains('dark')
+      const bodyDark = document.body.classList.contains('dark')
+      const main = harness.routeNativeElement!.querySelector('main')!
+      const background = main.style.backgroundColor
+      try {
+        document.documentElement.classList.toggle('dark', theme === 'dark')
+        document.body.classList.remove('dark')
+        // RouterTestingHarness omits the application shell and its themed surface.
+        main.style.backgroundColor = theme === 'dark'
+          ? 'var(--color-neutral-950)'
+          : 'var(--color-light-surface-main)'
+        main.getBoundingClientRect()
+        await Promise.all(main.getAnimations({ subtree: true })
+          .filter(animation => animation.effect?.getComputedTiming().iterations !== Infinity)
+          .map(animation => animation.finished.catch(() => {})))
+        const violations = blockingViolations(await runAxe(main))
+        expect(violations).withContext(formatAxeViolations(violations)).toEqual([])
+      } finally {
+        main.style.backgroundColor = background
+        document.documentElement.classList.toggle('dark', htmlDark)
+        document.body.classList.toggle('dark', bodyDark)
+      }
+    })
+  }
 
   it('uses the destructive button variant for deletion in the list, detail and global action', async () => {
     const harness = await RouterTestingHarness.create('/notifications?notification=A')

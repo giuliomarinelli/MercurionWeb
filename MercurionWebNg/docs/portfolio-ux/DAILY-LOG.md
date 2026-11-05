@@ -840,6 +840,14 @@ Ricerca ChEMBL di ASPIRINA → dettaglio → nuova collezione QA → associazion
 
 **Verifica:** 27 + 49 test Angular mirati, 10 test demo, lint/build e gate bundle/lazy superati. La prima esecuzione npm non filtrata è stata interrotta con errori: suite estesa aperta in F-08. Review manuale accessibilità, Safari fisico e zoom reale in F-06/F-07. Copione aggiornato alle prove persistenti reali del Giorno 1; nessuna pubblicazione o merge. Seguito: Giorno 5, TS-01 e bilancio.
 
+### 2026-11-05 — Giorno 5 — TS-01 Angular/Nest e bilancio
+
+**Stato:** Prima passata implementata, in review. [Verbale](DAY-5-QA.md): inventario di 1.230 file manuali, due generati esclusi; 15.403 terminatori rimossi in 627 file con parser TypeScript e confronto degli alberi sintattici. Zero candidati rimovibili al secondo giro; stringhe, template, commenti e JSDoc conservati. Formatter semi:false effettivo; corretto il nome della configurazione Angular precedentemente ignorata.
+
+**Verifica:** 6 test del trasformatore; 1.282 test Angular completi, 1.105 unitari Nest e 6 E2E verdi. Correzione circoscritta della fixture di accessibilità notifiche: sfondo della shell, temi espliciti e attesa delle transizioni; prodotto invariato. Lint/typecheck/build, bundle/lazy e policy pertinenti superati. Test iniziali non verdi conservati nei log, senza dichiararli superati retroattivamente.
+
+**Bilancio:** CI remota e review manuale aperte; TS-01 delle altre aree in F-09, nessun completamento repository-wide dichiarato. Restano tutti i TODO reali F-01–F-07 e l’anomalia storica PX-09 non riprodotta. Commit/push senza firma sul branch corrente, nessun merge; servizi dell’utente conservati.
+
 ## Modello per le voci successive
 
 ### AAAA-MM-GG — PX-XX — Sottoarea
