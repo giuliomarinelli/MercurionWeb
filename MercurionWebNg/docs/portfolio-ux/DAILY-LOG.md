@@ -856,6 +856,14 @@ Ricerca ChEMBL di ASPIRINA → dettaglio → nuova collezione QA → associazion
 
 **Segue:** review delle eccezioni F-09, controlli delle aree aggiunte F-10 e CI remota F-08. Provider/dispositivi/runtime restano TODO separati. Commit/push senza firma, nessun merge; servizi dell’utente conservati.
 
+### 2026-11-05 — F-10 — Validazione Data, landing e catalogo
+
+**Stato:** Completato localmente, in review. [Verbale](F-10-QA.md). Corretti alias Jest, import di classi rinominate e provider espliciti delle fixture; ripristinati matcher Jest della riconciliazione indice. E2E iniziale sostituito con HTTP isolato di una route reale, senza AppModule/database; test seeding su sorgente vuota, batch e parametri SQL. Rimossi rilievi lint senza abbassare le regole o attivare lo stub embedding.
+
+**Verifica:** Data: typecheck, lint senza warning, build, 17 suite / 19 unitari e 2 E2E verdi. Landing: quattro test di rendering/fallback/metadati e build con 42 route. Catalogo: opzioni Playwright ricollocate nei campi tipizzati, typecheck completo verde; nessuna nuova accettazione screenshot. I test di costruzione restano prove del wiring con sostituti locali, non workflow persistenti reali.
+
+**Segue:** F-10 esce dai controlli locali pendenti; review TS-01 F-09, CI F-08 e TODO runtime/dispositivi restano aperti. Commit/push senza firma, nessun merge; servizi dell’utente conservati.
+
 ## Modello per le voci successive
 
 ### AAAA-MM-GG — PX-XX — Sottoarea

@@ -45,7 +45,7 @@ Il programma riguarda l’applicazione e la sua QA. La [VM locale](../../../docs
 - Fare il bilancio dei diff e delle prove, rieseguire i controlli pertinenti dopo l’ultima modifica e preparare la review manuale estesa dell’utente. Distinguere gate locali e risultati CI effettivamente verificati.
 - **Consegna:** difetti aperti, limiti da decidere insieme, documentazione aggiornata e risultato pronto per la review; nessun merge implicito.
 
-**Ripresa del 5 novembre:** [Giorno 5, prima passata TS-01 e bilancio](DAY-5-QA.md). Pulizia di 627 file Angular/Nest con confronto sintattico e formatter allineati. Suite complete: 1.282 test Angular, 1.105 unitari Nest e 6 E2E; corretta la fixture di contrasto notifiche nei due temi. [Seconda passata TS-01](TS-01-QA.md): ulteriori 62 file delle aree rimanenti, zero candidati rimovibili nel perimetro globale. Accettazione e review restano F-09, problemi di baseline delle aree aggiunte F-10; CI remota e prove manuali non dedotte dai controlli locali.
+**Ripresa del 5 novembre:** [Giorno 5, prima passata TS-01 e bilancio](DAY-5-QA.md). Pulizia di 627 file Angular/Nest con confronto sintattico e formatter allineati. Suite complete: 1.282 test Angular, 1.105 unitari Nest e 6 E2E; corretta la fixture di contrasto notifiche nei due temi. [Seconda passata TS-01](TS-01-QA.md): ulteriori 62 file delle aree rimanenti, zero candidati rimovibili nel perimetro globale. [F-10 ripristinato localmente](F-10-QA.md): typecheck/lint/build Data, 19 unitari e 2 E2E HTTP isolati; quattro test landing e build, typecheck catalogo verdi. Accettazione e review restano F-09; CI remota e prove manuali non dedotte dai controlli locali.
 
 ## Cosa resta fuori da queste giornate
 
