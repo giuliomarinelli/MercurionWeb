@@ -49,6 +49,8 @@ Il programma riguarda l’applicazione e la sua QA. La [VM locale](../../../docs
 
 ## Cosa resta fuori da queste giornate
 
+**Seguito F-08:** [CI remota verificata](F-08-QA.md) sullo SHA delle correzioni `149ab9b2900a1e883574f83fe7da5297269a83f9`, con percorso full e Required gate verdi. F-08 esce dai TODO pendenti; restano F-09 e le prove manuali/runtime/provider, senza merge.
+
 Notebook e Synthesis restano rinviati e disabilitati; anche l’integrazione object store/R2 è rinviata. Il loro eventuale completamento richiede attività e QA dedicate. Passkey è una proposta opzionale. Rotazione JWT e MeiliLogger hanno residui applicativi/di integrazione da rivalutare in base al perimetro dimostrativo concordato; la progettazione del loro deployment non viene anticipata qui. L’aggiornamento Angular/Node segue la sequenza già concordata dopo le macro-feature, salvo una nuova decisione dell’utente.
 
 **Primo incarico consigliato per oggi:** Giorno 1, limitato al percorso molecolare con salvataggio e riapertura. Se emergono difetti critici, correggerli prima di allargare la sessione.

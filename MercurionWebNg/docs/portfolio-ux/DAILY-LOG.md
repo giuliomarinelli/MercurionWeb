@@ -864,6 +864,16 @@ Ricerca ChEMBL di ASPIRINA → dettaglio → nuova collezione QA → associazion
 
 **Segue:** F-10 esce dai controlli locali pendenti; review TS-01 F-09, CI F-08 e TODO runtime/dispositivi restano aperti. Commit/push senza firma, nessun merge; servizi dell’utente conservati.
 
+### 2026-11-05 — F-08 — Log remoti, riparazione e Required gate verde
+
+**Stato:** Verificato sul commit delle correzioni, nessun merge. [Verbale](F-08-QA.md). Recuperati autonomamente i log del run 42018404547 sullo SHA 1a4f8762a: blocchi nella policy import TestController e nella protezione delle destinazioni JWT senza Git nel container. Riparati i due domini con regressioni e mantenimento dei vincoli di sicurezza.
+
+**Statici:** corretti anche proprietà/validazione dello snapshot demo, classificazione di quattro helper solo test, OnPush dello stub Turnstile e inventario REST rigenerato/riesaminato. `ci:static` completo verde; 34 test JWT e 48 login/layout verdi.
+
+**Seguito remoto:** il run 42022148830 supera tutti i blocchi iniziali ma rileva un test tooltip sensibile al layout del runner e il vecchio selettore del titolo login. Resa deterministica la prova geometrica senza allargare la tolleranza e aggiornato il selettore sulla base dello snapshot CI. Otto nuove prove di lease/claim del repository sessione colmano il deficit coverage; 1.290 test Angular e coverage locali verdi, soglie invariate.
+
+**Accettazione CI:** run 42026147278 sull’esatto SHA `149ab9b2900a1e883574f83fe7da5297269a83f9`, full e Required gate success: prerequisiti Windows/Linux, sei container e tutti i job downstream verdi. Copie locali di metadati/log conservate; F-08 completato, F-09 e prove reali/manuali restano aperti. Anche l’ultimo commit del verbale riceve una verifica CI distinta prima della consegna.
+
 ## Modello per le voci successive
 
 ### AAAA-MM-GG — PX-XX — Sottoarea
