@@ -1,3 +1,4 @@
+import { DestructiveConfirmationComponent } from '../destructive-confirmation/destructive-confirmation.component'
 import { NgClass } from '@angular/common';
 import { Component, inject, OnDestroy, OnInit, computed, input, signal, ChangeDetectionStrategy, output } from '@angular/core';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
@@ -5,7 +6,6 @@ import { UserContextService } from '../../../services/context/user-context.servi
 import { HistoryComponent } from '../history/history.component';
 import { filter, Subscription } from 'rxjs';
 import { HistoryService } from '../../../services/history.service';
-import { ToastService } from '../../../services/toast.service';
 import { ProgressIndicatorComponent } from "../progress-indicator/progress-indicator.component";
 import { DesignService } from '../../../services/design.service';
 import { SearchContextService } from '../../../services/context/search-context.service';
@@ -24,7 +24,8 @@ import { SidenavContextService } from '../../../services/context/sidenav-context
     HistoryComponent,
     ProgressIndicatorComponent,
     NgClass,
-    TooltipModule
+    TooltipModule,
+    DestructiveConfirmationComponent
   ],
   template: `
     <nav class="m-navigation-scroll m-scroll-thin" [class.m-navigation--desktop]="desktop()" [class.m-navigation--collapsed]="rail()" aria-label="Navigazione laterale">
@@ -268,6 +269,10 @@ import { SidenavContextService } from '../../../services/context/sidenav-context
         </div>
       }
     </nav>
+    <m-destructive-confirmation [open]="confirmHistoryDeletion()" title="Cancella la cronologia?"
+      description="La cronologia delle attività verrà cancellata. Molecole e collezioni resteranno disponibili. Questa operazione non può essere annullata."
+      confirmLabel="Cancella cronologia" [pending]="historyDeletePending()" [error]="historyDeleteError()"
+      (cancelled)="cancelHistoryDeletion()" (confirmed)="confirmDeleteHistory()" />
   `,
   styleUrl: './sidenav.component.css'
 })
@@ -276,7 +281,6 @@ export class SidenavComponent implements OnInit, OnDestroy {
 
   private readonly historyService = inject(HistoryService)
   protected readonly userContext = inject(UserContextService)
-  private readonly toast = inject(ToastService)
   protected readonly designService = inject(DesignService)
   protected readonly searchOverlayContext = inject(SearchContextService)
   protected readonly s = inject(SelectionService)
@@ -337,17 +341,36 @@ export class SidenavComponent implements OnInit, OnDestroy {
     this.s.clearHeaderSelections()
   }
 
+  readonly confirmHistoryDeletion = signal(false)
+  readonly historyDeletePending = signal(false)
+  readonly historyDeleteError = signal('')
+
   doDeleteHistory(): void {
-    const onError = () => queueMicrotask(() => this.toast.trigger('Si è verificato un errore nella cancellazione della cronologia.'))
+    if (this.historyDeletePending() || this.isHistoryEmpty()) return
+    this.historyDeleteError.set('')
+    this.confirmHistoryDeletion.set(true)
+  }
+
+  cancelHistoryDeletion(): void {
+    if (!this.historyDeletePending()) this.confirmHistoryDeletion.set(false)
+  }
+
+  confirmDeleteHistory(): void {
+    if (!this.confirmHistoryDeletion() || this.historyDeletePending()) return
+    this.historyDeletePending.set(true)
+    this.historyDeleteError.set('')
+    const onError = () => {
+      this.historyDeletePending.set(false)
+      this.historyDeleteError.set('Cronologia non cancellata. Puoi riprovare o annullare.')
+    }
     this.delSub = this.historyService.deleteHistory().subscribe({
-      next: (ok) => {
-        if (!ok) {
-          onError()
-          return
-        }
-        queueMicrotask(() => this.triggerDelete.set(true))
+      next: ok => {
+        if (!ok) { onError(); return }
+        this.historyDeletePending.set(false)
+        this.confirmHistoryDeletion.set(false)
+        this.triggerDelete.set(true)
       },
-      error: () => onError()
+      error: onError
     })
   }
 

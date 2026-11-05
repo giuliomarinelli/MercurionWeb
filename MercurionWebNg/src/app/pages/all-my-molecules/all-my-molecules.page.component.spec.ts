@@ -22,12 +22,16 @@ describe('AllMyMoleculesPageComponent: list states', () => {
   let requests: Subject<PageModel<Record<string, unknown>>>[];
   let fetch: jasmine.Spy;
   let open: jasmine.Spy;
+  let remove: jasmine.Spy;
+  let deletionResponse: Subject<boolean>;
   const item = { id: 'one', name: 'Test', itemsCount: 2, createdAt: '2026-01-01' };
   const response = (items: Record<string, unknown>[], totalPages = 1, currentPage = 1) => ({ items, currentPage, totalPages, totalItems: items.length, itemCount: items.length, itemsPerPage: 25 });
   const settle = () => { tick(120); flushMicrotasks(); fixture.detectChanges(); };
 
   beforeEach(async () => {
     requests = [];
+    deletionResponse = new Subject<boolean>();
+    remove = jasmine.createSpy('delete').and.callFake(() => deletionResponse);
     fetch = jasmine.createSpy('getAllPaginatedItems').and.callFake(() => {
       const request = new Subject<PageModel<Record<string, unknown>>>();
       requests.push(request);
@@ -35,14 +39,14 @@ describe('AllMyMoleculesPageComponent: list states', () => {
     });
     open = jasmine.createSpy('open');
     spyOn(window, 'IntersectionObserver').and.returnValue({ observe: () => undefined, disconnect: () => undefined } as unknown as IntersectionObserver);
-    spyOn(Helpers, 'moleculeClientToCardConverter').and.callFake(mol => ({ id: mol.id, triggerDisappear: signal(false), collapse: signal(false) } as MoleculeCardItemModel));
+    spyOn(Helpers, 'moleculeClientToCardConverter').and.callFake(mol => ({ id: mol.id, name: String('name' in mol ? mol.name : ''), triggerDisappear: signal(false), collapse: signal(false) } as MoleculeCardItemModel));
     await TestBed.configureTestingModule({
       imports: [AllMyMoleculesPageComponent],
       providers: [provideRouter([]),
-        { provide: MoleculeCollectionItemService, useValue: { getAllPaginatedItems: fetch } },
+        { provide: MoleculeCollectionItemService, useValue: { getAllPaginatedItems: fetch, deleteItem: remove } },
         { provide: ActionOverlayContextService, useValue: { open } },
-        { provide: HistoryContextService, useValue: {} },
-        { provide: ToastService, useValue: {} },
+        { provide: HistoryContextService, useValue: { triggerRemoveItemFromHistoryView: jasmine.createSpy() } },
+        { provide: ToastService, useValue: { trigger: jasmine.createSpy() } },
         { provide: DomainInvalidationService, useValue: { last: signal(null) } },
         { provide: RealtimeSyncStatusService, useValue: { markSynchronized: () => undefined } },
         { provide: ScrollContextService, useValue: { intersectionRoot: () => null } },
@@ -122,4 +126,43 @@ describe('AllMyMoleculesPageComponent: list states', () => {
     component.doQuery('pending'); fixture.destroy(); tick(300);
     expect(fetch.calls.count()).toBe(1);
   }));
+  it('requires confirmation and cancellation never calls the delete service', fakeAsync(() => {
+    requests[0].next(response([item])); settle();
+    component.doDelete('one');
+    expect(component.deletion()?.name).toBe('Test');
+    expect(remove).not.toHaveBeenCalled();
+    component.cancelDeletion();
+    component.confirmDeletion();
+    expect(component.deletion()).toBeNull();
+    expect(remove).not.toHaveBeenCalled();
+  }));
+
+  it('prevents repeated submissions and keeps the confirmed target on failure for retry', fakeAsync(() => {
+    requests[0].next(response([item])); settle();
+    component.doDelete('one');
+    component.confirmDeletion(); component.confirmDeletion(); component.cancelDeletion();
+    expect(remove).toHaveBeenCalledOnceWith('one');
+    expect(component.deletion()?.id).toBe('one');
+    expect(component.deletePending()).toBeTrue();
+    deletionResponse.next(false); deletionResponse.complete();
+    expect(component.deleteError()).toContain('Puoi riprovare');
+    expect(component.items.length).toBe(1);
+    deletionResponse = new Subject<boolean>();
+    component.confirmDeletion();
+    expect(remove).toHaveBeenCalledTimes(2);
+    deletionResponse.next(true); deletionResponse.complete();
+    tick(500); flushMicrotasks();
+    expect(component.deletion()).toBeNull();
+  }));
+
+  it('preserves the item and confirmation after a transport error', fakeAsync(() => {
+    requests[0].next(response([item])); settle();
+    component.doDelete('one'); component.confirmDeletion();
+    deletionResponse.error(new Error('offline'));
+    expect(component.deletePending()).toBeFalse();
+    expect(component.deletion()?.id).toBe('one');
+    expect(component.items.length).toBe(1);
+    expect(component.deleteError()).toBeTruthy();
+  }));
+
 });

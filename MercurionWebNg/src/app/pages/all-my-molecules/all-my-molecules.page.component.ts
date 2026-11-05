@@ -1,3 +1,4 @@
+import { DestructiveConfirmationComponent } from '../../components/common/destructive-confirmation/destructive-confirmation.component'
 import { MoleculeCardItemModel } from './../../Models/graphql/molecule-collection/molecule-collection.types';
 import { Component, effect, ElementRef, inject, OnDestroy, OnInit, signal, ChangeDetectionStrategy, viewChild } from '@angular/core';
 import { MoleculeCollectionItemCardComponent } from '../../components/molecule-detail/molecule-collection-item-card/molecule-collection-item-card.component';
@@ -25,6 +26,7 @@ import { ScrollContextService } from '../../services/context/scroll-context.serv
     SkeletonMoleculeCardComponent,
     MyMoleculesHeadingComponent,
     RouterLink,
+    DestructiveConfirmationComponent,
     SearchFieldComponent,
     ButtonComponent
   ],
@@ -88,6 +90,9 @@ import { ScrollContextService } from '../../services/context/scroll-context.serv
         }
       </div>
     </section>
+    <m-destructive-confirmation [open]="!!deletion()" title="Elimina molecola?" [subject]="deletion()?.name ?? ''"
+      description="La molecola verrà eliminata da tutte le collezioni. Questa operazione non può essere annullata."
+      [pending]="deletePending()" [error]="deleteError()" (cancelled)="cancelDeletion()" (confirmed)="confirmDeletion()" />
   `
 })
 export class AllMyMoleculesPageComponent implements OnInit, OnDestroy {
@@ -197,32 +202,51 @@ export class AllMyMoleculesPageComponent implements OnInit, OnDestroy {
   }
   doClear(): void { this.submitQuery('') }
 
+  readonly deletion = signal<{ id: string; name: string } | null>(null)
+  readonly deletePending = signal(false)
+  readonly deleteError = signal('')
+
   doDelete(id: string): void {
-    const onError = () => queueMicrotask(() => this.toast.trigger('Si è verificato un errore.', 'error', 3000))
+    if (this.deletePending()) return
+    const item = this.items.find(item => item.id === id)
+    if (!item) return
+    this.deleteError.set('')
+    this.deletion.set({ id: item.id, name: item.name })
+  }
+
+  cancelDeletion(): void {
+    if (!this.deletePending()) this.deletion.set(null)
+  }
+
+  confirmDeletion(): void {
+    const selection = this.deletion()
+    if (!selection || this.deletePending()) return
+    const id = selection.id
+    this.deletePending.set(true)
+    this.deleteError.set('')
+    const onError = () => {
+      this.deletePending.set(false)
+      this.deleteError.set('Eliminazione non riuscita. Puoi riprovare o annullare.')
+    }
     this.delSub = this.moleculeCollectionItemService.deleteItem(id).subscribe({
       next: ok => {
-        if (ok) {
-          this.historyContext.triggerRemoveItemFromHistoryView(id)
-          const i = this.items.findIndex(item => item.id === id)
-          if (i !== -1) {
-            queueMicrotask(() => {
-              this.historyContext.triggerRemoveItemFromHistoryView(id)
-              this.items[i].triggerDisappear.set(true)
-              setTimeout(() => this.items[i]?.collapse.set(true), 120)
-              setTimeout(() => {
-                this.pagination.replaceItems(this.items.filter(item => item.id !== id))
-                if (this.items.length === 0) {
-                  this.tick.update(x => x + 1)
-                }
-              }, 500)
-              void this.loadMore()
-            })
-          }
-        } else {
-          onError()
+        if (!ok) { onError(); return }
+        this.deletePending.set(false)
+        this.deletion.set(null)
+        this.historyContext.triggerRemoveItemFromHistoryView(id)
+        const item = this.items.find(item => item.id === id)
+        if (item) {
+          item.triggerDisappear.set(true)
+          setTimeout(() => item.collapse.set(true), 120)
+          setTimeout(() => {
+            this.pagination.replaceItems(this.items.filter(item => item.id !== id))
+            if (!this.items.length) this.tick.update(value => value + 1)
+          }, 500)
+          void this.loadMore()
         }
+        this.toast.trigger('Molecola eliminata.', 'success', 3000)
       },
-      error: () => onError()
+      error: onError
     })
   }
 

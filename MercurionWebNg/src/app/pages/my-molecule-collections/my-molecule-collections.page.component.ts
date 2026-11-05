@@ -1,6 +1,7 @@
+import { DestructiveConfirmationComponent } from '../../components/common/destructive-confirmation/destructive-confirmation.component'
 import { HistoryContextService } from './../../services/context/history-context.service';
 import { UiMoleculeCollection } from '../../Models/graphql/molecule-collection/molecule-collection.types';
-import { catchError, delay, EMPTY, map, of, Subscription, switchMap, tap } from 'rxjs';
+import { delay, map, Subscription } from 'rxjs';
 import { MyMoleculesHeadingComponent } from '../../components/molecule-detail/my-molecules-heading/my-molecules-heading.component';
 import { Component, ElementRef, inject, OnInit, effect, OnDestroy, signal, ChangeDetectionStrategy, viewChild } from '@angular/core';
 import { MoleculeCollectionService } from '../../services/graphql/molecule-collection.service';
@@ -26,6 +27,7 @@ import { RealtimeSyncStatusService } from '../../services/realtime-sync-status.s
     CollectionCardComponent,
     SkeletonCollectionCardComponent,
     RouterLink,
+    DestructiveConfirmationComponent,
     SearchFieldComponent,
     ButtonComponent
   ],
@@ -89,6 +91,9 @@ import { RealtimeSyncStatusService } from '../../services/realtime-sync-status.s
         }
       </div>
     </section>
+    <m-destructive-confirmation [open]="!!deletion()" title="Elimina collezione?" [subject]="deletion()?.name ?? ''"
+      description="La collezione verrà eliminata insieme alle molecole presenti soltanto in questa collezione. Questa operazione non può essere annullata."
+      [pending]="deletePending()" [error]="deleteError()" (cancelled)="cancelDeletion()" (confirmed)="confirmDeletion()" />
   `
 })
 export class MyMoleculeCollectionsPageComponent implements OnInit, OnDestroy {
@@ -240,40 +245,51 @@ export class MyMoleculeCollectionsPageComponent implements OnInit, OnDestroy {
     })
   }
 
-  doDeleteCollection(collectionId: string): void {
-    const onError = () => queueMicrotask(() => this.toast.trigger('Si è verificato un errore.', 'error', 3000))
-    this.delColSub = this.moleculeCollectionService.deleteCollection(collectionId).pipe(
-      switchMap(ok => {
-        if (!ok) {
-          onError()
-          return of(ok)
-        }
-        return of(true)
-      }),
-      catchError(() => {
-        onError()
-        return EMPTY
-      }),
-      tap((ok) => {
-        if (ok) {
-          const i = this.items.findIndex(col => col.id === collectionId)
-          if (i !== -1) {
-            queueMicrotask(() => {
-              this.historyContext.triggerRemoveItemFromHistoryView(collectionId)
-              this.items[i].triggerDisappear.set(true)
-              setTimeout(() => this.items[i]?.collapse.set(true), 120)
-              setTimeout(() => {
-                this.pagination.replaceItems(this.items.filter(item => item.id !== collectionId))
-                if (this.items.length === 0) {
-                  this.tick.update(x => x + 1)
-                }
-              }, 500)
-            })
-          }
+  readonly deletion = signal<{ id: string; name: string } | null>(null)
+  readonly deletePending = signal(false)
+  readonly deleteError = signal('')
 
+  doDeleteCollection(collectionId: string): void {
+    if (this.deletePending()) return
+    const item = this.items.find(item => item.id === collectionId)
+    if (!item) return
+    this.deleteError.set('')
+    this.deletion.set({ id: item.id, name: item.name })
+  }
+
+  cancelDeletion(): void {
+    if (!this.deletePending()) this.deletion.set(null)
+  }
+
+  confirmDeletion(): void {
+    const selection = this.deletion()
+    if (!selection || this.deletePending()) return
+    const id = selection.id
+    this.deletePending.set(true)
+    this.deleteError.set('')
+    const onError = () => {
+      this.deletePending.set(false)
+      this.deleteError.set('Eliminazione non riuscita. Puoi riprovare o annullare.')
+    }
+    this.delColSub = this.moleculeCollectionService.deleteCollection(id).subscribe({
+      next: ok => {
+        if (!ok) { onError(); return }
+        this.deletePending.set(false)
+        this.deletion.set(null)
+        this.historyContext.triggerRemoveItemFromHistoryView(id)
+        const item = this.items.find(item => item.id === id)
+        if (item) {
+          item.triggerDisappear.set(true)
+          setTimeout(() => item.collapse.set(true), 120)
+          setTimeout(() => {
+            this.pagination.replaceItems(this.items.filter(item => item.id !== id))
+            if (!this.items.length) this.tick.update(value => value + 1)
+          }, 500)
         }
-      })
-    ).subscribe(() => { /* pass */ })
+        this.toast.trigger('Collezione eliminata.', 'success', 3000)
+      },
+      error: onError
+    })
   }
 
   doAddMoleculesToCollection(collectionId: string): void {

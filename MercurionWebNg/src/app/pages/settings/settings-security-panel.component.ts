@@ -1,3 +1,4 @@
+import { DestructiveConfirmationComponent } from '../../components/common/destructive-confirmation/destructive-confirmation.component'
 import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core'
 import { ButtonComponent } from '../../components/common/button/button.component'
 import { MfaStrategyCardComponent } from '../../components/common/mfa-strategy-card/mfa-strategy-card.component'
@@ -11,7 +12,7 @@ import { SettingsSecurityFacade } from './settings-security.facade'
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: './settings-panel.styles.css',
-  imports: [ButtonComponent, MfaStrategyCardComponent, SessionCardComponent],
+  imports: [ButtonComponent, MfaStrategyCardComponent, SessionCardComponent, DestructiveConfirmationComponent],
   template: `
     <div class="settings-panel-content settings-security">
       @if (!account.isSso()) {
@@ -36,10 +37,10 @@ import { SettingsSecurityFacade } from './settings-security.facade'
       <h3 class="settings-subheading">Sessioni attive</h3><p class="settings-help">Controlla gli accessi al tuo account e termina le sessioni che non riconosci.</p>
       <div class="flex flex-col gap-y-4 mb-3">
         @for (s of security.sessions(); track s.id) {
-          <m-session-card [session]="s" (onLoggingOutFromSession)="security.logoutSession($event)" />
+          <m-session-card [session]="s" (onLoggingOutFromSession)="security.requestLogoutSession($event)" />
         }
       </div>
-      <m-button type="button" variant="destructive" size="md" (click)="security.logoutAll()">
+      <m-button type="button" variant="destructive" size="md" (click)="security.requestLogoutAll()">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-6 w-6">
           <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
           <path
@@ -93,6 +94,12 @@ import { SettingsSecurityFacade } from './settings-security.facade'
         }
       }
     </div>
+    <m-destructive-confirmation [open]="!!security.logoutConfirmation()"
+      [title]="security.logoutConfirmation()?.id === null ? 'Esci da tutte le sessioni?' : 'Termina questa sessione?'"
+      [subject]="security.logoutConfirmation()?.name ?? ''"
+      [description]="security.logoutConfirmation()?.current ? 'Verrà chiusa anche la sessione attuale e dovrai accedere di nuovo. Eventuali modifiche non salvate potrebbero andare perse.' : 'Questo accesso verrà revocato. Per usarlo di nuovo sarà necessario effettuare il login.'"
+      [confirmLabel]="security.logoutConfirmation()?.id === null ? 'Termina tutte le sessioni' : 'Termina sessione'" [pending]="security.logoutPending()" [error]="security.logoutError()"
+      (cancelled)="security.cancelLogout()" (confirmed)="security.confirmLogout()" />
   `,
 })
 export class SettingsSecurityPanelComponent implements OnInit {

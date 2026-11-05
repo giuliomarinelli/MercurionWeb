@@ -37,8 +37,9 @@ describe('SettingsSecurityFacade selective logout', () => {
 
   beforeEach(() => {
     response = new Subject<unknown>()
-    auth = jasmine.createSpyObj('AuthUseCasesService', ['logoutFromSession'])
+    auth = jasmine.createSpyObj('AuthUseCasesService', ['logoutFromSession', 'logoutFromAllSessions'])
     auth.logoutFromSession.and.returnValue(response)
+    auth.logoutFromAllSessions.and.returnValue(response)
     account = jasmine.createSpyObj('AccountService', [
       'isMfaEnabled',
       'getEnabledMfaStrategies',
@@ -159,4 +160,30 @@ describe('SettingsSecurityFacade selective logout', () => {
     expect(sessionSync.notifyVoluntaryLogout).toHaveBeenCalledTimes(1)
     expect(facade.sessions().map((item) => item.id)).toEqual(['remote'])
   })
+  it('requires explicit confirmation for one session and cancellation leaves access active', () => {
+    facade.requestLogoutSession('remote')
+    expect(auth.logoutFromSession).not.toHaveBeenCalled()
+    expect(facade.logoutConfirmation()?.id).toBe('remote')
+    facade.cancelLogout()
+    facade.confirmLogout()
+    expect(auth.logoutFromSession).not.toHaveBeenCalled()
+  })
+
+  it('keeps the all-session confirmation on failure and permits a single retry', () => {
+    facade.requestLogoutAll()
+    expect(auth.logoutFromAllSessions).not.toHaveBeenCalled()
+    facade.confirmLogout(); facade.confirmLogout(); facade.cancelLogout()
+    expect(auth.logoutFromAllSessions).toHaveBeenCalledTimes(1)
+    expect(facade.logoutConfirmation()?.id).toBeNull()
+    response.error(new Error('offline'))
+    expect(facade.logoutPending()).toBeFalse()
+    expect(facade.logoutError()).toContain('Puoi riprovare')
+    expect(user.logout).not.toHaveBeenCalled()
+    auth.logoutFromAllSessions.and.returnValue(of({ success: true }))
+    facade.confirmLogout()
+    expect(auth.logoutFromAllSessions).toHaveBeenCalledTimes(2)
+    expect(facade.logoutConfirmation()).toBeNull()
+    expect(user.logout).toHaveBeenCalledTimes(1)
+  })
+
 })

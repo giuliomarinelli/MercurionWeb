@@ -816,6 +816,12 @@ Ricerca ChEMBL di ASPIRINA → dettaglio → nuova collezione QA → associazion
 
 **Residui:** primo errore storico PX-09 non riprodotto, causa ancora ignota; 502 sul recupero notifiche e disconnessioni WebSocket osservati separatamente. Prossima sessione proposta: Giorno 2, realtime/riconnessione e sessioni indipendenti. Review visiva/Safari e CI restano aperte.
 
+### 2026-11-05 — Conferme delle azioni distruttive
+
+**Stato:** Corretto, in review. Conferma prima dell’eliminazione nelle liste molecole/collezioni, cancellazione cronologia e revoca sessioni dalle impostazioni. Dialogo condiviso con focus su Annulla, portal al body, pending e retry; contratti backend e animazioni delle card conservati. Dettagli/notifiche avevano già conferma. [Inventario e prove](DESTRUCTIVE-ACTIONS-QA.md).
+
+97 test mirati iniziali; 42 test dopo la correzione del portal, lint/build e gate bundle/lazy/styling superati. Browser: annullamenti, focus/Escape, viewport compatta nei due temi, errore indotto e retry con eliminazione reale della sola collezione vuota QA. Nessuna revoca delle sessioni dell’utente. Prossimo lavoro: Giorno 2, continuità realtime e sessioni indipendenti.
+
 ## Modello per le voci successive
 
 ### AAAA-MM-GG — PX-XX — Sottoarea

@@ -23,6 +23,35 @@ export class SettingsSecurityFacade {
   private loadSubscription?: Subscription
   private logoutSubscription?: Subscription
 
+  readonly logoutConfirmation = signal<{ id: string | null; name: string; current: boolean } | null>(null)
+  readonly logoutPending = signal(false)
+  readonly logoutError = signal('')
+
+  requestLogoutSession(id: string): void {
+    if (this.logoutPending()) return
+    const session = this.sessions().find(item => item.id === id)
+    if (!session || session.isBeingDeleted) return
+    this.logoutError.set('')
+    this.logoutConfirmation.set({ id, name: `${session.browser} · ${session.location}`, current: session.current })
+  }
+
+  requestLogoutAll(): void {
+    if (this.logoutPending()) return
+    this.logoutError.set('')
+    this.logoutConfirmation.set({ id: null, name: 'Tutte le sessioni, inclusa quella attuale', current: true })
+  }
+
+  cancelLogout(): void {
+    if (!this.logoutPending()) this.logoutConfirmation.set(null)
+  }
+
+  confirmLogout(): void {
+    const choice = this.logoutConfirmation()
+    if (!choice || this.logoutPending()) return
+    if (choice.id === null) this.logoutAll()
+    else this.logoutSession(choice.id)
+  }
+
   readonly loading = signal(true)
   readonly enabledMfa = signal(false)
   readonly strategies = signal<MfaStrategy[]>([])
@@ -90,12 +119,16 @@ export class SettingsSecurityFacade {
 
   logoutSession(id: string): void {
     const session = this.sessions().find((item) => item.id === id)
-    if (!session || session.isBeingDeleted) return
+    if (!session || session.isBeingDeleted || this.logoutPending()) return
+    this.logoutPending.set(true)
+    this.logoutError.set('')
     this.sessions.update((items) =>
       items.map((item) => (item.id === id ? { ...item, isBeingDeleted: true } : item))
     )
-    this.logoutSubscription = this.auth.logoutFromSession(id, session.current).subscribe({
+    this.logoutSubscription = this.auth.logoutFromSession(id, session.current).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
+        this.logoutPending.set(false)
+        this.logoutConfirmation.set(null)
         if (session.current) {
           this.sessionSync.notifyVoluntaryLogout()
           this.user.logout()
@@ -103,6 +136,8 @@ export class SettingsSecurityFacade {
         this.sessions.update((items) => items.filter((item) => item.id !== id))
       },
       error: () => {
+        this.logoutPending.set(false)
+        this.logoutError.set('La sessione non è stata terminata. Puoi riprovare o annullare.')
         this.sessions.update((items) =>
           items.map((item) => (item.id === id ? { ...item, isBeingDeleted: false } : item))
         )
@@ -112,13 +147,22 @@ export class SettingsSecurityFacade {
   }
 
   logoutAll(): void {
-    this.logoutSubscription = this.auth.logoutFromAllSessions().subscribe({
+    if (this.logoutPending()) return
+    this.logoutPending.set(true)
+    this.logoutError.set('')
+    this.logoutSubscription = this.auth.logoutFromAllSessions().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
+        this.logoutPending.set(false)
+        this.logoutConfirmation.set(null)
         this.sessionSync.notifyVoluntaryLogout()
         this.user.logout()
         this.sessions.set([])
       },
-      error: () => this.toast.trigger('Le sessioni non sono state eliminate.', 'error'),
+      error: () => {
+        this.logoutPending.set(false)
+        this.logoutError.set('Le sessioni non sono state terminate. Puoi riprovare o annullare.')
+        this.toast.trigger('Le sessioni non sono state eliminate.', 'error')
+      },
     })
   }
 }

@@ -1,3 +1,5 @@
+import { Subject } from 'rxjs'
+import { HistoryService } from '../../../services/history.service'
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { SidenavComponent } from './sidenav.component';
@@ -60,4 +62,26 @@ describe('SidenavComponent', () => {
     expect(root.querySelector('.m-navigation-toggle')).toBeNull();
     expect(root.querySelector('.m-navigation--collapsed')).toBeNull();
   });
+  it('asks before clearing history, supports cancellation and ignores duplicate submits', () => {
+    const response = new Subject<boolean>()
+    const remove = spyOn(TestBed.inject(HistoryService), 'deleteHistory').and.returnValue(response)
+    component.isHistoryEmpty.set(false)
+    component.doDeleteHistory()
+    expect(remove).not.toHaveBeenCalled()
+    component.cancelHistoryDeletion()
+    component.confirmDeleteHistory()
+    expect(remove).not.toHaveBeenCalled()
+    component.doDeleteHistory()
+    component.confirmDeleteHistory()
+    component.confirmDeleteHistory()
+    component.cancelHistoryDeletion()
+    expect(remove).toHaveBeenCalledTimes(1)
+    expect(component.confirmHistoryDeletion()).toBeTrue()
+    response.next(false)
+    expect(component.historyDeletePending()).toBeFalse()
+    expect(component.historyDeleteError()).toContain('Puoi riprovare')
+    expect(component.confirmHistoryDeletion()).toBeTrue()
+    expect(component.triggerDelete()).toBeFalse()
+  })
+
 });
