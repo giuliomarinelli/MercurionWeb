@@ -59,7 +59,7 @@ import { injectBrowserResourceOwner } from '../../../utils/browser-resource-owne
       </div>
     }
     @if (!items().length && !loading()) {
-      <p class="text-xs opacity-60 px-6 py-4">Nessuna attività recente.</p>
+      <p class="text-xs text-light-on-surface-secondary dark:text-dark-on-surface-secondary px-6 py-4">Nessuna attività recente.</p>
     }
 
     @if (loading()) {

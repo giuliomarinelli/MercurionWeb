@@ -37,6 +37,8 @@ Il programma riguarda l’applicazione e la sua QA. La [VM locale](../../../docs
 - Aggiornare il [copione B2B](demo/README.md) e selezionare schermate coerenti con il comportamento attuale. Separare demo con dati persistiti e anteprima con trasporto sintetico.
 - **Consegna:** matrice browser/dispositivi realmente provati, difetti osservati e limiti residui; non equiparare viewport emulata e dispositivo fisico.
 
+**Ripresa del 5 novembre:** [Giorno 4 verificato con limiti](DAY-4-QA.md): otto pagine nei due temi a quattro larghezze, tastiera e reduced motion della navigazione; corretti semantica ARIA e contrasto della cronologia. 76 test Angular mirati e 10 test demo superati. Safari fisico, zoom reale, controlli accessibilità incompleti e suite estesa restano nei TODO finali F-06/F-07/F-08.
+
 ## Giorno 5 — Pulizia, review e bilancio
 
 - Affrontare TS-01 sui file TypeScript manuali coinvolti nei refactor con strumenti consapevoli della sintassi, conservando i separatori necessari e le modifiche dell’utente. Se il perimetro o le verifiche richiedono più tempo, suddividere il lavoro senza anticipare la chiusura.

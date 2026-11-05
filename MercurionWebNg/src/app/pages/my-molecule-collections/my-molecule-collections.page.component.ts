@@ -58,7 +58,7 @@ import { RealtimeSyncStatusService } from '../../services/realtime-sync-status.s
           <a class="m-list-link" routerLink="/molecules">Tutte le mie molecole<span aria-hidden="true">→</span></a>
         </div>
       </div>
-      <div class="m-list-results" [attr.aria-busy]="loading" aria-label="Collezioni salvate">
+      <div class="m-list-results" role="group" [attr.aria-busy]="loading" aria-label="Collezioni salvate">
         @for (item of items; track item.id; let i = $index) {
           <m-collection-card [collection]="item" (onDuplicate)="doDuplicateCollection($event)" (onDelete)="doDeleteCollection($event)" (onAddMolecules)="doAddMoleculesToCollection($event)" [i]="i"
             [triggerDisappear]="item.triggerDisappear()" [collapse]="item.collapse()" />

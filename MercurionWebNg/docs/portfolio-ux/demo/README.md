@@ -1,6 +1,6 @@
 # Demo portfolio — blocco 25 / PX-21
 
-30 ottobre 2026. **Dataset e copione preparati, in review.** La preview locale usa i componenti dell’applicazione e risposte dati sintetiche nella sola scheda Playwright. Non è una modalità demo distribuita nel prodotto e non certifica salvataggi nel database.
+Aggiornamento del 5 novembre 2026. **Dataset e copione in review; percorso persistente parziale verificato nel [Giorno 1](../DAY-1-QA.md), compatibilità nel [Giorno 4](../DAY-4-QA.md).** La preview locale usa i componenti dell’applicazione e risposte dati sintetiche nella sola scheda Playwright. Non è una modalità demo distribuita nel prodotto e non certifica salvataggi nel database.
 
 ## Materiale
 
@@ -45,13 +45,15 @@ La narrazione parte dal problema dell’utente: trovare, organizzare e modificar
 
 Per la versione B2B, chiudere su tre evidenze verificabili: il lavoro si ritrova dopo la riapertura, un errore non cancella l’input, la stessa azione resta utilizzabile su schermo compatto e da tastiera. Queste affermazioni vanno dimostrate durante la QA completa, non dedotte dagli screenshot o presentate come già certificate.
 
-Il percorso completo richiede dati persistiti su un account di prova e servizi scientifici disponibili. Nella preview sono verificabili **liste, filtri, card e lista notifiche**; associazione, editor, dettaglio, lettura/eliminazione delle notifiche e salvataggio non sono promessi come interazioni supportate. Le scritture vengono rifiutate, non simulate come riuscite. La verifica completa con riapertura è prevista nel **blocco 26 / PX-22**.
+Il percorso completo richiede dati persistiti su un account di prova e servizi scientifici disponibili. Nella preview sono verificabili **liste, filtri, card e lista notifiche**; associazione, editor, dettaglio, lettura/eliminazione delle notifiche e salvataggio non sono promessi come interazioni supportate. Le scritture vengono rifiutate, non simulate come riuscite. Nel Giorno 1 sono stati verificati ricerca dell’aspirina, associazione, copia personale, modifica nell’editor, salvataggio reale e riapertura; errore di trasporto controllato e retry conservano il lavoro. L’anomalia storica del primo salvataggio PX-09 resta non riprodotta e non dichiarata risolta.
 
 Non lasciare un nome chimico del campione originario su una struttura modificata. Usare un’etichetta esplicita come «Variante dimostrativa da editor · Demo25» e lasciare al servizio remoto il ricalcolo del nome e dei descrittori. Se una predizione non arriva, mostrarne lo stato reale: non sostituirla con una risposta salvata o inventata. Un esito negativo Tox21 non prova la sicurezza della molecola.
 
 ## Preparazione di una demo persistente
 
-Questa procedura è pronta per l’esecuzione concordata sul prossimo blocco; **non è stata eseguita sull’account corrente**.
+Il seed completo delle tre collezioni descritte sotto **non è stato eseguito**. La prova reale del Giorno 1 ha invece preparato una sola collezione «Molecole di riferimento · Demo25», con aspirina, copia personale e due varianti esplicitamente denominate: quattro elementi riaperti e verificati. Gli ID restano nel verbale locale. Per una dimostrazione senza ulteriori scritture, aprire questa collezione e la variante salvata; ricerca/editor possono essere mostrati senza creare nuovi duplicati. Il copione completo con nuovo salvataggio richiede una fixture aggiuntiva identificabile e servizi disponibili, non la sovrascrittura dei campioni esistenti.
+
+Procedura per completare in seguito il seed del dataset:
 
 1. Concordare l’account di prova e registrare gli ID di ogni risorsa creata. I nomi delle collezioni contengono `Demo25`; non usarli come prova di proprietà o come criterio per una cancellazione automatica.
 2. Risolvere nel catalogo locale i tre identificativi ChEMBL mediante ricerca. Il `molregno` locale non coincide necessariamente col numero CHEMBL e cambia tra database. Non importare gli ID sintetici della preview.
@@ -84,7 +86,7 @@ Le catture in [screenshots/](screenshots/) sono **ritagli della UI corrente con 
 
 - `collections-light.png`, `collections-dark.png`: confronto dei temi, nomi lunghi e conteggi.
 - Le catture delle molecole e delle viewport compatte sono registrate con stato e limiti in [QA.md](QA.md). Non presentarle come prove Safari.
-- Dettaglio, analisi live ed esito del salvataggio: selezione finale dopo la prova persistente del blocco 26. Non usare schermate precedenti con dati incoerenti o cronologia personale.
+- Dettaglio, analisi live ed esito del salvataggio: persistenza verificata nel Giorno 1; nel Giorno 4 ispezionati due ritagli dell’intestazione della variante reale (desktop scuro e 375 px chiaro), conservati soltanto negli artefatti locali. Selezione finale di struttura/analisi ancora aperta. Non usare schermate precedenti con dati incoerenti o cronologia personale.
 - Demo mobile autentica: iPhone 13 mini/Safari fisico, in entrambi i temi, rotazione e tastiera aperta su ricerca e salvataggio. Ancora da eseguire; una viewport Chrome da 375 px non la sostituisce.
 
 Le schermate sono candidate alla review, non pubblicate. Lo sfondo e le immagini di Home/Welcome restano quelli scelti dall’utente. Notebook, Synthesis, Documents e R2 restano fuori dal copione corrente.

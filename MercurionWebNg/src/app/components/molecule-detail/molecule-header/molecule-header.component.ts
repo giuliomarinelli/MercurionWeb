@@ -17,10 +17,7 @@ import { RouterLink } from '@angular/router';
   ],
   styleUrls: ['./molecule-header.component.css'],
   template: `
-    <header
-      class="m-molecule-heading"
-      aria-labelledby="molecule-name"
->
+    <header class="m-molecule-heading">
 
       <div class="m-molecule-identity min-w-0 space-y-2 max-w-full">
         @if (_myMol()) {

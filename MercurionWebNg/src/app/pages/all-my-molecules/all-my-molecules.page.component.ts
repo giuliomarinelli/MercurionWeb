@@ -57,7 +57,7 @@ import { ScrollContextService } from '../../services/context/scroll-context.serv
           <a class="m-list-link" routerLink="/molecules/collections">Le mie collezioni<span aria-hidden="true">→</span></a>
         </div>
       </div>
-      <div class="m-list-results" [attr.aria-busy]="loading" aria-label="Molecole salvate">
+      <div class="m-list-results" role="group" [attr.aria-busy]="loading" aria-label="Molecole salvate">
         @for (item of items; track item.id; let i = $index) {
           <m-molecule-collection-item-card [molecule]="item" (onDelete)="doDelete($event)" [i]="i"
             [triggerDisappear]="item.triggerDisappear()" [collapse]="item.collapse()" />

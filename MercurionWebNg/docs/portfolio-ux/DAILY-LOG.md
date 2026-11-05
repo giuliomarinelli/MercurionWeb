@@ -834,6 +834,12 @@ Ricerca ChEMBL di ASPIRINA → dettaglio → nuova collezione QA → associazion
 
 **Difetto corretto:** azioni 403/404 alte 43 px; variante condivisa lg, 50 px verificati nel browser e due regressioni geometriche. Lint/build e bundle/lazy/documentazione superati. Invii/provider reali restano F-04/F-05 nei TODO finali; servizi dell’utente conservati. Seguito: Giorno 4, compatibilità/accessibilità e demo.
 
+### 2026-11-05 — Giorno 4 — Compatibilità e demo B2B
+
+**Stato:** Verificato con limiti, in review. [Verbale](DAY-4-QA.md): otto pagine × quattro larghezze × due temi, senza overflow orizzontale. Corretti gruppi ARIA delle liste, etichette del dettaglio e contrasto della cronologia; ripetute le scansioni interessate. Tastiera e reduced motion verificati su menu/ricerca, ritagli della fixture ispezionati e conservati localmente.
+
+**Verifica:** 27 + 49 test Angular mirati, 10 test demo, lint/build e gate bundle/lazy superati. La prima esecuzione npm non filtrata è stata interrotta con errori: suite estesa aperta in F-08. Review manuale accessibilità, Safari fisico e zoom reale in F-06/F-07. Copione aggiornato alle prove persistenti reali del Giorno 1; nessuna pubblicazione o merge. Seguito: Giorno 5, TS-01 e bilancio.
+
 ## Modello per le voci successive
 
 ### AAAA-MM-GG — PX-XX — Sottoarea

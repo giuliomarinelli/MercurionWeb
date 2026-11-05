@@ -153,7 +153,7 @@ import { IconButtonComponent, IconButtonSize } from '../../common/icon-button/ic
                 'border-transparent bg-transparent': mode() === 'view'
               }"
               [innerHTML]="mode() === 'view' && !_value().trim() ? (_type() === 'notes' ? 'Nessuna nota. Aggiungi informazioni utili alla tua ricerca.' : 'Nessuna etichetta.') : _value()"
-              [attr.aria-label]="mode() === 'edit' ? 'Modifica ' + _label().replace(':','') : _label().replace(':','') + ' ' + _value()"
+              [attr.aria-label]="mode() === 'edit' ? 'Modifica ' + _label().replace(':','') : null"
               [attr.aria-live]="mode() === 'edit' ? 'off' : 'polite'">
             </p>
 
