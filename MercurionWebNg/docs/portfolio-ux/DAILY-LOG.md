@@ -874,6 +874,14 @@ Ricerca ChEMBL di ASPIRINA → dettaglio → nuova collezione QA → associazion
 
 **Accettazione CI:** run 42026147278 sull’esatto SHA `149ab9b2900a1e883574f83fe7da5297269a83f9`, full e Required gate success: prerequisiti Windows/Linux, sei container e tutti i job downstream verdi. Copie locali di metadati/log conservate; F-08 completato, F-09 e prove reali/manuali restano aperti. Anche l’ultimo commit del verbale riceve una verifica CI distinta prima della consegna.
 
+### 2026-11-05 — F-09 — Review tecnica e consegna
+
+**Stato:** [F-09 completato](F-09-QA.md). Inventario attuale di 1.320 file, zero candidati rimovibili, 21 esclusioni motivate. Ricontrollati i 689 diff dei due commit meccanici: output deterministico, struttura sintattica, commenti e literal conservati. Riesaminate le eccezioni: 1.075 separatori sulla stessa riga, 31 confini ASI, 52 delimitatori di ciclo e tre guardie iniziali esplicite. Rimossa l’istruzione vuota dopo `HttpErrorPage`. Otto test del trasformatore verdi.
+
+**Decisione dell’utente:** ultime prove manuali/runtime F-01–F-07 rinviate a una fase successiva, non bloccanti per questo bugfix e mai dichiarate superate. Restano i 502/disconnessioni F-03 e l’anomalia storica PX-09 non riprodotta. Aggiornati i documenti correnti, mantenendo le evidenze storiche.
+
+**Consegna:** baseline `b0a5255` con CI full 42028088753 e Required gate verdi; nuovo commit F-09 da verificare sul proprio SHA prima della consegna. Git Flow installato, base del bugfix `develop` già antenato di HEAD al controllo iniziale. Commit/push senza firma per singolo comando; nessun merge, runtime o prova manuale avviati. Il comando `git flow bugfix finish` resta all’utente.
+
 ## Modello per le voci successive
 
 ### AAAA-MM-GG — PX-XX — Sottoarea

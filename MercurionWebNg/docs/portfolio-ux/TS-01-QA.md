@@ -1,8 +1,8 @@
 # TS-01 — Inventario completo e seconda passata
 
-5 novembre 2026. **Pulizia applicata al perimetro manuale; accettazione finale aperta.** Seguito del [Giorno 5](DAY-5-QA.md), autorizzato dall’utente. Nessun merge, installazione, modifica delle dipendenze o accesso a dati applicativi.
+5 novembre 2026. **Pulizia applicata al perimetro manuale; review tecnica completata in [F-09](F-09-QA.md).** Seguito del [Giorno 5](DAY-5-QA.md), autorizzato dall’utente. Nessun merge, installazione, modifica delle dipendenze o accesso a dati applicativi. I risultati sotto descrivono la seconda passata; F-09 registra l’inventario finale e le eccezioni accettate.
 
-**Seguito F-10/F-08:** [controlli locali ripristinati](F-10-QA.md) e [CI dell’esatto SHA verificata](F-08-QA.md). I risultati non verdi della tabella sotto restano le evidenze iniziali della seconda passata, non lo stato corrente. Resta la review manuale.
+**Seguito F-10/F-08/F-09:** [controlli locali ripristinati](F-10-QA.md), [CI dell’esatto SHA verificata](F-08-QA.md) e [review tecnica completata](F-09-QA.md). I risultati non verdi della tabella sotto restano le evidenze iniziali della seconda passata, non lo stato corrente. Le prove manuali/runtime rinviate restano nei TODO finali.
 
 ## Perimetro ed esito meccanico
 
@@ -53,6 +53,6 @@ La suite completa Angular/Nest della prima passata resta documentata nel Giorno 
 
 ## Residui per l’accettazione
 
-La trasformazione e il formatter sono applicati all’intero perimetro manuale inventariato. **TS-01 resta in review**, senza dichiarazione di accettazione completa: occorre riesaminare le eccezioni in F-09. I controlli non verdi delle aree aggiunte sono stati ripristinati in F-10 e la CI verificata in F-08; [TODO finali](FINAL-TODO.md) conserva questi confini. Restano separati i TODO runtime/provider/dispositivi dei Giorni 1–4.
+La trasformazione e il formatter sono applicati all’intero perimetro manuale inventariato. **Review tecnica TS-01 completata in [F-09](F-09-QA.md)**: eccezioni riesaminate e confronto dei due commit meccanici senza anomalie. I controlli non verdi delle aree aggiunte sono stati ripristinati in F-10 e la CI verificata in F-08. I [TODO finali](FINAL-TODO.md) runtime/provider/dispositivi restano aperti ma rinviati a una fase successiva, senza bloccare questo bugfix per esplicita decisione dell’utente. Nessuna accettazione prodotto completa dedotta dalla review tecnica.
 
 Artefatti locali in `C:/Users/giuli/.codex/artifacts/`: `mercurion-day5b-before.json`, `mercurion-day5b-applied.json`, `mercurion-day5b-after.json`, `mercurion-day5b-transform-verification.json`; log `mercurion-day5b-data-*`, `mercurion-day5b-landing-*`, `mercurion-day5b-playwright-*` e `mercurion-day5b-contract-tests.log`. Le esecuzioni non verdi e interrotte restano registrate come tali, senza inferirne una causa non dimostrata.
