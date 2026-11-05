@@ -1,11 +1,11 @@
-type RelationNode = Record<string, unknown>;
+type RelationNode = Record<string, unknown>
 
 function isRelationNode(value: unknown): value is RelationNode {
-    return typeof value === 'object' && value !== null;
+    return typeof value === 'object' && value !== null
 }
 
 function isRelationNodeArray(value: unknown): value is RelationNode[] {
-    return Array.isArray(value) && value.every(isRelationNode);
+    return Array.isArray(value) && value.every(isRelationNode)
 }
 
 /**
@@ -14,47 +14,47 @@ function isRelationNodeArray(value: unknown): value is RelationNode[] {
  */
 export function pruneNullCollectionJoins<T>(payload: T): T {
     if (!payload) {
-        return payload;
+        return payload
     }
 
-    const visited = new Set<object>();
+    const visited = new Set<object>()
 
     const visit = (node: unknown): void => {
         if (!isRelationNode(node)) {
-            return;
+            return
         }
 
         if (visited.has(node)) {
-            return;
+            return
         }
-        visited.add(node);
+        visited.add(node)
 
         if (Array.isArray(node)) {
-            node.forEach(visit);
-            return;
+            node.forEach(visit)
+            return
         }
 
         if (isRelationNodeArray(node.joins)) {
-            const joins = node.joins.filter(join => Boolean(join.collection));
-            node.joins = joins;
-            joins.forEach(visit);
+            const joins = node.joins.filter(join => Boolean(join.collection))
+            node.joins = joins
+            joins.forEach(visit)
         }
 
         if (isRelationNodeArray(node.items)) {
-            const items = node.items.filter(join => Boolean(join.collection));
-            node.items = items;
-            items.forEach(visit);
+            const items = node.items.filter(join => Boolean(join.collection))
+            node.items = items
+            items.forEach(visit)
         }
 
         if (node.collection) {
-            visit(node.collection);
+            visit(node.collection)
         }
 
         if (node.item) {
-            visit(node.item);
+            visit(node.item)
         }
-    };
+    }
 
-    visit(payload);
-    return payload;
+    visit(payload)
+    return payload
 }

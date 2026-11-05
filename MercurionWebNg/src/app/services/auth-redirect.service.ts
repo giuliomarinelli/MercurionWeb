@@ -1,7 +1,7 @@
-import { Injectable } from '@angular/core';
-import { Router } from '@angular/router';
-import { AuthSessionPersistenceService } from './auth-session-persistence.service';
-import { routeManifest } from '../route-manifest';
+import { Injectable } from '@angular/core'
+import { Router } from '@angular/router'
+import { AuthSessionPersistenceService } from './auth-session-persistence.service'
+import { routeManifest } from '../route-manifest'
 
 @Injectable({ providedIn: 'root' })
 export class AuthRedirectService {

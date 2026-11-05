@@ -1,14 +1,14 @@
-import { ChangeDetectionStrategy, Component, effect, ElementRef, inject, OnDestroy, signal, viewChild } from '@angular/core';
-import { MyMoleculesHeadingComponent } from '../../components/molecule-detail/my-molecules-heading/my-molecules-heading.component';
-import { LinkModel } from '../../Models/link.model';
-import { MoleculeCollectionDetailFacade } from './molecule-collection-detail.facade';
-import { MoleculeCollectionDetailToolbarComponent } from './molecule-collection-detail-toolbar.component';
-import { MoleculeCollectionDetailGridComponent } from './molecule-collection-detail-grid.component';
-import { MoleculeCollectionDetailPaginationComponent } from './molecule-collection-detail-pagination.component';
-import { ButtonComponent } from '../../components/common/button/button.component';
-import { DialogShellComponent } from '../../components/common/dialog-shell/dialog-shell.component';
-import { SkeletonComponent } from '../../components/common/skeleton/skeleton.component';
-import { ScrollContextService } from '../../services/context/scroll-context.service';
+import { ChangeDetectionStrategy, Component, effect, ElementRef, inject, OnDestroy, signal, viewChild } from '@angular/core'
+import { MyMoleculesHeadingComponent } from '../../components/molecule-detail/my-molecules-heading/my-molecules-heading.component'
+import { LinkModel } from '../../Models/link.model'
+import { MoleculeCollectionDetailFacade } from './molecule-collection-detail.facade'
+import { MoleculeCollectionDetailToolbarComponent } from './molecule-collection-detail-toolbar.component'
+import { MoleculeCollectionDetailGridComponent } from './molecule-collection-detail-grid.component'
+import { MoleculeCollectionDetailPaginationComponent } from './molecule-collection-detail-pagination.component'
+import { ButtonComponent } from '../../components/common/button/button.component'
+import { DialogShellComponent } from '../../components/common/dialog-shell/dialog-shell.component'
+import { SkeletonComponent } from '../../components/common/skeleton/skeleton.component'
+import { ScrollContextService } from '../../services/context/scroll-context.service'
 
 @Component({
   selector: 'm-molecule-collection-detail',
@@ -79,49 +79,49 @@ import { ScrollContextService } from '../../services/context/scroll-context.serv
 })
 export class MoleculeCollectionDetailPageComponent implements OnDestroy {
 
-  readonly facade = inject(MoleculeCollectionDetailFacade);
-  readonly confirmation = signal<{ kind: 'collection' | 'delete' | 'remove'; id: string; name: string } | null>(null);
+  readonly facade = inject(MoleculeCollectionDetailFacade)
+  readonly confirmation = signal<{ kind: 'collection' | 'delete' | 'remove'; id: string; name: string } | null>(null)
 
   ask(kind: 'collection' | 'delete' | 'remove', id = this.facade.collectionId()): void {
-    if (this.facade.actionPending() || this.facade.renamePending()) return;
-    this.facade.actionError.set('');
-    this.confirmation.set({ kind, id, name: kind === 'collection' ? this.facade.collectionName() : this.facade.items().find(item => item.id === id)?.name ?? 'Molecola' });
+    if (this.facade.actionPending() || this.facade.renamePending()) return
+    this.facade.actionError.set('')
+    this.confirmation.set({ kind, id, name: kind === 'collection' ? this.facade.collectionName() : this.facade.items().find(item => item.id === id)?.name ?? 'Molecola' })
   }
   cancelConfirmation(): void {
-    if (!this.facade.actionPending()) this.confirmation.set(null);
+    if (!this.facade.actionPending()) this.confirmation.set(null)
   }
   async confirm(): Promise<void> {
-    const confirmation = this.confirmation();
-    if (!confirmation || this.facade.actionPending()) return;
+    const confirmation = this.confirmation()
+    if (!confirmation || this.facade.actionPending()) return
     const ok = confirmation.kind === 'collection' ? await this.facade.deleteCollection()
       : confirmation.kind === 'remove' ? await this.facade.removeItem(confirmation.id)
-      : await this.facade.deleteItem(confirmation.id);
-    if (ok) this.confirmation.set(null);
+      : await this.facade.deleteItem(confirmation.id)
+    if (ok) this.confirmation.set(null)
   }
-  private readonly scrollContext = inject(ScrollContextService);
-  private readonly sentinel = viewChild<ElementRef<HTMLDivElement>>('sentinel');
-  private observer?: IntersectionObserver;
+  private readonly scrollContext = inject(ScrollContextService)
+  private readonly sentinel = viewChild<ElementRef<HTMLDivElement>>('sentinel')
+  private observer?: IntersectionObserver
   readonly breadcrumb: LinkModel[] = [
     { label: 'Collezioni Molecolari', path: '/molecules/collections' }
-  ];
+  ]
 
   constructor() {
-    effect(() => { this.facade.collectionId(); this.confirmation.set(null); });
+    effect(() => { this.facade.collectionId(); this.confirmation.set(null) })
     effect(() => {
-      const sentinel = this.sentinel()?.nativeElement;
+      const sentinel = this.sentinel()?.nativeElement
       const canLoad = !!this.facade.collectionId() && !this.facade.loading() &&
-        !this.facade.done() && !this.facade.error() && !this.facade.pageError();
-      const root = this.scrollContext.intersectionRoot();
-      this.observer?.disconnect();
-      if (!sentinel || !canLoad) return;
+        !this.facade.done() && !this.facade.error() && !this.facade.pageError()
+      const root = this.scrollContext.intersectionRoot()
+      this.observer?.disconnect()
+      if (!sentinel || !canLoad) return
       this.observer = new IntersectionObserver(entries => {
-        if (entries[0]?.isIntersecting) void this.facade.loadMore();
-      }, { root, rootMargin: '0px 0px 500px 0px' });
-      this.observer.observe(sentinel);
-    });
+        if (entries[0]?.isIntersecting) void this.facade.loadMore()
+      }, { root, rootMargin: '0px 0px 500px 0px' })
+      this.observer.observe(sentinel)
+    })
   }
 
   ngOnDestroy(): void {
-    this.observer?.disconnect();
+    this.observer?.disconnect()
   }
 }

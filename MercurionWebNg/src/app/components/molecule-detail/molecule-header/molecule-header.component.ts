@@ -1,10 +1,10 @@
-import type { Observable } from 'rxjs';
-import { CustomDetailSaveModel } from '../../../Models/custom-detail-save.model';
-import { Component, computed, input, ChangeDetectionStrategy, output, signal, effect } from '@angular/core';
-import { CustomDetailsComponent } from '../my-molecule-custom-details/custom-details.component';
-import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.component';
-import { DialogShellComponent } from '../../common/dialog-shell/dialog-shell.component';
-import { RouterLink } from '@angular/router';
+import type { Observable } from 'rxjs'
+import { CustomDetailSaveModel } from '../../../Models/custom-detail-save.model'
+import { Component, computed, input, ChangeDetectionStrategy, output, signal, effect } from '@angular/core'
+import { CustomDetailsComponent } from '../my-molecule-custom-details/custom-details.component'
+import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.component'
+import { DialogShellComponent } from '../../common/dialog-shell/dialog-shell.component'
+import { RouterLink } from '@angular/router'
 
 
 @Component({
@@ -115,13 +115,13 @@ import { RouterLink } from '@angular/router';
 })
 export class MoleculeHeaderComponent {
 
-  readonly saveRequest = input<((detail: CustomDetailSaveModel) => Observable<boolean>) | undefined>();
-  readonly deletePending = input(false);
-  readonly deleteError = input('');
-  readonly confirmingDelete = signal(false);
-  constructor() { effect(() => { this.molId(); this.confirmingDelete.set(false); }); }
-  cancelDelete(): void { if (!this.deletePending()) this.confirmingDelete.set(false); }
-  confirmDelete(): void { if (!this.deletePending() && this.confirmingDelete()) this.onDelete.emit(this.molId()); }
+  readonly saveRequest = input<((detail: CustomDetailSaveModel) => Observable<boolean>) | undefined>()
+  readonly deletePending = input(false)
+  readonly deleteError = input('')
+  readonly confirmingDelete = signal(false)
+  constructor() { effect(() => { this.molId(); this.confirmingDelete.set(false) }) }
+  cancelDelete(): void { if (!this.deletePending()) this.confirmingDelete.set(false) }
+  confirmDelete(): void { if (!this.deletePending() && this.confirmingDelete()) this.onDelete.emit(this.molId()) }
   readonly nameInput = input('')
   readonly chemblIdInput = input<string | undefined>(undefined)
   readonly myMol = input(false)
@@ -131,40 +131,40 @@ export class MoleculeHeaderComponent {
   readonly isLoggedIn = input.required<boolean>()
   readonly isSystemMolecule = input(false)
 
-  readonly name = computed(() => this.nameInput());
-  protected readonly _chemblIdSignal = computed(() => this.chemblIdInput());
-  protected readonly _myMol = computed(() => this.myMol());
-  protected readonly _isCustom = computed(() => this.isCustom());
-  protected readonly _badgeName = computed(() => this.isCustom() ? 'Personal' : 'ChEMBL');
-  protected readonly _molId = computed(() => this.molId());
-  protected readonly _isSystemMolecule = computed(() => this.isSystemMolecule());
-  private readonly _smiles = computed(() => this.smiles());
+  readonly name = computed(() => this.nameInput())
+  protected readonly _chemblIdSignal = computed(() => this.chemblIdInput())
+  protected readonly _myMol = computed(() => this.myMol())
+  protected readonly _isCustom = computed(() => this.isCustom())
+  protected readonly _badgeName = computed(() => this.isCustom() ? 'Personal' : 'ChEMBL')
+  protected readonly _molId = computed(() => this.molId())
+  protected readonly _isSystemMolecule = computed(() => this.isSystemMolecule())
+  private readonly _smiles = computed(() => this.smiles())
   protected pathToDuplicate = computed(() => ({
     url: `/molecules/editor`,
     queryParams: {
       mode: 'duplicate',
       smiles: this._smiles()
     }
-  }));
-  readonly chemblId = this._chemblIdSignal;
-  protected readonly _isLoggedIn = computed(() => this.isLoggedIn());
+  }))
+  readonly chemblId = this._chemblIdSignal
+  protected readonly _isLoggedIn = computed(() => this.isLoggedIn())
 
-  readonly onSave = output<CustomDetailSaveModel>();
+  readonly onSave = output<CustomDetailSaveModel>()
 
-  readonly onDelete = output<string>();
+  readonly onDelete = output<string>()
 
-  readonly onAddToCollection = output<void>();
+  readonly onAddToCollection = output<void>()
 
   doSave(e: CustomDetailSaveModel): void {
-    this.onSave.emit(e);
+    this.onSave.emit(e)
   }
 
   doAddToCollection(): void {
     // TODO: The 'emit' function requires a mandatory void argument
-    this.onAddToCollection.emit();
+    this.onAddToCollection.emit()
   }
 
   doDelete(): void {
-    this.confirmingDelete.set(true);
+    this.confirmingDelete.set(true)
   }
 }

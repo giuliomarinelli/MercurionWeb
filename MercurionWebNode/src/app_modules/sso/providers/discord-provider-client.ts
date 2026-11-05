@@ -1,9 +1,9 @@
-import { Injectable } from "@nestjs/common";
-import { ISocialProviderClient } from "../models/interfaces/i-social-provider-client.interface";
-import { ProviderProfile } from "../models/interfaces/provider-profile.interface";
-import { AuthProvider } from "../models/enums/auth-provider.enum";
-import { ConfigService } from "@nestjs/config";
-import { SSO_Configuration } from "src/config/config.types";
+import { Injectable } from "@nestjs/common"
+import { ISocialProviderClient } from "../models/interfaces/i-social-provider-client.interface"
+import { ProviderProfile } from "../models/interfaces/provider-profile.interface"
+import { AuthProvider } from "../models/enums/auth-provider.enum"
+import { ConfigService } from "@nestjs/config"
+import { SSO_Configuration } from "src/config/config.types"
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 import { ExternalHttpPort } from 'src/infrastructure/external-http/external-http.port'
 
@@ -32,7 +32,7 @@ export class DiscordProviderClient implements ISocialProviderClient {
             scope: "identify email",
             state,
             prompt: "consent",
-        };
+        }
         return `https://discord.com/oauth2/authorize?${new URLSearchParams(params)}`
     }
 

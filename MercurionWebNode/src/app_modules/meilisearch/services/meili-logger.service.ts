@@ -1,7 +1,7 @@
-import { Injectable, Logger, LogLevel } from '@nestjs/common';
-import { LogEntry } from '../models/dto/log-entry.interface';
-import { uuidv7 } from '@kripod/uuidv7';
-import { LoggerContext, LoggerPort } from 'src/logging/logger.port';
+import { Injectable, Logger, LogLevel } from '@nestjs/common'
+import { LogEntry } from '../models/dto/log-entry.interface'
+import { uuidv7 } from '@kripod/uuidv7'
+import { LoggerContext, LoggerPort } from 'src/logging/logger.port'
 import { utcNow } from 'src/utils/temporal/temporal'
 import { NotificationOutboxService } from 'src/app_modules/notification/services/outbox/notification-outbox.service'
 import { OutboxEventType } from 'src/app_modules/notification/models/enums/outbox-event-type.enum'

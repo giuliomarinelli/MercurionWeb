@@ -1,6 +1,6 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core'
 
-export type SkeletonShape = 'text' | 'rect' | 'circle';
+export type SkeletonShape = 'text' | 'rect' | 'circle'
 
 @Component({
   selector: 'm-skeleton',
@@ -44,8 +44,8 @@ export type SkeletonShape = 'text' | 'rect' | 'circle';
   `],
 })
 export class SkeletonComponent {
-  readonly shape = input<SkeletonShape>('text');
-  readonly width = input('100%');
-  readonly height = input('1rem');
-  readonly label = input('');
+  readonly shape = input<SkeletonShape>('text')
+  readonly width = input('100%')
+  readonly height = input('1rem')
+  readonly label = input('')
 }

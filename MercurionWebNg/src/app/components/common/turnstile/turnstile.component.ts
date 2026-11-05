@@ -8,27 +8,27 @@ import {
   NgZone,
   inject,
   output
-} from '@angular/core';
-import { APP_CONFIG } from '../../../config/app-config';
-import { Theme } from '../../../Models/theme.models';
-import { ThemeManagerService } from '../../../services/context/theme-manager.service';
+} from '@angular/core'
+import { APP_CONFIG } from '../../../config/app-config'
+import { Theme } from '../../../Models/theme.models'
+import { ThemeManagerService } from '../../../services/context/theme-manager.service'
 
-type TurnstileWidgetId = string | number;
+type TurnstileWidgetId = string | number
 type TurnstileRenderOptions = {
-  sitekey: string;
-  callback: (token: string) => void;
-  theme: Theme;
-};
+  sitekey: string
+  callback: (token: string) => void
+  theme: Theme
+}
 type TurnstileApi = {
-  render: (container: string, options: TurnstileRenderOptions) => TurnstileWidgetId;
-  remove: (widgetId: TurnstileWidgetId) => void;
-  reset: (widgetId: TurnstileWidgetId) => void;
-};
+  render: (container: string, options: TurnstileRenderOptions) => TurnstileWidgetId
+  remove: (widgetId: TurnstileWidgetId) => void
+  reset: (widgetId: TurnstileWidgetId) => void
+}
 
 declare global {
   interface Window {
-    onTurnstileSuccess?: (token: string) => void;
-    turnstile?: TurnstileApi;
+    onTurnstileSuccess?: (token: string) => void
+    turnstile?: TurnstileApi
   }
 }
 
@@ -40,29 +40,29 @@ declare global {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TurnstileComponent implements OnInit, OnDestroy {
-  private readonly themeManager = inject(ThemeManagerService);
-  private readonly zone = inject(NgZone);
+  private readonly themeManager = inject(ThemeManagerService)
+  private readonly zone = inject(NgZone)
 
   // ===== Outputs =====
-  readonly token = output<string>();
-  readonly widgetReady = output<void>();
-  readonly refresh = output<void>();
+  readonly token = output<string>()
+  readonly widgetReady = output<void>()
+  readonly refresh = output<void>()
 
   // ===== Config =====
-  private readonly SITE_KEY = inject(APP_CONFIG).integrations.turnstileSiteKey;
-  containerId = 'turnstile-container-' + Math.random().toString(36).substring(2);
-  private widgetId: TurnstileWidgetId | null = null;
-  private destroyed = false;
+  private readonly SITE_KEY = inject(APP_CONFIG).integrations.turnstileSiteKey
+  containerId = 'turnstile-container-' + Math.random().toString(36).substring(2)
+  private widgetId: TurnstileWidgetId | null = null
+  private destroyed = false
 
-  private themeEffectCleanup?: EffectRef;
+  private themeEffectCleanup?: EffectRef
 
   constructor() {
     // Quando cambia il tema, ricreiamo il widget con il nuovo theme
     this.themeEffectCleanup = effect(() => {
-      const currentTheme = this.themeManager.theme();
-      if (!this.widgetId) return;
-      this.refreshTurnstile(currentTheme);
-    });
+      const currentTheme = this.themeManager.theme()
+      if (!this.widgetId) return
+      this.refreshTurnstile(currentTheme)
+    })
   }
 
   // ================== Lifecycle ==================
@@ -72,33 +72,33 @@ export class TurnstileComponent implements OnInit, OnDestroy {
       window.onTurnstileSuccess = (token: string) => {
         // **IMPORTANTE**: rientriamo in NgZone
         this.zone.run(() => {
-          this.token.emit(token);
-        });
-      };
+          this.token.emit(token)
+        })
+      }
 
-      const turnstile = window.turnstile;
-      if (!turnstile) return;
+      const turnstile = window.turnstile
+      if (!turnstile) return
       this.widgetId = turnstile.render(`#${this.containerId}`, {
         sitekey: this.SITE_KEY,
         callback: (token: string) => window.onTurnstileSuccess?.(token),
         theme: this.themeManager.theme(),
-      });
+      })
 
-      this.waitForWidgetVisible();
-    });
+      this.waitForWidgetVisible()
+    })
   }
 
   ngOnDestroy(): void {
-    this.destroyed = true;
+    this.destroyed = true
 
     if (this.widgetId && window.turnstile) {
-      window.turnstile.remove(this.widgetId);
+      window.turnstile.remove(this.widgetId)
     }
 
-    delete window.onTurnstileSuccess;
+    delete window.onTurnstileSuccess
 
     if (this.themeEffectCleanup) {
-      this.themeEffectCleanup.destroy();
+      this.themeEffectCleanup.destroy()
     }
   }
 
@@ -106,9 +106,9 @@ export class TurnstileComponent implements OnInit, OnDestroy {
 
   public reset(): void {
     if (window.turnstile && this.widgetId) {
-      this.zone.run(() => this.refresh.emit(undefined));
-      window.turnstile.reset(this.widgetId);
-      this.waitForWidgetVisible();
+      this.zone.run(() => this.refresh.emit(undefined))
+      window.turnstile.reset(this.widgetId)
+      this.waitForWidgetVisible()
     }
   }
 
@@ -116,88 +116,88 @@ export class TurnstileComponent implements OnInit, OnDestroy {
 
   private refreshTurnstile(theme: Theme): void {
     // Notifichiamo il parent (login/forgot) che stiamo ricaricando il widget
-    this.zone.run(() => this.refresh.emit(undefined));
+    this.zone.run(() => this.refresh.emit(undefined))
 
     if (window.turnstile && this.widgetId) {
-      window.turnstile.remove(this.widgetId);
-      this.widgetId = null;
+      window.turnstile.remove(this.widgetId)
+      this.widgetId = null
     }
 
     this.loadTurnstileScript().then(() => {
       window.onTurnstileSuccess = (token: string) => {
         this.zone.run(() => {
-          this.token.emit(token);
-        });
-      };
+          this.token.emit(token)
+        })
+      }
 
-      const turnstile = window.turnstile;
-      if (!turnstile) return;
+      const turnstile = window.turnstile
+      if (!turnstile) return
       this.widgetId = turnstile.render(`#${this.containerId}`, {
         sitekey: this.SITE_KEY,
         callback: (token: string) => window.onTurnstileSuccess?.(token),
         theme,
-      });
+      })
 
-      this.waitForWidgetVisible();
-    });
+      this.waitForWidgetVisible()
+    })
   }
 
   private loadTurnstileScript(): Promise<void> {
     return new Promise<void>((resolve) => {
       // Se c'è già un widget, lo rimuoviamo
       if (window.turnstile && this.widgetId) {
-        window.turnstile.remove(this.widgetId);
-        this.widgetId = null;
+        window.turnstile.remove(this.widgetId)
+        this.widgetId = null
       }
 
       // Script già caricato → ok
       if (window.turnstile) {
-        resolve();
-        return;
+        resolve()
+        return
       }
 
-      const scriptId = 'cf-turnstile-script';
-      const existing = document.getElementById(scriptId);
+      const scriptId = 'cf-turnstile-script'
+      const existing = document.getElementById(scriptId)
 
       if (existing) {
-        existing.addEventListener('load', () => resolve());
-        return;
+        existing.addEventListener('load', () => resolve())
+        return
       }
 
-      const script = document.createElement('script');
-      script.id = scriptId;
-      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
-      script.async = true;
-      script.defer = true;
-      script.onload = () => resolve();
-      document.body.appendChild(script);
-    });
+      const script = document.createElement('script')
+      script.id = scriptId
+      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js'
+      script.async = true
+      script.defer = true
+      script.onload = () => resolve()
+      document.body.appendChild(script)
+    })
   }
 
   private waitForWidgetVisible(maxWait = 2000, interval = 50): void {
-    const start = Date.now();
+    const start = Date.now()
 
     const poll = () => {
-      if (this.destroyed) return;
+      if (this.destroyed) return
 
-      const container = document.getElementById(this.containerId);
-      const wrapper = container?.firstElementChild as HTMLElement | null;
+      const container = document.getElementById(this.containerId)
+      const wrapper = container?.firstElementChild as HTMLElement | null
 
       const visible =
         wrapper &&
         wrapper.offsetWidth > 200 && // di solito ~300
-        wrapper.offsetHeight > 30;   // di solito ~65
+        wrapper.offsetHeight > 30   // di solito ~65
 
       if (visible) {
-        this.zone.run(() => this.widgetReady.emit(undefined));
+        this.zone.run(() => this.widgetReady.emit(undefined))
       } else if (Date.now() - start < maxWait) {
-        setTimeout(poll, interval);
+        setTimeout(poll, interval)
       } else {
         // fallback: dopo 2s consideriamo comunque "ready"
-        this.zone.run(() => this.widgetReady.emit(undefined));
+        this.zone.run(() => this.widgetReady.emit(undefined))
       }
-    };
+    }
 
-    poll();
+    poll()
   }
 }

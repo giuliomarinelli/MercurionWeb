@@ -1,10 +1,10 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { NotebookTree } from '../../../Models/graphql/notebook/notebook.models';
-import { routeManifest } from '../../../route-manifest';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core'
+import { RouterLink } from '@angular/router'
+import { NotebookTree } from '../../../Models/graphql/notebook/notebook.models'
+import { routeManifest } from '../../../route-manifest'
 
-type TocMode = 'read' | 'edit';
-export type NotebookSelection = { s_id?: string; e_id?: string; x_id?: string };
+type TocMode = 'read' | 'edit'
+export type NotebookSelection = { s_id?: string; e_id?: string; x_id?: string }
 
 @Component({
   selector: 'm-notebook-toc',
@@ -59,21 +59,21 @@ export type NotebookSelection = { s_id?: string; e_id?: string; x_id?: string };
   `,
 })
 export class NotebookTocComponent {
-  readonly notebook = input<NotebookTree | null>(null);
-  readonly mode = input<TocMode>('read');
-  readonly selectedIds = input<NotebookSelection>({});
+  readonly notebook = input<NotebookTree | null>(null)
+  readonly mode = input<TocMode>('read')
+  readonly selectedIds = input<NotebookSelection>({})
 
   notebookUrl(notebookId: string): string {
     return this.mode() === 'edit'
       ? routeManifest.notebookEditor.build({ notebookId })
-      : routeManifest.notebookReader.build({ notebookId });
+      : routeManifest.notebookReader.build({ notebookId })
   }
 
   isSelected(kind: 'notebook' | 'section' | 'experiment' | 'execution', id: string): boolean {
-    const selected = this.selectedIds();
-    if (kind === 'notebook') return this.notebook()?.id === id && !selected.s_id;
-    if (kind === 'section') return selected.s_id === id && !selected.e_id;
-    if (kind === 'experiment') return selected.e_id === id && !selected.x_id;
-    return selected.x_id === id;
+    const selected = this.selectedIds()
+    if (kind === 'notebook') return this.notebook()?.id === id && !selected.s_id
+    if (kind === 'section') return selected.s_id === id && !selected.e_id
+    if (kind === 'experiment') return selected.e_id === id && !selected.x_id
+    return selected.x_id === id
   }
 }

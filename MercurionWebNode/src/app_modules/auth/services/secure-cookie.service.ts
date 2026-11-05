@@ -1,12 +1,12 @@
-import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { createHmac } from 'crypto';
-import { FastifyReply, FastifyRequest } from 'fastify';
+import { Injectable } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
+import { createHmac } from 'crypto'
+import { FastifyReply, FastifyRequest } from 'fastify'
 import { CookieSerializeOptions } from '@fastify/cookie'
-import { SecureCookieConfiguration } from 'src/config/config.types';
+import { SecureCookieConfiguration } from 'src/config/config.types'
 
-import { LoggerPort } from 'src/logging/logger.port';
-import { LoggerContext } from 'src/logging/logger.port';
+import { LoggerPort } from 'src/logging/logger.port'
+import { LoggerContext } from 'src/logging/logger.port'
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 
 @Injectable()
@@ -35,8 +35,8 @@ export class SecureCookieService {
     public signCookie(value: string): string {
         const signature = createHmac('sha256', this.secret)
             .update(value)
-            .digest('hex');
-        return `${value}.${signature}`;
+            .digest('hex')
+        return `${value}.${signature}`
     }
 
     /**
@@ -73,7 +73,7 @@ export class SecureCookieService {
         req: FastifyRequest,
         name: string
     ): string | never {
-        const signedValue = req.cookies[name];
+        const signedValue = req.cookies[name]
         if (!signedValue) throw applicationError(ApplicationErrorCode.SECURE_COOKIE_VALUE_MISSING)
         return this.verifyAndParseCookie(signedValue)
     }
@@ -86,7 +86,7 @@ export class SecureCookieService {
         res.clearCookie(name, {
             ...options,
             expires: new Date(0) // Imposta la scadenza al passato per eliminare il cookie
-        });
+        })
     }
 
 

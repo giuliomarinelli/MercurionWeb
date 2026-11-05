@@ -1,17 +1,17 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { RedisService } from './services/redis.service';
-import { PubSubService } from './services/pub-sub.service';
-import { OAuth2AccessTokenRefreshService } from '../oauth2-client/services/access-token-refresh.service';
-import { SessionService } from '../auth/services/session.service';
-import { LoggerPort } from 'src/logging/logger.port';
-import Redis from 'ioredis';
+import { Test, TestingModule } from '@nestjs/testing'
+import { RedisService } from './services/redis.service'
+import { PubSubService } from './services/pub-sub.service'
+import { OAuth2AccessTokenRefreshService } from '../oauth2-client/services/access-token-refresh.service'
+import { SessionService } from '../auth/services/session.service'
+import { LoggerPort } from 'src/logging/logger.port'
+import Redis from 'ioredis'
 import { RedisCapabilityService } from './services/redis-capability.service'
 
 describe('RedisModule (providers wiring)', () => {
-  let moduleRef: TestingModule;
+  let moduleRef: TestingModule
 
   beforeEach(async () => {
-    const mockLogger = { log: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() };
+    const mockLogger = { log: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() }
     const mockRedisClient = {
       duplicate: jest.fn(() => ({
         on: jest.fn(),
@@ -26,7 +26,7 @@ describe('RedisModule (providers wiring)', () => {
       del: jest.fn(),
       keys: jest.fn(),
       quit: jest.fn().mockResolvedValue('OK'),
-    } as unknown as Redis;
+    } as unknown as Redis
 
     moduleRef = await Test.createTestingModule({
       providers: [
@@ -50,18 +50,18 @@ describe('RedisModule (providers wiring)', () => {
         },
         PubSubService,
       ],
-    }).compile();
-  });
+    }).compile()
+  })
 
   afterEach(async () => {
-    await moduleRef?.close();
-  });
+    await moduleRef?.close()
+  })
 
   it('exposes RedisService and PubSubService as singletons', () => {
-    const redisService = moduleRef.get(RedisService);
-    const pubSubService = moduleRef.get(PubSubService);
-    expect(redisService).toBeInstanceOf(RedisService);
-    expect(pubSubService).toBeInstanceOf(PubSubService);
+    const redisService = moduleRef.get(RedisService)
+    const pubSubService = moduleRef.get(PubSubService)
+    expect(redisService).toBeInstanceOf(RedisService)
+    expect(pubSubService).toBeInstanceOf(PubSubService)
     expect(moduleRef.get(RedisCapabilityService)).toBeInstanceOf(RedisCapabilityService)
-  });
-});
+  })
+})

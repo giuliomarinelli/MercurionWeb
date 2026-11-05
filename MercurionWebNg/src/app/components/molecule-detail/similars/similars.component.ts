@@ -1,8 +1,8 @@
-import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
-import { MoleculeSearchResult } from '../../../Models/graphql/molecule-search/molecule-search-result.interface';
-import { SimilarItemComponent } from '../similar-item/similar-item.component';
-import { SkeletonMoleculeCardComponent } from '../skeleton-molecule-card/skeleton-molecule-card.component';
-import { SmoothResizeDirective } from '../../common/smooth-resize/smooth-resize.directive';
+import { Component, ChangeDetectionStrategy, input, output } from '@angular/core'
+import { MoleculeSearchResult } from '../../../Models/graphql/molecule-search/molecule-search-result.interface'
+import { SimilarItemComponent } from '../similar-item/similar-item.component'
+import { SkeletonMoleculeCardComponent } from '../skeleton-molecule-card/skeleton-molecule-card.component'
+import { SmoothResizeDirective } from '../../common/smooth-resize/smooth-resize.directive'
 
 @Component({
   selector: 'm-similars',

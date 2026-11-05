@@ -1,21 +1,21 @@
-import { UserGender, UserGenderControl } from './../../../Models/auth/user.models';
-import { Component, inject, OnDestroy, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
-import { ProgressIndicatorComponent } from '../../common/progress-indicator/progress-indicator.component';
-import { FormControl, FormGroup, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { catchError, finalize, of, Subscription, switchMap } from 'rxjs';
-import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
-import { Router } from '@angular/router';
-import { AccountService } from '../../../services/account.service';
-import { HttpErrorResponse } from '@angular/common/http';
-import { ProfileRegistryDTO } from '../../../Models/account/account.models';
-import { TextFieldComponent } from '../../common/text-field/text-field.component';
-import { PmSelectComponent } from '../../common/pm-select/pm-select.component';
-import { PmOption } from '../../../Models/pm-option.model';
-import { ProfileRegistryEditContextService } from '../../../services/context/action-context/profile-registry-edit-context.service';
-import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
-import { ActionCardComponent } from '../../common/action-card/action-card.component';
-import { ActionFooterComponent } from '../../common/action-footer/action-footer.component';
-import { ButtonComponent } from '../../common/button/button.component';
+import { UserGender, UserGenderControl } from './../../../Models/auth/user.models'
+import { Component, inject, OnDestroy, OnInit, signal, ChangeDetectionStrategy } from '@angular/core'
+import { ProgressIndicatorComponent } from '../../common/progress-indicator/progress-indicator.component'
+import { FormControl, FormGroup, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms'
+import { catchError, finalize, of, Subscription, switchMap } from 'rxjs'
+import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service'
+import { Router } from '@angular/router'
+import { AccountService } from '../../../services/account.service'
+import { HttpErrorResponse } from '@angular/common/http'
+import { ProfileRegistryDTO } from '../../../Models/account/account.models'
+import { TextFieldComponent } from '../../common/text-field/text-field.component'
+import { PmSelectComponent } from '../../common/pm-select/pm-select.component'
+import { PmOption } from '../../../Models/pm-option.model'
+import { ProfileRegistryEditContextService } from '../../../services/context/action-context/profile-registry-edit-context.service'
+import { DomainInvalidationService } from '../../../services/domain-invalidation.service'
+import { ActionCardComponent } from '../../common/action-card/action-card.component'
+import { ActionFooterComponent } from '../../common/action-footer/action-footer.component'
+import { ButtonComponent } from '../../common/button/button.component'
 
 type RegistryFormValue = {
   firstName: string

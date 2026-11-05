@@ -1,6 +1,6 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, effect, ElementRef, inject, input, output, signal, viewChild } from '@angular/core';
-import { ButtonComponent } from '../../components/common/button/button.component';
-import { SearchFieldComponent } from '../../components/common/search-field/search-field.component';
+import { ChangeDetectionStrategy, Component, DestroyRef, effect, ElementRef, inject, input, output, signal, viewChild } from '@angular/core'
+import { ButtonComponent } from '../../components/common/button/button.component'
+import { SearchFieldComponent } from '../../components/common/search-field/search-field.component'
 
 @Component({
   selector: 'm-molecule-collection-detail-toolbar',
@@ -39,66 +39,66 @@ import { SearchFieldComponent } from '../../components/common/search-field/searc
   `
 })
 export class MoleculeCollectionDetailToolbarComponent {
-  readonly collectionId = input('');
-  readonly name = input('');
-  readonly search = input('');
-  readonly pending = input(false);
-  readonly busy = input(false);
-  readonly renamePending = input(false);
-  readonly renameError = input('');
-  readonly renameRevision = input(0);
-  readonly rename = output<string>();
-  readonly duplicate = output<void>();
-  readonly delete = output<void>();
-  readonly add = output<void>();
-  readonly searchChange = output<string>();
-  readonly editing = signal(false);
-  readonly draft = signal('');
-  readonly queryDraft = signal('');
-  private readonly nameInput = viewChild<ElementRef<HTMLInputElement>>('nameInput');
-  private readonly renameButton = viewChild('renameButton', { read: ElementRef });
-  private timer?: ReturnType<typeof setTimeout>;
-  private seenRevision = 0;
+  readonly collectionId = input('')
+  readonly name = input('')
+  readonly search = input('')
+  readonly pending = input(false)
+  readonly busy = input(false)
+  readonly renamePending = input(false)
+  readonly renameError = input('')
+  readonly renameRevision = input(0)
+  readonly rename = output<string>()
+  readonly duplicate = output<void>()
+  readonly delete = output<void>()
+  readonly add = output<void>()
+  readonly searchChange = output<string>()
+  readonly editing = signal(false)
+  readonly draft = signal('')
+  readonly queryDraft = signal('')
+  private readonly nameInput = viewChild<ElementRef<HTMLInputElement>>('nameInput')
+  private readonly renameButton = viewChild('renameButton', { read: ElementRef })
+  private timer?: ReturnType<typeof setTimeout>
+  private seenRevision = 0
   constructor() {
-    inject(DestroyRef).onDestroy(() => clearTimeout(this.timer));
-    effect(() => { this.queryDraft.set(this.search()); });
+    inject(DestroyRef).onDestroy(() => clearTimeout(this.timer))
+    effect(() => { this.queryDraft.set(this.search()) })
     effect(() => {
-      const revision = this.renameRevision();
+      const revision = this.renameRevision()
       if (revision !== this.seenRevision) {
-        this.seenRevision = revision;
-        this.closeEditor();
+        this.seenRevision = revision
+        this.closeEditor()
       }
-    });
-    effect(() => { this.collectionId(); this.editing.set(false); });
+    })
+    effect(() => { this.collectionId(); this.editing.set(false) })
   }
   edit(): void {
-    this.draft.set(this.name());
-    this.editing.set(true);
-    requestAnimationFrame(() => { this.nameInput()?.nativeElement.focus(); this.nameInput()?.nativeElement.select(); });
+    this.draft.set(this.name())
+    this.editing.set(true)
+    requestAnimationFrame(() => { this.nameInput()?.nativeElement.focus(); this.nameInput()?.nativeElement.select() })
   }
-  changeName(event: Event): void { this.draft.set((event.target as HTMLInputElement).value); }
+  changeName(event: Event): void { this.draft.set((event.target as HTMLInputElement).value) }
   save(event: Event): void {
-    event.preventDefault();
-    if (this.renamePending() || !this.draft().trim()) return;
-    if (this.draft().trim() === this.name()) { this.closeEditor(); return; }
-    this.rename.emit(this.draft().trim());
+    event.preventDefault()
+    if (this.renamePending() || !this.draft().trim()) return
+    if (this.draft().trim() === this.name()) { this.closeEditor(); return }
+    this.rename.emit(this.draft().trim())
   }
   cancel(event?: Event): void {
-    event?.preventDefault(); event?.stopPropagation();
-    if (!this.renamePending()) this.closeEditor();
+    event?.preventDefault(); event?.stopPropagation()
+    if (!this.renamePending()) this.closeEditor()
   }
   private closeEditor(): void {
-    this.editing.set(false);
-    requestAnimationFrame(() => this.renameButton()?.nativeElement.querySelector('button')?.focus());
+    this.editing.set(false)
+    requestAnimationFrame(() => this.renameButton()?.nativeElement.querySelector('button')?.focus())
   }
   changeSearch(value: string): void {
-    this.queryDraft.set(value);
-    clearTimeout(this.timer);
-    if (!value) { this.submitSearch(value); return; }
-    this.timer = setTimeout(() => this.submitSearch(value), 250);
+    this.queryDraft.set(value)
+    clearTimeout(this.timer)
+    if (!value) { this.submitSearch(value); return }
+    this.timer = setTimeout(() => this.submitSearch(value), 250)
   }
   submitSearch(value: string): void {
-    clearTimeout(this.timer);
-    if (value.trim() !== this.search()) this.searchChange.emit(value.trim());
+    clearTimeout(this.timer)
+    if (value.trim() !== this.search()) this.searchChange.emit(value.trim())
   }
 }

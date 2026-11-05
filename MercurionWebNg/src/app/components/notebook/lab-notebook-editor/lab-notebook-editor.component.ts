@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, input, output } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { QuillModule } from 'ngx-quill';
-import { NotebookDelta } from '../../../Models/graphql/notebook/notebook.models';
-import { QuillStylesService } from '../../../services/quill-styles.service';
+import { ChangeDetectionStrategy, Component, OnInit, inject, input, output } from '@angular/core'
+import { FormsModule } from '@angular/forms'
+import { QuillModule } from 'ngx-quill'
+import { NotebookDelta } from '../../../Models/graphql/notebook/notebook.models'
+import { QuillStylesService } from '../../../services/quill-styles.service'
 
 /** A full Quill Delta is the only persisted document format (not HTML). */
 @Component({
@@ -20,15 +20,15 @@ import { QuillStylesService } from '../../../services/quill-styles.service';
   `,
 })
 export class LabNotebookEditorComponent implements OnInit {
-  private readonly quillStyles = inject(QuillStylesService);
+  private readonly quillStyles = inject(QuillStylesService)
 
-  readonly content = input<NotebookDelta | null>(null);
-  readonly readOnly = input(false);
-  readonly ariaLabel = input('Editor del quaderno di laboratorio');
-  readonly placeholder = input('Documenta la pianificazione o i risultati…');
-  readonly contentChanged = output<NotebookDelta>();
+  readonly content = input<NotebookDelta | null>(null)
+  readonly readOnly = input(false)
+  readonly ariaLabel = input('Editor del quaderno di laboratorio')
+  readonly placeholder = input('Documenta la pianificazione o i risultati…')
+  readonly contentChanged = output<NotebookDelta>()
 
-  protected readonly readOnlyModules = { toolbar: false };
+  protected readonly readOnlyModules = { toolbar: false }
 
   protected readonly modules = {
     toolbar: [
@@ -40,20 +40,20 @@ export class LabNotebookEditorComponent implements OnInit {
       ['link', 'image'],
       ['clean']
     ]
-  };
+  }
 
   ngOnInit(): void {
-    this.quillStyles.load();
+    this.quillStyles.load()
   }
 
   onContentChanged(event: unknown): void {
-    if (this.readOnly() || !event || typeof event !== 'object') return;
-    const change = event as { source?: string; content?: unknown };
+    if (this.readOnly() || !event || typeof event !== 'object') return
+    const change = event as { source?: string; content?: unknown }
     // Programmatic updates/initialization must not generate autosave writes.
-    if (change.source !== 'user') return;
-    const document = change.content;
+    if (change.source !== 'user') return
+    const document = change.content
     if (document === null || typeof document !== 'object' || Array.isArray(document)
-        || !('ops' in document) || !Array.isArray(document.ops)) return;
-    this.contentChanged.emit(document as NotebookDelta);
+        || !('ops' in document) || !Array.isArray(document.ops)) return
+    this.contentChanged.emit(document as NotebookDelta)
   }
 }

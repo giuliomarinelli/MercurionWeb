@@ -1,34 +1,34 @@
-import { APIClientTicket, ClientTicketMessage, TicketMessage } from './../Models/graphql/help.models';
-import { Injectable } from "@angular/core";
-import { MoleculeDetailSystem } from "../Models/graphql/molecule.detail.models";
-import { ChEMBLMoleculeItemEntity, CustomMoleculeItemEntity, MoleculeCollectionItemClient, MoleculeCollectionItemEntityShort, MoleculeDetailItem } from "../Models/graphql/molecule-collection/molecule-collection.types";
-import { AuthProvider, type SSO_AuthProvider } from "@mercurion/rest-contracts";
-import { Ticket } from "../Models/graphql/help.models";
-import { MoleculeSearchResult } from '../Models/graphql/molecule-search/molecule-search-result.interface';
-import { PageModel } from '../Models/graphql/page.models';
+import { APIClientTicket, ClientTicketMessage, TicketMessage } from './../Models/graphql/help.models'
+import { Injectable } from "@angular/core"
+import { MoleculeDetailSystem } from "../Models/graphql/molecule.detail.models"
+import { ChEMBLMoleculeItemEntity, CustomMoleculeItemEntity, MoleculeCollectionItemClient, MoleculeCollectionItemEntityShort, MoleculeDetailItem } from "../Models/graphql/molecule-collection/molecule-collection.types"
+import { AuthProvider, type SSO_AuthProvider } from "@mercurion/rest-contracts"
+import { Ticket } from "../Models/graphql/help.models"
+import { MoleculeSearchResult } from '../Models/graphql/molecule-search/molecule-search-result.interface'
+import { PageModel } from '../Models/graphql/page.models'
 
 @Injectable({ providedIn: 'root' })
 export class TypeGuardsService {
   // chembl
-  isChemblMolecule(item: MoleculeDetailItem): item is ChEMBLMoleculeItemEntity;
-  isChemblMolecule(item: MoleculeCollectionItemClient): item is Extract<MoleculeCollectionItemClient, { type: 'chembl' }>;
-  isChemblMolecule(item: MoleculeCollectionItemEntityShort): item is MoleculeCollectionItemEntityShort & { type: 'chembl' };
+  isChemblMolecule(item: MoleculeDetailItem): item is ChEMBLMoleculeItemEntity
+  isChemblMolecule(item: MoleculeCollectionItemClient): item is Extract<MoleculeCollectionItemClient, { type: 'chembl' }>
+  isChemblMolecule(item: MoleculeCollectionItemEntityShort): item is MoleculeCollectionItemEntityShort & { type: 'chembl' }
   isChemblMolecule(item: unknown): boolean {
-    return this.isObject(item) && item['type'] === 'chembl';
+    return this.isObject(item) && item['type'] === 'chembl'
   }
 
   // custom
-  isCustomMolecule(item: MoleculeDetailItem): item is CustomMoleculeItemEntity;
+  isCustomMolecule(item: MoleculeDetailItem): item is CustomMoleculeItemEntity
   isCustomMolecule(
     item: MoleculeCollectionItemEntityShort
-  ): item is MoleculeCollectionItemEntityShort & { type: 'custom' };
+  ): item is MoleculeCollectionItemEntityShort & { type: 'custom' }
   isCustomMolecule(item: unknown): boolean {
-    return this.isObject(item) && item['type'] === 'custom';
+    return this.isObject(item) && item['type'] === 'custom'
   }
 
   // system (solo per detail)
   isSystemMolecule(item: MoleculeDetailItem): item is MoleculeDetailSystem {
-    return item?.type === 'system';
+    return item?.type === 'system'
   }
 
   isUserMoleculeType(item: 'chembl' | 'custom' | 'system'): item is 'chembl' | 'custom' {

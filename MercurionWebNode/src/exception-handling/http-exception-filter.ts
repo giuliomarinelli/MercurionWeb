@@ -1,16 +1,16 @@
 import {
     ArgumentsHost, Catch, ExceptionFilter
-} from '@nestjs/common';
-import { FastifyRequest, FastifyReply } from 'fastify';
-import { GqlContextType } from '@nestjs/graphql';
-import { HttpErrorRes } from 'src/models/error-res.dto';
-import { LoggerPort } from 'src/logging/logger.port';
-import { LoggerContext } from 'src/logging/logger.port';
+} from '@nestjs/common'
+import { FastifyRequest, FastifyReply } from 'fastify'
+import { GqlContextType } from '@nestjs/graphql'
+import { HttpErrorRes } from 'src/models/error-res.dto'
+import { LoggerPort } from 'src/logging/logger.port'
+import { LoggerContext } from 'src/logging/logger.port'
 import {
     createCorrelationId,
     createRestErrorResponse,
     presentApplicationError
-} from './application-error-envelope';
+} from './application-error-envelope'
 import { getCorrelationId, resolveCorrelationId } from '../observability/correlation-context'
 
 

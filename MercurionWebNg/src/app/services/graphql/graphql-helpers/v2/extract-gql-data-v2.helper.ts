@@ -1,15 +1,15 @@
-import { ApolloLike } from "./apollo-like.model";
-import { GqlV2Error, GraphQLErrorLike } from "./gql-v2.error";
+import { ApolloLike } from "./apollo-like.model"
+import { GqlV2Error, GraphQLErrorLike } from "./gql-v2.error"
 
 export function extractGqlDataV2<
   T extends Record<string, unknown>,
   K extends keyof T
->(res: ApolloLike<T>, field: K, allowNull?: false): NonNullable<T[K]>;
+>(res: ApolloLike<T>, field: K, allowNull?: false): NonNullable<T[K]>
 
 export function extractGqlDataV2<
   T extends Record<string, unknown>,
   K extends keyof T
->(res: ApolloLike<T>, field: K, allowNull: true): T[K] | null;
+>(res: ApolloLike<T>, field: K, allowNull: true): T[K] | null
 
 export function extractGqlDataV2<
   T extends Record<string, unknown>,
@@ -22,7 +22,7 @@ export function extractGqlDataV2<
   if (res.errors?.length) {
     const gqlErrors = res.errors
       .filter((e): e is GraphQLErrorLike => typeof e === 'object' && e !== null)
-      .map(e => e as GraphQLErrorLike);
+      .map(e => e as GraphQLErrorLike)
 
     throw new GqlV2Error('GraphQL', gqlErrors, String(field))
   }
@@ -34,7 +34,7 @@ export function extractGqlDataV2<
     throw new GqlV2Error('NoData', [], key)
   }
 
-  const value = data[field];
+  const value = data[field]
 
   if ((value === null || value === undefined) && !allowNull) {
     throw new GqlV2Error('NoData', [], key)

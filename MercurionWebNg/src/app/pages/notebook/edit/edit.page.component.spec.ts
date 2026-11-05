@@ -1,8 +1,8 @@
-import { TestBed } from '@angular/core/testing';
-import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
-import { of } from 'rxjs';
-import { NotebookEditPageComponent } from './edit.page.component';
-import { NotebookService } from '../../../services/graphql/notebook.service';
+import { TestBed } from '@angular/core/testing'
+import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router'
+import { of } from 'rxjs'
+import { NotebookEditPageComponent } from './edit.page.component'
+import { NotebookService } from '../../../services/graphql/notebook.service'
 
 describe('NotebookEditPageComponent', () => {
   beforeEach(async () => {
@@ -25,13 +25,13 @@ describe('NotebookEditPageComponent', () => {
           },
         },
       ],
-    }).compileComponents();
-  });
+    }).compileComponents()
+  })
 
   it('renders a recoverable error for a missing notebook', () => {
-    const fixture = TestBed.createComponent(NotebookEditPageComponent);
-    fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('[role="alert"]')).not.toBeNull();
-    fixture.destroy();
-  });
-});
+    const fixture = TestBed.createComponent(NotebookEditPageComponent)
+    fixture.detectChanges()
+    expect(fixture.nativeElement.querySelector('[role="alert"]')).not.toBeNull()
+    fixture.destroy()
+  })
+})

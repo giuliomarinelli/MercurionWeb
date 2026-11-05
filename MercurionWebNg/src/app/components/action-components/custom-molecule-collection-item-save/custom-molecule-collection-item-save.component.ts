@@ -1,26 +1,26 @@
-import { DecimalPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, DestroyRef, ElementRef, inject, OnDestroy, OnInit, signal, viewChild } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
-import { ChemistryRendererService } from '../../../chemistry/chemistry-renderer.service';
-import { MoleculeEditorDraftService } from '../../../chemistry/molecule-editor-draft.service';
-import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
-import { MoleculeProperties } from '../../../Models/graphql/molecule-properties.model';
-import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
-import { CustomMoleculeCollectionItemSaveContextService } from '../../../services/context/action-context/custom-molecule-collection-item-save-context.service';
-import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
-import { MoleculeJoinService } from '../../../services/graphql/molecule-collection-join.service';
-import { ToastService } from '../../../services/toast.service';
-import { ApplicationErrorCode, getApplicationErrorCode } from '../../../utils/application-error.util';
-import { ActionCardComponent } from '../../common/action-card/action-card.component';
-import { ActionFooterComponent } from '../../common/action-footer/action-footer.component';
-import { ButtonComponent } from '../../common/button/button.component';
-import { SelectCoreComponent } from '../../common/select-core/select-core.component';
-import { SelectSelectionChange } from '../../common/select-core/select-core.types';
-import { TextareaComponent } from '../../common/textarea/textarea.component';
-import { CollectionPickerFacade } from '../collection-picker/collection-picker.facade';
-import { validateCollectionName } from '../collection-picker/collection-rules';
+import { DecimalPipe } from '@angular/common'
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, ElementRef, inject, OnDestroy, OnInit, signal, viewChild } from '@angular/core'
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
+import { FormsModule } from '@angular/forms'
+import { Router } from '@angular/router'
+import { ChemistryRendererService } from '../../../chemistry/chemistry-renderer.service'
+import { MoleculeEditorDraftService } from '../../../chemistry/molecule-editor-draft.service'
+import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/molecule-collection.types'
+import { MoleculeProperties } from '../../../Models/graphql/molecule-properties.model'
+import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service'
+import { CustomMoleculeCollectionItemSaveContextService } from '../../../services/context/action-context/custom-molecule-collection-item-save-context.service'
+import { DomainInvalidationService } from '../../../services/domain-invalidation.service'
+import { MoleculeJoinService } from '../../../services/graphql/molecule-collection-join.service'
+import { ToastService } from '../../../services/toast.service'
+import { ApplicationErrorCode, getApplicationErrorCode } from '../../../utils/application-error.util'
+import { ActionCardComponent } from '../../common/action-card/action-card.component'
+import { ActionFooterComponent } from '../../common/action-footer/action-footer.component'
+import { ButtonComponent } from '../../common/button/button.component'
+import { SelectCoreComponent } from '../../common/select-core/select-core.component'
+import { SelectSelectionChange } from '../../common/select-core/select-core.types'
+import { TextareaComponent } from '../../common/textarea/textarea.component'
+import { CollectionPickerFacade } from '../collection-picker/collection-picker.facade'
+import { validateCollectionName } from '../collection-picker/collection-rules'
 
 @Component({
   selector: 'm-custom-molecule-collection-item-save',
@@ -115,139 +115,139 @@ import { validateCollectionName } from '../collection-picker/collection-rules';
   `
 })
 export class CustomMoleculeCollectionItemSaveComponent implements OnInit, OnDestroy {
-  protected readonly overlayCtx = inject(ActionOverlayContextService);
-  protected readonly saveCtx = inject(CustomMoleculeCollectionItemSaveContextService);
-  private readonly destroyRef = inject(DestroyRef);
-  private readonly destinationSummary = viewChild.required<ElementRef<HTMLElement>>('destinationSummary');
-  private readonly sessionId = this.overlayCtx.session('MoleculeCollectionItemSave')?.id ?? -1;
-  private readonly picker = new CollectionPickerFacade({ mode: { kind: 'single', operation: 'save', allowCreate: true } });
-  private readonly moleculeJoinService = inject(MoleculeJoinService);
-  private readonly toast = inject(ToastService);
-  private readonly chemistryRenderer = inject(ChemistryRendererService);
-  private readonly editorDrafts = inject(MoleculeEditorDraftService);
-  private readonly router = inject(Router);
-  private readonly invalidations = inject(DomainInvalidationService);
-  readonly collections = this.picker.collections;
-  readonly hasMore = this.picker.hasMore;
-  readonly loading = this.picker.loading;
-  readonly loadError = computed(() => Boolean(this.picker.error()));
-  readonly selectedCollectionName = signal('');
-  readonly destinationExpanded = signal(true);
-  readonly creatingCollection = signal(false);
-  readonly saving = signal(false);
-  readonly busy = computed(() => this.creatingCollection() || this.saving());
-  readonly creationError = signal('');
-  readonly failedCreationName = signal('');
-  readonly saveError = signal('');
-  readonly properties = signal<MoleculeProperties | null>(null);
-  readonly propertiesLoading = signal(false);
-  readonly propertiesError = signal(false);
-  nameModel = '';
-  nameTouched = false;
-  labelModel = '';
-  notesModel = '';
+  protected readonly overlayCtx = inject(ActionOverlayContextService)
+  protected readonly saveCtx = inject(CustomMoleculeCollectionItemSaveContextService)
+  private readonly destroyRef = inject(DestroyRef)
+  private readonly destinationSummary = viewChild.required<ElementRef<HTMLElement>>('destinationSummary')
+  private readonly sessionId = this.overlayCtx.session('MoleculeCollectionItemSave')?.id ?? -1
+  private readonly picker = new CollectionPickerFacade({ mode: { kind: 'single', operation: 'save', allowCreate: true } })
+  private readonly moleculeJoinService = inject(MoleculeJoinService)
+  private readonly toast = inject(ToastService)
+  private readonly chemistryRenderer = inject(ChemistryRendererService)
+  private readonly editorDrafts = inject(MoleculeEditorDraftService)
+  private readonly router = inject(Router)
+  private readonly invalidations = inject(DomainInvalidationService)
+  readonly collections = this.picker.collections
+  readonly hasMore = this.picker.hasMore
+  readonly loading = this.picker.loading
+  readonly loadError = computed(() => Boolean(this.picker.error()))
+  readonly selectedCollectionName = signal('')
+  readonly destinationExpanded = signal(true)
+  readonly creatingCollection = signal(false)
+  readonly saving = signal(false)
+  readonly busy = computed(() => this.creatingCollection() || this.saving())
+  readonly creationError = signal('')
+  readonly failedCreationName = signal('')
+  readonly saveError = signal('')
+  readonly properties = signal<MoleculeProperties | null>(null)
+  readonly propertiesLoading = signal(false)
+  readonly propertiesError = signal(false)
+  nameModel = ''
+  nameTouched = false
+  labelModel = ''
+  notesModel = ''
   ngOnInit(): void {
     queueMicrotask(() => {
-      if (!this.destroyRef.destroyed) { this.picker.load(true); void this.loadProperties(); }
-    });
+      if (!this.destroyRef.destroyed) { this.picker.load(true); void this.loadProperties() }
+    })
   }
-  ngOnDestroy(): void { this.picker.destroy(); }
+  ngOnDestroy(): void { this.picker.destroy() }
   async loadProperties(): Promise<void> {
-    if (this.propertiesLoading() || this.busy() || this.destroyRef.destroyed) return;
-    this.propertiesLoading.set(true);
-    this.propertiesError.set(false);
+    if (this.propertiesLoading() || this.busy() || this.destroyRef.destroyed) return
+    this.propertiesLoading.set(true)
+    this.propertiesError.set(false)
     try {
-      const properties = await this.chemistryRenderer.getMoleculeProperties(this.saveCtx.smiles());
-      if (!this.destroyRef.destroyed) { this.properties.set(properties); this.propertiesError.set(!properties); }
+      const properties = await this.chemistryRenderer.getMoleculeProperties(this.saveCtx.smiles())
+      if (!this.destroyRef.destroyed) { this.properties.set(properties); this.propertiesError.set(!properties) }
     } catch {
-      if (!this.destroyRef.destroyed) { this.properties.set(null); this.propertiesError.set(true); }
+      if (!this.destroyRef.destroyed) { this.properties.set(null); this.propertiesError.set(true) }
     } finally {
-      if (!this.destroyRef.destroyed) this.propertiesLoading.set(false);
+      if (!this.destroyRef.destroyed) this.propertiesLoading.set(false)
     }
   }
-  computeProps(): void { void this.loadProperties(); }
-  displayCollection(item: Pick<MoleculeCollection, 'name'>): string { return item.name; }
-  valueCollection(item: Pick<MoleculeCollection, 'id'>): string { return item.id; }
-  loadCollections(reset = false): void { if (!this.busy()) this.picker.load(reset); }
+  computeProps(): void { void this.loadProperties() }
+  displayCollection(item: Pick<MoleculeCollection, 'name'>): string { return item.name }
+  valueCollection(item: Pick<MoleculeCollection, 'id'>): string { return item.id }
+  loadCollections(reset = false): void { if (!this.busy()) this.picker.load(reset) }
   onSearchChange(term: string): void {
-    if (this.busy()) return;
-    this.saveCtx.searchTerm.set(term);
-    this.picker.search(term);
+    if (this.busy()) return
+    this.saveCtx.searchTerm.set(term)
+    this.picker.search(term)
   }
-  onScrollEnd(): void { if (!this.busy() && this.hasMore() && !this.loading()) this.picker.load(); }
-  onDestinationToggle(event: Event): void { this.destinationExpanded.set((event.target as HTMLDetailsElement).open); }
+  onScrollEnd(): void { if (!this.busy() && this.hasMore() && !this.loading()) this.picker.load() }
+  onDestinationToggle(event: Event): void { this.destinationExpanded.set((event.target as HTMLDetailsElement).open) }
   onSelect(item: Pick<MoleculeCollection, 'id' | 'name'>): void {
-    if (this.busy()) return;
-    this.picker.setSingleSelection(item.id);
-    this.saveCtx.selectedCollectionId.set(item.id);
-    this.selectedCollectionName.set(item.name);
-    this.destinationExpanded.set(false);
-    queueMicrotask(() => { if (!this.destroyRef.destroyed) this.destinationSummary().nativeElement.focus(); });
+    if (this.busy()) return
+    this.picker.setSingleSelection(item.id)
+    this.saveCtx.selectedCollectionId.set(item.id)
+    this.selectedCollectionName.set(item.name)
+    this.destinationExpanded.set(false)
+    queueMicrotask(() => { if (!this.destroyRef.destroyed) this.destinationSummary().nativeElement.focus() })
   }
   onSelectionChange(change: SelectSelectionChange<MoleculeCollection, string>): void {
-    if (this.busy()) return;
-    if (change.item) this.onSelect(change.item);
-    else { this.picker.setSingleSelection(null); this.saveCtx.selectedCollectionId.set(null); this.selectedCollectionName.set(''); }
+    if (this.busy()) return
+    if (change.item) this.onSelect(change.item)
+    else { this.picker.setSingleSelection(null); this.saveCtx.selectedCollectionId.set(null); this.selectedCollectionName.set('') }
   }
   onCreateNew(name: string): void {
-    if (this.busy()) return;
-    const result = validateCollectionName(name);
-    this.destinationExpanded.set(true);
-    if (!result.ok) { this.creationError.set(result.message ?? 'Controlla il nome della collezione.'); this.failedCreationName.set(''); return; }
-    this.creationError.set('');
-    this.failedCreationName.set('');
-    this.creatingCollection.set(true);
-    this.overlayCtx.beginSubmit(this.sessionId);
+    if (this.busy()) return
+    const result = validateCollectionName(name)
+    this.destinationExpanded.set(true)
+    if (!result.ok) { this.creationError.set(result.message ?? 'Controlla il nome della collezione.'); this.failedCreationName.set(''); return }
+    this.creationError.set('')
+    this.failedCreationName.set('')
+    this.creatingCollection.set(true)
+    this.overlayCtx.beginSubmit(this.sessionId)
     this.picker.create(result.normalized).subscribe({
       next: collection => {
-        this.creatingCollection.set(false);
-        this.overlayCtx.submitSucceeded(this.sessionId);
-        this.onSelect(collection);
-        this.invalidations.publish({ domain: 'molecule-collection', action: 'created', collectionId: collection.id });
-        this.toast.trigger('Collezione “' + collection.name + '” creata e selezionata.', 'success');
+        this.creatingCollection.set(false)
+        this.overlayCtx.submitSucceeded(this.sessionId)
+        this.onSelect(collection)
+        this.invalidations.publish({ domain: 'molecule-collection', action: 'created', collectionId: collection.id })
+        this.toast.trigger('Collezione “' + collection.name + '” creata e selezionata.', 'success')
       },
       error: () => {
-        this.creatingCollection.set(false);
-        this.overlayCtx.submitFailed(this.sessionId);
-        this.failedCreationName.set(result.normalized);
-        this.creationError.set('La collezione non è stata creata. Puoi riprovare senza riscrivere il nome.');
+        this.creatingCollection.set(false)
+        this.overlayCtx.submitFailed(this.sessionId)
+        this.failedCreationName.set(result.normalized)
+        this.creationError.set('La collezione non è stata creata. Puoi riprovare senza riscrivere il nome.')
       }
-    });
+    })
   }
   canSave(): boolean {
-    return Boolean(this.saveCtx.selectedCollectionId() && this.nameModel.trim() && this.saveCtx.smiles().trim()) && !this.busy() && !this.propertiesLoading();
+    return Boolean(this.saveCtx.selectedCollectionId() && this.nameModel.trim() && this.saveCtx.smiles().trim()) && !this.busy() && !this.propertiesLoading()
   }
   onConfirm(): void {
-    if (this.busy() || this.propertiesLoading()) return;
-    this.nameTouched = true;
-    if (!this.canSave()) return;
-    const collectionId = this.saveCtx.selectedCollectionId()!;
-    const destination = this.selectedCollectionName();
-    this.saveError.set('');
-    this.saving.set(true);
-    this.overlayCtx.beginSubmit(this.sessionId);
+    if (this.busy() || this.propertiesLoading()) return
+    this.nameTouched = true
+    if (!this.canSave()) return
+    const collectionId = this.saveCtx.selectedCollectionId()!
+    const destination = this.selectedCollectionName()
+    this.saveError.set('')
+    this.saving.set(true)
+    this.overlayCtx.beginSubmit(this.sessionId)
     this.moleculeJoinService.addCustomMoleculeToCollection({ collectionId, input: {
       canonicalSmiles: this.saveCtx.smiles(), propertiesJson: JSON.stringify(this.properties()),
       name: this.nameModel.trim(), label: this.labelModel.trim() || undefined, notes: this.notesModel.trim() || undefined
     } }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: reply => {
-        this.saving.set(false);
-        this.overlayCtx.submitSucceeded(this.sessionId);
-        this.editorDrafts.clearCurrent();
-        this.invalidations.publish({ domain: 'molecule-collection', action: 'molecules-added', collectionId });
-        this.toast.trigger('Molecola salvata in “' + destination + '”.', 'success');
-        void this.router.navigate(['/molecules/detail/' + reply.id], { queryParams: { c_id: collectionId } });
-        this.overlayCtx.close(this.sessionId);
+        this.saving.set(false)
+        this.overlayCtx.submitSucceeded(this.sessionId)
+        this.editorDrafts.clearCurrent()
+        this.invalidations.publish({ domain: 'molecule-collection', action: 'molecules-added', collectionId })
+        this.toast.trigger('Molecola salvata in “' + destination + '”.', 'success')
+        void this.router.navigate(['/molecules/detail/' + reply.id], { queryParams: { c_id: collectionId } })
+        this.overlayCtx.close(this.sessionId)
       },
       error: (error: unknown) => {
-        this.saving.set(false);
-        this.overlayCtx.submitFailed(this.sessionId);
-        const code = getApplicationErrorCode(error);
+        this.saving.set(false)
+        this.overlayCtx.submitFailed(this.sessionId)
+        const code = getApplicationErrorCode(error)
         this.saveError.set(code === ApplicationErrorCode.MOLECULE_SMILES_CONFLICT
           ? 'Questa struttura è già presente tra le tue molecole. Puoi associarla a un’altra collezione dal suo dettaglio. I dati inseriti sono conservati.'
-          : 'La molecola non è stata salvata. I dati inseriti sono ancora qui: riprova il salvataggio.');
+          : 'La molecola non è stata salvata. I dati inseriti sono ancora qui: riprova il salvataggio.')
       }
-    });
+    })
   }
-  close(): void { if (!this.busy()) this.overlayCtx.close(this.sessionId); }
+  close(): void { if (!this.busy()) this.overlayCtx.close(this.sessionId) }
 }

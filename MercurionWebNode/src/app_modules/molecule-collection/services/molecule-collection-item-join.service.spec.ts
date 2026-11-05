@@ -1,21 +1,21 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { MoleculeCollectionItemJoinService } from './molecule-collection-item-join.service';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { MoleculeCollectionItemJoin } from '../models/entities/molecule-collection-item-join.entity';
-import { DataSource } from 'typeorm';
-import { MoleculeCollectionService } from './molecule-collection.service';
-import { MoleculeCollectionItemService } from './molecule-collection-item.service';
-import { MoleculeService } from 'src/app_modules/meilisearch/services/molecule.service';
-import { LoggerPort } from 'src/logging/logger.port';
-import { MoleculeOwnershipPolicy } from './molecule-ownership.policy';
-import { UUID } from 'crypto';
-import { BulkJoinLimitExceededError } from './bulk-join-planner';
+import { Test, TestingModule } from '@nestjs/testing'
+import { MoleculeCollectionItemJoinService } from './molecule-collection-item-join.service'
+import { getRepositoryToken } from '@nestjs/typeorm'
+import { MoleculeCollectionItemJoin } from '../models/entities/molecule-collection-item-join.entity'
+import { DataSource } from 'typeorm'
+import { MoleculeCollectionService } from './molecule-collection.service'
+import { MoleculeCollectionItemService } from './molecule-collection-item.service'
+import { MoleculeService } from 'src/app_modules/meilisearch/services/molecule.service'
+import { LoggerPort } from 'src/logging/logger.port'
+import { MoleculeOwnershipPolicy } from './molecule-ownership.policy'
+import { UUID } from 'crypto'
+import { BulkJoinLimitExceededError } from './bulk-join-planner'
 
 describe('MoleculeCollectionItemJoinService', () => {
-  let service: MoleculeCollectionItemJoinService;
+  let service: MoleculeCollectionItemJoinService
 
   beforeEach(async () => {
-    const mockLogger = { log: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() };
+    const mockLogger = { log: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() }
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         MoleculeCollectionItemJoinService,
@@ -42,14 +42,14 @@ describe('MoleculeCollectionItemJoinService', () => {
         },
         { provide: LoggerPort, useValue: { forContext: jest.fn().mockReturnValue(mockLogger) } },
       ],
-    }).compile();
+    }).compile()
 
-    service = module.get<MoleculeCollectionItemJoinService>(MoleculeCollectionItemJoinService);
-  });
+    service = module.get<MoleculeCollectionItemJoinService>(MoleculeCollectionItemJoinService)
+  })
 
   it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
+    expect(service).toBeDefined()
+  })
 
   it('reuses the same bounded snapshot and exclusions across retries', async () => {
     const manager = {
@@ -57,52 +57,52 @@ describe('MoleculeCollectionItemJoinService', () => {
         { id: '00000000-0000-7000-8000-000000000002' },
         { id: '00000000-0000-7000-8000-000000000001' }
       ])
-    };
+    }
     const plan = (service as unknown as {
       planItemCandidates(manager: unknown, userId: UUID, ids: UUID[], selectAll: boolean, snapshotAt?: string): Promise<{ candidateIds: UUID[] }>
-    }).planItemCandidates.bind(service);
-    const excluded = ['00000000-0000-7000-8000-000000000002' as UUID];
+    }).planItemCandidates.bind(service)
+    const excluded = ['00000000-0000-7000-8000-000000000002' as UUID]
 
-    const first = await plan(manager, '00000000-0000-7000-8000-000000000099' as UUID, excluded, true, '1700000000000');
-    const retry = await plan(manager, '00000000-0000-7000-8000-000000000099' as UUID, excluded, true, '1700000000000');
+    const first = await plan(manager, '00000000-0000-7000-8000-000000000099' as UUID, excluded, true, '1700000000000')
+    const retry = await plan(manager, '00000000-0000-7000-8000-000000000099' as UUID, excluded, true, '1700000000000')
 
-    expect(first).toEqual(retry);
-    expect(first.candidateIds).toEqual(['00000000-0000-7000-8000-000000000001']);
-    expect(manager.find).toHaveBeenCalledTimes(2);
+    expect(first).toEqual(retry)
+    expect(first.candidateIds).toEqual(['00000000-0000-7000-8000-000000000001'])
+    expect(manager.find).toHaveBeenCalledTimes(2)
     expect(manager.find.mock.calls[0][1]).toMatchObject({
       order: { createdAt: 'ASC', id: 'ASC' },
       take: MoleculeCollectionItemJoinService.MAX_SYNCHRONOUS_BULK_CANDIDATES + 1
-    });
-  });
+    })
+  })
 
   it('rejects a missing snapshot and an over-limit snapshot before writes', async () => {
     const rows = Array.from(
       { length: MoleculeCollectionItemJoinService.MAX_SYNCHRONOUS_BULK_CANDIDATES + 1 },
       (_, index) => ({ id: String(index).padStart(36, '0') as UUID })
-    );
-    const manager = { find: jest.fn().mockResolvedValue(rows) };
+    )
+    const manager = { find: jest.fn().mockResolvedValue(rows) }
     const plan = (service as unknown as {
       planItemCandidates(manager: unknown, userId: UUID, ids: UUID[], selectAll: boolean, snapshotAt?: string): Promise<unknown>
-    }).planItemCandidates.bind(service);
-    const userId = '00000000-0000-7000-8000-000000000099' as UUID;
+    }).planItemCandidates.bind(service)
+    const userId = '00000000-0000-7000-8000-000000000099' as UUID
 
-    await expect(plan(manager, userId, [], true)).rejects.toThrow('BULK_SELECTION_SNAPSHOT_REQUIRED');
-    await expect(plan(manager, userId, [], true, '1700000000000')).rejects.toBeInstanceOf(BulkJoinLimitExceededError);
-  });
+    await expect(plan(manager, userId, [], true)).rejects.toThrow('BULK_SELECTION_SNAPSHOT_REQUIRED')
+    await expect(plan(manager, userId, [], true, '1700000000000')).rejects.toBeInstanceOf(BulkJoinLimitExceededError)
+  })
 
   it('selects collections from the full owned snapshot, including IDs absent from the client page', async () => {
     const ids = Array.from({ length: 40 }, (_, index) =>
-      `00000000-0000-7000-8000-${String(index + 1).padStart(12, '0')}` as UUID);
-    const manager = { find: jest.fn().mockResolvedValue(ids.map(id => ({ id }))) };
+      `00000000-0000-7000-8000-${String(index + 1).padStart(12, '0')}` as UUID)
+    const manager = { find: jest.fn().mockResolvedValue(ids.map(id => ({ id }))) }
     const plan = (service as unknown as {
       planCollectionCandidates(manager: unknown, userId: UUID, ids: UUID[], selectAll: boolean, snapshotAt?: string): Promise<{ candidateIds: UUID[] }>
-    }).planCollectionCandidates.bind(service);
-    const userId = '00000000-0000-7000-8000-000000000099' as UUID;
+    }).planCollectionCandidates.bind(service)
+    const userId = '00000000-0000-7000-8000-000000000099' as UUID
 
-    const result = await plan(manager, userId, [ids[0]], true, '1700000000000');
+    const result = await plan(manager, userId, [ids[0]], true, '1700000000000')
 
-    expect(result.candidateIds).toEqual(ids.slice(1));
-    expect(result.candidateIds).toContain(ids[39]);
-    expect(manager.find.mock.calls[0][1].where.userId).toBe(userId);
-  });
-});
+    expect(result.candidateIds).toEqual(ids.slice(1))
+    expect(result.candidateIds).toContain(ids[39])
+    expect(manager.find.mock.calls[0][1].where.userId).toBe(userId)
+  })
+})

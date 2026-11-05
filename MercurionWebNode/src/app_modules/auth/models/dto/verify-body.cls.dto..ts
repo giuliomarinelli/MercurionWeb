@@ -1,5 +1,5 @@
-import { IsDefined, IsEnum } from "class-validator";
-import { VerifyKind } from "../enums/verify-kind.enum";
+import { IsDefined, IsEnum } from "class-validator"
+import { VerifyKind } from "../enums/verify-kind.enum"
 import type {
   BackupCodeDTO,
   TotpBodyDTO,

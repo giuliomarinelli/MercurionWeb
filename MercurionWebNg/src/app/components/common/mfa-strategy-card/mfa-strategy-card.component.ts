@@ -1,9 +1,9 @@
-import { MfaStrategyDTO } from './../../../Models/account/account.models';
-import { Component, effect, inject, signal, ChangeDetectionStrategy, input, output } from '@angular/core';
-import { MfaStrategy } from '../../../Models/account/account.models';
-import { NgClass } from '@angular/common';
-import { DesignService } from '../../../services/design.service';
-import { ButtonComponent } from '../button/button.component';
+import { MfaStrategyDTO } from './../../../Models/account/account.models'
+import { Component, effect, inject, signal, ChangeDetectionStrategy, input, output } from '@angular/core'
+import { MfaStrategy } from '../../../Models/account/account.models'
+import { NgClass } from '@angular/common'
+import { DesignService } from '../../../services/design.service'
+import { ButtonComponent } from '../button/button.component'
 
 @Component({
   selector: 'm-mfa-strategy-card',
@@ -154,21 +154,21 @@ export class MfaStrategyCardComponent {
   readonly strategy = input.required<MfaStrategy>()
   readonly activeStrategies = input.required<MfaStrategy[]>()
 
-  readonly showActions = input(false);
+  readonly showActions = input(false)
 
-  readonly noPhone = input(false);
+  readonly noPhone = input(false)
 
-  readonly choose = input(false);
+  readonly choose = input(false)
 
-  readonly config = input(false);
+  readonly config = input(false)
 
   readonly remainingBackupCodes = input(-1)
 
-  readonly onEnableMfa = output<MfaStrategy>();
+  readonly onEnableMfa = output<MfaStrategy>()
 
-  readonly onDisableMfa = output<MfaStrategy>();
+  readonly onDisableMfa = output<MfaStrategy>()
 
-  readonly onAddNewPhone = output<void>();
+  readonly onAddNewPhone = output<void>()
 
   private updateStrategyState(): void {
     if (!this.currentStrategy) {

@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common'
 import {
   afterNextRender,
   ChangeDetectionStrategy,
@@ -10,20 +10,20 @@ import {
   model,
   signal,
   viewChild
-} from '@angular/core';
+} from '@angular/core'
 import {
   ControlValueAccessor,
   FormControl,
   NgControl,
   ReactiveFormsModule,
   Validators
-} from '@angular/forms';
+} from '@angular/forms'
 
-export type TextareaResizeMode = 'none' | 'vertical' | 'horizontal' | 'both';
+export type TextareaResizeMode = 'none' | 'vertical' | 'horizontal' | 'both'
 
-type ErrorMap = Record<string, string>;
+type ErrorMap = Record<string, string>
 
-let nextGeneratedId = 0;
+let nextGeneratedId = 0
 
 @Component({
   selector: 'm-textarea',
@@ -115,145 +115,145 @@ let nextGeneratedId = 0;
   `
 })
 export class TextareaComponent implements ControlValueAccessor {
-  readonly label = input.required<string>();
-  readonly id = input<string>();
-  readonly name = input<string>();
-  readonly placeholder = input<string>();
-  readonly hint = input<string>();
-  readonly error = input<string | null>(null);
-  readonly errors = input<ErrorMap>({});
-  readonly serverError = input<string | null>(null);
-  readonly required = input(false);
-  readonly disabled = input(false);
-  readonly rows = input(3);
-  readonly maxLength = input<number | null>(null);
-  readonly showCount = input(false);
-  readonly resizeMode = input<TextareaResizeMode>('vertical');
-  readonly describedById = input<string>();
-  readonly value = model<string>('');
+  readonly label = input.required<string>()
+  readonly id = input<string>()
+  readonly name = input<string>()
+  readonly placeholder = input<string>()
+  readonly hint = input<string>()
+  readonly error = input<string | null>(null)
+  readonly errors = input<ErrorMap>({})
+  readonly serverError = input<string | null>(null)
+  readonly required = input(false)
+  readonly disabled = input(false)
+  readonly rows = input(3)
+  readonly maxLength = input<number | null>(null)
+  readonly showCount = input(false)
+  readonly resizeMode = input<TextareaResizeMode>('vertical')
+  readonly describedById = input<string>()
+  readonly value = model<string>('')
 
-  readonly textareaElement = viewChild.required<ElementRef<HTMLTextAreaElement>>('textareaElement');
-  readonly ngControl = inject(NgControl, { self: true, optional: true });
+  readonly textareaElement = viewChild.required<ElementRef<HTMLTextAreaElement>>('textareaElement')
+  readonly ngControl = inject(NgControl, { self: true, optional: true })
 
-  readonly focused = signal(false);
-  readonly outlineWidth = signal<number | null>(null);
-  private readonly destroyRef = inject(DestroyRef);
-  private disabledByForm = false;
-  private readonly generatedId = `m-textarea-${++nextGeneratedId}`;
+  readonly focused = signal(false)
+  readonly outlineWidth = signal<number | null>(null)
+  private readonly destroyRef = inject(DestroyRef)
+  private disabledByForm = false
+  private readonly generatedId = `m-textarea-${++nextGeneratedId}`
 
-  private onChange: (value: string) => void = () => undefined;
-  private onTouched: () => void = () => undefined;
+  private onChange: (value: string) => void = () => undefined
+  private onTouched: () => void = () => undefined
 
   constructor() {
     if (this.ngControl) {
-      this.ngControl.valueAccessor = this;
+      this.ngControl.valueAccessor = this
     }
     afterNextRender(() => {
       const observer = new ResizeObserver(() => {
-        this.outlineWidth.set(this.textareaElement().nativeElement.getBoundingClientRect().width);
-      });
-      observer.observe(this.textareaElement().nativeElement);
-      this.destroyRef.onDestroy(() => observer.disconnect());
-    });
+        this.outlineWidth.set(this.textareaElement().nativeElement.getBoundingClientRect().width)
+      })
+      observer.observe(this.textareaElement().nativeElement)
+      this.destroyRef.onDestroy(() => observer.disconnect())
+    })
   }
 
   get control(): FormControl<string> | null {
-    return (this.ngControl?.control as FormControl<string> | null) ?? null;
+    return (this.ngControl?.control as FormControl<string> | null) ?? null
   }
 
   empty(): boolean {
-    return this.value().length === 0;
+    return this.value().length === 0
   }
 
   fieldId(): string {
-    return this.id() || this.generatedId;
+    return this.id() || this.generatedId
   }
 
   hintId(): string {
-    return `${this.fieldId()}-hint`;
+    return `${this.fieldId()}-hint`
   }
 
   errorId(): string {
-    return `${this.fieldId()}-error`;
+    return `${this.fieldId()}-error`
   }
 
   countId(): string {
-    return `${this.fieldId()}-count`;
+    return `${this.fieldId()}-count`
   }
 
   isDisabled(): boolean {
-    return this.disabledByForm || this.disabled() || Boolean(this.control?.disabled);
+    return this.disabledByForm || this.disabled() || Boolean(this.control?.disabled)
   }
 
   isInvalid(): boolean {
-    const control = this.control;
-    return Boolean(this.currentError() || (control?.touched && control.invalid));
+    const control = this.control
+    return Boolean(this.currentError() || (control?.touched && control.invalid))
   }
 
   isRequired(): boolean {
-    return Boolean(this.required() || this.control?.hasValidator(Validators.required));
+    return Boolean(this.required() || this.control?.hasValidator(Validators.required))
   }
 
   currentError(): string {
-    const explicitError = this.error() || this.serverError();
-    if (explicitError) return explicitError;
+    const explicitError = this.error() || this.serverError()
+    if (explicitError) return explicitError
 
-    const control = this.control;
-    if (!control?.touched || !control.errors) return '';
+    const control = this.control
+    if (!control?.touched || !control.errors) return ''
 
-    const key = Object.keys(control.errors)[0];
-    return this.errors()[key] || '';
+    const key = Object.keys(control.errors)[0]
+    return this.errors()[key] || ''
   }
 
   shouldShowCount(): boolean {
-    return this.showCount() || this.maxLength() !== null;
+    return this.showCount() || this.maxLength() !== null
   }
 
   countText(): string {
-    const maxLength = this.maxLength();
-    return maxLength === null ? `${this.value().length}` : `${this.value().length} / ${maxLength}`;
+    const maxLength = this.maxLength()
+    return maxLength === null ? `${this.value().length}` : `${this.value().length} / ${maxLength}`
   }
 
   describedBy(): string | null {
-    const ids: string[] = [];
-    const describedById = this.describedById();
-    if (describedById) ids.push(describedById);
-    if (this.currentError()) ids.push(this.errorId());
-    else if (this.hint()) ids.push(this.hintId());
-    if (this.shouldShowCount()) ids.push(this.countId());
-    return ids.length ? ids.join(' ') : null;
+    const ids: string[] = []
+    const describedById = this.describedById()
+    if (describedById) ids.push(describedById)
+    if (this.currentError()) ids.push(this.errorId())
+    else if (this.hint()) ids.push(this.hintId())
+    if (this.shouldShowCount()) ids.push(this.countId())
+    return ids.length ? ids.join(' ') : null
   }
 
   writeValue(value: unknown): void {
-    this.value.set(value == null ? '' : String(value));
+    this.value.set(value == null ? '' : String(value))
   }
 
   registerOnChange(fn: (value: string) => void): void {
-    this.onChange = fn;
+    this.onChange = fn
   }
 
   registerOnTouched(fn: () => void): void {
-    this.onTouched = fn;
+    this.onTouched = fn
   }
 
   setDisabledState(isDisabled: boolean): void {
-    this.disabledByForm = isDisabled;
+    this.disabledByForm = isDisabled
   }
 
   onInput(event: Event): void {
-    const target = event.target;
-    if (!(target instanceof HTMLTextAreaElement)) return;
-    const value = target.value;
-    this.value.set(value);
-    this.onChange(value);
+    const target = event.target
+    if (!(target instanceof HTMLTextAreaElement)) return
+    const value = target.value
+    this.value.set(value)
+    this.onChange(value)
   }
 
   onBlur(): void {
-    this.focused.set(false);
-    this.onTouched();
+    this.focused.set(false)
+    this.onTouched()
   }
 
   focus(): void {
-    this.textareaElement().nativeElement.focus();
+    this.textareaElement().nativeElement.focus()
   }
 }

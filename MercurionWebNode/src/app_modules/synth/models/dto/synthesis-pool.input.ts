@@ -1,7 +1,7 @@
-import { Field, ID, InputType } from '@nestjs/graphql';
-import { ArrayUnique, IsArray } from 'class-validator';
-import { UUID } from 'crypto';
-import { IsMercurionPublicId } from 'src/identifiers/mercurion-public-id';
+import { Field, ID, InputType } from '@nestjs/graphql'
+import { ArrayUnique, IsArray } from 'class-validator'
+import { UUID } from 'crypto'
+import { IsMercurionPublicId } from 'src/identifiers/mercurion-public-id'
 
 @InputType()
 export class SynthesisPoolInput {

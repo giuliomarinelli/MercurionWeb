@@ -4,13 +4,13 @@ import {
   FieldPolicy,
   InMemoryCache,
   TypePolicies
-} from '@apollo/client/core';
-import { InjectionToken } from '@angular/core';
+} from '@apollo/client/core'
+import { InjectionToken } from '@angular/core'
 
-type CacheObject = Record<string, unknown>;
-type PaginatedResult = CacheObject & { items?: readonly unknown[] };
+type CacheObject = Record<string, unknown>
+type PaginatedResult = CacheObject & { items?: readonly unknown[] }
 
-export const MERCURION_APOLLO_CACHE = new InjectionToken<ApolloCache<unknown>>('MERCURION_APOLLO_CACHE');
+export const MERCURION_APOLLO_CACHE = new InjectionToken<ApolloCache<unknown>>('MERCURION_APOLLO_CACHE')
 
 const PAGINATED_QUERY_FIELDS = [
   'myMoleculeCollectionsPaginated',
@@ -20,7 +20,7 @@ const PAGINATED_QUERY_FIELDS = [
   'myTicketMessages',
   'ticketsAsSupport',
   'ticketMessagesAsSupport'
-] as const;
+] as const
 
 const USER_OWNED_QUERY_FIELDS = [
   'myMoleculeCollections',
@@ -34,7 +34,7 @@ const USER_OWNED_QUERY_FIELDS = [
   'myTicketDetail',
   'ticketsAsSupport',
   'ticketMessagesAsSupport'
-] as const;
+] as const
 
 const invalidatingMutation = (
   fields: readonly string[],
@@ -42,33 +42,33 @@ const invalidatingMutation = (
   evictTypename: string | readonly string[] = 'MoleculeCollection'
 ): FieldPolicy<unknown> => ({
   merge(existing, incoming, options) {
-    const cache = options.cache;
+    const cache = options.cache
     if (evictArgumentId) {
-      const id = options.args?.[evictArgumentId];
+      const id = options.args?.[evictArgumentId]
       if (typeof id === 'string' || typeof id === 'number') {
-        const typenames = Array.isArray(evictTypename) ? evictTypename : [evictTypename];
+        const typenames = Array.isArray(evictTypename) ? evictTypename : [evictTypename]
         for (const typename of typenames) {
-          const cacheId = cache.identify({ __typename: typename, id });
-          if (cacheId) cache.evict({ id: cacheId });
+          const cacheId = cache.identify({ __typename: typename, id })
+          if (cacheId) cache.evict({ id: cacheId })
         }
       }
     }
     for (const fieldName of fields) {
-      cache.evict({ id: 'ROOT_QUERY', fieldName });
+      cache.evict({ id: 'ROOT_QUERY', fieldName })
     }
-    cache.gc();
-    return incoming;
+    cache.gc()
+    return incoming
   }
-});
+})
 
 export const mergePaginatedResults = (
   existing: PaginatedResult | undefined,
   incoming: PaginatedResult,
   options: Pick<FieldFunctionOptions, 'args'>
 ): PaginatedResult => {
-  const page = Number(options.args?.['page'] ?? incoming['currentPage'] ?? 1);
+  const page = Number(options.args?.['page'] ?? incoming['currentPage'] ?? 1)
   if (!existing || page <= 1) {
-    return { ...incoming, items: dedupeItems(incoming.items ?? []) };
+    return { ...incoming, items: dedupeItems(incoming.items ?? []) }
   }
 
   return {
@@ -78,42 +78,42 @@ export const mergePaginatedResults = (
       ...(existing.items ?? []),
       ...(incoming.items ?? [])
     ])
-  };
-};
+  }
+}
 
 function dedupeItems(items: readonly unknown[]): readonly unknown[] {
-  const seen = new Set<string>();
+  const seen = new Set<string>()
   return items.filter(item => {
-    const identity = itemIdentity(item);
-    if (!identity) return true;
-    if (seen.has(identity)) return false;
-    seen.add(identity);
-    return true;
-  });
+    const identity = itemIdentity(item)
+    if (!identity) return true
+    if (seen.has(identity)) return false
+    seen.add(identity)
+    return true
+  })
 }
 
 function itemIdentity(item: unknown): string | null {
   if (item && typeof item === 'object') {
-    const value = item as { __ref?: unknown; __typename?: unknown; id?: unknown };
-    if (typeof value.__ref === 'string') return value.__ref;
+    const value = item as { __ref?: unknown; __typename?: unknown; id?: unknown }
+    if (typeof value.__ref === 'string') return value.__ref
     if (typeof value.__typename === 'string' && (typeof value.id === 'string' || typeof value.id === 'number')) {
-      return `${value.__typename}:${value.id}`;
+      return `${value.__typename}:${value.id}`
     }
   }
-  return null;
+  return null
 }
 
 const paginatedField = (keyArgs: readonly string[]): FieldPolicy<PaginatedResult> => ({
   keyArgs,
   merge: mergePaginatedResults
-});
+})
 
 // Molecule and collection pages are appended by their UI controllers. Each
 // GraphQL response must remain a single page when Apollo reads it back.
 const pageSnapshotField = (keyArgs: readonly string[]): FieldPolicy<PaginatedResult> => ({
   keyArgs: ['page', ...keyArgs],
   merge: (_existing, incoming) => incoming
-});
+})
 
 export const MERCURION_APOLLO_TYPE_POLICIES: TypePolicies = {
   MoleculeCollection: { keyFields: ['id'] },
@@ -189,7 +189,7 @@ export const MERCURION_APOLLO_TYPE_POLICIES: TypePolicies = {
       reopenTicketAsSupport: invalidatingMutation(['ticketsAsSupport', 'ticketMessagesAsSupport', 'ticketDetailAsSupport'])
     }
   }
-};
+}
 
 export function createMercurionApolloCache(): InMemoryCache {
   return new InMemoryCache({
@@ -197,14 +197,14 @@ export function createMercurionApolloCache(): InMemoryCache {
       MoleculeCollectionItemUnion: ['ChEMBLMoleculeItemDTO', 'CustomMoleculeItemDTO']
     },
     typePolicies: MERCURION_APOLLO_TYPE_POLICIES
-  });
+  })
 }
 
 export function clearMercurionUserCache(cache: ApolloCache<unknown>): void {
   for (const fieldName of USER_OWNED_QUERY_FIELDS) {
-    cache.evict({ id: 'ROOT_QUERY', fieldName });
+    cache.evict({ id: 'ROOT_QUERY', fieldName })
   }
-  cache.gc();
+  cache.gc()
 }
 
 export function invalidateMercurionFields(
@@ -212,9 +212,9 @@ export function invalidateMercurionFields(
   fields: readonly string[]
 ): void {
   for (const fieldName of fields) {
-    cache.evict({ id: 'ROOT_QUERY', fieldName });
+    cache.evict({ id: 'ROOT_QUERY', fieldName })
   }
-  cache.gc();
+  cache.gc()
 }
 
-export const MERCURION_PAGINATED_QUERY_FIELDS = PAGINATED_QUERY_FIELDS;
+export const MERCURION_PAGINATED_QUERY_FIELDS = PAGINATED_QUERY_FIELDS

@@ -1,11 +1,11 @@
-import { inject, Injectable } from '@angular/core';
-import { Apollo } from 'apollo-angular';
-import { map, Observable } from 'rxjs';
-import { ClientTicket, ClientTicketMessage, Ticket, TicketMessage } from '../../Models/graphql/help.models';
-import { extractGqlData } from './graphql-helpers/v1/extract-gql-data.helper';
-import { PageModel } from '../../Models/graphql/page.models';
-import { JsonValue } from '../../Models/json.models';
-import { extractGqlDataV2 } from './graphql-helpers/v2/extract-gql-data-v2.helper';
+import { inject, Injectable } from '@angular/core'
+import { Apollo } from 'apollo-angular'
+import { map, Observable } from 'rxjs'
+import { ClientTicket, ClientTicketMessage, Ticket, TicketMessage } from '../../Models/graphql/help.models'
+import { extractGqlData } from './graphql-helpers/v1/extract-gql-data.helper'
+import { PageModel } from '../../Models/graphql/page.models'
+import { JsonValue } from '../../Models/json.models'
+import { extractGqlDataV2 } from './graphql-helpers/v2/extract-gql-data-v2.helper'
 import {
   AddSupportTicketMessageDocument,
   AddSupportTicketMessageMutation,
@@ -46,8 +46,8 @@ import {
   TicketsAsSupportDocument,
   TicketsAsSupportQuery,
   TicketsAsSupportQueryVariables
-} from '../../generated/graphql';
-import { GRAPHQL_QUERY_FETCH_POLICY } from './graphql-query-policy';
+} from '../../generated/graphql'
+import { GRAPHQL_QUERY_FETCH_POLICY } from './graphql-query-policy'
 
 @Injectable({
   providedIn: 'root'

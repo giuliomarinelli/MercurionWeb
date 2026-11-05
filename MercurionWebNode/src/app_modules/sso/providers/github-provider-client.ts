@@ -1,10 +1,10 @@
-import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { ISocialProviderClient } from '../models/interfaces/i-social-provider-client.interface';
-import { ProviderProfile } from '../models/interfaces/provider-profile.interface';
-import { AuthProvider } from '../models/enums/auth-provider.enum';
-import { SSO_Configuration } from 'src/config/config.types';
-import { GitHubEmailResponse, GitHubTokenResponse, GitHubUserResponse } from '../models/interfaces/github-response.interfaces';
+import { Injectable } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
+import { ISocialProviderClient } from '../models/interfaces/i-social-provider-client.interface'
+import { ProviderProfile } from '../models/interfaces/provider-profile.interface'
+import { AuthProvider } from '../models/enums/auth-provider.enum'
+import { SSO_Configuration } from 'src/config/config.types'
+import { GitHubEmailResponse, GitHubTokenResponse, GitHubUserResponse } from '../models/interfaces/github-response.interfaces'
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 import { errorMessage } from 'src/utils/errors/error-message'
 import { ExternalHttpPort } from 'src/infrastructure/external-http/external-http.port'
@@ -60,7 +60,7 @@ export class GitHubProviderClient implements ISocialProviderClient {
                 },
             )
 
-            const accessToken = tokenRes.data.access_token;
+            const accessToken = tokenRes.data.access_token
             if (!accessToken) {
                 throw applicationError(ApplicationErrorCode.SSO_GITHUB_ACCESS_TOKEN_MISSING)
             }
@@ -101,7 +101,7 @@ export class GitHubProviderClient implements ISocialProviderClient {
                 emailVerified,
                 firstName,
                 lastName,
-            };
+            }
         } catch (e) {
             const detail = errorMessage(e)
 

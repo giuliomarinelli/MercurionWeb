@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
-import { DatePipe, DecimalPipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
-import { MoleculeViewerComponent } from '../../chem/molecule-viewer/molecule-viewer.component';
-import { MoleculeSummaryAction, MoleculeSummaryViewModel } from './molecule-summary-card.view-model';
+import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core'
+import { DatePipe, DecimalPipe } from '@angular/common'
+import { RouterLink } from '@angular/router'
+import { MoleculeViewerComponent } from '../../chem/molecule-viewer/molecule-viewer.component'
+import { MoleculeSummaryAction, MoleculeSummaryViewModel } from './molecule-summary-card.view-model'
 
 @Component({
   selector: 'm-molecule-summary-card',
@@ -119,19 +119,19 @@ import { MoleculeSummaryAction, MoleculeSummaryViewModel } from './molecule-summ
   `
 })
 export class MoleculeSummaryCardComponent {
-  readonly viewModel = input.required<MoleculeSummaryViewModel>();
-  readonly detailQueryParams = input<Record<string, string | null>>({});
-  readonly disappearing = input(false);
-  readonly collapsed = input(false);
-  readonly actionSelected = output<'delete' | 'remove' | 'select'>();
-  readonly navigate = output<void>();
-  readonly viewerReady = signal(false);
+  readonly viewModel = input.required<MoleculeSummaryViewModel>()
+  readonly detailQueryParams = input<Record<string, string | null>>({})
+  readonly disappearing = input(false)
+  readonly collapsed = input(false)
+  readonly actionSelected = output<'delete' | 'remove' | 'select'>()
+  readonly navigate = output<void>()
+  readonly viewerReady = signal(false)
   readonly cardSelectable = computed(() => this.viewModel().selectable &&
-    this.viewModel().actions.some(action => action.kind === 'button' && action.action === 'select'));
+    this.viewModel().actions.some(action => action.kind === 'button' && action.action === 'select'))
   readonly visibleActions = computed(() => this.viewModel().actions.filter(action =>
-    action.kind !== 'button' || action.action !== 'select'));
+    action.kind !== 'button' || action.action !== 'select'))
 
   detailUrl(): string {
-    return `/molecules/detail/${this.viewModel().id}`;
+    return `/molecules/detail/${this.viewModel().id}`
   }
 }

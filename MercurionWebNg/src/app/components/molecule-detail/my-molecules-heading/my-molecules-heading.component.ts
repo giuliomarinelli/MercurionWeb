@@ -1,7 +1,7 @@
-import { Component, ChangeDetectionStrategy, effect, inject, input, signal, OnInit } from '@angular/core';
-import { NgClass } from '@angular/common';
-import { LinkModel } from '../../../Models/link.model';
-import { Router, RouterLink } from '@angular/router';
+import { Component, ChangeDetectionStrategy, effect, inject, input, signal, OnInit } from '@angular/core'
+import { NgClass } from '@angular/common'
+import { LinkModel } from '../../../Models/link.model'
+import { Router, RouterLink } from '@angular/router'
 
 
 @Component({

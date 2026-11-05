@@ -1,20 +1,20 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, input, output, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
-import { Observable, finalize } from 'rxjs';
-import { NotebookTree, NotebookNodeKind } from '../../../Models/graphql/notebook/notebook.models';
-import { NotebookService } from '../../../services/graphql/notebook.service';
-import { routeManifest } from '../../../route-manifest';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, input, output, signal } from '@angular/core'
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
+import { FormsModule } from '@angular/forms'
+import { RouterLink } from '@angular/router'
+import { Observable, finalize } from 'rxjs'
+import { NotebookTree, NotebookNodeKind } from '../../../Models/graphql/notebook/notebook.models'
+import { NotebookService } from '../../../services/graphql/notebook.service'
+import { routeManifest } from '../../../route-manifest'
 
-type DraftAction = 'create' | 'rename';
+type DraftAction = 'create' | 'rename'
 type DraftState = {
-  action: DraftAction;
-  kind: NotebookNodeKind;
-  parentId: string;
-  id?: string;
-  value: string;
-};
+  action: DraftAction
+  kind: NotebookNodeKind
+  parentId: string
+  id?: string
+  value: string
+}
 
 @Component({
   selector: 'm-notebook-tree',
@@ -119,102 +119,102 @@ type DraftState = {
   `,
 })
 export class NotebookTreeComponent {
-  private readonly notebookService = inject(NotebookService);
-  private readonly destroyRef = inject(DestroyRef);
+  private readonly notebookService = inject(NotebookService)
+  private readonly destroyRef = inject(DestroyRef)
 
-  readonly notebooks = input<NotebookTree[]>([]);
-  readonly mode = input<'read' | 'edit'>('read');
-  readonly changed = output<void>();
-  readonly draft = signal<DraftState | null>(null);
-  readonly error = signal<string | null>(null);
-  readonly pending = signal(false);
-  readonly showArchived = signal(false);
+  readonly notebooks = input<NotebookTree[]>([])
+  readonly mode = input<'read' | 'edit'>('read')
+  readonly changed = output<void>()
+  readonly draft = signal<DraftState | null>(null)
+  readonly error = signal<string | null>(null)
+  readonly pending = signal(false)
+  readonly showArchived = signal(false)
 
   readUrl(notebookId: string): string {
-    return routeManifest.notebookReader.build({ notebookId });
+    return routeManifest.notebookReader.build({ notebookId })
   }
 
   editUrl(notebookId: string): string {
-    return routeManifest.notebookEditor.build({ notebookId });
+    return routeManifest.notebookEditor.build({ notebookId })
   }
 
   kindLabel(kind: NotebookNodeKind): string {
     return ({
       notebook: 'quaderno', section: 'sezione',
       experiment: 'esperimento', execution: 'esecuzione'
-    } as const)[kind];
+    } as const)[kind]
   }
 
   startCreate(kind: NotebookNodeKind, parentId: string): void {
-    this.error.set(null);
-    this.draft.set({ action: 'create', kind, parentId, value: '' });
+    this.error.set(null)
+    this.draft.set({ action: 'create', kind, parentId, value: '' })
   }
 
   startRename(kind: NotebookNodeKind, id: string, title: string): void {
-    this.error.set(null);
-    this.draft.set({ action: 'rename', kind, parentId: '', id, value: title });
+    this.error.set(null)
+    this.draft.set({ action: 'rename', kind, parentId: '', id, value: title })
   }
 
   updateDraft(value: string): void {
-    this.draft.update(draft => draft ? { ...draft, value } : null);
+    this.draft.update(draft => draft ? { ...draft, value } : null)
   }
 
   saveDraft(): void {
-    const form = this.draft();
-    if (!form || this.pending()) return;
-    const title = form.value.trim();
-    if (!title) return;
+    const form = this.draft()
+    if (!form || this.pending()) return
+    const title = form.value.trim()
+    if (!title) return
 
-    let request: Observable<unknown> | null = null;
+    let request: Observable<unknown> | null = null
     if (form.action === 'create') {
       switch (form.kind) {
-        case 'notebook': request = this.notebookService.createNotebook(title); break;
-        case 'section': request = this.notebookService.createSection(form.parentId, title); break;
-        case 'experiment': request = this.notebookService.createExperiment(form.parentId, title); break;
-        case 'execution': request = this.notebookService.createExecution(form.parentId, title); break;
+        case 'notebook': request = this.notebookService.createNotebook(title); break
+        case 'section': request = this.notebookService.createSection(form.parentId, title); break
+        case 'experiment': request = this.notebookService.createExperiment(form.parentId, title); break
+        case 'execution': request = this.notebookService.createExecution(form.parentId, title); break
       }
     } else {
-      if (!form.id) return;
+      if (!form.id) return
       switch (form.kind) {
-        case 'notebook': request = this.notebookService.updateNotebook(form.id, { title }); break;
-        case 'section': request = this.notebookService.updateSection(form.id, { title }); break;
-        case 'experiment': request = this.notebookService.updateExperiment(form.id, { title }); break;
-        case 'execution': request = this.notebookService.updateExecution(form.id, { title }); break;
+        case 'notebook': request = this.notebookService.updateNotebook(form.id, { title }); break
+        case 'section': request = this.notebookService.updateSection(form.id, { title }); break
+        case 'experiment': request = this.notebookService.updateExperiment(form.id, { title }); break
+        case 'execution': request = this.notebookService.updateExecution(form.id, { title }); break
       }
     }
 
-    if (!request) return;
-    this.pending.set(true);
-    this.error.set(null);
+    if (!request) return
+    this.pending.set(true)
+    this.error.set(null)
     request.pipe(
       finalize(() => this.pending.set(false)),
       takeUntilDestroyed(this.destroyRef),
     ).subscribe({
-      next: () => { this.draft.set(null); this.changed.emit(); },
+      next: () => { this.draft.set(null); this.changed.emit() },
       error: (error: unknown) => this.error.set(this.errorMessage(error)),
-    });
+    })
   }
 
   archive(kind: 'notebook' | 'experiment' | 'execution', id: string): void {
-    if (this.pending()) return;
-    if (!confirm(`Archiviare ${this.kindLabel(kind)}? I contenuti non saranno eliminati.`)) return;
+    if (this.pending()) return
+    if (!confirm(`Archiviare ${this.kindLabel(kind)}? I contenuti non saranno eliminati.`)) return
     const request = kind === 'notebook'
       ? this.notebookService.archiveNotebook(id)
       : kind === 'experiment'
         ? this.notebookService.archiveExperiment(id)
-        : this.notebookService.archiveExecution(id);
-    this.pending.set(true);
-    this.error.set(null);
+        : this.notebookService.archiveExecution(id)
+    this.pending.set(true)
+    this.error.set(null)
     request.pipe(
       finalize(() => this.pending.set(false)),
       takeUntilDestroyed(this.destroyRef),
     ).subscribe({
       next: () => this.changed.emit(),
       error: (error: unknown) => this.error.set(this.errorMessage(error)),
-    });
+    })
   }
 
   private errorMessage(error: unknown): string {
-    return error instanceof Error ? error.message : 'Operazione non riuscita. Riprova.';
+    return error instanceof Error ? error.message : 'Operazione non riuscita. Riprova.'
   }
 }

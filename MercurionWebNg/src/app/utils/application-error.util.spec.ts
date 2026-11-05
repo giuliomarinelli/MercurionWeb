@@ -1,9 +1,9 @@
-import { ApplicationErrorCode } from '@mercurion/rest-contracts';
+import { ApplicationErrorCode } from '@mercurion/rest-contracts'
 import {
   ApplicationClientError,
   getApplicationErrorCode,
   hasApplicationErrorCode,
-} from './application-error.util';
+} from './application-error.util'
 
 describe('application error utilities', () => {
   it('extracts the canonical code from REST, GraphQL, and WebSocket shapes', () => {
@@ -11,7 +11,7 @@ describe('application error utilities', () => {
       getApplicationErrorCode({
         code: ApplicationErrorCode.PERMISSION_DENIED,
       }),
-    ).toBe(ApplicationErrorCode.PERMISSION_DENIED);
+    ).toBe(ApplicationErrorCode.PERMISSION_DENIED)
 
     expect(
       getApplicationErrorCode({
@@ -23,7 +23,7 @@ describe('application error utilities', () => {
           },
         ],
       }),
-    ).toBe(ApplicationErrorCode.AUTHENTICATION_UNAUTHENTICATED_FATAL);
+    ).toBe(ApplicationErrorCode.AUTHENTICATION_UNAUTHENTICATED_FATAL)
 
     expect(
       getApplicationErrorCode({
@@ -33,7 +33,7 @@ describe('application error utilities', () => {
         message: 'Internal Server Error',
         correlationId: 'socket-correlation-id',
       }),
-    ).toBe(ApplicationErrorCode.AUTHENTICATION_UNAUTHORIZED);
+    ).toBe(ApplicationErrorCode.AUTHENTICATION_UNAUTHORIZED)
 
     expect(
       getApplicationErrorCode({
@@ -46,16 +46,16 @@ describe('application error utilities', () => {
           },
         },
       }),
-    ).toBe('GRAPHQL_VALIDATION_FAILED');
-  });
+    ).toBe('GRAPHQL_VALIDATION_FAILED')
+  })
 
   it('supports client-originated application failures without message branching', () => {
     const error = new ApplicationClientError(
       ApplicationErrorCode.MOLECULE_NOT_FOUND,
-    );
+    )
 
     expect(
       hasApplicationErrorCode(error, ApplicationErrorCode.MOLECULE_NOT_FOUND),
-    ).toBe(true);
-  });
-});
+    ).toBe(true)
+  })
+})

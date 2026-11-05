@@ -1,22 +1,22 @@
 import { DestructiveConfirmationComponent } from '../../components/common/destructive-confirmation/destructive-confirmation.component'
-import { HistoryContextService } from './../../services/context/history-context.service';
-import { UiMoleculeCollection } from '../../Models/graphql/molecule-collection/molecule-collection.types';
-import { delay, map, Subscription } from 'rxjs';
-import { MyMoleculesHeadingComponent } from '../../components/molecule-detail/my-molecules-heading/my-molecules-heading.component';
-import { Component, ElementRef, inject, OnInit, effect, OnDestroy, signal, ChangeDetectionStrategy, viewChild } from '@angular/core';
-import { MoleculeCollectionService } from '../../services/graphql/molecule-collection.service';
-import { CollectionCardComponent } from '../../components/molecule-detail/collection-card/collection-card.component';
-import { SkeletonCollectionCardComponent } from '../../components/common/skeleton-card-loader/skeleton-card-loader.component';
-import { RouterLink } from '@angular/router';
-import { SearchFieldComponent } from '../../components/common/search-field/search-field.component';
-import { ButtonComponent } from '../../components/common/button/button.component';
-import { PaginationController } from '../../services/pagination/pagination-controller';
-import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service';
-import { CreateCollectionContextService } from '../../services/context/action-context/create-collection-context.service';
-import { ToastService } from '../../services/toast.service';
-import { ScrollContextService } from '../../services/context/scroll-context.service';
-import { DomainInvalidationService } from '../../services/domain-invalidation.service';
-import { RealtimeSyncStatusService } from '../../services/realtime-sync-status.service';
+import { HistoryContextService } from './../../services/context/history-context.service'
+import { UiMoleculeCollection } from '../../Models/graphql/molecule-collection/molecule-collection.types'
+import { delay, map, Subscription } from 'rxjs'
+import { MyMoleculesHeadingComponent } from '../../components/molecule-detail/my-molecules-heading/my-molecules-heading.component'
+import { Component, ElementRef, inject, OnInit, effect, OnDestroy, signal, ChangeDetectionStrategy, viewChild } from '@angular/core'
+import { MoleculeCollectionService } from '../../services/graphql/molecule-collection.service'
+import { CollectionCardComponent } from '../../components/molecule-detail/collection-card/collection-card.component'
+import { SkeletonCollectionCardComponent } from '../../components/common/skeleton-card-loader/skeleton-card-loader.component'
+import { RouterLink } from '@angular/router'
+import { SearchFieldComponent } from '../../components/common/search-field/search-field.component'
+import { ButtonComponent } from '../../components/common/button/button.component'
+import { PaginationController } from '../../services/pagination/pagination-controller'
+import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service'
+import { CreateCollectionContextService } from '../../services/context/action-context/create-collection-context.service'
+import { ToastService } from '../../services/toast.service'
+import { ScrollContextService } from '../../services/context/scroll-context.service'
+import { DomainInvalidationService } from '../../services/domain-invalidation.service'
+import { RealtimeSyncStatusService } from '../../services/realtime-sync-status.service'
 
 
 @Component({
@@ -133,7 +133,7 @@ export class MyMoleculeCollectionsPageComponent implements OnInit, OnDestroy {
   private delColSub?: Subscription
   private dupColSub?: Subscription
 
-  protected readonly sentinel = viewChild<ElementRef<HTMLDivElement>>('sentinel');
+  protected readonly sentinel = viewChild<ElementRef<HTMLDivElement>>('sentinel')
   get items(): UiMoleculeCollection[] { return this.pagination.items() }
   get loading(): boolean { return this.pagination.loading() }
   get done(): boolean { return this.pagination.done() }
@@ -166,7 +166,7 @@ export class MyMoleculeCollectionsPageComponent implements OnInit, OnDestroy {
         return
       }
       queueMicrotask(() => this.resetPagination())
-    });
+    })
 
     effect(() => {
       const event = this.invalidations.last()

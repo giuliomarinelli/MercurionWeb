@@ -14,14 +14,14 @@ export interface MoleculeDetailModel {
         hbd: number | null
         psa: number | null
         rtb: number | null
-    };
+    }
     maxPhase: number | null
     moleculeType: string
     administrationRoutes: {
         oral: boolean
         parenteral: boolean
         topical: boolean
-    };
+    }
     naturalProduct: boolean
     prodrug: boolean
     blackBoxWarning: boolean
@@ -29,7 +29,7 @@ export interface MoleculeDetailModel {
     activities: {
         actionType: string
         value: number | null
-        unit: string;
+        unit: string
         assayDescription: string
         targetName: string
         targetOrganism: string

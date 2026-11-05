@@ -1,9 +1,9 @@
-import { UUID } from 'crypto';
-import { uuidv7 } from '@kripod/uuidv7';
-import { BeforeInsert, Check, Column, Entity, ManyToOne, PrimaryColumn, OneToMany, JoinColumn, Index, Unique } from 'typeorm';
-import { Synthesis } from './synthesis.entity';
-import { SynthStepItem } from './synth-step-item.entity';
-import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
+import { UUID } from 'crypto'
+import { uuidv7 } from '@kripod/uuidv7'
+import { BeforeInsert, Check, Column, Entity, ManyToOne, PrimaryColumn, OneToMany, JoinColumn, Index, Unique } from 'typeorm'
+import { Synthesis } from './synthesis.entity'
+import { SynthStepItem } from './synth-step-item.entity'
+import { Field, ID, Int, ObjectType } from '@nestjs/graphql'
 
 @ObjectType()
 @Entity('synth_steps')

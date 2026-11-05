@@ -1,9 +1,9 @@
-import { BeforeInsert, Column, Entity, Index, JoinColumn, ManyToOne, PrimaryColumn, Unique } from "typeorm";
-import { MoleculeCollection } from "./molecule-collection.entity";
-import { MoleculeCollectionItemEntity } from "./molecule-collection-item.entity";
-import { UUID } from "crypto";
-import { uuidv7 } from "@kripod/uuidv7";
-import { Field, ID, ObjectType } from "@nestjs/graphql";
+import { BeforeInsert, Column, Entity, Index, JoinColumn, ManyToOne, PrimaryColumn, Unique } from "typeorm"
+import { MoleculeCollection } from "./molecule-collection.entity"
+import { MoleculeCollectionItemEntity } from "./molecule-collection-item.entity"
+import { UUID } from "crypto"
+import { uuidv7 } from "@kripod/uuidv7"
+import { Field, ID, ObjectType } from "@nestjs/graphql"
 
 @ObjectType()
 @Entity('molecule_collection_items_join')

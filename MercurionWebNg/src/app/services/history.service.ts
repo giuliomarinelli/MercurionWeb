@@ -1,7 +1,7 @@
-import { HttpClient } from '@angular/common/http';
-import { inject, Injectable, signal } from '@angular/core';
-import { distinctUntilChanged, map, Observable } from 'rxjs';
-import { HistoryDTOExt } from '../Models/history.models';
+import { HttpClient } from '@angular/common/http'
+import { inject, Injectable, signal } from '@angular/core'
+import { distinctUntilChanged, map, Observable } from 'rxjs'
+import { HistoryDTOExt } from '../Models/history.models'
 import type { HistoryDTO, PageModel } from '@mercurion/rest-contracts'
 
 @Injectable({

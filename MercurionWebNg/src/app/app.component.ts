@@ -134,7 +134,7 @@ export class AppComponent implements OnDestroy {
 
   _triggerOpenOffCanvas = signal<boolean>(false)
 
-  readonly headerRef = viewChild(HeaderComponent, { read: ElementRef });
+  readonly headerRef = viewChild(HeaderComponent, { read: ElementRef })
 
   constructor() {
     const isBrowser = this.isBrowser

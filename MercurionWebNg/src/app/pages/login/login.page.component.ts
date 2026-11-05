@@ -19,7 +19,7 @@ import { environment } from '../../../environments/environment'
 import { adaptHttpFormError } from '../../utils/form-error.adapter'
 import { finalize } from 'rxjs'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
-import { ProgressIndicatorComponent } from '../../components/common/progress-indicator/progress-indicator.component';
+import { ProgressIndicatorComponent } from '../../components/common/progress-indicator/progress-indicator.component'
 
 @Component({
   selector: 'm-login',

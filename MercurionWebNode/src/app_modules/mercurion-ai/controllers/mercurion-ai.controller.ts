@@ -1,8 +1,8 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, ValidationPipe } from '@nestjs/common';
-import { MercurionAIService } from '../services/mercurion-ai.service';
-import { SmilesDTO } from '../models/dto/smiles.cls.dto';
-import { MercurionInferDataDTO } from '../models/dto/mt21/mercurion-infer-res.dto';
-import { Public } from 'src/metadata/metadata';
+import { Body, Controller, HttpCode, HttpStatus, Post, ValidationPipe } from '@nestjs/common'
+import { MercurionAIService } from '../services/mercurion-ai.service'
+import { SmilesDTO } from '../models/dto/smiles.cls.dto'
+import { MercurionInferDataDTO } from '../models/dto/mt21/mercurion-infer-res.dto'
+import { Public } from 'src/metadata/metadata'
 
 @Controller('mercurion-ai')
 export class MercurionAIController {

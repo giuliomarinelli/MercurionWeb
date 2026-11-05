@@ -1,17 +1,17 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Subject } from 'rxjs';
+import { ComponentFixture, TestBed } from '@angular/core/testing'
+import { Subject } from 'rxjs'
 
-import { NotebookLandingComponent } from './notebook-landing.component';
-import { NotebookService } from '../../../services/graphql/notebook.service';
-import { NotebookTree } from '../../../Models/graphql/notebook/notebook.models';
+import { NotebookLandingComponent } from './notebook-landing.component'
+import { NotebookService } from '../../../services/graphql/notebook.service'
+import { NotebookTree } from '../../../Models/graphql/notebook/notebook.models'
 
 describe('NotebookLandingComponent', () => {
-  let component: NotebookLandingComponent;
-  let fixture: ComponentFixture<NotebookLandingComponent>;
-  let notebooks$: Subject<NotebookTree[]>;
+  let component: NotebookLandingComponent
+  let fixture: ComponentFixture<NotebookLandingComponent>
+  let notebooks$: Subject<NotebookTree[]>
 
   beforeEach(async () => {
-    notebooks$ = new Subject<NotebookTree[]>();
+    notebooks$ = new Subject<NotebookTree[]>()
     await TestBed.configureTestingModule({
       imports: [NotebookLandingComponent],
       providers: [{
@@ -19,21 +19,21 @@ describe('NotebookLandingComponent', () => {
         useValue: { getAllNotebooks: () => notebooks$.asObservable() }
       }]
     })
-    .compileComponents();
+    .compileComponents()
 
-    fixture = TestBed.createComponent(NotebookLandingComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
+    fixture = TestBed.createComponent(NotebookLandingComponent)
+    component = fixture.componentInstance
+    fixture.detectChanges()
+  })
 
   it('should create', () => {
-    expect(component).toBeTruthy();
-  });
+    expect(component).toBeTruthy()
+  })
 
   it('releases the notebook query stream when destroyed', () => {
-    expect(notebooks$.observed).toBeTrue();
+    expect(notebooks$.observed).toBeTrue()
 
-    fixture.destroy();
-    expect(notebooks$.observed).toBeFalse();
-  });
-});
+    fixture.destroy()
+    expect(notebooks$.observed).toBeFalse()
+  })
+})

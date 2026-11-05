@@ -1,5 +1,5 @@
-import { Transform } from "class-transformer";
-import { IsString, Matches, MaxLength } from "class-validator";
+import { Transform } from "class-transformer"
+import { IsString, Matches, MaxLength } from "class-validator"
 import type { SmilesDTO as SmilesContract } from '@mercurion/rest-contracts'
 
 export class SmilesDTO implements SmilesContract {

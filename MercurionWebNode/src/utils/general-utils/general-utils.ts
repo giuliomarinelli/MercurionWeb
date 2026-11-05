@@ -1,14 +1,14 @@
-import { BadRequestException } from "@nestjs/common";
-import { Pagination } from "nestjs-typeorm-paginate";
-import { MfaStrategy } from "src/app_modules/user/models/enums/mfa-strategy.enum";
-import { FlatPagination } from "src/models/flat-pagination.interface";
+import { BadRequestException } from "@nestjs/common"
+import { Pagination } from "nestjs-typeorm-paginate"
+import { MfaStrategy } from "src/app_modules/user/models/enums/mfa-strategy.enum"
+import { FlatPagination } from "src/models/flat-pagination.interface"
 import {
     assertMercurionPublicId,
     isMercurionPublicId,
     parseMercurionPublicId,
     UUID_PATTERN,
     type MercurionPublicId,
-} from "src/identifiers/mercurion-public-id";
+} from "src/identifiers/mercurion-public-id"
 
 export class GeneralUtils {
 
@@ -20,19 +20,19 @@ export class GeneralUtils {
     public static getEnumValueFromStringKey<T extends object>(enumType: T, key: string): T[keyof T] | undefined {
         // Verifica se la chiave esiste nell'enum
         if (key in enumType) {
-            return enumType[key as keyof T];
+            return enumType[key as keyof T]
         }
-        return undefined; // Ritorna undefined se la chiave non è valida
+        return undefined // Ritorna undefined se la chiave non è valida
     }
 
     static getEnumKeyByValue<T extends object>(enumType: T, value: T[keyof T] | string): Extract<keyof T, string> | undefined {
         // Itera attraverso le chiavi dell'enum
         for (const key in enumType) {
             if (enumType[key as keyof T] === value) {
-                return key; // Ritorna la chiave corrispondente al valore
+                return key // Ritorna la chiave corrispondente al valore
             }
         }
-        return undefined; // Ritorna undefined se non trova il valore
+        return undefined // Ritorna undefined se non trova il valore
     }
 
     public static validateMfaStrategy(strategyKey: string | undefined): MfaStrategy | never {

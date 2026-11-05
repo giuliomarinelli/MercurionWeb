@@ -1,8 +1,8 @@
 // ============ MoleculeCollectionItemSelectCardComponent =============
-import { Component, ChangeDetectionStrategy, model, input, output } from '@angular/core';
-import { MoleculeCollectionItemCardComponent } from '../molecule-collection-item-card/molecule-collection-item-card.component';
-import { MoleculeCardItemModel } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
-import { SelectionControlComponent } from '../../common/selection-control/selection-control.component';
+import { Component, ChangeDetectionStrategy, model, input, output } from '@angular/core'
+import { MoleculeCollectionItemCardComponent } from '../molecule-collection-item-card/molecule-collection-item-card.component'
+import { MoleculeCardItemModel } from '../../../Models/graphql/molecule-collection/molecule-collection.types'
+import { SelectionControlComponent } from '../../common/selection-control/selection-control.component'
 
 @Component({
   selector: 'm-molecule-collection-item-select-card',
@@ -40,18 +40,18 @@ import { SelectionControlComponent } from '../../common/selection-control/select
   `
 })
 export class MoleculeCollectionItemSelectCardComponent {
-  readonly compact = input(false);
-  readonly indeterminate = input(false);                // per lo stato parziale
+  readonly compact = input(false)
+  readonly indeterminate = input(false)                // per lo stato parziale
   readonly molecule = input<MoleculeCardItemModel | null>(null)
   readonly i = input(-1)
   readonly isSelectAll = input(false)
 
-  readonly selectedAll = output<boolean>();
+  readonly selectedAll = output<boolean>()
 
   value = model<boolean>(false)                 // model input per [(value)]
   setValue(value: boolean): void {
-    this.value.set(value);
-    if (this.isSelectAll()) this.selectedAll.emit(value);
+    this.value.set(value)
+    if (this.isSelectAll()) this.selectedAll.emit(value)
   }
 
 }

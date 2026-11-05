@@ -1,8 +1,8 @@
-import { MoleculeSearchResult } from './../../Models/graphql/molecule-search/molecule-search-result.interface';
-import { inject, Injectable } from '@angular/core';
-import { Apollo } from 'apollo-angular';
-import { map, Observable, of, switchMap, throwError } from 'rxjs';
-import { MoleculeDetail } from '../../Models/graphql/molecule.detail.models';
+import { MoleculeSearchResult } from './../../Models/graphql/molecule-search/molecule-search-result.interface'
+import { inject, Injectable } from '@angular/core'
+import { Apollo } from 'apollo-angular'
+import { map, Observable, of, switchMap, throwError } from 'rxjs'
+import { MoleculeDetail } from '../../Models/graphql/molecule.detail.models'
 import {
   GetMoleculeDetailDocument,
   GetMoleculeDetailQuery,
@@ -16,13 +16,13 @@ import {
   MoleculeNameByCanonicalSmilesPublicQueryVariables,
   MoleculeNameByCanonicalSmilesQueryVariables,
   MoleculeNameByCanonicalSmilesQuery
-} from '../../generated/graphql';
+} from '../../generated/graphql'
 import {
   ApplicationClientError,
   ApplicationErrorCode
-} from '../../utils/application-error.util';
-import { GRAPHQL_QUERY_FETCH_POLICY } from './graphql-query-policy';
-import { MoleculeNameByCanonicalSmilesDTO } from './molecule-name-by-canonical-smiles.dto';
+} from '../../utils/application-error.util'
+import { GRAPHQL_QUERY_FETCH_POLICY } from './graphql-query-policy'
+import { MoleculeNameByCanonicalSmilesDTO } from './molecule-name-by-canonical-smiles.dto'
 
 @Injectable({
   providedIn: 'root'
@@ -77,7 +77,7 @@ export class MoleculeService {
       context: {
         credentials: 'include'
       }
-    };
+    }
     const lookup = isPublicMode
       ? this.apollo.query<
         MoleculeNameByCanonicalSmilesPublicQuery,
@@ -94,7 +94,7 @@ export class MoleculeService {
         ...options,
         fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.ephemeralLookup,
         query: MoleculeNameByCanonicalSmilesDocument
-      }).pipe(map(result => result.data.moleculeNameByCanonicalSmiles));
+      }).pipe(map(result => result.data.moleculeNameByCanonicalSmiles))
 
     return lookup
   }

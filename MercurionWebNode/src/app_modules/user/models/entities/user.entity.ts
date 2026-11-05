@@ -1,10 +1,10 @@
-import { uuidv7 } from '@kripod/uuidv7';
+import { uuidv7 } from '@kripod/uuidv7'
 import { UUID } from "crypto"
 import { BeforeInsert, Column, Entity, Index, JoinColumn, OneToMany, OneToOne, PrimaryColumn } from "typeorm"
 import { MfaBackupCode } from "./backup-code.entity"
-import { OldPasswordItem } from '../dto/old-password-item.interface';
-import { DocumentEntity } from 'src/app_modules/dropbox-object-store/models/entities/document.entity';
-import { UserGender } from '../enums/user-gender.enum';
+import { OldPasswordItem } from '../dto/old-password-item.interface'
+import { DocumentEntity } from 'src/app_modules/dropbox-object-store/models/entities/document.entity'
+import { UserGender } from '../enums/user-gender.enum'
 import { AuthIdentity } from '../../../sso/models/entities/auth-identity.entity'
 
 @Entity({ name: 'users' })

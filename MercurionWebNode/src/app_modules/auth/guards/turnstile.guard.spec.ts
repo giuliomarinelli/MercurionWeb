@@ -1,6 +1,6 @@
-import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
-import { TurnstileGuard } from './turnstile.guard';
-import { TurnstileService } from '../services/turnstile.service';
+import { ExecutionContext, UnauthorizedException } from '@nestjs/common'
+import { TurnstileGuard } from './turnstile.guard'
+import { TurnstileService } from '../services/turnstile.service'
 
 describe('TurnstileGuard', () => {
   const verifyToken = jest.fn()

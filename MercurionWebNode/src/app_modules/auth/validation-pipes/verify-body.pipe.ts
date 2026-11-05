@@ -3,12 +3,12 @@ import {
   BadRequestException,
   Injectable,
   PipeTransform,
-} from '@nestjs/common';
-import { plainToInstance, ClassConstructor } from 'class-transformer';
-import { validate } from 'class-validator';
-import { BackupCodeDTO } from '../models/dto/backup-code.cls.dto';
-import { TotpBodyDTO } from '../models/dto/totp.cls.dto';
-import { VerifyKind } from '../models/enums/verify-kind.enum';
+} from '@nestjs/common'
+import { plainToInstance, ClassConstructor } from 'class-transformer'
+import { validate } from 'class-validator'
+import { BackupCodeDTO } from '../models/dto/backup-code.cls.dto'
+import { TotpBodyDTO } from '../models/dto/totp.cls.dto'
+import { VerifyKind } from '../models/enums/verify-kind.enum'
 
 type VerifyBodyLike = {
   kind: VerifyKind
@@ -23,7 +23,7 @@ export class VerifyBodyPipe implements PipeTransform {
       throw new BadRequestException('Invalid body')
     }
 
-    const v = value as Partial<VerifyBodyLike>;
+    const v = value as Partial<VerifyBodyLike>
 
     if (!v.kind || v.payload == null || typeof v.payload !== 'object') {
       throw new BadRequestException('Invalid body')
@@ -34,10 +34,10 @@ export class VerifyBodyPipe implements PipeTransform {
     switch (v.kind) {
       case VerifyKind.TOTP:
         cls = TotpBodyDTO
-        break;
+        break
       case VerifyKind.BACKUP:
         cls = BackupCodeDTO
-        break;
+        break
       default:
         throw new BadRequestException('Invalid kind')
     }
@@ -48,10 +48,10 @@ export class VerifyBodyPipe implements PipeTransform {
       whitelist: true,
       forbidNonWhitelisted: true,
       forbidUnknownValues: true,
-    });
+    })
 
     if (errors.length) {
-      throw new BadRequestException(errors);
+      throw new BadRequestException(errors)
     }
     
     return { kind: v.kind, payload: inst }

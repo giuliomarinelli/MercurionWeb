@@ -52,17 +52,17 @@ export class SearchInputComponent implements OnDestroy {
   readonly search_excludeAlreadyAdded = input(false)
   readonly viewMode = input<'my' | 'chembl'>('chembl')
 
-  readonly ariaLabel = input<string>();
+  readonly ariaLabel = input<string>()
 
-  readonly onResult = output<MoleculeSearchResult[] | PageModel<MoleculeCardItemModel>>();
+  readonly onResult = output<MoleculeSearchResult[] | PageModel<MoleculeCardItemModel>>()
 
-  readonly onLoading = output<boolean>();
+  readonly onLoading = output<boolean>()
 
-  readonly onError = output<unknown>();
+  readonly onError = output<unknown>()
 
-  readonly onQuery = output<string>();
+  readonly onQuery = output<string>()
 
-  readonly onEmpty = output<void>();
+  readonly onEmpty = output<void>()
 
   constructor() {
     effect(() => this._search_excludeAlreadyAdded.set(this.search_excludeAlreadyAdded()))

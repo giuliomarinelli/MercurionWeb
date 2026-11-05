@@ -1,19 +1,19 @@
 import {
   Injectable,
   NgZone
-} from '@angular/core';
+} from '@angular/core'
 import {
   HttpEvent,
   HttpErrorResponse,
   HttpHandler,
   HttpInterceptor,
   HttpRequest
-} from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+} from '@angular/common/http'
+import { Observable } from 'rxjs'
+import { tap } from 'rxjs/operators'
 import { AuthSessionRepository } from '../services/auth-session-repository.service'
-import { AuthStateStore } from '../services/auth-state.store';
-import { classifyAuthResponse } from './auth-error.util';
+import { AuthStateStore } from '../services/auth-state.store'
+import { classifyAuthResponse } from './auth-error.util'
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
@@ -29,7 +29,7 @@ export class AuthInterceptor implements HttpInterceptor {
     const token = this.authService.getAccessToken()
     const authReq = token
       ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } })
-      : req;
+      : req
 
     return next.handle(authReq).pipe(
       tap({

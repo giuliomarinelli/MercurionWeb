@@ -1,21 +1,21 @@
-import { MailerService } from '@nestjs-modules/mailer';
-import { Injectable } from '@nestjs/common';
-import { TicketMessage } from 'src/app_modules/help/models/entities/ticket-message.entity';
-import { Ticket } from 'src/app_modules/help/models/entities/ticket.entity';
-import { SupportContext } from '../../models/contexts/support.context';
-import { ConfigService } from '@nestjs/config';
-import { UserService } from 'src/app_modules/user/services/user.service';
-import { LoggerPort } from 'src/logging/logger.port';
-import { LoggerContext } from 'src/logging/logger.port';
-import { HelpPublicId } from 'src/app_modules/help/models/value-objects/help-public-id';
-import { UUID } from 'crypto';
+import { MailerService } from '@nestjs-modules/mailer'
+import { Injectable } from '@nestjs/common'
+import { TicketMessage } from 'src/app_modules/help/models/entities/ticket-message.entity'
+import { Ticket } from 'src/app_modules/help/models/entities/ticket.entity'
+import { SupportContext } from '../../models/contexts/support.context'
+import { ConfigService } from '@nestjs/config'
+import { UserService } from 'src/app_modules/user/services/user.service'
+import { LoggerPort } from 'src/logging/logger.port'
+import { LoggerContext } from 'src/logging/logger.port'
+import { HelpPublicId } from 'src/app_modules/help/models/value-objects/help-public-id'
+import { UUID } from 'crypto'
 import {
     assertEmailTemplateContext,
     EmailTemplateContextMap,
     EmailTemplateKey,
     getEmailTemplateDefinition,
     getEmailTemplatePath,
-} from '../../email-template-registry';
+} from '../../email-template-registry'
 
 @Injectable()
 export class MailSenderService {

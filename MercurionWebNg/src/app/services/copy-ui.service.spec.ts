@@ -1,16 +1,16 @@
-import { TestBed } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing'
 
-import { CopyUiService } from './copy-ui.service';
+import { CopyUiService } from './copy-ui.service'
 
 describe('CopyUiService', () => {
-  let service: CopyUiService;
+  let service: CopyUiService
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
-    service = TestBed.inject(CopyUiService);
-  });
+    TestBed.configureTestingModule({})
+    service = TestBed.inject(CopyUiService)
+  })
 
   it('should be created', () => {
-    expect(service).toBeTruthy();
-  });
-});
+    expect(service).toBeTruthy()
+  })
+})

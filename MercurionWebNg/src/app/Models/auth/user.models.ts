@@ -1,4 +1,4 @@
-import { FormControl } from '@angular/forms';
+import { FormControl } from '@angular/forms'
 import type { UserGenderControl, UserRegisterDTO } from '@mercurion/rest-contracts'
 
 export type {

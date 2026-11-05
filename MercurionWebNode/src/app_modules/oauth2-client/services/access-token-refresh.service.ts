@@ -1,8 +1,8 @@
-import { Injectable } from '@nestjs/common';
-import { OAuth2ClientService } from './oauth2-client.service';
-import { UUID } from 'crypto';
-import { LoggerPort } from 'src/logging/logger.port';
-import { LoggerContext } from 'src/logging/logger.port';
+import { Injectable } from '@nestjs/common'
+import { OAuth2ClientService } from './oauth2-client.service'
+import { UUID } from 'crypto'
+import { LoggerPort } from 'src/logging/logger.port'
+import { LoggerContext } from 'src/logging/logger.port'
 
 @Injectable()
 export class OAuth2AccessTokenRefreshService {

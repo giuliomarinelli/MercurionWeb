@@ -1,5 +1,5 @@
-import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
-import { HeaderSessionState } from './header.models';
+import { Component, ChangeDetectionStrategy, input, output } from '@angular/core'
+import { HeaderSessionState } from './header.models'
 
 @Component({
   selector: 'm-header-session-indicator',
@@ -22,11 +22,11 @@ export class HeaderSessionIndicatorComponent {
 
   //todo: avatar immagine da document-controller rimpiazzando dropbox con CF R2
 
-  readonly session = input.required<HeaderSessionState>();
-  readonly expanded = input(false);
-  readonly toggled = output<void>();
+  readonly session = input.required<HeaderSessionState>()
+  readonly expanded = input(false)
+  readonly toggled = output<void>()
 
   protected label(): string {
-    return this.expanded() ? 'Chiudi il menu utente' : 'Apri il menu utente';
+    return this.expanded() ? 'Chiudi il menu utente' : 'Apri il menu utente'
   }
 }

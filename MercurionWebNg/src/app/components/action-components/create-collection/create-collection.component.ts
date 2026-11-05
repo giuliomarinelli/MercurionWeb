@@ -1,14 +1,14 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, computed, DestroyRef, ElementRef, inject, OnInit, signal, viewChild } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
-import { MoleculeCollectionService } from '../../../services/graphql/molecule-collection.service';
-import { ToastService } from '../../../services/toast.service';
-import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
-import { ActionCardComponent } from '../../common/action-card/action-card.component';
-import { ActionFooterComponent } from '../../common/action-footer/action-footer.component';
-import { ButtonComponent } from '../../common/button/button.component';
-import { normalizeCollectionName, validateCollectionName } from '../collection-picker/collection-rules';
+import { AfterViewInit, ChangeDetectionStrategy, Component, computed, DestroyRef, ElementRef, inject, OnInit, signal, viewChild } from '@angular/core'
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
+import { FormControl, ReactiveFormsModule } from '@angular/forms'
+import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service'
+import { MoleculeCollectionService } from '../../../services/graphql/molecule-collection.service'
+import { ToastService } from '../../../services/toast.service'
+import { DomainInvalidationService } from '../../../services/domain-invalidation.service'
+import { ActionCardComponent } from '../../common/action-card/action-card.component'
+import { ActionFooterComponent } from '../../common/action-footer/action-footer.component'
+import { ButtonComponent } from '../../common/button/button.component'
+import { normalizeCollectionName, validateCollectionName } from '../collection-picker/collection-rules'
 
 @Component({
   selector: 'm-create-collection',
@@ -78,80 +78,80 @@ import { normalizeCollectionName, validateCollectionName } from '../collection-p
   `
 })
 export class CreateCollectionComponent implements OnInit, AfterViewInit {
-  private readonly overlayContext = inject(ActionOverlayContextService);
-  private readonly moleculeCollectionService = inject(MoleculeCollectionService);
-  private readonly toast = inject(ToastService);
-  private readonly invalidation = inject(DomainInvalidationService);
-  private readonly destroyRef = inject(DestroyRef);
-  private readonly sessionId = this.overlayContext.session('CreateCollection')?.id ?? -1;
-  private readonly nameInputRef = viewChild.required<ElementRef<HTMLInputElement>>('nameInput');
-  readonly nameControl = new FormControl('', { nonNullable: true });
-  readonly name = signal('');
-  readonly selectedChips = signal<string[]>([]);
-  readonly pending = signal(false);
-  readonly submissionError = signal('');
-  readonly validation = computed(() => validateCollectionName(this.name(), { pendingNames: this.selectedChips() }));
+  private readonly overlayContext = inject(ActionOverlayContextService)
+  private readonly moleculeCollectionService = inject(MoleculeCollectionService)
+  private readonly toast = inject(ToastService)
+  private readonly invalidation = inject(DomainInvalidationService)
+  private readonly destroyRef = inject(DestroyRef)
+  private readonly sessionId = this.overlayContext.session('CreateCollection')?.id ?? -1
+  private readonly nameInputRef = viewChild.required<ElementRef<HTMLInputElement>>('nameInput')
+  readonly nameControl = new FormControl('', { nonNullable: true })
+  readonly name = signal('')
+  readonly selectedChips = signal<string[]>([])
+  readonly pending = signal(false)
+  readonly submissionError = signal('')
+  readonly validation = computed(() => validateCollectionName(this.name(), { pendingNames: this.selectedChips() }))
 
   ngOnInit(): void {
-    this.nameControl.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(value => this.name.set(value));
+    this.nameControl.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(value => this.name.set(value))
   }
   ngAfterViewInit(): void {
     queueMicrotask(() => {
-      if (!this.destroyRef.destroyed) this.nameInputRef().nativeElement.focus();
-    });
+      if (!this.destroyRef.destroyed) this.nameInputRef().nativeElement.focus()
+    })
   }
   clear(): void {
-    if (this.pending()) return;
-    this.nameControl.setValue('');
-    this.nameInputRef().nativeElement.focus();
+    if (this.pending()) return
+    this.nameControl.setValue('')
+    this.nameInputRef().nativeElement.focus()
   }
   close(): void {
-    if (!this.pending()) this.overlayContext.close(this.sessionId);
+    if (!this.pending()) this.overlayContext.close(this.sessionId)
   }
   onAddNewName(name: string): void {
-    if (this.pending()) return;
-    const result = validateCollectionName(name, { pendingNames: this.selectedChips() });
-    if (!result.ok) return;
-    this.selectedChips.update(names => [...names, result.normalized]);
-    this.submissionError.set('');
-    this.clear();
+    if (this.pending()) return
+    const result = validateCollectionName(name, { pendingNames: this.selectedChips() })
+    if (!result.ok) return
+    this.selectedChips.update(names => [...names, result.normalized])
+    this.submissionError.set('')
+    this.clear()
   }
   canAddName(): boolean {
-    return !this.pending() && this.validation().ok;
+    return !this.pending() && this.validation().ok
   }
   removeChip(name: string): void {
-    if (this.pending()) return;
-    this.selectedChips.update(names => names.filter(value => value !== normalizeCollectionName(name)));
-    this.submissionError.set('');
-    this.nameInputRef().nativeElement.focus();
+    if (this.pending()) return
+    this.selectedChips.update(names => names.filter(value => value !== normalizeCollectionName(name)))
+    this.submissionError.set('')
+    this.nameInputRef().nativeElement.focus()
   }
   clearChips(): void {
-    if (this.pending()) return;
-    this.selectedChips.set([]);
-    this.submissionError.set('');
-    this.nameInputRef().nativeElement.focus();
+    if (this.pending()) return
+    this.selectedChips.set([])
+    this.submissionError.set('')
+    this.nameInputRef().nativeElement.focus()
   }
   doSubmit(): void {
-    if (this.pending() || !this.selectedChips().length || this.name().trim()) return;
-    const names = [...this.selectedChips()];
-    this.pending.set(true);
-    this.overlayContext.beginSubmit(this.sessionId);
-    this.submissionError.set('');
-    this.nameControl.disable({ emitEvent: false });
+    if (this.pending() || !this.selectedChips().length || this.name().trim()) return
+    const names = [...this.selectedChips()]
+    this.pending.set(true)
+    this.overlayContext.beginSubmit(this.sessionId)
+    this.submissionError.set('')
+    this.nameControl.disable({ emitEvent: false })
     this.moleculeCollectionService.createManyCollections(names).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
-        this.pending.set(false);
-        this.overlayContext.submitSucceeded(this.sessionId);
-        this.invalidation.publish({ domain: 'molecule-collection', action: 'created' });
-        this.overlayContext.close(this.sessionId);
-        this.toast.trigger(names.length === 1 ? 'Collezione creata con successo.' : 'Collezioni create con successo.', 'success', 3000);
+        this.pending.set(false)
+        this.overlayContext.submitSucceeded(this.sessionId)
+        this.invalidation.publish({ domain: 'molecule-collection', action: 'created' })
+        this.overlayContext.close(this.sessionId)
+        this.toast.trigger(names.length === 1 ? 'Collezione creata con successo.' : 'Collezioni create con successo.', 'success', 3000)
       },
       error: () => {
-        this.pending.set(false);
-        this.overlayContext.submitFailed(this.sessionId);
-        this.nameControl.enable({ emitEvent: false });
-        this.submissionError.set('Non è stato possibile creare le collezioni. I nomi sono conservati: riprova tra poco.');
+        this.pending.set(false)
+        this.overlayContext.submitFailed(this.sessionId)
+        this.nameControl.enable({ emitEvent: false })
+        this.submissionError.set('Non è stato possibile creare le collezioni. I nomi sono conservati: riprova tra poco.')
       }
-    });
+    })
   }
 }

@@ -1,13 +1,13 @@
-import { Args, ID, Info, Mutation, Query, Resolver } from "@nestjs/graphql";
-import { CustomMoleculeItemEntity } from "../models/entities/custom-molecule-item.entity";
-import { CustomMoleculeItemService } from "../services/custom-molecule-item.service";
-import { AuthenticatedUserId, Authorization } from "src/metadata/metadata";
-import { UUID } from "crypto";
-import { CustomMoleculeItemInput } from "../models/dto/custom-molecule-item.input";
-import { GraphQLResolveInfo } from "graphql";
-import { GraphQLUtils } from "src/utils/graphql-utils/graphql-utils";
-import { assertMercurionPublicId } from "src/identifiers/mercurion-public-id";
-import { RealtimeStateSyncService } from "src/app_modules/socket-io/realtime-state-sync.service";
+import { Args, ID, Info, Mutation, Query, Resolver } from "@nestjs/graphql"
+import { CustomMoleculeItemEntity } from "../models/entities/custom-molecule-item.entity"
+import { CustomMoleculeItemService } from "../services/custom-molecule-item.service"
+import { AuthenticatedUserId, Authorization } from "src/metadata/metadata"
+import { UUID } from "crypto"
+import { CustomMoleculeItemInput } from "../models/dto/custom-molecule-item.input"
+import { GraphQLResolveInfo } from "graphql"
+import { GraphQLUtils } from "src/utils/graphql-utils/graphql-utils"
+import { assertMercurionPublicId } from "src/identifiers/mercurion-public-id"
+import { RealtimeStateSyncService } from "src/app_modules/socket-io/realtime-state-sync.service"
 
 @Resolver(() => CustomMoleculeItemEntity)
 export class CustomMoleculeItemResolver {

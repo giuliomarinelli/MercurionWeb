@@ -10,7 +10,7 @@ import { JwtKeyFileRegistry, JwtKeyRegistryError, validateJwtKeyTransition } fro
 export type JwtKeyAdministrationCommand = {
     readonly kind: 'prepare'; readonly purpose: TokenType; readonly key: JwtKeyEntry
 } | {
-    readonly kind: 'activate'; readonly purpose: TokenType; readonly kid: string;
+    readonly kind: 'activate'; readonly purpose: TokenType; readonly kid: string
     readonly verifyUntil: string; readonly distributionConfirmed: true
 } | {
     readonly kind: 'revoke'; readonly purpose: TokenType; readonly kid: string; readonly suspendIssuance?: true
@@ -72,7 +72,7 @@ export class JwtKeyAdministration {
         if (typeof timestamp !== 'string' || Date.parse(timestamp) > Date.now()
             || Date.now() - Date.parse(timestamp) > 300000) throw new JwtKeyRegistryError('INVALID_TRANSITION')
         const value = JSON.parse(JSON.stringify(previous)) as {
-            revision: number; previousRevision: number; updatedAt: string; lastOperation: object;
+            revision: number; previousRevision: number; updatedAt: string; lastOperation: object
             domains: { purpose: TokenType; keys: Record<string, unknown>[]; activeKid: string | null; issuance: string; legacy?: { acceptUntil: string; refreshUntil?: string } }[]
         }
         value.previousRevision = previous.revision; value.revision++

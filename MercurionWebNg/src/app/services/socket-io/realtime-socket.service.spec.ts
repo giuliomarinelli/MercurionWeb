@@ -1,54 +1,54 @@
-import { fakeAsync, TestBed, tick } from '@angular/core/testing';
+import { fakeAsync, TestBed, tick } from '@angular/core/testing'
 
-import { RealtimeSocketService } from './realtime-socket.service';
-import { socketEventRegistry } from '@mercurion/socket-contracts';
-import { AuthSessionRepository } from '../auth-session-repository.service';
+import { RealtimeSocketService } from './realtime-socket.service'
+import { socketEventRegistry } from '@mercurion/socket-contracts'
+import { AuthSessionRepository } from '../auth-session-repository.service'
 
 describe('RealtimeSocketService', () => {
-  let service: RealtimeSocketService;
+  let service: RealtimeSocketService
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
-    service = TestBed.inject(RealtimeSocketService);
-  });
+    TestBed.configureTestingModule({})
+    service = TestBed.inject(RealtimeSocketService)
+  })
 
   it('should be created', () => {
-    expect(service).toBeTruthy();
-  });
+    expect(service).toBeTruthy()
+  })
 
   it('removes exactly one observable listener when one owner unsubscribes', () => {
     const socket = (service as unknown as {
       socket: { listeners: (event: string) => unknown[] }
-    }).socket;
+    }).socket
 
-    const first = service.onApplicationError().subscribe();
-    const second = service.onApplicationError().subscribe();
+    const first = service.onApplicationError().subscribe()
+    const second = service.onApplicationError().subscribe()
 
-    expect(socket.listeners(socketEventRegistry.applicationError.name)).toHaveSize(2);
+    expect(socket.listeners(socketEventRegistry.applicationError.name)).toHaveSize(2)
 
-    first.unsubscribe();
-    expect(socket.listeners(socketEventRegistry.applicationError.name)).toHaveSize(1);
+    first.unsubscribe()
+    expect(socket.listeners(socketEventRegistry.applicationError.name)).toHaveSize(1)
 
-    second.unsubscribe();
-    expect(socket.listeners(socketEventRegistry.applicationError.name)).toHaveSize(0);
-  });
+    second.unsubscribe()
+    expect(socket.listeners(socketEventRegistry.applicationError.name)).toHaveSize(0)
+  })
 
   it('owns notification wake-up listeners independently', () => {
     const socket = (service as unknown as {
       socket: { listeners: (event: string) => unknown[] }
-    }).socket;
+    }).socket
 
-    const first = service.onNotificationChanged().subscribe();
-    const second = service.onNotificationChanged().subscribe();
+    const first = service.onNotificationChanged().subscribe()
+    const second = service.onNotificationChanged().subscribe()
 
-    expect(socket.listeners(socketEventRegistry.notificationChanged.name)).toHaveSize(2);
+    expect(socket.listeners(socketEventRegistry.notificationChanged.name)).toHaveSize(2)
 
-    first.unsubscribe();
-    expect(socket.listeners(socketEventRegistry.notificationChanged.name)).toHaveSize(1);
+    first.unsubscribe()
+    expect(socket.listeners(socketEventRegistry.notificationChanged.name)).toHaveSize(1)
 
-    second.unsubscribe();
-    expect(socket.listeners(socketEventRegistry.notificationChanged.name)).toHaveSize(0);
-  });
+    second.unsubscribe()
+    expect(socket.listeners(socketEventRegistry.notificationChanged.name)).toHaveSize(0)
+  })
 
   it('keeps core ownership idempotent and releases it without broad off()', () => {
     const socket = (service as unknown as {
@@ -56,62 +56,62 @@ describe('RealtimeSocketService', () => {
         listeners: (event: string) => unknown[]
         off: jasmine.Spy
       }
-    }).socket;
-    const off = spyOn(socket, 'off').and.callThrough();
+    }).socket
+    const off = spyOn(socket, 'off').and.callThrough()
 
-    expect(socket.listeners('connect')).toHaveSize(1);
-    expect(socket.listeners('disconnect')).toHaveSize(1);
-    expect(socket.listeners('connect_error')).toHaveSize(1);
+    expect(socket.listeners('connect')).toHaveSize(1)
+    expect(socket.listeners('disconnect')).toHaveSize(1)
+    expect(socket.listeners('connect_error')).toHaveSize(1)
 
-    service.ngOnDestroy();
+    service.ngOnDestroy()
 
-    expect(socket.listeners('connect')).toHaveSize(0);
-    expect(socket.listeners('disconnect')).toHaveSize(0);
-    expect(socket.listeners('connect_error')).toHaveSize(0);
-    expect(off).not.toHaveBeenCalledWith();
-  });
+    expect(socket.listeners('connect')).toHaveSize(0)
+    expect(socket.listeners('disconnect')).toHaveSize(0)
+    expect(socket.listeners('connect_error')).toHaveSize(0)
+    expect(off).not.toHaveBeenCalledWith()
+  })
 
   it('renews a private WS token before its 30 second expiry', fakeAsync(() => {
-    const token = `header.${btoa(JSON.stringify({ exp: Math.floor(Date.now() / 1000) + 30 }))}.signature`;
-    spyOn(TestBed.inject(AuthSessionRepository), 'getWsAccessToken').and.returnValue(token);
-    const renew = spyOn(service, 'ensurePrivate').and.resolveTo();
+    const token = `header.${btoa(JSON.stringify({ exp: Math.floor(Date.now() / 1000) + 30 }))}.signature`
+    spyOn(TestBed.inject(AuthSessionRepository), 'getWsAccessToken').and.returnValue(token)
+    const renew = spyOn(service, 'ensurePrivate').and.resolveTo()
     const internals = service as unknown as {
       mode: 'private'
       socket: { connected: boolean }
       onConnectCore: () => void
-    };
-    internals.mode = 'private';
-    internals.socket.connected = true;
-    internals.onConnectCore();
+    }
+    internals.mode = 'private'
+    internals.socket.connected = true
+    internals.onConnectCore()
 
-    tick(30_000);
+    tick(30_000)
 
-    expect(renew).toHaveBeenCalledWith(undefined, { forceRefresh: true });
-    internals.socket.connected = false;
-    service.ngOnDestroy();
-  }));
+    expect(renew).toHaveBeenCalledWith(undefined, { forceRefresh: true })
+    internals.socket.connected = false
+    service.ngOnDestroy()
+  }))
 
   for (const mode of ['public', 'private'] as const) {
     it(`stops repeated ${mode} connection failures after the retry budget`, fakeAsync(() => {
-      const token = `header.${btoa(JSON.stringify({ exp: Math.floor(Date.now() / 1000) + 3600 }))}.signature`;
-      spyOn(TestBed.inject(AuthSessionRepository), 'getWsAccessToken').and.returnValue(token);
+      const token = `header.${btoa(JSON.stringify({ exp: Math.floor(Date.now() / 1000) + 3600 }))}.signature`
+      spyOn(TestBed.inject(AuthSessionRepository), 'getWsAccessToken').and.returnValue(token)
       const internals = service as unknown as {
         socket: { connect: () => void; connected: boolean }
         onConnectErrorCore: (error: unknown) => Promise<void>
-      };
-      internals.socket.connected = false;
+      }
+      internals.socket.connected = false
       const connect = spyOn(internals.socket, 'connect').and.callFake(() => {
-        void internals.onConnectErrorCore(new Error('websocket endpoint returned 404'));
-      });
+        void internals.onConnectErrorCore(new Error('websocket endpoint returned 404'))
+      })
 
-      service.connect(mode);
-      tick(120_000);
+      service.connect(mode)
+      tick(120_000)
 
-      expect(connect).toHaveBeenCalledTimes(7);
-      expect(service.state()).toEqual({ kind: 'degraded', mode, attempt: 7, reason: 'retry-exhausted' });
-      tick(120_000);
-      expect(connect).toHaveBeenCalledTimes(7);
-      service.ngOnDestroy();
-    }));
+      expect(connect).toHaveBeenCalledTimes(7)
+      expect(service.state()).toEqual({ kind: 'degraded', mode, attempt: 7, reason: 'retry-exhausted' })
+      tick(120_000)
+      expect(connect).toHaveBeenCalledTimes(7)
+      service.ngOnDestroy()
+    }))
   }
-});
+})

@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, output } from '@angular/core'
 
 @Component({
   selector: 'm-search-type-selector',
@@ -36,13 +36,13 @@ import { Component, ChangeDetectionStrategy, input, output } from '@angular/core
   `
 })
 export class SearchTypeSelectorComponent {
-  readonly compact = input(false);
-  readonly value = input<'my' | 'chembl'>('chembl');
-  readonly onViewClick = output<'my' | 'chembl'>();
-  private static nextId = 0;
-  readonly groupName = `m-search-source-${++SearchTypeSelectorComponent.nextId}`;
+  readonly compact = input(false)
+  readonly value = input<'my' | 'chembl'>('chembl')
+  readonly onViewClick = output<'my' | 'chembl'>()
+  private static nextId = 0
+  readonly groupName = `m-search-source-${++SearchTypeSelectorComponent.nextId}`
   readonly options = [
     { value: 'chembl', label: 'ChEMBL' },
     { value: 'my', label: 'Le mie molecole' }
-  ] as const;
+  ] as const
 }

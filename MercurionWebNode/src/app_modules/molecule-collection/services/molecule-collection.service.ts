@@ -1,29 +1,29 @@
 import { errorMessage } from 'src/utils/errors/error-message'
 /* eslint-disable no-useless-escape */
-import { ForbiddenException, Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, EntityManager, In, QueryFailedError, Repository } from 'typeorm';
-import { UUID } from 'crypto';
-import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
-import { GraphQLFieldsMap, TypeOrmUtils } from 'src/utils/type-orm-utils/type-orm-utils';
-import { MoleculeCollection } from '../models/entities/molecule-collection.entity';
-import { IPaginationOptions, paginate, Pagination } from 'nestjs-typeorm-paginate';
-import { History } from 'src/app_modules/history/models/entities/history.entity';
-import { HistoryItemEntity } from 'src/app_modules/history/models/enums/history-item-entity.enum';
-import { uuidv7 } from '@kripod/uuidv7';
-import { GeneralUtils } from 'src/utils/general-utils/general-utils';
-import { MoleculeCollectionItemJoin } from '../models/entities/molecule-collection-item-join.entity';
-import { ChEMBLMoleculeItemEntity } from '../models/entities/chembl-molecule-item.entity';
-import { MoleculeCollectionItemEntity } from '../models/entities/molecule-collection-item.entity';
-import { LoggerPort } from 'src/logging/logger.port';
-import { LoggerContext } from 'src/logging/logger.port';
-import { pruneNullCollectionJoins } from '../utils/prune-molecule-collection-joins.util';
+import { ForbiddenException, Injectable } from '@nestjs/common'
+import { InjectRepository } from '@nestjs/typeorm'
+import { DataSource, EntityManager, In, QueryFailedError, Repository } from 'typeorm'
+import { UUID } from 'crypto'
+import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils'
+import { GraphQLFieldsMap, TypeOrmUtils } from 'src/utils/type-orm-utils/type-orm-utils'
+import { MoleculeCollection } from '../models/entities/molecule-collection.entity'
+import { IPaginationOptions, paginate, Pagination } from 'nestjs-typeorm-paginate'
+import { History } from 'src/app_modules/history/models/entities/history.entity'
+import { HistoryItemEntity } from 'src/app_modules/history/models/enums/history-item-entity.enum'
+import { uuidv7 } from '@kripod/uuidv7'
+import { GeneralUtils } from 'src/utils/general-utils/general-utils'
+import { MoleculeCollectionItemJoin } from '../models/entities/molecule-collection-item-join.entity'
+import { ChEMBLMoleculeItemEntity } from '../models/entities/chembl-molecule-item.entity'
+import { MoleculeCollectionItemEntity } from '../models/entities/molecule-collection-item.entity'
+import { LoggerPort } from 'src/logging/logger.port'
+import { LoggerContext } from 'src/logging/logger.port'
+import { pruneNullCollectionJoins } from '../utils/prune-molecule-collection-joins.util'
 import {
   ApplicationErrorCode,
   applicationError
-} from 'src/exception-handling/application-error';
-import { runInTransaction } from 'src/persistence/transaction-context';
-import { MoleculeCollectionPatchCommand, toMoleculeCollectionPatch } from '../models/dto/molecule-mutation.commands';
+} from 'src/exception-handling/application-error'
+import { runInTransaction } from 'src/persistence/transaction-context'
+import { MoleculeCollectionPatchCommand, toMoleculeCollectionPatch } from '../models/dto/molecule-mutation.commands'
 
 @Injectable()
 export class MoleculeCollectionService {
@@ -457,7 +457,7 @@ FROM final_rows;
 
     let qb = this.collectionRepo.createQueryBuilder('collection')
       .select(columns.map(col => `collection.${col}`))
-      .where('collection.user_id = :userId', { userId });
+      .where('collection.user_id = :userId', { userId })
 
     if (query) {
       qb = qb.andWhere('collection.name LIKE :query', { query: `%${query}%` })
@@ -480,7 +480,7 @@ FROM final_rows;
     fieldsMap?: GraphQLFieldsMap,
   ): Promise<Pagination<MoleculeCollection>> {
 
-    const itemsFields = fieldsMap?.items ? Object.keys(fieldsMap.items).filter(k => k !== '__typename') : [];
+    const itemsFields = fieldsMap?.items ? Object.keys(fieldsMap.items).filter(k => k !== '__typename') : []
     const columns = GraphQLUtils.ensureRequiredFields(itemsFields, this.REQUIRED_FIELDS).filter(c => c !== 'itemsCount')
 
     let qb = this.collectionRepo.createQueryBuilder('collection')
@@ -510,7 +510,7 @@ FROM final_rows;
             .from(MoleculeCollectionItemJoin, 'j')
             .where('j.collectionId = collection.id')
             .andWhere('j.itemId = :itemId')
-            .getQuery();
+            .getQuery()
           return `NOT EXISTS ${sub}`
         }).setParameter('itemId', raw)
       }

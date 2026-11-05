@@ -1,5 +1,5 @@
-import { Field, ID, ObjectType } from "@nestjs/graphql";
-import { UUID } from "crypto";
+import { Field, ID, ObjectType } from "@nestjs/graphql"
+import { UUID } from "crypto"
 
 @ObjectType()
 export class BindManyCollectionsToMoleculeDTO {

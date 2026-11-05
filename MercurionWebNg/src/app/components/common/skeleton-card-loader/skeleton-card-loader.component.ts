@@ -1,6 +1,6 @@
-import { ChangeDetectionStrategy, Component, effect, input, signal } from '@angular/core';
-import { NgStyle } from '@angular/common';
-import { SkeletonComponent } from '../skeleton/skeleton.component';
+import { ChangeDetectionStrategy, Component, effect, input, signal } from '@angular/core'
+import { NgStyle } from '@angular/common'
+import { SkeletonComponent } from '../skeleton/skeleton.component'
 
 @Component({
   selector: 'm-skeleton-collection-card',
@@ -31,11 +31,11 @@ import { SkeletonComponent } from '../skeleton/skeleton.component';
   `
 })
 export class SkeletonCollectionCardComponent {
-  private _index = signal(0);
-  _i = this._index;
+  private _index = signal(0)
+  _i = this._index
 
-  _height = signal<string>('auto');
-  _isReadonly = signal<boolean>(false);
+  _height = signal<string>('auto')
+  _isReadonly = signal<boolean>(false)
 
   readonly i = input(0)
   readonly height = input('auto')

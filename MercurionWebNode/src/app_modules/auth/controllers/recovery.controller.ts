@@ -1,16 +1,16 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, Res, UseGuards, ValidationPipe } from '@nestjs/common';
-import { RecoveryCodeDTO } from '../models/dto/recovery-code.cls.dto';
-import { ConfirmWithRecoveryCodeDTO, ConfirmWithRecoveryTokenDTO } from 'src/models/confirm-responses.dto';
-import { AccountRecoveryUseCase } from '../application/account-recovery.use-case';
-import { ResponseService } from 'src/services/response.service';
-import { Authorization, Public } from 'src/metadata/metadata';
-import { TurnstileGuard } from '../guards/turnstile.guard';
-import { RecoverCredentialsDTO } from '../models/dto/recover-credentials.cls.dto';
-import { FastifyReply } from 'fastify';
-import { SecureCookieService } from '../services/secure-cookie.service';
-import { randomUUID } from 'crypto';
-import { CookieConfiguration, SecureCookieConfiguration } from 'src/config/config.types';
-import { ConfigService } from '@nestjs/config';
+import { Body, Controller, HttpCode, HttpStatus, Post, Res, UseGuards, ValidationPipe } from '@nestjs/common'
+import { RecoveryCodeDTO } from '../models/dto/recovery-code.cls.dto'
+import { ConfirmWithRecoveryCodeDTO, ConfirmWithRecoveryTokenDTO } from 'src/models/confirm-responses.dto'
+import { AccountRecoveryUseCase } from '../application/account-recovery.use-case'
+import { ResponseService } from 'src/services/response.service'
+import { Authorization, Public } from 'src/metadata/metadata'
+import { TurnstileGuard } from '../guards/turnstile.guard'
+import { RecoverCredentialsDTO } from '../models/dto/recover-credentials.cls.dto'
+import { FastifyReply } from 'fastify'
+import { SecureCookieService } from '../services/secure-cookie.service'
+import { randomUUID } from 'crypto'
+import { CookieConfiguration, SecureCookieConfiguration } from 'src/config/config.types'
+import { ConfigService } from '@nestjs/config'
 
 @Controller('recovery')
 export class RecoveryController {

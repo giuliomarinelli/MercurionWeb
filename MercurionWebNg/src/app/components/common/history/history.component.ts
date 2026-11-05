@@ -14,20 +14,20 @@ import {
   input,
   output,
   viewChild
-} from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { HistoryService } from '../../../services/history.service';
-import { debounce, distinctUntilChanged, filter, firstValueFrom, interval, Subscription } from 'rxjs';
-import { HistoryDTOExt } from '../../../Models/history.models';
-import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
-import { HistoryItemComponent } from '../history-item/history-item.component';
-import { ProgressIndicatorComponent } from '../progress-indicator/progress-indicator.component';
-import { HistoryContextService } from '../../../services/context/history-context.service';
-import { NgClass } from '@angular/common';
-import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
-import { RealtimeSyncStatusService } from '../../../services/realtime-sync-status.service';
-import { ScrollContextService } from '../../../services/context/scroll-context.service';
-import { injectBrowserResourceOwner } from '../../../utils/browser-resource-owner.util';
+} from '@angular/core'
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
+import { HistoryService } from '../../../services/history.service'
+import { debounce, distinctUntilChanged, filter, firstValueFrom, interval, Subscription } from 'rxjs'
+import { HistoryDTOExt } from '../../../Models/history.models'
+import { ActivatedRoute, NavigationEnd, Router } from '@angular/router'
+import { HistoryItemComponent } from '../history-item/history-item.component'
+import { ProgressIndicatorComponent } from '../progress-indicator/progress-indicator.component'
+import { HistoryContextService } from '../../../services/context/history-context.service'
+import { NgClass } from '@angular/common'
+import { DomainInvalidationService } from '../../../services/domain-invalidation.service'
+import { RealtimeSyncStatusService } from '../../../services/realtime-sync-status.service'
+import { ScrollContextService } from '../../../services/context/scroll-context.service'
+import { injectBrowserResourceOwner } from '../../../utils/browser-resource-owner.util'
 
 @Component({
   selector: 'm-history',
@@ -98,13 +98,13 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
   readonly sentinel = viewChild.required<ElementRef<HTMLElement>
 // TODO: Skipped for migration because:
 //  Accessor inputs cannot be migrated as they are too complex.
->('sentinel');
+>('sentinel')
 
   readonly triggerDelete = input(false)
   readonly triggerEmptyCheck = input(false)
 
-  readonly emptyChange = output<boolean>();
-  readonly itemClick = output<void>();
+  readonly emptyChange = output<boolean>()
+  readonly itemClick = output<void>()
 
   private rSub?: Subscription
 
@@ -264,28 +264,28 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private findScrollContainer(): HTMLElement | null {
-    let el: HTMLElement | null = this.hostRef.nativeElement;
+    let el: HTMLElement | null = this.hostRef.nativeElement
     while (el && el !== document.body) {
-      const style = getComputedStyle(el);
-      const isScrollable = style.overflowY === 'auto' || style.overflowY === 'scroll';
+      const style = getComputedStyle(el)
+      const isScrollable = style.overflowY === 'auto' || style.overflowY === 'scroll'
       if (el.classList.contains('custom-scrollbar') || isScrollable) {
-        return el;
+        return el
       }
-      el = el.parentElement as HTMLElement | null;
+      el = el.parentElement as HTMLElement | null
     }
-    return null; // fallback alla viewport
+    return null // fallback alla viewport
   }
 
   private startObserver() {
-    if (this.destroyRef.destroyed) return;
-    if (this.observer) this.observer.disconnect();
+    if (this.destroyRef.destroyed) return
+    if (this.observer) this.observer.disconnect()
 
     this.observer = new IntersectionObserver(
       entries => {
         const entry = entries[0]
         if (entry.isIntersecting) {
           // La callback di IO è fuori dallo NgZone: rientro esplicitamente
-          this.zone.run(() => this.loadMore());
+          this.zone.run(() => this.loadMore())
         }
       },
       {

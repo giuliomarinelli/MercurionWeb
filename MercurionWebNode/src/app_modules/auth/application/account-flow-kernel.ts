@@ -1,37 +1,37 @@
-import { ConfigService } from '@nestjs/config';
-import { HttpStatus, Injectable } from '@nestjs/common';
-import { UserRegisterDTO } from 'src/app_modules/user/models/dto/user-register.cls.dto';
-import { UserService } from 'src/app_modules/user/services/user.service';
-import { ConfirmChangeDTO, ConfirmDTO, ConfirmWithObsContDTO, ConfirmWithPhoneMfaFeedback, ConfirmWithRecoveryCodeDTO } from 'src/models/confirm-responses.dto';
-import { PasswordEncoderService } from '../services/password-encoder.service';
-import { SecurityService } from '../services/security.service';
-import { ResponseService } from 'src/services/response.service';
-import { JwtToolsService } from '../services/jwt-tools.service';
-import { TokenType } from '../models/enums/token-type.enum';
-import { MailSenderService } from 'src/app_modules/notification/services/mail-sender/mail-sender.service';
-import { RedisService } from 'src/app_modules/redis/services/redis.service';
+import { ConfigService } from '@nestjs/config'
+import { HttpStatus, Injectable } from '@nestjs/common'
+import { UserRegisterDTO } from 'src/app_modules/user/models/dto/user-register.cls.dto'
+import { UserService } from 'src/app_modules/user/services/user.service'
+import { ConfirmChangeDTO, ConfirmDTO, ConfirmWithObsContDTO, ConfirmWithPhoneMfaFeedback, ConfirmWithRecoveryCodeDTO } from 'src/models/confirm-responses.dto'
+import { PasswordEncoderService } from '../services/password-encoder.service'
+import { SecurityService } from '../services/security.service'
+import { ResponseService } from 'src/services/response.service'
+import { JwtToolsService } from '../services/jwt-tools.service'
+import { TokenType } from '../models/enums/token-type.enum'
+import { MailSenderService } from 'src/app_modules/notification/services/mail-sender/mail-sender.service'
+import { RedisService } from 'src/app_modules/redis/services/redis.service'
 import { errorMessage, errorStack } from 'src/utils/errors/error-message'
 
-import { User } from 'src/app_modules/user/models/entities/user.entity';
-import { createHmac, UUID } from 'crypto';
+import { User } from 'src/app_modules/user/models/entities/user.entity'
+import { createHmac, UUID } from 'crypto'
 import { uuidv7 } from '@kripod/uuidv7'
-import { SessionService } from '../services/session.service';
-import { SmsSenderService } from 'src/app_modules/notification/services/sms-sender/sms-sender.service';
-import { ChangePhoneDTO } from '../models/dto/change-phone.cls.dto';
-import { ContactChangeKind } from '../models/enums/contact-change-kind.enum';
-import { PasswordContext } from '../models/enums/password-context.enum';
-import { CompareResult } from '../models/enums/compare-result.enum';
-import { SecurityAuditService } from 'src/app_modules/meilisearch/services/security-audit.service';
-import { LoggerPort } from 'src/logging/logger.port';
-import { LoggerContext } from 'src/logging/logger.port';
+import { SessionService } from '../services/session.service'
+import { SmsSenderService } from 'src/app_modules/notification/services/sms-sender/sms-sender.service'
+import { ChangePhoneDTO } from '../models/dto/change-phone.cls.dto'
+import { ContactChangeKind } from '../models/enums/contact-change-kind.enum'
+import { PasswordContext } from '../models/enums/password-context.enum'
+import { CompareResult } from '../models/enums/compare-result.enum'
+import { SecurityAuditService } from 'src/app_modules/meilisearch/services/security-audit.service'
+import { LoggerPort } from 'src/logging/logger.port'
+import { LoggerContext } from 'src/logging/logger.port'
 import { publicTotpMetadata } from 'src/utils/temporal/temporal'
-import { DataSource, QueryFailedError } from 'typeorm';
-import { ScopeService } from '../services/scope.service';
-import { MfaBackupCode } from 'src/app_modules/user/models/entities/backup-code.entity';
-import { RecoverCredentialsDTO } from '../models/dto/recover-credentials.cls.dto';
-import { TypeGuards } from 'src/utils/type-guards/type-guards';
-import { GeneralUtils } from 'src/utils/general-utils/general-utils';
-import { MfaStrategy } from 'src/app_modules/user/models/enums/mfa-strategy.enum';
+import { DataSource, QueryFailedError } from 'typeorm'
+import { ScopeService } from '../services/scope.service'
+import { MfaBackupCode } from 'src/app_modules/user/models/entities/backup-code.entity'
+import { RecoverCredentialsDTO } from '../models/dto/recover-credentials.cls.dto'
+import { TypeGuards } from 'src/utils/type-guards/type-guards'
+import { GeneralUtils } from 'src/utils/general-utils/general-utils'
+import { MfaStrategy } from 'src/app_modules/user/models/enums/mfa-strategy.enum'
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 import { redisDurations, redisKeys } from 'src/app_modules/redis/contracts/redis-contracts'
 import { AtomicAttemptPolicyService } from 'src/app_modules/redis/services/atomic-attempt-policy.service'
@@ -729,9 +729,9 @@ export class AccountFlowKernel {
         )
         await this.clearContactChangeFailures(userId, ContactChangeKind.PHONE)
 
-        const oldNotificationBody = 'Mercurion: il numero di telefono del tuo account è stato cambiato. Se non sei stato tu, reimposta subito la password e contatta il supporto Mercurion.';
+        const oldNotificationBody = 'Mercurion: il numero di telefono del tuo account è stato cambiato. Se non sei stato tu, reimposta subito la password e contatta il supporto Mercurion.'
 
-        const newNotificationBody = 'Mercurion: questo numero è stato appena associato a un account Mercurion. Se non riconosci questa operazione, ignora il messaggio e contatta il supporto.';
+        const newNotificationBody = 'Mercurion: questo numero è stato appena associato a un account Mercurion. Se non riconosci questa operazione, ignora il messaggio e contatta il supporto.'
 
         await this.securityAuditService.phoneChanged(userId, maskedOldPhone, maskedNewPhone)
         if (oldCompletePhoneNumber != null) {

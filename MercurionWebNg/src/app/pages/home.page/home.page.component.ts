@@ -1,10 +1,10 @@
-import { Component, computed, effect, inject, ChangeDetectionStrategy } from '@angular/core';
-import { ProgressIndicatorComponent } from '../../components/common/progress-indicator/progress-indicator.component';
-import { ButtonComponent } from '../../components/common/button/button.component';
-import { UserContextService } from '../../services/context/user-context.service';
-import { ThemeManagerService } from '../../services/context/theme-manager.service';
-import { environment } from '../../../environments/environment';
-import { AppShellFacade } from '../../services/app-shell.facade';
+import { Component, computed, effect, inject, ChangeDetectionStrategy } from '@angular/core'
+import { ProgressIndicatorComponent } from '../../components/common/progress-indicator/progress-indicator.component'
+import { ButtonComponent } from '../../components/common/button/button.component'
+import { UserContextService } from '../../services/context/user-context.service'
+import { ThemeManagerService } from '../../services/context/theme-manager.service'
+import { environment } from '../../../environments/environment'
+import { AppShellFacade } from '../../services/app-shell.facade'
 
 
 @Component({

@@ -1,7 +1,7 @@
-import { Field, ID, InputType } from "@nestjs/graphql";
-import { Transform } from "class-transformer";
-import { IsInt, IsString } from "class-validator";
-import { GeneralUtils } from "src/utils/general-utils/general-utils";
+import { Field, ID, InputType } from "@nestjs/graphql"
+import { Transform } from "class-transformer"
+import { IsInt, IsString } from "class-validator"
+import { GeneralUtils } from "src/utils/general-utils/general-utils"
 
 @InputType()
 export class AddManyChEMBLItemDTO {

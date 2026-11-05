@@ -1,6 +1,6 @@
-import { UUID } from 'crypto';
-import { uuidv7 } from '@kripod/uuidv7';
-import { Field, ID, ObjectType } from '@nestjs/graphql';
+import { UUID } from 'crypto'
+import { uuidv7 } from '@kripod/uuidv7'
+import { Field, ID, ObjectType } from '@nestjs/graphql'
 import {
     BeforeInsert,
     Column,
@@ -11,10 +11,10 @@ import {
     OneToMany,
     PrimaryColumn,
     Unique
-} from 'typeorm';
-import { CustomMoleculeItemEntity } from '../../../molecule-collection/models/entities/custom-molecule-item.entity';
-import { SynthStepItem } from './synth-step-item.entity';
-import { Synthesis } from './synthesis.entity';
+} from 'typeorm'
+import { CustomMoleculeItemEntity } from '../../../molecule-collection/models/entities/custom-molecule-item.entity'
+import { SynthStepItem } from './synth-step-item.entity'
+import { Synthesis } from './synthesis.entity'
 
 @ObjectType()
 @Entity('synthesis_pool_molecules')

@@ -1,19 +1,19 @@
 import { DestructiveConfirmationComponent } from '../destructive-confirmation/destructive-confirmation.component'
-import { NgClass } from '@angular/common';
-import { Component, inject, OnDestroy, OnInit, computed, input, signal, ChangeDetectionStrategy, output } from '@angular/core';
-import { NavigationEnd, Router, RouterLink } from '@angular/router';
-import { UserContextService } from '../../../services/context/user-context.service';
-import { HistoryComponent } from '../history/history.component';
-import { filter, Subscription } from 'rxjs';
-import { HistoryService } from '../../../services/history.service';
-import { ProgressIndicatorComponent } from "../progress-indicator/progress-indicator.component";
-import { DesignService } from '../../../services/design.service';
-import { SearchContextService } from '../../../services/context/search-context.service';
-import { SelectionService } from '../../../services/selection.service';
-import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
-import { routeManifest } from '../../../route-manifest';
-import { TooltipModule } from 'primeng/tooltip';
-import { SidenavContextService } from '../../../services/context/sidenav-context.service';
+import { NgClass } from '@angular/common'
+import { Component, inject, OnDestroy, OnInit, computed, input, signal, ChangeDetectionStrategy, output } from '@angular/core'
+import { NavigationEnd, Router, RouterLink } from '@angular/router'
+import { UserContextService } from '../../../services/context/user-context.service'
+import { HistoryComponent } from '../history/history.component'
+import { filter, Subscription } from 'rxjs'
+import { HistoryService } from '../../../services/history.service'
+import { ProgressIndicatorComponent } from "../progress-indicator/progress-indicator.component"
+import { DesignService } from '../../../services/design.service'
+import { SearchContextService } from '../../../services/context/search-context.service'
+import { SelectionService } from '../../../services/selection.service'
+import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service'
+import { routeManifest } from '../../../route-manifest'
+import { TooltipModule } from 'primeng/tooltip'
+import { SidenavContextService } from '../../../services/context/sidenav-context.service'
 
 
 @Component({
@@ -287,9 +287,9 @@ export class SidenavComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router)
   private readonly actionContext = inject(ActionOverlayContextService)
 
-  readonly onOpenOffCanvas = output<void>();
+  readonly onOpenOffCanvas = output<void>()
 
-  readonly menuItemClick = output<void>();
+  readonly menuItemClick = output<void>()
 
   triggerDelete = signal<boolean>(false)
   isHistoryEmpty = signal<boolean>(false)

@@ -1,10 +1,10 @@
-import { Helpers } from './helpers';
+import { Helpers } from './helpers'
 import type { CustomMoleculeItemEntity } from './Models/graphql/molecule-collection/molecule-collection.types'
 
 describe('Helpers', () => {
   it('should create an instance', () => {
-    expect(new Helpers()).toBeTruthy();
-  });
+    expect(new Helpers()).toBeTruthy()
+  })
 
   const customMolecule = (propertiesJson: string | null): CustomMoleculeItemEntity => ({
     id: '25000000-0000-4000-8000-000000000104',
@@ -35,4 +35,4 @@ describe('Helpers', () => {
     })
   }
 
-});
+})

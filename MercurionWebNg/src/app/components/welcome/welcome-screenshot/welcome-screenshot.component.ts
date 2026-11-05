@@ -1,6 +1,6 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
-import { PublicPipe } from '../../../pipes/public.pipe';
-import { ThemeManagerService } from '../../../services/context/theme-manager.service';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core'
+import { PublicPipe } from '../../../pipes/public.pipe'
+import { ThemeManagerService } from '../../../services/context/theme-manager.service'
 
 @Component({
   selector: 'm-welcome-screenshot',
@@ -21,12 +21,12 @@ import { ThemeManagerService } from '../../../services/context/theme-manager.ser
   `,
 })
 export class WelcomeScreenshotComponent {
-  private readonly theme = inject(ThemeManagerService);
-  readonly lightSrc = input.required<string>();
-  readonly darkSrc = input.required<string>();
-  readonly alt = input.required<string>();
-  readonly width = input.required<number>();
-  readonly height = input.required<number>();
-  readonly loading = input<'eager' | 'lazy'>('lazy');
-  protected readonly source = computed(() => this.theme.theme() === 'dark' ? this.darkSrc() : this.lightSrc());
+  private readonly theme = inject(ThemeManagerService)
+  readonly lightSrc = input.required<string>()
+  readonly darkSrc = input.required<string>()
+  readonly alt = input.required<string>()
+  readonly width = input.required<number>()
+  readonly height = input.required<number>()
+  readonly loading = input<'eager' | 'lazy'>('lazy')
+  protected readonly source = computed(() => this.theme.theme() === 'dark' ? this.darkSrc() : this.lightSrc())
 }

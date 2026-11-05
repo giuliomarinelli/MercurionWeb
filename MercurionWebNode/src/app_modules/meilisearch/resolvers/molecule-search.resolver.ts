@@ -1,10 +1,10 @@
-import { Resolver, Query, Args, ID } from '@nestjs/graphql';
-import { MoleculeSearchService } from '../services/molecule-search.service';
-import { MoleculeSearchResult } from '../models/dto/molecule-search-result.cls';
-import { MoleculeSearchInput } from '../models/dto/molecule-search-input.cls';
-import { AuthenticatedUserId, Public } from 'src/metadata/metadata';
-import { UUID } from 'crypto';
-import { assertMercurionPublicId } from 'src/identifiers/mercurion-public-id';
+import { Resolver, Query, Args, ID } from '@nestjs/graphql'
+import { MoleculeSearchService } from '../services/molecule-search.service'
+import { MoleculeSearchResult } from '../models/dto/molecule-search-result.cls'
+import { MoleculeSearchInput } from '../models/dto/molecule-search-input.cls'
+import { AuthenticatedUserId, Public } from 'src/metadata/metadata'
+import { UUID } from 'crypto'
+import { assertMercurionPublicId } from 'src/identifiers/mercurion-public-id'
 
 
 

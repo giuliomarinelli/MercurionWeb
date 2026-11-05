@@ -1,7 +1,7 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { ButtonComponent } from '../../common/button/button.component';
-import { WelcomeScreenshotComponent } from '../welcome-screenshot/welcome-screenshot.component';
+import { ChangeDetectionStrategy, Component } from '@angular/core'
+import { RouterLink } from '@angular/router'
+import { ButtonComponent } from '../../common/button/button.component'
+import { WelcomeScreenshotComponent } from '../welcome-screenshot/welcome-screenshot.component'
 
 
 @Component({

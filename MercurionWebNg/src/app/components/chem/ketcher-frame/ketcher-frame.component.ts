@@ -75,10 +75,10 @@ import { ViewportRuntimeService } from '../../../services/context/viewport-runti
 })
 export class KetcherFrameComponent implements OnInit, OnDestroy {
   private readonly viewportRuntime = inject(ViewportRuntimeService)
-  private readonly publicPipe = inject(PublicPipe);
-  private readonly sanitizer = inject(DomSanitizer);
-  private readonly editor = inject(ChemistryEditorService);
-  private readonly zone = inject(NgZone);
+  private readonly publicPipe = inject(PublicPipe)
+  private readonly sanitizer = inject(DomSanitizer)
+  private readonly editor = inject(ChemistryEditorService)
+  private readonly zone = inject(NgZone)
 
   readonly ketcherUrl = signal<SafeResourceUrl | null>(null)
   readonly editorState = signal<'loading' | 'ready' | 'unavailable'>('loading')
@@ -110,14 +110,14 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
   readonly triggerReset = input(false)
   readonly triggerGetSmiles = input(false)
 
-  readonly molChange = output<string>();
-  readonly exportSmiles = output<string>();
-  readonly exportPolledSmiles = output<string>();
-  readonly onReset = output<void>();
-  readonly structureChanged = output<void>();
-  readonly exportFailed = output<void>();
-  readonly editorReady = output<void>();
-  readonly structureRestored = output<{ loadedSmiles: string; exportedSmiles: string }>();
+  readonly molChange = output<string>()
+  readonly exportSmiles = output<string>()
+  readonly exportPolledSmiles = output<string>()
+  readonly onReset = output<void>()
+  readonly structureChanged = output<void>()
+  readonly exportFailed = output<void>()
+  readonly editorReady = output<void>()
+  readonly structureRestored = output<{ loadedSmiles: string; exportedSmiles: string }>()
 
   readonly iframeRef = viewChild<ElementRef<HTMLIFrameElement>>('ketcherIframe')
 

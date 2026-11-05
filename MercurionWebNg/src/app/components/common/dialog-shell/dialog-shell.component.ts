@@ -1,5 +1,5 @@
-import { A11yModule } from '@angular/cdk/a11y';
-import { DOCUMENT } from '@angular/common';
+import { A11yModule } from '@angular/cdk/a11y'
+import { DOCUMENT } from '@angular/common'
 import {
   ChangeDetectionStrategy,
   Component,
@@ -10,35 +10,35 @@ import {
   input,
   output,
   signal
-} from '@angular/core';
-import { DialogScrollLockService } from './dialog-scroll-lock.service';
-import { ViewportRuntimeService } from '../../../services/context/viewport-runtime.service';
+} from '@angular/core'
+import { DialogScrollLockService } from './dialog-scroll-lock.service'
+import { ViewportRuntimeService } from '../../../services/context/viewport-runtime.service'
 
 export type DialogDismissalPolicy = {
-  escape: boolean;
-  backdrop: boolean;
-};
+  escape: boolean
+  backdrop: boolean
+}
 
-export type DialogBackdropVariant = 'default' | 'action' | 'search';
-export type DialogPanelVariant = 'default' | 'action' | 'search';
+export type DialogBackdropVariant = 'default' | 'action' | 'search'
+export type DialogPanelVariant = 'default' | 'action' | 'search'
 
 const BACKDROP_CLASSES = {
   default: 'bg-black/60',
   action: 'bg-slate-300/75 dark:bg-slate-900/90 action-overlay-backdrop',
   search: 'm-dialog-backdrop--search bg-black/70 text-light-on-surface-main dark:text-slate-50',
-} satisfies Record<DialogBackdropVariant, string>;
+} satisfies Record<DialogBackdropVariant, string>
 
 const PANEL_CLASSES = {
   default: 'w-full max-w-lg rounded-2xl bg-white shadow-xl overflow-hidden dark:bg-slate-900',
   action: 'w-full bg-transparent shadow-none overflow-visible',
   search: 'w-full min-w-0 !max-w-none !bg-transparent !shadow-none !rounded-none !overflow-visible',
-} satisfies Record<DialogPanelVariant, string>;
+} satisfies Record<DialogPanelVariant, string>
 
 const CONTENT_CLASSES = {
   default: 'p-4',
   action: 'p-0',
   search: 'p-0',
-} satisfies Record<DialogPanelVariant, string>;
+} satisfies Record<DialogPanelVariant, string>
 
 @Component({
   selector: 'm-dialog-shell',
@@ -109,112 +109,112 @@ const CONTENT_CLASSES = {
   `
 })
 export class DialogShellComponent {
-  readonly open = input(false);
-  readonly mounted = input(false);
-  readonly labelledBy = input<string | null>(null);
-  readonly describedBy = input<string | null>(null);
-  readonly label = input<string | null>(null);
-  readonly backdropVariant = input<DialogBackdropVariant>('default');
-  readonly panelVariant = input<DialogPanelVariant>('default');
-  readonly dismissalPolicy = input<DialogDismissalPolicy>({ escape: true, backdrop: true });
-  readonly dismissed = output<'escape' | 'backdrop'>();
+  readonly open = input(false)
+  readonly mounted = input(false)
+  readonly labelledBy = input<string | null>(null)
+  readonly describedBy = input<string | null>(null)
+  readonly label = input<string | null>(null)
+  readonly backdropVariant = input<DialogBackdropVariant>('default')
+  readonly panelVariant = input<DialogPanelVariant>('default')
+  readonly dismissalPolicy = input<DialogDismissalPolicy>({ escape: true, backdrop: true })
+  readonly dismissed = output<'escape' | 'backdrop'>()
 
-  private readonly element = inject<ElementRef<HTMLElement>>(ElementRef);
-  private readonly document = inject(DOCUMENT);
-  private readonly scrollLock = inject(DialogScrollLockService);
-  protected readonly viewport = inject(ViewportRuntimeService);
-  private readonly destroyRef = inject(DestroyRef);
-  private readonly opener = signal<HTMLElement | null>(null);
-  private locked = false;
-  private focusFrame = 0;
+  private readonly element = inject<ElementRef<HTMLElement>>(ElementRef)
+  private readonly document = inject(DOCUMENT)
+  private readonly scrollLock = inject(DialogScrollLockService)
+  protected readonly viewport = inject(ViewportRuntimeService)
+  private readonly destroyRef = inject(DestroyRef)
+  private readonly opener = signal<HTMLElement | null>(null)
+  private locked = false
+  private focusFrame = 0
 
-  protected readonly BACKDROP_CLASSES = BACKDROP_CLASSES;
-  protected readonly PANEL_CLASSES = PANEL_CLASSES;
-  protected readonly CONTENT_CLASSES = CONTENT_CLASSES;
+  protected readonly BACKDROP_CLASSES = BACKDROP_CLASSES
+  protected readonly PANEL_CLASSES = PANEL_CLASSES
+  protected readonly CONTENT_CLASSES = CONTENT_CLASSES
 
   constructor() {
     effect(() => {
-      this.viewport.state();
-      this.scheduleFocusedControlVisibility();
-    });
+      this.viewport.state()
+      this.scheduleFocusedControlVisibility()
+    })
     effect(() => {
-      const active = this.open();
+      const active = this.open()
       if (active && !this.locked) {
-        this.opener.set(this.document.activeElement instanceof HTMLElement ? this.document.activeElement : null);
-        this.scrollLock.lock();
-        this.locked = true;
-        queueMicrotask(() => this.focusInitialElement());
+        this.opener.set(this.document.activeElement instanceof HTMLElement ? this.document.activeElement : null)
+        this.scrollLock.lock()
+        this.locked = true
+        queueMicrotask(() => this.focusInitialElement())
       } else if (!active && this.locked) {
-        this.scrollLock.unlock();
-        this.locked = false;
-        this.restoreFocus();
+        this.scrollLock.unlock()
+        this.locked = false
+        this.restoreFocus()
       }
-    });
+    })
 
     this.destroyRef.onDestroy(() => {
-      this.document.defaultView?.cancelAnimationFrame(this.focusFrame);
-      if (this.locked) this.scrollLock.unlock();
-      this.restoreFocus();
-    });
+      this.document.defaultView?.cancelAnimationFrame(this.focusFrame)
+      if (this.locked) this.scrollLock.unlock()
+      this.restoreFocus()
+    })
   }
 
   onEscape(event: Event): void {
-    event.stopPropagation();
-    if (this.open() && this.dismissalPolicy().escape) this.dismissed.emit('escape');
+    event.stopPropagation()
+    if (this.open() && this.dismissalPolicy().escape) this.dismissed.emit('escape')
   }
 
   protected scheduleFocusedControlVisibility(): void {
-    const win = this.document.defaultView;
-    if (!win || !this.open()) return;
-    win.cancelAnimationFrame(this.focusFrame);
+    const win = this.document.defaultView
+    if (!win || !this.open()) return
+    win.cancelAnimationFrame(this.focusFrame)
     this.focusFrame = win.requestAnimationFrame(() => {
-      this.focusFrame = 0;
-      const active = this.document.activeElement as HTMLElement | null;
+      this.focusFrame = 0
+      const active = this.document.activeElement as HTMLElement | null
       if (active && this.element.nativeElement.contains(active) &&
           active.matches('input, textarea, select, [contenteditable]:not([contenteditable="false"])')) {
         // Scroll only the dialog's content; scrollIntoView can also pan the iOS document.
-        let parent = active.parentElement;
-        const dialog = this.element.nativeElement.querySelector<HTMLElement>('[role="dialog"]');
+        let parent = active.parentElement
+        const dialog = this.element.nativeElement.querySelector<HTMLElement>('[role="dialog"]')
         while (parent && dialog?.contains(parent)) {
           if (/auto|scroll/.test(win.getComputedStyle(parent).overflowY) && parent.scrollHeight > parent.clientHeight) {
-            const bounds = parent.getBoundingClientRect();
-            const field = active.getBoundingClientRect();
-            const header = parent.querySelector<HTMLElement>(':scope > header');
+            const bounds = parent.getBoundingClientRect()
+            const field = active.getBoundingClientRect()
+            const header = parent.querySelector<HTMLElement>(':scope > header')
             const top = header && win.getComputedStyle(header).position === 'sticky'
-              ? Math.max(bounds.top, header.getBoundingClientRect().bottom) : bounds.top;
-            const footer = parent.querySelector<HTMLElement>(':scope > m-action-footer');
+              ? Math.max(bounds.top, header.getBoundingClientRect().bottom) : bounds.top
+            const footer = parent.querySelector<HTMLElement>(':scope > m-action-footer')
             const bottom = footer && win.getComputedStyle(footer).position === 'sticky'
-              ? Math.min(bounds.bottom, footer.getBoundingClientRect().top) : bounds.bottom;
+              ? Math.min(bounds.bottom, footer.getBoundingClientRect().top) : bounds.bottom
             if (this.viewport.overlayCompact() && active.matches('input[type="search"], input[role="combobox"]') && field.top > top + 4) {
               // Search needs room for its answers below the focused field.
-              parent.scrollTop += field.top - top - 4;
-            } else if (field.bottom > bottom) parent.scrollTop += field.bottom - bottom + 4;
-            else if (field.top < top) parent.scrollTop -= top - field.top + 4;
+              parent.scrollTop += field.top - top - 4
+            } else if (field.bottom > bottom) parent.scrollTop += field.bottom - bottom + 4
+            else if (field.top < top) parent.scrollTop -= top - field.top + 4
           }
-          if (parent === dialog) break;
-          parent = parent.parentElement;
+          if (parent === dialog) break
+          parent = parent.parentElement
         }
       }
-    });
+    })
   }
 
   onBackdropClick(event: MouseEvent): void {
     if (event.target === event.currentTarget && this.open() && this.dismissalPolicy().backdrop) {
-      this.dismissed.emit('backdrop');
+      this.dismissed.emit('backdrop')
     }
   }
 
   private focusInitialElement(): void {
-    if (!this.open()) return;
+    if (!this.open()) return
     const target = this.element.nativeElement.querySelector<HTMLElement>('[cdkFocusInitial]') ?? this.element.nativeElement.querySelector<HTMLElement>(
       '[autofocus], button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    );
-    target?.focus({ preventScroll: true });
+    )
+    target?.focus({ preventScroll: true })
   }
 
   private restoreFocus(): void {
-    const opener = this.opener();
-    this.opener.set(null);
-    if (opener?.isConnected && !opener.hasAttribute('disabled')) opener.focus({ preventScroll: true });
+    const opener = this.opener()
+    this.opener.set(null)
+    if (opener?.isConnected && !opener.hasAttribute('disabled')) opener.focus({ preventScroll: true })
   }
 }

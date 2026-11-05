@@ -1,7 +1,7 @@
-import { HttpClient } from '@angular/common/http';
-import { inject, Injectable } from '@angular/core';
-import { map, Observable } from 'rxjs';
-import { PhonePrefixWithEmojiUrlDTO } from '../Models/country.models';
+import { HttpClient } from '@angular/common/http'
+import { inject, Injectable } from '@angular/core'
+import { map, Observable } from 'rxjs'
+import { PhonePrefixWithEmojiUrlDTO } from '../Models/country.models'
 import type { PhonePrefixDTO } from '@mercurion/rest-contracts'
 
 @Injectable({
@@ -24,7 +24,7 @@ export class CountryService {
           emojiUrl: this.iso2ToFlagUrl(p.iso2)
         }))
       )
-    );
+    )
   }
 
   private iso2ToFlagUrl(iso2: string | null | undefined): string {

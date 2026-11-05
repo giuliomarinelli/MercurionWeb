@@ -1,22 +1,22 @@
 import { DestructiveConfirmationComponent } from '../../components/common/destructive-confirmation/destructive-confirmation.component'
-import { MoleculeCardItemModel } from './../../Models/graphql/molecule-collection/molecule-collection.types';
-import { Component, effect, ElementRef, inject, OnDestroy, OnInit, signal, ChangeDetectionStrategy, viewChild } from '@angular/core';
-import { MoleculeCollectionItemCardComponent } from '../../components/molecule-detail/molecule-collection-item-card/molecule-collection-item-card.component';
-import { delay, map, Subscription } from 'rxjs';
-import { MoleculeCollectionItemService } from '../../services/graphql/molecule-collection-item.service';
-import { Helpers } from '../../helpers';
-import { SkeletonMoleculeCardComponent } from '../../components/molecule-detail/skeleton-molecule-card/skeleton-molecule-card.component';
-import { MyMoleculesHeadingComponent } from '../../components/molecule-detail/my-molecules-heading/my-molecules-heading.component';
-import { RouterLink } from '@angular/router';
-import { HistoryContextService } from '../../services/context/history-context.service';
-import { ToastService } from '../../services/toast.service';
-import { PaginationController } from '../../services/pagination/pagination-controller';
-import { SearchFieldComponent } from '../../components/common/search-field/search-field.component';
-import { ButtonComponent } from '../../components/common/button/button.component';
-import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service';
-import { DomainInvalidationService } from '../../services/domain-invalidation.service';
-import { RealtimeSyncStatusService } from '../../services/realtime-sync-status.service';
-import { ScrollContextService } from '../../services/context/scroll-context.service';
+import { MoleculeCardItemModel } from './../../Models/graphql/molecule-collection/molecule-collection.types'
+import { Component, effect, ElementRef, inject, OnDestroy, OnInit, signal, ChangeDetectionStrategy, viewChild } from '@angular/core'
+import { MoleculeCollectionItemCardComponent } from '../../components/molecule-detail/molecule-collection-item-card/molecule-collection-item-card.component'
+import { delay, map, Subscription } from 'rxjs'
+import { MoleculeCollectionItemService } from '../../services/graphql/molecule-collection-item.service'
+import { Helpers } from '../../helpers'
+import { SkeletonMoleculeCardComponent } from '../../components/molecule-detail/skeleton-molecule-card/skeleton-molecule-card.component'
+import { MyMoleculesHeadingComponent } from '../../components/molecule-detail/my-molecules-heading/my-molecules-heading.component'
+import { RouterLink } from '@angular/router'
+import { HistoryContextService } from '../../services/context/history-context.service'
+import { ToastService } from '../../services/toast.service'
+import { PaginationController } from '../../services/pagination/pagination-controller'
+import { SearchFieldComponent } from '../../components/common/search-field/search-field.component'
+import { ButtonComponent } from '../../components/common/button/button.component'
+import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service'
+import { DomainInvalidationService } from '../../services/domain-invalidation.service'
+import { RealtimeSyncStatusService } from '../../services/realtime-sync-status.service'
+import { ScrollContextService } from '../../services/context/scroll-context.service'
 
 @Component({
   selector: 'm-all-my-molecules.page',

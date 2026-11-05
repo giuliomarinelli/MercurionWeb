@@ -2,35 +2,35 @@ import type {
   FindOneCustomMoleculeByCanonicalSmilesQuery,
   MoleculeItemBasicDataQuery,
   MoleculeItemShortQuery
-} from '../../generated/graphql';
-import type { NormalizedMoleculeCollectionBasicData } from '../../Models/graphql/molecule.detail.models';
+} from '../../generated/graphql'
+import type { NormalizedMoleculeCollectionBasicData } from '../../Models/graphql/molecule.detail.models'
 import type {
   MoleculeCollectionItemClient,
   MoleculeCollectionItemEntityShort,
   MoleculeCollectionJoin,
   MoleculeItemDTO,
   MoleculeItemLookup
-} from '../../Models/graphql/molecule-collection/molecule-collection.types';
+} from '../../Models/graphql/molecule-collection/molecule-collection.types'
 
 function toNumber(value: string | number): number {
-  const number = typeof value === 'number' ? value : Number(value);
+  const number = typeof value === 'number' ? value : Number(value)
   if (!Number.isFinite(number) || number <= 0) {
-    throw new Error('Invalid ChEMBL molregno in molecule item response');
+    throw new Error('Invalid ChEMBL molregno in molecule item response')
   }
-  return number;
+  return number
 }
 
 function mapJoins(joins: MoleculeItemDTO['joins']): MoleculeCollectionJoin[] {
   return (joins ?? []).flatMap(join => join.collection
     ? [{ id: join.id, collection: join.collection }]
-    : []);
+    : [])
 }
 
 export function mapMoleculeItemDtoToClient(
   node: MoleculeItemDTO
 ): MoleculeCollectionItemClient {
   if (!node.id) {
-    throw new Error('Missing molecule item id in GraphQL response');
+    throw new Error('Missing molecule item id in GraphQL response')
   }
   const common = {
     id: node.id,
@@ -40,7 +40,7 @@ export function mapMoleculeItemDtoToClient(
     createdAt: String(node.createdAt),
     updatedAt: String(node.updatedAt),
     touchedAt: String(node.touchedAt)
-  };
+  }
 
   if (node.__typename === 'ChEMBLMoleculeItemDTO') {
     return {
@@ -48,7 +48,7 @@ export function mapMoleculeItemDtoToClient(
       type: 'chembl',
       chemblMolregno: toNumber(node.chemblMolregno),
       chemblDetails: node.chemblDetails
-    };
+    }
   }
 
   return {
@@ -58,7 +58,7 @@ export function mapMoleculeItemDtoToClient(
     molFormula: node.molFormula ?? null,
     name: node.name ?? null,
     propertiesJson: node.propertiesJson ?? null
-  };
+  }
 }
 
 export function mapMoleculeItemBasicData(
@@ -72,7 +72,7 @@ export function mapMoleculeItemBasicData(
         ?? '',
       canonicalSmiles: node.chemblDetails?.canonicalSmiles ?? '',
       type: 'chembl'
-    };
+    }
   }
 
   return {
@@ -80,7 +80,7 @@ export function mapMoleculeItemBasicData(
     name: node.name ?? 'Lead sconosciuto',
     canonicalSmiles: node.canonicalSmiles,
     type: 'custom'
-  };
+  }
 }
 
 export function mapMoleculeItemShort(
@@ -92,7 +92,7 @@ export function mapMoleculeItemShort(
     chemblMolregno: node.__typename === 'ChEMBLMoleculeItemDTO'
       ? toNumber(node.chemblMolregno)
       : undefined
-  };
+  }
 }
 
 export function mapCustomMoleculeLookup(
@@ -105,5 +105,5 @@ export function mapCustomMoleculeLookup(
     type: 'custom',
     canonicalSmiles: node.canonicalSmiles,
     name: node.name
-  };
+  }
 }

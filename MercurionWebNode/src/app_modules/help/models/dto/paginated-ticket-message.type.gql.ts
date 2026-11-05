@@ -1,6 +1,6 @@
-import { Field, ObjectType } from "@nestjs/graphql";
-import { PaginatedResponse } from "src/models/pagination/pagination.model";
-import { TicketMessageResponse } from "./help-response.dto";
+import { Field, ObjectType } from "@nestjs/graphql"
+import { PaginatedResponse } from "src/models/pagination/pagination.model"
+import { TicketMessageResponse } from "./help-response.dto"
 
 
 @ObjectType()

@@ -1,10 +1,10 @@
-import { ProfileDTO } from '../../../Models/account/account.models';
-import { epochMsFromUtcInstant, isUtcInstant } from '@mercurion/rest-contracts';
+import { ProfileDTO } from '../../../Models/account/account.models'
+import { epochMsFromUtcInstant, isUtcInstant } from '@mercurion/rest-contracts'
 import {
   ActivityPointViewModel,
   DashboardMetricsViewModel,
   WorkspaceCompositionViewModel
-} from './dashboard-widget.models';
+} from './dashboard-widget.models'
 
 export function toMetricsViewModel(profile: ProfileDTO): DashboardMetricsViewModel {
   return {
@@ -16,7 +16,7 @@ export function toMetricsViewModel(profile: ProfileDTO): DashboardMetricsViewMod
     personalMolecules: profile.personalMoleculeCount,
     chemblMolecules: profile.chemblMoleculeCount,
     collections: profile.collectionCount
-  };
+  }
 }
 
 export function toWorkspaceCompositionViewModel(
@@ -29,7 +29,7 @@ export function toWorkspaceCompositionViewModel(
       profile.chemblMoleculeCount,
       profile.collectionCount
     ]
-  };
+  }
 }
 
 export function toActivityViewModel(
@@ -37,37 +37,37 @@ export function toActivityViewModel(
   days = 7,
   now = new Date()
 ): ActivityPointViewModel[] {
-  const buckets = new Map<string, { molecules: number; collections: number }>();
+  const buckets = new Map<string, { molecules: number; collections: number }>()
 
   for (const item of profile.recentHistory ?? []) {
     const timestamp = isUtcInstant(item.touchedAt)
       ? epochMsFromUtcInstant(item.touchedAt)
-      : Number.NaN;
-    if (Number.isNaN(timestamp)) continue;
+      : Number.NaN
+    if (Number.isNaN(timestamp)) continue
 
-    const date = new Date(timestamp);
-    date.setHours(0, 0, 0, 0);
-    const key = date.toISOString().slice(0, 10);
-    const bucket = buckets.get(key) ?? { molecules: 0, collections: 0 };
+    const date = new Date(timestamp)
+    date.setHours(0, 0, 0, 0)
+    const key = date.toISOString().slice(0, 10)
+    const bucket = buckets.get(key) ?? { molecules: 0, collections: 0 }
 
-    if (item.itemEntity === 'molecule_collection_items') bucket.molecules++;
-    if (item.itemEntity === 'molecule_collections') bucket.collections++;
-    buckets.set(key, bucket);
+    if (item.itemEntity === 'molecule_collection_items') bucket.molecules++
+    if (item.itemEntity === 'molecule_collections') bucket.collections++
+    buckets.set(key, bucket)
   }
 
-  const today = new Date(now);
-  today.setHours(0, 0, 0, 0);
+  const today = new Date(now)
+  today.setHours(0, 0, 0, 0)
 
   return Array.from({ length: days }, (_, index) => {
-    const date = new Date(today);
-    date.setDate(today.getDate() - (days - 1 - index));
-    const key = date.toISOString().slice(0, 10);
-    const bucket = buckets.get(key) ?? { molecules: 0, collections: 0 };
+    const date = new Date(today)
+    date.setDate(today.getDate() - (days - 1 - index))
+    const key = date.toISOString().slice(0, 10)
+    const bucket = buckets.get(key) ?? { molecules: 0, collections: 0 }
 
     return {
       dayLabel: date.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' }),
       molecules: bucket.molecules,
       collections: bucket.collections
-    };
-  });
+    }
+  })
 }

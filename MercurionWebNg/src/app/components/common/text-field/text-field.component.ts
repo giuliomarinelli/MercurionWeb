@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common'
 import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
@@ -11,20 +11,20 @@ import {
   output,
   signal,
   viewChild
-} from '@angular/core';
+} from '@angular/core'
 import {
   ControlValueAccessor,
   FormControl,
   NgControl,
   ReactiveFormsModule,
   Validators
-} from '@angular/forms';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CdkAutofill, type AutofillEvent } from '@angular/cdk/text-field';
+} from '@angular/forms'
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
+import { CdkAutofill, type AutofillEvent } from '@angular/cdk/text-field'
 
-type ErrorMap = Record<string, string>;
+type ErrorMap = Record<string, string>
 
-let nextGeneratedId = 0;
+let nextGeneratedId = 0
 
 @Component({
   selector: 'm-text-field',
@@ -116,148 +116,148 @@ let nextGeneratedId = 0;
   `
 })
 export class TextFieldComponent implements ControlValueAccessor, OnInit {
-  readonly label = input.required<string>();
-  readonly id = input<string>();
-  readonly name = input<string>();
-  readonly type = input<'text' | 'email' | 'password' | 'tel' | 'url' | 'search'>('text');
-  readonly autocomplete = input<string>();
-  readonly inputmode = input<string>();
-  readonly placeholder = input<string>();
-  readonly hint = input<string>();
-  readonly error = input<string | null>(null);
-  readonly errors = input<ErrorMap>({});
-  readonly serverError = input<string | null>(null);
-  readonly required = input(false);
-  readonly disabled = input(false);
-  readonly describedById = input<string>();
-  readonly enter = output<void>();
+  readonly label = input.required<string>()
+  readonly id = input<string>()
+  readonly name = input<string>()
+  readonly type = input<'text' | 'email' | 'password' | 'tel' | 'url' | 'search'>('text')
+  readonly autocomplete = input<string>()
+  readonly inputmode = input<string>()
+  readonly placeholder = input<string>()
+  readonly hint = input<string>()
+  readonly error = input<string | null>(null)
+  readonly errors = input<ErrorMap>({})
+  readonly serverError = input<string | null>(null)
+  readonly required = input(false)
+  readonly disabled = input(false)
+  readonly describedById = input<string>()
+  readonly enter = output<void>()
 
-  readonly inputElement = viewChild.required<ElementRef<HTMLInputElement>>('inputElement');
-  readonly ngControl = inject(NgControl, { self: true, optional: true });
-  private readonly changeDetector = inject(ChangeDetectorRef);
-  private readonly destroyRef = inject(DestroyRef);
+  readonly inputElement = viewChild.required<ElementRef<HTMLInputElement>>('inputElement')
+  readonly ngControl = inject(NgControl, { self: true, optional: true })
+  private readonly changeDetector = inject(ChangeDetectorRef)
+  private readonly destroyRef = inject(DestroyRef)
 
-  readonly value = signal('');
-  readonly focused = signal(false);
-  private disabledByForm = false;
-  private readonly generatedId = `m-text-field-${++nextGeneratedId}`;
+  readonly value = signal('')
+  readonly focused = signal(false)
+  private disabledByForm = false
+  private readonly generatedId = `m-text-field-${++nextGeneratedId}`
 
-  private onChange: (value: string) => void = () => undefined;
-  private onTouched: () => void = () => undefined;
+  private onChange: (value: string) => void = () => undefined
+  private onTouched: () => void = () => undefined
 
   constructor() {
     if (this.ngControl) {
-      this.ngControl.valueAccessor = this;
+      this.ngControl.valueAccessor = this
     }
   }
 
   ngOnInit(): void {
     this.control?.statusChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.changeDetector.markForCheck();
-    });
+      this.changeDetector.markForCheck()
+    })
   }
 
   get control(): FormControl<string> | null {
-    return (this.ngControl?.control as FormControl<string> | null) ?? null;
+    return (this.ngControl?.control as FormControl<string> | null) ?? null
   }
 
   empty(): boolean {
-    return this.value().trim().length === 0;
+    return this.value().trim().length === 0
   }
 
   fieldId(): string {
-    return this.id() || this.generatedId;
+    return this.id() || this.generatedId
   }
 
   fieldName(): string {
-    return this.name() || this.ngControl?.name?.toString() || this.fieldId();
+    return this.name() || this.ngControl?.name?.toString() || this.fieldId()
   }
 
   hintId(): string {
-    return `${this.fieldId()}-hint`;
+    return `${this.fieldId()}-hint`
   }
 
   errorId(): string {
-    return `${this.fieldId()}-error`;
+    return `${this.fieldId()}-error`
   }
 
   isDisabled(): boolean {
-    return this.disabledByForm || this.disabled() || Boolean(this.control?.disabled);
+    return this.disabledByForm || this.disabled() || Boolean(this.control?.disabled)
   }
 
   isInvalid(): boolean {
-    const control = this.control;
-    return Boolean(this.currentError() || (control?.touched && control.invalid));
+    const control = this.control
+    return Boolean(this.currentError() || (control?.touched && control.invalid))
   }
 
   isRequired(): boolean {
-    return Boolean(this.required() || this.control?.hasValidator(Validators.required));
+    return Boolean(this.required() || this.control?.hasValidator(Validators.required))
   }
 
   currentError(): string {
-    const explicitError = this.error() || this.serverError();
-    if (explicitError) return explicitError;
+    const explicitError = this.error() || this.serverError()
+    if (explicitError) return explicitError
 
-    const control = this.control;
-    if (!control?.touched || !control.errors) return '';
+    const control = this.control
+    if (!control?.touched || !control.errors) return ''
 
-    const key = Object.keys(control.errors)[0];
-    return this.errors()[key] || '';
+    const key = Object.keys(control.errors)[0]
+    return this.errors()[key] || ''
   }
 
   describedBy(): string | null {
-    const ids = [];
-    if (this.describedById()) ids.push(this.describedById());
-    if (this.currentError()) ids.push(this.errorId());
-    else if (this.hint()) ids.push(this.hintId());
-    return ids.length ? ids.join(' ') : null;
+    const ids = []
+    if (this.describedById()) ids.push(this.describedById())
+    if (this.currentError()) ids.push(this.errorId())
+    else if (this.hint()) ids.push(this.hintId())
+    return ids.length ? ids.join(' ') : null
   }
 
   writeValue(value: unknown): void {
-    this.value.set(value == null ? '' : String(value));
+    this.value.set(value == null ? '' : String(value))
   }
 
   registerOnChange(fn: (value: string) => void): void {
-    this.onChange = fn;
+    this.onChange = fn
   }
 
   registerOnTouched(fn: () => void): void {
-    this.onTouched = fn;
+    this.onTouched = fn
   }
 
   setDisabledState(isDisabled: boolean): void {
-    this.disabledByForm = isDisabled;
+    this.disabledByForm = isDisabled
   }
 
   onInput(event: Event): void {
-    const target = event.target;
-    if (!(target instanceof HTMLInputElement)) return;
-    this.syncInputValue(target);
+    const target = event.target
+    if (!(target instanceof HTMLInputElement)) return
+    this.syncInputValue(target)
   }
 
   onAutofill(event: AutofillEvent): void {
-    if (event.target instanceof HTMLInputElement) this.syncInputValue(event.target);
+    if (event.target instanceof HTMLInputElement) this.syncInputValue(event.target)
   }
 
   private syncInputValue(input: HTMLInputElement): void {
-    const value = input.value;
-    if (value === this.value()) return;
-    this.value.set(value);
-    this.onChange(value);
+    const value = input.value
+    if (value === this.value()) return
+    this.value.set(value)
+    this.onChange(value)
   }
 
   onFocus(): void {
-    this.focused.set(true);
-    this.syncInputValue(this.inputElement().nativeElement);
+    this.focused.set(true)
+    this.syncInputValue(this.inputElement().nativeElement)
   }
 
   onBlur(): void {
-    this.syncInputValue(this.inputElement().nativeElement);
-    this.focused.set(false);
-    this.onTouched();
+    this.syncInputValue(this.inputElement().nativeElement)
+    this.focused.set(false)
+    this.onTouched()
   }
 
   focus(): void {
-    this.inputElement().nativeElement.focus();
+    this.inputElement().nativeElement.focus()
   }
 }

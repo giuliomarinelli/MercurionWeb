@@ -1,6 +1,6 @@
-import { Injectable, signal } from '@angular/core';
-import { Router, NavigationEnd } from '@angular/router';
-import { filter } from 'rxjs';
+import { Injectable, signal } from '@angular/core'
+import { Router, NavigationEnd } from '@angular/router'
+import { filter } from 'rxjs'
 
 @Injectable({ providedIn: 'root' })
 export class PathService {

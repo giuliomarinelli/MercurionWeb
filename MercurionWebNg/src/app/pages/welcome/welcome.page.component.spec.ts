@@ -1,21 +1,21 @@
-import { signal } from '@angular/core';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { AuthStateStore } from '../../services/auth-state.store';
-import { SessionSyncService } from '../../services/session-sync.service';
+import { signal } from '@angular/core'
+import { ComponentFixture, TestBed } from '@angular/core/testing'
+import { AuthStateStore } from '../../services/auth-state.store'
+import { SessionSyncService } from '../../services/session-sync.service'
 
-import { WelcomePageComponent } from './welcome.page.component';
+import { WelcomePageComponent } from './welcome.page.component'
 
 describe('WelcomePageComponent', () => {
-  const kind = signal<'bootstrap' | 'authenticating' | 'anonymous' | 'authenticated' | 'pre-auth'>('bootstrap');
-  const authenticated = signal(false);
-  const status = signal<'unknown' | 'checking' | 'anonymous' | 'loggedIn'>('unknown');
-  let component: WelcomePageComponent;
-  let fixture: ComponentFixture<WelcomePageComponent>;
+  const kind = signal<'bootstrap' | 'authenticating' | 'anonymous' | 'authenticated' | 'pre-auth'>('bootstrap')
+  const authenticated = signal(false)
+  const status = signal<'unknown' | 'checking' | 'anonymous' | 'loggedIn'>('unknown')
+  let component: WelcomePageComponent
+  let fixture: ComponentFixture<WelcomePageComponent>
 
   beforeEach(async () => {
-    kind.set('bootstrap');
-    authenticated.set(false);
-    status.set('unknown');
+    kind.set('bootstrap')
+    authenticated.set(false)
+    status.set('unknown')
     await TestBed.configureTestingModule({
       imports: [WelcomePageComponent],
       providers: [
@@ -23,73 +23,73 @@ describe('WelcomePageComponent', () => {
         { provide: SessionSyncService, useValue: { status } }
       ]
     })
-    .compileComponents();
+    .compileComponents()
 
-    fixture = TestBed.createComponent(WelcomePageComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
+    fixture = TestBed.createComponent(WelcomePageComponent)
+    component = fixture.componentInstance
+    fixture.detectChanges()
+  })
 
   it('should create', () => {
-    expect(component).toBeTruthy();
-  });
+    expect(component).toBeTruthy()
+  })
 
   it('keeps the centered spinner during session restoration', () => {
-    kind.set('authenticating');
-    status.set('checking');
-    fixture.detectChanges();
+    kind.set('authenticating')
+    status.set('checking')
+    fixture.detectChanges()
 
-    const pending = fixture.nativeElement.querySelector('.mercurion-welcome-pending') as HTMLElement;
-    expect(pending.querySelector('m-progress-indicator')).not.toBeNull();
-    const bounds = pending.getBoundingClientRect();
-    expect(Math.abs(bounds.left + bounds.width / 2 - window.innerWidth / 2)).toBeLessThan(1);
-    expect(Math.abs(bounds.top + bounds.height / 2 - window.innerHeight / 2)).toBeLessThan(1);
-    expect(fixture.nativeElement.querySelector('m-welcome-hero')).toBeNull();
-  });
+    const pending = fixture.nativeElement.querySelector('.mercurion-welcome-pending') as HTMLElement
+    expect(pending.querySelector('m-progress-indicator')).not.toBeNull()
+    const bounds = pending.getBoundingClientRect()
+    expect(Math.abs(bounds.left + bounds.width / 2 - window.innerWidth / 2)).toBeLessThan(1)
+    expect(Math.abs(bounds.top + bounds.height / 2 - window.innerHeight / 2)).toBeLessThan(1)
+    expect(fixture.nativeElement.querySelector('m-welcome-hero')).toBeNull()
+  })
 
   it('shows anonymous content only after an anonymous session is established', () => {
-    kind.set('anonymous');
-    status.set('anonymous');
-    fixture.detectChanges();
+    kind.set('anonymous')
+    status.set('anonymous')
+    fixture.detectChanges()
 
-    expect(fixture.nativeElement.querySelector('m-welcome-hero')).not.toBeNull();
-    expect(fixture.nativeElement.querySelector('m-welcome-editor-showcase')).not.toBeNull();
-    expect(fixture.nativeElement.querySelector('.mercurion-welcome-pending')).toBeNull();
-  });
+    expect(fixture.nativeElement.querySelector('m-welcome-hero')).not.toBeNull()
+    expect(fixture.nativeElement.querySelector('m-welcome-editor-showcase')).not.toBeNull()
+    expect(fixture.nativeElement.querySelector('.mercurion-welcome-pending')).toBeNull()
+  })
 
   it('reserves all three screenshot ratios and keeps the editor showcase labelled in anonymous content', () => {
-    kind.set('anonymous');
-    status.set('anonymous');
-    fixture.detectChanges();
-    const images = Array.from(fixture.nativeElement.querySelectorAll('m-welcome-screenshot img')) as HTMLImageElement[];
-    expect(images.length).toBe(3);
-    expect(images.filter(image => image.loading === 'eager').length).toBe(1);
+    kind.set('anonymous')
+    status.set('anonymous')
+    fixture.detectChanges()
+    const images = Array.from(fixture.nativeElement.querySelectorAll('m-welcome-screenshot img')) as HTMLImageElement[]
+    expect(images.length).toBe(3)
+    expect(images.filter(image => image.loading === 'eager').length).toBe(1)
     images.forEach(image => {
-      expect(Number(image.getAttribute('width'))).toBeGreaterThan(0);
-      expect(Number(image.getAttribute('height'))).toBeGreaterThan(0);
-      expect(image.alt).toBeTruthy();
-    });
-    const editor = fixture.nativeElement.querySelector('section#editor') as HTMLElement;
-    expect(editor.querySelector('#' + editor.getAttribute('aria-labelledby'))?.textContent).toContain('Disegna');
-    expect(fixture.nativeElement.querySelectorAll('.mercurion-bg-layer').length).toBe(1);
-    expect(fixture.nativeElement.querySelectorAll('.mercurion-bg-overlay').length).toBe(1);
-  });
+      expect(Number(image.getAttribute('width'))).toBeGreaterThan(0)
+      expect(Number(image.getAttribute('height'))).toBeGreaterThan(0)
+      expect(image.alt).toBeTruthy()
+    })
+    const editor = fixture.nativeElement.querySelector('section#editor') as HTMLElement
+    expect(editor.querySelector('#' + editor.getAttribute('aria-labelledby'))?.textContent).toContain('Disegna')
+    expect(fixture.nativeElement.querySelectorAll('.mercurion-bg-layer').length).toBe(1)
+    expect(fixture.nativeElement.querySelectorAll('.mercurion-bg-overlay').length).toBe(1)
+  })
 
   it('shows public content after leaving an incomplete MFA login', () => {
-    kind.set('pre-auth');
-    status.set('anonymous');
-    fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('m-welcome-hero')).not.toBeNull();
-    expect(fixture.nativeElement.querySelector('.mercurion-welcome-pending')).toBeNull();
-  });
+    kind.set('pre-auth')
+    status.set('anonymous')
+    fixture.detectChanges()
+    expect(fixture.nativeElement.querySelector('m-welcome-hero')).not.toBeNull()
+    expect(fixture.nativeElement.querySelector('.mercurion-welcome-pending')).toBeNull()
+  })
 
   it('keeps the spinner visible for an authenticated user until navigation', () => {
-    kind.set('authenticated');
-    authenticated.set(true);
-    status.set('loggedIn');
-    fixture.detectChanges();
+    kind.set('authenticated')
+    authenticated.set(true)
+    status.set('loggedIn')
+    fixture.detectChanges()
 
-    expect(fixture.nativeElement.querySelector('.mercurion-welcome-pending m-progress-indicator')).not.toBeNull();
-    expect(fixture.nativeElement.querySelector('m-welcome-hero')).toBeNull();
-  });
-});
+    expect(fixture.nativeElement.querySelector('.mercurion-welcome-pending m-progress-indicator')).not.toBeNull()
+    expect(fixture.nativeElement.querySelector('m-welcome-hero')).toBeNull()
+  })
+})

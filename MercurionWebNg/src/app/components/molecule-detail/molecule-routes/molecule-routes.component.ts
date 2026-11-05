@@ -1,5 +1,5 @@
-import { Component, ChangeDetectionStrategy, computed, effect, input, signal } from '@angular/core';
-import { AdministrationRoutes } from '../../../Models/graphql/molecule.detail.models';
+import { Component, ChangeDetectionStrategy, computed, effect, input, signal } from '@angular/core'
+import { AdministrationRoutes } from '../../../Models/graphql/molecule.detail.models'
 
 
 @Component({

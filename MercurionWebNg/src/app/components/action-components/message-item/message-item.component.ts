@@ -1,10 +1,10 @@
-import { Component, ChangeDetectionStrategy, input, signal, computed, effect, inject } from '@angular/core';
-import { DatePipe, NgClass } from '@angular/common';
-import { TicketMessage, ClientTicketMessage, AuthorType } from '../../../Models/graphql/help.models';
-import { ThemeManagerService } from '../../../services/context/theme-manager.service';
-import { TypeGuardsService } from '../../../services/type-guards.service';
+import { Component, ChangeDetectionStrategy, input, signal, computed, effect, inject } from '@angular/core'
+import { DatePipe, NgClass } from '@angular/common'
+import { TicketMessage, ClientTicketMessage, AuthorType } from '../../../Models/graphql/help.models'
+import { ThemeManagerService } from '../../../services/context/theme-manager.service'
+import { TypeGuardsService } from '../../../services/type-guards.service'
 
-type AnyMsg = TicketMessage | ClientTicketMessage;
+type AnyMsg = TicketMessage | ClientTicketMessage
 
 @Component({
   selector: 'm-message-item',
@@ -92,7 +92,7 @@ export class MessageItemComponent {
     const m = this._msg()
     if (!m) return false
     return m.authorType === this._selfAuthorType()
-  });
+  })
 
   showAuthorName = computed(() => this._showAuthor())
 
@@ -121,7 +121,7 @@ export class MessageItemComponent {
       return `
         bg-light-accent-primary text-white border-light-accent-primary-hc/70
         dark:bg-indigo-500 dark:text-white dark:border-indigo-400/60
-      `;
+      `
     }
     return `
       bg-slate-100 text-slate-900 border-slate-200/80

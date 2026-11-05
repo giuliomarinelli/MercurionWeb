@@ -1,20 +1,20 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { RedisService } from 'src/app_modules/redis/services/redis.service';
-import { OAuth2ProviderConfiguration } from 'src/config/config.types';
-import { IOAuth2ClientService } from '../models/interfaces/i-oauth2-client-service.interface';
-import { OAuth2PersistenceService } from './o-auth2-persistence.service';
-import { UUID } from 'crypto';
-import { OAuth2TokenData } from '../models/interfaces/oauth2-token-data.interface';
-import { LoggerPort } from 'src/logging/logger.port';
-import { LoggerContext } from 'src/logging/logger.port';
-import { redisDurations, redisKeys } from 'src/app_modules/redis/contracts/redis-contracts';
+import { Injectable, UnauthorizedException } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
+import { RedisService } from 'src/app_modules/redis/services/redis.service'
+import { OAuth2ProviderConfiguration } from 'src/config/config.types'
+import { IOAuth2ClientService } from '../models/interfaces/i-oauth2-client-service.interface'
+import { OAuth2PersistenceService } from './o-auth2-persistence.service'
+import { UUID } from 'crypto'
+import { OAuth2TokenData } from '../models/interfaces/oauth2-token-data.interface'
+import { LoggerPort } from 'src/logging/logger.port'
+import { LoggerContext } from 'src/logging/logger.port'
+import { redisDurations, redisKeys } from 'src/app_modules/redis/contracts/redis-contracts'
 import { ExternalHttpPort, ExternalHttpResponse } from 'src/infrastructure/external-http/external-http.port'
 import { OAuthStateService } from './oauth-state.service'
 
 @Injectable()
 export class OAuth2ClientService implements IOAuth2ClientService {
-    private readonly logger: LoggerContext;
+    private readonly logger: LoggerContext
 
     constructor(
         private readonly configService: ConfigService,
@@ -28,7 +28,7 @@ export class OAuth2ClientService implements IOAuth2ClientService {
     }
 
     private getProviderConfig(provider: string): OAuth2ProviderConfiguration {
-        return this.configService.get<OAuth2ProviderConfiguration>(provider.toLowerCase()) as OAuth2ProviderConfiguration;
+        return this.configService.get<OAuth2ProviderConfiguration>(provider.toLowerCase()) as OAuth2ProviderConfiguration
     }
 
     private normalizeProvider(provider: string): string {
@@ -64,7 +64,7 @@ export class OAuth2ClientService implements IOAuth2ClientService {
             response_type: 'code',
             ...(config.scopes ? { scope: config.scopes.join(' ') } : {}),
             state,
-        };
+        }
 
         // PATCH: Dropbox richiede token_access_type=offline per refresh_token
         if (provider.toLowerCase() === 'dropbox') {
@@ -94,7 +94,7 @@ export class OAuth2ClientService implements IOAuth2ClientService {
                     redirect_uri: config.redirectUri,
                 }),
                 { timeoutMs: 10_000, headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
-            );
+            )
         } catch {
             this.logger.error(`OAuth token exchange failed for provider ${provider}`)
             throw new UnauthorizedException('Failed to exchange code for tokens')
@@ -131,7 +131,7 @@ export class OAuth2ClientService implements IOAuth2ClientService {
             if (!refreshToken) throw new UnauthorizedException('Refresh token not found, user must re-authenticate.')
 
             const config = this.getProviderConfig(provider)
-            let tokenRes;
+            let tokenRes
             try {
                 tokenRes = await this.http.post<Record<string, unknown>>(
                     config.tokenUrl,
@@ -142,7 +142,7 @@ export class OAuth2ClientService implements IOAuth2ClientService {
                         client_secret: config.appSecret,
                     }),
                     { timeoutMs: 10_000, headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
-                );
+                )
             } catch {
                 this.logger.error(`OAuth token refresh failed for provider ${provider}`)
                 throw new UnauthorizedException('Failed to refresh access token')

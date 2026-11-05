@@ -1,21 +1,21 @@
 import { errorMessage } from 'src/utils/errors/error-message'
-import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { RedisService } from './redis.service';
-import { Redis } from 'ioredis';
-import { OAuth2AccessTokenRefreshService } from 'src/app_modules/oauth2-client/services/access-token-refresh.service';
-import { UUID } from 'crypto';
-import { Server } from 'socket.io';
-import { SessionService } from 'src/app_modules/auth/services/session.service';
-import { LoggerPort } from 'src/logging/logger.port';
-import { LoggerContext } from 'src/logging/logger.port';
+import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common'
+import { RedisService } from './redis.service'
+import { Redis } from 'ioredis'
+import { OAuth2AccessTokenRefreshService } from 'src/app_modules/oauth2-client/services/access-token-refresh.service'
+import { UUID } from 'crypto'
+import { Server } from 'socket.io'
+import { SessionService } from 'src/app_modules/auth/services/session.service'
+import { LoggerPort } from 'src/logging/logger.port'
+import { LoggerContext } from 'src/logging/logger.port'
 import {
   socketEventRegistry,
   type ClientToServerEvents,
   type ServerToClientEvents,
   type SocketSessionExpiredPayload,
-} from '@mercurion/socket-contracts';
-import { SessionInvalidationCause } from '@mercurion/rest-contracts';
-import { redisDurations, redisKeys } from '../contracts/redis-contracts';
+} from '@mercurion/socket-contracts'
+import { SessionInvalidationCause } from '@mercurion/rest-contracts'
+import { redisDurations, redisKeys } from '../contracts/redis-contracts'
 import { RedisCapabilityService } from './redis-capability.service'
 
 type ApplicationServer = Server<ClientToServerEvents, ServerToClientEvents>
@@ -59,11 +59,11 @@ export class PubSubService implements OnModuleDestroy, OnModuleInit {
   }
 
   private async subscribeToKeyspaceEvents(): Promise<void> {
-    await this.subscriber.psubscribe('__keyevent@0__:*');
+    await this.subscriber.psubscribe('__keyevent@0__:*')
     this.subscriber.on('pmessage', (_pattern, channel, key) => {
       try {
-        const event = channel.split(':').pop(); // 'expired' | 'del' | ...
-        if (!event) return;
+        const event = channel.split(':').pop() // 'expired' | 'del' | ...
+        if (!event) return
 
         if (key.startsWith('session:') && (event === 'expired' || event === 'del')) {
           void this.handleSessionEvent(event, key)
@@ -97,7 +97,7 @@ export class PubSubService implements OnModuleDestroy, OnModuleInit {
     }
 
     try {
-      await this.oauth2_accessTokenRefreshService.refreshAccessToken(provider, userId);
+      await this.oauth2_accessTokenRefreshService.refreshAccessToken(provider, userId)
       this.logger.log(`Access token refreshed for provider=${provider} userId=${userId ?? '[none]'}`)
     } catch (err) {
       this.logger.error(`Error refreshing access token for provider=${provider} userId=${userId ?? '[none]'}: ${errorMessage(err)}`)

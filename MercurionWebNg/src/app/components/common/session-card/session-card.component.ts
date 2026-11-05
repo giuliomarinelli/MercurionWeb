@@ -1,8 +1,8 @@
-import { Component, ChangeDetectionStrategy, signal, input, output } from '@angular/core';
-import { DatePipe } from '@angular/common';
+import { Component, ChangeDetectionStrategy, signal, input, output } from '@angular/core'
+import { DatePipe } from '@angular/common'
 import { Helpers } from '../../../helpers'
-import { SessionDTOExt } from '../../../Models/account/account.models';
-import { ProgressIndicatorComponent } from "../progress-indicator/progress-indicator.component";
+import { SessionDTOExt } from '../../../Models/account/account.models'
+import { ProgressIndicatorComponent } from "../progress-indicator/progress-indicator.component"
 
 @Component({
   selector: 'm-session-card',
@@ -147,9 +147,9 @@ import { ProgressIndicatorComponent } from "../progress-indicator/progress-indic
 })
 export class SessionCardComponent {
 
-  readonly session = input.required<SessionDTOExt>();
+  readonly session = input.required<SessionDTOExt>()
 
-  readonly onLoggingOutFromSession = output<string>();
+  readonly onLoggingOutFromSession = output<string>()
 
   logoutFromSession(sid: string): void {
     this.onLoggingOutFromSession.emit(sid)

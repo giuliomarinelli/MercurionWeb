@@ -1,10 +1,10 @@
-import { DuplicateCollectionRes } from './../../Models/graphql/molecule-collection/molecule-collection.types';
-import { Injectable, signal, computed } from '@angular/core';
-import { Apollo } from 'apollo-angular';
-import { Observable, map, tap } from 'rxjs';
-import { BindManyCollectionsToMoleculeDTO, MoleculeCollection } from '../../Models/graphql/molecule-collection/molecule-collection.types';
-import { PageModel } from '../../Models/graphql/page.models';
-import { extractGqlData } from './graphql-helpers/v1/extract-gql-data.helper';
+import { DuplicateCollectionRes } from './../../Models/graphql/molecule-collection/molecule-collection.types'
+import { Injectable, signal, computed } from '@angular/core'
+import { Apollo } from 'apollo-angular'
+import { Observable, map, tap } from 'rxjs'
+import { BindManyCollectionsToMoleculeDTO, MoleculeCollection } from '../../Models/graphql/molecule-collection/molecule-collection.types'
+import { PageModel } from '../../Models/graphql/page.models'
+import { extractGqlData } from './graphql-helpers/v1/extract-gql-data.helper'
 import {
   BindManyCollectionsToMoleculeDocument,
   BindManyCollectionsToMoleculeMutation,
@@ -46,43 +46,43 @@ import {
   UpdateMoleculeCollectionNameDocument,
   UpdateMoleculeCollectionNameMutation,
   UpdateMoleculeCollectionNameMutationVariables
-} from '../../generated/graphql';
-import { GRAPHQL_QUERY_FETCH_POLICY } from './graphql-query-policy';
+} from '../../generated/graphql'
+import { GRAPHQL_QUERY_FETCH_POLICY } from './graphql-query-policy'
 
 // --- OPTION OBJECT ---
 export interface CollectionFieldsOptions {
-  withItems?: boolean;
+  withItems?: boolean
 }
 
 type CollectionListQuery =
   | MyMoleculeCollectionsQuery
-  | MyMoleculeCollectionsWithItemsQuery;
+  | MyMoleculeCollectionsWithItemsQuery
 type CollectionDetailQuery =
   | MoleculeCollectionQuery
-  | MoleculeCollectionWithItemsQuery;
+  | MoleculeCollectionWithItemsQuery
 type CreateCollectionMutation =
   | CreateMoleculeCollectionMutation
-  | CreateMoleculeCollectionWithItemsMutation;
+  | CreateMoleculeCollectionWithItemsMutation
 type UpdateCollectionMutation =
   | UpdateMoleculeCollectionMutation
-  | UpdateMoleculeCollectionWithItemsMutation;
+  | UpdateMoleculeCollectionWithItemsMutation
 
 @Injectable({ providedIn: 'root' })
 export class MoleculeCollectionService {
-  private _collections = signal<MoleculeCollection[]>([]);
-  private _loading = signal<boolean>(false);
+  private _collections = signal<MoleculeCollection[]>([])
+  private _loading = signal<boolean>(false)
 
-  readonly collections = computed(() => this._collections());
-  readonly loading = computed(() => this._loading());
+  readonly collections = computed(() => this._collections())
+  readonly loading = computed(() => this._loading())
 
   constructor(private apollo: Apollo) { }
 
   // GET ALL
   getAllCollections(opts: CollectionFieldsOptions = {}): Observable<MoleculeCollection[]> {
-    this._loading.set(true);
+    this._loading.set(true)
     const query = opts.withItems
       ? MyMoleculeCollectionsWithItemsDocument
-      : MyMoleculeCollectionsDocument;
+      : MyMoleculeCollectionsDocument
     return this.apollo
       .query<CollectionListQuery>({
         query,
@@ -94,17 +94,17 @@ export class MoleculeCollectionService {
           'myMoleculeCollections',
         ) as MoleculeCollection[]),
         tap(collections => {
-          this._collections.set(collections);
-          this._loading.set(false);
+          this._collections.set(collections)
+          this._loading.set(false)
         })
-      );
+      )
   }
 
   // GET BY ID
   getCollectionById(id: string, opts: CollectionFieldsOptions = {}): Observable<MoleculeCollection | null> {
     const query = opts.withItems
       ? MoleculeCollectionWithItemsDocument
-      : MoleculeCollectionDocument;
+      : MoleculeCollectionDocument
     return this.apollo
       .query<CollectionDetailQuery, MoleculeCollectionQueryVariables>({
         query,
@@ -117,7 +117,7 @@ export class MoleculeCollectionService {
           'moleculeCollection',
           true,
         ) as MoleculeCollection | null),
-      );
+      )
   }
 
   getPaginatedCollections(
@@ -149,7 +149,7 @@ export class MoleculeCollectionService {
   createCollection(name: string, opts: CollectionFieldsOptions = {}): Observable<MoleculeCollection> {
     const mutation = opts.withItems
       ? CreateMoleculeCollectionWithItemsDocument
-      : CreateMoleculeCollectionDocument;
+      : CreateMoleculeCollectionDocument
     return this.apollo
       .mutate<CreateCollectionMutation, CreateMoleculeCollectionMutationVariables>({
         mutation,
@@ -160,7 +160,7 @@ export class MoleculeCollectionService {
           res,
           'createMoleculeCollection',
         ) as MoleculeCollection),
-      );
+      )
   }
 
   createManyCollections(names: string[]): Observable<boolean> {
@@ -189,7 +189,7 @@ export class MoleculeCollectionService {
   updateCollection(id: string, name: string, opts: CollectionFieldsOptions = {}): Observable<MoleculeCollection | null> {
     const mutation = opts.withItems
       ? UpdateMoleculeCollectionWithItemsDocument
-      : UpdateMoleculeCollectionDocument;
+      : UpdateMoleculeCollectionDocument
     return this.apollo
       .mutate<UpdateCollectionMutation, UpdateMoleculeCollectionMutationVariables>({
         mutation,
@@ -201,7 +201,7 @@ export class MoleculeCollectionService {
           'updateMoleculeCollection',
           true,
         ) as MoleculeCollection | null),
-      );
+      )
   }
 
   updateCollectionName(
@@ -245,7 +245,7 @@ export class MoleculeCollectionService {
         mutation: DeleteMoleculeCollectionDocument,
         variables: { id },
       })
-      .pipe(map(res => extractGqlData<DeleteMoleculeCollectionMutation, 'deleteMoleculeCollection'>(res, 'deleteMoleculeCollection')));
+      .pipe(map(res => extractGqlData<DeleteMoleculeCollectionMutation, 'deleteMoleculeCollection'>(res, 'deleteMoleculeCollection')))
   }
 
   bindManyCollectionsToMolecule(moleculeId: string, collectionIds: string[], selectAll: boolean, snapshotAt?: string | null): Observable<BindManyCollectionsToMoleculeDTO> {

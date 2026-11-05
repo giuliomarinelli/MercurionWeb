@@ -1,4 +1,4 @@
-import { DatePipe, NgClass, UpperCasePipe } from '@angular/common';
+import { DatePipe, NgClass, UpperCasePipe } from '@angular/common'
 import {
   ChangeDetectionStrategy,
   Component,
@@ -8,11 +8,11 @@ import {
   model,
   output,
   signal
-} from '@angular/core';
-import { ReactiveFormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
-import { SelectionControlComponent } from '../../common/selection-control/selection-control.component';
-import { CollectionCardViewModel } from './collection-card.models';
+} from '@angular/core'
+import { ReactiveFormsModule } from '@angular/forms'
+import { Router, RouterLink } from '@angular/router'
+import { SelectionControlComponent } from '../../common/selection-control/selection-control.component'
+import { CollectionCardViewModel } from './collection-card.models'
 
 @Component({
   selector: 'm-collection-card',
@@ -160,68 +160,68 @@ import { CollectionCardViewModel } from './collection-card.models';
   `
 })
 export class CollectionCardComponent {
-  private readonly router = inject(Router);
+  private readonly router = inject(Router)
 
-  _collection = signal<CollectionCardViewModel | undefined>(undefined);
-  _i = signal(0);
-  pathToCollection = signal('');
-  _isReadonly = signal(false);
-  _triggerDisappear = signal(false);
-  _hideActionButtons = signal(false);
-  _selectable = signal(false);
+  _collection = signal<CollectionCardViewModel | undefined>(undefined)
+  _i = signal(0)
+  pathToCollection = signal('')
+  _isReadonly = signal(false)
+  _triggerDisappear = signal(false)
+  _hideActionButtons = signal(false)
+  _selectable = signal(false)
 
-  readonly collection = input.required<CollectionCardViewModel>();
-  readonly i = input(0);
-  readonly isReadonly = input(false);
-  readonly triggerDisappear = input(false);
-  readonly collapse = input(false);
-  readonly hideActionButtons = input(false);
-  readonly selectable = input(false);
-  readonly selectionDisabled = input(false);
-  readonly selected = model(false);
+  readonly collection = input.required<CollectionCardViewModel>()
+  readonly i = input(0)
+  readonly isReadonly = input(false)
+  readonly triggerDisappear = input(false)
+  readonly collapse = input(false)
+  readonly hideActionButtons = input(false)
+  readonly selectable = input(false)
+  readonly selectionDisabled = input(false)
+  readonly selected = model(false)
 
-  readonly onDuplicate = output<string>();
-  readonly onDelete = output<string>();
-  readonly onAddMolecules = output<string>();
+  readonly onDuplicate = output<string>()
+  readonly onDelete = output<string>()
+  readonly onAddMolecules = output<string>()
 
   private readonly syncInputs = effect(() => {
-    const collection = this.collection();
-    this._collection.set(collection);
-    this.pathToCollection.set(`/molecules/collections/detail/${collection.id}`);
-    this._i.set(this.i());
-    this._isReadonly.set(this.isReadonly());
-    this._triggerDisappear.set(this.triggerDisappear());
-    this._hideActionButtons.set(this.hideActionButtons());
-    this._selectable.set(this.selectable());
-  });
+    const collection = this.collection()
+    this._collection.set(collection)
+    this.pathToCollection.set(`/molecules/collections/detail/${collection.id}`)
+    this._i.set(this.i())
+    this._isReadonly.set(this.isReadonly())
+    this._triggerDisappear.set(this.triggerDisappear())
+    this._hideActionButtons.set(this.hideActionButtons())
+    this._selectable.set(this.selectable())
+  })
 
   setSelected(value: boolean): void {
-    if (!this.selectionDisabled()) this.selected.set(value);
+    if (!this.selectionDisabled()) this.selected.set(value)
   }
 
   openCard(event: MouseEvent): void {
-    if (this._isReadonly() || this._selectable()) return;
-    if (event.target instanceof Element && event.target.closest('a, button, input, [role="button"]')) return;
-    void this.router.navigateByUrl(this.pathToCollection());
+    if (this._isReadonly() || this._selectable()) return
+    if (event.target instanceof Element && event.target.closest('a, button, input, [role="button"]')) return
+    void this.router.navigateByUrl(this.pathToCollection())
   }
 
   onActionClick(evt: Event): void {
-    evt.preventDefault();
-    evt.stopPropagation();
+    evt.preventDefault()
+    evt.stopPropagation()
   }
 
   doDuplicateCollection(): void {
-    const collection = this._collection();
-    if (collection) this.onDuplicate.emit(collection.id);
+    const collection = this._collection()
+    if (collection) this.onDuplicate.emit(collection.id)
   }
 
   doDeleteCollection(): void {
-    const collection = this._collection();
-    if (collection) this.onDelete.emit(collection.id);
+    const collection = this._collection()
+    if (collection) this.onDelete.emit(collection.id)
   }
 
   doAddMoleculesToCollection(): void {
-    const collection = this._collection();
-    if (collection) this.onAddMolecules.emit(collection.id);
+    const collection = this._collection()
+    if (collection) this.onAddMolecules.emit(collection.id)
   }
 }

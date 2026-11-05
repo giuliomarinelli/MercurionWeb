@@ -4,14 +4,14 @@ import {
   computed,
   input,
   output,
-} from '@angular/core';
+} from '@angular/core'
 
-export type IconButtonVariant = 'ghost' | 'neutral' | 'destructive' | 'outline';
-export type IconButtonSize = 'sm' | 'md' | 'lg';
-export type IconButtonIcon = 'close' | 'custom';
+export type IconButtonVariant = 'ghost' | 'neutral' | 'destructive' | 'outline'
+export type IconButtonSize = 'sm' | 'md' | 'lg'
+export type IconButtonIcon = 'close' | 'custom'
 
 const BASE_CLASSES =
-  'inline-flex items-center justify-center rounded-md border border-transparent p-0 cursor-pointer transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-transparent disabled:cursor-not-allowed disabled:opacity-55';
+  'inline-flex items-center justify-center rounded-md border border-transparent p-0 cursor-pointer transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-transparent disabled:cursor-not-allowed disabled:opacity-55'
 
 const VARIANT_CLASSES: Record<IconButtonVariant, string> = {
   ghost:
@@ -22,13 +22,13 @@ const VARIANT_CLASSES: Record<IconButtonVariant, string> = {
     'bg-red-600 text-white hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800',
   outline:
     'border-indigo-500 bg-transparent text-indigo-700 hover:bg-indigo-50 dark:text-indigo-200 dark:hover:bg-indigo-950/40',
-};
+}
 
 const SIZE_CLASSES: Record<IconButtonSize, string> = {
   sm: 'size-8',
   md: 'size-10',
   lg: 'size-12',
-};
+}
 
 @Component({
   selector: 'm-icon-button',
@@ -58,23 +58,23 @@ const SIZE_CLASSES: Record<IconButtonSize, string> = {
   `,
 })
 export class IconButtonComponent {
-  readonly ariaLabel = input.required<string>();
-  readonly ariaLabelledby = input<string>();
-  readonly ariaDescribedby = input<string>();
-  readonly icon = input<IconButtonIcon>('custom');
-  readonly size = input<IconButtonSize>('md');
-  readonly variant = input<IconButtonVariant>('ghost');
-  readonly disabled = input(false);
-  readonly pressed = output<MouseEvent>();
+  readonly ariaLabel = input.required<string>()
+  readonly ariaLabelledby = input<string>()
+  readonly ariaDescribedby = input<string>()
+  readonly icon = input<IconButtonIcon>('custom')
+  readonly size = input<IconButtonSize>('md')
+  readonly variant = input<IconButtonVariant>('ghost')
+  readonly disabled = input(false)
+  readonly pressed = output<MouseEvent>()
 
   protected readonly classes = computed(
     () =>
       `${BASE_CLASSES} ${VARIANT_CLASSES[this.variant()]} ${SIZE_CLASSES[this.size()]}`,
-  );
+  )
 
   protected onClick(event: MouseEvent): void {
     if (!this.disabled()) {
-      this.pressed.emit(event);
+      this.pressed.emit(event)
     }
   }
 }

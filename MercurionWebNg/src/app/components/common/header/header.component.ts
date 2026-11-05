@@ -1,35 +1,35 @@
-import { DOCUMENT, NgClass, NgOptimizedImage, NgTemplateOutlet } from '@angular/common';
-import { CdkTrapFocus } from '@angular/cdk/a11y';
-import { Component, computed, effect, inject, input, OnDestroy, OnInit, Signal, signal, ChangeDetectionStrategy, output, ElementRef, viewChild } from '@angular/core';
-import { ThemeManagerService } from '../../../services/context/theme-manager.service';
-import { ThemeChoice } from '../../../Models/theme.models';
-import { DesignService } from '../../../services/design.service';
-import { NavComponent } from '../nav/nav.component';
-import { SearchContextService } from '../../../services/context/search-context.service';
-import { NavigationEnd, Router, RouterLink } from '@angular/router';
-import { PublicPipe } from '../../../pipes/public.pipe';
-import { UserContextService } from '../../../services/context/user-context.service';
-import { filter, Subscription } from 'rxjs';
-import { SidenavComponent } from '../sidenav/sidenav.component';
-import { AccountService } from '../../../services/account.service';
-import { AuthUseCasesService } from '../../../services/auth-use-cases.service';
-import { SessionSyncService } from '../../../services/session-sync.service';
-import { PathService } from '../../../services/path.service';
-import { ToastService } from '../../../services/toast.service';
-import { environment } from '../../../../environments/environment';
-import { ShellLayoutService } from '../../../services/context/shell-layout.service';
-import { APP_CONFIG } from '../../../config/app-config';
-import { routeManifest } from '../../../route-manifest';
-import { BrowserStorageRegistry, storageDescriptor } from '../../../services/browser-storage-registry';
-import { HeaderFacade } from './header.facade';
-import { HeaderNavigationComponent } from './header-navigation.component';
-import { HeaderAccountMenuComponent } from './header-account-menu.component';
-import { HeaderResponsiveMenuComponent } from './header-responsive-menu.component';
-import { HeaderSessionIndicatorComponent } from './header-session-indicator.component';
-import { IconButtonComponent } from '../icon-button/icon-button.component';
-import { ProvidedAccountIdDTO } from '@mercurion/rest-contracts';
-import { HeaderNotificationsComponent } from './header-notifications.component';
-import { DialogScrollLockService } from '../dialog-shell/dialog-scroll-lock.service';
+import { DOCUMENT, NgClass, NgOptimizedImage, NgTemplateOutlet } from '@angular/common'
+import { CdkTrapFocus } from '@angular/cdk/a11y'
+import { Component, computed, effect, inject, input, OnDestroy, OnInit, Signal, signal, ChangeDetectionStrategy, output, ElementRef, viewChild } from '@angular/core'
+import { ThemeManagerService } from '../../../services/context/theme-manager.service'
+import { ThemeChoice } from '../../../Models/theme.models'
+import { DesignService } from '../../../services/design.service'
+import { NavComponent } from '../nav/nav.component'
+import { SearchContextService } from '../../../services/context/search-context.service'
+import { NavigationEnd, Router, RouterLink } from '@angular/router'
+import { PublicPipe } from '../../../pipes/public.pipe'
+import { UserContextService } from '../../../services/context/user-context.service'
+import { filter, Subscription } from 'rxjs'
+import { SidenavComponent } from '../sidenav/sidenav.component'
+import { AccountService } from '../../../services/account.service'
+import { AuthUseCasesService } from '../../../services/auth-use-cases.service'
+import { SessionSyncService } from '../../../services/session-sync.service'
+import { PathService } from '../../../services/path.service'
+import { ToastService } from '../../../services/toast.service'
+import { environment } from '../../../../environments/environment'
+import { ShellLayoutService } from '../../../services/context/shell-layout.service'
+import { APP_CONFIG } from '../../../config/app-config'
+import { routeManifest } from '../../../route-manifest'
+import { BrowserStorageRegistry, storageDescriptor } from '../../../services/browser-storage-registry'
+import { HeaderFacade } from './header.facade'
+import { HeaderNavigationComponent } from './header-navigation.component'
+import { HeaderAccountMenuComponent } from './header-account-menu.component'
+import { HeaderResponsiveMenuComponent } from './header-responsive-menu.component'
+import { HeaderSessionIndicatorComponent } from './header-session-indicator.component'
+import { IconButtonComponent } from '../icon-button/icon-button.component'
+import { ProvidedAccountIdDTO } from '@mercurion/rest-contracts'
+import { HeaderNotificationsComponent } from './header-notifications.component'
+import { DialogScrollLockService } from '../dialog-shell/dialog-scroll-lock.service'
 
 @Component({
   selector: 'm-header',
@@ -523,7 +523,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   readonly triggerOpenOffCanvas = input(false)
 
-  readonly offCanvasMenuOpened = output<boolean>();
+  readonly offCanvasMenuOpened = output<boolean>()
 
   private routeSub?: Subscription
   private accountIdSub?: Subscription

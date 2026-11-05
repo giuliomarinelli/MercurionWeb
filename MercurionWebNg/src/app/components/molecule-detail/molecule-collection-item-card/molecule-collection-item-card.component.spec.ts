@@ -1,7 +1,7 @@
-import { Component } from '@angular/core';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { Component } from '@angular/core'
+import { ComponentFixture, TestBed } from '@angular/core/testing'
 
-import { MoleculeCollectionItemCardComponent } from './molecule-collection-item-card.component';
+import { MoleculeCollectionItemCardComponent } from './molecule-collection-item-card.component'
 
 @Component({
   imports: [MoleculeCollectionItemCardComponent],
@@ -17,20 +17,20 @@ class MoleculeCollectionItemCardHostComponent {
     createdAt: 1,
     updatedAt: 2,
     touchedAt: 3,
-  };
+  }
 }
 
 describe('MoleculeCollectionItemCardComponent', () => {
-  let component: MoleculeCollectionItemCardComponent;
-  let fixture: ComponentFixture<MoleculeCollectionItemCardComponent>;
+  let component: MoleculeCollectionItemCardComponent
+  let fixture: ComponentFixture<MoleculeCollectionItemCardComponent>
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [MoleculeCollectionItemCardComponent]
     })
-    .compileComponents();
+    .compileComponents()
 
-    fixture = TestBed.createComponent(MoleculeCollectionItemCardComponent);
+    fixture = TestBed.createComponent(MoleculeCollectionItemCardComponent)
     fixture.componentRef.setInput('molecule', {
       id: 'molecule-1',
       type: 'chembl',
@@ -40,30 +40,30 @@ describe('MoleculeCollectionItemCardComponent', () => {
       createdAt: 1,
       updatedAt: 2,
       touchedAt: 3,
-    } as never);
-    fixture.componentRef.setInput('i', 0);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
+    } as never)
+    fixture.componentRef.setInput('i', 0)
+    component = fixture.componentInstance
+    fixture.detectChanges()
+  })
 
   it('should create', () => {
-    expect(component).toBeTruthy();
-  });
+    expect(component).toBeTruthy()
+  })
 
   it('keeps the bound molecule identifier in the detail link', () => {
-    const link = fixture.nativeElement.querySelector('a[aria-label="Apri molecola Example"]') as HTMLAnchorElement | null;
+    const link = fixture.nativeElement.querySelector('a[aria-label="Apri molecola Example"]') as HTMLAnchorElement | null
 
-    expect(link?.getAttribute('href')).toContain('/molecules/detail/molecule-1');
-  });
+    expect(link?.getAttribute('href')).toContain('/molecules/detail/molecule-1')
+  })
 
   it('receives complete inputs from a parent template binding', async () => {
-    const hostFixture = TestBed.createComponent(MoleculeCollectionItemCardHostComponent);
+    const hostFixture = TestBed.createComponent(MoleculeCollectionItemCardHostComponent)
 
-    hostFixture.detectChanges();
-    await hostFixture.whenStable();
-    hostFixture.detectChanges();
+    hostFixture.detectChanges()
+    await hostFixture.whenStable()
+    hostFixture.detectChanges()
 
-    const link = hostFixture.nativeElement.querySelector('a[aria-label="Apri molecola From host binding"]') as HTMLAnchorElement | null;
-    expect(link?.getAttribute('href')).toContain('/molecules/detail/molecule-from-host');
-  });
-});
+    const link = hostFixture.nativeElement.querySelector('a[aria-label="Apri molecola From host binding"]') as HTMLAnchorElement | null
+    expect(link?.getAttribute('href')).toContain('/molecules/detail/molecule-from-host')
+  })
+})

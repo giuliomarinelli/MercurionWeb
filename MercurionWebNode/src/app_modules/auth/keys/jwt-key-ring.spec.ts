@@ -15,11 +15,11 @@ import { JWT_KEY_RUNTIME_OPTIONS, JwtKeyRuntimeModule } from './jwt-key-runtime.
 jest.mock('../services/password-encoder.service', () => ({ PasswordEncoderService: class {} }))
 
 type Key = {
-    kid: string; material: { reference: string; version: string }; state: string; createdAt: string;
+    kid: string; material: { reference: string; version: string }; state: string; createdAt: string
     activatedAt?: string; signingStoppedAt?: string; verifyUntil?: string; revokedAt?: string; publicKeyPem?: string
 }
 type Domain = {
-    purpose: TokenType; algorithm: 'RS256' | 'HS512'; issuance: string; activeKid: string | null; keys: Key[];
+    purpose: TokenType; algorithm: 'RS256' | 'HS512'; issuance: string; activeKid: string | null; keys: Key[]
     legacy?: { kid: string; acceptUntil: string; refreshUntil?: string }
 }
 const instant = (ms: number) => new Date(ms).toISOString()

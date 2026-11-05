@@ -1,15 +1,15 @@
-import { Injectable } from "@nestjs/common";
-import { AuthIdentity } from "../models/entities/auth-identity.entity";
-import { AuthProvider } from "../models/enums/auth-provider.enum";
-import { SocialProviderRegistry } from "./social-provider-registry";
-import { LoggerPort } from 'src/logging/logger.port';
-import { LoggerContext } from "src/logging/logger.port";
-import { uuidv7 } from "@kripod/uuidv7";
-import { UUID } from "crypto";
-import { JwtToolsService } from 'src/app_modules/auth/services/jwt-tools.service';
-import { TokenType } from 'src/app_modules/auth/models/enums/token-type.enum';
-import { ScopeService } from "src/app_modules/auth/services/scope.service";
-import { OAuthStateService } from "src/app_modules/oauth2-client/services/oauth-state.service";
+import { Injectable } from "@nestjs/common"
+import { AuthIdentity } from "../models/entities/auth-identity.entity"
+import { AuthProvider } from "../models/enums/auth-provider.enum"
+import { SocialProviderRegistry } from "./social-provider-registry"
+import { LoggerPort } from 'src/logging/logger.port'
+import { LoggerContext } from "src/logging/logger.port"
+import { uuidv7 } from "@kripod/uuidv7"
+import { UUID } from "crypto"
+import { JwtToolsService } from 'src/app_modules/auth/services/jwt-tools.service'
+import { TokenType } from 'src/app_modules/auth/models/enums/token-type.enum'
+import { ScopeService } from "src/app_modules/auth/services/scope.service"
+import { OAuthStateService } from "src/app_modules/oauth2-client/services/oauth-state.service"
 
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 import { UnitOfWork, transactionManager } from 'src/persistence/transaction-context'

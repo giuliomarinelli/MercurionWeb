@@ -1,7 +1,7 @@
-import { ChangeDetectionStrategy, Component, effect, inject, input, signal } from '@angular/core';
-import { IconButtonComponent, IconButtonSize } from '../icon-button/icon-button.component';
-import { CopyUiService } from '../../../services/copy-ui.service';
-import { CopyIconStatus } from '../../../Models/copy.models';
+import { ChangeDetectionStrategy, Component, effect, inject, input, signal } from '@angular/core'
+import { IconButtonComponent, IconButtonSize } from '../icon-button/icon-button.component'
+import { CopyUiService } from '../../../services/copy-ui.service'
+import { CopyIconStatus } from '../../../Models/copy.models'
 
 @Component({
   selector: 'm-copy-button',

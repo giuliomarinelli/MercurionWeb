@@ -1,6 +1,6 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { ButtonComponent } from '../../common/button/button.component';
+import { ChangeDetectionStrategy, Component } from '@angular/core'
+import { RouterLink } from '@angular/router'
+import { ButtonComponent } from '../../common/button/button.component'
 
 @Component({
   selector: 'm-welcome-secondary-features',

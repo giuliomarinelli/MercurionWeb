@@ -1,8 +1,8 @@
 import type { Tox21Inference } from '@mercurion/rest-contracts'
 
 export interface T1PredictionItem {
-  label: string;
-  prediction: Tox21Inference;
+  label: string
+  prediction: Tox21Inference
 }
 
 export type {

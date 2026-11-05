@@ -1,7 +1,7 @@
-import { Component, ChangeDetectionStrategy, input, computed } from '@angular/core';
-import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
-import { CollectionCardComponent } from '../collection-card/collection-card.component';
-import { SkeletonCollectionCardComponent } from '../../common/skeleton-card-loader/skeleton-card-loader.component';
+import { Component, ChangeDetectionStrategy, input, computed } from '@angular/core'
+import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/molecule-collection.types'
+import { CollectionCardComponent } from '../collection-card/collection-card.component'
+import { SkeletonCollectionCardComponent } from '../../common/skeleton-card-loader/skeleton-card-loader.component'
 
 @Component({
   selector: 'm-my-molecule-join',
@@ -31,6 +31,6 @@ import { SkeletonCollectionCardComponent } from '../../common/skeleton-card-load
   `
 })
 export class MyMoleculeJoinComponent {
-  readonly joins = input.required<{ id: string; collection: MoleculeCollection }[] | null>();
-  readonly collections = computed(() => (this.joins() ?? []).map(join => join.collection));
+  readonly joins = input.required<{ id: string; collection: MoleculeCollection }[] | null>()
+  readonly collections = computed(() => (this.joins() ?? []).map(join => join.collection))
 }

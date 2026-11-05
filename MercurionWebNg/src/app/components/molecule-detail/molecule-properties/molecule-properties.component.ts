@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, input, computed } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, computed } from '@angular/core'
 
 type MoleculeProperties = {
   mwFreebase: number | string | null
@@ -30,10 +30,10 @@ type MoleculeProperties = {
     </section>
   ` })
 export class MoleculePropertiesComponent {
-  readonly properties = input<Partial<MoleculeProperties> | undefined>(undefined);
-  readonly props = computed(() => this.properties() ?? {});
+  readonly properties = input<Partial<MoleculeProperties> | undefined>(undefined)
+  readonly props = computed(() => this.properties() ?? {})
   readonly propertiesList = computed(() => {
-    const props = this.props();
+    const props = this.props()
     return [
       ['Massa molare (g/mol)', props.mwFreebase],
       ['logP', props.alogp],
@@ -42,8 +42,8 @@ export class MoleculePropertiesComponent {
       ['Superficie polare (PSA, Å²)', props.psa],
       ['Legami ruotabili', props.rtb]
     ].map(([label, value]) => {
-      const missing = value == null || String(value).trim() === '';
-      return { label, value: missing ? 'Non disponibile' : value, missing };
-    });
-  });
+      const missing = value == null || String(value).trim() === ''
+      return { label, value: missing ? 'Non disponibile' : value, missing }
+    })
+  })
 }

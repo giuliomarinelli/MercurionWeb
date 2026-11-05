@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import { ProgressIndicatorComponent } from '../progress-indicator/progress-indicator.component';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core'
+import { ProgressIndicatorComponent } from '../progress-indicator/progress-indicator.component'
 
 @Component({
   selector: 'm-button-pending-content',
@@ -17,5 +17,5 @@ import { ProgressIndicatorComponent } from '../progress-indicator/progress-indic
   `,
 })
 export class ButtonPendingContentComponent {
-  readonly pending = input(false);
+  readonly pending = input(false)
 }

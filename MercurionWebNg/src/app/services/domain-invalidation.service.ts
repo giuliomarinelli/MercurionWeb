@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal } from '@angular/core'
 
 export type DomainInvalidation =
   // Canonical state-sync invalidations.
@@ -20,10 +20,10 @@ export type DomainInvalidation =
 
 @Injectable({ providedIn: 'root' })
 export class DomainInvalidationService {
-  private readonly _last = signal<DomainInvalidation | null>(null);
-  readonly last = this._last.asReadonly();
+  private readonly _last = signal<DomainInvalidation | null>(null)
+  readonly last = this._last.asReadonly()
 
   publish(event: DomainInvalidation): void {
-    this._last.set(event);
+    this._last.set(event)
   }
 }

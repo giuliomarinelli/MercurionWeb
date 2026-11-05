@@ -1,11 +1,11 @@
 import {
   Injectable, CanActivate, ExecutionContext, UnauthorizedException
-} from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+} from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import { FastifyRequest } from 'fastify'
-import { TurnstileService } from '../services/turnstile.service';
-import { Environment } from 'src/config/config.schema';
-import type { AppConfiguration } from 'src/config/config.types';
+import { TurnstileService } from '../services/turnstile.service'
+import { Environment } from 'src/config/config.schema'
+import type { AppConfiguration } from 'src/config/config.types'
 
 
 @Injectable()

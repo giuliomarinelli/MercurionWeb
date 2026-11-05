@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { WelcomeScreenshotComponent } from '../welcome-screenshot/welcome-screenshot.component';
+import { ChangeDetectionStrategy, Component } from '@angular/core'
+import { WelcomeScreenshotComponent } from '../welcome-screenshot/welcome-screenshot.component'
 
 @Component({
   selector: 'm-welcome-screenshot-band',

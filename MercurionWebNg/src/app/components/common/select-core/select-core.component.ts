@@ -1,4 +1,4 @@
-import { NgClass } from '@angular/common';
+import { NgClass } from '@angular/common'
 import {
   ChangeDetectionStrategy,
   Component,
@@ -8,12 +8,12 @@ import {
   output,
   signal,
   viewChild
-} from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { SelectSelectionChange, SelectState } from './select-core.types';
-import { SmoothResizeDirective } from '../smooth-resize/smooth-resize.directive';
+} from '@angular/core'
+import { FormsModule } from '@angular/forms'
+import { SelectSelectionChange, SelectState } from './select-core.types'
+import { SmoothResizeDirective } from '../smooth-resize/smooth-resize.directive'
 
-let generatedSelectId = 0;
+let generatedSelectId = 0
 
 /**
  * Shared accessible interaction primitive for the single and multi select
@@ -228,236 +228,236 @@ let generatedSelectId = 0;
   `
 })
 export class SelectCoreComponent<TItem, TValue> {
-  readonly items = input.required<readonly TItem[]>();
-  readonly displayFn = input.required<(item: TItem) => string>();
-  readonly valueFn = input.required<(item: TItem) => TValue>();
-  readonly selected = input<TValue | null>(null);
-  readonly selectedValues = input<readonly TValue[]>([]);
-  readonly multiple = input(false);
-  readonly label = input('');
-  readonly ariaLabel = input<string>();
-  readonly id = input<string>();
-  readonly hint = input('');
-  readonly error = input('');
-  readonly required = input(false);
-  readonly disabled = input(false);
-  readonly invalid = input(false);
-  readonly searchPlaceholder = input('Cerca...');
-  readonly hasMore = input(false);
-  readonly loading = input(false);
-  readonly canCreateNew = input(false);
-  readonly listMaxHeight = input('16rem');
+  readonly items = input.required<readonly TItem[]>()
+  readonly displayFn = input.required<(item: TItem) => string>()
+  readonly valueFn = input.required<(item: TItem) => TValue>()
+  readonly selected = input<TValue | null>(null)
+  readonly selectedValues = input<readonly TValue[]>([])
+  readonly multiple = input(false)
+  readonly label = input('')
+  readonly ariaLabel = input<string>()
+  readonly id = input<string>()
+  readonly hint = input('')
+  readonly error = input('')
+  readonly required = input(false)
+  readonly disabled = input(false)
+  readonly invalid = input(false)
+  readonly searchPlaceholder = input('Cerca...')
+  readonly hasMore = input(false)
+  readonly loading = input(false)
+  readonly canCreateNew = input(false)
+  readonly listMaxHeight = input('16rem')
 
-  readonly selectionChange = output<SelectSelectionChange<TItem, TValue>>();
-  readonly searchChange = output<string>();
-  readonly loadMore = output<void>();
-  readonly createNew = output<string>();
+  readonly selectionChange = output<SelectSelectionChange<TItem, TValue>>()
+  readonly searchChange = output<string>()
+  readonly loadMore = output<void>()
+  readonly createNew = output<string>()
 
   private readonly state = signal<SelectState>({
     activeIndex: -1,
     searchTerm: '',
     hasFocus: false
-  });
-  readonly creatingNew = signal(false);
-  readonly newItemName = signal('');
-  readonly searchInput = viewChild<ElementRef<HTMLInputElement>>('searchInput');
-  readonly newInput = viewChild<ElementRef<HTMLInputElement>>('newInput');
-  readonly createTrigger = viewChild<ElementRef<HTMLButtonElement>>('createTrigger');
+  })
+  readonly creatingNew = signal(false)
+  readonly newItemName = signal('')
+  readonly searchInput = viewChild<ElementRef<HTMLInputElement>>('searchInput')
+  readonly newInput = viewChild<ElementRef<HTMLInputElement>>('newInput')
+  readonly createTrigger = viewChild<ElementRef<HTMLButtonElement>>('createTrigger')
 
-  private readonly generatedId = `select-${++generatedSelectId}`;
-  readonly controlId = computed(() => this.id() || this.generatedId);
-  readonly listboxId = computed(() => `${this.controlId()}-listbox`);
-  readonly hintId = computed(() => `${this.controlId()}-hint`);
-  readonly errorId = computed(() => `${this.controlId()}-error`);
-  readonly isOpen = computed(() => !this.disabled());
-  readonly activeIndex = computed(() => this.state().activeIndex);
+  private readonly generatedId = `select-${++generatedSelectId}`
+  readonly controlId = computed(() => this.id() || this.generatedId)
+  readonly listboxId = computed(() => `${this.controlId()}-listbox`)
+  readonly hintId = computed(() => `${this.controlId()}-hint`)
+  readonly errorId = computed(() => `${this.controlId()}-error`)
+  readonly isOpen = computed(() => !this.disabled())
+  readonly activeIndex = computed(() => this.state().activeIndex)
   readonly activeDescendant = computed(() =>
     this.activeIndex() >= 0 && this.isOpen() ? this.optionId(this.activeIndex()) : null
-  );
+  )
   readonly filteredItems = computed(() => {
-    const term = this.state().searchTerm.trim().toLowerCase();
-    if (!term) return this.items();
-    return this.items().filter(item => this.displayFn()(item).toLowerCase().includes(term));
-  });
+    const term = this.state().searchTerm.trim().toLowerCase()
+    if (!term) return this.items()
+    return this.items().filter(item => this.displayFn()(item).toLowerCase().includes(term))
+  })
   readonly inputValue = computed(() => {
-    if (this.multiple() || this.state().hasFocus || this.state().searchTerm) return this.state().searchTerm;
-    const selectedItem = this.items().find(item => this.sameValue(this.valueFn()(item), this.selected()));
-    return selectedItem ? this.displayFn()(selectedItem) : '';
-  });
+    if (this.multiple() || this.state().hasFocus || this.state().searchTerm) return this.state().searchTerm
+    const selectedItem = this.items().find(item => this.sameValue(this.valueFn()(item), this.selected()))
+    return selectedItem ? this.displayFn()(selectedItem) : ''
+  })
   readonly describedBy = computed(() => {
-    const ids: string[] = [];
-    if (this.hint()) ids.push(this.hintId());
-    if (this.invalid() && this.error()) ids.push(this.errorId());
-    return ids.join(' ');
-  });
+    const ids: string[] = []
+    if (this.hint()) ids.push(this.hintId())
+    if (this.invalid() && this.error()) ids.push(this.errorId())
+    return ids.join(' ')
+  })
 
   onFocus(): void {
-    if (this.disabled()) return;
-    this.updateState({ hasFocus: true, activeIndex: -1 });
+    if (this.disabled()) return
+    this.updateState({ hasFocus: true, activeIndex: -1 })
   }
 
   onBlur(): void {
-    this.updateState({ hasFocus: false, activeIndex: -1 });
+    this.updateState({ hasFocus: false, activeIndex: -1 })
   }
 
   onInput(event: Event): void {
-    const value = (event.target as HTMLInputElement).value;
+    const value = (event.target as HTMLInputElement).value
     this.updateState({
       searchTerm: value,
       activeIndex: this.items().some(item => this.displayFn()(item).toLowerCase().includes(value.trim().toLowerCase()))
         ? 0
         : -1
-    });
-    this.searchChange.emit(value);
+    })
+    this.searchChange.emit(value)
   }
 
   onKeydown(event: KeyboardEvent): void {
-    if (this.disabled()) return;
+    if (this.disabled()) return
     switch (event.key) {
       case 'ArrowDown':
-        event.preventDefault();
-        if (this.activeIndex() < 0) this.setActiveIndex(0);
-        else this.moveActive(1);
-        break;
+        event.preventDefault()
+        if (this.activeIndex() < 0) this.setActiveIndex(0)
+        else this.moveActive(1)
+        break
       case 'ArrowUp':
-        event.preventDefault();
+        event.preventDefault()
         if (this.activeIndex() < 0) {
-          this.setActiveIndex(Math.max(0, this.filteredItems().length - 1));
+          this.setActiveIndex(Math.max(0, this.filteredItems().length - 1))
         } else {
-          this.moveActive(-1);
+          this.moveActive(-1)
         }
-        break;
+        break
       case 'Home':
         if (this.isOpen()) {
-          event.preventDefault();
-          this.setActiveIndex(0);
+          event.preventDefault()
+          this.setActiveIndex(0)
         }
-        break;
+        break
       case 'End':
         if (this.isOpen()) {
-          event.preventDefault();
-          this.setActiveIndex(Math.max(0, this.filteredItems().length - 1));
+          event.preventDefault()
+          this.setActiveIndex(Math.max(0, this.filteredItems().length - 1))
         }
-        break;
+        break
       case 'Enter':
         if (this.activeIndex() >= 0) {
-          event.preventDefault();
-          const item = this.filteredItems()[this.activeIndex()];
-          if (item) this.selectItem(item);
+          event.preventDefault()
+          const item = this.filteredItems()[this.activeIndex()]
+          if (item) this.selectItem(item)
         }
-        break;
+        break
       case 'Escape':
         if (this.state().searchTerm || this.activeIndex() >= 0) {
-          event.preventDefault();
-          event.stopPropagation();
-          if (this.state().searchTerm) this.searchChange.emit('');
-          this.updateState({ activeIndex: -1, searchTerm: '' });
+          event.preventDefault()
+          event.stopPropagation()
+          if (this.state().searchTerm) this.searchChange.emit('')
+          this.updateState({ activeIndex: -1, searchTerm: '' })
         }
-        break;
+        break
       case 'Tab':
-        this.updateState({ activeIndex: -1 });
-        break;
+        this.updateState({ activeIndex: -1 })
+        break
     }
   }
 
   setActiveIndex(index: number): void {
-    const length = this.filteredItems().length;
-    this.updateState({ activeIndex: length ? Math.max(0, Math.min(index, length - 1)) : -1 });
+    const length = this.filteredItems().length
+    this.updateState({ activeIndex: length ? Math.max(0, Math.min(index, length - 1)) : -1 })
   }
 
   selectItem(item: TItem): void {
-    if (this.disabled()) return;
-    this.searchInput()?.nativeElement.blur();
-    const value = this.valueFn()(item);
+    if (this.disabled()) return
+    this.searchInput()?.nativeElement.blur()
+    const value = this.valueFn()(item)
     if (this.multiple()) {
-      const current = [...this.selectedValues()];
-      const existingIndex = current.findIndex(currentValue => this.sameValue(currentValue, value));
+      const current = [...this.selectedValues()]
+      const existingIndex = current.findIndex(currentValue => this.sameValue(currentValue, value))
       const values = existingIndex >= 0
         ? current.filter((_, index) => index !== existingIndex)
-        : [...current, value];
-      this.selectionChange.emit({ item, value, values });
-      this.updateState({ activeIndex: this.filteredItems().indexOf(item), searchTerm: '' });
+        : [...current, value]
+      this.selectionChange.emit({ item, value, values })
+      this.updateState({ activeIndex: this.filteredItems().indexOf(item), searchTerm: '' })
     } else {
-      this.selectionChange.emit({ item, value, values: [value] });
-      this.updateState({ activeIndex: -1, searchTerm: '' });
+      this.selectionChange.emit({ item, value, values: [value] })
+      this.updateState({ activeIndex: -1, searchTerm: '' })
     }
-    this.creatingNew.set(false);
+    this.creatingNew.set(false)
   }
 
   isSelected(item: TItem): boolean {
-    const value = this.valueFn()(item);
+    const value = this.valueFn()(item)
     return this.multiple()
       ? this.selectedValues().some(selected => this.sameValue(selected, value))
-      : this.sameValue(this.selected(), value);
+      : this.sameValue(this.selected(), value)
   }
 
   labelForValue(value: TValue): string {
-    const item = this.items().find(candidate => this.sameValue(this.valueFn()(candidate), value));
-    return item ? this.displayFn()(item) : String(value);
+    const item = this.items().find(candidate => this.sameValue(this.valueFn()(candidate), value))
+    return item ? this.displayFn()(item) : String(value)
   }
 
   startCreateNew(): void {
-    this.creatingNew.set(true);
-    window.setTimeout(() => this.newInput()?.nativeElement.focus());
+    this.creatingNew.set(true)
+    window.setTimeout(() => this.newInput()?.nativeElement.focus())
   }
 
   confirmCreateNew(): void {
-    const name = this.newItemName().trim();
-    if (!name) return;
-    this.createNew.emit(name);
-    this.newItemName.set('');
-    this.creatingNew.set(false);
+    const name = this.newItemName().trim()
+    if (!name) return
+    this.createNew.emit(name)
+    this.newItemName.set('')
+    this.creatingNew.set(false)
   }
 
   cancelCreateNew(): void {
-    this.newItemName.set('');
-    this.creatingNew.set(false);
-    window.setTimeout(() => this.createTrigger()?.nativeElement.focus());
+    this.newItemName.set('')
+    this.creatingNew.set(false)
+    window.setTimeout(() => this.createTrigger()?.nativeElement.focus())
   }
 
   removeValue(value: TValue): void {
-    if (!this.multiple()) return;
-    const values = this.selectedValues().filter(selected => !this.sameValue(selected, value));
-    this.selectionChange.emit({ values });
+    if (!this.multiple()) return
+    const values = this.selectedValues().filter(selected => !this.sameValue(selected, value))
+    this.selectionChange.emit({ values })
   }
 
   clearSelection(): void {
-    if (!this.multiple() || !this.selectedValues().length) return;
-    this.selectionChange.emit({ values: [] });
+    if (!this.multiple() || !this.selectedValues().length) return
+    this.selectionChange.emit({ values: [] })
   }
 
   onNewItemInput(event: Event): void {
-    this.newItemName.set((event.target as HTMLInputElement).value);
+    this.newItemName.set((event.target as HTMLInputElement).value)
   }
 
   onScroll(event: Event): void {
-    const target = event.target as HTMLElement;
+    const target = event.target as HTMLElement
     if (this.hasMore() && !this.loading() && target.scrollTop + target.clientHeight >= target.scrollHeight - 10) {
-      this.loadMore.emit();
+      this.loadMore.emit()
     }
   }
 
   optionId(index: number): string {
-    return `${this.listboxId()}-option-${index}`;
+    return `${this.listboxId()}-option-${index}`
   }
 
   private moveActive(delta: number): void {
-    const length = this.filteredItems().length;
+    const length = this.filteredItems().length
     if (!length) {
-      this.setActiveIndex(-1);
-      return;
+      this.setActiveIndex(-1)
+      return
     }
     const next = this.activeIndex() < 0
       ? 0
-      : (this.activeIndex() + delta + length) % length;
-    this.setActiveIndex(next);
+      : (this.activeIndex() + delta + length) % length
+    this.setActiveIndex(next)
   }
 
   private updateState(patch: Partial<SelectState>): void {
-    this.state.update(current => ({ ...current, ...patch }));
+    this.state.update(current => ({ ...current, ...patch }))
   }
 
   private sameValue(left: TValue | null, right: TValue | null): boolean {
-    return Object.is(left, right);
+    return Object.is(left, right)
   }
 }

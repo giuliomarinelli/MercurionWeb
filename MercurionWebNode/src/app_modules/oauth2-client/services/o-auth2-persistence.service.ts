@@ -1,9 +1,9 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, IsNull } from 'typeorm';
-import { OAuth2TokenEntity } from '../models/entities/oauth2-token.entity';
-import { UUID } from 'crypto';
-import { ProviderCredentialCipherService } from './provider-credential-cipher.service';
+import { Injectable } from '@nestjs/common'
+import { InjectRepository } from '@nestjs/typeorm'
+import { Repository, IsNull } from 'typeorm'
+import { OAuth2TokenEntity } from '../models/entities/oauth2-token.entity'
+import { UUID } from 'crypto'
+import { ProviderCredentialCipherService } from './provider-credential-cipher.service'
 
 interface OAuthTokenCreateCommand {
     provider: string
@@ -35,12 +35,12 @@ export class OAuth2PersistenceService {
         // TypeORM richiede IsNull() esplicito per i campi nullable
         const where = userId === undefined || userId === null
             ? { provider, userId: IsNull() }
-            : { provider, userId };
+            : { provider, userId }
 
         const existing = await this.tokenRepo.findOne({
             where,
             select: { id: true, provider: true, userId: true, refreshToken: true, scope: true },
-        });
+        })
 
         const encryptedRefreshToken = this.cipher.encrypt(
             refreshToken,
@@ -49,18 +49,18 @@ export class OAuth2PersistenceService {
         )
 
         if (existing) {
-            existing.refreshToken = encryptedRefreshToken;
-            if (scope) existing.scope = scope;
-            existing.updatedAt = Date.now();
-            await this.tokenRepo.save(existing);
+            existing.refreshToken = encryptedRefreshToken
+            if (scope) existing.scope = scope
+            existing.updatedAt = Date.now()
+            await this.tokenRepo.save(existing)
         } else {
             const record: OAuthTokenCreateCommand = {
                 provider,
                 refreshToken: encryptedRefreshToken,
                 userId: userId ?? null,
-            };
-            if (scope) record.scope = scope;
-            await this.tokenRepo.save(this.tokenRepo.create(record));
+            }
+            if (scope) record.scope = scope
+            await this.tokenRepo.save(this.tokenRepo.create(record))
         }
     }
 
@@ -68,12 +68,12 @@ export class OAuth2PersistenceService {
         provider = this.normalizeProvider(provider)
         const where = userId === undefined || userId === null
             ? { provider, userId: IsNull() }
-            : { provider, userId };
+            : { provider, userId }
 
         const token = await this.tokenRepo.findOne({
             where,
             select: { id: true, provider: true, userId: true, refreshToken: true },
-        });
+        })
         if (!token) return null
 
         if (!this.cipher.isEncrypted(token.refreshToken)) {
@@ -82,7 +82,7 @@ export class OAuth2PersistenceService {
             return legacyToken
         }
 
-        return this.cipher.decrypt(token.refreshToken, provider, this.ownerScope(userId));
+        return this.cipher.decrypt(token.refreshToken, provider, this.ownerScope(userId))
     }
 
     async deleteCredentials(provider: string, userId?: UUID): Promise<void> {

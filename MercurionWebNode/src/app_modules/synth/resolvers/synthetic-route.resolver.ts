@@ -1,14 +1,14 @@
-import { RequiresFeatures } from 'src/feature-flags/feature-access.decorator';
-import { Resolver, Query, Mutation, Args, ID, Info } from "@nestjs/graphql";
-import { AuthenticatedUserId } from "src/metadata/metadata";
-import { UUID } from "crypto";
-import { GraphQLResolveInfo } from 'graphql';
-import { GraphQLUtils } from "src/utils/graphql-utils/graphql-utils";
-import { Synthesis } from "../models/entities/synthesis.entity";
-import { SynthesisService } from "../services/synthesis.service";
-import { SynthesisInput } from "../models/dto/synthesis.input";
-import { assertMercurionPublicId } from "src/identifiers/mercurion-public-id";
-import { SynthCommandResult } from "../models/dto/synth-command-result";
+import { RequiresFeatures } from 'src/feature-flags/feature-access.decorator'
+import { Resolver, Query, Mutation, Args, ID, Info } from "@nestjs/graphql"
+import { AuthenticatedUserId } from "src/metadata/metadata"
+import { UUID } from "crypto"
+import { GraphQLResolveInfo } from 'graphql'
+import { GraphQLUtils } from "src/utils/graphql-utils/graphql-utils"
+import { Synthesis } from "../models/entities/synthesis.entity"
+import { SynthesisService } from "../services/synthesis.service"
+import { SynthesisInput } from "../models/dto/synthesis.input"
+import { assertMercurionPublicId } from "src/identifiers/mercurion-public-id"
+import { SynthCommandResult } from "../models/dto/synth-command-result"
 
 @RequiresFeatures('synthesis')
 @Resolver(() => Synthesis)
@@ -32,8 +32,8 @@ export class SyntheticRouteResolver {
         @Info() info: GraphQLResolveInfo
     ) {
         assertMercurionPublicId(id, 'id')
-        const fieldsMap = GraphQLUtils.getFieldsMap(info);
-        return this.routeService.findOne(id, userId, fieldsMap);
+        const fieldsMap = GraphQLUtils.getFieldsMap(info)
+        return this.routeService.findOne(id, userId, fieldsMap)
     }
 
     @Mutation(() => Synthesis)
@@ -41,7 +41,7 @@ export class SyntheticRouteResolver {
         @AuthenticatedUserId() userId: UUID,
         @Args('input') input: SynthesisInput
     ) {
-        return this.routeService.create(userId, input);
+        return this.routeService.create(userId, input)
     }
 
     @Mutation(() => Synthesis)

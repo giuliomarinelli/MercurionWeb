@@ -1,30 +1,30 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing'
 
-import { MoleculeBadgeComponent } from './molecule-badge.component';
+import { MoleculeBadgeComponent } from './molecule-badge.component'
 
 describe('MoleculeBadgeComponent', () => {
-  let component: MoleculeBadgeComponent;
-  let fixture: ComponentFixture<MoleculeBadgeComponent>;
+  let component: MoleculeBadgeComponent
+  let fixture: ComponentFixture<MoleculeBadgeComponent>
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [MoleculeBadgeComponent]
     })
-    .compileComponents();
+    .compileComponents()
 
-    fixture = TestBed.createComponent(MoleculeBadgeComponent);
-    fixture.componentRef.setInput('name', 'Test molecule');
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
+    fixture = TestBed.createComponent(MoleculeBadgeComponent)
+    fixture.componentRef.setInput('name', 'Test molecule')
+    component = fixture.componentInstance
+    fixture.detectChanges()
+  })
 
   it('should create', () => {
-    expect(component).toBeTruthy();
-  });
+    expect(component).toBeTruthy()
+  })
 
   it('renders the current input value', () => {
-    expect(fixture.nativeElement.textContent).toContain('Test molecule');
+    expect(fixture.nativeElement.textContent).toContain('Test molecule')
     expect(fixture.nativeElement.querySelector('button')?.getAttribute('aria-label'))
-      .toBe('Molecola Test molecule');
-  });
-});
+      .toBe('Molecola Test molecule')
+  })
+})

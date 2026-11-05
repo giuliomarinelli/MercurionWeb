@@ -1,13 +1,13 @@
-import { Component, ChangeDetectionStrategy, computed, input, output } from '@angular/core';
-import { PercentPipe } from '@angular/common';
-import { T1PredictionDTO, InferenceDTO } from '../../../Models/notebook/t1-prediction-model';
+import { Component, ChangeDetectionStrategy, computed, input, output } from '@angular/core'
+import { PercentPipe } from '@angular/common'
+import { T1PredictionDTO, InferenceDTO } from '../../../Models/notebook/t1-prediction-model'
 
-export const TOX21_ENDPOINTS = ['SR-ATAD5', 'NR-AhR', 'SR-MMP', 'SR-p53'] as const;
+export const TOX21_ENDPOINTS = ['SR-ATAD5', 'NR-AhR', 'SR-MMP', 'SR-p53'] as const
 
 function validPrediction(value: InferenceDTO | undefined): value is InferenceDTO {
   return !!value && typeof value.is_positive === 'boolean' &&
     Number.isFinite(value.probability) && value.probability >= 0 && value.probability <= 1 &&
-    Number.isFinite(value.threshold) && value.threshold >= 0 && value.threshold <= 1;
+    Number.isFinite(value.threshold) && value.threshold >= 0 && value.threshold <= 1
 }
 
 @Component({
@@ -69,13 +69,13 @@ function validPrediction(value: InferenceDTO | undefined): value is InferenceDTO
   `
 })
 export class T1PredictionCardComponent {
-  readonly inference = input<T1PredictionDTO | undefined>(undefined);
-  readonly loading = input(false);
-  readonly error = input(false);
-  readonly retry = output<void>();
+  readonly inference = input<T1PredictionDTO | undefined>(undefined)
+  readonly loading = input(false)
+  readonly error = input(false)
+  readonly retry = output<void>()
   protected readonly rows = computed(() => TOX21_ENDPOINTS.map(label => {
-    const prediction = this.inference()?.[label];
-    return { label, prediction: validPrediction(prediction) ? prediction : undefined };
-  }));
-  protected readonly available = computed(() => this.rows().filter(row => row.prediction).length);
+    const prediction = this.inference()?.[label]
+    return { label, prediction: validPrediction(prediction) ? prediction : undefined }
+  }))
+  protected readonly available = computed(() => this.rows().filter(row => row.prediction).length)
 }

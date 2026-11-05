@@ -1,12 +1,12 @@
-import { Controller, Delete, Get, Query, Param, Res, UnauthorizedException } from '@nestjs/common';
-import { OAuth2ClientService } from '../services/oauth2-client.service';
-import { FastifyReply } from 'fastify/types/reply';
-import { UUID } from 'crypto';
-import { Public } from 'src/metadata/metadata';
-import { LoggerPort } from 'src/logging/logger.port';
-import { LoggerContext } from 'src/logging/logger.port';
-import { OAuthStateService } from '../services/oauth-state.service';
-import { AuthenticatedUserId } from 'src/metadata/metadata';
+import { Controller, Delete, Get, Query, Param, Res, UnauthorizedException } from '@nestjs/common'
+import { OAuth2ClientService } from '../services/oauth2-client.service'
+import { FastifyReply } from 'fastify/types/reply'
+import { UUID } from 'crypto'
+import { Public } from 'src/metadata/metadata'
+import { LoggerPort } from 'src/logging/logger.port'
+import { LoggerContext } from 'src/logging/logger.port'
+import { OAuthStateService } from '../services/oauth-state.service'
+import { AuthenticatedUserId } from 'src/metadata/metadata'
 
 
 

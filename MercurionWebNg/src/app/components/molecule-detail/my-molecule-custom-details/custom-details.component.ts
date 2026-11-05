@@ -1,8 +1,8 @@
-import { Observable, Subscription, defer, of } from 'rxjs';
-import { catchError, defaultIfEmpty, finalize, take } from 'rxjs/operators';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CustomDetailSaveModel } from '../../../Models/custom-detail-save.model';
-import { NgClass } from '@angular/common';
+import { Observable, Subscription, defer, of } from 'rxjs'
+import { catchError, defaultIfEmpty, finalize, take } from 'rxjs/operators'
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
+import { CustomDetailSaveModel } from '../../../Models/custom-detail-save.model'
+import { NgClass } from '@angular/common'
 import {
   ChangeDetectionStrategy,
   DestroyRef,
@@ -17,9 +17,9 @@ import {
   output,
   viewChild,
   untracked
-} from '@angular/core';
-import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.component';
-import { IconButtonComponent, IconButtonSize } from '../../common/icon-button/icon-button.component';
+} from '@angular/core'
+import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.component'
+import { IconButtonComponent, IconButtonSize } from '../../common/icon-button/icon-button.component'
 
 @Component({
   selector: 'm-custom-details',
@@ -199,26 +199,26 @@ import { IconButtonComponent, IconButtonSize } from '../../common/icon-button/ic
   `
 })
 export class CustomDetailsComponent {
-  private saveSubscription?: Subscription;
-  private readonly r = inject(Renderer2);
-  private readonly destroyRef = inject(DestroyRef);
-  readonly pending = signal(false);
-  readonly saveError = signal('');
-  readonly saveRequest = input<((detail: CustomDetailSaveModel) => Observable<boolean>) | undefined>();
+  private saveSubscription?: Subscription
+  private readonly r = inject(Renderer2)
+  private readonly destroyRef = inject(DestroyRef)
+  readonly pending = signal(false)
+  readonly saveError = signal('')
+  readonly saveRequest = input<((detail: CustomDetailSaveModel) => Observable<boolean>) | undefined>()
 
-  _label = signal<string>('');
-  _value = signal<string>('');
-  readonly _badgeName = computed(() => this.badgeName());
-  startValue = signal<string>('');
-  _type = signal<'label' | 'notes' | 'name' | 'cardName'>('label');
-  _itemId = signal<string>('');
-  mode = signal<'view' | 'edit'>('view');
-  _isReadonly = signal<boolean>(false);
-  lastValue = signal<string | null>(null);
-  _triggerRollback = signal<boolean>(false);
-  _hideActions = signal<boolean>(false);
+  _label = signal<string>('')
+  _value = signal<string>('')
+  readonly _badgeName = computed(() => this.badgeName())
+  startValue = signal<string>('')
+  _type = signal<'label' | 'notes' | 'name' | 'cardName'>('label')
+  _itemId = signal<string>('')
+  mode = signal<'view' | 'edit'>('view')
+  _isReadonly = signal<boolean>(false)
+  lastValue = signal<string | null>(null)
+  _triggerRollback = signal<boolean>(false)
+  _hideActions = signal<boolean>(false)
 
-  readonly valueRef = viewChild.required<ElementRef<HTMLElement>>('value');
+  readonly valueRef = viewChild.required<ElementRef<HTMLElement>>('value')
 
   readonly type = input.required<'label' | 'notes' | 'name' | 'cardName'>()
   readonly value = input.required<string>()
@@ -230,9 +230,9 @@ export class CustomDetailsComponent {
   readonly triggerRollback = input(false)
   readonly hideActions = input(false)
 
-  readonly onSaving = output<CustomDetailSaveModel>();
+  readonly onSaving = output<CustomDetailSaveModel>()
 
-  readonly onDoingRollback = output<void>();
+  readonly onDoingRollback = output<void>()
 
   constructor() {
     effect(() => {
@@ -240,9 +240,9 @@ export class CustomDetailsComponent {
       const value = this.value()
       const itemId = this.itemId()
       if (itemId !== untracked(this._itemId)) {
-        this.saveSubscription?.unsubscribe();
-        this.mode.set('view');
-        this.saveError.set('');
+        this.saveSubscription?.unsubscribe()
+        this.mode.set('view')
+        this.saveError.set('')
       }
       this._type.set(type)
       this._label.set(type === 'label' ? 'Etichetta:' : type === 'notes' ? 'Note:' : '')
@@ -259,117 +259,117 @@ export class CustomDetailsComponent {
       const restore = this.lastValue()
       if (this._triggerRollback() && restore) {
         queueMicrotask(() => {
-          this._triggerRollback.set(false);
-          this._value.set(restore);
-          this.startValue.set(restore);
-          const el = this.valueRef().nativeElement;
-          el.textContent = restore;
-          this.mode.set('view');
+          this._triggerRollback.set(false)
+          this._value.set(restore)
+          this.startValue.set(restore)
+          const el = this.valueRef().nativeElement
+          el.textContent = restore
+          this.mode.set('view')
           // TODO: The 'emit' function requires a mandatory void argument
-          this.onDoingRollback.emit();
-        });
+          this.onDoingRollback.emit()
+        })
       }
-    });
+    })
   }
 
   doEdit(): void {
-    if (this.pending()) return;
-    this.saveError.set('');
-    this.mode.set('edit');
-    const el = this.valueRef().nativeElement;
-    this.r.setAttribute(el, 'contenteditable', 'true');
-    this.r.setAttribute(el, 'tabindex', '0');
-    el.textContent = this._value();
+    if (this.pending()) return
+    this.saveError.set('')
+    this.mode.set('edit')
+    const el = this.valueRef().nativeElement
+    this.r.setAttribute(el, 'contenteditable', 'true')
+    this.r.setAttribute(el, 'tabindex', '0')
+    el.textContent = this._value()
 
     requestAnimationFrame(() => {
-      if (this.destroyRef.destroyed || this.mode() !== 'edit') return;
-      el.focus();
-      const range = document.createRange();
-      range.selectNodeContents(el);
-      range.collapse(false);
-      const sel = window.getSelection();
-      sel?.removeAllRanges();
-      sel?.addRange(range);
-    });
+      if (this.destroyRef.destroyed || this.mode() !== 'edit') return
+      el.focus()
+      const range = document.createRange()
+      range.selectNodeContents(el)
+      range.collapse(false)
+      const sel = window.getSelection()
+      sel?.removeAllRanges()
+      sel?.addRange(range)
+    })
   }
 
   doCancel(): void {
-    if (this.pending()) return;
-    this.saveError.set('');
-    const el = this.valueRef().nativeElement;
-    el.textContent = this.startValue();
-    this._value.set(this.startValue());
-    this.mode.set('view');
-    this.r.removeAttribute(el, 'contenteditable');
-    this.r.removeAttribute(el, 'tabindex');
-    this.restoreEditFocus();
+    if (this.pending()) return
+    this.saveError.set('')
+    const el = this.valueRef().nativeElement
+    el.textContent = this.startValue()
+    this._value.set(this.startValue())
+    this.mode.set('view')
+    this.r.removeAttribute(el, 'contenteditable')
+    this.r.removeAttribute(el, 'tabindex')
+    this.restoreEditFocus()
   }
 
   doSave(): void {
-    if (this.pending() || this.mode() !== 'edit') return;
-    const el = this.valueRef().nativeElement;
-    const newValue = el.innerText;
+    if (this.pending() || this.mode() !== 'edit') return
+    const el = this.valueRef().nativeElement
+    const newValue = el.innerText
     if (this._type() === 'name' && !newValue.trim()) {
-      this.saveError.set('Inserisci un nome per la molecola.');
-      el.focus();
-      return;
+      this.saveError.set('Inserisci un nome per la molecola.')
+      el.focus()
+      return
     }
     const detail: CustomDetailSaveModel = {
       label: this._label(), value: newValue, type: this._type(), id: this._itemId()
-    };
+    }
     const commit = () => {
-      this.lastValue.set(this._value());
-      this.startValue.set(newValue);
-      this._value.set(newValue);
-      this.mode.set('view');
-      this.r.removeAttribute(el, 'contenteditable');
-      this.r.removeAttribute(el, 'tabindex');
-      this.restoreEditFocus();
-    };
-    const request = this.saveRequest();
-    if (!request) { commit(); this.onSaving.emit(detail); return; }
-    this.pending.set(true);
-    this.saveError.set('');
+      this.lastValue.set(this._value())
+      this.startValue.set(newValue)
+      this._value.set(newValue)
+      this.mode.set('view')
+      this.r.removeAttribute(el, 'contenteditable')
+      this.r.removeAttribute(el, 'tabindex')
+      this.restoreEditFocus()
+    }
+    const request = this.saveRequest()
+    if (!request) { commit(); this.onSaving.emit(detail); return }
+    this.pending.set(true)
+    this.saveError.set('')
     this.saveSubscription = defer(() => request(detail)).pipe(
       take(1), defaultIfEmpty(false), catchError(() => of(false)),
       takeUntilDestroyed(this.destroyRef), finalize(() => this.pending.set(false))
     ).subscribe(ok => {
-      if (this.itemId() !== detail.id) return;
-      if (ok) commit();
-      else this.saveError.set('Salvataggio non riuscito. La modifica è ancora qui: riprova o annulla.');
-    });
+      if (this.itemId() !== detail.id) return
+      if (ok) commit()
+      else this.saveError.set('Salvataggio non riuscito. La modifica è ancora qui: riprova o annulla.')
+    })
   }
 
   private restoreEditFocus(): void {
     requestAnimationFrame(() => {
-      if (this.destroyRef.destroyed || this.mode() !== 'view') return;
-      this.valueRef().nativeElement.parentElement?.querySelector<HTMLButtonElement>('button')?.focus();
-    });
+      if (this.destroyRef.destroyed || this.mode() !== 'view') return
+      this.valueRef().nativeElement.parentElement?.querySelector<HTMLButtonElement>('button')?.focus()
+    })
   }
 
   onKeydown(event: KeyboardEvent): void {
-    if (this.mode() !== 'edit') return;
-    if (event.key === 'Escape') { event.preventDefault(); this.doCancel(); }
+    if (this.mode() !== 'edit') return
+    if (event.key === 'Escape') { event.preventDefault(); this.doCancel() }
     if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
-      event.preventDefault(); this.doSave();
+      event.preventDefault(); this.doSave()
     }
   }
 
   onEdit(ev: MouseEvent): void {
-    ev.preventDefault();
-    ev.stopPropagation();
-    this.doEdit();
+    ev.preventDefault()
+    ev.stopPropagation()
+    this.doEdit()
   }
 
   onCancel(ev: MouseEvent): void {
-    ev.preventDefault();
-    ev.stopPropagation();
-    this.doCancel();
+    ev.preventDefault()
+    ev.stopPropagation()
+    this.doCancel()
   }
 
   onSave(ev: MouseEvent): void {
-    ev.preventDefault();
-    ev.stopPropagation();
-    this.doSave();
+    ev.preventDefault()
+    ev.stopPropagation()
+    this.doSave()
   }
 }

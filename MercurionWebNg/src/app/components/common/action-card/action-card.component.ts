@@ -4,18 +4,18 @@ import {
   computed,
   input,
   output,
-} from '@angular/core';
-import { IconButtonComponent } from '../icon-button/icon-button.component';
-import { SmoothResizeDirective } from '../smooth-resize/smooth-resize.directive';
+} from '@angular/core'
+import { IconButtonComponent } from '../icon-button/icon-button.component'
+import { SmoothResizeDirective } from '../smooth-resize/smooth-resize.directive'
 
-export type ActionCardSize = 'compact' | 'standard' | 'wide' | 'full';
+export type ActionCardSize = 'compact' | 'standard' | 'wide' | 'full'
 
 const SIZE_CLASSES: Record<ActionCardSize, string> = {
   compact: 'm-action-card--compact',
   standard: 'm-action-card--standard',
   wide: 'm-action-card--wide',
   full: 'm-action-card--full',
-};
+}
 
 @Component({
   selector: 'm-action-card',
@@ -183,13 +183,13 @@ const SIZE_CLASSES: Record<ActionCardSize, string> = {
   `,
 })
 export class ActionCardComponent {
-  readonly size = input<ActionCardSize>('standard');
-  readonly labelledBy = input<string | null>(null);
-  readonly busy = input(false);
-  readonly bodyScroll = input(true);
-  readonly closeLabel = input<string | null>(null);
-  readonly closeDisabled = input(false);
-  readonly closed = output<MouseEvent>();
+  readonly size = input<ActionCardSize>('standard')
+  readonly labelledBy = input<string | null>(null)
+  readonly busy = input(false)
+  readonly bodyScroll = input(true)
+  readonly closeLabel = input<string | null>(null)
+  readonly closeDisabled = input(false)
+  readonly closed = output<MouseEvent>()
 
-  protected readonly classes = computed(() => SIZE_CLASSES[this.size()]);
+  protected readonly classes = computed(() => SIZE_CLASSES[this.size()])
 }

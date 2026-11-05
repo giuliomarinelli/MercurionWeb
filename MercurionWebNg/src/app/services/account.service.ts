@@ -1,9 +1,9 @@
-import { HttpClient } from '@angular/common/http';
-import { effect, inject, Injectable, signal } from '@angular/core';
-import { finalize, map, Observable, of, shareReplay, switchMap, tap, throwError } from 'rxjs';
-import { TypeGuardsService } from './type-guards.service';
-import { AuthStateStore } from './auth-state.store';
-import { PROVIDED_ACCOUNT_ID_CACHE_CLOCK, type ProvidedEmailCache } from './provided-email-cache.tokens';
+import { HttpClient } from '@angular/common/http'
+import { effect, inject, Injectable, signal } from '@angular/core'
+import { finalize, map, Observable, of, shareReplay, switchMap, tap, throwError } from 'rxjs'
+import { TypeGuardsService } from './type-guards.service'
+import { AuthStateStore } from './auth-state.store'
+import { PROVIDED_ACCOUNT_ID_CACHE_CLOCK, type ProvidedEmailCache } from './provided-email-cache.tokens'
 import type {
   AuthProvider,
   BackupCodesDTO,

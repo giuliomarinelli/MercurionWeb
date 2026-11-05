@@ -238,9 +238,9 @@ export class SearchOverlayComponent implements AfterViewInit, OnDestroy {
   private readonly chemblService = inject(MoleculeSearchService)
   private readonly collectionService = inject(MoleculeCollectionItemService)
 
-  private readonly scrollRoot = viewChild.required<ElementRef<HTMLElement>>('scrollRoot');
+  private readonly scrollRoot = viewChild.required<ElementRef<HTMLElement>>('scrollRoot')
 
-  private readonly sentinel = viewChild.required<ElementRef<HTMLDivElement>>('sentinel');
+  private readonly sentinel = viewChild.required<ElementRef<HTMLDivElement>>('sentinel')
 
   query = signal<string>('')
 

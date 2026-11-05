@@ -1,5 +1,5 @@
-import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
-import { HeaderSessionState } from './header.models';
+import { Component, ChangeDetectionStrategy, input, output } from '@angular/core'
+import { HeaderSessionState } from './header.models'
 
 @Component({
   selector: 'm-header-account-menu',
@@ -13,6 +13,6 @@ import { HeaderSessionState } from './header.models';
   `
 })
 export class HeaderAccountMenuComponent {
-  readonly session = input.required<HeaderSessionState>();
-  readonly action = output<'open' | 'close' | 'logout'>();
+  readonly session = input.required<HeaderSessionState>()
+  readonly action = output<'open' | 'close' | 'logout'>()
 }

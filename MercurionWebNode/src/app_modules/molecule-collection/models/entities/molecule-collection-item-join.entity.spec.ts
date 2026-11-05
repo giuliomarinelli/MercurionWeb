@@ -1,12 +1,12 @@
-import { MoleculeCollectionItemJoin } from './molecule-collection-item-join.entity';
-import { getMetadataArgsStorage } from 'typeorm';
+import { MoleculeCollectionItemJoin } from './molecule-collection-item-join.entity'
+import { getMetadataArgsStorage } from 'typeorm'
 
 describe('MoleculeCollectionItemJoin', () => {
   it('should create join entity instance', () => {
-    const join = new MoleculeCollectionItemJoin();
-    expect(join).toBeInstanceOf(MoleculeCollectionItemJoin);
-  });
-});
+    const join = new MoleculeCollectionItemJoin()
+    expect(join).toBeInstanceOf(MoleculeCollectionItemJoin)
+  })
+})
 
 
 describe('MoleculeCollectionItemJoin DB-first mapping', () => {
@@ -14,9 +14,9 @@ describe('MoleculeCollectionItemJoin DB-first mapping', () => {
     const columns = getMetadataArgsStorage().joinColumns
       .filter(column => column.target === MoleculeCollectionItemJoin)
       .map(column => column.name)
-      .sort();
+      .sort()
 
-    expect(columns).toEqual(['collection_id', 'item_id']);
-    expect(columns).not.toContain('user_id');
-  });
-});
+    expect(columns).toEqual(['collection_id', 'item_id'])
+    expect(columns).not.toContain('user_id')
+  })
+})

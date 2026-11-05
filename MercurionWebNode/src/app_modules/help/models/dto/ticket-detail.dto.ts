@@ -1,5 +1,5 @@
-import { Field, ObjectType } from "@nestjs/graphql";
-import { TicketMessageResponse, TicketResponse } from "./help-response.dto";
+import { Field, ObjectType } from "@nestjs/graphql"
+import { TicketMessageResponse, TicketResponse } from "./help-response.dto"
 
 @ObjectType()
 export class TicketDetailDTO {

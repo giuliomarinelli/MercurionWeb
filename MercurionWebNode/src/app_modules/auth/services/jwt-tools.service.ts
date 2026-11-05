@@ -1,28 +1,28 @@
-import { Inject, Injectable, Optional, type OnModuleInit, type OnModuleDestroy } from '@nestjs/common';
-import { JwtService, JwtSignOptions, JwtVerifyOptions } from '@nestjs/jwt';
-import { JwtAudience, JwtConfiguration } from 'src/config/config.types';
-import { ConfigService } from '@nestjs/config';
-import { TokenType } from '../models/enums/token-type.enum';
-import { randomUUID, UUID } from 'crypto';
-import { GeneralUtils } from 'src/utils/general-utils/general-utils';
-import { Scope } from 'src/app_modules/user/models/enums/scope.enum';
-import { FastifyRequest } from 'fastify';
+import { Inject, Injectable, Optional, type OnModuleInit, type OnModuleDestroy } from '@nestjs/common'
+import { JwtService, JwtSignOptions, JwtVerifyOptions } from '@nestjs/jwt'
+import { JwtAudience, JwtConfiguration } from 'src/config/config.types'
+import { ConfigService } from '@nestjs/config'
+import { TokenType } from '../models/enums/token-type.enum'
+import { randomUUID, UUID } from 'crypto'
+import { GeneralUtils } from 'src/utils/general-utils/general-utils'
+import { Scope } from 'src/app_modules/user/models/enums/scope.enum'
+import { FastifyRequest } from 'fastify'
 
-import { AppJwtPayload } from '../models/interfaces/app-jwt-payload.interface';
-import { SessionService } from './session.service';
-import { LoggerContext } from 'src/logging/logger.port';
-import { LoggerPort } from 'src/logging/logger.port';
-import { JwtKeysProvider } from '../providers/jwt-keys.provider';
+import { AppJwtPayload } from '../models/interfaces/app-jwt-payload.interface'
+import { SessionService } from './session.service'
+import { LoggerContext } from 'src/logging/logger.port'
+import { LoggerPort } from 'src/logging/logger.port'
+import { JwtKeysProvider } from '../providers/jwt-keys.provider'
 import { errorMessage } from 'src/utils/errors/error-message'
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 import { IDENTITY_READ_PORT, IdentityReadPort } from '../models/interfaces/identity-read.port'
-import { SecurityService } from './security.service';
-import { RedisService } from 'src/app_modules/redis/services/redis.service';
-import { redisKeys } from 'src/app_modules/redis/contracts/redis-contracts';
-import { Environment } from 'src/config/config.schema';
-import { JwtKeyRing } from '../keys/jwt-key-ring';
-import { JwtKeyRuntimeError } from '../keys/jwt-key-runtime-error';
-import { JWT_KEY_RUNTIME_OPTIONS, type JwtKeyRuntimeOptions } from '../keys/jwt-key-runtime.module';
+import { SecurityService } from './security.service'
+import { RedisService } from 'src/app_modules/redis/services/redis.service'
+import { redisKeys } from 'src/app_modules/redis/contracts/redis-contracts'
+import { Environment } from 'src/config/config.schema'
+import { JwtKeyRing } from '../keys/jwt-key-ring'
+import { JwtKeyRuntimeError } from '../keys/jwt-key-runtime-error'
+import { JWT_KEY_RUNTIME_OPTIONS, type JwtKeyRuntimeOptions } from '../keys/jwt-key-runtime.module'
 
 @Injectable()
 export class JwtToolsService implements OnModuleInit, OnModuleDestroy {

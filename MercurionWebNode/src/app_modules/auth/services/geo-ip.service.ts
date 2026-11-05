@@ -1,13 +1,13 @@
 
 // src/app_modules/common/services/geo-ip.service.ts
 
-import { Injectable } from '@nestjs/common';
-import * as geoip from 'geoip-lite';
-import { LoggerPort } from 'src/logging/logger.port';
-import { LoggerContext } from 'src/logging/logger.port';
+import { Injectable } from '@nestjs/common'
+import * as geoip from 'geoip-lite'
+import { LoggerPort } from 'src/logging/logger.port'
+import { LoggerContext } from 'src/logging/logger.port'
 
 export interface GeoLocationInfo {
-    ip: string;
+    ip: string
     country: string | null
     region: string | null
     city: string | null
@@ -23,7 +23,7 @@ export interface GeoLocation {
 @Injectable()
 export class GeoIpService {
 
-    private readonly logger: LoggerContext;
+    private readonly logger: LoggerContext
 
     constructor(meiliLogger: LoggerPort) {
         this.logger = meiliLogger.forContext(GeoIpService.name)
@@ -33,7 +33,7 @@ export class GeoIpService {
         const lookup = geoip.lookup(ip)
 
         if (!lookup) {
-            this.logger.warn(`IP geolocation failed for: ${ip}`);
+            this.logger.warn(`IP geolocation failed for: ${ip}`)
             return {
                 ip,
                 country: null,
@@ -55,14 +55,14 @@ export class GeoIpService {
     }
 
     haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-        const R = 6371; // Raggio terrestre in km
+        const R = 6371 // Raggio terrestre in km
         const toRad = (deg: number) => deg * (Math.PI / 180)
 
         const dLat = toRad(lat2 - lat1)
         const dLon = toRad(lon2 - lon1)
         const a = Math.sin(dLat / 2) ** 2 +
             Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-            Math.sin(dLon / 2) ** 2;
+            Math.sin(dLon / 2) ** 2
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 
         return R * c // distanza in km

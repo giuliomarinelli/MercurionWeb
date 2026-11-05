@@ -1,10 +1,10 @@
-import { UUID } from 'crypto';
-import { uuidv7 } from '@kripod/uuidv7';
-import { BeforeInsert, Column, Entity, OneToMany, PrimaryColumn, Index, Unique } from 'typeorm';
-import { SynthStep } from './synth-step.entity';
-import { Field, ID, ObjectType } from '@nestjs/graphql';
-import { SynthesisPoolCollection } from './synthesis-pool-collection.entity';
-import { SynthesisPoolMolecule } from './synthesis-pool-molecule.entity';
+import { UUID } from 'crypto'
+import { uuidv7 } from '@kripod/uuidv7'
+import { BeforeInsert, Column, Entity, OneToMany, PrimaryColumn, Index, Unique } from 'typeorm'
+import { SynthStep } from './synth-step.entity'
+import { Field, ID, ObjectType } from '@nestjs/graphql'
+import { SynthesisPoolCollection } from './synthesis-pool-collection.entity'
+import { SynthesisPoolMolecule } from './synthesis-pool-molecule.entity'
 
 @ObjectType()
 @Entity('synthesis')

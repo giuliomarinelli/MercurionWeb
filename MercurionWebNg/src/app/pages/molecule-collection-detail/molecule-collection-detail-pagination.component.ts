@@ -1,6 +1,6 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
-import { ButtonComponent } from '../../components/common/button/button.component';
-import { SkeletonMoleculeCardComponent } from '../../components/molecule-detail/skeleton-molecule-card/skeleton-molecule-card.component';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core'
+import { ButtonComponent } from '../../components/common/button/button.component'
+import { SkeletonMoleculeCardComponent } from '../../components/molecule-detail/skeleton-molecule-card/skeleton-molecule-card.component'
 
 @Component({
   selector: 'm-molecule-collection-detail-pagination',
@@ -31,14 +31,14 @@ import { SkeletonMoleculeCardComponent } from '../../components/molecule-detail/
   `
 })
 export class MoleculeCollectionDetailPaginationComponent {
-  readonly loading = input(false);
-  readonly hasItems = input(false);
-  readonly empty = input(false);
-  readonly done = input(false);
-  readonly search = input('');
-  readonly error = input<string | undefined>(undefined);
-  readonly loadMore = output<void>();
-  readonly retry = output<void>();
-  readonly clear = output<void>();
-  readonly add = output<void>();
+  readonly loading = input(false)
+  readonly hasItems = input(false)
+  readonly empty = input(false)
+  readonly done = input(false)
+  readonly search = input('')
+  readonly error = input<string | undefined>(undefined)
+  readonly loadMore = output<void>()
+  readonly retry = output<void>()
+  readonly clear = output<void>()
+  readonly add = output<void>()
 }

@@ -1,6 +1,6 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
-import { MoleculeCardItemModel } from '../../Models/graphql/molecule-collection/molecule-collection.types';
-import { MoleculeCollectionItemCardComponent } from '../../components/molecule-detail/molecule-collection-item-card/molecule-collection-item-card.component';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core'
+import { MoleculeCardItemModel } from '../../Models/graphql/molecule-collection/molecule-collection.types'
+import { MoleculeCollectionItemCardComponent } from '../../components/molecule-detail/molecule-collection-item-card/molecule-collection-item-card.component'
 
 @Component({
   selector: 'm-molecule-collection-detail-grid',
@@ -19,8 +19,8 @@ import { MoleculeCollectionItemCardComponent } from '../../components/molecule-d
   `
 })
 export class MoleculeCollectionDetailGridComponent {
-  readonly items = input<readonly MoleculeCardItemModel[]>([]);
-  readonly collectionId = input('');
-  readonly delete = output<string>();
-  readonly remove = output<string>();
+  readonly items = input<readonly MoleculeCardItemModel[]>([])
+  readonly collectionId = input('')
+  readonly delete = output<string>()
+  readonly remove = output<string>()
 }

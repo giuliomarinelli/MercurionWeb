@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import { SkeletonMoleculeCardComponent } from '../../molecule-detail/skeleton-molecule-card/skeleton-molecule-card.component';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core'
+import { SkeletonMoleculeCardComponent } from '../../molecule-detail/skeleton-molecule-card/skeleton-molecule-card.component'
 
 @Component({
   selector: 'm-search-result-skeleton-loader',
@@ -15,5 +15,5 @@ import { SkeletonMoleculeCardComponent } from '../../molecule-detail/skeleton-mo
   `
 })
 export class SearchResultSkeletonLoaderComponent {
-  readonly selectionHint = input(false);
+  readonly selectionHint = input(false)
 }

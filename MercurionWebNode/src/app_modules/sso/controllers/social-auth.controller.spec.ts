@@ -1,6 +1,6 @@
-import { SocialAuthController } from './social-auth.controller';
-import { SocialAuthService } from '../services/social-auth.service';
-import { ConfigService } from '@nestjs/config';
+import { SocialAuthController } from './social-auth.controller'
+import { SocialAuthService } from '../services/social-auth.service'
+import { ConfigService } from '@nestjs/config'
 
 describe('SocialAuthController', () => {
   it('should be defined', () => {
@@ -14,7 +14,7 @@ describe('SocialAuthController', () => {
       {
         get: jest.fn().mockReturnValue('https://example.com'),
       } as unknown as ConfigService,
-    );
-    expect(controller).toBeDefined();
-  });
-});
+    )
+    expect(controller).toBeDefined()
+  })
+})

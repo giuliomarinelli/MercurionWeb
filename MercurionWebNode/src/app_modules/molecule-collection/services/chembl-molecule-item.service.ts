@@ -1,16 +1,16 @@
-import { MoleculeCollectionItemJoin } from './../models/entities/molecule-collection-item-join.entity';
-import { Injectable } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { ChEMBLMoleculeItemEntity } from "../models/entities/chembl-molecule-item.entity";
-import { DataSource, Repository } from "typeorm";
-import { UUID } from "crypto";
-import { GraphQLFieldsMap } from "src/utils/type-orm-utils/type-orm-utils";
-import { GraphQLUtils } from "src/utils/graphql-utils/graphql-utils";
-import { MoleculeCollectionItemJoinService } from "./molecule-collection-item-join.service";
+import { MoleculeCollectionItemJoin } from './../models/entities/molecule-collection-item-join.entity'
+import { Injectable } from "@nestjs/common"
+import { InjectRepository } from "@nestjs/typeorm"
+import { ChEMBLMoleculeItemEntity } from "../models/entities/chembl-molecule-item.entity"
+import { DataSource, Repository } from "typeorm"
+import { UUID } from "crypto"
+import { GraphQLFieldsMap } from "src/utils/type-orm-utils/type-orm-utils"
+import { GraphQLUtils } from "src/utils/graphql-utils/graphql-utils"
+import { MoleculeCollectionItemJoinService } from "./molecule-collection-item-join.service"
 
-import { MoleculeCollection } from "../models/entities/molecule-collection.entity";
-import { uuidv7 } from '@kripod/uuidv7';
-import { AddManyChEMBLItemDTO } from "../models/dto/add-many-chembl-items.dto";
+import { MoleculeCollection } from "../models/entities/molecule-collection.entity"
+import { uuidv7 } from '@kripod/uuidv7'
+import { AddManyChEMBLItemDTO } from "../models/dto/add-many-chembl-items.dto"
 import { runInTransaction } from 'src/persistence/transaction-context'
 import { MoleculeOwnershipPolicy } from './molecule-ownership.policy'
 
@@ -115,13 +115,13 @@ export class ChEMBLMoleculeItemService {
             await this.ownershipPolicy.assertCollectionOwned(manager, userId, collectionId)
 
             // 3. Crea la join (se il joinService usa repository, passagli manager.queryRunner.manager oppure implementa la logica qui)
-            await this.joinService.addMoleculeToCollectionWithManager(userId, collectionId, item.id, manager);
+            await this.joinService.addMoleculeToCollectionWithManager(userId, collectionId, item.id, manager)
 
             // 4. Aggiorna updatedAt della collection
-            await manager.update(MoleculeCollection, { id: collectionId, userId }, { updatedAt: Date.now() });
+            await manager.update(MoleculeCollection, { id: collectionId, userId }, { updatedAt: Date.now() })
 
-            return item;
-        });
+            return item
+        })
     }
 
 

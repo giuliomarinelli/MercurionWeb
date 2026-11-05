@@ -1,41 +1,41 @@
-import { MoleculeCardItemModel } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
-import { MoleculeSearchResult } from '../../../Models/graphql/molecule-search/molecule-search-result.interface';
+import { MoleculeCardItemModel } from '../../../Models/graphql/molecule-collection/molecule-collection.types'
+import { MoleculeSearchResult } from '../../../Models/graphql/molecule-search/molecule-search-result.interface'
 
 export type MoleculeSummaryAction =
   | { readonly kind: 'link'; readonly label: string; readonly icon?: 'duplicate'; readonly href: string; readonly queryParams?: Record<string, string> }
-  | { readonly kind: 'button'; readonly label: string; readonly icon?: 'delete' | 'remove'; readonly action: 'delete' | 'remove' | 'select' };
+  | { readonly kind: 'button'; readonly label: string; readonly icon?: 'delete' | 'remove'; readonly action: 'delete' | 'remove' | 'select' }
 
 export type MoleculeSummaryViewModel =
   | {
-      readonly source: 'saved';
-      readonly id: string;
-      readonly name: string;
-      readonly synonym: string;
-      readonly smiles: string;
-      readonly molecularWeight?: number;
-      readonly phase?: number;
-      readonly createdAt?: number;
-      readonly updatedAt?: number;
-      readonly badge?: string;
-      readonly actions: readonly MoleculeSummaryAction[];
-      readonly selectable: boolean;
-      readonly compact: boolean;
+      readonly source: 'saved'
+      readonly id: string
+      readonly name: string
+      readonly synonym: string
+      readonly smiles: string
+      readonly molecularWeight?: number
+      readonly phase?: number
+      readonly createdAt?: number
+      readonly updatedAt?: number
+      readonly badge?: string
+      readonly actions: readonly MoleculeSummaryAction[]
+      readonly selectable: boolean
+      readonly compact: boolean
     }
   | {
-      readonly source: 'search' | 'external';
-      readonly id: string;
-      readonly name: string;
-      readonly synonym: string;
-      readonly smiles: string;
-      readonly molecularWeight?: number;
-      readonly phase?: number;
-      readonly createdAt?: number;
-      readonly updatedAt?: number;
-      readonly badge?: string;
-      readonly actions: readonly MoleculeSummaryAction[];
-      readonly selectable: boolean;
-      readonly compact: boolean;
-    };
+      readonly source: 'search' | 'external'
+      readonly id: string
+      readonly name: string
+      readonly synonym: string
+      readonly smiles: string
+      readonly molecularWeight?: number
+      readonly phase?: number
+      readonly createdAt?: number
+      readonly updatedAt?: number
+      readonly badge?: string
+      readonly actions: readonly MoleculeSummaryAction[]
+      readonly selectable: boolean
+      readonly compact: boolean
+    }
 
 export function moleculeCardToSummary(
   molecule: MoleculeCardItemModel,
@@ -57,7 +57,7 @@ export function moleculeCardToSummary(
     updatedAt: molecule.updatedAt,
     badge: molecule.type === 'chembl' ? 'ChEMBL' : 'Personal',
     ...options
-  };
+  }
 }
 
 export function searchResultToSummary(
@@ -78,5 +78,5 @@ export function searchResultToSummary(
     phase: molecule.maxPhase ?? undefined,
     badge: molecule.known ? 'Molecola nota' : undefined,
     ...options
-  };
+  }
 }

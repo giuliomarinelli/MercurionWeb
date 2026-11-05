@@ -1,55 +1,55 @@
-import { TestBed } from '@angular/core/testing';
-import { Apollo } from 'apollo-angular';
-import { print } from 'graphql';
-import { firstValueFrom, of } from 'rxjs';
+import { TestBed } from '@angular/core/testing'
+import { Apollo } from 'apollo-angular'
+import { print } from 'graphql'
+import { firstValueFrom, of } from 'rxjs'
 
 import type {
   MoleculeItemBasicDataQuery
-} from '../../generated/graphql';
+} from '../../generated/graphql'
 import {
   CreateMoleculeItemDocument,
   MoleculeItemDocument,
   MoleculeItemBasicDataDocument,
   MyMoleculeItemsDocument,
   UpdateMoleculeItemDocument
-} from '../../generated/graphql';
+} from '../../generated/graphql'
 import type {
   MoleculeItemDTO
-} from '../../Models/graphql/molecule-collection/molecule-collection.types';
+} from '../../Models/graphql/molecule-collection/molecule-collection.types'
 import {
   mapMoleculeItemBasicData,
   mapMoleculeItemDtoToClient
-} from './molecule-collection-item.mapper';
-import { GRAPHQL_QUERY_FETCH_POLICY } from './graphql-query-policy';
-import { MoleculeCollectionItemService } from './molecule-collection-item.service';
+} from './molecule-collection-item.mapper'
+import { GRAPHQL_QUERY_FETCH_POLICY } from './graphql-query-policy'
+import { MoleculeCollectionItemService } from './molecule-collection-item.service'
 
 describe('MoleculeCollectionItemService', () => {
-  let service: MoleculeCollectionItemService;
-  let apollo: jasmine.SpyObj<Apollo>;
+  let service: MoleculeCollectionItemService
+  let apollo: jasmine.SpyObj<Apollo>
 
   beforeEach(() => {
-    apollo = jasmine.createSpyObj<Apollo>('Apollo', ['query']);
+    apollo = jasmine.createSpyObj<Apollo>('Apollo', ['query'])
     TestBed.configureTestingModule({
       providers: [{ provide: Apollo, useValue: apollo }]
-    });
-    service = TestBed.inject(MoleculeCollectionItemService);
-  });
+    })
+    service = TestBed.inject(MoleculeCollectionItemService)
+  })
 
   it('should be created', () => {
-    expect(service).toBeTruthy();
-  });
+    expect(service).toBeTruthy()
+  })
 
   it('accepts only an explicit null as a successful duplicate lookup without a match', async () => {
-    apollo.query.and.returnValue(of({ data: { findOneCustomMoleculeByCanonicalSmiles: null }, loading: false, networkStatus: 7 }));
-    await expectAsync(firstValueFrom(service.findOneCustomMoleculeByCanonicalSmiles_shortFetch('CC'))).toBeResolvedTo(null);
-  });
+    apollo.query.and.returnValue(of({ data: { findOneCustomMoleculeByCanonicalSmiles: null }, loading: false, networkStatus: 7 }))
+    await expectAsync(firstValueFrom(service.findOneCustomMoleculeByCanonicalSmiles_shortFetch('CC'))).toBeResolvedTo(null)
+  })
 
   for (const payload of [{}, { data: {} }, { data: { findOneCustomMoleculeByCanonicalSmiles: undefined } }, { data: { findOneCustomMoleculeByCanonicalSmiles: false } },
     { data: { findOneCustomMoleculeByCanonicalSmiles: {} } }, { errors: [{ message: 'Lookup failed' }] }]) {
     it(`fails duplicate validation closed for malformed or failed payload ${JSON.stringify(payload)}`, async () => {
-      apollo.query.and.returnValue(of({ data: undefined, ...payload, loading: false, networkStatus: 7 }));
-      await expectAsync(firstValueFrom(service.findOneCustomMoleculeByCanonicalSmiles_shortFetch('CC'))).toBeRejected();
-    });
+      apollo.query.and.returnValue(of({ data: undefined, ...payload, loading: false, networkStatus: 7 }))
+      await expectAsync(firstValueFrom(service.findOneCustomMoleculeByCanonicalSmiles_shortFetch('CC'))).toBeRejected()
+    })
   }
 
   it('maps a generated custom DTO variant without a cast', () => {
@@ -77,15 +77,15 @@ describe('MoleculeCollectionItemService', () => {
       molFormula: 'C2H6O',
       name: 'Ethanol',
       propertiesJson: null
-    } satisfies MoleculeItemDTO;
+    } satisfies MoleculeItemDTO
 
-    const result = mapMoleculeItemDtoToClient(dto);
+    const result = mapMoleculeItemDtoToClient(dto)
 
-    expect(result.type).toBe('custom');
+    expect(result.type).toBe('custom')
     if (result.type !== 'custom') {
-      throw new Error('Expected custom molecule');
+      throw new Error('Expected custom molecule')
     }
-    expect(result.canonicalSmiles).toBe('CCO');
+    expect(result.canonicalSmiles).toBe('CCO')
     expect(result.joins[0]?.collection).toEqual({
       id: 'collection-1',
       name: 'Collection',
@@ -93,8 +93,8 @@ describe('MoleculeCollectionItemService', () => {
       updatedAt: '2',
       touchedAt: '3',
       itemsCount: 1
-    });
-  });
+    })
+  })
 
   it('loads a detail as a single network-only query', () => {
     const dto = {
@@ -111,19 +111,19 @@ describe('MoleculeCollectionItemService', () => {
       molFormula: null,
       name: 'Ethanol',
       propertiesJson: null
-    } satisfies MoleculeItemDTO;
-    apollo.query.and.returnValue(of({ data: { moleculeItem: dto } }) as never);
+    } satisfies MoleculeItemDTO
+    apollo.query.and.returnValue(of({ data: { moleculeItem: dto } }) as never)
 
-    let item: MoleculeItemDTO | null | undefined;
-    service.getItemById(dto.id).subscribe(result => item = result as MoleculeItemDTO | null);
+    let item: MoleculeItemDTO | null | undefined
+    service.getItemById(dto.id).subscribe(result => item = result as MoleculeItemDTO | null)
 
     expect(apollo.query).toHaveBeenCalledWith(jasmine.objectContaining({
       query: MoleculeItemDocument,
       variables: { id: dto.id },
       fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot
-    }));
-    expect(item).toEqual(jasmine.objectContaining({ id: dto.id, type: 'custom' }));
-  });
+    }))
+    expect(item).toEqual(jasmine.objectContaining({ id: dto.id, type: 'custom' }))
+  })
 
   it('loads the custom editor structure as a single network-only query', () => {
     const dto = {
@@ -140,19 +140,19 @@ describe('MoleculeCollectionItemService', () => {
       molFormula: 'C2H6O',
       name: 'Ethanol',
       propertiesJson: null
-    } satisfies MoleculeItemDTO;
-    apollo.query.and.returnValue(of({ data: { moleculeItem: dto } }) as never);
+    } satisfies MoleculeItemDTO
+    apollo.query.and.returnValue(of({ data: { moleculeItem: dto } }) as never)
 
-    let structure: { id: string; canonicalSmiles: string } | undefined;
-    service.getCustomSmilesById(dto.id).subscribe(result => structure = result);
+    let structure: { id: string; canonicalSmiles: string } | undefined
+    service.getCustomSmilesById(dto.id).subscribe(result => structure = result)
 
     expect(apollo.query).toHaveBeenCalledWith(jasmine.objectContaining({
       query: MoleculeItemDocument,
       variables: { id: dto.id },
       fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.mutableSnapshot
-    }));
-    expect(structure).toEqual(jasmine.objectContaining({ id: dto.id, canonicalSmiles: 'CCO' }));
-  });
+    }))
+    expect(structure).toEqual(jasmine.objectContaining({ id: dto.id, canonicalSmiles: 'CCO' }))
+  })
 
   it('maps a generated ChEMBL DTO variant without a cast', () => {
     const dto = {
@@ -167,17 +167,17 @@ describe('MoleculeCollectionItemService', () => {
       joins: null,
       chemblMolregno: '42',
       chemblDetails: null
-    } satisfies MoleculeItemDTO;
+    } satisfies MoleculeItemDTO
 
-    const result = mapMoleculeItemDtoToClient(dto);
+    const result = mapMoleculeItemDtoToClient(dto)
 
-    expect(result.type).toBe('chembl');
+    expect(result.type).toBe('chembl')
     if (result.type !== 'chembl') {
-      throw new Error('Expected ChEMBL molecule');
+      throw new Error('Expected ChEMBL molecule')
     }
-    expect(result.chemblMolregno).toBe(42);
-    expect(result.joins).toEqual([]);
-  });
+    expect(result.chemblMolregno).toBe(42)
+    expect(result.joins).toEqual([])
+  })
 
   it('narrows both generated basic-data variants by __typename', () => {
     const items = [
@@ -198,7 +198,7 @@ describe('MoleculeCollectionItemService', () => {
           canonicalSmiles: 'CCC'
         }
       }
-    ] satisfies MoleculeItemBasicDataQuery['myMoleculeItems'];
+    ] satisfies MoleculeItemBasicDataQuery['myMoleculeItems']
 
     expect(items.map(mapMoleculeItemBasicData)).toEqual([
       {
@@ -213,8 +213,8 @@ describe('MoleculeCollectionItemService', () => {
         canonicalSmiles: 'CCC',
         type: 'chembl'
       }
-    ]);
-  });
+    ])
+  })
 
   it('keeps all four audited operations explicitly discriminated', () => {
     for (const document of [
@@ -223,10 +223,10 @@ describe('MoleculeCollectionItemService', () => {
       CreateMoleculeItemDocument,
       UpdateMoleculeItemDocument
     ]) {
-      const source = print(document);
-      expect(source).toContain('__typename');
-      expect(source).toContain('... on CustomMoleculeItemDTO');
-      expect(source).toContain('... on ChEMBLMoleculeItemDTO');
+      const source = print(document)
+      expect(source).toContain('__typename')
+      expect(source).toContain('... on CustomMoleculeItemDTO')
+      expect(source).toContain('... on ChEMBLMoleculeItemDTO')
     }
-  });
-});
+  })
+})

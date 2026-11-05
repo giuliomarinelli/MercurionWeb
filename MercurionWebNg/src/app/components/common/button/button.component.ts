@@ -5,9 +5,9 @@ import {
   inject,
   input,
   output,
-} from '@angular/core';
-import { NgTemplateOutlet } from '@angular/common';
-import { RouterLink } from '@angular/router';
+} from '@angular/core'
+import { NgTemplateOutlet } from '@angular/common'
+import { RouterLink } from '@angular/router'
 
 export type ButtonVariant =
   | 'primary'
@@ -15,11 +15,11 @@ export type ButtonVariant =
   | 'destructive'
   | 'neutral'
   | 'ghost'
-  | 'outline';
+  | 'outline'
 
-export type ButtonSize = 'sm' | 'md' | 'lg';
-export type ButtonType = 'button' | 'submit' | 'reset';
-export type ButtonIconPosition = 'leading' | 'trailing';
+export type ButtonSize = 'sm' | 'md' | 'lg'
+export type ButtonType = 'button' | 'submit' | 'reset'
+export type ButtonIconPosition = 'leading' | 'trailing'
 
 const VARIANT_CLASSES = {
   primary: 'm-button__control--primary',
@@ -28,18 +28,18 @@ const VARIANT_CLASSES = {
   neutral: 'm-button__control--neutral',
   ghost: 'm-button__control--ghost',
   outline: 'm-button__control--outline',
-} satisfies Record<ButtonVariant, string>;
+} satisfies Record<ButtonVariant, string>
 
 const SIZE_CLASSES = {
   sm: 'm-button__control--sm',
   md: 'm-button__control--md',
   lg: 'm-button__control--lg',
-} satisfies Record<ButtonSize, string>;
+} satisfies Record<ButtonSize, string>
 
 const ICON_POSITION_CLASSES = {
   leading: 'm-button__control--icon-leading',
   trailing: 'm-button__control--icon-trailing',
-} satisfies Record<ButtonIconPosition, string>;
+} satisfies Record<ButtonIconPosition, string>
 
 @Component({
   selector: 'm-button',
@@ -247,23 +247,23 @@ const ICON_POSITION_CLASSES = {
 })
 export class ButtonComponent {
 
-  protected readonly hostRouterLink = inject(RouterLink, { self: true, optional: true });
+  protected readonly hostRouterLink = inject(RouterLink, { self: true, optional: true })
 
-  readonly variant = input<ButtonVariant>('primary');
-  readonly size = input<ButtonSize>('md');
-  readonly fullWidth = input(false);
-  readonly type = input<ButtonType>('button');
-  readonly routerLink = input<RouterLink['routerLink']>(null);
-  readonly queryParams = input<RouterLink['queryParams']>();
-  readonly fragment = input<RouterLink['fragment']>();
-  readonly queryParamsHandling = input<RouterLink['queryParamsHandling']>();
-  readonly target = input<RouterLink['target']>();
-  readonly disabled = input(false);
-  readonly loading = input(false);
-  readonly ariaLabel = input<string | null>(null);
-  readonly ariaCurrent = input<string | null>(null);
-  readonly iconPosition = input<ButtonIconPosition>('leading');
-  readonly pressed = output<MouseEvent>();
+  readonly variant = input<ButtonVariant>('primary')
+  readonly size = input<ButtonSize>('md')
+  readonly fullWidth = input(false)
+  readonly type = input<ButtonType>('button')
+  readonly routerLink = input<RouterLink['routerLink']>(null)
+  readonly queryParams = input<RouterLink['queryParams']>()
+  readonly fragment = input<RouterLink['fragment']>()
+  readonly queryParamsHandling = input<RouterLink['queryParamsHandling']>()
+  readonly target = input<RouterLink['target']>()
+  readonly disabled = input(false)
+  readonly loading = input(false)
+  readonly ariaLabel = input<string | null>(null)
+  readonly ariaCurrent = input<string | null>(null)
+  readonly iconPosition = input<ButtonIconPosition>('leading')
+  readonly pressed = output<MouseEvent>()
 
   protected readonly classes = computed(
     () =>
@@ -273,19 +273,19 @@ export class ButtonComponent {
         SIZE_CLASSES[this.size()],
         ICON_POSITION_CLASSES[this.iconPosition()],
       ].join(' '),
-  );
+  )
 
   protected onClick(event: MouseEvent): void {
     // A consumer importing RouterLink also applies it to the m-button host.
     // Only the inner anchor should handle navigation and modified clicks.
     if (this.hostRouterLink) {
-      event.stopPropagation();
+      event.stopPropagation()
     }
     if (this.disabled() || this.loading()) {
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      return;
+      event.preventDefault()
+      event.stopImmediatePropagation()
+      return
     }
-    this.pressed.emit(event);
+    this.pressed.emit(event)
   }
 }

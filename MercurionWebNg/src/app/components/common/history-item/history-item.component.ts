@@ -1,7 +1,7 @@
-import { Component, ChangeDetectionStrategy, effect, input, signal, output } from '@angular/core';
-import { HistoryDTO, HistoryItemEntity } from '../../../Models/history.models';
-import { RouterLink } from '@angular/router';
-import { DatePipe } from '@angular/common';
+import { Component, ChangeDetectionStrategy, effect, input, signal, output } from '@angular/core'
+import { HistoryDTO, HistoryItemEntity } from '../../../Models/history.models'
+import { RouterLink } from '@angular/router'
+import { DatePipe } from '@angular/common'
 
 @Component({
   selector: 'm-history-item',
@@ -96,7 +96,7 @@ export class HistoryItemComponent {
     this._selected.set(this.selected())
   })
 
-  readonly itemClick = output<void>();
+  readonly itemClick = output<void>()
 
   notifyClick(): void {
     // TODO: The 'emit' function requires a mandatory void argument

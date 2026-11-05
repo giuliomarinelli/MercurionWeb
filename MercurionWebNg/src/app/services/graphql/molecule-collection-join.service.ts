@@ -1,9 +1,9 @@
-import { Helpers } from './../../helpers';
-import { Injectable } from '@angular/core';
-import { Apollo } from 'apollo-angular';
-import { map, Observable } from 'rxjs';
-import { AddChemblMoleculeToCollectionInput, AddCustomMoleculeToCollectionInput } from '../../Models/graphql/molecule-collection/molecule-collection.types';
-import { extractGqlData } from './graphql-helpers/v1/extract-gql-data.helper';
+import { Helpers } from './../../helpers'
+import { Injectable } from '@angular/core'
+import { Apollo } from 'apollo-angular'
+import { map, Observable } from 'rxjs'
+import { AddChemblMoleculeToCollectionInput, AddCustomMoleculeToCollectionInput } from '../../Models/graphql/molecule-collection/molecule-collection.types'
+import { extractGqlData } from './graphql-helpers/v1/extract-gql-data.helper'
 import {
   AddChemblMoleculeToCollectionDocument,
   AddChemblMoleculeToCollectionMutation,
@@ -17,7 +17,7 @@ import {
   RemoveCustomMoleculeFromCollectionDocument,
   RemoveCustomMoleculeFromCollectionMutation,
   RemoveCustomMoleculeFromCollectionMutationVariables
-} from '../../generated/graphql';
+} from '../../generated/graphql'
 
 // --- MoleculeJoinService ---
 @Injectable({ providedIn: 'root' })
@@ -33,7 +33,7 @@ export class MoleculeJoinService {
         mutation: AddChemblMoleculeToCollectionDocument,
         variables: params,
       })
-      .pipe(map(res => extractGqlData<AddChemblMoleculeToCollectionMutation, 'addChemblMoleculeToCollection'>(res, 'addChemblMoleculeToCollection')));
+      .pipe(map(res => extractGqlData<AddChemblMoleculeToCollectionMutation, 'addChemblMoleculeToCollection'>(res, 'addChemblMoleculeToCollection')))
   }
 
   // Aggiungi Custom (ritorna già il campo properties parsato)
@@ -69,6 +69,6 @@ export class MoleculeJoinService {
         mutation: RemoveCustomMoleculeFromCollectionDocument,
         variables: { collectionId, itemId },
       })
-      .pipe(map(res => extractGqlData<RemoveCustomMoleculeFromCollectionMutation, 'removeCustomMoleculeFromCollection'>(res, 'removeCustomMoleculeFromCollection')));
+      .pipe(map(res => extractGqlData<RemoveCustomMoleculeFromCollectionMutation, 'removeCustomMoleculeFromCollection'>(res, 'removeCustomMoleculeFromCollection')))
   }
 }

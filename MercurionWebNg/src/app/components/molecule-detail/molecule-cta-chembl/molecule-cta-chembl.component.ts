@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, input, Signal, computed, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, input, Signal, computed, signal } from '@angular/core'
 
 @Component({
   selector: 'm-molecule-cta-chembl',

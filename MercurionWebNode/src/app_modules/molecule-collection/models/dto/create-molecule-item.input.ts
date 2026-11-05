@@ -1,8 +1,8 @@
 // CreateMoleculeItemInput
-import { InputType, Field } from "@nestjs/graphql";
-import { Transform } from "class-transformer";
-import { IsInt, IsOptional, IsString } from "class-validator";
-import { GeneralUtils } from "src/utils/general-utils/general-utils";
+import { InputType, Field } from "@nestjs/graphql"
+import { Transform } from "class-transformer"
+import { IsInt, IsOptional, IsString } from "class-validator"
+import { GeneralUtils } from "src/utils/general-utils/general-utils"
 
 @InputType()
 export class CreateMoleculeItemInput {

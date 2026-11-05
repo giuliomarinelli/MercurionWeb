@@ -16,4 +16,4 @@ export const GRAPHQL_QUERY_FETCH_POLICY = {
   mutableSnapshot: 'network-only',
   ephemeralLookup: 'no-cache',
   ownedReactive: 'cache-and-network',
-} as const;
+} as const

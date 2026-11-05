@@ -1,11 +1,11 @@
-import { RequiresFeatures } from 'src/feature-flags/feature-access.decorator';
-import { Args, Mutation, Resolver } from '@nestjs/graphql';
-import { UUID } from 'crypto';
-import { AuthenticatedUserId } from '../../../metadata/metadata';
-import { assertMercurionPublicId } from '../../../identifiers/mercurion-public-id';
-import { SynthesisPoolInput } from '../models/dto/synthesis-pool.input';
-import { Synthesis } from '../models/entities/synthesis.entity';
-import { SynthesisPoolService } from '../services/synthesis-pool.service';
+import { RequiresFeatures } from 'src/feature-flags/feature-access.decorator'
+import { Args, Mutation, Resolver } from '@nestjs/graphql'
+import { UUID } from 'crypto'
+import { AuthenticatedUserId } from '../../../metadata/metadata'
+import { assertMercurionPublicId } from '../../../identifiers/mercurion-public-id'
+import { SynthesisPoolInput } from '../models/dto/synthesis-pool.input'
+import { Synthesis } from '../models/entities/synthesis.entity'
+import { SynthesisPoolService } from '../services/synthesis-pool.service'
 
 @RequiresFeatures('synthesis')
 @Resolver(() => Synthesis)

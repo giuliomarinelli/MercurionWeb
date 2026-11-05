@@ -1,9 +1,9 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { MoleculeSummaryCardComponent } from './molecule-summary-card.component';
-import { MoleculeSummaryViewModel } from './molecule-summary-card.view-model';
+import { ComponentFixture, TestBed } from '@angular/core/testing'
+import { MoleculeSummaryCardComponent } from './molecule-summary-card.component'
+import { MoleculeSummaryViewModel } from './molecule-summary-card.view-model'
 
 describe('MoleculeSummaryCardComponent', () => {
-  let fixture: ComponentFixture<MoleculeSummaryCardComponent>;
+  let fixture: ComponentFixture<MoleculeSummaryCardComponent>
 
   const model = (source: MoleculeSummaryViewModel['source'], overrides: Partial<MoleculeSummaryViewModel> = {}): MoleculeSummaryViewModel => ({
     source,
@@ -15,12 +15,12 @@ describe('MoleculeSummaryCardComponent', () => {
     selectable: false,
     compact: source !== 'saved',
     ...overrides
-  } as MoleculeSummaryViewModel);
+  } as MoleculeSummaryViewModel)
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({ imports: [MoleculeSummaryCardComponent] }).compileComponents();
-    fixture = TestBed.createComponent(MoleculeSummaryCardComponent);
-  });
+    await TestBed.configureTestingModule({ imports: [MoleculeSummaryCardComponent] }).compileComponents()
+    fixture = TestBed.createComponent(MoleculeSummaryCardComponent)
+  })
 
   it('renders saved metadata and configured actions from the saved discriminant', () => {
     fixture.componentRef.setInput('viewModel', model('saved', {
@@ -31,82 +31,82 @@ describe('MoleculeSummaryCardComponent', () => {
         { kind: 'link', label: 'Duplica', icon: 'duplicate', href: '/molecules/editor' },
         { kind: 'button', label: 'Elimina', icon: 'delete', action: 'delete' }
       ]
-    }));
-    fixture.detectChanges();
+    }))
+    fixture.detectChanges()
 
-    expect(fixture.nativeElement.textContent).toContain('ChEMBL');
-    expect(fixture.nativeElement.textContent).toContain('MW:');
-    expect(fixture.nativeElement.textContent).toContain('Fase 3');
-    expect(fixture.nativeElement.querySelector('button[aria-label="Elimina"]')).not.toBeNull();
-    expect(fixture.nativeElement.querySelector('a[aria-label="Duplica"] svg')).not.toBeNull();
-    expect(fixture.nativeElement.querySelector('button[aria-label="Elimina"] svg')).not.toBeNull();
-  });
+    expect(fixture.nativeElement.textContent).toContain('ChEMBL')
+    expect(fixture.nativeElement.textContent).toContain('MW:')
+    expect(fixture.nativeElement.textContent).toContain('Fase 3')
+    expect(fixture.nativeElement.querySelector('button[aria-label="Elimina"]')).not.toBeNull()
+    expect(fixture.nativeElement.querySelector('a[aria-label="Duplica"] svg')).not.toBeNull()
+    expect(fixture.nativeElement.querySelector('button[aria-label="Elimina"] svg')).not.toBeNull()
+  })
 
   it('keeps the whole non-selectable card clickable above passive content', () => {
-    fixture.componentRef.setInput('viewModel', model('saved'));
-    fixture.detectChanges();
+    fixture.componentRef.setInput('viewModel', model('saved'))
+    fixture.detectChanges()
 
-    const detailLink = fixture.nativeElement.querySelector('a[aria-label="Apri molecola Example"]') as HTMLAnchorElement;
-    expect(detailLink.classList).toContain('z-10');
-    expect(fixture.nativeElement.querySelector('.pointer-events-none')).not.toBeNull();
-  });
+    const detailLink = fixture.nativeElement.querySelector('a[aria-label="Apri molecola Example"]') as HTMLAnchorElement
+    expect(detailLink.classList).toContain('z-10')
+    expect(fixture.nativeElement.querySelector('.pointer-events-none')).not.toBeNull()
+  })
 
   it('renders the remove action at text-xs with a 16px icon', () => {
     fixture.componentRef.setInput('viewModel', model('saved', {
       actions: [{ kind: 'button', label: 'Rimuovi dalla collezione', icon: 'remove', action: 'remove' }]
-    }));
-    fixture.detectChanges();
-    const button = fixture.nativeElement.querySelector('button[aria-label="Rimuovi dalla collezione"]') as HTMLButtonElement;
-    expect(getComputedStyle(button).fontSize).toBe('12px');
-    expect(getComputedStyle(button.querySelector('span')!).fontSize).toBe('12px');
-    expect(getComputedStyle(button.querySelector('svg')!).width).toBe('16px');
-    expect(getComputedStyle(button.querySelector('svg')!).height).toBe('16px');
-  });
+    }))
+    fixture.detectChanges()
+    const button = fixture.nativeElement.querySelector('button[aria-label="Rimuovi dalla collezione"]') as HTMLButtonElement
+    expect(getComputedStyle(button).fontSize).toBe('12px')
+    expect(getComputedStyle(button.querySelector('span')!).fontSize).toBe('12px')
+    expect(getComputedStyle(button.querySelector('svg')!).width).toBe('16px')
+    expect(getComputedStyle(button.querySelector('svg')!).height).toBe('16px')
+  })
 
   it('applies disappearance and collapse states supplied by the collection wrapper', () => {
-    fixture.componentRef.setInput('viewModel', model('saved'));
-    fixture.componentRef.setInput('disappearing', true);
-    fixture.componentRef.setInput('collapsed', true);
-    fixture.detectChanges();
+    fixture.componentRef.setInput('viewModel', model('saved'))
+    fixture.componentRef.setInput('disappearing', true)
+    fixture.componentRef.setInput('collapsed', true)
+    fixture.detectChanges()
 
-    const article = fixture.nativeElement.querySelector('article') as HTMLElement;
-    expect(article.classList).toContain('fade-out');
-    expect(article.classList).toContain('collapse');
-    expect(fixture.nativeElement.querySelector('a[aria-label="Apri molecola Example"].hidden')).not.toBeNull();
-  });
+    const article = fixture.nativeElement.querySelector('article') as HTMLElement
+    expect(article.classList).toContain('fade-out')
+    expect(article.classList).toContain('collapse')
+    expect(fixture.nativeElement.querySelector('a[aria-label="Apri molecola Example"].hidden')).not.toBeNull()
+  })
 
   it('renders compact search and external variants through the same template', () => {
-    fixture.componentRef.setInput('viewModel', model('search', { compact: true }));
-    fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('article')).not.toBeNull();
+    fixture.componentRef.setInput('viewModel', model('search', { compact: true }))
+    fixture.detectChanges()
+    expect(fixture.nativeElement.querySelector('article')).not.toBeNull()
 
-    fixture.componentRef.setInput('viewModel', model('external', { compact: true }));
-    fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('article')).not.toBeNull();
-  });
+    fixture.componentRef.setInput('viewModel', model('external', { compact: true }))
+    fixture.detectChanges()
+    expect(fixture.nativeElement.querySelector('article')).not.toBeNull()
+  })
 
   it('shows numeric zero metadata instead of treating it as missing', () => {
-    fixture.componentRef.setInput('viewModel', model('saved', { molecularWeight: 0, phase: 0 }));
-    fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('MW: 0');
-    expect(fixture.nativeElement.textContent).toContain('Fase 0');
-  });
+    fixture.componentRef.setInput('viewModel', model('saved', { molecularWeight: 0, phase: 0 }))
+    fixture.detectChanges()
+    expect(fixture.nativeElement.textContent).toContain('MW: 0')
+    expect(fixture.nativeElement.textContent).toContain('Fase 0')
+  })
 
   it('does not present the negative phase sentinel as a clinical phase', () => {
-    fixture.componentRef.setInput('viewModel', model('saved', { phase: -1 }));
-    fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).not.toContain('Fase -1');
-  });
+    fixture.componentRef.setInput('viewModel', model('saved', { phase: -1 }))
+    fixture.detectChanges()
+    expect(fixture.nativeElement.textContent).not.toContain('Fase -1')
+  })
 
   it('emits semantic action events without changing the view model', () => {
-    const action = jasmine.createSpy('action');
+    const action = jasmine.createSpy('action')
     fixture.componentRef.setInput('viewModel', model('saved', {
       actions: [{ kind: 'button', label: 'Seleziona', action: 'select' }],
       selectable: true
-    }));
-    fixture.componentInstance.actionSelected.subscribe(action);
+    }))
+    fixture.componentInstance.actionSelected.subscribe(action)
     fixture.detectChanges();
-    (fixture.nativeElement.querySelector('button') as HTMLButtonElement).click();
-    expect(action).toHaveBeenCalledWith('select');
-  });
-});
+    (fixture.nativeElement.querySelector('button') as HTMLButtonElement).click()
+    expect(action).toHaveBeenCalledWith('select')
+  })
+})

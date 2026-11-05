@@ -1,12 +1,12 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { NotebookChapter } from '../models/entities/lab-notebook-chapter.entity';
-import { UUID } from 'crypto';
+import { Injectable } from '@nestjs/common'
+import { InjectRepository } from '@nestjs/typeorm'
+import { Repository } from 'typeorm'
+import { NotebookChapter } from '../models/entities/lab-notebook-chapter.entity'
+import { UUID } from 'crypto'
 
-import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
-import { GraphQLFieldsMap, TypeOrmUtils } from 'src/utils/type-orm-utils/type-orm-utils';
-import { LabNotebook } from '../models/entities/lab-notebook.entity';
+import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils'
+import { GraphQLFieldsMap, TypeOrmUtils } from 'src/utils/type-orm-utils/type-orm-utils'
+import { LabNotebook } from '../models/entities/lab-notebook.entity'
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 import { runInTransaction } from 'src/persistence/transaction-context'
 import {
@@ -54,7 +54,7 @@ export class NotebookChapterService {
         return this.chapterRepo.find({
             where: { notebook: { id: notebookId, userId } },
             order: { order: 'ASC' },
-        });
+        })
     }
 
     async move(chapterId: UUID, userId: UUID, direction: 'up' | 'down'): Promise<void> {
@@ -110,16 +110,16 @@ export class NotebookChapterService {
         userId: UUID,
         fieldsMap: GraphQLFieldsMap
     ): Promise<NotebookChapter[]> {
-        const scalarFields = GraphQLUtils.getScalarFields(fieldsMap);
-        const columns = GraphQLUtils.ensureRequiredFields(scalarFields, this.NOTEBOOK_CHAPTER_REQUIRED_FIELDS);
+        const scalarFields = GraphQLUtils.getScalarFields(fieldsMap)
+        const columns = GraphQLUtils.ensureRequiredFields(scalarFields, this.NOTEBOOK_CHAPTER_REQUIRED_FIELDS)
 
         let qb = this.chapterRepo.createQueryBuilder('chapter')
             .select(columns.map(col => `chapter.${col}`))
             .where('chapter.notebook_id = :notebookId', { notebookId }) // SNAKE CASE
             .andWhere('chapter.user_id = :userId', { userId })          // SNAKE CASE
-            .orderBy('chapter.order', 'ASC');
+            .orderBy('chapter.order', 'ASC')
 
-        qb = TypeOrmUtils.addJoins(qb, 'chapter', fieldsMap);
+        qb = TypeOrmUtils.addJoins(qb, 'chapter', fieldsMap)
 
         const chapters = await qb.getMany()
         for (const c of chapters) {
@@ -147,14 +147,14 @@ export class NotebookChapterService {
 
         qb = TypeOrmUtils.addJoins(qb, 'chapter', fieldsMap)
 
-        const result = await qb.getOne();
+        const result = await qb.getOne()
         if (result && result.sections == undefined) {
             result.sections = []
             for (const section of result.sections) {
                 section.pages ??= []
             }
         }
-        return result;
+        return result
     }
 
     async updateChapter(
@@ -166,8 +166,8 @@ export class NotebookChapterService {
         await this.chapterRepo.update({ id, userId }, {
             updatedAt: Date.now(),
             ...toNotebookChapterPatch(data)
-        });
-        return this.getChapter(id, userId, fieldsMap); // <--- passalo qui
+        })
+        return this.getChapter(id, userId, fieldsMap) // <--- passalo qui
     }
 
     async deleteChapter(id: UUID, userId: UUID): Promise<void> {

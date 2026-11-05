@@ -1,19 +1,19 @@
-import { Resolver, Query, Mutation, Args, ID, Info, Int, ResolveField, Parent } from '@nestjs/graphql';
-import { AuthenticatedUserId } from 'src/metadata/metadata'; // tuo custom decorator userId
-import { UUID } from 'crypto';
-import { GraphQLResolveInfo } from 'graphql';
-import { MoleculeCollection } from '../models/entities/molecule-collection.entity';
-import { MoleculeCollectionService } from '../services/molecule-collection.service';
-import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
-import { PaginatedMoleculeCollection } from '../models/dto/paginated-molecule-collection';
-import { MoleculeCollectionItemJoinService } from '../services/molecule-collection-item-join.service';
-import { MoleculeCollectionItemCountLoader } from '../services/molecule-collection-item-count.loader';
-import { BindManyCollectionsToMoleculeDTO } from '../models/dto/bind-many-collections-to-molecule.dto';
-import { GeneralUtils } from 'src/utils/general-utils/general-utils';
-import { assertMercurionPublicId } from 'src/identifiers/mercurion-public-id';
-import { toFlatPagination } from 'src/models/pagination/pagination.utils';
-import { MoleculeCollectionPaginationArgs } from '../models/dto/molecule-collection-pagination.args';
-import { RealtimeStateSyncService } from 'src/app_modules/socket-io/realtime-state-sync.service';
+import { Resolver, Query, Mutation, Args, ID, Info, Int, ResolveField, Parent } from '@nestjs/graphql'
+import { AuthenticatedUserId } from 'src/metadata/metadata' // tuo custom decorator userId
+import { UUID } from 'crypto'
+import { GraphQLResolveInfo } from 'graphql'
+import { MoleculeCollection } from '../models/entities/molecule-collection.entity'
+import { MoleculeCollectionService } from '../services/molecule-collection.service'
+import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils'
+import { PaginatedMoleculeCollection } from '../models/dto/paginated-molecule-collection'
+import { MoleculeCollectionItemJoinService } from '../services/molecule-collection-item-join.service'
+import { MoleculeCollectionItemCountLoader } from '../services/molecule-collection-item-count.loader'
+import { BindManyCollectionsToMoleculeDTO } from '../models/dto/bind-many-collections-to-molecule.dto'
+import { GeneralUtils } from 'src/utils/general-utils/general-utils'
+import { assertMercurionPublicId } from 'src/identifiers/mercurion-public-id'
+import { toFlatPagination } from 'src/models/pagination/pagination.utils'
+import { MoleculeCollectionPaginationArgs } from '../models/dto/molecule-collection-pagination.args'
+import { RealtimeStateSyncService } from 'src/app_modules/socket-io/realtime-state-sync.service'
 
 
 @Resolver(() => MoleculeCollection)
@@ -187,7 +187,7 @@ export class MoleculeCollectionResolver {
         
 
         const fieldsMap = GraphQLUtils.getFieldsMap(info)
-        const paginated = await this.collectionService.paginateAllByUser(userId, pagination, normalizedQ, excludeJoinedToMolecule ?? false, moleculeId, fieldsMap);
+        const paginated = await this.collectionService.paginateAllByUser(userId, pagination, normalizedQ, excludeJoinedToMolecule ?? false, moleculeId, fieldsMap)
 
         return toFlatPagination(paginated)
     }

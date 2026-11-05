@@ -1,13 +1,13 @@
-import { Component, ChangeDetectionStrategy, computed, DestroyRef, inject, OnDestroy, OnInit, signal } from '@angular/core';
-import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
-import { SelectCoreComponent } from '../../common/select-core/select-core.component';
-import { SelectSelectionChange } from '../../common/select-core/select-core.types';
-import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
-import { ActionCardComponent } from '../../common/action-card/action-card.component';
-import { ActionFooterComponent } from '../../common/action-footer/action-footer.component';
-import { ButtonComponent } from '../../common/button/button.component';
-import { CollectionPickerFacade } from '../collection-picker/collection-picker.facade';
-import { validateCollectionName } from '../collection-picker/collection-rules';
+import { Component, ChangeDetectionStrategy, computed, DestroyRef, inject, OnDestroy, OnInit, signal } from '@angular/core'
+import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service'
+import { SelectCoreComponent } from '../../common/select-core/select-core.component'
+import { SelectSelectionChange } from '../../common/select-core/select-core.types'
+import { MoleculeCollection } from '../../../Models/graphql/molecule-collection/molecule-collection.types'
+import { ActionCardComponent } from '../../common/action-card/action-card.component'
+import { ActionFooterComponent } from '../../common/action-footer/action-footer.component'
+import { ButtonComponent } from '../../common/button/button.component'
+import { CollectionPickerFacade } from '../collection-picker/collection-picker.facade'
+import { validateCollectionName } from '../collection-picker/collection-rules'
 
 @Component({
   selector: 'm-select-collection-then-route',
@@ -54,72 +54,72 @@ import { validateCollectionName } from '../collection-picker/collection-rules';
   `
 })
 export class SelectCollectionThenRouteComponent implements OnInit, OnDestroy {
-  private readonly actionContext = inject(ActionOverlayContextService);
-  private readonly destroyRef = inject(DestroyRef);
-  private readonly sessionId = this.actionContext.session('SelectCollectionThenRoute')?.id ?? -1;
-  private readonly picker = new CollectionPickerFacade({ mode: { kind: 'single', operation: 'route', allowCreate: true } });
-  readonly collections = this.picker.collections;
-  readonly hasMore = this.picker.hasMore;
-  readonly loadingCombo = this.picker.loading;
-  readonly loadError = computed(() => Boolean(this.picker.error()));
-  readonly loading = signal(false);
-  readonly routing = signal(false);
-  readonly selectedCollectionId = signal('');
-  readonly selectedCollectionName = signal('');
-  readonly importFromChembl = signal(false);
-  readonly creationError = signal('');
-  readonly failedCreationName = signal('');
+  private readonly actionContext = inject(ActionOverlayContextService)
+  private readonly destroyRef = inject(DestroyRef)
+  private readonly sessionId = this.actionContext.session('SelectCollectionThenRoute')?.id ?? -1
+  private readonly picker = new CollectionPickerFacade({ mode: { kind: 'single', operation: 'route', allowCreate: true } })
+  readonly collections = this.picker.collections
+  readonly hasMore = this.picker.hasMore
+  readonly loadingCombo = this.picker.loading
+  readonly loadError = computed(() => Boolean(this.picker.error()))
+  readonly loading = signal(false)
+  readonly routing = signal(false)
+  readonly selectedCollectionId = signal('')
+  readonly selectedCollectionName = signal('')
+  readonly importFromChembl = signal(false)
+  readonly creationError = signal('')
+  readonly failedCreationName = signal('')
 
   ngOnInit(): void {
-    this.importFromChembl.set(this.actionContext.session('SelectCollectionThenRoute')?.input.importFromChembl ?? false);
-    queueMicrotask(() => { if (!this.destroyRef.destroyed) this.picker.load(true); });
+    this.importFromChembl.set(this.actionContext.session('SelectCollectionThenRoute')?.input.importFromChembl ?? false)
+    queueMicrotask(() => { if (!this.destroyRef.destroyed) this.picker.load(true) })
   }
-  ngOnDestroy(): void { this.picker.destroy(); }
-  close(): void { if (!this.loading()) this.actionContext.close(this.sessionId); }
-  displayCollection(item: Pick<MoleculeCollection, 'name'>): string { return item.name; }
-  valueCollection(item: Pick<MoleculeCollection, 'id'>): string { return item.id; }
-  loadCollections(reset = false): void { this.picker.load(reset); }
-  onSearchChange(term: string): void { if (!this.loading()) this.picker.search(term); }
-  onScrollEnd(): void { if (this.hasMore() && !this.loadingCombo()) this.picker.load(); }
+  ngOnDestroy(): void { this.picker.destroy() }
+  close(): void { if (!this.loading()) this.actionContext.close(this.sessionId) }
+  displayCollection(item: Pick<MoleculeCollection, 'name'>): string { return item.name }
+  valueCollection(item: Pick<MoleculeCollection, 'id'>): string { return item.id }
+  loadCollections(reset = false): void { this.picker.load(reset) }
+  onSearchChange(term: string): void { if (!this.loading()) this.picker.search(term) }
+  onScrollEnd(): void { if (this.hasMore() && !this.loadingCombo()) this.picker.load() }
   onSelect(item: Pick<MoleculeCollection, 'id' | 'name'>): void {
-    if (this.loading()) return;
-    this.picker.setSingleSelection(item.id);
-    this.selectedCollectionId.set(item.id);
-    this.selectedCollectionName.set(item.name);
+    if (this.loading()) return
+    this.picker.setSingleSelection(item.id)
+    this.selectedCollectionId.set(item.id)
+    this.selectedCollectionName.set(item.name)
   }
   onSelectionChange(change: SelectSelectionChange<MoleculeCollection, string>): void {
-    if (change.item) this.onSelect(change.item);
+    if (change.item) this.onSelect(change.item)
   }
   onCreateNew(name: string): void {
-    if (this.loading()) return;
-    const result = validateCollectionName(name);
-    if (!result.ok) { this.failedCreationName.set(''); this.creationError.set(result.message ?? 'Controlla il nome della collezione.'); return; }
-    this.creationError.set('');
-    this.failedCreationName.set('');
-    this.loading.set(true);
-    this.actionContext.beginSubmit(this.sessionId);
+    if (this.loading()) return
+    const result = validateCollectionName(name)
+    if (!result.ok) { this.failedCreationName.set(''); this.creationError.set(result.message ?? 'Controlla il nome della collezione.'); return }
+    this.creationError.set('')
+    this.failedCreationName.set('')
+    this.loading.set(true)
+    this.actionContext.beginSubmit(this.sessionId)
     this.picker.create(result.normalized).subscribe({
       next: collection => {
-        this.loading.set(false);
-        this.actionContext.submitSucceeded(this.sessionId);
-        this.onSelect(collection);
+        this.loading.set(false)
+        this.actionContext.submitSucceeded(this.sessionId)
+        this.onSelect(collection)
       },
       error: () => {
-        this.loading.set(false);
-        this.actionContext.submitFailed(this.sessionId);
-        this.failedCreationName.set(result.normalized);
-        this.creationError.set('La collezione non è stata creata. Puoi riprovare senza riscrivere il nome.');
+        this.loading.set(false)
+        this.actionContext.submitFailed(this.sessionId)
+        this.failedCreationName.set(result.normalized)
+        this.creationError.set('La collezione non è stata creata. Puoi riprovare senza riscrivere il nome.')
       }
-    });
+    })
   }
   routeAction(): void {
-    if (!this.selectedCollectionId() || this.loading() || this.loadingCombo() || this.routing()) return;
-    this.routing.set(true);
-    const input = { collectionId: this.selectedCollectionId(), redirectToCollectionPath: this.importFromChembl(), importFromChembl: this.importFromChembl() };
+    if (!this.selectedCollectionId() || this.loading() || this.loadingCombo() || this.routing()) return
+    this.routing.set(true)
+    const input = { collectionId: this.selectedCollectionId(), redirectToCollectionPath: this.importFromChembl(), importFromChembl: this.importFromChembl() }
     queueMicrotask(() => {
       if (!this.destroyRef.destroyed && this.actionContext.session('SelectCollectionThenRoute')?.id === this.sessionId) {
-        this.actionContext.switchToScope('AddMoleculesToCollection', input);
+        this.actionContext.switchToScope('AddMoleculesToCollection', input)
       }
-    });
+    })
   }
 }

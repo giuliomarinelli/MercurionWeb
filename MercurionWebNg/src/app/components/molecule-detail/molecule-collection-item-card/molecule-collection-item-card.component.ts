@@ -1,10 +1,10 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
-import { MoleculeCardItemModel } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
-import { MoleculeSummaryCardComponent } from '../molecule-summary-card/molecule-summary-card.component';
-import { moleculeCardToSummary } from '../molecule-summary-card/molecule-summary-card.view-model';
-import { DesignService } from '../../../services/design.service';
-import { SearchContextService } from '../../../services/context/search-context.service';
-import { ShellLayoutService } from '../../../services/context/shell-layout.service';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core'
+import { MoleculeCardItemModel } from '../../../Models/graphql/molecule-collection/molecule-collection.types'
+import { MoleculeSummaryCardComponent } from '../molecule-summary-card/molecule-summary-card.component'
+import { moleculeCardToSummary } from '../molecule-summary-card/molecule-summary-card.view-model'
+import { DesignService } from '../../../services/design.service'
+import { SearchContextService } from '../../../services/context/search-context.service'
+import { ShellLayoutService } from '../../../services/context/shell-layout.service'
 
 @Component({
   selector: 'm-molecule-collection-item-card',
@@ -20,20 +20,20 @@ import { ShellLayoutService } from '../../../services/context/shell-layout.servi
     (navigate)="handleNavigate()" />`
 })
 export class MoleculeCollectionItemCardComponent {
-  private readonly design = inject(DesignService);
-  private readonly searchContext = inject(SearchContextService);
-  private readonly shellLayout = inject(ShellLayoutService);
-  readonly molecule = input.required<MoleculeCardItemModel>();
-  readonly i = input.required<number>();
-  readonly collectionId = input<string | null>(null);
-  readonly compact = input(false);
-  readonly isReadonly = input(false);
-  readonly hideActions = input(false);
-  readonly triggerDisappear = input(false);
-  readonly collapse = input(false);
+  private readonly design = inject(DesignService)
+  private readonly searchContext = inject(SearchContextService)
+  private readonly shellLayout = inject(ShellLayoutService)
+  readonly molecule = input.required<MoleculeCardItemModel>()
+  readonly i = input.required<number>()
+  readonly collectionId = input<string | null>(null)
+  readonly compact = input(false)
+  readonly isReadonly = input(false)
+  readonly hideActions = input(false)
+  readonly triggerDisappear = input(false)
+  readonly collapse = input(false)
 
-  readonly onDelete = output<string>();
-  readonly onRemoveFromCollection = output<string>();
+  readonly onDelete = output<string>()
+  readonly onRemoveFromCollection = output<string>()
 
   readonly viewModel = computed(() => moleculeCardToSummary(this.molecule(), {
     actions: this.hideActions() || this.isReadonly() ? [] : [
@@ -43,17 +43,17 @@ export class MoleculeCollectionItemCardComponent {
     ],
     selectable: this.isReadonly(),
     compact: this.compact()
-  }));
+  }))
 
   handleAction(action: 'delete' | 'remove' | 'select'): void {
-    if (action === 'delete') this.onDelete.emit(this.molecule().id);
-    if (action === 'remove') this.onRemoveFromCollection.emit(this.molecule().id);
+    if (action === 'delete') this.onDelete.emit(this.molecule().id)
+    if (action === 'remove') this.onRemoveFromCollection.emit(this.molecule().id)
   }
 
   handleNavigate(): void {
     queueMicrotask(() => {
-      if (this.design.maxBk('sm')()) this.shellLayout.requestCloseOffCanvas();
-      this.searchContext.close();
-    });
+      if (this.design.maxBk('sm')()) this.shellLayout.requestCloseOffCanvas()
+      this.searchContext.close()
+    })
   }
 }

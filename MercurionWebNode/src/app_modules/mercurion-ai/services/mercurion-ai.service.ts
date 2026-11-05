@@ -1,8 +1,8 @@
-import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
-import { ClientProxy } from '@nestjs/microservices';
-import { MercurionInferReqDTO } from '../models/dto/mt21/mercurion-infer-req.dto';
-import { MercurionInferDataDTO, MercurionInferResDTO } from '../models/dto/mt21/mercurion-infer-res.dto';
-import { ConfigService } from '@nestjs/config';
+import { Inject, Injectable, OnModuleInit } from '@nestjs/common'
+import { ClientProxy } from '@nestjs/microservices'
+import { MercurionInferReqDTO } from '../models/dto/mt21/mercurion-infer-req.dto'
+import { MercurionInferDataDTO, MercurionInferResDTO } from '../models/dto/mt21/mercurion-infer-res.dto'
+import { ConfigService } from '@nestjs/config'
 import { LoggerPort } from 'src/logging/logger.port'
 import { LoggerContext } from 'src/logging/logger.port'
 import {

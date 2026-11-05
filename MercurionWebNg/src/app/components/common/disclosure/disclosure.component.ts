@@ -7,15 +7,15 @@ import {
   inject,
   input,
   output,
-} from '@angular/core';
-import { NgTemplateOutlet } from '@angular/common';
+} from '@angular/core'
+import { NgTemplateOutlet } from '@angular/common'
 
 @Directive({
   selector: 'ng-template[mDisclosureTrigger]',
   standalone: true,
 })
 export class DisclosureTriggerDirective {
-  readonly template = inject(TemplateRef<unknown>);
+  readonly template = inject(TemplateRef<unknown>)
 }
 
 @Component({
@@ -74,21 +74,21 @@ export class DisclosureTriggerDirective {
   `,
 })
 export class DisclosureComponent {
-  readonly label = input('');
-  readonly expanded = input(false);
-  readonly id = input('m-disclosure');
-  readonly toggled = output<boolean>();
-  protected readonly trigger = contentChild(DisclosureTriggerDirective);
+  readonly label = input('')
+  readonly expanded = input(false)
+  readonly id = input('m-disclosure')
+  readonly toggled = output<boolean>()
+  protected readonly trigger = contentChild(DisclosureTriggerDirective)
 
   triggerId(): string {
-    return `${this.id()}-trigger`;
+    return `${this.id()}-trigger`
   }
 
   panelId(): string {
-    return `${this.id()}-panel`;
+    return `${this.id()}-panel`
   }
 
   toggle(): void {
-    this.toggled.emit(!this.expanded());
+    this.toggled.emit(!this.expanded())
   }
 }

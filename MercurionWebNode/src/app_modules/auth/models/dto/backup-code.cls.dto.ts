@@ -1,5 +1,5 @@
-import { Transform } from "class-transformer";
-import { IsNotEmpty, IsString, Matches } from "class-validator";
+import { Transform } from "class-transformer"
+import { IsNotEmpty, IsString, Matches } from "class-validator"
 import type { BackupCodeDTO as BackupCodeContract } from '@mercurion/rest-contracts'
 
 export class BackupCodeDTO implements BackupCodeContract {

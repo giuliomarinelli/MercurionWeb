@@ -1,12 +1,12 @@
-import { Injectable } from "@nestjs/common";
-import { AuthProvider } from "../models/enums/auth-provider.enum";
-import { ISocialProviderClient } from "../models/interfaces/i-social-provider-client.interface";
-import { GoogleProviderClient } from "../providers/google-provider-client";
+import { Injectable } from "@nestjs/common"
+import { AuthProvider } from "../models/enums/auth-provider.enum"
+import { ISocialProviderClient } from "../models/interfaces/i-social-provider-client.interface"
+import { GoogleProviderClient } from "../providers/google-provider-client"
 
-import { GitHubProviderClient } from "../providers/github-provider-client";
-import { LinkedInProviderClient } from "../providers/linkedin-provider-client";
-import { DiscordProviderClient } from "../providers/discord-provider-client";
-import { OrcidProviderClient } from "../providers/orcid-provider-client";
+import { GitHubProviderClient } from "../providers/github-provider-client"
+import { LinkedInProviderClient } from "../providers/linkedin-provider-client"
+import { DiscordProviderClient } from "../providers/discord-provider-client"
+import { OrcidProviderClient } from "../providers/orcid-provider-client"
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 
 @Injectable()

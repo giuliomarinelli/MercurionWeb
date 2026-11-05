@@ -1,29 +1,29 @@
-import { MoleculeSearchResult } from './../../Models/graphql/molecule-search/molecule-search-result.interface';
-import { NormalizedMoleculeCollectionBasicData } from './../../Models/graphql/molecule.detail.models';
-import { PageModel } from '../../Models/graphql/page.models';
-import { Injectable, computed, inject, signal } from '@angular/core';
-import { Apollo } from 'apollo-angular';
-import { Observable } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { MoleculeSearchResult } from './../../Models/graphql/molecule-search/molecule-search-result.interface'
+import { NormalizedMoleculeCollectionBasicData } from './../../Models/graphql/molecule.detail.models'
+import { PageModel } from '../../Models/graphql/page.models'
+import { Injectable, computed, inject, signal } from '@angular/core'
+import { Apollo } from 'apollo-angular'
+import { Observable } from 'rxjs'
+import { map, tap } from 'rxjs/operators'
 
 import {
   MoleculeCollectionItemClient,
   MoleculeCollectionItemEntityShort,
   CreateMoleculeItemInput,
   MoleculeItemLookup
-} from '../../Models/graphql/molecule-collection/molecule-collection.types';
+} from '../../Models/graphql/molecule-collection/molecule-collection.types'
 import {
   extractGqlData,
   GqlDataError
-} from './graphql-helpers/v1/extract-gql-data.helper';
-import { MoleculeSearchInput } from '../../Models/graphql/molecule-search/molecule-search-input.interface';
-import { AddManyChEMBLItemDTO } from '../../Models/graphql/add-many-chembl-item.dto';
+} from './graphql-helpers/v1/extract-gql-data.helper'
+import { MoleculeSearchInput } from '../../Models/graphql/molecule-search/molecule-search-input.interface'
+import { AddManyChEMBLItemDTO } from '../../Models/graphql/add-many-chembl-item.dto'
 import {
   mapCustomMoleculeLookup,
   mapMoleculeItemBasicData,
   mapMoleculeItemDtoToClient,
   mapMoleculeItemShort
-} from './molecule-collection-item.mapper';
+} from './molecule-collection-item.mapper'
 import {
   AddManyChemblItemsToCollectionDocument,
   AddManyChemblItemsToCollectionMutation,
@@ -88,8 +88,8 @@ import {
   UpdateMoleculeItemNotesDocument,
   UpdateMoleculeItemNotesMutation,
   UpdateMoleculeItemNotesMutationVariables
-} from '../../generated/graphql';
-import { GRAPHQL_QUERY_FETCH_POLICY } from './graphql-query-policy';
+} from '../../generated/graphql'
+import { GRAPHQL_QUERY_FETCH_POLICY } from './graphql-query-policy'
 
 
 
@@ -106,11 +106,11 @@ export class MoleculeCollectionItemService {
 
 
 
-  private _items = signal<MoleculeCollectionItemClient[]>([]);
-  private _loading = signal<boolean>(false);
+  private _items = signal<MoleculeCollectionItemClient[]>([])
+  private _loading = signal<boolean>(false)
 
-  readonly items = computed(() => this._items());
-  readonly loading = computed(() => this._loading());
+  readonly items = computed(() => this._items())
+  readonly loading = computed(() => this._loading())
 
 
   getAllNormalizedBasicData(): Observable<NormalizedMoleculeCollectionBasicData[]> {
@@ -126,7 +126,7 @@ export class MoleculeCollectionItemService {
 
   // LISTA
   getAllItems(): Observable<MoleculeCollectionItemClient[]> {
-    this._loading.set(true);
+    this._loading.set(true)
     return this.apollo
       .query<MyMoleculeItemsQuery, MyMoleculeItemsQueryVariables>({
         query: MyMoleculeItemsDocument,
@@ -136,10 +136,10 @@ export class MoleculeCollectionItemService {
         map(res => extractGqlData<MyMoleculeItemsQuery, 'myMoleculeItems'>(res, 'myMoleculeItems')),
         map(items => items.map(mapMoleculeItemDtoToClient)),
         tap(items => {
-          this._items.set(items);
-          this._loading.set(false);
+          this._items.set(items)
+          this._loading.set(false)
         })
-      );
+      )
   }
 
 
@@ -154,7 +154,7 @@ export class MoleculeCollectionItemService {
       .pipe(
         map(res => extractGqlData<MoleculeItemQuery, 'moleculeItem'>(res, 'moleculeItem', true)),
         map(node => (node ? mapMoleculeItemDtoToClient(node) : null))
-      );
+      )
   }
 
   // GET SHORT BY ID (ridotto, per risolvere molregno dai UUID)
@@ -168,7 +168,7 @@ export class MoleculeCollectionItemService {
       .pipe(
         map(res => extractGqlData<MoleculeItemShortQuery, 'moleculeItem'>(res, 'moleculeItem', true)),
         map(node => (node ? mapMoleculeItemShort(node) : null))
-      );
+      )
   }
 
   getPaginatedItemsForCollection(collectionId: string, page: number = 1, limit: number = 20, q: string): Observable<PageModel<MoleculeCollectionItemClient>> {
@@ -338,7 +338,7 @@ export class MoleculeCollectionItemService {
       .pipe(
         map(res => extractGqlData<CreateMoleculeItemMutation, 'createMoleculeItem'>(res, 'createMoleculeItem')),
         map(mapMoleculeItemDtoToClient)
-      );
+      )
   }
 
   // UPDATE
@@ -351,7 +351,7 @@ export class MoleculeCollectionItemService {
       .pipe(
         map(res => extractGqlData<UpdateMoleculeItemMutation, 'updateMoleculeItem'>(res, 'updateMoleculeItem', true)),
         map(node => (node ? mapMoleculeItemDtoToClient(node) : null))
-      );
+      )
   }
 
   updateItemLabel(id: string, label: string, type: 'chembl' | 'custom'): Observable<MoleculeCollectionItemClient | null> {
@@ -421,11 +421,11 @@ export class MoleculeCollectionItemService {
         mutation: DeleteMoleculeItemDocument,
         variables: { id },
       })
-      .pipe(map(res => extractGqlData<DeleteMoleculeItemMutation, 'deleteMoleculeItem'>(res, 'deleteMoleculeItem')));
+      .pipe(map(res => extractGqlData<DeleteMoleculeItemMutation, 'deleteMoleculeItem'>(res, 'deleteMoleculeItem')))
   }
 
   // Utility: dati essenziali per custom
-  getCustomSmilesById(id: string): Observable<{ id: string; canonicalSmiles: string; name: string | null; molFormula: string | null; }> {
+  getCustomSmilesById(id: string): Observable<{ id: string; canonicalSmiles: string; name: string | null; molFormula: string | null }> {
     return this.apollo
       .query<MoleculeItemQuery, MoleculeItemQueryVariables>({
         query: MoleculeItemDocument,
@@ -435,15 +435,15 @@ export class MoleculeCollectionItemService {
       .pipe(
         map(res => extractGqlData<MoleculeItemQuery, 'moleculeItem'>(res, 'moleculeItem', true)),
         map(node => {
-          if (!node) throw new Error('Item not found');
-          if (node.__typename !== 'CustomMoleculeItemDTO') throw new Error('Not a custom molecule');
+          if (!node) throw new Error('Item not found')
+          if (node.__typename !== 'CustomMoleculeItemDTO') throw new Error('Not a custom molecule')
           return {
             id: node.id,
             canonicalSmiles: node.canonicalSmiles,
             name: node.name ?? null,
             molFormula: node.molFormula ?? null,
-          };
+          }
         })
-      );
+      )
   }
 }

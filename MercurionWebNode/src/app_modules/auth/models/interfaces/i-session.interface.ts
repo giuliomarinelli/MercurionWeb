@@ -1,5 +1,5 @@
-import { UUID } from "crypto";
-import { AuthProvider } from "src/app_modules/sso/models/enums/auth-provider.enum";
+import { UUID } from "crypto"
+import { AuthProvider } from "src/app_modules/sso/models/enums/auth-provider.enum"
 import type { SessionDeviceInfo } from '@mercurion/rest-contracts'
 
 export interface ISession {

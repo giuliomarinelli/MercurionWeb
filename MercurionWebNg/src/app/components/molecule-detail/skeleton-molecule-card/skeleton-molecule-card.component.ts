@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import { SkeletonComponent } from '../../common/skeleton/skeleton.component';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core'
+import { SkeletonComponent } from '../../common/skeleton/skeleton.component'
 
 @Component({
   selector: 'm-skeleton-molecule-card',
@@ -36,10 +36,10 @@ import { SkeletonComponent } from '../../common/skeleton/skeleton.component';
   `
 })
 export class SkeletonMoleculeCardComponent {
-  readonly i = input(0);
-  readonly height = input<string | null>('auto');
-  readonly compact = input(false);
-  readonly footer = input(true);
-  readonly removeAction = input(false);
-  readonly selectionHint = input(false);
+  readonly i = input(0)
+  readonly height = input<string | null>('auto')
+  readonly compact = input(false)
+  readonly footer = input(true)
+  readonly removeAction = input(false)
+  readonly selectionHint = input(false)
 }

@@ -1,12 +1,12 @@
-import { Injectable, OnModuleDestroy } from '@nestjs/common';
-import { Redis } from 'ioredis';
-import { LoggerPort } from 'src/logging/logger.port';
-import { LoggerContext } from 'src/logging/logger.port';
+import { Injectable, OnModuleDestroy } from '@nestjs/common'
+import { Redis } from 'ioredis'
+import { LoggerPort } from 'src/logging/logger.port'
+import { LoggerContext } from 'src/logging/logger.port'
 import type {
   RedisKey,
   RedisKeyPattern,
   RedisTtlSeconds
-} from '../contracts/redis-contracts';
+} from '../contracts/redis-contracts'
 
 @Injectable()
 export class RedisService implements OnModuleDestroy {
@@ -52,7 +52,7 @@ export class RedisService implements OnModuleDestroy {
     if (ttl) {
       return this.redisClient.set(key, value, 'EX', ttl)
     }
-    return this.redisClient.set(key, value);
+    return this.redisClient.set(key, value)
   }
 
   public async get(key: RedisKey): Promise<string | null> {
@@ -83,14 +83,14 @@ export class RedisService implements OnModuleDestroy {
       cursor,
       'MATCH', pattern,
       'COUNT', String(count),
-    );
+    )
     return { cursor: nextCursor, keys: keys as RedisKey[] }
   }
 
   public async scanIterate(pattern: RedisKeyPattern): Promise<RedisKey[]> {
 
     const keys: RedisKey[] = []
-    let cursor = '0';
+    let cursor = '0'
     do {
       const scanned = await this.scan(pattern, cursor, 1000)
       if (scanned.keys?.length) {
@@ -133,23 +133,23 @@ export class RedisService implements OnModuleDestroy {
   }
 
   public async srem(setKey: RedisKey, value: string): Promise<number> {
-    return this.redisClient.srem(setKey, value);
+    return this.redisClient.srem(setKey, value)
   }
 
   async scanKeysByPattern(pattern: RedisKeyPattern): Promise<RedisKey[]> {
-    const keys: RedisKey[] = [];
-    let cursor = '0';
-    this.logger.debug?.('🔍 Scanning pattern:', pattern);
+    const keys: RedisKey[] = []
+    let cursor = '0'
+    this.logger.debug?.('🔍 Scanning pattern:', pattern)
 
     do {
-      const [nextCursor, results] = await this.redisClient.scan(cursor, 'MATCH', pattern, 'COUNT', '100');
-      this.logger.debug?.('→ SCAN returned cursor:', nextCursor, '| results:', results);
-      cursor = nextCursor;
-      keys.push(...results as RedisKey[]);
-    } while (cursor !== '0');
+      const [nextCursor, results] = await this.redisClient.scan(cursor, 'MATCH', pattern, 'COUNT', '100')
+      this.logger.debug?.('→ SCAN returned cursor:', nextCursor, '| results:', results)
+      cursor = nextCursor
+      keys.push(...results as RedisKey[])
+    } while (cursor !== '0')
 
-    this.logger.debug?.('✅ Total keys found:', keys.length.toString());
-    return keys;
+    this.logger.debug?.('✅ Total keys found:', keys.length.toString())
+    return keys
   }
 
   async keys(pattern: RedisKeyPattern): Promise<string[]> {

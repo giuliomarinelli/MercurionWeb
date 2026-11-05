@@ -1,43 +1,43 @@
-import { CUSTOM_ELEMENTS_SCHEMA, signal } from '@angular/core';
-import { ComponentFixture, TestBed, fakeAsync, flushMicrotasks, tick } from '@angular/core/testing';
-import { RouterLink, provideRouter } from '@angular/router';
-import { Subject } from 'rxjs';
-import { MyMoleculeCollectionsPageComponent } from './my-molecule-collections.page.component';
-import { MoleculeCollectionService } from '../../services/graphql/molecule-collection.service';
-import { HistoryContextService } from '../../services/context/history-context.service';
-import { ToastService } from '../../services/toast.service';
-import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service';
-import { DomainInvalidationService } from '../../services/domain-invalidation.service';
-import { RealtimeSyncStatusService } from '../../services/realtime-sync-status.service';
-import { ScrollContextService } from '../../services/context/scroll-context.service';
-import { SearchFieldComponent } from '../../components/common/search-field/search-field.component';
-import { ButtonComponent } from '../../components/common/button/button.component';
-import { PageModel } from '../../Models/graphql/page.models';
-import { CreateCollectionContextService } from '../../services/context/action-context/create-collection-context.service';
+import { CUSTOM_ELEMENTS_SCHEMA, signal } from '@angular/core'
+import { ComponentFixture, TestBed, fakeAsync, flushMicrotasks, tick } from '@angular/core/testing'
+import { RouterLink, provideRouter } from '@angular/router'
+import { Subject } from 'rxjs'
+import { MyMoleculeCollectionsPageComponent } from './my-molecule-collections.page.component'
+import { MoleculeCollectionService } from '../../services/graphql/molecule-collection.service'
+import { HistoryContextService } from '../../services/context/history-context.service'
+import { ToastService } from '../../services/toast.service'
+import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service'
+import { DomainInvalidationService } from '../../services/domain-invalidation.service'
+import { RealtimeSyncStatusService } from '../../services/realtime-sync-status.service'
+import { ScrollContextService } from '../../services/context/scroll-context.service'
+import { SearchFieldComponent } from '../../components/common/search-field/search-field.component'
+import { ButtonComponent } from '../../components/common/button/button.component'
+import { PageModel } from '../../Models/graphql/page.models'
+import { CreateCollectionContextService } from '../../services/context/action-context/create-collection-context.service'
 
 describe('MyMoleculeCollectionsPageComponent: list states', () => {
-  let fixture: ComponentFixture<MyMoleculeCollectionsPageComponent>;
-  let component: MyMoleculeCollectionsPageComponent;
-  let requests: Subject<PageModel<Record<string, unknown>>>[];
-  let fetch: jasmine.Spy;
-  let open: jasmine.Spy;
-  let remove: jasmine.Spy;
-  let deletionResponse: Subject<boolean>;
-  const item = { id: 'one', name: 'Test', itemsCount: 2, createdAt: '2026-01-01' };
-  const response = (items: Record<string, unknown>[], totalPages = 1, currentPage = 1) => ({ items, currentPage, totalPages, totalItems: items.length, itemCount: items.length, itemsPerPage: 25 });
-  const settle = () => { tick(120); flushMicrotasks(); fixture.detectChanges(); };
+  let fixture: ComponentFixture<MyMoleculeCollectionsPageComponent>
+  let component: MyMoleculeCollectionsPageComponent
+  let requests: Subject<PageModel<Record<string, unknown>>>[]
+  let fetch: jasmine.Spy
+  let open: jasmine.Spy
+  let remove: jasmine.Spy
+  let deletionResponse: Subject<boolean>
+  const item = { id: 'one', name: 'Test', itemsCount: 2, createdAt: '2026-01-01' }
+  const response = (items: Record<string, unknown>[], totalPages = 1, currentPage = 1) => ({ items, currentPage, totalPages, totalItems: items.length, itemCount: items.length, itemsPerPage: 25 })
+  const settle = () => { tick(120); flushMicrotasks(); fixture.detectChanges() }
 
   beforeEach(async () => {
-    requests = [];
-    deletionResponse = new Subject<boolean>();
-    remove = jasmine.createSpy('delete').and.callFake(() => deletionResponse);
+    requests = []
+    deletionResponse = new Subject<boolean>()
+    remove = jasmine.createSpy('delete').and.callFake(() => deletionResponse)
     fetch = jasmine.createSpy('getPaginatedCollections').and.callFake(() => {
-      const request = new Subject<PageModel<Record<string, unknown>>>();
-      requests.push(request);
-      return request;
-    });
-    open = jasmine.createSpy('open');
-    spyOn(window, 'IntersectionObserver').and.returnValue({ observe: () => undefined, disconnect: () => undefined } as unknown as IntersectionObserver);
+      const request = new Subject<PageModel<Record<string, unknown>>>()
+      requests.push(request)
+      return request
+    })
+    open = jasmine.createSpy('open')
+    spyOn(window, 'IntersectionObserver').and.returnValue({ observe: () => undefined, disconnect: () => undefined } as unknown as IntersectionObserver)
 
     await TestBed.configureTestingModule({
       imports: [MyMoleculeCollectionsPageComponent],
@@ -53,115 +53,115 @@ describe('MyMoleculeCollectionsPageComponent: list states', () => {
       ]
     }).overrideComponent(MyMoleculeCollectionsPageComponent, { set: {
       imports: [SearchFieldComponent, ButtonComponent, RouterLink], schemas: [CUSTOM_ELEMENTS_SCHEMA]
-    } }).compileComponents();
-  });
+    } }).compileComponents()
+  })
   beforeEach(fakeAsync(() => {
-    fixture = TestBed.createComponent(MyMoleculeCollectionsPageComponent); component = fixture.componentInstance;
-    fixture.detectChanges(); flushMicrotasks(); fixture.detectChanges();
-  }));
-  afterEach(() => fixture.destroy());
+    fixture = TestBed.createComponent(MyMoleculeCollectionsPageComponent); component = fixture.componentInstance
+    fixture.detectChanges(); flushMicrotasks(); fixture.detectChanges()
+  }))
+  afterEach(() => fixture.destroy())
 
   it('keeps initial loading separate from empty and error', fakeAsync(() => {
-    expect(fixture.nativeElement.querySelector('.m-list-skeletons')).toBeTruthy();
-    expect(fixture.nativeElement.querySelector('.m-list-empty')).toBeNull();
-    expect(fixture.nativeElement.querySelector('.m-list-error')).toBeNull();
-    requests[0].next(response([])); settle();
-    expect(fixture.nativeElement.querySelector('.m-list-empty')).toBeTruthy();
-    expect(fixture.nativeElement.querySelector('.m-list-skeletons')).toBeNull();
-  }));
+    expect(fixture.nativeElement.querySelector('.m-list-skeletons')).toBeTruthy()
+    expect(fixture.nativeElement.querySelector('.m-list-empty')).toBeNull()
+    expect(fixture.nativeElement.querySelector('.m-list-error')).toBeNull()
+    requests[0].next(response([])); settle()
+    expect(fixture.nativeElement.querySelector('.m-list-empty')).toBeTruthy()
+    expect(fixture.nativeElement.querySelector('.m-list-skeletons')).toBeNull()
+  }))
 
   it('debounces typing and Enter submits once without losing draft text', fakeAsync(() => {
-    requests[0].next(response([])); settle();
-    component.doQuery('a'); tick(100); component.doQuery('ab'); tick(200);
-    expect(fetch.calls.count()).toBe(1);
-    component.submitQuery('ab'); tick(250);
-    expect(fetch.calls.count()).toBe(2);
-    expect(fetch.calls.mostRecent().args).toEqual([1, 25, 'ab']);
-    expect(component.searchInput()).toBe('ab');
-    requests[1].next(response([])); settle();
-  }));
+    requests[0].next(response([])); settle()
+    component.doQuery('a'); tick(100); component.doQuery('ab'); tick(200)
+    expect(fetch.calls.count()).toBe(1)
+    component.submitQuery('ab'); tick(250)
+    expect(fetch.calls.count()).toBe(2)
+    expect(fetch.calls.mostRecent().args).toEqual([1, 25, 'ab'])
+    expect(component.searchInput()).toBe('ab')
+    requests[1].next(response([])); settle()
+  }))
 
   it('offers clearing a query with no results and retains the other list link', fakeAsync(() => {
-    requests[0].next(response([])); settle(); component.submitQuery('missing');
-    requests[1].next(response([])); settle();
-    expect(fixture.nativeElement.querySelector('.m-list-empty').textContent).toContain('Nessun risultato');
-    expect(fixture.nativeElement.querySelector('.m-list-link')).toBeTruthy();
-    fixture.nativeElement.querySelector('.m-list-empty button').click(); flushMicrotasks();
-    expect(component.searchInput()).toBe('');
-    expect(fetch.calls.mostRecent().args).toEqual([1, 25, '']);
-    requests[2].next(response([])); settle();
-  }));
+    requests[0].next(response([])); settle(); component.submitQuery('missing')
+    requests[1].next(response([])); settle()
+    expect(fixture.nativeElement.querySelector('.m-list-empty').textContent).toContain('Nessun risultato')
+    expect(fixture.nativeElement.querySelector('.m-list-link')).toBeTruthy()
+    fixture.nativeElement.querySelector('.m-list-empty button').click(); flushMicrotasks()
+    expect(component.searchInput()).toBe('')
+    expect(fetch.calls.mostRecent().args).toEqual([1, 25, ''])
+    requests[2].next(response([])); settle()
+  }))
 
   it('shows initial error with retry instead of an empty collection', fakeAsync(() => {
-    requests[0].error(new Error('offline')); settle();
-    expect(fixture.nativeElement.querySelector('.m-list-empty')).toBeNull();
-    expect(fixture.nativeElement.querySelector('.m-list-error')).toBeTruthy();
-    fixture.nativeElement.querySelector('.m-list-error button').click();
-    requests[1].next(response([item])); settle();
-    expect(component.items.length).toBe(1);
-    expect(fixture.nativeElement.querySelector('.m-list-error')).toBeNull();
-  }));
+    requests[0].error(new Error('offline')); settle()
+    expect(fixture.nativeElement.querySelector('.m-list-empty')).toBeNull()
+    expect(fixture.nativeElement.querySelector('.m-list-error')).toBeTruthy()
+    fixture.nativeElement.querySelector('.m-list-error button').click()
+    requests[1].next(response([item])); settle()
+    expect(component.items.length).toBe(1)
+    expect(fixture.nativeElement.querySelector('.m-list-error')).toBeNull()
+  }))
 
   it('preserves loaded items after the next page fails and retries that page', fakeAsync(() => {
-    requests[0].next(response([item], 2)); settle();
-    fixture.nativeElement.querySelector('.m-list-pagination button').click();
-    requests[1].error(new Error('offline')); settle();
-    expect(component.items.length).toBe(1);
-    expect(fixture.nativeElement.querySelector('.m-list-error').textContent).toContain('restano disponibili');
-    fixture.nativeElement.querySelector('.m-list-error button').click();
-    expect(fetch.calls.mostRecent().args).toEqual([2, 25, '']);
-    requests[2].next(response([], 2, 2)); settle();
-    expect(component.items.length).toBe(1);
-    expect(fixture.nativeElement.querySelector('.m-list-end')).toBeTruthy();
-  }));
+    requests[0].next(response([item], 2)); settle()
+    fixture.nativeElement.querySelector('.m-list-pagination button').click()
+    requests[1].error(new Error('offline')); settle()
+    expect(component.items.length).toBe(1)
+    expect(fixture.nativeElement.querySelector('.m-list-error').textContent).toContain('restano disponibili')
+    fixture.nativeElement.querySelector('.m-list-error button').click()
+    expect(fetch.calls.mostRecent().args).toEqual([2, 25, ''])
+    requests[2].next(response([], 2, 2)); settle()
+    expect(component.items.length).toBe(1)
+    expect(fixture.nativeElement.querySelector('.m-list-end')).toBeTruthy()
+  }))
 
   it('opens the original action context from the empty-state CTA', fakeAsync(() => {
-    requests[0].next(response([])); settle();
-    fixture.nativeElement.querySelector('.m-list-empty button').click(); flushMicrotasks();
-    expect(open).toHaveBeenCalledOnceWith('CreateCollection');
-  }));
+    requests[0].next(response([])); settle()
+    fixture.nativeElement.querySelector('.m-list-empty button').click(); flushMicrotasks()
+    expect(open).toHaveBeenCalledOnceWith('CreateCollection')
+  }))
 
   it('cancels an unsubmitted search when the page is destroyed', fakeAsync(() => {
-    component.doQuery('pending'); fixture.destroy(); tick(300);
-    expect(fetch.calls.count()).toBe(1);
-  }));
+    component.doQuery('pending'); fixture.destroy(); tick(300)
+    expect(fetch.calls.count()).toBe(1)
+  }))
   it('requires confirmation and cancellation never calls the delete service', fakeAsync(() => {
-    requests[0].next(response([item])); settle();
-    component.doDeleteCollection('one');
-    expect(component.deletion()?.name).toBe('Test');
-    expect(remove).not.toHaveBeenCalled();
-    component.cancelDeletion();
-    component.confirmDeletion();
-    expect(component.deletion()).toBeNull();
-    expect(remove).not.toHaveBeenCalled();
-  }));
+    requests[0].next(response([item])); settle()
+    component.doDeleteCollection('one')
+    expect(component.deletion()?.name).toBe('Test')
+    expect(remove).not.toHaveBeenCalled()
+    component.cancelDeletion()
+    component.confirmDeletion()
+    expect(component.deletion()).toBeNull()
+    expect(remove).not.toHaveBeenCalled()
+  }))
 
   it('prevents repeated submissions and keeps the confirmed target on failure for retry', fakeAsync(() => {
-    requests[0].next(response([item])); settle();
-    component.doDeleteCollection('one');
-    component.confirmDeletion(); component.confirmDeletion(); component.cancelDeletion();
-    expect(remove).toHaveBeenCalledOnceWith('one');
-    expect(component.deletion()?.id).toBe('one');
-    expect(component.deletePending()).toBeTrue();
-    deletionResponse.next(false); deletionResponse.complete();
-    expect(component.deleteError()).toContain('Puoi riprovare');
-    expect(component.items.length).toBe(1);
-    deletionResponse = new Subject<boolean>();
-    component.confirmDeletion();
-    expect(remove).toHaveBeenCalledTimes(2);
-    deletionResponse.next(true); deletionResponse.complete();
-    tick(500); flushMicrotasks();
-    expect(component.deletion()).toBeNull();
-  }));
+    requests[0].next(response([item])); settle()
+    component.doDeleteCollection('one')
+    component.confirmDeletion(); component.confirmDeletion(); component.cancelDeletion()
+    expect(remove).toHaveBeenCalledOnceWith('one')
+    expect(component.deletion()?.id).toBe('one')
+    expect(component.deletePending()).toBeTrue()
+    deletionResponse.next(false); deletionResponse.complete()
+    expect(component.deleteError()).toContain('Puoi riprovare')
+    expect(component.items.length).toBe(1)
+    deletionResponse = new Subject<boolean>()
+    component.confirmDeletion()
+    expect(remove).toHaveBeenCalledTimes(2)
+    deletionResponse.next(true); deletionResponse.complete()
+    tick(500); flushMicrotasks()
+    expect(component.deletion()).toBeNull()
+  }))
 
   it('preserves the item and confirmation after a transport error', fakeAsync(() => {
-    requests[0].next(response([item])); settle();
-    component.doDeleteCollection('one'); component.confirmDeletion();
-    deletionResponse.error(new Error('offline'));
-    expect(component.deletePending()).toBeFalse();
-    expect(component.deletion()?.id).toBe('one');
-    expect(component.items.length).toBe(1);
-    expect(component.deleteError()).toBeTruthy();
-  }));
+    requests[0].next(response([item])); settle()
+    component.doDeleteCollection('one'); component.confirmDeletion()
+    deletionResponse.error(new Error('offline'))
+    expect(component.deletePending()).toBeFalse()
+    expect(component.deletion()?.id).toBe('one')
+    expect(component.items.length).toBe(1)
+    expect(component.deleteError()).toBeTruthy()
+  }))
 
-});
+})
