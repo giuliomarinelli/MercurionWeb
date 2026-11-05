@@ -110,7 +110,6 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     .sensitive-data-notice {
       padding: 16px;
       gap: 12px;
-      align-items: flex-start;
     }
     .sensitive-data-notice svg {
       width: 24px;
@@ -223,6 +222,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
               <div class="relative rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
                 <div class="flex justify-center items-center px-4 sm:px-6 py-8">
                   <m-text-field
+                    [highContrast]="true"
                     class="w-full max-w-md"
                     label="Codice monouso"
                     type="text"
@@ -372,6 +372,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                 <div class="flex justify-center items-center px-4 sm:px-6 py-8">
                   <div class="flex flex-col items-center gap-y-4">
                     <m-text-field
+                      [highContrast]="true"
                       class="w-full max-w-md"
                       label="Codice monouso"
                       type="text"
@@ -496,6 +497,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                   <div class="relative rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
                     <div class="flex justify-center items-center px-4 sm:px-6 py-8">
                       <m-text-field
+                        [highContrast]="true"
                         class="w-full max-w-md"
                         label="Nuova e-mail"
                         type="email"
@@ -534,6 +536,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                   <div class="relative rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
                     <div class="flex justify-center items-center px-4 sm:px-6 py-8">
                         <m-text-field
+                          [highContrast]="true"
                           class="w-full max-w-md"
                           label="Codice monouso"
                           type="text"
@@ -591,18 +594,18 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
           @switch (changeOrAddPhoneStep()) {
             @case ('NEW_CONTACT_FORM') {
               <div class="flex flex-col gap-y-6">
-                <div class="sensitive-data-notice relative py-8 px-4 sm:px-6 flex items-center gap-6 rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
+                <div class="sensitive-data-notice relative flex items-center rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current h-12 w-auto shrink-0">
                     <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                     <path d="M256 96L256 160L384 160L384 96L464 96L464 544L176 544L176 96L256 96zM256 64L144 64L144 576L496 576L496 64L256 64zM288 96L352 96L352 128L288 128L288 96zM272 464L272 496L368 496L368 464L272 464z"/>
                   </svg>
                     @if (innerScope() === 'ChangePhone') {
-                      <span class="text-[0.925rem] leading-[1.25rem] text-[#374151] dark:text-dark-on-surface-secondary inline-block pr-4">Numero di telefono corrente:&nbsp;
-                        <strong class="text-[#1147BB] dark:text-dark-accent-primary-btn-hc">{{obscuredPhone()}}</strong>
+                      <span class="text-[0.925rem] leading-5 text-dark-surface-secondary dark:text-dark-on-surface-secondary inline-block pr-4">Numero di telefono corrente:&nbsp;
+                        <strong class="text-light-accent-primary-hc dark:text-dark-accent-primary-btn-hc">{{obscuredPhone()}}</strong>
                         .&nbsp; Inserisci di seguito il nuovo numero di telefono che vuoi impostare. Una volta confermato il cambio, l'autenticazione a più fattori e le notifiche faranno riferimento al nuovo numero.
                       </span>
                     } @else {
-                      <span class="text-[0.925rem] leading-[1.25rem] text-[#374151] dark:text-dark-on-surface-secondary inline-block pr-4">Inserisci il numero da associare al tuo account. Dopo la conferma potrai usarlo per l'autenticazione via SMS e le notifiche.</span>
+                      <span class="text-[0.925rem] leading-5 text-dark-surface-secondary dark:text-dark-on-surface-secondary inline-block pr-4">Inserisci il numero da associare al tuo account. Dopo la conferma potrai usarlo per l'autenticazione via SMS e le notifiche.</span>
                     }
                 </div>
                 <div class="relative rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
@@ -645,6 +648,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                         />
                       </div>
                       <m-text-field
+                        [highContrast]="true"
                         class="mt-4 w-full min-w-0 sm:mt-0"
                         label="Nuovo numero"
                         type="tel"
@@ -690,6 +694,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                 <div class="relative rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
                   <div class="flex justify-center items-center px-4 sm:px-6 py-8">
                       <m-text-field
+                        [highContrast]="true"
                         class="w-full max-w-md"
                         label="Codice monouso"
                         type="text"
@@ -769,6 +774,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                 <div class="relative rounded-lg border border-light-border dark:border-dark-border bg-light-surface-secondary dark:bg-dark-surface-secondary">
                   <div class="flex justify-center items-center px-4 sm:px-6 py-8">
                     <m-text-field
+                      [highContrast]="true"
                       class="w-full max-w-md"
                       label="Codice monouso"
                       type="text"
@@ -840,6 +846,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                   <div class="flex justify-center items-center px-6 py-6" [formGroup]="passwordForm">
                     <div class="flex flex-col gap-y-4 w-full max-w-lg mt-4">
                       <m-text-field
+                        [highContrast]="true"
                         class="block w-full max-w-lg"
                         label="Password corrente"
                         type="password"
@@ -851,6 +858,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                         (enter)="routeAction()"
                   />
                       <m-text-field
+                        [highContrast]="true"
                         class="block w-full max-w-lg"
                         label="Nuova password"
                         type="password"
@@ -863,6 +871,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
                         (enter)="routeAction()"
                       />
                       <m-text-field
+                        [highContrast]="true"
                         class="block w-full max-w-lg"
                         label="Conferma nuova password"
                         type="password"

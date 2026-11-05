@@ -74,6 +74,7 @@ type RegistryFormValue = {
           } @else {
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-6 w-full">
               <m-text-field
+                [highContrast]="true"
                 label="Nome"
                 type="text"
                 autocomplete="given-name"
@@ -85,6 +86,7 @@ type RegistryFormValue = {
               />
 
               <m-text-field
+                [highContrast]="true"
                 label="Cognome"
                 type="text"
                 autocomplete="family-name"
@@ -104,6 +106,7 @@ type RegistryFormValue = {
               />
 
               <m-text-field
+                [highContrast]="true"
                 class="sm:pt-8"
                 label="Il tuo lavoro"
                 type="text"

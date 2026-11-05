@@ -201,7 +201,6 @@ import { MfaFlowState, MfaStrategyRegistry, MfaStrategySession } from './mfa-flo
 
           <div class="auth-links">
             <a routerLink="/privacy" class="auth-link">Informativa sulla privacy</a>
-             ·
             <a routerLink="/terms-and-policies" class="auth-link">Termini e Policy</a>
           </div>
         </form>

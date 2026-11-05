@@ -66,8 +66,17 @@ let nextGeneratedId = 0
           (keyup.enter)="enter.emit()"
         />
 
-        <div class="pointer-events-none absolute inset-0 rounded-b-md border-x border-b border-slate-400 group-focus-within:border-2 group-focus-within:border-t-0 group-focus-within:border-light-accent-primary dark:border-slate-300 dark:group-focus-within:border-dark-accent-primary" style="clip-path: inset(6px 0 0 0)" aria-hidden="true"></div>
-        <div class="pointer-events-none absolute inset-x-0 top-0 flex h-px text-slate-400 group-focus-within:text-light-accent-primary dark:text-slate-300 dark:group-focus-within:text-dark-accent-primary" aria-hidden="true">
+        <div
+          class="pointer-events-none absolute inset-0 rounded-b-md border-x border-b border-slate-400 group-focus-within:border-2 group-focus-within:border-t-0 group-focus-within:border-light-accent-primary dark:border-slate-300"
+          [ngClass]="highContrast() ? 'dark:group-focus-within:border-dark-accent-primary-btn-hc' : 'dark:group-focus-within:border-dark-accent-primary'"
+          style="clip-path: inset(6px 0 0 0)"
+          aria-hidden="true"
+        ></div>
+        <div
+          class="pointer-events-none absolute inset-x-0 top-0 flex h-px text-slate-400 group-focus-within:text-light-accent-primary dark:text-slate-300"
+          [ngClass]="highContrast() ? 'dark:group-focus-within:text-dark-accent-primary-btn-hc' : 'dark:group-focus-within:text-dark-accent-primary'"
+          aria-hidden="true"
+        >
           <span class="h-2 w-3 shrink-0 rounded-tl-md border-l border-t border-current group-focus-within:border-2 group-focus-within:border-b-0 group-focus-within:border-r-0"></span>
           @if (focused() || !empty()) { <span class="shrink-0 px-1 text-base leading-none opacity-0">{{ label() }} @if (isRequired()) { * }</span> }
           <span class="min-w-0 flex-1 border-t border-current group-focus-within:border-t-2"></span>
@@ -129,6 +138,7 @@ export class TextFieldComponent implements ControlValueAccessor, OnInit {
   readonly serverError = input<string | null>(null)
   readonly required = input(false)
   readonly disabled = input(false)
+  readonly highContrast = input(false)
   readonly describedById = input<string>()
   readonly enter = output<void>()
 
