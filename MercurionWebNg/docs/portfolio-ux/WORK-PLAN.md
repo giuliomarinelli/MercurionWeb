@@ -21,11 +21,15 @@ Il programma riguarda l’applicazione e la sua QA. La [VM locale](../../../docs
 
 **Ripresa del 5 novembre:** [Giorno 2 avviato](DAY-2-QA.md). Creazione, rinomina, conservazione della bozza ed eliminazione propagate fra due schede della stessa sessione. Contesti indipendenti e controllo WebSocket rifiutati dal collegamento Playwright corrente: riconnessione, scadenza e revoca fra sessioni restano da eseguire.
 
+**Seguito concordato:** casi aperti raccolti nei [TODO finali F-01/F-02/F-03](FINAL-TODO.md); su istruzione dell’utente si prosegue con il Giorno 3 senza ripetere ora i tentativi di capacità browser.
+
 ## Giorno 3 — Flussi account, supporto e QA aperta
 
 - Riprendere i residui pertinenti di login/MFA, aggiunta e rimozione telefono, supporto/ticket e pagine complementari del blocco 23. Verificare errori, focus e ritorno al lavoro.
 - Distinguere test reali di invio e persistenza da risposte simulate; evitare messaggi reali non necessari. La prova SMS diretta già confermata dall’utente non sostituisce le prove dei singoli flussi OTP/MFA.
 - **Consegna:** casi chiusi e aperti; correggere i problemi riprodotti nel perimetro della sessione.
+
+**Ripresa del 5 novembre:** [Giorno 3 verificato con limiti](DAY-3-QA.md). Feedback con trasporto controllato, navigazione policy, 403/404, selettore MFA e apertura/chiusura nuovo ticket; corretti i target dei pulsanti 403/404. Prove reali con codici/provider e invii ticket conservate come TODO finali F-04/F-05.
 
 ## Giorno 4 — Compatibilità, accessibilità e demo B2B
 

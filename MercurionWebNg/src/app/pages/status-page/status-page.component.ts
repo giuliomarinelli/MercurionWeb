@@ -30,10 +30,10 @@ import { StatusPageConfig } from './status-page.models'
           {{ status().description }}
         </p>
         <div class="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
-          <m-button variant="outline" (pressed)="goBack()">
+          <m-button size="lg" variant="outline" (pressed)="goBack()">
             <span aria-hidden="true">&larr;</span> Torna indietro
           </m-button>
-          <m-button variant="primary" (pressed)="goHome()">
+          <m-button size="lg" variant="primary" (pressed)="goHome()">
             {{ homeContent() }}
           </m-button>
         </div>

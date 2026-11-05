@@ -1,5 +1,7 @@
 # Pagine complementari — blocco 23 / PX-17 e PX-18
 
+**Ripresa del 5 novembre 2026:** il [Giorno 3](DAY-3-QA.md) aggiunge QA runtime con Playwright su feedback, contatti autenticati, sommari/frammenti e pagine 403/404. Corretto il target dei pulsanti di recupero da 43 a 50 px. Il verbale storico seguente mantiene le proprie date; review visiva completa, variante anonima e Safari non vengono dichiarati conclusi.
+
 30 ottobre 2026. **Implementazione pronta per review; QA browser ancora aperta.** Questo blocco riguarda feedback, contatti, 403/404, privacy e termini. Non modifica backend, policy legali, feature flag o segreti.
 
 ## Modifiche

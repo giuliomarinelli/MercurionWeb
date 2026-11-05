@@ -828,6 +828,12 @@ Ricerca ChEMBL di ASPIRINA → dettaglio → nuova collezione QA → associazion
 
 34 test mirati di socket/macchina a stati/session sync superati. Non eseguite riconnessione controllata e sessioni indipendenti: errori del collegamento Playwright su `Target.createBrowserContext` e `Runtime.addBinding`. Nessuna revoca degli accessi dell’utente; nessun evento di supporto/SMS/e-mail generato. Schede QA chiuse e servizi dell’utente lasciati attivi. Riprendere i casi aperti con un collegamento browser compatibile; non dichiarare completato il Giorno 2.
 
+### 2026-11-05 — Giorno 3 — Account, supporto e residui complementari
+
+**Stato:** Verificato con limiti, in review. [Verbale](DAY-3-QA.md). Feedback: errore, pending, conferma e nuova bozza con POST intercettate; contatti autenticati, frammenti/sommari AUP e privacy, ritorno da 403/404. MFA: selettore aperto/chiuso senza modifiche dei metodi; nuovo ticket aperto/chiuso senza invii. 225 test account/supporto e 33 complementari superati in esecuzioni distinte.
+
+**Difetto corretto:** azioni 403/404 alte 43 px; variante condivisa lg, 50 px verificati nel browser e due regressioni geometriche. Lint/build e bundle/lazy/documentazione superati. Invii/provider reali restano F-04/F-05 nei TODO finali; servizi dell’utente conservati. Seguito: Giorno 4, compatibilità/accessibilità e demo.
+
 ## Modello per le voci successive
 
 ### AAAA-MM-GG — PX-XX — Sottoarea

@@ -64,6 +64,15 @@ describe('StatusPageComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Pagina non trovata.')
   })
 
+  for (const code of [403, 404] as const) {
+    it(`keeps both ${code} recovery actions at least 48px high`, async () => {
+      await createFor(STATUS_PAGE_CONFIG[code])
+      const buttons = Array.from(fixture.nativeElement.querySelectorAll('button')) as HTMLButtonElement[]
+      expect(buttons.length).toBe(2)
+      for (const button of buttons) expect(button.getBoundingClientRect().height).toBeGreaterThanOrEqual(48)
+    })
+  }
+
   it('uses the manifest home destination for the primary CTA', async () => {
     await createFor(STATUS_PAGE_CONFIG[404])
 
