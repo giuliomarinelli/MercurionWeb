@@ -1,5 +1,7 @@
 # JWT key manifest v1 e runtime multi-chiave — B1a/B1b
 
+> **Aggiornamento 5 novembre 2026:** la precedente proposta VPS e i suoi checkpoint infrastrutturali sono invalidati. La [VM locale](../../docs/infrastructure/local-vm-deployment.md) è in progettazione preliminare; i riferimenti VPS nel seguito descrivono il contesto storico, non requisiti approvati per la nuova topologia. Le implementazioni e le prove JWT riportate conservano il loro stato e i loro limiti.
+
 27 ottobre 2026. B1a/B1b e B2 locale implementati, in review. B2 aggiunge registro persistente, CLI e riconciliazione delle connessioni private; [operazioni, prove e limiti](jwt-key-operations.md). Il nuovo runtime è collegabile tramite composizione esplicita o, in development/test, con [adapter locale e flag JWT_LOCAL_KEYS_CONFIG](jwt-local-development.md), dopo migrazione controllata. Senza opt-in il bootstrap conserva il percorso precedente: nessun nuovo requisito obbligatorio per avviare lo sviluppo. Non è ancora il rollout della rotazione sugli ambienti reali.
 
 Il parser canonico è [parseJwtKeyManifest](../src/app_modules/auth/keys/jwt-key-manifest.parser.ts); [modello e policy algoritmi](../src/app_modules/auth/keys/jwt-key-manifest.ts) e [port del materiale](../src/app_modules/auth/keys/jwt-key-material-source.port.ts) sono indipendenti da SDK, filesystem, ConfigService e bootstrap. Il parser riceve un valore JSON già decodificato e l’ambiente atteso dal chiamante fidato; non legge file, process.env, rete o orologio.

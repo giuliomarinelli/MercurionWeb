@@ -1,5 +1,7 @@
 # AUTH-02 / B2 — Registro persistente e operazioni JWT
 
+> **Aggiornamento 5 novembre 2026:** la precedente proposta VPS e i suoi checkpoint infrastrutturali sono invalidati. La [VM locale](../../docs/infrastructure/local-vm-deployment.md) è in progettazione preliminare; i riferimenti VPS nel seguito descrivono il contesto storico, non requisiti approvati per la nuova topologia. Le implementazioni e le prove JWT riportate conservano il loro stato e i loro limiti.
+
 27 ottobre 2026. Implementazione locale, in review. Questo documento descrive codice e prove con fixture sintetiche; non autorizza rotazioni, restore o modifiche agli ambienti reali. Contratto del [manifest e runtime](jwt-key-manifest.md); coordinamento [VPS INF-01A](../../docs/infrastructure/vps-deployment-roadmap.md).
 
 ## Composizione esplicita

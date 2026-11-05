@@ -1,5 +1,7 @@
 # JWT: variabili d’ambiente, segreti e kid
 
+> **Aggiornamento 5 novembre 2026:** la precedente proposta VPS e i suoi checkpoint infrastrutturali sono invalidati. La [VM locale](../../docs/infrastructure/local-vm-deployment.md) è in progettazione preliminare; i riferimenti VPS nel seguito descrivono il contesto storico, non requisiti approvati per la nuova topologia. Le implementazioni e le prove JWT riportate conservano il loro stato e i loro limiti.
+
 27 ottobre 2026. Distinguere configurazione attuale, runtime multi-chiave già implementato e integrazione del provider ancora da completare. Questo documento non richiede di modificare ora .env o chiavi reali.
 
 ## Situazione attuale

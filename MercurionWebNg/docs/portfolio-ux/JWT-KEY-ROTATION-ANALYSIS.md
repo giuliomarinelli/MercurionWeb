@@ -1,5 +1,7 @@
 # 16K-A — Analisi della rotazione JWT
 
+> **Aggiornamento 5 novembre 2026:** la precedente proposta VPS e i suoi checkpoint infrastrutturali sono invalidati. La [VM locale](../../../docs/infrastructure/local-vm-deployment.md) è in progettazione preliminare; i riferimenti VPS nel seguito descrivono il contesto storico, non requisiti approvati per la nuova topologia. Le implementazioni e le prove JWT riportate conservano il loro stato e i loro limiti.
+
 25 ottobre 2026. Analisi iniziale su MercurionWeb a `9f2dff0ed17b2c1a321048e55169a074a4443abc`; Tox21 letto nel checkout locale, senza modificarlo. **B1a implementato, in review:** schema/port e validazione tramite provider; firma/verifica corrente ancora invariata. Contratto e prove in [jwt-key-manifest.md](../../../MercurionWebNode/docs/jwt-key-manifest.md). Questo documento approfondisce [AUTH-02](JWT-KEY-ROTATION.md).
 
 ## Decisioni confermate dall’utente

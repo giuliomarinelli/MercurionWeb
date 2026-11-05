@@ -1,5 +1,7 @@
 # AUTH-02 — QA Linux/Compose isolata
 
+> **Aggiornamento 5 novembre 2026:** la precedente proposta VPS e i suoi checkpoint infrastrutturali sono invalidati. La [VM locale](../../docs/infrastructure/local-vm-deployment.md) è in progettazione preliminare; i riferimenti VPS nel seguito descrivono il contesto storico, non requisiti approvati per la nuova topologia. Le implementazioni e le prove JWT riportate conservano il loro stato e i loro limiti.
+
 27 ottobre 2026. **27 controlli superati**, con chiavi RSA/HMAC sintetiche, Redis e Socket.IO reali. Il percorso ordinario di sviluppo non è stato riconfigurato. Nessun .env/PEM reale, database applicativo, account o servizio dell’utente utilizzato.
 
 ## Ripetizione
