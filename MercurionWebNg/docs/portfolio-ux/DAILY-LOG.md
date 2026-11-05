@@ -848,6 +848,14 @@ Ricerca ChEMBL di ASPIRINA → dettaglio → nuova collezione QA → associazion
 
 **Bilancio:** CI remota e review manuale aperte; TS-01 delle altre aree in F-09, nessun completamento repository-wide dichiarato. Restano tutti i TODO reali F-01–F-07 e l’anomalia storica PX-09 non riprodotta. Commit/push senza firma sul branch corrente, nessun merge; servizi dell’utente conservati.
 
+### 2026-11-05 — TS-01 — Seconda passata e inventario globale
+
+**Stato:** Pulizia applicata, accettazione aperta. [Verbale](TS-01-QA.md): 967 ulteriori terminatori rimossi in 62 file Data/LandingFactory/contratti/Playwright. Inventario globale di 1.318 file manuali, 21 esclusioni motivate; zero candidati rimovibili, 1.105 separatori/guardie conservati. Verificato il diff contro Git, senza modifiche funzionali; gestiti gli spazi esposti dalla rimozione di due terminatori. Formatter allineati nelle aree aggiunte.
+
+**Verifica:** 8 test del trasformatore, build Data e landing (42 route), build/typecheck contratti, policy eventi e 81 test contratti verdi. MercurionData aveva già quattro errori typecheck, 14 rilievi lint e 16 suite fallite: esiti invariati dopo la pulizia. Errore di tipizzazione del catalogo riprodotto sul file Git precedente. Test landing senza esito, nessun test sorgente presente. Nessun gate disabilitato o test fallito dichiarato verde.
+
+**Segue:** review delle eccezioni F-09, controlli delle aree aggiunte F-10 e CI remota F-08. Provider/dispositivi/runtime restano TODO separati. Commit/push senza firma, nessun merge; servizi dell’utente conservati.
+
 ## Modello per le voci successive
 
 ### AAAA-MM-GG — PX-XX — Sottoarea

@@ -2,6 +2,8 @@
 
 5 novembre 2026. **Pulizia Angular/Nest implementata e verificata localmente, in review. TS-01 complessivo non dichiarato chiuso.** Commit e push autorizzati dall’utente, nessun merge. Working tree iniziale pulito; nessuna modifica a dipendenze, lockfile, ambienti o dati applicativi.
 
+**Seguito autorizzato:** [seconda passata e inventario completo TS-01](TS-01-QA.md). Aggiunte le aree inizialmente escluse, con altri 967 terminatori rimossi; zero candidati nel perimetro globale. Controlli preesistenti non verdi di MercurionData/catalogo documentati separatamente: la chiusura di accettazione resta aperta.
+
 ## TS-01 — Prima passata
 
 Inventariati **1.230 file TypeScript manuali tracciati** in `MercurionWebNg` e `MercurionWebNode`, compresi test e configurazioni. Esclusi i due file GraphQL generati `src/app/generated/graphql.ts` e `schema.ts`; file ignorati, dipendenze e output non entrano nell’inventario Git.
