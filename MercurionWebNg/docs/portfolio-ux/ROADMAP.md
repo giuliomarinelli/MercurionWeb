@@ -1,5 +1,7 @@
 # Mercurion — Roadmap UX e presentazione portfolio
 
+> **Aggiornamento 5 novembre 2026:** la proposta infrastrutturale VPS è stata invalidata. Il riferimento corrente è la [nota preliminare sulla VM locale](../../../docs/infrastructure/local-vm-deployment.md); i riferimenti storici alla topologia, ai checkpoint e ai requisiti specifici della VPS presenti più sotto non sono decisioni attive per la VM. Restano valide le evidenze delle prove applicative già svolte. Il [programma giornaliero proposto](WORK-PLAN.md) riordina i prossimi interventi sull’applicazione senza avviare sviluppo infrastrutturale.
+
 Data iniziale: 6 ottobre 2026. Stato: pianificazione per lavoro incrementale e review manuale.
 
 Ultima revisione del perimetro: 27 ottobre 2026. Notebook, Synthesis e integrazione object store/Cloudflare R2 sono rinviati insieme, fuori dal percorso corrente della beta. Il codice scientifico reintegrato resta conservato ma disabilitato; il flag Documents blocca anche il DocumentController Nest. Il refactor navigazione/sidebar/offcanvas N3 è implementato e in review; restano QA fisica Safari, zoom browser e accettazione manuale. I blocchi 13 e 14 sono implementati, in review; anche 15A e 15B / PX-02 sono implementati, in review ([home](HOME-QA.md), [welcome](WELCOME-QA.md)); anche 16 / PX-03 è implementato, in review ([accesso](LOGIN-QA.md)); AUTH-02 / B1a/B1b, B2 e adapter/bootstrap locale sono implementati, in review; QA Compose isolata completata (27 controlli); restano provider/bootstrap VPS INF-01A e consumer coordinati. Prove shell: [SHELL-QA.md](SHELL-QA.md). Prove editor: [EDITOR-STATES-QA.md](EDITOR-STATES-QA.md). Prove e limiti: [NAVIGATION-QA.md](NAVIGATION-QA.md). Restano le decisioni di piattaforma del 22 ottobre: Angular 20 → 21 → 22 mantenendo inizialmente Zone.js e Karma, poi Node.js 26 con NestJS 11, secondo UP-01/UP-02. Aggiornamento INF-02: porting a SMS Hosting superato per decisione dell’utente del 27 ottobre; resta Twilio; l’utente ha configurato le nuove credenziali e confermato il superamento della prova diretta SMS in sviluppo. Restano configurazione e verifica degli invii OTP/MFA prima dell’accettazione dei flussi SMS.
@@ -57,6 +59,16 @@ Il **21 / PX-16** è implementato, in review: Help, pill Tutti/Non chiusi sui da
 
 Il **22 / PX-16** è implementato, in review: documento Quill completo, bozza conservata fino alla conferma, refresh senza smontare il composer, storico paginato e posizione di lettura preservata. Pending, errori di stato e focus dei comandi coordinati con l’overlay. [Prove e limiti](SUPPORT-22-QA.md). Le prove browser usano risposte intercettate, senza messaggi reali; restano persistenza end-to-end, Safari fisico e review/CI. Prossimo blocco: **23 / PX-17 e PX-18 — pagine complementari**.
 
+## Aggiornamento del 30 ottobre — pagine complementari
+
+Il **23 / PX-17 e PX-18** è implementato, con QA browser ancora aperta: feedback e contatti, rating da tastiera, 403/404 nel flusso della pagina, documenti leggibili con sommario e focus sui frammenti. Contenuti legali e icone originali conservati. [Prove e limiti](COMPLEMENTARY-23-QA.md). I test locali non sostituiscono la verifica visiva sul runtime; il collegamento Playwright è in verifica dopo timeout del canale. Prossimo blocco pianificato: **24 / PX-20 — reattività percepita**, dopo review e QA browser.
+
+## Aggiornamento del 30 ottobre — reattività percepita
+
+Il **24 / PX-20** è implementato, in review: prime misure di apertura su cinque superfici, feedback dei pannelli differiti, vecchie azioni non interattive durante il cambio, retry del caricamento, errore dei grafici e reduced motion nei caricamenti scientifici. Viewer recuperato dopo errore WASM nel browser senza cambio di altezza. [Misure, verifiche e limiti](REACTIVITY-24-QA.md). Restano misure a cache realmente fredda su build servita, errori dei singoli chunk, Safari e CI; la QA del blocco 23 resta aperta.
+
+Il **25 / PX-21** è preparato, in review: [dataset pubblico, copione e preview locale](demo/README.md), sei catture delle liste nei due temi e a 375 px, con trasporto sintetico limitato alla scheda Playwright e scritture bloccate. Corretto il falso «MW: 0» sulle card con proprietà mancanti; 35 test Angular e 10 test del materiale demo superati. [Evidenze e limiti](demo/QA.md). Nessun seed dell’account corrente: restano percorso persistente, dettaglio/editor/notifiche, selezione finale delle catture e Safari fisico. Prossimo blocco pianificato: **26 / PX-22 — regressione dei percorsi completi**, conservando i residui precedenti.
+
 ## Priorità
 
 - **P1**: esperienza centrale e schermate che mostrano maggiormente il valore del progetto.
@@ -87,7 +99,7 @@ La priorità indica il valore della rifinitura per il portfolio, non la gravità
 | PX-18 | Pagine di stato e documenti | P3 | S, V | Da affrontare |
 | PX-19 | Componenti, stati e accessibilità trasversali | P1 | S, B, V | Da applicare progressivamente; PX-19A telefono corretto in review; altri consumatori da verificare |
 | PX-20 | Reattività percepita e movimento | P2 | S, B, V | Da misurare sui percorsi principali |
-| PX-21 | Dati e percorso dimostrativo portfolio | P3 | B, V | Da preparare dopo il percorso centrale |
+| PX-21 | Dati e percorso dimostrativo portfolio | P3 | B, V | Preparato, in review; percorso persistente e mobile fisico aperti |
 | PX-22 | Regressione funzionale dei percorsi completi | P1 | B, V | Da applicare progressivamente; passaggio finale aperto |
 | PX-23 | Sessioni, realtime e continuità del lavoro | P1 | S, V | Da verificare tra le aree |
 | PX-24 | Compatibilità, review finale e preparazione del merge | P1 | V | Da eseguire dopo la rifinitura |
@@ -617,6 +629,8 @@ La reintegrazione dei branch feature nel branch corrente e il merge della beta s
 
 **Accettazione:** la demo si può ripetere con esito prevedibile e dati non sensibili; screenshot corrispondono al prodotto reale; limiti del modello e funzionalità ancora incomplete non vengono nascosti o inventati.
 
+**Aggiornamento 30 ottobre:** [materiale locale](demo/README.md) e [QA](demo/QA.md) preparati. Pubblico confermato: clienti software B2B, qualità tecnica e UX; copione principale dedicato, R&D opzionale. Tre fonti ChEMBL, una copia personale coerente, tre collezioni e notifiche sintetiche; validazione negativa contro strutture rinominate/incoerenti e scritture accidentali. Catture delle liste effettive nei due temi, comprese viewport compatte. Il helper resta fuori dall’app e non simula salvataggi riusciti. Percorso con scritture/riapertura da eseguire nel blocco 26 su fixture concordate; demo mobile autentica e accettazione finale ancora aperte. La prova del dataset ha corretto il convertitore delle card che mostrava MW zero quando la proprietà mancava.
+
 ### PX-22 — Regressione funzionale dei percorsi completi
 
 **Perché conta:** pagine singolarmente curate possono ancora perdere dati o contesto quando vengono usate insieme. La QA deve verificare anche comportamento e persistenza.
@@ -728,8 +742,8 @@ Il refactor N3 / PX-01 precede la sequenza residua qui sotto, che riprende dal b
 | 20C | PX-15D — E-mail transazionali | Implementato, in review; 13 template e collegamenti verificati senza SMTP; prove client reali residue; [prove e limiti](EMAILS-20C-QA.md) |
 | 21 | PX-16 — Supporto e nuovo ticket | Implementato, in review; [prove e limiti](SUPPORT-21-QA.md) |
 | 22 | PX-16 — Conversazione ticket | Implementato, in review; storico, composer, refresh e scrolling; [prove e limiti](SUPPORT-22-QA.md) |
-| 23 | PX-17/PX-18 — Pagine complementari | Tono, leggibilità e azioni coerenti |
-| 24 | PX-20 — Reattività | Misure e interventi sui soli punti dimostrati |
+| 23 | PX-17/PX-18 — Pagine complementari | Implementato; QA browser e review aperte; [prove e limiti](COMPLEMENTARY-23-QA.md) |
+| 24 | PX-20 — Reattività | Implementato, in review; [misure e accettazione residua](REACTIVITY-24-QA.md) |
 | 25 | PX-21 — Demo portfolio | Dataset, percorso e schermate finali verificati |
 | 26 | PX-22 — Regressione dei percorsi completi | Persistenza, navigazione e errori verificati tra le aree |
 | 27 | PX-23 — Continuità tra sessioni e connessioni | Riconnessione, scadenza e coerenza dello stato verificate |

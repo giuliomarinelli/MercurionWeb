@@ -76,7 +76,7 @@ export function searchResultToSummary(
     smiles: molecule.smiles ?? '',
     molecularWeight: molecule.mwFreebase ?? undefined,
     phase: molecule.maxPhase ?? undefined,
-    badge: molecule.known ? 'Già salvata' : undefined,
+    badge: molecule.known ? 'Molecola nota' : undefined,
     ...options
   };
 }

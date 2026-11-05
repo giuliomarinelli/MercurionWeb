@@ -772,6 +772,50 @@ Collezioni: null significa loading, [] empty immediato, niente timer o dati prec
 
 **Residui:** invii e persistenza reali autorizzati, client indipendenti, Safari fisico con tastiera e review/CI. Nessun invio reale, modifica backend/segreti o Git di scrittura. Prossimo blocco: **23 / PX-17 e PX-18 — pagine complementari**.
 
+### 2026-10-30 — 23 / PX-17 e PX-18 — Pagine complementari
+
+**Stato:** Implementato; QA browser e review aperte.
+
+**Intervento:** feedback con distinzione dall’assistenza, conferma temporizzata dopo la risposta, recupero dagli errori e campi bloccati in pending. Corretto il riferimento all’anonimato dopo verifica della persistenza dell’account nel backend. Rating accessibile da tastiera, contatti autenticati/anonimi e pagine 403/404 nel flusso. Sommario, tipografia e focus dei frammenti nei documenti, senza cambiare contenuti/versioni legali o icone originali.
+
+**Verifica:** 33 test mirati superati, geometria su 50 combinazioni di superficie/tema/larghezza e Axe nei due temi; rilevati e corretti link distinguibili solo dal colore. Typecheck, lint, build production, gate bundle/lazy e styling; bundle iniziale 949.948 byte. Playwright ha restituito tre timeout di 300 secondi, anche dopo riconnessione: nessun esito visivo inferito dai test. [Comandi, risultati finali e accettazione residua](COMPLEMENTARY-23-QA.md).
+
+**Residui:** verifica visiva Playwright sul runtime, Safari/tastiera/zoom, review e CI. Nessun invio reale o Git di scrittura. Prossimo blocco pianificato: **24 / PX-20 — reattività percepita**, dopo la QA del presente blocco.
+
+### 2026-10-30 — 24 / PX-20 — Reattività percepita
+
+**Stato:** Implementato, in review.
+
+**Intervento:** misurate prime aperture e ripetizioni di ricerca, ticket, editor, dashboard e dettaglio, senza attribuire ai tempi del dev server valore di benchmark. Feedback leggero per overlay differiti, inert e annullamento durante il cambio di azione, retry del modulo nella stessa sessione e focus di recupero. Errore esplicito dei grafici con geometria conservata; reduced motion su viewer e Ketcher. Icone, fade dei badge e algoritmi scientifici conservati.
+
+**Verifica:** 67 test mirati superati, Axe nei due temi, typecheck/lint/build e gate bundle/lazy/styling. Bundle iniziale 958.259 byte. Playwright: viewer recuperato dopo errore WASM con variazione d’altezza 0 px, indicatori senza animazione con reduced motion, focus ticket e ricerca entro il viewport 375×320. [Misure, comandi e limiti](REACTIVITY-24-QA.md).
+
+**Residui:** cache veramente fredda e errori isolati dei chunk su build servita, Safari/zoom, review e CI. QA del blocco 23 ancora aperta. Nessun invio di contenuti reali, Git di scrittura o modifica dei processi dell’utente. Prossimo blocco: **25 / PX-21 — demo portfolio**.
+
+### 2026-10-30 — 25 / PX-21 — Dati e percorso dimostrativo portfolio
+
+**Stato:** Preparato, in review; percorso persistente e Safari fisico ancora aperti.
+
+**Intervento:** [dataset locale e copione](demo/README.md) con tre campioni pubblici ChEMBL documentati, copia personale della medesima struttura, collezioni coerenti, nota/nome lunghi, proprietà mancanti, gruppo vuoto e notifiche sintetiche. Due percorsi brevi per pubblico software B2B e R&D. Preview Playwright MCP separata dal codice applicativo, con trasporto limitato alla sola scheda demo e scritture bloccate; nessun seed dell’account corrente.
+
+**Difetto corretto:** il convertitore delle card sostituiva proprietà assenti o non leggibili con MW zero. Ora mantiene il dato mancante e conserva gli zeri realmente forniti. Sei regressioni riprodotte prima della correzione; conferma browser sul campione personale. Icone e stile conservati.
+
+**Verifica:** 35 test Angular mirati e 10 test Node del materiale demo superati; typecheck, lint, build production, gate bundle/lazy, styling e documentazione superati. Bundle iniziale 958.259 byte. Sei catture delle liste nei due temi, desktop e larghezza 375 px; ritagli senza account/cronologia e ispezionati. Le catture statiche con scheda hidden non certificano animazioni o interazione; primo resize non assestato escluso. [Evidenze e comandi](demo/QA.md).
+
+**Integrazione dalla review:** pubblico confermato: clienti software B2B, con priorità a qualità tecnica e UX. Copione principale aggiornato; taglio R&D opzionale. Ripetute le viste molecole scure desktop/375 px con scheda visibile, quattro SVG, MW mancante omesso e nessun overflow. Catture residue statiche dopo il ritorno di Chrome in background; scatti con menu tema in chiusura o ritaglio non assestato sostituiti e ispezionati. Tema iniziale ripristinato e chiuse soltanto le schede create per la ripresa.
+
+**Residui:** selezione finale con l’utente, demo persistente con ricerca → dettaglio → organizzazione → editor → salvataggio/riapertura, notifiche e Safari fisico. Nessun invio reale, Git di scrittura o modifica dei runtime dell’utente. QA 23/24 e CI restano aperte. Prossimo blocco: **26 / PX-22 — regressione funzionale dei percorsi completi**.
+
+### 2026-11-05 — Giorno 1 — Percorso molecolare e salvataggio reale
+
+**Stato:** Percorso reale eseguito, in review. [Esiti e limiti](DAY-1-QA.md).
+
+Ricerca ChEMBL di ASPIRINA → dettaglio → nuova collezione QA → associazione → duplicazione nell’editor → salvataggio e refresh/riapertura. Conservate una copia della struttura di origine e due varianti modificate nel canvas, con identità ricalcolata dal servizio. Verificati annullamento senza scrittura, blocco duplicati, conservazione dei metadati cambiando destinazione, errore di trasporto indotto su una sola mutation e retry reale con Invio. La lettura remota successiva conferma dati e appartenenza; quattro elementi nella collezione. Fixture e ID nel verbale locale, nessuna eliminazione di dati precedenti.
+
+**Verifica:** 81 test Angular mirati superati nella ripresa; alcuni avvisi `NG0953`. Playwright MCP disponibile; interazioni decisive con viewport 1366×900. Prove DOM/rete, nessuna nuova cattura PNG riuscita. Nessuna modifica applicativa, merge, push o deploy; servizi dell’utente lasciati attivi.
+
+**Residui:** primo errore storico PX-09 non riprodotto, causa ancora ignota; 502 sul recupero notifiche e disconnessioni WebSocket osservati separatamente. Prossima sessione proposta: Giorno 2, realtime/riconnessione e sessioni indipendenti. Review visiva/Safari e CI restano aperte.
+
 ## Modello per le voci successive
 
 ### AAAA-MM-GG — PX-XX — Sottoarea

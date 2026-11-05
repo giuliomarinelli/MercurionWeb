@@ -40,8 +40,8 @@ export class Helpers {
         : mol.name ?? 'Lead sconosciuto',
       syn: mol.type === 'chembl' ? (mol.chemblDetails as MoleculeDetail)?.synonyms?.[0] ?? '' : '',
       mwFreebase: mol.type === 'chembl'
-        ? (mol.chemblDetails as MoleculeDetail)?.properties.mwFreebase ?? 0
-        : (() => { try { return (JSON.parse(mol.propertiesJson ?? '') as MoleculeProperties).mwFreebase ?? 0 } catch { return 0 } })() as number,
+        ? (mol.chemblDetails as MoleculeDetail)?.properties?.mwFreebase ?? undefined
+        : Helpers.parseMoleculeProperties(mol.propertiesJson)?.mwFreebase ?? undefined,
       maxPhase: mol.type === 'chembl' ? (mol.chemblDetails as MoleculeDetail)?.maxPhase ?? 0 : undefined,
       smiles: mol.type === 'chembl' ? (mol.chemblDetails as MoleculeDetail)?.canonicalSmiles ?? '' : mol.canonicalSmiles ?? '',
       createdAt: Number(mol.createdAt),
