@@ -7,12 +7,14 @@ export default defineConfig({
   forbidOnly: true,
   retries: 0,
   reporter: [['line']],
+  expect: {
+    toHaveScreenshot: { animations: 'disabled' },
+  },
   use: {
     baseURL: 'http://127.0.0.1:4401',
     colorScheme: 'light',
     locale: 'en-US',
-    reducedMotion: 'reduce',
-    animations: 'disabled',
+    contextOptions: { reducedMotion: 'reduce' },
     ...devices['Desktop Chrome'],
   },
   webServer: {

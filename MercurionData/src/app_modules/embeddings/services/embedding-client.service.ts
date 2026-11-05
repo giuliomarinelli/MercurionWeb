@@ -1,8 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-enum-comparison */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Injectable, Logger } from '@nestjs/common'
-import { connect, NatsConnection, StringCodec, NatsError, ErrorCode } from 'nats'
+import { NatsConnection, StringCodec } from 'nats'
 
 @Injectable()
 export class EmbeddingClientService {
@@ -23,6 +20,7 @@ export class EmbeddingClientService {
     }
 
     async getSmilesEmbedding(smiles: string): Promise<number[]> {
+        void smiles
         // try {
         //     const data = this.sc.encode(JSON.stringify({ smiles }))
         //     const msg = await this.nc.request('inference.embedding.smiles', data, { timeout: 30000 })

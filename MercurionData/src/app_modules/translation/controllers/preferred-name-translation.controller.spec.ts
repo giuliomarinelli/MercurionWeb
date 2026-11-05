@@ -1,3 +1,4 @@
+import { PreferredNameTranslationService } from '../services/preferred-name-translation.service'
 import { Test, TestingModule } from '@nestjs/testing'
 import { PreferredNameTranslationController } from './preferred-name-translation.controller'
 
@@ -7,6 +8,9 @@ describe('PreferredNameTranslationController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [PreferredNameTranslationController],
+      providers: [
+        { provide: PreferredNameTranslationService, useValue: {} },
+      ],
     }).compile()
 
     controller = module.get<PreferredNameTranslationController>(PreferredNameTranslationController)

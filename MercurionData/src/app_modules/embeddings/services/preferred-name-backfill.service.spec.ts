@@ -1,15 +1,22 @@
+import { getRepositoryToken } from '@nestjs/typeorm'
+import { MoleculeIndexView } from 'src/app_modules/chembl_36/Models/entities/molecule-index-mv'
+import { MoleculeEmbedding } from '../Models/entities/molecule-embedding.entity'
 import { Test, TestingModule } from '@nestjs/testing'
-import { PreferredNameBackfillService } from './preferred-name-backfill.service'
+import { PreferredNameSyncService } from './preferred-name-backfill.service'
 
-describe('PreferredNameBackfillService', () => {
-  let service: PreferredNameBackfillService
+describe('PreferredNameSyncService', () => {
+  let service: PreferredNameSyncService
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [PreferredNameBackfillService],
+      providers: [
+        PreferredNameSyncService,
+        { provide: getRepositoryToken(MoleculeIndexView), useValue: {} },
+        { provide: getRepositoryToken(MoleculeEmbedding, 'MercurionConn'), useValue: {} },
+      ],
     }).compile()
 
-    service = module.get<PreferredNameBackfillService>(PreferredNameBackfillService)
+    service = module.get<PreferredNameSyncService>(PreferredNameSyncService)
   })
 
   it('should be defined', () => {

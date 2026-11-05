@@ -5,6 +5,7 @@ import { MoleculePreviewView } from 'src/app_modules/chembl_36/Models/entities/m
 import { MoleculePreviewSyncService } from './molecule-preview-sync.service'
 
 describe('MoleculePreviewSyncService', () => {
+  const includesSmiles: unknown = expect.arrayContaining(['smiles'])
   let service: MoleculePreviewSyncService
   let updateSettings: jest.Mock
   let getIndexes: jest.Mock
@@ -51,9 +52,9 @@ describe('MoleculePreviewSyncService', () => {
 
     expect(createIndex).not.toHaveBeenCalled()
     expect(index).toHaveBeenCalledWith('molecule_previews_chembl_36')
-    expect(updateSettings).toHaveBeenCalledWith(jasmine.objectContaining({
-      searchableAttributes: jasmine.arrayContaining(['smiles']),
-      filterableAttributes: jasmine.arrayContaining(['smiles'])
+    expect(updateSettings).toHaveBeenCalledWith(expect.objectContaining({
+      searchableAttributes: includesSmiles,
+      filterableAttributes: includesSmiles
     }))
   })
 
@@ -66,8 +67,8 @@ describe('MoleculePreviewSyncService', () => {
       'molecule_previews_chembl_36',
       { primaryKey: 'id' }
     )
-    expect(updateSettings).toHaveBeenCalledWith(jasmine.objectContaining({
-      filterableAttributes: jasmine.arrayContaining(['smiles'])
+    expect(updateSettings).toHaveBeenCalledWith(expect.objectContaining({
+      filterableAttributes: includesSmiles
     }))
   })
 })
