@@ -7,8 +7,9 @@ test.describe("critical anonymous and authentication journeys", () => {
     await page.goto("/login")
 
     await expect(
-      page.getByRole("heading", { name: "Piacere di averti qui." }),
+      page.getByRole("heading", { name: "Accedi a Mercurion", level: 1 }),
     ).toBeVisible()
+    await expect(page.getByText("Piacere di averti qui. Scegli come accedere.", { exact: true })).toBeVisible()
     await expect(page.getByRole("link", { name: "Registrati" })).toBeVisible()
 
     await page.getByLabel("Indirizzo e-mail").fill("not-an-email")

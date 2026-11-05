@@ -105,19 +105,22 @@ describe('Sensitive phone Italian prefix', () => {
 
   it('anchors the tooltip to the control when the overlay freezes a scrolled body', fakeAsync(() => {
     const previousStyle = document.body.style.cssText
-    const previousFixtureStyle = fixture.nativeElement.style.cssText
+    const previousScroll = { top: window.scrollY, left: window.scrollX }
+    const wrapper = fixture.debugElement.query(By.directive(Tooltip)).nativeElement as HTMLElement
+    const previousTargetStyle = wrapper.style.cssText
     try {
       window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
       document.body.style.position = 'fixed'
       document.body.style.top = '-200px'
       document.body.style.width = '100%'
-      // Keep the target in view with room above it. Otherwise PrimeNG correctly
-      // flips the bubble below, which would invalidate the top-edge assertion.
-      fixture.nativeElement.style.cssText = 'display:block;padding-top:300px'
-      const wrapper = fixture.debugElement.query(By.directive(Tooltip)).nativeElement as HTMLElement
-      wrapper.focus()
+      // Place the real target at a known viewport position, independent of the
+      // runner's form layout. Keep focus from scrolling it and causing a valid flip.
+      wrapper.style.cssText = 'position:fixed;top:250px;left:300px;width:160px'
+      wrapper.focus({ preventScroll: true })
       tick()
       const bubble = document.querySelector('[role="tooltip"]') as HTMLElement
+      expect(wrapper.getBoundingClientRect().top).toBe(250)
+      expect(window.scrollY).toBe(0)
       expect(bubble.classList.contains('p-tooltip-top')).toBeTrue()
       expect(Math.abs(bubble.getBoundingClientRect().bottom - wrapper.getBoundingClientRect().top))
         .withContext('body offset must not be applied twice to the tooltip')
@@ -125,8 +128,9 @@ describe('Sensitive phone Italian prefix', () => {
       wrapper.blur()
       tick()
     } finally {
-      fixture.nativeElement.style.cssText = previousFixtureStyle
+      wrapper.style.cssText = previousTargetStyle
       document.body.style.cssText = previousStyle
+      window.scrollTo({ ...previousScroll, behavior: 'instant' })
     }
   }))
 
