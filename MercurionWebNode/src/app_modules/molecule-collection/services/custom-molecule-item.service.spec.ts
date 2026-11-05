@@ -1,13 +1,13 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { CustomMoleculeItemService } from './custom-molecule-item.service';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { CustomMoleculeItemEntity } from '../models/entities/custom-molecule-item.entity';
-import { MoleculeCollectionItemJoinService } from './molecule-collection-item-join.service';
-import { RDKitService } from 'src/app_modules/mercurion-ai/services/rd-kit.service';
-import { MoleculeOwnershipPolicy } from './molecule-ownership.policy';
+import { Test, TestingModule } from '@nestjs/testing'
+import { CustomMoleculeItemService } from './custom-molecule-item.service'
+import { getRepositoryToken } from '@nestjs/typeorm'
+import { CustomMoleculeItemEntity } from '../models/entities/custom-molecule-item.entity'
+import { MoleculeCollectionItemJoinService } from './molecule-collection-item-join.service'
+import { CustomMoleculeResolutionService } from './custom-molecule-resolution.service'
+import { MoleculeOwnershipPolicy } from './molecule-ownership.policy'
 
 describe('CustomMoleculeItemService', () => {
-  let service: CustomMoleculeItemService;
+  let service: CustomMoleculeItemService
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -23,11 +23,10 @@ describe('CustomMoleculeItemService', () => {
           },
         },
         {
-          provide: RDKitService,
+          provide: CustomMoleculeResolutionService,
           useValue: {
-            getMoleculeProperties: jest.fn(),
-            toCanonicalSmiles: jest.fn(),
-            areSameStructure: jest.fn(),
+            canonicalize: jest.fn(),
+            resolveCanonicalWithManager: jest.fn()
           },
         },
         {
@@ -42,12 +41,12 @@ describe('CustomMoleculeItemService', () => {
         },
         { provide: MoleculeOwnershipPolicy, useValue: { assertCollectionOwned: jest.fn() } },
       ],
-    }).compile();
+    }).compile()
 
-    service = module.get<CustomMoleculeItemService>(CustomMoleculeItemService);
-  });
+    service = module.get<CustomMoleculeItemService>(CustomMoleculeItemService)
+  })
 
   it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
-});
+    expect(service).toBeDefined()
+  })
+})

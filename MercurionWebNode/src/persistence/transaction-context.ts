@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { DataSource, EntityManager, EntityTarget, ObjectLiteral, Repository } from 'typeorm'
+import type { IsolationLevel } from 'typeorm/driver/types/IsolationLevel'
 
 declare const transactionContextBrand: unique symbol
 
@@ -52,12 +53,16 @@ type TransactionWork<T> = (
 export async function runInTransaction<T>(
   source: TransactionSource,
   work: TransactionWork<T>,
-  context?: TransactionContext
+  context?: TransactionContext,
+  isolationLevel?: IsolationLevel
 ): Promise<T> {
+  if (context && isolationLevel) {
+    throw new Error('Isolation level can only be selected for a root transaction')
+  }
   if (context) return work(context, transactionManager(context))
 
   let effects: Array<() => Promise<void>> = []
-  const result = await source.transaction(async (manager) => {
+  const execute = async (manager: EntityManager): Promise<T> => {
     const rootContext = createTransactionContext(manager)
     try {
       const value = await work(rootContext, manager)
@@ -67,7 +72,10 @@ export async function runInTransaction<T>(
       managers.delete(rootContext)
       afterCommitEffects.delete(rootContext)
     }
-  })
+  }
+  const result = isolationLevel
+    ? await source.transaction(isolationLevel, execute)
+    : await source.transaction(execute)
 
   for (const effect of effects) await effect()
   return result

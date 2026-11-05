@@ -1,11 +1,11 @@
-import { ConfigService } from '@nestjs/config';
-import { Test, TestingModule } from '@nestjs/testing';
-import { DataSource } from 'typeorm';
-import { Environment } from 'src/config/config.schema';
-import { ReleaseService } from './release.service';
+import { ConfigService } from '@nestjs/config'
+import { Test, TestingModule } from '@nestjs/testing'
+import { DataSource } from 'typeorm'
+import { Environment } from 'src/config/config.schema'
+import { ReleaseService } from './release.service'
 
 describe('ReleaseService', () => {
-  let service: ReleaseService;
+  let service: ReleaseService
 
   beforeEach(async () => {
     const dataSourceMock = {
@@ -17,21 +17,21 @@ describe('ReleaseService', () => {
           versionSha256: 'hash',
         }),
       }),
-    };
+    }
 
     const configServiceMock = {
       get: jest.fn((key: string) => {
         if (key === 'App.env') {
-          return Environment.Test;
+          return Environment.Test
         }
 
         if (key === 'App.version') {
-          return '1.0.0';
+          return '1.0.0'
         }
 
-        return undefined;
+        return undefined
       }),
-    };
+    }
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -39,12 +39,12 @@ describe('ReleaseService', () => {
         { provide: DataSource, useValue: dataSourceMock },
         { provide: ConfigService, useValue: configServiceMock },
       ],
-    }).compile();
+    }).compile()
 
-    service = module.get<ReleaseService>(ReleaseService);
-  });
+    service = module.get<ReleaseService>(ReleaseService)
+  })
 
   it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
-});
+    expect(service).toBeDefined()
+  })
+})

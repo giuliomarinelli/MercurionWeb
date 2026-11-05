@@ -1,6 +1,6 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core'
 
-import { SearchFieldComponent } from '../search-field/search-field.component';
+import { SearchFieldComponent } from '../search-field/search-field.component'
 
 /**
  * Compatibility shell for legacy callers. Search behavior lives in the
@@ -22,14 +22,14 @@ import { SearchFieldComponent } from '../search-field/search-field.component';
   `
 })
 export class PmSearchInputComponent {
-  readonly value = input('');
-  readonly placeholder = input('Cerca molecola...');
-  readonly ariaLabel = input<string>();
-  readonly disabled = input(false);
-  readonly borderDark = input(true);
-  readonly useAltDarkStyle = input(false);
+  readonly value = input('')
+  readonly placeholder = input('Cerca molecola...')
+  readonly ariaLabel = input<string>()
+  readonly disabled = input(false)
+  readonly borderDark = input(true)
+  readonly useAltDarkStyle = input(false)
 
-  readonly valueChange = output<string>();
-  readonly submitted = output<string>();
-  readonly cleared = output<string>();
+  readonly valueChange = output<string>()
+  readonly submitted = output<string>()
+  readonly cleared = output<string>()
 }

@@ -56,4 +56,5 @@ runtime document assembly.
 The scalar mappings are:
 
 - `ID` -> `string`;
-- `JSON` -> the existing Angular `JsonValue` type.
+- `JSON` -> the existing Angular `JsonValue` type;
+- `JSONObject` -> the existing Angular `JsonObject` type (Quill Delta and immutable experiment protocol snapshots).

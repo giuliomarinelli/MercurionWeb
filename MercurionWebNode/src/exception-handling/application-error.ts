@@ -1,5 +1,5 @@
-import { HttpException } from '@nestjs/common';
-import { RpcException } from '@nestjs/microservices';
+import { HttpException } from '@nestjs/common'
+import { RpcException } from '@nestjs/microservices'
 import {
   ApplicationErrorCode,
   type ApplicationErrorCode as ApplicationErrorCodeType,
@@ -7,7 +7,7 @@ import {
   type ApplicationErrorCategory,
   getApplicationErrorDefinition,
   isApplicationErrorPayload,
-} from '@mercurion/rest-contracts';
+} from '@mercurion/rest-contracts'
 
 export { ApplicationErrorCode }
 export type { ApplicationErrorCategory }
@@ -46,11 +46,11 @@ export function applicationError(
   details?: Readonly<Record<string, unknown>>,
   cause?: unknown,
 ): ApplicationError {
-  const definition = getApplicationErrorDefinition(code);
-  const resolvedMessage = message ?? definition.defaultMessage;
+  const definition = getApplicationErrorDefinition(code)
+  const resolvedMessage = message ?? definition.defaultMessage
 
   if (!resolvedMessage) {
-    throw new Error(`Application error ${code} requires an explicit message`);
+    throw new Error(`Application error ${code} requires an explicit message`)
   }
 
   return new ApplicationError(code, resolvedMessage, details, cause)
@@ -61,11 +61,11 @@ export function applicationHttpException(
   message?: string,
   details?: Readonly<Record<string, unknown>>,
 ): HttpException {
-  const definition = getApplicationErrorDefinition(code);
-  const resolvedMessage = message ?? definition.defaultMessage;
+  const definition = getApplicationErrorDefinition(code)
+  const resolvedMessage = message ?? definition.defaultMessage
 
   if (!resolvedMessage) {
-    throw new Error(`Application error ${code} requires an explicit message`);
+    throw new Error(`Application error ${code} requires an explicit message`)
   }
 
   const payload: ApplicationErrorPayload & { statusCode: number } = {
@@ -73,51 +73,51 @@ export function applicationHttpException(
     code,
     message: resolvedMessage,
     ...(details ? { details } : {}),
-  };
+  }
 
-  return new HttpException(payload, definition.httpStatus);
+  return new HttpException(payload, definition.httpStatus)
 }
 
 export function getApplicationError(
   error: unknown,
 ): ApplicationErrorPayload | undefined {
   if (error instanceof RpcException) {
-    const raw = error.getError();
+    const raw = error.getError()
     if (isApplicationErrorPayload(raw)) {
-      return raw;
+      return raw
     }
   }
 
   if (error instanceof HttpException) {
-    const response = error.getResponse();
+    const response = error.getResponse()
     if (isApplicationErrorPayload(response)) {
-      return response;
+      return response
     }
   }
 
   if (isApplicationErrorPayload(error)) {
-    return error;
+    return error
   }
 
-  return undefined;
+  return undefined
 }
 
 export function isApplicationError(
   error: unknown,
   code: ApplicationErrorCodeType,
 ): boolean {
-  return getApplicationError(error)?.code === code;
+  return getApplicationError(error)?.code === code
 }
 
 export function getApplicationErrorMessage(
   payload: ApplicationErrorPayload,
   isProduction: boolean,
 ): string {
-  const definition = getApplicationErrorDefinition(payload.code);
+  const definition = getApplicationErrorDefinition(payload.code)
   if (isProduction && !definition.exposeInProduction) {
-    return 'Internal Server Error';
+    return 'Internal Server Error'
   }
-  return definition.publicMessage ?? payload.message;
+  return definition.publicMessage ?? payload.message
 }
 
 export function categoryForStatus(status: number): ApplicationErrorCategory {

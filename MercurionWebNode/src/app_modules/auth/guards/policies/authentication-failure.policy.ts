@@ -1,6 +1,6 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common'
+import { Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common'
 import { RpcException } from '@nestjs/microservices'
-import { timingSafeEqual, UUID } from 'node:crypto'
+import { UUID } from 'node:crypto'
 
 import { LoggerContext } from 'src/logging/logger.port'
 import { LoggerPort } from 'src/logging/logger.port'
@@ -21,6 +21,7 @@ import type {
   AuthenticationRequestContext
 } from './authentication-policy.types'
 import { SecurityService } from '../../services/security.service'
+import { JwtKeyRuntimeError } from '../../keys/jwt-key-runtime-error'
 
 @Injectable()
 export class AuthenticationFailurePolicy {
@@ -41,6 +42,10 @@ export class AuthenticationFailurePolicy {
     attempt: AuthenticationAttemptState,
     error: unknown
   ): Promise<never> {
+    if (error instanceof JwtKeyRuntimeError && error.operational) {
+      this.logger.warn('Authentication key runtime unavailable', { code: error.code })
+      throw new InternalServerErrorException('Authentication key service unavailable')
+    }
     const oldTokenPayload = this.decode(attempt.accessToken)
     const refreshedTokenPayload = this.decode(attempt.refreshedToken)
     const errorInfo = this.buildDiagnostic(
@@ -70,8 +75,8 @@ export class AuthenticationFailurePolicy {
       throw unauthorizedException
     }
 
+    // Unverified token contents are diagnostic only, never authority to destroy a session.
     const effectiveUserId = attempt.userId
-      ?? this.resolveFallbackUserId(context.sessionId, oldTokenPayload)
 
     if (
       this.shouldRevokeOnError(error)
@@ -135,29 +140,6 @@ export class AuthenticationFailurePolicy {
       )
       .map(([key, value]) => `${key}=${value}`)
       .join(', ')
-  }
-
-  private resolveFallbackUserId(
-    sessionId: string | undefined,
-    payload: AppJwtPayload | null
-  ): UUID | undefined {
-    if (!payload || !payload.sub || !payload.sid) {
-      return undefined
-    }
-    const tokenSessionId = payload.sid
-    const tokenUserId = this.securityService.decryptUserId(payload.sub)
-
-    if (
-      !tokenUserId
-      || !tokenSessionId
-      || !sessionId
-      || tokenSessionId.length !== sessionId.length
-      || !timingSafeEqual(Buffer.from(tokenSessionId), Buffer.from(sessionId))
-    ) {
-      return undefined
-    }
-
-    return tokenUserId
   }
 
   private shouldRevokeOnError(error: unknown): boolean {

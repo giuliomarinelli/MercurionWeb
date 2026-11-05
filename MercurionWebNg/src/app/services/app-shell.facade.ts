@@ -1,4 +1,5 @@
-import { ElementRef, Injectable, OnDestroy, effect, inject, signal } from '@angular/core'
+import { Injectable, OnDestroy, effect, inject, signal, untracked } from '@angular/core'
+import { BrowserStorageRegistry, storageDescriptor } from './browser-storage-registry'
 import { Event as RouterEvent, NavigationCancel, NavigationEnd, NavigationError, NavigationStart, Router } from '@angular/router'
 import { Subscription } from 'rxjs'
 import { AuthStateStore } from './auth-state.store'
@@ -16,18 +17,20 @@ import { activeRoutePolicy, DEFAULT_ROUTE_POLICY, RoutePolicy } from '../route-p
  */
 @Injectable({ providedIn: 'root' })
 export class AppShellFacade implements OnDestroy {
+
   private readonly router = inject(Router)
   private readonly authState = inject(AuthStateStore)
   private readonly sessionSync = inject(SessionSyncService)
   private readonly redirects = inject(AuthRedirectService)
   private readonly pathService = inject(PathService)
   private readonly scrollContext = inject(ScrollContextService)
+  private readonly storage = inject(BrowserStorageRegistry)
+  private readonly firstVisitDescriptor = storageDescriptor<string>('mercurion.v1.is-first-visit')
 
   readonly routePolicy = signal<RoutePolicy>(DEFAULT_ROUTE_POLICY)
   private readonly currentPath = signal('')
   private readonly firstNavigationDone = signal(false)
   private readonly routeSub: Subscription
-  private scrollHostRef?: ElementRef<HTMLElement>
   private programmaticNavigation?: {
     readonly token: number
     readonly target: string
@@ -42,14 +45,15 @@ export class AppShellFacade implements OnDestroy {
 
     effect(() => {
       const tick = this.sessionSync.handshakeTick()
-      if (tick !== 0) void this.sessionSync.checkSession(true)
+      // The handshake reads and updates session state; only its request tick is a trigger.
+      if (tick !== 0) untracked(() => void this.sessionSync.checkSession(true))
     })
 
     this.currentPath.set(this.normalize(this.router.url))
     this.pathService.setPath(this.currentPath())
-    this.routeSub = this.router.events.subscribe(event => {
-      this.onProgrammaticNavigationEvent(event)
-      if (event instanceof NavigationEnd) this.onNavigation(event)
+    this.routeSub = this.router.events.subscribe((e) => {
+      this.onProgrammaticNavigationEvent(e)
+      if (e instanceof NavigationEnd) this.onNavigation(e)
     })
 
     effect(() => {
@@ -67,7 +71,7 @@ export class AppShellFacade implements OnDestroy {
       const policy = this.routePolicy()
       const isPublic = policy.access !== 'authenticated'
       const isLoggedOutOnly = policy.access === 'logged-out-only'
-      const safeNavigate = (target: string) => {
+      const safeNavigate = (target: string, requiresAuthentication = false) => {
         if (!target) return
         const active = this.programmaticNavigation
         if (active?.target === target) return
@@ -79,6 +83,10 @@ export class AppShellFacade implements OnDestroy {
         this.programmaticNavigation = transaction
         queueMicrotask(() => {
           if (this.programmaticNavigation !== transaction) return
+          if (requiresAuthentication && !this.authState.authenticated()) {
+            this.programmaticNavigation = undefined
+            return
+          }
           if (this.normalize(this.router.url).toLowerCase() === url) {
             void this.router.navigateByUrl(target).finally(() => {
               if (this.programmaticNavigation === transaction) {
@@ -91,8 +99,8 @@ export class AppShellFacade implements OnDestroy {
         })
       }
 
-      if (url === '/') {
-        safeNavigate('/welcome')
+      if (url === '/' && logged) {
+        safeNavigate('/dashboard', true)
       } else if (!logged) {
         if (!isPublic) {
           const target = this.redirects.capture(this.router.url)
@@ -101,24 +109,37 @@ export class AppShellFacade implements OnDestroy {
           })))
         }
       } else if (isLoggedOutOnly) {
-        safeNavigate('/dashboard')
+        safeNavigate('/dashboard', true)
       }
     })
-  }
-
-  registerScrollHost(host?: ElementRef<HTMLElement>): void {
-    this.scrollHostRef = host
   }
 
   ngOnDestroy(): void {
     this.routeSub.unsubscribe()
   }
 
+  shouldSkipHomeAnimations(): boolean {
+    return this.storage.get(this.firstVisitDescriptor) === 'true'
+  }
+
+  /** Called when the public home is presented, after session restoration. */
+  markHomePresented(): void {
+    this.storage.set(this.firstVisitDescriptor, 'true')
+  }
+
+  private handleFirstVisit(url: string): void {
+    if (url === '/welcome' || url === '/login' || url === '/register') {
+      this.storage.set(this.firstVisitDescriptor, 'true')
+    }
+  }
+
   private onNavigation(event: NavigationEnd): void {
+
     const previousPath = this.currentPath()
     const url = this.normalize(event.urlAfterRedirects)
+    this.handleFirstVisit(url)
     if (previousPath !== url && url !== '/settings' && url !== '/terms-and-policies') {
-      this.scrollContext.smoothToTop(this.scrollHostRef, 400)
+      this.scrollContext.smoothToTop(undefined, 400)
     }
 
     this.routePolicy.set(activeRoutePolicy(this.router.routerState.snapshot.root))

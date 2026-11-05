@@ -71,15 +71,15 @@ import {
         <h2 id="content-title" class="mb-5 text-xl font-semibold">Contenuto e attributi</h2>
         <div class="flex flex-wrap items-center gap-4">
           <m-button variant="secondary" iconPosition="leading">
-            <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
-            Icona iniziale
+            <svg class="w-4 h-auto shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+            <span class="text-xs">Icona iniziale</span>
           </m-button>
           <m-button variant="outline" iconPosition="trailing">
             Icona finale
             <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" /></svg>
           </m-button>
           <m-button variant="ghost" ariaLabel="Aggiungi elemento" type="button">
-            <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+            <svg class="w-4 h-auto shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
           </m-button>
           <m-button variant="outline" ariaCurrent="page">Pagina corrente</m-button>
           <m-button variant="primary">Etichetta volutamente lunga per controllare spaziatura e ritorno a capo</m-button>
@@ -91,34 +91,34 @@ import {
         <p class="mb-5 text-sm text-light-on-surface-secondary dark:text-dark-on-surface-secondary">Prova le combinazioni, inclusi i tipi nativi button, submit e reset. Usa Tab per verificare il focus.</p>
 
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <label class="flex flex-col gap-1 text-sm font-medium">Variante
+          <label class="flex flex-col gap-1 text-base font-medium">Variante
             <select class="rounded-lg border border-slate-400 bg-light-surface-main px-3 py-2 dark:bg-dark-surface-main" [value]="variant()" (change)="setVariant($event)">
               @for (option of variants; track option) { <option [value]="option">{{ option }}</option> }
             </select>
           </label>
-          <label class="flex flex-col gap-1 text-sm font-medium">Dimensione
+          <label class="flex flex-col gap-1 text-base font-medium">Dimensione
             <select class="rounded-lg border border-slate-400 bg-light-surface-main px-3 py-2 dark:bg-dark-surface-main" [value]="size()" (change)="setSize($event)">
               @for (option of sizes; track option) { <option [value]="option">{{ option }}</option> }
             </select>
           </label>
-          <label class="flex flex-col gap-1 text-sm font-medium">Icona
+          <label class="flex flex-col gap-1 text-base font-medium">Icona
             <select class="rounded-lg border border-slate-400 bg-light-surface-main px-3 py-2 dark:bg-dark-surface-main" [value]="icon()" (change)="setIcon($event)">
               <option value="none">Nessuna</option>
               <option value="leading">Iniziale</option>
               <option value="trailing">Finale</option>
             </select>
           </label>
-          <label class="flex flex-col gap-1 text-sm font-medium">Tipo nativo
+          <label class="flex flex-col gap-1 text-base font-medium">Tipo nativo
             <select class="rounded-lg border border-slate-400 bg-light-surface-main px-3 py-2 dark:bg-dark-surface-main" [value]="type()" (change)="setType($event)">
               @for (option of types; track option) { <option [value]="option">{{ option }}</option> }
             </select>
           </label>
-          <label class="flex flex-col gap-1 text-sm font-medium sm:col-span-2">Etichetta
+          <label class="flex flex-col gap-1 text-base font-medium sm:col-span-2">Etichetta
             <input class="rounded-lg border border-slate-400 bg-light-surface-main px-3 py-2 dark:bg-dark-surface-main" [value]="label()" (input)="setLabel($event)" />
           </label>
-          <label class="flex items-center gap-2 text-sm"><input type="checkbox" [checked]="disabled()" (change)="setDisabled($event)" /> Disabilitato</label>
-          <label class="flex items-center gap-2 text-sm"><input type="checkbox" [checked]="loading()" (change)="setLoading($event)" /> Caricamento</label>
-          <label class="flex items-center gap-2 text-sm"><input type="checkbox" [checked]="iconOnly()" (change)="setIconOnly($event)" /> Solo icona</label>
+          <label class="flex items-center gap-2 text-base"><input type="checkbox" [checked]="disabled()" (change)="setDisabled($event)" /> Disabilitato</label>
+          <label class="flex items-center gap-2 text-base"><input type="checkbox" [checked]="loading()" (change)="setLoading($event)" /> Caricamento</label>
+          <label class="flex items-center gap-2 text-base"><input type="checkbox" [checked]="iconOnly()" (change)="setIconOnly($event)" /> Solo icona</label>
         </div>
 
         <div class="mt-6 rounded-xl border border-dashed border-slate-400/70 bg-light-surface-secondary p-6 dark:bg-dark-surface-secondary">
@@ -133,9 +133,9 @@ import {
               [ariaLabel]="iconOnly() || loading() ? label() : null"
               (pressed)="onPressed()">
               @if (icon() === 'leading' || iconOnly()) {
-                <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+                <svg class="w-4 h-auto shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
               }
-              @if (!iconOnly()) { {{ label() }} }
+              @if (!iconOnly()) { <span [class.text-xs]="icon() === 'leading'">{{ label() }}</span> }
               @if (icon() === 'trailing' && !iconOnly()) {
                 <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" /></svg>
               }

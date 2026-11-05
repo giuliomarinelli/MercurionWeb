@@ -1,41 +1,43 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { Reflector } from '@nestjs/core';
-import { Socket } from 'socket.io';
-import { TokenType } from 'src/app_modules/auth/models/enums/token-type.enum';
-import { JwtToolsService } from 'src/app_modules/auth/services/jwt-tools.service';
-import { SecureCookieService } from 'src/app_modules/auth/services/secure-cookie.service';
-import { SessionService } from 'src/app_modules/auth/services/session.service';
-import { IS_PUBLIC_KEY } from 'src/metadata/metadata';
-import { WebSocketUtils } from 'src/utils/web-socket-utils/web-socket-utils';
-import { LoggerPort } from 'src/logging/logger.port';
-import { LoggerContext } from 'src/logging/logger.port';
-import { ScopeService } from 'src/app_modules/auth/services/scope.service';
+import { CanActivate, ExecutionContext, Injectable, InternalServerErrorException } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
+import { Reflector } from '@nestjs/core'
+import { Socket } from 'socket.io'
+import { TokenType } from 'src/app_modules/auth/models/enums/token-type.enum'
+import { JwtToolsService } from 'src/app_modules/auth/services/jwt-tools.service'
+import { SecureCookieService } from 'src/app_modules/auth/services/secure-cookie.service'
+import { SessionService } from 'src/app_modules/auth/services/session.service'
+import { IS_PUBLIC_KEY } from 'src/metadata/metadata'
+import { WebSocketUtils } from 'src/utils/web-socket-utils/web-socket-utils'
+import { LoggerPort } from 'src/logging/logger.port'
+import { LoggerContext } from 'src/logging/logger.port'
+import { ScopeService } from 'src/app_modules/auth/services/scope.service'
 import {
   socketEventRegistry,
   type ClientToServerEvents,
   type ServerToClientEvents,
-} from '@mercurion/socket-contracts';
+} from '@mercurion/socket-contracts'
 import {
   ApplicationErrorCode,
   getApplicationError,
   isApplicationError
-} from 'src/exception-handling/application-error';
+} from 'src/exception-handling/application-error'
 import {
   getApplicationErrorDefinition,
   sessionInvalidationCauseForApplicationError,
   SessionInvalidationCause,
   SessionState,
   type SessionInvalidationCauseType
-} from '@mercurion/rest-contracts';
+} from '@mercurion/rest-contracts'
 import {
   createCorrelationId,
   createSocketApplicationError,
   presentApplicationError
-} from 'src/exception-handling/application-error-envelope';
-import { Environment } from 'src/config/config.schema';
-import type { AppConfiguration } from 'src/config/config.types';
-import { SecurityService } from 'src/app_modules/auth/services/security.service';
+} from 'src/exception-handling/application-error-envelope'
+import { Environment } from 'src/config/config.schema'
+import type { AppConfiguration } from 'src/config/config.types'
+import { SecurityService } from 'src/app_modules/auth/services/security.service'
+import { JwtKeyRuntimeError } from 'src/app_modules/auth/keys/jwt-key-runtime-error'
+import { bindSocketKey } from '../socket-key-binding'
 
 
 type ApplicationSocket = Socket<ClientToServerEvents, ServerToClientEvents>
@@ -120,12 +122,21 @@ export class WsGuard implements CanActivate {
       }
 
       // 🔹 Inietta lo userId e gli scope nei dati della socket
+      await bindSocketKey(client, token, this.jwtTools)
       client.data.userId = userId
       client.data.sessionId = payload.sid
       client.data.scopes = this.scopeService.generateScopesArrayFromJwtClaim(payload.scp)
       this.logger.debug?.(`Socket ${client.id} polling connection state: PRIVATE (Authenticated)`)
       return true
     } catch (e) {
+      if (e instanceof JwtKeyRuntimeError && e.operational) {
+        client.emit(socketEventRegistry.applicationError.name, createSocketApplicationError(
+          presentApplicationError(new InternalServerErrorException('Authentication key service unavailable'), {
+            correlationId: createCorrelationId(client.id), isProduction: this.isProduction()
+          })
+        ))
+        return false
+      }
       if (isApplicationError(e, ApplicationErrorCode.TOKEN_INVALID_OR_EXPIRED)) {
         // Il JWT WS può scadere mentre la sessione Redis resta valida.
         // Il client rinnova il token con il cookie e ristabilisce l'handshake.

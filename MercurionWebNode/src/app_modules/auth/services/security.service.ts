@@ -1,15 +1,15 @@
-import { ConfigService } from '@nestjs/config';
-import { Injectable } from '@nestjs/common';
-import { TotpConfiguration } from 'src/config/config.types';
-import { createCipheriv, createDecipheriv, createHmac, randomBytes, UUID } from 'crypto';
+import { ConfigService } from '@nestjs/config'
+import { Injectable } from '@nestjs/common'
+import { TotpConfiguration } from 'src/config/config.types'
+import { createCipheriv, createDecipheriv, createHmac, randomBytes, UUID } from 'crypto'
 import * as speakeasy from 'speakeasy'
-import { TotpWrapper } from '../models/interfaces/totp-wrapper.interface';
-import { AppTotpWrapper } from '../models/interfaces/app-totp-wrapper.interface';
-import * as qrcode from 'qrcode';
+import { TotpWrapper } from '../models/interfaces/totp-wrapper.interface'
+import { AppTotpWrapper } from '../models/interfaces/app-totp-wrapper.interface'
+import * as qrcode from 'qrcode'
 import * as base32 from 'hi-base32'
-import { PasswordEncoderService } from './password-encoder.service';
-import { GeneralUtils } from 'src/utils/general-utils/general-utils';
-import { ApplicationError, ApplicationErrorCode } from 'src/exception-handling/application-error';
+import { PasswordEncoderService } from './password-encoder.service'
+import { GeneralUtils } from 'src/utils/general-utils/general-utils'
+import { ApplicationError, ApplicationErrorCode } from 'src/exception-handling/application-error'
 
 
 @Injectable()

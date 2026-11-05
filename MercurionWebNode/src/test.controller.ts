@@ -1,6 +1,6 @@
-import { Controller, Get } from '@nestjs/common';
-import { ConfirmDTO } from './models/confirm-responses.dto';
-import { ResponseService } from './services/response.service';
+import { Controller, Get } from '@nestjs/common'
+import { ConfirmDTO } from './models/confirm-responses.dto'
+import { ResponseService } from './services/response.service'
 
 
 @Controller('test')

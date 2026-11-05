@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   ElementRef,
   OnDestroy,
   OnInit,
@@ -8,20 +9,19 @@ import {
   inject,
   signal,
   effect,
-  viewChild
-} from '@angular/core';
-import { ProgressIndicatorComponent } from '../../components/common/progress-indicator/progress-indicator.component';
-import { EMPTY, of, Subscription, switchMap, defer, from, combineLatest, catchError, take, filter } from 'rxjs';
-import { ActivatedRoute, Router } from '@angular/router';
-import { TypeGuardsService } from '../../services/type-guards.service';
-import { FingerprintService } from '../../services/fingerprint.service';
-import { AuthTransportService } from '../../services/auth-transport.service';
-import { SessionSyncService } from '../../services/session-sync.service';
+  viewChild,
+} from '@angular/core'
+import { ProgressIndicatorComponent } from '../../components/common/progress-indicator/progress-indicator.component'
+import { EMPTY, Subscription, switchMap, defer, from, combineLatest, catchError, take } from 'rxjs'
+import { ActivatedRoute, Router } from '@angular/router'
+import { TypeGuardsService } from '../../services/type-guards.service'
+import { FingerprintService } from '../../services/fingerprint.service'
+import { AuthTransportService } from '../../services/auth-transport.service'
+import { SessionSyncService } from '../../services/session-sync.service'
 import { AuthStateStore } from '../../services/auth-state.store'
-import { AuthSessionPersistenceService } from '../../services/auth-session-persistence.service'
-import { SidenavContextService } from '../../services/context/sidenav-context.service';
+import { SidenavContextService } from '../../services/context/sidenav-context.service'
 import { AuthRedirectService } from '../../services/auth-redirect.service'
-import { ViewportRuntimeService } from '../../services/context/viewport-runtime.service';
+import { ViewportRuntimeService } from '../../services/context/viewport-runtime.service'
 
 @Component({
   selector: 'm-sso-page',
@@ -44,7 +44,7 @@ import { ViewportRuntimeService } from '../../services/context/viewport-runtime.
   `
 })
 export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
-  private readonly persistence = inject(AuthSessionPersistenceService)
+  private readonly destroyRef = inject(DestroyRef)
   private readonly redirects = inject(AuthRedirectService)
 
   private readonly route = inject(ActivatedRoute)
@@ -63,7 +63,7 @@ export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
 
   spinnerLeft = signal<number>(0)
 
-  readonly mainHost = viewChild<ElementRef<HTMLElement>>('mainHost');
+  readonly mainHost = viewChild<ElementRef<HTMLElement>>('mainHost')
 
   constructor() {
     effect(() => {
@@ -72,6 +72,9 @@ export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
       this.viewportRuntime.width()
       this.viewportRuntime.height()
       queueMicrotask(() => {
+        if (this.destroyRef.destroyed) {
+          return
+        }
         this.updateSpinnerLeft()
         this.startSpinnerFollow()
       })
@@ -79,57 +82,61 @@ export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnInit(): void {
-    this.sub = of(null).pipe(
-      switchMap(() => defer(() => from(this.fingerprintService.getSanitizedFingerprint()))),
-      switchMap((fw) =>
-        combineLatest([
-          of(fw.fingerprintDataEnc),
-          of(btoa(JSON.stringify(fw.sessionDeviceInfo))),
-          this.route.queryParamMap,
-          this.route.fragment,
-        ]).pipe(
-          filter(([, , , frag]) => typeof frag === 'string' && frag.includes('t=')),
-          take(1)
-        )
-      ),
-      switchMap(([fp_enc, di_enc, p, frag]) => {
+    this.sub = combineLatest([this.route.queryParamMap, this.route.fragment])
+      .pipe(
+        take(1),
+        switchMap(([params, fragment]) => {
+          const provider = params.get('provider') ?? ''
+          const token = new URLSearchParams(fragment ?? '').get('t') ?? ''
 
-        const provider = p.get('provider') ?? ''
+          if (
+            !this.typeGuards.is_SSO_AuthProvider(provider) ||
+            !/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(token)
+          ) {
+            void this.router.navigateByUrl('/404-not-found')
+            return EMPTY
+          }
 
-        // fragment atteso: "t=<token>"
-        const sso_pat = frag ? (new URLSearchParams(frag).get('t') ?? '') : ''
-
-        if (this.typeGuards.is_SSO_AuthProvider(provider) && /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(sso_pat)) {
           if (location.hash) {
             history.replaceState(history.state, '', location.pathname + location.search)
           }
 
-          this.authState.beginAuthentication('sso')
-
-          return this.authService.ssoAuthorizeFlow(fp_enc, di_enc, sso_pat, provider).pipe(
+          return defer(() => from(this.fingerprintService.getSanitizedFingerprint())).pipe(
+            switchMap((fingerprint) => {
+              this.authState.beginAuthentication('sso')
+              return this.authService.ssoAuthorizeFlow(
+                fingerprint.fingerprintDataEnc,
+                btoa(JSON.stringify(fingerprint.sessionDeviceInfo)),
+                token,
+                provider
+              )
+            }),
             catchError(() => {
               queueMicrotask(() => {
+                if (this.destroyRef.destroyed) {
+                  return
+                }
                 this.redirects.clear()
-                this.router.navigate(['/login'], { queryParams: { err: 'sso_failed', provider } })
+                void this.router.navigate(['/login'], {
+                  queryParams: { err: 'sso_failed', provider },
+                })
               })
               return EMPTY
             })
           )
-        }
-        this.router.navigateByUrl('/404-not-found')
-        return EMPTY
-      })
-    ).subscribe({
-      next: (res) => {
-        this.authState.activateAuthenticatedSession({
-          initials: res.initials ?? 'U',
-          accessToken: res.accessToken,
-          wsAccessToken: res.ws_accessToken
         })
-        this.sessionSync.resumeSession(res.initials ?? 'U')
-        void this.router.navigateByUrl(this.redirects.consume(), { replaceUrl: true })
-      }
-    })
+      )
+      .subscribe({
+        next: (response) => {
+          this.authState.activateAuthenticatedSession({
+            initials: response.initials ?? 'U',
+            accessToken: response.accessToken,
+            wsAccessToken: response.ws_accessToken,
+          })
+          this.sessionSync.resumeSession(response.initials ?? 'U')
+          void this.router.navigateByUrl(this.redirects.consume(), { replaceUrl: true })
+        },
+      })
   }
 
   ngAfterViewInit(): void {
@@ -177,5 +184,4 @@ export class SsoPageComponent implements OnInit, OnDestroy, AfterViewInit {
       this.spinnerFollowRaf = undefined
     }
   }
-
 }

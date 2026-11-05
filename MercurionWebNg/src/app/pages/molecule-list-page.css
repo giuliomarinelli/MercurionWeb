@@ -1,0 +1,29 @@
+.molecule-list-page { max-width: 64rem; margin-inline: auto; padding: 0; display: flex; flex-direction: column; gap: 1.5rem; color: var(--color-light-on-surface-main); }
+:host-context(.dark) .molecule-list-page { color: var(--color-dark-on-surface-main); }
+.m-list-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; }
+.m-list-heading > div { min-width: 0; flex: 1 1 20rem; }
+.m-list-heading h2 { margin: 0; font-size: clamp(1.25rem, 1rem + 1vw, 1.75rem); font-weight: 600; line-height: 1.35; overflow-wrap: anywhere; color: var(--color-light-accent-primary-hc); }
+:host-context(.dark) .m-list-heading h2 { color: var(--color-dark-accent-primary); }
+.m-list-heading p, .m-list-context p, .m-list-end { margin: 0; font-size: .875rem; color: var(--color-light-on-surface-secondary); }
+:host-context(.dark) :is(.m-list-heading p, .m-list-context p, .m-list-end) { color: var(--color-dark-on-surface-secondary); }
+.m-list-heading p { margin-top: .5rem; }
+.m-list-tools { display: grid; gap: .75rem; }
+.m-list-context { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .25rem 1rem; min-height: 2.75rem; }
+.m-list-link { display: inline-flex; align-items: center; gap: .5rem; min-height: 2.75rem; font-size: .875rem; font-weight: 500; color: var(--color-light-accent-primary-hc); }
+:host-context(.dark) .m-list-link { color: var(--color-dark-accent-primary-btn-hc); }
+.m-list-link:hover { text-decoration: underline; }
+.m-list-link:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; border-radius: .25rem; }
+.m-list-results, .m-list-skeletons { display: flex; flex-direction: column; gap: .75rem; min-width: 0; }
+.m-list-results > *, .m-list-skeletons > * { display: block; min-width: 0; }
+.m-list-empty { padding: 2rem 1.25rem; border: 1px dashed var(--color-light-border); border-radius: 1rem; background: var(--color-light-surface-secondary); text-align: center; }
+:host-context(.dark) .m-list-empty { border-color: var(--color-dark-border); background: var(--color-dark-surface-secondary); }
+.m-list-empty h3 { margin: 0; font-size: 1.125rem; font-weight: 600; }
+.m-list-empty p { margin: .5rem auto 1.25rem; max-width: 30rem; }
+.m-list-sentinel { height: 1px; }
+.m-list-pagination { display: flex; justify-content: center; min-height: 2.75rem; }
+.m-list-error { width: 100%; display: flex; align-items: center; flex-wrap: wrap; gap: 1rem; justify-content: space-between; border: 1px solid var(--color-light-border); padding: 1rem; border-radius: .75rem; }
+:host-context(.dark) .m-list-error { border-color: var(--color-dark-border); }
+.m-list-error p { margin: 0; flex: 1 1 20rem; }
+.m-list-end { text-align: center; }
+@media (min-width: 480px) { .molecule-list-page { padding: 1rem; } }
+@media (min-width: 768px) { .molecule-list-page { padding: 2rem; gap: 2rem; } }

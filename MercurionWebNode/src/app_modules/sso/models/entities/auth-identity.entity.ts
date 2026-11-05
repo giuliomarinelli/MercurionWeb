@@ -1,8 +1,8 @@
-import { Entity, Column, ManyToOne, JoinColumn, PrimaryColumn, BeforeInsert, Index } from 'typeorm';
-import { UUID } from 'crypto';
-import { uuidv7 } from '@kripod/uuidv7';
-import { User } from 'src/app_modules/user/models/entities/user.entity';
-import { AuthProvider } from '../enums/auth-provider.enum';
+import { Entity, Column, ManyToOne, JoinColumn, PrimaryColumn, BeforeInsert, Index } from 'typeorm'
+import { UUID } from 'crypto'
+import { uuidv7 } from '@kripod/uuidv7'
+import { User } from 'src/app_modules/user/models/entities/user.entity'
+import { AuthProvider } from '../enums/auth-provider.enum'
 
 
 

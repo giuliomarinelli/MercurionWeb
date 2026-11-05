@@ -15,7 +15,7 @@ export function copyBootstrapFiles() {
 export function copyDirectory(src: string, dest: string): void {
   if (!fs.existsSync(src)) {
     console.warn(`⚠️ La sorgente ${src} non esiste. Niente da copiare.`)
-    return;
+    return
   }
 
   fs.cpSync(src, dest, { recursive: true })

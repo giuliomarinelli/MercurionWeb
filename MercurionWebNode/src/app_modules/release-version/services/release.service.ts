@@ -1,11 +1,11 @@
-import { Injectable } from '@nestjs/common';
-import { VersionDTO } from 'src/app_modules/auth/models/dto/version.dto';
-import { DataSource } from 'typeorm';
-import { ReleaseVersion } from '../models/entities/release-version.entity';
-import { ConfigService } from '@nestjs/config';
-import { Environment } from 'src/config/config.schema';
-import { createHash } from 'crypto';
-import { ReleaseContext } from '../models/enums/release-context.enum';
+import { Injectable } from '@nestjs/common'
+import { VersionDTO } from 'src/app_modules/auth/models/dto/version.dto'
+import { DataSource } from 'typeorm'
+import { ReleaseVersion } from '../models/entities/release-version.entity'
+import { ConfigService } from '@nestjs/config'
+import { Environment } from 'src/config/config.schema'
+import { createHash } from 'crypto'
+import { ReleaseContext } from '../models/enums/release-context.enum'
 
 @Injectable()
 export class ReleaseService {

@@ -1,24 +1,24 @@
-import { MoleculeCollectionItemJoin } from './../models/entities/molecule-collection-item-join.entity';
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, EntityManager, LessThanOrEqual, Repository } from 'typeorm';
-import { UUID } from 'crypto';
-import { uuidv7 } from '@kripod/uuidv7';
-import { MoleculeCollectionService } from './molecule-collection.service';
-import { MoleculeCollectionItemService } from './molecule-collection-item.service';
-import { MoleculeCollection } from '../models/entities/molecule-collection.entity';
-import { MoleculeCollectionItemEntity } from '../models/entities/molecule-collection-item.entity';
-import { ChEMBLMoleculeItemEntity } from '../models/entities/chembl-molecule-item.entity';
-import { MoleculeService } from 'src/app_modules/meilisearch/services/molecule.service';
-import { BindManyCollectionsToMoleculeDTO } from '../models/dto/bind-many-collections-to-molecule.dto';
-import { LoggerPort } from 'src/logging/logger.port';
-import { LoggerContext } from 'src/logging/logger.port';
-import { runInTransaction } from 'src/persistence/transaction-context';
+import { MoleculeCollectionItemJoin } from './../models/entities/molecule-collection-item-join.entity'
+import { Injectable } from '@nestjs/common'
+import { InjectRepository } from '@nestjs/typeorm'
+import { DataSource, EntityManager, LessThanOrEqual, Repository } from 'typeorm'
+import { UUID } from 'crypto'
+import { uuidv7 } from '@kripod/uuidv7'
+import { MoleculeCollectionService } from './molecule-collection.service'
+import { MoleculeCollectionItemService } from './molecule-collection-item.service'
+import { MoleculeCollection } from '../models/entities/molecule-collection.entity'
+import { MoleculeCollectionItemEntity } from '../models/entities/molecule-collection-item.entity'
+import { ChEMBLMoleculeItemEntity } from '../models/entities/chembl-molecule-item.entity'
+import { MoleculeService } from 'src/app_modules/meilisearch/services/molecule.service'
+import { BindManyCollectionsToMoleculeDTO } from '../models/dto/bind-many-collections-to-molecule.dto'
+import { LoggerPort } from 'src/logging/logger.port'
+import { LoggerContext } from 'src/logging/logger.port'
+import { runInTransaction } from 'src/persistence/transaction-context'
 import {
     buildBulkJoinWriteSet,
     planBulkJoinSelection
-} from './bulk-join-planner';
-import { MoleculeOwnershipPolicy } from './molecule-ownership.policy';
+} from './bulk-join-planner'
+import { MoleculeOwnershipPolicy } from './molecule-ownership.policy'
 
 @Injectable()
 export class MoleculeCollectionItemJoinService {
@@ -54,21 +54,21 @@ export class MoleculeCollectionItemJoinService {
         itemId: UUID,
         manager: EntityManager
     ): Promise<MoleculeCollectionItemJoin> {
-        await this.ownershipPolicy.assertCollectionOwned(manager, userId, collectionId);
-        await this.ownershipPolicy.assertItemOwned(manager, userId, itemId);
+        await this.ownershipPolicy.assertCollectionOwned(manager, userId, collectionId)
+        await this.ownershipPolicy.assertItemOwned(manager, userId, itemId)
 
         let join = await manager.findOne(MoleculeCollectionItemJoin, {
             where: { collectionId, itemId, userId }
         })
-        if (join) return join;
-        join = manager.create(MoleculeCollectionItemJoin, { collectionId, itemId, userId });
+        if (join) return join
+        join = manager.create(MoleculeCollectionItemJoin, { collectionId, itemId, userId })
         return await manager.save(MoleculeCollectionItemJoin, join)
     }
 
     async removeMoleculeFromCollection(userId: UUID, collectionId: UUID, itemId: UUID, deleteCollectionIfEmpty = false): Promise<boolean> {
         try {
             return await runInTransaction(this.joinRepo.manager, async (_context, manager) => {
-                return this.removeMoleculeFromCollectionWithManager(userId, collectionId, itemId, deleteCollectionIfEmpty, manager);
+                return this.removeMoleculeFromCollectionWithManager(userId, collectionId, itemId, deleteCollectionIfEmpty, manager)
             })
         } catch {
             return false
@@ -84,7 +84,7 @@ export class MoleculeCollectionItemJoinService {
     ): Promise<boolean> {
         const join = await manager.findOne(MoleculeCollectionItemJoin, {
             where: { collectionId, itemId, userId }
-        });
+        })
         if (!join) {
             return false
         }
@@ -115,7 +115,7 @@ export class MoleculeCollectionItemJoinService {
     ): Promise<UUID[]> {
         return runInTransaction(this.dataSource, async (_context, manager) =>
             this.addManyMoleculesToCollectionWithManager(userId, collectionId, itemIds, selectAll, manager, snapshotAt)
-        );
+        )
     }
 
     /**
@@ -130,15 +130,15 @@ export class MoleculeCollectionItemJoinService {
         snapshotAt?: string
     ): Promise<UUID[]> {
 
-        await this.ownershipPolicy.assertCollectionOwned(manager, userId, collectionId);
-        const selection = await this.planItemCandidates(manager, userId, itemIds, selectAll, snapshotAt);
-        if (selection.candidateIds.length === 0) return [];
+        await this.ownershipPolicy.assertCollectionOwned(manager, userId, collectionId)
+        const selection = await this.planItemCandidates(manager, userId, itemIds, selectAll, snapshotAt)
+        if (selection.candidateIds.length === 0) return []
 
         const existingIds = await this.findExistingItemJoins(
             manager, userId, collectionId, selection.candidateIds
-        );
-        const writeSet = buildBulkJoinWriteSet(selection.candidateIds, existingIds);
-        const { toInsertIds: toInsert } = writeSet;
+        )
+        const writeSet = buildBulkJoinWriteSet(selection.candidateIds, existingIds)
+        const { toInsertIds: toInsert } = writeSet
         if (toInsert.length > 0) {
             await manager
                 .createQueryBuilder()
@@ -146,7 +146,7 @@ export class MoleculeCollectionItemJoinService {
                 .into(MoleculeCollectionItemJoin)
                 .values(toInsert.map(itemId => ({ id: uuidv7() as UUID, userId, collectionId, itemId })))
                 .orIgnore() // richiede unique su (user_id, collection_id, item_id)
-                .execute();
+                .execute()
         }
 
 
@@ -155,7 +155,7 @@ export class MoleculeCollectionItemJoinService {
 
         await this.itemService.markManyAsTouchedWithManager(userId, toInsert, manager)
 
-        return writeSet.alreadyJoinedIds;
+        return writeSet.alreadyJoinedIds
     }
 
     async bindManyCollectionsToMolecule(userId: UUID, moleculeId: string, collectionIds: UUID[], selectAll: boolean, snapshotAt?: string): Promise<BindManyCollectionsToMoleculeDTO> {

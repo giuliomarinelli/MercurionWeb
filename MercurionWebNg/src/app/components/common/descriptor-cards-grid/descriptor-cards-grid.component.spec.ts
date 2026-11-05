@@ -1,39 +1,39 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing'
 
-import { DescriptorCardsGridComponent } from './descriptor-cards-grid.component';
+import { DescriptorCardsGridComponent } from './descriptor-cards-grid.component'
 
 describe('DescriptorCardsGridComponent', () => {
-  let component: DescriptorCardsGridComponent;
-  let fixture: ComponentFixture<DescriptorCardsGridComponent>;
+  let component: DescriptorCardsGridComponent
+  let fixture: ComponentFixture<DescriptorCardsGridComponent>
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [DescriptorCardsGridComponent]
     })
-    .compileComponents();
+    .compileComponents()
 
-    fixture = TestBed.createComponent(DescriptorCardsGridComponent);
-    component = fixture.componentInstance;
-    fixture.componentRef.setInput('cardsData', []);
-    fixture.detectChanges();
-  });
+    fixture = TestBed.createComponent(DescriptorCardsGridComponent)
+    component = fixture.componentInstance
+    fixture.componentRef.setInput('cardsData', [])
+    fixture.detectChanges()
+  })
 
   it('should create', () => {
-    expect(component).toBeTruthy();
-  });
+    expect(component).toBeTruthy()
+  })
 
   it('keeps the historical two-column default while allowing a compact single-column layout', () => {
-    const grid = fixture.nativeElement.querySelector('.grid') as HTMLElement;
+    const grid = fixture.nativeElement.querySelector('.grid') as HTMLElement
 
-    expect(component.columns()).toBe(2);
-    expect(component.density()).toBe('default');
-    expect(grid.classList.contains('lg:grid-cols-2')).toBeTrue();
+    expect(component.columns()).toBe(2)
+    expect(component.density()).toBe('default')
+    expect(grid.classList.contains('lg:grid-cols-2')).toBeTrue()
 
-    fixture.componentRef.setInput('columns', 1);
-    fixture.componentRef.setInput('density', 'compact');
-    fixture.detectChanges();
+    fixture.componentRef.setInput('columns', 1)
+    fixture.componentRef.setInput('density', 'compact')
+    fixture.detectChanges()
 
-    expect(grid.classList.contains('lg:grid-cols-2')).toBeFalse();
-    expect(grid.classList.contains('gap-3')).toBeTrue();
-  });
-});
+    expect(grid.classList.contains('lg:grid-cols-2')).toBeFalse()
+    expect(grid.classList.contains('gap-3')).toBeTrue()
+  })
+})

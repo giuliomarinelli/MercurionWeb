@@ -1,7 +1,7 @@
-import { inject, Injectable, signal } from '@angular/core';
-import { HistoryDTOExt } from '../../Models/history.models';
-import { HistoryService } from '../history.service';
-import { map, Observable, tap } from 'rxjs';
+import { inject, Injectable, signal } from '@angular/core'
+import { HistoryDTOExt } from '../../Models/history.models'
+import { HistoryService } from '../history.service'
+import { map, Observable, tap } from 'rxjs'
 
 @Injectable({
   providedIn: 'root'

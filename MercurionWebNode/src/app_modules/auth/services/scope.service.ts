@@ -1,12 +1,12 @@
-import { LoggerPort } from 'src/logging/logger.port';
-import { ExecutionContext, Inject, Injectable } from '@nestjs/common';
-import { Scope } from 'src/app_modules/user/models/enums/scope.enum';
-import { SecurityService } from './security.service';
-import { GeneralUtils } from 'src/utils/general-utils/general-utils';
-import { UUID } from 'crypto';
-import { LoggerContext } from 'src/logging/logger.port';
-import { Reflector } from '@nestjs/core';
-import { SCOPES_KEY } from 'src/metadata/metadata';
+import { LoggerPort } from 'src/logging/logger.port'
+import { ExecutionContext, Inject, Injectable } from '@nestjs/common'
+import { Scope } from 'src/app_modules/user/models/enums/scope.enum'
+import { SecurityService } from './security.service'
+import { GeneralUtils } from 'src/utils/general-utils/general-utils'
+import { UUID } from 'crypto'
+import { LoggerContext } from 'src/logging/logger.port'
+import { Reflector } from '@nestjs/core'
+import { SCOPES_KEY } from 'src/metadata/metadata'
 
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 import { IDENTITY_READ_PORT, IdentityReadPort } from '../models/interfaces/identity-read.port'

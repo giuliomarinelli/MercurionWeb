@@ -1,47 +1,47 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing'
 
-import { TurnstileComponent } from './turnstile.component';
+import { TurnstileComponent } from './turnstile.component'
 
 describe('TurnstileComponent', () => {
-  let component: TurnstileComponent;
-  let fixture: ComponentFixture<TurnstileComponent>;
-  let previousTurnstile: Window['turnstile'];
+  let component: TurnstileComponent
+  let fixture: ComponentFixture<TurnstileComponent>
+  let previousTurnstile: Window['turnstile']
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [TurnstileComponent]
     })
-    .compileComponents();
+    .compileComponents()
 
-    fixture = TestBed.createComponent(TurnstileComponent);
-    component = fixture.componentInstance;
+    fixture = TestBed.createComponent(TurnstileComponent)
+    component = fixture.componentInstance
 
     // Stub external script integration
-    previousTurnstile = window.turnstile;
-    window.turnstile = { render: () => 'id', remove: () => undefined, reset: jasmine.createSpy('reset') };
-    spyOn(component as any, 'loadTurnstileScript').and.returnValue(Promise.resolve());
-    spyOn(component as any, 'waitForWidgetVisible').and.returnValue(undefined as any);
+    previousTurnstile = window.turnstile
+    window.turnstile = { render: () => 'id', remove: () => undefined, reset: jasmine.createSpy('reset') }
+    spyOn(component as any, 'loadTurnstileScript').and.returnValue(Promise.resolve())
+    spyOn(component as any, 'waitForWidgetVisible').and.returnValue(undefined as any)
 
-    fixture.detectChanges();
-    await fixture.whenStable();
-  });
+    fixture.detectChanges()
+    await fixture.whenStable()
+  })
 
   afterEach(() => {
-    fixture.destroy();
-    window.turnstile = previousTurnstile;
-  });
+    fixture.destroy()
+    window.turnstile = previousTurnstile
+  })
 
   it('should create', () => {
-    expect(component).toBeTruthy();
-  });
+    expect(component).toBeTruthy()
+  })
 
   it('resets the rendered widget and notifies its parent', () => {
-    const refreshed = jasmine.createSpy('refreshed');
-    component.refresh.subscribe(refreshed);
+    const refreshed = jasmine.createSpy('refreshed')
+    component.refresh.subscribe(refreshed)
 
-    component.reset();
+    component.reset()
 
-    expect(window.turnstile!.reset).toHaveBeenCalledWith('id');
-    expect(refreshed).toHaveBeenCalled();
-  });
-});
+    expect(window.turnstile!.reset).toHaveBeenCalledWith('id')
+    expect(refreshed).toHaveBeenCalled()
+  })
+})

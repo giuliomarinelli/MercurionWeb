@@ -9,6 +9,37 @@ import {
 } from './transaction-context'
 
 describe('UnitOfWork', () => {
+  it('preserves explicit root isolation, context lifetime and effects after commit', async () => {
+    const manager = {} as EntityManager
+    const order: string[] = []
+    const transaction = jest.fn(async (_isolation: string, work: (manager: EntityManager) => Promise<string>) => {
+      const value = await work(manager)
+      order.push('commit')
+      return value
+    })
+    const dataSource = { transaction } as unknown as DataSource
+    let captured: Parameters<typeof transactionManager>[0] | undefined
+    await expect(runInTransaction(dataSource, async context => {
+      captured = context
+      expect(transactionManager(context)).toBe(manager)
+      afterTransactionCommit(context, async () => { order.push('effect') })
+      return 'snapshot'
+    }, undefined, 'REPEATABLE READ')).resolves.toBe('snapshot')
+    expect(transaction).toHaveBeenCalledWith('REPEATABLE READ', expect.any(Function))
+    expect(order).toEqual(['commit', 'effect'])
+    expect(() => transactionManager(captured!)).toThrow('TransactionContext is not active')
+  })
+
+  it('rejects attempts to change isolation within a propagated transaction', async () => {
+    const transaction = jest.fn(async (work) => work({} as EntityManager))
+    const dataSource = { transaction } as unknown as DataSource
+    await runInTransaction(dataSource, async context => {
+      await expect(runInTransaction(dataSource, async () => 'nested', context, 'REPEATABLE READ'))
+        .rejects.toThrow('Isolation level can only be selected for a root transaction')
+    })
+    expect(transaction).toHaveBeenCalledTimes(1)
+  })
+
   it('shares one opaque context and invalidates it after the transaction', async () => {
     const manager = {} as EntityManager
     const dataSource = {

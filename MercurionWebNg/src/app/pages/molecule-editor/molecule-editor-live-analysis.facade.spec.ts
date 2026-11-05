@@ -1,3 +1,5 @@
+import { EditorRequestScheduler } from '../../chemistry/editor-request-scheduler.service'
+import type { Observable } from 'rxjs'
 import { TestBed } from '@angular/core/testing'
 import { Subject, of } from 'rxjs'
 
@@ -56,6 +58,7 @@ describe('MoleculeEditorLiveAnalysisFacade', () => {
 
     TestBed.configureTestingModule({
       providers: [
+        { provide: EditorRequestScheduler, useValue: { run: <T>(_route: string, request: () => Observable<T>) => request() } },
         MoleculeEditorLiveAnalysisFacade,
         { provide: MercurionAiService, useValue: ai },
         { provide: EmbeddingService, useValue: embedding },

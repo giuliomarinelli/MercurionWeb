@@ -1,7 +1,7 @@
-import { UUID } from "crypto";
-import { BeforeInsert, Column, Entity, PrimaryColumn } from "typeorm";
-import { HistoryItemEntity } from "../enums/history-item-entity.enum";
-import { uuidv7 } from "@kripod/uuidv7";
+import { UUID } from "crypto"
+import { BeforeInsert, Column, Entity, PrimaryColumn } from "typeorm"
+import { HistoryItemEntity } from "../enums/history-item-entity.enum"
+import { uuidv7 } from "@kripod/uuidv7"
 
 @Entity({ name: 'history' })
 export class History {

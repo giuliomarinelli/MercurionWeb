@@ -1,9 +1,9 @@
-import { Module } from '@nestjs/common';
+import { Module } from '@nestjs/common'
 
 import { TypeOrmModule } from '@nestjs/typeorm'
-import { MoleculeEmbedding } from './models/entities/molecule-embedding.entity';
-import { EmbeddingService } from './services/embedding.service';
-import { EmbeddingController } from './controllers/embedding.controller';
+import { MoleculeEmbedding } from './models/entities/molecule-embedding.entity'
+import { EmbeddingService } from './services/embedding.service'
+import { EmbeddingController } from './controllers/embedding.controller'
 
 @Module({
   imports: [TypeOrmModule.forFeature([MoleculeEmbedding])],

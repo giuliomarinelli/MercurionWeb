@@ -2,29 +2,32 @@ import {
   AfterViewInit,
   Component,
   ChangeDetectionStrategy,
+  DestroyRef,
   ElementRef,
   OnDestroy,
   OnInit,
   inject,
   effect,
+  afterRenderEffect,
   NgZone,
   signal,
   input,
   output,
   viewChild
-} from '@angular/core';
-import { HistoryService } from '../../../services/history.service';
-import { catchError, debounce, distinctUntilChanged, EMPTY, filter, firstValueFrom, interval, Subscription } from 'rxjs';
-import { HistoryDTOExt } from '../../../Models/history.models';
-import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
-import { HistoryItemComponent } from '../history-item/history-item.component';
-import { ProgressIndicatorComponent } from '../progress-indicator/progress-indicator.component';
-import { HistoryContextService } from '../../../services/context/history-context.service';
-import { NgClass } from '@angular/common';
-import { ScrollContextService } from '../../../services/context/scroll-context.service';
-import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
-import { RealtimeSyncStatusService } from '../../../services/realtime-sync-status.service';
-import { routeManifest } from '../../../route-manifest';
+} from '@angular/core'
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
+import { HistoryService } from '../../../services/history.service'
+import { debounce, distinctUntilChanged, filter, firstValueFrom, interval, Subscription } from 'rxjs'
+import { HistoryDTOExt } from '../../../Models/history.models'
+import { ActivatedRoute, NavigationEnd, Router } from '@angular/router'
+import { HistoryItemComponent } from '../history-item/history-item.component'
+import { ProgressIndicatorComponent } from '../progress-indicator/progress-indicator.component'
+import { HistoryContextService } from '../../../services/context/history-context.service'
+import { NgClass } from '@angular/common'
+import { DomainInvalidationService } from '../../../services/domain-invalidation.service'
+import { RealtimeSyncStatusService } from '../../../services/realtime-sync-status.service'
+import { ScrollContextService } from '../../../services/context/scroll-context.service'
+import { injectBrowserResourceOwner } from '../../../utils/browser-resource-owner.util'
 
 @Component({
   selector: 'm-history',
@@ -45,29 +48,30 @@ import { routeManifest } from '../../../route-manifest';
   `,
   template: `
     @if (items().length) {
-      <div [ngClass]="fadeOut()" class="pb-36 sm:pb-4 lg:pb-0">
+      <div [ngClass]="fadeOut()" class="pb-4">
         @for (item of items(); track item.id) {
           <m-history-item
             [historyDTO]="item"
             [selected]="item.selected()"
             class="block"
-            (itemClick)="handleItemClick()" />
+            (itemClick)="handleItemClick(item.itemId)" />
         }
       </div>
     }
-    @if (!items().length && !loading) {
-      <p class="text-xs opacity-60 px-6 py-4">Nessuna attività recente.</p>
+    @if (!items().length && !loading()) {
+      <p class="text-xs text-light-on-surface-secondary dark:text-dark-on-surface-secondary px-6 py-4">Nessuna attività recente.</p>
     }
 
-    @if (loading) {
+    @if (loading()) {
       <div class="flex justify-center pt-8">
         <m-progress-indicator />
       </div>
     }
 
     @if (serverError()) {
-      <div class="flex justify-center pt-8 text-sm">
+      <div class="flex flex-col items-center gap-2 pt-8 text-sm">
         <p class="text-light-error dark:text-dark-error">Si è verificato un errore.</p>
+        <button type="button" class="underline" (click)="retry()">Riprova</button>
       </div>
     }
 
@@ -79,31 +83,34 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // ======================= DEPS =======================
   private readonly historyService = inject(HistoryService)
+  private readonly destroyRef = inject(DestroyRef)
   private readonly router = inject(Router)
   private readonly route = inject(ActivatedRoute)
   private readonly historyContext = inject(HistoryContextService)
   private readonly zone = inject(NgZone)
   private readonly hostRef = inject(ElementRef<HTMLElement>)
-  private readonly scrollContext = inject(ScrollContextService)
   private readonly invalidation = inject(DomainInvalidationService)
   private readonly syncStatus = inject(RealtimeSyncStatusService)
+  private readonly scrollContext = inject(ScrollContextService)
+  private readonly resources = injectBrowserResourceOwner()
   // ====================================================
 
   readonly sentinel = viewChild.required<ElementRef<HTMLElement>
 // TODO: Skipped for migration because:
 //  Accessor inputs cannot be migrated as they are too complex.
->('sentinel');
+>('sentinel')
 
   readonly triggerDelete = input(false)
   readonly triggerEmptyCheck = input(false)
 
-  readonly emptyChange = output<boolean>();
-  readonly itemClick = output<void>();
+  readonly emptyChange = output<boolean>()
+  readonly itemClick = output<void>()
 
   private rSub?: Subscription
 
   private observer?: IntersectionObserver
   private rootEl: HTMLElement | null = null
+  private readonly pendingScrollItemId = signal<string | null>(null)
 
 
   serverError = signal<boolean>(false)
@@ -114,12 +121,26 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
   selectedItemId = signal<string>('')
 
   items = signal<HistoryDTOExt[]>([])
-  loading = false
+  readonly loading = signal(false)
   done = false
   protected page = 1
   private loadGeneration = 0
 
   constructor() {
+
+    // Wait for the selected item to be prepended and rendered before scrolling.
+    // Background history updates must not move the user's navigation viewport.
+    afterRenderEffect(() => {
+      const itemId = this.pendingScrollItemId()
+      if (itemId && this.items()[0]?.itemId === itemId) {
+        this.pendingScrollItemId.set(null)
+        this.resources.requestAnimationFrame(() => {
+          if (this.rootEl && this.items()[0]?.itemId === itemId) {
+            this.scrollContext.smoothToTop(new ElementRef(this.rootEl))
+          }
+        })
+      }
+    })
 
     effect(() => this._triggerDelete.set(this.triggerDelete()))
     effect(() => this._triggerEmptyCheck.set(this.triggerEmptyCheck()))
@@ -146,8 +167,6 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
       const rmId = this.historyContext.removeItemTriggerSignal()
       if (rmId) {
         queueMicrotask(() => {
-          const hostRef = new ElementRef(this.findScrollContainer() ?? document.body)
-          this.scrollContext.smoothToTop(hostRef, 400)
           this.historyContext.clearRemoveItemTriggerSignal()
           this.items.update(items => items.filter(it => it.itemId !== rmId))
           const selectedItemId = this.items().find((item) => item.itemId === rmId)?.itemId ?? ''
@@ -204,30 +223,24 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnInit(): void {
+    this.updateRouteSelection()
     this.rSub = this.router.events
       .pipe(filter(e => e instanceof NavigationEnd))
-      .subscribe((e) => {
+      .subscribe(() => {
         if (this.page === 1) {
           queueMicrotask(() => this.loadMore())
         }
-        const rootRef = new ElementRef(this.findScrollContainer() ?? document.body)
-        const currentPath = e.urlAfterRedirects.split(/[?#]/, 1)[0]
-        const pathPrefixes = ['/molecules/collections', '/molecules/detail']
-        const scroll = currentPath === `/${routeManifest.myMolecules.path}`
-          || pathPrefixes.some(path => currentPath.startsWith(path))
-        if (scroll) {
-          queueMicrotask(() => this.scrollContext.smoothToTop(rootRef, 400))
-        }
-        let route = this.route.root
-        while (route.firstChild) {
-          route = route.firstChild
-        }
-
-        const molId = route.snapshot.paramMap.get('molId') ?? ''
-        const colId = route.snapshot.paramMap.get('colId') ?? ''
-        this.selectedItemId.set(molId || colId || '')
-
+        this.updateRouteSelection()
+        if (this.pendingScrollItemId() !== this.selectedItemId()) this.pendingScrollItemId.set(null)
       })
+  }
+
+  private updateRouteSelection(): void {
+    let route = this.route.root
+    while (route.firstChild) route = route.firstChild
+    const molId = route.snapshot.paramMap.get('molId') ?? ''
+    const colId = route.snapshot.paramMap.get('colId') ?? ''
+    this.selectedItemId.set(molId || colId)
   }
 
   ngAfterViewInit(): void {
@@ -239,38 +252,40 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnDestroy(): void {
-    this.rSub?.unsubscribe();
+    this.loadGeneration++
+    this.rSub?.unsubscribe()
     if (this.observer) this.observer.disconnect()
     clearTimeout(this.deleteTimeoutId)
   }
 
-  handleItemClick(): void {
-    // TODO: The 'emit' function requires a mandatory void argument
+  handleItemClick(itemId: string): void {
+    this.pendingScrollItemId.set(itemId)
     this.itemClick.emit()
   }
 
   private findScrollContainer(): HTMLElement | null {
-    let el: HTMLElement | null = this.hostRef.nativeElement;
+    let el: HTMLElement | null = this.hostRef.nativeElement
     while (el && el !== document.body) {
-      const style = getComputedStyle(el);
-      const isScrollable = style.overflowY === 'auto' || style.overflowY === 'scroll';
+      const style = getComputedStyle(el)
+      const isScrollable = style.overflowY === 'auto' || style.overflowY === 'scroll'
       if (el.classList.contains('custom-scrollbar') || isScrollable) {
-        return el;
+        return el
       }
-      el = el.parentElement as HTMLElement | null;
+      el = el.parentElement as HTMLElement | null
     }
-    return null; // fallback alla viewport
+    return null // fallback alla viewport
   }
 
   private startObserver() {
-    if (this.observer) this.observer.disconnect();
+    if (this.destroyRef.destroyed) return
+    if (this.observer) this.observer.disconnect()
 
     this.observer = new IntersectionObserver(
       entries => {
         const entry = entries[0]
         if (entry.isIntersecting) {
           // La callback di IO è fuori dallo NgZone: rientro esplicitamente
-          this.zone.run(() => this.loadMore());
+          this.zone.run(() => this.loadMore())
         }
       },
       {
@@ -284,10 +299,11 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private reloadHistory(): void {
+    if (this.destroyRef.destroyed) return
     this.loadGeneration++
     this.page = 1
     this.done = false
-    this.loading = false
+    this.loading.set(false)
     this.serverError.set(false)
     this.items.set([])
     void this.loadMore()
@@ -295,42 +311,48 @@ export class HistoryComponent implements OnInit, OnDestroy, AfterViewInit {
 
   async loadMore() {
 
-    if (this.loading || this.done) return
+    if (this.destroyRef.destroyed || this.loading() || this.done || this.serverError()) return
 
-    this.loading = true
+    this.loading.set(true)
     const generation = this.loadGeneration
     const requestedPage = this.page
 
-    const newPage = await firstValueFrom(
-      this.historyService.getHistory(requestedPage, 25).pipe(
-        debounce(() => interval(80)),
-        distinctUntilChanged(),
-        catchError(() => {
-          this.serverError.set(true)
-          this.loading = false
-          return EMPTY
-        })
+    try {
+      const newPage = await firstValueFrom(
+        this.historyService.getHistory(requestedPage, 25).pipe(
+          debounce(() => interval(80)),
+          distinctUntilChanged(),
+          takeUntilDestroyed(this.destroyRef)
+        )
       )
-    )
 
-    if (generation !== this.loadGeneration) return
+      if (generation !== this.loadGeneration) return
 
-    if (!newPage || !newPage.items || newPage.items.length === 0) {
-      if (this.items().length === 0) {
-        this.emptyChange.emit(true)
+      if (!newPage || !newPage.items || newPage.items.length === 0) {
+        if (this.items().length === 0) {
+          this.emptyChange.emit(true)
+        }
+        this.done = true
+      } else {
+        this.emptyChange.emit(false)
+        this.items.update(items => [...items, ...newPage.items])
+        const selectedItemId = this.items().find((item) => item.itemId === this.selectedItemId())?.itemId ?? ''
+        if (selectedItemId) {
+          this.selectedItemId.set(selectedItemId)
+        }
+        this.page++
       }
-      this.done = true
-    } else {
-      this.emptyChange.emit(false)
-      this.items.update(items => [...items, ...newPage.items])
-      const selectedItemId = this.items().find((item) => item.itemId === this.selectedItemId())?.itemId ?? ''
-      if (selectedItemId) {
-        this.selectedItemId.set(selectedItemId)
-      }
-      this.page++
+
+    } catch {
+      if (generation === this.loadGeneration) this.serverError.set(true)
+    } finally {
+      if (generation === this.loadGeneration) this.loading.set(false)
     }
+  }
 
-    this.loading = false
+  retry(): Promise<void> {
+    this.serverError.set(false)
+    return this.loadMore()
   }
 
   setItemAsSelected(itemId: string): void {

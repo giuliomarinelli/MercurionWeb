@@ -1,4 +1,4 @@
-import { gql } from 'apollo-angular';
+import { gql } from 'apollo-angular'
 
 export const FORBIDDEN_INLINE_DOCUMENT = gql`
   query ForbiddenInlineCatalogProbe {
@@ -6,4 +6,4 @@ export const FORBIDDEN_INLINE_DOCUMENT = gql`
       id
     }
   }
-`;
+`

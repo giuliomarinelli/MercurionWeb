@@ -1,24 +1,24 @@
-import { ProfileRegistryClientDTO, ProfileRegistryDTO as ProfileRegistryDTO } from './../../auth/models/dto/profile.dtos';
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { User } from '../models/entities/user.entity';
-import { DataSource, FindOptionsWhere, In, Repository } from 'typeorm';
+import { ProfileRegistryClientDTO, ProfileRegistryDTO as ProfileRegistryDTO } from './../../auth/models/dto/profile.dtos'
+import { Injectable } from '@nestjs/common'
+import { InjectRepository } from '@nestjs/typeorm'
+import { User } from '../models/entities/user.entity'
+import { DataSource, FindOptionsWhere, In, Repository } from 'typeorm'
 
-import { UUID } from 'crypto';
-import { nullish } from 'src/models/nullish.type';
-import { MfaStrategy } from '../models/enums/mfa-strategy.enum';
-import { IAuth } from 'src/app_modules/auth/models/interfaces/i-auth.interface';
-import { PasswordEncoderService } from 'src/app_modules/auth/services/password-encoder.service';
-import { OldPasswordItem } from '../models/dto/old-password-item.interface';
-import { ProfileDTO } from 'src/app_modules/auth/models/dto/profile.dtos';
-import { SecurityService } from 'src/app_modules/auth/services/security.service';
-import { CompareResult } from 'src/app_modules/auth/models/enums/compare-result.enum';
-import { LoggerPort } from 'src/logging/logger.port';
-import { LoggerContext } from 'src/logging/logger.port';
-import { Scope } from '../models/enums/scope.enum';
-import { HistoryService } from 'src/app_modules/history/services/history.service';
-import { AuthIdentity } from 'src/app_modules/sso/models/entities/auth-identity.entity';
-import { AuthProvider } from 'src/app_modules/sso/models/enums/auth-provider.enum';
+import { UUID } from 'crypto'
+import { nullish } from 'src/models/nullish.type'
+import { MfaStrategy } from '../models/enums/mfa-strategy.enum'
+import { IAuth } from 'src/app_modules/auth/models/interfaces/i-auth.interface'
+import { PasswordEncoderService } from 'src/app_modules/auth/services/password-encoder.service'
+import { OldPasswordItem } from '../models/dto/old-password-item.interface'
+import { ProfileDTO } from 'src/app_modules/auth/models/dto/profile.dtos'
+import { SecurityService } from 'src/app_modules/auth/services/security.service'
+import { CompareResult } from 'src/app_modules/auth/models/enums/compare-result.enum'
+import { LoggerPort } from 'src/logging/logger.port'
+import { LoggerContext } from 'src/logging/logger.port'
+import { Scope } from '../models/enums/scope.enum'
+import { HistoryService } from 'src/app_modules/history/services/history.service'
+import { AuthIdentity } from 'src/app_modules/sso/models/entities/auth-identity.entity'
+import { AuthProvider } from 'src/app_modules/sso/models/enums/auth-provider.enum'
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 import type { IdentityReadPort } from 'src/app_modules/auth/models/interfaces/identity-read.port'
 import { runInTransaction, transactionManager, type TransactionContext } from 'src/persistence/transaction-context'

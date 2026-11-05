@@ -1,5 +1,5 @@
-import { Injectable, OnDestroy, signal } from '@angular/core';
-import { ToastAction, ToastMessage, ToastVariant } from '../Models/toast.models';
+import { Injectable, OnDestroy, signal } from '@angular/core'
+import { ToastAction, ToastMessage, ToastVariant } from '../Models/toast.models'
 
 
 @Injectable({ providedIn: 'root' })

@@ -1,8 +1,10 @@
-import { BindCollectionsToMoleculeContextService } from './../../../services/context/action-context/bind-collections-to-molecule-context.service';
+import { ViewportRuntimeService } from '../../../services/context/viewport-runtime.service'
+import { BindCollectionsToMoleculeContextService } from './../../../services/context/action-context/bind-collections-to-molecule-context.service'
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   effect,
   computed,
   ElementRef,
@@ -11,24 +13,23 @@ import {
   OnInit,
   signal,
   viewChild
-} from '@angular/core';
-import { PaginationController } from '../../../services/pagination/pagination-controller';
-import { UiMoleculeCollection } from '../../../Models/graphql/molecule-collection/molecule-collection.types';
-import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service';
-import { MoleculeCollectionService } from '../../../services/graphql/molecule-collection.service';
-import { debounceTime, map, Observable, Subscription } from 'rxjs';
-import { PageModel } from '../../../Models/graphql/page.models';
-import { ProgressIndicatorComponent } from '../../common/progress-indicator/progress-indicator.component';
-import { PmSearchInputComponent } from '../../common/pm-search-input/pm-search-input.component';
-import { CollectionCardComponent } from '../../molecule-detail/collection-card/collection-card.component';
-import { SkeletonCollectionCardComponent } from '../../common/skeleton-card-loader/skeleton-card-loader.component';
-import { Router } from '@angular/router';
-import { ActionCardComponent } from '../../common/action-card/action-card.component';
-import { DomainInvalidationService } from '../../../services/domain-invalidation.service';
-import { ActionFooterComponent } from '../../common/action-footer/action-footer.component';
-import { ButtonComponent } from '../../common/button/button.component';
-import { CollectionPickerFacade } from '../collection-picker/collection-picker.facade';
-import { AbstractMultiselectItem } from '../../../Models/abstract.models';
+} from '@angular/core'
+import { PaginationController } from '../../../services/pagination/pagination-controller'
+import { UiMoleculeCollection } from '../../../Models/graphql/molecule-collection/molecule-collection.types'
+import { ActionOverlayContextService } from '../../../services/context/action-context/action-overlay-context.service'
+import { MoleculeCollectionService } from '../../../services/graphql/molecule-collection.service'
+import { debounceTime, map, Subscription } from 'rxjs'
+import { ProgressIndicatorComponent } from '../../common/progress-indicator/progress-indicator.component'
+import { PmSearchInputComponent } from '../../common/pm-search-input/pm-search-input.component'
+import { Router } from '@angular/router'
+import { ActionCardComponent } from '../../common/action-card/action-card.component'
+import { DomainInvalidationService } from '../../../services/domain-invalidation.service'
+import { ActionFooterComponent } from '../../common/action-footer/action-footer.component'
+import { ButtonComponent } from '../../common/button/button.component'
+import { CollectionPickerFacade } from '../collection-picker/collection-picker.facade'
+import { AbstractMultiselectItem } from '../../../Models/abstract.models'
+import { SelectionControlComponent } from '../../common/selection-control/selection-control.component'
+import { ToastService } from '../../../services/toast.service'
 
 @Component({
   selector: 'm-bind-collections-to-molecule',
@@ -36,237 +37,125 @@ import { AbstractMultiselectItem } from '../../../Models/abstract.models';
   imports: [
     ProgressIndicatorComponent,
     PmSearchInputComponent,
-    CollectionCardComponent,
-    SkeletonCollectionCardComponent,
     ActionCardComponent,
     ActionFooterComponent,
-    ButtonComponent
+    ButtonComponent,
+    SelectionControlComponent
   ],
-  styles: [
-    `
-    /* Scrollbar sottile cross-browser */
-    .m-scroll-thin {
-      scrollbar-width: thin; /* Firefox */
-      scrollbar-color: #64748b transparent; /* thumb, track */
-    }
-
-    :host-context(.dark) .m-scroll-thin {
-      scrollbar-color: #94a3b8 transparent;
-    }
-
-    .m-scroll-thin::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    .m-scroll-thin::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    .m-scroll-thin::-webkit-scrollbar-thumb {
-      background-color: #cbd5e1; /* slate-300-ish */
-      border-radius: 9999px;
-    }
-
-    :host-context(.dark) .m-scroll-thin::-webkit-scrollbar-thumb {
-      background-color: #475569; /* slate-600-ish */
-    }
-
-    .m-scroll-thin::-webkit-scrollbar-thumb:hover {
-      background-color: #94a3b8;
-    }
-
-    :host-context(.dark) .m-scroll-thin::-webkit-scrollbar-thumb:hover {
-      background-color: #e2e8f0;
-    }
-    `
-  ],
+  styleUrl: '../collection-picker/collection-action.css',
   template: `
-<div class="flex justify-center items-start md:items-center min-h-dvh px-2 sm:px-4 m-overlay-screen">
-  <m-action-card
-    size="wide"
-    labelledBy="bindCollectionsHeading"
-    closeLabel="Chiudi pannello collega collezioni"
-    [busy]="step_12_loading()"
-    (closed)="close()"
-  >
-    <!-- HEADER -->
-      <h2 action-card-title
-        id="bindCollectionsHeading"
-        class="text-lg font-semibold text-light-on-surface-main dark:text-dark-on-surface-main"
-      >
-        Collega molecola a nuove collezioni
-      </h2>
-
-      <!-- BODY -->
-      <div action-card-body class="bg-white dark:bg-dark-surface-main">
-      <div
-        #scrollRoot
-        class="py-6 px-2 sm:px-3 overflow-y-auto flex flex-col gap-4 m-scroll-thin m-overscroll-touch m-overlay-body"
-      >
-        @switch (step()) {
-          @case (1) {
-            <div class="px-2 sm:px-3 space-y-3 sm:space-y-4">
-              <h2 class="font-semibold text-center sm:text-left">
-                Scegli le collezioni a cui aggiungere la molecola:
-              </h2>
-
-              <m-search-input
-                class="block w-full max-w-[20rem] sm:max-w-none mx-auto sm:mx-0"
-                [value]="searchTerm()"
-                [placeholder]="'Cerca una collezione...'"
-                [useAltDarkStyle]="true"
-                (valueChange)="doQuery($event)"
-                (submitted)="doQuery($event)"
-                (cleared)="doClear()"
-              />
-
-              <div class="pt-2 sm:pt-4">
-                @if (multiselectItems().length !== 0) {
-                  <div class="flex items-center gap-3 mb-6">
-                    <button
-                      type="button"
-                      class="block w-full select-none font-semibold ml-[2px] text-left"
-                      (click)="onSelectAllChange(!isSelectedAll())"
-                      aria-label="Seleziona tutte le collezioni"
-                    >
-                      {{ isSelectedAll() ? 'DESELEZIONA TUTTI' : 'SELEZIONA TUTTI' }}
-                    </button>
-                  </div>
-                }
-
-                @for (row of multiselectItems(); track row.item.id; let i = $index) {
-                  <m-collection-card
-                    [collection]="row.item"
-                    [i]="i"
-                    [isReadonly]="true"
-                    [selectable]="true"
-                    [selected]="row.isChecked()"
-                    (selectedChange)="row.isChecked.set($event); toggleOne(row)"
-                  />
-                }
-              </div>
-
-              <div #sentinel class="h-1 w-full"></div>
-
-              @if (loading) {
-                @if (page > 1) {
-                  <div class="flex justify-center py-4" role="status" aria-live="polite" aria-busy="true">
-                    <m-progress-indicator />
-                  </div>
-                } @else {
-                  <div class="space-y-4" role="status" aria-live="polite" aria-busy="true">
-                    @for (i of [0,1,2,3,4]; track i) {
-                      <m-skeleton-collection-card />
-                    }
-                  </div>
-                }
-              } @else if (empty() && (earlyDone || done)) {
-                <p class="text-slate-700 dark:text-slate-200 py-6" role="status" aria-live="polite">
-                  Nessuna collezione.
-                </p>
-              }
-            </div>
-          }
-          @case (2) {
-            @if (error()) {
-              <span
-                id="bindCollectionsStatus"
-                class="text-light-error dark:text-dark-error"
-                role="alert"
-                aria-live="assertive"
-              >
-                Si è verificato un errore
-              </span>
-            } @else {
-              <span
-                id="bindCollectionsStatus"
-                class="text-light-accent-primary-hc dark:text-dark-accent-secondary"
-                role="status"
-                aria-live="polite"
-              >
-                Collezioni collegate con successo!
-              </span>
+    <div class="flex justify-center items-start md:items-center px-2 sm:px-4 m-overlay-screen">
+      <m-action-card size="standard" labelledBy="bindCollectionsHeading"
+        closeLabel="Chiudi pannello collega collezioni" [busy]="pending()"
+        [closeDisabled]="pending()" (closed)="close()">
+        <h2 action-card-title id="bindCollectionsHeading" class="text-lg font-semibold">Aggiungi alle collezioni</h2>
+        <div action-card-body #scrollRoot class="collection-action-body">
+          <div class="bind-molecule"><span class="collection-action-eyebrow">Molecola da aggiungere</span><strong>{{ moleculeName() || 'Molecola selezionata' }}</strong></div>
+          <p class="collection-action-intro">Scegli una o più destinazioni. Le collezioni che contengono già questa molecola sono escluse dall’elenco.</p>
+          <m-search-input [value]="searchTerm()" placeholder="Cerca una collezione…"
+            [disabled]="pending()" (valueChange)="doQuery($event)" (submitted)="doQuery($event)" (cleared)="doClear()" />
+          <details class="bind-tools" [open]="!viewport.overlayCompact()">
+            <summary>Selezione multipla</summary>
+          <div class="bind-toolbar">
+            @if (multiselectItems().length) {
+              <m-selection-control label="Seleziona tutte le collezioni disponibili"
+                ariaLabel="Seleziona tutte le collezioni"
+                description="Include anche le collezioni fuori dai risultati di ricerca."
+                [checked]="isSelectedAll()" [indeterminate]="isPartiallySelected()"
+                [disabled]="pending()" (changed)="onSelectAllChange($event)" />
             }
+            @if (!isSelectedNothing()) {
+              <button type="button" class="bind-reset" [disabled]="pending()" (click)="onSelectAllChange(false)">Azzera selezione</button>
+            }
+          </div>
+          </details>
+          <div class="bind-results" role="group" aria-label="Collezioni disponibili">
+            @for (row of multiselectItems(); track row.item.id) {
+              <m-selection-control class="bind-row" layout="card"
+                [class.bind-row-selected]="row.isChecked()"
+                [label]="row.item.name" [ariaLabel]="'Seleziona collezione ' + row.item.name"
+                [description]="row.item.itemsCount + (row.item.itemsCount === 1 ? ' molecola' : ' molecole')"
+                [checked]="row.isChecked()" [disabled]="pending()"
+                (changed)="row.isChecked.set($event); toggleOne(row)" />
+            }
+          </div>
+          <div #sentinel class="h-1 w-full"></div>
+          @if (loading) {
+            <div class="bind-state" role="status"><m-progress-indicator /><p>Caricamento collezioni…</p></div>
+          } @else if (paginationState().error) {
+            <div class="collection-action-error" role="alert"><p>Non è stato possibile caricare le collezioni.</p><m-button variant="outline" (click)="retryPagination()">Riprova caricamento</m-button></div>
+          } @else if (empty() && (earlyDone || done)) {
+            <div class="bind-state" role="status">{{ searchTerm() ? 'Nessuna collezione corrisponde alla ricerca. Le selezioni precedenti sono conservate.' : 'Non ci sono altre collezioni disponibili per questa molecola.' }}</div>
           }
-        }
-      </div>
+          @if (error()) {
+            <div class="collection-action-error" role="alert"><p>Non è stato possibile aggiungere la molecola. Le selezioni sono conservate: puoi riprovare.</p></div>
+          }
+          <div class="bind-selection" role="status">{{ pending() ? 'Associazione in corso…' : selectionSummary() }}</div>
+        </div>
+        <m-action-footer action-card-footer>
+          <m-button action-footer-secondary variant="outline" [disabled]="pending()" (click)="close()">Annulla</m-button>
+          <m-button action-footer-primary [disabled]="isSelectedNothing()" [loading]="pending()"
+            ariaLabel="Aggiungi la molecola alle collezioni selezionate" (click)="doSubmit()">{{ error() ? 'Riprova associazione' : 'Aggiungi alle collezioni' }}</m-button>
+        </m-action-footer>
+      </m-action-card>
     </div>
-
-    <!-- FOOTER -->
-    <m-action-footer action-card-footer>
-      @if (step() === 1) {
-        <m-button
-        action-footer-secondary
-        variant="outline"
-        (click)="close()"
-        >
-        Annulla
-        </m-button>
-      }
-
-      <m-button
-        action-footer-primary
-        [disabled]="(isSelectedNothing() || step_12_loading())"
-        [loading]="step_12_loading()"
-        (click)="step() === 1 ? doSubmit() : close()"
-        [attr.aria-label]="step() === 1 ? 'Aggiungi la molecola alle collezioni selezionate' : 'Chiudi conferma'"
-        [attr.aria-describedby]="step() === 2 ? 'bindCollectionsStatus' : null"
-      >
-        @if (step() === 1) {
-        Aggiungi
-        } @else if (step() === 2) {
-        Ok
-        }
-      </m-button>
-    </m-action-footer>
-  </m-action-card>
-</div>
   `
 })
 export class BindCollectionsToMoleculeComponent implements OnInit, AfterViewInit, OnDestroy {
 
-  private readonly actionOverlayContext = inject(ActionOverlayContextService);
-  private readonly bindContext = inject(BindCollectionsToMoleculeContextService);
-  private readonly invalidation = inject(DomainInvalidationService);
-  private readonly moleculeCollectionService = inject(MoleculeCollectionService);
+  private readonly destroyRef = inject(DestroyRef)
+
+  private readonly actionOverlayContext = inject(ActionOverlayContextService)
+  private readonly bindContext = inject(BindCollectionsToMoleculeContextService)
+  private readonly invalidation = inject(DomainInvalidationService)
+  private readonly moleculeCollectionService = inject(MoleculeCollectionService)
   private readonly picker = new CollectionPickerFacade({
     mode: { kind: 'multi', operation: 'bind', moleculeId: this.bindContext.moleculeId() ?? '' },
     pageSize: 20
-  });
-  private readonly router = inject(Router);
-  private readonly sessionId = this.actionOverlayContext.session('BindCollectionsToMolecule')?.id ?? -1;
+  })
+  private readonly router = inject(Router)
+  private readonly toast = inject(ToastService)
+
+  private readonly sessionId = this.actionOverlayContext.session('BindCollectionsToMolecule')?.id ?? -1
   private readonly pagination = new PaginationController<UiMoleculeCollection>({
     fetch: page => this.picker.fetchPage$(page, this.searchTerm()).pipe(
       debounceTime(100),
-      map(result => ({ ...result, items: result.items.map(item => ({
-        ...item,
-        triggerDisappear: signal(false),
-        collapse: signal(false)
-      })) }))
+      map(result => ({
+        ...result, items: result.items.map(item => ({
+          ...item,
+          triggerDisappear: signal(false),
+          collapse: signal(false)
+        }))
+      }))
     )
   })
   private observer?: IntersectionObserver
 
-  private suSub?: Subscription;
+  private suSub?: Subscription
 
-  step = signal<1 | 2>(1);
-  step_12_loading = signal<boolean>(false);
-  error = signal<boolean>(false);
+  pending = signal<boolean>(false)
+  error = signal<boolean>(false)
 
-  protected readonly root = viewChild<ElementRef<HTMLDivElement>>('scrollRoot');
-  protected readonly sentinel = viewChild<ElementRef<HTMLDivElement>>('sentinel');
-  readonly multiselectItems = signal<AbstractMultiselectItem<UiMoleculeCollection>[]>([]);
-  readonly selectedIdSet = signal<Set<string>>(new Set());
-  readonly excludedIdSet = signal<Set<string>>(new Set());
-  readonly bulkIntent = signal<'none' | 'all' | 'unselect'>('none');
-  readonly selectionSnapshotAt = signal<string | null>(null);
-  readonly isSelectedAll = computed(() => this.bulkIntent() === 'all');
-  readonly isSelectedNothing = computed(() => this.bulkIntent() !== 'all' && this.selectedIdSet().size === 0);
+  protected readonly root = viewChild<ElementRef<HTMLDivElement>>('scrollRoot')
+  protected readonly sentinel = viewChild<ElementRef<HTMLDivElement>>('sentinel')
+  readonly multiselectItems = signal<AbstractMultiselectItem<UiMoleculeCollection>[]>([])
+  readonly selectedIdSet = signal<Set<string>>(new Set())
+  readonly excludedIdSet = signal<Set<string>>(new Set())
+  readonly bulkIntent = signal<'none' | 'all' | 'unselect'>('none')
+  readonly selectionSnapshotAt = signal<string | null>(null)
+  readonly isSelectedAll = computed(() => this.bulkIntent() === 'all' && this.excludedIdSet().size === 0)
+  readonly isSelectedNothing = computed(() => this.bulkIntent() !== 'all' && this.selectedIdSet().size === 0)
   readonly isPartiallySelected = computed(() => {
-    const visible = this.multiselectItems();
-    const checked = visible.filter(item => item.isChecked()).length;
-    return checked > 0 && checked < visible.length;
-  });
+    return this.bulkIntent() === 'all' ? this.excludedIdSet().size > 0 : this.selectedIdSet().size > 0
+  })
+  readonly selectionSummary = computed(() => {
+    if (this.bulkIntent() === 'all') return this.excludedIdSet().size
+      ? 'Tutte le collezioni disponibili, escluse ' + this.excludedIdSet().size + '.'
+      : 'Tutte le collezioni disponibili selezionate.'
+    const count = this.selectedIdSet().size
+    return count === 0 ? 'Nessuna collezione selezionata.' : count === 1 ? '1 collezione selezionata.' : count + ' collezioni selezionate.'
+  })
+  readonly moleculeName = this.bindContext.moleculeName
   get items(): UiMoleculeCollection[] { return this.pagination.items() }
   get loading(): boolean { return this.pagination.loading() }
   get done(): boolean { return this.pagination.done() }
@@ -276,131 +165,135 @@ export class BindCollectionsToMoleculeComponent implements OnInit, AfterViewInit
   get searchTerm(): ReturnType<typeof signal<string>> { return this.pagination.query }
 
   ngOnInit(): void {
-    queueMicrotask(() => void this.loadMore());
+    queueMicrotask(() => {
+      void this.loadMore()
+    })
   }
 
   ngAfterViewInit(): void {
-    queueMicrotask(() => this.startObserver());
+    queueMicrotask(() => this.startObserver())
   }
 
   ngOnDestroy(): void {
-    this.suSub?.unsubscribe();
-    this.observer?.disconnect();
-    this.pagination.dispose();
-    this.picker.destroy();
+    this.suSub?.unsubscribe()
+    this.observer?.disconnect()
+    this.pagination.dispose()
+    this.picker.destroy()
   }
 
-  private _rearmOnStep = effect(() => {
-    if (this.step() === 1) {
-      queueMicrotask(() => this.startObserver());
+  protected readonly viewport = inject(ViewportRuntimeService)
+  private readonly rearmObserver = effect(() => {
+    this.viewport.visualWidth()
+    this.viewport.overlayCompact()
+    if (!this.pending()) {
+      queueMicrotask(() => this.startObserver())
     } else {
-      this.observer?.disconnect();
+      this.observer?.disconnect()
     }
-  });
+  })
 
   loadMore(): Promise<void> {
     return this.pagination.loadMore().then(() => {
-      const existing = new Map(this.multiselectItems().map(row => [row.item.id, row]));
-      const rows = this.items.map(item => existing.get(item.id) ?? {
-        item,
-        isChecked: signal(this.isSelectedAll() ? !this.excludedIdSet().has(item.id) : this.selectedIdSet().has(item.id))
-      });
-      this.multiselectItems.set(rows);
-    });
+      if (this.destroyRef.destroyed) return
+      this.loadRows()
+    })
   }
-  retryPagination(): void { this.pagination.retry(); }
-  resetPagination(): void { this.pagination.reset(); this.multiselectItems.set([]); }
-  doQuery(q: string): void { this.pagination.setQuery(q); this.multiselectItems.set([]); }
-  doClear(): void { this.pagination.clear(); this.multiselectItems.set([]); }
-  paginationState() { return this.pagination.paginationState(); }
+  private readonly syncLoadedRows = effect(() => {
+    this.pagination.items()
+    queueMicrotask(() => {
+      if (!this.destroyRef.destroyed) this.loadRows()
+    })
+  })
+  private loadRows(): void {
+    const existing = new Map(this.multiselectItems().map(row => [row.item.id, row]))
+    this.multiselectItems.set(this.items.map(item => existing.get(item.id) ?? {
+      item,
+      isChecked: signal(this.bulkIntent() === 'all' ? !this.excludedIdSet().has(item.id) : this.selectedIdSet().has(item.id))
+    }))
+  }
+  retryPagination(): void { this.pagination.retry() }
+  resetPagination(): void { this.pagination.reset(); this.multiselectItems.set([]) }
+  doQuery(q: string): void { if (this.pending()) return; this.pagination.setQuery(q); this.multiselectItems.set([]) }
+  doClear(): void { if (this.pending()) return; this.pagination.clear(); this.multiselectItems.set([]) }
+  paginationState() { return this.pagination.paginationState() }
   private startObserver(): void {
-    const sentinel = this.sentinel()?.nativeElement;
-    if (!sentinel) return;
-    this.observer?.disconnect();
+    if (this.destroyRef.destroyed || this.pending()) return
+    const sentinel = this.sentinel()?.nativeElement
+    if (!sentinel) return
+    this.observer?.disconnect()
     this.observer = new IntersectionObserver(entries => {
-      if (entries[0]?.isIntersecting) void this.loadMore();
-    }, { root: this.root()?.nativeElement ?? null, rootMargin: '0px 0px 500px 0px' });
-    this.observer.observe(sentinel);
+      if (entries[0]?.isIntersecting && !this.pending()) void this.loadMore()
+    }, { root: this.viewport.state().visualWidth < 768 || this.viewport.overlayCompact()
+      ? this.root()?.nativeElement.closest('.m-action-card') ?? null : this.root()?.nativeElement.closest('.m-action-card__body') ?? null,
+      rootMargin: '0px 0px 500px 0px' })
+    this.observer.observe(sentinel)
   }
   toggleOne(row: AbstractMultiselectItem<UiMoleculeCollection>): void {
-    const next = new Set(this.bulkIntent() === 'all' ? this.excludedIdSet() : this.selectedIdSet());
+    if (this.pending()) return
+    this.error.set(false)
+    const next = new Set(this.bulkIntent() === 'all' ? this.excludedIdSet() : this.selectedIdSet())
     if (this.bulkIntent() === 'all') {
-      row.isChecked() ? next.delete(row.item.id) : next.add(row.item.id);
-      this.excludedIdSet.set(next);
+      row.isChecked() ? next.delete(row.item.id) : next.add(row.item.id)
+      this.excludedIdSet.set(next)
     } else {
-      row.isChecked() ? next.add(row.item.id) : next.delete(row.item.id);
-      this.selectedIdSet.set(next);
-      this.bulkIntent.set('none');
+      row.isChecked() ? next.add(row.item.id) : next.delete(row.item.id)
+      this.selectedIdSet.set(next)
+      this.bulkIntent.set('none')
     }
   }
   onSelectAllChange(checked: boolean): void {
+    if (this.pending()) return
+    this.error.set(false)
     if (checked) {
-      this.bulkIntent.set('all');
-      this.excludedIdSet.set(new Set());
-      this.selectionSnapshotAt.set(String(Date.now()));
+      this.bulkIntent.set('all')
+      this.excludedIdSet.set(new Set())
+      this.selectionSnapshotAt.set(String(Date.now()))
     } else {
-      this.bulkIntent.set('unselect');
-      this.selectedIdSet.set(new Set());
-      this.excludedIdSet.set(new Set());
-      this.selectionSnapshotAt.set(null);
+      this.bulkIntent.set('unselect')
+      this.selectedIdSet.set(new Set())
+      this.excludedIdSet.set(new Set())
+      this.selectionSnapshotAt.set(null)
     }
-    this.multiselectItems().forEach(row => row.isChecked.set(checked));
+    this.multiselectItems().forEach(row => row.isChecked.set(checked))
   }
 
   close(): void {
-    this.actionOverlayContext.close(this.sessionId);
+    if (!this.pending()) this.actionOverlayContext.close(this.sessionId)
   }
 
   doSubmit(): void {
-    const moleculeId = this.bindContext.moleculeId();
-    if (!moleculeId) {
-      this.error.set(true);
-      return;
-    }
-    if (this.step() === 1) {
-      if (this.isSelectedNothing()) {
-        return;
+    if (this.pending() || this.isSelectedNothing()) return
+    const moleculeId = this.bindContext.moleculeId()
+    if (!moleculeId) { this.error.set(true); return }
+    this.error.set(false)
+    this.pending.set(true)
+    this.actionOverlayContext.beginSubmit(this.sessionId)
+    const selectAll = this.bulkIntent() === 'all'
+    const collectionIds = Array.from(selectAll ? this.excludedIdSet() : this.selectedIdSet())
+    this.suSub = this.moleculeCollectionService.bindManyCollectionsToMolecule(
+      moleculeId, collectionIds, selectAll, this.selectionSnapshotAt()
+    ).subscribe({
+      next: ({ ok, moleculeUUID }) => {
+        this.pending.set(false)
+        if (!ok) {
+          this.actionOverlayContext.submitFailed(this.sessionId)
+          this.error.set(true)
+          return
+        }
+        this.actionOverlayContext.submitSucceeded(this.sessionId)
+        this.invalidation.publish({ domain: 'molecule', action: 'collections-bound', moleculeId })
+        this.toast.trigger('La molecola è stata aggiunta alle collezioni selezionate.', 'success')
+        queueMicrotask(() => {
+          if (this.destroyRef.destroyed) return
+          this.actionOverlayContext.close(this.sessionId)
+          if (moleculeUUID) void this.router.navigateByUrl('/molecules/detail/' + moleculeUUID)
+        })
+      },
+      error: () => {
+        this.pending.set(false)
+        this.error.set(true)
+        this.actionOverlayContext.submitFailed(this.sessionId)
       }
-      this.step_12_loading.set(true);
-      let collectionIds: string[] = [];
-      if (this.isSelectedAll()) {
-        collectionIds = this.multiselectItems()
-          .filter(w => !w.isChecked())
-          .map(w => w.item.id);
-      } else {
-        collectionIds = Array.from(this.selectedIdSet());
-      }
-      this.suSub = this.moleculeCollectionService
-        .bindManyCollectionsToMolecule(
-          moleculeId,
-          collectionIds,
-          this.isSelectedAll(),
-          this.selectionSnapshotAt()
-        )
-        .subscribe({
-          next: ({ ok, moleculeUUID }) => {
-            this.step_12_loading.set(false);
-            if (ok) {
-              this.invalidation.publish({
-                domain: 'molecule',
-                action: 'collections-bound',
-                moleculeId
-              });
-            }
-            this.error.set(!ok);
-            queueMicrotask(() => {
-              this.actionOverlayContext.close(this.sessionId);
-              if (moleculeUUID) {
-                this.router.navigateByUrl(`/molecules/detail/${moleculeUUID}`);
-              }
-            });
-          },
-          error: () => {
-            this.step_12_loading.set(false);
-            this.error.set(true);
-            this.step.set(2);
-          }
-        });
-    }
+    })
   }
 }

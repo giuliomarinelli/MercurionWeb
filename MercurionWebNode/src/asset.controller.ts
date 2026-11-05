@@ -1,6 +1,6 @@
-import { Controller, Get, Res } from '@nestjs/common';
-import { FastifyReply } from 'fastify';
-import { join } from 'path';
+import { Controller, Get, Res } from '@nestjs/common'
+import { FastifyReply } from 'fastify'
+import { join } from 'path'
 import { Public } from 'src/metadata/metadata'
 import { existsSync, createReadStream } from 'fs'
 

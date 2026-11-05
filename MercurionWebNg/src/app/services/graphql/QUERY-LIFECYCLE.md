@@ -47,11 +47,12 @@ allowance for a retained `network-only` watcher.
 | `MoleculeSearch` | `MoleculeSearchService.searchMolecule` | One-shot search | `network-only` | Search must reflect the current upstream catalogue. |
 | `GetMoleculeDetail` | `MoleculeService.getMoleculeByMolregno` | One-shot stable reference | `cache-first` | ChEMBL reference identity/detail is treated as stable for a browser session. |
 | `MoleculePreviewsByMolregnos` | `MoleculeService.getMoleculePreviewsByMolregnos` | One-shot stable reference | `cache-first` | ChEMBL previews are reusable reference data. |
-| `GetAllNotebooks` | `NotebookService.getAllNotebooks` | One-shot mutable snapshot | `network-only` | Notebook trees are user-editable. |
-| `GetNotebookDetail` | `NotebookService.getNotebookById` | One-shot mutable snapshot | `network-only` | Notebook content is user-editable. |
-| `GetChapterById` | `NotebookService.getChapterById` | One-shot mutable snapshot | `network-only` | Chapter title/content relationships are user-editable. |
-| `GetSectionById` | `NotebookService.getSectionById` | One-shot mutable snapshot | `network-only` | Section title/content relationships are user-editable. |
-| `GetPageHeaderById` | `NotebookService.getPageByIdHeader` | One-shot mutable snapshot | `network-only` | Page headers are user-editable. |
+| `GetAllNotebooks` | `NotebookService.getAllNotebooks` | One-shot mutable snapshot | `network-only` | Notebook tree structure and archival state can change. |
+| `GetNotebookDetail` | `NotebookService.getNotebookById` | One-shot mutable snapshot | `network-only` | Notebook premise and child structure are editable. |
+| `GetNotebookSection` | `NotebookService.getSectionById` | One-shot mutable snapshot | `network-only` | Section title and Quill Delta are user-owned and editable. |
+| `GetNotebookExperiment` | `NotebookService.getExperimentById` | One-shot mutable snapshot | `network-only` | Protocol drafts and revision summaries reflect current planning. |
+| `GetExperimentExecution` | `NotebookService.getExecutionById` | One-shot mutable snapshot | `network-only` | Execution state and recorded results may change until completion. |
+| `GetExperimentProtocolRevision` | `NotebookService.getProtocolRevisionById` | One-shot immutable snapshot | `network-only` | Full historical protocol read, reflecting the latest authorization and retention decisions. |
 
 ## Retained watcher annotation
 

@@ -1,15 +1,15 @@
-import { BadRequestException, Controller, Get, HttpStatus, Param, Query, Res } from '@nestjs/common';
-import { FastifyReply } from 'fastify/types/reply';
-import { Public } from 'src/metadata/metadata';
-import { SocialAuthService } from '../services/social-auth.service';
-import { AuthProvider } from '../models/enums/auth-provider.enum';
-import { ConfigService } from '@nestjs/config';
+import { BadRequestException, Controller, Get, HttpStatus, Param, Query, Res } from '@nestjs/common'
+import { FastifyReply } from 'fastify/types/reply'
+import { Public } from 'src/metadata/metadata'
+import { SocialAuthService } from '../services/social-auth.service'
+import { AuthProvider } from '../models/enums/auth-provider.enum'
+import { ConfigService } from '@nestjs/config'
 import {
   ApplicationErrorCode,
   getApplicationError,
   isApplicationError
-} from 'src/exception-handling/application-error';
-import { TypeGuards } from 'src/utils/type-guards/type-guards';
+} from 'src/exception-handling/application-error'
+import { TypeGuards } from 'src/utils/type-guards/type-guards'
 
 
 

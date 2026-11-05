@@ -26,6 +26,7 @@ export interface AuthSessionPersistencePort {
   setWsRefreshLock(value: { owner: string; expiresAt: number }): void
   removeWsRefreshLock(): void
   getTabId(): string
+  hasPendingLoginMarker(): boolean
   hasLoginMarker(): boolean
   getCookieValue(name: string): string | null
   removeLoginMarkers(): void
@@ -80,7 +81,8 @@ export class InMemoryAuthSessionPersistence implements AuthSessionPersistencePor
   setWsRefreshLock(value: { owner: string; expiresAt: number }) { this.local.set('ws_refresh_lock', JSON.stringify(value)) }
   removeWsRefreshLock() { this.local.delete('ws_refresh_lock') }
   getTabId() { return this.tabId ??= this.session.get('tab_id') ?? this.newTabId() }
-  hasLoginMarker() { return this.cookies.get('__logged_in') === 'true' || this.cookies.get('__logged_in_') === 'true' }
+  hasPendingLoginMarker() { return isPendingLoginMarker(this.getCookieValue('__logged_in') ?? this.getCookieValue('__logged_in_')) }
+  hasLoginMarker() { return (this.getCookieValue('__logged_in') ?? this.getCookieValue('__logged_in_')) === 'true' }
   getCookieValue(name: string) { return this.cookies.get(name) ?? null }
   removeLoginMarkers() { this.cookies.delete('__logged_in'); this.cookies.delete('__logged_in_') }
   getPreAuthorizationData() { return this.session.get('preAuthorizationData') ?? null }
@@ -140,7 +142,8 @@ export class AuthSessionPersistenceService implements AuthSessionPersistencePort
   setWsRefreshLock(value: { owner: string; expiresAt: number }) { this.registry.set(storageDescriptor('wsRefreshLock'), value) }
   removeWsRefreshLock() { this.registry.remove(storageDescriptor('wsRefreshLock')) }
   getTabId() { let id = this.registry.get(storageDescriptor<string>('tabId')); if (!id) { id = globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2); this.registry.set(storageDescriptor('tabId'), id) } return id }
-  hasLoginMarker() { return this.getCookieValue('__logged_in') === 'true' || this.getCookieValue('__logged_in_') === 'true' }
+  hasPendingLoginMarker() { return isPendingLoginMarker(this.getCookieValue('__logged_in') ?? this.getCookieValue('__logged_in_')) }
+  hasLoginMarker() { return (this.getCookieValue('__logged_in') ?? this.getCookieValue('__logged_in_')) === 'true' }
   getCookieValue(name: string) { const cookie = this.cookieString.split('; ').find(value => value.startsWith(`${name}=`)); return cookie ? decodeURIComponent(cookie.slice(name.length + 1)) : null }
   removeLoginMarkers() { for (const name of ['__logged_in', '__logged_in_']) if (typeof document !== 'undefined') document.cookie = `${name}=; Max-Age=0; path=/` }
   getPreAuthorizationData() { return this.registry.get(storageDescriptor<string>('preAuthorizationData')) }
@@ -239,4 +242,8 @@ function decodePreAuthState(raw: string | null, remove: () => void): PreAuthRead
     remove()
     return { status: 'invalid' }
   }
+}
+
+function isPendingLoginMarker(value: string | null): boolean {
+  return value === 'pending_long' || value === 'pending_short'
 }

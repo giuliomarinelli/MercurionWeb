@@ -1,5 +1,5 @@
-import { Transform } from "class-transformer";
-import { IsString, Matches } from "class-validator";
+import { Transform } from "class-transformer"
+import { IsString, Matches } from "class-validator"
 import type {
     TotpBodyDTO as TotpBodyContract,
     TotpDTO as TotpContract

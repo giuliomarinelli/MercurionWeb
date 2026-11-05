@@ -1,5 +1,5 @@
-import { Injectable, computed, inject } from '@angular/core';
-import { ActionOverlayContextService } from './action-overlay-context.service';
+import { Injectable, computed, inject } from '@angular/core'
+import { ActionOverlayContextService } from './action-overlay-context.service'
 
 /**
  * Read-only view over the active `TicketDetail` session input.

@@ -1,10 +1,10 @@
-import { Component, ChangeDetectionStrategy, inject, OnDestroy, OnInit, signal } from '@angular/core';
-import { AuthTransportService } from '../../services/auth-transport.service';
-import { ActivatedRoute } from '@angular/router';
-import { Subscription } from 'rxjs';
-import { JsonPipe } from '@angular/common';
-import { HttpErrorResponse } from '@angular/common/http';
-import { HttpErrorBody } from '../../Models/http-error-body.dto';
+import { Component, ChangeDetectionStrategy, inject, OnDestroy, OnInit, signal } from '@angular/core'
+import { AuthTransportService } from '../../services/auth-transport.service'
+import { ActivatedRoute } from '@angular/router'
+import { Subscription } from 'rxjs'
+import { JsonPipe } from '@angular/common'
+import { HttpErrorResponse } from '@angular/common/http'
+import { HttpErrorBody } from '../../Models/http-error-body.dto'
 
 @Component({
   selector: 'm-admin-exchange-page',

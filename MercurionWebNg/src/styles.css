@@ -140,6 +140,66 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
+html.m-dialog-open,
+html.m-dialog-open body {
+  overflow: hidden !important;
+  overscroll-behavior: none;
+}
+
+/* Short visual viewports include the space left above a phone keyboard. */
+.m-overlay-method-short {
+  display: none;
+}
+
+.m-dialog--compact {
+  backdrop-filter: none;
+}
+
+.m-dialog--compact .m-overlay-methods {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  column-gap: 1rem;
+  row-gap: 0;
+  margin: 0;
+  padding: 0.25rem 0.75rem;
+}
+
+.m-dialog--compact .m-overlay-methods > div {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  margin: 0;
+}
+
+.m-dialog--compact .m-overlay-method-full {
+  display: none;
+}
+
+.m-dialog--compact .m-overlay-method-short {
+  display: inline;
+}
+
+.m-dialog--compact m-action-footer [action-footer-secondary],
+.m-dialog--compact m-action-footer [action-footer-primary],
+.m-dialog--compact m-action-footer .m-button__control {
+  width: auto;
+}
+
+.m-dialog--compact m-action-footer button,
+.m-dialog--compact .m-action-card__close button,
+.m-search-header button {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+@layer base {
+  /* Labels must stay readable even inside containers with smaller body text. */
+  label {
+    font-size: max(16px, 1rem);
+  }
+}
+
 button{
   @apply cursor-pointer;
 }
@@ -151,8 +211,7 @@ button:disabled {
 @media (max-width: 768px) {
   input,
   textarea,
-  select,
-  button {
+  select {
     font-size: 16px;
   }
 }
@@ -371,15 +430,15 @@ html {
   }
 
   .drawer {
-    @apply bg-slate-200/50 dark:bg-neutral-900/75 transition-colors transition-transform duration-200 ease-in-out;
+    @apply bg-slate-200/50 dark:bg-neutral-900/75 transition-colors duration-200 ease-in-out;
   }
 
   .content {
-    @apply flex flex-col flex-1 overflow-y-auto;
+    @apply flex flex-col flex-1;
   }
 
   .drawer-container {
-    @apply relative flex flex-1 overflow-hidden;
+    @apply relative flex flex-1;
   }
 
 
@@ -390,8 +449,8 @@ html {
 
   .m-overlay-screen {
     min-height: 100vh;
-    min-height: 100dvh;
-    --m-action-card-available-height: calc(100dvh - max(0.5rem, env(safe-area-inset-top, 0px)) - max(0.5rem, env(safe-area-inset-bottom, 0px)));
+    min-height: calc(var(--m-overlay-vh, 1dvh) * 100);
+    --m-action-card-available-height: calc(var(--m-overlay-vh, 1dvh) * 100 - max(0.5rem, env(safe-area-inset-top, 0px)) - max(0.5rem, env(safe-area-inset-bottom, 0px)));
     padding-top: max(0.5rem, env(safe-area-inset-top, 0px));
     padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
   }
@@ -412,47 +471,46 @@ html {
   .m-overlay-results {
     min-height: 30vh;
     min-height: 30dvh;
-    min-height: calc(var(--app-vh, 1vh) * 30);
+    min-height: calc(var(--m-overlay-vh, 1dvh) * 30);
     max-height: 60vh;
     max-height: 60dvh;
-    max-height: calc(var(--app-vh, 1vh) * 60);
+    max-height: calc(var(--m-overlay-vh, 1dvh) * 60);
   }
 
   .m-overlay-max-80 {
     max-height: 80vh;
     max-height: 80dvh;
-    max-height: calc(var(--app-vh, 1vh) * 80);
+    max-height: calc(var(--m-overlay-vh, 1dvh) * 80);
   }
 
   .m-overlay-max-60 {
     max-height: 60vh;
     max-height: 60dvh;
-    max-height: calc(var(--app-vh, 1vh) * 60);
+    max-height: calc(var(--m-overlay-vh, 1dvh) * 60);
   }
 
   .m-overlay-panel {
     height: 60vh;
     height: 60dvh;
-    height: calc(var(--app-vh, 1vh) * 60);
+    height: calc(var(--m-overlay-vh, 1dvh) * 60);
   }
 
   .m-overlay-body {
-    max-height: calc(var(--app-vh, 1vh) * 100 - 14rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
-    min-height: calc(var(--app-vh, 1vh) * 35);
-    -webkit-overflow-scrolling: touch;
+    max-height: none;
+    min-height: 0;
     overscroll-behavior: contain;
   }
 
   .m-overlay-scroll {
     max-height: 38vh;
     max-height: 38dvh;
-    max-height: calc(var(--app-vh, 1vh) * 38);
+    max-height: calc(var(--m-overlay-vh, 1dvh) * 38);
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
   }
 
   .action-overlay-backdrop {
-    @apply fixed inset-0 z-[999] backdrop-blur-sm bg-slate-300/75 dark:bg-slate-900/90 transition-opacity duration-300;
+    @apply fixed inset-0 z-999 backdrop-blur-sm bg-slate-300/75 dark:bg-slate-900/90 transition-opacity duration-300;
     overscroll-behavior: contain;
   }
 
@@ -461,7 +519,7 @@ html {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    max-height: calc(var(--app-vh, 1vh) * 100 - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 16px);
+    max-height: calc(var(--m-overlay-vh, 1dvh) * 100 - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 16px);
     padding-bottom: env(safe-area-inset-bottom, 0px);
     font-size: 0.96rem;
     line-height: 1.45;
@@ -477,8 +535,8 @@ html {
 
   @media (max-width: 767px) {
     .action-card {
-      height: calc(var(--app-vh, 1vh) * 100 - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 8px);
-      max-height: calc(var(--app-vh, 1vh) * 100 - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 8px);
+      height: calc(var(--m-overlay-vh, 1dvh) * 100 - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 8px);
+      max-height: calc(var(--m-overlay-vh, 1dvh) * 100 - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 8px);
       width: 100%;
     }
 
@@ -580,4 +638,96 @@ html {
   }
 
 
+}
+
+/* Keep dialog fields readable on touch devices without focus-induced zoom. */
+@media (pointer: coarse) {
+  .m-dialog-backdrop input:not([type]),
+  .m-dialog-backdrop input[type="text"],
+  .m-dialog-backdrop input[type="search"],
+  .m-dialog-backdrop input[type="email"],
+  .m-dialog-backdrop input[type="password"],
+  .m-dialog-backdrop input[type="tel"],
+  .m-dialog-backdrop input[type="number"],
+  .m-dialog-backdrop textarea,
+  .m-dialog-backdrop select { font-size: max(16px, 1rem); }
+}
+
+/* Navigation follows the page surface, which differs from surface-main in dark mode. */
+:root {
+  --m-nav-surface: #f9fafb;
+  --m-nav-text: #151c29;
+  --m-nav-muted: #637086;
+  --m-nav-border: rgb(203 213 225 / .65);
+  --m-nav-hover: #e9edf3;
+  --m-nav-selected: #dbe2ee;
+  --m-nav-tooltip-bg: #222b3b;
+  --m-nav-tooltip-text: #fff;
+}
+.dark {
+  --m-nav-surface: #0a0a0a;
+  --m-nav-text: #edf0f6;
+  --m-nav-muted: #a2a9b8;
+  --m-nav-border: rgb(203 213 225 / .4);
+  --m-nav-hover: #1d2433;
+  --m-nav-selected: #293346;
+  --m-nav-tooltip-bg: #f0f3f8;
+  --m-nav-tooltip-text: #151a27;
+}
+.m-desktop-navigation {
+  width: var(--m-navigation-width);
+  background: var(--m-nav-surface);
+  border-right: .5px solid var(--m-nav-border);
+  transition: width 250ms ease;
+}
+.m-navigation-content {
+  margin-left: var(--m-navigation-width);
+}
+@media (min-width: 1280px) {
+  .m-navigation-content { transition: margin-left 250ms ease; }
+}
+.m-navigation-tooltip {
+  --p-tooltip-gutter: .375rem;
+  --p-tooltip-background: var(--m-nav-tooltip-bg);
+  --p-tooltip-color: var(--m-nav-tooltip-text);
+  --p-tooltip-max-width: 16rem;
+  --p-tooltip-padding: .5rem .75rem;
+  --p-tooltip-border-radius: .5rem;
+  --p-tooltip-shadow: 0 4px 12px rgb(0 0 0 / .15);
+}
+.m-navigation-tooltip .p-tooltip-text { font-size: .875rem; }
+.m-editor-info-tooltip { --p-tooltip-max-width: min(22rem, calc(100vw - 2rem)); width: 22rem; }
+@media (max-width: 639px) {
+  .m-editor-info-tooltip { left: 1rem !important; width: calc(100% - 2rem); }
+  .m-editor-info-tooltip .p-tooltip-arrow { left: auto !important; right: 2.5rem; }
+}
+.m-offcanvas-navigation {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  background: var(--m-nav-surface);
+  color: var(--m-nav-text);
+  border-right: .5px solid var(--m-nav-border);
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.m-offcanvas-navigation > .m-offcanvas-body { flex: 1; min-height: 0; }
+.m-offcanvas-navigation > :not(.m-offcanvas-body) { flex-shrink: 0; }
+.m-navigation-scroll { scrollbar-color: var(--m-nav-muted) transparent; }
+.m-navigation-scroll::-webkit-scrollbar-track { background: transparent; }
+m-history-item a:hover { background: var(--m-nav-hover); }
+m-history-item a.m-navigation-selected { position: relative; background: var(--m-nav-selected); }
+m-history-item a.m-navigation-selected::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: .5rem;
+  bottom: .5rem;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--m-color-accent-primary);
+}
+m-history-item a:focus-visible { outline: 2px solid var(--m-color-focus); outline-offset: -2px; }
+@media (prefers-reduced-motion: reduce) {
+  .m-desktop-navigation, .m-navigation-content, .m-offcanvas-navigation { transition: none; }
 }

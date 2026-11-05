@@ -1,8 +1,8 @@
-import { Injectable } from '@nestjs/common';
-import { UUID } from 'crypto';
-import { UserService } from 'src/app_modules/user/services/user.service';
-import { ProfileDTO, ProfileRegistryClientDTO, ProfileRegistryDTO } from '../models/dto/profile.dtos';
-import { RealtimeStateSyncService } from 'src/app_modules/socket-io/realtime-state-sync.service';
+import { Injectable } from '@nestjs/common'
+import { UUID } from 'crypto'
+import { UserService } from 'src/app_modules/user/services/user.service'
+import { ProfileDTO, ProfileRegistryClientDTO, ProfileRegistryDTO } from '../models/dto/profile.dtos'
+import { RealtimeStateSyncService } from 'src/app_modules/socket-io/realtime-state-sync.service'
 
 @Injectable()
 export class ProfileAccountUseCase {
@@ -12,16 +12,16 @@ export class ProfileAccountUseCase {
   ) {}
 
   async getProfile(userId: UUID, includeRecentHistory: boolean): Promise<ProfileDTO | null> {
-    const result = await this.users.getVerifiedUserProfileById(userId, includeRecentHistory);
-    return result;
+    const result = await this.users.getVerifiedUserProfileById(userId, includeRecentHistory)
+    return result
   }
 
   getEssentialProfile(userId: UUID): Promise<ProfileRegistryClientDTO> {
-    return this.users.getVerifiedUserEssentialProfileRegistryById(userId);
+    return this.users.getVerifiedUserEssentialProfileRegistryById(userId)
   }
 
   async updateProfile(userId: UUID, input: ProfileRegistryDTO): Promise<ProfileRegistryClientDTO | null> {
-    const result = await this.users.updateVerifiedUserProfileRegistryById(userId, input);
+    const result = await this.users.updateVerifiedUserProfileRegistryById(userId, input)
     if (result) {
       this.stateSync.publishToUser(userId, {
         kind: 'resource-state-changed',
@@ -29,6 +29,6 @@ export class ProfileAccountUseCase {
         change: 'updated'
       })
     }
-    return result;
+    return result
   }
 }

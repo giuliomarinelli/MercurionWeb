@@ -11,11 +11,11 @@ import {
     Post,
     Query,
     ValidationPipe,
-} from '@nestjs/common';
-import { EmbeddingService } from '../services/embedding.service';
-import { Public } from 'src/metadata/metadata';
+} from '@nestjs/common'
+import { EmbeddingService } from '../services/embedding.service'
+import { Public } from 'src/metadata/metadata'
 import type { EmbeddingResponse } from '@mercurion/rest-contracts'
-import { SmilesDTO } from '../models/dto/embedding-smiles.dto';
+import { SmilesDTO } from '../models/dto/embedding-smiles.dto'
 
 @Controller('embedding')
 export class EmbeddingController {

@@ -1,26 +1,26 @@
-import { Global, Module } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { ModulesContainer, Reflector } from '@nestjs/core';
-import { Test } from '@nestjs/testing';
-import { AuthModule } from '../auth/auth.module';
-import { JwtToolsService } from '../auth/services/jwt-tools.service';
-import { ScopeService } from '../auth/services/scope.service';
-import { SecureCookieService } from '../auth/services/secure-cookie.service';
-import { SessionService } from '../auth/services/session.service';
-import { SecurityService } from '../auth/services/security.service';
-import { RedisModule } from '../redis/redis.module';
-import { PubSubService } from '../redis/services/pub-sub.service';
-import { SocketIOGateway } from './socket.io.gateway';
-import { SocketIoModule } from './socket.io.module';
-import { LoggerPort } from 'src/logging/logger.port';
-import { LoggingModule } from 'src/logging/logging.module';
+import { Global, Module } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
+import { ModulesContainer, Reflector } from '@nestjs/core'
+import { Test } from '@nestjs/testing'
+import { AuthModule } from '../auth/auth.module'
+import { JwtToolsService } from '../auth/services/jwt-tools.service'
+import { ScopeService } from '../auth/services/scope.service'
+import { SecureCookieService } from '../auth/services/secure-cookie.service'
+import { SessionService } from '../auth/services/session.service'
+import { SecurityService } from '../auth/services/security.service'
+import { RedisModule } from '../redis/redis.module'
+import { PubSubService } from '../redis/services/pub-sub.service'
+import { SocketIOGateway } from './socket.io.gateway'
+import { SocketIoModule } from './socket.io.module'
+import { LoggerPort } from 'src/logging/logger.port'
+import { LoggingModule } from 'src/logging/logging.module'
 
 const logger = {
   debug: jest.fn(),
   error: jest.fn(),
   log: jest.fn(),
   warn: jest.fn(),
-};
+}
 
 @Global()
 @Module({
@@ -83,8 +83,8 @@ class SocketLoggerProbeModule {}
 
 describe('SocketIoModule', () => {
   it('should be defined', () => {
-    expect(new SocketIoModule()).toBeDefined();
-  });
+    expect(new SocketIoModule()).toBeDefined()
+  })
 
   it('creates exactly one gateway provider wrapper and instance per app context', async () => {
     const moduleRef = await Test.createTestingModule({
@@ -96,17 +96,17 @@ describe('SocketIoModule', () => {
       .useModule(SocketAuthProbeModule)
       .overrideModule(LoggingModule)
       .useModule(SocketLoggerProbeModule)
-      .compile();
+      .compile()
 
-    const gateway = moduleRef.get(SocketIOGateway);
+    const gateway = moduleRef.get(SocketIOGateway)
     const gatewayProviders = [...moduleRef.get(ModulesContainer).values()]
       .map((module) => module.providers.get(SocketIOGateway))
-      .filter((provider) => provider !== undefined);
+      .filter((provider) => provider !== undefined)
 
-    expect(gatewayProviders).toHaveLength(1);
-    expect(gatewayProviders[0]?.instance).toBe(gateway);
-    expect(moduleRef.get(SocketIOGateway)).toBe(gateway);
+    expect(gatewayProviders).toHaveLength(1)
+    expect(gatewayProviders[0]?.instance).toBe(gateway)
+    expect(moduleRef.get(SocketIOGateway)).toBe(gateway)
 
-    await moduleRef.close();
-  });
-});
+    await moduleRef.close()
+  })
+})

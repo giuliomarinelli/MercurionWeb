@@ -14,26 +14,26 @@ import { StatusPageConfig } from './status-page.models'
   template: `
     <main
       #statusPage
-      class="absolute inset-0 z-[50] grid min-h-full place-items-center bg-white px-6 py-24 sm:py-32 lg:px-8 dark:bg-gray-950"
+      class="main-container grid min-h-[min(32rem,70dvh)] place-items-center py-8 text-on-surface-main outline-none sm:py-12"
       tabindex="-1"
       [attr.aria-labelledby]="headingId"
       [attr.aria-describedby]="descriptionId"
     >
-      <div class="text-center">
-        <p class="text-5xl font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary-btn" role="status" aria-live="polite">
+      <div class="w-full max-w-2xl text-center">
+        <p class="text-4xl font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary-btn" role="status" aria-live="polite">
           {{ status().code }}
         </p>
-        <h1 [id]="headingId" class="mt-4 text-balance text-5xl font-semibold tracking-tight text-gray-900 sm:text-7xl dark:text-white">
+        <h1 [id]="headingId" class="mt-4 text-balance text-3xl font-semibold tracking-tight text-on-surface-main sm:text-5xl">
           {{ status().heading }}
         </h1>
-        <p [id]="descriptionId" class="mt-6 text-pretty text-lg font-medium text-gray-700 sm:text-xl/8 dark:text-gray-300">
+        <p [id]="descriptionId" class="mt-5 text-pretty text-base leading-7 text-on-surface-secondary sm:text-lg">
           {{ status().description }}
         </p>
-        <div class="mt-10 flex items-center justify-center gap-x-6">
-          <m-button variant="ghost" size="sm" (pressed)="goBack()">
+        <div class="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
+          <m-button size="lg" variant="outline" (pressed)="goBack()">
             <span aria-hidden="true">&larr;</span> Torna indietro
           </m-button>
-          <m-button variant="primary" (pressed)="goHome()">
+          <m-button size="lg" variant="primary" (pressed)="goHome()">
             {{ homeContent() }}
           </m-button>
         </div>
@@ -60,7 +60,7 @@ export class StatusPageComponent implements AfterViewInit {
   protected readonly homeContent = computed(() => this.userContext.isLoggedIn() ? 'Vai alla Dashboard' : 'Vai alla Home')
 
   ngAfterViewInit(): void {
-    queueMicrotask(() => this.statusPage().nativeElement.focus())
+    queueMicrotask(() => this.statusPage().nativeElement.focus({ preventScroll: true }))
   }
 
   goBack(): void {

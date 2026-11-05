@@ -1,188 +1,280 @@
-import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
-import { SelectCoreComponent } from './select-core.component';
+import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing'
+import { SelectCoreComponent } from './select-core.component'
 
 describe('SelectCoreComponent', () => {
-  let fixture: ComponentFixture<SelectCoreComponent<string, string>>;
-  let component: SelectCoreComponent<string, string>;
+  let fixture: ComponentFixture<SelectCoreComponent<string, string>>
+  let component: SelectCoreComponent<string, string>
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [SelectCoreComponent]
-    }).compileComponents();
+    }).compileComponents()
 
-    fixture = TestBed.createComponent(SelectCoreComponent<string, string>);
-    fixture.componentRef.setInput('items', ['Alpha', 'Beta', 'Gamma']);
-    fixture.componentRef.setInput('displayFn', (item: string) => item);
-    fixture.componentRef.setInput('valueFn', (item: string) => item.toLowerCase());
-    fixture.componentRef.setInput('label', 'Example select');
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
+    fixture = TestBed.createComponent(SelectCoreComponent<string, string>)
+    fixture.componentRef.setInput('items', ['Alpha', 'Beta', 'Gamma'])
+    fixture.componentRef.setInput('displayFn', (item: string) => item)
+    fixture.componentRef.setInput('valueFn', (item: string) => item.toLowerCase())
+    fixture.componentRef.setInput('label', 'Example select')
+    component = fixture.componentInstance
+    fixture.detectChanges()
+  })
 
   it('exposes combobox/listbox semantics and keyboard selection', () => {
-    const input = fixture.nativeElement.querySelector('input') as HTMLInputElement;
-    const changes: string[] = [];
+    const input = fixture.nativeElement.querySelector('input') as HTMLInputElement
+    const changes: string[] = []
     component.selectionChange.subscribe(change => {
-      if (change.value !== undefined) changes.push(change.value);
-    });
+      if (change.value !== undefined) changes.push(change.value)
+    })
 
-    input.dispatchEvent(new Event('focus'));
-    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown' }));
-    fixture.detectChanges();
+    input.focus()
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown' }))
+    fixture.detectChanges()
 
-    expect(input.getAttribute('role')).toBe('combobox');
-    expect(input.getAttribute('aria-expanded')).toBe('true');
-    expect(fixture.nativeElement.querySelector('[role="listbox"]')).not.toBeNull();
+    expect(input.getAttribute('role')).toBe('combobox')
+    expect(input.getAttribute('aria-expanded')).toBe('true')
+    expect(fixture.nativeElement.querySelector('[role="listbox"]')).not.toBeNull()
 
-    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
-    fixture.detectChanges();
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }))
+    fixture.detectChanges()
 
-    expect(changes).toEqual(['alpha']);
-    expect(input.getAttribute('aria-expanded')).toBe('true');
-    expect(fixture.nativeElement.querySelector('[role="listbox"]')).not.toBeNull();
-    expect(document.activeElement).toBe(input);
-  });
+    expect(changes).toEqual(['alpha'])
+    expect(input.getAttribute('aria-expanded')).toBe('true')
+    expect(fixture.nativeElement.querySelector('[role="listbox"]')).not.toBeNull()
+    expect(document.activeElement).not.toBe(input)
+  })
+
+  it('renders four item-shaped skeletons during loading and hides the empty message', () => {
+    fixture.componentRef.setInput('items', [])
+    fixture.componentRef.setInput('loading', true)
+    fixture.detectChanges()
+    expect(fixture.nativeElement.querySelectorAll('.m-select-skeleton').length).toBe(4)
+    expect(fixture.nativeElement.textContent).not.toContain('Nessun risultato')
+    expect(fixture.nativeElement.querySelector('[role="listbox"]').getAttribute('aria-busy')).toBe('true')
+
+    fixture.componentRef.setInput('loading', false)
+    fixture.componentRef.setInput('items', ['Alpha'])
+    fixture.detectChanges()
+    expect(fixture.nativeElement.querySelectorAll('.m-select-skeleton').length).toBe(0)
+    expect(fixture.nativeElement.querySelectorAll('[role="option"]').length).toBe(1)
+  })
+
+  it('matches option geometry and uses different skeleton colours in light and dark themes', () => {
+    const optionHeight = fixture.nativeElement.querySelector('[role="option"]').getBoundingClientRect().height
+    fixture.componentRef.setInput('items', [])
+    fixture.componentRef.setInput('loading', true)
+    fixture.detectChanges()
+    const row = fixture.nativeElement.querySelector('.m-select-skeleton') as HTMLElement
+    const fill = row.firstElementChild as HTMLElement
+    const wasDark = document.documentElement.classList.contains('dark')
+    const bodyWasDark = document.body.classList.contains('dark')
+    try {
+      document.documentElement.classList.remove('dark')
+      document.body.classList.remove('dark')
+      const light = getComputedStyle(fill).backgroundColor
+      document.documentElement.classList.add('dark')
+      const dark = getComputedStyle(fill).backgroundColor
+      expect(light).not.toBe(dark)
+      expect(row.getBoundingClientRect().height).toBe(optionHeight)
+    } finally {
+      document.documentElement.classList.toggle('dark', wasDark)
+      document.body.classList.toggle('dark', bodyWasDark)
+    }
+  })
 
   it('shares deterministic filtering and no-results state', () => {
-    const input = fixture.nativeElement.querySelector('input') as HTMLInputElement;
-    input.dispatchEvent(new Event('focus'));
-    input.value = 'missing';
-    input.dispatchEvent(new Event('input'));
-    fixture.detectChanges();
+    const input = fixture.nativeElement.querySelector('input') as HTMLInputElement
+    input.dispatchEvent(new Event('focus'))
+    input.value = 'missing'
+    input.dispatchEvent(new Event('input'))
+    fixture.detectChanges()
 
-    expect(fixture.nativeElement.querySelector('[role="status"]')?.textContent).toContain('Nessun risultato');
-  });
+    expect(fixture.nativeElement.querySelector('[role="status"]')?.textContent).toContain('Nessun risultato')
+  })
 
   it('does not open when disabled', () => {
-    fixture.componentRef.setInput('disabled', true);
-    fixture.detectChanges();
-    const input = fixture.nativeElement.querySelector('input') as HTMLInputElement;
+    fixture.componentRef.setInput('disabled', true)
+    fixture.detectChanges()
+    const input = fixture.nativeElement.querySelector('input') as HTMLInputElement
 
-    input.dispatchEvent(new Event('focus'));
-    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown' }));
-    fixture.detectChanges();
+    input.dispatchEvent(new Event('focus'))
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown' }))
+    fixture.detectChanges()
 
-    expect(input.disabled).toBeTrue();
-    expect(fixture.nativeElement.querySelector('[role="listbox"]')).toBeNull();
-  });
+    expect(input.disabled).toBeTrue()
+    expect(fixture.nativeElement.querySelector('[role="listbox"]')).toBeNull()
+  })
 
   it('keeps the shared list and its create form visible when search loses focus', fakeAsync(() => {
-    fixture.componentRef.setInput('canCreateNew', true);
-    fixture.detectChanges();
-    const created: string[] = [];
-    component.createNew.subscribe(name => created.push(name));
+    fixture.componentRef.setInput('canCreateNew', true)
+    fixture.detectChanges()
+    const created: string[] = []
+    component.createNew.subscribe(name => created.push(name))
 
-    const input = fixture.nativeElement.querySelector('[role="combobox"]') as HTMLInputElement;
-    expect(input.getAttribute('aria-expanded')).toBe('true');
-    expect(fixture.nativeElement.querySelector('[role="listbox"]')).not.toBeNull();
+    const input = fixture.nativeElement.querySelector('[role="combobox"]') as HTMLInputElement
+    expect(input.getAttribute('aria-expanded')).toBe('true')
+    expect(fixture.nativeElement.querySelector('[role="listbox"]')).not.toBeNull()
 
-    const createButton = fixture.nativeElement.querySelector('[aria-label="Crea nuovo elemento"]') as HTMLButtonElement;
-    createButton.click();
-    input.dispatchEvent(new Event('blur'));
-    fixture.detectChanges();
-    tick();
-    fixture.detectChanges();
+    const createButton = fixture.nativeElement.querySelector('[aria-label="Crea nuovo elemento"]') as HTMLButtonElement
+    createButton.click()
+    input.dispatchEvent(new Event('blur'))
+    fixture.detectChanges()
+    tick()
+    fixture.detectChanges()
 
-    expect(fixture.nativeElement.querySelector('[role="listbox"]')).not.toBeNull();
-    const newInput = fixture.nativeElement.querySelector('[aria-label="Nome nuovo elemento"]') as HTMLInputElement;
-    expect(newInput).not.toBeNull();
-    newInput.value = 'Nuova collezione';
+    expect(fixture.nativeElement.querySelector('[role="listbox"]')).not.toBeNull()
+    const newInput = fixture.nativeElement.querySelector('[aria-label="Nome nuovo elemento"]') as HTMLInputElement
+    expect(newInput).not.toBeNull()
+    newInput.value = 'Nuova collezione'
     newInput.dispatchEvent(new Event('input'));
-    (fixture.nativeElement.querySelector('[aria-label="Conferma creazione"]') as HTMLButtonElement).click();
-    fixture.detectChanges();
+    (fixture.nativeElement.querySelector('[aria-label="Conferma creazione"]') as HTMLButtonElement).click()
+    fixture.detectChanges()
 
-    expect(created).toEqual(['Nuova collezione']);
-    expect(fixture.nativeElement.querySelector('[role="listbox"]')).not.toBeNull();
-  }));
+    expect(created).toEqual(['Nuova collezione'])
+    expect(fixture.nativeElement.querySelector('[role="listbox"]')).not.toBeNull()
+  }))
 
   it('keeps the new item name readable in both themes', () => {
-    fixture.componentRef.setInput('canCreateNew', true);
+    fixture.componentRef.setInput('canCreateNew', true)
     fixture.detectChanges();
-    (fixture.nativeElement.querySelector('[aria-label="Crea nuovo elemento"]') as HTMLButtonElement).click();
-    fixture.detectChanges();
-    const input = fixture.nativeElement.querySelector('[aria-label="Nome nuovo elemento"]') as HTMLInputElement;
+    (fixture.nativeElement.querySelector('[aria-label="Crea nuovo elemento"]') as HTMLButtonElement).click()
+    fixture.detectChanges()
+    const input = fixture.nativeElement.querySelector('[aria-label="Nome nuovo elemento"]') as HTMLInputElement
 
-    const rootWasDark = document.documentElement.classList.contains('dark');
-    const bodyWasDark = document.body.classList.contains('dark');
-    const reference = document.createElement('span');
-    fixture.nativeElement.appendChild(reference);
+    const rootWasDark = document.documentElement.classList.contains('dark')
+    const bodyWasDark = document.body.classList.contains('dark')
+    const reference = document.createElement('span')
+    fixture.nativeElement.appendChild(reference)
     try {
-      document.documentElement.classList.remove('dark');
-      document.body.classList.remove('dark');
-      reference.style.backgroundColor = 'var(--color-white)';
-      reference.style.color = 'var(--color-slate-900)';
-      expect(getComputedStyle(input).backgroundColor).toBe(getComputedStyle(reference).backgroundColor);
-      expect(getComputedStyle(input).color).toBe(getComputedStyle(reference).color);
+      document.documentElement.classList.remove('dark')
+      document.body.classList.remove('dark')
+      reference.style.backgroundColor = 'var(--color-white)'
+      reference.style.color = 'var(--color-slate-900)'
+      expect(getComputedStyle(input).backgroundColor).toBe(getComputedStyle(reference).backgroundColor)
+      expect(getComputedStyle(input).color).toBe(getComputedStyle(reference).color)
 
-      document.documentElement.classList.add('dark');
-      reference.style.backgroundColor = 'var(--color-slate-900)';
-      reference.style.color = 'var(--color-slate-50)';
-      expect(getComputedStyle(input).backgroundColor).toBe(getComputedStyle(reference).backgroundColor);
-      expect(getComputedStyle(input).color).toBe(getComputedStyle(reference).color);
+      document.documentElement.classList.add('dark')
+      reference.style.backgroundColor = 'var(--color-slate-900)'
+      reference.style.color = 'var(--color-slate-50)'
+      expect(getComputedStyle(input).backgroundColor).toBe(getComputedStyle(reference).backgroundColor)
+      expect(getComputedStyle(input).color).toBe(getComputedStyle(reference).color)
     } finally {
-      document.documentElement.classList.toggle('dark', rootWasDark);
-      document.body.classList.toggle('dark', bodyWasDark);
-      reference.remove();
+      document.documentElement.classList.toggle('dark', rootWasDark)
+      document.body.classList.toggle('dark', bodyWasDark)
+      reference.remove()
     }
-  });
+  })
 
   it('cancels a draft name and returns focus to create new', fakeAsync(() => {
-    fixture.componentRef.setInput('canCreateNew', true);
-    fixture.detectChanges();
-    const created: string[] = [];
-    component.createNew.subscribe(name => created.push(name));
+    fixture.componentRef.setInput('canCreateNew', true)
+    fixture.detectChanges()
+    const created: string[] = []
+    component.createNew.subscribe(name => created.push(name))
 
-    const createTrigger = fixture.nativeElement.querySelector('[aria-label="Crea nuovo elemento"]') as HTMLButtonElement;
-    createTrigger.click();
-    fixture.detectChanges();
-    tick();
+    const createTrigger = fixture.nativeElement.querySelector('[aria-label="Crea nuovo elemento"]') as HTMLButtonElement
+    createTrigger.click()
+    fixture.detectChanges()
+    tick()
 
-    const nameInput = fixture.nativeElement.querySelector('[aria-label="Nome nuovo elemento"]') as HTMLInputElement;
-    nameInput.value = 'Bozza';
+    const nameInput = fixture.nativeElement.querySelector('[aria-label="Nome nuovo elemento"]') as HTMLInputElement
+    nameInput.value = 'Bozza'
     nameInput.dispatchEvent(new Event('input'));
-    (fixture.nativeElement.querySelector('[aria-label="Annulla creazione"]') as HTMLButtonElement).click();
-    fixture.detectChanges();
-    tick();
+    (fixture.nativeElement.querySelector('[aria-label="Annulla creazione"]') as HTMLButtonElement).click()
+    fixture.detectChanges()
+    tick()
 
-    expect(created).toEqual([]);
-    expect(fixture.nativeElement.querySelector('[role="listbox"]')).not.toBeNull();
-    const restoredTrigger = fixture.nativeElement.querySelector('[aria-label="Crea nuovo elemento"]') as HTMLButtonElement;
-    expect(document.activeElement).toBe(restoredTrigger);
+    expect(created).toEqual([])
+    expect(fixture.nativeElement.querySelector('[role="listbox"]')).not.toBeNull()
+    const restoredTrigger = fixture.nativeElement.querySelector('[aria-label="Crea nuovo elemento"]') as HTMLButtonElement
+    expect(document.activeElement).toBe(restoredTrigger)
 
-    restoredTrigger.click();
-    fixture.detectChanges();
-    expect((fixture.nativeElement.querySelector('[aria-label="Nome nuovo elemento"]') as HTMLInputElement).value).toBe('');
-    tick();
-  }));
+    restoredTrigger.click()
+    fixture.detectChanges()
+    expect((fixture.nativeElement.querySelector('[aria-label="Nome nuovo elemento"]') as HTMLInputElement).value).toBe('')
+    tick()
+  }))
 
   it('allows the list maximum height to be configured', () => {
-    const listbox = fixture.nativeElement.querySelector('[role="listbox"]') as HTMLElement;
-    expect(listbox.style.maxHeight).toBe('16rem');
+    const listbox = fixture.nativeElement.querySelector('[role="listbox"]') as HTMLElement
+    expect(listbox.style.maxHeight).toBe('16rem')
 
-    fixture.componentRef.setInput('listMaxHeight', '12rem');
-    fixture.detectChanges();
-    expect(listbox.style.maxHeight).toBe('12rem');
-  });
+    fixture.componentRef.setInput('listMaxHeight', '12rem')
+    fixture.detectChanges()
+    expect(listbox.style.maxHeight).toBe('12rem')
+  })
+
+  for (const width of [320, 375, 812]) {
+    it(`keeps creation buttons together inside a padded dialog at ${width}px`, async () => {
+      fixture.componentRef.setInput('canCreateNew', true)
+      fixture.detectChanges()
+      const frame = document.createElement('iframe')
+      frame.style.cssText = `width:${width}px;height:600px;border:0;display:block`
+      document.body.appendChild(frame)
+      try {
+        const doc = frame.contentDocument!
+        const style = doc.createElement('style')
+        style.textContent = Array.from(document.styleSheets)
+          .flatMap(sheet => Array.from(sheet.cssRules).map(rule => rule.cssText)).join('\n')
+        doc.head.appendChild(style)
+        doc.body.style.cssText = 'margin:0;padding:20px'
+        doc.body.appendChild(fixture.nativeElement);
+        (fixture.nativeElement.querySelector('[aria-label="Crea nuovo elemento"]') as HTMLButtonElement).click()
+        fixture.detectChanges()
+        await new Promise<void>(resolve => requestAnimationFrame(() => resolve()))
+
+        const name = doc.querySelector<HTMLInputElement>('[aria-label="Nome nuovo elemento"]')!
+        const cancel = doc.querySelector<HTMLButtonElement>('[aria-label="Annulla creazione"]')!
+        const create = doc.querySelector<HTMLButtonElement>('[aria-label="Conferma creazione"]')!
+        const nameBounds = name.getBoundingClientRect()
+        const cancelBounds = cancel.getBoundingClientRect()
+        const createBounds = create.getBoundingClientRect()
+        expect(Math.abs(cancelBounds.top - createBounds.top)).withContext('buttons share a row').toBeLessThan(1)
+        expect(createBounds.left).toBeGreaterThan(cancelBounds.right)
+        expect(nameBounds.width).withContext('usable name field').toBeGreaterThanOrEqual(160)
+        expect(doc.documentElement.scrollWidth).withContext('no horizontal overflow').toBeLessThanOrEqual(width)
+        for (const bounds of [nameBounds, cancelBounds, createBounds]) {
+          expect(bounds.left).toBeGreaterThanOrEqual(20)
+          expect(bounds.right).toBeLessThanOrEqual(width - 20)
+        }
+        if (width < 640) {
+          expect(cancelBounds.top).withContext('both actions move below the name').toBeGreaterThanOrEqual(nameBounds.bottom)
+        } else {
+          expect(Math.abs(cancelBounds.top + cancelBounds.height / 2 - nameBounds.top - nameBounds.height / 2))
+            .withContext('wide layout stays inline and vertically centered').toBeLessThan(1)
+        }
+
+        const created: string[] = []
+        component.createNew.subscribe(value => created.push(value))
+        name.value = 'Nuova collezione'
+        name.dispatchEvent(new Event('input'))
+        create.click()
+        fixture.detectChanges()
+        expect(created).toEqual(['Nuova collezione'])
+      } finally {
+        fixture.destroy()
+        frame.remove()
+      }
+    })
+  }
 
   it('supports typed multi-selection toggling and chip removal', () => {
-    fixture.componentRef.setInput('multiple', true);
-    fixture.componentRef.setInput('selectedValues', ['alpha']);
-    fixture.detectChanges();
+    fixture.componentRef.setInput('multiple', true)
+    fixture.componentRef.setInput('selectedValues', ['alpha'])
+    fixture.detectChanges()
 
-    const changes: string[][] = [];
-    component.selectionChange.subscribe(change => changes.push([...change.values]));
-    const input = fixture.nativeElement.querySelector('input') as HTMLInputElement;
+    const changes: string[][] = []
+    component.selectionChange.subscribe(change => changes.push([...change.values]))
+    const input = fixture.nativeElement.querySelector('input') as HTMLInputElement
 
-    input.dispatchEvent(new Event('focus'));
-    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown' }));
-    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
-    fixture.detectChanges();
+    input.dispatchEvent(new Event('focus'))
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown' }))
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }))
+    fixture.detectChanges()
 
-    expect(changes).toEqual([[]]);
-    expect(fixture.nativeElement.querySelector('[aria-label="Elementi selezionati"]')).not.toBeNull();
+    expect(changes).toEqual([[]])
+    expect(fixture.nativeElement.querySelector('[aria-label="Elementi selezionati"]')).not.toBeNull()
 
-    const clearButton = fixture.nativeElement.querySelector('[aria-label="Pulisci selezione"]') as HTMLButtonElement;
-    clearButton.click();
-    expect(changes).toEqual([[], []]);
-  });
-});
+    const clearButton = fixture.nativeElement.querySelector('[aria-label="Pulisci selezione"]') as HTMLButtonElement
+    clearButton.click()
+    expect(changes).toEqual([[], []])
+  })
+})

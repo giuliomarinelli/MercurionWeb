@@ -104,6 +104,11 @@ export class AuthStateStore {
   })
 
   bootstrap(): AuthStateSnapshot {
+    if (this.persistence.hasPendingLoginMarker()) {
+      this.clearClientCredentialsForPreAuth()
+      this.transition({ kind: 'anonymous' })
+      return this.state()
+    }
     const hasPersistedSession = Boolean(
       this.getAccessToken() ||
       this.getWsAccessToken() ||
@@ -139,6 +144,16 @@ export class AuthStateStore {
     if (this.sessionProtocol().state !== 'authenticating') {
       this.applyProtocol(SessionTransition.BeginAuthentication)
     }
+  }
+
+  /** Abandon only the pending MFA flow, preserving an already accepted session. */
+  cancelPreAuthentication(): void {
+    this.persistence.clearPreAuthData()
+    if (!this.isPreAuth()) return
+    this.clearClientCredentialsForPreAuth()
+    this.persistence.removeLoginMarkers()
+    this.transition({ kind: 'anonymous' })
+    this.applyProtocol(SessionTransition.Logout)
   }
 
   completeAuthentication(completion: AuthCompletion): void {
@@ -232,6 +247,8 @@ export class AuthStateStore {
   }
 
   resumeFromServer(initials: string): void {
+    // A realtime acknowledgement cannot complete an outstanding MFA challenge.
+    if (this.isPreAuth() || this.persistence.hasPendingLoginMarker()) return
     if (this.state().kind === 'bootstrap') {
       this.transition({ kind: 'authenticating', flow: 'restore' })
     }
@@ -260,6 +277,11 @@ export class AuthStateStore {
   }
 
   syncExternalState(): void {
+    if (this.persistence.hasPendingLoginMarker()) {
+      this.clearClientCredentialsForPreAuth()
+      if (!this.isPreAuth()) this.transition({ kind: 'anonymous' })
+      return
+    }
     if (this.getPersistedInitials() || this.getWsAccessToken() || this.hasClientLoginCookie()) {
       this.transition({ kind: 'authenticating', flow: 'restore' })
       if (this.sessionProtocol().state !== 'authenticating') {
@@ -465,7 +487,7 @@ export class AuthStateStore {
     if (from === 'bootstrap') return to === 'anonymous' || to === 'authenticating' || to === 'pre-auth'
     if (from === 'anonymous') return to === 'authenticating' || to === 'pre-auth'
     if (from === 'authenticating') return to === 'authenticated' || to === 'pre-auth' || to === 'anonymous'
-    if (from === 'pre-auth') return to === 'authenticated' || to === 'anonymous'
+    if (from === 'pre-auth') return to === 'authenticated' || to === 'anonymous' || to === 'authenticating'
     if (from === 'authenticated') return to === 'authenticating' || to === 'pre-auth' || to === 'anonymous'
     return false
   }

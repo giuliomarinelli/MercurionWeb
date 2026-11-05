@@ -1,0 +1,7 @@
+.m-properties-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1px; border: 1px solid var(--m-color-border); border-radius: 1rem; overflow: hidden; background: var(--m-color-border); text-align: left; }
+.m-property { min-width: 0; padding: 1rem; background: var(--m-color-surface-elevated); }
+.m-property dt { color: var(--m-color-on-surface-secondary); font-size: .875rem; line-height: 1.5; }
+.m-property dd { margin-top: .375rem; color: var(--m-color-on-surface-main); font-weight: 600; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.m-property dd.m-property--missing { font-weight: 400; color: var(--m-color-on-surface-secondary); font-size: .875rem; }
+@media (min-width: 640px) { .m-properties-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1024px) { .m-properties-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }

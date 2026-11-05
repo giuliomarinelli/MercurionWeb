@@ -1,4 +1,4 @@
-import { AuthProvider } from "../enums/auth-provider.enum";
+import { AuthProvider } from "../enums/auth-provider.enum"
 
 export interface ProviderProfile {
   provider: AuthProvider

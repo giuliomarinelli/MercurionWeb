@@ -1,11 +1,11 @@
-import { Injectable } from '@nestjs/common';
-import { FastifyRequest } from 'fastify';
+import { Injectable } from '@nestjs/common'
+import { FastifyRequest } from 'fastify'
 
 @Injectable()
 export class IpService {
     getClientIp(req: FastifyRequest): string {
         const forwardedFor = req.headers['x-forwarded-for'] as string | undefined
-        const rawIp = forwardedFor?.split(',')[0]?.trim();
+        const rawIp = forwardedFor?.split(',')[0]?.trim()
 
         if (rawIp && this.isPublicIp(rawIp)) {
             return rawIp

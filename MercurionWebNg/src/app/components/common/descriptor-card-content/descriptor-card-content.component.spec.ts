@@ -1,23 +1,23 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing'
 
-import { DescriptorCardContentComponent } from './descriptor-card-content.component';
+import { DescriptorCardContentComponent } from './descriptor-card-content.component'
 
 describe('DescriptorCardContentComponent', () => {
-  let component: DescriptorCardContentComponent;
-  let fixture: ComponentFixture<DescriptorCardContentComponent>;
+  let component: DescriptorCardContentComponent
+  let fixture: ComponentFixture<DescriptorCardContentComponent>
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [DescriptorCardContentComponent]
     })
-    .compileComponents();
+    .compileComponents()
 
-    fixture = TestBed.createComponent(DescriptorCardContentComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
+    fixture = TestBed.createComponent(DescriptorCardContentComponent)
+    component = fixture.componentInstance
+    fixture.detectChanges()
+  })
 
   it('should create', () => {
-    expect(component).toBeTruthy();
-  });
-});
+    expect(component).toBeTruthy()
+  })
+})

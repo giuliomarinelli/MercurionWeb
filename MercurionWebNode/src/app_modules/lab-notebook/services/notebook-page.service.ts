@@ -1,16 +1,16 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { NotebookPage } from '../models/entities/lab-notebook-page.entity';
-import { UUID } from 'crypto';
-import { NotebookSection } from '../models/entities/lab-notebook-section.entity';
-import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
-import { runInTransaction } from 'src/persistence/transaction-context';
+import { Injectable } from '@nestjs/common'
+import { InjectRepository } from '@nestjs/typeorm'
+import { Repository } from 'typeorm'
+import { NotebookPage } from '../models/entities/lab-notebook-page.entity'
+import { UUID } from 'crypto'
+import { NotebookSection } from '../models/entities/lab-notebook-section.entity'
+import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils'
+import { runInTransaction } from 'src/persistence/transaction-context'
 import {
     NotebookPageCreateCommand,
     NotebookPagePatchCommand,
     toNotebookPagePatch
-} from '../models/dto/notebook-mutation.commands';
+} from '../models/dto/notebook-mutation.commands'
 
 @Injectable()
 export class NotebookPageService {
@@ -64,9 +64,9 @@ export class NotebookPageService {
             qb = qb.leftJoinAndSelect('page.section', 'section')
         }
 
-        const result = await qb.getOne();
+        const result = await qb.getOne()
         if (result && result.links === undefined) result.links = []
-        return result;
+        return result
     }
 
     async findBySection(
@@ -81,16 +81,16 @@ export class NotebookPageService {
             .select(columns.map(col => `page.${col}`))
             .where('page.section_id = :sectionId', { sectionId })   // snake_case
             .andWhere('page.user_id = :userId', { userId })         // snake_case
-            .orderBy('page.order', 'ASC');
+            .orderBy('page.order', 'ASC')
 
         if (relationalFields.includes('links')) {
-            qb = qb.leftJoinAndSelect('page.links', 'links');
+            qb = qb.leftJoinAndSelect('page.links', 'links')
         }
         if (relationalFields.includes('section')) {
-            qb = qb.leftJoinAndSelect('page.section', 'section');
+            qb = qb.leftJoinAndSelect('page.section', 'section')
         }
 
-        const pages = await qb.getMany();
+        const pages = await qb.getMany()
         for (const p of pages) {
             if (p.links === undefined) {
                 p.links = []
@@ -119,7 +119,7 @@ export class NotebookPageService {
             qb = qb.leftJoinAndSelect('page.section', 'section')
         }
 
-        const pages = await qb.getMany();
+        const pages = await qb.getMany()
         for (const p of pages) {
             if (p.links === undefined) {
                 p.links = []

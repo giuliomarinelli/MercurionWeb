@@ -1,27 +1,27 @@
-import { Component, ChangeDetectionStrategy, computed, HostListener, ElementRef, inject, input, signal } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { PublicPipe } from '../../../pipes/public.pipe';
+import { Component, ChangeDetectionStrategy, computed, HostListener, ElementRef, inject, input, signal } from '@angular/core'
+import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms'
+import { PublicPipe } from '../../../pipes/public.pipe'
 import {
   OverlayModule,
   ConnectedPosition,
   ScrollStrategy,
   ScrollStrategyOptions
-} from '@angular/cdk/overlay';
-import { PmOption } from '../../../Models/pm-option.model';
+} from '@angular/cdk/overlay'
+import { PmOption } from '../../../Models/pm-option.model'
 
-export type PmSelectLayout = 'centered' | 'fullWidth';
-export type PmSelectTone = 'default' | 'highContrast';
-type PmValue = PmOption['value'];
+export type PmSelectLayout = 'centered' | 'fullWidth'
+export type PmSelectTone = 'default' | 'highContrast'
+type PmValue = PmOption['value']
 
 const LAYOUT_CLASSES = {
   centered: 'flex justify-center mx-auto max-w-[500px]',
   fullWidth: 'flex-none w-full',
-} satisfies Record<PmSelectLayout, string>;
+} satisfies Record<PmSelectLayout, string>
 
 const LABEL_CLASSES = {
   default: 'text-light-accent-secondary dark:text-dark-accent-secondary/90',
   highContrast: 'text-light-accent-secondary dark:text-dark-accent-secondary-hc',
-} satisfies Record<PmSelectTone, string>;
+} satisfies Record<PmSelectTone, string>
 
 const FOCUS_CLASSES = {
   default: [
@@ -34,7 +34,7 @@ const FOCUS_CLASSES = {
     'dark:focus:border-dark-accent-primary',
     'dark:focus-visible:outline-dark-accent-primary',
   ].join(' '),
-} satisfies Record<PmSelectTone, string>;
+} satisfies Record<PmSelectTone, string>
 
 @Component({
   selector: 'm-select',
@@ -78,7 +78,7 @@ const FOCUS_CLASSES = {
                  focus-visible:outline-light-accent-primary dark:bg-transparent dark:text-slate-400
                  focus:border-light-accent-primary
                  hover:bg-slate-200/60 dark:hover:bg-neutral-800/50
-                 block px-4 py-3 border-[2px] border-slate-300 dark:border-slate-200 rounded-md transition duration-300
+                 block px-4 py-3 border-2 border-slate-300 dark:border-slate-200 rounded-md transition duration-300
                  focus:outline-none focus:ring-2 focus:ring-light-accent-primary cursor-pointer
                  text-left pr-10"
           [class]="FOCUS_CLASSES[tone()]">
@@ -142,27 +142,27 @@ const FOCUS_CLASSES = {
   `
 })
 export class PmSelectComponent implements ControlValueAccessor {
-  private el = inject<ElementRef<HTMLElement>>(ElementRef);
+  private el = inject<ElementRef<HTMLElement>>(ElementRef)
 
 
-  readonly id = input('m-select');
-  readonly label = input('');
-  readonly placeholder = input('Seleziona…');
-  readonly options = input<PmOption[]>([]);
-  readonly disabled = input(false);
-  private readonly formDisabled = signal(false);
-  readonly isDisabled = computed(() => this.disabled() || this.formDisabled());
-  readonly layout = input<PmSelectLayout>('centered');
-  readonly maxHeight = input(250);
-  readonly tone = input<PmSelectTone>('default');
+  readonly id = input('m-select')
+  readonly label = input('')
+  readonly placeholder = input('Seleziona…')
+  readonly options = input<PmOption[]>([])
+  readonly disabled = input(false)
+  private readonly formDisabled = signal(false)
+  readonly isDisabled = computed(() => this.disabled() || this.formDisabled())
+  readonly layout = input<PmSelectLayout>('centered')
+  readonly maxHeight = input(250)
+  readonly tone = input<PmSelectTone>('default')
 
-  protected readonly LAYOUT_CLASSES = LAYOUT_CLASSES;
-  protected readonly LABEL_CLASSES = LABEL_CLASSES;
-  protected readonly FOCUS_CLASSES = FOCUS_CLASSES;
+  protected readonly LAYOUT_CLASSES = LAYOUT_CLASSES
+  protected readonly LABEL_CLASSES = LABEL_CLASSES
+  protected readonly FOCUS_CLASSES = FOCUS_CLASSES
 
-  opened = false;
-  value: PmValue | null = null;
-  highlighted = -1;
+  opened = false
+  value: PmValue | null = null
+  highlighted = -1
 
   // ✅ tipizzato, così originX ecc non diventano "string"
   positions: ConnectedPosition[] = [
@@ -176,74 +176,74 @@ export class PmSelectComponent implements ControlValueAccessor {
       overlayX: 'start', overlayY: 'bottom',
       offsetY: -8
     }
-  ];
+  ]
 
   // ✅ scroll strategy vera
-  private sso = inject(ScrollStrategyOptions);
-  scrollStrategy: ScrollStrategy = this.sso.reposition();
+  private sso = inject(ScrollStrategyOptions)
+  scrollStrategy: ScrollStrategy = this.sso.reposition()
 
-  private onChange: (value: PmValue | null) => void = () => undefined;
-  private onTouched = () => { };
+  private onChange: (value: PmValue | null) => void = () => undefined
+  private onTouched = () => { }
 
   private get currentOption() {
-    return this.options().find(o => o.value === this.value);
+    return this.options().find(o => o.value === this.value)
   }
 
-  get currentLabel() { return this.currentOption?.label ?? ''; }
-  get currentIconUrl() { return this.currentOption?.iconUrl; }
-  get currentIconAlt() { return this.currentOption?.iconAlt; }
+  get currentLabel() { return this.currentOption?.label ?? '' }
+  get currentIconUrl() { return this.currentOption?.iconUrl }
+  get currentIconAlt() { return this.currentOption?.iconAlt }
 
   writeValue(value: unknown): void {
     if (value === null || typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
-      this.value = value;
+      this.value = value
     }
   }
 
   registerOnChange(fn: (value: unknown) => void): void {
-    this.onChange = value => fn(value);
+    this.onChange = value => fn(value)
   }
 
   registerOnTouched(fn: () => void): void {
-    this.onTouched = fn;
+    this.onTouched = fn
   }
 
   setDisabledState(disabled: boolean): void {
-    this.formDisabled.set(disabled);
+    this.formDisabled.set(disabled)
   }
 
   toggle() {
-    if (this.isDisabled()) return;
-    this.opened = !this.opened;
+    if (this.isDisabled()) return
+    this.opened = !this.opened
     if (this.opened) {
-      const idx = this.options().findIndex(o => o.value === this.value);
-      this.highlighted = idx >= 0 ? idx : 0;
+      const idx = this.options().findIndex(o => o.value === this.value)
+      this.highlighted = idx >= 0 ? idx : 0
     }
   }
 
   choose(i: number) {
-    const opt = this.options()[i];
-    if (!opt) return;
-    this.value = opt.value;
-    this.onChange(this.value);
-    this.opened = false;
-    this.onTouched();
+    const opt = this.options()[i]
+    if (!opt) return
+    this.value = opt.value
+    this.onChange(this.value)
+    this.opened = false
+    this.onTouched()
   }
 
   onKey(e: KeyboardEvent) {
     if (!this.opened && (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown')) {
-      e.preventDefault(); this.toggle(); return;
+      e.preventDefault(); this.toggle(); return
     }
-    if (!this.opened) return;
+    if (!this.opened) return
 
-    if (e.key === 'ArrowDown') { e.preventDefault(); this.highlighted = Math.min(this.options().length - 1, this.highlighted + 1); }
-    if (e.key === 'ArrowUp') { e.preventDefault(); this.highlighted = Math.max(0, this.highlighted - 1); }
-    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.choose(this.highlighted); }
-    if (e.key === 'Escape') { e.preventDefault(); this.opened = false; }
+    if (e.key === 'ArrowDown') { e.preventDefault(); this.highlighted = Math.min(this.options().length - 1, this.highlighted + 1) }
+    if (e.key === 'ArrowUp') { e.preventDefault(); this.highlighted = Math.max(0, this.highlighted - 1) }
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.choose(this.highlighted) }
+    if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); this.opened = false }
   }
 
   @HostListener('document:click', ['$event'])
   onDocClick(ev: MouseEvent) {
-    const target = ev.target as Node;
-    if (!this.el.nativeElement.contains(target)) this.opened = false;
+    const target = ev.target as Node
+    if (!this.el.nativeElement.contains(target)) this.opened = false
   }
 }

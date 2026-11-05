@@ -1,7 +1,7 @@
-import { Transform, Type } from "class-transformer";
-import { IsOptional, IsString, Matches, MaxLength, ValidateNested } from "class-validator";
-import { RdkitBaseDTO } from "./rdkit-base.cls.dto";
-import { RdkitToCanonicalSmilesOptsDTO } from "./rd-kit-canonical-smiles-opts.dto";
+import { Transform, Type } from "class-transformer"
+import { IsOptional, IsString, Matches, MaxLength, ValidateNested } from "class-validator"
+import { RdkitBaseDTO } from "./rdkit-base.cls.dto"
+import { RdkitToCanonicalSmilesOptsDTO } from "./rd-kit-canonical-smiles-opts.dto"
 import {
   RDKIT_SMILES_MAX_LENGTH,
   type RdkitToCanonicalSmilesDTO as RdkitCanonicalContract

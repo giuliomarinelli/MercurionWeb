@@ -1,5 +1,5 @@
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common'
-import { ClientProxy } from '@nestjs/microservices';
+import { ClientProxy } from '@nestjs/microservices'
 import { ConfigService } from '@nestjs/config'
 import { LoggerPort } from 'src/logging/logger.port'
 import { LoggerContext } from 'src/logging/logger.port'

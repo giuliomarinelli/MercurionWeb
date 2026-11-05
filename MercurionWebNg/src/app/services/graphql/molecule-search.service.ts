@@ -1,15 +1,15 @@
-import { Injectable, computed, signal } from '@angular/core';
-import { Apollo } from 'apollo-angular';
-import { map, tap } from 'rxjs/operators';
-import { Observable } from 'rxjs';
-import { MoleculeSearchResult } from '../../Models/graphql/molecule-search/molecule-search-result.interface';
-import { extractGqlData } from './graphql-helpers/v1/extract-gql-data.helper';
+import { Injectable, computed, signal } from '@angular/core'
+import { Apollo } from 'apollo-angular'
+import { map, tap } from 'rxjs/operators'
+import { Observable } from 'rxjs'
+import { MoleculeSearchResult } from '../../Models/graphql/molecule-search/molecule-search-result.interface'
+import { extractGqlData } from './graphql-helpers/v1/extract-gql-data.helper'
 import {
   MoleculeSearchDocument,
   MoleculeSearchQuery,
   MoleculeSearchQueryVariables
-} from '../../generated/graphql';
-import { GRAPHQL_QUERY_FETCH_POLICY } from './graphql-query-policy';
+} from '../../generated/graphql'
+import { GRAPHQL_QUERY_FETCH_POLICY } from './graphql-query-policy'
 
 
 @Injectable({ providedIn: 'root' })
@@ -40,7 +40,7 @@ export class MoleculeSearchService {
           this._results.set(results)
           this._loading.set(false)
         })
-      );
+      )
   }
 
   clearResults() {

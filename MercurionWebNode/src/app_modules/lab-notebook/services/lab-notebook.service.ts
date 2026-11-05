@@ -1,11 +1,11 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { UUID } from 'crypto';
-import { LabNotebook } from '../models/entities/lab-notebook.entity';
-import { GraphQLUtils as GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
-import { GraphQLFieldsMap, TypeOrmUtils } from 'src/utils/type-orm-utils/type-orm-utils';
-import { LabNotebookPatchCommand, toLabNotebookPatch } from '../models/dto/notebook-mutation.commands';
+import { Injectable } from '@nestjs/common'
+import { InjectRepository } from '@nestjs/typeorm'
+import { Repository } from 'typeorm'
+import { UUID } from 'crypto'
+import { LabNotebook } from '../models/entities/lab-notebook.entity'
+import { GraphQLUtils as GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils'
+import { GraphQLFieldsMap, TypeOrmUtils } from 'src/utils/type-orm-utils/type-orm-utils'
+import { LabNotebookPatchCommand, toLabNotebookPatch } from '../models/dto/notebook-mutation.commands'
 
 @Injectable()
 export class LabNotebookService {
@@ -39,41 +39,41 @@ export class LabNotebookService {
 
         qb = TypeOrmUtils.addJoins(qb, 'lab_notebook', fieldsMap)
 
-        const result = await qb.getOne();
+        const result = await qb.getOne()
 
         if (result) {
-            result.chapters ??= [];
+            result.chapters ??= []
             for (const chapter of result.chapters) {
-                chapter.sections ??= [];
+                chapter.sections ??= []
                 for (const section of chapter.sections) {
-                    section.pages ??= [];
+                    section.pages ??= []
                 }
             }
         }
-        return result ?? null;
+        return result ?? null
     }
 
     async findAllByUser(
         userId: UUID,
         fieldsMap: GraphQLFieldsMap
     ): Promise<LabNotebook[]> {
-        const scalarFields = GraphQLUtils.getScalarFields(fieldsMap);
-        const columns = GraphQLUtils.ensureRequiredFields(scalarFields, this.LAB_NOTEBOOK_REQUIRED_FIELDS);
+        const scalarFields = GraphQLUtils.getScalarFields(fieldsMap)
+        const columns = GraphQLUtils.ensureRequiredFields(scalarFields, this.LAB_NOTEBOOK_REQUIRED_FIELDS)
 
         let qb = this.notebookRepo.createQueryBuilder('lab_notebook')
             .select(columns.map(col => `lab_notebook.${col}`))
             .where('lab_notebook.user_id = :userId', { userId }) // SNAKE CASE
-            .orderBy('lab_notebook.created_at', 'DESC'); // SNAKE CASE
+            .orderBy('lab_notebook.created_at', 'DESC') // SNAKE CASE
 
-        qb = TypeOrmUtils.addJoins(qb, 'lab_notebook', fieldsMap);
+        qb = TypeOrmUtils.addJoins(qb, 'lab_notebook', fieldsMap)
 
-        const notebooks = await qb.getMany();
+        const notebooks = await qb.getMany()
         for (const n of notebooks) {
-            n.chapters ??= [];
+            n.chapters ??= []
             for (const chapter of n.chapters) {
-                chapter.sections ??= [];
+                chapter.sections ??= []
                 for (const section of chapter.sections) {
-                    section.pages ??= [];
+                    section.pages ??= []
                 }
             }
         }

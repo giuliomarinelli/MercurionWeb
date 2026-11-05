@@ -47,6 +47,16 @@ function typescriptFiles(directory: string): string[] {
 }
 
 describe('canonical configuration schema', () => {
+  it('supports an alphanumeric SMS sender without requiring a Twilio phone number', () => {
+    const raw: RawEnvironment = Object.fromEntries(
+      environmentSchema.entries.map(property => [property.source, rawExample(property)])
+    )
+    delete raw.TWILIO_NUMBER
+    raw.TWILIO_FROM = 'Mercurion'
+    const environment = validateEnvironment(raw)
+    expect(configurationBuilders[ConfigKey.Sms](environment)).toMatchObject({ from: 'Mercurion' })
+  })
+
   it('rejects duplicate source declarations', () => {
     const appPort = environmentProperty('APP_PORT')
     expect(() => defineEnvironmentSchema(appPort, appPort)).toThrow(

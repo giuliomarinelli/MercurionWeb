@@ -1,7 +1,7 @@
-import { UUID } from 'crypto';
-import { Column, Entity, Index, OneToMany, PrimaryColumn, TableInheritance } from 'typeorm';
-import { MoleculeCollectionItemJoin } from './molecule-collection-item-join.entity';
-import { Field, ID, InterfaceType } from '@nestjs/graphql';
+import { UUID } from 'crypto'
+import { Column, Entity, Index, OneToMany, PrimaryColumn, TableInheritance } from 'typeorm'
+import { MoleculeCollectionItemJoin } from './molecule-collection-item-join.entity'
+import { Field, ID, InterfaceType } from '@nestjs/graphql'
 
 @InterfaceType({
   resolveType: value => {

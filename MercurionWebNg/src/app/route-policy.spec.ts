@@ -4,7 +4,7 @@ import { routePolicyOf, RouteAccess, RouteShell } from './route-policy'
 
 describe('route policy metadata', () => {
   const expected: readonly [string, RouteAccess, RouteShell][] = [
-    ['', 'public', 'welcome'],
+    ['', 'public', 'home'],
     ['welcome', 'logged-out-only', 'welcome'],
     ['login', 'logged-out-only', 'standard'],
     ['__local/dummy-auth', 'public', 'standard'],

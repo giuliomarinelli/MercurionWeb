@@ -1,8 +1,8 @@
-import { uuidv7 } from "@kripod/uuidv7";
-import { UUID } from "crypto";
-import { BeforeInsert, Column, Entity, Index, OneToMany, PrimaryColumn } from "typeorm";
-import { NotebookChapter } from "./lab-notebook-chapter.entity";
-import { ObjectType, Field, ID } from '@nestjs/graphql';
+import { uuidv7 } from "@kripod/uuidv7"
+import { UUID } from "crypto"
+import { BeforeInsert, Column, Entity, Index, OneToMany, PrimaryColumn } from "typeorm"
+import { NotebookChapter } from "./lab-notebook-chapter.entity"
+import { ObjectType, Field, ID } from '@nestjs/graphql'
 
 
 @ObjectType()

@@ -1,0 +1,34 @@
+/* Quill's unlayered stylesheet needs explicit overrides for its generated DOM. */
+:host ::ng-deep .ql-toolbar.ql-snow,
+:host ::ng-deep .ql-container.ql-snow {
+  background: var(--m-color-surface-main);
+  border-color: var(--m-color-border);
+  color: var(--m-color-on-surface-main);
+}
+
+:host ::ng-deep .ql-editor.ql-blank::before {
+  color: var(--m-color-on-surface-secondary);
+}
+
+:host ::ng-deep .ql-toolbar .ql-stroke {
+  stroke: var(--m-color-on-surface-main);
+}
+
+:host ::ng-deep .ql-toolbar .ql-fill {
+  fill: var(--m-color-on-surface-main);
+}
+
+:host ::ng-deep .ql-toolbar button:hover .ql-stroke,
+:host ::ng-deep .ql-toolbar button.ql-active .ql-stroke {
+  stroke: var(--m-color-accent-primary);
+}
+
+:host ::ng-deep .ql-toolbar button:hover .ql-fill,
+:host ::ng-deep .ql-toolbar button.ql-active .ql-fill {
+  fill: var(--m-color-accent-primary);
+}
+
+:host ::ng-deep .ql-toolbar button:focus-visible {
+  outline: 2px solid var(--m-color-accent-primary);
+  outline-offset: 2px;
+}

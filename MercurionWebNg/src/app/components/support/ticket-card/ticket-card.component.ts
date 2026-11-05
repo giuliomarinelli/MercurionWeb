@@ -1,102 +1,34 @@
-import {
-  Component, input, signal, computed, effect, ChangeDetectionStrategy,
-  output
-} from '@angular/core';
-import { DatePipe, NgClass } from '@angular/common';
-import { APIClientTicket, Ticket, TicketCardMode } from '../../../Models/graphql/help.models'; // path tuo
-import { ThemeManagerService } from '../../../services/context/theme-manager.service';
-import { inject } from '@angular/core';
-import { TypeGuardsService } from '../../../services/type-guards.service';
-
-
+import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core'
+import { DatePipe, NgClass } from '@angular/common'
+import { APIClientTicket, Ticket, TicketCardMode } from '../../../Models/graphql/help.models'
+import { TypeGuardsService } from '../../../services/type-guards.service'
+import { ButtonComponent } from '../../common/button/button.component'
 
 @Component({
   selector: 'm-ticket-card',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DatePipe, NgClass],
+  imports: [DatePipe, NgClass, ButtonComponent],
   template: `
-  @if (_ticket(); as ticket) {
-    <div class="relative">
-      <div
-        class="
-          relative
-          grid grid-cols-1 md:grid-cols-12 items-center gap-3 md:gap-4
-          rounded-2xl border p-4 md:p-5
-          bg-slate-100 dark:bg-slate-800/50 backdrop-blur-sm
-          border-slate-200/70 dark:border-slate-700/60
-          transition-all duration-300 overflow-hidden
-          hover:shadow-md hover:-translate-y-0.5
-          hover:border-indigo-300/50 dark:hover:border-indigo-400/30
-          focus-within:ring-2 focus-within:ring-indigo-500/70
-        "
-        [ngClass]="{
-          'bg-slate-100/50 dark:bg-slate-800/40': _i() % 2 !== 0,
-          'fade-out': _triggerDisappear(),
-          'collapse': _collapse()
-        }"
-        aria-label="Ticket {{ ticket.publicId }}"
-        role="article"
-        aria-live="polite"
-      >
-        <!-- overlay clickabile -->
-        <button
-          type="button"
-          class="absolute inset-0 rounded-2xl"
-          [class.z-10]="true"
-          [class.hidden]="_triggerDisappear()"
-          (click)="onOpenDetail.emit(ticket.id)"
-          aria-label="Apri ticket"
-        ></button>
-
-
-        <!-- COLONNA SINISTRA -->
-        <div class="md:col-span-9 min-w-0 relative z-20 pointer-events-none">
-          <div class="flex items-center gap-3">
-            <!-- publicId -->
-            <span
-              class="text-xs md:text-sm font-medium
-                     text-slate-700 dark:text-slate-200
-                     bg-slate-200/70 dark:bg-slate-700/60
-                     border border-slate-300 dark:border-slate-600/60
-                     px-2 py-0.5 rounded-full shrink-0"
-              >
-              #{{ readablePublicId() }}
-            </span>
-
-            <!-- status badge -->
-            <span
-              class="text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 border"
-              [ngClass]="statusBadgeClass()"
-            >
-              {{ statusLabel() }}
-            </span>
-          </div>
-
-          <!-- subject -->
-          <div
-            class="mt-2 text-base md:text-lg font-semibold
-                   text-slate-800 dark:text-slate-100 truncate"
-            title="{{ ticket.subject }}"
-          >
-            {{ ticket.subject }}
-          </div>
-
-          <!-- preview / meta line -->
-          <div class="mt-2 flex items-center flex-wrap gap-x-2 gap-y-1 md:gap-2 text-xs text-slate-700 dark:text-slate-200 mr-2 md:mr-0">
-            <div class="flex items-center gap-1">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current size-3.5 inline-block relative -top-px ">
+  @if (ticket(); as item) {
+    <article class="relative grid min-w-0 grid-cols-1 items-center gap-4 overflow-hidden rounded-2xl border border-token-border bg-surface-elevated p-4 transition-colors hover:border-light-accent-primary-hq/60 focus-within:ring-2 focus-within:ring-light-accent-primary-hq md:grid-cols-[minmax(0,1fr)_auto] md:p-5"
+      [class.fade-out]="triggerDisappear()" [class.collapse]="collapse()" [attr.aria-label]="'Ticket ' + readablePublicId()">
+      <button type="button" class="absolute inset-0 rounded-2xl outline-none disabled:cursor-wait"
+        [disabled]="actionPending()" [class.hidden]="triggerDisappear()"
+        [attr.aria-label]="'Apri ticket ' + readablePublicId() + ': ' + item.subject"
+        (click)="onOpenDetail.emit(item.id)"></button>
+      <div class="pointer-events-none relative min-w-0 md:static">
+        <div class="grid min-h-10 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 md:pr-36">
+          <span class="truncate text-xs font-medium text-on-surface-secondary" [title]="readablePublicId()">#{{ readablePublicId() }}</span>
+          <span class="max-w-36 rounded-full border px-2 py-1 text-center text-xs font-semibold md:absolute md:top-10 md:right-5 md:-translate-y-1/2" [ngClass]="statusBadgeClass()">{{ statusLabel() }}</span>
+        </div>
+        <h2 class="my-2 line-clamp-2 min-h-12 break-words text-base leading-6 font-semibold text-on-surface-main" [title]="item.subject">{{ item.subject }}</h2>
+        <div class="space-y-1 text-xs leading-5 text-on-surface-secondary">
+          <div class="flex min-h-5 items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="size-3.5 shrink-0 fill-current" aria-hidden="true">
                 <!--!Font Awesome Pro v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
                 <path d="M320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64zM296 184L296 332.8L306.7 339.9L402.7 403.9L422.7 417.2L449.3 377.3C446.9 375.7 411.8 352.3 344 307.1L344 159.9L296 159.9L296 183.9z"/>
-              </svg>
-              <span>
-                {{ ticket.lastMessageAt | date:'dd/MM/yyyy HH:mm:ss' }}
-              </span>
-            </div>
-            <span class="text-slate-300 dark:text-slate-600 hidden md:inline">•</span>
-
-            <div class="flex items-center gap-1">
-              <svg
-                class="size-3.5 relative -top-px"
+              </svg><span>Aggiornato {{ item.lastMessageAt | date:'dd/MM/yyyy HH:mm' }}</span></div>
+          <div class="flex min-h-5 items-center gap-2"><svg
+                class="size-3.5 shrink-0"
                 viewBox="0 0 20 20"
                 fill="currentColor"
                 aria-hidden="true"
@@ -105,110 +37,42 @@ import { TypeGuardsService } from '../../../services/type-guards.service';
                 d="M6 2a1 1 0 0 1 1 1v1h6V3a1 1 0 1 1 2 0v1h1a2 2 0 0 1 2 2v1H3V6a2 2 0 0 1 2-2h1V3a1 1 0 0 1 1-1z"
                 />
                 <path d="M3 8h14v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8z" />
-              </svg>
-              <span>
-                {{ ticket.createdAt | date:'dd/MM/yyyy HH:mm' }}
-              </span>
-            </div>
-
-
-            @if (mode() === 'support' && typeGuards.isTicket(_ticket())) {
-              <span class="text-slate-300 dark:text-slate-600 hidden md:inline">•</span>
-              <span class="truncate">
-                Utente: {{ getUserFullNameIfIsTicket(ticket) }}
-              </span>
-            }
-          </div>
-        </div>
-
-        <!-- COLONNA DESTRA -->
-        <div
-          class="md:col-span-3 flex flex-col max-w-xs sm:max-w-none sm:flex-row flex-wrap justify-start md:justify-end items-stretch sm:items-center gap-2 relative z-30 pointer-events-auto w-full"
-        >
-          @if (showCloseButton()) {
-            <button
-              type="button"
-              class="
-                flex items-center gap-2 px-3 py-1.5 rounded-md border
-                text-xs font-medium transition-colors duration-150
-                border-slate-400 dark:border-slate-500
-                text-slate-700 dark:text-slate-200
-                hover:bg-slate-200 dark:hover:bg-slate-700
-              "
-              (click)="$event.stopPropagation(); close.emit(ticket.id)"
-              title="Chiudi ticket"
-              [attr.aria-label]="'Chiudi ticket ' + ticket.publicId"
-            >
-              Chiudi
-            </button>
-          }
-
-          @if (showReopenButton()) {
-            <button
-              type="button"
-              class="
-                flex items-center gap-2 px-3 py-1.5 rounded-md border
-                text-xs font-medium transition-colors duration-150
-                border-light-accent-primary-hq dark:border-indigo-400/60
-                text-light-accent-primary-hc dark:text-indigo-200
-                hover:bg-light-accent-primary-hc/20 dark:hover:bg-indigo-900/20
-              "
-              (click)="$event.stopPropagation(); reopen.emit(ticket.id)"
-              title="Riapri ticket"
-              [attr.aria-label]="'Riapri ticket ' + ticket.publicId"
-            >
-              Riapri
-            </button>
+              </svg><span>Aperto {{ item.createdAt | date:'dd/MM/yyyy HH:mm' }}</span></div>
+          @if (cardMode() === 'support' && typeGuards.isTicket(item)) {
+            <p class="m-0 min-h-5 truncate" [title]="getUserFullNameIfIsTicket(item)">Utente: {{ getUserFullNameIfIsTicket(item) }}</p>
           }
         </div>
       </div>
-    </div>
+      <div class="relative flex min-h-11 min-w-20 items-center justify-end gap-2">
+        @if (showCloseButton()) {
+          <m-button variant="outline" [loading]="actionPending()"
+            [ariaLabel]="'Chiudi ticket ' + readablePublicId()" (pressed)="close.emit(item.id)">Chiudi</m-button>
+        }
+        @if (showReopenButton()) {
+          <m-button variant="outline" [loading]="actionPending()"
+            [ariaLabel]="'Riapri ticket ' + readablePublicId()" (pressed)="reopen.emit(item.id)">Riapri</m-button>
+        }
+      </div>
+      @if (actionError()) {
+        <p role="alert" class="relative m-0 text-sm text-red-700 dark:text-red-300 md:col-span-2">{{ actionError() }}</p>
+      }
+    </article>
   }
-  `
+  `,
 })
 export class TicketCardComponent {
-
-  private readonly themeManager = inject(ThemeManagerService)
   protected readonly typeGuards = inject(TypeGuardsService)
-
-  /* inputs --------------------------- */
   readonly ticket = input.required<Ticket | APIClientTicket>()
   readonly i = input(0)
   readonly cardMode = input<TicketCardMode>('user')
   readonly triggerDisappear = input(false)
   readonly collapse = input(false)
   readonly allowActions = input(true)
-
-  /* outputs -------------------------- */
-
-
-
-  readonly close = output<string>();
-
-  readonly reopen = output<string>();
-
-  readonly onOpenDetail = output<string>();
-
-  /* state ---------------------------- */
-  _ticket = signal<Ticket | APIClientTicket | undefined>(undefined)
-  _i = signal<number>(0)
-  mode = signal<TicketCardMode>('user')
-  _triggerDisappear = signal<boolean>(false)
-  _collapse = signal<boolean>(false)
-  _allowActions = signal<boolean>(true)
-  isDarkMode = signal<boolean>(false)
-
-  constructor() {
-    effect(() => this._ticket.set(this.ticket()))
-    effect(() => this._i.set(this.i()))
-    effect(() => this.mode.set(this.cardMode()))
-    effect(() => this._triggerDisappear.set(this.triggerDisappear()))
-    effect(() => this._collapse.set(this.collapse()))
-    effect(() => this._allowActions.set(this.allowActions()))
-    effect(() => this.isDarkMode.set(this.themeManager.theme() === 'dark'))
-  }
-
-  /* computed ------------------------- */
+  readonly actionPending = input(false)
+  readonly actionError = input('')
+  readonly close = output<string>()
+  readonly reopen = output<string>()
+  readonly onOpenDetail = output<string>()
 
   readablePublicId = computed(() => {
     const t = this.ticket()
@@ -228,7 +92,7 @@ export class TicketCardComponent {
       case 'Closed': return 'Chiuso'
       default: return String(s ?? '')
     }
-  });
+  })
 
   statusBadgeClass = computed(() => {
     const s = this.ticket()?.status
@@ -248,16 +112,16 @@ export class TicketCardComponent {
   })
 
   showCloseButton = computed(() => {
-    const t = this.ticket();
-    if (!t || !this._allowActions()) {
+    const t = this.ticket()
+    if (!t || !this.allowActions()) {
       return false
     }
     return t.status !== 'Closed'
   })
 
   showReopenButton = computed(() => {
-    const t = this.ticket();
-    if (!t || !this._allowActions() || this.mode() !== 'support') {
+    const t = this.ticket()
+    if (!t || !this.allowActions() || this.cardMode() !== 'support') {
       return false
     }
     return t.status === 'Closed'

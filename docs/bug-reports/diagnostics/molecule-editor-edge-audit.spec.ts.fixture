@@ -1,0 +1,80 @@
+import { signal } from '@angular/core'
+import { fakeAsync, flushMicrotasks, TestBed, tick } from '@angular/core/testing'
+import { ActivatedRoute, convertToParamMap, Router } from '@angular/router'
+import { Apollo } from 'apollo-angular'
+import { firstValueFrom, Observable, of, Subject } from 'rxjs'
+import { MoleculeEditorPageComponent } from './molecule-editor.page.component'
+import { MoleculeEditorLiveAnalysisFacade } from './molecule-editor-live-analysis.facade'
+import { MoleculeEditorDraftService } from '../../chemistry/molecule-editor-draft.service'
+import { EditorRequestScheduler } from '../../chemistry/editor-request-scheduler.service'
+import { MoleculeCollectionItemService } from '../../services/graphql/molecule-collection-item.service'
+import { MoleculeService } from '../../services/graphql/molecule.service'
+import { RdKitApiService } from '../../services/rd-kit-api.service'
+import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service'
+import { ToastService } from '../../services/toast.service'
+import { LoggerService } from '../../services/logger.service'
+
+describe('Temporary edge audit - desired safeguards', () => {
+  let component: MoleculeEditorPageComponent
+  let mutation: Subject<unknown>
+  let clearDraft: jasmine.Spy
+  let navigate: jasmine.Spy
+  beforeEach(() => {
+    mutation = new Subject()
+    clearDraft = jasmine.createSpy('clearDraft')
+    navigate = jasmine.createSpy('navigate').and.resolveTo(true)
+    TestBed.configureTestingModule({ providers: [
+      { provide: EditorRequestScheduler, useValue: { run: <T>(_route: string, request: () => Observable<T>) => request() } },
+      { provide: ActivatedRoute, useValue: { queryParamMap: of(convertToParamMap({ mode: 'edit', m_id: 'fixture' })) } },
+      { provide: Router, useValue: { navigateByUrl: navigate } },
+      { provide: MoleculeCollectionItemService, useValue: {
+        getCustomSmilesById: () => of({ canonicalSmiles: 'CC' }),
+        findOneCustomMoleculeByCanonicalSmiles_shortFetch: () => of(null),
+        updateItemCanonicalSmiles: () => mutation
+      } },
+      { provide: ActionOverlayContextService, useValue: { open: jasmine.createSpy() } },
+      { provide: ToastService, useValue: { trigger: jasmine.createSpy() } },
+      { provide: LoggerService, useValue: { error: jasmine.createSpy() } },
+      { provide: RdKitApiService, useValue: {
+        toCanonicalSmiles: ({ smiles }: { smiles: string }) => of(smiles),
+        getMoleculeProperties: () => of({})
+      } },
+      { provide: MoleculeService, useValue: { getPreferredNameItByCanonicalSmiles: () => of({ name: null }) } },
+      { provide: MoleculeEditorLiveAnalysisFacade, useValue: { setContext: jasmine.createSpy() } },
+      { provide: MoleculeEditorDraftService, useValue: {
+        canUndo: signal(false), canRedo: signal(false),
+        initialize: () => ({ smiles: 'CC' }), currentTab: () => 'std',
+        record: jasmine.createSpy(), clearCurrent: clearDraft
+      } }
+    ] })
+    component = TestBed.runInInjectionContext(() => new MoleculeEditorPageComponent())
+    component.ngOnInit()
+  })
+  afterEach(() => component.ngOnDestroy())
+
+  function submit(): void {
+    component.onSmilesPollExported('CCC'); tick(301)
+    component.onSave(); void component.onSmilesExported('CCC'); flushMicrotasks()
+    expect(mutation.observed).toBeTrue()
+  }
+
+  it('keeps save pending until the update mutation has answered', fakeAsync(() => {
+    submit()
+    expect(component.pendingAction()).toBe('save')
+  }))
+
+  it('does not clear a newer drawing or navigate away on an older mutation response', fakeAsync(() => {
+    submit()
+    component.onSmilesPollExported('CCCC'); tick(301)
+    mutation.next({ id: 'fixture' }); mutation.complete(); flushMicrotasks()
+    expect(clearDraft).not.toHaveBeenCalled()
+    expect(navigate).not.toHaveBeenCalled()
+  }))
+
+  it('rejects a missing duplicate-query payload instead of declaring no duplicate', async () => {
+    const apollo = TestBed.inject(Apollo)
+    ;(apollo.query as jasmine.Spy).and.returnValue(of({ data: {} }))
+    const service = TestBed.runInInjectionContext(() => new MoleculeCollectionItemService())
+    await expectAsync(firstValueFrom(service.findOneCustomMoleculeByCanonicalSmiles_shortFetch('CCC'))).toBeRejected()
+  })
+})

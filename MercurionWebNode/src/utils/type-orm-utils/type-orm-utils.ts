@@ -33,13 +33,13 @@ export class TypeOrmUtils {
         return qb
     }
     static filterJoinsForEntity(fields: GraphQLFieldsMap, validJoins: string[]): GraphQLFieldsMap {
-        const filtered: GraphQLFieldsMap = {};
+        const filtered: GraphQLFieldsMap = {}
         for (const key in fields) {
             if (validJoins.includes(key) && typeof fields[key] === 'object' && fields[key] !== null) {
-                filtered[key] = fields[key];
+                filtered[key] = fields[key]
             }
         }
-        return filtered;
+        return filtered
     }
 
 }

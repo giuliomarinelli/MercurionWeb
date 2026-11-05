@@ -1,5 +1,6 @@
 import {
   Environment,
+  legacyJwtSecretSources,
   environmentSchema,
   type EnvironmentProperty,
   type RawEnvironment
@@ -19,7 +20,7 @@ function rawExample(property: EnvironmentProperty): string {
 function validRawEnvironment(includeOptional: boolean): RawEnvironment {
   return Object.fromEntries(
     environmentSchema.entries
-      .filter(property => includeOptional || property.required)
+      .filter(property => includeOptional || property.required || (legacyJwtSecretSources as readonly string[]).includes(property.source))
       .map(property => [property.source, rawExample(property)])
   )
 }

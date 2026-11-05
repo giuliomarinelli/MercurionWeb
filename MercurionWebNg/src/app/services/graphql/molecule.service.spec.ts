@@ -1,18 +1,18 @@
-import { TestBed } from '@angular/core/testing';
-import { Apollo } from 'apollo-angular';
-import { firstValueFrom, of, throwError } from 'rxjs';
+import { TestBed } from '@angular/core/testing'
+import { Apollo } from 'apollo-angular'
+import { firstValueFrom, of, throwError } from 'rxjs'
 
 import {
   GetMoleculeDetailDocument,
   MoleculeNameByCanonicalSmilesDocument,
   MoleculeNameByCanonicalSmilesPublicDocument
-} from '../../generated/graphql';
-import { GRAPHQL_QUERY_FETCH_POLICY } from './graphql-query-policy';
-import { MoleculeService } from './molecule.service';
+} from '../../generated/graphql'
+import { GRAPHQL_QUERY_FETCH_POLICY } from './graphql-query-policy'
+import { MoleculeService } from './molecule.service'
 
 describe('MoleculeService', () => {
-  let service: MoleculeService;
-  let querySpy: jasmine.Spy;
+  let service: MoleculeService
+  let querySpy: jasmine.Spy
 
   const molecule = {
     id: 42,
@@ -39,28 +39,28 @@ describe('MoleculeService', () => {
       psa: 20.2,
       rtb: 0
     }
-  };
+  }
 
   beforeEach(() => {
     querySpy = jasmine.createSpy('query').and.returnValue(of({
       data: { moleculeByMolregno: molecule }
-    }));
+    }))
     TestBed.configureTestingModule({
       providers: [{
         provide: Apollo,
         useValue: { query: querySpy }
       }]
-    });
-    service = TestBed.inject(MoleculeService);
-  });
+    })
+    service = TestBed.inject(MoleculeService)
+  })
 
   it('should be created', () => {
-    expect(service).toBeTruthy();
-  });
+    expect(service).toBeTruthy()
+  })
 
   it('uses a one-shot cache-first read for stable molecule reference data', async () => {
     await expectAsync(firstValueFrom(service.getMoleculeByMolregno('42')))
-      .toBeResolvedTo(molecule);
+      .toBeResolvedTo(molecule)
 
     expect(querySpy).toHaveBeenCalledOnceWith({
       query: GetMoleculeDetailDocument,
@@ -69,57 +69,57 @@ describe('MoleculeService', () => {
       context: {
         credentials: 'include'
       }
-    });
-  });
+    })
+  })
 
   it('propagates a one-shot network failure without retaining a watcher', async () => {
-    const networkError = new Error('network unavailable');
-    querySpy.and.returnValue(throwError(() => networkError));
+    const networkError = new Error('network unavailable')
+    querySpy.and.returnValue(throwError(() => networkError))
 
     await expectAsync(firstValueFrom(service.getMoleculeByMolregno('42')))
-      .toBeRejectedWith(networkError);
-    expect(querySpy).toHaveBeenCalledTimes(1);
-  });
+      .toBeRejectedWith(networkError)
+    expect(querySpy).toHaveBeenCalledTimes(1)
+  })
 
   it('returns the updated DTO from an authenticated name lookup', async () => {
     querySpy.and.returnValue(of({
       data: { moleculeNameByCanonicalSmiles: { name: 'Etanolo', type: 'chembl' } }
-    }));
+    }))
 
     await expectAsync(firstValueFrom(service.getPreferredNameItByCanonicalSmiles('CCO')))
-      .toBeResolvedTo({ name: 'Etanolo', type: 'chembl' });
+      .toBeResolvedTo({ name: 'Etanolo', type: 'chembl' })
     expect(querySpy).toHaveBeenCalledOnceWith({
       query: MoleculeNameByCanonicalSmilesDocument,
       variables: { canonicalSmiles: 'CCO' },
       fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.ephemeralLookup,
       context: { credentials: 'include' }
-    });
-  });
+    })
+  })
 
   it('reads the public response field and preserves the IUPAC source', async () => {
     querySpy.and.returnValue(of({
       data: { moleculeNameByCanonicalSmilesPublic: { name: 'ethanol', type: 'iupac' } }
-    }));
+    }))
 
     await expectAsync(firstValueFrom(service.getPreferredNameItByCanonicalSmiles('CCO', true)))
-      .toBeResolvedTo({ name: 'ethanol', type: 'iupac' });
+      .toBeResolvedTo({ name: 'ethanol', type: 'iupac' })
     expect(querySpy).toHaveBeenCalledOnceWith({
       query: MoleculeNameByCanonicalSmilesPublicDocument,
       variables: { canonicalSmiles: 'CCO' },
       fetchPolicy: GRAPHQL_QUERY_FETCH_POLICY.ephemeralLookup,
       context: { credentials: 'include' }
-    });
-  });
+    })
+  })
 
   it('preserves a nullable name in either lookup mode', async () => {
     for (const isPublicMode of [false, true]) {
       const field = isPublicMode
         ? 'moleculeNameByCanonicalSmilesPublic'
-        : 'moleculeNameByCanonicalSmiles';
-      querySpy.and.returnValue(of({ data: { [field]: { name: null, type: 'custom' } } }));
+        : 'moleculeNameByCanonicalSmiles'
+      querySpy.and.returnValue(of({ data: { [field]: { name: null, type: 'custom' } } }))
 
       await expectAsync(firstValueFrom(service.getPreferredNameItByCanonicalSmiles('CCO', isPublicMode)))
-        .toBeResolvedTo({ name: null, type: 'custom' });
+        .toBeResolvedTo({ name: null, type: 'custom' })
     }
-  });
-});
+  })
+})

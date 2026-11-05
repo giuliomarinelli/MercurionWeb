@@ -1,6 +1,6 @@
-import { readFileSync } from 'fs';
-import { resolve } from 'path';
-import { buildSchema, GraphQLEnumType, GraphQLObjectType } from 'graphql';
+import { readFileSync } from 'fs'
+import { resolve } from 'path'
+import { buildSchema, GraphQLEnumType, GraphQLObjectType } from 'graphql'
 
 describe('Synth GraphQL contract', () => {
   const schema = buildSchema(readFileSync(resolve(__dirname, '../../schema.graphql'), 'utf8'))

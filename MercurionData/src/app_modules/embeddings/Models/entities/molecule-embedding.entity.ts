@@ -1,16 +1,16 @@
 // src/app_modules/embeddings/entities/molecule-embedding.entity.ts
-import { Entity, PrimaryColumn, Column } from 'typeorm';
+import { Entity, PrimaryColumn, Column } from 'typeorm'
 
 @Entity({ name: 'molecule_embeddings' })
 export class MoleculeEmbedding {
   @PrimaryColumn('uuid', { name: 'stable_uuid' })
-  stableUuid!: string;
+  stableUuid!: string
 
   @Column('integer', { name: 'molregno' })
-  molregno!: number;
+  molregno!: number
 
   @Column('text', { name: 'smiles' })
-  smiles!: string;
+  smiles!: string
 
   @Column('varchar', { name: 'preferred_name', default: null })
   preferredName: string | null
@@ -18,11 +18,11 @@ export class MoleculeEmbedding {
   // pgvector (Nullable finché non calcoliamo)
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   @Column({ type: 'vector' as any, nullable: true })
-  embedding!: number[] | null;
+  embedding!: number[] | null
 
   @Column('text', { name: 'embedding_model', default: 'seyonec/ChemBERTa-zinc-base-v1' })
-  embeddingModel!: string;
+  embeddingModel!: string
 
   @Column('timestamptz', { name: 'updated_at', default: () => 'now()' })
-  updatedAt!: Date;
+  updatedAt!: Date
 }

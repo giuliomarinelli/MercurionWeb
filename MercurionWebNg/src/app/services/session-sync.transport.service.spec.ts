@@ -9,6 +9,55 @@ import { SessionSyncTransportService } from './session-sync.transport.service'
 import { ToastService } from './toast.service'
 
 describe('SessionSyncTransportService restore', () => {
+  it('keeps MFA pending on the public socket without promoting it from stored login hints', async () => {
+    localStorage.clear()
+    document.cookie = '__logged_in=; Max-Age=0; path=/'
+    document.cookie = '__logged_in_=; Max-Age=0; path=/'
+    const socket = jasmine.createSpyObj<RealtimeSocketService>('RealtimeSocketService', [
+      'onConnect', 'onDisconnect', 'onApplicationError', 'onSessionExpired', 'connect',
+      'ensurePrivate', 'ensurePublic', 'getMode', 'waitConnected', 'waitStable', 'emitSessionInit'
+    ])
+    socket.onConnect.and.returnValue(EMPTY)
+    socket.onDisconnect.and.returnValue(EMPTY)
+    socket.onApplicationError.and.returnValue(EMPTY)
+    socket.onSessionExpired.and.returnValue(EMPTY)
+    socket.ensurePublic.and.resolveTo()
+    socket.waitConnected.and.resolveTo(true)
+    socket.waitStable.and.resolveTo()
+    TestBed.configureTestingModule({
+      providers: [provideRouter([]), { provide: RealtimeSocketService, useValue: socket }]
+    })
+    const state = TestBed.inject(AuthStateStore)
+    state.bootstrap()
+    state.beginAuthentication()
+    state.enterPreAuthentication('pat')
+    document.cookie = '__logged_in=pending_long; path=/'
+    document.cookie = '__logged_in_=true; path=/'
+    const service = TestBed.inject(SessionSyncTransportService)
+    await service.checkSession(true)
+    expect(socket.ensurePublic).toHaveBeenCalled()
+    expect(socket.ensurePrivate).not.toHaveBeenCalled()
+    expect(socket.emitSessionInit).not.toHaveBeenCalled()
+    expect(service.status()).toBe('anonymous')
+    expect(state.isPreAuth()).toBeTrue()
+    expect(state.authenticated()).toBeFalse()
+
+    // A real MFA completion in another tab still restores the final session.
+    const token = `header.${btoa(JSON.stringify({ sub: 'user', sid: 'session' }))}.signature`
+    state.setAccessToken(token)
+    state.setWsAccessToken(token)
+    document.cookie = '__logged_in=true; path=/'
+    socket.ensurePrivate.and.resolveTo()
+    socket.getMode.and.returnValue('private')
+    socket.emitSessionInit.and.resolveTo({ detail: 'websocket session init successful' } as SocketSessionInitAcknowledgement)
+    service.resumeSession('AB')
+    await service.checkSession(true)
+    expect(state.authenticated()).toBeTrue()
+    expect(service.status()).toBe('loggedIn')
+    document.cookie = '__logged_in=; Max-Age=0; path=/'
+    document.cookie = '__logged_in_=; Max-Age=0; path=/'
+  })
+
   it('does not treat credentials cleared for an active SSO login as an expired session', async () => {
     localStorage.clear()
     document.cookie = '__logged_in=true; path=/'

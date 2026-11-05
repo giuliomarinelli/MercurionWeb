@@ -1,5 +1,5 @@
-import { Pipe, PipeTransform } from '@angular/core';
-import { UserGender } from '../Models/auth/user.models';
+import { Pipe, PipeTransform } from '@angular/core'
+import { UserGender } from '../Models/auth/user.models'
 
 @Pipe({
   name: 'gender',

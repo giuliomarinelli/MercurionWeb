@@ -1,4 +1,5 @@
 node_modules/
+MercurionWebNode/.local/
 node_modules.corrupt-*/
 node_modules.failed-*/
 packages/rest-contracts/dist/

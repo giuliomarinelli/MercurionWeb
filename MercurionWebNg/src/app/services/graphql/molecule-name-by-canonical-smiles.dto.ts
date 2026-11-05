@@ -1,4 +1,4 @@
-import { MoleculeNameByCanonicalSmilesQuery } from '../../generated/graphql';
+import { MoleculeNameByCanonicalSmilesQuery } from '../../generated/graphql'
 
 export type MoleculeNameByCanonicalSmilesDTO =
-    MoleculeNameByCanonicalSmilesQuery['moleculeNameByCanonicalSmiles'];
+    MoleculeNameByCanonicalSmilesQuery['moleculeNameByCanonicalSmiles']

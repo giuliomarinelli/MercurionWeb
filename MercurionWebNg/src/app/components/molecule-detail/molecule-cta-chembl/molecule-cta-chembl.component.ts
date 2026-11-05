@@ -1,15 +1,15 @@
-import { ChangeDetectionStrategy, Component, effect, input, Signal, computed, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, input, Signal, computed, signal } from '@angular/core'
 
 @Component({
   selector: 'm-molecule-cta-chembl',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <section class="mt-6 flex justify-center sm:justify-start">
+    <section class="mt-6 flex">
       <a
         [href]="url()"
         target="_blank"
         rel="noopener noreferrer"
-        class="flex justify-center w-[250px] gap-3 items-center px-4 mt-4 py-2 text-white rounded-md transition-colors duration-150
+        class="flex justify-center w-62.5 gap-3 items-center px-4 mt-4 py-2 text-white rounded-md transition-colors duration-150
          bg-light-accent-primary dark:bg-dark-accent-primary-btn
          hover:bg-dark-accent-primary/90 dark:hover:bg-dark-accent-primary/90
          disabled:bg-dark-accent-primary/65 disabled:dark:bg-dark-accent-primary/65

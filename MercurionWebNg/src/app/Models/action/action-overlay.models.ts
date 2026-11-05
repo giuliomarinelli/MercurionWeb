@@ -42,7 +42,7 @@ export interface ActionSessionInputMap {
     readonly importFromChembl: boolean
   }
   CreateCollection: void
-  BindCollectionsToMolecule: { readonly moleculeId: string }
+  BindCollectionsToMolecule: { readonly moleculeId: string; readonly moleculeName: string }
   SensitiveDataChange: { readonly innerScope: ActiveSensitiveDataChangeInnerScope }
   EssentialProfileRegistryEdit: void
   TicketDetail: { readonly ticketId: string; readonly innerScope: TicketDetailInnerScope }

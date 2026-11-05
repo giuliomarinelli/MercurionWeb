@@ -1,18 +1,18 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { EmbeddingClientService } from './embedding-client.service';
+import { Test, TestingModule } from '@nestjs/testing'
+import { EmbeddingClientService } from './embedding-client.service'
 
 describe('EmbeddingClientService', () => {
-  let service: EmbeddingClientService;
+  let service: EmbeddingClientService
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [EmbeddingClientService],
-    }).compile();
+    }).compile()
 
-    service = module.get<EmbeddingClientService>(EmbeddingClientService);
-  });
+    service = module.get<EmbeddingClientService>(EmbeddingClientService)
+  })
 
   it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
-});
+    expect(service).toBeDefined()
+  })
+})

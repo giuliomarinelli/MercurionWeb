@@ -1,16 +1,16 @@
-import { TestBed } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing'
 
-import { CreateCollectionContextService } from './create-collection-context.service';
+import { CreateCollectionContextService } from './create-collection-context.service'
 
 describe('CreateCollectionContextService', () => {
-  let service: CreateCollectionContextService;
+  let service: CreateCollectionContextService
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
-    service = TestBed.inject(CreateCollectionContextService);
-  });
+    TestBed.configureTestingModule({})
+    service = TestBed.inject(CreateCollectionContextService)
+  })
 
   it('should be created', () => {
-    expect(service).toBeTruthy();
-  });
-});
+    expect(service).toBeTruthy()
+  })
+})

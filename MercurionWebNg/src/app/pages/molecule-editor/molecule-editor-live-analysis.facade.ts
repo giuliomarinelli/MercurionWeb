@@ -7,6 +7,7 @@ import { EmbeddingService } from '../../services/embedding.service'
 import { MoleculeService } from '../../services/graphql/molecule.service'
 import { LoggerService } from '../../services/logger.service'
 import { MercurionAiService } from '../../services/mercurion-ai.service'
+import { EditorRequestScheduler } from '../../chemistry/editor-request-scheduler.service'
 
 @Injectable()
 export class MoleculeEditorLiveAnalysisFacade {
@@ -15,6 +16,7 @@ export class MoleculeEditorLiveAnalysisFacade {
   private readonly embedding = inject(EmbeddingService)
   private readonly molecules = inject(MoleculeService)
   private readonly logger = inject(LoggerService)
+  private readonly requests = inject(EditorRequestScheduler)
 
   private readonly canonicalSmiles = signal('')
   private readonly enabled = signal(false)
@@ -67,7 +69,7 @@ export class MoleculeEditorLiveAnalysisFacade {
 
       const toxSub = cachedTox
         ? undefined
-        : this.ai.t1Inference({ smiles }).pipe(
+        : this.requests.run('/api/mercurion-ai/tox-21/infer', () => this.ai.t1Inference({ smiles }), 2).pipe(
             catchError(error => {
               if (this.canonicalSmiles() === smiles && this.enabled()) {
                 this.logger.error('Live Tox21 inference failed', error)
@@ -87,7 +89,7 @@ export class MoleculeEditorLiveAnalysisFacade {
 
       const analogSub = cachedAnalogs
         ? undefined
-        : this.embedding.getSimilarBySmiles(smiles, 3, false, true).pipe(
+        : this.requests.run('/api/embedding/get-similar-by-smiles', () => this.embedding.getSimilarBySmiles(smiles, 3, false, true), 2).pipe(
             map(results =>
               results.map(result =>
                 typeof result === 'number'
@@ -97,7 +99,7 @@ export class MoleculeEditorLiveAnalysisFacade {
             ),
             switchMap(molregnos =>
               molregnos.length
-                ? this.molecules.getMoleculePreviewsByMolregnos(molregnos)
+                ? this.requests.run('/api/graphql', () => this.molecules.getMoleculePreviewsByMolregnos(molregnos), 2)
                 : of([] as MoleculeSearchResult[])
             ),
             map(results => results.slice(0, 3)),

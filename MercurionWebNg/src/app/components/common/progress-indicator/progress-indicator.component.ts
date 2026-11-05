@@ -1,6 +1,6 @@
-import { ChangeDetectionStrategy, Component, computed, input, numberAttribute } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, numberAttribute } from '@angular/core'
 
-export type ProgressIndicatorSize = 'sm' | 'md' | 'lg';
+export type ProgressIndicatorSize = 'sm' | 'md' | 'lg'
 
 @Component({
   selector: 'm-progress-indicator',
@@ -100,33 +100,33 @@ export type ProgressIndicatorSize = 'sm' | 'md' | 'lg';
   `],
 })
 export class ProgressIndicatorComponent {
-  readonly size = input<ProgressIndicatorSize | number>('md');
-  readonly stroke = input(3.6, { transform: numberAttribute });
-  readonly color = input<string | null>(null);
-  readonly label = input<string | undefined>(undefined);
-  readonly ariaLabel = input<string | undefined>(undefined);
-  readonly overlay = input(false);
+  readonly size = input<ProgressIndicatorSize | number>('md')
+  readonly stroke = input(3.6, { transform: numberAttribute })
+  readonly color = input<string | null>(null)
+  readonly label = input<string | undefined>(undefined)
+  readonly ariaLabel = input<string | undefined>(undefined)
+  readonly overlay = input(false)
 
   protected sizeClass(): ProgressIndicatorSize {
-    const size = this.size();
-    return typeof size === 'number' ? 'md' : size;
+    const size = this.size()
+    return typeof size === 'number' ? 'md' : size
   }
 
   protected numericSize(): number | null {
-    const size = this.size();
-    return typeof size === 'number' ? size : null;
+    const size = this.size()
+    return typeof size === 'number' ? size : null
   }
 
   protected resolvedSize(): number {
-    const size = this.size();
-    if (typeof size === 'number') return size;
-    return { sm: 16, md: 24, lg: 60 }[size];
+    const size = this.size()
+    if (typeof size === 'number') return size
+    return { sm: 16, md: 24, lg: 60 }[size]
   }
 
-  protected readonly arcStroke = computed(() => this.color() ?? 'currentColor');
-  protected readonly cleanLabel = computed(() => this.label()?.trim() ?? '');
+  protected readonly arcStroke = computed(() => this.color() ?? 'currentColor')
+  protected readonly cleanLabel = computed(() => this.label()?.trim() ?? '')
 
   protected effectiveLabel(): string {
-    return this.ariaLabel() ?? (this.cleanLabel() || 'Loading…');
+    return this.ariaLabel() ?? (this.cleanLabel() || 'Loading…')
   }
 }

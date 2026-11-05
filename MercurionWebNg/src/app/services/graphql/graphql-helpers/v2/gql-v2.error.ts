@@ -1,9 +1,9 @@
 export type GraphQLErrorLike = {
-  message?: string;
-  path?: Array<string | number>;
-  extensions?: { code?: string; [k: string]: unknown };
-  [k: string]: unknown;
-};
+  message?: string
+  path?: Array<string | number>
+  extensions?: { code?: string; [k: string]: unknown }
+  [k: string]: unknown
+}
 
 export class GqlV2Error extends Error {
   constructor(

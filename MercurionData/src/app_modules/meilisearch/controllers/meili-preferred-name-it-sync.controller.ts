@@ -1,7 +1,7 @@
-import { Controller, Query, Sse, MessageEvent } from '@nestjs/common';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
-import { MeiliPreferredNameItSyncService } from '../services/meili-preferred-name-it-sync.service';
+import { Controller, Query, Sse, MessageEvent } from '@nestjs/common'
+import { Observable } from 'rxjs'
+import { map } from 'rxjs/operators'
+import { MeiliPreferredNameItSyncService } from '../services/meili-preferred-name-it-sync.service'
 
 @Controller('meili-preferred-name-it-sync')
 export class MeiliPreferredNameItSyncController {
@@ -15,6 +15,6 @@ export class MeiliPreferredNameItSyncController {
     ): Observable<MessageEvent> {
         return this.svc
             .syncPreferredNameItAsObservable(Number(batchSize))
-            .pipe(map(p => ({ data: p })));
+            .pipe(map(p => ({ data: p })))
     }
 }

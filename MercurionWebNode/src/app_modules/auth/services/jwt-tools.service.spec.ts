@@ -1,12 +1,12 @@
-import { JwtToolsService } from './jwt-tools.service';
-import { JwtService } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
-import { LoggerPort } from 'src/logging/logger.port';
-import { TokenType } from '../models/enums/token-type.enum';
+import { JwtToolsService } from './jwt-tools.service'
+import { JwtService } from '@nestjs/jwt'
+import { ConfigService } from '@nestjs/config'
+import { LoggerPort } from 'src/logging/logger.port'
+import { TokenType } from '../models/enums/token-type.enum'
 
 jest.mock('./password-encoder.service', () => ({
   PasswordEncoderService: class PasswordEncoderService {}
-}));
+}))
 
 jest.mock('src/config/config', () => ({
   Environment: {
@@ -15,11 +15,11 @@ jest.mock('src/config/config', () => ({
     Production: 'production',
     Test: 'test',
   },
-}));
+}))
 
 jest.mock('fs', () => ({
   readFileSync: jest.fn().mockReturnValue('-----BEGIN KEY-----\nmock\n-----END KEY-----'),
-}));
+}))
 
 const jwtKeysMock = {
   getAccessKeyPair: () => ({
@@ -33,46 +33,46 @@ const jwtKeysMock = {
 }
 
 describe('JwtToolsService', () => {
-  let service: JwtToolsService;
-  let jwtService: { signAsync: jest.Mock; verifyAsync: jest.Mock; decode: jest.Mock };
-  let securityService: { encryptUserId: jest.Mock; decryptUserId: jest.Mock };
-  let redisService: { get: jest.Mock };
+  let service: JwtToolsService
+  let jwtService: { signAsync: jest.Mock; verifyAsync: jest.Mock; decode: jest.Mock }
+  let securityService: { encryptUserId: jest.Mock; decryptUserId: jest.Mock }
+  let redisService: { get: jest.Mock }
   let sessionService: {
-    isTokenRevoked: jest.Mock;
-    registerIssuedToken: jest.Mock;
-    revokeToken: jest.Mock;
-  };
+    isTokenRevoked: jest.Mock
+    registerIssuedToken: jest.Mock
+    revokeToken: jest.Mock
+  }
 
   beforeEach(() => {
     const configMock = {
       get: jest.fn((key: string) => {
-        if (key === 'Jwt.accessToken.expiresInMs') return 3600_000;
-        if (key === 'Jwt.ws_accessToken.expiresInMs') return 3600_000;
-        if (key === 'Jwt.issuer') return 'issuer';
-        if (key === 'Jwt.audience') return { access: 'access', ws: 'ws', auth: 'auth' };
-        if (key === 'Session.sessionZeroId') return '00000000-0000-4000-8000-000000000000';
+        if (key === 'Jwt.accessToken.expiresInMs') return 3600_000
+        if (key === 'Jwt.ws_accessToken.expiresInMs') return 3600_000
+        if (key === 'Jwt.issuer') return 'issuer'
+        if (key === 'Jwt.audience') return { access: 'access', ws: 'ws', auth: 'auth' }
+        if (key === 'Session.sessionZeroId') return '00000000-0000-4000-8000-000000000000'
         if (key.startsWith('Jwt.') && key.endsWith('Token')) {
-          return { secret: 's'.repeat(64), expiresInMs: 3600_000 };
+          return { secret: 's'.repeat(64), expiresInMs: 3600_000 }
         }
-        return undefined;
+        return undefined
       }),
-    };
+    }
 
     jwtService = {
       signAsync: jest.fn().mockResolvedValue('token'),
       verifyAsync: jest.fn(),
       decode: jest.fn()
-    };
+    }
     sessionService = {
       isTokenRevoked: jest.fn().mockResolvedValue(false),
       registerIssuedToken: jest.fn(),
       revokeToken: jest.fn()
-    };
+    }
     securityService = {
       encryptUserId: jest.fn((userId: string) => `encrypted:${userId}`),
       decryptUserId: jest.fn(() => 'user-id')
-    };
-    redisService = { get: jest.fn() };
+    }
+    redisService = { get: jest.fn() }
 
     service = new JwtToolsService(
       jwtService as unknown as JwtService,
@@ -85,30 +85,30 @@ describe('JwtToolsService', () => {
       jwtKeysMock as any,
       securityService as any,
       redisService as any
-    );
-  });
+    )
+  })
 
   it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
+    expect(service).toBeDefined()
+  })
 
   it('registers issued access tokens through the session application API', async () => {
-    const userId = '11111111-1111-4111-8111-111111111111';
-    const sessionId = '22222222-2222-4222-8222-222222222222';
+    const userId = '11111111-1111-4111-8111-111111111111'
+    const sessionId = '22222222-2222-4222-8222-222222222222'
 
     await expect(
       service.generateToken(userId, TokenType.AccessToken, sessionId)
-    ).resolves.toBe('token');
+    ).resolves.toBe('token')
     expect(sessionService.registerIssuedToken).toHaveBeenCalledWith(
       sessionId,
       expect.any(String),
       3600
-    );
+    )
     expect(jwtService.signAsync).toHaveBeenCalledWith(
       expect.objectContaining({ sub: `encrypted:${userId}` }),
       expect.objectContaining({ algorithm: 'RS256' })
-    );
-  });
+    )
+  })
 
   it.each([
     { activeJti: 'current', accepted: true },
@@ -119,16 +119,16 @@ describe('JwtToolsService', () => {
       typ: TokenType.PreAuthorizationToken,
       sub: 'encrypted:user-id',
       jti: 'current'
-    };
-    jwtService.decode.mockReturnValue(payload);
-    redisService.get.mockResolvedValue(activeJti);
-
-    const verification = service.verifyTokenAndGetPayload('pre-auth', TokenType.PreAuthorizationToken);
-    if (accepted) {
-      await expect(verification).resolves.toEqual(payload);
-    } else {
-      await expect(verification).rejects.toThrow();
     }
-    expect(redisService.get).toHaveBeenCalledWith('mfa:pat:active:user-id');
-  });
-});
+    jwtService.decode.mockReturnValue(payload)
+    redisService.get.mockResolvedValue(activeJti)
+
+    const verification = service.verifyTokenAndGetPayload('pre-auth', TokenType.PreAuthorizationToken)
+    if (accepted) {
+      await expect(verification).resolves.toEqual(payload)
+    } else {
+      await expect(verification).rejects.toThrow()
+    }
+    expect(redisService.get).toHaveBeenCalledWith('mfa:pat:active:user-id')
+  })
+})

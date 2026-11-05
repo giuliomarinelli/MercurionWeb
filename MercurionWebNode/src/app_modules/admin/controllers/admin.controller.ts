@@ -1,11 +1,11 @@
-import { Body, Controller, ForbiddenException, Get, Put, Query, Res, ValidationPipe } from '@nestjs/common';
-import { Scope } from 'src/app_modules/user/models/enums/scope.enum';
-import { HasScopes, Public } from 'src/metadata/metadata';
-import { ChangeLogLevelDTO } from '../models/dto/change-log-level.dto';
-import { ConfirmNewLogLevelsDTO } from 'src/models/confirm-responses.dto';
-import { LoggerPort } from 'src/logging/logger.port';
-import { ResponseService } from 'src/services/response.service';
-import { FastifyReply } from 'fastify';
+import { Body, Controller, ForbiddenException, Get, Put, Query, Res, ValidationPipe } from '@nestjs/common'
+import { Scope } from 'src/app_modules/user/models/enums/scope.enum'
+import { HasScopes, Public } from 'src/metadata/metadata'
+import { ChangeLogLevelDTO } from '../models/dto/change-log-level.dto'
+import { ConfirmNewLogLevelsDTO } from 'src/models/confirm-responses.dto'
+import { LoggerPort } from 'src/logging/logger.port'
+import { ResponseService } from 'src/services/response.service'
+import { FastifyReply } from 'fastify'
 import type { MaintenanceBypassResponse } from '@mercurion/rest-contracts'
 
 

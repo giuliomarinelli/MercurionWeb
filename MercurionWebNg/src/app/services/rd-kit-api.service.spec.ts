@@ -1,16 +1,16 @@
-import { TestBed } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing'
 
-import { RdKitApiService } from './rd-kit-api.service';
+import { RdKitApiService } from './rd-kit-api.service'
 
 describe('RdKitApiService', () => {
-  let service: RdKitApiService;
+  let service: RdKitApiService
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
-    service = TestBed.inject(RdKitApiService);
-  });
+    TestBed.configureTestingModule({})
+    service = TestBed.inject(RdKitApiService)
+  })
 
   it('should be created', () => {
-    expect(service).toBeTruthy();
-  });
-});
+    expect(service).toBeTruthy()
+  })
+})

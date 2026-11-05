@@ -1,6 +1,6 @@
-import { ChildEntity, Column } from 'typeorm';
-import { MoleculeCollectionItemEntity } from './molecule-collection-item.entity';
-import { Field, ObjectType } from '@nestjs/graphql';
+import { ChildEntity, Column } from 'typeorm'
+import { MoleculeCollectionItemEntity } from './molecule-collection-item.entity'
+import { Field, ObjectType } from '@nestjs/graphql'
 
 @ObjectType({ implements: MoleculeCollectionItemEntity })
 @ChildEntity('custom')

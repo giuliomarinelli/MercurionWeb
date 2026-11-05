@@ -1,7 +1,7 @@
-import { UserService } from './user.service';
+import { UserService } from './user.service'
 
 describe('UserService', () => {
-  const userId = '00000000-0000-0000-0000-000000000001' as any;
+  const userId = '00000000-0000-0000-0000-000000000001' as any
 
   function createService(
     manager: any,
@@ -10,8 +10,8 @@ describe('UserService', () => {
   ) {
     const dataSource = {
       transaction: jest.fn(transaction ?? (async (work) => work(manager))),
-    } as any;
-    const loggerMock = { warn: jest.fn() };
+    } as any
+    const loggerMock = { warn: jest.fn() }
     return {
       service: new UserService(
       userRepository as any,
@@ -23,13 +23,13 @@ describe('UserService', () => {
       { forContext: jest.fn().mockReturnValue(loggerMock) } as any,
       ),
       dataSource,
-    };
+    }
   }
 
   it('should be defined', () => {
-    const { service } = createService({});
-    expect(service).toBeDefined();
-  });
+    const { service } = createService({})
+    expect(service).toBeDefined()
+  })
 
   it('keeps the ORCID account identifier separate from its contact email', async () => {
     const queryBuilder = {
@@ -46,113 +46,113 @@ describe('UserService', () => {
           email: 'contact@example.test',
         }],
       }),
-    };
-    const userRepository = { createQueryBuilder: jest.fn().mockReturnValue(queryBuilder) };
-    const { service } = createService({}, undefined, userRepository);
+    }
+    const userRepository = { createQueryBuilder: jest.fn().mockReturnValue(queryBuilder) }
+    const { service } = createService({}, undefined, userRepository)
 
     await expect(service.getUserProvidedAccountIdById(userId)).resolves.toEqual({
       accountId: '0000-0002-1825-0097',
       provider: 'ORCID',
       kind: 'orcid',
-    });
-    await expect(service.getUserEmailById(userId)).resolves.toBe('contact@example.test');
-    expect(userRepository.createQueryBuilder).toHaveBeenCalledTimes(2);
-  });
+    })
+    await expect(service.getUserEmailById(userId)).resolves.toBe('contact@example.test')
+    expect(userRepository.createQueryBuilder).toHaveBeenCalledTimes(2)
+  })
 
   it('updates and reads the user back through the transaction manager', async () => {
-    const updatedUser = { id: userId, firstName: 'Updated' };
+    const updatedUser = { id: userId, firstName: 'Updated' }
     const manager = {
       update: jest.fn().mockResolvedValue({ affected: 1 }),
       findOne: jest.fn().mockResolvedValue(updatedUser),
-    };
-    const { service, dataSource } = createService(manager);
+    }
+    const { service, dataSource } = createService(manager)
 
     await expect(service.updateUser(userId, { firstName: 'Updated' } as any))
-      .resolves.toBe(updatedUser);
+      .resolves.toBe(updatedUser)
 
-    expect(dataSource.transaction).toHaveBeenCalledTimes(1);
-    expect(manager.update).toHaveBeenCalledWith(expect.anything(), { id: userId }, { firstName: 'Updated' });
-    expect(manager.findOne).toHaveBeenCalledWith(expect.anything(), { where: { id: userId } });
-  });
+    expect(dataSource.transaction).toHaveBeenCalledTimes(1)
+    expect(manager.update).toHaveBeenCalledWith(expect.anything(), { id: userId }, { firstName: 'Updated' })
+    expect(manager.findOne).toHaveBeenCalledWith(expect.anything(), { where: { id: userId } })
+  })
 
   it('returns null for an update with no matching user', async () => {
     const manager = {
       update: jest.fn().mockResolvedValue({ affected: 0 }),
       findOne: jest.fn(),
-    };
-    const { service } = createService(manager);
+    }
+    const { service } = createService(manager)
 
-    await expect(service.updateUser(userId, { firstName: 'Updated' } as any)).resolves.toBeNull();
-    expect(manager.findOne).not.toHaveBeenCalled();
-  });
+    await expect(service.updateUser(userId, { firstName: 'Updated' } as any)).resolves.toBeNull()
+    expect(manager.findOne).not.toHaveBeenCalled()
+  })
 
   it('propagates update failures so the transaction boundary can roll back', async () => {
-    const failure = new Error('write failed');
+    const failure = new Error('write failed')
     const manager = {
       update: jest.fn().mockRejectedValue(failure),
       findOne: jest.fn(),
-    };
-    const lifecycle: string[] = [];
+    }
+    const lifecycle: string[] = []
     const { service, dataSource } = createService(manager, async (work) => {
-      lifecycle.push('begin');
+      lifecycle.push('begin')
       try {
-        return await work(manager);
+        return await work(manager)
       } catch (error) {
-        lifecycle.push('rollback');
-        throw error;
+        lifecycle.push('rollback')
+        throw error
       } finally {
-        lifecycle.push('released');
+        lifecycle.push('released')
       }
-    });
+    })
 
-    await expect(service.updateUser(userId, { firstName: 'Updated' } as any)).rejects.toBe(failure);
-    expect(lifecycle).toEqual(['begin', 'rollback', 'released']);
-    expect(dataSource.transaction).toHaveBeenCalledTimes(1);
-  });
+    await expect(service.updateUser(userId, { firstName: 'Updated' } as any)).rejects.toBe(failure)
+    expect(lifecycle).toEqual(['begin', 'rollback', 'released'])
+    expect(dataSource.transaction).toHaveBeenCalledTimes(1)
+  })
 
   it('propagates read-back failures and does not expose a partial update', async () => {
-    const failure = new Error('read failed');
+    const failure = new Error('read failed')
     const manager = {
       update: jest.fn().mockResolvedValue({ affected: 1 }),
       findOne: jest.fn().mockRejectedValue(failure),
-    };
-    const lifecycle: string[] = [];
+    }
+    const lifecycle: string[] = []
     const { service } = createService(manager, async (work) => {
-      lifecycle.push('begin');
+      lifecycle.push('begin')
       try {
-        return await work(manager);
+        return await work(manager)
       } catch (error) {
-        lifecycle.push('rollback');
-        throw error;
+        lifecycle.push('rollback')
+        throw error
       } finally {
-        lifecycle.push('released');
+        lifecycle.push('released')
       }
-    });
+    })
 
-    await expect(service.updateUser(userId, { firstName: 'Updated' } as any)).rejects.toBe(failure);
-    expect(lifecycle).toEqual(['begin', 'rollback', 'released']);
-  });
+    await expect(service.updateUser(userId, { firstName: 'Updated' } as any)).rejects.toBe(failure)
+    expect(lifecycle).toEqual(['begin', 'rollback', 'released'])
+  })
 
   it('rolls back when the updated row disappears before read-back', async () => {
     const manager = {
       update: jest.fn().mockResolvedValue({ affected: 1 }),
       findOne: jest.fn().mockResolvedValue(null),
-    };
-    const lifecycle: string[] = [];
+    }
+    const lifecycle: string[] = []
     const { service } = createService(manager, async (work) => {
-      lifecycle.push('begin');
+      lifecycle.push('begin')
       try {
-        return await work(manager);
+        return await work(manager)
       } catch (error) {
-        lifecycle.push('rollback');
-        throw error;
+        lifecycle.push('rollback')
+        throw error
       } finally {
-        lifecycle.push('released');
+        lifecycle.push('released')
       }
-    });
+    })
 
     await expect(service.updateUser(userId, { firstName: 'Updated' } as any))
-      .rejects.toThrow('disappeared during transactional update read-back');
-    expect(lifecycle).toEqual(['begin', 'rollback', 'released']);
-  });
-});
+      .rejects.toThrow('disappeared during transactional update read-back')
+    expect(lifecycle).toEqual(['begin', 'rollback', 'released'])
+  })
+})

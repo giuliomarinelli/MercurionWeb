@@ -1,5 +1,5 @@
-import { Injectable, Pipe, PipeTransform, inject } from '@angular/core';
-import { BASE_PATH } from './base-path.token';
+import { Injectable, Pipe, PipeTransform, inject } from '@angular/core'
+import { BASE_PATH } from './base-path.token'
 
 @Pipe({ name: 'public', standalone: true })
 @Injectable({ providedIn: 'root' })

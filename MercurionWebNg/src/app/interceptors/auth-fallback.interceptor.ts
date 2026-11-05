@@ -4,12 +4,12 @@ import {
   HttpHandler,
   HttpEvent,
   HttpErrorResponse
-} from '@angular/common/http';
-import { inject, Injectable } from '@angular/core';
-import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
-import { Router } from '@angular/router';
-import { classifyAuthResponse } from './auth-error.util';
+} from '@angular/common/http'
+import { inject, Injectable } from '@angular/core'
+import { Observable, throwError } from 'rxjs'
+import { catchError } from 'rxjs/operators'
+import { Router } from '@angular/router'
+import { classifyAuthResponse } from './auth-error.util'
 
 @Injectable()
 export class AuthFallbackInterceptor implements HttpInterceptor {
@@ -29,6 +29,6 @@ export class AuthFallbackInterceptor implements HttpInterceptor {
 
         return throwError(() => e)
       }),
-    );
+    )
   }
 }

@@ -1,5 +1,5 @@
-import { Routes } from '@angular/router';
-import { Factory } from './m-factory';
+import { Routes } from '@angular/router'
+import { Factory } from './m-factory'
 
 export const routes: Routes = [
   {

@@ -1,25 +1,25 @@
-import { TestBed } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing'
 
 import {
   classifyCrossTabAuthStorageEvent,
   SessionSyncService
-} from './session-sync.service';
+} from './session-sync.service'
 import { SessionSyncTransportService } from './session-sync.transport.service'
 import { BrowserStorageRegistry } from './browser-storage-registry'
-import { RealtimeSocketService } from './socket-io/realtime-socket.service';
-import { socketEventRegistry } from '@mercurion/socket-contracts';
+import { RealtimeSocketService } from './socket-io/realtime-socket.service'
+import { socketEventRegistry } from '@mercurion/socket-contracts'
 
 describe('SessionSyncService', () => {
-  let service: SessionSyncService;
+  let service: SessionSyncService
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
-    service = TestBed.inject(SessionSyncService);
-  });
+    TestBed.configureTestingModule({})
+    service = TestBed.inject(SessionSyncService)
+  })
 
   it('should be created', () => {
-    expect(service).toBeTruthy();
-  });
+    expect(service).toBeTruthy()
+  })
 
   it('classifies login marker changes as session hints, not credentials', () => {
     const registry = TestBed.inject(BrowserStorageRegistry)
@@ -66,18 +66,18 @@ describe('SessionSyncService', () => {
   it('releases all owned realtime subscriptions on destruction', () => {
     const socket = (TestBed.inject(RealtimeSocketService) as unknown as {
       socket: { listeners: (event: string) => unknown[] }
-    }).socket;
+    }).socket
 
-    expect(socket.listeners('connect')).toHaveSize(2);
-    expect(socket.listeners('disconnect')).toHaveSize(2);
-    expect(socket.listeners(socketEventRegistry.applicationError.name)).toHaveSize(1);
-    expect(socket.listeners(socketEventRegistry.sessionExpired.name)).toHaveSize(1);
+    expect(socket.listeners('connect')).toHaveSize(2)
+    expect(socket.listeners('disconnect')).toHaveSize(2)
+    expect(socket.listeners(socketEventRegistry.applicationError.name)).toHaveSize(1)
+    expect(socket.listeners(socketEventRegistry.sessionExpired.name)).toHaveSize(1)
 
     TestBed.inject(SessionSyncTransportService).ngOnDestroy()
 
-    expect(socket.listeners('connect')).toHaveSize(1);
-    expect(socket.listeners('disconnect')).toHaveSize(1);
-    expect(socket.listeners(socketEventRegistry.applicationError.name)).toHaveSize(0);
-    expect(socket.listeners(socketEventRegistry.sessionExpired.name)).toHaveSize(0);
+    expect(socket.listeners('connect')).toHaveSize(1)
+    expect(socket.listeners('disconnect')).toHaveSize(1)
+    expect(socket.listeners(socketEventRegistry.applicationError.name)).toHaveSize(0)
+    expect(socket.listeners(socketEventRegistry.sessionExpired.name)).toHaveSize(0)
   })
-});
+})

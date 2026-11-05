@@ -8,12 +8,12 @@ import {
   output,
   signal,
   viewChild
-} from '@angular/core';
-import { ControlValueAccessor, NgControl } from '@angular/forms';
+} from '@angular/core'
+import { ControlValueAccessor, NgControl } from '@angular/forms'
 
-export type SelectionControlMode = 'checkbox' | 'switch';
+export type SelectionControlMode = 'checkbox' | 'switch'
 
-let nextGeneratedId = 0;
+let nextGeneratedId = 0
 
 @Component({
   selector: 'm-selection-control',
@@ -25,6 +25,7 @@ let nextGeneratedId = 0;
       class="m-selection-control"
       [class.m-selection-control--switch]="mode() === 'switch'"
       [class.m-selection-control--disabled]="isDisabled()"
+      [class.m-selection-control--card]="layout() === 'card'"
     >
       <input
         #control
@@ -46,7 +47,7 @@ let nextGeneratedId = 0;
       <span class="m-selection-control__visual" aria-hidden="true">
         <span class="m-selection-control__mark"></span>
       </span>
-      <span class="m-selection-control__content">
+      <span class="m-selection-control__content" [class.sr-only]="labelHidden()">
         <span class="m-selection-control__label">{{ label() }}</span>
         @if (description()) {
           <span class="m-selection-control__description" [attr.id]="descriptionId()">
@@ -77,6 +78,18 @@ let nextGeneratedId = 0;
       inline-size: 1px;
       opacity: 0;
       position: absolute;
+    }
+
+    .m-selection-control--card {
+      align-items: center;
+      display: flex;
+      width: 100%;
+      height: 100%;
+      padding: 0;
+    }
+
+    .m-selection-control--card .m-selection-control__visual {
+      margin-top: 0;
     }
 
     .m-selection-control__visual {
@@ -195,85 +208,87 @@ let nextGeneratedId = 0;
   `
 })
 export class SelectionControlComponent implements ControlValueAccessor {
-  readonly label = input.required<string>();
-  readonly description = input<string>();
-  readonly id = input<string>();
-  readonly name = input<string>();
-  readonly mode = input<SelectionControlMode>('checkbox');
-  readonly checked = input(false);
-  readonly indeterminate = input(false);
-  readonly disabled = input(false);
-  readonly required = input(false);
-  readonly ariaLabel = input<string>();
-  readonly changed = output<boolean>();
+  readonly label = input.required<string>()
+  readonly labelHidden = input(false)
+  readonly layout = input<'inline' | 'card'>('inline')
+  readonly description = input<string>()
+  readonly id = input<string>()
+  readonly name = input<string>()
+  readonly mode = input<SelectionControlMode>('checkbox')
+  readonly checked = input(false)
+  readonly indeterminate = input(false)
+  readonly disabled = input(false)
+  readonly required = input(false)
+  readonly ariaLabel = input<string>()
+  readonly changed = output<boolean>()
 
-  readonly control = viewChild.required<ElementRef<HTMLInputElement>>('control');
-  readonly ngControl = inject(NgControl, { self: true, optional: true });
+  readonly control = viewChild.required<ElementRef<HTMLInputElement>>('control')
+  readonly ngControl = inject(NgControl, { self: true, optional: true })
 
-  readonly value = signal(false);
-  private disabledByForm = false;
-  private readonly generatedId = `m-selection-control-${++nextGeneratedId}`;
-  private onModelChange: (value: boolean) => void = () => undefined;
-  private onModelTouched: () => void = () => undefined;
+  readonly value = signal(false)
+  private disabledByForm = false
+  private readonly generatedId = `m-selection-control-${++nextGeneratedId}`
+  private onModelChange: (value: boolean) => void = () => undefined
+  private onModelTouched: () => void = () => undefined
 
   constructor() {
     if (this.ngControl) {
-      this.ngControl.valueAccessor = this;
+      this.ngControl.valueAccessor = this
     }
 
     effect(() => {
       if (!this.ngControl) {
-        this.value.set(this.checked());
+        this.value.set(this.checked())
       }
-    });
+    })
   }
 
   controlId(): string {
-    return this.id() || this.generatedId;
+    return this.id() || this.generatedId
   }
 
   descriptionId(): string | null {
-    return this.description() ? `${this.controlId()}-description` : null;
+    return this.description() ? `${this.controlId()}-description` : null
   }
 
   ariaChecked(): 'true' | 'false' | 'mixed' {
-    return this.indeterminate() ? 'mixed' : this.value() ? 'true' : 'false';
+    return this.indeterminate() ? 'mixed' : this.value() ? 'true' : 'false'
   }
 
   isDisabled(): boolean {
-    return this.disabled() || this.disabledByForm || Boolean(this.ngControl?.control?.disabled);
+    return this.disabled() || this.disabledByForm || Boolean(this.ngControl?.control?.disabled)
   }
 
   writeValue(value: unknown): void {
-    this.value.set(Boolean(value));
+    this.value.set(Boolean(value))
   }
 
   registerOnChange(fn: (value: boolean) => void): void {
-    this.onModelChange = fn;
+    this.onModelChange = fn
   }
 
   registerOnTouched(fn: () => void): void {
-    this.onModelTouched = fn;
+    this.onModelTouched = fn
   }
 
   setDisabledState(isDisabled: boolean): void {
-    this.disabledByForm = isDisabled;
+    this.disabledByForm = isDisabled
   }
 
   onChangeEvent(event: Event): void {
-    if (this.isDisabled()) return;
+    if (this.isDisabled()) return
 
-    const checked = (event.target as HTMLInputElement).checked;
-    this.value.set(checked);
-    this.onModelChange(checked);
-    this.changed.emit(checked);
+    const checked = (event.target as HTMLInputElement).checked
+    this.value.set(checked)
+    this.onModelChange(checked)
+    this.changed.emit(checked)
   }
 
   onBlur(): void {
-    this.onModelTouched();
+    this.onModelTouched()
   }
 
   focus(): void {
-    this.control().nativeElement.focus();
+    this.control().nativeElement.focus()
   }
 }

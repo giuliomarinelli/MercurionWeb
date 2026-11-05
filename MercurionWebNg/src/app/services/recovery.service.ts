@@ -1,7 +1,7 @@
-import { HttpClient } from '@angular/common/http';
-import { inject, Injectable } from '@angular/core';
-import { AuthStateStore } from './auth-state.store';
-import { Observable } from 'rxjs';
+import { HttpClient } from '@angular/common/http'
+import { inject, Injectable } from '@angular/core'
+import { AuthStateStore } from './auth-state.store'
+import { Observable } from 'rxjs'
 import type {
   ConfirmWithRecoveryCodeDTO,
   ConfirmWithRecoveryTokenDTO,

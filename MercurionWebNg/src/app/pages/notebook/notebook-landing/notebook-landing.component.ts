@@ -1,52 +1,62 @@
-import { Component, ChangeDetectionStrategy, DestroyRef, inject, OnInit, signal, Signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { NotebookService } from '../../../services/graphql/notebook.service';
-import { NotebookTree } from '../../../Models/graphql/notebook/notebook.models';
-import { NotebookTreeComponent } from '../../../components/notebook/notebook-tree/notebook-tree.component';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal } from '@angular/core'
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
+import { finalize } from 'rxjs'
+import { NotebookService } from '../../../services/graphql/notebook.service'
+import { NotebookTree } from '../../../Models/graphql/notebook/notebook.models'
+import { NotebookTreeComponent } from '../../../components/notebook/notebook-tree/notebook-tree.component'
 
 @Component({
   selector: 'm-notebook-landing',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NotebookTreeComponent],
   template: `
+    <main role="main" class="mx-auto max-w-6xl px-4 py-6" [attr.aria-busy]="loading()">
+      <header class="mb-6">
+        <h1 class="text-3xl font-semibold">Quaderni di laboratorio</h1>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">
+          Organizza le sezioni, i protocolli degli esperimenti e le esecuzioni.
+        </p>
+      </header>
 
-    <main role="main" aria-live="polite" [attr.aria-busy]="loading()" class="block">
-      <h1 id="notebook-landing-heading" class="text-6xl text-center mb-3">Hola</h1>
-      <m-notebook-tree [notebooks]="notebooks()" aria-labelledby="notebook-landing-heading" />
+      @if (error()) {
+        <div role="alert" class="mb-4 rounded-md border border-red-500 p-3">
+          {{ error() }}
+          <button type="button" class="ml-3 underline" (click)="reload()">Riprova</button>
+        </div>
+      }
+
+      @if (loading()) {
+        <p role="status">Caricamento quaderni…</p>
+      } @else {
+        <m-notebook-tree [notebooks]="notebooks()" mode="edit"
+          (changed)="reload()" />
+      }
     </main>
-  `
+  `,
 })
 export class NotebookLandingComponent implements OnInit {
-  private notebookService = inject(NotebookService);
-
-
-  protected notebooks = signal<NotebookTree[]>([])
-  protected loading = signal<boolean>(false)
+  private readonly notebookService = inject(NotebookService)
   private readonly destroyRef = inject(DestroyRef)
 
-  ngOnInit() {
+  protected readonly notebooks = signal<NotebookTree[]>([])
+  protected readonly loading = signal(false)
+  protected readonly error = signal<string | null>(null)
+
+  ngOnInit(): void {
+    this.reload()
+  }
+
+  reload(): void {
+    this.loading.set(true)
+    this.error.set(null)
     this.notebookService.getAllNotebooks().pipe(
-      takeUntilDestroyed(this.destroyRef)
+      finalize(() => this.loading.set(false)),
+      takeUntilDestroyed(this.destroyRef),
     ).subscribe({
-      next: res => {
-        this.notebooks.set(res)
-        
+      next: notebooks => this.notebooks.set(notebooks),
+      error: (error: unknown) => {
+        this.error.set(error instanceof Error ? error.message : 'Impossibile caricare i quaderni.')
       },
-      error: err => {
-        this.loading.set(false);
-        alert(err.message)
-      }
     })
   }
-
-  createNotebook(title: string) {
-    this.notebookService.createNotebook(title).pipe(
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe({
-      next: () => this.notebookService.refreshNotebooks(),
-      error: err => alert(err.message)
-    });
-  }
-
 }
-

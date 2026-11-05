@@ -22,3 +22,11 @@ assert.deepEqual(
 );
 
 console.log("Tracked artifact hygiene negative checks passed.");
+assert.deepEqual(
+  collectTrackedArtifactViolations(["MercurionWebNg/docs/portfolio-ux/demo/chembl-snapshot.json"]),
+  [],
+);
+assert.equal(
+  collectTrackedArtifactViolations(["MercurionWebNg/docs/portfolio-ux/demo/unowned-snapshot.json"]).length,
+  1,
+);

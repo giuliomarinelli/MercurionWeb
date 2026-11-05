@@ -1,6 +1,6 @@
-import { uuidv7 } from '@kripod/uuidv7';
-import { UUID } from 'crypto';
-import { Entity, Column, Index, PrimaryColumn, BeforeInsert } from 'typeorm';
+import { uuidv7 } from '@kripod/uuidv7'
+import { UUID } from 'crypto'
+import { Entity, Column, Index, PrimaryColumn, BeforeInsert } from 'typeorm'
 
 @Entity('oauth2_tokens')
 @Index(['provider', 'userId'], { unique: true })

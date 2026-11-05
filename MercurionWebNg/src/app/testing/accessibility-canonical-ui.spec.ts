@@ -1,33 +1,33 @@
-import { Component } from '@angular/core';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { FormsModule } from '@angular/forms';
-import { AxeResults } from 'axe-core';
+import { Component } from '@angular/core'
+import { ComponentFixture, TestBed } from '@angular/core/testing'
+import { FormsModule } from '@angular/forms'
+import { AxeResults } from 'axe-core'
 
-import { ActionCardComponent } from '../components/common/action-card/action-card.component';
-import { ButtonComponent } from '../components/common/button/button.component';
-import { DialogShellComponent } from '../components/common/dialog-shell/dialog-shell.component';
-import { DisclosureComponent } from '../components/common/disclosure/disclosure.component';
-import { IconButtonComponent } from '../components/common/icon-button/icon-button.component';
-import { PaginationComponent } from '../components/common/pagination/pagination.component';
-import { ProgressIndicatorComponent } from '../components/common/progress-indicator/progress-indicator.component';
-import { SearchFieldComponent } from '../components/common/search-field/search-field.component';
-import { SelectionControlComponent } from '../components/common/selection-control/selection-control.component';
-import { SelectCoreComponent } from '../components/common/select-core/select-core.component';
-import { TabsModule } from 'primeng/tabs';
-import { TextFieldComponent } from '../components/common/text-field/text-field.component';
-import { TextareaComponent } from '../components/common/textarea/textarea.component';
-import { ToastComponent } from '../components/common/toast/toast.component';
-import { ThemeManagerService } from '../services/context/theme-manager.service';
-import { ToastService } from '../services/toast.service';
+import { ActionCardComponent } from '../components/common/action-card/action-card.component'
+import { ButtonComponent } from '../components/common/button/button.component'
+import { DialogShellComponent } from '../components/common/dialog-shell/dialog-shell.component'
+import { DisclosureComponent } from '../components/common/disclosure/disclosure.component'
+import { IconButtonComponent } from '../components/common/icon-button/icon-button.component'
+import { PaginationComponent } from '../components/common/pagination/pagination.component'
+import { ProgressIndicatorComponent } from '../components/common/progress-indicator/progress-indicator.component'
+import { SearchFieldComponent } from '../components/common/search-field/search-field.component'
+import { SelectionControlComponent } from '../components/common/selection-control/selection-control.component'
+import { SelectCoreComponent } from '../components/common/select-core/select-core.component'
+import { TabsModule } from 'primeng/tabs'
+import { TextFieldComponent } from '../components/common/text-field/text-field.component'
+import { TextareaComponent } from '../components/common/textarea/textarea.component'
+import { ToastComponent } from '../components/common/toast/toast.component'
+import { ThemeManagerService } from '../services/context/theme-manager.service'
+import { ToastService } from '../services/toast.service'
 import {
   blockingViolations,
   formatAxeViolations,
   runAxe,
-} from './accessibility-test.helpers.spec';
+} from './accessibility-test.helpers.spec'
 
 interface SelectItem {
-  id: string;
-  label: string;
+  id: string
+  label: string
 }
 
 @Component({
@@ -128,42 +128,42 @@ interface SelectItem {
   `,
 })
 class CanonicalUiFixtureComponent {
-  text = '';
-  description = '';
-  submitted = false;
-  saveDisabled = false;
-  fieldError = '';
-  dialogOpen = false;
-  activeTab = 0;
+  text = ''
+  description = ''
+  submitted = false
+  saveDisabled = false
+  fieldError = ''
+  dialogOpen = false
+  activeTab = 0
   selectTab(value: string | number | undefined): void {
-    this.activeTab = Number(value);
+    this.activeTab = Number(value)
   }
-  disclosureExpanded = false;
+  disclosureExpanded = false
   items: SelectItem[] = [
     { id: 'one', label: 'First collection' },
     { id: 'two', label: 'Second collection' },
-  ];
+  ]
   paginationState = {
     mode: 'page' as const,
     currentPage: 1,
     totalPages: 2,
     pending: false,
-  };
-  displayItem = (item: SelectItem): string => item.label;
-  valueItem = (item: SelectItem): string => item.id;
+  }
+  displayItem = (item: SelectItem): string => item.label
+  valueItem = (item: SelectItem): string => item.id
 }
 
 describe('canonical UI accessibility coverage', () => {
-  let fixture: ComponentFixture<CanonicalUiFixtureComponent>;
+  let fixture: ComponentFixture<CanonicalUiFixtureComponent>
 
   async function waitForRenderedStyles(): Promise<void> {
-    await fixture.whenRenderingDone();
-    await document.fonts.ready;
-    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-    const root = fixture.nativeElement as HTMLElement;
-    root.getBoundingClientRect();
-    getComputedStyle(root).color;
+    await fixture.whenRenderingDone()
+    await document.fonts.ready
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+    const root = fixture.nativeElement as HTMLElement
+    root.getBoundingClientRect()
+    getComputedStyle(root).color
   }
 
   beforeEach(async () => {
@@ -174,15 +174,15 @@ describe('canonical UI accessibility coverage', () => {
 
     await TestBed.configureTestingModule({
       imports: [CanonicalUiFixtureComponent],
-    }).compileComponents();
+    }).compileComponents()
 
     TestBed.inject(ThemeManagerService).chooseTheme('light')
-    fixture = TestBed.createComponent(CanonicalUiFixtureComponent);
-    fixture.detectChanges();
-    await fixture.whenStable();
-    fixture.detectChanges();
-    await waitForRenderedStyles();
-  });
+    fixture = TestBed.createComponent(CanonicalUiFixtureComponent)
+    fixture.detectChanges()
+    await fixture.whenStable()
+    fixture.detectChanges()
+    await waitForRenderedStyles()
+  })
 
   afterEach(() => {
     localStorage.clear()
@@ -192,26 +192,26 @@ describe('canonical UI accessibility coverage', () => {
   })
 
   async function expectNoBlockingViolations(): Promise<AxeResults> {
-    const results = await runAxe(fixture.nativeElement);
-    const violations = blockingViolations(results);
-    expect(formatAxeViolations(violations)).toBe('');
-    return results;
+    const results = await runAxe(fixture.nativeElement)
+    const violations = blockingViolations(results)
+    expect(formatAxeViolations(violations)).toBe('')
+    return results
   }
 
   function nativeElement(selector: string): HTMLElement {
-    return fixture.nativeElement.querySelector(selector) as HTMLElement;
+    return fixture.nativeElement.querySelector(selector) as HTMLElement
   }
 
   it('runs axe against the stabilized canonical primitive composition', async () => {
-    await expectNoBlockingViolations();
-  });
+    await expectNoBlockingViolations()
+  })
 
   it('keeps every interactive primitive keyboard reachable in deterministic order', () => {
     const controls = Array.from(
       (fixture.nativeElement as HTMLElement).querySelectorAll(
         'button, input, textarea, [role="combobox"], [role="tab"]',
       ),
-    ) as HTMLElement[];
+    ) as HTMLElement[]
 
     expect(controls.map(control => (
       control.getAttribute('aria-label')
@@ -234,110 +234,110 @@ describe('canonical UI accessibility coverage', () => {
       'Page 1',
       'Page 2',
       'Next page',
-    ]);
-    const rovingTabs = controls.filter(control => control.getAttribute('role') === 'tab');
-    const otherControls = controls.filter(control => control.getAttribute('role') !== 'tab');
-    expect(rovingTabs.map(tab => tab.tabIndex)).toEqual([0, -1]);
-    expect(otherControls.every(control => control.tabIndex >= 0)).toBeTrue();
-  });
+    ])
+    const rovingTabs = controls.filter(control => control.getAttribute('role') === 'tab')
+    const otherControls = controls.filter(control => control.getAttribute('role') !== 'tab')
+    expect(rovingTabs.map(tab => tab.tabIndex)).toEqual([0, -1])
+    expect(otherControls.every(control => control.tabIndex >= 0)).toBeTrue()
+  })
 
   it('asserts dialog Escape dismissal and focus restoration', async () => {
-    const opener = nativeElement('form > m-button button') as HTMLButtonElement;
-    opener.focus();
-    fixture.componentInstance.dialogOpen = true;
-    fixture.detectChanges();
-    await fixture.whenStable();
-    fixture.detectChanges();
+    const opener = nativeElement('form > m-button button') as HTMLButtonElement
+    opener.focus()
+    fixture.componentInstance.dialogOpen = true
+    fixture.detectChanges()
+    await fixture.whenStable()
+    fixture.detectChanges()
 
-    const dialog = nativeElement('[role="dialog"]');
-    expect(dialog.getAttribute('aria-modal')).toBe('true');
-    expect(document.activeElement).toBe(dialog.querySelector('button'));
+    const dialog = nativeElement('[role="dialog"]')
+    expect(dialog.getAttribute('aria-modal')).toBe('true')
+    expect(document.activeElement).toBe(dialog.querySelector('button'))
 
-    dialog.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
-    fixture.detectChanges();
-    await fixture.whenStable();
+    dialog.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+    fixture.detectChanges()
+    await fixture.whenStable()
 
-    expect(fixture.componentInstance.dialogOpen).toBeFalse();
-    expect(document.activeElement).toBe(opener);
-  });
+    expect(fixture.componentInstance.dialogOpen).toBeFalse()
+    expect(document.activeElement).toBe(opener)
+  })
 
   it('passes axe for disabled, invalid and modal representative states', async () => {
-    fixture.componentInstance.fieldError = 'Name is required';
-    fixture.componentInstance.saveDisabled = true;
-    fixture.componentInstance.dialogOpen = true;
-    fixture.detectChanges();
-    await fixture.whenStable();
-    fixture.detectChanges();
+    fixture.componentInstance.fieldError = 'Name is required'
+    fixture.componentInstance.saveDisabled = true
+    fixture.componentInstance.dialogOpen = true
+    fixture.detectChanges()
+    await fixture.whenStable()
+    fixture.detectChanges()
 
-    const disabledButton = nativeElement('m-button button[aria-label="Save changes"]');
-    expect(disabledButton).not.toBeNull();
-    await expectNoBlockingViolations();
-  });
+    const disabledButton = nativeElement('m-button button[aria-label="Save changes"]')
+    expect(disabledButton).not.toBeNull()
+    await expectNoBlockingViolations()
+  })
 
   it('tests tabs, disclosure and combobox keyboard activation', async () => {
-    const tablist = nativeElement('[role="tablist"]');
-    const tabs = Array.from(tablist.querySelectorAll<HTMLElement>('[role="tab"]'));
-    tabs[0].focus();
-    tabs[0].dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', code: 'ArrowRight', bubbles: true }));
-    await fixture.whenStable();
-    fixture.detectChanges();
-    expect(document.activeElement).toBe(tabs[1]);
+    const tablist = nativeElement('[role="tablist"]')
+    const tabs = Array.from(tablist.querySelectorAll<HTMLElement>('[role="tab"]'))
+    tabs[0].focus()
+    tabs[0].dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', code: 'ArrowRight', bubbles: true }))
+    await fixture.whenStable()
+    fixture.detectChanges()
+    expect(document.activeElement).toBe(tabs[1])
 
-    const disclosure = nativeElement('#advanced-options-trigger') as HTMLButtonElement;
-    disclosure.click();
-    fixture.detectChanges();
-    await fixture.whenStable();
-    fixture.detectChanges();
-    expect(disclosure.getAttribute('aria-expanded')).toBe('true');
-    expect(nativeElement('[role="region"]').getAttribute('aria-labelledby')).toBe(disclosure.id);
+    const disclosure = nativeElement('#advanced-options-trigger') as HTMLButtonElement
+    disclosure.click()
+    fixture.detectChanges()
+    await fixture.whenStable()
+    fixture.detectChanges()
+    expect(disclosure.getAttribute('aria-expanded')).toBe('true')
+    expect(nativeElement('[role="region"]').getAttribute('aria-labelledby')).toBe(disclosure.id)
 
-    const combobox = nativeElement('[role="combobox"]') as HTMLInputElement;
-    combobox.focus();
-    combobox.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
-    fixture.detectChanges();
-    expect(combobox.getAttribute('aria-expanded')).toBe('true');
-    expect(combobox.getAttribute('aria-activedescendant')).toContain('-option-0');
+    const combobox = nativeElement('[role="combobox"]') as HTMLInputElement
+    combobox.focus()
+    combobox.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }))
+    fixture.detectChanges()
+    expect(combobox.getAttribute('aria-expanded')).toBe('true')
+    expect(combobox.getAttribute('aria-activedescendant')).toContain('-option-0')
 
-    combobox.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
-    fixture.detectChanges();
-    expect(combobox.getAttribute('aria-expanded')).toBe('true');
-    expect(combobox.getAttribute('aria-activedescendant')).toBeNull();
-    expect(nativeElement('[role="listbox"]')).toBeTruthy();
-    expect(document.activeElement).toBe(combobox);
-  });
+    combobox.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+    fixture.detectChanges()
+    expect(combobox.getAttribute('aria-expanded')).toBe('true')
+    expect(combobox.getAttribute('aria-activedescendant')).toBeNull()
+    expect(nativeElement('[role="listbox"]')).toBeTruthy()
+    expect(document.activeElement).toBe(combobox)
+  })
 
   it('exposes live validation, progress, pagination and toast status semantics', () => {
-    fixture.componentInstance.fieldError = 'Name is required';
-    fixture.detectChanges();
+    fixture.componentInstance.fieldError = 'Name is required'
+    fixture.detectChanges()
 
-    const input = nativeElement('m-text-field input');
-    const error = nativeElement('m-text-field [role="alert"]');
-    expect(input.getAttribute('aria-invalid')).toBe('true');
-    expect(input.getAttribute('aria-describedby')).toContain(error.id);
-    expect(error.getAttribute('aria-live')).toBe('polite');
+    const input = nativeElement('m-text-field input')
+    const error = nativeElement('m-text-field [role="alert"]')
+    expect(input.getAttribute('aria-invalid')).toBe('true')
+    expect(input.getAttribute('aria-describedby')).toContain(error.id)
+    expect(error.getAttribute('aria-live')).toBe('polite')
 
     expect(nativeElement('m-progress-indicator [role="status"]').getAttribute('aria-label'))
-      .toBe('Loading…');
-    expect(nativeElement('m-pagination nav').getAttribute('aria-label')).toBe('Pagination');
+      .toBe('Loading…')
+    expect(nativeElement('m-pagination nav').getAttribute('aria-label')).toBe('Pagination')
 
-    const toastService = TestBed.inject(ToastService);
-    toastService.trigger('Saved successfully', 'success', 0);
-    fixture.detectChanges();
-    expect(nativeElement('m-toast [aria-live="polite"]').getAttribute('aria-relevant')).toBe('additions');
-    expect(nativeElement('m-toast .toast__close').getAttribute('aria-label')).toBe('Chiudi notifica');
-  });
+    const toastService = TestBed.inject(ToastService)
+    toastService.trigger('Saved successfully', 'success', 0)
+    fixture.detectChanges()
+    expect(nativeElement('m-toast [aria-live="polite"]').getAttribute('aria-relevant')).toBe('additions')
+    expect(nativeElement('m-toast .toast__close').getAttribute('aria-label')).toBe('Chiudi notifica')
+  })
 
   it('detects a known bad accessible-name fixture instead of suppressing it', async () => {
-    const badFixture = document.createElement('div');
-    badFixture.innerHTML = '<button></button>';
-    document.body.appendChild(badFixture);
+    const badFixture = document.createElement('div')
+    badFixture.innerHTML = '<button></button>'
+    document.body.appendChild(badFixture)
 
     try {
-      const results = await runAxe(badFixture);
-      const violations = blockingViolations(results);
-      expect(violations.some(({ id }) => id === 'button-name')).toBeTrue();
+      const results = await runAxe(badFixture)
+      const violations = blockingViolations(results)
+      expect(violations.some(({ id }) => id === 'button-name')).toBeTrue()
     } finally {
-      badFixture.remove();
+      badFixture.remove()
     }
-  });
-});
+  })
+})

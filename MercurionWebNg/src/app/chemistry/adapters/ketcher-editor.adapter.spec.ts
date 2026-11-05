@@ -1,4 +1,4 @@
-import { fakeAsync, tick } from '@angular/core/testing'
+import { fakeAsync, flushMicrotasks, tick } from '@angular/core/testing'
 
 import { ChemistryCapabilityState } from '../chemistry-adapter.models'
 import { createKetcherEditorAdapter } from './ketcher-editor.adapter'
@@ -20,13 +20,15 @@ describe('Ketcher editor adapter', () => {
 
     window.dispatchEvent(new MessageEvent('message', {
       data: { type: 'ketcherReady' },
+      origin: window.location.origin,
       source: targetWindow
     }))
 
     const setStructure = session.setStructure('CC')
     await new Promise(resolve => setTimeout(resolve, 0))
     window.dispatchEvent(new MessageEvent('message', {
-      data: { type: 'moleculeSet' },
+      data: { ...postMessage.calls.mostRecent().args[0], type: 'moleculeSet' },
+      origin: window.location.origin,
       source: targetWindow
     }))
     await setStructure
@@ -34,7 +36,8 @@ describe('Ketcher editor adapter', () => {
     const exported = session.exportStructure()
     await new Promise(resolve => setTimeout(resolve, 0))
     window.dispatchEvent(new MessageEvent('message', {
-      data: { type: 'smiles', payload: 'CC' },
+      data: { ...postMessage.calls.mostRecent().args[0], type: 'smiles', payload: 'CC' },
+      origin: window.location.origin,
       source: targetWindow
     }))
 
@@ -42,7 +45,7 @@ describe('Ketcher editor adapter', () => {
     expect(states.map(state => state.status)).toEqual(['loading', 'ready'])
     expect(postMessage).toHaveBeenCalled()
     const [message, targetOrigin] = postMessage.calls.first().args as unknown[]
-    expect(message).toEqual({ type: 'setMolecule', payload: 'molfile' })
+    expect(message).toEqual(jasmine.objectContaining({ type: 'setMolecule', payload: 'molfile', sessionId: jasmine.any(String), requestId: jasmine.any(Number) }))
     expect(targetOrigin).toBe(window.location.origin)
     session.dispose()
     frame.remove()
@@ -69,5 +72,31 @@ describe('Ketcher editor adapter', () => {
     expect(latestState.error?.recoverable).toBeTrue()
     session.dispose()
     frame.remove()
+  }))
+
+  it('ignores timed-out responses and foreign origins instead of resolving a later export', fakeAsync(() => {
+    const frame = document.createElement('iframe')
+    document.body.appendChild(frame)
+    const targetWindow = frame.contentWindow!
+    const post = spyOn(targetWindow, 'postMessage')
+    const session = createKetcherEditorAdapter({ resourceUrl: '/ketcher/index.html', targetOrigin: window.location.origin, toMolfile: async () => '' })
+    session.attach(frame)
+    const reply = (data: unknown, origin = window.location.origin) => window.dispatchEvent(new MessageEvent('message', { data, origin, source: targetWindow }))
+    reply({ type: 'ketcherReady' })
+    let timedOut = false
+    void session.exportStructure().catch(() => { timedOut = true })
+    flushMicrotasks()
+    const first = post.calls.mostRecent().args[0]
+    tick(3000); flushMicrotasks(); expect(timedOut).toBeTrue()
+    let value: string | undefined
+    void session.exportStructure().then(result => { value = result })
+    flushMicrotasks()
+    const second = post.calls.mostRecent().args[0]
+    reply({ ...first, type: 'smiles', payload: 'old' })
+    reply({ ...second, type: 'smiles', payload: 'foreign' }, 'https://foreign.test')
+    flushMicrotasks(); expect(value).toBeUndefined()
+    reply({ ...second, type: 'smiles', payload: 'CC' })
+    flushMicrotasks(); expect(value).toBe('CC')
+    session.dispose(); frame.remove()
   }))
 })

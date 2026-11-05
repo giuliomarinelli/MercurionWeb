@@ -1,6 +1,6 @@
-import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { HeaderNavigationItem } from './header.models';
+import { Component, ChangeDetectionStrategy, input, output } from '@angular/core'
+import { RouterLink } from '@angular/router'
+import { HeaderNavigationItem } from './header.models'
 
 @Component({
   selector: 'm-header-navigation',
@@ -20,6 +20,6 @@ import { HeaderNavigationItem } from './header.models';
   `
 })
 export class HeaderNavigationComponent {
-  readonly items = input<readonly HeaderNavigationItem[]>([]);
-  readonly selected = output<HeaderNavigationItem>();
+  readonly items = input<readonly HeaderNavigationItem[]>([])
+  readonly selected = output<HeaderNavigationItem>()
 }

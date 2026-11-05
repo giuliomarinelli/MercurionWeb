@@ -45,6 +45,14 @@ describe('AuthGuard', () => {
     expect(guard).toBeTruthy()
   })
 
+  it('requires login for protected navigation during incomplete MFA without restoring it', () => {
+    authState.set({ kind: 'pre-auth', preAuthorizationToken: 'pat' })
+    const result = guard.canActivate(protectedRoute(), state('/settings'))
+    expect(sessionSync.checkSession).not.toHaveBeenCalled()
+    expect(TestBed.inject(Router).serializeUrl(result as ReturnType<Router['parseUrl']>))
+      .toBe('/login?redirect_to=%2Fsettings')
+  })
+
   it('waits for an in-progress restore before allowing a protected refresh', fakeAsync(() => {
     authState.set({ kind: 'authenticating', flow: 'restore' })
     sessionSync.checkSession.and.callFake(() => new Promise<void>(resolve => {

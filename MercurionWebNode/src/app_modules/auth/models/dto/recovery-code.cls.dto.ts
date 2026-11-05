@@ -1,5 +1,5 @@
-import { Transform } from "class-transformer";
-import { IsDefined, IsNotEmpty, IsString } from "class-validator";
+import { Transform } from "class-transformer"
+import { IsDefined, IsNotEmpty, IsString } from "class-validator"
 import type { RecoveryCodeDTO as RecoveryCodeContract } from '@mercurion/rest-contracts'
 
 export class RecoveryCodeDTO implements RecoveryCodeContract {

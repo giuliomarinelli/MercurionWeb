@@ -1,7 +1,7 @@
-import { UUID } from "crypto";
-import { BeforeInsert, Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
-import { User } from "./user.entity";
-import { uuidv7 } from "@kripod/uuidv7";
+import { UUID } from "crypto"
+import { BeforeInsert, Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm"
+import { User } from "./user.entity"
+import { uuidv7 } from "@kripod/uuidv7"
 
 @Entity({ name: 'backup_codes' })
 export class MfaBackupCode {

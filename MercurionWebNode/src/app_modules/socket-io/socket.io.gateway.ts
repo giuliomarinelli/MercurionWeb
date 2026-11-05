@@ -1,19 +1,19 @@
-import { WebSocketGateway, WebSocketServer, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, MessageBody, ConnectedSocket } from '@nestjs/websockets';
+import { WebSocketGateway, WebSocketServer, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, MessageBody, ConnectedSocket } from '@nestjs/websockets'
 import { OnApplicationBootstrap, OnApplicationShutdown } from '@nestjs/common'
-import { Server, Socket } from 'socket.io';
-import { UseGuards } from '@nestjs/common';
-import Redis from 'ioredis';
-import { createAdapter } from '@socket.io/redis-adapter';
-import { WsGuard } from './guards/ws.guard';
-import { PubSubService } from '../redis/services/pub-sub.service';
-import { Public } from 'src/metadata/metadata';
-import { UUID } from 'crypto';
-import { LoggerPort } from 'src/logging/logger.port';
-import { LoggerContext } from 'src/logging/logger.port';
-import { ConfigService } from '@nestjs/config';
-import { RedisConfiguration } from 'src/config/config.types';
-import { JwtToolsService } from '../auth/services/jwt-tools.service';
-import { TokenType } from '../auth/models/enums/token-type.enum';
+import { Server, Socket } from 'socket.io'
+import { UseGuards } from '@nestjs/common'
+import Redis from 'ioredis'
+import { createAdapter } from '@socket.io/redis-adapter'
+import { WsGuard } from './guards/ws.guard'
+import { PubSubService } from '../redis/services/pub-sub.service'
+import { Public } from 'src/metadata/metadata'
+import { UUID } from 'crypto'
+import { LoggerPort } from 'src/logging/logger.port'
+import { LoggerContext } from 'src/logging/logger.port'
+import { ConfigService } from '@nestjs/config'
+import { RedisConfiguration } from 'src/config/config.types'
+import { JwtToolsService } from '../auth/services/jwt-tools.service'
+import { TokenType } from '../auth/models/enums/token-type.enum'
 import {
   socketEventRegistry,
   type ClientToServerEvents,
@@ -21,20 +21,21 @@ import {
   type SocketHandshakeAuth,
   type SocketEventPayload,
   type SocketSessionInitAcknowledgement,
-} from '@mercurion/socket-contracts';
+} from '@mercurion/socket-contracts'
 import {
   contractVersionDetails,
   contractVersionWarning,
   isValidClientInstanceId,
   negotiateContractMajor
-} from '@mercurion/rest-contracts';
+} from '@mercurion/rest-contracts'
 import {
   createSocketApplicationError,
   createCorrelationId,
   presentApplicationError
-} from 'src/exception-handling/application-error-envelope';
-import { SecurityService } from '../auth/services/security.service';
-import { RealtimePublisherService } from './realtime-publisher.service';
+} from 'src/exception-handling/application-error-envelope'
+import { SecurityService } from '../auth/services/security.service'
+import { RealtimePublisherService } from './realtime-publisher.service'
+import { bindSocketKey } from './socket-key-binding'
 
 type ApplicationServer = Server<ClientToServerEvents, ServerToClientEvents>
 type ApplicationSocket = Socket<ClientToServerEvents, ServerToClientEvents>
@@ -131,20 +132,22 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
 
 
   async handleConnection(client: ApplicationSocket) {
-    this.logger.log(`🔗 Connected socket ${client.id}`);
+    this.logger.log(`🔗 Connected socket ${client.id}`)
 
-    const token = client.handshake.auth?.token as string | undefined;
+    const token = client.handshake.auth?.token as string | undefined
 
     if (!token) {
       // connessione PUBLIC, nessun binding alle room utente
-      this.logger.log(`Socket ${client.id} connesso in PUBLIC mode`);
-      return;
+      this.logger.log(`Socket ${client.id} connesso in PUBLIC mode`)
+      return
     }
 
     try {
 
-      const { sub, sid: sessionId } = await this.jwtTools.verifyTokenAndGetPayload(token, TokenType.ws_AccessToken);
+      const { sub, sid: sessionId } = await this.jwtTools.verifyTokenAndGetPayload(token, TokenType.ws_AccessToken)
       const userId = this.securityService.decryptUserId(sub)
+
+      await bindSocketKey(client, token, this.jwtTools)
 
       client.data.userId = userId
       client.data.sessionId = sessionId
@@ -156,14 +159,14 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
         this.logger.warn(`Socket ${client.id} private senza clientInstanceId valido; self-echo exclusion non disponibile`)
       }
 
-      this.joinUserRooms(client);  // idempotente, usa già .rooms.has(...)
+      this.joinUserRooms(client)  // idempotente, usa già .rooms.has(...)
       this.logger.log(
         `Socket ${client.id} autenticato onConnect, bind ws_session:${sessionId}, ws_user:${userId}` +
         (client.data.clientInstanceId ? `, ws_client:${client.data.clientInstanceId}` : '')
-      );
+      )
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : String(e)
-      this.logger.warn(`WS auth fallita su handleConnection per ${client.id}: ${message}`);
+      this.logger.warn(`WS auth fallita su handleConnection per ${client.id}: ${message}`)
       // se questo gateway è solo privato puoi anche fare:
       // client.disconnect(true);
     }
@@ -179,6 +182,8 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
 
   private joinUserRooms(client: ApplicationSocket): void {
 
+    if (client.connected === false) return
+
     const sessionId = client.data?.sessionId as string | undefined
     const userId = client.data?.userId?.toString() as string | undefined
     const clientInstanceId = client.data?.clientInstanceId as string | undefined
@@ -189,7 +194,7 @@ export class SocketIOGateway implements OnGatewayConnection, OnGatewayDisconnect
         this.logger.debug(`Socket ${client.id} joinato a ws_session:${sessionId}`)
       }
       if (!client.rooms.has(`ws_user:${userId}`)) {
-        void client.join(`ws_user:${userId}`);
+        void client.join(`ws_user:${userId}`)
         this.logger.debug(`Socket ${client.id} joinato a ws_user:${userId}`)
       }
 

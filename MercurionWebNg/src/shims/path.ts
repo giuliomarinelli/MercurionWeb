@@ -1,9 +1,9 @@
 // Browser shim per "path"
 
 function join(...parts: string[]): string {
-  return parts.join('/');
+  return parts.join('/')
 }
 
-const path = { join };
+const path = { join }
 
-module.exports = path;
+module.exports = path

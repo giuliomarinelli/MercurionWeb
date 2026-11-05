@@ -16,11 +16,11 @@ import { WelcomeSecondaryFeaturesComponent } from '../../components/welcome/welc
 import { Subscription } from 'rxjs'
 import { ScrollContextService } from '../../services/context/scroll-context.service'
 import { ActivatedRoute } from '@angular/router'
-import { UserContextService } from '../../services/context/user-context.service'
 import { ProgressIndicatorComponent } from '../../components/common/progress-indicator/progress-indicator.component'
 import { DesignService } from '../../services/design.service'
 import { AuthStateStore } from '../../services/auth-state.store'
 import { SessionSyncService } from '../../services/session-sync.service'
+import { WelcomeEditorShowcaseComponent } from '../../components/welcome/welcome-editor-showcase/welcome-editor-showcase.component'
 
 @Component({
   selector: 'm-welcome-page',
@@ -29,6 +29,7 @@ import { SessionSyncService } from '../../services/session-sync.service'
     WelcomeCloudLogoComponent,
     WelcomeFeatureGridComponent,
     WelcomeScreenshotBandComponent,
+    WelcomeEditorShowcaseComponent,
     WelcomeSecondaryFeaturesComponent,
     FooterComponent,
     ProgressIndicatorComponent
@@ -116,6 +117,7 @@ import { SessionSyncService } from '../../services/session-sync.service'
           <m-welcome-feature-grid />
           <!-- Screenshot section -->
           <m-welcome-screenshot-band />
+          <m-welcome-editor-showcase />
           <!-- Feature secondary -->
           <m-welcome-secondary-features />
           <!-- Footer -->
@@ -140,7 +142,7 @@ export class WelcomePageComponent implements OnInit, OnDestroy {
     const kind = this.authState.kind()
     const status = this.sessionSync.status()
     return !this.authState.authenticated() &&
-      (kind === 'anonymous' || kind === 'session-expired') &&
+      (kind === 'anonymous' || kind === 'session-expired' || kind === 'pre-auth') &&
       status !== 'unknown' && status !== 'checking'
   })
 

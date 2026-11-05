@@ -1,23 +1,23 @@
-import { TestBed } from '@angular/core/testing';
-import { provideRouter, Router } from '@angular/router';
+import { TestBed } from '@angular/core/testing'
+import { provideRouter, Router } from '@angular/router'
 
-import { AuthRedirectService } from './auth-redirect.service';
-import { AuthSessionPersistenceService } from './auth-session-persistence.service';
+import { AuthRedirectService } from './auth-redirect.service'
+import { AuthSessionPersistenceService } from './auth-session-persistence.service'
 
 describe('AuthRedirectService', () => {
-  let service: AuthRedirectService;
+  let service: AuthRedirectService
 
   beforeEach(() => {
     sessionStorage.clear()
-    TestBed.configureTestingModule({ providers: [provideRouter([])] });
-    service = TestBed.inject(AuthRedirectService);
-  });
+    TestBed.configureTestingModule({ providers: [provideRouter([])] })
+    service = TestBed.inject(AuthRedirectService)
+  })
 
   afterEach(() => sessionStorage.clear())
 
   it('should be created', () => {
-    expect(service).toBeTruthy();
-  });
+    expect(service).toBeTruthy()
+  })
 
   it('round-trips a same-origin path, query and fragment exactly once', () => {
     expect(service.capture('/molecules/editor?x=1#atom')).toBe('/molecules/editor?x=1#atom')
@@ -57,4 +57,4 @@ describe('AuthRedirectService', () => {
     expect(persistence.getPreAuthorizationData()).toBeNull()
     expect(navigate).toHaveBeenCalledOnceWith('/login', { replaceUrl: true })
   })
-});
+})

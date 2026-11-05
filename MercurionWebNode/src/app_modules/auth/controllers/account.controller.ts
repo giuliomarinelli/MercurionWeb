@@ -1,40 +1,40 @@
-import { ChangePasswordDTO } from './../models/dto/change-password.dto';
-import { MfaStrategy } from 'src/app_modules/user/models/enums/mfa-strategy.enum';
-import { BadRequestException, Body, Controller, Delete, Get, HttpCode, HttpStatus, NotFoundException, Param, Patch, Post, Query, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
-import { UserRegisterDTO } from 'src/app_modules/user/models/dto/user-register.cls.dto';
-import { AuthenticatedUserId, Authorization, Public, SessionId } from 'src/metadata/metadata';
-import { ConfirmChangeDTO, ConfirmDTO, ConfirmMfaChange, ConfirmWithObsContDTO, ConfirmWithPhoneMfaFeedback, ConfirmWithRecoveryCodeDTO } from 'src/models/confirm-responses.dto';
-import { AccountRegistrationUseCase, AccountActivationUseCase, AccountEmailAvailabilityQuery } from '../application/account-registration.use-case';
-import { AccountSensitiveDataUseCase } from '../application/account-sensitive-data.use-case';
-import { PasswordChangeUseCase, PasswordRecoveryUseCase } from '../application/password-recovery.use-case';
-import { ProfileAccountUseCase } from '../application/profile-account.use-case';
-import { GeneralUtils } from 'src/utils/general-utils/general-utils';
+import { ChangePasswordDTO } from './../models/dto/change-password.dto'
+import { MfaStrategy } from 'src/app_modules/user/models/enums/mfa-strategy.enum'
+import { BadRequestException, Body, Controller, Delete, Get, HttpCode, HttpStatus, NotFoundException, Param, Patch, Post, Query, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common'
+import { UserRegisterDTO } from 'src/app_modules/user/models/dto/user-register.cls.dto'
+import { AuthenticatedUserId, Authorization, Public, SessionId } from 'src/metadata/metadata'
+import { ConfirmChangeDTO, ConfirmDTO, ConfirmMfaChange, ConfirmWithObsContDTO, ConfirmWithPhoneMfaFeedback, ConfirmWithRecoveryCodeDTO } from 'src/models/confirm-responses.dto'
+import { AccountRegistrationUseCase, AccountActivationUseCase, AccountEmailAvailabilityQuery } from '../application/account-registration.use-case'
+import { AccountSensitiveDataUseCase } from '../application/account-sensitive-data.use-case'
+import { PasswordChangeUseCase, PasswordRecoveryUseCase } from '../application/password-recovery.use-case'
+import { ProfileAccountUseCase } from '../application/profile-account.use-case'
+import { GeneralUtils } from 'src/utils/general-utils/general-utils'
 import { publicTotpMetadata } from 'src/utils/temporal/temporal'
-import { ResponseService } from 'src/services/response.service';
-import { MfaChallengeService } from '../services/mfa-challenge.service';
-import { MfaEnrollmentService } from '../services/mfa-enrollment.service';
-import { MfaBackupCodeService } from '../services/mfa-backup-code.service';
-import { UUID } from 'crypto';
-import { TotpDTO } from '../models/dto/totp.cls.dto';
-import { ChangePhoneDTO } from '../models/dto/change-phone.cls.dto';
-import { EmailDTO } from '../models/dto/email.cls.dto';
-import { UserService } from 'src/app_modules/user/services/user.service';
-import { TurnstileGuard } from '../guards/turnstile.guard';
-import { SecurityService } from '../services/security.service';
-import { ProfileDTO, ProfileRegistryClientDTO, ProfileRegistryDTO } from '../models/dto/profile.dtos';
-import { SessionDTO } from '../models/dto/session.dto';
-import { BackupCodeStatusDTO } from 'src/app_modules/user/models/dto/backup-code-status.dto';
-import { ConfigService } from '@nestjs/config';
-import { BuildIdentityDTO } from '../models/dto/version.dto';
+import { ResponseService } from 'src/services/response.service'
+import { MfaChallengeService } from '../services/mfa-challenge.service'
+import { MfaEnrollmentService } from '../services/mfa-enrollment.service'
+import { MfaBackupCodeService } from '../services/mfa-backup-code.service'
+import { UUID } from 'crypto'
+import { TotpDTO } from '../models/dto/totp.cls.dto'
+import { ChangePhoneDTO } from '../models/dto/change-phone.cls.dto'
+import { EmailDTO } from '../models/dto/email.cls.dto'
+import { UserService } from 'src/app_modules/user/services/user.service'
+import { TurnstileGuard } from '../guards/turnstile.guard'
+import { SecurityService } from '../services/security.service'
+import { ProfileDTO, ProfileRegistryClientDTO, ProfileRegistryDTO } from '../models/dto/profile.dtos'
+import { SessionDTO } from '../models/dto/session.dto'
+import { BackupCodeStatusDTO } from 'src/app_modules/user/models/dto/backup-code-status.dto'
+import { ConfigService } from '@nestjs/config'
+import { BuildIdentityDTO } from '../models/dto/version.dto'
 import { type AuthProvider as WireAuthProvider, type BackupCodesDTO, type MfaStrategy as WireMfaStrategy, AccountIdKind, type ProvidedAccountIdDTO } from '@mercurion/rest-contracts'
 import {
     ApplicationErrorCode,
     applicationError,
     isApplicationError
 } from 'src/exception-handling/application-error'
-import { ListActiveSessionsHandler } from '../application/session-authentication.handlers';
-import { buildIdentity } from 'src/generated/build-identity';
-import { RealtimeStateSyncService } from 'src/app_modules/socket-io/realtime-state-sync.service';
+import { ListActiveSessionsHandler } from '../application/session-authentication.handlers'
+import { buildIdentity } from 'src/generated/build-identity'
+import { RealtimeStateSyncService } from 'src/app_modules/socket-io/realtime-state-sync.service'
 
 
 

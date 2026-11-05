@@ -30,60 +30,44 @@ import { ViewportRuntimeService } from '../../../services/context/viewport-runti
 @Component({
   selector: 'm-ketcher-frame',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  styleUrl: './ketcher-frame.component.css',
   template: `
     <div class="relative w-full" role="region" aria-label="Editor molecolare">
-      @if (showIframe()) {
-        @if (editorState() === 'unavailable') {
-          <div class="flex min-h-[320px] flex-col items-center justify-center gap-4 px-4 text-center" role="alert">
-            <p class="font-semibold text-light-error dark:text-dark-error">{{ editorError() }}</p>
-            <button
-              type="button"
-              class="rounded-md bg-light-accent-primary-hq px-4 py-2 text-white dark:bg-dark-accent-primary-btn"
-              (click)="retry()"
-            >
-              Riprova
-            </button>
-          </div>
-        } @else {
-          <div class="relative mx-auto h-[70vh] min-h-[320px] max-h-[540px] w-full max-w-[1380px] sm:h-[500px] lg:px-8">
-            @if (ketcherUrl()) {
-              <iframe
-                #ketcherIframe
-                [src]="ketcherUrl()"
-                class="block h-full w-full border-none shadow-[0_1px_12px_rgba(15,23,42,0.18)] dark:shadow-none"
-                title="Editor molecolare"
-                [attr.aria-busy]="editorState() === 'loading'"
-              ></iframe>
-            }
-
-            @if (editorState() === 'loading') {
-              <div
-                class="pointer-events-none absolute inset-y-0 inset-x-0 animate-pulse bg-gray-300 dark:bg-neutral-700 lg:inset-x-8"
-                role="status"
-                aria-live="polite"
-                aria-label="Caricamento editor in corso"
-              ></div>
-            }
-          </div>
-        }
-      } @else {
-        <div class="flex flex-col gap-9">
-          <p class="font-semibold text-lg text-center mb-2" role="status" aria-live="polite">
-            Ruota il telefono in orizzontale per usare l'editor molecolare
-          </p>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 640 640"
-            class="fill-current text-light-on-surface-main dark:text-slate-100 w-24 h-24 mx-auto"
+      @if (editorState() === 'unavailable') {
+        <div class="m-ketcher-stage m-ketcher-unavailable" role="alert">
+          <p class="font-semibold text-light-error dark:text-dark-error">{{ editorError() }}</p>
+          <button
+            type="button"
+            class="rounded-md bg-light-accent-primary-hq px-4 py-2 text-white dark:bg-dark-accent-primary-btn"
+            (click)="retry()"
           >
-            <path
-              d="M561.4 65.8C552.4 62.1 542.1 64.1 535.2 71L483.4 122.8C382.8 39.3 233.3 44.7 139.1 139C39.1 239 39.1 401 139.1 501C239.1 601 401.2 601 501.1 501C516 486.1 528.7 469.8 539.2 452.5C546.1 441.2 542.4 426.4 531.1 419.5C519.8 412.6 505 416.3 498.1 427.6C489.6 441.6 479.3 454.9 467.1 467C385.9 548.2 254.2 548.2 172.9 467C91.6 385.8 91.7 254.1 172.9 172.8C248.4 97.3 367.5 92 449.1 156.8L399.1 207C392.2 213.9 390.2 224.2 393.9 233.2C397.6 242.2 406.4 248 416.1 248L552.2 248C565.5 248 576.2 237.3 576.2 224L576.2 88C576.2 78.3 570.4 69.5 561.4 65.8zM528.2 145.9L528.2 200L474.1 200L528.2 145.9z"
-            />
-          </svg>
+            Riprova
+          </button>
+        </div>
+      } @else {
+        <div class="m-ketcher-stage">
+          @if (ketcherUrl()) {
+            <iframe
+              #ketcherIframe
+              [src]="ketcherUrl()"
+              class="m-ketcher-iframe"
+              title="Editor molecolare"
+              [attr.aria-busy]="editorState() === 'loading'"
+            ></iframe>
+          }
+
+          @if (editorState() === 'loading') {
+            <div
+              class="pointer-events-none absolute inset-y-0 inset-x-0 animate-pulse bg-gray-300 dark:bg-neutral-700 motion-reduce:animate-none"
+              role="status"
+              aria-live="polite"
+              aria-label="Caricamento editor in corso"
+            ></div>
+          }
         </div>
       }
 
-      @if (showIframe() && editorState() !== 'unavailable') {
+      @if (editorState() !== 'unavailable') {
         <ng-content></ng-content>
       }
     </div>
@@ -91,13 +75,12 @@ import { ViewportRuntimeService } from '../../../services/context/viewport-runti
 })
 export class KetcherFrameComponent implements OnInit, OnDestroy {
   private readonly viewportRuntime = inject(ViewportRuntimeService)
-  private readonly publicPipe = inject(PublicPipe);
-  private readonly sanitizer = inject(DomSanitizer);
-  private readonly editor = inject(ChemistryEditorService);
-  private readonly zone = inject(NgZone);
+  private readonly publicPipe = inject(PublicPipe)
+  private readonly sanitizer = inject(DomSanitizer)
+  private readonly editor = inject(ChemistryEditorService)
+  private readonly zone = inject(NgZone)
 
   readonly ketcherUrl = signal<SafeResourceUrl | null>(null)
-  readonly showIframe = signal(true)
   readonly editorState = signal<'loading' | 'ready' | 'unavailable'>('loading')
   readonly editorError = signal('L’editor molecolare non è disponibile.')
 
@@ -109,9 +92,13 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
   private session?: ChemistryEditorSession
   private iframe?: HTMLIFrameElement
   private unsubscribeState?: () => void
+  private unsubscribeChange?: () => void
   private exportSubscription?: Subscription
   private pollSubscription?: Subscription
   private sessionGeneration = 0
+  private structureGeneration = 0
+  private vendorRevision = 0
+  private settingStructure = false
   private destroyed = false
   private activeSessionTab?: ChemistryEditorTab
 
@@ -123,10 +110,14 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
   readonly triggerReset = input(false)
   readonly triggerGetSmiles = input(false)
 
-  readonly molChange = output<string>();
-  readonly exportSmiles = output<string>();
-  readonly exportPolledSmiles = output<string>();
-  readonly onReset = output<void>();
+  readonly molChange = output<string>()
+  readonly exportSmiles = output<string>()
+  readonly exportPolledSmiles = output<string>()
+  readonly onReset = output<void>()
+  readonly structureChanged = output<void>()
+  readonly exportFailed = output<void>()
+  readonly editorReady = output<void>()
+  readonly structureRestored = output<{ loadedSmiles: string; exportedSmiles: string }>()
 
   readonly iframeRef = viewChild<ElementRef<HTMLIFrameElement>>('ketcherIframe')
 
@@ -175,14 +166,13 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.updateViewportFlags()
     void this.startSession()
 
     this.pollSubscription = interval(250)
       .pipe(
         takeUntil(this.destroy$),
         filter(() => this.editorState() === 'ready'),
-        filter(() => !this.exporting()),
+        filter(() => !this.exporting() && !this.settingStructure),
         exhaustMap(() => this.requestExportSmiles$('poll').pipe(catchError(() => EMPTY)))
       )
       .subscribe()
@@ -216,6 +206,7 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
 
   private async startSession(): Promise<void> {
     const generation = ++this.sessionGeneration
+    this.settingStructure = false
     clearTimeout(this.loadedTimeoutId)
     this.teardownMobileKeyboardGuard()
     this.disposeSession()
@@ -237,6 +228,16 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
       }
 
       this.session = session
+      this.unsubscribeChange = session.onStructureChange?.(() => {
+        if (this.session !== session || generation !== this.sessionGeneration) return
+        this.vendorRevision++
+        // Loading/restoring a structure also emits vendor change events. Only
+        // interactive changes invalidate the identity already resolved for it.
+        if (this.session === session && generation === this.sessionGeneration &&
+            this.editorState() === 'ready' && !this.settingStructure) {
+          this.zone.run(() => this.structureChanged.emit())
+        }
+      })
       this.unsubscribeState = session.onStateChange(state => {
         if (state.status === 'ready') {
           void this.initializeReadySession(session, generation)
@@ -260,7 +261,14 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
     generation: number
   ): Promise<void> {
     try {
-      await session.setStructure(this.smiles() ?? '')
+      const loadedSmiles = this.smiles() ?? ''
+      await session.setStructure(loadedSmiles)
+
+      // The importer may reorder atoms/bonds in its SMILES serialization.
+      // Bind that serialization only to this confirmed, unchanged restoration.
+      const restoredRevision = this.vendorRevision
+      let exportedSmiles: string | undefined
+      try { exportedSmiles = await session.exportStructure() } catch { /* Normal polling can retry. */ }
 
       if (
         this.destroyed ||
@@ -271,7 +279,14 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
       }
 
       this.zone.run(() => {
+        if (restoredRevision === this.vendorRevision && loadedSmiles === (this.smiles() ?? '') &&
+            typeof exportedSmiles === 'string') {
+          this.structureRestored.emit({ loadedSmiles, exportedSmiles })
+        } else if (restoredRevision !== this.vendorRevision) {
+          this.structureChanged.emit()
+        }
         this.editorState.set('ready')
+        this.editorReady.emit()
         this.loadedTimeoutId = setTimeout(() => this.installMobileKeyboardGuard(), 50)
       })
     } catch (error) {
@@ -282,6 +297,8 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
   }
 
   private disposeSession(): void {
+    this.unsubscribeChange?.()
+    this.unsubscribeChange = undefined
     this.unsubscribeState?.()
     this.unsubscribeState = undefined
     this.session?.dispose()
@@ -289,22 +306,18 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
     this.iframe = undefined
   }
 
-  private updateViewportFlags(): void {
-    const width = this.viewportRuntime.width()
-    const height = this.viewportRuntime.height()
-    const landscape = this.viewportRuntime.state().landscape
-    const roomy = width >= 600 || (width >= 480 && height >= 360)
-    this.showIframe.set(landscape || roomy)
-  }
-
   private requestExportSmiles$(kind: 'explicit' | 'poll') {
     return defer(() => {
       const session = this.session
+      const generation = this.sessionGeneration
+      const structureGeneration = this.structureGeneration
       if (!session) {
         throw new ChemistryAdapterError('unavailable', 'L’editor molecolare non è disponibile.')
       }
 
       return from(session.exportStructure()).pipe(
+        filter(() => !this.destroyed && generation === this.sessionGeneration && session === this.session &&
+          structureGeneration === this.structureGeneration && !this.settingStructure),
         tap(smiles => {
           this.zone.run(() => {
             if (kind === 'explicit') {
@@ -314,16 +327,30 @@ export class KetcherFrameComponent implements OnInit, OnDestroy {
               this.molChange.emit(smiles)
             }
           })
+        }),
+        catchError(() => {
+          if (!this.destroyed && generation === this.sessionGeneration && session === this.session &&
+              structureGeneration === this.structureGeneration) {
+            // Preserve the drawing and let the next poll recover; recreating the
+            // iframe on an export failure would discard the user's current work.
+            this.zone.run(() => this.exportFailed.emit())
+          }
+          return EMPTY
         })
       )
     })
   }
 
   private async updateEditorStructure(smiles: string): Promise<void> {
+    const session = this.session
+    const generation = ++this.structureGeneration
+    this.settingStructure = true
     try {
-      await this.session?.setStructure(smiles)
+      await session?.setStructure(smiles)
     } catch (error) {
-      this.showError(error)
+      if (!this.destroyed && session === this.session && generation === this.structureGeneration) this.showError(error)
+    } finally {
+      if (generation === this.structureGeneration) this.settingStructure = false
     }
   }
 

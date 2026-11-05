@@ -5,9 +5,9 @@ import {
   output,
   viewChild,
   ElementRef
-} from '@angular/core';
+} from '@angular/core'
 
-import { IconButtonComponent } from '../icon-button/icon-button.component';
+import { IconButtonComponent } from '../icon-button/icon-button.component'
 
 @Component({
   selector: 'm-search-field',
@@ -16,6 +16,7 @@ import { IconButtonComponent } from '../icon-button/icon-button.component';
   imports: [IconButtonComponent],
   host: { class: 'block' },
   styles: [`
+    input[type="search"] { font-size: max(16px, 1rem); }
     input[type="search"]::-webkit-search-cancel-button {
       display: none;
     }
@@ -35,6 +36,7 @@ import { IconButtonComponent } from '../icon-button/icon-button.component';
           #inputElement
           class="w-full rounded-md border border-slate-400/70 bg-light-surface-secondary py-2.5 pl-10 pr-12 text-light-on-surface-main outline-none transition focus:border-light-accent-primary focus:ring-2 focus:ring-light-accent-primary disabled:cursor-not-allowed disabled:opacity-60 dark:border-dark-border dark:bg-dark-surface-secondary dark:text-dark-on-surface-main dark:focus:border-dark-accent-primary"
           [attr.id]="fieldId()"
+          [attr.cdkFocusInitial]="initialFocus() ? '' : null"
           type="search"
           [value]="value()"
           [placeholder]="placeholder()"
@@ -67,28 +69,29 @@ import { IconButtonComponent } from '../icon-button/icon-button.component';
   `
 })
 export class SearchFieldComponent {
-  readonly value = input('');
-  readonly label = input('Cerca');
-  readonly placeholder = input('Cerca...');
-  readonly hint = input('');
-  readonly pending = input(false);
-  readonly disabled = input(false);
-  readonly id = input('');
+  readonly value = input('')
+  readonly initialFocus = input(false)
+  readonly label = input('Cerca')
+  readonly placeholder = input('Cerca...')
+  readonly hint = input('')
+  readonly pending = input(false)
+  readonly disabled = input(false)
+  readonly id = input('')
 
-  readonly valueChange = output<string>();
-  readonly submitted = output<string>();
-  readonly cleared = output<string>();
+  readonly valueChange = output<string>()
+  readonly submitted = output<string>()
+  readonly cleared = output<string>()
 
-  readonly inputElement = viewChild.required<ElementRef<HTMLInputElement>>('inputElement');
-  private static nextId = 0;
-  private readonly generatedId = `m-search-field-${++SearchFieldComponent.nextId}`;
+  readonly inputElement = viewChild.required<ElementRef<HTMLInputElement>>('inputElement')
+  private static nextId = 0
+  private readonly generatedId = `m-search-field-${++SearchFieldComponent.nextId}`
 
   fieldId(): string {
-    return this.id() || this.generatedId;
+    return this.id() || this.generatedId
   }
 
   hintId(): string {
-    return `${this.fieldId()}-hint`;
+    return `${this.fieldId()}-hint`
   }
 
   onInput(event: Event | string): void {
@@ -96,19 +99,19 @@ export class SearchFieldComponent {
       ? event
       : event.target instanceof HTMLInputElement
         ? event.target.value
-        : null;
-    if (value === null) return;
-    if (!this.disabled()) this.valueChange.emit(value);
+        : null
+    if (value === null) return
+    if (!this.disabled()) this.valueChange.emit(value)
   }
 
   onSubmit(): void {
-    if (!this.disabled()) this.submitted.emit(this.inputElement().nativeElement.value);
+    if (!this.disabled()) this.submitted.emit(this.inputElement().nativeElement.value)
   }
 
   clear(): void {
-    if (this.disabled()) return;
-    this.valueChange.emit('');
-    this.cleared.emit('');
-    queueMicrotask(() => this.inputElement().nativeElement.focus());
+    if (this.disabled()) return
+    this.valueChange.emit('')
+    this.cleared.emit('')
+    queueMicrotask(() => this.inputElement().nativeElement.focus())
   }
 }

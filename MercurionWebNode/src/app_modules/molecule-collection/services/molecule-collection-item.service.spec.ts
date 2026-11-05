@@ -1,45 +1,45 @@
-import { MoleculeService } from '../../meilisearch/services/molecule.service';
-import { Test, TestingModule } from '@nestjs/testing';
-import { MoleculeCollectionItemService } from './molecule-collection-item.service';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { MoleculeCollectionItemEntity } from '../models/entities/molecule-collection-item.entity';
-import { DataSource } from 'typeorm';
-import { LoggerPort } from 'src/logging/logger.port';
-import { GeneralUtils } from 'src/utils/general-utils/general-utils';
+import { MoleculeService } from '../../meilisearch/services/molecule.service'
+import { Test, TestingModule } from '@nestjs/testing'
+import { MoleculeCollectionItemService } from './molecule-collection-item.service'
+import { getRepositoryToken } from '@nestjs/typeorm'
+import { MoleculeCollectionItemEntity } from '../models/entities/molecule-collection-item.entity'
+import { DataSource } from 'typeorm'
+import { LoggerPort } from 'src/logging/logger.port'
+import { GeneralUtils } from 'src/utils/general-utils/general-utils'
 
-const MOCK_ITEM_ID = '01900000-0000-7000-8000-000000000000';
-const MOCK_USER_ID = '00000000-0000-0000-0000-000000000001';
+const MOCK_ITEM_ID = '01900000-0000-7000-8000-000000000000'
+const MOCK_USER_ID = '00000000-0000-0000-0000-000000000001'
 
-jest.mock('@kripod/uuidv7', () => ({ uuidv7: jest.fn(() => '01900000-0000-7000-8000-000000000000') }));
+jest.mock('@kripod/uuidv7', () => ({ uuidv7: jest.fn(() => '01900000-0000-7000-8000-000000000000') }))
 
 describe('MoleculeCollectionItemService', () => {
-  let service: MoleculeCollectionItemService;
+  let service: MoleculeCollectionItemService
   const repoMock = {
     create: jest.fn(),
     save: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
     createQueryBuilder: jest.fn(),
-  };
+  }
   const moleculeServiceMock = {
     getDetailsByMolregnos: jest.fn(),
     getDetailsByMolregnosByKey: jest.fn(),
     getDetailByMolregno: jest.fn(),
-  };
+  }
   const managerMock = {
     exists: jest.fn(),
     update: jest.fn(),
     insert: jest.fn(),
-  };
+  }
   const dataSourceMock = {
     transaction: jest.fn().mockImplementation(async (cb: any) => cb(managerMock)),
-  };
+  }
   const loggerMock = {
     warn: jest.fn(),
     debug: jest.fn(),
     log: jest.fn(),
     error: jest.fn(),
-  };
+  }
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -56,49 +56,49 @@ describe('MoleculeCollectionItemService', () => {
         { provide: DataSource, useValue: dataSourceMock },
         { provide: LoggerPort, useValue: { forContext: jest.fn().mockReturnValue(loggerMock) } },
       ],
-    }).compile();
+    }).compile()
 
-    service = module.get<MoleculeCollectionItemService>(MoleculeCollectionItemService);
-    jest.clearAllMocks();
-  });
+    service = module.get<MoleculeCollectionItemService>(MoleculeCollectionItemService)
+    jest.clearAllMocks()
+  })
 
   afterEach(() => {
-    jest.restoreAllMocks();
-  });
+    jest.restoreAllMocks()
+  })
 
   it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
+    expect(service).toBeDefined()
+  })
 
   it('creates and persists a new item', async () => {
-    const input = { type: 'custom', name: 'Test' };
-    const userId = MOCK_USER_ID;
-    const createdEntity = { ...input, userId, id: MOCK_ITEM_ID };
-    repoMock.create.mockReturnValue(createdEntity);
-    repoMock.save.mockResolvedValue(createdEntity);
-    const markSpy = jest.spyOn(service, 'markAsTouched').mockResolvedValue(true);
+    const input = { type: 'custom', name: 'Test' }
+    const userId = MOCK_USER_ID
+    const createdEntity = { ...input, userId, id: MOCK_ITEM_ID }
+    repoMock.create.mockReturnValue(createdEntity)
+    repoMock.save.mockResolvedValue(createdEntity)
+    const markSpy = jest.spyOn(service, 'markAsTouched').mockResolvedValue(true)
 
-    const result = await service.create(userId, input);
+    const result = await service.create(userId, input)
 
-    expect(repoMock.create).toHaveBeenCalledWith({ id: MOCK_ITEM_ID, ...input, userId });
-    expect(repoMock.save).toHaveBeenCalledWith(createdEntity);
-    expect(markSpy).toHaveBeenCalledWith(userId, createdEntity.id);
-    expect(result).toEqual(createdEntity);
-  });
+    expect(repoMock.create).toHaveBeenCalledWith({ id: MOCK_ITEM_ID, ...input, userId })
+    expect(repoMock.save).toHaveBeenCalledWith(createdEntity)
+    expect(markSpy).toHaveBeenCalledWith(userId, createdEntity.id)
+    expect(result).toEqual(createdEntity)
+  })
 
   it('marks an item as touched inside a transaction', async () => {
-    jest.spyOn(GeneralUtils, 'isValidUUIDv7').mockReturnValue(true);
-    managerMock.exists.mockResolvedValue(true);
+    jest.spyOn(GeneralUtils, 'isValidUUIDv7').mockReturnValue(true)
+    managerMock.exists.mockResolvedValue(true)
 
-    const result = await service.markAsTouched(MOCK_USER_ID, MOCK_ITEM_ID);
+    const result = await service.markAsTouched(MOCK_USER_ID, MOCK_ITEM_ID)
 
-    expect(dataSourceMock.transaction).toHaveBeenCalled();
-    expect(managerMock.update).toHaveBeenCalledTimes(1);
-    expect(managerMock.update.mock.calls[0]?.[0]).toBe(MoleculeCollectionItemEntity);
-    expect(managerMock.update.mock.calls[0]?.[1]).toEqual({ userId: MOCK_USER_ID, id: MOCK_ITEM_ID });
-    expect(managerMock.update.mock.calls[0]?.[2]?.touchedAt).toEqual(expect.any(Number));
-    expect(result).toBe(true);
-  });
+    expect(dataSourceMock.transaction).toHaveBeenCalled()
+    expect(managerMock.update).toHaveBeenCalledTimes(1)
+    expect(managerMock.update.mock.calls[0]?.[0]).toBe(MoleculeCollectionItemEntity)
+    expect(managerMock.update.mock.calls[0]?.[1]).toEqual({ userId: MOCK_USER_ID, id: MOCK_ITEM_ID })
+    expect(managerMock.update.mock.calls[0]?.[2]?.touchedAt).toEqual(expect.any(Number))
+    expect(result).toBe(true)
+  })
 
   it('returns enriched polymorphic DTOs for the all-items GraphQL query', async () => {
     const queryBuilderMock = {
@@ -130,16 +130,16 @@ describe('MoleculeCollectionItemService', () => {
           joins: [],
         },
       ]),
-    };
+    }
     const chemblDetails = {
       id: 42,
       cmbId: 'CHEMBL42',
       preferredName: 'Example',
-    };
-    repoMock.createQueryBuilder.mockReturnValue(queryBuilderMock);
+    }
+    repoMock.createQueryBuilder.mockReturnValue(queryBuilderMock)
     moleculeServiceMock.getDetailsByMolregnosByKey.mockResolvedValue(
       new Map([['42', chemblDetails]])
-    );
+    )
 
     const result = await service.findAllByUser(MOCK_USER_ID, {
       id: {},
@@ -149,15 +149,15 @@ describe('MoleculeCollectionItemService', () => {
       canonicalSmiles: {},
       name: {},
       joins: { id: {}, collection: { id: {} } },
-    });
+    })
 
     expect(queryBuilderMock.select).toHaveBeenCalledWith(expect.arrayContaining([
       'item.id',
       'item.type',
       'item.chemblMolregno',
-    ]));
-    expect(queryBuilderMock.leftJoinAndSelect).toHaveBeenCalledWith('item.joins', 'joins');
-    expect(moleculeServiceMock.getDetailsByMolregnosByKey).toHaveBeenCalledWith(['42']);
+    ]))
+    expect(queryBuilderMock.leftJoinAndSelect).toHaveBeenCalledWith('item.joins', 'joins')
+    expect(moleculeServiceMock.getDetailsByMolregnosByKey).toHaveBeenCalledWith(['42'])
     expect(result).toEqual([
       expect.objectContaining({
         id: MOCK_ITEM_ID,
@@ -170,7 +170,7 @@ describe('MoleculeCollectionItemService', () => {
         canonicalSmiles: 'CCO',
         name: 'Ethanol',
       }),
-    ]);
-  });
+    ])
+  })
 
-});
+})

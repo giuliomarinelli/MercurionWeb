@@ -1,14 +1,16 @@
-import { Args, ID, Info, Mutation, Query, Resolver } from "@nestjs/graphql";
-import { AuthenticatedUserId } from "src/metadata/metadata";
-import { UUID } from "crypto";
-import { GraphQLResolveInfo } from "graphql";
-import { GraphQLUtils } from "src/utils/graphql-utils/graphql-utils";
-import { SynthStep } from "../models/entities/synth-step.entity";
-import { SyntheticStepService } from "../services/synthetic-step.service";
-import { SynthStepInput } from "../models/dto/synth-step.input";
-import { assertMercurionPublicId } from "src/identifiers/mercurion-public-id";
-import { SynthCommandResult } from "../models/dto/synth-command-result";
+import { RequiresFeatures } from 'src/feature-flags/feature-access.decorator'
+import { Args, ID, Info, Mutation, Query, Resolver } from "@nestjs/graphql"
+import { AuthenticatedUserId } from "src/metadata/metadata"
+import { UUID } from "crypto"
+import { GraphQLResolveInfo } from "graphql"
+import { GraphQLUtils } from "src/utils/graphql-utils/graphql-utils"
+import { SynthStep } from "../models/entities/synth-step.entity"
+import { SyntheticStepService } from "../services/synthetic-step.service"
+import { SynthStepInput } from "../models/dto/synth-step.input"
+import { assertMercurionPublicId } from "src/identifiers/mercurion-public-id"
+import { SynthCommandResult } from "../models/dto/synth-command-result"
 
+@RequiresFeatures('synthesis')
 @Resolver(() => SynthStep)
 export class SyntheticStepResolver {
 

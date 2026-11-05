@@ -6,6 +6,7 @@ import { AuthRedirectService } from './auth-redirect.service'
 import { AuthStateStore } from './auth-state.store'
 import { SessionSyncService } from './session-sync.service'
 import { ScrollContextService } from './context/scroll-context.service'
+import { BrowserStorageRegistry, storageDescriptor } from './browser-storage-registry'
 
 @Component({ standalone: true, template: '' })
 class TestRouteComponent {}
@@ -26,7 +27,9 @@ describe('AppShellFacade', () => {
   }
 
   beforeEach(() => {
+    new BrowserStorageRegistry().remove(storageDescriptor('mercurion.v1.is-first-visit'))
     authState.authenticated.set(false)
+    sessionSync.handshakeTick.set(0)
     sessionSync.status.set('anonymous')
     authState.bootstrap.calls.reset()
     sessionSync.checkSession.calls.reset()
@@ -38,7 +41,7 @@ describe('AppShellFacade', () => {
         provideRouter([{
           path: '',
           component: TestRouteComponent,
-          data: { routePolicy: { access: 'authenticated', shell: 'standard' } }
+          data: { routePolicy: { access: 'public', shell: 'home' } }
         }, {
           path: 'welcome',
           component: TestRouteComponent,
@@ -68,6 +71,60 @@ describe('AppShellFacade', () => {
     expect(sessionSync.checkSession).toHaveBeenCalled()
   })
 
+  afterEach(() => {
+    new BrowserStorageRegistry().remove(storageDescriptor('mercurion.v1.is-first-visit'))
+  })
+
+  it('preserves destination-based marking and ignores cancelled navigation', () => {
+    const facade = TestBed.inject(AppShellFacade)
+    const events = TestBed.inject(Router).events as import('rxjs').Subject<import('@angular/router').Event>
+    const descriptor = storageDescriptor<string>('mercurion.v1.is-first-visit')
+    const storage = TestBed.inject(BrowserStorageRegistry)
+
+    events.next(new NavigationEnd(1, '/', '/'))
+    expect(storage.get(descriptor)).toBeNull()
+    events.next(new NavigationCancel(2, '/login', 'cancelled'))
+    expect(storage.get(descriptor)).toBeNull()
+
+    for (const [index, path] of ['/welcome', '/login', '/register'].entries()) {
+      storage.remove(descriptor)
+      events.next(new NavigationEnd(index + 3, path, `${path}?from=home`))
+      expect(localStorage.getItem(descriptor.key)).toBe('true')
+      expect(facade.shouldSkipHomeAnimations()).toBeTrue()
+    }
+  })
+
+  it('persists a presented public home independently of destination navigation', () => {
+    const facade = TestBed.inject(AppShellFacade)
+    expect(facade.shouldSkipHomeAnimations()).toBeFalse()
+    facade.markHomePresented()
+    expect(facade.shouldSkipHomeAnimations()).toBeTrue()
+    expect(TestBed.inject(BrowserStorageRegistry).get(storageDescriptor('mercurion.v1.is-first-visit'))).toBe('true')
+  })
+
+  it('requests one handshake per tick without reacting to state read by the handshake', () => {
+    sessionSync.checkSession.and.callFake(async () => {
+      sessionSync.status()
+      authState.authenticated()
+    })
+    TestBed.inject(AppShellFacade)
+    TestBed.flushEffects()
+    sessionSync.checkSession.calls.reset()
+    sessionSync.checkSession.and.resolveTo()
+
+    sessionSync.handshakeTick.set(1)
+    TestBed.flushEffects()
+    expect(sessionSync.checkSession).toHaveBeenCalledTimes(1)
+    sessionSync.status.set('loggedIn')
+    authState.authenticated.set(true)
+    TestBed.flushEffects()
+    expect(sessionSync.checkSession).toHaveBeenCalledTimes(1)
+
+    sessionSync.handshakeTick.set(2)
+    TestBed.flushEffects()
+    expect(sessionSync.checkSession).toHaveBeenCalledTimes(2)
+  })
+
   it('exposes route metadata as the shell layout source of truth', async () => {
     const router = TestBed.inject(Router)
     const facade = TestBed.inject(AppShellFacade)
@@ -75,6 +132,39 @@ describe('AppShellFacade', () => {
     await router.navigateByUrl('/welcome')
 
     expect(facade.routePolicy()).toEqual({ access: 'logged-out-only', shell: 'welcome' })
+  })
+
+  it('keeps an anonymous visitor on the public home', async () => {
+    const router = TestBed.inject(Router)
+    const facade = TestBed.inject(AppShellFacade)
+    const navigate = spyOn(router, 'navigateByUrl').and.callThrough()
+
+    await router.navigateByUrl('/')
+    TestBed.flushEffects()
+    await TestBed.inject(ApplicationRef).whenStable()
+
+    expect(router.url).toBe('/')
+    expect(facade.routePolicy()).toEqual({ access: 'public', shell: 'home' })
+    expect(navigate).toHaveBeenCalledTimes(1)
+    expect(redirects.capture).not.toHaveBeenCalled()
+  })
+
+  it('redirects an authenticated visitor directly from home to dashboard', async () => {
+    authState.authenticated.set(true)
+    sessionSync.status.set('loggedIn')
+    const router = TestBed.inject(Router)
+    TestBed.inject(AppShellFacade)
+    const destinations: string[] = []
+    router.events.subscribe(event => {
+      if (event instanceof NavigationEnd) destinations.push(event.urlAfterRedirects)
+    })
+
+    await router.navigateByUrl('/')
+    TestBed.flushEffects()
+    await TestBed.inject(ApplicationRef).whenStable()
+
+    expect(router.url).toBe('/dashboard')
+    expect(destinations).not.toContain('/welcome')
   })
 
   it('redirects an authenticated visitor from welcome through Angular Router', async () => {

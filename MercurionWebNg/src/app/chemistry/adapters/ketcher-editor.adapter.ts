@@ -27,6 +27,10 @@ class KetcherEditorSession implements ChemistryEditorSession {
   private pendingStructureResolve?: () => void
   private pendingStructureReject?: (error: ChemistryAdapterError) => void
   private operationQueue = Promise.resolve()
+  private readonly sessionId = crypto.randomUUID()
+  private requestId = 0
+  private pendingRequestId?: number
+  private readonly changeListeners = new Set<() => void>()
 
   constructor(private readonly options: KetcherEditorAdapterOptions) {
     this.resourceUrl = options.resourceUrl
@@ -56,6 +60,11 @@ class KetcherEditorSession implements ChemistryEditorSession {
     return operation
   }
 
+  onStructureChange(listener: () => void): () => void {
+    this.changeListeners.add(listener)
+    return () => this.changeListeners.delete(listener)
+  }
+
   exportStructure(): Promise<string> {
     const operation = this.operationQueue.then(() => this.requestSmiles())
     this.operationQueue = operation.then(() => undefined, () => undefined)
@@ -73,6 +82,7 @@ class KetcherEditorSession implements ChemistryEditorSession {
     this.pendingSmilesReject?.(error)
     this.pendingStructureReject?.(error)
     this.stateListeners.clear()
+    this.changeListeners.clear()
     this.frame = undefined
   }
 
@@ -144,14 +154,29 @@ class KetcherEditorSession implements ChemistryEditorSession {
 
   private readonly onMessage = (event: MessageEvent): void => {
     if (this.disposed || !event.data) return
-    if (this.frame?.contentWindow && event.source !== this.frame.contentWindow) return
+    if (!this.frame?.contentWindow || event.source !== this.frame.contentWindow || event.origin !== this.options.targetOrigin) return
 
-    const message = event.data as { type?: unknown; payload?: unknown }
+    const message = event.data as { type?: unknown; payload?: unknown; sessionId?: unknown; requestId?: unknown }
     if (message.type === 'ketcherReady') {
       this.ready = true
       clearTimeout(this.readyTimeoutId)
       this.readyResolve?.()
       this.updateState({ status: 'ready' })
+      return
+    }
+
+    if (message.sessionId !== this.sessionId) return
+    if (message.type === 'structureChanged') {
+      this.changeListeners.forEach(listener => listener())
+      return
+    }
+    if (message.requestId !== this.pendingRequestId) return
+
+    if (message.type === 'smilesError' && this.pendingSmilesReject) {
+      const reject = this.pendingSmilesReject
+      this.pendingSmilesResolve = undefined
+      this.pendingSmilesReject = undefined
+      reject(new ChemistryAdapterError('operation-failed', 'Impossibile esportare la struttura corrente.'))
       return
     }
 
@@ -192,7 +217,8 @@ class KetcherEditorSession implements ChemistryEditorSession {
     if (!target) {
       throw new ChemistryAdapterError('unavailable', 'L’editor molecolare non è disponibile.')
     }
-    target.postMessage(message, this.options.targetOrigin)
+    this.pendingRequestId = ++this.requestId
+    target.postMessage({ ...message, sessionId: this.sessionId, requestId: this.pendingRequestId }, this.options.targetOrigin)
   }
 
   private updateState(state: ChemistryCapabilityState): void {

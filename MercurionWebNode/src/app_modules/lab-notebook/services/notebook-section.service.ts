@@ -1,17 +1,17 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { NotebookSection } from '../models/entities/lab-notebook-section.entity';
-import { NotebookChapter } from '../models/entities/lab-notebook-chapter.entity';
-import { UUID } from 'crypto';
-import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
-import { GraphQLFieldsMap, TypeOrmUtils } from 'src/utils/type-orm-utils/type-orm-utils';
-import { runInTransaction } from 'src/persistence/transaction-context';
+import { Injectable } from '@nestjs/common'
+import { InjectRepository } from '@nestjs/typeorm'
+import { Repository } from 'typeorm'
+import { NotebookSection } from '../models/entities/lab-notebook-section.entity'
+import { NotebookChapter } from '../models/entities/lab-notebook-chapter.entity'
+import { UUID } from 'crypto'
+import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils'
+import { GraphQLFieldsMap, TypeOrmUtils } from 'src/utils/type-orm-utils/type-orm-utils'
+import { runInTransaction } from 'src/persistence/transaction-context'
 import {
     NotebookSectionCreateCommand,
     NotebookSectionPatchCommand,
     toNotebookSectionPatch
-} from '../models/dto/notebook-mutation.commands';
+} from '../models/dto/notebook-mutation.commands'
 
 @Injectable()
 export class NotebookSectionService {

@@ -1,30 +1,33 @@
-import {
-  AfterViewInit,
-  ChangeDetectionStrategy,
-  Component,
-  ElementRef,
-  OnDestroy,
-  effect,
-  inject,
-  viewChild
-} from '@angular/core'
-import { RouterLink, ActivatedRoute } from '@angular/router'
-import { Subscription, startWith } from 'rxjs'
-import { ScrollContextService } from '../../services/context/scroll-context.service'
-import { ShellLayoutService } from '../../services/context/shell-layout.service'
-import { injectBrowserResourceOwner } from '../../utils/browser-resource-owner.util'
+import { ChangeDetectionStrategy, Component } from '@angular/core'
+import { RouterLink } from '@angular/router'
+import { DocumentNavigationDirective } from '../../components/common/document-navigation/document-navigation.directive'
 
 @Component({
   selector: 'm-terms-and-policies-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink],
+  imports: [RouterLink, DocumentNavigationDirective],
   template: `
-    <main class="main-container leading-7" role="main" aria-labelledby="terms-heading">
+    <main class="main-container max-w-4xl text-on-surface-main text-base leading-7 [overflow-wrap:anywhere]
+      [&>section]:mt-8 [&_.h2]:mb-3 [&_.h2]:pb-0 [&_.h2]:bottom-0 [&_.h2]:text-left [&_.h2]:text-xl [&_.h2]:leading-7 [&_.h2]:tracking-normal
+      [&_.h3]:mt-5 [&_.h3]:mb-2 [&_.h3]:bottom-0 [&_.h3]:text-left [&_.h3]:text-lg [&_.h3]:tracking-normal
+      [&_.h1-underline]:text-2xl sm:[&_.h1-underline]:text-3xl"
+      mDocumentNavigation="terms" #documentNav="mDocumentNavigation" aria-labelledby="terms-heading">
       <!-- TERMINI DI SERVIZIO -->
-      <header #termsHeader id="terms">
+      <header id="terms">
         <h1 id="terms-heading" class="h1-underline">Termini di Servizio di Mercurion</h1>
         <p><strong>Ultimo aggiornamento:</strong> {{ lastUpdated }}</p>
       </header>
+
+      <nav class="my-6 rounded-xl border border-token-border bg-surface-elevated p-4 text-sm text-on-surface-main" aria-label="Sommario del documento">
+        <details>
+          <summary class="cursor-pointer rounded-lg py-2 font-semibold outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq">Sommario</summary>
+          <ol class="mt-3 grid gap-x-6 sm:grid-cols-2">
+            @for (section of documentNav.sections(); track section.id) {
+              <li><a class="a underline underline-offset-4 inline-block py-2" [routerLink]="[]" [fragment]="section.id">{{ section.title }}</a></li>
+            }
+          </ol>
+        </details>
+      </nav>
 
       <section aria-label="Introduzione Termini di Servizio">
         <p>
@@ -34,16 +37,32 @@ import { injectBrowserResourceOwner } from '../../utils/browser-resource-owner.u
         </p>
         <p class="mt-4">
           Utilizzando Mercurion, l’utente dichiara di aver letto, compreso e accettato i presenti Termini di Servizio e
-          l’<a class="a" routerLink="/privacy"><strong>Informativa sulla Privacy</strong></a> relativa al trattamento dei dati personali.
+          l’<a class="a underline underline-offset-4" routerLink="/privacy"><strong>Informativa sulla Privacy</strong></a> relativa al trattamento dei dati personali.
+        </p>
+      </section>
+
+      <section aria-label="Identificazione del gestore">
+        <h2 class="h2">Gestore del Servizio</h2>
+        <p>
+          Mercurion è sviluppato e gestito dalla ditta individuale <strong>Marinelli Giulio</strong>,
+          operante con il brand <strong>Giulio Marinelli Web Tech Lab</strong>, con sede in
+          <strong>Via Altan 28, 33053 Latisana (UD), Italia</strong>.
+          Mercurion è il nome della piattaforma software, non un soggetto giuridico distinto dal gestore.
+        </p>
+        <p class="mt-4">
+          Per le informazioni identificative e i recapiti del titolare, inclusi partita IVA,
+          indirizzo email e PEC, si rinvia all'
+          <a class="a underline underline-offset-4" routerLink="/privacy">Informativa sulla Privacy</a>.
         </p>
       </section>
 
       <section aria-label="Oggetto del servizio">
         <h2 class="h2">1. Oggetto del Servizio</h2>
         <p>
-          Mercurion è una piattaforma software che consente di organizzare, gestire e analizzare dati e progetti tecnici,
-          con particolare attenzione all’ambito chimico e molecolare. Il Servizio è destinato a utenti maggiorenni e a
-          scopi professionali, di studio o di ricerca.
+          Mercurion è una piattaforma software gratuita e non commerciale, realizzata anche come
+          case study tecnico. Consente di organizzare, gestire e analizzare dati e progetti tecnici,
+          con particolare attenzione all’ambito chimico e molecolare. Il Servizio è destinato a utenti maggiorenni
+          e a scopi professionali, di studio o di ricerca.
         </p>
         <p class="mt-4">
           Mercurion non fornisce consulenza medica, farmaceutica, regolatoria o legale. Le informazioni e i dati trattati
@@ -70,6 +89,10 @@ import { injectBrowserResourceOwner } from '../../utils/browser-resource-owner.u
 
       <section aria-label="Sicurezza account">
         <h2 class="h2">3. Sicurezza dell’account</h2>
+        <p class="mb-4">
+          Le comunicazioni di sicurezza via SMS sono disponibili esclusivamente per numeri italiani
+          con prefisso internazionale <strong>+39</strong>.
+        </p>
         <p>
           L’utente è responsabile della riservatezza delle proprie credenziali di accesso e di ogni attività svolta tramite
           il proprio account. È vietato condividere deliberatamente le credenziali con terzi o consentire l’uso del proprio
@@ -108,8 +131,31 @@ import { injectBrowserResourceOwner } from '../../utils/browser-resource-owner.u
           </li>
         </ul>
         <p>
-          Il Servizio può essere offerto in forma gratuita o a pagamento. L’eventuale introduzione di piani a pagamento
-          o cambiamenti sostanziali delle condizioni economiche sarà comunicata all’utente con congruo preavviso.
+          L'accesso al Servizio è gratuito e non sono previsti piani di abbonamento a pagamento.
+          La disponibilità pubblica del codice sorgente è disciplinata separatamente dalla licenza
+          proprietaria source-available pubblicata nel repository del progetto. Tale licenza consente,
+          nei limiti ivi specificati, lo studio e l'esecuzione locale, ma non autorizza la distribuzione
+          pubblica di fork, cloni o servizi equivalenti.
+        </p>
+      </section>
+
+      <section aria-label="Comunicazioni SMS">
+        <h2 class="h2">Comunicazioni SMS transazionali</h2>
+        <p>
+          Quando l'utente utilizza le funzionalità che richiedono un numero telefonico, Mercurion
+          può inviare SMS esclusivamente per autenticazione, codici temporanei (OTP),
+          verifica del numero e notifiche di sicurezza. Non vengono inviati SMS promozionali.
+        </p>
+        <p class="mt-4">
+          Il mittente alfanumerico <strong>Mercurion</strong> identifica la piattaforma ed è
+          riconducibile alla ditta individuale Marinelli Giulio. Il servizio di invio SMS è
+          configurato per destinatari con numerazione italiana. L'uso del mittente è soggetto
+          alla disciplina applicabile, inclusa la delibera AGCOM n. 12/23/CIR.
+        </p>
+        <p class="mt-4">
+          Ulteriori informazioni sul trattamento del numero di telefono e sul fornitore
+          di invio SMS sono disponibili nell'
+          <a class="a underline underline-offset-4" routerLink="/privacy">Informativa sulla Privacy</a>.
         </p>
       </section>
 
@@ -226,7 +272,7 @@ import { injectBrowserResourceOwner } from '../../utils/browser-resource-owner.u
         </ul>
         <p>
           In caso di chiusura dell’account, il trattamento e la conservazione dei dati seguiranno quanto descritto
-          nell’<a class="a" routerLink="/privacy">Informativa sulla Privacy di Mercurion</a>.
+          nell’<a class="a underline underline-offset-4" routerLink="/privacy">Informativa sulla Privacy di Mercurion</a>.
         </p>
       </section>
 
@@ -259,7 +305,7 @@ import { injectBrowserResourceOwner } from '../../utils/browser-resource-owner.u
         <h2 class="h2">14. Informativa sulla Privacy</h2>
         <p>
           Per informazioni dettagliate sul trattamento dei dati personali degli utenti, inclusi diritti, finalità e
-          modalità del trattamento, si rinvia all’<strong><a class="a" routerLink="/privacy">Informativa sulla Privacy di Mercurion</a></strong>, disponibile
+          modalità del trattamento, si rinvia all’<strong><a class="a underline underline-offset-4" routerLink="/privacy">Informativa sulla Privacy di Mercurion</a></strong>, disponibile
           nell’apposita sezione dell’Applicazione.
         </p>
       </section>
@@ -268,7 +314,7 @@ import { injectBrowserResourceOwner } from '../../utils/browser-resource-owner.u
       <hr class="my-12 border-slate-300 dark:border-slate-700" />
 
       <!-- POLITICA DI UTILIZZO ACCETTABILE -->
-      <header #aupHeader id="aup">
+      <header id="aup">
         <h2 class="h1-sm">Politica di Utilizzo Accettabile di Mercurion</h2>
       </header>
 
@@ -380,7 +426,7 @@ import { injectBrowserResourceOwner } from '../../utils/browser-resource-owner.u
         <h2 class="h2">6. Segnalazioni e misure in caso di violazione</h2>
         <p>
           Il Titolare può monitorare l’utilizzo del Servizio nella misura strettamente necessaria a garantire la sicurezza
-          dell’infrastruttura, prevenire abusi e adempiere agli obblighi di legge, nel rispetto dell’<a class="a" routerLink="/privacy">Informativa sulla
+          dell’infrastruttura, prevenire abusi e adempiere agli obblighi di legge, nel rispetto dell’<a class="a underline underline-offset-4" routerLink="/privacy">Informativa sulla
           Privacy</a>.
         </p>
         <p class="mt-4">
@@ -415,96 +461,6 @@ import { injectBrowserResourceOwner } from '../../utils/browser-resource-owner.u
     </main>
   `
 })
-export class TermsAndPoliciesPageComponent implements AfterViewInit, OnDestroy {
-  lastUpdated = '02/02/2026'
-
-  private readonly route = inject(ActivatedRoute)
-  private readonly scrollContext = inject(ScrollContextService)
-  private readonly shellLayout = inject(ShellLayoutService)
-  private readonly resources = injectBrowserResourceOwner()
-
-  readonly termsHeaderRef = viewChild<ElementRef<HTMLElement>>('termsHeader');
-  readonly aupHeaderRef = viewChild<ElementRef<HTMLElement>>('aupHeader');
-
-  private scrollRootRef?: ElementRef<HTMLElement>
-  private fragmentSub?: Subscription
-  private viewReady = false
-  private pendingFragment: string | null = null
-
-  constructor() {
-    effect(() => {
-      const rootRef = this.scrollContext.scrollRootRef()
-      if (!rootRef) return
-
-      this.scrollRootRef = rootRef
-
-      if (this.viewReady && this.pendingFragment !== null) {
-        const frag = this.pendingFragment
-        this.pendingFragment = null
-        queueMicrotask(() => this.applyFragment(frag))
-      }
-    })
-  }
-
-  ngAfterViewInit(): void {
-    this.viewReady = true
-
-    this.fragmentSub = this.route.fragment
-      .pipe(startWith(this.route.snapshot.fragment))
-      .subscribe(frag => {
-        if (!this.scrollRootRef) {
-          this.pendingFragment = frag ?? null
-          return
-        }
-        this.applyFragment(frag)
-      })
-
-    if (this.scrollRootRef && this.pendingFragment !== null) {
-      const frag = this.pendingFragment
-      this.pendingFragment = null
-      queueMicrotask(() => this.applyFragment(frag))
-    }
-  }
-
-  ngOnDestroy(): void {
-    this.fragmentSub?.unsubscribe()
-  }
-
-  private applyFragment(frag: string | null | undefined): void {
-    if (!this.scrollRootRef) return
-
-    // aspetta che l'altezza dell'header sia disponibile per evitare offset errati (bounded: mai polling infinito)
-    this.resources.waitForCondition(
-      () => {
-        const hh = this.shellLayout.headerHeight()
-        return hh > 0 ? hh : null
-      },
-      (hh) => {
-        // due fasi: rAF per layout stabilizzato, setTimeout per lasciare finire lo scroll restoration del router
-        this.resources.requestAnimationFrame(() => {
-          this.resources.setTimeout(() => {
-            if (!this.scrollRootRef) return
-            const rootEl = this.scrollRootRef.nativeElement
-            const headerOffset = Math.max(0, hh) + 10
-
-            let targetEl: HTMLElement | null = null
-
-            if (!frag || frag === 'terms') {
-              targetEl = this.termsHeaderRef()?.nativeElement ?? null
-            } else if (frag === 'aup') {
-              targetEl = this.aupHeaderRef()?.nativeElement ?? null
-            } else {
-              targetEl = this.termsHeaderRef()?.nativeElement ?? null
-            }
-
-            if (!targetEl) return
-
-            const y = Math.max(0, this.scrollContext.getScrollYRelativeToRoot(targetEl, rootEl) - headerOffset)
-            this.scrollContext.smoothTo(this.scrollRootRef, y, 240)
-          }, 20)
-        })
-      }
-    )
-  }
-
+export class TermsAndPoliciesPageComponent {
+  lastUpdated = '27/10/2026'
 }

@@ -1,14 +1,14 @@
 import { errorMessage, errorStack } from 'src/utils/errors/error-message'
-import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { createLocalJWKSet, jwtVerify } from 'jose';
-import { ISocialProviderClient } from '../models/interfaces/i-social-provider-client.interface';
-import { ProviderProfile } from '../models/interfaces/provider-profile.interface';
-import { AuthProvider } from '../models/enums/auth-provider.enum';
-import { LoggerPort } from 'src/logging/logger.port';
-import { LoggerContext } from 'src/logging/logger.port';
+import { Injectable } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
+import { createLocalJWKSet, jwtVerify } from 'jose'
+import { ISocialProviderClient } from '../models/interfaces/i-social-provider-client.interface'
+import { ProviderProfile } from '../models/interfaces/provider-profile.interface'
+import { AuthProvider } from '../models/enums/auth-provider.enum'
+import { LoggerPort } from 'src/logging/logger.port'
+import { LoggerContext } from 'src/logging/logger.port'
 
-import { SSO_Configuration } from 'src/config/config.types';
+import { SSO_Configuration } from 'src/config/config.types'
 import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
 import { ExternalHttpPort } from 'src/infrastructure/external-http/external-http.port'
 
@@ -48,7 +48,7 @@ export class GoogleProviderClient implements ISocialProviderClient {
     getAuthorizationUrl(state: string, nonce?: string): string {
 
         // endpoint stabile indicato da Google OIDC :contentReference[oaicite:0]{index=0}
-        const authEndpoint = 'https://accounts.google.com/o/oauth2/v2/auth';
+        const authEndpoint = 'https://accounts.google.com/o/oauth2/v2/auth'
 
         const params: Record<string, string> = {
             client_id: this.clientId,

@@ -1,17 +1,17 @@
-import { ApplicationRef, Component, ChangeDetectionStrategy, DestroyRef, effect, NgZone, OnChanges, OnInit, signal, SimpleChanges, input, output, inject } from '@angular/core';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { ApplicationRef, Component, ChangeDetectionStrategy, DestroyRef, effect, NgZone, OnChanges, OnInit, signal, SimpleChanges, input, output, inject } from '@angular/core'
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser'
 import {
   ChemistryAdapterError,
   ChemistryRendererSession
-} from '../../../chemistry/chemistry-adapter.models';
-import { ChemistryRendererService } from '../../../chemistry/chemistry-renderer.service';
-import { ThemeManagerService } from '../../../services/context/theme-manager.service';
+} from '../../../chemistry/chemistry-adapter.models'
+import { ChemistryRendererService } from '../../../chemistry/chemistry-renderer.service'
+import { ThemeManagerService } from '../../../services/context/theme-manager.service'
 
-type IdleCallback = (deadline: { readonly didTimeout: boolean; readonly timeRemaining: () => number }) => void;
+type IdleCallback = (deadline: { readonly didTimeout: boolean; readonly timeRemaining: () => number }) => void
 type IdleWindow = Window & {
-  requestIdleCallback?: (callback: IdleCallback, options?: { timeout: number }) => number;
-  cancelIdleCallback?: (handle: number) => void;
-};
+  requestIdleCallback?: (callback: IdleCallback, options?: { timeout: number }) => number
+  cancelIdleCallback?: (handle: number) => void
+}
 
 /**
  * <m-molecule-viewer>
@@ -38,10 +38,17 @@ type IdleWindow = Window & {
   selector: 'm-molecule-viewer',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    @if (renderState() === 'unavailable') {
+    @if (!structure()) {
+      <div class="wrap flex items-center justify-center" role="status">Struttura non disponibile.</div>
+    } @else if (renderState() === 'unavailable') {
       <div class="wrap flex flex-col items-center justify-center gap-2 text-center" role="alert">
         <span>{{ renderError() }}</span>
-        <button type="button" class="underline" (click)="retry()">Riprova</button>
+        <button type="button" class="min-h-12 rounded-md px-4 underline focus-visible:outline-2" (click)="retry()">Riprova</button>
+      </div>
+    } @else if (renderState() === 'loading' && mode() === 'detail') {
+      <div class="wrap flex flex-col items-center justify-center gap-3" role="status" aria-label="Caricamento struttura molecolare">
+        <span class="size-6 animate-spin rounded-full border-2 border-current border-t-transparent motion-reduce:animate-none" aria-hidden="true"></span>
+        <span>Caricamento struttura...</span>
       </div>
     } @else {
       <div
@@ -59,46 +66,46 @@ type IdleWindow = Window & {
     `.wrap svg{display:block}`,
     /* ---------------- Variant overrides ---------------- */
     /* detail → altezza 100%, larghezza auto  */
-    `:host(.detail) .wrap svg{height:100%;width:auto}`,
+    `:host(.detail) .wrap svg{height:100%;width:100%}`,
     /* preview (default) → 100% su entrambi gli assi        */
     `:host(:not(.detail)) .wrap svg{height:100%;width:100%}`,
   ],
   host: {
     '[class.detail]': 'mode() === "detail"' } })
 export class MoleculeViewerComponent implements OnInit, OnChanges {
-  private readonly renderer = inject(ChemistryRendererService);
-  private readonly sanitizer = inject(DomSanitizer);
-  private readonly appRef = inject(ApplicationRef);
-  private readonly themeManager = inject(ThemeManagerService);
-  private readonly zone = inject(NgZone);
+  private readonly renderer = inject(ChemistryRendererService)
+  private readonly sanitizer = inject(DomSanitizer)
+  private readonly appRef = inject(ApplicationRef)
+  private readonly themeManager = inject(ThemeManagerService)
+  private readonly zone = inject(NgZone)
 
   /* ────── API pubblica ───────────────────────────────────────── */
   /** SMILES / MolBlock ecc. */
-  readonly structure = input.required<string>();
+  readonly structure = input.required<string>()
   /** Palette light/dark */
   /** "preview" (default) | "detail" */
-  readonly mode = input<'preview' | 'detail'>('preview');
+  readonly mode = input<'preview' | 'detail'>('preview')
   /** Se true mostra solo lo skeleton (no RDKit) */
-  readonly disablePreview = input(false);
+  readonly disablePreview = input(false)
 
   /** Testo per screen reader che descrive la molecola */
-  readonly ariaLabel = input('Rappresentazione molecolare');
+  readonly ariaLabel = input('Rappresentazione molecolare')
 
-  readonly rendered = output<void>();
+  readonly rendered = output<void>()
 
-  darkMode = signal<boolean>(false);
-  renderState = signal<'loading' | 'ready' | 'unavailable'>('loading');
-  renderError = signal('Rappresentazione molecolare non disponibile.');
+  darkMode = signal<boolean>(false)
+  renderState = signal<'loading' | 'ready' | 'unavailable'>('loading')
+  renderError = signal('Rappresentazione molecolare non disponibile.')
 
   /* ────── Stato interno ─────────────────────────────────────── */
-  svg: SafeHtml | null = null;
-  private ready = false;
-  private rendererSession?: ChemistryRendererSession;
-  private sessionGeneration = 0;
-  private renderGeneration = 0;
-  private pendingRenderHandle: number | ReturnType<typeof setTimeout> | undefined;
-  private pendingRenderIsIdleCallback = false;
-  private destroyed = false;
+  svg: SafeHtml | null = null
+  private ready = false
+  private rendererSession?: ChemistryRendererSession
+  private sessionGeneration = 0
+  private renderGeneration = 0
+  private pendingRenderHandle: number | ReturnType<typeof setTimeout> | undefined
+  private pendingRenderIsIdleCallback = false
+  private destroyed = false
 
   /* ────── Palette WCAG‑AAA ──────────────────────────────────── */
   private static readonly WCAG = {
@@ -109,22 +116,22 @@ export class MoleculeViewerComponent implements OnInit, OnChanges {
     dark: {
       bg: '#0A0A0A', bond: '#E5E7EB', default: '#E5E7EB',
       C: '#F3F4F6', H: '#D1D5DB', N: '#BFDBFE', O: '#FCA5A5', S: '#FCD34D', P: '#E9D5FF',
-      F: '#A7F3D0', Cl: '#6EE7B7', Br: '#FCD34D', I: '#DDD6FE' } } as const;
+      F: '#A7F3D0', Cl: '#6EE7B7', Br: '#FCD34D', I: '#DDD6FE' } } as const
 
   constructor() {
-    const destroyRef = inject(DestroyRef);
+    const destroyRef = inject(DestroyRef)
 
-    destroyRef.onDestroy(() => this.destroyViewer());
+    destroyRef.onDestroy(() => this.destroyViewer())
 
     effect(() => {
-      this.darkMode.set(this.themeManager.theme() === 'dark');
-      if (this.ready && !this.disablePreview()) this.scheduleRender();
-    });
+      this.darkMode.set(this.themeManager.theme() === 'dark')
+      if (this.ready && !this.disablePreview()) this.scheduleRender()
+    })
   }
 
   /* ────── Lifecycle ─────────────────────────────────────────── */
   ngOnInit(): void {
-    if (!this.disablePreview()) this.initRdkit();
+    if (!this.disablePreview()) this.initRdkit()
   }
 
   forceReRendering(): void {
@@ -132,101 +139,101 @@ export class MoleculeViewerComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges(ch: SimpleChanges): void {
-    const disablePreview = this.disablePreview();
+    const disablePreview = this.disablePreview()
     if ('disablePreview' in ch) {
       if (disablePreview) {
-        this.stopRenderer();
-        this.svg = null;
-        return;
+        this.stopRenderer()
+        this.svg = null
+        return
       }
 
       if (!this.ready) {
-        this.initRdkit();
-        return;
+        this.initRdkit()
+        return
       }
     }
 
     if (!disablePreview && this.ready && (ch['structure'] || ch['mode'])) {
-      this.scheduleRender();
+      this.scheduleRender()
     }
   }
 
   /* ────── Helpers ────────────────────────────────────────────── */
   private initRdkit(): void {
-    const generation = ++this.sessionGeneration;
-    this.ready = false;
-    this.renderState.set('loading');
-    this.invalidatePendingRender();
-    this.disposeRendererSession();
+    const generation = ++this.sessionGeneration
+    this.ready = false
+    this.renderState.set('loading')
+    this.invalidatePendingRender()
+    this.disposeRendererSession()
 
     void this.renderer.createSession().then(session => {
-      const disablePreview = this.disablePreview();
+      const disablePreview = this.disablePreview()
       if (this.destroyed || disablePreview || generation !== this.sessionGeneration) {
-        session.dispose();
-        return;
+        session.dispose()
+        return
       }
 
-      this.rendererSession = session;
-      this.ready = true;
-      if (!disablePreview) this.scheduleRender();
+      this.rendererSession = session
+      this.ready = true
+      if (!disablePreview) this.scheduleRender()
     }).catch(error => {
-      if (!this.destroyed && generation === this.sessionGeneration) this.showRenderError(error);
-    });
+      if (!this.destroyed && generation === this.sessionGeneration) this.showRenderError(error)
+    })
   }
 
   private scheduleRender(): void {
-    this.cancelScheduledRender();
-    const generation = ++this.renderGeneration;
+    this.cancelScheduledRender()
+    const generation = ++this.renderGeneration
 
     const job = () => {
-      this.pendingRenderHandle = undefined;
-      if (!this.isCurrentRender(generation)) return;
-      void this.renderSvg(generation);
-    };
+      this.pendingRenderHandle = undefined
+      if (!this.isCurrentRender(generation)) return
+      void this.renderSvg(generation)
+    }
 
-    const idleWindow = window as IdleWindow;
+    const idleWindow = window as IdleWindow
     if (idleWindow.requestIdleCallback) {
-      this.pendingRenderIsIdleCallback = true;
-      this.pendingRenderHandle = idleWindow.requestIdleCallback(job, { timeout: 120 });
+      this.pendingRenderIsIdleCallback = true
+      this.pendingRenderHandle = idleWindow.requestIdleCallback(job, { timeout: 120 })
     } else {
-      this.pendingRenderIsIdleCallback = false;
-      this.pendingRenderHandle = setTimeout(job, 0);
+      this.pendingRenderIsIdleCallback = false
+      this.pendingRenderHandle = setTimeout(job, 0)
     }
   }
 
   private cancelScheduledRender(): void {
-    if (this.pendingRenderHandle === undefined) return;
-    const idleWindow = window as IdleWindow;
+    if (this.pendingRenderHandle === undefined) return
+    const idleWindow = window as IdleWindow
     if (this.pendingRenderIsIdleCallback && idleWindow.cancelIdleCallback) {
-      idleWindow.cancelIdleCallback(this.pendingRenderHandle);
+      idleWindow.cancelIdleCallback(this.pendingRenderHandle)
     } else {
-      clearTimeout(this.pendingRenderHandle as ReturnType<typeof setTimeout>);
+      clearTimeout(this.pendingRenderHandle as ReturnType<typeof setTimeout>)
     }
-    this.pendingRenderHandle = undefined;
+    this.pendingRenderHandle = undefined
   }
 
   private destroyViewer(): void {
-    if (this.destroyed) return;
-    this.destroyed = true;
-    this.stopRenderer();
+    if (this.destroyed) return
+    this.destroyed = true
+    this.stopRenderer()
   }
 
   private stopRenderer(): void {
-    this.ready = false;
-    this.sessionGeneration += 1;
-    this.invalidatePendingRender();
-    this.disposeRendererSession();
+    this.ready = false
+    this.sessionGeneration += 1
+    this.invalidatePendingRender()
+    this.disposeRendererSession()
   }
 
   private invalidatePendingRender(): void {
-    this.renderGeneration += 1;
-    this.cancelScheduledRender();
+    this.renderGeneration += 1
+    this.cancelScheduledRender()
   }
 
   private disposeRendererSession(): void {
-    const session = this.rendererSession;
-    this.rendererSession = undefined;
-    session?.dispose();
+    const session = this.rendererSession
+    this.rendererSession = undefined
+    session?.dispose()
   }
 
   private isCurrentRender(
@@ -236,41 +243,41 @@ export class MoleculeViewerComponent implements OnInit, OnChanges {
     return !this.destroyed
       && !this.disablePreview()
       && generation === this.renderGeneration
-      && session === this.rendererSession;
+      && session === this.rendererSession
   }
 
   private rgb(hex: string): [number, number, number] {
-    const n = parseInt(hex.slice(1), 16);
-    return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
+    const n = parseInt(hex.slice(1), 16)
+    return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255]
   }
 
   private buildAtomPalette(): Record<number, [number, number, number]> {
-    const mode = this.darkMode() ? 'dark' : 'light';
-    const p = MoleculeViewerComponent.WCAG[mode];
+    const mode = this.darkMode() ? 'dark' : 'light'
+    const p = MoleculeViewerComponent.WCAG[mode]
     const Z: Record<string, number> = {
-      H: 1, C: 6, N: 7, O: 8, F: 9, P: 15, S: 16, Cl: 17, Br: 35, I: 53 };
-    const def = this.rgb(p.default);
-    const palette: Record<number, [number, number, number]> = {};
-    for (let i = 1; i <= 118; i++) palette[i] = def;
+      H: 1, C: 6, N: 7, O: 8, F: 9, P: 15, S: 16, Cl: 17, Br: 35, I: 53 }
+    const def = this.rgb(p.default)
+    const palette: Record<number, [number, number, number]> = {}
+    for (let i = 1; i <= 118; i++) palette[i] = def
     for (const [sym, hex] of Object.entries(p)) {
-      if (sym === 'bg' || sym === 'bond' || sym === 'default') continue;
-      const atomicNumber = Z[sym];
+      if (sym === 'bg' || sym === 'bond' || sym === 'default') continue
+      const atomicNumber = Z[sym]
       if (atomicNumber !== undefined) {
-        palette[atomicNumber] = this.rgb(hex);
+        palette[atomicNumber] = this.rgb(hex)
       }
     }
-    return palette;
+    return palette
   }
 
   /* ────── Core rendering ─────────────────────────────────────── */
   private async renderSvg(generation: number): Promise<void> {
-    const session = this.rendererSession;
-    const structureValue = this.structure();
-    if (!structureValue || !session) return;
-    const structure = structureValue;
-    const mode = this.mode();
-    const palette = MoleculeViewerComponent.WCAG[this.darkMode() ? 'dark' : 'light'];
-    let raw: string;
+    const session = this.rendererSession
+    const structureValue = this.structure()
+    if (!structureValue || !session) return
+    const structure = structureValue
+    const mode = this.mode()
+    const palette = MoleculeViewerComponent.WCAG[this.darkMode() ? 'dark' : 'light']
+    let raw: string
 
     try {
       raw = await session.renderSvg({
@@ -281,76 +288,76 @@ export class MoleculeViewerComponent implements OnInit, OnChanges {
           atomPalette: this.buildAtomPalette(),
           fixedBondLength: structure.length < 40 ? 50 : 30
         }
-      });
+      })
     } catch (error) {
-      if (this.isCurrentRender(generation, session)) this.showRenderError(error);
-      return;
+      if (this.isCurrentRender(generation, session)) this.showRenderError(error)
+      return
     }
 
-    if (!this.isCurrentRender(generation, session)) return;
+    if (!this.isCurrentRender(generation, session)) return
 
     /* 2. Mount off‑screen to compute exact bbox */
-    let tmp: HTMLDivElement | undefined;
+    let tmp: HTMLDivElement | undefined
     try {
-      tmp = document.createElement('div');
-      tmp.style.cssText = 'position:absolute;visibility:hidden;top:-9999px;left:-9999px';
-      tmp.innerHTML = raw;
-      document.body.appendChild(tmp);
+      tmp = document.createElement('div')
+      tmp.style.cssText = 'position:absolute;visibility:hidden;top:-9999px;left:-9999px'
+      tmp.innerHTML = raw
+      document.body.appendChild(tmp)
 
-      const svgEl = tmp.querySelector('svg') as SVGSVGElement | null;
+      const svgEl = tmp.querySelector('svg') as SVGSVGElement | null
       if (svgEl) {
-        const { x, y, width: w, height: h } = svgEl.getBBox();
-        const padX = w * 0.04;
-        const padY = h * 0.04;
-        svgEl.setAttribute('viewBox', `${x - padX} ${y - padY} ${w + 2 * padX} ${h + 2 * padY}`);
-        svgEl.setAttribute('preserveAspectRatio', `xMidYMid ${mode === 'preview' ? 'slice' : 'meet'}`);
+        const { x, y, width: w, height: h } = svgEl.getBBox()
+        const padX = w * 0.04
+        const padY = h * 0.04
+        svgEl.setAttribute('viewBox', `${x - padX} ${y - padY} ${w + 2 * padX} ${h + 2 * padY}`)
+        svgEl.setAttribute('preserveAspectRatio', `xMidYMid ${mode === 'preview' ? 'slice' : 'meet'}`)
 
         /* Dimensioni responsive a seconda della variante */
-        svgEl.removeAttribute('width');
-        svgEl.removeAttribute('height');
+        svgEl.removeAttribute('width')
+        svgEl.removeAttribute('height')
         if (mode === 'preview') {
-          svgEl.setAttribute('width', '100%');
-          svgEl.setAttribute('height', '100%');
+          svgEl.setAttribute('width', '100%')
+          svgEl.setAttribute('height', '100%')
         } else {
-          svgEl.setAttribute('style', 'height:100%;width:auto;display:block');
+          svgEl.setAttribute('style', 'height:100%;width:100%;max-width:100%;display:block')
         }
-        raw = svgEl.outerHTML;
+        raw = svgEl.outerHTML
       }
     } catch {/* fallback: keep raw as‑is */ }
     finally {
-      tmp?.remove();
+      tmp?.remove()
     }
 
-    if (!this.isCurrentRender(generation, session)) return;
+    if (!this.isCurrentRender(generation, session)) return
 
     /* 3. Fallback palette (nero / bianco RDKit) */
     raw = raw
       .replace(/stroke:#(?:000000|ffffff)/gi, `stroke:${palette.default}`)
       .replace(/fill:#(?:000000|ffffff)/gi, `fill:${palette.default}`)
-      .replace(/stroke:#E5E7EB/gi, `stroke:${palette.default}`);
+      .replace(/stroke:#E5E7EB/gi, `stroke:${palette.default}`)
 
     /* 4. Bind al template */
     this.zone.run(() => {
-      if (!this.isCurrentRender(generation, session)) return;
-      this.svg = this.sanitizer.bypassSecurityTrustHtml(raw);
-      this.renderState.set('ready');
+      if (!this.isCurrentRender(generation, session)) return
+      this.svg = this.sanitizer.bypassSecurityTrustHtml(raw)
+      this.renderState.set('ready')
       // TODO: The 'emit' function requires a mandatory void argument
-      this.rendered.emit();
-    });
+      this.rendered.emit()
+    })
   }
 
   retry(): void {
-    this.svg = null;
-    this.initRdkit();
+    this.svg = null
+    this.initRdkit()
   }
 
   private showRenderError(error: unknown): void {
     const message = error instanceof ChemistryAdapterError
       ? error.message
-      : 'Rappresentazione molecolare non disponibile.';
+      : 'Rappresentazione molecolare non disponibile.'
     this.zone.run(() => {
-      this.renderError.set(message);
-      this.renderState.set('unavailable');
-    });
+      this.renderError.set(message)
+      this.renderState.set('unavailable')
+    })
   }
 }

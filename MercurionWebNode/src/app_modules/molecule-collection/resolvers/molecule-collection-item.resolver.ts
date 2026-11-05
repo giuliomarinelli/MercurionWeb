@@ -1,23 +1,23 @@
-import { Resolver, Query, Mutation, Args, ID, Info } from '@nestjs/graphql';
-import { AuthenticatedUserId } from 'src/metadata/metadata';
-import { UUID } from 'crypto';
-import { GraphQLResolveInfo } from 'graphql';
-import { MoleculeCollectionItemService } from '../services/molecule-collection-item.service';
-import { CreateMoleculeItemInput } from '../models/dto/create-molecule-item.input';
-import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils';
-import { PaginatedMoleculeCollectionItem } from '../models/dto/paginated-molecule-collection-item.dto';
-import { IPaginationOptions } from 'nestjs-typeorm-paginate';
+import { Resolver, Query, Mutation, Args, ID, Info } from '@nestjs/graphql'
+import { AuthenticatedUserId } from 'src/metadata/metadata'
+import { UUID } from 'crypto'
+import { GraphQLResolveInfo } from 'graphql'
+import { MoleculeCollectionItemService } from '../services/molecule-collection-item.service'
+import { CreateMoleculeItemInput } from '../models/dto/create-molecule-item.input'
+import { GraphQLUtils } from 'src/utils/graphql-utils/graphql-utils'
+import { PaginatedMoleculeCollectionItem } from '../models/dto/paginated-molecule-collection-item.dto'
+import { IPaginationOptions } from 'nestjs-typeorm-paginate'
 import {
     MoleculeCollectionItemDTO,
     MoleculeCollectionItemUnion
-} from '../models/dto/molecule-collection-item.union';
-import { MoleculeCollectionItemJoinService } from '../services/molecule-collection-item-join.service';
-import { assertMercurionPublicId } from 'src/identifiers/mercurion-public-id';
+} from '../models/dto/molecule-collection-item.union'
+import { MoleculeCollectionItemJoinService } from '../services/molecule-collection-item-join.service'
+import { assertMercurionPublicId } from 'src/identifiers/mercurion-public-id'
 import {
     MoleculeItemsByCollectionArgs,
     MoleculeItemsByUserArgs
-} from '../models/dto/molecule-collection-item-pagination.args';
-import { RealtimeStateSyncService } from 'src/app_modules/socket-io/realtime-state-sync.service';
+} from '../models/dto/molecule-collection-item-pagination.args'
+import { RealtimeStateSyncService } from 'src/app_modules/socket-io/realtime-state-sync.service'
 
 @Resolver()
 export class MoleculeCollectionItemResolver {

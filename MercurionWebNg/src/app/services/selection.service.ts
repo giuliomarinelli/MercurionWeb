@@ -1,5 +1,5 @@
-import { Injectable, signal } from '@angular/core';
-import { ItemSelection } from '../Models/selection.model';
+import { Injectable, signal } from '@angular/core'
+import { ItemSelection } from '../Models/selection.model'
 
 @Injectable({
   providedIn: 'root'

@@ -1,6 +1,6 @@
-import { Transform } from "class-transformer";
-import { IsString, Matches, MaxLength } from "class-validator";
-import { RdkitBaseDTO } from "./rdkit-base.cls.dto";
+import { Transform } from "class-transformer"
+import { IsString, Matches, MaxLength } from "class-validator"
+import { RdkitBaseDTO } from "./rdkit-base.cls.dto"
 import {
   RDKIT_SMILES_MAX_LENGTH,
   type RdkitAreSameStructureDTO as RdkitSameStructureContract

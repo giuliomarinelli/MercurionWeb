@@ -1,6 +1,6 @@
-import { Injectable, computed, effect, inject, signal } from '@angular/core';
-import { ChemistryEditorMode } from '../../../chemistry/chemistry-adapter.models';
-import { ActionOverlayContextService } from './action-overlay-context.service';
+import { Injectable, computed, effect, inject, signal } from '@angular/core'
+import { ChemistryEditorMode } from '../../../chemistry/chemistry-adapter.models'
+import { ActionOverlayContextService } from './action-overlay-context.service'
 
 /**
  * `mode`/`smiles` are the immutable input captured when the `MoleculeCollectionItemSave`

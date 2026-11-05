@@ -1,11 +1,11 @@
-import { DynamicModule, Module } from '@nestjs/common';
-import { ResponseModule } from '../services/response.module';
-import { TestController } from '../test.controller';
-import { AppModule } from '../app.module';
+import { DynamicModule, Module } from '@nestjs/common'
+import { ResponseModule } from '../services/response.module'
+import { TestController } from '../test.controller'
+import { AppModule } from '../app.module'
 import {
   createConfigurationModule,
   type ConfigurationModuleOptions,
-} from '../config/configuration.module';
+} from '../config/configuration.module'
 
 @Module({
   imports: [AppModule, ResponseModule],
@@ -14,7 +14,7 @@ import {
 export class TestApplicationModule {}
 
 export interface TestApplicationModuleOptions {
-  readonly configuration?: ConfigurationModuleOptions;
+  readonly configuration?: ConfigurationModuleOptions
 }
 
 export function createTestApplicationModule(
@@ -27,5 +27,5 @@ export function createTestApplicationModule(
       AppModule,
       ResponseModule,
     ],
-  };
+  }
 }

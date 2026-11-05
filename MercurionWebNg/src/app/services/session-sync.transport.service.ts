@@ -191,7 +191,9 @@ export class SessionSyncTransportService implements OnDestroy {
 
       // A removed marker is not by itself proof that the server cookie was
       // cleared.  Wait for the cookie guard before applying anonymous state.
-      if (!this.hasClientLoginCookieTrue()) this.onExternalLogout()
+      if (this.persistence.hasPendingLoginMarker()) {
+        void this.checkSession(true)
+      } else if (!this.hasClientLoginCookieTrue()) this.onExternalLogout()
     }, 30)
   }
 
@@ -268,13 +270,14 @@ export class SessionSyncTransportService implements OnDestroy {
     const cookieLogged = this.hasClientLoginCookieTrue()
 
     // login locale senza cookie → stato inconsistente: considera la sessione scaduta
-    if (initials && !cookieLogged) {
+    if (initials && !cookieLogged && !this.persistence.hasPendingLoginMarker()) {
       this.handleSessionExpired(SessionInvalidationCause.InvalidSession)
       return
     }
 
     // Regola: senza cookie NON consideriamo loggati → targetIsPrivate = false
-    const targetIsPrivate = this.protocol.target(cookieLogged, initials) === 'private'
+    const targetIsPrivate = !this.authState.isPreAuth() &&
+      this.protocol.target(cookieLogged, initials) === 'private'
 
     // cooldown se anon
     if (!targetIsPrivate && !force && now - this.lastAnonHS < this.anonCooldown) {
@@ -374,7 +377,7 @@ export class SessionSyncTransportService implements OnDestroy {
     const initials = this.authState.getPersistedInitials() ?? 'U'
     this.authState.resumeFromServer(initials)
 
-    if (!this.hasClientLoginCookieTrue()) {
+    if (!this.authState.authenticated()) {
       this._status.set('anonymous')
       this.lastAnonHS = Date.now()
       await this.socket.ensurePublic()
@@ -434,7 +437,8 @@ export class SessionSyncTransportService implements OnDestroy {
     // private session.  A real subsequent login enters `authenticating`
     // first, so it is still allowed through this guard.
     if (kind === 'anonymous' && this.isVoluntaryLogoutRecent()) return
-    if (kind === 'anonymous' || kind === 'bootstrap' || kind === 'session-expired') {
+    if (kind === 'pre-auth' && !this.hasClientLoginCookieTrue()) return
+    if (kind === 'anonymous' || kind === 'bootstrap' || kind === 'session-expired' || kind === 'pre-auth') {
       this.authState.beginAuthentication('restore')
     }
     if (initials) this.authState.setPersistedInitials(initials)
@@ -456,12 +460,8 @@ export class SessionSyncTransportService implements OnDestroy {
 
   /** true se esiste __logged_in o __logged_in_ con valore 'true' (non httpOnly). */
   private hasClientLoginCookieTrue(): boolean {
-    const v1 = this.readCookie('__logged_in')
-    const v2 = this.readCookie('__logged_in_')
-    return v1 === 'true' || v2 === 'true'
+    return this.persistence.hasLoginMarker()
   }
-
-  private readCookie(name: string): string | null { return this.persistence.getCookieValue(name) }
 
   private loginInProgress(): boolean {
     const state = this.authState.state()

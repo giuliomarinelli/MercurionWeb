@@ -1,10 +1,12 @@
 import { Controller, Delete, Get, HttpStatus, Param, Post, Req, Res } from '@nestjs/common'
+import { RequiresFeatures } from 'src/feature-flags/feature-access.decorator'
 import type { UUID } from 'crypto'
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import { AuthenticatedUserId } from 'src/metadata/metadata'
 import { DocumentCommandService } from '../application/document-command.service'
 import { parseDocumentUpload } from '../transport/document-upload.adapter'
 
+@RequiresFeatures('documents')
 @Controller('documents')
 export class DocumentController {
   constructor(private readonly documentCommands: DocumentCommandService) {}

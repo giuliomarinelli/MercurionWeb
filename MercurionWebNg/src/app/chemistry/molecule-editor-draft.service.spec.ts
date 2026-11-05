@@ -15,6 +15,19 @@ describe('MoleculeEditorDraftService', () => {
     service.clearAll()
   })
 
+  it('retains edits and their history when an earlier saved revision becomes the server baseline', () => {
+    service.initialize({ mode: 'edit', mId: 'mol-a', baselineSmiles: 'CC', tab: 'std', destroyExisting: true })
+    service.record('CCC')
+    service.record('CCCC')
+    service.acceptSavedBaseline('mol-b', 'WRONG')
+    expect(service.draft()?.baselineSmiles).toBe('CC')
+    service.acceptSavedBaseline('mol-a', 'CCC')
+    expect(service.currentSmiles()).toBe('CCCC')
+    expect(service.canUndo()).toBeTrue()
+    const restored = service.initialize({ mode: 'edit', mId: 'mol-a', baselineSmiles: 'CCC', tab: 'std', destroyExisting: false })
+    expect(restored.smiles).toBe('CCCC')
+  })
+
   it('restores a persisted draft only for the same edit molecule and baseline', () => {
     service.initialize({
       mode: 'edit',
@@ -201,5 +214,64 @@ describe('MoleculeEditorDraftService', () => {
 
     expect(restored.smiles).toBe('CCC')
     expect(service.canUndo()).toBeFalse()
+  })
+
+  for (const name of ['Etanolo', null]) {
+    it(`restores canonical identity and the resolved name ${name} from session storage in a new service`, () => {
+      service.initialize({ mode: 'create', baselineSmiles: '', tab: 'std', destroyExisting: true })
+      service.record('OCC')
+      service.cacheCanonicalSmiles('OCC', 'CCO')
+      service.cacheMoleculeName('CCO', { name, type: 'iupac' })
+      const restored = TestBed.runInInjectionContext(() => new MoleculeEditorDraftService())
+      restored.initialize({ mode: 'create', baselineSmiles: '', tab: 'live', destroyExisting: false })
+      expect(restored.getCachedIdentity('OCC')).toEqual({ rawSmiles: 'OCC', canonicalSmiles: 'CCO', name: { name, type: 'iupac' } })
+      expect(restored.getCachedIdentity('CCO')?.canonicalSmiles).toBe('CCO')
+      expect(restored.getCachedIdentity('CCC')).toBeUndefined()
+      restored.record('CCC')
+      expect(restored.getCachedIdentity('OCC')).toBeUndefined()
+      restored.cacheMoleculeName('CCO', { name: 'Late name', type: 'iupac' })
+      restored.cacheCanonicalSmiles('OCC', 'CCO')
+      expect(restored.getCachedIdentity('CCC')).toBeUndefined()
+    })
+  }
+
+  it('drops malformed cached identity without losing a valid drawing or history', () => {
+    service.initialize({ mode: 'create', baselineSmiles: '', tab: 'std', destroyExisting: true })
+    service.record('CCO')
+    sessionStorage.setItem('mercurion.v1.molecule-editor-cache.create', JSON.stringify({
+      ...service.draft(), identity: { rawSmiles: 'CCO', canonicalSmiles: 42 }
+    }))
+    service.initialize({ mode: 'create', baselineSmiles: '', tab: 'live', destroyExisting: false })
+    expect(service.currentSmiles()).toBe('CCO')
+    expect(service.canUndo()).toBeTrue()
+    expect(service.getCachedIdentity('CCO')).toBeUndefined()
+  })
+
+  it('keeps the resolved identity for a confirmed restored serialization, including session restoration', () => {
+    const loaded = 'COC1C=CC(C(C2(CCCCC2)O)CN(C)C)=CC=1'
+    const exported = 'COC1C=CC(C(CN(C)C)C2(CCCCC2)O)=CC=1'
+    const canonical = 'COc1ccc(C(CN(C)C)C2(O)CCCCC2)cc1'
+    service.initialize({ mode: 'duplicate', initialSmiles: loaded, baselineSmiles: canonical, tab: 'std', destroyExisting: true })
+    service.cacheCanonicalSmiles(loaded, canonical)
+    service.cacheMoleculeName(canonical, { name: 'VENLAFAXINA', type: 'chembl' })
+    service.cacheRestoredIdentity(loaded, exported)
+    expect(service.getCachedIdentity(exported)?.name?.name).toBe('VENLAFAXINA')
+    const restored = TestBed.runInInjectionContext(() => new MoleculeEditorDraftService())
+    restored.initialize({ mode: 'duplicate', baselineSmiles: canonical, tab: 'live', destroyExisting: false })
+    expect(restored.getCachedIdentity(exported)?.canonicalSmiles).toBe(canonical)
+    restored.record('CCO')
+    restored.cacheRestoredIdentity(exported, loaded)
+    expect(restored.currentSmiles()).toBe('CCO')
+    expect(restored.getCachedIdentity(loaded)).toBeUndefined()
+  })
+
+  it('does not reuse identity for another edit context or after clearing drafts', () => {
+    service.initialize({ mode: 'edit', mId: 'a', baselineSmiles: 'CCO', tab: 'std', destroyExisting: true })
+    service.cacheCanonicalSmiles('CCO', 'CCO')
+    service.initialize({ mode: 'edit', mId: 'b', baselineSmiles: 'CCO', tab: 'std', destroyExisting: false })
+    expect(service.getCachedIdentity('CCO')).toBeUndefined()
+    service.cacheCanonicalSmiles('CCO', 'CCO')
+    service.clearCurrent()
+    expect(service.getCachedIdentity('CCO')).toBeUndefined()
   })
 })

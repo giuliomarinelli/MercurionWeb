@@ -1,17 +1,17 @@
-import { Injectable } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
-import { UUID } from "crypto";
-import { GraphQLUtils } from "src/utils/graphql-utils/graphql-utils";
-import { GraphQLFieldsMap } from "src/utils/type-orm-utils/type-orm-utils";
-import { Synthesis } from "../models/entities/synthesis.entity";
-import { SynthesisInput } from "../models/dto/synthesis.input";
-import { SynthCommandOutcome, SynthCommandResult } from "../models/dto/synth-command-result";
-import { ApplicationErrorCode, applicationError } from "src/exception-handling/application-error";
-import { SynthSelectionPlanner } from './synth-selection-planner';
-import { throwSynthPersistenceError } from './synth-command-errors';
-import { UnitOfWork, transactionRepository } from '../../../persistence/transaction-context';
-import { toSynthesisPatch } from '../models/dto/synth-patches';
+import { Injectable } from "@nestjs/common"
+import { InjectRepository } from "@nestjs/typeorm"
+import { Repository } from "typeorm"
+import { UUID } from "crypto"
+import { GraphQLUtils } from "src/utils/graphql-utils/graphql-utils"
+import { GraphQLFieldsMap } from "src/utils/type-orm-utils/type-orm-utils"
+import { Synthesis } from "../models/entities/synthesis.entity"
+import { SynthesisInput } from "../models/dto/synthesis.input"
+import { SynthCommandOutcome, SynthCommandResult } from "../models/dto/synth-command-result"
+import { ApplicationErrorCode, applicationError } from "src/exception-handling/application-error"
+import { SynthSelectionPlanner } from './synth-selection-planner'
+import { throwSynthPersistenceError } from './synth-command-errors'
+import { UnitOfWork, transactionRepository } from '../../../persistence/transaction-context'
+import { toSynthesisPatch } from '../models/dto/synth-patches'
 
 @Injectable()
 export class SynthesisService {
@@ -78,12 +78,12 @@ export class SynthesisService {
     }
 
     async findAllByUser(userId: UUID, fieldsMap: GraphQLFieldsMap): Promise<Synthesis[]> {
-        const scalarFields = GraphQLUtils.getScalarFields(fieldsMap);
+        const scalarFields = GraphQLUtils.getScalarFields(fieldsMap)
         const columns = GraphQLUtils.ensureRequiredFields(scalarFields, ['id', 'title'])
         let qb = this.routeRepo.createQueryBuilder('synthesis')
             .select(columns.map(col => `synthesis.${col}`))
             .where('synthesis.user_id = :userId', { userId })
-            .orderBy('synthesis.title', 'ASC');
+            .orderBy('synthesis.title', 'ASC')
         qb = SynthSelectionPlanner.applyForSynthesis(qb, this.routeRepo.metadata, fieldsMap)
         return qb.getMany()
     }
@@ -98,7 +98,7 @@ export class SynthesisService {
         userId: UUID,
         fieldsMap: GraphQLFieldsMap
     ): Promise<Synthesis | null> {
-        const scalarFields = GraphQLUtils.getScalarFields(fieldsMap);
+        const scalarFields = GraphQLUtils.getScalarFields(fieldsMap)
         const columns = GraphQLUtils.ensureRequiredFields(scalarFields, ['id', 'title'])
         let qb = repo.createQueryBuilder('synthesis')
             .select(columns.map(col => `synthesis.${col}`))

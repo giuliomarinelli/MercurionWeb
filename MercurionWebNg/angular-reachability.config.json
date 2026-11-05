@@ -5,6 +5,36 @@
   ],
   "allowlistedNonProductionFiles": [
     {
+      "file": "src/app/pages/login/account-flow-icons.testing.ts",
+      "category": "test-support",
+      "reason": "Shared icon fixture imported only by account-flow and registration specs."
+    },
+    {
+      "file": "src/app/pages/login/login-turnstile.testing.ts",
+      "category": "test-support",
+      "reason": "Deterministic Turnstile geometry stub imported only by login and account layout specs."
+    },
+    {
+      "file": "src/app/pages/notifications/notifications.testing.ts",
+      "category": "test-support",
+      "reason": "Notification DTO fixture shared by notification center and action specs."
+    },
+    {
+      "file": "src/app/pages/profile/dashboard/dashboard.testing.ts",
+      "category": "test-support",
+      "reason": "Profile fixture shared by dashboard, layout and settings facade specs."
+    },
+    {
+      "file": "src/app/components/common/descriptor-card-content/descriptor-card-content.component.ts",
+      "category": "legacy-compatibility",
+      "reason": "Superseded descriptor slot wrapper has no application consumers; retained with its isolated component tests."
+    },
+    {
+      "file": "src/app/components/search-overlay/search-input/search-input.component.ts",
+      "category": "legacy-compatibility",
+      "reason": "Superseded molecule-search wrapper has no application consumers; current search flows use their shared search field directly. Retained with its isolated compatibility tests."
+    },
+    {
       "file": "src/catalog/catalog.component.ts",
       "category": "development-only",
       "reason": "Interactive UI catalog component is compiled only by the development catalog target."

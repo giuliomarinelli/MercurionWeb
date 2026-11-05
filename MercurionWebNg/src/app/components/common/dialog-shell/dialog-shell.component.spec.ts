@@ -1,6 +1,6 @@
-import { Component } from '@angular/core';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { DialogShellComponent, DialogDismissalPolicy } from './dialog-shell.component';
+import { Component } from '@angular/core'
+import { ComponentFixture, fakeAsync, flushMicrotasks, TestBed } from '@angular/core/testing'
+import { DialogShellComponent, DialogDismissalPolicy } from './dialog-shell.component'
 
 @Component({
   standalone: true,
@@ -15,65 +15,88 @@ import { DialogShellComponent, DialogDismissalPolicy } from './dialog-shell.comp
       (dismissed)="open = false">
       <h2>Title</h2>
       <button>Confirm</button>
+      @if (focusSearch) { <input cdkFocusInitial aria-label="Search" /> }
     </m-dialog-shell>
   `
 })
 class HostComponent {
-  open = false;
-  policy: DialogDismissalPolicy = { escape: true, backdrop: true };
+  open = false
+  focusSearch = false
+  policy: DialogDismissalPolicy = { escape: true, backdrop: true }
 }
 
 describe('DialogShellComponent', () => {
-  let fixture: ComponentFixture<HostComponent>;
-  let host: HostComponent;
+  let fixture: ComponentFixture<HostComponent>
+  let host: HostComponent
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({ imports: [HostComponent] }).compileComponents();
-    fixture = TestBed.createComponent(HostComponent);
-    host = fixture.componentInstance;
-    fixture.detectChanges();
-  });
+    await TestBed.configureTestingModule({ imports: [HostComponent] }).compileComponents()
+    fixture = TestBed.createComponent(HostComponent)
+    host = fixture.componentInstance
+    fixture.detectChanges()
+  })
 
   it('exposes a labelled modal and locks body scrolling while open', () => {
-    host.open = true;
-    fixture.detectChanges();
+    host.open = true
+    fixture.detectChanges()
 
-    const dialog = fixture.nativeElement.querySelector('[role="dialog"]') as HTMLElement;
-    expect(dialog.getAttribute('aria-label')).toBe('Test dialog');
-    expect(dialog.getAttribute('aria-modal')).toBe('true');
-    expect(document.body.style.overflow).toBe('hidden');
+    const dialog = fixture.nativeElement.querySelector('[role="dialog"]') as HTMLElement
+    expect(dialog.getAttribute('aria-label')).toBe('Test dialog')
+    expect(dialog.getAttribute('aria-modal')).toBe('true')
+    expect(document.body.style.overflow).toBe('hidden')
 
-    host.open = false;
-    fixture.detectChanges();
-    expect(document.body.style.overflow).toBe('');
-  });
+    host.open = false
+    fixture.detectChanges()
+    expect(document.body.style.overflow).toBe('')
+  })
 
   it('dismisses through Escape and restores focus to the opener', () => {
-    const opener = fixture.nativeElement.querySelector('button') as HTMLButtonElement;
-    opener.focus();
-    host.open = true;
-    fixture.detectChanges();
+    const opener = fixture.nativeElement.querySelector('button') as HTMLButtonElement
+    opener.focus()
+    host.open = true
+    fixture.detectChanges()
 
-    const dialog = fixture.nativeElement.querySelector('[role="dialog"]') as HTMLElement;
-    dialog.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
-    fixture.detectChanges();
+    const dialog = fixture.nativeElement.querySelector('[role="dialog"]') as HTMLElement
+    dialog.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+    fixture.detectChanges()
 
-    expect(host.open).toBeFalse();
-    expect(document.activeElement).toBe(opener);
-  });
+    expect(host.open).toBeFalse()
+    expect(document.activeElement).toBe(opener)
+  })
 
   it('does not dismiss when the explicit policy disables backdrop and Escape', () => {
-    host.policy = { escape: false, backdrop: false };
-    host.open = true;
-    fixture.detectChanges();
-    const dialog = fixture.nativeElement.querySelector('[role="dialog"]') as HTMLElement;
+    host.policy = { escape: false, backdrop: false }
+    host.open = true
+    fixture.detectChanges()
+    const dialog = fixture.nativeElement.querySelector('[role="dialog"]') as HTMLElement
 
-    dialog.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
-    dialog.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    fixture.detectChanges();
+    dialog.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+    dialog.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    fixture.detectChanges()
 
-    expect(host.open).toBeTrue();
-    host.open = false;
-    fixture.detectChanges();
-  });
-});
+    expect(host.open).toBeTrue()
+    host.open = false
+    fixture.detectChanges()
+  })
+  it('prioritizes the explicit initial focus target over the first button', fakeAsync(() => {
+    host.focusSearch = true
+    host.open = true
+    fixture.detectChanges()
+    flushMicrotasks()
+    expect(document.activeElement).toBe(fixture.nativeElement.querySelector('input'))
+    fixture.destroy()
+  }))
+
+  it('keeps the search backdrop blurred even in the compact viewport variant', () => {
+    const shell = TestBed.createComponent(DialogShellComponent)
+    shell.componentRef.setInput('mounted', true)
+    shell.componentRef.setInput('open', true)
+    shell.componentRef.setInput('backdropVariant', 'search')
+    shell.detectChanges()
+    const dialog = shell.nativeElement.querySelector('[role="dialog"]') as HTMLElement
+    dialog.classList.add('m-dialog--compact')
+    expect(getComputedStyle(dialog).backdropFilter).toBe('blur(4px)')
+    shell.destroy()
+  })
+
+})

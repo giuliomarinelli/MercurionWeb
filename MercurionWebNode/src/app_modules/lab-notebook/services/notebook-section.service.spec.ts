@@ -1,10 +1,10 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { NotebookSectionService } from './notebook-section.service';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { NotebookSection } from '../models/entities/lab-notebook-section.entity';
+import { Test, TestingModule } from '@nestjs/testing'
+import { NotebookSectionService } from './notebook-section.service'
+import { getRepositoryToken } from '@nestjs/typeorm'
+import { NotebookSection } from '../models/entities/lab-notebook-section.entity'
 
 describe('NotebookSectionService', () => {
-  let service: NotebookSectionService;
+  let service: NotebookSectionService
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -12,12 +12,12 @@ describe('NotebookSectionService', () => {
         NotebookSectionService,
         { provide: getRepositoryToken(NotebookSection), useValue: {} },
       ],
-    }).compile();
+    }).compile()
 
-    service = module.get<NotebookSectionService>(NotebookSectionService);
-  });
+    service = module.get<NotebookSectionService>(NotebookSectionService)
+  })
 
   it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
-});
+    expect(service).toBeDefined()
+  })
+})

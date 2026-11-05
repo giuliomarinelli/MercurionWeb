@@ -1,5 +1,5 @@
-import { Injectable, computed, inject } from '@angular/core';
-import { ActionOverlayContextService } from './action-overlay-context.service';
+import { Injectable, computed, inject } from '@angular/core'
+import { ActionOverlayContextService } from './action-overlay-context.service'
 
 /**
  * Read-only view over the active `BindCollectionsToMolecule` session input.
@@ -13,6 +13,10 @@ export class BindCollectionsToMoleculeContextService {
 
   readonly moleculeId = computed<string | null>(() =>
     this.overlay.session('BindCollectionsToMolecule')?.input.moleculeId ?? null
+  )
+
+  readonly moleculeName = computed<string | null>(() =>
+    this.overlay.session('BindCollectionsToMolecule')?.input.moleculeName ?? null
   )
 
 }

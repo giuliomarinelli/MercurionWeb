@@ -1,10 +1,10 @@
-import { Injectable } from '@nestjs/common';
-import { UserRegisterDTO } from 'src/app_modules/user/models/dto/user-register.cls.dto';
-import { ConfirmWithObsContDTO, ConfirmWithRecoveryCodeDTO } from 'src/models/confirm-responses.dto';
-import { AccountFlowKernel } from './account-flow-kernel';
+import { Injectable } from '@nestjs/common'
+import { UserRegisterDTO } from 'src/app_modules/user/models/dto/user-register.cls.dto'
+import { ConfirmWithObsContDTO, ConfirmWithRecoveryCodeDTO } from 'src/models/confirm-responses.dto'
+import { AccountFlowKernel } from './account-flow-kernel'
 
 export interface RegisterAccountInput {
-  registration: UserRegisterDTO;
+  registration: UserRegisterDTO
 }
 
 @Injectable()
@@ -12,7 +12,7 @@ export class AccountRegistrationUseCase {
   constructor(private readonly account: AccountFlowKernel) {}
 
   execute(input: RegisterAccountInput): Promise<ConfirmWithObsContDTO> {
-    return this.account.registerUser(input.registration);
+    return this.account.registerUser(input.registration)
   }
 }
 
@@ -21,7 +21,7 @@ export class AccountActivationUseCase {
   constructor(private readonly account: AccountFlowKernel) {}
 
   execute(activationToken: string): Promise<ConfirmWithRecoveryCodeDTO> {
-    return this.account.activateUser(activationToken);
+    return this.account.activateUser(activationToken)
   }
 }
 
@@ -30,6 +30,6 @@ export class AccountEmailAvailabilityQuery {
   constructor(private readonly account: AccountFlowKernel) {}
 
   execute(email: string): Promise<boolean> {
-    return this.account.isUserAvailableByEmail(email);
+    return this.account.isUserAvailableByEmail(email)
   }
 }

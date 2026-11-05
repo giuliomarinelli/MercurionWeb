@@ -4,19 +4,20 @@ import {
   computed,
   input,
   output,
-} from '@angular/core';
+} from '@angular/core'
 
 import {
   InfinitePaginationState,
   PagePaginationState,
   PaginationState,
-} from '../../../Models/graphql/page.models';
-import { ButtonComponent } from '../button/button.component';
+} from '../../../Models/graphql/page.models'
+import { ButtonComponent } from '../button/button.component'
+import { ProgressIndicatorComponent } from '../progress-indicator/progress-indicator.component'
 
 @Component({
   selector: 'm-pagination',
   standalone: true,
-  imports: [ButtonComponent],
+  imports: [ButtonComponent, ProgressIndicatorComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (state().mode === 'page') {
@@ -63,17 +64,10 @@ import { ButtonComponent } from '../button/button.component';
             Retry
           </m-button>
         </div>
-      } @else if (infiniteState().hasMore) {
-        <m-button
-          variant="outline"
-          [loading]="infiniteState().pending"
-          [disabled]="infiniteState().pending"
-          ariaLabel="Load more results"
-          (pressed)="loadMore()">
-          {{ infiniteState().pending ? 'Loading…' : 'Load more' }}
-        </m-button>
-      } @else if (!infiniteState().empty) {
-        <p class="m-pagination__end" role="status" aria-live="polite">End of results</p>
+      } @else if (infiniteState().hasMore && infiniteState().pending) {
+        <div class="flex justify-center" role="status" aria-live="polite">
+          <m-progress-indicator />
+        </div>
       }
     }
   `,
@@ -101,60 +95,60 @@ import { ButtonComponent } from '../button/button.component';
   `,
 })
 export class PaginationComponent {
-  readonly state = input.required<PaginationState>();
-  readonly pageChange = output<number>();
-  readonly loadMoreRequested = output<void>();
-  readonly retry = output<void>();
+  readonly state = input.required<PaginationState>()
+  readonly pageChange = output<number>()
+  readonly loadMoreRequested = output<void>()
+  readonly retry = output<void>()
 
   protected readonly pages = computed(() => {
-    const state = this.state();
+    const state = this.state()
     return state.mode === 'page'
       ? Array.from({ length: state.totalPages }, (_, index) => index + 1)
-      : [];
-  });
+      : []
+  })
 
   protected canGoPrevious(): boolean {
-    const state = this.pageState();
-    return !state.pending && state.currentPage > 1;
+    const state = this.pageState()
+    return !state.pending && state.currentPage > 1
   }
 
   protected canGoNext(): boolean {
-    const state = this.pageState();
-    return !state.pending && state.currentPage < state.totalPages;
+    const state = this.pageState()
+    return !state.pending && state.currentPage < state.totalPages
   }
 
   protected isCurrentPage(page: number): boolean {
-    const state = this.pageState();
-    return state.currentPage === page;
+    const state = this.pageState()
+    return state.currentPage === page
   }
 
   protected goPrevious(): void {
-    if (this.canGoPrevious()) this.pageChange.emit(this.pageState().currentPage - 1);
+    if (this.canGoPrevious()) this.pageChange.emit(this.pageState().currentPage - 1)
   }
 
   protected goNext(): void {
-    if (this.canGoNext()) this.pageChange.emit(this.pageState().currentPage + 1);
+    if (this.canGoNext()) this.pageChange.emit(this.pageState().currentPage + 1)
   }
 
   protected goTo(page: number): void {
-    const state = this.pageState();
-    if (!state.pending && page !== state.currentPage) this.pageChange.emit(page);
+    const state = this.pageState()
+    if (!state.pending && page !== state.currentPage) this.pageChange.emit(page)
   }
 
   protected loadMore(): void {
-    const state = this.infiniteState();
-    if (!state.pending && state.hasMore && !state.error) this.loadMoreRequested.emit();
+    const state = this.infiniteState()
+    if (!state.pending && state.hasMore && !state.error) this.loadMoreRequested.emit()
   }
 
   private pageState(): PagePaginationState {
-    const state = this.state();
-    if (state.mode !== 'page') throw new Error('Page controls require page pagination state');
-    return state;
+    const state = this.state()
+    if (state.mode !== 'page') throw new Error('Page controls require page pagination state')
+    return state
   }
 
   protected infiniteState(): InfinitePaginationState {
-    const state = this.state();
-    if (state.mode !== 'infinite') throw new Error('Load-more controls require infinite pagination state');
-    return state;
+    const state = this.state()
+    if (state.mode !== 'infinite') throw new Error('Load-more controls require infinite pagination state')
+    return state
   }
 }

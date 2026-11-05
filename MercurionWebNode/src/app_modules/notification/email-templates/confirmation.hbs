@@ -1,9 +1,10 @@
 {{#> layouts/email-shell title="Registrazione a Mercurion" footer="Ricevi questa email perché è stata richiesta una registrazione con questo indirizzo su Mercurion. Se non sei stato tu, puoi ignorare questo messaggio."}}
 <h1>Ciao {{firstName}}!</h1>
-<p>Conferma la tua registrazione a Mercurion entro 2 ore per iniziare a usare la piattaforma.</p>
+<p>Conferma la tua registrazione a Mercurion per iniziare a usare la piattaforma. Il link è personale: non condividerlo.</p>
 <div class="button-wrapper">
   <a href="{{url}}" class="btn-primary">Conferma il tuo account</a>
 </div>
+<p class="muted">Se il link è scaduto, richiedi assistenza dalla pagina di attivazione.</p>
 <p class="muted">Se il pulsante non funziona, copia e incolla questo link nel tuo browser:</p>
 <p class="fallback-link">{{url}}</p>
 {{/layouts/email-shell}}

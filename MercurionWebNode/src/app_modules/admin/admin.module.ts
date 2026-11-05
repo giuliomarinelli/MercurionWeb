@@ -1,6 +1,6 @@
-import { Module } from '@nestjs/common';
-import { AdminController } from './controllers/admin.controller';
-import { ResponseModule } from 'src/services/response.module';
+import { Module } from '@nestjs/common'
+import { AdminController } from './controllers/admin.controller'
+import { ResponseModule } from 'src/services/response.module'
 
 @Module({
   imports: [ResponseModule],

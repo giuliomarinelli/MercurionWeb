@@ -1,23 +1,23 @@
-import { ApplicationConfig, inject, provideZoneChangeDetection } from '@angular/core';
-import { provideRouter, TitleStrategy, withInMemoryScrolling } from '@angular/router';
-import { routes } from './app.routes';
-import { Apollo, provideApollo } from 'apollo-angular';
-import { ApolloLink } from '@apollo/client/core';
-import { HttpLink } from 'apollo-angular/http';
-import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
-import { APP_BASE_HREF } from '@angular/common';
-import { AuthInterceptor } from './interceptors/auth.interceptor';
-import { AuthFallbackInterceptor } from './interceptors/auth-fallback.interceptor';
-import { CorrelationInterceptor } from './interceptors/correlation.interceptor';
-import { ContractVersionInterceptor } from './interceptors/contract-version.interceptor';
-import { ClientInstanceInterceptor } from './interceptors/client-instance.interceptor';
-import { MercurionTitleStrategy } from './mercurion-title-strategy';
-import { CONTRACT_VERSION_HEADER, CURRENT_CONTRACT_MAJOR } from '@mercurion/rest-contracts';
-import { GRAPHQL_QUERY_FETCH_POLICY } from './services/graphql/graphql-query-policy';
+import { ApplicationConfig, inject, provideZoneChangeDetection } from '@angular/core'
+import { provideRouter, TitleStrategy, withInMemoryScrolling } from '@angular/router'
+import { routes } from './app.routes'
+import { Apollo, provideApollo } from 'apollo-angular'
+import { ApolloLink } from '@apollo/client/core'
+import { HttpLink } from 'apollo-angular/http'
+import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http'
+import { APP_BASE_HREF } from '@angular/common'
+import { AuthInterceptor } from './interceptors/auth.interceptor'
+import { AuthFallbackInterceptor } from './interceptors/auth-fallback.interceptor'
+import { CorrelationInterceptor } from './interceptors/correlation.interceptor'
+import { ContractVersionInterceptor } from './interceptors/contract-version.interceptor'
+import { ClientInstanceInterceptor } from './interceptors/client-instance.interceptor'
+import { MercurionTitleStrategy } from './mercurion-title-strategy'
+import { CONTRACT_VERSION_HEADER, CURRENT_CONTRACT_MAJOR } from '@mercurion/rest-contracts'
+import { GRAPHQL_QUERY_FETCH_POLICY } from './services/graphql/graphql-query-policy'
 import {
   createMercurionApolloCache,
   MERCURION_APOLLO_CACHE
-} from './services/graphql/apollo-cache-policies';
+} from './services/graphql/apollo-cache-policies'
 
 
 export const appConfig: ApplicationConfig = {
@@ -32,13 +32,13 @@ export const appConfig: ApplicationConfig = {
     ),
     provideHttpClient(withInterceptorsFromDi()),
     provideApollo(() => {
-      const httpLink = inject(HttpLink);
+      const httpLink = inject(HttpLink)
       const contractVersionLink = new ApolloLink((operation, forward) => {
         operation.setContext(({ headers = {} }) => ({
           headers: { ...headers, [CONTRACT_VERSION_HEADER]: String(CURRENT_CONTRACT_MAJOR) }
-        }));
-        return forward(operation);
-      });
+        }))
+        return forward(operation)
+      })
       return {
         link: contractVersionLink.concat(httpLink.create({ uri: '/api/graphql' })),
         cache: createMercurionApolloCache(),
@@ -53,7 +53,7 @@ export const appConfig: ApplicationConfig = {
           }
         },
         uri: '/api/graphql'
-      };
+      }
     }),
     {
       provide: MERCURION_APOLLO_CACHE,
@@ -93,4 +93,4 @@ export const appConfig: ApplicationConfig = {
       useClass: MercurionTitleStrategy
     }
   ]
-};
+}

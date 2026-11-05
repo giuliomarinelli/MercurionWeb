@@ -74,6 +74,7 @@ export interface ChemistryEditorSession {
   readonly resourceUrl: string
   attach(frame: HTMLIFrameElement): void
   onStateChange(listener: (state: ChemistryCapabilityState) => void): () => void
+  onStructureChange?(listener: () => void): () => void
   setStructure(structure: string): Promise<void>
   exportStructure(): Promise<string>
   dispose(): void

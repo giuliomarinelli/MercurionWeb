@@ -1,23 +1,23 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing'
 
-import { SearchResultSkeletonLoaderComponent } from './search-result-skeleton-loader.component';
+import { SearchResultSkeletonLoaderComponent } from './search-result-skeleton-loader.component'
 
 describe('SearchResultSkeletonLoaderComponent', () => {
-  let component: SearchResultSkeletonLoaderComponent;
-  let fixture: ComponentFixture<SearchResultSkeletonLoaderComponent>;
+  let component: SearchResultSkeletonLoaderComponent
+  let fixture: ComponentFixture<SearchResultSkeletonLoaderComponent>
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [SearchResultSkeletonLoaderComponent]
     })
-    .compileComponents();
+    .compileComponents()
 
-    fixture = TestBed.createComponent(SearchResultSkeletonLoaderComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
+    fixture = TestBed.createComponent(SearchResultSkeletonLoaderComponent)
+    component = fixture.componentInstance
+    fixture.detectChanges()
+  })
 
   it('should create', () => {
-    expect(component).toBeTruthy();
-  });
-});
+    expect(component).toBeTruthy()
+  })
+})

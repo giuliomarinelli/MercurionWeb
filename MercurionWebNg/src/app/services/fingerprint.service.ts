@@ -1,11 +1,11 @@
-import { Injectable } from '@angular/core';
+import { Injectable } from '@angular/core'
 import { getFingerprintData } from '@thumbmarkjs/thumbmarkjs'
 import type {
   FingerprintData,
   SessionDeviceInfo
 } from '@mercurion/rest-contracts'
-import { FingerprintDataWrapper } from '../Models/auth/fingerprint.models';
-import { RawFingerprintData } from '../Models/auth/fingerprint-raw.models';
+import { FingerprintDataWrapper } from '../Models/auth/fingerprint.models'
+import { RawFingerprintData } from '../Models/auth/fingerprint-raw.models'
 
 
 @Injectable({
@@ -68,7 +68,7 @@ export class FingerprintService {
       }
     }
 
-    const fingerprintDataEnc = btoa(JSON.stringify(fingerprintData));
+    const fingerprintDataEnc = btoa(JSON.stringify(fingerprintData))
 
     return {
       fingerprintDataEnc,

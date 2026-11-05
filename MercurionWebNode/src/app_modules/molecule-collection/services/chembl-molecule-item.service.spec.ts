@@ -1,14 +1,14 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { ChEMBLMoleculeItemService } from './chembl-molecule-item.service';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { ChEMBLMoleculeItemEntity } from '../models/entities/chembl-molecule-item.entity';
-import { MoleculeCollection } from '../models/entities/molecule-collection.entity';
-import { MoleculeCollectionItemJoinService } from './molecule-collection-item-join.service';
-import { DataSource } from 'typeorm';
-import { MoleculeOwnershipPolicy } from './molecule-ownership.policy';
+import { Test, TestingModule } from '@nestjs/testing'
+import { ChEMBLMoleculeItemService } from './chembl-molecule-item.service'
+import { getRepositoryToken } from '@nestjs/typeorm'
+import { ChEMBLMoleculeItemEntity } from '../models/entities/chembl-molecule-item.entity'
+import { MoleculeCollection } from '../models/entities/molecule-collection.entity'
+import { MoleculeCollectionItemJoinService } from './molecule-collection-item-join.service'
+import { DataSource } from 'typeorm'
+import { MoleculeOwnershipPolicy } from './molecule-ownership.policy'
 
 describe('ChemblMoleculeItemService', () => {
-  let service: ChEMBLMoleculeItemService;
+  let service: ChEMBLMoleculeItemService
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -37,12 +37,12 @@ describe('ChemblMoleculeItemService', () => {
         },
         { provide: MoleculeOwnershipPolicy, useValue: { assertCollectionOwned: jest.fn() } },
       ],
-    }).compile();
+    }).compile()
 
-    service = module.get<ChEMBLMoleculeItemService>(ChEMBLMoleculeItemService);
-  });
+    service = module.get<ChEMBLMoleculeItemService>(ChEMBLMoleculeItemService)
+  })
 
   it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
-});
+    expect(service).toBeDefined()
+  })
+})

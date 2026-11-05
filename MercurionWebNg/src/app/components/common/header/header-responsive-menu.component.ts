@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, output } from '@angular/core'
 
 @Component({
   selector: 'm-header-responsive-menu',
@@ -12,7 +12,7 @@ import { Component, ChangeDetectionStrategy, input, output } from '@angular/core
   `
 })
 export class HeaderResponsiveMenuComponent {
-  readonly open = input(false);
-  readonly closed = output<void>();
-  readonly focusRestore = output<void>();
+  readonly open = input(false)
+  readonly closed = output<void>()
+  readonly focusRestore = output<void>()
 }

@@ -95,11 +95,16 @@ function main() {
   const productionByKey = new Map(productionFiles.map((file) => [key(file), file]));
   const options = compilerOptions();
   const graph = new Map(productionFiles.map((file) => [file, new Set()]));
+  const nonProductionImports = [];
 
   for (const file of productionFiles) {
     for (const specifier of importSpecifiers(file)) {
       const resolved = ts.resolveModuleName(specifier, file, options, ts.sys)
         .resolvedModule?.resolvedFileName;
+      const resolvedFile = resolved && filesByKey.get(key(resolved));
+      if (resolvedFile && allowlisted.has(relative(resolvedFile))) {
+        nonProductionImports.push(`${relative(file)} -> ${relative(resolvedFile)}`);
+      }
       const target = resolved && productionByKey.get(key(resolved));
       if (target) graph.get(file).add(target);
     }
@@ -142,6 +147,7 @@ function main() {
     productionFileCount: productionFiles.length,
     reachableFileCount: [...reachable].filter((file) => productionByKey.has(key(file))).length,
     orphanedFiles,
+    nonProductionImports: nonProductionImports.sort(),
     allowlistedNonProductionFiles: [...allowlisted.entries()]
       .sort(([left], [right]) => left.localeCompare(right))
       .map(([, entry]) => entry),
@@ -149,7 +155,11 @@ function main() {
 
   if (process.argv.includes('--json')) {
     console.log(JSON.stringify(report, null, 2));
-  } else if (orphanedFiles.length || invalidAllowlist.length || invalidEntrypoint.length) {
+  } else if (orphanedFiles.length || invalidAllowlist.length || invalidEntrypoint.length || nonProductionImports.length) {
+    if (nonProductionImports.length) {
+      console.error('Nest production files import declared non-production files:');
+      nonProductionImports.forEach((edge) => console.error(`  ${edge}`));
+    }
     if (orphanedFiles.length) {
       console.error(`Nest production reachability found ${orphanedFiles.length} orphaned file(s):`);
       orphanedFiles.forEach((file) => console.error(`  ${file}`));
@@ -169,7 +179,7 @@ function main() {
     );
   }
 
-  if (orphanedFiles.length || invalidAllowlist.length || invalidEntrypoint.length) {
+  if (orphanedFiles.length || invalidAllowlist.length || invalidEntrypoint.length || nonProductionImports.length) {
     process.exitCode = 1;
   }
 }

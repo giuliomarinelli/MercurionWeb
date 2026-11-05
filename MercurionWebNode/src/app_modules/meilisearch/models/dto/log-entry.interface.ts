@@ -1,4 +1,4 @@
-import { LogLevel } from "@nestjs/common";
+import { LogLevel } from "@nestjs/common"
 import type { UtcInstant } from '@mercurion/rest-contracts'
 
 export interface LogEntry {

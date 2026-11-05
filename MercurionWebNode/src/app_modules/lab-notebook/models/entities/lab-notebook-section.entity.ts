@@ -1,9 +1,9 @@
-import { UUID } from "crypto";
-import { BeforeInsert, Column, Entity, Index, JoinColumn, ManyToOne, OneToMany, PrimaryColumn } from "typeorm";
-import { NotebookChapter } from "./lab-notebook-chapter.entity";
-import { uuidv7 } from "@kripod/uuidv7";
-import { NotebookPage } from "./lab-notebook-page.entity";
-import { ObjectType, Field, ID, Int } from '@nestjs/graphql';
+import { UUID } from "crypto"
+import { BeforeInsert, Column, Entity, Index, JoinColumn, ManyToOne, OneToMany, PrimaryColumn } from "typeorm"
+import { NotebookChapter } from "./lab-notebook-chapter.entity"
+import { uuidv7 } from "@kripod/uuidv7"
+import { NotebookPage } from "./lab-notebook-page.entity"
+import { ObjectType, Field, ID, Int } from '@nestjs/graphql'
 
 @ObjectType()
 @Entity('lab_notebook_sections')

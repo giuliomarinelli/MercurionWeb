@@ -1,8 +1,8 @@
-import { signal } from '@angular/core';
-import { MoleculeCardItemModel, MoleculeCollectionItemClient } from './Models/graphql/molecule-collection/molecule-collection.types';
-import { MoleculeProperties } from './Models/graphql/molecule-properties.model';
-import { MoleculeSearchResult } from './Models/graphql/molecule-search/molecule-search-result.interface';
-import { MoleculeDetail } from './Models/graphql/molecule.detail.models';
+import { signal } from '@angular/core'
+import { MoleculeCardItemModel, MoleculeCollectionItemClient } from './Models/graphql/molecule-collection/molecule-collection.types'
+import { MoleculeProperties } from './Models/graphql/molecule-properties.model'
+import { MoleculeSearchResult } from './Models/graphql/molecule-search/molecule-search-result.interface'
+import { MoleculeDetail } from './Models/graphql/molecule.detail.models'
 export class Helpers {
 
   static breakHex(str: string, id = true): string {
@@ -13,7 +13,7 @@ export class Helpers {
   }
 
   static normalizeTitleCase(input: string): string {
-    if (!input) return '';
+    if (!input) return ''
 
     return input
       .trim()
@@ -22,7 +22,7 @@ export class Helpers {
       .map(word =>
         word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
       )
-      .join(' ');
+      .join(' ')
   }
 
   static isValidJwt(t: string) {
@@ -40,8 +40,8 @@ export class Helpers {
         : mol.name ?? 'Lead sconosciuto',
       syn: mol.type === 'chembl' ? (mol.chemblDetails as MoleculeDetail)?.synonyms?.[0] ?? '' : '',
       mwFreebase: mol.type === 'chembl'
-        ? (mol.chemblDetails as MoleculeDetail)?.properties.mwFreebase ?? 0
-        : (() => { try { return (JSON.parse(mol.propertiesJson ?? '') as MoleculeProperties).mwFreebase ?? 0 } catch { return 0 } })() as number,
+        ? (mol.chemblDetails as MoleculeDetail)?.properties?.mwFreebase ?? undefined
+        : Helpers.parseMoleculeProperties(mol.propertiesJson)?.mwFreebase ?? undefined,
       maxPhase: mol.type === 'chembl' ? (mol.chemblDetails as MoleculeDetail)?.maxPhase ?? 0 : undefined,
       smiles: mol.type === 'chembl' ? (mol.chemblDetails as MoleculeDetail)?.canonicalSmiles ?? '' : mol.canonicalSmiles ?? '',
       createdAt: Number(mol.createdAt),
@@ -53,11 +53,11 @@ export class Helpers {
   }
 
   static parseMoleculeProperties(json?: string | null): MoleculeProperties | undefined {
-    if (!json) return undefined;
+    if (!json) return undefined
     try {
-      return JSON.parse(json) as MoleculeProperties;
+      return JSON.parse(json) as MoleculeProperties
     } catch {
-      return undefined;
+      return undefined
     }
   }
 

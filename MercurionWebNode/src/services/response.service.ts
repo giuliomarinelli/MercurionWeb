@@ -1,5 +1,5 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
-import { ConfirmDTO } from 'src/models/confirm-responses.dto';
+import { HttpStatus, Injectable } from '@nestjs/common'
+import { ConfirmDTO } from 'src/models/confirm-responses.dto'
 import { utcNow } from 'src/utils/temporal/temporal'
 
 @Injectable()

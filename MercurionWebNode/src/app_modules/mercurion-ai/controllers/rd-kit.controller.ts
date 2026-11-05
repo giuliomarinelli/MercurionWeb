@@ -1,10 +1,10 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, ValidationPipe } from '@nestjs/common';
-import { RDKitService } from '../services/rd-kit.service';
-import type { RdkitGetMoleculePropertiesResult } from '@mercurion/rest-contracts';
-import { Public } from 'src/metadata/metadata';
-import { RdkitGetMoleculePropertiesDTO } from '../models/dto/rdkit/rdkit-get-molecule-properties.cls.dto';
-import { RdkitToCanonicalSmilesDTO } from '../models/dto/rdkit/rdkit-canonical-smiles.dto';
-import { RdkitAreSameStructureDTO } from '../models/dto/rdkit/rdkit-are-same-structures.dto';
+import { Body, Controller, HttpCode, HttpStatus, Post, ValidationPipe } from '@nestjs/common'
+import { RDKitService } from '../services/rd-kit.service'
+import type { RdkitGetMoleculePropertiesResult } from '@mercurion/rest-contracts'
+import { Public } from 'src/metadata/metadata'
+import { RdkitGetMoleculePropertiesDTO } from '../models/dto/rdkit/rdkit-get-molecule-properties.cls.dto'
+import { RdkitToCanonicalSmilesDTO } from '../models/dto/rdkit/rdkit-canonical-smiles.dto'
+import { RdkitAreSameStructureDTO } from '../models/dto/rdkit/rdkit-are-same-structures.dto'
 
 @Controller('rdkit-api')
 export class RdKitController {

@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core'
 import { Router } from '@angular/router'
-import { EMPTY, Observable, Subject, catchError, defer, filter, map, takeUntil, tap, throwError } from 'rxjs'
+import { EMPTY, Observable, Subject, catchError, defer, filter, from, map, switchMap, takeUntil, tap, throwError } from 'rxjs'
 import type { Confirm_Login_FirstStepDTO, EmailDTO } from '@mercurion/rest-contracts'
 import { AuthTransportService } from './auth-transport.service'
 import { AuthSessionRepository } from './auth-session-repository.service'
@@ -65,13 +65,15 @@ export class AuthFacade {
     return this.auth.loginFirstStep(request).pipe(
       takeUntil(this.cancelled),
       filter(() => currentAttempt === this.attempt),
-      tap((response) => {
-        this.completeOrHandoff(response)
-      }),
-      map(response => this.toResult(response)),
+      switchMap(response => from(this.completeOrHandoff(response)).pipe(
+        map(() => this.toResult(response))
+      )),
       catchError(error => {
         if (currentAttempt !== this.attempt) return EMPTY
-        if (this.authState.isAuthenticating()) this.authState.logout()
+        if (this.authState.isAuthenticating() || this.authState.isPreAuth()) {
+          this.authState.logout()
+          this.persistence.clearPreAuthData()
+        }
         this.authErrors.setFromHttp(error, 'login')
         return throwError(() => error)
       })
@@ -97,17 +99,14 @@ export class AuthFacade {
     if (value != null) this.redirects.captureQueryParam(value)
   }
 
-  private completeOrHandoff(response: Confirm_Login_FirstStepDTO): void {
+  private async completeOrHandoff(response: Confirm_Login_FirstStepDTO): Promise<void> {
     if (response.needsMfa) {
       const { statusCode, timestamp, message, ...preAuth } = response
       if (!this.sessions.savePreAuthState(preAuth)) {
-        this.authState.logout()
-        void this.router.navigate(['/login'])
-        return
+        throw new Error('InvalidMfaPreAuthenticationState')
       }
       if (!response.preAuthorizationToken) {
-        this.sessions.invalidate()
-        return
+        throw new Error('MissingMfaPreAuthorizationToken')
       }
       this.sessions.enterPreAuthentication(response.preAuthorizationToken)
       const target = response.suspiciousAttempt
@@ -115,13 +114,13 @@ export class AuthFacade {
         : (response.enabledMfaStrategies?.length ?? 0) === 1
           ? [`/login/mfa/${response.enabledMfaStrategies[0]}`]
           : ['/login/mfa/CHOOSE_METHOD']
-      void this.router.navigate(target, response.suspiciousAttempt ? { queryParams: { trust_verify: true } } : undefined)
+      const navigated = await this.router.navigate(target, response.suspiciousAttempt ? { queryParams: { trust_verify: true } } : undefined)
+      if (!navigated) throw new Error('MfaNavigationCancelled')
       return
     }
 
     if (!response.accessToken || !response.ws_accessToken) {
-      this.authState.invalidate()
-      return
+      throw new Error('MissingAuthenticatedCredentials')
     }
     this.sessions.activate({
       initials: response.initials ?? 'U',
@@ -129,7 +128,8 @@ export class AuthFacade {
       wsAccessToken: response.ws_accessToken
     })
     this.sessionSync.resumeSession(response.initials ?? 'U')
-    void this.router.navigateByUrl(this.consumeRedirect())
+    const navigated = await this.router.navigateByUrl(this.consumeRedirect())
+    if (!navigated) throw new Error('AuthenticatedNavigationCancelled')
   }
 
   private toResult(response: Confirm_Login_FirstStepDTO): LoginFlowResult {

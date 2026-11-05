@@ -1,15 +1,33 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core'
+import { RouterLink } from '@angular/router'
+
+import { DocumentNavigationDirective } from '../../components/common/document-navigation/document-navigation.directive'
 
 @Component({
   selector: 'm-privacy-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [],
+  imports: [RouterLink, DocumentNavigationDirective],
   template: `
-    <main class="main-container leading-7" role="main" aria-labelledby="privacy-heading">
+    <main class="main-container max-w-4xl text-on-surface-main text-base leading-7 [overflow-wrap:anywhere]
+      [&>section]:mt-8 [&_.h2]:mb-3 [&_.h2]:pb-0 [&_.h2]:bottom-0 [&_.h2]:text-left [&_.h2]:text-xl [&_.h2]:leading-7 [&_.h2]:tracking-normal
+      [&_.h3]:mt-5 [&_.h3]:mb-2 [&_.h3]:bottom-0 [&_.h3]:text-left [&_.h3]:text-lg [&_.h3]:tracking-normal
+      [&_.h1-underline]:text-2xl sm:[&_.h1-underline]:text-3xl"
+      mDocumentNavigation="privacy" #documentNav="mDocumentNavigation" aria-labelledby="privacy-heading">
       <header>
         <h1 id="privacy-heading" class="h1-underline">Informativa sulla Privacy di Mercurion</h1>
         <p><strong>Ultimo aggiornamento:</strong> {{ lastUpdated }}</p>
       </header>
+
+      <nav class="my-6 rounded-xl border border-token-border bg-surface-elevated p-4 text-sm text-on-surface-main" aria-label="Sommario del documento">
+        <details>
+          <summary class="cursor-pointer rounded-lg py-2 font-semibold outline-none focus-visible:ring-2 focus-visible:ring-light-accent-primary-hq">Sommario</summary>
+          <ol class="mt-3 grid gap-x-6 sm:grid-cols-2">
+            @for (section of documentNav.sections(); track section.id) {
+              <li><a class="a underline underline-offset-4 inline-block py-2" [routerLink]="[]" [fragment]="section.id">{{ section.title }}</a></li>
+            }
+          </ol>
+        </details>
+      </nav>
 
       <section aria-label="Introduzione">
         <p>
@@ -24,11 +42,12 @@ import { ChangeDetectionStrategy, Component } from '@angular/core'
       <section aria-label="Titolare del trattamento">
         <h2 class="h2">1. Titolare del trattamento</h2>
         <p>
-          <strong>{{ dataControllerName }}</strong><br />
+          <strong>{{ dataControllerName }}</strong>, ditta individuale operante con il brand
+          <strong>Giulio Marinelli Web Tech Lab</strong> e gestore della piattaforma Mercurion.<br />
           <strong>Sede:</strong>&nbsp;{{ dataControllerLocation }}<br />
           <strong>Partita IVA:</strong>&nbsp;{{ dataControllerVatCode }}<br />
           <strong>Email di contatto:</strong>&nbsp;
-          <a class="a" [href]="'mailto:' + dataControllerEmail">{{ dataControllerEmail }}</a><br />
+          <a class="a underline underline-offset-4" [href]="'mailto:' + dataControllerEmail">{{ dataControllerEmail }}</a><br />
           <strong>PEC:</strong>&nbsp;{{ dataControllerPec }}
         </p>
       </section>
@@ -59,6 +78,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core'
           <li>
             <strong>Numero di telefono (facoltativo):</strong>
             fornito solo se l’utente desidera abilitare funzionalità aggiuntive di sicurezza.
+            Sono accettati solo numeri italiani con prefisso internazionale <strong>+39</strong>.
             Il numero è utilizzato esclusivamente per:
             <ul class="list-disc pl-6 mt-2">
               <li>invio di codici di accesso temporanei (OTP) o verifiche aggiuntive;</li>
@@ -67,6 +87,9 @@ import { ChangeDetectionStrategy, Component } from '@angular/core'
             </ul>
             Il numero <strong>non</strong> è utilizzato per marketing, comunicazioni promozionali o profilazione
             e <strong>non</strong> è ceduto a terzi per finalità commerciali.
+            Per l'invio di SMS transazionali il numero telefonico e il contenuto del messaggio
+            vengono comunicati al provider SMS. Gli SMS sono destinati esclusivamente a numerazioni italiane
+            e possono riportare il mittente alfanumerico <strong>Mercurion</strong>.
             Il conferimento è facoltativo e la mancata fornitura non pregiudica l’uso del Servizio.
             L’utente può rimuovere il numero in qualsiasi momento dal profilo, disabilitando le relative funzionalità.
           </li>
@@ -156,7 +179,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core'
           <li><strong>Cloudflare</strong> – CDN e sicurezza</li>
           <li><strong>Hosting provider:</strong>&nbsp;{{ hostingProviderName }}</li>
           <li><strong>Provider email di servizio:</strong>&nbsp;{{ emailProviderName }}</li>
-          <li><strong>Provider SMS:</strong>&nbsp;{{ smsProviderName }}</li>
+          <li><strong>Provider SMS:</strong>&nbsp;{{ smsProviderName }}, per la consegna di OTP e notifiche di sicurezza</li>
         </ul>
       </section>
 
@@ -166,7 +189,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core'
           L’utente può esercitare i diritti previsti dal GDPR (accesso, rettifica,
           cancellazione, limitazione, opposizione e portabilità)
           contattando il Titolare all’indirizzo:
-          <a class="a" [href]="'mailto:' + dataControllerEmail">{{ dataControllerEmail }}</a>.
+          <a class="a underline underline-offset-4" [href]="'mailto:' + dataControllerEmail">{{ dataControllerEmail }}</a>.
         </p>
       </section>
 
@@ -181,10 +204,10 @@ import { ChangeDetectionStrategy, Component } from '@angular/core'
   `
 })
 export class PrivacyPageComponent {
-  lastUpdated = '02/01/2026'
+  lastUpdated = '27/10/2026'
 
   dataControllerName = 'Giulio Marinelli'
-  dataControllerLocation = 'Italia'
+  dataControllerLocation = 'Via Altan 28, 33053 Latisana (UD), Italia'
   dataControllerVatCode = '03198070306'
   dataControllerEmail = 'mercurion.app@gmail.com'
   dataControllerPec = 'giuliomarinelli25@pec.it'

@@ -4,6 +4,8 @@ import { ConfigService } from '@nestjs/config'
 import { readFileSync } from 'fs'
 import { resolve } from 'path'
 import { Environment } from 'src/config/config.schema'
+import { parseJwtKeyManifest } from '../keys/jwt-key-manifest.parser'
+import type { JwtKeyManifest } from '../keys/jwt-key-manifest'
 
 export interface JwtKeyPair {
     privateKey: string
@@ -14,6 +16,11 @@ export interface JwtKeyPair {
 export class JwtKeysProvider {
 
     constructor(private readonly config: ConfigService) { }
+
+    /** Validate metadata against trusted application configuration, without loading key material. */
+    validateManifest(value: unknown): JwtKeyManifest {
+        return parseJwtKeyManifest(value, this.config.getOrThrow<Environment>('App.env'))
+    }
 
     private readKey(baseName: string): string {
         const b64 = this.config.get<string>(`${baseName}_B64`)

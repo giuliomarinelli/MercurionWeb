@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import ts from 'typescript';
 
 const root = path.resolve('MercurionWebNode/src');
 const productionModule = fs.readFileSync(path.join(root, 'app.module.ts'), 'utf8');
@@ -33,8 +34,21 @@ if (leakingModules.length > 0) {
   process.exit(1);
 }
 
+const compositionSource = ts.createSourceFile('test-application.module.ts', testComposition, ts.ScriptTarget.Latest, true);
+const importsTestController = compositionSource.statements.some(statement =>
+  ts.isImportDeclaration(statement)
+  && ts.isStringLiteral(statement.moduleSpecifier)
+  && statement.moduleSpecifier.text === '../test.controller'
+  && !statement.importClause?.isTypeOnly
+  && statement.importClause?.namedBindings
+  && ts.isNamedImports(statement.importClause.namedBindings)
+  && statement.importClause.namedBindings.elements.some(element =>
+    !element.isTypeOnly && element.name.text === 'TestController'
+    && (element.propertyName ?? element.name).text === 'TestController'),
+);
+
 if (
-  !testComposition.includes("import { TestController } from '../test.controller';")
+  !importsTestController
   || !/controllers\s*:\s*\[[^\]]*\bTestController\b/.test(testComposition)
   || !testComposition.includes('AppModule')
 ) {

@@ -43,6 +43,8 @@ RUN npm run build
 FROM source AS build-test
 ENV NODE_ENV=production
 ENV APP_ENV=test
+COPY MercurionWebNg/src/app/graphql/documents/notebook.graphql /workspace/MercurionWebNg/src/app/graphql/documents/notebook.graphql
+COPY docs/architecture/mercurion-beta-deferred-feature-flags.md /workspace/docs/architecture/mercurion-beta-deferred-feature-flags.md
 COPY docker_sl/docker-compose.yml /workspace/docker_sl/docker-compose.yml
 COPY k8s/beta/mercurion-web-ng-deploy.yaml /workspace/k8s/beta/mercurion-web-ng-deploy.yaml
 COPY k8s/beta/mercurion-web-node-deploy.yaml /workspace/k8s/beta/mercurion-web-node-deploy.yaml

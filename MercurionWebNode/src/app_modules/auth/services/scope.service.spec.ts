@@ -1,6 +1,6 @@
-import { ScopeService } from './scope.service';
-import { SecurityService } from './security.service';
-import { LoggerPort } from 'src/logging/logger.port';
+import { ScopeService } from './scope.service'
+import { SecurityService } from './security.service'
+import { LoggerPort } from 'src/logging/logger.port'
 
 describe('ScopeService', () => {
   it('should be defined', () => {
@@ -12,7 +12,7 @@ describe('ScopeService', () => {
       {
         forContext: jest.fn().mockReturnValue({ warn: jest.fn() }),
       } as unknown as LoggerPort,
-    );
-    expect(service).toBeDefined();
-  });
-});
+    )
+    expect(service).toBeDefined()
+  })
+})

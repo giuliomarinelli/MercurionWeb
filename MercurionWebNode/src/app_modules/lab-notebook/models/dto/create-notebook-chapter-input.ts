@@ -1,8 +1,8 @@
-import { Field, InputType } from "@nestjs/graphql";
-import { Transform } from "class-transformer";
-import { IsString } from "class-validator";
-import { IsMercurionPublicId } from "src/identifiers/mercurion-public-id";
-import { GeneralUtils } from "src/utils/general-utils/general-utils";
+import { Field, InputType } from "@nestjs/graphql"
+import { Transform } from "class-transformer"
+import { IsString } from "class-validator"
+import { IsMercurionPublicId } from "src/identifiers/mercurion-public-id"
+import { GeneralUtils } from "src/utils/general-utils/general-utils"
 
 @InputType()
 export class CreateChapterInput {

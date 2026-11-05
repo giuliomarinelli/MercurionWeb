@@ -1,8 +1,8 @@
-import { Entity, Column, Index, PrimaryColumn, BeforeInsert } from 'typeorm';
-import { UUID } from 'crypto';
-import { StorageType } from '../enums/storage-type.enum';
-import { uuidv7 } from '@kripod/uuidv7';
-import { StorageScope } from '../enums/storage-scope.enum';
+import { Entity, Column, Index, PrimaryColumn, BeforeInsert } from 'typeorm'
+import { UUID } from 'crypto'
+import { StorageType } from '../enums/storage-type.enum'
+import { uuidv7 } from '@kripod/uuidv7'
+import { StorageScope } from '../enums/storage-scope.enum'
 
 @Entity('documents')
 @Index(['userId', 'storageType', 'storagePath'], { unique: true })

@@ -1,10 +1,10 @@
-import { createUnionType } from '@nestjs/graphql';
-import { ChEMBLMoleculeItemDTO } from './chembl-molecule-item.dto';
+import { createUnionType } from '@nestjs/graphql'
+import { ChEMBLMoleculeItemDTO } from './chembl-molecule-item.dto'
 import { CustomMoleculeItemDTO } from './custom-molecule-item.dto'
 
 export type MoleculeCollectionItemDTO =
     | CustomMoleculeItemDTO
-    | ChEMBLMoleculeItemDTO;
+    | ChEMBLMoleculeItemDTO
 
 export function resolveMoleculeCollectionItemType(
     value: unknown
@@ -21,4 +21,4 @@ export const MoleculeCollectionItemUnion = createUnionType({
     name: 'MoleculeCollectionItemUnion',
     types: () => [CustomMoleculeItemDTO, ChEMBLMoleculeItemDTO] as const,
     resolveType: resolveMoleculeCollectionItemType,
-});
+})

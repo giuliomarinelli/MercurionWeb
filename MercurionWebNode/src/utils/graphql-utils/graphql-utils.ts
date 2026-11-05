@@ -1,22 +1,22 @@
-import { GraphQLResolveInfo } from 'graphql';
-import * as graphqlFields from 'graphql-fields';
+import { GraphQLResolveInfo } from 'graphql'
+import * as graphqlFields from 'graphql-fields'
 
 export interface GraphQLFieldsMap {
-    [key: string]: GraphQLFieldsMap;
+    [key: string]: GraphQLFieldsMap
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
-    return typeof value === 'object' && value !== null && !Array.isArray(value);
+    return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
 function decodeFields(value: unknown): GraphQLFieldsMap {
     if (!isRecord(value)) {
-        return {};
+        return {}
     }
 
     return Object.fromEntries(
         Object.entries(value).map(([key, child]) => [key, decodeFields(child)]),
-    );
+    )
 }
 
 /**

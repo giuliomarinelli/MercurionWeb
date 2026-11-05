@@ -1,62 +1,62 @@
-import { ViewEntity, ViewColumn } from "typeorm";
+import { ViewEntity, ViewColumn } from "typeorm"
 
 @ViewEntity({ name: 'molecule_preview_view', synchronize: false })
 export class MoleculePreviewView {
     
     @ViewColumn()
-    id: number; // molregno
+    id: number // molregno
 
     @ViewColumn({ name: 'cmb_id' })
-    cmbId: string; // chembl_id
+    cmbId: string // chembl_id
 
     @ViewColumn({ name: 'preferred_name' })
-    preferredName: string | null;
+    preferredName: string | null
 
     @ViewColumn()
-    synonyms: string | null; // aggregati con string_agg
+    synonyms: string | null // aggregati con string_agg
 
     @ViewColumn()
-    smiles: string; // canonical_smiles
+    smiles: string // canonical_smiles
 
     @ViewColumn({ name: 'mw_freebase' })
-    mwFreebase: number | null;
+    mwFreebase: number | null
 
     @ViewColumn()
-    alogp: number | null;
+    alogp: number | null
 
     @ViewColumn()
-    hba: number | null;
+    hba: number | null
 
     @ViewColumn()
-    hbd: number | null;
+    hbd: number | null
 
     @ViewColumn()
-    psa: number | null;
+    psa: number | null
 
     @ViewColumn()
-    rtb: number | null;
+    rtb: number | null
 
     @ViewColumn({ name: 'max_phase' })
-    maxPhase: number | null;
+    maxPhase: number | null
 
     @ViewColumn({ name: 'molecule_type' })
-    moleculeType: string | null;
+    moleculeType: string | null
 
     @ViewColumn({ name: 'oral_admin' })
-    oralAdmin: boolean | null;
+    oralAdmin: boolean | null
 
     @ViewColumn({ name: 'parenteral_admin' })
-    parenteralAdmin: boolean | null;
+    parenteralAdmin: boolean | null
 
     @ViewColumn({ name: 'topical_admin' })
-    topicalAdmin: boolean | null;
+    topicalAdmin: boolean | null
 
     @ViewColumn({ name: 'black_box_warning_flag' })
-    blackBoxWarningFlag: boolean | null;
+    blackBoxWarningFlag: boolean | null
 
     @ViewColumn({ name: 'natural_product_flag' })
-    naturalProductFlag: boolean | null;
+    naturalProductFlag: boolean | null
 
     @ViewColumn({ name: 'prodrug_flag' })
-    prodrugFlag: boolean | null;
+    prodrugFlag: boolean | null
 }
