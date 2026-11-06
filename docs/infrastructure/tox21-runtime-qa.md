@@ -2,6 +2,8 @@
 
 **6 novembre 2026 — implementazione completata con verifiche locali mirate.** Seguito della [roadmap](tox21-container-roadmap.md) e dei [vincoli T21-00](tox21-design-test-inventory.md). Il codice è nel repository Tox21 sul branch `feature/T21-02`, derivato dalla documentazione `docs/T21-01`; gli aggiornamenti Web sono su `docs/tox21-container-roadmap`. Nessun merge o aggiornamento dei servizi in esecuzione.
 
+**Seguito:** [T21-03 completato su Linux CPU](tox21-model-package-qa.md), con pacchetto coerente selezionabile tramite `MODEL_PACKAGE_DIR`, lock separati e ulteriori test. Il seguito copre parte dei residui citati sotto; questo verbale conserva esiti e limiti della fase T21-02.
+
 Consegna Tox21: sorgenti nel commit `884e74fccd78dd8bb7cdcf8847b29c06551d709d`; HEAD con documentazione aggiornata `63b06943763dffb1766048f3762e449713973669`, entrambi pubblicati senza firma GPG. [Contratto runtime nel repository Tox21](https://github.com/giuliomarinelli/MercurionTox21/blob/63b06943763dffb1766048f3762e449713973669/docs/runtime-contract.md). Le verifiche locali riguardano questo sorgente; i due commit successivi modificano soltanto il verbale e il README.
 
 ## Perimetro concordato

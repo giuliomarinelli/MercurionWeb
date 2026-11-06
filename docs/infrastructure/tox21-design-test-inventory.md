@@ -4,6 +4,8 @@
 
 **Seguito T21-02:** [contratto runtime e 54 test applicativi locali](tox21-runtime-qa.md). L’auth corrente è confermata tutto-o-nulla, con default pubblico e PEM singolo quando attiva; adozione della rotazione coordinata rinviata. Configurazione, import e lifecycle hanno ricevuto gli adeguamenti mirati documentati nel seguito. Le tabelle sotto restano l’inventario iniziale sullo SHA dichiarato, non la fotografia aggiornata del codice o delle lacune dopo T21-02.
 
+**Seguito T21-03:** [pacchetto modello, ricalibrazione e dipendenze separate](tox21-model-package-qa.md). Coperti casi di package integrity/atomicità, checkpoint selezionato, fingerprint condiviso e inferenza isolata, con 74 test Linux e 63 nel runtime minimale. Restano lacune applicative T21-09 e verifiche scientifiche/operative distinte: i conteggi e i giudizi nelle tabelle storiche sotto non sono stati convertiti indiscriminatamente in «superato».
+
 ## Evidenza e metodo
 
 Baseline Web: commit documentale `ebbe0dfa75eaa56991e37caa993cfa87849cf8de`, derivato da `827098ef063f74d4cd275c4785cba1aa2f50665a`. Baseline Tox21: `909466ad7876398d23e29c30a391f2fd0133eb46`; working tree Tox21 pulita. Lettura del codice e dei test, conteggio dei metodi tramite AST Python senza importare i moduli. Nessuna suite Python, inferenza, build container, connessione NATS o richiesta PubChem eseguita in T21-00. «Presente» significa test individuato e letto, non test passato oggi.

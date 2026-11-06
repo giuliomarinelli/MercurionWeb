@@ -51,7 +51,7 @@ Questi vincoli sono formalizzati nel [verbale T21-00 con inventario dei test e l
 
 ## Sequenza proposta
 
-**T21-00 completato come analisi e specifica**, con [vincoli e inventario](tox21-design-test-inventory.md): 29 metodi `unittest` iniziali e 14 gruppi di casi associati ai vincoli. **T21-01 completato come documentazione dei due repository** e **T21-02 completato con 54 test applicativi locali**, con esiti e limiti sotto. Nessuna accettazione runtime/container o CI remota dedotta dai test locali. Le altre voci sono **da fare**. La priorità determina l’ordine di lavoro, non certifica la gravità di un difetto runtime.
+**T21-00 completato come analisi e specifica**, con [vincoli e inventario](tox21-design-test-inventory.md): 29 metodi `unittest` iniziali e 14 gruppi di casi associati ai vincoli. **T21-01 completato come documentazione**, **T21-02 completato con 54 test applicativi locali** e **T21-03 completato sul target Linux CPU**, con 74 test, lock separati ed esportazione reale isolata: esiti e limiti sotto. Nessuna accettazione dell’applicazione distribuita o CI remota dedotta dalle prove locali. Le altre voci sono **da fare**. La priorità determina l’ordine di lavoro, non certifica la gravità di un difetto runtime.
 
 | ID | Intervento | Repository responsabile | Dipende da | Priorità |
 | --- | --- | --- | --- | --- |
@@ -100,6 +100,8 @@ Decisione acquisita sopra; non rimuovere il bypass o introdurre credenziali/ACL 
 **Completamento:** test della configurazione per i tre ambienti, degli errori per valori mancanti/non ammessi e dei namespace NATS. Modalità autenticata/pubblica e relativi requisiti registrati esplicitamente. Nessuna lettura obbligatoria di chiavi quando la modalità approvata non le richiede; nessun fallback silenzioso a una modalità più permissiva.
 
 ### T21-03 — Dipendenze e modello
+
+**Esito, 6 novembre:** completato nel repository Tox21 sul branch `feature/T21-03`, SHA `6f19c869a0d99209fc78eb6a909d1f45897118a8`. [Verbale, comandi ed evidenze](tox21-model-package-qa.md). Installazioni pulite Linux x86_64/Python 3.10.11 CPU, profili runtime/training bloccati con hash, esportazione atomica con ricalibrazione del checkpoint selezionato, verifica del pacchetto nel loader e compatibilità legacy esplicita. **74 test Linux e 63 nel runtime minimale**, più prova sul pacchetto reale ricavato dai 627 campioni di validazione. Artefatti originali invariati. Limiti Windows/GPU e qualità/provenienza scientifica espliciti; nessun merge o immagine applicativa distribuita.
 
 **Intervento:** verificare da installazione pulita la combinazione Python, sistema base e dipendenze native. Separare dipendenze runtime da training, notebook e test; non aggiornare indiscriminatamente le versioni. Scegliere una procedura di risoluzione bloccata, con vincoli e verifica d’integrità adatti alle piattaforme supportate; i soli pin del file attuale non sono prova di riproducibilità completa.
 
@@ -189,7 +191,7 @@ Separatamente, registrare su un nuovo modello le metriche per-label e aggregate 
 | --- | --- | --- |
 | Modalità auth e confine di fiducia del worker | Decisione acquisita per T21-02 | Default pubblico interno e tutto-o-nulla; percorso autenticato con PEM singolo, nessuna rotazione coordinata adottata. L’esposizione di rete della demo resta nel piano VM |
 | Piattaforma runtime supportata e necessità GPU | Prima di chiudere T21-03 | Verificare prima Linux/CPU; eventuali altri target richiedono prove proprie |
-| Identità/provenienza del modello e convenzione di versione Tox21 | T21-03 e T21-07 | Versione indipendente, SHA Tox21 e checksum del pacchetto modello |
+| Identità/provenienza del modello e convenzione di versione Tox21 | Contratto di pacchetto acquisito in T21-03; release coordinata T21-07 | Identificativo modello, SHA dell’export e checksum acquisiti; la provenienza storica ignota non viene ricostruita per supposizione |
 | Manifest Compose/Kubernetes da mantenere | Prima di completare T21-06 | Conservare il minimo dichiarato supportato; non dedurlo dalla vecchia VPS |
 | Canale di distribuzione e politica delle evidenze di sicurezza | Prima di completare T21-07 | Separare build verificata da pubblicazione; scegliere registry o esportazione in base al contesto demo |
 
@@ -208,4 +210,4 @@ Checkpoint proposti:
 3. **Consegna ripetibile:** T21-06–T21-07 completati, consumer allineati e manifest con entrambe le identità.
 4. **Accettazione integrata:** T21-08 completato. Deployment della demo resta un incarico successivo nel piano infrastrutturale.
 
-**T21-00, T21-01 e T21-02 completati nel rispettivo perimetro documentato; prossimo intervento T21-03**, pacchetto modello e dipendenze. La suite T21-09 precede T21-04; i test T21-02 ne coprono già configurazione/auth/lifecycle a livello locale. T21-10 estende successivamente la valutazione locale del training senza trasferirla nel runtime. Nessuna stima in giorni assegnata prima della prova pulita delle dipendenze native e della build.
+**T21-00–T21-03 completati nel rispettivo perimetro documentato; prossimo intervento T21-09**, chiusura delle lacune residue della suite prima di T21-04. T21-02 copre configurazione/auth/lifecycle locale; T21-03 aggiunge pacchetto/calibrazione, inferenza e profili verificati su Linux CPU. T21-10 estende successivamente la valutazione scientifica locale, senza trasferire il training nel runtime. Limiti Windows, prove applicative/container complete e CI restano espliciti nei rispettivi verbali.
