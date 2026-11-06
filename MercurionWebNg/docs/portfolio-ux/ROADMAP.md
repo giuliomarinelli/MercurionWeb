@@ -1,5 +1,7 @@
 # Mercurion — Roadmap UX e presentazione portfolio
 
+> **Perimetro portfolio, 6 novembre 2026:** adozione operativa della rotazione JWT coordinata rinviata; codice opt-in e prove già realizzate conservati. T21-02 mantiene il worker tutto-o-nulla, default pubblico interno e PEM pubblico RS256 singolo quando autenticato, anche in staging/production. Nessuna attivazione della rotazione o modifica dell’auth Web. [Decisione, implementazione e limiti](../../../docs/infrastructure/tox21-runtime-qa.md). Le indicazioni storiche di rollout AUTH-02 più sotto non sono un impegno esecutivo corrente.
+
 > **Aggiornamento 5 novembre 2026:** la proposta infrastrutturale VPS è stata invalidata. Il riferimento corrente è la [nota preliminare sulla VM locale](../../../docs/infrastructure/local-vm-deployment.md); i riferimenti storici alla topologia, ai checkpoint e ai requisiti specifici della VPS presenti più sotto non sono decisioni attive per la VM. Restano valide le evidenze delle prove applicative già svolte. Il [programma giornaliero proposto](WORK-PLAN.md) riordina i prossimi interventi sull’applicazione senza avviare sviluppo infrastrutturale.
 
 Data iniziale: 6 ottobre 2026. Stato: pianificazione per lavoro incrementale e review manuale.
@@ -106,7 +108,7 @@ La priorità indica il valore della rifinitura per il portfolio, non la gravità
 | INF-02 | Invio SMS: nuovo account Twilio | P1 | S, V | Porting SMS Hosting superato; prova diretta SMS in sviluppo superata secondo conferma dell’utente; QA dei flussi aperta |
 | INF-03 | MeiliLoggerService: indici per ambiente e consultazione log via SSH | P1 | S, V | Da verificare nel perimetro beta; indice attuale `logs` fisso, isolamento e prova end-to-end aperti |
 | AUTH-01 | Accesso con passkey, indipendente dall'abilitazione MFA | P2 | S, V | Proposta opzionale; analisi e stima prima dell'implementazione |
-| AUTH-02 | Rotazione e revoca manuale delle chiavi JWT, header `kid` | P1 | S, V | B1a/B1b, B2 e adapter/bootstrap locale implementati, in review; QA Compose isolata completata; restano provider/bootstrap VPS INF-01A e integrazione |
+| AUTH-02 | Rotazione e revoca manuale delle chiavi JWT, header `kid` | Rinviato | S, V | Predisposizione B1a/B1b, B2, adapter e prove conservati; adozione coordinata rinviata per il perimetro portfolio del 6 novembre. Nessuna integrazione completa dichiarata |
 
 ## Metodo di lavoro e prossime priorità
 

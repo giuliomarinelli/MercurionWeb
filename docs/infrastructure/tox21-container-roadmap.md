@@ -1,6 +1,6 @@
 # MercurionTox21 — roadmap container e consegna coordinata con MercurionWeb
 
-**6 novembre 2026 — proposta da attuare.** Roadmap derivata dall’audit esplorativo richiesto dall’utente. Autorizza soltanto questa pianificazione: nessun intervento applicativo, build, installazione, avvio servizi, pubblicazione o deployment è stato eseguito. Gli identificativi T21 qui sotto sono voci di pianificazione, non ricette eseguibili del sistema autonomous-development.
+**6 novembre 2026 — roadmap con esiti progressivi.** Derivata dall’audit esplorativo richiesto dall’utente; registra il lavoro documentale T21-00/01 e l’intervento T21-02 successivamente autorizzato. Il piano non autorizza da solo l’esecuzione delle voci residue, installazioni, pubblicazione di immagini o deployment. Gli identificativi T21 qui sotto sono voci di pianificazione, non ricette eseguibili del sistema autonomous-development.
 
 ## Risultato atteso
 
@@ -51,7 +51,7 @@ Questi vincoli sono formalizzati nel [verbale T21-00 con inventario dei test e l
 
 ## Sequenza proposta
 
-**T21-00 completato come analisi e specifica**, con [vincoli e inventario](tox21-design-test-inventory.md): 29 metodi `unittest` individuati, 14 gruppi di casi associati ai vincoli e decisioni aperte registrate. **T21-01 completato come documentazione dei due repository**, con esito sotto. Nessuna suite Python eseguita o implementazione applicativa certificata. Le altre voci sono **da fare**. La priorità determina l’ordine di lavoro, non certifica la gravità di un difetto runtime.
+**T21-00 completato come analisi e specifica**, con [vincoli e inventario](tox21-design-test-inventory.md): 29 metodi `unittest` iniziali e 14 gruppi di casi associati ai vincoli. **T21-01 completato come documentazione dei due repository** e **T21-02 completato con 54 test applicativi locali**, con esiti e limiti sotto. Nessuna accettazione runtime/container o CI remota dedotta dai test locali. Le altre voci sono **da fare**. La priorità determina l’ordine di lavoro, non certifica la gravità di un difetto runtime.
 
 | ID | Intervento | Repository responsabile | Dipende da | Priorità |
 | --- | --- | --- | --- | --- |
@@ -89,9 +89,13 @@ Documentati clone esplicito di `develop`, virtualenv locale su Windows/Linux, co
 
 ### T21-02 — Contratto runtime
 
+**Esito, 6 novembre:** implementato nel repository Tox21 sul branch `feature/T21-02`; [verbale e limiti](tox21-runtime-qa.md). Configurazione validata, bootstrap esplicito, namespace invariati e cleanup del client; **54 test applicativi locali passati**, nessuna prova di runtime/container reale o CI remota. Le definizioni di deployment ancora incomplete restano T21-06. Nessun merge.
+
+**Decisione di perimetro dell’utente:** progetto portfolio gestito da una persona; auth corrente tutto-o-nulla conservata, default pubblico interno. Quando attiva richiede un file PEM pubblico RS256 anche in staging/production; nessun Base64 runtime o key ring. Adozione operativa della rotazione coordinata rinviata, conservando codice e prove Web già predisposti. Il change di chiave del firmatario e la distribuzione al verificatore restano un lavoro coordinato futuro; il formato del materiale non risolve da solo l’incompatibilità.
+
 **Intervento:** definire e documentare variabili richieste, valori ammessi e precedenza tra ambiente e file locali. `test`, `staging` e `production` devono selezionare coerentemente anche i subject NATS; la configurazione runtime deve essere esplicita, senza incorporare `.env` nell’immagine. Mantenere l’avvio locale di sviluppo documentato.
 
-Registrare una decisione sull’autenticazione: mantenimento della modalità pubblica interna oppure configurazione autenticata, confini di rete e comportamento in caso di chiave mancante. Se viene richiesta autenticazione, coordinarsi con [rotazione JWT e consumer Tox21](../../MercurionWebNg/docs/portfolio-ux/JWT-KEY-ROTATION.md). Non rimuovere il bypass o introdurre credenziali/ACL per supposizione.
+Decisione acquisita sopra; non rimuovere il bypass o introdurre credenziali/ACL per supposizione. Conservare il percorso PEM con fallimento esplicito quando l’auth è attiva e il file non è valido. Il [piano JWT](../../MercurionWebNg/docs/portfolio-ux/JWT-KEY-ROTATION.md) registra il rinvio dell’adozione coordinata senza rimuovere le predisposizioni esistenti.
 
 **Completamento:** test della configurazione per i tre ambienti, degli errori per valori mancanti/non ammessi e dei namespace NATS. Modalità autenticata/pubblica e relativi requisiti registrati esplicitamente. Nessuna lettura obbligatoria di chiavi quando la modalità approvata non le richiede; nessun fallback silenzioso a una modalità più permissiva.
 
@@ -183,7 +187,7 @@ Separatamente, registrare su un nuovo modello le metriche per-label e aggregate 
 
 | Decisione | Quando serve | Proposta da valutare |
 | --- | --- | --- |
-| Modalità auth e confine di fiducia del worker | Prima di completare T21-02 | Registrare prima l’assetto corrente e il consumer; non cambiare il default senza decisione |
+| Modalità auth e confine di fiducia del worker | Decisione acquisita per T21-02 | Default pubblico interno e tutto-o-nulla; percorso autenticato con PEM singolo, nessuna rotazione coordinata adottata. L’esposizione di rete della demo resta nel piano VM |
 | Piattaforma runtime supportata e necessità GPU | Prima di chiudere T21-03 | Verificare prima Linux/CPU; eventuali altri target richiedono prove proprie |
 | Identità/provenienza del modello e convenzione di versione Tox21 | T21-03 e T21-07 | Versione indipendente, SHA Tox21 e checksum del pacchetto modello |
 | Manifest Compose/Kubernetes da mantenere | Prima di completare T21-06 | Conservare il minimo dichiarato supportato; non dedurlo dalla vecchia VPS |
@@ -204,4 +208,4 @@ Checkpoint proposti:
 3. **Consegna ripetibile:** T21-06–T21-07 completati, consumer allineati e manifest con entrambe le identità.
 4. **Accettazione integrata:** T21-08 completato. Deployment della demo resta un incarico successivo nel piano infrastrutturale.
 
-**T21-00 e T21-01 completati; prossimo intervento T21-02**, contratto runtime con decisione auth esplicita prima di modificarne la modalità; T21-03 può essere analizzato indipendentemente. La suite T21-09 precede T21-04; i casi di caratterizzazione necessari accompagnano già i refactor T21-02/03. T21-10 estende successivamente la valutazione locale del training senza trasferirla nel runtime. Nessuna stima in giorni assegnata prima della prova pulita delle dipendenze native e della build.
+**T21-00, T21-01 e T21-02 completati nel rispettivo perimetro documentato; prossimo intervento T21-03**, pacchetto modello e dipendenze. La suite T21-09 precede T21-04; i test T21-02 ne coprono già configurazione/auth/lifecycle a livello locale. T21-10 estende successivamente la valutazione locale del training senza trasferirla nel runtime. Nessuna stima in giorni assegnata prima della prova pulita delle dipendenze native e della build.

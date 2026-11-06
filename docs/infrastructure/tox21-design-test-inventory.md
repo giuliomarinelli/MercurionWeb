@@ -2,6 +2,8 @@
 
 **6 novembre 2026 — analisi e specifica completate; implementazione da fare.** Consegna T21-00 della [roadmap](tox21-container-roadmap.md). Questo verbale fissa confini e casi da proteggere, senza certificare che il codice soddisfi già tutti i vincoli. Le decisioni applicative aperte sono esplicitate sotto.
 
+**Seguito T21-02:** [contratto runtime e 54 test applicativi locali](tox21-runtime-qa.md). L’auth corrente è confermata tutto-o-nulla, con default pubblico e PEM singolo quando attiva; adozione della rotazione coordinata rinviata. Configurazione, import e lifecycle hanno ricevuto gli adeguamenti mirati documentati nel seguito. Le tabelle sotto restano l’inventario iniziale sullo SHA dichiarato, non la fotografia aggiornata del codice o delle lacune dopo T21-02.
+
 ## Evidenza e metodo
 
 Baseline Web: commit documentale `ebbe0dfa75eaa56991e37caa993cfa87849cf8de`, derivato da `827098ef063f74d4cd275c4785cba1aa2f50665a`. Baseline Tox21: `909466ad7876398d23e29c30a391f2fd0133eb46`; working tree Tox21 pulita. Lettura del codice e dei test, conteggio dei metodi tramite AST Python senza importare i moduli. Nessuna suite Python, inferenza, build container, connessione NATS o richiesta PubChem eseguita in T21-00. «Presente» significa test individuato e letto, non test passato oggi.
