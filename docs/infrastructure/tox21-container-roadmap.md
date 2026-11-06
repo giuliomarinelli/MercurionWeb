@@ -51,7 +51,7 @@ Questi vincoli sono formalizzati nel [verbale T21-00 con inventario dei test e l
 
 ## Sequenza proposta
 
-**T21-00 completato come analisi e specifica**, con [vincoli e inventario](tox21-design-test-inventory.md): 29 metodi `unittest` iniziali e 14 gruppi di casi associati ai vincoli. **T21-01 completato come documentazione**, **T21-02 completato con 54 test applicativi locali** e **T21-03 completato sul target Linux CPU**, con 74 test, lock separati ed esportazione reale isolata: esiti e limiti sotto. Nessuna accettazione dell’applicazione distribuita o CI remota dedotta dalle prove locali. Le altre voci sono **da fare**. La priorità determina l’ordine di lavoro, non certifica la gravità di un difetto runtime.
+**T21-00 completato come analisi e specifica**, con [vincoli e inventario](tox21-design-test-inventory.md). **T21-01 completato come documentazione**, **T21-02 con 54 test applicativi locali**, **T21-03 sul target Linux CPU** e **T21-09 con 99 casi autonomi, 85 runtime-only e riferimento reale esplicito**: esiti e limiti sotto. Nessuna accettazione dell’applicazione distribuita o CI remota dedotta dalle prove locali. Le altre voci sono **da fare**. La priorità determina l’ordine di lavoro, non certifica la gravità di un difetto runtime.
 
 | ID | Intervento | Repository responsabile | Dipende da | Priorità |
 | --- | --- | --- | --- | --- |
@@ -59,7 +59,7 @@ Questi vincoli sono formalizzati nel [verbale T21-00 con inventario dei test e l
 | T21-01 | Identità del componente e documentazione di ingresso | Web + Tox21, modifiche separate | T21-00 | P1 |
 | T21-02 | Contratto di configurazione, ambienti e autenticazione | Tox21, con verifica dei consumer Web | T21-01 | P1 |
 | T21-03 | Dipendenze e pacchetto modello riproducibili | Tox21 | T21-01 | P1 |
-| T21-09 | Suite `unittest` di regressione applicativa e adeguamenti di testabilità | Tox21 | T21-02, T21-03 | P1 |
+| T21-09 | Suite `unittest` di regressione applicativa e adeguamenti di testabilità | Tox21 + test contratti Web | T21-02, T21-03 | P1 |
 | T21-04 | Dockerfile consolidato e contesto minimo | Tox21 | T21-09 | P1 |
 | T21-05 | CI applicativa e verifica dei container | Tox21 | T21-04 | P1 |
 | T21-06 | Integrazione Compose e riferimenti di distribuzione | Web | T21-05 | P2 |
@@ -112,6 +112,8 @@ L’esportazione locale deve associare pesi e soglie al medesimo checkpoint: per
 **Completamento:** installazione pulita verificata sulla piattaforma container scelta; pacchetto modello completo e identificabile; caricamento reale dei pesi e inferenza deterministica su una fixture verificati con tolleranze motivate. Funzionamento CPU verificato; supporto GPU dichiarato soltanto se richiesto e provato. Dimensioni e tempi di avvio misurati, senza inventare soglie prima delle misure.
 
 ### T21-09 — Suite applicativa con `unittest`
+
+**Esito, 6 novembre:** completato sul branch `feature/T21-09` di entrambi i repository. [Verbale e matrice aggiornata](tox21-testing-qa.md): **99 test autonomi**, **85 nel profilo runtime**, più riferimento reale esplicito e **47 test Nest mirati** sulla fixture condivisa/contratti. Coperti i residui applicativi previsti a questo livello e corretti due difetti riprodotti su inferenza e consegna della risposta. Broker reale, immagini finali e qualità scientifica restano nei rispettivi task, senza essere dichiarati superati.
 
 **Intervento:** estendere le suite esistenti usando `unittest.TestCase`, `IsolatedAsyncioTestCase` e `unittest.mock` dove appropriato. Separare esplicitamente test rapidi, integrazione con librerie/modello reali e prove con NATS effimero. Le dipendenze tra test e l’ordine di esecuzione non devono influire sul risultato; ambiente e directory temporanee vanno ripristinati. Eventuali refactor per rimuovere effetti collaterali all’import o rendere sostituibili client/loader devono restare mirati ai vincoli T21-00.
 
@@ -210,4 +212,4 @@ Checkpoint proposti:
 3. **Consegna ripetibile:** T21-06–T21-07 completati, consumer allineati e manifest con entrambe le identità.
 4. **Accettazione integrata:** T21-08 completato. Deployment della demo resta un incarico successivo nel piano infrastrutturale.
 
-**T21-00–T21-03 completati nel rispettivo perimetro documentato; prossimo intervento T21-09**, chiusura delle lacune residue della suite prima di T21-04. T21-02 copre configurazione/auth/lifecycle locale; T21-03 aggiunge pacchetto/calibrazione, inferenza e profili verificati su Linux CPU. T21-10 estende successivamente la valutazione scientifica locale, senza trasferire il training nel runtime. Limiti Windows, prove applicative/container complete e CI restano espliciti nei rispettivi verbali.
+**T21-00–T21-03 e T21-09 completati nel rispettivo perimetro documentato; prossimo intervento T21-04**, Dockerfile consolidato e contesto minimo. La suite ha gruppi ripetibili, fixture condivisa e riferimento predittivo esplicito; non equivale alla prova dei container applicativi finali o del broker reale. T21-10 estende successivamente la valutazione scientifica locale senza trasferire il training nel runtime. Limiti Windows scientifici, accettazione operativa e CI restano espliciti nei rispettivi verbali.

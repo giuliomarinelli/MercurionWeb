@@ -6,6 +6,8 @@
 
 **Seguito T21-03:** [pacchetto modello, ricalibrazione e dipendenze separate](tox21-model-package-qa.md). Coperti casi di package integrity/atomicità, checkpoint selezionato, fingerprint condiviso e inferenza isolata, con 74 test Linux e 63 nel runtime minimale. Restano lacune applicative T21-09 e verifiche scientifiche/operative distinte: i conteggi e i giudizi nelle tabelle storiche sotto non sono stati convertiti indiscriminatamente in «superato».
 
+**Seguito T21-09:** [suite applicativa e matrice aggiornata](tox21-testing-qa.md): 98 casi autonomi, 84 runtime-only e riferimento reale esplicito; fixture wire validata sui due repository. Broker reale, immagini finali e qualità scientifica restano separati. Il confronto strutturale invalido è stato chiarito leggendo la funzione completa: restituisce già `False`, senza richiedere una nuova policy.
+
 ## Evidenza e metodo
 
 Baseline Web: commit documentale `ebbe0dfa75eaa56991e37caa993cfa87849cf8de`, derivato da `827098ef063f74d4cd275c4785cba1aa2f50665a`. Baseline Tox21: `909466ad7876398d23e29c30a391f2fd0133eb46`; working tree Tox21 pulita. Lettura del codice e dei test, conteggio dei metodi tramite AST Python senza importare i moduli. Nessuna suite Python, inferenza, build container, connessione NATS o richiesta PubChem eseguita in T21-00. «Presente» significa test individuato e letto, non test passato oggi.
@@ -61,7 +63,7 @@ Gli schemi Python limitano SMILES a 1–1.024 caratteri dopo trim; per `a`/`b` v
 
 Errori correnti: oggetto `error` stringa; validazione con prefisso `Invalid request:`, autenticazione `Invalid or expired access token`, errori chimici mappati da alcuni handler a `Invalid SMILES`, composto assente `Compound not found in PubChem`, eccezione generica `InternalError`. Non fissare nei test l’intero testo Pydantic, che può cambiare con la libreria: proteggere categoria, struttura e assenza di valori sensibili.
 
-L’inferenza ritorna attualmente `Invalid SMILES` tramite `predict`; il confronto strutturale non ha un catch dedicato per `InvalidSmilesError`. Prima di uniformare queste categorie in T21-02/09, introdurre un caso che evidenzi la differenza e decidere il comportamento desiderato. Il confronto non è già dimostrato equivalente agli altri handler sugli input chimicamente invalidi.
+L’inferenza ritorna `Invalid SMILES` tramite `predict`. **Precisazione T21-09:** il callback del confronto non ha un catch dedicato, ma la funzione chiamata `are_same_structure` intercetta già `InvalidSmilesError`/`CanonicalizationError` e restituisce `False`. Non dedurre un `InternalError` dalla sola lettura del callback. Le nuove prove conservano questa differenza rispetto agli altri handler, senza uniformare le categorie incidentalmente.
 
 ## Inventario dei test presenti
 
@@ -119,7 +121,7 @@ Una fixture di logits noti controlla il mapping e la matematica; una predizione 
 | Modalità pubblica interna o autenticazione richiesta | **Decisione aperta.** Il default attuale è pubblico e ha un test esplicito; non cambiarlo come conseguenza del packaging | T21-02, con confini di rete e consumer; blocca solo il comportamento futuro dipendente da quella scelta |
 | Formato e procedura di esportazione, provenienza del checkpoint | **Dettaglio tecnico da definire**, con coerenza pesi/soglie già obbligatoria | T21-03; non serve scegliere un nuovo formato di modello per rimuovere il training |
 | Readiness, startup fallito e arresto | **Adeguamento necessario** a D-09; tempi, verifiche broker e politica di riconnessione da specificare | T21-02/09; evitare retry infiniti o esiti dedotti dal solo log |
-| Classificazione di SMILES chimicamente invalido nel confronto | **Differenza attuale da decidere**, non da uniformare incidentalmente | T21-02/09, con test di caratterizzazione prima della modifica |
+| Classificazione di SMILES chimicamente invalido nel confronto | **Chiarita in T21-09:** `are_same_structure` restituisce già `False`; comportamento conservato con test, nessuna nuova policy | [Matrice aggiornata T21-09](tox21-testing-qa.md), R-09/R-11 |
 | Import con I/O e configurazione globale | **Adeguamento necessario** a D-03, con refactor mirato e contratti invariati | T21-02/09 |
 | Fingerprint, ordine label, shape e risposte | **Compatibilità da conservare.** Cambiare parametri richiede valutazione del modello/consumer | T21-03/09; nessuna nuova decisione scientifica implicita |
 | CPU/GPU, tolleranze, policy versioni e distribuzione | **Decisioni ancora aperte** nei rispettivi ambiti della roadmap | T21-03/07; non scegliere limiti prestazionali o registry in questo verbale |
