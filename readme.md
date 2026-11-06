@@ -141,6 +141,10 @@ builds with an explicit source/model context. See [deployment inputs and invento
 Coordinated artifact delivery and integrated acceptance remain in the
 [Tox21 roadmap](docs/infrastructure/tox21-container-roadmap.md).
 
+The current [delivery candidate](docs/infrastructure/tox21-delivery-qa.md) remains
+blocked by critical vulnerability findings. Functional tests and a verified local
+archive do not constitute an approved coordinated release.
+
 ## Further reading
 
 - [Tox21 container and coordinated-delivery roadmap](docs/infrastructure/tox21-container-roadmap.md)

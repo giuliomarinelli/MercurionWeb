@@ -171,6 +171,8 @@ Allineare variabili e namespace ai contratti T21-02. Inventariare Compose e mani
 
 ### T21-07 — Identità e consegna
 
+**Stato, 6 novembre: non chiuso; consegna bloccata.** [Verbale, strumenti e diagnostici](tox21-delivery-qa.md). Canale scelto: archivi Docker locali, nessun registry. Implementati identità consultabile del servizio, export/load verificato, SBOM, policy e manifest candidato con record mancanti/bloccati espliciti. CI sullo SHA Tox21 `d5a783fd9ca482288a9500fa1212c53f81aaab18`: test/build/smoke passati, gate finale e Required gate rossi per **18 occorrenze critiche**, come la baseline. Nessuna eccezione o upgrade esteso adottato per forzare il verde. Mancano inoltre i record delle immagini Web reali; il manifest non è pronto per T21-08. Prossimo intervento necessario: revisione dedicata OS/Python/Pillow e verifica di compatibilità; la consegna riprende soltanto dopo quel lavoro e il completamento delle immagini Web.
+
 **Intervento:** attribuire all’immagine Tox21 versione, SHA completo del suo repository e label OCI, rendendo consultabile l’identità anche dal servizio. Preparare inventario/SBOM e diagnostica di sicurezza coerenti con le regole applicabili a Web; definire un criterio esplicito per risultati non conformi, senza neutralizzarli per ottenere un verde.
 
 Definire un manifest di consegna che associ revisioni Web e Tox21, riferimenti delle immagini, digest e identità/checksum del modello. Distinguere tre risultati: immagine costruita/verificata, immagine esportata o pubblicata, applicazione distribuita. Scegliere il canale di consegna prima di implementarlo: registry e relative autorizzazioni, oppure esportazione verificabile per il caricamento locale. Non assumere che la CI Web attuale pubblichi già le immagini.
@@ -201,7 +203,7 @@ Separatamente, registrare su un nuovo modello le metriche per-label e aggregate 
 | Piattaforma runtime supportata e necessità GPU | Prima di chiudere T21-03 | Verificare prima Linux/CPU; eventuali altri target richiedono prove proprie |
 | Identità/provenienza del modello e convenzione di versione Tox21 | Contratto di pacchetto acquisito in T21-03; release coordinata T21-07 | Identificativo modello, SHA dell’export e checksum acquisiti; la provenienza storica ignota non viene ricostruita per supposizione |
 | Manifest Compose/Kubernetes da mantenere | Definito in T21-06 | [Inventario](tox21-deployment.md): proiezioni Tox21 mantenute, nessuna archiviazione; CronJob PostgreSQL non certificato, topologia VM ancora separata |
-| Canale di distribuzione e politica delle evidenze di sicurezza | Prima di completare T21-07 | Separare build verificata da pubblicazione; scegliere registry o esportazione in base al contesto demo |
+| Canale di distribuzione e politica delle evidenze di sicurezza | Definito in T21-07, consegna bloccata | Archivi Docker locali e diagnostici; severità critica bloccante ereditata da Web, nessuna eccezione. [Evidenze e lavoro residuo](tox21-delivery-qa.md) |
 
 Queste decisioni non impediscono T21-01 o l’analisi delle altre voci indipendenti. Non assegnare arbitrariamente stati terminali a lavori non ancora avviati.
 
@@ -219,3 +221,5 @@ Checkpoint proposti:
 4. **Accettazione integrata:** T21-08 completato. Deployment della demo resta un incarico successivo nel piano infrastrutturale.
 
 **T21-00–T21-06 e T21-09 completati nel rispettivo perimetro documentato; prossimo intervento T21-07**, identità e consegna coordinata degli artifact. CI Tox21 verificata sull'esatto SHA e proiezioni Web verificate localmente; non equivale ad accettazione integrata. T21-10 estende successivamente la valutazione scientifica locale senza trasferire il training nel runtime. Limiti Windows scientifici, CronJob PostgreSQL, topologia e accettazione operativa restano espliciti nei rispettivi verbali.
+
+**Checkpoint successivo T21-07:** strumenti e candidato verificati, ma task non chiuso per il blocco di sicurezza descritto sopra e per i record Web mancanti. Prima di T21-08 occorre risolvere la baseline OS/Python/Pillow e completare una vera consegna coordinata; il precedente run verde T21-05 resta evidenza storica, non certifica il nuovo gate T21-07.

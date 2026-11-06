@@ -464,6 +464,10 @@ jobs:
         if: ${{ matrix.name == 'angular-production' }}
         run: node scripts/test-tox21-compose.mjs
 
+      - name: Validate coordinated archive candidate guards
+        if: ${{ matrix.name == 'angular-production' }}
+        run: python3 -B scripts/test-coordinate-delivery.py
+
       - name: Build container without cache
         run: docker build --pull --no-cache --file "${{ matrix.dockerfile }}" --target "${{ matrix.target }}" --build-arg BUILD_VERSION --build-arg BUILD_REVISION --tag "mercurion-ci-${{ matrix.name }}" .
 
