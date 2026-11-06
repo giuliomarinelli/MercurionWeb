@@ -122,6 +122,7 @@ Container builds and standalone runtime smoke tests are authoritative for contai
 
 ## Further reading
 
+- [Tox21 container and coordinated-delivery roadmap](docs/infrastructure/tox21-container-roadmap.md)
 - [Angular project](MercurionWebNg/README.md)
 - [Nest/API project](MercurionWebNode/README.md)
 - [Data project](MercurionData/README.md)

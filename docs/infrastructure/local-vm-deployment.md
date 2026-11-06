@@ -23,6 +23,7 @@ Le risorse indicate non sono una stima validata. Misurare l’occupazione di ind
 
 ## Progettazione da completare
 
+- Per la preparazione del container Tox21 e il suo allineamento agli artefatti Web, seguire la [roadmap dedicata](tox21-container-roadmap.md). È pianificazione della consegna applicativa: non definisce né autorizza la topologia o il deployment della VM.
 - Definire servizi e ambienti necessari alla demo, confini rispetto allo sviluppo e modalità di avvio/arresto. La vecchia suddivisione in ambienti non è automaticamente approvata per la VM.
 - Definire routing, dominio, autenticazione degli ospiti, funzionamento del realtime attraverso il tunnel e accesso amministrativo. Scegliere quali servizi devono restare raggiungibili solo internamente.
 - Progettare configurazione e segreti, inclusi identità della macchina, bootstrap e comportamento dopo riavvio. L’eventuale Secret Manager, il provider e le modalità di gestione sono da definire nel nuovo contesto; non assumere come adottata la vecchia soluzione VPS.
