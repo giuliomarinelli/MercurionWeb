@@ -38,7 +38,7 @@ Entrambe le working tree erano pulite. Il remoto `develop` Tox21 coincideva con 
 
 ## Vincoli di design da fissare prima dei test e dei refactor
 
-Questi sono i vincoli proposti da formalizzare in T21-00. Non prescrivono una nuova architettura a livelli o un framework aggiuntivo: riusare funzioni e moduli esistenti, introducendo soltanto i confini necessari per verificare il comportamento.
+Questi vincoli sono formalizzati nel [verbale T21-00 con inventario dei test e lacune](tox21-design-test-inventory.md). Il verbale distingue requisiti, comportamento corrente e decisioni aperte. Non prescrivono una nuova architettura a livelli o un framework aggiuntivo: riusare funzioni e moduli esistenti, introducendo soltanto i confini necessari per verificare il comportamento.
 
 1. **Confine training/runtime:** il servizio usa un pacchetto esportato e non importa training, ottimizzatori, loss di addestramento, notebook o dataset. Non allena né modifica pesi/soglie durante build, avvio o richieste. Torch resta una dipendenza runtime finché l’inferenza usa `MercurionMLP`; togliere il training non elimina la necessità del motore di inferenza.
 2. **Pacchetto modello indivisibile:** pesi, definizione/configurazione dell’architettura, algoritmo e parametri del fingerprint, ordine delle label e soglie devono essere compatibili e riconducibili allo stesso checkpoint. Con l’attuale `state_dict` i soli pesi non descrivono autonomamente la rete. I metadati possono risiedere nel codice o in file versionati; non serve portare l’intera pipeline di training.
@@ -51,7 +51,7 @@ Questi sono i vincoli proposti da formalizzare in T21-00. Non prescrivono una nu
 
 ## Sequenza proposta
 
-Tutte le voci sono **da fare**. La priorità determina l’ordine di lavoro, non certifica la gravità di un difetto runtime.
+**T21-00 completato come analisi e specifica**, con [vincoli e inventario](tox21-design-test-inventory.md): 29 metodi `unittest` individuati, 14 gruppi di casi associati ai vincoli e decisioni aperte registrate. Nessuna suite Python eseguita o implementazione certificata. Le altre voci sono **da fare**. La priorità determina l’ordine di lavoro, non certifica la gravità di un difetto runtime.
 
 | ID | Intervento | Repository responsabile | Dipende da | Priorità |
 | --- | --- | --- | --- | --- |
@@ -70,6 +70,8 @@ Tutte le voci sono **da fare**. La priorità determina l’ordine di lavoro, non
 Gli identificativi già assegnati sono conservati: T21-09 precede T21-04 nell’ordine di lavoro; T21-10 è un percorso distinto che non blocca la consegna del runtime. La coerenza checkpoint/soglie resta invece obbligatoria in T21-03. T21-02 e T21-03 sono indipendenti dopo T21-01. Questa dipendenza non prescrive esecuzione concorrente o delega ad agenti. Si propone un intervento focalizzato alla volta.
 
 ### T21-00 — Vincoli e punti importanti da coprire
+
+**Esito:** completato il 6 novembre nel [verbale dedicato](tox21-design-test-inventory.md), senza modifiche applicative. Le decisioni aperte rimangono nei rispettivi interventi successivi; i test presenti non sono dichiarati passati da questa ispezione.
 
 **Intervento:** formalizzare i vincoli sopra, inventariare i comportamenti e i test esistenti e associare ogni contratto critico a un caso di regressione della matrice T21-09. Distinguere comportamento conservato, difetto da correggere con test e decisione aperta. Registrare il contenuto ammesso nel runtime e le operazioni consentite soltanto al training locale.
 
@@ -198,4 +200,4 @@ Checkpoint proposti:
 3. **Consegna ripetibile:** T21-06–T21-07 completati, consumer allineati e manifest con entrambe le identità.
 4. **Accettazione integrata:** T21-08 completato. Deployment della demo resta un incarico successivo nel piano infrastrutturale.
 
-Primo intervento proposto: **T21-00**, vincoli di design e inventario delle regressioni importanti; segue **T21-01**, documentazione dei due componenti. Prima implementazione tecnica successiva: **T21-02**, con decisione auth esplicita; T21-03 può essere analizzato indipendentemente. La suite T21-09 precede T21-04. T21-10 estende successivamente la valutazione locale del training senza trasferirla nel runtime. Nessuna stima in giorni assegnata prima della prova pulita delle dipendenze native e della build.
+**T21-00 completato; prossimo intervento T21-01**, documentazione dei due componenti. Prima implementazione tecnica successiva: **T21-02**, con decisione auth esplicita; T21-03 può essere analizzato indipendentemente. La suite T21-09 precede T21-04; i casi di caratterizzazione necessari accompagnano già i refactor T21-02/03. T21-10 estende successivamente la valutazione locale del training senza trasferirla nel runtime. Nessuna stima in giorni assegnata prima della prova pulita delle dipendenze native e della build.
