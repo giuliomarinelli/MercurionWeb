@@ -100,3 +100,8 @@ T21-06. Nessuna riscrittura implicita della topologia VM.
 T21-07 assegna e registra la consegna coordinata; T21-08 prova l'integrazione
 non produttiva. I TODO manuali Web e il limite degli import scientifici Windows
 restano aperti. L'evidenza di questo task riguarda esclusivamente Linux CPU.
+
+Seguito: **T21-05 completato**, con [CI sull'esatto SHA, tre build/audit e
+cinque subject con recovery del broker](tox21-ci-qa.md). I residui CI indicati
+sopra descrivono la consegna T21-04; sono ora coperti dal verbale successivo.
+L'integrazione di distribuzione Web resta T21-06.

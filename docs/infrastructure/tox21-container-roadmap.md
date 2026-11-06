@@ -51,7 +51,7 @@ Questi vincoli sono formalizzati nel [verbale T21-00 con inventario dei test e l
 
 ## Sequenza proposta
 
-**T21-00 completato come analisi e specifica**, con [vincoli e inventario](tox21-design-test-inventory.md). **T21-01 completato come documentazione**, **T21-02 con 54 test applicativi locali**, **T21-03 sul target Linux CPU**, **T21-09 con 99 casi autonomi, 85 runtime-only e riferimento reale esplicito**, **T21-04 con tre immagini e smoke locali**: esiti e limiti sotto. Nessuna accettazione dell’applicazione distribuita o CI remota dedotta dalle prove locali. Le altre voci sono **da fare**. La priorità determina l’ordine di lavoro, non certifica la gravità di un difetto runtime.
+**T21-00 completato come analisi e specifica**, con [vincoli e inventario](tox21-design-test-inventory.md). **T21-01 completato come documentazione**, **T21-02 con 54 test applicativi locali**, **T21-03 sul target Linux CPU**, **T21-09 con 99 casi autonomi, 85 runtime-only e riferimento reale esplicito**, **T21-04 con tre immagini e smoke locali**, **T21-05 con CI remota verde sull'esatto SHA**: esiti e limiti sotto. Nessuna accettazione dell’applicazione distribuita dedotta dalle prove. Le altre voci sono **da fare**. La priorità determina l’ordine di lavoro, non certifica la gravità di un difetto runtime.
 
 | ID | Intervento | Repository responsabile | Dipende da | Priorità |
 | --- | --- | --- | --- | --- |
@@ -149,6 +149,8 @@ I target applicativi finali staging/production devono escludere anche `train.py`
 
 ### T21-05 — CI Tox21
 
+**Esito, 6 novembre:** completato su `feature/T21-05`, senza merge. [Verbale CI](tox21-ci-qa.md): run `42272061500` riuscito sullo SHA Tox21 `1e295ce617ce0df3f374e84e094ead4ce0d569c0`, job applicativo e **Required gate** verdi. Installazione pulita, test isolati, export QA, tre build/audit, riferimento reale, cinque subject e recovery del broker su ogni target; artifact report/modello scaricati e verificati. Primo tentativo rosso per proprietà dei file di export, corretto sullo stesso branch e documentato. Nessun registry/deployment o accettazione Web implicita.
+
 **Intervento:** introdurre una pipeline propria del repository: installazione pulita, controlli statici proporzionati, test isolati, build dei target e smoke test dell’immagine. Per la prova di integrazione usare un NATS effimero e configurazione di test; nessuna connessione a servizi o identità personali/di produzione.
 
 La suite applicativa T21-09 è un gate esplicito. Integrazione con modello reale e verifica dell’immagine hanno esiti distinti dai test con mock. Un job separato può validare l’esportazione locale del pacchetto senza ripetere l’addestramento. Le valutazioni scientifiche complete T21-10 accompagnano un nuovo modello e non sostituiscono né appesantiscono implicitamente ogni verifica applicativa.
@@ -214,4 +216,4 @@ Checkpoint proposti:
 3. **Consegna ripetibile:** T21-06–T21-07 completati, consumer allineati e manifest con entrambe le identità.
 4. **Accettazione integrata:** T21-08 completato. Deployment della demo resta un incarico successivo nel piano infrastrutturale.
 
-**T21-00–T21-04 e T21-09 completati nel rispettivo perimetro documentato; prossimo intervento T21-05**, CI applicativa e verifica dei container. I runtime finali e una richiesta NATS reale sono verificati localmente; non equivalgono a CI remota o accettazione integrata. T21-10 estende successivamente la valutazione scientifica locale senza trasferire il training nel runtime. Limiti Windows scientifici, migrazione deployment Web e accettazione operativa restano espliciti nei rispettivi verbali.
+**T21-00–T21-05 e T21-09 completati nel rispettivo perimetro documentato; prossimo intervento T21-06**, integrazione Compose e riferimenti di distribuzione Web. CI Tox21 verificata sull'esatto SHA, compresi runtime finali e recovery NATS isolato; non equivale ad accettazione integrata. T21-10 estende successivamente la valutazione scientifica locale senza trasferire il training nel runtime. Limiti Windows scientifici, migrazione deployment Web e accettazione operativa restano espliciti nei rispettivi verbali.
