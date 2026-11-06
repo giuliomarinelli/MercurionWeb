@@ -15,17 +15,22 @@ projects. The browser-facing local stack is intentionally exposed through the ng
 | `packages/socket-contracts` | Versioned Socket.IO event types and policy | TypeScript package; `dist` |
 | `MercurionData` | Standalone NestJS data service; not a root workspace member | Its own `src`, `dist`, lockfile and package scripts |
 | `MercurionLandingFactory` | Standalone Angular 21 SSR/static landing and error-page build | `src`, `dist/MercurionLandingFactory/browser` |
-| `../MercurionTox21` | Read-only sibling runtime used by the local inference/RDKit NATS subjects | `.venv/Scripts/python.exe -m main` |
+| [MercurionTox21](https://github.com/giuliomarinelli/MercurionTox21) | Mercurion inference, RDKit and PubChem component maintained in its own Git repository | From its repository root: `python -m main`; application artifact: inference-service container |
 
 `MercurionData` and `MercurionLandingFactory` are maintained projects but are not included in
 the root workspace or the canonical root CI aggregate. Their own manifests are authoritative
-for their commands. Autonomous MercurionWeb work must not modify `../MercurionTox21`.
+for their commands. MercurionTox21 is part of the Mercurion project but is not an npm
+workspace or a directory inside this repository. A sibling checkout at `../MercurionTox21`
+is the local layout used by the runtime instructions, not its identity or a required
+distribution layout. Autonomous MercurionWeb sessions treat that checkout as read-only;
+work on Tox21 requires a separate explicit task in its repository.
 
 ## Prerequisites
 
 - Node.js `22.16.0` and npm `10.9.2` for the root workspace.
 - Docker Desktop for PostgreSQL/pgvector, Redis, NATS, Meilisearch and nginx.
-- Python with the sibling Tox21 repository's checked-in `.venv` when exercising inference.
+- Python and the Tox21 dependencies when exercising inference. Create the virtualenv in
+  that repository using its README; `.venv` is local and is not checked in.
 - A local configuration file at `MercurionWebNode/env/.env.development`, created from
   `MercurionWebNode/env/.env.example`. Replace every placeholder with a local value; never
   commit the file or real credentials. The schema in
@@ -72,10 +77,17 @@ aggregate validation; local focused checks should use the existing installation.
 For development, start the services in this order when browser evidence is required:
 
 ```text
-../MercurionTox21 (cwd): .venv/Scripts/python.exe -m main
+MercurionTox21 root:   python -m main (using its activated virtualenv)
 MercurionWebNode:      APP_ENV=development LOCAL_DUMMY_AUTH=false npm run start:dev --workspace mercurion_web_node
 MercurionWebNg:         npm run start:dev --workspace mercurion_web_ng
 ```
+
+The current local runtime convention places the Tox21 checkout at `../MercurionTox21`.
+Its README documents clone, environment setup, `PY_ENV`, `NATS_URL`, `VERSION` and model
+files; those are configured in Tox21, not by changing Web's upstream ports. For automated
+Windows runtime sessions the same entry point is `.venv/Scripts/python.exe -m main`, run
+from that checkout. The worker currently uses public internal mode; this is distinct from
+Web user authentication and does not declare the future production auth policy.
 
 Then open only `http://localhost:8888`. nginx routes `/api/*`, `/api/graphql` and
 `/socket.io/*` to Nest and all other SPA routes/assets to Angular. `/health` is the public
@@ -119,6 +131,13 @@ unit, Nest unit, Nest E2E, build and container jobs, with one `Required gate`.
 and Nest Dockerfiles define `production`, `staging` and `test` targets. Kubernetes manifests
 under `k8s/` are deployment configuration, not a substitute for the local nginx edge.
 Container builds and standalone runtime smoke tests are authoritative for container support.
+
+Tox21 is built and versioned in its own repository. Its existing test/staging Dockerfiles
+start the worker with `python -m main`; the planned application image contains inference
+code, weights, network definition, fingerprint settings, labels and coherent thresholds.
+Training stays local. Container consolidation, runtime-only dependency separation and a
+dedicated Tox21 CI remain work in the [Tox21 roadmap](docs/infrastructure/tox21-container-roadmap.md),
+not completed features implied by this README.
 
 ## Further reading
 

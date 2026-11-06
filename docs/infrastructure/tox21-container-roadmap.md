@@ -51,7 +51,7 @@ Questi vincoli sono formalizzati nel [verbale T21-00 con inventario dei test e l
 
 ## Sequenza proposta
 
-**T21-00 completato come analisi e specifica**, con [vincoli e inventario](tox21-design-test-inventory.md): 29 metodi `unittest` individuati, 14 gruppi di casi associati ai vincoli e decisioni aperte registrate. Nessuna suite Python eseguita o implementazione certificata. Le altre voci sono **da fare**. La priorità determina l’ordine di lavoro, non certifica la gravità di un difetto runtime.
+**T21-00 completato come analisi e specifica**, con [vincoli e inventario](tox21-design-test-inventory.md): 29 metodi `unittest` individuati, 14 gruppi di casi associati ai vincoli e decisioni aperte registrate. **T21-01 completato come documentazione dei due repository**, con esito sotto. Nessuna suite Python eseguita o implementazione applicativa certificata. Le altre voci sono **da fare**. La priorità determina l’ordine di lavoro, non certifica la gravità di un difetto runtime.
 
 | ID | Intervento | Repository responsabile | Dipende da | Priorità |
 | --- | --- | --- | --- | --- |
@@ -78,6 +78,10 @@ Gli identificativi già assegnati sono conservati: T21-09 precede T21-04 nell’
 **Completamento:** confini, invarianti, compatibilità Web e criteri di errore documentati prima di refactor e nuovi test. Le decisioni non ancora prese, inclusa l’autenticazione, sono esplicite. La matrice indica quali prove esistono, quali mancano e quali richiedono librerie native o servizi effimeri. Non assegnare una percentuale di coverage arbitraria come sostituto della copertura dei contratti.
 
 ### T21-01 — Identità e documentazione
+
+**Esito, 6 novembre:** aggiornati il [README Web](../../readme.md) e il [README Tox21](https://github.com/giuliomarinelli/MercurionTox21/blob/0d8f8c0fa186484c8d6ed367360723eb93bd78a2/readme.md). Tox21 consegnato nel commit `0d8f8c0fa186484c8d6ed367360723eb93bd78a2` sul branch `docs/T21-01`; Web sul branch documentale `docs/tox21-container-roadmap`. Nessun merge: le istruzioni nuove sono sui branch di lavoro, non dichiarate integrate in `develop`.
+
+Documentati clone esplicito di `develop`, virtualenv locale su Windows/Linux, configurazione da process environment senza dipendere da file personali, entrypoint `main`, pacchetto necessario per l’inferenza, modalità auth corrente e sue limitazioni. Separati training locale, test applicativi e script scientifici; packaging/CI futuri restano tali. Verificati `ci:docs` Web, link locali, diff e presenza/sintassi dei moduli Python citati tramite parsing del sorgente. Nessuna installazione, esecuzione di questi moduli, suite Python, nuova prova runtime/container o CI applicativa eseguita per T21-01. La compatibilità di installazione pulita resta T21-03, non viene dedotta dalla correttezza delle istruzioni.
 
 **Intervento:** descrivere Tox21 come componente Mercurion con repository separato. Documentare il clone dal remoto corretto, la creazione del virtualenv e l’avvio da root con `python -m main`. Conservare `../MercurionTox21` soltanto come layout locale convenzionale; non introdurre submodule, monorepo o spostamenti di cartelle. Distinguere vincoli degli agenti Web da proprietà del prodotto.
 
@@ -200,4 +204,4 @@ Checkpoint proposti:
 3. **Consegna ripetibile:** T21-06–T21-07 completati, consumer allineati e manifest con entrambe le identità.
 4. **Accettazione integrata:** T21-08 completato. Deployment della demo resta un incarico successivo nel piano infrastrutturale.
 
-**T21-00 completato; prossimo intervento T21-01**, documentazione dei due componenti. Prima implementazione tecnica successiva: **T21-02**, con decisione auth esplicita; T21-03 può essere analizzato indipendentemente. La suite T21-09 precede T21-04; i casi di caratterizzazione necessari accompagnano già i refactor T21-02/03. T21-10 estende successivamente la valutazione locale del training senza trasferirla nel runtime. Nessuna stima in giorni assegnata prima della prova pulita delle dipendenze native e della build.
+**T21-00 e T21-01 completati; prossimo intervento T21-02**, contratto runtime con decisione auth esplicita prima di modificarne la modalità; T21-03 può essere analizzato indipendentemente. La suite T21-09 precede T21-04; i casi di caratterizzazione necessari accompagnano già i refactor T21-02/03. T21-10 estende successivamente la valutazione locale del training senza trasferirla nel runtime. Nessuna stima in giorni assegnata prima della prova pulita delle dipendenze native e della build.
