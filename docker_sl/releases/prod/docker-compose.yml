@@ -17,6 +17,23 @@ services:
     cap_drop:
       - ALL
 
+  mercurion_tox_21_prod:
+    image: ${REGISTRY_IMAGE_MT21:?Set the Tox21 image repository}:${TOX21_VERSION:?Set the Tox21 version}-${TOX21_REVISION:?Set the full Tox21 source SHA}
+    environment:
+      PY_ENV: production
+      VERSION: ${TOX21_VERSION}
+      NATS_URL: ${TOX21_NATS_URL:?Set the broker reachable from this container}
+    user: "10021:10021"
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    stop_grace_period: 15s
+
   mercurion_web_node_prod:
     build:
       context: ../../..

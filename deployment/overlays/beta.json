@@ -8,6 +8,6 @@
     "postgres": { "enabled": true, "env": { "POSTGRES_USER": "${POSTGRES_USER}", "POSTGRES_PASSWORD": "${POSTGRES_PASSWORD}", "POSTGRES_DB": "${POSTGRES_DB}" } },
     "meilisearch": { "enabled": true, "env": { "MEILI_MASTER_KEY": "${MEILI_MASTER_KEY}" } },
     "nginx": { "enabled": true, "env": {} },
-    "tox21": { "enabled": true, "env": { "PY_ENV": "staging", "NATS_URL": "nats://nats-sl:4222", "VERSION": "${TOX21_VERSION}" } }
+    "tox21": { "enabled": true, "env": { "PY_ENV": "staging", "NATS_URL": "${TOX21_NATS_URL}", "VERSION": "${TOX21_VERSION}" } }
   }
 }

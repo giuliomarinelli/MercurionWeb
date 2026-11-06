@@ -124,3 +124,9 @@ T21-08 l'accettazione integrata. Non sono dimostrati provider PubChem reale,
 TLS, auth attiva, recovery su una VM distribuita, qualità scientifica o nuova
 compatibilità Windows/GPU. Nessuna immagine pubblicata, nessun servizio utente
 avviato/arrestato e nessun merge.
+
+Seguito: **T21-06 completato nel perimetro di configurazione**, con [proiezioni
+Compose/Kubernetes Tox21 e inventario dei residui](tox21-deployment.md). Le
+incompatibilità dei riferimenti Tox21 sopra indicate descrivono il checkpoint
+T21-05; non sono più lo stato corrente delle proiezioni aggiornate. Prossimo
+intervento T21-07; nessuna accettazione distribuita anticipata.

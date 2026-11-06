@@ -1,0 +1,12 @@
+# Optional override: Tox21 owns its build and model package independently of Web.
+services:
+  mercurion_tox_21_prod:
+    build:
+      context: ${TOX21_SOURCE_CONTEXT:?Set the absolute Tox21 source checkout path}
+      dockerfile: Dockerfile
+      target: production
+      additional_contexts:
+        model_package: ${TOX21_MODEL_PACKAGE_CONTEXT:?Set the absolute exported package path}
+      args:
+        BUILD_VERSION: ${TOX21_VERSION}
+        BUILD_REVISION: ${TOX21_REVISION}

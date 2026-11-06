@@ -13,17 +13,30 @@ spec:
       labels:
         app: mercurion-tox-21
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10021
+        runAsGroup: 10021
+        fsGroup: 10021
       containers:
         - name: tox21
-          image: europe-west8-docker.pkg.dev/mercurion-483615/mercurion/mercurion-tox-21:1.2026.3
+          image: ${REGISTRY_IMAGE_MT21}:${TOX21_VERSION}-${TOX21_REVISION}
           imagePullPolicy: IfNotPresent
           env:
             - name: PY_ENV
               value: "staging"
             - name: VERSION
-              value: "1.2026.2"
+              value: "${TOX21_VERSION}"
             - name: NATS_URL
               value: "nats://nats-sl.mercurion-beta.svc.cluster.local:4222"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
           resources:
             requests:
               cpu: "200m"
@@ -31,5 +44,11 @@ spec:
             limits:
               cpu: "700m"
               memory: "2Gi"
+      terminationGracePeriodSeconds: 15
+      volumes:
+        - name: tmp
+          emptyDir:
+            medium: Memory
+            sizeLimit: 64Mi
 
 

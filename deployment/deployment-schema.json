@@ -152,6 +152,13 @@
     "versionVariable": "BUILD_VERSION",
     "revisionVariable": "BUILD_REVISION",
     "applicationTag": "${BUILD_VERSION}-${BUILD_REVISION}",
+    "componentImages": {
+      "tox21": {
+        "versionVariable": "TOX21_VERSION",
+        "revisionVariable": "TOX21_REVISION",
+        "image": "${REGISTRY_IMAGE_MT21}:${TOX21_VERSION}-${TOX21_REVISION}"
+      }
+    },
     "applicationImages": {
       "web-ng": "${REGISTRY_IMAGE_NG}:${BUILD_VERSION}-${BUILD_REVISION}",
       "web-node": "${REGISTRY_IMAGE_NODE}:${BUILD_VERSION}-${BUILD_REVISION}"

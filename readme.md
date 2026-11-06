@@ -132,12 +132,14 @@ and Nest Dockerfiles define `production`, `staging` and `test` targets. Kubernet
 under `k8s/` are deployment configuration, not a substitute for the local nginx edge.
 Container builds and standalone runtime smoke tests are authoritative for container support.
 
-Tox21 is built and versioned in its own repository. Its existing test/staging Dockerfiles
-start the worker with `python -m main`; the planned application image contains inference
-code, weights, network definition, fingerprint settings, labels and coherent thresholds.
-Training stays local. Container consolidation, runtime-only dependency separation and a
-dedicated Tox21 CI remain work in the [Tox21 roadmap](docs/infrastructure/tox21-container-roadmap.md),
-not completed features implied by this README.
+Tox21 is built and versioned in its own repository. Its consolidated Dockerfile
+provides test/staging/production targets running `python -m main`, with runtime-only
+code/dependencies and an exported weights/thresholds/metadata package. Training stays
+local. Tox21 CI verifies those containers independently of Web. The beta/production
+Compose fragments consume a Tox21 image by default; optional overrides enable local
+builds with an explicit source/model context. See [deployment inputs and inventory](docs/infrastructure/tox21-deployment.md).
+Coordinated artifact delivery and integrated acceptance remain in the
+[Tox21 roadmap](docs/infrastructure/tox21-container-roadmap.md).
 
 ## Further reading
 

@@ -1,0 +1,12 @@
+# Optional override: the base Compose consumes an image without a Tox21 checkout.
+services:
+  mercurion_tox_21_beta:
+    build:
+      context: ${TOX21_SOURCE_CONTEXT:?Set the absolute Tox21 source checkout path}
+      dockerfile: Dockerfile
+      target: staging
+      additional_contexts:
+        model_package: ${TOX21_MODEL_PACKAGE_CONTEXT:?Set the absolute exported package path}
+      args:
+        BUILD_VERSION: ${TOX21_VERSION}
+        BUILD_REVISION: ${TOX21_REVISION}

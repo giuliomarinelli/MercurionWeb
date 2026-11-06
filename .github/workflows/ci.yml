@@ -460,6 +460,10 @@ jobs:
       - name: Validate container build contract and lockfile drift
         run: npm run ci:containers
 
+      - name: Validate Tox21 Compose consumers without sibling checkout
+        if: ${{ matrix.name == 'angular-production' }}
+        run: node scripts/test-tox21-compose.mjs
+
       - name: Build container without cache
         run: docker build --pull --no-cache --file "${{ matrix.dockerfile }}" --target "${{ matrix.target }}" --build-arg BUILD_VERSION --build-arg BUILD_REVISION --tag "mercurion-ci-${{ matrix.name }}" .
 

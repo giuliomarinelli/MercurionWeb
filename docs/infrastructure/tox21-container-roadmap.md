@@ -51,7 +51,7 @@ Questi vincoli sono formalizzati nel [verbale T21-00 con inventario dei test e l
 
 ## Sequenza proposta
 
-**T21-00 completato come analisi e specifica**, con [vincoli e inventario](tox21-design-test-inventory.md). **T21-01 completato come documentazione**, **T21-02 con 54 test applicativi locali**, **T21-03 sul target Linux CPU**, **T21-09 con 99 casi autonomi, 85 runtime-only e riferimento reale esplicito**, **T21-04 con tre immagini e smoke locali**, **T21-05 con CI remota verde sull'esatto SHA**: esiti e limiti sotto. Nessuna accettazione dell’applicazione distribuita dedotta dalle prove. Le altre voci sono **da fare**. La priorità determina l’ordine di lavoro, non certifica la gravità di un difetto runtime.
+**T21-00 completato come analisi e specifica**, con [vincoli e inventario](tox21-design-test-inventory.md). **T21-01 completato come documentazione**, **T21-02 con 54 test applicativi locali**, **T21-03 sul target Linux CPU**, **T21-09 con 99 casi autonomi, 85 runtime-only e riferimento reale esplicito**, **T21-04 con tre immagini e smoke locali**, **T21-05 con CI remota verde sull'esatto SHA**, **T21-06 con proiezioni Web verificate localmente**: esiti e limiti sotto. Nessuna accettazione dell’applicazione distribuita dedotta dalle prove. Le altre voci sono **da fare**. La priorità determina l’ordine di lavoro, non certifica la gravità di un difetto runtime.
 
 | ID | Intervento | Repository responsabile | Dipende da | Priorità |
 | --- | --- | --- | --- | --- |
@@ -161,6 +161,8 @@ La prova deve distinguere: validazione degli handler con mock, caricamento reale
 
 ### T21-06 — Consumer e configurazioni Web
 
+**Esito, 6 novembre:** completato sul branch Web `feature/T21-06`, con [input, inventario, verifiche e residui](tox21-deployment.md). Compose beta/production consumano un'immagine Tox21 senza checkout; build opzionali con sorgenti e pacchetto espliciti. Identità Tox21 indipendente da Web, namespace/versione coerenti e template Kubernetes beta aggiornato. Quattro risoluzioni Compose e dodici input mancanti verificati, gate statico con undici prove negative e 47 test contratti Nest passati. Nessuna CI Web remota, build applicativa o prova di deployment dedotta da questi controlli. Conservati i manifest; il riferimento errato del CronJob PostgreSQL è una lacuna separata documentata prima dell'uso.
+
 **Intervento:** eliminare la dipendenza dal vecchio layout `MercurionAI`. Separare il percorso per build locale dal riferimento a un’immagine già prodotta da Tox21. Documentare un contesto locale configurabile o una convenzione di checkout; evitare path assoluti personali. Non trasformare il repository sibling in requisito del build Web ordinario.
 
 Allineare variabili e namespace ai contratti T21-02. Inventariare Compose e manifest esistenti; decidere quali restano supportati nel progetto corrente. Per quelli mantenuti, eliminare divergenze tra tag immagine, versione runtime e metadati di build. L’eventuale archiviazione dei vecchi manifest richiede una decisione esplicita, non una cancellazione automatica.
@@ -198,7 +200,7 @@ Separatamente, registrare su un nuovo modello le metriche per-label e aggregate 
 | Modalità auth e confine di fiducia del worker | Decisione acquisita per T21-02 | Default pubblico interno e tutto-o-nulla; percorso autenticato con PEM singolo, nessuna rotazione coordinata adottata. L’esposizione di rete della demo resta nel piano VM |
 | Piattaforma runtime supportata e necessità GPU | Prima di chiudere T21-03 | Verificare prima Linux/CPU; eventuali altri target richiedono prove proprie |
 | Identità/provenienza del modello e convenzione di versione Tox21 | Contratto di pacchetto acquisito in T21-03; release coordinata T21-07 | Identificativo modello, SHA dell’export e checksum acquisiti; la provenienza storica ignota non viene ricostruita per supposizione |
-| Manifest Compose/Kubernetes da mantenere | Prima di completare T21-06 | Conservare il minimo dichiarato supportato; non dedurlo dalla vecchia VPS |
+| Manifest Compose/Kubernetes da mantenere | Definito in T21-06 | [Inventario](tox21-deployment.md): proiezioni Tox21 mantenute, nessuna archiviazione; CronJob PostgreSQL non certificato, topologia VM ancora separata |
 | Canale di distribuzione e politica delle evidenze di sicurezza | Prima di completare T21-07 | Separare build verificata da pubblicazione; scegliere registry o esportazione in base al contesto demo |
 
 Queste decisioni non impediscono T21-01 o l’analisi delle altre voci indipendenti. Non assegnare arbitrariamente stati terminali a lavori non ancora avviati.
@@ -216,4 +218,4 @@ Checkpoint proposti:
 3. **Consegna ripetibile:** T21-06–T21-07 completati, consumer allineati e manifest con entrambe le identità.
 4. **Accettazione integrata:** T21-08 completato. Deployment della demo resta un incarico successivo nel piano infrastrutturale.
 
-**T21-00–T21-05 e T21-09 completati nel rispettivo perimetro documentato; prossimo intervento T21-06**, integrazione Compose e riferimenti di distribuzione Web. CI Tox21 verificata sull'esatto SHA, compresi runtime finali e recovery NATS isolato; non equivale ad accettazione integrata. T21-10 estende successivamente la valutazione scientifica locale senza trasferire il training nel runtime. Limiti Windows scientifici, migrazione deployment Web e accettazione operativa restano espliciti nei rispettivi verbali.
+**T21-00–T21-06 e T21-09 completati nel rispettivo perimetro documentato; prossimo intervento T21-07**, identità e consegna coordinata degli artifact. CI Tox21 verificata sull'esatto SHA e proiezioni Web verificate localmente; non equivale ad accettazione integrata. T21-10 estende successivamente la valutazione scientifica locale senza trasferire il training nel runtime. Limiti Windows scientifici, CronJob PostgreSQL, topologia e accettazione operativa restano espliciti nei rispettivi verbali.
