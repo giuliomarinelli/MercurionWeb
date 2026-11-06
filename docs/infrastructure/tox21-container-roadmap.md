@@ -51,7 +51,7 @@ Questi vincoli sono formalizzati nel [verbale T21-00 con inventario dei test e l
 
 ## Sequenza proposta
 
-**T21-00 completato come analisi e specifica**, con [vincoli e inventario](tox21-design-test-inventory.md). **T21-01 completato come documentazione**, **T21-02 con 54 test applicativi locali**, **T21-03 sul target Linux CPU** e **T21-09 con 99 casi autonomi, 85 runtime-only e riferimento reale esplicito**: esiti e limiti sotto. Nessuna accettazione dell’applicazione distribuita o CI remota dedotta dalle prove locali. Le altre voci sono **da fare**. La priorità determina l’ordine di lavoro, non certifica la gravità di un difetto runtime.
+**T21-00 completato come analisi e specifica**, con [vincoli e inventario](tox21-design-test-inventory.md). **T21-01 completato come documentazione**, **T21-02 con 54 test applicativi locali**, **T21-03 sul target Linux CPU**, **T21-09 con 99 casi autonomi, 85 runtime-only e riferimento reale esplicito**, **T21-04 con tre immagini e smoke locali**: esiti e limiti sotto. Nessuna accettazione dell’applicazione distribuita o CI remota dedotta dalle prove locali. Le altre voci sono **da fare**. La priorità determina l’ordine di lavoro, non certifica la gravità di un difetto runtime.
 
 | ID | Intervento | Repository responsabile | Dipende da | Priorità |
 | --- | --- | --- | --- | --- |
@@ -137,6 +137,8 @@ La seguente è una matrice di casi da inventariare ed estendere, non un elenco d
 
 ### T21-04 — Dockerfile e immagine
 
+**Esito, 6 novembre:** completato nel perimetro locale Linux amd64 CPU su `feature/T21-04` di entrambi i repository. [Verbale e identità delle immagini](tox21-container-qa.md): tre target costruiti da snapshot pulito, gate di 99 test, tre audit e tre smoke NATS/arresto riusciti, riferimento predittivo reale e prove negative. Training/test e configurazioni personali esclusi dai runtime. CI remota T21-05 e migrazione dei riferimenti Web T21-06 restano aperte; nessun merge o deployment.
+
 **Intervento:** proporre un unico Dockerfile con stadi condivisi e target finali `test`, `staging`, `production`, coerenti con Web. Il target test deve eseguire controlli isolati in fase di build o tramite un job CI esplicito; il servizio finale mantiene l’entrypoint `python -m main`. Test che richiedono NATS reale appartengono a una fase separata.
 
 Aggiungere `.dockerignore` e copie selettive del runtime. Escludere Git, virtualenv host, configurazioni personali, chiavi, cache, notebook, dataset e output non necessari; includere esplicitamente il pacchetto modello. Usare utente non-root con UID/GID definiti e separare tool di compilazione dal runtime. Registrare i soli percorsi che richiedono scrittura e verificare l’esecuzione con filesystem in sola lettura e area temporanea dedicata.
@@ -212,4 +214,4 @@ Checkpoint proposti:
 3. **Consegna ripetibile:** T21-06–T21-07 completati, consumer allineati e manifest con entrambe le identità.
 4. **Accettazione integrata:** T21-08 completato. Deployment della demo resta un incarico successivo nel piano infrastrutturale.
 
-**T21-00–T21-03 e T21-09 completati nel rispettivo perimetro documentato; prossimo intervento T21-04**, Dockerfile consolidato e contesto minimo. La suite ha gruppi ripetibili, fixture condivisa e riferimento predittivo esplicito; non equivale alla prova dei container applicativi finali o del broker reale. T21-10 estende successivamente la valutazione scientifica locale senza trasferire il training nel runtime. Limiti Windows scientifici, accettazione operativa e CI restano espliciti nei rispettivi verbali.
+**T21-00–T21-04 e T21-09 completati nel rispettivo perimetro documentato; prossimo intervento T21-05**, CI applicativa e verifica dei container. I runtime finali e una richiesta NATS reale sono verificati localmente; non equivalgono a CI remota o accettazione integrata. T21-10 estende successivamente la valutazione scientifica locale senza trasferire il training nel runtime. Limiti Windows scientifici, migrazione deployment Web e accettazione operativa restano espliciti nei rispettivi verbali.

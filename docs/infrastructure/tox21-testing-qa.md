@@ -68,4 +68,4 @@ Gli ambienti Linux con dipendenze verificate sono quelli costruiti per T21-03 e 
 
 Log e contesti di prova fuori dai repository: `C:/Users/giuli/.codex/artifacts/t21-09-*`. Nessuna modifica a dataset, pesi, soglie, lock delle dipendenze, servizi dell’utente o configurazioni personali. Nessuna CI remota, prova con broker esterno, container applicativo distribuito, browser o rotazione JWT dichiarata. Le prove operative residue restano nei task indicati nella matrice.
 
-Prossimo intervento: **T21-04**, Dockerfile consolidato e contesto minimo, adottando profili e package mode già verificati senza includere training e test nei runtime finali.
+Seguito: **T21-04 completato localmente**, con [build dei tre target, audit delle immagini e smoke NATS/arresto](tox21-container-qa.md). I residui originariamente assegnati a T21-04 nella matrice sopra sono coperti a quel livello; CI, recovery broker e accettazione integrata restano nei task successivi. Prossimo intervento: **T21-05**.
