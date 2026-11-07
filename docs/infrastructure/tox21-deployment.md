@@ -147,3 +147,12 @@ registro NATS e contratti RDKit). Nessun processo applicativo avviato, nessun
 deployment o modifica al repository Tox21. La CI completa sull'esatto candidato
 resta il controllo remoto prima dell'integrazione; l'esecuzione dei soli test
 locali non la sostituisce. Il merge in develop resta all'owner.
+
+La prima CI del candidato `b290b40e` ha individuato un ulteriore riferimento
+costruito per segmenti nel test Redis (`k8s`, `beta`, `redis-deploy.yaml`).
+Corretto a preview senza modificare la policy o il runtime Redis. Dopo la
+correzione sono passati l'intero gruppo contratti (**91 casi in 12 suite**,
+compreso Redis) e i **30 casi** di configurazione/helper env; verifica dei
+riferimenti per segmenti ripetuta senza residui di deployment beta. Il nuovo
+commit richiede una nuova CI completa, senza riutilizzare come verde il run
+precedente. La cronologia originale T21-07 resta intatta.

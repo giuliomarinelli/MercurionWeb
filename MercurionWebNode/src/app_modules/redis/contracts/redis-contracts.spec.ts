@@ -76,7 +76,7 @@ describe('Redis key and TTL contracts', () => {
 
     it('keeps local Docker and Kubernetes Redis manifests compatible with the policy', () => {
         const docker = readFileSync(resolve(process.cwd(), '..', 'docker_sl', 'docker-compose.yml'), 'utf8')
-        const kubernetes = readFileSync(resolve(process.cwd(), '..', 'k8s', 'beta', 'redis-deploy.yaml'), 'utf8')
+        const kubernetes = readFileSync(resolve(process.cwd(), '..', 'k8s', 'preview', 'redis-deploy.yaml'), 'utf8')
         for (const manifest of [docker, kubernetes]) {
             expect(manifest).toContain(`--notify-keyspace-events ${redisCapabilityPolicy.requiredFlags.join('')}`)
         }
