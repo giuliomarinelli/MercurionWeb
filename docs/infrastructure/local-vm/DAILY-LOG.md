@@ -275,3 +275,23 @@ e relativi test negativi passati. Nessun install/build/pull/create/up, processo
 applicativo o risorsa Docker avviati. Il modello statico non dimostra DNS o
 isolamento runtime: fase INF-VM-03 ancora parziale.
 [Perimetro e comando ripetibile](../../../deployment/local-vm/README.md).
+
+### INF-VM-03 — listener sintetici, matrice e runner preparati
+
+Su richiesta dell'owner, sostituiti gli sleep con listener TCP IPv4 sintetici
+su 18080, identità JSON e durata massima 600 secondi. Bind mount del solo file
+probe tracciato in lettura; porte canoniche `expose` restano metadati, nessuna
+porta host pubblicata. Definiti 15 collegamenti ammessi e 18 negazioni, inclusi
+database/Redis/NATS incrociati tra ambienti e limite UI → Meilisearch.
+
+Runner senza Docker nel modo predefinito (solo piano). Modo runtime futuro su
+fixture già avviate: non crea topologia, reti o volumi e non arresta fixture.
+Crea/rimuove solo client temporanei con ownership verificata; DNS e TCP distinti,
+probe diretti a tutti gli IP target, controlli positivi prima/dopo le negazioni.
+Guasti DNS, servizi inattesi e target spenti non diventano prove negative passate.
+
+Dieci test locali passati: listener loopback reale e chiusura, casi di errore,
+orchestrazione completa dei 33 casi con Docker simulato, pulizia client e rifiuto
+di rimozioni fuori ownership. Config Compose valido: 11 guardie topologia e
+4 mutazioni matrice respinte. Nessun Docker runtime, pull, SSH o avvio VM eseguiti.
+INF-VM-02 e accettazione runtime INF-VM-03 rimangono aperti.

@@ -8,9 +8,11 @@ deployment, trasferimento operativo o collegamento Cloudflare autorizzato.
 
 Tre progetti indipendenti: [shared](shared/compose.yaml),
 [preview](preview/compose.yaml), [production](production/compose.yaml).
-I nomi rappresentano i futuri ruoli, ma tutti usano **fixture Python inerti**
-con il digest già usato in INF-VM-02. Il placeholder attende 600 secondi;
-non implementa listener o protocolli. Non avvia database, broker, Meilisearch,
+I nomi rappresentano i futuri ruoli, ma tutti usano **fixture TCP sintetiche**
+con il digest già usato in INF-VM-02. Ogni fixture ascolta in IPv4 sulla porta
+non privilegiata 18080 per massimo 600 secondi e restituisce un'identità JSON.
+Il bind wildcard resta nel namespace del container, senza pubblicazioni host.
+Non implementa protocolli applicativi e non avvia database, broker, Meilisearch,
 Nginx, cloudflared, UI, Nest, Angular o Tox21.
 
 I profili `topology-fixture` e `admin-fixture` rendono esplicito l'uso opzionale.
@@ -20,7 +22,8 @@ Le fixture hanno root filesystem read-only, UID non root, capability rimosse,
 limiti CPU/memoria/PID, nessun restart automatico e pull disabilitato.
 
 `expose` descrive porte interne previste dal contratto; non pubblica porte host
-e non rende i placeholder servizi funzionanti. Nessuna eccezione loopback per
+e non significa che la fixture ascolti su quelle porte: il test usa sempre 18080.
+Nessuna eccezione loopback per
 Meilisearch/UI è ancora applicata: verrà collaudata nella fase amministrativa.
 I mount `/fixture-data` rappresentano proprietà dei volumi, non directory dei
 futuri motori dati. Non usare questi percorsi con le immagini applicative.
@@ -85,18 +88,70 @@ configurazione reale in `validation.env.example`.
 
 Verifica proprietà reti/volumi, collegamenti dei ruoli, separazione ambienti,
 alias, porte canoniche, overlay, immagine fixture fissata, assenza di porte
-pubblicate/mount sensibili e limiti container. Gli 11 casi negativi modificano
-copie in memoria, senza toccare sorgenti o Docker. Validator dedicato alla fase
-fixture, separato dal gate CI canonico; non sostituisce `ci:deployment`.
+pubblicate/mount sensibili e limiti container. L'unico bind mount ammesso è il
+file fixture tracciato in sola lettura. Gli 11 casi negativi di topologia e i
+4 della matrice modificano copie in memoria, senza toccare sorgenti o Docker.
+Validator dedicato alla fase fixture, separato dal gate CI canonico;
+non sostituisce `ci:deployment`.
+
+## Matrice e runner preparati, esecuzione Docker non ancora verificata
+
+[connectivity.json](connectivity.json) contiene 15 casi ammessi e 18 vietati:
+ingresso edge, dipendenze dati/bus/search, RPC stesso ambiente, negazioni
+incrociate preview/production e accessi fuori responsabilità di SPA/edge/UI.
+I controlli statici richiedono copertura dei 16 ruoli e assenza di contraddizioni.
+
+Per leggere il piano senza chiamare Docker:
+
+```powershell
+python -B scripts/infrastructure/run_vm_topology.py
+```
+
+Il futuro modo runtime `--execute-existing-fixtures` richiede autorizzazione
+separata e fixture già avviate sulla VM Ubuntu. Il runner non avvia o arresta
+i tre progetti, non crea reti/volumi e rifiuta servizi diversi dalle fixture
+attese (immagine, comando, utente, filesystem e porte verificati). La UI fixture
+deve essere presente per coprire anche le sue negazioni. Tutti i listener sono
+temporanei: readiness e timeout devono rimanere validi durante l'intera prova.
+
+Ogni client temporaneo condivide il namespace di rete della fixture sorgente,
+ha propri filesystem/PID e monta solo il probe in lettura. Le prove positive
+richiedono DNS verso gli IP della destinazione e identità JSON corretta. Per
+ogni negazione si verificano sorgente/destinazione su loopback prima e dopo,
+si registra DNS e si prova TCP direttamente su tutti gli IP della destinazione.
+Un guasto del resolver, una destinazione spenta o la sola mancata risoluzione
+non superano il test. Un TCP aperto con identità errata è comunque un fallimento
+della negazione, non un blocco riuscito.
+
+Il runner rimuove soltanto i client creati dalla propria esecuzione: ID e label
+casuale sono verificati prima della rimozione; ricerca anche creazioni parziali
+con quella label dopo timeout. Nessun prune e nessuna rimozione di fixture,
+reti o volumi. Errori di pulizia invalidano il risultato e riportano gli ID.
+Il report runtime richiede un nuovo percorso fuori repository e conserva hash
+del probe/matrice, ID delle fixture, misure, errori e `isolationAccepted=false`.
+Non contiene env operativi o output Docker inspect completo.
+
+Verifica locale, senza Docker runtime:
+
+```powershell
+python -B scripts/infrastructure/test_vm_topology.py
+```
+
+Dieci test passati: TCP loopback reale, identità, chiusura, DNS, guardie contro
+falsi esiti e pulizia dopo timeout/ownership errata; l'intera matrice è percorsa
+con Docker simulato. La simulazione non dimostra la topologia della VM.
 
 ## Accettazione aperta
 
 La validazione statica non dimostra DNS o isolamento runtime. Restano connessioni
 positive/negative, egress, loopback amministrativo e comportamento volumi.
-Prima di avviare occorre review del gate INF-VM-02; serviranno poi fixture con
-listener/protocolli di test al posto dei placeholder inerti.
+Prima di avviare occorre review del gate INF-VM-02. Listener e runner sono ora
+preparati; il loro uso su reti Docker reali resta da verificare con autorizzazione.
+I test non coprono protocolli/ACL applicativi, IPv6, host/LAN, Cloudflare o
+persistenza dei motori dati; la fixture non è una sostituzione dei servizi reali.
 
 Fonte progettuale: [topologia VM](../../docs/infrastructure/local-vm/NETWORK-TOPOLOGY.md).
 Riferimenti: [reti Compose](https://docs.docker.com/reference/compose-file/networks/),
 [config](https://docs.docker.com/reference/cli/docker/compose/config/),
 [profili](https://docs.docker.com/compose/how-tos/profiles/).
+Namespace dei client: [Docker container networks](https://docs.docker.com/engine/network/#container-networks).

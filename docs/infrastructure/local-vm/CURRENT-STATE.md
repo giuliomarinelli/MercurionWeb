@@ -5,8 +5,11 @@
 ## Inventario di ciò che esiste
 
 **Base statica INF-VM-03:** tre progetti Compose fixture in
-[deployment/local-vm](../../../deployment/local-vm/README.md), 16 ruoli inerti,
-13 reti e 7 volumi. Validazione locale e 11 casi negativi passati con Compose
+[deployment/local-vm](../../../deployment/local-vm/README.md), 16 ruoli sintetici,
+13 reti e 7 volumi. Listener TCP sintetici e matrice di 15 casi ammessi/18 vietati
+preparati. Dieci test locali del probe/runner passati (TCP loopback reale, Docker
+simulato), senza convalida runtime della topologia. Validazione locale e
+11 guardie topologia più 4 guardie matrice passate con Compose
 5.6.1 host. Nessun avvio, risorsa Docker creata o trasferimento VM: anticipo
 statico autorizzato dall'owner, con gate operativo INF-VM-02 ancora aperto.
 

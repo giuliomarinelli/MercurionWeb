@@ -96,7 +96,7 @@ export function validateVmProjects(projects) {
       assert.equal(service.cpus, 0.25, 'fixture CPU budget')
       assert.equal(service.pids_limit, 32, 'fixture PID budget')
       assert.deepEqual(service.entrypoint, ['python'], 'fixture entrypoint')
-      assert.deepEqual(service.command, ['-B', '-c', 'import time; time.sleep(600)'], 'bounded inert fixture')
+      assert.deepEqual(service.command, ['-B', '/fixture/topology_fixture.py', 'serve', '--identity', id], 'bounded identity listener')
       assert.deepEqual(service.profiles, [role === 'meilisearch-ui' ? 'admin-fixture' : 'topology-fixture'], 'opt-in fixture profile')
       same(Object.keys(service.networks), connections[role], `${project}/${id}: network membership`)
       for (const config of Object.values(service.networks)) {
@@ -118,9 +118,10 @@ export function validateVmProjects(projects) {
       same(service.expose ?? [], port.map(String), `${project}/${id}: canonical intended ports`)
       const volume = shared ? (role === 'meilisearch' ? 'meili-data' : null)
         : ['postgres', 'redis', 'nats'].includes(role) ? `${role}-data` : null
-      if (volume) {
-        assert.deepEqual(service.volumes, [{ type: 'volume', source: volume, target: '/fixture-data', volume: {} }], 'fixture volume binding')
-      } else assert(!service.volumes?.length, 'unexpected service mount')
+      const mounts = [{ type: 'bind', source: resolve(base, 'fixtures/topology_fixture.py'),
+        target: '/fixture/topology_fixture.py', read_only: true, bind: {} }]
+      if (volume) mounts.push({ type: 'volume', source: volume, target: '/fixture-data', volume: {} })
+      assert.deepEqual(service.volumes, mounts, 'only the read-only fixture script and own data volume may be mounted')
     }
   }
   for (const model of Object.values(projects)) for (const network of Object.values(model.networks)) {
@@ -128,6 +129,37 @@ export function validateVmProjects(projects) {
   }
   assert.equal(owners.size, 13, 'thirteen distinct physical networks')
   return { projects: 3, services: 16, networks: owners.size, volumes: volumeNames.size }
+}
+
+export function validateConnectivity(projects, matrix) {
+  assert.equal(matrix.schemaVersion, 1, 'matrix version')
+  assert.equal(matrix.fixturePort, 18080, 'unprivileged synthetic port')
+  assert.equal(matrix.allow.length, 15, 'positive case coverage')
+  assert.equal(matrix.deny.length, 18, 'negative case coverage')
+  const seen = new Set()
+  const covered = new Set()
+  const nets = ref => {
+    const [project, id, extra] = ref.split('/')
+    const service = projects[project]?.services[id]
+    assert(service && !extra, `unknown matrix role ${ref}`)
+    covered.add(ref)
+    return Object.keys(service.networks).map(key => projects[project].networks[key].name)
+  }
+  for (const expectation of ['allow', 'deny']) for (const pair of matrix[expectation]) {
+    assert.equal(pair.length, 2, 'source/target pair')
+    const key = pair.join(' -> ')
+    assert(!seen.has(key), `duplicate or contradictory case ${key}`)
+    seen.add(key)
+    const source = nets(pair[0])
+    const target = nets(pair[1])
+    assert.equal(source.some(net => target.includes(net)), expectation === 'allow', `matrix/topology disagreement: ${key}`)
+  }
+  assert.equal(covered.size, 16, 'every fixture role is covered')
+  for (const [environment, other] of [['preview', 'production'], ['production', 'preview']]) {
+    for (const role of ['postgres', 'redis', 'nats']) assert(matrix.deny.some(([a, b]) =>
+      a === `${environment}/web-node-${environment}` && b === `${other}/${role}-${other}`), 'cross-environment data/bus coverage')
+  }
+  return { allow: matrix.allow.length, deny: matrix.deny.length }
 }
 
 function selfTest(projects) {
@@ -156,6 +188,17 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   assert(process.argv.slice(2).every(arg => arg === '--self-test'), 'only --self-test is accepted')
   const projects = renderVmProjects()
   const summary = validateVmProjects(projects)
+  const matrix = JSON.parse(readFileSync(resolve(base, 'connectivity.json'), 'utf8'))
+  const coverage = validateConnectivity(projects, matrix)
   console.log(`VM Compose static validation passed: ${JSON.stringify(summary)}. No runtime evidence.`)
-  if (process.argv.includes('--self-test')) console.log(`Negative topology fixtures rejected: ${selfTest(projects)}.`)
+  console.log(`Connectivity plan validated: ${JSON.stringify(coverage)}. No network tests executed.`)
+  if (process.argv.includes('--self-test')) {
+    for (const mutate of [m => m.deny.pop(), m => { m.allow[0][0] = 'unknown/service' },
+      m => { m.deny[0] = [...m.allow[0]] }, m => { m.fixturePort = 80 }]) {
+      const changed = structuredClone(matrix)
+      mutate(changed)
+      assert.throws(() => validateConnectivity(projects, changed), undefined, 'invalid connectivity plan accepted')
+    }
+    console.log(`Negative guards passed: ${selfTest(projects)} topology and 4 connectivity mutations.`)
+  }
 }

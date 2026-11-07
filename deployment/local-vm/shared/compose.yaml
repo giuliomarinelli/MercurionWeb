@@ -4,7 +4,7 @@ name: mercurion-shared
 x-fixture: &fixture
   image: python@sha256:65bd3d9f1d7fa268dd1909973ba7eb4bdf41f6dcf2cfbe76ba9528b170f3fd79
   entrypoint: [python]
-  command: [-B, -c, "import time; time.sleep(600)"]
+  volumes: [../fixtures/topology_fixture.py:/fixture/topology_fixture.py:ro]
   profiles: [topology-fixture]
   pull_policy: never
   user: '65534:65534'
@@ -19,20 +19,24 @@ x-fixture: &fixture
 services:
   cloudflared:
     <<: *fixture
+    command: [-B, /fixture/topology_fixture.py, serve, --identity, cloudflared]
     networks: [edge, tunnel-egress]
   nginx-edge:
     <<: *fixture
+    command: [-B, /fixture/topology_fixture.py, serve, --identity, nginx-edge]
     x-mercurion-canonical-service: nginx
     networks: [edge, stg-web, prod-web]
     expose: ['80']
   meilisearch:
     <<: *fixture
+    command: [-B, /fixture/topology_fixture.py, serve, --identity, meilisearch]
     x-mercurion-canonical-service: meilisearch
     networks: [stg-search, prod-search]
     expose: ['7700']
-    volumes: [meili-data:/fixture-data]
+    volumes: [../fixtures/topology_fixture.py:/fixture/topology_fixture.py:ro, meili-data:/fixture-data]
   meilisearch-ui:
     <<: *fixture
+    command: [-B, /fixture/topology_fixture.py, serve, --identity, meilisearch-ui]
     profiles: [admin-fixture]
     networks: [admin-ui]
     expose: ['24900']

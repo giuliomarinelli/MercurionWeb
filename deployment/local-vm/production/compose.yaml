@@ -4,7 +4,7 @@ name: mercurion-production
 x-fixture: &fixture
   image: python@sha256:65bd3d9f1d7fa268dd1909973ba7eb4bdf41f6dcf2cfbe76ba9528b170f3fd79
   entrypoint: [python]
-  command: [-B, -c, "import time; time.sleep(600)"]
+  volumes: [../fixtures/topology_fixture.py:/fixture/topology_fixture.py:ro]
   profiles: [topology-fixture]
   pull_policy: never
   user: '65534:65534'
@@ -19,6 +19,7 @@ x-fixture: &fixture
 services:
   web-ng-production:
     <<: *fixture
+    command: [-B, /fixture/topology_fixture.py, serve, --identity, web-ng-production]
     x-mercurion-canonical-service: web-ng
     environment: {NODE_ENV: production, APP_ENV: production}
     expose: ['3497']
@@ -26,6 +27,7 @@ services:
       web: {aliases: [web-ng-production]}
   web-node-production:
     <<: *fixture
+    command: [-B, /fixture/topology_fixture.py, serve, --identity, web-node-production]
     x-mercurion-canonical-service: web-node
     environment: {NODE_ENV: production, APP_ENV: production, APP_PORT: '8098', APP_HOST: 0.0.0.0}
     expose: ['8098']
@@ -37,25 +39,29 @@ services:
       egress: {}
   postgres-production:
     <<: *fixture
+    command: [-B, /fixture/topology_fixture.py, serve, --identity, postgres-production]
     x-mercurion-canonical-service: postgres
     expose: ['5432']
     networks: [data]
-    volumes: [postgres-data:/fixture-data]
+    volumes: [../fixtures/topology_fixture.py:/fixture/topology_fixture.py:ro, postgres-data:/fixture-data]
   redis-production:
     <<: *fixture
+    command: [-B, /fixture/topology_fixture.py, serve, --identity, redis-production]
     x-mercurion-canonical-service: redis
     expose: ['6379']
     networks: [data]
-    volumes: [redis-data:/fixture-data]
+    volumes: [../fixtures/topology_fixture.py:/fixture/topology_fixture.py:ro, redis-data:/fixture-data]
   nats-production:
     <<: *fixture
+    command: [-B, /fixture/topology_fixture.py, serve, --identity, nats-production]
     x-mercurion-canonical-service: nats
     expose: ['4222']
     networks:
       bus: {aliases: [nats-production]}
-    volumes: [nats-data:/fixture-data]
+    volumes: [../fixtures/topology_fixture.py:/fixture/topology_fixture.py:ro, nats-data:/fixture-data]
   tox21-production:
     <<: *fixture
+    command: [-B, /fixture/topology_fixture.py, serve, --identity, tox21-production]
     x-mercurion-canonical-service: tox21
     environment: {PY_ENV: production, NATS_URL: 'nats://nats-production:4222', VERSION: topology-fixture}
     networks: [bus, egress]

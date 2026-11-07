@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "fixturePort": 18080,
+  "allow": [
+    ["shared/cloudflared", "shared/nginx-edge"],
+    ["shared/nginx-edge", "preview/web-ng-preview"],
+    ["shared/nginx-edge", "preview/web-node-preview"],
+    ["shared/nginx-edge", "production/web-ng-production"],
+    ["shared/nginx-edge", "production/web-node-production"],
+    ["preview/web-node-preview", "preview/postgres-preview"],
+    ["preview/web-node-preview", "preview/redis-preview"],
+    ["preview/web-node-preview", "preview/nats-preview"],
+    ["preview/web-node-preview", "shared/meilisearch"],
+    ["preview/tox21-preview", "preview/nats-preview"],
+    ["production/web-node-production", "production/postgres-production"],
+    ["production/web-node-production", "production/redis-production"],
+    ["production/web-node-production", "production/nats-production"],
+    ["production/web-node-production", "shared/meilisearch"],
+    ["production/tox21-production", "production/nats-production"]
+  ],
+  "deny": [
+    ["preview/web-node-preview", "production/postgres-production"],
+    ["preview/web-node-preview", "production/redis-production"],
+    ["preview/web-node-preview", "production/nats-production"],
+    ["production/web-node-production", "preview/postgres-preview"],
+    ["production/web-node-production", "preview/redis-preview"],
+    ["production/web-node-production", "preview/nats-preview"],
+    ["preview/tox21-preview", "production/nats-production"],
+    ["production/tox21-production", "preview/nats-preview"],
+    ["preview/web-ng-preview", "preview/postgres-preview"],
+    ["preview/web-ng-preview", "preview/redis-preview"],
+    ["preview/web-ng-preview", "preview/nats-preview"],
+    ["production/web-ng-production", "production/postgres-production"],
+    ["production/web-ng-production", "production/redis-production"],
+    ["production/web-ng-production", "production/nats-production"],
+    ["shared/nginx-edge", "preview/postgres-preview"],
+    ["shared/nginx-edge", "production/postgres-production"],
+    ["shared/cloudflared", "shared/meilisearch"],
+    ["shared/meilisearch-ui", "shared/meilisearch"]
+  ]
+}

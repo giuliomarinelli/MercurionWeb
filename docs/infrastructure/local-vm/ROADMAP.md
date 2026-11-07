@@ -36,7 +36,9 @@ Preparare Docker Engine e plugin Compose su Ubuntu, amministrazione SSH a chiave
 **Eccezione circoscritta autorizzata dall'owner, 7 novembre:** anticipata la sola
 preparazione statica locale. Tre manifest fixture e validator disponibili in
 [deployment/local-vm](../../../deployment/local-vm/README.md), senza avvio VM.
-Sintassi e 11 casi negativi locali passati; INF-VM-02 e matrice runtime restano
+Sintassi, 11 guardie topologia e 4 guardie matrice locali passate; listener TCP,
+matrice da 33 casi e runner su fixture già avviate preparati. Dieci test locali
+del probe/runner passati, Docker simulato. INF-VM-02 e matrice runtime restano
 aperti. INF-VM-03 non è dichiarato completato.
 
 Definire directory `shared`, `preview`, `production`; reti esterne, alias, `internal`, `egress`, volumi e confini. Evitare un solo Compose con molti flag. Iniziare con probe/fixture non sensibili.

@@ -4,9 +4,9 @@
 
 | ID | Categoria | Verifica | Esito attuale |
 | --- | --- | --- | --- |
-| A-01 | Baseline | `docker compose config` di `shared`, `preview` e `production` senza segreti esposti | Base fixture: tre config locali validi, 11 casi negativi respinti; configurazione applicativa operativa aperta |
-| A-02 | Reti | DNS, collegamenti web/data/bus/search ammessi su stesso ambiente | Non eseguito |
-| A-03 | Reti negativa | preview non raggiunge PostgreSQL, Redis o NATS production e viceversa | Non eseguito |
+| A-01 | Baseline | `docker compose config` di `shared`, `preview` e `production` senza segreti esposti | Base fixture: tre config validi, 11 guardie topologia e 4 matrice passate; configurazione applicativa operativa aperta |
+| A-02 | Reti | DNS, collegamenti web/data/bus/search ammessi su stesso ambiente | Piano fixture e runner preparati; esecuzione Docker non effettuata |
+| A-03 | Reti negativa | preview non raggiunge PostgreSQL, Redis o NATS production e viceversa | Negazioni e controlli positivi definiti nella matrice; esecuzione Docker non effettuata |
 | A-04 | Reti negativa | non sono raggiungibili da LAN/Internet Redis, NATS, Postgres, Meilisearch, UI | Non eseguito |
 | A-05 | Host | container con egress non raggiungono Windows/LAN secondo policy, IPv4 e IPv6 | Parziale: due bridge guest → Windows TCP IPv4 verificati; LAN/IPv6 aperti |
 | A-06 | Ingresso | cloudflared esce verso Cloudflare, Nginx edge HTTP, due hostname corretti | Non eseguito |
