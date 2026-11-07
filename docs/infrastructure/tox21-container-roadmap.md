@@ -66,6 +66,7 @@ Questi vincoli sono formalizzati nel [verbale T21-00 con inventario dei test e l
 | T21-07 | Identità e consegna coordinata degli artefatti | Tox21 + Web | T21-05, T21-06 | P2 |
 | T21-08 | Accettazione integrata e istruzioni di ripristino | Entrambi, ambiente non produttivo | T21-07 | P2 |
 | T21-10 | Estensione delle verifiche locali del training e della qualità del modello | Tox21 | T21-00, T21-03 | P2 |
+| T21-11 | Override JWT ternario per ciascuno dei cinque servizi | Tox21, compatibilità Web | T21-02, T21-09 | Successivo, solo pianificato |
 
 Gli identificativi già assegnati sono conservati: T21-09 precede T21-04 nell’ordine di lavoro; T21-10 è un percorso distinto che non blocca la consegna del runtime. La coerenza checkpoint/soglie resta invece obbligatoria in T21-03. T21-02 e T21-03 sono indipendenti dopo T21-01. Questa dipendenza non prescrive esecuzione concorrente o delega ad agenti. Si propone un intervento focalizzato alla volta.
 
@@ -171,6 +172,18 @@ Allineare variabili e namespace ai contratti T21-02. Inventariare Compose e mani
 
 ### T21-07 — Identità e consegna
 
+**Baseline Web e nuovo candidato, 7 novembre:** [verbale e checksum](web-runtime-baseline-qa.md) su `feature/T21-WEB-BASELINE`, discendente da Web T21-BASELINE e T21-DELIVERY. Runtime fissati per digest, npm/Yarn esclusi dal backend, copia delle dipendenze workspace corretta. Nuovi archivi Web dallo SHA `c02ac848d3aaebdb5e3b85022dd2eeba2592bc9b`: zero criticità; archivio Tox21 verificato riutilizzato senza modifiche. Manifest completo e ammissibile (`eligible_for_integrated_acceptance: true`), nessun deployment. La CI completa sullo SHA implementativo `c02ac848d3aaebdb5e3b85022dd2eeba2592bc9b` è verde, incluso Required gate e tutti i sei target. L'integrazione rimane all'owner. T21-08 è il passo successivo di accettazione separata.
+
+**Consegna locale, 7 novembre:** [tre archivi reali e manifest coordinato](tox21-coordinated-delivery-qa.md) prodotti su `feature/T21-DELIVERY`, che recupera il coordinatore del vecchio branch Web T21-07. Nessun componente mancante, ma immagini Web bloccate dalla policy: tre occorrenze critiche frontend e cinque backend. Tox21 ha zero criticità. T21-07 non è ancora approvato per T21-08; serve una revisione mirata della baseline runtime Web, senza derogare alla policy. Nessun merge o deployment eseguito.
+
+**Seguito baseline, 7 novembre:** [revisione OS/Python/Pillow verificata](tox21-security-baseline-qa.md).
+Sul branch Tox21 `feature/T21-BASELINE`, SHA `56d1b4e12ddcfa45b440280e025dac46f7ca2034`,
+la CI e il Required gate sono verdi: production ha zero criticità bloccanti,
+107 test e riferimento reale passati, archive save/load verificato. Il branch
+contiene anche il precedente lavoro Tox21 T21-07. Questo risolve il blocco di
+sicurezza della baseline nel perimetro della policy acquisita; non completa
+ancora gli artifact Web e il manifest coordinato richiesti da T21-07.
+
 **Intervento:** attribuire all’immagine Tox21 versione, SHA completo del suo repository e label OCI, rendendo consultabile l’identità anche dal servizio. Preparare inventario/SBOM e diagnostica di sicurezza coerenti con le regole applicabili a Web; definire un criterio esplicito per risultati non conformi, senza neutralizzarli per ottenere un verde.
 
 Definire un manifest di consegna che associ revisioni Web e Tox21, riferimenti delle immagini, digest e identità/checksum del modello. Distinguere tre risultati: immagine costruita/verificata, immagine esportata o pubblicata, applicazione distribuita. Scegliere il canale di consegna prima di implementarlo: registry e relative autorizzazioni, oppure esportazione verificabile per il caricamento locale. Non assumere che la CI Web attuale pubblichi già le immagini.
@@ -194,6 +207,20 @@ Separatamente, registrare su un nuovo modello le metriche per-label e aggregate 
 **Completamento:** verifiche della pipeline distinte dalla valutazione statistica, report locale ripetibile e pacchetto esportato identificabile. Nessuna regressione applicativa viene considerata coperta soltanto perché migliorano loss o ROC-AUC. Questo percorso può proseguire successivamente; il contratto minimo pesi/soglie e la sua prova restano già obbligatori per T21-03/T21-09.
 
 ## Decisioni da chiudere prima delle rispettive fasi
+
+### T21-11 — Controllo JWT per servizio (requisito futuro)
+
+Richiesto dall'owner il 7 novembre: [specifica e matrice di precedenza](tox21-service-auth-plan.md).
+Cinque flag indipendenti per inferenza, tre API RDKit e PubChemPy, ciascuno con
+valori `allow`, `deny-withouth-access-token`, `disabled`. I primi due prevalgono
+sempre sul globale; `disabled`, anche come default del flag omesso, eredita il
+globale. Il secondo stato richiede un JWT effettivamente valido, non soltanto
+presente. Nessun servizio viene disattivato dal valore `disabled`.
+
+**Non implementare durante il task corrente:** T21-07 e la verifica degli
+artefatti restano il lavoro attivo. Nessuna nuova policy auth, key rotation o modifica dei
+payload viene introdotta per anticipare T21-11. I formati di configurazione e
+gli input non riconosciuti saranno fissati prima del codice del task futuro.
 
 | Decisione | Quando serve | Proposta da valutare |
 | --- | --- | --- |
@@ -219,3 +246,9 @@ Checkpoint proposti:
 4. **Accettazione integrata:** T21-08 completato. Deployment della demo resta un incarico successivo nel piano infrastrutturale.
 
 **T21-00–T21-06 e T21-09 completati nel rispettivo perimetro documentato; prossimo intervento T21-07**, identità e consegna coordinata degli artifact. CI Tox21 verificata sull'esatto SHA e proiezioni Web verificate localmente; non equivale ad accettazione integrata. T21-10 estende successivamente la valutazione scientifica locale senza trasferire il training nel runtime. Limiti Windows scientifici, CronJob PostgreSQL, topologia e accettazione operativa restano espliciti nei rispettivi verbali.
+
+Le revisioni delle baseline Tox21 e Web hanno superato i rispettivi gate di
+sicurezza; T21-07 dispone del nuovo bundle ammissibile documentato sopra e
+della CI verde sullo SHA implementativo. Il prossimo passo è l'integrazione
+dei branch da parte dell'owner, poi T21-08. T21-11 è soltanto pianificato:
+il controllo JWT granulare non viene anticipato in questa consegna.

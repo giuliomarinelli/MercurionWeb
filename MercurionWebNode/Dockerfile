@@ -78,9 +78,12 @@ RUN rm -rf node_modules && \
   npm ci --workspace mercurion_web_node --include-workspace-root=false --omit=dev --ignore-scripts && \
   npm rebuild argon2 --omit=dev
 
-FROM node:22.16.0-alpine AS runtime
+FROM node:22.23.4-alpine3.24@sha256:0e1754758c2df4cfa3e68d59e2e1b7374bb7fd9ea6328eaaacf15cc934af8202 AS runtime
 WORKDIR /usr/src/app
-RUN addgroup -S -g 10001 mercurion && \
+# Dependencies are installed in build stages; package managers are not runtime tools.
+RUN rm -rf /usr/local/lib/node_modules/npm /opt/yarn-* && \
+  rm -f /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/yarn /usr/local/bin/yarnpkg && \
+  addgroup -S -g 10001 mercurion && \
   adduser -S -D -H -u 10001 -G mercurion mercurion && \
   mkdir -p /tmp/mercurion && \
   chown 10001:10001 /tmp/mercurion
@@ -100,6 +103,7 @@ ENV APP_ENV=staging
 COPY --from=build-staging --chown=10001:10001 /workspace/MercurionWebNode/dist ./dist
 COPY --from=build-staging --chown=10001:10001 /workspace/MercurionWebNode/package.json ./package.json
 COPY --from=build-staging --chown=10001:10001 /workspace/node_modules ./node_modules
+COPY --from=build-staging --chown=10001:10001 /workspace/MercurionWebNode/node_modules ./node_modules
 COPY --from=build-staging --chown=10001:10001 /workspace/packages/rest-contracts ./packages/rest-contracts
 COPY --from=build-staging --chown=10001:10001 /workspace/packages/socket-contracts ./packages/socket-contracts
 COPY --from=build-staging --chown=10001:10001 /workspace/MercurionWebNode/assets-root ./assets-root
@@ -109,6 +113,7 @@ ENV APP_ENV=test
 COPY --from=build-test --chown=10001:10001 /workspace/MercurionWebNode/dist ./dist
 COPY --from=build-test --chown=10001:10001 /workspace/MercurionWebNode/package.json ./package.json
 COPY --from=build-test --chown=10001:10001 /workspace/node_modules ./node_modules
+COPY --from=build-test --chown=10001:10001 /workspace/MercurionWebNode/node_modules ./node_modules
 COPY --from=build-test --chown=10001:10001 /workspace/packages/rest-contracts ./packages/rest-contracts
 COPY --from=build-test --chown=10001:10001 /workspace/packages/socket-contracts ./packages/socket-contracts
 
@@ -117,6 +122,7 @@ ENV APP_ENV=production
 COPY --from=build-production --chown=10001:10001 /workspace/MercurionWebNode/dist ./dist
 COPY --from=build-production --chown=10001:10001 /workspace/MercurionWebNode/package.json ./package.json
 COPY --from=production-dependencies --chown=10001:10001 /workspace/node_modules ./node_modules
+COPY --from=production-dependencies --chown=10001:10001 /workspace/MercurionWebNode/node_modules ./node_modules
 COPY --from=build-production --chown=10001:10001 /workspace/packages/rest-contracts/dist ./packages/rest-contracts/dist
 COPY --from=build-production --chown=10001:10001 /workspace/packages/rest-contracts/package.json ./packages/rest-contracts/package.json
 COPY --from=build-production --chown=10001:10001 /workspace/packages/socket-contracts/cjs ./packages/socket-contracts/cjs

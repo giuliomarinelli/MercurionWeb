@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { devOnlyDependencies } from './lib/container-dev-dependencies.mjs';
 
 const args = new Map();
 for (let index = 2; index < process.argv.length; index += 1) {
@@ -44,7 +45,8 @@ if (!/^sha256:[0-9a-f]{64}$/.test(digest)) {
 }
 
 const packageManifest = JSON.parse(await readFile('MercurionWebNode/package.json', 'utf8'));
-const directDevDependencies = Object.keys(packageManifest.devDependencies ?? {});
+const lockfile = JSON.parse(await readFile('package-lock.json', 'utf8'));
+const forbiddenDevDependencies = devOnlyDependencies(packageManifest, lockfile.packages);
 const requiredRuntimeFiles = [
   'dist/src/main.js',
   'dist/src/schema.graphql',
@@ -55,27 +57,25 @@ const requiredRuntimeFiles = [
   'packages/rest-contracts/dist/index.js',
   'packages/socket-contracts/cjs/index.js',
 ];
-const requiredModules = ['argon2', 'fastify', 'graphql', 'pg', 'typeorm'];
+const requiredModules = ['argon2', 'fastify', 'graphql', 'pg', 'typeorm', 'jose'];
 
 const runtimeCheck = `
 const fs = require('node:fs');
 const path = require('node:path');
-const { spawnSync } = require('node:child_process');
 const root = '/usr/src/app';
 const requiredFiles = ${JSON.stringify(requiredRuntimeFiles)};
-const devDependencies = ${JSON.stringify(directDevDependencies)};
+const devOnlyDependencies = ${JSON.stringify(forbiddenDevDependencies)};
+const productionDependencies = ${JSON.stringify(Object.keys(packageManifest.dependencies ?? {}))};
 const requiredModules = ${JSON.stringify(requiredModules)};
 const missing = requiredFiles.filter(file => !fs.existsSync(path.join(root, file)));
-const presentDevDependencies = devDependencies.filter(name => fs.existsSync(path.join(root, 'node_modules', name)));
+const installedDevDependencies = devOnlyDependencies.filter(name => fs.existsSync(path.join(root, 'node_modules', name)));
+const missingDependencies = productionDependencies.filter(name => !fs.existsSync(path.join(root, 'node_modules', name)));
+const packageManagers = ['/usr/local/lib/node_modules/npm', '/usr/local/bin/npm', '/usr/local/bin/npx',
+  '/usr/local/bin/yarn', '/usr/local/bin/yarnpkg', ...fs.readdirSync('/opt').filter(name => name.startsWith('yarn-')).map(name => '/opt/' + name)];
+const retainedPackageManagers = packageManagers.filter(file => fs.existsSync(file) || fs.lstatSync(file, {throwIfNoEntry:false}));
 const missingModules = requiredModules.filter(name => {
   try { require(name); return false; } catch { return true; }
 });
-const dependencyTree = spawnSync('npm', ['ls', '--omit=dev', '--depth=0', '--json'], {
-  cwd: root,
-  encoding: 'utf8',
-});
-const installedDirectDependencies = Object.keys(JSON.parse(dependencyTree.stdout).dependencies ?? {});
-const installedDevDependencies = devDependencies.filter(name => installedDirectDependencies.includes(name));
 const forbidden = [];
 const files = [];
 function visit(directory) {
@@ -90,14 +90,16 @@ for (const file of files) {
   if ((file.startsWith(root + '/dist/') || file.startsWith(root + '/packages/')) &&
     (/\\.(?:map|d\\.ts|ts|tsbuildinfo)$/.test(file) || file.includes('/.npm/'))) forbidden.push(file);
 }
-if (missing.length || installedDevDependencies.length || missingModules.length || forbidden.length) {
-  console.error(JSON.stringify({ missing, presentDevDependencies, installedDevDependencies, missingModules, forbidden: forbidden.slice(0, 20) }));
+if (missing.length || missingDependencies.length || installedDevDependencies.length || retainedPackageManagers.length || missingModules.length || forbidden.length) {
+  console.error(JSON.stringify({ missing, missingDependencies, installedDevDependencies, retainedPackageManagers, missingModules, forbidden: forbidden.slice(0, 20) }));
   process.exit(1);
 }
 console.log(JSON.stringify({
   topLevelNodeModules: fs.readdirSync(path.join(root, 'node_modules')).length,
   requiredFiles: requiredFiles.length,
   requiredModules: requiredModules.length,
+  productionDependencies: productionDependencies.length,
+  packageManagersAbsent: true,
 }));
 `;
 const runtimeInventory = JSON.parse(run('docker', [
