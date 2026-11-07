@@ -207,6 +207,51 @@ L'esito dimostra questo smoke DNS/HTTPS IPv4, non l'accesso a tutti i provider
 o il blocco completo host/LAN. Le evidenze negative H-02/H-04 restano distinte;
 nessuna regola è stata allargata per ottenere il risultato.
 
+## Prerequisiti delle prove residue
+
+I casi IPv4 e link-local già acquisiti non vanno ripetuti per colmare una diversa
+origine o destinazione. Il passo successivo dipende dai seguenti punti di prova:
+
+| Perimetro | Risorsa necessaria | Criterio e limite |
+| --- | --- | --- |
+| Guest/container → LAN | Secondo dispositivo controllato, IP privato noto e canary temporaneo attivo | Controllo positivo sul dispositivo e da un'origine ammessa, poi singolo tentativo guest/container allo stesso endpoint; nessun test contro router o porte casuali |
+| H-05 ingresso amministrativo | Origine controllata diversa dall'host autorizzato, con percorso verso il guest documentato | Correlare SSH attivo/raggiungibile dall'host e tentativo dall'altra origine; NAT/route assenti non dimostrano da soli una whitelist firewall |
+| IPv6 container | Stato IPv6 effettivo delle reti e del namespace container sul guest | Acquisire indirizzi/route e impostazioni dei bridge; assenza di route non è una prova negativa passata. Non abilitare IPv6 né usare host networking per costruire una copertura artificiale |
+| IPv6 globale | Indirizzamento e route globali effettivamente presenti | Baseline attuale solo link-local: non dichiarare collaudo globale; eventuale introduzione è una scelta distinta, non una correzione del test |
+
+Una seconda VM è utilizzabile soltanto se già disponibile con una collocazione
+di rete compresa: non creare VM, switch o bridge LAN come conseguenza implicita
+del piano. Un container Docker Desktop non è automaticamente una seconda origine
+valida: verificare l'indirizzo sorgente visto dal guest dopo eventuale NAT.
+Anche un secondo PC che non dispone di una route verso il Default Switch non
+prova da solo il filtro SSH. Registrare separatamente limite topologico ed
+effettiva decisione di filtro, senza introdurre forwarding per aggirare il limite.
+
+**Disponibilità dichiarata dall'owner:** nessun secondo PC; iPhone e smartphone
+Android connessi alla LAN; nessuna app terminale/server HTTP o TCP su Android.
+Possono costituire origini controllate, ma strumenti utilizzabili e percorso
+verso la VM restano da predisporre/verificare. Il solo
+errore del browser verso una porta SSH non è una misura TCP sufficiente;
+nessuna installazione di app o apertura di porte sull'host è implicita.
+In assenza di un punto di prova utilizzabile conservare i casi come aperti e sottoporre il limite alla review del gate;
+non trasformarli automaticamente in «non applicabile» o in una deroga approvata.
+
+### Proposta di prosecuzione da sottoporre all'owner
+
+**Non ancora autorizzata:** anticipare la sola preparazione statica di INF-VM-03
+mentre queste verifiche restano aperte. Perimetro concreto: manifest Compose
+separati shared/preview/production, reti e alias coerenti con la specifica,
+placeholder non sensibili e validazione locale della configurazione. Nessun
+`compose up`, trasferimento operativo, segreto reale, pubblicazione di porte
+o connessione Cloudflare. La validazione statica non chiude INF-VM-02 né prova
+la matrice runtime di INF-VM-03; il gate verso l'avvio VM rimane in sospeso.
+
+Alternativa: mantenere l'ordine originale e predisporre uno strumento di rete
+su Android per le prove LAN/altre origini, verificando prima il percorso reale.
+Questa alternativa comporta un'installazione a cura dell'owner; non è già
+stata richiesta o approvata. Nessuna delle due opzioni autorizza a modificare
+firewall, ACL o topologia.
+
 **Gate verso INF-VM-03:** review della policy host/guest e prove pertinenti
 documentate; nessuna dichiarazione di isolamento basata solo sulla sintassi.
 La matrice applicativa di INF-VM-03 continuerà a verificare i bridge reali.

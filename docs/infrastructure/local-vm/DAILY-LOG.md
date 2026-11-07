@@ -245,3 +245,16 @@ attribuzione automatica a uno specifico filtro. Nessun cambiamento di policy
 o route, nessun servizio persistente. INF-VM-02 resta aperto per LAN, altre
 origini e perimetro IPv6 container/globale. Nessuna ulteriore esecuzione richiesta
 all'owner per confermare questo risultato.
+
+### Individuazione delle origini per le prove residue
+
+Consolidati i prerequisiti LAN/H-05 e IPv6 container/globale nella readiness.
+L'owner non ha un secondo PC, ma dispone di iPhone e Android sulla LAN.
+Possibili origini controllate, con strumenti già disponibili e percorso verso
+il Default Switch ancora da verificare. Non predisposti nuovi switch/VM,
+forwarding, listener LAN sull'host o installazioni sugli smartphone. Un timeout
+da un'origine priva di route non verrà usato come prova della whitelist SSH.
+L'owner conferma che Android non ha app terminale/server. Documentata la proposta
+di anticipare soltanto manifest e validazione statica INF-VM-03, mantenendo il
+gate di avvio VM e i residui INF-VM-02 aperti; in alternativa predisporre Android
+per le prove. Scelta da autorizzare esplicitamente, nessuna opzione applicata.
