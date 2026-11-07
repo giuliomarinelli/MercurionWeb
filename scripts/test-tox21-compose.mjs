@@ -51,7 +51,7 @@ try {
     assert.equal(resolve(built.build.context), resolve(env.TOX21_SOURCE_CONTEXT))
     assert.equal(resolve(built.build.additional_contexts.model_package), resolve(env.TOX21_MODEL_PACKAGE_CONTEXT))
     assert.deepEqual(built.build.args, { BUILD_VERSION: 'tox-qa', BUILD_REVISION: toxRevision })
-    assert.throws(() => config([base, override]), /TOX21_SOURCE_CONTEXT/)
+    assert.throws(() => config([base, override], { ...fixture, TOX21_MODEL_PACKAGE_CONTEXT: env.TOX21_MODEL_PACKAGE_CONTEXT }), /TOX21_SOURCE_CONTEXT/)
     assert.throws(() => config([base, override], { ...fixture, TOX21_SOURCE_CONTEXT: env.TOX21_SOURCE_CONTEXT }), /TOX21_MODEL_PACKAGE_CONTEXT/)
     for (const variable of ['REGISTRY_IMAGE_MT21', 'TOX21_VERSION', 'TOX21_REVISION', 'TOX21_NATS_URL']) {
       const missing = { ...fixture }

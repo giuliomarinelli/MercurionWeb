@@ -156,3 +156,10 @@ compreso Redis) e i **30 casi** di configurazione/helper env; verifica dei
 riferimenti per segmenti ripetuta senza residui di deployment beta. Il nuovo
 commit richiede una nuova CI completa, senza riutilizzare come verde il run
 precedente. La cronologia originale T21-07 resta intatta.
+
+La CI Linux ha inoltre rilevato una dipendenza dall'ordine dei diagnostici
+Compose: un caso ometteva contemporaneamente sorgenti e pacchetto, aspettandosi
+che venisse segnalata per prima la sorgente. I casi negativi ora omettono un
+solo input alla volta, fornendo esplicitamente l'altro. Restano dodici casi e
+resta obbligatoria la diagnostica dell'input specifico; nessun controllo è
+disabilitato e nessun requisito della configurazione è reso opzionale.
