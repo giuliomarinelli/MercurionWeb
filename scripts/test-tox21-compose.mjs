@@ -21,6 +21,9 @@ const fixture = {
 }
 delete fixture.TOX21_SOURCE_CONTEXT
 delete fixture.TOX21_MODEL_PACKAGE_CONTEXT
+const authFields = ['AUTH_INFERENCE', 'AUTH_RDKIT_PROPERTIES', 'AUTH_RDKIT_CANONICAL_SMILES',
+  'AUTH_RDKIT_SAME_STRUCTURE', 'AUTH_PUBCHEM_IUPAC_NAME']
+for (const field of authFields) delete fixture[field]
 
 function config(files, env = fixture) {
   return JSON.parse(execFileSync('docker', ['compose', '--env-file', emptyEnv,
@@ -36,7 +39,15 @@ try {
     const service = config([base]).services[name]
     assert.equal(service.image, `fixture/tox21:tox-qa-${toxRevision}`)
     assert.equal(service.build, undefined, 'Image consumer must not need the Tox21 checkout')
-    assert.deepEqual(service.environment, { PY_ENV: target, VERSION: 'tox-qa', NATS_URL: 'nats://fixture-broker:4222' })
+    assert.deepEqual(service.environment, { PY_ENV: target, VERSION: 'tox-qa', NATS_URL: 'nats://fixture-broker:4222',
+      ...Object.fromEntries(authFields.map(field => [field, 'disabled'])) })
+    const policies = Object.fromEntries(authFields.map((field, i) => [field, ['allow', 'require-jwt', 'disabled'][i % 3]]))
+    const mixed = config([base], { ...fixture, ...policies }).services[name].environment
+    for (const field of authFields) assert.equal(mixed[field], policies[field])
+    const empty = config([base], { ...fixture, AUTH_INFERENCE: '' }).services[name].environment
+    assert.equal(empty.AUTH_INFERENCE, '', 'Explicit empty auth must reach Pydantic and fail, never inherit')
+    const invalid = config([base], { ...fixture, AUTH_INFERENCE: 'typo' }).services[name].environment
+    assert.equal(invalid.AUTH_INFERENCE, 'typo', 'Do not silently coerce invalid auth to disabled')
     assert.equal(service.user, '10021:10021')
     assert.equal(service.read_only, true)
     assert.equal(service.init, true)

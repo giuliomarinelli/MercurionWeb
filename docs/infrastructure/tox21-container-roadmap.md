@@ -212,18 +212,20 @@ Separatamente, registrare su un nuovo modello le metriche per-label e aggregate 
 
 ## Decisioni da chiudere prima delle rispettive fasi
 
-### T21-11 — Controllo JWT per servizio (requisito futuro)
+### T21-11 — Controllo JWT per servizio
 
 Richiesto dall'owner il 7 novembre: [specifica e matrice di precedenza](tox21-service-auth-plan.md).
 Cinque flag indipendenti per inferenza, tre API RDKit e PubChemPy, ciascuno con
-valori `allow`, `deny-withouth-access-token`, `disabled`. I primi due prevalgono
+valori `allow`, `require-jwt`, `disabled`. I primi due prevalgono
 sempre sul globale; `disabled`, anche come default del flag omesso, eredita il
 globale. Il secondo stato richiede un JWT effettivamente valido, non soltanto
 presente. Nessun servizio viene disattivato dal valore `disabled`.
 
-**Non implementare durante T21-10:** il controllo granulare resta un incarico successivo da autorizzare. Nessuna nuova policy auth, key rotation o modifica dei
-payload viene introdotta per anticipare T21-11. I formati di configurazione e
-gli input non riconosciuti saranno fissati prima del codice del task futuro.
+**Implementazione autorizzata dopo T21-10:** cinque variabili d'ambiente,
+validazione Pydantic rigorosa e default `disabled` solo se omesse. Override
+risolti prima della lettura del PEM, policy condivisa da schema e verifica JWT,
+test della matrice completa e smoke NATS isolato: [verbale](tox21-service-auth-qa.md).
+Nessuna key rotation, nuovo flag globale, ruolo o modifica ai payload.
 
 | Decisione | Quando serve | Proposta da valutare |
 | --- | --- | --- |
@@ -253,6 +255,6 @@ integrati dall’owner nei rispettivi perimetri documentati. T21-08 ha verificat
 l’integrazione dei servizi scientifici dagli archivi, non l’intero flusso
 HTTP/browser o un deployment. T21-10 aggiunge la correttezza sintetica del
 training; una nuova valutazione scientifica resta separata e aperta. T21-11 è
-pianificato, senza implementazione implicita. Limiti Windows scientifici,
+implementato su branch dedicati con autorizzazione esplicita; integrazione all’owner. Limiti Windows scientifici,
 CronJob PostgreSQL, PubChem live, test layout intermittente, topologia e
 accettazione operativa rimangono espliciti nei rispettivi verbali.
