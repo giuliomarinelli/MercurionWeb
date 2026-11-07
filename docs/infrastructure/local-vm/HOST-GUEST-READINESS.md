@@ -52,12 +52,13 @@ con la prova negativa prima di dichiarare una whitelist esclusiva. Non applicare
 regole di chiusura senza review e percorso di recupero console.
 
 **Ancora dichiarato/non collaudato:** perimetro completo guest/container → host
-e altre origini verso SSH, oltre al singolo caso H-02 IPv4 verificato sotto;
+e altre origini verso SSH, oltre ai casi H-02/H-04 IPv4 verificati sotto;
 profilo pubblico/restrittivo
 Default Switch in Kaspersky. Security Center elenca prodotti registrati, non
 fornisce una dimostrazione della loro attività o della policy applicata.
-Il vincolo host↔guest non viene interpretato come divieto indistinto di Internet:
-egress dei container e destinazioni esterne rimangono da provare.
+Il vincolo host↔guest non viene interpretato come divieto indistinto di Internet.
+Lo smoke H-06 sotto verifica DNS/HTTPS IPv4 verso una sola destinazione pubblica;
+provider applicativi e IPv6 rimangono da collaudare.
 
 L'indirizzo guest è DHCP e la regola SSH usa l'indirizzo host corrente: il
 runbook di avvio a freddo dovrà verificarne la coerenza, senza presumere che il
@@ -107,7 +108,7 @@ un elenco `Get-NetNat` vuoto non descrive ogni meccanismo del Default Switch.
 | H-03 | Risposte guest a SSH iniziato dall'host funzionano | Connessione mantenuta durante la prova, senza allargare regole | SSH operatore riuscito; nessuna prova sotto modifica regole |
 | H-04 | Container bridge/egress non raggiunge host e LAN fuori policy | Probe sintetico con endpoint espliciti e controlli positivi; nessuna scansione indiscriminata | IPv4 verso host verificato su bridge predefinito e temporaneo; LAN/IPv6 aperti |
 | H-05 | Origine non autorizzata non raggiunge SSH né porte amministrative | Seconda origine controllata, servizi effettivamente attivi; coprire IPv4/IPv6 | Non eseguita |
-| H-06 | Egress necessario funziona senza riaprire host/LAN | DNS e destinazione HTTPS di test autorizzata, guest/container distinti | Smoke IPv4 verso docs.python.org preparato e verificato localmente; esecuzione VM aperta |
+| H-06 | Egress necessario funziona senza riaprire host/LAN | DNS e destinazione HTTPS di test autorizzata, guest/container distinti | Smoke IPv4 verso docs.python.org verificato su guest e due bridge; provider applicativi/IPv6 aperti |
 | H-07 | Root filesystem ricondotto al volume cifrato dichiarato | Mount root e albero block device; nessun dump/header o materiale LUKS | Verificato nel report guest v2; prova di sblocco/restart separata |
 
 Un timeout verso una porta chiusa **non** valida H-02/H-04/H-05. Correlare
@@ -164,6 +165,26 @@ SHA-256 del risultato host:
 `3ffeb94e792b387985184233600166bb7a6c085ad86033753cd28f30eeadc554`.
 Il risultato vale per i due percorsi TCP IPv4 verso l'host provati, non per
 LAN, IPv6, future reti Compose o isolamento complessivo.
+
+### H-06 IPv4 — prova reale DNS/HTTPS del 7 novembre
+
+Run `9449b2cd6e8647229c0646bf1890eb18`, 18:54:45–18:54:47 UTC. Risoluzione
+DNS pubblica IPv4 e risposta HTTP 200 a `HEAD https://docs.python.org/3/` da
+processo guest, container sul bridge predefinito e container sul bridge temporaneo.
+TLS 1.3 su tutte le origini, con verifica CA/hostname prevista dal probe;
+nessun redirect seguito, corpo scaricato o credenziale applicativa utilizzata.
+Immagine già importata riutilizzata con identità verificata. Nessun errore di
+pulizia nel report guest; nessun listener o porta pubblicata per questa prova.
+
+Report acquisito dal wrapper e verificato localmente per runId, tre origini,
+target/metodo/famiglia, tempi coerenti, risultati DNS, HTTP/TLS e pulizia riportata.
+Evidenze locali sotto
+`C:/Users/giuli/.codex/artifacts/inf-vm-02/h06-ipv4-9449b2cd6e8647229c0646bf1890eb18/`:
+`egress-probe.json`, script trasferito e `review.json`. SHA-256 del report:
+`2e8a833635d63cf29f062eedfd4d515413edd892d29d3ee93400bb8264c9c799`.
+L'esito dimostra questo smoke DNS/HTTPS IPv4, non l'accesso a tutti i provider
+o il blocco completo host/LAN. Le evidenze negative H-02/H-04 restano distinte;
+nessuna regola è stata allargata per ottenere il risultato.
 
 **Gate verso INF-VM-03:** review della policy host/guest e prove pertinenti
 documentate; nessuna dichiarazione di isolamento basata solo sulla sintassi.

@@ -172,7 +172,9 @@ i prerequisiti locali, senza SSH o affermazioni sul guest.
 passati; probe HTTPS reale con HTTP 200 da Windows e dai due bridge Docker Desktop,
 pulizia locale riuscita. Wrapper completo eseguito in Windows PowerShell 5.1 con
 SCP/SSH simulati, prefisso PTY e codici di uscita zero/non zero: trascrizione e
-report conservati in entrambi i casi. Esecuzione Ubuntu ancora da acquisire.
+report conservati in entrambi i casi. Esecuzione Ubuntu acquisita alle 18:54 UTC
+del 7 novembre: HTTP 200 e TLS 1.3 su tutte e tre le origini, pulizia senza
+errori riportati. [Run, hash e limiti](HOST-GUEST-READINESS.md).
 
 Questo smoke non certifica tutti i provider applicativi, DNS su ogni protocollo,
 IPv6 o l'isolamento host/LAN. Il risultato non allarga la policy e conserva

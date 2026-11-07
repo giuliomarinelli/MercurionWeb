@@ -12,6 +12,8 @@ Default Switch, root su LUKS/dm-crypt/LVM, backend firewall Docker iptables e
 due ACL estese e sei deny outbound semplici acquisiti. Caso guest → host TCP
 IPv4 non raggiungibile con canary attivo e controlli positivi verificati;
 H-04 TCP IPv4 verso Windows verificato anche da container su due bridge guest.
+H-06 DNS/HTTPS IPv4 verso docs.python.org verificato da guest e due bridge:
+HTTP 200, TLS 1.3 e nessun errore di pulizia riportato.
 Restano IPv6 attivo, LAN, altre origini e policy Kaspersky specifica.
 L'accesso Hyper-V
 dell'agente è negato; l'accesso guest avviene tramite l'operatore, senza fornire

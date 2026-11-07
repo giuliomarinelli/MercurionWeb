@@ -40,6 +40,8 @@
   con canary in ascolto e controlli positivi prima/dopo: percorso provato non
   raggiungibile. H-04 eseguito verso Windows TCP IPv4 da due bridge guest,
   con controlli container e host positivi. Restano LAN, altre origini e IPv6.
+  H-06 verifica inoltre DNS/HTTPS IPv4 verso docs.python.org da guest e due
+  bridge, HTTP 200/TLS 1.3; non equivale alla verifica di tutti i provider.
 
 - `docs/meilisearch-log-indices.md` registra unit/smoke per routing log in un Meilisearch effimero.
 - `docs/infrastructure/tox21-integrated-acceptance-qa.md` registra integrazione reale delle classi Nest scientifiche e Tox21 via NATS, ma non bootstrap completo/HTTP/browser/deployment VM.

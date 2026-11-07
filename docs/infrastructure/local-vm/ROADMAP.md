@@ -20,7 +20,9 @@ operatore. Non reinstallare né sostituire switch/regole per ricreare la baselin
 [Evidenze e gate aperti](HOST-GUEST-READINESS.md): root LUKS, risorse guest e
 backend firewall e ACL acquisiti; H-02 TCP IPv4 verificato con controllo positivo.
 H-04 IPv4 verso Windows verificato da due bridge guest con controlli positivi.
-Rimangono prove IPv6, LAN/egress e altre origini. INF-VM-02 non è dichiarato concluso.
+H-06 smoke DNS/HTTPS IPv4 verso docs.python.org verificato su guest e due bridge.
+Rimangono prove IPv6, LAN e altre origini; lo smoke non copre tutti i provider
+applicativi. INF-VM-02 non è dichiarato concluso.
 
 **Dipende da:** INF-VM-01.  
 Preparare Docker Engine e plugin Compose su Ubuntu, amministrazione SSH a chiave, policy host↔guest, firewall e regole IPv4/IPv6. Non introdurre bridge fisici della LAN. Definire test negativi dalla VM e dai container verso Windows/LAN e protezione della porta SSH.

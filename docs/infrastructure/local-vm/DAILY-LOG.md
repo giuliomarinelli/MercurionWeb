@@ -199,3 +199,17 @@ da non confondere con Ubuntu. Wrapper intero verificato in Windows PowerShell
 5.1 con trasporto simulato, prefisso PTY e codici nativi zero/non zero; report
 salvato anche in caso di errore. Fixture locale `test_h06_wrapper.ps1`.
 Nessuna nuova prova VM ancora acquisita. [Procedura](NETWORK-PROBES.md).
+
+### H-06 IPv4 acquisito sulla VM — 18:54 UTC
+
+Esecuzione operatore completata, run `9449b2cd6e8647229c0646bf1890eb18`.
+Il wrapper ha salvato correttamente il payload. Verificati report e tre origini:
+processo guest, bridge Docker predefinito e bridge temporaneo; risoluzione IPv4
+pubblica, HTTP 200 e TLS 1.3 per ciascuna, nessun errore di pulizia riportato.
+Identità immagine e intervalli temporali coerenti. Nessun trasferimento immagine,
+pull, listener o modifica firewall. [Evidenze e SHA-256](HOST-GUEST-READINESS.md).
+
+H-06 smoke verso la destinazione scelta è verificato; non certifica tutti i
+provider applicativi né IPv6. Restano per INF-VM-02 prove LAN, IPv6 e altre
+origini amministrative. Nessun nuovo comando richiesto all'owner per validare
+questo risultato; nessuna accettazione globale, merge o deployment.
