@@ -11,7 +11,8 @@ pubblicata nello snapshot. Seconda raccolta operatore: 8 vCPU/16 GiB RAM fissa,
 Default Switch, root su LUKS/dm-crypt/LVM, backend firewall Docker iptables e
 due ACL estese e sei deny outbound semplici acquisiti. Caso guest → host TCP
 IPv4 non raggiungibile con canary attivo e controlli positivi verificati;
-restano IPv6 attivo, container/LAN, altre origini e policy Kaspersky specifica.
+H-04 TCP IPv4 verso Windows verificato anche da container su due bridge guest.
+Restano IPv6 attivo, LAN, altre origini e policy Kaspersky specifica.
 L'accesso Hyper-V
 dell'agente è negato; l'accesso guest avviene tramite l'operatore, senza fornire
 passphrase alla chat. [Baseline aggiornata e limiti](HOST-GUEST-READINESS.md).

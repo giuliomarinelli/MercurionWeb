@@ -105,7 +105,7 @@ un elenco `Get-NetNat` vuoto non descrive ogni meccanismo del Default Switch.
 | H-01 | Accesso host → SSH guest con chiave; autenticazioni vietate respinte | Host key già nota; policy server e contesto connessione | Login riuscito; raccolta policy globale acquisita |
 | H-02 | Guest non inizia nuove connessioni al Windows host | Endpoint canary in ascolto sull'interfaccia di test, raggiungibile dal controllo locale host prima/dopo | Caso TCP IPv4 verificato; altre famiglie/destinazioni non dedotte |
 | H-03 | Risposte guest a SSH iniziato dall'host funzionano | Connessione mantenuta durante la prova, senza allargare regole | SSH operatore riuscito; nessuna prova sotto modifica regole |
-| H-04 | Container bridge/egress non raggiunge host e LAN fuori policy | Probe sintetico con endpoint espliciti e controlli positivi; nessuna scansione indiscriminata | Strumento IPv4 verso host preparato e verificato localmente; esecuzione guest aperta, LAN/IPv6 separati |
+| H-04 | Container bridge/egress non raggiunge host e LAN fuori policy | Probe sintetico con endpoint espliciti e controlli positivi; nessuna scansione indiscriminata | IPv4 verso host verificato su bridge predefinito e temporaneo; LAN/IPv6 aperti |
 | H-05 | Origine non autorizzata non raggiunge SSH né porte amministrative | Seconda origine controllata, servizi effettivamente attivi; coprire IPv4/IPv6 | Non eseguita |
 | H-06 | Egress necessario funziona senza riaprire host/LAN | DNS e destinazione HTTPS di test autorizzata, guest/container distinti | Non eseguita |
 | H-07 | Root filesystem ricondotto al volume cifrato dichiarato | Mount root e albero block device; nessun dump/header o materiale LUKS | Verificato nel report guest v2; prova di sblocco/restart separata |
@@ -137,6 +137,33 @@ non è contato come prova negativa. La successiva esecuzione usa il wrapper
 PowerShell, che tiene distinti SCP e SSH e salva il risultato automaticamente.
 Il caso dimostra il blocco del percorso TCP IPv4 provato; non identifica da
 solo il livello che ha filtrato né sostituisce H-04, H-05 o una prova IPv6.
+
+### H-04 IPv4 — prova reale container del 7 novembre
+
+Run `278ac618aa3a4cccba67d4a2ab54300e`, Docker guest Linux amd64:
+bridge predefinito e bridge temporaneo ordinario con egress. Tentativi TCP verso
+il canary Windows alle 18:28:54–18:28:58 UTC e 18:28:59–18:29:02 UTC, entrambi
+in timeout. Per ogni caso controlli container → container positivi prima/dopo;
+33 controlli host tutti positivi, compresi quelli che precedono e seguono
+ciascun tentativo. Identificatore/IP/porta e hash archivio correlati ai file
+di configurazione. Nessun errore di rimozione container/rete nel report guest.
+Listener host chiuso alle 18:29:03 UTC, assenza di ascolto verificata.
+
+Il runner guest ha completato la prova, ma il wrapper Windows non riconosceva
+il marcatore preceduto da testo PTY sulla stessa riga. JSON recuperato dalla
+trascrizione già salvata, senza ripetere il test o aprire SSH. Il parser ora
+estrae il solo payload, richiede un marcatore univoco e verifica il runId.
+Il testo precedente al marcatore non fa parte del report normalizzato.
+
+Evidenze locali sotto
+`C:/Users/giuli/.codex/artifacts/inf-vm-02/h04-ipv4-278ac618aa3a4cccba67d4a2ab54300e/`:
+`container-probe.json`, `host/result.json`, configurazione e `review.json`.
+SHA-256 del report guest normalizzato:
+`d82d89f204f640570a53e02676476f9047a165b8aa79cb58896cd44381beb642`.
+SHA-256 del risultato host:
+`3ffeb94e792b387985184233600166bb7a6c085ad86033753cd28f30eeadc554`.
+Il risultato vale per i due percorsi TCP IPv4 verso l'host provati, non per
+LAN, IPv6, future reti Compose o isolamento complessivo.
 
 **Gate verso INF-VM-03:** review della policy host/guest e prove pertinenti
 documentate; nessuna dichiarazione di isolamento basata solo sulla sintassi.

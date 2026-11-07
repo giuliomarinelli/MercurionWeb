@@ -8,7 +8,7 @@
 | A-02 | Reti | DNS, collegamenti web/data/bus/search ammessi su stesso ambiente | Non eseguito |
 | A-03 | Reti negativa | preview non raggiunge PostgreSQL, Redis o NATS production e viceversa | Non eseguito |
 | A-04 | Reti negativa | non sono raggiungibili da LAN/Internet Redis, NATS, Postgres, Meilisearch, UI | Non eseguito |
-| A-05 | Host | container con egress non raggiungono Windows/LAN secondo policy, IPv4 e IPv6 | Non eseguito |
+| A-05 | Host | container con egress non raggiungono Windows/LAN secondo policy, IPv4 e IPv6 | Parziale: due bridge guest → Windows TCP IPv4 verificati; LAN/IPv6 aperti |
 | A-06 | Ingresso | cloudflared esce verso Cloudflare, Nginx edge HTTP, due hostname corretti | Non eseguito |
 | A-07 | Web | SPA Angular, Ketcher, REST, GraphQL e Socket.IO passano via Nginx edge | Non eseguito |
 | A-08 | HTTP | header proxy/client IP e cookie/sessione corretti con la catena Cloudflare Tunnel | Non eseguito |
@@ -38,7 +38,8 @@
   dall'operatore. Nessuna porta Docker pubblicata nello snapshot; ciò non
   equivale al superamento di A-04/A-05. Eseguito H-02 TCP IPv4 guest → host
   con canary in ascolto e controlli positivi prima/dopo: percorso provato non
-  raggiungibile. Restano aperte le prove container, altre origini e IPv6.
+  raggiungibile. H-04 eseguito verso Windows TCP IPv4 da due bridge guest,
+  con controlli container e host positivi. Restano LAN, altre origini e IPv6.
 
 - `docs/meilisearch-log-indices.md` registra unit/smoke per routing log in un Meilisearch effimero.
 - `docs/infrastructure/tox21-integrated-acceptance-qa.md` registra integrazione reale delle classi Nest scientifiche e Tox21 via NATS, ma non bootstrap completo/HTTP/browser/deployment VM.

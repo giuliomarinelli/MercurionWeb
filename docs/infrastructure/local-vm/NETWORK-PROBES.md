@@ -1,7 +1,7 @@
 # INF-VM-02 — Probe TCP controllate
 
-**Stato:** H-02 TCP IPv4 eseguito sulla VM; H-04 preparato e verificato come
-strumento locale, ancora da eseguire sulla VM.
+**Stato:** H-02 e H-04 TCP IPv4 verso Windows eseguiti sulla VM; LAN, IPv6 e
+altre origini restano aperti. Evidenze nella readiness.
 La review ACL e la matrice sono in [HOST-GUEST-READINESS.md](HOST-GUEST-READINESS.md).
 
 ## Scopo e limiti
@@ -123,6 +123,14 @@ serve a verificare lo strumento e la pulizia, non costituisce evidenza H-04 VM.
 
 Riferimento per identità immagine, reti e vincoli dei container:
 [Docker run](https://docs.docker.com/engine/containers/run/).
+
+Il parser Windows tollera testo PTY prima del marcatore sulla stessa riga,
+estraendo soltanto il JSON. Marcatori duplicati, JSON invalido e runId diverso
+sono errori. Regression test eseguibile senza SSH o Docker:
+
+```powershell
+powershell -NoProfile -File scripts/infrastructure/Test-ContainerCanaryReport.ps1
+```
 
 ## Verifica dello strumento
 

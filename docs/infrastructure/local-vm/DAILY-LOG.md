@@ -164,3 +164,20 @@ chiusura con controllo positivo finale. Fixture locale `test_h04_wrapper.ps1`;
 questo non è un test della VM. Il listener del tentativo reale
 `h04-ipv4-0b1fa3c004c5448c8ad33a56ba2376d2` risulta chiuso normalmente nel
 report host; nessun risultato guest acquisito, H-04 resta non verificato.
+
+### H-04 IPv4 completato sulla VM, report recuperato senza riesecuzione
+
+Run operatore `278ac618aa3a4cccba67d4a2ab54300e`, 18:28–18:29 UTC: runner
+guest completato su bridge predefinito e bridge temporaneo. Entrambi i probe
+Windows in timeout, controlli tra container positivi prima/dopo e 33 controlli
+host positivi. Hash archivio e identità immagine confermati; nessun errore di
+pulizia guest riportato. Listener Windows chiuso e assenza di ascolto verificata.
+
+Corretto un secondo difetto del wrapper: assumeva il marcatore all'inizio della
+riga, ma il PTY aveva anteposto testo. Recuperato il solo JSON dalla trascrizione
+esistente senza nuova esecuzione guest. Nuovo parser con marcatore univoco,
+runId e validazione JSON; test PowerShell 5.1 con tre varianti valide e quattro
+casi invalidi. Wrapper completo provato con prefisso PTY sintetico, trasporti
+simulati e listener reale. Nessun testo estraneo al payload inserito nei report
+normalizzati o in Git. [Hash, evidenze e limiti](HOST-GUEST-READINESS.md).
+INF-VM-02 resta aperto per LAN, IPv6, altre origini ed egress.

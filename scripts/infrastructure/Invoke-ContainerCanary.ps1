@@ -3,6 +3,7 @@
 [CmdletBinding()]
 param([switch]$ValidateOnly)
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'Read-ContainerCanaryReport.ps1')
 $taskImage = 'sha256:65bd3d9f1d7fa268dd1909973ba7eb4bdf41f6dcf2cfbe76ba9528b170f3fd79'
 $taskPython = (Get-Command python.exe -CommandType Application | Select-Object -First 1).Source
 $taskDocker = (Get-Command docker.exe -CommandType Application | Select-Object -First 1).Source
@@ -66,10 +67,7 @@ try {
         Tee-Object -FilePath (Join-Path $taskRun 'guest-terminal.txt') |
         Tee-Object -Variable taskLines
     $taskSshExit = $LASTEXITCODE
-    $taskResultLines = @($taskLines | Where-Object { $_ -match '^INF_VM_02_H04_RESULT ' })
-    if ($taskResultLines.Count -ne 1) { throw 'Report guest assente o ambiguo; vedere guest-terminal.txt.' }
-    $taskReport = ($taskResultLines[0] -replace '^INF_VM_02_H04_RESULT ', '') | ConvertFrom-Json
-    if ($taskReport.runId -ne $taskId) { throw 'Report non appartenente alla prova corrente.' }
+    $taskReport = Read-ContainerCanaryReport -Lines $taskLines -RunId $taskId
     $taskReport | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath (Join-Path $taskRun 'container-probe.json') -Encoding UTF8
     if ($taskSshExit -ne 0) { throw 'Prova guest da revisionare; report conservato, nessun isolamento dichiarato.' }
     Write-Output ('Report salvato in ' + $taskRun + '; da correlare con i controlli host.')
