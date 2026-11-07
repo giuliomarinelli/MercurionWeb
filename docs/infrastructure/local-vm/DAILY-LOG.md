@@ -181,3 +181,21 @@ casi invalidi. Wrapper completo provato con prefisso PTY sintetico, trasporti
 simulati e listener reale. Nessun testo estraneo al payload inserito nei report
 normalizzati o in Git. [Hash, evidenze e limiti](HOST-GUEST-READINESS.md).
 INF-VM-02 resta aperto per LAN, IPv6, altre origini ed egress.
+
+### Preparazione H-06 — DNS/HTTPS IPv4
+
+Prossimo caso eseguibile con le risorse già presenti: guest e due bridge verso
+`https://docs.python.org/3/`, richiesta HEAD senza credenziali, redirect o corpo
+scaricato, verifica CA/hostname TLS e risoluzione IPv4 pubblica. Immagine H-04
+riutilizzata dalla cache guest; nessun pull, trasferimento archivio o cambio
+firewall. H-05 e LAN richiedono un altro punto di prova controllato; IPv6 resta
+aperto, senza modificare rete o policy per creare una prova artificiale.
+
+Quattro unittest passati: DNS privato non contattato, certificato invalido non
+accettato, target inatteso respinto e pulizia dopo errore client. Verifica reale
+dello strumento con HTTP 200 da Windows e dai due bridge Docker Desktop;
+container e bridge temporaneo rimossi. Evidenza locale `h06-tool-validation.json`,
+da non confondere con Ubuntu. Wrapper intero verificato in Windows PowerShell
+5.1 con trasporto simulato, prefisso PTY e codici nativi zero/non zero; report
+salvato anche in caso di errore. Fixture locale `test_h06_wrapper.ps1`.
+Nessuna nuova prova VM ancora acquisita. [Procedura](NETWORK-PROBES.md).

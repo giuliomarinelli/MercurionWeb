@@ -20,4 +20,6 @@ foreach ($testLines in @(
     catch { $testRejected = $true }
     if (-not $testRejected) { throw 'Invalid or ambiguous report accepted' }
 }
-Write-Output 'Report parser OK: 3 valid PTY cases, 4 invalid cases rejected.'
+$testH06 = Read-ContainerCanaryReport -Lines @('synthetic-prompt>INF_VM_02_H06_RESULT ' + $testPayload) -RunId $testId -Marker 'INF_VM_02_H06_RESULT '
+if ($testH06.runId -ne $testId) { throw 'H-06 payload lost' }
+Write-Output 'Report parser OK: 4 valid PTY cases, 4 invalid cases rejected.'

@@ -132,7 +132,62 @@ sono errori. Regression test eseguibile senza SSH o Docker:
 powershell -NoProfile -File scripts/infrastructure/Test-ContainerCanaryReport.ps1
 ```
 
-## Verifica dello strumento
+## H-06 IPv4: DNS e HTTPS in uscita
+
+Entrypoint unico dalla root, in PowerShell normale:
+
+```powershell
+powershell -NoProfile -File scripts/infrastructure/Invoke-EgressProbe.ps1
+```
+
+Richiede l'immagine Python già importata da H-04: il runner ne verifica identità,
+architettura e piattaforma Docker. Non trasferisce immagini, non esegue pull o
+installazioni. Il wrapper copia soltanto `probe_egress.py`, poi invoca il runner
+Ubuntu via SSH/sudo interattivi. Nessun listener Windows o porta Docker pubblicata.
+
+Tre origini: processo guest, container su bridge predefinito, container su bridge
+temporaneo con egress. Per ciascuna viene risolto `docs.python.org` in IPv4 e
+inviata una sola richiesta `HEAD https://docs.python.org/3/`. Certificato TLS,
+catena CA e hostname sono verificati; la connessione usa uno degli IP pubblici
+appena risolti, con SNI coerente. Nessun proxy d'ambiente, token, cookie o corpo
+applicativo; nessun redirect seguito o corpo della risposta letto. Risoluzioni
+verso indirizzi non globali interrompono il tentativo. Budget del processo client
+30 secondi, timeout socket 8 secondi. HTTP 2xx/3xx è un esito positivo di questo
+smoke; altri status ed errori DNS/TLS richiedono review.
+
+I container mantengono UID non root, capability rimosse, filesystem in lettura
+e limiti CPU/memoria/PID. Il runner rimuove soltanto container e bridge creati,
+usando i loro ID. Errori di pulizia invalidano il risultato. Nessun cambiamento
+a firewall, ACL, switch o configurazione dei resolver; la rete temporanea usa
+le normali operazioni Docker. Interruzioni brusche richiedono review delle risorse
+con label del run prima di ripetere.
+
+Report Windows: `.codex/artifacts/inf-vm-02/h06-ipv4-<runId>/egress-probe.json`
+e `guest-terminal.txt`. Il payload normalizzato rimane disponibile anche se il
+runner restituisce un errore; lo stesso marcatore robusto PTY introdotto per H-04
+è riusato con un identificatore H-06 distinto. `-ValidateOnly` controlla soltanto
+i prerequisiti locali, senza SSH o affermazioni sul guest.
+
+**Verifica strumento, non accettazione VM:** quattro unittest dei casi di errore
+passati; probe HTTPS reale con HTTP 200 da Windows e dai due bridge Docker Desktop,
+pulizia locale riuscita. Wrapper completo eseguito in Windows PowerShell 5.1 con
+SCP/SSH simulati, prefisso PTY e codici di uscita zero/non zero: trascrizione e
+report conservati in entrambi i casi. Esecuzione Ubuntu ancora da acquisire.
+
+Questo smoke non certifica tutti i provider applicativi, DNS su ogni protocollo,
+IPv6 o l'isolamento host/LAN. Il risultato non allarga la policy e conserva
+`isolationAccepted=false`. H-02/H-04 restano le evidenze separate dei percorsi
+negativi già provati; il blocco delle nuove connessioni a host/LAN non viene
+dedotto dalla riuscita di HTTPS.
+
+```powershell
+python -B scripts/infrastructure/test_egress_probe.py
+```
+
+Fonti: [Python HTTPSConnection](https://docs.python.org/3/library/http.client.html#http.client.HTTPSConnection),
+[Python TLS client e verifica hostname](https://docs.python.org/3/library/ssl.html#socket-creation).
+
+## Verifica del canary TCP
 
 ```powershell
 python -B scripts/infrastructure/test_network_canary.py

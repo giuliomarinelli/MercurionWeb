@@ -1,9 +1,10 @@
 #Requires -Version 5.1
 function Read-ContainerCanaryReport {
     [CmdletBinding()]
-    param([string[]]$Lines, [Parameter(Mandatory = $true)][string]$RunId)
+    param([string[]]$Lines, [Parameter(Mandatory = $true)][string]$RunId,
+        [string]$Marker = 'INF_VM_02_H04_RESULT ')
     $taskText = $Lines -join "`n"
-    $taskMarker = 'INF_VM_02_H04_RESULT '
+    $taskMarker = $Marker
     $taskMatches = [regex]::Matches($taskText, [regex]::Escape($taskMarker))
     if ($taskMatches.Count -ne 1) {
         throw 'Report guest assente o ambiguo; vedere guest-terminal.txt.'
