@@ -68,6 +68,56 @@ ACL, Kaspersky o guest firewall senza ulteriore evidenza del livello interessato
 H-05 richiede una seconda origine controllata e non è coperto dal solo test
 guest → host.
 
+## H-02 IPv6 link-local: guest → host Windows
+
+Entrypoint unico dalla root, PowerShell normale:
+
+```powershell
+powershell -NoProfile -File scripts/infrastructure/Invoke-GuestIpv6Canary.ps1
+```
+
+Usa soltanto il link-local IPv6 preferito dell'adattatore Default Switch,
+verificato in modo univoco. Il canary riutilizza i controlli positivi periodici
+e finali dello strumento TCP, con finestra massima di 600 secondi. Trasferisce
+probe, canary e configurazione, poi esegue Python guest via SSH, **senza sudo,
+Docker, download o modifiche a rete/firewall**. Listener limitato a quell'indirizzo,
+chiuso dal wrapper anche in caso di errore.
+
+Lo scope Windows serve solo al bind host. Alla VM viene passato l'indirizzo
+senza `%indice`: il probe seleziona l'interfaccia dell'unica route IPv4 default,
+ne verifica stato UP e presenza di link-local IPv6 utilizzabile, legge la route
+IPv6 verso il canary con `ip -j -6 route get ... oif ...` e applica lo scope
+guest al socket. Interfacce ambigue, indirizzi mancanti/tentative, finestra
+scaduta o route non valida impediscono il tentativo. Non viene creata una route
+IPv6 per rendere artificialmente eseguibile il test.
+
+Il report distingue la non raggiungibilità TCP osservata dagli errori di
+percorso: assenza di route, rete non raggiungibile e servizi raggiungibili
+richiedono review, non un esito di isolamento passato. Anche un timeout valido
+va correlato con i controlli host prima/dopo, stesso IP privo di scope, porta,
+nonce e finestra temporale. Non attribuisce il blocco a uno specifico firewall
+o ACL, né lo estende a IPv6 globale, container o LAN.
+
+Evidenze Windows in `.codex/artifacts/inf-vm-02/h02-ipv6-<runId>/`: report guest
+`guest-ipv6-probe.json`, trascrizione e controlli nella directory `host`.
+Il risultato è salvato prima di gestire un exit code guest non zero;
+`isolationAccepted=false` resta sempre esplicito.
+
+Verifica locale: canary realmente attivo sull'IPv6 del Default Switch,
+controlli positivi e chiusura riusciti. Wrapper completo Windows PowerShell 5.1
+provato con canary reale e trasporti simulati: prefisso PTY, exit code zero/non
+zero, report conservati e listener chiuso. Cinque unittest coprono selezione
+dello scope, input/route mancanti o ambigui, configurazione scaduta e risultati
+da revisionare. Questo non verifica i comandi `ip` o il percorso sulla VM:
+l'esecuzione Ubuntu resta aperta.
+
+```powershell
+python -B scripts/infrastructure/test_guest_ipv6_probe.py
+```
+
+Riferimenti: [scope IPv6 nei socket Python](https://docs.python.org/3/library/socket.html#socket-families),
+[lettura della route e interfaccia di uscita](https://man7.org/linux/man-pages/man8/ip-route.8.html).
+
 ## H-04 IPv4: container Docker guest → host Windows
 
 Entrypoint unico dalla root, in PowerShell normale:

@@ -104,7 +104,7 @@ un elenco `Get-NetNat` vuoto non descrive ogni meccanismo del Default Switch.
 | ID | Prova | Controllo necessario | Stato |
 | --- | --- | --- | --- |
 | H-01 | Accesso host → SSH guest con chiave; autenticazioni vietate respinte | Host key già nota; policy server e contesto connessione | Login riuscito; raccolta policy globale acquisita |
-| H-02 | Guest non inizia nuove connessioni al Windows host | Endpoint canary in ascolto sull'interfaccia di test, raggiungibile dal controllo locale host prima/dopo | Caso TCP IPv4 verificato; altre famiglie/destinazioni non dedotte |
+| H-02 | Guest non inizia nuove connessioni al Windows host | Endpoint canary in ascolto sull'interfaccia di test, raggiungibile dal controllo locale host prima/dopo | TCP IPv4 verificato; probe IPv6 link-local preparato, esecuzione guest aperta |
 | H-03 | Risposte guest a SSH iniziato dall'host funzionano | Connessione mantenuta durante la prova, senza allargare regole | SSH operatore riuscito; nessuna prova sotto modifica regole |
 | H-04 | Container bridge/egress non raggiunge host e LAN fuori policy | Probe sintetico con endpoint espliciti e controlli positivi; nessuna scansione indiscriminata | IPv4 verso host verificato su bridge predefinito e temporaneo; LAN/IPv6 aperti |
 | H-05 | Origine non autorizzata non raggiunge SSH né porte amministrative | Seconda origine controllata, servizi effettivamente attivi; coprire IPv4/IPv6 | Non eseguita |

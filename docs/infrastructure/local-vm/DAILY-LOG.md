@@ -213,3 +213,19 @@ H-06 smoke verso la destinazione scelta è verificato; non certifica tutti i
 provider applicativi né IPv6. Restano per INF-VM-02 prove LAN, IPv6 e altre
 origini amministrative. Nessun nuovo comando richiesto all'owner per validare
 questo risultato; nessuna accettazione globale, merge o deployment.
+
+### Preparazione H-02 IPv6 link-local
+
+Verificata la disponibilità di un link-local IPv6 preferito sul Default Switch
+Windows. Canary host reale riuscito con controlli locali positivi e chiusura;
+evidenza locale `h02-ipv6-host-preflight-20261107`. Preparato ingresso unico
+`Invoke-GuestIpv6Canary.ps1`, senza sudo o Docker. Lo scope guest è rilevato
+tramite interfaccia uplink e route IPv6, senza riciclare l'indice Windows o
+modificare la rete. Assenza di indirizzo/route e errori di percorso non sono
+promossi a prove negative passate.
+
+Cinque unittest passati. Wrapper completo verificato in Windows PowerShell 5.1
+con listener IPv6 reale sul Default Switch, SSH/SCP simulati, prefisso PTY e
+codici nativi zero/non zero; entrambi i report conservati e listener chiusi.
+Fixture locale `test_h02_ipv6_wrapper.ps1`. Nessuna esecuzione guest ancora
+acquisita; nessuna verifica IPv6 container/globale o LAN dichiarata.
