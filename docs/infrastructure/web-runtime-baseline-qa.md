@@ -39,6 +39,22 @@ perché compare anche fra le devDependencies. Restano i controlli su asset,
 contratti e sorgenti/mappe non ammessi. Inventario ed exporter rifiutano inoltre
 la presenza dei package manager globali, compresi eventuali link interrotti.
 
+L'audit ha individuato anche `jose` mancante nell'immagine precedente: npm lo
+installa nella `node_modules` locale al workspace Nest, esclusa dalle vecchie
+copie. Ora i tre target sovrappongono quell'albero a quello root; production
+usa esclusivamente il ramo installato con `--omit=dev`. `jose` viene anche
+caricato esplicitamente negli audit insieme ai cinque moduli già verificati.
+La nuova classificazione del lockfile distingue dipendenze root, locali al
+workspace e condivise con production: cinque test mirati coprono questi casi
+e il rifiuto di entry mancanti. Un audit sull'immagine precedente conferma
+il rifiuto per `jose` assente e package manager globali presenti.
+
+**Residuo preesistente:** l'installazione segnala `geoip-lite` 2.0.3 con engine
+Node >=24, mentre il progetto mantiene la major 22. Questo intervento non
+cambia il lockfile né chiude la discrepanza dichiarata dal pacchetto; test
+verdi non equivalgono al rispetto di quell'engine. Valutare separatamente
+l'allineamento del toolchain e della dipendenza.
+
 ## Validazione richiesta
 
 Build reali production da sorgente Git identificabile; audit delle immagini,

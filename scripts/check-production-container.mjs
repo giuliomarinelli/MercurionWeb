@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { devOnlyDependencies } from './lib/container-dev-dependencies.mjs';
 
 const args = new Map();
 for (let index = 2; index < process.argv.length; index += 1) {
@@ -44,13 +45,8 @@ if (!/^sha256:[0-9a-f]{64}$/.test(digest)) {
 }
 
 const packageManifest = JSON.parse(await readFile('MercurionWebNode/package.json', 'utf8'));
-const directDevDependencies = Object.keys(packageManifest.devDependencies ?? {});
 const lockfile = JSON.parse(await readFile('package-lock.json', 'utf8'));
-const devOnlyDependencies = directDevDependencies.filter(name => {
-  const entry = lockfile.packages[`node_modules/${name}`];
-  if (!entry) throw new Error(`Missing locked development dependency: ${name}`);
-  return entry.dev === true;
-});
+const forbiddenDevDependencies = devOnlyDependencies(packageManifest, lockfile.packages);
 const requiredRuntimeFiles = [
   'dist/src/main.js',
   'dist/src/schema.graphql',
@@ -61,14 +57,14 @@ const requiredRuntimeFiles = [
   'packages/rest-contracts/dist/index.js',
   'packages/socket-contracts/cjs/index.js',
 ];
-const requiredModules = ['argon2', 'fastify', 'graphql', 'pg', 'typeorm'];
+const requiredModules = ['argon2', 'fastify', 'graphql', 'pg', 'typeorm', 'jose'];
 
 const runtimeCheck = `
 const fs = require('node:fs');
 const path = require('node:path');
 const root = '/usr/src/app';
 const requiredFiles = ${JSON.stringify(requiredRuntimeFiles)};
-const devOnlyDependencies = ${JSON.stringify(devOnlyDependencies)};
+const devOnlyDependencies = ${JSON.stringify(forbiddenDevDependencies)};
 const productionDependencies = ${JSON.stringify(Object.keys(packageManifest.dependencies ?? {}))};
 const requiredModules = ${JSON.stringify(requiredModules)};
 const missing = requiredFiles.filter(file => !fs.existsSync(path.join(root, file)));

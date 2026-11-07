@@ -103,6 +103,7 @@ ENV APP_ENV=staging
 COPY --from=build-staging --chown=10001:10001 /workspace/MercurionWebNode/dist ./dist
 COPY --from=build-staging --chown=10001:10001 /workspace/MercurionWebNode/package.json ./package.json
 COPY --from=build-staging --chown=10001:10001 /workspace/node_modules ./node_modules
+COPY --from=build-staging --chown=10001:10001 /workspace/MercurionWebNode/node_modules ./node_modules
 COPY --from=build-staging --chown=10001:10001 /workspace/packages/rest-contracts ./packages/rest-contracts
 COPY --from=build-staging --chown=10001:10001 /workspace/packages/socket-contracts ./packages/socket-contracts
 COPY --from=build-staging --chown=10001:10001 /workspace/MercurionWebNode/assets-root ./assets-root
@@ -112,6 +113,7 @@ ENV APP_ENV=test
 COPY --from=build-test --chown=10001:10001 /workspace/MercurionWebNode/dist ./dist
 COPY --from=build-test --chown=10001:10001 /workspace/MercurionWebNode/package.json ./package.json
 COPY --from=build-test --chown=10001:10001 /workspace/node_modules ./node_modules
+COPY --from=build-test --chown=10001:10001 /workspace/MercurionWebNode/node_modules ./node_modules
 COPY --from=build-test --chown=10001:10001 /workspace/packages/rest-contracts ./packages/rest-contracts
 COPY --from=build-test --chown=10001:10001 /workspace/packages/socket-contracts ./packages/socket-contracts
 
@@ -120,6 +122,7 @@ ENV APP_ENV=production
 COPY --from=build-production --chown=10001:10001 /workspace/MercurionWebNode/dist ./dist
 COPY --from=build-production --chown=10001:10001 /workspace/MercurionWebNode/package.json ./package.json
 COPY --from=production-dependencies --chown=10001:10001 /workspace/node_modules ./node_modules
+COPY --from=production-dependencies --chown=10001:10001 /workspace/MercurionWebNode/node_modules ./node_modules
 COPY --from=build-production --chown=10001:10001 /workspace/packages/rest-contracts/dist ./packages/rest-contracts/dist
 COPY --from=build-production --chown=10001:10001 /workspace/packages/rest-contracts/package.json ./packages/rest-contracts/package.json
 COPY --from=build-production --chown=10001:10001 /workspace/packages/socket-contracts/cjs ./packages/socket-contracts/cjs

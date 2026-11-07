@@ -47,7 +47,7 @@ for(const file of ['dist/src/main.js','dist/src/schema.graphql','assets-root/og/
  'packages/rest-contracts/dist/index.js','packages/socket-contracts/cjs/index.js']){
  if(!fs.existsSync(file))throw Error('Missing runtime file: '+file);
 }
-for(const name of ['argon2','fastify','graphql','pg','typeorm'])require(name);
+for(const name of ['argon2','fastify','graphql','pg','typeorm','jose'])require(name);
 for(const name of ['typescript','jest','@angular/core','@nestjs/cli']){
  if(fs.existsSync('node_modules/'+name))throw Error('Development package retained: '+name);
 }
@@ -56,7 +56,7 @@ for(const file of ['/usr/local/lib/node_modules/npm','/usr/local/bin/npm','/usr/
  '/usr/local/bin/yarn','/usr/local/bin/yarnpkg',...fs.readdirSync('/opt').filter(name=>name.startsWith('yarn-')).map(name=>'/opt/'+name)]){
  if(fs.lstatSync(file,{throwIfNoEntry:false}))throw Error('Package manager retained: '+file);
 }
-console.log(JSON.stringify({identity,nativeModules:5,packageManagersAbsent:true,bootstrapStarted:false}));
+console.log(JSON.stringify({identity,requiredModules:6,packageManagersAbsent:true,bootstrapStarted:false}));
 '''
         result = json.loads(run(*restricted, '--entrypoint', 'node', image_id, '-e', code))
         if result['identity'] != {'revision': revision, 'version': version}:
