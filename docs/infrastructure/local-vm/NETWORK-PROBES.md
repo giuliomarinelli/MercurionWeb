@@ -1,7 +1,8 @@
 # INF-VM-02 — Probe TCP controllate
 
-**Stato:** H-02 e H-04 TCP IPv4 verso Windows eseguiti sulla VM; LAN, IPv6 e
-altre origini restano aperti. Evidenze nella readiness.
+**Stato:** H-02 TCP IPv4 e IPv6 link-local, H-04 TCP IPv4 verso Windows eseguiti
+sulla VM; LAN, IPv6 container/globale e altre origini restano aperti.
+Evidenze nella readiness.
 La review ACL e la matrice sono in [HOST-GUEST-READINESS.md](HOST-GUEST-READINESS.md).
 
 ## Scopo e limiti
@@ -109,7 +110,9 @@ provato con canary reale e trasporti simulati: prefisso PTY, exit code zero/non
 zero, report conservati e listener chiuso. Cinque unittest coprono selezione
 dello scope, input/route mancanti o ambigui, configurazione scaduta e risultati
 da revisionare. Questo non verifica i comandi `ip` o il percorso sulla VM:
-l'esecuzione Ubuntu resta aperta.
+l'esecuzione Ubuntu è stata poi acquisita alle 19:25 UTC del 7 novembre:
+route e scope validi, timeout TCP con nove controlli host positivi e listener
+chiuso. [Run, hash e limiti](HOST-GUEST-READINESS.md).
 
 ```powershell
 python -B scripts/infrastructure/test_guest_ipv6_probe.py

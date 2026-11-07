@@ -21,7 +21,8 @@ operatore. Non reinstallare né sostituire switch/regole per ricreare la baselin
 backend firewall e ACL acquisiti; H-02 TCP IPv4 verificato con controllo positivo.
 H-04 IPv4 verso Windows verificato da due bridge guest con controlli positivi.
 H-06 smoke DNS/HTTPS IPv4 verso docs.python.org verificato su guest e due bridge.
-Rimangono prove IPv6, LAN e altre origini; lo smoke non copre tutti i provider
+H-02 IPv6 link-local guest → host verificato con route e controlli positivi.
+Rimangono prove IPv6 container/globale, LAN e altre origini; lo smoke non copre tutti i provider
 applicativi. INF-VM-02 non è dichiarato concluso.
 
 **Dipende da:** INF-VM-01.  

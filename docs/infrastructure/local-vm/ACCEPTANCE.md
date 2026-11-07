@@ -39,7 +39,9 @@
   equivale al superamento di A-04/A-05. Eseguito H-02 TCP IPv4 guest → host
   con canary in ascolto e controlli positivi prima/dopo: percorso provato non
   raggiungibile. H-04 eseguito verso Windows TCP IPv4 da due bridge guest,
-  con controlli container e host positivi. Restano LAN, altre origini e IPv6.
+  con controlli container e host positivi. H-02 IPv6 link-local guest → Windows
+  verificato con route valida e controlli host prima/dopo; restano LAN, altre
+  origini e IPv6 container/globale.
   H-06 verifica inoltre DNS/HTTPS IPv4 verso docs.python.org da guest e due
   bridge, HTTP 200/TLS 1.3; non equivale alla verifica di tutti i provider.
 

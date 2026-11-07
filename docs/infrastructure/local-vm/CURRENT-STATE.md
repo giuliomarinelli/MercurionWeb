@@ -14,7 +14,9 @@ IPv4 non raggiungibile con canary attivo e controlli positivi verificati;
 H-04 TCP IPv4 verso Windows verificato anche da container su due bridge guest.
 H-06 DNS/HTTPS IPv4 verso docs.python.org verificato da guest e due bridge:
 HTTP 200, TLS 1.3 e nessun errore di pulizia riportato.
-Restano IPv6 attivo, LAN, altre origini e policy Kaspersky specifica.
+H-02 IPv6 link-local guest → canary Windows verificato con route/scope coerenti,
+timeout e controlli host positivi prima/dopo. Restano IPv6 container/globale,
+LAN, altre origini e policy Kaspersky specifica.
 L'accesso Hyper-V
 dell'agente è negato; l'accesso guest avviene tramite l'operatore, senza fornire
 passphrase alla chat. [Baseline aggiornata e limiti](HOST-GUEST-READINESS.md).

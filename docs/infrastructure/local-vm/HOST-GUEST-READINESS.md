@@ -104,7 +104,7 @@ un elenco `Get-NetNat` vuoto non descrive ogni meccanismo del Default Switch.
 | ID | Prova | Controllo necessario | Stato |
 | --- | --- | --- | --- |
 | H-01 | Accesso host → SSH guest con chiave; autenticazioni vietate respinte | Host key già nota; policy server e contesto connessione | Login riuscito; raccolta policy globale acquisita |
-| H-02 | Guest non inizia nuove connessioni al Windows host | Endpoint canary in ascolto sull'interfaccia di test, raggiungibile dal controllo locale host prima/dopo | TCP IPv4 verificato; probe IPv6 link-local preparato, esecuzione guest aperta |
+| H-02 | Guest non inizia nuove connessioni al Windows host | Endpoint canary in ascolto sull'interfaccia di test, raggiungibile dal controllo locale host prima/dopo | Percorsi TCP IPv4 e IPv6 link-local verso il canary host verificati; altre destinazioni non dedotte |
 | H-03 | Risposte guest a SSH iniziato dall'host funzionano | Connessione mantenuta durante la prova, senza allargare regole | SSH operatore riuscito; nessuna prova sotto modifica regole |
 | H-04 | Container bridge/egress non raggiunge host e LAN fuori policy | Probe sintetico con endpoint espliciti e controlli positivi; nessuna scansione indiscriminata | IPv4 verso host verificato su bridge predefinito e temporaneo; LAN/IPv6 aperti |
 | H-05 | Origine non autorizzata non raggiunge SSH né porte amministrative | Seconda origine controllata, servizi effettivamente attivi; coprire IPv4/IPv6 | Non eseguita |
@@ -138,6 +138,27 @@ non è contato come prova negativa. La successiva esecuzione usa il wrapper
 PowerShell, che tiene distinti SCP e SSH e salva il risultato automaticamente.
 Il caso dimostra il blocco del percorso TCP IPv4 provato; non identifica da
 solo il livello che ha filtrato né sostituisce H-04, H-05 o una prova IPv6.
+
+### H-02 IPv6 link-local — prova reale del 7 novembre
+
+Run `452765bb0a6e4c6a9250caae3c495415`. Interfaccia guest `eth0`, indirizzo
+link-local utilizzabile e route kernel verso il canary host verificati tramite
+letture `ip`; scope guest coerente e distinto dall'indice Windows. Tentativo TCP
+19:25:12–19:25:15 UTC: timeout di tre secondi. Nove controlli host tutti positivi,
+compresi quello precedente alle 19:25:09 UTC e quello successivo alle 19:25:15 UTC.
+Nonce, porta e indirizzo privo di scope corrispondono alla configurazione e ai
+report host. Nessuna modifica di route, firewall, ACL o configurazione IPv6.
+Listener chiuso alle 19:25:15 UTC; assenza di ascolto verificata dopo la prova.
+
+Evidenze locali sotto
+`C:/Users/giuli/.codex/artifacts/inf-vm-02/h02-ipv6-452765bb0a6e4c6a9250caae3c495415/`:
+`guest-ipv6-probe.json`, `host/result.json`, configurazione e `review.json`.
+Script trasferito identico alla versione nel repository. SHA-256 report guest:
+`5729d78548db664e68c299933f8ea93931b809c246abc822295ba0c77eb1ca34`;
+risultato host:
+`eb69124b013b843dcd513477f32143172817aa888ed38e94e3a74e393bb35949`.
+Verificato il mancato accesso su quel percorso TCP link-local; il dato non
+identifica il livello di filtro e non copre container, LAN o IPv6 globale.
 
 ### H-04 IPv4 — prova reale container del 7 novembre
 

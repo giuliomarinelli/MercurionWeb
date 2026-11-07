@@ -229,3 +229,19 @@ con listener IPv6 reale sul Default Switch, SSH/SCP simulati, prefisso PTY e
 codici nativi zero/non zero; entrambi i report conservati e listener chiusi.
 Fixture locale `test_h02_ipv6_wrapper.ps1`. Nessuna esecuzione guest ancora
 acquisita; nessuna verifica IPv6 container/globale o LAN dichiarata.
+
+### H-02 IPv6 link-local acquisito sulla VM — 19:25 UTC
+
+Run operatore `452765bb0a6e4c6a9250caae3c495415`, senza sudo. Report salvato
+correttamente dal wrapper. Confermati interfaccia `eth0`, link-local guest e
+route kernel verso il canary Windows; scope applicato sul guest coerente.
+Tentativo TCP in timeout, nove controlli host positivi e controlli adiacenti
+prima/dopo il tentativo. Correlati indirizzo senza scope, porta, nonce e tempi;
+script trasferito identico al repository. Listener chiuso, assenza di ascolto
+verificata. [Hash ed evidenze](HOST-GUEST-READINESS.md).
+
+Il percorso link-local guest → host provato è non raggiungibile; nessuna
+attribuzione automatica a uno specifico filtro. Nessun cambiamento di policy
+o route, nessun servizio persistente. INF-VM-02 resta aperto per LAN, altre
+origini e perimetro IPv6 container/globale. Nessuna ulteriore esecuzione richiesta
+all'owner per confermare questo risultato.
