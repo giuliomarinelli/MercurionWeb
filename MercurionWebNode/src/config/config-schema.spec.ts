@@ -160,9 +160,9 @@ describe('canonical configuration schema', () => {
     {
       appEnv: Environment.Staging,
       environment: 'Kubernetes service',
-      host: 'nats://nats-sl.mercurion-beta.svc.cluster.local',
+      host: 'nats://nats-sl.mercurion-preview.svc.cluster.local',
       port: '4222',
-      expected: 'nats://nats-sl.mercurion-beta.svc.cluster.local:4222'
+      expected: 'nats://nats-sl.mercurion-preview.svc.cluster.local:4222'
     },
     {
       appEnv: Environment.Production,

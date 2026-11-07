@@ -1,5 +1,5 @@
 services:
-  mercurion_web_ng_beta:
+  mercurion_web_ng_preview:
     build:
       context: ../../..
       dockerfile: MercurionWebNg/Dockerfile
@@ -17,7 +17,7 @@ services:
     cap_drop:
       - ALL
 
-  mercurion_web_node_beta:
+  mercurion_web_node_preview:
     build:
       context: ../../..
       dockerfile: MercurionWebNode/Dockerfile
@@ -34,16 +34,25 @@ services:
       - no-new-privileges:true
     cap_drop:
       - ALL
-  
-  mercurion_tox_21_beta:
-    build:
-      context: ../../../../MercurionAI/MercurionTox21
-      dockerfile: Dockerfile.staging
-      args:
-        APP_VERSION: ${MT21_APP_VERSION}
-    image: ${REGISTRY_IMAGE_MT21}:${MT21_APP_VERSION}
-  
-  nginx_sl_beta:
+
+  mercurion_tox_21_preview:
+    image: ${REGISTRY_IMAGE_MT21:?Set the Tox21 image repository}:${TOX21_VERSION:?Set the Tox21 version}-${TOX21_REVISION:?Set the full Tox21 source SHA}
+    environment:
+      PY_ENV: staging
+      VERSION: ${TOX21_VERSION}
+      NATS_URL: ${TOX21_NATS_URL:?Set the broker reachable from this container}
+    user: "10021:10021"
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    stop_grace_period: 15s
+
+  nginx_sl_preview:
     build:
       context: .
       dockerfile: Dockerfile.nginx
@@ -52,11 +61,11 @@ services:
     image: ${REGISTRY_IMAGE_NGINX}:${NGINX_TAG}
 
 
-  pg_sl_beta:
+  pg_sl_preview:
     build:
       context: .
       dockerfile: Dockerfile.postgres
     image: postgres16-pgvector:${PGV_TAG}
-    container_name: pg_sl_beta
-    
-  
+    container_name: pg_sl_preview
+
+

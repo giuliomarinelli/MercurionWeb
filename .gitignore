@@ -18,3 +18,6 @@ MercurionWebNode/src/generated/build-identity.ts
 
 .playwright-mcp/*
 !.playwright-mcp/.gitkeep
+# Legacy local deployment material remains ignored after the preview rename.
+/k8s/beta/
+/docker_sl/releases/beta/

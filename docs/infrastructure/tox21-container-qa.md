@@ -92,7 +92,7 @@ CI remota, né una prova PubChem reale, TLS/auth attiva o recovery del broker.
 Le immagini non hanno porte o healthcheck HTTP fittizi.
 
 Il Compose locale Tox21 ora richiede contesto modello, versione, SHA e URL
-broker espliciti; usa ancora la rete esterna storica. Il Compose beta Web
+broker espliciti; usa ancora la rete esterna storica. Il Compose preview Web
 riferisce ancora il vecchio percorso e `Dockerfile.staging`: **non è compatibile
 con questa consegna**. La sua migrazione e l'inventario dei manifest restano
 T21-06. Nessuna riscrittura implicita della topologia VM.
@@ -104,4 +104,5 @@ restano aperti. L'evidenza di questo task riguarda esclusivamente Linux CPU.
 Seguito: **T21-05 completato**, con [CI sull'esatto SHA, tre build/audit e
 cinque subject con recovery del broker](tox21-ci-qa.md). I residui CI indicati
 sopra descrivono la consegna T21-04; sono ora coperti dal verbale successivo.
-L'integrazione di distribuzione Web resta T21-06.
+Seguito ulteriore: [T21-06](tox21-deployment.md) allinea i riferimenti Tox21 delle
+proiezioni Web; la distribuzione e la topologia completa restano da verificare.

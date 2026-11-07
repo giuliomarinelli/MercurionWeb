@@ -3,22 +3,24 @@ import { resolve } from 'node:path'
 
 const root = resolve('.')
 const schemaPath = resolve(root, 'deployment/deployment-schema.json')
-const overlayNames = ['development', 'local-staging', 'beta', 'production']
-const artifactPaths = [
+const overlayNames = ['development', 'local-staging', 'preview', 'production']
+export const artifactPaths = [
   'docker_sl/docker-compose.yml',
   'docker_sl/local-staging/docker-compose.yml',
-  'docker_sl/releases/beta/docker-compose.yml',
+  'docker_sl/releases/preview/docker-compose.yml',
   'docker_sl/releases/prod/docker-compose.yml',
-  'k8s/beta/mercurion-web-ng-deploy.yaml',
-  'k8s/beta/mercurion-web-node-deploy.yaml',
-  'k8s/beta/redis-deploy.yaml',
-  'k8s/beta/nats-deploy.yaml',
-  'k8s/beta/pg-stack.yaml',
-  'k8s/beta/pg-sts.yaml',
-  'k8s/beta/mercurion-tox21-deploy.yaml',
-  'k8s/beta/nginx-edge-config.yaml',
-  'k8s/beta/nginx-edge-deploy.yaml',
-  'k8s/beta/nginx-edge-svc.yaml',
+  'docker_sl/releases/preview/docker-compose.tox21-build.yml',
+  'docker_sl/releases/prod/docker-compose.tox21-build.yml',
+  'k8s/preview/mercurion-web-ng-deploy.yaml',
+  'k8s/preview/mercurion-web-node-deploy.yaml',
+  'k8s/preview/redis-deploy.yaml',
+  'k8s/preview/nats-deploy.yaml',
+  'k8s/preview/pg-stack.yaml',
+  'k8s/preview/pg-sts.yaml',
+  'k8s/preview/mercurion-tox21-deploy.yaml',
+  'k8s/preview/nginx-edge-config.yaml',
+  'k8s/preview/nginx-edge-deploy.yaml',
+  'k8s/preview/nginx-edge-svc.yaml',
   'k8s/core/meili-deploy.yaml',
   'k8s/core/meili-pvc.yaml',
   'k8s/core/meili-seed.yaml',
@@ -47,6 +49,11 @@ function validateModel(schema, overlays) {
     fail('web-node must declare both external secret references')
   }
   const identity = schema.imageIdentity
+  const tox21 = identity?.componentImages?.tox21
+  if (tox21?.versionVariable !== 'TOX21_VERSION' || tox21?.revisionVariable !== 'TOX21_REVISION' ||
+      tox21?.image !== '${REGISTRY_IMAGE_MT21}:${TOX21_VERSION}-${TOX21_REVISION}') {
+    fail('tox21 image identity must use its own version and source revision')
+  }
   if (identity?.versionVariable !== 'BUILD_VERSION' || identity?.revisionVariable !== 'BUILD_REVISION') {
     fail('application image identity must derive from BUILD_VERSION and BUILD_REVISION')
   }
@@ -65,7 +72,53 @@ function validateModel(schema, overlays) {
       if (config.target && !['development', 'test', 'staging', 'production'].includes(config.target)) {
         fail(`overlay ${name}/${id} has an unknown build target`)
       }
+      if (id === 'tox21') {
+        const expectedEnvironment = { development: 'development', 'local-staging': 'staging', preview: 'staging', production: 'production' }[name]
+        if (config.env.PY_ENV !== expectedEnvironment || config.env.VERSION !== '${TOX21_VERSION}') {
+          fail(`overlay ${name}/tox21 has inconsistent environment or version`)
+        }
+      }
     }
+  }
+}
+
+// Focused source contracts supplement (not replace) actual Compose config validation.
+const normalizeRequiredVariables = source => source.replace(/\$\{([A-Z][A-Z0-9_]*):\?[^}]+\}/g, (_, name) => '${' + name + '}')
+function composeService(source, name) {
+  const lines = source.split(/\r?\n/)
+  const start = lines.indexOf(`  ${name}:`)
+  if (start < 0) return ''
+  let end = start + 1
+  while (end < lines.length && !/^\S|^  \S/.test(lines[end])) end++
+  return normalizeRequiredVariables(lines.slice(start + 1, end).join('\n'))
+}
+
+function validateTox21(contents, schema) {
+  const image = schema.imageIdentity?.componentImages?.tox21?.image ?? ''
+  for (const [directory, suffix, target] of [['preview', 'preview', 'staging'], ['prod', 'prod', 'production']]) {
+    const path = `docker_sl/releases/${directory}/docker-compose.yml`
+    const source = composeService(contents[path] ?? '', `mercurion_tox_21_${suffix}`)
+    if (!image || !source.includes(`image: ${image}`) || /\bbuild:/.test(source)) fail(`${path}: tox21 must consume its own image without a source checkout`)
+    for (const field of [`PY_ENV: ${target}`, 'VERSION: ${TOX21_VERSION}', 'NATS_URL: ${TOX21_NATS_URL}',
+      'user: "10021:10021"', 'read_only: true', 'stop_grace_period: 15s']) {
+      if (!source.includes(field)) fail(`${path}: tox21 missing ${field}`)
+    }
+    const buildPath = `docker_sl/releases/${directory}/docker-compose.tox21-build.yml`
+    const build = composeService(contents[buildPath] ?? '', `mercurion_tox_21_${suffix}`)
+    for (const field of ['context: ${TOX21_SOURCE_CONTEXT}', 'dockerfile: Dockerfile', `target: ${target}`,
+      'model_package: ${TOX21_MODEL_PACKAGE_CONTEXT}', 'BUILD_VERSION: ${TOX21_VERSION}', 'BUILD_REVISION: ${TOX21_REVISION}']) {
+      if (!build.includes(field)) fail(`${buildPath}: tox21 build missing ${field}`)
+    }
+    const args = [...build.matchAll(/^        ([A-Z_]+):/gm)].map(match => match[1]).sort()
+    if (args.join() !== 'BUILD_REVISION,BUILD_VERSION') fail(`${buildPath}: unsupported Tox21 build argument`)
+  }
+  const path = 'k8s/preview/mercurion-tox21-deploy.yaml'
+  const source = contents[path] ?? ''
+  if (!image || !source.includes(`image: ${image}`) ||
+      !/name: VERSION\s+value: "\$\{TOX21_VERSION\}"/.test(source) ||
+      !/name: PY_ENV\s+value: "staging"/.test(source)) fail(`${path}: tox21 image/runtime identity or namespace drift`)
+  for (const path of Object.keys(contents).filter(path => path.includes('docker-compose'))) {
+    if (/MercurionAI|Dockerfile\.staging|MT21_APP_VERSION/.test(contents[path])) fail(`${path}: obsolete Tox21 build reference`)
   }
 }
 
@@ -78,7 +131,7 @@ function validateArtifacts(contents, schema) {
     }
     if (path.includes('mercurion-web-ng') && (!source.includes(`containerPort: ${schema.services['web-ng'].ports.http}`) && !source.includes(`targetPort: ${schema.services['web-ng'].ports.http}`))) fail(`${path} diverges from web-ng port`)
     if (path.includes('mercurion-web-node') && (!source.includes(`containerPort: ${schema.services['web-node'].ports.http}`) && !source.includes(`targetPort: ${schema.services['web-node'].ports.http}`))) fail(`${path} diverges from web-node port`)
-    if (path.includes('releases/beta') || path.includes('releases/prod')) {
+    if (path.endsWith('/docker-compose.yml') && (path.includes('releases/preview') || path.includes('releases/prod'))) {
       for (const image of Object.values(appImages)) if (!source.includes(image)) fail(`${path} does not use canonical application image ${image}`)
       if (!source.includes('BUILD_VERSION') || !source.includes('BUILD_REVISION')) fail(`${path} does not carry immutable build identity`)
     }
@@ -106,6 +159,7 @@ export async function validateDeployment({ schema = null, overlays = null, artif
   failures.length = 0
   validateModel(model, resolvedOverlays)
   validateArtifacts(contents, model)
+  validateTox21(contents, model)
   if (failures.length) throw new Error(failures.join('\n'))
   return {
     schemaVersion: model.schemaVersion,
