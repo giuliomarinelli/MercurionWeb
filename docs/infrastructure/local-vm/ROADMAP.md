@@ -1,0 +1,70 @@
+# Roadmap — deployment demo Hyper-V / Docker Engine
+
+**Stato:** roadmap architetturale. Le fasi rappresentano risultati verificabili, non giorni di lavoro promessi; un blocco può richiedere più sessioni. Seguire [DAILY-LOG.md](DAILY-LOG.md) per esiti e limiti reali.
+
+## INF-VM-01 — Documentazione e contratto (fase corrente)
+
+**Obiettivo:** una specifica comprensibile da sviluppatori/agenti senza inferire decisioni dalle vecchie manifestazioni Kubernetes.
+
+- Consolidare situazione reale, decisioni owner, topologia, matrice di rete e privilegi.
+- Registrare UI SSH/read-only, precreazione curl amministrativa e flusso degli artefatti.
+- Individuare conflitti con schema deployment, overlay, Compose, Nginx e codice Nest.
+- **Consegna:** documenti coerenti e linkati, questioni aperte e niente modifiche infrastrutturali eseguite.
+- **Gate:** review owner; nessuna configurazione futura deve trasformare una `PROPOSTA` in `APPROVATA` senza verifica.
+
+## INF-VM-02 — Host, guest e confini di rete
+
+**Dipende da:** INF-VM-01.  
+Preparare Docker Engine e plugin Compose su Ubuntu, amministrazione SSH a chiave, policy host↔guest, firewall e regole IPv4/IPv6. Non introdurre bridge fisici della LAN. Definire test negativi dalla VM e dai container verso Windows/LAN e protezione della porta SSH.
+
+**Accettazione:** raggiungibilità amministrativa necessaria, assenza di accessi proibiti, assenza di servizio Internet esposto; annotare versione Docker Engine (>=28 per la proiezione loopback candidata).
+
+## INF-VM-03 — Compose base e reti senza applicazioni reali
+
+**Dipende da:** INF-VM-02.  
+Definire directory `shared`, `preview`, `production`; reti esterne, alias, `internal`, `egress`, volumi e confini. Evitare un solo Compose con molti flag. Iniziare con probe/fixture non sensibili.
+
+**Accettazione:** `docker compose config` valido e matrice delle comunicazioni positive/negative verificata. Nessun servizio host pubblicato eccetto gli endpoint loopback operativi autorizzati.
+
+## INF-VM-04 — Segreti e credenziali operative
+
+**Dipende da:** INF-VM-03.  
+Progettare/implementare l'iniezione protetta dal password manager Windows al bootstrap VM, secret per ambiente, credenziali Meilisearch, PostgreSQL, Redis, NATS, OAuth, Twilio, cookie, JWT. Preservare nomi legacy compatibili. Rinviare rotazione a caldo.
+
+**Accettazione:** nessun segreto in Git/layer/CI/log; riavvio e perdita dei materiali temporanei prevedibili; nessuna master key del server accessibile ai backend.
+
+## INF-VM-05 — Meilisearch, indici e accesso SSH di consultazione
+
+**Dipende da:** INF-VM-03 e 04.  
+Avviare singola istanza Meilisearch; importare ChEMBL da artefatto locale verificato; precreare i quattro indici runtime esclusivamente con `curl` e chiave amministrativa temporanea; verificare permessi delle key. Valutare `eyeix/meilisearch-ui` **solo** dopo scansione CVE; configurare due forward SSH per UI e API, con credenziale read-only nel browser.
+
+**Accettazione:** query ChEMBL da entrambi gli ambienti, log segregati, nessuna scrittura ChEMBL dalle key runtime, negazione API amministrative dalla UI, nessun accesso web pubblico.
+
+## INF-VM-06 — Pipeline di consegna e archivio
+
+**Dipende da:** INF-VM-01/03; coordinabile in parallelo con 04/05.  
+Consolidare exporter e coordinatore esistenti per immagini staging e production Web/Tox21; pubblicare bundle completi di release approvata su Actions; scaricare/archiviare sull'host e su copia separata; verificare hash e `docker load` sulla VM. Non compilare sorgenti in produzione.
+
+**Accettazione:** due release identificabili, un candidato e un precedente; manifest per ambiente, provenienza e rollback meccanico ripetibile; retention non dipendente da Actions.
+
+## INF-VM-07 — Stack applicativi e tunnel Cloudflare
+
+**Dipende da:** 03, 04, 05, 06.  
+Avviare progressivamente PostgreSQL/Redis/NATS e backend/frontend/Tox21 per ambiente; recuperare routing utile da Nginx storico **senza** TLS origin/maintenance mode; configurare cloudflared, Access per preview, header forwarded, cookie, OAuth redirect e WebSocket.
+
+**Accettazione:** end-to-end browser reale su entrambi gli hostname; nessuna API Meilisearch/SSH esposta, sessioni/autorizzazioni funzionanti, staging e production separati.
+
+## INF-VM-08 — Recupero, dati demo, limiti e documentazione operativa
+
+**Dipende da:** 07.  
+Eseguire backup/restore dei dati e dei manifest, testare arresto e restart, log consultabili in sola lettura, rollback e ripristino a freddo. Misurare RAM/CPU/disco prima di salire da 16 GiB a 24–26 GiB o 28 GiB massimo indicativo. Preparare avviso pubblico di case study e guida operativa essenziale.
+
+**Accettazione:** report completo e verificabile; gestione manuale realistica per una sola persona; nessun requisito artificiale di disponibilità 24/7.
+
+## Esclusioni dall'intera roadmap
+
+Kubernetes, alta disponibilità, autoscaling, CI/CD sempre attivo, rotazione JWT a caldo, UI amministrativa esposta sul web, deployment MercurionData/LandingFactory e nuove feature chimiche non richieste alla demo.
+
+## Criterio di arresto
+
+Se un blocco non supera i gate di isolamento, permessi o integrità, **non** proseguire al tunnel pubblico. Annotare limite e motivazione nel diario; non risolvere con privilegi più ampi o disabilitando controlli.
