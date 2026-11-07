@@ -295,3 +295,23 @@ orchestrazione completa dei 33 casi con Docker simulato, pulizia client e rifiut
 di rimozioni fuori ownership. Config Compose valido: 11 guardie topologia e
 4 mutazioni matrice respinte. Nessun Docker runtime, pull, SSH o avvio VM eseguiti.
 INF-VM-02 e accettazione runtime INF-VM-03 rimangono aperti.
+
+### INF-VM-04 — audit consumer e proposta di bootstrap
+
+Preparato [BOOTSTRAP-CONTRACT](BOOTSTRAP-CONTRACT.md), con soli sorgenti e
+documentazione pubblica: nessuna lettura di env operativi, PEM o password manager.
+Tox21 ispezionato in sola lettura al commit `2cbfcd467afa9e9643065c630f6b06f265f0ac5a`.
+Confermati Nest env-only per configurazione ordinaria prod-like, RSA base64/raw,
+13 HMAC legacy, adapter locale vietato in staging/prod; Tox21 con pubblico PEM.
+
+Confermato il vincolo auth NATS: parser Nest senza credenziali e transport con
+soli servers; non abilitare auth sul broker senza un task consumer coerente.
+Riconfermata la lacuna Meilisearch già nota: search e dispatcher usano lo stesso
+client/key, con separazione delle autorizzazioni ancora da chiudere.
+
+Proposto flusso manuale prepare → receive senza PTY → apply, con sudo separato
+dal trasporto dei valori; file per consumer su area volatile, permessi rispetto
+all'UID reale, launcher compatibile file → env dentro il container ove necessario.
+Ciclo di vita esplicito per pausa, restart, recreate, chiusura e reboot. Proposta
+VM-028 da approvare: nessun helper, modifica app/Compose, provisioning, autenticazione
+o riavvio eseguiti. Verifica documentale dei riferimenti; nessun nuovo test runtime.

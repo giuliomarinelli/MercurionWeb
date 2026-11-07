@@ -21,6 +21,7 @@ La VM può rimanere spenta; preview può essere arrestato indipendentemente dall
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Componenti, ingressi, flussi applicativi e confini |
 | [NETWORK-TOPOLOGY.md](NETWORK-TOPOLOGY.md) | Reti Docker, collegamenti permessi, isolamento e SSH |
 | [SECURITY-AND-SECRETS.md](SECURITY-AND-SECRETS.md) | Identità, privilegi, segreti e bootstrap |
+| [BOOTSTRAP-CONTRACT.md](BOOTSTRAP-CONTRACT.md) | Audit consumer e proposta INF-VM-04 per consegna, compatibilità e ciclo di vita dei segreti |
 | [MEILISEARCH-OPERATIONS.md](MEILISEARCH-OPERATIONS.md) | Indici, chiavi, UI di sola lettura e operazioni curl |
 | [ARTIFACT-DELIVERY.md](ARTIFACT-DELIVERY.md) | Build, consegna, verifica, archivio e rollback delle immagini |
 | [DECISIONS.md](DECISIONS.md) | Decisioni approvate, proposte e aspetti aperti |

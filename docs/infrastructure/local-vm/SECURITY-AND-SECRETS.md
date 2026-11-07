@@ -28,6 +28,10 @@
 
 ## Master key del server versus chiavi amministrative
 
+[Audit e contratto proposto INF-VM-04](BOOTSTRAP-CONTRACT.md): capacità dei
+consumer verificate nei sorgenti, adattamenti mancanti e ciclo di vita proposto.
+È progettazione, non un meccanismo di provisioning già implementato o approvato.
+
 Il server Meilisearch richiede la propria master key **all'avvio** per operare in modalità protetta; la decisione «non conservare la master key nella VM» richiede un meccanismo di bootstrap manuale che renda il valore disponibile al processo quando parte. Una chiave applicativa separata può eseguire operazioni amministrative circoscritte attraverso `curl`. La sola presenza della master key nel password manager Windows non avvia automaticamente il server.
 
 **Meccanismo operativo ancora da definire/testare:** passaggio host → guest con canale protetto, materiale temporaneo su RAM/`tmpfs` quando appropriato, permessi di lettura minimi, pulizia dopo provisioning, comportamento dopo stop/restart e controllo dei punti di esposizione (argv, `docker inspect`, output shell, process environment, file temporanei, backup, swap e crash dump). Non affermare «mai presente in memoria della VM»: il processo deve poterla usare. Non introdurre un KMS o un daemon segreti a pagamento senza necessità.

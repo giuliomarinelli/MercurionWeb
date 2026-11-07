@@ -4,6 +4,12 @@
 
 ## Inventario di ciò che esiste
 
+**Preparazione documentale INF-VM-04:** [contratto bootstrap](BOOTSTRAP-CONTRACT.md)
+con evidenze dei consumer e proposta di consegna effimera. Nest non consuma
+genericamente `_FILE` in staging/prod; Tox21 consuma PEM pubblico. Auth NATS
+non configurata dal consumer Nest e client Meilisearch condiviso sono prerequisiti
+applicativi aperti. Nessun adapter o provisioning VM implementato.
+
 **Base statica INF-VM-03:** tre progetti Compose fixture in
 [deployment/local-vm](../../../deployment/local-vm/README.md), 16 ruoli sintetici,
 13 reti e 7 volumi. Listener TCP sintetici e matrice di 15 casi ammessi/18 vietati
