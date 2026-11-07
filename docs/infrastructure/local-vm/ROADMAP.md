@@ -18,8 +18,8 @@
 26.04.1, Engine 29.9.3, Compose 5.7.0 e policy SSH acquisiti da inventario
 operatore. Non reinstallare né sostituire switch/regole per ricreare la baseline.
 [Evidenze e gate aperti](HOST-GUEST-READINESS.md): root LUKS, risorse guest e
-backend firewall verificati; ACL estese acquisite. Rimangono export corretto
-delle ACL semplici e prove negative. INF-VM-02 non è dichiarato concluso.
+backend firewall e ACL acquisiti; H-02 TCP IPv4 verificato con controllo positivo.
+Rimangono prove IPv6, container/egress e altre origini. INF-VM-02 non è dichiarato concluso.
 
 **Dipende da:** INF-VM-01.  
 Preparare Docker Engine e plugin Compose su Ubuntu, amministrazione SSH a chiave, policy host↔guest, firewall e regole IPv4/IPv6. Non introdurre bridge fisici della LAN. Definire test negativi dalla VM e dai container verso Windows/LAN e protezione della porta SSH.

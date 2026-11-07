@@ -36,8 +36,9 @@
 
 - [INF-VM-02](HOST-GUEST-READINESS.md): inventario guest acquisito il 7 novembre
   dall'operatore. Nessuna porta Docker pubblicata nello snapshot; ciò non
-  equivale al superamento di A-04/A-05. Non risultano eseguite prove negative
-  con servizi controllati in ascolto.
+  equivale al superamento di A-04/A-05. Eseguito H-02 TCP IPv4 guest → host
+  con canary in ascolto e controlli positivi prima/dopo: percorso provato non
+  raggiungibile. Restano aperte le prove container, altre origini e IPv6.
 
 - `docs/meilisearch-log-indices.md` registra unit/smoke per routing log in un Meilisearch effimero.
 - `docs/infrastructure/tox21-integrated-acceptance-qa.md` registra integrazione reale delle classi Nest scientifiche e Tox21 via NATS, ma non bootstrap completo/HTTP/browser/deployment VM.

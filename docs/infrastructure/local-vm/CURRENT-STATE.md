@@ -9,8 +9,9 @@ Inventario guest eseguito dall'owner: Ubuntu 26.04.1 LTS, Docker Engine 29.9.3,
 Compose 5.7.0, SSH public-key-only senza root login, nessun container/porta Docker
 pubblicata nello snapshot. Seconda raccolta operatore: 8 vCPU/16 GiB RAM fissa,
 Default Switch, root su LUKS/dm-crypt/LVM, backend firewall Docker iptables e
-due ACL estese acquisite. Sei ACL semplici richiedono un export mirato dopo
-correzione del collector. Kaspersky e isolamento attivo restano da collaudare.
+due ACL estese e sei deny outbound semplici acquisiti. Caso guest → host TCP
+IPv4 non raggiungibile con canary attivo e controlli positivi verificati;
+restano IPv6 attivo, container/LAN, altre origini e policy Kaspersky specifica.
 L'accesso Hyper-V
 dell'agente è negato; l'accesso guest avviene tramite l'operatore, senza fornire
 passphrase alla chat. [Baseline aggiornata e limiti](HOST-GUEST-READINESS.md).

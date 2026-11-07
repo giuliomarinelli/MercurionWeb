@@ -18,6 +18,8 @@ la propria raggiungibilità all'inizio, circa ogni cinque secondi e alla fine;
 chiude socket e processo al termine (con pochi secondi di margine per i timeout
 dei controlli). La cartella di output deve essere nuova,
 fuori dal Git, per non sovrascrivere evidenze precedenti.
+Un file `stop` nella sola directory della prova richiede la chiusura anticipata:
+prima di chiudere viene comunque effettuato l'ultimo controllo positivo.
 
 ```powershell
 python scripts/infrastructure/network_canary.py serve --bind <IP-virtuale-host> --output <nuova-directory-locale> --seconds 600
@@ -35,6 +37,14 @@ Python 3 IP/porta/nonce della prova attualmente attiva:
 ```bash
 python3 ~/inf-vm-02-canary.py probe --host <IP-virtuale-host> --port <porta-assegnata> --nonce <identificatore-pubblico>
 ```
+
+Per evitare errori di copia tra più righe, l'entrypoint Windows operativo è
+`powershell -NoProfile -File scripts/infrastructure/Invoke-GuestCanary.ps1`.
+Il wrapper seleziona il run IPv4 attivo, valida dati/scadenza/adattatore host,
+esegue SCP e SSH come due processi distinti (fermandosi se SCP fallisce) e salva
+`guest-probe.json` nella cartella di prova. Le passphrase si inseriscono nel
+terminale, non negli argomenti o nei file. `-ValidateOnly` controlla i dati senza
+avviare SCP/SSH. La prima esecuzione completa dell'owner è riuscita per H-02 IPv4.
 
 L'accesso SSH resta interattivo a cura dell'owner; il probe non richiede `sudo`.
 Non installare Python se mancante senza prima registrare il requisito.
@@ -66,8 +76,10 @@ origine controllata e non è coperto dal solo test guest → host.
 python -B scripts/infrastructure/test_network_canary.py
 ```
 
-Due metodi di test, con prove effettive sia su `127.0.0.1` sia su `::1`:
+Tre metodi di test, con prove effettive sia su `127.0.0.1` sia su `::1`:
 identificatore valido, identificatore errato, chiusura automatica, porta poi non
 raggiungibile e permanenza di `isolationAccepted=false`. Altre prove rifiutano
 wildcard, multicast, indirizzi pubblici, porte privilegiate e IPv6 link-local
-senza scope. Esito locale: passato. Non è un collaudo della rete Hyper-V.
+senza scope. Verificata anche la chiusura anticipata richiesta tramite file,
+con controllo positivo finale. Esito locale: passato. Le prove loopback non
+sono un collaudo della rete Hyper-V; il caso reale è registrato nella readiness.

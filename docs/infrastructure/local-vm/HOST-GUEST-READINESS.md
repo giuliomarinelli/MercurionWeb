@@ -36,11 +36,14 @@ I risultati aggiornati sotto provengono da questi report dell'operatore.
 
 **Configurazione Hyper-V acquisita:** due ACL estese: deny outbound verso
 `172.16.0.0/12`, peso 200; allow inbound SSH dal solo indirizzo virtuale host
-corrente, peso 300, stateful, timeout 3600 secondi. Altre sei ACL semplici sono
-deny outbound, ma l'inventario iniziale ha perso i relativi indirizzi: le
-proprietà corrette sono `LocalAddress`/`RemoteAddress`, non quelle delle ACL
-estese. Collector corretto, schema JSON 2; serve soltanto l'export mirato delle
-ACL semplici, senza ripetere il guest o supporre quali reti siano bloccate.
+corrente, peso 300, stateful, timeout 3600 secondi. Le sei ACL semplici, acquisite
+dal terminale dell'owner dopo la correzione del collector, negano outbound verso
+`127.0.0.0/8`, `169.254.0.0/16`, `100.64.0.0/10`, `::/0`, `192.168.0.0/16` e
+`10.0.0.0/8`. Il campo locale è vuoto nella trascrizione. La combinazione copre
+i blocchi IPv4 privati indicati e l'outbound IPv6; non è un divieto di tutto
+l'egress IPv4 pubblico. La trascrizione normalizzata è conservata localmente
+in `simple-acls-transcript.json`. Il difetto dei campi null riguardava soltanto
+il vecchio collector, non regole mancanti sulla VM.
 
 L'allow SSH stateful concorda con il login host osservato. Da solo non dimostra
 che ogni altra origine sia negata: nei report acquisiti non compare un deny
@@ -48,8 +51,9 @@ inbound generale. Verificare il comportamento complessivo dei diversi livelli
 con la prova negativa prima di dichiarare una whitelist esclusiva. Non applicare
 regole di chiusura senza review e percorso di recupero console.
 
-**Ancora dichiarato/non collaudato:** efficacia del blocco di nuove connessioni
-guest → host e delle altre origini verso SSH; profilo pubblico/restrittivo
+**Ancora dichiarato/non collaudato:** perimetro completo guest/container → host
+e altre origini verso SSH, oltre al singolo caso H-02 IPv4 verificato sotto;
+profilo pubblico/restrittivo
 Default Switch in Kaspersky. Security Center elenca prodotti registrati, non
 fornisce una dimostrazione della loro attività o della policy applicata.
 Il vincolo host↔guest non viene interpretato come divieto indistinto di Internet:
@@ -99,7 +103,7 @@ un elenco `Get-NetNat` vuoto non descrive ogni meccanismo del Default Switch.
 | ID | Prova | Controllo necessario | Stato |
 | --- | --- | --- | --- |
 | H-01 | Accesso host → SSH guest con chiave; autenticazioni vietate respinte | Host key già nota; policy server e contesto connessione | Login riuscito; raccolta policy globale acquisita |
-| H-02 | Guest non inizia nuove connessioni al Windows host | Endpoint canary in ascolto sull'interfaccia di test, raggiungibile dal controllo locale host prima/dopo | Non eseguita |
+| H-02 | Guest non inizia nuove connessioni al Windows host | Endpoint canary in ascolto sull'interfaccia di test, raggiungibile dal controllo locale host prima/dopo | Caso TCP IPv4 verificato; altre famiglie/destinazioni non dedotte |
 | H-03 | Risposte guest a SSH iniziato dall'host funzionano | Connessione mantenuta durante la prova, senza allargare regole | SSH operatore riuscito; nessuna prova sotto modifica regole |
 | H-04 | Container bridge/egress non raggiunge host e LAN fuori policy | Probe sintetico con endpoint espliciti e controlli positivi; nessuna scansione indiscriminata | Non eseguita |
 | H-05 | Origine non autorizzata non raggiunge SSH né porte amministrative | Seconda origine controllata, servizi effettivamente attivi; coprire IPv4/IPv6 | Non eseguita |
@@ -111,6 +115,28 @@ endpoint attivo, controllo positivo e regole/counter disponibili. Senza IPv6
 globale va comunque verificato il link-local; nessun «passato» per omissione.
 Le prove canary e le fixture dei futuri network devono rimanere non sensibili,
 temporanee e distinguibili dai servizi applicativi.
+
+### H-02 IPv4 — prova reale del 7 novembre
+
+Canary host sull'indirizzo dell'adattatore Default Switch, porta temporanea,
+run locale `h02-ipv4-20261107-run2`. Dopo il controllo positivo iniziale,
+l'owner ha eseguito il probe nel guest usando la chiave SSH già configurata:
+timeout TCP di tre secondi, identificatore/IP/porta coerenti con la prova attiva.
+I 69 controlli host sono tutti positivi; controllo precedente alle 17:18:33 UTC,
+probe iniziato alle 17:18:37 UTC e controllo successivo al termine del probe
+registrato in `review.json`. Chiusura controllata del listener alle 17:19:09 UTC.
+Nessuna modifica di regole. Il risultato SSH tornato all'host conferma anche la
+comunicazione sulla sessione iniziata dall'host durante il test.
+
+Evidenze locali: `ready.json`, `guest-probe.json`, `result.json`, `review.json`
+sotto `C:/Users/giuli/.codex/artifacts/inf-vm-02/h02-ipv4-20261107-run2/`.
+SHA-256 del risultato host:
+`71cbc59412327307a4c79f1792ac9a271745d247befc22d5c9f94129c0d9b081`.
+Il primo run, fermato senza probe valido dopo un problema di copia dei comandi,
+non è contato come prova negativa. La successiva esecuzione usa il wrapper
+PowerShell, che tiene distinti SCP e SSH e salva il risultato automaticamente.
+Il caso dimostra il blocco del percorso TCP IPv4 provato; non identifica da
+solo il livello che ha filtrato né sostituisce H-04, H-05 o una prova IPv6.
 
 **Gate verso INF-VM-03:** review della policy host/guest e prove pertinenti
 documentate; nessuna dichiarazione di isolamento basata solo sulla sintassi.

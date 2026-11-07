@@ -110,3 +110,24 @@ dei target non ammessi. Nessun listener avviato sull'interfaccia VM durante
 la preparazione; nessuna immagine scaricata sul guest o modifica di regole.
 Probe Hyper-V non ancora eseguite. Export mirato ACL richiesto all'owner con
 percorso assoluto dopo errore di trascrizione del percorso di output.
+
+### H-02 IPv4 — prova operatore completata alle 17:18 UTC
+
+Acquisite dal terminale le sei ACL semplici con i rispettivi CIDR; nessuna
+regola modificata. Il wrapper `Invoke-GuestCanary.ps1`, compatibile con Windows
+PowerShell 5.1, esegue SCP e SSH separatamente e salva il risultato senza
+richiedere di copiare parametri o percorsi. Esecuzione completa dell'owner riuscita.
+
+Il guest non raggiunge il canary TCP IPv4 host: timeout di tre secondi sul
+percorso provato, con 69 controlli locali host positivi. Controlli adiacenti:
+17:18:33 UTC prima, 17:18:43 UTC dopo il tentativo iniziato alle 17:18:37 UTC.
+Listener chiuso alle 17:19:09 UTC; assenza del listener verificata. Evidenze e
+hash in [HOST-GUEST-READINESS](HOST-GUEST-READINESS.md). Il primo run senza probe
+valido non è contato. La risposta SSH è tornata sulla connessione iniziata
+dall'host. Nessuna modifica firewall, installazione o pubblicazione applicativa.
+
+Esteso il canary con arresto anticipato controllato e controllo positivo finale;
+tre metodi unittest locali passati, inclusi loopback IPv4/IPv6 e chiusura.
+Questi test locali non sostituiscono le prove della VM. INF-VM-02 resta aperto
+per container, altre origini, IPv6 ed egress; nessuna accettazione globale o
+CI applicativa dichiarata da questo checkpoint.

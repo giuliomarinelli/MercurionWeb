@@ -94,12 +94,22 @@ def serve(address, output, seconds):
                 (output / 'ready.json').write_text(json.dumps(ready, indent=2) + '\n', encoding='utf-8')
                 print(json.dumps(ready), flush=True)
                 deadline = time.monotonic() + seconds
+                next_control = time.monotonic() + 5
                 while time.monotonic() < deadline:
-                    time.sleep(min(5, max(0, deadline - time.monotonic())))
-                    control = probe(address, port, nonce)
-                    controls.append(control)
-                    if control['outcome'] != 'reachable':
-                        raise RuntimeError('Local canary control failed during the test window')
+                    if (output / 'stop').exists():
+                        break
+                    time.sleep(min(.25, max(0, deadline - time.monotonic())))
+                    if time.monotonic() >= next_control:
+                        control = probe(address, port, nonce)
+                        controls.append(control)
+                        if control['outcome'] != 'reachable':
+                            raise RuntimeError('Local canary control failed during the test window')
+                        next_control = time.monotonic() + 5
+                final = probe(address, port, nonce)
+                controls.append(final)
+                if final['outcome'] != 'reachable':
+                    raise RuntimeError('Final local canary control failed')
+                report['stopReason'] = 'requested' if (output / 'stop').exists() else 'deadline'
                 report['status'] = 'controls-passed'
             finally:
                 server.shutdown()
