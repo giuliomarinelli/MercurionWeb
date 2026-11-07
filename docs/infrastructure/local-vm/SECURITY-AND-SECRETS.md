@@ -36,9 +36,9 @@ Il server Meilisearch richiede la propria master key **all'avvio** per operare i
 
 ## Cifratura del guest e sblocco
 
-L'owner dichiara il filesystem già cifrato con LUKS. L'inventario iniziale non
-conteneva l'albero dei block device: verificare il percorso del mount root
-senza leggere chiavi o esportare header LUKS. Lo sblocco dopo un avvio a freddo
+Il secondo inventario operatore conferma il percorso LUKS → dm-crypt → LVM →
+filesystem root ext4; `/boot` ed EFI risultano separati non cifrati. Nessuna
+chiave o header LUKS è stato letto/esportato. Lo sblocco dopo un avvio a freddo
 va descritto nel runbook operativo; non abilitare sblocco automatico o riavviare
 per prova senza pianificare console e presenza dell'operatore. La cifratura a
 riposo non sostituisce isolamento di rete né gestione dei segreti a VM sbloccata.

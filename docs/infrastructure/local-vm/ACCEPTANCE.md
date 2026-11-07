@@ -30,7 +30,7 @@
 | A-24 | Risorse | memoria/CPU/disco misurati a riposo, in carico e con entrambi gli stack | Non eseguito |
 | A-25 | Limiti portfolio | avviso di case study, dati personali e disponibilità rappresentati correttamente | Non eseguito |
 | A-26 | Amministrazione guest | SSH da host con chiave, nessun login root/password, ACL delle origini verificate | Parziale: login operatore e policy globale acquisiti; ACL/prove negative aperte |
-| A-27 | Cifratura guest | mount root sul dispositivo cifrato e percorso operativo di sblocco | LUKS dichiarato dall'owner; verifica block device aperta |
+| A-27 | Cifratura guest | mount root sul dispositivo cifrato e percorso operativo di sblocco | Root su LUKS/dm-crypt/LVM verificato nel report v2; sblocco a freddo aperto |
 
 ## Risultati preesistenti da non confondere con questa matrice
 

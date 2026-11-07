@@ -36,10 +36,10 @@ Read-InventorySection 'resources' {
             @{ Name = 'MemoryGiB'; Expression = { [math]::Round($_.TotalPhysicalMemory / 1GB, 2) } }
 }
 Read-InventorySection 'virtualMachines' {
-    Get-VM | Select-Object Name, State, Generation, ProcessorCount, MemoryStartup, DynamicMemoryEnabled
+    Get-VM | Select-Object Name, @{ Name = 'State'; Expression = { [string]$_.State } }, Generation, ProcessorCount, MemoryStartup, DynamicMemoryEnabled
 }
 Read-InventorySection 'virtualSwitches' {
-    Get-VMSwitch | Select-Object Name, SwitchType
+    Get-VMSwitch | Select-Object Name, @{ Name = 'SwitchType'; Expression = { [string]$_.SwitchType } }
 }
 Read-InventorySection 'virtualAdapters' {
     Get-VM | Get-VMNetworkAdapter | Select-Object VMName, SwitchName, IPAddresses
@@ -50,7 +50,9 @@ Read-InventorySection 'adapterAcls' {
         Get-VMNetworkAdapterAcl -VMName $taskVm.Name | Select-Object @{ Name = 'VMName'; Expression = { $taskVm.Name } },
             @{ Name = 'Direction'; Expression = { [string]$_.Direction } },
             @{ Name = 'Action'; Expression = { [string]$_.Action } },
-            LocalIPAddress, RemoteIPAddress, LocalMacAddress, RemoteMacAddress
+            LocalAddress, RemoteAddress,
+            @{ Name = 'LocalAddressType'; Expression = { [string]$_.LocalAddressType } },
+            @{ Name = 'RemoteAddressType'; Expression = { [string]$_.RemoteAddressType } }
     }
 }
 Read-InventorySection 'adapterExtendedAcls' {
@@ -88,7 +90,7 @@ Read-InventorySection 'firewallProducts' {
 
 $taskIncomplete = @($taskSections.Values | Where-Object { $_.status -ne 'observed' }).Count -gt 0
 [ordered]@{
-    schemaVersion = 1
+    schemaVersion = 2
     observedAtUtc = [datetime]::UtcNow.ToString('o')
     scope = 'windows-host-only'
     status = $(if ($taskIncomplete) { 'partial' } else { 'observed' })

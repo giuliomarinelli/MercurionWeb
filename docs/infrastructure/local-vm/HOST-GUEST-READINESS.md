@@ -13,23 +13,51 @@ Report locale del **7 novembre, 16:25:51 UTC**:
 Il report è stato letto dall'agente; non è una sessione SSH autonoma dell'agente.
 Non versionare report grezzi con indirizzi e dettagli operativi personali.
 
+**Seconda raccolta acquisita:** host amministrativo alle 16:41:54 UTC e guest
+alle 16:44:07 UTC. File locali `host-inventory-admin.json` e
+`guest-inventory-v2.txt` nella stessa directory, rispettivamente SHA-256
+`59bdf5397a5ab56ea52b6cf26bf3c884510b348bde62e426a670b2e446fd2a99` e
+`33ab14d6df4d679c10dced1d07ae4cf9d4f8dd7c6ca9b5822b7b71e2c755e1ba`.
+I risultati aggiornati sotto provengono da questi report dell'operatore.
+
 | Voce | Osservazione | Limite |
 | --- | --- | --- |
-| Host | Windows 11 Pro, hypervisor attivo, 24 CPU logiche, circa 64 GiB RAM | Risorse assegnate al guest non ancora raccolte |
+| Host/VM | Windows 11 Pro, 24 CPU logiche, circa 64 GiB RAM; `Mercurion-Server` generazione 2, 8 vCPU e 16 GiB fissi, Default Switch | Nessun ridimensionamento eseguito |
 | Guest | Ubuntu 26.04.1 LTS, x86_64 | Raccolta eseguita dall'owner |
 | Docker guest | Engine 29.9.3, Compose plugin 5.7.0, socket Unix locale | Diverso dal daemon Docker Desktop dell'host |
+| Backend firewall Docker | Driver `iptables`, comandi iptables/ip6tables 1.8.11 basati su `nf_tables` | È il backend iptables con traduzione nft, non il backend nftables nativo Docker |
+| Cifratura root | `crypto_LUKS` → dm-crypt → LVM → filesystem ext4 montato su `/` | `/boot` ed EFI risultano separati non cifrati; sblocco a freddo non testato |
 | SSH | Login riuscito dall'host; `pubkeyauthentication yes`, password e keyboard-interactive `no`, root `no` | Restrizione dell'origine richiede review ACL e prove negative; eventuali `Match` richiedono verifica per connessione |
 | Listener guest | SSH su IPv4 e IPv6; resolver DNS su loopback | Il bind SSH wildcard non dimostra da solo accessibilità dalla LAN |
 | Container | Nessuno in esecuzione e nessuna porta pubblicata nel report; sole reti Docker predefinite | Snapshot, non prova di isolamento degli stack futuri |
-| IPv4 | Route tramite switch virtuale; forwarding attivo; `FORWARD DROP` con chain Docker | `INPUT ACCEPT` e `DOCKER-USER` vuota: non osservati filtri aggiuntivi in quelle chain |
+| IPv4 | Route tramite switch virtuale; forwarding attivo; `FORWARD DROP` con chain Docker | Il dump nft acquisito mostra le chain Docker, senza un ulteriore filtro custom INPUT; policy Hyper-V separata |
 | IPv6 | Solo route link-local; forwarding globale disattivo; `INPUT/FORWARD ACCEPT` | La sola assenza di route Internet non prova il blocco sul segmento locale |
 | SSH forwarding | `gatewayports no`, `allowtcpforwarding yes`, `permitopen any` | Configurazione ampia per l'amministratore; non equivale a inoltri già aperti né alla futura UI approvata |
 
-**Dichiarato dall'owner, ancora da verificare:** ACL/firewall già configurati,
-SSH iniziabile solo host → guest, guest → host ammesso come risposta stateful,
-Default Switch classificato pubblico/restrittivo in Kaspersky, filesystem LUKS.
+**Configurazione Hyper-V acquisita:** due ACL estese: deny outbound verso
+`172.16.0.0/12`, peso 200; allow inbound SSH dal solo indirizzo virtuale host
+corrente, peso 300, stateful, timeout 3600 secondi. Altre sei ACL semplici sono
+deny outbound, ma l'inventario iniziale ha perso i relativi indirizzi: le
+proprietà corrette sono `LocalAddress`/`RemoteAddress`, non quelle delle ACL
+estese. Collector corretto, schema JSON 2; serve soltanto l'export mirato delle
+ACL semplici, senza ripetere il guest o supporre quali reti siano bloccate.
+
+L'allow SSH stateful concorda con il login host osservato. Da solo non dimostra
+che ogni altra origine sia negata: nei report acquisiti non compare un deny
+inbound generale. Verificare il comportamento complessivo dei diversi livelli
+con la prova negativa prima di dichiarare una whitelist esclusiva. Non applicare
+regole di chiusura senza review e percorso di recupero console.
+
+**Ancora dichiarato/non collaudato:** efficacia del blocco di nuove connessioni
+guest → host e delle altre origini verso SSH; profilo pubblico/restrittivo
+Default Switch in Kaspersky. Security Center elenca prodotti registrati, non
+fornisce una dimostrazione della loro attività o della policy applicata.
 Il vincolo host↔guest non viene interpretato come divieto indistinto di Internet:
 egress dei container e destinazioni esterne rimangono da provare.
+
+L'indirizzo guest è DHCP e la regola SSH usa l'indirizzo host corrente: il
+runbook di avvio a freddo dovrà verificarne la coerenza, senza presumere che il
+Default Switch conservi sempre lo stesso prefisso.
 
 La passphrase protegge la chiave privata sul client; il metodo SSH osservato è
 `publickey`. Le opzioni del client `ssh -G` non descrivono la policy del server.
@@ -76,7 +104,7 @@ un elenco `Get-NetNat` vuoto non descrive ogni meccanismo del Default Switch.
 | H-04 | Container bridge/egress non raggiunge host e LAN fuori policy | Probe sintetico con endpoint espliciti e controlli positivi; nessuna scansione indiscriminata | Non eseguita |
 | H-05 | Origine non autorizzata non raggiunge SSH né porte amministrative | Seconda origine controllata, servizi effettivamente attivi; coprire IPv4/IPv6 | Non eseguita |
 | H-06 | Egress necessario funziona senza riaprire host/LAN | DNS e destinazione HTTPS di test autorizzata, guest/container distinti | Non eseguita |
-| H-07 | Root filesystem ricondotto al volume cifrato dichiarato | Mount root e albero block device; nessun dump/header o materiale LUKS | Dichiarato; raccolta estesa da eseguire |
+| H-07 | Root filesystem ricondotto al volume cifrato dichiarato | Mount root e albero block device; nessun dump/header o materiale LUKS | Verificato nel report guest v2; prova di sblocco/restart separata |
 
 Un timeout verso una porta chiusa **non** valida H-02/H-04/H-05. Correlare
 endpoint attivo, controllo positivo e regole/counter disponibili. Senza IPv6
@@ -93,3 +121,5 @@ La matrice applicativa di INF-VM-03 continuerà a verificare i bridge reali.
 - [Docker: iptables e DOCKER-USER](https://docs.docker.com/engine/network/firewall-iptables/)
 - [Docker: backend nftables](https://docs.docker.com/engine/network/firewall-nftables/)
 - [Microsoft: ACL estese Hyper-V](https://learn.microsoft.com/en-us/powershell/module/hyper-v/get-vmnetworkadapterextendedacl?view=windowsserver2025-ps)
+- [Microsoft: ACL semplici Hyper-V](https://learn.microsoft.com/en-us/powershell/module/hyper-v/get-vmnetworkadapteracl?view=windowsserver2025-ps)
+- [Microsoft: pesi, chiusura e statefulness delle ACL](https://learn.microsoft.com/en-us/windows-server/virtualization/hyper-v/create-security-policies-extended-port-access-control-lists)

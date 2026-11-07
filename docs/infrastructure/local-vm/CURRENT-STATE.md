@@ -7,8 +7,11 @@
 **Aggiornamento INF-VM-02, 7 novembre:** la VM non è più soltanto un'ipotesi.
 Inventario guest eseguito dall'owner: Ubuntu 26.04.1 LTS, Docker Engine 29.9.3,
 Compose 5.7.0, SSH public-key-only senza root login, nessun container/porta Docker
-pubblicata nello snapshot. ACL Hyper-V, Kaspersky e LUKS dichiarati dall'owner;
-verifica completa di isolamento e cifratura ancora aperta. L'accesso Hyper-V
+pubblicata nello snapshot. Seconda raccolta operatore: 8 vCPU/16 GiB RAM fissa,
+Default Switch, root su LUKS/dm-crypt/LVM, backend firewall Docker iptables e
+due ACL estese acquisite. Sei ACL semplici richiedono un export mirato dopo
+correzione del collector. Kaspersky e isolamento attivo restano da collaudare.
+L'accesso Hyper-V
 dell'agente è negato; l'accesso guest avviene tramite l'operatore, senza fornire
 passphrase alla chat. [Baseline aggiornata e limiti](HOST-GUEST-READINESS.md).
 

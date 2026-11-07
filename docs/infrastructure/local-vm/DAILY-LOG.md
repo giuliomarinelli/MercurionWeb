@@ -66,3 +66,32 @@ non accettazione di Ubuntu o della rete VM.
 raccolta guest estesa da parte dell'owner; poi review della policy e prove
 negative con controllo positivo. INF-VM-03 non è ancora autorizzato dal solo
 successo della raccolta.
+
+### Seconda raccolta — host 16:41:54 UTC, guest 16:44:07 UTC
+
+Report amministrativo host e inventario guest v2 acquisiti dall'owner e letti
+dall'agente. Confermati VM `Mercurion-Server` generazione 2, 8 vCPU, 16 GiB fissi
+e Default Switch; root ext4 su LUKS/dm-crypt/LVM. EFI e `/boot` separati non
+cifrati; nessuna prova di sblocco a freddo. Driver firewall Docker `iptables`,
+con frontend iptables/ip6tables su nf_tables: non confondere con backend nftables
+nativo. Il dump nft mostra le chain Docker; nessuna ulteriore policy custom
+INPUT nel report. Il registro Security Center non prova quali prodotti firewall
+siano attualmente efficaci o quale profilo Kaspersky sia applicato.
+
+Le due ACL estese mostrano deny outbound verso il blocco privato 172.16/12 e
+allow inbound SSH stateful dall'indirizzo host corrente, con pesi 200/300 e
+timeout 3600. Le prove negative restano non eseguite: l'eccezione host non viene
+descritta come dimostrazione sufficiente di whitelist su tutte le origini.
+
+**Difetto del collector corretto:** i tipi Hyper-V delle ACL semplici usano
+`LocalAddress`/`RemoteAddress`; i nomi usati per le ACL estese non sono validi
+su quel tipo. I sei deny outbound erano registrati, ma i relativi indirizzi
+risultavano `null`. Corretto lo script e incrementato lo schema host a 2;
+nessuna regola cambiata. Verificati i nomi sulle proprietà del tipo Hyper-V
+installato e con fixture sintetica eseguita in Windows PowerShell 5.1: indirizzi
+preservati senza interrogare VM. Parser PowerShell e link documentali passati.
+
+**Prossimo dato richiesto:** solo un export mirato delle ACL semplici corrette,
+senza ripetere l'inventario guest. Successivamente le prove host/guest/container
+con canary e controllo positivo previste da H-02/H-04/H-05. Nessuna installazione,
+modifica firewall, sblocco automatico o riavvio introdotto dalla review.
