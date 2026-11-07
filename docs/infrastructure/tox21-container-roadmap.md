@@ -8,7 +8,7 @@ MercurionTox21 è un componente del progetto Mercurion, mantenuto nel repository
 
 **Precisazione concordata il 6 novembre:** il training resta locale. L’immagine applicativa finale deve contenere soltanto la parte di servizio e inferenza, con i pesi del modello esportato e i metadati necessari; esclude il codice e le dipendenze dedicati esclusivamente al training. La suite di regressione applicativa viene progettata dopo aver fissato i vincoli di design, prima della ristrutturazione dei container. Le verifiche scientifiche del modello restano un percorso distinto.
 
-**Requisiti confermati dall’utente:** i soli pesi sono necessari ma non sufficienti; il runtime comprende anche definizione della rete, fingerprint, ordine delle label e soglie. Pesi e soglie devono essere esportati in modo coerente con il checkpoint selezionato. Questi due punti sono vincoli acquisiti, non decisioni ancora aperte; resta da definire e verificare la procedura concreta di esportazione.
+**Requisiti confermati dall’utente:** i soli pesi sono necessari ma non sufficienti; il runtime comprende anche definizione della rete, fingerprint, ordine delle label e soglie. Pesi e soglie devono essere esportati in modo coerente con il checkpoint selezionato. Questi due punti sono vincoli acquisiti, non decisioni ancora aperte; la procedura concreta di esportazione è stata verificata in T21-03/T21-09 e viene ulteriormente protetta in T21-10.
 
 Allineare Tox21 ai principi già applicati a Web: build riproducibile, target espliciti, configurazione esterna, identità verificabile, test e smoke test in CI, consegna tracciabile. I repository mantengono versioni e SHA propri. Una consegna coordinata registra entrambi e le rispettive immagini; non impone SHA identici o un’unica versione applicativa.
 
@@ -51,7 +51,7 @@ Questi vincoli sono formalizzati nel [verbale T21-00 con inventario dei test e l
 
 ## Sequenza proposta
 
-**T21-00 completato come analisi e specifica**, con [vincoli e inventario](tox21-design-test-inventory.md). **T21-01 completato come documentazione**, **T21-02 con 54 test applicativi locali**, **T21-03 sul target Linux CPU**, **T21-09 con 99 casi autonomi, 85 runtime-only e riferimento reale esplicito**, **T21-04 con tre immagini e smoke locali**, **T21-05 con CI remota verde sull'esatto SHA**, **T21-06 con proiezioni Web verificate localmente**: esiti e limiti sotto. Nessuna accettazione dell’applicazione distribuita dedotta dalle prove. Le altre voci sono **da fare**. La priorità determina l’ordine di lavoro, non certifica la gravità di un difetto runtime.
+**T21-00 completato come analisi e specifica**, con [vincoli e inventario](tox21-design-test-inventory.md). **T21-01 completato come documentazione**, **T21-02 con 54 test applicativi locali**, **T21-03 sul target Linux CPU**, **T21-09 con 99 casi autonomi, 85 runtime-only e riferimento reale esplicito**, **T21-04 con tre immagini e smoke locali**, **T21-05 con CI remota verde sull'esatto SHA**, **T21-06 con proiezioni Web verificate localmente**: esiti e limiti sotto. Nessuna accettazione dell’applicazione distribuita dedotta dalle prove. T21-07 e T21-08 sono stati successivamente integrati dall’owner nei perimetri documentati. T21-10 affronta ora la correttezza del training sintetico; la valutazione scientifica di un nuovo modello e T21-11 restano aperti. La priorità determina l’ordine di lavoro, non certifica la gravità di un difetto runtime.
 
 | ID | Intervento | Repository responsabile | Dipende da | Priorità |
 | --- | --- | --- | --- | --- |
@@ -202,6 +202,8 @@ Documentare la sostituzione dell’immagine e il ritorno alla precedente coppia 
 
 ### T21-10 — Estensione delle verifiche locali del training
 
+**Prima fase, 7 novembre:** [vincoli, test sintetici e residui](tox21-training-correctness-qa.md) su `feature/T21-10`. 21 test training e 123 test totali passati in ordine normale e inverso; controlli di input, split per righe, label, soglie, early stopping e checkpoint/export. Nessun retraining storico. La valutazione scientifica di un nuovo modello resta una fase separata aperta; il task non è dichiarato interamente concluso con i soli test di correttezza.
+
 **Intervento:** preservare validazione per epoca e valutazione post-training, estendendo prima i test di correttezza della pipeline: split riproducibili e separati, allineamento di label/colonne, gestione di dati invalidi e label senza entrambe le classi, ricerca delle soglie, early stopping e coerenza del checkpoint esportato. Usare dati sintetici piccoli per questi controlli, senza richiedere training completo nei test unitari.
 
 Separatamente, registrare su un nuovo modello le metriche per-label e aggregate su un test set riservato, la procedura di split, seed, configurazione, versioni delle librerie e checkpoint. Tolleranze numeriche e criteri di qualità devono essere motivati prima del confronto; una predizione stabile non dimostra capacità predittiva o validità scientifica. L’eventuale revisione del metodo di split per valutarne la generalizzazione richiede una decisione dedicata, non una modifica opportunistica per migliorare il punteggio.
@@ -219,8 +221,7 @@ sempre sul globale; `disabled`, anche come default del flag omesso, eredita il
 globale. Il secondo stato richiede un JWT effettivamente valido, non soltanto
 presente. Nessun servizio viene disattivato dal valore `disabled`.
 
-**Non implementare durante il task corrente:** T21-07 e la verifica degli
-artefatti restano il lavoro attivo. Nessuna nuova policy auth, key rotation o modifica dei
+**Non implementare durante T21-10:** il controllo granulare resta un incarico successivo da autorizzare. Nessuna nuova policy auth, key rotation o modifica dei
 payload viene introdotta per anticipare T21-11. I formati di configurazione e
 gli input non riconosciuti saranno fissati prima del codice del task futuro.
 
@@ -247,10 +248,11 @@ Checkpoint proposti:
 3. **Consegna ripetibile:** T21-06–T21-07 completati, consumer allineati e manifest con entrambe le identità.
 4. **Accettazione integrata:** T21-08 completato. Deployment della demo resta un incarico successivo nel piano infrastrutturale.
 
-**T21-00–T21-06 e T21-09 completati nel rispettivo perimetro documentato; prossimo intervento T21-07**, identità e consegna coordinata degli artifact. CI Tox21 verificata sull'esatto SHA e proiezioni Web verificate localmente; non equivale ad accettazione integrata. T21-10 estende successivamente la valutazione scientifica locale senza trasferire il training nel runtime. Limiti Windows scientifici, CronJob PostgreSQL, topologia e accettazione operativa restano espliciti nei rispettivi verbali.
-
-Le revisioni delle baseline Tox21 e Web hanno superato i rispettivi gate di
-sicurezza; T21-07 dispone del nuovo bundle ammissibile documentato sopra e
-della CI verde sullo SHA implementativo. Il prossimo passo è l'integrazione
-dei branch da parte dell'owner, poi T21-08. T21-11 è soltanto pianificato:
-il controllo JWT granulare non viene anticipato in questa consegna.
+**Stato attuale, 7 novembre:** T21-00–T21-09 completati e
+integrati dall’owner nei rispettivi perimetri documentati. T21-08 ha verificato
+l’integrazione dei servizi scientifici dagli archivi, non l’intero flusso
+HTTP/browser o un deployment. T21-10 aggiunge la correttezza sintetica del
+training; una nuova valutazione scientifica resta separata e aperta. T21-11 è
+pianificato, senza implementazione implicita. Limiti Windows scientifici,
+CronJob PostgreSQL, PubChem live, test layout intermittente, topologia e
+accettazione operativa rimangono espliciti nei rispettivi verbali.
