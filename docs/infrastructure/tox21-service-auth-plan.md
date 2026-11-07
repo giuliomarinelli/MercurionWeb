@@ -1,4 +1,4 @@
-# T21-11 — Override JWT per singolo servizio (pianificato)
+# T21-11 — Override JWT per singolo servizio
 
 Requisito dell'owner, 7 novembre 2026. Implementazione su `feature/T21-11`
 nei due repository, senza merge. Sono preservati il default globale pubblico,

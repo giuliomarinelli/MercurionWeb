@@ -51,7 +51,7 @@ Questi vincoli sono formalizzati nel [verbale T21-00 con inventario dei test e l
 
 ## Sequenza proposta
 
-**T21-00 completato come analisi e specifica**, con [vincoli e inventario](tox21-design-test-inventory.md). **T21-01 completato come documentazione**, **T21-02 con 54 test applicativi locali**, **T21-03 sul target Linux CPU**, **T21-09 con 99 casi autonomi, 85 runtime-only e riferimento reale esplicito**, **T21-04 con tre immagini e smoke locali**, **T21-05 con CI remota verde sull'esatto SHA**, **T21-06 con proiezioni Web verificate localmente**: esiti e limiti sotto. Nessuna accettazione dell’applicazione distribuita dedotta dalle prove. T21-07 e T21-08 sono stati successivamente integrati dall’owner nei perimetri documentati. T21-10 affronta ora la correttezza del training sintetico; la valutazione scientifica di un nuovo modello e T21-11 restano aperti. La priorità determina l’ordine di lavoro, non certifica la gravità di un difetto runtime.
+**T21-00 completato come analisi e specifica**, con [vincoli e inventario](tox21-design-test-inventory.md). **T21-01 completato come documentazione**, **T21-02 con 54 test applicativi locali**, **T21-03 sul target Linux CPU**, **T21-09 con 99 casi autonomi, 85 runtime-only e riferimento reale esplicito**, **T21-04 con tre immagini e smoke locali**, **T21-05 con CI remota verde sull'esatto SHA**, **T21-06 con proiezioni Web verificate localmente**: esiti e limiti sotto. Nessuna accettazione dell’applicazione distribuita dedotta dalle prove. T21-07 e T21-08 sono stati successivamente integrati dall’owner nei perimetri documentati. T21-10 affronta ora la correttezza del training sintetico; la valutazione scientifica di un nuovo modello resta rinviata; T21-11 è implementato su branch dedicati, da integrare. La priorità determina l’ordine di lavoro, non certifica la gravità di un difetto runtime.
 
 | ID | Intervento | Repository responsabile | Dipende da | Priorità |
 | --- | --- | --- | --- | --- |
@@ -66,7 +66,7 @@ Questi vincoli sono formalizzati nel [verbale T21-00 con inventario dei test e l
 | T21-07 | Identità e consegna coordinata degli artefatti | Tox21 + Web | T21-05, T21-06 | P2 |
 | T21-08 | Accettazione integrata e istruzioni di ripristino | Entrambi, ambiente non produttivo | T21-07 | P2 |
 | T21-10 | Estensione delle verifiche locali del training e della qualità del modello | Tox21 | T21-00, T21-03 | P2 |
-| T21-11 | Override JWT ternario per ciascuno dei cinque servizi | Tox21, compatibilità Web | T21-02, T21-09 | Successivo, solo pianificato |
+| T21-11 | Override JWT ternario per ciascuno dei cinque servizi | Tox21, compatibilità Web | T21-02, T21-09 | Implementato su feature/T21-11, da integrare |
 
 Gli identificativi già assegnati sono conservati: T21-09 precede T21-04 nell’ordine di lavoro; T21-10 è un percorso distinto che non blocca la consegna del runtime. La coerenza checkpoint/soglie resta invece obbligatoria in T21-03. T21-02 e T21-03 sono indipendenti dopo T21-01. Questa dipendenza non prescrive esecuzione concorrente o delega ad agenti. Si propone un intervento focalizzato alla volta.
 
