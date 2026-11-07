@@ -9,16 +9,20 @@ import { DataSource } from 'typeorm'
 import { runInTransaction } from 'src/persistence/transaction-context'
 import { UUID } from 'crypto'
 import { redactSensitive } from 'src/observability/redaction'
+import { ConfigService } from '@nestjs/config'
 
 
 @Injectable()
 export class MeiliLoggerService extends LoggerPort {
+    private readonly indexName: string
 
     constructor(
         private readonly outbox: NotificationOutboxService,
-        private readonly dataSource: DataSource
+        private readonly dataSource: DataSource,
+        config: ConfigService
     ) {
         super()
+        this.indexName = config.getOrThrow<string>('Meilisearch.logIndexes.system')
     }
 
     private async sendToMeili(entry: LogEntry) {
@@ -27,7 +31,7 @@ export class MeiliLoggerService extends LoggerPort {
               await this.outbox.append(manager, {
                   aggregateId: uuidv7() as UUID,
                   eventType: OutboxEventType.LogRecorded,
-                  payload: { indexName: 'logs', document: entry },
+                  payload: { indexName: this.indexName, document: entry },
                   dedupeKey: `log:${entry.id}`,
                   correlationId: entry.id as UUID
               })

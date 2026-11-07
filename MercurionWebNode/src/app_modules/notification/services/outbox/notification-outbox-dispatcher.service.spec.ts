@@ -28,6 +28,40 @@ describe('NotificationOutboxDispatcherService', () => {
   beforeEach(() => jest.clearAllMocks())
   afterEach(() => jest.restoreAllMocks())
 
+  it('delivers the index recorded by the producer, including environment-scoped logs and ordinary upserts', async () => {
+    const registry = new OutboxConsumerRegistry()
+    const addDocuments = jest.fn().mockResolvedValue({ taskUid: 1 })
+    const index = jest.fn().mockReturnValue({ addDocuments })
+    const service = new NotificationOutboxDispatcherService(
+      {} as DataSource, mailer, { index } as unknown as MeiliSearch, registry,
+      { claimBatch: jest.fn().mockResolvedValue([]) } as unknown as OutboxRepository,
+      new OutboxMetricsService(), realtimePublisher, loggerFactory
+    )
+    jest.spyOn(global, 'setInterval').mockReturnValue({} as ReturnType<typeof setInterval>)
+    jest.spyOn(global, 'clearInterval').mockImplementation()
+    try {
+      await service.onModuleInit()
+      for (const [eventType, indexName] of [
+        [OutboxEventType.LogRecorded, 'logs_staging'],
+        [OutboxEventType.SecurityAuditRecorded, 'security_logs_production'],
+        [OutboxEventType.MeilisearchUpsert, 'molecules']
+      ]) {
+        const document = { id: 'synthetic-event' }
+        const consumer = registry.resolve(eventType, 1)!
+        await consumer({
+          id: '018f0f12-3d4c-7abc-8def-0123456789aa', eventType, version: 1,
+          aggregateId: '018f0f12-3d4c-7abc-8def-0123456789ab', correlationId: null, causationId: null,
+          payload: { indexName, document }, occurredAt: '1', createdAt: '1', availableAt: '1',
+          attemptCount: 0, state: 'pending', claimedAt: null, claimedBy: null, processedAt: null, lastError: null
+        })
+        expect(index).toHaveBeenLastCalledWith(indexName)
+        expect(addDocuments).toHaveBeenLastCalledWith([document], { primaryKey: 'id' })
+      }
+    } finally {
+      await service.onModuleDestroy()
+    }
+  })
+
   it('fails bootstrap before scheduling polling when the shared repository is unavailable', async () => {
     const failure = new Error('relation "outbox_events" does not exist')
     const outbox = {

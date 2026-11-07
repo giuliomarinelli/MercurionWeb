@@ -149,5 +149,6 @@ Coordinated artifact delivery and integrated acceptance remain in the
 - [Data project](MercurionData/README.md)
 - [Landing factory](MercurionLandingFactory/README.md)
 - [Configuration reference](docs/configuration.md)
+- [Environment-specific system logs and security audits](docs/meilisearch-log-indices.md)
 - [Autonomous-development protocol](docs/autonomous-development/README.md)
 - [Runtime topology](docs/autonomous-development/RUNTIME.md)

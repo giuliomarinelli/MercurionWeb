@@ -7,8 +7,7 @@ import { NotificationOutboxService } from 'src/app_modules/notification/services
 import { OutboxEventType } from 'src/app_modules/notification/models/enums/outbox-event-type.enum'
 import { DataSource } from 'typeorm'
 import { TransactionContext, runInTransaction, transactionManager } from 'src/persistence/transaction-context'
-
-const INDEX_NAME = 'security_logs'
+import { ConfigService } from '@nestjs/config'
 
 export type SecurityAuditEventType =
   | 'PASSWORD_CHANGED'
@@ -42,10 +41,14 @@ interface BaseOptions {
  */
 @Injectable()
 export class SecurityAuditService {
+  private readonly indexName: string
   constructor(
     private readonly outbox: NotificationOutboxService,
-    private readonly dataSource: DataSource
-  ) {}
+    private readonly dataSource: DataSource,
+    config: ConfigService
+  ) {
+    this.indexName = config.getOrThrow<string>('Meilisearch.logIndexes.security')
+  }
 
   private buildEvent(
     userId: UUID,
@@ -68,7 +71,7 @@ export class SecurityAuditService {
       await this.outbox.append(manager, {
         aggregateId: event.userId,
         eventType: OutboxEventType.SecurityAuditRecorded,
-        payload: { indexName: INDEX_NAME, document: event },
+        payload: { indexName: this.indexName, document: event },
         dedupeKey: `security-audit:${event.id}`,
         correlationId: event.id as UUID
       })
