@@ -172,6 +172,8 @@ Allineare variabili e namespace ai contratti T21-02. Inventariare Compose e mani
 
 ### T21-07 — Identità e consegna
 
+**Consegna locale, 7 novembre:** [tre archivi reali e manifest coordinato](tox21-coordinated-delivery-qa.md) prodotti su `feature/T21-DELIVERY`, che recupera il coordinatore del vecchio branch Web T21-07. Nessun componente mancante, ma immagini Web bloccate dalla policy: tre occorrenze critiche frontend e cinque backend. Tox21 ha zero criticità. T21-07 non è ancora approvato per T21-08; serve una revisione mirata della baseline runtime Web, senza derogare alla policy. Nessun merge o deployment eseguito.
+
 **Seguito baseline, 7 novembre:** [revisione OS/Python/Pillow verificata](tox21-security-baseline-qa.md).
 Sul branch Tox21 `feature/T21-BASELINE`, SHA `56d1b4e12ddcfa45b440280e025dac46f7ca2034`,
 la CI e il Required gate sono verdi: production ha zero criticità bloccanti,
@@ -213,8 +215,8 @@ sempre sul globale; `disabled`, anche come default del flag omesso, eredita il
 globale. Il secondo stato richiede un JWT effettivamente valido, non soltanto
 presente. Nessun servizio viene disattivato dal valore `disabled`.
 
-**Non implementare durante il task corrente:** la baseline OS/Python/Pillow
-resta il lavoro attivo. Nessuna nuova policy auth, key rotation o modifica dei
+**Non implementare durante il task corrente:** T21-07 e la verifica degli
+artefatti restano il lavoro attivo. Nessuna nuova policy auth, key rotation o modifica dei
 payload viene introdotta per anticipare T21-11. I formati di configurazione e
 gli input non riconosciuti saranno fissati prima del codice del task futuro.
 
@@ -245,5 +247,5 @@ Checkpoint proposti:
 
 La revisione dedicata della baseline Tox21 ha superato il gate di sicurezza
 come documentato sopra. Il prossimo lavoro eseguibile resta completare T21-07
-(vere immagini Web e manifest coordinato), poi T21-08. T21-11 è soltanto
+(rimuovere il blocco della baseline Web e rigenerare il manifest), poi T21-08. T21-11 è soltanto
 pianificato: il controllo JWT granulare non viene anticipato in questa consegna.
