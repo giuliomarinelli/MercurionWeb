@@ -1,5 +1,10 @@
 # T21-07 — Consegna coordinata, 7 novembre 2026
 
+**Seguito:** il blocco descritto in questo verbale storico è risolto dalla
+[baseline runtime Web e dal nuovo bundle](web-runtime-baseline-qa.md).
+Il bundle precedente qui sotto rimane immutato e non ammissibile; non
+sostituire le sue identità con quelle del nuovo candidato.
+
 **Esito: tre archivi reali prodotti, consegna bloccata dalla policy di sicurezza
 delle immagini Web.** Nessun merge, pubblicazione o deployment. Il manifest
 non autorizza ancora T21-08.

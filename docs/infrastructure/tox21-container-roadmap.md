@@ -172,6 +172,8 @@ Allineare variabili e namespace ai contratti T21-02. Inventariare Compose e mani
 
 ### T21-07 — Identità e consegna
 
+**Baseline Web e nuovo candidato, 7 novembre:** [verbale e checksum](web-runtime-baseline-qa.md) su `feature/T21-WEB-BASELINE`, discendente da Web T21-BASELINE e T21-DELIVERY. Runtime fissati per digest, npm/Yarn esclusi dal backend, copia delle dipendenze workspace corretta. Nuovi archivi Web dallo SHA `c02ac848d3aaebdb5e3b85022dd2eeba2592bc9b`: zero criticità; archivio Tox21 verificato riutilizzato senza modifiche. Manifest completo e ammissibile (`eligible_for_integrated_acceptance: true`), nessun deployment. La CI completa sullo SHA implementativo `c02ac848d3aaebdb5e3b85022dd2eeba2592bc9b` è verde, incluso Required gate e tutti i sei target. L'integrazione rimane all'owner. T21-08 è il passo successivo di accettazione separata.
+
 **Consegna locale, 7 novembre:** [tre archivi reali e manifest coordinato](tox21-coordinated-delivery-qa.md) prodotti su `feature/T21-DELIVERY`, che recupera il coordinatore del vecchio branch Web T21-07. Nessun componente mancante, ma immagini Web bloccate dalla policy: tre occorrenze critiche frontend e cinque backend. Tox21 ha zero criticità. T21-07 non è ancora approvato per T21-08; serve una revisione mirata della baseline runtime Web, senza derogare alla policy. Nessun merge o deployment eseguito.
 
 **Seguito baseline, 7 novembre:** [revisione OS/Python/Pillow verificata](tox21-security-baseline-qa.md).
@@ -245,7 +247,8 @@ Checkpoint proposti:
 
 **T21-00–T21-06 e T21-09 completati nel rispettivo perimetro documentato; prossimo intervento T21-07**, identità e consegna coordinata degli artifact. CI Tox21 verificata sull'esatto SHA e proiezioni Web verificate localmente; non equivale ad accettazione integrata. T21-10 estende successivamente la valutazione scientifica locale senza trasferire il training nel runtime. Limiti Windows scientifici, CronJob PostgreSQL, topologia e accettazione operativa restano espliciti nei rispettivi verbali.
 
-La revisione dedicata della baseline Tox21 ha superato il gate di sicurezza
-come documentato sopra. Il prossimo lavoro eseguibile resta completare T21-07
-(rimuovere il blocco della baseline Web e rigenerare il manifest), poi T21-08. T21-11 è soltanto
-pianificato: il controllo JWT granulare non viene anticipato in questa consegna.
+Le revisioni delle baseline Tox21 e Web hanno superato i rispettivi gate di
+sicurezza; T21-07 dispone del nuovo bundle ammissibile documentato sopra e
+della CI verde sullo SHA implementativo. Il prossimo passo è l'integrazione
+dei branch da parte dell'owner, poi T21-08. T21-11 è soltanto pianificato:
+il controllo JWT granulare non viene anticipato in questa consegna.

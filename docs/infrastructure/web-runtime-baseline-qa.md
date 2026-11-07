@@ -64,5 +64,81 @@ Tox21 già verificato, conservando le sue identità e il pacchetto modello.
 
 L'ammissibilità del manifest non equivale a T21-08 o a un deployment. Servizi
 personali e repository sibling restano invariati; i container posseduti dalle
-prove vengono rimossi. Risultati ed eventuali residui saranno registrati dopo
-le verifiche effettive.
+prove vengono rimossi. Risultati e residui sono registrati di seguito.
+
+## Risultati sugli artefatti reali
+
+Immagini production costruite da un `git archive` pulito dello SHA
+`c02ac848d3aaebdb5e3b85022dd2eeba2592bc9b`, versione Web `1.0.0`, Linux amd64.
+I tentativi intermedi non sono componenti del bundle finale. Il commit seguente
+del verbale non cambia Dockerfile, audit o applicazione contenuti in questo SHA.
+
+Bundle esterno al repository:
+`C:/Users/giuli/.codex/artifacts/t21-web-baseline-c02ac848/bundle/`.
+
+| Componente | Byte archivio | Config digest SHA-256 | Critiche / alte / medie / basse |
+| --- | ---: | --- | --- |
+| web-ng | 86.912.512 | `aa070b6c8082c498ccb169dcf7c3d9d506834f84fe6d858d2ccf75a25f82f95e` | 0 / 0 / 1 / 0 |
+| web-node | 131.801.600 | `c84b91246cc6398814ca509fd83a285926c330711a4053a3ce21212c0598444d` | 0 / 9 / 17 / 6 |
+| tox21 | 370.035.712 | `31a6742450d5c881d3aa4e9207413309ffbbeba84a38a2a6368b527bc16dea5e` | 0 / 52 / 78 / 63 |
+
+Checksum SHA-256 degli archivi:
+
+- web-ng: `ab8cf7823993521b1f6bb75a44d94f2b67ef2af71ba48e0c723a4d1b26223e80`;
+- web-node: `6977519f9843676149e0657005c0b8eb9d4605f4bb8a1aa82203825a98b59049`;
+- tox21: `757b8bd90ffc02e23aa37c1f8a2f761bbb58aa4813dd9e6b47231f18d366db0c`.
+
+I due exporter hanno restituito exit 0, con audit, SBOM CycloneDX, scan raw,
+policy invariata, caricamento dell'archivio e verifica di label/layer riusciti.
+Nginx risponde su loopback nel container senza porte host; versione/SHA
+compilati coincidono con le label. Backend: sei moduli caricati, inclusi Argon2
+e `jose`, package manager assenti, nessun bootstrap Nest con servizi reali.
+
+Tox21 è una copia esatta del precedente archivio verificato, con tutti i file
+vincolati dal record: sorgente `56d1b4e12ddcfa45b440280e025dac46f7ca2034`,
+modello QA `qa-6f19c86`, pesi/soglie e metadati immutati. Non è una nuova build
+o un nuovo scan Tox21. Il sibling non viene modificato.
+
+Il coordinatore ha verificato checksum, label, identità di modello, SBOM e
+verdetti dei tre componenti, restituendo exit 0 e:
+
+```json
+{
+  "missing_components": [],
+  "blocked_components": [],
+  "eligible_for_integrated_acceptance": true,
+  "deployed": false
+}
+```
+
+Lo scan riguarda il filesystem finale visibile delle immagini: rimuovere npm
+non equivale a riscrivere i layer della base. Restano finding non critici,
+nessuna eccezione alla policy è introdotta e non viene attestata l'assenza di
+ogni vulnerabilità. Il load usa il daemon esistente, non un host vuoto.
+
+## Evidenze CI e limiti
+
+[Run 42356313442](https://github.com/giuliomarinelli/MercurionWeb/actions/runs/42356313442)
+è riferito allo SHA implementativo `c02ac848d3aaebdb5e3b85022dd2eeba2592bc9b`.
+**Run concluso con successo, incluso Required gate:** prerequisiti su
+Windows/Linux, tutte le suite unit Angular/Nest, E2E Nest, build, percorsi
+browser e supply-chain/attestation verdi. L'attestazione CI riguarda il suo
+manifest supply-chain, non firma implicitamente il bundle Docker locale.
+I sei target container sono verdi, inclusi i nuovi cinque test di inventario;
+le due immagini production superano policy ed exporter. Artifact
+`delivery-angular-production`, `delivery-nest-production` e
+`container-nest-production-supply-chain` scaricati e ispezionati.
+L'inventario backend conferma 54 dipendenze production, otto file richiesti,
+sei moduli caricati e package manager assenti. Nei report CI non sono
+pubblicati gli archivi Docker; le cardinalità dei finding corrispondono alle
+prove locali. L'identità delle immagini CI è ricostruita dal relativo SHA,
+non viene confusa con il config digest delle build locali.
+
+Gli undici test del coordinatore e i cinque test dell'inventario passano
+anche localmente. Nessun `npm ci` o aggregato CI eseguito sull'host: le
+installazioni pulite appartengono alle build Docker e a GitHub Actions.
+
+Nessuna pubblicazione in registry, configurazione di segreti, prova integrata
+Web → NATS → Tox21 o distribuzione è stata eseguita. T21-08 resta il passo
+di accettazione separato. L'integrazione Git rimane all'owner; questo branch
+contiene per discendenza anche `feature/T21-BASELINE` e `feature/T21-DELIVERY`.
