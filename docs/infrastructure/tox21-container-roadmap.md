@@ -255,6 +255,9 @@ integrati dall’owner nei rispettivi perimetri documentati. T21-08 ha verificat
 l’integrazione dei servizi scientifici dagli archivi, non l’intero flusso
 HTTP/browser o un deployment. T21-10 aggiunge la correttezza sintetica del
 training; una nuova valutazione scientifica resta separata e aperta. T21-11 è
-implementato su branch dedicati con autorizzazione esplicita; integrazione all’owner. Limiti Windows scientifici,
-CronJob PostgreSQL, PubChem live, test layout intermittente, topologia e
+integrato dall’owner nei due repository.
+Il [test layout intermittente](../../MercurionWebNg/docs/portfolio-ux/HOME-LAYOUT-QA.md)
+è stato affrontato separatamente con riproduzione della race dei font e
+sincronizzazione delle misure, mantenendo le asserzioni. Limiti Windows scientifici,
+CronJob PostgreSQL, PubChem live, topologia e
 accettazione operativa rimangono espliciti nei rispettivi verbali.

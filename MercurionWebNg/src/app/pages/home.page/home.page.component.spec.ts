@@ -159,9 +159,18 @@ describe('HomePageComponent', () => {
         doc.body.appendChild(fixture.nativeElement)
         const main = doc.querySelector('main')!
         const links = Array.from(main.querySelectorAll('a'))
+        const animations = main.getAnimations({ subtree: true })
+        // Keep the first animation frame while the iframe loads its own fonts.
+        // Otherwise font swapping can change line wrapping between measurements.
+        for (const animation of animations) {
+          animation.pause()
+          animation.currentTime = 0
+        }
+        main.getBoundingClientRect() // Resolve styles/layout and discover used fonts before awaiting ready.
+        await doc.fonts.ready
         const bounds = links.map(link => link.getBoundingClientRect())
-        for (const animation of main.getAnimations({ subtree: true })) animation.finish()
-        await new Promise<void>(resolve => requestAnimationFrame(() => resolve()))
+        for (const animation of animations) animation.finish()
+        await new Promise<void>(resolve => frame.contentWindow!.requestAnimationFrame(() => resolve()))
         expect(doc.documentElement.scrollWidth).toBeLessThanOrEqual(doc.documentElement.clientWidth)
         links.forEach((link, index) => {
           const rect = link.getBoundingClientRect()
