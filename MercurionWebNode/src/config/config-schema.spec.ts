@@ -47,6 +47,12 @@ function typescriptFiles(directory: string): string[] {
 }
 
 describe('canonical configuration schema', () => {
+  it.each(Object.values(Environment))('isolates both log indexes by APP_ENV=%s, not NODE_ENV', appEnv => {
+    const environment = { ...fullEnvironment(), APP_ENV: appEnv, NODE_ENV: 'production' as const }
+    const meili = configurationBuilders[ConfigKey.Meilisearch](environment)
+    expect(meili.logIndexes).toEqual({ system: `logs_${appEnv}`, security: `security_logs_${appEnv}` })
+  })
+
   it('supports an alphanumeric SMS sender without requiring a Twilio phone number', () => {
     const raw: RawEnvironment = Object.fromEntries(
       environmentSchema.entries.map(property => [property.source, rawExample(property)])

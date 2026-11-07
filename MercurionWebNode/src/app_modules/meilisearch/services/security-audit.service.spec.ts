@@ -2,12 +2,14 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { SecurityAuditService } from './security-audit.service'
 import { NotificationOutboxService } from 'src/app_modules/notification/services/outbox/notification-outbox.service'
 import { DataSource } from 'typeorm'
+import { createTestConfigurationModule } from 'src/test-utils/configuration'
 
 describe('SecurityAuditService', () => {
   let service: SecurityAuditService
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [createTestConfigurationModule()],
       providers: [
         SecurityAuditService,
         { provide: NotificationOutboxService, useValue: {} },

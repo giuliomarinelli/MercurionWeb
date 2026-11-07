@@ -198,7 +198,11 @@ export const configurationBuilders = {
 
     [ConfigKey.Meilisearch]: (environment: ValidatedEnvironment) => ({
         host: environment.MEILISEARCH_HOST,
-        masterKey: environment.MEILISEARCH_MASTER_KEY
+        masterKey: environment.MEILISEARCH_MASTER_KEY,
+        logIndexes: {
+            system: `logs_${environment.APP_ENV}`,
+            security: `security_logs_${environment.APP_ENV}`
+        }
     }),
 
     [ConfigKey.Cloudflare]: (environment: ValidatedEnvironment) => ({
