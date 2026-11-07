@@ -151,3 +151,16 @@ nessun risultato invalido è contato come successo. Evidenze locali:
 Esecuzione Ubuntu ancora a cura dell'operatore per SSH/sudo interattivi.
 [Procedura e limiti](NETWORK-PROBES.md). INF-VM-02 resta aperto; nessuna prova
 LAN, IPv6, origine alternativa o egress Internet dichiarata da questa preparazione.
+
+### Correzione wrapper H-04 dopo esecuzione operatore
+
+Il trasferimento operatore è riuscito, ma il wrapper è fallito al binding di
+`Tee-Object`: `-FilePath` e `-Variable` appartengono a parameter set alternativi.
+Il precedente `-ValidateOnly` non eseguiva quel ramo e non poteva rilevarlo.
+Separati i due impieghi in pipeline. Riprodotto il difetto con l'intero wrapper
+in Windows PowerShell 5.1 e poi verificata la correzione con lo stesso fixture:
+SSH/SCP/Docker simulati, listener canary reale, trascrizione e report coerenti,
+chiusura con controllo positivo finale. Fixture locale `test_h04_wrapper.ps1`;
+questo non è un test della VM. Il listener del tentativo reale
+`h04-ipv4-0b1fa3c004c5448c8ad33a56ba2376d2` risulta chiuso normalmente nel
+report host; nessun risultato guest acquisito, H-04 resta non verificato.

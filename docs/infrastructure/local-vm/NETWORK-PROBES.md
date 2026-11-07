@@ -80,8 +80,9 @@ L'operatore inserisce passphrase SSH e password sudo soltanto nel proprio
 terminale. Il wrapper esporta da Docker Desktop l'immagine Python già locale
 `python:3.11-slim-trixie`, identificata da
 `sha256:65bd3d9f1d7fa268dd1909973ba7eb4bdf41f6dcf2cfbe76ba9528b170f3fd79`;
-non esegue pull. Archivio di circa 187 MB non compressi: serve spazio libero
-su host e guest. Trasferisce archivio e script, avvia un nuovo canary Windows
+non esegue pull. Dimensione immagine riportata da Docker circa 187 MB; archivio
+trasferito nella prova operatore circa 46 MB. Serve spazio libero su host e
+guest. Trasferisce archivio e script, avvia un nuovo canary Windows
 sul solo Default Switch per massimo 600 secondi e invia la configurazione.
 SCP e SSH sono invocazioni separate gestite dallo script.
 

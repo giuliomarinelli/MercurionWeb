@@ -63,7 +63,8 @@ try {
     Write-Output 'Avvio su Ubuntu: passphrase SSH e, se richiesta, password sudo nel terminale.'
     $taskCommand = 'sudo python3 ~/' + $taskRemoteDirectory + '/probe_container_isolation.py --directory ~/' + $taskRemoteDirectory
     & $taskSsh -t -o StrictHostKeyChecking=yes mercurion-server $taskCommand |
-        Tee-Object -FilePath (Join-Path $taskRun 'guest-terminal.txt') -Variable taskLines
+        Tee-Object -FilePath (Join-Path $taskRun 'guest-terminal.txt') |
+        Tee-Object -Variable taskLines
     $taskSshExit = $LASTEXITCODE
     $taskResultLines = @($taskLines | Where-Object { $_ -match '^INF_VM_02_H04_RESULT ' })
     if ($taskResultLines.Count -ne 1) { throw 'Report guest assente o ambiguo; vedere guest-terminal.txt.' }
