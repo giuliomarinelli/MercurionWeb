@@ -17,6 +17,7 @@ La VM può rimanere spenta; preview può essere arrestato indipendentemente dall
 | --- | --- |
 | [CURRENT-STATE.md](CURRENT-STATE.md) | Stato effettivamente osservato, riferimenti ai sorgenti e lacune |
 | [HOST-GUEST-READINESS.md](HOST-GUEST-READINESS.md) | Inventari INF-VM-02, baseline guest e prove di isolamento ancora aperte |
+| [NETWORK-PROBES.md](NETWORK-PROBES.md) | Canary temporaneo e controlli positivi per le prove negative TCP |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Componenti, ingressi, flussi applicativi e confini |
 | [NETWORK-TOPOLOGY.md](NETWORK-TOPOLOGY.md) | Reti Docker, collegamenti permessi, isolamento e SSH |
 | [SECURITY-AND-SECRETS.md](SECURITY-AND-SECRETS.md) | Identità, privilegi, segreti e bootstrap |

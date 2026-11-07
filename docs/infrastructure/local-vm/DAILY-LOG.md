@@ -95,3 +95,18 @@ preservati senza interrogare VM. Parser PowerShell e link documentali passati.
 senza ripetere l'inventario guest. Successivamente le prove host/guest/container
 con canary e controllo positivo previste da H-02/H-04/H-05. Nessuna installazione,
 modifica firewall, sblocco automatico o riavvio introdotto dalla review.
+
+### Preparazione delle prove negative TCP
+
+Preparati `network_canary.py`, relativi test e [runbook](NETWORK-PROBES.md).
+Il canary ha finestra limitata, indirizzo esplicito, porta assegnata dal sistema,
+identificatore pubblico e controlli positivi locali periodici. Il client
+distingue raggiungibilità, porta non raggiungibile e servizio inatteso senza
+promuovere alcun risultato a `isolationAccepted=true`.
+
+Due metodi di test passati su loopback IPv4 e IPv6: server reale, marker
+corretto/errato, chiusura automatica, successiva non raggiungibilità e rifiuto
+dei target non ammessi. Nessun listener avviato sull'interfaccia VM durante
+la preparazione; nessuna immagine scaricata sul guest o modifica di regole.
+Probe Hyper-V non ancora eseguite. Export mirato ACL richiesto all'owner con
+percorso assoluto dopo errore di trascrizione del percorso di output.
