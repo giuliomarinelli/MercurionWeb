@@ -1,6 +1,8 @@
 # Topologia e matrice delle reti Docker
 
-**Stato:** disegno proposto e concordato; non applicato alla VM. La topologia non sostituisce il firewall Hyper-V/guest.
+**Stato:** disegno proposto e concordato; base Compose fixture preparata e validata
+staticamente in [deployment/local-vm](../../../deployment/local-vm/README.md),
+non applicata alla VM. La topologia non sostituisce il firewall Hyper-V/guest.
 
 ## Reti di progetto
 
@@ -22,7 +24,11 @@
 
 `preview` è l'etichetta di distribuzione dell'ambiente che conserva `APP_ENV=staging` e `PY_ENV=staging`. I network `stg_*` non autorizzano un terzo ambiente runtime.
 
-I nomi precisi sono candidati stabili per Compose; il proprietario di ogni rete e le dichiarazioni `external: true` vanno definiti durante l'implementazione. Meilisearch e nginx-edge appartengono a `shared`, ma partecipano a reti degli ambienti senza fungere da bridge/router L3 tra esse.
+Nella base statica shared possiede le sette reti trasversali (edge, tunnel
+egress, web/search dei due ambienti e admin UI). Preview/production consumano
+web/search con `external: true` e possiedono ciascuno data/bus/egress: nessuna
+dipendenza circolare nella creazione. Bootstrap operativo ancora da validare.
+Meilisearch e nginx-edge appartengono a shared e non fungono da router L3.
 
 ## Connessioni ammesse e vietate
 

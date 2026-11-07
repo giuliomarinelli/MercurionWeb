@@ -33,6 +33,12 @@ Preparare Docker Engine e plugin Compose su Ubuntu, amministrazione SSH a chiave
 ## INF-VM-03 — Compose base e reti senza applicazioni reali
 
 **Dipende da:** INF-VM-02.  
+**Eccezione circoscritta autorizzata dall'owner, 7 novembre:** anticipata la sola
+preparazione statica locale. Tre manifest fixture e validator disponibili in
+[deployment/local-vm](../../../deployment/local-vm/README.md), senza avvio VM.
+Sintassi e 11 casi negativi locali passati; INF-VM-02 e matrice runtime restano
+aperti. INF-VM-03 non è dichiarato completato.
+
 Definire directory `shared`, `preview`, `production`; reti esterne, alias, `internal`, `egress`, volumi e confini. Evitare un solo Compose con molti flag. Iniziare con probe/fixture non sensibili.
 
 **Accettazione:** `docker compose config` valido e matrice delle comunicazioni positive/negative verificata. Nessun servizio host pubblicato eccetto gli endpoint loopback operativi autorizzati.

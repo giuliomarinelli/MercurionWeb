@@ -258,3 +258,20 @@ L'owner conferma che Android non ha app terminale/server. Documentata la propost
 di anticipare soltanto manifest e validazione statica INF-VM-03, mantenendo il
 gate di avvio VM e i residui INF-VM-02 aperti; in alternativa predisporre Android
 per le prove. Scelta da autorizzare esplicitamente, nessuna opzione applicata.
+
+### INF-VM-03 — anticipo statico autorizzato e preparato
+
+L'owner sceglie «Anticipa i manifest locali; prove residue aperte». Registrata
+l'eccezione limitata: manifest e controlli locali, nessun avvio/trasferimento VM
+né chiusura di INF-VM-02. Creati tre progetti in `deployment/local-vm/`, con
+16 ruoli fixture inerti, 13 reti distinte e 7 volumi. Shared possiede le reti
+trasversali; ambienti proprietari delle rispettive data/bus/egress e volumi.
+Alias qualificati per ambiente, nessuna porta pubblicata o secret operativo.
+
+Validator dedicato esegue soltanto Compose config con env vuoto tracciato e
+confronta porte/identità runtime con schema e overlay canonici. Tre config validi
+con Compose host 5.6.1; 11 mutazioni negative respinte. Gate canonico deployment
+e relativi test negativi passati. Nessun install/build/pull/create/up, processo
+applicativo o risorsa Docker avviati. Il modello statico non dimostra DNS o
+isolamento runtime: fase INF-VM-03 ancora parziale.
+[Perimetro e comando ripetibile](../../../deployment/local-vm/README.md).

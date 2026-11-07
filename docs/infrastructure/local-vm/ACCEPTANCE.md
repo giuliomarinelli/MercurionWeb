@@ -4,7 +4,7 @@
 
 | ID | Categoria | Verifica | Esito attuale |
 | --- | --- | --- | --- |
-| A-01 | Baseline | `docker compose config` di `shared`, `preview` e `production` senza segreti esposti | Non eseguito |
+| A-01 | Baseline | `docker compose config` di `shared`, `preview` e `production` senza segreti esposti | Base fixture: tre config locali validi, 11 casi negativi respinti; configurazione applicativa operativa aperta |
 | A-02 | Reti | DNS, collegamenti web/data/bus/search ammessi su stesso ambiente | Non eseguito |
 | A-03 | Reti negativa | preview non raggiunge PostgreSQL, Redis o NATS production e viceversa | Non eseguito |
 | A-04 | Reti negativa | non sono raggiungibili da LAN/Internet Redis, NATS, Postgres, Meilisearch, UI | Non eseguito |

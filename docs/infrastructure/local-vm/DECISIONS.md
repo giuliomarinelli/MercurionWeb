@@ -30,6 +30,7 @@
 | VM-024 | APERTA | Formato e retention degli artifact di release, canale persistente e modalità di ripristino a freddo |
 | VM-025 | APERTA | Comportamento Tox21 con `require-jwt` per i consumer che non forniscono token, senza modifiche implicite al contratto |
 | VM-026 | APERTA | Eventuali adeguamenti dello schema deployment canonico e validator CI ai nuovi servizi/reti senza interrompere i manifest storici |
+| VM-027 | APPROVATA | Anticipare soltanto manifest e validazione statica INF-VM-03, mantenendo aperti i residui INF-VM-02 e il gate di avvio VM; nessuna installazione su Android o modifica operativa della rete |
 
 ## Confini non negoziabili
 

@@ -4,6 +4,12 @@
 
 ## Inventario di ciò che esiste
 
+**Base statica INF-VM-03:** tre progetti Compose fixture in
+[deployment/local-vm](../../../deployment/local-vm/README.md), 16 ruoli inerti,
+13 reti e 7 volumi. Validazione locale e 11 casi negativi passati con Compose
+5.6.1 host. Nessun avvio, risorsa Docker creata o trasferimento VM: anticipo
+statico autorizzato dall'owner, con gate operativo INF-VM-02 ancora aperto.
+
 **Aggiornamento INF-VM-02, 7 novembre:** la VM non è più soltanto un'ipotesi.
 Inventario guest eseguito dall'owner: Ubuntu 26.04.1 LTS, Docker Engine 29.9.3,
 Compose 5.7.0, SSH public-key-only senza root login, nessun container/porta Docker

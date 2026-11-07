@@ -1,5 +1,10 @@
 # Deployment environments
 
+The [local VM Compose fixture projection](local-vm/README.md) is a separate,
+statically validated INF-VM-03 work in progress. It preserves preview/staging
+identity; it is not an application deployment or an alternative source of
+runtime secrets and images.
+
 `deployment-schema.json` and the files in `overlays/` are the source of truth
 for deployment identity. The shared non-production deployment is **preview**,
 not beta. This is a direct owner decision dated 7 November 2026.

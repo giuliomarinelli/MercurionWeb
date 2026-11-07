@@ -1,0 +1,89 @@
+# INF-VM-03 topology fixtures; preview is staging at application runtime.
+name: mercurion-preview
+
+x-fixture: &fixture
+  image: python@sha256:65bd3d9f1d7fa268dd1909973ba7eb4bdf41f6dcf2cfbe76ba9528b170f3fd79
+  entrypoint: [python]
+  command: [-B, -c, "import time; time.sleep(600)"]
+  profiles: [topology-fixture]
+  pull_policy: never
+  user: '65534:65534'
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  mem_limit: 64m
+  cpus: 0.25
+  pids_limit: 32
+  restart: 'no'
+
+services:
+  web-ng-preview:
+    <<: *fixture
+    x-mercurion-canonical-service: web-ng
+    environment: {NODE_ENV: production, APP_ENV: staging}
+    expose: ['3497']
+    networks:
+      web: {aliases: [web-ng-preview]}
+  web-node-preview:
+    <<: *fixture
+    x-mercurion-canonical-service: web-node
+    environment: {NODE_ENV: production, APP_ENV: staging, APP_PORT: '8098', APP_HOST: 0.0.0.0}
+    expose: ['8098']
+    networks:
+      web: {aliases: [web-node-preview]}
+      data: {}
+      bus: {}
+      search: {}
+      egress: {}
+  postgres-preview:
+    <<: *fixture
+    x-mercurion-canonical-service: postgres
+    expose: ['5432']
+    networks: [data]
+    volumes: [postgres-data:/fixture-data]
+  redis-preview:
+    <<: *fixture
+    x-mercurion-canonical-service: redis
+    expose: ['6379']
+    networks: [data]
+    volumes: [redis-data:/fixture-data]
+  nats-preview:
+    <<: *fixture
+    x-mercurion-canonical-service: nats
+    expose: ['4222']
+    networks:
+      bus: {aliases: [nats-preview]}
+    volumes: [nats-data:/fixture-data]
+  tox21-preview:
+    <<: *fixture
+    x-mercurion-canonical-service: tox21
+    environment: {PY_ENV: staging, NATS_URL: 'nats://nats-preview:4222', VERSION: topology-fixture}
+    networks: [bus, egress]
+
+networks:
+  web:
+    name: mercurion_stg_web
+    external: true
+  search:
+    name: mercurion_stg_search
+    external: true
+  data:
+    name: mercurion_stg_data
+    driver: bridge
+    internal: true
+  bus:
+    name: mercurion_stg_bus
+    driver: bridge
+    internal: true
+  egress:
+    name: mercurion_stg_egress
+    driver: bridge
+    internal: false
+
+volumes:
+  postgres-data:
+    name: mercurion_preview_postgres
+  redis-data:
+    name: mercurion_preview_redis
+  nats-data:
+    name: mercurion_preview_nats

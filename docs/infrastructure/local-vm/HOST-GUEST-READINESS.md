@@ -236,9 +236,9 @@ nessuna installazione di app o apertura di porte sull'host è implicita.
 In assenza di un punto di prova utilizzabile conservare i casi come aperti e sottoporre il limite alla review del gate;
 non trasformarli automaticamente in «non applicabile» o in una deroga approvata.
 
-### Proposta di prosecuzione da sottoporre all'owner
+### Prosecuzione statica autorizzata dall'owner
 
-**Non ancora autorizzata:** anticipare la sola preparazione statica di INF-VM-03
+**Autorizzata il 7 novembre 2026:** anticipare la sola preparazione statica di INF-VM-03
 mentre queste verifiche restano aperte. Perimetro concreto: manifest Compose
 separati shared/preview/production, reti e alias coerenti con la specifica,
 placeholder non sensibili e validazione locale della configurazione. Nessun
@@ -246,11 +246,10 @@ placeholder non sensibili e validazione locale della configurazione. Nessun
 o connessione Cloudflare. La validazione statica non chiude INF-VM-02 né prova
 la matrice runtime di INF-VM-03; il gate verso l'avvio VM rimane in sospeso.
 
-Alternativa: mantenere l'ordine originale e predisporre uno strumento di rete
-su Android per le prove LAN/altre origini, verificando prima il percorso reale.
-Questa alternativa comporta un'installazione a cura dell'owner; non è già
-stata richiesta o approvata. Nessuna delle due opzioni autorizza a modificare
-firewall, ACL o topologia.
+L'owner ha scelto «Anticipa i manifest locali; prove residue aperte». Non è
+stata scelta l'alternativa di predisporre Android. Nessuna installazione app,
+modifica firewall/ACL o topologia operativa è autorizzata da questa scelta.
+Manifest fixture e validator: [deployment/local-vm](../../../deployment/local-vm/README.md).
 
 **Gate verso INF-VM-03:** review della policy host/guest e prove pertinenti
 documentate; nessuna dichiarazione di isolamento basata solo sulla sintassi.

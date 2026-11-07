@@ -1,0 +1,72 @@
+# INF-VM-03 topology fixtures only. Runtime on the VM is not authorized.
+name: mercurion-shared
+
+x-fixture: &fixture
+  image: python@sha256:65bd3d9f1d7fa268dd1909973ba7eb4bdf41f6dcf2cfbe76ba9528b170f3fd79
+  entrypoint: [python]
+  command: [-B, -c, "import time; time.sleep(600)"]
+  profiles: [topology-fixture]
+  pull_policy: never
+  user: '65534:65534'
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  mem_limit: 64m
+  cpus: 0.25
+  pids_limit: 32
+  restart: 'no'
+
+services:
+  cloudflared:
+    <<: *fixture
+    networks: [edge, tunnel-egress]
+  nginx-edge:
+    <<: *fixture
+    x-mercurion-canonical-service: nginx
+    networks: [edge, stg-web, prod-web]
+    expose: ['80']
+  meilisearch:
+    <<: *fixture
+    x-mercurion-canonical-service: meilisearch
+    networks: [stg-search, prod-search]
+    expose: ['7700']
+    volumes: [meili-data:/fixture-data]
+  meilisearch-ui:
+    <<: *fixture
+    profiles: [admin-fixture]
+    networks: [admin-ui]
+    expose: ['24900']
+
+networks:
+  edge:
+    name: mercurion_edge
+    driver: bridge
+    internal: true
+  tunnel-egress:
+    name: mercurion_tunnel_egress
+    driver: bridge
+    internal: false
+  stg-web:
+    name: mercurion_stg_web
+    driver: bridge
+    internal: true
+  prod-web:
+    name: mercurion_prod_web
+    driver: bridge
+    internal: true
+  stg-search:
+    name: mercurion_stg_search
+    driver: bridge
+    internal: true
+  prod-search:
+    name: mercurion_prod_search
+    driver: bridge
+    internal: true
+  admin-ui:
+    name: mercurion_admin_ui
+    driver: bridge
+    internal: true
+
+volumes:
+  meili-data:
+    name: mercurion_shared_meili
