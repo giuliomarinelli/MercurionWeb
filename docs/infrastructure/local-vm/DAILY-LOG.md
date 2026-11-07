@@ -315,3 +315,21 @@ all'UID reale, launcher compatibile file → env dentro il container ove necessa
 Ciclo di vita esplicito per pausa, restart, recreate, chiusura e reboot. Proposta
 VM-028 da approvare: nessun helper, modifica app/Compose, provisioning, autenticazione
 o riavvio eseguiti. Verifica documentale dei riferimenti; nessun nuovo test runtime.
+
+### INF-VM-04-B — adattatore Nest file → ambiente opt-in
+
+Implementati lettore JSON limitato e nuovo entrypoint esplicito, lasciando
+main/CMD esistenti invariati. Allowlist dai nomi canonici più RSA legacy,
+ambiente staging/production esplicito, divieto override/variabili di controllo,
+validazione completa prima dell'iniezione, dati letterali senza shell/expansion.
+File regolare, apertura Linux no-follow/non-blocking, permessi e dimensione
+controllati; errori costanti senza contenuti o percorsi. Nessuna eliminazione del
+file attivo, ricevitore privilegiato o modifica a Compose/applicazioni esterne.
+
+34 test Jest Windows passati, uno POSIX saltato; 7 controlli filesystem reali
+su Linux isolato locale con UID 10001 passati (rete disattivata, dati sintetici,
+container terminato/rimosso). Typecheck senza emissione, build Nest e lint mirato
+passati; entrypoint compilato verificato in fail-closed senza file e senza avvio app.
+Nessun avvio Nest, nuova immagine, lettura env/PEM reali o provisioning VM.
+[Contratto, prove e limiti](NEST-SECRET-FILE-ADAPTER.md). INF-VM-04 resta parziale;
+trasporto/ciclo di vita VM-028 e gate operativo restano separati.

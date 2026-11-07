@@ -49,8 +49,9 @@ Definire directory `shared`, `preview`, `production`; reti esterne, alias, `inte
 
 **Dipende da:** INF-VM-03.  
 **Preparazione documentale:** [audit consumer e contratto proposto](BOOTSTRAP-CONTRACT.md)
-disponibili. Nessun provisioning o adapter implementato; trasporto e ciclo di
-vita da approvare. Evidenziati i prerequisiti applicativi auth NATS e separazione
+disponibili. [Adattatore Nest opt-in](NEST-SECRET-FILE-ADAPTER.md) implementato e
+testato su materiale sintetico, senza cambiare l'avvio esistente. Nessun
+provisioning; trasporto e ciclo di vita da approvare. Prerequisiti auth NATS e separazione
 client Meilisearch. L'esecuzione mantiene le dipendenze 02/03 e INF-VM-04 resta aperto.
 
 Progettare/implementare l'iniezione protetta dal password manager Windows al bootstrap VM, secret per ambiente, credenziali Meilisearch, PostgreSQL, Redis, NATS, OAuth, Twilio, cookie, JWT. Preservare nomi legacy compatibili. Rinviare rotazione a caldo.

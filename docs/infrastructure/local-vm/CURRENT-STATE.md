@@ -8,7 +8,9 @@
 con evidenze dei consumer e proposta di consegna effimera. Nest non consuma
 genericamente `_FILE` in staging/prod; Tox21 consuma PEM pubblico. Auth NATS
 non configurata dal consumer Nest e client Meilisearch condiviso sono prerequisiti
-applicativi aperti. Nessun adapter o provisioning VM implementato.
+applicativi aperti. [Adapter Nest opt-in](NEST-SECRET-FILE-ADAPTER.md) disponibile:
+34 test Windows e 7 verifiche Linux isolate passati; lettura POSIX testata con
+UID 10001, nessun bootstrap dell'app/VM o provisioning eseguito.
 
 **Base statica INF-VM-03:** tre progetti Compose fixture in
 [deployment/local-vm](../../../deployment/local-vm/README.md), 16 ruoli sintetici,

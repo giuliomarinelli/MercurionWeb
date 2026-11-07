@@ -1,9 +1,10 @@
 # INF-VM-04 — contratto di bootstrap dei segreti
 
-**7 novembre 2026 — audit sorgenti e proposta operativa, non implementazione.**
-Prosegue la preparazione documentale: INF-VM-02 e runtime INF-VM-03 restano
-aperti. Non sono stati letti env operativi o PEM, generati segreti, modificati
-consumer, creati helper privilegiati o eseguite operazioni sulla VM.
+**7 novembre 2026 — audit e proposta operativa, provisioning non implementato.**
+L'[adattatore consumer Nest opt-in](NEST-SECRET-FILE-ADAPTER.md) è ora implementato
+e testato con dati sintetici; l'avvio esistente resta invariato. INF-VM-02 e
+runtime INF-VM-03 restano aperti. Nessuna lettura di env operativi/PEM, generazione
+di segreti, helper privilegiato o operazione sulla VM.
 
 ## Contratti osservati
 
@@ -69,9 +70,9 @@ e amministratori Docker restano nel confine fidato, non sono esclusi dai segreti
 [Semantica Compose secrets](https://docs.docker.com/compose/how-tos/use-secrets/),
 [limiti delle proprietà dei secrets da file](https://docs.docker.com/reference/compose-file/services/#secrets).
 
-Per Nest è candidato un piccolo launcher che legga file con formato dati
-esplicito, validi una lista chiusa di nomi e avvii Node con i valori nell'ambiente
-del processo figlio. L'implementazione può preservare i contratti legacy, senza
+Per Nest è disponibile un launcher opt-in che legge file con formato dati
+esplicito, valida una lista chiusa di nomi e carica Nest nello stesso processo
+Node dopo averne popolato l'ambiente. Preserva i contratti legacy, senza
 caricare i valori nella configurazione `environment` del Docker Engine.
 Il formato non viene eseguito o valutato come shell: nessun `eval`/sourcing.
 Mount, percorsi e nomi sono metadati; contenuti e valori non devono comparire
@@ -80,7 +81,9 @@ in argv, Compose renderizzato, `Config.Env` di Docker, log o report.
 Questo riduce la persistenza nei metadati Docker, **non** rende invisibile il
 materiale nel processo: memoria e `/proc` restano accessibili secondo i privilegi
 host. Non promettere cancellazione forense della memoria. Il launcher non è
-ancora presente nelle immagini e l'idea non equivale a supporto `_FILE` nativo.
+attivato dal CMD delle immagini: è un entrypoint compilabile separato e non
+equivale a supporto `_FILE` nativo. Dettagli e prove in
+[NEST-SECRET-FILE-ADAPTER](NEST-SECRET-FILE-ADAPTER.md).
 
 | Server | Candidato compatibile | Verifica ancora necessaria |
 | --- | --- | --- |
@@ -97,7 +100,7 @@ Riferimenti: [entrypoint ufficiale PostgreSQL](https://github.com/docker-library
 
 ## Proposta di trasferimento compatibile con SSH e sudo attuali
 
-Un futuro helper host unico gestirà tre passaggi distinti; nessuno esiste ancora:
+Un futuro helper host unico gestirà tre passaggi distinti; non sono implementati:
 
 1. Preparazione guest tramite SSH interattivo e sudo: creare l'area volatile e
    l'inbox privata dell'utente SSH, verificare ownership e spazio. Solo metadati,
@@ -145,7 +148,7 @@ qualsiasi derivato crittografico dai volumi persistenti.
 | Passo | Risultato richiesto |
 | --- | --- |
 | 04-A | Approvare ciclo di vita e trasporto; definire formato dati e permessi senza valori reali |
-| 04-B | Implementare/testare ricevitore e launcher su input sintetici: file mancanti/illeggibili, chiavi inattese, mismatch ambiente, nessun valore in diagnostica |
+| 04-B | Launcher Nest opt-in implementato e testato su dati sintetici; ricevitore/apply privilegiati e integrazione operativa ancora aperti |
 | 04-C | Risolvere auth NATS e separazione client Meilisearch con task applicativi distinti, senza aggirare validatori o allargare privilegi |
 | 04-D | Dopo review del gate VM, provare immagini fissate e restart/recreate con dati sintetici, verificando assenza del marker in argv, metadati Docker e log |
 | 04-E | Solo dopo esiti precedenti, provisioning operativo e prove JWT/RPC/provider con materiali dell'owner |
