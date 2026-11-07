@@ -192,6 +192,8 @@ Definire un manifest di consegna che associ revisioni Web e Tox21, riferimenti d
 
 ### T21-08 — Accettazione integrata
 
+**Esito, 7 novembre:** [accettazione dei servizi scientifici dagli artefatti](tox21-integrated-acceptance-qa.md) riuscita su `feature/T21-08`. Servizi Nest compilati reali → NATS dedicato → worker reale, due round di readiness, inferenza e RDKit, namespace errato, modalità pubblica attuale, SMILES invalidi e validazione PubChem prima del provider. Broker recovery con stessi processi/sessione, stop/start worker, sostituzione e ritorno agli archivi precedenti verificati. Quattro pacchetti modello invalidi respinti al bootstrap; cleanup completo. Nuove immagini dai merge Web `cf9e1043672a4553ddcfad46a32616094f5c8673` e Tox21 `a99754c9e61051036153d3676b7ef5d568b0c1bc`, con stesso pacchetto modello QA e zero criticità bloccanti. Il livello è l'integrazione del componente scientifico: restano distinti bootstrap dell'intera applicazione Web, percorsi REST/GraphQL/browser, provider PubChem live e deployment VM. Nessun merge o modifica Tox21 da questo branch.
+
 **Intervento:** provare in ambiente non produttivo la coppia esatta di artefatti: Web → NATS → Tox21, inferenza e operazioni RDKit. Verificare avvio con configurazione esterna, namespace dell’ambiente, readiness, arresto e riavvio, temporanea indisponibilità NATS e comportamento della modalità auth approvata. Definire cosa accade se modello o soglie sono mancanti/incompatibili.
 
 Documentare la sostituzione dell’immagine e il ritorno alla precedente coppia compatibile, inclusi modello e configurazione. Nessun retraining o alterazione dei dati come effetto collaterale della prova.
