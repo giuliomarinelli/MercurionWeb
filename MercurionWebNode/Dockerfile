@@ -46,9 +46,9 @@ ENV APP_ENV=test
 COPY MercurionWebNg/src/app/graphql/documents/notebook.graphql /workspace/MercurionWebNg/src/app/graphql/documents/notebook.graphql
 COPY docs/architecture/mercurion-beta-deferred-feature-flags.md /workspace/docs/architecture/mercurion-beta-deferred-feature-flags.md
 COPY docker_sl/docker-compose.yml /workspace/docker_sl/docker-compose.yml
-COPY k8s/beta/mercurion-web-ng-deploy.yaml /workspace/k8s/beta/mercurion-web-ng-deploy.yaml
-COPY k8s/beta/mercurion-web-node-deploy.yaml /workspace/k8s/beta/mercurion-web-node-deploy.yaml
-COPY k8s/beta/redis-deploy.yaml /workspace/k8s/beta/redis-deploy.yaml
+COPY k8s/preview/mercurion-web-ng-deploy.yaml /workspace/k8s/preview/mercurion-web-ng-deploy.yaml
+COPY k8s/preview/mercurion-web-node-deploy.yaml /workspace/k8s/preview/mercurion-web-node-deploy.yaml
+COPY k8s/preview/redis-deploy.yaml /workspace/k8s/preview/redis-deploy.yaml
 RUN npm run build && \
   mkdir -p dist/config && \
   cp -R src/config/keys dist/config/keys && \

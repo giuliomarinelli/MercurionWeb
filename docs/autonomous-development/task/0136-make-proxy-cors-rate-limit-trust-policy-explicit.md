@@ -117,7 +117,7 @@ task explicitly forbids guessing these security boundaries.
 `docker_sl/nginx_dev/nginx.prod.conf` documents that production is behind
 Cloudflare and forwards `X-Real-IP`/`X-Forwarded-For`, but declares neither
 Cloudflare source CIDRs nor an approved proxy hop count/trust boundary.
-`k8s/beta/nginx-edge-config.yaml` likewise forwards those headers without a
+`k8s/preview/nginx-edge-config.yaml` likewise forwards those headers without a
 Cloudflare real-IP/trusted-source policy. The only checked-in environment
 example is the development configuration with `APP_CORS_ORIGINS=[]`; no
 staging/production origin allowlist or authoritative production environment

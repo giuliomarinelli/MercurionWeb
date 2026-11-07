@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: mercurion-nginx-edge-config
-  namespace: mercurion-beta
+  namespace: mercurion-preview
 data:
   default.conf: |
     map_hash_bucket_size 256;
@@ -53,7 +53,7 @@ data:
       default 0;
       # quando vorrai spegnerla per un host:
       # mercurion.app 0;
-      # beta.mercurion.app 0;
+      # preview.mercurion.app 0;
     }
 
     # cookie httpOnly admin (settato da /api/admin/maintenance?t=...)

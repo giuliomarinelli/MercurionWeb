@@ -19,10 +19,10 @@ The repository repeats service variables, image names, ports and environment wir
 - `docker_md/docker-compose.yml`
 - `docker_sl/docker-compose.yml`
 - `docker_sl/local-staging/docker-compose.yml`
-- `docker_sl/releases/beta/docker-compose.yml`
+- `docker_sl/releases/preview/docker-compose.yml`
 - `docker_sl/releases/prod/docker-compose.yml`
 - canonical project Dockerfiles from `0208`
-- `k8s/beta/` and `k8s/core/`
+- `k8s/preview/` and `k8s/core/`
 - typed application/environment configuration from `0130`/`0131`
 - service ports, health endpoints and secret references
 - build identity/image metadata from `0214`

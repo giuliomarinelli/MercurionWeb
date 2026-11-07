@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: nats-config
-  namespace: mercurion-beta
+  namespace: mercurion-preview
 data:
   nats.conf: |
     # Limita la dimensione massima dei messaggi (default = 1MB)
@@ -21,7 +21,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: nats-sl
-  namespace: mercurion-beta
+  namespace: mercurion-preview
 spec:
   replicas: 1
   selector:
@@ -59,7 +59,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: nats-sl
-  namespace: mercurion-beta
+  namespace: mercurion-preview
 spec:
   type: ClusterIP
   selector:

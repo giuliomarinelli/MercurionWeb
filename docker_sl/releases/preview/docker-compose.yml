@@ -1,5 +1,5 @@
 services:
-  mercurion_web_ng_beta:
+  mercurion_web_ng_preview:
     build:
       context: ../../..
       dockerfile: MercurionWebNg/Dockerfile
@@ -17,7 +17,7 @@ services:
     cap_drop:
       - ALL
 
-  mercurion_web_node_beta:
+  mercurion_web_node_preview:
     build:
       context: ../../..
       dockerfile: MercurionWebNode/Dockerfile
@@ -35,7 +35,7 @@ services:
     cap_drop:
       - ALL
 
-  mercurion_tox_21_beta:
+  mercurion_tox_21_preview:
     image: ${REGISTRY_IMAGE_MT21:?Set the Tox21 image repository}:${TOX21_VERSION:?Set the Tox21 version}-${TOX21_REVISION:?Set the full Tox21 source SHA}
     environment:
       PY_ENV: staging
@@ -52,7 +52,7 @@ services:
       - ALL
     stop_grace_period: 15s
 
-  nginx_sl_beta:
+  nginx_sl_preview:
     build:
       context: .
       dockerfile: Dockerfile.nginx
@@ -61,11 +61,11 @@ services:
     image: ${REGISTRY_IMAGE_NGINX}:${NGINX_TAG}
 
 
-  pg_sl_beta:
+  pg_sl_preview:
     build:
       context: .
       dockerfile: Dockerfile.postgres
     image: postgres16-pgvector:${PGV_TAG}
-    container_name: pg_sl_beta
+    container_name: pg_sl_preview
 
 
