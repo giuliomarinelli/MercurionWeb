@@ -477,25 +477,6 @@ jobs:
       - name: Smoke-test standalone runtime contract
         run: node scripts/smoke-container-runtime.mjs --image "mercurion-ci-${{ matrix.name }}"
 
-      - name: Export production candidate and enforce image security policy
-        if: ${{ matrix.name == 'angular-production' || matrix.name == 'nest-production' }}
-        env:
-          DELIVERY_COMPONENT: ${{ matrix.name == 'angular-production' && 'web-ng' || 'web-node' }}
-        run: |
-          python3 -B scripts/export-web-container.py --image "mercurion-ci-${{ matrix.name }}" \
-            --component "$DELIVERY_COMPONENT" --revision "$GITHUB_SHA" --version "$BUILD_VERSION" \
-            --output "reports/delivery/$DELIVERY_COMPONENT" --cache "$RUNNER_TEMP/delivery-trivy"
-
-      - name: Upload production delivery diagnostics even on failure
-        if: ${{ always() && (matrix.name == 'angular-production' || matrix.name == 'nest-production') }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: delivery-${{ matrix.name }}
-          if-no-files-found: error
-          path: |
-            reports/delivery/**/*.json
-            reports/delivery/**/*.log
-
       - name: Generate Nest production image SBOM
         if: ${{ matrix.name == 'nest-production' }}
         uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610
@@ -516,6 +497,25 @@ jobs:
           name: container-${{ matrix.name }}-supply-chain
           if-no-files-found: error
           path: reports/containers/${{ matrix.name }}
+
+      - name: Export production candidate and enforce image security policy
+        if: ${{ matrix.name == 'angular-production' || matrix.name == 'nest-production' }}
+        env:
+          DELIVERY_COMPONENT: ${{ matrix.name == 'angular-production' && 'web-ng' || 'web-node' }}
+        run: |
+          python3 -B scripts/export-web-container.py --image "mercurion-ci-${{ matrix.name }}" \
+            --component "$DELIVERY_COMPONENT" --revision "$GITHUB_SHA" --version "$BUILD_VERSION" \
+            --output "reports/delivery/$DELIVERY_COMPONENT" --cache "$RUNNER_TEMP/delivery-trivy"
+
+      - name: Upload production delivery diagnostics even on failure
+        if: ${{ always() && (matrix.name == 'angular-production' || matrix.name == 'nest-production') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: delivery-${{ matrix.name }}
+          if-no-files-found: error
+          path: |
+            reports/delivery/**/*.json
+            reports/delivery/**/*.log
 
       - name: Confirm clean build did not modify tracked files
         run: git diff --exit-code
