@@ -34,6 +34,16 @@ Il server Meilisearch richiede la propria master key **all'avvio** per operare i
 
 `docker compose secrets` con file su Docker Engine standalone non fornisce automaticamente cifratura a riposo. `_FILE` è utilizzabile soltanto dalle immagini o dal codice che lo supportano. La scelta definitiva richiede una prova di bootstrap dei componenti, non soltanto una sintassi Compose.
 
+## Cifratura del guest e sblocco
+
+L'owner dichiara il filesystem già cifrato con LUKS. L'inventario iniziale non
+conteneva l'albero dei block device: verificare il percorso del mount root
+senza leggere chiavi o esportare header LUKS. Lo sblocco dopo un avvio a freddo
+va descritto nel runbook operativo; non abilitare sblocco automatico o riavviare
+per prova senza pianificare console e presenza dell'operatore. La cifratura a
+riposo non sostituisce isolamento di rete né gestione dei segreti a VM sbloccata.
+Vedere [INF-VM-02](HOST-GUEST-READINESS.md).
+
 ## JWT: strategia portfolio approvata
 
 La codebase ha predisposizioni per registro, `kid` e rotazione. **Non implementare come requisito del deployment la rotazione coordinata a caldo.** Per la demo adottare segreti stabili per ambiente/scopo; la loro sostituzione è deliberatamente *breaking* per i JWT già emessi. Il client deve mostrare sessione scaduta/invalidata e chiedere un nuovo login; verificare realmente access token, refresh, WebSocket e sessioni Redis. Non confondere sostituzione JWT con cambio di pepper password, cifratura dei dati, cookie o identificatori Redis: sono contratti distinti.

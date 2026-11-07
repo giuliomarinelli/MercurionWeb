@@ -4,6 +4,14 @@
 
 ## Inventario di ciò che esiste
 
+**Aggiornamento INF-VM-02, 7 novembre:** la VM non è più soltanto un'ipotesi.
+Inventario guest eseguito dall'owner: Ubuntu 26.04.1 LTS, Docker Engine 29.9.3,
+Compose 5.7.0, SSH public-key-only senza root login, nessun container/porta Docker
+pubblicata nello snapshot. ACL Hyper-V, Kaspersky e LUKS dichiarati dall'owner;
+verifica completa di isolamento e cifratura ancora aperta. L'accesso Hyper-V
+dell'agente è negato; l'accesso guest avviene tramite l'operatore, senza fornire
+passphrase alla chat. [Baseline aggiornata e limiti](HOST-GUEST-READINESS.md).
+
 | Componente | Evidenza nel repository | Stato |
 | --- | --- | --- |
 | Ambienti | `deployment/README.md`, `deployment/deployment-schema.json`, `deployment/overlays/{preview,production}.json` | Contratto comune esistente. `preview` è nome del deployment; runtime `APP_ENV=staging` |

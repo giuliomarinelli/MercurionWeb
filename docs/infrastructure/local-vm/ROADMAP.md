@@ -2,7 +2,7 @@
 
 **Stato:** roadmap architetturale. Le fasi rappresentano risultati verificabili, non giorni di lavoro promessi; un blocco può richiedere più sessioni. Seguire [DAILY-LOG.md](DAILY-LOG.md) per esiti e limiti reali.
 
-## INF-VM-01 — Documentazione e contratto (fase corrente)
+## INF-VM-01 — Documentazione e contratto
 
 **Obiettivo:** una specifica comprensibile da sviluppatori/agenti senza inferire decisioni dalle vecchie manifestazioni Kubernetes.
 
@@ -13,6 +13,12 @@
 - **Gate:** review owner; nessuna configurazione futura deve trasformare una `PROPOSTA` in `APPROVATA` senza verifica.
 
 ## INF-VM-02 — Host, guest e confini di rete
+
+**Stato, 7 novembre:** in verifica. Guest già predisposto dall'owner; Ubuntu
+26.04.1, Engine 29.9.3, Compose 5.7.0 e policy SSH acquisiti da inventario
+operatore. Non reinstallare né sostituire switch/regole per ricreare la baseline.
+[Evidenze e gate aperti](HOST-GUEST-READINESS.md): ACL host, nftables/LUKS e
+prove negative ancora da completare. INF-VM-02 non è dichiarato concluso.
 
 **Dipende da:** INF-VM-01.  
 Preparare Docker Engine e plugin Compose su Ubuntu, amministrazione SSH a chiave, policy host↔guest, firewall e regole IPv4/IPv6. Non introdurre bridge fisici della LAN. Definire test negativi dalla VM e dai container verso Windows/LAN e protezione della porta SSH.

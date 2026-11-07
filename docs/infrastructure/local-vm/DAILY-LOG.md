@@ -26,3 +26,43 @@ Roadmap: [ROADMAP.md](ROADMAP.md). Questo diario segue il criterio del [diario U
 **Intervento di questa sessione:** redazione dei documenti architetturali e di accettazione sotto `docs/infrastructure/local-vm/`; aggiornamento dell'indice della vecchia nota VM. Nessuna modifica applicativa, Compose, CI, segreti reali o VM. Nessun test runtime eseguito durante la redazione.
 
 **Prossimo intervento:** review delle decisioni e apertura INF-VM-02 (isolare host/guest) prima di configurare network Docker eseguibili. Le proposte rimangono proposte fino a verifica.
+
+## 7 novembre 2026 — INF-VM-02, ricognizione host e guest
+
+**Stato:** in verifica; nessuna chiusura del gate di isolamento.
+
+**Host osservato dall'agente:** Windows 11 Pro, hypervisor attivo, 24 CPU
+logiche e circa 64 GiB RAM. Le query Hyper-V su VM, switch e ACL sono negate
+senza privilegi amministrativi. Docker Desktop locale e i suoi numeri di
+versione non sono usati come evidenza del guest. Nessuna modifica al servizio
+ssh-agent disabilitato, al Default Switch, al firewall o alle ACL.
+
+**Aggiornamento owner:** VM già pronta, Ubuntu Server e Docker installati,
+isolamento host↔guest già configurato, SSH iniziabile solo dall'host e risposte
+stateful dal guest; Kaspersky classifica il Default Switch come pubblico.
+Cifratura LUKS dichiarata. Queste impostazioni sono registrate come dichiarate
+finché non ne viene acquisita l'evidenza specifica.
+
+**Accesso:** primo tentativo con VM spenta rifiutato; successivo tentativo
+non interattivo raggiunge SSH ma non autentica la chiave bloccata. L'owner sceglie
+di eseguire personalmente l'inventario con SCP/SSH e `sudo`, senza condividere
+passphrase. La trascrizione e il file locale del report confermano Ubuntu
+26.04.1 LTS x86_64, Engine 29.9.3, Compose 5.7.0, policy SSH e stato Docker/rete.
+Timestamp report: 16:25:51 UTC. [Riepilogo, hash e limiti](HOST-GUEST-READINESS.md).
+
+**Lettura:** nessuna porta container pubblicata e nessun container avviato;
+policy SSH globale senza password, keyboard-interactive o root. Chain utente
+Docker vuote e policy INPUT permissive non bastano per concludere l'esito
+dell'isolamento: mancano ACL Hyper-V/nftables e prove attive controllate.
+
+**Consegna preparata:** inventari host/guest in sola lettura sotto
+`scripts/infrastructure/`, raccolta estesa di ACL, block device e nftables,
+formato LF per Bash, matrice H-01–H-07 e aggiornamento della baseline. Nessuna
+installazione, nuova rete, modifica SSH/firewall, lettura di chiavi o deployment.
+Controllo sintattico Bash in container locale isolato: prova di sintassi,
+non accettazione di Ubuntu o della rete VM.
+
+**Passo necessario:** inventario host in PowerShell amministrativa e seconda
+raccolta guest estesa da parte dell'owner; poi review della policy e prove
+negative con controllo positivo. INF-VM-03 non è ancora autorizzato dal solo
+successo della raccolta.

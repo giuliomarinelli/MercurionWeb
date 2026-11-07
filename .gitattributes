@@ -1,2 +1,3 @@
 *.graphql text eol=lf
 MercurionWebNg/src/app/generated/*.ts text eol=lf
+scripts/infrastructure/*.sh text eol=lf

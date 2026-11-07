@@ -29,8 +29,15 @@
 | A-23 | Recovery | restart guest/host e avvio su richiesta senza dipendenza da file credenziali persistenti | Non eseguito |
 | A-24 | Risorse | memoria/CPU/disco misurati a riposo, in carico e con entrambi gli stack | Non eseguito |
 | A-25 | Limiti portfolio | avviso di case study, dati personali e disponibilità rappresentati correttamente | Non eseguito |
+| A-26 | Amministrazione guest | SSH da host con chiave, nessun login root/password, ACL delle origini verificate | Parziale: login operatore e policy globale acquisiti; ACL/prove negative aperte |
+| A-27 | Cifratura guest | mount root sul dispositivo cifrato e percorso operativo di sblocco | LUKS dichiarato dall'owner; verifica block device aperta |
 
 ## Risultati preesistenti da non confondere con questa matrice
+
+- [INF-VM-02](HOST-GUEST-READINESS.md): inventario guest acquisito il 7 novembre
+  dall'operatore. Nessuna porta Docker pubblicata nello snapshot; ciò non
+  equivale al superamento di A-04/A-05. Non risultano eseguite prove negative
+  con servizi controllati in ascolto.
 
 - `docs/meilisearch-log-indices.md` registra unit/smoke per routing log in un Meilisearch effimero.
 - `docs/infrastructure/tox21-integrated-acceptance-qa.md` registra integrazione reale delle classi Nest scientifiche e Tox21 via NATS, ma non bootstrap completo/HTTP/browser/deployment VM.
