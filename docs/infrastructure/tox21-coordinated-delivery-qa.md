@@ -129,5 +129,33 @@ e log anche al fallimento. Non carica gli archivi Docker negli artifact GitHub
 e non pubblica immagini in registry. Una precedente CI verde senza questo
 controllo non prova l'ammissibilità delle immagini OS complete.
 
+### Verifica remota degli exporter
+
+[Run 42354425203](https://github.com/giuliomarinelli/MercurionWeb/actions/runs/42354425203),
+SHA strumenti `a10bde1493d978d63083d9ee79bfd53bd8ec32f3`: entrambe le
+immagini production hanno superato build, contratto standalone, smoke e audit
+dell'exporter. I record scaricati confermano identità compilata di questo SHA,
+archivio caricato e identiche cardinalità dei finding rispetto alla prova
+locale: tre e cinque criticità. Entrambi i job falliscono nel solo step
+`Export production candidate and enforce image security policy`.
+
+Gli artifact `delivery-angular-production` e `delivery-nest-production` sono
+stati scaricati e ispezionati: JSON/log presenti, nessun archivio Docker
+pubblicato. Anche `container-nest-production-supply-chain`, già esistente, è
+stato prodotto e scaricato correttamente. Il primo tentativo collocava il
+nuovo gate prima del vecchio inventario, facendone fallire anche l'upload per
+assenza di file: l'ordine è stato corretto e verificato nel secondo run.
+Quel tentativo precedente, poi superato dal nuovo run, non certifica la CI
+completa.
+
+Il secondo run è concluso: prerequisiti Windows/Linux, suite unit Angular e
+Nest, E2E Nest, build, percorsi browser e quattro target container test/staging
+sono verdi. I soli fallimenti applicativi sono i due step di policy descritti
+sopra; il **Required gate è rosso** e il job aggregato supply-chain/attestation
+è saltato perché dipende dai container. T21-07 resta bloccato per la consegna
+e il branch non è ancora candidabile a un'integrazione verde in develop.
+Il commit successivo che registra questo verbale modifica soltanto
+documentazione, non gli strumenti testati.
+
 L'integrazione dei branch resta all'owner. T21-11 resta soltanto documentato;
 nessuna modifica JWT o rotazione dei segreti è introdotta qui.
