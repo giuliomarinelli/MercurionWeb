@@ -52,7 +52,11 @@ for(const name of ['typescript','jest','@angular/core','@nestjs/cli']){
  if(fs.existsSync('node_modules/'+name))throw Error('Development package retained: '+name);
 }
 const identity=require('./dist/src/generated/build-identity.js').buildIdentity;
-console.log(JSON.stringify({identity,nativeModules:5,bootstrapStarted:false}));
+for(const file of ['/usr/local/lib/node_modules/npm','/usr/local/bin/npm','/usr/local/bin/npx',
+ '/usr/local/bin/yarn','/usr/local/bin/yarnpkg',...fs.readdirSync('/opt').filter(name=>name.startsWith('yarn-')).map(name=>'/opt/'+name)]){
+ if(fs.lstatSync(file,{throwIfNoEntry:false}))throw Error('Package manager retained: '+file);
+}
+console.log(JSON.stringify({identity,nativeModules:5,packageManagersAbsent:true,bootstrapStarted:false}));
 '''
         result = json.loads(run(*restricted, '--entrypoint', 'node', image_id, '-e', code))
         if result['identity'] != {'revision': revision, 'version': version}:

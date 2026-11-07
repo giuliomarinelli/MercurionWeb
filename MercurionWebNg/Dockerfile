@@ -34,7 +34,7 @@ FROM source AS build-test
 WORKDIR /workspace/MercurionWebNg
 RUN npm run build -- --configuration=testing
 
-FROM nginx:1.27-alpine AS runtime
+FROM nginx:1.30.6-alpine3.24@sha256:583b7f2fce1cdb8da5ad5c39ebd3c33b98b87d493190e548bdee1fa8c619c311 AS runtime
 ARG BUILD_VERSION
 ARG BUILD_REVISION
 LABEL org.opencontainers.image.version=$BUILD_VERSION \
