@@ -131,3 +131,23 @@ tre metodi unittest locali passati, inclusi loopback IPv4/IPv6 e chiusura.
 Questi test locali non sostituiscono le prove della VM. INF-VM-02 resta aperto
 per container, altre origini, IPv6 ed egress; nessuna accettazione globale o
 CI applicativa dichiarata da questo checkpoint.
+
+### Preparazione H-04 — container verso host IPv4
+
+Creati runner guest e wrapper PowerShell con ingresso unico, senza pull:
+esportazione dell'immagine Python già presente su host, verifica hash prima
+del load guest e identità immagine fissata. Due reti di prova: bridge predefinito
+e bridge ordinario temporaneo. Controllo container → container prima e dopo
+il tentativo verso il canary host; nessuna pubblicazione Docker o cambio policy.
+
+Quattro unittest dei casi di errore passati. Prerequisiti wrapper verificati
+con Windows PowerShell 5.1. Orchestrazione effettiva provata su Docker Desktop
+per entrambe le reti, endpoint negativo loopback chiuso, controlli positivi e
+rimozione di tutti i container e del bridge temporaneo riusciti. Nel primo
+tentativo locale rilevato e corretto un errore nel codice del server sintetico;
+nessun risultato invalido è contato come successo. Evidenze locali:
+`h04-tool-validation-both.json`. Non è una prova di isolamento della VM.
+
+Esecuzione Ubuntu ancora a cura dell'operatore per SSH/sudo interattivi.
+[Procedura e limiti](NETWORK-PROBES.md). INF-VM-02 resta aperto; nessuna prova
+LAN, IPv6, origine alternativa o egress Internet dichiarata da questa preparazione.

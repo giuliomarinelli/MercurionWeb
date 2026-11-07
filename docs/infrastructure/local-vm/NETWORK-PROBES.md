@@ -1,6 +1,7 @@
 # INF-VM-02 — Probe TCP controllate
 
-**Stato:** strumento preparato e verificato localmente, non prova della VM.
+**Stato:** H-02 TCP IPv4 eseguito sulla VM; H-04 preparato e verificato come
+strumento locale, ancora da eseguire sulla VM.
 La review ACL e la matrice sono in [HOST-GUEST-READINESS.md](HOST-GUEST-READINESS.md).
 
 ## Scopo e limiti
@@ -64,11 +65,63 @@ stesso nonce, IP/porta, probe dentro la finestra attiva e controlli host positiv
 prima/dopo. Verificare la coerenza degli orologi. Non attribuire il blocco ad
 ACL, Kaspersky o guest firewall senza ulteriore evidenza del livello interessato.
 
-Per H-04 servirà un probe equivalente **nel guest Docker**, su rete bridge/egress
-di prova e con immagine verificata; Docker Desktop sull'host non vale come
-evidenza. Il guest attualmente ha solo `hello-world`: nessuna immagine nuova è
-stata scaricata o autorizzata da questo strumento. H-05 richiede una seconda
-origine controllata e non è coperto dal solo test guest → host.
+H-05 richiede una seconda origine controllata e non è coperto dal solo test
+guest → host.
+
+## H-04 IPv4: container Docker guest → host Windows
+
+Entrypoint unico dalla root, in PowerShell normale:
+
+```powershell
+powershell -NoProfile -File scripts/infrastructure/Invoke-ContainerCanary.ps1
+```
+
+L'operatore inserisce passphrase SSH e password sudo soltanto nel proprio
+terminale. Il wrapper esporta da Docker Desktop l'immagine Python già locale
+`python:3.11-slim-trixie`, identificata da
+`sha256:65bd3d9f1d7fa268dd1909973ba7eb4bdf41f6dcf2cfbe76ba9528b170f3fd79`;
+non esegue pull. Archivio di circa 187 MB non compressi: serve spazio libero
+su host e guest. Trasferisce archivio e script, avvia un nuovo canary Windows
+sul solo Default Switch per massimo 600 secondi e invia la configurazione.
+SCP e SSH sono invocazioni separate gestite dallo script.
+
+Sul guest `probe_container_isolation.py` verifica Ubuntu, Docker Linux amd64
+sul solo socket Unix locale, SHA-256 dell'archivio e identità dell'immagine
+importata. Crea un bridge temporaneo ordinario con egress e prova sia quello
+sia il bridge predefinito. In ogni caso un client container raggiunge un server
+di controllo sulla stessa rete, tenta il canary Windows e ripete il controllo
+positivo. Se il primo controllo fallisce, il tentativo Windows non viene fatto.
+Un servizio raggiungibile con marker errato non è classificato come blocco.
+
+Container non privilegiati, UID/GID 65534, capability rimosse, filesystem in
+sola lettura e limiti CPU/memoria/PID. Nessun socket Docker montato nei container,
+nessuna porta pubblicata, nessun mount di credenziali o sorgenti applicativi:
+solo il probe Python in lettura. Il runner amministrativo usa Docker per creare
+e rimuovere le proprie risorse; non cambia policy firewall/ACL/switch. La creazione
+di reti richiede comunque le normali operazioni di rete gestite da Docker.
+
+La pulizia usa gli ID restituiti dalla creazione, senza prune o rimozioni per
+nome generico. Fallimenti di pulizia invalidano l'esito e riportano gli ID da
+revisionare. Immagine importata, archivio e report restano disponibili: nessuna
+cancellazione automatica dei dati dell'operatore. Se il processo remoto viene
+interrotto bruscamente, controllare le risorse con label `mercurion.inf-vm-02`
+del run prima di riprendere; non assumere che il `finally` sia stato eseguito.
+
+Report sotto `.codex/artifacts/inf-vm-02/h04-ipv4-<runId>` nel profilo Windows:
+`container-probe.json`, trascrizione guest e directory `host` con controlli e
+risultato canary. Il wrapper arresta il listener anche in caso di errore.
+Prima di accettare il caso correlare nonce/IP/porta, tempi guest/host e controlli
+host prima/dopo ciascun tentativo. Tutti i report restano `isolationAccepted=false`:
+questo caso non verifica LAN, IPv6, egress Internet o le future reti Compose.
+
+`-ValidateOnly` verifica i prerequisiti host senza export, listener o SSH.
+Quattro unittest coprono input scaduti/non validi, fallimento del controllo
+positivo, servizio inatteso e pulizia fallita. Il percorso Docker reale è stato
+provato su Docker Desktop, su entrambi i bridge, con un endpoint loopback chiuso:
+serve a verificare lo strumento e la pulizia, non costituisce evidenza H-04 VM.
+
+Riferimento per identità immagine, reti e vincoli dei container:
+[Docker run](https://docs.docker.com/engine/containers/run/).
 
 ## Verifica dello strumento
 
