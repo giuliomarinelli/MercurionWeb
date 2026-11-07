@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: mercurion-web-node
-  namespace: mercurion-beta
+  namespace: mercurion-preview
 spec:
   replicas: 1
   selector:
@@ -29,7 +29,7 @@ spec:
           # 1) tutte le env (segrete e non) arrivano dai Secret
           envFrom:
             - secretRef:
-                name: mercurion-web-node-env   # creato da .env.mercurion-web-node.beta
+                name: mercurion-web-node-env   # creato da .env.mercurion-web-node.preview
             - secretRef:
                 name: mercurion-jwt-b64        # contenente le 4 chiavi RSA *_B64
 
@@ -89,7 +89,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: mercurion-web-node
-  namespace: mercurion-beta
+  namespace: mercurion-preview
 spec:
   type: ClusterIP
   selector:

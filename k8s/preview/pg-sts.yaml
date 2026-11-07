@@ -3,7 +3,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: mercurion-pg
-  namespace: mercurion-beta
+  namespace: mercurion-preview
 spec:
   type: ClusterIP
   selector:
@@ -18,7 +18,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: mercurion-pg
-  namespace: mercurion-beta
+  namespace: mercurion-preview
 spec:
   serviceName: mercurion-pg
   replicas: 1

@@ -3,24 +3,24 @@ import { resolve } from 'node:path'
 
 const root = resolve('.')
 const schemaPath = resolve(root, 'deployment/deployment-schema.json')
-const overlayNames = ['development', 'local-staging', 'beta', 'production']
+const overlayNames = ['development', 'local-staging', 'preview', 'production']
 export const artifactPaths = [
   'docker_sl/docker-compose.yml',
   'docker_sl/local-staging/docker-compose.yml',
-  'docker_sl/releases/beta/docker-compose.yml',
+  'docker_sl/releases/preview/docker-compose.yml',
   'docker_sl/releases/prod/docker-compose.yml',
-  'docker_sl/releases/beta/docker-compose.tox21-build.yml',
+  'docker_sl/releases/preview/docker-compose.tox21-build.yml',
   'docker_sl/releases/prod/docker-compose.tox21-build.yml',
-  'k8s/beta/mercurion-web-ng-deploy.yaml',
-  'k8s/beta/mercurion-web-node-deploy.yaml',
-  'k8s/beta/redis-deploy.yaml',
-  'k8s/beta/nats-deploy.yaml',
-  'k8s/beta/pg-stack.yaml',
-  'k8s/beta/pg-sts.yaml',
-  'k8s/beta/mercurion-tox21-deploy.yaml',
-  'k8s/beta/nginx-edge-config.yaml',
-  'k8s/beta/nginx-edge-deploy.yaml',
-  'k8s/beta/nginx-edge-svc.yaml',
+  'k8s/preview/mercurion-web-ng-deploy.yaml',
+  'k8s/preview/mercurion-web-node-deploy.yaml',
+  'k8s/preview/redis-deploy.yaml',
+  'k8s/preview/nats-deploy.yaml',
+  'k8s/preview/pg-stack.yaml',
+  'k8s/preview/pg-sts.yaml',
+  'k8s/preview/mercurion-tox21-deploy.yaml',
+  'k8s/preview/nginx-edge-config.yaml',
+  'k8s/preview/nginx-edge-deploy.yaml',
+  'k8s/preview/nginx-edge-svc.yaml',
   'k8s/core/meili-deploy.yaml',
   'k8s/core/meili-pvc.yaml',
   'k8s/core/meili-seed.yaml',
@@ -73,7 +73,7 @@ function validateModel(schema, overlays) {
         fail(`overlay ${name}/${id} has an unknown build target`)
       }
       if (id === 'tox21') {
-        const expectedEnvironment = { development: 'development', 'local-staging': 'staging', beta: 'staging', production: 'production' }[name]
+        const expectedEnvironment = { development: 'development', 'local-staging': 'staging', preview: 'staging', production: 'production' }[name]
         if (config.env.PY_ENV !== expectedEnvironment || config.env.VERSION !== '${TOX21_VERSION}') {
           fail(`overlay ${name}/tox21 has inconsistent environment or version`)
         }
@@ -95,7 +95,7 @@ function composeService(source, name) {
 
 function validateTox21(contents, schema) {
   const image = schema.imageIdentity?.componentImages?.tox21?.image ?? ''
-  for (const [directory, suffix, target] of [['beta', 'beta', 'staging'], ['prod', 'prod', 'production']]) {
+  for (const [directory, suffix, target] of [['preview', 'preview', 'staging'], ['prod', 'prod', 'production']]) {
     const path = `docker_sl/releases/${directory}/docker-compose.yml`
     const source = composeService(contents[path] ?? '', `mercurion_tox_21_${suffix}`)
     if (!image || !source.includes(`image: ${image}`) || /\bbuild:/.test(source)) fail(`${path}: tox21 must consume its own image without a source checkout`)
@@ -112,7 +112,7 @@ function validateTox21(contents, schema) {
     const args = [...build.matchAll(/^        ([A-Z_]+):/gm)].map(match => match[1]).sort()
     if (args.join() !== 'BUILD_REVISION,BUILD_VERSION') fail(`${buildPath}: unsupported Tox21 build argument`)
   }
-  const path = 'k8s/beta/mercurion-tox21-deploy.yaml'
+  const path = 'k8s/preview/mercurion-tox21-deploy.yaml'
   const source = contents[path] ?? ''
   if (!image || !source.includes(`image: ${image}`) ||
       !/name: VERSION\s+value: "\$\{TOX21_VERSION\}"/.test(source) ||
@@ -131,7 +131,7 @@ function validateArtifacts(contents, schema) {
     }
     if (path.includes('mercurion-web-ng') && (!source.includes(`containerPort: ${schema.services['web-ng'].ports.http}`) && !source.includes(`targetPort: ${schema.services['web-ng'].ports.http}`))) fail(`${path} diverges from web-ng port`)
     if (path.includes('mercurion-web-node') && (!source.includes(`containerPort: ${schema.services['web-node'].ports.http}`) && !source.includes(`targetPort: ${schema.services['web-node'].ports.http}`))) fail(`${path} diverges from web-node port`)
-    if (path.endsWith('/docker-compose.yml') && (path.includes('releases/beta') || path.includes('releases/prod'))) {
+    if (path.endsWith('/docker-compose.yml') && (path.includes('releases/preview') || path.includes('releases/prod'))) {
       for (const image of Object.values(appImages)) if (!source.includes(image)) fail(`${path} does not use canonical application image ${image}`)
       if (!source.includes('BUILD_VERSION') || !source.includes('BUILD_REVISION')) fail(`${path} does not carry immutable build identity`)
     }

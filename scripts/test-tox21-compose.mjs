@@ -29,7 +29,7 @@ function config(files, env = fixture) {
 }
 
 try {
-  for (const [directory, suffix, target] of [['beta', 'beta', 'staging'], ['prod', 'prod', 'production']]) {
+  for (const [directory, suffix, target] of [['preview', 'preview', 'staging'], ['prod', 'prod', 'production']]) {
     const base = `docker_sl/releases/${directory}/docker-compose.yml`
     const override = `docker_sl/releases/${directory}/docker-compose.tox21-build.yml`
     const name = `mercurion_tox_21_${suffix}`
@@ -59,7 +59,7 @@ try {
       assert.throws(() => config([base], missing), new RegExp(variable))
     }
   }
-  console.log('Compose passed: beta/production image-only and optional build projections; twelve missing-input cases rejected. No sibling checkout or services used.')
+  console.log('Compose passed: preview/production image-only and optional build projections; twelve missing-input cases rejected. No sibling checkout or services used.')
 } finally {
   // Verify the resolved Windows target before deleting only this test's temporary directory.
   if (dirname(temporary) !== realpathSync(tmpdir()) || !basename(temporary).startsWith('mercurion-tox21-compose-')) {

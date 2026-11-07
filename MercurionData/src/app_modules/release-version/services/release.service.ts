@@ -110,7 +110,7 @@ export class ReleaseService {
         // e questa app gira con cwd nella root di MercurionData
         // Se non è vero, spostiamo la base in una env var (es RELEASES_ROOT)
         const rel = isBeta
-            ? '../docker_sl/releases/beta/.env'
+            ? '../docker_sl/releases/preview/.env'
             : '../docker_sl/releases/prod/.env'
 
         return resolve(process.cwd(), rel)

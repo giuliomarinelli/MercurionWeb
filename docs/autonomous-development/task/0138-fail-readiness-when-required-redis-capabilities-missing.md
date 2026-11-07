@@ -21,7 +21,7 @@ Source: `BE-024` in Series `0001`.
 - health/readiness controllers/services
 - session/socket consumers of Redis pub/sub/key events
 - `docker_sl/docker-compose.yml`
-- `k8s/beta/redis-deploy.yaml`
+- `k8s/preview/redis-deploy.yaml`
 - Redis tests
 
 ## In scope

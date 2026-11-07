@@ -6,7 +6,7 @@ componente Mercurion con repository, versione, SHA e CI propri.
 
 ## Immagine e build locale sono percorsi distinti
 
-I Compose beta e production consumano un'immagine Tox21 per default: **nessun
+I Compose preview e production consumano un'immagine Tox21 per default: **nessun
 checkout Tox21 è richiesto**. Gli altri servizi Web mantengono i propri build
 esistenti; non si tratta di una conversione dell'intero stack a sole immagini.
 Per Tox21 servono questi input di processo o in un env file scelto esplicitamente:
@@ -26,7 +26,7 @@ usare nomi repository distinti per target o coordinate distinte concordate
 nella consegna T21-07. Non sovrascrivere una variante con l'altra confidando
 nel solo SHA sorgente comune. Nessun registry o tag pubblico è assegnato qui.
 
-Il Compose beta imposta `PY_ENV=staging`, production `PY_ENV=production`;
+Il Compose preview imposta `PY_ENV=staging`, production `PY_ENV=production`;
 namespace NATS rispettivamente `staging.*` e subject base. Usare un'immagine
 del target corrispondente, controllando `org.mercurion.environment`, versione,
 revision e source. Per esempio, la sola ispezione locale, senza avviare nulla:
@@ -45,7 +45,7 @@ Per risolvere la configurazione (non avviare lo stack), fornire anche le
 variabili Web già richieste dal frammento e usare un env file esplicito:
 
 ```powershell
-docker compose --env-file C:/config/non-production.env -f docker_sl/releases/beta/docker-compose.yml config
+docker compose --env-file C:/config/non-production.env -f docker_sl/releases/preview/docker-compose.yml config
 ```
 
 I percorsi qui sono esempi da scegliere, non file forniti dal clone. La prova
@@ -60,10 +60,10 @@ La build locale è un override esplicito. Richiede inoltre:
   con esattamente pesi, soglie e manifest, senza configurazioni personali.
 
 ```powershell
-docker compose --env-file C:/config/non-production.env -f docker_sl/releases/beta/docker-compose.yml -f docker_sl/releases/beta/docker-compose.tox21-build.yml config
+docker compose --env-file C:/config/non-production.env -f docker_sl/releases/preview/docker-compose.yml -f docker_sl/releases/preview/docker-compose.tox21-build.yml config
 ```
 
-Per production sostituire `beta` con `prod` nei due percorsi. Non cambiare
+Per production sostituire `preview` con `prod` nei due percorsi. Non cambiare
 implicitamente la variabile Web `BUILD_VERSION`/`BUILD_REVISION`: il Dockerfile
 Tox21 riceve soltanto `BUILD_VERSION=TOX21_VERSION` e
 `BUILD_REVISION=TOX21_REVISION`. Target `staging`/`production`, Dockerfile unico
@@ -85,12 +85,12 @@ rotazione o fallback alla modalità pubblica è introdotto qui.
 | --- | --- |
 | `docker_sl/docker-compose.yml` | Dipendenze di sviluppo; nessun servizio Tox21 aggiunto, avvio locale separato preservato |
 | `docker_sl/local-staging/docker-compose.yml` | Frammento test Web esistente; Tox21 resta disabilitato nell'overlay canonico, nessun nuovo avvio implicito |
-| `docker_sl/releases/beta/docker-compose.yml` | Proiezione Tox21 staging mantenuta e corretta, immagine per default |
+| `docker_sl/releases/preview/docker-compose.yml` | Proiezione Tox21 staging mantenuta e corretta, immagine per default |
 | `docker_sl/releases/prod/docker-compose.yml` | Proiezione production Tox21 aggiunta, coerente con l'overlay che già lo dichiarava abilitato |
 | Due `docker-compose.tox21-build.yml` | Override opzionali mantenuti per build con input espliciti, fuori dal normale build Web |
-| `k8s/beta/mercurion-tox21-deploy.yaml` | Template beta mantenuto: immagine/versione/SHA Tox21 parametrizzati, namespace staging, worker non-root/read-only e `/tmp` dedicato |
-| Altri manifest beta/core | Conservati, senza scelta implicita di Kubernetes per la VM |
-| `k8s/beta/pg-stack.yaml` | **Lacuna separata:** il CronJob `pg-backup` usa ancora un vecchio riferimento Tox21 per eseguire `pg_dump`. Non è un runtime Tox21 supportato; immagine/tooling e ripristino del backup richiedono un intervento PostgreSQL dedicato prima dell'uso |
+| `k8s/preview/mercurion-tox21-deploy.yaml` | Template preview mantenuto: immagine/versione/SHA Tox21 parametrizzati, namespace staging, worker non-root/read-only e `/tmp` dedicato |
+| Altri manifest preview/core | Conservati, senza scelta implicita di Kubernetes per la VM |
+| `k8s/preview/pg-stack.yaml` | **Lacuna separata:** il CronJob `pg-backup` usa ancora un vecchio riferimento Tox21 per eseguire `pg_dump`. Non è un runtime Tox21 supportato; immagine/tooling e ripristino del backup richiedono un intervento PostgreSQL dedicato prima dell'uso |
 | Compose nel repository Tox21 | Contratto locale T21-04 conservato; non serve al build/CI Web ordinario |
 
 Nessun manifest è stato archiviato o cancellato. I template mantenuti sono
@@ -101,7 +101,7 @@ statico generale. Non applicare indistintamente l'intera directory `k8s/`.
 Il template Kubernetes Tox21, come gli equivalenti Web, contiene placeholder:
 renderizzare soltanto le variabili nominate e validare prima di qualsiasi
 eventuale applicazione. Non è stata eseguita una chiamata al cluster o una
-validazione dello schema API Kubernetes. NATS conserva il service DNS beta
+validazione dello schema API Kubernetes. NATS conserva il service DNS preview
 esistente; non sono aggiunte probe HTTP fittizie al worker.
 
 ## Verifiche T21-06

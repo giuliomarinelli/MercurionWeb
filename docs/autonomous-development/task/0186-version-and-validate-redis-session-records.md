@@ -107,10 +107,10 @@ The task is blocked by its explicit deployment-architecture stop condition
 before implementation. The active deployment surfaces do not document or
 enforce a bounded zero-downtime rolling compatibility window: the Kubernetes
 web-node deployment has one replica and only TCP startup/liveness/readiness
-probes (`k8s/beta/mercurion-web-node-deploy.yaml:7,63-77`), while the beta and
+probes (`k8s/preview/mercurion-web-node-deploy.yaml:7,63-77`), while the beta and
 production release Compose files define services/images but no rollout,
 promotion, update, or rollback compatibility policy
-(`docker_sl/releases/beta/docker-compose.yml:1-28`,
+(`docker_sl/releases/preview/docker-compose.yml:1-28`,
 `docker_sl/releases/prod/docker-compose.yml:1-28`). No existing architecture
 decision establishes the required N/N+1 session-codec read/write window.
 Choosing expand/contract, dual-read, or writer sequencing would therefore

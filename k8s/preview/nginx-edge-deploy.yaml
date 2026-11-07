@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: mercurion-nginx-edge
-  namespace: mercurion-beta
+  namespace: mercurion-preview
 spec:
   replicas: 1
   selector:

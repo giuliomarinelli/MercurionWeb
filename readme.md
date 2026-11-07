@@ -135,7 +135,7 @@ Container builds and standalone runtime smoke tests are authoritative for contai
 Tox21 is built and versioned in its own repository. Its consolidated Dockerfile
 provides test/staging/production targets running `python -m main`, with runtime-only
 code/dependencies and an exported weights/thresholds/metadata package. Training stays
-local. Tox21 CI verifies those containers independently of Web. The beta/production
+local. Tox21 CI verifies those containers independently of Web. The preview/production
 Compose fragments consume a Tox21 image by default; optional overrides enable local
 builds with an explicit source/model context. See [deployment inputs and inventory](docs/infrastructure/tox21-deployment.md).
 Coordinated artifact delivery and integrated acceptance remain in the

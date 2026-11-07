@@ -1,5 +1,5 @@
 {
-  "environment": "beta",
+  "environment": "preview",
   "services": {
     "web-ng": { "enabled": true, "target": "staging", "env": { "NODE_ENV": "production", "APP_ENV": "staging" } },
     "web-node": { "enabled": true, "target": "staging", "env": { "NODE_ENV": "production", "APP_ENV": "staging", "APP_PORT": "8098", "APP_HOST": "0.0.0.0" } },

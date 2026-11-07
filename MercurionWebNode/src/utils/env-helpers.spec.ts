@@ -69,8 +69,8 @@ describe('application environment resolution', () => {
 
     it.each([
         'Dockerfile',
-        '../k8s/beta/mercurion-web-node-deploy.yaml',
-        '../k8s/beta/mercurion-web-ng-deploy.yaml'
+        '../k8s/preview/mercurion-web-node-deploy.yaml',
+        '../k8s/preview/mercurion-web-ng-deploy.yaml'
     ])('uses supported APP_ENV values in %s', relativePath => {
         const values = deploymentEnvironmentValues(
             readFileSync(join(process.cwd(), relativePath), 'utf8')
