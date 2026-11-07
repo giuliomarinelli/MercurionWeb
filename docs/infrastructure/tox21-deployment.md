@@ -125,3 +125,25 @@ La CI Tox21 già verde resta quella dello SHA `1e295ce617ce0df3f374e84e094ead4ce
 nessun codice Tox21 è modificato da questo task. Il gate CI Web remoto non è
 dichiarato verde dalle sole verifiche locali. Il seguito T21-07 definisce il
 canale di consegna degli artifact; T21-08 prova integrazione e ripristino.
+
+## Preparazione dell'integrazione — 7 novembre 2026
+
+Il branch `feature/T21-06` riunisce ora il lavoro originario `cbd7ccecf` con
+la rinomina preview e la formattazione approvate dall'owner: commit sorgente
+`9c513dfed` e `cf4597b4a`, riportati rispettivamente come `21e1496ee` e
+`423037b0d`. Le modifiche deployment sono identiche alla source of truth sul
+branch T21-07, senza includerne il commit `43f21837e` o gli strumenti di consegna.
+Il branch T21-07 originale è conservato senza riscriverne la storia.
+
+Il `develop` Web integrato dall'owner (`063de5b8c`) ha lo stesso albero del
+checkpoint T21-05: il riporto selettivo non ha richiesto risoluzioni di conflitti.
+Confermata la precedenza di `deployment/README.md` e `overlays/preview.json` nei
+futuri conflitti; target tecnici e namespace NATS restano staging.
+
+Verifiche ripetute sul candidato: gate deployment con dodici fixture negative,
+quattro proiezioni Compose e dodici input mancanti respinti, documentazione,
+**77 casi Nest in cinque suite** (configurazione, helper env, fixture wire,
+registro NATS e contratti RDKit). Nessun processo applicativo avviato, nessun
+deployment o modifica al repository Tox21. La CI completa sull'esatto candidato
+resta il controllo remoto prima dell'integrazione; l'esecuzione dei soli test
+locali non la sostituisce. Il merge in develop resta all'owner.
