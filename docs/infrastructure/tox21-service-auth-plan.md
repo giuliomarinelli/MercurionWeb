@@ -1,21 +1,20 @@
-# T21-11 — Override JWT per singolo servizio (pianificato)
+# T21-11 — Override JWT per singolo servizio
 
-Requisito dell'owner, 7 novembre 2026. **Solo specifica e roadmap: nessuna
-implementazione in questo intervento.** Restano attivi gli attuali comportamento
-globale, formato PEM e contratti NATS. Il lavoro corrente è la baseline di sicurezza.
+Requisito dell'owner, 7 novembre 2026. Implementazione su `feature/T21-11`
+nei due repository, senza merge. Sono preservati il default globale pubblico,
+il formato PEM e i contratti NATS. Vedi [verbale e prove](tox21-service-auth-qa.md).
 
 Ogni servizio avrà un flag ternario indipendente, con precedenza sul globale:
 
 | Valore | Globale allow-all (skip auth) | Globale con JWT obbligatorio |
 | --- | --- | --- |
 | `allow` | Autorizza senza richiedere JWT | Autorizza senza richiedere JWT |
-| `deny-withouth-access-token` | Richiede JWT valido; rifiuta token assente o non valido | Richiede JWT valido; rifiuta token assente o non valido |
+| `require-jwt` | Richiede JWT valido; rifiuta token assente o non valido | Richiede JWT valido; rifiuta token assente o non valido |
 | `disabled` oppure flag omesso | Eredita allow-all | Eredita JWT obbligatorio |
 
-Il nome `deny-withouth-access-token` conserva la grafia richiesta dall'owner;
-non significa verificare la sola presenza del token: firma, scadenza e audience
-devono superare la validazione attuale. L'eventuale correzione della grafia della
-chiave pubblica richiede una decisione prima dell'implementazione.
+L'owner ha approvato `require-jwt` al posto della grafia della prima proposta;
+il vecchio valore non viene accettato come alias. Si verifica la validita del
+JWT (firma, scadenza e audience), non soltanto la sua presenza.
 
 `disabled` significa **override disattivato**, non servizio disabilitato e non
 accesso negato. Il default deve essere applicato centralmente anche quando la
@@ -37,7 +36,22 @@ Il prefisso NATS dell'ambiente non cambia. Payload, envelope, errori di dominio,
 inferenza e validazione degli input restano obbligatori anche con `allow`.
 Autorizzare senza JWT non significa accettare richieste malformate.
 
-## Vincoli del task futuro
+## Configurazione approvata
+
+Una variabile per servizio: `AUTH_INFERENCE`, `AUTH_RDKIT_PROPERTIES`,
+`AUTH_RDKIT_CANONICAL_SMILES`, `AUTH_RDKIT_SAME_STRUCTURE`,
+`AUTH_PUBCHEM_IUPAC_NAME`. I tre valori ammessi sono esatti e minuscoli.
+Variabile assente: default Pydantic `disabled`. Variabile presente vuota,
+con spazi, null o valore estraneo: errore di validazione che blocca il bootstrap
+prima di PEM, modello e connessione NATS. Nessuna normalizzazione permissiva.
+Le policy vengono risolte una volta al bootstrap; una modifica richiede riavvio.
+
+Compose inoltra i valori con `${AUTH_INFERENCE-disabled}` e analoghi:
+il singolo meno conserva il valore vuoto, che deve fallire nel worker.
+Gli override con JWT richiedono un mount read-only del PEM pubblico e
+`JWT_PUBLIC_KEY_PATH`; nessun percorso o materiale reale scelto automaticamente.
+
+## Vincoli implementativi
 
 - Risolvere prima la policy effettiva per ogni handler; questa deve governare
   sia la richiesta del token nello schema Pydantic sia la verifica JWT, evitando
@@ -48,8 +62,7 @@ Autorizzare senza JWT non significa accettare richieste malformate.
 - Conservare auth stateless JWT esistente e audience, senza introdurre ruoli,
   ACL del broker, key rotation o nuovi endpoint per gestire i flag.
 - Valori non riconosciuti non devono diventare un'autorizzazione silenziosa.
-  Prima del codice definire formato/configurazione e trattamento di null o
-  stringhe vuote; l'assenza del flag è già definita come `disabled`.
+  Null e stringhe vuote sono invalidi; solo l'assenza usa `disabled`.
 
 ## Accettazione
 

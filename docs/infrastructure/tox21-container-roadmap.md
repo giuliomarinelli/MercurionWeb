@@ -51,7 +51,7 @@ Questi vincoli sono formalizzati nel [verbale T21-00 con inventario dei test e l
 
 ## Sequenza proposta
 
-**T21-00 completato come analisi e specifica**, con [vincoli e inventario](tox21-design-test-inventory.md). **T21-01 completato come documentazione**, **T21-02 con 54 test applicativi locali**, **T21-03 sul target Linux CPU**, **T21-09 con 99 casi autonomi, 85 runtime-only e riferimento reale esplicito**, **T21-04 con tre immagini e smoke locali**, **T21-05 con CI remota verde sull'esatto SHA**, **T21-06 con proiezioni Web verificate localmente**: esiti e limiti sotto. Nessuna accettazione dell’applicazione distribuita dedotta dalle prove. T21-07 e T21-08 sono stati successivamente integrati dall’owner nei perimetri documentati. T21-10 affronta ora la correttezza del training sintetico; la valutazione scientifica di un nuovo modello e T21-11 restano aperti. La priorità determina l’ordine di lavoro, non certifica la gravità di un difetto runtime.
+**T21-00 completato come analisi e specifica**, con [vincoli e inventario](tox21-design-test-inventory.md). **T21-01 completato come documentazione**, **T21-02 con 54 test applicativi locali**, **T21-03 sul target Linux CPU**, **T21-09 con 99 casi autonomi, 85 runtime-only e riferimento reale esplicito**, **T21-04 con tre immagini e smoke locali**, **T21-05 con CI remota verde sull'esatto SHA**, **T21-06 con proiezioni Web verificate localmente**: esiti e limiti sotto. Nessuna accettazione dell’applicazione distribuita dedotta dalle prove. T21-07 e T21-08 sono stati successivamente integrati dall’owner nei perimetri documentati. T21-10 affronta ora la correttezza del training sintetico; la valutazione scientifica di un nuovo modello resta rinviata; T21-11 è implementato su branch dedicati, da integrare. La priorità determina l’ordine di lavoro, non certifica la gravità di un difetto runtime.
 
 | ID | Intervento | Repository responsabile | Dipende da | Priorità |
 | --- | --- | --- | --- | --- |
@@ -66,7 +66,7 @@ Questi vincoli sono formalizzati nel [verbale T21-00 con inventario dei test e l
 | T21-07 | Identità e consegna coordinata degli artefatti | Tox21 + Web | T21-05, T21-06 | P2 |
 | T21-08 | Accettazione integrata e istruzioni di ripristino | Entrambi, ambiente non produttivo | T21-07 | P2 |
 | T21-10 | Estensione delle verifiche locali del training e della qualità del modello | Tox21 | T21-00, T21-03 | P2 |
-| T21-11 | Override JWT ternario per ciascuno dei cinque servizi | Tox21, compatibilità Web | T21-02, T21-09 | Successivo, solo pianificato |
+| T21-11 | Override JWT ternario per ciascuno dei cinque servizi | Tox21, compatibilità Web | T21-02, T21-09 | Implementato su feature/T21-11, da integrare |
 
 Gli identificativi già assegnati sono conservati: T21-09 precede T21-04 nell’ordine di lavoro; T21-10 è un percorso distinto che non blocca la consegna del runtime. La coerenza checkpoint/soglie resta invece obbligatoria in T21-03. T21-02 e T21-03 sono indipendenti dopo T21-01. Questa dipendenza non prescrive esecuzione concorrente o delega ad agenti. Si propone un intervento focalizzato alla volta.
 
@@ -212,18 +212,20 @@ Separatamente, registrare su un nuovo modello le metriche per-label e aggregate 
 
 ## Decisioni da chiudere prima delle rispettive fasi
 
-### T21-11 — Controllo JWT per servizio (requisito futuro)
+### T21-11 — Controllo JWT per servizio
 
 Richiesto dall'owner il 7 novembre: [specifica e matrice di precedenza](tox21-service-auth-plan.md).
 Cinque flag indipendenti per inferenza, tre API RDKit e PubChemPy, ciascuno con
-valori `allow`, `deny-withouth-access-token`, `disabled`. I primi due prevalgono
+valori `allow`, `require-jwt`, `disabled`. I primi due prevalgono
 sempre sul globale; `disabled`, anche come default del flag omesso, eredita il
 globale. Il secondo stato richiede un JWT effettivamente valido, non soltanto
 presente. Nessun servizio viene disattivato dal valore `disabled`.
 
-**Non implementare durante T21-10:** il controllo granulare resta un incarico successivo da autorizzare. Nessuna nuova policy auth, key rotation o modifica dei
-payload viene introdotta per anticipare T21-11. I formati di configurazione e
-gli input non riconosciuti saranno fissati prima del codice del task futuro.
+**Implementazione autorizzata dopo T21-10:** cinque variabili d'ambiente,
+validazione Pydantic rigorosa e default `disabled` solo se omesse. Override
+risolti prima della lettura del PEM, policy condivisa da schema e verifica JWT,
+test della matrice completa e smoke NATS isolato: [verbale](tox21-service-auth-qa.md).
+Nessuna key rotation, nuovo flag globale, ruolo o modifica ai payload.
 
 | Decisione | Quando serve | Proposta da valutare |
 | --- | --- | --- |
@@ -253,6 +255,6 @@ integrati dall’owner nei rispettivi perimetri documentati. T21-08 ha verificat
 l’integrazione dei servizi scientifici dagli archivi, non l’intero flusso
 HTTP/browser o un deployment. T21-10 aggiunge la correttezza sintetica del
 training; una nuova valutazione scientifica resta separata e aperta. T21-11 è
-pianificato, senza implementazione implicita. Limiti Windows scientifici,
+implementato su branch dedicati con autorizzazione esplicita; integrazione all’owner. Limiti Windows scientifici,
 CronJob PostgreSQL, PubChem live, test layout intermittente, topologia e
 accettazione operativa rimangono espliciti nei rispettivi verbali.

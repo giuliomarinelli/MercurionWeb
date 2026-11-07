@@ -74,10 +74,14 @@ push di immagini o esecuzione di servizi viene eseguita da questi esempi `config
 
 Entrambe le varianti impostano UID/GID 10021, filesystem read-only, `/tmp`
 temporaneo, nessuna capability, `no-new-privileges` e 15 secondi per l'arresto.
-Auth Tox21 rimane pubblica interna/tutto-o-nulla. Se abilitata esplicitamente
-nel sorgente, aggiungere un mount read-only del PEM pubblico RSA e
-`JWT_PUBLIC_KEY_PATH`: nessuna chiave Base64, lettura dotenv staging/prod,
-rotazione o fallback alla modalità pubblica è introdotto qui.
+Auth Tox21 mantiene il default globale pubblico interno; T21-11 aggiunge
+[cinque override opzionali](tox21-service-auth-plan.md) inoltrati dai Compose
+preview/production. Omissione usa `disabled`, vuoto esplicito resta vuoto e
+blocca il bootstrap Pydantic. Se una policy effettiva richiede JWT, aggiungere
+un mount read-only del PEM pubblico RSA e `JWT_PUBLIC_KEY_PATH`: nessuna chiave
+Base64, lettura dotenv staging/prod, rotazione o fallback pubblico. Il template
+Kubernetes conserva il default senza nuovi override impliciti; l'operatore puo
+aggiungere gli stessi env e il mount prima di usarlo. Nessun deployment eseguito.
 
 ## Inventario e stato dei manifest
 
