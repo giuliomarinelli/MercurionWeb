@@ -21,7 +21,7 @@
 | `MEILISEARCH_LOG_KEY` del client writer Nest | scrittura nei soli indici log autorizzati | Differenziata per preview e production; distinta dalla key search legacy. Omissione compatibile riusa la key legacy, ma non soddisfa il contratto VM |
 | Chiave API della UI | sola lettura su indici ammessi | Nessun mount nel container UI; inserita nel browser attraverso SSH e conservata nel password manager Windows |
 | PostgreSQL, Redis | credenziali per singolo ambiente | Separazione completa, no esempi `root` riciclati dal Compose di sviluppo |
-| NATS `APP_NATS_USERNAME` / `APP_NATS_PASSWORD` nel Nest | utente/password distinti per consumer/ambiente, fuori dall'URL | Coppia opzionale per compatibilità; contratto VM richiede autenticazione. Consumer Tox21 e broker da allineare: [contratto Nest](NATS-CLIENT-AUTH.md) |
+| NATS: `APP_NATS_USERNAME` / `APP_NATS_PASSWORD` Nest; `NATS_USERNAME` / `NATS_PASSWORD` Tox21 | utente/password distinti per consumer/ambiente, fuori dall'URL | Coppie opzionali per compatibilità; contratto VM richiede autenticazione. Branch Tox21 da integrare, consegna e broker da predisporre: [contratto e prove](NATS-CLIENT-AUTH.md) |
 | OAuth/SSO, Twilio, email, Dropbox/R2, Turnstile, HMAC applicative | credenziali esterne e di cifratura | Inventario per ambiente; non incluse negli artifact OCI |
 | JWT RS256 e HS512 | firme e verifica dei token | Chiavi separate per ambiente/scopo; nessuna rotazione operativa a caldo richiesta |
 

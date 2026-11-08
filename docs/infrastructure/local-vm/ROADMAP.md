@@ -53,8 +53,9 @@ disponibili. [Adattatore Nest opt-in](NEST-SECRET-FILE-ADAPTER.md) implementato 
 testato su materiale sintetico, senza cambiare l'avvio esistente. Nessun
 provisioning; trasporto e ciclo di vita da approvare. Client Meilisearch separati
 e permessi sintetici verificati localmente l'8 novembre; [auth NATS Nest](NATS-CLIENT-AUTH.md)
-implementata con coppia opzionale user/password. Consumer Tox21, configurazione
-broker e grant reali VM restano aperti. L'esecuzione mantiene le dipendenze 02/03 e INF-VM-04 resta aperto.
+implementata con coppia opzionale user/password; Tox21 allineato su branch
+dedicato `263ccbc`, da integrare. Configurazione broker, consegna protetta
+credenziali e grant reali VM restano aperti. L'esecuzione mantiene le dipendenze 02/03 e INF-VM-04 resta aperto.
 
 Progettare/implementare l'iniezione protetta dal password manager Windows al bootstrap VM, secret per ambiente, credenziali Meilisearch, PostgreSQL, Redis, NATS, OAuth, Twilio, cookie, JWT. Preservare nomi legacy compatibili. Rinviare rotazione a caldo.
 

@@ -390,3 +390,28 @@ richiede un task dedicato per parametri separati e validazione Pydantic.
 Non abilitare auth sul broker operativo prima dell'allineamento dei consumer.
 [Contratto, comando e residui](NATS-CLIENT-AUTH.md). INF-VM-04 ancora parziale;
 VM-028 e gate di avvio 02/03 invariati. CI remota distinta dalle prove locali.
+
+### INF-VM-04-C — allineamento autenticazione broker Tox21
+
+Su prosecuzione autorizzata dall'owner, creato il branch Tox21
+`feature/infra-vm-nats-client-auth` da `develop` pulito (`2cbfcd4`). Commit e
+push `263ccbc`, nessun merge. Variabili opzionali `NATS_USERNAME` /
+`NATS_PASSWORD`, validate in coppia; `SecretStr` per mascherare la password;
+inoltro esplicito a nats-py. URL con userinfo ora rifiutati, migrazione documentata.
+JWT per servizio e contratti dei cinque RPC preservati. `develop` Tox21 invariato.
+
+107 test applicativi passati su Windows e Linux, dipendenze esistenti. Smoke
+reale isolato: 10 RPC autenticati, 5 legacy anonimi e 8 rifiuti espliciti del
+worker, readiness falsa e chiusura connessioni nei fallimenti. Inference e
+PubChem sostitutivi, RDKit reale; nessun peso/PEM o provider esterno. Test con
+sorgenti selezionate su immagine dipendenze locale, non nuova immagine release.
+Smoke registrato nella CI Tox21 contro la sua immagine appena costruita;
+workflow YAML e 53 sorgenti Python validati sintatticamente. [CI sullo SHA
+`263ccbc7429a85e1961b13d9a57038a46a07497a`](https://github.com/giuliomarinelli/MercurionTox21/actions/runs/42469399664)
+avviata e ancora in corso alla verifica; Required gate non ancora confermato.
+Risorse Docker/file temporanei rimossi; nessun SSH o avvio VM.
+
+Report fuori Git in `C:/Users/giuli/.codex/artifacts/inf-vm-04/tox21-nats-auth/`.
+[Contratto e residui](NATS-CLIENT-AUTH.md): integrazione del branch Tox21,
+consegna protetta delle credenziali al worker, config broker e gate VM ancora
+aperti. VM-028 resta proposta; INF-VM-04 non è dichiarato completato.

@@ -2,7 +2,8 @@
 
 **8 novembre 2026.** Scelta owner: user/password, credenziali distinte per
 consumer e ambiente, separate dall'URL. Implementato il consumer Nest;
-provisioning del broker e allineamento Tox21 restano separati.
+Tox21 allineato sul branch `feature/infra-vm-nats-client-auth`, commit `263ccbc`,
+ancora da integrare. Provisioning del broker e consegna segreti restano separati.
 
 ## Contratto Nest
 
@@ -57,16 +58,38 @@ Esito locale dell'8 novembre: **2 request/reply autenticati, 1 legacy anonimo e
 95 test unitari mirati passati, uno POSIX saltato su Windows; typecheck, build
 e lint mirato passati. La prova non avvia l'app completa o il runtime Tox21.
 
+## Allineamento Tox21, 8 novembre
+
+Tox21 usa `NATS_USERNAME` e `NATS_PASSWORD`, coppia opzionale validata da
+Pydantic prima del caricamento del modello/connessione. La password è un
+`SecretStr`, mascherata nel modello; viene passata come opzione SDK `password`
+(Nest usa `pass`). Omissione completa conserva legacy; valori vuoti/null/non-stringa
+o coppia incompleta falliscono senza stampare contenuti. Le credenziali negli URL
+sono ora rifiutate: migrare eventuali `NATS_URL` con userinfo ai due campi separati.
+JWT dei servizi, namespace e forme dei messaggi restano invariati.
+
+107 test applicativi passati sia su Windows sia su Linux. Prova reale del worker
+su NATS isolato: 10 RPC autenticati sui cinque subject staging/production,
+5 legacy anonimi e 8 negazioni esplicite, con readiness falsa e cleanup delle
+connessioni sui fallimenti. RDKit reale; predizione e PubChem sostitutivi, nessuna
+lettura di pesi/PEM o richiesta a provider. Il requester è nats-py: questa prova
+e la precedente prova Nest restano evidenze distinte, non un nuovo end-to-end Web.
+
+Prova locale con sole sorgenti selezionate montate sul runtime dipendenze
+`sha256:e0e45c20f9b4a88d28ffe228bd3a420033386aa53fd981d349482940a197d568`:
+non è una nuova immagine di release. Lo smoke è stato aggiunto alla CI Tox21
+contro l'immagine appena costruita; il suo esito remoto resta da verificare.
+Dettagli nel repository Tox21: `docs/nats-client-auth.md` al commit sopra.
+
 ## Residui operativi
 
 - La VM deve fornire entrambe le variabili, con utenti/password distinti per
   Nest/Tox21 e preview/production; l'omissione compatibile non prova protezione.
 - Definire/configurare il broker con gli stessi materiali prima di abilitarne
   l'autenticazione; nessun broker esistente è stato modificato.
-- Tox21 al commit `2cbfcd467afa9e9643065c630f6b06f265f0ac5a` passa ancora
-  `NATS_URL` a `nc.connect`. Richiede un task dedicato per parametri user/password
-  separati e validazione Pydantic; la sola capacità di inserire userinfo nell'URL
-  non soddisfa il nuovo contratto. Repository letto soltanto.
+- Integrare il branch Tox21 dopo CI/review. `develop` Tox21 non è stato modificato.
+  Tox21 consuma le credenziali come input di processo; consegna protetta da file
+  ancora da predisporre, nessun supporto `_FILE` o ricevitore privilegiato implicito.
 - Permessi publish/subscribe sui subject e TLS richiedono verifica dedicata:
   questo task aggiunge autenticazione senza modificare ACL, reti o protocolli.
 - Le policy JWT dei cinque RPC scientifici restano indipendenti dalle credenziali
