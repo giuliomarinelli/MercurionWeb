@@ -317,6 +317,8 @@ export const environmentSchema = defineEnvironmentSchema(
     required('APP_PORT', positiveInteger()),
     required('APP_NATS_PORT', integerParser(1, 65535)),
     required('APP_NATS_HOST', natsHostParser()),
+    optional('APP_NATS_USERNAME', nonEmptyString()),
+    optional('APP_NATS_PASSWORD', nonEmptyString()),
     required('APP_PROJECT_NAME', string()),
     required('APP_GLOBAL_NAME', string()),
     required('APP_PROJECT_ID', uuidParser()),

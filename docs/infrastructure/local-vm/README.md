@@ -23,6 +23,7 @@ La VM può rimanere spenta; preview può essere arrestato indipendentemente dall
 | [SECURITY-AND-SECRETS.md](SECURITY-AND-SECRETS.md) | Identità, privilegi, segreti e bootstrap |
 | [BOOTSTRAP-CONTRACT.md](BOOTSTRAP-CONTRACT.md) | Audit consumer e proposta INF-VM-04 per consegna, compatibilità e ciclo di vita dei segreti |
 | [NEST-SECRET-FILE-ADAPTER.md](NEST-SECRET-FILE-ADAPTER.md) | Adattatore Nest opt-in da file, contratto e prove sintetiche Windows/Linux |
+| [NATS-CLIENT-AUTH.md](NATS-CLIENT-AUTH.md) | Credenziali NATS Nest separate dall'URL, validazione e prova isolata dei transport |
 | [MEILISEARCH-OPERATIONS.md](MEILISEARCH-OPERATIONS.md) | Indici, chiavi, UI di sola lettura e operazioni curl |
 | [ARTIFACT-DELIVERY.md](ARTIFACT-DELIVERY.md) | Build, consegna, verifica, archivio e rollback delle immagini |
 | [DECISIONS.md](DECISIONS.md) | Decisioni approvate, proposte e aspetti aperti |

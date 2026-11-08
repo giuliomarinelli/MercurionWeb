@@ -47,6 +47,15 @@ function typescriptFiles(directory: string): string[] {
 }
 
 describe('canonical configuration schema', () => {
+  it('keeps NATS credentials outside the canonical server URL and its log representation', () => {
+    const environment = { ...fullEnvironment(), APP_NATS_HOST: 'nats://broker', APP_NATS_PORT: 4222,
+      APP_NATS_USERNAME: 'synthetic-nest-user', APP_NATS_PASSWORD: 'synthetic-@$:password' }
+    const app = configurationBuilders[ConfigKey.App](environment)
+    expect(app.natsUrl).toBe('nats://broker:4222')
+    expect(formatNatsServerUrlForLog(app.natsUrl)).toBe('nats://broker:4222')
+    expect(app.natsCredentials).toEqual({ username: 'synthetic-nest-user', password: 'synthetic-@$:password' })
+  })
+
   it.each(Object.values(Environment))('keeps legacy Meilisearch credentials unless a dedicated log key is supplied (%s)', appEnv => {
     const environment = {
       ...fullEnvironment(), APP_ENV: appEnv,

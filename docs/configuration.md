@@ -9,6 +9,7 @@ names and classifications, not real values. `<placeholder>` means a local value 
 | --- | --- | --- | --- |
 | Runtime | `APP_ENV`, `NODE_ENV`, `LOCAL_DUMMY_AUTH`, `DISABLE_TURNSTILE`, `APP_VERSION`, `LOCAL_TEST_ACCOUNT_EMAIL` | defaults/optional | Runtime mode and local-only test identity. The password is local-only and is never documented with a value. |
 | App/NATS | `APP_PORT`, `APP_NATS_PORT`, `APP_NATS_HOST`, `APP_PROJECT_NAME`, `APP_GLOBAL_NAME`, `APP_PROJECT_ID`, `APP_TRUSTED_PROXY_CIDRS`, `APP_USER_ACTIVATION_ORIGIN`, `APP_HOST`, `APP_MAX_NATS_PAYLOAD_BYTES`, `APP_SHUTDOWN_TIMEOUT_MS` | mostly required | Non-secret listener, identity, origin and NATS transport settings. CORS is disabled in every environment. The proxy list identifies only the nginx peer immediately in front of Fastify. |
+| NATS credentials | `APP_NATS_USERNAME`, `APP_NATS_PASSWORD` | optional pair | Both omitted preserve legacy unauthenticated connections; either declared requires the other, and empty values fail validation. Password is secret and stays outside the broker URL. |
 | App secrets | `APP_SESSION_SIGNATURE_SECRET`, `APP_PASSWORD_PEPPER`, `APP_REDIS_ID_HMAC_SECRET`, `APP_AES_SECRET`, `APP_DEVICE_ID_SIGNATURE_SECRET` | yes | Secret material for sessions, password/device protection, Redis identifiers and encryption. |
 
 `APP_AES_SECRET` is deployment-owned root material. OAuth provider credentials
@@ -42,3 +43,8 @@ names and retry semantics remain unchanged. The local VM deployment requires
 separate restricted keys and operator-precreated log indexes; omission of the
 new variable preserves compatibility, **not** least privilege. See the
 [Meilisearch VM contract and local permission checks](infrastructure/local-vm/MEILISEARCH-OPERATIONS.md).
+
+Both Nest NATS transports use the same credential factory. Configured credentials
+are sent as SDK `user`/`pass`; authentication failure does not fall back to
+anonymous access. The file bootstrap adapter accepts both variables. See the
+[NATS client contract and isolated integration check](infrastructure/local-vm/NATS-CLIENT-AUTH.md).

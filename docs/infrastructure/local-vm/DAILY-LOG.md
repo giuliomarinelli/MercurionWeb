@@ -364,3 +364,29 @@ Nest completa, accesso ai materiali reali, SSH o operazione sulla VM.
 [Contratto e comando ripetibile](MEILISEARCH-OPERATIONS.md). VM-020 mantiene
 aperta la parte di provisioning/verifica sulla VM. INF-VM-04 rimane parziale:
 auth NATS consumer, trasporto/ciclo di vita VM-028 e gate 02/03 ancora aperti.
+
+### INF-VM-04-C — autenticazione dei transport NATS Nest
+
+Scelta esplicita owner: user/password distinti per consumer e ambiente,
+separati dall'URL (VM-029). Aggiunte `APP_NATS_USERNAME` e `APP_NATS_PASSWORD`
+opzionali e da dichiarare insieme: omissione completa preserva legacy; coppia
+incompleta, valori vuoti o tipi errati bloccano la validazione senza esporre valori.
+La factory condivisa passa `user`/`pass` sia al listener Nest sia al client RPC;
+endpoint, formatter di startup e policy JWT restano separati. Redazione
+strutturata estesa al campo SDK `pass`; adapter da file accetta i nuovi nomi.
+
+95 test mirati passati e uno POSIX saltato su Windows; typecheck, build e lint
+mirato passati. Grafo moduli/configurazione e raggiungibilità Nest verificati.
+Smoke reale locale con factory compilata e transport Nest: 2 request/reply
+autenticati, 1 compatibilità anonima e 16 rifiuti `AUTHORIZATION_VIOLATION`
+per assenza credenziali, password errata, utente ignoto e coppia dell'altro
+ambiente. I guasti di rete non valgono come rifiuti auth.
+
+Tre broker sintetici e un probe su Docker Desktop isolato, immagini locali
+fissate per digest, senza pull/porte host/volumi persistenti; risorse Docker e
+file temporanei rimossi. Nessun avvio app completa, SSH o modifica VM.
+Tox21 letto soltanto al commit `2cbfcd467afa9e9643065c630f6b06f265f0ac5a`:
+richiede un task dedicato per parametri separati e validazione Pydantic.
+Non abilitare auth sul broker operativo prima dell'allineamento dei consumer.
+[Contratto, comando e residui](NATS-CLIENT-AUTH.md). INF-VM-04 ancora parziale;
+VM-028 e gate di avvio 02/03 invariati. CI remota distinta dalle prove locali.

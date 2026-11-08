@@ -96,6 +96,13 @@ export function validateEnvironment(raw: RawEnvironment): ValidatedEnvironment {
         }
     }
 
+    if (raw.APP_NATS_USERNAME !== undefined && raw.APP_NATS_PASSWORD === undefined) {
+        diagnostics.push({ source: 'APP_NATS_PASSWORD', message: 'is required with APP_NATS_USERNAME' })
+    }
+    if (raw.APP_NATS_PASSWORD !== undefined && raw.APP_NATS_USERNAME === undefined) {
+        diagnostics.push({ source: 'APP_NATS_USERNAME', message: 'is required with APP_NATS_PASSWORD' })
+    }
+
     const localKeys = !!result.JWT_LOCAL_KEYS_CONFIG && (result.APP_ENV === Environment.Development || result.APP_ENV === Environment.Test)
     if (!localKeys) for (const source of legacyJwtSecretSources) {
         if (result[source] === undefined) diagnostics.push({ source, message: 'is required without the local key runtime' })

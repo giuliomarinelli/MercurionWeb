@@ -26,6 +26,41 @@ function validRawEnvironment(includeOptional: boolean): RawEnvironment {
 }
 
 describe('canonical environment validation', () => {
+  it.each(Object.values(Environment))('preserves optional NATS auth as a complete literal pair (%s)', appEnv => {
+    const raw = validRawEnvironment(true)
+    raw.APP_ENV = appEnv
+    delete raw.APP_NATS_USERNAME
+    delete raw.APP_NATS_PASSWORD
+    expect(validateEnvironment(raw)).toMatchObject({ APP_NATS_USERNAME: undefined, APP_NATS_PASSWORD: undefined })
+    raw.APP_NATS_USERNAME = 'synthetic-nest-user'
+    raw.APP_NATS_PASSWORD = 'synthetic-@$:{} password'
+    expect(validateEnvironment(raw)).toMatchObject({
+      APP_NATS_USERNAME: 'synthetic-nest-user', APP_NATS_PASSWORD: 'synthetic-@$:{} password'
+    })
+  })
+
+  it.each([
+    ['APP_NATS_USERNAME', undefined, 'APP_NATS_PASSWORD'],
+    ['APP_NATS_PASSWORD', undefined, 'APP_NATS_USERNAME'],
+    ['APP_NATS_USERNAME', '', 'APP_NATS_USERNAME'],
+    ['APP_NATS_PASSWORD', '', 'APP_NATS_PASSWORD'],
+    ['APP_NATS_USERNAME', false, 'APP_NATS_USERNAME'],
+    ['APP_NATS_PASSWORD', 12, 'APP_NATS_PASSWORD']
+  ] as const)('rejects incomplete or invalid NATS credentials: %s=%s', (source, value, diagnostic) => {
+    const raw = validRawEnvironment(true)
+    raw.APP_NATS_USERNAME = 'synthetic-sensitive-user'
+    raw.APP_NATS_PASSWORD = 'synthetic-sensitive-password'
+    raw[source] = value
+    try {
+      validateEnvironment(raw)
+      throw new Error('expected validation failure')
+    } catch (error) {
+      expect(error).toBeInstanceOf(ConfigurationError)
+      expect((error as Error).message).toContain(diagnostic)
+      expect((error as Error).message).not.toMatch(/synthetic-sensitive/)
+    }
+  })
+
   it('allows omission of the dedicated Meilisearch writer key but rejects an explicitly empty key', () => {
     const raw = validRawEnvironment(false)
     expect(validateEnvironment(raw).MEILISEARCH_LOG_KEY).toBeUndefined()

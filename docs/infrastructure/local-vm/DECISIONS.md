@@ -32,6 +32,7 @@
 | VM-026 | APERTA | Eventuali adeguamenti dello schema deployment canonico e validator CI ai nuovi servizi/reti senza interrompere i manifest storici |
 | VM-027 | APPROVATA | Anticipare soltanto manifest e validazione statica INF-VM-03, mantenendo aperti i residui INF-VM-02 e il gate di avvio VM; nessuna installazione su Android o modifica operativa della rete |
 | VM-028 | PROPOSTA | Bootstrap manuale con file per consumer su area volatile guest, consegna senza PTY separata da sudo, compatibilità env dentro il container e conservazione dei file fino alla chiusura della sessione; dettaglio in BOOTSTRAP-CONTRACT.md, nessun provisioning implementato |
+| VM-029 | APPROVATA | Autenticazione NATS con user/password distinti per consumer e ambiente, separati dall'URL; scelta esplicita owner l'8 novembre. Nest implementato; Tox21 e provisioning broker ancora da allineare |
 
 ## Confini non negoziabili
 

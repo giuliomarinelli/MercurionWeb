@@ -19,7 +19,7 @@ evidenza del codice, non prova del bootstrap delle immagini sulla VM.
 | Nest HMAC | 13 variabili legacy `JWT_SECRETS_*` richieste senza adapter locale; `JWT_LOCAL_KEYS_CONFIG` vietato in staging/production | L'adapter di sviluppo non è un percorso di provisioning VM già pronto; nessuna rotazione a caldo aggiunta |
 | Nest credenziali applicative | SQL/Redis/Meilisearch, sessione/cookie, pepper/cifratura, SMTP/Twilio/OAuth e altre integrazioni passano dalla configurazione | Consegnare solo al Nest del relativo ambiente; chiavi esterne e segreti persistenti hanno cicli di sostituzione diversi |
 | Tox21 | `config.py` non legge dotenv in staging/production; `JWT_PUBLIC_KEY_PATH` indica un file RSA pubblico `.pem` | Montare la pubblica HTTP dell'ambiente, non la privata o la coppia WS. Il file è letto se almeno una policy risolta richiede JWT |
-| NATS consumer Nest | `APP_NATS_HOST` rifiuta user/password; `createNatsTransportOptions` configura soltanto `servers` | Abilitare credenziali sul solo broker romperebbe Nest: manca il contratto di autenticazione client |
+| NATS consumer Nest | `APP_NATS_HOST` senza userinfo; coppia opzionale `APP_NATS_USERNAME` / `APP_NATS_PASSWORD` passata come `user`/`pass` a entrambi i transport | Implementato l'8 novembre: coppia incompleta/vuota blocca il bootstrap, omissione completa conserva legacy. Provisioning broker e Tox21 da allineare |
 | NATS consumer Tox21 | `NATS_URL` passa a `nc.connect`; il validatore ammette URL del broker anche con userinfo | Non dedurre da questa sola capacità compatibilità del sistema completo o autorizzare credenziali negli URL/log |
 | Meilisearch client Nest | `MEILISEARCH_CLIENT` usa `MEILISEARCH_MASTER_KEY` per ricerca; `MEILISEARCH_LOG_CLIENT` usa `MEILISEARCH_LOG_KEY` per outbox | Separazione implementata l'8 novembre; omissione della writer key riusa la legacy per compatibilità. VM richiede key distinte ristrette, mai la master server |
 | Meilisearch server | Richiede la propria master key, distinta dalle key Nest e UI | Scegliere e verificare il trasporto della master key al processo; nessuna master key nei backend |
@@ -89,7 +89,7 @@ equivale a supporto `_FILE` nativo. Dettagli e prove in
 | --- | --- | --- |
 | PostgreSQL/pgvector | `POSTGRES_PASSWORD_FILE` supportato dall'entrypoint ufficiale | Confermare il digest dell'immagine custom e testare UID/permessi/bootstrap; la variabile di init non cambia da sola password di un database esistente |
 | Redis | Config/ACL con materiale effimero montato, non password in argv | Formato, permessi, eventuali riscritture config e coerenza client/server |
-| NATS | Config effimera con credenziali separate per ambiente | Prima estendere esplicitamente il client Nest; scelta user/password o token ancora aperta |
+| NATS | Config effimera con credenziali separate per consumer/ambiente | User/password confermati dall'owner; consumer Nest implementato. Contratto Tox21, config broker e consegna effimera ancora aperti |
 | Meilisearch | Config TOML effimera, oppure launcher file → env dentro il container | Capacità del digest scelto, lettura master key e restart; non inventare `MEILI_MASTER_KEY_FILE` |
 | Tox21 | Mount pubblico PEM e `JWT_PUBLIC_KEY_PATH` non segreto | Fail bootstrap per PEM mancante/invalido quando richiesto; policy RPC e token Nest coerenti |
 
@@ -149,7 +149,7 @@ qualsiasi derivato crittografico dai volumi persistenti.
 | --- | --- |
 | 04-A | Approvare ciclo di vita e trasporto; definire formato dati e permessi senza valori reali |
 | 04-B | Launcher Nest opt-in implementato e testato su dati sintetici; ricevitore/apply privilegiati e integrazione operativa ancora aperti |
-| 04-C | Separazione client Meilisearch implementata/testata localmente; provisioning/grant VM ancora aperti. Auth NATS consumer ancora da risolvere, senza aggirare validatori o allargare privilegi |
+| 04-C | Client Meilisearch separati e auth NATS Nest implementati; provisioning/grant VM e credenziali separate del consumer Tox21 ancora aperti |
 | 04-D | Dopo review del gate VM, provare immagini fissate e restart/recreate con dati sintetici, verificando assenza del marker in argv, metadati Docker e log |
 | 04-E | Solo dopo esiti precedenti, provisioning operativo e prove JWT/RPC/provider con materiali dell'owner |
 

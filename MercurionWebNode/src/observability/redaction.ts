@@ -1,4 +1,4 @@
-const SENSITIVE_KEY = /password|passcode|token|secret|authorization|cookie|otp|mfa|oauth|client.?secret|api.?key/i
+const SENSITIVE_KEY = /password|^pass$|passcode|token|secret|authorization|cookie|otp|mfa|oauth|client.?secret|api.?key/i
 const MAX_DEPTH = 8
 
 export const REDACTED_VALUE = '[REDACTED]'

@@ -57,6 +57,17 @@ describe('opt-in secret file bootstrap', () => {
     expect(environment.MEILISEARCH_LOG_KEY).toBe('synthetic-writer-key')
   })
 
+  it('injects NATS credentials literally without adding them to the broker URL', () => {
+    const environment: NodeJS.ProcessEnv = { APP_ENV: 'staging', APP_NATS_HOST: 'nats://broker',
+      [secretBootstrapFileVariable]: write(payload({
+        APP_NATS_USERNAME: 'synthetic-nest-user', APP_NATS_PASSWORD: marker
+      })) }
+    loadSecretFileEnvironment(environment)
+    expect(environment.APP_NATS_USERNAME).toBe('synthetic-nest-user')
+    expect(environment.APP_NATS_PASSWORD).toBe(marker)
+    expect(environment.APP_NATS_HOST).toBe('nats://broker')
+  })
+
   it.each(['NODE_OPTIONS', 'PATH', 'APP_ENV', 'NODE_ENV', 'JWT_LOCAL_KEYS_CONFIG', '__proto__', marker])(
     'rejects a protected or unknown variable without printing its name: %s', name => {
       const bytes = payload({ [name]: marker })

@@ -25,6 +25,10 @@ export const configurationBuilders = {
             environment.APP_NATS_HOST,
             environment.APP_NATS_PORT
         ),
+        natsCredentials: {
+            username: environment.APP_NATS_USERNAME,
+            password: environment.APP_NATS_PASSWORD
+        },
         projectName: environment.APP_PROJECT_NAME,
         projectId: environment.APP_PROJECT_ID,
         transportSecurity: createTransportSecurityPolicy(
