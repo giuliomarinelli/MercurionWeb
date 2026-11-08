@@ -7,8 +7,10 @@
 **Preparazione documentale INF-VM-04:** [contratto bootstrap](BOOTSTRAP-CONTRACT.md)
 con evidenze dei consumer e proposta di consegna effimera. Nest non consuma
 genericamente `_FILE` in staging/prod; Tox21 consuma PEM pubblico. Auth NATS
-non configurata dal consumer Nest e client Meilisearch condiviso sono prerequisiti
-applicativi aperti. [Adapter Nest opt-in](NEST-SECRET-FILE-ADAPTER.md) disponibile:
+non configurata dal consumer Nest resta un prerequisito applicativo aperto.
+Client Meilisearch search/writer separati l'8 novembre, con nuova
+`MEILISEARCH_LOG_KEY` opzionale e fallback legacy; grant/provisioning VM aperti.
+[Adapter Nest opt-in](NEST-SECRET-FILE-ADAPTER.md) disponibile:
 34 test Windows e 7 verifiche Linux isolate passati; lettura POSIX testata con
 UID 10001, nessun bootstrap dell'app/VM o provisioning eseguito.
 
@@ -72,7 +74,7 @@ La versione corrente di Tox21 ha override `allow` / `require-jwt` / `disabled` p
 - I Compose `docker_sl/releases/preview` e `prod` sono **frammenti**: non definiscono una topologia VM completa, volumi e recovery.
 - Il modello `deployment-schema.json` presenta ancora Nginx con porta HTTPS e secret origin TLS: **scostamento storico da riconciliare**, senza rompere i validator attuali prima di un task dedicato.
 - Non esistono ancora la matrice VM dei network, il routing per due hostname via tunnel e le prove di isolamento Hyper-V/Docker.
-- La nomenclatura legacy del client Meilisearch non dimostra i privilegi realmente concessi. Il client attuale è condiviso tra ricerca e scrittura dei log: va verificata la compatibilità con chiavi a privilegi minimi, senza assegnare per comodità permessi di scrittura ChEMBL.
+- La nomenclatura legacy del client Meilisearch non dimostra i privilegi realmente concessi. Client search/writer separati e permessi sintetici verificati su istanza locale effimera: 8 letture, 8 scritture/replay e 40 negazioni 403. Sulla VM restano da consegnare key distinte, precreare indici e verificare le grant effettive; il fallback legacy non basta. [Contratto e limiti](MEILISEARCH-OPERATIONS.md).
 - Non esistono provisioning VM verificato della master key **del server Meilisearch**, delle altre credenziali o dell'eventuale PEM pubblico Tox21.
 - I job CI costruiscono e verificano immagini, ma non forniscono ancora una filiera ordinaria per pubblicare, scaricare e archiviare i `image.tar`, in particolare separando staging/production e Web/Tox21.
 - Manca il collaudo completo browser → Nginx → Nest → dati/RPC e la prova di ripristino su una VM pulita.

@@ -26,6 +26,13 @@ function validRawEnvironment(includeOptional: boolean): RawEnvironment {
 }
 
 describe('canonical environment validation', () => {
+  it('allows omission of the dedicated Meilisearch writer key but rejects an explicitly empty key', () => {
+    const raw = validRawEnvironment(false)
+    expect(validateEnvironment(raw).MEILISEARCH_LOG_KEY).toBeUndefined()
+    raw.MEILISEARCH_LOG_KEY = ''
+    expect(() => validateEnvironment(raw)).toThrow('MEILISEARCH_LOG_KEY: must be a non-empty string')
+  })
+
   it('coerces a full valid environment exactly once', () => {
     const environment = validateEnvironment(validRawEnvironment(true))
 

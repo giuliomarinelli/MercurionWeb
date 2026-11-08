@@ -47,6 +47,16 @@ describe('opt-in secret file bootstrap', () => {
     expect(Object.keys(parseSecretEnvironment(payload(variables), { APP_ENV: 'staging' }))).toHaveLength(17)
   })
 
+  it('injects distinct search and writer keys from the same private bootstrap file', () => {
+    const environment: NodeJS.ProcessEnv = { APP_ENV: 'staging',
+      [secretBootstrapFileVariable]: write(payload({
+        MEILISEARCH_MASTER_KEY: 'synthetic-search-key', MEILISEARCH_LOG_KEY: 'synthetic-writer-key'
+      })) }
+    loadSecretFileEnvironment(environment)
+    expect(environment.MEILISEARCH_MASTER_KEY).toBe('synthetic-search-key')
+    expect(environment.MEILISEARCH_LOG_KEY).toBe('synthetic-writer-key')
+  })
+
   it.each(['NODE_OPTIONS', 'PATH', 'APP_ENV', 'NODE_ENV', 'JWT_LOCAL_KEYS_CONFIG', '__proto__', marker])(
     'rejects a protected or unknown variable without printing its name: %s', name => {
       const bytes = payload({ [name]: marker })

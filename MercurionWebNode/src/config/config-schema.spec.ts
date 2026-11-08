@@ -47,6 +47,19 @@ function typescriptFiles(directory: string): string[] {
 }
 
 describe('canonical configuration schema', () => {
+  it.each(Object.values(Environment))('keeps legacy Meilisearch credentials unless a dedicated log key is supplied (%s)', appEnv => {
+    const environment = {
+      ...fullEnvironment(), APP_ENV: appEnv,
+      MEILISEARCH_MASTER_KEY: 'synthetic-search-key', MEILISEARCH_LOG_KEY: undefined
+    }
+    expect(configurationBuilders[ConfigKey.Meilisearch](environment)).toMatchObject({
+      masterKey: 'synthetic-search-key', logKey: 'synthetic-search-key'
+    })
+    expect(configurationBuilders[ConfigKey.Meilisearch]({
+      ...environment, MEILISEARCH_LOG_KEY: 'synthetic-writer-key'
+    })).toMatchObject({ masterKey: 'synthetic-search-key', logKey: 'synthetic-writer-key' })
+  })
+
   it.each(Object.values(Environment))('isolates both log indexes by APP_ENV=%s, not NODE_ENV', appEnv => {
     const environment = { ...fullEnvironment(), APP_ENV: appEnv, NODE_ENV: 'production' as const }
     const meili = configurationBuilders[ConfigKey.Meilisearch](environment)
@@ -92,10 +105,13 @@ describe('canonical configuration schema', () => {
     ).toEqual([])
   })
 
-  it('keeps production consumers away from raw process environment values', () => {
+  it('keeps application consumers away from raw process environment values outside configuration/bootstrap boundaries', () => {
     const sourceRoot = join(process.cwd(), 'src')
     const allowed = new Set([
       'config/env-validation.ts',
+      // These opt-in bootstrap boundaries populate env before loading the app.
+      'bootstrap/secret-file-environment.ts',
+      'bootstrap-secrets.cli.ts',
       'utils/env-helpers.ts'
     ])
     const violations = typescriptFiles(sourceRoot).flatMap(file => {

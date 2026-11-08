@@ -23,7 +23,7 @@
 | VM-017 | PROPOSTA | Rilascio manuale verificato tramite artifact CI, archivio host + copia indipendente, `docker load` sulla VM; nessun registry obbligatorio |
 | VM-018 | PROPOSTA | UI/container amministrativo opzionale avviato solo quando serve, con profilo Compose dedicato |
 | VM-019 | APERTA | Implementazione concreta del provisioning segreti (host → guest → container) e gestione restart senza master key persistente |
-| VM-020 | APERTA | Permessi Meilisearch effettivi per query ChEMBL e writer log con client Nest attuale: eventuale separazione minima in due client |
+| VM-020 | APERTA (residuo VM) | Client Nest search/writer separati e grant sintetiche testate localmente l'8 novembre; provisioning delle key, precreazione indici e verifica permessi sulla VM ancora da eseguire |
 | VM-021 | APERTA | Modalità SSH, subnet e firewall Hyper-V/Ubuntu/Docker; test negativi IPv4/IPv6 e LAN obbligatori |
 | VM-022 | APERTA | Dimensionamento dinamico RAM tra baseline 16 GiB e opzioni 24–26 GiB; limite indicativo 28 GiB, da misurare |
 | VM-023 | APERTA | Trasferimento iniziale ChEMBL, backup e restore applicativi; nessuna esecuzione di MercurionData sulla VM |

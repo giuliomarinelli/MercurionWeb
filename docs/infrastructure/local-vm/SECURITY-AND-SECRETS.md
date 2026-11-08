@@ -18,7 +18,7 @@
 | `MEILI_MASTER_KEY` **del server** | root del servizio Meilisearch; necessaria all'avvio protetto | Generata/custodita sul computer host, iniettata durante bootstrap controllato; mai ai backend; **non** versione in Git |
 | Chiave amministrativa Meilisearch per `curl` | precreazione indici, amministrazione di chiavi e configurazione strettamente necessaria | Password manager Windows, usata soltanto durante una sessione operativa e rimossa dalla sessione al termine |
 | `MEILISEARCH_MASTER_KEY` **del client Nest** | nome legacy di configurazione | Nella VM contiene una **API key applicativa a privilegi limitati**, mai la master key del server |
-| Chiavi API search/log | ricerca ChEMBL e scrittura nei soli indici log autorizzati | Differenziate per preview e production; verificare azioni effettive richieste dal codice |
+| `MEILISEARCH_LOG_KEY` del client writer Nest | scrittura nei soli indici log autorizzati | Differenziata per preview e production; distinta dalla key search legacy. Omissione compatibile riusa la key legacy, ma non soddisfa il contratto VM |
 | Chiave API della UI | sola lettura su indici ammessi | Nessun mount nel container UI; inserita nel browser attraverso SSH e conservata nel password manager Windows |
 | PostgreSQL, Redis, NATS | credenziali per singolo ambiente | Separazione completa, no esempi `root` riciclati dal Compose di sviluppo |
 | OAuth/SSO, Twilio, email, Dropbox/R2, Turnstile, HMAC applicative | credenziali esterne e di cifratura | Inventario per ambiente; non incluse negli artifact OCI |

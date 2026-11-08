@@ -24,6 +24,7 @@ recovery contract in [OAuth provider credential policy](security/oauth-provider-
 | Sessions | `SHORT_SESSION_LASTING`, `PERSISTENT_SESSION_LASTING`, `SESSION_ZERO_ID` | yes | Session lifetimes and sentinel identifier; no secret value is implied. |
 | Dropbox | `DROPBOX_API_URL`, `DROPBOX_AUTH_URL`, `DROPBOX_APP_KEY`, `DROPBOX_APP_SECRET`, `DROPBOX_REDIRECT_URI`, `DROPBOX_TOKEN_URL` | yes | OAuth/object-store endpoints and credentials; app secret is secret. |
 | Search/edge | `MEILISEARCH_HOST`, `MEILISEARCH_MASTER_KEY`, `CLOUDFLARE_SECRET_KEY` | yes | Search endpoint/key and Cloudflare integration; keys are secret. |
+| Meilisearch writer | `MEILISEARCH_LOG_KEY` | optional | Dedicated secret key for outbox writes. If omitted, falls back to the legacy `MEILISEARCH_MASTER_KEY`; an explicitly empty value fails validation. |
 | Redis | `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD` | yes | Session/cache store; password is secret. |
 | SSO | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `GITHUB_REDIRECT_URI`, `LINKEDIN_CLIENT_ID`, `LINKEDIN_CLIENT_SECRET`, `LINKEDIN_REDIRECT_URI`, `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `DISCORD_REDIRECT_URI`, `ORCID_CLIENT_ID`, `ORCID_CLIENT_SECRET`, `ORCID_REDIRECT_URI`, `ORCID_ISSUER` | yes | OAuth/OIDC client configuration; client secrets are secret, redirect URIs are environment-specific, and `ORCID_ISSUER` selects sandbox or production. |
 | Feedback | `UM_FEEDBACK_ANON_AUTHOR_KEY` | yes | Anonymous feedback attribution key; secret. |
@@ -32,3 +33,12 @@ Development service defaults are PostgreSQL `localhost:5431`, Redis `localhost:6
 `nats://localhost` on port `4223`, Meilisearch `http://localhost:7700`, Nest `8099`, Angular
 `3498`, and nginx `http://localhost:8888`. Production endpoints and credentials are not
 part of this repository documentation.
+
+`MEILISEARCH_MASTER_KEY` retains its legacy name and configures the search client;
+it need not be the server master key. `MEILISEARCH_LOG_KEY` configures a separate
+writer client for log/audit and generic Meilisearch outbox mutations. When set,
+a denied write is never retried using search credentials. Existing outbox index
+names and retry semantics remain unchanged. The local VM deployment requires
+separate restricted keys and operator-precreated log indexes; omission of the
+new variable preserves compatibility, **not** least privilege. See the
+[Meilisearch VM contract and local permission checks](infrastructure/local-vm/MEILISEARCH-OPERATIONS.md).

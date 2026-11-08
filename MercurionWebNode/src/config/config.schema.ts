@@ -417,6 +417,7 @@ export const environmentSchema = defineEnvironmentSchema(
 
     required('MEILISEARCH_HOST', string()),
     required('MEILISEARCH_MASTER_KEY', string()),
+    optional('MEILISEARCH_LOG_KEY', nonEmptyString()),
     required('CLOUDFLARE_SECRET_KEY', string()),
 
     required('REDIS_HOST', string()),

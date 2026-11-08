@@ -333,3 +333,34 @@ passati; entrypoint compilato verificato in fail-closed senza file e senza avvio
 Nessun avvio Nest, nuova immagine, lettura env/PEM reali o provisioning VM.
 [Contratto, prove e limiti](NEST-SECRET-FILE-ADAPTER.md). INF-VM-04 resta parziale;
 trasporto/ciclo di vita VM-028 e gate operativo restano separati.
+
+## 8 novembre 2026 — INF-VM-04-C, separazione client Meilisearch
+
+Introdotto un client writer dedicato al dispatcher outbox, alimentato dalla
+variabile opzionale `MEILISEARCH_LOG_KEY`. Il client search conserva token e
+nome legacy `MEILISEARCH_MASTER_KEY`. Omissione del nuovo valore mantiene la
+compatibilità anche in staging/production; valore vuoto invalido, nessun
+fallback alla chiave search dopo un rifiuto remoto. Payload, destinazioni e
+retry dell'outbox rimangono invariati, incluse mutazioni generiche legacy.
+Il contratto VM richiede esplicitamente due key ristrette e indici precreati.
+
+97 test Nest mirati passati, uno POSIX saltato su Windows: configurazione nei
+quattro ambienti, injection reale di due client distinti e consumer outbox,
+ricerca molecolare, produttori dei log e adapter da file con entrambe le key.
+Typecheck, build Nest e lint mirato passati. Dai controlli preliminari emerse
+due omissioni del precedente adapter: eccezioni puntuali per il confine bootstrap
+nella guardia `process.env` e registrazione del nuovo entrypoint nel grafo di
+raggiungibilità. Corrette senza modificare gli script dei controlli. Guardie
+architetturali con casi negativi, confine logger e documentazione passati.
+
+Smoke Meilisearch reale su Docker Desktop locale, isolato, non-root e con soli
+dati sintetici: 8 letture ChEMBL, 8 scritture/replay dei log e 40 negazioni HTTP
+403 esplicite. Il primo tentativo è stato terminato dal limite memoria del
+container: l'indicizzatore del digest considera la RAM host. Impostati soltanto
+per la prova 64 MB e un thread; smoke finale passato. Nessun pull, porta host o
+volume persistente; container/rete della prova rimossi. Nessun avvio dell'app
+Nest completa, accesso ai materiali reali, SSH o operazione sulla VM.
+
+[Contratto e comando ripetibile](MEILISEARCH-OPERATIONS.md). VM-020 mantiene
+aperta la parte di provisioning/verifica sulla VM. INF-VM-04 rimane parziale:
+auth NATS consumer, trasporto/ciclo di vita VM-028 e gate 02/03 ancora aperti.

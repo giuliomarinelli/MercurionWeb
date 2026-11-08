@@ -31,8 +31,8 @@ export class NotificationOutboxDispatcherService implements OnModuleInit, OnModu
   constructor(
     private readonly dataSource: DataSource,
     private readonly mailer: MailSenderService,
-    @Inject('MEILISEARCH_CLIENT')
-    private readonly meiliClient: MeiliSearch,
+    @Inject('MEILISEARCH_LOG_CLIENT')
+    private readonly meiliLogClient: MeiliSearch,
     private readonly registry: OutboxConsumerRegistry,
     private readonly outbox: OutboxRepository,
     private readonly metrics: OutboxMetricsService,
@@ -114,7 +114,7 @@ export class NotificationOutboxDispatcherService implements OnModuleInit, OnModu
 
   private async deliverIndexUpsert(event: OutboxEventEnvelope<OutboxPayload>): Promise<void> {
     const payload = event.payload
-    await this.meiliClient.index(String(payload.indexName)).addDocuments(
+    await this.meiliLogClient.index(String(payload.indexName)).addDocuments(
       [payload.document as Record<string, unknown>],
       { primaryKey: typeof payload.primaryKey === 'string' ? payload.primaryKey : 'id' }
     )
@@ -122,7 +122,7 @@ export class NotificationOutboxDispatcherService implements OnModuleInit, OnModu
 
   private async deliverIndexDelete(event: OutboxEventEnvelope<OutboxPayload>): Promise<void> {
     const payload = event.payload
-    await this.meiliClient.index(String(payload.indexName)).deleteDocument(String(payload.documentId))
+    await this.meiliLogClient.index(String(payload.indexName)).deleteDocument(String(payload.documentId))
   }
 
   private async deliverEmail(event: OutboxEventEnvelope<OutboxPayload>): Promise<void> {
