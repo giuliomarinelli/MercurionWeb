@@ -78,7 +78,9 @@ e la precedente prova Nest restano evidenze distinte, non un nuovo end-to-end We
 Prova locale con sole sorgenti selezionate montate sul runtime dipendenze
 `sha256:e0e45c20f9b4a88d28ffe228bd3a420033386aa53fd981d349482940a197d568`:
 non è una nuova immagine di release. Lo smoke è stato aggiunto alla CI Tox21
-contro l'immagine appena costruita; il suo esito remoto resta da verificare.
+contro l'immagine appena costruita. [CI sullo SHA esatto
+`263ccbc7429a85e1961b13d9a57038a46a07497a`](https://github.com/giuliomarinelli/MercurionTox21/actions/runs/42469399664)
+completata con successo, incluso Required gate; integrazione riservata all'owner.
 Dettagli nel repository Tox21: `docs/nats-client-auth.md` al commit sopra.
 
 ## Residui operativi

@@ -408,7 +408,8 @@ sorgenti selezionate su immagine dipendenze locale, non nuova immagine release.
 Smoke registrato nella CI Tox21 contro la sua immagine appena costruita;
 workflow YAML e 53 sorgenti Python validati sintatticamente. [CI sullo SHA
 `263ccbc7429a85e1961b13d9a57038a46a07497a`](https://github.com/giuliomarinelli/MercurionTox21/actions/runs/42469399664)
-avviata e ancora in corso alla verifica; Required gate non ancora confermato.
+completata con successo: job Linux CPU application/containers e **Required gate
+verdi sullo SHA esatto**. Branch Tox21 pronto per review/integrazione dell'owner.
 Risorse Docker/file temporanei rimossi; nessun SSH o avvio VM.
 
 Report fuori Git in `C:/Users/giuli/.codex/artifacts/inf-vm-04/tox21-nats-auth/`.
