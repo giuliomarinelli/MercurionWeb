@@ -2,8 +2,9 @@
 
 **8 novembre 2026.** Scelta owner: user/password, credenziali distinte per
 consumer e ambiente, separate dall'URL. Implementato il consumer Nest;
-Tox21 allineato sul branch `feature/infra-vm-nats-client-auth`, commit `263ccbc`,
-ancora da integrare. Provisioning del broker e consegna segreti restano separati.
+Tox21 allineato in `263ccbc`; il branch `feature/infra-vm-nats-client-auth`
+rimane operativo per scelta dell'owner. [Adapter da file Tox21](TOX21-SECRET-FILE-ADAPTER.md)
+aggiunto in `b6476dd`. Provisioning broker e trasporto dei segreti restano separati.
 
 ## Contratto Nest
 
@@ -89,9 +90,10 @@ Dettagli nel repository Tox21: `docs/nats-client-auth.md` al commit sopra.
   Nest/Tox21 e preview/production; l'omissione compatibile non prova protezione.
 - Definire/configurare il broker con gli stessi materiali prima di abilitarne
   l'autenticazione; nessun broker esistente è stato modificato.
-- Integrare il branch Tox21 dopo CI/review. `develop` Tox21 non è stato modificato.
-  Tox21 consuma le credenziali come input di processo; consegna protetta da file
-  ancora da predisporre, nessun supporto `_FILE` o ricevitore privilegiato implicito.
+- Tox21 continua sul proprio branch operativo; `develop` non è stato modificato.
+  Il launcher opt-in legge la coppia da file e la passa all'ambiente del processo;
+  trasporto, apply e lifecycle restano aperti. Nessun `_FILE` nativo o ricevitore
+  privilegiato implicito. Integrazioni eventuali restano dell'owner.
 - Permessi publish/subscribe sui subject e TLS richiedono verifica dedicata:
   questo task aggiunge autenticazione senza modificare ACL, reti o protocolli.
 - Le policy JWT dei cinque RPC scientifici restano indipendenti dalle credenziali

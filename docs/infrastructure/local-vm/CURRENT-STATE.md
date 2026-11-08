@@ -8,8 +8,9 @@
 con evidenze dei consumer e proposta di consegna effimera. Nest non consuma
 genericamente `_FILE` in staging/prod; Tox21 consuma PEM pubblico. Auth NATS
 Nest e Tox21 configurabili tramite coppie opzionali user/password separate
-dall'URL; Tox21 sul branch `feature/infra-vm-nats-client-auth` (`263ccbc`), da
-integrare. Provisioning broker e consegna protetta al processo ancora aperti.
+dall'URL; Tox21 prosegue sul branch operativo `feature/infra-vm-nats-client-auth`,
+con [adapter da file opt-in](TOX21-SECRET-FILE-ADAPTER.md) in `b6476dd`.
+Provisioning broker, trasporto/apply e lifecycle ancora aperti.
 Client Meilisearch search/writer separati l'8 novembre, con nuova
 `MEILISEARCH_LOG_KEY` opzionale e fallback legacy; grant/provisioning VM aperti.
 [Adapter Nest opt-in](NEST-SECRET-FILE-ADAPTER.md) disponibile:

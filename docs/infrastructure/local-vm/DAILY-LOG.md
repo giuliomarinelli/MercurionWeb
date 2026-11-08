@@ -416,3 +416,31 @@ Report fuori Git in `C:/Users/giuli/.codex/artifacts/inf-vm-04/tox21-nats-auth/`
 [Contratto e residui](NATS-CLIENT-AUTH.md): integrazione del branch Tox21,
 consegna protetta delle credenziali al worker, config broker e gate VM ancora
 aperti. VM-028 resta proposta; INF-VM-04 non è dichiarato completato.
+
+### INF-VM-04-B — consumer Tox21 da file e continuità dei branch
+
+L'owner conferma Tox21 `feature/infra-vm-nats-client-auth` come base operativa
+persistente, con lo stesso criterio di Web `feature/infra-vm-docker-engine-architecture`.
+Registrato VM-030: proseguire qui, nessun nuovo ramo per task compatibili e ogni
+integrazione riservata all'owner. Nessun merge e `develop` invariati.
+
+Commit Tox21 `b6476dd`: launcher opt-in `python -m bootstrap_secrets`, file JSON
+da `MERCURION_BOOTSTRAP_FILE`, coppia NATS completa e allowlist ristretta.
+Ambiente esterno esplicito staging/production; controllo UTF-8/JSON/dimensioni,
+collisioni, atomicità, file/permessi/no-follow, descriptor e diagnostica costante.
+Main caricato soltanto dopo la lettura. CMD esistente invariato; moduli aggiunti
+alla whitelist Docker e all'inventario runtime. Nessuna dipendenza aggiunta.
+
+Suite applicativa Linux UID 10021: 122 passati; Windows: 120 passati e 2 POSIX
+saltati. CLI testato con sentinella, senza caricare app/modello. Smoke reale
+NATS con 8 letture di file sintetici: 10 RPC autenticati, 5 legacy e 8 rifiuti
+auth, con connessioni chiuse/readiness falsa sui fallimenti. RDKit reale;
+inferenza e PubChem sostitutivi. Immagine dipendenze locale e sorgenti selezionate,
+nessuna nuova release locale. 56 file Python validati sintatticamente.
+
+Report in `C:/Users/giuli/.codex/artifacts/inf-vm-04/tox21-file-bootstrap/`.
+[CI dello SHA `b6476ddebd66f1879227d1debf6fa00705a6bbbb`](https://github.com/giuliomarinelli/MercurionTox21/actions/runs/42473032259)
+completata con successo: job Linux CPU application/containers e Required gate
+verdi sullo SHA esatto. Risorse temporanee rimosse, nessun dato
+operativo letto, SSH o avvio VM. [Contratto](TOX21-SECRET-FILE-ADAPTER.md).
+Ricevitore/apply, consegna, ownership mount e lifecycle VM-028 ancora aperti.

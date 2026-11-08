@@ -106,8 +106,10 @@ node node_modules/jest/bin/jest.js --config MercurionWebNode/jest.config.js --ru
 Le prove Linux isolate sono conservate localmente in
 `C:/Users/giuli/.codex/artifacts/inf-vm-04/nest-secret-bootstrap-linux/`.
 Nessuna lettura di `.env` personali o PEM reali. Ricevitore/apply privilegiati,
-integrazione Docker operativa, auth NATS, separazione key Meilisearch e prova
-restart/recreate restano aperti. INF-VM-04 non è completato.
+integrazione Docker operativa, provisioning di auth/grant e prova restart/recreate
+restano aperti. I successivi interventi hanno implementato i consumer NATS,
+separato i client Meilisearch e aggiunto l'[adapter Tox21](TOX21-SECRET-FILE-ADAPTER.md);
+questo non chiude i gate operativi. INF-VM-04 non è completato.
 
 Sorgenti: [lettore](../../../MercurionWebNode/src/bootstrap/secret-file-environment.ts),
 [entrypoint](../../../MercurionWebNode/src/bootstrap-secrets.cli.ts),
