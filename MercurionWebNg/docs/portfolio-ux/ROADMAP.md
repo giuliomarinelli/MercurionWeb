@@ -10,6 +10,15 @@ Ultima revisione del perimetro: 27 ottobre 2026. Notebook, Synthesis e integrazi
 
 ## Obiettivo
 
+**Bugfix trasversale aggiunto l'8 novembre — BUG-SUPPORT-01, da affrontare:**
+[notifiche operatori e toast sul ticket già aperto](../../../docs/bug-reports/2026-11-08-support-ticket-notifications.md).
+Alla creazione ticket mancano in-app/email all'operatore con `HandleTickets` e
+`ViewUsers`; anche le email sui messaggi utente sono segnalate assenti, mentre
+la relativa notifica in-app sembra arrivare. Sopprimere il solo toast per il
+ticket effettivamente aperto, preservando persistenza, contatori e realtime.
+Intervento congiunto backend/notifiche/email e state management frontend,
+collegato a PX-15/PX-16 e F-05; diagnosi e implementazione ancora da svolgere.
+
 **Aggiornamento del 25 ottobre 2026:** aggiunta [AUTH-01 — Accesso con passkey](#auth-01--accesso-con-passkey-webauthn), disponibile indipendentemente dall'attivazione MFA. Feature opzionale da dimensionare prima dell'implementazione, coordinata con login e settings; non sostituisce la ripresa UX dal blocco 13 e non diventa automaticamente un requisito del merge corrente.
 
 **Ulteriore intervento pianificato il 25 ottobre:** [AUTH-02 — Rotazione e revoca delle chiavi JWT](#auth-02--rotazione-e-revoca-delle-chiavi-jwt), per RS256 HTTP/WS e HS512, con chiavi multiple, amministrazione manuale e `kid` nell'header. Coordinamento Nest/Tox21 e piano operativo in [JWT-KEY-ROTATION.md](JWT-KEY-ROTATION.md); B1a/B1b e B2 locale implementati in review con fixture sintetiche; nessuna rotazione reale avviata.

@@ -90,6 +90,15 @@ Eseguire backup/restore dei dati e dei manifest, testare arresto e restart, log 
 
 **Accettazione:** report completo e verificabile; gestione manuale realistica per una sola persona; nessun requisito artificiale di disponibilità 24/7.
 
+## Backlog applicativo correlato
+
+**BUG-SUPPORT-01 — Da affrontare:**
+[notifiche ticket agli operatori e toast condizionale](../../bug-reports/2026-11-08-support-ticket-notifications.md).
+Segnalazione dell'owner dell'8 novembre: bugfix trasversale backend/email e
+UX/state management, tracciato nella roadmap applicativa PX-15/PX-16 e F-05.
+Lavoro distinto da INF-VM: questa registrazione non ne cambia ordine o gate e
+non costituisce implementazione del fix.
+
 ## Esclusioni dall'intera roadmap
 
 Kubernetes, alta disponibilità, autoscaling, CI/CD sempre attivo, rotazione JWT a caldo, UI amministrativa esposta sul web, deployment MercurionData/LandingFactory e nuove feature chimiche non richieste alla demo.
