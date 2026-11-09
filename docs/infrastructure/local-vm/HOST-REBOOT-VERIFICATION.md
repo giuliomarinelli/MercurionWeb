@@ -135,6 +135,37 @@ in ACCEPTANCE. A-28/A-29 restano aperti finché queste evidenze non sono raccolt
 LAN/altre origini e IPv6 restano prove separate (A-30). Non riprendere ancora
 il deployment applicativo o dedurre un'accettazione complessiva.
 
+## Evidenza dopo il riavvio — 9 novembre 2026
+
+Owner conferma Restart Windows. Inventario amministrativo completo delle
+**14:15:28 UTC**, riletto e confrontato con la baseline del punto 1:
+
+```text
+C:\Users\giuli\.codex\artifacts\inf-vm-02\static-network\3fb8cf6f765146e5a0631964ff62dbab\inventory.json
+```
+
+SHA-256 del report:
+`26d3ad507f8f819a96612c74b90691047420b3640aa68686b3f993d8723cc347`.
+
+- Ultimo boot Windows ora `2026-11-09T14:10:35.5Z`: diverso dalla baseline.
+- VM Off, azioni automatiche immutate, stessa identità vNIC/MAC e switch Internal.
+- IP host `10.203.240.1/24` Preferred/Manual, presente nel PersistentStore;
+  route connessa `10.203.240.0/24` e profilo Windows Public confermati.
+- Zero ACL semplici, 19 estese: confronto semantico offline con DnsHttps
+  riuscito; NAT attivo sul prefisso atteso, zero mapping.
+- Forwarding/weak-host Disabled, RemoteAccess Stopped. Docker Desktop risponde
+  all'inventario delle reti; questo non chiude i test funzionali applicativi.
+
+L'indice dell'interfaccia interna è cambiato da 68 a 23 senza cambiare
+identità dello switch o IP. Il Default Switch ha riallocato la subnet da
+`172.27.0.0/20` a `192.168.160.0/20`: IP statico Mercurion e NAT sono rimasti
+invariati. Anche il metadato HNS Internal è cambiato, ora `172.27.112.0/20`,
+senza indirizzo/route host corrispondenti nel report; nessun reset eseguito.
+
+Ancora da acquisire: Verify DnsHttps live, categoria Kaspersky, avvio guest
+con LUKS/SSH, IP/route e prove egress/negative dopo il riavvio host.
+Il solo confronto dell'inventario non chiude M-08 né A-28/A-29/A-30.
+
 ## Riferimenti
 
 - [Microsoft: AutomaticStartAction e AutomaticStopAction](https://learn.microsoft.com/en-us/powershell/module/hyper-v/set-vm?view=windowsserver2025-ps).

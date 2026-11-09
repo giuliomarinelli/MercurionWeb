@@ -34,13 +34,22 @@
 
 ## Risultati preesistenti da non confondere con questa matrice
 
-**Nuovi gate VM-032, non eseguiti:** A-28 — IP host/guest, NAT e ACL persistenti
+**Gate VM-032, ancora aperti:** A-28 — IP host/guest, NAT e ACL persistenti
 dopo reboot host/guest, con SSH e WSL/Docker funzionanti; A-29 — nuova rete
 Pubblica in Kaspersky prima dell'attach e dopo reboot; A-30 — isolamento
 diretto LAN ↔ VM/container su IPv4/IPv6, anche via NAT/host, con controlli
 positivi. [Procedura e limiti delle prove](STATIC-NETWORK-MIGRATION.md).
 L'inventario completo non supera questi gate; smartphone senza origine
 controllata non chiudono automaticamente le prove negative.
+
+**M-08, prima verifica dopo riavvio Windows del 9 novembre:** inventario
+amministrativo 3fb8cf6f765146e5a0631964ff62dbab completo e riletto. Nuovo boot
+14:10:35 UTC; VM Off, identità vNIC/switch preservate, IP host statico anche
+PersistentStore, route connessa, Windows Public, NAT senza mapping e 19 ACL
+DnsHttps semanticamente corrispondenti. Default Switch nuovamente riallocato,
+senza alterare l'IP Mercurion. Mancano ancora Verify live, Kaspersky e prove
+guest dopo questo riavvio: [evidenza e prossimi passi](HOST-REBOOT-VERIFICATION.md).
+A-28/A-29/A-30 non dichiarati superati.
 
 **Avanzamento rete statica del 9 novembre:** Netplan try accettato; TCP/22
 dal solo IP host interno e identità server verificati; owner conferma shell

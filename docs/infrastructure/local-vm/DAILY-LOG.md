@@ -856,3 +856,18 @@ impostazione Hyper-V cambiata, nessun riavvio Windows eseguito dall'agente.
 Da raccogliere dopo Restart: nuovo inventario e Verify DnsHttps, categoria
 Kaspersky, avvio/LUKS/SSH, IP/route guest, egress e negazioni con controlli.
 A-28/A-29 ancora aperti, come le prove LAN/altre origini/IPv6.
+
+**Riavvio Windows eseguito dall'owner:** inventario amministrativo completo
+3fb8cf6f765146e5a0631964ff62dbab delle 14:15:28 UTC riletto. LastBootUpTimeUtc
+cambiato a 2026-11-09T14:10:35.5Z. VM ancora Off, azioni automatiche e identità
+vNIC/switch immutate. IP host 10.203.240.1/24 Preferred/Manual anche persistente,
+route connessa e Windows Public preservati; zero ACL semplici e 19 estese
+confrontate semanticamente con DnsHttps, NAT attivo senza mapping. Forwarding
+e weak-host Disabled, RemoteAccess Stopped, reti Docker Desktop interrogabili.
+
+Indice interfaccia interna 68 → 23; Default Switch 172.27.0.0/20 →
+192.168.160.0/20, senza deriva dell'IP statico Mercurion. Metadato HNS Internal
+ora 172.27.112.0/20, assente dagli indirizzi/route host; nessun reset o modifica.
+Dettagli e hash in HOST-REBOOT-VERIFICATION. Richiesti Verify DnsHttps live
+e controllo Kaspersky prima di avviare il guest. Prove guest/traffico dopo
+reboot ancora pendenti; nessuna accettazione complessiva dedotta dal report.
