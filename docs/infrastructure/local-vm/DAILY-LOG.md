@@ -603,3 +603,9 @@ Primo Apply conferma compatibilita cmdlet/readback, non prove di traffico.
 IP host interno ancora Preferred. Preparato comando con parametri nativi
 verificati per spostare la sola vNIC; non eseguito dall'agente, VM da tenere
 Off fino al riscontro. Poi rileggere ACL sul nuovo collegamento prima dell'avvio.
+
+**M-06, solo collegamento:** owner esegue Connect-VMNetworkAdapter sulla sola
+scheda esistente; output conferma Mercurion-Internal e MAC 00155D00DD01
+invariato. Nessun avvio VM, modifica Netplan o NAT dichiarati. Richiesto
+readback `-Mode Verify` delle ACL sul nuovo collegamento; esito ancora pendente,
+VM da mantenere spenta. Isolamento e persistenza non collaudati.

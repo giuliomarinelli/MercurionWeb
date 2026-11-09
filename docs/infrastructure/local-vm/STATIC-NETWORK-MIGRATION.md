@@ -1,7 +1,8 @@
 # INF-VM-02 — migrazione alla rete interna statica
 
 **9 novembre 2026 — procedura progressiva in italiano.** Inventario completato;
-switch vuoto e IP host creati dall'owner, guest non ancora migrato.
+switch e IP host creati dall'owner; vNIC ora collegata al nuovo switch,
+guest ancora spento e IP statico guest non ancora configurato.
 Seguire i passi nell'ordine e aggiornare la tabella
 di avanzamento: un comando documentato non è un comando già eseguito.
 Il bootstrap sintetico rimane sospeso fino al recupero dell'accesso amministrativo.
@@ -33,10 +34,10 @@ Questi sono criteri da implementare e collaudare, non isolamento già dimostrato
 | --- | --- | --- |
 | M-01 | Inventario host/Hyper-V/HNS e diagnosi del timeout | Completato |
 | M-02 | Piano indirizzi e controlli sovrapposizione | Proposta verificata sullo snapshot, riservare prima dell'uso |
-| M-03 | Switch interno vuoto e IP host statico | Eseguito dall'owner: Internal e `10.203.240.1/24`; ActiveStore Preferred verificato |
+| M-03 | Creazione switch interno e IP host statico | Eseguito dall'owner: Internal e `10.203.240.1/24`; ActiveStore Preferred verificato |
 | M-04 | Kaspersky Pubblica e profilo host verificati | Classificazione attuale confermata da screenshot owner; efficacia regole/persistenza da provare |
-| M-05 | Backup e policy ACL della sola vNIC Mercurion | Apply owner riuscito, readback di 14 ACL confermato; VM non avviata/spostata, traffico non collaudato |
-| M-06 | Configurazione guest statica, NAT e collegamento | Da eseguire dopo M-04/M-05 |
+| M-05 | Backup e policy ACL della sola vNIC Mercurion | Apply owner riuscito, readback di 14 ACL prima del collegamento; verifica successiva pendente, traffico non collaudato |
+| M-06 | Configurazione guest statica, NAT e collegamento | vNIC collegata a Mercurion-Internal con MAC invariato; VM spenta, configurazione guest/NAT ancora pendenti |
 | M-07 | SSH, egress e prove negative con controlli positivi | Da eseguire |
 | M-08 | Riavvio a freddo, stabilità e nuova baseline | Da eseguire |
 
@@ -259,8 +260,16 @@ Se la VM non è Off, le regole sono ambigue o manca il backup, fermarsi.
    Connect-VMNetworkAdapter -VMName 'Mercurion-Server' -Name 'Scheda di rete' -SwitchName 'Mercurion-Internal' -Passthru | Format-List VMName,Name,SwitchName,MacAddress
    ```
 
-   Attesi nuovo SwitchName e MAC `00155D00DD01`; applicazione ancora pendente.
-   Lasciare VM spenta fino al riscontro e rileggere le ACL dopo il collegamento.
+   **Eseguito dall'owner:** output conferma VM Mercurion-Server, scheda
+   `Scheda di rete`, SwitchName `Mercurion-Internal`, MAC `00155D00DD01`.
+   VM da tenere spenta; richiesta verifica delle ACL dopo il collegamento:
+
+   ```powershell
+   powershell -NoProfile -File C:/.project_repo/MercurionWeb/scripts/infrastructure/Set-MercurionVmNetworkAcl.ps1 -Mode Verify
+   ```
+
+   Questa verifica è read-only. Esito ancora pendente: non avviare il guest
+   e non considerare il cambio switch una prova di isolamento.
 
 2. Avviare/sbloccare LUKS da console. Il vecchio DHCP non trovera un lease:
    egress e DHCP sono chiusi; la console resta il percorso di amministrazione.
