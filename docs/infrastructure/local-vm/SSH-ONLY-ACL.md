@@ -11,8 +11,9 @@ vNIC. Snapshot `acl/cd8eef94c8b34013aea52a06258fec50/before.json` acquisito:
 nome/MAC vNIC e sei semplici/due estese precedenti coerenti. Non è ancora
 una prova di traffico o di persistenza. Verify dopo il collegamento riuscito;
 successivamente l'owner ha confermato login SSH anche dopo riavvio guest, con
-IP e gateway statici invariati. Nuova lettura ACL dopo tale riavvio pendente;
-prove negative, reboot host e isolamento LAN ancora aperti.
+IP e gateway statici invariati. Verify dopo tale riavvio riuscito:
+settingsReadbackVerified true, internetEgressEnabled false, isolationAccepted
+false. Prove negative, reboot host e isolamento LAN ancora aperti.
 
 ## Scelta di fase
 

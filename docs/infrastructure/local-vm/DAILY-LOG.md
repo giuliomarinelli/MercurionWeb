@@ -671,3 +671,13 @@ IP host 10.203.240.1/24 Preferred/Manual e profilo Windows Public. Nessun
 riavvio host effettuato o richiesto in questa prova. Preparato controllo ACL
 read-only e categoria Kaspersky dopo riavvio guest; ancora pendenti. NAT/egress
 chiusi, isolamento LAN e accettazione complessiva ancora aperti.
+
+**Readback ACL post-riavvio guest:** owner esegue Verify da PowerShell
+amministrativa; settingsReadbackVerified true, internetEgressEnabled false,
+isolationAccepted false. Nessuna modifica eseguita dal comando. Resta da
+confermare la categoria Kaspersky; nessuna nuova prova di isolamento traffico.
+
+**Categoria Kaspersky post-riavvio guest:** owner conferma «Sì, Rete pubblica»
+per la voce 10.203.240.1/24 del Mercurion-Internal. Configurazione SSH-only
+ricontrollata; reboot Windows, prove sui pacchetti e nuova fase NAT/egress
+restano distinti e non eseguiti. Nessuna risorsa di rete modificata dall'agente.

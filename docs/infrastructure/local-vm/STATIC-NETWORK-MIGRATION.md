@@ -35,7 +35,7 @@ Questi sono criteri da implementare e collaudare, non isolamento già dimostrato
 | M-01 | Inventario host/Hyper-V/HNS e diagnosi del timeout | Completato |
 | M-02 | Piano indirizzi e controlli sovrapposizione | Proposta verificata sullo snapshot, riservare prima dell'uso |
 | M-03 | Creazione switch interno e IP host statico | Eseguito dall'owner: Internal e `10.203.240.1/24`; ActiveStore Preferred verificato |
-| M-04 | Kaspersky Pubblica e profilo host verificati | Classificazione attuale confermata da screenshot owner; efficacia regole/persistenza da provare |
+| M-04 | Kaspersky Pubblica e profilo host verificati | Pubblica confermata anche dopo reboot guest; efficacia sui pacchetti e reboot host da provare |
 | M-05 | Backup e policy ACL della sola vNIC Mercurion | Apply owner riuscito e Verify dopo collegamento confermato; traffico non collaudato |
 | M-06 | Configurazione guest statica, NAT e collegamento | Netplan try accettato, alias aggiornato e login owner riuscito; NAT ancora assente |
 | M-07 | SSH, egress e prove negative con controlli positivi | SSH host → guest riuscito; egress e prove negative ancora aperti |
@@ -469,7 +469,12 @@ Questa prova copre soltanto il riavvio guest e non chiude M-08: NAT, reboot
 host, profili e isolamento richiedono prove separate. Prima di aprire egress,
 rileggere le ACL con `Set-MercurionVmNetworkAcl.ps1 -Mode Verify` da PowerShell
 amministrativa e ricontrollare in Kaspersky la voce con CIDR `10.203.240.1/24`.
-Questi due riscontri dopo il riavvio guest sono ancora pendenti.
+**ACL dopo riavvio guest verificate dall'owner:** ricevuta Verify con
+`settingsReadbackVerified=true`, `internetEgressEnabled=false`,
+`isolationAccepted=false`. È conferma del set di regole letto, non una prova
+negativa di traffico. Owner conferma inoltre che la voce `10.203.240.1/24`
+è ancora Rete pubblica in Kaspersky dopo il riavvio guest. Non equivale a
+persistenza dopo riavvio Windows o a isolamento LAN collaudato.
 
 Provare separatamente reboot guest e host con salvataggio del lavoro prima:
 indirizzi fissi invariati, LUKS e SSH funzionanti, profilo Kaspersky ancora
