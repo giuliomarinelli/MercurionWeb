@@ -8,9 +8,9 @@ anticipati soltanto manifest e verifiche locali. Questo documento prepara
 il percorso; nessuna prova Android è ancora eseguita e A-30 rimane aperto.
 
 Strumento previsto: **Termux con Python**, senza root, ADB o server SSH sul
-telefono. Versione Android e presenza di F-Droid da confermare prima della
-procedura di installazione. Termux supporta il percorso F-Droid qui proposto
-da Android 7; verificare la compatibilità della versione scelta. Non mescolare
+telefono. Owner conferma Android 16 aggiornato; installazione Termux/Python
+e funzionamento sul dispositivo ancora da verificare. Termux supporta il
+percorso F-Droid qui proposto da Android 7; verificare la versione scelta. Non mescolare
 app/plugin provenienti da distribuzioni diverse.
 
 La scelta autorizza la preparazione del punto di prova; non modifica firewall,
@@ -23,6 +23,10 @@ o credenziali sul telefono. Nessun servizio applicativo Mercurion va esposto.
    [F-Droid Termux](https://f-droid.org/packages/com.termux/) indicato dal
    [progetto Termux](https://github.com/termux/termux-app#installation).
    Se esiste già un'installazione, non disinstallarla o sostituirla alla cieca.
+   Se F-Droid non è presente, la pagina offre anche il download diretto
+   dell'APK Termux: non confonderlo con il pulsante per installare il client
+   F-Droid. Il download diretto non fornisce notifiche automatiche di update;
+   non introdurre per questo un secondo canale di aggiornamento della stessa app.
 2. Aprire Termux e completare l'inizializzazione. Non servono plugin,
    accesso ai file condivisi, accessibilità o privilegi di amministrazione.
 3. Aggiornare l'indice pacchetti, poi installare Python, come comandi separati:

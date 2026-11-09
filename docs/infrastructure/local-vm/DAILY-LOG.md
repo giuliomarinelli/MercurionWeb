@@ -930,3 +930,10 @@ e Windows prima/dopo, guest e due bridge, limiti della direzione LAN → VM
 senza route. Richiesti versione Android e presenza di F-Droid prima dei passi
 operativi. Nessuna installazione o prova Android eseguita dall'agente;
 nessuna modifica ai filtri o alla topologia. A-30 ancora aperto.
+
+**Ripresa preparazione Android:** owner conferma Android 16 aggiornato.
+Nessun impedimento dal requisito minimo Android 7 del canale Termux F-Droid;
+questo non è un collaudo del dispositivo. Installazione Termux, Python e
+controllo locale ancora pendenti. Fonti primarie di installazione ricontrollate;
+previsto primo passo con APK Termux dalla pagina F-Droid, oppure client
+F-Droid se già presente, senza mescolare distribuzioni o richiedere root.
