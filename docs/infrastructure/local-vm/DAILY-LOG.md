@@ -540,3 +540,13 @@ Proposto `10.203.240.0/24`, host `.1`, guest `.10`: nessun conflitto nei prefiss
 osservati; future VPN/reti richiedono nuovo controllo. Prima del guest: switch
 vuoto, Pubblica e regole verificate. M-01 completato; migrazione, test e reboot
 aperti. Vecchie prove non certificano la nuova rete; INF-VM-02/03/04 non chiusi.
+
+**Avanzamento owner M-03:** creato `Mercurion-Internal` di tipo Internal e
+assegnato `10.203.240.1/24` all'host, interfaccia 68. Rilettura: ActiveStore
+Preferred/Manual, configurazione presente anche nel PersistentStore, nessuna
+default route IPv4 sulla nuova interfaccia, categoria Windows Public.
+L'output iniziale Tentative/PersistentStore Invalid non è stato usato come
+diagnosi di duplicazione: verificato separatamente lo stato operativo.
+Guest non ancora migrato; nessuna modifica ACL/NAT da parte dell'agente.
+M-04 pendente: classificazione Pubblica in Kaspersky prima dell'attach;
+persistenza dopo reboot e isolamento restano non collaudati.

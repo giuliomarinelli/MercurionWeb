@@ -1,7 +1,8 @@
 # INF-VM-02 — migrazione alla rete interna statica
 
 **9 novembre 2026 — procedura progressiva in italiano.** Inventario completato;
-migrazione non eseguita. Seguire i passi nell'ordine e aggiornare la tabella
+switch vuoto e IP host creati dall'owner, guest non ancora migrato.
+Seguire i passi nell'ordine e aggiornare la tabella
 di avanzamento: un comando documentato non è un comando già eseguito.
 Il bootstrap sintetico rimane sospeso fino al recupero dell'accesso amministrativo.
 
@@ -32,7 +33,7 @@ Questi sono criteri da implementare e collaudare, non isolamento già dimostrato
 | --- | --- | --- |
 | M-01 | Inventario host/Hyper-V/HNS e diagnosi del timeout | Completato |
 | M-02 | Piano indirizzi e controlli sovrapposizione | Proposta verificata sullo snapshot, riservare prima dell'uso |
-| M-03 | Switch interno vuoto e IP host statico | Da eseguire |
+| M-03 | Switch interno vuoto e IP host statico | Eseguito dall'owner: Internal e `10.203.240.1/24`; ActiveStore Preferred verificato |
 | M-04 | Kaspersky Pubblica e profilo host verificati | Da eseguire prima di collegare la VM |
 | M-05 | Backup e policy ACL della sola vNIC Mercurion | Da preparare/applicare con VM spenta e console pronta |
 | M-06 | Configurazione guest statica, NAT e collegamento | Da eseguire dopo M-04/M-05 |
@@ -120,6 +121,15 @@ Il gateway Internet di Windows resta sulla sua interfaccia ordinaria.
 comandi fallisce, ispezionare lo stato parziale senza rilanciarli alla cieca.
 
 ## M-04 — classificare la rete in Kaspersky
+
+**Avanzamento M-03:** owner ha creato lo switch Internal e assegnato l'IP.
+Interfaccia osservata: indice 68. Controllo corrente: `10.203.240.1/24`, origine
+Manual, ActiveStore **Preferred**, nessuna route IPv4 predefinita sulla nuova
+interfaccia; profilo Windows **Public**. Il comando iniziale mostrava Tentative
+e la voce PersistentStore Invalid: il dato operativo è stato riletto dopo la
+verifica iniziale dell'indirizzo. Configurazione presente nel PersistentStore;
+persistenza reale ancora da collaudare con M-08, nessuna cancellazione necessaria
+in base al solo output iniziale. Kaspersky non ancora verificato.
 
 1. Aprire Kaspersky e le impostazioni del componente **Firewall**.
 2. Aprire l'elenco delle reti/connessioni; individuare la rete corrispondente

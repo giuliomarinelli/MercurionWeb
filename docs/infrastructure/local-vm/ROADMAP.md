@@ -29,7 +29,8 @@ applicativi. INF-VM-02 non è dichiarato concluso.
 precedenti, timeout anche sul nuovo IP. VM-032: [procedura statica passo per
 passo](STATIC-NETWORK-MIGRATION.md), rete Internal e Kaspersky Pubblica,
 divieto diretto LAN ↔ guest/container. Inventario amministrativo completo;
-nessuna modifica rete eseguita. Prossimo passo: switch ancora vuoto, poi
+M-03 eseguito dall'owner: switch Internal ancora vuoto e IP host statico,
+stato operativo Preferred e profilo Windows Public verificati. Prossimo passo:
 classificazione Kaspersky prima di qualunque attach. Rivalidare isolamento
 e reboot sulla nuova baseline; vecchie prove non certificano la rete futura.
 Bootstrap sintetico sospeso fino al recupero dell'accesso amministrativo.
