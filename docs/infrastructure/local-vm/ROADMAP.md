@@ -78,6 +78,9 @@ su due bridge con 12 controlli host, cleanup e Verify finale DnsHttps riusciti.
 **Passi residui:** prove runtime private TCP/443 e DNS/53 (canary attuali su
 porte effimere), LAN bidirezionale, IPv6/altre origini e reboot host. Non
 anticipare accettazione complessiva o deployment sulla sola riuscita H-06.
+Strumento [porte private](PRIVATE-PORT-PROBES.md) pronto: 11 unittest, tre
+scenari trasporto PowerShell 5.1, preflight host e collaudo Docker Desktop
+passati; esecuzione owner su Mercurion-Server ancora pendente.
 Residuo strumenti: diagnosticare il prompt sudo tardivo nella pipeline SSH/PTY,
 senza cambiare autenticazione, sudoers o acquisire password nei report.
 

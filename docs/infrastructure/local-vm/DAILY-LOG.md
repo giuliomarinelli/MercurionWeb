@@ -804,3 +804,23 @@ internetEgressEnabled true, isolationAccepted false. Nessuna modifica eseguita
 dal comando. Restano LAN/altre origini, IPv6, reboot host e controlli runtime
 su porte private 443/53: gli H-02/H-04 attuali misurano porte TCP effimere.
 Nessuna accettazione complessiva o avvio stack pubblico dedotti dagli smoke.
+
+**Preparazione probe porte private:** aggiunti runner Python e wrapper unico
+per TCP/443, TCP/53 su 10.203.240.1 e UDP/53 sul DNS ICS host del Default
+Switch, indirizzo riletto dinamicamente (osservato 172.27.0.1). UDP wildcard
+53 appartiene a SharedAccess: nessuna sostituzione o arresto. Controllo sul
+solo IP interno non positivo, quindi escluso da affermazioni di blocco UDP.
+Domande nonce.invalid con ID/question correlati, marker TCP, route Linux e
+nove casi guest/bridge/bridge temporaneo. Readiness DNS limitata e registrata
+prima della misura; ogni controllo fallito durante la misura invalida il run.
+SSH diretto sulla console, report recuperato con SCP, niente trascrizione
+del prompt; report guest 0600 assegnato al SUDO_UID/GID.
+
+Undici unittest Python e tre scenari PowerShell 5.1 passati; preflight host
+reale passato. Collaudo Docker Desktop: sei casi container con controlli
+positivi e pulizia riuscita, quindici controlli host positivi; scope esclusivamente
+verifica dello strumento, non evidenza VM. Prima iterazione locale con controllo
+host fallito non accettata; timeout controlli poi allineato a tre secondi e
+readiness esplicita prima dell'avvio. Richiesta all'owner prova VM, pendente.
+Resta bytecode locale non versionato: rimozione rifiutata automaticamente con
+motivo blocked by policy; escluso dal commit, nessun altro metodo di rimozione tentato.
