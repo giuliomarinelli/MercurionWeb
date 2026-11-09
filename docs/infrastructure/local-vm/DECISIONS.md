@@ -35,6 +35,7 @@
 | VM-029 | APPROVATA | Autenticazione NATS con user/password distinti per consumer e ambiente, separati dall'URL; scelta esplicita owner l'8 novembre. Nest e Tox21 implementati/testati localmente; branch Tox21 `263ccbc` da integrare, provisioning broker ancora aperto |
 | VM-030 | APPROVATA | Basi operative persistenti: Web `feature/infra-vm-docker-engine-architecture`, Tox21 `feature/infra-vm-nats-client-auth`. Proseguire da qui, eventuali sotto-rami dalla rispettiva base; `develop` può restare indietro e ogni merge rimane dell'owner |
 | VM-031 | APPROVATA (sviluppo locale) | Il 9 novembre l'owner autorizza INF-VM-04-A e preparazione del percorso sintetico. Primo ricevitore/apply limitato a Tox21/NATS, testato su Linux locale; nessuna operazione VM implicita. Trasporto SSH, altri consumer e residui VM-028 aperti; dettaglio in SECRET-DELIVERY-PILOT.md |
+| VM-033 | PROPOSTA | Eseguire soltanto la matrice delle fixture Python INF-VM-03 sulla VM, senza segreti, applicazioni o port publishing, mantenendo aperti H-05/A-30. Evidenze e perimetro nella [review INF-VM-02](INF-VM-02-REVIEW.md); nessuna esecuzione autorizzata da questa riga |
 
 ## Confini non negoziabili
 
@@ -42,8 +43,10 @@
 Internal dedicata e indirizzi statici con NAT controllato. Nessun accesso
 diretto LAN ↔ VM/container; nuova rete Pubblica in Kaspersky. Unica eccezione
 amministrativa host interno → guest SSH con risposte stateful. [Passi, piano
-indirizzi proposto e recupero](STATIC-NETWORK-MIGRATION.md). Migrazione e
-isolamento non ancora eseguiti/accettati; nessuna modifica a Default Switch/WSL.
+indirizzi proposto e recupero](STATIC-NETWORK-MIGRATION.md). Migrazione alla
+rete statica eseguita e persistenza verificata; prove host e LAN IPv4 nei
+perimetri documentati. Isolamento complessivo non ancora accettato: H-05 e
+IPv6 restano parziali. Nessuna modifica a Default Switch/WSL per la migrazione.
 
 Non assumere che un documento di architettura sia una configurazione eseguibile; non inventare chiavi, indirizzi o hostname. Non promuovere immagini non scansionate. Non esporre Meilisearch, Meilisearch UI, NATS, Redis o PostgreSQL verso Cloudflare/LAN. Non distribuire MercurionData o LandingFactory come servizi. Non rendere obbligatori Kubernetes, alta disponibilità, maintenance mode o rotazione JWT.
 

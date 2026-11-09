@@ -98,8 +98,11 @@ controls-passed e closed true.
 Tentativo opposto Android → SSH VM acquisito: non connesso in tre secondi,
 host positivo prima/dopo. Route dall'altra origine non provata, quindi nessuna
 attribuzione alla whitelist. Nessuna modifica ai filtri o all'instradamento;
-A-30/H-05 restano parziali. Collector IPv6 read-only predisposto, esecuzione
-guest ancora da acquisire; assenza di indirizzi/route non equivale a test passato.
+A-30/H-05 restano parziali. Collector IPv6 guest completo: assenza di unicast
+eth0/default route, bridge IPv4, forwarding 0; kernel disponibile e link-local
+docker0, nessun test IPv6 negativo superato. [Review e proposta VM-033](INF-VM-02-REVIEW.md)
+per la sola matrice runtime delle fixture, senza chiudere i residui. Proposta
+non ancora approvata; l'anticipo autorizzato resta statico.
 Residuo strumenti: diagnosticare il prompt sudo tardivo nella pipeline SSH/PTY,
 senza cambiare autenticazione, sudoers o acquisire password nei report.
 

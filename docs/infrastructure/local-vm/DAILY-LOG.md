@@ -1025,3 +1025,21 @@ reale PS 5.1 passato. Letture Linux provate in WSL: sezioni IPv6 observed,
 networkIds unavailable sul socket locale, correttamente incomplete true.
 Schema reti Docker verificato sul daemon Docker Desktop. Nessuna prova guest
 dedotta da queste verifiche; collector VM da eseguire, nessun IPv6 abilitato.
+
+**Inventario IPv6 guest acquisito:** run 0b40ffdc8e6a4679b5d108c72bb99a7a,
+17:33:38 UTC, report completo e tutte le sezioni observed; hash sorgente
+manifest/tree identici. Nessun unicast eth0 o default route IPv6; loopback
+::1 e link-local docker0 con route linkdown/multicast locali. Forwarding 0,
+disable_ipv6 all/default/eth0 0, quindi kernel disponibile. Bridge/host/none,
+bridge EnableIPv6 false e IPAM IPv4. Hash report e dettagli nella procedura
+Android. Nessun controllo IPv6 esterno positivo disponibile nella topologia
+osservata, nessun test negativo dichiarato passato o rete abilitata.
+
+**Review concreta preparata:** INF-VM-02-REVIEW consolida risultati e limiti.
+VM-033 proposta, non approvata: sola matrice di fixture Python su VM, nessun
+segreto, app o port publishing, residui H-05/A-30 mantenuti. Validatore statico
+Compose rieseguito: 3 progetti/16 ruoli/13 reti/7 volumi, matrice 15 allow e
+18 deny, 11+4 guardie passate. Riferimento immagine esatto leggibile sul
+Docker Desktop host; nessun avvio fixture o trasferimento operativo effettuato.
+Disponibilità immagine e collisioni risorse VM da verificare prima di qualsiasi
+esecuzione futura autorizzata. Gate attuale INF-VM-03 ancora statico.

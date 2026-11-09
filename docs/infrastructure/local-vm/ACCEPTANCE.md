@@ -79,6 +79,10 @@ controlli banner SSH host positivi prima/dopo. Non dimostrata route Android
 verso Internal né attribuzione alla whitelist: H-05 resta parziale.
 Copertura IPv6 ancora aperta; nessuna generalizzazione
 a tutte le porte/dispositivi. [Evidenze e hash](ANDROID-LAN-PROBES.md).
+Inventario IPv6 guest successivamente completo: eth0 senza unicast IPv6,
+nessuna default route, bridge EnableIPv6 false e IPAM IPv4, forwarding 0;
+kernel disponibile e link-local docker0 presente. È configurazione osservata,
+non un test negativo IPv6 passato. [Review e residui](INF-VM-02-REVIEW.md).
 
 **Avanzamento rete statica del 9 novembre:** Netplan try accettato; TCP/22
 dal solo IP host interno e identità server verificati; owner conferma shell

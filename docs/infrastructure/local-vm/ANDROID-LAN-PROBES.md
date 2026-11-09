@@ -261,7 +261,23 @@ Sezioni indisponibili producono incomplete true, non una prova passata.
 Preflight PS 5.1 passato. Letture Linux verificate in WSL, con networkIds
 indisponibile su quel socket: prova locale parziale dello strumento, non
 inventario VM. Schema network inspect verificato sul Docker Desktop locale;
-raccolta guest effettiva ancora pendente. Non abilita IPv6 per ottenere dati.
+raccolta guest effettiva ora acquisita. Non abilita IPv6 per ottenere dati.
+
+**Inventario guest completo:** run `0b40ffdc8e6a4679b5d108c72bb99a7a`,
+9 novembre 17:33:38 UTC, hostname mercurion-server, tutte le sezioni observed.
+Eth0 non compare tra le interfacce con unicast IPv6; nessuna default route
+IPv6. Loopback ::1 e link-local fe80::105d:27ff:fe7b:716c su docker0,
+con route linkdown; presenti anche route multicast locali. Forwarding IPv6 0;
+all/default/eth0 disable_ipv6 0: kernel disponibile, non disabilitato globalmente.
+Reti bridge/host/none; bridge EnableIPv6 false e IPAM solo 172.17.0.0/16.
+Non ci sono reti temporanee dei precedenti probe nello snapshot.
+
+Report `.codex/artifacts/inf-vm-02/ipv6-readiness-0b40ffdc8e6a4679b5d108c72bb99a7a/ipv6-readiness.json`,
+SHA-256 `b94aced939a9eab649799e19b1b4415a71e02058dc6ce16f1d2251f07479847f`.
+Hash sorgente dichiarato e ricontrollato:
+`a76fbe06253bbadf84e0eebcfba7493b0049fa6a0570513defd47db991eae1e6`.
+Nessun probe negativo IPv6 dichiarato passato: manca un percorso esterno
+con controllo positivo. [Review e proposta di prosecuzione](INF-VM-02-REVIEW.md).
 
 ## Evidenze da registrare
 
