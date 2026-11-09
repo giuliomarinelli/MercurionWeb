@@ -74,6 +74,9 @@ La versione corrente di Tox21 ha override `allow` / `require-jwt` / `disabled` p
 
 ## Lacune effettive da affrontare
 
+- Ricevitore/apply Tox21 disponibile come [pilot locale](SECRET-DELIVERY-PILOT.md),
+  con 17 test Linux sintetici passati; non ancora installato sulla VM.
+  Trasporto SSH, consegna reale, altri consumer e lifecycle operativo aperti.
 - I Compose `docker_sl/releases/preview` e `prod` sono **frammenti**: non definiscono una topologia VM completa, volumi e recovery.
 - Il modello `deployment-schema.json` presenta ancora Nginx con porta HTTPS e secret origin TLS: **scostamento storico da riconciliare**, senza rompere i validator attuali prima di un task dedicato.
 - Non esistono ancora la matrice VM dei network, il routing per due hostname via tunnel e le prove di isolamento Hyper-V/Docker.

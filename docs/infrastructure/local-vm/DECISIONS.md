@@ -34,6 +34,7 @@
 | VM-028 | PROPOSTA | Bootstrap manuale con file per consumer su area volatile guest, consegna senza PTY separata da sudo, compatibilità env dentro il container e conservazione dei file fino alla chiusura della sessione; dettaglio in BOOTSTRAP-CONTRACT.md, nessun provisioning implementato |
 | VM-029 | APPROVATA | Autenticazione NATS con user/password distinti per consumer e ambiente, separati dall'URL; scelta esplicita owner l'8 novembre. Nest e Tox21 implementati/testati localmente; branch Tox21 `263ccbc` da integrare, provisioning broker ancora aperto |
 | VM-030 | APPROVATA | Basi operative persistenti: Web `feature/infra-vm-docker-engine-architecture`, Tox21 `feature/infra-vm-nats-client-auth`. Proseguire da qui, eventuali sotto-rami dalla rispettiva base; `develop` può restare indietro e ogni merge rimane dell'owner |
+| VM-031 | APPROVATA (sviluppo locale) | Il 9 novembre l'owner autorizza INF-VM-04-A e preparazione del percorso sintetico. Primo ricevitore/apply limitato a Tox21/NATS, testato su Linux locale; nessuna operazione VM implicita. Trasporto SSH, altri consumer e residui VM-028 aperti; dettaglio in SECRET-DELIVERY-PILOT.md |
 
 ## Confini non negoziabili
 

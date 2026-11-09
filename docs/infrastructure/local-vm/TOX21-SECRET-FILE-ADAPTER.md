@@ -62,6 +62,11 @@ Sorgenti e documentazione nel repository Tox21: `secret_bootstrap.py`,
 
 ## Residui
 
+**9 novembre:** [ricevitore/apply Tox21 locale](SECRET-DELIVERY-PILOT.md)
+implementato e verificato con dati sintetici, incluso questo lettore.
+Questo chiude le primitive locali, non il trasporto e l'installazione guest.
+I residui operativi sotto rimangono aperti.
+
 È il consumer da file, non il ricevitore host/guest. Trasporto SSH senza PTY,
 apply privilegiato, directory volatile, ownership dei mount e restart/recreate
 restano da realizzare e verificare secondo [VM-028](BOOTSTRAP-CONTRACT.md).

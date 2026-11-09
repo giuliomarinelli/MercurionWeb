@@ -6,6 +6,12 @@ e testato con dati sintetici; l'avvio esistente resta invariato. INF-VM-02 e
 runtime INF-VM-03 restano aperti. Nessuna lettura di env operativi/PEM, generazione
 di segreti, helper privilegiato o operazione sulla VM.
 
+**Aggiornamento 9 novembre:** [pilot ricevitore/apply Tox21](SECRET-DELIVERY-PILOT.md)
+implementato e verificato su Linux locale con dati sintetici (VM-031).
+Formato, identità e percorsi fissati nel pilot; trasporto SSH, installazione
+guest, altri consumer e gestione operativa del lifecycle rimangono aperti.
+Le sezioni propositive seguenti descrivono il percorso complessivo futuro.
+
 ## Contratti osservati
 
 Web ispezionato sul branch infra dopo `cb2a3fdd`; Tox21 letto soltanto come
@@ -108,7 +114,8 @@ Riferimenti: [entrypoint ufficiale PostgreSQL](https://github.com/docker-library
 
 ## Proposta di trasferimento compatibile con SSH e sudo attuali
 
-Un futuro helper host unico gestirà tre passaggi distinti; non sono implementati:
+Un futuro helper host unico gestirà tre passaggi distinti. Il pilot implementa
+le primitive guest per Tox21, non la loro orchestrazione SSH:
 
 1. Preparazione guest tramite SSH interattivo e sudo: creare l'area volatile e
    l'inbox privata dell'utente SSH, verificare ownership e spazio. Solo metadati,
@@ -155,8 +162,8 @@ qualsiasi derivato crittografico dai volumi persistenti.
 
 | Passo | Risultato richiesto |
 | --- | --- |
-| 04-A | Approvare ciclo di vita e trasporto; definire formato dati e permessi senza valori reali |
-| 04-B | Launcher Nest e Tox21 opt-in implementati/testati su dati sintetici; ricevitore/apply privilegiati e integrazione operativa ancora aperti |
+| 04-A | Formato e permessi del pilot Tox21 definiti/testati; trasporto host e ciclo di vita operativo da completare |
+| 04-B | Launcher Nest/Tox21 e ricevitore/apply Tox21 locali implementati/testati; altri consumer e integrazione operativa ancora aperti |
 | 04-C | Client Meilisearch separati e auth NATS Nest/Tox21 implementati; integrazione Tox21, provisioning/grant VM e consegna protetta delle credenziali ancora aperti |
 | 04-D | Dopo review del gate VM, provare immagini fissate e restart/recreate con dati sintetici, verificando assenza del marker in argv, metadati Docker e log |
 | 04-E | Solo dopo esiti precedenti, provisioning operativo e prove JWT/RPC/provider con materiali dell'owner |

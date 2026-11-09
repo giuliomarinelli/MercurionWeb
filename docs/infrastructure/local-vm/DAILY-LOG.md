@@ -444,3 +444,42 @@ completata con successo: job Linux CPU application/containers e Required gate
 verdi sullo SHA esatto. Risorse temporanee rimosse, nessun dato
 operativo letto, SSH o avvio VM. [Contratto](TOX21-SECRET-FILE-ADAPTER.md).
 Ricevitore/apply, consegna, ownership mount e lifecycle VM-028 ancora aperti.
+
+## 9 novembre 2026
+
+### INF-VM-04-A/B — pilot di ricezione e apply Tox21
+
+Su prosecuzione autorizzata dall'owner, implementate le primitive Linux
+`prepare` root, `receive` non-root via stdin e `apply` root. Envelope chiuso
+Tox21/NATS, ambiente concorde con preparazione, namespace fisso su tmpfs,
+identità risolte localmente, letture no-follow/limitate, pubblicazione atomica,
+inbox sigillata e rifiuto del riuso. File finale UID 10021, modo 0400;
+nessun percorso o comando scelto dal payload. Stati interrotti conservati
+senza retry automatico; possibile residuo privato se crash dopo pubblicazione.
+
+17 test Linux passati su Docker Desktop locale, senza rete/pull/porte/volumi:
+identità reali root/65534/10021 e adapter Tox21 effettivo, ambiente e contratti
+invalidi, replay, file impropri, lock occupato, limite consumer serializzato,
+tmpfs mancante e fallimento prima della pubblicazione. Il primo harness
+ristretto non disponeva di FOWNER per chmod dopo chown: aggiunta al solo test,
+insieme alle altre capability necessarie, poi esecuzione completa riuscita.
+Windows: quattro test contratto passati, tredici integrazioni Linux escluse.
+Comando PowerShell 5.1 realmente eseguito; risorse effimere rimosse.
+[Contratto, comando e residui](SECRET-DELIVERY-PILOT.md).
+
+Nessun SSH, helper installato o dato operativo letto. Trasporto host, estensione
+agli altri consumer, mount/restart/recreate e gestione operativa degli errori
+restano aperti. INF-VM-02/03 e INF-VM-04 non chiusi; VM-028 non adottato sulla VM.
+
+### Tox21 — correzione dei keyword type hint NATS
+
+Segnalazione owner: `type: ignore` locale sulla chiamata a `nc.connect`.
+Riprodotto con Pyright 1.1.414 già in cache, ambiente esistente e typeshed
+Pylance locale. Il `dict[str, str]` del metodo credenziali perdeva i nomi delle
+chiavi, generando venti errori nella chiamata isolata. Sostituito con TypedDict
+opzionale `user`/`password`, mantenendo validazione runtime della coppia.
+Rimossa la soppressione locale; `main.py` torna identico al commit precedente.
+Prova isolata e analisi dei due sorgenti effettivi: zero errori/warning.
+Suite applicativa Windows: 120 passati, due POSIX esclusi. Nessuna dipendenza
+o regola del checker aggiunta. Report fuori Git sotto
+`C:/Users/giuli/.codex/artifacts/inf-vm-04/nats-credential-typing/`.

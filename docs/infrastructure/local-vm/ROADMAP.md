@@ -58,6 +58,11 @@ implementata con coppia opzionale user/password; Tox21 allineato e mantenuto sul
 proprio branch operativo, adapter file in `b6476dd`. Configurazione broker, consegna protetta
 credenziali e grant reali VM restano aperti. L'esecuzione mantiene le dipendenze 02/03 e INF-VM-04 resta aperto.
 
+**9 novembre:** [pilot ricevitore/apply Tox21](SECRET-DELIVERY-PILOT.md)
+implementato con envelope chiuso, identità separate e pubblicazione su tmpfs;
+17 test Linux locali passati, incluso lettore Tox21 reale. Trasporto SSH,
+installazione VM, altri consumer e restart/recreate applicativi ancora aperti.
+
 Progettare/implementare l'iniezione protetta dal password manager Windows al bootstrap VM, secret per ambiente, credenziali Meilisearch, PostgreSQL, Redis, NATS, OAuth, Twilio, cookie, JWT. Preservare nomi legacy compatibili. Rinviare rotazione a caldo.
 
 **Accettazione:** nessun segreto in Git/layer/CI/log; riavvio e perdita dei materiali temporanei prevedibili; nessuna master key del server accessibile ai backend.
