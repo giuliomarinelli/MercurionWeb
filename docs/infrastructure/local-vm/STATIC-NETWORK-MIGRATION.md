@@ -39,7 +39,7 @@ Questi sono criteri da implementare e collaudare, non isolamento già dimostrato
 | M-05 | Backup e policy ACL della sola vNIC Mercurion | Apply owner riuscito e Verify dopo collegamento confermato; traffico non collaudato |
 | M-06 | Configurazione guest statica, NAT e collegamento | Netplan try accettato, alias aggiornato e login owner riuscito; NAT ancora assente |
 | M-07 | SSH, egress e prove negative con controlli positivi | SSH host → guest riuscito; egress e prove negative ancora aperti |
-| M-08 | Riavvio a freddo, stabilità e nuova baseline | Da eseguire |
+| M-08 | Riavvio a freddo, stabilità e nuova baseline | Riavvio guest: nuovo login, IP e gateway confermati; reboot host, profili e policy completa ancora aperti |
 
 ## M-01 — inventario, senza cambiare configurazioni
 
@@ -351,7 +351,7 @@ Se la VM non è Off, le regole sono ambigue o manca il backup, fermarsi.
    **Eseguito:** TCP/22 raggiungibile da host `10.203.240.1` al guest
    `10.203.240.10`, neighbor sulla vEthernet interna con MAC atteso
    `00-15-5D-00-DD-01`; owner ha confermato «Configurazione accettata».
-   Applicazione corrente verificata, non ancora persistenza dopo reboot.
+   Applicazione corrente verificata; successivo riavvio guest verificato in M-08.
    Se c'è errore o timeout, riportare l'esito e verificare stato effettivo da
    console: non presumere che runtime e file su disco siano tornati allo stato
    precedente e non riavviare alla cieca. Il backup root rimane disponibile.
@@ -386,7 +386,8 @@ Se la VM non è Off, le regole sono ambigue o manca il backup, fermarsi.
    verificata, poi inserire passphrase nel terminale. Non cancellare record
    esistenti o ignorare avvisi di chiave differente. **Eseguito:** owner conferma
    «Shell Ubuntu raggiunta» il 9 novembre. Accesso amministrativo recuperato;
-   persistenza dopo riavvio e isolamento LAN non ancora collaudati.
+   persistenza dopo riavvio guest verificata successivamente in M-08;
+   riavvio host e isolamento LAN non ancora collaudati.
 6. Dopo recupero SSH e review dell'egress, creare il NAT dedicato solo se non
    esiste un WinNAT incompatibile. M-05 non lo crea e mantiene egress chiuso:
 
@@ -450,8 +451,25 @@ Prima verifica parziale, anticipata nella fase SSH-only, senza creare NAT:
    `10.203.240.1`. Registrare output ed esito del login. Se SSH non risponde,
    usare la console per leggere lo stato senza modificare subito i filtri.
 
-Questa prima prova è ancora da eseguire. Copre soltanto il riavvio guest e
-non chiude M-08: NAT, reboot host, profili e isolamento richiedono prove separate.
+**Prima prova eseguita dall'owner il 9 novembre:** nuovo accesso SSH dopo il
+riavvio guest; output forniti dalla shell Ubuntu:
+
+```text
+eth0             UP             10.203.240.10/24
+default via 10.203.240.1 dev eth0 proto static
+```
+
+Un primo comando con virgola dopo `default` è stato corretto dall'owner;
+l'output riportato deriva dal comando valido. Nessuna modifica correttiva
+di rete dichiarata durante la prova. L'agente ha riletto inoltre IP host
+`10.203.240.1/24` Preferred/Manual e profilo Windows Public. Non è una verifica
+della categoria Kaspersky né un riavvio dell'host.
+
+Questa prova copre soltanto il riavvio guest e non chiude M-08: NAT, reboot
+host, profili e isolamento richiedono prove separate. Prima di aprire egress,
+rileggere le ACL con `Set-MercurionVmNetworkAcl.ps1 -Mode Verify` da PowerShell
+amministrativa e ricontrollare in Kaspersky la voce con CIDR `10.203.240.1/24`.
+Questi due riscontri dopo il riavvio guest sono ancora pendenti.
 
 Provare separatamente reboot guest e host con salvataggio del lavoro prima:
 indirizzi fissi invariati, LUKS e SSH funzionanti, profilo Kaspersky ancora

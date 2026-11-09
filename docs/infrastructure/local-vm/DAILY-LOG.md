@@ -662,3 +662,12 @@ riuscito, distinta dall'handshake diagnostico precedente. Documentata prima
 prova parziale di riavvio guest con sblocco LUKS, nuovo login e lettura IP/route;
 esecuzione ancora pendente. Nessun NAT o egress abilitato; reboot host,
 persistenza Kaspersky e isolamento LAN bidirezionale restano aperti.
+
+**Riavvio guest verificato dall'owner:** nuova shell SSH raggiunta; eth0 UP
+con 10.203.240.10/24, route `default via 10.203.240.1 dev eth0 proto static`.
+La virgola accidentale nel primo comando route ha prodotto solo errore di
+sintassi; il comando corretto ha restituito il gateway atteso. L'agente rilegge
+IP host 10.203.240.1/24 Preferred/Manual e profilo Windows Public. Nessun
+riavvio host effettuato o richiesto in questa prova. Preparato controllo ACL
+read-only e categoria Kaspersky dopo riavvio guest; ancora pendenti. NAT/egress
+chiusi, isolamento LAN e accettazione complessiva ancora aperti.

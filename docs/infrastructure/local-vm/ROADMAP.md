@@ -51,8 +51,10 @@ validazione generate. NETPLAN_OK ora confermato da screenshot: predisposta
 prova temporanea netplan try da console. Owner ha poi accettato la configurazione
 dopo TCP/22 riuscito dall'host interno e verifica MAC. Alias SSH aggiornato e
 chiave server gia fidata verificata. Owner conferma shell Ubuntu raggiunta:
-SSH recuperato; prossima verifica parziale di persistenza al riavvio guest,
-NAT/egress ancora chiusi e isolamento LAN ancora da collaudare.
+SSH recuperato anche dopo riavvio guest: owner conferma IP 10.203.240.10/24
+e default via 10.203.240.1 proto static. IP host Preferred/Manual e Windows
+Public riletti dall'agente. Restano nuova lettura ACL, controllo Kaspersky,
+reboot host e isolamento LAN; NAT/egress ancora chiusi.
 
 **Dipende da:** INF-VM-01.  
 Preparare Docker Engine e plugin Compose su Ubuntu, amministrazione SSH a chiave, policy host↔guest, firewall e regole IPv4/IPv6. Non introdurre bridge fisici della LAN. Definire test negativi dalla VM e dai container verso Windows/LAN e protezione della porta SSH.

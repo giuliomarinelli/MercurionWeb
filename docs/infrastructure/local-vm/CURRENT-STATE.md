@@ -79,7 +79,9 @@ La versione corrente di Tox21 ha override `allow` / `require-jwt` / `disabled` p
   avviata dall'owner: switch/IP host creati, vNIC collegata e ACL riverificate;
   guest statico applicato/confermato con netplan try, TCP/22 e chiave server
   gia fidata verificati. Alias SSH aggiornato; owner conferma shell Ubuntu
-  raggiunta sul nuovo indirizzo il 9 novembre. Persistenza dopo riavvio aperta.
+  raggiunta sul nuovo indirizzo il 9 novembre, anche dopo riavvio guest:
+  IP 10.203.240.10/24 e gateway statico 10.203.240.1 confermati.
+  Riavvio host, nuova lettura ACL e controllo Kaspersky ancora aperti.
   Pubblica in Kaspersky e divieto LAN bidirezionale
   obbligatori; bootstrap ancora sospeso durante il collaudo della migrazione.
 - Ricevitore/apply Tox21 disponibile come [pilot locale](SECRET-DELIVERY-PILOT.md),

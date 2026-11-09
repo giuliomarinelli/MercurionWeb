@@ -9,7 +9,10 @@ non può attestare la GUI del firewall. Questo passo non avvia o sposta la VM.
 confermato di 14 ACL; egress false, isolamento false, nessun avvio o spostamento
 vNIC. Snapshot `acl/cd8eef94c8b34013aea52a06258fec50/before.json` acquisito:
 nome/MAC vNIC e sei semplici/due estese precedenti coerenti. Non è ancora
-una prova di traffico, di persistenza o dell'ACL dopo il futuro collegamento.
+una prova di traffico o di persistenza. Verify dopo il collegamento riuscito;
+successivamente l'owner ha confermato login SSH anche dopo riavvio guest, con
+IP e gateway statici invariati. Nuova lettura ACL dopo tale riavvio pendente;
+prove negative, reboot host e isolamento LAN ancora aperti.
 
 ## Scelta di fase
 
