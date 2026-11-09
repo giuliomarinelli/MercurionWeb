@@ -1,5 +1,9 @@
 # M-05 — ACL della vNIC Mercurion, prima fase SSH-only
 
+La policy predefinita resta SshOnly. La successiva [fase DNS/HTTPS](DNS-HTTPS-ACL.md)
+usa esplicitamente `-Policy DnsHttps`; dopo tale transizione anche Verify deve
+specificarla. Questo documento conserva procedura ed evidenze della fase iniziale.
+
 9 novembre 2026. Script preparato e testato localmente con API Hyper-V simulate;
 **nessuna ACL reale applicata dall'agente**. VM spenta dichiarata dall'owner.
 La rete interna nuova è Pubblica in Kaspersky secondo screenshot; il codice
@@ -99,12 +103,14 @@ host obsoleto. Non eliminare guardie per tentativi e non disattivare firewall.
 powershell -NoProfile -File scripts/infrastructure/Test-MercurionVmNetworkAcl.ps1
 ```
 
-**16 scenari passati** su PowerShell 5.1 con tutti i comandi Hyper-V/rete
+**16 scenari iniziali passati** su PowerShell 5.1 con tutti i comandi Hyper-V/rete
 sostituiti da funzioni locali: piano senza scritture; preflight VM/MAC/numero
 NIC/switch/IP; errore snapshot; priorità incompatibile; ordine guardie prima
 delle rimozioni; unico allow SSH e zero egress; idempotenza; errore durante
 installazione, avvio VM concorrente, verifica finale fallita, allow extra,
 errore seconda guardia e quarantena. Nessuna rete reale mutata dai test.
+La suite è ora estesa a 28 scenari includendo transizione DNS/HTTPS e ritorno
+SSH-only; specifiche e test di traffico simulato nella procedura successiva.
 Entrypoint Plan reale senza elevazione rifiutato da Hyper-V, senza scritture.
 Compatibilità reale dei cmdlet/readback ora confermata dal primo Apply
 dell'owner; il verde dei test simulati non è prova di isolamento o CI remota.

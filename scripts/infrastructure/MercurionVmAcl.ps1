@@ -29,6 +29,46 @@ function Get-MercurionGuardRules {
     }
 }
 
+function Get-MercurionDnsHttpsRules {
+    $taskRules = @(Get-MercurionSshOnlyRules)
+    $taskRules += [pscustomobject]@{
+        Action='Allow'; Direction='Outbound'; Weight=100
+        LocalIPAddress='10.203.240.10/32'
+        Protocol='TCP'; RemotePort='443'; Stateful=$true; IdleSessionTimeout=300
+    }
+    $taskWeight = 101
+    foreach ($taskResolver in @('1.1.1.1/32','9.9.9.9/32')) {
+        foreach ($taskProtocol in @('UDP','TCP')) {
+            $taskRules += [pscustomobject]@{
+                Action='Allow'; Direction='Outbound'; Weight=$taskWeight
+                LocalIPAddress='10.203.240.10/32'; RemoteIPAddress=$taskResolver
+                Protocol=$taskProtocol; RemotePort='53'; Stateful=$true; IdleSessionTimeout=120
+            }
+            $taskWeight++
+        }
+    }
+    return $taskRules
+}
+
+function Assert-MercurionDnsHttpsContext {
+    param($Context)
+    if ($Context.Nic.SwitchName -ne 'Mercurion-Internal') { throw 'Egress consentito solo su Mercurion-Internal.' }
+    if ($Context.Simple.Count -ne 0 -or
+        -not ((Test-MercurionAclRules $Context.Extended @(Get-MercurionSshOnlyRules)) -or
+              (Test-MercurionAclRules $Context.Extended @(Get-MercurionDnsHttpsRules)))) {
+        throw 'Policy corrente non riconosciuta: nessuna apertura egress consentita.'
+    }
+    $taskNat = @(Get-NetNat -ErrorAction Stop)
+    if ($taskNat.Count -ne 1 -or $taskNat[0].Name -ne 'Mercurion-NAT' -or
+        $taskNat[0].InternalIPInterfaceAddressPrefix -ne '10.203.240.0/24' -or
+        [string]$taskNat[0].Active -notin @('True','1')) { throw 'WinNAT dedicato attivo non verificato.' }
+    if (@(Get-NetNatStaticMapping -ErrorAction Stop).Count -ne 0) { throw 'Mapping NAT presenti: riesaminare prima di aprire egress.' }
+    $taskProfile = @(Get-NetConnectionProfile -InterfaceAlias 'vEthernet (Mercurion-Internal)' -ErrorAction Stop)
+    if ($taskProfile.Count -ne 1 -or [string]$taskProfile[0].NetworkCategory -ne 'Public') {
+        throw 'Profilo Windows Public non verificato.'
+    }
+}
+
 function ConvertTo-MercurionAclSignature {
     param([Parameter(Mandatory=$true)]$Rule)
     $taskParts = @()
@@ -106,24 +146,30 @@ function Add-MercurionAclRule {
 }
 
 function Invoke-MercurionVmAcl {
-    param([ValidateSet('Plan','Apply','Verify','Quarantine')][string]$Mode='Plan')
+    param([ValidateSet('Plan','Apply','Verify','Quarantine')][string]$Mode='Plan',
+        [ValidateSet('SshOnly','DnsHttps')][string]$Policy='SshOnly')
     $taskContext = Get-MercurionVmAclContext
-    $taskExpected = @(Get-MercurionSshOnlyRules)
+    $taskExpected = if ($Policy -eq 'DnsHttps') { @(Get-MercurionDnsHttpsRules) } else { @(Get-MercurionSshOnlyRules) }
     $taskGuards = @(Get-MercurionGuardRules)
     $taskMatches = $taskContext.Simple.Count -eq 0 -and (Test-MercurionAclRules $taskContext.Extended $taskExpected)
+    $taskCurrentEgress = $taskContext.Simple.Count -eq 0 -and
+        (Test-MercurionAclRules $taskContext.Extended @(Get-MercurionDnsHttpsRules))
+    if ($Policy -eq 'DnsHttps' -and $Mode -ne 'Quarantine') { Assert-MercurionDnsHttpsContext $taskContext }
     if ($Mode -eq 'Plan') {
         return [ordered]@{
             mode='Plan'; vmName='Mercurion-Server'; vmState=[string]$taskContext.Vm.State
             adapterName=[string]$taskContext.Nic.Name; macAddress=[string]$taskContext.Nic.MacAddress
             switchName=[string]$taskContext.Nic.SwitchName
             currentSimpleCount=$taskContext.Simple.Count; currentExtendedCount=$taskContext.Extended.Count
+            expectedExtendedRuleCount=$taskExpected.Count
             expectedRules=$taskExpected; policyMatches=$taskMatches
-            internetEgressEnabled=$false; isolationAccepted=$false; mutationsPerformed=$false
+            requestedPolicy=$Policy; internetEgressEnabled=$taskCurrentEgress
+            isolationAccepted=$false; mutationsPerformed=$false
         }
     }
     if ($Mode -eq 'Verify') {
-        if (-not $taskMatches) { throw 'Le ACL lette non corrispondono alla policy SSH-only.' }
-        return [ordered]@{ mode='Verify'; settingsReadbackVerified=$true; internetEgressEnabled=$false; isolationAccepted=$false }
+        if (-not $taskMatches) { throw ('Le ACL lette non corrispondono alla policy '+$Policy+'.') }
+        return [ordered]@{ mode='Verify'; policy=$Policy; settingsReadbackVerified=$true; internetEgressEnabled=$taskCurrentEgress; isolationAccepted=$false }
     }
     Assert-MercurionVmOff
     if (@($taskContext.Extended | Where-Object Weight -gt 10000).Count -gt 0) {
@@ -136,7 +182,7 @@ function Invoke-MercurionVmAcl {
             Where-Object { $_.IPAddress -eq '10.203.240.1' -and $_.PrefixLength -eq 24 -and [string]$_.AddressState -eq 'Preferred' })
         if ($taskAddress.Count -ne 1) { throw 'IP host statico Preferred non verificato.' }
         if ($taskMatches) {
-            return [ordered]@{ mode='Apply'; alreadyConfigured=$true; mutationsPerformed=$false; isolationAccepted=$false }
+            return [ordered]@{ mode='Apply'; policy=$Policy; alreadyConfigured=$true; mutationsPerformed=$false; internetEgressEnabled=$taskCurrentEgress; isolationAccepted=$false }
         }
         if (@($taskContext.Extended | Where-Object Weight -ge 10000).Count -gt 0) {
             throw 'Guardia o regola prioritaria presente: diagnosticare prima di riprovare.'
@@ -184,6 +230,7 @@ function Invoke-MercurionVmAcl {
         if ($taskFinal.Simple.Count -ne 0 -or -not (Test-MercurionAclRules $taskFinal.Extended $taskExpected)) {
             throw 'Readback finale inatteso.'
         }
+        if ($Policy -eq 'DnsHttps') { Assert-MercurionDnsHttpsContext $taskFinal }
     } catch {
         # Best effort only: API failure may also prevent reinstallation of a guard.
         # Keep VM Off; never claim network isolation after any failure.
@@ -198,7 +245,7 @@ function Invoke-MercurionVmAcl {
     }
     return [ordered]@{
         mode='Apply'; snapshotPath=$taskSnapshot; settingsReadbackVerified=$true
-        extendedRuleCount=$taskFinal.Extended.Count; internetEgressEnabled=$false
+        policy=$Policy; extendedRuleCount=$taskFinal.Extended.Count; internetEgressEnabled=($Policy -eq 'DnsHttps')
         isolationAccepted=$false; vmStarted=$false; adapterMoved=$false
     }
 }

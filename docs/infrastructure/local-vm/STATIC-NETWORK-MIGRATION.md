@@ -476,8 +476,10 @@ Se la VM non è Off, le regole sono ambigue o manca il backup, fermarsi.
    e verificare WSL/Docker. Un conflitto o un readback inatteso richiede diagnosi,
    senza allentare i filtri o procedere all'apertura egress.
 
-7. Nessun mapping statico o bridge. Aprire e verificare l'egress solo con i
-   relativi deny e controlli LAN/WAN, poi eseguire M-07 sulla policy completa.
+7. Nessun mapping statico o bridge. Proseguire con la [procedura DNS/HTTPS](DNS-HTTPS-ACL.md),
+   che conserva i deny e richiede VM Spenta per la transizione. Implementazione
+   e test locali pronti, applicazione ancora pendente; eseguire poi M-07 sulla
+   policy completa. Nessuna apertura egress implicita nella creazione del NAT.
 
 Il collegamento/avvio protetto e la configurazione statica precedono quindi
 l'attivazione dell'egress. DNS/HTTPS pubblici non devono ancora riuscire nella

@@ -67,6 +67,10 @@ positivi e listener chiuso. H-04 sulla rete statica riuscito: due
 bridge guest, controlli prima/dopo positivi e nessun errore di pulizia.
 Prossimo passo: predisporre apertura controllata DNS/HTTPS per lo smoke H-06,
 mantenendo deny host/LAN e IPv6. Ripetere negazioni dopo apertura egress.
+Implementazione [DnsHttps](DNS-HTTPS-ACL.md) pronta: 19 ACL, preflight NAT e
+Public, 28 scenari lifecycle e 26 casi iniziali di traffico simulati passati.
+H-06 runner: quattro unittest e ValidateOnly passati. Applicazione reale e
+connettività ancora pendenti; richiesto piano read-only amministrativo.
 Residuo strumenti: diagnosticare il prompt sudo tardivo nella pipeline SSH/PTY,
 senza cambiare autenticazione, sudoers o acquisire password nei report.
 

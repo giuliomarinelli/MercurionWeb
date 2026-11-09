@@ -19,6 +19,7 @@ La VM può rimanere spenta; preview può essere arrestato indipendentemente dall
 | [HOST-GUEST-READINESS.md](HOST-GUEST-READINESS.md) | Inventari INF-VM-02, baseline guest e prove di isolamento ancora aperte |
 | [STATIC-NETWORK-MIGRATION.md](STATIC-NETWORK-MIGRATION.md) | Procedura italiana passo per passo: rete statica, Kaspersky Pubblica, isolamento LAN e recupero |
 | [SSH-ONLY-ACL.md](SSH-ONLY-ACL.md) | Applicazione controllata ACL della sola vNIC, prima fase SSH-only, test simulati e quarantena |
+| [DNS-HTTPS-ACL.md](DNS-HTTPS-ACL.md) | Transizione controllata a 19 ACL per DNS/HTTPS, prove, recupero e limiti |
 | [NETWORK-PROBES.md](NETWORK-PROBES.md) | Canary temporaneo e controlli positivi per le prove negative TCP |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Componenti, ingressi, flussi applicativi e confini |
 | [NETWORK-TOPOLOGY.md](NETWORK-TOPOLOGY.md) | Reti Docker, collegamenti permessi, isolamento e SSH |

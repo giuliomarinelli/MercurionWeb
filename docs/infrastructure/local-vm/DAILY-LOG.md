@@ -756,3 +756,13 @@ Owner segnala ritardo nel mostrare il prompt sudo, poi autenticazione riuscita.
 Documentato residuo UX e ipotesi buffering SSH/PTY da verificare; nessuna
 modifica ad autenticazione/sudoers o richiesta di password. Nessun listener
 canary residuo rilevato sull'host al controllo finale.
+
+**Preparazione apertura DNS/HTTPS:** aggiunta selezione esplicita policy
+DnsHttps alla libreria e all'entrypoint ACL; default SshOnly conservato.
+Cinque allow stateful sotto i deny privati, 19 ACL complessive, DNS limitato
+ai resolver Netplan e TCP/443 IPv4. Preflight rifiuta policy sconosciuta,
+NAT/mapping o profilo incompatibili; ricontrollo finale e guardie best effort
+anche su deriva NAT. Ventotto scenari lifecycle e 26 pacchetti iniziali
+simulati passati su Windows PowerShell 5.1. Quattro unittest H-06 passati e
+ValidateOnly Windows riuscito. Procedura italiana documentata; richiesto piano
+amministrativo read-only, nessuna ACL reale modificata in questa preparazione.

@@ -5,6 +5,10 @@ $ErrorActionPreference = 'Stop'
 
 function Reset-Fixture {
     $script:vmState='Off'; $script:mac='00155D00DD01'; $script:adapterCount=1
+    $script:nicSwitch='Default Switch'
+    $script:nats=@([pscustomobject]@{Name='Mercurion-NAT';InternalIPInterfaceAddressPrefix='10.203.240.0/24';Active=1})
+    $script:natMappings=@(); $script:networkCategory='Public'
+    $script:natChangedAtFinal=$false
     $script:switchType='Internal'; $script:addressState='Preferred'; $script:snapshotFailure=$false
     $script:failAddAt=0; $script:addCount=0; $script:runningAfter=0
     $script:failFinalRead=$false; $script:guardRemovals=0
@@ -27,7 +31,7 @@ function Get-VM { [CmdletBinding()] param($Name) [pscustomobject]@{State=$script
 function Get-VMNetworkAdapter {
     [CmdletBinding()] param($VMName)
     for($taskIndex=0; $taskIndex -lt $script:adapterCount; $taskIndex++) {
-        [pscustomobject]@{Name='fixture-nic';Id='fixture-id';MacAddress=$script:mac;SwitchName='Default Switch'}
+        [pscustomobject]@{Name='fixture-nic';Id='fixture-id';MacAddress=$script:mac;SwitchName=$script:nicSwitch}
     }
 }
 function Get-VMNetworkAdapterAcl { [CmdletBinding()] param($VMNetworkAdapter) $script:simple }
@@ -44,6 +48,18 @@ function Get-VMNetworkAdapterExtendedAcl {
     $script:extended
 }
 function Get-VMSwitch { [CmdletBinding()] param($Name) [pscustomobject]@{SwitchType=$script:switchType} }
+function Get-NetNat {
+    [CmdletBinding()] param()
+    if ($script:natChangedAtFinal -and $script:guardRemovals -eq 2) {
+        $script:natChangedAtFinal=$false; $script:nats[0].Name='foreign'
+    }
+    $script:nats
+}
+function Get-NetNatStaticMapping { [CmdletBinding()] param() $script:natMappings }
+function Get-NetConnectionProfile {
+    [CmdletBinding()] param($InterfaceAlias)
+    [pscustomobject]@{NetworkCategory=$script:networkCategory}
+}
 function Get-NetIPAddress {
     [CmdletBinding()] param($InterfaceAlias,$AddressFamily,$PolicyStore)
     [pscustomobject]@{IPAddress='10.203.240.1';PrefixLength=24;AddressState=$script:addressState}
@@ -168,6 +184,59 @@ Reset-Fixture
 $script:extended += [pscustomobject]@{Action='Allow';Direction='Outbound';Weight=20000}
 Assert-Rejected { Invoke-MercurionVmAcl -Mode Quarantine }
 Assert-True ($script:log.Count -eq 0) 'Quarantine accepted a higher priority rule.'
+$taskChecks++
+
+function Reset-DnsFixture {
+    Reset-Fixture
+    $script:nicSwitch='Mercurion-Internal'; $script:simple=@()
+    $script:extended=@(Get-MercurionSshOnlyRules)
+}
+
+Reset-DnsFixture
+$taskPlan=Invoke-MercurionVmAcl -Mode Plan -Policy DnsHttps
+Assert-True ($script:log.Count -eq 0 -and $taskPlan.expectedRules.Count -eq 19 -and -not $taskPlan.internetEgressEnabled) 'DNS/HTTPS plan changed state or falsely reported active egress.'
+$taskChecks++
+
+foreach($taskInvalid in @('switch','missing-nat','foreign-nat','nat-prefix','nat-inactive','mapping','private-profile','unknown-policy')) {
+    Reset-DnsFixture
+    switch($taskInvalid) {
+        'switch' { $script:nicSwitch='Default Switch' }
+        'missing-nat' { $script:nats=@() }
+        'foreign-nat' { $script:nats+= [pscustomobject]@{Name='foreign'} }
+        'nat-prefix' { $script:nats[0].InternalIPInterfaceAddressPrefix='192.168.0.0/24' }
+        'nat-inactive' { $script:nats[0].Active=0 }
+        'mapping' { $script:natMappings=@([pscustomobject]@{ExternalPort=443}) }
+        'private-profile' { $script:networkCategory='Private' }
+        'unknown-policy' { $script:extended+= [pscustomobject]@{Action='Allow';Direction='Outbound';Weight=5000} }
+    }
+    Assert-Rejected { Invoke-MercurionVmAcl -Mode Apply -Policy DnsHttps }
+    Assert-True ($script:log.Count -eq 0) ('DNS/HTTPS wrote before valid preflight: '+$taskInvalid)
+    $taskChecks++
+}
+
+Reset-DnsFixture
+$taskApplied=Invoke-MercurionVmAcl -Mode Apply -Policy DnsHttps
+Assert-True ($taskApplied.extendedRuleCount -eq 19 -and $taskApplied.internetEgressEnabled -and -not $taskApplied.isolationAccepted) 'Incorrect DNS/HTTPS receipt.'
+Assert-True (Test-MercurionAclRules $script:extended @(Get-MercurionDnsHttpsRules)) 'Incorrect DNS/HTTPS policy.'
+Assert-True ((Invoke-MercurionVmAcl -Mode Verify -Policy DnsHttps).settingsReadbackVerified) 'DNS/HTTPS verify failed.'
+$taskLogCount=$script:log.Count
+Assert-True (Invoke-MercurionVmAcl -Mode Apply -Policy DnsHttps).alreadyConfigured 'DNS/HTTPS apply not idempotent.'
+Assert-True ($script:log.Count -eq $taskLogCount) 'Idempotent DNS/HTTPS apply wrote state.'
+# Safe return to the original closed-egress policy uses the same guarded lifecycle.
+$taskClosed=Invoke-MercurionVmAcl -Mode Apply -Policy SshOnly
+Assert-True (-not $taskClosed.internetEgressEnabled -and (Test-MercurionAclRules $script:extended @(Get-MercurionSshOnlyRules))) 'Return to SSH-only failed.'
+$taskChecks++
+
+Reset-DnsFixture
+$script:failAddAt=20
+Assert-Rejected { Invoke-MercurionVmAcl -Mode Apply -Policy DnsHttps }
+Assert-True (@($script:extended | Where-Object Weight -eq 10000).Count -eq 2 -and $script:guardRemovals -eq 0) 'Partial egress application released deny guards.'
+$taskChecks++
+
+Reset-DnsFixture
+$script:natChangedAtFinal=$true
+Assert-Rejected { Invoke-MercurionVmAcl -Mode Apply -Policy DnsHttps }
+Assert-True (@($script:extended | Where-Object Weight -eq 10000).Count -eq 2) 'Final NAT drift did not restore guards.'
 $taskChecks++
 
 Write-Output ('ACL policy tests passed: '+$taskChecks+' scenarios; native Hyper-V operations simulated, no network changed.')
