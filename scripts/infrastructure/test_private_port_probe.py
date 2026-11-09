@@ -10,13 +10,13 @@ import unittest
 from unittest.mock import patch
 
 from private_port_probe import (IMAGE, control_servers, correlate, dns_query, dns_response_valid,
-                                prepare_dns, probe, route_for, run_guest, run_origin, targets, validate_config)
+                                prepare_dns, probe, route_for, run_guest, run_origin, serve_host, targets, validate_config)
 
 
-def fixture():
+def fixture(dns_address='172.27.0.1'):
     base = datetime.now(timezone.utc) - timedelta(seconds=6)
     stamp = lambda seconds: (base+timedelta(seconds=seconds)).isoformat()
-    config = dict(runId='a'*32, nonce='b'*32, targets=targets('172.27.0.1'),
+    config = dict(runId='a'*32, nonce='b'*32, targets=targets(dns_address),
                   readyAtUtc=stamp(0), expiresAtUtc=stamp(120))
 
     def result(endpoint, start, end, outcome='reachable'):
@@ -52,13 +52,36 @@ class PrivatePortTests(unittest.TestCase):
     def test_target_and_window_validation(self):
         config, _, _ = fixture()
         validate_config(config)
-        for address in ('8.8.8.8', '127.0.0.1', '0.0.0.0', '::1'):
+        for address in ('8.8.8.8', '127.0.0.1', '0.0.0.0', '::1', '169.254.1.1',
+                        '100.64.0.1', '172.32.0.1', '192.169.0.1', 'fc00::1', 'not-an-ip'):
             with self.subTest(address=address), self.assertRaises(ValueError):
                 targets(address)
         for change in ({'nonce':'bad'}, {'expiresAtUtc':'2000-01-01T00:00:00+00:00'},
                        {'targets':targets('172.27.0.1')[::-1]}):
             with self.subTest(change=change), self.assertRaises(ValueError):
                 validate_config({**config, **change})
+
+    def test_default_switch_subnet_reallocation(self):
+        for address in ('10.203.241.1', '172.27.0.1', '192.168.160.1'):
+            with self.subTest(address=address):
+                config, _, _ = fixture()
+                config['targets'] = targets(address)
+                validate_config(config)
+                self.assertEqual(config['targets'][2]['address'], address)
+                self.assertEqual(config['targets'][0]['address'], '10.203.240.1')
+                self.assertEqual(config['targets'][1]['address'], '10.203.240.1')
+
+    def test_invalid_dns_address_leaves_diagnostic_report_without_listeners(self):
+        with tempfile.TemporaryDirectory() as temporary, patch('private_port_probe.control_servers') as listeners:
+            directory = Path(temporary)/'host'
+            result = serve_host(directory, 'a'*32, '8.8.8.8')
+            self.assertEqual(result['status'], 'invalid')
+            self.assertEqual(result['errorType'], 'ValueError')
+            self.assertEqual(result['controls'], [])
+            self.assertTrue(result['closed'])
+            self.assertFalse((directory/'ready.json').exists())
+            self.assertEqual(json.loads((directory/'result.json').read_text())['status'], 'invalid')
+            listeners.assert_not_called()
 
     def test_loopback_tcp_and_dns_controls_and_close(self):
         nonce = 'c'*32
@@ -167,9 +190,11 @@ class PrivatePortTests(unittest.TestCase):
             return correlate(root)
 
     def test_correlates_all_nine_cases_without_global_acceptance(self):
-        result = self.correlate_fixture(*fixture())
-        self.assertEqual(result['caseCount'], 9)
-        self.assertFalse(result['isolationAccepted'])
+        for address in ('10.203.241.1', '172.27.0.1', '192.168.160.1'):
+            with self.subTest(address=address):
+                result = self.correlate_fixture(*fixture(address))
+                self.assertEqual(result['caseCount'], 9)
+                self.assertFalse(result['isolationAccepted'])
 
     def test_rejects_incomplete_reachable_or_uncorrelated_reports(self):
         mutations = [

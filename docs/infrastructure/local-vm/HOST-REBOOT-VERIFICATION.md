@@ -194,6 +194,12 @@ Lo smoke prova questi percorsi, non tutti i provider o ogni resolver.
 Ancora da acquisire: negazioni verso host dopo il riavvio. M-08/A-28 e
 LAN/altre origini/IPv6 A-30 restano aperti.
 
+Primo tentativo probe privati post-Restart
+`daed3aca799c4c6282080e302b059f58` interrotto prima di SSH: errore nella
+validazione del target DNS, che rifiutava la nuova subnet privata del Default
+Switch. [Diagnosi e correzione dello strumento](PRIVATE-PORT-PROBES.md),
+con test e preflight locale reale superati; nessuna prova VM passata da quel run.
+
 ## Riferimenti
 
 - [Microsoft: AutomaticStartAction e AutomaticStopAction](https://learn.microsoft.com/en-us/powershell/module/hyper-v/set-vm?view=windowsserver2025-ps).

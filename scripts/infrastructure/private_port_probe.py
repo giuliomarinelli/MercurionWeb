@@ -42,7 +42,9 @@ def validate_nonce(nonce):
 
 
 def targets(dns_address):
-    if ipaddress.ip_address(dns_address) not in ipaddress.ip_network('172.16.0.0/12'):
+    address = ipaddress.ip_address(dns_address)
+    if not any(address in ipaddress.ip_network(prefix)
+               for prefix in ('10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16')):
         raise ValueError('DNS control must be the measured private virtual-adapter address')
     return [dict(id='tcp-443', transport='tcp', address=HOST, port=443),
             dict(id='tcp-53', transport='tcp', address=HOST, port=53),
@@ -208,7 +210,7 @@ def serve_host(output, run_id, dns_address, seconds=600):
     validate_nonce(run_id)
     if not 1 <= seconds <= 600:
         raise ValueError('Duration out of bounds')
-    endpoints = targets(dns_address)
+    endpoints = []
     output.mkdir(parents=True, exist_ok=False)
     nonce = uuid.uuid4().hex
     report = dict(schemaVersion=1, runId=run_id, nonce=nonce, targets=endpoints,
@@ -225,6 +227,7 @@ def serve_host(output, run_id, dns_address, seconds=600):
             raise RuntimeError('Host positive control failed')
 
     try:
+        endpoints.extend(targets(dns_address))
         with control_servers(HOST, nonce, tcp_ports=(443, 53), udp=False):
             prepare_dns(dns_address, nonce, report['preparation'])
             control_round()

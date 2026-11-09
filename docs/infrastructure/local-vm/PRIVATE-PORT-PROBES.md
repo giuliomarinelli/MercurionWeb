@@ -123,7 +123,7 @@ python -B scripts/infrastructure/test_private_port_probe.py
 powershell -NoProfile -File scripts/infrastructure/Test-PrivatePortTransport.ps1
 ```
 
-Undici unittest Python, con socket loopback reali e rigetto di report invalidi;
+Tredici unittest Python, con socket loopback reali e rigetto di report invalidi;
 tre scenari PowerShell 5.1 con listener host reali e SCP/SSH simulati: errore SCP,
 runId errato e fallimento SSH non mascherato dal successivo recupero report.
 Verificati chiusura e controlli finali anche su errore. Fixture fallite conservate
@@ -131,6 +131,22 @@ in directory Temp dedicate, distinte dalle evidenze runtime.
 Collaudo Docker Desktop: sei casi container reali, controlli TCP/UDP validi e
 pulizia riuscita; non è esecuzione su Mercurion-Server né accettazione VM.
 Il timeout dei controlli positivi è allineato ai tre secondi dei client.
+
+**Correzione post-riavvio del 9 novembre:** il run
+`daed3aca799c4c6282080e302b059f58` si è fermato prima di SSH/listener: il wrapper
+aveva rilevato correttamente il nuovo DNS Default Switch `192.168.160.1`, ma
+il runner Python accettava solo `172.16.0.0/12`. Non era una misura di blocco
+né un guasto della VM. Validazione ora estesa alle tre fasce private IPv4
+RFC 1918; l'indirizzo resta quello riletto dall'adattatore nominato, non un
+target LAN scelto arbitrariamente. Rigettati indirizzi pubblici, loopback,
+link-local, CGNAT e IPv6. Test di regressione su validazione e correlazione
+dei nove casi in tutte le tre fasce. Configurazione DNS rifiutata da serve-host
+ora produce `host/result.json` invalid senza aprire listener; il run precedente
+conserva il traceback originale e non è riclassificato.
+
+Tredici test Python, tre scenari trasporto e preflight reale Windows PowerShell
+5.1 sul nuovo indirizzo riusciti. Nessuna modifica a firewall, ACL o servizio
+DNS ICS. Ripetizione VM dopo correzione ancora da eseguire.
 
 Fonti di protocollo: [formato DNS, RFC 1035](https://datatracker.ietf.org/doc/html/rfc1035#section-4.1),
 [dominio riservato .invalid, RFC 2606](https://datatracker.ietf.org/doc/html/rfc2606#section-2).

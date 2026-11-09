@@ -892,3 +892,14 @@ verso docs.python.org; immagine attesa e cleanup senza errori. Hash registrato
 in HOST-REBOOT-VERIFICATION. Errori di autenticazione iniziali seguiti da
 esecuzione riuscita; nessuna modifica all'autenticazione. Richiesta ripetizione
 dei nove probe privati post-Restart; negazioni ancora pendenti.
+
+**Probe privati post-Restart fermato prima di SSH:** run
+daed3aca799c4c6282080e302b059f58, host-stderr con ValueError nella funzione
+targets: wrapper aveva rilevato 192.168.160.1, Python ammetteva soltanto
+172.16.0.0/12. Errore dello strumento, nessun listener avviato e nessuna misura
+guest. Corretta validazione alle tre fasce RFC 1918, mantenuti controlli sulle
+origini degli indirizzi nel wrapper; nessuna modifica infrastrutturale.
+Rifiuto target ora raccolto nel report invalid di serve-host. Tredici unittest
+Python (incluse correlazioni sulle tre fasce), tre scenari trasporto PS 5.1
+e ValidateOnly reale sul nuovo DNS passati. Evidenza fallita preservata;
+richiedere nuovo run VM solo dopo questa verifica, nessun retry automatico.
