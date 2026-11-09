@@ -37,7 +37,7 @@ Questi sono criteri da implementare e collaudare, non isolamento già dimostrato
 | M-03 | Creazione switch interno e IP host statico | Eseguito dall'owner: Internal e `10.203.240.1/24`; ActiveStore Preferred verificato |
 | M-04 | Kaspersky Pubblica e profilo host verificati | Classificazione attuale confermata da screenshot owner; efficacia regole/persistenza da provare |
 | M-05 | Backup e policy ACL della sola vNIC Mercurion | Apply owner riuscito e Verify dopo collegamento confermato; traffico non collaudato |
-| M-06 | Configurazione guest statica, NAT e collegamento | vNIC/ACL e BACKUP_OK confermati; editing validato con NETPLAN_OK, try/applicazione e NAT pendenti |
+| M-06 | Configurazione guest statica, NAT e collegamento | Netplan try accettato, TCP/22 e identita server verificati; alias aggiornato, login owner/NAT pendenti |
 | M-07 | SSH, egress e prove negative con controlli positivi | Da eseguire |
 | M-08 | Riavvio a freddo, stabilità e nuova baseline | Da eseguire |
 
@@ -347,7 +347,11 @@ Se la VM non è Off, le regole sono ambigue o manca il backup, fermarsi.
    subito l'assistente e non premere ancora Invio. Nella finestra di cinque
    minuti controllare dall'host TCP/22 sul solo IP `10.203.240.10`, con route
    interna e MAC atteso; è un controllo di raggiungibilità, non login o prova
-   LAN. Confermare nella console solo dopo il riscontro. Try ancora non eseguito.
+   LAN. Confermare nella console solo dopo il riscontro.
+   **Eseguito:** TCP/22 raggiungibile da host `10.203.240.1` al guest
+   `10.203.240.10`, neighbor sulla vEthernet interna con MAC atteso
+   `00-15-5D-00-DD-01`; owner ha confermato «Configurazione accettata».
+   Applicazione corrente verificata, non ancora persistenza dopo reboot.
    Se c'è errore o timeout, riportare l'esito e verificare stato effettivo da
    console: non presumere che runtime e file su disco siano tornati allo stato
    precedente e non riavviare alla cieca. Il backup root rimane disponibile.
@@ -356,6 +360,31 @@ Se la VM non è Off, le regole sono ambigue o manca il backup, fermarsi.
    SSH a `10.203.240.10`, senza cambiare chiavi/autenticazione/passphrase.
    Verificare un eventuale avviso host key dalla console, senza disabilitare
    host-key checking o cancellare known_hosts alla cieca. Provare SSH dall'host.
+
+   **Alias aggiornato dall'agente:** modificato solo HostName del blocco
+   univoco `mercurion-server` in `~/.ssh/config`, da vecchio IP a
+   `10.203.240.10`. Copia prima della modifica nella stessa directory, con ACL
+   copiate dall'originale: `config.before-mercurion-static-9bc0bad467784780833aeb5f188e1d7c.bak`.
+   Nessun altro parametro, chiave privata o metodo di autenticazione modificato;
+   `ssh -G` conferma il nuovo hostname. Config e backup restano fuori Git.
+
+   Identita verificata con handshake SSH senza autenticazione utente,
+   StrictHostKeyChecking yes e HostKeyAlias temporaneo del vecchio IP fidato:
+   chiave ED25519 coincidente con quella gia presente in known_hosts.
+   Impronta pubblica verificata:
+   `SHA256:9IFgVd7PcpL7F9lBGIuKF6SDZRQvjQ4zKoUsCqtbd68`.
+   Permission denied del solo controllo era atteso: autenticazione disabilitata
+   appositamente in quell'invocazione. Nessun login utente provato dall'agente.
+
+   Il nuovo indirizzo non era ancora in known_hosts. Primo login dell'owner:
+
+   ```powershell
+   ssh mercurion-server
+   ```
+
+   Confermare l'eventuale nuovo record solo se l'impronta coincide con quella
+   verificata, poi inserire passphrase nel terminale. Non cancellare record
+   esistenti o ignorare avvisi di chiave differente. Login owner ancora pendente.
 6. Dopo recupero SSH e review dell'egress, creare il NAT dedicato solo se non
    esiste un WinNAT incompatibile. M-05 non lo crea e mantiene egress chiuso:
 

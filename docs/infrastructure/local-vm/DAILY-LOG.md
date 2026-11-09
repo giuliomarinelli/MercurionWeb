@@ -635,3 +635,23 @@ Non ancora applicato alla rete. Preparata prova console `netplan try --timeout
 300` con richiesta di non confermare subito, per controllo TCP/22 host → nuovo
 IP prima della conferma. Route host 10.203.240.0/24 sulla vEthernet interna
 riletta. Try, conferma, SSH, LAN e persistenza ancora da verificare.
+
+**Netplan applicato:** owner avvia try e segnala attesa. Controllo host immediato:
+TCP/22 raggiungibile su 10.203.240.10 con origine 10.203.240.1, neighbor sullo
+switch interno e MAC 00-15-5D-00-DD-01 atteso. Owner conferma poi configurazione
+accettata. Non è un login né una prova LAN/persistenza.
+
+Il client ssh-keyscan locale non produce chiavi per errore KEX non supportato
+(sntrup761x25519-sha512@openssh.com), non per chiave server discordante.
+Eseguito allora handshake con client ssh normale, autenticazioni utente tutte
+disabilitate, StrictHostKeyChecking yes e HostKeyAlias temporaneo del vecchio
+IP: il client conferma ED25519 coincidente con il record fidato precedente.
+Permission denied finale atteso in questa sola prova senza autenticazione.
+Nessuna modifica di algoritmi, known_hosts, credenziali o autenticazione server.
+
+Aggiornato solo HostName dell'alias mercurion-server nel config SSH utente,
+preservando contenuto restante e formato; copia protetta nella stessa .ssh
+con ACL originali. Hostname effettivo riletto e confermato; nessuna chiave
+privata letta nel contenuto. Vecchio record fidato preservato, nuovo IP non
+ancora registrato: richiesto login interattivo owner con impronta gia verificata.
+NAT/egress restano chiusi; rete LAN e reboot ancora da collaudare.
