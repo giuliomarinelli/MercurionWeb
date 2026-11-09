@@ -1,4 +1,5 @@
 import contextlib
+import errno
 import io
 import json
 from pathlib import Path
@@ -15,6 +16,17 @@ import run_vm_topology as runner
 
 
 class FixtureTests(unittest.TestCase):
+    def test_no_route_requires_both_kernel_error_and_namespace_evidence(self):
+        raw = 'Iface Destination Gateway Flags RefCnt Use Metric Mask\neth0 000015AC 00000000 0001 0 0 0 0000FFFF\n'
+        self.assertEqual(fixture.namespace_route('172.27.0.3',raw),(True,None))
+        self.assertFalse(fixture.namespace_route('172.27.0.3','broken')[0])
+        for evidence,expected in [((True,None),'no-route'),((False,None),'invalid'),
+                                  ((True,dict(interface='eth0',prefixLength=0)),'invalid')]:
+            with self.subTest(evidence=evidence), patch.object(fixture,'namespace_route',return_value=evidence), \
+                    patch.object(fixture.socket,'create_connection',side_effect=OSError(errno.ENETUNREACH,'synthetic')):
+                result=fixture.client('172.27.0.3','unit-fixture')
+                self.assertEqual(result['outcome'],expected)
+
     def test_live_identity_mismatch_deadline_and_closed_port(self):
         process = subprocess.Popen([sys.executable, '-B', str(ROOT / 'deployment/local-vm/fixtures/topology_fixture.py'),
                                     'serve', '--identity', 'unit-fixture', '--bind', '127.0.0.1', '--port', '0', '--seconds', '2'],
@@ -50,6 +62,13 @@ class FixtureTests(unittest.TestCase):
 
 
 class RunnerTests(unittest.TestCase):
+    def test_structural_no_route_is_distinct_and_requires_healthy_peers(self):
+        healthy=[dict(outcome='reachable')]*2
+        no_route=dict(outcome='no-route',tcpConnected=False,errno=101,routeObserved=True,route=None)
+        self.assertEqual(runner.assess_negative(healthy,dict(status='not-resolved'),[no_route],healthy),'passed')
+        for change in ({'routeObserved':False},{'route':dict(interface='eth0')},{'errno':None}):
+            self.assertEqual(runner.assess_negative(healthy,dict(status='not-resolved'),[{**no_route,**change}],healthy),'invalid')
+        self.assertEqual(runner.assess_negative([],dict(status='not-resolved'),[no_route],healthy),'invalid')
     def test_empty_plan_cannot_be_reported_as_a_success(self):
         empty = json.dumps(dict(schemaVersion=1, fixturePort=18080, allow=[], deny=[]))
         with patch.object(Path, 'read_text', return_value=empty), self.assertRaises(ValueError):
@@ -135,7 +154,7 @@ class RunnerTests(unittest.TestCase):
                 ref = next(ref for ref, identifier in ids.items() if identifier == args[-1])
                 identity = ref.split('/')[1]
                 return json.dumps(dict(id=ids[ref], image=runner.IMAGE, running=True, ports={}, readonly=True,
-                                       privileged=False, user='65534:65534', entrypoint=['python'],
+                                       privileged=False, user='65534:65534', entrypoint=['python'], dnsOptions=['ndots:1'],
                                        command=['-B', '/fixture/topology_fixture.py', 'serve', '--identity', identity],
                                        networks={'fixture-net': dict(IPAddress=ips[ref])}))
             if args[0] == 'create':

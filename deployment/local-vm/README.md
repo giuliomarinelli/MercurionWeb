@@ -3,6 +3,10 @@
 **7 novembre 2026:** l'owner autorizza l'anticipo di manifest e validazione
 locale; prove residue INF-VM-02 e gate di avvio VM restano aperti. Nessun
 deployment, trasferimento operativo o collegamento Cloudflare autorizzato.
+**Eccezione successiva, 9 novembre — VM-033 approvata:** l'owner autorizza
+trasferimento, esecuzione e pulizia delle sole fixture sintetiche.
+[Procedura completa](../../docs/infrastructure/local-vm/FIXTURE-RUNTIME.md).
+Restano esclusi servizi reali, segreti, port publishing e Cloudflare.
 
 ## Manifest e limiti
 
@@ -17,7 +21,8 @@ Nginx, cloudflared, UI, Nest, Angular o Tox21.
 
 I profili `topology-fixture` e `admin-fixture` rendono esplicito l'uso opzionale.
 Non sono una barriera di sicurezza: Compose può avviare un servizio nominato
-esplicitamente anche senza attivarne il profilo. L'avvio resta fuori perimetro.
+esplicitamente anche senza attivarne il profilo. L'avvio delle sole fixture
+è ora autorizzato nel perimetro VM-033.
 Le fixture hanno root filesystem read-only, UID non root, capability rimosse,
 limiti CPU/memoria/PID, nessun restart automatico e pull disabilitato.
 
@@ -44,6 +49,9 @@ e comportamento delle reti ancora in uso richiedono verifica runtime.
 Solo `tunnel_egress` e le due reti `*_egress` hanno `internal: false`. Nessun
 subnet/IP fisso, host networking o rete default implicita. La base non abilita
 IPv6 né configura firewall. Egress non significa allowlist delle destinazioni.
+Le sole fixture usano dns_opt ndots:1 per limitare le query A a etichetta
+singola al DNS embedded: i nomi vietati non dipendono da resolver esterni.
+Errori DNS temporanei continuano a invalidare un caso.
 Alias qualificati, ad esempio `web-node-preview`/`web-node-production`: il futuro
 edge deve usare questi nomi. Una sola fixture Meilisearch su due reti search;
 UI solo su admin. Volumi separati per PostgreSQL/Redis/NATS di ogni ambiente,
@@ -89,12 +97,12 @@ configurazione reale in `validation.env.example`.
 Verifica proprietà reti/volumi, collegamenti dei ruoli, separazione ambienti,
 alias, porte canoniche, overlay, immagine fixture fissata, assenza di porte
 pubblicate/mount sensibili e limiti container. L'unico bind mount ammesso è il
-file fixture tracciato in sola lettura. Gli 11 casi negativi di topologia e i
+file fixture tracciato in sola lettura. I 12 casi negativi di topologia e i
 4 della matrice modificano copie in memoria, senza toccare sorgenti o Docker.
 Validator dedicato alla fase fixture, separato dal gate CI canonico;
 non sostituisce `ci:deployment`.
 
-## Matrice e runner preparati, esecuzione Docker non ancora verificata
+## Matrice e runner: collaudo locale e prova VM
 
 [connectivity.json](connectivity.json) contiene 15 casi ammessi e 18 vietati:
 ingresso edge, dipendenze dati/bus/search, RPC stesso ambiente, negazioni
@@ -107,8 +115,8 @@ Per leggere il piano senza chiamare Docker:
 python -B scripts/infrastructure/run_vm_topology.py
 ```
 
-Il futuro modo runtime `--execute-existing-fixtures` richiede autorizzazione
-separata e fixture già avviate sulla VM Ubuntu. Il runner non avvia o arresta
+Il modo runtime `--execute-existing-fixtures` richiede fixture già avviate
+sulla VM Ubuntu. VM-033 autorizza ora l'orchestratore dedicato; il runner non avvia o arresta
 i tre progetti, non crea reti/volumi e rifiuta servizi diversi dalle fixture
 attese (immagine, comando, utente, filesystem e porte verificati). La UI fixture
 deve essere presente per coprire anche le sue negazioni. Tutti i listener sono
@@ -137,16 +145,25 @@ Verifica locale, senza Docker runtime:
 python -B scripts/infrastructure/test_vm_topology.py
 ```
 
-Dieci test passati: TCP loopback reale, identità, chiusura, DNS, guardie contro
+Dodici test passati: TCP loopback reale, identità, chiusura, DNS, guardie contro
 falsi esiti e pulizia dopo timeout/ownership errata; l'intera matrice è percorsa
 con Docker simulato. La simulazione non dimostra la topologia della VM.
+Il lifecycle aggiunge otto test di sicurezza: collisioni, integrità bundle,
+immagine/config errate, bind estranei, ownership cambiata, avvio interrotto
+e scrittura report fallita senza saltare la pulizia. I casi no-route della
+matrice descrivono separazione topologica con evidenza kernel/route e controlli
+attivi; non sono una prova del filtro host. Vedere FIXTURE-RUNTIME per i dettagli.
+Collaudo reale Docker Desktop completato: 33/33 casi, cleanup di 16 fixture,
+13 reti e 7 volumi senza errori. Report e hash nella procedura; prova VM ancora
+da acquisire, nessuna promozione dell'esito locale.
 
 ## Accettazione aperta
 
 La validazione statica non dimostra DNS o isolamento runtime. Restano connessioni
 positive/negative, egress, loopback amministrativo e comportamento volumi.
-Prima di avviare occorre review del gate INF-VM-02. Listener e runner sono ora
-preparati; il loro uso su reti Docker reali resta da verificare con autorizzazione.
+La review del gate INF-VM-02 mantiene i residui aperti; VM-033 autorizza
+soltanto il collaudo sintetico tramite l'orchestratore. Il risultato della VM
+deve essere registrato separatamente dalla validazione locale.
 I test non coprono protocolli/ACL applicativi, IPv6, host/LAN, Cloudflare o
 persistenza dei motori dati; la fixture non è una sostituzione dei servizi reali.
 

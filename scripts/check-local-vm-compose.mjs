@@ -83,7 +83,7 @@ export function validateVmProjects(projects) {
       if (!['cloudflared', 'meilisearch-ui'].includes(role)) assert(schema.services[canonical], `unknown canonical role ${role}`)
       const allowed = ['profiles', 'restart', 'cap_drop', 'cpus', 'command', 'entrypoint', 'image', 'mem_limit',
         'networks', 'pids_limit', 'pull_policy', 'read_only', 'security_opt', 'user', 'volumes', 'expose', 'environment',
-        'x-mercurion-canonical-service']
+        'x-mercurion-canonical-service', 'dns_opt']
       for (const key of Object.keys(service)) assert(allowed.includes(key), `${project}/${id}: forbidden setting ${key}`)
       assert.equal(service.image, image, 'fixture image must stay pinned')
       assert.equal(service.pull_policy, 'never', 'no implicit pull')
@@ -96,6 +96,7 @@ export function validateVmProjects(projects) {
       assert.equal(service.cpus, 0.25, 'fixture CPU budget')
       assert.equal(service.pids_limit, 32, 'fixture PID budget')
       assert.deepEqual(service.entrypoint, ['python'], 'fixture entrypoint')
+      assert.deepEqual(service.dns_opt, ['ndots:1'], 'fixture single-label DNS queries stay scoped to embedded resolver')
       assert.deepEqual(service.command, ['-B', '/fixture/topology_fixture.py', 'serve', '--identity', id], 'bounded identity listener')
       assert.deepEqual(service.profiles, [role === 'meilisearch-ui' ? 'admin-fixture' : 'topology-fixture'], 'opt-in fixture profile')
       same(Object.keys(service.networks), connections[role], `${project}/${id}: network membership`)
@@ -165,6 +166,7 @@ export function validateConnectivity(projects, matrix) {
 function selfTest(projects) {
   const cases = [
     ['published port', p => { p.preview.services['web-node-preview'].ports = [{ target: 8098, published: '8098' }] }],
+    ['unscoped fixture DNS', p => { p.preview.services['tox21-preview'].dns_opt = ['ndots:0'] }],
     ['host network', p => { p.production.services['tox21-production'].network_mode = 'host' }],
     ['production network in preview', p => { p.preview.networks.data.name = 'mercurion_prod_data' }],
     ['internal network opened', p => { p.production.networks.data.internal = false }],

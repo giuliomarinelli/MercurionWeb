@@ -35,7 +35,7 @@
 | VM-029 | APPROVATA | Autenticazione NATS con user/password distinti per consumer e ambiente, separati dall'URL; scelta esplicita owner l'8 novembre. Nest e Tox21 implementati/testati localmente; branch Tox21 `263ccbc` da integrare, provisioning broker ancora aperto |
 | VM-030 | APPROVATA | Basi operative persistenti: Web `feature/infra-vm-docker-engine-architecture`, Tox21 `feature/infra-vm-nats-client-auth`. Proseguire da qui, eventuali sotto-rami dalla rispettiva base; `develop` può restare indietro e ogni merge rimane dell'owner |
 | VM-031 | APPROVATA (sviluppo locale) | Il 9 novembre l'owner autorizza INF-VM-04-A e preparazione del percorso sintetico. Primo ricevitore/apply limitato a Tox21/NATS, testato su Linux locale; nessuna operazione VM implicita. Trasporto SSH, altri consumer e residui VM-028 aperti; dettaglio in SECRET-DELIVERY-PILOT.md |
-| VM-033 | PROPOSTA | Eseguire soltanto la matrice delle fixture Python INF-VM-03 sulla VM, senza segreti, applicazioni o port publishing, mantenendo aperti H-05/A-30. Evidenze e perimetro nella [review INF-VM-02](INF-VM-02-REVIEW.md); nessuna esecuzione autorizzata da questa riga |
+| VM-033 | APPROVATA (sole fixture) | Owner il 9 novembre: «Procedi con le sole fixture». Trasferimento, avvio, matrice e pulizia dei tre Compose Python INF-VM-03, senza segreti, applicazioni o port publishing; H-05/A-30 restano aperti. [Perimetro e procedura](FIXTURE-RUNTIME.md), nessun deployment applicativo implicito |
 
 ## Confini non negoziabili
 

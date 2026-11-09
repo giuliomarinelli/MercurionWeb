@@ -1043,3 +1043,40 @@ Compose rieseguito: 3 progetti/16 ruoli/13 reti/7 volumi, matrice 15 allow e
 Docker Desktop host; nessun avvio fixture o trasferimento operativo effettuato.
 Disponibilità immagine e collisioni risorse VM da verificare prima di qualsiasi
 esecuzione futura autorizzata. Gate attuale INF-VM-03 ancora statico.
+
+**VM-033 approvata dall'owner:** «Procedi con le sole fixture». Preparati
+bundle con lista chiusa e hash, modelli Compose normalizzati, guardie contro
+collisioni e immagine locale mancante, label di run per ogni risorsa creata,
+report/checkpoint fuori dal bundle e cleanup selettivo con verifica ownership.
+Nessun down globale, orphan removal, pull o import. Preflight PS 5.1 passato;
+12 test fixture/runner e 8 lifecycle passati, inclusi errori di salvataggio
+report che non devono impedire la pulizia. VM non ancora contattata per questo task.
+
+Primo collaudo Docker Desktop: 22 casi passati e uno invalid per EAI_AGAIN,
+report ef0fbe8c4e454fefa8035c50af761206 conservato; cleanup 16/13/7 riuscito.
+Consultate fonti primarie Docker/Moby sul forwarding DNS: introdotto ndots:1
+solo nelle fixture, richiesto anche dal validator/runtime, errori DNS ancora
+invalid. Secondo collaudo: 23 passati e caso 24 invalid; report
+a86b48d318cc4cb9b2f40e3ce3f6e6b2 e cleanup completo. Diagnosi mirata
+554ec71280044066ab513e02d1fa49a2: ENETUNREACH 101, sorgente internal senza
+default route, controlli attivi. Nuova classificazione no-route con evidenza
+namespace/errno, distinta da blocco TCP e valida solo come separazione topologica
+della matrice. Nessuna route introdotta o criterio firewall dichiarato superato.
+Guardie statiche ora 12 topologia e 4 matrice. Nuovo collaudo locale completo
+in corso; nessuna evidenza locale promossa ad accettazione VM.
+
+Terzo tentativo locale 9e2d865cf4bd47538027018a087058a1 ancora invalid al caso
+24: dati remoti corretti (no-route, Linux errno 101) confrontati con costante
+Windows 10051. Corretto il dominio wire Linux nel runner; test usa ora errno
+remoto 101. Replay diagnostico riuscito, report originale non alterato.
+Pulizia 16/13/7 riuscita anche nel terzo tentativo.
+
+**Collaudo locale completo riuscito:** run 184a74ffefc548c4b92e59aa5b17e542,
+18:05:19–18:08:17 UTC, report local-validation/4abc754a786842c8a3982f9984b22762.
+33 casi passed, 15 allow/18 deny; nove negazioni TCP e nove separazioni
+strutturali senza route. Cleanup 16 fixture/13 reti/7 volumi senza errori,
+nessuna risorsa con label del run residua. Hash nella procedura. Dodici test
+fixture/runner e otto lifecycle passati, preflight reale PS 5.1 passato,
+guardie statiche 12+4. Progressi mostrati direttamente in console e checkpoint
+su file fuori bundle. Nessun segreto/immagine/app reale trasferito sulla VM;
+pronto il comando operatore per il perimetro sintetico autorizzato.

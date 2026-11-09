@@ -15,6 +15,7 @@ ROOT = Path(__file__).resolve().parents[2]
 BASE = ROOT / 'deployment/local-vm'
 IMAGE = 'python@sha256:65bd3d9f1d7fa268dd1909973ba7eb4bdf41f6dcf2cfbe76ba9528b170f3fd79'
 RUN_LABEL = 'mercurion.topology.run'
+LINUX_ENETUNREACH = 101  # Probe errno belongs to the verified Linux daemon, not the Windows runner.
 
 
 def now():
@@ -27,8 +28,8 @@ def docker(*args, timeout=15):
                           capture_output=True, text=True, check=True, timeout=timeout).stdout.strip()
 
 
-def load_matrix():
-    matrix = json.loads((BASE / 'connectivity.json').read_text())
+def load_matrix(base=BASE):
+    matrix = json.loads((base / 'connectivity.json').read_text())
     if matrix['schemaVersion'] != 1 or matrix['fixturePort'] != 18080:
         raise ValueError('Unsupported connectivity plan')
     if len(matrix['allow']) != 15 or len(matrix['deny']) != 18:
@@ -64,14 +65,19 @@ def assess_negative(before, dns, attempts, after):
         return 'invalid'
     if any(item.get('tcpConnected') for item in attempts):
         return 'failed'
-    if all(item.get('outcome') == 'not-reachable' for item in attempts):
+    if any(item.get('tcpConnected') is not False for item in attempts):
+        return 'invalid'
+    if all(item.get('outcome') == 'not-reachable' or (
+            item.get('outcome') == 'no-route' and item.get('errno') == LINUX_ENETUNREACH
+            and item.get('routeObserved') is True and item.get('route') is None) for item in attempts):
         return 'passed'
     return 'invalid'
 
 
 class Runner:
-    def __init__(self, invoke=docker):
+    def __init__(self, invoke=docker, base=BASE):
         self.invoke = invoke
+        self.base = base
         self.run_id = uuid.uuid4().hex
         self.owned = set()
         self.cleanup_errors = []
@@ -82,7 +88,7 @@ class Runner:
                     '"command":{{json .Config.Cmd}},"entrypoint":{{json .Config.Entrypoint}},'
                     '"networks":{{json .NetworkSettings.Networks}},"ports":{{json .HostConfig.PortBindings}},'
                     '"readonly":{{json .HostConfig.ReadonlyRootfs}},"privileged":{{json .HostConfig.Privileged}},'
-                    '"user":{{json .Config.User}}}')
+                    '"user":{{json .Config.User}},"dnsOptions":{{json .HostConfig.DnsOptions}}}')
         for ref in sorted(refs):
             project, service = ref.split('/')
             identifiers = self.invoke('ps', '--filter', f'label=com.docker.compose.project=mercurion-{project}',
@@ -91,7 +97,7 @@ class Runner:
                 raise ValueError('Every matrix role must have exactly one running fixture')
             node = json.loads(self.invoke('inspect', '--format', template, identifiers[0]))
             if (node['image'] != IMAGE or not node['running'] or node['ports'] or node['privileged']
-                    or not node['readonly'] or node['user'] != '65534:65534'
+                    or not node['readonly'] or node['user'] != '65534:65534' or node['dnsOptions'] != ['ndots:1']
                     or node['entrypoint'] != ['python']
                     or node['command'] != ['-B', '/fixture/topology_fixture.py', 'serve', '--identity', service]):
                 raise ValueError('Refusing a non-fixture or differently configured service')
@@ -118,7 +124,7 @@ class Runner:
                                  '--label', f'{RUN_LABEL}={self.run_id}', '--read-only', '--user', '65534:65534',
                                  '--cap-drop', 'ALL', '--security-opt', 'no-new-privileges=true', '--memory', '64m',
                                  '--cpus', '0.25', '--pids-limit', '32', '--mount',
-                                 f'type=bind,source={(BASE / "fixtures/topology_fixture.py").as_posix()},target=/fixture/topology_fixture.py,readonly',
+                                 f'type=bind,source={(self.base / "fixtures/topology_fixture.py").as_posix()},target=/fixture/topology_fixture.py,readonly',
                                  '--entrypoint', 'python', IMAGE, *args)
         if not re.fullmatch('[a-f0-9]{64}', identifier):
             raise ValueError('Docker did not return a client container ID')
@@ -130,7 +136,7 @@ class Runner:
             if result.get('host') != host or (mode == 'client' and result.get('identity') != identity):
                 raise ValueError('Probe result does not match the requested endpoint')
             if mode == 'client' and (not isinstance(result.get('tcpConnected'), bool) or result.get('outcome') not in
-                                     ('reachable', 'unexpected-service', 'not-reachable', 'dns-unavailable', 'invalid')):
+                                     ('reachable', 'unexpected-service', 'not-reachable', 'no-route', 'dns-unavailable', 'invalid')):
                 raise ValueError('Malformed TCP measurement')
             return result
         finally:
@@ -156,15 +162,21 @@ class Runner:
                 result['attempts'] = [self.measure(source, ip, identity) for ip in self.nodes[target]['ips']]
                 result['after'] = self.controls(source, target)
                 result['status'] = assess_negative(result['before'], result['dns'], result['attempts'], result['after'])
+                result['observedMechanisms'] = sorted({
+                    'namespace-without-route' if item.get('outcome') == 'no-route' else
+                    'tcp-not-connected' if item.get('outcome') == 'not-reachable' else
+                    'tcp-connected' if item.get('tcpConnected') else 'measurement-invalid'
+                    for item in result['attempts']})
         result['finishedAtUtc'] = now()
         return result
 
-    def run(self, matrix):
+    def run(self, matrix, checkpoint=lambda report:None):
         report = dict(schemaVersion=1, runId=self.run_id, startedAtUtc=now(), scope='Synthetic IPv4 TCP/DNS matrix only',
                       isolationAccepted=False, cases=[], cleanupErrors=self.cleanup_errors, status='invalid',
-                      matrixSha256=hashlib.sha256((BASE / 'connectivity.json').read_bytes()).hexdigest(),
-                      fixtureSha256=hashlib.sha256((BASE / 'fixtures/topology_fixture.py').read_bytes()).hexdigest())
+                      matrixSha256=hashlib.sha256((self.base / 'connectivity.json').read_bytes()).hexdigest(),
+                      fixtureSha256=hashlib.sha256((self.base / 'fixtures/topology_fixture.py').read_bytes()).hexdigest())
         try:
+            checkpoint(report)
             if self.invoke('version', '--format', '{{.Server.Os}}/{{.Server.Arch}}') != 'linux/amd64':
                 raise ValueError('Unexpected Docker platform')
             refs = {ref for mode in ('allow', 'deny') for pair in matrix[mode] for ref in pair}
@@ -172,6 +184,7 @@ class Runner:
             report['fixtureIds'] = {ref: node['id'] for ref, node in self.nodes.items()}
             readiness = {ref: self.measure(ref, '127.0.0.1', node['identity']) for ref, node in self.nodes.items()}
             report['readiness'] = readiness
+            checkpoint(report)
             if not all(item['outcome'] == 'reachable' for item in readiness.values()):
                 raise RuntimeError('Fixture readiness failed')
             deadline = time.monotonic() + 300
@@ -180,8 +193,10 @@ class Runner:
                     if time.monotonic() >= deadline:
                         raise TimeoutError('Matrix time budget exhausted')
                     report['activeCase'] = dict(expectation=mode, source=source, target=target)
+                    checkpoint(report)
                     case = self.case(mode, source, target)
                     report['cases'].append(case)
+                    checkpoint(report)
                     if case['status'] != 'passed':
                         report['status'] = case['status']
                         return report

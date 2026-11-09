@@ -101,8 +101,9 @@ attribuzione alla whitelist. Nessuna modifica ai filtri o all'instradamento;
 A-30/H-05 restano parziali. Collector IPv6 guest completo: assenza di unicast
 eth0/default route, bridge IPv4, forwarding 0; kernel disponibile e link-local
 docker0, nessun test IPv6 negativo superato. [Review e proposta VM-033](INF-VM-02-REVIEW.md)
-per la sola matrice runtime delle fixture, senza chiudere i residui. Proposta
-non ancora approvata; l'anticipo autorizzato resta statico.
+per la sola matrice runtime delle fixture, senza chiudere i residui. Owner
+ha poi approvato «Procedi con le sole fixture»: [procedura VM-033](FIXTURE-RUNTIME.md),
+senza segreti, app reali o port publishing. Gli altri gate restano invariati.
 Residuo strumenti: diagnosticare il prompt sudo tardivo nella pipeline SSH/PTY,
 senza cambiare autenticazione, sudoers o acquisire password nei report.
 
@@ -121,6 +122,14 @@ Sintassi, 11 guardie topologia e 4 guardie matrice locali passate; listener TCP,
 matrice da 33 casi e runner su fixture già avviate preparati. Dieci test locali
 del probe/runner passati, Docker simulato. INF-VM-02 e matrice runtime restano
 aperti. INF-VM-03 non è dichiarato completato.
+**Eccezione successiva VM-033, 9 novembre:** owner autorizza collaudo runtime
+e pulizia delle sole fixture. Bundle con hash, collision guard e lifecycle
+predisposti; immagine locale e modelli guest da verificare prima dell'avvio.
+I segreti/servizi reali e Cloudflare restano esclusi. [Procedura](FIXTURE-RUNTIME.md).
+Collaudo dello strumento su Docker Desktop: 33/33 casi passati, cleanup
+16/13/7 riuscito. Il lifecycle separa errori DNS, connessione bloccata e assenza
+di route del namespace; quest'ultima è separazione topologica, non prova firewall.
+Dodici test runner e otto lifecycle passati; prova VM ancora da eseguire.
 
 Definire directory `shared`, `preview`, `production`; reti esterne, alias, `internal`, `egress`, volumi e confini. Evitare un solo Compose con molti flag. Iniziare con probe/fixture non sensibili.
 

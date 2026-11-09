@@ -33,11 +33,11 @@ il collector guest non ricontrolla le ACL host. La configurazione osservata
 non offre un percorso IPv6 esterno con cui costruire il controllo positivo.
 Non abilitarlo soltanto per superare un test: introdurrebbe una topologia nuova.
 
-## Proposta VM-033 — prossima esecuzione limitata alle fixture
+## VM-033 — esecuzione limitata alle fixture
 
-**PROPOSTA, non approvata.** La roadmap finora autorizza solo la preparazione
-statica anticipata di INF-VM-03. Per proseguire senza trasformare questi residui
-in esiti passati, sottoporre all'owner questa eccezione circoscritta:
+**APPROVATA dall'owner il 9 novembre:** «Procedi con le sole fixture».
+Eccezione circoscritta al precedente anticipo statico, senza trasformare
+i residui in esiti passati. [Procedura operativa](FIXTURE-RUNTIME.md):
 
 1. Mantenere H-05/A-30 aperti con i limiti sopra. Nessuna modifica a switch,
    ACL, router, forwarding o IPv6 per il collaudo.
@@ -68,5 +68,5 @@ sul Docker Desktop host; disponibilità dello stesso riferimento sul guest da
 verificare prima dell'avvio. Nessun Compose avviato, bundle operativo trasferito
 o risorsa VM creata durante questa review.
 
-Se l'owner non autorizza l'eccezione, restare nel perimetro di preparazione
-locale già concesso. Non dedurre un'approvazione da assenza di risposta.
+Ogni attività esterna a questa eccezione mantiene le autorizzazioni e i gate
+precedenti. La risposta dell'owner non autorizza merge o deployment applicativo.

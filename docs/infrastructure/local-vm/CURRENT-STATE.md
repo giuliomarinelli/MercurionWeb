@@ -115,7 +115,8 @@ La versione corrente di Tox21 ha override `allow` / `require-jwt` / `disabled` p
   e copertura residua. Collector IPv6 guest completo: nessun unicast eth0 o
   default route, forwarding 0, bridge EnableIPv6 false/IPAM IPv4; kernel
   disponibile e link-local docker0 presente. Nessun test IPv6 negativo passato.
-  [Review INF-VM-02](INF-VM-02-REVIEW.md): proposta VM-033 ancora da approvare.
+  [Review INF-VM-02](INF-VM-02-REVIEW.md): VM-033 approvata per le sole fixture,
+  con [lifecycle controllato](FIXTURE-RUNTIME.md); misura VM ancora da acquisire.
   Nessuna accettazione completa dedotta.
 - Ricevitore/apply Tox21 disponibile come [pilot locale](SECRET-DELIVERY-PILOT.md),
   con 17 test Linux sintetici passati; non ancora installato sulla VM.
