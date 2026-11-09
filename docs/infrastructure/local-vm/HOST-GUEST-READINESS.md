@@ -40,8 +40,32 @@ controls-passed e processo terminato. SHA-256 delle evidenze locali:
 Prova valida per quel solo percorso guest → host TCP IPv4 nella fase SSH-only;
 non attribuisce il blocco a uno specifico livello né chiude isolamento LAN,
 container, IPv6 o altre origini. Dopo l'apertura egress ripetere le negazioni
-pertinenti sulla policy completa. H-04 sulla rete nuova preparato con preflight
-Windows PowerShell 5.1 reale passato; esecuzione guest ancora pendente.
+pertinenti sulla policy completa.
+
+**H-04 IPv4 sulla rete nuova:** run di riferimento confermato dall'owner
+`5e97721d427d414ba8e36469f18efd93`, sul bridge predefinito e su un bridge Docker
+temporaneo ordinario, dalle 11:58:24 alle 11:58:34 UTC.
+In ogni caso controlli container prima/dopo raggiungibili, tentativo TCP al
+canary Windows in timeout, identificatori/finestra coerenti e controlli host
+positivi prima/dopo: 16 su 16 riusciti. Nessun errore di pulizia; host controls-passed con stop
+richiesto, listener chiusi. Piattaforma linux/amd64 e immagine attesa
+`sha256:65bd3d9f1d7fa268dd1909973ba7eb4bdf41f6dcf2cfbe76ba9528b170f3fd79`;
+hash archivio locale coincidente con quello nel report guest.
+
+| File nel run h04-ipv4-5e97721d427d414ba8e36469f18efd93 | SHA-256 |
+| --- | --- |
+| container-probe.json | `1f656685e3620ed99ed1c93fcbf3a5c4b442b4489510cf775a73a7b112d06d43` |
+| host/result.json | `4ef7f770c293a0079c4a2d5927d3ca403f8c0ad729286046f4cab51ee018d370` |
+
+Il run conferma questi due tipi di bridge, non origini LAN aggiuntive.
+Anche H-04 vale nella fase SSH-only; ripetere i controlli
+pertinenti dopo apertura egress. LAN, IPv6, altre origini e reboot host restano
+aperti; tutti i report mantengono isolationAccepted false.
+
+Owner segnala prompt sudo visualizzato in ritardo e due tentativi falliti;
+autenticazione poi riuscita e report completo. Registrato come limite UX degli
+strumenti, non errore dell'ACL o del probe. Il buffering della pipeline SSH/PTY
+è un'ipotesi da verificare; nessuna modifica ad autenticazione o sudoers.
 
 ## Evidenza acquisita
 

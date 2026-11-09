@@ -63,8 +63,12 @@ creazione Mercurion-NAT riuscita, prefisso 10.203.240.0/24 e Active 1.
 Inventario post-creazione completo riletto: nessun mapping, 14 ACL SSH-only
 invariate, forwarding/weak-host disabilitati e Windows Public. Nessun allow
 outbound aggiunto. Nuova H-02 IPv4 eseguita: timeout guest → host, 36 controlli
-positivi e listener chiuso. H-04 adattato alla rete statica e preflight reale
-riuscito; esecuzione guest pendente. Ripetere negazioni dopo apertura egress.
+positivi e listener chiuso. H-04 sulla rete statica riuscito: due
+bridge guest, controlli prima/dopo positivi e nessun errore di pulizia.
+Prossimo passo: predisporre apertura controllata DNS/HTTPS per lo smoke H-06,
+mantenendo deny host/LAN e IPv6. Ripetere negazioni dopo apertura egress.
+Residuo strumenti: diagnosticare il prompt sudo tardivo nella pipeline SSH/PTY,
+senza cambiare autenticazione, sudoers o acquisire password nei report.
 
 **Dipende da:** INF-VM-01.  
 Preparare Docker Engine e plugin Compose su Ubuntu, amministrazione SSH a chiave, policy host↔guest, firewall e regole IPv4/IPv6. Non introdurre bridge fisici della LAN. Definire test negativi dalla VM e dai container verso Windows/LAN e protezione della porta SSH.

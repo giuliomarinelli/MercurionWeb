@@ -741,3 +741,18 @@ Mercurion-Internal; preflight reale Windows PowerShell 5.1 passato con immagine
 Docker Desktop già locale. Otto casi parser PTY passati, quattro unittest del
 runner passati con Docker simulato. Richiesta all'owner esecuzione H-04 sulla
 VM, ancora pendente. Nessuna modifica firewall/ACL o avvio applicazioni.
+
+**H-04 confermato dall'owner e correlato:** run 5e97721d427d414ba8e36469f18efd93
+(11:58:24–11:58:34 UTC), riferimento di accettazione. Bridge predefinito e
+temporaneo, controlli container prima/dopo
+raggiungibili, tentativi al canary 10.203.240.1 in timeout, nessun errore di
+pulizia. Sedici controlli host tutti positivi, identificatori
+e finestre correlati, listener chiusi; archivi e immagine attesa verificati.
+Run e hash conservati in HOST-GUEST-READINESS. È collaudo del solo percorso
+container → host IPv4 nella fase SSH-only, non LAN o egress. Nessuna apertura
+outbound effettuata; prossimo passo apertura controllata per smoke DNS/HTTPS
+e nuova verifica delle negazioni sulla policy completa.
+Owner segnala ritardo nel mostrare il prompt sudo, poi autenticazione riuscita.
+Documentato residuo UX e ipotesi buffering SSH/PTY da verificare; nessuna
+modifica ad autenticazione/sudoers o richiesta di password. Nessun listener
+canary residuo rilevato sull'host al controllo finale.

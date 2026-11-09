@@ -195,7 +195,14 @@ questo caso non verifica LAN, IPv6, egress Internet o le future reti Compose.
 Passato il 9 novembre con Windows PowerShell 5.1 sul vero adattatore statico
 e sull'immagine Docker Desktop locale. Parser: quattro casi PTY validi e
 quattro invalidi verificati; quattro unittest del runner passati con Docker
-simulato. Esecuzione H-04 guest sulla rete nuova ancora pendente.
+simulato. Esecuzione H-04 guest sulla rete nuova confermata dall'owner nel run
+5e97721d427d414ba8e36469f18efd93,
+controlli positivi, timeout al canary host e pulizia riuscita:
+[evidenze del 9 novembre](HOST-GUEST-READINESS.md#baseline-statica-del-9-novembre).
+Residuo operativo: owner segnala prompt sudo tardivo. Valutare il buffering
+di SSH/PTY nella pipeline PowerShell, senza assumere già accertata la causa.
+La prova si è conclusa; migliorare il prompt senza modificare sudoers,
+abilitare login alternativi o introdurre acquisizione di password.
 Quattro unittest coprono input scaduti/non validi, fallimento del controllo
 positivo, servizio inatteso e pulizia fallita. Il percorso Docker reale è stato
 provato su Docker Desktop, su entrambi i bridge, con un endpoint loopback chiuso:

@@ -40,7 +40,7 @@ Questi sono criteri da implementare e collaudare, non isolamento già dimostrato
 | M-04 | Kaspersky Pubblica e profilo host verificati | Pubblica confermata anche dopo reboot guest; efficacia sui pacchetti e reboot host da provare |
 | M-05 | Backup e policy ACL della sola vNIC Mercurion | Apply owner riuscito e Verify dopo collegamento confermato; traffico non collaudato |
 | M-06 | Configurazione guest statica, NAT e collegamento | Mercurion-NAT riletto senza mapping, ACL SSH-only invariate; egress ancora chiuso |
-| M-07 | SSH, egress e prove negative con controlli positivi | SSH riuscito e H-02 IPv4 guest → host negativo con controlli; H-04, LAN ed egress aperti |
+| M-07 | SSH, egress e prove negative con controlli positivi | SSH riuscito; H-02/H-04 IPv4 verso host negativi con controlli nella fase SSH-only; LAN/egress aperti |
 | M-08 | Riavvio a freddo, stabilità e nuova baseline | Riavvio guest: nuovo login, IP e gateway confermati; reboot host, profili e policy completa ancora aperti |
 
 ## M-01 — inventario, senza cambiare configurazioni
