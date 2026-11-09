@@ -34,7 +34,7 @@
 
 ## Risultati preesistenti da non confondere con questa matrice
 
-**Gate VM-032, ancora aperti:** A-28 — IP host/guest, NAT e ACL persistenti
+**Gate VM-032:** A-28 — IP host/guest, NAT e ACL persistenti
 dopo reboot host/guest, con SSH e WSL/Docker funzionanti; A-29 — nuova rete
 Pubblica in Kaspersky prima dell'attach e dopo reboot; A-30 — isolamento
 diretto LAN ↔ VM/container su IPv4/IPv6, anche via NAT/host, con controlli
@@ -50,6 +50,13 @@ DnsHttps semanticamente corrispondenti. Default Switch nuovamente riallocato,
 senza alterare l'IP Mercurion. Mancano ancora Verify live, Kaspersky e prove
 guest dopo questo riavvio: [evidenza e prossimi passi](HOST-REBOOT-VERIFICATION.md).
 A-28/A-29/A-30 non dichiarati superati.
+
+**Conferma successiva post-Restart:** owner riporta Verify live DnsHttps con
+settingsReadbackVerified true, internetEgressEnabled true e isolationAccepted
+false. Conferma inoltre la voce 10.203.240.1/24 Mercurion-Internal ancora
+Rete pubblica in Kaspersky. **A-29 superato nel perimetro della classificazione
+e della sua persistenza**; l'efficacia del filtro è verificata dai casi di
+traffico separati. A-28 e A-30 ancora aperti, guest da riavviare dopo questo Restart.
 
 **Avanzamento rete statica del 9 novembre:** Netplan try accettato; TCP/22
 dal solo IP host interno e identità server verificati; owner conferma shell
@@ -86,7 +93,8 @@ richiesto. Non chiude A-30: è una verifica di configurazione, non di traffico.
 Pubblica in Kaspersky; Windows Public già verificato. Vecchio Default Switch
 invece rilevato Locale dopo cambio subnet, ripristino Pubblica richiesto ma
 non confermato. Owner conferma nuova rete ancora Pubblica dopo riavvio guest;
-efficacia sui pacchetti e persistenza dopo reboot host non ancora collaudate.
+La conferma successiva post-Restart è registrata sopra; resta distinto il
+collaudo dell'isolamento sui pacchetti.
 
 - [INF-VM-02](HOST-GUEST-READINESS.md): inventario guest acquisito il 7 novembre
   dall'operatore. Nessuna porta Docker pubblicata nello snapshot; ciò non

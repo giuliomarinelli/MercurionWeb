@@ -162,9 +162,15 @@ identità dello switch o IP. Il Default Switch ha riallocato la subnet da
 invariati. Anche il metadato HNS Internal è cambiato, ora `172.27.112.0/20`,
 senza indirizzo/route host corrispondenti nel report; nessun reset eseguito.
 
-Ancora da acquisire: Verify DnsHttps live, categoria Kaspersky, avvio guest
-con LUKS/SSH, IP/route e prove egress/negative dopo il riavvio host.
-Il solo confronto dell'inventario non chiude M-08 né A-28/A-29/A-30.
+**Conferma successiva dell'owner:** Verify live restituisce policy DnsHttps,
+`settingsReadbackVerified=true`, `internetEgressEnabled=true`,
+`isolationAccepted=false`. La voce esatta `10.203.240.1/24 (vEthernet
+(Mercurion-Internal))` è ancora Rete pubblica in Kaspersky dopo Restart.
+La persistenza della classificazione richiesta da A-29 è quindi confermata;
+non è una prova di isolamento dei pacchetti.
+
+Ancora da acquisire: avvio guest con LUKS/SSH, IP/route e prove egress/negative
+dopo il riavvio host. M-08/A-28 e LAN/altre origini/IPv6 A-30 restano aperti.
 
 ## Riferimenti
 

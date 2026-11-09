@@ -871,3 +871,10 @@ ora 172.27.112.0/20, assente dagli indirizzi/route host; nessun reset o modifica
 Dettagli e hash in HOST-REBOOT-VERIFICATION. Richiesti Verify DnsHttps live
 e controllo Kaspersky prima di avviare il guest. Prove guest/traffico dopo
 reboot ancora pendenti; nessuna accettazione complessiva dedotta dal report.
+
+**Verify e Kaspersky dopo Restart confermati dall'owner:** policy DnsHttps,
+settingsReadbackVerified true, internetEgressEnabled true e isolationAccepted
+false. Categoria Rete pubblica ancora presente sulla voce esatta 10.203.240.1/24
+Mercurion-Internal. A-29 verificato per classificazione/persistenza; nessuna
+equivalenza con isolamento completo. Richiesti avvio guest, sblocco LUKS,
+login SSH ordinario e lettura delle route prima delle prove post-boot.
