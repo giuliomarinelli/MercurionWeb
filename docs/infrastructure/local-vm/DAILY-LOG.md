@@ -701,3 +701,31 @@ senza rimuovere NAT altrui e senza aprire egress. Sintassi New-NetNat e
 Get-NetNat confrontata con cmdlet locali; limite WinNAT verificato nella
 documentazione Microsoft. Richiesta all'owner sola lettura Get-NetNat con
 output JSON esplicito anche quando vuoto. Creazione ancora non eseguita.
+
+**WinNAT prima della creazione:** owner esegue Get-NetNat da PowerShell
+amministrativa; output array vuoto, nessun WinNAT elencato. Richiesta sola
+creazione Mercurion-NAT con prefisso 10.203.240.0/24; nessuna modifica ACL o
+router. Esito ancora pendente; nessun allow outbound aggiunto.
+
+**Creazione NAT owner:** New-NetNat restituisce Mercurion-NAT, prefisso
+10.203.240.0/24 e Active 1. Nessuna modifica ACL richiesta. Richiesto nuovo
+inventario amministrativo con lo script esistente per rileggere NAT, mapping,
+ACL, forwarding/weak-host e HNS dopo questa modifica significativa. Report
+ancora pendente; non è una prova di egress, isolamento o compatibilità WSL/Docker.
+
+**Inventario dopo NAT riletto:** report completo 98fda47d2bc34bb0893a9b65ff3aeea8
+alle 11:44 UTC. Un solo Mercurion-NAT corretto, nessun mapping, zero ACL semplici
+e 14 estese semanticamente uguali alla policy SSH-only. Windows Public,
+forwarding/weak-host disabilitati, RemoteAccess fermo. NIC/MAC/switch attesi;
+reti Docker Desktop interrogabili. HNS espone metadato 172.23.112.0/20 per il
+network Internal, senza corrispondente indirizzo/route host: nessuna modifica
+o pulizia HNS. TCP/22 guest raggiungibile da 10.203.240.1 dopo creazione NAT.
+
+**Preparazione H-02 statica:** wrapper IPv4 corretto dal vecchio Default Switch
+al solo 10.203.240.1/24 Preferred su Mercurion-Internal. Sette scenari di
+preflight sintetici Windows PowerShell 5.1 passati; tre test Python canary
+passati. Listener temporaneo reale avviato sul solo IP interno, ValidateOnly
+del wrapper riuscito; esecuzione guest richiesta all'owner, ancora pendente.
+Run locale h02-ipv4-bd5212a11cb54b5281b49785de9bb04c, porta 62690, durata massima
+600 secondi. Nessuna apertura firewall, ACL o egress e nessun nuovo login
+SSH eseguito dall'agente. H-04/IPv6 non ancora adattati alla topologia statica.

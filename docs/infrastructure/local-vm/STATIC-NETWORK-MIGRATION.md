@@ -3,7 +3,8 @@
 **9 novembre 2026 — procedura progressiva in italiano.** Inventario completato;
 switch e IP host creati dall'owner; guest statico e SSH confermati anche dopo
 riavvio guest, ACL riverificate e Kaspersky ancora Pubblica. Router verificato
-dall'owner; NAT/egress non ancora attivati e isolamento LAN da collaudare.
+dall'owner; Mercurion-NAT creato e inventario post-creazione riletto.
+Egress non aperto e isolamento LAN da collaudare.
 Seguire i passi nell'ordine e aggiornare la tabella
 di avanzamento: un comando documentato non è un comando già eseguito.
 Il bootstrap sintetico rimane sospeso durante il collaudo della migrazione.
@@ -38,7 +39,7 @@ Questi sono criteri da implementare e collaudare, non isolamento già dimostrato
 | M-03 | Creazione switch interno e IP host statico | Eseguito dall'owner: Internal e `10.203.240.1/24`; ActiveStore Preferred verificato |
 | M-04 | Kaspersky Pubblica e profilo host verificati | Pubblica confermata anche dopo reboot guest; efficacia sui pacchetti e reboot host da provare |
 | M-05 | Backup e policy ACL della sola vNIC Mercurion | Apply owner riuscito e Verify dopo collegamento confermato; traffico non collaudato |
-| M-06 | Configurazione guest statica, NAT e collegamento | Netplan try accettato, alias aggiornato e login owner riuscito; NAT ancora assente |
+| M-06 | Configurazione guest statica, NAT e collegamento | Mercurion-NAT riletto senza mapping, ACL SSH-only invariate; egress ancora chiuso |
 | M-07 | SSH, egress e prove negative con controlli positivi | SSH host → guest riuscito; egress e prove negative ancora aperti |
 | M-08 | Riavvio a freddo, stabilità e nuova baseline | Riavvio guest: nuovo login, IP e gateway confermati; reboot host, profili e policy completa ancora aperti |
 
@@ -429,13 +430,43 @@ Se la VM non è Off, le regole sono ambigue o manca il backup, fermarsi.
    ```
 
    L'inventario precedente non mostrava WinNAT, ma non autorizza a presumere
-   lo stato attuale. Con output `[]` si può preparare la sola creazione nominata:
+   lo stato attuale. **Lettura amministrativa attuale eseguita dall'owner:**
+   array vuoto `[]`, nessun WinNAT elencato. Preparata la sola creazione nominata:
 
    ```powershell
    New-NetNat -Name 'Mercurion-NAT' -InternalIPInterfaceAddressPrefix 10.203.240.0/24
    ```
 
-   **Non ancora eseguita.** Prima riesaminare l'output della lettura. Se esiste
+   **Creazione eseguita dall'owner il 9 novembre:** ricevuta New-NetNat con
+   Name `Mercurion-NAT`, prefisso `10.203.240.0/24`, Active `1`.
+   Nessuna apertura ACL outbound richiesta. Acquisire ora la fotografia
+   post-creazione, usando lo script già verificato da PowerShell amministrativa:
+
+   ```powershell
+   powershell -NoProfile -File C:/.project_repo/MercurionWeb/scripts/infrastructure/Get-StaticNetworkMigrationInventory.ps1
+   ```
+
+   Rivedere nel report: solo NAT nominato/prefisso atteso, mapping statici
+   assenti, ACL SSH-only invariate, tipo/singolarità vNIC e switch, profili,
+   forwarding/weak-host, servizi e reti HNS. **Inventario acquisito e riletto:**
+   report locale `static-network/98fda47d2bc34bb0893a9b65ff3aeea8/inventory.json`,
+   completo, del 9 novembre alle 11:44 UTC. Un solo Mercurion-NAT con prefisso
+   atteso, zero mapping statici; zero ACL semplici e 14 estese coincidenti con
+   la policy SSH-only. Unica vNIC/MAC e switch Internal corretti; Windows
+   Public, forwarding e weak-host disabilitati su tutte le interfacce osservate,
+   RemoteAccess fermo. Reti Docker Desktop interrogabili e prefissi preesistenti
+   invariati; non è una prova di connettività applicativa WSL/Docker.
+   TCP/22 guest nuovamente raggiungibile dall'IP host interno dopo il NAT,
+   senza autenticazione utente in questo controllo.
+
+   HNS riporta un metadato subnet `172.23.112.0/20` per il network di tipo
+   Internal Mercurion: nello stesso inventario l'interfaccia ha solo IPv4
+   `10.203.240.1/24` e non esistono route per quel prefisso HNS. Distinzione
+   registrata, origine del metadato non accertata; nessuna pulizia HNS o
+   modifica a WSL/Default Switch per uniformarlo. La validazione usa gli
+   indirizzi e le route effettivi e mantiene aperto il controllo al reboot host.
+   La ricevuta di creazione non prova isolamento o compatibilità WSL/Docker.
+   Se in una replica futura esiste
    un altro WinNAT, fermarsi senza rimuoverlo: Microsoft documenta il limite
    di un prefisso interno WinNAT per host. Se esiste già Mercurion-NAT, leggere
    configurazione e mapping prima di riutilizzarlo; non creare duplicati.

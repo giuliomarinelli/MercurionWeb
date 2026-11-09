@@ -86,8 +86,11 @@ La versione corrente di Tox21 ha override `allow` / `require-jwt` / `disabled` p
   Pubblica in Kaspersky e divieto LAN bidirezionale
   obbligatori; bootstrap ancora sospeso durante il collaudo della migrazione.
   Owner ha verificato sullo ZTE MC888 Ultra port forwarding, DMZ, UPnP e
-  mapping: tutti disabilitati. Prossima lettura dei WinNAT attuali prima
-  della sola creazione dedicata; nessun allow egress ancora previsto in quel passo.
+  mapping: tutti disabilitati. Lettura amministrativa attuale WinNAT vuota;
+  Mercurion-NAT creato con 10.203.240.0/24 e Active 1. Inventario post-creazione
+  completo riletto: nessun mapping, 14 ACL SSH-only invariate, Windows Public,
+  forwarding/weak-host disabilitati. TCP/22 nuovamente raggiungibile; nessun
+  allow egress aggiunto. H-02 IPv4 preparato sulla nuova rete, prova guest pendente.
 - Ricevitore/apply Tox21 disponibile come [pilot locale](SECRET-DELIVERY-PILOT.md),
   con 17 test Linux sintetici passati; non ancora installato sulla VM.
   Trasporto SSH, consegna reale, altri consumer e lifecycle operativo aperti.

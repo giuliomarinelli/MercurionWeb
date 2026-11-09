@@ -1,5 +1,5 @@
 #Requires -Version 5.1
-<# One local entry point: SCP and SSH remain separate native invocations. #>
+<# H-02 IPv4 on Mercurion-Internal only. SCP and SSH remain separate native invocations. #>
 [CmdletBinding()]
 param([switch]$ValidateOnly)
 $ErrorActionPreference = 'Stop'
@@ -18,9 +18,12 @@ if ([DateTimeOffset]::Parse($taskReady.expiresAtUtc) -le [DateTimeOffset]::UtcNo
 if ($taskReady.nonce -notmatch '^[a-f0-9]{32}$' -or $taskReady.port -lt 1024 -or $taskReady.port -gt 65535) {
     throw 'Dati canary non validi. Nessuna connessione avviata.'
 }
-$taskHostAddress = Get-NetIPAddress -InterfaceAlias 'vEthernet (Default Switch)' -AddressFamily IPv4 |
-    Where-Object { $_.IPAddress -eq $taskReady.address }
-if (-not $taskHostAddress) { throw 'Il bersaglio non corrisponde al Default Switch locale.' }
+if ($taskReady.address -cne '10.203.240.1') {
+    throw 'Il canary non appartiene alla rete statica Mercurion; nessun SCP/SSH avviato.'
+}
+$taskHostAddress = @(Get-NetIPAddress -InterfaceAlias 'vEthernet (Mercurion-Internal)' -AddressFamily IPv4 -ErrorAction Stop |
+    Where-Object { $_.IPAddress -eq $taskReady.address -and $_.PrefixLength -eq 24 -and [string]$_.AddressState -eq 'Preferred' })
+if ($taskHostAddress.Count -ne 1) { throw 'Bersaglio Mercurion-Internal assente, ambiguo o non Preferred; nessun SCP/SSH avviato.' }
 $taskSource = Join-Path $PSScriptRoot 'network_canary.py'
 if (-not (Test-Path -LiteralPath $taskSource)) { throw 'Script probe locale mancante.' }
 if ($ValidateOnly) {

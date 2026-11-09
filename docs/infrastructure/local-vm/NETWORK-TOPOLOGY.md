@@ -78,7 +78,8 @@ Fonte UI: https://github.com/eyeix/meilisearch-ui
 VM-032, 9 novembre: [migrazione a rete Hyper-V Internal statica](STATIC-NETWORK-MIGRATION.md)
 applicata nella sola fase SSH-only: IP statici e accesso verificati anche dopo
 riavvio guest, ACL rilette e Kaspersky Pubblica riconfermata dall'owner.
-NAT/egress non ancora attivati e isolamento LAN ancora da collaudare;
+Mercurion-NAT successivamente creato e riletto senza mapping, ACL invariate;
+egress non aperto e isolamento LAN ancora da collaudare;
 divieto diretto LAN ↔ VM/container, incluso il percorso attraverso NAT.
 Solo l'interfaccia amministrativa host può iniziare SSH verso il guest.
 Nessun bridge fisico, seconda vNIC o modifica alle reti WSL/Docker impliciti.

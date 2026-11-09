@@ -2,7 +2,8 @@
 
 **Stato:** H-02 TCP IPv4 e IPv6 link-local, H-04 TCP IPv4 verso Windows eseguiti
 sulla VM; LAN, IPv6 container/globale e altre origini restano aperti.
-Evidenze nella readiness.
+Evidenze nella readiness: esecuzioni del 7 novembre sulla vecchia topologia.
+Non certificano la rete statica Mercurion-Internal introdotta il 9 novembre.
 La review ACL e la matrice sono in [HOST-GUEST-READINESS.md](HOST-GUEST-READINESS.md).
 
 ## Scopo e limiti
@@ -47,6 +48,25 @@ esegue SCP e SSH come due processi distinti (fermandosi se SCP fallisce) e salva
 `guest-probe.json` nella cartella di prova. Le passphrase si inseriscono nel
 terminale, non negli argomenti o nei file. `-ValidateOnly` controlla i dati senza
 avviare SCP/SSH. La prima esecuzione completa dell'owner è riuscita per H-02 IPv4.
+
+**Migrazione statica del 9 novembre:** il wrapper H-02 IPv4 ora accetta soltanto
+`10.203.240.1/24` Preferred sull'interfaccia `vEthernet (Mercurion-Internal)`.
+Nessun fallback al Default Switch. Le evidenze vecchie conservano i loro IP.
+Sette scenari PowerShell 5.1 verificano preflight valido, rifiuto del vecchio
+bersaglio, indirizzo assente/duplicato, prefisso errato, indirizzo tentative e
+scadenza: letture simulate, nessun trasporto. Tre test Python del canary passati.
+ValidateOnly passato anche contro il vero canary IPv4 sulla rete nuova;
+esecuzione guest ancora pendente. Il listener temporaneo usa solo l'IP interno
+e controlli positivi, con chiusura tramite file stop o scadenza massima.
+
+```powershell
+powershell -NoProfile -File scripts/infrastructure/Test-GuestCanaryStaticNetwork.ps1
+```
+
+I wrapper H-04 e H-02 IPv6 descritti sotto conservano ancora riferimenti al
+Default Switch: adattarli e verificarli prima di nuove esecuzioni. Sul guest
+statico IPv6 link-local è disabilitato; non riabilitarlo soltanto per ripetere
+il vecchio test. L'assenza di una route non dimostra un blocco del firewall.
 
 L'accesso SSH resta interattivo a cura dell'owner; il probe non richiede `sudo`.
 Non installare Python se mancante senza prima registrare il requisito.

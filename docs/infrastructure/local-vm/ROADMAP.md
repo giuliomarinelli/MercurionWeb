@@ -55,10 +55,14 @@ SSH recuperato anche dopo riavvio guest: owner conferma IP 10.203.240.10/24
 e default via 10.203.240.1 proto static. IP host Preferred/Manual e Windows
 Public riletti dall'agente. Owner conferma Verify ACL post-riavvio riuscito,
 con egress e isolamento false. Owner conferma inoltre Kaspersky ancora
-Pubblica. Restano reboot host e isolamento LAN; NAT/egress ancora chiusi.
+Pubblica. Restano reboot host e isolamento LAN; egress ancora chiuso.
 Router ZTE MC888 Ultra controllato dall'owner: port forwarding, DMZ, UPnP e
 mapping disabilitati. Preparato prossimo passo WinNAT, preceduto da lettura
-dei NAT esistenti e mantenendo la policy SSH-only; lettura attuale pendente.
+dei NAT esistenti e mantenendo la policy SSH-only. Lettura attuale owner vuota;
+creazione Mercurion-NAT riuscita, prefisso 10.203.240.0/24 e Active 1.
+Inventario post-creazione completo riletto: nessun mapping, 14 ACL SSH-only
+invariate, forwarding/weak-host disabilitati e Windows Public. Nessun allow
+outbound aggiunto; nuova prova H-02 IPv4 predisposta e ancora pendente.
 
 **Dipende da:** INF-VM-01.  
 Preparare Docker Engine e plugin Compose su Ubuntu, amministrazione SSH a chiave, policy host↔guest, firewall e regole IPv4/IPv6. Non introdurre bridge fisici della LAN. Definire test negativi dalla VM e dai container verso Windows/LAN e protezione della porta SSH.

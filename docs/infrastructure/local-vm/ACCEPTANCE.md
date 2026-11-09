@@ -47,8 +47,11 @@ dal solo IP host interno e identità server verificati; owner conferma shell
 Ubuntu raggiunta tramite alias aggiornato anche dopo riavvio guest. Output
 owner: eth0 UP con 10.203.240.10/24 e default via 10.203.240.1 proto static.
 IP host Preferred/Manual e Windows Public riletti; Verify ACL post-riavvio
-riuscito. Owner conferma Kaspersky ancora Pubblica. NAT assente, egress chiuso; reboot host
-non eseguito, A-28/A-30 restano aperti.
+riuscito. Owner conferma Kaspersky ancora Pubblica. Successivamente creato
+Mercurion-NAT sul prefisso 10.203.240.0/24 con Active 1; inventario post-creazione
+completo riletto: nessun mapping e ACL SSH-only invariate. TCP/22 nuovamente
+raggiungibile dopo NAT; nuova H-02 IPv4 predisposta, ancora da eseguire.
+Egress chiuso, reboot host non eseguito; A-28/A-30 restano aperti.
 
 **Controllo router:** il 9 novembre l'owner riferisce port forwarding, DMZ,
 UPnP e mapping disabilitati sullo ZTE MC888 Ultra. Nessun cambio di impostazioni
