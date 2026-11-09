@@ -35,7 +35,7 @@ Questi sono criteri da implementare e collaudare, non isolamento già dimostrato
 | M-02 | Piano indirizzi e controlli sovrapposizione | Proposta verificata sullo snapshot, riservare prima dell'uso |
 | M-03 | Switch interno vuoto e IP host statico | Eseguito dall'owner: Internal e `10.203.240.1/24`; ActiveStore Preferred verificato |
 | M-04 | Kaspersky Pubblica e profilo host verificati | Classificazione attuale confermata da screenshot owner; efficacia regole/persistenza da provare |
-| M-05 | Backup e policy ACL della sola vNIC Mercurion | Da preparare/applicare con VM spenta e console pronta |
+| M-05 | Backup e policy ACL della sola vNIC Mercurion | Backup creato e VM spenta dichiarati dall'owner; script SSH-only testato localmente, Apply ancora da eseguire |
 | M-06 | Configurazione guest statica, NAT e collegamento | Da eseguire dopo M-04/M-05 |
 | M-07 | SSH, egress e prove negative con controlli positivi | Da eseguire |
 | M-08 | Riavvio a freddo, stabilità e nuova baseline | Da eseguire |
@@ -195,21 +195,27 @@ sudo cp -anv /etc/netplan/00-installer-config.yaml /root/netplan-pre-static.yaml
 `-a` conserva metadati e permessi, `-n` evita sovrascritture, `-v` mostra
 soltanto sorgente/destinazione. Atteso messaggio della copia. Se non compare
 o c'è un errore, fermarsi e verificare il backup esistente senza usare `-f`.
-Il file attivo e il `.bak` non vengono modificati. **Backup richiesto, non
-ancora confermato**: non spegnere né cambiare rete prima della conferma.
+Il file attivo e il `.bak` non vengono modificati. **Backup creato confermato
+da screenshot owner:** la riga sorgente → `/root/netplan-pre-static.yaml`
+conferma la copia. L'avviso di non portabilità di `-n` non è un errore; non
+ripetere o sovrascrivere il backup per eliminarlo. Owner ha poi confermato VM
+**Spenta** dopo arresto ordinato. `sudo shutdown -h now` è appropriato quanto
+`sudo poweroff` su questo guest systemd; Turn Off forzato di Hyper-V è distinto.
 Prima della modifica Netplan si confronteranno sorgente e copia con `cmp`;
 non stampare contenuti o esportare il backup in Git.
 
 Mantenere la vNIC esistente, nome/MAC e singolarità; non eliminare l'adattatore.
 Sostituire le vecchie ACL con una policy unica ed esplicita, evitando regole
-semplici/estese sovrapposte e l'allow al vecchio host. Specifica candidata:
+semplici/estese sovrapposte e l'allow al vecchio host. Prima fase **SSH-only**:
+[script operativo, prove e recupero](SSH-ONLY-ACL.md). Il piano rimane soltanto
+lettura senza `-Mode Apply`; lo script non avvia né sposta la VM e non crea NAT.
+Specifiche finali della prima fase:
 
 | Peso | Direzione | Azione | Corrispondenza |
 | --- | --- | --- | --- |
 | 900 | Entrambe, due regole | Deny | Tutto IPv6 `::/0` |
 | 300 | Inbound | Allow stateful | Host `10.203.240.1/32` → guest `10.203.240.10/32`, TCP porta locale 22 |
-| 200 | Outbound | Deny | Prefissi privati/locali e tutte le LAN effettive, per qualsiasi protocollo |
-| 100 | Outbound | Allow stateful, due regole | Sorgente guest `10.203.240.10/32`, TCP/UDP IPv4 verso destinazioni non bloccate prima |
+| 201–209 | Outbound | Deny | Prefissi privati/locali, per qualsiasi protocollo |
 | 10 | Entrambe, due regole | Deny | Tutto il resto |
 
 Prefissi IPv4 da negare: `10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`,
@@ -222,43 +228,57 @@ Se presenti, censirli e negarli prima dell'apertura egress generale; un cambio
 di questi indirizzi richiede nuova verifica. Il NAT non certifica l'isolamento.
 Le risposte SSH dipendono dall'eccezione stateful, non da un allow outbound verso host.
 
-Le regole a peso maggiore precedono quelle inferiori. Il deny privati deve
-precedere le aperture egress; la sola apertura TCP/443 consentirebbe altrimenti
-di contattare HTTPS sulla LAN. Gli allow egress stateful consentono le risposte
-Internet, non nuove connessioni inbound. ICMP non è aperto in questa proposta:
+Le regole a peso maggiore precedono quelle inferiori. In M-05 **nessuna
+connessione viene iniziata dal guest**, neppure Internet. La successiva fase
+egress dovrà restare sotto i deny privati e permettere risposte stateful, non
+nuove connessioni inbound; aprire TCP/443 da solo consentirebbe altrimenti
+di contattare HTTPS sulla LAN. ICMP non è aperto in questa proposta:
 non usare il solo ping come prova di connettività. Limitazioni ulteriori delle
 porte provider si valuteranno nel rispettivo task, senza aprire reti private.
 
 Verificare l'intero ruleset e l'assenza di altri allow prima di collegare la VM.
-Questa specifica **non è ancora una policy applicata o collaudata**: preparare
-lo script di applicazione/lettura/recupero sulla baseline di M-04 prima di eseguirla.
+Questa specifica **non è ancora una policy applicata o collaudata su Hyper-V**:
+script disponibile, 16 scenari locali con API simulate passati; Apply/readback
+owner e prove di traffico restano aperti. Due deny temporanei peso 10000
+proteggono la sostituzione, con snapshot preventivo e recupero documentato.
 Se la VM non è Off, le regole sono ambigue o manca il backup, fermarsi.
 
 ## M-06 — guest statico, NAT e collegamento
 
-1. Identificare da console file Netplan, renderer e gestione cloud-init.
-   Non aggiungere semplicemente un secondo file lasciando DHCP attivo nel primo.
-2. Preparare la configurazione dell'interfaccia esistente con `10.203.240.10/24`,
+1. Solo dopo readback M-05 riuscito e nuova conferma Kaspersky Pubblica,
+   collegare a VM spenta la sola vNIC esistente a `Mercurion-Internal`, senza
+   cambiarne MAC/ACL. Non creare NAT o mapping in questa fase SSH-only.
+2. Avviare/sbloccare LUKS da console. Il vecchio DHCP non trovera un lease:
+   egress e DHCP sono chiusi; la console resta il percorso di amministrazione.
+   Confrontare originale e backup con `cmp` prima di editarli. Verificare
+   renderer/file reale e gestione cloud-init; non aggiungere un secondo file
+   lasciando DHCP attivo nel primo.
+3. Preparare la configurazione dell'interfaccia esistente con `10.203.240.10/24`,
    DHCPv4/v6 disattivati, gateway `10.203.240.1`, DNS pubblici esistenti
    `1.1.1.1` e `9.9.9.9` conservati.
    Non usare Windows o router LAN come server DNS. Validare renderer e versione;
    rifiutare RA/IPv6 link-local sul link amministrativo oltre ai deny Hyper-V.
-3. Validare con `netplan generate`; applicare/provare solo dalla console quando
-   nuovo link e NAT sono pronti. Usare allora `netplan try` e confermare dopo le
+4. Validare con `netplan generate`; applicare/provare solo dalla console quando
+   il nuovo link protetto è pronto. NAT non serve per SSH locale. Usare allora
+   `netplan try` e confermare dopo le
    verifiche, conservando il backup. Adattare file reale e cloud-init prima dell'uso.
-4. Creare il NAT dedicato solo se non esiste un WinNAT incompatibile:
+5. Verificare IP/route e listener 22. Aggiornare solo `HostName` nell'alias
+   SSH a `10.203.240.10`, senza cambiare chiavi/autenticazione/passphrase.
+   Verificare un eventuale avviso host key dalla console, senza disabilitare
+   host-key checking o cancellare known_hosts alla cieca. Provare SSH dall'host.
+6. Dopo recupero SSH e review dell'egress, creare il NAT dedicato solo se non
+   esiste un WinNAT incompatibile. M-05 non lo crea e mantiene egress chiuso:
 
 ```powershell
 New-NetNat -Name 'Mercurion-NAT' -InternalIPInterfaceAddressPrefix 10.203.240.0/24
 ```
 
-5. Nessun mapping statico o bridge. Dopo M-04/M-05 collegare la sola vNIC
-   esistente a `Mercurion-Internal`, preservando MAC e ACL. Se la configurazione
-   guest viene preparata a VM avviata, tenerne scollegata la vNIC fino ai gate.
-6. Avviare/sbloccare LUKS da console, verificare indirizzi/route/DNS e listener 22.
-   Aggiornare solo `HostName` nell'alias SSH a `10.203.240.10`; non cambiare chiavi,
-   autenticazione o passphrase. Un eventuale avviso host key va verificato dalla
-   console, senza disabilitare host-key checking né cancellare known_hosts alla cieca.
+7. Nessun mapping statico o bridge. Aprire e verificare l'egress solo con i
+   relativi deny e controlli LAN/WAN, poi eseguire M-07 sulla policy completa.
+
+Il collegamento/avvio protetto e la configurazione statica precedono quindi
+l'attivazione dell'egress. DNS/HTTPS pubblici non devono ancora riuscire nella
+fase SSH-only: non rimuovere deny per soddisfare anticipatamente lo smoke.
 
 Non abilitare routing generale host/weak-host/RRAS per risolvere problemi NAT.
 Rileggere configurazioni, ACL e profili prima delle prove: l'installazione di un

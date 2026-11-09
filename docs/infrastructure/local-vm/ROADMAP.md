@@ -39,6 +39,11 @@ prima della migrazione guest. Rivalidare isolamento
 e reboot sulla nuova baseline; vecchie prove non certificano la rete futura.
 Bootstrap sintetico sospeso fino al recupero dell'accesso amministrativo.
 
+M-05: backup Netplan creato e VM spenta confermati dall'owner. [Script ACL
+SSH-only](SSH-ONLY-ACL.md) disponibile con snapshot, guardie e quarantena;
+16 scenari locali con API Hyper-V simulate passati. Apply reale non eseguito;
+nessun egress pubblico aperto in questa prima fase, nessun NAT/attach/avvio VM.
+
 **Dipende da:** INF-VM-01.  
 Preparare Docker Engine e plugin Compose su Ubuntu, amministrazione SSH a chiave, policy host↔guest, firewall e regole IPv4/IPv6. Non introdurre bridge fisici della LAN. Definire test negativi dalla VM e dai container verso Windows/LAN e protezione della porta SSH.
 

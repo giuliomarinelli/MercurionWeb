@@ -571,3 +571,24 @@ nessun contenuto guest copiato come file operativo nel repository.
 Richiesto backup distinto `/root/netplan-pre-static.yaml` con `cp -anv`,
 senza sovrascrittura, conferma ancora pendente. VM da lasciare accesa fino
 alla conferma; nessuna modifica Netplan/ACL o attach eseguita.
+
+**M-05, backup e arresto confermati:** nuovo screenshot owner mostra copia
+eseguita in `/root/netplan-pre-static.yaml`; warning coreutils su portabilita
+di `-n`, non errore di copia. Il confronto con `cmp` resta prima della modifica
+Netplan. Owner risponde «spenta» dopo arresto ordinato; `shutdown -h now` e
+`poweroff` sono entrambi adatti sul guest systemd, distinto dal Turn Off forzato.
+
+Preparati entrypoint/libreria/test per ACL della sola vNIC con MAC noto.
+Default Plan read-only; Apply VM Off, preflight switch/IP, snapshot obbligatorio,
+due deny temporanei e readback esatto prima del rilascio. Prima fase 14 ACL
+estese, zero semplici, solo allow SSH dall'host interno; nessun allow egress.
+Nessun attach/NAT/start o modifica guest da parte del codice. Quarantine
+esplicita per il recupero; ripristino guardie dopo errore finale solo best effort,
+mai accettazione implicita. [Comando e limiti](SSH-ONLY-ACL.md).
+
+16 scenari passati su PowerShell 5.1 con API native simulate, inclusi errori
+preflight/snapshot/aggiunta/readback, allow extra, start concorrente, idempotenza
+e quarantena. Il Plan reale non elevato viene negato da Hyper-V senza scritture.
+Nessun Apply reale eseguito dall'agente; compatibilita/readback Hyper-V e traffico
+ancora da verificare con l'owner. Guida aggiornata: prima SSH protetto, poi
+NAT/egress con review LAN/WAN; isolamento e reboot restano aperti.
