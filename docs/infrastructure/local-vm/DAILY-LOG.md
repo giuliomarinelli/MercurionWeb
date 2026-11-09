@@ -592,3 +592,14 @@ e quarantena. Il Plan reale non elevato viene negato da Hyper-V senza scritture.
 Nessun Apply reale eseguito dall'agente; compatibilita/readback Hyper-V e traffico
 ancora da verificare con l'owner. Guida aggiornata: prima SSH protetto, poi
 NAT/egress con review LAN/WAN; isolamento e reboot restano aperti.
+
+**M-05, Apply reale owner:** ricevuta settingsReadbackVerified true, 14 ACL
+estese, internetEgressEnabled false, isolationAccepted false, vmStarted e
+adapterMoved false. Snapshot locale
+`acl/cd8eef94c8b34013aea52a06258fec50/before.json` letto per sola identita e
+conteggi: Mercurion-Server, Scheda di rete, MAC 00155D00DD01, Default Switch,
+sei ACL semplici e due estese precedenti. Nessun backup grezzo in Git.
+Primo Apply conferma compatibilita cmdlet/readback, non prove di traffico.
+IP host interno ancora Preferred. Preparato comando con parametri nativi
+verificati per spostare la sola vNIC; non eseguito dall'agente, VM da tenere
+Off fino al riscontro. Poi rileggere ACL sul nuovo collegamento prima dell'avvio.

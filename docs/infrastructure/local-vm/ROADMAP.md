@@ -41,8 +41,10 @@ Bootstrap sintetico sospeso fino al recupero dell'accesso amministrativo.
 
 M-05: backup Netplan creato e VM spenta confermati dall'owner. [Script ACL
 SSH-only](SSH-ONLY-ACL.md) disponibile con snapshot, guardie e quarantena;
-16 scenari locali con API Hyper-V simulate passati. Apply reale non eseguito;
-nessun egress pubblico aperto in questa prima fase, nessun NAT/attach/avvio VM.
+16 scenari locali con API Hyper-V simulate passati. Apply reale owner ora
+riuscito con readback di 14 ACL; egress pubblico chiuso, isolamento non accettato.
+Nessun NAT/attach/avvio VM; prossimo passo collegare la sola vNIC a VM spenta,
+preservando MAC e verificando nuovamente ACL prima di avviare il guest.
 
 **Dipende da:** INF-VM-01.  
 Preparare Docker Engine e plugin Compose su Ubuntu, amministrazione SSH a chiave, policy host↔guest, firewall e regole IPv4/IPv6. Non introdurre bridge fisici della LAN. Definire test negativi dalla VM e dai container verso Windows/LAN e protezione della porta SSH.

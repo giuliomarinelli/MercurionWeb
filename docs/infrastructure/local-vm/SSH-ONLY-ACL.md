@@ -5,6 +5,12 @@
 La rete interna nuova è Pubblica in Kaspersky secondo screenshot; il codice
 non può attestare la GUI del firewall. Questo passo non avvia o sposta la VM.
 
+**Avanzamento owner:** Apply eseguito con successo sulla VM reale, readback
+confermato di 14 ACL; egress false, isolamento false, nessun avvio o spostamento
+vNIC. Snapshot `acl/cd8eef94c8b34013aea52a06258fec50/before.json` acquisito:
+nome/MAC vNIC e sei semplici/due estese precedenti coerenti. Non è ancora
+una prova di traffico, di persistenza o dell'ACL dopo il futuro collegamento.
+
 ## Scelta di fase
 
 Prima si recupera solo SSH host interno → guest, con risposte stateful.
@@ -96,8 +102,8 @@ delle rimozioni; unico allow SSH e zero egress; idempotenza; errore durante
 installazione, avvio VM concorrente, verifica finale fallita, allow extra,
 errore seconda guardia e quarantena. Nessuna rete reale mutata dai test.
 Entrypoint Plan reale senza elevazione rifiutato da Hyper-V, senza scritture.
-La compatibilità reale dei cmdlet/readback va verificata dal primo Apply
-dell'owner; non è prova di isolamento o CI remota.
+Compatibilità reale dei cmdlet/readback ora confermata dal primo Apply
+dell'owner; il verde dei test simulati non è prova di isolamento o CI remota.
 
 ## Dopo Apply
 

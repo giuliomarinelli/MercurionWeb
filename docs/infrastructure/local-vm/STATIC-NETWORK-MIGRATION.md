@@ -35,7 +35,7 @@ Questi sono criteri da implementare e collaudare, non isolamento già dimostrato
 | M-02 | Piano indirizzi e controlli sovrapposizione | Proposta verificata sullo snapshot, riservare prima dell'uso |
 | M-03 | Switch interno vuoto e IP host statico | Eseguito dall'owner: Internal e `10.203.240.1/24`; ActiveStore Preferred verificato |
 | M-04 | Kaspersky Pubblica e profilo host verificati | Classificazione attuale confermata da screenshot owner; efficacia regole/persistenza da provare |
-| M-05 | Backup e policy ACL della sola vNIC Mercurion | Backup creato e VM spenta dichiarati dall'owner; script SSH-only testato localmente, Apply ancora da eseguire |
+| M-05 | Backup e policy ACL della sola vNIC Mercurion | Apply owner riuscito, readback di 14 ACL confermato; VM non avviata/spostata, traffico non collaudato |
 | M-06 | Configurazione guest statica, NAT e collegamento | Da eseguire dopo M-04/M-05 |
 | M-07 | SSH, egress e prove negative con controlli positivi | Da eseguire |
 | M-08 | Riavvio a freddo, stabilità e nuova baseline | Da eseguire |
@@ -237,10 +237,14 @@ non usare il solo ping come prova di connettività. Limitazioni ulteriori delle
 porte provider si valuteranno nel rispettivo task, senza aprire reti private.
 
 Verificare l'intero ruleset e l'assenza di altri allow prima di collegare la VM.
-Questa specifica **non è ancora una policy applicata o collaudata su Hyper-V**:
-script disponibile, 16 scenari locali con API simulate passati; Apply/readback
-owner e prove di traffico restano aperti. Due deny temporanei peso 10000
-proteggono la sostituzione, con snapshot preventivo e recupero documentato.
+**Apply reale owner riuscito:** ricevuta `settingsReadbackVerified=true`,
+14 ACL estese, `internetEgressEnabled=false`, `isolationAccepted=false`;
+VM non avviata e adattatore non spostato. Snapshot locale
+`acl/cd8eef94c8b34013aea52a06258fec50/before.json`: identita vNIC/MAC coerenti,
+sei ACL semplici e due estese originarie conservate. Compatibilita dei cmdlet
+e readback verificati sulla macchina reale; traffico e persistenza non ancora
+collaudati. I 16 scenari locali restano prove con API simulate. Due deny
+temporanei peso 10000 proteggono la sostituzione secondo lo script.
 Se la VM non è Off, le regole sono ambigue o manca il backup, fermarsi.
 
 ## M-06 — guest statico, NAT e collegamento
@@ -248,6 +252,16 @@ Se la VM non è Off, le regole sono ambigue o manca il backup, fermarsi.
 1. Solo dopo readback M-05 riuscito e nuova conferma Kaspersky Pubblica,
    collegare a VM spenta la sola vNIC esistente a `Mercurion-Internal`, senza
    cambiarne MAC/ACL. Non creare NAT o mapping in questa fase SSH-only.
+
+   Da PowerShell amministrativa, comando del collegamento e relativa lettura:
+
+   ```powershell
+   Connect-VMNetworkAdapter -VMName 'Mercurion-Server' -Name 'Scheda di rete' -SwitchName 'Mercurion-Internal' -Passthru | Format-List VMName,Name,SwitchName,MacAddress
+   ```
+
+   Attesi nuovo SwitchName e MAC `00155D00DD01`; applicazione ancora pendente.
+   Lasciare VM spenta fino al riscontro e rileggere le ACL dopo il collegamento.
+
 2. Avviare/sbloccare LUKS da console. Il vecchio DHCP non trovera un lease:
    egress e DHCP sono chiusi; la console resta il percorso di amministrazione.
    Confrontare originale e backup con `cmp` prima di editarli. Verificare
