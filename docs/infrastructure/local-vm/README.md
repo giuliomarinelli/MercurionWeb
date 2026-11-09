@@ -18,6 +18,7 @@ La VM può rimanere spenta; preview può essere arrestato indipendentemente dall
 | [CURRENT-STATE.md](CURRENT-STATE.md) | Stato effettivamente osservato, riferimenti ai sorgenti e lacune |
 | [HOST-GUEST-READINESS.md](HOST-GUEST-READINESS.md) | Inventari INF-VM-02, baseline guest e prove di isolamento ancora aperte |
 | [STATIC-NETWORK-MIGRATION.md](STATIC-NETWORK-MIGRATION.md) | Procedura italiana passo per passo: rete statica, Kaspersky Pubblica, isolamento LAN e recupero |
+| [HOST-REBOOT-VERIFICATION.md](HOST-REBOOT-VERIFICATION.md) | Punto di ripresa e verifica passo passo dopo riavvio Windows, con VM arrestata ordinatamente |
 | [SSH-ONLY-ACL.md](SSH-ONLY-ACL.md) | Applicazione controllata ACL della sola vNIC, prima fase SSH-only, test simulati e quarantena |
 | [DNS-HTTPS-ACL.md](DNS-HTTPS-ACL.md) | Transizione controllata a 19 ACL per DNS/HTTPS, prove, recupero e limiti |
 | [PRIVATE-PORT-PROBES.md](PRIVATE-PORT-PROBES.md) | Probe TCP/443 e TCP/UDP 53 privati con controlli, runner e limiti |

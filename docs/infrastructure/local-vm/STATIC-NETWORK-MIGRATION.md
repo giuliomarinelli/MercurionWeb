@@ -562,6 +562,9 @@ negativa di traffico. Owner conferma inoltre che la voce `10.203.240.1/24`
 è ancora Rete pubblica in Kaspersky dopo il riavvio guest. Non equivale a
 persistenza dopo riavvio Windows o a isolamento LAN collaudato.
 
+Per la prova Windows seguire il [punto di ripresa e checklist M-08](HOST-REBOOT-VERIFICATION.md),
+con inventario prima/dopo e VM arrestata ordinatamente. Riavvio host ancora da eseguire.
+
 Provare separatamente reboot guest e host con salvataggio del lavoro prima:
 indirizzi fissi invariati, LUKS e SSH funzionanti, profilo Kaspersky ancora
 Pubblica, ACL/NAT persistenti, WSL/Docker Desktop non danneggiati; ripetere le

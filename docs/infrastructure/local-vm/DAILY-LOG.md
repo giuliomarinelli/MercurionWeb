@@ -835,3 +835,24 @@ sorgente trasferito identico al repository, immagine attesa linux/amd64,
 cleanup senza errori e due listener TCP chiusi; ICS invariato. Matrice e hash
 in PRIVATE-PORT-PROBES. Nessuna attribuzione a uno specifico filtro o accettazione
 LAN estesa: restano LAN/altre origini, IPv6 e riavvio host.
+
+**Preparazione riavvio host M-08:** owner riporta avvio automatico
+StartIfRunning, arresto Save, ritardo zero. Ubuntu arrestato ordinatamente e
+stato Spenta confermato. Collector read-only esteso con ultimo boot Windows,
+azioni automatiche VM e indirizzo PersistentStore. Esecuzione reale PS 5.1
+non amministrativa: nuovi dati disponibili, sezioni Hyper-V/HNS negate come
+atteso, non usata come baseline completa.
+
+Inventario amministrativo owner f356baf862e948debb26e21190a69241 riletto,
+9 novembre 13:54:44 UTC: completo, VM Off, identità vNIC/switch coerenti,
+10.203.240.1/24 Preferred/Manual e presente nel PersistentStore, Windows Public,
+zero ACL semplici e 19 estese. Confronto semantico offline con DnsHttps riuscito,
+NAT Mercurion attivo senza mapping, forwarding/weak-host Disabled e RemoteAccess
+Stopped. Docker Desktop interrogabile; nessuna equivalenza con accettazione
+funzionale di tutte le applicazioni. LastBootUpTimeUtc 2026-11-08T13:18:49.5Z.
+
+Procedura italiana e punto di ripresa in HOST-REBOOT-VERIFICATION; nessuna
+impostazione Hyper-V cambiata, nessun riavvio Windows eseguito dall'agente.
+Da raccogliere dopo Restart: nuovo inventario e Verify DnsHttps, categoria
+Kaspersky, avvio/LUKS/SSH, IP/route guest, egress e negazioni con controlli.
+A-28/A-29 ancora aperti, come le prove LAN/altre origini/IPv6.

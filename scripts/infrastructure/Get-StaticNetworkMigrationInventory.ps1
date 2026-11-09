@@ -18,7 +18,13 @@ function Read-MigrationSection {
 }
 
 Read-MigrationSection 'vm' {
-    Get-VM -Name $VMName | Select-Object Name, @{n='State';e={[string]$_.State}}
+    Get-VM -Name $VMName | Select-Object Name, @{n='State';e={[string]$_.State}},
+        @{n='AutomaticStartAction';e={[string]$_.AutomaticStartAction}},
+        @{n='AutomaticStopAction';e={[string]$_.AutomaticStopAction}}, AutomaticStartDelay
+}
+Read-MigrationSection 'hostBoot' {
+    $taskOs = Get-CimInstance -ClassName Win32_OperatingSystem -Property LastBootUpTime -ErrorAction Stop
+    [pscustomobject]@{ LastBootUpTimeUtc = $taskOs.LastBootUpTime.ToUniversalTime().ToString('o') }
 }
 Read-MigrationSection 'vmAdapters' {
     Get-VMNetworkAdapter -VMName $VMName |
@@ -52,7 +58,12 @@ Read-MigrationSection 'hnsNetworks' {
 }
 Read-MigrationSection 'addresses' {
     Get-NetIPAddress | Select-Object InterfaceAlias, InterfaceIndex, IPAddress, PrefixLength,
-        @{n='AddressFamily';e={[string]$_.AddressFamily}}
+        @{n='AddressFamily';e={[string]$_.AddressFamily}},
+        @{n='AddressState';e={[string]$_.AddressState}}, @{n='PrefixOrigin';e={[string]$_.PrefixOrigin}}
+}
+Read-MigrationSection 'mercurionPersistentAddress' {
+    Get-NetIPAddress -InterfaceAlias 'vEthernet (Mercurion-Internal)' -AddressFamily IPv4 -PolicyStore PersistentStore -ErrorAction Stop |
+        Select-Object IPAddress, PrefixLength, @{n='PrefixOrigin';e={[string]$_.PrefixOrigin}}
 }
 Read-MigrationSection 'routes' {
     Get-NetRoute | Select-Object InterfaceAlias, InterfaceIndex, DestinationPrefix, NextHop, RouteMetric
