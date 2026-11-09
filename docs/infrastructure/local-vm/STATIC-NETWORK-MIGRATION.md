@@ -231,10 +231,35 @@ Le risposte SSH dipendono dall'eccezione stateful, non da un allow outbound vers
 
 **Verifica ancora aperta del 9 novembre:** owner non conosce lo stato di port
 forwarding, DMZ e mapping UPnP del router. Gateway host riletto: `192.168.0.1`
-sulla Wi-Fi. Questo non rivela le configurazioni del router. Richiesti marca,
-modello e disponibilità del pannello amministrativo per istruzioni di sola
-lettura; nessuna password o modifica al router richiesta. Non aprire egress
-generale assumendo che non esistano percorsi pubblici verso servizi LAN.
+sulla Wi-Fi. Questo non rivela le configurazioni del router. Owner identifica
+**ZTE MC888 Ultra** e conferma accesso al pannello; configurazioni ancora da
+leggere. Non aprire egress generale assumendo che non esistano percorsi
+pubblici verso servizi LAN.
+
+**Controllo router ZTE, sola lettura**
+
+1. Accedere personalmente al pannello del router, senza condividere password.
+2. Cercare **Impostazioni avanzate → Firewall**. Percorso documentato nella
+   [guida MC888 dell'operatore HKBN](https://blob.hkbn.net/es-aio-static/pdf-user-guides/hkbnes-zte-5g-cpe-mc888-configuration-guide-1.2-en.pdf),
+   pagine 19–21: riferimento alla famiglia MC888, non verifica del firmware
+   Ultra installato. Se le voci differiscono, riportare i nomi disponibili.
+3. Aprire **Port Forwarding / Inoltro porte**: annotare stato e presenza di regole.
+4. Aprire **DMZ**: annotare attiva/disattivata.
+5. Aprire **UPnP**: annotare attivo/disattivato e mapping, se visibili.
+6. Non cambiare selezioni né premere Applica. Riportare solo gli esiti, senza
+   IP pubblico, credenziali o esportazioni complete della configurazione.
+
+| Voce | Esito osservato sul router |
+| --- | --- |
+| Port forwarding | In attesa dell'owner |
+| DMZ | In attesa dell'owner |
+| UPnP e mapping visibili | In attesa dell'owner |
+
+Se UPnP è attivo e la tabella è vuota, l'assenza di mapping vale soltanto per
+l'istante osservato. Se una voce non è disponibile, registrarla come non
+verificata. Questo audit di configurazione non sostituisce le prove di traffico
+LAN né autorizza da solo l'apertura egress; eventuali modifiche al router
+richiedono una scelta esplicita separata.
 
 Le regole a peso maggiore precedono quelle inferiori. In M-05 **nessuna
 connessione viene iniziata dal guest**, neppure Internet. La successiva fase

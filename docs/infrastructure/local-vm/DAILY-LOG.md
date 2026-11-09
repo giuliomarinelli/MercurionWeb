@@ -687,3 +687,9 @@ mapping UPnP. Gateway host riletto 192.168.0.1 sulla Wi-Fi; nessuna impostazione
 del router acquisita. Richiesti marca/modello e accessibilità del pannello per
 preparare verifica guidata read-only. Egress lasciato chiuso, nessuna assunzione
 di assenza di servizi LAN raggiungibili tramite endpoint pubblici.
+
+**Router identificato:** ZTE MC888 Ultra, pannello accessibile all'owner.
+Preparata procedura italiana read-only per port forwarding, DMZ e UPnP,
+usando la guida dell'operatore HKBN per la famiglia MC888 e dichiarando il
+limite rispetto al firmware Ultra effettivo. Esiti ancora pendenti; nessuna
+credenziale acquisita, configurazione router o apertura egress eseguita.
