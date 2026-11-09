@@ -229,6 +229,13 @@ Se presenti, censirli e negarli prima dell'apertura egress generale; un cambio
 di questi indirizzi richiede nuova verifica. Il NAT non certifica l'isolamento.
 Le risposte SSH dipendono dall'eccezione stateful, non da un allow outbound verso host.
 
+**Verifica ancora aperta del 9 novembre:** owner non conosce lo stato di port
+forwarding, DMZ e mapping UPnP del router. Gateway host riletto: `192.168.0.1`
+sulla Wi-Fi. Questo non rivela le configurazioni del router. Richiesti marca,
+modello e disponibilità del pannello amministrativo per istruzioni di sola
+lettura; nessuna password o modifica al router richiesta. Non aprire egress
+generale assumendo che non esistano percorsi pubblici verso servizi LAN.
+
 Le regole a peso maggiore precedono quelle inferiori. In M-05 **nessuna
 connessione viene iniziata dal guest**, neppure Internet. La successiva fase
 egress dovrà restare sotto i deny privati e permettere risposte stateful, non

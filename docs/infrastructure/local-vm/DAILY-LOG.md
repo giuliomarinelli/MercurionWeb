@@ -681,3 +681,9 @@ confermare la categoria Kaspersky; nessuna nuova prova di isolamento traffico.
 per la voce 10.203.240.1/24 del Mercurion-Internal. Configurazione SSH-only
 ricontrollata; reboot Windows, prove sui pacchetti e nuova fase NAT/egress
 restano distinti e non eseguiti. Nessuna risorsa di rete modificata dall'agente.
+
+**Prerequisito egress:** owner non conosce lo stato di port forwarding, DMZ e
+mapping UPnP. Gateway host riletto 192.168.0.1 sulla Wi-Fi; nessuna impostazione
+del router acquisita. Richiesti marca/modello e accessibilità del pannello per
+preparare verifica guidata read-only. Egress lasciato chiuso, nessuna assunzione
+di assenza di servizi LAN raggiungibili tramite endpoint pubblici.
