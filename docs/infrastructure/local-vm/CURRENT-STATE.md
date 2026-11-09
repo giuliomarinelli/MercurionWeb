@@ -74,6 +74,10 @@ La versione corrente di Tox21 ha override `allow` / `require-jwt` / `disabled` p
 
 ## Lacune effettive da affrontare
 
+- SSH in timeout dopo cambio subnet Default Switch. Inventario amministrativo
+  del 9 novembre acquisito; [migrazione statica](STATIC-NETWORK-MIGRATION.md)
+  documentata, non eseguita. Pubblica in Kaspersky e divieto LAN bidirezionale
+  obbligatori; bootstrap sospeso fino al recupero amministrativo.
 - Ricevitore/apply Tox21 disponibile come [pilot locale](SECRET-DELIVERY-PILOT.md),
   con 17 test Linux sintetici passati; non ancora installato sulla VM.
   Trasporto SSH, consegna reale, altri consumer e lifecycle operativo aperti.

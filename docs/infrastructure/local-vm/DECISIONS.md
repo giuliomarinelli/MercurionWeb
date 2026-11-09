@@ -38,6 +38,13 @@
 
 ## Confini non negoziabili
 
+**VM-032 — APPROVATA come disegno, 9 novembre:** migrazione a rete Hyper-V
+Internal dedicata e indirizzi statici con NAT controllato. Nessun accesso
+diretto LAN ↔ VM/container; nuova rete Pubblica in Kaspersky. Unica eccezione
+amministrativa host interno → guest SSH con risposte stateful. [Passi, piano
+indirizzi proposto e recupero](STATIC-NETWORK-MIGRATION.md). Migrazione e
+isolamento non ancora eseguiti/accettati; nessuna modifica a Default Switch/WSL.
+
 Non assumere che un documento di architettura sia una configurazione eseguibile; non inventare chiavi, indirizzi o hostname. Non promuovere immagini non scansionate. Non esporre Meilisearch, Meilisearch UI, NATS, Redis o PostgreSQL verso Cloudflare/LAN. Non distribuire MercurionData o LandingFactory come servizi. Non rendere obbligatori Kubernetes, alta disponibilità, maintenance mode o rotazione JWT.
 
 ## Decisioni da riesaminare soltanto in presenza di evidenze

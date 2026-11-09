@@ -34,6 +34,14 @@
 
 ## Risultati preesistenti da non confondere con questa matrice
 
+**Nuovi gate VM-032, non eseguiti:** A-28 — IP host/guest, NAT e ACL persistenti
+dopo reboot host/guest, con SSH e WSL/Docker funzionanti; A-29 — nuova rete
+Pubblica in Kaspersky prima dell'attach e dopo reboot; A-30 — isolamento
+diretto LAN ↔ VM/container su IPv4/IPv6, anche via NAT/host, con controlli
+positivi. [Procedura e limiti delle prove](STATIC-NETWORK-MIGRATION.md).
+L'inventario completo non supera questi gate; smartphone senza origine
+controllata non chiudono automaticamente le prove negative.
+
 - [INF-VM-02](HOST-GUEST-READINESS.md): inventario guest acquisito il 7 novembre
   dall'operatore. Nessuna porta Docker pubblicata nello snapshot; ciò non
   equivale al superamento di A-04/A-05. Eseguito H-02 TCP IPv4 guest → host

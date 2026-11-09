@@ -75,6 +75,12 @@ Fonte UI: https://github.com/eyeix/meilisearch-ui
 
 ## Confini VM e firewall
 
+VM-032, 9 novembre: [migrazione a rete Hyper-V Internal statica](STATIC-NETWORK-MIGRATION.md)
+approvata come disegno, non applicata. Nuova rete Pubblica in Kaspersky;
+divieto diretto LAN ↔ VM/container, incluso il percorso attraverso NAT.
+Solo l'interfaccia amministrativa host può iniziare SSH verso il guest.
+Nessun bridge fisico, seconda vNIC o modifica alle reti WSL/Docker impliciti.
+
 Docker bridge `internal: true` **non** è un firewall generale per la VM; un container che partecipa a una rete di egress ha accesso uscente e può tentare di raggiungere Windows/LAN. Progettare regole per Hyper-V, firewall guest e regole Docker compatibili (senza fare affidamento soltanto su UFW), includendo il percorso SSH dall'host autorizzato. Registrare test di connessione da ciascun tipo di container verso host, gateway virtuale, subnet LAN, DNS, IPv4 e IPv6.
 
 Non modificare il `Default Switch` o il `WSL (Hyper-V firewall)` di Windows senza una decisione mirata. Nessun bridge esterno verso la LAN è implicitamente autorizzato.

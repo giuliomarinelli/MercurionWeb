@@ -514,3 +514,29 @@ INF-VM-02/03/04 restano aperti; prova operatore sintetica come passo successivo.
 Verificata inoltre [CI Tox21 del fix tipi NATS](https://github.com/giuliomarinelli/MercurionTox21/actions/runs/42575718871):
 SHA `5f3d837cf1356c6ccc875fea007d396684e3cc69`, completed/success. Non è evidenza
 CI dell'orchestratore Web né collaudo VM.
+
+### INF-VM-02 — timeout SSH e piano di rete statica
+
+Owner: due consegne sintetiche fallite al primo collegamento SSH; anche SSH
+ordinario in timeout. Alias ancora su `172.26.50.235`, Default Switch host
+ora `172.27.0.1/20`; il vecchio IP è instradato sulla Wi-Fi. Console owner:
+Ubuntu operativo, eth0 `172.27.1.64/20`, stesso MAC. TCP/22 sul nuovo IP ancora
+in timeout; ACL owner conferma allow ancora da `172.26.48.1/32` e deny outbound
+`172.16/12`. Evento preciso della riconfigurazione non provato.
+
+VM-032: rete Internal/statica/NAT e vincolo owner di nessun accesso diretto
+LAN bidirezionale, nuova rete Pubblica in Kaspersky. Scritta [procedura italiana
+M-01…M-08](STATIC-NETWORK-MIGRATION.md), con stato, gate, filtri e recupero.
+Nessuna modifica switch/NIC/NAT/SSH/firewall/Kaspersky/guest eseguita.
+
+Collector read-only verificato su PowerShell 5.1: senza elevazione segnala
+sezioni Hyper-V/HNS indisponibili; owner esegue elevato con `incomplete=false`.
+Report locale `static-network/dba96158ba044e3eb24c2822004fde31/inventory.json`.
+Due reti HNS ICS, nessun NetNat/mapping statico; reti Docker lette con contesto
+esplicito e soli metadati. Raccolta forwarding/weak-host/adattatori aggiunta
+per le repliche. Nessun dato sensibile in Git.
+
+Proposto `10.203.240.0/24`, host `.1`, guest `.10`: nessun conflitto nei prefissi
+osservati; future VPN/reti richiedono nuovo controllo. Prima del guest: switch
+vuoto, Pubblica e regole verificate. M-01 completato; migrazione, test e reboot
+aperti. Vecchie prove non certificano la nuova rete; INF-VM-02/03/04 non chiusi.

@@ -25,6 +25,15 @@ H-02 IPv6 link-local guest → host verificato con route e controlli positivi.
 Rimangono prove IPv6 container/globale, LAN e altre origini; lo smoke non copre tutti i provider
 applicativi. INF-VM-02 non è dichiarato concluso.
 
+**9 novembre:** cambio subnet Default Switch, alias SSH e ACL con indirizzi
+precedenti, timeout anche sul nuovo IP. VM-032: [procedura statica passo per
+passo](STATIC-NETWORK-MIGRATION.md), rete Internal e Kaspersky Pubblica,
+divieto diretto LAN ↔ guest/container. Inventario amministrativo completo;
+nessuna modifica rete eseguita. Prossimo passo: switch ancora vuoto, poi
+classificazione Kaspersky prima di qualunque attach. Rivalidare isolamento
+e reboot sulla nuova baseline; vecchie prove non certificano la rete futura.
+Bootstrap sintetico sospeso fino al recupero dell'accesso amministrativo.
+
 **Dipende da:** INF-VM-01.  
 Preparare Docker Engine e plugin Compose su Ubuntu, amministrazione SSH a chiave, policy host↔guest, firewall e regole IPv4/IPv6. Non introdurre bridge fisici della LAN. Definire test negativi dalla VM e dai container verso Windows/LAN e protezione della porta SSH.
 

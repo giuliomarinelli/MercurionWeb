@@ -4,6 +4,13 @@
 dall'owner: questa fase parte dall'esistente. Non reinstallare Docker/SSH,
 creare un altro switch o cambiare ACL/firewall prima di esaminare la baseline.
 
+**9 novembre:** verificata variazione subnet Default Switch. Guest
+`172.27.1.64/20`, host `172.27.0.1`; alias e allow SSH ancora riferiti alla
+vecchia rete. Nuovo inventario amministrativo completo e [migrazione statica
+VM-032 documentata](STATIC-NETWORK-MIGRATION.md). Nessuna modifica applicata:
+i risultati sotto restano evidenze del 7 novembre, da ripetere sulla nuova
+topologia prima di dichiararla isolata.
+
 ## Evidenza acquisita
 
 L'owner ha eseguito l'inventario guest con `sudo` via `ssh mercurion-server`.
