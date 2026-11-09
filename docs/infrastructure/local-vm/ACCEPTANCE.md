@@ -50,6 +50,10 @@ IP host Preferred/Manual e Windows Public riletti; Verify ACL post-riavvio
 riuscito. Owner conferma Kaspersky ancora Pubblica. NAT assente, egress chiuso; reboot host
 non eseguito, A-28/A-30 restano aperti.
 
+**Controllo router:** il 9 novembre l'owner riferisce port forwarding, DMZ,
+UPnP e mapping disabilitati sullo ZTE MC888 Ultra. Nessun cambio di impostazioni
+richiesto. Non chiude A-30: è una verifica di configurazione, non di traffico.
+
 **Avanzamento A-29:** screenshot owner conferma la nuova rete `10.203.240.0/24`
 Pubblica in Kaspersky; Windows Public già verificato. Vecchio Default Switch
 invece rilevato Locale dopo cambio subnet, ripristino Pubblica richiesto ma

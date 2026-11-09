@@ -1,11 +1,12 @@
 # INF-VM-02 — migrazione alla rete interna statica
 
 **9 novembre 2026 — procedura progressiva in italiano.** Inventario completato;
-switch e IP host creati dall'owner; vNIC collegata al nuovo switch e ACL
-riverificate, guest avviato da console e IP statico non ancora configurato.
+switch e IP host creati dall'owner; guest statico e SSH confermati anche dopo
+riavvio guest, ACL riverificate e Kaspersky ancora Pubblica. Router verificato
+dall'owner; NAT/egress non ancora attivati e isolamento LAN da collaudare.
 Seguire i passi nell'ordine e aggiornare la tabella
 di avanzamento: un comando documentato non è un comando già eseguito.
-Il bootstrap sintetico rimane sospeso fino al recupero dell'accesso amministrativo.
+Il bootstrap sintetico rimane sospeso durante il collaudo della migrazione.
 
 ## Vincoli approvati dall'owner
 
@@ -229,12 +230,11 @@ Se presenti, censirli e negarli prima dell'apertura egress generale; un cambio
 di questi indirizzi richiede nuova verifica. Il NAT non certifica l'isolamento.
 Le risposte SSH dipendono dall'eccezione stateful, non da un allow outbound verso host.
 
-**Verifica ancora aperta del 9 novembre:** owner non conosce lo stato di port
-forwarding, DMZ e mapping UPnP del router. Gateway host riletto: `192.168.0.1`
-sulla Wi-Fi. Questo non rivela le configurazioni del router. Owner identifica
-**ZTE MC888 Ultra** e conferma accesso al pannello; configurazioni ancora da
-leggere. Non aprire egress generale assumendo che non esistano percorsi
-pubblici verso servizi LAN.
+**Verifica router del 9 novembre:** gateway host riletto `192.168.0.1` sulla
+Wi-Fi; owner identifica **ZTE MC888 Ultra**, accede al pannello e conferma
+port forwarding, DMZ, UPnP e mapping disabilitati. Nessuna modifica al router
+richiesta o dichiarata. È evidenza di configurazione osservata, non una prova
+di traffico o una garanzia rispetto a futuri cambiamenti della rete.
 
 **Controllo router ZTE, sola lettura**
 
@@ -251,9 +251,9 @@ pubblici verso servizi LAN.
 
 | Voce | Esito osservato sul router |
 | --- | --- |
-| Port forwarding | In attesa dell'owner |
-| DMZ | In attesa dell'owner |
-| UPnP e mapping visibili | In attesa dell'owner |
+| Port forwarding | Disabilitato, dichiarato dall'owner il 9 novembre |
+| DMZ | Disabilitata, dichiarato dall'owner il 9 novembre |
+| UPnP e mapping visibili | Entrambi disabilitati, dichiarato dall'owner il 9 novembre |
 
 Se UPnP è attivo e la tabella è vuota, l'assenza di mapping vale soltanto per
 l'istante osservato. Se una voce non è disponibile, registrarla come non
@@ -420,12 +420,30 @@ Se la VM non è Off, le regole sono ambigue o manca il backup, fermarsi.
    «Shell Ubuntu raggiunta» il 9 novembre. Accesso amministrativo recuperato;
    persistenza dopo riavvio guest verificata successivamente in M-08;
    riavvio host e isolamento LAN non ancora collaudati.
-6. Dopo recupero SSH e review dell'egress, creare il NAT dedicato solo se non
-   esiste un WinNAT incompatibile. M-05 non lo crea e mantiene egress chiuso:
+6. Predisporre il NAT mantenendo la policy SSH-only: **non aggiungere ancora
+   alcun allow outbound**. Il NAT non sostituisce ACL e firewall. Prima della
+   creazione, rileggere da PowerShell amministrativa i WinNAT esistenti:
 
-```powershell
-New-NetNat -Name 'Mercurion-NAT' -InternalIPInterfaceAddressPrefix 10.203.240.0/24
-```
+   ```powershell
+   ConvertTo-Json -InputObject @(Get-NetNat -ErrorAction Stop | Select-Object Name,InternalIPInterfaceAddressPrefix,Active)
+   ```
+
+   L'inventario precedente non mostrava WinNAT, ma non autorizza a presumere
+   lo stato attuale. Con output `[]` si può preparare la sola creazione nominata:
+
+   ```powershell
+   New-NetNat -Name 'Mercurion-NAT' -InternalIPInterfaceAddressPrefix 10.203.240.0/24
+   ```
+
+   **Non ancora eseguita.** Prima riesaminare l'output della lettura. Se esiste
+   un altro WinNAT, fermarsi senza rimuoverlo: Microsoft documenta il limite
+   di un prefisso interno WinNAT per host. Se esiste già Mercurion-NAT, leggere
+   configurazione e mapping prima di riutilizzarlo; non creare duplicati.
+   Default Switch e WSL/HNS restano risorse distinte da preservare: nessuna
+   cancellazione, arresto servizi o pulizia globale come rimedio automatico.
+   Dopo la creazione rileggere NAT/mapping, ACL e profili, quindi provare SSH
+   e verificare WSL/Docker. Un conflitto o un readback inatteso richiede diagnosi,
+   senza allentare i filtri o procedere all'apertura egress.
 
 7. Nessun mapping statico o bridge. Aprire e verificare l'egress solo con i
    relativi deny e controlli LAN/WAN, poi eseguire M-07 sulla policy completa.

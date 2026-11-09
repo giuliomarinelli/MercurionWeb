@@ -693,3 +693,11 @@ Preparata procedura italiana read-only per port forwarding, DMZ e UPnP,
 usando la guida dell'operatore HKBN per la famiglia MC888 e dichiarando il
 limite rispetto al firmware Ultra effettivo. Esiti ancora pendenti; nessuna
 credenziale acquisita, configurazione router o apertura egress eseguita.
+
+**Esiti router owner:** port forwarding disabilitato, DMZ disabilitata,
+UPnP disabilitato, mapping disabilitato. Nessuna modifica dichiarata.
+Preparato passo WinNAT con lettura attuale prima della creazione nominata,
+senza rimuovere NAT altrui e senza aprire egress. Sintassi New-NetNat e
+Get-NetNat confrontata con cmdlet locali; limite WinNAT verificato nella
+documentazione Microsoft. Richiesta all'owner sola lettura Get-NetNat con
+output JSON esplicito anche quando vuoto. Creazione ancora non eseguita.
