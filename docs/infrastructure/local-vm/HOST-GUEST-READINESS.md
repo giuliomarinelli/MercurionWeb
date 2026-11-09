@@ -375,9 +375,11 @@ placeholder non sensibili e validazione locale della configurazione. Nessun
 o connessione Cloudflare. La validazione statica non chiude INF-VM-02 né prova
 la matrice runtime di INF-VM-03; il gate verso l'avvio VM rimane in sospeso.
 
-L'owner ha scelto «Anticipa i manifest locali; prove residue aperte». Non è
-stata scelta l'alternativa di predisporre Android. Nessuna installazione app,
-modifica firewall/ACL o topologia operativa è autorizzata da questa scelta.
+In quella fase l'owner ha scelto «Anticipa i manifest locali; prove residue
+aperte». Il 9 novembre, dopo le prove post-Restart Windows, ha poi scelto
+di predisporre Android: [procedura e stato](ANDROID-LAN-PROBES.md).
+Versione Android/installazione e prove ancora pendenti. La scelta successiva
+non autorizza modifiche a firewall/ACL o topologia operativa.
 Manifest fixture e validator: [deployment/local-vm](../../../deployment/local-vm/README.md).
 
 **Gate verso INF-VM-03:** review della policy host/guest e prove pertinenti

@@ -89,6 +89,10 @@ owner conferma Kaspersky ancora Pubblica. SSH/IP/route guest preservati,
 H-06 riuscito e nove negazioni private ripetute con 81 controlli host positivi,
 cleanup e correlazione riusciti. [Punto M-08 aggiornato](HOST-REBOOT-VERIFICATION.md).
 Docker Desktop risponde; distro Ubuntu WSL non avviata, smoke ancora aperto.
+Owner ha scelto di predisporre Android per il prossimo blocco LAN:
+[procedura preparatoria](ANDROID-LAN-PROBES.md), compatibilità/installazione
+da confermare e misure ancora da eseguire. Nessuna modifica ai filtri o
+all'instradamento implicita; A-30 e H-05 restano aperti.
 Residuo strumenti: diagnosticare il prompt sudo tardivo nella pipeline SSH/PTY,
 senza cambiare autenticazione, sudoers o acquisire password nei report.
 

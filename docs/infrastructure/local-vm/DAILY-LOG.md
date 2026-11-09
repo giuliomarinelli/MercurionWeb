@@ -921,3 +921,12 @@ Ubuntu WSL non avviata: A-28 resta parziale per lo smoke funzionale, distinto
 dalla VM Hyper-V. Nessuna chiusura di A-30 LAN/altre origini/IPv6. Richiesta
 all'owner scelta sul prossimo blocco LAN: predisporre Android oppure mantenere
 prove aperte e continuare preparazione locale; nessuna installazione implicita.
+
+**Scelta owner per il blocco LAN:** predisporre Android. Consultate fonti
+primarie Termux/F-Droid per installazione e compatibilità; previsto Termux
+con Python, senza root/ADB/SSH server o trasferimento di chiavi VM. Procedura
+preparatoria in ANDROID-LAN-PROBES: riuso canary con hash, controlli telefono
+e Windows prima/dopo, guest e due bridge, limiti della direzione LAN → VM
+senza route. Richiesti versione Android e presenza di F-Droid prima dei passi
+operativi. Nessuna installazione o prova Android eseguita dall'agente;
+nessuna modifica ai filtri o alla topologia. A-30 ancora aperto.
