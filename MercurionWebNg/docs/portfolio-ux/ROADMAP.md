@@ -10,6 +10,13 @@ Ultima revisione del perimetro: 27 ottobre 2026. Notebook, Synthesis e integrazi
 
 ## Obiettivo
 
+**Regressione segnalata il 9 novembre — BUG-AUTH-01, da affrontare:**
+[challenge adattiva su account senza MFA e mock IP locale](../../../docs/bug-reports/2026-11-09-adaptive-login-mfa.md).
+Rivedere decisione backend, geolocalizzazione assente e coerenza fra risposta
+login/1, navigazione MFA e `trust_verify`. La rimozione del mock Angular è
+intenzionale (FE-015); controlli sorgente/history e 22 test mirati eseguiti,
+causa runtime da confermare. Collegato a PX-03 e F-04; nessun fix applicato.
+
 **Bugfix trasversale aggiunto l'8 novembre — BUG-SUPPORT-01, da affrontare:**
 [notifiche operatori e toast sul ticket già aperto](../../../docs/bug-reports/2026-11-08-support-ticket-notifications.md).
 Alla creazione ticket mancano in-app/email all'operatore con `HandleTickets` e

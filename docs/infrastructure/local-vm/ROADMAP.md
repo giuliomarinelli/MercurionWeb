@@ -102,6 +102,12 @@ Eseguire backup/restore dei dati e dei manifest, testare arresto e restart, log 
 
 ## Backlog applicativo correlato
 
+**BUG-AUTH-01 — Da diagnosticare e correggere:**
+[challenge adattiva MFA, geolocalizzazione locale e coerenza login](../../bug-reports/2026-11-09-adaptive-login-mfa.md).
+Segnalazione del 9 novembre, con controlli mirati della storia Git e analisi
+tecnica. Lavoro applicativo distinto; solo documentazione, nessun cambiamento
+auth, ordine INF-VM o gate. Dopo questa parentesi riprendere la prova PowerShell.
+
 **BUG-SUPPORT-01 — Da affrontare:**
 [notifiche ticket agli operatori e toast condizionale](../../bug-reports/2026-11-08-support-ticket-notifications.md).
 Segnalazione dell'owner dell'8 novembre: bugfix trasversale backend/email e

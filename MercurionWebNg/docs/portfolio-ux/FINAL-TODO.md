@@ -16,6 +16,16 @@
 
 ## Bugfix applicativi sopraggiunti
 
+**BUG-AUTH-01 — Da diagnosticare e correggere, 9 novembre:**
+[report, storia Git e analisi tecnica](../../../docs/bug-reports/2026-11-09-adaptive-login-mfa.md).
+Account senza strategie MFA indirizzato alla verifica per accesso insolito;
+confrontare flag finali backend/HTTP con il punto del debugger. Mock Angular
+rimosso intenzionalmente, loopback con coordinate nulle e finestra InPrivate
+sono piste concrete distinte. Definire policy per GeoIP non disponibile e
+testare normale/privato, trust device/fingerprint/posizione e contratto frontend.
+22 test esistenti passati non riproducono l'intero caso. Nessun fix implementato;
+estende F-04 e PX-03 senza chiudere o modificare le accettazioni storiche.
+
 **BUG-SUPPORT-01 — Da affrontare, 8 novembre:**
 [segnalazione e piano di correzione](../../../docs/bug-reports/2026-11-08-support-ticket-notifications.md).
 Notifica in-app/email di apertura ticket mancante agli operatori idonei, email
