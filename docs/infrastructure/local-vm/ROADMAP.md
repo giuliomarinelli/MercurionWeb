@@ -63,6 +63,11 @@ implementato con envelope chiuso, identità separate e pubblicazione su tmpfs;
 17 test Linux locali passati, incluso lettore Tox21 reale. Trasporto SSH,
 installazione VM, altri consumer e restart/recreate applicativi ancora aperti.
 
+Orchestratore host sintetico ora implementato: [contratto e prova operatore](HOST-SYNTHETIC-DELIVERY.md).
+26 test Linux locali passati, inclusi comandi guest effettivi e verifica del
+codice prima dell'esecuzione privilegiata. Nessuna connessione SSH eseguita;
+verifica trasporto/prompt e filesystem VM ancora aperta.
+
 Progettare/implementare l'iniezione protetta dal password manager Windows al bootstrap VM, secret per ambiente, credenziali Meilisearch, PostgreSQL, Redis, NATS, OAuth, Twilio, cookie, JWT. Preservare nomi legacy compatibili. Rinviare rotazione a caldo.
 
 **Accettazione:** nessun segreto in Git/layer/CI/log; riavvio e perdita dei materiali temporanei prevedibili; nessuna master key del server accessibile ai backend.

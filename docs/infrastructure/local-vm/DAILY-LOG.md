@@ -483,3 +483,34 @@ Prova isolata e analisi dei due sorgenti effettivi: zero errori/warning.
 Suite applicativa Windows: 120 passati, due POSIX esclusi. Nessuna dipendenza
 o regola del checker aggiunta. Report fuori Git sotto
 `C:/Users/giuli/.codex/artifacts/inf-vm-04/nats-credential-typing/`.
+
+### INF-VM-04 — orchestratore host sintetico
+
+Implementato launcher PowerShell 5.1 con default plan-only e `-Execute`
+esplicito riservato alla prova operatore. Sei fasi: stage codice, prepare
+sudo, receive senza PTY, apply sudo, inspect solo metadati e cleanup della
+sola copia del codice. Il payload nasce in memoria, è esclusivamente
+sintetico e non compare in argv, file host o ricevute. Stderr/passphrase e
+terminali sudo non sono catturati; nessun transcript automatico.
+
+Codice guest verificato per hash atteso e metadati, eseguendo gli stessi byte
+letti prima del controllo: nessuna riapertura dopo hash e nessun helper root
+permanente. Errori/timeout fermano il flusso senza retry o rimozione dell'active.
+L'helper guest ora espone `inspect` non-root per ownership/permessi, senza
+aprire il contenuto. [Contratto e comando](HOST-SYNTHETIC-DELIVERY.md).
+
+26 test Linux locali passati: comandi guest e shell POSIX effettivi, identità
+root/non-root reali, tampering del codice rifiutato, lettore Tox21, stop alle
+fasi fallite e ricevute errate. Windows: 10 passati e 16 integrazioni escluse;
+prova nativa di argomenti e stdin binario tra processi Windows riuscita.
+Launcher plan-only realmente eseguito da PowerShell 5.1. Risorse Docker
+effimere rimosse; nessun pull, rete, porta o volume creati.
+
+Trasporto SSH simulato, sudo sostituito da identità di processo nel harness:
+nessun SSH/PAM/passphrase/PTY remoto o filesystem VM verificato. Nessuna
+operazione VM o lettura di materiale operativo, nessuna modifica Tox21.
+INF-VM-02/03/04 restano aperti; prova operatore sintetica come passo successivo.
+
+Verificata inoltre [CI Tox21 del fix tipi NATS](https://github.com/giuliomarinelli/MercurionTox21/actions/runs/42575718871):
+SHA `5f3d837cf1356c6ccc875fea007d396684e3cc69`, completed/success. Non è evidenza
+CI dell'orchestratore Web né collaudo VM.

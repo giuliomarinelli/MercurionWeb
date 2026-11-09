@@ -144,6 +144,17 @@ class LinuxDeliveryTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stdout, b'consumer-ok\n')
 
+    def test_inspection_is_metadata_only_and_rejects_missing_or_tampered_active(self):
+        self.assertNotEqual(self.invoke('inspect', uid=65534).returncode, 0)
+        self.receive()
+        self.assertEqual(self.invoke('apply').returncode, 0)
+        result = self.invoke('inspect', uid=65534)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout)['phase'], 'active')
+        self.assertNotIn(b'synthetic', result.stdout)
+        os.chmod(self.run / 'active/bootstrap.json', 0o444)
+        self.assertNotEqual(self.invoke('inspect', uid=65534).returncode, 0)
+
     def test_busy_inbox_rejected_without_publication(self):
         import fcntl
         self.receive()

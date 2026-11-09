@@ -209,10 +209,26 @@ def apply(identifier):
     return receipt(identifier, 'applied')
 
 
+def inspect_active(identifier):
+    """Non-root metadata-only confirmation; never open the credential file."""
+    runtime_guard(False)
+    run_id(identifier)
+    for path, uid, mode in ((BASE, 0, 0o711), (BASE / identifier, 0, 0o711),
+                            (BASE / identifier / 'active', 0, 0o511),
+                            (BASE / identifier / 'inbox', 0, 0o500)):
+        meta = os.lstat(path)
+        require(stat.S_ISDIR(meta.st_mode) and meta.st_uid == uid
+                and stat.S_IMODE(meta.st_mode) == mode, 'directory-permissions')
+    meta = os.lstat(BASE / identifier / 'active/bootstrap.json')
+    require(stat.S_ISREG(meta.st_mode) and meta.st_nlink == 1 and meta.st_uid == 10021
+            and meta.st_gid == 10021 and stat.S_IMODE(meta.st_mode) == 0o400, 'file-permissions')
+    return receipt(identifier, 'active')
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest='command', required=True)
-    for command in ('prepare', 'receive', 'apply'):
+    for command in ('prepare', 'receive', 'apply', 'inspect'):
         sub = commands.add_parser(command)
         sub.add_argument('--run-id', required=True)
         if command == 'prepare':
@@ -224,8 +240,10 @@ def main(argv=None):
             result = prepare(args.run_id, args.environment, args.owner)
         elif args.command == 'receive':
             result = receive(args.run_id, sys.stdin.buffer)
-        else:
+        elif args.command == 'apply':
             result = apply(args.run_id)
+        else:
+            result = inspect_active(args.run_id)
         print(json.dumps(result))
         return 0
     except (OSError, ValueError, KeyError):

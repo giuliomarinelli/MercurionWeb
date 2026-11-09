@@ -33,11 +33,12 @@ $taskArguments = @('--context', 'desktop-linux', 'run', '--rm', '--pull', 'never
     '--memory', '128m', '--cpus', '1',
     '--tmpfs', '/run:rw,noexec,nosuid,size=16m,mode=0755',
     '--tmpfs', '/tmp:rw,noexec,nosuid,size=16m,mode=1777',
+    '--tmpfs', '/nonexistent:rw,noexec,nosuid,size=2m,mode=0700,uid=65534,gid=65534',
     '--env', 'MERCURION_SYNTHETIC_DELIVERY_TEST=1',
     '--mount', ('type=bind,source=' + $taskTools + ',target=/tools,readonly'),
     '--mount', ('type=bind,source=' + $taskReader + ',target=/consumer/secret_bootstrap.py,readonly'),
     '--entrypoint', 'python', $taskImage,
-    '-B', '-m', 'unittest', 'discover', '-s', '/tools', '-p', 'test_secret_delivery.py', '-v')
+    '-B', '-m', 'unittest', 'discover', '-s', '/tools', '-p', 'test_*secret_delivery.py', '-v')
 Write-Output 'Prova sintetica locale su tmpfs; nessuna connessione SSH o modifica VM.'
 # unittest uses stderr for its ordinary progress. Keep native streams attached in PS 5.1.
 & $taskDocker @taskArguments

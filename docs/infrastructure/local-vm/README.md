@@ -23,6 +23,7 @@ La VM può rimanere spenta; preview può essere arrestato indipendentemente dall
 | [SECURITY-AND-SECRETS.md](SECURITY-AND-SECRETS.md) | Identità, privilegi, segreti e bootstrap |
 | [BOOTSTRAP-CONTRACT.md](BOOTSTRAP-CONTRACT.md) | Audit consumer e proposta INF-VM-04 per consegna, compatibilità e ciclo di vita dei segreti |
 | [SECRET-DELIVERY-PILOT.md](SECRET-DELIVERY-PILOT.md) | Ricevitore/apply Tox21 e prove locali sintetiche su tmpfs; trasporto SSH ancora aperto |
+| [HOST-SYNTHETIC-DELIVERY.md](HOST-SYNTHETIC-DELIVERY.md) | Orchestratore sintetico opt-in, verifica del codice guest e limiti della prova locale |
 | [NEST-SECRET-FILE-ADAPTER.md](NEST-SECRET-FILE-ADAPTER.md) | Adattatore Nest opt-in da file, contratto e prove sintetiche Windows/Linux |
 | [TOX21-SECRET-FILE-ADAPTER.md](TOX21-SECRET-FILE-ADAPTER.md) | Adattatore Tox21 opt-in per la coppia NATS e continuità del branch operativo |
 | [NATS-CLIENT-AUTH.md](NATS-CLIENT-AUTH.md) | Credenziali NATS Nest separate dall'URL, validazione e prova isolata dei transport |

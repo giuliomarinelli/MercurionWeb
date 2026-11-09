@@ -7,9 +7,11 @@ installato sulla VM, connessione SSH, materiale reale o servizio avviato.
 ## Contratto
 
 [secret_delivery.py](../../../scripts/infrastructure/secret_delivery.py) espone
-`prepare`, `receive`, `apply`. Solo `receive` legge stdin e richiede un utente
-non-root; le altre fasi richiedono root e ricevono esclusivamente metadati.
-Nessuna chiamata shell, Docker o SSH. L'orchestratore host non è implementato.
+`prepare`, `receive`, `apply` e `inspect`. Solo `receive` legge stdin; questa
+fase e `inspect` richiedono un utente non-root. Preparazione e apply richiedono
+root e ricevono esclusivamente metadati. Nessuna chiamata shell, Docker o SSH.
+L'[orchestratore host sintetico](HOST-SYNTHETIC-DELIVERY.md) è implementato;
+collaudo del trasporto reale e adozione VM restano aperti.
 
 Envelope UTF-8 con esattamente questi campi; valori esclusivamente sintetici:
 
@@ -99,10 +101,14 @@ Il lettore `../MercurionTox21/secret_bootstrap.py` è montato read-only.
 `-ValidateOnly` controlla i prerequisiti senza creare container.
 Docker `--rm` rimuove container e tmpfs; nessuna rete, porta o volume creati.
 
-**17 test Linux passati**, con processi root/UID 65534/UID 10021 distinti,
+**Prima consegna: 17 test Linux passati**, con processi root/UID 65534/UID 10021 distinti,
 lettore Tox21 reale, negazione ad altro UID, replay, payload manomesso,
 permessi/file impropri, lock occupato, limiti, assenza tmpfs e fallimento prima
 della pubblicazione. Windows: 4 test contratto passati, 13 integrazioni escluse.
+
+Estensione con orchestratore/inspect: **26 test Linux passati**; Windows 10
+passati e 16 integrazioni escluse. Il harness ora include home tmpfs sintetica
+per l'account di test; nessuna modifica al database degli utenti del container.
 
 Le letture ripetute attestano permanenza dopo l'uscita dell'apply, non
 restart/recreate di container applicativi, trasporto SSH, boot completo Tox21,
@@ -110,8 +116,8 @@ broker operativo o filesystem VM. Nessuna nuova immagine release costruita.
 
 ## Residui e ordine successivo
 
-1. Orchestratore host sintetico: dati in memoria e SSH senza PTY separato da
-   sudo; verifica del codice guest installato e prova completa prima dell'handoff.
+1. Orchestratore sintetico implementato/testato localmente: prova operatore
+   del trasporto SSH e dei prompt prima di dichiarare la consegna VM verificata.
 2. Review/prova VM esplicita, senza materiale reale, rispettando gate 02/03;
    verificare filesystem, mount, UID e riconciliazione degli stati interrotti.
 3. Contratti per Nest/server, configurazioni broker e mount; restart/recreate
