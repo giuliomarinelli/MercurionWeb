@@ -23,6 +23,11 @@ prefisso 10.203.240.0/24, nessun mapping statico, zero ACL semplici e 14 estese
 coincidenti con la policy SSH-only, Windows Public, forwarding/weak-host
 disabilitati. Nessun allow egress e nessun deployment applicativo.
 
+Questa è la fotografia iniziale SSH-only. Successivamente l'owner ha applicato
+[DnsHttps](DNS-HTTPS-ACL.md) a guest spento: 19 ACL verificate, snapshot coerente,
+nessun avvio/spostamento automatico. Le prove successive sono registrate nella
+[sezione DnsHttps](#prove-sulla-policy-dnshttps), separate dai risultati SSH-only.
+
 **H-02 IPv4 sulla rete nuova:** run locale
 `h02-ipv4-bd5212a11cb54b5281b49785de9bb04c`, canary 10.203.240.1:62690.
 Tentativo guest alle 11:50:47.819476 UTC: TimeoutError/not-reachable.
@@ -66,6 +71,52 @@ Owner segnala prompt sudo visualizzato in ritardo e due tentativi falliti;
 autenticazione poi riuscita e report completo. Registrato come limite UX degli
 strumenti, non errore dell'ACL o del probe. Il buffering della pipeline SSH/PTY
 è un'ipotesi da verificare; nessuna modifica ad autenticazione o sudoers.
+
+### Prove sulla policy DnsHttps
+
+**H-06:** owner conferma run `h06-ipv4-3a56cc9f09b74778b1224c738fe21e4b`,
+12:26:53–12:26:54 UTC. Report locale riletto: guest, bridge predefinito e
+bridge temporaneo risolvono IPv4 pubblico e ricevono HTTP 200 da
+`https://docs.python.org/3/`, TLS 1.3 con verifica certificato/hostname.
+Immagine attesa confermata, nessun errore di pulizia. Prova valida per lo
+smoke dichiarato, non per tutti i provider, resolver o trasporti DNS separatamente.
+
+**H-02 dopo egress:** run `h02-ipv4-56664b9c8b2b465c89c93c213b485824`,
+canary 10.203.240.1:52287. Owner riporta timeout alle 12:29:07.271508 UTC.
+Identificatori e finestra coerenti; 23 controlli host tutti positivi tra
+12:28:03.124629 e 12:29:52.430914 UTC, inclusi prima/dopo il tentativo.
+Stop richiesto, controls-passed e listener chiuso. Conferma il solo percorso
+guest → Windows TCP IPv4 testato, senza attribuire il blocco a un livello specifico.
+
+| Evidenza locale | SHA-256 |
+| --- | --- |
+| H-06 / egress-probe.json | `3e9bf5bfbc7dda7fd9cb05f75918fd8f9298a02f7a4fa0246644c2cbdb11422c` |
+| probe_egress.py | `4a19716fee785d5fffa02dc321694b82a97cceff8a90b2839e2f1bb431d0c5f0` |
+| H-02 / guest-probe.json | `9de1da5a77cae07c1550e067efdec75d0bb6db01e6e01c5f372299764bda50e2` |
+| H-02 / result.json | `d3686cfca93c5199989e4e5f42a7380d4acbecda8fb1d4828a6b212674e437f1` |
+
+**H-04 dopo egress:** run owner `h04-ipv4-7b517c3d29724aa0aaae6bde9559ef6c`,
+12:31:28–12:31:38 UTC, canary 10.203.240.1:61848. Su bridge predefinito e
+temporaneo: controlli container prima/dopo raggiungibili, timeout al canary,
+nonce/endpoint e finestra coerenti. Dodici controlli host tutti positivi,
+inclusi prima/dopo ciascun tentativo, stop richiesto e controls-passed.
+Archivio locale coerente con SHA guest, immagine attesa linux/amd64, nessun
+errore di pulizia. Hash dei report nel run:
+
+| File | SHA-256 |
+| --- | --- |
+| container-probe.json | `5ac399b63cab066214989f8cf4562b508a2ae86cf1cd45dd7067f45bcc091303` |
+| host/result.json | `b752faa45cd9a49ded7397d7dbb5ceb85f351fc36b52b428acff8485a0180880` |
+
+**Verify finale owner:** policy DnsHttps, settingsReadbackVerified true,
+internetEgressEnabled true, isolationAccepted false. Lo script verifica anche
+NAT attivo/prefisso, zero mapping e Windows Public. Nessun listener dei nuovi
+canary rimasto e processo H-02 terminato al controllo locale.
+
+Limite: H-02/H-04 usano porte TCP effimere, non le porte 443/53 dei nuovi allow.
+Readback e test di policy coprono priorità/configurazione; aggiungere controlli
+runtime privati sulle porte consentite. LAN bidirezionale, IPv6/altre origini
+e reboot host restano aperti; nessuna accettazione complessiva o esposizione pubblica.
 
 ## Evidenza acquisita
 

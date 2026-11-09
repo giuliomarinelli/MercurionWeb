@@ -55,7 +55,7 @@ SSH recuperato anche dopo riavvio guest: owner conferma IP 10.203.240.10/24
 e default via 10.203.240.1 proto static. IP host Preferred/Manual e Windows
 Public riletti dall'agente. Owner conferma Verify ACL post-riavvio riuscito,
 con egress e isolamento false. Owner conferma inoltre Kaspersky ancora
-Pubblica. Restano reboot host e isolamento LAN; egress ancora chiuso.
+Pubblica. In quella fase egress ancora chiuso; restano reboot host e isolamento LAN.
 Router ZTE MC888 Ultra controllato dall'owner: port forwarding, DMZ, UPnP e
 mapping disabilitati. Preparato prossimo passo WinNAT, preceduto da lettura
 dei NAT esistenti e mantenendo la policy SSH-only. Lettura attuale owner vuota;
@@ -69,8 +69,15 @@ Prossimo passo: predisporre apertura controllata DNS/HTTPS per lo smoke H-06,
 mantenendo deny host/LAN e IPv6. Ripetere negazioni dopo apertura egress.
 Implementazione [DnsHttps](DNS-HTTPS-ACL.md) pronta: 19 ACL, preflight NAT e
 Public, 28 scenari lifecycle e 26 casi iniziali di traffico simulati passati.
-H-06 runner: quattro unittest e ValidateOnly passati. Applicazione reale e
-connettività ancora pendenti; richiesto piano read-only amministrativo.
+H-06 runner: quattro unittest e ValidateOnly passati. Piano amministrativo
+riuscito; owner ha poi spento il guest e applicato DnsHttps con 19 ACL verificate,
+snapshot coerente e nessun avvio/spostamento automatico. H-06 poi riuscito da
+guest e due bridge con DNS, TLS 1.3, HTTP 200 e cleanup. H-02 ripetuto: timeout
+verso host, 23 controlli positivi e listener chiuso. H-04 aggiornato riuscito
+su due bridge con 12 controlli host, cleanup e Verify finale DnsHttps riusciti.
+**Passi residui:** prove runtime private TCP/443 e DNS/53 (canary attuali su
+porte effimere), LAN bidirezionale, IPv6/altre origini e reboot host. Non
+anticipare accettazione complessiva o deployment sulla sola riuscita H-06.
 Residuo strumenti: diagnosticare il prompt sudo tardivo nella pipeline SSH/PTY,
 senza cambiare autenticazione, sudoers o acquisire password nei report.
 

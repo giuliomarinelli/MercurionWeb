@@ -1,13 +1,34 @@
 # Apertura controllata DNS/HTTPS sulla rete statica
 
-9 novembre 2026. Implementazione e controlli locali completati; applicazione
-reale e prove runtime ancora pendenti. La baseline osservata resta SSH-only.
+9 novembre 2026. Implementazione, controlli locali e applicazione reale completati;
+H-06, H-02 e H-04 runtime acquisiti, Verify finale riuscito.
+Policy DnsHttps installata a guest spento.
 Questa fase prepara H-06, non l'avvio degli stack o del tunnel pubblico.
 
 **Piano reale acquisito dall'owner:** requestedPolicy DnsHttps, 14 ACL correnti
 e 19 previste, internetEgressEnabled false, mutationsPerformed false, nessun
-errore. Prerequisiti letti dal piano verificati; arresto ordinato guest richiesto,
-stato Spenta e applicazione ancora da confermare.
+errore. Prerequisiti letti dal piano verificati; owner ha poi confermato VM Spenta.
+
+**Apply reale acquisito:** settingsReadbackVerified true, policy DnsHttps,
+19 regole, internetEgressEnabled true, isolationAccepted false, vmStarted false
+e adapterMoved false. Snapshot locale
+`static-network/acl/84feb5630d804fbf85399137248b29fc/before.json`: nome/MAC/switch
+coerenti, zero ACL semplici e 14 estese precedenti uguali a SshOnly, verificato
+dall'agente leggendo il report. Nessun login o test Internet attestato da questa
+ricevuta. Il successivo avvio e accesso SSH sono confermati dall'esecuzione
+H-06 dell'owner: guest e due bridge risolvono DNS e ottengono HTTP 200 con
+TLS 1.3 verificato, pulizia riuscita. H-02 ripetuto con egress attivo: timeout
+verso host con 23 controlli positivi e listener chiuso. H-04 aggiornato riuscito
+su entrambi i bridge con 12 controlli host positivi, marker/tempi correlati e
+pulizia completata. Verify finale owner: DnsHttps, settingsReadbackVerified
+true, internetEgressEnabled true, isolationAccepted false. Nessun listener
+canary residuo al controllo finale.
+[Run, hash e limiti](HOST-GUEST-READINESS.md#prove-sulla-policy-dnshttps).
+
+I canary negativi usano porte TCP effimere: non esercitano direttamente i
+deny privati su TCP/443 o DNS/53. Le priorità sono coperte dal readback e dai
+test di policy; prove runtime su quelle porte, LAN/altre origini e reboot host
+restano da completare prima dell'accettazione complessiva.
 
 ## Policy DnsHttps
 

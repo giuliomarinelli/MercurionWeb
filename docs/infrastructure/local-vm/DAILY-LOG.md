@@ -771,3 +771,36 @@ amministrativo read-only, nessuna ACL reale modificata in questa preparazione.
 19 previste, egress false e mutationsPerformed false, senza errori. Non è
 un'installazione della policy. Richiesto arresto ordinato del solo guest prima
 di Apply; stato Spenta ancora pendente.
+
+**DnsHttps applicato dall'owner:** stato Spenta confermato dopo arresto ordinato;
+Apply restituisce 19 ACL, settingsReadbackVerified true, internetEgressEnabled
+true, isolationAccepted false, vmStarted false e adapterMoved false. Snapshot
+84feb5630d804fbf85399137248b29fc acquisito e riletto dall'agente: identità vNIC
+coerente, zero semplici e 14 estese precedenti uguali a SshOnly. Nessuna
+connettività Internet dedotta dal flag. Richiesti avvio/LUKS e H-06 nel terminale
+dell'owner; esiti ancora pendenti, poi ripetere le negazioni pertinenti.
+
+**H-06 DnsHttps reale:** run owner 3a56cc9f09b74778b1224c738fe21e4b,
+12:26:53–12:26:54 UTC. Report riletto: guest, bridge e bridge temporaneo
+DNS IPv4 pubblico, TLS 1.3 verificato e HTTP 200 verso docs.python.org;
+immagine attesa e cleanup senza errori. Dimostra quello smoke, non tutti i
+provider né ogni resolver/trasporto DNS singolarmente.
+
+**H-02 ripetuto con DnsHttps:** run 56664b9c8b2b465c89c93c213b485824,
+10.203.240.1:52287, timeout owner alle 12:29:07.271508 UTC. Ventitré controlli
+host tutti positivi, identificatori/finestra e controlli prima/dopo correlati.
+Listener chiuso con stop, controls-passed. Run e hash registrati nella readiness.
+Richiesto H-04 sulla stessa policy con egress attivo; ancora pendente.
+
+**H-04 DnsHttps acquisito:** owner conferma run 7b517c3d29724aa0aaae6bde9559ef6c,
+12:31:28–12:31:38 UTC. Report e archivio riletti: entrambi i bridge con
+controlli container positivi e timeout al canary 10.203.240.1:61848, nessun
+errore di pulizia. Dodici controlli host positivi, identificatori e finestre
+correlati, host controls-passed con stop richiesto. Nessun listener residuo
+e processo H-02 terminato. Hash registrati nella readiness.
+
+**Verify finale owner:** DnsHttps, settingsReadbackVerified true,
+internetEgressEnabled true, isolationAccepted false. Nessuna modifica eseguita
+dal comando. Restano LAN/altre origini, IPv6, reboot host e controlli runtime
+su porte private 443/53: gli H-02/H-04 attuali misurano porte TCP effimere.
+Nessuna accettazione complessiva o avvio stack pubblico dedotti dagli smoke.

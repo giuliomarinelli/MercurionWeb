@@ -4,7 +4,8 @@
 switch e IP host creati dall'owner; guest statico e SSH confermati anche dopo
 riavvio guest, ACL riverificate e Kaspersky ancora Pubblica. Router verificato
 dall'owner; Mercurion-NAT creato e inventario post-creazione riletto.
-Egress non aperto e isolamento LAN da collaudare.
+DnsHttps successivamente applicata con 19 ACL; egress runtime e isolamento LAN
+ancora da collaudare sulla policy completa.
 Seguire i passi nell'ordine e aggiornare la tabella
 di avanzamento: un comando documentato non è un comando già eseguito.
 Il bootstrap sintetico rimane sospeso durante il collaudo della migrazione.
@@ -39,8 +40,8 @@ Questi sono criteri da implementare e collaudare, non isolamento già dimostrato
 | M-03 | Creazione switch interno e IP host statico | Eseguito dall'owner: Internal e `10.203.240.1/24`; ActiveStore Preferred verificato |
 | M-04 | Kaspersky Pubblica e profilo host verificati | Pubblica confermata anche dopo reboot guest; efficacia sui pacchetti e reboot host da provare |
 | M-05 | Backup e policy ACL della sola vNIC Mercurion | Apply owner riuscito e Verify dopo collegamento confermato; traffico non collaudato |
-| M-06 | Configurazione guest statica, NAT e collegamento | Mercurion-NAT riletto senza mapping, ACL SSH-only invariate; egress ancora chiuso |
-| M-07 | SSH, egress e prove negative con controlli positivi | SSH riuscito; H-02/H-04 IPv4 verso host negativi con controlli nella fase SSH-only; LAN/egress aperti |
+| M-06 | Configurazione guest statica, NAT e collegamento | Mercurion-NAT riletto senza mapping; successiva policy DnsHttps a 19 ACL applicata |
+| M-07 | SSH, egress e prove negative con controlli positivi | DnsHttps: H-06 riuscito, H-02/H-04 negativi e Verify finale riuscito; da verificare LAN/altre origini e blocchi privati 443/53 |
 | M-08 | Riavvio a freddo, stabilità e nuova baseline | Riavvio guest: nuovo login, IP e gateway confermati; reboot host, profili e policy completa ancora aperti |
 
 ## M-01 — inventario, senza cambiare configurazioni
@@ -478,8 +479,10 @@ Se la VM non è Off, le regole sono ambigue o manca il backup, fermarsi.
 
 7. Nessun mapping statico o bridge. Proseguire con la [procedura DNS/HTTPS](DNS-HTTPS-ACL.md),
    che conserva i deny e richiede VM Spenta per la transizione. Implementazione
-   e test locali pronti, applicazione ancora pendente; eseguire poi M-07 sulla
-   policy completa. Nessuna apertura egress implicita nella creazione del NAT.
+   e test locali completati; owner ha poi applicato 19 ACL DnsHttps a guest
+   spento con readback riuscito. Dopo avvio H-06 riuscito da guest/due bridge;
+   H-02/H-04 aggiornati negativi e Verify finale DnsHttps riuscito. Nessuna apertura egress
+   implicita nella sola creazione del NAT.
 
 Il collegamento/avvio protetto e la configurazione statica precedono quindi
 l'attivazione dell'egress. DNS/HTTPS pubblici non devono ancora riuscire nella

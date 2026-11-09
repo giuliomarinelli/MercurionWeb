@@ -263,6 +263,14 @@ report conservati in entrambi i casi. Esecuzione Ubuntu acquisita alle 18:54 UTC
 del 7 novembre: HTTP 200 e TLS 1.3 su tutte e tre le origini, pulizia senza
 errori riportati. [Run, hash e limiti](HOST-GUEST-READINESS.md).
 
+**Ripetizione del 9 novembre:** H-06 riuscito sulla rete statica con policy
+DnsHttps da guest e due bridge (DNS pubblico, TLS 1.3, HTTP 200, cleanup).
+H-02 aggiornato conferma timeout verso host con 23 controlli positivi;
+H-04 aggiornato conferma i due bridge, 12 controlli host positivi e cleanup.
+Verify finale DnsHttps riuscito. I canary negativi restano su porte effimere:
+prove private 443/53 e LAN ancora da completare.
+[Evidenze della policy attuale](HOST-GUEST-READINESS.md#prove-sulla-policy-dnshttps).
+
 Questo smoke non certifica tutti i provider applicativi, DNS su ogni protocollo,
 IPv6 o l'isolamento host/LAN. Il risultato non allarga la policy e conserva
 `isolationAccepted=false`. H-02/H-04 restano le evidenze separate dei percorsi

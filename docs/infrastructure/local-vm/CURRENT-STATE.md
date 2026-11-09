@@ -94,8 +94,13 @@ La versione corrente di Tox21 ha override `allow` / `require-jwt` / `disabled` p
   36 controlli host positivi prima/dopo e listener chiuso. H-04 eseguito su
   due bridge guest con controlli positivi e pulizia riuscita; riferimento owner
   5e97721d427d414ba8e36469f18efd93. LAN e policy completa con egress restano aperti.
-  Transizione [DnsHttps](DNS-HTTPS-ACL.md) implementata e testata localmente,
-  ancora non applicata: il runtime osservato resta SSH-only.
+  Transizione [DnsHttps](DNS-HTTPS-ACL.md) applicata poi dall'owner a VM Spenta:
+  19 ACL confermate e snapshot della precedente policy verificato. Egress
+  consentito dalla configurazione e H-06 riuscito da guest e due bridge
+  (DNS, TLS 1.3, HTTP 200, cleanup). H-02 aggiornato negativo con 23 controlli
+  positivi; H-04 aggiornato negativo su due bridge con 12 controlli host e
+  pulizia riuscita. Verify finale DnsHttps riuscito; nessun listener residuo.
+  Restano LAN/altre origini, IPv6, test privati 443/53 e reboot host.
 - Ricevitore/apply Tox21 disponibile come [pilot locale](SECRET-DELIVERY-PILOT.md),
   con 17 test Linux sintetici passati; non ancora installato sulla VM.
   Trasporto SSH, consegna reale, altri consumer e lifecycle operativo aperti.
