@@ -561,3 +561,13 @@ nessuna modifica WSL. Conferma del ripristino ancora assente.
 Classificazione attuale verificata, efficacia dei filtri e reboot ancora aperti.
 Richiesto elenco nomi/permessi Netplan da console per preparare M-05; nessuna
 modifica guest, ACL o Kaspersky eseguita dall'agente.
+
+**Preparazione M-05 da console owner:** screenshot mostra unico file attivo
+`00-installer-config.yaml` root:root 0600 (374 byte) e `.yaml.bak` root:root
+0600 (169 byte), da non sovrascrivere. Configurazione: networkd, match MAC
+esistente/set-name eth0, DHCPv4 attivo, DHCPv6/RA disattivati, DNS pubblici
+1.1.1.1/9.9.9.9 con DNS DHCP esclusi. Nessun segreto mostrato nello screenshot;
+nessun contenuto guest copiato come file operativo nel repository.
+Richiesto backup distinto `/root/netplan-pre-static.yaml` con `cp -anv`,
+senza sovrascrittura, conferma ancora pendente. VM da lasciare accesa fino
+alla conferma; nessuna modifica Netplan/ACL o attach eseguita.

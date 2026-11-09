@@ -176,6 +176,30 @@ delle ACL della **sola** vNIC Mercurion. Dalla console Ubuntu preparare backup
 dei file Netplan in directory root privata, senza esportarne i contenuti in Git,
 poi arrestare ordinatamente il guest. Confermare VM Off e console disponibile.
 
+**Ricognizione guest owner:** screenshot da console mostra
+`/etc/netplan/00-installer-config.yaml`, root:root `0600`, 374 byte, e
+`00-installer-config.yaml.bak`, root:root `0600`, 169 byte. Il `.bak` esistente
+va preservato, non assunto come backup della configurazione attuale.
+Contenuto mostrato: renderer `networkd`, match MAC `00:15:5d:00:dd:01`,
+`set-name: eth0`, DHCPv4 true, DHCPv6 false, accept-ra false; DNS pubblici
+`1.1.1.1` e `9.9.9.9`, DNS DHCP esclusi. Nessun nuovo resolver da scegliere
+per M-06. Il mancato `cat` senza sudo è coerente con i permessi 0600.
+Gestione cloud-init, IPv6 link-local e applicazione statica restano da verificare.
+
+Primo comando di backup, dalla console Ubuntu con VM ancora accesa:
+
+```bash
+sudo cp -anv /etc/netplan/00-installer-config.yaml /root/netplan-pre-static.yaml
+```
+
+`-a` conserva metadati e permessi, `-n` evita sovrascritture, `-v` mostra
+soltanto sorgente/destinazione. Atteso messaggio della copia. Se non compare
+o c'è un errore, fermarsi e verificare il backup esistente senza usare `-f`.
+Il file attivo e il `.bak` non vengono modificati. **Backup richiesto, non
+ancora confermato**: non spegnere né cambiare rete prima della conferma.
+Prima della modifica Netplan si confronteranno sorgente e copia con `cmp`;
+non stampare contenuti o esportare il backup in Git.
+
 Mantenere la vNIC esistente, nome/MAC e singolarità; non eliminare l'adattatore.
 Sostituire le vecchie ACL con una policy unica ed esplicita, evitando regole
 semplici/estese sovrapposte e l'allow al vecchio host. Specifica candidata:
@@ -215,7 +239,8 @@ Se la VM non è Off, le regole sono ambigue o manca il backup, fermarsi.
 1. Identificare da console file Netplan, renderer e gestione cloud-init.
    Non aggiungere semplicemente un secondo file lasciando DHCP attivo nel primo.
 2. Preparare la configurazione dell'interfaccia esistente con `10.203.240.10/24`,
-   DHCPv4/v6 disattivati, gateway `10.203.240.1`, DNS pubblici esplicitamente scelti.
+   DHCPv4/v6 disattivati, gateway `10.203.240.1`, DNS pubblici esistenti
+   `1.1.1.1` e `9.9.9.9` conservati.
    Non usare Windows o router LAN come server DNS. Validare renderer e versione;
    rifiutare RA/IPv6 link-local sul link amministrativo oltre ai deny Hyper-V.
 3. Validare con `netplan generate`; applicare/provare solo dalla console quando
