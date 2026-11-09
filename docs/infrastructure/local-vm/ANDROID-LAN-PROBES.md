@@ -6,7 +6,8 @@ Il 9 novembre 2026, dopo la verifica post-riavvio Windows, l'owner ha scelto
 di predisporre Android per le prove LAN. Prima di questa scelta erano stati
 anticipati soltanto manifest e verifiche locali. Questo documento prepara
 il percorso; smoke locale e misura TCP guest/due bridge verso Android riusciti.
-La direzione opposta e IPv6 restano aperti per A-30.
+Tentativo opposto Android → TCP/22 acquisito con controlli host positivi;
+attribuzione alla whitelist e copertura IPv6 ancora aperte per A-30/H-05.
 
 Strumento previsto: **Termux con Python**, senza root, ADB o server SSH sul
 telefono. Owner conferma Android 16 aggiornato, Termux al prompt e Python
@@ -209,9 +210,58 @@ alla whitelist SSH Hyper-V. Non aggiungere route, port forwarding o bridge
 LAN per costruire artificialmente il caso. Registrare la copertura ottenuta
 e l'eventuale residuo H-05; nessuna deroga automatica.
 
+### Esito Android → TCP/22 acquisito
+
+Run `0552d34e8d924b28a98790cc7c10721b`. Comando Python su Android con bind
+alla sorgente Wi-Fi `192.168.0.218`, destinazione `10.203.240.10:22`, timeout
+tre secondi, nessuna autenticazione. Screenshot owner: 9 novembre
+17:25:08.800388–17:25:11.805572 UTC, connectCode 11, errorName EAGAIN,
+outcome not-connected. Nessuna connessione stabilita nei 3.005184 secondi
+misurati; non trasformare errno in una diagnosi del firewall.
+
+Controlli Windows con bind `10.203.240.1` verso lo stesso endpoint: banner
+SSH positivo prima (17:23:15 UTC) e dopo (17:28:35 UTC), senza login. Tempi
+correlati e stessa destinazione. Report Android trascritto dallo screenshot,
+non recuperato come file originale. Nessuna route o ACL modificata.
+
+Artifact fuori da Git: `.codex/artifacts/inf-vm-02/android-ingress/`
+`0552d34e8d924b28a98790cc7c10721b/`.
+
+| File locale | SHA-256 |
+| --- | --- |
+| android-owner-report.json | `2de985b04e8fe68f4f7189bd02b520679e9d6bcbc0a5fcfa9bfe5337ebfe6cf8` |
+| windows-before.json | `aed8a3c99cc4107e971d677fb71b670412474ba740898f8d7418c49b00326dad` |
+| windows-after.json | `ea55e56aa620eedac594189355fdfbcb6db1bc84d79bfd8038d99e756354de32` |
+| correlation.json | `300690aaadb62351255323b5a4bf7b535b7c7d51cdab92e6a6c067d4651f2817` |
+
+Questo osserva la mancata raggiungibilità Android → SSH nella topologia
+presente. La route Android verso la subnet Internal non è stata dimostrata:
+**non** certifica da solo la whitelist Hyper-V. H-05 resta parziale per
+l'attribuzione del controllo delle origini; nessuna deroga automatica.
+
+### Raccolta IPv6 prima di ulteriori prove
+
 IPv6 richiede indirizzi, scope e route realmente presenti sui partecipanti.
 Assenza di IPv6 instradabile non è un test negativo passato; non abilitarlo
 come effetto collaterale delle prove Android.
+
+Usare il collector di sola lettura:
+
+```powershell
+powershell -NoProfile -File C:/.project_repo/MercurionWeb/scripts/infrastructure/Invoke-Ipv6Readiness.ps1
+```
+
+SCP invia lo script in un file dal nome univoco, SSH/sudo restano sulla
+console, SCP recupera separatamente il report 0600 restituito all'owner sudo.
+Legge indirizzi/route IPv6, forwarding/disable_ipv6 e EnableIPv6/IPAM dei bridge
+del solo daemon Unix guest; nessun probe o cambio di configurazione.
+Root e hostname mercurion-server Ubuntu obbligatori prima delle letture.
+Sezioni indisponibili producono incomplete true, non una prova passata.
+
+Preflight PS 5.1 passato. Letture Linux verificate in WSL, con networkIds
+indisponibile su quel socket: prova locale parziale dello strumento, non
+inventario VM. Schema network inspect verificato sul Docker Desktop locale;
+raccolta guest effettiva ancora pendente. Non abilita IPv6 per ottenere dati.
 
 ## Evidenze da registrare
 

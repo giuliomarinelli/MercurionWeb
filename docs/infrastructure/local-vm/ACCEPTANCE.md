@@ -29,7 +29,7 @@
 | A-23 | Recovery | restart guest/host e avvio su richiesta senza dipendenza da file credenziali persistenti | Non eseguito |
 | A-24 | Risorse | memoria/CPU/disco misurati a riposo, in carico e con entrambi gli stack | Non eseguito |
 | A-25 | Limiti portfolio | avviso di case study, dati personali e disponibilità rappresentati correttamente | Non eseguito |
-| A-26 | Amministrazione guest | SSH da host con chiave, nessun login root/password, ACL delle origini verificate | Parziale: login owner e Verify ACL riusciti anche dopo riavvio host; prove da altre origini ancora aperte |
+| A-26 | Amministrazione guest | SSH da host con chiave, nessun login root/password, ACL delle origini verificate | Parziale: login/Verify e controllo SSH host riusciti; Android TCP/22 non connesso, route dall'altra origine e attribuzione alla whitelist non provate |
 | A-27 | Cifratura guest | mount root sul dispositivo cifrato e percorso operativo di sblocco | Root su LUKS/dm-crypt/LVM verificato nel report v2; sblocco a freddo aperto |
 
 ## Risultati preesistenti da non confondere con questa matrice
@@ -74,7 +74,10 @@ Android 192.168.0.218:53483: guest e due bridge non raggiungibili, route present
 controlli client prima/dopo e 18 controlli Windows tutti positivi. Correlazione
 ricalcolata e pulizia container/rete riuscita; owner conferma chiusura Android
 con controls-passed e closed true.
-Direzione LAN → VM, altre origini e IPv6 ancora aperti; nessuna generalizzazione
+Tentativo LAN → VM TCP/22 poi acquisito: Android non connesso in tre secondi,
+controlli banner SSH host positivi prima/dopo. Non dimostrata route Android
+verso Internal né attribuzione alla whitelist: H-05 resta parziale.
+Copertura IPv6 ancora aperta; nessuna generalizzazione
 a tutte le porte/dispositivi. [Evidenze e hash](ANDROID-LAN-PROBES.md).
 
 **Avanzamento rete statica del 9 novembre:** Netplan try accettato; TCP/22

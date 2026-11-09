@@ -110,7 +110,9 @@ La versione corrente di Tox21 ha override `allow` / `require-jwt` / `disabled` p
   Android LAN eseguito: tre origini negative e 18 controlli Windows positivi,
   route/correlazione e cleanup riusciti. [Evidenze LAN](ANDROID-LAN-PROBES.md).
   Chiusura Android confermata con controls-passed e closed true;
-  restano direzione LAN → VM, altre origini e IPv6.
+  Android → TCP/22 VM poi non connesso, host positivo prima/dopo; attribuzione
+  alla whitelist non dimostrata senza route dall'altra origine. Restano H-05,
+  IPv6 e copertura residua; collector IPv6 guest predisposto, non ancora eseguito.
   Nessuna accettazione completa dedotta.
 - Ricevitore/apply Tox21 disponibile come [pilot locale](SECRET-DELIVERY-PILOT.md),
   con 17 test Linux sintetici passati; non ancora installato sulla VM.

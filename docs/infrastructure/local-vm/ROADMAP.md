@@ -75,7 +75,7 @@ snapshot coerente e nessun avvio/spostamento automatico. H-06 poi riuscito da
 guest e due bridge con DNS, TLS 1.3, HTTP 200 e cleanup. H-02 ripetuto: timeout
 verso host, 23 controlli positivi e listener chiuso. H-04 aggiornato riuscito
 su due bridge con 12 controlli host, cleanup e Verify finale DnsHttps riusciti.
-**Passi residui:** LAN → VM, IPv6/altre origini e copertura LAN residua. Non
+**Passi residui:** IPv6, verifica delle origini H-05 e copertura LAN residua. Non
 anticipare accettazione complessiva o deployment sulla sola riuscita H-06.
 Strumento [porte private](PRIVATE-PORT-PROBES.md) pronto: 13 unittest, tre
 scenari trasporto PowerShell 5.1, preflight host e collaudo Docker Desktop
@@ -95,8 +95,11 @@ Android predisposto e misura TCP verso LAN acquisita: guest/due bridge non
 raggiungono il canary, 18 controlli Windows positivi, route/correlazione e cleanup
 riusciti. [Evidenze](ANDROID-LAN-PROBES.md). Chiusura Android poi confermata:
 controls-passed e closed true.
-Nessuna modifica ai filtri o all'instradamento; A-30 e H-05 restano aperti per
-direzione opposta, altre origini e IPv6.
+Tentativo opposto Android → SSH VM acquisito: non connesso in tre secondi,
+host positivo prima/dopo. Route dall'altra origine non provata, quindi nessuna
+attribuzione alla whitelist. Nessuna modifica ai filtri o all'instradamento;
+A-30/H-05 restano parziali. Collector IPv6 read-only predisposto, esecuzione
+guest ancora da acquisire; assenza di indirizzi/route non equivale a test passato.
 Residuo strumenti: diagnosticare il prompt sudo tardivo nella pipeline SSH/PTY,
 senza cambiare autenticazione, sudoers o acquisire password nei report.
 

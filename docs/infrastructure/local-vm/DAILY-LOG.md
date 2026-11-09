@@ -1007,3 +1007,21 @@ senza autenticazione. Comando TCP Android vincolato a sorgente 192.168.0.218,
 timeout tre secondi, codice errno e timestamp; sintassi e variante host
 eseguite con successo. Richiesto singolo tentativo all'owner. Nessuna route,
 regola, chiave o credenziale modificata; misura e controllo successivo pendenti.
+
+**Esito Android → VM acquisito da screenshot:** run
+0552d34e8d924b28a98790cc7c10721b, 17:25:08.800388–17:25:11.805572 UTC,
+source 192.168.0.218, target 10.203.240.10:22, code 11/EAGAIN, not-connected.
+Controllo Windows dopo positivo con banner SSH alle 17:28:35 UTC, sorgente
+10.203.240.1; anche prima positivo. Dati e correlazione salvati fuori da Git,
+hash nella procedura Android. Nessuna autenticazione o modifica di rete.
+Osservata mancata connessione nella topologia attuale: route Android verso
+Internal non provata, nessuna attribuzione alla whitelist; H-05 parziale.
+
+**Preparazione inventario IPv6:** helper read-only per indirizzi/route,
+forwarding/disable_ipv6 e reti Docker EnableIPv6/IPAM sul solo socket Unix.
+Verifica root/hostname Ubuntu mercurion-server, report 0600 assegnato
+all'owner sudo, wrapper PS con prompt diretti e SCP del report. Preflight
+reale PS 5.1 passato. Letture Linux provate in WSL: sezioni IPv6 observed,
+networkIds unavailable sul socket locale, correttamente incomplete true.
+Schema reti Docker verificato sul daemon Docker Desktop. Nessuna prova guest
+dedotta da queste verifiche; collector VM da eseguire, nessun IPv6 abilitato.
