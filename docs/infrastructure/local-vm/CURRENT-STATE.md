@@ -76,7 +76,8 @@ La versione corrente di Tox21 ha override `allow` / `require-jwt` / `disabled` p
 
 - SSH in timeout dopo cambio subnet Default Switch. Inventario amministrativo
   del 9 novembre acquisito; [migrazione statica](STATIC-NETWORK-MIGRATION.md)
-  avviata dall'owner: switch vuoto e IP host creati, guest non migrato.
+  avviata dall'owner: switch/IP host creati, vNIC collegata e ACL riverificate;
+  guest avviato da console, confronto backup riuscito e IP statico da configurare.
   Pubblica in Kaspersky e divieto LAN bidirezionale
   obbligatori; bootstrap sospeso fino al recupero amministrativo.
 - Ricevitore/apply Tox21 disponibile come [pilot locale](SECRET-DELIVERY-PILOT.md),

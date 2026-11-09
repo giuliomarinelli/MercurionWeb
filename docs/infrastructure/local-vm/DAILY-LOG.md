@@ -616,3 +616,14 @@ conservata sul nuovo switch, senza scritture. Richiesto avvio normale/LUKS e
 login console per confronto quiet con `cmp` fra Netplan e backup; BACKUP_OK
 ancora pendente. Nessuna istruzione di modifica del file o apertura egress
 consegnata in questo passaggio. Prove di traffico ancora aperte.
+
+**Console guest e backup:** owner restituisce BACKUP_OK dal confronto con
+`cmp` dopo il nuovo avvio, quindi file attivo e backup coincidono. Preparata
+istruzione di modifica minimale nel solo YAML attivo: DHCPv4 disattivato,
+link-local vuoto, IP 10.203.240.10/24, route default via 10.203.240.1; MAC,
+set-name, networkd, override e DNS esistenti conservati. Richiesta sola
+validazione con netplan generate e marker NETPLAN_OK prima dell'applicazione.
+Nessuna modifica guest eseguita dall'agente; esito dell'editing/generate
+ancora pendente. NAT/egress non aperti e isolamento non accettato.
+Frammento YAML verificato con parser locale dopo estrazione dal Markdown;
+questa prova sintattica non sostituisce generate sul Netplan del guest.

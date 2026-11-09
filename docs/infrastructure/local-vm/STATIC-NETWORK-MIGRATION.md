@@ -1,8 +1,8 @@
 # INF-VM-02 — migrazione alla rete interna statica
 
 **9 novembre 2026 — procedura progressiva in italiano.** Inventario completato;
-switch e IP host creati dall'owner; vNIC ora collegata al nuovo switch,
-guest ancora spento e IP statico guest non ancora configurato.
+switch e IP host creati dall'owner; vNIC collegata al nuovo switch e ACL
+riverificate, guest avviato da console e IP statico non ancora configurato.
 Seguire i passi nell'ordine e aggiornare la tabella
 di avanzamento: un comando documentato non è un comando già eseguito.
 Il bootstrap sintetico rimane sospeso fino al recupero dell'accesso amministrativo.
@@ -37,7 +37,7 @@ Questi sono criteri da implementare e collaudare, non isolamento già dimostrato
 | M-03 | Creazione switch interno e IP host statico | Eseguito dall'owner: Internal e `10.203.240.1/24`; ActiveStore Preferred verificato |
 | M-04 | Kaspersky Pubblica e profilo host verificati | Classificazione attuale confermata da screenshot owner; efficacia regole/persistenza da provare |
 | M-05 | Backup e policy ACL della sola vNIC Mercurion | Apply owner riuscito e Verify dopo collegamento confermato; traffico non collaudato |
-| M-06 | Configurazione guest statica, NAT e collegamento | vNIC collegata a Mercurion-Internal con MAC invariato; VM spenta, configurazione guest/NAT ancora pendenti |
+| M-06 | Configurazione guest statica, NAT e collegamento | vNIC e ACL confermate; guest avviato da console, BACKUP_OK ricevuto; preparazione IP statico richiesta, applicazione/NAT pendenti |
 | M-07 | SSH, egress e prove negative con controlli positivi | Da eseguire |
 | M-08 | Riavvio a freddo, stabilità e nuova baseline | Da eseguire |
 
@@ -284,18 +284,56 @@ Se la VM non è Off, le regole sono ambigue o manca il backup, fermarsi.
    sudo cmp -s /etc/netplan/00-installer-config.yaml /root/netplan-pre-static.yaml && echo BACKUP_OK
    ```
 
-   Atteso `BACKUP_OK`; confronto richiesto, non ancora verificato. In caso di
-   errore/assenza del marker fermarsi senza sovrascrivere file o backup.
+   **Owner ha restituito BACKUP_OK:** file attivo e copia coincidono dopo
+   l'avvio sul nuovo collegamento. In caso di errore/assenza del marker in una
+   replica, fermarsi senza sovrascrivere file o backup.
 
 3. Preparare la configurazione dell'interfaccia esistente con `10.203.240.10/24`,
    DHCPv4/v6 disattivati, gateway `10.203.240.1`, DNS pubblici esistenti
    `1.1.1.1` e `9.9.9.9` conservati.
    Non usare Windows o router LAN come server DNS. Validare renderer e versione;
    rifiutare RA/IPv6 link-local sul link amministrativo oltre ai deny Hyper-V.
+
+   Aprire il solo file esistente:
+
+   ```bash
+   sudo nano /etc/netplan/00-installer-config.yaml
+   ```
+
+   Sostituire il blocco corrente `dhcp4`/`dhcp6`/`accept-ra` con questo, allo
+   stesso livello di `set-name` (sei spazi nell'attuale file):
+
+   ```yaml
+         dhcp4: false
+         dhcp6: false
+         accept-ra: false
+         link-local: []
+         addresses: [10.203.240.10/24]
+         routes:
+           - to: default
+             via: 10.203.240.1
+   ```
+
+   Usare spazi, non tab. Conservare renderer, identificatore logico della
+   scheda, match MAC, set-name, override DHCP e nameservers esistenti. Non
+   modificare `.bak` o backup root, non creare un secondo YAML. In nano salvare
+   con Ctrl+O, Invio, poi Ctrl+X. Preparazione richiesta, esito ancora pendente.
+
 4. Validare con `netplan generate`; applicare/provare solo dalla console quando
    il nuovo link protetto è pronto. NAT non serve per SSH locale. Usare allora
    `netplan try` e confermare dopo le
    verifiche, conservando il backup. Adattare file reale e cloud-init prima dell'uso.
+
+   Primo controllo, senza applicare ancora la rete:
+
+   ```bash
+   sudo netplan generate && echo NETPLAN_OK
+   ```
+
+   Acquisire marker ed eventuali warning/errori prima di passare a try/apply.
+   Generate produce configurazioni del backend ma non le applica in questo
+   uso manuale; non equivale a rete funzionante. Nessuna modifica cloud-init
+   autorizzata implicitamente; persistenza dopo reboot rimane M-08.
 5. Verificare IP/route e listener 22. Aggiornare solo `HostName` nell'alias
    SSH a `10.203.240.10`, senza cambiare chiavi/autenticazione/passphrase.
    Verificare un eventuale avviso host key dalla console, senza disabilitare
