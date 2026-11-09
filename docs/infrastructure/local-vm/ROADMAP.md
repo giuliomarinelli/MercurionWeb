@@ -47,7 +47,8 @@ Nessun NAT/avvio VM; owner ha ora collegato la sola vNIC a Mercurion-Internal,
 con MAC invariato. Verify sul nuovo collegamento riuscito; prossimo passo
 avvio console/LUKS e confronto backup prima di configurare l'IP statico guest.
 Owner ha ora confermato BACKUP_OK: consegnata modifica minima Netplan e
-validazione generate; esito preparazione/applicazione ancora pendente.
+validazione generate. NETPLAN_OK ora confermato da screenshot: predisposta
+prova temporanea netplan try da console, applicazione/conferma ancora pendenti.
 
 **Dipende da:** INF-VM-01.  
 Preparare Docker Engine e plugin Compose su Ubuntu, amministrazione SSH a chiave, policy host↔guest, firewall e regole IPv4/IPv6. Non introdurre bridge fisici della LAN. Definire test negativi dalla VM e dai container verso Windows/LAN e protezione della porta SSH.

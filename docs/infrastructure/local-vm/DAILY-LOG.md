@@ -627,3 +627,11 @@ Nessuna modifica guest eseguita dall'agente; esito dell'editing/generate
 ancora pendente. NAT/egress non aperti e isolamento non accettato.
 Frammento YAML verificato con parser locale dopo estrazione dal Markdown;
 questa prova sintattica non sostituisce generate sul Netplan del guest.
+
+**Validazione reale guest:** dopo correzione manuale di spazio dopo trattino
+e indentazione via, owner mostra YAML con parametri previsti e NETPLAN_OK
+da `sudo netplan generate`. Nessun warning visibile nell'output fornito.
+Non ancora applicato alla rete. Preparata prova console `netplan try --timeout
+300` con richiesta di non confermare subito, per controllo TCP/22 host → nuovo
+IP prima della conferma. Route host 10.203.240.0/24 sulla vEthernet interna
+riletta. Try, conferma, SSH, LAN e persistenza ancora da verificare.

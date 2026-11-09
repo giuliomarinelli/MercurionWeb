@@ -37,7 +37,7 @@ Questi sono criteri da implementare e collaudare, non isolamento già dimostrato
 | M-03 | Creazione switch interno e IP host statico | Eseguito dall'owner: Internal e `10.203.240.1/24`; ActiveStore Preferred verificato |
 | M-04 | Kaspersky Pubblica e profilo host verificati | Classificazione attuale confermata da screenshot owner; efficacia regole/persistenza da provare |
 | M-05 | Backup e policy ACL della sola vNIC Mercurion | Apply owner riuscito e Verify dopo collegamento confermato; traffico non collaudato |
-| M-06 | Configurazione guest statica, NAT e collegamento | vNIC e ACL confermate; guest avviato da console, BACKUP_OK ricevuto; preparazione IP statico richiesta, applicazione/NAT pendenti |
+| M-06 | Configurazione guest statica, NAT e collegamento | vNIC/ACL e BACKUP_OK confermati; editing validato con NETPLAN_OK, try/applicazione e NAT pendenti |
 | M-07 | SSH, egress e prove negative con controlli positivi | Da eseguire |
 | M-08 | Riavvio a freddo, stabilità e nuova baseline | Da eseguire |
 
@@ -317,7 +317,8 @@ Se la VM non è Off, le regole sono ambigue o manca il backup, fermarsi.
    Usare spazi, non tab. Conservare renderer, identificatore logico della
    scheda, match MAC, set-name, override DHCP e nameservers esistenti. Non
    modificare `.bak` o backup root, non creare un secondo YAML. In nano salvare
-   con Ctrl+O, Invio, poi Ctrl+X. Preparazione richiesta, esito ancora pendente.
+   con Ctrl+O, Invio, poi Ctrl+X. Owner ha corretto battitura/indentazione del
+   blocco routes e mostrato il file finale con IP e gateway previsti.
 
 4. Validare con `netplan generate`; applicare/provare solo dalla console quando
    il nuovo link protetto è pronto. NAT non serve per SSH locale. Usare allora
@@ -334,6 +335,23 @@ Se la VM non è Off, le regole sono ambigue o manca il backup, fermarsi.
    Generate produce configurazioni del backend ma non le applica in questo
    uso manuale; non equivale a rete funzionante. Nessuna modifica cloud-init
    autorizzata implicitamente; persistenza dopo reboot rimane M-08.
+
+   **NETPLAN_OK confermato da screenshot owner**, senza warning nell'output
+   mostrato. Prossimo passo dalla console, senza chiuderla:
+
+   ```bash
+   sudo netplan try --timeout 300
+   ```
+
+   Quando compare la richiesta di conferma/conto alla rovescia, avvisare
+   subito l'assistente e non premere ancora Invio. Nella finestra di cinque
+   minuti controllare dall'host TCP/22 sul solo IP `10.203.240.10`, con route
+   interna e MAC atteso; è un controllo di raggiungibilità, non login o prova
+   LAN. Confermare nella console solo dopo il riscontro. Try ancora non eseguito.
+   Se c'è errore o timeout, riportare l'esito e verificare stato effettivo da
+   console: non presumere che runtime e file su disco siano tornati allo stato
+   precedente e non riavviare alla cieca. Il backup root rimane disponibile.
+   [Comportamento e limiti di netplan try](https://netplan.readthedocs.io/en/stable/netplan-try/).
 5. Verificare IP/route e listener 22. Aggiornare solo `HostName` nell'alias
    SSH a `10.203.240.10`, senza cambiare chiavi/autenticazione/passphrase.
    Verificare un eventuale avviso host key dalla console, senza disabilitare
