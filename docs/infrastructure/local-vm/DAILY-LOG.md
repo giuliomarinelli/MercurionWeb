@@ -766,3 +766,8 @@ anche su deriva NAT. Ventotto scenari lifecycle e 26 pacchetti iniziali
 simulati passati su Windows PowerShell 5.1. Quattro unittest H-06 passati e
 ValidateOnly Windows riuscito. Procedura italiana documentata; richiesto piano
 amministrativo read-only, nessuna ACL reale modificata in questa preparazione.
+
+**Piano DnsHttps amministrativo acquisito:** owner riporta 14 regole attuali,
+19 previste, egress false e mutationsPerformed false, senza errori. Non è
+un'installazione della policy. Richiesto arresto ordinato del solo guest prima
+di Apply; stato Spenta ancora pendente.

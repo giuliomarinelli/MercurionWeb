@@ -4,6 +4,11 @@
 reale e prove runtime ancora pendenti. La baseline osservata resta SSH-only.
 Questa fase prepara H-06, non l'avvio degli stack o del tunnel pubblico.
 
+**Piano reale acquisito dall'owner:** requestedPolicy DnsHttps, 14 ACL correnti
+e 19 previste, internetEgressEnabled false, mutationsPerformed false, nessun
+errore. Prerequisiti letti dal piano verificati; arresto ordinato guest richiesto,
+stato Spenta e applicazione ancora da confermare.
+
 ## Policy DnsHttps
 
 Si conservano le 14 regole della [fase SSH-only](SSH-ONLY-ACL.md) e si aggiungono
