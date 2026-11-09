@@ -550,3 +550,14 @@ diagnosi di duplicazione: verificato separatamente lo stato operativo.
 Guest non ancora migrato; nessuna modifica ACL/NAT da parte dell'agente.
 M-04 pendente: classificazione Pubblica in Kaspersky prima dell'attach;
 persistenza dopo reboot e isolamento restano non collaudati.
+
+**Avanzamento M-04:** screenshot owner conferma Kaspersky Rete pubblica sulla
+riga connessa `10.203.240.1/24` di Mercurion-Internal. Default Switch
+`172.27.0.1/20` appare Rete locale, nonostante la precedente scelta esplicita
+Pubblica riferita dall'owner. Ipotesi di nuovo profilo dopo cambio subnet,
+non causa dimostrata né prova di modifica dello stesso record. Richiesto
+ripristino Pubblica sul vecchio switch finché il guest vi resta collegato;
+nessuna modifica WSL. Conferma del ripristino ancora assente.
+Classificazione attuale verificata, efficacia dei filtri e reboot ancora aperti.
+Richiesto elenco nomi/permessi Netplan da console per preparare M-05; nessuna
+modifica guest, ACL o Kaspersky eseguita dall'agente.

@@ -42,6 +42,11 @@ positivi. [Procedura e limiti delle prove](STATIC-NETWORK-MIGRATION.md).
 L'inventario completo non supera questi gate; smartphone senza origine
 controllata non chiudono automaticamente le prove negative.
 
+**Avanzamento A-29:** screenshot owner conferma la nuova rete `10.203.240.0/24`
+Pubblica in Kaspersky; Windows Public già verificato. Vecchio Default Switch
+invece rilevato Locale dopo cambio subnet, ripristino Pubblica richiesto ma
+non confermato. Efficacia e persistenza dopo reboot non ancora collaudate.
+
 - [INF-VM-02](HOST-GUEST-READINESS.md): inventario guest acquisito il 7 novembre
   dall'operatore. Nessuna porta Docker pubblicata nello snapshot; ciò non
   equivale al superamento di A-04/A-05. Eseguito H-02 TCP IPv4 guest → host

@@ -31,7 +31,11 @@ passo](STATIC-NETWORK-MIGRATION.md), rete Internal e Kaspersky Pubblica,
 divieto diretto LAN ↔ guest/container. Inventario amministrativo completo;
 M-03 eseguito dall'owner: switch Internal ancora vuoto e IP host statico,
 stato operativo Preferred e profilo Windows Public verificati. Prossimo passo:
-classificazione Kaspersky prima di qualunque attach. Rivalidare isolamento
+classificazione Kaspersky prima di qualunque attach: owner ha ora confermato
+Pubblica sulla nuova rete tramite screenshot; efficacia/persistenza aperte.
+Default Switch osservato Locale, ripristino Pubblica richiesto mentre ancora
+usato dal guest, causa del cambio profilo non provata. Preparare backup e ACL
+prima della migrazione guest. Rivalidare isolamento
 e reboot sulla nuova baseline; vecchie prove non certificano la rete futura.
 Bootstrap sintetico sospeso fino al recupero dell'accesso amministrativo.
 

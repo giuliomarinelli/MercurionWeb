@@ -14,8 +14,8 @@ Il bootstrap sintetico rimane sospeso fino al recupero dell'accesso amministrati
    Il guest non può iniziare connessioni verso Windows, router o altri peer privati.
 2. Nuovo switch **Internal**, mai External, mai bridge con Wi-Fi/Ethernet.
    Una sola scheda guest collegata: non affiancare una seconda via Default Switch.
-3. Nuova rete classificata **Pubblica in Kaspersky**, come il Default Switch
-   attuale. Il profilo Windows non sostituisce quello Kaspersky.
+3. Nuova rete classificata **Pubblica in Kaspersky**, come richiesto dall'owner
+   anche per il Default Switch. Il profilo Windows non sostituisce quello Kaspersky.
 4. Nessuna porta inoltrata dalla LAN, nessun mapping NAT statico, nessun UPnP
    o port forwarding del router. Non abilitare RRAS, bridge o routing generale
    sulle schede fisiche per fare funzionare la VM.
@@ -34,7 +34,7 @@ Questi sono criteri da implementare e collaudare, non isolamento già dimostrato
 | M-01 | Inventario host/Hyper-V/HNS e diagnosi del timeout | Completato |
 | M-02 | Piano indirizzi e controlli sovrapposizione | Proposta verificata sullo snapshot, riservare prima dell'uso |
 | M-03 | Switch interno vuoto e IP host statico | Eseguito dall'owner: Internal e `10.203.240.1/24`; ActiveStore Preferred verificato |
-| M-04 | Kaspersky Pubblica e profilo host verificati | Da eseguire prima di collegare la VM |
+| M-04 | Kaspersky Pubblica e profilo host verificati | Classificazione attuale confermata da screenshot owner; efficacia regole/persistenza da provare |
 | M-05 | Backup e policy ACL della sola vNIC Mercurion | Da preparare/applicare con VM spenta e console pronta |
 | M-06 | Configurazione guest statica, NAT e collegamento | Da eseguire dopo M-04/M-05 |
 | M-07 | SSH, egress e prove negative con controlli positivi | Da eseguire |
@@ -129,7 +129,23 @@ interfaccia; profilo Windows **Public**. Il comando iniziale mostrava Tentative
 e la voce PersistentStore Invalid: il dato operativo è stato riletto dopo la
 verifica iniziale dell'indirizzo. Configurazione presente nel PersistentStore;
 persistenza reale ancora da collaudare con M-08, nessuna cancellazione necessaria
-in base al solo output iniziale. Kaspersky non ancora verificato.
+in base al solo output iniziale. Successivamente confermata Kaspersky Pubblica
+sulla nuova subnet tramite screenshot owner, come descritto sotto.
+
+**Riscontro Kaspersky owner, 9 novembre:** la riga connessa
+`10.203.240.1/24 (vEthernet (Mercurion-Internal))` è **Rete pubblica**.
+La riga `172.27.0.1/20 (vEthernet (Default Switch))` è invece **Rete locale**,
+nonostante l'owner l'avesse impostata esplicitamente Pubblica sulla rete precedente.
+Verificare la riga con CIDR e stato Connesso, non la sola voce generica
+dell'adattatore o una connessione Disconnessa.
+
+Non è dimostrato che Kaspersky abbia modificato lo stesso record di rete:
+potrebbe aver classificato un nuovo profilo dopo il cambio subnet. Mancano
+eventi/versioni del record sufficienti per attribuire la causa. Finché il guest
+usa ancora Default Switch, ripristinare Pubblica su quella riga; non modificare
+WSL come effetto collaterale. Ripristino non ancora confermato dall'owner.
+Lo screenshot conferma la classificazione attuale della rete nuova, non le
+regole effettive sui pacchetti né la persistenza dopo reboot. M-07/M-08 restano aperti.
 
 1. Aprire Kaspersky e le impostazioni del componente **Firewall**.
 2. Aprire l'elenco delle reti/connessioni; individuare la rete corrispondente
