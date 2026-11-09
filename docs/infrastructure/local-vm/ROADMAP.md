@@ -44,8 +44,8 @@ SSH-only](SSH-ONLY-ACL.md) disponibile con snapshot, guardie e quarantena;
 16 scenari locali con API Hyper-V simulate passati. Apply reale owner ora
 riuscito con readback di 14 ACL; egress pubblico chiuso, isolamento non accettato.
 Nessun NAT/avvio VM; owner ha ora collegato la sola vNIC a Mercurion-Internal,
-con MAC invariato. Verifica ACL sul nuovo collegamento richiesta prima di
-avviare il guest; configurazione IP statico guest ancora da eseguire.
+con MAC invariato. Verify sul nuovo collegamento riuscito; prossimo passo
+avvio console/LUKS e confronto backup prima di configurare l'IP statico guest.
 
 **Dipende da:** INF-VM-01.  
 Preparare Docker Engine e plugin Compose su Ubuntu, amministrazione SSH a chiave, policy host↔guest, firewall e regole IPv4/IPv6. Non introdurre bridge fisici della LAN. Definire test negativi dalla VM e dai container verso Windows/LAN e protezione della porta SSH.

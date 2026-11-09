@@ -36,7 +36,7 @@ Questi sono criteri da implementare e collaudare, non isolamento già dimostrato
 | M-02 | Piano indirizzi e controlli sovrapposizione | Proposta verificata sullo snapshot, riservare prima dell'uso |
 | M-03 | Creazione switch interno e IP host statico | Eseguito dall'owner: Internal e `10.203.240.1/24`; ActiveStore Preferred verificato |
 | M-04 | Kaspersky Pubblica e profilo host verificati | Classificazione attuale confermata da screenshot owner; efficacia regole/persistenza da provare |
-| M-05 | Backup e policy ACL della sola vNIC Mercurion | Apply owner riuscito, readback di 14 ACL prima del collegamento; verifica successiva pendente, traffico non collaudato |
+| M-05 | Backup e policy ACL della sola vNIC Mercurion | Apply owner riuscito e Verify dopo collegamento confermato; traffico non collaudato |
 | M-06 | Configurazione guest statica, NAT e collegamento | vNIC collegata a Mercurion-Internal con MAC invariato; VM spenta, configurazione guest/NAT ancora pendenti |
 | M-07 | SSH, egress e prove negative con controlli positivi | Da eseguire |
 | M-08 | Riavvio a freddo, stabilità e nuova baseline | Da eseguire |
@@ -268,14 +268,25 @@ Se la VM non è Off, le regole sono ambigue o manca il backup, fermarsi.
    powershell -NoProfile -File C:/.project_repo/MercurionWeb/scripts/infrastructure/Set-MercurionVmNetworkAcl.ps1 -Mode Verify
    ```
 
-   Questa verifica è read-only. Esito ancora pendente: non avviare il guest
-   e non considerare il cambio switch una prova di isolamento.
+   **Verify owner riuscito dopo il collegamento:** settingsReadbackVerified
+   true, internetEgressEnabled false, isolationAccepted false. La verifica è
+   read-only e non costituisce prova di traffico; autorizzato il passo console.
 
 2. Avviare/sbloccare LUKS da console. Il vecchio DHCP non trovera un lease:
    egress e DHCP sono chiusi; la console resta il percorso di amministrazione.
    Confrontare originale e backup con `cmp` prima di editarli. Verificare
    renderer/file reale e gestione cloud-init; non aggiungere un secondo file
    lasciando DHCP attivo nel primo.
+
+   Dopo avvio normale e login console, prima di cambiare il file:
+
+   ```bash
+   sudo cmp -s /etc/netplan/00-installer-config.yaml /root/netplan-pre-static.yaml && echo BACKUP_OK
+   ```
+
+   Atteso `BACKUP_OK`; confronto richiesto, non ancora verificato. In caso di
+   errore/assenza del marker fermarsi senza sovrascrivere file o backup.
+
 3. Preparare la configurazione dell'interfaccia esistente con `10.203.240.10/24`,
    DHCPv4/v6 disattivati, gateway `10.203.240.1`, DNS pubblici esistenti
    `1.1.1.1` e `9.9.9.9` conservati.

@@ -609,3 +609,10 @@ scheda esistente; output conferma Mercurion-Internal e MAC 00155D00DD01
 invariato. Nessun avvio VM, modifica Netplan o NAT dichiarati. Richiesto
 readback `-Mode Verify` delle ACL sul nuovo collegamento; esito ancora pendente,
 VM da mantenere spenta. Isolamento e persistenza non collaudati.
+
+**Readback dopo collegamento owner:** Verify restituisce settingsReadbackVerified
+true, internetEgressEnabled false, isolationAccepted false. Confermata policy
+conservata sul nuovo switch, senza scritture. Richiesto avvio normale/LUKS e
+login console per confronto quiet con `cmp` fra Netplan e backup; BACKUP_OK
+ancora pendente. Nessuna istruzione di modifica del file o apertura egress
+consegnata in questo passaggio. Prove di traffico ancora aperte.
