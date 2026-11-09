@@ -37,8 +37,8 @@ Questi sono criteri da implementare e collaudare, non isolamento già dimostrato
 | M-03 | Creazione switch interno e IP host statico | Eseguito dall'owner: Internal e `10.203.240.1/24`; ActiveStore Preferred verificato |
 | M-04 | Kaspersky Pubblica e profilo host verificati | Classificazione attuale confermata da screenshot owner; efficacia regole/persistenza da provare |
 | M-05 | Backup e policy ACL della sola vNIC Mercurion | Apply owner riuscito e Verify dopo collegamento confermato; traffico non collaudato |
-| M-06 | Configurazione guest statica, NAT e collegamento | Netplan try accettato, TCP/22 e identita server verificati; alias aggiornato, login owner/NAT pendenti |
-| M-07 | SSH, egress e prove negative con controlli positivi | Da eseguire |
+| M-06 | Configurazione guest statica, NAT e collegamento | Netplan try accettato, alias aggiornato e login owner riuscito; NAT ancora assente |
+| M-07 | SSH, egress e prove negative con controlli positivi | SSH host → guest riuscito; egress e prove negative ancora aperti |
 | M-08 | Riavvio a freddo, stabilità e nuova baseline | Da eseguire |
 
 ## M-01 — inventario, senza cambiare configurazioni
@@ -384,7 +384,9 @@ Se la VM non è Off, le regole sono ambigue o manca il backup, fermarsi.
 
    Confermare l'eventuale nuovo record solo se l'impronta coincide con quella
    verificata, poi inserire passphrase nel terminale. Non cancellare record
-   esistenti o ignorare avvisi di chiave differente. Login owner ancora pendente.
+   esistenti o ignorare avvisi di chiave differente. **Eseguito:** owner conferma
+   «Shell Ubuntu raggiunta» il 9 novembre. Accesso amministrativo recuperato;
+   persistenza dopo riavvio e isolamento LAN non ancora collaudati.
 6. Dopo recupero SSH e review dell'egress, creare il NAT dedicato solo se non
    esiste un WinNAT incompatibile. M-05 non lo crea e mantiene egress chiuso:
 
@@ -430,6 +432,26 @@ e i casi residui sulla nuova baseline. Finché l'isolamento LAN bidirezionale
 non è accettato, niente esposizione pubblica o avvio stack reali sulla VM.
 
 ## M-08 — stabilità, recupero e ripresa
+
+Prima verifica parziale, anticipata nella fase SSH-only, senza creare NAT:
+
+1. Salvare il lavoro nella VM e mantenere disponibile la console Hyper-V.
+2. Dalla shell Ubuntu riavviare ordinatamente **solo la VM**:
+
+   ```bash
+   sudo reboot
+   ```
+
+3. Sbloccare LUKS dalla console Hyper-V e attendere il completamento dell'avvio.
+4. Da PowerShell normale riconnettersi con `ssh mercurion-server`, senza
+   cambiare alias o ACL. Se compare un avviso di chiave differente, fermarsi.
+5. Nella nuova shell eseguire `ip -brief address show eth0` e
+   `ip -4 route show default`: attesi `10.203.240.10/24` e gateway
+   `10.203.240.1`. Registrare output ed esito del login. Se SSH non risponde,
+   usare la console per leggere lo stato senza modificare subito i filtri.
+
+Questa prima prova è ancora da eseguire. Copre soltanto il riavvio guest e
+non chiude M-08: NAT, reboot host, profili e isolamento richiedono prove separate.
 
 Provare separatamente reboot guest e host con salvataggio del lavoro prima:
 indirizzi fissi invariati, LUKS e SSH funzionanti, profilo Kaspersky ancora

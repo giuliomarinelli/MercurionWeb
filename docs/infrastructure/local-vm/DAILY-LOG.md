@@ -655,3 +655,10 @@ con ACL originali. Hostname effettivo riletto e confermato; nessuna chiave
 privata letta nel contenuto. Vecchio record fidato preservato, nuovo IP non
 ancora registrato: richiesto login interattivo owner con impronta gia verificata.
 NAT/egress restano chiusi; rete LAN e reboot ancora da collaudare.
+
+**Login reale recuperato:** owner conferma «Shell Ubuntu raggiunta» dopo
+`ssh mercurion-server` al nuovo IP statico. È evidenza di accesso amministrativo
+riuscito, distinta dall'handshake diagnostico precedente. Documentata prima
+prova parziale di riavvio guest con sblocco LUKS, nuovo login e lettura IP/route;
+esecuzione ancora pendente. Nessun NAT o egress abilitato; reboot host,
+persistenza Kaspersky e isolamento LAN bidirezionale restano aperti.

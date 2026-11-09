@@ -29,7 +29,7 @@
 | A-23 | Recovery | restart guest/host e avvio su richiesta senza dipendenza da file credenziali persistenti | Non eseguito |
 | A-24 | Risorse | memoria/CPU/disco misurati a riposo, in carico e con entrambi gli stack | Non eseguito |
 | A-25 | Limiti portfolio | avviso di case study, dati personali e disponibilità rappresentati correttamente | Non eseguito |
-| A-26 | Amministrazione guest | SSH da host con chiave, nessun login root/password, ACL delle origini verificate | Parziale: login operatore e policy globale acquisiti; ACL/prove negative aperte |
+| A-26 | Amministrazione guest | SSH da host con chiave, nessun login root/password, ACL delle origini verificate | Parziale: login owner riuscito il 9 novembre sulla nuova rete statica; ACL rilette, prove negative e persistenza aperte |
 | A-27 | Cifratura guest | mount root sul dispositivo cifrato e percorso operativo di sblocco | Root su LUKS/dm-crypt/LVM verificato nel report v2; sblocco a freddo aperto |
 
 ## Risultati preesistenti da non confondere con questa matrice
@@ -41,6 +41,12 @@ diretto LAN ↔ VM/container su IPv4/IPv6, anche via NAT/host, con controlli
 positivi. [Procedura e limiti delle prove](STATIC-NETWORK-MIGRATION.md).
 L'inventario completo non supera questi gate; smartphone senza origine
 controllata non chiudono automaticamente le prove negative.
+
+**Avanzamento rete statica del 9 novembre:** Netplan try accettato; TCP/22
+dal solo IP host interno e identità server verificati; owner conferma shell
+Ubuntu raggiunta tramite alias aggiornato. Nessuna prova di riavvio ancora
+eseguita sulla nuova configurazione. NAT assente, egress chiuso; A-28/A-30
+restano aperti.
 
 **Avanzamento A-29:** screenshot owner conferma la nuova rete `10.203.240.0/24`
 Pubblica in Kaspersky; Windows Public già verificato. Vecchio Default Switch
