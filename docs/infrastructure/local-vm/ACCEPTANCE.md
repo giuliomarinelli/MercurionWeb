@@ -8,7 +8,7 @@
 | A-02 | Reti | DNS, collegamenti web/data/bus/search ammessi su stesso ambiente | Piano fixture e runner preparati; esecuzione Docker non effettuata |
 | A-03 | Reti negativa | preview non raggiunge PostgreSQL, Redis o NATS production e viceversa | Negazioni e controlli positivi definiti nella matrice; esecuzione Docker non effettuata |
 | A-04 | Reti negativa | non sono raggiungibili da LAN/Internet Redis, NATS, Postgres, Meilisearch, UI | Non eseguito |
-| A-05 | Host | container con egress non raggiungono Windows/LAN secondo policy, IPv4 e IPv6 | Parziale: DnsHttps, canary TCP effimeri e nove percorsi host TCP/443, TCP/53, UDP/53 verificati; LAN/IPv6 ancora da verificare |
+| A-05 | Host | container con egress non raggiungono Windows/LAN secondo policy, IPv4 e IPv6 | Parziale: percorsi host verificati e TCP da guest/due bridge verso Android LAN negativo con controlli; altre coperture LAN e IPv6 aperte |
 | A-06 | Ingresso | cloudflared esce verso Cloudflare, Nginx edge HTTP, due hostname corretti | Non eseguito |
 | A-07 | Web | SPA Angular, Ketcher, REST, GraphQL e Socket.IO passano via Nginx edge | Non eseguito |
 | A-08 | HTTP | header proxy/client IP e cookie/sessione corretti con la catena Cloudflare Tunnel | Non eseguito |
@@ -62,9 +62,19 @@ c149b357dc5040038b4a26682309dbd0: DNS/HTTPS IPv4 riuscito su guest e due bridge,
 cleanup senza errori. Negazioni post-Restart poi acquisite nel run
 32b00ebc17a246b881b95fff19c13dc3: nove casi non raggiungibili, 81 controlli
 host positivi e controlli client/route correlati, cleanup e chiusura riusciti.
-A-28: persistenza rete e runtime Docker guest verificati; daemon Docker Desktop
-risponde e reti preservate, distro Ubuntu WSL ancora Stopped e smoke funzionale
-non eseguito. A-28 resta parziale per quest'ultimo punto; A-30 ancora aperto.
+A-28: persistenza rete e runtime Docker guest verificati; Docker Desktop
+risponde, reti preservate e due casi container locali con route/controlli e
+cleanup riusciti nel collaudo dello strumento LAN. Smoke successivo Ubuntu
+WSL riuscito: avvio, DNS IPv4 e HTTPS con certificato validato, HTTP 200,
+exit 0. **A-28 superato nel perimetro della persistenza rete e del funzionamento
+base SSH/WSL/Docker**, non recovery dell'intero stack applicativo (A-23).
+
+**Avanzamento A-30 LAN:** run 2e5b54bfac1a4ff782f7cd33891ae49f, TCP verso
+Android 192.168.0.218:53483: guest e due bridge non raggiungibili, route presenti,
+controlli client prima/dopo e 18 controlli Windows tutti positivi. Correlazione
+ricalcolata e pulizia container/rete riuscita; chiusura Android ancora pendente.
+Direzione LAN → VM, altre origini e IPv6 ancora aperti; nessuna generalizzazione
+a tutte le porte/dispositivi. [Evidenze e hash](ANDROID-LAN-PROBES.md).
 
 **Avanzamento rete statica del 9 novembre:** Netplan try accettato; TCP/22
 dal solo IP host interno e identità server verificati; owner conferma shell

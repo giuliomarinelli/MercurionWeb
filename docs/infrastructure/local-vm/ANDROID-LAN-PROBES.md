@@ -5,8 +5,8 @@
 Il 9 novembre 2026, dopo la verifica post-riavvio Windows, l'owner ha scelto
 di predisporre Android per le prove LAN. Prima di questa scelta erano stati
 anticipati soltanto manifest e verifiche locali. Questo documento prepara
-il percorso; smoke locale Android riuscito, misura LAN ancora da eseguire e
-A-30 rimane aperto.
+il percorso; smoke locale e misura TCP guest/due bridge verso Android riusciti.
+La direzione opposta e IPv6 restano aperti per A-30.
 
 Strumento previsto: **Termux con Python**, senza root, ADB o server SSH sul
 telefono. Owner conferma Android 16 aggiornato, Termux al prompt e Python
@@ -158,7 +158,42 @@ con lettura Wi-Fi reale e config di test, senza contatti remoti. Collaudo reale
 Docker Desktop su due bridge: controlli positivi e route validi, porta chiusa
 in container dedicato della fixture, cleanup senza errori. Artifact locale
 lan-tool-validation/7110748a704046daa9c71e59f9b5aa11/result.json: verifica dello
-strumento, non prova del firewall, della VM o della LAN. Misura Android ancora pendente.
+strumento, non prova del firewall, della VM o della LAN. Misura Android acquisita sotto.
+
+## Risultato TCP verso Android acquisito il 9 novembre
+
+Run `2e5b54bfac1a4ff782f7cd33891ae49f`, sorgenti al commit `84adb554`.
+Telefono `192.168.0.218:53483`; canary avviato alle 17:08:05 UTC, scadenza
+17:18:05 UTC. Controllo iniziale Windows positivo alle 17:09:59 UTC; preflight
+PS 5.1 sulla configurazione reale passato prima della consegna all'owner.
+
+| Origine | Percorso TCP verso il telefono | Controlli del client | Route |
+| --- | --- | --- | --- |
+| Guest | Non raggiungibile, timeout | Positivi prima/dopo | eth0 via 10.203.240.1 |
+| Bridge predefinito | Non raggiungibile, timeout | Positivi prima/dopo | eth0 via 172.17.0.1 |
+| Bridge temporaneo | Non raggiungibile, timeout | Positivi prima/dopo | eth0 via 172.18.0.1 |
+
+Guest attivo 17:11:34–17:11:46 UTC. Diciotto controlli Windows verso Android,
+tutti positivi, dalle 17:10:40 alle 17:12:04 UTC, prima/dopo ogni tentativo.
+Correlazione ricalcolata sui report salvati, namespace distinti, immagine
+attesa linux/amd64, nessun errore di pulizia container/rete. Monitor Windows
+terminato su stop richiesto. Hash dei tre sorgenti nel manifest locale
+source-hashes.json corrispondenti alle copie trasferite e al tree del repository.
+
+Artifact: `.codex/artifacts/inf-vm-02/lan-ipv4-2e5b54bfac1a4ff782f7cd33891ae49f/`,
+stage `inf-vm-02-lan-2e5b54bfac1a4ff782f7cd33891ae49f`.
+
+| File nello stage | SHA-256 |
+| --- | --- |
+| config.json | `026a57d462450d30614cfc09cce656909720030ec4e1be196c656ec5797881b7` |
+| lan-guest.json | `d8ff85e35109c3e31c6731791c7391c90729901ea7ae801d957e95bac7a10aa5` |
+| lan-control.json | `e79928bf6c71cf76c56343e7171c2c43c9e87ae8ce04b71539054f7ddc690b96` |
+| lan-correlation.json | `7b3c1d76c3d2871454f969073d6ef4cd3de81c53a7a04570488c8cc86026229d` |
+
+Chiusura automatica del canary Android richiesta all'owner, conferma finale
+ancora pendente. La misura prova soltanto i tre percorsi TCP verso quel telefono
+e quella porta: nessuna attribuzione al singolo firewall o estensione a tutte
+le porte/dispositivi, alla direzione LAN → VM o a IPv6. isolationAccepted resta false.
 
 ## 4. Misurare LAN verso VM e distinguere i limiti
 

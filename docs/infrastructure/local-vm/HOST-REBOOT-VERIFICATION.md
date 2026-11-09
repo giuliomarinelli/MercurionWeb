@@ -199,11 +199,22 @@ ricalcolata e hash nel [report delle porte private](PRIVATE-PORT-PROBES.md).
 
 Persistenza IP host/guest, NAT, ACL, profili, SSH, egress e negazioni host
 verificata su questo riavvio. A-29 soddisfatto per la categoria. Il controllo
-locale WSL elenca docker-desktop Running e Ubuntu-26.04 Stopped; il daemon
-desktop-linux risponde con versione 29.9.3 e reti attese. La distro Ubuntu
-WSL non è stata avviata e il suo smoke funzionale resta aperto per A-28;
-non confonderla con la VM Ubuntu Hyper-V verificata. M-08/A-28 non sono
-dichiarati integralmente chiusi; LAN/altre origini/IPv6 A-30 restano aperti.
+locale iniziale WSL elencava docker-desktop Running e Ubuntu-26.04 Stopped;
+il daemon desktop-linux risponde con versione 29.9.3 e reti attese. Successivo
+smoke funzionale WSL delle 17:13:54–17:13:58 UTC riuscito: avvio distro,
+kernel 6.6.114.1-microsoft-standard-WSL2, DNS IPv4 docs.python.org, HTTP 200
+su HTTPS con certificato validato, exit 0. Nessun servizio applicativo avviato;
+non confondere la distro WSL con la VM Ubuntu Hyper-V.
+
+Report fuori da Git in `.codex/artifacts/inf-vm-02/wsl-post-reboot/`
+`eabcc7395665409d86caae81df9769ac/result.json`, SHA-256
+`b4095411af0a652fd96a76c8a8af51b9b089e45bd5de875ef709389eca5fd709`.
+Anche due casi reali Docker Desktop con route/controlli e cleanup sono passati
+nel collaudo locale dello strumento LAN. **M-08/A-28 verificati per persistenza
+rete e funzionamento base SSH/WSL/Docker**. Non è recovery dell'intero stack.
+Successiva misura verso Android LAN acquisita con tre casi negativi e 18
+controlli Windows positivi: [dettagli](ANDROID-LAN-PROBES.md). Direzione
+opposta, altre origini e IPv6 A-30 restano aperti.
 
 Primo tentativo probe privati post-Restart
 `daed3aca799c4c6282080e302b059f58` interrotto prima di SSH: errore nella

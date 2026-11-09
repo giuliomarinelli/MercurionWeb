@@ -75,7 +75,7 @@ snapshot coerente e nessun avvio/spostamento automatico. H-06 poi riuscito da
 guest e due bridge con DNS, TLS 1.3, HTTP 200 e cleanup. H-02 ripetuto: timeout
 verso host, 23 controlli positivi e listener chiuso. H-04 aggiornato riuscito
 su due bridge con 12 controlli host, cleanup e Verify finale DnsHttps riusciti.
-**Passi residui:** LAN bidirezionale, IPv6/altre origini e smoke distro WSL. Non
+**Passi residui:** LAN → VM, IPv6/altre origini e copertura LAN residua. Non
 anticipare accettazione complessiva o deployment sulla sola riuscita H-06.
 Strumento [porte private](PRIVATE-PORT-PROBES.md) pronto: 13 unittest, tre
 scenari trasporto PowerShell 5.1, preflight host e collaudo Docker Desktop
@@ -88,11 +88,14 @@ confermano IP persistente, switch/vNIC, NAT senza mapping, ACL e Windows Public;
 owner conferma Kaspersky ancora Pubblica. SSH/IP/route guest preservati,
 H-06 riuscito e nove negazioni private ripetute con 81 controlli host positivi,
 cleanup e correlazione riusciti. [Punto M-08 aggiornato](HOST-REBOOT-VERIFICATION.md).
-Docker Desktop risponde; distro Ubuntu WSL non avviata, smoke ancora aperto.
-Owner ha scelto di predisporre Android per il prossimo blocco LAN:
-[procedura preparatoria](ANDROID-LAN-PROBES.md), compatibilità/installazione
-da confermare e misure ancora da eseguire. Nessuna modifica ai filtri o
-all'instradamento implicita; A-30 e H-05 restano aperti.
+Docker Desktop risponde e collaudo locale su due bridge riuscito; successivo
+smoke Ubuntu WSL con avvio, DNS e HTTPS verificato, HTTP 200 ed exit 0.
+A-28 verificato per persistenza e funzionamento base, non recovery applicativo.
+Android predisposto e misura TCP verso LAN acquisita: guest/due bridge non
+raggiungono il canary, 18 controlli Windows positivi, route/correlazione e cleanup
+riusciti. [Evidenze](ANDROID-LAN-PROBES.md). Chiusura Android ancora da confermare.
+Nessuna modifica ai filtri o all'instradamento; A-30 e H-05 restano aperti per
+direzione opposta, altre origini e IPv6.
 Residuo strumenti: diagnosticare il prompt sudo tardivo nella pipeline SSH/PTY,
 senza cambiare autenticazione, sudoers o acquisire password nei report.
 

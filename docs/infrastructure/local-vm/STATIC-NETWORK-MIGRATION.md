@@ -41,8 +41,8 @@ Questi sono criteri da implementare e collaudare, non isolamento già dimostrato
 | M-04 | Kaspersky Pubblica e profilo host verificati | Pubblica confermata anche dopo reboot host; isolamento completo resta M-07 |
 | M-05 | Backup e policy ACL della sola vNIC Mercurion | Apply owner riuscito e Verify dopo collegamento confermato; traffico non collaudato |
 | M-06 | Configurazione guest statica, NAT e collegamento | Mercurion-NAT riletto senza mapping; successiva policy DnsHttps a 19 ACL applicata |
-| M-07 | SSH, egress e prove negative con controlli positivi | DnsHttps: H-06 e canary riusciti, nove percorsi host 443/53 negativi con controlli; LAN/altre origini ancora da verificare |
-| M-08 | Riavvio a freddo, stabilità e nuova baseline | Riavvio host: IP/NAT/ACL/profili, SSH, egress e negazioni host verificati; smoke distro WSL e isolamento residuo aperti |
+| M-07 | SSH, egress e prove negative con controlli positivi | Percorsi host e tre TCP verso Android LAN negativi con controlli; LAN → VM, altre origini e IPv6 aperti |
+| M-08 | Riavvio a freddo, stabilità e nuova baseline | Riavvio host: persistenza IP/NAT/ACL/profili e smoke SSH/WSL/Docker verificati; non recovery stack applicativo |
 
 ## M-01 — inventario, senza cambiare configurazioni
 
@@ -565,8 +565,9 @@ persistenza dopo riavvio Windows o a isolamento LAN collaudato.
 Per la prova Windows seguire il [punto di ripresa e checklist M-08](HOST-REBOOT-VERIFICATION.md),
 con inventario prima/dopo e VM arrestata ordinatamente. Prova ora eseguita:
 IP/NAT/ACL/profili, SSH, egress e nove negazioni host verificati; dettagli,
-hash e limiti nel documento. Smoke funzionale distro WSL ancora aperto,
-LAN/altre origini/IPv6 restano prove separate.
+hash e limiti nel documento. Smoke funzionale distro WSL successivamente
+riuscito; LAN/altre origini/IPv6 restano prove separate. TCP guest/due bridge
+verso Android LAN ora verificato nel perimetro di ANDROID-LAN-PROBES.
 
 Provare separatamente reboot guest e host con salvataggio del lavoro prima:
 indirizzi fissi invariati, LUKS e SSH funzionanti, profilo Kaspersky ancora

@@ -972,3 +972,25 @@ route e cleanup riusciti; destinazione fixture con porta deliberatamente chiusa,
 non evidenza di isolamento. Report in lan-tool-validation/7110748a704046daa9c71e59f9b5aa11.
 Tolleranza inferiore a un secondo per il doppio campionamento dei timestamp
 del canary Android, nessuna estensione del run. Prova LAN effettiva ancora pendente.
+
+**Misura LAN acquisita:** ready Android da screenshot owner, 192.168.0.218:53483,
+nonce 063620e0f27c4df6b53b6cca680590c4, finestra 17:08:05–17:18:05 UTC. Config
+con runId 2e5b54bfac1a4ff782f7cd33891ae49f preparato fuori da Git, controllo
+Windows positivo alle 17:09:59 e ValidateOnly reale PS 5.1 passato. Owner
+esegue il wrapper: guest/due bridge timeout, route presenti, controlli client
+prima/dopo e 18 controlli Windows positivi, 17:10:40–17:12:04 UTC. Guest
+17:11:34–17:11:46 UTC; immagine attesa, cleanup senza errori, monitor terminato
+su stop richiesto. Correlazione ricalcolata sui report e hash sorgenti stage/tree
+confrontati. Hash report in ANDROID-LAN-PROBES. Chiusura Android alle 18:18:05
+ora italiana richiesta all'owner, ancora da confermare; nessun retry.
+
+**Smoke WSL post-reboot riuscito:** avviata Ubuntu-26.04 con solo processo
+Python diagnostico, 17:13:54–17:13:58 UTC, exit 0. Kernel WSL2 6.6.114.1,
+DNS IPv4 e HTTPS docs.python.org con certificato validato, HTTP 200. Report
+fuori da Git wsl-post-reboot/eabcc7395665409d86caae81df9769ac/result.json,
+hash nella checklist reboot. Nessun servizio applicativo avviato o distro
+terminata forzatamente. Con test Docker Desktop locali già riusciti, A-28
+verificato per persistenza e funzionamento base; A-23 recovery stack distinto.
+A-30 resta parziale: un endpoint/porta TCP LAN in uscita, non direzione
+opposta, tutte le porte/dispositivi o IPv6. Nessuna attribuzione del blocco
+al singolo filtro e nessuna autorizzazione di deployment dedotta.

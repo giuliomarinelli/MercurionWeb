@@ -356,12 +356,16 @@ Anche un secondo PC che non dispone di una route verso il Default Switch non
 prova da solo il filtro SSH. Registrare separatamente limite topologico ed
 effettiva decisione di filtro, senza introdurre forwarding per aggirare il limite.
 
-**Disponibilità dichiarata dall'owner:** nessun secondo PC; iPhone e smartphone
+**Disponibilità iniziale dichiarata dall'owner:** nessun secondo PC; iPhone e smartphone
 Android connessi alla LAN; nessuna app terminale/server HTTP o TCP su Android.
 Possono costituire origini controllate, ma strumenti utilizzabili e percorso
 verso la VM restano da predisporre/verificare. Il solo
 errore del browser verso una porta SSH non è una misura TCP sufficiente;
 nessuna installazione di app o apertura di porte sull'host è implicita.
+Successivamente, il 9 novembre, Android predisposto con Termux/Python e
+misura TCP guest/due bridge verso telefono riuscita: 18 controlli Windows
+positivi, route e correlazione validi, cleanup senza errori. [Report e limiti](ANDROID-LAN-PROBES.md).
+Direzione opposta e IPv6 restano aperti; nessuna route o regola aggiunta.
 In assenza di un punto di prova utilizzabile conservare i casi come aperti e sottoporre il limite alla review del gate;
 non trasformarli automaticamente in «non applicabile» o in una deroga approvata.
 
