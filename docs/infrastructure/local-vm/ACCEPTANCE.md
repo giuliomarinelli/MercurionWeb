@@ -50,7 +50,8 @@ IP host Preferred/Manual e Windows Public riletti; Verify ACL post-riavvio
 riuscito. Owner conferma Kaspersky ancora Pubblica. Successivamente creato
 Mercurion-NAT sul prefisso 10.203.240.0/24 con Active 1; inventario post-creazione
 completo riletto: nessun mapping e ACL SSH-only invariate. TCP/22 nuovamente
-raggiungibile dopo NAT; nuova H-02 IPv4 predisposta, ancora da eseguire.
+raggiungibile dopo NAT; nuova H-02 IPv4 eseguita con timeout guest → host,
+36 controlli positivi e listener chiuso. H-04 nuova rete ancora pendente.
 Egress chiuso, reboot host non eseguito; A-28/A-30 restano aperti.
 
 **Controllo router:** il 9 novembre l'owner riferisce port forwarding, DMZ,

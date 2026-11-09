@@ -90,7 +90,9 @@ La versione corrente di Tox21 ha override `allow` / `require-jwt` / `disabled` p
   Mercurion-NAT creato con 10.203.240.0/24 e Active 1. Inventario post-creazione
   completo riletto: nessun mapping, 14 ACL SSH-only invariate, Windows Public,
   forwarding/weak-host disabilitati. TCP/22 nuovamente raggiungibile; nessun
-  allow egress aggiunto. H-02 IPv4 preparato sulla nuova rete, prova guest pendente.
+  allow egress aggiunto. H-02 IPv4 sulla nuova rete: timeout guest → host con
+  36 controlli host positivi prima/dopo e listener chiuso. H-04 preparato,
+  esecuzione guest pendente; LAN e policy completa con egress restano aperti.
 - Ricevitore/apply Tox21 disponibile come [pilot locale](SECRET-DELIVERY-PILOT.md),
   con 17 test Linux sintetici passati; non ancora installato sulla VM.
   Trasporto SSH, consegna reale, altri consumer e lifecycle operativo aperti.

@@ -7,9 +7,41 @@ creare un altro switch o cambiare ACL/firewall prima di esaminare la baseline.
 **9 novembre:** verificata variazione subnet Default Switch. Guest
 `172.27.1.64/20`, host `172.27.0.1`; alias e allow SSH ancora riferiti alla
 vecchia rete. Nuovo inventario amministrativo completo e [migrazione statica
-VM-032 documentata](STATIC-NETWORK-MIGRATION.md). Nessuna modifica applicata:
-i risultati sotto restano evidenze del 7 novembre, da ripetere sulla nuova
-topologia prima di dichiararla isolata.
+VM-032 documentata](STATIC-NETWORK-MIGRATION.md). La migrazione è poi stata
+applicata dall'owner nella fase SSH-only descritta qui sotto. Le evidenze del
+7 novembre restano storiche, distinte dalle nuove prove.
+
+## Baseline statica del 9 novembre
+
+Guest 10.203.240.10/24, host 10.203.240.1/24 su Mercurion-Internal; login,
+IP e gateway statico confermati dall'owner anche dopo riavvio guest.
+ACL SSH-only rilette, Kaspersky ancora Pubblica confermata dall'owner.
+Router ZTE MC888 Ultra: port forwarding, DMZ, UPnP e mapping dichiarati
+disabilitati. Creato Mercurion-NAT; inventario amministrativo completo delle
+11:44 UTC nel run `static-network/98fda47d2bc34bb0893a9b65ff3aeea8`:
+prefisso 10.203.240.0/24, nessun mapping statico, zero ACL semplici e 14 estese
+coincidenti con la policy SSH-only, Windows Public, forwarding/weak-host
+disabilitati. Nessun allow egress e nessun deployment applicativo.
+
+**H-02 IPv4 sulla rete nuova:** run locale
+`h02-ipv4-bd5212a11cb54b5281b49785de9bb04c`, canary 10.203.240.1:62690.
+Tentativo guest alle 11:50:47.819476 UTC: TimeoutError/not-reachable.
+Nonce/IP/porta coincidenti e tentativo nella finestra; 36 controlli host
+positivi, dal primo delle 11:48:43.302711 all'ultimo delle 11:51:34.665929 UTC,
+inclusi controlli prima/dopo il timeout. Listener chiuso tramite stop, report
+controls-passed e processo terminato. SHA-256 delle evidenze locali:
+
+| File | SHA-256 |
+| --- | --- |
+| guest-probe.json | `810e59a939ee496d42b2fe7795a10812834c2f949fe4c179068eef0d1b77d911` |
+| result.json | `52292fc55f53605b2e28254010e6044f6ca72be8a7d53a8b5d30bf65e89bd7f7` |
+| network_canary.py | `52b73178ea7394ba310259c10f93ee203c74bccb04e27466d07813605df0f01b` |
+
+Prova valida per quel solo percorso guest → host TCP IPv4 nella fase SSH-only;
+non attribuisce il blocco a uno specifico livello né chiude isolamento LAN,
+container, IPv6 o altre origini. Dopo l'apertura egress ripetere le negazioni
+pertinenti sulla policy completa. H-04 sulla rete nuova preparato con preflight
+Windows PowerShell 5.1 reale passato; esecuzione guest ancora pendente.
 
 ## Evidenza acquisita
 

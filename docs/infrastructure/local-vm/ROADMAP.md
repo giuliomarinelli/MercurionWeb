@@ -62,7 +62,9 @@ dei NAT esistenti e mantenendo la policy SSH-only. Lettura attuale owner vuota;
 creazione Mercurion-NAT riuscita, prefisso 10.203.240.0/24 e Active 1.
 Inventario post-creazione completo riletto: nessun mapping, 14 ACL SSH-only
 invariate, forwarding/weak-host disabilitati e Windows Public. Nessun allow
-outbound aggiunto; nuova prova H-02 IPv4 predisposta e ancora pendente.
+outbound aggiunto. Nuova H-02 IPv4 eseguita: timeout guest → host, 36 controlli
+positivi e listener chiuso. H-04 adattato alla rete statica e preflight reale
+riuscito; esecuzione guest pendente. Ripetere negazioni dopo apertura egress.
 
 **Dipende da:** INF-VM-01.  
 Preparare Docker Engine e plugin Compose su Ubuntu, amministrazione SSH a chiave, policy host↔guest, firewall e regole IPv4/IPv6. Non introdurre bridge fisici della LAN. Definire test negativi dalla VM e dai container verso Windows/LAN e protezione della porta SSH.

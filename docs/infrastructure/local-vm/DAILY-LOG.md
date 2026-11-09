@@ -729,3 +729,15 @@ del wrapper riuscito; esecuzione guest richiesta all'owner, ancora pendente.
 Run locale h02-ipv4-bd5212a11cb54b5281b49785de9bb04c, porta 62690, durata massima
 600 secondi. Nessuna apertura firewall, ACL o egress e nessun nuovo login
 SSH eseguito dall'agente. H-04/IPv6 non ancora adattati alla topologia statica.
+
+**H-02 nuova rete eseguito:** file guest e output owner coincidenti, timeout
+verso 10.203.240.1:62690 alle 11:50:47.819476 UTC. Identificatori e finestra
+correlati con 36 controlli host tutti positivi, inclusi prima/dopo. Stop richiesto,
+report controls-passed, processo 36256 terminato. Hash e limiti registrati in
+HOST-GUEST-READINESS. Non è collaudo LAN o della futura policy egress.
+
+**H-04 adattato:** wrapper ora vincolato al solo 10.203.240.1/24 Preferred su
+Mercurion-Internal; preflight reale Windows PowerShell 5.1 passato con immagine
+Docker Desktop già locale. Otto casi parser PTY passati, quattro unittest del
+runner passati con Docker simulato. Richiesta all'owner esecuzione H-04 sulla
+VM, ancora pendente. Nessuna modifica firewall/ACL o avvio applicazioni.

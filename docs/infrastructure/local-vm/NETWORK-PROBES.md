@@ -55,16 +55,18 @@ Nessun fallback al Default Switch. Le evidenze vecchie conservano i loro IP.
 Sette scenari PowerShell 5.1 verificano preflight valido, rifiuto del vecchio
 bersaglio, indirizzo assente/duplicato, prefisso errato, indirizzo tentative e
 scadenza: letture simulate, nessun trasporto. Tre test Python del canary passati.
-ValidateOnly passato anche contro il vero canary IPv4 sulla rete nuova;
-esecuzione guest ancora pendente. Il listener temporaneo usa solo l'IP interno
+ValidateOnly passato anche contro il vero canary IPv4 sulla rete nuova.
+Esecuzione guest acquisita: timeout con 36 controlli host positivi e listener
+chiuso; [run, hash e limiti](HOST-GUEST-READINESS.md#baseline-statica-del-9-novembre).
+Il listener temporaneo usa solo l'IP interno
 e controlli positivi, con chiusura tramite file stop o scadenza massima.
 
 ```powershell
 powershell -NoProfile -File scripts/infrastructure/Test-GuestCanaryStaticNetwork.ps1
 ```
 
-I wrapper H-04 e H-02 IPv6 descritti sotto conservano ancora riferimenti al
-Default Switch: adattarli e verificarli prima di nuove esecuzioni. Sul guest
+Il wrapper H-02 IPv6 descritto sotto conserva ancora riferimenti al
+Default Switch: adattarlo e verificarlo prima di nuove esecuzioni. Sul guest
 statico IPv6 link-local è disabilitato; non riabilitarlo soltanto per ripetere
 il vecchio test. L'assenza di una route non dimostra un blocco del firewall.
 
@@ -156,7 +158,8 @@ terminale. Il wrapper esporta da Docker Desktop l'immagine Python già locale
 non esegue pull. Dimensione immagine riportata da Docker circa 187 MB; archivio
 trasferito nella prova operatore circa 46 MB. Serve spazio libero su host e
 guest. Trasferisce archivio e script, avvia un nuovo canary Windows
-sul solo Default Switch per massimo 600 secondi e invia la configurazione.
+sul solo Mercurion-Internal (10.203.240.1/24 Preferred) per massimo 600 secondi
+e invia la configurazione. Nessun fallback al Default Switch.
 SCP e SSH sono invocazioni separate gestite dallo script.
 
 Sul guest `probe_container_isolation.py` verifica Ubuntu, Docker Linux amd64
@@ -189,6 +192,10 @@ host prima/dopo ciascun tentativo. Tutti i report restano `isolationAccepted=fal
 questo caso non verifica LAN, IPv6, egress Internet o le future reti Compose.
 
 `-ValidateOnly` verifica i prerequisiti host senza export, listener o SSH.
+Passato il 9 novembre con Windows PowerShell 5.1 sul vero adattatore statico
+e sull'immagine Docker Desktop locale. Parser: quattro casi PTY validi e
+quattro invalidi verificati; quattro unittest del runner passati con Docker
+simulato. Esecuzione H-04 guest sulla rete nuova ancora pendente.
 Quattro unittest coprono input scaduti/non validi, fallimento del controllo
 positivo, servizio inatteso e pulizia fallita. Il percorso Docker reale è stato
 provato su Docker Desktop, su entrambi i bridge, con un endpoint loopback chiuso:

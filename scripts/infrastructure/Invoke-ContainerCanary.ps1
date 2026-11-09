@@ -9,9 +9,9 @@ $taskPython = (Get-Command python.exe -CommandType Application | Select-Object -
 $taskDocker = (Get-Command docker.exe -CommandType Application | Select-Object -First 1).Source
 $taskScp = (Get-Command scp.exe -CommandType Application | Select-Object -First 1).Source
 $taskSsh = (Get-Command ssh.exe -CommandType Application | Select-Object -First 1).Source
-$taskAddress = @(Get-NetIPAddress -InterfaceAlias 'vEthernet (Default Switch)' -AddressFamily IPv4 |
-    Where-Object { $_.AddressState -eq 'Preferred' })
-if ($taskAddress.Count -ne 1) { throw 'Indirizzo Default Switch non univoco; nessuna prova avviata.' }
+$taskAddress = @(Get-NetIPAddress -InterfaceAlias 'vEthernet (Mercurion-Internal)' -AddressFamily IPv4 -ErrorAction Stop |
+    Where-Object { $_.IPAddress -eq '10.203.240.1' -and $_.PrefixLength -eq 24 -and [string]$_.AddressState -eq 'Preferred' })
+if ($taskAddress.Count -ne 1) { throw 'Indirizzo statico Mercurion-Internal assente o non univoco; nessuna prova avviata.' }
 $taskMetadataRaw = & $taskDocker --context desktop-linux image inspect $taskImage
 if ($LASTEXITCODE -ne 0) { throw 'Immagine Python verificata assente sul Docker Desktop host.' }
 $taskMetadata = @($taskMetadataRaw -join "`n" | ConvertFrom-Json)[0]
