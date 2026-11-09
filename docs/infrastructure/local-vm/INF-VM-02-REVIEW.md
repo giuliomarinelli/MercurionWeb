@@ -75,3 +75,9 @@ o risorsa VM creata durante questa review.
 
 Ogni attività esterna a questa eccezione mantiene le autorizzazioni e i gate
 precedenti. La risposta dell'owner non autorizza merge o deployment applicativo.
+
+**Esito successivo VM-033:** run c2abe4b0e10248698a4e02a9ff584e5b completato
+sulla VM il 9 novembre, 33/33 passed e cleanup 16/13/7 senza errori. Bundle/hash
+e decisioni del report verificati sull'host. [Evidenza completa](FIXTURE-RUNTIME.md#7-collaudo-sulla-vm-riuscito).
+Non modifica i limiti H-05/IPv6 della review: resta una prova della topologia
+sintetica, non dell'isolamento completo o dei servizi applicativi reali.

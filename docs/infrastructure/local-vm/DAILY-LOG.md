@@ -1105,3 +1105,15 @@ nessun errore e ricerca per label senza risorse residue. Report distinto
 8c4da1af23fe4e8dacd3cad9089c35ac, hash in FIXTURE-RUNTIME.md. Anche preflight
 PowerShell 5.1 e validator documentazione passati. Nuovo tentativo operatore VM
 ancora necessario; il primo invalid resta conservato e senza mutazioni.
+
+**VM-033 verificata sulla VM:** owner esegue il nuovo bundle, run
+c2abe4b0e10248698a4e02a9ff584e5b, 18:43:12–18:45:09 UTC (19:43–19:45 CET).
+Report SCP e bundle riletti sull'host: tutti gli hash validi e sorgenti uguali
+al tree del commit 8ddfaafea; preflight senza collisioni e immagine esatta locale.
+33 coppie uniche identiche al piano, 15 allow/18 deny tutte passed. Ricalcolate
+le 18 decisioni negative e verificati i 15 risultati TCP positivi senza nuovi
+probe: nove TCP non connessi, nove namespace senza route. Cleanup client e
+lifecycle senza errori, 16 fixture/13 reti/7 volumi rimossi e readback guest
+senza residui del run. Hash e percorso in FIXTURE-RUNTIME.md. Nessuna seconda
+lettura live SSH, modifica ai filtri, applicazione reale o segreto introdotto.
+Perimetro fixture verificato; H-05/A-30/IPv6 aperti, isolamento complessivo false.

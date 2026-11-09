@@ -4,9 +4,9 @@
 
 | ID | Categoria | Verifica | Esito attuale |
 | --- | --- | --- | --- |
-| A-01 | Baseline | `docker compose config` di `shared`, `preview` e `production` senza segreti esposti | Base fixture: tre config validi, 11 guardie topologia e 4 matrice passate; configurazione applicativa operativa aperta |
-| A-02 | Reti | DNS, collegamenti web/data/bus/search ammessi su stesso ambiente | Locale: 15 allow riusciti; primo tentativo VM fermato nel preflight immagine, zero casi. Nuova misura VM pendente |
-| A-03 | Reti negativa | preview non raggiunge PostgreSQL, Redis o NATS production e viceversa | Locale: 18 deny con controlli, distinte assenza route e mancata connessione; tentativo VM senza mutazioni/casi, nuova misura pendente |
+| A-01 | Baseline | `docker compose config` di `shared`, `preview` e `production` senza segreti esposti | Base fixture: tre config validi e uguali su host/VM, 12 guardie topologia e 4 matrice passate; configurazione applicativa operativa aperta |
+| A-02 | Reti | DNS, collegamenti web/data/bus/search ammessi su stesso ambiente | Verificato sulle sole fixture VM: 15 allow passed nel run c2abe4b0e10248698a4e02a9ff584e5b; servizi reali non collaudati |
+| A-03 | Reti negativa | preview non raggiunge PostgreSQL, Redis o NATS production e viceversa | Verificato sulle sole fixture VM: 18 deny passed con controlli, nove TCP non connessi e nove assenze di route; protocolli/servizi reali non collaudati |
 | A-04 | Reti negativa | non sono raggiungibili da LAN/Internet Redis, NATS, Postgres, Meilisearch, UI | Non eseguito |
 | A-05 | Host | container con egress non raggiungono Windows/LAN secondo policy, IPv4 e IPv6 | Parziale: percorsi host verificati e TCP da guest/due bridge verso Android LAN negativo con controlli; altre coperture LAN e IPv6 aperte |
 | A-06 | Ingresso | cloudflared esce verso Cloudflare, Nginx edge HTTP, due hostname corretti | Non eseguito |

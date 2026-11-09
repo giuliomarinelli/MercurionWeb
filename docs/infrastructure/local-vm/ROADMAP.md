@@ -141,6 +141,12 @@ immutabile già usato dai probe. Nessun pull/tag/import come fallback;
 nuovo bundle e nuova evidenza VM necessari. [Diagnosi](FIXTURE-RUNTIME.md).
 Correzione verificata con 13 test runner, 10 lifecycle e nuovo collaudo
 Docker Desktop 33/33, cleanup completo 16/13/7 e nessun residuo del run.
+**Collaudo VM riuscito:** run c2abe4b0e10248698a4e02a9ff584e5b del 9 novembre,
+33/33 (15 allow/18 deny), preflight/hash verificati, decisioni negative
+ricalcolate, cleanup 16/13/7 senza errori o residui nel readback guest.
+**Perimetro fixture VM-033 verificato**; questa eccezione non chiude INF-VM-02
+né autorizza servizi/segreti reali. H-05/A-30 e proposta IPv4-only VM-034 restano
+i punti di decisione/verifica prima di estendere il runtime.
 
 Definire directory `shared`, `preview`, `production`; reti esterne, alias, `internal`, `egress`, volumi e confini. Evitare un solo Compose con molti flag. Iniziare con probe/fixture non sensibili.
 

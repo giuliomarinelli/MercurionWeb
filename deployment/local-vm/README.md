@@ -161,6 +161,13 @@ o casi. L'ID locale era stato usato erroneamente come digest registry; corretti
 Compose/validator/runner, con test immagine locale senza RepoDigests e rifiuto
 di ID effettivo container differente. Ora 13 test fixture/runner e 10 lifecycle;
 la nuova esecuzione VM deve produrre un report distinto, senza riuso del bundle.
+
+**Evidenza VM acquisita:** run c2abe4b0e10248698a4e02a9ff584e5b, 9 novembre:
+33/33 casi passed (15 allow/18 deny), preflight/bundle verificati, cleanup
+16 fixture/13 reti/7 volumi senza errori e readback guest senza residui del run.
+[Report e limiti](../../docs/infrastructure/local-vm/FIXTURE-RUNTIME.md#7-collaudo-sulla-vm-riuscito).
+Il perimetro delle fixture VM-033 è verificato; servizi reali, isolamento
+host/LAN/IPv6 complessivo e accessi operativi loopback restano fuori dalla prova.
 Collaudo reale Docker Desktop completato: 33/33 casi, cleanup di 16 fixture,
 13 reti e 7 volumi senza errori. Report e hash nella procedura; prova VM ancora
 da acquisire, nessuna promozione dell'esito locale.

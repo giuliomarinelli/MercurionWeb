@@ -184,3 +184,35 @@ limitato ai sorgenti fixture, senza immagini o segreti.
 Riferimenti primari:
 [image ID e store content-addressable](https://docs.docker.com/reference/cli/docker/image/pull/),
 [manifest del registry](https://docs.docker.com/reference/api/registry/latest/).
+
+## 7. Collaudo sulla VM riuscito
+
+**9 novembre 2026, 18:43:12–18:45:09 UTC (19:43–19:45 CET).** Run
+`c2abe4b0e10248698a4e02a9ff584e5b`, bundle trasporto
+`f5433185ab7045d1b7f060b00cbdded9`, sorgenti del commit `8ddfaafea`.
+Report operatore recuperato via SCP e riletto sull'host:
+`inf-vm-03/f5433185ab7045d1b7f060b00cbdded9/fixture-run.json`, SHA-256
+`83db34b5476189d65755297487473f01d6ab2e6e890754fd020f2a17922b1893`.
+
+Verifiche sul report e sul bundle locale conservato:
+
+- RunId del manifest corrispondente al report, hash di tutti i file validi e
+  sorgenti del bundle identici al tree tracciato. Preflight guest completato:
+  immagine locale esatta linux/amd64, modelli Compose uguali a quelli attesi,
+  nessuna collisione con container/progetti, reti o volumi preesistenti.
+- Tre progetti avviati, 16 ruoli, 13 reti e 7 volumi. Matrice completa con 33
+  coppie uniche corrispondenti al piano: **15 allow e 18 deny tutti passed**.
+  Le 18 decisioni negative sono state ricalcolate sull'host con assess_negative;
+  anche i 15 risultati TCP positivi sono stati controllati, senza nuovi probe.
+- Nove negazioni osservano TCP non connesso, nove assenza di route del namespace
+  con evidenza Linux e controlli validi. Non attribuire le seconde a un firewall.
+- Cleanup dei client del runner senza errori; lifecycle con rimozione di 16
+  fixture, 13 reti e 7 volumi, readback senza residui della label e nessun errore.
+  È evidenza del report guest, non una seconda lettura live SSH dall'host.
+
+Il perimetro **VM-033 delle sole fixture è verificato sulla VM**. Nessun servizio
+applicativo, segreto, immagine aggiuntiva o port publishing introdotto.
+Il primo tentativo invalid rimane conservato. isolationAccepted resta false:
+questa matrice non chiude H-05, A-30/IPv6, accessi amministrativi loopback,
+provisioning, recovery applicativo o Cloudflare. Nessun avvio successivo è
+autorizzato automaticamente dal superamento delle fixture.

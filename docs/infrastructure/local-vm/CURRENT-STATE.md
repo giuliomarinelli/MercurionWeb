@@ -116,12 +116,16 @@ La versione corrente di Tox21 ha override `allow` / `require-jwt` / `disabled` p
   default route, forwarding 0, bridge EnableIPv6 false/IPAM IPv4; kernel
   disponibile e link-local docker0 presente. Nessun test IPv6 negativo passato.
   [Review INF-VM-02](INF-VM-02-REVIEW.md): VM-033 approvata per le sole fixture,
-  con [lifecycle controllato](FIXTURE-RUNTIME.md); misura VM ancora da acquisire.
+  con [lifecycle controllato](FIXTURE-RUNTIME.md); misura VM inizialmente da acquisire.
   Nessuna accettazione completa dedotta.
   Primo tentativo VM poi acquisito: run 534be453d86e42329cad4686b522019a,
   preflight invalid, nessuna mutazione tentata e zero casi; ID immagine locale
   usato erroneamente come digest registry. Corretto il riferimento delle sole
-  fixture, preservato il report; nessuna nuova esecuzione VM ancora acquisita.
+  fixture, preservato il report e predisposta una nuova esecuzione distinta.
+  Successivo run c2abe4b0e10248698a4e02a9ff584e5b riuscito: 33/33 casi sulle
+  sole fixture VM, 15 allow e 18 deny, hash bundle/tree corrispondenti e cleanup
+  16/13/7 senza errori/readback residui nel report guest. Decisioni negative
+  ricalcolate sull'host. [Report, hash e limiti](FIXTURE-RUNTIME.md#7-collaudo-sulla-vm-riuscito).
   [VM-034](IPV4-ONLY-DESIGN.md): proposta IPv4-only documentata, nessun nuovo
   intervento su IPv6/router e nessuna chiusura dei residui.
 - Ricevitore/apply Tox21 disponibile come [pilot locale](SECRET-DELIVERY-PILOT.md),
@@ -132,7 +136,8 @@ La versione corrente di Tox21 ha override `allow` / `require-jwt` / `disabled` p
   passati; handshake SSH, prompt e filesystem VM non verificati.
 - I Compose `docker_sl/releases/preview` e `prod` sono **frammenti**: non definiscono una topologia VM completa, volumi e recovery.
 - Il modello `deployment-schema.json` presenta ancora Nginx con porta HTTPS e secret origin TLS: **scostamento storico da riconciliare**, senza rompere i validator attuali prima di un task dedicato.
-- Non esistono ancora la matrice VM dei network, il routing per due hostname via tunnel e le prove di isolamento Hyper-V/Docker.
+- Matrice VM delle sole fixture verificata; routing per due hostname via tunnel,
+  servizi reali e accettazione complessiva dell'isolamento Hyper-V/Docker ancora aperti.
 - La nomenclatura legacy del client Meilisearch non dimostra i privilegi realmente concessi. Client search/writer separati e permessi sintetici verificati su istanza locale effimera: 8 letture, 8 scritture/replay e 40 negazioni 403. Sulla VM restano da consegnare key distinte, precreare indici e verificare le grant effettive; il fallback legacy non basta. [Contratto e limiti](MEILISEARCH-OPERATIONS.md).
 - Non esistono provisioning VM verificato della master key **del server Meilisearch**, delle altre credenziali o dell'eventuale PEM pubblico Tox21.
 - I job CI costruiscono e verificano immagini, ma non forniscono ancora una filiera ordinaria per pubblicare, scaricare e archiviare i `image.tar`, in particolare separando staging/production e Web/Tox21.
