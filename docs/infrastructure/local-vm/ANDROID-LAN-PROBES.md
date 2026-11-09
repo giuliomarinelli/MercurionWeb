@@ -5,11 +5,14 @@
 Il 9 novembre 2026, dopo la verifica post-riavvio Windows, l'owner ha scelto
 di predisporre Android per le prove LAN. Prima di questa scelta erano stati
 anticipati soltanto manifest e verifiche locali. Questo documento prepara
-il percorso; nessuna prova Android è ancora eseguita e A-30 rimane aperto.
+il percorso; smoke locale Android riuscito, misura LAN ancora da eseguire e
+A-30 rimane aperto.
 
 Strumento previsto: **Termux con Python**, senza root, ADB o server SSH sul
-telefono. Owner conferma Android 16 aggiornato e Termux aperto al prompt;
-Python e funzionamento del canary sul dispositivo ancora da verificare. Termux supporta il
+telefono. Owner conferma Android 16 aggiornato, Termux al prompt e Python
+3.14.10. IPv4 Wi-Fi dichiarato `192.168.0.218`; host Windows riletto
+`192.168.0.221/24`. Hash verificato sul telefono e canary locale funzionante.
+Termux supporta il
 percorso F-Droid qui proposto da Android 7; verificare la versione scelta. Non mescolare
 app/plugin provenienti da distribuzioni diverse.
 
@@ -68,13 +71,27 @@ Download HTTPS verificato dall'host, 6651 byte, identico al blob Git; SHA-256
 `52b73178ea7394ba310259c10f93ee203c74bccb04e27466d07813605df0f01b`.
 Confrontare questo hash sul telefono prima dell'esecuzione. Download host
 verificato non significa file già trasferito o funzionante su Android.
-I comandi concreti di trasferimento/avvio verranno consegnati dopo la verifica
-Python e dell'IP Wi-Fi. Nessun server
+Comando di trasferimento/verifica, da eseguire come singola riga in Termux:
+
+```sh
+python -c "import hashlib,urllib.request; data=urllib.request.urlopen('https://raw.githubusercontent.com/giuliomarinelli/MercurionWeb/263708b3a7ef08648fdcfdbc5209dae59d292864/scripts/infrastructure/network_canary.py',timeout=20).read(); assert hashlib.sha256(data).hexdigest()=='52b73178ea7394ba310259c10f93ee203c74bccb04e27466d07813605df0f01b','HASH_MISMATCH'; f=open('mercurion_network_canary.py','xb'); f.write(data); f.close(); print('CANARY_SHA256_OK')"
+```
+
+Eseguito con successo sull'host in una directory diagnostica nuova; l'hash
+viene controllato prima della scrittura e `xb` impedisce sovrascritture. Non
+esegue il sorgente scaricato né avvia listener. In caso di file già presente
+o altro errore, conservarlo e diagnosticare senza cambiare opzioni. Conferma
+Android ora confermato con CANARY_SHA256_OK. Il comando di avvio della misura
+sarà consegnato dopo preparazione del probe VM, per non consumare prima la finestra.
+Nessun server
 HTTP Windows o apertura firewall è implicito nel trasferimento. I report
 rimangono nello spazio privato Termux e fuori dal repository.
 
-Il riuso del sorgente non equivale a collaudo Android: verificare sul telefono
-controllo locale e produzione di ready.json prima di qualsiasi prova negativa.
+**Smoke Android acquisito da screenshot owner:** comando serve con bind
+192.168.0.218, directory android-canary-smoke-01 e durata due secondi. Ready
+9 novembre 16:57:48.561329 UTC, scadenza 16:57:50.561353 UTC, porta 57355;
+messaggio finale controls-passed, isolationAccepted false, closed true.
+È controllo locale del telefono, non ancora raggiungibilità Windows/LAN.
 
 ## 3. Misurare guest/container verso LAN
 
@@ -95,9 +112,53 @@ controllo locale e produzione di ready.json prima di qualsiasi prova negativa.
 5. Fermare il solo canary e verificare chiusura, cleanup dei container/rete
    temporanei e report. Conservare hash e risultati senza dati personali.
 
-Runner e comandi operativi della misura devono essere verificati prima di
-consegnarli all'owner. Questa sezione è il contratto della prova, non dichiara
-che un orchestratore Android sia già disponibile o collaudato.
+### Runner predisposto
+
+`lan_canary_probe.py` e `Invoke-LanCanary.ps1` disponibili; riusano il runner
+Docker H-04 e il protocollo del canary Android fissato al commit. La nuova
+opzione `--require-route` nel client è opt-in: gli usi H-04 precedenti conservano
+la loro interfaccia. In LAN route assente o ENETUNREACH/EHOSTUNREACH sono
+invalid-path, non una negazione superata.
+
+1. Dopo l'avvio della finestra Android, acquisire subito il JSON ready. L'agente
+   prepara fuori da Git un config.json con runId nuovo e i campi originali
+   address/port/nonce/readyAtUtc/expiresAtUtc. Non riusare i dati dello smoke
+   di due secondi. Finestra massima nominale 600 secondi; il validatore tollera
+   meno di un secondo per il campionamento separato dei due timestamp nel
+   canary fissato al commit. Nessun prolungamento automatico della finestra.
+2. Validare con `Invoke-LanCanary.ps1 -ConfigPath <config.json> -ValidateOnly`:
+   controlla configurazione, peer nel /24 Wi-Fi host corrente e almeno 90
+   secondi residui. Non apre connessioni. Altre topologie richiedono review.
+3. Eseguire lo stesso comando senza ValidateOnly. Prima di SCP/SSH il monitor
+   Windows deve ricevere il marker Android corretto. Lo ricontrolla ogni cinque
+   secondi e prima di terminare. Nessun listener Windows, port publishing,
+   pull/import immagine o modifica ai filtri.
+4. SSH diretto alla console per i prompt. Sulla VM: guest e due bridge, stessa
+   immagine Python locale verificata, client/container non privilegiati e
+   risorse limitate. I controlli del namespace precedono e seguono il singolo
+   tentativo verso Android. Pulizia solo degli ID creati dal run.
+5. SCP recupera lan-guest.json; il finally ferma il monitor Windows e la
+   correlazione richiede tre origini distinte, route, nonce/endpoint/finestra,
+   controlli validi prima/dopo e cleanup riuscito. Qualunque errore mantiene
+   il report e impedisce l'accettazione; nessun retry automatico.
+6. Il canary Android rimane separato dal monitor Windows: attendere la sua
+   chiusura automatica oppure, da una seconda sessione Termux, creare il file
+   stop nella sua directory. Acquisire il messaggio finale e i report locali.
+   Non usare Ctrl+C come sostituto della chiusura controllata con controllo finale.
+
+Artifact Windows in `.codex/artifacts/inf-vm-02/lan-ipv4-<runId>/`, con hash dei
+tre sorgenti trasferiti e stage contenente config, lan-control.json,
+lan-guest.json e lan-correlation.json. Report guest 0600 restituito all'owner
+sudo. Solo metadati diagnostici, nessuna trascrizione di passphrase/password.
+
+**Validazione locale:** 12 unittest LAN (socket loopback reali, validazione,
+scadenza, immagine errata, cleanup fallito e rigetto di 11 report incoerenti),
+4 test H-04 e 3 test canary passati. Preflight reale PowerShell 5.1 passato
+con lettura Wi-Fi reale e config di test, senza contatti remoti. Collaudo reale
+Docker Desktop su due bridge: controlli positivi e route validi, porta chiusa
+in container dedicato della fixture, cleanup senza errori. Artifact locale
+lan-tool-validation/7110748a704046daa9c71e59f9b5aa11/result.json: verifica dello
+strumento, non prova del firewall, della VM o della LAN. Misura Android ancora pendente.
 
 ## 4. Misurare LAN verso VM e distinguere i limiti
 

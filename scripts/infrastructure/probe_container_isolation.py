@@ -40,7 +40,7 @@ def validate(config):
         raise ValueError('Expired host canary')
 
 
-def run_case(config, network, source, invoke=docker):
+def run_case(config, network, source, invoke=docker, require_route=False):
     """Use the same client configuration for positive and negative attempts."""
     owned = []
     cleanup_errors = []
@@ -60,11 +60,14 @@ def run_case(config, network, source, invoke=docker):
 
     def client(address):
         identifier = create('--entrypoint', 'python', IMAGE, '-B', '/probe.py', 'probe',
-                            '--host', address, '--port', str(port), '--nonce', config['nonce'])
+                            '--host', address, '--port', str(port), '--nonce', config['nonce'],
+                            *(['--require-route'] if require_route else []))
         result = json.loads(invoke('start', '--attach', identifier, timeout=20))
         code = int(invoke('inspect', '--format', '{{.State.ExitCode}}', identifier))
         if code or result['nonce'] != config['nonce'] or result['address'] != address or result['port'] != port:
             raise RuntimeError('Invalid client execution or mismatched result')
+        if require_route and not result.get('route'):
+            raise RuntimeError('Client namespace route evidence missing')
         return result
 
     try:

@@ -946,3 +946,29 @@ download HTTPS host riuscito e identico al blob Git, 6651 byte, hash
 Copia diagnostica in artifacts/inf-vm-02/android-preparation fuori da Git;
 URL/hash registrati nella procedura. Trasferimento e controllo Android ancora
 da eseguire, nessuna copertura LAN dedotta dalla sola preparazione host.
+
+**Python/IP Android acquisiti:** owner riporta Python 3.14.10 e IPv4 Wi-Fi
+192.168.0.218. Host riletto 192.168.0.221/24. Consegnato comando Python
+standard-library per download HTTPS del canary fissato al commit, controllo
+hash prima della scrittura e creazione esclusiva del file. Stessa sequenza
+eseguita realmente sull'host con CANARY_SHA256_OK nella directory artifact
+android-preparation/command-19f18dacb8474bdea5ae718e2a10812e. Nessuna esecuzione
+del sorgente scaricato o apertura listener. In attesa di conferma Android;
+server non ancora avviato, nessuna misura LAN dichiarata riuscita.
+
+**Hash Android e smoke locale acquisiti:** owner conferma CANARY_SHA256_OK e
+fornisce screenshot del canary di due secondi su 192.168.0.218: ready alle
+16:57:48.561329 UTC del 9 novembre, porta 57355, scadenza 16:57:50.561353 UTC;
+controls-passed e closed true. Nessuna misura LAN da questi dati.
+
+**Runner LAN predisposto:** nuovo helper Python e wrapper PS 5.1, riuso runner
+Docker H-04 con opzione route opt-in. Monitor Windows verso Android prima di
+SSH e durante/fine prova, tre origini guest/due bridge, immagine locale senza
+pull/import, niente porte pubblicate, correlazione con route/tempi/marker,
+report guest 0600 e prompt SSH diretti. Test: 12 LAN, 4 H-04, 3 canary passati;
+preflight PS 5.1 reale con config sintetico e Wi-Fi attuale passato, nessun SSH.
+Due casi Docker Desktop reali su bridge e rete temporanea, controlli positivi,
+route e cleanup riusciti; destinazione fixture con porta deliberatamente chiusa,
+non evidenza di isolamento. Report in lan-tool-validation/7110748a704046daa9c71e59f9b5aa11.
+Tolleranza inferiore a un secondo per il doppio campionamento dei timestamp
+del canary Android, nessuna estensione del run. Prova LAN effettiva ancora pendente.

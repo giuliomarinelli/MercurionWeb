@@ -1,11 +1,13 @@
 """INF-VM-02: temporary TCP canary with positive controls; no firewall changes."""
 import argparse
+import errno
 from datetime import datetime, timedelta, timezone
 import ipaddress
 import json
 from pathlib import Path
 import socket
 import socketserver
+import struct
 import threading
 import time
 import uuid
@@ -30,7 +32,7 @@ def target(address, port):
     return socket.AF_INET, (str(ip), port)
 
 
-def probe(address, port, nonce, timeout=3):
+def _probe(address, port, nonce, timeout=3):
     family, endpoint = target(address, port)
     result = dict(observedAtUtc=now(), address=address, port=port, nonce=nonce,
                   isolationAccepted=False)
@@ -52,6 +54,41 @@ def probe(address, port, nonce, timeout=3):
             result.update(outcome='unexpected-service')
             return result
     result.update(outcome='reachable' if data == f'INF_VM_02 {nonce}\n'.encode('ascii') else 'unexpected-service')
+    return result
+
+
+def route_for(address, raw=None):
+    """Read the Linux namespace route; never install or change routes."""
+    raw = Path('/proc/net/route').read_text() if raw is None else raw
+    destination = struct.unpack('<I', socket.inet_aton(address))[0]
+    matches = []
+    for line in raw.splitlines()[1:]:
+        fields = line.split()
+        if len(fields) < 8:
+            continue
+        network, flags, mask = int(fields[1], 16), int(fields[3], 16), int(fields[7], 16)
+        if flags & 1 and destination & mask == network:
+            matches.append(dict(interface=fields[0], prefixLength=mask.bit_count(),
+                                gateway=socket.inet_ntoa(struct.pack('<I', int(fields[2], 16)))))
+    return max(matches, key=lambda item: item['prefixLength']) if matches else None
+
+
+def probe(address, port, nonce, timeout=3, require_route=False):
+    route = None
+    if require_route:
+        family, _ = target(address, port)
+        if family != socket.AF_INET:
+            raise ValueError('Route evidence supports IPv4 only')
+        route = route_for(address)
+        if route is None:
+            return dict(observedAtUtc=now(), finishedAtUtc=now(), address=address,
+                        port=port, nonce=nonce, route=None, outcome='invalid-path', isolationAccepted=False)
+    result = _probe(address, port, nonce, timeout)
+    if require_route:
+        result['route'] = route
+        if result.get('errno') in (errno.ENETUNREACH, errno.EHOSTUNREACH, 10051, 10065):
+            result['outcome'] = 'invalid-path'
+    result['finishedAtUtc'] = now()
     return result
 
 
@@ -133,13 +170,14 @@ def main():
     client.add_argument('--host', required=True)
     client.add_argument('--port', required=True, type=int)
     client.add_argument('--nonce', required=True, help='Public run marker from ready.json, not a credential')
+    client.add_argument('--require-route', action='store_true', help='Require Linux IPv4 namespace route evidence')
     args = parser.parse_args()
     if args.command == 'serve':
         serve(args.bind, args.output, args.seconds)
     else:
         if len(args.nonce) != 32 or any(c not in '0123456789abcdef' for c in args.nonce):
             parser.error('nonce must be the 32-character hexadecimal run marker')
-        print(json.dumps(probe(args.host, args.port, args.nonce)))
+        print(json.dumps(probe(args.host, args.port, args.nonce, require_route=args.require_route)))
 
 
 if __name__ == '__main__':
