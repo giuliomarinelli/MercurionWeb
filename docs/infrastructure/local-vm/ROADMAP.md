@@ -93,7 +93,8 @@ smoke Ubuntu WSL con avvio, DNS e HTTPS verificato, HTTP 200 ed exit 0.
 A-28 verificato per persistenza e funzionamento base, non recovery applicativo.
 Android predisposto e misura TCP verso LAN acquisita: guest/due bridge non
 raggiungono il canary, 18 controlli Windows positivi, route/correlazione e cleanup
-riusciti. [Evidenze](ANDROID-LAN-PROBES.md). Chiusura Android ancora da confermare.
+riusciti. [Evidenze](ANDROID-LAN-PROBES.md). Chiusura Android poi confermata:
+controls-passed e closed true.
 Nessuna modifica ai filtri o all'instradamento; A-30 e H-05 restano aperti per
 direzione opposta, altre origini e IPv6.
 Residuo strumenti: diagnosticare il prompt sudo tardivo nella pipeline SSH/PTY,

@@ -72,7 +72,8 @@ base SSH/WSL/Docker**, non recovery dell'intero stack applicativo (A-23).
 **Avanzamento A-30 LAN:** run 2e5b54bfac1a4ff782f7cd33891ae49f, TCP verso
 Android 192.168.0.218:53483: guest e due bridge non raggiungibili, route presenti,
 controlli client prima/dopo e 18 controlli Windows tutti positivi. Correlazione
-ricalcolata e pulizia container/rete riuscita; chiusura Android ancora pendente.
+ricalcolata e pulizia container/rete riuscita; owner conferma chiusura Android
+con controls-passed e closed true.
 Direzione LAN → VM, altre origini e IPv6 ancora aperti; nessuna generalizzazione
 a tutte le porte/dispositivi. [Evidenze e hash](ANDROID-LAN-PROBES.md).
 

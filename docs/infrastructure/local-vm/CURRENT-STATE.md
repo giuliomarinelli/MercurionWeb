@@ -109,7 +109,8 @@ La versione corrente di Tox21 ha override `allow` / `require-jwt` / `disabled` p
   Docker Desktop verificato anche con due casi container locali. TCP verso
   Android LAN eseguito: tre origini negative e 18 controlli Windows positivi,
   route/correlazione e cleanup riusciti. [Evidenze LAN](ANDROID-LAN-PROBES.md).
-  Chiusura Android pendente; restano direzione LAN → VM, altre origini e IPv6.
+  Chiusura Android confermata con controls-passed e closed true;
+  restano direzione LAN → VM, altre origini e IPv6.
   Nessuna accettazione completa dedotta.
 - Ricevitore/apply Tox21 disponibile come [pilot locale](SECRET-DELIVERY-PILOT.md),
   con 17 test Linux sintetici passati; non ancora installato sulla VM.

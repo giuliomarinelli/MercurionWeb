@@ -190,8 +190,10 @@ stage `inf-vm-02-lan-2e5b54bfac1a4ff782f7cd33891ae49f`.
 | lan-control.json | `e79928bf6c71cf76c56343e7171c2c43c9e87ae8ce04b71539054f7ddc690b96` |
 | lan-correlation.json | `7b3c1d76c3d2871454f969073d6ef4cd3de81c53a7a04570488c8cc86026229d` |
 
-Chiusura automatica del canary Android richiesta all'owner, conferma finale
-ancora pendente. La misura prova soltanto i tre percorsi TCP verso quel telefono
+Chiusura Android confermata dall'owner: messaggio finale controls-passed,
+isolationAccepted false, closed true. Messaggio riportato conservato fuori da
+Git come android-final-owner-report.json, distinto dal report completo locale
+del telefono. La misura prova soltanto i tre percorsi TCP verso quel telefono
 e quella porta: nessuna attribuzione al singolo firewall o estensione a tutte
 le porte/dispositivi, alla direzione LAN → VM o a IPv6. isolationAccepted resta false.
 

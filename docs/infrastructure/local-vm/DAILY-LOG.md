@@ -994,3 +994,16 @@ verificato per persistenza e funzionamento base; A-23 recovery stack distinto.
 A-30 resta parziale: un endpoint/porta TCP LAN in uscita, non direzione
 opposta, tutte le porte/dispositivi o IPv6. Nessuna attribuzione del blocco
 al singolo filtro e nessuna autorizzazione di deployment dedotta.
+
+**Chiusura Android acquisita:** owner riporta il messaggio finale del run
+android-lan-run-01, controls-passed, isolationAccepted false e closed true.
+Conservato come messaggio dichiarato dall'owner, distinto dal result.json
+completo del telefono. Canary LAN concluso, nessun rilancio.
+
+**Preparazione direzione Android → VM:** run diagnostico
+0552d34e8d924b28a98790cc7c10721b fuori da Git. Controllo host da sorgente
+10.203.240.1 verso 10.203.240.10:22 con banner SSH positivo alle 17:23:15 UTC,
+senza autenticazione. Comando TCP Android vincolato a sorgente 192.168.0.218,
+timeout tre secondi, codice errno e timestamp; sintassi e variante host
+eseguite con successo. Richiesto singolo tentativo all'owner. Nessuna route,
+regola, chiave o credenziale modificata; misura e controllo successivo pendenti.
