@@ -937,3 +937,12 @@ questo non è un collaudo del dispositivo. Installazione Termux, Python e
 controllo locale ancora pendenti. Fonti primarie di installazione ricontrollate;
 previsto primo passo con APK Termux dalla pagina F-Droid, oppure client
 F-Droid se già presente, senza mescolare distribuzioni o richiedere root.
+
+**Termux pronto confermato dall'owner.** Richiesti aggiornamento indice e
+installazione Python, poi versione e IPv4 Wi-Fi; nessun server Android avviato.
+Predisposto canary fissato al commit 263708b3a7ef08648fdcfdbc5209dae59d292864:
+download HTTPS host riuscito e identico al blob Git, 6651 byte, hash
+52b73178ea7394ba310259c10f93ee203c74bccb04e27466d07813605df0f01b.
+Copia diagnostica in artifacts/inf-vm-02/android-preparation fuori da Git;
+URL/hash registrati nella procedura. Trasferimento e controllo Android ancora
+da eseguire, nessuna copertura LAN dedotta dalla sola preparazione host.

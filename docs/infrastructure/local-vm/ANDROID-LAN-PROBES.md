@@ -8,8 +8,8 @@ anticipati soltanto manifest e verifiche locali. Questo documento prepara
 il percorso; nessuna prova Android è ancora eseguita e A-30 rimane aperto.
 
 Strumento previsto: **Termux con Python**, senza root, ADB o server SSH sul
-telefono. Owner conferma Android 16 aggiornato; installazione Termux/Python
-e funzionamento sul dispositivo ancora da verificare. Termux supporta il
+telefono. Owner conferma Android 16 aggiornato e Termux aperto al prompt;
+Python e funzionamento del canary sul dispositivo ancora da verificare. Termux supporta il
 percorso F-Droid qui proposto da Android 7; verificare la versione scelta. Non mescolare
 app/plugin provenienti da distribuzioni diverse.
 
@@ -62,9 +62,14 @@ marker pubblico casuale, listener legato a un singolo IP privato, porta effimera
 controlli locali periodici e durata massima 600 secondi. Nessun download o
 esecuzione di codice non revisionato e nessun `curl | sh`.
 
-Preparare un file corrispondente a un commit preciso e confrontarne SHA-256
-prima dell'esecuzione. URL di trasferimento, hash e comando concreto verranno
-registrati quando Termux e l'IP del telefono sono disponibili. Nessun server
+File preparato dal commit `263708b3a7ef08648fdcfdbc5209dae59d292864`:
+[network_canary.py fissato al commit](https://raw.githubusercontent.com/giuliomarinelli/MercurionWeb/263708b3a7ef08648fdcfdbc5209dae59d292864/scripts/infrastructure/network_canary.py).
+Download HTTPS verificato dall'host, 6651 byte, identico al blob Git; SHA-256
+`52b73178ea7394ba310259c10f93ee203c74bccb04e27466d07813605df0f01b`.
+Confrontare questo hash sul telefono prima dell'esecuzione. Download host
+verificato non significa file già trasferito o funzionante su Android.
+I comandi concreti di trasferimento/avvio verranno consegnati dopo la verifica
+Python e dell'IP Wi-Fi. Nessun server
 HTTP Windows o apertura firewall è implicito nel trasferimento. I report
 rimangono nello spazio privato Termux e fuori dal repository.
 
