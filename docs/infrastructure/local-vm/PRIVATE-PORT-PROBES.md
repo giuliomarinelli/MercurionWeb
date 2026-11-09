@@ -1,8 +1,40 @@
 # Probe sulle porte private ammesse soltanto verso Internet
 
-9 novembre 2026. Strumento preparato e verificato localmente; esecuzione
-Mercurion-Server ancora pendente. Prerequisito: policy DnsHttps a 19 ACL,
-già applicata e verificata dall'owner. Nessuna modifica della policy in questa prova.
+9 novembre 2026. Strumento verificato localmente ed esecuzione reale su
+Mercurion-Server acquisita dall'owner. Policy DnsHttps a 19 ACL già applicata
+e verificata. Nessuna modifica della policy in questa prova.
+
+## Esito reale acquisito
+
+Run `private-ports-ipv4-b99564532a354dbcbe548472d8bcba56`: nove casi negativi,
+63 controlli host tutti positivi, 21 per endpoint. Guest e due bridge hanno
+superato anche i propri controlli client prima/dopo; route presenti nei namespace,
+identificatori, finestra e tempi correlati. Un solo tentativo di readiness DNS,
+riuscito prima dell'apertura della finestra. Runner guest attivo dalle
+13:24:12.970108 alle 13:24:49.722737 UTC; controlli host dal primo delle
+13:23:23.235497 all'ultimo delle 13:25:04.153947 UTC.
+
+| Origine | TCP/443 → 10.203.240.1 | TCP/53 → 10.203.240.1 | UDP/53 → 172.27.0.1 |
+| --- | --- | --- | --- |
+| Guest | Non raggiungibile | Non raggiungibile | Non raggiungibile |
+| Bridge predefinito | Non raggiungibile | Non raggiungibile | Non raggiungibile |
+| Bridge temporaneo | Non raggiungibile | Non raggiungibile | Non raggiungibile |
+
+Immagine attesa linux/amd64, nessun errore di pulizia, host controls-passed e
+chiusura richiesta completata. Nessun listener TCP canary residuo al controllo
+locale. Il servizio DNS ICS esistente rimane invariato. Correlazione ricalcolata
+dall'agente sui file salvati; script trasferito identico al sorgente corrente.
+
+| File locale del run | SHA-256 |
+| --- | --- |
+| private-port-probe.json | `bed4d9f8e8c66897fa56160f2ea0c2a67085443b3458d7468226c295e5b269ee` |
+| host/result.json | `22adc2ed0d74996018341b6ac8fa81d360d6f8321d7b5e65b15cd50c6aac09d4` |
+| correlation.json | `f756ece2529ad5f31850a43a56870b7292c495d14cddb93ba5227a967ed79535` |
+| private_port_probe.py trasferito | `1fac2b1660c5243bbebbda58251cb8fbc0c70838540ad6375d1468f578b3ad84` |
+
+È evidenza dei nove percorsi verso host specificati. Non attribuisce il blocco
+a un singolo firewall, non copre tutti gli indirizzi privati o dispositivi LAN
+e mantiene isolationAccepted false. Nessun segreto o report grezzo versionato.
 
 ## Bersagli e controlli positivi
 

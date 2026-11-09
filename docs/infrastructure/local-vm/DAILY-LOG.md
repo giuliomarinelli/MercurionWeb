@@ -824,3 +824,14 @@ host fallito non accettata; timeout controlli poi allineato a tre secondi e
 readiness esplicita prima dell'avvio. Richiesta all'owner prova VM, pendente.
 Resta bytecode locale non versionato: rimozione rifiutata automaticamente con
 motivo blocked by policy; escluso dal commit, nessun altro metodo di rimozione tentato.
+
+**Probe privati VM acquisiti:** owner conferma run b99564532a354dbcbe548472d8bcba56,
+13:24:12–13:24:49 UTC. Nove percorsi da guest e due bridge verso TCP/443 e
+TCP/53 su 10.203.240.1, UDP/53 su DNS ICS host 172.27.0.1: tutti non raggiungibili.
+Controlli client prima/dopo positivi, route presenti nei namespace. Sessantatré
+controlli host positivi, 21 per endpoint, dalle 13:23:23 alle 13:25:04 UTC; readiness
+DNS riuscita al primo tentativo. Correlazione ricalcolata sui report locali,
+sorgente trasferito identico al repository, immagine attesa linux/amd64,
+cleanup senza errori e due listener TCP chiusi; ICS invariato. Matrice e hash
+in PRIVATE-PORT-PROBES. Nessuna attribuzione a uno specifico filtro o accettazione
+LAN estesa: restano LAN/altre origini, IPv6 e riavvio host.

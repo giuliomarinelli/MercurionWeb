@@ -114,9 +114,24 @@ NAT attivo/prefisso, zero mapping e Windows Public. Nessun listener dei nuovi
 canary rimasto e processo H-02 terminato al controllo locale.
 
 Limite: H-02/H-04 usano porte TCP effimere, non le porte 443/53 dei nuovi allow.
-Readback e test di policy coprono priorità/configurazione; aggiungere controlli
-runtime privati sulle porte consentite. LAN bidirezionale, IPv6/altre origini
+Readback e test di policy coprono priorità/configurazione; i controlli runtime
+successivi su quelle porte sono descritti sotto. LAN bidirezionale, IPv6/altre origini
 e reboot host restano aperti; nessuna accettazione complessiva o esposizione pubblica.
+
+### Prove delle porte private
+
+Owner conferma run `private-ports-ipv4-b99564532a354dbcbe548472d8bcba56`,
+13:24:12–13:24:49 UTC. Guest, bridge predefinito e temporaneo: TCP/443 e TCP/53
+verso 10.203.240.1, UDP/53 verso DNS ICS host 172.27.0.1 non raggiungibili.
+Nove casi distinti, controlli client prima/dopo riusciti e route osservate:
+guest eth0 /24 per IP interno e default via 10.203.240.1 per DNS ICS;
+container via gateway del proprio bridge 172.17.0.1 o 172.18.0.1.
+Sessantatré controlli host tutti positivi, 21 per endpoint, prima/dopo i tentativi.
+Readiness DNS al primo tentativo, marker/finestra correlati, immagine attesa,
+nessun errore di pulizia e nessun listener TCP canary residuo. Correlazione
+ricalcolata dall'agente; [matrice, hash e limiti](PRIVATE-PORT-PROBES.md#esito-reale-acquisito).
+Nessuna modifica ad ACL, firewall o servizio ICS. Conferma dei percorsi host
+testati, non un collaudo di tutti i dispositivi LAN o di altre origini in ingresso.
 
 ## Evidenza acquisita
 

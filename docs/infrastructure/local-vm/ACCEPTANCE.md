@@ -8,7 +8,7 @@
 | A-02 | Reti | DNS, collegamenti web/data/bus/search ammessi su stesso ambiente | Piano fixture e runner preparati; esecuzione Docker non effettuata |
 | A-03 | Reti negativa | preview non raggiunge PostgreSQL, Redis o NATS production e viceversa | Negazioni e controlli positivi definiti nella matrice; esecuzione Docker non effettuata |
 | A-04 | Reti negativa | non sono raggiungibili da LAN/Internet Redis, NATS, Postgres, Meilisearch, UI | Non eseguito |
-| A-05 | Host | container con egress non raggiungono Windows/LAN secondo policy, IPv4 e IPv6 | Parziale: due bridge guest → Windows TCP IPv4 verificati anche con DnsHttps; porte private 443/53, LAN/IPv6 aperti |
+| A-05 | Host | container con egress non raggiungono Windows/LAN secondo policy, IPv4 e IPv6 | Parziale: DnsHttps, canary TCP effimeri e nove percorsi host TCP/443, TCP/53, UDP/53 verificati; LAN/IPv6 ancora da verificare |
 | A-06 | Ingresso | cloudflared esce verso Cloudflare, Nginx edge HTTP, due hostname corretti | Non eseguito |
 | A-07 | Web | SPA Angular, Ketcher, REST, GraphQL e Socket.IO passano via Nginx edge | Non eseguito |
 | A-08 | HTTP | header proxy/client IP e cookie/sessione corretti con la catena Cloudflare Tunnel | Non eseguito |
@@ -63,7 +63,10 @@ dalla policy e H-06 riuscito da guest/due bridge: DNS, TLS 1.3, HTTP 200,
 pulizia riuscita. H-02 aggiornato negativo con 23 controlli positivi; H-04
 aggiornato negativo su due bridge con 12 controlli host e cleanup riuscito.
 Verify finale owner DnsHttps riuscito, nessun listener canary residuo.
-Restano controlli runtime privati 443/53: i canary negativi usano porte effimere.
+Successivamente acquisiti i [probe privati 443/53](PRIVATE-PORT-PROBES.md):
+nove percorsi guest/due bridge verso host non raggiungibili, 63 controlli
+positivi e route correlate, pulizia e chiusura canary riuscite. Questo colma
+il limite delle porte effimere per i soli endpoint host dichiarati.
 Gate di isolamento ancora aperti.
 
 **Controllo router:** il 9 novembre l'owner riferisce port forwarding, DMZ,

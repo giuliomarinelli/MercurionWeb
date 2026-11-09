@@ -268,7 +268,8 @@ DnsHttps da guest e due bridge (DNS pubblico, TLS 1.3, HTTP 200, cleanup).
 H-02 aggiornato conferma timeout verso host con 23 controlli positivi;
 H-04 aggiornato conferma i due bridge, 12 controlli host positivi e cleanup.
 Verify finale DnsHttps riuscito. I canary negativi restano su porte effimere:
-prove private 443/53 e LAN ancora da completare.
+I successivi [probe privati 443/53](PRIVATE-PORT-PROBES.md) coprono nove percorsi
+verso endpoint host con controlli e cleanup; LAN e altre origini restano da completare.
 [Evidenze della policy attuale](HOST-GUEST-READINESS.md#prove-sulla-policy-dnshttps).
 
 Questo smoke non certifica tutti i provider applicativi, DNS su ogni protocollo,

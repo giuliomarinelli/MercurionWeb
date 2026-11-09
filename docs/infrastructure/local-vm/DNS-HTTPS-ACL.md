@@ -27,8 +27,10 @@ canary residuo al controllo finale.
 
 I canary negativi usano porte TCP effimere: non esercitano direttamente i
 deny privati su TCP/443 o DNS/53. Le priorità sono coperte dal readback e dai
-test di policy; prove runtime su quelle porte, LAN/altre origini e reboot host
-restano da completare prima dell'accettazione complessiva.
+test di policy. Il successivo [run sulle porte private](PRIVATE-PORT-PROBES.md)
+ha verificato nove percorsi verso host TCP/443, TCP/53 e UDP/53 con 63 controlli
+positivi e cleanup riuscito. LAN/altre origini e reboot host restano da completare
+prima dell'accettazione complessiva.
 
 ## Policy DnsHttps
 

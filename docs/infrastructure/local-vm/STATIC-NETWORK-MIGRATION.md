@@ -41,7 +41,7 @@ Questi sono criteri da implementare e collaudare, non isolamento già dimostrato
 | M-04 | Kaspersky Pubblica e profilo host verificati | Pubblica confermata anche dopo reboot guest; efficacia sui pacchetti e reboot host da provare |
 | M-05 | Backup e policy ACL della sola vNIC Mercurion | Apply owner riuscito e Verify dopo collegamento confermato; traffico non collaudato |
 | M-06 | Configurazione guest statica, NAT e collegamento | Mercurion-NAT riletto senza mapping; successiva policy DnsHttps a 19 ACL applicata |
-| M-07 | SSH, egress e prove negative con controlli positivi | DnsHttps: H-06 riuscito, H-02/H-04 negativi e Verify finale riuscito; da verificare LAN/altre origini e blocchi privati 443/53 |
+| M-07 | SSH, egress e prove negative con controlli positivi | DnsHttps: H-06 e canary riusciti, nove percorsi host 443/53 negativi con controlli; LAN/altre origini ancora da verificare |
 | M-08 | Riavvio a freddo, stabilità e nuova baseline | Riavvio guest: nuovo login, IP e gateway confermati; reboot host, profili e policy completa ancora aperti |
 
 ## M-01 — inventario, senza cambiare configurazioni

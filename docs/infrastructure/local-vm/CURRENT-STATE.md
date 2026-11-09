@@ -100,7 +100,9 @@ La versione corrente di Tox21 ha override `allow` / `require-jwt` / `disabled` p
   (DNS, TLS 1.3, HTTP 200, cleanup). H-02 aggiornato negativo con 23 controlli
   positivi; H-04 aggiornato negativo su due bridge con 12 controlli host e
   pulizia riuscita. Verify finale DnsHttps riuscito; nessun listener residuo.
-  Restano LAN/altre origini, IPv6, test privati 443/53 e reboot host.
+  Test privati 443/53 eseguiti nel run b99564532a354dbcbe548472d8bcba56:
+  nove percorsi verso endpoint host non raggiungibili, 63 controlli positivi,
+  route correlate e cleanup riuscito. Restano LAN/altre origini, IPv6 e reboot host.
 - Ricevitore/apply Tox21 disponibile come [pilot locale](SECRET-DELIVERY-PILOT.md),
   con 17 test Linux sintetici passati; non ancora installato sulla VM.
   Trasporto SSH, consegna reale, altri consumer e lifecycle operativo aperti.

@@ -81,7 +81,8 @@ riavvio guest, ACL rilette e Kaspersky Pubblica riconfermata dall'owner.
 Mercurion-NAT successivamente creato e riletto senza mapping, ACL invariate;
 successiva policy DnsHttps applicata con 19 ACL. H-06 riuscito da tre origini
 e H-02/H-04 verso host negativi con controlli, Verify finale riuscito.
-Isolamento LAN, altre origini e porte private 443/53 ancora da collaudare;
+Probe privati host 443/53 successivamente riusciti su nove percorsi con controlli.
+Isolamento LAN e altre origini ancora da collaudare;
 divieto diretto LAN ↔ VM/container, incluso il percorso attraverso NAT.
 Solo l'interfaccia amministrativa host può iniziare SSH verso il guest.
 Nessun bridge fisico, seconda vNIC o modifica alle reti WSL/Docker impliciti.

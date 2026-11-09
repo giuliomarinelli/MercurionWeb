@@ -75,12 +75,14 @@ snapshot coerente e nessun avvio/spostamento automatico. H-06 poi riuscito da
 guest e due bridge con DNS, TLS 1.3, HTTP 200 e cleanup. H-02 ripetuto: timeout
 verso host, 23 controlli positivi e listener chiuso. H-04 aggiornato riuscito
 su due bridge con 12 controlli host, cleanup e Verify finale DnsHttps riusciti.
-**Passi residui:** prove runtime private TCP/443 e DNS/53 (canary attuali su
-porte effimere), LAN bidirezionale, IPv6/altre origini e reboot host. Non
+**Passi residui:** LAN bidirezionale, IPv6/altre origini e reboot host. Non
 anticipare accettazione complessiva o deployment sulla sola riuscita H-06.
 Strumento [porte private](PRIVATE-PORT-PROBES.md) pronto: 11 unittest, tre
 scenari trasporto PowerShell 5.1, preflight host e collaudo Docker Desktop
-passati; esecuzione owner su Mercurion-Server ancora pendente.
+passati. Esecuzione owner acquisita: nove percorsi host TCP/443, TCP/53 e
+UDP/53 non raggiungibili da guest/due bridge; 63 controlli host positivi,
+route e finestre correlate, cleanup e chiusura canary riusciti. Perimetro
+specifico e hash nel documento; nessuna estensione automatica alla LAN.
 Residuo strumenti: diagnosticare il prompt sudo tardivo nella pipeline SSH/PTY,
 senza cambiare autenticazione, sudoers o acquisire password nei report.
 
