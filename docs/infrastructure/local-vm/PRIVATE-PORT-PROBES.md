@@ -36,6 +36,31 @@ dall'agente sui file salvati; script trasferito identico al sorgente corrente.
 a un singolo firewall, non copre tutti gli indirizzi privati o dispositivi LAN
 e mantiene isolationAccepted false. Nessun segreto o report grezzo versionato.
 
+## Ripetizione riuscita dopo riavvio Windows
+
+Run `32b00ebc17a246b881b95fff19c13dc3`: nove casi non raggiungibili da guest
+e due bridge, TCP/443 e TCP/53 su `10.203.240.1`, UDP/53 sul nuovo DNS ICS
+`192.168.160.1`. Report guest 9 novembre **14:29:35–14:30:12 UTC**;
+81 controlli host tutti positivi, 27 per endpoint, dalle 14:28:58 alle
+14:31:11 UTC. Readiness DNS al primo tentativo, controlli client prima/dopo
+positivi, route presenti e finestre correlate. Immagine attesa linux/amd64,
+cleanup senza errori, host controls-passed, stop richiesto e closed true.
+Nessun listener TCP canary residuo alla rilettura host. Correlazione
+ricalcolata dall'agente, sorgente trasferito identico al repository.
+
+Directory locale sotto `.codex/artifacts/inf-vm-02/` nel profilo dell'owner:
+`private-ports-ipv4-32b00ebc17a246b881b95fff19c13dc3`.
+
+| File locale del run | SHA-256 |
+| --- | --- |
+| private-port-probe.json | `3a71d28ad7bcca6f75ec1950f919252262d508302cff03bb74fcd1de2d93fb1a` |
+| host/result.json | `804881ba21a5f093a8db5fb09fa2b1bace2b8d98a09f4d168c671352534c0528` |
+| correlation.json | `012e2f868df76c8ea4a24a3d5d07db14033fe90b3b38bf112c072839c72d72f3` |
+| private_port_probe.py trasferito | `9ccfdd5a664b49ce92f68b3a87d3688a70244ca90ed0ef4fab42c0a3dcb4029f` |
+
+Questo run conferma i percorsi host testati dopo Restart; non estende la
+copertura a dispositivi LAN, origini diverse o IPv6.
+
 ## Bersagli e controlli positivi
 
 | Trasporto | Bersaglio della baseline | Controllo |
@@ -49,8 +74,9 @@ Non sostituire quel listener, non fermare servizi e non cambiare WSL o Docker.
 Sul solo IP interno 10.203.240.1 non è stato ottenuto un controllo UDP positivo;
 quel bersaglio non viene usato per dichiarare un blocco riuscito. Il DNS ICS
 sull'indirizzo del Default Switch risponde invece alle domande di controllo.
-L'indirizzo viene riletto ad ogni avvio e deve ricadere nel prefisso privato
-172.16.0.0/12 previsto da questa baseline; altre topologie richiedono review.
+L'indirizzo viene riletto ad ogni avvio dall'adattatore Default Switch nominato
+e deve ricadere in una delle tre fasce IPv4 RFC 1918. Osservati 172.27.0.1
+prima e 192.168.160.1 dopo Restart; non si sostituisce con un target LAN arbitrario.
 
 Il Default Switch serve esclusivamente come destinazione di una prova verso
 un servizio host esistente: la vNIC guest resta su Mercurion-Internal e il suo
@@ -114,7 +140,7 @@ Artifact locali: `.codex/artifacts/inf-vm-02/private-ports-ipv4-<runId>/`, con
 L'opzione ArtifactRoot è usata per isolare le fixture dei test, fuori dai report VM.
 Tutti i riepiloghi mantengono isolationAccepted false. Il successo chiude solo
 i percorsi privati host testati: restano LAN bidirezionale, altre origini,
-IPv6 e persistenza dopo reboot host.
+IPv6. La ripetizione post-reboot è registrata sopra per i soli percorsi host testati.
 
 ## Verifiche dello strumento
 
@@ -146,7 +172,7 @@ conserva il traceback originale e non è riclassificato.
 
 Tredici test Python, tre scenari trasporto e preflight reale Windows PowerShell
 5.1 sul nuovo indirizzo riusciti. Nessuna modifica a firewall, ACL o servizio
-DNS ICS. Ripetizione VM dopo correzione ancora da eseguire.
+DNS ICS. Ripetizione VM dopo correzione acquisita nel run post-Restart sopra.
 
 Fonti di protocollo: [formato DNS, RFC 1035](https://datatracker.ietf.org/doc/html/rfc1035#section-4.1),
 [dominio riservato .invalid, RFC 2606](https://datatracker.ietf.org/doc/html/rfc2606#section-2).

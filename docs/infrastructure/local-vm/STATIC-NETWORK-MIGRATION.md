@@ -38,11 +38,11 @@ Questi sono criteri da implementare e collaudare, non isolamento già dimostrato
 | M-01 | Inventario host/Hyper-V/HNS e diagnosi del timeout | Completato |
 | M-02 | Piano indirizzi e controlli sovrapposizione | Proposta verificata sullo snapshot, riservare prima dell'uso |
 | M-03 | Creazione switch interno e IP host statico | Eseguito dall'owner: Internal e `10.203.240.1/24`; ActiveStore Preferred verificato |
-| M-04 | Kaspersky Pubblica e profilo host verificati | Pubblica confermata anche dopo reboot guest; efficacia sui pacchetti e reboot host da provare |
+| M-04 | Kaspersky Pubblica e profilo host verificati | Pubblica confermata anche dopo reboot host; isolamento completo resta M-07 |
 | M-05 | Backup e policy ACL della sola vNIC Mercurion | Apply owner riuscito e Verify dopo collegamento confermato; traffico non collaudato |
 | M-06 | Configurazione guest statica, NAT e collegamento | Mercurion-NAT riletto senza mapping; successiva policy DnsHttps a 19 ACL applicata |
 | M-07 | SSH, egress e prove negative con controlli positivi | DnsHttps: H-06 e canary riusciti, nove percorsi host 443/53 negativi con controlli; LAN/altre origini ancora da verificare |
-| M-08 | Riavvio a freddo, stabilità e nuova baseline | Riavvio guest: nuovo login, IP e gateway confermati; reboot host, profili e policy completa ancora aperti |
+| M-08 | Riavvio a freddo, stabilità e nuova baseline | Riavvio host: IP/NAT/ACL/profili, SSH, egress e negazioni host verificati; smoke distro WSL e isolamento residuo aperti |
 
 ## M-01 — inventario, senza cambiare configurazioni
 
@@ -563,7 +563,10 @@ negativa di traffico. Owner conferma inoltre che la voce `10.203.240.1/24`
 persistenza dopo riavvio Windows o a isolamento LAN collaudato.
 
 Per la prova Windows seguire il [punto di ripresa e checklist M-08](HOST-REBOOT-VERIFICATION.md),
-con inventario prima/dopo e VM arrestata ordinatamente. Riavvio host ancora da eseguire.
+con inventario prima/dopo e VM arrestata ordinatamente. Prova ora eseguita:
+IP/NAT/ACL/profili, SSH, egress e nove negazioni host verificati; dettagli,
+hash e limiti nel documento. Smoke funzionale distro WSL ancora aperto,
+LAN/altre origini/IPv6 restano prove separate.
 
 Provare separatamente reboot guest e host con salvataggio del lavoro prima:
 indirizzi fissi invariati, LUKS e SSH funzionanti, profilo Kaspersky ancora

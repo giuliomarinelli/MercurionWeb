@@ -191,8 +191,19 @@ immagine Python attesa, cleanup senza errori. SHA-256 del report:
 `f04d762c1224cfc0dced306f2adf7f377496476dd838fd4983ab8bc18b1fdaba`.
 Lo smoke prova questi percorsi, non tutti i provider o ogni resolver.
 
-Ancora da acquisire: negazioni verso host dopo il riavvio. M-08/A-28 e
-LAN/altre origini/IPv6 A-30 restano aperti.
+**Negazioni post-Restart acquisite:** run `32b00ebc17a246b881b95fff19c13dc3`,
+nove casi guest/due bridge non raggiungibili, 81 controlli host positivi,
+controlli client e route validi, cleanup senza errori. Host controls-passed,
+stop richiesto, closed true e nessun listener TCP canary residuo. Correlazione
+ricalcolata e hash nel [report delle porte private](PRIVATE-PORT-PROBES.md).
+
+Persistenza IP host/guest, NAT, ACL, profili, SSH, egress e negazioni host
+verificata su questo riavvio. A-29 soddisfatto per la categoria. Il controllo
+locale WSL elenca docker-desktop Running e Ubuntu-26.04 Stopped; il daemon
+desktop-linux risponde con versione 29.9.3 e reti attese. La distro Ubuntu
+WSL non è stata avviata e il suo smoke funzionale resta aperto per A-28;
+non confonderla con la VM Ubuntu Hyper-V verificata. M-08/A-28 non sono
+dichiarati integralmente chiusi; LAN/altre origini/IPv6 A-30 restano aperti.
 
 Primo tentativo probe privati post-Restart
 `daed3aca799c4c6282080e302b059f58` interrotto prima di SSH: errore nella

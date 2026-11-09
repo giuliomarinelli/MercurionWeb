@@ -102,7 +102,11 @@ La versione corrente di Tox21 ha override `allow` / `require-jwt` / `disabled` p
   pulizia riuscita. Verify finale DnsHttps riuscito; nessun listener residuo.
   Test privati 443/53 eseguiti nel run b99564532a354dbcbe548472d8bcba56:
   nove percorsi verso endpoint host non raggiungibili, 63 controlli positivi,
-  route correlate e cleanup riuscito. Restano LAN/altre origini, IPv6 e reboot host.
+  route correlate e cleanup riuscito. Successivo reboot host eseguito: IP/NAT/ACL
+  e profili persistenti, SSH/route guest confermati, H-06 e nove negazioni private
+  ripetuti (81 controlli host positivi). [Evidenze M-08](HOST-REBOOT-VERIFICATION.md).
+  Restano LAN/altre origini, IPv6 e smoke funzionale distro Ubuntu WSL;
+  daemon Docker Desktop interrogabile, nessuna accettazione completa dedotta.
 - Ricevitore/apply Tox21 disponibile come [pilot locale](SECRET-DELIVERY-PILOT.md),
   con 17 test Linux sintetici passati; non ancora installato sulla VM.
   Trasporto SSH, consegna reale, altri consumer e lifecycle operativo aperti.

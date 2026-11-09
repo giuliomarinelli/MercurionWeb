@@ -903,3 +903,21 @@ Rifiuto target ora raccolto nel report invalid di serve-host. Tredici unittest
 Python (incluse correlazioni sulle tre fasce), tre scenari trasporto PS 5.1
 e ValidateOnly reale sul nuovo DNS passati. Evidenza fallita preservata;
 richiedere nuovo run VM solo dopo questa verifica, nessun retry automatico.
+
+**Ripetizione privata post-Restart riuscita:** owner completa SCP e correlazione
+nel run 32b00ebc17a246b881b95fff19c13dc3. Report locali riletti e correlazione
+ricalcolata: nove casi guest/due bridge non raggiungibili verso TCP/443 e
+TCP/53 su 10.203.240.1, UDP/53 sul nuovo DNS ICS 192.168.160.1. Guest
+14:29:35–14:30:12 UTC; 81 controlli host tutti positivi, 27 per endpoint,
+14:28:58–14:31:11 UTC, readiness DNS al primo tentativo. Controlli client
+prima/dopo e route validi, immagine attesa, cleanup senza errori, stop richiesto,
+host controls-passed e closed true. Nessun listener TCP canary residuo;
+sorgente trasferito identico al repository. Hash in PRIVATE-PORT-PROBES.
+
+Persistenza rete dopo Restart verificata nei percorsi dichiarati; A-29 confermato.
+Letture locali WSL: docker-desktop Running e Ubuntu-26.04 Stopped; daemon
+desktop-linux risponde versione 29.9.3, reti preservate nell'inventario. Distro
+Ubuntu WSL non avviata: A-28 resta parziale per lo smoke funzionale, distinto
+dalla VM Hyper-V. Nessuna chiusura di A-30 LAN/altre origini/IPv6. Richiesta
+all'owner scelta sul prossimo blocco LAN: predisporre Android oppure mantenere
+prove aperte e continuare preparazione locale; nessuna installazione implicita.

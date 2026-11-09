@@ -29,7 +29,7 @@
 | A-23 | Recovery | restart guest/host e avvio su richiesta senza dipendenza da file credenziali persistenti | Non eseguito |
 | A-24 | Risorse | memoria/CPU/disco misurati a riposo, in carico e con entrambi gli stack | Non eseguito |
 | A-25 | Limiti portfolio | avviso di case study, dati personali e disponibilità rappresentati correttamente | Non eseguito |
-| A-26 | Amministrazione guest | SSH da host con chiave, nessun login root/password, ACL delle origini verificate | Parziale: login owner e Verify ACL riusciti dopo riavvio guest il 9 novembre; prove negative e reboot host aperti |
+| A-26 | Amministrazione guest | SSH da host con chiave, nessun login root/password, ACL delle origini verificate | Parziale: login owner e Verify ACL riusciti anche dopo riavvio host; prove da altre origini ancora aperte |
 | A-27 | Cifratura guest | mount root sul dispositivo cifrato e percorso operativo di sblocco | Root su LUKS/dm-crypt/LVM verificato nel report v2; sblocco a freddo aperto |
 
 ## Risultati preesistenti da non confondere con questa matrice
@@ -59,7 +59,12 @@ e della sua persistenza**; l'efficacia del filtro è verificata dai casi di
 traffico separati. Successivamente guest avviato: shell SSH raggiunta,
 IP/route statici confermati dall'owner. H-06 post-Restart riletto nel run
 c149b357dc5040038b4a26682309dbd0: DNS/HTTPS IPv4 riuscito su guest e due bridge,
-cleanup senza errori. A-28 e A-30 ancora aperti; negazioni post-Restart pendenti.
+cleanup senza errori. Negazioni post-Restart poi acquisite nel run
+32b00ebc17a246b881b95fff19c13dc3: nove casi non raggiungibili, 81 controlli
+host positivi e controlli client/route correlati, cleanup e chiusura riusciti.
+A-28: persistenza rete e runtime Docker guest verificati; daemon Docker Desktop
+risponde e reti preservate, distro Ubuntu WSL ancora Stopped e smoke funzionale
+non eseguito. A-28 resta parziale per quest'ultimo punto; A-30 ancora aperto.
 
 **Avanzamento rete statica del 9 novembre:** Netplan try accettato; TCP/22
 dal solo IP host interno e identità server verificati; owner conferma shell

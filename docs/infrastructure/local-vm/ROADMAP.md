@@ -75,14 +75,20 @@ snapshot coerente e nessun avvio/spostamento automatico. H-06 poi riuscito da
 guest e due bridge con DNS, TLS 1.3, HTTP 200 e cleanup. H-02 ripetuto: timeout
 verso host, 23 controlli positivi e listener chiuso. H-04 aggiornato riuscito
 su due bridge con 12 controlli host, cleanup e Verify finale DnsHttps riusciti.
-**Passi residui:** LAN bidirezionale, IPv6/altre origini e reboot host. Non
+**Passi residui:** LAN bidirezionale, IPv6/altre origini e smoke distro WSL. Non
 anticipare accettazione complessiva o deployment sulla sola riuscita H-06.
-Strumento [porte private](PRIVATE-PORT-PROBES.md) pronto: 11 unittest, tre
+Strumento [porte private](PRIVATE-PORT-PROBES.md) pronto: 13 unittest, tre
 scenari trasporto PowerShell 5.1, preflight host e collaudo Docker Desktop
 passati. Esecuzione owner acquisita: nove percorsi host TCP/443, TCP/53 e
 UDP/53 non raggiungibili da guest/due bridge; 63 controlli host positivi,
 route e finestre correlate, cleanup e chiusura canary riusciti. Perimetro
 specifico e hash nel documento; nessuna estensione automatica alla LAN.
+Successivo riavvio Windows eseguito: inventario completo e Verify DnsHttps
+confermano IP persistente, switch/vNIC, NAT senza mapping, ACL e Windows Public;
+owner conferma Kaspersky ancora Pubblica. SSH/IP/route guest preservati,
+H-06 riuscito e nove negazioni private ripetute con 81 controlli host positivi,
+cleanup e correlazione riusciti. [Punto M-08 aggiornato](HOST-REBOOT-VERIFICATION.md).
+Docker Desktop risponde; distro Ubuntu WSL non avviata, smoke ancora aperto.
 Residuo strumenti: diagnosticare il prompt sudo tardivo nella pipeline SSH/PTY,
 senza cambiare autenticazione, sudoers o acquisire password nei report.
 
