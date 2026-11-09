@@ -878,3 +878,17 @@ false. Categoria Rete pubblica ancora presente sulla voce esatta 10.203.240.1/24
 Mercurion-Internal. A-29 verificato per classificazione/persistenza; nessuna
 equivalenza con isolamento completo. Richiesti avvio guest, sblocco LUKS,
 login SSH ordinario e lettura delle route prima delle prove post-boot.
+
+**SSH guest dopo riavvio host riuscito:** output owner dalla shell Ubuntu
+con default statico via 10.203.240.1 su eth0 e route connessa 10.203.240.0/24,
+src 10.203.240.10; docker0 172.17.0.0/16 linkdown. Nessuna modifica correttiva
+di alias, chiavi o ACL riportata. Richiesto H-06 da PowerShell Windows dopo
+uscita dalla shell SSH; egress e negazioni post-Restart ancora pendenti.
+
+**H-06 dopo riavvio Windows acquisito:** run owner
+c149b357dc5040038b4a26682309dbd0, 14:25:35–14:25:37 UTC. Report locale riletto:
+guest, bridge e bridge temporaneo con DNS pubblico IPv4, TLS 1.3 e HTTP 200
+verso docs.python.org; immagine attesa e cleanup senza errori. Hash registrato
+in HOST-REBOOT-VERIFICATION. Errori di autenticazione iniziali seguiti da
+esecuzione riuscita; nessuna modifica all'autenticazione. Richiesta ripetizione
+dei nove probe privati post-Restart; negazioni ancora pendenti.

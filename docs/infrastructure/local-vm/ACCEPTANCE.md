@@ -56,7 +56,10 @@ settingsReadbackVerified true, internetEgressEnabled true e isolationAccepted
 false. Conferma inoltre la voce 10.203.240.1/24 Mercurion-Internal ancora
 Rete pubblica in Kaspersky. **A-29 superato nel perimetro della classificazione
 e della sua persistenza**; l'efficacia del filtro è verificata dai casi di
-traffico separati. A-28 e A-30 ancora aperti, guest da riavviare dopo questo Restart.
+traffico separati. Successivamente guest avviato: shell SSH raggiunta,
+IP/route statici confermati dall'owner. H-06 post-Restart riletto nel run
+c149b357dc5040038b4a26682309dbd0: DNS/HTTPS IPv4 riuscito su guest e due bridge,
+cleanup senza errori. A-28 e A-30 ancora aperti; negazioni post-Restart pendenti.
 
 **Avanzamento rete statica del 9 novembre:** Netplan try accettato; TCP/22
 dal solo IP host interno e identità server verificati; owner conferma shell

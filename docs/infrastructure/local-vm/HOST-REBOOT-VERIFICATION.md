@@ -169,8 +169,30 @@ senza indirizzo/route host corrispondenti nel report; nessun reset eseguito.
 La persistenza della classificazione richiesta da A-29 è quindi confermata;
 non è una prova di isolamento dei pacchetti.
 
-Ancora da acquisire: avvio guest con LUKS/SSH, IP/route e prove egress/negative
-dopo il riavvio host. M-08/A-28 e LAN/altre origini/IPv6 A-30 restano aperti.
+**Guest avviato dall'owner dopo Restart:** raggiunta la shell SSH; la lettura
+`ip -4 route show` conferma:
+
+```text
+default via 10.203.240.1 dev eth0 proto static
+10.203.240.0/24 dev eth0 proto kernel scope link src 10.203.240.10
+172.17.0.0/16 dev docker0 proto kernel scope link src 172.17.0.1 linkdown
+```
+
+IP e gateway statici sono preservati. La route docker0 linkdown non attesta
+un errore del daemon né il suo funzionamento: i probe successivi ne verificano
+l'uso effettivo.
+
+**H-06 dopo Restart riuscito:** run `c149b357dc5040038b4a26682309dbd0`,
+9 novembre 14:25:35–14:25:37 UTC, report riletto nel percorso
+`.codex/artifacts/inf-vm-02/h06-ipv4-c149b357dc5040038b4a26682309dbd0/egress-probe.json`
+sotto il profilo Windows dell'owner. Tre origini (guest, bridge e bridge
+temporaneo), DNS pubblico IPv4, TLS 1.3 e HTTP 200 verso docs.python.org;
+immagine Python attesa, cleanup senza errori. SHA-256 del report:
+`f04d762c1224cfc0dced306f2adf7f377496476dd838fd4983ab8bc18b1fdaba`.
+Lo smoke prova questi percorsi, non tutti i provider o ogni resolver.
+
+Ancora da acquisire: negazioni verso host dopo il riavvio. M-08/A-28 e
+LAN/altre origini/IPv6 A-30 restano aperti.
 
 ## Riferimenti
 
