@@ -13,7 +13,8 @@ import uuid
 
 ROOT = Path(__file__).resolve().parents[2]
 BASE = ROOT / 'deployment/local-vm'
-IMAGE = 'python@sha256:65bd3d9f1d7fa268dd1909973ba7eb4bdf41f6dcf2cfbe76ba9528b170f3fd79'
+# Local configuration ID survives docker save/load; it is not a registry manifest digest.
+IMAGE = 'sha256:65bd3d9f1d7fa268dd1909973ba7eb4bdf41f6dcf2cfbe76ba9528b170f3fd79'
 RUN_LABEL = 'mercurion.topology.run'
 LINUX_ENETUNREACH = 101  # Probe errno belongs to the verified Linux daemon, not the Windows runner.
 
@@ -84,7 +85,7 @@ class Runner:
         self.nodes = {}
 
     def discover(self, refs):
-        template = ('{"id":{{json .Id}},"image":{{json .Config.Image}},"running":{{json .State.Running}},'
+        template = ('{"id":{{json .Id}},"image":{{json .Config.Image}},"imageId":{{json .Image}},"running":{{json .State.Running}},'
                     '"command":{{json .Config.Cmd}},"entrypoint":{{json .Config.Entrypoint}},'
                     '"networks":{{json .NetworkSettings.Networks}},"ports":{{json .HostConfig.PortBindings}},'
                     '"readonly":{{json .HostConfig.ReadonlyRootfs}},"privileged":{{json .HostConfig.Privileged}},'
@@ -96,7 +97,7 @@ class Runner:
             if len(identifiers) != 1:
                 raise ValueError('Every matrix role must have exactly one running fixture')
             node = json.loads(self.invoke('inspect', '--format', template, identifiers[0]))
-            if (node['image'] != IMAGE or not node['running'] or node['ports'] or node['privileged']
+            if (node['image'] != IMAGE or node['imageId'] != IMAGE or not node['running'] or node['ports'] or node['privileged']
                     or not node['readonly'] or node['user'] != '65534:65534' or node['dnsOptions'] != ['ndots:1']
                     or node['entrypoint'] != ['python']
                     or node['command'] != ['-B', '/fixture/topology_fixture.py', 'serve', '--identity', service]):

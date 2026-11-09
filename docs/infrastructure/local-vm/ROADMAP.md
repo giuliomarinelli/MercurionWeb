@@ -77,6 +77,10 @@ verso host, 23 controlli positivi e listener chiuso. H-04 aggiornato riuscito
 su due bridge con 12 controlli host, cleanup e Verify finale DnsHttps riusciti.
 **Passi residui:** IPv6, verifica delle origini H-05 e copertura LAN residua. Non
 anticipare accettazione complessiva o deployment sulla sola riuscita H-06.
+**VM-034, proposta da decidere:** [IPv4-only](IPV4-ONLY-DESIGN.md) per ridurre
+il networking supportato, conservando il deny IPv6 Hyper-V. Un filtro sullo ZTE
+non copre i percorsi locali; nessuna regola router/guest modificata. Definire
+verifiche e rollback prima di eventuali interventi, senza chiudere IPv6/H-05.
 Strumento [porte private](PRIVATE-PORT-PROBES.md) pronto: 13 unittest, tre
 scenari trasporto PowerShell 5.1, preflight host e collaudo Docker Desktop
 passati. Esecuzione owner acquisita: nove percorsi host TCP/443, TCP/53 e
@@ -130,6 +134,13 @@ Collaudo dello strumento su Docker Desktop: 33/33 casi passati, cleanup
 16/13/7 riuscito. Il lifecycle separa errori DNS, connessione bloccata e assenza
 di route del namespace; quest'ultima è separazione topologica, non prova firewall.
 Dodici test runner e otto lifecycle passati; prova VM ancora da eseguire.
+Primo tentativo VM 534be453d86e42329cad4686b522019a fermato nel preflight:
+zero casi, mutationsAttempted false, riferimento immagine non interrogabile.
+Corretto il pin delle sole fixture da pseudo-digest registry a ID locale
+immutabile già usato dai probe. Nessun pull/tag/import come fallback;
+nuovo bundle e nuova evidenza VM necessari. [Diagnosi](FIXTURE-RUNTIME.md).
+Correzione verificata con 13 test runner, 10 lifecycle e nuovo collaudo
+Docker Desktop 33/33, cleanup completo 16/13/7 e nessun residuo del run.
 
 Definire directory `shared`, `preview`, `production`; reti esterne, alias, `internal`, `egress`, volumi e confini. Evitare un solo Compose con molti flag. Iniziare con probe/fixture non sensibili.
 
@@ -180,6 +191,10 @@ Consolidare exporter e coordinatore esistenti per immagini staging e production 
 
 **Dipende da:** 03, 04, 05, 06.  
 Avviare progressivamente PostgreSQL/Redis/NATS e backend/frontend/Tox21 per ambiente; recuperare routing utile da Nginx storico **senza** TLS origin/maintenance mode; configurare cloudflared, Access per preview, header forwarded, cookie, OAuth redirect e WebSocket.
+
+Valutare VM-034: selezione esplicita IPv4 per il tunnel e origin, scelta HTTP/2
+oppure QUIC e autorizzazione egress 7844 alle destinazioni previste. Le ACL
+DnsHttps attuali non consentono il tunnel; nessuna apertura anticipata.
 
 **Accettazione:** end-to-end browser reale su entrambi gli hostname; nessuna API Meilisearch/SSH esposta, sessioni/autorizzazioni funzionanti, staging e production separati.
 

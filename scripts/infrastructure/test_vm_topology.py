@@ -62,6 +62,13 @@ class FixtureTests(unittest.TestCase):
 
 
 class RunnerTests(unittest.TestCase):
+    def test_discovery_rejects_a_different_resolved_image_id(self):
+        ref = 'shared/cloudflared'
+        node = dict(image=runner.IMAGE,imageId='sha256:'+'0'*64)
+        invoke = Mock(side_effect=['c'*64,json.dumps(node)])
+        with self.assertRaises(ValueError):
+            runner.Runner(invoke).discover([ref])
+
     def test_structural_no_route_is_distinct_and_requires_healthy_peers(self):
         healthy=[dict(outcome='reachable')]*2
         no_route=dict(outcome='no-route',tcpConnected=False,errno=101,routeObserved=True,route=None)
@@ -153,7 +160,7 @@ class RunnerTests(unittest.TestCase):
                     return probe.run_id
                 ref = next(ref for ref, identifier in ids.items() if identifier == args[-1])
                 identity = ref.split('/')[1]
-                return json.dumps(dict(id=ids[ref], image=runner.IMAGE, running=True, ports={}, readonly=True,
+                return json.dumps(dict(id=ids[ref], image=runner.IMAGE, imageId=runner.IMAGE, running=True, ports={}, readonly=True,
                                        privileged=False, user='65534:65534', entrypoint=['python'], dnsOptions=['ndots:1'],
                                        command=['-B', '/fixture/topology_fixture.py', 'serve', '--identity', identity],
                                        networks={'fixture-net': dict(IPAddress=ips[ref])}))

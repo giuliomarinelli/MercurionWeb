@@ -142,3 +142,45 @@ del runner (101 contro 10051). Corretto il dominio dell'errno nel protocollo
 Linux; test aggiornato a usare il valore remoto, senza cambiare il report
 originale. Ogni tentativo precedente resta invalid e con pulizia riuscita.
 La successiva prova VM non è ancora eseguita.
+
+## 6. Primo preflight VM e correzione del riferimento immagine
+
+Run VM `534be453d86e42329cad4686b522019a`, 9 novembre 18:21:21 UTC
+(19:21:21 italiane): status invalid in preflight, mutationsAttempted false,
+zero casi e nessun errore cleanup. Nessuna fixture/rete/volume è stata creata.
+Report originale preservato in
+`inf-vm-03/250580d3ae2a4f998a9d92f39ec1f897/fixture-run.json`, SHA-256
+`971e127d89d0c648f31e3def3ba5d14047fadb4f9a9d8a73bda2fe6a67b96ff6`.
+
+Errore: `python@sha256:65bd3d9...` non interrogabile nel daemon guest.
+Il valore completo era l'ID locale della configurazione immagine, già usato
+dai probe precedenti, inserito erroneamente nella sintassi di digest registry.
+ID locale e digest del manifest sono identificatori distinti; il successo
+su Docker Desktop non dimostrava la portabilità di quel riferimento dopo load.
+L'errore non dimostra che i byte dell'immagine siano assenti sulla VM.
+
+Correzione circoscritta: i tre Compose, validator e runner ora usano l'ID completo
+`sha256:65bd3d9f1d7fa268dd1909973ba7eb4bdf41f6dcf2cfbe76ba9528b170f3fd79`,
+senza nome repository, tag creati automaticamente o dipendenza da RepoDigests.
+Preflight richiede sempre Id esatto e linux/amd64. Il runner verifica anche
+`.Image` dei container, oltre al riferimento richiesto in `.Config.Image`.
+Se l'ID manca davvero, si ferma ancora senza pull/import/fallback.
+
+Test mirati: 13 fixture/runner e 10 lifecycle passati, compresi immagine senza
+RepoDigests, immagine mancante e ID effettivo container differente. Validatore
+statico 12+4 guardie passato. Nuovo collaudo Docker Desktop con ID corretto:
+run `0a949f871198499ebdd2e2baa4b46d38`, 9 novembre 19:24–19:26 CET,
+33/33 passed, cleanup completo 16 container/13 reti/7 volumi e nessuna risorsa
+con label del run residua. Report
+`inf-vm-03/local-validation/8c4da1af23fe4e8dacd3cad9089c35ac/lifecycle.json`,
+SHA-256 `351121f7f53d3d2e2142e81d61234eae6fe9fdfbdf50083b6e030ef552fd3f01`.
+Nessun report VM viene sovrascritto o promosso a passed; nuova misura VM pendente.
+
+Per riprovare, usare il comando della sezione 2 soltanto dopo la revisione della
+correzione e delle sue verifiche: genera un bundle e report nuovi. Non rieseguire
+il bundle vecchio e non modificare il report invalid. Il trasferimento resta
+limitato ai sorgenti fixture, senza immagini o segreti.
+
+Riferimenti primari:
+[image ID e store content-addressable](https://docs.docker.com/reference/cli/docker/image/pull/),
+[manifest del registry](https://docs.docker.com/reference/api/registry/latest/).

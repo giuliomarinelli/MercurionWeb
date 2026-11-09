@@ -43,7 +43,7 @@ class LifecycleTests(unittest.TestCase):
         if args[0] == 'version':
             return 'linux/amd64'
         if args[:2] == ('image','inspect'):
-            return json.dumps([dict(Id=IMAGE.split('@')[1],Os='linux',Architecture='amd64')])
+            return json.dumps([dict(Id=IMAGE,Os='linux',Architecture='amd64',RepoDigests=[])])
         if args[0] == 'compose':
             self.assertIn('config',args)
             project = Path(args[args.index('-f')+1]).parent.name
@@ -77,6 +77,21 @@ class LifecycleTests(unittest.TestCase):
         result = Lifecycle(self.root,invoke).run()
         self.assertFalse(result['mutationsAttempted'])
         self.assertEqual(result['status'],'invalid')
+        self.assertEqual(invoke.call_count,2)
+
+    def test_local_image_id_without_repository_digest_is_sufficient(self):
+        result = Lifecycle(self.root,self.invoke).preflight()
+        self.assertEqual(result['imageId'],IMAGE)
+        self.assertTrue(IMAGE.startswith('sha256:'))
+        self.assertIn(('image','inspect',IMAGE),self.calls)
+        self.assertFalse(any('pull' in args for args in self.calls))
+
+    def test_missing_local_image_stops_without_fallback_or_mutation(self):
+        invoke = Mock(side_effect=['linux/amd64',subprocess.CalledProcessError(1,'inspect')])
+        result = Lifecycle(self.root,invoke).run()
+        self.assertEqual(result['status'],'invalid')
+        self.assertFalse(result['mutationsAttempted'])
+        self.assertIn(IMAGE,result['errorDetail'])
         self.assertEqual(invoke.call_count,2)
 
     def test_other_bind_mounts_rejected(self):

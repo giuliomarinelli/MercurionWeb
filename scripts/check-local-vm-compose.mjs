@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const base = resolve(root, 'deployment/local-vm')
-const image = 'python@sha256:65bd3d9f1d7fa268dd1909973ba7eb4bdf41f6dcf2cfbe76ba9528b170f3fd79'
+const image = 'sha256:65bd3d9f1d7fa268dd1909973ba7eb4bdf41f6dcf2cfbe76ba9528b170f3fd79'
 const schema = JSON.parse(readFileSync(resolve(root, 'deployment/deployment-schema.json'), 'utf8'))
 const overlays = Object.fromEntries(['preview', 'production'].map(name => [name,
   JSON.parse(readFileSync(resolve(root, `deployment/overlays/${name}.json`), 'utf8'))]))

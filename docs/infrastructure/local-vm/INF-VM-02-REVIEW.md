@@ -33,6 +33,11 @@ il collector guest non ricontrolla le ACL host. La configurazione osservata
 non offre un percorso IPv6 esterno con cui costruire il controllo positivo.
 Non abilitarlo soltanto per superare un test: introdurrebbe una topologia nuova.
 
+Successivo brainstorming owner: proposta [VM-034 IPv4-only](IPV4-ONLY-DESIGN.md).
+Il router non copre link-local VM ↔ host; mantenere il blocco sulla vNIC e
+valutare interventi guest soltanto dopo definizione di verifiche/rollback.
+La proposta non modifica gli esiti o autorizza cambiamenti di rete.
+
 ## VM-033 — esecuzione limitata alle fixture
 
 **APPROVATA dall'owner il 9 novembre:** «Procedi con le sole fixture».

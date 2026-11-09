@@ -117,7 +117,7 @@ class Lifecycle:
             image = json.loads(self.invoke('image','inspect',IMAGE))[0]
         except subprocess.CalledProcessError as error:
             raise ValueError('Local fixture image reference not inspectable; no pull attempted: '+IMAGE) from error
-        if (image['Id'], image['Os'], image['Architecture']) != (IMAGE.split('@')[1], 'linux','amd64'):
+        if (image['Id'], image['Os'], image['Architecture']) != (IMAGE, 'linux','amd64'):
             raise ValueError('Exact local fixture image required; no pull attempted')
         models = {project:canonical_model(json.loads(self.invoke(
             *compose_args(self.root,project),'config','--format','json')),self.root) for project in PROJECTS}

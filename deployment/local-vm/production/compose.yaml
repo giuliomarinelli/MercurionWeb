@@ -2,7 +2,7 @@
 name: mercurion-production
 
 x-fixture: &fixture
-  image: python@sha256:65bd3d9f1d7fa268dd1909973ba7eb4bdf41f6dcf2cfbe76ba9528b170f3fd79
+  image: sha256:65bd3d9f1d7fa268dd1909973ba7eb4bdf41f6dcf2cfbe76ba9528b170f3fd79
   entrypoint: [python]
   dns_opt: [ndots:1]
   volumes: [../fixtures/topology_fixture.py:/fixture/topology_fixture.py:ro]

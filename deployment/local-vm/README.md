@@ -13,7 +13,9 @@ Restano esclusi servizi reali, segreti, port publishing e Cloudflare.
 Tre progetti indipendenti: [shared](shared/compose.yaml),
 [preview](preview/compose.yaml), [production](production/compose.yaml).
 I nomi rappresentano i futuri ruoli, ma tutti usano **fixture TCP sintetiche**
-con il digest già usato in INF-VM-02. Ogni fixture ascolta in IPv4 sulla porta
+con l'ID immagine locale già usato in INF-VM-02 (`sha256:65bd3d9...`, non un
+digest registry `python@sha256:...`). Il pin completo è nei tre Compose;
+non richiede tag o RepoDigests dopo docker load. Ogni fixture ascolta in IPv4 sulla porta
 non privilegiata 18080 per massimo 600 secondi e restituisce un'identità JSON.
 Il bind wildcard resta nel namespace del container, senza pubblicazioni host.
 Non implementa protocolli applicativi e non avvia database, broker, Meilisearch,
@@ -145,14 +147,20 @@ Verifica locale, senza Docker runtime:
 python -B scripts/infrastructure/test_vm_topology.py
 ```
 
-Dodici test passati: TCP loopback reale, identità, chiusura, DNS, guardie contro
+Tredici test passati: TCP loopback reale, identità, chiusura, DNS, guardie contro
 falsi esiti e pulizia dopo timeout/ownership errata; l'intera matrice è percorsa
 con Docker simulato. La simulazione non dimostra la topologia della VM.
-Il lifecycle aggiunge otto test di sicurezza: collisioni, integrità bundle,
+Il lifecycle aggiunge dieci test di sicurezza: collisioni, integrità bundle,
 immagine/config errate, bind estranei, ownership cambiata, avvio interrotto
 e scrittura report fallita senza saltare la pulizia. I casi no-route della
 matrice descrivono separazione topologica con evidenza kernel/route e controlli
 attivi; non sono una prova del filtro host. Vedere FIXTURE-RUNTIME per i dettagli.
+
+Regressione immagine: primo tentativo VM fermato al preflight, senza mutazioni
+o casi. L'ID locale era stato usato erroneamente come digest registry; corretti
+Compose/validator/runner, con test immagine locale senza RepoDigests e rifiuto
+di ID effettivo container differente. Ora 13 test fixture/runner e 10 lifecycle;
+la nuova esecuzione VM deve produrre un report distinto, senza riuso del bundle.
 Collaudo reale Docker Desktop completato: 33/33 casi, cleanup di 16 fixture,
 13 reti e 7 volumi senza errori. Report e hash nella procedura; prova VM ancora
 da acquisire, nessuna promozione dell'esito locale.

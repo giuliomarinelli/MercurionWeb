@@ -36,6 +36,7 @@
 | VM-030 | APPROVATA | Basi operative persistenti: Web `feature/infra-vm-docker-engine-architecture`, Tox21 `feature/infra-vm-nats-client-auth`. Proseguire da qui, eventuali sotto-rami dalla rispettiva base; `develop` può restare indietro e ogni merge rimane dell'owner |
 | VM-031 | APPROVATA (sviluppo locale) | Il 9 novembre l'owner autorizza INF-VM-04-A e preparazione del percorso sintetico. Primo ricevitore/apply limitato a Tox21/NATS, testato su Linux locale; nessuna operazione VM implicita. Trasporto SSH, altri consumer e residui VM-028 aperti; dettaglio in SECRET-DELIVERY-PILOT.md |
 | VM-033 | APPROVATA (sole fixture) | Owner il 9 novembre: «Procedi con le sole fixture». Trasferimento, avvio, matrice e pulizia dei tre Compose Python INF-VM-03, senza segreti, applicazioni o port publishing; H-05/A-30 restano aperti. [Perimetro e procedura](FIXTURE-RUNTIME.md), nessun deployment applicativo implicito |
+| VM-034 | PROPOSTA (analisi documentata) | Networking operativo IPv4-only, incluso cloudflared → Cloudflare; blocco IPv6 al confine vNIC Hyper-V, non affidato al router che non vede i percorsi locali. [Motivazioni, passi e verifiche](IPV4-ONLY-DESIGN.md). Nessuna nuova modifica a rete/ACL o accettazione dei residui implicita |
 
 ## Confini non negoziabili
 

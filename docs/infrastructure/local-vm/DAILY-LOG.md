@@ -1080,3 +1080,28 @@ fixture/runner e otto lifecycle passati, preflight reale PS 5.1 passato,
 guardie statiche 12+4. Progressi mostrati direttamente in console e checkpoint
 su file fuori bundle. Nessun segreto/immagine/app reale trasferito sulla VM;
 pronto il comando operatore per il perimetro sintetico autorizzato.
+
+**VM-034, brainstorming IPv4-only:** owner richiede di documentare la proposta.
+Spiegato il limite del filtro ZTE: subnet IPv4 dietro WinNAT non è un prefisso
+IPv6 e i percorsi locali/link-local VM ↔ Windows non passano dal router.
+Proposti IPv4 applicativo/tunnel, deny IPv6 sulla vNIC già previsto e valutazione
+circroscritta delle interfacce guest. Parametri Cloudflare e necessità egress
+7844 demandati a INF-VM-07. Nessuna modifica di rete o chiusura dei residui.
+
+**Primo tentativo VM-033:** report owner riletto localmente, run
+534be453d86e42329cad4686b522019a, 18:21:21 UTC. Preflight invalid per riferimento
+immagine non interrogabile; mutationsAttempted false, nessun caso o risorsa
+creata, cleanupErrors vuoto. Report originale e hash in FIXTURE-RUNTIME.md.
+Errore del runner: ID locale della configurazione usato come digest registry.
+Corretto il riferimento nelle sole fixture a sha256:65bd3d9... completo, come
+nei probe VM precedenti; nessun pull/import/tag di ripiego. Verificato anche
+l'ID risolto dei container. 13 test runner e 10 lifecycle passati; 12+4 guardie
+statiche passate. Nuovo collaudo Docker Desktop avviato per verificare il
+percorso completo corretto, senza ripetere automaticamente la prova VM.
+
+**Correzione verificata localmente:** run 0a949f871198499ebdd2e2baa4b46d38,
+19:24–19:26 CET, 33/33 passed su Docker Desktop. Cleanup completo 16/13/7,
+nessun errore e ricerca per label senza risorse residue. Report distinto
+8c4da1af23fe4e8dacd3cad9089c35ac, hash in FIXTURE-RUNTIME.md. Anche preflight
+PowerShell 5.1 e validator documentazione passati. Nuovo tentativo operatore VM
+ancora necessario; il primo invalid resta conservato e senza mutazioni.

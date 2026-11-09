@@ -118,6 +118,12 @@ La versione corrente di Tox21 ha override `allow` / `require-jwt` / `disabled` p
   [Review INF-VM-02](INF-VM-02-REVIEW.md): VM-033 approvata per le sole fixture,
   con [lifecycle controllato](FIXTURE-RUNTIME.md); misura VM ancora da acquisire.
   Nessuna accettazione completa dedotta.
+  Primo tentativo VM poi acquisito: run 534be453d86e42329cad4686b522019a,
+  preflight invalid, nessuna mutazione tentata e zero casi; ID immagine locale
+  usato erroneamente come digest registry. Corretto il riferimento delle sole
+  fixture, preservato il report; nessuna nuova esecuzione VM ancora acquisita.
+  [VM-034](IPV4-ONLY-DESIGN.md): proposta IPv4-only documentata, nessun nuovo
+  intervento su IPv6/router e nessuna chiusura dei residui.
 - Ricevitore/apply Tox21 disponibile come [pilot locale](SECRET-DELIVERY-PILOT.md),
   con 17 test Linux sintetici passati; non ancora installato sulla VM.
   Trasporto SSH, consegna reale, altri consumer e lifecycle operativo aperti.
