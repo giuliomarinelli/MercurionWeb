@@ -91,11 +91,48 @@ export function auditLockfiles(tracked, invoke = auditDependencies) {
   })
 }
 
+async function enforceDependencyAudit(tracked) {
+  const audits = auditLockfiles(tracked)
+  await mkdir(reportDirectory, { recursive: true })
+  await writeFile(resolve(reportDirectory, 'dependency-audits.json'), `${JSON.stringify(audits, null, 2)}\n`)
+  const blocking = audits.filter(({ audit }) => !validateAudit(audit).eligible)
+  if (blocking.length) {
+    throw new Error(`strict dependency policy rejected: ${blocking.map(({ lockfile, audit }) =>
+      `${lockfile}: ${JSON.stringify(audit.metadata.vulnerabilities)}`).join('; ')}`)
+  }
+  return audits
+}
+
+export function validateWorkflowPolicy(workflow) {
+  const job = name => workflow.match(new RegExp(`^  ${name}:\\n([\\s\\S]*?)(?=^  [a-z][a-z-]*:|$(?![\\s\\S]))`, 'm'))?.[1]
+  const security = job('dependency-security')
+  const required = job('required')
+  const errors = []
+  if (!security || /^    if:/m.test(security) || !security.includes('check-supply-chain.mjs --audit-only')) {
+    errors.push('fresh dependency audit must run in every CI mode')
+  }
+  if (!required?.includes('- dependency-security') ||
+      !required.includes('DEPENDENCY_SECURITY_RESULT: ${{ needs.dependency-security.result }}') ||
+      !/test "\$DEPENDENCY_SECURITY_RESULT" = "success"[\s\S]*case "\$MODE"/.test(required)) {
+    errors.push('Required gate must require fresh audit before every validation path')
+  }
+  for (const name of ['quality', 'metadata', 'containers']) {
+    if (!job(name)?.includes('- dependency-security')) errors.push(`${name} must wait for dependency audit`)
+  }
+  return errors
+}
+
 async function main() {
   const policy = await readJson(resolve(root, 'docs/supply-chain-policy.json'))
   const policyErrors = validatePolicy(policy)
   if (policyErrors.length) throw new Error(policyErrors.join('\n'))
   const tracked = execFileSync('git', ['ls-files', '-z'], { cwd: root }).toString().split('\0').filter(Boolean)
+  const workflowErrors = validateWorkflowPolicy((await readFile(resolve(root, '.github/workflows/ci.yml'), 'utf8')).replaceAll('\r\n', '\n'))
+  if (workflowErrors.length) throw new Error(workflowErrors.join('\n'))
+  if (process.argv.includes('--audit-only')) {
+    await enforceDependencyAudit(tracked)
+    return
+  }
   const findings = []
   for (const path of tracked) {
     if (path.startsWith('scripts/fixtures/supply-chain/')) continue
@@ -122,14 +159,7 @@ async function main() {
     components.push({ type: 'library', name: path.replace(/^node_modules\//, ''), version: entry.version, licenses: entry.license ? [{ license: { id: entry.license } }] : [] })
   }
   if (licenseErrors.length) throw new Error(`license policy failed:\n${licenseErrors.join('\n')}`)
-  const audits = auditLockfiles(tracked)
-  await mkdir(reportDirectory, { recursive: true })
-  await writeFile(resolve(reportDirectory, 'dependency-audits.json'), `${JSON.stringify(audits, null, 2)}\n`)
-  const blocking = audits.filter(({ audit }) => !validateAudit(audit).eligible)
-  if (blocking.length) {
-    throw new Error(`strict dependency policy rejected: ${blocking.map(({ lockfile, audit }) =>
-      `${lockfile}: ${JSON.stringify(audit.metadata.vulnerabilities)}`).join('; ')}`)
-  }
+  const audits = await enforceDependencyAudit(tracked)
   const audit = audits.find(item => item.lockfile === 'package-lock.json').audit
   const identity = await readJson(resolve(root, 'build/build-identity.json'))
   const lockDigest = sha256(lockText)
@@ -193,5 +223,10 @@ if (process.argv.includes('--self-test')) {
     'MercurionLandingFactory/package-lock.json', 'README.md'], directory => { seen.push(directory); return clean })
   assert(allLocks.length === 3 && seen.length === 3, 'every tracked independent lockfile must be scanned')
   assert(validatePolicy({ ...validPolicy, exceptions: [{ finding: 'CVE-fixture', owner: 'x', reason: 'x', compensatingControl: 'x', expires: '2099-01-01' }] }).length > 0, 'exceptions must fail')
+  const workflow = (await readFile(resolve(root, '.github/workflows/ci.yml'), 'utf8')).replaceAll('\r\n', '\n')
+  assert(validateWorkflowPolicy(workflow).length === 0, 'workflow must enforce fresh security in every mode')
+  assert(validateWorkflowPolicy(workflow.replace('check-supply-chain.mjs --audit-only', 'echo skipped')).length > 0, 'missing audit must fail')
+  assert(validateWorkflowPolicy(workflow.replace('test "$DEPENDENCY_SECURITY_RESULT" = "success"', 'echo skipped')).length > 0, 'Required gate bypass must fail')
+  assert(validateWorkflowPolicy(workflow.replace('  dependency-security:\n', '  dependency-security:\n    if: false\n')).length > 0, 'conditional security bypass must fail')
   console.log('Supply-chain negative fixtures passed.')
 } else await main()

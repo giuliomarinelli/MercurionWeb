@@ -11,6 +11,10 @@ workspace root, MercurionData e MercurionLandingFactory, includendo dipendenze
 runtime, sviluppo, opzionali e peer. Blocca INFO/LOW/MODERATE/HIGH/CRITICAL,
 report incompleti/incoerenti, severità sconosciute ed errori dello scanner.
 I report di audit sono conservati anche quando il gate rifiuta le dipendenze.
+Un job dedicato li verifica prima di installazione/build in ogni esecuzione,
+anche nei percorsi metadata/duplicate: Required gate richiede sempre un nuovo
+audit riuscito. `node scripts/check-supply-chain.mjs --audit-only` non richiede
+node_modules o un'identità di build già generata.
 La stessa regola zero finding vale per le immagini e per la rivalutazione degli
 archivi coordinati: una precedente approvazione con finding non critici non
 può essere riutilizzata come approvazione strict.

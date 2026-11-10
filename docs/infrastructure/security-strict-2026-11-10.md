@@ -22,6 +22,10 @@ incompleto, incoerente o con severità non riconosciuta falliscono.
 La CI Tox21 esegue unit test della policy e source scan prima delle build;
 Required gate rimane dipendente dal successo del job. Web registra i test
 SARIF nel gate supply-chain esistente. Nessun gate disabilitato o reso opzionale.
+Web aggiunge inoltre un audit npm prima di installare/compilare: viene richiesto
+anche in modalità metadata/duplicate e il Required gate ne controlla sempre
+l'esito prima di selezionare il percorso. Un successo storico non evita un
+nuovo controllo degli advisory correnti. Test negativi coprono anche questi bypass.
 Le vecchie licenze ammesse o eccezioni di metadati non sono esenzioni CVE.
 Non vengono modificati dipendenze, lockfile, soglie del modello o applicazioni.
 

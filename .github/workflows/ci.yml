@@ -63,11 +63,40 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: node .github/scripts/classify-ci.mjs
 
+  dependency-security:
+    name: Strict dependency vulnerability policy
+    needs:
+      - plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Set up Node.js without installing project dependencies
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Verify strict policy and workflow guards
+        run: node scripts/check-supply-chain.mjs --self-test
+      - name: Audit every tracked lockfile before install or build
+        run: node scripts/check-supply-chain.mjs --audit-only
+      - name: Preserve dependency security diagnostics on failure
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: dependency-security-${{ github.sha }}
+          path: reports/supply-chain/dependency-audits.json
+          if-no-files-found: warn
+          retention-days: 14
+
   metadata:
     name: Autonomous metadata
     if: ${{ needs.plan.outputs.mode == 'metadata' }}
     needs:
       - plan
+      - dependency-security
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -101,6 +130,7 @@ jobs:
     if: ${{ needs.plan.outputs.mode == 'full' }}
     needs:
       - plan
+      - dependency-security
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
     strategy:
@@ -413,6 +443,7 @@ jobs:
     if: ${{ needs.plan.outputs.mode == 'full' }}
     needs:
       - plan
+      - dependency-security
     runs-on: ubuntu-latest
     timeout-minutes: 45
     strategy:
@@ -582,6 +613,7 @@ jobs:
     if: ${{ always() }}
     needs:
       - plan
+      - dependency-security
       - metadata
       - quality
       - angular-unit
@@ -607,9 +639,11 @@ jobs:
           SUPPLY_CHAIN_RESULT: ${{ needs.supply-chain.result }}
           MODE: ${{ needs.plan.outputs.mode }}
           PLAN_RESULT: ${{ needs.plan.result }}
+          DEPENDENCY_SECURITY_RESULT: ${{ needs.dependency-security.result }}
         shell: bash
         run: |
           test "$PLAN_RESULT" = "success"
+          test "$DEPENDENCY_SECURITY_RESULT" = "success"
           case "$MODE" in
             duplicate)
               ;;
