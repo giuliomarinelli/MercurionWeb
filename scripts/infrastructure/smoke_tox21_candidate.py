@@ -1,14 +1,17 @@
 """VM-039: local staging worker, real RPC/bootstrap lifecycle, synthetic tmpfs secrets."""
 import argparse
 import json
+import os
 from pathlib import Path
 import secrets
 import subprocess
 import time
 import uuid
 
-NATS_IMAGE = 'nats@sha256:77a161c7d888a1791d5a46b50cd87a2f8466ce40a33cbb51238d227ace01e35a'
+# VM-041 patched broker; requires the pinned local build or an explicit scanned ID.
+NATS_IMAGE = 'sha256:ca1d4783151aab46ae6b4e0d62d9bab3614fffc8b2dc1e557bac27b4490163df'
 LABEL = 'mercurion.vm039-run'
+DOCKER_PREFIX = ['docker', '--context', 'desktop-linux']
 INIT = '''
 import json,os,pathlib,sys
 root=pathlib.Path('/private')
@@ -85,8 +88,9 @@ except Exception as error:
 
 
 def docker(*args, data=None, timeout=40, check=True):
-    result = subprocess.run(['docker', '--context', 'desktop-linux', *args], input=data,
-                            capture_output=True, text=True, timeout=timeout)
+    environment = {key: value for key, value in os.environ.items() if not key.startswith('DOCKER_')}
+    result = subprocess.run([*DOCKER_PREFIX, *args], input=data,
+                            capture_output=True, text=True, timeout=timeout, env=environment)
     if check and result.returncode:
         raise RuntimeError('docker-operation-failed')
     return result
@@ -145,17 +149,29 @@ def wait_probe(worker, requester):
 
 
 def main():
+    global DOCKER_PREFIX, NATS_IMAGE, LABEL
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--image', required=True)
     parser.add_argument('--revision', required=True)
     parser.add_argument('--version', required=True)
     parser.add_argument('--report', required=True, type=Path)
+    parser.add_argument('--local-unix', action='store_true', help='Guest pilot on the local Unix socket only')
+    parser.add_argument('--broker-image', help='Already loaded and separately scanned broker image ID')
     args = parser.parse_args()
     if args.report.exists():
         raise ValueError('report-exists')
-    endpoint = json.loads(value('context', 'inspect', 'desktop-linux'))[0]['Endpoints']['docker']['Host']
-    if not endpoint.startswith(('unix://', 'npipe://')):
-        raise ValueError('local-docker-required')
+    DOCKER_PREFIX = (['docker', '--host', 'unix:///var/run/docker.sock'] if args.local_unix
+                     else ['docker', '--context', 'desktop-linux'])
+    if not args.local_unix:
+        endpoint = json.loads(value('context', 'inspect', 'desktop-linux'))[0]['Endpoints']['docker']['Host']
+        if not endpoint.startswith(('unix://', 'npipe://')):
+            raise ValueError('local-docker-required')
+    if args.broker_image:
+        import re
+        if not re.fullmatch('sha256:[0-9a-f]{64}', args.broker_image):
+            raise ValueError('immutable-broker-image-required')
+        NATS_IMAGE = args.broker_image
+    LABEL = 'mercurion.vm041-run' if args.local_unix else 'mercurion.vm039-run'
     image = json.loads(value('image', 'inspect', args.image))[0]
     labels = image['Config']['Labels']
     assert image['Os'] == 'linux' and image['Architecture'] == 'amd64'
@@ -165,12 +181,14 @@ def main():
     value('image', 'inspect', NATS_IMAGE)
     image_id = image['Id']
     run_id = uuid.uuid4().hex
-    prefix = 'vm039-' + run_id
+    prefix = ('vm041-' if args.local_unix else 'vm039-') + run_id
     volume, network = prefix + '-secrets', prefix + '-network'
     checks = []
     result = dict(schemaVersion=1, runId=run_id, status='failed', imageId=image_id,
                   revision=args.revision, version=args.version, environment='preview',
                   syntheticOnly=True, vmDeployment=False, isolationAccepted=False,
+                  executionHost='guest' if args.local_unix else 'desktop',
+                  realServicesStarted=False,
                   checks=checks, cleanupErrors=[])
     phase = 'prepare'
     passwords = [secrets.token_hex(24), secrets.token_hex(24)]
@@ -197,6 +215,7 @@ def main():
         value('run', '-d', '--name', prefix + '-broker', '--network', network, '--network-alias', 'nats',
               *common, '--mount', f'type=volume,src={volume},dst=/run/nats,volume-subpath=broker,readonly',
               NATS_IMAGE, '--config', '/run/nats/server.json')
+        result['realServicesStarted'] = True
         env = ['--env', 'NATS_URL=nats://nats:4222', '--env', 'MERCURION_BOOTSTRAP_FILE=/run/mercurion/values.json']
         requester = value('run', '-d', '--name', prefix + '-requester', '--network', network, *common, *env,
             '--mount', f'type=volume,src={volume},dst=/run/mercurion,volume-subpath=requester,readonly',

@@ -214,6 +214,14 @@ La versione corrente di Tox21 ha override `allow` / `require-jwt` / `disabled` p
   verificati, componenti Web dichiarati mancanti. Preflight guest eseguito
   dall'owner: report riletto, otto controlli passati, pronto al trasferimento.
   Nessun trasferimento tar, load o avvio applicativo effettuato.
+- VM-041 ha verificato il [pilot RPC Tox21 reale sulla VM](TOX21-VM-PILOT.md):
+  trasferimento/hash/load e tre lifecycle in un solo comando. Vecchio NATS
+  respinto (84 finding); ufficiale 2.15.2 ancora un UNKNOWN; ricompilazione
+  con fix upstream crypto a zero, SBOM completa. Roundtrip e RPC host/guest
+  passati: tre lifecycle, nove negazioni NATS, tre stop puliti e cleanup
+  senza errori. Report guest recuperato separatamente dopo il primo SCP
+  chiuso, poi correlato; immagini conservate e pilot temporaneo terminato.
+  Prossima milestone: stack preview; nessun ambiente completo o tunnel distribuito.
 - I Compose `docker_sl/releases/preview` e `prod` sono **frammenti**: non definiscono una topologia VM completa, volumi e recovery.
 - Il modello `deployment-schema.json` presenta ancora Nginx con porta HTTPS e secret origin TLS: **scostamento storico da riconciliare**, senza rompere i validator attuali prima di un task dedicato.
 - Matrice VM delle sole fixture verificata; routing per due hostname via tunnel,

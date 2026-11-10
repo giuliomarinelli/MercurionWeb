@@ -285,6 +285,14 @@ report riletto e pronto al trasferimento.
 Poi trasferimento/hash/load da affrontare separatamente; nessun servizio VM
 o release Web completa dedotti.
 
+VM-041 ora accorpa [trasferimento/load e pilot RPC reale](TOX21-VM-PILOT.md)
+di Tox21 con NATS corretto e scansionato: rete temporanea interna, niente
+publishing/egress, sole credenziali sintetiche, cleanup selettivo. Prove host
+e guest concluse: due load/save verificati, tre lifecycle reali e nove
+negazioni NATS, tre stop puliti e cleanup senza errori. Report recuperato e
+correlato senza rieseguire il pilot. Riusare immagini e meccanismi verificati
+per il successivo stack preview, senza dedurre accettazione integrata.
+
 **Accettazione:** due release identificabili, un candidato e un precedente; manifest per ambiente, provenienza e rollback meccanico ripetibile; retention non dipendente da Actions.
 
 ## INF-VM-07 — Stack applicativi e tunnel Cloudflare

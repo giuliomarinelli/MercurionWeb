@@ -1401,3 +1401,30 @@ scaricato e riletto, otto controlli passati e readyForArtifactTransfer true.
 Ubuntu/IP/route/baseline IPv4/Docker/Compose coerenti, 187668488192 byte
 liberi; nessun tar caricato o servizio avviato. Prossimo passo separato:
 trasferimento/hash/load del candidato, senza dedurre accettazione integrata.
+
+### VM-041 — Primo collaudo RPC Tox21 reale sulla VM
+
+Owner autorizza milestone operativa: accorpati trasporto, hash/load e pilot
+RPC con sole credenziali sintetiche e rete temporanea interna senza porte.
+Il vecchio broker NATS 2.12.1 presenta 84 finding; ufficiale 2.15.2 ancora
+un UNKNOWN GO-2026-5932. Entrambi respinti. Ricompilata la stessa release
+con fix upstream x/crypto, mantenendo metadati Go/SBOM e policy strict:
+scan finale zero. Ricetta, source SHA/hash e passi ripetibili documentati.
+
+Trentadue test mirati, wrapper PS 5.1 con trasporti simulati, load/save e RPC
+host reali passati. Esteso il runner già verificato con socket Unix locale
+e broker immutabile, senza rifare il protocollo applicativo o cambiare Tox21.
+
+Esecuzione owner VM run 715f719bb1b14a4b87fb1c42e1a54647 riuscita; report RPC
+0dfd48410938471d806dc3240595639a. Due immagini caricate con config digest
+identico al trasporto, otto preflight passati, tre lifecycle (inferenza e
+tre RDKit reali, PubChem solo validazione), nove rifiuti NATS espliciti,
+tre stop puliti, file effimero invariato e nessun errore di cleanup.
+Nessun overlay dei sorgenti o publishing; sole risorse etichettate rimosse,
+immagini e archivi conservati.
+
+Ultimo SCP chiuso dopo `passed`; recuperato soltanto il report dall'owner,
+poi riletto/correlato dall'agente senza nuovo load o pilot. Causa SSH non
+attribuita senza prove; messaggio wrapper e procedura di recupero migliorati.
+[Procedura, hash ed esito](TOX21-VM-PILOT.md). Nessun merge, rollout
+persistente, chiusura dei residui H-05/A-05/A-30 o release Web completa.
