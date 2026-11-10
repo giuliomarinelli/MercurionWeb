@@ -296,6 +296,13 @@ Eseguire backup/restore dei dati e dei manifest, testare arresto e restart, log 
 
 ## Backlog applicativo correlato
 
+**SEC-FIX-02/03 — Bloccanti prima di VM-039:** completare il rientro strict
+del tooling Web (deepmerge senza patch in Jest/Nest CLI) e della base runtime
+Tox21. Gli aggiornamenti applicativi disponibili sono applicati e testati;
+landing e quattro scope sorgenti Tox21 hanno scan pulito. La CI complessiva
+e le immagini finali richiedono ancora zero finding, senza eccezioni.
+[Analisi, evidenze e percorso di chiusura](../security-strict-2026-11-10.md#passi-necessari-per-completare-il-rientro).
+
 **BUG-AUTH-01 — Da diagnosticare e correggere:**
 [challenge adattiva MFA, geolocalizzazione locale e coerenza login](../../bug-reports/2026-11-09-adaptive-login-mfa.md).
 Segnalazione del 9 novembre, con controlli mirati della storia Git e analisi

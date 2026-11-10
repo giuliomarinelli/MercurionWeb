@@ -98,5 +98,114 @@ del vecchio scan. Nessun valore di credenziali, intervento VM o merge.
 
 La policy corretta viene testata anche producendo **rosso intenzionale** sui
 finding attuali. Le dipendenze restano da correggere: non confondere test della
-policy verdi con scansioni pulite o CI complessiva verde. Questo intervento
+policy verdi con scansioni pulite o CI complessiva verde. L'intervento iniziale
 non autorizza sessioni autonome su una baseline rossa né deployment.
+
+## Bonifica successiva autorizzata dall'owner
+
+Il 10 novembre l'owner richiede il fix nelle due repo prima di riprendere
+l'infrastruttura. Si mantengono i branch operativi esistenti, senza merge.
+Gli aggiornamenti disponibili sono applicati mantenendo le major Angular 20
+del prodotto, Angular 21 della landing e Nest 11; non viene eseguito
+`npm audit fix --force`.
+
+| Ambito | Aggiornamento principale |
+| --- | --- |
+| Web Angular | Framework 20.3.35, CLI/build 20.3.42, codegen 7.4.6 |
+| Web backend | Nest 11.2.9, Fastify 5.12.8, Mercurius 16.12.1, adapter Nest 13.4.5, Nodemailer 10.5.0 |
+| Transitive Web | GraphQL tools utils 12.1.0, Hono node-server 2.1.6, fast-uri 3.1.9, qs 6.16.2; override glob 14.0.4 e minimatch 11.0.5 sui range moderni |
+| MercurionData | Nest 11.2.9, multer 2.5.0 e gli stessi override glob/minimatch |
+| LandingFactory | Angular 21.2.26, CLI/build/SSR 21.2.29, Vitest 4.1.12 e override glob/minimatch |
+| Tox21 | filelock 4.2.1 e fsspec 2026.6.0 nei quattro scope; hash dei wheel verificati, patch zlib disponibile e rimozione dei tool globali inutilizzati dal runtime |
+
+I tre lockfile npm vengono aggiornati. La landing richiede una risoluzione
+isolata dal solo manifest con il proprio npm dichiarato 11.6.2: npm 10.9.2
+incontra un errore Arborist `edgesOut` durante la risoluzione dei peer. Il lock
+risultante viene poi installato normalmente con npm 10.9.2, senza force o
+legacy-peer-deps. Il workspace principale mantiene Node 22.16.0/npm 10.9.2.
+
+### Audit dopo gli aggiornamenti
+
+| Input | Prima: pacchetti vulnerabili / occorrenze | Dopo |
+| --- | --- | --- |
+| npm workspace Web | 110, inclusi critical | 7 LOW, tutte le altre gravità a zero |
+| npm MercurionData | 37, inclusi critical | 8 LOW, tutte le altre gravità a zero |
+| npm LandingFactory | 35, inclusi critical | **0** |
+| Tox21 source: legacy/runtime/training/build | 9 occorrenze, MEDIUM/HIGH | **0**, tutti e quattro i target presenti |
+| Immagine Tox21 completa | 196 occorrenze | **186 Debian**, zero Python; ancora rifiutata |
+
+I contatori npm includono i parent vulnerabili per dipendenza: i residui Web e
+Data derivano da **un unico advisory deepmerge**, non da quindici CVE distinte.
+L'audit completo del gate termina ancora con exit 1, preservando i tre report.
+La libreria è usata da Jest e fork-ts-checker/Nest CLI, nel tooling.
+Un audit diagnostico separato del solo runtime npm Web risulta a zero;
+il gate continua a includere dev/optional/peer e a rifiutare i residui.
+
+[GHSA-gcqx-w48m-w2h4 / CVE-2026-93753](https://github.com/advisories/GHSA-gcqx-w48m-w2h4)
+riporta `Patched versions: None` per deepmerge fino alla versione 4.3.1.
+Il suggerimento automatico npm verso vecchie major Jest/Nest CLI non costituisce
+una correzione compatibile. Il [changelog upstream](https://github.com/TehShrike/deepmerge/blob/master/changelog.md)
+mostra inoltre che 4.2.0 introdusse protezioni sulle proprietà ereditate:
+scendere sotto il range dell'advisory senza analisi non dimostra sicurezza.
+Nessun downgrade, cambio di nome del pacchetto o esenzione viene applicato.
+
+### Validazione locale e limiti
+
+- Web: typecheck Angular/Nest, build Angular con gate bundle/lazy chemistry e
+  build Nest con verifica dei template email superati.
+- Policy dipendenze/patch e relativi test negativi superati; le due patch
+  RDKit/Mailer restano applicabili e le dichiarazioni Nodemailer 10 compilano.
+- Catalogo/validazione GraphQL e codegen `--check` superati, senza drift.
+- Backend: cinque suite mirate, 27 test superati; due suite E2E con vero
+  trasporto Fastify/GraphQL e Socket.IO, 6 test superati.
+- Angular: 31 test mirati di handoff MFA/layout overlay superati su Chrome
+  Headless; sono unit test, non una sessione browser autenticata.
+- MercurionData: build e 17 suite/19 test superati. Landing: build browser/SSR,
+  42 route prerenderizzate e postprocessing completati, 4 test Vitest superati.
+- Tox21: installazione Linux CPU con hash e `pip check`, 158 test superati;
+  confronto offline del modello salvato con le quattro molecole di riferimento
+  superato. Pesi, soglie, Torch, NumPy e RDKit invariati.
+- Gli avvisi di budget CSS/iniziale Angular non bloccano i gate configurati;
+  l'avviso engine di geoip-lite 2.0.3 su Node 22 era già presente nel pin iniziale.
+
+Sono prove locali sullo stato aggiornato, non un'approvazione visuale o una CI
+complessiva verde. Nessun `npm ci` o `npm run ci:check` locale. La pipeline
+strict resta obbligatoria e Web non supera il gate iniziale finché deepmerge
+rimane nel grafo. Le immagini Web aggiornate restano da certificare.
+
+Il runtime staging locale Tox21 dello SHA
+`9e95a765de71c9bbe4b889a1494cefc80e84e7bd` supera l'audit UID/GID 10021,
+filesystem read-only, assenza training, identità e inferenza ripetibile.
+L'exporter produce SBOM, scan e verifica il load del proprio archivio, poi
+rifiuta correttamente: **65 LOW, 74 MEDIUM, 47 HIGH**, tutti pacchetti OS
+Debian, nessun `FixedVersion` indicato. Il target Python ha zero finding.
+Image ID locale `sha256:014c90d437eea154a9778b2340a81ceba7afd4bbe391df2fd2a02413b05897a6`;
+config digest `sha256:be2260ec71ac67d9540fcbb890822ec5d2daef513cac23aa652571961589ba46`.
+Il trasporto dell'archivio verificato non rende `security_eligible` positivo.
+
+La [CI Tox21 esatta 42852859285](https://github.com/giuliomarinelli/MercurionTox21/actions/runs/42852859285)
+conferma source scan, installazione/test, tutti i target runtime, riferimento
+numerico, RPC/ripresa broker, autenticazione e arresto. Fallisce soltanto
+all'ultimo scan con gli stessi 186 finding, exit 2; Required gate rosso.
+Un esempio di residuo è [apt / CVE-2011-3374](https://security-tracker.debian.org/tracker/CVE-2011-3374),
+che Debian considera non sfruttabile e unfixed: rimane bloccante secondo la
+policy scelta. Non basta un aggiornamento indiscriminato apt per chiudere il gate.
+
+Evidenze della bonifica, separatamente dallo snapshot iniziale:
+`~/.codex/artifacts/security-fix-4454ebd8eb2f43b8a631db726784df4e/`.
+
+### Passi necessari per completare il rientro
+
+1. **SEC-FIX-02, aperto — tooling Web:** valutare una sostituzione mantenuta o
+   una correzione upstream di deepmerge nelle catene Jest/Nest CLI, verificando
+   compatibilità delle configurazioni, suite e build. Un fork richiede vera
+   correzione, provenienza/licenza e manutenzione esplicite; rinominare i
+   metadati per sottrarre il codice allo scanner non soddisfa il requisito.
+2. **SEC-FIX-03, aperto — base runtime Tox21:** rivalutare il nuovo scan completo
+   e le versioni corrette disponibili. Per gli unfixed della base Debian occorre
+   confrontare basi alternative, compatibilità glibc/CPU con i wheel scientifici
+   e costo di mantenimento. Un cambio di distro è una migrazione da collaudare,
+   non un incremento di versione che garantisce automaticamente zero CVE.
+3. Nuovi scan completi e Required gate sui due SHA finali, quindi certificazione
+   degli archivi. Solo dopo riprendere VM-039; nessun trasferimento o deployment
+   deriva dalle verifiche locali.

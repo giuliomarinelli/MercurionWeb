@@ -1314,3 +1314,25 @@ Test policy superati; gate reali Web e Tox21 ora respingono i finding noti.
 Nessun aggiornamento dipendenze o lockfile; CI complessiva rossa prevista.
 VM-039 rinviata a bonifica e nuovo gate verde; nessuna modifica rete, VM o merge.
 Report e criteri in ../security-strict-2026-11-10.md.
+
+### SEC-STRICT-01 — Bonifica dei package disponibili
+
+Su richiesta successiva dell'owner aggiornati framework e transitive Web nei
+tre lockfile, mantenendo le major Angular/Nest. Audit: root 110 → 7 LOW,
+Data 37 → 8 LOW, Landing 35 → 0; i residui derivano dall'unico advisory
+deepmerge senza patch. Gate strict ancora rosso, senza esclusioni. Build e
+typecheck Angular/Nest, patch RDKit/Mailer, GraphQL/codegen, 27 test Nest e
+6 E2E passati; 31 unit test Angular, Data build/19 test e landing
+build SSR/42 route/4 test passati. Audit diagnostico runtime npm Web a zero;
+la policy continua a includere tutti gli scope e resta rossa sul tooling.
+
+Tox21: filelock/fsspec aggiornati con hash verificati in requirements e lock;
+patch zlib della base e rimozione dei tool globali inutilizzati dal runtime.
+Source scan quattro scope a zero, 158 test Linux e riferimento numerico del
+modello salvato superati. Immagine staging locale dello SHA 9e95a76 costruita,
+audit/export/scan completati: 186 finding tutti Debian senza FixedVersion,
+zero Python; archivio/load verificati ma security_eligible false. La CI
+Tox21 esatta 42852859285 passa i test funzionali e fallisce sull'ultimo scan
+con gli stessi conteggi. I residui Debian unfixed restano bloccanti.
+Nessun merge, trasferimento o cambiamento alla VM. SEC-FIX-02/03 tracciano i
+residui prima di riprendere VM-039. Dettagli nel report security strict.

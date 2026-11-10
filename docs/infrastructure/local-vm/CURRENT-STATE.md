@@ -196,6 +196,11 @@ La versione corrente di Tox21 ha override `allow` / `require-jwt` / `disabled` p
   per ogni vulnerabilità, dev/training/build inclusi e nessuna esenzione.
   Gate reali respingono i finding presenti; VM-039 rinviata alla bonifica e alla
   nuova CI verde. [Diagnosi e verifiche](../security-strict-2026-11-10.md).
+  Bonifica successiva applicata: audit landing a zero, Web/Data con soli
+  residui LOW riconducibili a deepmerge senza patch; sorgenti Tox21 a zero
+  nei quattro scope, 158 test e riferimento numerico del modello superati.
+  Tooling Web e base runtime Tox21 richiedono ancora rientro e scansione
+  completa: nessuna approvazione del candidato o ripresa VM-039.
 - I Compose `docker_sl/releases/preview` e `prod` sono **frammenti**: non definiscono una topologia VM completa, volumi e recovery.
 - Il modello `deployment-schema.json` presenta ancora Nginx con porta HTTPS e secret origin TLS: **scostamento storico da riconciliare**, senza rompere i validator attuali prima di un task dedicato.
 - Matrice VM delle sole fixture verificata; routing per due hostname via tunnel,
