@@ -1,6 +1,6 @@
 # VM-037 — Lettore Tox21, mount e riavvio sintetici
 
-**10 novembre 2026 — implementato e verificato localmente; esecuzione VM pendente.**
+**10 novembre 2026 — verificato localmente e sulla VM nel perimetro sintetico.**
 L'owner autorizza la prosecuzione dopo il ritiro VM-036. Il perimetro è un
 nuovo run sintetico preview, con fixture Python senza rete. INF-VM-02/04
 restano aperti e H-05/A-05/A-30 conservano i propri residui.
@@ -115,7 +115,43 @@ Riproduzione locale: `Test-SecretDelivery.ps1` per la suite e
 root per il Docker reale. Richiedono Docker Desktop locale `desktop-linux`
 e l'immagine già presente; nessun pull o collegamento alla VM.
 
-**A-34 pendente sulla VM.** Le prove locali non attestano SSH/sudo né il
-Docker Engine guest. Il successo futuro della fixture proverà il bootstrap
-del lettore nel proprio perimetro, non restart dell'applicazione, resilienza
-del broker, reboot guest, provisioning reale o accettazione dell'isolamento.
+Le prove locali restano distinte dall'esecuzione VM documentata sotto.
+Il successo della fixture prova il bootstrap del lettore nel proprio
+perimetro, non restart dell'applicazione, resilienza del broker, reboot guest,
+provisioning reale o accettazione dell'isolamento.
+
+## 5. Esito VM-037 del 10 novembre
+
+Owner esegue il comando sul nuovo run preview
+`af0b6eb4637940eb814acfd380e27f26`. Il report host prodotto dal runner è stato
+riletto dall'agente e validato con lo stesso contratto chiuso del consumer:
+sei casi nell'ordine previsto, cinque ID di container rimossi, cleanupErrors
+vuoto, assetsRemoved/codeRemoved true e retirementState retired. Le otto fasi
+sono complete; syntheticOnly true, realServicesStarted/isolationAccepted false.
+
+Il caso restart conserva l'ID del caso initial, con un UUID d'invocazione
+nuovo; recreate usa un ID diverso. Le tre letture UID 10021 hanno esito
+loaded-readonly (incluso EROFS), mentre UID errato, file assente e ambiente
+incoerente hanno esito blocked. Gli ID rimossi coincidono esattamente con i
+cinque container del collaudo. Il ritiro avviene dopo questa pulizia e conserva
+i soli metadati root senza valori contro il riuso.
+
+- Bundle SHA-256: `9cba538f57a1dee9c61f70b009386df9ebf109880a2dc2cf9d5030676fa19fd9`.
+  Coincide con i sorgenti del commit `8f0a738bc`; lettore, probe e image ID
+  corrispondono alle identità dichiarate sopra.
+- Report host: `inf-vm-04/af0b6eb4637940eb814acfd380e27f26/consumer-mount-result.json`
+  sotto `~/.codex/artifacts`, SHA-256
+  `9f321b70d2966c140c3e4fa0404ca7b225d9b98e032748401f89e39ed1b1c7e2`.
+- Fine guest: `2026-11-10T14:37:35.891267+00:00`; registrazione finale host:
+  `2026-11-10T14:37:58.117716+00:00`. Gli orari sono UTC e hanno ruoli distinti.
+
+**A-34 verificato nel singolo collaudo sintetico sulla VM.** Provenienza:
+esecuzione operatore e report automatico locale, riletto dall'agente; nessuna
+seconda connessione SSH o ispezione live indipendente della VM. Non sono
+stati acquisiti transcript o valori delle credenziali. I due run VM-036 e
+VM-037 restano chiusi; una nuova prova richiede un altro run.
+
+Prossimo passo: review dell'artefatto applicativo Tox21 fissato e del percorso
+di bootstrap/NATS, per definire un collaudo successivo con dati sintetici.
+L'avvio applicativo completo e il provisioning reale richiedono ancora il
+proprio perimetro esplicito; H-05/A-05/A-30 e INF-VM-02/04 restano aperti.

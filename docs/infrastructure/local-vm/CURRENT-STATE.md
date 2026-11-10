@@ -181,7 +181,11 @@ La versione corrente di Tox21 ha override `allow` / `require-jwt` / `disabled` p
   rifiuti. Pulizia dei soli container/assets del tentativo e successivo ritiro
   del nuovo run. 51 Linux/19 Windows passed (32 esclusi su Windows), Docker
   Desktop reale 6/6 con cleanup riuscito e piano PS 5.1 passato. [Procedura](SYNTHETIC-CONSUMER-MOUNT.md).
-  A-34 pendente sulla VM; nessun SSH eseguito dall'agente o servizio reale avviato.
+  VM-037 poi eseguita dall'owner: run af0b6eb4637940eb814acfd380e27f26,
+  6/6, cinque container e assets rimossi, run retired e codice rimosso.
+  Report host riletto, hash del bundle/lettore/probe e ciclo degli ID validati;
+  A-34 verificato nel collaudo sintetico. Nessuna seconda ispezione SSH
+  dell'agente o avvio di servizi reali; H-05/A-05/A-30 e INF-VM-02/04 aperti.
 - I Compose `docker_sl/releases/preview` e `prod` sono **frammenti**: non definiscono una topologia VM completa, volumi e recovery.
 - Il modello `deployment-schema.json` presenta ancora Nginx con porta HTTPS e secret origin TLS: **scostamento storico da riconciliare**, senza rompere i validator attuali prima di un task dedicato.
 - Matrice VM delle sole fixture verificata; routing per due hostname via tunnel,

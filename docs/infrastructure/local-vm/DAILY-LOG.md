@@ -1258,3 +1258,21 @@ Piano PowerShell 5.1 passato, nessuna risorsa locale con le label di prova.
 Procedura italiana e provenienza report in SYNTHETIC-CONSUMER-MOUNT.md.
 A-34 VM pendente: nessun SSH eseguito dall'agente, nessuna applicazione reale
 o modifica a rete/ACL. H-05/A-05/A-30 e INF-VM-02/04 restano aperti.
+
+### VM-037 — Esecuzione owner verificata
+
+Owner completa il nuovo run preview af0b6eb4637940eb814acfd380e27f26, otto
+fasi fino a code-removed. Riletto il report automatico host e validati schema
+chiuso, bundle/lettore/probe, image ID, sei casi e corrispondenza esatta dei
+cinque container rimossi. Restart conserva l'ID con invocazione differente,
+recreate cambia ID; tre letture loaded-readonly UID 10021 e tre rifiuti attesi.
+CleanupErrors vuoto, assetsRemoved e codeRemoved true, retirementState retired.
+SyntheticOnly true; realServicesStarted e isolationAccepted false.
+
+Fine guest 14:37:35 UTC, registrazione host 14:37:58 UTC; hash e percorso
+report in SYNTHETIC-CONSUMER-MOUNT.md. Nessun transcript/valore acquisito,
+seconda SSH o ispezione live indipendente eseguita dall'agente. A-34 verificato
+nel collaudo sintetico sulla VM; entrambi i run VM-036/037 restano chiusi.
+Prossimo passo review dell'immagine applicativa Tox21 e del collaudo bootstrap/
+NATS sintetico; avvio applicativo e provisioning reale ancora aperti.
+H-05/A-05/A-30 e INF-VM-02/04 conservano i propri residui.

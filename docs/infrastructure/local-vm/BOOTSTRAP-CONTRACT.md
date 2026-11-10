@@ -186,6 +186,8 @@ VM-035 trasporto e VM-036 retirement verificati dall'owner. Il passo 04-D
 prosegue con [VM-037](SYNTHETIC-CONSUMER-MOUNT.md): lettore Tox21 incorporato
 dal repository separato, fixture Python con file read-only, restart stesso
 container e recreate diverso; UID errato, file mancante e ambiente incoerente
-respinti. Sei casi Docker reali locali passati; esecuzione VM ancora pendente.
-Il nuovo run si ritira dopo il collaudo e la pulizia delle sole fixture.
+respinti. Sei casi Docker reali locali passati, poi 6/6 sulla VM nel run owner
+af0b6eb4637940eb814acfd380e27f26. Report host riletto e hash validati: cinque
+container/assets rimossi, nuovo run ritirato e codice staged rimosso. A-34
+verificato per il singolo collaudo sintetico, senza seconda ispezione live.
 L'immagine applicativa, l'avvio completo e il provisioning reale restano aperti.

@@ -230,11 +230,14 @@ e rilettura da consumer dopo restart/recreate, senza riutilizzare il run chiuso.
 
 Progettare/implementare l'iniezione protetta dal password manager Windows al bootstrap VM, secret per ambiente, credenziali Meilisearch, PostgreSQL, Redis, NATS, OAuth, Twilio, cookie, JWT. Preservare nomi legacy compatibili. Rinviare rotazione a caldo.
 
-**VM-037 predisposta:** [nuovo run e collaudo consumer](SYNTHETIC-CONSUMER-MOUNT.md)
+**VM-037 verificata:** [nuovo run e collaudo consumer](SYNTHETIC-CONSUMER-MOUNT.md)
 con vero lettore Tox21, bind read-only UID 10021, restart/recreate e tre
 negativi; rimozione fixture prima del ritiro automatico del nuovo run sintetico.
 51 test Linux e 19 Windows passati, 6 casi su Docker locale reale riusciti.
-A-34 attende esecuzione operatore sulla VM. Il run VM-036 resta chiuso;
+Owner completa il run preview af0b6eb4637940eb814acfd380e27f26 sulla VM:
+6/6, cinque container/assets rimossi, retired e codeRemoved confermati dal
+report host riletto e dagli hash corrispondenti. A-34 verificato nel perimetro
+sintetico. I run VM-036 e VM-037 restano chiusi;
 nessun avvio di main.py, NATS, applicazioni reali o cambio dei gate di rete.
 Dopo A-34: riesaminare il passaggio da fixture all'immagine applicativa
 fissata e il provisioning consumer/broker; materiali reali restano un passo
