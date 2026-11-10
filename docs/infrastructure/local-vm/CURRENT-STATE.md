@@ -192,6 +192,10 @@ La versione corrente di Tox21 ha override `allow` / `require-jwt` / `disabled` p
   [Evidenze e VM-039 proposta](TOX21-ARTIFACT-REVIEW.md): preparazione candidato
   staging sull'host prima del collaudo applicativo. Nessun container avviato,
   accesso guest, build o modifica sibling durante questa review.
+  Successivamente l'owner richiede policy strict Web/Tox21: implementato blocco
+  per ogni vulnerabilità, dev/training/build inclusi e nessuna esenzione.
+  Gate reali respingono i finding presenti; VM-039 rinviata alla bonifica e alla
+  nuova CI verde. [Diagnosi e verifiche](../security-strict-2026-11-10.md).
 - I Compose `docker_sl/releases/preview` e `prod` sono **frammenti**: non definiscono una topologia VM completa, volumi e recovery.
 - Il modello `deployment-schema.json` presenta ancora Nginx con porta HTTPS e secret origin TLS: **scostamento storico da riconciliare**, senza rompere i validator attuali prima di un task dedicato.
 - Matrice VM delle sole fixture verificata; routing per due hostname via tunnel,

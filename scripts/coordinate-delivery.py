@@ -29,12 +29,20 @@ def archive_config(path):
 
 
 def security_summary(scan, config_digest):
-    if scan.get('SchemaVersion') != 2 or scan.get('Metadata', {}).get('ImageID') != config_digest or not scan.get('Results'):
+    if (scan.get('SchemaVersion') != 2 or scan.get('Metadata', {}).get('ImageID') != config_digest
+            or scan.get('Error') or scan.get('Errors') or not isinstance(scan.get('Results'), list)
+            or not scan['Results']):
         raise ValueError('Security report does not describe this archive')
+    if any(not isinstance(result, dict) or not isinstance(result.get('Target'), str) or not result['Target']
+           or not isinstance(result.get('Vulnerabilities', []), list) for result in scan['Results']):
+        raise ValueError('Malformed security scan target')
     findings = [finding for result in scan['Results'] for finding in result.get('Vulnerabilities', [])]
-    if any(finding.get('Severity') not in ['UNKNOWN', 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL'] for finding in findings):
+    if any(not isinstance(finding, dict) or finding.get('Severity') not in ['UNKNOWN', 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL']
+           or not isinstance(finding.get('VulnerabilityID'), str) or not finding['VulnerabilityID']
+           or not isinstance(finding.get('PkgName'), str) or not finding['PkgName'] for finding in findings):
         raise ValueError('Malformed finding severity')
-    return {'eligible': not any(f['Severity'] == 'CRITICAL' for f in findings),
+    return {'eligible': not findings,
+            'blocking': findings,
             'counts': dict(Counter(f['Severity'] for f in findings)),
             'os': scan.get('Metadata', {}).get('OS')}
 

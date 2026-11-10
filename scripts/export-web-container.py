@@ -91,8 +91,9 @@ def export(args):
     root.mkdir(parents=True, exist_ok=False)
     policy_path = Path(__file__).resolve().parents[1] / 'docs/supply-chain-policy.json'
     policy = json.loads(policy_path.read_text())
-    if policy['vulnerabilities']['blockingSeverities'] != ['critical'] or policy.get('exceptions'):
-        raise ValueError('Policy requires explicit review; exporter implements critical block without exceptions')
+    if (policy.get('version') != 2 or policy['vulnerabilities']['blockingSeverities'] != ['info', 'low', 'moderate', 'high', 'critical']
+            or policy.get('exceptions') != []):
+        raise ValueError('Exporter requires strict vulnerability policy without exceptions')
     image = json.loads(run('docker', 'image', 'inspect', args.image))[0]
     validate_identity(image, args.component, args.revision, args.version)
     audit = runtime_audit(image['Id'], args.component, args.revision, args.version)
@@ -102,7 +103,7 @@ def export(args):
     args.cache.mkdir(parents=True, exist_ok=True)
     mounts = ['--mount', f'type=bind,src={root},dst=/evidence', '--mount', f'type=bind,src={args.cache.resolve()},dst=/cache']
     for filename, flags in [('sbom.cdx.json', ['--format', 'cyclonedx']),
-                            ('vulnerabilities.json', ['--scanners', 'vuln', '--format', 'json'])]:
+                            ('vulnerabilities.json', ['--scanners', 'vuln', '--ignorefile', '/dev/null', '--format', 'json'])]:
         result = subprocess.run(['docker', 'run', '--rm', *mounts, SCANNER, 'image', '--quiet', '--input',
                                  '/evidence/image.tar', '--cache-dir', '/cache', '--output', '/evidence/' + filename, *flags],
                                 capture_output=True, text=True, timeout=1200)

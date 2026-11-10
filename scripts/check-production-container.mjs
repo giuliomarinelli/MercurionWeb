@@ -2,6 +2,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { devOnlyDependencies } from './lib/container-dev-dependencies.mjs';
+import { evaluateContainerVulnerabilities } from './lib/container-vulnerability-policy.mjs';
 
 const args = new Map();
 for (let index = 2; index < process.argv.length; index += 1) {
@@ -148,8 +149,8 @@ const vulnerabilityResult = runWithFallback('image vulnerability scanning', [
    'run', '--rm', '--pull=missing',
    '-v', '/var/run/docker.sock:/var/run/docker.sock',
    '-v', `${dirname(vulnerabilityPath)}:/output`,
-   'aquasec/trivy:0.58.2',
-   'image', '--image-src', 'docker', '--format', 'sarif',
+   'aquasec/trivy@sha256:8f6bb947dbc528902e11f2f5be52f7b519f6a39d5d148f41166f2040499768fb',
+   'image', '--image-src', 'docker', '--ignorefile', '/dev/null', '--format', 'sarif',
    '--output', `/output/${scannerVulnerabilityPath.split(/[\\/]/).pop()}`, image,
  ]],
 ]);
@@ -179,6 +180,10 @@ const inventory = {
   vulnerabilityScan: vulnerabilityPath,
   sbomScanner: sbomResult.scanner,
   vulnerabilityScanner: vulnerabilityResult.fallback ? 'trivy-fallback' : 'docker-scout',
+  securityPolicy: evaluateContainerVulnerabilities(vulnerability),
 };
 await writeFile(resolve(reportDirectory, 'nest-production.inventory.json'), `${JSON.stringify(inventory, null, 2)}\n`);
+if (!inventory.securityPolicy.eligible) {
+  throw new Error(`Strict image vulnerability policy rejected ${inventory.securityPolicy.findings} findings; diagnostics retained.`);
+}
 console.log(JSON.stringify(inventory));

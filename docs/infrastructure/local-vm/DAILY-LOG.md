@@ -1300,3 +1300,17 @@ quattro RPC scientifici reali e PubChem solo validazione offline.
 VM-039 proposta: candidato staging locale con audit/bootstrap/NATS e successivo
 export/scan esistenti; trasferimento/VM e release complete restano passi separati.
 Provenienza e hash report in TOX21-ARTIFACT-REVIEW.md; INF-VM-02/04/06 aperti.
+
+### SEC-STRICT-01 — Policy zero vulnerabilità, entrambe le repo
+
+Owner ferma la prosecuzione per gli alert Dependabot/audit e richiede blocco
+indipendente dalla gravità. Diagnosi: vecchie policy critical-only e Web con
+dev omessi; gli alert Tox21 erano già presenti nel report CI del 9 novembre.
+Implementata v2 senza esenzioni: tutti i lockfile Web/dev e tutti i profili
+Tox21, scan immagini/archivi e fallimento su scanner/report non validi.
+Tox21 modificato sul proprio branch operativo per questa richiesta esplicita.
+
+Test policy superati; gate reali Web e Tox21 ora respingono i finding noti.
+Nessun aggiornamento dipendenze o lockfile; CI complessiva rossa prevista.
+VM-039 rinviata a bonifica e nuovo gate verde; nessuna modifica rete, VM o merge.
+Report e criteri in ../security-strict-2026-11-10.md.

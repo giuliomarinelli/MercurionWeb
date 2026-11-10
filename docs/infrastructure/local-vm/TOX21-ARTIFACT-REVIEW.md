@@ -1,6 +1,9 @@
 # VM-038 — Review artefatto Tox21 e bootstrap NATS
 
 **10 novembre 2026 — review completata; nessuna nuova build o operazione VM.**
+**Aggiornamento policy:** l'owner richiede ora [zero vulnerabilità a ogni gravità](../security-strict-2026-11-10.md).
+I successi CI/policy riportati sotto sono storici, sotto la soglia precedente;
+il candidato non è ammesso dalla policy strict e VM-039 resta rinviata al rientro.
 Prosecuzione autorizzata dopo VM-037. Obiettivo: identificare il candidato
 utilizzabile per il prossimo collaudo applicativo, mantenendo distinti
 sorgenti, immagine, modello e archivio trasferibile.

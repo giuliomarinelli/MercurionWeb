@@ -22,7 +22,7 @@
     "autonomous:assert-finalizable": "node docs/autonomous-development/tools/assert-session-finalizable.mjs",
     "ci:docs": "node scripts/check-documentation.mjs",
     "ci:dependencies": "node scripts/check-dependency-policy.mjs && node scripts/test-dependency-policy-negative.mjs",
-    "ci:supply-chain": "npm run build:identity && node scripts/check-supply-chain.mjs --self-test && node scripts/check-supply-chain.mjs",
+    "ci:supply-chain": "npm run build:identity && node scripts/check-supply-chain.mjs --self-test && node scripts/test-container-vulnerability-policy.mjs && node scripts/check-supply-chain.mjs",
     "ci:patches": "node scripts/check-patch-lifecycle.mjs && node scripts/test-rdkit-patch-regression.mjs && node scripts/test-mailer-nodemailer10-patch-regression.mjs && node scripts/test-patch-lifecycle-negative.mjs",
     "build:identity": "node scripts/build-identity.mjs",
     "ci:build-identity": "npm run build:identity && node scripts/check-build-identity.mjs && node scripts/test-build-identity-negative.mjs",

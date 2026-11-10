@@ -54,10 +54,10 @@ class DeliveryTests(unittest.TestCase):
                 info.size = len(data)
                 archive.addfile(info, io.BytesIO(data))
         digest = 'sha256:' + delivery.hashlib.sha256(config).hexdigest()
-        findings = [{'Severity': 'CRITICAL'}] if critical else []
+        findings = [{'Severity': 'CRITICAL', 'VulnerabilityID': 'CVE-fixture', 'PkgName': 'fixture'}] if critical else []
         files = {'sbom.cdx.json': {'bomFormat': 'CycloneDX', 'components': [{'type': 'library', 'name': 'synthetic', 'version': '1'}]}, 'runtime-audit.json': {}, 'load.log': 'fixture',
                  'policy-result.json': {'eligible': not critical},
-                 'vulnerabilities.json': {'SchemaVersion': 2, 'Metadata': {'ImageID': digest}, 'Results': [{'Vulnerabilities': findings}]}}
+                 'vulnerabilities.json': {'SchemaVersion': 2, 'Metadata': {'ImageID': digest}, 'Results': [{'Target': 'fixture', 'Vulnerabilities': findings}]}}
         for name, content in files.items():
             (directory / name).write_text(json.dumps(content))
         value = {'schema_version': 1, 'component': role, 'source': source, 'revision': REVISION,
@@ -130,6 +130,35 @@ class DeliveryTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'different runtime targets'):
                 delivery.coordinate(REVISION, {'web-ng': self.record(root, 'web-ng'),
                                               'tox21': self.record(root, 'tox21', target='production')}, root / 'candidate.json')
+
+    def test_every_severity_blocks_and_old_approval_cannot_hide_low_finding(self):
+        for severity in ('UNKNOWN', 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL'):
+            scan = {'SchemaVersion': 2, 'Metadata': {'ImageID': 'fixture'}, 'Results': [
+                {'Target': 'fixture', 'Vulnerabilities': [{'Severity': severity,
+                 'VulnerabilityID': 'GHSA-fixture', 'PkgName': 'fixture'}]}]}
+            result = delivery.security_summary(scan, 'fixture')
+            self.assertFalse(result['eligible'])
+            self.assertEqual(len(result['blocking']), 1)
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            directory = self.record(root, 'tox21', critical=True)
+            scan_path = directory / 'vulnerabilities.json'
+            value = json.loads(scan_path.read_text())
+            value['Results'][0]['Vulnerabilities'][0]['Severity'] = 'LOW'
+            scan_path.write_text(json.dumps(value))
+            record_path = directory / 'component.json'
+            record = json.loads(record_path.read_text())
+            record['files']['vulnerabilities.json'] = delivery.checksum(scan_path)
+            record['security_eligible'] = True
+            record_path.write_text(json.dumps(record))
+            with self.assertRaisesRegex(ValueError, 'contradicts'):
+                delivery.coordinate(REVISION, {'tox21': directory}, root / 'candidate.json')
+
+    def test_malformed_scans_fail_closed(self):
+        for results in ([], [{}], [{'Target': 'fixture', 'Vulnerabilities': None}],
+                        [{'Target': 'fixture', 'Vulnerabilities': [{'Severity': 'LOW'}]}]):
+            with self.assertRaises(ValueError):
+                delivery.security_summary({'SchemaVersion': 2, 'Metadata': {'ImageID': 'fixture'}, 'Results': results}, 'fixture')
 
 
 if __name__ == '__main__':

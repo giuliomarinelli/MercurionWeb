@@ -246,7 +246,10 @@ esplicito successivo, senza estenderne implicitamente l'autorizzazione.
 **VM-038 review completata:** [immagini, CI e modello](TOX21-ARTIFACT-REVIEW.md).
 Le immagini locali precedono i launcher e l'archivio CI aggiornato non è
 pubblicato; modello esistente riutilizzabile, senza nuovo training.
-**VM-039 proposta:** candidato staging locale con modello verificato,
+**VM-039 rinviata alla bonifica security:** l'owner impone policy strict in
+entrambe le repo, con blocco a ogni gravità e dev inclusi. [Diagnosi, scope
+e prove della policy](../security-strict-2026-11-10.md). Prima correggere i
+finding e ottenere la nuova CI verde; poi candidato staging locale con modello verificato,
 audit/bootstrap/NATS sintetico senza source overlay, poi export/SBOM/scan.
 Anticipazione circoscritta degli strumenti INF-VM-06, prima di trasferimento
 e avvio applicativo guest; nessun cambiamento ai gate di isolamento.
