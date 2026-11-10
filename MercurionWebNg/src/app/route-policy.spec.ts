@@ -33,7 +33,6 @@ describe('route policy metadata', () => {
     ['privacy', 'public', 'standard'],
     ['terms-and-policies', 'public', 'standard'],
     ['contacts', 'public', 'standard'],
-    ['admin/maintenance/:token', 'public', 'standard'],
     ['**', 'public', 'minimal']
   ]
 
@@ -51,8 +50,7 @@ describe('route policy metadata', () => {
     const cases = [
       ['/login/mfa/email', 'login/mfa/:view', 'public'],
       ['/molecules/detail/chembl-123', 'molecules/detail/:molId', 'public'],
-      ['/molecules/collections/detail/collection-123', 'molecules/collections/detail/:colId', 'authenticated'],
-      ['/admin/maintenance/maintenance-token', 'admin/maintenance/:token', 'public']
+      ['/molecules/collections/detail/collection-123', 'molecules/collections/detail/:colId', 'authenticated']
     ] as const
 
     for (const [url, path, access] of cases) {

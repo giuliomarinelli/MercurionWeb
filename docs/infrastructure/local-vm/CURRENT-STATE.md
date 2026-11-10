@@ -196,11 +196,14 @@ La versione corrente di Tox21 ha override `allow` / `require-jwt` / `disabled` p
   per ogni vulnerabilità, dev/training/build inclusi e nessuna esenzione.
   Gate reali respingono i finding presenti; VM-039 rinviata alla bonifica e alla
   nuova CI verde. [Diagnosi e verifiche](../security-strict-2026-11-10.md).
-  Bonifica successiva applicata: audit landing a zero, Web/Data con soli
-  residui LOW riconducibili a deepmerge senza patch; sorgenti Tox21 a zero
-  nei quattro scope, 158 test e riferimento numerico del modello superati.
-  Tooling Web e base runtime Tox21 richiedono ancora rientro e scansione
-  completa: nessuna approvazione del candidato o ripresa VM-039.
+  Bonifica completata sui sorgenti npm: alias a fork deepmerge con vera
+  correzione verificata, tre audit completi a zero e regressione in CI.
+  Tox21 migra a Wolfi con Python 3.11.18: source/image scan a zero, 159 test,
+  riferimento numerico e Required gate 42857018732 verdi. Web corregge anche
+  zlib nelle due immagini runtime. Rimosso su scelta owner il vecchio flusso
+  Angular maintenance, backend ancora 403; inventari aggiornati.
+  Prima di VM-039 richiedere i gate full degli ultimi SHA e mantenere i limiti
+  infrastrutturali esistenti. Nessun trasferimento o avvio applicativo VM.
 - I Compose `docker_sl/releases/preview` e `prod` sono **frammenti**: non definiscono una topologia VM completa, volumi e recovery.
 - Il modello `deployment-schema.json` presenta ancora Nginx con porta HTTPS e secret origin TLS: **scostamento storico da riconciliare**, senza rompere i validator attuali prima di un task dedicato.
 - Matrice VM delle sole fixture verificata; routing per due hostname via tunnel,

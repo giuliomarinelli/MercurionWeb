@@ -33,7 +33,6 @@ export type RouteId =
   | 'privacy'
   | 'terms'
   | 'contacts'
-  | 'adminMaintenance'
   | 'wildcard'
 
 export interface RouteDescriptor<TParams extends Record<string, string> = Record<never, never>> {
@@ -122,7 +121,6 @@ export const routeManifest = {
   privacy: staticRoute('privacy', 'privacy', 'Informativa sulla Privacy', { access: 'public', shell: 'standard' }),
   terms: staticRoute('terms', 'terms-and-policies', 'Termini di Servizio e Politica di Utilizzo Accettabile', { access: 'public', shell: 'standard' }, { navigation: { group: 'documents', label: 'Termini e Policy', icon: 'document' } }),
   contacts: staticRoute('contacts', 'contacts', 'Contatti', { access: 'public', shell: 'standard' }),
-  adminMaintenance: parameterizedRoute<{ token: string }>('adminMaintenance', 'admin/maintenance/:token', undefined as unknown as string, { access: 'public', shell: 'standard' }, ['token']),
   wildcard: staticRoute('wildcard', '**', undefined, { access: 'public', shell: 'minimal' })
 } as const
 

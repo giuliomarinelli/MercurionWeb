@@ -1000,7 +1000,7 @@ Lo stato **Accettato** richiede la review manuale dell'utente. Non equivale a me
 ## Aree escluse dal percorso pubblico principale
 
 - `/__local/dummy-auth` e `/btn-playground`: strumenti locali/interni; utili per verifica, non tappe del portfolio cliente.
-- `/admin/maintenance/:token`: percorso operativo con requisiti specifici; rifinitura separata soltanto se entra nel perimetro di una demo autorizzata.
+- `/admin/maintenance/:token`: flusso Angular rimosso su indicazione dell'owner il 10 novembre 2026; il vecchio endpoint backend rimane deprecato e risponde HTTP 403. Il futuro accesso operativo passa dal disegno infrastrutturale Cloudflare.
 - Componenti Notebook ancora non collegati al routing principale: non presentarli come funzionalità complete finché MF-01 non ne ha completato e verificato l’integrazione nel percorso prodotto.
 - Redirect `/profile`, wildcard e callback SSO non richiedono una nuova pagina decorativa: verificare destinazione, attesa ed errori pertinenti.
 

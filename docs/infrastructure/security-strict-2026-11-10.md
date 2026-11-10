@@ -241,9 +241,37 @@ Evidenze: tarball, integrity, confronto sorgente e report in
 
 ### SEC-FIX-03 — migrazione della base Tox21
 
-In verifica la base [Wolfi](https://www.chainguard.dev/docs/open-source/wolfi),
+Selezionata la base [Wolfi](https://www.chainguard.dev/docs/open-source/wolfi),
 con pacchetti glibc e Python 3.11.18, per mantenere ABI dei wheel Linux CPU e
 contratto applicativo. Digest base e versioni APK dirette vengono fissati;
 repo APK e firme standard restano attivi. Il database dei pacchetti viene
 conservato per SBOM/scansione. La selezione della base non è approvazione:
 servono suite, riferimento numerico e scan completo a zero prima di chiudere.
+Questi controlli sono superati sullo SHA Tox21
+`1f2d603dd53408ee59e90f647cdd542d6f49e1d2`, [CI 42857018732](https://github.com/giuliomarinelli/MercurionTox21/actions/runs/42857018732):
+159 test, tre runtime, NATS/auth/recovery e Required gate verdi. OS Wolfi e
+pacchetti Python sono effettivamente riconosciuti e hanno **zero finding**.
+Anche l'export locale test passa, con archivio/load verificati, SBOM e
+`security_eligible: true`; pesi e soglie restano quelli selezionati.
+Il validatore rifiuta anche un report pulito di sola Python senza target OS.
+
+### Immagini Web e rimozione del vecchio bypass maintenance
+
+La prima nuova CI Web passa i tre audit npm e le build dei sei target,
+ma gli scan completi delle immagini production individuano un altro finding:
+`zlib 1.3.2-r1`, CVE-2026-4738, corretto in `1.4-r0` nella repo Alpine 3.24.
+I due Dockerfile fissano l'aggiornamento al runtime, ereditato da staging,
+test e production. Restano i digest base e i controlli strict, senza ignore.
+
+Lo stesso full gate rileva un disallineamento applicativo precedente:
+tre route admin introdotte dall'owner non erano nell'inventario; inoltre
+Angular chiamava ancora il bypass maintenance con query `t`, rimosso dalla
+firma del controller deprecato. L'owner sceglie esplicitamente di rimuovere
+il flusso Angular. Eliminati pagina, route/manifest e metodo HTTP obsoleti;
+il backend mantiene l'HTTP 403 incondizionato. Inventari REST aggiornati:
+68 call site su 68 compatibili. Le tre route admin sono censite come route
+esposte ma con logica pending, senza certificarne l'implementazione.
+
+Test esistenti route-policy/manifest/transport aggiornati, typecheck e test
+negativi REST conservati. La copertura restante non viene esclusa: gli
+ultimi SHA pubblicati devono superare la CI full e i relativi Required gate.

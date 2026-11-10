@@ -1336,3 +1336,24 @@ Tox21 esatta 42852859285 passa i test funzionali e fallisce sull'ultimo scan
 con gli stessi conteggi. I residui Debian unfixed restano bloccanti.
 Nessun merge, trasferimento o cambiamento alla VM. SEC-FIX-02/03 tracciano i
 residui prima di riprendere VM-039. Dettagli nel report security strict.
+
+### SEC-FIX-02/03 — Completamento della bonifica
+
+Owner richiede completamento. Esaminati tarball/integrity e delta del fork
+MIT @shivammathur/deepmerge 4.3.2: guardia reale su __proto__ di target/source,
+API conservate. Alias esatti in root/Data, nuovo test di sicurezza/compatibilità
+nel gate e identità effettiva nel SBOM. Tre audit npm completi a zero;
+Jest e build CLI locali passati, test Data 19/19.
+
+Tox21 passa a base Wolfi/glibc fissata per digest, Python sempre 3.11.18,
+stessi lock CPU, pesi e soglie. 159 test, riferimento modello e audit runtime
+passati. Export/scan locale a zero OS/Python, archivio/load e SBOM verificati;
+CI 42857018732 su 1f2d603 verde, compreso Required gate e smoke NATS/auth.
+Nuovo controllo richiede rilevamento OS e target Wolfi, evitando approvazioni
+derivanti da soli pacchetti Python. Nessuna modifica alla policy strict.
+
+Full CI Web scopre zlib vulnerabile nelle basi runtime Alpine e drift REST
+delle modifiche admin precedenti. Fissato zlib 1.4-r0 in entrambi i Dockerfile.
+Owner sceglie rimozione del flusso Angular maintenance; pagina/route/metodo
+rimossi e backend conservato 403. Inventari aggiornati, 68/68 call compatibili.
+Gate finali richiesti sui nuovi SHA prima di riprendere la VM; nessun merge.

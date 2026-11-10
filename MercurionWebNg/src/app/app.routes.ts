@@ -50,6 +50,5 @@ export const routes: Routes = [
   manifestRoute(routeManifest.privacy, { loadComponent: () => import('./pages/privacy/privacy.page.component').then(m => m.PrivacyPageComponent) }),
   manifestRoute(routeManifest.terms, { loadComponent: () => import('./pages/terms-and-policies/terms-and-policies.page.component').then(m => m.TermsAndPoliciesPageComponent) }),
   manifestRoute(routeManifest.contacts, { loadComponent: () => import('./pages/contacts/contacts.page.component').then(m => m.ContactsPageComponent) }),
-  manifestRoute(routeManifest.adminMaintenance, { loadComponent: () => import('./pages/admin-exchange-page/admin-exchange.page.component').then(m => m.AdminExchangePageComponent) }),
   manifestRoute(routeManifest.wildcard, { redirectTo: routeManifest.notFound.build({}) })
 ]

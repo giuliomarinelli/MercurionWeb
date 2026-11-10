@@ -296,11 +296,11 @@ Eseguire backup/restore dei dati e dei manifest, testare arresto e restart, log 
 
 ## Backlog applicativo correlato
 
-**SEC-FIX-02/03 — Bloccanti prima di VM-039:** completare il rientro strict
-del tooling Web (deepmerge senza patch in Jest/Nest CLI) e della base runtime
-Tox21. Gli aggiornamenti applicativi disponibili sono applicati e testati;
-landing e quattro scope sorgenti Tox21 hanno scan pulito. La CI complessiva
-e le immagini finali richiedono ancora zero finding, senza eccezioni.
+**SEC-FIX-02/03 — Bonifica implementata, gate richiesti prima di VM-039:**
+fork deepmerge corretto e testato, tre audit npm completi a zero; base Wolfi
+Tox21 con stesso Python/modello, 159 test e scan OS/Python pulito, CI esatta
+42857018732 verde. Corretto anche zlib nei runtime Web. Prima di proseguire,
+verificare i Required gate full sugli ultimi SHA, senza eccezioni.
 [Analisi, evidenze e percorso di chiusura](../security-strict-2026-11-10.md#passi-necessari-per-completare-il-rientro).
 
 **BUG-AUTH-01 — Da diagnosticare e correggere:**
