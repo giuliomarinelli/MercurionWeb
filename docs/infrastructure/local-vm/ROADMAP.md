@@ -100,6 +100,11 @@ Collector guest 0a4a324f8424486586dea762612d4caa completo e hash verificati:
 solo ::1, nessuna default route/unicast eth0 IPv6, kernel disponibile e bridge
 IPv4. Nessuna nuova configurazione applicata. Consegna del comando fixture
 VM-034 dopo baseline host/guest; attesa matrice e 13 readback sulla VM.
+**VM-034 configurazione verificata:** run 2bcdfd57a75c4b2a979d2d2503351f5f,
+10 novembre, 13 readback IPv4-only e 33/33 casi, cleanup 16/13/7 senza errori.
+Report/hash e decisioni ricalcolati; A-31 verificato nel perimetro configurazione.
+Non chiude A-05/A-30/H-05 o INF-VM-02 complessivo. Prima del pilot sintetico
+INF-VM-04 riesaminare questi residui e il gate; nessuna deroga implicita.
 Strumento [porte private](PRIVATE-PORT-PROBES.md) pronto: 13 unittest, tre
 scenari trasporto PowerShell 5.1, preflight host e collaudo Docker Desktop
 passati. Esecuzione owner acquisita: nove percorsi host TCP/443, TCP/53 e
@@ -164,8 +169,9 @@ Docker Desktop 33/33, cleanup completo 16/13/7 e nessun residuo del run.
 33/33 (15 allow/18 deny), preflight/hash verificati, decisioni negative
 ricalcolate, cleanup 16/13/7 senza errori o residui nel readback guest.
 **Perimetro fixture VM-033 verificato**; questa eccezione non chiude INF-VM-02
-né autorizza servizi/segreti reali. H-05/A-30 e proposta IPv4-only VM-034 restano
-i punti di decisione/verifica prima di estendere il runtime.
+né autorizza servizi/segreti reali. La configurazione IPv4-only VM-034 è stata
+poi verificata il 10 novembre; H-05/A-30 restano punti di review prima di
+estendere il runtime.
 
 Definire directory `shared`, `preview`, `production`; reti esterne, alias, `internal`, `egress`, volumi e confini. Evitare un solo Compose con molti flag. Iniziare con probe/fixture non sensibili.
 

@@ -81,3 +81,14 @@ sulla VM il 9 novembre, 33/33 passed e cleanup 16/13/7 senza errori. Bundle/hash
 e decisioni del report verificati sull'host. [Evidenza completa](FIXTURE-RUNTIME.md#7-collaudo-sulla-vm-riuscito).
 Non modifica i limiti H-05/IPv6 della review: resta una prova della topologia
 sintetica, non dell'isolamento completo o dei servizi applicativi reali.
+
+**10 novembre, VM-034:** baseline host/guest e nuova revisione fixture
+verificate. Run 2bcdfd57a75c4b2a979d2d2503351f5f: 13 reti con IPv4 true/IPv6
+false, 33/33 casi e cleanup 16/13/7 senza errori; A-31 configurazione verificato.
+[Evidenze e limiti](IPV4-ONLY-DESIGN.md#10-vm-034-verificata-sulla-vm--perimetro-configurazione).
+Il kernel guest resta IPv6-capable, i due deny vNIC sono stati riletti; nessun
+percorso IPv6 positivo creato e nessuna prova del filtro ricavata da assenza
+di indirizzi/route. Restano i limiti H-05/A-05/A-30 sopra: prima di passare dal
+perimetro fixture a quello del pilot sintetico, registrare una decisione
+esplicita sui residui e sull'eventuale perimetro anticipabile, senza marcare
+INF-VM-02 completo o riaprire implicitamente i gate dei servizi/segreti reali.

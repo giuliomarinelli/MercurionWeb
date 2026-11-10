@@ -145,6 +145,11 @@ La versione corrente di Tox21 ha override `allow` / `require-jwt` / `disabled` p
   assegnazione IPv6 e bridge IPAM IPv4. Hash/copia sorgente verificati.
   Consegnata nuova esecuzione fixture per readback delle 13 reti VM-034;
   risultato VM della revisione ancora da acquisire, prove IPv6 traffico aperte.
+  Run VM-034 2bcdfd57a75c4b2a979d2d2503351f5f ora verificato: 13 reti con
+  IPv4 true/IPv6 false, 33/33 casi e cleanup 16/13/7 senza errori. Hash bundle
+  e sorgenti corrispondenti, decisioni negative ricalcolate. A-31 verificato
+  come configurazione; H-05/A-05/A-30 e isolamento complessivo ancora parziali.
+  Nessuna estensione runtime a servizi/segreti reali dedotta dal risultato.
 - Ricevitore/apply Tox21 disponibile come [pilot locale](SECRET-DELIVERY-PILOT.md),
   con 17 test Linux sintetici passati; non ancora installato sulla VM.
   Trasporto SSH, consegna reale, altri consumer e lifecycle operativo aperti.

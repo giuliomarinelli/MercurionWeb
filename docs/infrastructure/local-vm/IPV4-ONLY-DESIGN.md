@@ -247,3 +247,33 @@ né inferenza di filtraggio dal mancato percorso. Baseline host/guest acquisita;
 consegnato ora il comando Invoke-TopologyFixtures.ps1 -Execute per un bundle
 nuovo dei sorgenti VM-034 già collaudati localmente. Attesi 13 readback di rete
 IPv4-only, 33 casi e cleanup selettivo; nuova evidenza VM ancora pendente.
+
+## 10. VM-034 verificata sulla VM — perimetro configurazione
+
+Run `2bcdfd57a75c4b2a979d2d2503351f5f`, 10 novembre 12:18:33–12:20:31 UTC
+(13:18–13:20 CET). Report recuperato con SCP e riletto sull'host:
+`inf-vm-03/d337c6b9c3ff492c8735dec64b4e2fcf/fixture-run.json`, SHA-256
+`cd8e9065dfe04125518362ae39252f68bf9d318d5e2922fad8c42d430b37e658`.
+RunId manifest/report coincidenti, hash bundle e sorgenti del tree esaminato
+coerenti. Preflight immagine locale esatta e collisioni assenti.
+
+Il report registra tutte le 13 reti attese con EnableIPv4 true, EnableIPv6 false
+e subnet IPAM IPv4, senza nomi duplicati. Il runner ha verificato gli endpoint
+dei 16 ruoli prima dei casi. **33/33 passed: 15 allow e 18 deny**; completezza
+e unicità rispetto al piano verificate, decisioni negative ricalcolate sull'host.
+Pulizia client e lifecycle senza errori, rimozione di 16 fixture, 13 reti e
+7 volumi e readback guest senza residui della label. Nessuna seconda lettura
+live SSH eseguita per questa review. Le subnet rilevate sono assegnazioni
+dinamiche Docker, non nuovi prefissi statici di progetto.
+
+Con baseline host/guest delle sezioni 8–9 e questo report, **A-31 è verificato
+nel perimetro della configurazione VM-034**. Non significa prova sperimentale
+del filtro IPv6: kernel disponibile, nessun percorso positivo esterno introdotto,
+nessuna modifica ai deny Hyper-V. H-05 e A-05/A-30 restano parziali; il report
+mantiene isolationAccepted false. Nessun servizio reale, segreto o tunnel
+Cloudflare è stato avviato. Reboot/ripristino dell'applicazione e filtri sui
+futuri servizi rimangono verifiche successive.
+
+Prima di estendere il runtime oltre le fixture, riesaminare esplicitamente i
+residui INF-VM-02 e il gate del pilot sintetico INF-VM-04. Il risultato di
+configurazione non costituisce una deroga implicita alle dipendenze esistenti.

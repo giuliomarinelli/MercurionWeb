@@ -232,3 +232,10 @@ Il run VM del 9 novembre resta valido per la sua revisione; non dimostra i
 nuovi controlli. Prima di una nuova misura VM seguire baseline/readback della
 procedura VM-034. Nessun filtro IPv6 viene modificato o dichiarato collaudato
 da questa guardia sulla configurazione Docker.
+
+**Esecuzione VM della revisione del 10 novembre riuscita:** run
+2bcdfd57a75c4b2a979d2d2503351f5f, 13 readback IPv4-only, 33/33 passed e
+cleanup completo senza errori. Bundle/hash verificati e negazioni ricalcolate
+sull'host. [Evidenza e accettazione A-31](IPV4-ONLY-DESIGN.md#10-vm-034-verificata-sulla-vm--perimetro-configurazione).
+Questo risultato chiude il solo perimetro configurazione VM-034, mantenendo
+isolationAccepted false e i residui host/LAN/IPv6 distinti.

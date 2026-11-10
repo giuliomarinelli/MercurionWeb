@@ -1170,3 +1170,14 @@ e IPAM IPv4. Hash/report nella procedura VM-034. Nessuna prova di filtraggio
 dedotta, nessun sysctl modificato. Baseline host/guest verificata; consegnato
 all'owner Invoke-TopologyFixtures.ps1 -Execute per nuova matrice e readback
 delle 13 reti sui sorgenti aggiornati, senza modificare ACL o avviare app reali.
+
+VM-034 eseguita dall'owner: run 2bcdfd57a75c4b2a979d2d2503351f5f,
+12:18:33–12:20:31 UTC (13:18–13:20 CET). Report riletto, runId manifest coerente
+e hash bundle/tree validi. Preflight immagine e collisioni passato; 13 reti
+con IPv4 true/IPv6 false e subnet IPv4. 33 coppie uniche uguali al piano,
+15 allow/18 deny passed; negazioni ricalcolate e positivi TCP verificati.
+Cleanup client e lifecycle senza errori, rimozioni 16/13/7 e readback guest
+senza label residue, senza seconda lettura live SSH. Percorso/hash nella
+procedura VM-034. A-31 configurazione verificato; H-05/A-05/A-30 e gate
+INF-VM-02 complessivo restano parziali. Prossimo punto: review esplicita dei
+residui prima di ampliare il runtime al pilot sintetico, nessuna deroga dedotta.
