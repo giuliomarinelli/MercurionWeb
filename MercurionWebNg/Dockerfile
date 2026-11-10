@@ -35,6 +35,7 @@ WORKDIR /workspace/MercurionWebNg
 RUN npm run build -- --configuration=testing
 
 FROM nginx:1.30.6-alpine3.24@sha256:583b7f2fce1cdb8da5ad5c39ebd3c33b98b87d493190e548bdee1fa8c619c311 AS runtime
+RUN apk add --no-cache --upgrade zlib=1.4-r0
 ARG BUILD_VERSION
 ARG BUILD_REVISION
 LABEL org.opencontainers.image.version=$BUILD_VERSION \

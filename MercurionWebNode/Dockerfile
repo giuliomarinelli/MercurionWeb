@@ -79,6 +79,7 @@ RUN rm -rf node_modules && \
   npm rebuild argon2 --omit=dev
 
 FROM node:22.23.4-alpine3.24@sha256:0e1754758c2df4cfa3e68d59e2e1b7374bb7fd9ea6328eaaacf15cc934af8202 AS runtime
+RUN apk add --no-cache --upgrade zlib=1.4-r0
 WORKDIR /usr/src/app
 # Dependencies are installed in build stages; package managers are not runtime tools.
 RUN rm -rf /usr/local/lib/node_modules/npm /opt/yarn-* && \
