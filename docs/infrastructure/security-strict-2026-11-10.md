@@ -275,3 +275,10 @@ esposte ma con logica pending, senza certificarne l'implementazione.
 Test esistenti route-policy/manifest/transport aggiornati, typecheck e test
 negativi REST conservati. La copertura restante non viene esclusa: gli
 ultimi SHA pubblicati devono superare la CI full e i relativi Required gate.
+
+Il full gate successivo passa tutti i test unitari Angular/Nest ed E2E Nest,
+ma rileva drift dell'host GitHub: `ubuntu-latest` è ora Ubuntu 26.04, non
+supportato dal Playwright 1.55.1 fissato nel lock. I soli job build/catalogo
+e browser sono fissati a `ubuntu-24.04`, supportato dal codice di selezione
+piattaforma della versione installata. Nessun test viene disattivato e il
+Required gate continua a richiedere tutti i job; la VM Ubuntu 26 non cambia.
