@@ -115,5 +115,24 @@ integrità, finding LOW, scope incompleto, readiness negativa e richieste
 incoerenti. Anche il ciclo wrapper SCP/SSH/SCP è passato con trasporti
 simulati su PS 5.1: caricati soltanto i due file preflight, comando remoto
 e correlazione report verificati; non è una prova guest.
-Test stdlib registrati nel gate CI container. Il guest preflight resta da
-eseguire dal terminale dell'owner; TCP/22 risponde, senza login dell'agente.
+Test stdlib registrati nel gate CI container. Per ogni nuovo candidato
+ripetere il guest preflight dal terminale dell'owner, senza login dell'agente.
+
+### Esito guest del 10 novembre
+
+L'owner ha eseguito il wrapper sul candidato corrente. Report scaricato e
+riletto dall'agente:
+
+```text
+C:/Users/giuli/.codex/artifacts/inf-vm-04/vm040-preflight-518aa79ae12d42b8b61d453c1ef4f628.json
+```
+
+SHA256 report: `512fe85deadc48deadb0c81658fbeccaf4b4c11f0f89b445a8c48488b5baafb2`.
+
+Osservato alle `2026-11-10T18:16:01.964374+00:00`: richiesta corrispondente
+al bundle, tutti gli otto controlli `true`, `status: ready` e
+`readyForArtifactTransfer: true`. Docker 29.9.3, Compose 5.7.0,
+`187668488192` byte liberi contro `2871806418` richiesti. Nessuna seconda
+ispezione live dell'agente. Immagine non caricata, servizi non avviati e
+isolamento complessivo ancora non accettato. Prossimo passo: trasporto
+del tar, hash e load del solo candidato in un task distinto.

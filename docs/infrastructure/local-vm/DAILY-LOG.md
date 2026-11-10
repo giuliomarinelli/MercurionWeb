@@ -1395,3 +1395,9 @@ di sole letture predisposto con richiesta/hash helper, socket Unix Docker,
 baseline IP e budget disco; richiede il terminale dell'owner per SSH/sudo.
 Nessun tar trasferito, load, servizio reale, modifica Tox21 o merge.
 [Procedura e interpretazione degli esiti](TOX21-TRANSPORT-PREFLIGHT.md).
+
+Preflight poi eseguito dall'owner: report 518aa79ae12d42b8b61d453c1ef4f628
+scaricato e riletto, otto controlli passati e readyForArtifactTransfer true.
+Ubuntu/IP/route/baseline IPv4/Docker/Compose coerenti, 187668488192 byte
+liberi; nessun tar caricato o servizio avviato. Prossimo passo separato:
+trasferimento/hash/load del candidato, senza dedurre accettazione integrata.

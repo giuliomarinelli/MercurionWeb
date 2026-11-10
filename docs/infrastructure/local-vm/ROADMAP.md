@@ -280,7 +280,8 @@ retention, copia indipendente e cold restore restano risultati separati.
 VM-039 ora eseguita dopo il rientro strict: [candidato staging locale](TOX21-STAGING-CANDIDATE.md)
 Tox21 d506101 pronto, bootstrap/RPC/lifecycle reali e archivio verificato a
 zero finding. VM-040 prepara il [bundle di trasporto e preflight guest](TOX21-TRANSPORT-PREFLIGHT.md):
-bundle locale verificato, sole letture guest ancora da eseguire dall'owner.
+bundle locale verificato e otto controlli guest eseguiti dall'owner passati,
+report riletto e pronto al trasferimento.
 Poi trasferimento/hash/load da affrontare separatamente; nessun servizio VM
 o release Web completa dedotti.
 
