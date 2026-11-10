@@ -176,6 +176,12 @@ La versione corrente di Tox21 ha override `allow` / `require-jwt` / `disabled` p
   validati, state retired, dati assenti e codice rimosso. A-33 verificato sul
   singolo run, conservati soli metadati root contro il riuso. Nessuna seconda
   lettura live/consumer avviato; mount e restart/recreate richiedono run nuovo.
+  VM-037 ora implementata: nuovo run preview, lettore Tox21 reale in fixture
+  Python senza rete con UID 10021, bind read-only, restart/recreate e tre
+  rifiuti. Pulizia dei soli container/assets del tentativo e successivo ritiro
+  del nuovo run. 51 Linux/19 Windows passed (32 esclusi su Windows), Docker
+  Desktop reale 6/6 con cleanup riuscito e piano PS 5.1 passato. [Procedura](SYNTHETIC-CONSUMER-MOUNT.md).
+  A-34 pendente sulla VM; nessun SSH eseguito dall'agente o servizio reale avviato.
 - I Compose `docker_sl/releases/preview` e `prod` sono **frammenti**: non definiscono una topologia VM completa, volumi e recovery.
 - Il modello `deployment-schema.json` presenta ancora Nginx con porta HTTPS e secret origin TLS: **scostamento storico da riconciliare**, senza rompere i validator attuali prima di un task dedicato.
 - Matrice VM delle sole fixture verificata; routing per due hostname via tunnel,

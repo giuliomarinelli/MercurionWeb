@@ -1239,3 +1239,22 @@ A-33 verificato per il ritiro sintetico: dati assenti e codice rimosso, due
 metadati root senza credenziali conservati contro il riuso. Nessun altro run
 o namespace globale cancellato. Mount/consumer e restart/recreate ancora aperti;
 il prossimo collaudo richiede un run nuovo, senza riaprire quello ritirato.
+
+### VM-037 — Lettore, bind e restart/recreate sintetici predisposti
+
+Owner autorizza la prosecuzione dopo VM-036. Implementato un unico launcher
+preview con nuovo run, bundle di sorgenti verificato (helper, driver, lettore
+Tox21 e probe), consegna sintetica esistente, sei casi consumer e retirement
+solo dopo pulizia. Nessuna scrittura nel repository Tox21 o uso del run chiuso.
+Mount RO, rete none, immagine locale fissata senza pull, UID 10021, nessuna
+capability o porta; valori solo nel file volatile e nel dizionario del lettore.
+Le ricevute contengono metadati, mai valori/argv Env/hash delle credenziali.
+
+51 test Linux passati, inclusi identità/filesystem/loader effettivi con Docker
+simulato; 19 Windows passati e 32 Linux esclusi. Docker Desktop reale run
+22df6f265467454db8f3f31561c4a845: 6/6, EROFS/UID effettivi, restart stesso ID e
+recreate diverso; cinque consumer, keeper e volume tmpfs rimossi senza errori.
+Piano PowerShell 5.1 passato, nessuna risorsa locale con le label di prova.
+Procedura italiana e provenienza report in SYNTHETIC-CONSUMER-MOUNT.md.
+A-34 VM pendente: nessun SSH eseguito dall'agente, nessuna applicazione reale
+o modifica a rete/ACL. H-05/A-05/A-30 e INF-VM-02/04 restano aperti.

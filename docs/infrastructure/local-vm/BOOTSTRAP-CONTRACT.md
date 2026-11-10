@@ -179,3 +179,13 @@ sostituisca la separazione prevista in [MEILISEARCH-OPERATIONS](MEILISEARCH-OPER
 Nessun KMS, daemon dedicato, alta disponibilità o rotazione coordinata aggiunto.
 La proposta mantiene un bootstrap manuale per una sola persona, con limiti
 osservabili e senza trasformare il progetto portfolio in un servizio gestito.
+
+## Avanzamento del 10 novembre: mount e rilettura sintetici
+
+VM-035 trasporto e VM-036 retirement verificati dall'owner. Il passo 04-D
+prosegue con [VM-037](SYNTHETIC-CONSUMER-MOUNT.md): lettore Tox21 incorporato
+dal repository separato, fixture Python con file read-only, restart stesso
+container e recreate diverso; UID errato, file mancante e ambiente incoerente
+respinti. Sei casi Docker reali locali passati; esecuzione VM ancora pendente.
+Il nuovo run si ritira dopo il collaudo e la pulizia delle sole fixture.
+L'immagine applicativa, l'avvio completo e il provisioning reale restano aperti.
