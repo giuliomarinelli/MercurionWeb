@@ -1137,3 +1137,14 @@ Collaudo locale Docker Desktop eb828f142922415fa0844439732d4bfb, 09:42–09:45 U
 33/33, 13 readback IPv4-only, cleanup 16/13/7 senza errori o residui per label.
 Hash/report nella procedura. Nessun nuovo risultato VM acquisito; attesa
 dell'inventario owner per proseguire con le verifiche sulla baseline attuale.
+
+Inventario owner a928731080d5465ba7306387b03f5973 incompleto: sei sezioni
+Hyper-V/HNS indisponibili, HNS access denied; NAT/IP/Public osservati.
+Owner conferma VM spenta, Kaspersky ancora Pubblica e successivo controllo
+Administrator True nella sua console. Causa non identificata: report precedente
+privo del contesto del processo e del messaggio Hyper-V. Arricchito il collector
+con executionContext e dettagli errore, richiesto avvio diretto nella stessa
+console. Parsing/test errore sintetico PS 5.1 riusciti; prova reale dal processo
+agente non elevato restituisce incomplete/exit 2 e sei diagnostiche conservate
+(6982b35087834e538dd6c5b965bff3ab), senza generalizzare al contesto owner.
+Nessuna modifica a servizi, autorizzazioni o rete; fase VM-034 ancora in verifica.

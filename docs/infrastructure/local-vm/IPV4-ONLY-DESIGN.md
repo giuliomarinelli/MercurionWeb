@@ -98,10 +98,12 @@ modificata da questo documento; il collaudo VM-033 conserva il suo perimetro.
 1. **Baseline host attuale, sola lettura.** Da PowerShell amministrativa:
 
    ```powershell
-   powershell -NoProfile -File C:/.project_repo/MercurionWeb/scripts/infrastructure/Get-StaticNetworkMigrationInventory.ps1
+   & 'C:/.project_repo/MercurionWeb/scripts/infrastructure/Get-StaticNetworkMigrationInventory.ps1'
    ```
 
    Conservare il nuovo report, senza modificare stato VM, switch o ACL.
+   Eseguirlo direttamente nella PowerShell elevata corrente: il report registra
+   elevation, versione/architettura del processo e messaggi delle letture negate.
    Controllare VM/vNIC nota su Mercurion-Internal, 19 ACL DnsHttps comprese
    entrambe le regole IPv6 ::/0, zero ACL semplici, NAT senza mapping, IP host
    persistente e profilo Windows Public. Confermare a parte Kaspersky Pubblica.
@@ -169,3 +171,25 @@ Nessuna esecuzione dei nuovi sorgenti sulla VM ancora acquisita. Inventario
 host attuale richiesto all'owner; nessuna conclusione sulla baseline del
 10 novembre dedotta dai report del giorno precedente. A-31 e isolamento
 complessivo rimangono aperti, con i risultati locali registrati separatamente.
+
+**Prima lettura host del 10 novembre incompleta:** report owner
+`static-network/a928731080d5465ba7306387b03f5973/inventory.json`, 09:57:53 UTC,
+SHA-256 `67c106857ef75b25d2afeab8e87a59e0650462afa9607990576ed94a1e69df73`.
+VM/switch/ACL non osservabili (Get-VM e altri cmdlet restituiscono Unspecified),
+HNS UnauthorizedAccessException; servizi vmms/hns risultano Running. IP host
+10.203.240.1/24 Manual/Preferred, NAT attivo senza mapping e Windows Public
+osservati. Owner conferma Kaspersky Pubblica e VM spenta.
+
+Il controllo successivo nella console owner restituisce Administrator True.
+Non attribuire quindi il problema a mancata elevazione: il vecchio report non
+registrava il token del processo collector né il messaggio Hyper-V completo.
+Collector arricchito con executionContext, categoria, tipo/HResult e messaggio
+degli errori, anche nel riepilogo JSON. Nuova lettura diretta nella stessa
+console necessaria per distinguere autorizzazione provider da contesto del
+processo. Nessuna modifica di gruppi, WMI, UAC, Kaspersky o riavvio servizi.
+
+Verifica PS 5.1: parsing e conservazione dell'errore UnauthorizedAccessException
+sintetico passati; esecuzione reale dal processo agente non elevato genera
+correttamente incomplete/exit 2 con contesto false e sei errori dettagliati.
+Report di validazione `static-network/6982b35087834e538dd6c5b965bff3ab/inventory.json`;
+non rappresenta la sessione elevata dell'owner o una diagnosi della sua causa.

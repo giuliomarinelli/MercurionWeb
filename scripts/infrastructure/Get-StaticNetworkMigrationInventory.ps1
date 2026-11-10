@@ -4,6 +4,15 @@
 param([string]$VMName = 'Mercurion-Server')
 $ErrorActionPreference = 'Stop'
 $taskSections = [ordered]@{}
+$taskIdentity = [Security.Principal.WindowsIdentity]::GetCurrent()
+$taskPrincipal = New-Object Security.Principal.WindowsPrincipal($taskIdentity)
+$taskExecutionContext = [ordered]@{
+    elevated = $taskPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+    processId = $PID
+    is64BitProcess = [Environment]::Is64BitProcess
+    powerShellVersion = [string]$PSVersionTable.PSVersion
+    powerShellEdition = [string]$PSVersionTable.PSEdition
+}
 
 function Read-MigrationSection {
     param([string]$Name, [scriptblock]$Read)
@@ -13,6 +22,10 @@ function Read-MigrationSection {
         $taskSections[$Name] = [ordered]@{
             status = 'unavailable'
             errorId = $_.FullyQualifiedErrorId
+            errorCategory = [string]$_.CategoryInfo.Category
+            exceptionType = $_.Exception.GetType().FullName
+            hresult = $_.Exception.HResult
+            message = $_.Exception.Message
         }
     }
 }
@@ -110,6 +123,7 @@ $taskReport = [ordered]@{
     observedAtUtc = [datetime]::UtcNow.ToString('o')
     scope = 'static-network-migration-inventory-only'
     vmName = $VMName
+    executionContext = $taskExecutionContext
     incomplete = $taskIncomplete
     migrationReady = $false
     isolationAccepted = $false
@@ -124,6 +138,10 @@ $taskReport | ConvertTo-Json -Depth 12 | Set-Content -Encoding UTF8 -LiteralPath
     reportPath = $taskReportPath
     incomplete = $taskIncomplete
     unavailableSections = @($taskSections.Keys | Where-Object { $taskSections[$_].status -ne 'observed' })
+    executionContext = $taskExecutionContext
+    errors = @($taskSections.Keys | Where-Object { $taskSections[$_].status -ne 'observed' } | ForEach-Object {
+        [ordered]@{ section = $_; details = $taskSections[$_] }
+    })
     migrationReady = $false
     isolationAccepted = $false
 } | ConvertTo-Json -Depth 4

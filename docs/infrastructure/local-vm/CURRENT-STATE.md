@@ -131,6 +131,10 @@ La versione corrente di Tox21 ha override `allow` / `require-jwt` / `disabled` p
   statiche e readback Docker/endpoint aggiunti. Kernel IPv6 guest conservato;
   nessuna scrittura Hyper-V/router. Inventario host attuale richiesto, revisione
   VM dei nuovi sorgenti ancora da acquisire; nessuna chiusura dei residui.
+  Prima lettura host del 10 novembre incompleta per Hyper-V/HNS, benché IP/NAT
+  e Public siano osservati; owner conferma Administrator True nella console,
+  VM spenta e Kaspersky Pubblica. Collector ora registra contesto e messaggi
+  completi: nuova lettura diretta richiesta, causa non ancora identificata.
 - Ricevitore/apply Tox21 disponibile come [pilot locale](SECRET-DELIVERY-PILOT.md),
   con 17 test Linux sintetici passati; non ancora installato sulla VM.
   Trasporto SSH, consegna reale, altri consumer e lifecycle operativo aperti.
