@@ -222,6 +222,11 @@ e metadati incoerenti, marker d'interruzione e tombstone senza credenziali.
 38 test Linux e 14 Windows passati (24 Linux esclusi su Windows), piano PS 5.1
 senza SSH verificato. [Comando e limiti](SYNTHETIC-RUN-RETIREMENT.md); A-33
 ancora da misurare sulla VM prima di passare ai consumer/mount.
+**VM-036 verificata sulla VM:** ricevuta owner sul run VM-035 con quattro fasi,
+state retired e valuesAbsent/codeRemoved true, hash/corrispondenza al run
+originario validati. A-33 verificato; metadati root senza valori conservati
+contro il riuso. Prossimo collaudo: nuovo run sintetico per mount read-only
+e rilettura da consumer dopo restart/recreate, senza riutilizzare il run chiuso.
 
 Progettare/implementare l'iniezione protetta dal password manager Windows al bootstrap VM, secret per ambiente, credenziali Meilisearch, PostgreSQL, Redis, NATS, OAuth, Twilio, cookie, JWT. Preservare nomi legacy compatibili. Rinviare rotazione a caldo.
 

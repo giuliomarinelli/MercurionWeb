@@ -172,6 +172,10 @@ La versione corrente di Tox21 ha override `allow` / `require-jwt` / `disabled` p
   contro il riuso; no letture dei valori/ricorsione o modifica ad altri run.
   38 Linux e 14 Windows passed/24 Linux skipped, piano locale PS 5.1 riuscito.
   Esecuzione sul run VM ancora da acquisire, A-33 pendente.
+  VM-036 poi completata dall'owner: ricevuta con quattro fasi e helper hash
+  validati, state retired, dati assenti e codice rimosso. A-33 verificato sul
+  singolo run, conservati soli metadati root contro il riuso. Nessuna seconda
+  lettura live/consumer avviato; mount e restart/recreate richiedono run nuovo.
 - I Compose `docker_sl/releases/preview` e `prod` sono **frammenti**: non definiscono una topologia VM completa, volumi e recovery.
 - Il modello `deployment-schema.json` presenta ancora Nginx con porta HTTPS e secret origin TLS: **scostamento storico da riconciliare**, senza rompere i validator attuali prima di un task dedicato.
 - Matrice VM delle sole fixture verificata; routing per due hostname via tunnel,

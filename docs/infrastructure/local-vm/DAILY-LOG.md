@@ -1228,3 +1228,14 @@ Piano PS 5.1 reale sul run selezionato riuscito, senza Execute/SSH; container
 test rimosso senza residui. Originale pilot mantiene API/receipt, source helper
 nuovo con hash distinto conservato nella procedura. A-33 pendente: nessun
 materiale VM rimosso e nessun processo/servizio reale avviato dall'agente.
+
+Owner completa VM-036 sul run dfc1af5a416f4b1abc6e8dab99034dbb: staged,
+retired, retirement-verified e code-removed. Ricevuta finale validata per schema,
+ambiente preview/tox21, helper SHA corrente, quattro fasi e flag/state attesi;
+collegamento alla ricevuta originale VM-035 confermato. Salvati soli metadati
+owner in retirement-receipt.json, recordedAtUtc distinto dall'orario di esecuzione;
+hash nella procedura. Nessuna seconda lettura live, transcript o valori acquisiti.
+A-33 verificato per il ritiro sintetico: dati assenti e codice rimosso, due
+metadati root senza credenziali conservati contro il riuso. Nessun altro run
+o namespace globale cancellato. Mount/consumer e restart/recreate ancora aperti;
+il prossimo collaudo richiede un run nuovo, senza riaprire quello ritirato.

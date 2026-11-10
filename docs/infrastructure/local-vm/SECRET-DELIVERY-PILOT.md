@@ -136,3 +136,8 @@ provenienza](HOST-SYNTHETIC-DELIVERY.md#esito-vm-035-del-10-novembre).
 A-32 trasporto sintetico verificato; active conservato su tmpfs, riconciliazione
 e rimozione selettiva ancora da implementare/provare. Nessun consumer avviato
 o materiale reale, nessun mount/restart/recreate applicativo dedotto.
+
+**VM-036 verificata sullo stesso run sintetico:** state retired, dati assenti,
+codice rimosso e soli metadati root conservati contro il riuso. [Ricevuta e
+limiti](SYNTHETIC-RUN-RETIREMENT.md#6-esito-vm-036-del-10-novembre).
+A-33 verificato; mount/consumer e restart/recreate restano successivi, con run nuovo.

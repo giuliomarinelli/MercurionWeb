@@ -154,3 +154,8 @@ del solo run sopra. Nuovi comandi helper e loader condiviso testati anche contro
 la consegna esistente: 38 Linux passed, 14 Windows passed/24 Linux skipped.
 Il nuovo helper ha un hash diverso da quello della ricevuta storica; entrambe
 le identità sono conservate. Nessuna rimozione VM ancora dichiarata eseguita.
+
+**VM-036 poi completata dall'owner:** run VM-035 in stato retired, dati assenti
+e copia codice manutenzione rimossa, ricevuta e hash validati sull'host.
+[Esito e metadati conservati](SYNTHETIC-RUN-RETIREMENT.md#6-esito-vm-036-del-10-novembre).
+Quel run resta chiuso; i futuri collaudi mount/consumer usano un run nuovo.

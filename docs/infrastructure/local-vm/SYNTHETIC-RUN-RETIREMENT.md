@@ -100,3 +100,27 @@ orchestratore manutenzione SHA-256
 Sono hash di sorgenti; la ricevuta storica VM-035 conserva il proprio hash.
 **A-33 VM pendente:** nessuna rimozione sulla VM ancora eseguita dall'agente.
 Mount/consumer, restart/recreate e materiali reali restano fasi successive.
+
+## 6. Esito VM-036 del 10 novembre
+
+Owner completa il comando sul run `dfc1af5a416f4b1abc6e8dab99034dbb` e fornisce
+la ricevuta finale. Schema/campi chiusi, run/ambiente/consumer, quattro fasi
+e maintenanceHelperSha256 verificati sull'host; corrispondenza con la ricevuta
+originale VM-035 confermata. Esito **state retired**, valuesAbsent/codeRemoved/
+syntheticOnly true, servicesStarted/isolationAccepted false.
+
+Metadati owner conservati in
+`inf-vm-04/dfc1af5a416f4b1abc6e8dab99034dbb/retirement-receipt.json`, SHA-256
+`475c606f0072f2625abb97fd2803d29ce732189b8dc90d6bb3f0732a03b9be0b`.
+L'artifact distingue provenienza owner e recordedAtUtc; nessun transcript,
+valore o seconda lettura live della VM acquisiti dall'agente.
+
+**A-33 verificato per il singolo run sintetico:** ritiro e readback privilegiato/
+non privilegiato completati dal protocollo, dati assenti e copia codice rimossa.
+Restano i soli state.json/retired.json root-owned senza credenziali contro il
+riuso; la directory globale e gli altri run non vengono eliminati. Non è una
+prova di bonifica forense o retirement di credenziali reali.
+
+Il prossimo collaudo mount/consumer richiede un run sintetico nuovo: questo
+resta chiuso. Nessun avvio di consumer o restart/recreate è stato dedotto
+dal successo della manutenzione; H-05/A-05/A-30 restano distinti.
