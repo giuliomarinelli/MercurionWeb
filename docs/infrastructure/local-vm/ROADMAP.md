@@ -200,6 +200,16 @@ Orchestratore host sintetico ora implementato: [contratto e prova operatore](HOS
 codice prima dell'esecuzione privilegiata. Nessuna connessione SSH eseguita;
 verifica trasporto/prompt e filesystem VM ancora aperta.
 
+**Review del 10 novembre completata:** VM-035 pronta come proposta per riprendere
+il pilot sintetico preview già tentato prima della migrazione SSH. Baseline
+host/guest e VM-034 verificate; residui H-05/A-05/A-30 mantenuti, INF-VM-02 non
+dichiarato completo. Review codice e nuove prove: 26 Linux passed, 10 Windows
+passed/16 Linux skipped, piano senza SSH passato. [Gate circoscritto](INF-VM-02-REVIEW.md#review-dei-residui-del-10-novembre-e-ripresa-del-pilot)
+e [procedura con un solo comando](HOST-SYNTHETIC-DELIVERY.md#ripresa-operatore-del-10-novembre--vm-035).
+L'esecuzione owner del singolo pilot non autorizza servizi o materiali reali.
+Trasporto VM, stato active e successiva riconciliazione/rimozione restano da
+verificare prima di mount e restart/recreate applicativi.
+
 Progettare/implementare l'iniezione protetta dal password manager Windows al bootstrap VM, secret per ambiente, credenziali Meilisearch, PostgreSQL, Redis, NATS, OAuth, Twilio, cookie, JWT. Preservare nomi legacy compatibili. Rinviare rotazione a caldo.
 
 **Accettazione:** nessun segreto in Git/layer/CI/log; riavvio e perdita dei materiali temporanei prevedibili; nessuna master key del server accessibile ai backend.

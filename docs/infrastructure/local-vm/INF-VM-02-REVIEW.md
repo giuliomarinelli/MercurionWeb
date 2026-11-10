@@ -1,6 +1,6 @@
 # Review INF-VM-02 — evidenze e prossimo perimetro
 
-9 novembre 2026. Raccolta delle prove sulla baseline statica Hyper-V.
+9 novembre 2026, aggiornata il 10 novembre. Raccolta delle prove sulla baseline statica Hyper-V.
 Non è un'accettazione globale dell'isolamento né un'autorizzazione di deployment.
 
 ## Risultati disponibili
@@ -92,3 +92,64 @@ di indirizzi/route. Restano i limiti H-05/A-05/A-30 sopra: prima di passare dal
 perimetro fixture a quello del pilot sintetico, registrare una decisione
 esplicita sui residui e sull'eventuale perimetro anticipabile, senza marcare
 INF-VM-02 completo o riaprire implicitamente i gate dei servizi/segreti reali.
+
+## Review dei residui del 10 novembre e ripresa del pilot
+
+**Esito:** INF-VM-02 resta parziale; VM-033 e A-31/VM-034 sono verificati nei
+rispettivi perimetri. Nessun nuovo test è necessario soltanto per riconfermare
+questi stessi risultati in assenza di modifiche. Non costruire una rete IPv6
+o un percorso LAN aggiuntivo per ottenere un controllo positivo artificiale.
+
+| Residuo | Evidenza e limite | Impatto sul prossimo passo sintetico |
+| --- | --- | --- |
+| H-05 / A-26, altra origine SSH | ACL attuali uguali al modello: solo 10.203.240.1 → 10.203.240.10:22 stateful. Android non connesso, ma route verso Internal non provata | La restrizione è verificata come configurazione; prova del filtro da altra origine resta aperta. Il pilot usa soltanto l'alias SSH dell'host e non crea listener |
+| IPv6 / A-05 / A-30 | Due deny ::/0 sulla vNIC; guest solo ::1 e nessuna default route, kernel disponibile. Tredici reti fixture IPv4-only verificate | Non è prova sperimentale del filtro IPv6. Il pilot non abilita IPv6 né usa un nuovo percorso di rete; i valori trasferiti sono sintetici |
+| Copertura LAN / servizi reali | Un endpoint Android e percorsi host specifici misurati; servizi reali non avviati | Vietata l'estensione del risultato a tutte le porte/servizi. Il pilot non pubblica porte, avvia container o modifica egress |
+| Recovery applicativo / A-23 | Persistenza rete verificata; nessun ripristino completo dei futuri stack | Il pilot verifica trasporto e file tmpfs nello stesso boot, non restart/recreate applicativi o consegna operativa |
+| Autorizzazioni collector | Ultimo inventario diretto completo/elevato; causa del primo rifiuto non dimostrata | Nessuna riparazione WMI/UAC o modifica antivirus richiesta per procedere con il canale SSH già verificato |
+
+Baseline attuale: host fb1a99fc2d9f49858e948c97019e5e1f, guest
+0a4a324f8424486586dea762612d4caa, fixture 2bcdfd57a75c4b2a979d2d2503351f5f.
+Percorsi/hash in [VM-034](IPV4-ONLY-DESIGN.md). Questi residui rimangono espliciti;
+il loro impatto è valutato rispetto al singolo collaudo seguente, non eliminato.
+
+### VM-035 — proposta pronta per il solo trasporto sintetico preview
+
+Riprendere il pilot che l'owner aveva già tentato il 9 novembre prima del
+recupero SSH, con un run nuovo. Nei log owner i tentativi
+679aa98103c040f594b046e1494921ad e 1604ce419409487088fada2fab6d4622 si fermano
+per timeout SSH. La riga «Fase: staged» indica l'operazione in partenza,
+non una ricevuta che ne dimostra il completamento. Nessuna consegna VM
+riuscita viene dedotta da quei tentativi o dai test locali.
+
+Perimetro concreto sottoposto all'esecuzione dell'owner:
+
+1. Usare soltanto `Invoke-SyntheticSecretDelivery.ps1 -Environment preview -Execute`.
+   Il sorgente genera in memoria due stringhe NATS sintetiche; non accetta file
+   di password manager, `.env`, PEM o valori reali.
+2. Consegnare una copia per-run del solo helper in ~/.mercurion-infra, verificata
+   tramite hash/tipo/ownership/permessi prima dell'esecuzione root degli stessi
+   byte. L'alias mercurion-server e StrictHostKeyChecking restano obbligatori.
+3. Provare prepare/receive/apply/inspect su /run tmpfs con runId nuovo, ambiente
+   preview e unico consumer Tox21 UID/GID 10021. Nessuna modifica a account,
+   SSH, sudoers, servizi, reti, firewall o configurazioni applicative.
+4. Payload su stdin senza PTY; sudo su sessioni separate con prompt diretti.
+   Nessun transcript della sessione. Condividere solo la ricevuta finale o
+   runId/ultima fase/errore, mai password o passphrase.
+5. Verificare le sei fasi fino a code-removed e metadati dell'active. Il file
+   sintetico attivo resta nel tmpfs dopo l'uscita; non è un secret già montato
+   in un'applicazione. In errore nessun retry o cleanup automatico dei run;
+   riconciliazione e rimozione esplicita restano il passo successivo.
+
+**Gate circoscritto proposto:** eseguire soltanto questo pilot senza dichiarare
+INF-VM-02/04 completi. L'esecuzione esplicita del comando da parte dell'owner
+registra l'adozione di questo perimetro per il singolo tentativo. Non estende
+VM-033 a servizi o segreti reali e non abilita Cloudflare, broker, database,
+provisioning operativo o restart/recreate applicativi.
+
+**Review del codice e prove del 10 novembre:** orchestratore/helper/launcher
+riletti; piano senza Execute verificato senza SSH. Ripetuti con successo 26
+test Linux in container locale senza rete/pull e 10 test Windows (16 Linux
+esclusi). Il lettore Tox21 è montato read-only, nessun file sibling modificato.
+Container di test rimosso, nessun residuo con label del test. Nessuna nuova
+esecuzione SSH del pilot effettuata dall'agente. [Procedura operatore](HOST-SYNTHETIC-DELIVERY.md).

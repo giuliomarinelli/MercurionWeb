@@ -1181,3 +1181,20 @@ senza label residue, senza seconda lettura live SSH. Percorso/hash nella
 procedura VM-034. A-31 configurazione verificato; H-05/A-05/A-30 e gate
 INF-VM-02 complessivo restano parziali. Prossimo punto: review esplicita dei
 residui prima di ampliare il runtime al pilot sintetico, nessuna deroga dedotta.
+
+Review dei residui INF-VM-02 completata su indicazione owner. H-05/A-26,
+IPv6/A-05/A-30, copertura LAN e recovery applicativo mantenuti espliciti;
+nessuna necessità di riavviare test identici o introdurre route IPv6/LAN.
+Proposta VM-035 circoscritta al pilot preview sintetico già tentato dall'owner
+prima del guasto SSH, con run nuovo; sei fasi SSH, file /run, nessun servizio
+o modifica di rete. L'esecuzione owner conferma il singolo perimetro proposto;
+INF-VM-02 e il gate di servizi/materiali reali restano aperti.
+
+Riletti launcher/orchestratore/helper e contratto: source/hash verification,
+stdin senza PTY distinto da sudo, output metadata-only, active conservato e
+assenza di cleanup/retry automatici dei run. Sorgenti invariati. Ripetuti 26
+test Linux locali in container senza rete/pull, lettore Tox21 read-only;
+container rimosso e nessuna label residua. Su Windows 10 passed/16 Linux
+skipped. Piano senza Execute verificato, nessun SSH avviato. Hash sorgenti e
+comando assoluto in HOST-SYNTHETIC-DELIVERY.md. A-32 aggiunto come pendente,
+riservando riconciliazione/rimozione run e mount/restart a prove successive.

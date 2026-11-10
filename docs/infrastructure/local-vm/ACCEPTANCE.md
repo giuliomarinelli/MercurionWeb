@@ -32,6 +32,7 @@
 | A-26 | Amministrazione guest | SSH da host con chiave, nessun login root/password, ACL delle origini verificate | Parziale: login/Verify e controllo SSH host riusciti; Android TCP/22 non connesso, route dall'altra origine e attribuzione alla whitelist non provate |
 | A-27 | Cifratura guest | mount root sul dispositivo cifrato e percorso operativo di sblocco | Root su LUKS/dm-crypt/LVM verificato nel report v2; sblocco a freddo aperto |
 | A-31 | Configurazione VM-034 | Reti Compose con IPv4 esplicito, IPv6 non assegnato; reti reali ed endpoint corrispondenti, deny vNIC IPv6 presente | VERIFICATO nel perimetro configurazione: host/guest del 10 novembre coerenti e run VM 2bcdfd57a75c4b2a979d2d2503351f5f con 13 readback IPv4-only, 33/33 passed, cleanup 16/13/7 senza errori. Kernel IPv6 disponibile. Non è prova di filtraggio IPv6 e non chiude A-05/A-30/H-05 |
+| A-32 | Pilot VM-035 | Trasporto SSH sintetico preview: sei fasi, helper verificato, active tmpfs con proprietà attese, codice staged rimosso, nessun servizio avviato | Review e 26 test Linux/10 Windows locali riusciti; 16 integrazioni Linux escluse su Windows. Esecuzione owner della proposta VM-035 pendente. Non comprende segreti reali, consumer avviato, mount, restart/recreate o cleanup dell'active |
 
 ## Risultati preesistenti da non confondere con questa matrice
 

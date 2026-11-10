@@ -91,3 +91,37 @@ o ultima fase fallita, senza transcript grezzo, password o passphrase.
 Poi completare riconciliazione/rimozione esplicita dei run, mount e
 restart/recreate; estendere gli altri consumer con contratti specifici.
 Consegna di materiali reali e password manager fuori da questo strumento.
+
+## Ripresa operatore del 10 novembre — VM-035
+
+[Review del gate e residui](INF-VM-02-REVIEW.md#review-dei-residui-del-10-novembre-e-ripresa-del-pilot)
+completata dopo baseline host/guest e fixture IPv4-only. Proposta circoscritta
+al pilot sintetico preview, già tentato prima del problema SSH: H-05/A-05/A-30
+restano parziali; nessuna deroga per servizi o materiale reali.
+
+Il codice esistente è invariato. Prove appena ripetute: 26 Linux locali passed,
+10 Windows passed/16 integrazioni Linux skipped e piano senza Execute riuscito.
+Helper SHA-256 `95819d5c7f12731aba6b94bc5f870984b091cd88fee69df6d18c87c0b4d10024`;
+orchestratore SHA-256 `fb5858d009f6446f9e471cbae7a3cc7c90dbe661531a8158fdc341e48520b36d`.
+Gli hash sono dei sorgenti, non delle credenziali. Handshake/PTY/sudo del pilot
+restano da verificare sulla VM, separatamente dai test con SSH simulato.
+
+1. VM già avviata/sbloccata, alias SSH funzionante e nessun altro pilot attivo.
+   In PowerShell Windows normale, da qualunque directory:
+
+   ```powershell
+   powershell -NoProfile -File C:/.project_repo/MercurionWeb/scripts/infrastructure/Invoke-SyntheticSecretDelivery.ps1 -Environment preview -Execute
+   ```
+
+2. Inserire passphrase e sudo soltanto nel terminale; più richieste SSH sono
+   previste perché ogni fase usa una connessione separata. Non catturare o
+   inoltrare il transcript; payload e password sudo usano canali distinti.
+3. Attesi, nell'ordine: staged, prepared, received, applied, active, code-removed.
+   Le righe «Fase» annunciano l'operazione: la ricevuta finale ne attesta il
+   completamento. Riportare soltanto il JSON finale con runId, ambiente,
+   helperSha256 e phases; syntheticOnly true, servicesStarted false e
+   isolationAccepted false. Non è previsto un reportPath da questo launcher.
+4. Se fallisce, conservare runId/ultima fase/errore senza rilanciare. La copia
+   del codice può restare nella home, i file per-run nel tmpfs; non cancellarli
+   alla cieca. Se riesce, il solo codice staged viene rimosso; active resta
+   nel tmpfs, con riconciliazione/rimozione esplicita da gestire successivamente.

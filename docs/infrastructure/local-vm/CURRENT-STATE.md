@@ -156,6 +156,11 @@ La versione corrente di Tox21 ha override `allow` / `require-jwt` / `disabled` p
   Orchestratore host sintetico implementato e testato localmente:
   [contratto e limite delle prove](HOST-SYNTHETIC-DELIVERY.md), 26 test Linux
   passati; handshake SSH, prompt e filesystem VM non verificati.
+  Review dei residui del 10 novembre completata: proposta VM-035 pronta per
+  ripresa del solo pilot sintetico preview. Nuovi controlli 26 Linux passed,
+  10 Windows passed/16 Linux skipped e piano senza SSH passato; sorgenti
+  invariati. Comando operatore e gate circoscritto documentati; ricevuta VM
+  ancora da acquisire, nessuna chiusura di INF-VM-02 o avvio servizi impliciti.
 - I Compose `docker_sl/releases/preview` e `prod` sono **frammenti**: non definiscono una topologia VM completa, volumi e recovery.
 - Il modello `deployment-schema.json` presenta ancora Nginx con porta HTTPS e secret origin TLS: **scostamento storico da riconciliare**, senza rompere i validator attuali prima di un task dedicato.
 - Matrice VM delle sole fixture verificata; routing per due hostname via tunnel,

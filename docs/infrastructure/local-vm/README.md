@@ -17,7 +17,7 @@ La VM può rimanere spenta; preview può essere arrestato indipendentemente dall
 | --- | --- |
 | [CURRENT-STATE.md](CURRENT-STATE.md) | Stato effettivamente osservato, riferimenti ai sorgenti e lacune |
 | [HOST-GUEST-READINESS.md](HOST-GUEST-READINESS.md) | Inventari INF-VM-02, baseline guest e prove di isolamento ancora aperte |
-| [INF-VM-02-REVIEW.md](INF-VM-02-REVIEW.md) | Evidenze consolidate, limiti H-05/IPv6 e proposta di collaudo delle sole fixture |
+| [INF-VM-02-REVIEW.md](INF-VM-02-REVIEW.md) | Evidenze, residui H-05/IPv6, fixture verificate e gate proposto per il pilot sintetico VM-035 |
 | [FIXTURE-RUNTIME.md](FIXTURE-RUNTIME.md) | VM-033 approvata: bundle verificato, fixture sintetiche, matrice e pulizia per label |
 | [STATIC-NETWORK-MIGRATION.md](STATIC-NETWORK-MIGRATION.md) | Procedura italiana passo per passo: rete statica, Kaspersky Pubblica, isolamento LAN e recupero |
 | [HOST-REBOOT-VERIFICATION.md](HOST-REBOOT-VERIFICATION.md) | Punto di ripresa e verifica passo passo dopo riavvio Windows, con VM arrestata ordinatamente |
