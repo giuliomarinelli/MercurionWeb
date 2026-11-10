@@ -109,7 +109,8 @@ modificata da questo documento; il collaudo VM-033 conserva il suo perimetro.
    persistente e profilo Windows Public. Confermare a parte Kaspersky Pubblica.
    Se incompleto o diverso dalla baseline, diagnosticare prima di proseguire.
 2. **Readback semantico della policy.** Dopo la review dell'inventario, usare
-   il comando esistente da PowerShell amministrativa:
+   il comando esistente da PowerShell amministrativa se l'inventario è incompleto,
+   non più attuale o non è stato confrontato integralmente con la policy attesa:
 
    ```powershell
    powershell -NoProfile -File C:/.project_repo/MercurionWeb/scripts/infrastructure/Set-MercurionVmNetworkAcl.ps1 -Mode Verify -Policy DnsHttps
@@ -117,6 +118,9 @@ modificata da questo documento; il collaudo VM-033 conserva il suo perimetro.
 
    Attesi settingsReadbackVerified true e isolationAccepted false. Non eseguire
    Apply: i deny richiesti fanno già parte della policy, se il readback coincide.
+   Un inventario completo appena acquisito, con confronto semantico delle 19
+   regole e verifica degli stessi prerequisiti, evita una seconda lettura
+   ridondante. Registrare quale delle due forme di evidenza è stata usata.
 3. **Guest, sola lettura.** Con VM avviata e SSH disponibile, dopo i controlli
    precedenti, da PowerShell normale usare Invoke-Ipv6Readiness.ps1 già esistente.
    Passphrase/sudo nel terminale. Acquisire indirizzi, route, forwarding e reti;
@@ -193,3 +197,33 @@ sintetico passati; esecuzione reale dal processo agente non elevato genera
 correttamente incomplete/exit 2 con contesto false e sei errori dettagliati.
 Report di validazione `static-network/6982b35087834e538dd6c5b965bff3ab/inventory.json`;
 non rappresenta la sessione elevata dell'owner o una diagnosi della sua causa.
+
+## 8. Baseline host verificata il 10 novembre
+
+Esecuzione diretta nella console owner: report
+`static-network/fb1a99fc2d9f49858e948c97019e5e1f/inventory.json`,
+10:38:58 UTC (11:38 CET), completo, nessuna sezione unavailable;
+executionContext elevated true, PowerShell Desktop 5.1.26100.9711, processo x64.
+SHA-256 `bf31cb35fd873363c3d78334d754daf1d198d1eadc5b7eda0164c5b3a6e50478`.
+
+Review del report sull'host, senza scritture o nuovi cmdlet Hyper-V:
+
+- VM Mercurion-Server Off, una sola vNIC Scheda di rete, MAC 00155D00DD01,
+  identità invariata e switch Internal Mercurion-Internal atteso.
+- Zero ACL semplici, 19 estese semanticamente identiche alla policy DnsHttps
+  generata da MercurionVmAcl.ps1 (Test-MercurionAclRules true). Incluse le due
+  regole Deny ::/0 Inbound/Outbound al peso 900, ANY protocollo/porta.
+- Mercurion-NAT attivo sul prefisso 10.203.240.0/24, nessun mapping statico.
+  IP host 10.203.240.1/24 Manual/Preferred e persistente; Windows Public.
+  Forwarding e weak host disabilitati su IPv4/IPv6 dell'interfaccia Internal.
+- Kaspersky Pubblica confermata dall'owner nella stessa fase.
+
+Questa lettura soddisfa la verifica della configurazione host corrente; nessun
+Apply né seconda Verify live necessari in assenza di modifiche intermedie.
+La causa del precedente rifiuto non è dimostrata: la riuscita diretta non prova
+che la console precedente fosse priva di privilegi o che il processo figlio
+fosse la causa. Non effettuati cambi di autorizzazioni, servizi o antivirus.
+
+Prossimo passo consegnato all'owner: avvio normale VM, sblocco LUKS e collector
+guest IPv6 read-only esistente. Nuova matrice/readback Docker VM-034 ancora
+da acquisire; A-31 e prove di traffico A-05/A-30/H-05 rimangono aperti.

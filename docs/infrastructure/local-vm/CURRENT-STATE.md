@@ -135,6 +135,11 @@ La versione corrente di Tox21 ha override `allow` / `require-jwt` / `disabled` p
   e Public siano osservati; owner conferma Administrator True nella console,
   VM spenta e Kaspersky Pubblica. Collector ora registra contesto e messaggi
   completi: nuova lettura diretta richiesta, causa non ancora identificata.
+  Lettura diretta poi riuscita: fb1a99fc2d9f49858e948c97019e5e1f completa,
+  elevated true; review conferma 19 ACL DnsHttps identiche (due deny ::/0),
+  vNIC/switch noti, IP persistente e NAT senza mapping, Windows Public.
+  Nessuna riapplicazione; causa del precedente rifiuto non dimostrata.
+  Consegnato passo avvio/LUKS e inventario guest read-only; A-31 runtime pendente.
 - Ricevitore/apply Tox21 disponibile come [pilot locale](SECRET-DELIVERY-PILOT.md),
   con 17 test Linux sintetici passati; non ancora installato sulla VM.
   Trasporto SSH, consegna reale, altri consumer e lifecycle operativo aperti.

@@ -1148,3 +1148,15 @@ console. Parsing/test errore sintetico PS 5.1 riusciti; prova reale dal processo
 agente non elevato restituisce incomplete/exit 2 e sei diagnostiche conservate
 (6982b35087834e538dd6c5b965bff3ab), senza generalizzare al contesto owner.
 Nessuna modifica a servizi, autorizzazioni o rete; fase VM-034 ancora in verifica.
+
+Nuovo inventario diretto owner fb1a99fc2d9f49858e948c97019e5e1f del 10 novembre,
+10:38:58 UTC: completo, elevated true/x64/Desktop 5.1, senza sezioni mancanti.
+Review report: VM Off, vNIC/MAC/switch invariati, zero ACL semplici e 19 estese
+semanticamente uguali a DnsHttps; due deny ::/0 al peso 900. IP host statico
+persistente, NAT attivo senza mapping, Windows Public e forwarding/weak host
+disabilitati su Internal. Kaspersky Pubblica confermata dall'owner. Hash e
+provenienza in IPV4-ONLY-DESIGN.md; nessun Apply o Verify live ripetuto perché
+il report attuale copre gli stessi prerequisiti e il confronto semantico.
+Riuscita diretta non dimostra la causa del rifiuto iniziale, preservato.
+Consegnato all'owner avvio guest/LUKS e Invoke-Ipv6Readiness.ps1 read-only.
+Nessuna nuova misura guest/Docker VM ancora acquisita o accettazione globale.

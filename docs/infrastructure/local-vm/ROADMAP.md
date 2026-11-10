@@ -90,6 +90,12 @@ Verifiche locali riuscite: 15 test runner/10 lifecycle, 15+4 guardie Compose,
 28 scenari ACL lifecycle e 26 egress + 30 match IPv6 espliciti simulati.
 Docker Desktop 33/33 e readback IPv4-only delle 13 reti, cleanup completo;
 queste prove non completano A-31 sulla VM.
+Inventario host diretto fb1a99fc2d9f49858e948c97019e5e1f ora completo:
+19 ACL DnsHttps identiche al modello, due deny IPv6 ::/0, identità vNIC/switch,
+IP persistente, NAT senza mapping e Windows Public verificati. Kaspersky
+Pubblica owner confermata; nessun Apply. Guest Off, prossimo passo avvio/LUKS
+e inventario IPv6 read-only; successiva matrice VM-034 ancora da acquisire.
+Il precedente errore di autorizzazione non è riprodotto né spiegato.
 Strumento [porte private](PRIVATE-PORT-PROBES.md) pronto: 13 unittest, tre
 scenari trasporto PowerShell 5.1, preflight host e collaudo Docker Desktop
 passati. Esecuzione owner acquisita: nove percorsi host TCP/443, TCP/53 e
