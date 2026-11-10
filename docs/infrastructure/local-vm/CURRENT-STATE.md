@@ -209,7 +209,10 @@ La versione corrente di Tox21 ha override `allow` / `require-jwt` / `disabled` p
   d506101 da Git isolato, pesi/soglie invariati, tre lifecycle reali con
   launcher file e NATS autenticato, nove negazioni esplicite e cleanup passato.
   Export/tar/load/SBOM e scan OS/Python a zero; source-matches. Nessun SSH,
-  trasferimento, servizio o cambio rete sulla VM. Bundle/preflight successivi aperti.
+  trasferimento, servizio o cambio rete sulla VM. VM-040 prepara ora il
+  [bundle Tox21 di trasporto](TOX21-TRANSPORT-PREFLIGHT.md): hash e prove locali
+  verificati, componenti Web dichiarati mancanti. Preflight guest da eseguire
+  dal terminale owner; nessun trasferimento tar, load o avvio VM effettuato.
 - I Compose `docker_sl/releases/preview` e `prod` sono **frammenti**: non definiscono una topologia VM completa, volumi e recovery.
 - Il modello `deployment-schema.json` presenta ancora Nginx con porta HTTPS e secret origin TLS: **scostamento storico da riconciliare**, senza rompere i validator attuali prima di un task dedicato.
 - Matrice VM delle sole fixture verificata; routing per due hostname via tunnel,

@@ -1380,3 +1380,18 @@ OS Wolfi/Python a zero, security_eligible true. Hash correlati nel summary e
 in [TOX21-STAGING-CANDIDATE.md](TOX21-STAGING-CANDIDATE.md), con procedura italiana
 passo passo. Nessuna modifica Tox21, SSH o applicazione VM, merge o release
 coordinata completa; INF-VM-02/04/06 e residui di isolamento rimangono aperti.
+
+### VM-040 — Bundle di trasporto e preflight guest
+
+Riutilizzato il tar staging VM-039 senza build/training. Bundle locale
+`inf-vm-04/vm040-transport`, run 518aa79ae12d42b8b61d453c1ef4f628,
+archivio 352377856 byte e hash/config digest invariati. Allowlist di sette
+file componente, summary e coordinatore esistente; Web-ng/Web-node mancanti
+espliciti, nessuna approvazione di release integrata. Sette test stdlib
+passati, compresi manomissione, finding LOW, scope e readiness negative.
+
+Wrapper verificato senza Execute su Windows PowerShell 5.1. Preflight guest
+di sole letture predisposto con richiesta/hash helper, socket Unix Docker,
+baseline IP e budget disco; richiede il terminale dell'owner per SSH/sudo.
+Nessun tar trasferito, load, servizio reale, modifica Tox21 o merge.
+[Procedura e interpretazione degli esiti](TOX21-TRANSPORT-PREFLIGHT.md).
