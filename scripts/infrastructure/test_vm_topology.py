@@ -62,6 +62,26 @@ class FixtureTests(unittest.TestCase):
 
 
 class RunnerTests(unittest.TestCase):
+    def test_network_family_readback_rejects_dual_stack_missing_or_drifted_data(self):
+        network = dict(Name='fixture-net',EnableIPv4=True,EnableIPv6=False,
+                       IPAM=dict(Config=[dict(Subnet='172.20.0.0/24')]))
+        self.assertEqual(runner.ipv4_network_evidence([network],['fixture-net'])[0]['enableIPv6'],False)
+        for change in (dict(EnableIPv4=False),dict(EnableIPv6=True),dict(EnableIPv6=None),
+                       dict(IPAM=dict(Config=[dict(Subnet='fd00::/64')]))):
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                runner.ipv4_network_evidence([{**network,**change}],['fixture-net'])
+        with self.assertRaises(ValueError):
+            runner.ipv4_network_evidence([],['fixture-net'])
+
+    def test_discovery_rejects_ipv6_endpoint_on_an_ipv4_fixture(self):
+        node = dict(image=runner.IMAGE,imageId=runner.IMAGE,running=True,ports={},privileged=False,
+                    readonly=True,user='65534:65534',dnsOptions=['ndots:1'],entrypoint=['python'],
+                    command=['-B','/fixture/topology_fixture.py','serve','--identity','cloudflared'],
+                    networks={'fixture-net':dict(IPAddress='172.20.0.2',GlobalIPv6Address='fd00::2')})
+        invoke=Mock(side_effect=['c'*64,json.dumps(node)])
+        with self.assertRaises(ValueError):
+            runner.Runner(invoke).discover(['shared/cloudflared'])
+
     def test_discovery_rejects_a_different_resolved_image_id(self):
         ref = 'shared/cloudflared'
         node = dict(image=runner.IMAGE,imageId='sha256:'+'0'*64)
@@ -147,6 +167,9 @@ class RunnerTests(unittest.TestCase):
             calls.append(args)
             if args[0] == 'version':
                 return 'linux/amd64'
+            if args[:2] == ('network','inspect'):
+                return json.dumps([dict(Name='fixture-net',EnableIPv4=True,EnableIPv6=False,
+                                        IPAM=dict(Config=[dict(Subnet='172.20.0.0/24')]))])
             if args[0] == 'ps':
                 if '-a' in args:
                     return '\n'.join(clients)
@@ -197,7 +220,8 @@ class RunnerTests(unittest.TestCase):
         self.assertFalse(report['isolationAccepted'])
         self.assertFalse(report['cleanupErrors'])
         self.assertFalse(clients)
-        self.assertFalse(any(call[0] in ('stop', 'network', 'volume') for call in calls))
+        self.assertFalse(any(call[0] in ('stop', 'volume') or
+                             (call[0]=='network' and call[1]!='inspect') for call in calls))
 
 
 if __name__ == '__main__':

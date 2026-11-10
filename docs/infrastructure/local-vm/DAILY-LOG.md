@@ -1117,3 +1117,23 @@ lifecycle senza errori, 16 fixture/13 reti/7 volumi rimossi e readback guest
 senza residui del run. Hash e percorso in FIXTURE-RUNTIME.md. Nessuna seconda
 lettura live SSH, modifica ai filtri, applicazione reale o segreto introdotto.
 Perimetro fixture verificato; H-05/A-30/IPv6 aperti, isolamento complessivo false.
+
+## 10 novembre 2026 — VM-034 IPv4-only
+
+Owner autorizza prosecuzione: scelta circoscritta a famiglie esplicite sulle
+13 reti Compose, conservando deny IPv6 Hyper-V già esistenti. Kernel IPv6 guest
+conservato, nessuna scrittura router/host/guest. Richiesto nuovo inventario
+amministrativo con script esistente e conferma Kaspersky Pubblica.
+Procedura italiana con passi di lettura, prerequisiti, rollback e distinzione
+tra configurazione e prova di traffico in IPV4-ONLY-DESIGN.md; A-31 aggiunto
+senza modificare gli esiti A-05/A-30/H-05.
+
+Manifest con enable_ipv4 true/enable_ipv6 false sui soli owner. Validator
+15 guardie + 4 matrice; runner verifica famiglie/IPAM delle reti reali ed
+endpoint prima della misura. 15 test runner e 10 lifecycle passati; PS 5.1,
+28 scenari ACL lifecycle e 26 egress + 30 match IPv6 espliciti passati,
+tutti simulati. Controlli documentazione e preflight trasporti passati.
+Collaudo locale Docker Desktop eb828f142922415fa0844439732d4bfb, 09:42–09:45 UTC:
+33/33, 13 readback IPv4-only, cleanup 16/13/7 senza errori o residui per label.
+Hash/report nella procedura. Nessun nuovo risultato VM acquisito; attesa
+dell'inventario owner per proseguire con le verifiche sulla baseline attuale.

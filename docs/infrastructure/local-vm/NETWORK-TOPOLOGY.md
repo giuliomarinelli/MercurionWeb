@@ -1,8 +1,10 @@
 # Topologia e matrice delle reti Docker
 
 **Stato:** disegno proposto e concordato; base Compose fixture preparata e validata
-staticamente in [deployment/local-vm](../../../deployment/local-vm/README.md),
-non applicata alla VM. La topologia non sostituisce il firewall Hyper-V/guest.
+staticamente in [deployment/local-vm](../../../deployment/local-vm/README.md).
+VM-033 verificata il 9 novembre sulle sole fixture (33/33). Il 10 novembre
+VM-034 rende esplicite le famiglie IPv4-only dei sorgenti: nuova revisione VM
+ancora da misurare. La topologia non sostituisce il firewall Hyper-V/guest.
 
 ## Reti di progetto
 
@@ -29,6 +31,12 @@ egress, web/search dei due ambienti e admin UI). Preview/production consumano
 web/search con `external: true` e possiedono ciascuno data/bus/egress: nessuna
 dipendenza circolare nella creazione. Bootstrap operativo ancora da validare.
 Meilisearch e nginx-edge appartengono a shared e non fungono da router L3.
+
+**VM-034:** sulle 13 reti possedute richiedere enable_ipv4 true ed enable_ipv6
+false; le quattro dichiarazioni external non ridefiniscono le famiglie.
+Verificare sul daemon le reti reali e gli endpoint dei container, non solo
+compose config. Questo non disabilita IPv6 nel kernel e non prova il filtro
+IPv6 Hyper-V. [Policy operativa e limiti](IPV4-ONLY-DESIGN.md).
 
 ## Connessioni ammesse e vietate
 

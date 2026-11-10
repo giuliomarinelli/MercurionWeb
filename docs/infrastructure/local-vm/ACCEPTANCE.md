@@ -31,6 +31,7 @@
 | A-25 | Limiti portfolio | avviso di case study, dati personali e disponibilità rappresentati correttamente | Non eseguito |
 | A-26 | Amministrazione guest | SSH da host con chiave, nessun login root/password, ACL delle origini verificate | Parziale: login/Verify e controllo SSH host riusciti; Android TCP/22 non connesso, route dall'altra origine e attribuzione alla whitelist non provate |
 | A-27 | Cifratura guest | mount root sul dispositivo cifrato e percorso operativo di sblocco | Root su LUKS/dm-crypt/LVM verificato nel report v2; sblocco a freddo aperto |
+| A-31 | Configurazione VM-034 | Reti Compose con IPv4 esplicito, IPv6 non assegnato; reti reali ed endpoint corrispondenti, deny vNIC IPv6 presente | Locale Docker Desktop: 33/33 e 13 readback IPv4-only, cleanup completo; nuovo inventario host e readback VM della revisione pendenti. Non è una prova di filtraggio IPv6 e non chiude A-05/A-30 |
 
 ## Risultati preesistenti da non confondere con questa matrice
 

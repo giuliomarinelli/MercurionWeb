@@ -23,7 +23,7 @@ La VM può rimanere spenta; preview può essere arrestato indipendentemente dall
 | [HOST-REBOOT-VERIFICATION.md](HOST-REBOOT-VERIFICATION.md) | Punto di ripresa e verifica passo passo dopo riavvio Windows, con VM arrestata ordinatamente |
 | [SSH-ONLY-ACL.md](SSH-ONLY-ACL.md) | Applicazione controllata ACL della sola vNIC, prima fase SSH-only, test simulati e quarantena |
 | [DNS-HTTPS-ACL.md](DNS-HTTPS-ACL.md) | Transizione controllata a 19 ACL per DNS/HTTPS, prove, recupero e limiti |
-| [IPV4-ONLY-DESIGN.md](IPV4-ONLY-DESIGN.md) | Proposta IPv4-only, limiti del filtro router, confine Hyper-V e futuro tunnel |
+| [IPV4-ONLY-DESIGN.md](IPV4-ONLY-DESIGN.md) | VM-034: policy IPv4-only, passi operativi, verifiche, rollback e limiti del filtro router |
 | [PRIVATE-PORT-PROBES.md](PRIVATE-PORT-PROBES.md) | Probe TCP/443 e TCP/UDP 53 privati con controlli, runner e limiti |
 | [ANDROID-LAN-PROBES.md](ANDROID-LAN-PROBES.md) | Preparazione Android/Termux e contratto delle prove LAN con endpoint controllato |
 | [NETWORK-PROBES.md](NETWORK-PROBES.md) | Canary temporaneo e controlli positivi per le prove negative TCP |

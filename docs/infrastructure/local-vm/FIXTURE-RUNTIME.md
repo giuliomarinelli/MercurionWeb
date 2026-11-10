@@ -216,3 +216,19 @@ Il primo tentativo invalid rimane conservato. isolationAccepted resta false:
 questa matrice non chiude H-05, A-30/IPv6, accessi amministrativi loopback,
 provisioning, recovery applicativo o Cloudflare. Nessun avvio successivo è
 autorizzato automaticamente dal superamento delle fixture.
+
+## 8. Revisione VM-034 del 10 novembre
+
+Le 13 reti possedute dai progetti hanno ora famiglie esplicite IPv4 true/IPv6
+false. Le external non vengono riconfigurate dai consumer. Il runner, prima
+della readiness, acquisisce EnableIPv4, EnableIPv6 e subnet IPAM delle reti
+effettive; rifiuta IPv6 attivo, dati mancanti/subnet IPv6 ed endpoint container
+IPv6 globale/gateway. Il report conserva networkFamilyReadback.
+
+Verifiche nuove: 15 test fixture/runner, 10 lifecycle, 15+4 guardie statiche;
+collaudo Docker Desktop 33/33 con 13 readback di rete validi e cleanup completo.
+[Hash, tempi e limiti](IPV4-ONLY-DESIGN.md#7-verifiche-locali-del-10-novembre).
+Il run VM del 9 novembre resta valido per la sua revisione; non dimostra i
+nuovi controlli. Prima di una nuova misura VM seguire baseline/readback della
+procedura VM-034. Nessun filtro IPv6 viene modificato o dichiarato collaudato
+da questa guardia sulla configurazione Docker.

@@ -75,6 +75,20 @@ def assess_negative(before, dns, attempts, after):
     return 'invalid'
 
 
+def ipv4_network_evidence(networks, expected_names):
+    """Validate actual Docker network configuration, not IPv6 packet filtering."""
+    if {item['Name'] for item in networks} != set(expected_names) or len(networks) != len(expected_names):
+        raise ValueError('Incomplete network readback')
+    evidence = []
+    for item in networks:
+        subnets = [entry['Subnet'] for entry in item['IPAM']['Config']]
+        if (item['EnableIPv4'] is not True or item['EnableIPv6'] is not False or not subnets
+                or any(ipaddress.ip_network(subnet).version != 4 for subnet in subnets)):
+            raise ValueError('Expected explicit IPv4-only Docker network')
+        evidence.append(dict(name=item['Name'],enableIPv4=True,enableIPv6=False,subnets=subnets))
+    return evidence
+
+
 class Runner:
     def __init__(self, invoke=docker, base=BASE):
         self.invoke = invoke
@@ -105,6 +119,8 @@ class Runner:
             ips = sorted({item['IPAddress'] for item in node['networks'].values() if item.get('IPAddress')})
             if not ips or any(not ipaddress.ip_address(ip).is_private for ip in ips):
                 raise ValueError('Fixture must have private IPv4 endpoints')
+            if any(item.get('GlobalIPv6Address') or item.get('IPv6Gateway') for item in node['networks'].values()):
+                raise ValueError('Unexpected IPv6 fixture endpoint')
             node.update(identity=service, ips=ips)
             self.nodes[ref] = node
 
@@ -183,6 +199,9 @@ class Runner:
             refs = {ref for mode in ('allow', 'deny') for pair in matrix[mode] for ref in pair}
             self.discover(refs)
             report['fixtureIds'] = {ref: node['id'] for ref, node in self.nodes.items()}
+            network_names = sorted({name for node in self.nodes.values() for name in node['networks']})
+            report['networkFamilyReadback'] = ipv4_network_evidence(
+                json.loads(self.invoke('network','inspect',*network_names)),network_names)
             readiness = {ref: self.measure(ref, '127.0.0.1', node['identity']) for ref, node in self.nodes.items()}
             report['readiness'] = readiness
             checkpoint(report)

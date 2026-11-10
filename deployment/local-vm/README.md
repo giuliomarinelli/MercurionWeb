@@ -50,7 +50,12 @@ e comportamento delle reti ancora in uso richiedono verifica runtime.
 
 Solo `tunnel_egress` e le due reti `*_egress` hanno `internal: false`. Nessun
 subnet/IP fisso, host networking o rete default implicita. La base non abilita
-IPv6 né configura firewall. Egress non significa allowlist delle destinazioni.
+IPv6 né configura firewall. Dal 10 novembre VM-034 richiede esplicitamente
+enable_ipv4 true/enable_ipv6 false su tutte le 13 reti possedute dai progetti;
+le reti external conservano le sole proprietà name/external. Il validator
+rifiuta deriva delle famiglie e il runner acquisisce EnableIPv4/EnableIPv6/IPAM
+effettivi e rifiuta endpoint IPv6 inattesi prima della matrice. Questo readback
+non prova il filtro IPv6 Hyper-V. Egress non significa allowlist delle destinazioni.
 Le sole fixture usano dns_opt ndots:1 per limitare le query A a etichetta
 singola al DNS embedded: i nomi vietati non dipendono da resolver esterni.
 Errori DNS temporanei continuano a invalidare un caso.
@@ -99,7 +104,7 @@ configurazione reale in `validation.env.example`.
 Verifica proprietà reti/volumi, collegamenti dei ruoli, separazione ambienti,
 alias, porte canoniche, overlay, immagine fixture fissata, assenza di porte
 pubblicate/mount sensibili e limiti container. L'unico bind mount ammesso è il
-file fixture tracciato in sola lettura. I 12 casi negativi di topologia e i
+file fixture tracciato in sola lettura. I 15 casi negativi di topologia e i
 4 della matrice modificano copie in memoria, senza toccare sorgenti o Docker.
 Validator dedicato alla fase fixture, separato dal gate CI canonico;
 non sostituisce `ci:deployment`.
@@ -147,7 +152,7 @@ Verifica locale, senza Docker runtime:
 python -B scripts/infrastructure/test_vm_topology.py
 ```
 
-Tredici test passati: TCP loopback reale, identità, chiusura, DNS, guardie contro
+Quindici test passati: TCP loopback reale, identità, chiusura, DNS, guardie contro
 falsi esiti e pulizia dopo timeout/ownership errata; l'intera matrice è percorsa
 con Docker simulato. La simulazione non dimostra la topologia della VM.
 Il lifecycle aggiunge dieci test di sicurezza: collisioni, integrità bundle,
@@ -159,7 +164,7 @@ attivi; non sono una prova del filtro host. Vedere FIXTURE-RUNTIME per i dettagl
 Regressione immagine: primo tentativo VM fermato al preflight, senza mutazioni
 o casi. L'ID locale era stato usato erroneamente come digest registry; corretti
 Compose/validator/runner, con test immagine locale senza RepoDigests e rifiuto
-di ID effettivo container differente. Ora 13 test fixture/runner e 10 lifecycle;
+di ID effettivo container differente. Quel fix aveva 13 test fixture/runner e 10 lifecycle;
 la nuova esecuzione VM deve produrre un report distinto, senza riuso del bundle.
 
 **Evidenza VM acquisita:** run c2abe4b0e10248698a4e02a9ff584e5b, 9 novembre:

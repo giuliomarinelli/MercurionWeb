@@ -81,6 +81,15 @@ anticipare accettazione complessiva o deployment sulla sola riuscita H-06.
 il networking supportato, conservando il deny IPv6 Hyper-V. Un filtro sullo ZTE
 non copre i percorsi locali; nessuna regola router/guest modificata. Definire
 verifiche e rollback prima di eventuali interventi, senza chiudere IPv6/H-05.
+**10 novembre — VM-034 avviata:** owner autorizza la predisposizione operativa.
+Sorgenti Compose con famiglie esplicite sulle 13 reti, validator e readback
+Docker rafforzati; kernel IPv6 guest conservato. [Procedura e rollback](IPV4-ONLY-DESIGN.md#5-procedura-passo-per-passo-del-10-novembre).
+Nuovo inventario host richiesto all'owner; verifiche VM della nuova revisione
+ancora da acquisire. Nessuna modifica alle ACL o al router; H-05/A-30 aperti.
+Verifiche locali riuscite: 15 test runner/10 lifecycle, 15+4 guardie Compose,
+28 scenari ACL lifecycle e 26 egress + 30 match IPv6 espliciti simulati.
+Docker Desktop 33/33 e readback IPv4-only delle 13 reti, cleanup completo;
+queste prove non completano A-31 sulla VM.
 Strumento [porte private](PRIVATE-PORT-PROBES.md) pronto: 13 unittest, tre
 scenari trasporto PowerShell 5.1, preflight host e collaudo Docker Desktop
 passati. Esecuzione owner acquisita: nove percorsi host TCP/443, TCP/53 e

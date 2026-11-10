@@ -126,8 +126,11 @@ La versione corrente di Tox21 ha override `allow` / `require-jwt` / `disabled` p
   sole fixture VM, 15 allow e 18 deny, hash bundle/tree corrispondenti e cleanup
   16/13/7 senza errori/readback residui nel report guest. Decisioni negative
   ricalcolate sull'host. [Report, hash e limiti](FIXTURE-RUNTIME.md#7-collaudo-sulla-vm-riuscito).
-  [VM-034](IPV4-ONLY-DESIGN.md): proposta IPv4-only documentata, nessun nuovo
-  intervento su IPv6/router e nessuna chiusura dei residui.
+  [VM-034](IPV4-ONLY-DESIGN.md) avviata il 10 novembre su indicazione owner:
+  famiglie IPv4-only esplicite nelle 13 reti dei sorgenti Compose, guardie
+  statiche e readback Docker/endpoint aggiunti. Kernel IPv6 guest conservato;
+  nessuna scrittura Hyper-V/router. Inventario host attuale richiesto, revisione
+  VM dei nuovi sorgenti ancora da acquisire; nessuna chiusura dei residui.
 - Ricevitore/apply Tox21 disponibile come [pilot locale](SECRET-DELIVERY-PILOT.md),
   con 17 test Linux sintetici passati; non ancora installato sulla VM.
   Trasporto SSH, consegna reale, altri consumer e lifecycle operativo aperti.

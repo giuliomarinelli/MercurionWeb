@@ -64,8 +64,10 @@ export function validateVmProjects(projects) {
         assert(!owners.has(name), `duplicate network owner ${name}`)
         owners.set(name, project)
         assert.equal(network.driver, 'bridge', 'bridge driver')
+        assert.equal(network.enable_ipv4, true, 'IPv4 assignment explicitly enabled')
+        assert.equal(network.enable_ipv6, false, 'IPv6 assignment explicitly disabled')
         assert.equal(!!network.internal, !['tunnel-egress', 'egress'].includes(key), `${project}/${key}: egress policy`)
-        same(Object.keys(network).filter(k => !['internal', 'ipam'].includes(k)), ['name', 'driver'], 'unexpected network setting')
+        same(Object.keys(network).filter(k => !['internal', 'ipam'].includes(k)), ['name', 'driver', 'enable_ipv4', 'enable_ipv6'], 'unexpected network setting')
         assert.deepEqual(network.ipam ?? {}, {}, 'no guessed subnets')
       }
     }
@@ -165,6 +167,9 @@ export function validateConnectivity(projects, matrix) {
 
 function selfTest(projects) {
   const cases = [
+    ['IPv6 assignment enabled', p => { p.shared.networks.edge.enable_ipv6 = true }],
+    ['IPv6 policy implicit', p => { delete p.production.networks.data.enable_ipv6 }],
+    ['IPv4 assignment disabled', p => { p.preview.networks.egress.enable_ipv4 = false }],
     ['published port', p => { p.preview.services['web-node-preview'].ports = [{ target: 8098, published: '8098' }] }],
     ['unscoped fixture DNS', p => { p.preview.services['tox21-preview'].dns_opt = ['ndots:0'] }],
     ['host network', p => { p.production.services['tox21-production'].network_mode = 'host' }],

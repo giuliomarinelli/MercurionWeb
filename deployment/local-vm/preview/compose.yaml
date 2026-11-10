@@ -77,14 +77,20 @@ networks:
   data:
     name: mercurion_stg_data
     driver: bridge
+    enable_ipv4: true
+    enable_ipv6: false
     internal: true
   bus:
     name: mercurion_stg_bus
     driver: bridge
+    enable_ipv4: true
+    enable_ipv6: false
     internal: true
   egress:
     name: mercurion_stg_egress
     driver: bridge
+    enable_ipv4: true
+    enable_ipv6: false
     internal: false
 
 volumes:

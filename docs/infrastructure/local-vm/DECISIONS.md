@@ -36,7 +36,7 @@
 | VM-030 | APPROVATA | Basi operative persistenti: Web `feature/infra-vm-docker-engine-architecture`, Tox21 `feature/infra-vm-nats-client-auth`. Proseguire da qui, eventuali sotto-rami dalla rispettiva base; `develop` può restare indietro e ogni merge rimane dell'owner |
 | VM-031 | APPROVATA (sviluppo locale) | Il 9 novembre l'owner autorizza INF-VM-04-A e preparazione del percorso sintetico. Primo ricevitore/apply limitato a Tox21/NATS, testato su Linux locale; nessuna operazione VM implicita. Trasporto SSH, altri consumer e residui VM-028 aperti; dettaglio in SECRET-DELIVERY-PILOT.md |
 | VM-033 | APPROVATA (sole fixture), VERIFICATA su VM | Owner il 9 novembre: «Procedi con le sole fixture». Run c2abe4b0e10248698a4e02a9ff584e5b: 33/33 passed, cleanup 16/13/7, hash/report verificati. Nessun segreto, applicazione o port publishing; H-05/A-30 aperti. [Evidenze e perimetro](FIXTURE-RUNTIME.md), nessun deployment applicativo implicito |
-| VM-034 | PROPOSTA (analisi documentata) | Networking operativo IPv4-only, incluso cloudflared → Cloudflare; blocco IPv6 al confine vNIC Hyper-V, non affidato al router che non vede i percorsi locali. [Motivazioni, passi e verifiche](IPV4-ONLY-DESIGN.md). Nessuna nuova modifica a rete/ACL o accettazione dei residui implicita |
+| VM-034 | APPROVATA (predisposizione operativa, 10 novembre) | Owner: «ok procediamo». Famiglie IPv4 true/IPv6 false esplicite sulle 13 reti Compose, guardie statiche/runtime e nuovo readback host/guest. Conservare deny IPv6 vNIC; disabilitazione kernel guest rinviata. Tunnel IPv4 demandato a INF-VM-07. [Passi e rollback](IPV4-ONLY-DESIGN.md); nessuna scrittura Hyper-V/router, nuova route IPv6 o accettazione dei residui implicita |
 
 ## Confini non negoziabili
 

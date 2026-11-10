@@ -22,7 +22,8 @@ function Test-AddressPrefix {
 }
 function Get-InitialPacketDecision {
     param([string]$Remote,[string]$Protocol='TCP',[int]$RemotePort=443,
-        [string]$Local='10.203.240.10',[string]$Direction='Outbound',[int]$LocalPort=50000)
+        [string]$Local='10.203.240.10',[string]$Direction='Outbound',[int]$LocalPort=50000,
+        [switch]$ReturnRule)
     foreach ($taskRule in $taskPolicyRules) {
         if ($taskRule.Direction -ne $Direction) { continue }
         if ($taskRule.Protocol -and $taskRule.Protocol -ne $Protocol) { continue }
@@ -30,6 +31,7 @@ function Get-InitialPacketDecision {
         if ($taskRule.RemotePort -and [int]$taskRule.RemotePort -ne $RemotePort) { continue }
         if (-not (Test-AddressPrefix $Local $taskRule.LocalIPAddress)) { continue }
         if (-not (Test-AddressPrefix $Remote $taskRule.RemoteIPAddress)) { continue }
+        if ($ReturnRule) { return $taskRule }
         return $taskRule.Action
     }
     throw 'Missing default-deny rule.'
@@ -67,3 +69,19 @@ foreach ($taskCase in $taskCases) {
     }
 }
 Write-Output ('Egress policy checks passed: '+$taskCases.Count+' initial-packet scenarios; no network calls. Stateful return traffic requires runtime validation.')
+
+# Check the explicit IPv6 boundary rule, not just a fallback default deny.
+$taskIpv6Cases=0
+foreach ($taskDirection in @('Inbound','Outbound')) {
+    foreach ($taskRemote in @('2001:db8::1','fd00::1','fe80::1','ff02::1','::ffff:192.168.0.1')) {
+        foreach ($taskProtocol in @('TCP','UDP','ICMPv6')) {
+            $taskMatch=Get-InitialPacketDecision -Local '2001:db8::10' -Remote $taskRemote `
+                -Protocol $taskProtocol -Direction $taskDirection -ReturnRule
+            if ($taskMatch.Action -ne 'Deny' -or $taskMatch.Weight -ne 900 -or $taskMatch.RemoteIPAddress -ne '::/0') {
+                throw 'Missing explicit bidirectional IPv6 boundary deny.'
+            }
+            $taskIpv6Cases++
+        }
+    }
+}
+Write-Output ('IPv6 boundary checks passed: '+$taskIpv6Cases+' initial-packet scenarios matched ::/0 at weight 900; no runtime traffic evidence.')

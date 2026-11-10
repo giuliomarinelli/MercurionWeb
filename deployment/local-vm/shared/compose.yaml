@@ -46,30 +46,44 @@ networks:
   edge:
     name: mercurion_edge
     driver: bridge
+    enable_ipv4: true
+    enable_ipv6: false
     internal: true
   tunnel-egress:
     name: mercurion_tunnel_egress
     driver: bridge
+    enable_ipv4: true
+    enable_ipv6: false
     internal: false
   stg-web:
     name: mercurion_stg_web
     driver: bridge
+    enable_ipv4: true
+    enable_ipv6: false
     internal: true
   prod-web:
     name: mercurion_prod_web
     driver: bridge
+    enable_ipv4: true
+    enable_ipv6: false
     internal: true
   stg-search:
     name: mercurion_stg_search
     driver: bridge
+    enable_ipv4: true
+    enable_ipv6: false
     internal: true
   prod-search:
     name: mercurion_prod_search
     driver: bridge
+    enable_ipv4: true
+    enable_ipv6: false
     internal: true
   admin-ui:
     name: mercurion_admin_ui
     driver: bridge
+    enable_ipv4: true
+    enable_ipv6: false
     internal: true
 
 volumes:
