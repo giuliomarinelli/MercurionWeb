@@ -502,6 +502,7 @@ jobs:
         run: |
           python3 -B scripts/test-coordinate-delivery.py
           python3 -B scripts/test-t21-acceptance.py
+          python3 -B -m unittest discover -s scripts/infrastructure -p test_tox21_candidate.py
           node --check scripts/t21-service-probe.cjs
 
       - name: Validate production dependency inventory rules

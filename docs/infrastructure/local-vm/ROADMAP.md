@@ -246,13 +246,16 @@ esplicito successivo, senza estenderne implicitamente l'autorizzazione.
 **VM-038 review completata:** [immagini, CI e modello](TOX21-ARTIFACT-REVIEW.md).
 Le immagini locali precedono i launcher e l'archivio CI aggiornato non è
 pubblicato; modello esistente riutilizzabile, senza nuovo training.
-**VM-039 rinviata alla bonifica security:** l'owner impone policy strict in
+**VM-039, rinvio security poi risolto:** l'owner impone policy strict in
 entrambe le repo, con blocco a ogni gravità e dev inclusi. [Diagnosi, scope
 e prove della policy](../security-strict-2026-11-10.md). Prima correggere i
 finding e ottenere la nuova CI verde; poi candidato staging locale con modello verificato,
 audit/bootstrap/NATS sintetico senza source overlay, poi export/SBOM/scan.
 Anticipazione circoscritta degli strumenti INF-VM-06, prima di trasferimento
 e avvio applicativo guest; nessun cambiamento ai gate di isolamento.
+Il rientro è poi verificato e [VM-039 eseguita sull'host](TOX21-STAGING-CANDIDATE.md):
+candidato staging d506101 esportato a zero finding e bootstrap/lifecycle
+reali passati. Restano bundle, preflight e collaudo guest separati.
 
 **Accettazione:** nessun segreto in Git/layer/CI/log; riavvio e perdita dei materiali temporanei prevedibili; nessuna master key del server accessibile ai backend.
 
@@ -273,6 +276,11 @@ pubblicati, pur con build/audit/smoke/gate verdi. Per il prossimo test non è
 necessario completare tutta la pipeline: VM-039 propone prima un candidato
 manuale staging locale usando exporter e modello esistenti. Release complete,
 retention, copia indipendente e cold restore restano risultati separati.
+
+VM-039 ora eseguita dopo il rientro strict: [candidato staging locale](TOX21-STAGING-CANDIDATE.md)
+Tox21 d506101 pronto, bootstrap/RPC/lifecycle reali e archivio verificato a
+zero finding. Passo seguente: bundle di trasporto e preflight guest nel
+perimetro autorizzato; nessun servizio VM o release Web completa dedotti.
 
 **Accettazione:** due release identificabili, un candidato e un precedente; manifest per ambiente, provenienza e rollback meccanico ripetibile; retention non dipendente da Actions.
 

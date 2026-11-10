@@ -2,8 +2,11 @@
 
 **10 novembre 2026 — review completata; nessuna nuova build o operazione VM.**
 **Aggiornamento policy:** l'owner richiede ora [zero vulnerabilità a ogni gravità](../security-strict-2026-11-10.md).
-I successi CI/policy riportati sotto sono storici, sotto la soglia precedente;
-il candidato non è ammesso dalla policy strict e VM-039 resta rinviata al rientro.
+I successi CI/policy della review riportata sotto sono storici, sotto la soglia
+precedente. Il successivo rientro strict è completato: Web e364c00b e Tox21
+d506101 hanno Required gate verdi. **VM-039 è ora eseguita sull'host**, con un
+nuovo [candidato staging collaudato ed esportato a zero finding](TOX21-STAGING-CANDIDATE.md).
+L'immagine storica della tabella resta distinta dal nuovo candidato.
 Prosecuzione autorizzata dopo VM-037. Obiettivo: identificare il candidato
 utilizzabile per il prossimo collaudo applicativo, mantenendo distinti
 sorgenti, immagine, modello e archivio trasferibile.

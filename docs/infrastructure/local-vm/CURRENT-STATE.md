@@ -204,6 +204,12 @@ La versione corrente di Tox21 ha override `allow` / `require-jwt` / `disabled` p
   Angular maintenance, backend ancora 403; inventari aggiornati.
   Prima di VM-039 richiedere i gate full degli ultimi SHA e mantenere i limiti
   infrastrutturali esistenti. Nessun trasferimento o avvio applicativo VM.
+  Gate poi verificati: Web e364c00b / run 42861033197 e Tox21 d506101 /
+  run 42858304379 verdi. VM-039 eseguita sull'host: [candidato staging](TOX21-STAGING-CANDIDATE.md)
+  d506101 da Git isolato, pesi/soglie invariati, tre lifecycle reali con
+  launcher file e NATS autenticato, nove negazioni esplicite e cleanup passato.
+  Export/tar/load/SBOM e scan OS/Python a zero; source-matches. Nessun SSH,
+  trasferimento, servizio o cambio rete sulla VM. Bundle/preflight successivi aperti.
 - I Compose `docker_sl/releases/preview` e `prod` sono **frammenti**: non definiscono una topologia VM completa, volumi e recovery.
 - Il modello `deployment-schema.json` presenta ancora Nginx con porta HTTPS e secret origin TLS: **scostamento storico da riconciliare**, senza rompere i validator attuali prima di un task dedicato.
 - Matrice VM delle sole fixture verificata; routing per due hostname via tunnel,

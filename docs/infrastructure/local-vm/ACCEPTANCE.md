@@ -36,6 +36,8 @@
 | A-33 | VM-036 | Riconciliazione e ritiro selettivo del solo run sintetico completato, dati assenti e metadati contro il riuso conservati | VERIFICATO sul run dfc1af5a416f4b1abc6e8dab99034dbb: ricevuta owner con quattro fasi/hash validati, state retired e valuesAbsent/codeRemoved true. Nessuna seconda lettura live dell'agente. Non è un cleanup generico o retirement delle credenziali reali |
 | A-34 | VM-037 | Lettore Tox21 UID 10021 su bind read-only, restart/recreate, UID errato/file assente/ambiente errato respinti, fixture rimosse e nuovo run ritirato | VERIFICATO sul run preview af0b6eb4637940eb814acfd380e27f26: report automatico owner riletto, 6/6, cinque container e assets rimossi, nessun errore di cleanup, retired/codeRemoved confermati, hash bundle/reader/probe corrispondenti. [Evidenze e provenienza](SYNTHETIC-CONSUMER-MOUNT.md#5-esito-vm-037-del-10-novembre). Nessuna seconda ispezione live, prova di restart applicativo o isolamento complessivo implicita |
 
+| A-35 | VM-039 host | Candidato staging esatto, launcher file/NATS reali, restart/recreate, archivio/load/SBOM e policy strict | VERIFICATO LOCALMENTE su Tox21 d506101: tre lifecycle e cinque subject per fase, nove negazioni esplicite NATS, tre stop exit 0, file attivo invariato, cleanup passato e zero finding OS/Python. [Identità, hash e passi](TOX21-STAGING-CANDIDATE.md). Nessun trasferimento o esecuzione guest; A-16/A-17/A-21 e isolamento complessivo restano aperti |
+
 ## Risultati preesistenti da non confondere con questa matrice
 
 **VM-038 — review preliminare completata:** immagini locali selezionate prive

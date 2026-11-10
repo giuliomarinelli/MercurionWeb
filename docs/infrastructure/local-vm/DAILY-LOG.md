@@ -1357,3 +1357,26 @@ delle modifiche admin precedenti. Fissato zlib 1.4-r0 in entrambi i Dockerfile.
 Owner sceglie rimozione del flusso Angular maintenance; pagina/route/metodo
 rimossi e backend conservato 403. Inventari aggiornati, 68/68 call compatibili.
 Gate finali richiesti sui nuovi SHA prima di riprendere la VM; nessun merge.
+
+### VM-039 — Candidato staging locale verificato
+
+CI full strict Web e364c00b/run 42861033197 e Tox21 d506101/run 42858304379
+verificate verdi; owner autorizza ripresa. Materializzati soltanto blob Git
+selezionati dello SHA Tox21 in contesto isolato, senza dotenv/chiavi/dati host.
+Package qa-6f19c86 riusato, pesi/soglie verificati e riferimento numerico passato.
+Build staging vm039-d506101ec27c, audit read-only/UID/training e sei sorgenti
+immagine/Git corrispondenti, launcher inclusi.
+
+Nuovo smoke host: vero launcher file e modello, tre fasi initial/stop-start/
+recreate, cinque subject per fase, inferenza/tre RDKit reali e PubChem solo
+validazione. Nove negazioni esplicite NATS, tre stop exit 0, file attivo
+invariato, nessun source overlay o flag JWT cambiato. Credenziali sintetiche
+stdin/tmpfs, sottodirectory RO distinte e risorse rimosse per label di run.
+Run finale 5f08a4e7ab1640a88b50e902560cdc26 passed, cleanup senza errori.
+Sette test stdlib dei guard registrati nel gate container CI.
+
+Exporter della revisione selezionata: tar senza tag, load, SBOM e scan
+OS Wolfi/Python a zero, security_eligible true. Hash correlati nel summary e
+in [TOX21-STAGING-CANDIDATE.md](TOX21-STAGING-CANDIDATE.md), con procedura italiana
+passo passo. Nessuna modifica Tox21, SSH o applicazione VM, merge o release
+coordinata completa; INF-VM-02/04/06 e residui di isolamento rimangono aperti.
