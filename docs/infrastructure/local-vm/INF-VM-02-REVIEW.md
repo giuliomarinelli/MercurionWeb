@@ -153,3 +153,11 @@ test Linux in container locale senza rete/pull e 10 test Windows (16 Linux
 esclusi). Il lettore Tox21 è montato read-only, nessun file sibling modificato.
 Container di test rimosso, nessun residuo con label del test. Nessuna nuova
 esecuzione SSH del pilot effettuata dall'agente. [Procedura operatore](HOST-SYNTHETIC-DELIVERY.md).
+
+**Esito della proposta:** owner esegue VM-035, run preview
+dfc1af5a416f4b1abc6e8dab99034dbb, e fornisce ricevuta finale con sei fasi,
+helper hash corrispondente e syntheticOnly true/servicesStarted false.
+A-32 verificato nel solo trasporto sintetico. [Provenienza e limiti](HOST-SYNTHETIC-DELIVERY.md#esito-vm-035-del-10-novembre).
+Il materiale active resta nel tmpfs per il prossimo task di riconciliazione e
+rimozione selettiva. Nessun ampliamento ai gate di servizi/materiali reali,
+nessuna prova aggiuntiva di filtraggio dedotta dalla riuscita del pilot.

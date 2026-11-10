@@ -125,3 +125,26 @@ restano da verificare sulla VM, separatamente dai test con SSH simulato.
    del codice può restare nella home, i file per-run nel tmpfs; non cancellarli
    alla cieca. Se riesce, il solo codice staged viene rimosso; active resta
    nel tmpfs, con riconciliazione/rimozione esplicita da gestire successivamente.
+
+## Esito VM-035 del 10 novembre
+
+Owner esegue il comando preview con run `dfc1af5a416f4b1abc6e8dab99034dbb`.
+Ricevuta finale fornita dall'owner, validata sull'host: schema/campi esatti,
+ambiente preview, consumer tox21, helperSha256 coincidente con il sorgente
+locale e sei fasi nell'ordine atteso fino a code-removed. syntheticOnly true,
+servicesStarted false, isolationAccepted false. Le ricevute prepared/applied
+sono inoltre visibili nell'output operatore; nessuna password acquisita.
+
+Copia dei soli metadati finali, senza transcript o payload, in
+`inf-vm-04/dfc1af5a416f4b1abc6e8dab99034dbb/operator-receipt.json`, SHA-256
+`2ea8bf142641697ab46c31e8f89cc818927c7f42fde8338927455fe4a6479bb1`.
+L'artifact registra provenienza owner e momento della registrazione; non è
+un report indipendente letto dalla VM e non ricostruisce l'orario del run.
+
+**A-32 verificato per il trasporto sintetico:** SSH con stdin senza PTY e fasi
+sudo interattive completati sulla VM; ricezione/apply e inspect metadata-only
+riusciti, copia del codice per-run rimossa. L'active sintetico viene conservato
+nel tmpfs dal protocollo. Non è stata fatta una seconda lettura live né una
+rimozione dei file attivi: riconciliazione/rimozione selettiva è il prossimo
+task, prima di eventuali mount o consumer. Nessun Tox21/NATS reale avviato,
+nessun segreto reale consegnato, nessun restart/recreate applicativo verificato.

@@ -209,6 +209,13 @@ e [procedura con un solo comando](HOST-SYNTHETIC-DELIVERY.md#ripresa-operatore-d
 L'esecuzione owner del singolo pilot non autorizza servizi o materiali reali.
 Trasporto VM, stato active e successiva riconciliazione/rimozione restano da
 verificare prima di mount e restart/recreate applicativi.
+**VM-035 trasporto sintetico verificato sulla VM:** owner completa run
+dfc1af5a416f4b1abc6e8dab99034dbb, sei fasi fino a code-removed, helper hash
+e ricevuta metadata-only validati. A-32 verificato nel suo perimetro; active
+sintetico conservato su tmpfs. Prossimo task: riconciliazione e rimozione
+esplicita del solo run, senza leggere valori o cancellare namespace generici;
+poi mount/consumer e restart/recreate sintetici. Nessuna consegna reale,
+servizio avviato o chiusura di INF-VM-04 complessivo impliciti.
 
 Progettare/implementare l'iniezione protetta dal password manager Windows al bootstrap VM, secret per ambiente, credenziali Meilisearch, PostgreSQL, Redis, NATS, OAuth, Twilio, cookie, JWT. Preservare nomi legacy compatibili. Rinviare rotazione a caldo.
 

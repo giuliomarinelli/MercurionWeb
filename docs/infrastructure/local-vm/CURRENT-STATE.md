@@ -151,16 +151,21 @@ La versione corrente di Tox21 ha override `allow` / `require-jwt` / `disabled` p
   come configurazione; H-05/A-05/A-30 e isolamento complessivo ancora parziali.
   Nessuna estensione runtime a servizi/segreti reali dedotta dal risultato.
 - Ricevitore/apply Tox21 disponibile come [pilot locale](SECRET-DELIVERY-PILOT.md),
-  con 17 test Linux sintetici passati; non ancora installato sulla VM.
-  Trasporto SSH, consegna reale, altri consumer e lifecycle operativo aperti.
+  con 17 test Linux sintetici iniziali passati. Ora collaudato su VM nel pilot
+  sintetico VM-035; nessun helper root installato permanentemente.
+  Consegna reale, altri consumer e lifecycle operativo aperti.
   Orchestratore host sintetico implementato e testato localmente:
   [contratto e limite delle prove](HOST-SYNTHETIC-DELIVERY.md), 26 test Linux
-  passati; handshake SSH, prompt e filesystem VM non verificati.
+  passati; sequenza SSH/sudo e filesystem VM poi provati nel solo pilot sintetico.
   Review dei residui del 10 novembre completata: proposta VM-035 pronta per
   ripresa del solo pilot sintetico preview. Nuovi controlli 26 Linux passed,
   10 Windows passed/16 Linux skipped e piano senza SSH passato; sorgenti
   invariati. Comando operatore e gate circoscritto documentati; ricevuta VM
   ancora da acquisire, nessuna chiusura di INF-VM-02 o avvio servizi impliciti.
+  Ricevuta owner dfc1af5a416f4b1abc6e8dab99034dbb acquisita e validata: sei
+  fasi complete e helper hash coincidente. A-32 trasporto sintetico verificato;
+  codice staged rimosso, active conservato nel tmpfs. Nessuna seconda lettura
+  live/cleanup active; prossimo task riconciliazione e rimozione selettiva.
 - I Compose `docker_sl/releases/preview` e `prod` sono **frammenti**: non definiscono una topologia VM completa, volumi e recovery.
 - Il modello `deployment-schema.json` presenta ancora Nginx con porta HTTPS e secret origin TLS: **scostamento storico da riconciliare**, senza rompere i validator attuali prima di un task dedicato.
 - Matrice VM delle sole fixture verificata; routing per due hostname via tunnel,

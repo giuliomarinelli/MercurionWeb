@@ -124,3 +124,11 @@ broker operativo o filesystem VM. Nessuna nuova immagine release costruita.
    reali. Nessuna allowlist generica per scrivere file arbitrari.
 
 INF-VM-04 resta parziale; nessun provisioning o deployment implicito.
+
+**Aggiornamento 10 novembre — VM-035 verificata:** owner completa il pilot
+preview sulla VM, run dfc1af5a416f4b1abc6e8dab99034dbb, sei fasi fino a
+code-removed; helper verificato e active metadata-only riuscito. [Ricevuta e
+provenienza](HOST-SYNTHETIC-DELIVERY.md#esito-vm-035-del-10-novembre).
+A-32 trasporto sintetico verificato; active conservato su tmpfs, riconciliazione
+e rimozione selettiva ancora da implementare/provare. Nessun consumer avviato
+o materiale reale, nessun mount/restart/recreate applicativo dedotto.

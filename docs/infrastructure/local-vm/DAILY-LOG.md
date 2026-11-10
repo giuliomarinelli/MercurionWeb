@@ -1198,3 +1198,15 @@ container rimosso e nessuna label residua. Su Windows 10 passed/16 Linux
 skipped. Piano senza Execute verificato, nessun SSH avviato. Hash sorgenti e
 comando assoluto in HOST-SYNTHETIC-DELIVERY.md. A-32 aggiunto come pendente,
 riservando riconciliazione/rimozione run e mount/restart a prove successive.
+
+Owner esegue VM-035 con run dfc1af5a416f4b1abc6e8dab99034dbb: sequenza completa
+staged/prepared/received/applied/active/code-removed. Ricevuta finale fornita
+in chat validata per schema chiuso, ambiente preview, consumer tox21, ordine
+delle fasi, tre flag attesi e helper SHA coincidente con sorgente locale.
+Conservati solo metadati in inf-vm-04/<runId>/operator-receipt.json, con fonte
+owner e recordedAtUtc distinto dall'orario di esecuzione; hash in procedura.
+Nessun transcript/payload salvato e nessuna seconda lettura live guest.
+A-32 trasporto sintetico verificato; codice staged rimosso dal protocollo,
+active lasciato nel tmpfs. Nessuna rimozione eseguita o servizio reale avviato.
+INF-VM-04 resta parziale: prossimo task riconciliazione/rimozione del solo run,
+poi mount/consumer e restart/recreate con dati sintetici.
