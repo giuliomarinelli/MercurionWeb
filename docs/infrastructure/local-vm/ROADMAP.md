@@ -96,6 +96,10 @@ IP persistente, NAT senza mapping e Windows Public verificati. Kaspersky
 Pubblica owner confermata; nessun Apply. Guest Off, prossimo passo avvio/LUKS
 e inventario IPv6 read-only; successiva matrice VM-034 ancora da acquisire.
 Il precedente errore di autorizzazione non è riprodotto né spiegato.
+Collector guest 0a4a324f8424486586dea762612d4caa completo e hash verificati:
+solo ::1, nessuna default route/unicast eth0 IPv6, kernel disponibile e bridge
+IPv4. Nessuna nuova configurazione applicata. Consegna del comando fixture
+VM-034 dopo baseline host/guest; attesa matrice e 13 readback sulla VM.
 Strumento [porte private](PRIVATE-PORT-PROBES.md) pronto: 13 unittest, tre
 scenari trasporto PowerShell 5.1, preflight host e collaudo Docker Desktop
 passati. Esecuzione owner acquisita: nove percorsi host TCP/443, TCP/53 e

@@ -1160,3 +1160,13 @@ il report attuale copre gli stessi prerequisiti e il confronto semantico.
 Riuscita diretta non dimostra la causa del rifiuto iniziale, preservato.
 Consegnato all'owner avvio guest/LUKS e Invoke-Ipv6Readiness.ps1 read-only.
 Nessuna nuova misura guest/Docker VM ancora acquisita o accettazione globale.
+
+Collector guest 0a4a324f8424486586dea762612d4caa completato dall'owner il
+10 novembre alle 12:14:23 UTC. Report completo e tutte le sezioni observed;
+hash sorgente/manifest/tree corrispondenti. Solo ::1, nessun indirizzo IPv6
+eth0/docker0, route locale e multicast eth0 senza default; kernel disponibile
+(disable_ipv6 0), forwarding 0. Docker bridge/host/none, bridge EnableIPv6 false
+e IPAM IPv4. Hash/report nella procedura VM-034. Nessuna prova di filtraggio
+dedotta, nessun sysctl modificato. Baseline host/guest verificata; consegnato
+all'owner Invoke-TopologyFixtures.ps1 -Execute per nuova matrice e readback
+delle 13 reti sui sorgenti aggiornati, senza modificare ACL o avviare app reali.

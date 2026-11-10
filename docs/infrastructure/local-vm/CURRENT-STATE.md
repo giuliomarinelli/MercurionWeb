@@ -140,6 +140,11 @@ La versione corrente di Tox21 ha override `allow` / `require-jwt` / `disabled` p
   vNIC/switch noti, IP persistente e NAT senza mapping, Windows Public.
   Nessuna riapplicazione; causa del precedente rifiuto non dimostrata.
   Consegnato passo avvio/LUKS e inventario guest read-only; A-31 runtime pendente.
+  Inventario guest 0a4a324f8424486586dea762612d4caa poi completo: solo ::1,
+  nessun IPv6 eth0/default route, kernel disponibile, bridge/host/none senza
+  assegnazione IPv6 e bridge IPAM IPv4. Hash/copia sorgente verificati.
+  Consegnata nuova esecuzione fixture per readback delle 13 reti VM-034;
+  risultato VM della revisione ancora da acquisire, prove IPv6 traffico aperte.
 - Ricevitore/apply Tox21 disponibile come [pilot locale](SECRET-DELIVERY-PILOT.md),
   con 17 test Linux sintetici passati; non ancora installato sulla VM.
   Trasporto SSH, consegna reale, altri consumer e lifecycle operativo aperti.

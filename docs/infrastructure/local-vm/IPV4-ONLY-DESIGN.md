@@ -227,3 +227,23 @@ fosse la causa. Non effettuati cambi di autorizzazioni, servizi o antivirus.
 Prossimo passo consegnato all'owner: avvio normale VM, sblocco LUKS e collector
 guest IPv6 read-only esistente. Nuova matrice/readback Docker VM-034 ancora
 da acquisire; A-31 e prove di traffico A-05/A-30/H-05 rimangono aperti.
+
+## 9. Baseline guest verificata il 10 novembre
+
+Collector read-only dopo avvio guest: run `0a4a324f8424486586dea762612d4caa`,
+12:14:23 UTC (13:14 CET). Report completo, tutte le sezioni observed, hostname
+mercurion-server; copia sorgente, manifest SHA e tree corrente corrispondenti.
+Report `ipv6-readiness-0a4a324f8424486586dea762612d4caa/ipv6-readiness.json`,
+SHA-256 `b01a0195920b7b9e9d0e1a77685f9538808593747250a0e432976d384ce48061`.
+
+Indirizzi IPv6: soltanto ::1 su lo, nessun indirizzo eth0 o docker0 rilevato.
+Route: locale ::1 e multicast ff00::/8 su eth0; nessuna default route IPv6.
+Forwarding 0 e disable_ipv6 all/default/eth0 0: kernel disponibile, non disabilitato.
+Docker presenta soltanto bridge/host/none; bridge EnableIPv6 false e IPAM
+172.17.0.0/16, nessuna rete fixture residua nell'elenco acquisito.
+
+Configurazione coerente con la scelta operativa, senza prova di traffico IPv6
+né inferenza di filtraggio dal mancato percorso. Baseline host/guest acquisita;
+consegnato ora il comando Invoke-TopologyFixtures.ps1 -Execute per un bundle
+nuovo dei sorgenti VM-034 già collaudati localmente. Attesi 13 readback di rete
+IPv4-only, 33 casi e cleanup selettivo; nuova evidenza VM ancora pendente.
