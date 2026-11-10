@@ -75,3 +75,10 @@ SSH/sudo. Le variabili modificate dentro il processo non popolano Docker
 `Config.Env`; memoria e root/Docker admin restano nel confine fidato.
 
 INF-VM-02/03 operativi e INF-VM-04 restano aperti.
+
+**10 novembre:** VM-035/036/037 hanno poi verificato sulla VM trasporto,
+retirement e lettore in fixture con bind RO/restart/recreate. [Review VM-038](TOX21-ARTIFACT-REVIEW.md)
+conferma il launcher nella CI aggiornata, mentre le immagini locali selezionate
+ne sono prive. Restano candidato applicativo/trasferimento e collaudo del
+processo completo: la fixture VM-037 e il precedente smoke con source overlay
+non li sostituiscono.

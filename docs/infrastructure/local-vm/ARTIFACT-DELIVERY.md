@@ -24,6 +24,13 @@ Esistono già `scripts/export-web-container.py`, `scripts/coordinate-delivery.py
 
 ## Filiera proposta
 
+**Verifica del 10 novembre, VM-038:** CI Tox21 sullo SHA 5f3d837 verde e report
+recuperati con digest GitHub verificato. Le due immagini locali selezionate
+sono precedenti ai launcher; nessun tar runtime pubblicato nel run corrente.
+Il modello già esportato è riutilizzabile. [Review e preparazione manuale del
+candidato staging proposte](TOX21-ARTIFACT-REVIEW.md), senza build guest o
+necessità di introdurre subito una nuova pipeline release.
+
 ```text
 CI Web (SHA W)                  CI Tox21 (SHA T)
 test + build target             test + model package + build target

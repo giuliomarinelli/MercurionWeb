@@ -186,6 +186,12 @@ La versione corrente di Tox21 ha override `allow` / `require-jwt` / `disabled` p
   Report host riletto, hash del bundle/lettore/probe e ciclo degli ID validati;
   A-34 verificato nel collaudo sintetico. Nessuna seconda ispezione SSH
   dell'agente o avvio di servizi reali; H-05/A-05/A-30 e INF-VM-02/04 aperti.
+  VM-038 review artefatto completata: HEAD Tox21 5f3d837 con Required gate
+  remoto verde, ma tar non pubblicato e immagini locali selezionate prive dei
+  launcher. Pesi/soglie del pacchetto esistente verificati e coincidenti con CI.
+  [Evidenze e VM-039 proposta](TOX21-ARTIFACT-REVIEW.md): preparazione candidato
+  staging sull'host prima del collaudo applicativo. Nessun container avviato,
+  accesso guest, build o modifica sibling durante questa review.
 - I Compose `docker_sl/releases/preview` e `prod` sono **frammenti**: non definiscono una topologia VM completa, volumi e recovery.
 - Il modello `deployment-schema.json` presenta ancora Nginx con porta HTTPS e secret origin TLS: **scostamento storico da riconciliare**, senza rompere i validator attuali prima di un task dedicato.
 - Matrice VM delle sole fixture verificata; routing per due hostname via tunnel,

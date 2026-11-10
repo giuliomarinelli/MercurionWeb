@@ -243,6 +243,14 @@ Dopo A-34: riesaminare il passaggio da fixture all'immagine applicativa
 fissata e il provisioning consumer/broker; materiali reali restano un passo
 esplicito successivo, senza estenderne implicitamente l'autorizzazione.
 
+**VM-038 review completata:** [immagini, CI e modello](TOX21-ARTIFACT-REVIEW.md).
+Le immagini locali precedono i launcher e l'archivio CI aggiornato non è
+pubblicato; modello esistente riutilizzabile, senza nuovo training.
+**VM-039 proposta:** candidato staging locale con modello verificato,
+audit/bootstrap/NATS sintetico senza source overlay, poi export/SBOM/scan.
+Anticipazione circoscritta degli strumenti INF-VM-06, prima di trasferimento
+e avvio applicativo guest; nessun cambiamento ai gate di isolamento.
+
 **Accettazione:** nessun segreto in Git/layer/CI/log; riavvio e perdita dei materiali temporanei prevedibili; nessuna master key del server accessibile ai backend.
 
 ## INF-VM-05 — Meilisearch, indici e accesso SSH di consultazione
@@ -256,6 +264,12 @@ Avviare singola istanza Meilisearch; importare ChEMBL da artefatto locale verifi
 
 **Dipende da:** INF-VM-01/03; coordinabile in parallelo con 04/05.  
 Consolidare exporter e coordinatore esistenti per immagini staging e production Web/Tox21; pubblicare bundle completi di release approvata su Actions; scaricare/archiviare sull'host e su copia separata; verificare hash e `docker load` sulla VM. Non compilare sorgenti in produzione.
+
+VM-038 conferma sullo SHA Tox21 5f3d837 la mancanza del tar tra gli artifact
+pubblicati, pur con build/audit/smoke/gate verdi. Per il prossimo test non è
+necessario completare tutta la pipeline: VM-039 propone prima un candidato
+manuale staging locale usando exporter e modello esistenti. Release complete,
+retention, copia indipendente e cold restore restano risultati separati.
 
 **Accettazione:** due release identificabili, un candidato e un precedente; manifest per ambiente, provenienza e rollback meccanico ripetibile; retention non dipendente da Actions.
 

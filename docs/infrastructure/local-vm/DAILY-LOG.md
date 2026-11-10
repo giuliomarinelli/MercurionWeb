@@ -1276,3 +1276,27 @@ nel collaudo sintetico sulla VM; entrambi i run VM-036/037 restano chiusi.
 Prossimo passo review dell'immagine applicativa Tox21 e del collaudo bootstrap/
 NATS sintetico; avvio applicativo e provisioning reale ancora aperti.
 H-05/A-05/A-30 e INF-VM-02/04 conservano i propri residui.
+
+### VM-038 — Review immagine applicativa e bootstrap NATS
+
+Letti soltanto sorgenti/metadata Tox21 sul branch operativo pulito, HEAD
+5f3d837cf1356c6ccc875fea007d396684e3cc69. CI push esatta 42575718871 verde,
+job Linux e Required gate verificati tramite GitHub CLI/API. Recuperato ZIP
+report, digest corrispondente, selezionati JSON ed esclusa presenza image.tar.
+Audit CI staging/production, NATS auth senza overlay e policy production passati;
+non esiste ancora un archivio aggiornato trasferibile pubblicato dal workflow.
+
+Ispezione statica ripetibile delle due immagini locali più recenti selezionate:
+label/revisione/identità e hash di sei file, build identity e manifest modello.
+Entrambe prive di secret_bootstrap.py/bootstrap_secrets.py; runtime.py coincide
+dopo normalizzazione CRLF, altre differenze presenti. Container soltanto creati
+per docker cp e rimossi, mai avviati; nessuna lettura di Env/credenziali o file
+ignorati, build, rete aggiunta, SSH o scrittura Tox21.
+
+Pacchetto qa-6f19c86 già esportato: checksum effettivi di pesi/soglie verificati
+e identici al pacchetto CI corrente; nessun nuovo training necessario.
+Documentato contratto per futuro launcher applicativo, NATS config sintetica,
+quattro RPC scientifici reali e PubChem solo validazione offline.
+VM-039 proposta: candidato staging locale con audit/bootstrap/NATS e successivo
+export/scan esistenti; trasferimento/VM e release complete restano passi separati.
+Provenienza e hash report in TOX21-ARTIFACT-REVIEW.md; INF-VM-02/04/06 aperti.

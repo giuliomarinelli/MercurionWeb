@@ -38,6 +38,12 @@
 
 ## Risultati preesistenti da non confondere con questa matrice
 
+**VM-038 — review preliminare completata:** immagini locali selezionate prive
+dei launcher, CI Tox21 esatta verde ma senza tar pubblicato, modello esistente
+verificato per checksum. [Evidenze e candidato proposto](TOX21-ARTIFACT-REVIEW.md).
+Non è consegna A-21 o collaudo RPC/recovery VM A-16/A-17; nessuno di questi
+gate cambia stato per effetto della sola review.
+
 **Gate VM-032:** A-28 — IP host/guest, NAT e ACL persistenti
 dopo reboot host/guest, con SSH e WSL/Docker funzionanti; A-29 — nuova rete
 Pubblica in Kaspersky prima dell'attach e dopo reboot; A-30 — isolamento

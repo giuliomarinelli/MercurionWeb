@@ -35,6 +35,7 @@ La VM può rimanere spenta; preview può essere arrestato indipendentemente dall
 | [HOST-SYNTHETIC-DELIVERY.md](HOST-SYNTHETIC-DELIVERY.md) | Orchestratore sintetico opt-in, verifica del codice guest e limiti della prova locale |
 | [SYNTHETIC-RUN-RETIREMENT.md](SYNTHETIC-RUN-RETIREMENT.md) | VM-036: riconciliazione e rimozione selettiva dei materiali del singolo run sintetico |
 | [SYNTHETIC-CONSUMER-MOUNT.md](SYNTHETIC-CONSUMER-MOUNT.md) | VM-037: nuovo run sintetico, vero lettore Tox21, bind read-only, restart/recreate e retirement |
+| [TOX21-ARTIFACT-REVIEW.md](TOX21-ARTIFACT-REVIEW.md) | VM-038: immagini locali/CI, modello riutilizzabile e prerequisiti del candidato applicativo preview |
 | [NEST-SECRET-FILE-ADAPTER.md](NEST-SECRET-FILE-ADAPTER.md) | Adattatore Nest opt-in da file, contratto e prove sintetiche Windows/Linux |
 | [TOX21-SECRET-FILE-ADAPTER.md](TOX21-SECRET-FILE-ADAPTER.md) | Adattatore Tox21 opt-in per la coppia NATS e continuità del branch operativo |
 | [NATS-CLIENT-AUTH.md](NATS-CLIENT-AUTH.md) | Credenziali NATS Nest separate dall'URL, validazione e prova isolata dei transport |
