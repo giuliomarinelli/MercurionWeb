@@ -209,3 +209,41 @@ Evidenze della bonifica, separatamente dallo snapshot iniziale:
 3. Nuovi scan completi e Required gate sui due SHA finali, quindi certificazione
    degli archivi. Solo dopo riprendere VM-039; nessun trasferimento o deployment
    deriva dalle verifiche locali.
+
+## Completamento richiesto dall'owner: sostituzioni
+
+### SEC-FIX-02 — deepmerge sostituito e audit npm puliti
+
+Selezionato [@shivammathur/deepmerge 4.3.2](https://github.com/shivammathur/deepmerge),
+fork MIT dell'upstream 4.3.1. La revisione dei due tarball pubblicati verifica
+le rispettive integrity npm e confronta `dist/cjs.js`: la differenza eseguibile
+consiste nel rifiuto incondizionato di `__proto__` sulle proprietà di target
+e source. Non è un semplice cambio di nome della distribuzione vulnerabile.
+Non vengono introdotte nuove opzioni o modificate le API usate da Jest/CLI.
+
+Root e Data fissano l'override a `npm:@shivammathur/deepmerge@4.3.2`; i lock
+riportano nome effettivo, URL e integrity del fork. L'inventario SBOM conserva
+il vero nome del pacchetto e il percorso di installazione dell'alias.
+I test registrati in `ci:dependencies` verificano entrambi i lock, il codice
+effettivamente risolto dai consumer Jest/fork-ts-checker, target null-prototype,
+chiavi pericolose su target/source/array annidati e compatibilità delle opzioni
+di merge, clone, array, symbol, Date e `all`. La policy strict non cambia.
+
+I tre audit npm completi risultano ora **zero finding**, anche dev/optional/peer;
+gate supply-chain completo, licenze e regressioni della policy superati.
+Il maintainer esterno resta una dipendenza da monitorare: owner Web platform,
+riesame entro 2027-03-31 o prima se l'upstream pubblica un fix compatibile.
+La rimozione dell'alias richiede audit puliti e gli stessi test di regressione;
+nessuna scadenza costituisce un'esenzione CVE.
+
+Evidenze: tarball, integrity, confronto sorgente e report in
+`~/.codex/artifacts/security-completion-0a4973e0eb504199b2982e8b7afa88ad/`.
+
+### SEC-FIX-03 — migrazione della base Tox21
+
+In verifica la base [Wolfi](https://www.chainguard.dev/docs/open-source/wolfi),
+con pacchetti glibc e Python 3.11.18, per mantenere ABI dei wheel Linux CPU e
+contratto applicativo. Digest base e versioni APK dirette vengono fissati;
+repo APK e firme standard restano attivi. Il database dei pacchetti viene
+conservato per SBOM/scansione. La selezione della base non è approvazione:
+servono suite, riferimento numerico e scan completo a zero prima di chiudere.

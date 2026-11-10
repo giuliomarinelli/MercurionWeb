@@ -122,6 +122,12 @@ export function validateWorkflowPolicy(workflow) {
   return errors
 }
 
+export function lockComponent(path, entry) {
+  return { type: 'library', name: entry.name ?? path.replace(/^node_modules\//, ''),
+    version: entry.version, licenses: entry.license ? [{ license: { id: entry.license } }] : [],
+    ...(entry.name ? { properties: [{ name: 'mercurion:installPath', value: path }] } : {}) }
+}
+
 async function main() {
   const policy = await readJson(resolve(root, 'docs/supply-chain-policy.json'))
   const policyErrors = validatePolicy(policy)
@@ -156,7 +162,7 @@ async function main() {
     if (!path || !entry.version) continue
     if (!entry.license && !missingAllowed.has(path)) licenseErrors.push(`${path}: missing license metadata`)
     if (policy.licenses.denied.includes(entry.license)) licenseErrors.push(`${path}: denied license ${entry.license}`)
-    components.push({ type: 'library', name: path.replace(/^node_modules\//, ''), version: entry.version, licenses: entry.license ? [{ license: { id: entry.license } }] : [] })
+    components.push(lockComponent(path, entry))
   }
   if (licenseErrors.length) throw new Error(`license policy failed:\n${licenseErrors.join('\n')}`)
   const audits = await enforceDependencyAudit(tracked)
@@ -203,6 +209,12 @@ if (process.argv.includes('--self-test')) {
   const clean = { auditReportVersion: 2, metadata: { vulnerabilities: {
     ...Object.fromEntries(severities.map(item => [item, 0])), total: 0
   } }, vulnerabilities: {} }
+  const aliasComponent = lockComponent('node_modules/consumer/node_modules/deepmerge', {
+    name: '@shivammathur/deepmerge', version: '4.3.2', license: 'MIT'
+  })
+  assert(aliasComponent.name === '@shivammathur/deepmerge' &&
+    aliasComponent.properties[0].value === 'node_modules/consumer/node_modules/deepmerge',
+    'SBOM must preserve the real aliased package identity and installation path')
   assert(validateAudit(clean).eligible, 'clean report must pass')
   for (const invalid of [{}, { ...clean, error: { code: 'registry-unavailable' } },
     { ...clean, vulnerabilities: { hidden: { severity: 'low' } } },
