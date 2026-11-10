@@ -38,7 +38,7 @@ $taskArguments = @('--context', 'desktop-linux', 'run', '--rm', '--pull', 'never
     '--mount', ('type=bind,source=' + $taskTools + ',target=/tools,readonly'),
     '--mount', ('type=bind,source=' + $taskReader + ',target=/consumer/secret_bootstrap.py,readonly'),
     '--entrypoint', 'python', $taskImage,
-    '-B', '-m', 'unittest', 'discover', '-s', '/tools', '-p', 'test_*secret_delivery.py', '-v')
+    '-B', '-m', 'unittest', 'discover', '-s', '/tools', '-p', 'test_*secret_delivery*.py', '-v')
 Write-Output 'Prova sintetica locale su tmpfs; nessuna connessione SSH o modifica VM.'
 # unittest uses stderr for its ordinary progress. Keep native streams attached in PS 5.1.
 & $taskDocker @taskArguments

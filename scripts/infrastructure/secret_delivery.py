@@ -1,4 +1,4 @@
-"""Linux-only, opt-in Tox21 delivery pilot. No SSH, Docker or service operations."""
+"""Linux-only Tox21 pilot; retirement checks Docker mounts read-only, never starts services."""
 import argparse
 from contextlib import contextmanager
 import json
@@ -179,6 +179,7 @@ def apply(identifier):
     runtime_guard(True)
     run_id(identifier)
     with directory(BASE, 0, 0o711), directory(BASE / identifier, 0, 0o711) as run:
+        require(not {'retiring.json', 'retired.json'} & set(os.listdir(run)), 'retired-run')
         state = decode(read_file(run, 'state.json', 0))
         require(isinstance(state, dict) and set(state) == {'schemaVersion', 'environment', 'uid', 'gid'}
                 and type(state['schemaVersion']) is int and state['schemaVersion'] == 1
@@ -225,13 +226,147 @@ def inspect_active(identifier):
     return receipt(identifier, 'active')
 
 
+def metadata_file(parent, name, uid, gid, mode):
+    meta = os.stat(name, dir_fd=parent, follow_symlinks=False)
+    require(stat.S_ISREG(meta.st_mode) and meta.st_nlink == 1 and meta.st_uid == uid
+            and meta.st_gid == gid and stat.S_IMODE(meta.st_mode) == mode
+            and 0 < meta.st_size <= LIMIT, 'file-permissions')
+    return (meta.st_dev, meta.st_ino, meta.st_size, meta.st_uid, meta.st_gid, meta.st_mode)
+
+
+def run_state(run, environment, owner):
+    import pwd
+    account = pwd.getpwnam(owner)
+    state = decode(read_file(run, 'state.json', 0))  # Metadata only; never bootstrap.json.
+    require(isinstance(state, dict) and set(state) == {'schemaVersion', 'environment', 'uid', 'gid'}
+            and type(state['schemaVersion']) is int and state['schemaVersion'] == 1
+            and state['environment'] == environment and environment in ('preview', 'production')
+            and type(state['uid']) is int and state['uid'] == account.pw_uid > 0
+            and type(state['gid']) is int and state['gid'] == account.pw_gid > 0, 'state')
+    return state
+
+
+def reconcile_open(identifier, run, environment, owner):
+    state = run_state(run, environment, owner)
+    names = set(os.listdir(run))
+    require(not names - {'state.json', 'inbox', 'applying', 'active', 'retiring.json', 'retired.json'}, 'run-shape')
+    if 'retiring.json' in names or 'applying' in names:
+        return 'interrupted'
+    if 'retired.json' in names:
+        require(names == {'state.json', 'retired.json'}, 'run-shape')
+        marker = decode(read_file(run, 'retired.json', 0))
+        require(isinstance(marker, dict) and type(marker.get('schemaVersion')) is int
+                and marker == dict(schemaVersion=1, runId=identifier, environment=environment,
+                               consumer='tox21', phase='retired'), 'retired-marker')
+        return 'retired'
+    if 'active' in names:
+        require(names == {'state.json', 'inbox', 'active'}, 'run-shape')
+        with directory(BASE / identifier / 'active', 0, 0o511) as active, \
+                directory(BASE / identifier / 'inbox', 0, 0o500) as inbox:
+            require(set(os.listdir(active)) == {'bootstrap.json'} and not os.listdir(inbox), 'run-shape')
+            metadata_file(active, 'bootstrap.json', 10021, 10021, 0o400)
+        return 'active'
+    require(names == {'state.json', 'inbox'}, 'run-shape')
+    with directory(BASE / identifier / 'inbox', state['uid'], 0o700) as inbox:
+        contents = set(os.listdir(inbox))
+        require(contents in (set(), {'payload.json'}), 'run-shape')
+        if contents:
+            metadata_file(inbox, 'payload.json', state['uid'], state['gid'], 0o600)
+        return 'received' if contents else 'prepared'
+
+
+def reconcile(identifier, environment, owner):
+    runtime_guard(True)
+    run_id(identifier)
+    if not os.path.lexists(BASE):
+        return 'absent'
+    with directory(BASE, 0, 0o711):
+        if not os.path.lexists(BASE / identifier):
+            return 'absent'
+        with directory(BASE / identifier, 0, 0o711) as run:
+            return reconcile_open(identifier, run, environment, owner)
+
+
+def source_overlaps_run(source, identifier):
+    if not source.startswith('/'):
+        return False
+    source_path = Path(source).resolve()
+    target = (BASE / run_id(identifier)).resolve()
+    return source_path == target or source_path in target.parents or target in source_path.parents
+
+
+def no_consumer_mounts(identifier, invoke=None):
+    import subprocess
+    if invoke is None:
+        def invoke(*arguments):
+            env = {key: value for key, value in os.environ.items() if key not in ('DOCKER_HOST', 'DOCKER_CONTEXT')}
+            return subprocess.run(['docker', '--host', 'unix:///var/run/docker.sock', *arguments],
+                                  env=env, capture_output=True, text=True, check=True, timeout=10).stdout.strip()
+    try:
+        identifiers = invoke('ps', '-a', '--no-trunc', '--format', '{{.ID}}').splitlines()
+        template = '{"mounts":{{json .Mounts}},"binds":{{json .HostConfig.Binds}},"specs":{{json .HostConfig.Mounts}}}'
+        for container in identifiers:
+            require(re.fullmatch('[a-f0-9]{64}', container) is not None, 'container-id')
+            mounts = json.loads(invoke('inspect', '--format', template, container))
+            require(set(mounts) == {'mounts', 'binds', 'specs'}, 'mount-data')
+            for name in ('mounts', 'binds', 'specs'):
+                require(mounts[name] is None or isinstance(mounts[name], list), 'mount-data')
+            sources = [entry.get('Source', '') for entry in (mounts['mounts'] or []) + (mounts['specs'] or [])]
+            sources += [entry.split(':', 1)[0] for entry in mounts['binds'] or []]
+            require(all(isinstance(source, str) for source in sources), 'mount-data')
+            require(not any(source_overlaps_run(source, identifier) for source in sources), 'consumer-mounted')
+    except (OSError, ValueError, KeyError, TypeError, AttributeError, RuntimeError, subprocess.SubprocessError):
+        raise DeliveryError('consumer-mount-check') from None
+
+
+def retire(identifier, environment, owner, check_mounts=no_consumer_mounts):
+    import fcntl
+    phase = reconcile(identifier, environment, owner)
+    if phase in ('absent', 'retired'):
+        return phase  # Explicit repeat is metadata-only, never an automatic retry.
+    require(phase == 'active', 'run-not-active')
+    check_mounts(identifier)  # Includes stopped/created containers; failures stop before any mutation.
+    with directory(BASE, 0, 0o711), directory(BASE / identifier, 0, 0o711) as run:
+        fcntl.flock(run, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        require(reconcile_open(identifier, run, environment, owner) == 'active', 'run-changed')
+        with directory(BASE / identifier / 'active', 0, 0o511) as active:
+            before = metadata_file(active, 'bootstrap.json', 10021, 10021, 0o400)
+            marker = encode(dict(schemaVersion=1, runId=identifier, environment=environment,
+                                 consumer='tox21', phase='retired'))
+            create_file(run, 'retiring.json', marker)
+            require(metadata_file(active, 'bootstrap.json', 10021, 10021, 0o400) == before, 'run-changed')
+            os.unlink('bootstrap.json', dir_fd=active)
+        os.rmdir('active', dir_fd=run)
+        os.rmdir('inbox', dir_fd=run)
+        os.rename('retiring.json', 'retired.json', src_dir_fd=run, dst_dir_fd=run)
+        require(reconcile_open(identifier, run, environment, owner) == 'retired', 'retirement-readback')
+    return 'retired'
+
+
+def inspect_retired(identifier):
+    runtime_guard(False)
+    run_id(identifier)
+    if not os.path.lexists(BASE):
+        return 'absent'
+    meta = os.lstat(BASE)
+    require(stat.S_ISDIR(meta.st_mode) and meta.st_uid == 0 and stat.S_IMODE(meta.st_mode) == 0o711, 'directory-permissions')
+    if not os.path.lexists(BASE / identifier):
+        return 'absent'
+    meta = os.lstat(BASE / identifier)
+    require(stat.S_ISDIR(meta.st_mode) and meta.st_uid == 0 and stat.S_IMODE(meta.st_mode) == 0o711, 'directory-permissions')
+    metadata_file(None, BASE / identifier / 'state.json', 0, 0, 0o600)
+    metadata_file(None, BASE / identifier / 'retired.json', 0, 0, 0o600)
+    require(not any(os.path.lexists(BASE / identifier / name) for name in ('active', 'inbox', 'applying', 'retiring.json')), 'retirement-readback')
+    return 'retired'
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest='command', required=True)
-    for command in ('prepare', 'receive', 'apply', 'inspect'):
+    for command in ('prepare', 'receive', 'apply', 'inspect', 'reconcile', 'retire', 'inspect-retired'):
         sub = commands.add_parser(command)
         sub.add_argument('--run-id', required=True)
-        if command == 'prepare':
+        if command in ('prepare', 'reconcile', 'retire'):
             sub.add_argument('--environment', required=True, choices=('preview', 'production'))
             sub.add_argument('--owner', required=True)
     args = parser.parse_args(argv)
@@ -242,8 +377,14 @@ def main(argv=None):
             result = receive(args.run_id, sys.stdin.buffer)
         elif args.command == 'apply':
             result = apply(args.run_id)
-        else:
+        elif args.command == 'inspect':
             result = inspect_active(args.run_id)
+        elif args.command == 'inspect-retired':
+            result = {**receipt(args.run_id, 'retirement-verified'), 'state': inspect_retired(args.run_id)}
+        elif args.command == 'reconcile':
+            result = {**receipt(args.run_id, 'reconciled'), 'state': reconcile(args.run_id, args.environment, args.owner)}
+        else:
+            result = {**receipt(args.run_id, 'retired'), 'state': retire(args.run_id, args.environment, args.owner)}
         print(json.dumps(result))
         return 0
     except (OSError, ValueError, KeyError):

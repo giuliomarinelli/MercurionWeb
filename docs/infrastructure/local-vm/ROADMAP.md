@@ -216,6 +216,12 @@ sintetico conservato su tmpfs. Prossimo task: riconciliazione e rimozione
 esplicita del solo run, senza leggere valori o cancellare namespace generici;
 poi mount/consumer e restart/recreate sintetici. Nessuna consegna reale,
 servizio avviato o chiusura di INF-VM-04 complessivo impliciti.
+**VM-036 predisposta:** riconciliazione per stato e ritiro selettivo dei materiali
+del solo run VM-035 completato, con ricevuta host obbligatoria, blocco su mount
+e metadati incoerenti, marker d'interruzione e tombstone senza credenziali.
+38 test Linux e 14 Windows passati (24 Linux esclusi su Windows), piano PS 5.1
+senza SSH verificato. [Comando e limiti](SYNTHETIC-RUN-RETIREMENT.md); A-33
+ancora da misurare sulla VM prima di passare ai consumer/mount.
 
 Progettare/implementare l'iniezione protetta dal password manager Windows al bootstrap VM, secret per ambiente, credenziali Meilisearch, PostgreSQL, Redis, NATS, OAuth, Twilio, cookie, JWT. Preservare nomi legacy compatibili. Rinviare rotazione a caldo.
 

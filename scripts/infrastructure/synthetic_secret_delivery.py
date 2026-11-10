@@ -39,8 +39,8 @@ LOAD = r'''
 import hashlib,os,pathlib,pwd,re,stat,sys
 rid,digest,phase,environment=sys.argv[1:]
 assert re.fullmatch('[0-9a-f]{32}',rid) and re.fullmatch('[0-9a-f]{64}',digest)
-assert phase in ('prepare','receive','apply','inspect') and environment in ('preview','production')
-privileged=phase in ('prepare','apply')
+assert phase in ('prepare','receive','apply','inspect','reconcile','retire','inspect-retired') and environment in ('preview','production')
+privileged=phase in ('prepare','apply','reconcile','retire')
 assert (os.geteuid()==0)==privileged
 owner=pwd.getpwnam(os.environ['SUDO_USER']) if privileged else pwd.getpwuid(os.geteuid())
 assert owner.pw_uid>0
@@ -56,7 +56,7 @@ with os.fdopen(fd,'rb') as stream:
     data=stream.read(131073)
 assert 0<len(data)<=131072 and hashlib.sha256(data).hexdigest()==digest
 sys.argv=['secret_delivery.py',phase,'--run-id',rid]
-if phase=='prepare': sys.argv+=['--environment',environment,'--owner',owner.pw_name]
+if phase in ('prepare','reconcile','retire'): sys.argv+=['--environment',environment,'--owner',owner.pw_name]
 # Execute the exact bytes just hashed, never reopen a mutable script after verification.
 exec(compile(data,'<verified-secret-delivery>','exec'),{'__name__':'__main__'})
 '''

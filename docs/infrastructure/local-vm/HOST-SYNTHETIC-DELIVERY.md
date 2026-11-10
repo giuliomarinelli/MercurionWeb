@@ -148,3 +148,9 @@ nel tmpfs dal protocollo. Non è stata fatta una seconda lettura live né una
 rimozione dei file attivi: riconciliazione/rimozione selettiva è il prossimo
 task, prima di eventuali mount o consumer. Nessun Tox21/NATS reale avviato,
 nessun segreto reale consegnato, nessun restart/recreate applicativo verificato.
+
+**VM-036 predisposta il 10 novembre:** [riconciliazione/rimozione selettiva](SYNTHETIC-RUN-RETIREMENT.md)
+del solo run sopra. Nuovi comandi helper e loader condiviso testati anche contro
+la consegna esistente: 38 Linux passed, 14 Windows passed/24 Linux skipped.
+Il nuovo helper ha un hash diverso da quello della ricevuta storica; entrambe
+le identità sono conservate. Nessuna rimozione VM ancora dichiarata eseguita.

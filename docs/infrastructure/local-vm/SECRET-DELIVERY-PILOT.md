@@ -9,7 +9,9 @@ installato sulla VM, connessione SSH, materiale reale o servizio avviato.
 [secret_delivery.py](../../../scripts/infrastructure/secret_delivery.py) espone
 `prepare`, `receive`, `apply` e `inspect`. Solo `receive` legge stdin; questa
 fase e `inspect` richiedono un utente non-root. Preparazione e apply richiedono
-root e ricevono esclusivamente metadati. Nessuna chiamata shell, Docker o SSH.
+root e ricevono esclusivamente metadati. I quattro comandi di consegna non
+chiamano shell, Docker o SSH. La successiva manutenzione VM-036 legge soltanto
+i metadati dei mount Docker prima di ritirare un run sintetico.
 L'[orchestratore host sintetico](HOST-SYNTHETIC-DELIVERY.md) è implementato;
 collaudo del trasporto reale e adozione VM restano aperti.
 
@@ -79,7 +81,9 @@ Run-id non riutilizzabili nello stesso boot. Un apply interrotto conserva la
 prenotazione e lo stato diagnostico: nessun retry automatico. Un crash tra
 pubblicazione e rimozione può lasciare una copia nella inbox privata;
 non si promette cleanup dopo ogni interruzione. La riconciliazione operativa
-e la rimozione dei run non sono implementate.
+e la rimozione selettiva dei materiali del pilot sono ora predisposte in
+[VM-036](SYNTHETIC-RUN-RETIREMENT.md); gli stati interrotti restano da diagnosticare,
+senza recupero automatico.
 
 I file attivi rimangono dopo l'uscita dell'helper. Reboot/perdita tmpfs richiedono
 nuova consegna; niente fallback automatico. Prima di eliminare un run occorrerà

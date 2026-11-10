@@ -1210,3 +1210,21 @@ A-32 trasporto sintetico verificato; codice staged rimosso dal protocollo,
 active lasciato nel tmpfs. Nessuna rimozione eseguita o servizio reale avviato.
 INF-VM-04 resta parziale: prossimo task riconciliazione/rimozione del solo run,
 poi mount/consumer e restart/recreate con dati sintetici.
+
+Owner autorizza VM-036: riconciliazione/rimozione dei materiali del solo run
+VM-035. Predisposti launcher e orchestratore host vincolati alla ricevuta
+preview sintetica completa, riusando trasporto/hash loader già testati.
+Helper aggiunge reconcile/retire/inspect-retired: metadati dei soli percorsi
+ammessi, nessuna lettura del file credenziali, blocco se container anche fermi
+montano antenati/figli del run o Docker non è verificabile. Rimozione diretta
+del solo active/bootstrap.json e directory vuote; state e retired.json root
+restano senza valori contro il riuso. Una riserva retiring.json conserva le
+interruzioni per diagnosi. Nessun rmtree/glob, retry o riparazione automatica.
+
+Prove locali: 38 test Linux passed su tmpfs con identità reali; 14 Windows
+passed/24 Linux skipped. Inclusa sequenza completa host/loader/helper, con
+sola risposta Docker simulata; mount guard e stati pericolosi coperti a parte.
+Piano PS 5.1 reale sul run selezionato riuscito, senza Execute/SSH; container
+test rimosso senza residui. Originale pilot mantiene API/receipt, source helper
+nuovo con hash distinto conservato nella procedura. A-33 pendente: nessun
+materiale VM rimosso e nessun processo/servizio reale avviato dall'agente.
