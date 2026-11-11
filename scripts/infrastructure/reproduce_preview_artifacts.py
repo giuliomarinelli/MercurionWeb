@@ -25,7 +25,7 @@ def revision(value):
 
 def web_file(name):
     path = PurePosixPath(name)
-    return (not path.is_absolute() and '..' not in path.parts
+    return (not path.is_absolute() and '..' not in path.parts and '\\' not in name
         and path.suffix.lower() not in ('.pem', '.key', '.p12', '.pfx')
         and not any(part.lower() == '.env' or part.lower().startswith('.env.') for part in path.parts)
         and (name.startswith(('MercurionWebNg/', 'MercurionWebNode/', 'packages/', 'scripts/'))

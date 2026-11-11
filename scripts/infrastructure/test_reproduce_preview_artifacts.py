@@ -9,7 +9,8 @@ import reproduce_preview_artifacts as recipe
 class RecipeTests(unittest.TestCase):
     def test_source_allowlist_excludes_environment_and_key_material(self):
         for name in ('MercurionWebNode/env/.env.development', 'MercurionWebNode/env/.env.example', 'MercurionWebNode/env/.ENV.production',
-                     'MercurionWebNode/keys/http.pem', 'MercurionWebNg/a.pfx', '../package.json', '/package.json'):
+                     'MercurionWebNode/keys/http.pem', 'MercurionWebNg/a.pfx', '../package.json', '/package.json',
+                     'MercurionWebNode/..\\..\\escape.py'):
             with self.subTest(name=name):
                 self.assertFalse(recipe.web_file(name))
         for name in ('package-lock.json', 'MercurionWebNode/Dockerfile', 'MercurionWebNg/src/main.ts', 'packages/rest-contracts/package.json'):
