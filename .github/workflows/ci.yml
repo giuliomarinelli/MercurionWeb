@@ -339,7 +339,11 @@ jobs:
         run: npm run build:identity -- --revision "$GITHUB_SHA"
 
       - name: Install Playwright Chromium
-        run: npx playwright install --with-deps chromium
+        timeout-minutes: 8
+        run: |
+          python3 -B -m unittest discover -s .github/scripts -p test_configure_browser_apt.py
+          sudo --preserve-env=GITHUB_ACTIONS,RUNNER_OS python3 .github/scripts/configure_browser_apt.py --apply
+          npx playwright install --with-deps chromium
 
       - name: Build Angular
         run: npm run ci:build:angular
@@ -388,7 +392,11 @@ jobs:
         run: npm ci
 
       - name: Install Playwright Chromium
-        run: npx playwright install --with-deps chromium
+        timeout-minutes: 8
+        run: |
+          python3 -B -m unittest discover -s .github/scripts -p test_configure_browser_apt.py
+          sudo --preserve-env=GITHUB_ACTIONS,RUNNER_OS python3 .github/scripts/configure_browser_apt.py --apply
+          npx playwright install --with-deps chromium
 
       - name: Install the disposable nginx edge
         run: sudo apt-get update && sudo apt-get install --yes nginx
