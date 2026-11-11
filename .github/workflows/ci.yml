@@ -567,6 +567,51 @@ jobs:
       - name: Confirm clean build did not modify tracked files
         run: git diff --exit-code
 
+  preview-servers:
+    name: Preview server ${{ matrix.role }}
+    if: ${{ needs.plan.outputs.mode == 'full' }}
+    needs: [plan, dependency-security]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        role: [postgres, redis, meilisearch, edge]
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - name: Prepare immutable server build context
+        shell: bash
+        run: |
+          mkdir "$RUNNER_TEMP/preview-server"
+          cp deployment/local-vm/runtime/Dockerfile "$RUNNER_TEMP/preview-server/Dockerfile"
+          if test "${{ matrix.role }}" = postgres; then
+            curl --fail --location --retry 2 --output "$RUNNER_TEMP/preview-server/pgvector.tar.gz" \
+              https://codeload.github.com/pgvector/pgvector/tar.gz/f37c13f68b57d2c3472b2214fbcff699d6d34876
+            echo "83d673c3b287cddbf3879f86215f043f2c2b56c69d37b2a77504910db1ed6e56  $RUNNER_TEMP/preview-server/pgvector.tar.gz" | sha256sum --check -
+          fi
+
+      - name: Build server image from pinned base and recipe
+        run: docker build --pull --no-cache --target "${{ matrix.role }}" --build-arg BUILD_REVISION="$GITHUB_SHA" --tag "mercurion-ci-server-${{ matrix.role }}" "$RUNNER_TEMP/preview-server"
+
+      - name: Export server SBOM and enforce all-severity vulnerability policy
+        run: |
+          python3 -B scripts/infrastructure/export_preview_service.py --context default \
+            --role "${{ matrix.role }}" --image "mercurion-ci-server-${{ matrix.role }}" \
+            --revision "$GITHUB_SHA" --output "reports/preview-servers/${{ matrix.role }}" \
+            --cache "$RUNNER_TEMP/preview-server-trivy"
+
+      - name: Upload server security diagnostics
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: preview-server-${{ matrix.role }}
+          if-no-files-found: error
+          path: |
+            reports/preview-servers/**/*.json
+            reports/preview-servers/**/*.log
+
   supply-chain:
     name: Supply-chain policy and attestation
     if: ${{ needs.plan.outputs.mode == 'full' }}
@@ -574,6 +619,7 @@ jobs:
       - plan
       - quality
       - containers
+      - preview-servers
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -631,6 +677,7 @@ jobs:
       - build
       - browser-e2e
       - containers
+      - preview-servers
       - supply-chain
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -645,6 +692,7 @@ jobs:
           BUILD_RESULT: ${{ needs.build.result }}
           BROWSER_E2E_RESULT: ${{ needs.browser-e2e.result }}
           CONTAINERS_RESULT: ${{ needs.containers.result }}
+          PREVIEW_SERVERS_RESULT: ${{ needs.preview-servers.result }}
           SUPPLY_CHAIN_RESULT: ${{ needs.supply-chain.result }}
           MODE: ${{ needs.plan.outputs.mode }}
           PLAN_RESULT: ${{ needs.plan.result }}
@@ -667,6 +715,7 @@ jobs:
               test "$BUILD_RESULT" = "success"
               test "$BROWSER_E2E_RESULT" = "success"
               test "$CONTAINERS_RESULT" = "success"
+              test "$PREVIEW_SERVERS_RESULT" = "success"
               test "$SUPPLY_CHAIN_RESULT" = "success"
               ;;
             *)

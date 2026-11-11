@@ -11,7 +11,7 @@ RUN echo '83d673c3b287cddbf3879f86215f043f2c2b56c69d37b2a77504910db1ed6e56  /tmp
 FROM postgres@sha256:aa6cb33cf4c19c765cefcf48d96176258800870a9a1e930ad126200f9d825139 AS postgres
 ARG BUILD_REVISION
 LABEL org.opencontainers.image.source="https://github.com/giuliomarinelli/MercurionWeb" org.opencontainers.image.revision=$BUILD_REVISION org.mercurion.runtime.role="postgres"
-RUN apk add --no-cache --upgrade zlib=1.4-r0 && rm /usr/local/bin/gosu
+RUN apk add --no-cache --upgrade zlib=1.4-r0 libxslt=1.1.43-r4 krb5-libs=1.22.3-r0 && rm /usr/local/bin/gosu
 COPY --from=pgvector-build /out/usr/local/lib/postgresql/vector.so /usr/local/lib/postgresql/vector.so
 COPY --from=pgvector-build /out/usr/local/share/postgresql/extension/ /usr/local/share/postgresql/extension/
 LABEL org.mercurion.postgres.version="16.15" org.mercurion.pgvector.revision="f37c13f68b57d2c3472b2214fbcff699d6d34876"

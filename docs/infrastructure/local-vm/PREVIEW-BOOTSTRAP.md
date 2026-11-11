@@ -119,6 +119,18 @@ Gli exporter scaricano il DB Trivy in un cache effimero nuovo per ogni export
 e ne registrano i metadati, evitando il riuso fino a `NextUpdate` del cache locale.
 Le scansioni QA precedenti non sostituiscono questa verifica della release.
 
+Il DB aggiornato ha respinto anche PostgreSQL con 25 finding nei pacchetti
+Kerberos/libxslt: aggiornati `krb5-libs=1.22.3-r0` e `libxslt=1.1.43-r4`.
+Il candidato corretto passa il nuovo scan a zero e la prova pgvector/restart
+(`infrastructure-smoke-new-db-patch.json`, run `86cd853c57484bdf9da0223626b34fc2`).
+Redis e Meilisearch passano anche il refresh del DB. Gli export storici
+non costituiscono approvazione per una consegna successiva.
+
+La CI full ora costruisce/scansiona anche i quattro server preview, con
+basi e sorgente pgvector fissati, archivio/SBOM e tutti i livelli bloccanti.
+Il Required gate richiede questi quattro esiti oltre ai target applicativi;
+non basta più che passino soltanto le immagini Web.
+
 Health e HTML non provano login/MFA, OAuth, Turnstile, email/SMS, Socket.IO,
 dati ChEMBL o accettazione pubblica. Il proxy privato inoltra il proprio
 schema HTTP: header Cloudflare e cookie secure richiedono il collaudo della
