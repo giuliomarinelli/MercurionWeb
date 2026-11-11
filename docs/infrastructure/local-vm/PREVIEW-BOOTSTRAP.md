@@ -173,10 +173,11 @@ catena effettiva, senza fidarsi di header client arbitrari.
 2. Ottenere la CI verde sull'esatto commit Web e produrre da quel sorgente
    le immagini definitive; coordinare Web con il Tox21 già verificato ed
    esportare/scansionare anche i server.
-3. Trasferire il bundle verificato e consegnare i file dei server sul tmpfs
+3. Usare la [procedura server VM-043](PREVIEW-SERVER-BOOTSTRAP.md): trasferire
+   il bundle verificato e consegnare i file dei server sul tmpfs
    guest. Verificare ownership/collisioni, poi avviare PostgreSQL, Redis,
-   NATS e Meilisearch senza publishing. Il wrapper operativo è ancora da
-   completare: non lanciare direttamente Compose dai manifest preparatori.
+   NATS e Meilisearch senza publishing. Usare il wrapper verificato; non
+   lanciare direttamente Compose dai manifest preparatori.
 4. Aprire solo l'accesso amministrativo SSH loopback a Meilisearch; usare
    curl per indici e chiavi ristrette, attendere i task e inserire le due
    chiavi client nel file privato. Nessuna master key a Nest.

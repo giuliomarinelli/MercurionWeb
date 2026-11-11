@@ -297,6 +297,13 @@ per il successivo stack preview, senza dedurre accettazione integrata.
 
 ## INF-VM-07 — Stack applicativi e tunnel Cloudflare
 
+**VM-043 — primo avvio dei soli server:** [procedura e wrapper](PREVIEW-SERVER-BOOTSTRAP.md),
+riuso del candidato d227dbf4, codice di consegna separato dalle immagini,
+collision guard e secret delivery tmpfs, readiness e report. Prove locali
+dei contratti, permessi Linux e quattro server reali sintetici completate;
+esecuzione sulla VM da acquisire dall'owner. Provider dichiarati compilati,
+Meilisearch client key ancora da creare via curl. Nessun cambio ai gate pubblici.
+
 **VM-042, 11 novembre — preparazione preview privata in corso.** Provider
 reali da compilare dall'owner nel file locale e hostname `preview.mercurion.app`.
 Master Meilisearch solo server; key search/writer create dall'operatore con

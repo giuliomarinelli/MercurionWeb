@@ -1,6 +1,7 @@
 """Cold private preview QA with synthetic values and uniquely owned data/resources."""
 import argparse
 import json
+import inspect
 from pathlib import Path
 import tempfile
 import time
@@ -8,6 +9,8 @@ import uuid
 
 import preview_compose
 import preview_credentials
+import preview_server_bundle
+import guest_preview_servers
 from smoke_preview_infrastructure import docker, value, HELPER
 
 LABEL = 'mercurion.preview-stack-qa'
@@ -43,6 +46,8 @@ def compose(path, *args, check=True):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--report', type=Path, required=True)
+    parser.add_argument('--servers-only', action='store_true')
+    parser.add_argument('--image-suffix')
     args = parser.parse_args()
     if args.report.exists():
         raise ValueError('Report exists')
@@ -56,6 +61,15 @@ def main():
               'nginx': 'mercurion-vm042-edge:candidate',
               'nats': 'mercurion-nats:2.15.2-crypto.1', 'tox21': HELPER}
     images = {role: json.loads(value('image', 'inspect', reference))[0]['Id'] for role, reference in images.items()}
+    if args.image_suffix:
+        for role in ('postgres', 'redis', 'meilisearch', 'nginx', 'web-node', 'web-ng'):
+            tag = 'mercurion-vm042-' + ('edge' if role == 'nginx' else role) + ':' + args.image_suffix
+            images[role] = json.loads(value('image', 'inspect', tag))[0]['Id']
+    if args.servers_only:
+        if not args.image_suffix:
+            raise ValueError('Server QA requires an explicit verified image suffix')
+        models = preview_server_bundle.projection(models,
+            {role: {'imageId': images[role]} for role in ('postgres', 'redis', 'meilisearch', 'nats')}, run)
     configuration = preview_credentials.template('https://preview.mercurion.app', preview_credentials.rsa_pairs())
     configuration['providers'] = {name: 'synthetic-qa' for name in preview_credentials.PROVIDERS}
     configuration['providers'].update(EMAIL_SMTP_HOST='127.0.0.1', EMAIL_SMTP_PORT='1025',
@@ -63,6 +77,8 @@ def main():
         TWILIO_ACCOUNT_SID='AC' + 'a' * 32, TWILIO_FROM='+15005550006', ORCID_ISSUER='https://orcid.org')
     documents = preview_credentials.server_documents(configuration)
     documents['web-node'] = (10001, 10001, {})
+    if args.servers_only:
+        documents = {role: documents[role] for role in ('postgres', 'redis', 'meilisearch', 'nats')}
     credential_volumes = {}
     keepers = {}
     result = {'schemaVersion': 1, 'runId': run, 'status': 'failed', 'checks': {},
@@ -107,7 +123,8 @@ def main():
                         elif '/run/mercurion-preview/' in mount['source'].replace('\\', '/'):
                             private_mount = True
                         else:
-                            mount['source'] = str(preview_compose.ROOT / mount['source'].split('/opt/mercurion/qa/', 1)[-1])
+                            relative = 'deployment/local-vm/operational/' + mount['source'].split('/deployment/local-vm/operational/', 1)[-1]
+                            mount['source'] = str(preview_compose.ROOT / relative)
                             public_mounts.append(mount)
                     if private_mount:
                         key = 'qa-credentials-' + secret_role
@@ -118,67 +135,94 @@ def main():
                 paths[project].write_text(json.dumps(model), encoding='utf-8')
             result['phase'] = 'infrastructure'
             compose(paths['shared'], 'up', '-d')
-            compose(paths['preview'], 'up', '-d', 'postgres-preview', 'redis-preview', 'nats-preview', 'tox21-preview')
+            services = ['postgres-preview', 'redis-preview', 'nats-preview']
+            if not args.servers_only:
+                services.append('tox21-preview')
+            compose(paths['preview'], 'up', '-d', *services)
             postgres = compose(paths['preview'], 'ps', '-q', 'postgres-preview').stdout.strip()
             deadline = time.monotonic() + 60
             while docker('exec', postgres, 'pg_isready', '-h', '127.0.0.1', '-U', 'mercurion_preview', '-d', 'mercurion_preview', check=False).returncode:
                 if time.monotonic() > deadline:
                     raise ValueError('Database readiness timeout')
                 time.sleep(.5)
-            search_network = models['shared']['networks']['stg-search']['name']
-            value('network', 'connect', search_network, keepers['meilisearch'])
-            master = configuration['meilisearchServer']['masterKey']
-            deadline = time.monotonic() + 60
-            while True:
-                response = docker('exec', '-i', keepers['meilisearch'], 'python', '-B', '-c', MEILI_INIT,
-                                 data=json.dumps({'master': master}), check=False)
-                if response.returncode == 0:
-                    configuration['meilisearchClients'] = json.loads(response.stdout)
-                    break
-                if time.monotonic() > deadline:
-                    raise ValueError('Meilisearch setup timeout')
-                time.sleep(.5)
-            edge = compose(paths['shared'], 'ps', '-q', 'nginx-edge').stdout.strip()
-            edge_info = json.loads(value('inspect', edge))[0]
-            web_network = models['shared']['networks']['stg-web']['name']
-            edge_ip = edge_info['NetworkSettings']['Networks'][web_network]['IPAddress']
-            document = preview_credentials.application_document(configuration, [edge_ip + '/32'])
-            docker('exec', '-i', keepers['web-node'], 'python', '-B', '-c', INIT_FILES,
-                   data=json.dumps({'values.json': json.dumps(document)}))
-            result['phase'] = 'empty-database-schema'
-            schema = compose(paths['preview'], 'run', '--rm', '--no-deps', '--entrypoint', 'node',
-                '-v', str(preview_compose.ROOT / 'deployment/local-vm/operational/initialize-empty-schema.cjs') + ':/qa/schema.cjs:ro',
-                'web-node-preview', '/qa/schema.cjs', check=False)
-            result['schemaExitCode'] = schema.returncode
-            if schema.returncode:
-                raise ValueError('Empty schema initialization failed')
-            result['checks']['emptySchema'] = True
-            result['phase'] = 'application-health'
-            compose(paths['preview'], 'up', '-d', 'web-node-preview', 'web-ng-preview')
-            deadline = time.monotonic() + 90
-            while True:
-                probe = docker('exec', edge, 'wget', '-q', '-O', '-', '--header=Host: preview.mercurion.app', 'http://127.0.0.1/health', check=False)
-                if probe.returncode == 0:
-                    break
-                if time.monotonic() > deadline:
-                    raise ValueError('Application health timeout')
-                time.sleep(.5)
-            html = value('exec', edge, 'wget', '-q', '-O', '-', '--header=Host: preview.mercurion.app', 'http://127.0.0.1/')
-            if '<html' not in html.lower():
-                raise ValueError('SPA not served')
-            backend = compose(paths['preview'], 'ps', '-q', 'web-node-preview').stdout.strip()
-            crypto = value('exec', backend, 'node', '-e', '''
-require('./dist/src/bootstrap/secret-file-environment.js').loadSecretFileEnvironment();
-const {SecurityService}=require('./dist/src/app_modules/auth/services/security.service.js');
-const service=Object.create(SecurityService.prototype);service.AES_secret=process.env.APP_AES_SECRET;
-const marker='synthetic-preview-crypto';
-if(service.decrypt_AES256_GCM(service.encrypt_AES256_GCM(marker))!==marker)throw Error('AES roundtrip');
-console.log('AES_ROUNDTRIP_OK');''')
-            if crypto != 'AES_ROUNDTRIP_OK':
-                raise ValueError('Application AES roundtrip failed')
-            result['checks'].update(backendHealthThroughEdge=True, frontendThroughEdge=True)
-            result['checks']['applicationAesRoundtrip'] = True
-            result['status'] = 'passed'
+            if args.servers_only:
+                def desktop(*arguments, **kwargs):
+                    try:
+                        return value(*arguments)
+                    except RuntimeError:
+                        raise ValueError('qa-docker-operation') from None
+                guest_preview_servers.docker = desktop
+                redis = compose(paths['preview'], 'ps', '-q', 'redis-preview').stdout.strip()
+                checks = dict(postgresRoleAndVector=guest_preview_servers.retry(lambda: guest_preview_servers.postgres_check(postgres)),
+                              redisAuthAndKeyevents=guest_preview_servers.retry(lambda: guest_preview_servers.redis_check(redis)))
+                for role, function, alias, project, key in [
+                        ('meilisearch', guest_preview_servers.meili_check, 'meilisearch', 'shared', 'stg-search'),
+                        ('nats', guest_preview_servers.nats_check, 'nats-preview', 'preview', 'bus')]:
+                    value('network', 'connect', models[project]['networks'][key]['name'], keepers[role])
+                    code = 'import json,socket,urllib.request,urllib.error\n' + inspect.getsource(function)
+                    code += '\nassert ' + function.__name__ + '(' + repr(alias) + ')\nprint("SERVER_CHECK_OK")'
+                    def probe():
+                        answer = docker('exec', keepers[role], 'python', '-B', '-c', code, check=False)
+                        if answer.returncode or answer.stdout.strip() != 'SERVER_CHECK_OK':
+                            raise ValueError('server-probe-not-ready')
+                        return True
+                    checks[role] = guest_preview_servers.retry(probe)
+                result.update(status='passed', phase='server-readiness', checks=checks)
+            else:
+                search_network = models['shared']['networks']['stg-search']['name']
+                value('network', 'connect', search_network, keepers['meilisearch'])
+                master = configuration['meilisearchServer']['masterKey']
+                deadline = time.monotonic() + 60
+                while True:
+                    response = docker('exec', '-i', keepers['meilisearch'], 'python', '-B', '-c', MEILI_INIT,
+                                     data=json.dumps({'master': master}), check=False)
+                    if response.returncode == 0:
+                        configuration['meilisearchClients'] = json.loads(response.stdout)
+                        break
+                    if time.monotonic() > deadline:
+                        raise ValueError('Meilisearch setup timeout')
+                    time.sleep(.5)
+                edge = compose(paths['shared'], 'ps', '-q', 'nginx-edge').stdout.strip()
+                edge_info = json.loads(value('inspect', edge))[0]
+                web_network = models['shared']['networks']['stg-web']['name']
+                edge_ip = edge_info['NetworkSettings']['Networks'][web_network]['IPAddress']
+                document = preview_credentials.application_document(configuration, [edge_ip + '/32'])
+                docker('exec', '-i', keepers['web-node'], 'python', '-B', '-c', INIT_FILES,
+                       data=json.dumps({'values.json': json.dumps(document)}))
+                result['phase'] = 'empty-database-schema'
+                schema = compose(paths['preview'], 'run', '--rm', '--no-deps', '--entrypoint', 'node',
+                    '-v', str(preview_compose.ROOT / 'deployment/local-vm/operational/initialize-empty-schema.cjs') + ':/qa/schema.cjs:ro',
+                    'web-node-preview', '/qa/schema.cjs', check=False)
+                result['schemaExitCode'] = schema.returncode
+                if schema.returncode:
+                    raise ValueError('Empty schema initialization failed')
+                result['checks']['emptySchema'] = True
+                result['phase'] = 'application-health'
+                compose(paths['preview'], 'up', '-d', 'web-node-preview', 'web-ng-preview')
+                deadline = time.monotonic() + 90
+                while True:
+                    probe = docker('exec', edge, 'wget', '-q', '-O', '-', '--header=Host: preview.mercurion.app', 'http://127.0.0.1/health', check=False)
+                    if probe.returncode == 0:
+                        break
+                    if time.monotonic() > deadline:
+                        raise ValueError('Application health timeout')
+                    time.sleep(.5)
+                html = value('exec', edge, 'wget', '-q', '-O', '-', '--header=Host: preview.mercurion.app', 'http://127.0.0.1/')
+                if '<html' not in html.lower():
+                    raise ValueError('SPA not served')
+                backend = compose(paths['preview'], 'ps', '-q', 'web-node-preview').stdout.strip()
+                crypto = value('exec', backend, 'node', '-e', '''
+    require('./dist/src/bootstrap/secret-file-environment.js').loadSecretFileEnvironment();
+    const {SecurityService}=require('./dist/src/app_modules/auth/services/security.service.js');
+    const service=Object.create(SecurityService.prototype);service.AES_secret=process.env.APP_AES_SECRET;
+    const marker='synthetic-preview-crypto';
+    if(service.decrypt_AES256_GCM(service.encrypt_AES256_GCM(marker))!==marker)throw Error('AES roundtrip');
+    console.log('AES_ROUNDTRIP_OK');''')
+                if crypto != 'AES_ROUNDTRIP_OK':
+                    raise ValueError('Application AES roundtrip failed')
+                result['checks'].update(backendHealthThroughEdge=True, frontendThroughEdge=True)
+                result['checks']['applicationAesRoundtrip'] = True
+                result['status'] = 'passed'
     except Exception as error:
         result['errorType'] = type(error).__name__
         # Fixed phase/reason only: no provider values, SQL, payload or unredacted logs.
