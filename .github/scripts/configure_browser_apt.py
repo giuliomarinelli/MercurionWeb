@@ -4,12 +4,14 @@ import json
 import os
 from pathlib import Path
 import re
-import socket
 import sys
 
 ARCHIVE = 'https://archive.ubuntu.com/ubuntu/'
 SECURITY = 'https://security.ubuntu.com/ubuntu/'
-KNOWN = {'mirror+file:/etc/apt/apt-mirrors.txt', 'http://azure.archive.ubuntu.com/ubuntu',
+MIRROR = 'https://mirrors.mit.edu/ubuntu/'
+ARCHIVE_LIST = 'mirror+file:/etc/apt/mercurion-archive-mirrors.txt'
+SECURITY_LIST = 'mirror+file:/etc/apt/mercurion-security-mirrors.txt'
+KNOWN = {ARCHIVE_LIST, SECURITY_LIST, 'mirror+file:/etc/apt/apt-mirrors.txt', 'http://azure.archive.ubuntu.com/ubuntu',
          'http://azure.archive.ubuntu.com/ubuntu/', ARCHIVE, SECURITY}
 NETWORK = '''Acquire::http::Timeout "20";
 Acquire::https::Timeout "20";
@@ -32,7 +34,7 @@ def rewrite(text):
         if (suites is None or not set(suites[1].split()) <= {'noble', 'noble-updates', 'noble-backports', 'noble-security'}
                 or signed is None or signed[1].strip() != '/usr/share/keyrings/ubuntu-archive-keyring.gpg'):
             raise ValueError('Unexpected Ubuntu suite or signing key')
-        target = SECURITY if set(suites[1].split()) == {'noble-security'} else ARCHIVE
+        target = SECURITY_LIST if set(suites[1].split()) == {'noble-security'} else ARCHIVE_LIST
         parts[index] = stanza[:uri.start()] + 'URIs: ' + target + stanza[uri.end():]
         found += 1
     if not found:
@@ -47,14 +49,19 @@ def configure(root):
         raise ValueError('Unexpected APT configuration paths')
     original = source.read_text(encoding='utf-8')
     revised = rewrite(original)
-    # Verify both replacements before changing configuration. This is a DNS
-    # preflight, not a replacement for APT's TLS/keyring/signature checks.
-    for host in ('archive.ubuntu.com', 'security.ubuntu.com'):
-        if not socket.getaddrinfo(host, 443, type=socket.SOCK_STREAM):
-            raise ValueError('Official Ubuntu archive DNS unavailable')
+    # APT's mirror transport handles unavailable hosts. A separate DNS gate
+    # would abort before APT can use the independent, official MIT mirror.
+    lists = {
+        root / 'etc/apt/mercurion-archive-mirrors.txt': (MIRROR, ARCHIVE),
+        root / 'etc/apt/mercurion-security-mirrors.txt': (MIRROR, SECURITY),
+    }
+    if any(path.is_symlink() or (path.exists() and not path.is_file()) for path in lists):
+        raise ValueError('Unexpected mirror list paths')
+    for path, mirrors in lists.items():
+        path.write_text(''.join(f'{url}\tpriority:{index}\n' for index, url in enumerate(mirrors, 1)), encoding='utf-8')
     source.write_text(revised, encoding='utf-8')
     settings.write_text(NETWORK, encoding='utf-8')
-    return dict(status='configured', mirrors=[ARCHIVE, SECURITY], signedByUnchanged=True,
+    return dict(status='configured', mirrors=[MIRROR, ARCHIVE, SECURITY], signedByUnchanged=True,
                 aptErrorsFatal=True, acquireTimeoutSeconds=20, acquireRetries=1)
 
 
