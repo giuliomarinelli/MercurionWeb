@@ -112,6 +112,13 @@ tmpfs e i percorsi temporanei nginx prima del collaudo riuscito. Le fixture
 creano propri materiali sintetici e indici effimeri, senza leggere il file
 dell'owner; non sostituiscono il curl amministrativo dell'installazione reale.
 
+La prima CI e79f0981 ha rilevato quattro finding `libxslt` nelle immagini
+Angular (due HIGH, uno MEDIUM, uno UNKNOWN). Correzione: pacchetto Alpine
+`1.1.43-r4` nei runtime Angular e nginx edge, senza ignore o deroghe.
+Gli exporter scaricano il DB Trivy in un cache effimero nuovo per ogni export
+e ne registrano i metadati, evitando il riuso fino a `NextUpdate` del cache locale.
+Le scansioni QA precedenti non sostituiscono questa verifica della release.
+
 Health e HTML non provano login/MFA, OAuth, Turnstile, email/SMS, Socket.IO,
 dati ChEMBL o accettazione pubblica. Il proxy privato inoltra il proprio
 schema HTTP: header Cloudflare e cookie secure richiedono il collaudo della

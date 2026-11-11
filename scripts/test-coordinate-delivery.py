@@ -4,7 +4,9 @@ import json
 from pathlib import Path
 import tarfile
 import tempfile
+from types import SimpleNamespace
 import unittest
+from unittest.mock import patch
 
 spec = importlib.util.spec_from_file_location('delivery', Path(__file__).with_name('coordinate-delivery.py'))
 delivery = importlib.util.module_from_spec(spec)
@@ -14,6 +16,34 @@ REVISION = 'a' * 40
 export_spec = importlib.util.spec_from_file_location('exporter', Path(__file__).with_name('export-web-container.py'))
 exporter = importlib.util.module_from_spec(export_spec)
 export_spec.loader.exec_module(exporter)
+
+
+class ScannerCacheTests(unittest.TestCase):
+    def test_release_scans_do_not_reuse_unexpired_database_cache(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            cache = root / 'cache'
+            (cache / 'db').mkdir(parents=True)
+            previous = cache / 'db/metadata.json'
+            previous.write_text('{"NextUpdate":"2099-01-01T00:00:00Z"}')
+            refreshed = []
+            def scan(command, **kwargs):
+                mount = next(arg for arg in command if arg.startswith('type=bind,src=') and arg.endswith(',dst=/cache'))
+                owned = Path(mount[len('type=bind,src='):-len(',dst=/cache')])
+                if '--download-db-only' in command:
+                    self.assertFalse((owned / 'db').exists())
+                    refreshed.append(owned)
+                    (owned / 'db').mkdir()
+                    (owned / 'db/metadata.json').write_text('{"Version":2,"UpdatedAt":"synthetic-current"}')
+                return SimpleNamespace(stdout='', stderr='', check_returncode=lambda: None)
+            with patch.object(exporter.subprocess, 'run', side_effect=scan):
+                for name in ('first', 'second'):
+                    output = root / name
+                    output.mkdir()
+                    self.assertEqual(exporter.scan_archive(output, cache)['UpdatedAt'], 'synthetic-current')
+            self.assertEqual(len(set(refreshed)), 2)
+            self.assertTrue(all(not path.exists() for path in refreshed))
+            self.assertEqual(json.loads(previous.read_text())['NextUpdate'], '2099-01-01T00:00:00Z')
 
 
 class ImageIdentityTests(unittest.TestCase):

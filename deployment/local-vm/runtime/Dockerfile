@@ -33,7 +33,7 @@ ENTRYPOINT ["/bin/meilisearch"]
 FROM nginx@sha256:583b7f2fce1cdb8da5ad5c39ebd3c33b98b87d493190e548bdee1fa8c619c311 AS edge
 ARG BUILD_REVISION
 LABEL org.opencontainers.image.source="https://github.com/giuliomarinelli/MercurionWeb" org.opencontainers.image.revision=$BUILD_REVISION org.mercurion.runtime.role="edge"
-RUN apk add --no-cache --upgrade zlib=1.4-r0 \
+RUN apk add --no-cache --upgrade zlib=1.4-r0 libxslt=1.1.43-r4 \
     && addgroup -S -g 10101 mercurion \
     && adduser -S -D -H -u 10101 -G mercurion mercurion
 USER 10101:10101

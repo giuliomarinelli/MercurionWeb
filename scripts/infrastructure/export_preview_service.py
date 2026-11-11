@@ -41,12 +41,7 @@ def export(args):
     args.cache.mkdir(parents=True, exist_ok=True)
     command('save', '--output', str(args.output / 'image.tar'), image['Id'])
     digest, config = web.delivery.archive_config(args.output / 'image.tar')
-    for name, flags in [('sbom.cdx.json', ['--format', 'cyclonedx']),
-                        ('vulnerabilities.json', ['--scanners', 'vuln', '--ignorefile', '/dev/null', '--format', 'json'])]:
-        command('run', '--rm', '--mount', f'type=bind,src={args.output.resolve()},dst=/evidence',
-                '--mount', f'type=bind,src={args.cache.resolve()},dst=/cache', web.SCANNER, 'image',
-                '--quiet', '--input', '/evidence/image.tar', '--cache-dir', '/cache',
-                '--output', '/evidence/' + name, *flags)
+    database = web.scan_archive(args.output, args.cache, ('docker', '--context', args.context))
     sbom = json.loads((args.output / 'sbom.cdx.json').read_text())
     if sbom.get('bomFormat') != 'CycloneDX' or not sbom.get('components'):
         raise ValueError('Missing SBOM inventory')
@@ -64,6 +59,7 @@ def export(args):
               'exportedAtUtc': datetime.now(timezone.utc).isoformat(), 'configDigest': digest,
               'imageId': image['Id'], 'loadedImageId': identifiers[0], 'archiveLoadVerified': True,
               'securityEligible': summary['eligible'], 'scanner': web.SCANNER,
+              'scannerDatabase': database,
               'files': {name: web.delivery.checksum(args.output / name) for name in
                         ('image.tar', 'sbom.cdx.json', 'vulnerabilities.json', 'policy-result.json')}}
     (args.output / 'server.json').write_text(json.dumps(record, indent=2), encoding='utf-8')
