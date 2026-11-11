@@ -3,10 +3,12 @@
 [CmdletBinding()]
 param([Parameter(Mandatory=$true)][string]$BundlePath,
       [string]$ConfigurationPath=(Join-Path ([Environment]::GetFolderPath('UserProfile')) '.mercurion/preview/configuration.json'),
-      [switch]$Execute)
+      [switch]$Execute,
+      [switch]$ResumePublicCopy)
 $ErrorActionPreference='Stop'
 $taskPython=(Get-Command python.exe -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
 $taskArguments=@('-B',(Join-Path $PSScriptRoot 'preview_server_bootstrap.py'),'--bundle',$BundlePath)
+if ($ResumePublicCopy) { $taskArguments+='--resume-public-copy' }
 if ($Execute) {
     $taskPrivate=[IO.Path]::GetFullPath($ConfigurationPath)
     $taskProfile=[IO.Path]::GetFullPath([Environment]::GetFolderPath('UserProfile')).TrimEnd('\')+'\'

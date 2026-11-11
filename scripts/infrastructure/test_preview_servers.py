@@ -7,6 +7,7 @@ from pathlib import Path
 import stat
 import sys
 import runpy
+import tempfile
 from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
@@ -24,6 +25,50 @@ def configuration():
 
 
 class ServerContracts(unittest.TestCase):
+    def test_public_copy_recovery_skips_transfer_and_records_one_time_attempt(self):
+        identifier = 'a' * 32
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / 'execution-state.json').write_text(json.dumps(dict(runId=identifier,
+                phase='guest-preflight-and-load', status='failed', servicesStarted=False)))
+            configuration_path = root / 'synthetic-configuration.json'
+            configuration_path.write_text('{}')
+            preflight = dict(runId=identifier, status='ready', readyForSecretDelivery=True, secretInboxPrepared=True)
+            result = dict(runId=identifier, status='passed', ownedContainers=['1', '2', '3', '4'],
+                          servicesStarted=True, meilisearchAddress='172.20.0.2')
+            received = json.dumps(dict(runId=identifier, consumer='preview-servers', phase='received', servicesStarted=False))
+            with patch.object(host, 'os', SimpleNamespace(name='nt')), patch.object(bundle, 'verify', return_value={'runId': identifier}), \
+                    patch.object(bundle.delivery, 'checksum', return_value='c' * 64), patch.object(host, 'payload', return_value=b'{}'), \
+                    patch.object(host, 'transport', return_value=(0, '')), patch.object(host, 'invoke_step', return_value=received), \
+                    patch.object(host, 'fetch', side_effect=[(preflight, root / 'preflight-result.json'), (result, root / 'bootstrap-result.json')]), \
+                    patch.object(host.subprocess, 'run') as process, patch('builtins.print'):
+                self.assertEqual(host.execute(root, configuration_path, resume_public_copy=True)['status'], 'passed')
+                process.assert_not_called()
+            state = json.loads((root / 'execution-state.json').read_text())
+            self.assertTrue(state['resumePublicCopyAttempted'])
+            self.assertEqual((state['phase'], state['status']), ('finished', 'passed'))
+            with self.assertRaisesRegex(ValueError, 'recovery-not-eligible'):
+                host.resume_state(root, identifier)
+
+    def test_public_copy_recovery_requires_exact_unstarted_failed_phase_and_no_receipts(self):
+        identifier = 'a' * 32
+        original = dict(runId=identifier, phase='guest-preflight-and-load', status='failed', servicesStarted=False)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            path = root / 'execution-state.json'
+            path.write_text(json.dumps(original))
+            self.assertEqual(host.resume_state(root, identifier), original)
+            for change in (dict(runId='b' * 32), dict(phase='secrets-receive'), dict(status='passed'),
+                           dict(servicesStarted=True), dict(resumePublicCopyAttempted=True)):
+                path.write_text(json.dumps(original | change))
+                with self.assertRaisesRegex(ValueError, 'recovery-not-eligible'):
+                    host.resume_state(root, identifier)
+            path.write_text(json.dumps(original))
+            (root / 'receipts').mkdir()
+            (root / 'receipts/preflight-result.json').write_text('{}')
+            with self.assertRaisesRegex(ValueError, 'recovery-not-eligible'):
+                host.resume_state(root, identifier)
+
     def test_bundle_rejects_paths_outside_its_allowlist_before_checksum_reads(self):
         record = dict(schemaVersion=1, scope='preview-servers-only', runId='a' * 32,
             releaseRevision='a' * 40, toolRevision='b' * 40, files={'../private-configuration.json': 'c' * 64})
@@ -120,7 +165,7 @@ class ProjectionTests(unittest.TestCase):
 @unittest.skipUnless(os.environ.get('PREVIEW_SECRET_FIXTURE') == '1' and sys.platform == 'linux',
                      'Disposable root Linux tmpfs fixture only')
 class TmpfsIntegration(unittest.TestCase):
-    def test_verified_public_copy_uses_root_owned_files_and_executable_init_hook(self):
+    def public_copy_fixture(self, mode=0o644, directory_mode=0o755):
         import pwd
         identifier = uuid.uuid4().hex
         account = pwd.getpwnam('nobody')
@@ -138,18 +183,62 @@ class TmpfsIntegration(unittest.TestCase):
         path = source / 'server-bootstrap.json'
         path.write_text(json.dumps(manifest))
         for item in [source, *source.rglob('*')]:
-            item.chmod(0o755 if item.is_dir() else 0o644)
+            item.chmod(directory_mode if item.is_dir() else mode)
             os.chown(item, account.pw_uid, account.pw_gid)
+        return identifier, operator, source, names, bundle.delivery.checksum(path)
+
+    def copy_public(self, fixture):
+        import pwd
+        identifier, operator, source, names, digest = fixture
         with patch.object(pwd, 'getpwnam', return_value=operator), patch.dict(os.environ, {'SUDO_USER': 'nobody'}), patch.object(sys, 'argv',
-                ['loader', identifier, bundle.delivery.checksum(path)]), patch.object(runpy, 'run_path') as run:
+                ['loader', identifier, digest]), patch.object(runpy, 'run_path') as run:
             exec(compile(host.COPY_RELEASE, '<public-copy-fixture>', 'exec'), {'EXPECTED_FILES': names})
         run.assert_called_once()
-        root = Path('/opt/mercurion/releases') / ('server-' + identifier)
-        for name in names:
-            info = (root / name).stat()
-            self.assertEqual(info.st_uid, 0)
-            self.assertEqual(stat.S_IMODE(info.st_mode), 0o755 if name.endswith('.sh') else 0o644)
-            self.assertEqual((root / name).read_bytes(), (source / name).read_bytes())
+
+    def test_verified_public_copy_normalizes_windows_scp_modes_in_protected_release(self):
+        for mode, directory_mode in ((0o644, 0o755), (0o664, 0o775), (0o666, 0o777)):
+            with self.subTest(mode=oct(mode), directoryMode=oct(directory_mode)):
+                fixture = self.public_copy_fixture(mode, directory_mode)
+                identifier, _, source, names, _ = fixture
+                self.copy_public(fixture)
+                root = Path('/opt/mercurion/releases') / ('server-' + identifier)
+                for item in [root, *root.rglob('*')]:
+                    info = item.stat()
+                    self.assertEqual(info.st_uid, 0)
+                    self.assertFalse(info.st_mode & 0o022)
+                for name in names:
+                    info = (root / name).stat()
+                    self.assertEqual(stat.S_IMODE(info.st_mode), 0o755 if name.endswith('.sh') else 0o644)
+                    self.assertEqual((root / name).read_bytes(), (source / name).read_bytes())
+
+    def test_public_copy_rejects_tampering_symlinks_wrong_owner_and_existing_release_before_execution(self):
+        for variant in ('manifest', 'content', 'symlink', 'owner', 'existing-release', 'writable-protected-parent'):
+            with self.subTest(variant=variant):
+                fixture = self.public_copy_fixture(0o666, 0o777)
+                identifier, _, source, names, _ = fixture
+                path = source / 'scripts/infrastructure/guest_preview_servers.py'
+                if variant == 'manifest':
+                    (source / 'server-bootstrap.json').write_text('{}')
+                elif variant == 'content':
+                    path.write_text('raise RuntimeError("unverified bytes")\n')
+                elif variant == 'symlink':
+                    target = source / 'untrusted.py'
+                    path.rename(target)
+                    path.symlink_to(target)
+                elif variant == 'owner':
+                    os.chown(path, 0, 0)
+                elif variant == 'existing-release':
+                    (Path('/opt/mercurion/releases') / ('server-' + identifier)).mkdir(parents=True)
+                else:
+                    Path('/opt/mercurion/releases').chmod(0o777)
+                try:
+                    with patch.object(runpy, 'run_path') as run:
+                        with self.assertRaises((AssertionError, ValueError, OSError)):
+                            self.copy_public(fixture)
+                        run.assert_not_called()
+                finally:
+                    if variant == 'writable-protected-parent':
+                        Path('/opt/mercurion/releases').chmod(0o755)
 
     def test_prepare_receive_apply_permissions_nonroot_inspect_and_retry_denial(self):
         identifier = uuid.uuid4().hex

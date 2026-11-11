@@ -57,10 +57,15 @@ e verificate, senza modificarle.
    la configurazione necessaria ai server. Riserva il run con un marker locale
    esclusivo: la stessa esecuzione non può essere rilanciata alla cieca.
 2. **Trasferimento pubblico:** SCP porta archivi e codice nella home SSH.
-   Un loader verifica manifest/hash, owner, file regolari e permessi, poi copia
+   Un loader verifica manifest/hash, owner e file regolari senza symlink, poi copia
    sotto `/opt/mercurion/releases/server-<run-id>`, root-owned. Solo il codice
    già copiato/verificato viene eseguito come root. L'hook PostgreSQL usa LF
    ed è eseguibile, evitando il sourcing nella shell dell'entrypoint.
+   Lo staging pubblico è considerato non fidato: SCP da Windows può produrre
+   file `0664`/`0666`. Questi mode non autorizzano l'esecuzione; i byte sono
+   autorizzati esclusivamente dagli hash del manifest fissato dall'host.
+   Directory e file nella destinazione protetta restano root-owned e non
+   scrivibili da gruppo/altri, indipendentemente dai mode della sorgente.
 3. **Preflight guest:** verifica IP `10.203.240.10/24`, gateway `10.203.240.1`,
    Docker Linux amd64 locale, Compose, spazio e assenza di progetti/reti/volumi
    canonici già presenti. Carica i quattro archivi senza tag e ne verifica i
@@ -97,6 +102,24 @@ quel report con SCP: non ripetere load/avvio. Non vengono cancellati server,
 volumi o segreti automaticamente; le risorse parziali richiedono review mirata.
 Nessun reset DB o cambio password implicito. Le directory pubbliche e il
 readback degli archivi restano per provenienza/ripresa.
+
+### Ripresa del solo errore di copia pubblica VM-043
+
+Il run `6c3e72e2e4064b71bd3bbffcff4d629c` si è fermato al controllo dei
+permessi del manifest SCP, prima di creare la release protetta, caricare
+immagini o consegnare segreti. Il vecchio bundle resta valido: la correzione
+riguarda il loader inviato dall'host, non le immagini o gli script guest.
+
+Dopo la verifica locale e CI degli strumenti corretti, usare lo stesso comando
+del passo 3 aggiungendo `-ResumePublicCopy`. È una ripresa esplicita una tantum:
+richiede marker `failed`, fase `guest-preflight-and-load`, nessun servizio avviato
+e nessuna ricevuta locale; salta esclusivamente SCP dei file già trasferiti.
+Il loader verifica di nuovo tutti gli hash e rifiuta una release protetta già
+esistente prima di qualsiasi load. Non cancella o sovrascrive risorse parziali.
+Un ulteriore errore richiede una nuova diagnosi, non un altro rilancio.
+
+Senza `-Execute`, `-ResumePublicCopy` verifica solo l'ammissibilità locale
+della ripresa e il bundle pubblico, senza leggere il file privato o aprire SSH.
 
 I file attivi sono volatili: non sono un piano completo di cold recovery.
 `restart: no` mantiene l'avvio su richiesta; il riavvio guest richiede una

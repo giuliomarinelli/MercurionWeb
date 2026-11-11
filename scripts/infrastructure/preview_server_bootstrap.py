@@ -21,10 +21,16 @@ source=pathlib.Path(owner.pw_dir)/('vm043-servers-'+rid)
 def regular(path):
  for parent in (source,*path.relative_to(source).parents):
   current=parent if parent==source else source/parent
-  info=current.lstat();assert stat.S_ISDIR(info.st_mode) and info.st_uid==owner.pw_uid and not info.st_mode&0o022
+  info=current.lstat();assert stat.S_ISDIR(info.st_mode) and info.st_uid==owner.pw_uid
  fd=os.open(path,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK)
- info=os.fstat(fd);assert stat.S_ISREG(info.st_mode) and info.st_uid==owner.pw_uid and not info.st_mode&0o022
- return os.fdopen(fd,'rb')
+ stream=os.fdopen(fd,'rb')
+ info=os.fstat(stream.fileno())
+ if not stat.S_ISREG(info.st_mode) or info.st_uid!=owner.pw_uid:
+  stream.close();raise ValueError('public-source-owner-or-type')
+ return stream
+# SCP from Windows can produce 0664/0666 files. Staging is untrusted public
+# input: only the pinned manifest and hashes authorize bytes copied below.
+# Writable source modes confer no trust; protected root destinations stay strict.
 with regular(source/'server-bootstrap.json') as stream:raw=stream.read(1048577)
 assert len(raw)<=1048576 and hashlib.sha256(raw).hexdigest()==digest
 manifest=json.loads(raw);assert manifest['runId']==rid and set(manifest['files'])==EXPECTED_FILES
@@ -96,28 +102,41 @@ def fetch(root, identifier, name):
     return value, path
 
 
-def execute(root, configuration):
+def resume_state(root, identifier):
+    state = json.loads((root / 'execution-state.json').read_text(encoding='utf-8'))
+    if (state.get('runId') != identifier or state.get('status') != 'failed'
+            or state.get('phase') != 'guest-preflight-and-load' or state.get('servicesStarted') is not False
+            or state.get('resumePublicCopyAttempted') or any((root / 'receipts').glob('*.json'))):
+        raise ValueError('public-copy-recovery-not-eligible')
+    return state
+
+
+def execute(root, configuration, resume_public_copy=False):
     if os.name != 'nt':
         raise ValueError('windows-owner-terminal-required')
     manifest = bundle.verify(root)
     identifier = manifest['runId']
     state_path = root / 'execution-state.json'
-    if state_path.exists():
+    previous = resume_state(root, identifier) if resume_public_copy else None
+    if state_path.exists() and not resume_public_copy:
         raise ValueError('already-attempted-no-automatic-retry')
     # Owner process only. Never execute this path in the assistant's tool session.
     private = json.loads(configuration.read_text(encoding='utf-8-sig'))
     data = payload(private, identifier)
-    state = dict(runId=identifier, phase='validated-host', servicesStarted=False, isolationAccepted=False)
-    with state_path.open('x') as stream:
+    state = previous if resume_public_copy else dict(runId=identifier, phase='validated-host', servicesStarted=False, isolationAccepted=False)
+    if resume_public_copy:
+        state.update(resumePublicCopyAttempted=True, status='recovering-public-copy')
+    with state_path.open('w' if resume_public_copy else 'x') as stream:
         json.dump(state, stream)
     def progress(phase):
         state['phase'] = phase
         state_path.write_text(json.dumps(state, indent=2))
         print('Fase: ' + phase, flush=True)
     try:
-        progress('public-transfer')
-        if subprocess.run(['scp.exe', *COMMON, '-r', str(root), 'mercurion-server:vm043-servers-' + identifier], timeout=300).returncode:
-            raise ValueError('public-transfer-failed')
+        if not resume_public_copy:
+            progress('public-transfer')
+            if subprocess.run(['scp.exe', *COMMON, '-r', str(root), 'mercurion-server:vm043-servers-' + identifier], timeout=300).returncode:
+                raise ValueError('public-transfer-failed')
         progress('guest-preflight-and-load')
         script = 'EXPECTED_FILES=set(' + repr(sorted(bundle.expected_files())) + ')\n' + COPY_RELEASE
         step = Step('preflight', remote(script, identifier, bundle.delivery.checksum(root / 'server-bootstrap.json'), sudo=True), interactive=True)
@@ -138,6 +157,7 @@ def execute(root, configuration):
         state['servicesStarted'] = result.get('servicesStarted', False)
         if code or result.get('status') != 'passed' or len(result.get('ownedContainers', [])) != 4:
             raise ValueError('server-start-incomplete')
+        state['status'] = 'passed'
         progress('finished')
         return dict(runId=identifier, status='passed', reportPath=str(path), meilisearchAddress=result['meilisearchAddress'],
                     servicesStarted=True, publishedPorts=False, applicationServicesStarted=False, isolationAccepted=False)
@@ -152,12 +172,16 @@ if __name__ == '__main__':
     parser.add_argument('--bundle', type=Path, required=True)
     parser.add_argument('--configuration', type=Path, default=Path.home() / '.mercurion/preview/configuration.json')
     parser.add_argument('--execute', action='store_true')
+    parser.add_argument('--resume-public-copy', action='store_true',
+                        help='Explicit one-time recovery before any protected release was created; reuse public staging')
     args = parser.parse_args()
     try:
         value = bundle.verify(args.bundle)
+        if args.resume_public_copy:
+            resume_state(args.bundle, value['runId'])
         if args.execute:
             print('Bootstrap dei soli server preview: passphrase SSH e sudo soltanto nel terminale.', flush=True)
-            print(json.dumps(execute(args.bundle.resolve(), args.configuration)))
+            print(json.dumps(execute(args.bundle.resolve(), args.configuration, args.resume_public_copy)))
         else:
             print(json.dumps(dict(runId=value['runId'], status='public-bundle-verified', executionRequested=False,
                                   privateConfigurationRead=False, serverCount=4)))
