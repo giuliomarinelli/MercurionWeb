@@ -1,10 +1,18 @@
 # Meilisearch: indici, credenziali, UI e manutenzione
 
-**Stato:** contratto applicativo dei log implementato nel branch; procedure VM ancora progettuali.
+**Stato, 11 novembre:** server privato VM-043 attivo, tunnel SSH loopback verificato
+e quattro indici log precreati via curl con task/readback riusciti. Due chiavi
+client con scadenza 90 giorni preparate e collaudate localmente, **non ancora
+create sulla VM**: rinviate al giorno successivo. Procedure versionate e punto
+di ripresa in [RUNBOOK.md](RUNBOOK.md#11-operazioni-curl-delloperatore), ricevute
+in [EXECUTION-RECORD.md](EXECUTION-RECORD.md). La UI non è stata distribuita.
 
 ## Istanza e indici
 
-**Una sola istanza server**, collegata alle reti `mercurion_stg_search` e `mercurion_prod_search`. I due backend non condividono per questo la rete dati o il broker NATS.
+**Una sola istanza server** prevista per le reti `mercurion_stg_search` e
+`mercurion_prod_search`. Nel bootstrap oggi eseguito è collegata soltanto alla
+rete preview `mercurion_stg_search`; produzione non è avviata. I due backend
+non devono condividere per questo la rete dati o il broker NATS.
 
 | Categoria | Indici runtime |
 | --- | --- |
@@ -23,7 +31,8 @@ Gli indici `logs` e `security_logs` storici non vengono eliminati o migrati impl
 
 **Decisione dell'owner:** non creare indici via UI, script automatici con master key persistente o bootstrap applicativo. L'operatore usa `curl` su una sessione amministrativa protetta, con una chiave a privilegi elevati **limitata allo stretto necessario** e custodita nel password manager Windows.
 
-Procedura progettata, da rendere eseguibile solo dopo i test di rete/segreti:
+Procedura operativa, resa eseguibile dopo i pilot di rete/segreti. Per la
+sequenza completa usare il runbook; i passi 1–4 sotto sono ora verificati:
 
 1. Avviare il server Meilisearch con master key server consegnata dal bootstrap protetto; verificare `/health`.
 2. Aprire una sessione SSH dall'host e inoltrare l'API sul loopback Windows `http://127.0.0.1:17700`; **non** pubblicare l'API verso LAN o Cloudflare.
@@ -35,7 +44,16 @@ Procedura progettata, da rendere eseguibile solo dopo i test di rete/segreti:
 
 La creazione implicita durante `documents.add` esiste nel codice; **la strategia VM richiede la precreazione** per non concedere ordinariamente `indexes.create` ai writer dei log. Verificare che il dispatcher funzioni su indici già presenti con `documents.add` e senza permessi di creazione.
 
-Le chiamate `curl` definitive dovranno usare un meccanismo di consegna dell'header che **non esponga il bearer token negli argomenti del processo** e non lo lasci nella cronologia shell. Non pubblicare snippet che invitino a scrivere la credenziale in chiaro accanto a `-H`.
+I due script operatore versionati sono
+[Invoke-PreviewMeiliLogIndexes.ps1](../../../scripts/infrastructure/Invoke-PreviewMeiliLogIndexes.ps1)
+e [Invoke-PreviewMeiliClientKeys.ps1](../../../scripts/infrastructure/Invoke-PreviewMeiliClientKeys.ps1).
+Usano `curl.exe --config -`: header via stdin, master raccolta dal password
+manager con prompt sicuro, mai negli argomenti o in un nuovo file persistente.
+Non pubblicare snippet che mettano la credenziale letterale accanto a `-H`.
+La seconda procedura aggiorna soltanto le due chiavi nel file privato del
+processo owner, con backup e sostituzione atomica; non è stata ancora eseguita
+con credenziali operative. Scelta approvata: `-Expiry 90Days`, senza rinnovo
+implicito o grant aggiuntive. I QA opt-in sono disponibili nel repository.
 
 ## Separazione delle API key
 

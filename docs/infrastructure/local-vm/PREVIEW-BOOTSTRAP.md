@@ -3,7 +3,10 @@
 **11 novembre 2026.** L'owner ha scelto provider reali e hostname
 `preview.mercurion.app`. I valori saranno preparati dall'owner nel file
 locale privato; nessun segreto in chat, Git, build, argv o artifact di consegna.
-Lo stack operativo è in preparazione: questo documento non ne attesta l'avvio.
+Questa pagina conserva la preparazione VM-042. Aggiornamento: il successivo
+bootstrap dei quattro server VM-043 è riuscito e quattro indici Meili sono
+pronti; le applicazioni restano ferme. Stato e ripresa autorevoli nel
+[runbook](RUNBOOK.md) e nel [registro](EXECUTION-RECORD.md).
 
 ## 1. File privato sull'host Windows
 

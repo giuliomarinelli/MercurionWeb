@@ -1,5 +1,14 @@
 # Roadmap — deployment demo Hyper-V / Docker Engine
 
+> **Avanzamento fine 11 novembre:** rete statica e prove nei perimetri registrati,
+> pilot sintetici/RPC conclusi; VM-043 quattro server reali privati avviati e
+> VM-044 quattro indici Meili creati. Prossima azione rinviata: due API key
+> ristrette, 90 giorni. Cold recovery, app e accesso pubblico rimangono aperti.
+> [Runbook autosufficiente](RUNBOOK.md), [registro eseguito/pronto](EXECUTION-RECORD.md),
+> [pausa e ripresa](CONTINUITY.md). Le note progressive successive conservano
+> la storia delle autorizzazioni, senza prevalere su questo riepilogo.
+
+
 **Stato:** roadmap architetturale. Le fasi rappresentano risultati verificabili, non giorni di lavoro promessi; un blocco può richiedere più sessioni. Seguire [DAILY-LOG.md](DAILY-LOG.md) per esiti e limiti reali.
 
 ## INF-VM-01 — Documentazione e contratto
@@ -300,9 +309,11 @@ per il successivo stack preview, senza dedurre accettazione integrata.
 **VM-043 — primo avvio dei soli server:** [procedura e wrapper](PREVIEW-SERVER-BOOTSTRAP.md),
 riuso del candidato d227dbf4, codice di consegna separato dalle immagini,
 collision guard e secret delivery tmpfs, readiness e report. Prove locali
-dei contratti, permessi Linux e quattro server reali sintetici completate;
-esecuzione sulla VM da acquisire dall'owner. Provider dichiarati compilati,
-Meilisearch client key ancora da creare via curl. Nessun cambio ai gate pubblici.
+dei contratti, permessi Linux e quattro server reali sintetici completate.
+Esecuzione reale acquisita: run 6c3e72e2e4064b71bd3bbffcff4d629c passed dopo
+ripresa del loader SCP, quattro readiness/roundtrip e nessun publishing.
+Quattro indici Meili poi creati; chiavi client curl 90 giorni pronte ma rinviate.
+[Punto di arresto e ripresa](CONTINUITY.md). Nessun cambio ai gate pubblici.
 
 **VM-042, 11 novembre — preparazione preview privata in corso.** Provider
 reali da compilare dall'owner nel file locale e hostname `preview.mercurion.app`.

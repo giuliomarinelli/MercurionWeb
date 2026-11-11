@@ -1,24 +1,48 @@
-# Punto di ripresa — aggiornamento 11 novembre 2026
+# Pausa operativa — fine giornata 11 novembre 2026
 
-La pausa è terminata per istruzione esplicita dell'owner. VM accesa/LUKS
-sbloccato; scelti provider reali preparati dall'owner e hostname
-`preview.mercurion.app`. Non leggere il file privato o dotenv/PEM operativi.
-Master Meilisearch solo server; chiavi applicative create via curl.
+**Istruzione esplicita dell'owner:** stop alle operazioni infrastrutturali per
+oggi; comando API key rimandato al giorno successivo, con tunnel aperto.
+Il lavoro successivo autorizzato in questa sessione è soltanto documentare e
+conservare in Git l'intero percorso. Non continuare consegna di segreti,
+avvii, reboot, rete, Cloudflare o operazioni Meili durante la pausa.
 
-La [preparazione VM-042](PREVIEW-BOOTSTRAP.md) documenta il lavoro corrente:
-configurazione privata, manifest operativi, ricette server aggiornate,
-export Web staging esteso alla CI e collaudo locale completo riuscito con
-valori sintetici. Bootstrap reale guest ancora da completare; non avviare
-Compose direttamente dai manifest preparatori. Le immagini Web QA non
-sono le immagini definitive dal commit CI. La prova non chiude H-05/A-05/A-30.
+## Punto di ripresa del 12 novembre
 
-L'owner ha autorizzato l'inclusione della nuova site key pubblica Angular
-staging per preview e confermato il file privato creato. La validazione owner
-ha rilevato il vecchio campo AES da 64 byte: usare il wrapper di correzione
-prima del primo bootstrap, senza leggere il file da questa sessione o
-rigenerare gli altri segreti. Provider ancora da confermare. Preservare anche
-il `__pycache__` preesistente. Nessun merge autorizzato. Registrare CI ed
-export definitivi nei report esterni senza ripetere CI solo per una ricevuta.
+1. Leggere [RUNBOOK.md](RUNBOOK.md), sezione 12, e
+   [EXECUTION-RECORD.md](EXECUTION-RECORD.md).
+2. VM-043 **conclusa**: run 6c3e72e2e4064b71bd3bbffcff4d629c, quattro server,
+   roundtrip/readiness positivi, nessuna porta pubblicata. Non ripetere bootstrap,
+   ResumePublicCopy, generazione file o riparazione AES.
+3. VM-044 indici **conclusa**: logs_staging/security_logs_staging e coppia
+   production creati, primaryKey id, task 0–3 verificati. Non ricrearli.
+4. API key **non eseguite**: owner ha scelto validita 90 giorni. Salvare e chiudere
+   il file privato nell'editor; con tunnel disponibile usare il comando versionato:
+
+   ```powershell
+   powershell -NoProfile -File C:/.project_repo/MercurionWeb/scripts/infrastructure/Invoke-PreviewMeiliClientKeys.ps1 -Expiry 90Days
+   ```
+
+   Il vecchio comando sotto .codex/artifacts era una copia pubblica della stessa
+   procedura; non eseguire entrambe le copie. Il sorgente stabile e nel repository.
+5. Master/passphrase/sudo solo nel terminale dell'owner. Non leggere il suo
+   configuration.json o dotenv/PEM da una sessione agente. Attendere la ricevuta
+   MEILI_CLIENT_KEYS_READY prima di dichiarare compilate/valide le chiavi.
+6. Se la VM ha perso tmpfs per reboot/arresto, non procedere come se i bind fossero
+   ancora pronti: cold recovery dei server reali ancora aperta (runbook sezione 13).
+
+Provider reali e riparazione iniziale AES sono gia confermati. Dropbox/GitHub/
+LinkedIn inutilizzati usano placeholder non vuoti; chiavi Meili client ancora
+in attesa. Hostname preview.mercurion.app, applicazioni e DNS/tunnel pubblico
+ancora non attivati. H-05/A-05/A-30 restano parziali.
+
+Branch operativi Web feature/infra-vm-docker-engine-architecture e Tox21
+feature/infra-vm-nats-client-auth; nessun merge autonomo. Preservare il preesistente
+scripts/infrastructure/__pycache__. La revisione delle immagini Web e d227dbf4,
+Tox21 d506101; strumenti di ripresa SCP ca14b03d con Required gate verde.
+Revisioni e limiti completi nel registro; non ricostruire lo stato dalla vecchia
+cronologia seguente. Gli strumenti/documenti promossi hanno la loro CI corrente.
+
+## Materiale storico, non istruzioni per la ripresa attuale
 
 ## Snapshot storico della pausa del 10 novembre
 

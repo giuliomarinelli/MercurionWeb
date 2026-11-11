@@ -1,7 +1,7 @@
 # Mercurion — progetto infrastrutturale della demo su VM locale
 
 **Data di apertura:** 7 novembre 2026  
-**Stato:** specifica architetturale iniziale; nessun deployment autorizzato né eseguito da questo documento.  
+**Stato, 11 novembre 2026:** quattro server privati e quattro indici log verificati sulla VM; chiavi client pronte ma rinviate, applicazioni/accesso pubblico ancora aperti.
 **Branch di lavoro:** `feature/infra-vm-docker-engine-architecture`.  
 **Lingua di lavoro:** italiano, salvo nomi tecnici, identificatori e codice.
 
@@ -13,8 +13,19 @@ La VM può rimanere spenta; preview può essere arrestato indipendentemente dall
 
 ## Indice e fonti di verità
 
+**Iniziare da [RUNBOOK.md](RUNBOOK.md):** procedura sequenziale autosufficiente
+per un operatore umano, da nuova postazione al punto effettivamente raggiunto.
+Non richiede chat, strumenti AI o gli script personali dell'autore. Le normali
+dipendenze software e gli input scientifici sono dichiarati. Le guide storiche
+seguenti conservano decisioni ed evidenze; i loro «prossimi passi» datati non
+superano lo stato attuale del runbook e del registro di esecuzione.
+
 | Documento | Responsabilità |
 | --- | --- |
+| [RUNBOOK.md](RUNBOOK.md) | Installazione/configurazione, bootstrap, curl, ripresa del giorno successivo, errori e limite del cold recovery |
+| [ARTIFACT-REPRODUCTION.md](ARTIFACT-REPRODUCTION.md) | Preparazione da sorgenti e modello, build/export/scan/CI e bundle, senza script esterni al repository |
+| [VERIFICATION-PROCEDURE.md](VERIFICATION-PROCEDURE.md) | Inventari, canary host/LAN, Android, IPv6, fixture e pilot ripetibili senza AI |
+| [EXECUTION-RECORD.md](EXECUTION-RECORD.md) | Ricevute sanitizzate, SHA/CI/identità, confine tra eseguito e soltanto pronto |
 | [CURRENT-STATE.md](CURRENT-STATE.md) | Stato effettivamente osservato, riferimenti ai sorgenti e lacune |
 | [HOST-GUEST-READINESS.md](HOST-GUEST-READINESS.md) | Inventari INF-VM-02, baseline guest e prove di isolamento ancora aperte |
 | [INF-VM-02-REVIEW.md](INF-VM-02-REVIEW.md) | Evidenze, residui H-05/IPv6, fixture verificate e gate proposto per il pilot sintetico VM-035 |

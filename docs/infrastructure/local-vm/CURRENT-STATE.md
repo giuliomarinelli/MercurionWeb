@@ -1,5 +1,13 @@
 # Inventario corrente e lacune della baseline
 
+> **Stato corrente, fine 11 novembre:** VM-043 completata, quattro server privati
+> e quattro indici Meili verificati. Chiavi client con scadenza 90 giorni pronte
+> ma rinviate al 12 novembre; applicazioni/accesso pubblico ancora aperti.
+> La sequenza operativa corrente e [RUNBOOK.md](RUNBOOK.md), le ricevute sono
+> [EXECUTION-RECORD.md](EXECUTION-RECORD.md). I punti datati qui sotto descrivono
+> la progressione storica: non sono una richiesta di ripetere fasi concluse.
+
+
 **Baseline ispezionata:** `feature/infra-vm-docker-engine-architecture` al commit `6431b5bd1e22b59edd27c7500a4025f15053dd10` (7 novembre 2026), con la correzione degli indici log integrata. La documentazione fotografa le evidenze disponibili, **non** certifica una VM già distribuita. Nuovi commit richiedono una verifica dei punti interessati.
 
 ## Inventario di ciò che esiste

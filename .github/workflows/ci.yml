@@ -508,6 +508,8 @@ jobs:
           python3 -B -m unittest discover -s scripts/infrastructure -p test_preview_credentials.py
           python3 -B -m unittest discover -s scripts/infrastructure -p test_preview_export.py
           python3 -B -m unittest discover -s scripts/infrastructure -p test_preview_servers.py
+          python3 -B -m unittest discover -s scripts/infrastructure -p test_reproduce_preview_artifacts.py
+          python3 -B scripts/check-local-vm-runbook.py
           python3 -B scripts/infrastructure/preview_compose.py
           node --check deployment/local-vm/operational/initialize-empty-schema.cjs
           node --check scripts/t21-service-probe.cjs

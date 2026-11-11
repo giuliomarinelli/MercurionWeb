@@ -127,6 +127,15 @@ successiva procedura esplicita di riconsegna dei materiali stabili.
 
 ## 6. Collaudi e passo successivo
 
+**Aggiornamento a fine giornata:** bootstrap VM eseguito con successo sul run
+`6c3e72e2e4064b71bd3bbffcff4d629c`, dopo la ripresa pubblica del loader corretta
+nel commit ca14b03d, CI full/Required gate verdi. Quattro roundtrip e quattro
+readiness true, nessun publishing, applicazioni ferme; Meili `172.18.0.2`.
+Tunnel SSH e quattro indici log successivamente verificati. Chiavi client
+rinviate, validità 90 giorni scelta dall'owner. Per riprendere seguire il
+[runbook](RUNBOOK.md#12-punto-di-ripresa-concordato-per-il-giorno-successivo),
+non rilanciare il bootstrap. [Ricevute complete sanitizzate](EXECUTION-RECORD.md).
+
 - Test locali dei contratti: allowlist dei percorsi, payload senza provider/RSA,
   separazione master, proiezione di soli quattro server e stop su collisioni.
 - Due prove reali in fixture Linux con `/run` tmpfs, rete assente e nessun Docker

@@ -70,3 +70,17 @@ VM, DNS, tunnel pubblico o chiusura dei residui di isolamento dedotti.
 ## Decisioni da riesaminare soltanto in presenza di evidenze
 
 Se le reti `internal: true` non consentono il loopback administrato come previsto, sostituire il meccanismo di accesso operativo senza pubblicare porte esterne. Se la UI richiede privilegi di modifica, non elevarle la key: valutare visualizzazione ridotta o altro strumento. Se `v0.15.3-lite` ha CVE rilevate, non fissare quell'immagine attiva nel deployment; esaminare un'altra versione o non distribuire la UI.
+
+
+## VM-044 — Curl Meilisearch e pausa dell'11 novembre
+
+Quattro indici log/audit verificati sulla VM con primaryKey id e task 0–3.
+Due chiavi applicative ristrette (search ChEMBL, writer soli log preview):
+owner ha scelto **scadenza 90 giorni**. Procedura curl pronta e QA locale;
+comando con valori operativi rinviato al 12 novembre, non eseguito. Non
+interpretare scelta o collaudo come esito del provisioning reale.
+
+Guida autosufficiente richiesta per persone senza AI: [RUNBOOK.md](RUNBOOK.md)
+e appendici nel repository. Nessuna dipendenza esecutiva da chat/MCP/script
+personali; software e dati necessari esplicitati. Nessun ulteriore avvio,
+trasferimento di segreti o modifica della VM durante la pausa documentale.

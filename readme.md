@@ -143,6 +143,7 @@ Coordinated artifact delivery and integrated acceptance remain in the
 
 ## Further reading
 
+- [VM infrastructure runbook, from host setup to the current private-preview milestone (Italian)](docs/infrastructure/local-vm/RUNBOOK.md)
 - [Tox21 container and coordinated-delivery roadmap](docs/infrastructure/tox21-container-roadmap.md)
 - [Angular project](MercurionWebNg/README.md)
 - [Nest/API project](MercurionWebNode/README.md)

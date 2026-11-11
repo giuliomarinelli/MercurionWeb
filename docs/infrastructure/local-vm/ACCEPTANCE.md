@@ -14,8 +14,8 @@
 | A-08 | HTTP | header proxy/client IP e cookie/sessione corretti con la catena Cloudflare Tunnel | Non eseguito |
 | A-09 | Access | preview limitato dalla policy autorizzata, produzione secondo regime concordato | Non eseguito |
 | A-10 | Ricerca | entrambi i Nest leggono gli stessi indici ChEMBL, senza poterli modificare | Non eseguito |
-| A-11 | Log | quattro indici log/audit, nessuna scrittura o lettura fuori perimetro | Non eseguito |
-| A-12 | Amministrazione | `curl` precrea indici con key temporanea, task completati, nessun secret persistente | Non eseguito |
+| A-11 | Log | quattro indici log/audit, nessuna scrittura o lettura fuori perimetro | PARZIALE: quattro indici VM creati via curl, task 0–3/readback id riusciti. Grant/applicazione ancora da avviare e verificare |
+| A-12 | Amministrazione | `curl` precrea indici con key temporanea, task completati, nessun secret persistente | PARZIALE: sessione curl operatore con master effimera su stdin e quattro task riusciti; nessun file auth creato. Chiavi client 90 giorni preparate ma non eseguite; delega/revoca amministrativa non verificata |
 | A-13 | UI | UI ed API Meilisearch funzionano solo con doppio SSH local-forward; CORS valido | Non eseguito |
 | A-14 | UI negativa | chiave read-only non può creare/eliminare/modificare indici o chiavi | Non eseguito |
 | A-15 | Immagini | UI candidata scansionata per CVE, digest corretto e firma di approvazione owner | Non eseguito |
@@ -30,7 +30,7 @@
 | A-24 | Risorse | memoria/CPU/disco misurati a riposo, in carico e con entrambi gli stack | Non eseguito |
 | A-25 | Limiti portfolio | avviso di case study, dati personali e disponibilità rappresentati correttamente | Non eseguito |
 | A-26 | Amministrazione guest | SSH da host con chiave, nessun login root/password, ACL delle origini verificate | Parziale: login/Verify e controllo SSH host riusciti; Android TCP/22 non connesso, route dall'altra origine e attribuzione alla whitelist non provate |
-| A-27 | Cifratura guest | mount root sul dispositivo cifrato e percorso operativo di sblocco | Root su LUKS/dm-crypt/LVM verificato nel report v2; sblocco a freddo aperto |
+| A-27 | Cifratura guest | mount root sul dispositivo cifrato e percorso operativo di sblocco | Root LUKS/dm-crypt/LVM verificata; sblocco manuale owner confermato ai riavvii della baseline. Non copre cold recovery di stack/segreti |
 | A-31 | Configurazione VM-034 | Reti Compose con IPv4 esplicito, IPv6 non assegnato; reti reali ed endpoint corrispondenti, deny vNIC IPv6 presente | VERIFICATO nel perimetro configurazione: host/guest del 10 novembre coerenti e run VM 2bcdfd57a75c4b2a979d2d2503351f5f con 13 readback IPv4-only, 33/33 passed, cleanup 16/13/7 senza errori. Kernel IPv6 disponibile. Non è prova di filtraggio IPv6 e non chiude A-05/A-30/H-05 |
 | A-32 | Pilot VM-035 | Trasporto SSH sintetico preview: sei fasi, helper verificato, active tmpfs con proprietà attese, codice staged rimosso, nessun servizio avviato | VERIFICATO per il trasporto sintetico: ricevuta owner dfc1af5a416f4b1abc6e8dab99034dbb con sei fasi e helper hash validati. Nessuna seconda lettura live. Non comprende segreti reali, consumer avviato, mount, restart/recreate o cleanup dell'active |
 | A-33 | VM-036 | Riconciliazione e ritiro selettivo del solo run sintetico completato, dati assenti e metadati contro il riuso conservati | VERIFICATO sul run dfc1af5a416f4b1abc6e8dab99034dbb: ricevuta owner con quattro fasi/hash validati, state retired e valuesAbsent/codeRemoved true. Nessuna seconda lettura live dell'agente. Non è un cleanup generico o retirement delle credenziali reali |
@@ -44,6 +44,19 @@ con valori sintetici nel run `3e0542842ace4bd2a4c9552059b1ca67`: schema nuovo,
 health backend via edge, HTML Angular e roundtrip AES, cleanup senza errori. Server isolati
 nel run `9aa845d722a643ac9f19abba50685521`. Immagini Web QA, nessun bootstrap
 VM, login, import ChEMBL o tunnel pubblico. [Evidenze e passi](PREVIEW-BOOTSTRAP.md).
+
+## Evidenze VM-043/044 dell'11 novembre
+
+**A-39 — quattro server reali:** run 6c3e72e2e4064b71bd3bbffcff4d629c,
+quattro config digest/load-save verificati e quattro readiness positive.
+Nessun publishing; applicazioni ferme; file segreti tmpfs, cold recovery aperta.
+
+**A-40 — indici via curl:** quattro log/audit precreati con primaryKey id e
+quattro task/readback riusciti. Le API key non sono state create sulla VM:
+collaudo locale della procedura e scelta 90 giorni non sono esecuzione reale.
+
+[Registro sanitizzato](EXECUTION-RECORD.md), [runbook e prossima azione](RUNBOOK.md).
+H-05/A-05/A-30 rimangono parziali; nessuna accettazione pubblica implicita.
 
 ## Risultati preesistenti da non confondere con questa matrice
 

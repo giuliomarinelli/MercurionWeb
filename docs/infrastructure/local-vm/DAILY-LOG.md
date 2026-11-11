@@ -1428,3 +1428,34 @@ poi riletto/correlato dall'agente senza nuovo load o pilot. Causa SSH non
 attribuita senza prove; messaggio wrapper e procedura di recupero migliorati.
 [Procedura, hash ed esito](TOX21-VM-PILOT.md). Nessun merge, rollout
 persistente, chiusura dei residui H-05/A-05/A-30 o release Web completa.
+
+
+## 11 novembre — VM-043/044 e documentazione della pausa
+
+Bootstrap server reale concluso, run 6c3e72e2e4064b71bd3bbffcff4d629c: quattro
+load/save verificati, Postgres ruolo/vector, Redis auth/Exg, NATS auth e Meili
+health/protezione amministrativa tutti positivi. Primo tentativo fermato dal
+controllo dei mode SCP Windows prima di qualsiasi load/segreto; corretto in
+ca14b03d (CI full 43012518785 verde), ripresa una tantum senza nuovo trasferimento.
+Nessuna porta pubblicata; applicazioni e produzione non avviate.
+
+Tunnel SSH loopback Windows 17700 verso Meili 172.18.0.2:7700 verificato;
+curl amministrativo owner conferma inizialmente zero indici. Creati i quattro
+indici log/audit con primaryKey id, task 0–3 e readback riusciti. Le due chiavi
+client restano NON eseguite; owner sceglie scadenza di 90 giorni e rinvia al
+giorno successivo. Non leggere il file privato o tentare avvii durante la pausa.
+
+Richiesta documentazione autosufficiente per una persona senza AI: introdotti
+runbook dall'inizio, riproduzione degli artifact, procedura delle verifiche e
+registro sanitizzato; allineati riepiloghi e continuità. Conservati in Git i
+blocchi curl pubblici precedentemente solo negli artifact e i QA opt-in con
+soli dati sintetici. Estratte le ricette pubbliche di materializzazione/export
+broker/assemblaggio per rimuovere dipendenze da script di sessione. Nessun
+contenuto della configurazione privata incluso. Le normali dipendenze software,
+il pacchetto modello e i limiti di retention/ricostruzione sono dichiarati.
+
+La scrittura della guida non è una nuova installazione VM o un cold restore
+collaudato. Rimangono H-05/A-05/A-30, riconsegna dopo perdita tmpfs, applicazioni,
+ChEMBL, provider, Cloudflare e produzione. Nessun merge. Punto di ripresa e
+sorgenti operativi nel RUNBOOK e nel CONTINUITY; la copia artifact del comando
+chiavi non va eseguita oltre alla copia versionata.

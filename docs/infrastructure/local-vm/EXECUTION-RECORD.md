@@ -1,0 +1,131 @@
+# Registro riproducibile e punto di arresto — 11 novembre 2026
+
+Questo registro integra il [runbook](RUNBOOK.md). Non contiene segreti e non
+richiede accesso alla chat o alla cartella privata dell'autore. Le prove locali
+non sono promosse a prove VM; una procedura pronta non viene marcata eseguita.
+
+## Milestone osservate
+
+| Fase | Evidenza | Cosa dimostra / limite |
+| --- | --- | --- |
+| Host/guest iniziali | Ubuntu 26.04.1, Engine 29.9.3, Compose 5.7.0; Gen2 8 vCPU/16 GiB, root LUKS | Inventari operatore, non replica dell'installer originale |
+| Rete statica | host 10.203.240.1/24, guest .10/24, Internal e Mercurion-NAT; 19 ACL DnsHttps | Configurazione persistita anche dopo reboot host e guest; profili Windows/Kaspersky Public |
+| Egress post-reboot | run `c149b357dc5040038b4a26682309dbd0` | DNS/HTTPS da guest e due bridge, non tutti i provider |
+| Nove porte private post-reboot | run `32b00ebc17a246b881b95fff19c13dc3` | 9 casi non raggiungibili, 81 controlli host; non tutta la LAN |
+| LAN Android | run `2e5b54bfac1a4ff782f7cd33891ae49f` | Tre TCP guest/due bridge non raggiungibili, 18 controlli Windows→telefono, chiusura Android confermata |
+| Android→SSH | run `0552d34e8d924b28a98790cc7c10721b` | TCP non connesso; route verso Internal non dimostrata, H-05 parziale |
+| Fixture VM IPv4-only | run `2bcdfd57a75c4b2a979d2d2503351f5f` | 13 readback reti IPv4-only, 33 casi passed, cleanup; non filtraggio IPv6 completo |
+| Consegna sintetica/retirement | `dfc1af5a416f4b1abc6e8dab99034dbb` | Sei fasi poi retirement; nessun servizio reale |
+| Consumer mount sintetico | `af0b6eb4637940eb814acfd380e27f26` | Sei check, restart/recreate, cleanup e retired |
+| Pilot RPC VM-041 | `715f719bb1b14a4b87fb1c42e1a54647` | Tox21/NATS reali, tre lifecycle, nove negazioni NATS, cleanup; requester Python, nessun Nest |
+| Candidato VM-042 | Web d227dbf4, Tox21 d506101, otto immagini strict | Export host verificato; CI non pubblica tutti i tar distribuibili |
+| Bootstrap VM-043 | `6c3e72e2e4064b71bd3bbffcff4d629c` | Quattro server attivi, quattro readiness vere, zero porte pubblicate, applicazioni ferme |
+| Curl VM-044 indici | task 0, 1, 2, 3; `LOG_INDEXES_READY` | Quattro indici con primaryKey id riletti; nessuna API key creata |
+| Curl VM-044 chiavi | **NON ESEGUITO** | Procedura preparata/QA locale; validità 90 giorni scelta dall'operatore, rinviata |
+
+## Revisioni e CI sorgente
+
+| Componente | SHA | CI esatta |
+| --- | --- | --- |
+| Immagini Web e ricette server | `d227dbf4216ce2ceb865a9b315ae52169c9e8c6e` | [42995928107, attempt 2, full success](https://github.com/giuliomarinelli/MercurionWeb/actions/runs/42995928107) |
+| Tox21 | `d506101ec27c985ef4ddb280266bfcdc4b6bf1c4` | [42858304379 success](https://github.com/giuliomarinelli/MercurionTox21/actions/runs/42858304379) |
+| Strumenti bootstrap iniziale | `5a7688caa1e1dd2e028aa1224811de4c338970b0` | [43006073115 full success](https://github.com/giuliomarinelli/MercurionWeb/actions/runs/43006073115) |
+| Correzione SCP/ripresa | `ca14b03d8a52e9725bab3ad9b715615b5795bdab` | [43012518785 full success, Required gate success](https://github.com/giuliomarinelli/MercurionWeb/actions/runs/43012518785) |
+
+Il primo attempt della CI immagini ebbe un errore GitHub FinalizeArtifact
+ECONNRESET: fu ripetuto il job fallito senza modificare codice. La distinzione
+fra revisione strumenti e revisione immagini evita di ricostruire otto immagini
+solo per un cambiamento della documentazione o del trasporto.
+
+## Immagini realmente caricate nel guest per VM-043
+
+| Ruolo | Config digest OCI | Image ID sul guest |
+| --- | --- | --- |
+| PostgreSQL | `sha256:89b92c0c9812fef73f674ada1017c8a8c5766968b13bdf6560311f1bf2dd811a` | `sha256:1f228cd64f4ef0b2117f846833b2e167256a2b9cd3a43102e2b0d009019e9358` |
+| Redis | `sha256:64d06d6b90610b2c8b5ed542cd55d8856a307317bd57d0563075c79328642f79` | `sha256:a3f9074b57a1c04dda5a735e46560499b0f6edaea86707bffedf5a11145c6a2d` |
+| Meilisearch | `sha256:5f293573a4b3ba49fcd88545f22739db67ce7cd6ba25ac01a22ee89606fdb91c` | `sha256:9f83136051c0a11331e8d1d6e950adcaf426e0f5f27e1344f7294cd60730f58e` |
+| NATS | `sha256:2523173dcd72c12fea4470cb7ca961f96d0ecbf5b7c269681893ccde9d23eb17` | `sha256:ca1d4783151aab46ae6b4e0d62d9bab3614fffc8b2dc1e557bac27b4490163df` |
+
+Tutti i roundtrip load/save sono true. Ricevuta guest osservata alle
+`2026-11-11T11:41:54.565245+00:00`. I quattro check:
+`postgresRoleAndVector`, `redisAuthAndKeyevents`, `natsAuthRequired`,
+`meilisearchHealthAndAdminAuth`, tutti true. Server in quattro container;
+Meili sul privato `172.18.0.2`, non un IP pubblico né un contratto statico futuro.
+
+## Stato dei file e dei percorsi attuali
+
+- Release guest protetta:
+  `/opt/mercurion/releases/server-6c3e72e2e4064b71bd3bbffcff4d629c`.
+- Materiali attivi volatili:
+  `/run/mercurion-preview/6c3e72e2e4064b71bd3bbffcff4d629c/active`.
+- Bundle pubblico host storico:
+  `%USERPROFILE%/.codex/artifacts/inf-vm-04/vm043-servers-ready`.
+- Ricevute pubbliche host in `receipts/preflight-result.json` e
+  `receipts/bootstrap-result.json` sotto quel bundle.
+- Configurazione privata stabile dell'operatore:
+  `%USERPROFILE%/.mercurion/preview/configuration.json`; creata, AES corretto e
+  provider compilati confermati. Non leggerla da una sessione agente. Le chiavi
+  client sono ancora da creare, non dichiarate valide in base a un file aperto.
+
+Il primo tentativo VM-043 si era fermato sul mode del manifest ricevuto da SCP,
+prima del load e della consegna dei segreti. Correzione verificata localmente
+con file 0644/0664/0666 e directory 0755/0775/0777; hash errati, symlink, owner
+errato e destinazione protetta insicura respinti. Ripresa esplicita una tantum
+con `-ResumePublicCopy`: nessun ritrasferimento di immagini, esito VM passed.
+Non è autorizzazione a ripetere il bootstrap o la ripresa oggi.
+
+## Quattro indici Meilisearch conclusi
+
+L'operatore ha verificato prima `ADMIN_AUTH_OK; indexCount=0`, usando curl con
+header su stdin. Poi ha eseguito il blocco ora versionato come
+`Invoke-PreviewMeiliLogIndexes.ps1`. Ricevuta finale:
+
+```json
+{
+  "status": "LOG_INDEXES_READY",
+  "apiKeysCreated": false,
+  "count": 4,
+  "indexes": [
+    {"uid":"logs_staging","primaryKey":"id","taskUid":0,"status":"ready"},
+    {"uid":"security_logs_staging","primaryKey":"id","taskUid":1,"status":"ready"},
+    {"uid":"logs_production","primaryKey":"id","taskUid":2,"status":"ready"},
+    {"uid":"security_logs_production","primaryKey":"id","taskUid":3,"status":"ready"}
+  ]
+}
+```
+
+La creazione è asincrona: non è stato equiparato un POST accettato a un task
+riuscito. I quattro indici non provano scritture del dispatcher Nest, grant
+applicative o import ChEMBL. Non sono stati creati indici molecolari con un
+primary key inventato.
+
+## Collaudi locali delle procedure curl, distinti dalla VM
+
+- Indici: cinque controlli, stessa immagine Meili, PowerShell 5.1/curl reali;
+  creazione/task/readback, riuso senza mutazione, credenziale errata,
+  credenziale malformata e primary key inattesa. Cleanup senza errori.
+- Chiavi: nove controlli; grant e operazioni realmente ammesse/negate,
+  aggiornamento atomico dei soli due campi, backup esatto, ACL, errori e blocco
+  del riuso/rotazione. Provate entrambe le policy di expiry; quella scelta
+  per l'esecuzione reale è 90Days. Nessuna configurazione privata dell'operatore
+  letta durante il QA. Cleanup senza errori.
+
+I due driver opt-in sono nel repository e possono essere ripetuti con
+immagini locali già verificate; i report originali esterni non sono un input
+necessario alla procedura. Le procedure curl originarie erano file pubblici
+negli artifact del profilo; le copie versionate rimuovono questa dipendenza.
+
+## Prossima azione autorizzata, ma rinviata
+
+Pausa esplicita dell'operatore per il resto della giornata. Nessun comando
+privato, accesso VM, modifica di rete o avvio di servizi aggiuntivi deve essere
+eseguito da un agente durante questa pausa. Il lavoro documentale e di
+conservazione dei sorgenti resta separato.
+
+Il giorno successivo: seguire [RUNBOOK.md, sezione 12](RUNBOOK.md#12-punto-di-ripresa-concordato-per-il-giorno-successivo),
+riaprire soltanto il forward SSH se necessario e usare il comando chiavi
+versionato con `-Expiry 90Days`. Se la VM ha perso tmpfs, fermarsi al limite
+di recovery documentato. Non marcare questa fase eseguita prima della ricevuta.
+
+H-05/A-05/A-30, cold recovery, grant reali delle nuove chiavi, applicazioni,
+dati, provider e accesso pubblico restano aperti. Nessun merge effettuato.
