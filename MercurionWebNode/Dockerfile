@@ -38,7 +38,10 @@ RUN find . -type f \( \
   -name "*.pem" -o -name "*.key" -o \
   -name "*.p12" -o -name "*.pfx" \
 \) -print -delete
-RUN npm run build
+RUN npm run build && \
+  find dist -type f \( -name "*.map" -o -name "*.d.ts" -o -name "*.ts" -o -name "*.tsbuildinfo" \) -print -delete && \
+  find ../packages/rest-contracts/dist ../packages/socket-contracts/cjs ../packages/socket-contracts/esm \
+    -type f \( -name "*.map" -o -name "*.d.ts" \) -print -delete
 
 FROM source AS build-test
 ENV NODE_ENV=production
@@ -101,16 +104,21 @@ CMD ["node", "dist/src/main.js"]
 
 FROM runtime AS staging
 ENV APP_ENV=staging
+LABEL org.mercurion.environment="staging"
 COPY --from=build-staging --chown=10001:10001 /workspace/MercurionWebNode/dist ./dist
 COPY --from=build-staging --chown=10001:10001 /workspace/MercurionWebNode/package.json ./package.json
-COPY --from=build-staging --chown=10001:10001 /workspace/node_modules ./node_modules
-COPY --from=build-staging --chown=10001:10001 /workspace/MercurionWebNode/node_modules ./node_modules
-COPY --from=build-staging --chown=10001:10001 /workspace/packages/rest-contracts ./packages/rest-contracts
-COPY --from=build-staging --chown=10001:10001 /workspace/packages/socket-contracts ./packages/socket-contracts
+COPY --from=production-dependencies --chown=10001:10001 /workspace/node_modules ./node_modules
+COPY --from=production-dependencies --chown=10001:10001 /workspace/MercurionWebNode/node_modules ./node_modules
+COPY --from=build-staging --chown=10001:10001 /workspace/packages/rest-contracts/dist ./packages/rest-contracts/dist
+COPY --from=build-staging --chown=10001:10001 /workspace/packages/rest-contracts/package.json ./packages/rest-contracts/package.json
+COPY --from=build-staging --chown=10001:10001 /workspace/packages/socket-contracts/cjs ./packages/socket-contracts/cjs
+COPY --from=build-staging --chown=10001:10001 /workspace/packages/socket-contracts/esm ./packages/socket-contracts/esm
+COPY --from=build-staging --chown=10001:10001 /workspace/packages/socket-contracts/package.json ./packages/socket-contracts/package.json
 COPY --from=build-staging --chown=10001:10001 /workspace/MercurionWebNode/assets-root ./assets-root
 
 FROM runtime AS test
 ENV APP_ENV=test
+LABEL org.mercurion.environment="test"
 COPY --from=build-test --chown=10001:10001 /workspace/MercurionWebNode/dist ./dist
 COPY --from=build-test --chown=10001:10001 /workspace/MercurionWebNode/package.json ./package.json
 COPY --from=build-test --chown=10001:10001 /workspace/node_modules ./node_modules
@@ -120,6 +128,7 @@ COPY --from=build-test --chown=10001:10001 /workspace/packages/socket-contracts 
 
 FROM runtime AS production
 ENV APP_ENV=production
+LABEL org.mercurion.environment="production"
 COPY --from=build-production --chown=10001:10001 /workspace/MercurionWebNode/dist ./dist
 COPY --from=build-production --chown=10001:10001 /workspace/MercurionWebNode/package.json ./package.json
 COPY --from=production-dependencies --chown=10001:10001 /workspace/node_modules ./node_modules

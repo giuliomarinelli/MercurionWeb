@@ -1,0 +1,92 @@
+name: mercurion-preview
+x-runtime: &runtime
+  pull_policy: never
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  restart: 'no'
+  pids_limit: 192
+  stop_grace_period: 20s
+  tmpfs: ['/tmp:rw,noexec,nosuid,size=64m,mode=1777']
+  labels: {mercurion.owner: infra-vm, mercurion.scope: preview}
+
+services:
+  web-ng-preview:
+    <<: *runtime
+    image: ${WEB_NG_IMAGE:?verified staging image required}
+    user: '10101:10101'
+    mem_limit: 192m
+    cpus: 0.5
+    expose: ['3497']
+    networks: [web]
+  web-node-preview:
+    <<: *runtime
+    image: ${WEB_NODE_IMAGE:?verified staging image required}
+    user: '10001:10001'
+    command: [node, dist/src/bootstrap-secrets.cli.js]
+    mem_limit: 1536m
+    cpus: 2
+    expose: ['8098']
+    environment: {APP_ENV: staging, NODE_ENV: production, MERCURION_BOOTSTRAP_FILE: /run/mercurion/values.json}
+    networks: [web, data, bus, search, egress]
+    volumes:
+      - {type: bind, source: '${BOOTSTRAP_ROOT:?}/web-node/values.json', target: /run/mercurion/values.json, read_only: true, bind: {create_host_path: false}}
+  postgres-preview:
+    <<: *runtime
+    image: ${POSTGRES_IMAGE:?verified image required}
+    user: '70:70'
+    mem_limit: 768m
+    cpus: 1
+    expose: ['5432']
+    environment: {POSTGRES_USER: postgres, POSTGRES_DB: postgres, POSTGRES_PASSWORD_FILE: /run/mercurion/admin-password}
+    tmpfs: ['/tmp:rw,noexec,nosuid,size=64m,mode=1777', '/var/run/postgresql:rw,size=16m,uid=70,gid=70,mode=3775']
+    networks: [data]
+    volumes:
+      - {type: bind, source: '${BOOTSTRAP_ROOT:?}/postgres', target: /run/mercurion, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: '${RELEASE_ROOT:?}/deployment/local-vm/operational/postgres-init.sh', target: /docker-entrypoint-initdb.d/10-preview-role.sh, read_only: true, bind: {create_host_path: false}}
+      - {type: volume, source: postgres-data, target: /var/lib/postgresql/data}
+  redis-preview:
+    <<: *runtime
+    image: ${REDIS_IMAGE:?verified image required}
+    user: '999:1000'
+    command: [redis-server, /run/mercurion/server.conf]
+    mem_limit: 384m
+    cpus: 1
+    expose: ['6379']
+    networks: [data]
+    volumes:
+      - {type: bind, source: '${BOOTSTRAP_ROOT:?}/redis/server.conf', target: /run/mercurion/server.conf, read_only: true, bind: {create_host_path: false}}
+      - {type: volume, source: redis-data, target: /data}
+  nats-preview:
+    <<: *runtime
+    image: ${NATS_IMAGE:?verified image required}
+    user: '10021:10021'
+    command: [--config, /run/mercurion/server.json]
+    mem_limit: 192m
+    cpus: 1
+    expose: ['4222']
+    networks: [bus]
+    volumes:
+      - {type: bind, source: '${BOOTSTRAP_ROOT:?}/nats/server.json', target: /run/mercurion/server.json, read_only: true, bind: {create_host_path: false}}
+  tox21-preview:
+    <<: *runtime
+    image: ${TOX21_IMAGE:?verified staging image required}
+    user: '10021:10021'
+    command: [python, -m, bootstrap_secrets]
+    mem_limit: 1536m
+    cpus: 2
+    environment: {PY_ENV: staging, NATS_URL: 'nats://nats-preview:4222', MERCURION_BOOTSTRAP_FILE: /run/mercurion/values.json, JWT_PUBLIC_KEY_PATH: /run/mercurion/http-public.pem}
+    networks: [bus, egress]
+    volumes:
+      - {type: bind, source: '${BOOTSTRAP_ROOT:?}/tox21/values.json', target: /run/mercurion/values.json, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: '${BOOTSTRAP_ROOT:?}/tox21/http-public.pem', target: /run/mercurion/http-public.pem, read_only: true, bind: {create_host_path: false}}
+
+networks:
+  web: {name: mercurion_stg_web, external: true}
+  search: {name: mercurion_stg_search, external: true}
+  data: {name: mercurion_stg_data, driver: bridge, enable_ipv4: true, enable_ipv6: false, internal: true}
+  bus: {name: mercurion_stg_bus, driver: bridge, enable_ipv4: true, enable_ipv6: false, internal: true}
+  egress: {name: mercurion_stg_egress, driver: bridge, enable_ipv4: true, enable_ipv6: false, internal: false}
+volumes:
+  postgres-data: {name: mercurion_preview_postgres}
+  redis-data: {name: mercurion_preview_redis}

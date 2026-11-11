@@ -39,6 +39,12 @@
 | A-36 | VM-040 delivery preliminare | Bundle Tox21 verificato, preflight guest senza load o servizi | VERIFICATO nel perimetro: hash, staging/Linux amd64/Wolfi e zero finding; sette test stdlib e wrapper PS 5.1 passati. Report guest owner 518aa79ae12d42b8b61d453c1ef4f628 riletto, otto controlli passati e readyForArtifactTransfer true. [Passi e limiti](TOX21-TRANSPORT-PREFLIGHT.md). Nessun tar trasferito/load; componenti Web mancanti e A-21 aperto |
 | A-37 | VM-041 Tox21 RPC guest | Load/save config digest di due immagini, launcher reale, tre lifecycle RPC e cleanup selettivo | VERIFICATO su VM nel run 715f719bb1b14a4b87fb1c42e1a54647: due roundtrip, tre lifecycle e nove negazioni NATS, tre stop puliti, cleanup senza errori e file effimero invariato. Report recuperato dall'owner senza rieseguire, riletto e correlato. Broker a zero finding; 32 test mirati e PS 5.1 verificati. [Prove e limiti](TOX21-VM-PILOT.md). Requester Python, nessun Nest o rollout persistente; A-16/A-17/A-21 ancora aperti |
 
+**A-38 — VM-042, preparazione locale:** stack reale preview a freddo verificato
+con valori sintetici nel run `3e0542842ace4bd2a4c9552059b1ca67`: schema nuovo,
+health backend via edge, HTML Angular e roundtrip AES, cleanup senza errori. Server isolati
+nel run `9aa845d722a643ac9f19abba50685521`. Immagini Web QA, nessun bootstrap
+VM, login, import ChEMBL o tunnel pubblico. [Evidenze e passi](PREVIEW-BOOTSTRAP.md).
+
 ## Risultati preesistenti da non confondere con questa matrice
 
 **VM-038 — review preliminare completata:** immagini locali selezionate prive

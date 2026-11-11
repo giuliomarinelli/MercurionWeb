@@ -1,0 +1,43 @@
+# Real private runtime. Images and paths come only from the verified release's public env file.
+name: mercurion-shared
+x-runtime: &runtime
+  pull_policy: never
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  restart: 'no'
+  pids_limit: 128
+  tmpfs: ['/tmp:rw,noexec,nosuid,size=64m,mode=1777']
+  labels: {mercurion.owner: infra-vm, mercurion.scope: shared}
+
+services:
+  meilisearch:
+    <<: *runtime
+    image: ${MEILISEARCH_IMAGE:?verified image required}
+    user: '10001:10001'
+    command: [--config-file-path, /run/mercurion/server.toml]
+    expose: ['7700']
+    mem_limit: 768m
+    cpus: 1
+    networks: [stg-search]
+    volumes:
+      - {type: bind, source: '${BOOTSTRAP_ROOT:?}/meilisearch/server.toml', target: /run/mercurion/server.toml, read_only: true, bind: {create_host_path: false}}
+      - {type: volume, source: meili-data, target: /meili_data}
+  nginx-edge:
+    <<: *runtime
+    image: ${EDGE_IMAGE:?verified image required}
+    user: '10101:10101'
+    expose: ['80']
+    mem_limit: 96m
+    cpus: 0.5
+    sysctls: {net.ipv4.ip_unprivileged_port_start: '0'}
+    networks: [edge, stg-web]
+    volumes:
+      - {type: bind, source: '${RELEASE_ROOT:?}/deployment/local-vm/operational/nginx.conf', target: /etc/nginx/nginx.conf, read_only: true, bind: {create_host_path: false}}
+
+networks:
+  edge: {name: mercurion_edge, driver: bridge, enable_ipv4: true, enable_ipv6: false, internal: true}
+  stg-web: {name: mercurion_stg_web, driver: bridge, enable_ipv4: true, enable_ipv6: false, internal: true}
+  stg-search: {name: mercurion_stg_search, driver: bridge, enable_ipv4: true, enable_ipv6: false, internal: true}
+volumes:
+  meili-data: {name: mercurion_shared_meili}

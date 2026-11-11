@@ -53,13 +53,16 @@ USER 10101:10101
 CMD ["nginx", "-g", "daemon off;"]
 
 FROM runtime AS staging
+LABEL org.mercurion.environment="staging"
 COPY --from=build-staging --chown=10101:10101 /workspace/MercurionWebNg/dist/mercurion-web-ng/browser/ ./
 COPY MercurionWebNg/nginx.mercurion_web_ng.staging.conf /etc/nginx/conf.d/default.conf
 
 FROM runtime AS test
+LABEL org.mercurion.environment="test"
 COPY --from=build-test --chown=10101:10101 /workspace/MercurionWebNg/dist/mercurion-web-ng/browser/ ./
 COPY MercurionWebNg/nginx.mercurion_web_ng.testing.conf /etc/nginx/conf.d/default.conf
 
 FROM runtime AS production
+LABEL org.mercurion.environment="production"
 COPY --from=build-production --chown=10101:10101 /workspace/MercurionWebNg/dist/mercurion-web-ng/browser/ ./
 COPY MercurionWebNg/nginx.mercurion_web_ng.prod.conf /etc/nginx/conf.d/default.conf

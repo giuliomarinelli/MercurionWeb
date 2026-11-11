@@ -297,6 +297,15 @@ per il successivo stack preview, senza dedurre accettazione integrata.
 
 ## INF-VM-07 — Stack applicativi e tunnel Cloudflare
 
+**VM-042, 11 novembre — preparazione preview privata in corso.** Provider
+reali da compilare dall'owner nel file locale e hostname `preview.mercurion.app`.
+Master Meilisearch solo server; key search/writer create dall'operatore con
+curl. Proiezione separata dalle fixture: otto ruoli senza publishing;
+collaudo locale a freddo passato con valori sintetici (schema, health backend
+via edge, SPA). Non è avvio VM, login o accettazione pubblica.
+[Passi, evidenze e residui](PREVIEW-BOOTSTRAP.md). Prossimo blocco: immagini
+definitive/CI, bootstrap server VM e curl; poi applicazioni e dati.
+
 **Dipende da:** 03, 04, 05, 06.  
 Avviare progressivamente PostgreSQL/Redis/NATS e backend/frontend/Tox21 per ambiente; recuperare routing utile da Nginx storico **senza** TLS origin/maintenance mode; configurare cloudflared, Access per preview, header forwarded, cookie, OAuth redirect e WebSocket.
 

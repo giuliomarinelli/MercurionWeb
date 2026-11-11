@@ -40,3 +40,8 @@ by this source change. Tracked files are moved; ignored personal env/key files
 are neither read nor moved. Legacy directories stay ignored to protect local
 material. Before a future deployment, supply configuration under the canonical
 preview paths and plan any existing Kubernetes namespace migration explicitly.
+
+La preparazione della preview privata sulla VM usa una proiezione separata in
+`local-vm/operational/`, con otto ruoli e nessuna porta host pubblicata.
+Non sostituisce le fixture né abilita un deployment automatico.
+[Procedura italiana e stato verificato](../docs/infrastructure/local-vm/PREVIEW-BOOTSTRAP.md).

@@ -59,6 +59,14 @@ IPv6 restano parziali. Nessuna modifica a Default Switch/WSL per la migrazione.
 
 Non assumere che un documento di architettura sia una configurazione eseguibile; non inventare chiavi, indirizzi o hostname. Non promuovere immagini non scansionate. Non esporre Meilisearch, Meilisearch UI, NATS, Redis o PostgreSQL verso Cloudflare/LAN. Non distribuire MercurionData o LandingFactory come servizi. Non rendere obbligatori Kubernetes, alta disponibilità, maintenance mode o rotazione JWT.
 
+## VM-042 — Preview privata, 11 novembre
+
+Owner: provider reali nel file locale compilato personalmente, hostname
+`preview.mercurion.app`, master Meilisearch separata dalle chiavi applicative
+create via curl. Preparazione operativa e collaudo locale con valori sintetici
+documentati in [PREVIEW-BOOTSTRAP.md](PREVIEW-BOOTSTRAP.md). Nessun bootstrap
+VM, DNS, tunnel pubblico o chiusura dei residui di isolamento dedotti.
+
 ## Decisioni da riesaminare soltanto in presenza di evidenze
 
 Se le reti `internal: true` non consentono il loopback administrato come previsto, sostituire il meccanismo di accesso operativo senza pubblicare porte esterne. Se la UI richiede privilegi di modifica, non elevarle la key: valutare visualizzazione ridotta o altro strumento. Se `v0.15.3-lite` ha CVE rilevate, non fissare quell'immagine attiva nel deployment; esaminare un'altra versione o non distribuire la UI.

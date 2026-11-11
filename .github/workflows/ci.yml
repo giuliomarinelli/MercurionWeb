@@ -505,10 +505,14 @@ jobs:
           python3 -B -m unittest discover -s scripts/infrastructure -p test_tox21_candidate.py
           python3 -B -m unittest discover -s scripts/infrastructure -p test_tox21_transport.py
           python3 -B -m unittest discover -s scripts/infrastructure -p test_tox21_vm_pilot.py
+          python3 -B -m unittest discover -s scripts/infrastructure -p test_preview_credentials.py
+          python3 -B -m unittest discover -s scripts/infrastructure -p test_preview_export.py
+          python3 -B scripts/infrastructure/preview_compose.py
+          node --check deployment/local-vm/operational/initialize-empty-schema.cjs
           node --check scripts/t21-service-probe.cjs
 
-      - name: Validate production dependency inventory rules
-        if: ${{ matrix.name == 'nest-production' }}
+      - name: Validate deployment dependency inventory rules
+        if: ${{ matrix.name == 'nest-production' || matrix.name == 'nest-staging' }}
         run: node --test scripts/test-container-dev-dependencies.mjs
 
       - name: Build container without cache
@@ -520,38 +524,38 @@ jobs:
       - name: Smoke-test standalone runtime contract
         run: node scripts/smoke-container-runtime.mjs --image "mercurion-ci-${{ matrix.name }}"
 
-      - name: Generate Nest production image SBOM
-        if: ${{ matrix.name == 'nest-production' }}
+      - name: Generate Nest deployment image SBOM
+        if: ${{ matrix.name == 'nest-production' || matrix.name == 'nest-staging' }}
         uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610
         with:
-          image: mercurion-ci-nest-production
+          image: mercurion-ci-${{ matrix.name }}
           format: cyclonedx-json
-          output-file: nest-production.sbom.json
+          output-file: nest-runtime.sbom.json
           upload-artifact: false
 
-      - name: Verify Nest production image inventory, SBOM and vulnerability scan
-        if: ${{ matrix.name == 'nest-production' }}
-        run: node scripts/check-production-container.mjs --image "mercurion-ci-${{ matrix.name }}" --report-dir "reports/containers/${{ matrix.name }}" --sbom-path "nest-production.sbom.json"
+      - name: Verify Nest deployment image inventory, SBOM and vulnerability scan
+        if: ${{ matrix.name == 'nest-production' || matrix.name == 'nest-staging' }}
+        run: node scripts/check-production-container.mjs --image "mercurion-ci-${{ matrix.name }}" --report-dir "reports/containers/${{ matrix.name }}" --sbom-path "nest-runtime.sbom.json"
 
       - name: Upload container inventory and supply-chain diagnostics
-        if: ${{ always() && matrix.name == 'nest-production' }}
+        if: ${{ always() && (matrix.name == 'nest-production' || matrix.name == 'nest-staging') }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: container-${{ matrix.name }}-supply-chain
           if-no-files-found: error
           path: reports/containers/${{ matrix.name }}
 
-      - name: Export production candidate and enforce image security policy
-        if: ${{ matrix.name == 'angular-production' || matrix.name == 'nest-production' }}
+      - name: Export deployment candidate and enforce image security policy
+        if: ${{ matrix.target == 'production' || matrix.target == 'staging' }}
         env:
-          DELIVERY_COMPONENT: ${{ matrix.name == 'angular-production' && 'web-ng' || 'web-node' }}
+          DELIVERY_COMPONENT: ${{ startsWith(matrix.name, 'angular-') && 'web-ng' || 'web-node' }}
         run: |
           python3 -B scripts/export-web-container.py --image "mercurion-ci-${{ matrix.name }}" \
-            --component "$DELIVERY_COMPONENT" --revision "$GITHUB_SHA" --version "$BUILD_VERSION" \
+            --component "$DELIVERY_COMPONENT" --revision "$GITHUB_SHA" --version "$BUILD_VERSION" --target "${{ matrix.target }}" \
             --output "reports/delivery/$DELIVERY_COMPONENT" --cache "$RUNNER_TEMP/delivery-trivy"
 
-      - name: Upload production delivery diagnostics even on failure
-        if: ${{ always() && (matrix.name == 'angular-production' || matrix.name == 'nest-production') }}
+      - name: Upload deployment delivery diagnostics even on failure
+        if: ${{ always() && (matrix.target == 'production' || matrix.target == 'staging') }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: delivery-${{ matrix.name }}

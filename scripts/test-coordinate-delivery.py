@@ -36,6 +36,25 @@ class ImageIdentityTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             exporter.validate_identity(image, 'web-node', REVISION, 'qa')
 
+    def test_explicit_staging_identity_is_accepted_and_mixed_markers_fail(self):
+        image = self.image()
+        image['Config']['Env'] = ['APP_ENV=staging']
+        image['Config']['Labels']['org.mercurion.environment'] = 'staging'
+        exporter.validate_identity(image, 'web-node', REVISION, 'qa', 'staging')
+        image['Config']['Env'] = ['APP_ENV=production']
+        with self.assertRaises(ValueError):
+            exporter.validate_identity(image, 'web-node', REVISION, 'qa', 'staging')
+
+    def test_frontend_staging_requires_environment_provenance(self):
+        image = self.image()
+        image['Config'].update(User='10101:10101', ExposedPorts={'3497/tcp': {}})
+        with self.assertRaises(ValueError):
+            exporter.validate_identity(image, 'web-ng', REVISION, 'qa', 'staging')
+        image['Config']['Labels']['org.mercurion.environment'] = 'staging'
+        exporter.validate_identity(image, 'web-ng', REVISION, 'qa', 'staging')
+        with self.assertRaises(ValueError):
+            exporter.validate_identity(image, 'web-ng', REVISION, 'qa', 'production')
+
     def test_scanner_for_another_image_cannot_approve_candidate(self):
         with self.assertRaises(ValueError):
             delivery.security_summary({'SchemaVersion': 2, 'Metadata': {'ImageID': 'wrong'}, 'Results': [{}]}, 'sha256:'+'a'*64)
