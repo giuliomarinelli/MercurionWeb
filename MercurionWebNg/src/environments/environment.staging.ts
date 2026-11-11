@@ -3,7 +3,7 @@ import { createEnvironmentConfig } from './environment.config'
 export const environment = createEnvironmentConfig({
   name: 'staging',
   minLogLevel: 'info',
-  CLOUDFLARE_SITE_KEY: '0x4AAAAAABdOWnfz_3r4JGDK',
+  CLOUDFLARE_SITE_KEY: '0x4AAAAAAF8hgsVHtD6uuGVT',
   DISABLE_TURNSTILE: false,
   logoSrc: {
     PICTOGRAM_LIGHT: 'logo/pictogram-light-logo.svg',

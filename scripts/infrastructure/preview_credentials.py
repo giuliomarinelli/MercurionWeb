@@ -1,6 +1,7 @@
 """Owner-only preview configuration creation. Never print credential values."""
 import argparse
 import base64
+import copy
 import json
 import ipaddress
 import os
@@ -76,7 +77,10 @@ def template(origin, keys):
 def validate(document, application=True):
     expected = {'schemaVersion', 'environment', 'origin', 'providers', 'applicationSecrets',
                 'postgresServer', 'tox21', 'meilisearchServer', 'meilisearchClients'}
-    if (set(document) != expected or document['schemaVersion'] != 1
+    if (not isinstance(document, dict) or set(document) != expected
+            or any(not isinstance(document.get(name), dict) for name in
+                   expected - {'schemaVersion', 'environment', 'origin'})
+            or document['schemaVersion'] != 1
             or document['environment'] != 'preview' or set(document['providers']) != set(PROVIDERS)):
         raise ValueError('Invalid preview configuration shape')
     validate_origin(document['origin'])
@@ -109,6 +113,44 @@ def validate(document, application=True):
             raise ValueError('Missing fields: ' + ', '.join(missing))
         if clients['searchKey'] == clients['logKey']:
             raise ValueError('Meilisearch search and log keys must be distinct')
+
+
+def repair_generated_aes(document):
+    """Before first bootstrap only: correct the early generator's 64-byte AES field."""
+    if not isinstance(document, dict) or not isinstance(document.get('applicationSecrets'), dict):
+        raise ValueError('Invalid preview configuration shape')
+    try:
+        material = base64.b64decode(document['applicationSecrets']['APP_AES_SECRET'], validate=True)
+    except (KeyError, TypeError, ValueError):
+        raise ValueError('Invalid generated APP_AES_SECRET') from None
+    if len(material) not in (32, 64):
+        raise ValueError('Only the initial 64-byte generator output can be repaired')
+    corrected = copy.deepcopy(document)
+    corrected['applicationSecrets']['APP_AES_SECRET'] = base64.b64encode(material[:32]).decode()
+    validate(corrected, application=False)
+    return corrected, len(material) == 64
+
+
+def repair_file(path):
+    if path.is_symlink() or not path.is_file():
+        raise ValueError('Regular private configuration required')
+    original = path.read_bytes()
+    corrected, changed = repair_generated_aes(json.loads(original.decode('utf-8-sig')))
+    if not changed:
+        return {'status': 'already-valid', 'changed': False, 'valuesPrinted': False}
+    backup = path.with_name(path.name + '.pre-aes32.backup')
+    pending = path.with_name(path.name + '.aes32.pending')
+    if backup.exists() or pending.exists():
+        raise ValueError('Repair artifacts already exist; preserve them for review')
+    for target, data in ((backup, original), (pending, (json.dumps(corrected, indent=2) + '\n').encode())):
+        fd = os.open(target, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+        with os.fdopen(fd, 'wb') as stream:
+            stream.write(data)
+    if path.read_bytes() != original:
+        raise ValueError('Configuration changed during repair; original not replaced')
+    os.replace(pending, path)
+    return {'status': 'repaired-before-first-bootstrap', 'changed': True,
+            'backupPath': str(backup), 'otherSecretsChanged': False, 'valuesPrinted': False}
 
 
 def application_document(document, trusted_proxy_cidrs):
@@ -162,10 +204,11 @@ def server_documents(document):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=['create', 'validate'])
+    parser.add_argument('command', choices=['create', 'validate', 'repair-generated-aes'])
     parser.add_argument('--file', type=Path, required=True)
     parser.add_argument('--origin', default='https://preview.mercurion.app')
     parser.add_argument('--infrastructure-only', action='store_true')
+    parser.add_argument('--before-first-bootstrap', action='store_true')
     args = parser.parse_args()
     try:
         if args.command == 'create':
@@ -177,6 +220,10 @@ if __name__ == '__main__':
                 json.dump(value, stream, indent=2)
                 stream.write('\n')
             print(json.dumps({'status': 'created', 'path': str(args.file), 'valuesPrinted': False}))
+        elif args.command == 'repair-generated-aes':
+            if not args.before_first_bootstrap:
+                raise ValueError('Repair allowed only before first bootstrap, never as key rotation')
+            print(json.dumps(repair_file(args.file)))
         else:
             value = json.loads(args.file.read_text(encoding='utf-8-sig'))
             validate(value, application=not args.infrastructure_only)

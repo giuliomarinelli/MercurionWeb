@@ -1,6 +1,9 @@
 """Credential separation tests using synthetic data only; never read owner files."""
 import base64
 import copy
+import json
+from pathlib import Path
+import tempfile
 import unittest
 
 import preview_credentials as credentials
@@ -97,6 +100,32 @@ class PreviewCredentialTests(unittest.TestCase):
         self.assertNotIn(value['applicationSecrets']['JWT_WS_RS256_PRIVATE_KEY'], str(tox))
         self.assertNotIn(value['applicationSecrets']['APP_NATS_PASSWORD'], str(tox))
         self.assertNotIn(value['providers']['EMAIL_PASSWORD'], str(documents))
+
+    def test_legacy_generator_repair_changes_only_aes_and_preserves_the_original(self):
+        value = self.configuration()
+        material = bytes(range(64))
+        value['applicationSecrets']['APP_AES_SECRET'] = base64.b64encode(material).decode()
+        before = copy.deepcopy(value)
+        corrected, changed = credentials.repair_generated_aes(value)
+        self.assertTrue(changed)
+        self.assertEqual(value, before)
+        self.assertEqual(base64.b64decode(corrected['applicationSecrets']['APP_AES_SECRET']), material[:32])
+        corrected['applicationSecrets']['APP_AES_SECRET'] = before['applicationSecrets']['APP_AES_SECRET']
+        self.assertEqual(corrected, before)
+
+    def test_file_repair_backs_up_without_regeneration_and_is_idempotent(self):
+        value = self.configuration()
+        value['applicationSecrets']['APP_AES_SECRET'] = base64.b64encode(bytes(range(64))).decode()
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'configuration.json'
+            original = json.dumps(value).encode()
+            path.write_bytes(original)
+            result = credentials.repair_file(path)
+            self.assertEqual(Path(result['backupPath']).read_bytes(), original)
+            corrected = path.read_bytes()
+            credentials.validate(json.loads(corrected))
+            self.assertFalse(credentials.repair_file(path)['changed'])
+            self.assertEqual(path.read_bytes(), corrected)
 
 
 if __name__ == '__main__':

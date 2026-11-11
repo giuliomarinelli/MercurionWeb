@@ -22,6 +22,28 @@ Non stampa valori, non legge dotenv esistenti e non trasferisce nulla.
 Se directory o file esistono già, si ferma senza modificare ACL o segreti.
 Non rigenerare il file per correggere un campo: conservare i valori stabili.
 
+### File creato con la prima versione del generatore
+
+La prima versione generava erroneamente 64 byte anche per `APP_AES_SECRET`.
+Il servizio attuale passa il buffer completo ad AES-256-GCM, che richiede
+32 byte. La correzione del generatore e la verifica del servizio reale sono
+incluse in questa preparazione; il validatore evita un errore tardivo di cifratura.
+
+Prima del primo bootstrap, se il validatore segnala questo errore, salvare
+e chiudere il file nell'editor e usare da PowerShell normale:
+
+```powershell
+powershell -NoProfile -File C:/.project_repo/MercurionWeb/scripts/infrastructure/Repair-PreviewGeneratedAes.ps1
+```
+
+Il wrapper verifica le ACL private senza modificarle. Conserva l'originale
+in `configuration.json.pre-aes32.backup` nella stessa directory protetta;
+usa i primi 32 byte del materiale generato solo per `APP_AES_SECRET`,
+senza rigenerare RSA, HMAC, password o altri campi. Non stampa valori.
+Rifiuta lunghezze inattese e modifiche concorrenti rilevate; con 32 byte è
+idempotente e non scrive nulla. Non è una procedura di rotazione per un
+ambiente già avviato. Anche il backup contiene segreti: resta privato.
+
 Aprire il file nel proprio editor e compilare tutti i campi della sezione
 `providers`: SMTP, Twilio, Dropbox, Turnstile e i client OAuth/ORCID.
 `ORCID_ISSUER` deve corrispondere al client effettivamente registrato.
@@ -55,13 +77,21 @@ Nessuna chiave Meilisearch viene compilata nella SPA.
 
 ## 3. Verifiche della preparazione
 
-Sette test locali con valori sintetici verificano la separazione fra
+Nove test locali con valori sintetici verificano la separazione fra
 master server/client, omissioni dei provider, segreti indipendenti, origin
 HTTPS e proxy trust limitato agli indirizzi dei peer immediati.
 Wrapper eseguito realmente su PowerShell 5.1 in una directory QA separata:
 generazione riuscita, valori non stampati, ACL rilette con soli utente e
 SYSTEM, nessuna ereditarietà. Il file operativo dell'owner non viene letto
 dall'agente.
+
+Il wrapper di correzione AES è stato eseguito realmente su PowerShell 5.1
+contro un file QA separato di formato legacy: backup conservato, solo AES
+corretto e validazione successiva riuscita. Il file dell'owner non è stato
+letto dall'agente. L'owner ha confermato la creazione del proprio file;
+compilazione provider e correzione del formato iniziale restano da verificare.
+La nuova site key pubblica Turnstile staging, modificata dall'owner, è inclusa
+per preview su sua autorizzazione; la secret key resta nel file privato.
 
 I runtime PostgreSQL/pgvector, Redis e Meilisearch precedenti sono respinti
 dalle scansioni strict. Le immagini sostitutive devono superare scan,

@@ -12,8 +12,11 @@ valori sintetici. Bootstrap reale guest ancora da completare; non avviare
 Compose direttamente dai manifest preparatori. Le immagini Web QA non
 sono le immagini definitive dal commit CI. La prova non chiude H-05/A-05/A-30.
 
-Una modifica dell'owner alla site key pubblica Angular staging è apparsa
-durante il lavoro: preservarla e concordarne l'inclusione. Preservare anche
+L'owner ha autorizzato l'inclusione della nuova site key pubblica Angular
+staging per preview e confermato il file privato creato. La validazione owner
+ha rilevato il vecchio campo AES da 64 byte: usare il wrapper di correzione
+prima del primo bootstrap, senza leggere il file da questa sessione o
+rigenerare gli altri segreti. Provider ancora da confermare. Preservare anche
 il `__pycache__` preesistente. Nessun merge autorizzato. Registrare CI ed
 export definitivi nei report esterni senza ripetere CI solo per una ricevuta.
 
