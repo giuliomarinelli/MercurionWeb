@@ -44,8 +44,12 @@ applicativa, sezioni 7–8; login/dati e accesso pubblico restano successivi.
 
 ### Ripresa, manutenzione o consultazione
 
+**Accesso manuale ai servizi:** [Port-forward SSH: tutti i servizi, porte e comandi](PORT-FORWARDING.md).
+Include PostgreSQL, Redis, NATS, Meilisearch, Nginx, Nest, Angular e il caso HNSW.
+
 | Esigenza | Punto di ingresso |
 | --- | --- |
+| Collegare browser, psql o altri client ai servizi senza pubblicare porte | [Forward SSH manuali per tutti i servizi](PORT-FORWARDING.md) |
 | Riprodurre l'audit sicurezza delle immagini di sviluppo prima dei nuovi Compose | [Audit e vincolo Nginx](SERVICE-SECURITY-AUDIT.md) |
 | Adottare le versioni verificate nei Compose shared/preview, con backup e rollback | [Aggiornamento operativo dei servizi](SERVICE-UPGRADE.md) |
 | Caricare i 50 chunk degli embedding e costruire separatamente l'HNSW | [Import riprendibile PostgreSQL](EMBEDDINGS-IMPORT.md) |

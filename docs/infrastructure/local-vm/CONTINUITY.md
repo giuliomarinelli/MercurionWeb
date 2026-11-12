@@ -1,5 +1,12 @@
 # Ripresa operativa — 12 novembre 2026
 
+**Consegna manuale richiesta dall'owner:** istruzioni di accesso in
+[PORT-FORWARDING.md](PORT-FORWARDING.md). L'ultimo build HNSW è fallito prima
+della creazione della manutenzione, per il controllo sui 25 GiB disponibili
+(`embedding-index-needs-14-cpu-28-gib-and-25-gib-available`). Nessun indice
+costruito da quel tentativo. Controllo di capacità e monitor delle fasi preliminari
+restano da correggere; nessuna modifica implementativa durante questa consegna.
+
 **Adozione VM completata:** upgrade `6d019947800b4578bc2b5d40791f5132`, stato
 passed e sette controlli true. Quattro server nuovi su volumi persistenti separati;
 Nginx/applicazioni conservati, health/SPA/RPC verificati, originali trattenuti
