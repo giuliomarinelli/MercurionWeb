@@ -109,8 +109,9 @@ if ($LASTEXITCODE -ne 0) { throw 'Recupero ricevuta fallito: conservare errore e
 
 ## 4. Recuperare i quattro server esistenti
 
-**Stato:** strumento implementato e verificato localmente; esecuzione sulla VM
-ancora da acquisire. L'inventario owner del 12 novembre è riuscito, con
+**Stato:** ripartenza sulla VM verificata il 12 novembre in due fasi: avvio
+dei server e successiva verifica corretta, con sei controlli riusciti. Le
+ricevute del primo timeout e della verifica restano entrambe conservate. L'inventario owner del 12 novembre è riuscito, con
 `inspectionId=8606c6dead7f4b32976e15371f840a5f`: quattro container originali
 fermi, tre volumi con label corrette, directory del run assente e `/run` tmpfs.
 Questa ricevuta autorizza la preparazione del recupero, non ne certifica il successo.
@@ -234,8 +235,9 @@ intermedi dei probe e non identifica quindi quale controllo sia fallito.
 il messaggio CONNECT usava `password`, mentre il [protocollo client NATS](https://docs.nats.io/reference/protocols/client#connect)
 richiede `pass`. Il campo `password` nei file di configurazione del server
 rimane invece corretto e non va rinominato. La correzione riguarda soltanto
-il controllo, non i segreti o la configurazione del broker. La verifica reale
-sulla VM deve ancora confermare tutti i controlli.
+il controllo, non i segreti o la configurazione del broker. La verifica owner
+`d2cfff6e2a204c27ac3362f4d9e59fbf` ha successivamente confermato tutti e sei
+i controlli sulla VM, senza riconsegna di segreti o nuovi avvii.
 
 Quando i quattro server sono già attivi, usare la modalità di sola verifica:
 
@@ -268,8 +270,8 @@ la verifica per recuperare un report già prodotto.
 
 Usare il **nuovo indirizzo Meilisearch della ricevuta** per riaprire il tunnel
 amministrativo descritto nel runbook, sezione 10: Docker può riassegnare gli IP.
-Completare quindi le due chiavi client a 90 giorni (sezione 11.2), ancora non
-create. Il successivo task è il bootstrap applicativo privato con schema/dati
+Su nuova installazione completare quindi le due chiavi client a 90 giorni
+(sezione 11.2). Sulla VM attuale sono state create il 12 novembre: non ripeterlo. Il successivo task è il bootstrap applicativo privato con schema/dati
 e verifiche di login/API/inferenza/realtime. Collegamento Cloudflare e collaudo
 pubblico rimangono successivi ai gate documentati in roadmap/acceptance.
 

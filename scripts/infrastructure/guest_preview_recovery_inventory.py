@@ -15,7 +15,7 @@ EXPECTED = {'meilisearch': 'mercurion-shared', 'postgres-preview': 'mercurion-pr
 
 
 # Filter on the Docker daemon: Config.Env and arbitrary labels never enter this process.
-LABELS = ('com.docker.compose.service', 'com.docker.compose.project', 'com.docker.compose.volume', 'mercurion.bootstrap.run')
+LABELS = ('com.docker.compose.service', 'com.docker.compose.project', 'com.docker.compose.volume', 'mercurion.bootstrap.run', 'mercurion.application.run')
 LABEL_FORMAT = '{' + ','.join(json.dumps(key) + ':{{json (index .Labels ' + json.dumps(key) + ')}}' for key in LABELS) + '}'
 CONTAINER_FORMAT = ('{"Id":{{json .Id}},"Image":{{json .Image}},"Config":{"Labels":' + LABEL_FORMAT.replace('.Labels ', '.Config.Labels ')
     + '},"State":{"Status":{{json .State.Status}},"Running":{{json .State.Running}}},'

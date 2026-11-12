@@ -61,13 +61,22 @@ def validate_state(current, previous, models, loaded, *, running=False):
     previous_services = {item['service']: item for item in previous['containers']}
     if set(current_services) != set(ROLES) or set(previous_services) != set(ROLES):
         raise ValueError('server-set')
+    if any(current_services[name]['id'] != previous_services[name]['id'] for name in current_services):
+        raise ValueError('server-stopped-identity')
+    validate_contract(current, models, loaded, running=running)
+
+
+def validate_contract(current, models, loaded, *, running=False):
+    current_services = {item['service']: item for item in current['containers']}
+    if set(current_services) != set(ROLES):
+        raise ValueError('server-set')
     expected_volumes = {}
     for model in models.values():
         for key, volume in model['volumes'].items():
             expected_volumes[volume['name']] = (model['name'], key)
         for name, spec in model['services'].items():
             item = current_services[name]
-            if (item['id'] != previous_services[name]['id'] or item['image'] != loaded[ROLES[name]]['imageId']
+            if (item['image'] != loaded[ROLES[name]]['imageId']
                     or item['running'] is not running or item['status'] not in (('running',) if running else ('exited', 'created'))):
                 raise ValueError('server-stopped-identity')
             expected = set()
@@ -86,7 +95,7 @@ def validate_state(current, previous, models, loaded, *, running=False):
         labels = volume['labels']
         if (volume['driver'] != 'local' or labels.get('com.docker.compose.project') != project
                 or labels.get('com.docker.compose.volume') != key
-                or labels.get('mercurion.bootstrap.run') != previous['runId']):
+                or labels.get('mercurion.bootstrap.run') != current['runId']):
             raise ValueError('persistent-volume-ownership')
 
 
@@ -107,11 +116,45 @@ def markers(paths):
     return True
 
 
+def registered_applications(current):
+    path = snapshot.BASE / ('server-' + current['runId']) / 'application-members.json'
+    if not os.path.lexists(path):
+        return []
+    record = read(path)
+    roles = {'nginx-edge': 'mercurion-shared', 'web-node-preview': 'mercurion-preview',
+             'web-ng-preview': 'mercurion-preview', 'tox21-preview': 'mercurion-preview'}
+    if (record.get('schemaVersion') != 1 or record.get('serverRunId') != current['runId']
+            or not re.fullmatch('[a-f0-9]{32}', record.get('appRunId', ''))
+            or len(record.get('members', [])) != 4 or {m.get('service') for m in record['members']} != set(roles)
+            or len({m.get('id') for m in record['members']}) != 4):
+        raise ValueError('registered-application-scope')
+    manifest = snapshot.BASE / ('application-' + record['appRunId']) / 'application-bootstrap.json'
+    if hashlib.sha256(snapshot.regular(manifest)).hexdigest() != record.get('appManifestSha256'):
+        raise ValueError('registered-application-manifest')
+    servers_running = all(item['running'] is True for item in current['containers'])
+    for member in record['members']:
+        if not re.fullmatch('[a-f0-9]{64}', member.get('id', '')) or member.get('project') != roles[member['service']]:
+            raise ValueError('registered-application-identity')
+        actual = json.loads(snapshot.docker('inspect', '--format', snapshot.CONTAINER_FORMAT, member['id']))
+        labels = actual['Config']['Labels']
+        host = actual['HostConfig']
+        if (actual['Id'] != member['id'] or actual['Image'] != member.get('image')
+                or labels.get('com.docker.compose.service') != member['service']
+                or labels.get('com.docker.compose.project') != member['project']
+                or labels.get('mercurion.application.run') != record['appRunId']
+                or host.get('Privileged') or host.get('PortBindings') or host.get('ReadonlyRootfs') is not True
+                or (not servers_running and actual['State']['Running'])):
+            raise ValueError('registered-application-drift')
+    return record['members']
+
+
 def resources(current, models):
-    expected_ids = {item['id'] for item in current['containers']}
+    applications = registered_applications(current)
+    expected_ids = {item['id'] for item in current['containers']} | {item['id'] for item in applications}
     for model in models.values():
         actual = set(snapshot.docker('ps', '-aq', '--no-trunc', '--filter', 'label=com.docker.compose.project=' + model['name']).split())
         wanted = {item['id'] for item in current['containers'] if snapshot.EXPECTED[item['service']] == model['name']}
+        wanted |= {item['id'] for item in applications if item['project'] == model['name']}
         if actual != wanted or not actual <= expected_ids:
             raise ValueError('unexpected-compose-members')
         for network in model['networks'].values():

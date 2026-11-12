@@ -4,9 +4,20 @@
 owner di spegnimento/riavvio, anticipare il recupero dei quattro server rispetto
 alle API key/applicazioni: [procedura e vincoli](COLD-RECOVERY.md). Inventario
 sanitizzato riuscito il 12 novembre, senza lettura di credenziali o avvio servizi.
-Riconsegna e avvio dei soli quattro server predisposti, con collaudo VM ancora aperto; nessuna chiusura dei gate di isolamento.
+Riconsegna e avvio dei soli quattro server eseguiti; verifica successiva
+`d2cfff6e2a204c27ac3362f4d9e59fbf` passed con sei controlli. Prossimo passo:
+chiavi client Meili a 90 giorni completate; ora primo avvio delle applicazioni
+private, descritto in [APPLICATION-BOOTSTRAP.md](APPLICATION-BOOTSTRAP.md).
+Nessuna chiusura dei gate di isolamento.
 Cloudflare Access sul dominio è predisposto dall'owner, collegamento e collaudo
 pubblico rimangono da verificare.
+
+**VM-045, preparazione:** launcher iniziale privato e documentazione disponibili;
+quattro export applicativi con scansioni strict a zero, inclusa derivazione OS
+Tox21 per CVE-2026-84243. Collaudo locale sintetico dello stack riuscito, sette
+controlli, cleanup senza errori. Esecuzione owner sulla VM ancora da acquisire.
+Poi: consolidare ripartenza unificata dopo perdita tmpfs, import ChEMBL e
+collaudo funzionale; solo successivamente tunnel pubblico, header e cookie HTTPS.
 
 > **Avanzamento fine 11 novembre:** rete statica e prove nei perimetri registrati,
 > pilot sintetici/RPC conclusi; VM-043 quattro server reali privati avviati e

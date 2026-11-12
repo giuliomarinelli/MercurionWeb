@@ -6,8 +6,9 @@ riavviata. La pausa precedente è terminata; i segreti tmpfs non vanno presunti
 presenti. Prima delle API key e del bootstrap applicativo seguire
 [COLD-RECOVERY.md](COLD-RECOVERY.md): inventario della release e dei quattro
 server concluso con inspectionId 8606c6dead7f4b32976e15371f840a5f. Il
-recupero esplicito dei quattro server è predisposto nella sezione 4; resta
-da acquisire la ricevuta finale sulla VM. La policy
+recupero dei quattro server è ora confermato dalla verifica
+`d2cfff6e2a204c27ac3362f4d9e59fbf`: sei controlli true, server attivi e stessi
+volumi. Due chiavi client Meili a 90 giorni ora create; prossimo passo: applicazioni private. La policy
 Cloudflare Access è predisposta su `preview.mercurion.app`; non attesta ancora
 il collegamento del tunnel o il funzionamento applicativo. Nessun merge.
 
@@ -15,8 +16,21 @@ il collegamento del tunnel o il funzionamento applicativo. Nessun merge.
 `1250bedb66bb4415be4dea909207077e` ha avviato i quattro server ma la readiness
 è terminata in timeout. Non rieseguire prepare/receive/start. Corretto il probe
 NATS e predisposta la sola verifica nella sezione 4.4 di COLD-RECOVERY.md;
-ricevuta dei sei controlli sulla VM ancora da acquisire. Le ricevute originali
+verifica owner successiva passed con tutti i sei controlli, senza nuovi avvii
+o modifiche. Meili è a `172.18.0.2`; chiavi client create con successo. Le ricevute originali
 fallite restano conservate.
+
+**Chiavi Meili completate:** owner riporta MEILI_CLIENT_KEYS_READY, due UID
+applicativi, 90 giorni, quattro negazioni 403 e nessun altro campo modificato.
+Non ripetere il provisioning. Prossimo task: bootstrap applicativo privato.
+
+**Preparazione VM-045:** seguire [APPLICATION-BOOTSTRAP.md](APPLICATION-BOOTSTRAP.md).
+Gli export correnti sono sotto `.codex/artifacts/inf-vm-04/vm045-applications`
+nel profilo dell'owner. Launcher e controlli sono versionati; nessuna esecuzione
+VM del nuovo bootstrap ancora attestata. Il pacchetto `ready` deve essere
+assemblato da helper committati e la CI esatta verificata prima della consegna.
+Tox21 aggiornata nei soli pacchetti OS, scansione strict a zero; codice e modello
+invariati. La ripartenza unificata delle applicazioni rimane un task successivo.
 
 ## Consegna precedente, conservata come storico
 

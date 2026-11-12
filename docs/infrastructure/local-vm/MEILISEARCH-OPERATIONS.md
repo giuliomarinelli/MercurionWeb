@@ -1,11 +1,11 @@
 # Meilisearch: indici, credenziali, UI e manutenzione
 
-**Stato, 11 novembre:** server privato VM-043 attivo, tunnel SSH loopback verificato
-e quattro indici log precreati via curl con task/readback riusciti. Due chiavi
-client con scadenza 90 giorni preparate e collaudate localmente, **non ancora
-create sulla VM**: rinviate al giorno successivo. Procedure versionate e punto
-di ripresa in [RUNBOOK.md](RUNBOOK.md#11-operazioni-curl-delloperatore), ricevute
-in [EXECUTION-RECORD.md](EXECUTION-RECORD.md). La UI non è stata distribuita.
+**Stato, 12 novembre:** server privato recuperato e quattro indici log persistenti
+verificati. Due chiavi client dedicate create con successo, validità 90 giorni,
+quattro negazioni read-only riuscite e aggiornamento dei soli campi client nel
+file privato. Nessun valore stampato. Procedure e ricevute nel
+[runbook](RUNBOOK.md#11-operazioni-curl-delloperatore) e nel
+[registro](EXECUTION-RECORD.md). La UI non è stata distribuita.
 
 ## Istanza e indici
 
@@ -51,9 +51,21 @@ Usano `curl.exe --config -`: header via stdin, master raccolta dal password
 manager con prompt sicuro, mai negli argomenti o in un nuovo file persistente.
 Non pubblicare snippet che mettano la credenziale letterale accanto a `-H`.
 La seconda procedura aggiorna soltanto le due chiavi nel file privato del
-processo owner, con backup e sostituzione atomica; non è stata ancora eseguita
+processo owner, con backup e sostituzione atomica; è stata eseguita con successo il 12 novembre
 con credenziali operative. Scelta approvata: `-Expiry 90Days`, senza rinnovo
 implicito o grant aggiuntive. I QA opt-in sono disponibili nel repository.
+
+## Chiavi predefinite e chiavi dedicate
+
+Meilisearch genera inizialmente `Default Admin API Key` e `Default Search API Key`.
+Le due chiavi dedicate create per Mercurion si aggiungono a quelle predefinite:
+non le sostituiscono e lo script non le elimina. La master key server rimane
+separata dalle API key e non viene consegnata ai client applicativi.
+
+Mercurion usa `searchKey` sui soli due indici ChEMBL e `logKey` per aggiungere
+documenti ai soli log staging. Hanno UID distinti e scadenza di 90 giorni.
+Questi vincoli espliciti motivano il provisioning dedicato anziché il riuso
+delle due chiavi predefinite. [Specifiche ufficiali Meilisearch](https://specs.meilisearch.dev/specifications/text/0085-api-keys.html).
 
 ## Separazione delle API key
 

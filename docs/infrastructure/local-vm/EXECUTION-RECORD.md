@@ -6,6 +6,22 @@ non sono promosse a prove VM; una procedura pronta non viene marcata eseguita.
 
 ## Milestone osservate
 
+### 12 novembre — preparazione applicazioni VM-045 (solo evidenza locale)
+
+Export aggiornati dei quattro componenti applicativi con SBOM, audit runtime,
+roundtrip load/save e zero vulnerabilità secondo policy strict. Tox21 parent
+aveva quattro finding della stessa CVE glibc: export fallito conservato;
+derivazione OS `2.44-r16` riuscita, senza modificare codice/modello/soglie.
+
+Collaudo locale sintetico `80d9fe5be9a145b5acb98bd840f60ac6` passato:
+schema vuoto, confronto compatibile, rifiuto di drift reale senza scritture,
+cinque RPC Tox21, backend e SPA attraverso Nginx, roundtrip AES. Sette controlli,
+nessun errore di cleanup. Ricevuta pubblica sotto
+`.codex/artifacts/inf-vm-04/vm045-applications/final-application-qa.json`.
+Fixture Linux tmpfs separate: due controlli su ricezione/UID/permessi/riuso e
+copie pubbliche Windows passati. Procedura: [APPLICATION-BOOTSTRAP.md](APPLICATION-BOOTSTRAP.md).
+**Nessuna prova del nuovo bootstrap sulla VM ancora eseguita.**
+
 | Fase | Evidenza | Cosa dimostra / limite |
 | --- | --- | --- |
 | Host/guest iniziali | Ubuntu 26.04.1, Engine 29.9.3, Compose 5.7.0; Gen2 8 vCPU/16 GiB, root LUKS | Inventari operatore, non replica dell'installer originale |
@@ -163,3 +179,33 @@ password errata. Aggiunti esiti incrementali e diagnostica sanitizzata per
 ogni controllo. Predisposta modalità `-VerifyAttemptId` senza lettura del
 file privato host, riconsegna/applicazione di segreti o avvio container;
 esito VM ancora atteso. [Ripresa circoscritta](COLD-RECOVERY.md#44-verificare-un-tentativo-che-ha-già-avviato-i-server).
+
+
+## 12 novembre — ripartenza dei server confermata
+
+Verifica owner `d2cfff6e2a204c27ac3362f4d9e59fbf`, collegata al tentativo
+`1250bedb66bb4415be4dea909207077e`, osservata alle `2026-11-12T12:17:58Z`:
+status passed e sei controlli true (PostgreSQL/vector, Redis auth/keyevents,
+NATS anonimo negato, due consumer NATS autenticati, Meili health/admin protetta,
+quattro indici log persistenti). Gli stessi quattro container e tre volumi
+sono presenti e i server sono attivi; indirizzo Meili `172.18.0.2`.
+
+Questa seconda operazione non ha avviato server, modificato risorse o letto
+il file privato host. Ha concluso la verifica della ripartenza già eseguita;
+non è un secondo avvio completo. La ricevuta fallita iniziale è conservata.
+Helper pubblici del tentativo/verifica rimossi. Residui rete invariati,
+applicazioni ancora ferme. Prossimo passo: tunnel SSH e chiavi client Meili
+con scadenza 90 giorni, poi bootstrap applicativo privato.
+
+
+## 12 novembre — chiavi client Meilisearch create
+
+Ricevuta owner `MEILI_CLIENT_KEYS_READY`: keyCount 2, UID search
+`6d3c5a97-a1be-5e5d-b595-b006d557b090`, UID writer
+`16dbd72a-9663-542f-9220-63122b77a750`, expiryPolicy 90Days,
+readOnly403Checks 4, otherFieldsChanged false, valuesPrinted false.
+Backup privato `.pre-meili-keys.backup` conservato dall'operatore. Nessun
+valore di chiave letto o riportato in questo registro. Le due API key default
+restano distinte dalle due dedicate. Prossimo passo: bootstrap applicativo
+privato; la sua validazione deve includere il file host completo, senza
+richiederne la pubblicazione o la lettura da parte dell'agente.

@@ -33,7 +33,7 @@ for index in ['molecule_previews_chembl_36','molecule_details_chembl_36','logs_s
   time.sleep(.05)
  else:raise RuntimeError('index task timed out')
 keys={}
-for role,actions,indexes in [('searchKey',['search','documents.get','indexes.get'],['molecule_previews_chembl_36','molecule_details_chembl_36']),('logKey',['documents.add'],['logs_staging','security_logs_staging'])]:
+for role,actions,indexes in [('searchKey',['search','documents.get'],['molecule_previews_chembl_36','molecule_details_chembl_36']),('logKey',['documents.add'],['logs_staging','security_logs_staging'])]:
  keys[role]=call('/keys','POST',{'description':'synthetic QA '+role,'actions':actions,'indexes':indexes,'expiresAt':None})['key']
 print(json.dumps(keys))'''
 
@@ -48,6 +48,7 @@ def main():
     parser.add_argument('--report', type=Path, required=True)
     parser.add_argument('--servers-only', action='store_true')
     parser.add_argument('--image-suffix')
+    parser.add_argument('--image-manifest', type=Path)
     args = parser.parse_args()
     if args.report.exists():
         raise ValueError('Report exists')
@@ -60,6 +61,12 @@ def main():
               'meilisearch': 'mercurion-vm042-meilisearch:candidate',
               'nginx': 'mercurion-vm042-edge:candidate',
               'nats': 'mercurion-nats:2.15.2-crypto.1', 'tox21': HELPER}
+    if args.image_manifest:
+        import re
+        supplied = json.loads(args.image_manifest.read_text(encoding='utf-8'))
+        if set(supplied) != set(images) or not all(re.fullmatch('sha256:[a-f0-9]{64}', ref) for ref in supplied.values()):
+            raise ValueError('Explicit immutable images required for every QA role')
+        images = supplied
     images = {role: json.loads(value('image', 'inspect', reference))[0]['Id'] for role, reference in images.items()}
     if args.image_suffix:
         for role in ('postgres', 'redis', 'meilisearch', 'nginx', 'web-node', 'web-ng'):
@@ -197,6 +204,46 @@ def main():
                 if schema.returncode:
                     raise ValueError('Empty schema initialization failed')
                 result['checks']['emptySchema'] = True
+                verified = compose(paths['preview'], 'run', '--rm', '--no-deps', '--entrypoint', 'node',
+                    '-v', str(preview_compose.ROOT / 'deployment/local-vm/operational/initialize-empty-schema.cjs') + ':/qa/schema.cjs:ro',
+                    'web-node-preview', '/qa/schema.cjs', '--verify-existing', check=False)
+                if verified.returncode:
+                    result['schemaComparison'] = {'status':'unavailable'}
+                    for line in (verified.stdout + '\n' + verified.stderr).splitlines():
+                        try:
+                            diagnostic = json.loads(line)
+                            if diagnostic.get('code') == 'EMPTY_PREVIEW_SCHEMA_INITIALIZATION_FAILED':
+                                result['schemaComparison'] = diagnostic
+                        except (ValueError, AttributeError):
+                            pass
+                    raise ValueError('Existing schema compatibility check failed')
+                result['checks']['existingSchemaCompatible'] = True
+                # The compatibility path must reject actual drift, without fixing it.
+                query = "ALTER TABLE user_notifications ALTER COLUMN payload SET DEFAULT '[]'::jsonb"
+                value('exec', postgres, 'psql', '-U', 'postgres', '-d', 'mercurion_preview', '-c', query)
+                mismatch = compose(paths['preview'], 'run', '--rm', '--no-deps', '--entrypoint', 'node',
+                    '-v', str(preview_compose.ROOT / 'deployment/local-vm/operational/initialize-empty-schema.cjs') + ':/qa/schema.cjs:ro',
+                    'web-node-preview', '/qa/schema.cjs', '--verify-existing', check=False)
+                if mismatch.returncode == 0:
+                    raise ValueError('Schema drift was accepted')
+                actual = value('exec', postgres, 'psql', '-U', 'postgres', '-d', 'mercurion_preview', '-At', '-c',
+                    "SELECT pg_get_expr(d.adbin,d.adrelid) FROM pg_attrdef d JOIN pg_class c ON c.oid=d.adrelid JOIN pg_attribute a ON a.attrelid=c.oid AND a.attnum=d.adnum WHERE c.relname='user_notifications' AND a.attname='payload'")
+                if actual != "'[]'::jsonb":
+                    raise ValueError('Read-only schema check mutated default')
+                value('exec', postgres, 'psql', '-U', 'postgres', '-d', 'mercurion_preview', '-c',
+                    "ALTER TABLE user_notifications ALTER COLUMN payload SET DEFAULT '{}'::jsonb")
+                result['checks']['schemaDriftRejectedWithoutMutation'] = True
+                tox21 = compose(paths['preview'], 'ps', '-q', 'tox21-preview').stdout.strip()
+                rpc = (preview_compose.ROOT / 'scripts/infrastructure/preview_application_rpc.py').read_text(encoding='utf-8')
+                deadline = time.monotonic() + 45
+                while True:
+                    answer = docker('exec', tox21, 'python', '-B', '-c', rpc, check=False)
+                    if answer.returncode == 0 and json.loads(answer.stdout)['subjects'] == 5:
+                        break
+                    if time.monotonic() > deadline:
+                        raise ValueError('Real application RPC failed')
+                    time.sleep(.5)
+                result['checks']['realTox21Rpc'] = True
                 result['phase'] = 'application-health'
                 compose(paths['preview'], 'up', '-d', 'web-node-preview', 'web-ng-preview')
                 deadline = time.monotonic() + 90

@@ -1,14 +1,14 @@
 # Runbook operativo — da host e VM al primo bootstrap preview
 
-**Aggiornato all'11 novembre 2026. Lingua: italiano.** Questa è la guida
+**Aggiornato al 12 novembre 2026. Lingua: italiano.** Questa è la guida
 sequenziale per un operatore umano. Non richiede chat, agenti AI, MCP, profili
 browser dell'autore o script conservati soltanto sul suo computer. I programmi
 necessari sono elencati sotto; i relativi sorgenti operativi sono nel repository.
 Gli artifact sono output da produrre e conservare, non istruzioni nascoste.
 
 **Traguardo attuale:** quattro server avviati privatamente sulla VM, quattro
-indici log Meilisearch creati. **Fermata concordata:** la creazione delle due API
-key applicative, con validità di 90 giorni, è pronta ma NON eseguita.
+indici log Meilisearch e due API key applicative a 90 giorni creati.
+**Prossimo passo:** bootstrap applicativo privato.
 Web, Tox21 persistente, dati ChEMBL, Cloudflare e produzione non sono avviati.
 
 ## 0. Leggere prima: nuova installazione oppure ripresa?
@@ -710,9 +710,11 @@ Sul run attuale i task sono 0–3: sono evidenza di quel server, non costanti da
 imporre a un'altra installazione. Non creare ancora ChEMBL con un primary key
 presunto: import/schema devono essere definiti nel lavoro successivo.
 
-### 11.2 Due chiavi client — PRONTO, RINVIATO AL GIORNO SUCCESSIVO
+### 11.2 Due chiavi client — completato il 12 novembre
 
-**Questo comando non è stato eseguito sulla VM dell'autore.** Salvare e chiudere
+**Completato sulla VM dell'autore:** MEILI_CLIENT_KEYS_READY, due chiavi a 90
+giorni e quattro negazioni 403 riuscite. Non ripetere sulla configurazione
+già compilata. Su una nuova installazione salvare e chiudere
 il file privato nell'editor. Tunnel aperto, secondo PS nella root Web:
 
 ```powershell
@@ -762,9 +764,14 @@ ancora un comando consegnato da questo runbook.
 
 ## 12. Punto di ripresa concordato per il giorno successivo
 
+**Aggiornamento 12 novembre:** ripartenza dei quattro server confermata, sei
+controlli riusciti nella verifica `d2cfff6e2a204c27ac3362f4d9e59fbf`. Meili
+è a `172.18.0.2`. Proseguire con tunnel amministrativo (sezione 10) e chiavi
+client (11.2), senza ripetere il recupero.
+
 1. Non ripetere generazione file, riparazione AES, bootstrap server o creazione
-   indici: sono già conclusi. Il comando chiavi della sezione 11.2 è il primo
-   lavoro ancora aperto.
+   indici: sono già conclusi. Anche le chiavi della sezione 11.2 sono state create il 12 novembre;
+   il lavoro aperto è il bootstrap applicativo privato.
 2. Se la **VM è rimasta accesa senza riavvio**, verificare la disponibilità SSH.
    Il forward può essere riaperto con la sezione 10; il tunnel non deve restare
    aperto durante la notte per conservare server o dati.
@@ -772,11 +779,11 @@ ancora un comando consegnato da questo runbook.
    presenti i file tmpfs**. Leggere la sezione 13 prima di tentare qualsiasi avvio.
 4. Con tunnel disponibile verificare `/health`. In caso di errore ripartire
    dalla diagnosi, non generare nuove credenziali o riavviare Compose a caso.
-5. Salvare/chiudere il file privato ed eseguire una sola volta il comando chiavi
-   con `-Expiry 90Days`. Attendere il JSON finale; soltanto dopo aggiornarne lo stato.
+5. Il comando chiavi `-Expiry 90Days` è concluso sulla VM attuale. Non
+   rieseguirlo per riprendere il bootstrap applicativo.
 
 **Stato al momento della pausa:** quattro server e quattro indici pronti;
-chiavi client non create; servizi applicativi spenti; nessuna porta pubblicata;
+chiavi client create il 12 novembre; servizi applicativi spenti; nessuna porta pubblicata;
 H-05/A-05/A-30 aperti; nessun merge autorizzato.
 
 ## 13. Arresto, file volatili e ripristino: limite operativo attuale
@@ -788,7 +795,8 @@ Meili sopravvivono, ma le configurazioni montate e i segreti devono essere
 riconsegnati con gli **stessi valori** prima di ricreare correttamente i container.
 
 Il percorso di cold recovery dei server reali è ora predisposto in
-[COLD-RECOVERY.md](COLD-RECOVERY.md), con verifica sulla VM ancora da acquisire. Non mascherarlo con il bootstrap iniziale: i suoi controlli sulle
+[COLD-RECOVERY.md](COLD-RECOVERY.md), con ripartenza sulla VM verificata il
+12 novembre (sei controlli riusciti; ricevute nel registro). Non mascherarlo con il bootstrap iniziale: i suoi controlli sulle
 collisioni fermano correttamente il riuso di volumi/progetti esistenti. Non usare
 `docker compose down -v`, `docker system prune`, password nuove o database vuoti
 per ottenere un avvio apparentemente riuscito.
@@ -799,8 +807,8 @@ circoscritto documentati, usando il file privato stabile e la release originale.
 Non considerare completata la verifica finché non è disponibile la ricevuta finale.
 **Ripresa del 12 novembre:** l'operatore ha confermato spegnimento/riavvio.
 Seguire [Recupero dopo riavvio](COLD-RECOVERY.md), iniziando dall'inventario
-sanitizzato della release. L'inventario è riuscito; il passo successivo è il comando esplicito di cold
-recovery della sezione 4, con sei controlli di readiness/persistenza.
+sanitizzato della release. Inventario, ripartenza e sei controlli di readiness/persistenza sono riusciti;
+non ripeterli durante la sessione corrente per passare alle API key.
 
 ## 14. Diagnosi senza esporre segreti
 
@@ -825,6 +833,13 @@ ricevute sanitizzate. La password amministrativa Meili non va nella cronologia,
 in `-H` con valore letterale, negli artifact o nei file Compose.
 
 ## 15. Cosa resta fuori da questo traguardo
+
+Il passaggio successivo è ora descritto in
+[APPLICATION-BOOTSTRAP.md](APPLICATION-BOOTSTRAP.md): preparazione dei quattro
+export, bundle applicativo e un solo comando di primo avvio privato, con
+controlli incorporati. È collaudato localmente; l'esito sulla VM deve essere
+registrato dopo l'esecuzione dell'operatore. Il recupero giornaliero dell'intero
+stack e l'accesso pubblico restano successivi.
 
 La guida arriva intenzionalmente al punto raggiunto: non descrive come completati
 bootstrap Nest/Angular/Tox21 persistenti, inizializzazione dello schema applicativo,

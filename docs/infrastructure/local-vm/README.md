@@ -1,7 +1,7 @@
 # Mercurion — progetto infrastrutturale della demo su VM locale
 
 **Data di apertura:** 7 novembre 2026  
-**Stato, 11 novembre 2026:** quattro server privati e quattro indici log verificati sulla VM; chiavi client pronte ma rinviate, applicazioni/accesso pubblico ancora aperti.
+**Stato, 12 novembre 2026:** ripartenza dei quattro server privati verificata, sei controlli riusciti e quattro indici log persistenti. Due chiavi client dedicate create a 90 giorni; prossimo passo: bootstrap applicativo privato. Accesso pubblico ancora aperto.
 **Branch di lavoro:** `feature/infra-vm-docker-engine-architecture`.  
 **Lingua di lavoro:** italiano, salvo nomi tecnici, identificatori e codice.
 
@@ -32,11 +32,12 @@ e condizioni di arresto. Una nuova installazione deve produrre le proprie prove.
 | 7 | Preparare immagini e bundle sull'host, verificando sorgenti, modello, CI e scansioni | [Runbook: sezione 8](RUNBOOK.md#8-preparare-e-archiviare-le-immagini-sullhost) → [appendice artefatti](ARTIFACT-REPRODUCTION.md); al termine tornare alla sezione 9 |
 | 8 | Trasferire il bundle e avviare privatamente PostgreSQL, Redis, NATS e Meilisearch | [Runbook: sezione 9](RUNBOOK.md#9-primo-bootstrap-dei-quattro-server-solo-su-risorse-nuove) |
 | 9 | Aprire il tunnel SSH amministrativo e creare gli indici Meilisearch | [Runbook: sezioni 10–11](RUNBOOK.md#10-tunnel-amministrativo-meilisearch) |
+| 10 | Creare le due chiavi applicative Meili, poi preparare e avviare privatamente Nest, Angular, Tox21 e l'edge | [Runbook: sezione 11.2](RUNBOOK.md) → [primo bootstrap applicativo](APPLICATION-BOOTSTRAP.md) |
 
 **Fin dove arriva oggi questa procedura:** quattro server privati e quattro
 indici log sono il traguardo verificato sulla macchina dell'autore. La creazione
 delle due chiavi client Meilisearch con scadenza di 90 giorni è descritta nella
-sezione 11.2 ma non ancora eseguita. Le applicazioni e l'accesso pubblico sono
+sezione 11.2 ed è stata completata il 12 novembre. Le applicazioni e l'accesso pubblico sono
 lavori successivi, non l'esito già raggiunto di questo percorso.
 
 ### Ripresa, manutenzione o consultazione
@@ -55,9 +56,9 @@ lavori successivi, non l'esito già raggiunto di questo percorso.
   preesisteva a questa documentazione: il runbook distingue la procedura proposta
   per una nuova installazione dai passi effettivamente verificati. Anche la
   ricostruzione su host privo di cache resta una verifica aperta.
-- **Ripartenza dopo spegnimento ancora incompleta.** I segreti attivi sono su
+- **Ripartenza dopo spegnimento tramite procedura dedicata.** I segreti attivi sono su
   tmpfs e si perdono al riavvio del guest. I dati persistono nei volumi, ma il
-  cold recovery è predisposto ma il collaudo sulla VM è ancora aperto. Il bootstrap iniziale
+  cold recovery ha concluso la verifica sulla VM il 12 novembre. Il bootstrap iniziale
   non lo sostituisce: leggere la sezione 13 del runbook.
 - **Demo applicativa non ancora avviata.** Nest, Angular, Tox21 persistente,
   dati applicativi, Cloudflare e produzione restano fuori dal traguardo attuale.
@@ -75,7 +76,7 @@ passi» datati non superano lo stato del runbook e del registro delle esecuzioni
 
 | Documento | Responsabilità |
 | --- | --- |
-| [COLD-RECOVERY.md](COLD-RECOVERY.md) | Inventario, riconsegna dei segreti e recupero dei server esistenti; collaudo VM pendente |
+| [COLD-RECOVERY.md](COLD-RECOVERY.md) | Inventario, recupero dei server esistenti e verifica senza nuovo avvio; ricevute VM del 12 novembre |
 | [RUNBOOK.md](RUNBOOK.md) | Installazione/configurazione, bootstrap, curl, ripresa del giorno successivo, errori e limite del cold recovery |
 | [ARTIFACT-REPRODUCTION.md](ARTIFACT-REPRODUCTION.md) | Preparazione da sorgenti e modello, build/export/scan/CI e bundle, senza script esterni al repository |
 | [VERIFICATION-PROCEDURE.md](VERIFICATION-PROCEDURE.md) | Inventari, canary host/LAN, Android, IPv6, fixture e pilot ripetibili senza AI |
