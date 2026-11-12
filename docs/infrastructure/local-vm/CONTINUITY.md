@@ -1,5 +1,13 @@
 # Ripresa operativa — 12 novembre 2026
 
+**Vincolo prioritario:** le versioni server VM devono coincidere con lo
+sviluppo definito in `docker_sl/docker-compose.yml` e relativo Dockerfile
+PostgreSQL. Divergenze effettive documentate in
+[SERVICE-VERSION-PARITY.md](SERVICE-VERSION-PARITY.md), incluse versione del
+pacchetto pgvector e versione nel catalogo DB. Non avviare restore su una
+baseline divergente e non aggiornare lo sviluppo o declassare i volumi per
+forzare la parità senza piano. La readiness positiva non chiude questo requisito.
+
 **Pausa dati:** l'owner sta recuperando da archivio RAR i chunk degli embedding
 nella propria directory privata. Non avviare trasferimenti o restore prima
 della sua conferma. Nel frattempo sono autorizzate analisi e proposta:

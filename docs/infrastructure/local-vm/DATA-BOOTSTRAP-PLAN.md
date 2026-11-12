@@ -8,6 +8,14 @@ nuovo DDL o cambio di scope è stato eseguito durante questa analisi.
 
 ## 1. Meilisearch: versioni e supporto effettivo
 
+**Correzione progettuale vincolante dell'owner:** le versioni dei servizi
+server devono coincidere con lo sviluppo, non essere scelte indipendentemente
+per la VM. Fonte di riferimento: `docker_sl/docker-compose.yml` e il suo
+`Dockerfile.postgres`. Il confronto 1.14 → 1.56 qui sotto descrive una
+divergenza riscontrata, non un percorso di aggiornamento approvato. Prima
+del caricamento dati risolvere la parità descritta in
+[SERVICE-VERSION-PARITY.md](SERVICE-VERSION-PARITY.md).
+
 Letture eseguite senza aprire configurazioni private o modificare dati:
 
 | Origine della verifica | Risultato |
@@ -68,9 +76,9 @@ Il dump copre l'istanza e include impostazioni e metadati delle API key: non va
 trattato come export dei soli due indici ChEMBL. I dati e i backup rimangono
 privati, fuori da Git e dagli artifact pubblici di CI.
 
-**Proposta:** preservare l'origine 1.14, produrre in seguito un backup
-consistente e collaudarne il recupero separatamente. Per lo staging già
-predisposto, preferire il trasferimento selettivo dei soli indici
+**Proposta, subordinata alla parità delle versioni:** preservare l'origine,
+produrre in seguito un backup consistente e collaudarne il recupero
+separatamente. Per lo staging, valutare il trasferimento selettivo dei soli indici
 `molecule_previews_chembl_36` e `molecule_details_chembl_36`, incluse le loro
 impostazioni, invece di sostituire l'intera istanza con un dump. I nomi vanno
 confermati nell'inventario reale. Questo preserva le chiavi e i quattro indici

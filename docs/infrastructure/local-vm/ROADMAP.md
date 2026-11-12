@@ -1,5 +1,12 @@
 # Roadmap — deployment demo Hyper-V / Docker Engine
 
+**Precedenza vincolante:** parità delle versioni server con
+`docker_sl/docker-compose.yml`, richiesta dall'owner il 12 novembre.
+L'audit ha trovato divergenze in PostgreSQL/pgvector, Redis, NATS, Meili e
+Nginx: [confronto e piano](SERVICE-VERSION-PARITY.md). Prima di restore o
+consolidamento pubblico correggere questo aspetto, mantenendo la policy CVE
+strict. Nessun upgrade/downgrade o cambio allo sviluppo è stato eseguito.
+
 **Priorità operativa del 12 novembre:** staging funzionante. Dopo la conferma
 owner di spegnimento/riavvio, anticipare il recupero dei quattro server rispetto
 alle API key/applicazioni: [procedura e vincoli](COLD-RECOVERY.md). Inventario
