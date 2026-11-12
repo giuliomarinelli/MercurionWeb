@@ -798,7 +798,10 @@ evitare Turn Off forzato. Prima del riavvio successivo, un manutentore deve
 riconciliare release/run, file privato stabile, volumi e bind e completare la
 procedura di riconsegna/recovery prevista dalla roadmap. Questa è una lacuna
 dichiarata e comprensibile senza AI, non un comando omesso da richiedere in chat.
-La sessione odierna non ha spento o riavviato la VM dell'operatore.
+**Ripresa del 12 novembre:** l'operatore ha confermato spegnimento/riavvio.
+Seguire [Recupero dopo riavvio](COLD-RECOVERY.md), iniziando dall'inventario
+sanitizzato della release. Gli strumenti di questa prima fase non avviano
+server e non riconsegnano ancora i segreti.
 
 ## 14. Diagnosi senza esporre segreti
 

@@ -5,7 +5,7 @@ import re
 ROOT = Path(__file__).resolve().parents[1]
 DOCS = ROOT / 'docs/infrastructure/local-vm'
 NAMES = ('RUNBOOK.md', 'ARTIFACT-REPRODUCTION.md', 'VERIFICATION-PROCEDURE.md',
-         'EXECUTION-RECORD.md', 'CONTINUITY.md', 'README.md', 'MEILISEARCH-OPERATIONS.md')
+         'EXECUTION-RECORD.md', 'CONTINUITY.md', 'README.md', 'MEILISEARCH-OPERATIONS.md', 'COLD-RECOVERY.md')
 errors = []
 blocks = 0
 for name in NAMES:

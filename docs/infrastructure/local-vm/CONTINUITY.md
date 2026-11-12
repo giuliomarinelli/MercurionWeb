@@ -1,3 +1,16 @@
+# Ripresa operativa — 12 novembre 2026
+
+L'owner riprende il lavoro con obiettivo staging funzionante e documentazione
+passo passo di ogni operazione. Ha confermato che la VM è stata spenta o
+riavviata. La pausa precedente è terminata; i segreti tmpfs non vanno presunti
+presenti. Prima delle API key e del bootstrap applicativo seguire
+[COLD-RECOVERY.md](COLD-RECOVERY.md): inventario della release e dei quattro
+server, poi recupero da implementare sulla base delle evidenze. La policy
+Cloudflare Access è predisposta su `preview.mercurion.app`; non attesta ancora
+il collegamento del tunnel o il funzionamento applicativo. Nessun merge.
+
+## Consegna precedente, conservata come storico
+
 # Pausa operativa — fine giornata 11 novembre 2026
 
 **Istruzione esplicita dell'owner:** stop alle operazioni infrastrutturali per
