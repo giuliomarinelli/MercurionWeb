@@ -1,5 +1,11 @@
 # Ripresa operativa — 12 novembre 2026
 
+**Pausa dati:** l'owner sta recuperando da archivio RAR i chunk degli embedding
+nella propria directory privata. Non avviare trasferimenti o restore prima
+della sua conferma. Nel frattempo sono autorizzate analisi e proposta:
+[schema SQL, Meili e tool scope](DATA-BOOTSTRAP-PLAN.md). Tool scope ancora da
+implementare; nessuna chiave letta o esposta e nessun privilegio modificato.
+
 **Punto corrente:** verifica applicativa conclusa con verificationId
 `51f087181cb34ec3ad4ace23ec9e53fe`: backend, frontend e RPC Tox21 tutti true,
 stessi quattro container, senza nuovi avvii o modifiche al database. Forward

@@ -20,6 +20,14 @@ Procedura nelle [sezioni 7–8](APPLICATION-BOOTSTRAP.md#7-riprendere-soltanto-l
 
 ### Fase dati successiva — inventario prima del trasferimento
 
+**Pausa operativa owner:** attendere che siano scaricati/estratti i chunk
+SQL privati. Eseguite soltanto letture di versione Meili e analisi del codice.
+Meili locale 1.14.0 supporta già dump/snapshot; immagine VM 1.56.2, quindi
+non sostituire la migrazione con una copia fisica cross-versione. Proposta di
+baseline SQL separata dagli embedding e contratto del tool scope in
+[DATA-BOOTSTRAP-PLAN.md](DATA-BOOTSTRAP-PLAN.md). Nessun restore, upgrade o
+cambio di scope eseguito. La nuova baseline non è un migration runner.
+
 L'owner conferma due indici Meilisearch ChEMBL e una tabella di oltre tre
 milioni di embedding con indice HNSW costoso da costruire. Esisterebbe già un
 dump suddiviso in numerosi chunk: posizione e formato ancora da inventariare.

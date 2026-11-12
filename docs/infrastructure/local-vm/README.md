@@ -46,6 +46,7 @@ applicativa, sezioni 7–8; login/dati e accesso pubblico restano successivi.
 
 | Esigenza | Punto di ingresso |
 | --- | --- |
+| Preparare schema SQL esplicito, restore ChEMBL/embedding e tool scope | [Analisi e proposta dati/bootstrap](DATA-BOOTSTRAP-PLAN.md); nessun restore da avviare prima dell'inventario |
 | Riprendere la VM già predisposta | [Runbook: sezione 12](RUNBOOK.md#12-punto-di-ripresa-concordato-per-il-giorno-successivo). Non ripetere installazione, generazione segreti o bootstrap |
 | Capire cosa fare dopo spegnimento o riavvio | [Runbook: sezione 13](RUNBOOK.md#13-arresto-file-volatili-e-ripristino-limite-operativo-attuale), prima di avviare lo stack |
 | Diagnosticare un errore | [Runbook: sezione 14](RUNBOOK.md#14-diagnosi-senza-esporre-segreti) |
