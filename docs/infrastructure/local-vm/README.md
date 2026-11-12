@@ -33,12 +33,14 @@ e condizioni di arresto. Una nuova installazione deve produrre le proprie prove.
 | 8 | Trasferire il bundle e avviare privatamente PostgreSQL, Redis, NATS e Meilisearch | [Runbook: sezione 9](RUNBOOK.md#9-primo-bootstrap-dei-quattro-server-solo-su-risorse-nuove) |
 | 9 | Aprire il tunnel SSH amministrativo e creare gli indici Meilisearch | [Runbook: sezioni 10–11](RUNBOOK.md#10-tunnel-amministrativo-meilisearch) |
 | 10 | Creare le due chiavi applicative Meili, poi preparare e avviare privatamente Nest, Angular, Tox21 e l'edge | [Runbook: sezione 11.2](RUNBOOK.md) → [primo bootstrap applicativo](APPLICATION-BOOTSTRAP.md) |
+| 11 | Completare la verifica senza reinstallare e vedere la UI tramite forward SSH privato | [Verifica dei container esistenti e forward](APPLICATION-BOOTSTRAP.md#7-riprendere-soltanto-la-verifica-dei-container-esistenti) |
 
-**Fin dove arriva oggi questa procedura:** quattro server privati e quattro
-indici log sono il traguardo verificato sulla macchina dell'autore. La creazione
-delle due chiavi client Meilisearch con scadenza di 90 giorni è descritta nella
-sezione 11.2 ed è stata completata il 12 novembre. Le applicazioni e l'accesso pubblico sono
-lavori successivi, non l'esito già raggiunto di questo percorso.
+**Fin dove arriva oggi questa procedura:** quattro server privati, quattro
+indici log e due chiavi client Meilisearch a 90 giorni verificati. Le quattro
+applicazioni sono state avviate, lo schema inizializzato e la health backend
+superata; frontend/RPC sono in completamento dopo la correzione del probe.
+Verifica dei container esistenti e forward sono descritti nella guida
+applicativa, sezioni 7–8. L'accesso pubblico Mercurion resta successivo.
 
 ### Ripresa, manutenzione o consultazione
 
@@ -60,8 +62,8 @@ lavori successivi, non l'esito già raggiunto di questo percorso.
   tmpfs e si perdono al riavvio del guest. I dati persistono nei volumi, ma il
   cold recovery ha concluso la verifica sulla VM il 12 novembre. Il bootstrap iniziale
   non lo sostituisce: leggere la sezione 13 del runbook.
-- **Demo applicativa non ancora avviata.** Nest, Angular, Tox21 persistente,
-  dati applicativi, Cloudflare e produzione restano fuori dal traguardo attuale.
+- **Demo applicativa privata in verifica.** I container sono avviati, ma
+  dati ChEMBL, login/realtime, tunnel pubblico e produzione restano successivi.
   Le verifiche di isolamento H-05/A-05/A-30 restano parziali; i pilot autorizzati
   non costituiscono accettazione globale della rete.
 

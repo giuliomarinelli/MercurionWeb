@@ -12,6 +12,53 @@ Nessuna chiusura dei gate di isolamento.
 Cloudflare Access sul dominio è predisposto dall'owner, collegamento e collaudo
 pubblico rimangono da verificare.
 
+**Avanzamento corrente:** schema applicativo inizializzato e quattro container
+running; backend health positiva. Riprendere solo la verifica frontend/RPC
+dopo la correzione del probe, poi forward privato di Nginx e controllo visivo.
+Procedura nelle [sezioni 7–8](APPLICATION-BOOTSTRAP.md#7-riprendere-soltanto-la-verifica-dei-container-esistenti).
+
+### Fase dati successiva — inventario prima del trasferimento
+
+L'owner conferma due indici Meilisearch ChEMBL e una tabella di oltre tre
+milioni di embedding con indice HNSW costoso da costruire. Esisterebbe già un
+dump suddiviso in numerosi chunk: posizione e formato ancora da inventariare.
+Non trasferire o ripristinare dati durante la fase di verifica/forward.
+
+1. Inventariare file, dimensioni, compressione, formato del dump, numerazione
+   dei chunk, checksum per file e ordine esplicito di ricomposizione. Distinguere
+   dump logico SQL/custom/directory da un backup fisico e da file arbitrariamente
+   spezzati. Acquisire versioni PostgreSQL/pgvector, schema, dimensioni dei
+   vettori, definizione dell'indice e conteggi attesi.
+2. Usare il canale SSH già autorizzato Windows → guest. SCP è già operativo;
+   SFTP usa lo stesso accesso SSH, senza aprire un nuovo servizio/porta. Scegliere
+   il metodo e la strategia di ripresa in funzione dei file reali, conservando
+   manifest e checksum e saltando soltanto chunk già verificati.
+3. Un dump logico PostgreSQL conserva dati e definizione dell'indice, non le
+   pagine fisiche HNSW: il restore può quindi richiedere una ricostruzione
+   costosa. Pianificare dati e creazione indice separatamente, senza rifare
+   l'indice più volte. Un backup fisico ha vincoli differenti e non va trattato
+   come import di una sola tabella nello schema applicativo esistente.
+4. Valutare spazio e RAM prima di ripristino/indice. Aumentare solo la RAM
+   della VM non aumenta il limite del container PostgreSQL (attualmente 768 MiB).
+   Qualsiasi aumento temporaneo deve comprendere limiti effettivi del container,
+   impostazioni di build indice, effetto su restart/ID e successivo ripristino
+   delle risorse; non cambiare questi parametri automaticamente.
+5. Per Meili verificare formato/versione e perimetro dei due indici. Non
+   importare indiscriminatamente un dump dell'intera istanza sovrascrivendo
+   chiavi applicative, indici log e impostazioni già predisposte.
+6. Dopo il restore verificare conteggi, metadata, modello/dimensioni degli
+   embedding e query campione ChEMBL/similarità; conservare ricevute e tempi.
+
+Il test Access dell'owner sul dominio collegato temporaneamente a Pages è
+positivo; il passaggio al tunnel e la prova sull'origine Mercurion restano
+successivi al collaudo privato. Nessun cambio DNS in questa fase.
+
+Riferimenti tecnici per questa futura fase: [formati e sezioni di pg_dump](https://www.postgresql.org/docs/16/app-pgdump.html),
+[build degli indici pgvector](https://github.com/pgvector/pgvector#index-build-time),
+[SCP/SFTP sul canale SSH](https://man.openbsd.org/scp). Servono come approfondimento;
+la procedura operativa di trasferimento/restore sarà documentata nel repository
+dopo aver identificato il formato reale dei file.
+
 **VM-045, preparazione:** launcher iniziale privato e documentazione disponibili;
 quattro export applicativi con scansioni strict a zero, inclusa derivazione OS
 Tox21 per CVE-2026-84243. Collaudo locale sintetico dello stack riuscito, sette

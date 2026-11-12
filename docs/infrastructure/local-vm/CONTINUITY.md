@@ -1,5 +1,13 @@
 # Ripresa operativa — 12 novembre 2026
 
+**Punto corrente:** il primo avvio applicativo ha creato lo schema (31 entity),
+avviato tutti e quattro i container e superato la health del backend. Il probe
+frontend cercava erroneamente app-root: corretto come smoke HTTP/HTML, senza
+vincolo sul selettore. Prossima operazione owner: `-VerifyExisting -Execute`
+come da [guida, sezioni 7–8](APPLICATION-BOOTSTRAP.md#7-riprendere-soltanto-la-verifica-dei-container-esistenti),
+poi forward Nginx loopback e verifica visiva. Non ripetere bootstrap/schema.
+ChEMBL e embedding rimangono nella fase successiva, senza import ora.
+
 L'owner riprende il lavoro con obiettivo staging funzionante e documentazione
 passo passo di ogni operazione. Ha confermato che la VM è stata spenta o
 riavviata. La pausa precedente è terminata; i segreti tmpfs non vanno presunti

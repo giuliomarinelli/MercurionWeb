@@ -6,6 +6,29 @@ non sono promosse a prove VM; una procedura pronta non viene marcata eseguita.
 
 ## Milestone osservate
 
+### 12 novembre — bootstrap applicativo reale, verifica ancora da completare
+
+Run `07fd750861be434b8de3c768bc9a6353`, ricevute del bundle VM-045:
+preflight `ready`, sei controlli dei server positivi, quattro immagini con
+roundtrip verificato, edge sul peer `172.22.0.2`. Schema `initialized` con
+31 entity; i quattro container applicativi risultano tutti running e la
+health backend attraverso l'edge è positiva. Arresto del controllo su
+`frontendThroughEdge`, codice `server-readiness-timeout`: il probe cercava
+erroneamente app-root, mentre il vero index usa m-root. La fase RPC non era
+ancora stata eseguita. Nessuna porta pubblicata. Ricevuta fallita conservata.
+
+Preparata ripresa di sola verifica e forward Nginx, documentati nelle sezioni
+7–8 della guida applicativa. Esiti VM di queste nuove operazioni ancora da
+acquisire; test locali non promossi a esiti remoti.
+
+**Cloudflare, evidenza riferita dall'owner:** policy Access su
+`preview.mercurion.app` con unico metodo Google OIDC tramite client OAuth GCP;
+test positivo su un progetto Pages provvisorio con index HTML, collegato al
+dominio con custom domain/CNAME. Non è un test dell'origine Mercurion né del
+tunnel. Prima del cambio origine ripetere la verifica effettiva, includendo
+anonimo/identità non autorizzata e persistenza della protezione sull'origine
+definitiva. Nessuna configurazione Cloudflare modificata in questo intervento.
+
 ### 12 novembre — preparazione applicazioni VM-045 (solo evidenza locale)
 
 Export aggiornati dei quattro componenti applicativi con SBOM, audit runtime,

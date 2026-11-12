@@ -150,11 +150,20 @@ if __name__ == '__main__':
     parser.add_argument('--bundle', type=Path, required=True)
     parser.add_argument('--configuration', type=Path, default=Path.home() / '.mercurion/preview/configuration.json')
     parser.add_argument('--execute', action='store_true')
+    parser.add_argument('--verify-existing', action='store_true')
     args = parser.parse_args()
     try:
         root = args.bundle.resolve()
         manifest = bundle.verify(root)
-        if args.execute:
+        if args.verify_existing:
+            import preview_application_verification as verification
+            verification.eligible(root, manifest)
+            if args.execute:
+                print(json.dumps(verification.execute(root, manifest)))
+            else:
+                print(json.dumps(dict(status='existing-application-verification-plan', runId=manifest['runId'],
+                    privateConfigurationRead=False, sshStarted=False, servicesStarted=False)))
+        elif args.execute:
             print(json.dumps(execute(root, manifest, args.configuration)))
         else:
             print(json.dumps(dict(status='application-plan', runId=manifest['runId'], imageCount=4,

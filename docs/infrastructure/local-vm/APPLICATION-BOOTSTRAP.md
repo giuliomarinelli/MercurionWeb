@@ -226,10 +226,12 @@ frontend attraverso l'edge e roundtrip AES. Le fixture tmpfs Linux provano
 ricezione non-root, proprietà UID/GID, permessi, blocco del riuso e copia
 pubblica da Windows con modalità normalizzate. Non sono prove sulla VM.
 
-Questa consegna non dichiara ancora eseguito il bootstrap applicativo sulla
-VM: il registro sarà aggiornato con la ricevuta dell'operatore. Anche un
-bootstrap positivo non dimostra login, MFA, WebSocket, provider esterni,
-dataset ChEMBL o accesso pubblico.
+Il bootstrap owner della VM ha inizializzato 31 entity e avviato i quattro
+container; il backend attraverso Nginx è risultato disponibile. Il controllo
+frontend è però andato in timeout per un errore nel probe: richiedeva
+app-root invece del reale m-root. La verifica riprende come descritto sotto,
+senza rieseguire bootstrap o schema. Nemmeno una verifica positiva dimostra
+login, MFA, WebSocket, provider esterni, dataset ChEMBL o accesso pubblico.
 
 Dopo l'installazione iniziale, consolidare **prima dell'esposizione pubblica**
 la ripartenza unificata di server e applicazioni dopo perdita del tmpfs. Il
@@ -242,3 +244,88 @@ header/cookie HTTPS, e collegamento del tunnel con Access. La policy DnsHttps
 attuale non apre automaticamente SMTP o la porta del tunnel: eventuali
 necessità di egress vanno definite prima, senza allargare implicitamente
 l'accesso alla LAN. Le prove H-05/A-05/A-30 restano parziali.
+
+## 7. Riprendere soltanto la verifica dei container esistenti
+
+Usare questa modalità se il bootstrap ha già avviato i quattro container ed
+è arrivato alla readiness. Non è una modalità di restart. I file
+`preflight-result.json` e `bootstrap-result.json` devono rimanere disponibili
+sia nel bundle sia nella release protetta sulla VM.
+
+Da una nuova PowerShell Windows normale, con VM accesa e LUKS sbloccato:
+
+```powershell
+$taskReady=Join-Path $env:USERPROFILE '.codex/artifacts/inf-vm-04/vm045-applications/ready'
+```
+
+```powershell
+powershell -NoProfile -File scripts/infrastructure/Invoke-PreviewApplicationBootstrap.ps1 -BundlePath $taskReady -VerifyExisting -Execute
+```
+
+Per eseguire consecutivamente verifica e apertura del forward con un unico
+comando aggiungere `-OpenTunnel`. Il forward parte soltanto dopo una verifica
+positiva; non serve un'altra procedura di approvazione:
+
+```powershell
+powershell -NoProfile -File scripts/infrastructure/Invoke-PreviewApplicationBootstrap.ps1 -BundlePath $taskReady -VerifyExisting -OpenTunnel -Execute
+```
+
+Il comando trasferisce solo il nuovo helper pubblico con hash verificato,
+poi controlla manifest originali, gli stessi quattro ID, immagini, Compose,
+file metadata e IP dell'edge. Non legge la configurazione privata Windows,
+non consegna segreti, non chiama `compose up` e non esegue SQL di creazione
+o migrazione. Verifica HTTP backend/frontend attraverso Nginx e le cinque RPC
+Tox21 reali, con le negazioni delle credenziali NATS già previste dal probe.
+
+Il frontend viene controllato come trasporto HTTP riuscito e HTML, senza
+vincoli sul nome del componente Angular. Il controllo browser è distinto.
+
+Solo dopo il successo viene scritto il registro root dei membri applicativi,
+oppure verificato uguale se già presente. Si tratta di metadati, non di un
+riavvio dei container. La ricevuta originale fallita resta intatta. Il nuovo
+report è `receipts/application-verification-<verificationId>.json`; attesi:
+
+- `status: passed` e tutti e tre i controlli `true`;
+- `servicesStarted: false`, `containerMutationsPerformed: false`;
+- `databaseMutationsPerformed: false`, `privateConfigurationRead: false`;
+- l'IP corrente `edgeAddress`, nessuna porta pubblicata.
+
+Se fallisce, leggere questa nuova ricevuta e non ripetere il bootstrap. Se è
+fallito solo il recupero SCP, scaricare esclusivamente lo stesso report da
+`/opt/mercurion/releases/application-<runId>/application-verification-<verificationId>.json`
+nella sottodirectory locale `receipts`, senza rieseguire la verifica remota.
+
+## 8. Forward SSH di Nginx e visualizzazione privata
+
+Dopo una ricevuta di verifica positiva, nella stessa PowerShell o in una nuova
+finestra con `$taskReady` inizializzata come sopra:
+
+```powershell
+powershell -NoProfile -File scripts/infrastructure/Open-PreviewNginxTunnel.ps1 -BundlePath $taskReady
+```
+
+Il programma legge l'ultima ricevuta positiva dello stesso run e apre soltanto
+due listener Windows su `127.0.0.1`: porta 18889 per SSH verso Nginx privato,
+porta 18888 per la visualizzazione HTTP. Una porta già occupata blocca il
+comando; non vengono fermati processi altrui. Inserire la passphrase SSH nel
+terminale e lasciarlo aperto. Nessun sudo è necessario.
+
+Quando compare `private-nginx-forward-ready`, il controllo `/health` attraverso
+il forward è riuscito. Aprire **http://localhost:18888** nel browser. Non usare
+la porta grezza 18889: Nginx accetta esclusivamente l'Host
+`preview.mercurion.app` e risponderebbe 404 al nome localhost. Il piccolo
+adattatore HTTP locale imposta questo Host, senza cambiare il DNS o il file
+hosts del computer. Non è un servizio da distribuire né esporre alla LAN.
+
+Controllare che la pagina venga renderizzata e che JS/CSS siano caricati;
+nel pannello Network verificare l'assenza di errori sul documento e sugli
+asset. È una verifica privata della UI servita dall'edge, non un test di login:
+cookie Secure/domain, OAuth, Turnstile e WebSocket richiedono il successivo
+collaudo sull'origine HTTPS reale. Il bridge non riscrive cookie o redirect,
+non simula TLS e rifiuta gli upgrade WebSocket. Non modificare la sicurezza
+applicativa per far passare questo smoke test.
+
+Il comando resta in primo piano. **Ctrl+C** chiude soltanto i suoi listener e
+il proprio processo SSH; i container sulla VM rimangono attivi. Non cambia
+Cloudflare, firewall, DNS, volumi o dati. Il sito provvisorio Pages continua
+a rispondere sul dominio pubblico.

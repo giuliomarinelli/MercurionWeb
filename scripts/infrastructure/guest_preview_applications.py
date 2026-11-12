@@ -160,8 +160,24 @@ def activate(root, manifest, report):
             identifiers[role] = identifier
             members.append(dict(service=name, project=models[project]['name'], id=identifier,
                                 image=models[project]['services'][name]['image']))
-    server_helpers, _, _, _, _ = cold.original(server_root, manifest['serverManifestSha256'])
     report['members'] = members
+    check_readiness(root, manifest, identifiers, report)
+    register_members(root, manifest, members)
+    report.update(status='passed', phase='finished', edgeAddress=prepared['edgeAddress'], edgeId=edge, members=members)
+
+
+def frontend_body(body):
+    # This is an HTTP transport smoke check, not Angular DOM/browser acceptance.
+    # Do not assume a framework selector: Mercurion currently uses m-root.
+    if '<html' not in body.lower():
+        raise ValueError('application-spa-body')
+    return True
+
+
+def check_readiness(root, manifest, identifiers, report):
+    server_root = snapshot.BASE / ('server-' + manifest['serverRunId'])
+    server_helpers, _, _, _, _ = cold.original(server_root, manifest['serverManifestSha256'])
+    edge = identifiers['edge']
     report['phase'] = 'application-readiness'
     report['checks'] = {}
     def health():
@@ -171,9 +187,7 @@ def activate(root, manifest, report):
         return True
     def frontend():
         body = docker('exec', edge, 'wget', '-q', '-O', '-', '--header=Host: preview.mercurion.app', 'http://127.0.0.1/')
-        if '<html' not in body.lower() or '<app-root' not in body.lower():
-            raise ValueError('application-spa-body')
-        return True
+        return frontend_body(body)
     def rpc():
         script = (root / 'scripts/infrastructure/preview_application_rpc.py').read_text(encoding='utf-8')
         answer = json.loads(docker('exec', identifiers['tox21'], 'python', '-B', '-c', script).splitlines()[-1])
@@ -185,14 +199,60 @@ def activate(root, manifest, report):
                                   ('tox21RealRpc', rpc, identifiers['tox21'])]:
         report['activeCheck'] = name
         report['checks'][name] = server_helpers.retry(check, container)
-    if any(docker('inspect', '--format', '{{.State.Running}}', item['id']) != 'true' for item in members):
+    if any(docker('inspect', '--format', '{{.State.Running}}', identifier) != 'true' for identifier in identifiers.values()):
         raise ValueError('application-ended-after-readiness')
+    report.pop('activeCheck', None)
+
+
+def register_members(root, manifest, members):
+    server_root = snapshot.BASE / ('server-' + manifest['serverRunId'])
     record = dict(schemaVersion=1, serverRunId=manifest['serverRunId'], appRunId=manifest['runId'],
         appManifestSha256=hashlib.sha256((root / 'application-bootstrap.json').read_bytes()).hexdigest(), members=members)
-    with (server_root / 'application-members.json').open('x', encoding='utf-8') as stream:
+    path = server_root / 'application-members.json'
+    if os.path.lexists(path):
+        if cold.read(path) != record:
+            raise ValueError('application-registration-drift')
+        return
+    with path.open('x', encoding='utf-8') as stream:
         json.dump(record, stream)
-    report.update(status='passed', phase='finished', edgeAddress=prepared['edgeAddress'], edgeId=edge, members=members)
-    report.pop('activeCheck', None)
+
+
+def verify_existing(root, manifest, report):
+    """Check the already-started original IDs; never apply secrets/schema or up."""
+    receiver.guard(True)
+    if root != snapshot.BASE / ('application-' + manifest['runId']):
+        raise ValueError('application-protected-root')
+    prepared = cold.read(root / 'preflight-result.json')
+    previous = cold.read(root / 'bootstrap-result.json')
+    if (prepared.get('runId') != manifest['runId'] or prepared.get('status') != 'ready'
+            or previous.get('runId') != manifest['runId'] or previous.get('servicesStarted') is not True
+            or previous.get('phase') not in ('application-readiness', 'finished')
+            or previous.get('schema', {}).get('status') not in ('initialized', 'compatible')):
+        raise ValueError('existing-started-application-receipt-required')
+    models = bundle.projection(bundle.servers.transport.read(root / 'models.json'), prepared['loaded'], manifest['runId'])
+    old_members = {item['service']: item for item in previous['members']}
+    if len(previous['members']) != 4 or set(old_members) != {name for names in bundle.APPS.values() for name in names}:
+        raise ValueError('previous-application-members')
+    identifiers, members = {}, []
+    for project, names in bundle.APPS.items():
+        if cold.read(root / (project + '-applications.json')) != models[project]:
+            raise ValueError('application-compose-drift')
+        for name, role in names.items():
+            identifier = find(models[project], root / (project + '-applications.json'), name)
+            member = dict(service=name, project=models[project]['name'], id=identifier,
+                          image=models[project]['services'][name]['image'])
+            if member != old_members[name] or docker('inspect', '--format', '{{.State.Running}}', identifier) != 'true':
+                raise ValueError('original-running-application-required')
+            identifiers[role] = identifier
+            members.append(member)
+    edge = identifiers['edge']
+    if edge != prepared['edgeId'] or address(edge, 'mercurion_stg_web') != prepared['edgeAddress']:
+        raise ValueError('edge-peer-changed')
+    receiver.inspect(manifest['runId'])  # File metadata only; no private host configuration.
+    report.update(members=members, schema=previous['schema'])
+    check_readiness(root, manifest, identifiers, report)
+    register_members(root, manifest, members)
+    report.update(status='passed', phase='finished', edgeAddress=prepared['edgeAddress'], edgeId=edge)
 
 
 if __name__ == '__main__':
