@@ -1,8 +1,12 @@
 # Roadmap — deployment demo Hyper-V / Docker Engine
 
 **Audit preliminare alla correzione Compose:** eseguito sui cinque artefatti
-di sviluppo, tutti bloccati dalla policy CVE strict. Scelta sui fix coordinati
-dei motori ancora pendente; niente caricamento VM delle immagini vulnerabili.
+di sviluppo, tutti bloccati dalla policy CVE strict. L'owner autorizza fix
+coordinati sviluppo/staging e collaudi isolati. PostgreSQL 16.16 è ora costruito
+dai sorgenti ufficiali verificati: export/load e scansione strict a zero,
+sei controlli SQL/HNSW/auth/restore/restart passati. Tutti i cinque candidati
+hanno scansioni positive; la sostituzione dei servizi attivi resta da preparare
+con restore separati e riconciliazione del recovery.
 Il contratto Nginx dedicato HTTP-only/senza maintenance è ora verificato.
 [Esiti e passi necessari](SERVICE-SECURITY-AUDIT.md).
 

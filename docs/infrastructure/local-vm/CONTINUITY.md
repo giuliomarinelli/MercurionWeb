@@ -5,8 +5,12 @@ tutte le cinque immagini di sviluppo sono bloccate dalla scansione strict.
 L'owner autorizza aggiornamenti coordinati nelle linee compatibili e prove su
 copie isolate. Preparati candidati Redis 8.2.9, NATS 2.12.15 con Go corretto e
 Meili 1.14 con sola base OS aggiornata; Nginx 1.30.6 già disponibile. PostgreSQL
-16.16 richiede ancora un artefatto: i tag ufficiali non sono disponibili al
-controllo del 12 novembre. Nessun servizio/volume attivo o Compose operativo
+16.16 è stato compilato dai sorgenti ufficiali, esportato con save/load verificato
+e scansione strict a zero finding. Sei controlli reali su fixture sono passati:
+dump/restore da 16.10, SCRAM, HNSW, restart e catalogo vector 0.8.1 preservato.
+Tutti e cinque i candidati hanno ora una scansione positiva; l'adozione coordinata
+e le prove sui dati effettivi restano da eseguire.
+Nessun servizio/volume attivo o Compose operativo
 modificato. Nginx VM resta dedicato, senza TLS/certificati e maintenance mode.
 [Rapporto riproducibile](SERVICE-SECURITY-AUDIT.md).
 

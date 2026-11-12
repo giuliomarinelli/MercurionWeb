@@ -120,8 +120,8 @@ scansione CVE o dal numero di versione.
 La directory `deployment/local-vm/coordinated/` conserva le nuove ricette,
 separate da quelle storiche usate per il recovery delle release già consegnate.
 Il Compose attivo di sviluppo e i Compose operativi shared/preview non sono
-ancora stati aggiornati: manca il candidato PostgreSQL e il piano di sostituzione
-dei dati/identità della release. Non applicare parzialmente questi candidati.
+ancora stati aggiornati: i cinque candidati sono verificati, ma resta il piano
+di sostituzione dei dati/identità della release. Non applicarli parzialmente.
 
 | Componente | Candidato | Decisione tecnica |
 | --- | --- | --- |
@@ -129,7 +129,7 @@ dei dati/identità della release. Non applicare parzialmente questi candidati.
 | NATS | 2.12.15, toolchain Go 1.27.4 e patch crypto fissata | Resta nella linea 2.12; questa linea è EOL, non diventa supportata perché la scansione passa |
 | Meilisearch | 1.14.0, nuova base Alpine | Binario originale preservato, nessuna adozione implicita della 1.56 VM |
 | Nginx | 1.30.6, immagine corretta già preparata per la VM | La vecchia 1.27 non contiene tutti i fix; controllare separatamente i due file HTTP di sviluppo e VM |
-| PostgreSQL | Da predisporre: 16.16 | Release di sicurezza pubblicata il 12 novembre; al controllo i tag ufficiali `16.16` e `16.16-alpine` non esistono ancora |
+| PostgreSQL | 16.16 dai sorgenti ufficiali | I tag ufficiali non sono ancora pubblicati; la ricetta locale riproduce la build upstream con sorgente 16.16 verificato, senza attendere il tag |
 
 Fonti: [release Redis 8.2](https://redis.io/docs/latest/operate/oss_and_stack/stack-with-enterprise/release-notes/redisce/redisos-8.2-release-notes/),
 [ciclo NATS](https://docs.nats.io/release-notes/),
@@ -241,6 +241,7 @@ Directory pubblica del collaudo del 12 novembre:
 | Meili 1.14.0, APK fissati | 0 | 5 casi indici e 9 casi chiavi reali su dati sintetici; hash binario invariato |
 | NATS 2.12.15, Go 1.27.4 | 0 | 3 lifecycle Tox21 con RPC reali, negazioni auth e arresti puliti |
 | Nginx 1.30.6 già costruito | 0 | Sintassi delle configurazioni di sviluppo e VM; nessuna nuova prova delle route reali |
+| PostgreSQL 16.16 da sorgenti | 0 | Save/load verificato e 6 controlli SQL/auth/dump/restore/HNSW/restart, dettagli sotto |
 
 Report: `scans/redis-pinned/candidate.json`,
 `scans/meilisearch-pinned/candidate.json`, `scans/nats-go1274/candidate.json`,
@@ -258,8 +259,8 @@ completato casi; corretto il riferimento, entrambi i formati passano.
 Le verifiche completate non costituiscono il deploy coordinato. Prima di
 aggiornare i Compose e trasferirli sulla VM servono ancora:
 
-1. PostgreSQL 16.16 e pgvector: immagine verificata, scansione e collaudo SQL/HNSW,
-   distinguendo pacchetto disponibile e versione registrata nel catalogo;
+1. includere le evidenze PostgreSQL/pgvector della procedura sotto nell'insieme
+   coordinato, distinguendo binario disponibile e versione nel catalogo;
 2. verifica dei dati effettivi su copie/restore separati e backup ripristinabili,
    in particolare Meili 1.14 sviluppo contro 1.56 VM: nessun downgrade in-place;
 3. selezione di un unico insieme di immagini per sviluppo e staging, modifica
@@ -271,3 +272,127 @@ non si ricava dalla ConfigMap Kubernetes. Il controllo sintattico sul file di
 sviluppo richiede un mapping locale di `host.docker.internal` anche nel container
 isolato; un errore di DNS del test non dimostra una regressione del proxy.
 La verifica sintattica non sostituisce quella delle route sul runtime reale.
+
+## PostgreSQL 16.16: build da sorgenti e verifica prima della sostituzione
+
+L'assenza temporanea del tag Docker ufficiale non impedisce di gestire il
+componente. `deployment/local-vm/coordinated/postgres.Dockerfile` deriva dalla
+ricetta `docker-library/postgres` alla revisione
+`9d15534160ade17f2b6c455a39ee967c49b1937d`. L'attribuzione e la licenza upstream
+sono conservate in `postgres-upstream.LICENSE`.
+
+Le modifiche alla ricetta sono esplicite: base Alpine fissata per digest;
+sorgente 16.16 locale verificato; compilazione con due job e stesse opzioni
+funzionali upstream (inclusi ICU, OpenSSL, GSSAPI e LLVM); assenza di `gosu`,
+perché il runtime parte come UID/GID 70; pgvector e pacchetti OS corretti.
+Non è un'immagine pubblicata dalla Docker Official Images: è una build locale
+documentata dai sorgenti ufficiali. Le [release note 16.16](https://www.postgresql.org/docs/release/16.16/)
+restano il riferimento per le correzioni del motore.
+
+### 1. Preparare tutti gli input, senza Docker o segreti
+
+```powershell
+$taskPgRevision = git rev-parse HEAD
+$taskPgBuild = Join-Path $env:USERPROFILE ('.mercurion/artifacts/postgres-1616-' + [Guid]::NewGuid().ToString('N'))
+python -B scripts/infrastructure/prepare_postgres_candidate.py --output $taskPgBuild
+if ($LASTEXITCODE -ne 0) { throw 'Preparazione PostgreSQL fallita.' }
+```
+
+Il tool scarica soltanto gli input pubblici elencati in `postgres-sources.json`
+e rifiuta ogni hash diverso, file sovradimensionati o directory già esistente.
+Conserva un manifest `build-inputs.json`. In particolare:
+
+| Input | SHA-256 |
+| --- | --- |
+| postgresql-16.16.tar.bz2 | `9d5cd8633043b75740d5d59749c6b7365e6aeb53c47098b1a5e80bb18f87881a` |
+| pgvector, revisione f37c13f68b57d2c3472b2214fbcff699d6d34876 | `83d673c3b287cddbf3879f86215f043f2c2b56c69d37b2a77504910db1ed6e56` |
+| SQL pgvector 0.8.1 originale | `7fb5bb279ef83bf9204bfac7405bb5c9a05e49f5ac7d64d1eb4464d103b80f32` |
+
+La ricetta installa il binario pgvector 0.8.7 e conserva anche lo script base
+0.8.1. Questo permette di creare esplicitamente un catalogo 0.8.1 per un restore
+senza eseguire `ALTER EXTENSION`; non cambia il catalogo di alcun DB esistente.
+La compatibilità tra quel catalogo e la nuova libreria è verificata nel collaudo,
+non dedotta dalla sola presenza dei file SQL.
+
+### 2. Compilare, esportare e applicare la policy strict
+
+```powershell
+docker --context desktop-linux build --platform linux/amd64 --target postgres --file (Join-Path $taskPgBuild 'postgres.Dockerfile') --build-arg "BUILD_REVISION=$taskPgRevision" --tag mercurion-parity-postgres:16.16-source $taskPgBuild
+if ($LASTEXITCODE -ne 0) { throw 'Build PostgreSQL fallita.' }
+python -B scripts/infrastructure/export_preview_service.py --role postgres --image mercurion-parity-postgres:16.16-source --revision $taskPgRevision --output (Join-Path $taskPgBuild 'export') --cache (Join-Path $taskPgBuild 'scan-cache')
+if ($LASTEXITCODE -ne 0) { throw 'Export o policy PostgreSQL respinti.' }
+```
+
+La prima build scarica una toolchain consistente e compila PostgreSQL completo:
+può richiedere diversi minuti. La compilazione avviene sul Docker host Windows,
+non sulla VM. L'exporter conserva archivio, SBOM, report vulnerabilità, identità,
+database scanner e verifica save/load. Nessuna severità o finding è ignorato.
+La rimozione della toolchain dall'immagine finale non sostituisce la scansione.
+
+### 3. Collaudare il passaggio 16.10 → 16.16 su fixture isolate
+
+Il test usa la vecchia immagine di sviluppo identificata dall'audit, mai il
+container `pg_sl` né il suo volume. Se l'immagine non è più locale, caricarla
+dal tar pubblico conservato durante l'audit; non ricostruirla con un APT corrente
+spacciandola per la vecchia immagine identica. Il tar è un input da archiviare
+insieme alle altre evidenze della baseline.
+
+```powershell
+$taskPgImage = docker --context desktop-linux image inspect mercurion-parity-postgres:16.16-source --format '{{.Id}}'
+if ($LASTEXITCODE -ne 0) { throw 'Candidato PostgreSQL assente.' }
+python -B scripts/infrastructure/smoke_postgres_update.py --old-image sha256:0d00971a33d03c8280be98883184673b3385e14a30975a3dca314b9de04dd405 --candidate-image $taskPgImage --legacy-sql (Join-Path $taskPgBuild 'vector--0.8.1.sql') --output (Join-Path $taskPgBuild 'compatibility') --execute
+if ($LASTEXITCODE -ne 0) { throw 'Collaudo PostgreSQL fallito: conservare il report.' }
+```
+
+Il run crea due container e volumi nuovi con label univoche, senza rete esterna
+o porte pubblicate. Nel vecchio server crea un catalogo pgvector 0.8.1, tabelle
+con UUID/JSONB/timestamptz, 256 embedding sintetici a 384 dimensioni e indice
+HNSW cosine. Verifica rollback e autenticazione SCRAM, poi esegue un vero
+`pg_dump -Fc` e `pg_restore` sul candidato 16.16. Il catalogo vector è creato
+esplicitamente a 0.8.1 prima del restore; la selezione TOC mantiene tutti gli
+oggetti tabella/dati/indici senza ricreare l'estensione alla versione di default.
+
+Controlla righe, tipi, primi vicini e distanze con tolleranza 1e-6, uso effettivo
+dell'indice HNSW nel piano, restart e conservazione della fixture sorgente.
+Un database nuovo separato verifica anche il default pgvector 0.8.7.
+Il cleanup verifica la proprietà tramite label prima di eliminare esclusivamente
+i container e volumi di quel run. Un errore resta nel report e non autorizza retry
+contro i dati reali.
+
+È un collaudo reale dei percorsi descritti, non un benchmark dei tre milioni di
+embedding né una verifica di tutte le collazioni/estensioni del DB personale.
+Per l'adozione sui dati effettivi resta necessario un restore su volumi separati:
+il passaggio Debian → Alpine cambia anche librerie e collazioni; non riusare
+alla cieca il data directory attivo. Il restore logico ricrea gli indici, senza
+presumere integri gli indici preesistenti richiamati dagli advisory PostgreSQL.
+
+### 4. Esito acquisito il 12 novembre
+
+**PostgreSQL gestito e verificato:** motore compilato 16.16, libreria pgvector
+0.8.7, esecuzione non root. Export con `archiveLoadVerified=true`, policy
+`eligible=true`, `blocking=[]`, `counts={}`; scanner e database fresh registrati.
+
+- Revisione della ricetta: `6e41cdf52941affebaf8c1718b40a3dd3dcc635a`.
+- ID locale immagine: `sha256:4a6a0d1c6d7ed4948c222e138edf25413ded540234be5b9d22473b9e455153e1`.
+- Digest config nell'archivio: `sha256:89668d3503b94bc5ba0cf8e016698542f7d9a1d700feab4fd6f9dc74733138d2`.
+- SHA-256 archivio: `dbe2a842c558cc6c8ef6dcd5892adf92bff0427cc680e062a1b562323feb5d7f`.
+- Run di compatibilità passato: `7726060ffd4143feb3dca68b221a683f`, sei controlli,
+  cleanup senza errori, catalogo 0.8.1 preservato, default 0.8.7 verificato a parte.
+
+Evidenze in `%USERPROFILE%/.codex/artifacts/inf-vm-04/vm046-postgres1616/`:
+`reproduction-inputs/build-inputs.json`, `export/server.json`, archivio/SBOM/scan
+ed `compatibility-scram/compatibility.json` con dump della sola fixture.
+Nessun container di test rimasto attivo; nessun volume o servizio esistente
+letto, fermato o modificato.
+
+I primi run del collaudo sono conservati con esito fallito. Sono stati corretti
+tre difetti della fixture: conversione del seed vector in array numerico,
+readiness che intercettava il postmaster temporaneo di initdb e autenticazione
+loopback lasciata trust da initdb. Il test definitivo attende PID 1 `postgres`
+e imposta esplicitamente `--auth-host=scram-sha-256`; password corretta e
+password errata sono state provate su entrambi i motori. Questi risultati
+non sono stati sostituiti con un semplice retry del test invariato.
+
+Il tag Docker ufficiale mancante non è più un impedimento per PostgreSQL.
+Rimane separata la sostituzione coordinata dei servizi attivi e il restore
+dei dati effettivi; non è stato effettuato alcun deploy o merge.

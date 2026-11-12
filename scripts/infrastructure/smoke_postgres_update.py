@@ -32,9 +32,9 @@ ANALYZE molecule_embeddings;
 NEIGHBORS = """
 SET hnsw.ef_search=1000; SET enable_seqscan=off;
 SELECT coalesce(json_agg(row_to_json(q)),'[]') FROM (
- SELECT molregno, embedding <=> (SELECT embedding FROM molecule_embeddings WHERE molregno=17)::float8[]::vector AS distance
+ SELECT molregno, embedding <=> (SELECT embedding FROM molecule_embeddings WHERE molregno=17)::real[]::float8[]::vector AS distance
  FROM molecule_embeddings WHERE molregno<>17
- ORDER BY embedding <=> (SELECT embedding FROM molecule_embeddings WHERE molregno=17)::float8[]::vector
+ ORDER BY embedding <=> (SELECT embedding FROM molecule_embeddings WHERE molregno=17)::real[]::float8[]::vector
  LIMIT 10) q;
 """
 
@@ -73,7 +73,8 @@ def smoke(old, candidate, legacy, output):
     def ready(name):
         for _ in range(120):
             try:
-                if sql(name,'SELECT 1') == '1':
+                # initdb uses a temporary postmaster before PID 1 execs the final server.
+                if docker('exec',name,'cat','/proc/1/comm').strip() == b'postgres' and sql(name,'SELECT 1') == '1':
                     return
             except RuntimeError:
                 pass
@@ -97,7 +98,7 @@ def smoke(old, candidate, legacy, output):
                '--mount','type=volume,src='+volume+',dst=/var/lib/postgresql/data',*mounts,
                '--env','POSTGRES_DB=fixture','--env','POSTGRES_USER=postgres',
                '--env','POSTGRES_PASSWORD=synthetic-pg-fixture','--env','POSTGRES_HOST_AUTH_METHOD=scram-sha-256',
-               '--env','POSTGRES_INITDB_ARGS=--locale=C --encoding=UTF8',
+               '--env','POSTGRES_INITDB_ARGS=--locale=C --encoding=UTF8 --auth-host=scram-sha-256 --auth-local=trust',
                image,'postgres','-c','listen_addresses=127.0.0.1','-c','shared_buffers=64MB','-c','max_connections=20')
         ready(name)
         return name
@@ -177,6 +178,7 @@ def smoke(old, candidate, legacy, output):
                       candidateServerVersion=new_version,preservedCatalogVersion='0.8.1',defaultExtensionVersion='0.8.7')
     except Exception as error:
         result['errorType']=type(error).__name__
+        result['errorCode']=str(error) if str(error).startswith('postgres-fixture-') else 'fixture-operation-failed'
     finally:
         for kind,ids in (('container',reversed(containers)),('volume',reversed(volumes))):
             for identifier in ids:
