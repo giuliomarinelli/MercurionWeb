@@ -265,3 +265,19 @@ usa un processo fittizio per verificare consegna, permessi, hash, conservazione
 del manifest originale e rifiuto di un worker alterato; non avvia un indice.
 Il riuso di un vecchio PID dell'import dopo reboot non blocca l'indice quando
 la ricevuta del carico è già `passed`.
+
+### Errore di staging Python interpretato come JSON
+
+Nel primo tentativo HNSW del 12 novembre, il nome locale `STAGE` del caricatore
+chunk ha sovrascritto l'import del trasportatore di codice. Quest'ultimo ha quindi
+ricevuto il worker Python ma ha tentato `json.loads`, fallendo con `Extra data`.
+Il wrapper si è fermato prima di sudo e dell'avvio del worker: nessun arresto
+PostgreSQL o build è stato eseguito da quel tentativo.
+
+La correzione usa il nome distinto `INDEX_STAGE`. Il test host verifica quale
+trasportatore e quali byte vengono inviati; la fixture Linux esegue lo staging
+reale come utente non privilegiato prima del launcher root. Il vecchio test del
+solo launcher non copriva questo collegamento. Dopo questa specifica correzione
+si usa nuovamente `-BuildIndex -Execute`, senza `-Resume`, senza ricreare bundle,
+ricaricare dati o ripetere il cold recovery. Le directory pubbliche del tentativo
+fallito possono restare per diagnosi: non contengono segreti né dati del dump.

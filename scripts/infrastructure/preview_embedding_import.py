@@ -8,7 +8,7 @@ import subprocess
 import sys
 import uuid
 
-from synthetic_secret_delivery import Step,COMMON,STAGE,remote,transport,ssh_arguments
+from synthetic_secret_delivery import Step,COMMON,STAGE as INDEX_STAGE,remote,transport,ssh_arguments
 
 ROOT=Path(__file__).resolve().parents[2]
 INDEX_LAUNCH=r'''
@@ -189,7 +189,7 @@ def execute(root,mode,resume=False,status=False):
         # The completed import bundle is immutable; install a separately pinned maintenance worker.
         source=(ROOT/'scripts/infrastructure/guest_embedding_index.py').read_bytes()
         digest=hashlib.sha256(source).hexdigest();staging=uuid.uuid4().hex
-        code,_=transport(Step('index-worker-staging',remote(STAGE,staging,digest),data=source))
+        code,_=transport(Step('index-worker-staging',remote(INDEX_STAGE,staging,digest),data=source))
         if code:raise ValueError('embedding-index-worker-staging-failed')
         script=remote(INDEX_LAUNCH,rid,staging,digest,'yes' if resume else 'no',sudo=True)
         return subprocess.run(ssh_arguments(Step('index-launch',script,interactive=True))).returncode

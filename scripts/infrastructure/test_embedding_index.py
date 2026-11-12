@@ -1,26 +1,55 @@
 """Single-writer maintenance lifecycle, including failures and ordinary profile restoration."""
 import hashlib
+import contextlib
+import io
 import json
 import os
 from pathlib import Path
 import sys
+import tempfile
 from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 import guest_embedding_index as guest
+import preview_embedding_import as host
 from preview_embedding_import import INDEX_LAUNCH
+from synthetic_secret_delivery import STAGE as RAW_STAGE
 
 
 class IndexLifecycle(unittest.TestCase):
+    def test_owner_index_branch_stages_python_with_raw_stager_not_chunk_json_stager(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory);rid='a'*32;staging='b'*32
+            (root/'manifest.json').write_text(json.dumps(dict(runId=rid)))
+            (root/'helpers.json').write_text('{}')
+            body=Path(guest.__file__).read_bytes();digest=hashlib.sha256(body).hexdigest()
+            def transport(step):
+                self.assertEqual(step.command,host.remote(RAW_STAGE,staging,digest))
+                self.assertEqual(step.data,body)
+                return 0,b'{}'
+            with patch.object(host,'os',SimpleNamespace(name='nt')), \
+                    patch.object(host.uuid,'uuid4',return_value=SimpleNamespace(hex=staging)), \
+                    patch.object(host,'transport',side_effect=transport) as stage, \
+                    patch.object(host.subprocess,'run',return_value=SimpleNamespace(returncode=0)) as launch:
+                self.assertEqual(host.execute(root,'index'),0)
+            stage.assert_called_once();launch.assert_called_once()
+
     @unittest.skipUnless(os.name=='posix' and os.environ.get('EMBEDDING_INDEX_LINUX_FIXTURE')=='1', 'opt-in tmpfs Linux launcher fixture')
     def test_pinned_launcher_preserves_completed_import_and_rejects_tampering(self):
         import pwd
         owner=pwd.getpwnam('nobody');rid='a'*32;staging='b'*32
         source=Path(owner.pw_dir)/'.mercurion-infra'/('delivery-'+staging)
-        source.mkdir(parents=True,mode=0o700)
-        for parent in (source.parent,source):parent.chmod(0o700);os.chown(parent,owner.pw_uid,owner.pw_gid)
         body=Path(guest.__file__).read_bytes();digest=hashlib.sha256(body).hexdigest()
-        script=source/'secret_delivery.py';script.write_bytes(body);script.chmod(0o600);os.chown(script,owner.pw_uid,owner.pw_gid)
+        home=Path(owner.pw_dir);home.mkdir(exist_ok=True);os.chown(home,owner.pw_uid,owner.pw_gid)
+        # Exercise the real staging code as the unprivileged SSH owner, including stdin bytes.
+        with patch.dict(os.environ,{'HOME':str(home)}),patch.object(sys,'argv',['stage',staging,digest]), \
+                patch.object(sys,'stdin',io.TextIOWrapper(io.BytesIO(body))),contextlib.redirect_stdout(io.StringIO()):
+            try:
+                os.seteuid(owner.pw_uid)
+                exec(compile(host.INDEX_STAGE,'<actual-index-staging>','exec'),{})
+            finally:os.seteuid(0)
+        script=source/'secret_delivery.py'
+        self.assertEqual(script.read_bytes(),body)
         root=Path('/opt/mercurion/imports')/('embeddings-'+rid);root.mkdir(parents=True,mode=0o700)
         manifest=json.dumps(dict(runId=rid,datasetSha256='c'*64))
         (root/'manifest.json').write_text(manifest)
