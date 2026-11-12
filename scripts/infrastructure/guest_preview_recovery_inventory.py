@@ -74,6 +74,22 @@ def summarize(containers, identifier, owned):
     return sorted(result, key=lambda item: item['service'])
 
 
+def resolve_ids(recorded, current):
+    # docker ps -q in the original receipt used 12-character IDs. Resolve each
+    # against today's full IDs, requiring a unique and complete correspondence.
+    if len(current) != 4 or len(set(current)) != 4 or not all(re.fullmatch('[a-f0-9]{64}', value) for value in current):
+        raise ValueError('original-container-set-changed')
+    matched = []
+    for previous in recorded:
+        matches = [value for value in current if value.startswith(previous)]
+        if len(matches) != 1:
+            raise ValueError('original-container-set-changed')
+        matched.append(matches[0])
+    if len(matched) != 4 or set(matched) != set(current):
+        raise ValueError('original-container-set-changed')
+    return matched
+
+
 def inventory(identifier, digest):
     root = BASE / ('server-' + identifier)
     raw = regular(root / 'server-bootstrap.json')
@@ -84,11 +100,10 @@ def inventory(identifier, digest):
     owned = previous.get('ownedContainers', [])
     if (manifest.get('runId') != identifier or previous.get('runId') != identifier
             or previous.get('status') != 'passed' or len(set(owned)) != 4
-            or not all(re.fullmatch('[a-f0-9]{64}', value) for value in owned)):
+            or not all(re.fullmatch('(?:[a-f0-9]{12}|[a-f0-9]{64})', value) for value in owned)):
         raise ValueError('original-successful-bootstrap-required')
     ids = docker('ps', '-aq', '--no-trunc', '--filter', 'label=mercurion.bootstrap.run=' + identifier).split()
-    if set(ids) != set(owned):
-        raise ValueError('original-container-set-changed')
+    owned = resolve_ids(owned, ids)
     containers = summarize([json.loads(line) for line in docker('inspect', '--format', CONTAINER_FORMAT, *owned).splitlines()], identifier, owned)
     volumes = sorted({m['Name'] for item in containers for m in item['mounts'] if m['Type'] == 'volume'})
     if len(volumes) != 3 or not all(isinstance(name, str) and re.fullmatch('[A-Za-z0-9_.-]+', name) for name in volumes):

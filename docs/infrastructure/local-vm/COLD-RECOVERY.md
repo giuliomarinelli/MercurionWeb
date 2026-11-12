@@ -70,6 +70,8 @@ Esegue codice pubblico tramite SSH, senza installazioni o download immagini.
 Legge il manifest protetto, il risultato originale del bootstrap e i metadati
 Docker tramite il socket Unix locale. Verifica i quattro ID originali,
 label di progetto/run, assenza di port publishing e identità runtime di base.
+Gli ID abbreviati a 12 caratteri delle ricevute originali sono risolti negli ID
+completi attuali soltanto con corrispondenza univoca di tutti e quattro i container.
 
 Docker filtra i campi sul daemon: `Config.Env` e label arbitrarie non vengono
 richiesti. Dei segreti si controlla soltanto la presenza/metadati della directory,
@@ -126,7 +128,7 @@ python -B -m unittest discover -s scripts/infrastructure -p test_preview_recover
 python -B scripts/check-local-vm-runbook.py
 ```
 
-Nove test di contratto sono eseguiti normalmente. Due fixture sono opt-in:
+Dieci test di contratto sono eseguiti normalmente. Due fixture sono opt-in:
 una verifica i template reali sul Docker locale (crea e rimuove solo il proprio
 container mai avviato e il proprio volume vuoto); l'altra verifica metadati
 root e `/run` tmpfs in un contenitore Linux isolato. Richiedono l'immagine

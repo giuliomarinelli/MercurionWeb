@@ -37,6 +37,17 @@ class InventoryContracts(unittest.TestCase):
         self.assertNotIn('never-print-this', json.dumps(result))
         self.assertEqual({item['status'] for item in result}, {'exited'})
 
+    def test_original_short_ids_resolve_uniquely_to_current_full_ids(self):
+        full = [str(n) * 64 for n in range(1, 5)]
+        self.assertEqual(guest.resolve_ids([value[:12] for value in full], full), full)
+        self.assertEqual(guest.resolve_ids(full, full), full)
+        for recorded, current in (([full[0][:12]] * 4, full),
+                                  ([value[:12] for value in full], full[:-1]),
+                                  ([value[:12] for value in full], [*full[:3], 'f' * 64]),
+                                  ([value[:12] for value in full], [full[0], full[0], *full[2:]])):
+            with self.subTest(recorded=recorded, current=current), self.assertRaises(ValueError):
+                guest.resolve_ids(recorded, current)
+
     def test_rejects_missing_duplicate_foreign_or_unowned_containers(self):
         original = containers()
         variants = [original[:-1]]
@@ -117,7 +128,7 @@ class LinuxInventoryFixture(unittest.TestCase):
             (root / 'server-bootstrap.json').write_bytes(raw)
             data = containers()
             owned = [item['Id'] for item in data]
-            (root / 'bootstrap-result.json').write_text(json.dumps(dict(runId=RID, status='passed', ownedContainers=owned)))
+            (root / 'bootstrap-result.json').write_text(json.dumps(dict(runId=RID, status='passed', ownedContainers=[value[:12] for value in owned])))
             for index, item in enumerate(data[:3]):
                 item['Mounts'] = [dict(Type='volume', Name='fixture-' + str(index), Source='/var/lib/docker/volumes/fixture',
                                       Destination='/data', RW=True)]
