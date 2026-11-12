@@ -11,7 +11,15 @@ per rollback. Ricevuta owner scaricata e letta in
 completati una volta, manifest in `vm048-embeddings/dump-manifest.json`.
 Corretto il disallineamento preferred_name/vector(768) in DDL ed entity;
 QA su PostgreSQL reale passato. [Import riprendibile e indice separato](EMBEDDINGS-IMPORT.md).
-Il trasferimento/import effettivo deve ancora essere avviato dall'owner.
+Trasferimento completato e import avviato dall'owner, run
+`032ab86ece504dc58269642abf97f9b8`. Ultima ricevuta comunicata:
+`status=running`, 10/50 chunk, 539.245/2.644.421 righe, worker attivo;
+non è un esito finale. Non spegnere la VM prima di `passed`.
+L'owner assegnerà poi **14 vCPU e 28 GiB RAM** per HNSW. Profilo previsto:
+PostgreSQL 10 CPU / 20 GiB durante il build, 16 GiB di manutenzione e 7 worker;
+esercizio ordinario 4 CPU / 4 GiB. Adozione e shared memory ancora da completare:
+non avviare il vecchio `-BuildIndex`. Sequenza e vincoli in
+[EMBEDDINGS-IMPORT.md](EMBEDDINGS-IMPORT.md#ridimensionamento-concordato-vm-14-vcpu-28-gib).
 
 **Task attuale:** adozione operativa shared/preview, non solo preparazione di immagini.
 Procedura e comando owner: [SERVICE-UPGRADE.md](SERVICE-UPGRADE.md).

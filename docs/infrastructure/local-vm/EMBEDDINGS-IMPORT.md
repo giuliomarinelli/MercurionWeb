@@ -122,6 +122,11 @@ Non creare un bundle nuovo per aggirare un import incompleto dello stesso datase
 
 ## 4. Costruire l'HNSW una sola volta, dopo il carico
 
+**Fermo operativo per il run corrente:** non eseguire ancora `-BuildIndex`.
+L'owner ha scelto 14 vCPU e 28 GiB RAM per la VM; prima occorre completare
+l'import e adottare il profilo PostgreSQL descritto sotto. Il worker già
+consegnato usa ancora i limiti precedenti: il solo resize Hyper-V non li cambia.
+
 ```powershell
 powershell -NoProfile -File scripts/infrastructure/Invoke-PreviewEmbeddingImport.ps1 -BundlePath $taskImport -BuildIndex -Execute
 ```
@@ -132,12 +137,55 @@ che tutti i chunk del manifest siano registrati con i loro checksum e conteggi.
 Non ricostruisce l'HNSW per ciascun chunk e non assume che un dump SQL conservi
 le pagine fisiche dell'indice.
 
-La VM deve avere almeno 6 GiB **disponibili**. Il worker alza temporaneamente
+Il worker attualmente consegnato richiede almeno 6 GiB **disponibili** e alza temporaneamente
 il limite del solo container PostgreSQL a 10 GiB e 4 CPU, usa una sessione con
 `maintenance_work_mem=4GB`, due worker di manutenzione, poi ripristina i limiti
 originali nel blocco finale. Non riavvia PostgreSQL e non modifica la configurazione
 persistente né le ACL. Se manca memoria, si ferma con un codice esplicito;
 qualsiasi aumento della RAM Hyper-V è un intervento separato e non implicito.
+
+### Ridimensionamento concordato: VM 14 vCPU, 28 GiB
+
+Profilo da adottare e collaudare prima dell'indice, **non ancora applicato**:
+
+| Risorsa | Esercizio ordinario PostgreSQL | Costruzione HNSW |
+| --- | --- | --- |
+| Limite CPU container | 4 CPU | 10 CPU |
+| Limite RAM container | 4 GiB | 20 GiB |
+| `maintenance_work_mem`, sola sessione di build | valore ordinario invariato | 16 GiB |
+| `max_parallel_maintenance_workers`, sola sessione | valore ordinario invariato | 7, oltre al leader |
+| Capacità `/dev/shm` container | da predisporre per il build | 18 GiB |
+
+La capacità di `/dev/shm` non è RAM aggiuntiva rispetto ai 20 GiB: il suo uso
+concorre al consumo del container. pgvector richiede una shared memory almeno
+pari a `maintenance_work_mem` per il build HNSW parallelo; vedere la
+[documentazione ufficiale Docker di pgvector](https://github.com/pgvector/pgvector#docker).
+I Compose correnti non dichiarano `shm_size`: verificare la capacità effettiva
+del container, senza supporre che segua la RAM Hyper-V. Occorre predisporre
+questa opzione alla creazione del container; non basta `docker update` di CPU/RAM.
+
+Sequenza obbligata per questo ridimensionamento:
+
+1. Lasciare terminare il worker: attendere `status=passed`, 50 chunk e
+   2.644.421 righe. Non spegnere la VM mentre risulta `running`.
+2. Arrestare ordinatamente Ubuntu con `sudo shutdown -h now`.
+3. A VM spenta, impostare in Hyper-V 14 processori virtuali e 28 GiB di RAM
+   effettivamente disponibili; avviare e sbloccare LUKS.
+4. Ripristinare i segreti tmpfs con i valori stabili: il riavvio cancella sia
+   quelli server sia quelli applicativi. Non ripetere il bootstrap iniziale,
+   rigenerare credenziali o inizializzare lo schema.
+5. Adottare i nuovi limiti nel Compose e nel container attivo, conservando il
+   volume popolato e riconciliando l'identità registrata per il recovery.
+   La procedura operativa di questa adozione deve essere completata e collaudata
+   prima di eseguirla: non ricreare manualmente il container fuori dai manifest.
+6. Verificare risorse effettive, shared memory e disponibilità dei worker;
+   avviare l'indice con il caricatore aggiornato. Il bundle dell'import in corso
+   resta immutato. Al termine tornare al profilo ordinario **4 CPU / 4 GiB**,
+   senza ripristinare il vecchio limite di una CPU.
+
+I valori sono un budget di lavoro, non una garanzia che il grafo completo
+rimanga in memoria. Conteggi, validità dell'indice e piano della query restano
+le verifiche finali; la misura sul dataset reale determina tempi e consumo.
 
 Per leggere l'avanzamento dell'indice:
 
