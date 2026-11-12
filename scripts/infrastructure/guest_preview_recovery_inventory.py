@@ -12,6 +12,7 @@ import subprocess
 BASE = Path('/opt/mercurion/releases')
 EXPECTED = {'meilisearch': 'mercurion-shared', 'postgres-preview': 'mercurion-preview',
             'redis-preview': 'mercurion-preview', 'nats-preview': 'mercurion-preview'}
+BASE_PROJECTS = dict(EXPECTED)
 
 
 # Filter on the Docker daemon: Config.Env and arbitrary labels never enter this process.
@@ -48,7 +49,9 @@ def docker(*args):
     return result.stdout
 
 
-def summarize(containers, identifier, owned):
+def summarize(containers, identifier, owned, projects=None, bootstrap_run=None):
+    projects = projects or EXPECTED
+    bootstrap_run = bootstrap_run or identifier
     if not isinstance(containers, list) or len(containers) != 4:
         raise ValueError('expected-four-original-containers')
     result = []
@@ -57,8 +60,8 @@ def summarize(containers, identifier, owned):
         labels = item.get('Config', {}).get('Labels') or {}
         service = labels.get('com.docker.compose.service')
         if (service not in EXPECTED or service in seen or item.get('Id') not in owned
-                or labels.get('com.docker.compose.project') != EXPECTED[service]
-                or labels.get('mercurion.bootstrap.run') != identifier):
+                or labels.get('com.docker.compose.project') != projects[service]
+                or labels.get('mercurion.bootstrap.run') != bootstrap_run):
             raise ValueError('container-identity-mismatch')
         seen.add(service)
         host = item.get('HostConfig', {})
@@ -90,6 +93,38 @@ def resolve_ids(recorded, current):
     return matched
 
 
+def active_upgrade(root, digest):
+    pointer=root/'active-service-upgrade.json'
+    if not os.path.lexists(pointer): return None
+    record=json.loads(regular(pointer))
+    uid=record.get('upgradeId','')
+    if (record.get('schemaVersion')!=1 or not re.fullmatch('[a-f0-9]{32}',uid)
+            or record.get('baselineManifestSha256')!=digest):
+        raise ValueError('upgrade-pointer-scope')
+    target=BASE/('upgrade-'+uid)
+    names={'upgrade-result.json','shared-servers.json','preview-servers.json'}
+    if set(record.get('files',{}))!=names: raise ValueError('upgrade-pointer-files')
+    values={}
+    for name in names:
+        raw=regular(target/name)
+        if hashlib.sha256(raw).hexdigest()!=record['files'][name]: raise ValueError('upgrade-state-checksum')
+        values[name]=json.loads(raw)
+    result=values['upgrade-result.json']
+    if (result.get('status')!='passed' or result.get('upgradeId')!=uid
+            or result.get('serverRunId')!=root.name.removeprefix('server-')
+            or set(result.get('loaded',{}))!={'postgres','redis','nats','meilisearch'}):
+        raise ValueError('upgrade-result-scope')
+    models={scope:values[scope+'-servers.json'] for scope in ('shared','preview')}
+    projects={name:model['name'] for model in models.values() for name in model['services']}
+    if set(projects)!=set(BASE_PROJECTS) or any(name!='mercurion-u'+uid+'-'+scope for scope,name in
+            ((scope,model['name']) for scope,model in models.items())):
+        raise ValueError('upgrade-project-scope')
+    members=result.get('servers',[])
+    if len(members)!=4 or {v.get('service') for v in members}!=set(BASE_PROJECTS):
+        raise ValueError('upgrade-member-scope')
+    return dict(result=result,models=models,projects=projects)
+
+
 def inventory(identifier, digest):
     root = BASE / ('server-' + identifier)
     raw = regular(root / 'server-bootstrap.json')
@@ -102,9 +137,17 @@ def inventory(identifier, digest):
             or previous.get('status') != 'passed' or len(set(owned)) != 4
             or not all(re.fullmatch('(?:[a-f0-9]{12}|[a-f0-9]{64})', value) for value in owned)):
         raise ValueError('original-successful-bootstrap-required')
-    ids = docker('ps', '-aq', '--no-trunc', '--filter', 'label=mercurion.bootstrap.run=' + identifier).split()
+    upgrade=active_upgrade(root,digest)
+    if upgrade:
+        owned=[item['id'] for item in upgrade['result']['servers']]
+        ids=docker('ps','-aq','--no-trunc','--filter','label=mercurion.upgrade.run='+upgrade['result']['upgradeId']).split()
+        projects=upgrade['projects']
+    else:
+        ids = docker('ps', '-aq', '--no-trunc', '--filter', 'label=mercurion.bootstrap.run=' + identifier).split()
+        projects=BASE_PROJECTS
     owned = resolve_ids(owned, ids)
-    containers = summarize([json.loads(line) for line in docker('inspect', '--format', CONTAINER_FORMAT, *owned).splitlines()], identifier, owned)
+    containers = summarize([json.loads(line) for line in docker('inspect', '--format', CONTAINER_FORMAT, *owned).splitlines()], identifier, owned,projects,
+                           upgrade['result']['upgradeId'] if upgrade else identifier)
     volumes = sorted({m['Name'] for item in containers for m in item['mounts'] if m['Type'] == 'volume'})
     if len(volumes) != 3 or not all(isinstance(name, str) and re.fullmatch('[A-Za-z0-9_.-]+', name) for name in volumes):
         raise ValueError('unexpected-persistent-volumes')
@@ -126,6 +169,8 @@ def inventory(identifier, digest):
     return dict(containers=containers, volumes=sanitized, secretRunPresent=exists,
         secretRunMetadata=metadata, runIsTmpfs=tmpfs,
         bootId=Path('/proc/sys/kernel/random/boot_id').read_text().strip(),
+        activeUpgradeId=upgrade['result']['upgradeId'] if upgrade else None,
+        projects=projects,
         coldRecoveryCandidate=tmpfs and not exists and all(item['status'] in ('exited', 'created')
                                                         and item['running'] is False for item in containers))
 

@@ -1,6 +1,16 @@
 # Ripresa operativa — 12 novembre 2026
 
-**Task attuale:** audit preliminare ai nuovi Compose shared/preview concluso:
+**Task attuale:** adozione operativa shared/preview, non solo preparazione di immagini.
+Procedura e comando owner: [SERVICE-UPGRADE.md](SERVICE-UPGRADE.md).
+Inventario VM aggiornato `91bc83f416a9429a9106f2a94e1ba513`: quattro server
+running, tmpfs presente, nessun cold recovery necessario. Preparati nuovi Compose
+server versionati, volumi separati, backup logico PostgreSQL/Meili, copia Redis,
+rollback e registrazione atomica della generazione per il recovery. Collaudo
+locale dell'intero stack con sette controlli passed; trasferimento Meili 1.56.2
+→ 1.14.0 con entrambe le chiavi client e lettura dei documenti verificati.
+La ricevuta VM dell'adozione è ancora da acquisire; non dichiararla eseguita.
+
+**Audit preliminare concluso:**
 tutte le cinque immagini di sviluppo sono bloccate dalla scansione strict.
 L'owner autorizza aggiornamenti coordinati nelle linee compatibili e prove su
 copie isolate. Preparati candidati Redis 8.2.9, NATS 2.12.15 con Go corretto e
@@ -10,8 +20,9 @@ e scansione strict a zero finding. Sei controlli reali su fixture sono passati:
 dump/restore da 16.10, SCRAM, HNSW, restart e catalogo vector 0.8.1 preservato.
 Tutti e cinque i candidati hanno ora una scansione positiva; l'adozione coordinata
 e le prove sui dati effettivi restano da eseguire.
-Nessun servizio/volume attivo o Compose operativo
-modificato. Nginx VM resta dedicato, senza TLS/certificati e maintenance mode.
+Nessun servizio/volume attivo modificato. I Compose nel repository ora dichiarano
+le versioni selezionate e sono inclusi nel bundle di adozione. Nginx VM resta
+dedicato, senza TLS/certificati e maintenance mode.
 [Rapporto riproducibile](SERVICE-SECURITY-AUDIT.md).
 
 **Vincolo prioritario:** le versioni server VM devono coincidere con lo

@@ -25,6 +25,8 @@ with os.fdopen(fd,'rb') as stream:
  info=os.fstat(stream.fileno());assert stat.S_ISREG(info.st_mode) and info.st_nlink==1 and info.st_uid==owner.pw_uid and stat.S_IMODE(info.st_mode)==0o600
  source=stream.read(131073)
 assert len(source)<=131072 and hashlib.sha256(source).hexdigest()==checksum
+sources=json.loads(source)
+assert set(sources)=={'guest_preview_applications','guest_preview_recovery_inventory','guest_preview_cold_recovery'}
 root=pathlib.Path('/opt/mercurion/releases')/('application-'+rid)
 for path in (root,*root.parents):
  info=path.lstat();assert stat.S_ISDIR(info.st_mode) and info.st_uid==0 and not info.st_mode&0o022
@@ -41,9 +43,13 @@ for name,wanted in manifest['files'].items():
 output=root/('application-verification-'+verification+'.json')
 assert not output.exists()
 sys.path.insert(0,str(root/'scripts/infrastructure'))
+for name in ('guest_preview_recovery_inventory','guest_preview_cold_recovery'):
+ dependency=types.ModuleType(name);dependency.__file__=str(root/'scripts/infrastructure'/(name+'.py'))
+ sys.modules[name]=dependency
+ exec(compile(sources[name],'<verified-'+name+'>','exec'),dependency.__dict__)
 module=types.ModuleType('verified_preview_applications')
 module.__file__=str(root/'scripts/infrastructure/guest_preview_applications.py')
-exec(compile(source,'<verified-application-checks>','exec'),module.__dict__)
+exec(compile(sources['guest_preview_applications'],'<verified-application-checks>','exec'),module.__dict__)
 report=dict(schemaVersion=1,runId=rid,verificationId=verification,status='failed',phase='verify-existing',
  helperSha256=checksum,
  servicesStarted=False,containerMutationsPerformed=False,databaseMutationsPerformed=False,
@@ -76,7 +82,9 @@ def execute(root, manifest):
     eligible(root, manifest)
     from preview_application_bootstrap import fetch
     identifier = uuid.uuid4().hex
-    source = Path(__file__).with_name('guest_preview_applications.py').read_bytes()
+    source = json.dumps({name:Path(__file__).with_name(name+'.py').read_text(encoding='utf-8') for name in
+                         ('guest_preview_applications','guest_preview_recovery_inventory','guest_preview_cold_recovery')},
+                        separators=(',',':')).encode()
     if len(source) > 131072:
         raise ValueError('verification-helper-size')
     checksum = hashlib.sha256(source).hexdigest()

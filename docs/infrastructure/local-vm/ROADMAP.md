@@ -1,5 +1,12 @@
 # Roadmap — deployment demo Hyper-V / Docker Engine
 
+**Adozione in corso:** [aggiornamento operativo shared/preview](SERVICE-UPGRADE.md).
+Inventario owner aggiornato, quattro server running e segreti tmpfs presenti.
+I cinque candidati sono ora un insieme collaudato: stack locale completo passato,
+trasferimenti Redis/Meili e backup/rollback predisposti. I Compose versionati e
+la procedura di consegna sostituiscono i server su volumi separati; l'esito VM
+va ancora acquisito. Non chiudere questa voce alla sola build delle immagini.
+
 **Audit preliminare alla correzione Compose:** eseguito sui cinque artefatti
 di sviluppo, tutti bloccati dalla policy CVE strict. L'owner autorizza fix
 coordinati sviluppo/staging e collaudi isolati. PostgreSQL 16.16 è ora costruito

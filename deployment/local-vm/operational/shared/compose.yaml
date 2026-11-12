@@ -13,6 +13,7 @@ x-runtime: &runtime
 services:
   meilisearch:
     <<: *runtime
+    labels: {mercurion.owner: infra-vm, mercurion.scope: shared, mercurion.server.version: '1.14.0'}
     image: ${MEILISEARCH_IMAGE:?verified image required}
     user: '10001:10001'
     command: [--config-file-path, /run/mercurion/server.toml]
@@ -25,6 +26,7 @@ services:
       - {type: volume, source: meili-data, target: /meili_data}
   nginx-edge:
     <<: *runtime
+    labels: {mercurion.owner: infra-vm, mercurion.scope: shared, mercurion.server.version: '1.30.6'}
     image: ${EDGE_IMAGE:?verified image required}
     user: '10101:10101'
     expose: ['80']

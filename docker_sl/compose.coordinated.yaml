@@ -1,0 +1,42 @@
+# Apply only after copying/restoring development data into the three selected NEW volumes.
+# Usage: docker compose --env-file <public-images.env> -f docker_sl/docker-compose.yml -f docker_sl/compose.coordinated.yaml ...
+# The original external volumes remain the rollback generation; no defaults point to them.
+services:
+  pg_sl:
+    build: !reset null
+    image: ${POSTGRES_IMAGE:?coordinated verified local image required}
+    pull_policy: never
+    user: '70:70'
+    labels: {mercurion.server.version: '16.16', mercurion.pgvector.version: '0.8.7'}
+  redis_sl:
+    image: ${REDIS_IMAGE:?coordinated verified local image required}
+    pull_policy: never
+    user: '999:1000'
+    labels: {mercurion.server.version: '8.2.9'}
+  nats_sl:
+    image: ${NATS_IMAGE:?coordinated verified local image required}
+    pull_policy: never
+    user: '10021:10021'
+    labels: {mercurion.server.version: '2.12.15'}
+  meilisearch_sl:
+    image: ${MEILISEARCH_IMAGE:?coordinated verified local image required}
+    pull_policy: never
+    user: '10001:10001'
+    labels: {mercurion.server.version: '1.14.0'}
+  nginx_sl_dev:
+    image: ${EDGE_IMAGE:?coordinated verified local image required}
+    pull_policy: never
+    # The development config expects a root master to bind 80 and chown temp dirs.
+    # This differs from the dedicated non-root VM config; no TLS is added here.
+    user: '0:0'
+    labels: {mercurion.server.version: '1.30.6'}
+volumes:
+  pg_data:
+    external: true
+    name: ${COORDINATED_POSTGRES_VOLUME:?new restored development volume required}
+  redis_data:
+    external: true
+    name: ${COORDINATED_REDIS_VOLUME:?new copied development volume required}
+  meili_data:
+    external: true
+    name: ${COORDINATED_MEILI_VOLUME:?new copied development volume required}

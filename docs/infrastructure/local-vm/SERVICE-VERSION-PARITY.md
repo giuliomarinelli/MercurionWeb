@@ -87,6 +87,9 @@ nelle linee compatibili e collaudarli su copie isolate. Ricette, comandi ed
 evidenze dei candidati sono nella seconda parte del
 [rapporto di sicurezza](SERVICE-SECURITY-AUDIT.md#candidati-coordinati-preparazione-e-limiti).
 L'allineamento dei servizi attivi non è ancora eseguito.
+L'[adozione operativa](SERVICE-UPGRADE.md) usa le stesse immagini verificate,
+Compose shared/preview versionati e overlay `docker_sl/compose.coordinated.yaml`
+per lo sviluppo, con volumi separati per evitare riavvii impliciti sui dati vecchi.
 
 1. Trattare il Compose di sviluppo come riferimento; registrare versione e
    identità delle immagini e delle estensioni, inclusa la distinzione pgvector.

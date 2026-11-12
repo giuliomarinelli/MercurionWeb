@@ -119,9 +119,10 @@ scansione CVE o dal numero di versione.
 
 La directory `deployment/local-vm/coordinated/` conserva le nuove ricette,
 separate da quelle storiche usate per il recovery delle release già consegnate.
-Il Compose attivo di sviluppo e i Compose operativi shared/preview non sono
-ancora stati aggiornati: i cinque candidati sono verificati, ma resta il piano
-di sostituzione dei dati/identità della release. Non applicarli parzialmente.
+Il runtime attivo non è ancora sostituito. Sono ora predisposti i Compose
+shared/preview con versioni dichiarate e l'overlay coordinato di sviluppo;
+seguire l'[adozione con dati, rollback e recovery](SERVICE-UPGRADE.md), senza
+applicare singole immagini sui volumi originali.
 
 | Componente | Candidato | Decisione tecnica |
 | --- | --- | --- |

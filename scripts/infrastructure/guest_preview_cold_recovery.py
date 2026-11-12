@@ -50,6 +50,11 @@ def original(root, digest):
     for project, model in models.items():
         if read(root / (project + '-servers.json')) != model:
             raise ValueError('original-compose-drift')
+    upgrade=snapshot.active_upgrade(root,digest)
+    if upgrade:
+        models=upgrade['models']
+        loaded=upgrade['result']['loaded']
+        manifest=dict(manifest,configDigests={role:item['configDigest'] for role,item in loaded.items()})
     return servers, receiver, manifest, loaded, models
 
 
@@ -95,7 +100,7 @@ def validate_contract(current, models, loaded, *, running=False):
         labels = volume['labels']
         if (volume['driver'] != 'local' or labels.get('com.docker.compose.project') != project
                 or labels.get('com.docker.compose.volume') != key
-                or labels.get('mercurion.bootstrap.run') != current['runId']):
+                or labels.get('mercurion.bootstrap.run') != (current.get('activeUpgradeId') or current['runId'])):
             raise ValueError('persistent-volume-ownership')
 
 
@@ -153,7 +158,8 @@ def resources(current, models):
     expected_ids = {item['id'] for item in current['containers']} | {item['id'] for item in applications}
     for model in models.values():
         actual = set(snapshot.docker('ps', '-aq', '--no-trunc', '--filter', 'label=com.docker.compose.project=' + model['name']).split())
-        wanted = {item['id'] for item in current['containers'] if snapshot.EXPECTED[item['service']] == model['name']}
+        projects=current.get('projects',snapshot.EXPECTED)
+        wanted = {item['id'] for item in current['containers'] if projects[item['service']] == model['name']}
         wanted |= {item['id'] for item in applications if item['project'] == model['name']}
         if actual != wanted or not actual <= expected_ids:
             raise ValueError('unexpected-compose-members')
@@ -172,7 +178,15 @@ def resources(current, models):
         if value['Options'] or path != docker_root / 'volumes' / volume['name'] / '_data':
             raise ValueError('local-volume-path')
         paths[volume['name']] = path
-    markers(paths)
+    aliases={}
+    for item in current['containers']:
+        canonical={'postgres-preview':'mercurion_preview_postgres','redis-preview':'mercurion_preview_redis',
+                   'meilisearch':'mercurion_shared_meili'}.get(item['service'])
+        if canonical:
+            mounts=[m for m in item['mounts'] if m['Type']=='volume']
+            if len(mounts)!=1: raise ValueError('persistent-volume-set')
+            aliases[canonical]=paths[mounts[0]['Name']]
+    markers(aliases)
 
 
 def meili_indexes(address, path):
