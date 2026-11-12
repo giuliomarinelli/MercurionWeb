@@ -1,5 +1,12 @@
 # Schema SQL, dati ChEMBL e bootstrap degli scope — proposta
 
+**Aggiornamento operativo:** i file sono ora disponibili, la parità VM è stata
+adottata e il dump contiene 50 chunk, 2.644.421 righe a 768 dimensioni.
+Seguire [EMBEDDINGS-IMPORT.md](EMBEDDINGS-IMPORT.md) per DDL reale, trasferimento,
+import riprendibile e HNSW. La pausa descritta sotto è lo stato storico della
+proposta, superato per gli embedding; tool scope e baseline delle altre tabelle
+rimangono attività separate. I chunk restano ignorati da Git.
+
 **12 novembre 2026. Stato: analisi e proposta, non una procedura di restore
 già eseguita.** L'owner sta recuperando un archivio RAR con circa cinquanta
 chunk SQL degli embedding. Attendere la sua disponibilità prima di inventario

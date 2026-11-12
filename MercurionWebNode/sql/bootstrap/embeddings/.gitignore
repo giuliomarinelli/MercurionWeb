@@ -1,2 +1,5 @@
 *.sql
+!10_table.sql
+!30_indexes.sql
+!90_verify.sql
 # SQL Files for Embeddings, ~23GiB

@@ -1,5 +1,12 @@
 # Roadmap — deployment demo Hyper-V / Docker Engine
 
+**Shared/preview adottati sulla VM:** upgrade `6d019947800b4578bc2b5d40791f5132`
+passed, sette controlli true, volumi persistenti nuovi e originali conservati.
+Prossimo lavoro autorizzato: [carico embedding](EMBEDDINGS-IMPORT.md), 50 chunk
+con 2.644.421 righe a 768 dimensioni. Manifest verificato; DDL corretto per
+preferred_name e dimensione del vettore, import transazionale con journal e
+fase HNSW separata. Meili ChEMBL e accesso pubblico vengono dopo il carico.
+
 **Adozione in corso:** [aggiornamento operativo shared/preview](SERVICE-UPGRADE.md).
 Inventario owner aggiornato, quattro server running e segreti tmpfs presenti.
 I cinque candidati sono ora un insieme collaudato: stack locale completo passato,

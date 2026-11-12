@@ -1,5 +1,18 @@
 # Ripresa operativa — 12 novembre 2026
 
+**Adozione VM completata:** upgrade `6d019947800b4578bc2b5d40791f5132`, stato
+passed e sette controlli true. Quattro server nuovi su volumi persistenti separati;
+Nginx/applicazioni conservati, health/SPA/RPC verificati, originali trattenuti
+per rollback. Ricevuta owner scaricata e letta in
+`vm047-adoption/ready/upgrade-result.json`. Non ripetere l'upgrade.
+
+**Task dati attuale:** owner ha consegnato 50 chunk SQL degli embedding,
+25.523.353.951 byte, **2.644.421 righe a 768 dimensioni**. Inventario/checksum
+completati una volta, manifest in `vm048-embeddings/dump-manifest.json`.
+Corretto il disallineamento preferred_name/vector(768) in DDL ed entity;
+QA su PostgreSQL reale passato. [Import riprendibile e indice separato](EMBEDDINGS-IMPORT.md).
+Il trasferimento/import effettivo deve ancora essere avviato dall'owner.
+
 **Task attuale:** adozione operativa shared/preview, non solo preparazione di immagini.
 Procedura e comando owner: [SERVICE-UPGRADE.md](SERVICE-UPGRADE.md).
 Inventario VM aggiornato `91bc83f416a9429a9106f2a94e1ba513`: quattro server
@@ -8,7 +21,7 @@ server versionati, volumi separati, backup logico PostgreSQL/Meili, copia Redis,
 rollback e registrazione atomica della generazione per il recovery. Collaudo
 locale dell'intero stack con sette controlli passed; trasferimento Meili 1.56.2
 → 1.14.0 con entrambe le chiavi client e lettura dei documenti verificati.
-La ricevuta VM dell'adozione è ancora da acquisire; non dichiararla eseguita.
+La ricevuta VM è acquisita: vedere l'aggiornamento in testa alla pagina.
 
 **Audit preliminare concluso:**
 tutte le cinque immagini di sviluppo sono bloccate dalla scansione strict.

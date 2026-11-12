@@ -48,6 +48,7 @@ applicativa, sezioni 7–8; login/dati e accesso pubblico restano successivi.
 | --- | --- |
 | Riprodurre l'audit sicurezza delle immagini di sviluppo prima dei nuovi Compose | [Audit e vincolo Nginx](SERVICE-SECURITY-AUDIT.md) |
 | Adottare le versioni verificate nei Compose shared/preview, con backup e rollback | [Aggiornamento operativo dei servizi](SERVICE-UPGRADE.md) |
+| Caricare i 50 chunk degli embedding e costruire separatamente l'HNSW | [Import riprendibile PostgreSQL](EMBEDDINGS-IMPORT.md) |
 | Costruire PostgreSQL 16.16 senza attendere il tag Docker, verificare CVE e restore SQL/HNSW | [Sorgenti, build e collaudo PostgreSQL](SERVICE-SECURITY-AUDIT.md#postgresql-1616-build-da-sorgenti-e-verifica-prima-della-sostituzione) |
 | Verificare il requisito di parità server sviluppo/staging prima dei dati | [Versioni effettive e disallineamenti](SERVICE-VERSION-PARITY.md) |
 | Preparare schema SQL esplicito, restore ChEMBL/embedding e tool scope | [Analisi e proposta dati/bootstrap](DATA-BOOTSTRAP-PLAN.md); nessun restore da avviare prima dell'inventario |

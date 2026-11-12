@@ -217,3 +217,13 @@ Queste sono prove locali prima del deploy. La ricevuta effettiva della VM va
 registrata dopo il comando della sezione 4; non dichiarare l'adozione completata
 finché non è disponibile. CI remota non verificata in questa fase, come richiesto
 dall'owner; la policy CVE locale rimane attiva.
+
+## Esito effettivo della VM
+
+Upgrade `6d019947800b4578bc2b5d40791f5132`: **passed**, fase finished, tutti i
+sette controlli true. Ricevuta scaricata dall'owner in
+`C:/Users/giuli/.codex/artifacts/inf-vm-04/vm047-adoption/ready/upgrade-result.json`
+e verificata successivamente. PostgreSQL applicativo aveva la tabella embedding
+vuota; i quattro indici log Meili e 10 documenti sono stati trasferiti con
+chiavi applicative preservate. I nuovi volumi sono ora quelli operativi;
+gli originali sono conservati per rollback. Nessuna porta pubblicata o merge.

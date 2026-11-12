@@ -14,11 +14,14 @@ export class MoleculeEmbedding {
 
     // pgvector is provided by the installed driver although TypeORM's
     // portable ColumnType union does not include the extension.
-    @Column({ type: 'vector' as ColumnType, nullable: true })
+    @Column({ type: 'vector' as ColumnType, length: 768, nullable: true })
     embedding!: number[] | null
 
     @Column('text', { name: 'embedding_model', default: 'seyonec/ChemBERTa-zinc-base-v1' })
     embeddingModel!: string
+
+    @Column('text', { name: 'preferred_name', nullable: true })
+    preferredName!: string | null
 
     @Column('timestamptz', { name: 'updated_at', default: () => 'now()' })
     updatedAt!: Date
