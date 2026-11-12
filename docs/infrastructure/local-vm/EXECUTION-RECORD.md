@@ -147,3 +147,19 @@ verificati in fixture isolate. Fixture con immagini reali dei tre server:
 run `80e9a54a0711475686d17a9cd1463b40`, passed, persistenceMarkers true,
 zero errori cleanup. Queste sono prove locali sintetiche, non una ripartenza
 VM già riuscita. [Procedura completa](COLD-RECOVERY.md).
+
+
+## 12 novembre — server riavviati, verifica finale da completare
+
+Tentativo owner `1250bedb66bb4415be4dea909207077e`: prepare e ricezione
+conclusi, quattro container originali avviati, nessuna applicazione o porta
+pubblicata. Activate termina con `server-readiness-timeout`; la ricevuta
+elenca tutti e quattro gli ID ancora attivi ma non conserva il controllo
+specifico fallito. Non è un recupero verificato e non va ripetuto da zero.
+
+Riprodotto localmente l'errore del probe CONNECT NATS (`password` anziché
+`pass`); corretto e verificato sul broker reale con due utenti e rifiuto di
+password errata. Aggiunti esiti incrementali e diagnostica sanitizzata per
+ogni controllo. Predisposta modalità `-VerifyAttemptId` senza lettura del
+file privato host, riconsegna/applicazione di segreti o avvio container;
+esito VM ancora atteso. [Ripresa circoscritta](COLD-RECOVERY.md#44-verificare-un-tentativo-che-ha-già-avviato-i-server).

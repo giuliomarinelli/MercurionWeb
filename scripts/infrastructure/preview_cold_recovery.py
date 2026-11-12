@@ -15,10 +15,12 @@ STAGE_HELPERS = STAGE.replace('delivery-', 'recovery-').replace('secret_delivery
 REMOVE_HELPERS = CLEANUP.replace('delivery-', 'recovery-').replace('secret_delivery.py', 'helpers.json')
 LOAD = r'''
 import hashlib,json,os,pathlib,pwd,re,stat,sys,types
-attempt,digest,phase,rid,inspection,manifest=sys.argv[1:]
+attempt,digest,phase,rid,inspection,manifest=sys.argv[1:7]
+operation=sys.argv[7] if len(sys.argv)==8 else attempt
+assert re.fullmatch('[a-f0-9]{32}',operation)
 assert all(re.fullmatch('[a-f0-9]{32}',v) for v in (attempt,rid,inspection))
 assert re.fullmatch('[a-f0-9]{64}',digest) and re.fullmatch('[a-f0-9]{64}',manifest)
-assert phase in ('prepare','receive','activate')
+assert phase in ('prepare','receive','activate','verify')
 assert (os.geteuid()==0)==(phase!='receive')
 owner=pwd.getpwnam(os.environ['SUDO_USER']) if phase!='receive' else pwd.getpwuid(os.geteuid())
 assert owner.pw_uid>0
@@ -36,7 +38,8 @@ assert set(sources)=={'guest_preview_recovery_inventory','guest_preview_cold_rec
 module=types.ModuleType('guest_preview_recovery_inventory')
 sys.modules[module.__name__]=module
 exec(compile(sources[module.__name__],'<verified-recovery-inventory>','exec'),module.__dict__)
-sys.argv=['recovery',phase,'--run-id',rid,'--manifest-sha256',manifest,'--inspection-id',inspection,'--attempt-id',attempt]
+sys.argv=['recovery',phase,'--run-id',rid,'--manifest-sha256',manifest,'--inspection-id',inspection,'--attempt-id',operation]
+if phase=='verify':sys.argv+=['--verification-id',attempt]
 exec(compile(sources['guest_preview_cold_recovery'],'<verified-cold-recovery>','exec'),{'__name__':'__main__'})
 '''
 
@@ -111,24 +114,68 @@ def execute(root, manifest, inspected, configuration):
         raise
 
 
+def verify_existing(root, manifest, inspected, attempt):
+    if os.name != 'nt':
+        raise ValueError('windows-owner-terminal-required')
+    previous = json.loads((root / 'receipts' / ('recovery-' + attempt + '-activate.json')).read_text(encoding='utf-8'))
+    if (previous.get('runId') != manifest['runId'] or previous.get('attemptId') != attempt
+            or previous.get('status') not in ('failed', 'passed') or previous.get('servicesStarted') is not True):
+        raise ValueError('existing-started-recovery-required')
+    sources = {name: Path(__file__).with_name(name + '.py').read_text(encoding='utf-8')
+               for name in ('guest_preview_recovery_inventory', 'guest_preview_cold_recovery')}
+    helpers = json.dumps(sources, separators=(',', ':')).encode()
+    if len(helpers) > 131072:
+        raise ValueError('helper-size')
+    checksum = hashlib.sha256(helpers).hexdigest()
+    digest = hashlib.sha256((root / 'server-bootstrap.json').read_bytes()).hexdigest()
+    verification = uuid.uuid4().hex
+    print(json.dumps(dict(runId=manifest['runId'], attemptId=attempt, verificationId=verification,
+                         privateConfigurationRead=False, serverMutationsPerformed=False)), flush=True)
+    code, output = transport(Step('staged', remote(STAGE_HELPERS, verification, checksum), data=helpers))
+    if code or json.loads(output).get('runId') != verification:
+        raise ValueError('helper-staging-failed')
+    code, _ = transport(Step('verify', remote(LOAD, verification, checksum, 'verify', manifest['runId'],
+        inspected['inspectionId'], digest, attempt, sudo=True), interactive=True))
+    name = 'recovery-' + attempt + '-verify-' + verification + '.json'
+    report, path = fetch(root, manifest['runId'], name)
+    if (code or report.get('status') != 'passed' or report.get('verificationId') != verification
+            or report.get('attemptId') != attempt or report.get('serverMutationsPerformed') is not False):
+        raise ValueError('verification-incomplete-review-report')
+    # Remove only public helpers of this verification and the original completed attempt.
+    cleanup = 'import sys\nfor _rid in ' + repr([verification, attempt]) + ':\n sys.argv=["cleanup",_rid]\n exec(' + repr(REMOVE_HELPERS) + ')'
+    code, output = transport(Step('code-removed', remote(cleanup)))
+    receipts = [json.loads(line) for line in output.splitlines()] if not code else []
+    if code or {item.get('runId') for item in receipts if item.get('phase') == 'code-removed'} != {verification, attempt}:
+        raise ValueError('public-helper-cleanup-failed-after-verification')
+    return dict(status='passed', runId=manifest['runId'], attemptId=attempt, verificationId=verification,
+        reportPath=str(path), meilisearchAddress=report['meilisearchAddress'], servicesRunning=True,
+        serverMutationsPerformed=False, privateConfigurationRead=False, isolationAccepted=False)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--bundle', type=Path, required=True)
     parser.add_argument('--inspection-id', required=True)
     parser.add_argument('--configuration', type=Path, default=Path.home() / '.mercurion/preview/configuration.json')
     parser.add_argument('--execute', action='store_true')
+    parser.add_argument('--verify-attempt')
     args = parser.parse_args()
     try:
         import re
         if not re.fullmatch('[a-f0-9]{32}', args.inspection_id):
             raise ValueError('inspection-id')
+        if args.verify_attempt and not re.fullmatch('[a-f0-9]{32}', args.verify_attempt):
+            raise ValueError('attempt-id')
         root = args.bundle.resolve()
         manifest = bundle.verify(root)
         inspected = inspection(root, manifest, args.inspection_id)
         if args.execute:
-            print(json.dumps(execute(root, manifest, inspected, args.configuration)))
+            if args.verify_attempt:
+                print(json.dumps(verify_existing(root, manifest, inspected, args.verify_attempt)))
+            else:
+                print(json.dumps(execute(root, manifest, inspected, args.configuration)))
         else:
-            print(json.dumps(dict(status='cold-recovery-plan', runId=manifest['runId'], inspectionId=args.inspection_id,
+            print(json.dumps(dict(status='existing-recovery-verification-plan' if args.verify_attempt else 'cold-recovery-plan', runId=manifest['runId'], inspectionId=args.inspection_id,
                 sshStarted=False, privateConfigurationRead=False, servicesStarted=False)))
     except Exception:
         print(json.dumps(dict(code='PREVIEW_COLD_RECOVERY_FAILED',

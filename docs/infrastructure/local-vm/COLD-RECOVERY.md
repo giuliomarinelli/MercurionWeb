@@ -222,7 +222,49 @@ scp -o StrictHostKeyChecking=yes "mercurion-server:/opt/mercurion/releases/serve
 if ($LASTEXITCODE -ne 0) { throw 'Recupero ricevuta fallito: conservare output e identificatori.' }
 ```
 
-### 4.4 Dopo il successo
+### 4.4 Verificare un tentativo che ha già avviato i server
+
+**Caso osservato il 12 novembre:** attemptId
+`1250bedb66bb4415be4dea909207077e` completa prepare, ricezione e avvio dei
+quattro ID originali, ma termina con `server-readiness-timeout`. La ricevuta
+conferma quattro container attivi; la prima versione non conservava gli esiti
+intermedi dei probe e non identifica quindi quale controllo sia fallito.
+
+È stato riprodotto su un broker locale reale un errore del nuovo probe NATS:
+il messaggio CONNECT usava `password`, mentre il [protocollo client NATS](https://docs.nats.io/reference/protocols/client#connect)
+richiede `pass`. Il campo `password` nei file di configurazione del server
+rimane invece corretto e non va rinominato. La correzione riguarda soltanto
+il controllo, non i segreti o la configurazione del broker. La verifica reale
+sulla VM deve ancora confermare tutti i controlli.
+
+Quando i quattro server sono già attivi, usare la modalità di sola verifica:
+
+```powershell
+$taskAttemptId='1250bedb66bb4415be4dea909207077e'
+powershell -NoProfile -File scripts/infrastructure/Invoke-PreviewColdRecovery.ps1 -BundlePath $taskServerBundle -InspectionId $taskInspectionId -VerifyAttemptId $taskAttemptId
+powershell -NoProfile -File scripts/infrastructure/Invoke-PreviewColdRecovery.ps1 -BundlePath $taskServerBundle -InspectionId $taskInspectionId -VerifyAttemptId $taskAttemptId -Execute
+```
+
+Il primo comando controlla il piano locale, senza SSH. Il secondo consegna
+helper pubblici aggiornati e ricontrolla identità, mount, volumi, boot-id,
+permessi dei file già attivi e sei controlli di readiness/persistenza.
+**Non legge il file privato host, non riconsegna né applica segreti e non avvia,
+ferma o ricrea container.** Passphrase SSH e sudo restano nel terminale.
+
+Viene generato un nuovo `verificationId`, mantenendo l'attempt originale.
+La nuova ricevuta `recovery-<attemptId>-verify-<verificationId>.json` conserva
+ogni controllo già concluso e, in caso di errore, `failedCheck`, tipo/codice
+sanitizzato del probe o stato HTTP. Non riporta valori di credenziali.
+La vecchia ricevuta fallita rimane intatta. Dopo il successo vengono rimossi
+soltanto gli helper pubblici della verifica e del tentativo originale.
+
+Attesi `status=passed`, `servicesRunning=true`, `serverMutationsPerformed=false`,
+`privateConfigurationRead=false` e `reportPath`. Un errore non autorizza a
+rilanciare il recupero completo. Se il problema è solo il download della ricevuta,
+usare SCP con il nome specifico sopra, come nella sezione 4.3; non rieseguire
+la verifica per recuperare un report già prodotto.
+
+### 4.5 Dopo il successo
 
 Usare il **nuovo indirizzo Meilisearch della ricevuta** per riaprire il tunnel
 amministrativo descritto nel runbook, sezione 10: Docker può riassegnare gli IP.
@@ -287,3 +329,17 @@ Il suo lettore dei marcatori usa root con DAC_OVERRIDE soltanto nella fixture
 per leggere directory di UID diversi, come sudo sul guest; i server mantengono
 i propri UID e non acquisiscono privilegi aggiuntivi. Attesi report passed,
 `checks.meilisearch.persistenceMarkers=true` e zero errori di cleanup.
+
+
+Per il probe NATS è disponibile anche una fixture opt-in con due utenti reali
+sul broker locale e un caso negativo con password errata:
+
+```powershell
+$env:PREVIEW_COLD_NATS_FIXTURE='1'
+try { python -B -m unittest discover -s scripts/infrastructure -p test_preview_cold_recovery.py } finally { Remove-Item Env:PREVIEW_COLD_NATS_FIXTURE }
+```
+
+Usa soltanto credenziali sintetiche e un'immagine NATS locale già fissata dal
+bundle (override esplicito `PREVIEW_COLD_NATS_IMAGE` per un altro ID locale
+verificato). Pubblica una porta effimera esclusivamente su `127.0.0.1` e rimuove
+il proprio container. Nessun pull, contatto con la VM o modifica ai provider.

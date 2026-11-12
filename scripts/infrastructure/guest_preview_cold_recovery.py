@@ -53,7 +53,7 @@ def original(root, digest):
     return servers, receiver, manifest, loaded, models
 
 
-def validate_state(current, previous, models, loaded):
+def validate_state(current, previous, models, loaded, *, running=False):
     if (previous.get('status') != 'inventoried' or previous.get('coldRecoveryCandidate') is not True
             or current['bootId'] != previous.get('bootId') or current['runIsTmpfs'] is not True):
         raise ValueError('inspection-boot-or-scope')
@@ -68,7 +68,7 @@ def validate_state(current, previous, models, loaded):
         for name, spec in model['services'].items():
             item = current_services[name]
             if (item['id'] != previous_services[name]['id'] or item['image'] != loaded[ROLES[name]]['imageId']
-                    or item['running'] is not False or item['status'] not in ('exited', 'created')):
+                    or item['running'] is not running or item['status'] not in (('running',) if running else ('exited', 'created'))):
                 raise ValueError('server-stopped-identity')
             expected = set()
             for mount in spec['volumes']:
@@ -152,7 +152,7 @@ def authenticated_nats(address, path):
             stream = connection.makefile('rb')
             if not stream.readline(16384).startswith(b'INFO '):
                 raise ValueError('nats-protocol')
-            connect = json.dumps(dict(user=user['user'], password=user['password'], verbose=True)).encode()
+            connect = json.dumps({'user': user['user'], 'pass': user['password'], 'verbose': True}).encode()
             connection.sendall(b'CONNECT ' + connect + b'\r\nPING\r\n')
             for _ in range(8):
                 line = stream.readline(16384)
@@ -200,6 +200,12 @@ def activate(root, manifest, digest, attempt, report, servers, receiver, models,
         snapshot.docker('start', item['id'])
         report['servicesStarted'] = True
         identifiers[ROLES[item['service']]] = item['id']
+    verify_services(current, manifest, report, servers, receiver)
+
+
+def verify_services(current, manifest, report, servers, receiver):
+    receiver.inspect(manifest['runId'])
+    identifiers = {ROLES[item['service']]: item['id'] for item in current['containers']}
     addresses = {}
     for role, identifier in identifiers.items():
         networks = json.loads(snapshot.docker('inspect', '--format', '{{json .NetworkSettings.Networks}}', identifier))
@@ -212,25 +218,67 @@ def activate(root, manifest, digest, attempt, report, servers, receiver, models,
         addresses[role] = str(address)
     report['phase'] = 'readiness-and-persistence'
     active = receiver.BASE / manifest['runId'] / 'active'
-    report['checks'] = dict(
-        postgresRoleAndVector=servers.retry(lambda: servers.postgres_check(identifiers['postgres']), identifiers['postgres']),
-        redisAuthAndKeyevents=servers.retry(lambda: servers.redis_check(identifiers['redis']), identifiers['redis']),
-        natsAuthRequired=servers.retry(lambda: servers.nats_check(addresses['nats']), identifiers['nats']),
-        natsConsumerCredentials=servers.retry(lambda: authenticated_nats(addresses['nats'], active / 'nats/server.json'), identifiers['nats']),
-        meilisearchHealthAndAdminAuth=servers.retry(lambda: servers.meili_check(addresses['meilisearch']), identifiers['meilisearch']),
-        persistedLogIndexes=servers.retry(lambda: meili_indexes(addresses['meilisearch'], active / 'meilisearch/server.toml'), identifiers['meilisearch']))
+    report['checks'] = {}
+    probes = [
+        ('postgresRoleAndVector', lambda: servers.postgres_check(identifiers['postgres']), 'postgres'),
+        ('redisAuthAndKeyevents', lambda: servers.redis_check(identifiers['redis']), 'redis'),
+        ('natsAuthRequired', lambda: servers.nats_check(addresses['nats']), 'nats'),
+        ('natsConsumerCredentials', lambda: authenticated_nats(addresses['nats'], active / 'nats/server.json'), 'nats'),
+        ('meilisearchHealthAndAdminAuth', lambda: servers.meili_check(addresses['meilisearch']), 'meilisearch'),
+        ('persistedLogIndexes', lambda: meili_indexes(addresses['meilisearch'], active / 'meilisearch/server.toml'), 'meilisearch')]
+    for name, check, role in probes:
+        report['activeCheck'] = name
+        def diagnosed():
+            try:
+                return check()
+            except Exception as error:
+                report['probeErrorType'] = type(error).__name__
+                if isinstance(error, ValueError) and re.fullmatch('[a-z-]+', str(error)):
+                    report['probeErrorCode'] = str(error)
+                if isinstance(error, urllib.error.HTTPError):
+                    report['probeHttpStatus'] = error.code
+                raise
+        try:
+            report['checks'][name] = servers.retry(diagnosed, identifiers[role])
+            if report['checks'][name] is not True:
+                raise ValueError('readiness-check-invalid-result')
+            for key in ('probeErrorType', 'probeErrorCode', 'probeHttpStatus'):
+                report.pop(key, None)
+        except Exception:
+            report['checks'][name] = False
+            report['failedCheck'] = name
+            raise
+    report.pop('activeCheck', None)
     report.update(status='passed', phase='finished', meilisearchAddress=addresses['meilisearch'],
                   originalContainers=sorted(identifiers.values()), originalVolumes=sorted(v['name'] for v in current['volumes']))
 
 
+
+def verify_existing(root, manifest, digest, attempt, report, servers, receiver, models, loaded):
+    prepared = read(root / ('recovery-' + attempt + '-prepare.json'))
+    previous = read(root / ('recovery-' + attempt + '-activate.json'))
+    if (prepared.get('status') != 'prepared' or prepared.get('attemptId') != attempt
+            or previous.get('status') not in ('failed', 'passed') or previous.get('attemptId') != attempt
+            or previous.get('servicesStarted') is not True):
+        raise ValueError('existing-started-recovery-required')
+    current = snapshot.inventory(manifest['runId'], digest)
+    current['runId'] = manifest['runId']
+    validate_state(current, prepared['originalState'], models, loaded, running=True)
+    resources(current, models)
+    verify_services(current, manifest, report, servers, receiver)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('phase', choices=('prepare', 'receive', 'activate'))
+    parser.add_argument('phase', choices=('prepare', 'receive', 'activate', 'verify'))
     parser.add_argument('--run-id', required=True)
     parser.add_argument('--manifest-sha256', required=True)
     parser.add_argument('--inspection-id', required=True)
     parser.add_argument('--attempt-id', required=True)
+    parser.add_argument('--verification-id')
     args = parser.parse_args()
+    if args.phase == 'verify' and not re.fullmatch('[a-f0-9]{32}', args.verification_id or ''):
+        raise SystemExit('Invalid verification identifier')
     if not all(re.fullmatch('[a-f0-9]{32}', value) for value in (args.run_id, args.inspection_id, args.attempt_id)):
         raise SystemExit('Invalid recovery identifiers')
     if not re.fullmatch('[a-f0-9]{64}', args.manifest_sha256):
@@ -244,25 +292,32 @@ def main():
             raise SystemExit('Recovery prepare missing')
         print(json.dumps(receiver.receive(args.run_id, sys.stdin.buffer)))
         return 0
-    path = root / ('recovery-' + args.attempt_id + '-' + args.phase + '.json')
+    suffix = args.phase + ('-' + args.verification_id if args.phase == 'verify' else '')
+    path = root / ('recovery-' + args.attempt_id + '-' + suffix + '.json')
     if path.exists():
         raise SystemExit('Recovery receipt already exists; no automatic retry')
     report = dict(schemaVersion=1, runId=args.run_id, attemptId=args.attempt_id,
         observedAtUtc=datetime.now(timezone.utc).isoformat(), status='failed', phase=args.phase,
         servicesStarted=False, applicationServicesStarted=False, publishedPorts=False, isolationAccepted=False)
+    if args.phase == 'verify':
+        report.update(verificationId=args.verification_id, serverMutationsPerformed=False)
     try:
         if args.phase == 'prepare':
             prepare(root, manifest, args.manifest_sha256, args.inspection_id, args.attempt_id, report, receiver, models, loaded)
+        elif args.phase == 'verify':
+            verify_existing(root, manifest, args.manifest_sha256, args.attempt_id, report, servers, receiver, models, loaded)
         else:
             activate(root, manifest, args.manifest_sha256, args.attempt_id, report, servers, receiver, models, loaded)
     except Exception as error:
         report['errorType'] = type(error).__name__
         if isinstance(error, ValueError) and re.fullmatch('[a-z-]+', str(error)):
             report['code'] = str(error)
-    if args.phase == 'activate':
+    if args.phase in ('activate', 'verify'):
         try:
             running = snapshot.docker('ps', '-q', '--no-trunc', '--filter', 'label=mercurion.bootstrap.run=' + args.run_id).split()
-            report['servicesStarted'] = bool(running)
+            if args.phase == 'activate':
+                report['servicesStarted'] = bool(running)
+            report['servicesRunning'] = len(running) == 4
             report['runningContainers'] = running
             if report['status'] == 'passed' and set(running) != set(report.get('originalContainers', [])):
                 report.update(status='failed', code='server-ended-after-readiness')

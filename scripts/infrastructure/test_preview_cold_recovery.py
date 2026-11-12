@@ -132,7 +132,7 @@ class RecoveryContracts(unittest.TestCase):
     def test_success_starts_only_original_ids_and_runs_persistence_checks(self):
         previous, models, loaded = fixture()
         prepared = dict(status='prepared', attemptId=ATTEMPT, bootId=previous['bootId'], originalState=previous)
-        receiver = SimpleNamespace(BASE=Path('/run/synthetic'), apply=Mock())
+        receiver = SimpleNamespace(BASE=Path('/run/synthetic'), apply=Mock(), inspect=Mock())
         servers = SimpleNamespace(retry=lambda check, container: check(), postgres_check=Mock(return_value=True),
             redis_check=Mock(return_value=True), nats_check=Mock(return_value=True), meili_check=Mock(return_value=True))
         def docker(*args):
@@ -200,6 +200,72 @@ class RecoveryContracts(unittest.TestCase):
             execute.assert_not_called()
 
 
+class ExistingVerificationContracts(unittest.TestCase):
+    def test_existing_running_recovery_is_checked_without_applying_or_starting(self):
+        previous, models, loaded = fixture()
+        current = copy.deepcopy(previous)
+        for item in current['containers']:
+            item.update(status='running', running=True)
+        current['secretRunPresent'] = True
+        receiver = Mock()
+        prepared = dict(status='prepared', attemptId=ATTEMPT, originalState=previous)
+        started = dict(status='failed', attemptId=ATTEMPT, servicesStarted=True)
+        with patch.object(guest, 'read', side_effect=[prepared, started]), \
+                patch.object(guest.snapshot, 'inventory', return_value=current), patch.object(guest, 'resources'), \
+                patch.object(guest, 'verify_services') as verify, patch.object(guest.snapshot, 'docker') as docker:
+            guest.verify_existing(Path('/unused'), {'runId': RID}, 'f' * 64, ATTEMPT, {}, Mock(), receiver, models, loaded)
+        verify.assert_called_once()
+        docker.assert_not_called()
+        receiver.apply.assert_not_called()
+        receiver.prepare.assert_not_called()
+        receiver.receive.assert_not_called()
+
+    def test_partial_results_and_exact_failed_probe_survive_failure(self):
+        current, _, _ = fixture()
+        receiver = Mock(BASE=Path('/run/synthetic'))
+        servers = SimpleNamespace(retry=lambda check, container: check(), postgres_check=Mock(return_value=True),
+            redis_check=Mock(return_value=True), nats_check=Mock(return_value=True), meili_check=Mock(return_value=True))
+        network = json.dumps({'private': {'IPAddress': '172.18.0.2', 'GlobalIPv6Address': ''}})
+        report = {}
+        with patch.object(guest.snapshot, 'docker', return_value=network), \
+                patch.object(guest, 'authenticated_nats', side_effect=ValueError('nats-authentication')):
+            with self.assertRaisesRegex(ValueError, 'nats-authentication'):
+                guest.verify_services(current, {'runId': RID}, report, servers, receiver)
+        self.assertEqual(report['failedCheck'], 'natsConsumerCredentials')
+        self.assertEqual(report['probeErrorCode'], 'nats-authentication')
+        self.assertEqual(report['checks'], dict(postgresRoleAndVector=True, redisAuthAndKeyevents=True,
+                                              natsAuthRequired=True, natsConsumerCredentials=False))
+        servers.meili_check.assert_not_called()
+
+    def test_host_verification_has_no_private_payload_and_cleans_only_its_helpers(self):
+        verification = 'd' * 32
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / 'receipts').mkdir()
+            (root / 'server-bootstrap.json').write_text('{}')
+            previous = dict(runId=RID, attemptId=ATTEMPT, status='failed', servicesStarted=True)
+            (root / 'receipts' / ('recovery-' + ATTEMPT + '-activate.json')).write_text(json.dumps(previous))
+            result = dict(runId=RID, attemptId=ATTEMPT, verificationId=verification, status='passed',
+                          serverMutationsPerformed=False, meilisearchAddress='172.18.0.2')
+            cleanup = '\n'.join(json.dumps(dict(runId=value, phase='code-removed')) for value in (verification, ATTEMPT)).encode()
+            responses = [(0, json.dumps({'runId': verification}).encode()), (0, None), (0, cleanup)]
+            with patch.object(host, 'os', SimpleNamespace(name='nt')), \
+                    patch.object(host.uuid, 'uuid4', return_value=SimpleNamespace(hex=verification)), \
+                    patch.object(host, 'transport', side_effect=responses) as transport, \
+                    patch.object(host, 'payload') as payload, \
+                    patch.object(host, 'fetch', return_value=(result, root / 'verified.json')), \
+                    contextlib.redirect_stdout(io.StringIO()):
+                value = host.verify_existing(root, {'runId': RID}, {'inspectionId': INSPECTION}, ATTEMPT)
+            payload.assert_not_called()
+            self.assertFalse(value['serverMutationsPerformed'])
+            self.assertFalse(value['privateConfigurationRead'])
+            steps = [call.args[0] for call in transport.call_args_list]
+            self.assertEqual([step.phase for step in steps], ['staged', 'verify', 'code-removed'])
+            self.assertTrue(steps[1].interactive)
+            self.assertIsNone(steps[1].data)
+            self.assertEqual(json.loads((root / 'receipts' / ('recovery-' + ATTEMPT + '-activate.json')).read_text()), previous)
+
+
 class AuthenticationContracts(unittest.TestCase):
     def test_log_index_check_uses_master_without_creating_or_printing_values(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -228,6 +294,10 @@ class AuthenticationContracts(unittest.TestCase):
             with patch.object(guest.socket, 'create_connection', return_value=connection) as connect:
                 self.assertTrue(guest.authenticated_nats('172.18.0.2', path))
             self.assertEqual(connect.call_count, 2)
+            for call in connection.sendall.call_args_list:
+                message = json.loads(call.args[0].split(b'\r\n')[0][8:])
+                self.assertIn('pass', message)
+                self.assertNotIn('password', message)
             connection.makefile.side_effect = [io.BytesIO(b"INFO {}\r\n-ERR 'Authorization Violation'\r\n")]
             with patch.object(guest.socket, 'create_connection', return_value=connection):
                 with self.assertRaisesRegex(ValueError, '^nats-authentication$'):
@@ -348,6 +418,50 @@ class LinuxLoaderFixture(unittest.TestCase):
             with patch.object(pwd, 'getpwnam', return_value=owner), patch.dict(os.environ, {'SUDO_USER': 'nobody'}), \
                     patch('sys.argv', arguments), self.assertRaises(AssertionError):
                 exec(compile(host.LOAD, '<loader-fixture>', 'exec'), {})
+
+
+@unittest.skipUnless(os.environ.get('PREVIEW_COLD_NATS_FIXTURE') == '1', 'Opt-in real local NATS authentication fixture')
+class RealNatsFixture(unittest.TestCase):
+    def test_real_connect_protocol_accepts_both_users_and_rejects_wrong_password(self):
+        import socket
+        import time
+        prefix = ['docker', '--context', 'desktop-linux'] if os.name == 'nt' else ['docker']
+        def docker(*args):
+            return subprocess.check_output([*prefix, *args], text=True, timeout=30).strip()
+        identifier = None
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'synthetic-nats.json'
+            users = [dict(user='synthetic-node', password='synthetic-node-password'),
+                     dict(user='synthetic-tox', password='synthetic-tox-password')]
+            path.write_text(json.dumps({'port': 4222, 'authorization': {'users': users}}), encoding='utf-8')
+            image = os.environ.get('PREVIEW_COLD_NATS_IMAGE', 'sha256:ca1d4783151aab46ae6b4e0d62d9bab3614fffc8b2dc1e557bac27b4490163df')
+            try:
+                identifier = docker('run', '-d', '--pull', 'never', '--read-only', '--cap-drop', 'ALL',
+                    '--user', '10021:10021', '--publish', '127.0.0.1::4222',
+                    '--mount', 'type=bind,source=' + str(path.resolve()) + ',target=/synthetic-nats.json,readonly',
+                    image, '--config', '/synthetic-nats.json')
+                port = int(docker('port', identifier, '4222/tcp').rsplit(':', 1)[1])
+                connect = socket.create_connection
+                for _ in range(40):
+                    try:
+                        with connect(('127.0.0.1', port), timeout=1) as stream:
+                            if stream.recv(16384).startswith(b'INFO '):
+                                break
+                    except OSError:
+                        time.sleep(.1)
+                else:
+                    self.fail('Synthetic broker not ready')
+                def connection(address, timeout):
+                    return connect(('127.0.0.1', port), timeout=timeout)
+                with patch.object(guest.socket, 'create_connection', side_effect=connection):
+                    self.assertTrue(guest.authenticated_nats('127.0.0.1', path))
+                    wrong = Path(directory) / 'wrong.json'
+                    wrong.write_text(json.dumps({'authorization': {'users': [dict(user='synthetic-node', password='wrong')]}}))
+                    with self.assertRaisesRegex(ValueError, '^nats-authentication$'):
+                        guest.authenticated_nats('127.0.0.1', wrong)
+            finally:
+                if identifier:
+                    docker('rm', '--force', identifier)
 
 
 if __name__ == '__main__':

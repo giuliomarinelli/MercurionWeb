@@ -11,6 +11,13 @@ da acquisire la ricevuta finale sulla VM. La policy
 Cloudflare Access è predisposta su `preview.mercurion.app`; non attesta ancora
 il collegamento del tunnel o il funzionamento applicativo. Nessun merge.
 
+**Aggiornamento:** il recupero owner attemptId
+`1250bedb66bb4415be4dea909207077e` ha avviato i quattro server ma la readiness
+è terminata in timeout. Non rieseguire prepare/receive/start. Corretto il probe
+NATS e predisposta la sola verifica nella sezione 4.4 di COLD-RECOVERY.md;
+ricevuta dei sei controlli sulla VM ancora da acquisire. Le ricevute originali
+fallite restano conservate.
+
 ## Consegna precedente, conservata come storico
 
 # Pausa operativa — fine giornata 11 novembre 2026
