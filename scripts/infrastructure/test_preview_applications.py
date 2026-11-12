@@ -29,6 +29,34 @@ def configuration():
 
 
 class ApplicationContracts(unittest.TestCase):
+    def test_owner_configuration_rejection_reports_only_known_field_names(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'synthetic.json'
+            config = configuration()
+            config['providers']['EMAIL_PASSWORD'] = ''
+            config['providers']['GOOGLE_CLIENT_SECRET'] = 'private-marker-do-not-print'
+            path.write_text(json.dumps(config))
+            with self.assertRaises(host.LocalConfigurationError) as error:
+                host.load_configuration(path)
+            self.assertIn('providers.EMAIL_PASSWORD', str(error.exception))
+            self.assertNotIn('private-marker', str(error.exception))
+            path.write_text('{"private-marker":broken')
+            with self.assertRaisesRegex(host.LocalConfigurationError, '^configuration-invalid-json-or-encoding$'):
+                host.load_configuration(path)
+
+    def test_invalid_owner_configuration_stops_before_state_or_transport(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            path = root / 'synthetic.json'
+            path.write_text('{}')
+            with patch.object(host, 'os', SimpleNamespace(name='nt')), \
+                    patch.object(host.subprocess, 'run') as process, patch.object(host, 'transport') as transport, \
+                    self.assertRaises(host.LocalConfigurationError):
+                host.execute(root, {'runId':'a'*32}, path)
+            self.assertFalse((root / 'execution-state.json').exists())
+            process.assert_not_called()
+            transport.assert_not_called()
+
     def test_payload_separates_server_admin_and_consumer_credentials(self):
         config = configuration()
         raw = host.payload(config, 'a' * 32, '172.30.4.2')

@@ -12,6 +12,42 @@ import preview_credentials
 from preview_server_bootstrap import COPY_RELEASE
 from synthetic_secret_delivery import Step, COMMON, remote, transport
 
+
+class LocalConfigurationError(ValueError):
+    """Public diagnostic from before any transport or persistent attempt."""
+
+
+def load_configuration(path):
+    # Executed only by the owner with --execute. Never expose parser snippets or
+    # arbitrary exception text: only fixed validator messages/known field names.
+    try:
+        value = json.loads(path.read_text(encoding='utf-8-sig'))
+    except FileNotFoundError:
+        raise LocalConfigurationError('configuration-file-not-found') from None
+    except (json.JSONDecodeError, UnicodeError):
+        raise LocalConfigurationError('configuration-invalid-json-or-encoding') from None
+    except OSError:
+        raise LocalConfigurationError('configuration-file-unreadable') from None
+    try:
+        preview_credentials.validate(value)
+    except (ValueError, TypeError, KeyError):
+        # Derive diagnostics from known schema fields, not from exception text
+        # which might embed unexpected private input.
+        missing = []
+        if isinstance(value, dict):
+            for section, fields in (('providers', preview_credentials.PROVIDERS),
+                                    ('meilisearchClients', ('searchKey', 'logKey'))):
+                mapping = value.get(section)
+                if isinstance(mapping, dict):
+                    missing.extend(section + '.' + name for name in fields
+                        if not isinstance(mapping.get(name), str) or not mapping[name].strip()
+                        or mapping[name].startswith('<'))
+        reason = 'configuration-validation-rejected'
+        if missing:
+            reason += '; missing-fields=' + ','.join(missing)
+        raise LocalConfigurationError(reason) from None
+    return value
+
 COPY = COPY_RELEASE.replace('vm043-servers-', 'vm045-applications-').replace('server-bootstrap.json', 'application-bootstrap.json')
 COPY = COPY.replace("('server-'+rid)", "('application-'+rid)").replace('guest_preview_servers.py', 'guest_preview_applications.py')
 ENTRY = r'''
@@ -66,8 +102,7 @@ def execute(root, manifest, configuration):
     if (root / 'execution-state.json').exists():
         raise ValueError('application-already-attempted-no-automatic-retry')
     # Owner terminal only. No .env, master key or private file is read by the agent.
-    private = json.loads(configuration.read_text(encoding='utf-8-sig'))
-    preview_credentials.validate(private)
+    private = load_configuration(configuration)
     identifier = manifest['runId']
     state = dict(runId=identifier, phase='validated-owner-configuration', status='pending', isolationAccepted=False)
     path = root / 'execution-state.json'
@@ -124,6 +159,10 @@ if __name__ == '__main__':
         else:
             print(json.dumps(dict(status='application-plan', runId=manifest['runId'], imageCount=4,
                 privateConfigurationRead=False, sshStarted=False, servicesStarted=False)))
+    except LocalConfigurationError as error:
+        print(json.dumps(dict(code='PREVIEW_CONFIGURATION_REJECTED', phase='local-configuration',
+            reason=str(error), sshStarted=False, servicesStarted=False, valuesPrinted=False)), file=sys.stderr)
+        raise SystemExit(1)
     except Exception:
         print(json.dumps(dict(code='PREVIEW_APPLICATION_BOOTSTRAP_FAILED',
             detail='Preserve runId, phase and receipts; do not retry or reset database')), file=sys.stderr)

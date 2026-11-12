@@ -203,6 +203,20 @@ e non cancellare volumi. Potrebbero essere presenti l'edge o applicazioni
 già avviate. Se il remoto riporta successo ma SCP fallisce, recuperare il
 solo report dallo stesso percorso remoto; non ripetere il lavoro remoto.
 
+Se l'errore precede la stampa di `runId` e manca `execution-state.json`, il
+piano pubblico può distinguere un bundle invalido dalla configurazione locale.
+La diagnostica `PREVIEW_CONFIGURATION_REJECTED` indica fase
+`local-configuration`, `sshStarted: false`, `servicesStarted: false` e soltanto
+nomi di campi noti mancanti, mai valori. Per la diagnosi nel terminale owner:
+
+```powershell
+python -B scripts/infrastructure/preview_credentials.py validate --file "$env:USERPROFILE/.mercurion/preview/configuration.json"
+```
+
+Questa validazione non modifica file o VM. Una configurazione rifiutata prima
+del trasporto non è un bootstrap remoto parzialmente eseguito. Correggere prima
+la causa riportata, senza rigenerare i segreti e senza avviare ripetizioni.
+
 ## 6. Collaudo e limiti del traguardo
 
 Il collaudo locale del 12 novembre, con valori sintetici e risorse temporanee,

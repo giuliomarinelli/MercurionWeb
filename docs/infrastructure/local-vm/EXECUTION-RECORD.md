@@ -22,6 +22,13 @@ Fixture Linux tmpfs separate: due controlli su ricezione/UID/permessi/riuso e
 copie pubbliche Windows passati. Procedura: [APPLICATION-BOOTSTRAP.md](APPLICATION-BOOTSTRAP.md).
 **Nessuna prova del nuovo bootstrap sulla VM ancora eseguita.**
 
+Il successivo tentativo owner VM-045 ha restituito l'errore generico prima di
+qualsiasi fase. Verificati il piano pubblico valido e l'assenza di
+`execution-state.json`: nessun trasporto SSH o avvio VM eseguito dal launcher.
+Diagnosi della configurazione locale demandata al solo terminale owner; il
+file privato non è stato letto dall'agente. Aggiunta diagnostica esplicita e
+sanitizzata del rifiuto locale, con test di arresto prima di stato e trasporto.
+
 Prima CI della preparazione, run `43227246601`, bloccata dal secret scanner:
 una fixture negativa conteneva la sola intestazione PEM privata, senza chiave.
 La fixture ora usa un valore non-PEM; nessuna esclusione o regola di scansione
