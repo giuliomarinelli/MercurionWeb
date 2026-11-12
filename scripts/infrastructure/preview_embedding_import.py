@@ -8,9 +8,52 @@ import subprocess
 import sys
 import uuid
 
-from synthetic_secret_delivery import Step,COMMON,remote,transport,ssh_arguments
+from synthetic_secret_delivery import Step,COMMON,STAGE,remote,transport,ssh_arguments
 
 ROOT=Path(__file__).resolve().parents[2]
+INDEX_LAUNCH=r'''
+import hashlib,json,os,pathlib,pwd,re,stat,subprocess,sys,time
+rid,staging,digest,resume=sys.argv[1:]
+assert os.geteuid()==0 and all(re.fullmatch('[a-f0-9]{32}',v) for v in (rid,staging))
+assert re.fullmatch('[a-f0-9]{64}',digest) and resume in ('yes','no')
+owner=pwd.getpwnam(os.environ['SUDO_USER']);assert owner.pw_uid>0
+source=pathlib.Path(owner.pw_dir)/'.mercurion-infra'/('delivery-'+staging)
+for parent in (source.parent,source):
+ info=parent.lstat();assert stat.S_ISDIR(info.st_mode) and info.st_uid==owner.pw_uid and stat.S_IMODE(info.st_mode)==0o700
+fd=os.open(source/'secret_delivery.py',os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK)
+with os.fdopen(fd,'rb') as stream:
+ info=os.fstat(stream.fileno());assert stat.S_ISREG(info.st_mode) and info.st_uid==owner.pw_uid and stat.S_IMODE(info.st_mode)==0o600
+ body=stream.read(131073)
+assert len(body)<=131072 and hashlib.sha256(body).hexdigest()==digest
+root=pathlib.Path('/opt/mercurion/imports')/('embeddings-'+rid)
+for parent in (root,*root.parents):
+ info=parent.lstat();assert stat.S_ISDIR(info.st_mode) and info.st_uid==0 and not info.st_mode&0o022
+manifest=json.loads((root/'manifest.json').read_text());prior=json.loads((root/'import-result.json').read_text())
+assert manifest['runId']==rid and prior['status']=='passed' and prior['datasetSha256']==manifest['datasetSha256']
+for mode in ('import','index'):
+ if mode=='import':continue # Its passed receipt is authoritative; PIDs from before reboot may be reused.
+ pidfile=root/(mode+'-pid.json')
+ if pidfile.exists():
+  try:os.kill(json.loads(pidfile.read_text())['pid'],0)
+  except ProcessLookupError:pass
+  else:raise SystemExit('Embedding worker already running; use -Status')
+report=root/'index-result.json'
+if report.exists():
+ if json.loads(report.read_text()).get('status')=='passed':print(report.read_text());raise SystemExit(0)
+ assert resume=='yes','Review report before explicit -Resume'
+ report.rename(root/('index-result.previous-'+str(time.time_ns())+'.json'))
+worker=root/('index-worker-'+digest+'.py')
+if worker.exists():
+ info=worker.lstat();assert stat.S_ISREG(info.st_mode) and info.st_uid==0 and not info.st_mode&0o022
+ assert worker.read_bytes()==body
+else:
+ fd=os.open(worker,os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW,0o600)
+ with os.fdopen(fd,'wb') as stream:stream.write(body)
+with (root/'index-worker.log').open('ab') as log:
+ process=subprocess.Popen(['python3','-I',str(worker),'--root',str(root)],stdin=subprocess.DEVNULL,stdout=log,stderr=log,start_new_session=True)
+(root/'index-pid.json').write_text(json.dumps(dict(pid=process.pid,workerSha256=digest)))
+print(json.dumps(dict(status='started',runId=rid,mode='index',pid=process.pid,workerSha256=digest,reportPath=str(report))))
+'''
 STAGE=r'''
 import hashlib,json,os,pathlib,pwd,re,stat,sys
 rid,digest=sys.argv[1:]
@@ -142,6 +185,14 @@ def execute(root,mode,resume=False,status=False):
         code,_=transport(Step('status',remote(STATUS,rid,mode,sudo=True),interactive=True))
         return code
     if os.name!='nt':raise ValueError('owner-windows-terminal-required')
+    if mode=='index':
+        # The completed import bundle is immutable; install a separately pinned maintenance worker.
+        source=(ROOT/'scripts/infrastructure/guest_embedding_index.py').read_bytes()
+        digest=hashlib.sha256(source).hexdigest();staging=uuid.uuid4().hex
+        code,_=transport(Step('index-worker-staging',remote(STAGE,staging,digest),data=source))
+        if code:raise ValueError('embedding-index-worker-staging-failed')
+        script=remote(INDEX_LAUNCH,rid,staging,digest,'yes' if resume else 'no',sudo=True)
+        return subprocess.run(ssh_arguments(Step('index-launch',script,interactive=True))).returncode
     if mode=='import':
         code,raw=transport(Step('prepare-upload',remote(STAGE,rid,digest),data=payload))
         if code:raise ValueError('embedding-upload-preparation-failed')

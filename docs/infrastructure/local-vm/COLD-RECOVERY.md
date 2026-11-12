@@ -24,8 +24,11 @@ con `$taskServerBundle` impostato al bundle server originale come nella sezione 
 powershell -NoProfile -File scripts/infrastructure/Invoke-PreviewColdRecovery.ps1 -BundlePath $taskServerBundle -InspectionId d717b7f7d67941e08abb0adfb5813f30 -VerifyAttemptId 87c4e9ff7a2f415dac67e1590ff65f48 -Execute
 ```
 
-Conservare la ricevuta di errore e quella nuova; l'esito effettivo della nuova
-verifica resta aperto finché il comando non termina con `passed`.
+Conservare la ricevuta di errore e quella nuova. La riverifica effettiva
+`c1fc92e9d3a9465fa0d4114d5c732ef0` è terminata con `passed`, sei check true,
+gli stessi quattro ID running e nessuna mutazione dei server. La ricevuta è
+`receipts/recovery-87c4e9ff7a2f415dac67e1590ff65f48-verify-c1fc92e9d3a9465fa0d4114d5c732ef0.json`
+nel bundle server originale. Le applicazioni non sono state riavviate.
 
 **12 novembre 2026 — obiettivo: staging funzionante su `preview.mercurion.app`.**
 L'operatore ha confermato che la VM è stata spenta o riavviata dopo il primo

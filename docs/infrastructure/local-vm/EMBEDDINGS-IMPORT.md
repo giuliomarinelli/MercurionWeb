@@ -122,10 +122,10 @@ Non creare un bundle nuovo per aggirare un import incompleto dello stesso datase
 
 ## 4. Costruire l'HNSW una sola volta, dopo il carico
 
-**Fermo operativo per il run corrente:** non eseguire ancora `-BuildIndex`.
-L'owner ha scelto 14 vCPU e 28 GiB RAM per la VM; prima occorre completare
-l'import e adottare il profilo PostgreSQL descritto sotto. Il worker già
-consegnato usa ancora i limiti precedenti: il solo resize Hyper-V non li cambia.
+**Prerequisiti:** import `passed`, VM da 14 vCPU / 28 GiB, quattro server
+recuperati dopo il riavvio e applicazioni ancora ferme. Il comando aggiornato
+consegna un worker HNSW separato, fissato per SHA-256: non modifica il bundle
+immutabile del carico dati e non ricarica i chunk.
 
 ```powershell
 powershell -NoProfile -File scripts/infrastructure/Invoke-PreviewEmbeddingImport.ps1 -BundlePath $taskImport -BuildIndex -Execute
@@ -137,32 +137,40 @@ che tutti i chunk del manifest siano registrati con i loro checksum e conteggi.
 Non ricostruisce l'HNSW per ciascun chunk e non assume che un dump SQL conservi
 le pagine fisiche dell'indice.
 
-Il worker attualmente consegnato richiede almeno 6 GiB **disponibili** e alza temporaneamente
-il limite del solo container PostgreSQL a 10 GiB e 4 CPU, usa una sessione con
-`maintenance_work_mem=4GB`, due worker di manutenzione, poi ripristina i limiti
-originali nel blocco finale. Non riavvia PostgreSQL e non modifica la configurazione
-persistente né le ACL. Se manca memoria, si ferma con un codice esplicito;
-qualsiasi aumento della RAM Hyper-V è un intervento separato e non implicito.
+Il nuovo worker controlla CPU e RAM effettive, almeno 25 GiB disponibili,
+import e journal completi, generazione PostgreSQL attiva e applicazioni ferme.
+Quindi crea un container PostgreSQL di sola manutenzione, usando **la stessa
+immagine e lo stesso volume dati** dell'istanza ordinaria. Lo avvia soltanto
+dopo l'arresto pulito dell'istanza ordinaria e il controllo che il volume non
+abbia altri container in esecuzione. Non esegue initdb: avvia direttamente
+`postgres` sulla directory esistente.
+
+Il container di manutenzione ha rete `none`, nessuna porta, UID 70, rootfs
+read-only e nessuna capability. Usa le credenziali applicative già ricevute,
+senza leggerle sull'host Windows. Il processo gira in background; il ritorno
+iniziale `started` non significa che l'indice sia già pronto.
 
 ### Ridimensionamento concordato: VM 14 vCPU, 28 GiB
 
-Profilo da adottare e collaudare prima dell'indice, **non ancora applicato**:
+Profilo implementato; passaggio fra istanze e gestione dell'errore collaudati
+su PostgreSQL locale reale. Il build sul dataset della VM resta da eseguire:
 
 | Risorsa | Esercizio ordinario PostgreSQL | Costruzione HNSW |
 | --- | --- | --- |
-| Limite CPU container | 4 CPU | 10 CPU |
-| Limite RAM container | 4 GiB | 20 GiB |
-| `maintenance_work_mem`, sola sessione di build | valore ordinario invariato | 16 GiB |
-| `max_parallel_maintenance_workers`, sola sessione | valore ordinario invariato | 7, oltre al leader |
-| Capacità `/dev/shm` container | da predisporre per il build | 18 GiB |
+| Limite CPU container | 4 CPU | 12 CPU |
+| Limite RAM container | 4 GiB | 24 GiB |
+| `maintenance_work_mem`, sola sessione di build | valore ordinario invariato | 20 GiB |
+| `max_parallel_maintenance_workers`, sola sessione | valore ordinario invariato | 11, oltre al leader |
+| Capacità `/dev/shm` container | invariata, non usata per questo build | 22 GiB |
 
-La capacità di `/dev/shm` non è RAM aggiuntiva rispetto ai 20 GiB: il suo uso
+La capacità di `/dev/shm` non è RAM aggiuntiva rispetto ai 24 GiB: il suo uso
 concorre al consumo del container. pgvector richiede una shared memory almeno
 pari a `maintenance_work_mem` per il build HNSW parallelo; vedere la
 [documentazione ufficiale Docker di pgvector](https://github.com/pgvector/pgvector#docker).
-I Compose correnti non dichiarano `shm_size`: verificare la capacità effettiva
-del container, senza supporre che segua la RAM Hyper-V. Occorre predisporre
-questa opzione alla creazione del container; non basta `docker update` di CPU/RAM.
+La shared memory è configurata alla creazione del solo container di manutenzione.
+I limiti globali dei worker di questa istanza sono impostati a 12: gli 11 worker
+richiesti dalla sessione sono un massimo, non un conteggio garantito. Il Compose
+ordinario dichiara 4 CPU / 4 GiB; il build non usa quel profilo.
 
 Sequenza obbligata per questo ridimensionamento:
 
@@ -171,17 +179,27 @@ Sequenza obbligata per questo ridimensionamento:
 2. Arrestare ordinatamente Ubuntu con `sudo shutdown -h now`.
 3. A VM spenta, impostare in Hyper-V 14 processori virtuali e 28 GiB di RAM
    effettivamente disponibili; avviare e sbloccare LUKS.
-4. Ripristinare i segreti tmpfs con i valori stabili: il riavvio cancella sia
-   quelli server sia quelli applicativi. Non ripetere il bootstrap iniziale,
-   rigenerare credenziali o inizializzare lo schema.
-5. Adottare i nuovi limiti nel Compose e nel container attivo, conservando il
-   volume popolato e riconciliando l'identità registrata per il recovery.
-   La procedura operativa di questa adozione deve essere completata e collaudata
-   prima di eseguirla: non ricreare manualmente il container fuori dai manifest.
-6. Verificare risorse effettive, shared memory e disponibilità dei worker;
-   avviare l'indice con il caricatore aggiornato. Il bundle dell'import in corso
-   resta immutato. Al termine tornare al profilo ordinario **4 CPU / 4 GiB**,
-   senza ripristinare il vecchio limite di una CPU.
+4. Seguire [COLD-RECOVERY.md](COLD-RECOVERY.md) per ripristinare i quattro
+   server e i loro segreti stabili su tmpfs. Lasciare le applicazioni ferme:
+   i loro segreti tmpfs vanno ripristinati separatamente dopo il build.
+   Non ripetere bootstrap, generazione credenziali o inizializzazione schema.
+5. Eseguire `-BuildIndex -Execute` usando lo stesso `$taskImport`. Il wrapper
+   installa il worker nuovo; quello del primo import rimane immutato.
+6. Controllare lo stato con `-BuildIndex -Status`. Alla fine il worker ferma
+   e rimuove il proprio container senza rimuovere volumi, imposta il container
+   ordinario a **4 CPU / 4 GiB**, lo riavvia e ricontrolla il conteggio.
+
+L'ID del PostgreSQL ordinario resta lo stesso: non occorre sostituire gli ID
+nelle ricevute di recovery. `docker update` conserva il nuovo profilo dopo
+successivi stop/start; i bundle storici rimangono immutati e non vanno usati
+per ricreare arbitrariamente i container con vecchi limiti.
+
+Se il build fallisce, il blocco finale prova comunque a ripristinare il server
+ordinario. Se non può confermare l'arresto della manutenzione o trova un altro
+writer, **non avvia l'istanza ordinaria sullo stesso volume**. Conservare report
+e container; non forzare avvii o cancellazioni. Risolto il problema, un nuovo
+tentativo richiede `-BuildIndex -Resume -Execute`; gli indici validi già creati
+sono riutilizzati da `CREATE INDEX IF NOT EXISTS`.
 
 I valori sono un budget di lavoro, non una garanzia che il grafo completo
 rimanga in memoria. Conteggi, validità dell'indice e piano della query restano
@@ -219,10 +237,31 @@ shared/preview già avviato e con volumi persistenti.
 
 ```powershell
 python -B scripts/infrastructure/test_embedding_import.py
+python -B scripts/infrastructure/test_embedding_index.py
 python -B scripts/infrastructure/qa_embedding_import.py --image mercurion-parity-postgres:16.16-source --report (Join-Path $env:USERPROFILE ('.mercurion/artifacts/embedding-qa-' + [Guid]::NewGuid().ToString('N') + '.json')) --execute
+python -B scripts/infrastructure/qa_embedding_index.py --image mercurion-parity-postgres:16.16-source --report (Join-Path $env:USERPROFILE ('.mercurion/artifacts/index-qa-' + [Guid]::NewGuid().ToString('N') + '.json')) --execute
 ```
 
 Il QA reale usa solo un container effimero con tmpfs e dati sintetici, nessuna
 porta/volume esistente. Verifica la correzione della vecchia tabella, rollback
 su SHA errato, commit dati/journal atomico, rifiuto duplicati, DDL ripetibile e
 utilizzo HNSW. Non legge i chunk owner e non modifica la VM.
+
+Il QA dell'indice usa un volume sintetico separato e due istanze PostgreSQL
+in successione. Verifica i limiti effettivi di 12 CPU / 24 GiB e shared memory
+22 GiB, il ritorno allo stesso ID ordinario con 4 CPU / 4 GiB, conservazione
+delle 2.000 righe e ripristino dopo un errore di build. Per non allocare il
+budget della VM sull'host, costruisce l'indice sintetico con 64 MB e due worker:
+non dimostra durata o consumo del build reale con 20 GiB e 11 worker.
+
+Per collaudare anche il launcher privilegiato in un filesystem Linux isolato:
+
+```powershell
+docker --context desktop-linux run --rm --pull never --network none --read-only --tmpfs /opt --tmpfs /nonexistent --tmpfs /tmp --env EMBEDDING_INDEX_LINUX_FIXTURE=1 --volume "${PWD}:/workspace:ro" --workdir /workspace python:3.11-slim-trixie python -B -m unittest discover -s scripts/infrastructure -p test_embedding_index.py
+```
+
+Richiede l'immagine Python locale indicata, senza download automatici. La fixture
+usa un processo fittizio per verificare consegna, permessi, hash, conservazione
+del manifest originale e rifiuto di un worker alterato; non avvia un indice.
+Il riuso di un vecchio PID dell'import dopo reboot non blocca l'indice quando
+la ricevuta del carico è già `passed`.

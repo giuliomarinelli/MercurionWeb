@@ -18,10 +18,13 @@ Recupero server tentativo `87c4e9ff7a2f415dac67e1590ff65f48`: sei controlli
 positivi, poi falso negativo nel readback che filtrava l'etichetta originale
 anziché gli ID adottati. Correzione e sola riverifica documentate in
 [COLD-RECOVERY.md](COLD-RECOVERY.md#correzione-del-controllo-finale-dopo-adozione-server).
-L'esito della riverifica VM è ancora aperto. Profilo HNSW previsto:
-PostgreSQL 10 CPU / 20 GiB durante il build, 16 GiB di manutenzione e 7 worker;
-esercizio ordinario 4 CPU / 4 GiB. Adozione e shared memory ancora da completare:
-non avviare il vecchio `-BuildIndex`. Sequenza e vincoli in
+Riverifica `c1fc92e9d3a9465fa0d4114d5c732ef0` passed: sei check true,
+stessi quattro ID running e nessuna mutazione durante la verifica.
+Worker HNSW separato pronto: **12 CPU / 24 GiB**, 20 GiB manutenzione,
+11 worker e shared memory 22 GiB, mentre le applicazioni restano ferme.
+Passaggio esclusivo sul volume e ripristino dopo errore collaudati su PG reale
+locale; il build effettivo sulla VM è ancora da eseguire. Al termine riparte
+lo stesso container ordinario con 4 CPU / 4 GiB. Sequenza e vincoli in
 [EMBEDDINGS-IMPORT.md](EMBEDDINGS-IMPORT.md#ridimensionamento-concordato-vm-14-vcpu-28-gib).
 
 **Task attuale:** adozione operativa shared/preview, non solo preparazione di immagini.
