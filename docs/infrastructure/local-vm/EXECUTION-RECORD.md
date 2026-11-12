@@ -22,6 +22,13 @@ Fixture Linux tmpfs separate: due controlli su ricezione/UID/permessi/riuso e
 copie pubbliche Windows passati. Procedura: [APPLICATION-BOOTSTRAP.md](APPLICATION-BOOTSTRAP.md).
 **Nessuna prova del nuovo bootstrap sulla VM ancora eseguita.**
 
+Prima CI della preparazione, run `43227246601`, bloccata dal secret scanner:
+una fixture negativa conteneva la sola intestazione PEM privata, senza chiave.
+La fixture ora usa un valore non-PEM; nessuna esclusione o regola di scansione
+è stata modificata. Gate supply-chain locale completo successivo passato:
+2176 componenti, zero vulnerabilità a ogni severità. Occorre comunque la CI
+completa sul nuovo SHA corretto prima dell'esecuzione owner.
+
 | Fase | Evidenza | Cosa dimostra / limite |
 | --- | --- | --- |
 | Host/guest iniziali | Ubuntu 26.04.1, Engine 29.9.3, Compose 5.7.0; Gen2 8 vCPU/16 GiB, root LUKS | Inventari operatore, non replica dell'installer originale |

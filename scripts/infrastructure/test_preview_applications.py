@@ -42,14 +42,14 @@ class ApplicationContracts(unittest.TestCase):
 
     def test_receiver_rejects_paths_runtime_overrides_and_global_proxy_trust(self):
         original = json.loads(host.payload(configuration(), 'a' * 32, '172.30.4.2'))
-        for mutation in ('path', 'role', 'runtime', 'proxy', 'duplicate-key', 'private-pem', 'wrong-run'):
+        for mutation in ('path', 'role', 'runtime', 'proxy', 'duplicate-key', 'invalid-pem', 'wrong-run'):
             value = copy.deepcopy(original)
             if mutation == 'path':
                 value['documents']['tox21']['../escape'] = 'hidden-value'
             elif mutation == 'role':
                 value['documents']['postgres'] = {}
-            elif mutation == 'private-pem':
-                value['documents']['tox21']['http-public.pem'] = '-----BEGIN PRIVATE KEY-----'
+            elif mutation == 'invalid-pem':
+                value['documents']['tox21']['http-public.pem'] = 'not-a-public-pem'
             elif mutation == 'wrong-run':
                 value['runId'] = 'b' * 32
             else:
