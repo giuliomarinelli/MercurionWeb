@@ -8,6 +8,7 @@ import sys
 import uuid
 
 import preview_server_bundle as bundle
+from guest_preview_cold_recovery import started_attempt
 from preview_server_bootstrap import payload, fetch
 from synthetic_secret_delivery import Step, STAGE, CLEANUP, remote, transport
 
@@ -119,7 +120,7 @@ def verify_existing(root, manifest, inspected, attempt):
         raise ValueError('windows-owner-terminal-required')
     previous = json.loads((root / 'receipts' / ('recovery-' + attempt + '-activate.json')).read_text(encoding='utf-8'))
     if (previous.get('runId') != manifest['runId'] or previous.get('attemptId') != attempt
-            or previous.get('status') not in ('failed', 'passed') or previous.get('servicesStarted') is not True):
+            or previous.get('status') not in ('failed', 'passed') or not started_attempt(previous)):
         raise ValueError('existing-started-recovery-required')
     sources = {name: Path(__file__).with_name(name + '.py').read_text(encoding='utf-8')
                for name in ('guest_preview_recovery_inventory', 'guest_preview_cold_recovery')}

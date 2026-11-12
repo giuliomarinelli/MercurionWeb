@@ -157,7 +157,7 @@ class RecoveryContracts(unittest.TestCase):
         nats.assert_called_once()
 
     def test_final_readback_cannot_pass_with_a_server_missing(self):
-        for running in ('', '1' * 64):
+        for running in ([], ['1' * 64]):
             with tempfile.TemporaryDirectory() as directory:
                 base = Path(directory)
                 root = base / ('server-' + RID)
@@ -168,7 +168,7 @@ class RecoveryContracts(unittest.TestCase):
                 with patch.object(guest.snapshot, 'BASE', base), \
                         patch.object(guest, 'original', return_value=(Mock(), Mock(), {'runId': RID}, {}, {})), \
                         patch.object(guest, 'activate', side_effect=activated), \
-                        patch.object(guest.snapshot, 'docker', return_value=running), \
+                        patch.object(guest.snapshot, 'docker', side_effect=lambda *args: json.dumps(args[-1] in running)), \
                         patch('sys.argv', ['recovery', 'activate', '--run-id', RID, '--manifest-sha256', 'd' * 64,
                                            '--inspection-id', INSPECTION, '--attempt-id', ATTEMPT]), \
                         contextlib.redirect_stdout(io.StringIO()):
@@ -176,6 +176,28 @@ class RecoveryContracts(unittest.TestCase):
                 result = json.loads((root / ('recovery-' + ATTEMPT + '-activate.json')).read_text())
                 self.assertEqual(result['status'], 'failed')
                 self.assertEqual(result['code'], 'server-ended-after-readiness')
+
+    def test_final_readback_uses_exact_ids_independent_of_generation_labels(self):
+        identifiers = [str(n) * 64 for n in range(1, 5)]
+        with patch.object(guest.snapshot, 'docker', return_value='true') as docker:
+            self.assertEqual(guest.running_original_servers(identifiers), identifiers)
+        self.assertEqual([call.args for call in docker.call_args_list],
+            [('inspect', '--format', '{{json .State.Running}}', identifier) for identifier in identifiers])
+        with patch.object(guest.snapshot, 'docker', side_effect=ValueError('missing-container')):
+            with self.assertRaises(ValueError):guest.running_original_servers(identifiers)
+
+    def test_legacy_false_negative_allows_only_read_only_reverification(self):
+        previous = dict(status='failed', phase='finished', code='server-ended-after-readiness',
+            servicesStarted=False, runningContainers=[], originalContainers=[str(n) * 64 for n in range(1, 5)],
+            checks=dict.fromkeys(('postgresRoleAndVector', 'redisAuthAndKeyevents', 'natsAuthRequired',
+                'natsConsumerCredentials', 'meilisearchHealthAndAdminAuth', 'persistedLogIndexes'), True))
+        self.assertTrue(guest.started_attempt(previous))
+        for change in (lambda p:p['checks'].update(postgresRoleAndVector=False),
+                       lambda p:p.update(code='different-failure'),
+                       lambda p:p.update(originalContainers=['1'*64]*4),
+                       lambda p:p.update(phase='starting-original-servers')):
+            altered=copy.deepcopy(previous);change(altered)
+            self.assertFalse(guest.started_attempt(altered))
 
     def test_prepare_marker_reservation_prevents_second_attempt(self):
         previous, models, loaded = fixture()
@@ -238,12 +260,23 @@ class ExistingVerificationContracts(unittest.TestCase):
         servers.meili_check.assert_not_called()
 
     def test_host_verification_has_no_private_payload_and_cleans_only_its_helpers(self):
+        self.assert_host_verification(False)
+
+    def test_host_verifies_legacy_label_false_negative_without_private_payload(self):
+        self.assert_host_verification(True)
+
+    def assert_host_verification(self, legacy):
         verification = 'd' * 32
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             (root / 'receipts').mkdir()
             (root / 'server-bootstrap.json').write_text('{}')
             previous = dict(runId=RID, attemptId=ATTEMPT, status='failed', servicesStarted=True)
+            if legacy:
+                previous.update(servicesStarted=False, phase='finished', code='server-ended-after-readiness',
+                    runningContainers=[], originalContainers=[str(n)*64 for n in range(1,5)],
+                    checks=dict.fromkeys(('postgresRoleAndVector', 'redisAuthAndKeyevents', 'natsAuthRequired',
+                        'natsConsumerCredentials', 'meilisearchHealthAndAdminAuth', 'persistedLogIndexes'), True))
             (root / 'receipts' / ('recovery-' + ATTEMPT + '-activate.json')).write_text(json.dumps(previous))
             result = dict(runId=RID, attemptId=ATTEMPT, verificationId=verification, status='passed',
                           serverMutationsPerformed=False, meilisearchAddress='172.18.0.2')

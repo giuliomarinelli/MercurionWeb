@@ -20,6 +20,33 @@ ROLES = {'meilisearch': 'meilisearch', 'postgres-preview': 'postgres',
 INDEXES = {'logs_staging', 'security_logs_staging', 'logs_production', 'security_logs_production'}
 
 
+def started_attempt(previous):
+    """Admit a read-only verification of the known legacy-label false negative."""
+    if previous.get('servicesStarted') is True:
+        return True
+    checks = {'postgresRoleAndVector', 'redisAuthAndKeyevents', 'natsAuthRequired',
+              'natsConsumerCredentials', 'meilisearchHealthAndAdminAuth', 'persistedLogIndexes'}
+    identifiers = previous.get('originalContainers', [])
+    return (previous.get('status') == 'failed' and previous.get('phase') == 'finished'
+            and previous.get('code') == 'server-ended-after-readiness'
+            and previous.get('servicesStarted') is False
+            and previous.get('runningContainers') == []
+            and set(previous.get('checks', {})) == checks
+            and all(previous['checks'][name] is True for name in checks)
+            and isinstance(identifiers, list) and len(identifiers) == 4
+            and all(isinstance(value, str) and re.fullmatch('[a-f0-9]{64}', value) for value in identifiers)
+            and len(set(identifiers)) == 4)
+
+
+def running_original_servers(identifiers):
+    """Read exact registered IDs; adopted containers carry the upgrade label."""
+    if (len(identifiers) != 4 or len(set(identifiers)) != 4
+            or any(not re.fullmatch('[a-f0-9]{64}', value) for value in identifiers)):
+        raise ValueError('final-server-identities')
+    return [identifier for identifier in identifiers
+            if json.loads(snapshot.docker('inspect', '--format', '{{json .State.Running}}', identifier)) is True]
+
+
 def read(path):
     return json.loads(snapshot.regular(path))
 
@@ -316,7 +343,7 @@ def verify_existing(root, manifest, digest, attempt, report, servers, receiver, 
     previous = read(root / ('recovery-' + attempt + '-activate.json'))
     if (prepared.get('status') != 'prepared' or prepared.get('attemptId') != attempt
             or previous.get('status') not in ('failed', 'passed') or previous.get('attemptId') != attempt
-            or previous.get('servicesStarted') is not True):
+            or not started_attempt(previous)):
         raise ValueError('existing-started-recovery-required')
     current = snapshot.inventory(manifest['runId'], digest)
     current['runId'] = manifest['runId']
@@ -371,7 +398,10 @@ def main():
             report['code'] = str(error)
     if args.phase in ('activate', 'verify'):
         try:
-            running = snapshot.docker('ps', '-q', '--no-trunc', '--filter', 'label=mercurion.bootstrap.run=' + args.run_id).split()
+            expected = report.get('originalContainers')
+            if expected is None:
+                expected = [item['id'] for item in snapshot.inventory(args.run_id, args.manifest_sha256)['containers']]
+            running = running_original_servers(expected)
             if args.phase == 'activate':
                 report['servicesStarted'] = bool(running)
             report['servicesRunning'] = len(running) == 4

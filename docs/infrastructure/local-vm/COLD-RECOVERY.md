@@ -1,5 +1,32 @@
 # Recupero preview dopo spegnimento o riavvio
 
+## Correzione del controllo finale dopo adozione server
+
+Il tentativo `87c4e9ff7a2f415dac67e1590ff65f48` del 12 novembre 2026 ha
+superato tutti i sei controlli, ma il successivo readback ha cercato l'etichetta
+del bootstrap originale. I container adottati portano invece l'etichetta
+dell'upgrade: la selezione vuota ha prodotto il falso negativo
+`server-ended-after-readiness`, `servicesStarted=false` e `runningContainers=[]`.
+Questi campi non dimostrano che i server si siano arrestati.
+
+Il readback corretto interroga lo stato degli esatti quattro ID registrati,
+indipendentemente dalla generazione dell'etichetta. Container mancanti o fermi
+continuano a impedire il successo. Il percorso `-VerifyAttemptId` ammette anche
+questa specifica ricevuta precedente soltanto con sei check positivi, fase
+`finished`, codice noto e quattro ID distinti validi. Poi verifica nuovamente
+sulla VM identità, boot, volumi, mount, reti e readiness. Non trasforma da solo
+la vecchia ricevuta in successo e non riconsegna credenziali o avvia container.
+
+Per il tentativo sopra, usare la verifica già prevista dalla sezione 4.3,
+con `$taskServerBundle` impostato al bundle server originale come nella sezione 4.1:
+
+```powershell
+powershell -NoProfile -File scripts/infrastructure/Invoke-PreviewColdRecovery.ps1 -BundlePath $taskServerBundle -InspectionId d717b7f7d67941e08abb0adfb5813f30 -VerifyAttemptId 87c4e9ff7a2f415dac67e1590ff65f48 -Execute
+```
+
+Conservare la ricevuta di errore e quella nuova; l'esito effettivo della nuova
+verifica resta aperto finché il comando non termina con `passed`.
+
 **12 novembre 2026 — obiettivo: staging funzionante su `preview.mercurion.app`.**
 L'operatore ha confermato che la VM è stata spenta o riavviata dopo il primo
 bootstrap. La policy Cloudflare Access è predisposta sul dominio; tunnel,

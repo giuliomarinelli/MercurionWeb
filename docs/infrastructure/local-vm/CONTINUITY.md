@@ -11,11 +11,14 @@ per rollback. Ricevuta owner scaricata e letta in
 completati una volta, manifest in `vm048-embeddings/dump-manifest.json`.
 Corretto il disallineamento preferred_name/vector(768) in DDL ed entity;
 QA su PostgreSQL reale passato. [Import riprendibile e indice separato](EMBEDDINGS-IMPORT.md).
-Trasferimento completato e import avviato dall'owner, run
-`032ab86ece504dc58269642abf97f9b8`. Ultima ricevuta comunicata:
-`status=running`, 10/50 chunk, 539.245/2.644.421 righe, worker attivo;
-non è un esito finale. Non spegnere la VM prima di `passed`.
-L'owner assegnerà poi **14 vCPU e 28 GiB RAM** per HNSW. Profilo previsto:
+Trasferimento e import completati, run `032ab86ece504dc58269642abf97f9b8`:
+`status=passed`, 50/50 chunk, 2.644.421 righe, worker terminato, indice non costruito.
+L'owner ha poi riavviato la VM con **14 vCPU e 28 GiB RAM** per HNSW.
+Recupero server tentativo `87c4e9ff7a2f415dac67e1590ff65f48`: sei controlli
+positivi, poi falso negativo nel readback che filtrava l'etichetta originale
+anziché gli ID adottati. Correzione e sola riverifica documentate in
+[COLD-RECOVERY.md](COLD-RECOVERY.md#correzione-del-controllo-finale-dopo-adozione-server).
+L'esito della riverifica VM è ancora aperto. Profilo HNSW previsto:
 PostgreSQL 10 CPU / 20 GiB durante il build, 16 GiB di manutenzione e 7 worker;
 esercizio ordinario 4 CPU / 4 GiB. Adozione e shared memory ancora da completare:
 non avviare il vecchio `-BuildIndex`. Sequenza e vincoli in
