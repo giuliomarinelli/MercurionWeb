@@ -29,6 +29,19 @@ def configuration():
 
 
 class ApplicationContracts(unittest.TestCase):
+    def test_native_json_configuration_reaches_string_only_consumer_payload(self):
+        config = configuration()
+        config['providers'].update(EMAIL_SMTP_PORT=465, EMAIL_SMTP_SECURE=False)
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'synthetic.json'
+            raw = json.dumps(config).encode()
+            path.write_bytes(raw)
+            owner = host.load_configuration(path)
+            result = receiver.validate(host.payload(owner, 'a'*32, '172.30.4.2'), 'a'*32)
+            variables = json.loads(result['documents']['web-node']['values.json'])['variables']
+            self.assertEqual((variables['EMAIL_SMTP_PORT'], variables['EMAIL_SMTP_SECURE']), ('465','false'))
+            self.assertEqual(path.read_bytes(), raw)
+
     def test_owner_configuration_rejection_reports_only_known_field_names(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / 'synthetic.json'

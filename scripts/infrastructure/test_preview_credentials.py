@@ -10,6 +10,32 @@ import preview_credentials as credentials
 
 
 class PreviewCredentialTests(unittest.TestCase):
+    def test_json_port_and_boolean_are_serialized_only_at_environment_boundary(self):
+        for port in (465, 465.0, '465'):
+            for secure in (True, False, 'true', 'false'):
+                value = self.configuration()
+                value['providers'].update(EMAIL_SMTP_PORT=port, EMAIL_SMTP_SECURE=secure)
+                original = copy.deepcopy(value)
+                credentials.validate(value)
+                variables = credentials.application_document(value, ['172.30.1.3/32'])['variables']
+                self.assertEqual(variables['EMAIL_SMTP_PORT'], '465')
+                self.assertEqual(variables['EMAIL_SMTP_SECURE'], str(secure).lower())
+                self.assertTrue(all(isinstance(item, str) for item in variables.values()))
+                self.assertEqual(value, original)
+
+    def test_false_and_invalid_types_are_not_reported_as_missing(self):
+        for field, invalid in (('EMAIL_SMTP_PORT', True), ('EMAIL_SMTP_SECURE', 0),
+                               ('EMAIL_USERNAME', False), ('EMAIL_SMTP_PORT', {})):
+            value = self.configuration()
+            value['providers'][field] = invalid
+            with self.subTest(field=field, value=invalid), self.assertRaisesRegex(ValueError, 'Invalid field types: ' + field):
+                credentials.validate(value)
+        for invalid in (0, -1, 465.5, float('inf')):
+            value = self.configuration()
+            value['providers']['EMAIL_SMTP_PORT'] = invalid
+            with self.assertRaisesRegex(ValueError, 'Invalid fields: EMAIL_SMTP_PORT'):
+                credentials.validate(value)
+
     def configuration(self):
         value = credentials.template('https://preview.mercurion.app',
             {name: 'synthetic-' + name for name in credentials.RSA_NAMES})

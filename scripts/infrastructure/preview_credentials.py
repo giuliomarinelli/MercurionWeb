@@ -26,6 +26,20 @@ RSA_NAMES = ('JWT_RS256_PRIVATE_KEY', 'JWT_RS256_PUBLIC_KEY',
              'JWT_WS_RS256_PRIVATE_KEY', 'JWT_WS_RS256_PUBLIC_KEY')
 
 
+def provider_environment(providers):
+    """Serialize typed JSON settings at the environment boundary, without mutation."""
+    values = dict(providers)
+    port = values.get('EMAIL_SMTP_PORT')
+    if type(port) in (int, float):
+        import math
+        if port < 1 or port > 9007199254740991 or not math.isfinite(port) or int(port) != port:
+            raise ValueError('Invalid fields: EMAIL_SMTP_PORT')
+        values['EMAIL_SMTP_PORT'] = str(int(port))
+    if type(values.get('EMAIL_SMTP_SECURE')) is bool:
+        values['EMAIL_SMTP_SECURE'] = 'true' if values['EMAIL_SMTP_SECURE'] else 'false'
+    return values
+
+
 def public_defaults():
     # This is the tracked example, never an operational dotenv file.
     text = (ROOT / 'MercurionWebNode/env/.env.example').read_text(encoding='utf-8')
@@ -106,11 +120,14 @@ def validate(document, application=True):
     if any(value and value == master for value in clients.values()):
         raise ValueError('Meilisearch client key must differ from server master key')
     if application:
-        missing = [name for name, value in document['providers'].items()
-                   if not isinstance(value, str) or not value.strip() or value.startswith('<')]
-        missing += [name for name, value in clients.items() if not isinstance(value, str) or not value.strip()]
+        fields = provider_environment(document['providers']) | clients
+        missing = [name for name, value in fields.items()
+                   if value is None or isinstance(value, str) and (not value.strip() or value.startswith('<'))]
         if missing:
             raise ValueError('Missing fields: ' + ', '.join(missing))
+        invalid = [name for name, value in fields.items() if not isinstance(value, str)]
+        if invalid:
+            raise ValueError('Invalid field types: ' + ', '.join(invalid))
         if clients['searchKey'] == clients['logKey']:
             raise ValueError('Meilisearch search and log keys must be distinct')
 
@@ -167,7 +184,7 @@ def application_document(document, trusted_proxy_cidrs):
               and not name.startswith('LOCAL_TEST_ACCOUNT_')}
     origin = document['origin']
     values.update(document['applicationSecrets'])
-    values.update(document['providers'])
+    values.update(provider_environment(document['providers']))
     values.update(APP_USER_ACTIVATION_ORIGIN=origin, APP_HOST='0.0.0.0', APP_PORT='8098',
         APP_NATS_HOST='nats://nats-preview', APP_NATS_PORT='4222',
         APP_TRUSTED_PROXY_CIDRS=json.dumps(trusted_proxy_cidrs),

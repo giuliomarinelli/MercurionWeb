@@ -40,8 +40,8 @@ def load_configuration(path):
                 mapping = value.get(section)
                 if isinstance(mapping, dict):
                     missing.extend(section + '.' + name for name in fields
-                        if not isinstance(mapping.get(name), str) or not mapping[name].strip()
-                        or mapping[name].startswith('<'))
+                        if mapping.get(name) is None or isinstance(mapping.get(name), str)
+                        and (not mapping[name].strip() or mapping[name].startswith('<')))
         reason = 'configuration-validation-rejected'
         if missing:
             reason += '; missing-fields=' + ','.join(missing)

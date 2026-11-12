@@ -28,6 +28,12 @@ qualsiasi fase. Verificati il piano pubblico valido e l'assenza di
 Diagnosi della configurazione locale demandata al solo terminale owner; il
 file privato non è stato letto dall'agente. Aggiunta diagnostica esplicita e
 sanitizzata del rifiuto locale, con test di arresto prima di stato e trasporto.
+La validazione owner ha poi segnalato `EMAIL_SMTP_PORT` e `EMAIL_SMTP_SECURE`
+come mancanti benché presenti: il vecchio validatore richiedeva esclusivamente
+stringhe. Corretto per accettare numero e booleano JSON nativi e serializzarli
+solo al confine delle variabili d'ambiente. Il file privato resta invariato;
+`false` non è un campo mancante. Test sintetici coprono anche il payload
+consumer, la mancata mutazione del file e i tipi realmente invalidi.
 
 Prima CI della preparazione, run `43227246601`, bloccata dal secret scanner:
 una fixture negativa conteneva la sola intestazione PEM privata, senza chiave.

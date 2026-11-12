@@ -520,9 +520,13 @@ stata eseguita e confermata: non ripeterla.
 
 ### 7.1 Campi da compilare nell'editor privato
 
-Tutti i valori `providers` sono stringhe non vuote, compresi numero porta e
-booleani rappresentati come testo. La validazione definitiva avviene tramite
-script e schema Nest; non mettere `null` per aggirare un requisito.
+Le credenziali e gli altri campi testuali `providers` sono stringhe non vuote.
+`EMAIL_SMTP_PORT` accetta un numero JSON intero positivo e `EMAIL_SMTP_SECURE`
+un booleano JSON `true`/`false`. Solo nella costruzione del documento delle
+variabili d'ambiente questi due valori diventano stringhe, senza riscrivere il
+file privato. Le precedenti rappresentazioni testuali restano compatibili.
+La validazione definitiva avviene tramite script e schema Nest; non mettere
+`null` per aggirare un requisito.
 
 | Famiglia | Campi nel file |
 | --- | --- |
