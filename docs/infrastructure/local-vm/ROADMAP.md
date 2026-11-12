@@ -2,9 +2,9 @@
 
 **Priorità operativa del 12 novembre:** staging funzionante. Dopo la conferma
 owner di spegnimento/riavvio, anticipare il recupero dei quattro server rispetto
-alle API key/applicazioni: [procedura e vincoli](COLD-RECOVERY.md). Prima fase:
-inventario sanitizzato senza lettura di credenziali o avvio servizi. Recupero
-completo e readiness restano aperti; nessuna chiusura dei gate di isolamento.
+alle API key/applicazioni: [procedura e vincoli](COLD-RECOVERY.md). Inventario
+sanitizzato riuscito il 12 novembre, senza lettura di credenziali o avvio servizi.
+Riconsegna e avvio dei soli quattro server predisposti, con collaudo VM ancora aperto; nessuna chiusura dei gate di isolamento.
 Cloudflare Access sul dominio è predisposto dall'owner, collegamento e collaudo
 pubblico rimangono da verificare.
 

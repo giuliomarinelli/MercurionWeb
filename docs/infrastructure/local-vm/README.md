@@ -57,7 +57,7 @@ lavori successivi, non l'esito già raggiunto di questo percorso.
   ricostruzione su host privo di cache resta una verifica aperta.
 - **Ripartenza dopo spegnimento ancora incompleta.** I segreti attivi sono su
   tmpfs e si perdono al riavvio del guest. I dati persistono nei volumi, ma il
-  cold recovery non è ancora implementato e collaudato. Il bootstrap iniziale
+  cold recovery è predisposto ma il collaudo sulla VM è ancora aperto. Il bootstrap iniziale
   non lo sostituisce: leggere la sezione 13 del runbook.
 - **Demo applicativa non ancora avviata.** Nest, Angular, Tox21 persistente,
   dati applicativi, Cloudflare e produzione restano fuori dal traguardo attuale.
@@ -75,7 +75,7 @@ passi» datati non superano lo stato del runbook e del registro delle esecuzioni
 
 | Documento | Responsabilità |
 | --- | --- |
-| [COLD-RECOVERY.md](COLD-RECOVERY.md) | Vincoli e inventario dopo riavvio; recupero completo ancora da implementare e collaudare |
+| [COLD-RECOVERY.md](COLD-RECOVERY.md) | Inventario, riconsegna dei segreti e recupero dei server esistenti; collaudo VM pendente |
 | [RUNBOOK.md](RUNBOOK.md) | Installazione/configurazione, bootstrap, curl, ripresa del giorno successivo, errori e limite del cold recovery |
 | [ARTIFACT-REPRODUCTION.md](ARTIFACT-REPRODUCTION.md) | Preparazione da sorgenti e modello, build/export/scan/CI e bundle, senza script esterni al repository |
 | [VERIFICATION-PROCEDURE.md](VERIFICATION-PROCEDURE.md) | Inventari, canary host/LAN, Android, IPv6, fixture e pilot ripetibili senza AI |

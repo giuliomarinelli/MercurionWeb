@@ -129,3 +129,21 @@ di recovery documentato. Non marcare questa fase eseguita prima della ricevuta.
 
 H-05/A-05/A-30, cold recovery, grant reali delle nuove chiavi, applicazioni,
 dati, provider e accesso pubblico restano aperti. Nessun merge effettuato.
+
+
+## 12 novembre — inventario dopo riavvio e preparazione del recupero
+
+Owner conferma spegnimento/riavvio. Inventario eseguito con successo sul run
+originale `6c3e72e2e4064b71bd3bbffcff4d629c`, inspectionId
+`8606c6dead7f4b32976e15371f840a5f`, ore `2026-11-12T10:33:28Z`:
+quattro ID originali fermi, tre volumi con label originali, tmpfs vuoto,
+`coldRecoveryCandidate=true`, nessun avvio o lettura di credenziali. Report
+locale nella cartella `receipts` del bundle originale.
+
+Cold recovery ora predisposto, non ancora eseguito sulla VM. Piano verificato
+su PowerShell 5.1 senza SSH né file privato; confronto con ricevute/mount reali
+riuscito. Test locali Windows/Linux, loader root e sostituzione inode del bind
+verificati in fixture isolate. Fixture con immagini reali dei tre server:
+run `80e9a54a0711475686d17a9cd1463b40`, passed, persistenceMarkers true,
+zero errori cleanup. Queste sono prove locali sintetiche, non una ripartenza
+VM già riuscita. [Procedura completa](COLD-RECOVERY.md).

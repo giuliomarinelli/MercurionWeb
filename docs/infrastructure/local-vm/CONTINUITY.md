@@ -5,7 +5,9 @@ passo passo di ogni operazione. Ha confermato che la VM è stata spenta o
 riavviata. La pausa precedente è terminata; i segreti tmpfs non vanno presunti
 presenti. Prima delle API key e del bootstrap applicativo seguire
 [COLD-RECOVERY.md](COLD-RECOVERY.md): inventario della release e dei quattro
-server, poi recupero da implementare sulla base delle evidenze. La policy
+server concluso con inspectionId 8606c6dead7f4b32976e15371f840a5f. Il
+recupero esplicito dei quattro server è predisposto nella sezione 4; resta
+da acquisire la ricevuta finale sulla VM. La policy
 Cloudflare Access è predisposta su `preview.mercurion.app`; non attesta ancora
 il collegamento del tunnel o il funzionamento applicativo. Nessun merge.
 

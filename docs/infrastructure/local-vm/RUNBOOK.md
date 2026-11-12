@@ -787,21 +787,20 @@ protegge il disco, non trasforma tmpfs in un archivio. I volumi PostgreSQL/Redis
 Meili sopravvivono, ma le configurazioni montate e i segreti devono essere
 riconsegnati con gli **stessi valori** prima di ricreare correttamente i container.
 
-Il percorso completo di cold recovery dei server reali non è ancora implementato
-e collaudato. Non mascherarlo con il bootstrap iniziale: i suoi controlli sulle
+Il percorso di cold recovery dei server reali è ora predisposto in
+[COLD-RECOVERY.md](COLD-RECOVERY.md), con verifica sulla VM ancora da acquisire. Non mascherarlo con il bootstrap iniziale: i suoi controlli sulle
 collisioni fermano correttamente il riuso di volumi/progetti esistenti. Non usare
 `docker compose down -v`, `docker system prune`, password nuove o database vuoti
 per ottenere un avvio apparentemente riuscito.
 
 Se serve arrestare il guest: salvare il lavoro e usare `sudo shutdown -h now`;
-evitare Turn Off forzato. Prima del riavvio successivo, un manutentore deve
-riconciliare release/run, file privato stabile, volumi e bind e completare la
-procedura di riconsegna/recovery prevista dalla roadmap. Questa è una lacuna
-dichiarata e comprensibile senza AI, non un comando omesso da richiedere in chat.
+evitare Turn Off forzato. Prima di avviare i server dopo un reboot, seguire l'inventario e il recupero
+circoscritto documentati, usando il file privato stabile e la release originale.
+Non considerare completata la verifica finché non è disponibile la ricevuta finale.
 **Ripresa del 12 novembre:** l'operatore ha confermato spegnimento/riavvio.
 Seguire [Recupero dopo riavvio](COLD-RECOVERY.md), iniziando dall'inventario
-sanitizzato della release. Gli strumenti di questa prima fase non avviano
-server e non riconsegnano ancora i segreti.
+sanitizzato della release. L'inventario è riuscito; il passo successivo è il comando esplicito di cold
+recovery della sezione 4, con sei controlli di readiness/persistenza.
 
 ## 14. Diagnosi senza esporre segreti
 
