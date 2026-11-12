@@ -329,3 +329,9 @@ Il comando resta in primo piano. **Ctrl+C** chiude soltanto i suoi listener e
 il proprio processo SSH; i container sulla VM rimangono attivi. Non cambia
 Cloudflare, firewall, DNS, volumi o dati. Il sito provvisorio Pages continua
 a rispondere sul dominio pubblico.
+
+**Esito del 12 novembre:** la verifica esistente
+`51f087181cb34ec3ad4ace23ec9e53fe` è passed per tutti e tre i controlli;
+l'owner ha visualizzato la landing in Chrome su localhost:18888. Non ripetere
+il bootstrap per mantenere aperto o riaprire il forward. I dettagli e le
+verifiche ancora aperte sono nel [registro](EXECUTION-RECORD.md).

@@ -37,10 +37,10 @@ e condizioni di arresto. Una nuova installazione deve produrre le proprie prove.
 
 **Fin dove arriva oggi questa procedura:** quattro server privati, quattro
 indici log e due chiavi client Meilisearch a 90 giorni verificati. Le quattro
-applicazioni sono state avviate, lo schema inizializzato e la health backend
-superata; frontend/RPC sono in completamento dopo la correzione del probe.
-Verifica dei container esistenti e forward sono descritti nella guida
-applicativa, sezioni 7–8. L'accesso pubblico Mercurion resta successivo.
+applicazioni sono state avviate, lo schema inizializzato e i controlli backend,
+frontend e RPC Tox21 superati. L'owner ha visualizzato la landing tramite
+forward SSH su localhost:18888. Verifica e forward sono descritti nella guida
+applicativa, sezioni 7–8; login/dati e accesso pubblico restano successivi.
 
 ### Ripresa, manutenzione o consultazione
 

@@ -13,8 +13,9 @@ Cloudflare Access sul dominio è predisposto dall'owner, collegamento e collaudo
 pubblico rimangono da verificare.
 
 **Avanzamento corrente:** schema applicativo inizializzato e quattro container
-running; backend health positiva. Riprendere solo la verifica frontend/RPC
-dopo la correzione del probe, poi forward privato di Nginx e controllo visivo.
+running; verifica `51f087181cb34ec3ad4ace23ec9e53fe` passed su backend,
+frontend e RPC Tox21 reali. Forward privato Nginx e landing visibile in Chrome
+confermati dall'owner; non sono collaudo di login, dati o origine pubblica.
 Procedura nelle [sezioni 7–8](APPLICATION-BOOTSTRAP.md#7-riprendere-soltanto-la-verifica-dei-container-esistenti).
 
 ### Fase dati successiva — inventario prima del trasferimento

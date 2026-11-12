@@ -1,12 +1,13 @@
 # Ripresa operativa — 12 novembre 2026
 
-**Punto corrente:** il primo avvio applicativo ha creato lo schema (31 entity),
-avviato tutti e quattro i container e superato la health del backend. Il probe
-frontend cercava erroneamente app-root: corretto come smoke HTTP/HTML, senza
-vincolo sul selettore. Prossima operazione owner: `-VerifyExisting -Execute`
-come da [guida, sezioni 7–8](APPLICATION-BOOTSTRAP.md#7-riprendere-soltanto-la-verifica-dei-container-esistenti),
-poi forward Nginx loopback e verifica visiva. Non ripetere bootstrap/schema.
-ChEMBL e embedding rimangono nella fase successiva, senza import ora.
+**Punto corrente:** verifica applicativa conclusa con verificationId
+`51f087181cb34ec3ad4ace23ec9e53fe`: backend, frontend e RPC Tox21 tutti true,
+stessi quattro container, senza nuovi avvii o modifiche al database. Forward
+Nginx attivo e landing visualizzata dall'owner su `http://localhost:18888`.
+Procedura nelle [sezioni 7–8](APPLICATION-BOOTSTRAP.md#7-riprendere-soltanto-la-verifica-dei-container-esistenti).
+Il controllo console/network tramite Playwright non è stato acquisito.
+Non ripetere bootstrap/schema. ChEMBL e embedding rimangono nella fase
+successiva: inventariare dump/chunk prima di trasferimento e restore.
 
 L'owner riprende il lavoro con obiettivo staging funzionante e documentazione
 passo passo di ogni operazione. Ha confermato che la VM è stata spenta o

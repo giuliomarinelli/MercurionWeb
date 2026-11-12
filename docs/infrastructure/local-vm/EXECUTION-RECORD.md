@@ -6,6 +6,28 @@ non sono promosse a prove VM; una procedura pronta non viene marcata eseguita.
 
 ## Milestone osservate
 
+### 12 novembre — verifica esistente conclusa e landing visibile via SSH
+
+Run applicativo `07fd750861be434b8de3c768bc9a6353`, verificationId
+`51f087181cb34ec3ad4ace23ec9e53fe`: ricevuta `passed`, fase `finished`,
+`backendHealthThroughEdge`, `frontendThroughEdge` e `tox21RealRpc` tutti true.
+I quattro membri conservano gli stessi ID della ricevuta originale; nessun
+nuovo avvio, modifica container/database o riconsegna di segreti. Peer edge
+`172.22.0.2`; schema precedentemente inizializzato con 31 entity.
+
+Ricevuta pubblica nel bundle, sotto
+`receipts/application-verification-51f087181cb34ec3ad4ace23ec9e53fe.json`.
+L'owner ha aperto `http://localhost:18888` e visualizzato in Chrome la landing
+Mercurion con logo, testi e pulsanti. Questo conferma il percorso Windows →
+SSH → Nginx → frontend e il rendering iniziale della pagina.
+
+Il tentativo di controllo browser attraverso Playwright MCP non ha restituito
+risposta ed è stato interrotto: nessuna evidenza acquisita con quel canale su
+console o network. Non dichiarare verificati tutti gli asset, login, cookie,
+WebSocket, provider, ChEMBL o accesso pubblico. La ricevuta di readiness resta
+distinta dal controllo visivo dell'owner. La precedente ricevuta fallita è
+conservata, non sovrascritta.
+
 ### 12 novembre — bootstrap applicativo reale, verifica ancora da completare
 
 Run `07fd750861be434b8de3c768bc9a6353`, ricevute del bundle VM-045:
