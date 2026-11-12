@@ -1,5 +1,12 @@
 # Ripresa operativa — 12 novembre 2026
 
+**Task attuale:** audit preliminare ai nuovi Compose shared/preview concluso:
+tutte le cinque immagini di sviluppo sono bloccate dalla scansione strict.
+È pendente la scelta owner sui fix coordinati dei motori, poiché alcuni
+finding non sono correggibili con soli pacchetti OS. Nessun servizio o volume
+modificato. Nginx VM resta dedicato, senza TLS/certificati e maintenance mode.
+[Rapporto riproducibile](SERVICE-SECURITY-AUDIT.md).
+
 **Vincolo prioritario:** le versioni server VM devono coincidere con lo
 sviluppo definito in `docker_sl/docker-compose.yml` e relativo Dockerfile
 PostgreSQL. Divergenze effettive documentate in

@@ -1,5 +1,11 @@
 # Roadmap — deployment demo Hyper-V / Docker Engine
 
+**Audit preliminare alla correzione Compose:** eseguito sui cinque artefatti
+di sviluppo, tutti bloccati dalla policy CVE strict. Scelta sui fix coordinati
+dei motori ancora pendente; niente caricamento VM delle immagini vulnerabili.
+Il contratto Nginx dedicato HTTP-only/senza maintenance è ora verificato.
+[Esiti e passi necessari](SERVICE-SECURITY-AUDIT.md).
+
 **Precedenza vincolante:** parità delle versioni server con
 `docker_sl/docker-compose.yml`, richiesta dall'owner il 12 novembre.
 L'audit ha trovato divergenze in PostgreSQL/pgvector, Redis, NATS, Meili e

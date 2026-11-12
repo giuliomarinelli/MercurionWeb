@@ -520,6 +520,7 @@ jobs:
           python3 -B -m unittest discover -s scripts/infrastructure -p test_preview_cold_recovery.py
           python3 -B -m unittest discover -s scripts/infrastructure -p test_preview_applications.py
           python3 -B -m unittest discover -s scripts/infrastructure -p test_preview_application_verification.py
+          python3 -B -m unittest discover -s scripts/infrastructure -p test_development_service_audit.py
           python3 -B -m unittest discover -s scripts/infrastructure -p test_reproduce_preview_artifacts.py
           python3 -B scripts/check-local-vm-runbook.py
           python3 -B scripts/infrastructure/preview_compose.py

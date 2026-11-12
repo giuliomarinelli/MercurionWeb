@@ -78,6 +78,10 @@ negli argomenti e non modifica estensioni o dati.
 
 ## Correzione da pianificare prima del caricamento
 
+**Audit eseguito:** tutte e cinque le immagini di sviluppo sono bloccate dalla
+policy strict. [Risultati, comando ripetibile e vincolo Nginx HTTP-only](SERVICE-SECURITY-AUDIT.md).
+Non caricare queste immagini sulla VM solo per riprodurre le vecchie versioni.
+
 1. Trattare il Compose di sviluppo come riferimento; registrare versione e
    identità delle immagini e delle estensioni, inclusa la distinzione pgvector.
 2. Confrontare ogni candidato VM con questa baseline prima del deploy. Un

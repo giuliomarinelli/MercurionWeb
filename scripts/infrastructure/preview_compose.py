@@ -39,7 +39,17 @@ def render():
             encoding='utf-8', timeout=30, env=environment)) for name, path in FILES.items()}
 
 
+def validate_nginx(text):
+    active = '\n'.join(line.split('#', 1)[0] for line in text.splitlines())
+    if (re.search(r'\bssl(?:_|\s)|https://|\bmaintenance|letsencrypt|configmap', active, re.I)
+            or any(statement.split()[0] != '80' for statement in re.findall(r'\blisten\s+([^;]+);', active))
+            or not re.search(r'\blisten\s+80(?:\s|;)', active)):
+        raise ValueError('VM Nginx requires HTTP port 80, no TLS/certificates or maintenance mode')
+    return True
+
+
 def validate(models):
+    validate_nginx((ROOT / 'deployment/local-vm/operational/nginx.conf').read_text(encoding='utf-8'))
     schema = json.loads((ROOT / 'deployment/deployment-schema.json').read_text(encoding='utf-8'))
     if set(models) != {'shared', 'preview'}:
         raise ValueError('Expected independent shared/preview projects')
