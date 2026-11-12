@@ -2,8 +2,11 @@
 
 **Task attuale:** audit preliminare ai nuovi Compose shared/preview concluso:
 tutte le cinque immagini di sviluppo sono bloccate dalla scansione strict.
-È pendente la scelta owner sui fix coordinati dei motori, poiché alcuni
-finding non sono correggibili con soli pacchetti OS. Nessun servizio o volume
+L'owner autorizza aggiornamenti coordinati nelle linee compatibili e prove su
+copie isolate. Preparati candidati Redis 8.2.9, NATS 2.12.15 con Go corretto e
+Meili 1.14 con sola base OS aggiornata; Nginx 1.30.6 già disponibile. PostgreSQL
+16.16 richiede ancora un artefatto: i tag ufficiali non sono disponibili al
+controllo del 12 novembre. Nessun servizio/volume attivo o Compose operativo
 modificato. Nginx VM resta dedicato, senza TLS/certificati e maintenance mode.
 [Rapporto riproducibile](SERVICE-SECURITY-AUDIT.md).
 

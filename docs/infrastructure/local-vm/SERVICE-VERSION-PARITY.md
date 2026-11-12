@@ -82,6 +82,12 @@ negli argomenti e non modifica estensioni o dati.
 policy strict. [Risultati, comando ripetibile e vincolo Nginx HTTP-only](SERVICE-SECURITY-AUDIT.md).
 Non caricare queste immagini sulla VM solo per riprodurre le vecchie versioni.
 
+**Scelta owner acquisita:** preparare aggiornamenti coordinati sviluppo/staging
+nelle linee compatibili e collaudarli su copie isolate. Ricette, comandi ed
+evidenze dei candidati sono nella seconda parte del
+[rapporto di sicurezza](SERVICE-SECURITY-AUDIT.md#candidati-coordinati-preparazione-e-limiti).
+L'allineamento dei servizi attivi non è ancora eseguito.
+
 1. Trattare il Compose di sviluppo come riferimento; registrare versione e
    identità delle immagini e delle estensioni, inclusa la distinzione pgvector.
 2. Confrontare ogni candidato VM con questa baseline prima del deploy. Un

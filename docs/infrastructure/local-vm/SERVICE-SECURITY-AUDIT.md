@@ -102,11 +102,10 @@ Non è sicuro sostituire i riferimenti nei Compose con queste immagini
 vulnerabili per ottenere la sola parità. Non è nemmeno corretto modificare
 silenziosamente soltanto le versioni VM per ottenere un report verde.
 
-È stata chiesta all'owner la decisione sui casi che richiedono aggiornamenti
-del motore: preparare fix coordinati sviluppo/staging nelle linee compatibili,
-oppure mantenere le versioni esatte e lasciare il caricamento bloccato.
-Nel frattempo nessun Compose è stato caricato sulla VM e i server attivi
-restano invariati.
+L'owner ha autorizzato **aggiornamenti coordinati sviluppo/staging nelle linee
+compatibili, collaudati su copie isolate**. Non è un'autorizzazione a saltare
+la scansione o montare i volumi attivi sotto un nuovo binario senza verifica.
+Nessun Compose è stato caricato sulla VM e i server attivi restano invariati.
 
 Dopo la scelta: costruire i candidati fissati per digest, ripetere tutte le
 scansioni, collaudare su copie/fixture e confrontare API, autenticazione,
@@ -115,3 +114,160 @@ Preparare backup e rollback dei volumi e riconciliazione degli ID del recovery
 prima di sostituire i servizi. L'assenza di breaking change va sostenuta da
 queste evidenze nei percorsi esercitati, non promessa in assoluto da una
 scansione CVE o dal numero di versione.
+
+## Candidati coordinati: preparazione e limiti
+
+La directory `deployment/local-vm/coordinated/` conserva le nuove ricette,
+separate da quelle storiche usate per il recovery delle release già consegnate.
+Il Compose attivo di sviluppo e i Compose operativi shared/preview non sono
+ancora stati aggiornati: manca il candidato PostgreSQL e il piano di sostituzione
+dei dati/identità della release. Non applicare parzialmente questi candidati.
+
+| Componente | Candidato | Decisione tecnica |
+| --- | --- | --- |
+| Redis | 8.2.9 con pacchetti Alpine corretti e fissati | Resta nella linea 8.2 dello sviluppo, non la 7.2 degli artefatti VM precedenti |
+| NATS | 2.12.15, toolchain Go 1.27.4 e patch crypto fissata | Resta nella linea 2.12; questa linea è EOL, non diventa supportata perché la scansione passa |
+| Meilisearch | 1.14.0, nuova base Alpine | Binario originale preservato, nessuna adozione implicita della 1.56 VM |
+| Nginx | 1.30.6, immagine corretta già preparata per la VM | La vecchia 1.27 non contiene tutti i fix; controllare separatamente i due file HTTP di sviluppo e VM |
+| PostgreSQL | Da predisporre: 16.16 | Release di sicurezza pubblicata il 12 novembre; al controllo i tag ufficiali `16.16` e `16.16-alpine` non esistono ancora |
+
+Fonti: [release Redis 8.2](https://redis.io/docs/latest/operate/oss_and_stack/stack-with-enterprise/release-notes/redisce/redisos-8.2-release-notes/),
+[ciclo NATS](https://docs.nats.io/release-notes/),
+[release NATS 2.12.15](https://github.com/nats-io/nats-server/releases/tag/v2.12.15),
+[PostgreSQL 16.16](https://www.postgresql.org/docs/release/16.16/).
+La 16.16 include correzioni CVE e indicazioni sui casi che richiedono REINDEX:
+non presentare la 16.15 come soluzione finale solo perché un database scanner
+potrebbe non aver ancora recepito gli advisory pubblicati oggi.
+
+### 1. Materializzare un contesto pubblico nuovo
+
+PowerShell ordinaria, root del repository, Docker Desktop Linux. Nessuna
+lettura del file privato di configurazione o dei volumi applicativi. Per una
+riproduzione usare una revisione Git che contenga le ricette e un worktree
+pulito; registrare lo SHA, non etichettare una build locale come release CI.
+
+```powershell
+$taskRecipeRevision = git rev-parse HEAD
+if ($LASTEXITCODE -ne 0) { throw 'Revisione Git non disponibile.' }
+$taskCandidateRoot = Join-Path $env:USERPROFILE ('.mercurion/artifacts/coordinated-' + [Guid]::NewGuid().ToString('N'))
+if (Test-Path -LiteralPath $taskCandidateRoot) { throw 'Directory gia presente.' }
+[void][IO.Directory]::CreateDirectory($taskCandidateRoot)
+Copy-Item -LiteralPath deployment/local-vm/coordinated/Dockerfile -Destination (Join-Path $taskCandidateRoot 'Dockerfile')
+Copy-Item -LiteralPath deployment/local-vm/coordinated/nats.Dockerfile -Destination (Join-Path $taskCandidateRoot 'nats.Dockerfile')
+$taskNatsSource = Join-Path $taskCandidateRoot 'nats-source.tar.gz'
+Invoke-WebRequest -UseBasicParsing -Uri 'https://codeload.github.com/nats-io/nats-server/tar.gz/8460a428cf3b27c8627595d630f1ccad55786d13' -OutFile $taskNatsSource
+if ((Get-FileHash -Algorithm SHA256 -LiteralPath $taskNatsSource).Hash.ToLowerInvariant() -ne '0eb53a7b71a5a749224a42a117c4889982c9a015c648236d325d0b54c59f53eb') { throw 'Sorgente NATS inatteso.' }
+```
+
+### 2. Compilare senza modificare i servizi attivi
+
+```powershell
+foreach ($taskRole in @('redis','meilisearch')) {
+    docker --context desktop-linux build --platform linux/amd64 --target $taskRole --build-arg "BUILD_REVISION=$taskRecipeRevision" --tag "mercurion-parity-${taskRole}:pinned-candidate" $taskCandidateRoot
+    if ($LASTEXITCODE -ne 0) { throw ('Build fallita: ' + $taskRole) }
+}
+docker --context desktop-linux build --platform linux/amd64 --file (Join-Path $taskCandidateRoot 'nats.Dockerfile') --build-arg "BUILD_REVISION=$taskRecipeRevision" --tag mercurion-parity-nats:2.12.15-go1274 $taskCandidateRoot
+if ($LASTEXITCODE -ne 0) { throw 'Build NATS fallita.' }
+```
+
+I tag sono solo nomi locali di candidati. Base OCI, sorgente NATS, patch crypto
+e versioni APK selezionate sono fissati nelle ricette; se un pacchetto viene
+rimosso dal repository upstream, la build deve fallire. Per conservare una
+release esatta archiviare tar, SBOM e ricevute: una ricompilazione futura non
+è automaticamente byte-identica, né automaticamente ancora priva di finding.
+
+### 3. Scansione strict e identità
+
+```powershell
+$taskImages = @{}
+foreach ($taskRole in @('redis','meilisearch','nats')) {
+    $taskTag = if ($taskRole -eq 'nats') { 'mercurion-parity-nats:2.12.15-go1274' } else { "mercurion-parity-${taskRole}:pinned-candidate" }
+    $taskImage = docker --context desktop-linux image inspect $taskTag --format '{{.Id}}'
+    if ($LASTEXITCODE -ne 0) { throw ('Immagine assente: ' + $taskRole) }
+    $taskImages[$taskRole] = $taskImage
+    python -B scripts/infrastructure/scan_service_candidate.py --image $taskImage --role $taskRole --output (Join-Path $taskCandidateRoot ('scan-' + $taskRole))
+    if ($LASTEXITCODE -ne 0) { throw ('Scansione respinta: ' + $taskRole) }
+}
+```
+
+Ogni scansione conserva tar, SBOM, report completo, risultato strict e data
+del database nuovo. `candidate.json` distingue l'ID immagine locale dal digest
+del config contenuto nell'archivio: con lo storage OCI di Docker Desktop non
+sono necessariamente uguali. Usare l'ID restituito da `image inspect` nei
+collaudi locali, non sostituirlo manualmente con `configDigest`.
+`securityEligible=true` non rende automaticamente veri
+`compatibilityVerified` o `adoptionAuthorized`.
+
+### 4. Collaudi isolati ripetibili
+
+Redis crea due fixture con la vecchia immagine: stringhe, hash, sorted set,
+stream e TTL. Salva RDB/AOF, arresta le proprie fixture e copia i dati in nuovi
+volumi del solo test. Il candidato legge quelle copie, esegue Lua e restart;
+la fixture originale mantiene i dati iniziali. Nessun volume `docker_sl_*`
+viene montato o copiato. Nessuna porta viene pubblicata; cleanup solo delle
+risorse create dal run.
+
+```powershell
+python -B scripts/infrastructure/smoke_redis_update.py --old-image sha256:4521b581dbddea6e7d81f8fe95ede93f5648aaa66a9dacd581611bf6fe7527bd --candidate-image $taskImages['redis'] --report (Join-Path $taskCandidateRoot 'redis-compatibility.json') --execute
+if ($LASTEXITCODE -ne 0) { throw 'Collaudo Redis fallito.' }
+python -B scripts/infrastructure/qa_preview_meili_indexes.py --execute --image $taskImages['meilisearch'] --output (Join-Path $taskCandidateRoot 'meili-indexes')
+if ($LASTEXITCODE -ne 0) { throw 'Collaudo indici Meili fallito.' }
+python -B scripts/infrastructure/qa_preview_meili_client_keys.py --execute --image $taskImages['meilisearch'] --output (Join-Path $taskCandidateRoot 'meili-keys')
+if ($LASTEXITCODE -ne 0) { throw 'Collaudo chiavi Meili fallito.' }
+```
+
+Meili usa dati sintetici e listener effimeri solo su loopback Windows; verifica
+task, primary key, riuso senza scritture, chiavi a 90 giorni e limiti dei permessi.
+Non dimostra il restore dei due grandi indici ChEMBL. Il binario 1.14 preservato
+ha SHA-256 `20e6a602cf1be28e7396d0e495501f194243b8e30448dca4056b7bb2e073bd35`.
+Resta il limite della copertura del binario Rust: zero finding OS non equivale
+a una garanzia su tutte le dipendenze interne del motore; gli advisory del
+motore restano parte dell'analisi prima dell'adozione.
+
+Per NATS riusare il [collaudo Tox21 reale](ARTIFACT-REPRODUCTION.md#6-collaudi-host-prima-della-consegna),
+passando a `smoke_tox21_candidate.py` il parametro aggiuntivo
+`--broker-image $taskImages['nats']`. Occorrono immagine Tox21 locale e relativi
+SHA/versione verificati nella procedura citata; nessun training o source overlay.
+Il test usa credenziali sintetiche e rete interna senza porte pubblicate.
+
+### 5. Evidenze acquisite e lavoro residuo
+
+Directory pubblica del collaudo del 12 novembre:
+`%USERPROFILE%/.codex/artifacts/inf-vm-04/vm046-service-parity/coordinated-01/`.
+
+| Candidato finale di questo collaudo | Finding scanner | Evidenze di compatibilità acquisite |
+| --- | ---: | --- |
+| Redis 8.2.9, APK fissati | 0 | RDB e AOF da fixture 8.2.2, readback, Lua, TTL, restart e fixture sorgente preservata |
+| Meili 1.14.0, APK fissati | 0 | 5 casi indici e 9 casi chiavi reali su dati sintetici; hash binario invariato |
+| NATS 2.12.15, Go 1.27.4 | 0 | 3 lifecycle Tox21 con RPC reali, negazioni auth e arresti puliti |
+| Nginx 1.30.6 già costruito | 0 | Sintassi delle configurazioni di sviluppo e VM; nessuna nuova prova delle route reali |
+
+Report: `scans/redis-pinned/candidate.json`,
+`scans/meilisearch-pinned/candidate.json`, `scans/nats-go1274/candidate.json`,
+`scans/edge/candidate.json`, `redis-compatibility-pinned.json`,
+`meili-indexes-pinned/`, `meili-keys-pinned/`, `nats-tox21-rpc.json`.
+Cleanup delle fixture: nessun errore e nessun container di test rimasto attivo.
+Questi sono collaudi locali, non una certificazione CI o del deploy VM.
+
+Le prime ricette esplorative sono conservate separatamente da quelle con APK
+fissati; non cancellare i report falliti. NATS con Go 1.27.3 è stato respinto
+per CVE-2026-97054: il candidato successivo usa Go 1.27.4. Il primo collaudo
+Redis usava per errore il config digest al posto dell'ID locale e non ha
+completato casi; corretto il riferimento, entrambi i formati passano.
+
+Le verifiche completate non costituiscono il deploy coordinato. Prima di
+aggiornare i Compose e trasferirli sulla VM servono ancora:
+
+1. PostgreSQL 16.16 e pgvector: immagine verificata, scansione e collaudo SQL/HNSW,
+   distinguendo pacchetto disponibile e versione registrata nel catalogo;
+2. verifica dei dati effettivi su copie/restore separati e backup ripristinabili,
+   in particolare Meili 1.14 sviluppo contro 1.56 VM: nessun downgrade in-place;
+3. selezione di un unico insieme di immagini per sviluppo e staging, modifica
+   coordinata dei Compose e riconciliazione delle identità per il recovery;
+4. consegna owner via SSH, verifica dei servizi e nuovo collaudo privato Nginx.
+
+Nginx mantiene due configurazioni per ambiente: quella VM HTTP-only dedicata
+non si ricava dalla ConfigMap Kubernetes. Il controllo sintattico sul file di
+sviluppo richiede un mapping locale di `host.docker.internal` anche nel container
+isolato; un errore di DNS del test non dimostra una regressione del proxy.
+La verifica sintattica non sostituisce quella delle route sul runtime reale.

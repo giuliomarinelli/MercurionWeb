@@ -7,9 +7,29 @@ from unittest.mock import patch
 
 import audit_development_services as audit
 import preview_compose
+import scan_service_candidate
+import smoke_redis_update
 
 
 class AuditContracts(unittest.TestCase):
+    def test_candidate_tags_and_unknown_roles_are_refused_before_filesystem_or_docker(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)/'not-created'
+            with patch.object(audit,'command') as command:
+                for image, role in [('redis:latest','redis'), ('sha256:'+'a'*64,'unknown')]:
+                    with self.subTest(role=role), self.assertRaises(ValueError):
+                        scan_service_candidate.scan(image,role,output)
+                command.assert_not_called()
+            self.assertFalse(output.exists())
+
+    def test_redis_fixture_rejects_tags_without_touching_existing_data(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)/'not-created.json'
+            with patch.object(smoke_redis_update.subprocess,'run') as command, self.assertRaises(ValueError):
+                smoke_redis_update.smoke('redis:latest','sha256:'+'a'*64,output)
+            command.assert_not_called()
+            self.assertFalse(output.exists())
+
     def test_compose_read_uses_explicit_empty_env_and_never_persists_credentials(self):
         def output(arguments, **kwargs):
             self.assertEqual(arguments[:4], ['docker','--context','desktop-linux','compose'])
