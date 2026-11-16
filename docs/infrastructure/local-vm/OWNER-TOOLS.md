@@ -1481,6 +1481,7 @@ Nella **PowerShell Windows aperta nella root del checkout MercurionTox21**, acqu
 
 ```powershell
 $toxSha = git rev-parse HEAD
+$toxSource = (Get-Location).Path
 git status --short
 $toxVersion = Read-Host 'Versione non vuota da assegnare a questo candidato Tox21'
 $modelPackage = Read-Host 'Percorso assoluto del pacchetto modello approvato'
@@ -1497,15 +1498,15 @@ docker build --platform linux/amd64 --target staging --build-context "model_pack
 ```
 
 ```powershell
-python -B scripts/check_container_image.py mercurion-tox21:staging-candidate --target staging --version "$toxVersion" --revision "$toxSha"
+python -B (Join-Path $toxSource 'scripts/check_container_image.py') mercurion-tox21:staging-candidate --target staging --version "$toxVersion" --revision "$toxSha"
 ```
 
 ```powershell
-python -B scripts/smoke_container.py mercurion-tox21:staging-candidate --target staging
+python -B (Join-Path $toxSource 'scripts/smoke_container.py') mercurion-tox21:staging-candidate --target staging
 ```
 
 ```powershell
-python -B scripts/container_evidence.py --image mercurion-tox21:staging-candidate --output "$toxExport" --cache "$trivyCache"
+python -B (Join-Path $toxSource 'scripts/container_evidence.py') --image mercurion-tox21:staging-candidate --output "$toxExport" --cache "$trivyCache"
 ```
 
 Il controllo immagine verifica identità e inferenza; lo smoke usa proprie risorse Docker isolate e verifica i subject NATS, recupero broker e shutdown. L'esportatore produce image.tar ed evidenze, prova save/load e applica la policy strict. Exit code 2 indica candidato non ammesso dalla policy, non successo distribuibile. Non aggirare scanner, smoke o errori di tool. Tag locale riutilizzabile: non lanciarne build concorrenti; il bundle distribuito è identificato dai digest.
