@@ -1,5 +1,7 @@
 # Mercurion — infrastruttura demo su VM locale
 
+> **7 novembre 2026 — documento storico/preliminare.** La specifica di riferimento per il nuovo deployment Docker Engine è ora [`docs/infrastructure/local-vm/README.md`](local-vm/README.md), con architettura, reti, sicurezza, operazioni Meilisearch, artefatti, roadmap e diario in italiano. I dettagli preliminari e i limiti originali restano conservati sotto. Questo aggiornamento è **solo documentale** e non indica che il deployment sia stato eseguito.
+>
 **Stato: analisi preliminare, da progettare. Aggiornamento: 5 novembre 2026.** Questo documento registra le indicazioni dell’utente e i punti da definire. Non è un progetto esecutivo, un’autorizzazione al deployment o una dichiarazione che l’ambiente esista già.
 
 ## Obiettivo

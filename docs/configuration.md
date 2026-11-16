@@ -9,6 +9,7 @@ names and classifications, not real values. `<placeholder>` means a local value 
 | --- | --- | --- | --- |
 | Runtime | `APP_ENV`, `NODE_ENV`, `LOCAL_DUMMY_AUTH`, `DISABLE_TURNSTILE`, `APP_VERSION`, `LOCAL_TEST_ACCOUNT_EMAIL` | defaults/optional | Runtime mode and local-only test identity. The password is local-only and is never documented with a value. |
 | App/NATS | `APP_PORT`, `APP_NATS_PORT`, `APP_NATS_HOST`, `APP_PROJECT_NAME`, `APP_GLOBAL_NAME`, `APP_PROJECT_ID`, `APP_TRUSTED_PROXY_CIDRS`, `APP_USER_ACTIVATION_ORIGIN`, `APP_HOST`, `APP_MAX_NATS_PAYLOAD_BYTES`, `APP_SHUTDOWN_TIMEOUT_MS` | mostly required | Non-secret listener, identity, origin and NATS transport settings. CORS is disabled in every environment. The proxy list identifies only the nginx peer immediately in front of Fastify. |
+| NATS credentials | `APP_NATS_USERNAME`, `APP_NATS_PASSWORD` | optional pair | Both omitted preserve legacy unauthenticated connections; either declared requires the other, and empty values fail validation. Password is secret and stays outside the broker URL. |
 | App secrets | `APP_SESSION_SIGNATURE_SECRET`, `APP_PASSWORD_PEPPER`, `APP_REDIS_ID_HMAC_SECRET`, `APP_AES_SECRET`, `APP_DEVICE_ID_SIGNATURE_SECRET` | yes | Secret material for sessions, password/device protection, Redis identifiers and encryption. |
 
 `APP_AES_SECRET` is deployment-owned root material. OAuth provider credentials
@@ -24,6 +25,7 @@ recovery contract in [OAuth provider credential policy](security/oauth-provider-
 | Sessions | `SHORT_SESSION_LASTING`, `PERSISTENT_SESSION_LASTING`, `SESSION_ZERO_ID` | yes | Session lifetimes and sentinel identifier; no secret value is implied. |
 | Dropbox | `DROPBOX_API_URL`, `DROPBOX_AUTH_URL`, `DROPBOX_APP_KEY`, `DROPBOX_APP_SECRET`, `DROPBOX_REDIRECT_URI`, `DROPBOX_TOKEN_URL` | yes | OAuth/object-store endpoints and credentials; app secret is secret. |
 | Search/edge | `MEILISEARCH_HOST`, `MEILISEARCH_MASTER_KEY`, `CLOUDFLARE_SECRET_KEY` | yes | Search endpoint/key and Cloudflare integration; keys are secret. |
+| Meilisearch writer | `MEILISEARCH_LOG_KEY` | optional | Dedicated secret key for outbox writes. If omitted, falls back to the legacy `MEILISEARCH_MASTER_KEY`; an explicitly empty value fails validation. |
 | Redis | `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD` | yes | Session/cache store; password is secret. |
 | SSO | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `GITHUB_REDIRECT_URI`, `LINKEDIN_CLIENT_ID`, `LINKEDIN_CLIENT_SECRET`, `LINKEDIN_REDIRECT_URI`, `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `DISCORD_REDIRECT_URI`, `ORCID_CLIENT_ID`, `ORCID_CLIENT_SECRET`, `ORCID_REDIRECT_URI`, `ORCID_ISSUER` | yes | OAuth/OIDC client configuration; client secrets are secret, redirect URIs are environment-specific, and `ORCID_ISSUER` selects sandbox or production. |
 | Feedback | `UM_FEEDBACK_ANON_AUTHOR_KEY` | yes | Anonymous feedback attribution key; secret. |
@@ -32,3 +34,17 @@ Development service defaults are PostgreSQL `localhost:5431`, Redis `localhost:6
 `nats://localhost` on port `4223`, Meilisearch `http://localhost:7700`, Nest `8099`, Angular
 `3498`, and nginx `http://localhost:8888`. Production endpoints and credentials are not
 part of this repository documentation.
+
+`MEILISEARCH_MASTER_KEY` retains its legacy name and configures the search client;
+it need not be the server master key. `MEILISEARCH_LOG_KEY` configures a separate
+writer client for log/audit and generic Meilisearch outbox mutations. When set,
+a denied write is never retried using search credentials. Existing outbox index
+names and retry semantics remain unchanged. The local VM deployment requires
+separate restricted keys and operator-precreated log indexes; omission of the
+new variable preserves compatibility, **not** least privilege. See the
+[Meilisearch VM contract and local permission checks](infrastructure/local-vm/MEILISEARCH-OPERATIONS.md).
+
+Both Nest NATS transports use the same credential factory. Configured credentials
+are sent as SDK `user`/`pass`; authentication failure does not fall back to
+anonymous access. The file bootstrap adapter accepts both variables. See the
+[NATS client contract and isolated integration check](infrastructure/local-vm/NATS-CLIENT-AUTH.md).

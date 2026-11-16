@@ -35,6 +35,7 @@ WORKDIR /workspace/MercurionWebNg
 RUN npm run build -- --configuration=testing
 
 FROM nginx:1.30.6-alpine3.24@sha256:583b7f2fce1cdb8da5ad5c39ebd3c33b98b87d493190e548bdee1fa8c619c311 AS runtime
+RUN apk add --no-cache --upgrade zlib=1.4-r0 libxslt=1.1.43-r4
 ARG BUILD_VERSION
 ARG BUILD_REVISION
 LABEL org.opencontainers.image.version=$BUILD_VERSION \
@@ -52,13 +53,16 @@ USER 10101:10101
 CMD ["nginx", "-g", "daemon off;"]
 
 FROM runtime AS staging
+LABEL org.mercurion.environment="staging"
 COPY --from=build-staging --chown=10101:10101 /workspace/MercurionWebNg/dist/mercurion-web-ng/browser/ ./
 COPY MercurionWebNg/nginx.mercurion_web_ng.staging.conf /etc/nginx/conf.d/default.conf
 
 FROM runtime AS test
+LABEL org.mercurion.environment="test"
 COPY --from=build-test --chown=10101:10101 /workspace/MercurionWebNg/dist/mercurion-web-ng/browser/ ./
 COPY MercurionWebNg/nginx.mercurion_web_ng.testing.conf /etc/nginx/conf.d/default.conf
 
 FROM runtime AS production
+LABEL org.mercurion.environment="production"
 COPY --from=build-production --chown=10101:10101 /workspace/MercurionWebNg/dist/mercurion-web-ng/browser/ ./
 COPY MercurionWebNg/nginx.mercurion_web_ng.prod.conf /etc/nginx/conf.d/default.conf

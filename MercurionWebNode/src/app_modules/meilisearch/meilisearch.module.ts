@@ -1,7 +1,6 @@
 import { Global, Module } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
 import { TypeOrmModule } from '@nestjs/typeorm'
-import { Meilisearch } from 'meilisearch'
+import { meilisearchClientProviders } from './meilisearch.clients'
 import { MoleculeSearchService } from './services/molecule-search.service'
 import { MoleculeSearchResolver } from './resolvers/molecule-search.resolver'
 import { MoleculeService } from './services/molecule.service'
@@ -17,14 +16,7 @@ import { MercurionAIModule } from '../mercurion-ai/mercurion-ai.module'
         MercurionAIModule
     ],
     providers: [
-        {
-            provide: 'MEILISEARCH_CLIENT',
-            useFactory: (configService: ConfigService) => new Meilisearch({
-                host: configService.get<string>('Meilisearch.host') as string,
-                apiKey: configService.get<string>('Meilisearch.masterKey')
-            }),
-            inject: [ConfigService]
-        },
+        ...meilisearchClientProviders,
         MoleculeSearchService,
         MoleculeSearchResolver,
         MoleculeService,
@@ -34,6 +26,7 @@ import { MercurionAIModule } from '../mercurion-ai/mercurion-ai.module'
     exports: [
         MoleculeService,
         'MEILISEARCH_CLIENT',
+        'MEILISEARCH_LOG_CLIENT',
         SecurityAuditService,
     ]
 })

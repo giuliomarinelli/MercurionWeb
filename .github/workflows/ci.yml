@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - develop
+      - preview
       - "release/**"
       - "hotfix/**"
   pull_request:
@@ -63,11 +64,40 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: node .github/scripts/classify-ci.mjs
 
+  dependency-security:
+    name: Strict dependency vulnerability policy
+    needs:
+      - plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Set up Node.js without installing project dependencies
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Verify strict policy and workflow guards
+        run: node scripts/check-supply-chain.mjs --self-test
+      - name: Audit every tracked lockfile before install or build
+        run: node scripts/check-supply-chain.mjs --audit-only
+      - name: Preserve dependency security diagnostics on failure
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: dependency-security-${{ github.sha }}
+          path: reports/supply-chain/dependency-audits.json
+          if-no-files-found: warn
+          retention-days: 14
+
   metadata:
     name: Autonomous metadata
     if: ${{ needs.plan.outputs.mode == 'metadata' }}
     needs:
       - plan
+      - dependency-security
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -101,6 +131,7 @@ jobs:
     if: ${{ needs.plan.outputs.mode == 'full' }}
     needs:
       - plan
+      - dependency-security
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
     strategy:
@@ -288,7 +319,8 @@ jobs:
     needs:
       - plan
       - quality
-    runs-on: ubuntu-latest
+    # Playwright 1.55.1 supports Ubuntu 24.04, not the moving 26.04 latest image.
+    runs-on: ubuntu-24.04
     timeout-minutes: 35
     steps:
       - name: Check out repository
@@ -308,7 +340,11 @@ jobs:
         run: npm run build:identity -- --revision "$GITHUB_SHA"
 
       - name: Install Playwright Chromium
-        run: npx playwright install --with-deps chromium
+        timeout-minutes: 8
+        run: |
+          python3 -B -m unittest discover -s .github/scripts -p test_configure_browser_apt.py
+          sudo --preserve-env=GITHUB_ACTIONS,RUNNER_OS python3 .github/scripts/configure_browser_apt.py --apply
+          npx playwright install --with-deps chromium
 
       - name: Build Angular
         run: npm run ci:build:angular
@@ -339,7 +375,8 @@ jobs:
     needs:
       - plan
       - quality
-    runs-on: ubuntu-latest
+    # Keep the browser OS compatible with the locked Playwright distribution.
+    runs-on: ubuntu-24.04
     timeout-minutes: 35
     steps:
       - name: Check out repository
@@ -356,7 +393,11 @@ jobs:
         run: npm ci
 
       - name: Install Playwright Chromium
-        run: npx playwright install --with-deps chromium
+        timeout-minutes: 8
+        run: |
+          python3 -B -m unittest discover -s .github/scripts -p test_configure_browser_apt.py
+          sudo --preserve-env=GITHUB_ACTIONS,RUNNER_OS python3 .github/scripts/configure_browser_apt.py --apply
+          npx playwright install --with-deps chromium
 
       - name: Install the disposable nginx edge
         run: sudo apt-get update && sudo apt-get install --yes nginx
@@ -413,6 +454,7 @@ jobs:
     if: ${{ needs.plan.outputs.mode == 'full' }}
     needs:
       - plan
+      - dependency-security
     runs-on: ubuntu-latest
     timeout-minutes: 45
     strategy:
@@ -469,10 +511,32 @@ jobs:
         run: |
           python3 -B scripts/test-coordinate-delivery.py
           python3 -B scripts/test-t21-acceptance.py
+          python3 -B -m unittest discover -s scripts/infrastructure -p test_tox21_candidate.py
+          python3 -B -m unittest discover -s scripts/infrastructure -p test_tox21_transport.py
+          python3 -B -m unittest discover -s scripts/infrastructure -p test_tox21_vm_pilot.py
+          python3 -B -m unittest discover -s scripts/infrastructure -p test_preview_credentials.py
+          python3 -B -m unittest discover -s scripts/infrastructure -p test_preview_export.py
+          python3 -B -m unittest discover -s scripts/infrastructure -p test_preview_servers.py
+          python3 -B -m unittest discover -s scripts/infrastructure -p test_preview_recovery_inventory.py
+          python3 -B -m unittest discover -s scripts/infrastructure -p test_preview_cold_recovery.py
+          python3 -B -m unittest discover -s scripts/infrastructure -p test_preview_applications.py
+          python3 -B -m unittest discover -s scripts/infrastructure -p test_preview_application_verification.py
+          python3 -B -m unittest discover -s scripts/infrastructure -p test_development_service_audit.py
+          python3 -B -m unittest discover -s scripts/infrastructure -p test_postgres_candidate.py
+          python3 -B -m unittest discover -s scripts/infrastructure -p test_preview_service_upgrade.py
+          python3 -B -m unittest discover -s scripts/infrastructure -p test_preview_operations.py
+          python3 -B -m unittest discover -s scripts/infrastructure -p test_preview_start_debug.py
+          python3 -B -m unittest discover -s scripts/infrastructure -p test_preview_ci_delivery.py
+          python3 -B -m unittest discover -s scripts/infrastructure -p test_embedding_import.py
+          python3 -B -m unittest discover -s scripts/infrastructure -p test_embedding_index.py
+          python3 -B -m unittest discover -s scripts/infrastructure -p test_reproduce_preview_artifacts.py
+          python3 -B scripts/check-local-vm-runbook.py
+          python3 -B scripts/infrastructure/preview_compose.py
+          node --check deployment/local-vm/operational/initialize-empty-schema.cjs
           node --check scripts/t21-service-probe.cjs
 
-      - name: Validate production dependency inventory rules
-        if: ${{ matrix.name == 'nest-production' }}
+      - name: Validate deployment dependency inventory rules
+        if: ${{ matrix.name == 'nest-production' || matrix.name == 'nest-staging' }}
         run: node --test scripts/test-container-dev-dependencies.mjs
 
       - name: Build container without cache
@@ -484,38 +548,38 @@ jobs:
       - name: Smoke-test standalone runtime contract
         run: node scripts/smoke-container-runtime.mjs --image "mercurion-ci-${{ matrix.name }}"
 
-      - name: Generate Nest production image SBOM
-        if: ${{ matrix.name == 'nest-production' }}
+      - name: Generate Nest deployment image SBOM
+        if: ${{ matrix.name == 'nest-production' || matrix.name == 'nest-staging' }}
         uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610
         with:
-          image: mercurion-ci-nest-production
+          image: mercurion-ci-${{ matrix.name }}
           format: cyclonedx-json
-          output-file: nest-production.sbom.json
+          output-file: nest-runtime.sbom.json
           upload-artifact: false
 
-      - name: Verify Nest production image inventory, SBOM and vulnerability scan
-        if: ${{ matrix.name == 'nest-production' }}
-        run: node scripts/check-production-container.mjs --image "mercurion-ci-${{ matrix.name }}" --report-dir "reports/containers/${{ matrix.name }}" --sbom-path "nest-production.sbom.json"
+      - name: Verify Nest deployment image inventory, SBOM and vulnerability scan
+        if: ${{ matrix.name == 'nest-production' || matrix.name == 'nest-staging' }}
+        run: node scripts/check-production-container.mjs --image "mercurion-ci-${{ matrix.name }}" --report-dir "reports/containers/${{ matrix.name }}" --sbom-path "nest-runtime.sbom.json"
 
       - name: Upload container inventory and supply-chain diagnostics
-        if: ${{ always() && matrix.name == 'nest-production' }}
+        if: ${{ always() && (matrix.name == 'nest-production' || matrix.name == 'nest-staging') }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: container-${{ matrix.name }}-supply-chain
           if-no-files-found: error
           path: reports/containers/${{ matrix.name }}
 
-      - name: Export production candidate and enforce image security policy
-        if: ${{ matrix.name == 'angular-production' || matrix.name == 'nest-production' }}
+      - name: Export deployment candidate and enforce image security policy
+        if: ${{ matrix.target == 'production' || matrix.target == 'staging' }}
         env:
-          DELIVERY_COMPONENT: ${{ matrix.name == 'angular-production' && 'web-ng' || 'web-node' }}
+          DELIVERY_COMPONENT: ${{ startsWith(matrix.name, 'angular-') && 'web-ng' || 'web-node' }}
         run: |
           python3 -B scripts/export-web-container.py --image "mercurion-ci-${{ matrix.name }}" \
-            --component "$DELIVERY_COMPONENT" --revision "$GITHUB_SHA" --version "$BUILD_VERSION" \
+            --component "$DELIVERY_COMPONENT" --revision "$GITHUB_SHA" --version "$BUILD_VERSION" --target "${{ matrix.target }}" \
             --output "reports/delivery/$DELIVERY_COMPONENT" --cache "$RUNNER_TEMP/delivery-trivy"
 
-      - name: Upload production delivery diagnostics even on failure
-        if: ${{ always() && (matrix.name == 'angular-production' || matrix.name == 'nest-production') }}
+      - name: Upload deployment delivery diagnostics even on failure
+        if: ${{ always() && (matrix.target == 'production' || matrix.target == 'staging') }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: delivery-${{ matrix.name }}
@@ -524,8 +588,62 @@ jobs:
             reports/delivery/**/*.json
             reports/delivery/**/*.log
 
+      - name: Upload verified staging images for preview delivery
+        if: ${{ success() && matrix.target == 'staging' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: deployment-${{ matrix.name }}
+          if-no-files-found: error
+          retention-days: 3
+          path: reports/delivery/
+
       - name: Confirm clean build did not modify tracked files
         run: git diff --exit-code
+
+  preview-servers:
+    name: Preview server ${{ matrix.role }}
+    if: ${{ needs.plan.outputs.mode == 'full' }}
+    needs: [plan, dependency-security]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        role: [postgres, redis, meilisearch, edge]
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - name: Prepare immutable server build context
+        shell: bash
+        run: |
+          mkdir "$RUNNER_TEMP/preview-server"
+          cp deployment/local-vm/runtime/Dockerfile "$RUNNER_TEMP/preview-server/Dockerfile"
+          if test "${{ matrix.role }}" = postgres; then
+            curl --fail --location --retry 2 --output "$RUNNER_TEMP/preview-server/pgvector.tar.gz" \
+              https://codeload.github.com/pgvector/pgvector/tar.gz/f37c13f68b57d2c3472b2214fbcff699d6d34876
+            echo "83d673c3b287cddbf3879f86215f043f2c2b56c69d37b2a77504910db1ed6e56  $RUNNER_TEMP/preview-server/pgvector.tar.gz" | sha256sum --check -
+          fi
+
+      - name: Build server image from pinned base and recipe
+        run: docker build --pull --no-cache --target "${{ matrix.role }}" --build-arg BUILD_REVISION="$GITHUB_SHA" --tag "mercurion-ci-server-${{ matrix.role }}" "$RUNNER_TEMP/preview-server"
+
+      - name: Export server SBOM and enforce all-severity vulnerability policy
+        run: |
+          python3 -B scripts/infrastructure/export_preview_service.py --context default \
+            --role "${{ matrix.role }}" --image "mercurion-ci-server-${{ matrix.role }}" \
+            --revision "$GITHUB_SHA" --output "reports/preview-servers/${{ matrix.role }}" \
+            --cache "$RUNNER_TEMP/preview-server-trivy"
+
+      - name: Upload server security diagnostics
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: preview-server-${{ matrix.role }}
+          if-no-files-found: error
+          path: |
+            reports/preview-servers/**/*.json
+            reports/preview-servers/**/*.log
 
   supply-chain:
     name: Supply-chain policy and attestation
@@ -534,6 +652,7 @@ jobs:
       - plan
       - quality
       - containers
+      - preview-servers
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -582,6 +701,7 @@ jobs:
     if: ${{ always() }}
     needs:
       - plan
+      - dependency-security
       - metadata
       - quality
       - angular-unit
@@ -590,6 +710,7 @@ jobs:
       - build
       - browser-e2e
       - containers
+      - preview-servers
       - supply-chain
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -604,12 +725,15 @@ jobs:
           BUILD_RESULT: ${{ needs.build.result }}
           BROWSER_E2E_RESULT: ${{ needs.browser-e2e.result }}
           CONTAINERS_RESULT: ${{ needs.containers.result }}
+          PREVIEW_SERVERS_RESULT: ${{ needs.preview-servers.result }}
           SUPPLY_CHAIN_RESULT: ${{ needs.supply-chain.result }}
           MODE: ${{ needs.plan.outputs.mode }}
           PLAN_RESULT: ${{ needs.plan.result }}
+          DEPENDENCY_SECURITY_RESULT: ${{ needs.dependency-security.result }}
         shell: bash
         run: |
           test "$PLAN_RESULT" = "success"
+          test "$DEPENDENCY_SECURITY_RESULT" = "success"
           case "$MODE" in
             duplicate)
               ;;
@@ -624,6 +748,7 @@ jobs:
               test "$BUILD_RESULT" = "success"
               test "$BROWSER_E2E_RESULT" = "success"
               test "$CONTAINERS_RESULT" = "success"
+              test "$PREVIEW_SERVERS_RESULT" = "success"
               test "$SUPPLY_CHAIN_RESULT" = "success"
               ;;
             *)

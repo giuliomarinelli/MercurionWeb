@@ -18,7 +18,7 @@ export class ScopeService {
 
     private readonly scopeValues = Object.values(Scope)
 
-    private standardScopes: Scope[] = [
+    private readonly standardScopes: Scope[] = [
         Scope.UseInference,
         Scope.CreateMolecule,
         Scope.ViewMolecule,
@@ -33,6 +33,34 @@ export class ScopeService {
         Scope.ManageMFA
     ]
 
+    private readonly adminScopes: Scope[] = [
+        Scope.UseInference,
+        Scope.CreateMolecule,
+        Scope.ViewMolecule,
+        Scope.EditMolecule,
+        Scope.DeleteMolecule,
+        Scope.CreateCollection,
+        Scope.ViewCollection,
+        Scope.EditCollection,
+        Scope.DeleteCollection,
+        Scope.CreateFeedback,
+        Scope.UpdateFeedback,
+        Scope.ReadFeedback,
+        Scope.DeleteFeedback,
+        Scope.EditOwnProfile,
+        Scope.DeleteOwnAccount,
+        Scope.ManageMFA,
+        Scope.ViewUsers,
+        Scope.AssignScopes,
+        Scope.DeleteUsers,
+        Scope.SystemSettings,
+        Scope.ChangeLogLevels,
+        Scope.HandleTickets,
+        Scope.ViewInferenceHistory,
+        Scope.ViewModelPerformance,
+        Scope.TrainNewModel,
+    ]
+
     constructor(
         private readonly securityService: SecurityService,
         @Inject(IDENTITY_READ_PORT)
@@ -44,6 +72,10 @@ export class ScopeService {
 
     getEncryptedStandardScopes() {
         return this.encryptScopes(...this.standardScopes)
+    }
+
+    getEncryptedAdminScopes() {
+        return this.encryptScopes(...this.adminScopes)
     }
 
     decryptScopes(...encryptedScopeVals: string[]): Scope[] {

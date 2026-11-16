@@ -1,7 +1,11 @@
 {
-  "version": 1,
+  "version": 2,
   "owners": ["repository-owner"],
-  "vulnerabilities": { "blockingSeverities": ["critical"] },
+  "vulnerabilities": {
+    "blockingSeverities": ["info", "low", "moderate", "high", "critical"],
+    "includeDevelopment": true,
+    "lockfiles": "all-tracked"
+  },
   "licenses": {
     "denied": ["AGPL-3.0", "SSPL-1.0"],
     "missingMetadataExceptions": [

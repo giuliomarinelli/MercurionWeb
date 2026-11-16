@@ -31,6 +31,13 @@ Serve una chiave autorizzata ad aggiungere documenti e creare indici. Non viene
 introdotta una seconda procedura di creazione con una race fra create e insert.
 Gli indici senza eventi possono legittimamente essere ancora assenti.
 
+**Aggiornamento infrastrutturale, 8 novembre:** due client Nest distinti per
+search e writer, con `MEILISEARCH_LOG_KEY` opzionale e fallback legacy. Il piano
+VM precrea invece i quattro indici con credenziale operatore, consentendo ai
+writer soltanto `documents.add`. In quel profilo la creazione implicita non è
+autorizzata: il contratto applicativo qui descritto non sostituisce la preparazione
+operativa. [Configurazione e prove dei permessi](infrastructure/local-vm/MEILISEARCH-OPERATIONS.md).
+
 Gli indici storici `logs` e `security_logs` non vengono cancellati, rinominati o
 migrati. Eventi già persistiti in outbox mantengono il vecchio `indexName`:
 non è possibile attribuire retroattivamente un ambiente ignoto per supposizione.

@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "sshHost": "mercurion-server",
+  "serverRunId": "6c3e72e2e4064b71bd3bbffcff4d629c",
+  "applicationRunId": "07fd750861be434b8de3c768bc9a6353",
+  "serverRelease": "/opt/mercurion/releases/server-6c3e72e2e4064b71bd3bbffcff4d629c",
+  "applicationRelease": "/opt/mercurion/releases/application-07fd750861be434b8de3c768bc9a6353",
+  "applicationCompose": "/opt/mercurion/releases/application-07fd750861be434b8de3c768bc9a6353/preview-applications.json",
+  "applicationProject": "mercurion-preview",
+  "edgeContainer": "mercurion-shared-nginx-edge-1",
+  "edgeNetwork": "mercurion_stg_web"
+}

@@ -1,0 +1,399 @@
+# INF-VM-02 — Verifica di host, guest e isolamento
+
+**7 novembre 2026 — in verifica, non concluso.** La VM è già predisposta
+dall'owner: questa fase parte dall'esistente. Non reinstallare Docker/SSH,
+creare un altro switch o cambiare ACL/firewall prima di esaminare la baseline.
+
+**9 novembre:** verificata variazione subnet Default Switch. Guest
+`172.27.1.64/20`, host `172.27.0.1`; alias e allow SSH ancora riferiti alla
+vecchia rete. Nuovo inventario amministrativo completo e [migrazione statica
+VM-032 documentata](STATIC-NETWORK-MIGRATION.md). La migrazione è poi stata
+applicata dall'owner nella fase SSH-only descritta qui sotto. Le evidenze del
+7 novembre restano storiche, distinte dalle nuove prove.
+
+## Baseline statica del 9 novembre
+
+Guest 10.203.240.10/24, host 10.203.240.1/24 su Mercurion-Internal; login,
+IP e gateway statico confermati dall'owner anche dopo riavvio guest.
+ACL SSH-only rilette, Kaspersky ancora Pubblica confermata dall'owner.
+Router ZTE MC888 Ultra: port forwarding, DMZ, UPnP e mapping dichiarati
+disabilitati. Creato Mercurion-NAT; inventario amministrativo completo delle
+11:44 UTC nel run `static-network/98fda47d2bc34bb0893a9b65ff3aeea8`:
+prefisso 10.203.240.0/24, nessun mapping statico, zero ACL semplici e 14 estese
+coincidenti con la policy SSH-only, Windows Public, forwarding/weak-host
+disabilitati. Nessun allow egress e nessun deployment applicativo.
+
+Questa è la fotografia iniziale SSH-only. Successivamente l'owner ha applicato
+[DnsHttps](DNS-HTTPS-ACL.md) a guest spento: 19 ACL verificate, snapshot coerente,
+nessun avvio/spostamento automatico. Le prove successive sono registrate nella
+[sezione DnsHttps](#prove-sulla-policy-dnshttps), separate dai risultati SSH-only.
+
+**H-02 IPv4 sulla rete nuova:** run locale
+`h02-ipv4-bd5212a11cb54b5281b49785de9bb04c`, canary 10.203.240.1:62690.
+Tentativo guest alle 11:50:47.819476 UTC: TimeoutError/not-reachable.
+Nonce/IP/porta coincidenti e tentativo nella finestra; 36 controlli host
+positivi, dal primo delle 11:48:43.302711 all'ultimo delle 11:51:34.665929 UTC,
+inclusi controlli prima/dopo il timeout. Listener chiuso tramite stop, report
+controls-passed e processo terminato. SHA-256 delle evidenze locali:
+
+| File | SHA-256 |
+| --- | --- |
+| guest-probe.json | `810e59a939ee496d42b2fe7795a10812834c2f949fe4c179068eef0d1b77d911` |
+| result.json | `52292fc55f53605b2e28254010e6044f6ca72be8a7d53a8b5d30bf65e89bd7f7` |
+| network_canary.py | `52b73178ea7394ba310259c10f93ee203c74bccb04e27466d07813605df0f01b` |
+
+Prova valida per quel solo percorso guest → host TCP IPv4 nella fase SSH-only;
+non attribuisce il blocco a uno specifico livello né chiude isolamento LAN,
+container, IPv6 o altre origini. Dopo l'apertura egress ripetere le negazioni
+pertinenti sulla policy completa.
+
+**H-04 IPv4 sulla rete nuova:** run di riferimento confermato dall'owner
+`5e97721d427d414ba8e36469f18efd93`, sul bridge predefinito e su un bridge Docker
+temporaneo ordinario, dalle 11:58:24 alle 11:58:34 UTC.
+In ogni caso controlli container prima/dopo raggiungibili, tentativo TCP al
+canary Windows in timeout, identificatori/finestra coerenti e controlli host
+positivi prima/dopo: 16 su 16 riusciti. Nessun errore di pulizia; host controls-passed con stop
+richiesto, listener chiusi. Piattaforma linux/amd64 e immagine attesa
+`sha256:65bd3d9f1d7fa268dd1909973ba7eb4bdf41f6dcf2cfbe76ba9528b170f3fd79`;
+hash archivio locale coincidente con quello nel report guest.
+
+| File nel run h04-ipv4-5e97721d427d414ba8e36469f18efd93 | SHA-256 |
+| --- | --- |
+| container-probe.json | `1f656685e3620ed99ed1c93fcbf3a5c4b442b4489510cf775a73a7b112d06d43` |
+| host/result.json | `4ef7f770c293a0079c4a2d5927d3ca403f8c0ad729286046f4cab51ee018d370` |
+
+Il run conferma questi due tipi di bridge, non origini LAN aggiuntive.
+Anche H-04 vale nella fase SSH-only; ripetere i controlli
+pertinenti dopo apertura egress. LAN, IPv6, altre origini e reboot host restano
+aperti; tutti i report mantengono isolationAccepted false.
+
+Owner segnala prompt sudo visualizzato in ritardo e due tentativi falliti;
+autenticazione poi riuscita e report completo. Registrato come limite UX degli
+strumenti, non errore dell'ACL o del probe. Il buffering della pipeline SSH/PTY
+è un'ipotesi da verificare; nessuna modifica ad autenticazione o sudoers.
+
+### Prove sulla policy DnsHttps
+
+**H-06:** owner conferma run `h06-ipv4-3a56cc9f09b74778b1224c738fe21e4b`,
+12:26:53–12:26:54 UTC. Report locale riletto: guest, bridge predefinito e
+bridge temporaneo risolvono IPv4 pubblico e ricevono HTTP 200 da
+`https://docs.python.org/3/`, TLS 1.3 con verifica certificato/hostname.
+Immagine attesa confermata, nessun errore di pulizia. Prova valida per lo
+smoke dichiarato, non per tutti i provider, resolver o trasporti DNS separatamente.
+
+**H-02 dopo egress:** run `h02-ipv4-56664b9c8b2b465c89c93c213b485824`,
+canary 10.203.240.1:52287. Owner riporta timeout alle 12:29:07.271508 UTC.
+Identificatori e finestra coerenti; 23 controlli host tutti positivi tra
+12:28:03.124629 e 12:29:52.430914 UTC, inclusi prima/dopo il tentativo.
+Stop richiesto, controls-passed e listener chiuso. Conferma il solo percorso
+guest → Windows TCP IPv4 testato, senza attribuire il blocco a un livello specifico.
+
+| Evidenza locale | SHA-256 |
+| --- | --- |
+| H-06 / egress-probe.json | `3e9bf5bfbc7dda7fd9cb05f75918fd8f9298a02f7a4fa0246644c2cbdb11422c` |
+| probe_egress.py | `4a19716fee785d5fffa02dc321694b82a97cceff8a90b2839e2f1bb431d0c5f0` |
+| H-02 / guest-probe.json | `9de1da5a77cae07c1550e067efdec75d0bb6db01e6e01c5f372299764bda50e2` |
+| H-02 / result.json | `d3686cfca93c5199989e4e5f42a7380d4acbecda8fb1d4828a6b212674e437f1` |
+
+**H-04 dopo egress:** run owner `h04-ipv4-7b517c3d29724aa0aaae6bde9559ef6c`,
+12:31:28–12:31:38 UTC, canary 10.203.240.1:61848. Su bridge predefinito e
+temporaneo: controlli container prima/dopo raggiungibili, timeout al canary,
+nonce/endpoint e finestra coerenti. Dodici controlli host tutti positivi,
+inclusi prima/dopo ciascun tentativo, stop richiesto e controls-passed.
+Archivio locale coerente con SHA guest, immagine attesa linux/amd64, nessun
+errore di pulizia. Hash dei report nel run:
+
+| File | SHA-256 |
+| --- | --- |
+| container-probe.json | `5ac399b63cab066214989f8cf4562b508a2ae86cf1cd45dd7067f45bcc091303` |
+| host/result.json | `b752faa45cd9a49ded7397d7dbb5ceb85f351fc36b52b428acff8485a0180880` |
+
+**Verify finale owner:** policy DnsHttps, settingsReadbackVerified true,
+internetEgressEnabled true, isolationAccepted false. Lo script verifica anche
+NAT attivo/prefisso, zero mapping e Windows Public. Nessun listener dei nuovi
+canary rimasto e processo H-02 terminato al controllo locale.
+
+Limite: H-02/H-04 usano porte TCP effimere, non le porte 443/53 dei nuovi allow.
+Readback e test di policy coprono priorità/configurazione; i controlli runtime
+successivi su quelle porte sono descritti sotto. LAN bidirezionale, IPv6/altre origini
+e reboot host restano aperti; nessuna accettazione complessiva o esposizione pubblica.
+
+### Prove delle porte private
+
+Owner conferma run `private-ports-ipv4-b99564532a354dbcbe548472d8bcba56`,
+13:24:12–13:24:49 UTC. Guest, bridge predefinito e temporaneo: TCP/443 e TCP/53
+verso 10.203.240.1, UDP/53 verso DNS ICS host 172.27.0.1 non raggiungibili.
+Nove casi distinti, controlli client prima/dopo riusciti e route osservate:
+guest eth0 /24 per IP interno e default via 10.203.240.1 per DNS ICS;
+container via gateway del proprio bridge 172.17.0.1 o 172.18.0.1.
+Sessantatré controlli host tutti positivi, 21 per endpoint, prima/dopo i tentativi.
+Readiness DNS al primo tentativo, marker/finestra correlati, immagine attesa,
+nessun errore di pulizia e nessun listener TCP canary residuo. Correlazione
+ricalcolata dall'agente; [matrice, hash e limiti](PRIVATE-PORT-PROBES.md#esito-reale-acquisito).
+Nessuna modifica ad ACL, firewall o servizio ICS. Conferma dei percorsi host
+testati, non un collaudo di tutti i dispositivi LAN o di altre origini in ingresso.
+
+## Evidenza acquisita
+
+L'owner ha eseguito l'inventario guest con `sudo` via `ssh mercurion-server`.
+Report locale del **7 novembre, 16:25:51 UTC**:
+`C:/Users/giuli/.codex/artifacts/inf-vm-02/guest-inventory.txt`, SHA-256
+`9a7e31ef68d2cd2464da36f00624526b4204d29bd198d68d056f29a23b6711c3`.
+Il report è stato letto dall'agente; non è una sessione SSH autonoma dell'agente.
+Non versionare report grezzi con indirizzi e dettagli operativi personali.
+
+**Seconda raccolta acquisita:** host amministrativo alle 16:41:54 UTC e guest
+alle 16:44:07 UTC. File locali `host-inventory-admin.json` e
+`guest-inventory-v2.txt` nella stessa directory, rispettivamente SHA-256
+`59bdf5397a5ab56ea52b6cf26bf3c884510b348bde62e426a670b2e446fd2a99` e
+`33ab14d6df4d679c10dced1d07ae4cf9d4f8dd7c6ca9b5822b7b71e2c755e1ba`.
+I risultati aggiornati sotto provengono da questi report dell'operatore.
+
+| Voce | Osservazione | Limite |
+| --- | --- | --- |
+| Host/VM | Windows 11 Pro, 24 CPU logiche, circa 64 GiB RAM; `Mercurion-Server` generazione 2, 8 vCPU e 16 GiB fissi, Default Switch | Nessun ridimensionamento eseguito |
+| Guest | Ubuntu 26.04.1 LTS, x86_64 | Raccolta eseguita dall'owner |
+| Docker guest | Engine 29.9.3, Compose plugin 5.7.0, socket Unix locale | Diverso dal daemon Docker Desktop dell'host |
+| Backend firewall Docker | Driver `iptables`, comandi iptables/ip6tables 1.8.11 basati su `nf_tables` | È il backend iptables con traduzione nft, non il backend nftables nativo Docker |
+| Cifratura root | `crypto_LUKS` → dm-crypt → LVM → filesystem ext4 montato su `/` | `/boot` ed EFI risultano separati non cifrati; sblocco a freddo non testato |
+| SSH | Login riuscito dall'host; `pubkeyauthentication yes`, password e keyboard-interactive `no`, root `no` | Restrizione dell'origine richiede review ACL e prove negative; eventuali `Match` richiedono verifica per connessione |
+| Listener guest | SSH su IPv4 e IPv6; resolver DNS su loopback | Il bind SSH wildcard non dimostra da solo accessibilità dalla LAN |
+| Container | Nessuno in esecuzione e nessuna porta pubblicata nel report; sole reti Docker predefinite | Snapshot, non prova di isolamento degli stack futuri |
+| IPv4 | Route tramite switch virtuale; forwarding attivo; `FORWARD DROP` con chain Docker | Il dump nft acquisito mostra le chain Docker, senza un ulteriore filtro custom INPUT; policy Hyper-V separata |
+| IPv6 | Solo route link-local; forwarding globale disattivo; `INPUT/FORWARD ACCEPT` | La sola assenza di route Internet non prova il blocco sul segmento locale |
+| SSH forwarding | `gatewayports no`, `allowtcpforwarding yes`, `permitopen any` | Configurazione ampia per l'amministratore; non equivale a inoltri già aperti né alla futura UI approvata |
+
+**Configurazione Hyper-V acquisita:** due ACL estese: deny outbound verso
+`172.16.0.0/12`, peso 200; allow inbound SSH dal solo indirizzo virtuale host
+corrente, peso 300, stateful, timeout 3600 secondi. Le sei ACL semplici, acquisite
+dal terminale dell'owner dopo la correzione del collector, negano outbound verso
+`127.0.0.0/8`, `169.254.0.0/16`, `100.64.0.0/10`, `::/0`, `192.168.0.0/16` e
+`10.0.0.0/8`. Il campo locale è vuoto nella trascrizione. La combinazione copre
+i blocchi IPv4 privati indicati e l'outbound IPv6; non è un divieto di tutto
+l'egress IPv4 pubblico. La trascrizione normalizzata è conservata localmente
+in `simple-acls-transcript.json`. Il difetto dei campi null riguardava soltanto
+il vecchio collector, non regole mancanti sulla VM.
+
+L'allow SSH stateful concorda con il login host osservato. Da solo non dimostra
+che ogni altra origine sia negata: nei report acquisiti non compare un deny
+inbound generale. Verificare il comportamento complessivo dei diversi livelli
+con la prova negativa prima di dichiarare una whitelist esclusiva. Non applicare
+regole di chiusura senza review e percorso di recupero console.
+
+**Ancora dichiarato/non collaudato:** perimetro completo guest/container → host
+e altre origini verso SSH, oltre ai casi H-02/H-04 IPv4 verificati sotto;
+profilo pubblico/restrittivo
+Default Switch in Kaspersky. Security Center elenca prodotti registrati, non
+fornisce una dimostrazione della loro attività o della policy applicata.
+Il vincolo host↔guest non viene interpretato come divieto indistinto di Internet.
+Lo smoke H-06 sotto verifica DNS/HTTPS IPv4 verso una sola destinazione pubblica;
+provider applicativi e IPv6 rimangono da collaudare.
+
+L'indirizzo guest è DHCP e la regola SSH usa l'indirizzo host corrente: il
+runbook di avvio a freddo dovrà verificarne la coerenza, senza presumere che il
+Default Switch conservi sempre lo stesso prefisso.
+
+La passphrase protegge la chiave privata sul client; il metodo SSH osservato è
+`publickey`. Le opzioni del client `ssh -G` non descrivono la policy del server.
+Non attivare ssh-agent, cambiare autenticazione o richiedere la passphrase in chat.
+
+## Inventari ripetibili, senza modifiche alla macchina
+
+- [Host PowerShell](../../../scripts/infrastructure/Get-LocalVmHostInventory.ps1):
+  sistema, risorse, VM/switch/adattatori, ACL semplici/estese, NAT, indirizzi,
+  route, profili Windows e prodotti firewall. Output JSON; privilegi mancanti
+  producono sezioni `unavailable` e codice 2, non una VM «assente».
+- [Guest Bash](../../../scripts/infrastructure/inspect-local-vm-guest.sh):
+  OS, risorse, mount e tipi block device senza UUID/chiavi, SSH, route IPv4/IPv6,
+  Docker locale, porte, immagini disponibili, iptables/ip6tables e nftables.
+  Rifiuta OS non Ubuntu o endpoint Docker non Unix locale. Nessuna installazione,
+  restart o lettura di chiavi, variabili segrete e `daemon.json`.
+
+Codice 0 significa raccolta completata, **mai** isolamento accettato.
+`isolationAccepted=false` rimane esplicito. Conservare i report fuori dal Git.
+Il profilo di Windows Firewall non dimostra la policy Kaspersky; analogamente
+un elenco `Get-NetNat` vuoto non descrive ogni meccanismo del Default Switch.
+
+## Revisione prima di cambiare regole
+
+1. Associare con certezza VM, adattatore e switch attraverso l'inventario host.
+2. Leggere ACL semplici/estese e ordine/pesi, protocolli, direzioni, destinazioni,
+   statefulness ed eventuali eccezioni. Verificare il perimetro IPv4 e IPv6.
+3. Esaminare insieme nftables e iptables: la chain `DOCKER-USER` vuota non prova
+   né isolamento efficace né assenza di filtri in altri livelli. Il backend
+   nftables nativo Docker 29 ha un modello differente, senza quella chain.
+4. Separare traffico destinato al guest (`INPUT`), traffico inoltrato dai
+   container (`FORWARD`) e policy host/Hyper-V/Kaspersky. Non aggiungere `ACCEPT`
+   o `DROP` generici per risolvere la diagnosi. Nessun flush delle chain Docker.
+5. Stabilire solo dopo questa review se serva una correzione mirata. Conservare
+   accesso console Hyper-V e SSH verificato prima di qualsiasi modifica futura.
+
+## Prove da eseguire per chiudere INF-VM-02
+
+| ID | Prova | Controllo necessario | Stato |
+| --- | --- | --- | --- |
+| H-01 | Accesso host → SSH guest con chiave; autenticazioni vietate respinte | Host key già nota; policy server e contesto connessione | Login riuscito; raccolta policy globale acquisita |
+| H-02 | Guest non inizia nuove connessioni al Windows host | Endpoint canary in ascolto sull'interfaccia di test, raggiungibile dal controllo locale host prima/dopo | Percorsi TCP IPv4 e IPv6 link-local verso il canary host verificati; altre destinazioni non dedotte |
+| H-03 | Risposte guest a SSH iniziato dall'host funzionano | Connessione mantenuta durante la prova, senza allargare regole | SSH operatore riuscito; nessuna prova sotto modifica regole |
+| H-04 | Container bridge/egress non raggiunge host e LAN fuori policy | Probe sintetico con endpoint espliciti e controlli positivi; nessuna scansione indiscriminata | IPv4 verso host verificato su bridge predefinito e temporaneo; LAN/IPv6 aperti |
+| H-05 | Origine non autorizzata non raggiunge SSH né porte amministrative | Seconda origine controllata, servizi effettivamente attivi; coprire IPv4/IPv6 | Non eseguita |
+| H-06 | Egress necessario funziona senza riaprire host/LAN | DNS e destinazione HTTPS di test autorizzata, guest/container distinti | Smoke IPv4 verso docs.python.org verificato su guest e due bridge; provider applicativi/IPv6 aperti |
+| H-07 | Root filesystem ricondotto al volume cifrato dichiarato | Mount root e albero block device; nessun dump/header o materiale LUKS | Verificato nel report guest v2; prova di sblocco/restart separata |
+
+Un timeout verso una porta chiusa **non** valida H-02/H-04/H-05. Correlare
+endpoint attivo, controllo positivo e regole/counter disponibili. Senza IPv6
+globale va comunque verificato il link-local; nessun «passato» per omissione.
+Le prove canary e le fixture dei futuri network devono rimanere non sensibili,
+temporanee e distinguibili dai servizi applicativi.
+
+### H-02 IPv4 — prova reale del 7 novembre
+
+Canary host sull'indirizzo dell'adattatore Default Switch, porta temporanea,
+run locale `h02-ipv4-20261107-run2`. Dopo il controllo positivo iniziale,
+l'owner ha eseguito il probe nel guest usando la chiave SSH già configurata:
+timeout TCP di tre secondi, identificatore/IP/porta coerenti con la prova attiva.
+I 69 controlli host sono tutti positivi; controllo precedente alle 17:18:33 UTC,
+probe iniziato alle 17:18:37 UTC e controllo successivo al termine del probe
+registrato in `review.json`. Chiusura controllata del listener alle 17:19:09 UTC.
+Nessuna modifica di regole. Il risultato SSH tornato all'host conferma anche la
+comunicazione sulla sessione iniziata dall'host durante il test.
+
+Evidenze locali: `ready.json`, `guest-probe.json`, `result.json`, `review.json`
+sotto `C:/Users/giuli/.codex/artifacts/inf-vm-02/h02-ipv4-20261107-run2/`.
+SHA-256 del risultato host:
+`71cbc59412327307a4c79f1792ac9a271745d247befc22d5c9f94129c0d9b081`.
+Il primo run, fermato senza probe valido dopo un problema di copia dei comandi,
+non è contato come prova negativa. La successiva esecuzione usa il wrapper
+PowerShell, che tiene distinti SCP e SSH e salva il risultato automaticamente.
+Il caso dimostra il blocco del percorso TCP IPv4 provato; non identifica da
+solo il livello che ha filtrato né sostituisce H-04, H-05 o una prova IPv6.
+
+### H-02 IPv6 link-local — prova reale del 7 novembre
+
+Run `452765bb0a6e4c6a9250caae3c495415`. Interfaccia guest `eth0`, indirizzo
+link-local utilizzabile e route kernel verso il canary host verificati tramite
+letture `ip`; scope guest coerente e distinto dall'indice Windows. Tentativo TCP
+19:25:12–19:25:15 UTC: timeout di tre secondi. Nove controlli host tutti positivi,
+compresi quello precedente alle 19:25:09 UTC e quello successivo alle 19:25:15 UTC.
+Nonce, porta e indirizzo privo di scope corrispondono alla configurazione e ai
+report host. Nessuna modifica di route, firewall, ACL o configurazione IPv6.
+Listener chiuso alle 19:25:15 UTC; assenza di ascolto verificata dopo la prova.
+
+Evidenze locali sotto
+`C:/Users/giuli/.codex/artifacts/inf-vm-02/h02-ipv6-452765bb0a6e4c6a9250caae3c495415/`:
+`guest-ipv6-probe.json`, `host/result.json`, configurazione e `review.json`.
+Script trasferito identico alla versione nel repository. SHA-256 report guest:
+`5729d78548db664e68c299933f8ea93931b809c246abc822295ba0c77eb1ca34`;
+risultato host:
+`eb69124b013b843dcd513477f32143172817aa888ed38e94e3a74e393bb35949`.
+Verificato il mancato accesso su quel percorso TCP link-local; il dato non
+identifica il livello di filtro e non copre container, LAN o IPv6 globale.
+
+### H-04 IPv4 — prova reale container del 7 novembre
+
+Run `278ac618aa3a4cccba67d4a2ab54300e`, Docker guest Linux amd64:
+bridge predefinito e bridge temporaneo ordinario con egress. Tentativi TCP verso
+il canary Windows alle 18:28:54–18:28:58 UTC e 18:28:59–18:29:02 UTC, entrambi
+in timeout. Per ogni caso controlli container → container positivi prima/dopo;
+33 controlli host tutti positivi, compresi quelli che precedono e seguono
+ciascun tentativo. Identificatore/IP/porta e hash archivio correlati ai file
+di configurazione. Nessun errore di rimozione container/rete nel report guest.
+Listener host chiuso alle 18:29:03 UTC, assenza di ascolto verificata.
+
+Il runner guest ha completato la prova, ma il wrapper Windows non riconosceva
+il marcatore preceduto da testo PTY sulla stessa riga. JSON recuperato dalla
+trascrizione già salvata, senza ripetere il test o aprire SSH. Il parser ora
+estrae il solo payload, richiede un marcatore univoco e verifica il runId.
+Il testo precedente al marcatore non fa parte del report normalizzato.
+
+Evidenze locali sotto
+`C:/Users/giuli/.codex/artifacts/inf-vm-02/h04-ipv4-278ac618aa3a4cccba67d4a2ab54300e/`:
+`container-probe.json`, `host/result.json`, configurazione e `review.json`.
+SHA-256 del report guest normalizzato:
+`d82d89f204f640570a53e02676476f9047a165b8aa79cb58896cd44381beb642`.
+SHA-256 del risultato host:
+`3ffeb94e792b387985184233600166bb7a6c085ad86033753cd28f30eeadc554`.
+Il risultato vale per i due percorsi TCP IPv4 verso l'host provati, non per
+LAN, IPv6, future reti Compose o isolamento complessivo.
+
+### H-06 IPv4 — prova reale DNS/HTTPS del 7 novembre
+
+Run `9449b2cd6e8647229c0646bf1890eb18`, 18:54:45–18:54:47 UTC. Risoluzione
+DNS pubblica IPv4 e risposta HTTP 200 a `HEAD https://docs.python.org/3/` da
+processo guest, container sul bridge predefinito e container sul bridge temporaneo.
+TLS 1.3 su tutte le origini, con verifica CA/hostname prevista dal probe;
+nessun redirect seguito, corpo scaricato o credenziale applicativa utilizzata.
+Immagine già importata riutilizzata con identità verificata. Nessun errore di
+pulizia nel report guest; nessun listener o porta pubblicata per questa prova.
+
+Report acquisito dal wrapper e verificato localmente per runId, tre origini,
+target/metodo/famiglia, tempi coerenti, risultati DNS, HTTP/TLS e pulizia riportata.
+Evidenze locali sotto
+`C:/Users/giuli/.codex/artifacts/inf-vm-02/h06-ipv4-9449b2cd6e8647229c0646bf1890eb18/`:
+`egress-probe.json`, script trasferito e `review.json`. SHA-256 del report:
+`2e8a833635d63cf29f062eedfd4d515413edd892d29d3ee93400bb8264c9c799`.
+L'esito dimostra questo smoke DNS/HTTPS IPv4, non l'accesso a tutti i provider
+o il blocco completo host/LAN. Le evidenze negative H-02/H-04 restano distinte;
+nessuna regola è stata allargata per ottenere il risultato.
+
+## Prerequisiti delle prove residue
+
+I casi IPv4 e link-local già acquisiti non vanno ripetuti per colmare una diversa
+origine o destinazione. Il passo successivo dipende dai seguenti punti di prova:
+
+| Perimetro | Risorsa necessaria | Criterio e limite |
+| --- | --- | --- |
+| Guest/container → LAN | Secondo dispositivo controllato, IP privato noto e canary temporaneo attivo | Controllo positivo sul dispositivo e da un'origine ammessa, poi singolo tentativo guest/container allo stesso endpoint; nessun test contro router o porte casuali |
+| H-05 ingresso amministrativo | Origine controllata diversa dall'host autorizzato, con percorso verso il guest documentato | Correlare SSH attivo/raggiungibile dall'host e tentativo dall'altra origine; NAT/route assenti non dimostrano da soli una whitelist firewall |
+| IPv6 container | Stato IPv6 effettivo delle reti e del namespace container sul guest | Acquisire indirizzi/route e impostazioni dei bridge; assenza di route non è una prova negativa passata. Non abilitare IPv6 né usare host networking per costruire una copertura artificiale |
+| IPv6 globale | Indirizzamento e route globali effettivamente presenti | Baseline attuale solo link-local: non dichiarare collaudo globale; eventuale introduzione è una scelta distinta, non una correzione del test |
+
+Una seconda VM è utilizzabile soltanto se già disponibile con una collocazione
+di rete compresa: non creare VM, switch o bridge LAN come conseguenza implicita
+del piano. Un container Docker Desktop non è automaticamente una seconda origine
+valida: verificare l'indirizzo sorgente visto dal guest dopo eventuale NAT.
+Anche un secondo PC che non dispone di una route verso il Default Switch non
+prova da solo il filtro SSH. Registrare separatamente limite topologico ed
+effettiva decisione di filtro, senza introdurre forwarding per aggirare il limite.
+
+**Disponibilità iniziale dichiarata dall'owner:** nessun secondo PC; iPhone e smartphone
+Android connessi alla LAN; nessuna app terminale/server HTTP o TCP su Android.
+Possono costituire origini controllate, ma strumenti utilizzabili e percorso
+verso la VM restano da predisporre/verificare. Il solo
+errore del browser verso una porta SSH non è una misura TCP sufficiente;
+nessuna installazione di app o apertura di porte sull'host è implicita.
+Successivamente, il 9 novembre, Android predisposto con Termux/Python e
+misura TCP guest/due bridge verso telefono riuscita: 18 controlli Windows
+positivi, route e correlazione validi, cleanup senza errori. [Report e limiti](ANDROID-LAN-PROBES.md).
+Direzione opposta e IPv6 restano aperti; nessuna route o regola aggiunta.
+In assenza di un punto di prova utilizzabile conservare i casi come aperti e sottoporre il limite alla review del gate;
+non trasformarli automaticamente in «non applicabile» o in una deroga approvata.
+
+### Prosecuzione statica autorizzata dall'owner
+
+**Autorizzata il 7 novembre 2026:** anticipare la sola preparazione statica di INF-VM-03
+mentre queste verifiche restano aperte. Perimetro concreto: manifest Compose
+separati shared/preview/production, reti e alias coerenti con la specifica,
+placeholder non sensibili e validazione locale della configurazione. Nessun
+`compose up`, trasferimento operativo, segreto reale, pubblicazione di porte
+o connessione Cloudflare. La validazione statica non chiude INF-VM-02 né prova
+la matrice runtime di INF-VM-03; il gate verso l'avvio VM rimane in sospeso.
+
+In quella fase l'owner ha scelto «Anticipa i manifest locali; prove residue
+aperte». Il 9 novembre, dopo le prove post-Restart Windows, ha poi scelto
+di predisporre Android: [procedura e stato](ANDROID-LAN-PROBES.md).
+Versione Android/installazione e prove ancora pendenti. La scelta successiva
+non autorizza modifiche a firewall/ACL o topologia operativa.
+Manifest fixture e validator: [deployment/local-vm](../../../deployment/local-vm/README.md).
+
+**Gate verso INF-VM-03:** review della policy host/guest e prove pertinenti
+documentate; nessuna dichiarazione di isolamento basata solo sulla sintassi.
+La matrice applicativa di INF-VM-03 continuerà a verificare i bridge reali.
+
+## Fonti consultate il 7 novembre 2026
+
+- [Docker: iptables e DOCKER-USER](https://docs.docker.com/engine/network/firewall-iptables/)
+- [Docker: backend nftables](https://docs.docker.com/engine/network/firewall-nftables/)
+- [Microsoft: ACL estese Hyper-V](https://learn.microsoft.com/en-us/powershell/module/hyper-v/get-vmnetworkadapterextendedacl?view=windowsserver2025-ps)
+- [Microsoft: ACL semplici Hyper-V](https://learn.microsoft.com/en-us/powershell/module/hyper-v/get-vmnetworkadapteracl?view=windowsserver2025-ps)
+- [Microsoft: pesi, chiusura e statefulness delle ACL](https://learn.microsoft.com/en-us/windows-server/virtualization/hyper-v/create-security-policies-extended-port-access-control-lists)

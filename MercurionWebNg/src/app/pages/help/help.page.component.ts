@@ -59,18 +59,28 @@ import { ButtonComponent } from '../../components/common/button/button.component
       </h1>
 
       @if (handleTickets()) {
+        <section class="mb-6 -mt-4 p-4 flex gap-4 items-center border border-light-accent-secondary bg-dark-accent-secondary-hc/20 dark:border-dark-accent-secondary rounded-2xl" aria-description="Hai i permessi di accesso alla sezione di supporto per gli utenti. Puoi visualizzare le richieste degli utenti e rispondere ai ticket aperti.">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" aria-hidden="true" focusable="false" class="size-6 shrink-0 fill-current text-emerald-900 dark:text-emerald-200">
+            <!--!Font Awesome Pro v7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2026 Fonticons, Inc.-->
+            <path d="M320 96C443.7 96 544 196.3 544 320C544 443.7 443.7 544 320 544C196.3 544 96 443.7 96 320C96 196.3 196.3 96 320 96zM320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM272 416L256 416L256 448L384 448L384 416L336 416L336 288L256 288L256 320L304 320L304 416L272 416zM344 248L344 200L296 200L296 248L344 248z"/>
+          </svg>
+          <p class="m-0 text-sm text-on-surface-secondary dark:text-dark-on-surface-secondary">
+            Hai i permessi di accesso alla sezione di supporto per gli utenti. Puoi visualizzare le richieste degli utenti e rispondere ai ticket aperti dal pannello
+            <span class="font-semibold">Sezione admin</span>.
+          </p>
+        </section>
         <p-tabs class="block mt-4" [value]="activeTab()" (valueChange)="switchTab($event)"
           style="--p-tabs-tablist-background: transparent; --p-tabs-tabpanel-background: transparent; --p-tabs-tab-active-color: var(--m-color-accent-primary); --p-tabs-tab-active-border-color: var(--m-color-accent-primary); --p-tabs-active-bar-background: var(--m-color-accent-primary)">
-          <p-tablist class="!bg-transparent" aria-label="Seleziona la sezione dei ticket">
+          <p-tablist class="bg-transparent!" aria-label="Seleziona la sezione dei ticket">
             @for (tab of tabs; track $index) {
               <p-tab [value]="$index">{{ tab }}</p-tab>
             }
           </p-tablist>
-          <p-tabpanels class="!p-0 !bg-transparent">
-            <p-tabpanel class="!bg-transparent" [value]="0">
+          <p-tabpanels class="p-0! bg-transparent!">
+            <p-tabpanel class="bg-transparent!" [value]="0">
               @if (activeTab() === 0) { <ng-container [ngTemplateOutlet]="ticketContent" /> }
             </p-tabpanel>
-            <p-tabpanel class="!bg-transparent" [value]="1">
+            <p-tabpanel class="bg-transparent!" [value]="1">
               @if (activeTab() === 1) { <ng-container [ngTemplateOutlet]="ticketContent" /> }
             </p-tabpanel>
           </p-tabpanels>

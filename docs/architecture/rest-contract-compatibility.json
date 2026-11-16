@@ -37,9 +37,9 @@
       }
     }
   },
-  "totalClientCalls": 69,
-  "matchedClientCalls": 69,
-  "uniqueNestRoutes": 68,
+  "totalClientCalls": 68,
+  "matchedClientCalls": 68,
+  "uniqueNestRoutes": 67,
   "entries": [
     {
       "id": "MercurionWebNg/src/app/services/account.service.ts#AccountService.activateAccount#0",
@@ -5461,131 +5461,6 @@
           ],
           "clientShapeHash": "75382e2b592c695f2fc5cf2a9774db5fb993a2dad5225703e9266376f20ddb45",
           "serverShapeHash": "75382e2b592c695f2fc5cf2a9774db5fb993a2dad5225703e9266376f20ddb45"
-        }
-      }
-    },
-    {
-      "id": "MercurionWebNg/src/app/services/auth-transport.service.ts#AuthTransportService.skipMaintenanceMode#0",
-      "consumer": {
-        "file": "MercurionWebNg/src/app/services/auth-transport.service.ts",
-        "class": "AuthTransportService",
-        "method": "skipMaintenanceMode",
-        "ordinal": 0,
-        "verb": "GET",
-        "path": "/api/admin/maintenance",
-        "urlVariants": [
-          "/api/admin/maintenance?t=:token"
-        ],
-        "pathParameters": [],
-        "queryParameters": [
-          {
-            "name": "t",
-            "wireType": "string",
-            "sourceTypes": [
-              "string"
-            ],
-            "optional": false
-          }
-        ],
-        "body": {
-          "contract": {
-            "applicable": false,
-            "compatible": true,
-            "canonicalNames": [],
-            "shapeHash": null
-          }
-        },
-        "response": {
-          "type": "MaintenanceBypassResponse",
-          "mode": "json",
-          "options": {
-            "withCredentials": "true"
-          },
-          "contract": {
-            "applicable": true,
-            "compatible": true,
-            "canonicalNames": [
-              "MaintenanceBypassResponse"
-            ],
-            "shapeHash": "099da87ed4c3aaa40238c6cabb7cc9d56d1fa0c3c3d639135037d8c2d5b15b0d"
-          }
-        }
-      },
-      "server": {
-        "controller": "MercurionWebNode/src/app_modules/admin/controllers/admin.controller.ts",
-        "handler": "getAdminMaintenanceCookie",
-        "verb": "GET",
-        "path": "/api/admin/maintenance",
-        "parameters": [
-          {
-            "source": "query",
-            "name": "t",
-            "type": "string",
-            "optional": false
-          }
-        ],
-        "returnType": "MaintenanceBypassResponse",
-        "successStatus": 200,
-        "errorStatuses": {
-          "validation": [
-            400
-          ],
-          "authentication": [],
-          "authorization": [],
-          "declared": [
-            403
-          ]
-        },
-        "authentication": {
-          "public": true,
-          "guards": [],
-          "scopes": []
-        },
-        "responseContract": {
-          "displayType": "MaintenanceBypassResponse",
-          "shapeHash": "099da87ed4c3aaa40238c6cabb7cc9d56d1fa0c3c3d639135037d8c2d5b15b0d",
-          "canonicalNames": [
-            "MaintenanceBypassResponse"
-          ],
-          "applicable": true,
-          "canonical": true
-        }
-      },
-      "matching": {
-        "status": "matched",
-        "path": {
-          "compatible": true,
-          "failures": []
-        },
-        "pathParameters": {
-          "compatible": true,
-          "failures": []
-        },
-        "query": {
-          "compatible": true,
-          "failures": []
-        },
-        "request": {
-          "compatible": true,
-          "canonical": true,
-          "canonicalNames": [],
-          "clientShapeHash": null,
-          "serverShapeHash": null
-        },
-        "validation": {
-          "compatible": true,
-          "policy": "not-applicable",
-          "properties": [],
-          "failures": []
-        },
-        "response": {
-          "compatible": true,
-          "canonical": true,
-          "canonicalNames": [
-            "MaintenanceBypassResponse"
-          ],
-          "clientShapeHash": "099da87ed4c3aaa40238c6cabb7cc9d56d1fa0c3c3d639135037d8c2d5b15b0d",
-          "serverShapeHash": "099da87ed4c3aaa40238c6cabb7cc9d56d1fa0c3c3d639135037d8c2d5b15b0d"
         }
       }
     },

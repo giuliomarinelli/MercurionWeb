@@ -317,6 +317,8 @@ export const environmentSchema = defineEnvironmentSchema(
     required('APP_PORT', positiveInteger()),
     required('APP_NATS_PORT', integerParser(1, 65535)),
     required('APP_NATS_HOST', natsHostParser()),
+    optional('APP_NATS_USERNAME', nonEmptyString()),
+    optional('APP_NATS_PASSWORD', nonEmptyString()),
     required('APP_PROJECT_NAME', string()),
     required('APP_GLOBAL_NAME', string()),
     required('APP_PROJECT_ID', uuidParser()),
@@ -417,6 +419,7 @@ export const environmentSchema = defineEnvironmentSchema(
 
     required('MEILISEARCH_HOST', string()),
     required('MEILISEARCH_MASTER_KEY', string()),
+    optional('MEILISEARCH_LOG_KEY', nonEmptyString()),
     required('CLOUDFLARE_SECRET_KEY', string()),
 
     required('REDIS_HOST', string()),

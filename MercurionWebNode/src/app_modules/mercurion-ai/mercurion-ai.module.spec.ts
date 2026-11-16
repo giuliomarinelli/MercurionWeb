@@ -1,4 +1,5 @@
 import { Transport } from '@nestjs/microservices'
+import { ConfigService } from '@nestjs/config'
 import { MODULE_METADATA } from '@nestjs/common/constants'
 import { PcpService } from './services/pcp.service'
 
@@ -19,21 +20,25 @@ describe('MercurionAIModule', () => {
     expect(Reflect.getMetadata(MODULE_METADATA.EXPORTS, MercurionAIModule)).toContain(PcpService)
   })
 
-  it('uses the same canonical NATS server URL as application bootstrap', async () => {
+  it.each([{}, { username: 'synthetic-nest-user', password: 'synthetic-@$:password' }])(
+    'uses the same NATS URL and credentials as application bootstrap: %j', async credentials => {
     const serverUrl = 'nats://localhost:4223' as NatsServerUrl
-    const config = {
-      getOrThrow: jest.fn().mockReturnValue(serverUrl)
-    }
+    const config = new ConfigService({ App: { natsUrl: serverUrl, natsCredentials: credentials } })
+    const getOrThrow = jest.spyOn(config, 'getOrThrow')
 
     const bootstrapOptions = createNatsTransportOptions(config)
     const clientOptions = await createMercurionAIClientOptions(config)
 
     expect(bootstrapOptions).toEqual({
       transport: Transport.NATS,
-      options: { servers: [serverUrl] }
+      options: { servers: [serverUrl], ...('username' in credentials ? {
+        user: credentials.username, pass: credentials.password
+      } : {}) }
     })
     expect(clientOptions).toEqual(bootstrapOptions)
-    expect(config.getOrThrow).toHaveBeenNthCalledWith(1, 'App.natsUrl')
-    expect(config.getOrThrow).toHaveBeenNthCalledWith(2, 'App.natsUrl')
+    expect(getOrThrow).toHaveBeenNthCalledWith(1, 'App.natsUrl')
+    expect(getOrThrow).toHaveBeenNthCalledWith(2, 'App.natsCredentials')
+    expect(getOrThrow).toHaveBeenNthCalledWith(3, 'App.natsUrl')
+    expect(getOrThrow).toHaveBeenNthCalledWith(4, 'App.natsCredentials')
   })
 })

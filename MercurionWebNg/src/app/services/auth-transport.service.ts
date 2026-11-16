@@ -10,7 +10,6 @@ import type {
   Confirm_Login_FirstStepDTO,
   EmailDTO,
   Login_FirstStepDTO,
-  MaintenanceBypassResponse,
   MfaStrategy,
   SessionDeviceInfo,
   SignedSessionIdDTO,
@@ -131,7 +130,4 @@ export class AuthTransportService {
     )
   }
 
-  skipMaintenanceMode(token: string): Observable<MaintenanceBypassResponse> {
-    return this.http.get<MaintenanceBypassResponse>(`/api/admin/maintenance?t=${token}`, { withCredentials: true })
-  }
 }

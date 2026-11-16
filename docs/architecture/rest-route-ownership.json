@@ -442,18 +442,24 @@
       "path": "/api/admin/maintenance",
       "controller": "MercurionWebNode/src/app_modules/admin/controllers/admin.controller.ts",
       "handler": "getAdminMaintenanceCookie",
-      "classification": "documented external consumer",
-      "owner": "Privileged administration client",
+      "classification": "temporarily disabled endpoint",
+      "owner": "Mercurion infrastructure",
       "evidence": [
-        "MercurionWebNode/src/app_modules/admin/controllers/admin.controller.ts",
-        "MercurionWebNode/src/app_modules/auth/guards/scope.guard.ts"
+        "Owner deprecated the backend endpoint with unconditional HTTP 403; on 2026-11-10 explicitly requested removal of the Angular maintenance-bypass flow."
       ],
-      "references": [
-        {
-          "file": "MercurionWebNg/src/app/services/auth-transport.service.ts",
-          "kind": "angular-source"
-        }
-      ]
+      "references": []
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/scopes/:user_id",
+      "controller": "MercurionWebNode/src/app_modules/admin/controllers/admin.controller.ts",
+      "handler": "getScopesByUserId",
+      "classification": "active product feature",
+      "owner": "Mercurion administrative API",
+      "evidence": [
+        "Owner-introduced administrative endpoint scaffolding (November 2026), guarded by AssignScopes and ViewUsers. Handlers are exposed but application logic is pending; no completed scope-management behavior is certified."
+      ],
+      "references": []
     },
     {
       "method": "GET",
@@ -1721,6 +1727,30 @@
       "evidence": [
         "MercurionWebNode/src/app_modules/admin/controllers/admin.controller.ts:@HasScopes(Scope.ChangeLogLevels)",
         "MercurionWebNode/src/app_modules/user/Models/enums/scope.enum.ts:Scope.ChangeLogLevels"
+      ],
+      "references": []
+    },
+    {
+      "method": "PUT",
+      "path": "/api/admin/scopes/:user_id",
+      "controller": "MercurionWebNode/src/app_modules/admin/controllers/admin.controller.ts",
+      "handler": "setScopesForUser",
+      "classification": "active product feature",
+      "owner": "Mercurion administrative API",
+      "evidence": [
+        "Owner-introduced administrative endpoint scaffolding (November 2026), guarded by AssignScopes and ViewUsers. Handlers are exposed but application logic is pending; no completed scope-management behavior is certified."
+      ],
+      "references": []
+    },
+    {
+      "method": "PUT",
+      "path": "/api/admin/scopes/:user_id/remove",
+      "controller": "MercurionWebNode/src/app_modules/admin/controllers/admin.controller.ts",
+      "handler": "removeScopesForUser",
+      "classification": "active product feature",
+      "owner": "Mercurion administrative API",
+      "evidence": [
+        "Owner-introduced administrative endpoint scaffolding (November 2026), guarded by AssignScopes and ViewUsers. Handlers are exposed but application logic is pending; no completed scope-management behavior is certified."
       ],
       "references": []
     }

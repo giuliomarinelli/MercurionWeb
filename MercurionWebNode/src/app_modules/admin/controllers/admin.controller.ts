@@ -1,11 +1,14 @@
-import { Body, Controller, ForbiddenException, Get, Put, Query, Res, ValidationPipe } from '@nestjs/common'
+/* eslint-disable @typescript-eslint/no-unused-vars */
+// Lo imposto temporaneamente a false per evitare warning di variabili non utilizzate, in quanto alcune funzioni sono ancora in fase di implementazione e non vorrei che le nostre pipeline 
+// creassero problemi per dei falsi positivi di linting. Una volta che tutte le funzioni saranno implementate, rimetterò a true questa regola di linting.
+// ================================================================
+import { Body, Controller, ForbiddenException, Get, Param, Put, ValidationPipe } from '@nestjs/common'
 import { Scope } from 'src/app_modules/user/models/enums/scope.enum'
 import { HasScopes, Public } from 'src/metadata/metadata'
 import { ChangeLogLevelDTO } from '../models/dto/change-log-level.dto'
 import { ConfirmNewLogLevelsDTO } from 'src/models/confirm-responses.dto'
 import { LoggerPort } from 'src/logging/logger.port'
 import { ResponseService } from 'src/services/response.service'
-import { FastifyReply } from 'fastify'
 import type { MaintenanceBypassResponse } from '@mercurion/rest-contracts'
 
 
@@ -27,25 +30,33 @@ export class AdminController {
         }
     }
 
+    /** 
+     * @deprecated This endpoint is deprecated and will be removed in future versions. Please use the new maintenance bypass mechanism based on Cloudflare Zero Trust Access Control.
+    */
     @Public()
     @Get('/maintenance')
-    getAdminMaintenanceCookie(
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        @Res({ passthrough: true }) reply: FastifyReply, @Query('t') t: string): MaintenanceBypassResponse {
-        // TODO: fare hashing argon2 in db e hardening, adesso importa solo far funzionare il gate. Non esponiamo 
-        // questioni di sicurezza, solo un sito graficamente ancora non pronto, specie per safari
-        // if (t === '66b590cef2b899cbd1f72fa7a4424f23ba4ec212c627bf674469ef170e52a4cd7711b126f770280bac9eaa4c3c3dcdda9049e40f345c14c538faefb969b417ff') {
-        //     reply.setCookie('_mercurion_admin_maintenance', 'SjO62ztQ9MCwfZ2/eL3uDXmLb66vFchAAO6vmlfZDHDcj5FjskTNOGrCsaqgxG0/o0RAEXnqzU7eGUd3toVi8aMpuG1oTfcSbqS+4d5zkau/PsTbdjlUxWTLu3+zJv7IxZHlK5i8FWRpal2Ts7DeY2zIIt5M+oGcZ8M58T6OdWM=', {
-        //         httpOnly: true,
-        //         sameSite: 'strict',
-        //         secure: process.env.NODE_ENV === 'production',
-        //         path: '/',
-        //         domain: 'mercurion.app',
-        //         maxAge: 3600 * 24 * 7
-        //     })
-        //     return { ok: true }
-        // }
+    getAdminMaintenanceCookie(): MaintenanceBypassResponse {                
         throw new ForbiddenException()
+    }
+
+    @HasScopes(Scope.AssignScopes, Scope.ViewUsers)
+    @Get('/scopes/:user_id')
+    getScopesByUserId(@Param('user_id') userId: string) {
+        // Implementation for fetching scopes for a specific user
+    }
+
+    @HasScopes(Scope.AssignScopes, Scope.ViewUsers)
+    @Put('/scopes/:user_id')
+    setScopesForUser(@Param('user_id') userId: string, 
+    @Body() scopes: Array<keyof typeof Scope>
+) {
+        // Implementation for setting scopes for a specific user
+    }
+
+    @HasScopes(Scope.AssignScopes, Scope.ViewUsers)
+    @Put('/scopes/:user_id/remove')
+    removeScopesForUser(@Param('user_id') userId: string, @Body() scopes: Array<keyof typeof Scope>) {
+        // Implementation for removing scopes for a specific user
     }
 
 }

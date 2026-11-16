@@ -14,6 +14,26 @@
 | F-06 | iPhone 13 mini/Safari fisico, due temi, rotazione e tastiera su ricerca/salvataggio/settings; zoom reale 200/400% | Nel Giorno 4 verificate viewport Chrome, non dispositivo, tastiera nativa o zoom. Riprendere la matrice KEYBOARD-QA sulla build aggiornata |
 | F-07 | Review accessibilità manuale: screen reader, contrasto/link non valutabili da Axe, attributi ARIA residui del supporto e iframe Ketcher | Matrice e risultati incompleti nel Giorno 4. Nessuna violazione rilevata nelle scansioni finali del documento principale non equivale a conformità WCAG |
 
+## Bugfix applicativi sopraggiunti
+
+**BUG-AUTH-01 — Da diagnosticare e correggere, 9 novembre:**
+[report, storia Git e analisi tecnica](../../../docs/bug-reports/2026-11-09-adaptive-login-mfa.md).
+Account senza strategie MFA indirizzato alla verifica per accesso insolito;
+confrontare flag finali backend/HTTP con il punto del debugger. Mock Angular
+rimosso intenzionalmente, loopback con coordinate nulle e finestra InPrivate
+sono piste concrete distinte. Definire policy per GeoIP non disponibile e
+testare normale/privato, trust device/fingerprint/posizione e contratto frontend.
+22 test esistenti passati non riproducono l'intero caso. Nessun fix implementato;
+estende F-04 e PX-03 senza chiudere o modificare le accettazioni storiche.
+
+**BUG-SUPPORT-01 — Da affrontare, 8 novembre:**
+[segnalazione e piano di correzione](../../../docs/bug-reports/2026-11-08-support-ticket-notifications.md).
+Notifica in-app/email di apertura ticket mancante agli operatori idonei, email
+dei messaggi utente apparentemente assenti e toast ridondante sullo stesso
+dettaglio aperto. La notifica in-app delle risposte utente sembra funzionare:
+preservarla e verificarla. Collega backend, email/outbox e UX/stato frontend;
+estende il perimetro da verificare in F-05 senza modificare i verbali storici.
+
 ## Controlli completati
 
 **F-09 — Review tecnica TS-01:** [verbale](F-09-QA.md). Ricontrollati 1.320 file e i 689 diff delle due passate; zero candidati rimovibili, commenti/literal e struttura sintattica invariati nei commit meccanici. Eccezioni riesaminate, rimossa una sola istruzione vuota aggiuntiva dopo `HttpErrorPage`. Tre guardie iniziali accettate esplicitamente. Chiusura tecnica, con F-01–F-07 rinviati per decisione dell’utente.
