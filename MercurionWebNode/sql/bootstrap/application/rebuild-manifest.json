@@ -1,0 +1,50 @@
+{
+  "tables": [
+    "account_activation_receipts",
+    "auth_identities",
+    "backup_codes",
+    "countries",
+    "documents",
+    "experiment_execution_molecule_links",
+    "experiment_execution_synthesis_links",
+    "feedback",
+    "history",
+    "lab_experiment_protocol_revisions",
+    "lab_notebook_executions",
+    "lab_notebook_experiments",
+    "lab_notebook_sections",
+    "lab_notebooks",
+    "molecule_collection_items",
+    "molecule_collection_items_join",
+    "molecule_collections",
+    "molecule_name_i18n",
+    "molecule_preview_view",
+    "notebook_experiment_synthesis_links",
+    "oauth2_tokens",
+    "outbox_events",
+    "release_versions",
+    "storage_operations",
+    "synth_step_items",
+    "synth_steps",
+    "synthesis",
+    "synthesis_pool_collections",
+    "synthesis_pool_molecules",
+    "ticket_messages",
+    "tickets",
+    "user_notifications",
+    "users"
+  ],
+  "sourceSha256": {
+    "development-schema.pg_dump.sql": "51530cc73fae774e6077c949b48836fa9c2d7592125649afb3bacb7303dd7420",
+    "preview-schema-before-rebuild-20261113.sql": "9218d20cf3a55567b9a762a71e30925219c947aab0e1dde2d5712cc5cb211f6d"
+  },
+  "preserved": [
+    "public.molecule_embeddings",
+    "all embedding indexes"
+  ],
+  "excludedLegacy": [
+    "lab_notebooks_old",
+    "typeorm_migrations"
+  ],
+  "retainedRemoteTable": "storage_operations"
+}

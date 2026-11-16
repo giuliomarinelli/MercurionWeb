@@ -1,5 +1,28 @@
 # Importare i chunk degli embedding nella preview
 
+Per il lavoro corrente dell'owner usare
+[HNSW manuale: risorse, rilancio e avanzamento](HNSW-MANUALE.md).
+Le istruzioni del vecchio worker conservate sotto non sostituiscono questa
+procedura e non descrivono le impostazioni della sessione pgAdmin dell'owner.
+
+**Ultimo aggiornamento dell'owner:** pgAdmin accessibile, HNSW avviato
+manualmente come `idx_me_hnsw_cos`, ancora in esecuzione nello screenshot.
+Il batch include `idx_uniq_molecule_embeddings`. I report citati sotto
+riguardano il precedente worker fallito, non questo build. Il seguito è
+documentazione del meccanismo precedente: non rilanciare worker o
+`30_indexes.sql` per monitorare il build manuale. I nomi indice dello script
+sono differenti e potrebbero provocare costruzioni ulteriori. Nessun intervento
+HNSW dell'agente è autorizzato; il completamento non è ancora attestato.
+
+**Consegna del 12 novembre 2026:** i 50 chunk sono stati importati, 2.644.421
+righe. L'ultimo tentativo HNSW è fallito nella fase `preflight`, codice
+`embedding-index-needs-14-cpu-28-gib-and-25-gib-available`, senza container di
+manutenzione attivo da quel tentativo. Il controllo della soglia e il monitor
+delle fasi preliminari non sono stati corretti. Il seguito di questa pagina
+descrive il funzionamento del codice esistente e i collaudi locali: **non è
+un'attestazione di build riuscito sulla VM**. L'HNSW è ora gestito dall'owner;
+l'agente non è autorizzato a controllarlo o modificarlo.
+
 Procedura Windows → VM, senza AI, dopo l'
 [adozione shared/preview](SERVICE-UPGRADE.md). Non eseguire i dump contro il
 container PostgreSQL di rollback. Il programma identifica la generazione attiva

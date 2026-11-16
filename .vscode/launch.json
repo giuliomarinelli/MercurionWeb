@@ -5,6 +5,36 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Preview Nest via SSH (TypeScript locale)",
+            "type": "node",
+            "request": "attach",
+            "address": "127.0.0.1",
+            "port": 19229,
+            "cwd": "${workspaceFolder}/MercurionWebNode",
+            "localRoot": "${workspaceFolder}/MercurionWebNode",
+            "remoteRoot": "/usr/src/app",
+            "sourceMaps": true,
+            "outFiles": ["${workspaceFolder}/MercurionWebNode/dist/**/*.js"],
+            "resolveSourceMapLocations": [
+                "${workspaceFolder}/MercurionWebNode/dist/**",
+                "!**/node_modules/**",
+                "!**/dist/src/app_modules/auth/services/scope.service.js.map",
+                "!**/dist/src/app_modules/embedding/models/entities/molecule-embedding.entity.js.map"
+            ],
+            "skipFiles": ["<node_internals>/**"],
+            "restart": false
+        },
+        {
+            "name": "Preview Nest via SSH (JavaScript distribuito)",
+            "type": "node",
+            "request": "attach",
+            "address": "127.0.0.1",
+            "port": 19229,
+            "sourceMaps": false,
+            "skipFiles": ["<node_internals>/**"],
+            "restart": false
+        },
+        {
             "name": "Attach Nest Debugger",
             "address": "127.0.0.1",
             "port": 9230,

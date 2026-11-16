@@ -11,6 +11,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
+    "admin:scopes": "node -r ts-node/register -r tsconfig-paths/register src/admin-scopes.cli.ts",
     "jwt:local": "node -r ts-node/register -r tsconfig-paths/register src/jwt-local.cli.ts",
     "jwt:keys": "node -r ts-node/register -r tsconfig-paths/register src/jwt-keys.cli.ts",
     "prebuild": "node ../scripts/build-identity.mjs",

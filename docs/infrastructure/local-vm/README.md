@@ -1,11 +1,33 @@
 # Mercurion — progetto infrastrutturale della demo su VM locale
 
 **Data di apertura:** 7 novembre 2026  
-**Stato, 12 novembre 2026:** ripartenza dei quattro server privati verificata, sei controlli riusciti e quattro indici log persistenti. Due chiavi client dedicate create a 90 giorni; prossimo passo: bootstrap applicativo privato. Accesso pubblico ancora aperto.
+**Stato verificato e attività ancora aperte:** [consegna corrente](CONTINUITY.md).
 **Branch di lavoro:** `feature/infra-vm-docker-engine-architecture`.  
 **Lingua di lavoro:** italiano, salvo nomi tecnici, identificatori e codice.
 
 ## Da dove iniziare
+
+**Ripresa del 13 novembre: preview non accettata funzionalmente.** Registrazione,
+SSO e caricamento/ricerca molecole hanno riportato errori. Seguire il
+[percorso di correzione della delivery](REDEPLOYMENT-PREVIEW.md), che distingue
+schema, dataset e applicazioni e conserva embedding, HNSW e volumi. I risultati
+storici di health/HTTP 200 sotto non attestano uno staging funzionante.
+
+**VM già esistente:** scegli quello che devi fare. Per usare direttamente
+`docker compose up -d`, apri la prima guida.
+
+| Devo sapere… | Aprire |
+| --- | --- |
+| Come ricreare le tabelle applicative con il DDL reale preservando embedding e HNSW | [Reset SQL applicativo approvato](../../../MercurionWebNode/sql/bootstrap/application/README.md) |
+| Come avviare dopo reboot, fare debug Nest, consegnare app e generare scope amministrativi | [Strumenti dell'operatore](OWNER-TOOLS.md) |
+| Come predisporre la delivery automatica del branch preview | [Installazione runner e identità delivery](INSTALL-DELIVERY.md) |
+| Come allocare risorse a PostgreSQL e rilanciare manualmente HNSW | [HNSW: risorse, sessione SQL e progresso](HNSW-MANUALE.md) |
+| Come usare direttamente Docker Compose sulla VM | [Gestione manuale dei Compose](DOCKER-COMPOSE-MANUALE.md) |
+| Dove sono utenti, password, chiavi e valori hardcoded | [Credenziali e configurazione](CREDENTIALS-AND-CONFIGURATION.md) |
+| Come aggiornare un segreto o una variabile Nest gia attivi | [Aggiornamento manuale e restart del solo backend](OWNER-TOOLS.md#aggiornare-segreti-e-variabili-applicative-gia-attivi) |
+| Come collegarmi a PostgreSQL, Redis, NATS, Meili o applicazione | [Comandi di forwarding SSH](PORT-FORWARDING.md) |
+| Qual è l'ultimo stato verificato e quali operazioni sono incomplete | [Consegna corrente](CONTINUITY.md) |
+| Come costruire una nuova installazione, senza ripetere il bootstrap sulla VM esistente | [Runbook passo passo](RUNBOOK.md) |
 
 Questa pagina è il punto di ingresso. **Per creare `mercurion-server` da zero,
 seguire il percorso numerato qui sotto**, usando il [runbook operativo](RUNBOOK.md).
@@ -46,6 +68,7 @@ applicativa, sezioni 7–8; login/dati e accesso pubblico restano successivi.
 
 **Accesso manuale ai servizi:** [Port-forward SSH: tutti i servizi, porte e comandi](PORT-FORWARDING.md).
 Include PostgreSQL, Redis, NATS, Meilisearch, Nginx, Nest, Angular e il caso HNSW.
+**Credenziali:** [file privato, nomi effettivi e posizione dei valori](CREDENTIALS-AND-CONFIGURATION.md).
 
 | Esigenza | Punto di ingresso |
 | --- | --- |
@@ -72,8 +95,9 @@ Include PostgreSQL, Redis, NATS, Meilisearch, Nginx, Nest, Angular e il caso HNS
   tmpfs e si perdono al riavvio del guest. I dati persistono nei volumi, ma il
   cold recovery ha concluso la verifica sulla VM il 12 novembre. Il bootstrap iniziale
   non lo sostituisce: leggere la sezione 13 del runbook.
-- **Demo applicativa privata in verifica.** I container sono avviati, ma
-  dati ChEMBL, login/realtime, tunnel pubblico e produzione restano successivi.
+- **Demo applicativa privata in verifica.** I container erano stati avviati e
+  collaudati prima del riavvio; la successiva ripresa applicativa non è attestata.
+  Dati ChEMBL, login/realtime, tunnel pubblico e produzione restano successivi.
   Le verifiche di isolamento H-05/A-05/A-30 restano parziali; i pilot autorizzati
   non costituiscono accettazione globale della rete.
 
@@ -88,6 +112,8 @@ passi» datati non superano lo stato del runbook e del registro delle esecuzioni
 
 | Documento | Responsabilità |
 | --- | --- |
+| [CREDENTIALS-AND-CONFIGURATION.md](CREDENTIALS-AND-CONFIGURATION.md) | Percorso del file privato, credenziali per ciascun client, identità hardcoded, differenze sviluppo/VM e file tmpfs |
+| [PORT-FORWARDING.md](PORT-FORWARDING.md) | Accesso manuale ai servizi, header Host Nginx, verifica/chiusura dei tunnel e consultazione psql |
 | [COLD-RECOVERY.md](COLD-RECOVERY.md) | Inventario, recupero dei server esistenti e verifica senza nuovo avvio; ricevute VM del 12 novembre |
 | [RUNBOOK.md](RUNBOOK.md) | Installazione/configurazione, bootstrap, curl, ripresa del giorno successivo, errori e limite del cold recovery |
 | [ARTIFACT-REPRODUCTION.md](ARTIFACT-REPRODUCTION.md) | Preparazione da sorgenti e modello, build/export/scan/CI e bundle, senza script esterni al repository |

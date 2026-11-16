@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - develop
+      - preview
       - "release/**"
       - "hotfix/**"
   pull_request:
@@ -523,6 +524,9 @@ jobs:
           python3 -B -m unittest discover -s scripts/infrastructure -p test_development_service_audit.py
           python3 -B -m unittest discover -s scripts/infrastructure -p test_postgres_candidate.py
           python3 -B -m unittest discover -s scripts/infrastructure -p test_preview_service_upgrade.py
+          python3 -B -m unittest discover -s scripts/infrastructure -p test_preview_operations.py
+          python3 -B -m unittest discover -s scripts/infrastructure -p test_preview_start_debug.py
+          python3 -B -m unittest discover -s scripts/infrastructure -p test_preview_ci_delivery.py
           python3 -B -m unittest discover -s scripts/infrastructure -p test_embedding_import.py
           python3 -B -m unittest discover -s scripts/infrastructure -p test_embedding_index.py
           python3 -B -m unittest discover -s scripts/infrastructure -p test_reproduce_preview_artifacts.py
@@ -583,6 +587,15 @@ jobs:
           path: |
             reports/delivery/**/*.json
             reports/delivery/**/*.log
+
+      - name: Upload verified staging images for preview delivery
+        if: ${{ success() && matrix.target == 'staging' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: deployment-${{ matrix.name }}
+          if-no-files-found: error
+          retention-days: 3
+          path: reports/delivery/
 
       - name: Confirm clean build did not modify tracked files
         run: git diff --exit-code

@@ -1,11 +1,42 @@
 # Roadmap — deployment demo Hyper-V / Docker Engine
 
+## Obiettivo dell'owner: preview online entro il 13 novembre sera
+
+PgAdmin è accessibile; l'owner ha avviato manualmente HNSW. L'agente scrive
+solo documentazione. Questa scaletta non autorizza azioni operative dell'agente.
+
+| Ordine | Attività dell'operatore | Evidenza di completamento |
+| --- | --- | --- |
+| 1 | Concludere il build già avviato, senza duplicarlo | Indici effettivi validi e query di similarità verificata |
+| 2 | Allineare nome database e consumer al nome richiesto `mercurion` | Nome e configurazione coerenti, dati preservati; modifica gestita dall'owner |
+| 3 | Completare ricerca Meili ChEMBL | Due indici molecolari presenti, ricerca e dettaglio verificati |
+| 4 | Ripristinare e verificare le applicazioni dopo reboot | Backend, frontend attraverso Nginx, RPC Tox21 e login essenziale funzionanti |
+| 5 | Collegare il nuovo origin a Cloudflare mantenendo Access | Tunnel connesso, DNS corretto al posto del collegamento di test Pages, egress necessario verificato senza accesso LAN |
+| 6 | Collaudare il dominio pubblico | Access nega utenti esclusi; utenti autorizzati raggiungono Mercurion reale; HTTPS, login, ricerca e realtime verificati |
+
+La policy DnsHttps documentata non apre automaticamente SMTP 465/587 o
+Cloudflare 7844. Il test Access riuscito su Pages non sostituisce la verifica
+del nuovo origin. Le decisioni mancanti spettano all'owner. La procedura
+Cloudflare completa resta da definire/documentare: questa tabella non ne
+certifica esecuzione o completamento. Accessi e credenziali sono nelle
+[guide manuali](PORT-FORWARDING.md) e nella
+[mappa configurazione](CREDENTIALS-AND-CONFIGURATION.md).
+
+## Antefatti dei lavori precedenti
+
 **Shared/preview adottati sulla VM:** upgrade `6d019947800b4578bc2b5d40791f5132`
 passed, sette controlli true, volumi persistenti nuovi e originali conservati.
-Prossimo lavoro autorizzato: [carico embedding](EMBEDDINGS-IMPORT.md), 50 chunk
-con 2.644.421 righe a 768 dimensioni. Manifest verificato; DDL corretto per
-preferred_name e dimensione del vettore, import transazionale con journal e
-fase HNSW separata. Meili ChEMBL e accesso pubblico vengono dopo il carico.
+Carico embedding completato: 50 chunk, 2.644.421 righe a 768 dimensioni.
+Ultimo HNSW fallito in preflight per la soglia dei 25 GiB disponibili.
+Database/HNSW sono ora gestiti dall'owner; all'agente è autorizzata soltanto
+la documentazione. Meili ChEMBL, ripresa applicativa dopo reboot e collegamento
+pubblico restano da completare. Accessi: [forwarding](PORT-FORWARDING.md) e
+[credenziali](CREDENTIALS-AND-CONFIGURATION.md).
+
+## Cronologia della pianificazione
+
+Le note seguenti conservano lo stato alle rispettive fasi. Non prevalgono sulla
+consegna sopra e non autorizzano nuove operazioni o ripetizioni del bootstrap.
 
 **Adozione in corso:** [aggiornamento operativo shared/preview](SERVICE-UPGRADE.md).
 Inventario owner aggiornato, quattro server running e segreti tmpfs presenti.

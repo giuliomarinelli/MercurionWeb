@@ -1,11 +1,23 @@
 # Inventario corrente e lacune della baseline
 
-> **Stato corrente, fine 11 novembre:** VM-043 completata, quattro server privati
-> e quattro indici Meili verificati. Chiavi client con scadenza 90 giorni pronte
-> ma rinviate al 12 novembre; applicazioni/accesso pubblico ancora aperti.
-> La sequenza operativa corrente e [RUNBOOK.md](RUNBOOK.md), le ricevute sono
-> [EXECUTION-RECORD.md](EXECUTION-RECORD.md). I punti datati qui sotto descrivono
-> la progressione storica: non sono una richiesta di ripetere fasi concluse.
+> **13 novembre — stato operativo aggiornato:** preview raggiungibile via
+> Cloudflare, ma non accettata funzionalmente: errori di registrazione/SSO,
+> ricerca e caricamento molecole. HNSW completato dall'owner in 9 min 19 s,
+> verificato valido/pronto, circa 10 GB: non ricostruirlo. L'importazione dei
+> due indici ChEMBL non è attestata. Il reset applicativo mostrato ha fallito
+> per lock timeout; manca la ricevuta di completamento. Seguire
+> [la correzione della delivery](REDEPLOYMENT-PREVIEW.md).
+> Il checkpoint del 12 novembre seguente è storico e contiene stati superati.
+
+> **Consegna del 12 novembre:** adozione server e successivo cold recovery
+> completati; chiavi Meili create; bootstrap applicativo collaudato prima del
+> riavvio; 50 chunk / 2.644.421 righe importati. Ultimo HNSW fallito in preflight.
+> Applicazioni dopo l'ultimo reboot, ChEMBL Meili e collegamento pubblico restano
+> non attestati conclusi. Operazioni ora in gestione all'owner.
+> Accessi: [credenziali](CREDENTIALS-AND-CONFIGURATION.md) e
+> [forwarding](PORT-FORWARDING.md). Ultime ricevute: [CONTINUITY.md](CONTINUITY.md).
+> **Il resto della pagina è l'inventario storico**, non una checklist per
+> ripetere installazioni o bootstrap già conclusi.
 
 
 **Baseline ispezionata:** `feature/infra-vm-docker-engine-architecture` al commit `6431b5bd1e22b59edd27c7500a4025f15053dd10` (7 novembre 2026), con la correzione degli indici log integrata. La documentazione fotografa le evidenze disponibili, **non** certifica una VM già distribuita. Nuovi commit richiedono una verifica dei punti interessati.

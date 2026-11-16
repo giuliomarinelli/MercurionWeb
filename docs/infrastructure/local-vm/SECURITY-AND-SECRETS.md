@@ -1,5 +1,12 @@
 # Sicurezza, configurazione e segreti della VM
 
+**Per l'operatore:** posizione delle credenziali, nomi effettivi e destinazioni
+runtime sono in [CREDENTIALS-AND-CONFIGURATION.md](CREDENTIALS-AND-CONFIGURATION.md).
+La consegna effimera server è stata implementata e collaudata: vedere
+[COLD-RECOVERY.md](COLD-RECOVERY.md). Le sezioni progettuali sottostanti
+conservano anche questioni aperte nella baseline iniziale; non sostituiscono
+la procedura operativa né la consegna corrente.
+
 **Principio:** applicazione portfolio con superficie di attacco reale. Semplicità operativa non equivale a segreti nei repository o servizi esposti inutilmente.
 
 ## Modello di fiducia

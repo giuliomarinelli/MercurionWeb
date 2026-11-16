@@ -1,11 +1,58 @@
-# Ripresa operativa — 12 novembre 2026
+# Ripresa operativa — aggiornamento 13 novembre 2026
+
+## Punto corrente: strumenti operatore e preview raggiungibile
+
+L'operatore ha confermato HNSW creato in 9 minuti e 19 secondi, valido e pronto
+(circa 10 GB), e il sito preview raggiungibile tramite Cloudflare Tunnel/Access.
+Restano i bug SSO (`users.created_at` nullo in inserimento nuovo utente) e
+registrazione (messaggio email già registrata con HTTP 200, causa da diagnosticare).
+
+Autorizzazione corrente: predisporre rollout applicativo, startup post-reboot,
+scope amministrativi e debug remoto. Le precedenti restrizioni alla sola
+documentazione riportate nella cronologia sotto sono state superate dalle
+successive istruzioni dirette dell'operatore. Nessuna installazione di runner,
+modifica SSH/sudoers o nuova azione sulla VM è stata eseguita in questa fase.
+
+I comandi sono in [OWNER-TOOLS.md](OWNER-TOOLS.md), copiati anche nel memo
+personale Desktop; la predisposizione della delivery su branch `preview` è in
+[INSTALL-DELIVERY.md](INSTALL-DELIVERY.md). La pipeline rimane disabilitata,
+in attesa di installazione revisionata e collaudo end-to-end. Consegna automatica
+predisposta per Nest/Angular; Tox21 conserva l'immagine corrente e richiede la
+configurazione separata della sua repository. Nessun push o CI remota verificata.
+
+## Cronologia precedente — 12 novembre 2026
+
+## Aggiornamento dell'owner: accesso riuscito e HNSW manuale
+
+L'owner ha aperto pgAdmin sulla preview e avviato manualmente HNSW
+`idx_me_hnsw_cos` su `public.molecule_embeddings`. Lo screenshot mostra la
+query ancora in esecuzione e un NOTICE su `maintenance_work_mem` dopo 16.754
+tuple: è evidenza di avvio, **non di completamento**. Il batch comprende anche
+`idx_uniq_molecule_embeddings`, il cui completamento non è ancora attestato.
+I report del worker precedente non monitorano questa esecuzione manuale.
+
+Database richiesto: **`mercurion`**; l'ultimo screenshot mostra ancora
+`mercurion_preview`. Nessuna rinomina è stata effettuata dall'agente.
+Obiettivo dell'owner: preview online entro la sera del **13 novembre 2026**.
+L'agente è autorizzato solo alla documentazione; non esegue script PowerShell,
+SQL, ripristini, deployment o modifiche Cloudflare. Scaletta in
+[ROADMAP.md](ROADMAP.md).
+
+## Antefatti e ricevute precedenti
 
 **Consegna manuale richiesta dall'owner:** istruzioni di accesso in
-[PORT-FORWARDING.md](PORT-FORWARDING.md). L'ultimo build HNSW è fallito prima
+[PORT-FORWARDING.md](PORT-FORWARDING.md); utenti, valori e file in
+[CREDENTIALS-AND-CONFIGURATION.md](CREDENTIALS-AND-CONFIGURATION.md).
+Database e HNSW sono in gestione all'owner; l'agente scrive soltanto documentazione.
+L'ultimo build HNSW è fallito prima
 della creazione della manutenzione, per il controllo sui 25 GiB disponibili
 (`embedding-index-needs-14-cpu-28-gib-and-25-gib-available`). Nessun indice
 costruito da quel tentativo. Controllo di capacità e monitor delle fasi preliminari
-restano da correggere; nessuna modifica implementativa durante questa consegna.
+restano irrisolti; nessuna modifica implementativa durante questa consegna.
+
+Le note sottostanti descrivono le fasi eseguite e i collaudi. I precedenti
+«task attuale» e «passi successivi» non costituiscono nuove autorizzazioni e
+non superano lo stato di consegna riportato sopra.
 
 **Adozione VM completata:** upgrade `6d019947800b4578bc2b5d40791f5132`, stato
 passed e sette controlli true. Quattro server nuovi su volumi persistenti separati;

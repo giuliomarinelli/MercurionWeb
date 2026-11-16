@@ -3,6 +3,9 @@
 Questa guida consente di aprire e chiudere manualmente i forward, senza script
 di orchestrazione, chat o agenti. Non cambia Compose, firewall, ACL o container.
 Il client SSH Windows deve già poter accedere con `ssh mercurion-server`.
+Utenti, password, API key e loro posizione sono raccolti in
+[Credenziali e configurazione](CREDENTIALS-AND-CONFIGURATION.md). Non occorre
+ricostruirli dagli script o dalla chat.
 
 ## 1. Individuare il container e il suo IP attuale
 
@@ -62,8 +65,40 @@ aperto per tutta la connessione del browser o del client database.
 ssh -N -T -o StrictHostKeyChecking=yes -o ExitOnForwardFailure=yes -L 127.0.0.1:18888:IP_NGINX:80 mercurion-server
 ```
 
-Aprire `http://127.0.0.1:18888` oppure `http://localhost:18888` nel browser.
-Il tunnel non adatta automaticamente cookie Secure, origin, OAuth o Turnstile
+**Questo è il tunnel TCP diretto, non un adattatore del virtual host.** Nginx
+accetta l'applicazione con `Host: preview.mercurion.app`; una richiesta browser
+con `Host: localhost` o `127.0.0.1` riceve il 404 del virtual host predefinito.
+La precedente indicazione di aprire direttamente localhost era incompleta.
+
+Con il tunnel aperto, verificare da un altro **PowerShell Windows**:
+
+```powershell
+curl.exe --noproxy '*' --fail-with-body -H 'Host: preview.mercurion.app' http://127.0.0.1:18888/health
+```
+
+Richiede anche il backend avviato. Un HTTP 502 significa che l'edge risponde
+ma l'upstream non è pronto; non dimostra che il tunnel SSH sia guasto.
+
+Per vedere la pagina dal browser su localhost è disponibile il visualizzatore
+HTTP già presente nel repository. Dalla root Web, impostare il percorso del
+**proprio bundle applicativo con ricevuta di verifica aggiornata**, poi usare:
+
+```powershell
+$taskApplicationBundle = Read-Host 'Percorso completo del bundle applicativo verificato'
+powershell -NoProfile -File scripts/infrastructure/Open-PreviewNginxTunnel.ps1 -BundlePath $taskApplicationBundle
+```
+
+Il bundle applicativo della VM di riferimento è
+`C:/Users/giuli/.codex/artifacts/inf-vm-04/vm045-applications/ready`.
+Il wrapper ricava l'IP edge dalla ricevuta: se quell'IP non è più attuale,
+prima occorre una nuova verifica applicativa, non una modifica a DNS/firewall.
+Non eseguire il wrapper mentre il tunnel TCP precedente occupa 18888: chiuderlo
+con Ctrl+C. Il wrapper usa 18888 per il browser e 18889 per il tunnel SSH;
+entrambi devono essere liberi. Aprire quindi `http://localhost:18888`.
+
+Il visualizzatore aggiunge l'header Host ma rifiuta gli upgrade WebSocket: è
+per consultazione HTTP, non una verifica completa del realtime.
+Né il tunnel diretto né il visualizzatore adattano cookie Secure, origin, OAuth o Turnstile
 previsti per `https://preview.mercurion.app`: il trasporto funzionante non
 certifica quei flussi. L'edge VM serve HTTP, senza certificati TLS locali.
 
@@ -198,8 +233,8 @@ sudo docker exec -it ID_MANUTENZIONE sh -c 'PGPASSWORD=$(cat /run/mercurion/appl
 Dentro **psql**, monitorare senza modificare la sessione che costruisce l'indice:
 
 ```sql
-SELECT pid, phase, tuples_done, tuples_total,
-       round(100.0 * tuples_done / nullif(tuples_total, 0), 1) AS percentuale
+SELECT pid, phase, blocks_done, blocks_total,
+       round(100.0 * blocks_done / nullif(blocks_total, 0), 1) AS percentuale
 FROM pg_stat_progress_create_index
 WHERE relid = 'public.molecule_embeddings'::regclass;
 \watch 2
@@ -211,6 +246,10 @@ La percentuale può essere nulla nelle fasi senza conteggio. Se il container non
 compare, non tentare `docker exec` contro un nome presunto e non avviare un'altra
 istanza PostgreSQL sul volume: consultare il report del worker descritto in
 [EMBEDDINGS-IMPORT.md](EMBEDDINGS-IMPORT.md).
+
+Per il build manuale sull'istanza ordinaria, e per distinguere risorse Docker
+da `maintenance_work_mem`, usare [HNSW-MANUALE.md](HNSW-MANUALE.md).
+Il calcolo sui blocchi segue il monitoraggio HNSW documentato da pgvector.
 
 ## Stato verificato al passaggio di consegne
 

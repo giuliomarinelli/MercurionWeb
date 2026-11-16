@@ -1,0 +1,86 @@
+name: Preview delivery
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [preview]
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: preview-delivery
+  cancel-in-progress: false
+
+jobs:
+  admit:
+    if: >-
+      vars.PREVIEW_DELIVERY_ENABLED == 'true' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'preview' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      admitted: ${{ steps.gate.outputs.admitted }}
+    steps:
+      - name: Confirm exact CI run and Required gate before contacting private runner
+        id: gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          python3 - <<'PY'
+          import json,os,re,urllib.request
+          repo=os.environ['GITHUB_REPOSITORY']; rid=os.environ['RUN_ID']; sha=os.environ['SOURCE_SHA']
+          assert rid.isdigit() and re.fullmatch('[a-f0-9]{40}',sha)
+          def get(path):
+              req=urllib.request.Request('https://api.github.com/repos/'+repo+path,
+                  headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
+              with urllib.request.urlopen(req,timeout=30) as r:return json.load(r)
+          run=get('/actions/runs/'+rid)
+          assert run['event']=='push' and run['head_branch']=='preview' and run['head_sha']==sha
+          assert run['conclusion']=='success' and run['head_repository']['full_name']==repo
+          assert run['path']=='.github/workflows/ci.yml'
+          assert get('/git/ref/heads/preview')['object']['sha']==sha,'Superseded revision'
+          jobs=[]
+          for page in range(1,101):
+              batch=get('/actions/runs/'+rid+'/jobs?filter=latest&per_page=100&page='+str(page))['jobs']
+              jobs+=batch
+              if len(batch)<100:break
+          gates=[j for j in jobs if j['name']=='Required gate']
+          assert len(gates)==1 and gates[0]['conclusion']=='success'
+          with open(os.environ['GITHUB_OUTPUT'],'a') as f:f.write('admitted=true\n')
+          PY
+
+  deliver:
+    needs: admit
+    if: needs.admit.outputs.admitted == 'true'
+    runs-on: [self-hosted, Windows, X64, mercurion-preview-delivery]
+    timeout-minutes: 45
+    environment: preview
+    steps:
+      # No checkout, build, install, or execution of downloaded artifact code.
+      # These paths identify operator-reviewed tools installed outside _work.
+      - name: Deliver verified staging applications using installed driver
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
+          DELIVERY_PYTHON: ${{ vars.PREVIEW_DELIVERY_PYTHON }}
+          DELIVERY_DRIVER: ${{ vars.PREVIEW_DELIVERY_DRIVER }}
+          DELIVERY_SETTINGS: ${{ vars.PREVIEW_DELIVERY_SETTINGS }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          foreach ($path in @($env:DELIVERY_PYTHON, $env:DELIVERY_DRIVER, $env:DELIVERY_SETTINGS)) {
+            if (-not [IO.Path]::IsPathRooted($path) -or -not (Test-Path -LiteralPath $path -PathType Leaf)) {
+              throw 'An installed absolute delivery path is missing.'
+            }
+          }
+          & $env:DELIVERY_PYTHON -B $env:DELIVERY_DRIVER --repository $env:GITHUB_REPOSITORY --run-id $env:RUN_ID --sha $env:SOURCE_SHA --settings $env:DELIVERY_SETTINGS
+          if ($LASTEXITCODE -ne 0) { throw 'Preview delivery failed; preserve logs and rollout state.' }

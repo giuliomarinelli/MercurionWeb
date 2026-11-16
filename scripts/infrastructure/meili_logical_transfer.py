@@ -18,8 +18,9 @@ class ApiError(ValueError):
 
 
 class Client:
-    def __init__(self, endpoint, key):
+    def __init__(self, endpoint, key, timeout=30):
         self.endpoint, self.key = endpoint, key
+        self.timeout = timeout
         self.opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
 
     def call(self, path, body=None, method=None):
@@ -27,7 +28,7 @@ class Client:
             data=None if body is None else json.dumps(body).encode(),
             headers={'Authorization':'Bearer '+self.key,'Content-Type':'application/json'},method=method)
         try:
-            with self.opener.open(request,timeout=30) as response:
+            with self.opener.open(request,timeout=self.timeout) as response:
                 data=response.read()
                 return json.loads(data) if data else None
         except urllib.error.HTTPError as error:

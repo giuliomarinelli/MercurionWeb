@@ -1,5 +1,10 @@
 # Meilisearch: indici, credenziali, UI e manutenzione
 
+Per trovare materialmente master key e chiavi applicative, usare
+[Credenziali e configurazione](CREDENTIALS-AND-CONFIGURATION.md#2-credenziali-da-inserire-nei-client).
+Per aprire il canale locale usare [Forward Meilisearch](PORT-FORWARDING.md#meilisearch).
+Il forward e la password SSH non sostituiscono la API key Meilisearch.
+
 **Stato, 12 novembre:** server privato recuperato e quattro indici log persistenti
 verificati. Due chiavi client dedicate create con successo, validità 90 giorni,
 quattro negazioni read-only riuscite e aggiornamento dei soli campi client nel

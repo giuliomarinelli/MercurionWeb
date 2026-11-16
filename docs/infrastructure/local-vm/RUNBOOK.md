@@ -6,10 +6,15 @@ browser dell'autore o script conservati soltanto sul suo computer. I programmi
 necessari sono elencati sotto; i relativi sorgenti operativi sono nel repository.
 Gli artifact sono output da produrre e conservare, non istruzioni nascoste.
 
-**Traguardo attuale:** quattro server avviati privatamente sulla VM, quattro
-indici log Meilisearch e due API key applicative a 90 giorni creati.
-**Prossimo passo:** bootstrap applicativo privato.
-Web, Tox21 persistente, dati ChEMBL, Cloudflare e produzione non sono avviati.
+**Stato al passaggio di consegne, 12 novembre:** bootstrap server e applicativo
+già eseguiti; landing verificata prima del riavvio. Dopo il ridimensionamento
+sono stati recuperati i quattro server, con sei check positivi. Import dei
+50 chunk completato (2.644.421 righe); ultimo HNSW fermo in preflight.
+Applicazioni dopo quel riavvio, dati Meili ChEMBL e collegamento pubblico non
+sono attestati conclusi. Il controllo dell'infrastruttura e dell'HNSW è dell'owner.
+
+Per consultazione immediata: [credenziali e configurazione](CREDENTIALS-AND-CONFIGURATION.md),
+[forwarding dei servizi](PORT-FORWARDING.md), [stato e ricevute](CONTINUITY.md).
 
 ## 0. Leggere prima: nuova installazione oppure ripresa?
 
@@ -68,7 +73,7 @@ collegate allo stesso segmento.
 | --- | --- | --- |
 | Host Windows | Windows 11 Pro con Hyper-V e virtualizzazione firmware attiva | `Get-VMHost` da terminale amministrativo |
 | Host, terminale ordinario | Windows PowerShell **5.1 a 64 bit** | `$PSVersionTable`; `[Environment]::Is64BitProcess` |
-| Host | Git, Python 3.10+ (baseline 3.12), Node 22.16.0/npm 10.9.2 | `git --version`; `python --version`; `node --version`; `npm --version` |
+| Host | Git, Python 3.11+ (baseline storica 3.12; i moduli di recupero usano `tomllib`), Node 22.16.0/npm 10.9.2 osservati nella baseline | `git --version`; `python --version`; `node --version`; `npm --version` |
 | Host | OpenSSH Client (`ssh.exe`, `scp.exe`, `ssh-keygen.exe`) e `curl.exe` | `Get-Command ssh.exe,scp.exe,ssh-keygen.exe,curl.exe`; `curl.exe --version` |
 | Host build | Docker Desktop con engine Linux e contesto `desktop-linux` | `docker --context desktop-linux version`; `docker --context desktop-linux buildx version` |
 | Host CI | GitHub CLI autenticata a un account autorizzato | `gh --version`; `gh api user --jq .login` |
@@ -129,6 +134,10 @@ file contenuti lì. Le nuove procedure possono usare `$taskArtifacts`.
 
 **La VM dell'autore esisteva prima del lavoro documentato.** Sono stati verificati
 Gen2, 8 vCPU, 16 GiB fissi, disco da circa 200 GiB e root LUKS/dm-crypt/LVM/ext4.
+Questa era la dotazione iniziale: il 12 novembre l'owner ha portato la VM a
+14 vCPU e 28 GiB per la fase HNSW. La procedura di nuova installazione sotto
+conserva la baseline iniziale; le risorse della VM esistente non vanno ridotte
+per farle coincidere con quell'esempio.
 Non è disponibile una registrazione completa dell'installer originale. Il percorso
 di nuova installazione seguente descrive i parametri da riprodurre, ma non è una
 seconda installazione già collaudata. Non applicarlo alla VM esistente.
@@ -494,6 +503,12 @@ di traffico del computer dell'autore.
 
 ## 7. Configurazione privata, una sola volta
 
+**Per la VM già installata:** non eseguire il generatore seguente. Il file
+esiste già in `C:\Users\giuli\.mercurion\preview\configuration.json`.
+La [mappa delle credenziali](CREDENTIALS-AND-CONFIGURATION.md) indica quali
+campi usare nei client e quali nomi non sono configurabili da quel JSON.
+Il resto di questa sezione riguarda una nuova installazione.
+
 Su PS, root Web, senza avviare applicazioni:
 
 ```powershell
@@ -768,27 +783,24 @@ ancora un comando consegnato da questo runbook.
 
 ## 12. Punto di ripresa concordato per il giorno successivo
 
-**Aggiornamento 12 novembre:** ripartenza dei quattro server confermata, sei
-controlli riusciti nella verifica `d2cfff6e2a204c27ac3362f4d9e59fbf`. Meili
-è a `172.18.0.2`. Proseguire con tunnel amministrativo (sezione 10) e chiavi
-client (11.2), senza ripetere il recupero.
+**Ultima ricevuta server:** `c1fc92e9d3a9465fa0d4114d5c732ef0`, sei check
+positivi e quattro server running. Le ricevute sono fotografie, non un
+inventario automatico in tempo reale.
 
-1. Non ripetere generazione file, riparazione AES, bootstrap server o creazione
-   indici: sono già conclusi. Anche le chiavi della sezione 11.2 sono state create il 12 novembre;
-   il lavoro aperto è il bootstrap applicativo privato.
-2. Se la **VM è rimasta accesa senza riavvio**, verificare la disponibilità SSH.
-   Il forward può essere riaperto con la sezione 10; il tunnel non deve restare
-   aperto durante la notte per conservare server o dati.
-3. Se VM/host sono stati spenti, riavviati o hanno perso la RAM, **non assumere
-   presenti i file tmpfs**. Leggere la sezione 13 prima di tentare qualsiasi avvio.
-4. Con tunnel disponibile verificare `/health`. In caso di errore ripartire
-   dalla diagnosi, non generare nuove credenziali o riavviare Compose a caso.
-5. Il comando chiavi `-Expiry 90Days` è concluso sulla VM attuale. Non
-   rieseguirlo per riprendere il bootstrap applicativo.
+1. Per collegarsi ai servizi attivi usare [PORT-FORWARDING.md](PORT-FORWARDING.md)
+   e [CREDENTIALS-AND-CONFIGURATION.md](CREDENTIALS-AND-CONFIGURATION.md).
+2. Se la VM è stata riavviata dopo quella ricevuta, leggere la sezione 13 e
+   [COLD-RECOVERY.md](COLD-RECOVERY.md): i segreti tmpfs possono essere assenti.
+3. Non ripetere generazione JSON, riparazione AES, bootstrap iniziale, creazione
+   chiavi Meili o import embedding: sono già stati eseguiti.
+4. Le applicazioni erano state collaudate prima del riavvio; il cold recovery
+   dei server non le ripristina. Non dichiarare frontend/login funzionanti
+   senza verificarli. Per Nginx la guida distingue tunnel TCP, header Host e browser.
+5. L'import dei 50 chunk è concluso, ma l'HNSW è fermo al preflight sui 25 GiB.
+   Database e HNSW sono ora gestiti dall'owner; l'agente scrive solo documentazione.
 
-**Stato al momento della pausa:** quattro server e quattro indici pronti;
-chiavi client create il 12 novembre; servizi applicativi spenti; nessuna porta pubblicata;
-H-05/A-05/A-30 aperti; nessun merge autorizzato.
+Login applicativo e collegamento pubblico non sono attestati completi.
+H-05/A-05/A-30 restano parziali. Nessun merge è autorizzato da questa pagina.
 
 ## 13. Arresto, file volatili e ripristino: limite operativo attuale
 
@@ -796,7 +808,8 @@ H-05/A-05/A-30 aperti; nessun merge autorizzato.
 è **tmpfs**: dopo spegnimento/reboot guest il contenuto non è persistente. LUKS
 protegge il disco, non trasforma tmpfs in un archivio. I volumi PostgreSQL/Redis/
 Meili sopravvivono, ma le configurazioni montate e i segreti devono essere
-riconsegnati con gli **stessi valori** prima di ricreare correttamente i container.
+riconsegnati con gli **stessi valori** prima di riavviare i container esistenti.
+Non serve ricrearli per il solo ripristino dei segreti.
 
 Il percorso di cold recovery dei server reali è ora predisposto in
 [COLD-RECOVERY.md](COLD-RECOVERY.md), con ripartenza sulla VM verificata il
@@ -812,7 +825,8 @@ Non considerare completata la verifica finché non è disponibile la ricevuta fi
 **Ripresa del 12 novembre:** l'operatore ha confermato spegnimento/riavvio.
 Seguire [Recupero dopo riavvio](COLD-RECOVERY.md), iniziando dall'inventario
 sanitizzato della release. Inventario, ripartenza e sei controlli di readiness/persistenza sono riusciti;
-non ripeterli durante la sessione corrente per passare alle API key.
+non ripeterli nella stessa accensione senza una necessità diagnosticata. La
+consegna dei segreti applicativi è distinta da quella dei quattro server.
 
 ## 14. Diagnosi senza esporre segreti
 
