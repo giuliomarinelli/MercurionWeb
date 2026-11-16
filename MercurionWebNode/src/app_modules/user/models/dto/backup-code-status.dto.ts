@@ -1,0 +1,1 @@
+export type { BackupCodeStatusDTO } from '@mercurion/rest-contracts'

@@ -1,0 +1,6 @@
+keys/
+*.env
+*.env.*
+.env.*
+*.pem
+pg-credentials.yaml

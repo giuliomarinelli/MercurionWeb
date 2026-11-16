@@ -1,0 +1,85 @@
+import { signal } from '@angular/core'
+import { MoleculeCardItemModel, MoleculeCollectionItemClient } from './Models/graphql/molecule-collection/molecule-collection.types'
+import { MoleculeProperties } from './Models/graphql/molecule-properties.model'
+import { MoleculeSearchResult } from './Models/graphql/molecule-search/molecule-search-result.interface'
+import { MoleculeDetail } from './Models/graphql/molecule.detail.models'
+export class Helpers {
+
+  static breakHex(str: string, id = true): string {
+    const idPart = str.split('.')[0]
+    const shaPart = id ? str.split('.')[1] : idPart
+    const chunks = shaPart.match(/.{1,4}/g)
+    return id ? idPart + '.' + (chunks?.join('-') ?? str) : (chunks?.join('-') ?? str)
+  }
+
+  static normalizeTitleCase(input: string): string {
+    if (!input) return ''
+
+    return input
+      .trim()
+      .replace(/\s+/g, ' ')
+      .split(' ')
+      .map(word =>
+        word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+      )
+      .join(' ')
+  }
+
+  static isValidJwt(t: string) {
+    return /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(t)
+  }
+
+  static moleculeClientToCardConverter(mol: MoleculeCollectionItemClient): MoleculeCardItemModel {
+    return {
+      id: mol.id,
+      type: mol.type as 'chembl' | 'custom',
+      name: mol.type === 'chembl'
+        ? (mol.chemblDetails as MoleculeDetail)?.preferredNameIt
+        ?? (mol.chemblDetails as MoleculeDetail)?.preferredName
+          ?? `Lead ${mol.chemblMolregno}`
+        : mol.name ?? 'Lead sconosciuto',
+      syn: mol.type === 'chembl' ? (mol.chemblDetails as MoleculeDetail)?.synonyms?.[0] ?? '' : '',
+      mwFreebase: mol.type === 'chembl'
+        ? (mol.chemblDetails as MoleculeDetail)?.properties?.mwFreebase ?? undefined
+        : Helpers.parseMoleculeProperties(mol.propertiesJson)?.mwFreebase ?? undefined,
+      maxPhase: mol.type === 'chembl' ? (mol.chemblDetails as MoleculeDetail)?.maxPhase ?? 0 : undefined,
+      smiles: mol.type === 'chembl' ? (mol.chemblDetails as MoleculeDetail)?.canonicalSmiles ?? '' : mol.canonicalSmiles ?? '',
+      createdAt: Number(mol.createdAt),
+      updatedAt: Number(mol.updatedAt),
+      touchedAt: Number(mol.touchedAt),
+      triggerDisappear: signal<boolean>(false),
+      collapse: signal<boolean>(false)
+    }
+  }
+
+  static parseMoleculeProperties(json?: string | null): MoleculeProperties | undefined {
+    if (!json) return undefined
+    try {
+      return JSON.parse(json) as MoleculeProperties
+    } catch {
+      return undefined
+    }
+  }
+
+  static moleculeSearchResultToMoleculeCardItemModelConverter(dto: MoleculeSearchResult): MoleculeCardItemModel {
+    const now = Date.now()
+    if (!dto.smiles) {
+      throw new Error(`Molecule search result ${dto.id} is missing canonical SMILES`)
+    }
+    return ({
+      id: dto.id.toString(),
+      name: dto.preferredName ?? dto.preferredNameIt ?? '',
+      smiles: dto.smiles,
+      syn: dto.synonyms && dto.synonyms.length !== 0 ? dto.synonyms[0] : '',
+      type: 'chembl',
+      mwFreebase: dto.mwFreebase ?? undefined,
+      maxPhase: dto.maxPhase ?? undefined,
+      createdAt: now,
+      touchedAt: now,
+      updatedAt: now,
+      triggerDisappear: signal<boolean>(false),
+      collapse: signal<boolean>(false)
+    })
+  }
+
+}

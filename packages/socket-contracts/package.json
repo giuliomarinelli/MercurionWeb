@@ -1,0 +1,31 @@
+{
+  "name": "@mercurion/socket-contracts",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Framework-neutral, versioned Socket.IO event contracts shared by Mercurion Angular and Nest applications.",
+  "license": "UNLICENSED",
+  "main": "cjs/index.js",
+  "module": "esm/index.js",
+  "types": "cjs/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./cjs/index.d.ts",
+      "import": "./esm/index.js",
+      "require": "./cjs/index.js",
+      "default": "./esm/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && tsc -p tsconfig.esm.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "policy": "node scripts/check-socket-event-policy.mjs",
+    "policy:negative": "node scripts/test-socket-event-policy-negative.mjs"
+  },
+  "dependencies": {
+    "@mercurion/rest-contracts": "1.0.0"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3"
+  }
+}

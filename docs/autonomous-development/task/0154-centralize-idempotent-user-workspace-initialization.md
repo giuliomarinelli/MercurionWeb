@@ -1,0 +1,161 @@
+# 0154 - Centralize idempotent user-workspace initialization
+
+- [x] DONE
+- [ ] BLOCKED
+- [ ] REVERTED
+- [ ] SKIPPED_DEPENDENCY
+## Objective
+
+Extract the initial Mercurion molecule/collection workspace into one idempotent domain initializer used by both native account activation and first-time SSO provisioning.
+
+Source: `DATA-005` in Series `0001`.
+
+## Context
+
+`AccountService.activateUser()` and `SocialAuthService.loginWithProvider()` each contain their own copy of the initial five ChEMBL molecule rows, timestamps, first collection and join creation. The duplicated seed already spans two authentication paths and can drift independently. The initializer must operate inside the caller's transaction and be safe to invoke more than once; `0155` then hardens the surrounding registration/activation/SSO commands against concurrent retries.
+
+## Relevant files and modules
+
+- `MercurionWebNode/src/app_modules/auth/services/account.service.ts`
+- `MercurionWebNode/src/app_modules/sso/services/social-auth.service.ts`
+- `MercurionWebNode/src/app_modules/molecule-collection/`
+- User/workspace persistence ports
+- Unit of Work from `0152`
+- seed/onboarding fixtures and tests
+
+## In scope
+
+- Define one application/domain service for initializing a newly provisioned user's default workspace.
+- Move the existing five starter molecule definitions and first-collection definition to one canonical immutable seed specification.
+- Accept an active transaction context/`EntityManager`; do not open an independent transaction.
+- Make repeated invocation for the same user converge to one logical starter workspace without duplicate collections, items or joins.
+- Use manager-bound repositories/ports rather than reaching directly into foreign-domain implementation repositories.
+- Replace both activation and SSO copies with the shared initializer.
+- Add equivalence/idempotency tests for native activation and SSO provisioning.
+
+## Out of scope
+
+- Do not change the starter molecule identities, labels, notes or first-collection copy unless a product decision explicitly requests it.
+- Do not add new onboarding UX or frontend behaviour.
+- Do not solve concurrent registration/callback replay globally; `0155` owns command-level idempotency.
+- Do not perform external effects from the initializer.
+
+## Decisions already made
+
+- Native and SSO users receive the same canonical starter-workspace semantics unless an explicit product rule says otherwise.
+- Workspace initialization is a domain capability, not Auth/SSO implementation detail.
+- The initializer is idempotent and transaction-context aware.
+- Seed definitions have one source of truth and are not copied into tests as independent literals.
+
+## Requirements
+
+1. Compare the two existing onboarding blocks field-by-field and preserve the approved current seed payload.
+2. Define a typed starter-workspace specification and an `initialize...` use case owned by an appropriate neutral/application boundary.
+3. Persist items, collection and joins using the caller's active manager/Unit of Work.
+4. Define a durable idempotency criterion for "workspace already initialized" that does not depend on a fragile localized display name alone.
+5. Ensure partial prior initialization cannot result in duplicated half-workspaces; invocation either completes/reconciles safely inside one transaction or fails.
+6. Replace duplicated code in account activation and SSO provisioning.
+7. Add tests proving both entrypoints create equivalent data and two sequential initializer calls produce the same persisted logical workspace.
+
+## Acceptance criteria
+
+- [ ] Exactly one canonical starter-workspace definition exists.
+- [ ] Account activation and SSO provisioning call the same initializer.
+- [ ] Re-running the initializer for one user does not create duplicate starter items, collection or joins.
+- [ ] Initialization participates in the caller's transaction and rolls back atomically.
+- [ ] Existing starter content remains behaviourally compatible.
+- [ ] Auth/SSO services no longer import entity classes merely to hand-build the starter workspace.
+
+## Validation
+
+Run initializer integration tests on a real disposable DB, native activation and SSO provisioning tests, duplicate-invocation tests, full Nest unit/E2E tests, build and canonical CI-parity gates.
+
+## Browser validation
+
+Not applicable.
+
+## Stop conditions
+
+Mark `BLOCKED` if the two existing onboarding copies have intentionally different product semantics that cannot be reconciled from current requirements, or if no durable initializer identity can be introduced without an unresolved schema/product decision.
+
+## Dependencies
+
+- `0152-introduce-canonical-typeorm-unit-of-work.md` must be `DONE`.
+- `0151-enforce-database-integrity-constraints-and-indexes.md` should be `DONE` so idempotency can rely on appropriate DB invariants where valid.
+
+## Implementation notes
+
+Do not use collection display text such as `La mia prima collezione` as the sole idempotency key. User-editable/localized content is not a durable technical identity.
+
+## Execution notes
+
+### Feature branch
+`feature/DATA-005` (base `9aaf15e252d7eb510f87920e7f4e934edff78fd2`)
+### Preflight
+Clean `feature/DATA-005` at the supplied base SHA was confirmed before edits.
+GitHub Actions CI run `35030119714` for exact SHA
+`9aaf15e252d7eb510f87920e7f4e934edff78fd2` completed successfully; its
+classification, Linux and Windows validation, and `Required gate` jobs were
+green. No task-owned Angular, Nest, Tox21, Jest watcher, or runtime process
+was active; the existing `node_repl`/Chrome MCP processes were unrelated host
+tooling and were not modified. No runtime was started because browser
+validation is not applicable.
+### Preflight remediation
+None. `migration:check` was attempted once and stopped at the pre-existing
+environment validation boundary because the local session does not provide
+the required SQL_DATABASE_* variables; no database or repository mutation
+occurred.
+### Summary
+Added the typed immutable `STARTER_WORKSPACE` specification and made
+`InitialWorkspaceService.initializeForUser` the single transaction-context
+aware initializer used by native activation and SSO provisioning. Added
+durable nullable `system_key` identities with unique per-user indexes and a
+migration, safe reconciliation of partial keyed workspaces, legacy adoption
+only when the complete starter item/join set matches, and join-level
+idempotency. Starter payload values and display copy remain unchanged.
+Authentication services no longer construct or import starter entities.
+### Task-specific validation performed
+Passed:
+
+- `npm test --workspace mercurion_web_node -- --runInBand --runTestsByPath src/app_modules/molecule-collection/services/initial-workspace.service.spec.ts`
+  (2 tests: canonical specification, sequential idempotency, persistence
+  failure propagation for rollback)
+- `npm test --workspace mercurion_web_node -- --runInBand --runTestsByPath src/app_modules/auth/application/account-flow-kernel.spec.ts src/app_modules/sso/services/social-auth.service.spec.ts`
+  (2 tests)
+- Combined three-suite DATA-005 focused Jest run (4 tests passed)
+- `npm run typecheck --workspace mercurion_web_node`
+- `npm run lint --workspace mercurion_web_node`
+- `npm run build --workspace mercurion_web_node`
+- `git diff --check`
+### Full pre-merge CI-parity validation
+Not run locally by policy; clean-install and aggregate CI parity are reserved
+for GitHub Actions on the pushed exact feature SHA.
+### Browser validation performed
+Not applicable: backend-only recipe.
+### Commits
+`bace783824d4afc6ff3bf29c41712871c16b7385` —
+`feat(DATA-005): centralize starter workspace initialization` (includes
+`Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>`).
+### Merge / CI
+Feature branch pushed after the task-specific commit. CI run
+`35031245493` is in progress for the exact pushed SHA; coordinator must wait
+for its `Required gate` and platform jobs before integration.
+### Feature-CI repair attempt 1
+Exact feature SHA `010a8f0d1f248c19c211e22d91c09fa27d697a47` failed Actions run
+`35031270426`. Prerequisite jobs `104590567023` (windows-latest) and
+`104590567055` (ubuntu-latest) both failed in `ci:architecture` ->
+`nest-orphans`; the repository-controlled diagnostic was
+`src/persistence/migrations/1789500000000-AddStarterWorkspaceKeys.ts is
+orphaned`. Required gate job `104591298416` consequently failed because its
+prerequisites failed. The narrow correction registers the migration as a
+`typeorm-cli` dynamic entrypoint in
+`MercurionWebNode/nest-reachability.config.json`, matching the existing
+datasource and migration registration convention without weakening the
+reachability policy. Focused repair validation passed:
+`npm run nest:orphans:check`, `npm run ci:architecture`, and the DATA-005
+initializer/auth focused Jest suites. No runtime or browser validation was
+required, and no task-owned process was started.
+### Rollback
+No rollback required.
+### Blocker / human decision required
+None.

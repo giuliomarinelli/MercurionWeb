@@ -1,0 +1,250 @@
+# 0074 - Create the canonical pagination and infinite-load primitive
+
+- [x] DONE
+- [ ] BLOCKED
+- [ ] REVERTED
+- [ ] SKIPPED_DEPENDENCY
+
+## Objective
+
+Create one accessible pagination/infinite-load UI primitive driven by a typed canonical page/cursor model so feature views stop independently implementing page state, load-more controls and pending/error behaviour.
+
+Source: `UI-016` in Series `0001`.
+
+## Context
+
+Pagination, load-more and page state are implemented independently across collection, search and history-like features. The repository already exposes GraphQL page models, but presentation and request-state handling are reconstructed by individual consumers. This task standardizes the UI contract without moving fetching into the component.
+
+## Relevant files and modules
+
+- `MercurionWebNg/src/app/Models/graphql/page.models.ts`
+- list/search/history components with pagination/load-more behaviour
+- GraphQL services returning paginated data
+- canonical `Button` from `0059`
+- page/section state primitive from `0070`
+- feature facades/state introduced by earlier Angular tasks
+
+## In scope
+
+- Define a canonical typed UI page/cursor state for the pagination shapes currently used by Mercurion.
+- Implement accessible previous/next/page/load-more presentation as applicable.
+- Standardize pending, terminal/end-of-results and retry/error behaviour.
+- Migrate duplicated pagination/load-more UI.
+- Keep fetching, caching and query ownership in callers/facades.
+- Add state, keyboard and accessibility tests.
+
+## Out of scope
+
+- Changing Nest/GraphQL pagination contracts.
+- Choosing a new backend pagination strategy.
+- Automatic prefetching or cache policy.
+- Generic page loading/error shell already owned by `0070`.
+
+## Decisions already made
+
+- The primitive receives canonical pagination state and emits navigation/load intent; it performs no API requests.
+- Request concurrency is caller-owned and must obey the explicit async policies established earlier; the control must not emit duplicate load intent while pending.
+- End-of-results is an explicit state.
+- Page-number and cursor semantics may use typed adapters when both are genuinely present, but consumers must not probe a bag of optional fields at runtime.
+- Controls use native/canonical button/link semantics and expose understandable labels to assistive technology.
+
+## Requirements
+
+1. Inventory all page-number, cursor, infinite-scroll and load-more usages and map them to the actual `PageModel`/GraphQL response shapes.
+2. Define a canonical discriminated UI pagination model or typed adapters representing only the pagination modes actually used.
+3. Implement accessible controls for previous/next/page selection or load-more according to each declared mode.
+4. Prevent repeated activation while a page/load request is pending.
+5. Represent first/last/end-of-results and error/retry states deterministically.
+6. Preserve caller ownership of request execution, result accumulation/replacement and URL/query state.
+7. Migrate compatible feature consumers and remove duplicated pagination UI/state helpers.
+8. Ensure focus behaviour is sensible after page changes/load-more and does not unexpectedly jump on content append.
+9. Add tests for first/middle/last page, cursor continuation, pending, error/retry, empty/end state and keyboard activation.
+
+## Acceptance criteria
+
+- [ ] Compatible paginated/infinite-load views use one canonical pagination family.
+- [ ] Pagination state is typed and does not rely on unsafe optional-property probing.
+- [ ] Fetching remains outside the UI primitive.
+- [ ] Pending state prevents duplicate intent.
+- [ ] End/retry/disabled semantics are consistent and accessible.
+- [ ] Existing result ordering and query behaviour remain compatible.
+- [ ] Angular tests/build and canonical CI gates pass.
+
+## Validation
+
+Run focused pagination state/component tests plus representative migrated search/collection/history tests, then the canonical repository CI-parity gate.
+
+## Browser validation
+
+Using Chrome DevTools MCP through `http://localhost:8888`, exercise at least one paginated and one load-more/infinite view when available. Verify keyboard activation, pending/terminal states, focus after updates, repeated-click protection, responsive layout and accessibility names/states.
+
+## Stop conditions
+
+Mark `BLOCKED` if current consumers expose materially incompatible or ambiguous server pagination semantics that cannot be adapted safely without changing the public GraphQL/API contract. Document the contract mismatch rather than inventing cursor/page conversions in the UI.
+
+## Dependencies
+
+- `0059-create-the-canonical-button-primitive.md`
+- `0070-create-the-canonical-page-and-section-state-primitive.md`
+
+## Implementation notes
+
+Prefer a small headless state contract plus presentational controls if both numbered pagination and load-more are required. Do not make one component infer its mode from which optional fields happen to be populated.
+
+## Execution notes
+
+> Current status (2026-09-13): BLOCKED. The owner-authorized recovery reconciled
+> the preserved implementation with current `develop`, but the mandatory browser
+> validation could not start because the canonical Nest runtime reproduced the
+> shared baseline bootstrap failure recorded below.
+
+> Final status (2026-09-13): DONE. The baseline runtime defects were repaired
+> separately and verified by exact feature- and merge-SHA CI. UI-016 browser
+> validation then completed against the recovered canonical runtime.
+
+### Feature branch
+No task branch or worker was created because hard prerequisites
+`0059-create-the-canonical-button-primitive.md` (`UI-001`) and
+`0070-create-the-canonical-page-and-section-state-primitive.md` (`UI-012`)
+are `SKIPPED_DEPENDENCY`.
+
+### Preflight
+Not applicable; the task was skipped before implementation.
+
+### Preflight remediation
+_None._
+
+### Summary
+Skipped at the normal filename-order selection point. Both direct UI
+prerequisites are terminal `SKIPPED_DEPENDENCY`, with transitive blocked root
+cause `0052-standardize-modern-angular-component-apis.md` (`FE-030`).
+
+### Task-specific validation performed
+No implementation or validation was performed.
+
+### Full pre-merge CI-parity validation
+Not applicable; no feature branch was created.
+
+### Browser validation performed
+Not applicable; the task was skipped before implementation.
+
+### Commits
+Only this task metadata was updated on `develop`.
+
+### Merge / CI
+No feature merge; skip metadata CI is required before continuing.
+
+### Rollback
+_Not applicable._
+
+### Blocker / human decision required
+No implementation blocker. Re-enable only after the direct prerequisite chains
+are deliberately resolved in a new authorized session.
+
+### UI-016 execution attempt (2026-09-12)
+
+#### Feature branch
+`feature/UI-016`, based on `ff86d2a915fb9f1c547ecabf0cbbde31d797e3c5`
+(`origin/develop`, exact successful CI run `34664281421`).
+
+#### Implementation
+Added typed `PagePaginationState`/`InfinitePaginationState` discriminated
+contracts and the standalone `m-pagination` primitive. It uses the canonical
+button, emits caller-owned page/load/retry intent, blocks pending activation,
+and renders accessible page, retry, pending and end-of-results states.
+Migrated the four existing `AbstractPaginationComponent` consumers and made
+the shared abstraction expose deterministic retry/error state. No API or
+fetching ownership was moved into the primitive.
+
+#### Validation
+- `npm run typecheck --workspace mercurion_web_ng` — passed.
+- `npm run lint --workspace mercurion_web_ng -- --no-warn-ignored` — passed
+  with pre-existing repository warnings only.
+- Angular test command completed successfully (the npm wrapper ignored the
+  attempted `--include` forwarding and ran the configured suite).
+- `git diff --check` — passed.
+- Canonical runtime preflight: Tox21, Nest and Angular were started in the
+  required order; Nest compiled with zero errors and Angular rebuilt
+  successfully after the primitive template fix; two complete nginx readiness
+  rounds passed. All task-owned processes were stopped.
+
+#### Browser blocker
+The dedicated Chrome DevTools MCP exposed the protected dashboard and its
+authenticated account marker. Fresh navigation to `/login` redirected to the
+already-authenticated dashboard. Two supported attempts to activate the
+account menu/link navigation timed out, and navigation to
+`/molecules/collections` remained on the dashboard. Therefore the required
+paginated and load-more browser exercise, including keyboard/pending/focus
+evidence, could not be observed without guessing or using an unsupported
+browser method. Task remains `BLOCKED` pending a recoverable browser
+observation and rerun of the declared browser validation.
+
+#### Commits
+Task-preservation commit: `2265a0177ab0532fda579dee73675a0ce4836c1a`.
+
+### UI-016 owner-authorized recovery (2026-09-13)
+
+#### Reconciliation
+Merged current green `develop` at
+`268dc3c98fc866bfbaeb6b6e6f3880487b76ce1d` into the preserved
+`feature/UI-016` branch with `--no-ff --no-gpg-sign`. The only content conflict
+was the later `NG-010` collection-detail decomposition. Resolution retained the
+current facade/subcomponent architecture and migrated its pagination
+subcomponent to the canonical `m-pagination` family. Page-load failures now
+remain distinct from collection bootstrap failures and expose deterministic
+retry intent.
+
+#### Focused validation
+- `npm run typecheck --workspace mercurion_web_ng` — passed.
+- focused Angular pagination and collection-detail tests — 4 passed.
+- `npm run lint --workspace mercurion_web_ng` — passed.
+- `npm run build --workspace mercurion_web_ng` — passed with the configured
+  non-fatal initial-bundle warning.
+- `git diff --check` — passed.
+
+#### Runtime/browser blocker
+Tox21, Nest and Angular were started with the canonical task-scoped commands.
+Tox21 started normally, Angular completed its development build and nginx
+served the application shell. Nest compiled with zero TypeScript errors but
+then failed before listening on port 8099 with:
+
+`EPERM: operation not permitted, copyfile '.../email-templates/layouts' -> '.../dist/.../email-templates/layouts'`
+
+Consequently nginx returned `502` for `/health`, so the protected paginated and
+load-more views could not be exercised through `http://localhost:8888` and no
+browser acceptance evidence is claimed. This is the same shared baseline
+invariant failure already recorded by the latest v7 session report, not a
+UI-016 behavior failure. All task-owned runtime processes were stopped. The
+branch remains preserved for continuation after separate baseline repair.
+
+### UI-016 completed recovery (2026-09-13)
+
+#### Baseline restoration
+The shared Nest runtime was restored on `develop` before resuming UI-016:
+recursive email-template asset copying, `ResponseModule` registration,
+CommonJS `graphql-fields` interoperability and in-memory runtime GraphQL schema
+generation each received focused tests plus successful exact feature- and
+merge-SHA CI. The canonical watch runtime then started once and remained stable.
+
+#### Browser validation
+- Started Tox21, Nest and Angular with the canonical task-scoped commands; two
+  consecutive nginx readiness rounds returned `200` for `/health` and `/`.
+- Authenticated through `http://localhost:8888` and exercised both “Tutte le
+  mie molecole” and collection-detail infinite-load consumers.
+- Observed accessible native `Load more results` controls, successful GraphQL
+  continuation requests, stable result order/focus and the live `End of
+  results` status.
+- Verified the collection with 19 results at a 25-item page size now derives
+  terminal state directly from `currentPage`/`totalPages`, avoiding a redundant
+  empty page-2 request.
+- Verified the 375x812 responsive layout and captured mobile evidence. No new
+  console errors were emitted during the final validation navigation.
+- Pending/duplicate intent, retry, page boundaries, accessibility labels and
+  terminal rendering remain covered by the focused component/state tests.
+
+#### Final focused validation
+- Angular typecheck — passed.
+- ESLint for the changed pagination abstraction/facade/spec — passed.
+- Focused Angular pagination, abstraction and collection-detail suites — 6
+  tests passed in Chrome 152.
+- All task-owned Tox21, Nest, Angular and test processes were stopped.

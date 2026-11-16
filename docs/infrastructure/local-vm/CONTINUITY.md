@@ -1,0 +1,312 @@
+# Ripresa operativa — aggiornamento 13 novembre 2026
+
+## Punto corrente: strumenti operatore e preview raggiungibile
+
+L'operatore ha confermato HNSW creato in 9 minuti e 19 secondi, valido e pronto
+(circa 10 GB), e il sito preview raggiungibile tramite Cloudflare Tunnel/Access.
+Restano i bug SSO (`users.created_at` nullo in inserimento nuovo utente) e
+registrazione (messaggio email già registrata con HTTP 200, causa da diagnosticare).
+
+Autorizzazione corrente: predisporre rollout applicativo, startup post-reboot,
+scope amministrativi e debug remoto. Le precedenti restrizioni alla sola
+documentazione riportate nella cronologia sotto sono state superate dalle
+successive istruzioni dirette dell'operatore. Nessuna installazione di runner,
+modifica SSH/sudoers o nuova azione sulla VM è stata eseguita in questa fase.
+
+I comandi sono in [OWNER-TOOLS.md](OWNER-TOOLS.md), copiati anche nel memo
+personale Desktop; la predisposizione della delivery su branch `preview` è in
+[INSTALL-DELIVERY.md](INSTALL-DELIVERY.md). La pipeline rimane disabilitata,
+in attesa di installazione revisionata e collaudo end-to-end. Consegna automatica
+predisposta per Nest/Angular; Tox21 conserva l'immagine corrente e richiede la
+configurazione separata della sua repository. Nessun push o CI remota verificata.
+
+## Cronologia precedente — 12 novembre 2026
+
+## Aggiornamento dell'owner: accesso riuscito e HNSW manuale
+
+L'owner ha aperto pgAdmin sulla preview e avviato manualmente HNSW
+`idx_me_hnsw_cos` su `public.molecule_embeddings`. Lo screenshot mostra la
+query ancora in esecuzione e un NOTICE su `maintenance_work_mem` dopo 16.754
+tuple: è evidenza di avvio, **non di completamento**. Il batch comprende anche
+`idx_uniq_molecule_embeddings`, il cui completamento non è ancora attestato.
+I report del worker precedente non monitorano questa esecuzione manuale.
+
+Database richiesto: **`mercurion`**; l'ultimo screenshot mostra ancora
+`mercurion_preview`. Nessuna rinomina è stata effettuata dall'agente.
+Obiettivo dell'owner: preview online entro la sera del **13 novembre 2026**.
+L'agente è autorizzato solo alla documentazione; non esegue script PowerShell,
+SQL, ripristini, deployment o modifiche Cloudflare. Scaletta in
+[ROADMAP.md](ROADMAP.md).
+
+## Antefatti e ricevute precedenti
+
+**Consegna manuale richiesta dall'owner:** istruzioni di accesso in
+[PORT-FORWARDING.md](PORT-FORWARDING.md); utenti, valori e file in
+[CREDENTIALS-AND-CONFIGURATION.md](CREDENTIALS-AND-CONFIGURATION.md).
+Database e HNSW sono in gestione all'owner; l'agente scrive soltanto documentazione.
+L'ultimo build HNSW è fallito prima
+della creazione della manutenzione, per il controllo sui 25 GiB disponibili
+(`embedding-index-needs-14-cpu-28-gib-and-25-gib-available`). Nessun indice
+costruito da quel tentativo. Controllo di capacità e monitor delle fasi preliminari
+restano irrisolti; nessuna modifica implementativa durante questa consegna.
+
+Le note sottostanti descrivono le fasi eseguite e i collaudi. I precedenti
+«task attuale» e «passi successivi» non costituiscono nuove autorizzazioni e
+non superano lo stato di consegna riportato sopra.
+
+**Adozione VM completata:** upgrade `6d019947800b4578bc2b5d40791f5132`, stato
+passed e sette controlli true. Quattro server nuovi su volumi persistenti separati;
+Nginx/applicazioni conservati, health/SPA/RPC verificati, originali trattenuti
+per rollback. Ricevuta owner scaricata e letta in
+`vm047-adoption/ready/upgrade-result.json`. Non ripetere l'upgrade.
+
+**Task dati attuale:** owner ha consegnato 50 chunk SQL degli embedding,
+25.523.353.951 byte, **2.644.421 righe a 768 dimensioni**. Inventario/checksum
+completati una volta, manifest in `vm048-embeddings/dump-manifest.json`.
+Corretto il disallineamento preferred_name/vector(768) in DDL ed entity;
+QA su PostgreSQL reale passato. [Import riprendibile e indice separato](EMBEDDINGS-IMPORT.md).
+Trasferimento e import completati, run `032ab86ece504dc58269642abf97f9b8`:
+`status=passed`, 50/50 chunk, 2.644.421 righe, worker terminato, indice non costruito.
+L'owner ha poi riavviato la VM con **14 vCPU e 28 GiB RAM** per HNSW.
+Recupero server tentativo `87c4e9ff7a2f415dac67e1590ff65f48`: sei controlli
+positivi, poi falso negativo nel readback che filtrava l'etichetta originale
+anziché gli ID adottati. Correzione e sola riverifica documentate in
+[COLD-RECOVERY.md](COLD-RECOVERY.md#correzione-del-controllo-finale-dopo-adozione-server).
+Riverifica `c1fc92e9d3a9465fa0d4114d5c732ef0` passed: sei check true,
+stessi quattro ID running e nessuna mutazione durante la verifica.
+Worker HNSW separato pronto: **12 CPU / 24 GiB**, 20 GiB manutenzione,
+11 worker e shared memory 22 GiB, mentre le applicazioni restano ferme.
+Passaggio esclusivo sul volume e ripristino dopo errore collaudati su PG reale
+locale; il build effettivo sulla VM è ancora da eseguire. Al termine riparte
+lo stesso container ordinario con 4 CPU / 4 GiB. Sequenza e vincoli in
+[EMBEDDINGS-IMPORT.md](EMBEDDINGS-IMPORT.md#ridimensionamento-concordato-vm-14-vcpu-28-gib).
+
+**Task attuale:** adozione operativa shared/preview, non solo preparazione di immagini.
+Procedura e comando owner: [SERVICE-UPGRADE.md](SERVICE-UPGRADE.md).
+Inventario VM aggiornato `91bc83f416a9429a9106f2a94e1ba513`: quattro server
+running, tmpfs presente, nessun cold recovery necessario. Preparati nuovi Compose
+server versionati, volumi separati, backup logico PostgreSQL/Meili, copia Redis,
+rollback e registrazione atomica della generazione per il recovery. Collaudo
+locale dell'intero stack con sette controlli passed; trasferimento Meili 1.56.2
+→ 1.14.0 con entrambe le chiavi client e lettura dei documenti verificati.
+La ricevuta VM è acquisita: vedere l'aggiornamento in testa alla pagina.
+
+**Audit preliminare concluso:**
+tutte le cinque immagini di sviluppo sono bloccate dalla scansione strict.
+L'owner autorizza aggiornamenti coordinati nelle linee compatibili e prove su
+copie isolate. Preparati candidati Redis 8.2.9, NATS 2.12.15 con Go corretto e
+Meili 1.14 con sola base OS aggiornata; Nginx 1.30.6 già disponibile. PostgreSQL
+16.16 è stato compilato dai sorgenti ufficiali, esportato con save/load verificato
+e scansione strict a zero finding. Sei controlli reali su fixture sono passati:
+dump/restore da 16.10, SCRAM, HNSW, restart e catalogo vector 0.8.1 preservato.
+Tutti e cinque i candidati hanno ora una scansione positiva; l'adozione coordinata
+e le prove sui dati effettivi restano da eseguire.
+Nessun servizio/volume attivo modificato. I Compose nel repository ora dichiarano
+le versioni selezionate e sono inclusi nel bundle di adozione. Nginx VM resta
+dedicato, senza TLS/certificati e maintenance mode.
+[Rapporto riproducibile](SERVICE-SECURITY-AUDIT.md).
+
+**Vincolo prioritario:** le versioni server VM devono coincidere con lo
+sviluppo definito in `docker_sl/docker-compose.yml` e relativo Dockerfile
+PostgreSQL. Divergenze effettive documentate in
+[SERVICE-VERSION-PARITY.md](SERVICE-VERSION-PARITY.md), incluse versione del
+pacchetto pgvector e versione nel catalogo DB. Non avviare restore su una
+baseline divergente e non aggiornare lo sviluppo o declassare i volumi per
+forzare la parità senza piano. La readiness positiva non chiude questo requisito.
+
+**Pausa dati:** l'owner sta recuperando da archivio RAR i chunk degli embedding
+nella propria directory privata. Non avviare trasferimenti o restore prima
+della sua conferma. Nel frattempo sono autorizzate analisi e proposta:
+[schema SQL, Meili e tool scope](DATA-BOOTSTRAP-PLAN.md). Tool scope ancora da
+implementare; nessuna chiave letta o esposta e nessun privilegio modificato.
+
+**Punto corrente:** verifica applicativa conclusa con verificationId
+`51f087181cb34ec3ad4ace23ec9e53fe`: backend, frontend e RPC Tox21 tutti true,
+stessi quattro container, senza nuovi avvii o modifiche al database. Forward
+Nginx attivo e landing visualizzata dall'owner su `http://localhost:18888`.
+Procedura nelle [sezioni 7–8](APPLICATION-BOOTSTRAP.md#7-riprendere-soltanto-la-verifica-dei-container-esistenti).
+Il controllo console/network tramite Playwright non è stato acquisito.
+Non ripetere bootstrap/schema. ChEMBL e embedding rimangono nella fase
+successiva: inventariare dump/chunk prima di trasferimento e restore.
+
+L'owner riprende il lavoro con obiettivo staging funzionante e documentazione
+passo passo di ogni operazione. Ha confermato che la VM è stata spenta o
+riavviata. La pausa precedente è terminata; i segreti tmpfs non vanno presunti
+presenti. Prima delle API key e del bootstrap applicativo seguire
+[COLD-RECOVERY.md](COLD-RECOVERY.md): inventario della release e dei quattro
+server concluso con inspectionId 8606c6dead7f4b32976e15371f840a5f. Il
+recupero dei quattro server è ora confermato dalla verifica
+`d2cfff6e2a204c27ac3362f4d9e59fbf`: sei controlli true, server attivi e stessi
+volumi. Due chiavi client Meili a 90 giorni ora create; prossimo passo: applicazioni private. La policy
+Cloudflare Access è predisposta su `preview.mercurion.app`; non attesta ancora
+il collegamento del tunnel o il funzionamento applicativo. Nessun merge.
+
+**Aggiornamento:** il recupero owner attemptId
+`1250bedb66bb4415be4dea909207077e` ha avviato i quattro server ma la readiness
+è terminata in timeout. Non rieseguire prepare/receive/start. Corretto il probe
+NATS e predisposta la sola verifica nella sezione 4.4 di COLD-RECOVERY.md;
+verifica owner successiva passed con tutti i sei controlli, senza nuovi avvii
+o modifiche. Meili è a `172.18.0.2`; chiavi client create con successo. Le ricevute originali
+fallite restano conservate.
+
+**Chiavi Meili completate:** owner riporta MEILI_CLIENT_KEYS_READY, due UID
+applicativi, 90 giorni, quattro negazioni 403 e nessun altro campo modificato.
+Non ripetere il provisioning. Prossimo task: bootstrap applicativo privato.
+
+**Preparazione VM-045:** seguire [APPLICATION-BOOTSTRAP.md](APPLICATION-BOOTSTRAP.md).
+Gli export correnti sono sotto `.codex/artifacts/inf-vm-04/vm045-applications`
+nel profilo dell'owner. Launcher e controlli sono versionati; nessuna esecuzione
+VM del nuovo bootstrap ancora attestata. Il pacchetto `ready` deve essere
+assemblato da helper committati e la CI esatta verificata prima della consegna.
+Tox21 aggiornata nei soli pacchetti OS, scansione strict a zero; codice e modello
+invariati. La ripartenza unificata delle applicazioni rimane un task successivo.
+
+## Consegna precedente, conservata come storico
+
+# Pausa operativa — fine giornata 11 novembre 2026
+
+**Istruzione esplicita dell'owner:** stop alle operazioni infrastrutturali per
+oggi; comando API key rimandato al giorno successivo, con tunnel aperto.
+Il lavoro successivo autorizzato in questa sessione è soltanto documentare e
+conservare in Git l'intero percorso. Non continuare consegna di segreti,
+avvii, reboot, rete, Cloudflare o operazioni Meili durante la pausa.
+
+## Punto di ripresa del 12 novembre
+
+1. Leggere [RUNBOOK.md](RUNBOOK.md), sezione 12, e
+   [EXECUTION-RECORD.md](EXECUTION-RECORD.md).
+2. VM-043 **conclusa**: run 6c3e72e2e4064b71bd3bbffcff4d629c, quattro server,
+   roundtrip/readiness positivi, nessuna porta pubblicata. Non ripetere bootstrap,
+   ResumePublicCopy, generazione file o riparazione AES.
+3. VM-044 indici **conclusa**: logs_staging/security_logs_staging e coppia
+   production creati, primaryKey id, task 0–3 verificati. Non ricrearli.
+4. API key **non eseguite**: owner ha scelto validita 90 giorni. Salvare e chiudere
+   il file privato nell'editor; con tunnel disponibile usare il comando versionato:
+
+   ```powershell
+   powershell -NoProfile -File C:/.project_repo/MercurionWeb/scripts/infrastructure/Invoke-PreviewMeiliClientKeys.ps1 -Expiry 90Days
+   ```
+
+   Il vecchio comando sotto .codex/artifacts era una copia pubblica della stessa
+   procedura; non eseguire entrambe le copie. Il sorgente stabile e nel repository.
+5. Master/passphrase/sudo solo nel terminale dell'owner. Non leggere il suo
+   configuration.json o dotenv/PEM da una sessione agente. Attendere la ricevuta
+   MEILI_CLIENT_KEYS_READY prima di dichiarare compilate/valide le chiavi.
+6. Se la VM ha perso tmpfs per reboot/arresto, non procedere come se i bind fossero
+   ancora pronti: cold recovery dei server reali ancora aperta (runbook sezione 13).
+
+Provider reali e riparazione iniziale AES sono gia confermati. Dropbox/GitHub/
+LinkedIn inutilizzati usano placeholder non vuoti; chiavi Meili client ancora
+in attesa. Hostname preview.mercurion.app, applicazioni e DNS/tunnel pubblico
+ancora non attivati. H-05/A-05/A-30 restano parziali.
+
+Branch operativi Web feature/infra-vm-docker-engine-architecture e Tox21
+feature/infra-vm-nats-client-auth; nessun merge autonomo. Preservare il preesistente
+scripts/infrastructure/__pycache__. La revisione delle immagini Web e d227dbf4,
+Tox21 d506101; strumenti di ripresa SCP ca14b03d con Required gate verde.
+Revisioni e limiti completi nel registro; non ricostruire lo stato dalla vecchia
+cronologia seguente. Gli strumenti/documenti promossi hanno la loro CI corrente.
+
+## Materiale storico, non istruzioni per la ripresa attuale
+
+## Snapshot storico della pausa del 10 novembre
+
+Le sezioni seguenti descrivono lo stato **prima** della ripresa dell'11
+novembre; decisioni aperte e modifiche non validate sono superate dal punto
+di ripresa sopra e da PREVIEW-BOOTSTRAP.md.
+
+**Pausa esplicita dell'owner: «riprendiamo domani».** Nessuna attività
+in background o operazione VM da continuare durante la pausa.
+
+## Ultima milestone conclusa
+
+VM-041 verificata: Tox21/NATS reali sulla VM, load/save con digest coerenti,
+tre lifecycle RPC, nove negazioni NATS, tre stop e cleanup senza errori.
+Report recuperato separatamente dopo chiusura del primo SCP, senza
+rieseguire il pilot. [Procedura ed evidenze](TOX21-VM-PILOT.md).
+
+Web operativo: `feature/infra-vm-docker-engine-architecture`, SHA
+`f3c4c4873e05f7e152d01ae2ecc5a869630ef7e8`, pubblicato.
+[CI full 42880413194](https://github.com/giuliomarinelli/MercurionWeb/actions/runs/42880413194)
+verde, Required gate incluso. Tox21 operativo invariato:
+`feature/infra-vm-nats-client-auth`, SHA
+`d506101ec27c985ef4ddb280266bfcdc4b6bf1c4`, CI 42858304379 verde.
+Nessun merge autorizzato all'agente; continuare dai branch operativi.
+
+## Lavoro avviato verso lo stack preview (VM-042)
+
+**Modifiche locali non ancora committate o validate dopo gli ultimi edit:**
+
+- `MercurionWebNode/Dockerfile`: staging usa le dipendenze runtime già
+  preparate per production e solo i package compilati; rimozione degli
+  artefatti TypeScript/map e label esplicite dell'ambiente.
+- `MercurionWebNg/Dockerfile`: label ambiente sui tre target.
+- `scripts/export-web-container.py`: target staging/production esplicito,
+  default production conservato; controlli di coerenza label/APP_ENV e
+  verifica della presenza del launcher bootstrap Nest nell'audit.
+- `scripts/test-coordinate-delivery.py`: due nuovi test per staging e
+  impossibilità di scambiare target/frontend privi di provenienza.
+
+Il precedente gate verde certifica f3c4c487, non questi edit. Nessuna nuova
+CI o build Web eseguita; nessun container applicativo o servizio VM avviato
+in questo task. Non dichiarare la preview pronta. Il `__pycache__` non
+tracciato in `scripts/infrastructure` era già presente: preservarlo.
+
+## Scansioni delle dipendenze infrastrutturali
+
+Artefatti esterni a Git:
+
+```text
+C:/Users/giuli/.codex/artifacts/inf-vm-04/vm042-preview/
+  initial-postgres/{image.tar,vulnerabilities.json,summary.json}
+  initial-redis/{image.tar,vulnerabilities.json,summary.json}
+  initial-meilisearch/{image.tar,vulnerabilities.json,summary.json}
+  scan-initial-services.py
+```
+
+Scan Trivy fissato per digest, nessun ignore o esclusione di gravità:
+
+| Immagine locale precedente | Finding (occorrenze, non CVE uniche) | Esito |
+| --- | ---: | --- |
+| PostgreSQL 16/pgvector `0d00971a33d0…` | 872 | Respinta |
+| Redis `4521b581dbdd…` | 327 | Respinta |
+| Meilisearch `8cd411ba5d9e…` | 62 | Respinta |
+
+Le scansioni sono terminate. Nessuna immagine respinta trasferita alla VM.
+Non riutilizzare i container o volumi di sviluppo per il nuovo deployment.
+La policy strict resta invariata: tutte le gravità bloccano, senza deroghe.
+
+Consultato anche l'indice ufficiale Wolfi: disponibili PostgreSQL 16 e
+Meilisearch; il pacchetto pgvector per 16 osservato è vecchio rispetto a
+quello per 18. È solo inventario, **nessuna migrazione a PostgreSQL 18 o
+scelta alternativa di Redis approvata**. Selezionare e scansionare runtime
+compatibili mantenendo PostgreSQL 16/pgvector e i contratti concordati.
+
+## Decisione ancora da ricevere
+
+È stato chiesto all'owner come gestire il primo bootstrap dei provider:
+valori reali preparati dall'owner in un file locale, oppure primo collaudo
+isolato con valori sintetici e provider rimandati. La risposta ricevuta è
+la pausa, **non** una scelta fra le due opzioni. Non inferire un consenso
+dal valore preselezionato della domanda.
+
+Non leggere dotenv/PEM/credenziali personali o chiedere valori in chat.
+SSH, passphrase e sudo restano nel terminale dell'owner. I segreti interni
+per preview devono essere distinti da produzione e dai dati di sviluppo.
+
+## Ripresa operativa
+
+1. Rileggere questo checkpoint e verificare le modifiche dell'owner prima
+   di riprendere gli edit. Conservare la base operativa e il lavoro locale.
+2. Verificare i nuovi test dell'exporter e completare la scansione strict
+   anche degli artefatti Web staging nel workflow: oggi gli export/scan
+   completi sono registrati solo per i target production.
+3. Risolvere le immagini infrastrutturali respinte, predisporre manifest
+   reali e bootstrap riusando i contratti esistenti. Acquisire la scelta
+   sui provider senza ripetere audit già disponibili.
+4. Procedere per la milestone preview, con prove locali proporzionate e
+   una CI finale per il blocco coerente. Non frammentare ogni ricevuta in
+   un nuovo ciclo completo; conservare le evidenze fuori da Git.
+
+H-05/A-05/A-30 e il tunnel pubblico restano separati e aperti. Nessun cambio
+a firewall/ACL/router, Cloudflare, produzione o merge implicito.

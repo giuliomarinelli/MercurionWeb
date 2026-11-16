@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "entrypoints": [
+    "src/main.ts"
+  ],
+  "dynamicEntrypoints": [],
+  "allowlistedNonProductionFiles": []
+}

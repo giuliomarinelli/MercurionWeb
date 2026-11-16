@@ -1,0 +1,30 @@
+import { WritableSignal } from "@angular/core"
+import type { SessionDTO } from '@mercurion/rest-contracts'
+
+export interface UserData {
+  email?: string | null
+  ts?: number
+}
+
+export type {
+  BackupCodeStatusDTO,
+  BuildIdentityDTO,
+  ChangePasswordDTO,
+  ChangePhoneDTO,
+  MfaStrategy,
+  MfaStrategyDTO,
+  MfaView,
+  ProfileDTO,
+  ProfileRegistryClientDTO,
+  ProfileRegistryDTO,
+  ProvidedAccountIdDTO,
+  RecoverCredentialsDTO,
+  RecoveryCodeDTO,
+  SessionDTO,
+  VersionDTO
+} from '@mercurion/rest-contracts'
+
+export interface SessionDTOExt extends SessionDTO {
+  triggerDisappear: WritableSignal<boolean>
+  isBeingDeleted: boolean
+}

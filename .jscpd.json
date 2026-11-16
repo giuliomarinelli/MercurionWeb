@@ -1,0 +1,21 @@
+{
+  "minLines": 5,
+  "minTokens": 50,
+  "threshold": 1.82,
+  "reporters": [
+    "console",
+    "html"
+  ],
+  "output": "reports/duplication",
+  "formatsExts": "typescript:ts;markup:html;css:css",
+  "ignore": [
+    "**/*.spec.ts",
+    "**/test.ts",
+    "**/test-setup.ts",
+    "**/generated/**",
+    "**/graphql/documents/**",
+    "**/schema.graphql",
+    "**/schema.gql",
+    "**/assets/**"
+  ]
+}

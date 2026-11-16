@@ -1,0 +1,169 @@
+import { Component, ChangeDetectionStrategy, signal, input, output } from '@angular/core'
+import { DatePipe } from '@angular/common'
+import { Helpers } from '../../../helpers'
+import { SessionDTOExt } from '../../../Models/account/account.models'
+import { ProgressIndicatorComponent } from "../progress-indicator/progress-indicator.component"
+
+@Component({
+  selector: 'm-session-card',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    DatePipe,
+    ProgressIndicatorComponent
+  ],
+  template: `
+
+    <div
+      class="
+        w-full min-w-0 [overflow-wrap:anywhere] rounded-md border p-4
+        bg-slate-100 dark:bg-slate-800
+        border-slate-300 dark:border-slate-600
+        transition-all max-h-fit duration-150 ease-linear
+        opacity-100
+      "
+      role="region"
+      [attr.aria-label]="ariaLabel()"
+      [attr.aria-busy]="session().isBeingDeleted"
+    >
+
+      @if (!session().isBeingDeleted) {
+        <!-- header -->
+        <div class="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center justify-between gap-2 sm:gap-3 mb-2">
+          <div class="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-2 w-full min-w-0">
+            <span class="text-sm font-semibold text-slate-700 dark:text-slate-200 whitespace-nowrap">
+              Sessione {{ session().current ? '(attuale)' : '' }}
+            </span>
+
+          </div>
+        </div>
+
+        <p class="text-sm mb-2 font-medium">{{ session().browser }} @if (session().location) { · {{ session().location }} }</p>
+        <p class="text-sm text-slate-600 dark:text-slate-300 mb-4">Ultimo accesso: {{ session().lastAccessedAt | date:'dd/MM/yyyy HH:mm' }}</p>
+        <details class="mb-4">
+          <summary class="cursor-pointer py-2 text-sm font-medium rounded focus-visible:outline-2 focus-visible:outline-token-focus">Dettagli sessione</summary>
+          <p class="text-xs leading-relaxed text-slate-600 dark:text-slate-300 select-all break-all my-3">ID: {{ breakHex(session().id) }}</p>
+        <!-- BODY -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm mb-4">
+
+          <div>
+            <span class="text-slate-500 dark:text-slate-400 block text-xs uppercase mb-1">Creato</span>
+            <span class="text-slate-700 dark:text-slate-200">
+              {{ session().createdAt | date:'dd/MM/yyyy HH:mm:ss' }}
+            </span>
+          </div>
+
+          <div>
+            <span class="text-slate-500 dark:text-slate-400 block text-xs uppercase mb-1">Ultimo accesso</span>
+            <span class="text-slate-700 dark:text-slate-200">
+              {{ session().lastAccessedAt | date:'dd/MM/yyyy HH:mm:ss' }}
+            </span>
+          </div>
+
+          <div>
+            <span class="text-slate-500 dark:text-slate-400 block text-xs uppercase mb-1">Provider di autenticazione</span>
+            <span class="text-slate-700 dark:text-slate-200">
+              {{ session().provider }}
+            </span>
+          </div>
+
+          <div>
+            <span class="text-slate-500 dark:text-slate-400 block text-xs uppercase mb-1">Provider di autorizzazione</span>
+            <span class="text-slate-700 dark:text-slate-200">
+              Mercurion
+            </span>
+          </div>
+
+          <div>
+            <span class="text-slate-500 dark:text-slate-400 block text-xs uppercase mb-1">Scadenza</span>
+            <span class="text-slate-700 dark:text-slate-200">
+              {{ session().expiresAt | date:'dd/MM/yyyy HH:mm:ss' }}
+            </span>
+          </div>
+
+          <div>
+            <span class="text-slate-500 dark:text-slate-400 block text-xs uppercase mb-1">Valida</span>
+            <span
+              class="px-2 py-[2px] rounded text-xs font-semibold"
+              [class.bg-emerald-200]="session().valid"
+              [class.text-emerald-800]="session().valid"
+              [class.bg-rose-200]="!session().valid"
+              [class.text-rose-800]="!session().valid"
+            >
+              {{ session().valid ? 'Sì' : 'No' }}
+            </span>
+          </div>
+
+          <div>
+            <span class="text-slate-500 dark:text-slate-400 block text-xs uppercase mb-1">Luogo</span>
+            <span class="text-slate-700 dark:text-slate-200">
+              {{ session().location }}
+            </span>
+          </div>
+
+          <div>
+            <span class="text-slate-500 dark:text-slate-400 block text-xs uppercase mb-1">Browser</span>
+            <span class="text-slate-700 dark:text-slate-200">
+              {{ session().browser }}
+            </span>
+          </div>
+
+        </div>
+
+        </details>
+
+        <!-- FOOTER Buttons -->
+        <div class="flex justify-end">
+          <button
+            type="button"
+            class="
+              flex items-center gap-2 px-3 py-2 min-h-11 rounded-md
+              border border-slate-300 dark:border-slate-600
+              text-slate-600 dark:text-slate-300 text-xs font-medium
+              hover:bg-slate-200 dark:hover:bg-slate-700
+              transition-colors duration-150
+            "
+            (click)="logoutFromSession(session().id)"
+            [disabled]="session().current === false ? false : false"
+            [attr.aria-disabled]="false"
+            aria-label="Esci da questa sessione"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 viewBox="0 0 512 512"
+                 class="fill-current h-4 w-4 relative -left-1">
+              <path d="M497 273L329 441c-9 9-24 9-33 0s-9-24 0-33l139-139H168c-13 0-24-11-24-24s11-24 24-24h267L296 104c-9-9-9-24 0-33s24-9 33 0l168 168c9 9 9 24 0 33z"/>
+            </svg>
+            <span>Esci da questa sessione</span>
+          </button>
+        </div>
+      } @else {
+        <div class="min-h-64 flex justify-center items-center">
+          <m-progress-indicator />
+        </div>
+      }
+    </div>
+
+
+  `
+})
+export class SessionCardComponent {
+
+  readonly session = input.required<SessionDTOExt>()
+
+  readonly onLoggingOutFromSession = output<string>()
+
+  logoutFromSession(sid: string): void {
+    this.onLoggingOutFromSession.emit(sid)
+  }
+
+  breakHex(str: string): string {
+    return Helpers.breakHex(str)
+  }
+
+  ariaLabel(): string {
+    const s = this.session()
+    if (!s) return 'Sessione'
+    const status = s.current ? 'Sessione attuale' : 'Sessione'
+    return `${status}, ultimo accesso ${s.lastAccessedAt}`
+  }
+
+}

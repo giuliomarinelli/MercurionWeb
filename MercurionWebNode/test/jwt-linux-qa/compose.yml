@@ -1,0 +1,30 @@
+services:
+  redis:
+    image: redis:alpine
+    command: [redis-server, --save, "", --appendonly, "no"]
+    networks: [qa]
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 1s
+      timeout: 1s
+      retries: 30
+  verify:
+    image: mercurion-jwt-linux-qa:${QA_RUN_ID}
+    user: "0:0"
+    read_only: true
+    tmpfs: [/tmp]
+    volumes:
+      - current:/registry/writer-current
+      - history:/registry/writer-history
+      - current:/registry/reader-current:ro
+      - history:/registry/reader-history:ro
+    networks: [qa]
+    depends_on:
+      redis:
+        condition: service_healthy
+networks:
+  qa:
+    internal: true
+volumes:
+  current:
+  history:

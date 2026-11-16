@@ -1,0 +1,10 @@
+{{#> layouts/email-shell title="Mercurion: assistenza" footer="Comunicazione destinata al supporto Mercurion per la gestione delle richieste di assistenza."}}
+<h1>Buongiorno Supporto di Mercurion!</h1>
+<p>È stato aperto il ticket <strong>#{{ticketPublicId}}</strong>.</p>
+{{#if ticketMessageBody}}
+<p class="message-excerpt">{{ticketMessageBody}}</p>
+{{/if}}
+<div class="button-wrapper"><a href="{{url}}" class="btn-primary">Apri il ticket</a></div>
+<p class="muted">Se il pulsante non funziona, copia e incolla questo link nel tuo browser:</p>
+<p class="fallback-link">{{url}}</p>
+{{/layouts/email-shell}}

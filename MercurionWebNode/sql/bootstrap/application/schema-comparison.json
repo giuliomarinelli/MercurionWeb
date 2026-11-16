@@ -1,0 +1,66 @@
+{
+  "defaultsMissingInRemote": {
+    "documents": {
+      "is_active": "is_active boolean DEFAULT true NOT NULL,",
+      "scope": "scope character varying(255) DEFAULT 'None'::character varying NOT NULL,"
+    },
+    "history": {
+      "flag_ids": "flag_ids text DEFAULT '{}'::text NOT NULL"
+    },
+    "molecule_collection_items": {
+      "properties": "properties jsonb DEFAULT '{}'::jsonb,",
+      "touched_at": "touched_at bigint DEFAULT (0)::bigint NOT NULL,"
+    },
+    "molecule_collections": {
+      "touched_at": "touched_at bigint DEFAULT (0)::bigint NOT NULL,"
+    },
+    "oauth2_tokens": {
+      "scope": "scope character varying(255) DEFAULT NULL::character varying,"
+    }
+  },
+  "developmentOnly": [
+    "experiment_execution_molecule_links",
+    "experiment_execution_synthesis_links",
+    "lab_notebooks_old",
+    "molecule_name_i18n",
+    "molecule_preview_view",
+    "notebook_experiment_synthesis_links",
+    "typeorm_migrations"
+  ],
+  "developmentSha256": "51530cc73fae774e6077c949b48836fa9c2d7592125649afb3bacb7303dd7420",
+  "developmentTablesExcludingEmbeddings": 34,
+  "preserve": "public.molecule_embeddings and all its indexes",
+  "remoteOnlyExcludingPreservedEmbeddings": [
+    "storage_operations"
+  ],
+  "remoteSha256": "9218d20cf3a55567b9a762a71e30925219c947aab0e1dde2d5712cc5cb211f6d",
+  "remoteTablesIncludingEmbeddings": 29,
+  "remoteUsersTimestampDefaults": {
+    "created_at": "created_at bigint DEFAULT ((EXTRACT(epoch FROM now()) * (1000)::numeric))::bigint NOT NULL,",
+    "updated_at": "updated_at bigint DEFAULT ((EXTRACT(epoch FROM now()) * (1000)::numeric))::bigint NOT NULL,"
+  },
+  "sharedTablesWithDifferentDefinition": [
+    "backup_codes",
+    "countries",
+    "documents",
+    "feedback",
+    "history",
+    "lab_experiment_protocol_revisions",
+    "lab_notebook_executions",
+    "lab_notebook_experiments",
+    "lab_notebook_sections",
+    "lab_notebooks",
+    "molecule_collection_items",
+    "molecule_collection_items_join",
+    "molecule_collections",
+    "oauth2_tokens",
+    "release_versions",
+    "synth_step_items",
+    "synth_steps",
+    "synthesis",
+    "ticket_messages",
+    "tickets",
+    "users"
+  ],
+  "status": "comparison-only-no-database-writes"
+}

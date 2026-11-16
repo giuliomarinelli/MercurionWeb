@@ -1,0 +1,71 @@
+import { DestroyRef, Injectable, effect, inject, signal } from '@angular/core'
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
+import { EMPTY, Subscription, catchError, forkJoin, map } from 'rxjs'
+import { AccountService } from '../../services/account.service'
+import { ToastService } from '../../services/toast.service'
+import type { AuthProvider } from '../../Models/auth/provider.models'
+import type { BuildIdentityDTO, ProfileDTO } from '../../Models/account/account.models'
+import { DomainInvalidationService } from '../../services/domain-invalidation.service'
+import { RealtimeSyncStatusService } from '../../services/realtime-sync-status.service'
+
+@Injectable()
+export class SettingsAccountFacade {
+  private readonly account = inject(AccountService)
+  private readonly toast = inject(ToastService)
+  private readonly invalidations = inject(DomainInvalidationService)
+  private readonly syncStatus = inject(RealtimeSyncStatusService)
+  private readonly destroyRef = inject(DestroyRef)
+  private request?: Subscription
+
+  readonly loading = signal(true)
+  readonly profile = signal<ProfileDTO | null>(null)
+  readonly version = signal<BuildIdentityDTO | null>(null)
+  readonly authProvider = signal<AuthProvider | null>(null)
+  readonly isSso = signal(false)
+  readonly error = signal(false)
+
+  constructor() {
+    effect(() => {
+      const event = this.invalidations.last()
+      const profileChanged = event?.domain === 'profile' && event.action === 'changed'
+      const reconnect = event?.domain === 'realtime' && event.action === 'reconcile'
+      if (!profileChanged && !reconnect) return
+      if (profileChanged && event.remote === true) this.syncStatus.markSynchronized()
+      queueMicrotask(() => this.load(true))
+    })
+  }
+
+  load(force = false): void {
+    if (this.destroyRef.destroyed) return
+    if (this.request && !this.request.closed) {
+      if (!force) return
+      this.request.unsubscribe()
+    }
+    this.loading.set(this.profile() === null)
+    this.error.set(false)
+    this.request = forkJoin({
+      version: this.account.getCurrentVersion(),
+      profile: this.account.getProfileRegistry(false),
+      provider: this.account.getProvidedAccountId(),
+    })
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        map(({ version, profile, provider }) => {
+          this.version.set(version)
+          this.profile.set(profile)
+          this.authProvider.set(provider.provider)
+          this.isSso.set(provider.provider !== 'Mercurion')
+          this.loading.set(false)
+        }),
+        catchError(() => {
+          this.loading.set(false)
+          this.error.set(true)
+          this.toast.trigger(
+            'Si è verificato un errore nel caricamento delle informazioni dell’account.'
+          )
+          return EMPTY
+        })
+      )
+      .subscribe()
+  }
+}

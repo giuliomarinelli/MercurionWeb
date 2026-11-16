@@ -1,0 +1,612 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+input AddManyChEMBLItemDTO {
+  chemblMolregno: ID!
+  name: String!
+}
+
+type AdministrationRoutes {
+  oral: Boolean!
+  parenteral: Boolean!
+  topical: Boolean!
+}
+
+enum AuthorType {
+  Support
+  User
+}
+
+type BindManyCollectionsToMoleculeDTO {
+  moleculeUUID: ID
+  ok: Boolean!
+}
+
+type ChEMBLMoleculeItemDTO {
+  chemblDetails: MoleculeDetail
+  chemblMolregno: String!
+  createdAt: String!
+  id: ID!
+  joins: [MoleculeCollectionItemJoin!]
+  label: String
+  notes: String
+  touchedAt: String!
+  type: String!
+  updatedAt: String!
+}
+
+type ChEMBLMoleculeItemEntity implements MoleculeCollectionItemEntity {
+  chemblMolregno: Float!
+  createdAt: String!
+  id: ID!
+  joins: [MoleculeCollectionItemJoin!]
+  label: String
+  name: String
+  nameEn: String
+  notes: String
+  touchedAt: String!
+  type: String!
+  updatedAt: String!
+}
+
+input CreateMoleculeItemInput {
+  canonicalSmiles: String
+  chemblMolregno: Float
+  label: String
+  molFormula: String
+  name: String
+  notes: String
+  propertiesJson: String
+  type: String!
+}
+
+type CustomMoleculeItemDTO {
+  canonicalSmiles: String!
+  createdAt: String!
+  id: ID!
+  joins: [MoleculeCollectionItemJoin!]
+  label: String
+  molFormula: String
+  name: String
+  notes: String
+  propertiesJson: String
+  touchedAt: String!
+  type: String!
+  updatedAt: String!
+}
+
+type CustomMoleculeItemEntity implements MoleculeCollectionItemEntity {
+  canonicalSmiles: String!
+  createdAt: String!
+  id: ID!
+  joins: [MoleculeCollectionItemJoin!]
+  label: String
+  molFormula: String
+  name: String
+  notes: String
+  propertiesJson: String
+  touchedAt: String!
+  type: String!
+  updatedAt: String!
+}
+
+input CustomMoleculeItemInput {
+  canonicalSmiles: String!
+  label: String
+  molFormula: String
+  name: String
+  notes: String
+  propertiesJson: String
+}
+
+input ExecutionMoleculeLinkInput {
+  executionId: ID!
+  moleculeId: ID!
+}
+
+input ExecutionSynthesisLinkInput {
+  executionId: ID!
+  stepId: ID
+  synthesisId: ID!
+}
+
+type ExperimentExecution {
+  archivedAt: String
+  completedAt: String
+  contentDelta: JSONObject
+  createdAt: String!
+  executionOrder: Int!
+  experiment: NotebookExperiment!
+  experimentId: ID!
+  id: ID!
+  protocolRevision: ExperimentProtocolRevision
+  protocolRevisionId: ID
+  sanitizedText: String!
+  startedAt: String
+  status: String!
+  title: String!
+  updatedAt: String!
+}
+
+input ExperimentExecutionCreateInput {
+  contentDelta: JSONObject
+  experimentId: ID!
+  title: String!
+}
+
+input ExperimentExecutionPatchInput {
+  contentDelta: JSONObject
+  id: ID!
+  title: String
+}
+
+type ExperimentProtocolRevision {
+  checksumSha256: String!
+  createdAt: String!
+  experiment: NotebookExperiment!
+  experimentId: ID!
+  id: ID!
+  revisionNumber: Int!
+  snapshot: JSONObject!
+  snapshotSchemaVersion: Int!
+}
+
+input ExperimentSynthesisLinkInput {
+  experimentId: ID!
+  synthesisId: ID!
+}
+
+"""
+The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSON
+
+"""
+The `JSONObject` scalar type represents JSON objects as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSONObject
+
+type LabNotebook {
+  archivedAt: String
+  createdAt: String!
+  id: ID!
+  premiseDelta: JSONObject
+  premiseText: String!
+  sections: [NotebookSection!]!
+  title: String!
+  updatedAt: String!
+}
+
+type MoleculeCollection {
+  createdAt: String!
+  id: ID!
+  items: [MoleculeCollectionItemJoin!]
+  itemsCount: Int!
+  name: String!
+  touchedAt: String!
+  updatedAt: String!
+}
+
+interface MoleculeCollectionItemEntity {
+  createdAt: String!
+  id: ID!
+  joins: [MoleculeCollectionItemJoin!]
+  label: String
+  notes: String
+  touchedAt: String!
+  type: String!
+  updatedAt: String!
+}
+
+type MoleculeCollectionItemJoin {
+  collection: MoleculeCollection
+  id: ID!
+  item: MoleculeCollectionItemEntity
+}
+
+union MoleculeCollectionItemUnion = ChEMBLMoleculeItemDTO | CustomMoleculeItemDTO
+
+type MoleculeDetail {
+  administrationRoutes: AdministrationRoutes!
+  blackBoxWarning: Boolean!
+  canonicalSmiles: String
+  cmbId: String!
+  id: Int!
+  maxPhase: Float
+  moleculeType: String
+  naturalProduct: Boolean!
+  preferredName: String
+  preferredNameIt: String
+  prodrug: Boolean!
+  properties: MoleculeProperties!
+  synonyms: [String!]!
+}
+
+type MoleculeNameByCanonicalSmilesDTO {
+  name: String
+  type: MoleculeNameSource!
+}
+
+enum MoleculeNameSource {
+  chembl
+  custom
+  iupac
+}
+
+type MoleculeProperties {
+  alogp: Float
+  hba: Int
+  hbd: Int
+  mwFreebase: Float
+  psa: Float
+  rtb: Int
+}
+
+input MoleculeSearchInput {
+  limit: Int
+  maxMw: Float
+  maxPhase: Int
+  minMw: Float
+  moleculeType: String
+  query: String
+}
+
+type MoleculeSearchResult {
+  alogp: Float
+  id: Int!
+  known: Boolean!
+  maxPhase: Int
+  mwFreebase: Float
+  preferredName: String
+  preferredNameIt: String
+  smiles: String
+  synonyms: [String!]
+}
+
+type Mutation {
+  addChemblMoleculeToCollection(chemblMolregno: Float!, collectionId: ID!, label: String, notes: String): ChEMBLMoleculeItemEntity!
+  addCustomMoleculeToCollection(collectionId: ID!, input: CustomMoleculeItemInput!): CustomMoleculeItemEntity!
+  addManyChemblItemsToCollection(collectionId: ID!, input: [AddManyChEMBLItemDTO!]!): Boolean!
+  addManyMoleculesToCollection(collectionId: ID!, itemIds: [ID!]!, selectAll: Boolean!, snapshotAt: String): Boolean!
+  addSupportTicketMessage(contentDelta: JSON!, contentHtml: String!, ticketId: ID!): Boolean!
+  addSynthStepItem(input: SynthStepItemInput!): SynthStepItem!
+  addTicketMessage(contentDelta: JSON!, contentHtml: String!, ticketId: ID!): Boolean!
+  archiveExperimentExecution(id: ID!): ExperimentExecution!
+  archiveLabNotebook(id: ID!): LabNotebook!
+  archiveNotebookExperiment(id: ID!): NotebookExperiment!
+  bindManyCollectionsToMolecule(collectionIds: [ID!]!, moleculeId: ID!, selectAll: Boolean!, snapshotAt: String): BindManyCollectionsToMoleculeDTO!
+  cancelExperimentExecution(id: ID!): ExperimentExecution!
+  closeMyTicket(ticketId: ID!): Boolean!
+  closeTicketAsSupport(ticketId: ID!): Boolean!
+  completeExperimentExecution(id: ID!): ExperimentExecution!
+  configureSynthesisPool(input: SynthesisPoolInput!): Synthesis!
+  createExperimentExecution(input: ExperimentExecutionCreateInput!): ExperimentExecution!
+  createLabNotebook(input: ScientificNotebookCreateInput!): LabNotebook!
+  createManyMoleculeCollections(names: [String!]!): Boolean!
+  createMoleculeCollection(name: String!): MoleculeCollection!
+  createMoleculeItem(input: CreateMoleculeItemInput!): MoleculeCollectionItemUnion!
+  createNotebookExperiment(input: NotebookExperimentCreateInput!): NotebookExperiment!
+  createNotebookSection(input: NotebookSectionCreateInput!): NotebookSection!
+  createSyntheticRoute(input: SynthesisInput!): Synthesis!
+  createSyntheticStep(input: SynthStepInput!): SynthStep!
+  createTicket(contentDelta: JSON!, contentHtml: String!, subject: String!): Ticket!
+  deleteMoleculeCollection(id: ID!): Boolean!
+  deleteMoleculeItem(id: ID!): Boolean!
+  deleteSyntheticRoute(id: ID!): SynthCommandResult!
+  deleteSyntheticStep(id: ID!): SynthCommandResult!
+  duplicateCollection(srcCollectionId: ID!): MoleculeCollection
+  linkMoleculeToExecution(input: ExecutionMoleculeLinkInput!): Boolean!
+  linkSynthesisToExecution(input: ExecutionSynthesisLinkInput!): Boolean!
+  linkSynthesisToExperiment(input: ExperimentSynthesisLinkInput!): Boolean!
+  markMoleculeCollectionAsTouched(id: ID!): Boolean!
+  markMoleculeCollectionItemAsTouched(flagIds: String!, id: ID!): Boolean!
+  removeChemblMoleculeFromCollection(collectionId: ID!, itemId: ID!): Boolean!
+  removeCustomMoleculeFromCollection(collectionId: ID!, itemId: ID!): Boolean!
+  removeMoleculeFromCollection(collectionId: ID!, deleteCollectionIfEmpty: Boolean, itemId: ID!): Boolean!
+  removeSynthStepItem(id: ID!): Boolean!
+  reopenTicketAsSupport(ticketId: ID!): Boolean!
+  reorderExperimentExecutions(input: NotebookOrderInput!): Boolean!
+  reorderNotebookExperiments(input: NotebookOrderInput!): Boolean!
+  reorderNotebookSections(input: NotebookOrderInput!): Boolean!
+  startExperimentExecution(id: ID!): ExperimentExecution!
+  unlinkSynthesisFromExperiment(input: ExperimentSynthesisLinkInput!): Boolean!
+  updateExperimentExecution(input: ExperimentExecutionPatchInput!): ExperimentExecution!
+  updateLabNotebook(input: ScientificNotebookPatchInput!): LabNotebook!
+  updateMoleculeCollection(id: ID!, name: String!): MoleculeCollection!
+  updateMoleculeItem(id: ID!, input: CreateMoleculeItemInput!): MoleculeCollectionItemUnion
+  updateNotebookExperiment(input: NotebookExperimentPatchInput!): NotebookExperiment!
+  updateNotebookSection(input: NotebookSectionPatchInput!): NotebookSection!
+  updateSynthStepItem(id: ID!, input: SynthStepItemInput!): SynthStepItem!
+  updateSyntheticRoute(id: ID!, input: SynthesisInput!): Synthesis!
+  updateSyntheticStep(id: ID!, input: SynthStepInput!): SynthStep!
+}
+
+type NotebookExperiment {
+  archivedAt: String
+  contentDelta: JSONObject
+  createdAt: String!
+  executions: [ExperimentExecution!]!
+  experimentOrder: Int!
+  id: ID!
+  protocolRevisions: [ExperimentProtocolRevision!]!
+  sanitizedText: String!
+  section: NotebookSection!
+  sectionId: ID!
+  title: String!
+  updatedAt: String!
+}
+
+input NotebookExperimentCreateInput {
+  contentDelta: JSONObject
+  sectionId: ID!
+  title: String!
+}
+
+input NotebookExperimentPatchInput {
+  contentDelta: JSONObject
+  id: ID!
+  title: String
+}
+
+input NotebookOrderInput {
+  orderedIds: [ID!]!
+  parentId: ID!
+}
+
+type NotebookSection {
+  contentDelta: JSONObject
+  createdAt: String!
+  experiments: [NotebookExperiment!]!
+  id: ID!
+  notebook: LabNotebook!
+  notebookId: ID!
+  sanitizedText: String!
+  sectionOrder: Int!
+  title: String!
+  updatedAt: String!
+}
+
+input NotebookSectionCreateInput {
+  contentDelta: JSONObject
+  notebookId: ID!
+  title: String!
+}
+
+input NotebookSectionPatchInput {
+  contentDelta: JSONObject
+  id: ID!
+  title: String
+}
+
+type PaginatedMoleculeCollection {
+  currentPage: Int!
+  itemCount: Int!
+  items: [MoleculeCollection!]!
+  itemsPerPage: Int!
+  totalItems: Int!
+  totalPages: Int!
+}
+
+type PaginatedMoleculeCollectionItem {
+  currentPage: Int!
+  itemCount: Int!
+  items: [MoleculeCollectionItemUnion!]!
+  itemsPerPage: Int!
+  totalItems: Int!
+  totalPages: Int!
+}
+
+type PaginatedTicket {
+  currentPage: Int!
+  itemCount: Int!
+  items: [Ticket!]!
+  itemsPerPage: Int!
+  totalItems: Int!
+  totalPages: Int!
+}
+
+type PaginatedTicketMessage {
+  currentPage: Int!
+  itemCount: Int!
+  items: [TicketMessage!]!
+  itemsPerPage: Int!
+  totalItems: Int!
+  totalPages: Int!
+}
+
+type Query {
+  chemblMoleculesByCollection(collectionId: ID!): [ChEMBLMoleculeItemEntity!]!
+  existsChEMBLMoleculeByUUIDThenGetMolregno(_uuid_: String!): String
+  existsUserTicketById(ticketId: ID!): Boolean!
+  experimentExecution(id: ID!): ExperimentExecution
+  experimentExecutions(experimentId: ID!): [ExperimentExecution!]!
+  experimentProtocolRevision(id: ID!): ExperimentProtocolRevision
+  experimentProtocolRevisions(experimentId: ID!): [ExperimentProtocolRevision!]!
+  findOneChemblMoleculeById(itemId: ID!): ChEMBLMoleculeItemEntity
+  findOneCustomMoleculeByCanonicalSmiles(canonicalSmiles: String!): CustomMoleculeItemEntity
+  hasUserChEMBLMoleculeByMolregnoThenGetUUID(molregno: Int!): String
+  labNotebook(id: ID!): LabNotebook
+  labNotebooksByUser: [LabNotebook!]!
+  moleculeByMolregno(molregno: String): MoleculeDetail!
+  moleculeCollection(id: ID!): MoleculeCollection
+  moleculeItem(id: ID!): MoleculeCollectionItemUnion
+  moleculeNameByCanonicalSmiles(canonicalSmiles: String!): MoleculeNameByCanonicalSmilesDTO!
+  moleculeNameByCanonicalSmilesPublic(canonicalSmiles: String!): MoleculeNameByCanonicalSmilesDTO!
+  moleculePreviewsByMolregnos(molregnos: [String!]!): [MoleculeSearchResult!]!
+  moleculeSearch(input: MoleculeSearchInput!): [MoleculeSearchResult!]!
+  moleculeSearch_excludeAlreadyAdded(collectionId: ID!, input: MoleculeSearchInput!): [MoleculeSearchResult!]!
+  moleculesByMolregnos(molregnos: [String!]!): [MoleculeDetail!]!
+  myMoleculeCollections: [MoleculeCollection!]!
+  myMoleculeCollectionsPaginated(excludeJoinedToMolecule: Boolean, limit: Int! = 20, moleculeId: ID, page: Int! = 1, q: String!): PaginatedMoleculeCollection!
+  myMoleculeItems: [MoleculeCollectionItemUnion!]!
+  mySyntheticRoutes: [Synthesis!]!
+  myTicketDetail(ticketId: ID!): TicketDetailDTO!
+  myTicketMessages(limit: Int! = 20, page: Int! = 1, ticketId: ID!): PaginatedTicketMessage!
+  myTickets(limit: Int! = 20, page: Int! = 1): PaginatedTicket!
+  notebookExperiment(id: ID!): NotebookExperiment
+  notebookExperiments(sectionId: ID!): [NotebookExperiment!]!
+  notebookSection(id: ID!): NotebookSection
+  notebookSections(notebookId: ID!): [NotebookSection!]!
+  paginatedMoleculeCollectionItemsByCollection(collectionId: String!, excluded: Boolean, limit: Int! = 20, page: Int! = 1, q: String!): PaginatedMoleculeCollectionItem!
+  paginatedMoleculeCollectionItemsByUser(collectionId: ID, excludeJoinedToCollection: Boolean, limit: Int! = 20, page: Int! = 1, q: String!): PaginatedMoleculeCollectionItem!
+  searchMyCollections(limit: Float, query: String): [MoleculeCollection!]!
+  synthStepItems(stepId: ID!): [SynthStepItem!]!
+  syntheticRoute(id: ID!): Synthesis
+  syntheticStepById(id: ID!): SynthStep
+  syntheticStepsByRoute(routeId: ID!): [SynthStep!]!
+  ticketDetailAsSupport(ticketId: ID!): TicketDetailDTO!
+  ticketMessagesAsSupport(limit: Int! = 20, page: Int! = 1, ticketId: ID!): PaginatedTicketMessage!
+  ticketsAsSupport(limit: Int! = 20, page: Int! = 1): PaginatedTicket!
+}
+
+input ScientificNotebookCreateInput {
+  premiseDelta: JSONObject
+  title: String!
+}
+
+input ScientificNotebookPatchInput {
+  id: ID!
+  premiseDelta: JSONObject
+  title: String
+}
+
+enum SynthCommandOutcome {
+  Deleted
+  Updated
+}
+
+type SynthCommandResult {
+  outcome: SynthCommandOutcome!
+  success: Boolean!
+}
+
+type SynthStep {
+  description: String
+  id: ID!
+  items: [SynthStepItem!]
+  order: Int!
+  reactionType: String
+  synth: Synthesis!
+  synthId: ID!
+}
+
+input SynthStepInput {
+  description: String
+  order: Int!
+  reactionType: String
+  synthId: ID!
+}
+
+type SynthStepItem {
+  id: ID!
+  kind: SynthStepItemKind!
+  order: Int!
+  poolMolecule: SynthesisPoolMolecule
+  poolMoleculeId: ID
+  position: SynthStepItemPosition!
+  step: SynthStep!
+  stepId: ID!
+  text: String
+}
+
+input SynthStepItemInput {
+  kind: SynthStepItemKind!
+  order: Int!
+  poolMoleculeId: ID
+  position: SynthStepItemPosition!
+  stepId: ID!
+  text: String
+}
+
+"""Chemical or textual role of an item in a synthetic step"""
+enum SynthStepItemKind {
+  Byproduct
+  Catalyst
+  Condition
+  Other
+  Product
+  Reactant
+  Reagent
+  Solvent
+}
+
+"""Visual placement of an item relative to the reaction arrow"""
+enum SynthStepItemPosition {
+  AfterArrow
+  BeforeArrow
+  OnArrow
+}
+
+type Synthesis {
+  id: ID!
+  notes: String
+  poolCollections: [SynthesisPoolCollection!]
+  poolMolecules: [SynthesisPoolMolecule!]
+  steps: [SynthStep!]
+  title: String!
+}
+
+input SynthesisInput {
+  notes: String
+  title: String!
+}
+
+type SynthesisPoolCollection {
+  collection: MoleculeCollection!
+  collectionId: ID!
+  id: ID!
+  synthesisId: ID!
+}
+
+input SynthesisPoolInput {
+  collectionIds: [ID!]!
+  moleculeIds: [ID!]!
+  synthesisId: ID!
+}
+
+type SynthesisPoolMolecule {
+  id: ID!
+  molecule: CustomMoleculeItemEntity!
+  moleculeId: ID!
+  synthesisId: ID!
+}
+
+type Ticket {
+  createdAt: String!
+  id: ID!
+  lastMessageAt: String!
+  messages: [TicketMessage!]
+  publicId: String!
+  status: TicketStatus!
+  subject: String!
+  updatedAt: String!
+  userFullName: String
+  userId: ID
+}
+
+type TicketDetailDTO {
+  messages: [TicketMessage!]
+  ticket: Ticket!
+}
+
+type TicketMessage {
+  authorFullName: String
+  authorId: ID
+  authorType: AuthorType!
+  contentDelta: String!
+  contentHtml: String!
+  createdAt: String!
+  id: ID!
+  publicId: String!
+  ticketId: ID!
+  userFullName: String
+  userId: ID
+}
+
+enum TicketStatus {
+  Closed
+  Open
+  WaitingSupport
+  WaitingUser
+}

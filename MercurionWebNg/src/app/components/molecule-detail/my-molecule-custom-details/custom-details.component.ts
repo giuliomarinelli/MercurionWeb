@@ -1,0 +1,375 @@
+import { Observable, Subscription, defer, of } from 'rxjs'
+import { catchError, defaultIfEmpty, finalize, take } from 'rxjs/operators'
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
+import { CustomDetailSaveModel } from '../../../Models/custom-detail-save.model'
+import { NgClass } from '@angular/common'
+import {
+  ChangeDetectionStrategy,
+  DestroyRef,
+  Component,
+  computed,
+  ElementRef,
+  Renderer2,
+  effect,
+  inject,
+  input,
+  signal,
+  output,
+  viewChild,
+  untracked
+} from '@angular/core'
+import { MoleculeBadgeComponent } from '../molecule-badge/molecule-badge.component'
+import { IconButtonComponent, IconButtonSize } from '../../common/icon-button/icon-button.component'
+
+@Component({
+  selector: 'm-custom-details',
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [NgClass, MoleculeBadgeComponent, IconButtonComponent],
+  host: { class: 'contents' },
+  styleUrl: './custom-details.component.css',
+  template: `
+    @switch (_type()) {
+
+      @case ('cardName') {
+        <div class="flex items-center gap-4 min-w-0">
+          <div
+            #value
+            class="text-base md:text-lg font-semibold text-slate-800 dark:text-slate-100 truncate min-w-0
+                   py-0.5 rounded-md border border-transparent bg-transparent outline-none
+                   transition-[background-color,border-color,color] duration-150"
+            [attr.contenteditable]="mode() === 'edit' && !pending() ? 'true' : null"
+            [attr.role]="mode() === 'edit' ? 'textbox' : null"
+            [attr.aria-busy]="pending()"
+            (keydown)="onKeydown($event)"
+            [ngClass]="{
+              'bg-slate-100 dark:bg-slate-700 border-light-on-surface-main dark:border-dark-on-surface-main':
+                mode() === 'edit'
+            }"
+            title="{{ _value() }}"
+            [attr.aria-label]="mode() === 'edit' ? 'Modifica nome molecola' : 'Nome molecola ' + _value()"
+            [attr.aria-live]="mode() === 'edit' ? 'off' : 'polite'">
+            {{ _value() }}
+          </div>
+
+          <m-molecule-badge class="shrink-0" [name]="_badgeName()" />
+
+          @if (false) {
+            <div class="flex items-center justify-end w-18 shrink-0">
+              <!-- azioni disabilitate per ora -->
+            </div>
+          }
+        </div>
+      }
+
+      @case ('name') {
+        <div class="gap-3 sm:gap-4 min-w-0 max-w-full"
+            [ngClass]="compactHeading() ? 'flex items-center' : 'grid grid-cols-[minmax(0,1fr)_auto] items-center sm:grid-cols-[minmax(0,1fr)_auto_auto]'">
+          <h2
+            id="molecule-name"
+            [attr.aria-label]="mode() === 'edit' ? 'Modifica nome molecola' : null"
+            #value
+            class="min-w-0 [overflow-wrap:anywhere] outline-none font-semibold tracking-wider
+                   text-left text-light-accent-primary-hc dark:text-dark-accent-primary
+                   rounded-md border border-transparent
+                   transition-[background-color,border-color,color] duration-300"
+            [attr.contenteditable]="mode() === 'edit' && !pending() ? 'true' : null"
+            [attr.role]="mode() === 'edit' ? 'textbox' : null"
+            [attr.aria-busy]="pending()"
+            (keydown)="onKeydown($event)"
+            [ngClass]="{
+              'text-xl md:text-2xl lg:text-[1.75rem]': compactHeading(),
+              'text-2xl sm:text-3xl md:text-4xl lg:text-[2.65rem]': !compactHeading(),
+              'bg-slate-300 dark:bg-slate-700 border-light-on-surface-main dark:border-dark-on-surface-main': mode() === 'edit',
+              'bg-transparent': mode() === 'view'
+            }">
+            {{ _value() }}
+          </h2>
+
+          @if (_badgeName()) {
+            <m-molecule-badge
+              [name]="_badgeName()"
+              class="block relative shrink-0"
+              [ngClass]="compactHeading() ? '' : 'col-start-1 row-start-2 sm:col-start-2 sm:row-start-1'" />
+          }
+
+          <div class="flex items-center shrink-0"
+            [ngClass]="compactHeading() ? 'w-18' : 'col-start-2 row-start-1 sm:col-start-3'">
+            @if (mode() === 'view') {
+              <m-icon-button
+                [size]="actionSize()" [disabled]="pending()"
+                ariaLabel="Modifica"
+                (pressed)="doEdit()">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
+                     class="h-7 w-auto fill-current text-slate-800 hover:text-slate-800/75 dark:text-slate-200 dark:hover:text-slate-200/75">
+                  <path d="M58.1 555.9L48 592C50.7 591.2 117.4 572.6 248 536L569.4 214.6L592 192C589.6 189.6 549.1 149.1 470.6 70.6L448 48L425.4 70.6L104 392L58.1 555.9zM252.7 486L154 387.3L347.4 193.9L446.1 292.6L252.7 486zM229.4 508L94.2 545.8L132 410.6L229.4 508zM546.7 192L468.6 270.1L369.9 171.4L448 93.3L546.7 192z"/>
+                </svg>
+              </m-icon-button>
+            } @else {
+              <m-icon-button
+                [size]="actionSize()" [disabled]="pending()"
+                ariaLabel="Annulla"
+                (pressed)="doCancel()">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
+                     class="h-7 w-auto fill-current text-light-error hover:text-light-error/75 dark:text-dark-error dark:hover:text-dark-error/75">
+                  <path d="M507.4 155.3L518.8 144L496.1 121.4L484.8 132.7L320.1 297.4L155.4 132.7L144.1 121.4L121.5 144L132.8 155.3L297.5 320L132.8 484.7L121.5 496L144.1 518.6L155.4 507.3L320.1 342.6L484.8 507.3L496.1 518.6L518.8 496L507.4 484.7L342.8 320L507.4 155.3z"/>
+                </svg>
+              </m-icon-button>
+              <m-icon-button
+                [size]="actionSize()" [disabled]="pending()"
+                variant="neutral"
+                ariaLabel="Salva"
+                (pressed)="doSave()">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
+                     class="h-7 w-auto fill-current text-light-accent-secondary hover:text-light-accent-secondary/75 dark:text-dark-accent-secondary dark:hover:text-dark-accent-secondary/75">
+                  <path d="M550.5 140.5L541.1 153.4L261.1 537.4L250.1 552.5L236.9 539.3L100.9 403.3L89.6 392L112.2 369.4L123.5 380.7L246.3 503.5L515.3 134.6L524.7 121.7L550.6 140.6z"/>
+                </svg>
+              </m-icon-button>
+            }
+          </div>
+        </div>
+      }
+
+      @default {
+        <div class="m-metadata-row">
+          <h2
+            [innerHTML]="_label()"
+            class="m-metadata-label font-semibold text-light-accent-primary-hc dark:text-dark-accent-primary text-lg">
+          </h2>
+
+          <div class="m-metadata-content">
+            <p
+              #value
+              [attr.aria-multiline]="_type() === 'notes' && mode() === 'edit' ? 'true' : null"
+              class="m-metadata-value outline-none py-1 rounded-md border min-w-0 [overflow-wrap:anywhere]
+                     text-light-on-surface-main dark:text-dark-on-surface-main
+                     transition-[background-color,border-color,color] duration-300"
+              [attr.contenteditable]="mode() === 'edit' && !pending() ? 'true' : null"
+            [attr.role]="mode() === 'edit' ? 'textbox' : null"
+            [attr.aria-busy]="pending()"
+            (keydown)="onKeydown($event)"
+              [ngClass]="{
+                'bg-slate-200 dark:bg-slate-700 border-light-on-surface-main dark:border-dark-on-surface-main': mode() === 'edit',
+                'border-transparent bg-transparent': mode() === 'view'
+              }"
+              [innerHTML]="mode() === 'view' && !_value().trim() ? (_type() === 'notes' ? 'Nessuna nota. Aggiungi informazioni utili alla tua ricerca.' : 'Nessuna etichetta.') : _value()"
+              [attr.aria-label]="mode() === 'edit' ? 'Modifica ' + _label().replace(':','') : null"
+              [attr.aria-live]="mode() === 'edit' ? 'off' : 'polite'">
+            </p>
+
+            <div class="flex items-center shrink-0">
+              @if (mode() === 'view') {
+                <m-icon-button
+                  [size]="actionSize()" [disabled]="pending()"
+                  [ariaLabel]="'Modifica ' + _label().replace(':', '').toLowerCase()"
+                  (pressed)="onEdit($event)">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
+                       class="h-5.5 w-auto fill-current text-slate-800 hover:text-slate-800/75 dark:text-slate-200 dark:hover:text-slate-200/75">
+                    <path d="M58.1 555.9L48 592C50.7 591.2 117.4 572.6 248 536L569.4 214.6L592 192C589.6 189.6 549.1 149.1 470.6 70.6L448 48L425.4 70.6L104 392L58.1 555.9zM252.7 486L154 387.3L347.4 193.9L446.1 292.6L252.7 486zM229.4 508L94.2 545.8L132 410.6L229.4 508zM546.7 192L468.6 270.1L369.9 171.4L448 93.3L546.7 192z"/>
+                  </svg>
+                </m-icon-button>
+              } @else {
+                <m-icon-button
+                  [size]="actionSize()" [disabled]="pending()"
+                  ariaLabel="Annulla"
+                  (pressed)="onCancel($event)">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
+                       class="h-5.5 w-auto fill-current text-light-error hover:text-light-error/75 dark:text-dark-error dark:hover:text-dark-error/75">
+                    <path d="M507.4 155.3L518.8 144L496.1 121.4L484.8 132.7L320.1 297.4L155.4 132.7L144.1 121.4L121.5 144L132.8 155.3L297.5 320L132.8 484.7L121.5 496L144.1 518.6L155.4 507.3L320.1 342.6L484.8 507.3L496.1 518.6L518.8 496L507.4 484.7L342.8 320L507.4 155.3z"/>
+                  </svg>
+                </m-icon-button>
+                <m-icon-button
+                  [size]="actionSize()" [disabled]="pending()"
+                  variant="neutral"
+                  ariaLabel="Salva"
+                  (pressed)="onSave($event)">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
+                       class="h-6 w-auto fill-current text-light-accent-secondary hover:text-light-accent-secondary/75 dark:text-dark-accent-secondary dark:hover:text-dark-accent-secondary/75">
+                    <path d="M550.5 140.5L541.1 153.4L261.1 537.4L250.1 552.5L236.9 539.3L100.9 403.3L89.6 392L112.2 369.4L123.5 380.7L246.3 503.5L515.3 134.6L524.7 121.7L550.6 140.6z"/>
+                  </svg>
+                </m-icon-button>
+              }
+            </div>
+          </div>
+        </div>
+      }
+    }
+    @if (pending()) { <p class="m-metadata-status" role="status">Salvataggio in corso...</p> }
+    @if (saveError()) { <p class="m-metadata-status" role="alert">{{ saveError() }}</p> }
+  `
+})
+export class CustomDetailsComponent {
+  private saveSubscription?: Subscription
+  private readonly r = inject(Renderer2)
+  private readonly destroyRef = inject(DestroyRef)
+  readonly pending = signal(false)
+  readonly saveError = signal('')
+  readonly saveRequest = input<((detail: CustomDetailSaveModel) => Observable<boolean>) | undefined>()
+
+  _label = signal<string>('')
+  _value = signal<string>('')
+  readonly _badgeName = computed(() => this.badgeName())
+  startValue = signal<string>('')
+  _type = signal<'label' | 'notes' | 'name' | 'cardName'>('label')
+  _itemId = signal<string>('')
+  mode = signal<'view' | 'edit'>('view')
+  _isReadonly = signal<boolean>(false)
+  lastValue = signal<string | null>(null)
+  _triggerRollback = signal<boolean>(false)
+  _hideActions = signal<boolean>(false)
+
+  readonly valueRef = viewChild.required<ElementRef<HTMLElement>>('value')
+
+  readonly type = input.required<'label' | 'notes' | 'name' | 'cardName'>()
+  readonly value = input.required<string>()
+  readonly itemId = input.required<string>()
+  readonly badgeName = input('Personal')
+  readonly actionSize = input<IconButtonSize>('sm')
+  readonly compactHeading = input(false)
+  readonly isReadonly = input(false)
+  readonly triggerRollback = input(false)
+  readonly hideActions = input(false)
+
+  readonly onSaving = output<CustomDetailSaveModel>()
+
+  readonly onDoingRollback = output<void>()
+
+  constructor() {
+    effect(() => {
+      const type = this.type()
+      const value = this.value()
+      const itemId = this.itemId()
+      if (itemId !== untracked(this._itemId)) {
+        this.saveSubscription?.unsubscribe()
+        this.mode.set('view')
+        this.saveError.set('')
+      }
+      this._type.set(type)
+      this._label.set(type === 'label' ? 'Etichetta:' : type === 'notes' ? 'Note:' : '')
+      if (untracked(this.mode) === 'view') {
+        this._value.set(value)
+        this.startValue.set(value)
+      }
+      this._itemId.set(itemId)
+      this._isReadonly.set(this.isReadonly())
+      this._triggerRollback.set(this.triggerRollback())
+      this._hideActions.set(this.hideActions())
+    })
+    effect(() => {
+      const restore = this.lastValue()
+      if (this._triggerRollback() && restore) {
+        queueMicrotask(() => {
+          this._triggerRollback.set(false)
+          this._value.set(restore)
+          this.startValue.set(restore)
+          const el = this.valueRef().nativeElement
+          el.textContent = restore
+          this.mode.set('view')
+          // TODO: The 'emit' function requires a mandatory void argument
+          this.onDoingRollback.emit()
+        })
+      }
+    })
+  }
+
+  doEdit(): void {
+    if (this.pending()) return
+    this.saveError.set('')
+    this.mode.set('edit')
+    const el = this.valueRef().nativeElement
+    this.r.setAttribute(el, 'contenteditable', 'true')
+    this.r.setAttribute(el, 'tabindex', '0')
+    el.textContent = this._value()
+
+    requestAnimationFrame(() => {
+      if (this.destroyRef.destroyed || this.mode() !== 'edit') return
+      el.focus()
+      const range = document.createRange()
+      range.selectNodeContents(el)
+      range.collapse(false)
+      const sel = window.getSelection()
+      sel?.removeAllRanges()
+      sel?.addRange(range)
+    })
+  }
+
+  doCancel(): void {
+    if (this.pending()) return
+    this.saveError.set('')
+    const el = this.valueRef().nativeElement
+    el.textContent = this.startValue()
+    this._value.set(this.startValue())
+    this.mode.set('view')
+    this.r.removeAttribute(el, 'contenteditable')
+    this.r.removeAttribute(el, 'tabindex')
+    this.restoreEditFocus()
+  }
+
+  doSave(): void {
+    if (this.pending() || this.mode() !== 'edit') return
+    const el = this.valueRef().nativeElement
+    const newValue = el.innerText
+    if (this._type() === 'name' && !newValue.trim()) {
+      this.saveError.set('Inserisci un nome per la molecola.')
+      el.focus()
+      return
+    }
+    const detail: CustomDetailSaveModel = {
+      label: this._label(), value: newValue, type: this._type(), id: this._itemId()
+    }
+    const commit = () => {
+      this.lastValue.set(this._value())
+      this.startValue.set(newValue)
+      this._value.set(newValue)
+      this.mode.set('view')
+      this.r.removeAttribute(el, 'contenteditable')
+      this.r.removeAttribute(el, 'tabindex')
+      this.restoreEditFocus()
+    }
+    const request = this.saveRequest()
+    if (!request) { commit(); this.onSaving.emit(detail); return }
+    this.pending.set(true)
+    this.saveError.set('')
+    this.saveSubscription = defer(() => request(detail)).pipe(
+      take(1), defaultIfEmpty(false), catchError(() => of(false)),
+      takeUntilDestroyed(this.destroyRef), finalize(() => this.pending.set(false))
+    ).subscribe(ok => {
+      if (this.itemId() !== detail.id) return
+      if (ok) commit()
+      else this.saveError.set('Salvataggio non riuscito. La modifica è ancora qui: riprova o annulla.')
+    })
+  }
+
+  private restoreEditFocus(): void {
+    requestAnimationFrame(() => {
+      if (this.destroyRef.destroyed || this.mode() !== 'view') return
+      this.valueRef().nativeElement.parentElement?.querySelector<HTMLButtonElement>('button')?.focus()
+    })
+  }
+
+  onKeydown(event: KeyboardEvent): void {
+    if (this.mode() !== 'edit') return
+    if (event.key === 'Escape') { event.preventDefault(); this.doCancel() }
+    if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+      event.preventDefault(); this.doSave()
+    }
+  }
+
+  onEdit(ev: MouseEvent): void {
+    ev.preventDefault()
+    ev.stopPropagation()
+    this.doEdit()
+  }
+
+  onCancel(ev: MouseEvent): void {
+    ev.preventDefault()
+    ev.stopPropagation()
+    this.doCancel()
+  }
+
+  onSave(ev: MouseEvent): void {
+    ev.preventDefault()
+    ev.stopPropagation()
+    this.doSave()
+  }
+}

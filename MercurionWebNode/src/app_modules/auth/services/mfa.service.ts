@@ -1,0 +1,844 @@
+import { Injectable } from '@nestjs/common'
+import { UUID } from 'crypto'
+import { SecurityService } from './security.service'
+import { UserService } from 'src/app_modules/user/services/user.service'
+import { MfaStrategy } from 'src/app_modules/user/models/enums/mfa-strategy.enum'
+import { MfaBackupCode } from 'src/app_modules/user/models/entities/backup-code.entity'
+import { DataSource, EntityManager } from 'typeorm'
+import { PasswordEncoderService } from './password-encoder.service'
+import { User } from 'src/app_modules/user/models/entities/user.entity'
+import { BackupCodeStatusDTO } from 'src/app_modules/user/models/dto/backup-code-status.dto'
+import { MfaAuthMetadata, TotpMetadata } from '../models/interfaces/totp-wrapper.interface'
+import { SmsSenderService } from 'src/app_modules/notification/services/sms-sender/sms-sender.service'
+import { MailSenderService } from 'src/app_modules/notification/services/mail-sender/mail-sender.service'
+import { ConfigService } from '@nestjs/config'
+import { TokenType } from '../models/enums/token-type.enum'
+import { errorMessage, errorStack } from 'src/utils/errors/error-message'
+import { JwtToolsService } from './jwt-tools.service'
+import { TotpConfiguration } from 'src/config/config.types'
+import { SessionService } from './session.service'
+import { nullish } from 'src/models/nullish.type'
+import { GeneralUtils } from 'src/utils/general-utils/general-utils'
+import { RedisService } from 'src/app_modules/redis/services/redis.service'
+import { redisDurations, redisKeys } from 'src/app_modules/redis/contracts/redis-contracts'
+import { MfaContext } from '../models/enums/mfa-context.enum'
+import { uuidv7 } from '@kripod/uuidv7'
+import { SecurityAuditService } from 'src/app_modules/meilisearch/services/security-audit.service'
+import { LoggerPort } from 'src/logging/logger.port'
+import { LoggerContext } from 'src/logging/logger.port'
+import { TypeGuards } from 'src/utils/type-guards/type-guards'
+import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
+import { MfaBackupCodeStore } from 'src/app_modules/user/services/mfa-backup-code.store'
+import { MfaPolicyService } from './mfa-policy.service'
+import { runInTransaction } from 'src/persistence/transaction-context'
+import { RealtimeStateSyncService } from 'src/app_modules/socket-io/realtime-state-sync.service'
+
+@Injectable()
+/**
+ * Internal MFA coordinator.  Callers must use the responsibility-specific
+ * ports registered by AuthModule rather than depending on this implementation.
+ */
+export class MfaApplicationService {
+
+    private readonly logger: LoggerContext
+
+    private readonly totpConfig: TotpConfiguration
+    private readonly appName: string
+
+    private readonly MFA_FAIL_WINDOW_SECONDS = 10 * 60
+    private readonly MFA_LOCK_SECONDS = 10 * 60
+    private readonly MFA_MAX_FAILS = 5
+
+    private readonly MFA_SEND_WINDOW_SECONDS = 10 * 60
+    private readonly MFA_MAX_SENDS = 5
+
+    private readonly BACKUP_FAIL_WINDOW_SECONDS = 10 * 60    // 10 minuti
+    private readonly BACKUP_MAX_FAILS = 5                    // 5 tentativi
+    private readonly BACKUP_LOCK_SECONDS = 15 * 60           // 15 minuti
+
+    // backup codes: rigenerazione
+    private readonly BACKUP_REGEN_WINDOW_SECONDS = 60 * 60   // 1 ora
+    private readonly BACKUP_REGEN_MAX_REQUESTS = 3           // max 3 rigenerazioni/ora
+
+    constructor(
+        private readonly backupCodes: MfaBackupCodeStore,
+        private readonly dataSource: DataSource,
+        private readonly passwordEncoderService: PasswordEncoderService,
+        private readonly securityService: SecurityService,
+        private readonly userService: UserService,
+        private readonly smsService: SmsSenderService,
+        private readonly mailService: MailSenderService,
+        private readonly configService: ConfigService,
+        private readonly jwtTools: JwtToolsService,
+        private readonly sessionService: SessionService,
+        private readonly redisService: RedisService,
+        private readonly securityAuditService: SecurityAuditService,
+        private readonly policy: MfaPolicyService,
+        private readonly stateSync: RealtimeStateSyncService,
+        meiliLogger: LoggerPort
+    ) {
+        this.logger = meiliLogger.forContext(MfaApplicationService.name)
+        this.totpConfig = this.configService.get<TotpConfiguration>('Totp') as TotpConfiguration
+        this.appName = this.configService.get<string>("App.globalName") as string
+    }
+
+    public async isMfaEnabled(userId: UUID): Promise<boolean> {
+        return !!(await this.userService.getUserEncryptedEnabledMfaStrategies(userId)).length
+    }
+
+    public async getEnabledMfaStrategies(userId: UUID): Promise<MfaStrategy[]> {
+        return (await this.userService.getUserEncryptedEnabledMfaStrategies(userId))
+            .map((s) => this.securityService.decrypt_AES256_GCM(s) as MfaStrategy)
+    }
+
+    private getBackupFailKey(userId: UUID) {
+        return redisKeys.mfa.backupFailure(userId)
+    }
+
+    private getBackupLockKey(userId: UUID) {
+        return redisKeys.mfa.backupLock(userId)
+    }
+
+    private getBackupRegenKey(userId: UUID) {
+        return redisKeys.mfa.backupRegeneration(userId)
+    }
+
+    private getBackupRegenLockKey(userId: UUID) {
+        return redisKeys.mfa.backupRegenerationLock(userId)
+    }
+
+    private async ensureBackupNotLocked(userId: UUID): Promise<void> {
+        return this.policy.ensureBackupNotLocked(userId)
+    }
+
+    private async registerBackupFailure(userId: UUID): Promise<void> {
+        return this.policy.registerBackupFailure(userId)
+    }
+
+    private async clearBackupFailures(userId: UUID): Promise<void> {
+        return this.policy.clearBackupFailures(userId)
+    }
+
+    private async throttleBackupRegeneration(userId: UUID): Promise<void> {
+        return this.policy.throttleBackupRegeneration(userId)
+    }
+
+    public async generateBackupCodes(userId: UUID, manager: EntityManager): Promise<string[]> {
+
+        await manager.delete(MfaBackupCode, { userId })
+
+        const codes = Array.from({ length: 10 }).map(() => this.securityService.generateReadableCode())
+
+        const entities = await Promise.all(
+            codes.map(async plain => ({
+                id: uuidv7() as UUID,
+                hash: await this.passwordEncoderService.encode(plain),
+                used: false,
+                createdAt: Date.now(),
+                user: { id: userId },
+            }))
+        )
+
+        await manager.save(MfaBackupCode, entities)
+
+        const row = await manager.findOne(User, {
+            where: { id: userId },
+            select: {
+                mfaStrategies: true,
+                backupCodesGiven: true
+            }
+        })
+
+        if (!row) {
+            throw applicationError(ApplicationErrorCode.AUTHENTICATION_UNAUTHENTICATED)
+        }
+
+        if (row.backupCodesGiven) {
+            throw applicationError(ApplicationErrorCode.MFA_BACKUP_CODES_ALREADY_GENERATED)
+        }
+
+        let deserialized: string[]
+        try {
+            deserialized = JSON.parse(row.mfaStrategies || "[]") as string[]
+            if (!Array.isArray(deserialized)) {
+                deserialized = []
+            }
+        } catch (e) {
+            this.logger.warn(
+                `User.mfaStrategies json array deserialization error, userId=${userId}: `,
+                errorStack(e) ?? errorMessage(e)
+            )
+            deserialized = []
+        }
+
+        if (deserialized.length === 0) {
+            return []
+        }
+
+        let decrypted = deserialized
+            .map(enc => this.securityService.decrypt_AES256_GCM(enc))
+            .filter((st) => TypeGuards.isMfaStrategy(st))
+
+        decrypted.push(MfaStrategy.BACKUP_CODE)
+        decrypted = GeneralUtils.distinctArray(decrypted)
+
+        const encrypted = decrypted.map(dec => this.securityService.encrypt_AES256_GCM(dec))
+        await manager.update(
+            User,
+            { id: userId },
+            {
+                mfaStrategies: JSON.stringify(encrypted),
+                backupCodesGiven: true
+            }
+        )
+
+        return codes
+    }
+
+    public async verifyBackupCode(plainCode: string, preAuthorizationToken: string): Promise<boolean> {
+
+        let userId: string = ''
+        let jti: string = ''
+        let sub: string
+
+        try {
+
+            ({ sub, jti } = await this.jwtTools.verifyTokenAndGetPayload(preAuthorizationToken, TokenType.PreAuthorizationToken))
+            userId = this.securityService.decryptUserId(sub)
+            await this.sessionService.revokeToken(jti)
+
+            await this.ensureBackupNotLocked(userId as UUID)
+
+            const codes = await this.backupCodes.findUnused(userId as UUID)
+
+            if (!codes || !codes.length) {
+                await this.registerBackupFailure(userId as UUID)
+                return false
+            }
+
+            let matched = false
+            for (const c of codes) {
+                const match = (await this.passwordEncoderService.compare(plainCode, c.hash))
+                if (match) {
+                    matched = true
+                    await this.backupCodes.markUsed(c)
+                    break
+                }
+            }
+
+            if (!matched) {
+                await this.registerBackupFailure(userId as UUID)
+                return false
+            }
+
+            await this.clearBackupFailures(userId as UUID)
+            return true
+        } catch (e) {
+            const logData: string[] = []
+            logData.push(userId ? `user_id=${userId}` : '', jti ? `pre_authorization_token_jti=${jti}` : '')
+            const logDataStr = logData.length ? ', ' + logData.join(', ') : ''
+            this.logger.warn(` > verifyBackupCode${logDataStr} > Error: `, errorStack(e) ?? errorMessage(e))
+            return false
+        }
+    }
+
+    public async regenerateBackupCodes(userId: UUID): Promise<string[]> {
+
+        await this.throttleBackupRegeneration(userId)
+
+        return runInTransaction(this.dataSource, async (context, manager) => {
+
+            const row = await manager.findOne(User, {
+                where: { id: userId },
+                select: { mfaStrategies: true }
+            })
+
+            if (!row) {
+                throw applicationError(ApplicationErrorCode.AUTHENTICATION_UNAUTHENTICATED)
+            }
+
+            let deserialized: string[] = []
+            try {
+                deserialized = JSON.parse(row.mfaStrategies || "[]") as string[]
+                if (!Array.isArray(deserialized)) deserialized = []
+            } catch (e) {
+                this.logger.warn(
+                    ` > regenerateBackupCodes: error in MFA Strategies deserialization, userId=${userId}: `,
+                    errorStack(e) ?? errorMessage(e)
+                )
+                deserialized = []
+            }
+
+            let decrypted = deserialized
+                .map(enc => this.securityService.decrypt_AES256_GCM(enc))
+                .filter((st) => TypeGuards.isMfaStrategy(st))
+
+            decrypted.push(MfaStrategy.BACKUP_CODE)
+            decrypted = GeneralUtils.distinctArray(decrypted)
+
+            const encrypted = decrypted.map(dec => this.securityService.encrypt_AES256_GCM(dec))
+            await manager.update(
+                User,
+                { id: userId },
+                { mfaStrategies: JSON.stringify(encrypted) }
+            )
+
+            const codes = await this.generateBackupCodes(userId, manager)
+            this.stateSync.publishAfterCommit(context, [userId], {
+                kind: 'resource-state-changed',
+                domain: 'account-security',
+                change: 'updated'
+            })
+            return codes
+        })
+    }
+
+    public async hasValidBackupCodes(userId: UUID): Promise<boolean> {
+        return this.backupCodes.hasValid(userId)
+    }
+
+    public async getBackupCodesStatus(userId: UUID): Promise<BackupCodeStatusDTO> {
+        const ur = await this.dataSource.getRepository(User).findOne({
+            where: {
+                id: userId
+            },
+            select: {
+                sso: true
+            }
+        })
+        if (ur && ur.sso) {
+            throw applicationError(ApplicationErrorCode.UNPROCESSABLE_ENTITY)
+        }
+        return this.backupCodes.status(userId)
+    }
+
+    public async destroyBackupCodes(userId: UUID): Promise<void> {
+        await this.backupCodes.destroy(userId)
+    }
+
+    private getMfaFailKey(userId: UUID, strategy: MfaStrategy, context: MfaContext = MfaContext.VERIFY) {
+        return redisKeys.mfa.failure(context, userId, strategy)
+    }
+
+    private getMfaLockKey(userId: UUID, strategy: MfaStrategy, context: MfaContext = MfaContext.VERIFY) {
+        return redisKeys.mfa.lock(context, userId, strategy)
+    }
+
+    private getMfaSendKey(userId: UUID, strategy: MfaStrategy, context: MfaContext = MfaContext.SEND) {
+        return redisKeys.mfa.send(context, userId, strategy)
+    }
+
+    private getMfaSendLockKey(userId: UUID, strategy: MfaStrategy, context: MfaContext = MfaContext.SEND) {
+        return redisKeys.mfa.sendLock(context, userId, strategy)
+    }
+
+    private async ensureMfaNotLocked(userId: UUID, strategy: MfaStrategy, context: MfaContext = MfaContext.VERIFY): Promise<void> {
+        return this.policy.ensureNotLocked(userId, strategy, context)
+    }
+
+    private async registerMfaFailure(userId: UUID, strategy: MfaStrategy, context: MfaContext = MfaContext.VERIFY): Promise<void> {
+        return this.policy.registerFailure(userId, strategy, context)
+    }
+
+    private async clearMfaFailures(userId: UUID, strategy: MfaStrategy, context: MfaContext,): Promise<void> {
+        return this.policy.clearFailures(userId, strategy, context)
+    }
+
+
+    private async throttleMfaSend(userId: UUID, strategy: MfaStrategy, context: MfaContext = MfaContext.SEND): Promise<void> {
+        return this.policy.throttleSend(userId, strategy, context)
+    }
+
+
+    public async sendOtpToUser(preAuthorizationToken: string, strategy: MfaStrategy, trustVerify: boolean): Promise<TotpMetadata> {
+
+        let userId: UUID
+        let sub: string
+
+        try {
+            ({ sub } = await this.jwtTools.verifyTokenAndGetPayload(preAuthorizationToken, TokenType.PreAuthorizationToken))
+            userId = this.securityService.decryptUserId(sub)
+        } catch {
+            throw applicationError(ApplicationErrorCode.MFA_JWT_VALIDATION_INVALID)
+        }
+        await this.throttleMfaSend(userId, strategy, MfaContext.SEND)
+        const user = await this.userService.getUserById(userId)
+        if (!user) {
+            throw applicationError(ApplicationErrorCode.USER_NOT_FOUND)
+        }
+        if (!user.otpSecret) throw applicationError(ApplicationErrorCode.MFA_OTP_SECRET_NOT_FOUND)
+        let strategyError: boolean = true
+        if ((await this.userService.getUserEncryptedEnabledMfaStrategies(userId)).map((enc) => this.securityService.decrypt_AES256_GCM(enc)).includes(strategy)) {
+            strategyError = false
+        } else if (strategy === MfaStrategy.EMAIL_OTP && trustVerify) {
+            strategyError = false
+        }
+        if (strategyError) {
+            throw applicationError(ApplicationErrorCode.MFA_STRATEGY_NOT_ENABLED, `InvalidMfaStrategy::${GeneralUtils.getEnumKeyByValue(MfaStrategy, strategy)} strategy for MFA not enabled for this user`)
+        }
+        const { TOTP, ...metadata } = this.securityService.generateTotp(user.otpSecret)
+
+        switch (strategy) {
+
+            case MfaStrategy.EMAIL_OTP:
+
+                await this.mailService.send(
+                    'mfa-login-code',
+                    user.email as string,
+                    {
+                        firstName: user.firstName,
+                        totp: TOTP,
+                        period: this.totpConfig.period,
+                        appName: this.appName
+                    }
+
+                )
+                break
+
+            case MfaStrategy.SMS_OTP:
+                await this.smsService.sendSms(
+                    user.completePhoneNumber!,
+                    `Ciao ${user.firstName}. Ecco il tuo codice per accedere a ${this.appName}: ${TOTP}\nE' valido per ${this.totpConfig.period} secondi.`
+                )
+                break
+            default:
+                throw applicationError(ApplicationErrorCode.MFA_STRATEGY_UNSUPPORTED, `UnsupportedMfaStrategy::${strategy}`)
+
+        }
+
+        return metadata
+    }
+
+    public async verifyUserOtpOrAppTotp(totp: string, preAuthorizationToken: string, strategy: MfaStrategy): Promise<boolean> {
+
+        const { sub, jti } = await this.jwtTools.verifyTokenAndGetPayload(preAuthorizationToken, TokenType.PreAuthorizationToken)
+        await this.sessionService.revokeToken(jti)
+        const userId = this.securityService.decryptUserId(sub)
+        const context = MfaContext.VERIFY
+        await this.ensureMfaNotLocked(userId, strategy, context)
+        if (!await this.userService.existsUserById(userId)) {
+            throw applicationError(ApplicationErrorCode.USER_NOT_FOUND)
+        }
+        let otpSecret: string | nullish
+        switch (strategy) {
+            case MfaStrategy.EMAIL_OTP:
+            case MfaStrategy.SMS_OTP:
+                otpSecret = await this.userService.getOtpSecretByUserId(userId)
+                break
+            case MfaStrategy.APP_TOTP:
+                otpSecret = await this.userService.getAppTotpSecretByUserId(userId)
+                break
+            default:
+                throw applicationError(ApplicationErrorCode.MFA_STRATEGY_UNSUPPORTED, `UnsupportedMfaStrategy::${GeneralUtils.getEnumKeyByValue(MfaStrategy, strategy)}`)
+
+        }
+        if (!otpSecret) {
+            throw applicationError(ApplicationErrorCode.MFA_OTP_SECRET_NOT_FOUND)
+        }
+        const ok = this.securityService.verifyTotp(totp, otpSecret, strategy === MfaStrategy.APP_TOTP)
+        if (!ok) {
+            await this.registerMfaFailure(userId, strategy, context)
+            return false
+        }
+        await this.clearMfaFailures(userId, strategy, context)
+        return true
+    }
+
+    public async enableMfa_firstStep(userId: UUID, strategy: MfaStrategy): Promise<MfaAuthMetadata> {
+
+        await this.throttleMfaSend(userId, strategy, MfaContext.ENABLE_SEND)
+
+        let totpSecret: string | nullish
+        let TOTP: string
+        let metadata: TotpMetadata = {
+            generatedAt: 0,
+            expiresAt: 0
+        }
+        let email: string
+        let completePhoneNumber: string
+        let otpauth_url: string
+        let secureToken: string = ''
+
+        if (!await this.userService.existsUserById(userId)) {
+            throw applicationError(ApplicationErrorCode.USER_NOT_FOUND)
+        }
+        const ur = await this.dataSource.getRepository(User).findOne({
+            where: {
+                id: userId
+            },
+            select: {
+                sso: true
+            }
+        })
+        if (ur!.sso) {
+            throw applicationError(ApplicationErrorCode.UNPROCESSABLE_ENTITY)
+        }
+        const firstName = await this.userService.getUserFirstNameById(userId) as string
+        if ((await this.userService.getUserEncryptedEnabledMfaStrategies(userId)).includes(strategy))
+            throw applicationError(ApplicationErrorCode.MFA_STRATEGY_ALREADY_ENABLED, `InvalidMfaStrategy::${GeneralUtils.getEnumKeyByValue(MfaStrategy, strategy)} strategy for MFA already enabled for this user`)
+
+        switch (strategy) {
+            case MfaStrategy.EMAIL_OTP:
+
+                email = (await this.userService.getUserEmailById(userId))!
+                totpSecret = await this.userService.getOtpSecretByUserId(userId)
+                if (!totpSecret) {
+                    throw applicationError(ApplicationErrorCode.MFA_TOTP_SECRET_NOT_FOUND)
+                }
+                ({ TOTP, ...metadata } = this.securityService.generateTotp(totpSecret))
+                await this.mailService.send(
+                    'mfa-enable-code',
+                    email,
+                    {
+                        firstName,
+                        totp: TOTP,
+                        period: this.totpConfig.period,
+                        appName: this.appName
+                    }
+                )
+                secureToken = await this.jwtTools.generateToken(userId, TokenType.EmailOtpMfaActivationToken)
+                break
+
+            case MfaStrategy.SMS_OTP:
+
+                completePhoneNumber = await this.userService.getPhoneNumberById(userId) as string
+                totpSecret = await this.userService.getOtpSecretByUserId(userId)
+                if (!totpSecret) {
+                    throw applicationError(ApplicationErrorCode.MFA_TOTP_SECRET_NOT_FOUND)
+                }
+                ({ TOTP, ...metadata } = this.securityService.generateTotp(totpSecret))
+                await this.smsService.sendSms(completePhoneNumber,
+                    `Ciao ${firstName}. Ecco il tuo codice per attivare l'MFA in ${this.appName}: ${TOTP}\nE' valido per ${this.totpConfig.period} secondi.`)
+                secureToken = await this.jwtTools.generateToken(userId, TokenType.SmsOtpMfaActivationToken)
+                break
+
+            case MfaStrategy.APP_TOTP:
+
+                email = await this.userService.getUserEmailById(userId) ?? ''
+                if (!email) {
+                    throw applicationError(ApplicationErrorCode.USER_NOT_FOUND)
+                }
+                ({ totpSecret, otpauth_url } = this.securityService.generateAppTotpSecret(email))
+                metadata = {
+                    generatedAt: Date.now(),
+                    expiresAt: Date.now() + this.totpConfig.period * 1000
+                }
+
+                // salvataggio temporaneo del secret in redis (con TTL), associato allo user
+                await this.redisService.set(
+                    redisKeys.mfa.temporaryAppSecret(userId),
+                    totpSecret,
+                    redisDurations.minutes(5)
+                )
+                secureToken = await this.jwtTools.generateToken(userId, TokenType.AppTotpMfaActivationToken)
+                await this.clearMfaFailures(userId, strategy, MfaContext.ENABLE_SEND)
+                return {
+                    ...metadata,
+                    secret: totpSecret,
+                    otpauthUrl: otpauth_url,
+                    qrCode: await this.securityService.generateQrCodeDataUrl(otpauth_url),
+                    secureToken
+                }
+
+        }
+
+        await this.clearMfaFailures(userId, strategy, MfaContext.ENABLE_SEND)
+
+        return {
+            ...metadata,
+            secureToken
+        }
+
+    }
+
+    public async enableMfa_secondStep_verifyTotpAndAppendStrategy(
+        totp: string,
+        secureToken: string,
+        strategy: MfaStrategy
+    ): Promise<boolean> {
+
+        let tokenType: TokenType
+
+        switch (strategy) {
+            case MfaStrategy.EMAIL_OTP:
+                tokenType = TokenType.EmailOtpMfaActivationToken
+                break
+            case MfaStrategy.SMS_OTP:
+                tokenType = TokenType.SmsOtpMfaActivationToken
+                break
+            case MfaStrategy.APP_TOTP:
+                tokenType = TokenType.AppTotpMfaActivationToken
+                break
+            default:
+                throw applicationError(ApplicationErrorCode.MFA_STRATEGY_UNSUPPORTED, `UnsupportedMfaStrategy::${GeneralUtils.getEnumKeyByValue(MfaStrategy, strategy)}`)
+        }
+
+        const { sub, jti } = await this.jwtTools.verifyTokenAndGetPayload(secureToken, tokenType)
+        const userId = this.securityService.decryptUserId(sub)
+        await this.sessionService.revokeToken(jti.toString())
+
+        if (!await this.userService.existsUserById(userId)) {
+            throw applicationError(ApplicationErrorCode.USER_NOT_FOUND)
+        }
+
+        const context = MfaContext.ENABLE_VERIFY
+        await this.ensureMfaNotLocked(userId, strategy, context)
+
+        let otpSecret: string | nullish
+
+        if (strategy === MfaStrategy.APP_TOTP) {
+            otpSecret = await this.redisService.get(redisKeys.mfa.temporaryAppSecret(userId))
+            if (!otpSecret) throw applicationError(ApplicationErrorCode.MFA_TEMPORARY_APP_TOTP_SECRET_NOT_FOUND)
+
+            const isValid = this.securityService.verifyTotp(totp, otpSecret, true)
+            if (!isValid) {
+                await this.registerMfaFailure(userId, strategy, context)
+                return false
+            }
+
+            const updatedUser = await this.userService.updateUser(userId, { appTotpSecret: otpSecret })
+            if (!updatedUser) {
+                throw applicationError(ApplicationErrorCode.USER_NOT_FOUND)
+            }
+            await this.redisService.del(redisKeys.mfa.temporaryAppSecret(userId))
+        } else {
+            otpSecret = await this.userService.getOtpSecretByUserId(userId)
+            if (!otpSecret) throw applicationError(ApplicationErrorCode.MFA_OTP_SECRET_NOT_FOUND)
+
+            const isValid = this.securityService.verifyTotp(totp, otpSecret)
+            if (!isValid) {
+                await this.registerMfaFailure(userId, strategy, context)
+                return false
+            }
+        }
+
+        await this.clearMfaFailures(userId, strategy, context)
+
+        await this.userService.appendMfaStrategy(userId, strategy)
+
+        this.stateSync.publishToUser(userId, {
+            kind: 'resource-state-changed',
+            domain: 'account-security',
+            change: 'updated'
+        })
+
+        await this.securityAuditService.mfaEnabled(userId, GeneralUtils.getEnumKeyByValue(MfaStrategy, strategy) ?? 'unknown')
+
+        return true
+    }
+
+    public async disableMfa_firstStep(userId: UUID, strategy: MfaStrategy): Promise<MfaAuthMetadata> {
+
+        await this.throttleMfaSend(userId, strategy, MfaContext.DISABLE_SEND)
+
+        let totpSecret: string | nullish
+        let TOTP: string
+        let metadata: TotpMetadata = {
+            generatedAt: 0,
+            expiresAt: 0
+        }
+        let email: string
+        let completePhoneNumber: string
+        let secureToken: string
+        const now = new Date()
+        now.setMilliseconds(0)
+
+        if (!await this.userService.existsUserById(userId)) {
+            throw applicationError(ApplicationErrorCode.USER_NOT_FOUND)
+        }
+
+        const ur = await this.dataSource.getRepository(User).findOne({
+            where: {
+                id: userId
+            },
+            select: {
+                sso: true
+            }
+        })
+
+        if (ur!.sso) {
+            throw applicationError(ApplicationErrorCode.UNPROCESSABLE_ENTITY)
+        }
+
+        const encStrategies = await this.userService.getUserEncryptedEnabledMfaStrategies(userId)
+        const strategies = encStrategies.map((s) => this.securityService.decrypt_AES256_GCM(s) as MfaStrategy)
+        if (!strategies.includes(strategy)) {
+            throw applicationError(ApplicationErrorCode.MFA_STRATEGY_NOT_ACTIVE, `InvalidMfaStrategy::${strategy} strategy not currently active`)
+        }
+
+        const firstName = await this.userService.getUserFirstNameById(userId) as string
+
+        switch (strategy) {
+            case MfaStrategy.EMAIL_OTP:
+                email = (await this.userService.getUserEmailById(userId))!
+                totpSecret = await this.userService.getOtpSecretByUserId(userId)
+                if (!totpSecret) {
+                    throw applicationError(ApplicationErrorCode.MFA_TOTP_SECRET_NOT_FOUND)
+                }
+                ({ TOTP, ...metadata } = this.securityService.generateTotp(totpSecret))
+
+                await this.mailService.send(
+                    'mfa-disable-code',
+                    email,
+                    { firstName, totp: TOTP, period: this.totpConfig.period, appName: this.appName },
+                )
+                secureToken = await this.jwtTools.generateToken(userId, TokenType.EmailOtpMfaInactivationToken)
+                break
+
+            case MfaStrategy.SMS_OTP:
+                completePhoneNumber = await this.userService.getPhoneNumberById(userId) as string
+                totpSecret = await this.userService.getOtpSecretByUserId(userId)
+                if (!totpSecret) {
+                    throw applicationError(ApplicationErrorCode.MFA_TOTP_SECRET_NOT_FOUND)
+                }
+                ({ TOTP, ...metadata } = this.securityService.generateTotp(totpSecret))
+
+                await this.smsService.sendSms(
+                    completePhoneNumber,
+                    `Ciao ${firstName}. Il tuo codice per disattivare l'MFA via SMS è: ${TOTP}\nÈ valido per ${this.totpConfig.period} secondi.`
+                )
+                secureToken = await this.jwtTools.generateToken(userId, TokenType.SmsOtpMfaInactivationToken)
+                break
+
+            case MfaStrategy.APP_TOTP:
+                // Nessun codice inviato. Basta generare il token di disattivazione.
+                totpSecret = await this.userService.getAppTotpSecretByUserId(userId)
+                if (!totpSecret) throw applicationError(ApplicationErrorCode.MFA_TOTP_SECRET_NOT_FOUND)
+                metadata = {
+                    generatedAt: now.getTime(),
+                    expiresAt: now.getTime() + this.totpConfig.period * 1000
+                }
+                secureToken = await this.jwtTools.generateToken(userId, TokenType.AppTotpMfaInactivationToken)
+                break
+
+            default:
+                throw applicationError(ApplicationErrorCode.MFA_STRATEGY_UNSUPPORTED, `UnsupportedMfaStrategy::${GeneralUtils.getEnumKeyByValue(MfaStrategy, strategy)}`)
+        }
+
+        await this.clearMfaFailures(userId, strategy, MfaContext.DISABLE_SEND)
+
+        return {
+            ...metadata,
+            secureToken
+        }
+    }
+
+    public async disableMfa_secondStep_verifyTotpAndRemoveStrategy(
+        totp: string,
+        secureToken: string,
+        strategy: MfaStrategy
+    ): Promise<boolean> {
+        let tokenType: TokenType
+
+        switch (strategy) {
+            case MfaStrategy.EMAIL_OTP:
+                tokenType = TokenType.EmailOtpMfaInactivationToken
+                break
+            case MfaStrategy.SMS_OTP:
+                tokenType = TokenType.SmsOtpMfaInactivationToken
+                break
+            case MfaStrategy.APP_TOTP:
+                tokenType = TokenType.AppTotpMfaInactivationToken
+                break
+            default:
+                throw applicationError(ApplicationErrorCode.MFA_STRATEGY_UNSUPPORTED, `UnsupportedMfaStrategy::${GeneralUtils.getEnumKeyByValue(MfaStrategy, strategy)}`)
+        }
+
+        const { sub, jti } = await this.jwtTools.verifyTokenAndGetPayload(secureToken, tokenType)
+        const userId = this.securityService.decryptUserId(sub)
+        await this.sessionService.revokeToken(jti.toString())
+
+        const context = MfaContext.DISABLE_VERIFY
+        await this.ensureMfaNotLocked(userId, strategy, context)
+
+        if (!await this.userService.existsUserById(userId)) {
+            throw applicationError(ApplicationErrorCode.USER_NOT_FOUND)
+        }
+
+        let otpSecret: string | nullish
+        if (strategy === MfaStrategy.APP_TOTP) {
+            otpSecret = await this.userService.getAppTotpSecretByUserId(userId)
+        } else {
+            otpSecret = await this.userService.getOtpSecretByUserId(userId)
+        }
+
+        if (!otpSecret) {
+            throw applicationError(ApplicationErrorCode.MFA_OTP_SECRET_NOT_FOUND)
+        }
+
+        const isValid = this.securityService.verifyTotp(totp, otpSecret, strategy === MfaStrategy.APP_TOTP)
+        if (!isValid) {
+            await this.registerMfaFailure(userId, strategy, context)
+            return false
+        }
+
+        await runInTransaction(this.dataSource, async (transactionContext, manager) => {
+
+            const row = await manager.createQueryBuilder(User, 'u')
+                .select(['u.mfaStrategies', 'u.backupCodesGiven'])
+                .where('u.id = :id', { id: userId })
+                .getOneOrFail()
+
+            // eslint-disable-next-line prefer-const
+            let { mfaStrategies: rawMfaStrategies, backupCodesGiven } = row
+            backupCodesGiven = false
+            let deserialized: string[]
+            try {
+                deserialized = JSON.parse(rawMfaStrategies || '[]') as string[]
+            } catch (e) {
+                this.logger.warn(` > disableMfa_secondStep_verifyTotpAndRemoveStrategy: error in deserialization: `,                 errorStack(e) ?? errorMessage(e))
+                throw e
+            }
+            const mfaStrategiesWithoutJustDisabledStrategy = deserialized
+                .map((enc) => this.securityService.decrypt_AES256_GCM(enc))
+                .map(uuid => GeneralUtils.getEnumValue(MfaStrategy, uuid))
+                .filter((val): val is MfaStrategy => val !== undefined)
+                .filter(st => st !== strategy)
+
+            if (mfaStrategiesWithoutJustDisabledStrategy.length === 1 && mfaStrategiesWithoutJustDisabledStrategy) {
+                const i = mfaStrategiesWithoutJustDisabledStrategy.findIndex((st) => st === MfaStrategy.BACKUP_CODE)
+                if (i !== -1) {
+                    mfaStrategiesWithoutJustDisabledStrategy.splice(i, 1)
+                }
+            }
+
+            await manager.update(User,
+                {
+                    id: userId
+                },
+                {
+                    mfaStrategies: JSON.stringify(
+                        mfaStrategiesWithoutJustDisabledStrategy.map((uuid) => this.securityService.encrypt_AES256_GCM(uuid))
+                    ),
+                    backupCodesGiven
+
+                })
+            if (strategy === MfaStrategy.APP_TOTP) {
+                await manager.update(User, { id: userId }, {
+                    appTotpSecret: null
+                })
+            }
+            if (mfaStrategiesWithoutJustDisabledStrategy.length === 0) {
+                await manager.delete(MfaBackupCode, { userId })
+            }
+
+            await this.securityAuditService.mfaDisabled(
+                userId,
+                GeneralUtils.getEnumKeyByValue(MfaStrategy, strategy) ?? 'unknown',
+                undefined,
+                transactionContext
+            )
+            this.stateSync.publishAfterCommit(transactionContext, [userId], {
+                kind: 'resource-state-changed',
+                domain: 'account-security',
+                change: 'updated'
+            })
+        })
+
+        await this.clearMfaFailures(userId, strategy, context)
+        return true
+    }
+
+
+
+}

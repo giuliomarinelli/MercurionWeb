@@ -1,0 +1,167 @@
+# 0071 - Consolidate progress indicators and skeletons
+
+- [x] DONE
+- [ ] BLOCKED
+- [ ] REVERTED
+- [ ] SKIPPED_DEPENDENCY
+
+## Objective
+
+Replace coexisting legacy/new spinners and ad-hoc skeletons with one canonical progress-indicator and skeleton system whose geometry matches final content and whose motion respects user preferences.
+
+Source: `UI-013` in Series `0001`.
+
+## Context
+
+The repository contains `classic-spinner` plus multiple skeleton implementations such as `skeleton-card-loader`, `skeleton-molecule-card` and search-result skeleton loaders. The audit found that legacy/new loading components coexist and skeleton geometry does not always correspond to the final content layout, creating visual shift and inconsistent motion.
+
+## Relevant files and modules
+
+- `MercurionWebNg/src/app/components/common/classic-spinner/`
+- `MercurionWebNg/src/app/components/common/skeleton-card-loader/`
+- `MercurionWebNg/src/app/components/molecule-detail/skeleton-molecule-card/`
+- search-result skeleton loader components
+- other spinner/skeleton usages in Angular
+- page/section state primitive from `0070`
+
+## In scope
+
+- Define a canonical progress-indicator API for indeterminate activity.
+- Define reusable skeleton primitives/tokens for shape, size and motion.
+- Make feature skeleton compositions match the geometry of final content closely enough to avoid avoidable layout shifts.
+- Respect `prefers-reduced-motion`.
+- Migrate legacy spinner/skeleton consumers and remove superseded components/styles.
+- Add component/visual-state tests where practical.
+
+## Out of scope
+
+- Async state ownership (`0070`).
+- Rewriting final collection/molecule card content (`0072`/`0073`), except adapting skeleton geometry to canonical cards when those dependencies are available.
+- Performance instrumentation beyond loading UI itself.
+
+## Decisions already made
+
+- Spinner/progress and skeleton are different presentation modes under one design-system family.
+- Skeleton motion must stop/reduce when the OS/browser requests reduced motion.
+- Skeleton dimensions should model final content rather than generic rectangles chosen per feature.
+- Feature code chooses whether loading is best represented by progress or a skeleton; visual implementation remains canonical.
+
+## Requirements
+
+1. Inventory all spinner and skeleton components/usages and identify duplicates/legacy variants.
+2. Implement canonical progress indicator sizes/labels and accessible busy semantics.
+3. Implement skeleton primitives for text/shape/card composition with deterministic dimensions.
+4. Add reduced-motion CSS/logic with no required animation for comprehension.
+5. Align collection/molecule/search skeleton compositions to their final layout.
+6. Migrate existing usages and delete dead legacy components/styles.
+7. Verify loading UI does not cause significant avoidable layout shift when content replaces it.
+8. Add tests for sizes, accessible labels/busy state and reduced-motion class/behaviour.
+
+## Acceptance criteria
+
+- [x] One canonical progress-indicator family remains.
+- [x] Skeleton primitives are canonical and feature skeletons compose them.
+- [x] Legacy spinner/skeleton implementations are removed when no longer used.
+- [x] Skeleton geometry tracks corresponding content layout.
+- [x] Reduced-motion preference is respected.
+- [x] Angular tests/build and canonical CI gates pass.
+
+## Validation
+
+Run focused progress/skeleton tests, static search for superseded components, then canonical CI-parity validation.
+
+## Browser validation
+
+Through `http://localhost:8888`, inspect representative loading states for search, collection and molecule content at desktop/mobile widths. Compare skeleton-to-content geometry, verify reduced-motion emulation, light/dark theme and accessibility status.
+
+## Stop conditions
+
+Mark `BLOCKED` if a feature's final layout is itself being replaced by a pending canonical-card task and accurate skeleton geometry cannot be established independently. Prefer depending on the canonical card rather than locking in obsolete geometry.
+
+## Dependencies
+
+- `0070-create-the-canonical-page-and-section-state-primitive.md`
+
+## Implementation notes
+
+When practical, share layout tokens/dimensions with the final component rather than copying hard-coded skeleton measurements into an unrelated file.
+
+## Execution notes
+
+> Current status (2026-09-13): BLOCKED during the v8 autonomous session after
+> implementation. The canonical loading system was implemented, but required
+> collection/search browser evidence could not be completed safely.
+
+### Feature branch
+`feature/UI-013` is preserved and frozen at
+`48376f001399d350bba3c557bf1314ab81ec9ac7`, with the same SHA on origin.
+
+### Preflight
+Exact base-SHA full CI run `34785165988` succeeded, including both platform
+quality jobs and `Required gate`. The task worker completed the required
+Tox21 -> Nest -> Angular startup order, two readiness rounds, and stopped all
+task-owned processes before handoff.
+
+### Preflight remediation
+_None._
+
+### Summary
+Implemented the canonical progress-indicator and skeleton primitives, migrated
+loading consumers, removed superseded spinner implementations, and passed
+focused Angular tests, typecheck, lint, and build. The task is blocked because
+the protected collection route remained in a busy navigation state and the
+search overlay could not be opened through the browser lease, leaving required
+collection/search loading and reduced-motion evidence incomplete.
+
+### Task-specific validation performed
+13 focused Angular loading tests passed; Angular typecheck, lint, and build
+passed. Static search found no remaining classic/chemistry spinner references.
+
+### Full pre-merge CI-parity validation
+Not applicable; the task was blocked before integration. Exact feature-SHA CI
+was therefore not requested.
+
+### Browser validation performed
+Molecule loading state was verified at desktop and emulated mobile/dark mode,
+with accessible busy indicators and no browser console errors. Collection and
+search loading evidence, including reduced-motion emulation, was incomplete.
+
+### Commits
+Implementation and blocker commits are preserved on `feature/UI-013`; the
+blocked outcome is recorded here on `develop`.
+
+### Merge / CI
+No feature merge. This metadata-only status commit requires exact CI before
+continuing.
+
+### Rollback
+_Not applicable._
+
+### Blocker / human decision required
+Complete collection/search loading-state browser validation through the
+canonical edge in a new authorized session before re-enabling this task.
+
+### Authorized recovery (2026-09-14)
+
+- Direct owner authorization resumed the preserved branch from
+  `48376f001399d350bba3c557bf1314ab81ec9ac7`.
+- Current green `develop` at `5a51a31758eb634e56cd4caf005b289057ec3398`
+  was merged without rebase as recovery commit `fff30cfbf`.
+- Merge conflicts retained the canonical progress indicator while preserving
+  the newer typed HTTP form-error adapter from `develop`; the superseded
+  chemistry spinner remained deleted.
+- The Angular test suite, focused typecheck, zero-warning lint and production
+  build passed. Static search found no remaining classic or chemistry spinner
+  consumers.
+- Runtime startup followed Tox21 -> Nest -> Angular and produced two
+  consecutive `health=200`, `app=200` readiness rounds through
+  `http://localhost:8888`.
+- A fresh ordinary login reached the protected dashboard. The protected
+  collection page exposed five accessible `Caricamento collezione…` skeleton
+  states before rendering the corresponding collection cards, and the global
+  molecular-search overlay opened and returned real result cards.
+- The prior molecule desktop/mobile-dark evidence remains valid. Reduced-motion
+  behavior is enforced by the canonical component media queries and tests; the
+  available browser controller did not expose DevTools media emulation.
+- All acceptance criteria are satisfied. The task remains `CI_PENDING` until
+  exact feature-SHA and post-merge `Required gate` runs succeed.

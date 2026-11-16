@@ -1,0 +1,182 @@
+# 0030 - Complete cross-tab authentication synchronization
+
+- [x] DONE
+- [ ] BLOCKED
+- [ ] REVERTED
+- [ ] SKIPPED_DEPENDENCY
+
+## Objective
+
+Make login/logout/session changes converge deterministically across browser tabs using one fully owned cross-tab synchronization mechanism, and remove the currently orphaned `BroadcastChannel` path if it is not the chosen mechanism.
+
+Source: `FE-008` in Series `0001`.
+
+## Context
+
+`AuthService` constructs `new BroadcastChannel('mercurion-auth')` and exposes `broadcastLogin()` / `broadcastLogout()`, but the current repository contains no consumer of those methods and no `BroadcastChannel` listener. Independently, `SessionSyncService` listens for `storage` events on `login` and `ws_accessToken` and attempts cross-tab convergence with cookie guards. `AuthService` also uses storage events for WS refresh locking/token changes.
+
+The steady state must have one understandable cross-tab protocol rather than half of a BroadcastChannel implementation plus separate storage-event semantics.
+
+## Relevant files and modules
+
+- `MercurionWebNg/src/app/services/auth.service.ts`
+- `MercurionWebNg/src/app/services/session-sync.service.ts`
+- `MercurionWebNg/src/app/services/socket.IO/realtime-socket.service.ts`
+- canonical auth store from `0026`
+- auth/session persistence adapter from `0028`
+- login/logout/MFA/SSO completion paths
+- tests able to simulate two tabs/storage events
+
+## In scope
+
+- Inventory every cross-tab auth/session synchronization mechanism.
+- Select one canonical mechanism based on the existing implementation and remove dead/duplicate machinery.
+- Define typed cross-tab events/state transitions for login, logout and credential/session changes that actually require peer notification.
+- Ensure all tabs converge without duplicate logout/navigation/toasts or stale private Socket.IO state.
+- Add deterministic multi-context tests.
+
+## Out of scope
+
+- General cross-tab messaging for unrelated application domains.
+- Replacing server session validation with browser peer messages.
+- Socket reconnection algorithm redesign (`0039`), except invoking its public commands correctly.
+- Adding a service worker solely for cross-tab auth.
+
+## Decisions already made
+
+- There is exactly one canonical cross-tab auth synchronization path.
+- A browser peer event is a synchronization hint/event, not proof of server authentication.
+- Existing orphaned BroadcastChannel code must either become a complete owned protocol or be removed.
+- Given the current code already has working storage-event infrastructure, prefer consolidating around that existing mechanism unless repository evidence at execution time shows BroadcastChannel provides a necessary capability that storage events cannot satisfy.
+- All peer events feed the canonical auth store/session protocol rather than directly mutating UI state.
+
+## Requirements
+
+1. Confirm whether `broadcastLogin()` / `broadcastLogout()` have any live callers by execution time.
+2. Inventory `storage` listeners and distinguish auth state propagation from WS refresh-lock/token coordination.
+3. Define the canonical cross-tab event/state semantics: what change is observed, what is revalidated locally/server-side, and what store command results.
+4. If the existing storage-event path is sufficient, remove the unused `BroadcastChannel`, methods and lifecycle burden; otherwise fully implement typed BroadcastChannel receive/close semantics and remove redundant auth-state storage-event messaging.
+5. Ensure external login causes a peer tab to revalidate/upgrade session state without trusting initials/token blindly.
+6. Ensure external logout makes peer tabs converge to anonymous when server/client markers confirm logout, with no duplicate toast/navigation loops.
+7. Ensure token refresh events update private socket auth through the canonical token/session path without recursively triggering login/logout transitions.
+8. Clean up window/channel listeners deterministically when their owner is destroyed or use an application-lifetime singleton whose lifecycle is explicit and tested.
+9. Add tests simulating two tabs/contexts and event ordering, including duplicate events and stale events.
+
+## Acceptance criteria
+
+- [ ] Only one cross-tab auth synchronization mechanism remains authoritative.
+- [ ] No orphaned `BroadcastChannel` object/method remains.
+- [ ] Login in one tab causes another tab to converge after canonical session validation.
+- [ ] Logout in one tab makes another tab converge to anonymous without duplicate navigation/toasts.
+- [ ] WS token-refresh synchronization does not create auth-state loops.
+- [ ] Duplicate/stale peer events are idempotent.
+- [ ] Cross-tab listeners have explicit lifecycle/cleanup ownership.
+- [ ] Angular tests/build pass.
+
+## Validation
+
+From `MercurionWebNg`:
+
+```text
+npm test -- --watch=false
+npm run build
+```
+
+Run focused tests with two independent store/persistence contexts or equivalent fake `StorageEvent`/channel peers and prove idempotent convergence.
+
+## Browser validation
+
+Mandatory when local authentication credentials are available. Using Chrome DevTools MCP through `http://localhost:8888`:
+
+1. Open two pages/tabs for the same origin.
+2. Authenticate in tab A and verify tab B converges to the correct authenticated/session state without reload if that is the supported UX.
+3. Logout in tab A and verify tab B converges to anonymous, leaves protected UI/routes, and downgrades realtime state appropriately.
+4. Inspect console/network for duplicate redirects, repeated logout calls or reconnect storms.
+
+If the browser tooling cannot create/manage two pages or credentials are unavailable, record that exact blocker; multi-context automated tests remain mandatory.
+
+## Stop conditions
+
+Mark `BLOCKED` if a required cross-tab behaviour (for example whether login should immediately authenticate another already-open tab without explicit server revalidation) is not defined by the session protocol and cannot be inferred safely. Do not treat a peer message as an authentication credential.
+
+## Dependencies
+
+- `0010-unify-session-state-protocol.md`
+- `0026-create-canonical-angular-auth-state-store.md`
+- `0028-encapsulate-auth-session-browser-persistence.md`
+- `0029-preserve-authorization-scopes-through-every-login-flow.md`
+
+## Implementation notes
+
+The current `storage`-event path is already materially implemented while BroadcastChannel is send-only. Preserve the smallest coherent mechanism unless there is a concrete reason to switch; the goal is deterministic behaviour, not novelty.
+
+## Execution notes
+
+### Summary
+
+Implemented FE-008 on `feature/FE-008` from base
+`5614402d32db835b66110994f4e67c8bb00da44c`. Prerequisites FE-004, FE-006
+and FE-007 were verified DONE at execution time.
+
+The inventory confirmed that `AuthService`'s `BroadcastChannel` was
+send-only and had no callers or receiver. Storage events remain the sole
+cross-tab transport. `login` changes are typed session restore/logout hints
+and always trigger the existing server websocket handshake before session
+promotion; `ws_accessToken` changes remain credential-refresh hints owned by
+the realtime socket and no longer trigger an auth handshake. Duplicate
+logout events are idempotent, cookie guards prevent treating a stale client
+marker as proof of server logout, and `SessionSyncService` removes its
+listener and debounce timer in `ngOnDestroy`.
+
+### Validation performed
+
+- Initial unchanged baseline: `npm ci` passed (Node 22.16.0/npm 10.9.2);
+  `npm run ci:check` passed.
+- Focused protocol tests cover login marker ordering, logout marker ordering,
+  websocket token refresh classification, and unrelated keys/storage areas.
+- `npm run test:ci --workspace mercurion_web_ng` passed: 314 tests.
+- `npm run build --workspace mercurion_web_ng` passed. Existing Angular
+  bundle/CommonJS budget warnings remained non-fatal.
+- `git diff --check` passed and repository search confirmed no
+  `BroadcastChannel`, `broadcastLogin`, or `broadcastLogout` references remain.
+- Final clean-install `npm ci` passed after all source/generated updates.
+  Final complete `npm run ci:check` passed, including REST route ownership and
+  REST compatibility inventory checks.
+
+### Browser validation performed
+
+Runtime capability was started with the canonical commands. Nest reached
+`http://localhost:8888/health` with HTTP 200 and Angular reached
+`http://localhost:8888/` with HTTP 200. Tox21 started from
+`../MercurionTox21` using `.venv\Scripts\python.exe -m main` with
+`PYTHONUTF8=1`. All three task-started processes were stopped before final
+validation.
+
+Chrome DevTools MCP opened two same-origin pages at `http://localhost:8888/`.
+Both pages reached the public `/welcome` UI and exposed the `Accedi` marker;
+the dedicated profile had no authenticated non-production identity marker.
+No credentials were available, so login/logout actions and protected-state
+evidence were not attempted. The two-page capability and unauthenticated
+profile result were recorded without changing browser storage or auth state.
+
+### Changed files
+
+- `MercurionWebNg/src/app/services/auth.service.ts`
+- `MercurionWebNg/src/app/services/session-sync.service.ts`
+- `MercurionWebNg/src/app/services/session-sync.service.spec.ts`
+- This task recipe's execution notes and DONE status.
+- Generated inventories were refreshed because the source reference locations
+  changed: `docs/architecture/rest-route-ownership.json` and
+  `docs/architecture/rest-contract-compatibility.json`.
+
+### Decisions
+
+No blocker or human decision is required. The task uses the existing storage
+event mechanism and does not treat peer-provided initials or tokens as
+authentication proof.
+
+### Commits
+
+- `5e8013a1` — cross-tab auth implementation and tests.
+- `9c11e5ac` — generated REST route ownership references.
+- `fe696145` — generated REST compatibility references.

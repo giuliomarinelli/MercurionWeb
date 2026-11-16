@@ -1,0 +1,153 @@
+import { LoggerPort } from 'src/logging/logger.port'
+import { ExecutionContext, Inject, Injectable } from '@nestjs/common'
+import { Scope } from 'src/app_modules/user/models/enums/scope.enum'
+import { SecurityService } from './security.service'
+import { GeneralUtils } from 'src/utils/general-utils/general-utils'
+import { UUID } from 'crypto'
+import { LoggerContext } from 'src/logging/logger.port'
+import { Reflector } from '@nestjs/core'
+import { SCOPES_KEY } from 'src/metadata/metadata'
+
+import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
+import { IDENTITY_READ_PORT, IdentityReadPort } from '../models/interfaces/identity-read.port'
+
+@Injectable()
+export class ScopeService {
+
+    private readonly logger: LoggerContext
+
+    private readonly scopeValues = Object.values(Scope)
+
+    private readonly standardScopes: Scope[] = [
+        Scope.UseInference,
+        Scope.CreateMolecule,
+        Scope.ViewMolecule,
+        Scope.EditMolecule,
+        Scope.DeleteMolecule,
+        Scope.CreateCollection,
+        Scope.ViewCollection,
+        Scope.EditCollection,
+        Scope.DeleteCollection,
+        Scope.EditOwnProfile,
+        Scope.DeleteOwnAccount,
+        Scope.ManageMFA
+    ]
+
+    private readonly adminScopes: Scope[] = [
+        Scope.UseInference,
+        Scope.CreateMolecule,
+        Scope.ViewMolecule,
+        Scope.EditMolecule,
+        Scope.DeleteMolecule,
+        Scope.CreateCollection,
+        Scope.ViewCollection,
+        Scope.EditCollection,
+        Scope.DeleteCollection,
+        Scope.CreateFeedback,
+        Scope.UpdateFeedback,
+        Scope.ReadFeedback,
+        Scope.DeleteFeedback,
+        Scope.EditOwnProfile,
+        Scope.DeleteOwnAccount,
+        Scope.ManageMFA,
+        Scope.ViewUsers,
+        Scope.AssignScopes,
+        Scope.DeleteUsers,
+        Scope.SystemSettings,
+        Scope.ChangeLogLevels,
+        Scope.HandleTickets,
+        Scope.ViewInferenceHistory,
+        Scope.ViewModelPerformance,
+        Scope.TrainNewModel,
+    ]
+
+    constructor(
+        private readonly securityService: SecurityService,
+        @Inject(IDENTITY_READ_PORT)
+        private readonly identityRead: IdentityReadPort,
+        loggerFactory: LoggerPort
+    ) {
+        this.logger = loggerFactory.forContext(ScopeService.name)
+    }
+
+    getEncryptedStandardScopes() {
+        return this.encryptScopes(...this.standardScopes)
+    }
+
+    getEncryptedAdminScopes() {
+        return this.encryptScopes(...this.adminScopes)
+    }
+
+    decryptScopes(...encryptedScopeVals: string[]): Scope[] {
+        if (encryptedScopeVals.length === 0) {
+            return []
+        }
+        return encryptedScopeVals.map((es) => this.securityService.decrypt_AES256_GCM(es))
+            .filter((ds) => (this.scopeValues).includes(ds as Scope))
+            .map((strScopeVal) => strScopeVal as Scope)
+    }
+
+    encryptScopes(...decryptedScopeVals: Scope[]): string[] {
+        if (decryptedScopeVals.length === 0) {
+            return []
+        }
+        return GeneralUtils.distinctArray(decryptedScopeVals).filter((ds) => this.scopeValues.includes(ds))
+            .map((ds) => this.securityService.encrypt_AES256_GCM(ds))
+    }
+
+    async scopeVerificationLayer(userId: UUID, context: ExecutionContext, reflector: Reflector, jwtScpClaim: string): Promise<void> {
+
+        const requiredScopes = reflector.getAllAndOverride<Scope[]>(SCOPES_KEY, [
+            context.getHandler(),
+            context.getClass()
+        ])
+
+        if (!requiredScopes || requiredScopes.length === 0) {
+            return
+        }
+
+        const jwtScopes = this.generateScopesArrayFromJwtClaim(jwtScpClaim)
+
+        const validFromDB = await this.verifyUserHasScopes(userId, ...requiredScopes)
+        const validFromJwt = requiredScopes.every((scp) => jwtScopes.includes(scp))
+
+        if (!validFromDB || !validFromJwt) {
+            throw applicationError(ApplicationErrorCode.PERMISSION_DENIED)
+        }
+    }
+
+    generateScopesArrayFromJwtClaim(rawScopes: string | undefined): Scope[] {
+        if (!rawScopes) {
+            return []
+        }
+        const parts = rawScopes.split(/\s+/).filter(Boolean)
+        return parts
+            .map((s) => GeneralUtils.getEnumValueFromStringKey(Scope, s) ?? '')
+            .filter((s): s is Scope => this.scopeValues.includes(s as Scope))
+    }
+
+    async verifyUserHasScopes(userId: UUID, ...scopes: Scope[]): Promise<boolean> {
+        try {
+            const decScopes = await this.identityRead.getUserScopesById(userId) ?? []
+            for (const scp of scopes) {
+                if (!decScopes.includes(scp)) {
+                    return false
+                }
+            }
+            return true
+        } catch (e) {
+            this.logger.warn(`Error in verifyUserHasScopes, userId=${userId}`, e as object)
+            return false
+        }
+    }
+
+    async verifyUserClaimScopesConsistencyThenGetScopes(userId: UUID, jwtScpClaim: string): Promise<Scope[]> | never {
+        const decPersistedScopes = await this.identityRead.getUserScopesById(userId) ?? []
+        const tokenClaimScopes = this.generateScopesArrayFromJwtClaim(jwtScpClaim)
+        if (GeneralUtils.arrayEqualsIgnoreDuplicatesAndSorting(decPersistedScopes, tokenClaimScopes)) {
+            return decPersistedScopes
+        }
+        throw applicationError(ApplicationErrorCode.PERMISSION_DENIED)
+    }
+
+}

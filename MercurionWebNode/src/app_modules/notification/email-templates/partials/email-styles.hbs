@@ -1,0 +1,194 @@
+<style>
+  :root {
+    color-scheme: light dark;
+  }
+
+  body {
+    margin: 0;
+    padding: 24px 16px;
+    background-color: #f8fafc;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  .email-wrapper {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 560px;
+    margin: 0 auto;
+    background-color: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #cbd5e1;
+    padding: 28px;
+    overflow-wrap: anywhere;
+    word-wrap: break-word;
+  }
+
+  .logo {
+    display: none;
+    text-align: left;
+    margin-bottom: 24px;
+    padding: 12px;
+    background-color: #0a0a0a;
+    border: 1px solid #696e76;
+    border-radius: 15px;
+    width: fit-content;
+    box-shadow: 1px 1px 5px 1px #919191;
+    margin: auto;
+  }
+
+  h1 {
+    margin: 0 0 16px;
+    font-size: 22px;
+    line-height: 1.35;
+    color: #111827;
+  }
+
+  p,
+  li {
+    font-size: 15px;
+    line-height: 1.65;
+    color: #334155;
+  }
+
+  p {
+    margin: 0 0 16px;
+  }
+
+  ul {
+    margin: 8px 0 20px;
+    padding-left: 22px;
+  }
+
+  li {
+    margin-bottom: 6px;
+  }
+
+  .button-wrapper {
+    margin: 24px 0 20px;
+  }
+
+  .btn-primary {
+    display: inline-block;
+    box-sizing: border-box;
+    max-width: 100%;
+    padding: 12px 20px;
+    border-radius: 8px;
+    background-color: #1d4ed8;
+    color: #ffffff !important;
+    font-weight: 600;
+    font-size: 15px;
+    line-height: 1.5;
+    text-decoration: none;
+    text-align: center;
+  }
+
+  a:focus-visible {
+    outline: 2px solid #1d4ed8;
+    outline-offset: 4px;
+  }
+
+  .muted,
+  .code-help {
+    font-size: 14px;
+    color: #475569;
+  }
+
+  .fallback-link {
+    word-break: break-all;
+    font-size: 13px;
+    line-height: 1.7;
+    color: #1d4ed8;
+  }
+
+  .otp-code {
+    margin: 24px 0 12px;
+    padding: 16px 8px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background-color: #f1f5f9;
+    color: #111827;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.5;
+    letter-spacing: 0.16em;
+    text-align: center;
+  }
+
+  .code-help {
+    text-align: center;
+  }
+
+  .message-excerpt {
+    margin: 16px 0 20px;
+    padding: 16px;
+    border-left: 3px solid #cbd5e1;
+    background-color: #f1f5f9;
+    white-space: pre-line;
+  }
+
+  .footer {
+    margin-top: 28px;
+    border-top: 1px solid #cbd5e1;
+    padding-top: 16px;
+    font-size: 12px;
+    line-height: 1.65;
+    color: #475569;
+  }
+
+  @media only screen and (max-width: 480px) {
+    body {
+      padding: 16px 12px !important;
+    }
+
+    .email-wrapper {
+      padding: 20px !important;
+    }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    body {
+      background-color: #0a0a0a !important;
+    }
+
+    .email-wrapper {
+      background-color: #111827 !important;
+      border-color: #475569 !important;
+    }
+
+    h1,
+    .otp-code {
+      color: #f1f5f9 !important;
+    }
+
+    p,
+    li {
+      color: #e2e8f0 !important;
+    }
+
+    .muted,
+    .code-help,
+    .footer {
+      color: #cbd5e1 !important;
+    }
+
+    .fallback-link {
+      color: #93c5fd !important;
+    }
+
+    .otp-code,
+    .message-excerpt {
+      background-color: #1e293b !important;
+      border-color: #64748b !important;
+    }
+
+    .footer {
+      border-color: #475569 !important;
+    }
+
+    a:focus-visible {
+      outline-color: #93c5fd !important;
+    }
+  }
+</style>

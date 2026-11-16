@@ -1,0 +1,313 @@
+import { Inject, Injectable, Optional, type OnModuleInit, type OnModuleDestroy } from '@nestjs/common'
+import { JwtService, JwtSignOptions, JwtVerifyOptions } from '@nestjs/jwt'
+import { JwtAudience, JwtConfiguration } from 'src/config/config.types'
+import { ConfigService } from '@nestjs/config'
+import { TokenType } from '../models/enums/token-type.enum'
+import { randomUUID, UUID } from 'crypto'
+import { GeneralUtils } from 'src/utils/general-utils/general-utils'
+import { Scope } from 'src/app_modules/user/models/enums/scope.enum'
+import { FastifyRequest } from 'fastify'
+
+import { AppJwtPayload } from '../models/interfaces/app-jwt-payload.interface'
+import { SessionService } from './session.service'
+import { LoggerContext } from 'src/logging/logger.port'
+import { LoggerPort } from 'src/logging/logger.port'
+import { JwtKeysProvider } from '../providers/jwt-keys.provider'
+import { errorMessage } from 'src/utils/errors/error-message'
+import { ApplicationErrorCode, applicationError } from 'src/exception-handling/application-error'
+import { IDENTITY_READ_PORT, IdentityReadPort } from '../models/interfaces/identity-read.port'
+import { SecurityService } from './security.service'
+import { RedisService } from 'src/app_modules/redis/services/redis.service'
+import { redisKeys } from 'src/app_modules/redis/contracts/redis-contracts'
+import { Environment } from 'src/config/config.schema'
+import { JwtKeyRing } from '../keys/jwt-key-ring'
+import { JwtKeyRuntimeError } from '../keys/jwt-key-runtime-error'
+import { JWT_KEY_RUNTIME_OPTIONS, type JwtKeyRuntimeOptions } from '../keys/jwt-key-runtime.module'
+
+@Injectable()
+export class JwtToolsService implements OnModuleInit, OnModuleDestroy {
+
+    private readonly logger: LoggerContext
+
+    private readonly accessTokenConfig: JwtConfiguration = { expiresInMs: 0 }
+    private readonly ws_accessTokenConfig: JwtConfiguration = { expiresInMs: 0 }
+    private readonly preAuthorizationTokenConfig: JwtConfiguration
+    private readonly activationTokenConfig: JwtConfiguration
+    private readonly phoneNumberVerificationTokenConfig: JwtConfiguration
+    private readonly emailVerificationTokenConfig: JwtConfiguration
+    private readonly emailOtpMfaActivationTokenConfig: JwtConfiguration
+    private readonly smsOtpMfaActivationTokenConfig: JwtConfiguration
+    private readonly appTotpMfaActivationTokenConfig: JwtConfiguration
+    private readonly emailOtpMfaInactivationTokenConfig: JwtConfiguration
+    private readonly smsOtpMfaInactivationTokenConfig: JwtConfiguration
+    private readonly appTotpMfaInactivationTokenConfig: JwtConfiguration
+    private readonly changePasswordTokenConfig: JwtConfiguration
+    private readonly accountRecoveryTokenConfig: JwtConfiguration
+    private readonly sso_preAuthorizationTokenConfig: JwtConfiguration
+
+    private readonly jwtIssuer: string
+    private readonly jwtAudience: JwtAudience
+
+    private readonly privateKey: string = ''
+    private readonly publicKey: string = ''
+    private readonly ws_privateKey: string = ''
+    private readonly ws_publicKey: string = ''
+    private readonly keyRing: JwtKeyRing | null
+
+    constructor(
+        private readonly jwtService: JwtService,
+        private readonly configService: ConfigService,
+        @Inject(IDENTITY_READ_PORT)
+        private readonly identityRead: IdentityReadPort,
+        private readonly sessionService: SessionService,
+        loggerFactory: LoggerPort,
+        private readonly jwtKeys: JwtKeysProvider,
+        private readonly securityService: SecurityService,
+        private readonly redisService: RedisService,
+        @Optional() @Inject(JWT_KEY_RUNTIME_OPTIONS) keyOptions?: JwtKeyRuntimeOptions
+    ) {
+        this.logger = loggerFactory.forContext(JwtToolsService.name)
+
+        this.accessTokenConfig.expiresInMs = this.configService.get<number>('Jwt.accessToken.expiresInMs') as number
+        this.ws_accessTokenConfig.expiresInMs = this.configService.get<number>('Jwt.ws_accessToken.expiresInMs') as number
+
+        this.preAuthorizationTokenConfig = this.configService.get<JwtConfiguration>('Jwt.preAuthorizationToken') as JwtConfiguration
+        this.activationTokenConfig = this.configService.get<JwtConfiguration>('Jwt.activationToken') as JwtConfiguration
+        this.phoneNumberVerificationTokenConfig = this.configService.get<JwtConfiguration>('Jwt.phoneNumberVerificationToken') as JwtConfiguration
+        this.emailVerificationTokenConfig = this.configService.get<JwtConfiguration>('Jwt.emailVerificationToken') as JwtConfiguration
+        this.emailOtpMfaActivationTokenConfig = this.configService.get<JwtConfiguration>('Jwt.emailOtpMfaActivationToken') as JwtConfiguration
+        this.smsOtpMfaActivationTokenConfig = this.configService.get<JwtConfiguration>('Jwt.smsOtpMfaActivationToken') as JwtConfiguration
+        this.appTotpMfaActivationTokenConfig = this.configService.get<JwtConfiguration>('Jwt.appTotpMfaActivationToken') as JwtConfiguration
+        this.emailOtpMfaInactivationTokenConfig = this.configService.get<JwtConfiguration>('Jwt.emailOtpMfaInactivationToken') as JwtConfiguration
+        this.smsOtpMfaInactivationTokenConfig = this.configService.get<JwtConfiguration>('Jwt.smsOtpMfaInactivationToken') as JwtConfiguration
+        this.appTotpMfaInactivationTokenConfig = this.configService.get<JwtConfiguration>('Jwt.appTotpMfaInactivationToken') as JwtConfiguration
+        this.changePasswordTokenConfig = this.configService.get<JwtConfiguration>('Jwt.changePasswordToken') as JwtConfiguration
+        this.accountRecoveryTokenConfig = this.configService.get<JwtConfiguration>('Jwt.accountRecoveryToken') as JwtConfiguration
+        this.sso_preAuthorizationTokenConfig = this.configService.get<JwtConfiguration>('Jwt.sso_preAuthorizationToken') as JwtConfiguration
+
+        this.jwtIssuer = this.configService.get<string>('Jwt.issuer') as string
+        this.jwtAudience = this.configService.get<JwtAudience>('Jwt.audience')!
+
+        if (!this.jwtIssuer) {
+            throw new Error('Missing Jwt.issuer in config')
+        }
+        if (!this.jwtAudience?.access || !this.jwtAudience?.ws || !this.jwtAudience?.auth) {
+            throw new Error('Missing Jwt.audience in config')
+        }
+
+        this.keyRing = keyOptions === undefined ? null : new JwtKeyRing(
+            keyOptions, this.configService.getOrThrow<Environment>('App.env'), this.jwtService
+        )
+        // The existing bootstrap remains available until the runtime sources are explicitly composed.
+        // Configured runtimes never fall back to these legacy keys on any source/registry error.
+        if (this.keyRing) return
+
+        const minLen = 48 // 384 bit per HS512
+            ;[
+                this.preAuthorizationTokenConfig,
+                this.activationTokenConfig,
+                this.phoneNumberVerificationTokenConfig,
+                this.emailVerificationTokenConfig,
+                this.emailOtpMfaActivationTokenConfig,
+                this.smsOtpMfaActivationTokenConfig,
+                this.appTotpMfaActivationTokenConfig,
+                this.emailOtpMfaInactivationTokenConfig,
+                this.smsOtpMfaInactivationTokenConfig,
+                this.appTotpMfaInactivationTokenConfig,
+                this.changePasswordTokenConfig,
+                this.accountRecoveryTokenConfig,
+                this.sso_preAuthorizationTokenConfig
+            ].forEach(c => {
+                if (!c?.secret || c.secret.length < minLen) {
+                    throw new Error('Weak JWT secret in config')
+                }
+            })
+
+        const accessKeys = this.jwtKeys.getAccessKeyPair()
+        this.privateKey = accessKeys.privateKey
+        this.publicKey = accessKeys.publicKey
+
+        const wsKeys = this.jwtKeys.getWsKeyPair()
+        this.ws_privateKey = wsKeys.privateKey
+        this.ws_publicKey = wsKeys.publicKey
+    }
+
+    async onModuleInit(): Promise<void> {
+        await this.keyRing?.initialize()
+    }
+
+    onModuleDestroy(): void { this.keyRing?.close() }
+
+    async watchVerifiedConnection(id: string, token: string, deny: () => void): Promise<(() => void) | null> {
+        return this.keyRing ? this.keyRing.watchVerifiedConnection(id, token, deny) : null
+    }
+
+    private getJwtConfigurationFromTokenType(type: TokenType): JwtConfiguration {
+        switch (type) {
+            case TokenType.AccessToken: return this.accessTokenConfig
+            case TokenType.ws_AccessToken: return this.ws_accessTokenConfig
+            case TokenType.PreAuthorizationToken: return this.preAuthorizationTokenConfig
+            case TokenType.ActivationToken: return this.activationTokenConfig
+            case TokenType.PhoneNumberVerificationToken: return this.phoneNumberVerificationTokenConfig
+            case TokenType.EmailVerificationToken: return this.emailVerificationTokenConfig
+            case TokenType.AppTotpMfaActivationToken: return this.appTotpMfaActivationTokenConfig
+            case TokenType.AppTotpMfaInactivationToken: return this.appTotpMfaInactivationTokenConfig
+            case TokenType.EmailOtpMfaActivationToken: return this.emailOtpMfaActivationTokenConfig
+            case TokenType.EmailOtpMfaInactivationToken: return this.emailOtpMfaInactivationTokenConfig
+            case TokenType.SmsOtpMfaActivationToken: return this.smsOtpMfaActivationTokenConfig
+            case TokenType.SmsOtpMfaInactivationToken: return this.smsOtpMfaInactivationTokenConfig
+            case TokenType.ChangePasswordToken: return this.changePasswordTokenConfig
+            case TokenType.AccountRecoveryToken: return this.accountRecoveryTokenConfig
+            case TokenType.SSO_PreAuthorizationToken: return this.sso_preAuthorizationTokenConfig
+        }
+    }
+
+    public async generateToken(userId: UUID, type: TokenType, sessionId?: UUID): Promise<string> {
+        const jwtConfig = this.getJwtConfigurationFromTokenType(type)
+        const scopes: Scope[] = await this.identityRead.getUserScopesById(userId) ?? []
+        const scp = scopes
+            .map((s) => GeneralUtils.getEnumKeyByValue(Scope, s))
+            .filter((k) => k !== undefined)
+            .join(' ')
+
+
+        // 🔹 Usa RS256 per gli AccessToken, HS512 per gli altri
+        let signOptions: JwtSignOptions
+        let aud: string
+        if (type === TokenType.AccessToken) {
+            signOptions = { algorithm: "RS256", privateKey: this.privateKey }
+            aud = this.jwtAudience.access
+        } else if (type === TokenType.ws_AccessToken) {
+            signOptions = { algorithm: "RS256", privateKey: this.ws_privateKey }
+            aud = this.jwtAudience.ws
+        } else {
+            signOptions = { algorithm: "HS512", secret: jwtConfig.secret }
+            aud = this.jwtAudience.auth
+        }
+
+        const jti: UUID = randomUUID() // Genera JTI univoco per il token
+        const expiresAt = Math.floor(Date.now() / 1000) + (jwtConfig.expiresInMs / 1000)
+
+        // 🔹 Generazione del Token
+        const claims = {
+                iss: this.jwtIssuer,
+                aud,
+                sub: this.securityService.encryptUserId(userId),
+                jti,
+                sid: sessionId,
+                typ: type,
+                iat: Math.floor(Date.now() / 1000),
+                exp: expiresAt,
+                scp
+            }
+        const token: string = this.keyRing ? await this.keyRing.sign(claims, type)
+            : await this.jwtService.signAsync(claims, signOptions)
+
+        // 🔹 Se è un AccessToken, memorizziamo il JTI tra i token emessi
+        if (type === TokenType.AccessToken || type === TokenType.ws_AccessToken || type === TokenType.PreAuthorizationToken) {
+            if (sessionId == undefined) throw applicationError(ApplicationErrorCode.ACCESS_TOKEN_SESSION_MISSING)
+            await this.sessionService.registerIssuedToken(
+                sessionId.toString(),
+                jti,
+                jwtConfig.expiresInMs / 1000
+            )
+        } else {
+            await this.sessionService.registerIssuedToken(
+                this.configService.get<UUID>('Session.sessionZeroId')!.toString(),
+                jti,
+                jwtConfig.expiresInMs / 1000
+            )
+        }
+        // session 0 = sessione fittizia, per revocare token stateless
+        return token
+    }
+
+
+    public async verifyTokenAndGetPayload(
+        token: string,
+        type: TokenType,
+        ignoreExpiration: boolean = false,
+        skipRevocationCheck: boolean = false
+    ): Promise<AppJwtPayload> | never {
+
+        const jwtConfig = this.getJwtConfigurationFromTokenType(type)
+
+        try {
+
+            let verifyOptions: JwtVerifyOptions
+
+            if (type === TokenType.AccessToken) {
+                verifyOptions = {
+                    algorithms: ['RS256'],
+                    publicKey: this.publicKey,
+                    issuer: this.jwtIssuer,
+                    audience: this.jwtAudience.access,
+                    clockTolerance: 60,
+                    ignoreExpiration
+                }
+            } else if (type === TokenType.ws_AccessToken) {
+                verifyOptions = {
+                    algorithms: ['RS256'],
+                    publicKey: this.ws_publicKey,
+                    issuer: this.jwtIssuer,
+                    audience: this.jwtAudience.ws,
+                    clockTolerance: 60,
+                    ignoreExpiration
+                }
+            } else {
+                verifyOptions = {
+                    algorithms: ['HS512'],
+                    secret: jwtConfig.secret,
+                    issuer: this.jwtIssuer,
+                    audience: this.jwtAudience.auth,
+                    clockTolerance: 60,
+                    ignoreExpiration
+                }
+            }
+
+            const payload: AppJwtPayload = this.keyRing
+                ? await this.keyRing.verify(token, type, { issuer: this.jwtIssuer,
+                    audience: type === TokenType.AccessToken ? this.jwtAudience.access
+                        : type === TokenType.ws_AccessToken ? this.jwtAudience.ws : this.jwtAudience.auth,
+                    clockTolerance: 60, ignoreExpiration })
+                : await this.verifyLegacy(token, verifyOptions)
+            if (payload.typ !== type) {
+                throw applicationError(ApplicationErrorCode.TOKEN_TYPE_INVALID)
+            }
+            if (!skipRevocationCheck && await this.sessionService.isTokenRevoked(payload.jti)) {
+                throw applicationError(ApplicationErrorCode.TOKEN_REVOKED, `Revoked${type}`, { tokenType: type })
+            }
+            if (type === TokenType.PreAuthorizationToken && !skipRevocationCheck) {
+                const userId = this.securityService.decryptUserId(payload.sub)
+                const activeJti = await this.redisService.get(redisKeys.mfa.activePreAuthorization(userId))
+                if (activeJti !== payload.jti) {
+                    throw applicationError(ApplicationErrorCode.TOKEN_REVOKED, `Revoked${type}`, { tokenType: type })
+                }
+            }
+            return payload
+        } catch (e) {
+            if (e instanceof JwtKeyRuntimeError && e.operational) throw e
+            this.logger.warn(' > verifyTokenAndGetPayload > Error: ', errorMessage(e))
+            throw applicationError(type === TokenType.AccessToken ? ApplicationErrorCode.ACCESS_TOKEN_INVALID_OR_EXPIRED : type === TokenType.ChangePasswordToken ? ApplicationErrorCode.PASSWORD_CHANGE_TOKEN_INVALID_OR_EXPIRED : ApplicationErrorCode.TOKEN_INVALID_OR_EXPIRED, `InvalidOrExpired${type}`, { tokenType: type })
+        }
+    }
+
+    private async verifyLegacy(token: string, options: JwtVerifyOptions): Promise<AppJwtPayload> {
+        await this.jwtService.verifyAsync(token, options)
+        return this.jwtService.decode<AppJwtPayload>(token)
+    }
+
+    public decodeUnsafe(token: string): AppJwtPayload {
+        return this.jwtService.decode(token)
+    }
+
+    public extractAccessTokenFromReq(req: FastifyRequest): string {
+        const authorizationHeader = String(req.headers['authorization'] ?? '')
+        const m = authorizationHeader.match(/^Bearer\s+([A-Za-z0-9\-_]+\.[A-Za-z0-9\-_]+\.[A-Za-z0-9\-_]+)$/i)
+        if (!m) {
+            throw applicationError(ApplicationErrorCode.ACCESS_TOKEN_MISSING)
+        }
+        return m[1]
+    }
+
+}

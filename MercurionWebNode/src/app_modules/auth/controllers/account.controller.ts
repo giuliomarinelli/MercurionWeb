@@ -1,0 +1,400 @@
+import { ChangePasswordDTO } from './../models/dto/change-password.dto'
+import { MfaStrategy } from 'src/app_modules/user/models/enums/mfa-strategy.enum'
+import { BadRequestException, Body, Controller, Delete, Get, HttpCode, HttpStatus, NotFoundException, Param, Patch, Post, Query, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common'
+import { UserRegisterDTO } from 'src/app_modules/user/models/dto/user-register.cls.dto'
+import { AuthenticatedUserId, Authorization, Public, SessionId } from 'src/metadata/metadata'
+import { ConfirmChangeDTO, ConfirmDTO, ConfirmMfaChange, ConfirmWithObsContDTO, ConfirmWithPhoneMfaFeedback, ConfirmWithRecoveryCodeDTO } from 'src/models/confirm-responses.dto'
+import { AccountRegistrationUseCase, AccountActivationUseCase, AccountEmailAvailabilityQuery } from '../application/account-registration.use-case'
+import { AccountSensitiveDataUseCase } from '../application/account-sensitive-data.use-case'
+import { PasswordChangeUseCase, PasswordRecoveryUseCase } from '../application/password-recovery.use-case'
+import { ProfileAccountUseCase } from '../application/profile-account.use-case'
+import { GeneralUtils } from 'src/utils/general-utils/general-utils'
+import { publicTotpMetadata } from 'src/utils/temporal/temporal'
+import { ResponseService } from 'src/services/response.service'
+import { MfaChallengeService } from '../services/mfa-challenge.service'
+import { MfaEnrollmentService } from '../services/mfa-enrollment.service'
+import { MfaBackupCodeService } from '../services/mfa-backup-code.service'
+import { UUID } from 'crypto'
+import { TotpDTO } from '../models/dto/totp.cls.dto'
+import { ChangePhoneDTO } from '../models/dto/change-phone.cls.dto'
+import { EmailDTO } from '../models/dto/email.cls.dto'
+import { UserService } from 'src/app_modules/user/services/user.service'
+import { TurnstileGuard } from '../guards/turnstile.guard'
+import { SecurityService } from '../services/security.service'
+import { ProfileDTO, ProfileRegistryClientDTO, ProfileRegistryDTO } from '../models/dto/profile.dtos'
+import { SessionDTO } from '../models/dto/session.dto'
+import { BackupCodeStatusDTO } from 'src/app_modules/user/models/dto/backup-code-status.dto'
+import { ConfigService } from '@nestjs/config'
+import { BuildIdentityDTO } from '../models/dto/version.dto'
+import { type AuthProvider as WireAuthProvider, type BackupCodesDTO, type MfaStrategy as WireMfaStrategy, AccountIdKind, type ProvidedAccountIdDTO } from '@mercurion/rest-contracts'
+import {
+    ApplicationErrorCode,
+    applicationError,
+    isApplicationError
+} from 'src/exception-handling/application-error'
+import { ListActiveSessionsHandler } from '../application/session-authentication.handlers'
+import { buildIdentity } from 'src/generated/build-identity'
+import { RealtimeStateSyncService } from 'src/app_modules/socket-io/realtime-state-sync.service'
+
+
+
+
+@Controller('account')
+export class AccountController {
+
+    constructor(
+        private readonly registerAccount: AccountRegistrationUseCase,
+        private readonly activateAccountUseCase: AccountActivationUseCase,
+        private readonly emailAvailability: AccountEmailAvailabilityQuery,
+        private readonly sensitiveData: AccountSensitiveDataUseCase,
+        private readonly passwordChange: PasswordChangeUseCase,
+        private readonly passwordRecoveryUseCase: PasswordRecoveryUseCase,
+        private readonly profileAccount: ProfileAccountUseCase,
+        private readonly _r: ResponseService,
+        private readonly mfaChallenge: MfaChallengeService,
+        private readonly mfaEnrollment: MfaEnrollmentService,
+        private readonly mfaBackupCodes: MfaBackupCodeService,
+        private readonly userService: UserService,
+        private readonly securityService: SecurityService,
+        private readonly listActiveSessions: ListActiveSessionsHandler,
+        private readonly stateSync: RealtimeStateSyncService,
+        private readonly configService: ConfigService
+    ) { }
+
+    @Public()
+    @Post('/register')
+    @UseGuards(TurnstileGuard)
+    public async registerUser(@Body(new ValidationPipe({ transform: true })) userRegisterDTO: UserRegisterDTO): Promise<ConfirmWithObsContDTO> {
+        return this.registerAccount.execute({ registration: userRegisterDTO })
+    }
+
+    @Public()
+    @Patch('/activate')
+    public async activateAccount(@Query('t') activationToken: string): Promise<ConfirmWithRecoveryCodeDTO> {
+        if (!/^[A-Za-z0-9_-]+=*\.[A-Za-z0-9_-]+=*\.[A-Za-z0-9_-]+=*$/i.test(activationToken)) {
+            throw new BadRequestException('Invalid t param pattern')
+        }
+        return this.activateAccountUseCase.execute(activationToken)
+    }
+
+    @Patch('/email/1')
+    public async changeEmail_firstStep(
+        @AuthenticatedUserId() userId: UUID,
+        @Body(new ValidationPipe({ transform: true })) dto: EmailDTO
+    ): Promise<ConfirmChangeDTO> {
+        return await this.sensitiveData.requestEmailChange(userId, dto.email)
+    }
+
+    @Patch('/email/2')
+    public async changeEmail_secondStep(
+        @Body(new ValidationPipe({ transform: true })) dto: TotpDTO
+    ): Promise<ConfirmDTO> {
+        const { totp, secureToken } = dto
+        const isValid = await this.sensitiveData.confirmEmailChange(totp, secureToken)
+        if (!isValid) throw new UnauthorizedException('Invalid TOTP code')
+        return this._r.ok('Email changed successfully')
+    }
+
+    @Delete('/phone/1')
+    public async deletePhoneNumber_firstStep(@AuthenticatedUserId() userId: UUID): Promise<ConfirmChangeDTO> {
+        return this.sensitiveData.requestPhoneDeletion(userId)
+    }
+
+    @Patch('/phone/del/2')
+    public async deletePhoneNumber_secondStep(
+        @Body(new ValidationPipe({ transform: true })) dto: TotpDTO
+    ): Promise<ConfirmWithPhoneMfaFeedback> {
+        return this.sensitiveData.confirmPhoneDeletion(dto.totp, dto.secureToken)
+    }
+
+    @Patch('/phone/1')
+    public async changePhoneNumber_firstStep(
+        @AuthenticatedUserId() userId: UUID,
+        @Body(new ValidationPipe({ transform: true })) dto: ChangePhoneDTO
+    ): Promise<ConfirmChangeDTO> {
+        return this.sensitiveData.requestPhoneChange(userId, dto)
+    }
+
+    @Patch('/phone/2')
+    public async changePhoneNumber_secondStep(
+        @Body(new ValidationPipe({ transform: true })) dto: TotpDTO
+    ): Promise<ConfirmDTO> {
+        const { totp, secureToken } = dto
+        const isValid = await this.sensitiveData.confirmPhoneChange(totp, secureToken)
+        if (!isValid) {
+            throw new UnauthorizedException('Invalid TOTP code')
+        }
+        return this._r.ok('Phone number changed successfully')
+    }
+
+    @Patch('/mfa/enable/:strategy/1')
+    public async enableMfa_firstStep(
+        @Param('strategy') strategyKey: string | undefined,
+        @AuthenticatedUserId() userId: UUID
+    ): Promise<ConfirmMfaChange> {
+        const strategy: MfaStrategy = GeneralUtils.validateMfaStrategy(strategyKey)
+        return {
+            ...this._r.ok(`OTP sent or QR generated and secure_token generated for MFA strategy ${strategyKey}`),
+            ...publicTotpMetadata(await this.mfaEnrollment.enableFirstStep(userId, strategy))
+        }
+    }
+
+    @Patch('/mfa/enable/:strategy/2')
+    public async enableMfa_secondStep(
+        @Param('strategy') strategyKey: string | undefined,
+        @Body(new ValidationPipe({ transform: true })) totpDTO: TotpDTO,
+        @AuthenticatedUserId() userId: UUID
+    ): Promise<ConfirmDTO> {
+        const strategy: MfaStrategy = GeneralUtils.validateMfaStrategy(strategyKey)
+        const { totp, secureToken } = totpDTO
+        const isValid: boolean = await this.mfaEnrollment.enableSecondStep(totp, secureToken, strategy)
+        if (!isValid) {
+            throw new UnauthorizedException('Invalid MFA Code')
+        }
+        this.stateSync.publishToUser(userId, {
+            kind: 'resource-state-changed',
+            domain: 'account-security',
+            change: 'updated'
+        })
+        return this._r.ok(`MFA successfully enabled for strategy ${strategyKey}`)
+    }
+
+    @Patch('/mfa/disable/:strategy/1')
+    public async disableMfa_firstStep(
+        @Param('strategy') strategyKey: string | undefined,
+        @AuthenticatedUserId() userId: UUID
+    ): Promise<ConfirmMfaChange> {
+        const strategy: MfaStrategy = GeneralUtils.validateMfaStrategy(strategyKey)
+        return {
+            ...this._r.ok(`OTP sent and/or secure_token generated for MFA strategy ${strategyKey}`),
+            ...publicTotpMetadata(await this.mfaEnrollment.disableFirstStep(userId, strategy))
+        }
+    }
+
+    @Patch('/mfa/disable/:strategy/2')
+    public async disableMfa_secondStep(
+        @Param('strategy') strategyKey: string | undefined,
+        @Body(new ValidationPipe({ transform: true })) totpDTO: TotpDTO,
+        @AuthenticatedUserId() userId: UUID
+    ): Promise<ConfirmDTO> {
+        const strategy: MfaStrategy = GeneralUtils.validateMfaStrategy(strategyKey)
+        const { totp, secureToken } = totpDTO
+        const isValid: boolean = await this.mfaEnrollment.disableSecondStep(totp, secureToken, strategy)
+        if (!isValid) {
+            throw new UnauthorizedException('Invalid MFA Code')
+        }
+        this.stateSync.publishToUser(userId, {
+            kind: 'resource-state-changed',
+            domain: 'account-security',
+            change: 'updated'
+        })
+        return this._r.ok(`MFA successfully disabled for strategy ${strategyKey}`)
+    }
+
+    @Get('/provided-account-id')
+    public async getProvidedAccountId(@AuthenticatedUserId() userId: UUID): Promise<ProvidedAccountIdDTO> {
+        const dto = await this.userService.getUserProvidedAccountIdById(userId)
+        if (dto == null) {
+            throw new NotFoundException('AccountIdNotFound')
+        }
+        return dto
+    }
+
+    @Get('/auth-provider')
+    public async getAuthProvider(@AuthenticatedUserId() userId: UUID): Promise<WireAuthProvider> {
+        const p = await this.userService.getAuthProviderByUserId(userId)
+        if (!p) {
+            throw new NotFoundException()
+        }
+        return p
+    }
+
+    @Patch('/password')
+    public async changePassword(
+        @Body(new ValidationPipe({ transform: true })) dto: ChangePasswordDTO,
+        @AuthenticatedUserId() userId: UUID
+    ): Promise<ConfirmDTO> {
+        // eslint-disable-next-line prefer-const
+        let { oldPassword, newPassword } = dto
+        if (!oldPassword) {
+            oldPassword = ''
+        }
+        await this.passwordChange.execute({ oldPassword, newPassword, userId })
+        return this._r.ok('Password changed successfully')
+    }
+
+    @Public()
+    @UseGuards(TurnstileGuard)
+    @HttpCode(HttpStatus.OK)
+    @Post('/forgotten-password')
+    public async forgottenPassword(@Body() dto: EmailDTO): Promise<ConfirmWithObsContDTO> {
+        const { email } = dto
+        try {
+            await this.passwordRecoveryUseCase.sendResetLink(email)
+        } catch (e) {
+            if (isApplicationError(e, ApplicationErrorCode.PASSWORD_RESET_SEND_TOO_MANY_REQUESTS)) {
+                throw e
+            }
+            // pass
+        }
+        return {
+            ...this._r.ok('Password recovery link sent to user email'),
+            obscuredEmail: this.securityService.maskEmail(email)
+        }
+    }
+
+    @Public()
+    @Patch('/password-recovery')
+    public async passwordRecovery(
+        @Authorization() changePasswordToken: string,
+        @Body() changePasswordDTO: ChangePasswordDTO
+    ): Promise<ConfirmDTO> {
+        const { newPassword } = changePasswordDTO
+        await this.passwordRecoveryUseCase.completeReset(newPassword, changePasswordToken)
+        return this._r.ok('Password changed successfully')
+    }
+
+    @Public()
+    @Get('/is-authorized-to-recover-password')
+    isAuthorizedToRecoverPassword(
+        @Authorization() changePasswordToken: string
+    ): Promise<boolean> {
+        return this.passwordRecoveryUseCase.isAuthorized(changePasswordToken)
+    }
+
+    @Get('/profile-registry')
+    public async getProfileRegistry(
+        @AuthenticatedUserId() userId: UUID,
+        @Query('get_recent_history') getRecentHistory = 'true'
+    ): Promise<ProfileDTO> {
+        const result = await this.profileAccount.getProfile(userId, getRecentHistory === 'true')
+        if (!result) {
+            throw new NotFoundException('UserNotFound')
+        }
+        return result
+    }
+
+    @Get('/profile-registry/essential')
+    public async getEssentialProfileRegistry(@AuthenticatedUserId() userId: UUID): Promise<ProfileRegistryClientDTO> {
+        return this.profileAccount.getEssentialProfile(userId)
+    }
+
+    @Patch('/profile-registry')
+    public async updateProfileRegistry(
+        @AuthenticatedUserId() userId: UUID,
+        @Body(new ValidationPipe({ transform: true })) dto: ProfileRegistryDTO
+    ): Promise<ProfileRegistryClientDTO> {
+        const result = await this.profileAccount.updateProfile(userId, dto)
+        if (!result) {
+            throw new NotFoundException('UserNotFound::{updated: false}')
+        }
+        this.stateSync.publishToUser(userId, {
+            kind: 'resource-state-changed',
+            domain: 'profile',
+            change: 'updated'
+        })
+        return result
+    }
+
+    @Public()
+    @HttpCode(HttpStatus.OK)
+    @Post('/is-email-available')
+    public async isEmailAvailable(@Body(new ValidationPipe({ transform: true })) { email }: EmailDTO): Promise<boolean> {
+        return this.emailAvailability.execute(email)
+    }
+
+    @Get('/active-sessions')
+    public async getActiveSessions(
+        @AuthenticatedUserId() userId: UUID,
+        @SessionId() sessionId: UUID
+    ): Promise<SessionDTO[]> {
+        return this.listActiveSessions.execute({
+            userId,
+            currentSessionId: sessionId
+        })
+    }
+
+    @Get('/mfa/backup/status')
+    public async getBackupCodesStatus(
+        @AuthenticatedUserId() userId: UUID
+    ): Promise<BackupCodeStatusDTO> {
+        return this.mfaBackupCodes.getStatus(userId)
+    }
+
+    @Patch('/mfa/backup/regenerate')
+    @HttpCode(HttpStatus.OK)
+    public async regenerateBackupCodes(
+        @AuthenticatedUserId() userId: UUID
+    ): Promise<BackupCodesDTO> {
+
+        const strategies = await this.mfaChallenge.getEnabledMfaStrategies(userId)
+        if (!strategies.length) {
+            throw applicationError(ApplicationErrorCode.MFA_BACKUP_CODES_NOT_ENABLED)
+        }
+
+        const codes = await this.mfaBackupCodes.regenerate(userId)
+
+        this.stateSync.publishToUser(userId, {
+            kind: 'resource-state-changed',
+            domain: 'account-security',
+            change: 'updated'
+        })
+
+        // volendo si può anche loggare un evento di sicurezza tramite il canale del SecurityAuditService
+        // TODO maybe
+
+        return { codes }
+    }
+
+    @Get('/is-mfa-enabled')
+    public async isMfaEnabled(@AuthenticatedUserId() userId: UUID): Promise<boolean> {
+        return this.mfaChallenge.isMfaEnabled(userId)
+    }
+
+    @Get('/mfa-active-strategies')
+    public async getMfaActiveStrategies(@AuthenticatedUserId() userId: UUID): Promise<WireMfaStrategy[]> {
+        return (await this.mfaChallenge.getEnabledMfaStrategies(userId))
+            .map((val) => GeneralUtils.getEnumKeyByValue(MfaStrategy, val))
+            .filter((key): key is WireMfaStrategy => key != undefined)
+    }
+
+    @Get('/current-version')
+    public getCurrentVersion(): BuildIdentityDTO {
+        return buildIdentity
+    }
+
+    @Get('/masked-account-id')
+    public async getMaskedAccountId(@AuthenticatedUserId() userId: UUID): Promise<string> {
+        const dto = await this.userService.getUserProvidedAccountIdById(userId)
+        if (!dto) {
+            throw new NotFoundException('Fatal::account ID not found')
+        }
+        return dto.kind === AccountIdKind.EMAIL ?
+            this.securityService.maskEmail(dto.accountId)
+            :
+            this.securityService.mask_ORCID(dto.accountId)
+    }
+
+    @Get('/masked-phone')
+    public async getMaskedPhone(@AuthenticatedUserId() userId: UUID): Promise<string | null> {
+        const completePhone = await this.userService.getPhoneNumberById(userId)
+        if (!completePhone) {
+            return null
+        }
+        return this.securityService.maskPhone(completePhone)
+    }
+
+    @HttpCode(HttpStatus.OK)
+    @Post('/mask-email')
+    public maskEmail(@Body(new ValidationPipe()) { email }: EmailDTO): string {
+        return this.securityService.maskEmail(email)
+    }
+
+    @HttpCode(HttpStatus.OK)
+    @Post('/mask-phone')
+    public maskPhone(@Body(new ValidationPipe()) { internationalPrefix, phoneNumber }: ChangePhoneDTO): string {
+        const phone = internationalPrefix.trim() + phoneNumber.trim()
+        return this.securityService.maskPhone(phone)
+    }
+
+}

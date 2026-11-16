@@ -1,0 +1,224 @@
+import { Injectable } from '@nestjs/common'
+import { UUID } from 'crypto'
+import type { FingerprintData } from '@mercurion/rest-contracts'
+
+import { RedisService } from 'src/app_modules/redis/services/redis.service'
+import { redisKeys } from 'src/app_modules/redis/contracts/redis-contracts'
+import { LoggerContext } from 'src/logging/logger.port'
+import { LoggerPort } from 'src/logging/logger.port'
+import { UserService } from 'src/app_modules/user/services/user.service'
+import { MfaStrategy } from 'src/app_modules/user/models/enums/mfa-strategy.enum'
+import {
+    ApplicationErrorCode,
+    applicationHttpException
+} from 'src/exception-handling/application-error'
+import { GeneralUtils } from 'src/utils/general-utils/general-utils'
+import { TypeGuards } from 'src/utils/type-guards/type-guards'
+
+import { BackupCodeDTO } from '../models/dto/backup-code.cls.dto'
+import { TotpBodyDTO } from '../models/dto/totp.cls.dto'
+import { VerifyBodyDTO } from '../models/dto/verify-body.cls.dto.'
+import { TokenType } from '../models/enums/token-type.enum'
+import { VerifyKind } from '../models/enums/verify-kind.enum'
+import { JwtToolsService } from '../services/jwt-tools.service'
+import { MfaChallengeService } from '../services/mfa-challenge.service'
+import { SecurityService } from '../services/security.service'
+import { SessionService } from '../services/session.service'
+import { AuthenticationSessionService } from './authentication-session.service'
+import { utcInstantFromEpochMs } from 'src/utils/temporal/temporal'
+import type { UtcInstant } from '@mercurion/rest-contracts'
+
+export interface StartMfaChallengeCommand {
+    preAuthorizationToken: string
+    strategyKey: string
+    trustVerify: boolean
+}
+
+export type StartMfaChallengeResult =
+    | {
+        outcome: 'sent'
+        strategy: MfaStrategy
+        generatedAt: UtcInstant
+        expiresAt: UtcInstant
+    }
+    | { outcome: 'invalid-token' }
+    | { outcome: 'invalid-strategy' }
+
+@Injectable()
+export class StartMfaChallengeHandler {
+    constructor(
+        private readonly jwtTools: JwtToolsService,
+        private readonly mfaService: MfaChallengeService
+    ) { }
+
+    public async execute(
+        command: StartMfaChallengeCommand
+    ): Promise<StartMfaChallengeResult> {
+        try {
+            await this.jwtTools.verifyTokenAndGetPayload(
+                command.preAuthorizationToken,
+                TokenType.PreAuthorizationToken
+            )
+        } catch {
+            return { outcome: 'invalid-token' }
+        }
+
+        const strategy = GeneralUtils.getEnumValueFromStringKey(
+            MfaStrategy,
+            command.strategyKey
+        )
+        if (!strategy || strategy === MfaStrategy.APP_TOTP) {
+            return { outcome: 'invalid-strategy' }
+        }
+
+        const { generatedAt, expiresAt } = await this.mfaService.sendOtpToUser(
+            command.preAuthorizationToken,
+            strategy,
+            command.trustVerify
+        )
+
+        return {
+            outcome: 'sent',
+            strategy,
+            generatedAt: utcInstantFromEpochMs(generatedAt),
+            expiresAt: utcInstantFromEpochMs(expiresAt)
+        }
+    }
+}
+
+export interface CompleteMfaLoginCommand {
+    preAuthorizationToken: string
+    strategyKey: string
+    trustVerify: boolean
+    body: VerifyBodyDTO
+    fingerprintData: FingerprintData
+    ip: string
+    actualDeviceId: UUID
+    loginPendingValue: string
+}
+
+export type CompleteMfaLoginResult =
+    | {
+        outcome: 'authenticated'
+        accessToken: string
+        ws_accessToken: string
+        initials: string
+        signedDeviceId: string
+        persistLogin: boolean
+    }
+    | { outcome: 'invalid-strategy' }
+
+@Injectable()
+export class CompleteMfaLoginHandler {
+    private readonly logger: LoggerContext
+
+    constructor(
+        private readonly jwtTools: JwtToolsService,
+        private readonly mfaService: MfaChallengeService,
+        private readonly sessionService: SessionService,
+        private readonly redisService: RedisService,
+        private readonly userService: UserService,
+        private readonly securityService: SecurityService,
+        private readonly authenticationSession: AuthenticationSessionService,
+        loggerFactory: LoggerPort
+    ) {
+        this.logger = loggerFactory.forContext(CompleteMfaLoginHandler.name)
+    }
+
+    public async execute(
+        command: CompleteMfaLoginCommand
+    ): Promise<CompleteMfaLoginResult> {
+        let persistLogin = command.loginPendingValue === 'pending_long'
+        let userId: UUID
+        let sessionId: UUID
+        let jti: UUID
+        let sub: string
+
+        try {
+            ({ sub, sid: sessionId, jti } =
+                await this.jwtTools.verifyTokenAndGetPayload(
+                    command.preAuthorizationToken,
+                    TokenType.PreAuthorizationToken
+                ))
+            userId = this.securityService.decryptUserId(sub)
+        } catch {
+            try {
+                await this.jwtTools.verifyTokenAndGetPayload(
+                    command.preAuthorizationToken,
+                    TokenType.PreAuthorizationToken,
+                    true
+                )
+                throw applicationHttpException(
+                    ApplicationErrorCode.MFA_PREAUTHORIZATION_EXPIRED
+                )
+            } catch (error) {
+                this.logger.warn(
+                    ` > execute > Error: ${String(error)}`
+                )
+                throw applicationHttpException(
+                    ApplicationErrorCode.MFA_PREAUTHORIZATION_INVALID
+                )
+            }
+        }
+
+        if (!persistLogin) {
+            persistLogin = await this.sessionService.isSessionLongTerm(
+                sessionId,
+                userId
+            )
+        }
+
+        const expectedDeviceId = await this.redisService.get(
+            redisKeys.mfa.preAuthorizationDevice(jti)
+        )
+        if (expectedDeviceId && expectedDeviceId !== command.actualDeviceId) {
+            await this.sessionService.revokeToken(jti)
+            throw applicationHttpException(ApplicationErrorCode.MFA_DEVICE_MISMATCH)
+        }
+
+        let code: string
+        if (command.body.kind === VerifyKind.TOTP) {
+            code = (command.body.payload as TotpBodyDTO).totp
+        } else if (command.body.kind === VerifyKind.BACKUP) {
+            code = (command.body.payload as BackupCodeDTO).code
+        } else {
+            throw applicationHttpException(ApplicationErrorCode.PERMISSION_DENIED)
+        }
+
+        const strategy = GeneralUtils.getEnumValueFromStringKey(
+            MfaStrategy,
+            command.strategyKey
+        )
+        if (!TypeGuards.isMfaStrategy(strategy)) {
+            return { outcome: 'invalid-strategy' }
+        }
+
+        const verified = strategy !== MfaStrategy.BACKUP_CODE
+            ? await this.mfaService.verifyUserOtpOrAppTotp(
+                code,
+                command.preAuthorizationToken,
+                strategy
+            )
+            : await this.mfaService.verifyBackupCode(
+                code,
+                command.preAuthorizationToken
+            )
+        if (!verified) {
+            throw applicationHttpException(ApplicationErrorCode.MFA_CODE_INVALID)
+        }
+
+        return {
+            outcome: 'authenticated',
+            ...await this.authenticationSession.completeAuthenticatedSession(
+                userId,
+                sessionId,
+                command.fingerprintData,
+                command.ip,
+                command.trustVerify
+            ),
+            initials: await this.userService.getUserInitialsByUserId(userId) ?? '',
+            signedDeviceId: this.securityService.signDeviceId(command.actualDeviceId),
+            persistLogin
+        }
+    }
+}

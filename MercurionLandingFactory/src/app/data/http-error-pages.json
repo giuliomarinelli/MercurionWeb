@@ -1,0 +1,207 @@
+[
+  {
+    "code": 400,
+    "error": "Richiesta non valida",
+    "description": "La richiesta non è valida o è incompleta. Controlla i dati inseriti e riprova."
+  },
+  {
+    "code": 401,
+    "error": "Non autenticato",
+    "description": "Per accedere a questa risorsa devi effettuare l’accesso con un account valido."
+  },
+  {
+    "code": 402,
+    "error": "Pagamento richiesto",
+    "description": "Questa funzionalità è disponibile solo dopo il pagamento o l’attivazione di un piano."
+  },
+  {
+    "code": 403,
+    "error": "Accesso negato",
+    "description": "Non hai i permessi necessari per visualizzare questa pagina o eseguire questa azione."
+  },
+  {
+    "code": 404,
+    "error": "Pagina non trovata",
+    "description": "Siamo spiacenti, ma non siamo riusciti a trovare la pagina o il contenuto che cercavi."
+  },
+  {
+    "code": 405,
+    "error": "Azione non consentita",
+    "description": "Questo indirizzo non accetta il tipo di azione che hai provato a eseguire."
+  },
+  {
+    "code": 406,
+    "error": "Contenuto non disponibile",
+    "description": "Il contenuto richiesto non è disponibile in un formato compatibile con il tuo browser."
+  },
+  {
+    "code": 407,
+    "error": "Autenticazione proxy richiesta",
+    "description": "Per continuare devi autenticarti tramite il proxy di rete configurato."
+  },
+  {
+    "code": 408,
+    "error": "Tempo di richiesta scaduto",
+    "description": "La richiesta ha impiegato troppo tempo. Ricarica la pagina e riprova."
+  },
+  {
+    "code": 409,
+    "error": "Conflitto nei dati",
+    "description": "C’è un conflitto con lo stato attuale dei dati. Aggiorna la pagina e riprova con attenzione."
+  },
+  {
+    "code": 410,
+    "error": "Contenuto rimosso",
+    "description": "Questa pagina o risorsa è stata rimossa e non è più disponibile."
+  },
+  {
+    "code": 411,
+    "error": "Informazioni mancanti",
+    "description": "La richiesta inviata non contiene tutte le informazioni necessarie. Riprova più tardi."
+  },
+  {
+    "code": 412,
+    "error": "Condizioni non soddisfatte",
+    "description": "Alcune condizioni richieste per completare l’operazione non sono state soddisfatte."
+  },
+  {
+    "code": 413,
+    "error": "Dati troppo grandi",
+    "description": "I dati inviati sono troppo voluminosi per essere elaborati. Riduci la dimensione e riprova."
+  },
+  {
+    "code": 414,
+    "error": "Indirizzo troppo lungo",
+    "description": "L’indirizzo richiesto è troppo lungo e non può essere elaborato correttamente."
+  },
+  {
+    "code": 415,
+    "error": "Tipo di file non supportato",
+    "description": "Il tipo di file inviato non è supportato dal sistema."
+  },
+  {
+    "code": 416,
+    "error": "Parte non disponibile",
+    "description": "La parte di contenuto richiesta non è disponibile. Riprova senza usare il ripristino parziale."
+  },
+  {
+    "code": 417,
+    "error": "Richiesta non accettata",
+    "description": "Non è stato possibile soddisfare le aspettative della richiesta. Riprova più tardi."
+  },
+  {
+    "code": 418,
+    "error": "Errore imprevisto",
+    "description": "Si è verificato un comportamento imprevisto nella richiesta. Riprova più tardi."
+  },
+  {
+    "code": 421,
+    "error": "Richiesta inviata al server sbagliato",
+    "description": "La richiesta è stata inviata a un server non adatto a gestirla. Riprova più tardi."
+  },
+  {
+    "code": 422,
+    "error": "Dati non validi",
+    "description": "I dati inviati non sono validi o completi. Controllali con attenzione e riprova."
+  },
+  {
+    "code": 423,
+    "error": "Risorsa bloccata",
+    "description": "La risorsa è temporaneamente bloccata e non può essere modificata."
+  },
+  {
+    "code": 424,
+    "error": "Operazione dipendente non riuscita",
+    "description": "Questa operazione è fallita perché un passaggio precedente non è andato a buon fine."
+  },
+  {
+    "code": 425,
+    "error": "Richiesta rifiutata per sicurezza",
+    "description": "La richiesta è stata rifiutata perché considerata troppo precoce o rischiosa. Riprova tra qualche istante."
+  },
+  {
+    "code": 426,
+    "error": "Aggiornamento richiesto",
+    "description": "Per continuare devi usare una versione più recente del client o un metodo di connessione aggiornato."
+  },
+  {
+    "code": 428,
+    "error": "Ulteriori informazioni richieste",
+    "description": "Per sicurezza, questa operazione richiede informazioni aggiuntive. Ricarica la pagina e riprova."
+  },
+  {
+    "code": 429,
+    "error": "Troppe richieste",
+    "description": "Hai effettuato troppe richieste in poco tempo. Attendi qualche istante e riprova."
+  },
+  {
+    "code": 431,
+    "error": "Richiesta troppo complessa",
+    "description": "Le informazioni inviate insieme alla richiesta sono troppo grandi. Semplifica i dati e riprova."
+  },
+  {
+    "code": 451,
+    "error": "Contenuto non disponibile per motivi legali",
+    "description": "Il contenuto richiesto non è disponibile per motivi legali o di limitazioni regionali."
+  },
+  {
+    "code": 500,
+    "error": "Errore interno del server",
+    "description": "Si è verificato un errore imprevisto sul server. Riprova tra qualche minuto."
+  },
+  {
+    "code": 501,
+    "error": "Funzione non disponibile",
+    "description": "Questa funzione non è al momento disponibile sul server."
+  },
+  {
+    "code": 502,
+    "error": "Errore del servizio a monte",
+    "description": "Il server ha ricevuto una risposta non valida da un servizio esterno. Riprova più tardi."
+  },
+  {
+    "code": 503,
+    "error": "Servizio non disponibile",
+    "description": "Il servizio è temporaneamente non disponibile o sovraccarico. Riprova più tardi."
+  },
+  {
+    "code": 504,
+    "error": "Tempo di risposta scaduto",
+    "description": "Il server non ha ricevuto risposta in tempo da un servizio esterno. Riprova più tardi."
+  },
+  {
+    "code": 505,
+    "error": "Versione non supportata",
+    "description": "Il server non supporta il tipo di richiesta utilizzato. Aggiorna il browser o riprova."
+  },
+  {
+    "code": 506,
+    "error": "Errore di configurazione interna",
+    "description": "Si è verificato un problema di configurazione interna del server. Riprova più tardi."
+  },
+  {
+    "code": 507,
+    "error": "Spazio insufficiente",
+    "description": "Il server non dispone al momento delle risorse necessarie per completare la richiesta."
+  },
+  {
+    "code": 508,
+    "error": "Errore di elaborazione",
+    "description": "Il server ha rilevato un problema durante l’elaborazione della richiesta. Riprova più tardi."
+  },
+  {
+    "code": 510,
+    "error": "Richiesta incompleta",
+    "description": "Per completare la richiesta servono informazioni aggiuntive non ancora fornite."
+  },
+  {
+    "code": 511,
+    "error": "Autenticazione di rete richiesta",
+    "description": "Per continuare devi autenticarti sulla rete, ad esempio tramite una pagina di accesso."
+  },
+  {
+    "code": 599,
+    "error": "Timeout di connessione",
+    "description": "La connessione con il server ha impiegato troppo tempo e la richiesta è scaduta. Riprova."
+  }
+]

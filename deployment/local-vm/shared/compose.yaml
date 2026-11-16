@@ -1,0 +1,91 @@
+# INF-VM-03 synthetic fixtures only. VM runtime authorized by VM-033; no application deployment.
+name: mercurion-shared
+
+x-fixture: &fixture
+  image: sha256:65bd3d9f1d7fa268dd1909973ba7eb4bdf41f6dcf2cfbe76ba9528b170f3fd79
+  entrypoint: [python]
+  dns_opt: [ndots:1]
+  volumes: [../fixtures/topology_fixture.py:/fixture/topology_fixture.py:ro]
+  profiles: [topology-fixture]
+  pull_policy: never
+  user: '65534:65534'
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  mem_limit: 64m
+  cpus: 0.25
+  pids_limit: 32
+  restart: 'no'
+
+services:
+  cloudflared:
+    <<: *fixture
+    command: [-B, /fixture/topology_fixture.py, serve, --identity, cloudflared]
+    networks: [edge, tunnel-egress]
+  nginx-edge:
+    <<: *fixture
+    command: [-B, /fixture/topology_fixture.py, serve, --identity, nginx-edge]
+    x-mercurion-canonical-service: nginx
+    networks: [edge, stg-web, prod-web]
+    expose: ['80']
+  meilisearch:
+    <<: *fixture
+    command: [-B, /fixture/topology_fixture.py, serve, --identity, meilisearch]
+    x-mercurion-canonical-service: meilisearch
+    networks: [stg-search, prod-search]
+    expose: ['7700']
+    volumes: [../fixtures/topology_fixture.py:/fixture/topology_fixture.py:ro, meili-data:/fixture-data]
+  meilisearch-ui:
+    <<: *fixture
+    command: [-B, /fixture/topology_fixture.py, serve, --identity, meilisearch-ui]
+    profiles: [admin-fixture]
+    networks: [admin-ui]
+    expose: ['24900']
+
+networks:
+  edge:
+    name: mercurion_edge
+    driver: bridge
+    enable_ipv4: true
+    enable_ipv6: false
+    internal: true
+  tunnel-egress:
+    name: mercurion_tunnel_egress
+    driver: bridge
+    enable_ipv4: true
+    enable_ipv6: false
+    internal: false
+  stg-web:
+    name: mercurion_stg_web
+    driver: bridge
+    enable_ipv4: true
+    enable_ipv6: false
+    internal: true
+  prod-web:
+    name: mercurion_prod_web
+    driver: bridge
+    enable_ipv4: true
+    enable_ipv6: false
+    internal: true
+  stg-search:
+    name: mercurion_stg_search
+    driver: bridge
+    enable_ipv4: true
+    enable_ipv6: false
+    internal: true
+  prod-search:
+    name: mercurion_prod_search
+    driver: bridge
+    enable_ipv4: true
+    enable_ipv6: false
+    internal: true
+  admin-ui:
+    name: mercurion_admin_ui
+    driver: bridge
+    enable_ipv4: true
+    enable_ipv6: false
+    internal: true
+
+volumes:
+  meili-data:
+    name: mercurion_shared_meili

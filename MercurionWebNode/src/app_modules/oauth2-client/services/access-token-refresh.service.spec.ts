@@ -1,0 +1,25 @@
+import { Test, TestingModule } from '@nestjs/testing'
+import { OAuth2AccessTokenRefreshService } from './access-token-refresh.service'
+import { OAuth2ClientService } from './oauth2-client.service'
+import { LoggerPort } from 'src/logging/logger.port'
+
+describe('AccessTokenRefreshService', () => {
+  let service: OAuth2AccessTokenRefreshService
+
+  beforeEach(async () => {
+    const mockLogger = { log: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() }
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        OAuth2AccessTokenRefreshService,
+        { provide: OAuth2ClientService, useValue: { getAccessToken: jest.fn() } },
+        { provide: LoggerPort, useValue: { forContext: jest.fn().mockReturnValue(mockLogger) } },
+      ],
+    }).compile()
+
+    service = module.get<OAuth2AccessTokenRefreshService>(OAuth2AccessTokenRefreshService)
+  })
+
+  it('should be defined', () => {
+    expect(service).toBeDefined()
+  })
+})
